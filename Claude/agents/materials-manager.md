@@ -13,6 +13,8 @@ Material definitions inform the Estimation Engine but do not themselves calculat
 
 ### Required Reading
 - **[docs/PaintFactor_OS.md](../docs/PaintFactor_OS.md)** — System architecture and operating doctrine
+- **[docs/Protection_and_Masking_Doctrine.md](../docs/Protection_and_Masking_Doctrine.md)** — Floor protection and masking systems by application method
+- **[docs/Materials_and_Consumables_Doctrine.md](../docs/Materials_and_Consumables_Doctrine.md)** — Tape, abrasives, rollers, brushes, spackle, caulk usage rules
 
 ### Geometry Constraint
 - Coverage rates must be expressed per unit (SF, LF, EA) — not as totals

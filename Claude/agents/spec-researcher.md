@@ -14,6 +14,7 @@ Research informs spec design but does not itself produce estimates or runtime be
 ### Required Reading
 - **[docs/PaintFactor_OS.md](../docs/PaintFactor_OS.md)** — System architecture and operating doctrine
 - **[docs/PaintScope_EdgeLF_Mapping.md](../docs/PaintScope_EdgeLF_Mapping.md)** — Geometry sourcing rules for edge work
+- **[docs/Quality_Tiers_and_Surface_Condition.md](../docs/Quality_Tiers_and_Surface_Condition.md)** — Quality tier definitions for research context
 
 ### Geometry Constraint
 - This agent must NOT invent or assume geometry values (SF, LF, EA)

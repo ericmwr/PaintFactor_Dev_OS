@@ -14,6 +14,8 @@ This agent defines production RATES and FACTORS. The Estimation Engine multiplie
 ### Required Reading
 - **[docs/PaintFactor_OS.md](../docs/PaintFactor_OS.md)** — System architecture and operating doctrine
 - **[docs/PaintScope_EdgeLF_Mapping.md](../docs/PaintScope_EdgeLF_Mapping.md)** — Geometry sourcing rules for edge work
+- **[docs/Estimation_Modifiers_Doctrine.md](../docs/Estimation_Modifiers_Doctrine.md)** — Time vs rate modifiers, height/complexity/color/texture factors
+- **[docs/Quality_Tiers_and_Surface_Condition.md](../docs/Quality_Tiers_and_Surface_Condition.md)** — QT2-QT6 definitions, condition modifiers, hourly gates
 
 ### Geometry Constraint
 - Production rates are per-unit (SF/hr, LF/hr, EA/hr) — never totals

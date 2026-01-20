@@ -1,0 +1,272 @@
+# Materials and Consumables Doctrine
+
+**Status:** Canonical
+**Version:** 1.0
+**Last Updated:** 2026-01-20
+
+This document defines how consumable materials (tape, abrasives, rollers, brushes, spackle, caulk) are selected and quantified for painting operations. AI agents generating specs MUST follow this doctrine for consumable usage models.
+
+---
+
+## Core Principles
+
+1. **Consumable selection is driven by function, not brand**
+2. **Quantity estimation should be practical, not precise** — some items are contractor discretion
+3. **Product Data Sheets (PDS) are authoritative** for material compatibility
+4. **Quality tier affects process discipline, not necessarily consumable quantity**
+
+---
+
+## Tape Taxonomy
+
+### Types and Primary Uses
+
+| Tape Type | Primary Use | Surface Compatibility | Duration Guidance |
+|-----------|-------------|----------------------|-------------------|
+| **Regular Masking** (yellow/white) | Bulk seam taping, plastic attachment, multi-purpose | Bare wood, metal, glass | Short duration only — remove same day |
+| **Blue Painter's Tape** | Standard masking, general purpose | Painted surfaces, wood, glass | Moderate duration — can remain 1-3 days |
+| **Green Edge-Seal Tape** (Frog Tape) | Crisp paint lines, preventing bleed-through | Painted surfaces, smooth substrates | Moderate-long duration |
+| **Yellow Delicate Surface** | Cabinets, veneers, fresh paint | Delicate finishes, lacquer, veneer | Long duration safe |
+| **Extended Duration Tapes** | Multi-day projects, phased work | All surfaces | 7-14+ days |
+
+### Tape Selection Rules
+
+```
+IF surface = 'cabinet_veneer' OR surface = 'fresh_coating'
+  → Yellow Delicate Surface Tape
+
+IF edge_quality_required = 'crisp' AND surface = 'smooth'
+  → Green Edge-Seal Tape
+  → NOTE: Seal edge with damp rag after application, before painting
+
+IF task = 'seam_taping' OR task = 'plastic_attachment'
+  → Regular Masking Tape (economy)
+
+IF task = 'general_masking' AND surface NOT delicate
+  → Blue Painter's Tape (default)
+
+IF project_duration > 3 days AND tape remains installed
+  → Extended Duration Tape
+```
+
+### Critical Technique: Green Tape Edge Seal
+
+When using green edge-seal tape for crisp lines:
+1. Apply tape to surface
+2. Wipe tape edge with damp rag to activate seal
+3. Allow to dry before painting
+4. Paint turns out crisp at tape line
+
+**Why:** The damp rag activates the paint-blocking gel in the tape edge, creating a micro-seal that prevents bleed-through.
+
+### Surfaces to AVOID with Regular Masking Tape
+
+- Fresh paint (under 24-48 hours cure)
+- Delicate veneers
+- Wallpaper
+- Newly installed coatings
+
+**Why:** High-tack adhesive can damage or pull these surfaces on removal.
+
+---
+
+## Abrasives (Sandpaper and Applicators)
+
+### Sanding Blocks — The Standard Tool
+
+Painters primarily use **sanding blocks** rather than loose sandpaper sheets. Blocks come in grit RANGES, not specific grits.
+
+| Block Type | Grit Range | Common Uses |
+|------------|------------|-------------|
+| Fine | 150-220 | Patches, trim, between-coat detail |
+| Medium | 100-150 | General prep, scuff sanding |
+| Coarse | 60-100 | Heavy prep, paint removal, rough surfaces |
+
+**Default for most tasks:** Fine or Medium blocks for patch/trim work.
+
+### Pole Sanders — Large Surface Work
+
+Pole sanders accept sandpaper pads and attach to extension poles for wall/ceiling work.
+
+| Grit | Application |
+|------|-------------|
+| 80 | First sand on repaint drywall BEFORE patching (aggressive) |
+| 100 | Bare drywall, patches, standard prep |
+| 220 | Between finish coats (light, smooth) |
+
+**Rule:** Pole sanders are for large surfaces (walls, ceilings). Use blocks for trim and detail.
+
+### Power Sanders
+
+| Type | Primary Use |
+|------|-------------|
+| Orbital | Doors, woodwork, built-ins, large flat surfaces |
+| Dremel | Detail edges, inside corners |
+| Square Head | Tight spaces, corners |
+
+**Workflow:** Orbital for field, dremel or block for edges and inside corners.
+
+---
+
+## Roller Taxonomy
+
+### Roller Sizes
+
+| Size | Name | Use Cases |
+|------|------|-----------|
+| 4" | Cigar Roller | Small surfaces, cut-in backroll, detail work |
+| 4" | Barrel Roller | Small surfaces, higher paint capacity than cigar |
+| 9" | Standard Roller | Walls, ceilings, large trim, flat panel doors |
+| 14-18" | Large Format | Spray and backroll, high-efficiency large surfaces |
+
+### Nap Thickness Selection
+
+| Surface Texture | Recommended Nap |
+|-----------------|-----------------|
+| Smooth | 1/4" or 3/8" |
+| Light texture (orange peel) | 1/2" |
+| Medium texture (knockdown) | 3/4" |
+| Heavy texture | 1" or 1-1/4" |
+
+### Roller Material Selection
+
+Roller material (lambskin, polyester, microfiber, foam) is determined by:
+1. **Product Data Sheet (PDS)** requirements — authoritative
+2. Painter discretion when PDS is silent
+
+**Do not codify roller material in specs** — reference PDS instead.
+
+### Roller Skin Replacement
+
+**Proposed benchmark:** ~5,000 SF per roller skin replacement
+
+**HOWEVER:** This is contractor discretion, not vital to the estimate.
+
+**Quantity drivers:**
+- Number of distinct products (primer, ceiling, wall, trim)
+- Number of colors per product
+- NOT quality tier multipliers — **deprecate roller quality tier multipliers**
+
+**Why deprecate quality multipliers:** Field practice shows roller replacement is driven by product/color changes, not quality expectations. The multiplier adds false precision.
+
+---
+
+## Brushes
+
+### Current Error in Pilot Specs
+
+The pilot spec shows 500 LF lifespan per brush. This is **inaccurate**.
+
+**Actual:** ~5,000 LF with minimal care. Painters maintain their brushes.
+
+### Correct Brush Usage Model
+
+**Rule 1:** 1 brush per material type used (primer brush, wall paint brush, trim paint brush)
+
+**Rule 2 (Brush & Roll projects):** Add 1 brush per crew member per 40 gallons of related product
+
+**Example:**
+- 2-person crew
+- 80 gallons total wall paint
+- Brush calculation: 2 brushes (1 per 40 gal per person) + 1 (per material) = 3 brushes
+
+### Brush Type Selection
+
+**Reference PDS for brush type** (nylon, polyester, blend, natural bristle)
+
+**Default:** Painter's discretion when PDS is silent
+
+**Do not over-specify brush types in specs.**
+
+---
+
+## Spackle
+
+### Usage Heuristics
+
+| Scenario | Approximate Usage |
+|----------|-------------------|
+| Standard repaint (3,500 SF) | 1 large tub (32 oz) |
+| Good condition | 0.5x standard |
+| Fair condition | 1.5x standard |
+| Poor condition | Hourly — do not estimate |
+
+### Exception: New Construction Trim Fastener Filling
+
+When filling fastener holes on new trim, wainscote, paneling, or shiplap:
+
+**Method:** Overfill holes → sand flush = HIGH waste factor
+
+**Usage increase:** Significantly higher than repaint — potentially 3-5x
+
+**Rule:** Calculate new trim fastener fill as separate line item based on trim LF, not wall SF.
+
+---
+
+## Caulk
+
+### Usage Depends on Project Type
+
+| Project Type | Heuristic |
+|--------------|-----------|
+| New Construction | ~72 LF per tube (more consistent gaps, higher volume) |
+| Repaint (touch-up) | ~200-300 LF per tube (assuming 50% of trim needs caulk) |
+
+### Joint Size Reference Chart
+
+When detailed estimation is required, use this chart (LF per tube):
+
+|           | **1/8" width** | **1/4" width** | **3/8" width** | **1/2" width** |
+|-----------|---------------|---------------|---------------|---------------|
+| **1/8" depth** | 96 | 48 | 36 | 24 |
+| **1/4" depth** | 48 | 24 | 18 | 12 |
+| **3/8" depth** | 32 | 16 | 12 | 8 |
+| **1/2" depth** | 24 | 12 | 9 | 6 |
+
+### Standard vs. Large Gap Handling
+
+**Standard gaps (1/64" to 1/8"):** Use heuristic averages with waste factor
+
+**Large gaps (1/8" to 1/2"+):**
+- Flag for labor compensation (more time required)
+- May require second coat of caulk to flush
+- Do NOT record individual gap sizes (overkill)
+- Note as exception in scope, estimate labor adder
+
+**Why not measure gaps:** Recording individual gap sizes is impractical. Use heuristics unless project is notably worse than average.
+
+---
+
+## Consumables NOT to Over-Engineer
+
+Some consumables are trivial to track and should be left to contractor discretion:
+
+| Item | Guidance |
+|------|----------|
+| Rags | Include nominal amount; don't calculate |
+| Stir sticks | Bundle with paint purchase |
+| Painter's pyramids | Include if doors in scope |
+| Bucket liners | Include nominal amount |
+| Spray filters | Per job day (if spray) |
+
+---
+
+## Summary: What Goes in materials.json
+
+For consumable_usage_models, include:
+
+| Consumable | Driven By | Notes |
+|------------|-----------|-------|
+| Tape | LF of masked edges | Type selected per surface |
+| Sandpaper/blocks | SF or LF by task | Grit per application |
+| Roller covers | Product count × color count | Not quality tier |
+| Brushes | Material count + gallons ÷ 40 per crew | Deprecate LF model |
+| Spackle | SF with condition modifier | Exception for NC trim |
+| Caulk | LF of trim (NC: 72, Repaint: 200-300) | Flag large gaps |
+
+---
+
+## References
+
+- Field notes from professional painting contractor (2026-01-20)
+- PaintFactor DevOS architecture
