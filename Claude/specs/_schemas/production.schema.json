@@ -1,0 +1,85 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "production.schema.json",
+  "title": "PaintFactor Production Logic Schema",
+  "type": "object",
+  "required": [
+    "spec_family_id",
+    "version",
+    "status",
+    "review_required",
+    "task_production_rates",
+    "factor_modifiers",
+    "quality_effects",
+    "assumptions",
+    "risks",
+    "validation_plan"
+  ],
+  "properties": {
+    "spec_family_id": { "type": "string", "pattern": "^SF_[A-Z0-9_]+$" },
+    "version": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$" },
+    "status": { "type": "string", "enum": ["draft", "review_required", "approved", "deprecated"] },
+    "review_required": { "type": "boolean" },
+
+    "task_production_rates": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["task_id", "unit_of_measure", "rate_per_hour", "crew_size"],
+        "properties": {
+          "task_id": { "type": "string", "pattern": "^TSK_[A-Z0-9_]+$" },
+          "unit_of_measure": { "type": "string", "enum": ["EA", "LF", "SF"] },
+          "rate_per_hour": { "type": "number", "exclusiveMinimum": 0 },
+          "crew_size": { "type": "integer", "minimum": 1, "maximum": 12 },
+          "notes": { "type": "string" }
+        },
+        "additionalProperties": true
+      }
+    },
+
+    "factor_modifiers": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["factor_id", "description", "applies_to_tasks", "modifier_type", "value_range"],
+        "properties": {
+          "factor_id": { "type": "string", "pattern": "^FAC_[A-Z0-9_]+$" },
+          "description": { "type": "string" },
+          "applies_to_tasks": {
+            "type": "array",
+            "items": { "type": "string", "pattern": "^TSK_[A-Z0-9_]+$" }
+          },
+          "modifier_type": { "type": "string", "enum": ["multiplier", "additive"] },
+          "value_range": {
+            "type": "array",
+            "minItems": 2,
+            "maxItems": 2,
+            "items": { "type": "number" }
+          },
+          "notes": { "type": "string" }
+        },
+        "additionalProperties": true
+      }
+    },
+
+    "quality_effects": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["quality_level", "description", "primary_mechanism"],
+        "properties": {
+          "quality_level": { "type": "string", "enum": ["QL-3", "QL-4", "QL-5"] },
+          "description": { "type": "string" },
+          "primary_mechanism": { "type": "string", "enum": ["additional_rounds", "selective_multiplier"] },
+          "notes": { "type": "string" }
+        },
+        "additionalProperties": true
+      }
+    },
+
+    "assumptions": { "type": "array", "items": { "type": "string" } },
+    "risks": { "type": "array", "items": { "type": "string" } },
+    "validation_plan": { "type": "array", "items": { "type": "string" } }
+  },
+  "additionalProperties": true
+}

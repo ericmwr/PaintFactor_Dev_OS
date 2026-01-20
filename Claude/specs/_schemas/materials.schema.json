@@ -1,0 +1,119 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "materials.schema.json",
+  "title": "PaintFactor Materials Schema",
+  "type": "object",
+  "required": [
+    "spec_family_id",
+    "version",
+    "status",
+    "review_required",
+    "material_systems",
+    "coverage_profiles",
+    "consumable_usage_models",
+    "compatibility_rules",
+    "risk_notes",
+    "assumptions",
+    "uncertainty_flags"
+  ],
+  "properties": {
+    "spec_family_id": { "type": "string", "pattern": "^SF_[A-Z0-9_]+$" },
+    "version": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$" },
+    "status": { "type": "string", "enum": ["draft", "review_required", "approved", "deprecated"] },
+    "review_required": { "type": "boolean" },
+
+    "material_systems": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["system_id", "name", "quality_level", "coat_sequence", "compatible_substrates", "cleanup_class"],
+        "properties": {
+          "system_id": { "type": "string", "pattern": "^SYS_[A-Z0-9_]+$" },
+          "name": { "type": "string" },
+          "quality_level": { "type": "string", "enum": ["QL-3", "QL-4", "QL-5"] },
+          "coat_sequence": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "compatible_substrates": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "cleanup_class": { "type": "string", "enum": ["water", "solvent", "hybrid"] },
+          "notes": {
+            "type": "array",
+            "items": { "type": "string" }
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+
+    "coverage_profiles": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["system_id", "spread_rate_sqft_per_gallon", "loss_factor_percent"],
+        "properties": {
+          "system_id": { "type": "string", "pattern": "^SYS_[A-Z0-9_]+$" },
+          "spread_rate_sqft_per_gallon": { "type": "number", "exclusiveMinimum": 0 },
+          "loss_factor_percent": { "type": "number", "minimum": 0, "maximum": 100 },
+          "profile_sensitivity_notes": { "type": "string" }
+        },
+        "additionalProperties": true
+      }
+    },
+
+    "consumable_usage_models": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["consumable_type", "recommended_class", "quality_sensitivity"],
+        "properties": {
+          "consumable_type": {
+            "type": "string",
+            "enum": ["roller_cover", "brush", "spray_tip", "tape", "plastic", "abrasive", "solvent"]
+          },
+          "recommended_class": { "type": "string", "enum": ["standard", "premium", "gallery"] },
+          "quality_sensitivity": { "type": "string", "enum": ["low", "medium", "high"] },
+          "usage_rate": {
+            "type": "object",
+            "properties": {
+              "qty": { "type": "number" },
+              "uom": { "type": "string" },
+              "per": { "type": "string" },
+              "quality_multiplier": { "type": "object" },
+              "notes": { "type": "string" }
+            }
+          },
+          "notes": { "type": "string" }
+        },
+        "additionalProperties": true
+      }
+    },
+
+    "materials_catalog": {
+      "type": "array",
+      "items": { "type": "object" }
+    },
+
+    "compatibility_rules": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["rule", "risk", "mitigation"],
+        "properties": {
+          "rule": { "type": "string" },
+          "risk": { "type": "string" },
+          "mitigation": { "type": "string" }
+        },
+        "additionalProperties": true
+      }
+    },
+
+    "risk_notes": { "type": "array", "items": { "type": "string" } },
+    "assumptions": { "type": "array", "items": { "type": "string" } },
+    "uncertainty_flags": { "type": "array", "items": { "type": "string" } }
+  },
+  "additionalProperties": true
+}

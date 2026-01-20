@@ -1,0 +1,77 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "sop_modules.schema.json",
+  "title": "PaintFactor SOP Modules Schema",
+  "type": "object",
+  "required": [
+    "spec_family_id",
+    "version",
+    "status",
+    "review_required",
+    "sop_modules",
+    "tasks",
+    "module_task_map",
+    "assumptions",
+    "exclusions"
+  ],
+  "properties": {
+    "spec_family_id": { "type": "string", "pattern": "^SF_[A-Z0-9_]+$" },
+    "version": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$" },
+    "status": { "type": "string", "enum": ["draft", "review_required", "approved", "deprecated"] },
+    "review_required": { "type": "boolean" },
+
+    "sop_modules": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["module_id", "name", "purpose", "applies_to"],
+        "properties": {
+          "module_id": { "type": "string", "pattern": "^MOD_[A-Z0-9_]+$" },
+          "name": { "type": "string" },
+          "purpose": { "type": "string" },
+          "applies_to": { "type": "object" }
+        },
+        "additionalProperties": true
+      }
+    },
+
+    "tasks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["task_id", "module_id", "name", "task_type", "round_number", "inputs", "outputs"],
+        "properties": {
+          "task_id": { "type": "string", "pattern": "^TSK_[A-Z0-9_]+$" },
+          "module_id": { "type": "string", "pattern": "^MOD_[A-Z0-9_]+$" },
+          "name": { "type": "string" },
+          "task_type": { "type": "string", "enum": ["prep", "prime", "finish", "inspect", "protect", "repair", "other"] },
+          "round_number": { "type": "integer", "minimum": 1 },
+          "inputs": { "type": "array", "items": { "type": "string" } },
+          "outputs": { "type": "array", "items": { "type": "string" } },
+          "notes": { "type": "string" }
+        },
+        "additionalProperties": true
+      }
+    },
+
+    "module_task_map": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["module_id", "task_ids"],
+        "properties": {
+          "module_id": { "type": "string", "pattern": "^MOD_[A-Z0-9_]+$" },
+          "task_ids": {
+            "type": "array",
+            "items": { "type": "string", "pattern": "^TSK_[A-Z0-9_]+$" }
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+
+    "assumptions": { "type": "array", "items": { "type": "string" } },
+    "exclusions": { "type": "array", "items": { "type": "string" } }
+  },
+  "additionalProperties": true
+}

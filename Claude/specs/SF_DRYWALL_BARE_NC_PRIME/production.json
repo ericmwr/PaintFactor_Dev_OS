@@ -1,0 +1,147 @@
+{
+  "spec_family_id": "SF_DRYWALL_BARE_NC_PRIME",
+  "version": "0.1.0",
+  "status": "draft",
+  "review_required": true,
+
+  "task_production_rates": [
+    {
+      "task_id": "TSK_PROTECT_AREA_R1",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 400,
+      "crew_size": 1,
+      "notes": "Placeholder expressed per SF protected; environment drives big variance."
+    },
+    {
+      "task_id": "TSK_MASK_FOR_SPRAY_R1",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 250,
+      "crew_size": 1,
+      "notes": "Masking is highly variable; active construction increases scope."
+    },
+    {
+      "task_id": "TSK_VACUUM_DUST_R1",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 800,
+      "crew_size": 1,
+      "notes": "Vacuuming surfaces and ledges; slower in cluttered/active environments."
+    },
+    {
+      "task_id": "TSK_WIPE_DUST_R2",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 600,
+      "crew_size": 1,
+      "notes": "Wipe-down used selectively; more likely higher tiers."
+    },
+    {
+      "task_id": "TSK_SPOT_TOUCHUP_R1",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 1200,
+      "crew_size": 1,
+      "notes": "Represents distributed minor touch-ups averaged over area; refine with defect density tracking."
+    },
+    {
+      "task_id": "TSK_FEATHER_SAND_TOUCHUPS_R2",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 1000,
+      "crew_size": 1,
+      "notes": "Higher tiers demand more feathering discipline."
+    },
+    {
+      "task_id": "TSK_APPLY_PRIMER_COAT_R1",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 1200,
+      "crew_size": 1,
+      "notes": "Placeholder; spray-only can be higher; roll-only lower; backroll adds separate task."
+    },
+    {
+      "task_id": "TSK_BACKROLL_PRIMER_R2",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 900,
+      "crew_size": 1,
+      "notes": "Backroll is labor-intensive but improves uniformity."
+    },
+    {
+      "task_id": "TSK_INSPECT_PRIME_R1",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 2000,
+      "crew_size": 1,
+      "notes": "Inspection speed depends heavily on lighting and expectations."
+    },
+    {
+      "task_id": "TSK_SPOT_SAND_FUZZ_R2",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 1500,
+      "crew_size": 1,
+      "notes": "Selective work; average rate assumes moderate defect density."
+    },
+    {
+      "task_id": "TSK_FINAL_READINESS_CHECK_R3",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 2500,
+      "crew_size": 1,
+      "notes": "Quick handoff readiness pass; QL-5 expects stricter checks."
+    }
+  ],
+
+  "factor_modifiers": [
+    {
+      "factor_id": "FAC_ENV_ACTIVE_CONSTRUCTION",
+      "description": "Active construction increases protection, dust control, and rework risk.",
+      "applies_to_tasks": ["TSK_PROTECT_AREA_R1", "TSK_MASK_FOR_SPRAY_R1", "TSK_VACUUM_DUST_R1", "TSK_WIPE_DUST_R2"],
+      "modifier_type": "multiplier",
+      "value_range": [1.2, 1.8],
+      "notes": "Use higher end when other trades are present during priming."
+    },
+    {
+      "factor_id": "FAC_METHOD_SPRAY_BACKROLL",
+      "description": "Spray + backroll improves uniformity but adds a full backroll pass.",
+      "applies_to_tasks": ["TSK_BACKROLL_PRIMER_R2"],
+      "modifier_type": "multiplier",
+      "value_range": [1.0, 1.0],
+      "notes": "This factor exists mainly as a selection flag; the labor is captured by adding the task."
+    },
+    {
+      "factor_id": "FAC_DRYWALL_LEVEL_5_EXPECTATION",
+      "description": "Level 5 expectations require higher inspection rigor and more sanding/touch-up sensitivity.",
+      "applies_to_tasks": ["TSK_INSPECT_PRIME_R1", "TSK_SPOT_SAND_FUZZ_R2", "TSK_FEATHER_SAND_TOUCHUPS_R2"],
+      "modifier_type": "multiplier",
+      "value_range": [1.2, 1.6],
+      "notes": "Used when drywall_finish_level is level_5 and quality level is QL-5."
+    }
+  ],
+
+  "quality_effects": [
+    {
+      "quality_level": "QL-3",
+      "description": "Standard inspection and limited touch-up; prime is functional sealer step.",
+      "primary_mechanism": "additional_rounds",
+      "notes": "Wipe-down and post-prime sanding are selective."
+    },
+    {
+      "quality_level": "QL-4",
+      "description": "More consistent dust control and defect correction; higher inspection sensitivity.",
+      "primary_mechanism": "additional_rounds",
+      "notes": "More likely to include wipe-down and post-prime spot sanding."
+    },
+    {
+      "quality_level": "QL-5",
+      "description": "Strict readiness standard; additional inspection and sanding expected, often paired with higher-build primer strategy.",
+      "primary_mechanism": "additional_rounds",
+      "notes": "Critical lighting and defect sensitivity assumed."
+    }
+  ],
+
+  "assumptions": [
+    "Rates are placeholders and must be calibrated; they exist to validate the artifact pipeline and mapping."
+  ],
+  "risks": [
+    "Declared drywall finish level may not match actual workmanship; correction scope may expand.",
+    "Masking/protection workload can dominate primer time in active construction environments."
+  ],
+  "validation_plan": [
+    "Calibrate spray-only vs roll-only vs spray+backroll productivity on real jobs.",
+    "Track defect density (touch-ups per 100 SF) by drywall finish level to refine touch-up time.",
+    "Validate primer waste factors and coverage with job logs."
+  ]
+}

@@ -1,0 +1,116 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "spec.schema.json",
+  "title": "PaintFactor Spec Family Schema",
+  "type": "object",
+  "required": [
+    "spec_family",
+    "configuration_dimensions",
+    "paintable_items",
+    "variants",
+    "dependencies",
+    "change_log"
+  ],
+  "properties": {
+    "spec_family": {
+      "type": "object",
+      "required": ["id", "name", "domain", "version", "status", "review_required"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^SF_[A-Z0-9_]+$" },
+        "name": { "type": "string", "minLength": 3 },
+        "description": { "type": "string" },
+        "domain": { "type": "string", "enum": ["interior", "exterior", "specialty"] },
+        "version": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$" },
+        "status": { "type": "string", "enum": ["draft", "review_required", "approved", "deprecated"] },
+        "review_required": { "type": "boolean" }
+      },
+      "additionalProperties": true
+    },
+
+    "configuration_dimensions": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["dimension_id", "description", "values"],
+        "properties": {
+          "dimension_id": { "type": "string", "pattern": "^[a-z0-9_]+$" },
+          "description": { "type": "string" },
+          "values": { "type": "array", "items": { "type": "string" } }
+        },
+        "additionalProperties": true
+      }
+    },
+
+    "paintable_items": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["item_id", "name", "unit_of_measure", "counting_rules"],
+        "properties": {
+          "item_id": { "type": "string", "pattern": "^ITM_[A-Z0-9_]+$" },
+          "name": { "type": "string" },
+          "unit_of_measure": { "type": "string", "enum": ["EA", "LF", "SF"] },
+          "counting_rules": { "type": "string" },
+          "notes": { "type": "string" }
+        },
+        "additionalProperties": true
+      }
+    },
+
+    "variants": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["variant_id", "applies_when", "included_items", "excluded_items"],
+        "properties": {
+          "variant_id": { "type": "string", "pattern": "^VAR_[A-Z0-9_]+$" },
+          "applies_when": { "type": "object" },
+          "included_items": {
+            "type": "array",
+            "items": { "type": "string", "pattern": "^ITM_[A-Z0-9_]+$" }
+          },
+          "excluded_items": {
+            "type": "array",
+            "items": { "type": "string", "pattern": "^ITM_[A-Z0-9_]+$" }
+          },
+          "notes": { "type": "string" }
+        },
+        "additionalProperties": true
+      }
+    },
+
+    "assumptions": { "type": "array", "items": { "type": "string" } },
+    "exclusions": { "type": "array", "items": { "type": "string" } },
+
+    "dependencies": {
+      "type": "object",
+      "required": ["materials", "sop_modules", "production"],
+      "properties": {
+        "materials": { "type": "string" },
+        "sop_modules": { "type": "string" },
+        "production": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+
+    "change_log": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["version", "date", "author", "summary"],
+        "properties": {
+          "version": { "type": "string" },
+          "date": { "type": "string" },
+          "author": { "type": "string" },
+          "summary": { "type": "string" }
+        },
+        "additionalProperties": true
+      }
+    }
+  },
+  "additionalProperties": true
+}
