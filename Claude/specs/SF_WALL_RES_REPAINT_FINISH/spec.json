@@ -1,0 +1,178 @@
+{
+  "spec_family": {
+    "id": "SF_WALL_RES_REPAINT_FINISH",
+    "name": "Residential Wall Repaint — Finish Coats (SF Field + LF Edges)",
+    "description": "Finish coats for previously painted walls in residential repaint. Models field work as SF and edge/cut-line work as LF using PaintScope-derived geometry. Supports freehand cut-in (typical) and tape-line edge strategies. Includes condition-based prep variants for good and fair condition surfaces. Roll application only.",
+    "domain": "interior",
+    "context": "residential_repaint",
+    "version": "0.1.0",
+    "status": "draft",
+    "review_required": true
+  },
+
+  "required_inputs": {
+    "from_paintscope": {
+      "wall_sf": {
+        "required": true,
+        "description": "Total paintable wall square footage (perimeter × height minus openings per policy)"
+      },
+      "ceiling_line_lf": {
+        "required": true,
+        "description": "Linear feet of wall-to-ceiling cut line"
+      },
+      "trim_line_lf": {
+        "required": true,
+        "description": "Linear feet of wall-to-baseboard/trim cut line"
+      },
+      "opening_casing_lf": {
+        "required": true,
+        "description": "Linear feet of wall-to-opening casing cut line (doors, windows)"
+      }
+    },
+    "computed_totals": {
+      "total_edge_lf": "ceiling_line_lf + trim_line_lf + opening_casing_lf"
+    }
+  },
+
+  "configuration_dimensions": [
+    {
+      "dimension_id": "quality_level",
+      "description": "Quality tier affects sanding, inspection, and edge discipline.",
+      "values": ["QL-3", "QL-4", "QL-5"]
+    },
+    {
+      "dimension_id": "surface_condition",
+      "description": "Condition of existing painted surface affects prep intensity.",
+      "values": ["good", "fair"]
+    },
+    {
+      "dimension_id": "edge_strategy",
+      "description": "How edges are produced at ceiling and trim lines.",
+      "values": ["cut_in_freehand", "tape_line"]
+    },
+    {
+      "dimension_id": "finish_sheen",
+      "description": "Wall sheen affects visibility of defects and technique requirements.",
+      "values": ["matte", "eggshell", "satin"]
+    },
+    {
+      "dimension_id": "color_change",
+      "description": "Magnitude of color change affects coverage and discipline.",
+      "values": ["low", "moderate", "high"]
+    },
+    {
+      "dimension_id": "ceiling_height",
+      "description": "Ceiling height affects access and edge work productivity.",
+      "values": ["standard", "tall", "vaulted"]
+    }
+  ],
+
+  "paintable_items": [
+    {
+      "item_id": "ITM_RES_WALL_FIELD_SF",
+      "name": "Residential Wall Field Area",
+      "unit_of_measure": "SF",
+      "counting_rules": "Wall field area in square feet from PaintScope (perimeter × height minus openings).",
+      "notes": "Previously painted latex or alkyd surface."
+    },
+    {
+      "item_id": "ITM_RES_WALL_EDGE_LF",
+      "name": "Residential Wall Edge / Cut Line Length",
+      "unit_of_measure": "LF",
+      "counting_rules": "Total linear feet of cut lines at ceiling, baseboard, and openings from PaintScope.",
+      "notes": "Includes ceiling line, trim line, and opening casing line."
+    }
+  ],
+
+  "variants": [
+    {
+      "variant_id": "VAR_RES_GOOD_FREEHAND",
+      "name": "Good Condition + Freehand Cut-in",
+      "applies_when": {
+        "quality_level": ["QL-3", "QL-4", "QL-5"],
+        "surface_condition": ["good"],
+        "edge_strategy": ["cut_in_freehand"],
+        "finish_sheen": ["matte", "eggshell", "satin"],
+        "color_change": ["low", "moderate", "high"]
+      },
+      "included_modules": ["MOD_RES_PROTECT_SETUP", "MOD_RES_PREP_GOOD", "MOD_RES_SPOT_PRIME", "MOD_RES_EDGE_FREEHAND", "MOD_RES_ROLL_FIELD", "MOD_RES_SAND_INSPECT", "MOD_RES_PROTECT_TEARDOWN"],
+      "included_items": ["ITM_RES_WALL_FIELD_SF", "ITM_RES_WALL_EDGE_LF"],
+      "notes": "Standard residential repaint: minimal prep, freehand cut-in."
+    },
+    {
+      "variant_id": "VAR_RES_GOOD_TAPELINE",
+      "name": "Good Condition + Tape Line",
+      "applies_when": {
+        "quality_level": ["QL-4", "QL-5"],
+        "surface_condition": ["good"],
+        "edge_strategy": ["tape_line"],
+        "finish_sheen": ["matte", "eggshell", "satin"],
+        "color_change": ["moderate", "high"]
+      },
+      "included_modules": ["MOD_RES_PROTECT_SETUP", "MOD_RES_PREP_GOOD", "MOD_RES_SPOT_PRIME", "MOD_RES_EDGE_TAPE", "MOD_RES_ROLL_FIELD", "MOD_RES_SAND_INSPECT", "MOD_RES_PROTECT_TEARDOWN"],
+      "included_items": ["ITM_RES_WALL_FIELD_SF", "ITM_RES_WALL_EDGE_LF"],
+      "notes": "Premium residential: tape-line for crisp edges on color contrast jobs."
+    },
+    {
+      "variant_id": "VAR_RES_FAIR_FREEHAND",
+      "name": "Fair Condition + Freehand Cut-in",
+      "applies_when": {
+        "quality_level": ["QL-3", "QL-4", "QL-5"],
+        "surface_condition": ["fair"],
+        "edge_strategy": ["cut_in_freehand"],
+        "finish_sheen": ["matte", "eggshell", "satin"],
+        "color_change": ["low", "moderate", "high"]
+      },
+      "included_modules": ["MOD_RES_PROTECT_SETUP", "MOD_RES_PREP_FAIR", "MOD_RES_SPOT_PRIME", "MOD_RES_EDGE_FREEHAND", "MOD_RES_ROLL_FIELD", "MOD_RES_SAND_INSPECT", "MOD_RES_PROTECT_TEARDOWN"],
+      "included_items": ["ITM_RES_WALL_FIELD_SF", "ITM_RES_WALL_EDGE_LF"],
+      "notes": "Extended prep for moderate wear; freehand cut-in."
+    },
+    {
+      "variant_id": "VAR_RES_FAIR_TAPELINE",
+      "name": "Fair Condition + Tape Line",
+      "applies_when": {
+        "quality_level": ["QL-4", "QL-5"],
+        "surface_condition": ["fair"],
+        "edge_strategy": ["tape_line"],
+        "finish_sheen": ["matte", "eggshell", "satin"],
+        "color_change": ["moderate", "high"]
+      },
+      "included_modules": ["MOD_RES_PROTECT_SETUP", "MOD_RES_PREP_FAIR", "MOD_RES_SPOT_PRIME", "MOD_RES_EDGE_TAPE", "MOD_RES_ROLL_FIELD", "MOD_RES_SAND_INSPECT", "MOD_RES_PROTECT_TEARDOWN"],
+      "included_items": ["ITM_RES_WALL_FIELD_SF", "ITM_RES_WALL_EDGE_LF"],
+      "notes": "Extended prep + tape-line for premium fair condition jobs."
+    }
+  ],
+
+  "assumptions": [
+    "Existing paint is latex or compatible alkyd; lead paint testing is out of scope.",
+    "Walls are structurally sound; major drywall repair is excluded.",
+    "PaintScope provides room geometry to compute wall SF and edge LF.",
+    "Standard residential ceiling height (8-10ft); factors apply for higher ceilings.",
+    "Occupied home with furniture; protection setup/teardown included."
+  ],
+
+  "exclusions": [
+    "Ceiling painting (separate spec)",
+    "Trim, door, and window painting (separate specs)",
+    "Major drywall repair beyond spackle and caulk",
+    "Wallpaper removal",
+    "Lead paint abatement",
+    "Textured or decorative finishes",
+    "Spray application (roll only in this spec)"
+  ],
+
+  "dependencies": {
+    "materials": "materials.json",
+    "sop_modules": "sop_modules.json",
+    "production": "production.json"
+  },
+
+  "change_log": [
+    {
+      "version": "0.1.0",
+      "date": "2026-01-19",
+      "author": "SpecFactory",
+      "summary": "Initial draft: residential repaint wall finish with SF field + LF edges, condition-based prep (good/fair), freehand and tape-line edge strategies, roll application only."
+    }
+  ]
+}
