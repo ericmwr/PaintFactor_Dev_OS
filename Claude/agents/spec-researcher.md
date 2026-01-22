@@ -44,9 +44,11 @@ When suggesting strategies that involve edge work, protection, or asset interact
    - If a required key does not exist in the catalog, explicitly propose it as a NEW KEY (flagged for PaintScope team review)
 
 3. **Output Requirements:** Research output must include:
-   - `required_paintscope_keys[]` — List of PaintScope keys the spec will need
-   - `proposed_new_keys[]` — Any keys not found in catalog (requires PaintScope team action)
+   - `required_paintscope_keys[]` — Catalog keys (e.g., `PS_SURFACE_SF.WALL_FIELD`, `PS_EDGE_LF.TO_CEILING`) the spec will need. Use `PS_...` catalog naming, NOT `IN_...` spec input naming.
+   - `proposed_new_keys[]` — Any keys not found in catalog (requires PaintScope team action). Format: `{ "proposed_key": "PS_NEW_KEY_NAME", "uom": "LF", "description": "...", "justification": "..." }`
    - `adjacency_notes[]` — Notes on edge targets, asset protection, and adjacency relationships
+
+**Important:** The Orchestrator will verify `required_paintscope_keys[]` against the catalog before proceeding. If keys are missing, the workflow will STOP until keys are added or `proposed_new_keys[]` is addressed.
 
 ---
 

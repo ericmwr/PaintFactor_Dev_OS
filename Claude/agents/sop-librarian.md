@@ -38,8 +38,11 @@ SOP modules define work sequences; the Estimation Engine applies them to geometr
    - Tasks must NOT reference "cut to ceiling" or "tape to trim" without the corresponding required input
 
 2. **Masking/Protection Inputs:** Any module involving masking or protection work MUST either:
-   - Declare measurable protection keys (SF for floor protection, LF for tape lines, EA for asset covers) in `module.required_inputs[]`
-   - OR explicitly mark `manual_capture_required: true` with a note explaining what the scoper must measure
+   - Declare measurable protection keys (SF for floor protection, LF for tape lines, EA for asset covers) in `module.required_inputs[]` with explicit `paintscope_key` mapping
+   - OR use `manual_capture_required: true` with ALL of the following (manual capture is NOT a loophole):
+     - `manual_capture_item`: What exactly is being captured
+     - `manual_capture_uom`: SF, LF, or EA
+     - `manual_capture_entry_method`: Named paintscope_key placeholder OR PaintScope UI field reference
 
 3. **No Implicit Adjacency:** Do NOT include SOP steps like:
    - "Mask adjacent surfaces" without specifying which adjacency key provides the measurement
@@ -72,3 +75,16 @@ SOP modules define work sequences; the Estimation Engine applies them to geometr
 - `applicability_rules[]`
 - `assumptions[]`
 - `exclusions[]`
+
+### Required Input Format
+
+Every entry in `required_inputs[]` MUST include:
+```json
+{
+  "input_name": "IN_LF_EDGE_TO_CEILING",
+  "paintscope_key": "PS_EDGE_LF.TO_CEILING",
+  "uom": "LF"
+}
+```
+
+Do NOT provide `input_name` without `paintscope_key`. The Orchestrator will reject incomplete mappings.

@@ -49,8 +49,25 @@ This agent defines production RATES and FACTORS. The Estimation Engine multiplie
 
 4. **Output Requirements:** Production rate definitions must include:
    - `uom` — The unit of measure (SF, LF, EA)
-   - `required_input_key` — The specific PaintScope key that provides the geometry
+   - `required_input_key` — The spec input name (e.g., `IN_LF_EDGE_TO_CEILING`)
+   - `paintscope_key` — The catalog key (e.g., `PS_EDGE_LF.TO_CEILING`)
    - `rate_basis_notes` — Explanation of what the rate measures
+
+### Required Input Format
+
+Every `required_input_key` reference MUST be paired with a `paintscope_key`:
+```json
+{
+  "task_id": "TASK_CUTIN_CEILING",
+  "uom": "LF",
+  "required_input_key": "IN_LF_EDGE_TO_CEILING",
+  "paintscope_key": "PS_EDGE_LF.TO_CEILING",
+  "rate": 120,
+  "rate_basis_notes": "LF/hr for brush cut-in at ceiling line"
+}
+```
+
+Do NOT provide rates referencing inputs without `paintscope_key`. The Orchestrator will reject incomplete mappings.
 
 ---
 

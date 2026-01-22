@@ -45,8 +45,21 @@ Material definitions inform the Estimation Engine but do not themselves calculat
    - Do NOT invent asset categories not in the catalog
 
 4. **Output Requirements:** Material definitions must include:
-   - `required_paintscope_keys[]` — Keys needed for quantity calculation
+   - `required_paintscope_keys[]` — Catalog keys (e.g., `PS_SURFACE_SF.WALL_FIELD`) needed for quantity calculation
    - `uom_basis` — SF, LF, or EA (never "per room" without meta key)
+
+### Required Input Format
+
+Every entry in `required_inputs[]` MUST include:
+```json
+{
+  "input_name": "IN_SF_FLOOR_PROTECTION_AREA",
+  "paintscope_key": "PS_PROTECT_SF.FLOOR_EXPOSED",
+  "uom": "SF"
+}
+```
+
+Do NOT provide `input_name` without `paintscope_key`. The Orchestrator will reject incomplete mappings.
 
 ---
 

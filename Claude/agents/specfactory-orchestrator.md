@@ -33,6 +33,49 @@ SpecFactory generates spec definitions that will later be consumed by the Estima
 
 ---
 
+## Step 0 — PaintScope Readiness Gate (Required)
+
+Before dispatching downstream agents (SOP Librarian, Materials Manager, Estimation Engineer), the Orchestrator MUST verify PaintScope readiness.
+
+### 1) Researcher Output Requirements
+
+The Spec Researcher MUST output:
+- `required_paintscope_keys[]` — Catalog keys (e.g., `PS_SURFACE_SF.WALL_FIELD`, `PS_EDGE_LF.TO_CEILING`) the spec needs
+- `proposed_new_keys[]` — Any keys not found in catalog (flagged for PaintScope team)
+
+### 2) Orchestrator Verification
+
+The Orchestrator MUST verify that every key in `required_paintscope_keys[]` exists in BOTH:
+- **[docs/paintscope_quantity_key_catalog.md](../docs/paintscope_quantity_key_catalog.md)**
+- **[docs/Spec_Input_to_PaintScope_Key_Mapping.md](../docs/Spec_Input_to_PaintScope_Key_Mapping.md)**
+
+### 3) STOP If Keys Missing
+
+If ANY required key is missing from the catalog or mapping table:
+- **STOP the workflow immediately**
+- Output a readiness failure with:
+  - `readiness_status: "blocked"`
+  - `missing_paintscope_keys[]` — Keys not found in catalog
+  - `unmapped_spec_inputs[]` — Keys not found in mapping table
+  - `proposed_new_keys[]` — Forwarded from Researcher
+  - `next_action`: `"add_key_to_catalog"` | `"update_mapping_table"` | `"consult_paintscope_team"`
+- **DO NOT dispatch** SOP Librarian, Materials Manager, or Estimation Engineer
+
+### 4) Required Input Mapping Format
+
+All `required_inputs[]` entries produced by downstream agents MUST include:
+```json
+{
+  "input_name": "IN_LF_EDGE_TO_CEILING",
+  "paintscope_key": "PS_EDGE_LF.TO_CEILING",
+  "uom": "LF"
+}
+```
+
+If a downstream agent provides `input_name` without a `paintscope_key` mapping, the Orchestrator MUST reject and request correction before proceeding.
+
+---
+
 ## What you own
 - Running the SpecFactory workflow in correct order
 - Enforcing lanes between specialist spec agents

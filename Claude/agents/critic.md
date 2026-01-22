@@ -111,11 +111,50 @@ The Critic MUST **FAIL** if ANY of the following conditions are detected:
 - **FAIL** if spec computes adjacency or geometry internally (e.g., derives LF from SF, assumes ratios, calculates totals)
 - **FAIL** if spec mixes UOM within a task/rate without declaring separate paintable items AND their corresponding required keys
 
+### 8) Manual Capture Loophole Prevention
+
+The Critic MUST **FAIL** if `manual_capture_required: true` is used without ALL of the following:
+- `manual_capture_item` — What exactly is being captured (e.g., "linear feet of crown molding edge")
+- `manual_capture_uom` — The unit of measure (SF, LF, EA)
+- `manual_capture_entry_method` — One of:
+  - A named `paintscope_key` placeholder that will be created (e.g., `PS_CROWN_EDGE_LF_PENDING`)
+  - A reference to an existing PaintScope UI field concept (e.g., "entered via Asset Catalog custom field")
+
+`manual_capture_required` is NOT a loophole to avoid PaintScope integration — it is a temporary bridge requiring explicit documentation of how the data will eventually flow through PaintScope.
+
 ### Enforcement Behavior
 - These violations are **CRITICAL severity**
 - The Critic must **FAIL** the artifact — not "pass_with_warnings"
 - The Critic must not suggest quiet fixes; it must block approval
 - Human override is possible only after explicit acknowledgment of the violation and a re-run of the review gate
+
+---
+
+## PaintScope Readiness & Adjacency Actionability (Required)
+
+The Critic output MUST include these arrays (even when `status: "pass"`):
+
+```json
+{
+  "paintscope_actionability": {
+    "missing_paintscope_keys": [],
+    "unknown_asset_categories": [],
+    "edge_tasks_missing_edgelf_inputs": [],
+    "protection_steps_missing_measurable_inputs": [],
+    "manual_capture_items_missing_detail": []
+  }
+}
+```
+
+### Field Definitions
+
+- `missing_paintscope_keys[]` — Required keys not found in PaintScope_Quantity_Key_Catalog
+- `unknown_asset_categories[]` — Asset category/subtype references not in PaintScope_Asset_Catalog
+- `edge_tasks_missing_edgelf_inputs[]` — Tasks referencing edge work without declared EdgeLF inputs
+- `protection_steps_missing_measurable_inputs[]` — Protection/masking steps without SF/LF/EA keys or valid manual_capture
+- `manual_capture_items_missing_detail[]` — manual_capture_required entries missing item/uom/entry_method
+
+If ANY of these arrays is non-empty, the Critic MUST set `status: "fail"` (unless it's `missing_paintscope_keys` with matching entries in `proposed_new_keys` that were explicitly acknowledged).
 
 ---
 
