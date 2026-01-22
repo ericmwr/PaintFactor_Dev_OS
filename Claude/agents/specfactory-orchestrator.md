@@ -19,6 +19,12 @@ SpecFactory generates spec definitions that will later be consumed by the Estima
 - **[docs/Estimation_Modifiers_Doctrine.md](../docs/Estimation_Modifiers_Doctrine.md)** — Modifier math doctrine
 - **[docs/Quality_Tiers_and_Surface_Condition.md](../docs/Quality_Tiers_and_Surface_Condition.md)** — Quality tier and condition definitions
 
+### Adjacency Doctrine / PaintScope Contract
+- **[docs/paintscope_quantity_key_catalog.md](../docs/paintscope_quantity_key_catalog.md)** — Canonical PaintScope quantity keys
+- **[docs/Spec_Input_to_PaintScope_Key_Mapping.md](../docs/Spec_Input_to_PaintScope_Key_Mapping.md)** — Mapping from spec inputs to PaintScope keys
+- **[docs/PaintScope_Asset_Catalog.md](../docs/PaintScope_Asset_Catalog.md)** — Asset categories, subtypes, and measurable keys
+- **[docs/PaintScope_Adjacency_Schema.md](../docs/PaintScope_Adjacency_Schema.md)** — Adjacency relationships and edge target definitions
+
 ### Geometry Constraint
 - Specs MUST declare what geometry inputs they require (SF, LF, EA)
 - Specs MUST NOT compute geometry internally

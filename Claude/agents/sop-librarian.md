@@ -17,11 +17,34 @@ SOP modules define work sequences; the Estimation Engine applies them to geometr
 - **[docs/Protection_and_Masking_Doctrine.md](../docs/Protection_and_Masking_Doctrine.md)** — Floor protection tasks by application method
 - **[docs/Quality_Tiers_and_Surface_Condition.md](../docs/Quality_Tiers_and_Surface_Condition.md)** — Quality tier task selection and condition-based modules
 
+### Adjacency Doctrine / PaintScope Contract
+- **[docs/paintscope_quantity_key_catalog.md](../docs/paintscope_quantity_key_catalog.md)** — Canonical PaintScope quantity keys
+- **[docs/Spec_Input_to_PaintScope_Key_Mapping.md](../docs/Spec_Input_to_PaintScope_Key_Mapping.md)** — Mapping from spec inputs to PaintScope keys
+- **[docs/PaintScope_Asset_Catalog.md](../docs/PaintScope_Asset_Catalog.md)** — Asset categories, subtypes, and measurable keys
+- **[docs/PaintScope_Adjacency_Schema.md](../docs/PaintScope_Adjacency_Schema.md)** — Adjacency relationships and edge target definitions
+
 ### Geometry Constraint
 - SOP tasks must declare their unit of measure (SF, LF, EA)
 - Tasks involving edge work (cut-in, tape, etc.) MUST use LF from PaintScope
 - SOPs must NOT compute LF internally — PaintScope is the sole source
 - If an SOP includes edge tasks, it must require EdgeLF as an input
+
+### Adjacency-Safe Constraints
+
+1. **Edge Work Inputs:** Any task implying edge work MUST declare required EdgeLF inputs in `task.required_inputs[]`:
+   - `IN_LF_EDGE_TO_CEILING` — for ceiling-line cut-in or tape
+   - `IN_LF_EDGE_TO_TRIM` — for trim-edge cut-in or tape
+   - `IN_LF_EDGE_TO_ASSET` — for asset-edge protection work
+   - Tasks must NOT reference "cut to ceiling" or "tape to trim" without the corresponding required input
+
+2. **Masking/Protection Inputs:** Any module involving masking or protection work MUST either:
+   - Declare measurable protection keys (SF for floor protection, LF for tape lines, EA for asset covers) in `module.required_inputs[]`
+   - OR explicitly mark `manual_capture_required: true` with a note explaining what the scoper must measure
+
+3. **No Implicit Adjacency:** Do NOT include SOP steps like:
+   - "Mask adjacent surfaces" without specifying which adjacency key provides the measurement
+   - "Protect nearby fixtures" without asset protection keys or manual capture flag
+   - "Tape off trim" without `IN_LF_EDGE_TO_TRIM` in required inputs
 
 ---
 

@@ -21,10 +21,32 @@ Research informs spec design but does not itself produce estimates or runtime be
 - **[docs/Quality_Tiers_and_Surface_Condition.md](../docs/Quality_Tiers_and_Surface_Condition.md)** — Quality tier definitions for research context
 - **[skills/deep_research_protocol.md](../skills/deep_research_protocol.md)** — Deep research protocol with source tiers and citation requirements
 
+### Adjacency Doctrine / PaintScope Contract
+- **[docs/paintscope_quantity_key_catalog.md](../docs/paintscope_quantity_key_catalog.md)** — Canonical PaintScope quantity keys
+- **[docs/Spec_Input_to_PaintScope_Key_Mapping.md](../docs/Spec_Input_to_PaintScope_Key_Mapping.md)** — Mapping from spec inputs to PaintScope keys
+- **[docs/PaintScope_Asset_Catalog.md](../docs/PaintScope_Asset_Catalog.md)** — Asset categories, subtypes, and measurable keys
+- **[docs/PaintScope_Adjacency_Schema.md](../docs/PaintScope_Adjacency_Schema.md)** — Adjacency relationships and edge target definitions
+
 ### Geometry Constraint
 - This agent must NOT invent or assume geometry values (SF, LF, EA)
 - Research should identify what geometry inputs a spec family will require
 - Confirm PaintScope can provide those inputs before recommending spec structures
+
+### Adjacency-Safe Constraints
+
+When suggesting strategies that involve edge work, protection, or asset interaction:
+
+1. **Name Required PaintScope Keys:** When suggesting edge strategies (cut-in, tape lines, etc.), explicitly name the EdgeLF keys required (e.g., `IN_LF_EDGE_TO_CEILING`, `IN_LF_EDGE_TO_TRIM`). When suggesting asset protection, name the asset protection keys required.
+
+2. **Do NOT Assume Keys Exist:** Never assume SF/LF/EA keys exist. Before recommending a spec structure:
+   - Check the **Quantity Key Catalog** for existing keys
+   - Check the **Spec Input to PaintScope Key Mapping** for valid mappings
+   - If a required key does not exist in the catalog, explicitly propose it as a NEW KEY (flagged for PaintScope team review)
+
+3. **Output Requirements:** Research output must include:
+   - `required_paintscope_keys[]` — List of PaintScope keys the spec will need
+   - `proposed_new_keys[]` — Any keys not found in catalog (requires PaintScope team action)
+   - `adjacency_notes[]` — Notes on edge targets, asset protection, and adjacency relationships
 
 ---
 
