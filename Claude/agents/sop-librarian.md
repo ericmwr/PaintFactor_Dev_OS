@@ -29,6 +29,12 @@ SOP modules define work sequences; the Estimation Engine applies them to geometr
 - SOPs must NOT compute LF internally — PaintScope is the sole source
 - If an SOP includes edge tasks, it must require EdgeLF as an input
 
+### Sequencing Doctrine
+- When both trim and walls are in scope, **trim-first is the default** (~80% of interior repaints)
+- Do NOT assume walls-first sequencing unless explicitly declared as an exception
+- Protection logic must follow from the declared sequencing assumption
+- See **[docs/PaintScope_EdgeLF_Mapping.md § 4](../docs/PaintScope_EdgeLF_Mapping.md)** for full sequencing doctrine
+
 ### Adjacency-Safe Constraints
 
 1. **Edge Work Inputs:** Any task implying edge work MUST declare required EdgeLF inputs in `task.required_inputs[]`:
@@ -48,6 +54,11 @@ SOP modules define work sequences; the Estimation Engine applies them to geometr
    - "Mask adjacent surfaces" without specifying which adjacency key provides the measurement
    - "Protect nearby fixtures" without asset protection keys or manual capture flag
    - "Tape off trim" without `IN_LF_EDGE_TO_TRIM` in required inputs
+
+4. **Closet Shelving Modules:** When including closet masking, cut-in, or protection modules where shelving may be present:
+   - MUST require `PS_ROOM_FLAG.CLOSET_SHELVING_PRESENT` as a boolean input
+   - Module applicability rules must gate complexity modifier activation on this flag
+   - Do NOT assume shelving complexity without the PaintScope flag declared
 
 ---
 

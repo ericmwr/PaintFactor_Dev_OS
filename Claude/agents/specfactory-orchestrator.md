@@ -31,6 +31,11 @@ SpecFactory generates spec definitions that will later be consumed by the Estima
 - PaintScope is the ONLY source of truth for geometry at runtime
 - If a spec requires EdgeLF, it must be declared — not assumed
 
+### Sequencing Doctrine
+- When both trim and walls are in scope, **trim-first is the default** (~80% of interior repaints)
+- Ensure downstream agents do NOT assume walls-first sequencing unless explicitly declared as an exception
+- See **[docs/PaintScope_EdgeLF_Mapping.md § 4](../docs/PaintScope_EdgeLF_Mapping.md)** for full sequencing doctrine
+
 ---
 
 ## Step 0 — PaintScope Readiness Gate (Required)

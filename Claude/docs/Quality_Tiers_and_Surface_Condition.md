@@ -135,7 +135,7 @@ Highest fixed-price quality tier. Maximum care and discipline within estimable s
 
 - Premium materials throughout
 - Full sand and inspection between coats
-- Tape-line edges preferred
+- Straight-line edge outcome expected (method selectable)
 - Additional inspection rounds
 - Maximum labor investment per unit
 
@@ -204,7 +204,7 @@ QT6 does not use task modifiers. Time is tracked directly.
 | QT2 | 0.8 | Minimal | Acceptable | Quick | Single/minimal |
 | QT3 | 1.0 | Standard | Professional | Standard | Standard 2-coat |
 | QT4 | 1.3 | Thorough | Crisp | Thorough | 2-coat + sand |
-| QT5 | 1.5* | Maximum | Tape-line | Multiple | Full discipline |
+| QT5 | 1.5* | Maximum | Straight-line | Multiple | Full discipline |
 | QT6 | Hourly | As needed | As needed | Continuous | As required |
 
 ---

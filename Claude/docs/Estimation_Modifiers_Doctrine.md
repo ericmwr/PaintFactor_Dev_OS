@@ -48,6 +48,103 @@ If a modifier > 1.0 results in FASTER work, the math is inverted and must be cor
 
 ---
 
+## Production Rate Philosophy
+
+### Rates Are Research-Based Estimates
+
+Production rates in specs are **starting estimates** based on research, industry sources, and professional practice — they are NOT fixed doctrine values.
+
+**Key principles:**
+- Agents should research and propose reasonable rates based on task characteristics
+- Rates will be field-calibrated over time through actual job data
+- The app allows users to adjust production rates for every task
+- No specific SF/hr or LF/hr value is "canonical" or mandatory
+
+### How Modifiers Apply to Rates
+
+Modifiers adjust TIME, not rate. For any base rate:
+
+| Modifier Scenario | Base Rate | Modifier | Effective Rate | For 1000 SF |
+|-------------------|-----------|----------|----------------|-------------|
+| Standard conditions | 400 SF/hr | 1.0 | 400 SF/hr | 2.5 hrs |
+| 10 ft ceiling (height 1.3) | 400 SF/hr | 1.3 | 308 SF/hr | 3.25 hrs |
+| Heavy texture (1.25) | 400 SF/hr | 1.25 | 320 SF/hr | 3.13 hrs |
+| Height + texture combined | 400 SF/hr | 1.625 | 246 SF/hr | 4.06 hrs |
+
+**Formula reminder:** `effective_rate = base_rate ÷ modifier`
+
+### Rate Research Guidance
+
+When proposing rates, agents should consider:
+- Industry reference sources (RSMeans, manufacturer TDS, trade publications)
+- Professional painting contractor experience and feedback
+- Task complexity and skill requirements
+- Crew configuration assumptions
+- Surface type and application method
+
+Rates should include `rate_range_low` and `rate_range_high` to indicate variability, with notes explaining conditions that drive the range.
+
+---
+
+## Spray/Backroll Throughput Coupling
+
+### The Rule (Non-Negotiable)
+
+**When the application method is "spray then backroll" (spray/backroll system), spray throughput is limited by backroll throughput.**
+
+For estimation purposes:
+- Spray rate **MUST BE ≤** backroll rate
+- Spray **CANNOT** be credited as faster than backroll
+- No separate "spray ahead" productivity bonus is allowed
+
+### Why This Rule Exists
+
+In a spray/backroll system:
+1. Sprayer applies material
+2. Backroller immediately follows to embed and level
+3. **Backroller sets the pace** — sprayer cannot outrun the roller without causing defects
+
+If the sprayer works faster than the backroller can follow:
+- Spray dries before backroll → orange peel, texture variation
+- Lap marks from dry edges
+- Uneven film build
+
+**The bottleneck is always backroll.** Crediting spray as faster creates unrealistic estimates.
+
+### Correct Rate Assignment
+
+| Application Method | Spray Rate | Roll/Backroll Rate | Notes |
+|--------------------|------------|-------------------|-------|
+| Spray only (no backroll) | Use spray-specific rate | N/A | Spray can run at full spray speed |
+| Roll only (pan method) | N/A | Researched rate | Standard brush-and-roll method |
+| **Spray + Backroll** | **≤ Backroll rate** | Researched rate | Coupled system — spray paces to backroll |
+
+### Example: Spray/Backroll on Interior Walls
+
+```
+Method: spray then backroll
+Backroll rate (researched): X SF/hr
+Spray rate (coupled): X SF/hr  ← paced to match backroll
+
+For 1000 SF with 2-person crew (sprayer + backroller working in tandem):
+- Combined throughput: X SF/hr (limited by backroll)
+- Time: 1000 ÷ X hrs
+
+WRONG approach (do not use):
+- Spray rate: higher than backroll rate (uncoupled)
+- Claim spray "gets ahead" and saves time
+- This creates defects and is not how the system works
+```
+
+### Validation Check
+
+When reviewing specs that include spray/backroll:
+- **FAIL** if spray SF/hr > backroll SF/hr
+- **FAIL** if spray is credited with independent productivity bonus
+- **PASS** only if spray rate ≤ backroll rate (coupled system)
+
+---
+
 ## Height Modifiers
 
 Higher ceilings require ladder/scaffold work, reducing productivity.
@@ -109,6 +206,70 @@ When generating estimates, complexity should be recorded per wall or per room:
 - Flag bathrooms with hardware as complexity = 2.0
 - Flag cabinet walls as complexity = 1.5
 - Default (simple rectangular room) = 1.0
+
+---
+
+## Complexity Factor — Closet Shelving Present
+
+### Definition
+
+This modifier applies when a closet contains **fixed shelving or organizer systems** that create significant cut-in and masking interruptions.
+
+**PaintScope Flag Required:** `PS_ROOM_FLAG.CLOSET_SHELVING_PRESENT = TRUE`
+
+### What Qualifies
+
+| Condition | Qualifies? | Notes |
+|-----------|------------|-------|
+| Built-in wire shelving (multiple levels) | Yes | Creates numerous edge interruptions |
+| Wood shelving systems | Yes | Requires careful cut-in around each shelf |
+| Closet organizer systems (shelf + rod combos) | Yes | High density of edges and masking points |
+| Single removable shelf | **No** | Unless wall-mounted supports/cleats remain |
+| Freestanding organizers | **No** | Can be moved; no permanent edge work |
+
+### Modifier Value
+
+| Condition | Modifier | Rationale |
+|-----------|----------|-----------|
+| Closet with shelving present | **1.5x** | Frequent edge interruptions, awkward masking, detail brush work around supports |
+
+### Tasks Affected
+
+This modifier applies ONLY to tasks performed **inside the closet space**:
+
+| Task Category | Affected? | Notes |
+|---------------|-----------|-------|
+| Cut-in (closet walls/ceiling) | **Yes** | Interrupted by shelving edges |
+| Masking | **Yes** | Must mask around shelf supports, rods, brackets |
+| Protection | **Yes** | Shelf surfaces require covering |
+| Detail work | **Yes** | Brush work around shelf supports |
+| Wall field rolling | **No** | Unless closet geometry is isolated in scope |
+
+**Important:** This modifier does NOT globally inflate room-level field rolling. Apply only when the closet is scoped as a distinct paintable zone or when closet-specific tasks are itemized.
+
+### Input-Driven Requirement (Non-Negotiable)
+
+This modifier is **only active when PaintScope flag is TRUE**.
+
+- **FAIL** if closet shelving complexity is applied without `PS_ROOM_FLAG.CLOSET_SHELVING_PRESENT` declared as a required input
+- **FAIL** if modifier is assumed/defaulted without explicit PaintScope capture
+
+### Example Application
+
+```
+Closet: Walk-in with wire shelving system
+PaintScope flag: PS_ROOM_FLAG.CLOSET_SHELVING_PRESENT = TRUE
+
+Cut-in task (closet walls):
+- Base rate: 120 LF/hr
+- Shelving modifier: 1.5x TIME
+- Effective rate: 120 ÷ 1.5 = 80 LF/hr
+
+Masking task (closet):
+- Base rate: 200 LF/hr
+- Shelving modifier: 1.5x TIME
+- Effective rate: 200 ÷ 1.5 = 133 LF/hr
+```
 
 ---
 
@@ -229,6 +390,20 @@ Even with additional tasks, tape method is often faster for long runs and yields
 | Walls | SF | Coverage percentage of wall area |
 | Trim | LF or EA | Per repair spot or per trim run |
 
+#### When Spot Priming Is Required
+
+- **Raw drywall patches** — New drywall, joint compound, or mud requires spot priming to seal porosity
+- **Non-paintable spackle** — Traditional spackles that are not designed to accept latex directly
+
+#### When Spot Priming May Be Skipped
+
+- **Paintable spackle** — Modern paintable spackles designed to accept latex directly
+- **Best practice alternative:** Spot-finish patched areas with wall finish color, allow to dry, then proceed with full wall coats. This eliminates flashing without separate primer step.
+
+#### Failure Mode: Flashing
+
+Unprimed repairs absorb finish coat unevenly, causing visible sheen variance ("flashing"). Either spot prime or spot-finish to prevent.
+
 ### Production Rate Baselines
 
 All prep task rates should be baselined for **QT3 (Standard)** quality tier and **Good** surface condition.
@@ -303,6 +478,26 @@ When existing coating is alkyd/oil-based:
 Verify primer compatibility with topcoat per PDS.
 
 **Why:** Latex over alkyd requires proper adhesion prep. Skipping this step causes peeling.
+
+---
+
+## Semi-Gloss / High-Sheen Surface Rule
+
+When existing wall coating is **semi-gloss or higher sheen**:
+
+### Required Prep + Prime
+
+1. Clean surface (TSP or degreaser)
+2. Degloss OR scuff sand (120-150 grit)
+3. Apply adhesion primer / bonding primer
+
+### Prep Modifier
+
+**1.2x** applied to prep tasks (similar to alkyd rule)
+
+### Why This Is Mandatory
+
+Semi-gloss and gloss finishes have low surface porosity. New latex paint will NOT adhere properly without mechanical or chemical surface preparation plus a bonding system. Skipping this step causes peeling and adhesion failure.
 
 ---
 

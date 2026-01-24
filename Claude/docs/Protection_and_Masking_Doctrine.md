@@ -203,6 +203,18 @@ This doctrine covers INTERIOR protection only. Exterior protection (ground cover
 
 Full containments (floor-to-ceiling plastic walls for dust/fume isolation) are specialized and NOT covered by standard protection tasks. Flag as separate scope item if required.
 
+### Ceilings-Only Scope
+
+When scope is **ceilings-only repaint** (walls are NOT being painted), the room must be fully protected:
+
+| Component | Requirement |
+|-----------|-------------|
+| Floors | Full drop coverage (entire room) |
+| Walls | Draped with plastic sheeting |
+| Wall-to-ceiling edge | Crisp tape line along ceiling perimeter |
+
+**Why:** Ceiling work creates drips, roller splatter, and overspray risk. Without wall protection, damage to existing wall finish is likely. The tape line at the ceiling edge protects the wall finish and provides a clean boundary for ceiling paint application.
+
 ---
 
 ## Summary Table

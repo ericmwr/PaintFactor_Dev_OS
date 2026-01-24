@@ -32,6 +32,12 @@ The Critic enforces system doctrine. It is the **final doctrine gate AFTER human
 - All geometry must be declared as required inputs and sourced from **PaintScope** at runtime.
 - Violations of PaintScope → Spec → Estimation flow are **CRITICAL failures**.
 
+### Sequencing Doctrine (Non-Negotiable)
+- When both trim and walls are in scope, **trim-first is the default** (~80% of interior repaints)
+- Specs must NOT assume walls-first sequencing without explicit declaration
+- Protection logic must align with the declared sequencing assumption
+- See **[docs/PaintScope_EdgeLF_Mapping.md § 4](../docs/PaintScope_EdgeLF_Mapping.md)** for full sequencing doctrine
+
 ---
 
 ## Human Feedback Gate Requirement (Mandatory)
@@ -111,7 +117,42 @@ The Critic MUST **FAIL** if ANY of the following conditions are detected:
 - **FAIL** if spec computes adjacency or geometry internally (e.g., derives LF from SF, assumes ratios, calculates totals)
 - **FAIL** if spec mixes UOM within a task/rate without declaring separate paintable items AND their corresponding required keys
 
-### 8) Manual Capture Loophole Prevention
+### 8) Spray/Backroll Coupling Violations
+
+Reference: **[docs/Estimation_Modifiers_Doctrine.md § Spray/Backroll Throughput Coupling](../docs/Estimation_Modifiers_Doctrine.md)**
+
+The Critic MUST **FAIL** if ANY of the following conditions are detected in spray/backroll specs:
+
+- **FAIL** if spec declares spray+backroll method but assigns spray SF/hr > backroll SF/hr
+- **FAIL** if spray is credited with independent productivity bonus when coupled with backroll
+- **FAIL** if spray rate exceeds backroll rate in a coupled spray/backroll system
+- **FAIL** if production logic allows spray to "get ahead" of backroll
+
+**Rule:** In coupled spray/backroll systems, spray rate must be ≤ backroll rate.
+
+### 9) Modifier Math Violations
+
+Reference: **[docs/Estimation_Modifiers_Doctrine.md § Production Rate Philosophy](../docs/Estimation_Modifiers_Doctrine.md)**
+
+The Critic MUST **FAIL** if:
+
+- **FAIL** if modifiers are applied as rate multipliers instead of time multipliers (e.g., `rate × modifier` instead of `rate ÷ modifier` for difficulty factors)
+
+**Note:** Production rates themselves are research-based estimates and are NOT enforced as fixed values. Agents propose reasonable rates; the app allows field adjustment. Only the modifier math is enforced.
+
+### 10) Closet Shelving Complexity Violations
+
+Reference: **[docs/Estimation_Modifiers_Doctrine.md § Complexity Factor — Closet Shelving Present](../docs/Estimation_Modifiers_Doctrine.md)**
+
+The Critic MUST **FAIL** if ANY of the following conditions are detected:
+
+- **FAIL** if spec applies closet shelving complexity modifier (1.5x) without declaring `PS_ROOM_FLAG.CLOSET_SHELVING_PRESENT` in `required_inputs[]`
+- **FAIL** if closet shelving complexity is assumed or defaulted without explicit PaintScope capture
+- **FAIL** if closet shelving modifier is applied globally to room-level field rolling (should only affect closet-specific tasks: cut-in, masking, protection, detail work)
+
+**Required flag:** `PS_ROOM_FLAG.CLOSET_SHELVING_PRESENT` (boolean)
+
+### 11) Manual Capture Loophole Prevention
 
 The Critic MUST **FAIL** if `manual_capture_required: true` is used without ALL of the following:
 - `manual_capture_item` — What exactly is being captured (e.g., "linear feet of crown molding edge")
@@ -206,6 +247,11 @@ Return JSON-compatible:
 - `ADJ_PROTECTION_MEASURABLE` — Protection work has measurable keys OR manual_capture_required
 - `ADJ_EDGE_STRATEGY_HAS_EDGELF` — Edge strategies declare EdgeLF required inputs
 - `ADJ_NO_GEOMETRY_DERIVATION` — No LF↔SF derivation or internal adjacency computation
+- `PROD_SPRAY_BACKROLL_COUPLED` — Spray rate ≤ backroll rate when method is spray+backroll
+- `PROD_MODIFIERS_INCREASE_TIME` — Modifiers applied as time multipliers, not rate multipliers
+- `CLOSET_SHELVING_FLAG_REQUIRED` — Closet shelving complexity requires `PS_ROOM_FLAG.CLOSET_SHELVING_PRESENT`
+
+**Note on Production Rates:** The Critic does NOT enforce specific production rate values (e.g., 400 SF/hr, 600 SF/hr). Production rates are research-based estimates that will be field-calibrated. Only the spray/backroll coupling rule (spray ≤ backroll) and modifier math (time multipliers, not rate multipliers) are enforced.
 
 ---
 

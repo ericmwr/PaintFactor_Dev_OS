@@ -32,6 +32,11 @@ Research informs spec design but does not itself produce estimates or runtime be
 - Research should identify what geometry inputs a spec family will require
 - Confirm PaintScope can provide those inputs before recommending spec structures
 
+### Sequencing Doctrine
+- When researching specs involving both trim and walls, note that **trim-first is the default** (~80% of interior repaints)
+- Do NOT assume walls-first sequencing; if walls-first is required, flag it as an exception
+- See **[docs/PaintScope_EdgeLF_Mapping.md § 4](../docs/PaintScope_EdgeLF_Mapping.md)** for full sequencing doctrine
+
 ### Adjacency-Safe Constraints
 
 When suggesting strategies that involve edge work, protection, or asset interaction:
@@ -42,6 +47,10 @@ When suggesting strategies that involve edge work, protection, or asset interact
    - Check the **Quantity Key Catalog** for existing keys
    - Check the **Spec Input to PaintScope Key Mapping** for valid mappings
    - If a required key does not exist in the catalog, explicitly propose it as a NEW KEY (flagged for PaintScope team review)
+
+3. **Complexity Flags Must Be Named:** When recommending complexity handling for specific conditions, explicitly name the required PaintScope flag:
+   - Closet with shelving → require `PS_ROOM_FLAG.CLOSET_SHELVING_PRESENT`
+   - Do NOT recommend closet shelving complexity modifiers without naming this flag
 
 3. **Output Requirements:** Research output must include:
    - `required_paintscope_keys[]` — Catalog keys (e.g., `PS_SURFACE_SF.WALL_FIELD`, `PS_EDGE_LF.TO_CEILING`) the spec will need. Use `PS_...` catalog naming, NOT `IN_...` spec input naming.

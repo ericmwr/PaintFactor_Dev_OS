@@ -29,6 +29,46 @@ This agent defines production RATES and FACTORS. The Estimation Engine multiplie
 - Rates must align with the UOM declared by SOP tasks
 - If a task uses LF, the rate must be LF-based; PaintScope provides the LF
 
+### Production Rate Philosophy
+
+Reference: **[docs/Estimation_Modifiers_Doctrine.md § Production Rate Philosophy](../docs/Estimation_Modifiers_Doctrine.md)**
+
+**Production rates are research-based estimates, not fixed doctrine values.**
+
+- Research and propose reasonable production rates based on industry sources and professional practice
+- Production rates are starting estimates — field calibration will refine them
+- The app allows rate adjustment per task
+- Include `rate_range_low` and `rate_range_high` to indicate variability
+- Document rate assumptions and sources in notes
+
+**Modifier Application Rule:** Modifiers increase TIME, not rate. Apply via:
+```
+effective_rate = base_rate ÷ modifier
+```
+Do NOT apply modifiers as rate multipliers (e.g., `rate × 1.3` is WRONG for difficulty factors).
+
+### Spray/Backroll Coupling Rule (Mandatory)
+
+Reference: **[docs/Estimation_Modifiers_Doctrine.md § Spray/Backroll Throughput Coupling](../docs/Estimation_Modifiers_Doctrine.md)**
+
+When application method is "spray then backroll":
+- **Spray rate MUST BE ≤ backroll rate**
+- Spray CANNOT be credited as faster than backroll
+- No separate "spray ahead" productivity bonus is allowed
+
+**Violation:** Assigning spray SF/hr > backroll SF/hr will be rejected by Critic.
+
+### Closet Shelving Complexity Modifier (Input-Driven)
+
+Reference: **[docs/Estimation_Modifiers_Doctrine.md § Complexity Factor — Closet Shelving Present](../docs/Estimation_Modifiers_Doctrine.md)**
+
+When `PS_ROOM_FLAG.CLOSET_SHELVING_PRESENT = TRUE`:
+- Apply **1.5x TIME modifier** to closet-specific tasks only (cut-in, masking, protection, detail work)
+- Do NOT inflate room-level field rolling unless closet geometry is isolated
+- Apply as TIME increase: `effective_rate = base_rate ÷ 1.5`
+
+**Violation:** Applying closet shelving modifier without the PaintScope flag will be rejected by Critic.
+
 ### Adjacency-Safe Constraints
 
 1. **Rate-UOM-Input Alignment:** Production rates MUST align with both the task UOM and the required PaintScope input:
