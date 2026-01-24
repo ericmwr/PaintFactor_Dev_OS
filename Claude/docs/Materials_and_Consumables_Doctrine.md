@@ -1,8 +1,8 @@
 # Materials and Consumables Doctrine
 
 **Status:** Canonical
-**Version:** 1.0
-**Last Updated:** 2026-01-20
+**Version:** 1.1
+**Last Updated:** 2026-01-24
 
 This document defines how consumable materials (tape, abrasives, rollers, brushes, spackle, caulk) are selected and quantified for painting operations. AI agents generating specs MUST follow this doctrine for consumable usage models.
 
@@ -117,7 +117,33 @@ Pole sanders accept sandpaper pads and attach to extension poles for wall/ceilin
 | 4" | Cigar Roller | Small surfaces, cut-in backroll, detail work |
 | 4" | Barrel Roller | Small surfaces, higher paint capacity than cigar |
 | 9" | Standard Roller | Walls, ceilings, large trim, flat panel doors |
-| 14-18" | Large Format | Spray and backroll, high-efficiency large surfaces |
+| 18" | Production Roller | **Standard for spray+backroll systems** on walls and ceilings |
+| 14-18" | Large Format | High-efficiency large surfaces, production work |
+
+### Spray + Backroll Roller Standard
+
+**Rule: Use 18-inch roller frame and nap for spray+backroll systems.**
+
+| Aspect | Guidance |
+|--------|----------|
+| Roller size | 18-inch frame and cover |
+| Why 18" | Larger roller width increases backroll production rate |
+| Throughput impact | Since spray is coupled to backroll (spray ≤ backroll), faster backroll enables faster overall throughput |
+| Application | Standard for production spray+backroll on walls and ceilings in new construction |
+
+**Why This Matters:**
+
+In a spray+backroll system, the backroller is the bottleneck (see Estimation_Modifiers_Doctrine.md — Spray/Backroll Throughput Coupling). By using an 18" roller instead of a 9" roller:
+- Backroll coverage per stroke doubles
+- Overall system throughput increases
+- Spray can operate faster without outpacing backroll
+
+**Consumable Update:**
+
+When using spray+backroll application method, spec the following:
+- 18" roller frame (1 per backroller)
+- 18" roller covers (nap per surface texture)
+- Replacement rate: same SF per cover as 9" covers (~5,000 SF)
 
 ### Nap Thickness Selection
 

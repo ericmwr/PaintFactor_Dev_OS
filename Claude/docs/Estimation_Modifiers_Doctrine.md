@@ -1,8 +1,8 @@
 # Estimation Modifiers Doctrine
 
 **Status:** Canonical
-**Version:** 1.0
-**Last Updated:** 2026-01-20
+**Version:** 1.1
+**Last Updated:** 2026-01-24
 
 This document defines how production rate modifiers work mathematically, and specifies the canonical modifier values for common conditions. AI agents generating specs MUST follow this doctrine to ensure consistent, accurate labor estimation.
 
@@ -290,7 +290,7 @@ Without this input, default to 1.0 (no modifier).
 | Light-to-light | 1.0 | No difficulty increase |
 | Similar colors | 1.0 | No difficulty increase |
 | Light-to-dark | 1.1 | Slight coverage challenge |
-| Dark-to-light | 1.3 | May require tinted primer or third coat |
+| Dark-to-light | 1.3 | May require additional finish coats |
 | High contrast | 1.3 | Extra care at edges, potential bleed-through |
 
 ### Tasks Affected by Color Change
@@ -302,10 +302,45 @@ Without this input, default to 1.0 (no modifier).
 ### Additional Consideration: Third Coat
 
 For dark-to-light color changes, flag potential need for:
-- Tinted primer, OR
-- Third finish coat
+- Third finish coat (standard white/untinted primer is correct)
 
 This may be a scope addition rather than just a modifier.
+
+---
+
+## Primer Tinting Rules
+
+### The Correct Approach
+
+**Primers are tinted DARKER (toward finish color), never lighter.** Primers are already white/light base — "tinting white" is nonsensical.
+
+### Primer Tinting Decision Table
+
+| Scenario | Primer Tinting Guidance |
+|----------|------------------------|
+| Light-to-dark color change | Tint primer to P5 or P6 (grey tint base) to reduce finish coat count |
+| Major color change (any direction) | Tint primer to approximately 75% of intended finish color when possible. Note: Full finish color tint is typically not achievable in primer bases. |
+| Economy projects (QT2) | Tint primer toward finish color + apply single finish coat to achieve coverage |
+| Light-to-light | No tinting needed — standard white/untinted primer |
+| Dark-to-light | **Standard white/untinted primer is correct.** May require additional finish coats for coverage. |
+
+### Why This Matters
+
+- **Tinting primer darker** helps build toward a dark finish, reducing the number of finish coats required
+- **Tinting primer lighter** makes no sense — primers are already light/white base
+- The old guidance "Dark-to-light: May require tinted primer" was backwards and has been corrected
+
+### P-Value Reference (Tint Strength)
+
+| P-Value | Description | Typical Use |
+|---------|-------------|-------------|
+| P1 | White base | Light colors, pastels |
+| P2-P3 | Light base | Light-medium colors |
+| P4-P5 | Medium base | Medium colors, some saturation |
+| P6 | Deep base | Dark colors, high saturation |
+| P7 | Ultradeep base | Very dark colors, maximum saturation |
+
+When tinting primer for light-to-dark changes, use P5 or P6 grey as a midpoint to reduce finish coat requirements.
 
 ---
 
