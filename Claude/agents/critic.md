@@ -92,19 +92,28 @@ The Critic MUST check for and FAIL the following violations:
 - **FAIL** production logic that references geometry not provided by PaintScope
 - **FAIL** material calculations that assume total quantities instead of per-unit rates
 
-### 5) Human Feedback Gate Violations
+### 5) Task Classification Violations
+
+- **FAIL** specs where `task_class` is missing from any task in sop_modules.json
+- **FAIL** specs where `task_class` in production.json doesn't match sop_modules.json
+- **FAIL** binary tasks that have `qt_rates` (should have single `rate_per_hour`)
+- **FAIL** qt_conditional tasks missing `appears_in_tiers`
+- **FAIL** qt_scaled tasks missing `qt_rates`
+- **WARN** tasks missing `defect_tolerance` definitions
+
+### 6) Human Feedback Gate Violations
 - **FAIL** if an artifact is presented as FINAL without Human Feedback JSON + Feedback Application Log
 - **FAIL** if feedback `status="revise"` and the artifact was not revised before re-review
 - **FAIL** if any feedback issue remains unresolved but the artifact is presented as approvable
 - **FAIL** if the producing agent “ignores” feedback without explicit human acknowledgment
 
-### 6) Precedent Contamination (Pilot Poisoning) Violations
+### 7) Precedent Contamination (Pilot Poisoning) Violations
 - **FAIL** if an artifact justifies a doctrine violation by referencing other specs/artifacts as precedent
 - **FAIL** if banned patterns reappear because "another spec did it" (e.g., SF-equivalent computed totals)
 - **FAIL** if the agent uses pilot/quarantined specs as authority
 - **PASS** requires that authority is drawn from doctrine docs, schemas, and instructions — not prior artifacts
 
-### 7) Adjacency + Asset Violations (CRITICAL)
+### 8) Adjacency + Asset Violations (CRITICAL)
 
 The Critic MUST **FAIL** if ANY of the following conditions are detected:
 
@@ -117,7 +126,7 @@ The Critic MUST **FAIL** if ANY of the following conditions are detected:
 - **FAIL** if spec computes adjacency or geometry internally (e.g., derives LF from SF, assumes ratios, calculates totals)
 - **FAIL** if spec mixes UOM within a task/rate without declaring separate paintable items AND their corresponding required keys
 
-### 8) Spray/Backroll Coupling Violations
+### 9) Spray/Backroll Coupling Violations
 
 Reference: **[docs/Estimation_Modifiers_Doctrine.md § Spray/Backroll Throughput Coupling](../docs/Estimation_Modifiers_Doctrine.md)**
 
@@ -130,7 +139,7 @@ The Critic MUST **FAIL** if ANY of the following conditions are detected in spra
 
 **Rule:** In coupled spray/backroll systems, spray rate must be ≤ backroll rate.
 
-### 9) Modifier Math Violations
+### 10) Modifier Math Violations
 
 Reference: **[docs/Estimation_Modifiers_Doctrine.md § Production Rate Philosophy](../docs/Estimation_Modifiers_Doctrine.md)**
 
@@ -140,7 +149,7 @@ The Critic MUST **FAIL** if:
 
 **Note:** Production rates themselves are research-based estimates and are NOT enforced as fixed values. Agents propose reasonable rates; the app allows field adjustment. Only the modifier math is enforced.
 
-### 10) Closet Shelving Complexity Violations
+### 11) Closet Shelving Complexity Violations
 
 Reference: **[docs/Estimation_Modifiers_Doctrine.md § Complexity Factor — Closet Shelving Present](../docs/Estimation_Modifiers_Doctrine.md)**
 
@@ -152,7 +161,7 @@ The Critic MUST **FAIL** if ANY of the following conditions are detected:
 
 **Required flag:** `PS_ROOM_FLAG.CLOSET_SHELVING_PRESENT` (boolean)
 
-### 11) Manual Capture Loophole Prevention
+### 12) Manual Capture Loophole Prevention
 
 The Critic MUST **FAIL** if `manual_capture_required: true` is used without ALL of the following:
 - `manual_capture_item` — What exactly is being captured (e.g., "linear feet of crown molding edge")
@@ -250,6 +259,12 @@ Return JSON-compatible:
 - `PROD_SPRAY_BACKROLL_COUPLED` — Spray rate ≤ backroll rate when method is spray+backroll
 - `PROD_MODIFIERS_INCREASE_TIME` — Modifiers applied as time multipliers, not rate multipliers
 - `CLOSET_SHELVING_FLAG_REQUIRED` — Closet shelving complexity requires `PS_ROOM_FLAG.CLOSET_SHELVING_PRESENT`
+- `TASK_CLASS_PRESENT` — All tasks have task_class defined
+- `TASK_CLASS_CONSISTENT` — task_class matches between sop_modules.json and production.json
+- `BINARY_SINGLE_RATE` — Binary tasks use single rate_per_hour, not qt_rates
+- `CONDITIONAL_TIERS_DEFINED` — qt_conditional tasks have appears_in_tiers
+- `SCALED_QT_RATES_DEFINED` — qt_scaled tasks have qt_rates
+- `DEFECT_TOLERANCE_PRESENT` — Tasks have defect_tolerance definitions (warning if missing)
 
 **Note on Production Rates:** The Critic does NOT enforce specific production rate values (e.g., 400 SF/hr, 600 SF/hr). Production rates are research-based estimates that will be field-calibrated. Only the spray/backroll coupling rule (spray ≤ backroll) and modifier math (time multipliers, not rate multipliers) are enforced.
 

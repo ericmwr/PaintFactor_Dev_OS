@@ -79,6 +79,24 @@ SOP modules define work sequences; the Estimation Engine applies them to geometr
 - Refer to coat tasks by **system stages** provided by Materials Manager
 - Avoid monolithic narrative SOPs
 
+## Task Classification Rules
+
+When creating tasks, assign the correct `task_class`:
+
+| task_class | When to Use | qt_behavior |
+|------------|-------------|-------------|
+| `binary` | Pass/fail tasks that must happen correctly regardless of tier | `all_tiers_identical` |
+| `qt_conditional` | Tasks only included in certain tiers (inspection, between-coat sanding) | Specify tiers like `QT4_QT5_only` |
+| `qt_scaled` | Tasks in all tiers but pace/tolerance varies | `rate_varies_by_tier` |
+
+**Binary task examples:** Dust surface, apply primer, set protection, remove tape
+
+**QT-conditional examples:** Inspect prime coat, sand between finish coats, formal touch-up pass
+
+**QT-scaled examples:** Cut-in, roll finish coat, caulk trim
+
+**Rule:** If a task is required for a properly painted surface, it is either `binary` or `qt_scaled` — never `qt_conditional`. QT-conditional tasks add process steps, they do not gate required work.
+
 ## Output (JSON-compatible)
 - `sop_modules[]` (id, name, purpose)
 - `sop_tasks[]` (id, name, round_number, task_type, inputs/outputs)

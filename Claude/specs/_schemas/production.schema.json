@@ -17,17 +17,56 @@
       "minItems": 1,
       "items": {
         "type": "object",
-        "required": ["task_id", "unit_of_measure", "rate_per_hour"],
+        "required": ["task_id", "task_class", "unit_of_measure", "crew_size"],
         "properties": {
           "task_id": { "type": "string", "pattern": "^TASK_[A-Z0-9_]+$" },
+          "task_class": {
+            "type": "string",
+            "enum": ["binary", "qt_conditional", "qt_scaled"],
+            "description": "Must match task_class in sop_modules.json"
+          },
           "name": { "type": "string" },
           "required_input_key": { "type": "string", "pattern": "^IN_[A-Z0-9_]+$" },
           "paintscope_key": { "type": "string", "pattern": "^PS_[A-Z0-9_.]+$" },
           "unit_of_measure": { "type": "string", "enum": ["EA", "LF", "SF"] },
-          "rate_per_hour": { "type": "number", "exclusiveMinimum": 0 },
-          "rate_range_low": { "type": "number", "exclusiveMinimum": 0 },
-          "rate_range_high": { "type": "number", "exclusiveMinimum": 0 },
           "crew_size": { "type": "integer", "minimum": 1, "maximum": 12 },
+
+          "rate_per_hour": {
+            "type": "number",
+            "exclusiveMinimum": 0,
+            "description": "Single rate for binary tasks. Base rate for qt_scaled tasks."
+          },
+          "rate_range_low": { "type": "number" },
+          "rate_range_high": { "type": "number" },
+
+          "qt_rates": {
+            "type": "object",
+            "description": "For qt_scaled tasks only. Rate per quality tier.",
+            "properties": {
+              "QT2": { "type": "number" },
+              "QT3": { "type": "number" },
+              "QT4": { "type": "number" },
+              "QT5": { "type": "number" }
+            }
+          },
+
+          "defect_tolerance": {
+            "type": "object",
+            "description": "Task-specific defect tolerance by quality tier",
+            "properties": {
+              "QT2": { "type": "string" },
+              "QT3": { "type": "string" },
+              "QT4": { "type": "string" },
+              "QT5": { "type": "string" }
+            }
+          },
+
+          "appears_in_tiers": {
+            "type": "array",
+            "items": { "type": "string", "enum": ["QT2", "QT3", "QT4", "QT5"] },
+            "description": "For qt_conditional tasks only. Which tiers include this task."
+          },
+
           "rate_basis_notes": { "type": "string" },
           "applies_when": { "type": "object" },
           "notes": { "type": "string" }

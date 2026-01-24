@@ -1,8 +1,8 @@
 # Quality Tiers and Surface Condition Doctrine
 
 **Status:** Canonical
-**Version:** 1.0
-**Last Updated:** 2026-01-20
+**Version:** 1.1
+**Last Updated:** 2026-01-24
 
 This document defines the quality tier system and surface condition classification used throughout PaintFactor. AI agents generating specs MUST use these definitions consistently.
 
@@ -13,6 +13,117 @@ This document defines the quality tier system and surface condition classificati
 ### Overview
 
 Quality tiers define the level of workmanship, materials, and process discipline expected for a project. Higher tiers mean more care, more steps, and more time.
+
+---
+
+## Task Classification by Quality Tier Sensitivity
+
+Not all tasks vary by quality tier. Tasks fall into three categories based on how quality tier affects them.
+
+### Binary Tasks
+
+Tasks with pass/fail outcomes that must be performed correctly regardless of quality tier. These tasks have **one standard** and **one production rate** across all tiers.
+
+| Characteristic | Description |
+|----------------|-------------|
+| QT Variation | None — same task, same rate, all tiers |
+| Production Rate | Single rate applies to QT2 through QT5 |
+| Standard | Pass/fail — done correctly or surface fails |
+
+**Examples:**
+- Surface cleaning — dust-free or not
+- Primer application — sealed and adhered or not
+- Protection setup — protected or not
+- Tape removal — removed or not
+
+**Rule:** Binary tasks appear identically in all quality tiers. Quality tier does NOT permit skipping steps vital to a properly painted surface.
+
+### QT-Conditional Tasks
+
+Tasks that **only appear in certain quality tiers**. Lower tiers omit these tasks entirely; higher tiers include them.
+
+| Characteristic | Description |
+|----------------|-------------|
+| QT Variation | Task included or excluded based on tier |
+| Production Rate | Single rate for tiers where task appears |
+| Standard | Defined for applicable tiers only |
+
+**Examples:**
+- Formal inspection rounds — QT4/QT5 only
+- Between-coat sanding — QT4/QT5 only (QT3 spot-sands only)
+- Touch-up passes — QT4/QT5 only
+
+**Rule:** QT-conditional tasks are the primary mechanism for adding process steps at higher tiers. The task either happens or it doesn't.
+
+### QT-Scaled Tasks
+
+Tasks that appear in **all quality tiers** but with different production rates. Higher tiers work slower with more scrutiny.
+
+| Characteristic | Description |
+|----------------|-------------|
+| QT Variation | Rate varies by tier; task always present |
+| Production Rate | Different rate per QT (e.g., QT5 slower than QT3) |
+| Standard | Tighter tolerance at higher tiers |
+
+**Examples:**
+- Cut-in work — slower pace, straighter lines at higher QT
+- Finish coat rolling — slower pace, better lay-off at higher QT
+- Caulking — more thorough at higher QT
+
+**Rule:** QT-scaled tasks express quality through pace and tolerance, not through different procedures.
+
+---
+
+### Method Variants vs. Quality Tiers
+
+**Method variants** are different ways to achieve the same outcome. Method selection is driven by efficiency, project conditions, or contractor preference — **not quality tier**.
+
+| Method A | Method B | Outcome |
+|----------|----------|---------|
+| Spray + backroll | Roll only | Primed surface |
+| Cut-in freehand | Cut-in to tape | Clean edge line |
+| Brush trim | Spray trim | Coated trim |
+
+**Rule:** Method variants are **configuration dimensions** (`application_method`), not quality tier differences. Both methods must achieve the selected tier's quality standard.
+
+**Example:** Spray + backroll and roll-only are both valid for QT3 primer application. The primer must seal the surface regardless of method. Choosing spray does not change quality expectations.
+
+---
+
+### What Quality Tiers Do NOT Control
+
+Quality tiers control thoroughness, tolerance, and additional process steps. They do NOT control:
+
+| Not QT-Controlled | Why |
+|-------------------|-----|
+| Whether primer is applied | Binary — required for proper system |
+| Whether surfaces are cleaned | Binary — required for adhesion |
+| Whether protection is set up | Binary — required for mess prevention |
+| Application method selection | Configuration dimension, not quality |
+| Skipping steps required for durability | Never permitted at any tier |
+
+**Principle:** Quality tiers control HOW THOROUGHLY you work, not WHETHER you work.
+
+---
+
+### Defect Tolerance
+
+Defect tolerance is **task-specific** and varies by quality tier. Each task defines what level of imperfection is acceptable at each tier.
+
+**Structure:**
+```
+Task: TASK_CUTIN_FINISH_WALL
+├─ QT2: Visible wobble acceptable if coverage complete
+├─ QT3: Reasonably straight line, minor wobble acceptable at distance
+├─ QT4: Clean line, no visible wobble at 3 feet
+└─ QT5: Crisp line, no visible wobble at arm's length
+```
+
+**Why task-specific:** Different tasks have different quality indicators. A cut-in line has different tolerance criteria than a rolled field area or a sanded surface.
+
+**Rule:** Defect tolerance must be defined per task in `production.json`, not as a global QT definition.
+
+---
 
 ### The Five Quality Tiers
 
@@ -118,10 +229,12 @@ Enhanced quality tier with increased process discipline and attention to detail.
 
 | Aspect | QT3 (Standard) | QT4 (Premium) |
 |--------|----------------|---------------|
-| Sanding between coats | Spot sand only | Light full sand |
+| Prime-to-finish sand | Light sand 120 grit | Full sand |
+| Sanding between coats | Spot sand patches only | Full sand between coats |
 | Edge work | Acceptable if neat | Must be crisp |
 | Inspection | Quick visual | Thorough, raking light |
 | Touch-up | Minimal | As needed for perfection |
+| Maximum wall sheen | Eggshell | Any (Semi-Gloss/Gloss allowed) |
 
 ---
 
@@ -206,6 +319,90 @@ QT6 does not use task modifiers. Time is tracked directly.
 | QT4 | 1.3 | Thorough | Crisp | Thorough | 2-coat + sand |
 | QT5 | 1.5* | Maximum | Straight-line | Multiple | Full discipline |
 | QT6 | Hourly | As needed | As needed | Continuous | As required |
+
+---
+
+## Sanding Standards by Quality Tier
+
+### Overview
+
+Sanding requirements increase with quality tier. This table defines the minimum sanding expectations for each tier.
+
+### Sanding Requirements Table
+
+| Quality Tier | Prime-to-Finish Sanding | Between Finish Coats | Notes |
+|--------------|-------------------------|----------------------|-------|
+| QT2 | None | None | No sanding, no patching |
+| QT3 | Light sand with 120 grit | Spot sand patches only if necessary | Standard residential |
+| QT4 | Full sand | Spot sand as needed + full sand between coats | Enhanced process discipline |
+| QT5 | Full sand | Same as QT4 | More scrutiny on inspection and patchwork. Slower working speed. |
+
+### Sanding Method Guidance
+
+| Sanding Type | Grit | Tool | Application |
+|--------------|------|------|-------------|
+| Light sand (QT3) | 120 | Sanding block or pole sander | Scuff primer surface for adhesion |
+| Full sand (QT4/QT5) | 120-150 | Pole sander for walls, block for detail | Smooth entire surface, feather edges |
+| Between coats (QT4/QT5) | 220 | Pole sander or sanding sponge | Light pass to remove dust nibs, smooth texture |
+| Spot sand patches | 150-220 | Sanding block | Blend repair edges, smooth patch compound |
+
+### Critical Notes
+
+- **QT2:** Explicitly NO sanding. If sanding is required for adhesion, quality tier should be upgraded to QT3 minimum.
+- **QT3:** Sanding is for adhesion preparation, not perfection. Spot sanding patches is reactive (only if needed).
+- **QT4:** Full sanding is proactive — entire surface receives attention. Sand between coats is standard.
+- **QT5:** Same sanding as QT4 but with slower execution speed and more thorough inspection before/after.
+
+---
+
+## Sheen and Quality Tier Minimums
+
+### The Rule
+
+**Higher sheen finishes require higher quality tiers.** Sheen reveals surface imperfections — the shinier the finish, the more visible every flaw.
+
+### Maximum Sheen by Quality Tier
+
+| Quality Tier | Maximum Sheen on Walls | Rationale |
+|--------------|------------------------|-----------|
+| QT2 | Flat or Matte | Higher sheens show imperfections; QT2 prep is insufficient |
+| QT3 | Eggshell | Standard prep supports moderate sheen |
+| QT4 | Any (including Semi-Gloss, Gloss) | Enhanced prep and sanding support higher sheens |
+| QT5 | Any (including Semi-Gloss, Gloss) | Maximum prep supports all sheens |
+
+### Automatic Quality Tier Upgrade Rule
+
+**If the specified sheen exceeds the quality tier maximum, automatically upgrade the quality tier.**
+
+| Requested Sheen | Minimum Quality Tier |
+|-----------------|---------------------|
+| Flat | QT2 |
+| Matte | QT2 |
+| Eggshell | QT3 |
+| Satin | QT4 |
+| Semi-Gloss | QT4 |
+| Gloss | QT4 |
+
+### Why This Matters
+
+Semi-gloss and gloss finishes:
+- Show every roller stipple mark
+- Reveal brush strokes
+- Highlight surface imperfections (bumps, ridges, patches)
+- Require sanding between coats for acceptable results
+
+Attempting high-sheen work at QT3 or below results in:
+- Visible defects in finished work
+- Customer complaints
+- Rework costs
+- Reputation damage
+
+### Exception: Trim vs. Walls
+
+This rule applies to **walls and ceilings**. Trim is typically painted at higher sheens (semi-gloss, gloss) regardless of wall quality tier because:
+- Trim is smaller, more controlled
+- Factory finish or well-prepared wood
+- Different prep/paint system than walls
 
 ---
 

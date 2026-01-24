@@ -117,6 +117,32 @@ Do NOT provide rates referencing inputs without `paintscope_key`. The Orchestrat
 - Quality behavior primarily via rounds; multipliers only where justified
 - Clear assumptions about crew size and workflow
 
+## Production Rate Rules by Task Class
+
+| task_class | Rate Structure | Notes |
+|------------|----------------|-------|
+| `binary` | Single `rate_per_hour` | Same rate all tiers. Do not use `qt_rates`. |
+| `qt_conditional` | Single `rate_per_hour` + `appears_in_tiers` | Rate applies only to listed tiers. |
+| `qt_scaled` | Base `rate_per_hour` + `qt_rates{}` | Provide rate per tier. Higher QT = slower. |
+
+## Defect Tolerance
+
+Define task-specific defect tolerance for each quality tier. Tolerance describes what level of imperfection is acceptable.
+
+**Format:**
+```json
+"defect_tolerance": {
+  "QT2": "Description of acceptable defects at QT2",
+  "QT3": "Description of acceptable defects at QT3",
+  "QT4": "Description of acceptable defects at QT4",
+  "QT5": "Description of acceptable defects at QT5"
+}
+```
+
+**Why task-specific:** Different tasks have different quality indicators. A cut-in line has different tolerance criteria than a rolled field area or a sanded surface.
+
+**Rule:** Every task in `production.json` should include `defect_tolerance` definitions.
+
 ## What you do NOT own
 - Finish systems & coverage (Materials Manager owns)
 - SOP design (SOP Librarian owns)
