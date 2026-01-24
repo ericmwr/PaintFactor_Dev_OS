@@ -1,40 +1,111 @@
 {
-  "spec_family_id": "SPEC_FAMILY_ID",
+  "spec_family_id": "SF_EXAMPLE_ID",
   "version": "0.1.0",
-  "status": "draft",
-  "review_required": true,
 
   "task_production_rates": [
     {
-      "task_id": "TASK_ID",
-      "unit_of_measure": "EA | LF | SF",
-      "rate_per_hour": 0,
+      "task_id": "TASK_EXAMPLE",
+      "name": "Task name for reference",
+      "required_input_key": "IN_SF_EXAMPLE",
+      "paintscope_key": "PS_SURFACE_SF.EXAMPLE",
+      "unit_of_measure": "SF | LF | EA",
+      "rate_per_hour": 400,
+      "rate_range_low": 350,
+      "rate_range_high": 450,
       "crew_size": 1,
+      "rate_basis_notes": "Assumptions and conditions for this rate",
+      "applies_when": {
+        "quality_tier": [],
+        "application_method": []
+      },
       "notes": ""
     }
   ],
 
   "factor_modifiers": [
     {
-      "factor_id": "FACTOR_ID",
-      "description": "What this factor represents",
-      "applies_to_tasks": [],
-      "modifier_type": "multiplier | additive",
-      "value_range": [1.0, 1.0],
-      "notes": ""
-    }
-  ],
-
-  "quality_effects": [
+      "factor_id": "FAC_HEIGHT",
+      "name": "Ceiling Height Modifier",
+      "description": "Time multiplier based on ceiling height band",
+      "modifier_type": "time_multiplier",
+      "applies_to_tasks": ["TASK_EXAMPLE"],
+      "value_table": {
+        "7-8ft": 1.0,
+        "9-12ft": 1.3,
+        "13-17ft": 1.5,
+        "18+ft": 2.0
+      },
+      "input_key": "IN_HEIGHT_BAND",
+      "paintscope_key": "PS_META.HEIGHT_BAND",
+      "application_rule": "effective_rate = base_rate / modifier",
+      "notes": "Modifiers INCREASE TIME, not rate"
+    },
     {
-      "quality_level": "QL-3 | QL-4 | QL-5",
-      "description": "How quality affects time",
-      "primary_mechanism": "additional_rounds | selective_multiplier",
+      "factor_id": "FAC_TEXTURE",
+      "name": "Surface Texture Modifier",
+      "description": "Time multiplier based on surface texture",
+      "modifier_type": "time_multiplier",
+      "applies_to_tasks": ["TASK_EXAMPLE"],
+      "value_table": {
+        "smooth": 1.0,
+        "orange_peel": 1.1,
+        "knockdown": 1.15,
+        "heavy_texture": 1.25
+      },
+      "input_key": "IN_TEXTURE",
+      "paintscope_key": "PS_META.SURFACE_TEXTURE",
+      "application_rule": "effective_rate = base_rate / modifier",
       "notes": ""
     }
   ],
 
-  "assumptions": [],
-  "risks": [],
-  "validation_plan": []
+  "quality_tier_effects": [
+    {
+      "quality_tier": "QT2",
+      "time_modifier": 0.8,
+      "description": "Minimal quality - reduced prep, faster execution",
+      "mechanism": "selective_multiplier",
+      "notes": "Economy work, no warranty expected"
+    },
+    {
+      "quality_tier": "QT3",
+      "time_modifier": 1.0,
+      "description": "Standard quality - baseline for all rates",
+      "mechanism": "baseline",
+      "notes": "Mid-grade materials, standard prep"
+    },
+    {
+      "quality_tier": "QT4",
+      "time_modifier": 1.3,
+      "description": "Premium quality - thorough prep, careful execution",
+      "mechanism": "selective_multiplier",
+      "notes": "Light sand between coats, crisper edges"
+    },
+    {
+      "quality_tier": "QT5",
+      "time_modifier": 1.5,
+      "description": "Superior quality - maximum labor investment",
+      "mechanism": "selective_multiplier",
+      "condition_gate": "Good condition only - Fair/Poor requires hourly billing",
+      "notes": "Full sand between coats, straight-line edges"
+    }
+  ],
+
+  "coupling_constraints": [
+    {
+      "constraint_id": "COUPLE_SPRAY_BACKROLL",
+      "description": "Spray rate must not exceed backroll rate when using spray+backroll method",
+      "rule": "spray_rate <= backroll_rate",
+      "applies_when": {
+        "application_method": ["spray_backroll"]
+      },
+      "notes": "Backroller sets the pace (bottleneck principle)"
+    }
+  ],
+
+  "production_notes": {
+    "rate_derivation": "How rates were derived (research, field data, industry standards)",
+    "modifier_stacking": "How multiple modifiers combine (multiplicative)",
+    "quality_expression": "Quality differences expressed through time modifiers, not additional rounds for this spec"
+  }
 }

@@ -6,31 +6,30 @@
   "required": [
     "spec_family_id",
     "version",
-    "status",
-    "review_required",
-    "task_production_rates",
-    "factor_modifiers",
-    "quality_effects",
-    "assumptions",
-    "risks",
-    "validation_plan"
+    "task_production_rates"
   ],
   "properties": {
     "spec_family_id": { "type": "string", "pattern": "^SF_[A-Z0-9_]+$" },
     "version": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$" },
-    "status": { "type": "string", "enum": ["draft", "review_required", "approved", "deprecated"] },
-    "review_required": { "type": "boolean" },
 
     "task_production_rates": {
       "type": "array",
+      "minItems": 1,
       "items": {
         "type": "object",
-        "required": ["task_id", "unit_of_measure", "rate_per_hour", "crew_size"],
+        "required": ["task_id", "unit_of_measure", "rate_per_hour"],
         "properties": {
-          "task_id": { "type": "string", "pattern": "^TSK_[A-Z0-9_]+$" },
+          "task_id": { "type": "string", "pattern": "^TASK_[A-Z0-9_]+$" },
+          "name": { "type": "string" },
+          "required_input_key": { "type": "string", "pattern": "^IN_[A-Z0-9_]+$" },
+          "paintscope_key": { "type": "string", "pattern": "^PS_[A-Z0-9_.]+$" },
           "unit_of_measure": { "type": "string", "enum": ["EA", "LF", "SF"] },
           "rate_per_hour": { "type": "number", "exclusiveMinimum": 0 },
+          "rate_range_low": { "type": "number", "exclusiveMinimum": 0 },
+          "rate_range_high": { "type": "number", "exclusiveMinimum": 0 },
           "crew_size": { "type": "integer", "minimum": 1, "maximum": 12 },
+          "rate_basis_notes": { "type": "string" },
+          "applies_when": { "type": "object" },
           "notes": { "type": "string" }
         },
         "additionalProperties": true
@@ -41,45 +40,81 @@
       "type": "array",
       "items": {
         "type": "object",
-        "required": ["factor_id", "description", "applies_to_tasks", "modifier_type", "value_range"],
+        "required": ["factor_id", "name", "description", "modifier_type", "applies_to_tasks"],
         "properties": {
           "factor_id": { "type": "string", "pattern": "^FAC_[A-Z0-9_]+$" },
+          "name": { "type": "string" },
           "description": { "type": "string" },
+          "modifier_type": {
+            "type": "string",
+            "enum": ["time_multiplier", "additive", "coverage_adjustment"]
+          },
           "applies_to_tasks": {
             "type": "array",
-            "items": { "type": "string", "pattern": "^TSK_[A-Z0-9_]+$" }
+            "items": { "type": "string", "pattern": "^TASK_[A-Z0-9_]+$" }
           },
-          "modifier_type": { "type": "string", "enum": ["multiplier", "additive"] },
+          "value_table": {
+            "type": "object",
+            "additionalProperties": { "type": "number" }
+          },
           "value_range": {
             "type": "array",
             "minItems": 2,
             "maxItems": 2,
             "items": { "type": "number" }
           },
+          "input_key": { "type": "string", "pattern": "^IN_[A-Z0-9_]+$" },
+          "paintscope_key": { "type": "string", "pattern": "^PS_[A-Z0-9_.]+$" },
+          "application_rule": { "type": "string" },
           "notes": { "type": "string" }
         },
         "additionalProperties": true
       }
     },
 
-    "quality_effects": {
+    "quality_tier_effects": {
       "type": "array",
       "items": {
         "type": "object",
-        "required": ["quality_level", "description", "primary_mechanism"],
+        "required": ["quality_tier", "time_modifier", "description", "mechanism"],
         "properties": {
-          "quality_level": { "type": "string", "enum": ["QL-3", "QL-4", "QL-5"] },
+          "quality_tier": {
+            "type": "string",
+            "enum": ["QT2", "QT3", "QT4", "QT5"]
+          },
+          "time_modifier": { "type": "number", "exclusiveMinimum": 0 },
           "description": { "type": "string" },
-          "primary_mechanism": { "type": "string", "enum": ["additional_rounds", "selective_multiplier"] },
+          "mechanism": {
+            "type": "string",
+            "enum": ["baseline", "selective_multiplier", "additional_rounds"]
+          },
+          "condition_gate": { "type": "string" },
           "notes": { "type": "string" }
         },
         "additionalProperties": true
       }
     },
 
-    "assumptions": { "type": "array", "items": { "type": "string" } },
-    "risks": { "type": "array", "items": { "type": "string" } },
-    "validation_plan": { "type": "array", "items": { "type": "string" } }
+    "coupling_constraints": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["constraint_id", "description", "rule"],
+        "properties": {
+          "constraint_id": { "type": "string", "pattern": "^COUPLE_[A-Z0-9_]+$" },
+          "description": { "type": "string" },
+          "rule": { "type": "string" },
+          "applies_when": { "type": "object" },
+          "notes": { "type": "string" }
+        },
+        "additionalProperties": true
+      }
+    },
+
+    "production_notes": {
+      "type": "object",
+      "additionalProperties": { "type": "string" }
+    }
   },
   "additionalProperties": true
 }

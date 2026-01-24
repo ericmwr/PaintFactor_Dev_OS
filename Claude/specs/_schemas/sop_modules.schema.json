@@ -6,72 +6,111 @@
   "required": [
     "spec_family_id",
     "version",
-    "status",
-    "review_required",
-    "sop_modules",
-    "tasks",
-    "module_task_map",
-    "assumptions",
-    "exclusions"
+    "sop_modules"
   ],
   "properties": {
     "spec_family_id": { "type": "string", "pattern": "^SF_[A-Z0-9_]+$" },
     "version": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$" },
-    "status": { "type": "string", "enum": ["draft", "review_required", "approved", "deprecated"] },
-    "review_required": { "type": "boolean" },
 
     "sop_modules": {
       "type": "array",
+      "minItems": 1,
       "items": {
         "type": "object",
-        "required": ["module_id", "name", "purpose", "applies_to"],
+        "required": ["module_id", "name", "description", "phase", "applies_when", "tasks"],
         "properties": {
-          "module_id": { "type": "string", "pattern": "^MOD_[A-Z0-9_]+$" },
-          "name": { "type": "string" },
-          "purpose": { "type": "string" },
-          "applies_to": { "type": "object" }
+          "module_id": { "type": "string", "pattern": "^SOP_[A-Z0-9_]+$" },
+          "name": { "type": "string", "minLength": 1 },
+          "description": { "type": "string" },
+          "phase": {
+            "type": "string",
+            "enum": ["prep", "protect", "apply", "cleanup", "prime", "finish", "inspect", "repair"]
+          },
+          "applies_when": { "type": "object" },
+          "required_inputs": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["input_name", "uom"],
+              "properties": {
+                "input_name": { "type": "string", "pattern": "^IN_[A-Z0-9_]+$" },
+                "paintscope_key": { "type": "string", "pattern": "^PS_[A-Z0-9_.]+$" },
+                "uom": { "type": "string", "enum": ["SF", "LF", "EA", "ENUM", "BOOL"] },
+                "required_when": { "type": "object" }
+              }
+            }
+          },
+          "tasks": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "required": ["task_id", "name", "description"],
+              "properties": {
+                "task_id": { "type": "string", "pattern": "^TASK_[A-Z0-9_]+$" },
+                "name": { "type": "string", "minLength": 1 },
+                "description": { "type": "string" },
+                "skill_level": {
+                  "type": "string",
+                  "enum": ["helper", "journeyman", "lead"]
+                },
+                "tools_required": {
+                  "type": "array",
+                  "items": { "type": "string" }
+                },
+                "applies_when": { "type": "object" },
+                "critical_constraints": {
+                  "type": "array",
+                  "items": { "type": "string" }
+                },
+                "quality_notes": {
+                  "type": "object",
+                  "properties": {
+                    "QT2": { "type": "string" },
+                    "QT3": { "type": "string" },
+                    "QT4": { "type": "string" },
+                    "QT5": { "type": "string" }
+                  },
+                  "additionalProperties": false
+                },
+                "notes": { "type": "string" }
+              },
+              "additionalProperties": true
+            }
+          },
+          "sequence_notes": { "type": "string" }
         },
         "additionalProperties": true
       }
     },
 
-    "tasks": {
+    "round_configurations": {
       "type": "array",
       "items": {
         "type": "object",
-        "required": ["task_id", "module_id", "name", "task_type", "round_number", "inputs", "outputs"],
+        "required": ["round_id", "name", "description", "applies_when", "phase_sequence"],
         "properties": {
-          "task_id": { "type": "string", "pattern": "^TSK_[A-Z0-9_]+$" },
-          "module_id": { "type": "string", "pattern": "^MOD_[A-Z0-9_]+$" },
+          "round_id": { "type": "string", "pattern": "^ROUND_[A-Z0-9_]+$" },
           "name": { "type": "string" },
-          "task_type": { "type": "string", "enum": ["prep", "prime", "finish", "inspect", "protect", "repair", "other"] },
-          "round_number": { "type": "integer", "minimum": 1 },
-          "inputs": { "type": "array", "items": { "type": "string" } },
-          "outputs": { "type": "array", "items": { "type": "string" } },
+          "description": { "type": "string" },
+          "applies_when": { "type": "object" },
+          "phase_sequence": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": ["prep", "protect", "apply", "cleanup", "prime", "finish", "inspect", "repair"]
+            }
+          },
           "notes": { "type": "string" }
         },
         "additionalProperties": true
       }
     },
 
-    "module_task_map": {
-      "type": "array",
-      "items": {
-        "type": "object",
-        "required": ["module_id", "task_ids"],
-        "properties": {
-          "module_id": { "type": "string", "pattern": "^MOD_[A-Z0-9_]+$" },
-          "task_ids": {
-            "type": "array",
-            "items": { "type": "string", "pattern": "^TSK_[A-Z0-9_]+$" }
-          }
-        },
-        "additionalProperties": false
-      }
-    },
-
-    "assumptions": { "type": "array", "items": { "type": "string" } },
-    "exclusions": { "type": "array", "items": { "type": "string" } }
+    "module_notes": {
+      "type": "object",
+      "additionalProperties": { "type": "string" }
+    }
   },
   "additionalProperties": true
 }

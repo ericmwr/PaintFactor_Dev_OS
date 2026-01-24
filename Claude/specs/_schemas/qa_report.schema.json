@@ -3,19 +3,82 @@
   "$id": "qa_report.schema.json",
   "title": "PaintFactor QA Report Schema",
   "type": "object",
-  "required": ["spec_family_id", "version", "reviewed_by", "status", "issues", "summary", "review_notes"],
+  "required": ["spec_family_id", "version", "reviewed_by", "status", "validation_gates", "issues", "summary"],
   "properties": {
     "spec_family_id": { "type": "string", "pattern": "^SF_[A-Z0-9_]+$" },
     "version": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$" },
     "reviewed_by": { "type": "string" },
+    "review_date": { "type": "string" },
     "status": { "type": "string", "enum": ["pass", "pass_with_warnings", "fail"] },
+
+    "validation_gates": {
+      "type": "object",
+      "properties": {
+        "schema_compliance": {
+          "type": "object",
+          "required": ["passed"],
+          "properties": {
+            "passed": { "type": "boolean" },
+            "notes": { "type": "string" }
+          }
+        },
+        "paintscope_readiness": {
+          "type": "object",
+          "required": ["passed"],
+          "properties": {
+            "passed": { "type": "boolean" },
+            "missing_keys": { "type": "array", "items": { "type": "string" } },
+            "unmapped_inputs": { "type": "array", "items": { "type": "string" } },
+            "notes": { "type": "string" }
+          }
+        },
+        "uom_alignment": {
+          "type": "object",
+          "required": ["passed"],
+          "properties": {
+            "passed": { "type": "boolean" },
+            "violations": { "type": "array", "items": { "type": "string" } },
+            "notes": { "type": "string" }
+          }
+        },
+        "edge_lf_declarations": {
+          "type": "object",
+          "required": ["passed"],
+          "properties": {
+            "passed": { "type": "boolean" },
+            "undeclared_edge_work": { "type": "array", "items": { "type": "string" } },
+            "notes": { "type": "string" }
+          }
+        },
+        "modifier_math": {
+          "type": "object",
+          "required": ["passed"],
+          "properties": {
+            "passed": { "type": "boolean" },
+            "violations": { "type": "array", "items": { "type": "string" } },
+            "notes": { "type": "string" }
+          }
+        },
+        "spray_backroll_coupling": {
+          "type": "object",
+          "required": ["passed"],
+          "properties": {
+            "passed": { "type": "boolean" },
+            "violations": { "type": "array", "items": { "type": "string" } },
+            "notes": { "type": "string" }
+          }
+        }
+      },
+      "additionalProperties": true
+    },
 
     "issues": {
       "type": "array",
       "items": {
         "type": "object",
-        "required": ["severity", "area", "description", "suggested_fix", "recommended_agent"],
+        "required": ["severity", "area", "description", "suggested_fix"],
         "properties": {
+          "issue_id": { "type": "string", "pattern": "^ISS_[0-9]+$" },
           "severity": { "type": "string", "enum": ["critical", "major", "minor"] },
           "area": {
             "type": "string",
@@ -24,16 +87,32 @@
               "materials_logic",
               "sop_modularity",
               "production_logic",
+              "paintscope_mapping",
               "quality_rounds",
               "assumptions",
               "other"
             ]
           },
+          "file": { "type": "string" },
+          "location": { "type": "string" },
           "description": { "type": "string" },
           "suggested_fix": { "type": "string" },
-          "recommended_agent": { "type": "string" }
+          "recommended_agent": {
+            "type": "string",
+            "enum": ["spec-researcher", "materials-manager", "sop-librarian", "estimation-engineer"]
+          }
         },
         "additionalProperties": true
+      }
+    },
+
+    "human_feedback_gate": {
+      "type": "object",
+      "required": ["required", "completed"],
+      "properties": {
+        "required": { "type": "boolean" },
+        "completed": { "type": "boolean" },
+        "feedback_file": { "type": "string" }
       }
     },
 

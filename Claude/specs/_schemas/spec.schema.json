@@ -8,13 +8,14 @@
     "configuration_dimensions",
     "paintable_items",
     "variants",
+    "required_paintscope_inputs",
     "dependencies",
     "change_log"
   ],
   "properties": {
     "spec_family": {
       "type": "object",
-      "required": ["id", "name", "domain", "version", "status", "review_required"],
+      "required": ["id", "name", "description", "domain", "version", "status", "review_required"],
       "properties": {
         "id": { "type": "string", "pattern": "^SF_[A-Z0-9_]+$" },
         "name": { "type": "string", "minLength": 3 },
@@ -36,7 +37,7 @@
         "properties": {
           "dimension_id": { "type": "string", "pattern": "^[a-z0-9_]+$" },
           "description": { "type": "string" },
-          "values": { "type": "array", "items": { "type": "string" } }
+          "values": { "type": "array", "items": { "type": "string" }, "minItems": 1 }
         },
         "additionalProperties": true
       }
@@ -50,7 +51,7 @@
         "required": ["item_id", "name", "unit_of_measure", "counting_rules"],
         "properties": {
           "item_id": { "type": "string", "pattern": "^ITM_[A-Z0-9_]+$" },
-          "name": { "type": "string" },
+          "name": { "type": "string", "minLength": 1 },
           "unit_of_measure": { "type": "string", "enum": ["EA", "LF", "SF"] },
           "counting_rules": { "type": "string" },
           "notes": { "type": "string" }
@@ -82,8 +83,23 @@
       }
     },
 
-    "assumptions": { "type": "array", "items": { "type": "string" } },
-    "exclusions": { "type": "array", "items": { "type": "string" } },
+    "required_paintscope_inputs": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["input_name", "paintscope_key", "uom"],
+        "properties": {
+          "input_name": { "type": "string", "pattern": "^IN_[A-Z0-9_]+$" },
+          "paintscope_key": { "type": "string", "pattern": "^PS_[A-Z0-9_.]+$" },
+          "uom": { "type": "string", "enum": ["SF", "LF", "EA", "ENUM", "BOOL"] },
+          "required": { "type": "boolean" },
+          "required_when": { "type": "object" },
+          "description": { "type": "string" }
+        },
+        "additionalProperties": true
+      }
+    },
 
     "dependencies": {
       "type": "object",

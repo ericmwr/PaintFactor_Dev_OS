@@ -6,44 +6,52 @@
   "required": [
     "spec_family_id",
     "version",
-    "status",
-    "review_required",
     "material_systems",
     "coverage_profiles",
-    "consumable_usage_models",
-    "compatibility_rules",
-    "risk_notes",
-    "assumptions",
-    "uncertainty_flags"
+    "consumables"
   ],
   "properties": {
     "spec_family_id": { "type": "string", "pattern": "^SF_[A-Z0-9_]+$" },
     "version": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$" },
-    "status": { "type": "string", "enum": ["draft", "review_required", "approved", "deprecated"] },
-    "review_required": { "type": "boolean" },
 
     "material_systems": {
       "type": "array",
+      "minItems": 1,
       "items": {
         "type": "object",
-        "required": ["system_id", "name", "quality_level", "coat_sequence", "compatible_substrates", "cleanup_class"],
+        "required": ["system_id", "name", "description", "applies_when", "products"],
         "properties": {
           "system_id": { "type": "string", "pattern": "^SYS_[A-Z0-9_]+$" },
-          "name": { "type": "string" },
-          "quality_level": { "type": "string", "enum": ["QL-3", "QL-4", "QL-5"] },
-          "coat_sequence": {
+          "name": { "type": "string", "minLength": 1 },
+          "description": { "type": "string" },
+          "applies_when": { "type": "object" },
+          "products": {
             "type": "array",
-            "items": { "type": "string" }
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "required": ["product_role", "product_type", "coats_required"],
+              "properties": {
+                "product_role": {
+                  "type": "string",
+                  "enum": ["primer", "topcoat", "sealer", "clear", "stain", "specialty"]
+                },
+                "product_type": { "type": "string" },
+                "example_products": {
+                  "type": "array",
+                  "items": { "type": "string" }
+                },
+                "sheen": {
+                  "type": "string",
+                  "enum": ["flat", "matte", "eggshell", "satin", "semi-gloss", "gloss"]
+                },
+                "coats_required": { "type": "integer", "minimum": 1 },
+                "notes": { "type": "string" }
+              },
+              "additionalProperties": true
+            }
           },
-          "compatible_substrates": {
-            "type": "array",
-            "items": { "type": "string" }
-          },
-          "cleanup_class": { "type": "string", "enum": ["water", "solvent", "hybrid"] },
-          "notes": {
-            "type": "array",
-            "items": { "type": "string" }
-          }
+          "compatibility_notes": { "type": "string" }
         },
         "additionalProperties": true
       }
@@ -51,69 +59,67 @@
 
     "coverage_profiles": {
       "type": "array",
+      "minItems": 1,
       "items": {
         "type": "object",
-        "required": ["system_id", "spread_rate_sqft_per_gallon", "loss_factor_percent"],
+        "required": ["profile_id", "material_system", "coverage_sf_per_gallon"],
         "properties": {
-          "system_id": { "type": "string", "pattern": "^SYS_[A-Z0-9_]+$" },
-          "spread_rate_sqft_per_gallon": { "type": "number", "exclusiveMinimum": 0 },
-          "loss_factor_percent": { "type": "number", "minimum": 0, "maximum": 100 },
-          "profile_sensitivity_notes": { "type": "string" }
+          "profile_id": { "type": "string", "pattern": "^COV_[A-Z0-9_]+$" },
+          "material_system": { "type": "string", "pattern": "^SYS_[A-Z0-9_]+$" },
+          "surface_texture": {
+            "type": "string",
+            "enum": ["smooth", "orange_peel", "knockdown", "heavy_texture", "skip_trowel"]
+          },
+          "surface_condition": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "drywall_finish_level": {
+            "type": "array",
+            "items": { "type": "string", "enum": ["level_3", "level_4", "level_5"] }
+          },
+          "coverage_sf_per_gallon": { "type": "number", "exclusiveMinimum": 0 },
+          "coverage_range_low": { "type": "number", "exclusiveMinimum": 0 },
+          "coverage_range_high": { "type": "number", "exclusiveMinimum": 0 },
+          "assumptions": { "type": "string" }
         },
         "additionalProperties": true
       }
     },
 
-    "consumable_usage_models": {
+    "consumables": {
       "type": "array",
       "items": {
         "type": "object",
-        "required": ["consumable_type", "recommended_class", "quality_sensitivity"],
+        "required": ["consumable_id", "name", "category", "unit", "yield_per_unit", "yield_uom"],
         "properties": {
-          "consumable_type": {
+          "consumable_id": { "type": "string", "pattern": "^CON_[A-Z0-9_]+$" },
+          "name": { "type": "string", "minLength": 1 },
+          "category": {
             "type": "string",
-            "enum": ["roller_cover", "brush", "spray_tip", "tape", "plastic", "abrasive", "solvent"]
+            "enum": ["applicator", "protection", "prep", "cleanup", "abrasive", "solvent"]
           },
-          "recommended_class": { "type": "string", "enum": ["standard", "premium", "gallery"] },
-          "quality_sensitivity": { "type": "string", "enum": ["low", "medium", "high"] },
-          "usage_rate": {
-            "type": "object",
-            "properties": {
-              "qty": { "type": "number" },
-              "uom": { "type": "string" },
-              "per": { "type": "string" },
-              "quality_multiplier": { "type": "object" },
-              "notes": { "type": "string" }
-            }
+          "specification": { "type": "string" },
+          "unit": {
+            "type": "string",
+            "enum": ["EA", "ROLL", "BOX", "SHEET", "GAL", "QT"]
           },
+          "yield_per_unit": { "type": "number", "exclusiveMinimum": 0 },
+          "yield_uom": {
+            "type": "string",
+            "enum": ["SF", "LF", "EA", "SF_FLOOR", "LF_EDGE"]
+          },
+          "applies_when": { "type": "object" },
           "notes": { "type": "string" }
         },
         "additionalProperties": true
       }
     },
 
-    "materials_catalog": {
-      "type": "array",
-      "items": { "type": "object" }
-    },
-
-    "compatibility_rules": {
-      "type": "array",
-      "items": {
-        "type": "object",
-        "required": ["rule", "risk", "mitigation"],
-        "properties": {
-          "rule": { "type": "string" },
-          "risk": { "type": "string" },
-          "mitigation": { "type": "string" }
-        },
-        "additionalProperties": true
-      }
-    },
-
-    "risk_notes": { "type": "array", "items": { "type": "string" } },
-    "assumptions": { "type": "array", "items": { "type": "string" } },
-    "uncertainty_flags": { "type": "array", "items": { "type": "string" } }
+    "material_notes": {
+      "type": "object",
+      "additionalProperties": { "type": "string" }
+    }
   },
   "additionalProperties": true
 }
