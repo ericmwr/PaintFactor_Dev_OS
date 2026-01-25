@@ -1,8 +1,8 @@
 # Fine Finish Doctrine
 
 **Status:** Canonical
-**Version:** 1.0
-**Last Updated:** 2026-01-24
+**Version:** 1.1
+**Last Updated:** 2026-01-25
 
 This document defines the material systems, process structure, quality tier behavior, and task classification for fine finish painting. AI agents generating specs for trim, built-ins, doors, millwork, and custom wood surfaces MUST follow this doctrine.
 
@@ -73,20 +73,55 @@ Clear coat adds durability and depth but is a configuration option, not automati
 
 | System ID | Name | Quality Tier | Primer | Finish | Clear | Notes |
 |-----------|------|--------------|--------|--------|-------|-------|
-| SYS_FF_ECONOMY | Economy Acrylic-Urethane | QT3 | Acrylic (tinted, optional) | Modified urethane satin | None | Budget work, rental turnover |
-| SYS_FF_STANDARD | Standard Modified Urethane | QT3-QT4 | Acrylic (optional) | Modified urethane (satin/semi-gloss) | None | Standard residential |
-| SYS_FF_PREMIUM | Premium Modified Urethane | QT4 | Acrylic or bonding primer (optional) | Emerald Urethane or equivalent | None | Premium residential, light commercial |
-| SYS_FF_GALLERY | Gallery Series Full System | QT5 | Gallery Series primer | Gallery Series finish | Optional clear | Showroom quality, custom homes |
+| SYS_FF_STANDARD_ACRYLIC | Standard Acrylic Trim Enamel | QT3 | Acrylic (optional) | 100% acrylic enamel (satin) | None | Production-grade standard residential |
+| SYS_FF_MODIFIED_URETHANE | Modified Urethane Trim Enamel | QT4 | Acrylic (optional) | Urethane-modified alkyd (satin/semi-gloss) | None | Premium residential, upgraded finish |
+| SYS_FF_PREMIUM | Premium Urethane Trim | QT5 | Acrylic or bonding primer (optional) | Emerald Urethane or equivalent | None | Showroom quality, custom homes |
+| SYS_FF_GALLERY | Gallery Series Full System | QT5 | Gallery Series primer | Gallery Series finish | Optional clear | Maximum quality, architect-spec |
 | SYS_FF_CONVERSION | Conversion Varnish System | QT5 | Vinyl sealer or conversion primer | Conversion varnish | Optional clear | Commercial millwork, maximum durability |
+
+### QT3 Material System: Standard Acrylic Enamel
+
+**Product Type:** 100% acrylic enamel (NOT hybrid alkyd)
+
+| Brand | Product Name | Series | Notes |
+|-------|--------------|--------|-------|
+| Sherwin-Williams | ProClassic Waterborne Interior Acrylic Enamel | B31 series | Pure acrylic, not Acrylic-Alkyd (B33) |
+| Benjamin Moore | Regal Select Interior Semi-Gloss | N551 | 100% acrylic latex |
+| PPG | Break-Through Interior/Exterior Acrylic | V52 series | Waterborne acrylic enamel |
+| Behr | Pro Interior Semi-Gloss Enamel | — | Acrylic enamel |
+
+**Characteristics:**
+- Fast dry/recoat times suitable for production pace
+- Good leveling but not alkyd-level self-leveling
+- Non-yellowing
+- Water cleanup
+
+### QT4 Material System: Modified Urethane / Waterbased Alkyd
+
+**Product Type:** Urethane-modified alkyd / waterbased alkyd
+
+| Brand | Product Name | Series | Notes |
+|-------|--------------|--------|-------|
+| Sherwin-Williams | Pro Industrial Waterbased Alkyd Urethane | B53 series | Contractor/commercial line |
+| Benjamin Moore | Advance Waterborne Interior Alkyd | N794 | Waterborne alkyd |
+| PPG | Glyptex Interior/Exterior Urethane Alkyd | — | Urethane alkyd |
+| Behr | Premium Urethane Alkyd Semi-Gloss Enamel | No. 3900 | Urethane alkyd |
+
+**Characteristics:**
+- Superior flow and leveling (alkyd-like, reduces brush marks)
+- Longer open time than pure acrylic
+- Harder cured film than standard acrylic
+- Extended cure time (allow 7+ days for full hardness)
+- Water cleanup despite alkyd properties
 
 ### System Selection Guidance
 
 | Scenario | Recommended System | Notes |
 |----------|-------------------|-------|
-| Rental/turnover | SYS_FF_ECONOMY | Speed over perfection |
-| Standard residential new construction | SYS_FF_STANDARD | Balance of quality and cost |
-| Premium residential | SYS_FF_PREMIUM | Emerald-tier products |
-| Custom home, architect-spec | SYS_FF_GALLERY | Full premium system |
+| Standard residential new construction | SYS_FF_STANDARD_ACRYLIC | Production pace, good results |
+| Premium residential, upgraded finish | SYS_FF_MODIFIED_URETHANE | Superior leveling, harder finish |
+| Custom home, showroom quality | SYS_FF_PREMIUM | Emerald-tier products |
+| Architect-spec, maximum quality | SYS_FF_GALLERY | Full premium system |
 | Commercial millwork, high-traffic | SYS_FF_CONVERSION | Maximum durability |
 | Historic restoration | SYS_FF_GALLERY or custom | May require specific products |
 
@@ -688,7 +723,7 @@ For brush and roll fine finish work, edges are handled by cut-in or tape line:
 | **Orange peel** | Acceptable | Consistent OK | Not acceptable |
 | **Typical coat count** | 1-2 | 2-3 | 3-4 |
 | **Clear coat** | No | No | Optional |
-| **Material system** | Economy | Premium | Gallery/Conversion |
+| **Material system** | Standard Acrylic | Modified Urethane | Premium/Gallery |
 | **Application** | Spray or brush | Spray preferred | Spray required |
 
 ---
