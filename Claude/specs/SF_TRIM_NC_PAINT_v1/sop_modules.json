@@ -1,0 +1,510 @@
+{
+  "spec_family_id": "SF_TRIM_NC_PAINT",
+  "version": "0.1.0",
+  "doctrine_alignment": "Fine_Finish_Doctrine.md v1.0",
+
+  "sop_modules": [
+    {
+      "module_id": "MOD_TRIM_NC_SETUP",
+      "name": "Trim Paint Setup",
+      "description": "Prepare work area for NC trim painting. Protect floors, verify masking, clean surfaces.",
+      "phase": "setup",
+      "applies_when": {
+        "quality_tier": ["QT3", "QT4", "QT5"]
+      },
+      "required_inputs": [
+        {
+          "input_name": "IN_SF_PROTECT_FLOOR_EXPOSED",
+          "paintscope_key": "PS_PROTECT_SF.FLOOR_EXPOSED",
+          "uom": "SF",
+          "required_when": "application_method = spray"
+        }
+      ],
+      "tasks": [
+        {
+          "task_id": "TSK_TRIM_PROTECT_FLOORS",
+          "name": "Protect Floors",
+          "description": "Lay paper or plastic floor protection in work areas. Tape seams for spray.",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "tools_required": ["rosin_paper", "plastic_sheeting", "masking_tape"],
+          "uom": "SF",
+          "required_input_key": "IN_SF_PROTECT_FLOOR_EXPOSED"
+        },
+        {
+          "task_id": "TSK_TRIM_VERIFY_MASKING",
+          "name": "Verify Masking",
+          "description": "Verify all masking is sealed. Check tape edges, film coverage, corners.",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "tools_required": ["none"],
+          "uom": "LF",
+          "notes": "Binary task - masking is either complete or it is not"
+        },
+        {
+          "task_id": "TSK_TRIM_WIPE_SURFACES",
+          "name": "Wipe Down Trim Surfaces",
+          "description": "Remove construction dust and debris from trim surfaces before painting.",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "tools_required": ["tack_cloth", "clean_rags"],
+          "uom": "LF",
+          "required_input_keys": ["IN_LF_BASEBOARD", "IN_LF_DOOR_CASING", "IN_LF_WINDOW_CASING"]
+        }
+      ],
+      "sequence_notes": "Protect floors → Verify masking → Wipe surfaces"
+    },
+    {
+      "module_id": "MOD_TRIM_NC_INITIAL_PREP",
+      "name": "Trim Initial Prep",
+      "description": "Primary fill-sand-caulk cycle for NC trim. This is the HEAVY LIFT where majority of prep work occurs. Addresses fastener holes (2 stacked every 12-16\"), gaps at joints/walls, open grain at board ends.",
+      "phase": "prep",
+      "applies_when": {
+        "quality_tier": ["QT3", "QT4", "QT5"]
+      },
+      "required_inputs": [
+        {
+          "input_name": "IN_LF_BASEBOARD",
+          "paintscope_key": "PS_SURFACE_LF.TRIM_BASEBOARD",
+          "uom": "LF"
+        },
+        {
+          "input_name": "IN_LF_DOOR_CASING",
+          "paintscope_key": "PS_SURFACE_LF.TRIM_CASING_DOOR",
+          "uom": "LF"
+        },
+        {
+          "input_name": "IN_LF_WINDOW_CASING",
+          "paintscope_key": "PS_SURFACE_LF.TRIM_CASING_WINDOW",
+          "uom": "LF"
+        },
+        {
+          "input_name": "IN_EA_DOOR_OPENINGS",
+          "paintscope_key": "PS_OPENING_EA.DOOR_OPENINGS_TOTAL",
+          "uom": "EA",
+          "notes": "For open grain fill calculation: 2 ends per door opening SIDE. Counted per side: interior door = 2 sides, exterior door = 1 interior side."
+        },
+        {
+          "input_name": "IN_EA_WINDOW_OPENINGS",
+          "paintscope_key": "PS_OPENING_EA.WINDOW_OPENINGS_TOTAL",
+          "uom": "EA",
+          "notes": "For open grain fill calculation: 4 ends per window opening"
+        }
+      ],
+      "tasks": [
+        {
+          "task_id": "TSK_TRIM_FILL_FASTENERS",
+          "name": "Fill Fastener Holes",
+          "description": "Fill nail/brad holes with lightweight spackle. Standard density: 2 stacked holes every 12-16 inches. Overfill slightly for sand-back method.",
+          "task_classification": "qt_scaled",
+          "skill_level": "journeyman",
+          "tools_required": ["spackle", "putty_knife_1in", "finger"],
+          "uom": "LF",
+          "quality_notes": {
+            "QT3": "Fill obvious holes; small pinholes may be left",
+            "QT4": "Fill all visible holes",
+            "QT5": "Fill every hole, no matter how small"
+          }
+        },
+        {
+          "task_id": "TSK_TRIM_FILL_OPEN_GRAIN",
+          "name": "Fill Open Grain at Casing Ends",
+          "description": "Apply putty or caulk to open grain at exposed casing end cuts. Typical locations: door header casing ends (2 per door opening), window header and sill casing ends (4 per window opening). Wipe smooth with damp finger or rag. Note: Cope cuts and miter joints on running trim are handled during normal caulk/fill tasks.",
+          "task_classification": "qt_scaled",
+          "skill_level": "journeyman",
+          "tools_required": ["wood_filler", "caulk", "damp_rag"],
+          "uom": "EA",
+          "quantity_calculation": {
+            "per_door_opening_side": 2,
+            "per_window_opening": 4,
+            "notes": "Door: 2 exposed ends on header casing per opening SIDE (interior door = 2 sides, exterior door = 1 interior side). Window: 2 ends on header casing + 2 ends on sill casing."
+          },
+          "required_input_keys": ["PS_OPENING_EA.DOOR_OPENINGS_TOTAL", "PS_OPENING_EA.WINDOW_OPENINGS_TOTAL"]
+        },
+        {
+          "task_id": "TSK_TRIM_SAND_FILLED",
+          "name": "Sand Filled Areas",
+          "description": "Sand spackle and filler smooth. Feather edges. Use 150-180 grit.",
+          "task_classification": "qt_scaled",
+          "skill_level": "journeyman",
+          "tools_required": ["sanding_block_fine", "sandpaper_150"],
+          "uom": "LF",
+          "quality_notes": {
+            "QT3": "Knock down ridges; flush not required",
+            "QT4": "Sand flush, blend edges",
+            "QT5": "Sand perfectly flush, invisible repairs"
+          }
+        },
+        {
+          "task_id": "TSK_TRIM_FULL_SAND",
+          "name": "Full Surface Sand",
+          "description": "Scuff sand entire trim surface for adhesion. 180-220 grit.",
+          "task_classification": "qt_scaled",
+          "skill_level": "journeyman",
+          "tools_required": ["sanding_block_fine", "sandpaper_220"],
+          "uom": "LF",
+          "quality_notes": {
+            "QT3": "Light scuff for adhesion",
+            "QT4": "Full sand 180-220 grit",
+            "QT5": "Thorough sand 220+ grit, uniform scratch pattern"
+          }
+        },
+        {
+          "task_id": "TSK_TRIM_CLEAN_DUST",
+          "name": "Remove Sanding Dust",
+          "description": "Vacuum and tack wipe all trim surfaces. No dust before caulking or coating.",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "tools_required": ["vacuum", "tack_cloth"],
+          "uom": "LF"
+        },
+        {
+          "task_id": "TSK_TRIM_CAULK_BASEBOARD",
+          "name": "Caulk Baseboard Joints",
+          "description": "Caulk baseboard top edge to wall. Single caulk line along top, fewer miters than casing. Smooth with wet finger. NC consumption: ~72 LF per tube. Applied after sanding/cleaning to keep caulk dust-free.",
+          "task_classification": "qt_scaled",
+          "skill_level": "journeyman",
+          "tools_required": ["caulk_gun", "acrylic_latex_caulk", "damp_rag"],
+          "uom": "LF",
+          "required_input_key": "IN_LF_BASEBOARD",
+          "quality_notes": {
+            "QT3": "Functional caulk; bead appearance acceptable",
+            "QT4": "Smooth caulk lines",
+            "QT5": "Perfect tooled caulk, invisible joints"
+          }
+        },
+        {
+          "task_id": "TSK_TRIM_CAULK_CASING",
+          "name": "Caulk Door/Window Casing Joints",
+          "description": "Caulk casing on both inside and outside edges to wall, plus miter joints. More time-intensive than baseboard due to double-sided caulking and more miters per LF. Smooth with wet finger. Applied after sanding/cleaning to keep caulk dust-free.",
+          "task_classification": "qt_scaled",
+          "skill_level": "journeyman",
+          "tools_required": ["caulk_gun", "acrylic_latex_caulk", "damp_rag"],
+          "uom": "LF",
+          "required_input_keys": ["IN_LF_DOOR_CASING", "IN_LF_WINDOW_CASING"],
+          "quality_notes": {
+            "QT3": "Functional caulk; bead appearance acceptable",
+            "QT4": "Smooth caulk lines on both edges",
+            "QT5": "Perfect tooled caulk, invisible joints on both edges"
+          }
+        }
+      ],
+      "sequence_notes": "Fill holes → Fill open grain → Sand filled → Full sand → Clean dust → Caulk baseboard → Caulk casing"
+    },
+    {
+      "module_id": "MOD_TRIM_NC_FINISH_COAT_1",
+      "name": "Apply First Finish Coat",
+      "description": "Apply first finish coat to prepared trim. First coat reveals hidden defects.",
+      "phase": "apply",
+      "applies_when": {
+        "quality_tier": ["QT3", "QT4", "QT5"]
+      },
+      "required_inputs": [
+        {
+          "input_name": "IN_LF_BASEBOARD",
+          "paintscope_key": "PS_SURFACE_LF.TRIM_BASEBOARD",
+          "uom": "LF"
+        },
+        {
+          "input_name": "IN_LF_DOOR_CASING",
+          "paintscope_key": "PS_SURFACE_LF.TRIM_CASING_DOOR",
+          "uom": "LF"
+        },
+        {
+          "input_name": "IN_LF_WINDOW_CASING",
+          "paintscope_key": "PS_SURFACE_LF.TRIM_CASING_WINDOW",
+          "uom": "LF"
+        }
+      ],
+      "tasks": [
+        {
+          "task_id": "TSK_TRIM_SPRAY_FINISH_1",
+          "name": "Spray First Finish Coat",
+          "description": "Apply first finish coat via airless or HVLP spray. Modified urethane enamel typical.",
+          "task_classification": "qt_scaled",
+          "skill_level": "journeyman",
+          "tools_required": ["airless_sprayer", "spray_tip_310_or_312", "respirator"],
+          "uom": "LF",
+          "applies_when": {
+            "application_method": ["spray"]
+          },
+          "quality_notes": {
+            "QT3": "Production pace, consistent coverage",
+            "QT4": "Moderate pace, attention to uniformity",
+            "QT5": "Slow controlled application, optimal mil per PDS"
+          }
+        },
+        {
+          "task_id": "TSK_TRIM_BRUSH_FINISH_1",
+          "name": "Brush First Finish Coat",
+          "description": "Apply first finish coat via brush. Quality angle brush, proper loading technique.",
+          "task_classification": "qt_scaled",
+          "skill_level": "journeyman",
+          "tools_required": ["brush_2.5in_angled", "cut_bucket"],
+          "uom": "LF",
+          "applies_when": {
+            "application_method": ["brush"]
+          }
+        }
+      ],
+      "sequence_notes": "Single application task - spray OR brush based on application_method"
+    },
+    {
+      "module_id": "MOD_TRIM_NC_INTERSTAGE",
+      "name": "Interstage Process",
+      "description": "Maintenance cycle between finish coats. Lighter than Initial Prep. Addresses issues revealed by first coat.",
+      "phase": "interstage",
+      "applies_when": {
+        "quality_tier": ["QT3", "QT4", "QT5"]
+      },
+      "run_rule": "Runs AFTER each coat EXCEPT the final coat",
+      "required_inputs": [
+        {
+          "input_name": "IN_LF_BASEBOARD",
+          "paintscope_key": "PS_SURFACE_LF.TRIM_BASEBOARD",
+          "uom": "LF"
+        },
+        {
+          "input_name": "IN_LF_DOOR_CASING",
+          "paintscope_key": "PS_SURFACE_LF.TRIM_CASING_DOOR",
+          "uom": "LF"
+        },
+        {
+          "input_name": "IN_LF_WINDOW_CASING",
+          "paintscope_key": "PS_SURFACE_LF.TRIM_CASING_WINDOW",
+          "uom": "LF"
+        }
+      ],
+      "tasks": [
+        {
+          "task_id": "TSK_TRIM_CLEAN_WORK_AREA",
+          "name": "Clean Work Area",
+          "description": "Clean floors, remove overspray accumulation, dust, debris.",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "tools_required": ["broom", "vacuum"],
+          "uom": "SF",
+          "quality_notes": {
+            "QT3": "Quick sweep, remove obvious debris",
+            "QT4": "Thorough clean, no visible dust",
+            "QT5": "Meticulous clean, floors, flat surfaces, windowsills"
+          }
+        },
+        {
+          "task_id": "TSK_TRIM_INSPECT_COAT",
+          "name": "Inspect Coat",
+          "description": "Visual inspection for dust nibs, missed holes revealed by first coat, coverage issues. Mark defects for repair.",
+          "task_classification": "qt_scaled",
+          "skill_level": "journeyman",
+          "tools_required": ["work_light", "marking_crayon"],
+          "uom": "LF",
+          "quality_notes": {
+            "QT3": "Quick glance, address obvious issues only",
+            "QT4": "Systematic scan at 3 feet, identify dust nibs, missed areas",
+            "QT5": "Lighted critical inspection at arm's length, zero tolerance"
+          }
+        },
+        {
+          "task_id": "TSK_TRIM_LIGHT_SAND",
+          "name": "Light Sand Between Coats",
+          "description": "Scuff sand surface for adhesion. 220 grit. Knock down dust nibs.",
+          "task_classification": "qt_scaled",
+          "skill_level": "journeyman",
+          "tools_required": ["sanding_sponge_220", "sanding_block_fine"],
+          "uom": "LF",
+          "quality_notes": {
+            "QT3": "Spot sand only - visible nibs and rough spots",
+            "QT4": "Light full sand - entire surface scuffed",
+            "QT5": "Thorough full sand 220-320 grit - uniformly smooth"
+          }
+        },
+        {
+          "task_id": "TSK_TRIM_PATCH_DEFECTS",
+          "name": "Patch Revealed Defects",
+          "description": "Walk trim and fill holes, dents, damage revealed by first coat.",
+          "task_classification": "qt_scaled",
+          "skill_level": "journeyman",
+          "tools_required": ["spackle", "putty_knife_1in"],
+          "uom": "LF",
+          "required_input_keys": ["IN_LF_BASEBOARD", "IN_LF_DOOR_CASING", "IN_LF_WINDOW_CASING"],
+          "quality_notes": {
+            "QT3": "Repair only glaring defects",
+            "QT4": "Repair all marked defects visible at 3 feet",
+            "QT5": "Repair all defects regardless of size"
+          }
+        },
+        {
+          "task_id": "TSK_TRIM_SAND_PATCHES",
+          "name": "Sand Patches",
+          "description": "Walk trim and feather patched areas smooth. 150-180 grit.",
+          "task_classification": "qt_scaled",
+          "skill_level": "journeyman",
+          "tools_required": ["sanding_block_fine"],
+          "uom": "LF",
+          "required_input_keys": ["IN_LF_BASEBOARD", "IN_LF_DOOR_CASING", "IN_LF_WINDOW_CASING"],
+          "quality_notes": {
+            "QT3": "Quick feather, patches level",
+            "QT4": "Proper feather, no visible edges at 3 feet",
+            "QT5": "Invisible blend, completely undetectable"
+          }
+        },
+        {
+          "task_id": "TSK_TRIM_SPOT_COAT_PATCHES",
+          "name": "Spot Coat Patches",
+          "description": "Walk trim and brush-apply finish over patched areas to seal before next coat.",
+          "task_classification": "qt_scaled",
+          "skill_level": "journeyman",
+          "tools_required": ["brush_2in", "finish_paint"],
+          "uom": "LF",
+          "required_input_keys": ["IN_LF_BASEBOARD", "IN_LF_DOOR_CASING", "IN_LF_WINDOW_CASING"],
+          "quality_notes": {
+            "QT3": "Optional - skip if patches small",
+            "QT4": "Required - all patches get spot coat",
+            "QT5": "Required, may need multiple passes for full seal"
+          }
+        }
+      ],
+      "sequence_notes": "Clean → Inspect → Light sand → Patch → Sand patches → Spot coat patches"
+    },
+    {
+      "module_id": "MOD_TRIM_NC_FINISH_COAT_2",
+      "name": "Apply Second Finish Coat",
+      "description": "Apply second (final) finish coat for full hide and durability.",
+      "phase": "apply",
+      "applies_when": {
+        "quality_tier": ["QT3", "QT4", "QT5"],
+        "coat_count": ["2"]
+      },
+      "required_inputs": [
+        {
+          "input_name": "IN_LF_BASEBOARD",
+          "paintscope_key": "PS_SURFACE_LF.TRIM_BASEBOARD",
+          "uom": "LF"
+        },
+        {
+          "input_name": "IN_LF_DOOR_CASING",
+          "paintscope_key": "PS_SURFACE_LF.TRIM_CASING_DOOR",
+          "uom": "LF"
+        },
+        {
+          "input_name": "IN_LF_WINDOW_CASING",
+          "paintscope_key": "PS_SURFACE_LF.TRIM_CASING_WINDOW",
+          "uom": "LF"
+        }
+      ],
+      "tasks": [
+        {
+          "task_id": "TSK_TRIM_SPRAY_FINISH_2",
+          "name": "Spray Second Finish Coat",
+          "description": "Apply second finish coat. Final appearance coat.",
+          "task_classification": "qt_scaled",
+          "skill_level": "journeyman",
+          "tools_required": ["airless_sprayer", "spray_tip_310_or_312", "respirator"],
+          "uom": "LF",
+          "applies_when": {
+            "application_method": ["spray"]
+          }
+        },
+        {
+          "task_id": "TSK_TRIM_BRUSH_FINISH_2",
+          "name": "Brush Second Finish Coat",
+          "description": "Apply second finish coat via brush.",
+          "task_classification": "qt_scaled",
+          "skill_level": "journeyman",
+          "tools_required": ["brush_2.5in_angled", "cut_bucket"],
+          "uom": "LF",
+          "applies_when": {
+            "application_method": ["brush"]
+          }
+        }
+      ],
+      "sequence_notes": "Single application task after interstage complete"
+    },
+    {
+      "module_id": "MOD_TRIM_NC_FINAL",
+      "name": "Final Inspection and Cleanup",
+      "description": "Final quality inspection and job cleanup.",
+      "phase": "final",
+      "applies_when": {
+        "quality_tier": ["QT3", "QT4", "QT5"]
+      },
+      "required_inputs": [
+        {
+          "input_name": "IN_LF_BASEBOARD",
+          "paintscope_key": "PS_SURFACE_LF.TRIM_BASEBOARD",
+          "uom": "LF"
+        },
+        {
+          "input_name": "IN_LF_DOOR_CASING",
+          "paintscope_key": "PS_SURFACE_LF.TRIM_CASING_DOOR",
+          "uom": "LF"
+        },
+        {
+          "input_name": "IN_LF_WINDOW_CASING",
+          "paintscope_key": "PS_SURFACE_LF.TRIM_CASING_WINDOW",
+          "uom": "LF"
+        }
+      ],
+      "tasks": [
+        {
+          "task_id": "TSK_TRIM_FINAL_INSPECTION",
+          "name": "Final Quality Inspection",
+          "description": "Walk all trim, inspect per tier scrutiny level.",
+          "task_classification": "qt_scaled",
+          "skill_level": "journeyman",
+          "tools_required": ["work_light"],
+          "uom": "LF",
+          "quality_notes": {
+            "QT3": "Quick visual walk at 6 feet",
+            "QT4": "Systematic inspection at 3 feet",
+            "QT5": "Lighted critical inspection at arm's length"
+          }
+        },
+        {
+          "task_id": "TSK_TRIM_TOUCH_UP",
+          "name": "Final Touch-Up",
+          "description": "Address any final defects found during inspection. Walk trim and touch up as needed.",
+          "task_classification": "qt_scaled",
+          "skill_level": "journeyman",
+          "tools_required": ["brush_2in", "finish_paint"],
+          "uom": "LF",
+          "required_input_keys": ["IN_LF_BASEBOARD", "IN_LF_DOOR_CASING", "IN_LF_WINDOW_CASING"]
+        },
+        {
+          "task_id": "TSK_TRIM_REMOVE_PROTECTION",
+          "name": "Remove Protection",
+          "description": "Remove floor protection and masking materials.",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "tools_required": [],
+          "uom": "SF"
+        },
+        {
+          "task_id": "TSK_TRIM_CLEAN_TOOLS",
+          "name": "Clean Tools",
+          "description": "Clean brushes, spray equipment, dispose of consumables. Occurs twice per shift per crew member.",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "tools_required": ["water_source"],
+          "uom": "FIXED_TIME",
+          "fixed_time_minutes": 15,
+          "frequency": "twice_per_shift_per_crew_member",
+          "notes": "Heuristic time block: 15 minutes per occurrence, 2x per shift per crew member. Example: 2-person crew working 1 shift = 4 occurrences = 60 minutes total."
+        }
+      ],
+      "sequence_notes": "Final inspection → Touch-up → Remove protection → Clean tools"
+    }
+  ],
+
+  "phase_sequence": {
+    "standard_2_coat": [
+      "MOD_TRIM_NC_SETUP",
+      "MOD_TRIM_NC_INITIAL_PREP",
+      "MOD_TRIM_NC_FINISH_COAT_1",
+      "MOD_TRIM_NC_INTERSTAGE",
+      "MOD_TRIM_NC_FINISH_COAT_2",
+      "MOD_TRIM_NC_FINAL"
+    ],
+    "interstage_run_rule": "MOD_TRIM_NC_INTERSTAGE runs after Finish Coat 1 (before Coat 2). Does NOT run after final coat."
+  }
+}

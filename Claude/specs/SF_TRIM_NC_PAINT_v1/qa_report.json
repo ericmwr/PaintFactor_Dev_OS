@@ -1,0 +1,192 @@
+{
+  "spec_family_id": "SF_TRIM_NC_PAINT",
+  "version": "0.1.0",
+  "qa_date": "2026-01-24",
+  "qa_agent": "System Critic",
+
+  "doctrine_compliance": {
+    "Fine_Finish_Doctrine": {
+      "status": "PASS",
+      "version_checked": "1.0",
+      "findings": [
+        {
+          "requirement": "Trim follows Fine Finish workflow",
+          "status": "PASS",
+          "evidence": "Spec uses Initial Prep → Finish Coat 1 → Interstage → Finish Coat 2 → Final structure"
+        },
+        {
+          "requirement": "Interstage process runs between coats (not after final)",
+          "status": "PASS",
+          "evidence": "sop_modules.json run_rule: 'Runs AFTER each coat EXCEPT the final coat'"
+        },
+        {
+          "requirement": "Quality tier controls scrutiny, not process steps",
+          "status": "PASS",
+          "evidence": "Same tasks exist at all tiers with qt_scaled rates in production.json"
+        },
+        {
+          "requirement": "Sheen/QT restrictions enforced",
+          "status": "PASS",
+          "evidence": "spec.json quality_sheen_rules: satin=QT3+, semi-gloss=QT4+, gloss=QT5"
+        },
+        {
+          "requirement": "Task classifications correct (binary vs qt_scaled)",
+          "status": "PASS",
+          "evidence": "Setup/cleanup tasks are binary; prep/apply/inspect tasks are qt_scaled"
+        }
+      ]
+    },
+    "Materials_and_Consumables_Doctrine": {
+      "status": "PASS",
+      "version_checked": "1.1",
+      "findings": [
+        {
+          "requirement": "NC caulk consumption ~72 LF per tube",
+          "status": "PASS",
+          "evidence": "materials.json CON_CAULK_ACRYLIC_LATEX yield_per_unit: 72 LF"
+        },
+        {
+          "requirement": "NC spackle waste factor acknowledged (3-5x repaint)",
+          "status": "PASS",
+          "evidence": "materials.json notes reference high waste factor for NC fastener fill"
+        },
+        {
+          "requirement": "Material quantities reference PaintScope keys",
+          "status": "PASS",
+          "evidence": "All consumable usage models reference LF inputs from PaintScope"
+        }
+      ]
+    },
+    "Estimation_Modifiers_Doctrine": {
+      "status": "PASS",
+      "version_checked": "1.1",
+      "findings": [
+        {
+          "requirement": "Modifiers multiply (not add)",
+          "status": "PASS",
+          "evidence": "production.json modifier_stacking_rule: 'Modifiers MULTIPLY (not add)'"
+        },
+        {
+          "requirement": "Height modifiers defined",
+          "status": "PASS",
+          "evidence": "production.json height_modifiers: <=9ft (1.0), 10-12ft (1.15), 13-17ft (1.3), 18+ft (1.5)"
+        },
+        {
+          "requirement": "Condition modifiers defined",
+          "status": "PASS",
+          "evidence": "production.json condition_modifiers: Good (1.0), Fair (1.5), Poor (2.0)"
+        }
+      ]
+    },
+    "PaintScope_Quantity_Key_Catalog": {
+      "status": "PASS",
+      "findings": [
+        {
+          "requirement": "All required keys exist in catalog",
+          "status": "PASS",
+          "keys_verified": [
+            "PS_SURFACE_LF.TRIM_BASEBOARD",
+            "PS_SURFACE_LF.TRIM_CASING_DOOR",
+            "PS_SURFACE_LF.TRIM_CASING_WINDOW",
+            "PS_OPENING_EA.DOOR_OPENINGS_TOTAL",
+            "PS_OPENING_EA.WINDOW_OPENINGS_TOTAL",
+            "PS_PROTECT_SF.FLOOR_EXPOSED"
+          ]
+        },
+        {
+          "requirement": "UOM alignment (spec input UOM matches PaintScope key UOM)",
+          "status": "PASS",
+          "evidence": "All LF inputs map to LF keys, all EA inputs map to EA keys, all SF inputs map to SF keys"
+        }
+      ]
+    }
+  },
+
+  "structural_validation": {
+    "required_files_present": {
+      "status": "PASS",
+      "files": ["spec.json", "research.json", "sop_modules.json", "materials.json", "production.json", "qa_report.json"]
+    },
+    "required_paintscope_inputs_declared": {
+      "status": "PASS",
+      "count": 6,
+      "inputs": [
+        "IN_LF_BASEBOARD",
+        "IN_LF_DOOR_CASING",
+        "IN_LF_WINDOW_CASING",
+        "IN_EA_DOOR_OPENINGS",
+        "IN_EA_WINDOW_OPENINGS",
+        "IN_SF_PROTECT_FLOOR_EXPOSED"
+      ]
+    },
+    "all_tasks_have_uom": {
+      "status": "PASS",
+      "evidence": "All tasks in sop_modules.json have explicit uom field"
+    },
+    "all_tasks_have_production_rates": {
+      "status": "PASS",
+      "evidence": "All tasks in sop_modules.json have corresponding entries in production.json"
+    },
+    "no_geometry_computation": {
+      "status": "PASS",
+      "evidence": "All quantities sourced from PaintScope keys or explicit formulas using PaintScope inputs"
+    }
+  },
+
+  "domain_specific_validation": {
+    "prep_sequence_logical": {
+      "status": "PASS",
+      "sequence": "Fill holes → Fill open grain → Sand filled → Full sand → Clean dust → Caulk baseboard → Caulk casing",
+      "rationale": "Caulking after sanding/cleaning prevents dust contamination of caulk"
+    },
+    "caulk_task_differentiation": {
+      "status": "PASS",
+      "evidence": "Separate tasks for baseboard (faster, single edge) and casing (slower, both edges, more miters)"
+    },
+    "door_opening_counting_rule": {
+      "status": "PASS",
+      "rule": "Door openings counted per SIDE: interior door = 2 sides, exterior door = 1 interior side",
+      "evidence": "Documented in spec.json, sop_modules.json, production.json, and research.json"
+    },
+    "open_grain_quantification": {
+      "status": "PASS",
+      "formula": "(Door openings × 2) + (Window openings × 4)",
+      "evidence": "Based on measurable opening counts, not arbitrary estimates"
+    },
+    "interstage_tasks_uom": {
+      "status": "PASS",
+      "evidence": "Interstage tasks (patch, sand patches, spot coat) use LF for walk-and-work approach"
+    },
+    "floor_protection_included": {
+      "status": "PASS",
+      "evidence": "All variants include ITM_FLOOR_PROTECTION - spray and brush"
+    }
+  },
+
+  "warnings": [
+    {
+      "warning_id": "WARN_001",
+      "severity": "LOW",
+      "description": "Production rates are estimates pending field calibration",
+      "recommendation": "Validate rates against actual job data before production use"
+    },
+    {
+      "warning_id": "WARN_002",
+      "severity": "LOW",
+      "description": "Condition class is heuristic (estimator judgment)",
+      "recommendation": "Provide estimator training on condition classification criteria"
+    }
+  ],
+
+  "blockers": [],
+
+  "qa_summary": {
+    "overall_status": "PASS",
+    "doctrine_compliance": "PASS",
+    "structural_validation": "PASS",
+    "domain_validation": "PASS",
+    "blockers_count": 0,
+    "warnings_count": 2,
+    "ready_for_review": true
+  }
+}
