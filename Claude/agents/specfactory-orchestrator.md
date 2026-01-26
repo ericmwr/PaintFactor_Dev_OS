@@ -18,6 +18,11 @@ SpecFactory generates spec definitions that will later be consumed by the Estima
 - **[docs/Materials_and_Consumables_Doctrine.md](../docs/Materials_and_Consumables_Doctrine.md)** — Consumable usage rules
 - **[docs/Estimation_Modifiers_Doctrine.md](../docs/Estimation_Modifiers_Doctrine.md)** — Modifier math doctrine
 - **[docs/Quality_Tiers_and_Surface_Condition.md](../docs/Quality_Tiers_and_Surface_Condition.md)** — Quality tier and condition definitions
+- **[docs/Fine_Finish_Doctrine.md](../docs/Fine_Finish_Doctrine.md)** — Fine finish workflow patterns and material systems
+
+### Protection & Continuity References
+- **[docs/Protection_Zones_Reference.md](../docs/Protection_Zones_Reference.md)** — Zone IDs for protection optimization
+- **[docs/Surface_Vocabulary_Reference.md](../docs/Surface_Vocabulary_Reference.md)** — Surface IDs for finish continuity
 
 ### Adjacency Doctrine / PaintScope Contract
 - **[docs/paintscope_quantity_key_catalog.md](../docs/paintscope_quantity_key_catalog.md)** — Canonical PaintScope quantity keys
@@ -78,6 +83,32 @@ All `required_inputs[]` entries produced by downstream agents MUST include:
 ```
 
 If a downstream agent provides `input_name` without a `paintscope_key` mapping, the Orchestrator MUST reject and request correction before proceeding.
+
+---
+
+## Metadata Systems Context
+
+SpecFactory artifacts may include optional metadata that enables project-level optimizations:
+
+### Protection Metadata
+
+Tasks with `task_type: protect` should include `protection_metadata`:
+- Enables setup/teardown optimization across multiple specs in a project
+- Zone IDs from Protection_Zones_Reference.md
+
+### Adjacency Metadata
+
+Edge-related tasks should include `adjacency_metadata`:
+- Enables finish continuity optimization when adjacent surfaces share finishes
+- Surface IDs from Surface_Vocabulary_Reference.md
+
+### Adjacency Declarations
+
+Specs may include `adjacency_declarations`:
+- Declares primary surface and adjacent surfaces
+- Informs project-level finish group optimization
+
+**Current Action:** Verify downstream agents include metadata where appropriate. The Critic will validate metadata structure. Engine optimization is a future capability.
 
 ---
 

@@ -17,18 +17,23 @@
       "minItems": 1,
       "items": {
         "type": "object",
-        "required": ["task_id", "task_class", "unit_of_measure", "crew_size"],
+        "required": ["task_id"],
         "properties": {
-          "task_id": { "type": "string", "pattern": "^TASK_[A-Z0-9_]+$" },
+          "task_id": { "type": "string", "pattern": "^TSK_[A-Z0-9_]+$" },
           "task_class": {
             "type": "string",
             "enum": ["binary", "qt_conditional", "qt_scaled"],
-            "description": "Must match task_class in sop_modules.json"
+            "description": "Deprecated: use task_classification in sop_modules.json"
+          },
+          "task_classification": {
+            "type": "string",
+            "enum": ["binary", "qt_conditional", "qt_scaled"],
+            "description": "Must match task_classification in sop_modules.json"
           },
           "name": { "type": "string" },
-          "required_input_key": { "type": "string", "pattern": "^IN_[A-Z0-9_]+$" },
-          "paintscope_key": { "type": "string", "pattern": "^PS_[A-Z0-9_.]+$" },
-          "unit_of_measure": { "type": "string", "enum": ["EA", "LF", "SF"] },
+          "required_input_key": { "type": ["string", "null"], "pattern": "^IN_[A-Z0-9_]+$" },
+          "paintscope_key": { "type": ["string", "null"], "pattern": "^PS_[A-Z0-9_.]+$" },
+          "unit_of_measure": { "type": "string", "enum": ["EA", "LF", "SF", "EA_ROOM", "FIXED"] },
           "crew_size": { "type": "integer", "minimum": 1, "maximum": 12 },
 
           "rate_per_hour": {
@@ -90,7 +95,7 @@
           },
           "applies_to_tasks": {
             "type": "array",
-            "items": { "type": "string", "pattern": "^TASK_[A-Z0-9_]+$" }
+            "items": { "type": "string", "pattern": "^TSK_[A-Z0-9_]+$" }
           },
           "value_table": {
             "type": "object",
@@ -119,13 +124,14 @@
         "properties": {
           "quality_tier": {
             "type": "string",
-            "enum": ["QT2", "QT3", "QT4", "QT5"]
+            "pattern": "^QT[2-5](_[A-Z]+)?$",
+            "description": "Quality tier, optionally with suffix like QT4_FLAT"
           },
           "time_modifier": { "type": "number", "exclusiveMinimum": 0 },
           "description": { "type": "string" },
           "mechanism": {
             "type": "string",
-            "enum": ["baseline", "selective_multiplier", "additional_rounds"]
+            "enum": ["baseline", "baseline_reduction", "selective_multiplier", "additional_rounds"]
           },
           "condition_gate": { "type": "string" },
           "notes": { "type": "string" }

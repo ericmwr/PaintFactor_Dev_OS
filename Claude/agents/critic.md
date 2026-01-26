@@ -20,6 +20,11 @@ The Critic enforces system doctrine. It is the **final doctrine gate AFTER human
 - **[docs/Estimation_Modifiers_Doctrine.md](../docs/Estimation_Modifiers_Doctrine.md)** — Time vs rate modifiers, height/complexity/color/texture factors
 - **[docs/Quality_Tiers_and_Surface_Condition.md](../docs/Quality_Tiers_and_Surface_Condition.md)** — QT2–QT6 definitions, condition modifiers, hourly gates
 - **[docs/Material_Role_System.md](../docs/Material_Role_System.md)** — Material roles vs products/SKUs and pricing separation (if present)
+- **[docs/Fine_Finish_Doctrine.md](../docs/Fine_Finish_Doctrine.md)** — Fine finish workflow, material systems, quality tier scrutiny definitions
+
+### Protection & Continuity References
+- **[docs/Protection_Zones_Reference.md](../docs/Protection_Zones_Reference.md)** — Zone IDs for protection metadata validation
+- **[docs/Surface_Vocabulary_Reference.md](../docs/Surface_Vocabulary_Reference.md)** — Surface IDs for adjacency metadata validation
 
 ### Adjacency Doctrine / PaintScope Contract
 - **[docs/paintscope_quantity_key_catalog.md](../docs/paintscope_quantity_key_catalog.md)** — Canonical PaintScope quantity keys
@@ -172,6 +177,79 @@ The Critic MUST **FAIL** if `manual_capture_required: true` is used without ALL 
 
 `manual_capture_required` is NOT a loophole to avoid PaintScope integration — it is a temporary bridge requiring explicit documentation of how the data will eventually flow through PaintScope.
 
+### 13) Fine Finish Doctrine Violations
+
+Reference: **[docs/Fine_Finish_Doctrine.md](../docs/Fine_Finish_Doctrine.md)**
+
+For specs covering trim, built-ins, doors, millwork, or fine finish surfaces:
+
+- **FAIL** if spec does not include interstage module/tasks (MOD_FF_INTERSTAGE required)
+- **FAIL** if interstage run_rule is incorrect (must run after each coat except final)
+- **FAIL** if sheen/QT restrictions are violated:
+  - Satin: QT3+ (minimum QT3 required)
+  - Semi-gloss: QT4+ (minimum QT4 required)
+  - Gloss: QT5 only
+- **FAIL** if task_class is missing or incorrect for Fine Finish tasks
+- **FAIL** if Initial Prep tasks are missing for NC trim (fill fasteners, caulk, sand)
+- **FAIL** if quality tier differences are expressed only as multipliers (must use scrutiny definitions)
+- **WARN** if scrutiny definitions are not documented for qt_scaled tasks
+- **WARN** if defect tolerance is not defined by tier
+
+**Compliance Check:**
+Verify that `qa_report.json` includes a `Fine_Finish_Doctrine` compliance block:
+```json
+{
+  "Fine_Finish_Doctrine": {
+    "status": "PASS|FAIL",
+    "version_checked": "1.1",
+    "findings": [...]
+  }
+}
+```
+
+### 14) Protection Metadata Violations
+
+Reference: **[docs/Protection_Zones_Reference.md](../docs/Protection_Zones_Reference.md)**
+
+The Critic MUST check protection tasks for proper metadata:
+
+- **WARN** if task has `task_type: protect` but is missing `protection_metadata`
+- **FAIL** if `protection_metadata` is present but missing required `action` field
+- **FAIL** if `protection_metadata.action` is not one of: `setup`, `teardown`, `maintain`
+- **FAIL** if `protection_metadata.zones` is missing or empty
+- **WARN** if zone IDs in `protection_metadata.zones` are not in Protection_Zones_Reference
+- **WARN** if protection setup zones don't have matching teardown zones (zone pairing check)
+
+**Zone Pairing Rule:** Every zone that appears in a `setup` action should have a corresponding `teardown` action within the same spec.
+
+### 15) Adjacency Metadata Violations
+
+Reference: **[docs/Surface_Vocabulary_Reference.md](../docs/Surface_Vocabulary_Reference.md)**
+
+The Critic MUST check adjacency-related tasks for proper metadata:
+
+- **WARN** if edge task (mask, cut-in, blend at junction) is missing `adjacency_metadata`
+- **FAIL** if `adjacency_metadata` is present but missing required `adjacent_surface` field
+- **WARN** if `adjacency_metadata.adjacent_surface` is not in Surface_Vocabulary_Reference
+- **FAIL** if `adjacency_metadata.condition` is not one of: `different_finish`, `same_finish`, `always`
+- **FAIL** if both `skip_when` and `required_when` are present (mutually exclusive)
+- **FAIL** if `skip_when` or `required_when` is not one of: `same_finish_group`, `different_finish_group`
+- **FAIL** if blend task has `application_method: spray` (must be `brush_roll`)
+- **WARN** if blend task is missing `application_method: brush_roll`
+
+**Edge Task Detection:** Tasks with names containing "mask", "tape", "cut-in", "cut in", "blend" at surface junctions are considered edge tasks.
+
+### 16) Adjacency Declarations Violations
+
+For spec-level `adjacency_declarations`:
+
+- **FAIL** if `adjacency_declarations` is present but missing `primary_surface`
+- **WARN** if `primary_surface` is not in Surface_Vocabulary_Reference
+- **FAIL** if `adjacent_surfaces` is missing or empty when `adjacency_declarations` is present
+- **FAIL** if any adjacent surface entry is missing `edge_type`
+- **FAIL** if `edge_type` is not one of: `linear`, `complex`
+- **WARN** if `continuity_rate_modifier` is outside range 1.0-2.0
+
 ### Enforcement Behavior
 - These violations are **CRITICAL severity**
 - The Critic must **FAIL** the artifact — not "pass_with_warnings"
@@ -265,6 +343,23 @@ Return JSON-compatible:
 - `CONDITIONAL_TIERS_DEFINED` — qt_conditional tasks have appears_in_tiers
 - `SCALED_QT_RATES_DEFINED` — qt_scaled tasks have qt_rates
 - `DEFECT_TOLERANCE_PRESENT` — Tasks have defect_tolerance definitions (warning if missing)
+- `FF_INTERSTAGE_MODULE_PRESENT` — Fine finish specs include MOD_FF_INTERSTAGE
+- `FF_INTERSTAGE_RUN_RULE_CORRECT` — Interstage runs after each coat except final
+- `FF_SHEEN_TIER_RESTRICTIONS` — Sheen matches minimum tier (satin QT3+, semi-gloss QT4+, gloss QT5)
+- `FF_INITIAL_PREP_COMPLETE` — NC fine finish specs include fill/caulk/sand tasks
+- `FF_SCRUTINY_NOT_MULTIPLIERS` — QT differences use scrutiny definitions, not simple multipliers
+- `PZ_PROTECT_TASKS_HAVE_METADATA` — Protection tasks include protection_metadata
+- `PZ_ACTION_VALID` — protection_metadata.action is valid enum
+- `PZ_ZONES_NON_EMPTY` — protection_metadata.zones is present and non-empty
+- `PZ_ZONES_IN_VOCABULARY` — Zone IDs are in Protection_Zones_Reference (warning if not)
+- `PZ_SETUP_TEARDOWN_PAIRED` — Setup zones have matching teardown zones (warning if not)
+- `FC_EDGE_TASKS_HAVE_METADATA` — Edge tasks include adjacency_metadata
+- `FC_ADJACENT_SURFACE_PRESENT` — adjacency_metadata.adjacent_surface is present
+- `FC_SURFACE_IN_VOCABULARY` — Surface IDs are in Surface_Vocabulary_Reference (warning if not)
+- `FC_SKIP_REQUIRED_EXCLUSIVE` — skip_when and required_when are mutually exclusive
+- `FC_BLEND_METHOD_BRUSH_ROLL` — Blend tasks use application_method: brush_roll
+- `FC_DECL_PRIMARY_SURFACE_PRESENT` — adjacency_declarations has primary_surface
+- `FC_DECL_EDGE_TYPE_VALID` — Adjacent surface edge_type is valid enum
 
 **Note on Production Rates:** The Critic does NOT enforce specific production rate values (e.g., 400 SF/hr, 600 SF/hr). Production rates are research-based estimates that will be field-calibrated. Only the spray/backroll coupling rule (spray ≤ backroll) and modifier math (time multipliers, not rate multipliers) are enforced.
 

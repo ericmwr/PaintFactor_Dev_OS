@@ -65,7 +65,7 @@
       "minItems": 1,
       "items": {
         "type": "object",
-        "required": ["variant_id", "applies_when", "included_items", "excluded_items"],
+        "required": ["variant_id", "applies_when", "included_items"],
         "properties": {
           "variant_id": { "type": "string", "pattern": "^VAR_[A-Z0-9_]+$" },
           "applies_when": { "type": "object" },
@@ -117,15 +117,58 @@
       "minItems": 1,
       "items": {
         "type": "object",
-        "required": ["version", "date", "author", "summary"],
+        "required": ["version", "date", "author"],
         "properties": {
           "version": { "type": "string" },
           "date": { "type": "string" },
           "author": { "type": "string" },
-          "summary": { "type": "string" }
+          "summary": { "type": "string", "description": "Deprecated: use changes instead" },
+          "changes": { "type": "string", "description": "Description of changes in this version" }
         },
         "additionalProperties": true
       }
+    },
+
+    "adjacency_declarations": {
+      "type": "object",
+      "description": "Declares primary surface and adjacent surfaces for finish continuity optimization",
+      "properties": {
+        "primary_surface": {
+          "type": "string",
+          "description": "Surface ID for the main substrate this spec addresses"
+        },
+        "adjacent_surfaces": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "surface_id": {
+                "type": "string",
+                "description": "Surface ID from surface vocabulary"
+              },
+              "edge_type": {
+                "type": "string",
+                "enum": ["linear", "complex"],
+                "description": "linear = surfaces meet along a line; complex = interconnected system"
+              },
+              "typical_relationship": {
+                "type": "string",
+                "enum": ["same_finish", "different_finish", "varies"],
+                "default": "varies",
+                "description": "Default finish relationship assumption"
+              },
+              "continuity_rate_modifier": {
+                "type": "number",
+                "minimum": 1.0,
+                "maximum": 2.0,
+                "description": "Rate improvement factor when finishes are continuous (1.0-2.0)"
+              }
+            },
+            "required": ["surface_id", "edge_type"]
+          }
+        }
+      },
+      "required": ["primary_surface", "adjacent_surfaces"]
     }
   },
   "additionalProperties": true

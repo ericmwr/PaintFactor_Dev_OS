@@ -19,7 +19,12 @@ Research informs spec design but does not itself produce estimates or runtime be
 - **[docs/PaintFactor_OS.md](../docs/PaintFactor_OS.md)** — System architecture and operating doctrine
 - **[docs/PaintScope_EdgeLF_Mapping.md](../docs/PaintScope_EdgeLF_Mapping.md)** — Geometry sourcing rules for edge work
 - **[docs/Quality_Tiers_and_Surface_Condition.md](../docs/Quality_Tiers_and_Surface_Condition.md)** — Quality tier definitions for research context
+- **[docs/Fine_Finish_Doctrine.md](../docs/Fine_Finish_Doctrine.md)** — Fine finish workflow, material systems, quality tier scrutiny definitions
 - **[skills/deep_research_protocol.md](../skills/deep_research_protocol.md)** — Deep research protocol with source tiers and citation requirements
+
+### Protection & Continuity References
+- **[docs/Protection_Zones_Reference.md](../docs/Protection_Zones_Reference.md)** — Zone IDs for protection research
+- **[docs/Surface_Vocabulary_Reference.md](../docs/Surface_Vocabulary_Reference.md)** — Surface IDs for adjacency research
 
 ### Adjacency Doctrine / PaintScope Contract
 - **[docs/paintscope_quantity_key_catalog.md](../docs/paintscope_quantity_key_catalog.md)** — Canonical PaintScope quantity keys
@@ -58,6 +63,71 @@ When suggesting strategies that involve edge work, protection, or asset interact
    - `adjacency_notes[]` — Notes on edge targets, asset protection, and adjacency relationships
 
 **Important:** The Orchestrator will verify `required_paintscope_keys[]` against the catalog before proceeding. If keys are missing, the workflow will STOP until keys are added or `proposed_new_keys[]` is addressed.
+
+---
+
+## Surface Adjacency Research
+
+When researching specs, identify adjacent surface relationships:
+
+### Key Questions
+1. What surfaces does this spec's primary surface touch?
+2. Which adjacencies create edge work?
+3. Which edges commonly share the same finish?
+4. What is the typical finish relationship (same vs different)?
+
+### Output Format
+
+Include in research output:
+```json
+{
+  "adjacency_research": {
+    "primary_surface": "trim_baseboard",
+    "adjacent_surfaces": [
+      {
+        "surface_id": "wall_field",
+        "edge_type": "linear",
+        "typical_relationship": "different_finish",
+        "notes": "Wall/baseboard commonly different colors"
+      }
+    ]
+  }
+}
+```
+
+### Reference Documents
+- **Surface_Vocabulary_Reference.md** — Use standard surface IDs
+- **Protection_Zones_Reference.md** — Use standard zone IDs for protection research
+
+---
+
+## Fine Finish Scope
+
+When researching specs for trim, built-ins, doors, millwork, or fine finish surfaces:
+
+### Workflow Structure
+- Follow `Fine_Finish_Doctrine.md` for workflow structure
+- Research must identify which Initial Prep tasks apply
+- Research must identify interstage requirements
+
+### Quality Tier Behavior
+- Note quality tier scrutiny differences:
+  - **QT3:** Quick glance inspection at 6 feet
+  - **QT4:** Systematic scan at 3 feet
+  - **QT5:** Lighted critical inspection at arm's length
+- Identify defect tolerance expectations by tier
+
+### Material System Research
+- Align material research to Fine Finish doctrine systems:
+  - **QT3:** SYS_FF_STANDARD_ACRYLIC (100% acrylic enamel)
+  - **QT4:** SYS_FF_MODIFIED_URETHANE (urethane-modified alkyd)
+  - **QT5:** SYS_FF_PREMIUM / SYS_FF_GALLERY (premium urethane/conversion)
+- Note sheen restrictions: satin (QT3+), semi-gloss (QT4+), gloss (QT5 only)
+
+### Process Principles
+- **Primer is configuration, not tier-locked** — driven by substrate condition
+- **Interstage is universal** — same process at all tiers, scrutiny varies
+- **Quality tier controls scrutiny, not steps** — same tasks exist at all tiers
 
 ---
 

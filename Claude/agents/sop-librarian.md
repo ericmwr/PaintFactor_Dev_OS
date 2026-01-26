@@ -16,6 +16,11 @@ SOP modules define work sequences; the Estimation Engine applies them to geometr
 - **[docs/PaintScope_EdgeLF_Mapping.md](../docs/PaintScope_EdgeLF_Mapping.md)** — Geometry sourcing rules for edge work
 - **[docs/Protection_and_Masking_Doctrine.md](../docs/Protection_and_Masking_Doctrine.md)** — Floor protection tasks by application method
 - **[docs/Quality_Tiers_and_Surface_Condition.md](../docs/Quality_Tiers_and_Surface_Condition.md)** — Quality tier task selection and condition-based modules
+- **[docs/Fine_Finish_Doctrine.md](../docs/Fine_Finish_Doctrine.md)** — Fine finish module structure, task classifications, interstage workflow
+
+### Protection & Continuity References
+- **[docs/Protection_Zones_Reference.md](../docs/Protection_Zones_Reference.md)** — Zone IDs for protection task metadata
+- **[docs/Surface_Vocabulary_Reference.md](../docs/Surface_Vocabulary_Reference.md)** — Surface IDs for adjacency metadata
 
 ### Adjacency Doctrine / PaintScope Contract
 - **[docs/paintscope_quantity_key_catalog.md](../docs/paintscope_quantity_key_catalog.md)** — Canonical PaintScope quantity keys
@@ -96,6 +101,197 @@ When creating tasks, assign the correct `task_class`:
 **QT-scaled examples:** Cut-in, roll finish coat, caulk trim
 
 **Rule:** If a task is required for a properly painted surface, it is either `binary` or `qt_scaled` — never `qt_conditional`. QT-conditional tasks add process steps, they do not gate required work.
+
+---
+
+## Fine Finish Module Patterns
+
+When creating SOPs for fine finish surfaces (trim, built-ins, doors, millwork):
+
+### Required Module Structure
+
+| Module ID | Phase | Purpose | Task Class |
+|-----------|-------|---------|------------|
+| `MOD_FF_SETUP` | setup | Protection and staging | binary |
+| `MOD_FF_INITIAL_PREP` | prep | Heavy prep before first coat (fill, caulk, sand) | qt_scaled |
+| `MOD_FF_PRIME` | prime | Primer coat if required | qt_scaled |
+| `MOD_FF_FINISH_COAT` | finish | Finish coat application | qt_scaled |
+| `MOD_FF_INTERSTAGE` | inspect | Between-coat maintenance | qt_scaled |
+| `MOD_FF_FINAL_INSPECT` | inspect | Final inspection | qt_scaled |
+| `MOD_FF_CLEANUP` | cleanup | Protection removal and cleanup | binary |
+
+### Interstage Run Rule
+
+**Critical:** Interstage runs AFTER each coat EXCEPT the final coat. Configure `run_rule` accordingly:
+```json
+{
+  "module_id": "MOD_FF_INTERSTAGE",
+  "run_rule": "Runs AFTER each coat EXCEPT the final coat",
+  "run_count_formula": "total_coats - 1"
+}
+```
+
+| Coat System | Interstage Runs |
+|-------------|-----------------|
+| Prime + 1 Finish | 1 (after prime) |
+| Prime + 2 Finish | 2 (after prime, after finish 1) |
+| 2 Finish (no prime) | 1 (after finish 1) |
+| Prime + 2 Finish + Clear | 3 (after prime, after finish 1, after finish 2) |
+
+### Task Classification for Fine Finish
+
+| Task Type | task_class | Examples |
+|-----------|------------|----------|
+| Setup/Cleanup | binary | Clean surfaces, set protection, remove tape |
+| Prep/Apply/Inspect | qt_scaled | Fill fasteners, sand, apply coat, inspect |
+| Between-coat steps | qt_conditional or qt_scaled | Light sand, spot coat patches |
+
+Reference `Fine_Finish_Doctrine.md` for complete task ID patterns and scrutiny definitions.
+
+---
+
+## Protection Task Metadata
+
+Protection tasks (setup, teardown, maintain) must include `protection_metadata` to enable project-level optimization.
+
+### Required Structure
+
+```json
+{
+  "task_id": "TASK_SETUP_FLOOR_PROTECTION",
+  "task_type": "protect",
+  "protection_metadata": {
+    "action": "setup",
+    "zones": ["floor_perimeter"],
+    "method_dependent": true
+  }
+}
+```
+
+### Fields
+
+| Field | Required | Values | Description |
+|-------|----------|--------|-------------|
+| `action` | Yes | `setup`, `teardown`, `maintain` | What this task does to the protection |
+| `zones` | Yes | Array of zone IDs | Which zones this task affects |
+| `method_dependent` | No | boolean | If true, zones vary by application method |
+
+### Zone Selection Rules
+
+1. **Use standard zone IDs** from Protection_Zones_Reference.md
+2. **Be specific** — use the most precise zone that describes the protection
+3. **Be complete** — list ALL zones the task affects
+4. **Match physical reality** — zones map to actual protected areas
+
+### Common Patterns
+
+| Spec Type | Setup Zones | Teardown Zones |
+|-----------|-------------|----------------|
+| Wall brush/roll | floor_perimeter, fixture_covers | floor_perimeter, fixture_covers |
+| Wall spray | floor_full, ceiling_line, trim_edges, fixture_covers | floor_full, ceiling_line, trim_edges, fixture_covers |
+| Trim brush/roll | floor_perimeter | floor_perimeter |
+| Trim spray | floor_perimeter, wall_adjacent | floor_perimeter, wall_adjacent |
+
+### Method-Dependent Zones
+
+Set `method_dependent: true` when zone selection varies:
+
+```json
+{
+  "protection_metadata": {
+    "action": "setup",
+    "zones": ["floor_perimeter"],
+    "method_dependent": true
+  }
+}
+```
+
+The estimation engine will upgrade `floor_perimeter` to `floor_full` for spray applications.
+
+---
+
+## Adjacency Task Metadata
+
+Tasks that depend on adjacent surface relationships must include `adjacency_metadata` to enable finish continuity optimization.
+
+### Which Tasks Need Adjacency Metadata
+
+| Task Type | Needs Metadata | Typical Condition |
+|-----------|----------------|-------------------|
+| Edge masking (tape at wall/trim junction) | Yes | `skip_when: same_finish_group` |
+| Cut-in at edge | Yes | `skip_when: same_finish_group` |
+| Blend to adjacent surface | Yes | `required_when: same_finish_group` |
+| Edge/line inspection | Yes | `skip_when: same_finish_group` |
+| General application (not at edge) | No | — |
+| Sanding, cleaning, prep (not edge-specific) | No | — |
+
+### Required Structure
+
+**For tasks that apply when finishes DIFFER:**
+```json
+{
+  "task_id": "TASK_TRIM_MASK_WALL_EDGE",
+  "task_type": "mask",
+  "adjacency_metadata": {
+    "adjacent_surface": "wall_field",
+    "condition": "different_finish",
+    "skip_when": "same_finish_group",
+    "rate_modifier_category": "edge_masking"
+  }
+}
+```
+
+**For tasks that apply when finishes are the SAME:**
+```json
+{
+  "task_id": "TASK_TRIM_BLEND_TO_WALL",
+  "task_type": "apply",
+  "adjacency_metadata": {
+    "adjacent_surface": "wall_field",
+    "condition": "same_finish",
+    "required_when": "same_finish_group",
+    "application_method": "brush_roll"
+  }
+}
+```
+
+### Fields
+
+| Field | Required | Values | Description |
+|-------|----------|--------|-------------|
+| `adjacent_surface` | Yes | Surface ID | Which surface this task relates to |
+| `condition` | No | `different_finish`, `same_finish`, `always` | Design assumption |
+| `skip_when` | No* | `same_finish_group`, `different_finish_group` | When engine skips task |
+| `required_when` | No* | `same_finish_group`, `different_finish_group` | When task is mandatory |
+| `rate_modifier_category` | No | `edge_masking`, `cut_in`, `spray_edge`, `inspection` | For rate calculations |
+| `application_method` | No | `brush_roll`, `spray`, `any` | Method restriction |
+
+*Use either `skip_when` OR `required_when`, not both.
+
+### Surface ID Rules
+
+1. **Use standard surface IDs** from Surface_Vocabulary_Reference.md
+2. **Match the actual adjacent surface** — if task masks the wall, use `wall_field`
+3. **One adjacent_surface per task** — if task affects multiple adjacencies, create separate tasks
+
+### Blend Tasks Are Brush/Roll Only
+
+Blend tasks always specify `application_method: brush_roll`:
+
+```json
+{
+  "adjacency_metadata": {
+    "adjacent_surface": "wall_field",
+    "condition": "same_finish",
+    "required_when": "same_finish_group",
+    "application_method": "brush_roll"
+  }
+}
+```
+
+Spray achieves continuity through continuous pass, not blending.
+
+---
 
 ## Output (JSON-compatible)
 - `sop_modules[]` (id, name, purpose)

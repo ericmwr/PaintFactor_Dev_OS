@@ -22,6 +22,7 @@ It does NOT replace runtime systems or human judgment.
 ## Required Reading
 - **docs/PaintFactor_OS.md** — System architecture and operating doctrine
 - **docs/PaintScope_EdgeLF_Mapping.md** — Geometry sourcing and EdgeLF rules
+- **docs/Fine_Finish_Doctrine.md** — Fine finish workflow, material systems, quality tier scrutiny
 
 ### Adjacency Doctrine / PaintScope Contract
 - **docs/paintscope_quantity_key_catalog.md** — Canonical PaintScope quantity keys

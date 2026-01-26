@@ -19,12 +19,12 @@
         "type": "object",
         "required": ["module_id", "name", "description", "phase", "applies_when", "tasks"],
         "properties": {
-          "module_id": { "type": "string", "pattern": "^SOP_[A-Z0-9_]+$" },
+          "module_id": { "type": "string", "pattern": "^(SOP_|MOD_)[A-Z0-9_]+$" },
           "name": { "type": "string", "minLength": 1 },
           "description": { "type": "string" },
           "phase": {
             "type": "string",
-            "enum": ["prep", "protect", "apply", "cleanup", "prime", "finish", "inspect", "repair"]
+            "enum": ["prep", "protect", "protection", "apply", "cleanup", "prime", "finish", "inspect", "repair"]
           },
           "applies_when": { "type": "object" },
           "required_inputs": {
@@ -45,12 +45,17 @@
             "minItems": 1,
             "items": {
               "type": "object",
-              "required": ["task_id", "name", "description", "task_class"],
+              "required": ["task_id", "name", "description"],
               "properties": {
-                "task_id": { "type": "string", "pattern": "^TASK_[A-Z0-9_]+$" },
+                "task_id": { "type": "string", "pattern": "^TSK_[A-Z0-9_]+$" },
                 "name": { "type": "string", "minLength": 1 },
                 "description": { "type": "string" },
                 "task_class": {
+                  "type": "string",
+                  "enum": ["binary", "qt_conditional", "qt_scaled"],
+                  "description": "Deprecated: use task_classification instead"
+                },
+                "task_classification": {
                   "type": "string",
                   "enum": ["binary", "qt_conditional", "qt_scaled"],
                   "description": "binary = pass/fail, same all tiers; qt_conditional = appears only in specified tiers; qt_scaled = all tiers but rate varies"
@@ -60,7 +65,7 @@
                   "description": "For binary: 'all_tiers_identical'. For qt_conditional: tier list like 'QT4_QT5_only'. For qt_scaled: 'rate_varies_by_tier'."
                 },
                 "method_variant_of": {
-                  "type": "string",
+                  "type": ["string", "null"],
                   "description": "If this task is one method option among alternatives (e.g., spray vs roll), name the variant group"
                 },
                 "skill_level": {
@@ -82,11 +87,74 @@
                     "QT2": { "type": "string" },
                     "QT3": { "type": "string" },
                     "QT4": { "type": "string" },
-                    "QT5": { "type": "string" }
+                    "QT5": { "type": "string" },
+                    "all": { "type": "string", "description": "Notes that apply to all quality tiers" }
                   },
-                  "additionalProperties": false
+                  "additionalProperties": true
                 },
-                "notes": { "type": "string" }
+                "notes": { "type": "string" },
+                "protection_metadata": {
+                  "type": "object",
+                  "description": "Metadata for protection tasks enabling project-level optimization",
+                  "properties": {
+                    "action": {
+                      "type": "string",
+                      "enum": ["setup", "teardown", "maintain"],
+                      "description": "Whether this task sets up, tears down, or maintains protection"
+                    },
+                    "zones": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "pattern": "^[a-z_]+$"
+                      },
+                      "description": "Protection zone IDs this task affects"
+                    },
+                    "method_dependent": {
+                      "type": "boolean",
+                      "default": false,
+                      "description": "If true, zone requirements vary by application method"
+                    }
+                  },
+                  "required": ["action", "zones"]
+                },
+                "adjacency_metadata": {
+                  "type": "object",
+                  "description": "Defines task behavior based on adjacent surface finish relationships",
+                  "properties": {
+                    "adjacent_surface": {
+                      "type": "string",
+                      "description": "Surface ID this task relates to (from surface vocabulary)"
+                    },
+                    "condition": {
+                      "type": "string",
+                      "enum": ["different_finish", "same_finish", "always"],
+                      "description": "The finish relationship condition this task is designed for"
+                    },
+                    "skip_when": {
+                      "type": "string",
+                      "enum": ["same_finish_group", "different_finish_group"],
+                      "description": "Condition under which engine should skip this task"
+                    },
+                    "required_when": {
+                      "type": "string",
+                      "enum": ["same_finish_group", "different_finish_group"],
+                      "description": "Condition under which this task is mandatory"
+                    },
+                    "rate_modifier_category": {
+                      "type": "string",
+                      "enum": ["edge_masking", "cut_in", "spray_edge", "inspection"],
+                      "description": "Category for applying continuity rate modifiers"
+                    },
+                    "application_method": {
+                      "type": "string",
+                      "enum": ["brush_roll", "spray", "any"],
+                      "default": "any",
+                      "description": "Restricts when this task applies based on method"
+                    }
+                  },
+                  "required": ["adjacent_surface"]
+                }
               },
               "additionalProperties": true
             }
@@ -111,7 +179,7 @@
             "type": "array",
             "items": {
               "type": "string",
-              "enum": ["prep", "protect", "apply", "cleanup", "prime", "finish", "inspect", "repair"]
+              "description": "Standard phases: prep, protect, protection, apply, cleanup, prime, finish, inspect, repair. Custom phases allowed for round-specific sequences."
             }
           },
           "notes": { "type": "string" }

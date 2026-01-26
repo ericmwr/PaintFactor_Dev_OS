@@ -16,6 +16,11 @@ This agent defines production RATES and FACTORS. The Estimation Engine multiplie
 - **[docs/PaintScope_EdgeLF_Mapping.md](../docs/PaintScope_EdgeLF_Mapping.md)** — Geometry sourcing rules for edge work
 - **[docs/Estimation_Modifiers_Doctrine.md](../docs/Estimation_Modifiers_Doctrine.md)** — Time vs rate modifiers, height/complexity/color/texture factors
 - **[docs/Quality_Tiers_and_Surface_Condition.md](../docs/Quality_Tiers_and_Surface_Condition.md)** — QT2-QT6 definitions, condition modifiers, hourly gates
+- **[docs/Fine_Finish_Doctrine.md](../docs/Fine_Finish_Doctrine.md)** — Fine finish scrutiny definitions, defect tolerance, production rate guidance
+
+### Protection & Continuity References
+- **[docs/Protection_Zones_Reference.md](../docs/Protection_Zones_Reference.md)** — Zone IDs for protection optimization
+- **[docs/Surface_Vocabulary_Reference.md](../docs/Surface_Vocabulary_Reference.md)** — Surface IDs for finish continuity
 
 ### Adjacency Doctrine / PaintScope Contract
 - **[docs/paintscope_quantity_key_catalog.md](../docs/paintscope_quantity_key_catalog.md)** — Canonical PaintScope quantity keys
@@ -142,6 +147,97 @@ Define task-specific defect tolerance for each quality tier. Tolerance describes
 **Why task-specific:** Different tasks have different quality indicators. A cut-in line has different tolerance criteria than a rolled field area or a sanded surface.
 
 **Rule:** Every task in `production.json` should include `defect_tolerance` definitions.
+
+---
+
+## Fine Finish Production Logic
+
+When creating production rates for fine finish specs (trim, built-ins, doors, millwork):
+
+### Quality Tier Effects
+
+Quality tier controls scrutiny level, not process steps. Same tasks exist at all tiers.
+- **QT3:** Production pace, quick glance inspection at 6 feet
+- **QT4:** Slower pace, systematic scan at 3 feet
+- **QT5:** Meticulous pace, lighted critical inspection at arm's length
+
+### Rate Scaling Principle
+
+Higher tiers execute with slower pace, tighter tolerances, more thorough inspection. Use `qt_rates` structure:
+```json
+{
+  "task_id": "TSK_FF_LIGHT_SAND",
+  "task_class": "qt_scaled",
+  "qt_rates": {
+    "QT3": { "rate_lf_per_hour": 400, "notes": "Spot sand only" },
+    "QT4": { "rate_lf_per_hour": 250, "notes": "Light full sand 220 grit" },
+    "QT5": { "rate_lf_per_hour": 150, "notes": "Thorough full sand 220-320 grit" }
+  }
+}
+```
+
+### Interstage Labor
+
+Interstage labor scales with coat count. Calculate as `(total_coats - 1) × interstage_rate`.
+
+| Coat System | Interstage Cycles |
+|-------------|-------------------|
+| Prime + 1 Finish | 1 |
+| Prime + 2 Finish | 2 |
+| 2 Finish (no prime) | 1 |
+| Prime + 2 Finish + Clear | 3 |
+
+### Fine Finish Rate Guidelines
+
+Reference rates from `Fine_Finish_Doctrine.md § Production Rate Guidance`:
+
+| Task | QT3 | QT4 | QT5 | UOM |
+|------|-----|-----|-----|-----|
+| TSK_FF_INSPECT_COAT | 800 | 500 | 300 | LF/hr |
+| TSK_FF_LIGHT_SAND | 400 | 250 | 150 | LF/hr |
+| TSK_FF_SPRAY_FINISH | 350 | 300 | 250 | LF/hr |
+| TSK_FF_FINAL_INSPECTION | 1000 | 600 | 300 | LF/hr |
+
+*All rates are starting estimates pending field calibration.*
+
+Reference `Fine_Finish_Doctrine.md § Scrutiny Definitions by Tier` for task-specific guidance.
+
+---
+
+## Future Engine Optimizations
+
+The following metadata systems enable project-level optimizations in the estimation engine. These do not change current rate assignment but will affect calculations when the engine is built.
+
+### Protection Zone Optimization
+
+Tasks with `protection_metadata` carry zone information. At project assembly, the engine will:
+- Include setup only for the FIRST spec needing each zone
+- Include teardown only for the LAST spec using each zone
+- Skip setup/teardown for middle specs sharing zones
+
+**Current action:** Assign rates normally. Optimization happens engine-side.
+
+### Finish Continuity Optimization
+
+Tasks with `adjacency_metadata` carry finish relationship information. At project assembly, the engine will:
+- Skip tasks marked `skip_when: same_finish_group` when adjacent surfaces share finish
+- Include tasks marked `required_when: same_finish_group` only when finishes match
+- Apply `continuity_rate_modifier` to affected production rates
+
+**Current action:** Assign rates normally. The `rate_modifier_category` field enables future rate adjustments but does not affect current estimates.
+
+### Production Rate Implications
+
+When finish continuity is detected, edge work rates improve:
+
+| Edge Type | Rate Improvement |
+|-----------|------------------|
+| Linear (wall/trim) | 15-25% faster on edge work |
+| Complex (door/window system) | 20-30% faster when fully continuous |
+
+These modifiers will be applied by the engine based on project-level finish group assignments.
+
+---
 
 ## What you do NOT own
 - Finish systems & coverage (Materials Manager owns)

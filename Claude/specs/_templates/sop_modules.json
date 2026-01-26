@@ -8,6 +8,23 @@
     "qt_scaled": "Tasks in all tiers but production rate varies. Higher QT = slower pace, more scrutiny. Examples: cut-in, rolling finish coats."
   },
 
+  "_protection_metadata_guidance": {
+    "purpose": "Enables project-level optimization of protection setup/teardown across multiple specs",
+    "when_to_use": "Add to all tasks with task_type 'protect'",
+    "action_values": ["setup", "teardown", "maintain"],
+    "zones_reference": "See docs/Protection_Zones_Reference.md for valid zone IDs",
+    "method_dependent": "Set to true when zone selection varies by spray vs brush/roll application"
+  },
+
+  "_adjacency_metadata_guidance": {
+    "purpose": "Enables finish continuity optimization when adjacent surfaces share the same finish",
+    "when_to_use": "Add to edge-related tasks: masking at junctions, cut-in, blend tasks",
+    "surfaces_reference": "See docs/Surface_Vocabulary_Reference.md for valid surface IDs",
+    "skip_when": "Task can be skipped when condition is met (e.g., same_finish_group)",
+    "required_when": "Task is mandatory when condition is met (mutually exclusive with skip_when)",
+    "blend_tasks": "Blend tasks must specify application_method: brush_roll"
+  },
+
   "sop_modules": [
     {
       "module_id": "SOP_MODULE_ID",
@@ -49,6 +66,80 @@
             "QT5": "How task execution differs at QT5"
           },
           "notes": ""
+        },
+        {
+          "_comment": "EXAMPLE: Protection setup task with protection_metadata",
+          "task_id": "TASK_SETUP_FLOOR_PROTECTION",
+          "module_id": "SOP_PROTECTION",
+          "name": "Setup floor protection",
+          "description": "Lay drop cloths or paper to protect floors from drips and overspray",
+          "task_class": "binary",
+          "qt_behavior": "all_tiers_identical",
+          "task_type": "protect",
+          "skill_level": "helper",
+          "unit_of_measure": "SF",
+          "protection_metadata": {
+            "action": "setup",
+            "zones": ["floor_perimeter"],
+            "method_dependent": true
+          },
+          "notes": "Zone upgrades to floor_full for spray applications"
+        },
+        {
+          "_comment": "EXAMPLE: Protection teardown task with protection_metadata",
+          "task_id": "TASK_REMOVE_FLOOR_PROTECTION",
+          "module_id": "SOP_CLEANUP",
+          "name": "Remove floor protection",
+          "description": "Remove and dispose of floor protection materials",
+          "task_class": "binary",
+          "qt_behavior": "all_tiers_identical",
+          "task_type": "protect",
+          "skill_level": "helper",
+          "unit_of_measure": "SF",
+          "protection_metadata": {
+            "action": "teardown",
+            "zones": ["floor_perimeter"],
+            "method_dependent": true
+          },
+          "notes": "Must match setup zones"
+        },
+        {
+          "_comment": "EXAMPLE: Edge masking task with adjacency_metadata (skip when same finish)",
+          "task_id": "TASK_MASK_WALL_EDGE",
+          "module_id": "SOP_PREP",
+          "name": "Mask adjacent wall surface",
+          "description": "Apply tape along wall-to-trim junction to protect wall from trim paint",
+          "task_class": "binary",
+          "qt_behavior": "all_tiers_identical",
+          "task_type": "mask",
+          "skill_level": "journeyman",
+          "unit_of_measure": "LF",
+          "adjacency_metadata": {
+            "adjacent_surface": "wall_field",
+            "condition": "different_finish",
+            "skip_when": "same_finish_group",
+            "rate_modifier_category": "edge_masking"
+          },
+          "notes": "Skip if wall and trim share the same finish group"
+        },
+        {
+          "_comment": "EXAMPLE: Blend task with adjacency_metadata (required when same finish)",
+          "task_id": "TASK_BLEND_TO_WALL",
+          "module_id": "SOP_APPLY",
+          "name": "Blend finish into adjacent wall",
+          "description": "Feather trim paint into wall for seamless transition when finishes match",
+          "task_class": "qt_scaled",
+          "qt_behavior": "rate_varies_by_tier",
+          "task_type": "apply",
+          "skill_level": "journeyman",
+          "unit_of_measure": "LF",
+          "adjacency_metadata": {
+            "adjacent_surface": "wall_field",
+            "condition": "same_finish",
+            "required_when": "same_finish_group",
+            "application_method": "brush_roll"
+          },
+          "notes": "Only applicable for brush/roll - spray achieves continuity via continuous pass"
         }
       ],
       "sequence_notes": "Ordering guidance for tasks within this module"

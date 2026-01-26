@@ -15,6 +15,11 @@ All agent prompts, specs, and schemas must align to these documents. Outputs tha
 | [PaintFactor_OS.md](PaintFactor_OS.md) | System architecture, layer definitions, design principles, and the role of AI agents |
 | [PaintScope_EdgeLF_Mapping.md](PaintScope_EdgeLF_Mapping.md) | How geometry flows from PaintScope to specs; edge work rules and enforcement |
 | [Conventions.md](Conventions.md) | ID prefixes, naming standards, versioning expectations |
+| [Fine_Finish_Doctrine.md](Fine_Finish_Doctrine.md) | Fine finish workflow, material systems, quality tier scrutiny for trim, doors, built-ins, millwork |
+| [Quality_Tiers_and_Surface_Condition.md](Quality_Tiers_and_Surface_Condition.md) | Quality tier definitions and surface condition classification |
+| [Materials_and_Consumables_Doctrine.md](Materials_and_Consumables_Doctrine.md) | Material usage, coverage, consumable patterns |
+| [Protection_Zones_Reference.md](Protection_Zones_Reference.md) | Zone IDs for protection task metadata enabling project-level optimization |
+| [Surface_Vocabulary_Reference.md](Surface_Vocabulary_Reference.md) | Surface IDs for adjacency metadata and finish group assignments |
 
 ---
 

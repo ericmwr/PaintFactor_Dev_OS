@@ -15,6 +15,10 @@ Material definitions inform the Estimation Engine but do not themselves calculat
 - **[docs/PaintFactor_OS.md](../docs/PaintFactor_OS.md)** — System architecture and operating doctrine
 - **[docs/Protection_and_Masking_Doctrine.md](../docs/Protection_and_Masking_Doctrine.md)** — Floor protection and masking systems by application method
 - **[docs/Materials_and_Consumables_Doctrine.md](../docs/Materials_and_Consumables_Doctrine.md)** — Tape, abrasives, rollers, brushes, spackle, caulk usage rules
+- **[docs/Fine_Finish_Doctrine.md](../docs/Fine_Finish_Doctrine.md)** — Fine finish material systems and quality tier product mapping
+
+### Protection & Continuity References
+- **[docs/Protection_Zones_Reference.md](../docs/Protection_Zones_Reference.md)** — Zone IDs mapping to protection materials
 
 ### Adjacency Doctrine / PaintScope Contract
 - **[docs/paintscope_quantity_key_catalog.md](../docs/paintscope_quantity_key_catalog.md)** — Canonical PaintScope quantity keys
@@ -60,6 +64,68 @@ Every entry in `required_inputs[]` MUST include:
 ```
 
 Do NOT provide `input_name` without `paintscope_key`. The Orchestrator will reject incomplete mappings.
+
+---
+
+## Protection Zone Context
+
+Protection zones defined in `Protection_Zones_Reference.md` map to material categories:
+
+| Zone Category | Primary Materials |
+|---------------|-------------------|
+| `floor_full`, `floor_perimeter` | Rosin paper, plastic sheeting, drop cloths |
+| `wall_adjacent` | Masking paper, masking film |
+| `ceiling_line`, `trim_edges`, `baseboard_top` | Painter's tape |
+| `fixture_covers`, `door_hardware`, `cabinet_hardware` | Tape, plastic bags |
+| `cabinet_interior`, `countertop` | Paper, plastic sheeting |
+
+When SOP Librarian creates protection tasks with `protection_metadata.zones`, ensure corresponding consumables are defined in `consumable_usage_models[]`.
+
+---
+
+## Fine Finish Material Systems
+
+When defining materials for fine finish surfaces (trim, built-ins, doors, millwork), align with doctrine material tiers:
+
+### System-to-Tier Mapping
+
+| System ID | Quality Tier | Product Type | Description |
+|-----------|--------------|--------------|-------------|
+| SYS_FF_STANDARD_ACRYLIC | QT3 | 100% acrylic enamel | Production grade, fast dry |
+| SYS_FF_MODIFIED_URETHANE | QT4 | Urethane-modified alkyd | Premium grade, alkyd-like flow |
+| SYS_FF_PREMIUM | QT5 | Premium urethane (Emerald tier) | Showroom quality |
+| SYS_FF_GALLERY | QT5 | Gallery Series full system | Maximum quality, architect-spec |
+| SYS_FF_CONVERSION | QT5 | Conversion varnish | Commercial millwork, max durability |
+
+### Sheen/Tier Restrictions
+
+Per Fine Finish Doctrine, sheen availability is tier-restricted:
+
+| Sheen | Minimum QT | Rationale |
+|-------|------------|-----------|
+| Flat/Matte/Eggshell | QT3 | Lower sheens hide surface imperfections |
+| Satin | QT3 | Standard trim sheen |
+| Semi-gloss | QT4 | Reveals more; requires better workmanship |
+| Gloss | QT5 only | Magnifies every imperfection; requires meticulous work |
+
+### Product Examples by System
+
+**SYS_FF_STANDARD_ACRYLIC (QT3):**
+- Sherwin-Williams ProClassic Waterborne Interior Acrylic Enamel (B31)
+- Benjamin Moore Regal Select Interior Semi-Gloss (N551)
+- PPG Break-Through Interior/Exterior Acrylic (V52)
+
+**SYS_FF_MODIFIED_URETHANE (QT4):**
+- Sherwin-Williams Pro Industrial Waterbased Alkyd Urethane (B53)
+- Benjamin Moore Advance Waterborne Interior Alkyd (N794)
+- PPG Glyptex Interior/Exterior Urethane Alkyd
+
+**SYS_FF_PREMIUM / SYS_FF_GALLERY (QT5):**
+- Sherwin-Williams Emerald Urethane Trim Enamel
+- Gallery Series full system products
+- Conversion varnish systems for commercial millwork
+
+Reference `Fine_Finish_Doctrine.md § Material Systems` for complete product details.
 
 ---
 

@@ -232,3 +232,7 @@ When scope is **ceilings-only repaint** (walls are NOT being painted), the room 
 
 - Field notes from professional painting contractor (2026-01-20)
 - PaintFactor DevOS architecture
+
+## Related Documents
+
+- [Protection_Zones_Reference.md](Protection_Zones_Reference.md) — Zone IDs for protection task metadata enabling project-level optimization
