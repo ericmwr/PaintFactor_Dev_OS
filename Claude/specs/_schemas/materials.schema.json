@@ -39,11 +39,25 @@
                 "product_type": { "type": "string" },
                 "example_products": {
                   "type": "array",
-                  "items": { "type": "string" }
+                  "items": {
+                    "oneOf": [
+                      { "type": "string" },
+                      {
+                        "type": "object",
+                        "required": ["brand", "name"],
+                        "properties": {
+                          "brand": { "type": "string" },
+                          "name": { "type": "string" },
+                          "series": { "type": ["string", "null"] }
+                        },
+                        "additionalProperties": true
+                      }
+                    ]
+                  }
                 },
                 "sheen": {
                   "type": "string",
-                  "enum": ["flat", "matte", "eggshell", "satin", "semi-gloss", "gloss"]
+                  "enum": ["flat", "matte", "eggshell", "satin", "semi-gloss", "gloss", "varies", "satin_or_semi-gloss", "satin_semi-gloss_or_gloss"]
                 },
                 "coats_required": { "type": "integer", "minimum": 1 },
                 "notes": { "type": "string" }
@@ -62,10 +76,16 @@
       "minItems": 1,
       "items": {
         "type": "object",
-        "required": ["profile_id", "material_system", "coverage_sf_per_gallon"],
+        "required": ["profile_id", "material_system"],
         "properties": {
           "profile_id": { "type": "string", "pattern": "^COV_[A-Z0-9_]+$" },
-          "material_system": { "type": "string", "pattern": "^SYS_[A-Z0-9_]+$" },
+          "material_system": {
+            "oneOf": [
+              { "type": "string", "pattern": "^SYS_[A-Z0-9_]+$" },
+              { "type": "array", "items": { "type": "string", "pattern": "^SYS_[A-Z0-9_]+$" } }
+            ]
+          },
+          "coverage_lf_per_gallon": { "type": "number", "exclusiveMinimum": 0 },
           "surface_texture": {
             "oneOf": [
               { "type": "string", "enum": ["smooth", "orange_peel", "knockdown", "heavy_texture", "skip_trowel"] },
@@ -93,18 +113,18 @@
       "type": "array",
       "items": {
         "type": "object",
-        "required": ["consumable_id", "name", "category", "unit", "yield_per_unit", "yield_uom"],
+        "required": ["consumable_id", "name", "category", "unit"],
         "properties": {
           "consumable_id": { "type": "string", "pattern": "^CON_[A-Z0-9_]+$" },
           "name": { "type": "string", "minLength": 1 },
           "category": {
             "type": "string",
-            "enum": ["applicator", "protection", "prep", "cleanup", "abrasive", "solvent", "tool", "consumable"]
+            "enum": ["applicator", "protection", "prep", "cleanup", "abrasive", "solvent", "tool", "consumable", "additive", "fill_material"]
           },
           "specification": { "type": "string" },
           "unit": {
             "type": "string",
-            "enum": ["EA", "ROLL", "BOX", "SHEET", "GAL", "QT"]
+            "enum": ["EA", "ROLL", "BOX", "SHEET", "GAL", "QT", "TUBE", "PINT"]
           },
           "yield_per_unit": { "type": "number", "exclusiveMinimum": 0 },
           "yield_uom": {
