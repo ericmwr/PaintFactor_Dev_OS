@@ -72,6 +72,40 @@ Downstream rules:
 
 ---
 
+## Modifier Meta Keys
+
+These keys carry classification values used by production rate modifiers. They are ENUM types, not numeric quantities.
+
+### Height Classification
+- `PS_META.HEIGHT_BAND`
+  **Type:** ENUM
+  **Values:** `STD` (0-8 ft), `STEP` (9-12 ft), `EXT` (13-17 ft), `SCAFFOLD` (18-24 ft), `LIFT` (25+ ft)
+  **Source:** Collected during scope capture from room height.
+  **Used for:** Height modifier (MOD_HT) selection.
+
+### Surface Condition
+- `PS_META.SURFACE_CONDITION`
+  **Type:** ENUM
+  **Values:** `NEW`, `GOOD`, `FAIR`, `POOR`
+  **Source:** Collected during scope capture via visual assessment.
+  **Used for:** Condition modifier (MOD_COND) selection. Applies to prep tasks only.
+
+### Surface Texture
+- `PS_META.SURFACE_TEXTURE`
+  **Type:** ENUM
+  **Values:** `SMOOTH`, `ORANGE_PEEL`, `KNOCKDOWN`, `HEAVY_TEXTURE`
+  **Source:** Collected during scope capture.
+  **Used for:** Texture modifier (MOD_SURF) selection for field surfaces.
+
+### Complexity Factor
+- `PS_META.COMPLEXITY_FACTOR`
+  **Type:** ENUM
+  **Values:** `OPEN`, `STD`, `MOD`, `COMPLEX`, `VCOMPLEX`, `EXTREME`
+  **Source:** Collected or inferred from room characteristics.
+  **Used for:** Complexity modifier (MOD_COMP) selection.
+
+---
+
 ## Surface Quantity Keys
 
 ### Walls
@@ -95,7 +129,28 @@ Downstream rules:
 - `PS_SURFACE_LF.TRIM_CASING_WINDOW`
 - `PS_SURFACE_LF.TRIM_OTHER` (fallback bucket; avoid if possible)
 
+- `PS_META.EA.CASING_END_COUNT`
+  **Meaning:** Count of trim casing end-grain exposures requiring grain filler.
+  **Source:** Derived: typically 2 per door opening, 4 per window opening.
+  **Used for:** Grain fill tasks on paint-grade trim.
+
 > Note: Trim LF should be produced by PaintScope; specs must not compute it from room perimeter unless PaintScope explicitly does and publishes it here.
+
+### Cabinets
+- `PS_SURFACE_SF.CABINET_FACE`
+  **Meaning:** Total paintable cabinet face area (doors, drawer fronts, face frames).
+  **Source:** Measured or derived from cabinet layout.
+  **Notes:** Does not include cabinet interiors unless explicitly scoped.
+
+- `PS_META.EA.CABINET_DOORS`
+  **Meaning:** Count of cabinet doors to be removed/reinstalled.
+  **Source:** Manual count during scope capture.
+  **Used for:** Door removal/reinstall labor tasks.
+
+- `PS_META.EA.CABINET_HARDWARE`
+  **Meaning:** Count of cabinet hardware pieces (pulls, knobs, hinges) to be removed/reinstalled.
+  **Source:** Manual count or derived (e.g., 2 hinges + 1 pull per door).
+  **Used for:** Hardware removal/reinstall labor tasks.
 
 ---
 
@@ -126,6 +181,21 @@ Use these only if PaintScope can classify and trace them reliably:
 - `PS_EDGE_LF.TO_ASSET.FLOOR_HARD`
 - `PS_EDGE_LF.TO_ASSET.FLOOR_CARPET`
 - `PS_EDGE_LF.TO_ASSET.FIXTURES`
+- `PS_EDGE_LF.TO_ASSET.WINDOW`
+  **Meaning:** LF where paintable surface edges to window frame/glass.
+  **Source:** Derived from window perimeters.
+  **Used for:** Window cut-in tasks.
+
+### Trim-specific edges
+- `PS_EDGE_LF.TRIM_JOINTS`
+  **Meaning:** Total LF of trim miter joints, cope joints, and scarf joints requiring caulk.
+  **Source:** Derived from trim layout or estimated from trim LF (approx 1 joint per 8-12 LF).
+  **Used for:** Trim caulk joint tasks.
+
+- `PS_EDGE_LF.TO_SURFACE`
+  **Meaning:** Edge where two painted surfaces meet (inside corners, wall-to-wall transitions).
+  **Source:** Derived from room geometry.
+  **Used for:** Inside corner cut-in tasks.
 
 ---
 

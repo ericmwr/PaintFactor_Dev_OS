@@ -66,6 +66,8 @@ No conversions are allowed in specs.
 | IN_LF_EDGE_TO_CEILING | LF | PS_EDGE_LF.TO_CEILING | spec includes edge work at ceiling | Required for cut/tape tasks |
 | IN_LF_EDGE_TO_TRIM | LF | PS_EDGE_LF.TO_TRIM | spec includes edge work at trim | Required for cut/tape tasks |
 | IN_LF_EDGE_TO_ASSET | LF | PS_EDGE_LF.TO_ASSET | spec includes edge work to protectable assets | Use only if strategy references asset adjacency |
+| IN_LF_EDGE_INSIDE_CORNER | LF | PS_EDGE_LF.TO_SURFACE | inside corner cut-in | Wall-to-wall edges |
+| IN_LF_EDGE_TO_WINDOW | LF | PS_EDGE_LF.TO_ASSET.WINDOW | window cut-in tasks | Window frame edges |
 
 ## 2.3 Wall Protection (only if measurable)
 
@@ -95,6 +97,8 @@ No conversions are allowed in specs.
 | IN_LF_DOOR_CASING | LF | PS_SURFACE_LF.TRIM_CASING_DOOR | door casing painting included | |
 | IN_LF_WINDOW_CASING | LF | PS_SURFACE_LF.TRIM_CASING_WINDOW | window casing painting included | |
 | IN_LF_TRIM_OTHER | LF | PS_SURFACE_LF.TRIM_OTHER | fallback only | Avoid if possible; define more categories instead |
+| IN_LF_TRIM_JOINTS | LF | PS_EDGE_LF.TRIM_JOINTS | trim caulk joint tasks | Miter/cope joints |
+| IN_EA_CASING_ENDS | EA | PS_META.EA.CASING_END_COUNT | grain fill tasks | End-grain exposures |
 
 ---
 
@@ -138,7 +142,30 @@ Option B (frame sets):
 
 ---
 
-# 6) Strategy Selection Mapping (Adjacency-driven)
+# 6) Modifier Inputs
+
+| Spec Input Name | UOM | PaintScope Key | Required When | Notes |
+|---|---:|---|---|---|
+| IN_HEIGHT_BAND | ENUM | PS_META.HEIGHT_BAND | height modifier applies | Values: STD, STEP, EXT, SCAFFOLD, LIFT |
+| IN_SURFACE_CONDITION | ENUM | PS_META.SURFACE_CONDITION | condition modifier applies | Values: NEW, GOOD, FAIR, POOR |
+| IN_SURFACE_TEXTURE | ENUM | PS_META.SURFACE_TEXTURE | texture modifier applies | Values: SMOOTH, ORANGE_PEEL, KNOCKDOWN, HEAVY_TEXTURE |
+| IN_COMPLEXITY_FACTOR | ENUM | PS_META.COMPLEXITY_FACTOR | complexity modifier applies | Values: OPEN, STD, MOD, COMPLEX, VCOMPLEX, EXTREME |
+
+---
+
+# 7) Cabinets
+
+## 7.1 Cabinet Surfaces
+
+| Spec Input Name | UOM | PaintScope Key | Required When | Notes |
+|---|---:|---|---|---|
+| IN_SF_CABINET_FACE | SF | PS_SURFACE_SF.CABINET_FACE | cabinet painting work | Core cabinet quantity |
+| IN_EA_CABINET_DOORS | EA | PS_META.EA.CABINET_DOORS | door removal tasks | Count of doors |
+| IN_EA_CABINET_HARDWARE | EA | PS_META.EA.CABINET_HARDWARE | hardware removal tasks | Count of hardware pieces |
+
+---
+
+# 8) Strategy Selection Mapping (Adjacency-driven)
 
 This section maps common adjacency conditions to which PaintScope keys must exist if the spec enables strategies that depend on them.
 
@@ -153,7 +180,7 @@ This section maps common adjacency conditions to which PaintScope keys must exis
 
 ---
 
-# 7) “Spec Requirements Block” Template (for specs)
+# 9) "Spec Requirements Block" Template (for specs)
 
 Specs should declare required inputs using this structure:
 
