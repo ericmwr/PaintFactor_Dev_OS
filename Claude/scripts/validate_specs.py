@@ -480,6 +480,14 @@ def cross_file_checks(
             mid = m.get("module_id")
             if mid:
                 module_ids.add(mid)
+            # Collect tasks from within each module
+            for t in m.get("tasks", []):
+                tid = t.get("task_id")
+                if tid:
+                    if tid in task_ids:
+                        issues.append(Issue("ERROR", str(family_dir / "sop_modules.json"), f"Duplicate task_id: {tid}"))
+                    task_ids.add(tid)
+        # Also check for legacy top-level tasks array (for backwards compatibility)
         for t in sop.get("tasks", []):
             tid = t.get("task_id")
             mid = t.get("module_id")
