@@ -20,6 +20,8 @@ All agent prompts, specs, and schemas must align to these documents. Outputs tha
 | [Materials_and_Consumables_Doctrine.md](Materials_and_Consumables_Doctrine.md) | Material usage, coverage, consumable patterns |
 | [Protection_Zones_Reference.md](Protection_Zones_Reference.md) | Zone IDs for protection task metadata enabling project-level optimization |
 | [Surface_Vocabulary_Reference.md](Surface_Vocabulary_Reference.md) | Surface IDs for adjacency metadata and finish group assignments |
+| [DOCTRINE_Window_Systems_Painting.md](Doctrine/DOCTRINE_Window_Systems_Painting.md) | Window substrate treatment, height tiers, trim packages, quality tier behavior |
+| [PaintScope_Window_Counting_System.md](PaintScope_Window_Counting_System.md) | Window data capture system - size buckets, groups, exceptions, UI spec |
 
 ---
 

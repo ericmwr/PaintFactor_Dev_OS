@@ -205,6 +205,79 @@ Use these only if PaintScope can classify and trace them reliably:
 - `PS_OPENING_EA.DOOR_OPENINGS_TOTAL`
 - `PS_OPENING_EA.WINDOW_OPENINGS_TOTAL`
 
+### Window Size Buckets (Size Bucket Method)
+
+The Size Bucket Method enables fast, accurate window quantification without tape measure for most windows. See `PaintScope_Window_Counting_System.md` for full specification.
+
+#### Window Counts by Size Bucket
+- `PS_OPENING_EA.WINDOW_S`
+  **Meaning:** Count of Small windows (8 LF perimeter, 4 SF derived via P²÷16)
+  **Source:** Visual categorization during walkthrough
+  **Used for:** Trim LF derivation, deduction SF derivation
+
+- `PS_OPENING_EA.WINDOW_M`
+  **Meaning:** Count of Medium windows (12 LF perimeter, 9 SF derived)
+  **Source:** Visual categorization during walkthrough
+  **Used for:** Trim LF derivation, deduction SF derivation
+
+- `PS_OPENING_EA.WINDOW_L`
+  **Meaning:** Count of Large windows (17 LF perimeter, 18 SF derived)
+  **Source:** Visual categorization during walkthrough
+  **Used for:** Trim LF derivation, deduction SF derivation
+
+- `PS_OPENING_EA.WINDOW_O`
+  **Meaning:** Count of Oversized windows (measured perimeter required)
+  **Source:** Tape measure required, manual entry
+  **Used for:** Trim LF derivation, deduction SF derivation
+
+- `PS_OPENING_EA.WINDOW_TOTAL`
+  **Meaning:** Sum of all window counts (S+M+L+O)
+  **Source:** Derived from size bucket counts
+  **Used for:** Validation, reporting
+
+#### Window Height Distribution
+- `PS_OPENING_EA.WINDOW_H1`
+  **Meaning:** Windows at 0-8 ft (standard height, no access equipment)
+  **Source:** Collected during walkthrough
+  **Used for:** Height modifier application at 1.00x
+
+- `PS_OPENING_EA.WINDOW_H2`
+  **Meaning:** Windows at 9-12 ft (step ladder required)
+  **Source:** Collected during walkthrough
+  **Used for:** Height modifier application at 1.30x
+
+- `PS_OPENING_EA.WINDOW_H3`
+  **Meaning:** Windows at 13-17 ft (extension ladder or scaffold)
+  **Source:** Collected during walkthrough
+  **Used for:** Height modifier application at 1.50x
+
+- `PS_OPENING_EA.WINDOW_H4`
+  **Meaning:** Windows at 18-24 ft (scaffold required)
+  **Source:** Collected during walkthrough
+  **Used for:** Height modifier application at 2.00x
+
+- `PS_OPENING_EA.WINDOW_H5`
+  **Meaning:** Windows at 25+ ft (lift equipment required)
+  **Source:** Collected during walkthrough
+  **Used for:** Height modifier application at 2.50x
+
+#### Derived Window Quantities
+- `PS_OPENING_LF.TRIM_WINDOW`
+  **Meaning:** Total window trim linear footage
+  **Source:** Derived from size buckets: (S×8) + (M×12) + (L×17) + (O×measured)
+  **Used for:** Window casing/trim painting tasks
+
+- `PS_OPENING_SF.WINDOW_DEDUCT`
+  **Meaning:** Total window area for wall deductions
+  **Source:** Derived from size buckets using P²÷16 formula
+  **Used for:** Wall SF calculations (gross → net)
+
+#### Window Exceptions
+- `PS_OPENING_EA.WINDOW_EXCEPTION`
+  **Meaning:** Count of flagged window exceptions requiring special handling
+  **Source:** Manual flag during walkthrough
+  **Notes:** Includes deteriorated, bay/bow, oversized, or other flagged windows
+
 ### Doors (per-side counting contract)
 PaintScope must represent doors as paintable items with EA_SIDE counting.
 

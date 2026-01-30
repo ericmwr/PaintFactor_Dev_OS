@@ -360,6 +360,9 @@ Return JSON-compatible:
 - `FC_BLEND_METHOD_BRUSH_ROLL` — Blend tasks use application_method: brush_roll
 - `FC_DECL_PRIMARY_SURFACE_PRESENT` — adjacency_declarations has primary_surface
 - `FC_DECL_EDGE_TYPE_VALID` — Adjacent surface edge_type is valid enum
+- `WINDOW_SIZE_BUCKET_KEYS` — Window specs use PS_OPENING_EA.WINDOW_S/M/L/O keys, not generic opening count
+- `WINDOW_HEIGHT_DISTRIBUTION` — Window height work requires PS_OPENING_EA.WINDOW_H1-H5 keys
+- `WINDOW_LF_DERIVED` — Window trim LF uses derived PS_OPENING_LF.TRIM_WINDOW, not manual calculation
 
 **Note on Production Rates:** The Critic does NOT enforce specific production rate values (e.g., 400 SF/hr, 600 SF/hr). Production rates are research-based estimates that will be field-calibrated. Only the spray/backroll coupling rule (spray ≤ backroll) and modifier math (time multipliers, not rate multipliers) are enforced.
 

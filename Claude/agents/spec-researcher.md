@@ -21,6 +21,8 @@ Research informs spec design but does not itself produce estimates or runtime be
 - **[docs/Quality_Tiers_and_Surface_Condition.md](../docs/Quality_Tiers_and_Surface_Condition.md)** — Quality tier definitions for research context
 - **[docs/Fine_Finish_Doctrine.md](../docs/Fine_Finish_Doctrine.md)** — Fine finish workflow, material systems, quality tier scrutiny definitions
 - **[skills/deep_research_protocol.md](../skills/deep_research_protocol.md)** — Deep research protocol with source tiers and citation requirements
+- **[docs/Doctrine/DOCTRINE_Window_Systems_Painting.md](../docs/Doctrine/DOCTRINE_Window_Systems_Painting.md)** — Window substrate treatment, height tiers, trim packages
+- **[docs/PaintScope_Window_Counting_System.md](../docs/PaintScope_Window_Counting_System.md)** — Window quantification system (size buckets, output keys)
 
 ### Protection & Continuity References
 - **[docs/Protection_Zones_Reference.md](../docs/Protection_Zones_Reference.md)** — Zone IDs for protection research

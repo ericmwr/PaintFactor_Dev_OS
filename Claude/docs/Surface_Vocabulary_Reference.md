@@ -69,11 +69,14 @@ Surface IDs identify specific substrate types for:
 
 | Surface ID | Description | Common Adjacencies |
 |------------|-------------|-------------------|
-| `window_casing` | Window casing | wall_field, window_jamb |
-| `window_jamb` | Window jamb/extension | window_casing, window_sash |
-| `window_sash` | Window sash (operable) | window_jamb, window_glass |
-| `window_stool` | Window stool | window_jamb, window_apron |
-| `window_apron` | Window apron | wall_field, window_stool |
+| `window_frame` | Window frame (wood, vinyl, aluminum, steel) | wall_field, window_sash, window_jamb |
+| `window_sash` | Operable sash components | window_frame, window_muntin, window_glass |
+| `window_muntin` | Dividing strips between panes (grilles) | window_sash, window_glass |
+| `window_jamb` | Extension jamb (interior reveal) | window_casing, window_sash, window_frame |
+| `window_stool` | Interior window sill | window_jamb, window_apron, wall_field |
+| `window_apron` | Trim below stool | wall_field, window_stool |
+| `window_casing` | Trim surrounding window | wall_field, window_jamb |
+| `window_glass` | Glass surface (protection target, not painted) | window_sash, window_muntin |
 
 ---
 
