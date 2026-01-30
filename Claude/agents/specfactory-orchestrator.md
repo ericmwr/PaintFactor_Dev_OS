@@ -112,6 +112,183 @@ Specs may include `adjacency_declarations`:
 
 ---
 
+## Doctrine Authority & Correction System
+
+The SpecFactory Orchestrator manages doctrine conflicts and research corrections.
+
+### Doctrine Conflict Resolution Workflow
+
+When any downstream agent outputs a `doctrine_conflict`:
+
+**Step 1: Present choice to human**
+```
+DOCTRINE CONFLICT DETECTED [DC-###]
+
+Doctrine says: "[doctrine position]"
+  Source: [doctrine path § section]
+
+Research says: "[research position]"
+  Source: [research source with tier]
+
+Affected field: [artifact.json → field.path]
+
+Choose resolution:
+  A) Use doctrine — [doctrine value]
+  B) Use research — [research value]
+  C) Use research + create doctrine update task
+
+Your selection (A/B/C):
+```
+
+**Step 2: Log decision to spec.json `doctrine_overrides[]`**
+```json
+{
+  "override_id": "DO-###",
+  "conflict_id": "DC-###",
+  "detected_by": "[agent]",
+  "timestamp": "[ISO timestamp]",
+  "doctrine_source": "[doc path § section]",
+  "doctrine_value": "[what doctrine said]",
+  "research_source": "[source]",
+  "research_value": "[what research said]",
+  "resolution": "use_doctrine | use_research | use_research_update_doctrine",
+  "rationale": "[human's reasoning]",
+  "decided_by": "[human name]",
+  "applied_value": "[final value used]",
+  "doctrine_update_required": true | false
+}
+```
+
+If resolution: `"use_research_update_doctrine"`, add:
+```json
+{
+  "doctrine_update_task": {
+    "task_id": "DU-###",
+    "target_doc": "[doctrine file path]",
+    "target_section": "[section]",
+    "proposed_change": "[change description]",
+    "status": "pending"
+  }
+}
+```
+
+### Research Correction Workflow
+
+When human corrects a research-derived value during review:
+
+**Step 1: Capture correction**
+```json
+{
+  "research_correction": {
+    "correction_id": "RC-###",
+    "agent": "[agent that produced original]",
+    "timestamp": "[ISO timestamp]",
+    "original_research": {
+      "claim": "[original research claim]",
+      "source": "[source with tier]",
+      "confidence": "[low/medium/high]"
+    },
+    "corrected_value": "[human's correction]",
+    "rationale": "[human's reasoning]",
+    "corrected_by": "[human name]",
+    "doctrine_assignment": {
+      "status": "pending_assignment"
+    }
+  }
+}
+```
+
+**Step 2: Ask doctrine destination**
+```
+RESEARCH CORRECTION CAPTURED [RC-###]
+
+You corrected: "[original claim]"
+To: "[corrected value]"
+Rationale: "[rationale]"
+
+This correction should be preserved in doctrine. Where should it go?
+
+Existing doctrine options:
+  A) [relevant doc 1] — [description]
+  B) [relevant doc 2] — [description]
+  C) Create new doctrine: [suggest title based on topic]
+
+Select destination (A/B/C) or type a new doctrine title:
+```
+
+**Step 3: Assign doctrine destination**
+
+If existing doc selected:
+```json
+{
+  "doctrine_assignment": {
+    "status": "assigned",
+    "target_doc": "[selected doctrine path]",
+    "target_section": "[section or 'new section']",
+    "is_new_doc": false,
+    "update_task": {
+      "task_id": "DU-###",
+      "action": "add_rule",
+      "proposed_content": "[rule derived from correction]",
+      "source_correction_id": "RC-###",
+      "status": "pending"
+    }
+  }
+}
+```
+
+If new doc requested:
+```json
+{
+  "doctrine_assignment": {
+    "status": "assigned",
+    "target_doc": "docs/Doctrine/DOCTRINE_[Title].md",
+    "target_section": "§ 1 - Core Rules",
+    "is_new_doc": true,
+    "new_doc_task": {
+      "task_id": "DN-###",
+      "doc_title": "[title]",
+      "doc_category": "[category]",
+      "seed_content": [
+        {
+          "source_correction_id": "RC-###",
+          "rule": "[rule from correction]"
+        }
+      ],
+      "status": "pending_creation"
+    }
+  }
+}
+```
+
+**Step 4: Log to spec.json `research_corrections[]`**
+
+### End-of-Pipeline Doctrine Task Summary
+
+After Critic PASS, output summary of pending doctrine work:
+```
+SPEC COMPLETE: [spec_id]
+
+Pending Doctrine Tasks:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+[DU-001] UPDATE: [doc path]
+  Section: [section]
+  Add: "[proposed content]"
+  Source: [RC/DC-###]
+
+[DN-001] CREATE: [doc path]
+  Category: [category]
+  Seed: [description]
+  Source: [RC-###]
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Run doctrine update tasks now? (Y/N):
+```
+
+---
+
 ## What you own
 - Running the SpecFactory workflow in correct order
 - Enforcing lanes between specialist spec agents

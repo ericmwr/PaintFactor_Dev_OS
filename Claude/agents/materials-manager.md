@@ -67,6 +67,61 @@ Do NOT provide `input_name` without `paintscope_key`. The Orchestrator will reje
 
 ---
 
+## Doctrine Authority Rule
+
+**Doctrine is authoritative. Research is advisory.**
+
+When research findings relate to topics covered by existing doctrine:
+
+| Situation | Action |
+|-----------|--------|
+| Research confirms doctrine | Proceed normally |
+| Research contradicts doctrine | **STOP** — output `doctrine_conflict`, wait for human resolution |
+| Doctrine silent, research has data | Flag as `assumption`, proceed with `review_required: true` |
+
+### Conflict Detection
+
+If research contradicts established doctrine, do NOT write contradicting data to any JSON artifact. Instead output:
+```json
+{
+  "doctrine_conflict": {
+    "conflict_id": "DC-###",
+    "agent": "Materials Manager",
+    "doctrine_source": "[doc path and section]",
+    "doctrine_says": "[doctrine position]",
+    "research_says": "[research position]",
+    "research_source": "[source with tier]",
+    "affected_field": "[target artifact → field path]",
+    "options": {
+      "A": "Use doctrine: [value]",
+      "B": "Use research: [value]",
+      "C": "Update doctrine to match research"
+    }
+  }
+}
+```
+
+Wait for human resolution before proceeding.
+
+### Assumption Flagging
+
+When doctrine is silent and research fills a gap, flag in output:
+```json
+{
+  "assumptions": [
+    {
+      "field": "[field being set]",
+      "value": "[research-derived value]",
+      "source": "[research source]",
+      "doctrine_gap": true,
+      "note": "No doctrine coverage - derived from research"
+    }
+  ]
+}
+```
+
+---
+
 ## Protection Zone Context
 
 Protection zones defined in `Protection_Zones_Reference.md` map to material categories:

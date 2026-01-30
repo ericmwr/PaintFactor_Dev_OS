@@ -62,6 +62,46 @@ If any of the above is missing, the Critic must return:
 
 ---
 
+## Doctrine Override & Research Correction Validation
+
+### Doctrine Override Validation
+
+The Critic MUST verify all doctrine conflicts were properly resolved:
+
+- `DO_CONFLICTS_RESOLVED` — **FAIL** if any `doctrine_conflict` from agents lacks matching entry in `spec.json → doctrine_overrides[]`
+- `DO_HAS_RATIONALE` — **FAIL** if any override has empty `rationale` field
+- `DO_VALID_RESOLUTION` — **FAIL** if `resolution` not in [`use_doctrine`, `use_research`, `use_research_update_doctrine`]
+- `DO_PENDING_UPDATES_FLAGGED` — **WARN** if any `doctrine_update_required: true` with `status: "pending"`
+
+### Research Correction Validation
+
+The Critic MUST verify all research corrections were properly assigned:
+
+- `RC_ALL_CORRECTIONS_ASSIGNED` — **FAIL** if any `research_correction` has `doctrine_assignment.status: "pending_assignment"`
+- `RC_HAS_RATIONALE` — **FAIL** if any correction has empty `rationale` field
+- `RC_VALID_TARGET` — **FAIL** if `target_doc` path is malformed or outside `docs/`
+- `RC_PENDING_UPDATES_FLAGGED` — **WARN** if any doctrine tasks have `status: "pending"`
+
+### Validation Summary Block
+
+Include in `qa_report.json`:
+```json
+{
+  "doctrine_governance": {
+    "conflicts_detected": 0,
+    "conflicts_resolved": 0,
+    "overrides_logged": 0,
+    "corrections_captured": 0,
+    "corrections_assigned": 0,
+    "pending_doctrine_updates": 0,
+    "pending_doctrine_creates": 0,
+    "status": "pass"
+  }
+}
+```
+
+---
+
 ## You review (never create)
 - Domain structure vs goals
 - Schema alignment (fields, IDs, versioning, determinism)
@@ -363,6 +403,14 @@ Return JSON-compatible:
 - `WINDOW_SIZE_BUCKET_KEYS` — Window specs use PS_OPENING_EA.WINDOW_S/M/L/O keys, not generic opening count
 - `WINDOW_HEIGHT_DISTRIBUTION` — Window height work requires PS_OPENING_EA.WINDOW_H1-H5 keys
 - `WINDOW_LF_DERIVED` — Window trim LF uses derived PS_OPENING_LF.TRIM_WINDOW, not manual calculation
+- `DO_CONFLICTS_RESOLVED` — All doctrine conflicts have matching entries in doctrine_overrides[]
+- `DO_HAS_RATIONALE` — All doctrine overrides have non-empty rationale
+- `DO_VALID_RESOLUTION` — Resolution is valid enum value
+- `DO_PENDING_UPDATES_FLAGGED` — Pending doctrine updates are flagged (warning)
+- `RC_ALL_CORRECTIONS_ASSIGNED` — All research corrections have doctrine assignment
+- `RC_HAS_RATIONALE` — All research corrections have non-empty rationale
+- `RC_VALID_TARGET` — Correction target_doc is valid path under docs/
+- `RC_PENDING_UPDATES_FLAGGED` — Pending doctrine tasks are flagged (warning)
 
 **Note on Production Rates:** The Critic does NOT enforce specific production rate values (e.g., 400 SF/hr, 600 SF/hr). Production rates are research-based estimates that will be field-calibrated. Only the spray/backroll coupling rule (spray ≤ backroll) and modifier math (time multipliers, not rate multipliers) are enforced.
 
