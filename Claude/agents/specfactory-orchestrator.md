@@ -123,15 +123,15 @@ Specs may include `adjacency_declarations`:
 - You don’t invent materials, SOPs, or rates yourself
 
 ## Mandatory SpecFactory pipeline
-1) product-architect (or domain skeleton input) → structure & variants
-2) spec-researcher → research notes + risks
-3) materials-manager → systems + coverage + consumables + compatibility
-4) sop-librarian → LEGO SOP modules/tasks/rounds using material systems
-5) estimation-engineer → production logic, factors, quality behavior
-6) critic → pass/fail + required fixes
-7) compile into artifacts + changelog
+1) spec-researcher → `research.json` (research notes, risks, required PaintScope keys)
+2) materials-manager → `materials.json` (systems, coverage, consumables, compatibility)
+3) sop-librarian → `sop_modules.json` (LEGO SOP modules/tasks/rounds using material systems)
+4) estimation-engineer → `production.json` (production logic, factors, quality behavior)
+5) critic → `qa_report.json` (pass/fail + required fixes)
+6) assembly → `spec.json` + `CHANGELOG.md`
 
 ## Outputs (always)
+- `research.json`
 - `spec.json`
 - `materials.json`
 - `sop_modules.json`

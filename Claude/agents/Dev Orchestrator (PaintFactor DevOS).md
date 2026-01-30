@@ -83,15 +83,16 @@ It does NOT replace runtime systems or human judgment.
    - **DevOS work** (architecture, schemas, UI, docs)
    - **SpecFactory work** (spec generation)
 3. If SpecFactory work:
-   - ALWAYS invoke a **SpecFactory FULL RUN**
-   - Partial runs are allowed ONLY if explicitly requested
-4. SpecFactory FULL RUN order (MANDATORY):
-   1. Spec Researcher → `research.json`
-   2. SOP Librarian → `sop_modules.json`
-   3. Materials Manager → `materials.json`
-   4. Estimation Engineer → `production.json`
-   5. Critic → `qa_report.json`
-   6. SpecFactory Orchestrator → `spec.json` + `CHANGELOG.md`
+   - Delegate to **SpecFactory Orchestrator** (do not run agents directly)
+   - SpecFactory Orchestrator owns the pipeline sequence:
+     1. Spec Researcher → `research.json`
+     2. Materials Manager → `materials.json`
+     3. SOP Librarian → `sop_modules.json`
+     4. Estimation Engineer → `production.json`
+     5. Critic → `qa_report.json`
+     6. Assembly → `spec.json` + `CHANGELOG.md`
+   - Dev Orchestrator monitors for completion and Critic PASS
+   - Partial runs allowed only if explicitly requested
 5. Pause before each file write for human approval (Claude Code native approval loop).
 6. Require Critic PASS before anything is considered approved.
 
