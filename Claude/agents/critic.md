@@ -22,6 +22,11 @@ The Critic enforces system doctrine. It is the **final doctrine gate AFTER human
 - **[docs/Material_Role_System.md](../docs/Material_Role_System.md)** — Material roles vs products/SKUs and pricing separation (if present)
 - **[docs/Fine_Finish_Doctrine.md](../docs/Fine_Finish_Doctrine.md)** — Fine finish workflow, material systems, quality tier scrutiny definitions
 
+### Completeness Doctrine
+- **[docs/Spec_Completeness_Doctrine.md](../docs/Spec_Completeness_Doctrine.md)** — Mandatory declaration layers and validation codes
+- **[docs/Site_Condition_Vocabulary_Reference.md](../docs/Site_Condition_Vocabulary_Reference.md)** — Valid site condition IDs and values
+- **[docs/Modifier_Registry.md](../docs/Modifier_Registry.md)** — Canonical modifier values
+
 ### Protection & Continuity References
 - **[docs/Protection_Zones_Reference.md](../docs/Protection_Zones_Reference.md)** — Zone IDs for protection metadata validation
 - **[docs/Surface_Vocabulary_Reference.md](../docs/Surface_Vocabulary_Reference.md)** — Surface IDs for adjacency metadata validation
@@ -290,6 +295,78 @@ For spec-level `adjacency_declarations`:
 - **FAIL** if `edge_type` is not one of: `linear`, `complex`
 - **WARN** if `continuity_rate_modifier` is outside range 1.0-2.0
 
+### 17) Spec Completeness Doctrine Violations (ERROR)
+
+Reference: **[docs/Spec_Completeness_Doctrine.md](../docs/Spec_Completeness_Doctrine.md)**
+
+All completeness validation failures are **ERROR severity** and MUST block approval.
+
+#### Protection Zone Completeness
+
+| Code | Severity | Condition |
+|------|----------|-----------|
+| `SPEC_PZ_MISSING` | ERROR | spec.json missing `protection_zones_required` array |
+| `SPEC_PZ_EMPTY` | ERROR | `protection_zones_required` array is empty |
+| `SPEC_PZ_INVALID_ZONE` | ERROR | zone_id not in Protection_Zones_Reference vocabulary |
+| `SPEC_PZ_MISSING_CONDITION` | ERROR | zone entry missing `condition` field |
+| `SPEC_PZ_MISSING_LEVEL` | ERROR | zone entry missing `protection_level` field |
+| `SPEC_PZ_INVALID_LEVEL` | ERROR | protection_level not one of: edge_only, partial_cover, full_cover |
+
+#### Adjacency Completeness
+
+| Code | Severity | Condition |
+|------|----------|-----------|
+| `SPEC_ADJ_MISSING` | ERROR | spec.json missing `adjacency_declarations` |
+| `SPEC_ADJ_NO_PRIMARY` | ERROR | `adjacency_declarations` missing `primary_surface` |
+| `SPEC_ADJ_EMPTY` | ERROR | `adjacent_surfaces` array is empty |
+| `SPEC_ADJ_INVALID_SURFACE` | ERROR | surface_id not in Surface_Vocabulary_Reference |
+| `SPEC_ADJ_NO_TASKS` | ERROR | adjacent_surfaces entry missing `affected_tasks` |
+| `SPEC_ADJ_TASK_NOT_FOUND` | ERROR | Task ID in `affected_tasks` not in sop_modules.json |
+| `SPEC_ADJ_INVALID_RELATIONSHIP` | ERROR | typical_relationship not valid enum value |
+
+#### Site Condition Completeness
+
+| Code | Severity | Condition |
+|------|----------|-----------|
+| `TASK_SC_REQUIRED` | ERROR | Task type requires `site_condition_rules` but none provided |
+| `TASK_SC_INVALID_CONDITION` | ERROR | Condition ID not in Site_Condition_Vocabulary_Reference |
+| `TASK_SC_INVALID_VALUE` | ERROR | Condition value not valid for condition ID |
+| `TASK_ADJ_MISSING` | ERROR | Edge task (cut_in, blend) missing `adjacency_metadata` |
+| `TASK_ADJ_NO_SURFACE` | ERROR | adjacency_metadata missing `adjacent_surface` |
+| `TASK_BLEND_WRONG_METHOD` | ERROR | Blend task `application_method` is not `brush_roll` |
+| `TASK_PROTECT_NO_LEVEL` | ERROR | Protect task missing `protection_level` |
+
+#### Modifier Alignment
+
+| Code | Severity | Condition |
+|------|----------|-----------|
+| `MOD_VALUE_MISMATCH` | ERROR | modifier_when_included value does not match Modifier_Registry.md |
+| `MOD_UNKNOWN_ID` | ERROR | Modifier ID not found in Modifier_Registry.md |
+
+#### Task-Adjacency Alignment
+
+- **FAIL** if any task in `affected_tasks` lacks matching `adjacency_metadata`
+- **FAIL** if `adjacency_metadata.adjacent_surface` doesn't match the adjacency declaration
+- **FAIL** if skip/include rules are inconsistent with `typical_relationship`
+
+#### Completeness Validation Summary Block
+
+Include in `qa_report.json`:
+```json
+{
+  "spec_completeness": {
+    "protection_zones_valid": true,
+    "adjacency_declarations_valid": true,
+    "site_condition_rules_valid": true,
+    "modifier_alignment_valid": true,
+    "task_adjacency_aligned": true,
+    "status": "pass",
+    "errors": [],
+    "doctrine_reference": "Spec_Completeness_Doctrine.md v1.0"
+  }
+}
+```
+
 ### Enforcement Behavior
 - These violations are **CRITICAL severity**
 - The Critic must **FAIL** the artifact — not "pass_with_warnings"
@@ -411,6 +488,17 @@ Return JSON-compatible:
 - `RC_HAS_RATIONALE` — All research corrections have non-empty rationale
 - `RC_VALID_TARGET` — Correction target_doc is valid path under docs/
 - `RC_PENDING_UPDATES_FLAGGED` — Pending doctrine tasks are flagged (warning)
+- `SCD_PZ_PRESENT` — spec.json has non-empty protection_zones_required (ERROR if missing)
+- `SCD_PZ_ZONES_VALID` — All zone IDs in Protection_Zones_Reference (ERROR if invalid)
+- `SCD_PZ_LEVELS_VALID` — All protection_level values are valid enum (ERROR if invalid)
+- `SCD_ADJ_PRESENT` — spec.json has adjacency_declarations with primary_surface (ERROR if missing)
+- `SCD_ADJ_SURFACES_VALID` — All surface IDs in Surface_Vocabulary_Reference (ERROR if invalid)
+- `SCD_ADJ_TASKS_EXIST` — All affected_tasks reference real task IDs in sop_modules.json (ERROR if missing)
+- `SCD_SC_RULES_PRESENT` — Affected tasks have site_condition_rules (ERROR if missing)
+- `SCD_SC_CONDITIONS_VALID` — Condition IDs in Site_Condition_Vocabulary_Reference (ERROR if invalid)
+- `SCD_SC_VALUES_VALID` — Condition values valid for their condition ID (ERROR if invalid)
+- `SCD_MOD_ALIGNED` — modifier_when_included values match Modifier_Registry.md (ERROR if mismatched)
+- `SCD_TASK_ADJ_ALIGNED` — Tasks in affected_tasks have matching adjacency_metadata (ERROR if missing)
 
 **Note on Production Rates:** The Critic does NOT enforce specific production rate values (e.g., 400 SF/hr, 600 SF/hr). Production rates are research-based estimates that will be field-calibrated. Only the spray/backroll coupling rule (spray ≤ backroll) and modifier math (time multipliers, not rate multipliers) are enforced.
 

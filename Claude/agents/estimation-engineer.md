@@ -18,6 +18,11 @@ This agent defines production RATES and FACTORS. The Estimation Engine multiplie
 - **[docs/Quality_Tiers_and_Surface_Condition.md](../docs/Quality_Tiers_and_Surface_Condition.md)** — QT2-QT6 definitions, condition modifiers, hourly gates
 - **[docs/Fine_Finish_Doctrine.md](../docs/Fine_Finish_Doctrine.md)** — Fine finish scrutiny definitions, defect tolerance, production rate guidance
 
+### Completeness Doctrine
+- **[docs/Spec_Completeness_Doctrine.md](../docs/Spec_Completeness_Doctrine.md)** — Mandatory declaration layers (protection zones, adjacency, site conditions)
+- **[docs/Site_Condition_Vocabulary_Reference.md](../docs/Site_Condition_Vocabulary_Reference.md)** — Valid site condition IDs and values
+- **[docs/Modifier_Registry.md](../docs/Modifier_Registry.md)** — Canonical modifier values (AUTHORITATIVE source for all modifier values)
+
 ### Protection & Continuity References
 - **[docs/Protection_Zones_Reference.md](../docs/Protection_Zones_Reference.md)** — Zone IDs for protection optimization
 - **[docs/Surface_Vocabulary_Reference.md](../docs/Surface_Vocabulary_Reference.md)** — Surface IDs for finish continuity
@@ -259,9 +264,48 @@ Reference `Fine_Finish_Doctrine.md § Scrutiny Definitions by Tier` for task-spe
 
 ---
 
-## Future Engine Optimizations
+## Modifier Alignment Validation (Required)
 
-The following metadata systems enable project-level optimizations in the estimation engine. These do not change current rate assignment but will affect calculations when the engine is built.
+Reference: **[docs/Modifier_Registry.md](../docs/Modifier_Registry.md)**
+
+All modifier values in production logic MUST align with the canonical Modifier_Registry. The Modifier_Registry is the single source of truth for modifier values.
+
+### Site Condition Modifier Consistency
+
+When tasks include `modifier_when_included` (set by SOP Librarian), the Estimation Engineer MUST verify:
+
+1. **Values match Modifier_Registry:** Every modifier value in `modifier_when_included` must match the corresponding entry in Modifier_Registry.md
+2. **Correct application:** Site condition modifiers are TIME multipliers applied as `effective_rate = base_rate ÷ modifier`
+3. **No invented modifiers:** Do not create modifier values not documented in the registry
+
+| Modifier Category | Registry Reference | Application |
+|-------------------|-------------------|-------------|
+| Height (H1-H5) | Modifier_Registry § Height Modifiers | All labor tasks based on working height |
+| Quality Tier (QT2-QT6) | Modifier_Registry § Quality Tier Modifiers | Task base rates by quality tier |
+| Surface Condition | Modifier_Registry § Surface Condition Modifiers | Prep tasks based on condition |
+| Site Conditions | Modifier_Registry § Site Condition Modifiers | Per task include/exclude rules |
+| Complexity | Modifier_Registry § Complexity Modifiers | Geometric/detail complexity |
+
+### Finish Continuity Rate Modifier Validation
+
+When specs include `continuity_rate_modifier` in adjacency declarations, verify:
+
+1. **Range:** Values must be between 1.0 and 2.0
+2. **Consistency:** Similar edge types should have similar modifiers across specs
+3. **Reasonableness:** Typical ranges by edge type:
+
+| Edge Type | Typical Rate Improvement |
+|-----------|-------------------------|
+| Linear (wall/trim) | 1.15–1.25 (15-25% faster on edge work) |
+| Complex (door/window system) | 1.20–1.30 (20-30% faster when fully continuous) |
+
+These modifiers are applied by the engine at project assembly based on finish group assignments.
+
+---
+
+## Engine Optimization Context
+
+The following metadata systems enable project-level optimizations in the estimation engine.
 
 ### Protection Zone Optimization
 
@@ -279,18 +323,7 @@ Tasks with `adjacency_metadata` carry finish relationship information. At projec
 - Include tasks marked `required_when: same_finish_group` only when finishes match
 - Apply `continuity_rate_modifier` to affected production rates
 
-**Current action:** Assign rates normally. The `rate_modifier_category` field enables future rate adjustments but does not affect current estimates.
-
-### Production Rate Implications
-
-When finish continuity is detected, edge work rates improve:
-
-| Edge Type | Rate Improvement |
-|-----------|------------------|
-| Linear (wall/trim) | 15-25% faster on edge work |
-| Complex (door/window system) | 20-30% faster when fully continuous |
-
-These modifiers will be applied by the engine based on project-level finish group assignments.
+**Current action:** Assign rates normally. The `rate_modifier_category` field enables future rate adjustments.
 
 ---
 

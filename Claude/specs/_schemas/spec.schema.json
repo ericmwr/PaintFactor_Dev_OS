@@ -10,7 +10,9 @@
     "variants",
     "required_paintscope_inputs",
     "dependencies",
-    "change_log"
+    "change_log",
+    "protection_zones_required",
+    "adjacency_declarations"
   ],
   "properties": {
     "spec_family": {
@@ -243,9 +245,52 @@
       }
     },
 
+    "protection_zones_required": {
+      "type": "array",
+      "description": "Declares protection zones this spec activates (Spec_Completeness_Doctrine Layer 1)",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["zone_id", "condition", "protection_level"],
+        "properties": {
+          "zone_id": {
+            "type": "string",
+            "description": "Zone ID from Protection_Zones_Reference.md"
+          },
+          "condition": {
+            "oneOf": [
+              { "const": "always" },
+              { "type": "object" }
+            ],
+            "description": "'always' or object with dimension/condition filters"
+          },
+          "protection_level": {
+            "type": "string",
+            "enum": ["edge_only", "partial_cover", "full_cover"],
+            "description": "Level of protection required"
+          },
+          "upgrades_to_zone": {
+            "type": "string",
+            "description": "Zone ID to upgrade to under certain conditions"
+          },
+          "upgrades_to_level": {
+            "type": "string",
+            "enum": ["edge_only", "partial_cover", "full_cover"],
+            "description": "Protection level to upgrade to"
+          },
+          "upgrade_condition": {
+            "type": "object",
+            "description": "Conditions triggering the upgrade"
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+
     "adjacency_declarations": {
       "type": "object",
-      "description": "Declares primary surface and adjacent surfaces for finish continuity optimization",
+      "description": "Declares primary surface and adjacent surfaces for finish continuity optimization (Spec_Completeness_Doctrine Layer 2)",
+      "required": ["primary_surface", "adjacent_surfaces"],
       "properties": {
         "primary_surface": {
           "type": "string",
@@ -253,12 +298,14 @@
         },
         "adjacent_surfaces": {
           "type": "array",
+          "minItems": 1,
           "items": {
             "type": "object",
+            "required": ["surface_id", "edge_type", "typical_relationship", "affected_tasks"],
             "properties": {
               "surface_id": {
                 "type": "string",
-                "description": "Surface ID from surface vocabulary"
+                "description": "Surface ID from Surface_Vocabulary_Reference.md"
               },
               "edge_type": {
                 "type": "string",
@@ -267,7 +314,7 @@
               },
               "typical_relationship": {
                 "type": "string",
-                "enum": ["same_finish", "different_finish", "varies"],
+                "enum": ["same_finish", "different_finish", "varies", "not_in_scope"],
                 "default": "varies",
                 "description": "Default finish relationship assumption"
               },
@@ -276,13 +323,18 @@
                 "minimum": 1.0,
                 "maximum": 2.0,
                 "description": "Rate improvement factor when finishes are continuous (1.0-2.0)"
+              },
+              "affected_tasks": {
+                "type": "array",
+                "items": { "type": "string" },
+                "minItems": 0,
+                "description": "Task IDs in sop_modules.json affected by this adjacency"
               }
             },
-            "required": ["surface_id", "edge_type"]
+            "additionalProperties": false
           }
         }
-      },
-      "required": ["primary_surface", "adjacent_surfaces"]
+      }
     }
   },
   "additionalProperties": true

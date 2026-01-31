@@ -20,6 +20,11 @@ SpecFactory generates spec definitions that will later be consumed by the Estima
 - **[docs/Quality_Tiers_and_Surface_Condition.md](../docs/Quality_Tiers_and_Surface_Condition.md)** — Quality tier and condition definitions
 - **[docs/Fine_Finish_Doctrine.md](../docs/Fine_Finish_Doctrine.md)** — Fine finish workflow patterns and material systems
 
+### Completeness Doctrine
+- **[docs/Spec_Completeness_Doctrine.md](../docs/Spec_Completeness_Doctrine.md)** — Mandatory declaration layers for protection zones, adjacency, and site conditions
+- **[docs/Site_Condition_Vocabulary_Reference.md](../docs/Site_Condition_Vocabulary_Reference.md)** — Valid site condition IDs and values
+- **[docs/Modifier_Registry.md](../docs/Modifier_Registry.md)** — Canonical modifier values for all system modifiers
+
 ### Protection & Continuity References
 - **[docs/Protection_Zones_Reference.md](../docs/Protection_Zones_Reference.md)** — Zone IDs for protection optimization
 - **[docs/Surface_Vocabulary_Reference.md](../docs/Surface_Vocabulary_Reference.md)** — Surface IDs for finish continuity
@@ -86,29 +91,70 @@ If a downstream agent provides `input_name` without a `paintscope_key` mapping, 
 
 ---
 
-## Metadata Systems Context
+## Step 0.5 — Completeness Gate (Required)
 
-SpecFactory artifacts may include optional metadata that enables project-level optimizations:
+After the Spec Researcher delivers `research.json` and BEFORE dispatching downstream agents, the Orchestrator MUST verify spec completeness readiness.
 
-### Protection Metadata
+Reference: **[docs/Spec_Completeness_Doctrine.md](../docs/Spec_Completeness_Doctrine.md)**
 
-Tasks with `task_type: protect` should include `protection_metadata`:
-- Enables setup/teardown optimization across multiple specs in a project
+### Required Research Sections
+
+The Spec Researcher MUST output these three analysis sections in `research.json`:
+
+| Section | Purpose | Reference |
+|---------|---------|-----------|
+| `protection_zones_analysis` | Identifies which protection zones this spec activates | Protection_Zones_Reference.md |
+| `adjacency_analysis` | Identifies adjacent surfaces and edge relationships | Surface_Vocabulary_Reference.md |
+| `site_condition_analysis` | Identifies site conditions affecting tasks | Site_Condition_Vocabulary_Reference.md |
+
+### STOP If Analysis Incomplete
+
+If ANY of the three analysis sections is missing from `research.json`:
+- **STOP the workflow immediately**
+- Output a completeness failure with:
+  - `completeness_status: "blocked"`
+  - `missing_analyses[]` — Which sections are absent
+  - `next_action: "return_to_researcher"`
+- **DO NOT dispatch** SOP Librarian, Materials Manager, or Estimation Engineer
+
+### Downstream Enforcement
+
+After passing the Completeness Gate, the Orchestrator MUST verify that downstream agents produce:
+
+| Agent | Required Output |
+|-------|----------------|
+| SOP Librarian | `site_condition_rules` on affected tasks, `protection_metadata` on protection tasks, `adjacency_metadata` on edge tasks |
+| Estimation Engineer | Modifier values aligned with Modifier_Registry.md |
+| Materials Manager | Protection materials mapped to protection zones |
+
+If a downstream agent provides artifacts missing required completeness elements, the Orchestrator MUST reject and request correction before proceeding.
+
+---
+
+## Mandatory Declaration Systems
+
+Every spec MUST include the three mandatory declaration layers per Spec_Completeness_Doctrine.md. These are NOT optional metadata — they are required for spec approval.
+
+### Protection Zones (Layer 1 — MANDATORY)
+
+`spec.json` MUST include `protection_zones_required`:
+- Declares which protection zones this spec activates
 - Zone IDs from Protection_Zones_Reference.md
+- Protection levels: `edge_only`, `partial_cover`, `full_cover`
 
-### Adjacency Metadata
+### Adjacency Declarations (Layer 2 — MANDATORY)
 
-Edge-related tasks should include `adjacency_metadata`:
-- Enables finish continuity optimization when adjacent surfaces share finishes
-- Surface IDs from Surface_Vocabulary_Reference.md
-
-### Adjacency Declarations
-
-Specs may include `adjacency_declarations`:
+`spec.json` MUST include `adjacency_declarations`:
 - Declares primary surface and adjacent surfaces
 - Informs project-level finish group optimization
+- Surface IDs from Surface_Vocabulary_Reference.md
 
-**Current Action:** Verify downstream agents include metadata where appropriate. The Critic will validate metadata structure. Engine optimization is a future capability.
+### Site Condition Rules (Layer 3 — MANDATORY)
+
+Tasks in `sop_modules.json` affected by site conditions MUST include `site_condition_rules`:
+- Declares include_when/exclude_when conditions
+- Condition IDs and values from Site_Condition_Vocabulary_Reference.md
+- Modifier values from Modifier_Registry.md
 
 ---
 
@@ -301,11 +347,23 @@ Run doctrine update tasks now? (Y/N):
 
 ## Mandatory SpecFactory pipeline
 1) spec-researcher → `research.json` (research notes, risks, required PaintScope keys)
+   - **Completeness Gate:** Verify protection_zones_analysis, adjacency_analysis, site_condition_analysis present
 2) materials-manager → `materials.json` (systems, coverage, consumables, compatibility)
 3) sop-librarian → `sop_modules.json` (LEGO SOP modules/tasks/rounds using material systems)
 4) estimation-engineer → `production.json` (production logic, factors, quality behavior)
 5) critic → `qa_report.json` (pass/fail + required fixes)
 6) assembly → `spec.json` + `CHANGELOG.md`
+
+### Assembly Completeness Checklist
+
+Before finalizing `spec.json`, verify:
+- [ ] `protection_zones_required` array exists and is non-empty
+- [ ] `adjacency_declarations` exists with valid `primary_surface` and non-empty `adjacent_surfaces`
+- [ ] All `affected_tasks` in adjacency declarations reference real task IDs in `sop_modules.json`
+- [ ] Tasks affected by site conditions have `site_condition_rules`
+- [ ] Protection tasks have `protection_metadata`
+- [ ] Edge tasks have `adjacency_metadata`
+- [ ] Modifier values align with Modifier_Registry.md
 
 ## Outputs (always)
 - `research.json`

@@ -62,10 +62,23 @@ SCHEMA_MAP = {
 VALID_PROTECTION_ACTIONS = ["setup", "teardown", "maintain"]
 
 VALID_ZONES = [
+    # Floor protection
     "floor_full", "floor_perimeter", "floor_workzone",
-    "wall_adjacent", "ceiling_line", "trim_edges", "baseboard_top",
-    "door_hardware", "window_glass", "cabinet_interior", "cabinet_hardware",
-    "fixture_covers", "countertop", "appliances"
+    "floor_full_8ft_radius", "floor_full_kitchen", "floor_door_swing",
+    # Fixture/asset protection
+    "fixture_covers", "hardware_covers", "furniture_room",
+    "countertop_covers", "appliance_adjacent", "appliance_covers",
+    # Surface-adjacent protection
+    "ceiling_line", "trim_edges", "wall_upper_band",
+    "wall_adjacent", "wall_adjacent_door", "wall_adjacent_window",
+    "wall_adjacent_cabinet", "jamb_adjacent",
+    # Masking zones
+    "glass_mask", "backsplash_mask", "sill_protection",
+    # Millwork/specialty
+    "millwork_beam",
+    # Legacy zone IDs (kept for backwards compatibility)
+    "baseboard_top", "door_hardware", "window_glass",
+    "cabinet_interior", "cabinet_hardware", "countertop", "appliances",
 ]
 
 VALID_SURFACES = [
@@ -94,7 +107,40 @@ VALID_SKIP_REQUIRED = ["same_finish_group", "different_finish_group"]
 VALID_RATE_CATEGORIES = ["edge_masking", "cut_in", "spray_edge", "inspection"]
 VALID_APP_METHODS = ["brush_roll", "spray", "any"]
 VALID_EDGE_TYPES = ["linear", "complex"]
-VALID_RELATIONSHIPS = ["same_finish", "different_finish", "varies"]
+VALID_PROTECTION_LEVELS = ["edge_only", "partial_cover", "full_cover"]
+
+# Site Condition Vocabulary (from Site_Condition_Vocabulary_Reference.md)
+VALID_SITE_CONDITIONS: Dict[str, List[str]] = {
+    "occupancy_state": [
+        "vacant", "vacant_with_fixtures", "occupied_owner_assists",
+        "occupied_crew_handles", "occupied_sensitive",
+    ],
+    "access_constraint": [
+        "none", "step_ladder", "extension_ladder", "scaffold", "lift",
+    ],
+    "lead_status": [
+        "not_applicable", "presumed_safe", "tested_negative",
+        "tested_positive", "unknown_pre1978",
+    ],
+    "moisture_condition": [
+        "dry", "recently_wet", "active_moisture",
+    ],
+    "temperature_condition": [
+        "normal", "cold_below_50f", "hot_above_90f",
+    ],
+    "ventilation_condition": [
+        "adequate", "limited", "poor",
+    ],
+    "time_constraint": [
+        "normal", "accelerated", "phased_occupancy",
+    ],
+}
+
+# Grace period: set to a date string (YYYY-MM-DD) to emit WARN instead of ERROR
+# for completeness checks on specs created before this date.
+# Set to None to enforce ERROR immediately.
+COMPLETENESS_GRACE_DEADLINE: Optional[str] = "2026-03-02"  # 30 days from doctrine finalization
+VALID_RELATIONSHIPS = ["same_finish", "different_finish", "varies", "not_in_scope"]
 
 
 @dataclass
@@ -431,6 +477,175 @@ def validate_protection_zone_pairing(
         ))
 
 
+def _completeness_level(spec: Dict[str, Any]) -> str:
+    """Return 'ERROR' or 'WARN' based on grace period and spec version date."""
+    if COMPLETENESS_GRACE_DEADLINE is None:
+        return "ERROR"
+    # Check if spec was created before grace deadline
+    changelog = spec.get("change_log", [])
+    if changelog:
+        first_date = changelog[0].get("date", "")
+        if first_date and first_date < COMPLETENESS_GRACE_DEADLINE:
+            return "WARN"
+    return "ERROR"
+
+
+def validate_protection_completeness(
+    spec: Dict[str, Any],
+    file_path: str,
+    issues: List[Issue],
+) -> None:
+    """Validate protection_zones_required completeness (Spec_Completeness_Doctrine Layer 1)."""
+    level = _completeness_level(spec)
+
+    pzr = spec.get("protection_zones_required")
+    if pzr is None:
+        issues.append(Issue(level, file_path, "SPEC_PZ_MISSING: spec.json missing 'protection_zones_required' array"))
+        return
+    if not isinstance(pzr, list) or len(pzr) == 0:
+        issues.append(Issue(level, file_path, "SPEC_PZ_EMPTY: 'protection_zones_required' array is empty"))
+        return
+
+    for i, zone_entry in enumerate(pzr):
+        prefix = f"protection_zones_required[{i}]"
+
+        zone_id = zone_entry.get("zone_id")
+        if not zone_id:
+            issues.append(Issue("ERROR", file_path, f"SPEC_PZ_INVALID_ZONE: {prefix} missing 'zone_id'"))
+        elif zone_id not in VALID_ZONES:
+            issues.append(Issue("ERROR", file_path, f"SPEC_PZ_INVALID_ZONE: {prefix} zone_id '{zone_id}' not in Protection_Zones_Reference"))
+
+        condition = zone_entry.get("condition")
+        if condition is None:
+            issues.append(Issue("ERROR", file_path, f"SPEC_PZ_MISSING_CONDITION: {prefix} missing 'condition'"))
+
+        pl = zone_entry.get("protection_level")
+        if not pl:
+            issues.append(Issue("ERROR", file_path, f"SPEC_PZ_MISSING_LEVEL: {prefix} missing 'protection_level'"))
+        elif pl not in VALID_PROTECTION_LEVELS:
+            issues.append(Issue("ERROR", file_path, f"SPEC_PZ_INVALID_LEVEL: {prefix} protection_level '{pl}' not valid (must be one of: {VALID_PROTECTION_LEVELS})"))
+
+        # Validate upgrade fields
+        upgrade_level = zone_entry.get("upgrades_to_level")
+        if upgrade_level and upgrade_level not in VALID_PROTECTION_LEVELS:
+            issues.append(Issue("ERROR", file_path, f"SPEC_PZ_INVALID_LEVEL: {prefix} upgrades_to_level '{upgrade_level}' not valid"))
+
+
+def validate_adjacency_completeness(
+    spec: Dict[str, Any],
+    sop_task_ids: set,
+    file_path: str,
+    issues: List[Issue],
+) -> None:
+    """Validate adjacency_declarations completeness (Spec_Completeness_Doctrine Layer 2)."""
+    level = _completeness_level(spec)
+
+    ad = spec.get("adjacency_declarations")
+    if ad is None:
+        issues.append(Issue(level, file_path, "SPEC_ADJ_MISSING: spec.json missing 'adjacency_declarations'"))
+        return
+
+    primary = ad.get("primary_surface")
+    if not primary:
+        issues.append(Issue("ERROR", file_path, "SPEC_ADJ_NO_PRIMARY: adjacency_declarations missing 'primary_surface'"))
+
+    adjacent = ad.get("adjacent_surfaces")
+    if not adjacent or not isinstance(adjacent, list) or len(adjacent) == 0:
+        issues.append(Issue("ERROR", file_path, "SPEC_ADJ_EMPTY: 'adjacent_surfaces' array is empty or missing"))
+        return
+
+    for i, adj in enumerate(adjacent):
+        prefix = f"adjacent_surfaces[{i}]"
+
+        surface_id = adj.get("surface_id")
+        if not surface_id:
+            issues.append(Issue("ERROR", file_path, f"SPEC_ADJ_INVALID_SURFACE: {prefix} missing 'surface_id'"))
+        elif surface_id not in VALID_SURFACES:
+            issues.append(Issue("ERROR", file_path, f"SPEC_ADJ_INVALID_SURFACE: {prefix} surface_id '{surface_id}' not in Surface_Vocabulary_Reference"))
+
+        relationship = adj.get("typical_relationship")
+        if relationship and relationship not in VALID_RELATIONSHIPS:
+            issues.append(Issue("ERROR", file_path, f"SPEC_ADJ_INVALID_RELATIONSHIP: {prefix} typical_relationship '{relationship}' not valid"))
+
+        affected_tasks = adj.get("affected_tasks")
+        if affected_tasks is None or not isinstance(affected_tasks, list):
+            issues.append(Issue("ERROR", file_path, f"SPEC_ADJ_NO_TASKS: {prefix} missing 'affected_tasks'"))
+        elif len(affected_tasks) == 0:
+            issues.append(Issue("WARNING", file_path, f"SPEC_ADJ_EMPTY_TASKS: {prefix} 'affected_tasks' is empty (edge work may be owned by adjacent spec)"))
+        elif sop_task_ids:
+            for tid in affected_tasks:
+                if tid not in sop_task_ids:
+                    issues.append(Issue("ERROR", file_path, f"SPEC_ADJ_TASK_NOT_FOUND: {prefix} affected_task '{tid}' not found in sop_modules.json"))
+
+
+def validate_site_condition_completeness(
+    tasks: List[Dict[str, Any]],
+    file_path: str,
+    issues: List[Issue],
+) -> None:
+    """Validate site_condition_rules completeness (Spec_Completeness_Doctrine Layer 3)."""
+    for task in tasks:
+        task_id = task.get("task_id", "unknown")
+
+        scr = task.get("site_condition_rules")
+        if not scr:
+            continue  # Not all tasks need site_condition_rules
+
+        # Validate include_when conditions
+        include_when = scr.get("include_when", {})
+        if isinstance(include_when, dict):
+            for cond_id, values in include_when.items():
+                if cond_id not in VALID_SITE_CONDITIONS:
+                    issues.append(Issue(
+                        "ERROR", file_path,
+                        f"TASK_SC_INVALID_CONDITION: Task '{task_id}' include_when references unknown condition '{cond_id}'"
+                    ))
+                elif isinstance(values, list):
+                    valid_vals = VALID_SITE_CONDITIONS[cond_id]
+                    for v in values:
+                        if v not in valid_vals:
+                            issues.append(Issue(
+                                "ERROR", file_path,
+                                f"TASK_SC_INVALID_VALUE: Task '{task_id}' include_when condition '{cond_id}' has invalid value '{v}' (valid: {valid_vals})"
+                            ))
+
+        # Validate exclude_when conditions
+        exclude_when = scr.get("exclude_when", {})
+        if isinstance(exclude_when, dict):
+            for cond_id, values in exclude_when.items():
+                if cond_id not in VALID_SITE_CONDITIONS:
+                    issues.append(Issue(
+                        "ERROR", file_path,
+                        f"TASK_SC_INVALID_CONDITION: Task '{task_id}' exclude_when references unknown condition '{cond_id}'"
+                    ))
+                elif isinstance(values, list):
+                    valid_vals = VALID_SITE_CONDITIONS[cond_id]
+                    for v in values:
+                        if v not in valid_vals:
+                            issues.append(Issue(
+                                "ERROR", file_path,
+                                f"TASK_SC_INVALID_VALUE: Task '{task_id}' exclude_when condition '{cond_id}' has invalid value '{v}' (valid: {valid_vals})"
+                            ))
+
+        # Validate modifier_when_included
+        mwi = task.get("modifier_when_included")
+        if mwi and isinstance(mwi, dict):
+            for cond_id, modifier_map in mwi.items():
+                if cond_id not in VALID_SITE_CONDITIONS:
+                    issues.append(Issue(
+                        "ERROR", file_path,
+                        f"TASK_SC_INVALID_CONDITION: Task '{task_id}' modifier_when_included references unknown condition '{cond_id}'"
+                    ))
+                elif isinstance(modifier_map, dict):
+                    valid_vals = VALID_SITE_CONDITIONS[cond_id]
+                    for v in modifier_map:
+                        if v not in valid_vals:
+                            issues.append(Issue(
+                                "ERROR", file_path,
+                                f"TASK_SC_INVALID_VALUE: Task '{task_id}' modifier_when_included condition '{cond_id}' has invalid value '{v}'"
+                            ))
+
+
 def cross_file_checks(
     family_dir: Path,
     artifacts: Dict[str, Dict[str, Any]],
@@ -540,6 +755,30 @@ def cross_file_checks(
             artifacts["spec.json"],
             str(family_dir / "spec.json"),
             issues
+        )
+
+    # --- Spec Completeness Doctrine Validation ---
+    if "spec.json" in artifacts:
+        spec_path = str(family_dir / "spec.json")
+
+        # Layer 1: Protection Zone Completeness
+        validate_protection_completeness(artifacts["spec.json"], spec_path, issues)
+
+        # Layer 2: Adjacency Completeness (with task cross-ref)
+        validate_adjacency_completeness(artifacts["spec.json"], task_ids, spec_path, issues)
+
+    if "sop_modules.json" in artifacts:
+        sop = artifacts["sop_modules.json"]
+        all_sop_tasks: List[Dict[str, Any]] = []
+        for m in sop.get("sop_modules", []):
+            for task in m.get("tasks", []):
+                all_sop_tasks.append(task)
+
+        # Layer 3: Site Condition Completeness
+        validate_site_condition_completeness(
+            all_sop_tasks,
+            str(family_dir / "sop_modules.json"),
+            issues,
         )
 
     # Materials: system ids

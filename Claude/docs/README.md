@@ -22,6 +22,17 @@ All agent prompts, specs, and schemas must align to these documents. Outputs tha
 | [Surface_Vocabulary_Reference.md](Surface_Vocabulary_Reference.md) | Surface IDs for adjacency metadata and finish group assignments |
 | [DOCTRINE_Window_Systems_Painting.md](Doctrine/DOCTRINE_Window_Systems_Painting.md) | Window substrate treatment, height tiers, trim packages, quality tier behavior |
 | [PaintScope_Window_Counting_System.md](PaintScope_Window_Counting_System.md) | Window data capture system - size buckets, groups, exceptions, UI spec |
+| [Spec_Completeness_Doctrine.md](Spec_Completeness_Doctrine.md) | Mandatory completeness requirements for spec generation — protection zones, adjacency, site conditions |
+| [Interior_Protection_Doctrine.md](Interior_Protection_Doctrine.md) | Protection strategies for floors, furniture, fixtures, and adjacent surfaces — universal, occupancy-driven, and new construction |
+
+---
+
+## Reference Documents
+
+| Document | Status | Purpose |
+|----------|--------|---------|
+| [Site_Condition_Vocabulary_Reference.md](Site_Condition_Vocabulary_Reference.md) | Canonical | Valid site condition IDs, values, and definitions |
+| [Modifier_Registry.md](Modifier_Registry.md) | Canonical | Centralized modifier registry with canonical values |
 
 ---
 

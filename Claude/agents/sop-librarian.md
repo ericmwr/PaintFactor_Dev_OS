@@ -18,6 +18,11 @@ SOP modules define work sequences; the Estimation Engine applies them to geometr
 - **[docs/Quality_Tiers_and_Surface_Condition.md](../docs/Quality_Tiers_and_Surface_Condition.md)** — Quality tier task selection and condition-based modules
 - **[docs/Fine_Finish_Doctrine.md](../docs/Fine_Finish_Doctrine.md)** — Fine finish module structure, task classifications, interstage workflow
 
+### Completeness Doctrine
+- **[docs/Spec_Completeness_Doctrine.md](../docs/Spec_Completeness_Doctrine.md)** — Mandatory declaration layers (protection zones, adjacency, site conditions)
+- **[docs/Site_Condition_Vocabulary_Reference.md](../docs/Site_Condition_Vocabulary_Reference.md)** — Valid site condition IDs and values
+- **[docs/Modifier_Registry.md](../docs/Modifier_Registry.md)** — Canonical modifier values for site condition modifiers
+
 ### Protection & Continuity References
 - **[docs/Protection_Zones_Reference.md](../docs/Protection_Zones_Reference.md)** — Zone IDs for protection task metadata
 - **[docs/Surface_Vocabulary_Reference.md](../docs/Surface_Vocabulary_Reference.md)** — Surface IDs for adjacency metadata
@@ -202,6 +207,64 @@ When creating SOPs for fine finish surfaces (trim, built-ins, doors, millwork):
 | Between-coat steps | qt_conditional or qt_scaled | Light sand, spot coat patches |
 
 Reference `Fine_Finish_Doctrine.md` for complete task ID patterns and scrutiny definitions.
+
+---
+
+## Site Condition Rules (MANDATORY)
+
+Reference: **[docs/Spec_Completeness_Doctrine.md § Layer 3](../docs/Spec_Completeness_Doctrine.md)**
+
+Every task affected by site conditions MUST include `site_condition_rules` declaring which conditions trigger task inclusion or exclusion.
+
+### Which Tasks Need Site Condition Rules
+
+| Task Category | Typical Conditions | Example |
+|---------------|-------------------|---------|
+| Furniture protection | `occupancy_state` | Include when occupied, exclude when vacant |
+| Lead containment | `lead_status` | Include when tested_positive or unknown_pre1978 |
+| Scaffold setup | `access_constraint` | Include when scaffold required |
+| Daily setup/teardown | `time_constraint` | Include when phased_occupancy |
+
+### Required Structure
+
+```json
+{
+  "task_id": "TSK_SETUP_FURNITURE_PROTECTION",
+  "site_condition_rules": {
+    "include_when": {
+      "occupancy_state": ["occupied_crew_handles", "occupied_sensitive"]
+    },
+    "exclude_when": {
+      "occupancy_state": ["vacant", "vacant_with_fixtures"]
+    }
+  }
+}
+```
+
+### Modifier Values
+
+When a task includes `modifier_when_included`, values MUST align with **Modifier_Registry.md**:
+
+```json
+{
+  "task_id": "TSK_LEAD_SAFE_CONTAINMENT",
+  "site_condition_rules": {
+    "include_when": { "lead_status": ["tested_positive", "unknown_pre1978"] }
+  },
+  "modifier_when_included": {
+    "lead_status": {
+      "tested_positive": 2.0,
+      "unknown_pre1978": 1.5
+    }
+  }
+}
+```
+
+### Condition ID Validation
+
+- All condition IDs MUST exist in Site_Condition_Vocabulary_Reference.md
+- All condition values MUST be valid for their condition ID
+- The Critic will reject invalid condition IDs or values
 
 ---
 

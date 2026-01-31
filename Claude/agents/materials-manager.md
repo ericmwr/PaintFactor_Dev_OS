@@ -17,6 +17,10 @@ Material definitions inform the Estimation Engine but do not themselves calculat
 - **[docs/Materials_and_Consumables_Doctrine.md](../docs/Materials_and_Consumables_Doctrine.md)** — Tape, abrasives, rollers, brushes, spackle, caulk usage rules
 - **[docs/Fine_Finish_Doctrine.md](../docs/Fine_Finish_Doctrine.md)** — Fine finish material systems and quality tier product mapping
 
+### Completeness Doctrine
+- **[docs/Spec_Completeness_Doctrine.md](../docs/Spec_Completeness_Doctrine.md)** — Mandatory declaration layers (protection zones, adjacency, site conditions)
+- **[docs/Site_Condition_Vocabulary_Reference.md](../docs/Site_Condition_Vocabulary_Reference.md)** — Valid site condition IDs and values
+
 ### Protection & Continuity References
 - **[docs/Protection_Zones_Reference.md](../docs/Protection_Zones_Reference.md)** — Zone IDs mapping to protection materials
 
@@ -122,19 +126,41 @@ When doctrine is silent and research fills a gap, flag in output:
 
 ---
 
-## Protection Zone Context
+## Protection Zone Material Requirements (MANDATORY)
 
-Protection zones defined in `Protection_Zones_Reference.md` map to material categories:
+Reference: **[docs/Spec_Completeness_Doctrine.md § Layer 1](../docs/Spec_Completeness_Doctrine.md)**
+
+Every spec includes `protection_zones_required` in `spec.json`. Materials Manager MUST ensure consumable materials are defined for all declared protection zones.
+
+### Protection Level to Material Mapping
+
+Protection levels determine material requirements. Higher levels require more material:
+
+| Protection Level | Description | Typical Materials | Material Coverage |
+|-----------------|-------------|-------------------|-------------------|
+| `edge_only` | Tape line at junction only | 1.5" painter's tape | LF of junction |
+| `partial_cover` | Horizontal surfaces + edge | Paper/plastic on tops + tape | SF of horizontal + LF of edge |
+| `full_cover` | Entire exposed surface | Plastic sheeting, taped edges | SF of full surface + LF of perimeter tape |
+
+### Zone Category to Material Mapping
 
 | Zone Category | Primary Materials |
 |---------------|-------------------|
-| `floor_full`, `floor_perimeter` | Rosin paper, plastic sheeting, drop cloths |
-| `wall_adjacent` | Masking paper, masking film |
-| `ceiling_line`, `trim_edges`, `baseboard_top` | Painter's tape |
-| `fixture_covers`, `door_hardware`, `cabinet_hardware` | Tape, plastic bags |
-| `cabinet_interior`, `countertop` | Paper, plastic sheeting |
+| `floor_full`, `floor_perimeter`, `floor_full_8ft_radius`, `floor_full_kitchen`, `floor_door_swing` | Rosin paper, plastic sheeting, drop cloths |
+| `wall_adjacent`, `wall_adjacent_door`, `wall_adjacent_window`, `wall_adjacent_cabinet` | Masking paper, masking film |
+| `ceiling_line`, `trim_edges`, `wall_upper_band` | Painter's tape |
+| `fixture_covers`, `hardware_covers` | Tape, plastic bags |
+| `countertop_covers`, `appliance_covers`, `appliance_adjacent` | Paper, plastic sheeting |
+| `glass_mask`, `backsplash_mask`, `sill_protection` | Masking tape, masking film |
+| `furniture_room` | Drop cloths, plastic sheeting |
+| `millwork_beam`, `jamb_adjacent` | Masking paper, tape |
 
-When SOP Librarian creates protection tasks with `protection_metadata.zones`, ensure corresponding consumables are defined in `consumable_usage_models[]`.
+### Completeness Requirement
+
+When SOP Librarian creates protection tasks with `protection_metadata.zones`:
+1. **Every declared zone** MUST have corresponding consumables in `consumable_usage_models[]`
+2. **Material quantities** must account for the `protection_level` (edge_only uses less material than full_cover)
+3. **Method-dependent zones** may need different material quantities for brush/roll vs spray
 
 ---
 

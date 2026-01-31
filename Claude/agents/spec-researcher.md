@@ -24,6 +24,11 @@ Research informs spec design but does not itself produce estimates or runtime be
 - **[docs/Doctrine/DOCTRINE_Window_Systems_Painting.md](../docs/Doctrine/DOCTRINE_Window_Systems_Painting.md)** — Window substrate treatment, height tiers, trim packages
 - **[docs/PaintScope_Window_Counting_System.md](../docs/PaintScope_Window_Counting_System.md)** — Window quantification system (size buckets, output keys)
 
+### Completeness Doctrine
+- **[docs/Spec_Completeness_Doctrine.md](../docs/Spec_Completeness_Doctrine.md)** — Mandatory declaration layers (protection zones, adjacency, site conditions)
+- **[docs/Site_Condition_Vocabulary_Reference.md](../docs/Site_Condition_Vocabulary_Reference.md)** — Valid site condition IDs and values
+- **[docs/Modifier_Registry.md](../docs/Modifier_Registry.md)** — Canonical modifier values
+
 ### Protection & Continuity References
 - **[docs/Protection_Zones_Reference.md](../docs/Protection_Zones_Reference.md)** — Zone IDs for protection research
 - **[docs/Surface_Vocabulary_Reference.md](../docs/Surface_Vocabulary_Reference.md)** — Surface IDs for adjacency research
@@ -123,38 +128,112 @@ When doctrine is silent and research fills a gap, flag in output:
 
 ---
 
-## Surface Adjacency Research
+## Mandatory Completeness Analysis (Required)
 
-When researching specs, identify adjacent surface relationships:
+Reference: **[docs/Spec_Completeness_Doctrine.md](../docs/Spec_Completeness_Doctrine.md)**
 
-### Key Questions
-1. What surfaces does this spec's primary surface touch?
-2. Which adjacencies create edge work?
-3. Which edges commonly share the same finish?
-4. What is the typical finish relationship (same vs different)?
+Every `research.json` MUST include the following three analysis sections. The Orchestrator will block the workflow if any are missing.
 
-### Output Format
+### 1. Protection Zones Analysis (MANDATORY)
 
-Include in research output:
+Identify which protection zones this spec activates based on the spec type, application method, and what assets/surfaces need protection.
+
 ```json
 {
-  "adjacency_research": {
+  "protection_zones_analysis": {
+    "spec_category": "wall",
+    "zones": [
+      {
+        "zone_id": "floor_perimeter",
+        "condition": "always",
+        "protection_level": "edge_only",
+        "upgrade_scenario": "Upgrades to floor_full_8ft_radius when spray",
+        "notes": "Drop cloth perimeter for brush/roll drip risk"
+      }
+    ],
+    "zone_reference": "Protection_Zones_Reference.md"
+  }
+}
+```
+
+**Guidance:**
+- Reference the Zone Patterns by Spec Type table in Spec_Completeness_Doctrine.md
+- Identify zones for BOTH brush/roll and spray methods when applicable
+- Note upgrade conditions (e.g., brush/roll → spray upgrades protection level)
+- Use standard zone IDs from Protection_Zones_Reference.md
+
+### 2. Adjacency Analysis (MANDATORY)
+
+Identify adjacent surface relationships for this spec's primary surface.
+
+```json
+{
+  "adjacency_analysis": {
     "primary_surface": "trim_baseboard",
     "adjacent_surfaces": [
       {
         "surface_id": "wall_field",
         "edge_type": "linear",
         "typical_relationship": "different_finish",
+        "edge_work_required": true,
         "notes": "Wall/baseboard commonly different colors"
       }
-    ]
+    ],
+    "surface_reference": "Surface_Vocabulary_Reference.md"
   }
 }
 ```
 
+**Key Questions:**
+1. What surfaces does this spec's primary surface touch?
+2. Which adjacencies create edge work?
+3. Which edges commonly share the same finish?
+4. What is the typical finish relationship (same vs different)?
+
+**Guidance:**
+- Use standard surface IDs from Surface_Vocabulary_Reference.md
+- Classify edge_type as `linear` (surfaces meet along a line) or `complex` (interconnected system)
+- Determine typical_relationship: `same_finish`, `different_finish`, `varies`, or `not_in_scope`
+
+### 3. Site Condition Analysis (MANDATORY)
+
+Identify which site conditions affect tasks in this spec.
+
+```json
+{
+  "site_condition_analysis": {
+    "affected_conditions": [
+      {
+        "condition_id": "occupancy_state",
+        "affected_task_types": ["protect"],
+        "include_values": ["occupied_crew_handles", "occupied_sensitive"],
+        "exclude_values": ["vacant"],
+        "notes": "Furniture protection only when occupied"
+      },
+      {
+        "condition_id": "lead_status",
+        "affected_task_types": ["protect", "prep"],
+        "include_values": ["tested_positive", "unknown_pre1978"],
+        "modifier_notes": "tested_positive=2.0x, unknown_pre1978=1.5x per Modifier_Registry",
+        "notes": "Lead containment and RRP protocols"
+      }
+    ],
+    "condition_reference": "Site_Condition_Vocabulary_Reference.md",
+    "modifier_reference": "Modifier_Registry.md"
+  }
+}
+```
+
+**Guidance:**
+- Review all seven condition IDs in Site_Condition_Vocabulary_Reference.md: `occupancy_state`, `access_constraint`, `lead_status`, `moisture_condition`, `temperature_condition`, `ventilation_condition`, `time_constraint`
+- Identify which conditions affect task inclusion/exclusion for this spec
+- Note applicable modifier values from Modifier_Registry.md
+- Not all conditions apply to all specs — only include relevant ones
+
 ### Reference Documents
+- **Protection_Zones_Reference.md** — Use standard zone IDs
 - **Surface_Vocabulary_Reference.md** — Use standard surface IDs
-- **Protection_Zones_Reference.md** — Use standard zone IDs for protection research
+- **Site_Condition_Vocabulary_Reference.md** — Use standard condition IDs and values
 
 ---
 
@@ -258,3 +337,6 @@ Use when authoritative, citable knowledge is required. Follow the **Deep Researc
 - `confidence_level` (low/med/high)
 - `assumptions[]`
 - `uncertainties[]`
+- **`protection_zones_analysis`** (MANDATORY — Orchestrator blocks without this)
+- **`adjacency_analysis`** (MANDATORY — Orchestrator blocks without this)
+- **`site_condition_analysis`** (MANDATORY — Orchestrator blocks without this)
