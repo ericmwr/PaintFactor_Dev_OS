@@ -1,4 +1,4 @@
-# PaintScope Quantity Key Catalog (Draft v0.1)
+# PaintScope Quantity Key Catalog (v0.2)
 
 ## Purpose
 
@@ -311,24 +311,172 @@ If PaintScope cannot measure these reliably, do not publish keys yet; handle via
 
 ---
 
-## Protection Quantity Keys (measurable only)
+## Protection Quantity Keys
 
-### Floors
-- `PS_PROTECT_SF.FLOOR_EXPOSED`  
-  **Meaning:** Floor SF requiring protection in active work zones (room-based).  
-  **Notes:** Must differentiate hard vs carpet via assets/meta tags if strategies differ.
+Protection keys measure where masking, tape, and covering goes — the prep work that protects non-painted surfaces. These are semantically distinct from edge keys (`PS_EDGE_LF.*`), which measure where paint is applied.
 
-Optional:
-- `PS_PROTECT_SF.FLOOR_HARD_EXPOSED`
-- `PS_PROTECT_SF.FLOOR_CARPET_EXPOSED`
+Three key categories:
+- **`PS_PROTECT_SF.*`** — area-based protection (square feet)
+- **`PS_PROTECT_LF.*`** — linear protection (linear feet of masking/tape)
+- **`PS_PROTECT_EA.*`** — count-based protection (each item)
 
-### Assets (by category)
-Publish only if PaintScope can measure or approximate with traceable logic:
+### Floor Protection Keys (SF)
+
+- `PS_PROTECT_SF.FLOOR_EXPOSED`
+  **Meaning:** Floor SF requiring protection in active work zones (room-based).
+  **Maps to zone:** `floor_full`
+  **Notes:** Must differentiate hard vs carpet via subtypes if strategies differ.
+
+- `PS_PROTECT_SF.FLOOR_PERIMETER`
+  **Meaning:** Perimeter drop coverage area.
+  **Maps to zone:** `floor_perimeter`
+  **PaintScope Capture:** Room perimeter LF x standard drop width.
+
+- `PS_PROTECT_SF.FLOOR_8FT_RADIUS`
+  **Meaning:** Radial protection around work item (doors, windows).
+  **Maps to zone:** `floor_full_8ft_radius`
+  **PaintScope Capture:** Calculated from item location + 8ft radius.
+
+- `PS_PROTECT_SF.FLOOR_KITCHEN`
+  **Meaning:** Full kitchen floor area.
+  **Maps to zone:** `floor_full_kitchen`
+  **PaintScope Capture:** Kitchen room floor area.
+
+- `PS_PROTECT_SF.FLOOR_DOOR_SWING`
+  **Meaning:** Door swing area protection.
+  **Maps to zone:** `floor_door_swing`
+  **PaintScope Capture:** Door swing arc area (standard formula).
+
+- `PS_PROTECT_SF.FLOOR_WORKZONE`
+  **Meaning:** Localized floor work area.
+  **Maps to zone:** `floor_workzone`
+  **PaintScope Capture:** Work area SF (typically door or touch-up zone).
+
+Optional subtypes (drive material selection, not zone selection):
+- `PS_PROTECT_SF.FLOOR_HARD_EXPOSED` — hard floor subtype of `FLOOR_EXPOSED`
+- `PS_PROTECT_SF.FLOOR_CARPET_EXPOSED` — carpet floor subtype of `FLOOR_EXPOSED`
+
+### Surface-Adjacent Protection Keys (LF)
+
+These `PS_PROTECT_LF.*` keys measure linear footage of masking/tape for protection. They are semantically distinct from `PS_EDGE_LF.*` keys that measure where paint is applied — even when the geometry is identical.
+
+**Example:** `PS_PROTECT_LF.CEILING_LINE` measures masking tape at the ceiling-wall junction to protect the ceiling during wall painting. `PS_EDGE_LF.TO_CEILING` measures the same junction but represents where the wall painter cuts in paint. Same geometry, different semantic purpose.
+
+- `PS_PROTECT_LF.CEILING_LINE`
+  **Meaning:** Masking at ceiling-wall junction.
+  **Maps to zone:** `ceiling_line`
+  **PaintScope Capture:** Room perimeter LF at ceiling.
+
+- `PS_PROTECT_LF.TRIM_EDGES`
+  **Meaning:** Masking at trim perimeter.
+  **Maps to zone:** `trim_edges`
+  **PaintScope Capture:** Trim perimeter LF in room.
+
+- `PS_PROTECT_LF.WALL_ADJACENT`
+  **Meaning:** Masking on wall near spray target.
+  **Maps to zone:** `wall_adjacent`
+  **PaintScope Capture:** Wall LF adjacent to spray work.
+
+- `PS_PROTECT_LF.WALL_ADJACENT_DOOR`
+  **Meaning:** Wall masking around door during spray.
+  **Maps to zone:** `wall_adjacent_door`
+  **PaintScope Capture:** Wall LF surrounding door opening.
+
+- `PS_PROTECT_LF.WALL_ADJACENT_WINDOW`
+  **Meaning:** Wall masking around window during spray.
+  **Maps to zone:** `wall_adjacent_window`
+  **PaintScope Capture:** Wall LF surrounding window opening.
+
+- `PS_PROTECT_LF.WALL_ADJACENT_CABINET`
+  **Meaning:** Wall masking above/beside cabinets.
+  **Maps to zone:** `wall_adjacent_cabinet`
+  **PaintScope Capture:** Wall LF at cabinet edge.
+
+- `PS_PROTECT_LF.JAMB_ADJACENT`
+  **Meaning:** Jamb area masking.
+  **Maps to zone:** `jamb_adjacent`
+  **PaintScope Capture:** Jamb perimeter LF.
+
+- `PS_PROTECT_LF.SILL`
+  **Meaning:** Window sill edge masking.
+  **Maps to zone:** `sill_protection`
+  **PaintScope Capture:** Sill edge LF.
+
+### Area Protection Keys (SF) — Non-Floor
+
+- `PS_PROTECT_SF.WALL_UPPER_BAND`
+  **Meaning:** Upper wall band area near ceiling (overspray zone).
+  **Maps to zone:** `wall_upper_band`
+  **PaintScope Capture:** Room perimeter LF x band height (typically 12-18").
+
+- `PS_PROTECT_SF.FURNITURE_ROOM`
+  **Meaning:** Furniture coverage area estimate (occupancy-driven).
+  **Maps to zone:** `furniture_room`
+  **PaintScope Capture:** Room SF (used for time estimate, not material calc).
+
+- `PS_PROTECT_SF.MILLWORK_BEAM`
+  **Meaning:** Beam/millwork surface area to protect.
+  **Maps to zone:** `millwork_beam`
+  **PaintScope Capture:** Surface SF of beam faces.
+
+### Asset Protection Keys (SF/EA)
+
 - `PS_PROTECT_SF.ASSET.CABINETS_FACE`
+  **Meaning:** Cabinet face area when cabinets need protection (not in painting scope).
+  **Maps to:** `PZ_ASSET_ROOM_*_CABINETS` zone type at runtime.
+
 - `PS_PROTECT_SF.ASSET.COUNTERTOPS`
+  **Meaning:** Countertop surface area.
+  **Maps to zone:** `countertop_covers`
+
 - `PS_PROTECT_SF.ASSET.TILE_BACKSPLASH`
-- `PS_PROTECT_EA.ASSET.FIXTURES` (fans, lights, etc.)
-- `PS_PROTECT_EA.ASSET.HARDWARE_GROUPS` (handles/hinges if tracked)
+  **Meaning:** Tile backsplash area.
+  **Maps to zone:** `backsplash_mask`
+
+- `PS_PROTECT_SF.ASSET.GLASS_AREA`
+  **Meaning:** Window glass area requiring masking.
+  **Maps to zone:** `glass_mask`
+
+- `PS_PROTECT_EA.ASSET.FIXTURES`
+  **Meaning:** Count of fixtures (fans, lights, outlets, switches).
+  **Maps to zone:** `fixture_covers`
+
+- `PS_PROTECT_EA.ASSET.HARDWARE_GROUPS`
+  **Meaning:** Count of hardware groups (handles, hinges, locks).
+  **Maps to zone:** `hardware_covers`
+
+- `PS_PROTECT_EA.APPLIANCE_ADJACENT`
+  **Meaning:** Appliance count for brush/roll adjacency protection.
+  **Maps to zone:** `appliance_adjacent`
+  **PaintScope Capture:** Count of appliances adjacent to work.
+
+- `PS_PROTECT_EA.APPLIANCE_COVERS`
+  **Meaning:** Appliance count for full spray coverage.
+  **Maps to zone:** `appliance_covers`
+  **PaintScope Capture:** Count of appliances to fully cover.
+
+### Key Derivation Summary
+
+Many protection keys can be derived from existing geometry rather than requiring new PaintScope capture:
+
+| Derivation Method | Keys Using It |
+|-------------------|---------------|
+| Room perimeter LF x width factor | `FLOOR_PERIMETER`, `CEILING_LINE`, `WALL_UPPER_BAND` |
+| Existing edge LF (same geometry, different semantic) | `TRIM_EDGES`, `WALL_ADJACENT_*`, `JAMB_ADJACENT`, `SILL` |
+| Room floor SF | `FLOOR_KITCHEN`, `FURNITURE_ROOM` |
+| Standard formula from item dimensions | `FLOOR_8FT_RADIUS`, `FLOOR_DOOR_SWING` |
+| Direct capture (new measurement needed) | `MILLWORK_BEAM`, `FLOOR_WORKZONE` |
+
+**Flag:** PaintScope team should determine which keys can auto-derive vs. require explicit capture.
+
+### Protection Key Totals
+
+| Category | Keys |
+|----------|------|
+| `PS_PROTECT_SF.*` (area) | 14 |
+| `PS_PROTECT_LF.*` (linear) | 8 |
+| `PS_PROTECT_EA.*` (count) | 4 |
+| **Total** | **26** |
 
 ---
 

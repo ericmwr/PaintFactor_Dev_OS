@@ -99,6 +99,8 @@ Each project scope generates customer-facing protection expectations. The custom
 
 ## Protection Zone Schema
 
+> **Zone ID Layers:** This doctrine defines parameterized `PZ_*` IDs for runtime instantiation per room. The flat zone IDs used in spec authoring (e.g., `floor_perimeter`, `ceiling_line`) are defined in `Protection_Zones_Reference.md`. Agents use flat IDs when authoring specs; the engine maps flat IDs to `PZ_*` instances at project assembly. These are not competing conventions — they are different layers of the same system. See `Zone_Key_Alignment_Rollout.md` for the formal relationship.
+
 ### Zone Architecture
 
 Protection zones are logical groupings of protection requirements that can be shared across multiple specs within a project. Each zone has:

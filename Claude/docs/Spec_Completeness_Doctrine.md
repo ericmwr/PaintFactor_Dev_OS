@@ -1,7 +1,7 @@
 # Spec Completeness Doctrine
 
 **Status:** Canonical
-**Version:** 1.1
+**Version:** 1.2
 **Last Updated:** 2026-01-31
 
 This document establishes mandatory completeness requirements for spec generation. Specs must declare all information the estimation engine needs to resolve any valid project configuration at runtime.
@@ -14,7 +14,7 @@ Before this doctrine is finalized, the following must be completed:
 
 | Prerequisite | Description | Status |
 |--------------|-------------|--------|
-| Zone/Key Alignment Audit | Verify all protection zone IDs have corresponding PaintScope keys | Complete (see Zone_Key_Alignment_Report.md — gaps identified, remediation needed) |
+| Zone/Key Alignment Audit | Verify all protection zone IDs have corresponding PaintScope keys | Complete — Remediated (see Zone_Key_Alignment_Rollout.md) |
 | Doctrine Authority Addition | Add authority hierarchy to PaintFactor_OS.md | Complete |
 | Site Condition Vocabulary | Create Site_Condition_Vocabulary_Reference.md | Complete |
 | Modifier Registry | Create Modifier_Registry.md compiling all system modifiers | Complete |
@@ -148,7 +148,7 @@ Every spec MUST include `protection_zones_required` in `spec.json`:
 | Cabinet | brush/roll | `floor_perimeter`, `countertop_covers`, `appliance_adjacent` |
 | Cabinet | spray | `floor_full_kitchen`, `countertop_covers`, `appliance_covers`, `backsplash_mask`, `wall_adjacent_cabinet` |
 
-**Note:** Zone IDs must be verified against Protection_Zones_Reference.md and have corresponding PaintScope keys. See Zone/Key Alignment Audit prerequisite.
+**Note:** All zone IDs are verified against Protection_Zones_Reference.md v2.0 and have corresponding PaintScope keys. Zone/Key Alignment complete.
 
 ### Validation Rules
 
@@ -689,3 +689,4 @@ Existing specs must be updated to include mandatory declarations:
 |---------|------|---------|
 | 1.0 | 2026-01-31 | Initial doctrine establishing mandatory completeness requirements |
 | 1.1 | 2026-01-31 | Promoted to Canonical. All prerequisites complete except Zone/Key Alignment Audit. Schemas, agents, validation, and existing specs migrated (Phases 1-8). |
+| 1.2 | 2026-01-31 | Zone/Key Alignment Audit remediated. All zone IDs verified against Protection_Zones_Reference v2.0 with corresponding PaintScope keys. All prerequisites now complete. |
