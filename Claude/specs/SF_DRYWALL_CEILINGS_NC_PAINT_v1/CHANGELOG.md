@@ -2,6 +2,17 @@
 
 All notable changes to this spec family will be documented in this file.
 
+## [1.0.1] - 2026-01-31
+
+### Fixed (Orchestrator Review)
+- Added `site_condition_rules` to spec.json (Spec Completeness Doctrine Layer 3)
+  - `access_constraint`: scaffold/lift triggers height modifiers for overhead tasks
+  - `occupancy_state`: occupied spaces may restrict spray methods
+  - `ventilation_condition`: poor ventilation restricts spray methods
+- Added `glass_mask` and `door_hardware` to `protection_zones_required` in spec.json — aligns spec-level declarations with sop_modules protection_metadata
+- Added missing production rates for `TSK_LIGHT_SAND_BETWEEN_COATS_SPRAY` and `TSK_VACUUM_INTERCOAT_DUST_SPRAY` in production.json — resolves task ID mismatch between sop_modules and production
+- Corrected dry-time recommendation in qa_report.json — dry times intentionally excluded per Materials & Consumables Doctrine (RC-004)
+
 ## [1.0.0] - 2026-01-24
 
 ### Added
