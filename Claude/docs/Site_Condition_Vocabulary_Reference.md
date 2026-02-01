@@ -3,7 +3,7 @@
 **Doctrine Level:** 3
 **Authority:** Spec_Completeness_Doctrine.md
 **Status:** Canonical
-**Version:** 1.0
+**Version:** 1.1
 **Last Updated:** 2026-01-31
 
 This document defines all valid site condition IDs and their values for use in spec task declarations.
@@ -174,6 +174,30 @@ Describes schedule pressure and occupancy patterns during the project.
 
 ---
 
+## floor_type
+
+Describes the floor surface condition, primarily relevant in new construction where finished floors may or may not be installed at the time of painting.
+
+| Value | Definition | Typical Impact |
+|-------|------------|----------------|
+| `subfloor` | Bare subfloor (plywood, OSB, concrete slab) — no finished flooring installed | No floor protection needed; overspray and drips are acceptable on subfloor |
+| `finished` | Finished flooring installed (tile, hardwood, LVP, carpet, or other) | Floor protection required — rosin paper on hard surfaces, canvas/plastic on carpet |
+| `partial` | Mix of subfloor and finished areas (e.g., tile in bathrooms but subfloor elsewhere) | Protection required in finished areas only; room-by-room assessment needed |
+
+**Use in site_condition_rules:**
+```json
+{
+  "include_when": { "floor_type": ["finished", "partial"] },
+  "exclude_when": { "floor_type": ["subfloor"] }
+}
+```
+
+**Context:** In new construction, the painting sequence may occur before or after flooring installation. This condition drives whether floor protection tasks are included. The default assumption for NC was historically `subfloor`, but field experience shows finished floors are often present during prime and paint phases.
+
+**Source:** Research correction RC-003 (SF_DRYWALL_CEILINGS_NC_PRIME pipeline, 2026-01-31)
+
+---
+
 ## Validation
 
 All condition IDs and values in this document are the canonical set. Specs referencing invalid IDs or values will fail validation with:
@@ -187,3 +211,4 @@ All condition IDs and values in this document are the canonical set. Specs refer
 | Version | Date | Changes |
 |---------|------|---------|
 | 1.0 | 2026-01-31 | Initial vocabulary definition |
+| 1.1 | 2026-01-31 | Added floor_type condition (subfloor/finished/partial) per RC-003 |

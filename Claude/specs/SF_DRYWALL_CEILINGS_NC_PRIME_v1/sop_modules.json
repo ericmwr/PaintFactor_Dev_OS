@@ -1,0 +1,410 @@
+{
+  "spec_family_id": "SF_DRYWALL_CEILINGS_NC_PRIME",
+  "version": "0.1.0",
+  "status": "draft",
+  "review_required": true,
+
+  "sop_modules": [
+    {
+      "module_id": "MOD_PREP_CEILING_DRYWALL_NC",
+      "name": "New Drywall Ceiling Preparation",
+      "description": "Prepare new drywall ceiling surfaces for primer application. Includes inspection and dust removal. NO spot-priming of fasteners — new drywall fasteners are mudded and rust-resistant.",
+      "phase": "prep",
+      "applies_when": {
+        "quality_tier": ["QT2", "QT3", "QT4", "QT5"]
+      },
+      "required_inputs": [
+        {
+          "input_name": "IN_SF_CEILING_FIELD",
+          "paintscope_key": "PS_SURFACE_SF.CEILING_FIELD",
+          "uom": "SF"
+        }
+      ],
+      "tasks": [
+        {
+          "task_id": "TSK_INSPECT_CEILING_DRYWALL",
+          "name": "Inspect Ceiling Drywall Surface",
+          "description": "Walk all ceiling surfaces with work light to identify defects: unfilled joints, damaged paper, ridges, or debris. Mark defects for correction by drywall contractor or note for primer coverage. NO fastener inspection needed — fasteners are mudded and rust-resistant in NC.",
+          "task_classification": "qt_scaled",
+          "skill_level": "journeyman",
+          "tools_required": ["work_light", "marking_crayon"],
+          "quality_notes": {
+            "QT2": "Note only major defects (holes, large ridges)",
+            "QT3": "Identify and mark all visible defects",
+            "QT4": "Comprehensive overhead inspection under bright light, mark all imperfections",
+            "QT5": "Critical overhead inspection with raking light, multiple passes. Mark every defect."
+          }
+        },
+        {
+          "task_id": "TSK_VACUUM_CEILING_DUST",
+          "name": "Vacuum Drywall Dust from Ceiling",
+          "description": "Remove drywall dust from ceiling surfaces using HEPA vacuum with brush attachment on extension pole. Dust on ceiling is especially problematic — it settles into surface and causes adhesion failure when primer is applied overhead.",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "tools_required": ["HEPA_vacuum", "brush_attachment", "extension_pole"],
+          "quality_notes": {
+            "all": "Thorough vacuum of all ceiling surfaces. Dust causes adhesion failure — this step is never skipped."
+          }
+        }
+      ],
+      "sequence_notes": "Inspect → Vacuum. Inspection identifies issues before vacuum removes dust. NO spot-priming of fasteners — new drywall fasteners are covered with mud and are rust-resistant."
+    },
+    {
+      "module_id": "MOD_PROTECTION_CEILING_PRIME",
+      "name": "Protection Setup - Ceiling Prime",
+      "description": "Set up protection for ceiling openings/fixtures and window/door openings before priming. In NC, ceiling openings may be open holes where fixtures have not been installed yet — these still must be filled. Window/door masking is lightweight — pin plastic to catch fallout. Floor protection CONDITIONAL on floor_type.",
+      "phase": "protection",
+      "applies_when": {},
+      "required_inputs": [
+        {
+          "input_name": "IN_EA_ROOMS",
+          "paintscope_key": "PS_META.EA.ROOMS_TOTAL",
+          "uom": "EA"
+        },
+        {
+          "input_name": "IN_EA_WINDOW_OPENINGS",
+          "paintscope_key": "PS_OPENING_EA.WINDOW_OPENINGS_TOTAL",
+          "uom": "EA"
+        },
+        {
+          "input_name": "IN_EA_DOOR_OPENINGS",
+          "paintscope_key": "PS_OPENING_EA.DOOR_OPENINGS_TOTAL",
+          "uom": "EA"
+        },
+        {
+          "input_name": "IN_SF_FLOOR_PROTECTION",
+          "paintscope_key": "PS_PROTECT_SF.FLOOR_EXPOSED",
+          "uom": "SF"
+        }
+      ],
+      "tasks": [
+        {
+          "task_id": "TSK_PROTECT_CEILING_OPENINGS",
+          "name": "Protect Ceiling Openings and Fixtures",
+          "description": "Stuff recessed lighting holes/cans and ceiling electrical box holes/boxes with paper and tape over face. In NC, many ceiling openings will be OPEN HOLES where fixtures have not yet been installed. These must be filled to prevent overspray from entering the ceiling cavity and to prevent blown-in or blown-out insulation from coming through during spraying.",
+          "task_type": "protect",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "tools_required": ["masking_paper_12in", "masking_tape_1.5in"],
+          "protection_metadata": {
+            "action": "setup",
+            "zones": ["fixture_covers"],
+            "method_dependent": true
+          },
+          "quantity_heuristic": {
+            "recessed_light_locations_per_room": { "average": 6, "range": "4-8", "note": "May be installed cans or open holes" },
+            "ceiling_electrical_box_locations_per_room": { "average": 2, "range": "1-4", "note": "May be installed boxes or open holes" }
+          },
+          "applies_when": {
+            "application_method": ["spray_backroll"]
+          },
+          "quality_notes": {
+            "all": "All ceiling openings must be sealed — both installed fixtures and open holes. Verify no gaps where insulation or overspray can pass."
+          }
+        },
+        {
+          "task_id": "TSK_MASK_WINDOWS_CEILING_PRIME",
+          "name": "Pin Plastic Over Window Openings",
+          "description": "Pin lightweight plastic sheeting over window openings to prevent overspray fallout from ceiling priming. This is lightweight protection — not intricate masking. Just catch the fallout. This is typically the FIRST masking applied in the NC production sequence.",
+          "task_type": "protect",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "tools_required": ["plastic_sheeting_light", "masking_tape_1.5in"],
+          "protection_metadata": {
+            "action": "setup",
+            "zones": ["fixture_covers"],
+            "method_dependent": true
+          },
+          "applies_when": {
+            "application_method": ["spray_backroll"]
+          },
+          "quality_notes": {
+            "all": "Plastic pinned over opening to catch fallout. Doesn't need to be airtight — just prevent primer overspray from landing on windows."
+          }
+        },
+        {
+          "task_id": "TSK_MASK_DOORS_CEILING_PRIME",
+          "name": "Pin Plastic Over Door Openings",
+          "description": "Pin lightweight plastic sheeting over door openings to prevent overspray fallout. At this NC phase, typically only exterior doors are installed (sliders, front entry, back entry, garage entry). Interior doors are usually not yet hung, though not always.",
+          "task_type": "protect",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "tools_required": ["plastic_sheeting_light", "masking_tape_1.5in"],
+          "protection_metadata": {
+            "action": "setup",
+            "zones": ["fixture_covers"],
+            "method_dependent": true
+          },
+          "applies_when": {
+            "application_method": ["spray_backroll"]
+          },
+          "quality_notes": {
+            "all": "Lightweight plastic over openings. Typically exterior doors only at this phase."
+          }
+        },
+        {
+          "task_id": "TSK_FLOOR_PROTECTION_HARD",
+          "name": "Lay Rosin Paper Floor Protection (Hard Floors)",
+          "description": "Lay rosin paper over finished hard floors (tile, hardwood, LVP). Tape down all edges and seams. Full coverage — zero risk tolerance for overspray on finished flooring.",
+          "task_type": "protect",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "tools_required": ["rosin_paper", "masking_tape_2in"],
+          "protection_metadata": {
+            "action": "setup",
+            "zones": ["floor_full"],
+            "method_dependent": false
+          },
+          "site_condition_rules": {
+            "include_when": {
+              "floor_type": ["finished"]
+            },
+            "exclude_when": {
+              "floor_type": ["subfloor"]
+            }
+          },
+          "applies_when": {
+            "floor_surface": ["tile", "hardwood", "lvp", "hard"]
+          },
+          "quality_notes": {
+            "all": "Full coverage, all seams taped. No gaps. Rosin paper is the default for hard surface floors when spraying ceilings."
+          }
+        },
+        {
+          "task_id": "TSK_FLOOR_PROTECTION_CARPET",
+          "name": "Lay Floor Protection (Carpeted Floors)",
+          "description": "Lay canvas drop cloths or plastic sheeting over carpeted floors. Full coverage for ceiling spray work.",
+          "task_type": "protect",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "tools_required": ["drop_cloth_canvas", "plastic_sheeting"],
+          "protection_metadata": {
+            "action": "setup",
+            "zones": ["floor_full"],
+            "method_dependent": false
+          },
+          "site_condition_rules": {
+            "include_when": {
+              "floor_type": ["finished"]
+            },
+            "exclude_when": {
+              "floor_type": ["subfloor"]
+            }
+          },
+          "applies_when": {
+            "floor_surface": ["carpet"]
+          },
+          "quality_notes": {
+            "all": "Full coverage for carpeted areas."
+          }
+        }
+      ],
+      "sequence_notes": "Floor protection first (if applicable) → Ceiling openings/fixtures → Window masking → Door masking. All protection must be complete before spraying. Floor protection is CONDITIONAL — only when finished floors are present."
+    },
+    {
+      "module_id": "MOD_APPLY_CEILING_PRIME_ROLL",
+      "name": "Apply Ceiling Primer - Roller Method",
+      "description": "Apply single coat of primer to ceiling using 18-inch roller with extension pole. No edge work required — ceiling primer can overlap 1-2 inches onto wall area (wall primer covers this).",
+      "phase": "apply",
+      "applies_when": {
+        "application_method": ["roll"]
+      },
+      "required_inputs": [
+        {
+          "input_name": "IN_SF_CEILING_FIELD",
+          "paintscope_key": "PS_SURFACE_SF.CEILING_FIELD",
+          "uom": "SF"
+        }
+      ],
+      "tasks": [
+        {
+          "task_id": "TSK_ROLL_CEILING_PRIMER",
+          "name": "Roll Ceiling Primer",
+          "description": "Apply primer to ceiling field using 18-inch roller with extension pole. Work in sections, maintain wet edge. Primer can overlap 1-2 inches onto wall area — wall primer covers this later. No cut-in needed at ceiling-wall boundary.",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "tools_required": ["roller_18in", "roller_cover_18in", "extension_pole", "5gal_bucket_grid"],
+          "quality_notes": {
+            "all": "All tiers: properly painted surface per PCA standards. No drips, sags, holidays, or lap marks at ANY quality tier. Application quality is not tiered — a properly applied coat is the baseline expectation.",
+            "QT4": "Additional: verify consistent mil thickness across full ceiling field",
+            "QT5": "Additional: verify consistent mil thickness — surface must be ready for high-build requirements"
+          }
+        }
+      ],
+      "sequence_notes": "Single primer coat application. No edge work. Roller nap: 3/8\" to 1/2\" on smooth, 1/2\" to 3/4\" on textured (contractor discretion)."
+    },
+    {
+      "module_id": "MOD_APPLY_CEILING_PRIME_SPRAY_BACKROLL",
+      "name": "Apply Ceiling Primer - Spray + Backroll Method",
+      "description": "Apply single coat of primer to ceiling via airless spray followed by immediate backroll with 18-inch roller. Production standard for NC ceiling priming. No edge work required.",
+      "phase": "apply",
+      "applies_when": {
+        "application_method": ["spray_backroll"]
+      },
+      "required_inputs": [
+        {
+          "input_name": "IN_SF_CEILING_FIELD",
+          "paintscope_key": "PS_SURFACE_SF.CEILING_FIELD",
+          "uom": "SF"
+        }
+      ],
+      "tasks": [
+        {
+          "task_id": "TSK_SPRAY_CEILING_PRIMER",
+          "name": "Spray Ceiling Primer",
+          "description": "Apply primer to ceiling via airless sprayer. Maintain proper distance, 50% overlap, consistent speed. Primer can overlap onto wall area. Backroller follows immediately.",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "tools_required": ["airless_sprayer", "spray_tip_517", "respirator", "goggles"],
+          "quality_notes": {
+            "all": "All tiers: properly painted surface per PCA standards. No drips, sags, holidays, or lap marks at ANY quality tier. Application quality is not tiered.",
+            "QT4": "Additional: verify consistent mil thickness across full ceiling field",
+            "QT5": "Additional: verify consistent mil thickness for high-build primer"
+          }
+        },
+        {
+          "task_id": "TSK_BACKROLL_CEILING_PRIMER",
+          "name": "Backroll Ceiling Primer",
+          "description": "Immediately follow spray with 18-inch roller on extension pole to consolidate primer into drywall surface, eliminate air pockets, and level finish. Backroller sets pace — sprayer cannot outrun backroller.",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "tools_required": ["roller_18in", "roller_cover_18in", "extension_pole"],
+          "quality_notes": {
+            "all": "All tiers: properly painted surface per PCA standards. No drips, sags, holidays, or lap marks at ANY quality tier. Backroll must fully consolidate sprayed primer into surface.",
+            "QT5": "Additional: surface must be uniform for high-build primer"
+          }
+        }
+      ],
+      "sequence_notes": "Spray → Backroll (immediately). Backroller must follow sprayer closely. Spray rate cannot exceed backroll rate (coupling constraint). No edge work."
+    },
+    {
+      "module_id": "MOD_CLEANUP_CEILING_PRIME",
+      "name": "Cleanup - Ceiling Prime",
+      "description": "Vacuum floors, remove ceiling fixture protection, clean tools, final inspection. Leave window/door masking in place for subsequent phases.",
+      "phase": "cleanup",
+      "applies_when": {},
+      "required_inputs": [
+        {
+          "input_name": "IN_SF_FLOOR_VACUUM",
+          "paintscope_key": "PS_META.SF.FLOOR_VACUUM_AREA",
+          "uom": "SF",
+          "notes": "PROPOSED NEW KEY — not yet in catalog. Floor area for vacuum cleanup."
+        },
+        {
+          "input_name": "IN_SF_CEILING_FIELD",
+          "paintscope_key": "PS_SURFACE_SF.CEILING_FIELD",
+          "uom": "SF"
+        }
+      ],
+      "tasks": [
+        {
+          "task_id": "TSK_VACUUM_FLOOR_POST_PRIME",
+          "name": "Vacuum Floors After Ceiling Prime",
+          "description": "Vacuum floors to remove primer drips, overspray debris, and dust from ceiling priming. On subfloor: shop vacuum. On finished floors: vacuum over rosin paper protection, then inspect rosin paper integrity.",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "tools_required": ["shop_vacuum"]
+        },
+        {
+          "task_id": "TSK_REMOVE_CEILING_FIXTURE_PROTECTION",
+          "name": "Remove Ceiling Opening/Fixture Protection",
+          "description": "Remove paper and tape from recessed lighting holes/cans and ceiling electrical box holes/boxes.",
+          "task_type": "protect",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "tools_required": [],
+          "protection_metadata": {
+            "action": "teardown",
+            "zones": ["fixture_covers"],
+            "method_dependent": false
+          },
+          "applies_when": {
+            "application_method": ["spray_backroll"]
+          },
+          "notes": "Only applies if ceiling fixture protection was set up (spray methods)."
+        },
+        {
+          "task_id": "TSK_CLEAN_TOOLS_CEILING_PRIME",
+          "name": "Clean Tools",
+          "description": "Clean rollers, spray equipment with water. Store or dispose properly.",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "tools_required": ["water_source", "brush_comb"]
+        },
+        {
+          "task_id": "TSK_FINAL_INSPECT_CEILING_PRIME",
+          "name": "Final Ceiling Prime Inspection",
+          "description": "Walk and inspect all primed ceiling surfaces. Check for holidays, missed spots, drips, or thin coverage. Touch up as needed. Primer application is binary — surface is properly sealed or it's not.",
+          "task_classification": "qt_scaled",
+          "skill_level": "journeyman",
+          "tools_required": ["work_light"],
+          "quality_notes": {
+            "QT2": "Quick visual for major misses",
+            "QT3": "Thorough visual, address visible defects",
+            "QT4": "Detailed overhead inspection with bright light",
+            "QT5": "Critical inspection with raking light — surface must be uniform for high-build primer"
+          }
+        }
+      ],
+      "sequence_notes": "Vacuum floors → Remove ceiling fixture protection → Clean tools → Final inspection. LEAVE window/door masking in place — subsequent phases (wall prime, ceiling paint) will use it.",
+      "important_notes": [
+        "Do NOT remove window/door masking — it stays in place for subsequent NC phases",
+        "Do NOT remove floor protection (if present) — subsequent phases need it",
+        "Sanding primed ceiling is NOT in this spec's scope — that belongs to the finish spec (SF_DRYWALL_CEILINGS_NC_PAINT)"
+      ]
+    }
+  ],
+
+  "round_configurations": [
+    {
+      "round_id": "ROUND_SINGLE_CEILING_PRIME",
+      "name": "Single Ceiling Prime Round",
+      "description": "Standard single coat of primer for new drywall ceilings. All quality tiers receive single prime coat.",
+      "applies_when": {
+        "quality_tier": ["QT2", "QT3", "QT4", "QT5"]
+      },
+      "phase_sequence": ["prep", "protection", "apply", "cleanup"],
+      "notes": "Single primer coat is standard for all quality tiers. Quality tier affects inspection scrutiny, not primer coat count. Sanding after prime belongs to finish spec."
+    }
+  ],
+
+  "exclusions": [
+    {
+      "exclusion": "Spot-priming of fasteners",
+      "reason": "New construction drywall fasteners are covered with mud and are rust-resistant. No spot-priming needed. (Research correction RC-001)"
+    },
+    {
+      "exclusion": "Edge work at ceiling-wall boundary",
+      "reason": "Walls have not been primed or painted yet. Ceiling primer can overlap onto wall area. Wall primer covers the overlap. No cut-in or edge work tasks needed."
+    },
+    {
+      "exclusion": "Sanding after prime coat",
+      "reason": "Sanding primed surface before finish coat is a finish task step. It belongs in SF_DRYWALL_CEILINGS_NC_PAINT, not this prime spec."
+    },
+    {
+      "exclusion": "Spray-only application method",
+      "reason": "Per scope confirmation, spray-only is not in scope for this spec. Only roll and spray+backroll methods are included."
+    },
+    {
+      "exclusion": "Finish coat application",
+      "reason": "This is prime-only. Finish coats handled by companion spec SF_DRYWALL_CEILINGS_NC_PAINT."
+    }
+  ],
+
+  "assumptions": [
+    {
+      "field": "site_condition_rules.floor_type",
+      "value": "Conditional floor protection based on floor_type (finished vs subfloor)",
+      "source": "Research correction RC-003, field contractor input",
+      "doctrine_gap": true,
+      "note": "floor_type condition proposed but not yet in Site_Condition_Vocabulary_Reference.md. Pending doctrine update."
+    },
+    {
+      "field": "required_inputs.IN_SF_FLOOR_VACUUM",
+      "value": "PS_META.SF.FLOOR_VACUUM_AREA proposed new key for vacuum cleanup",
+      "source": "Research, field contractor input",
+      "doctrine_gap": true,
+      "note": "Key not yet in PaintScope catalog. Pending addition."
+    }
+  ]
+}

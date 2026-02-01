@@ -85,6 +85,7 @@ No conversions are allowed in specs.
 |---|---:|---|---|---|
 | IN_SF_CEILING_FIELD | SF | PS_SURFACE_SF.CEILING_FIELD | any ceiling painting work | Core ceiling quantity |
 | IN_SF_PROTECT_FLOOR_EXPOSED | SF | PS_PROTECT_SF.FLOOR_EXPOSED | ceiling work includes full-room drops | Especially relevant for spray strategies |
+| IN_SF_FLOOR_VACUUM | SF | PS_META.SF.FLOOR_VACUUM_AREA | post-application floor vacuum cleanup | Distinct from protection area — vacuum applies regardless of floor protection |
 
 ---
 

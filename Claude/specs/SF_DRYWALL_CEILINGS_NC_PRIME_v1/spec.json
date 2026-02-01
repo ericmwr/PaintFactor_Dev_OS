@@ -1,0 +1,334 @@
+{
+  "spec_family": {
+    "id": "SF_DRYWALL_CEILINGS_NC_PRIME",
+    "name": "New Construction Ceiling Prime",
+    "description": "Single coat primer application for bare drywall ceilings in new construction. Seals porous drywall surface for finish coat adhesion. No edge work required — primer overlaps onto wall area, wall primer covers later. Companion to SF_DRYWALL_CEILINGS_NC_PAINT (finish coats). Includes conditional floor protection when finished floors are present.",
+    "domain": "interior",
+    "version": "0.1.0",
+    "status": "draft",
+    "review_required": true
+  },
+
+  "scope_boundaries": {
+    "includes": [
+      "Bare drywall ceiling surfaces (new construction)",
+      "Single coat primer application (all quality tiers)",
+      "Ceiling drywall inspection and dust vacuum",
+      "Ceiling opening/fixture protection — includes open holes and installed cans/boxes (spray method)",
+      "Lightweight window/door masking — pin plastic to catch fallout (spray method)",
+      "Conditional floor protection — rosin paper on hard floors, canvas/plastic on carpet (when finished floors present)",
+      "Post-prime floor vacuum and cleanup"
+    ],
+    "excludes": [
+      "Spot-priming of fasteners (NC fasteners are mudded and rust-resistant — RC-001)",
+      "Edge work at ceiling-wall boundary (walls not yet primed, primer overlaps onto wall area)",
+      "Sanding after prime coat (belongs to finish spec SF_DRYWALL_CEILINGS_NC_PAINT)",
+      "Spray-only application method (only roll and spray+backroll in scope)",
+      "Finish coat application (companion spec SF_DRYWALL_CEILINGS_NC_PAINT)",
+      "Stain blocking (PVA and acrylic latex primers are sealers only, zero stain blocking — RC-002)",
+      "Texture application",
+      "Wall priming (separate spec)"
+    ]
+  },
+
+  "configuration_dimensions": [
+    {
+      "dimension_id": "quality_tier",
+      "description": "Quality tier governing inspection intensity and material grade. All tiers receive single primer coat. Application quality is universal — no drips, sags, holidays, or lap marks at any tier.",
+      "values": ["QT2", "QT3", "QT4", "QT5"],
+      "default": "QT3",
+      "notes": "QT differences for primer: inspection thoroughness, material grade (PVA at QT2-3, acrylic latex at QT4, high-build at QT5), and final inspection scrutiny. Application quality is NOT tiered."
+    },
+    {
+      "dimension_id": "application_method",
+      "description": "Primary application technique for ceiling primer",
+      "values": ["roll", "spray_backroll"],
+      "default": "spray_backroll",
+      "notes": "Spray+backroll is NC production standard. Roll for smaller jobs. No spray-only option."
+    },
+    {
+      "dimension_id": "surface_texture",
+      "description": "Ceiling surface texture affecting coverage and application rate",
+      "values": ["smooth", "orange_peel", "knockdown"],
+      "default": "smooth",
+      "notes": "Texture affects coverage rate, roller nap selection, and application speed."
+    }
+  ],
+
+  "paintable_items": [
+    {
+      "item_id": "ITM_CEILING_FIELD_PRIME",
+      "name": "Ceiling Field Primer Coat",
+      "unit_of_measure": "SF",
+      "counting_rules": "Source from PaintScope PS_SURFACE_SF.CEILING_FIELD",
+      "notes": "Primary paintable item — single coat primer on bare drywall ceiling"
+    }
+  ],
+
+  "protection_items": [
+    {
+      "item_id": "ITM_PROTECT_CEILING_OPENINGS",
+      "name": "Ceiling Opening/Fixture Protection",
+      "unit_of_measure": "EA_ROOM",
+      "counting_rules": "Source from PaintScope PS_META.EA.ROOMS_TOTAL; heuristic: 6 recessed light locations + 2 ceiling electrical box locations per room",
+      "notes": "Stuff and tape ceiling openings — both installed cans/boxes AND open holes. Open holes must be sealed to prevent overspray entering ceiling cavity and blown insulation from coming through.",
+      "applies_when": { "application_method": ["spray_backroll"] }
+    },
+    {
+      "item_id": "ITM_MASK_WINDOWS_LIGHTWEIGHT",
+      "name": "Window Opening Lightweight Masking",
+      "unit_of_measure": "EA",
+      "counting_rules": "Source from PaintScope PS_OPENING_EA.WINDOW_OPENINGS_TOTAL",
+      "notes": "Pin lightweight plastic over window openings to catch fallout. Not intricate masking. Typically first masking in NC production sequence.",
+      "applies_when": { "application_method": ["spray_backroll"] }
+    },
+    {
+      "item_id": "ITM_MASK_DOORS_LIGHTWEIGHT",
+      "name": "Door Opening Lightweight Masking",
+      "unit_of_measure": "EA",
+      "counting_rules": "Source from PaintScope PS_OPENING_EA.DOOR_OPENINGS_TOTAL",
+      "notes": "Pin lightweight plastic over door openings. Typically only exterior doors installed at this NC phase (sliders, front entry, back entry, garage entry).",
+      "applies_when": { "application_method": ["spray_backroll"] }
+    },
+    {
+      "item_id": "ITM_FLOOR_PROTECTION_HARD",
+      "name": "Floor Protection — Hard Floors (Rosin Paper)",
+      "unit_of_measure": "SF",
+      "counting_rules": "Source from PaintScope PS_PROTECT_SF.FLOOR_EXPOSED",
+      "notes": "Rosin paper taped down over finished hard floors (tile, hardwood, LVP). Full coverage, all seams taped.",
+      "site_condition_rules": {
+        "include_when": { "floor_type": ["finished"] },
+        "exclude_when": { "floor_type": ["subfloor"] }
+      },
+      "applies_when": { "floor_surface": ["tile", "hardwood", "lvp", "hard"] }
+    },
+    {
+      "item_id": "ITM_FLOOR_PROTECTION_CARPET",
+      "name": "Floor Protection — Carpet",
+      "unit_of_measure": "SF",
+      "counting_rules": "Source from PaintScope PS_PROTECT_SF.FLOOR_EXPOSED",
+      "notes": "Canvas drop cloths or plastic sheeting over carpeted floors.",
+      "site_condition_rules": {
+        "include_when": { "floor_type": ["finished"] },
+        "exclude_when": { "floor_type": ["subfloor"] }
+      },
+      "applies_when": { "floor_surface": ["carpet"] }
+    }
+  ],
+
+  "variants": [
+    {
+      "variant_id": "VAR_SPRAY_BACKROLL_QT2",
+      "applies_when": {
+        "quality_tier": ["QT2"],
+        "application_method": ["spray_backroll"]
+      },
+      "included_items": ["ITM_CEILING_FIELD_PRIME"],
+      "protection_items": ["ITM_PROTECT_CEILING_OPENINGS", "ITM_MASK_WINDOWS_LIGHTWEIGHT", "ITM_MASK_DOORS_LIGHTWEIGHT"],
+      "coats": 1,
+      "material_system": "SYS_PVA_CEILING_PRIMER",
+      "notes": "Economy spray+backroll prime. Single coat PVA primer. Quick inspection."
+    },
+    {
+      "variant_id": "VAR_SPRAY_BACKROLL_QT3",
+      "applies_when": {
+        "quality_tier": ["QT3"],
+        "application_method": ["spray_backroll"]
+      },
+      "included_items": ["ITM_CEILING_FIELD_PRIME"],
+      "protection_items": ["ITM_PROTECT_CEILING_OPENINGS", "ITM_MASK_WINDOWS_LIGHTWEIGHT", "ITM_MASK_DOORS_LIGHTWEIGHT"],
+      "coats": 1,
+      "material_system": "SYS_PVA_CEILING_PRIMER",
+      "notes": "Standard spray+backroll prime. Single coat PVA primer. Thorough inspection."
+    },
+    {
+      "variant_id": "VAR_SPRAY_BACKROLL_QT4",
+      "applies_when": {
+        "quality_tier": ["QT4"],
+        "application_method": ["spray_backroll"]
+      },
+      "included_items": ["ITM_CEILING_FIELD_PRIME"],
+      "protection_items": ["ITM_PROTECT_CEILING_OPENINGS", "ITM_MASK_WINDOWS_LIGHTWEIGHT", "ITM_MASK_DOORS_LIGHTWEIGHT"],
+      "coats": 1,
+      "material_system": "SYS_ACRYLIC_LATEX_CEILING_PRIMER",
+      "notes": "Premium spray+backroll prime. Single coat acrylic latex primer. Detailed inspection with mil thickness verification."
+    },
+    {
+      "variant_id": "VAR_SPRAY_BACKROLL_QT5",
+      "applies_when": {
+        "quality_tier": ["QT5"],
+        "application_method": ["spray_backroll"]
+      },
+      "included_items": ["ITM_CEILING_FIELD_PRIME"],
+      "protection_items": ["ITM_PROTECT_CEILING_OPENINGS", "ITM_MASK_WINDOWS_LIGHTWEIGHT", "ITM_MASK_DOORS_LIGHTWEIGHT"],
+      "coats": 1,
+      "material_system": "SYS_HIGH_BUILD_CEILING_PRIMER",
+      "notes": "Critical spray+backroll prime. Single coat high-build primer. Critical inspection with raking light. Surface must be ready for semi-gloss+ finish system."
+    },
+    {
+      "variant_id": "VAR_ROLL_QT2",
+      "applies_when": {
+        "quality_tier": ["QT2"],
+        "application_method": ["roll"]
+      },
+      "included_items": ["ITM_CEILING_FIELD_PRIME"],
+      "protection_items": [],
+      "coats": 1,
+      "material_system": "SYS_PVA_CEILING_PRIMER",
+      "notes": "Economy roll prime. Single coat PVA primer. No ceiling fixture protection needed (roll method, no overspray)."
+    },
+    {
+      "variant_id": "VAR_ROLL_QT3",
+      "applies_when": {
+        "quality_tier": ["QT3"],
+        "application_method": ["roll"]
+      },
+      "included_items": ["ITM_CEILING_FIELD_PRIME"],
+      "protection_items": [],
+      "coats": 1,
+      "material_system": "SYS_PVA_CEILING_PRIMER",
+      "notes": "Standard roll prime. Single coat PVA primer."
+    },
+    {
+      "variant_id": "VAR_ROLL_QT4",
+      "applies_when": {
+        "quality_tier": ["QT4"],
+        "application_method": ["roll"]
+      },
+      "included_items": ["ITM_CEILING_FIELD_PRIME"],
+      "protection_items": [],
+      "coats": 1,
+      "material_system": "SYS_ACRYLIC_LATEX_CEILING_PRIMER",
+      "notes": "Premium roll prime. Single coat acrylic latex primer."
+    },
+    {
+      "variant_id": "VAR_ROLL_QT5",
+      "applies_when": {
+        "quality_tier": ["QT5"],
+        "application_method": ["roll"]
+      },
+      "included_items": ["ITM_CEILING_FIELD_PRIME"],
+      "protection_items": [],
+      "coats": 1,
+      "material_system": "SYS_HIGH_BUILD_CEILING_PRIMER",
+      "notes": "Critical roll prime. Single coat high-build primer."
+    }
+  ],
+
+  "required_paintscope_inputs": [
+    {
+      "input_name": "IN_SF_CEILING_FIELD",
+      "paintscope_key": "PS_SURFACE_SF.CEILING_FIELD",
+      "uom": "SF",
+      "required": true,
+      "description": "Total bare drywall ceiling field area to be primed"
+    },
+    {
+      "input_name": "IN_EA_ROOMS",
+      "paintscope_key": "PS_META.EA.ROOMS_TOTAL",
+      "uom": "EA",
+      "required_when": { "application_method": ["spray_backroll"] },
+      "description": "Room count for ceiling opening/fixture protection heuristic"
+    },
+    {
+      "input_name": "IN_EA_WINDOW_OPENINGS",
+      "paintscope_key": "PS_OPENING_EA.WINDOW_OPENINGS_TOTAL",
+      "uom": "EA",
+      "required_when": { "application_method": ["spray_backroll"] },
+      "description": "Count of window openings for lightweight masking"
+    },
+    {
+      "input_name": "IN_EA_DOOR_OPENINGS",
+      "paintscope_key": "PS_OPENING_EA.DOOR_OPENINGS_TOTAL",
+      "uom": "EA",
+      "required_when": { "application_method": ["spray_backroll"] },
+      "description": "Count of door openings for lightweight masking"
+    },
+    {
+      "input_name": "IN_SF_FLOOR_PROTECTION",
+      "paintscope_key": "PS_PROTECT_SF.FLOOR_EXPOSED",
+      "uom": "SF",
+      "required_when": { "floor_type": ["finished"] },
+      "description": "Floor area for protection when finished floors are present"
+    },
+    {
+      "input_name": "IN_SF_FLOOR_VACUUM",
+      "paintscope_key": "PS_META.SF.FLOOR_VACUUM_AREA",
+      "uom": "SF",
+      "required": true,
+      "description": "Floor area for post-prime vacuum cleanup",
+      "notes": "PROPOSED NEW KEY — not yet in PaintScope catalog. Pending addition."
+    }
+  ],
+
+  "protection_zones_required": [
+    {
+      "zone_id": "fixture_covers",
+      "condition": { "application_method": ["spray_backroll"] },
+      "protection_level": "full_cover",
+      "notes": "Ceiling openings — both installed fixtures and open holes"
+    },
+    {
+      "zone_id": "floor_full",
+      "condition": { "floor_type": ["finished"] },
+      "protection_level": "full_cover",
+      "notes": "Conditional — only when finished floors present. Rosin paper for hard, canvas/plastic for carpet."
+    }
+  ],
+
+  "adjacency_declarations": {
+    "primary_surface": "ceiling_field",
+    "adjacent_surfaces": [
+      {
+        "surface_id": "wall_field",
+        "edge_type": "linear",
+        "typical_relationship": "different_finish",
+        "continuity_rate_modifier": 1.0,
+        "affected_tasks": [],
+        "notes": "No edge tasks — ceiling primer overlaps onto wall area. Wall primer covers the overlap later."
+      }
+    ]
+  },
+
+  "site_condition_rules": {
+    "floor_type": {
+      "condition_id": "floor_type",
+      "values": ["subfloor", "finished", "partial"],
+      "default": "subfloor",
+      "affects_tasks": ["TSK_FLOOR_PROTECTION_HARD", "TSK_FLOOR_PROTECTION_CARPET"],
+      "notes": "PROPOSED — not yet in Site_Condition_Vocabulary_Reference.md. NC may have finished floors (tile, hardwood, LVP, carpet) already installed. Determines whether floor protection is needed."
+    }
+  },
+
+  "sequencing_notes": {
+    "production_sequence": "Ceiling prime is typically the FIRST paint operation in NC production sequence",
+    "edge_work": "NONE REQUIRED — ceiling primer overlaps onto wall area. Wall primer covers the overlap.",
+    "protection_sequence": "Floor protection (if applicable) → Ceiling openings/fixtures → Window masking → Door masking → Apply primer → Cleanup",
+    "masking_persistence": "Window/door masking and floor protection STAY IN PLACE for subsequent NC phases (wall prime, ceiling paint, etc.)",
+    "companion_spec": "SF_DRYWALL_CEILINGS_NC_PAINT handles finish coats after this primer coat"
+  },
+
+  "research_corrections": [
+    { "id": "RC-001", "summary": "No spot-priming of fasteners in NC", "doctrine_assignment": "pending" },
+    { "id": "RC-002", "summary": "PVA and acrylic latex primers have zero stain blocking", "doctrine_assignment": "pending" },
+    { "id": "RC-003", "summary": "Floor protection conditional on floor_type", "doctrine_assignment": "pending" },
+    { "id": "RC-004", "summary": "No dry time specifications in specs", "doctrine_assignment": "pending" }
+  ],
+
+  "dependencies": {
+    "research": "research.json",
+    "materials": "materials.json",
+    "sop_modules": "sop_modules.json",
+    "production": "production.json",
+    "qa_report": "qa_report.json"
+  },
+
+  "change_log": [
+    {
+      "version": "0.1.0",
+      "date": "2026-01-31",
+      "author": "SpecFactory",
+      "changes": "Initial spec for NC ceiling prime (single primer coat on bare drywall). Extensive human review with 15 field corrections applied throughout pipeline."
+    }
+  ]
+}

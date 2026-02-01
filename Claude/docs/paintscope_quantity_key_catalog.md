@@ -56,6 +56,11 @@ Downstream rules:
 ### Room / Zone meta (routing & validation)
 - `PS_META.EA.ROOMS_TOTAL`
 - `PS_META.EA.ZONES_TOTAL`
+- `PS_META.SF.FLOOR_VACUUM_AREA`
+  **Meaning:** Total floor area used for post-application vacuum cleanup tasks.
+  **UOM:** SF
+  **Source:** Derived from room floor area at project assembly.
+  **Used for:** Production rate calculation on floor vacuum cleanup tasks (e.g., TSK_VACUUM_FLOOR_POST_PRIME). Semantically distinct from PS_PROTECT_SF.FLOOR_EXPOSED, which measures protection coverage area — vacuum cleanup applies regardless of whether floor protection was installed.
 - `PS_META.FLAG.SPRAY_ENV_POSSIBLE` (true/false; collected, not inferred)
 - `PS_META.FLAG.OCCUPIED` (true/false; collected)
 - `PS_META.FLAG.NEW_CONSTRUCTION` (true/false; collected)

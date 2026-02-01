@@ -1,8 +1,8 @@
 # Quality Tiers and Surface Condition Doctrine
 
 **Status:** Canonical
-**Version:** 1.1
-**Last Updated:** 2026-01-24
+**Version:** 1.2
+**Last Updated:** 2026-01-31
 
 This document defines the quality tier system and surface condition classification used throughout PaintFactor. AI agents generating specs MUST use these definitions consistently.
 
@@ -103,6 +103,36 @@ Quality tiers control thoroughness, tolerance, and additional process steps. The
 | Skipping steps required for durability | Never permitted at any tier |
 
 **Principle:** Quality tiers control HOW THOROUGHLY you work, not WHETHER you work.
+
+---
+
+### Application Quality Is Not Tiered
+
+**MANDATORY DOCTRINE:** A properly painted surface — free of drips, sags, holidays, and lap marks — is the baseline expectation at EVERY quality tier, including QT2. There is no tier at which application defects are acceptable.
+
+Quality tiers control:
+- **Inspection scrutiny** — how carefully and how many times you look
+- **Sanding and patchwork** — between-coat prep steps added at higher tiers
+- **Time and pace** — slower, more deliberate work at higher tiers
+- **Material quality** — higher-grade products at higher tiers
+
+Quality tiers do NOT control:
+- **Application quality** — all tiers require a properly painted surface per PCA standards
+- **Defect acceptance** — drips, sags, holidays, and lap marks are NEVER acceptable at any tier
+
+**Agent rule:** When writing `quality_notes` on application tasks (roll, spray, backroll, brush), agents MUST NOT write tier-differentiated notes that imply lower tiers accept application defects. Use `"all"` key to state the universal standard. Tier-specific notes may only add ADDITIONAL requirements (e.g., mil thickness verification at QT5), never reduce the baseline.
+
+**Wrong:**
+```
+"QT2": "Full coverage, minor lap marks acceptable"
+"QT3": "Even coverage, no holidays"
+```
+
+**Right:**
+```
+"all": "All tiers: properly painted surface per PCA. No drips, sags, holidays, or lap marks."
+"QT5": "Additional: verify consistent mil thickness"
+```
 
 ---
 

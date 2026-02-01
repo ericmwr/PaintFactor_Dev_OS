@@ -1,8 +1,8 @@
 # Materials and Consumables Doctrine
 
 **Status:** Canonical
-**Version:** 1.1
-**Last Updated:** 2026-01-24
+**Version:** 1.2
+**Last Updated:** 2026-01-31
 
 This document defines how consumable materials (tape, abrasives, rollers, brushes, spackle, caulk) are selected and quantified for painting operations. AI agents generating specs MUST follow this doctrine for consumable usage models.
 
@@ -67,6 +67,23 @@ When using green edge-seal tape for crisp lines:
 - Newly installed coatings
 
 **Why:** High-tack adhesive can damage or pull these surfaces on removal.
+
+---
+
+## Tape and Masking Paper Yields
+
+### Standard Roll Yields (All Sizes)
+
+**Rule: All tape rolls yield 180 LF (60 yards) regardless of width.**
+
+| Product | Roll Yield | Common Widths | Notes |
+|---------|-----------|---------------|-------|
+| Masking tape (all types) | 180 LF (60 yd) | 3/4", 1", 1.5", 2" | Width does not affect length per roll |
+| Masking paper | 180 LF (60 yd) | 6", 9", 12", 18" | Width does not affect length per roll |
+
+**Common error:** Agents have incorrectly listed tape at 60 LF/roll (confusing feet with yards) and masking paper at 500 LF/roll. Both are wrong.
+
+**Source:** Standard manufacturer packaging, field contractor input (RC, 2026-01-31)
 
 ---
 
@@ -292,7 +309,56 @@ For consumable_usage_models, include:
 
 ---
 
+## Primer Product Classification
+
+### Drywall Sealers vs. Stain Blockers
+
+**MANDATORY DOCTRINE:** PVA primers and acrylic latex drywall primers are SEALERS, not stain blockers. They have ZERO stain blocking capability. Agents must not claim or imply stain blocking properties for these products.
+
+| Product Category | Purpose | Stain Blocking | Examples |
+|-----------------|---------|----------------|----------|
+| PVA drywall primer | Seal porous drywall surface | NONE | SW PVA Primer, BM Fresh Start PVA |
+| Acrylic latex drywall primer | Seal drywall with better adhesion/build | NONE | SW ProMar 200 Acrylic Latex |
+| Shellac-based stain blocker | Block stains, odors, tannin bleed | YES — high | Zinsser BIN, Kilz Original |
+| Water-based stain blocker | Block light stains | LIMITED | Zinsser 1-2-3, Kilz 2 |
+
+**Agent rule:** When writing materials.json for drywall primer specs, do not reference stain blocking in product descriptions, advantages, or selection rationale. If a project requires stain blocking, a separate stain blocking product must be specified as an additional step.
+
+**Source:** Research correction RC-002 (SF_DRYWALL_CEILINGS_NC_PRIME pipeline, 2026-01-31)
+
+### New Construction Drywall Fasteners — No Spot-Priming
+
+**Rule:** New construction drywall fasteners do NOT require spot-priming. Fasteners are covered with joint compound by the drywall contractor and modern drywall screws are rust-resistant.
+
+Agents must not include spot-priming of fasteners as a task in new construction drywall specs (wall or ceiling, prime or paint).
+
+**When spot-priming IS needed:**
+- Repaint work where nail heads are exposed or rusting
+- NC work where fasteners are visibly exposed (drywall contractor deficiency — flag for correction, not painter responsibility)
+
+**Source:** Research correction RC-001 (SF_DRYWALL_CEILINGS_NC_PRIME pipeline, 2026-01-31)
+
+---
+
+## Dry Time Specifications
+
+**Rule:** Do not specify product dry times in spec artifacts.
+
+Dry time depends on too many variables to pin down in a spec:
+- Ambient temperature
+- Humidity
+- Ventilation / air movement
+- How sealed off the space is (masking reduces airflow)
+- Product formulation
+- Film thickness
+
+**Agent rule:** When writing research.json or materials.json, do not list dry times as product properties. If dry time is relevant to workflow (e.g., recoat window), reference the Product Data Sheet (PDS) and note that actual conditions may vary.
+
+**Source:** Research correction RC-004 (SF_DRYWALL_CEILINGS_NC_PRIME pipeline, 2026-01-31)
+
+---
+
 ## References
 
-- Field notes from professional painting contractor (2026-01-20)
+- Field notes from professional painting contractor (2026-01-20, 2026-01-31)
 - PaintFactor DevOS architecture
