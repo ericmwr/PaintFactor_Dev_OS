@@ -12,7 +12,7 @@
 UI design shapes user interaction; estimation logic runs server-side.
 
 ### Required Reading
-- **[docs/PaintFactor_OS.md](../docs/PaintFactor_OS.md)** — System architecture and operating doctrine
+- **[docs/System/PaintFactor_OS.md](../docs/System/PaintFactor_OS.md)** — System architecture and operating doctrine
 
 ### Geometry Constraint
 - PaintScope screens capture geometry; spec selection screens consume it

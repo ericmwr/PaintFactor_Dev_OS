@@ -12,26 +12,26 @@
 SOP modules define work sequences; the Estimation Engine applies them to geometry at runtime.
 
 ### Required Reading
-- **[docs/PaintFactor_OS.md](../docs/PaintFactor_OS.md)** — System architecture and operating doctrine
-- **[docs/PaintScope_EdgeLF_Mapping.md](../docs/PaintScope_EdgeLF_Mapping.md)** — Geometry sourcing rules for edge work
-- **[docs/Protection_and_Masking_Doctrine.md](../docs/Protection_and_Masking_Doctrine.md)** — Floor protection tasks by application method
-- **[docs/Quality_Tiers_and_Surface_Condition.md](../docs/Quality_Tiers_and_Surface_Condition.md)** — Quality tier task selection and condition-based modules
-- **[docs/Fine_Finish_Doctrine.md](../docs/Fine_Finish_Doctrine.md)** — Fine finish module structure, task classifications, interstage workflow
+- **[docs/System/PaintFactor_OS.md](../docs/System/PaintFactor_OS.md)** — System architecture and operating doctrine
+- **[docs/PaintScope/PaintScope_EdgeLF_Mapping.md](../docs/PaintScope/PaintScope_EdgeLF_Mapping.md)** — Geometry sourcing rules for edge work
+- **[docs/Doctrine/Protection_and_Masking_Doctrine.md](../docs/Doctrine/Protection_and_Masking_Doctrine.md)** — Floor protection tasks by application method
+- **[docs/Doctrine/Quality_Tiers_and_Surface_Condition.md](../docs/Doctrine/Quality_Tiers_and_Surface_Condition.md)** — Quality tier task selection and condition-based modules
+- **[docs/Doctrine/Fine_Finish_Doctrine.md](../docs/Doctrine/Fine_Finish_Doctrine.md)** — Fine finish module structure, task classifications, interstage workflow
 
 ### Completeness Doctrine
-- **[docs/Spec_Completeness_Doctrine.md](../docs/Spec_Completeness_Doctrine.md)** — Mandatory declaration layers (protection zones, adjacency, site conditions)
-- **[docs/Site_Condition_Vocabulary_Reference.md](../docs/Site_Condition_Vocabulary_Reference.md)** — Valid site condition IDs and values
-- **[docs/Modifier_Registry.md](../docs/Modifier_Registry.md)** — Canonical modifier values for site condition modifiers
+- **[docs/Doctrine/Spec_Completeness_Doctrine.md](../docs/Doctrine/Spec_Completeness_Doctrine.md)** — Mandatory declaration layers (protection zones, adjacency, site conditions)
+- **[docs/Reference/Site_Condition_Vocabulary_Reference.md](../docs/Reference/Site_Condition_Vocabulary_Reference.md)** — Valid site condition IDs and values
+- **[docs/Doctrine/Modifier_Registry.md](../docs/Doctrine/Modifier_Registry.md)** — Canonical modifier values for site condition modifiers
 
 ### Protection & Continuity References
-- **[docs/Protection_Zones_Reference.md](../docs/Protection_Zones_Reference.md)** — Zone IDs for protection task metadata
-- **[docs/Surface_Vocabulary_Reference.md](../docs/Surface_Vocabulary_Reference.md)** — Surface IDs for adjacency metadata
+- **[docs/Reference/Protection_Zones_Reference.md](../docs/Reference/Protection_Zones_Reference.md)** — Zone IDs for protection task metadata
+- **[docs/Reference/Surface_Vocabulary_Reference.md](../docs/Reference/Surface_Vocabulary_Reference.md)** — Surface IDs for adjacency metadata
 
 ### Adjacency Doctrine / PaintScope Contract
-- **[docs/paintscope_quantity_key_catalog.md](../docs/paintscope_quantity_key_catalog.md)** — Canonical PaintScope quantity keys
-- **[docs/Spec_Input_to_PaintScope_Key_Mapping.md](../docs/Spec_Input_to_PaintScope_Key_Mapping.md)** — Mapping from spec inputs to PaintScope keys
-- **[docs/PaintScope_Asset_Catalog.md](../docs/PaintScope_Asset_Catalog.md)** — Asset categories, subtypes, and measurable keys
-- **[docs/PaintScope_Adjacency_Schema.md](../docs/PaintScope_Adjacency_Schema.md)** — Adjacency relationships and edge target definitions
+- **[docs/PaintScope/PaintScope_Quantity_Key_Catalog.md](../docs/PaintScope/PaintScope_Quantity_Key_Catalog.md)** — Canonical PaintScope quantity keys
+- **[docs/PaintScope/Spec_Input_to_PaintScope_Key_Mapping.md](../docs/PaintScope/Spec_Input_to_PaintScope_Key_Mapping.md)** — Mapping from spec inputs to PaintScope keys
+- **[docs/PaintScope/PaintScope_Asset_Catalog.md](../docs/PaintScope/PaintScope_Asset_Catalog.md)** — Asset categories, subtypes, and measurable keys
+- **[docs/PaintScope/PaintScope_Adjacency_Schema.md](../docs/PaintScope/PaintScope_Adjacency_Schema.md)** — Adjacency relationships and edge target definitions
 
 ### Geometry Constraint
 - SOP tasks must declare their unit of measure (SF, LF, EA)
@@ -43,7 +43,7 @@ SOP modules define work sequences; the Estimation Engine applies them to geometr
 - When both trim and walls are in scope, **trim-first is the default** (~80% of interior repaints)
 - Do NOT assume walls-first sequencing unless explicitly declared as an exception
 - Protection logic must follow from the declared sequencing assumption
-- See **[docs/PaintScope_EdgeLF_Mapping.md § 4](../docs/PaintScope_EdgeLF_Mapping.md)** for full sequencing doctrine
+- See **[docs/PaintScope/PaintScope_EdgeLF_Mapping.md § 4](../docs/PaintScope/PaintScope_EdgeLF_Mapping.md)** for full sequencing doctrine
 
 ### Adjacency-Safe Constraints
 
@@ -212,7 +212,7 @@ Reference `Fine_Finish_Doctrine.md` for complete task ID patterns and scrutiny d
 
 ## Site Condition Rules (MANDATORY)
 
-Reference: **[docs/Spec_Completeness_Doctrine.md § Layer 3](../docs/Spec_Completeness_Doctrine.md)**
+Reference: **[docs/Doctrine/Spec_Completeness_Doctrine.md § Layer 3](../docs/Doctrine/Spec_Completeness_Doctrine.md)**
 
 Every task affected by site conditions MUST include `site_condition_rules` declaring which conditions trigger task inclusion or exclusion.
 

@@ -15,7 +15,7 @@ Add a Doctrine Authority Hierarchy section to PaintFactor_OS.md that establishes
 
 ## Location
 
-**File:** `Claude/docs/PaintFactor_OS.md`
+**File:** `Claude/docs/System/PaintFactor_OS.md`
 
 **Insertion Point:** After the system overview section, before any domain-specific sections. This establishes authority early in the document.
 

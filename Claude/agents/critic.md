@@ -13,29 +13,29 @@
 The Critic enforces system doctrine. It is the **final doctrine gate AFTER human feedback is applied and BEFORE artifacts are finalized**.
 
 ### Required Reading
-- **[docs/PaintFactor_OS.md](../docs/PaintFactor_OS.md)** — System architecture and operating doctrine
-- **[docs/PaintScope_EdgeLF_Mapping.md](../docs/PaintScope_EdgeLF_Mapping.md)** — Geometry sourcing rules for edge work
-- **[docs/Protection_and_Masking_Doctrine.md](../docs/Protection_and_Masking_Doctrine.md)** — Floor protection and masking systems by application method
-- **[docs/Materials_and_Consumables_Doctrine.md](../docs/Materials_and_Consumables_Doctrine.md)** — Tape, abrasives, rollers, brushes, spackle, caulk usage rules
-- **[docs/Estimation_Modifiers_Doctrine.md](../docs/Estimation_Modifiers_Doctrine.md)** — Time vs rate modifiers, height/complexity/color/texture factors
-- **[docs/Quality_Tiers_and_Surface_Condition.md](../docs/Quality_Tiers_and_Surface_Condition.md)** — QT2–QT6 definitions, condition modifiers, hourly gates
+- **[docs/System/PaintFactor_OS.md](../docs/System/PaintFactor_OS.md)** — System architecture and operating doctrine
+- **[docs/PaintScope/PaintScope_EdgeLF_Mapping.md](../docs/PaintScope/PaintScope_EdgeLF_Mapping.md)** — Geometry sourcing rules for edge work
+- **[docs/Doctrine/Protection_and_Masking_Doctrine.md](../docs/Doctrine/Protection_and_Masking_Doctrine.md)** — Floor protection and masking systems by application method
+- **[docs/Doctrine/Materials_and_Consumables_Doctrine.md](../docs/Doctrine/Materials_and_Consumables_Doctrine.md)** — Tape, abrasives, rollers, brushes, spackle, caulk usage rules
+- **[docs/Doctrine/Estimation_Modifiers_Doctrine.md](../docs/Doctrine/Estimation_Modifiers_Doctrine.md)** — Time vs rate modifiers, height/complexity/color/texture factors
+- **[docs/Doctrine/Quality_Tiers_and_Surface_Condition.md](../docs/Doctrine/Quality_Tiers_and_Surface_Condition.md)** — QT2–QT6 definitions, condition modifiers, hourly gates
 - **[docs/Material_Role_System.md](../docs/Material_Role_System.md)** — Material roles vs products/SKUs and pricing separation (if present)
-- **[docs/Fine_Finish_Doctrine.md](../docs/Fine_Finish_Doctrine.md)** — Fine finish workflow, material systems, quality tier scrutiny definitions
+- **[docs/Doctrine/Fine_Finish_Doctrine.md](../docs/Doctrine/Fine_Finish_Doctrine.md)** — Fine finish workflow, material systems, quality tier scrutiny definitions
 
 ### Completeness Doctrine
-- **[docs/Spec_Completeness_Doctrine.md](../docs/Spec_Completeness_Doctrine.md)** — Mandatory declaration layers and validation codes
-- **[docs/Site_Condition_Vocabulary_Reference.md](../docs/Site_Condition_Vocabulary_Reference.md)** — Valid site condition IDs and values
-- **[docs/Modifier_Registry.md](../docs/Modifier_Registry.md)** — Canonical modifier values
+- **[docs/Doctrine/Spec_Completeness_Doctrine.md](../docs/Doctrine/Spec_Completeness_Doctrine.md)** — Mandatory declaration layers and validation codes
+- **[docs/Reference/Site_Condition_Vocabulary_Reference.md](../docs/Reference/Site_Condition_Vocabulary_Reference.md)** — Valid site condition IDs and values
+- **[docs/Doctrine/Modifier_Registry.md](../docs/Doctrine/Modifier_Registry.md)** — Canonical modifier values
 
 ### Protection & Continuity References
-- **[docs/Protection_Zones_Reference.md](../docs/Protection_Zones_Reference.md)** — Zone IDs for protection metadata validation
-- **[docs/Surface_Vocabulary_Reference.md](../docs/Surface_Vocabulary_Reference.md)** — Surface IDs for adjacency metadata validation
+- **[docs/Reference/Protection_Zones_Reference.md](../docs/Reference/Protection_Zones_Reference.md)** — Zone IDs for protection metadata validation
+- **[docs/Reference/Surface_Vocabulary_Reference.md](../docs/Reference/Surface_Vocabulary_Reference.md)** — Surface IDs for adjacency metadata validation
 
 ### Adjacency Doctrine / PaintScope Contract
-- **[docs/paintscope_quantity_key_catalog.md](../docs/paintscope_quantity_key_catalog.md)** — Canonical PaintScope quantity keys
-- **[docs/Spec_Input_to_PaintScope_Key_Mapping.md](../docs/Spec_Input_to_PaintScope_Key_Mapping.md)** — Mapping from spec inputs to PaintScope keys
-- **[docs/PaintScope_Asset_Catalog.md](../docs/PaintScope_Asset_Catalog.md)** — Asset categories, subtypes, and measurable keys
-- **[docs/PaintScope_Adjacency_Schema.md](../docs/PaintScope_Adjacency_Schema.md)** — Adjacency relationships and edge target definitions
+- **[docs/PaintScope/PaintScope_Quantity_Key_Catalog.md](../docs/PaintScope/PaintScope_Quantity_Key_Catalog.md)** — Canonical PaintScope quantity keys
+- **[docs/PaintScope/Spec_Input_to_PaintScope_Key_Mapping.md](../docs/PaintScope/Spec_Input_to_PaintScope_Key_Mapping.md)** — Mapping from spec inputs to PaintScope keys
+- **[docs/PaintScope/PaintScope_Asset_Catalog.md](../docs/PaintScope/PaintScope_Asset_Catalog.md)** — Asset categories, subtypes, and measurable keys
+- **[docs/PaintScope/PaintScope_Adjacency_Schema.md](../docs/PaintScope/PaintScope_Adjacency_Schema.md)** — Adjacency relationships and edge target definitions
 
 ### Geometry Constraint (Non-Negotiable)
 - Specs and SOPs must NOT invent, infer, or compute geometry (SF/LF/EA).
@@ -46,7 +46,7 @@ The Critic enforces system doctrine. It is the **final doctrine gate AFTER human
 - When both trim and walls are in scope, **trim-first is the default** (~80% of interior repaints)
 - Specs must NOT assume walls-first sequencing without explicit declaration
 - Protection logic must align with the declared sequencing assumption
-- See **[docs/PaintScope_EdgeLF_Mapping.md § 4](../docs/PaintScope_EdgeLF_Mapping.md)** for full sequencing doctrine
+- See **[docs/PaintScope/PaintScope_EdgeLF_Mapping.md § 4](../docs/PaintScope/PaintScope_EdgeLF_Mapping.md)** for full sequencing doctrine
 
 ---
 
@@ -178,7 +178,7 @@ The Critic MUST **FAIL** if ANY of the following conditions are detected:
 
 ### 9) Spray/Backroll Coupling Violations
 
-Reference: **[docs/Estimation_Modifiers_Doctrine.md § Spray/Backroll Throughput Coupling](../docs/Estimation_Modifiers_Doctrine.md)**
+Reference: **[docs/Doctrine/Estimation_Modifiers_Doctrine.md § Spray/Backroll Throughput Coupling](../docs/Doctrine/Estimation_Modifiers_Doctrine.md)**
 
 The Critic MUST **FAIL** if ANY of the following conditions are detected in spray/backroll specs:
 
@@ -191,7 +191,7 @@ The Critic MUST **FAIL** if ANY of the following conditions are detected in spra
 
 ### 10) Modifier Math Violations
 
-Reference: **[docs/Estimation_Modifiers_Doctrine.md § Production Rate Philosophy](../docs/Estimation_Modifiers_Doctrine.md)**
+Reference: **[docs/Doctrine/Estimation_Modifiers_Doctrine.md § Production Rate Philosophy](../docs/Doctrine/Estimation_Modifiers_Doctrine.md)**
 
 The Critic MUST **FAIL** if:
 
@@ -201,7 +201,7 @@ The Critic MUST **FAIL** if:
 
 ### 11) Closet Shelving Complexity Violations
 
-Reference: **[docs/Estimation_Modifiers_Doctrine.md § Complexity Factor — Closet Shelving Present](../docs/Estimation_Modifiers_Doctrine.md)**
+Reference: **[docs/Doctrine/Estimation_Modifiers_Doctrine.md § Complexity Factor — Closet Shelving Present](../docs/Doctrine/Estimation_Modifiers_Doctrine.md)**
 
 The Critic MUST **FAIL** if ANY of the following conditions are detected:
 
@@ -224,7 +224,7 @@ The Critic MUST **FAIL** if `manual_capture_required: true` is used without ALL 
 
 ### 13) Fine Finish Doctrine Violations
 
-Reference: **[docs/Fine_Finish_Doctrine.md](../docs/Fine_Finish_Doctrine.md)**
+Reference: **[docs/Doctrine/Fine_Finish_Doctrine.md](../docs/Doctrine/Fine_Finish_Doctrine.md)**
 
 For specs covering trim, built-ins, doors, millwork, or fine finish surfaces:
 
@@ -254,7 +254,7 @@ Verify that `qa_report.json` includes a `Fine_Finish_Doctrine` compliance block:
 
 ### 14) Protection Metadata Violations
 
-Reference: **[docs/Protection_Zones_Reference.md](../docs/Protection_Zones_Reference.md)**
+Reference: **[docs/Reference/Protection_Zones_Reference.md](../docs/Reference/Protection_Zones_Reference.md)**
 
 The Critic MUST check protection tasks for proper metadata:
 
@@ -269,7 +269,7 @@ The Critic MUST check protection tasks for proper metadata:
 
 ### 15) Adjacency Metadata Violations
 
-Reference: **[docs/Surface_Vocabulary_Reference.md](../docs/Surface_Vocabulary_Reference.md)**
+Reference: **[docs/Reference/Surface_Vocabulary_Reference.md](../docs/Reference/Surface_Vocabulary_Reference.md)**
 
 The Critic MUST check adjacency-related tasks for proper metadata:
 
@@ -297,7 +297,7 @@ For spec-level `adjacency_declarations`:
 
 ### 17) Spec Completeness Doctrine Violations (ERROR)
 
-Reference: **[docs/Spec_Completeness_Doctrine.md](../docs/Spec_Completeness_Doctrine.md)**
+Reference: **[docs/Doctrine/Spec_Completeness_Doctrine.md](../docs/Doctrine/Spec_Completeness_Doctrine.md)**
 
 All completeness validation failures are **ERROR severity** and MUST block approval.
 

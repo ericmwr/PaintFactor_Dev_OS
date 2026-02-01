@@ -12,26 +12,26 @@
 This agent defines production RATES and FACTORS. The Estimation Engine multiplies these against real geometry at runtime.
 
 ### Required Reading
-- **[docs/PaintFactor_OS.md](../docs/PaintFactor_OS.md)** — System architecture and operating doctrine
-- **[docs/PaintScope_EdgeLF_Mapping.md](../docs/PaintScope_EdgeLF_Mapping.md)** — Geometry sourcing rules for edge work
-- **[docs/Estimation_Modifiers_Doctrine.md](../docs/Estimation_Modifiers_Doctrine.md)** — Time vs rate modifiers, height/complexity/color/texture factors
-- **[docs/Quality_Tiers_and_Surface_Condition.md](../docs/Quality_Tiers_and_Surface_Condition.md)** — QT2-QT6 definitions, condition modifiers, hourly gates
-- **[docs/Fine_Finish_Doctrine.md](../docs/Fine_Finish_Doctrine.md)** — Fine finish scrutiny definitions, defect tolerance, production rate guidance
+- **[docs/System/PaintFactor_OS.md](../docs/System/PaintFactor_OS.md)** — System architecture and operating doctrine
+- **[docs/PaintScope/PaintScope_EdgeLF_Mapping.md](../docs/PaintScope/PaintScope_EdgeLF_Mapping.md)** — Geometry sourcing rules for edge work
+- **[docs/Doctrine/Estimation_Modifiers_Doctrine.md](../docs/Doctrine/Estimation_Modifiers_Doctrine.md)** — Time vs rate modifiers, height/complexity/color/texture factors
+- **[docs/Doctrine/Quality_Tiers_and_Surface_Condition.md](../docs/Doctrine/Quality_Tiers_and_Surface_Condition.md)** — QT2-QT6 definitions, condition modifiers, hourly gates
+- **[docs/Doctrine/Fine_Finish_Doctrine.md](../docs/Doctrine/Fine_Finish_Doctrine.md)** — Fine finish scrutiny definitions, defect tolerance, production rate guidance
 
 ### Completeness Doctrine
-- **[docs/Spec_Completeness_Doctrine.md](../docs/Spec_Completeness_Doctrine.md)** — Mandatory declaration layers (protection zones, adjacency, site conditions)
-- **[docs/Site_Condition_Vocabulary_Reference.md](../docs/Site_Condition_Vocabulary_Reference.md)** — Valid site condition IDs and values
-- **[docs/Modifier_Registry.md](../docs/Modifier_Registry.md)** — Canonical modifier values (AUTHORITATIVE source for all modifier values)
+- **[docs/Doctrine/Spec_Completeness_Doctrine.md](../docs/Doctrine/Spec_Completeness_Doctrine.md)** — Mandatory declaration layers (protection zones, adjacency, site conditions)
+- **[docs/Reference/Site_Condition_Vocabulary_Reference.md](../docs/Reference/Site_Condition_Vocabulary_Reference.md)** — Valid site condition IDs and values
+- **[docs/Doctrine/Modifier_Registry.md](../docs/Doctrine/Modifier_Registry.md)** — Canonical modifier values (AUTHORITATIVE source for all modifier values)
 
 ### Protection & Continuity References
-- **[docs/Protection_Zones_Reference.md](../docs/Protection_Zones_Reference.md)** — Zone IDs for protection optimization
-- **[docs/Surface_Vocabulary_Reference.md](../docs/Surface_Vocabulary_Reference.md)** — Surface IDs for finish continuity
+- **[docs/Reference/Protection_Zones_Reference.md](../docs/Reference/Protection_Zones_Reference.md)** — Zone IDs for protection optimization
+- **[docs/Reference/Surface_Vocabulary_Reference.md](../docs/Reference/Surface_Vocabulary_Reference.md)** — Surface IDs for finish continuity
 
 ### Adjacency Doctrine / PaintScope Contract
-- **[docs/paintscope_quantity_key_catalog.md](../docs/paintscope_quantity_key_catalog.md)** — Canonical PaintScope quantity keys
-- **[docs/Spec_Input_to_PaintScope_Key_Mapping.md](../docs/Spec_Input_to_PaintScope_Key_Mapping.md)** — Mapping from spec inputs to PaintScope keys
-- **[docs/PaintScope_Asset_Catalog.md](../docs/PaintScope_Asset_Catalog.md)** — Asset categories, subtypes, and measurable keys
-- **[docs/PaintScope_Adjacency_Schema.md](../docs/PaintScope_Adjacency_Schema.md)** — Adjacency relationships and edge target definitions
+- **[docs/PaintScope/PaintScope_Quantity_Key_Catalog.md](../docs/PaintScope/PaintScope_Quantity_Key_Catalog.md)** — Canonical PaintScope quantity keys
+- **[docs/PaintScope/Spec_Input_to_PaintScope_Key_Mapping.md](../docs/PaintScope/Spec_Input_to_PaintScope_Key_Mapping.md)** — Mapping from spec inputs to PaintScope keys
+- **[docs/PaintScope/PaintScope_Asset_Catalog.md](../docs/PaintScope/PaintScope_Asset_Catalog.md)** — Asset categories, subtypes, and measurable keys
+- **[docs/PaintScope/PaintScope_Adjacency_Schema.md](../docs/PaintScope/PaintScope_Adjacency_Schema.md)** — Adjacency relationships and edge target definitions
 
 ### Geometry Constraint
 - Production rates are per-unit (SF/hr, LF/hr, EA/hr) — never totals
@@ -41,7 +41,7 @@ This agent defines production RATES and FACTORS. The Estimation Engine multiplie
 
 ### Production Rate Philosophy
 
-Reference: **[docs/Estimation_Modifiers_Doctrine.md § Production Rate Philosophy](../docs/Estimation_Modifiers_Doctrine.md)**
+Reference: **[docs/Doctrine/Estimation_Modifiers_Doctrine.md § Production Rate Philosophy](../docs/Doctrine/Estimation_Modifiers_Doctrine.md)**
 
 **Production rates are research-based estimates, not fixed doctrine values.**
 
@@ -59,7 +59,7 @@ Do NOT apply modifiers as rate multipliers (e.g., `rate × 1.3` is WRONG for dif
 
 ### Spray/Backroll Coupling Rule (Mandatory)
 
-Reference: **[docs/Estimation_Modifiers_Doctrine.md § Spray/Backroll Throughput Coupling](../docs/Estimation_Modifiers_Doctrine.md)**
+Reference: **[docs/Doctrine/Estimation_Modifiers_Doctrine.md § Spray/Backroll Throughput Coupling](../docs/Doctrine/Estimation_Modifiers_Doctrine.md)**
 
 When application method is "spray then backroll":
 - **Spray rate MUST BE ≤ backroll rate**
@@ -70,7 +70,7 @@ When application method is "spray then backroll":
 
 ### Closet Shelving Complexity Modifier (Input-Driven)
 
-Reference: **[docs/Estimation_Modifiers_Doctrine.md § Complexity Factor — Closet Shelving Present](../docs/Estimation_Modifiers_Doctrine.md)**
+Reference: **[docs/Doctrine/Estimation_Modifiers_Doctrine.md § Complexity Factor — Closet Shelving Present](../docs/Doctrine/Estimation_Modifiers_Doctrine.md)**
 
 When `PS_ROOM_FLAG.CLOSET_SHELVING_PRESENT = TRUE`:
 - Apply **1.5x TIME modifier** to closet-specific tasks only (cut-in, masking, protection, detail work)
@@ -266,7 +266,7 @@ Reference `Fine_Finish_Doctrine.md § Scrutiny Definitions by Tier` for task-spe
 
 ## Modifier Alignment Validation (Required)
 
-Reference: **[docs/Modifier_Registry.md](../docs/Modifier_Registry.md)**
+Reference: **[docs/Doctrine/Modifier_Registry.md](../docs/Doctrine/Modifier_Registry.md)**
 
 All modifier values in production logic MUST align with the canonical Modifier_Registry. The Modifier_Registry is the single source of truth for modifier values.
 

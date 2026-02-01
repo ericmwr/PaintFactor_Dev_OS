@@ -185,7 +185,7 @@ Two related metadata systems being added to SpecFactory:
 
 ## 2A: Protection Zones Reference
 
-**File:** `Claude/docs/Protection_Zones_Reference.md` (new)
+**File:** `Claude/docs/Reference/Protection_Zones_Reference.md` (new)
 
 **Content:**
 - Zone ID catalog with descriptions
@@ -200,7 +200,7 @@ Two related metadata systems being added to SpecFactory:
 
 ## 2B: Surface Vocabulary Reference
 
-**File:** `Claude/docs/Surface_Vocabulary_Reference.md` (new)
+**File:** `Claude/docs/Reference/Surface_Vocabulary_Reference.md` (new)
 
 **Content:**
 - All surface IDs organized by category
@@ -754,7 +754,7 @@ After adding, run validation to ensure existing specs still pass.
 ## Prompt: Phase 2A - Protection Zones Reference
 
 ```
-Create a new file: Claude/docs/Protection_Zones_Reference.md
+Create a new file: Claude/docs/Reference/Protection_Zones_Reference.md
 
 Use the content from the Protection_and_Masking_Doctrine.md "Project-Level Protection Optimization" section as a starting point, but format as a quick reference document with:
 
@@ -784,7 +784,7 @@ After creating, add a reference to this file in docs/README.md
 ## Prompt: Phase 2B - Surface Vocabulary Reference
 
 ```
-Create a new file: Claude/docs/Surface_Vocabulary_Reference.md
+Create a new file: Claude/docs/Reference/Surface_Vocabulary_Reference.md
 
 This is a quick reference for all valid surface IDs used in adjacency metadata and finish groups.
 
@@ -845,7 +845,7 @@ After creating, add a reference to this file in docs/README.md
 
 **Date:** 2026-01-26
 **Status:** Complete
-**Reference:** [docs/Schema_Alignment_Changelog.md](../Schema_Alignment_Changelog.md)
+**Reference:** [docs/System/Schema_Alignment_Changelog.md](../System/Schema_Alignment_Changelog.md)
 
 ## Summary
 

@@ -15,7 +15,7 @@ Create a centralized Modifier Registry that catalogs ALL modifiers used in the P
 
 ## Output
 
-**File:** `Claude/docs/Modifier_Registry.md`
+**File:** `Claude/docs/Doctrine/Modifier_Registry.md`
 
 ---
 

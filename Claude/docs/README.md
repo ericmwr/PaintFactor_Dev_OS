@@ -1,51 +1,79 @@
-# PaintFactor System Doctrine
+# PaintFactor System Documentation
 
-This folder contains **canonical system doctrine** for PaintFactor development.
+This folder contains **canonical system doctrine, PaintScope schemas, and reference materials** for PaintFactor development.
 
 All agent prompts, specs, and schemas must align to these documents. Outputs that contradict doctrine are invalid and must be rejected by the System Critic.
 
 ---
 
-## Authoritative Documents
+## Directory Structure
 
-### Core Doctrine
+```
+docs/
+├── System/          — Core system architecture, conventions, changelog
+├── Doctrine/        — All painting doctrine (materials, protection, finishing, etc.)
+├── PaintScope/      — PaintScope schemas, key catalogs, mappings
+├── Reference/       — Vocabulary and zone reference tables
+├── Future_Work/     — Design notes and future system concepts
+├── SpecFactory_Enhancement_Rollout/  — SpecFactory rollout tracking
+├── tasks/           — Task-specific tracking docs
+└── research/        — Research drafts and source material
+```
+
+---
+
+## System
 
 | Document | Description |
 |----------|-------------|
-| [PaintFactor_OS.md](PaintFactor_OS.md) | System architecture, layer definitions, design principles, and the role of AI agents |
-| [PaintScope_EdgeLF_Mapping.md](PaintScope_EdgeLF_Mapping.md) | How geometry flows from PaintScope to specs; edge work rules and enforcement |
-| [Conventions.md](Conventions.md) | ID prefixes, naming standards, versioning expectations |
-| [Fine_Finish_Doctrine.md](Fine_Finish_Doctrine.md) | Fine finish workflow, material systems, quality tier scrutiny for trim, doors, built-ins, millwork |
-| [Quality_Tiers_and_Surface_Condition.md](Quality_Tiers_and_Surface_Condition.md) | Quality tier definitions and surface condition classification |
-| [Materials_and_Consumables_Doctrine.md](Materials_and_Consumables_Doctrine.md) | Material usage, coverage, consumable patterns |
-| [Protection_Zones_Reference.md](Protection_Zones_Reference.md) | Zone IDs for protection task metadata enabling project-level optimization |
-| [Surface_Vocabulary_Reference.md](Surface_Vocabulary_Reference.md) | Surface IDs for adjacency metadata and finish group assignments |
-| [DOCTRINE_Window_Systems_Painting.md](Doctrine/DOCTRINE_Window_Systems_Painting.md) | Window substrate treatment, height tiers, trim packages, quality tier behavior |
-| [PaintScope_Window_Counting_System.md](PaintScope_Window_Counting_System.md) | Window data capture system - size buckets, groups, exceptions, UI spec |
-| [Spec_Completeness_Doctrine.md](Spec_Completeness_Doctrine.md) | Mandatory completeness requirements for spec generation — protection zones, adjacency, site conditions |
-| [Interior_Protection_Doctrine.md](Interior_Protection_Doctrine.md) | Protection strategies for floors, furniture, fixtures, and adjacent surfaces — universal, occupancy-driven, and new construction |
+| [PaintFactor_OS.md](System/PaintFactor_OS.md) | System architecture, layer definitions, design principles, agent roles |
+| [Conventions.md](System/Conventions.md) | ID prefixes, naming standards, versioning expectations |
+| [Schema_Alignment_Changelog.md](System/Schema_Alignment_Changelog.md) | Schema change log across rollouts |
 
 ---
 
-## Reference Documents
+## Doctrine
 
-| Document | Status | Purpose |
-|----------|--------|---------|
-| [Site_Condition_Vocabulary_Reference.md](Site_Condition_Vocabulary_Reference.md) | Canonical | Valid site condition IDs, values, and definitions |
-| [Modifier_Registry.md](Modifier_Registry.md) | Canonical | Centralized modifier registry with canonical values |
+| Document | Description |
+|----------|-------------|
+| [Fine_Finish_Doctrine.md](Doctrine/Fine_Finish_Doctrine.md) | Fine finish workflow, material systems, quality tier scrutiny for trim, doors, built-ins, millwork |
+| [Doors_Doctrine.md](Doctrine/Doors_Doctrine.md) | Door finishing doctrine — substrates, hardware, prep, quality tiers |
+| [Window_Systems_Doctrine.md](Doctrine/Window_Systems_Doctrine.md) | Window substrate treatment, height tiers, trim packages, quality tier behavior |
+| [Millwork_NC_Paint_Doctrine.md](Doctrine/Millwork_NC_Paint_Doctrine.md) | Millwork new-construction paint doctrine |
+| [Quality_Tiers_and_Surface_Condition.md](Doctrine/Quality_Tiers_and_Surface_Condition.md) | Quality tier definitions and surface condition classification |
+| [Materials_and_Consumables_Doctrine.md](Doctrine/Materials_and_Consumables_Doctrine.md) | Material usage, coverage, consumable patterns |
+| [Estimation_Modifiers_Doctrine.md](Doctrine/Estimation_Modifiers_Doctrine.md) | Estimation modifier rules and application |
+| [Protection_and_Masking_Doctrine.md](Doctrine/Protection_and_Masking_Doctrine.md) | Protection and masking task doctrine |
+| [Interior_Protection_Doctrine.md](Doctrine/Interior_Protection_Doctrine.md) | Protection strategies — floors, furniture, fixtures, adjacent surfaces |
+| [Interior_Protection_Doctrine_Final.md](Doctrine/Interior_Protection_Doctrine_Final.md) | Finalized interior protection doctrine |
+| [Interior_Protection_Doctrine_Residential_Repaint.md](Doctrine/Interior_Protection_Doctrine_Residential_Repaint.md) | Residential repaint protection specifics |
+| [Spec_Completeness_Doctrine.md](Doctrine/Spec_Completeness_Doctrine.md) | Mandatory completeness requirements for spec generation |
+| [Modifier_Registry.md](Doctrine/Modifier_Registry.md) | Centralized modifier registry with canonical values |
+| [Doctrine_Format_Standard.md](Doctrine/Doctrine_Format_Standard.md) | Standard format for doctrine documents |
 
 ---
 
-## Future Doctrine (Placeholders)
+## PaintScope
 
-The following documents will be added as the system matures:
+| Document | Description |
+|----------|-------------|
+| [PaintScope_EdgeLF_Mapping.md](PaintScope/PaintScope_EdgeLF_Mapping.md) | Geometry flow from PaintScope to specs; edge work rules |
+| [PaintScope_Quantity_Key_Catalog.md](PaintScope/PaintScope_Quantity_Key_Catalog.md) | Canonical quantity key catalog |
+| [Spec_Input_to_PaintScope_Key_Mapping.md](PaintScope/Spec_Input_to_PaintScope_Key_Mapping.md) | Spec input → PaintScope key mapping |
+| [PaintScope_Asset_Catalog.md](PaintScope/PaintScope_Asset_Catalog.md) | Asset definitions and catalog |
+| [PaintScope_Adjacency_Schema.md](PaintScope/PaintScope_Adjacency_Schema.md) | Adjacency schema for surface relationships |
+| [PaintScope_Window_Counting_System.md](PaintScope/PaintScope_Window_Counting_System.md) | Window data capture — size buckets, groups, exceptions |
+| [PaintScope_Key_Mapping_Addendum.md](PaintScope/PaintScope_Key_Mapping_Addendum.md) | Key mapping addendum and extensions |
 
-| Planned Document | Purpose |
-|------------------|---------|
-| `QualityTiers.md` | Definition of QL-1 through QL-5 quality levels and their behavioral differences |
-| `IDRegistry.md` | Canonical registry of all ID prefixes and their ownership |
-| `NamingStandards.md` | Expanded naming conventions for specs, modules, tasks, and materials |
-| `FactorCatalog.md` | Authoritative list of production factors and their valid ranges |
+---
+
+## Reference
+
+| Document | Description |
+|----------|-------------|
+| [Protection_Zones_Reference.md](Reference/Protection_Zones_Reference.md) | Zone IDs for protection task metadata |
+| [Surface_Vocabulary_Reference.md](Reference/Surface_Vocabulary_Reference.md) | Surface IDs for adjacency metadata and finish group assignments |
+| [Site_Condition_Vocabulary_Reference.md](Reference/Site_Condition_Vocabulary_Reference.md) | Valid site condition IDs, values, and definitions |
 
 ---
 

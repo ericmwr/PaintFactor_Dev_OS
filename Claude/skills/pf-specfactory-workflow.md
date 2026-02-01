@@ -81,4 +81,4 @@ Setup → Initial Prep → [Prime if needed] → Finish Coat 1 → Interstage �
 - **Semi-gloss:** QT4+ minimum
 - **Gloss:** QT5 only
 
-Reference `docs/Fine_Finish_Doctrine.md` for complete guidance.
+Reference `docs/Doctrine/Fine_Finish_Doctrine.md` for complete guidance.

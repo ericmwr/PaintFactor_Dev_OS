@@ -12,7 +12,7 @@
 Schema design enables the system; runtime queries and functions execute within those schemas.
 
 ### Required Reading
-- **[docs/PaintFactor_OS.md](../docs/PaintFactor_OS.md)** — System architecture and operating doctrine
+- **[docs/System/PaintFactor_OS.md](../docs/System/PaintFactor_OS.md)** — System architecture and operating doctrine
 
 ### Geometry Constraint
 - Geometry data (SF, LF, EA) is captured via PaintScope and stored in scope tables

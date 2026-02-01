@@ -29,9 +29,9 @@ All development must align to these authoritative documents:
 
 | Document | Purpose |
 |----------|---------|
-| [docs/PaintFactor_OS.md](docs/PaintFactor_OS.md) | System architecture and operating doctrine |
-| [docs/PaintScope_EdgeLF_Mapping.md](docs/PaintScope_EdgeLF_Mapping.md) | Geometry sourcing rules for edge work |
-| [docs/Conventions.md](docs/Conventions.md) | ID prefixes, naming, versioning standards |
+| [docs/System/PaintFactor_OS.md](docs/System/PaintFactor_OS.md) | System architecture and operating doctrine |
+| [docs/PaintScope/PaintScope_EdgeLF_Mapping.md](docs/PaintScope/PaintScope_EdgeLF_Mapping.md) | Geometry sourcing rules for edge work |
+| [docs/System/Conventions.md](docs/System/Conventions.md) | ID prefixes, naming, versioning standards |
 
 Agent prompts must reference and comply with doctrine. Outputs that violate doctrine are invalid.
 
@@ -116,6 +116,6 @@ Before any spec is approved:
 ## Contributing
 
 1. Read the doctrine documents first
-2. Follow ID conventions in `docs/Conventions.md`
+2. Follow ID conventions in `docs/System/Conventions.md`
 3. Use templates in `specs/_templates/`
 4. All changes require Critic review before approval

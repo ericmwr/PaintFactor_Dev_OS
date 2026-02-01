@@ -20,15 +20,15 @@ It does NOT replace runtime systems or human judgment.
 ---
 
 ## Required Reading
-- **docs/PaintFactor_OS.md** — System architecture and operating doctrine
-- **docs/PaintScope_EdgeLF_Mapping.md** — Geometry sourcing and EdgeLF rules
-- **docs/Fine_Finish_Doctrine.md** — Fine finish workflow, material systems, quality tier scrutiny
+- **docs/System/PaintFactor_OS.md** — System architecture and operating doctrine
+- **docs/PaintScope/PaintScope_EdgeLF_Mapping.md** — Geometry sourcing and EdgeLF rules
+- **docs/Doctrine/Fine_Finish_Doctrine.md** — Fine finish workflow, material systems, quality tier scrutiny
 
 ### Adjacency Doctrine / PaintScope Contract
-- **docs/paintscope_quantity_key_catalog.md** — Canonical PaintScope quantity keys
-- **docs/Spec_Input_to_PaintScope_Key_Mapping.md** — Mapping from spec inputs to PaintScope keys
-- **docs/PaintScope_Asset_Catalog.md** — Asset categories, subtypes, and measurable keys
-- **docs/PaintScope_Adjacency_Schema.md** — Adjacency relationships and edge target definitions
+- **docs/PaintScope/PaintScope_Quantity_Key_Catalog.md** — Canonical PaintScope quantity keys
+- **docs/PaintScope/Spec_Input_to_PaintScope_Key_Mapping.md** — Mapping from spec inputs to PaintScope keys
+- **docs/PaintScope/PaintScope_Asset_Catalog.md** — Asset categories, subtypes, and measurable keys
+- **docs/PaintScope/PaintScope_Adjacency_Schema.md** — Adjacency relationships and edge target definitions
 
 ---
 

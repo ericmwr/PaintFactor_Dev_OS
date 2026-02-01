@@ -24,7 +24,7 @@ Before updating agents, create these reference documents that agents will read.
 
 ## Protection_Zones_Reference.md
 
-**Location:** `Claude/docs/Protection_Zones_Reference.md`
+**Location:** `Claude/docs/Reference/Protection_Zones_Reference.md`
 
 ```markdown
 # Protection Zones Reference
@@ -156,7 +156,7 @@ When a new protection scenario is identified:
 
 ## Surface_Vocabulary_Reference.md
 
-**Location:** `Claude/docs/Surface_Vocabulary_Reference.md`
+**Location:** `Claude/docs/Reference/Surface_Vocabulary_Reference.md`
 
 ```markdown
 # Surface Vocabulary Reference

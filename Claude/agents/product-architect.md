@@ -12,9 +12,9 @@
 Domain architecture defines boundaries and patterns; runtime logic operates within those boundaries.
 
 ### Required Reading
-- **[docs/PaintFactor_OS.md](../docs/PaintFactor_OS.md)** — System architecture and operating doctrine
-- **[docs/PaintScope_EdgeLF_Mapping.md](../docs/PaintScope_EdgeLF_Mapping.md)** — Geometry sourcing rules for edge work
-- **[docs/Quality_Tiers_and_Surface_Condition.md](../docs/Quality_Tiers_and_Surface_Condition.md)** — QT2-QT6 definitions and condition classifications
+- **[docs/System/PaintFactor_OS.md](../docs/System/PaintFactor_OS.md)** — System architecture and operating doctrine
+- **[docs/PaintScope/PaintScope_EdgeLF_Mapping.md](../docs/PaintScope/PaintScope_EdgeLF_Mapping.md)** — Geometry sourcing rules for edge work
+- **[docs/Doctrine/Quality_Tiers_and_Surface_Condition.md](../docs/Doctrine/Quality_Tiers_and_Surface_Condition.md)** — QT2-QT6 definitions and condition classifications
 
 ### Geometry Constraint
 - Module boundaries must respect the PaintScope → Spec → Estimation flow

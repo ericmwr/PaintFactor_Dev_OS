@@ -475,7 +475,7 @@ The following features are not included in the initial implementation but may be
 ## Cross-References
 
 ### Related Doctrine Documents
-- `DOCTRINE_Window_Systems_Painting.md` v1.1 — Window painting doctrine, substrate treatment, quality tiers
+- `Window_Systems_Doctrine.md` v1.1 — Window painting doctrine, substrate treatment, quality tiers
 - `PaintFactor_Production_Rate_Reference.md` v1.0 — Canonical height tier modifiers (MOD_HT)
 - `paintscope_quantity_key_catalog.md` — PaintScope quantity key definitions
 

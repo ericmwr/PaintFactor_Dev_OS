@@ -16,28 +16,28 @@ Research informs spec design but does not itself produce estimates or runtime be
 **Painting is the primary domain.** Research into supporting trades (drywall, carpentry, masonry prep) is permitted only where it directly affects paint outcomes. Supporting trade research may not define painting scope, production rates, or estimating methods.
 
 ### Required Reading
-- **[docs/PaintFactor_OS.md](../docs/PaintFactor_OS.md)** — System architecture and operating doctrine
-- **[docs/PaintScope_EdgeLF_Mapping.md](../docs/PaintScope_EdgeLF_Mapping.md)** — Geometry sourcing rules for edge work
-- **[docs/Quality_Tiers_and_Surface_Condition.md](../docs/Quality_Tiers_and_Surface_Condition.md)** — Quality tier definitions for research context
-- **[docs/Fine_Finish_Doctrine.md](../docs/Fine_Finish_Doctrine.md)** — Fine finish workflow, material systems, quality tier scrutiny definitions
+- **[docs/System/PaintFactor_OS.md](../docs/System/PaintFactor_OS.md)** — System architecture and operating doctrine
+- **[docs/PaintScope/PaintScope_EdgeLF_Mapping.md](../docs/PaintScope/PaintScope_EdgeLF_Mapping.md)** — Geometry sourcing rules for edge work
+- **[docs/Doctrine/Quality_Tiers_and_Surface_Condition.md](../docs/Doctrine/Quality_Tiers_and_Surface_Condition.md)** — Quality tier definitions for research context
+- **[docs/Doctrine/Fine_Finish_Doctrine.md](../docs/Doctrine/Fine_Finish_Doctrine.md)** — Fine finish workflow, material systems, quality tier scrutiny definitions
 - **[skills/deep_research_protocol.md](../skills/deep_research_protocol.md)** — Deep research protocol with source tiers and citation requirements
-- **[docs/Doctrine/DOCTRINE_Window_Systems_Painting.md](../docs/Doctrine/DOCTRINE_Window_Systems_Painting.md)** — Window substrate treatment, height tiers, trim packages
-- **[docs/PaintScope_Window_Counting_System.md](../docs/PaintScope_Window_Counting_System.md)** — Window quantification system (size buckets, output keys)
+- **[docs/Doctrine/Window_Systems_Doctrine.md](../docs/Doctrine/Window_Systems_Doctrine.md)** — Window substrate treatment, height tiers, trim packages
+- **[docs/PaintScope/PaintScope_Window_Counting_System.md](../docs/PaintScope/PaintScope_Window_Counting_System.md)** — Window quantification system (size buckets, output keys)
 
 ### Completeness Doctrine
-- **[docs/Spec_Completeness_Doctrine.md](../docs/Spec_Completeness_Doctrine.md)** — Mandatory declaration layers (protection zones, adjacency, site conditions)
-- **[docs/Site_Condition_Vocabulary_Reference.md](../docs/Site_Condition_Vocabulary_Reference.md)** — Valid site condition IDs and values
-- **[docs/Modifier_Registry.md](../docs/Modifier_Registry.md)** — Canonical modifier values
+- **[docs/Doctrine/Spec_Completeness_Doctrine.md](../docs/Doctrine/Spec_Completeness_Doctrine.md)** — Mandatory declaration layers (protection zones, adjacency, site conditions)
+- **[docs/Reference/Site_Condition_Vocabulary_Reference.md](../docs/Reference/Site_Condition_Vocabulary_Reference.md)** — Valid site condition IDs and values
+- **[docs/Doctrine/Modifier_Registry.md](../docs/Doctrine/Modifier_Registry.md)** — Canonical modifier values
 
 ### Protection & Continuity References
-- **[docs/Protection_Zones_Reference.md](../docs/Protection_Zones_Reference.md)** — Zone IDs for protection research
-- **[docs/Surface_Vocabulary_Reference.md](../docs/Surface_Vocabulary_Reference.md)** — Surface IDs for adjacency research
+- **[docs/Reference/Protection_Zones_Reference.md](../docs/Reference/Protection_Zones_Reference.md)** — Zone IDs for protection research
+- **[docs/Reference/Surface_Vocabulary_Reference.md](../docs/Reference/Surface_Vocabulary_Reference.md)** — Surface IDs for adjacency research
 
 ### Adjacency Doctrine / PaintScope Contract
-- **[docs/paintscope_quantity_key_catalog.md](../docs/paintscope_quantity_key_catalog.md)** — Canonical PaintScope quantity keys
-- **[docs/Spec_Input_to_PaintScope_Key_Mapping.md](../docs/Spec_Input_to_PaintScope_Key_Mapping.md)** — Mapping from spec inputs to PaintScope keys
-- **[docs/PaintScope_Asset_Catalog.md](../docs/PaintScope_Asset_Catalog.md)** — Asset categories, subtypes, and measurable keys
-- **[docs/PaintScope_Adjacency_Schema.md](../docs/PaintScope_Adjacency_Schema.md)** — Adjacency relationships and edge target definitions
+- **[docs/PaintScope/PaintScope_Quantity_Key_Catalog.md](../docs/PaintScope/PaintScope_Quantity_Key_Catalog.md)** — Canonical PaintScope quantity keys
+- **[docs/PaintScope/Spec_Input_to_PaintScope_Key_Mapping.md](../docs/PaintScope/Spec_Input_to_PaintScope_Key_Mapping.md)** — Mapping from spec inputs to PaintScope keys
+- **[docs/PaintScope/PaintScope_Asset_Catalog.md](../docs/PaintScope/PaintScope_Asset_Catalog.md)** — Asset categories, subtypes, and measurable keys
+- **[docs/PaintScope/PaintScope_Adjacency_Schema.md](../docs/PaintScope/PaintScope_Adjacency_Schema.md)** — Adjacency relationships and edge target definitions
 
 ### Geometry Constraint
 - This agent must NOT invent or assume geometry values (SF, LF, EA)
@@ -47,7 +47,7 @@ Research informs spec design but does not itself produce estimates or runtime be
 ### Sequencing Doctrine
 - When researching specs involving both trim and walls, note that **trim-first is the default** (~80% of interior repaints)
 - Do NOT assume walls-first sequencing; if walls-first is required, flag it as an exception
-- See **[docs/PaintScope_EdgeLF_Mapping.md § 4](../docs/PaintScope_EdgeLF_Mapping.md)** for full sequencing doctrine
+- See **[docs/PaintScope/PaintScope_EdgeLF_Mapping.md § 4](../docs/PaintScope/PaintScope_EdgeLF_Mapping.md)** for full sequencing doctrine
 
 ### Adjacency-Safe Constraints
 
@@ -130,7 +130,7 @@ When doctrine is silent and research fills a gap, flag in output:
 
 ## Mandatory Completeness Analysis (Required)
 
-Reference: **[docs/Spec_Completeness_Doctrine.md](../docs/Spec_Completeness_Doctrine.md)**
+Reference: **[docs/Doctrine/Spec_Completeness_Doctrine.md](../docs/Doctrine/Spec_Completeness_Doctrine.md)**
 
 Every `research.json` MUST include the following three analysis sections. The Orchestrator will block the workflow if any are missing.
 

@@ -12,23 +12,23 @@
 Material definitions inform the Estimation Engine but do not themselves calculate material quantities for real jobs.
 
 ### Required Reading
-- **[docs/PaintFactor_OS.md](../docs/PaintFactor_OS.md)** — System architecture and operating doctrine
-- **[docs/Protection_and_Masking_Doctrine.md](../docs/Protection_and_Masking_Doctrine.md)** — Floor protection and masking systems by application method
-- **[docs/Materials_and_Consumables_Doctrine.md](../docs/Materials_and_Consumables_Doctrine.md)** — Tape, abrasives, rollers, brushes, spackle, caulk usage rules
-- **[docs/Fine_Finish_Doctrine.md](../docs/Fine_Finish_Doctrine.md)** — Fine finish material systems and quality tier product mapping
+- **[docs/System/PaintFactor_OS.md](../docs/System/PaintFactor_OS.md)** — System architecture and operating doctrine
+- **[docs/Doctrine/Protection_and_Masking_Doctrine.md](../docs/Doctrine/Protection_and_Masking_Doctrine.md)** — Floor protection and masking systems by application method
+- **[docs/Doctrine/Materials_and_Consumables_Doctrine.md](../docs/Doctrine/Materials_and_Consumables_Doctrine.md)** — Tape, abrasives, rollers, brushes, spackle, caulk usage rules
+- **[docs/Doctrine/Fine_Finish_Doctrine.md](../docs/Doctrine/Fine_Finish_Doctrine.md)** — Fine finish material systems and quality tier product mapping
 
 ### Completeness Doctrine
-- **[docs/Spec_Completeness_Doctrine.md](../docs/Spec_Completeness_Doctrine.md)** — Mandatory declaration layers (protection zones, adjacency, site conditions)
-- **[docs/Site_Condition_Vocabulary_Reference.md](../docs/Site_Condition_Vocabulary_Reference.md)** — Valid site condition IDs and values
+- **[docs/Doctrine/Spec_Completeness_Doctrine.md](../docs/Doctrine/Spec_Completeness_Doctrine.md)** — Mandatory declaration layers (protection zones, adjacency, site conditions)
+- **[docs/Reference/Site_Condition_Vocabulary_Reference.md](../docs/Reference/Site_Condition_Vocabulary_Reference.md)** — Valid site condition IDs and values
 
 ### Protection & Continuity References
-- **[docs/Protection_Zones_Reference.md](../docs/Protection_Zones_Reference.md)** — Zone IDs mapping to protection materials
+- **[docs/Reference/Protection_Zones_Reference.md](../docs/Reference/Protection_Zones_Reference.md)** — Zone IDs mapping to protection materials
 
 ### Adjacency Doctrine / PaintScope Contract
-- **[docs/paintscope_quantity_key_catalog.md](../docs/paintscope_quantity_key_catalog.md)** — Canonical PaintScope quantity keys
-- **[docs/Spec_Input_to_PaintScope_Key_Mapping.md](../docs/Spec_Input_to_PaintScope_Key_Mapping.md)** — Mapping from spec inputs to PaintScope keys
-- **[docs/PaintScope_Asset_Catalog.md](../docs/PaintScope_Asset_Catalog.md)** — Asset categories, subtypes, and measurable keys
-- **[docs/PaintScope_Adjacency_Schema.md](../docs/PaintScope_Adjacency_Schema.md)** — Adjacency relationships and edge target definitions
+- **[docs/PaintScope/PaintScope_Quantity_Key_Catalog.md](../docs/PaintScope/PaintScope_Quantity_Key_Catalog.md)** — Canonical PaintScope quantity keys
+- **[docs/PaintScope/Spec_Input_to_PaintScope_Key_Mapping.md](../docs/PaintScope/Spec_Input_to_PaintScope_Key_Mapping.md)** — Mapping from spec inputs to PaintScope keys
+- **[docs/PaintScope/PaintScope_Asset_Catalog.md](../docs/PaintScope/PaintScope_Asset_Catalog.md)** — Asset categories, subtypes, and measurable keys
+- **[docs/PaintScope/PaintScope_Adjacency_Schema.md](../docs/PaintScope/PaintScope_Adjacency_Schema.md)** — Adjacency relationships and edge target definitions
 
 ### Geometry Constraint
 - Coverage rates must be expressed per unit (SF, LF, EA) — not as totals
@@ -128,7 +128,7 @@ When doctrine is silent and research fills a gap, flag in output:
 
 ## Protection Zone Material Requirements (MANDATORY)
 
-Reference: **[docs/Spec_Completeness_Doctrine.md § Layer 1](../docs/Spec_Completeness_Doctrine.md)**
+Reference: **[docs/Doctrine/Spec_Completeness_Doctrine.md § Layer 1](../docs/Doctrine/Spec_Completeness_Doctrine.md)**
 
 Every spec includes `protection_zones_required` in `spec.json`. Materials Manager MUST ensure consumable materials are defined for all declared protection zones.
 

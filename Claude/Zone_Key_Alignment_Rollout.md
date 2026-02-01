@@ -20,7 +20,7 @@ One thing to watch in Phase 3: The spec coverage gap check may surface specs tha
 
 ---
 
-> **Before starting Phase 1:** Read this document in full and read `docs/Protection_Zones_Reference.md` to understand the current state of zone definitions before making changes.
+> **Before starting Phase 1:** Read this document in full and read `docs/Reference/Protection_Zones_Reference.md` to understand the current state of zone definitions before making changes.
 
 ---
 

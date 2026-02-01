@@ -9,9 +9,9 @@ This document defines the canonical mapping between **Spec required inputs** and
 - If a required PaintScope key is missing, spec application MUST fail.
 
 Authority:
-- `docs/PaintScope_Quantity_Key_Catalog.md`
-- `docs/PaintScope_EdgeLF_Mapping.md`
-- `docs/PaintFactor_OS.md`
+- `docs/PaintScope/PaintScope_Quantity_Key_Catalog.md`
+- `docs/PaintScope/PaintScope_EdgeLF_Mapping.md`
+- `docs/System/PaintFactor_OS.md`
 
 ---
 

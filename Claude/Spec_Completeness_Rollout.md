@@ -222,7 +222,7 @@ Add a Doctrine Authority Hierarchy section to PaintFactor_OS.md that establishes
 
 ## Location
 
-**File:** `Claude/docs/PaintFactor_OS.md`
+**File:** `Claude/docs/System/PaintFactor_OS.md`
 
 **Insertion Point:** After the system overview section, before any domain-specific sections. This establishes authority early in the document.
 
@@ -333,7 +333,7 @@ Create a centralized Modifier Registry that catalogs ALL modifiers used in the P
 
 ## Output
 
-**File:** `Claude/docs/Modifier_Registry.md`
+**File:** `Claude/docs/Doctrine/Modifier_Registry.md`
 
 ---
 
@@ -891,10 +891,10 @@ CREATE TABLE color_assignments (
 - `Spec_Completeness_Doctrine_FINAL.md` (from outputs)
 
 **Output:**
-- `Claude/docs/Spec_Completeness_Doctrine.md`
+- `Claude/docs/Doctrine/Spec_Completeness_Doctrine.md`
 
 **Instructions:**
-1. Copy `Spec_Completeness_Doctrine_FINAL.md` to `Claude/docs/Spec_Completeness_Doctrine.md`
+1. Copy `Spec_Completeness_Doctrine_FINAL.md` to `Claude/docs/Doctrine/Spec_Completeness_Doctrine.md`
 2. Update the status from "Draft" to "Review"
 3. Update the Last Updated date to current date
 
@@ -941,7 +941,7 @@ CREATE TABLE color_assignments (
 - Discussion notes on value definitions
 
 **Output:**
-- `Claude/docs/Site_Condition_Vocabulary_Reference.md`
+- `Claude/docs/Reference/Site_Condition_Vocabulary_Reference.md`
 
 **Instructions:**
 1. Create `Site_Condition_Vocabulary_Reference.md` with the following content:
@@ -1152,12 +1152,12 @@ All condition IDs and values in this document are the canonical set. Specs refer
 
 **Input:**
 - `Claude/docs/tasks/Modifier_Registry_Creation.md` (task spec)
-- `Claude/docs/Estimation_Modifiers_Doctrine.md`
-- `Claude/docs/Quality_Tiers_and_Surface_Condition.md`
+- `Claude/docs/Doctrine/Estimation_Modifiers_Doctrine.md`
+- `Claude/docs/Doctrine/Quality_Tiers_and_Surface_Condition.md`
 - `Spec_Completeness_Doctrine.md`
 
 **Output:**
-- `Claude/docs/Modifier_Registry.md`
+- `Claude/docs/Doctrine/Modifier_Registry.md`
 
 **Instructions:**
 1. Follow the task specification in `Modifier_Registry_Creation.md`
@@ -1188,7 +1188,7 @@ All condition IDs and values in this document are the canonical set. Specs refer
 - Discussion notes on universal vs occupancy-driven protection
 
 **Output:**
-- `Claude/docs/Interior_Protection_Doctrine.md` (renamed, updated)
+- `Claude/docs/Doctrine/Interior_Protection_Doctrine.md` (renamed, updated)
 - Archive of original file (optional)
 
 **Instructions:**

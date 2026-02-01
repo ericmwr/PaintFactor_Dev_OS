@@ -173,6 +173,6 @@ Standard Fine Finish task IDs:
 
 ## References
 
-- `Claude/docs/Fine_Finish_Doctrine.md` — Canonical source
-- `Claude/docs/Quality_Tiers_and_Surface_Condition.md` — Quality tier definitions
-- `Claude/docs/Materials_and_Consumables_Doctrine.md` — Consumable usage patterns
+- `Claude/docs/Doctrine/Fine_Finish_Doctrine.md` — Canonical source
+- `Claude/docs/Doctrine/Quality_Tiers_and_Surface_Condition.md` — Quality tier definitions
+- `Claude/docs/Doctrine/Materials_and_Consumables_Doctrine.md` — Consumable usage patterns

@@ -1,6 +1,7 @@
 # Docs Folder Reorganization Plan
 
-**Status:** Ready to Execute  
+**Status:** Executed
+**Executed:** 2026-02-01  
 **Created:** 2026-02-01  
 **Purpose:** Clean up the `Claude/docs/` folder structure and fix all cross-references  
 
@@ -51,6 +52,14 @@ Agent prompts universally reference `docs/<filename>` (flat paths), so anything 
 **Doctrine Files missed in original audit (confirmed via System_Directory_Audit):**
 - `Spec_Completeness_Doctrine.md`
 - `Modifier_Registry.md`
+- `Interior_Protection_Doctrine.md`
+- `Interior_Protection_Doctrine_Residential_Repaint.md`
+
+**PaintScope Documents missed in original audit:**
+- `PaintScope_Key_Mapping_Addendum.md`
+
+**Doctrine/ files missed in original audit:**
+- `interior_protection_doctrine_final.md` (renamed → `Interior_Protection_Doctrine_Final.md`)
 
 **System/Changelog Documents:**
 - `Schema_Alignment_Changelog.md`
@@ -71,9 +80,9 @@ Agent prompts universally reference `docs/<filename>` (flat paths), so anything 
 - `Fine_Finish_Doctrine.md` ← NEW v1.2.0 (reformatted to Doctrine Format Standard)
 - `Millwork_NC_Paint_Doctrine.md` v1.0.0
 - `Doctrine_Format_Standard.md` v1.0.0
-- `DOCTRINE_Window_Systems_Painting.md`
-- `doors_doctrine_final.md` (needs rename to match naming convention)
-- (Possibly others — verify during execution)
+- `DOCTRINE_Window_Systems_Painting.md` (renamed → `Window_Systems_Doctrine.md`)
+- `doors_doctrine_final.md` (renamed → `Doors_Doctrine.md`)
+- `interior_protection_doctrine_final.md` (renamed → `Interior_Protection_Doctrine_Final.md`)
 
 ### Files in `docs/SpecFactory_Enhancement_Rollout/`
 
