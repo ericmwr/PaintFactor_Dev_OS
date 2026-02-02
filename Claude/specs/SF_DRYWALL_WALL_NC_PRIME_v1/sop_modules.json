@@ -4,9 +4,9 @@
 
   "sop_modules": [
     {
-      "module_id": "MOD_PREP_DRYWALL_NC",
-      "name": "New Drywall Preparation",
-      "description": "Prepare new drywall surfaces for primer application. Includes inspection and dust removal. NO spot-priming of fasteners — new drywall fasteners are mudded and rust-resistant (RC-001).",
+      "module_id": "MOD_PREP_WALL_NC",
+      "name": "New Drywall Wall Preparation",
+      "description": "Prepare new drywall wall surfaces for primer application. Includes substrate inspection, defect repair, and dust removal. Inspection/repair intensity is QT-driven. NO spot-priming of fasteners — new drywall fasteners are mudded and rust-resistant (RC-001).",
       "phase": "prep",
       "applies_when": {
         "quality_tier": ["QT2", "QT3", "QT4"]
@@ -20,48 +20,269 @@
       ],
       "tasks": [
         {
-          "task_id": "TSK_INSPECT_DRYWALL",
-          "name": "Inspect Drywall Surface",
-          "description": "Walk all wall surfaces with work light to identify defects: fastener pops, unfilled joints, damaged paper, ridges, or debris. Mark defects for correction.",
-          "task_classification": "binary",
+          "task_id": "TSK_WALL_INSPECT",
+          "name": "Inspect Wall Surface",
+          "description": "Walk all wall surfaces with work light angled to reveal defects: fastener pops, unfilled joints, damaged paper, ridges, screw dimples not fully filled, or debris. Raking light angle is critical — direct overhead light hides wall defects.",
+          "task_type": "prep",
+          "task_classification": "qt_scaled",
+          "qt_behavior": "rate_varies_by_tier",
           "skill_level": "journeyman",
           "tools_required": ["work_light", "marking_crayon"],
           "quality_notes": {
-            "QT2": "Note only major defects (fastener pops, holes)",
-            "QT3": "Identify and mark all visible defects including minor ridges",
-            "QT4": "Comprehensive inspection under bright light, mark all imperfections"
+            "QT2": "Note only major defects (unfilled joints, fastener pops, holes)",
+            "QT3": "Identify and mark all visible defects including minor ridges and screw dimples",
+            "QT4": "Comprehensive inspection under bright raking light, mark all imperfections including texture inconsistencies"
           }
         },
         {
-          "task_id": "TSK_INSPECT_DRYWALL_QT4",
-          "name": "Inspect Drywall Surface (Premium)",
-          "description": "Detailed inspection of all wall surfaces using work light. Mark all imperfections including minor ridges, scratches, and texture inconsistencies. QT4 requires comprehensive defect identification.",
-          "task_classification": "binary",
+          "task_id": "TSK_WALL_REPAIR",
+          "name": "Repair Wall Defects",
+          "description": "Fill identified defects with lightweight spackle or joint compound. Sand smooth when dry. Repair intensity is QT-driven. Cross-spec note: if repair is performed here, SF_DRYWALL_WALL_NC_FINISH should skip its first inspection/repair round.",
+          "task_type": "prep",
+          "task_classification": "qt_scaled",
+          "qt_behavior": "rate_varies_by_tier",
           "skill_level": "journeyman",
-          "tools_required": ["work_light", "marking_crayon"],
+          "tools_required": ["spackle", "putty_knife", "sanding_block_fine"],
           "quality_notes": {
-            "QT4": "Comprehensive inspection under bright light, mark all imperfections for correction"
+            "QT2": "Fill major defects only — holes, unfilled joints",
+            "QT3": "Fill all marked defects, sand smooth, feather edges",
+            "QT4": "Thorough repair of all defects, meticulous feathering, uniform surface"
+          },
+          "cross_spec_flag": {
+            "flag_id": "XSPEC_WALL_REPAIR_DONE",
+            "description": "When this task is completed, SF_DRYWALL_WALL_NC_FINISH should skip its first inspection/repair round to avoid double-counting labor.",
+            "target_spec": "SF_DRYWALL_WALL_NC_FINISH"
           }
         },
         {
-          "task_id": "TSK_VACUUM_DUST",
-          "name": "Vacuum Drywall Dust",
-          "description": "Remove drywall dust from wall surfaces using HEPA vacuum with brush attachment. Dust left on surface will cause adhesion failure.",
+          "task_id": "TSK_WALL_VACUUM_DUST",
+          "name": "Vacuum Wall Drywall Dust",
+          "description": "Remove drywall dust from wall surfaces using HEPA vacuum with brush attachment. Work top-to-bottom systematically. Walls accumulate more dust than ceilings. Critical for primer adhesion.",
+          "task_type": "prep",
+          "task_classification": "binary",
+          "qt_behavior": "all_tiers_identical",
           "skill_level": "helper",
           "tools_required": ["HEPA_vacuum", "brush_attachment"],
           "quality_notes": {
-            "QT2": "Quick pass to remove loose dust",
-            "QT3": "Thorough vacuum of all surfaces",
-            "QT4": "Complete vacuum with attention to corners and edges"
+            "all": "All surfaces must be dust-free before priming. Dust compromises adhesion at every quality tier."
           }
         }
       ],
-      "sequence_notes": "Inspect → Vacuum. Inspection identifies issues, vacuum removes dust before priming. NO spot-priming of fasteners — new drywall fasteners are mudded and rust-resistant (RC-001)."
+      "sequence_notes": "Inspect → Repair → Vacuum. Inspection identifies defects, repair addresses them, vacuum removes all dust (including repair dust) before priming. NO spot-priming of fasteners (RC-001)."
     },
     {
-      "module_id": "MOD_APPLY_PRIME_ROLL",
-      "name": "Apply Primer - Roller Method",
-      "description": "Apply primer coat to walls using roller. Includes cut-in at ceiling edge.",
+      "module_id": "MOD_PROTECT_FLOOR_WALL_ROLL",
+      "name": "Floor Protection for Wall Roll",
+      "description": "Set up perimeter floor protection for wall rolling. Roll method has minimal drip risk — perimeter drops along base of walls sufficient.",
+      "phase": "protect",
+      "applies_when": {
+        "application_method": ["roll"]
+      },
+      "required_inputs": [
+        {
+          "input_name": "IN_SF_PROTECT_FLOOR_PERIMETER",
+          "paintscope_key": "PS_PROTECT_SF.FLOOR_PERIMETER",
+          "uom": "SF"
+        }
+      ],
+      "tasks": [
+        {
+          "task_id": "TSK_WALL_FLOOR_PROTECT_SETUP_ROLL",
+          "name": "Floor Protection Setup (Perimeter)",
+          "description": "Position canvas drop cloths along base of walls being rolled. Perimeter coverage for catching drips and roller splatter.",
+          "task_type": "protect",
+          "task_classification": "binary",
+          "qt_behavior": "all_tiers_identical",
+          "skill_level": "helper",
+          "tools_required": ["drop_cloth_canvas"],
+          "protection_metadata": {
+            "action": "setup",
+            "zones": ["floor_perimeter"],
+            "method_dependent": true
+          },
+          "site_condition_rules": {
+            "include_when": {
+              "floor_type": ["finished", "partial"]
+            },
+            "exclude_when": {
+              "floor_type": ["subfloor"]
+            }
+          },
+          "quality_notes": {
+            "all": "Drops positioned along base of all walls being worked. No gaps at corners."
+          }
+        },
+        {
+          "task_id": "TSK_WALL_FLOOR_PROTECT_TEARDOWN_ROLL",
+          "name": "Floor Protection Teardown (Perimeter)",
+          "description": "Remove perimeter drop cloths after wall priming is complete. Fold toward center to contain debris.",
+          "task_type": "protect",
+          "task_classification": "binary",
+          "qt_behavior": "all_tiers_identical",
+          "skill_level": "helper",
+          "tools_required": [],
+          "protection_metadata": {
+            "action": "teardown",
+            "zones": ["floor_perimeter"],
+            "method_dependent": true
+          },
+          "site_condition_rules": {
+            "include_when": {
+              "floor_type": ["finished", "partial"]
+            },
+            "exclude_when": {
+              "floor_type": ["subfloor"]
+            }
+          }
+        }
+      ],
+      "sequence_notes": "Setup before rolling. Teardown after all wall prime rolling is complete. In NC sequence, drops may stay for subsequent finish phase."
+    },
+    {
+      "module_id": "MOD_PROTECT_FLOOR_WALL_SPRAY",
+      "name": "Floor Protection for Wall Spray",
+      "description": "Set up full-room floor protection before wall spray work. Wall spray overspray falls to floor — full coverage required.",
+      "phase": "protect",
+      "applies_when": {
+        "application_method": ["spray_backroll"]
+      },
+      "required_inputs": [
+        {
+          "input_name": "IN_SF_PROTECT_FLOOR_EXPOSED",
+          "paintscope_key": "PS_PROTECT_SF.FLOOR_EXPOSED",
+          "uom": "SF"
+        }
+      ],
+      "tasks": [
+        {
+          "task_id": "TSK_WALL_FLOOR_PROTECT_SETUP_SPRAY",
+          "name": "Floor Protection Setup (Full Room)",
+          "description": "Install full-room floor protection. Hard floors: rosin paper with taped seams and perimeter tape. Carpet: 1.5 mil plastic with taped edges. Full coverage required — wall spray overspray falls to floor.",
+          "task_type": "protect",
+          "task_classification": "binary",
+          "qt_behavior": "all_tiers_identical",
+          "skill_level": "helper",
+          "tools_required": ["rosin_paper", "plastic_sheeting", "masking_tape"],
+          "protection_metadata": {
+            "action": "setup",
+            "zones": ["floor_full"],
+            "method_dependent": true
+          },
+          "site_condition_rules": {
+            "include_when": {
+              "floor_type": ["finished", "partial"]
+            },
+            "exclude_when": {
+              "floor_type": ["subfloor"]
+            }
+          },
+          "quality_notes": {
+            "all": "Full room coverage, all seams taped, no gaps."
+          }
+        },
+        {
+          "task_id": "TSK_WALL_FLOOR_PROTECT_TEARDOWN_SPRAY",
+          "name": "Floor Protection Teardown (Full Room)",
+          "description": "Remove floor protection after wall spray priming is complete. Fold toward center to contain debris.",
+          "task_type": "protect",
+          "task_classification": "binary",
+          "qt_behavior": "all_tiers_identical",
+          "skill_level": "helper",
+          "tools_required": [],
+          "protection_metadata": {
+            "action": "teardown",
+            "zones": ["floor_full"],
+            "method_dependent": true
+          },
+          "site_condition_rules": {
+            "include_when": {
+              "floor_type": ["finished", "partial"]
+            },
+            "exclude_when": {
+              "floor_type": ["subfloor"]
+            }
+          }
+        }
+      ],
+      "sequence_notes": "Setup before any spray work. Teardown after all wall spray/backroll complete. In NC sequence, floor protection may stay for subsequent phases."
+    },
+    {
+      "module_id": "MOD_PROTECT_FIXTURES_WALL_SPRAY",
+      "name": "Fixture Protection for Wall Spray",
+      "description": "Remove covers and protect fixtures before wall spray. Uses per-room heuristic (average 6 outlets/switches per room). In NC, fixtures may or may not be installed at prime time.",
+      "phase": "protect",
+      "applies_when": {
+        "application_method": ["spray_backroll"]
+      },
+      "required_inputs": [
+        {
+          "input_name": "IN_EA_ROOMS_TOTAL",
+          "paintscope_key": "PS_META.EA.ROOMS_TOTAL",
+          "uom": "ROOM"
+        }
+      ],
+      "tasks": [
+        {
+          "task_id": "TSK_WALL_REMOVE_COVERS_REGISTERS",
+          "name": "Remove Outlet Covers, Switch Plates, and HVAC Registers",
+          "description": "Remove all outlet covers and switch plates from walls. Remove HVAC register covers and label them for reinstallation. Outlet covers and switch plates are removed, not masked — masking leaves paint edges and doesn't protect properly. HVAC registers are removed and labeled to prevent loss.",
+          "task_type": "protect",
+          "task_classification": "binary",
+          "qt_behavior": "all_tiers_identical",
+          "skill_level": "helper",
+          "tools_required": ["screwdriver", "storage_bags", "marker"],
+          "protection_metadata": {
+            "action": "setup",
+            "zones": ["fixture_covers"],
+            "method_dependent": false
+          },
+          "quality_notes": {
+            "all": "All covers and registers removed and labeled. Electrical boxes exposed — mask outlet/switch boxes to protect from overspray."
+          }
+        },
+        {
+          "task_id": "TSK_WALL_MASK_BOXES_FIXTURES",
+          "name": "Mask Electrical Boxes and Light Fixtures",
+          "description": "Mask exposed outlet boxes and switch boxes with tape to protect from overspray. Light fixtures: loosen from wall or ceiling and mask off with tape/plastic. Do not fully remove light fixtures — loosen and wrap.",
+          "task_type": "protect",
+          "task_classification": "binary",
+          "qt_behavior": "all_tiers_identical",
+          "skill_level": "helper",
+          "tools_required": ["masking_tape", "plastic_bags"],
+          "protection_metadata": {
+            "action": "setup",
+            "zones": ["fixture_covers"],
+            "method_dependent": true
+          },
+          "quality_notes": {
+            "all": "All electrical boxes masked. Light fixtures loosened and wrapped. No exposed surfaces in overspray zone."
+          }
+        },
+        {
+          "task_id": "TSK_WALL_UNMASK_BOXES_FIXTURES",
+          "name": "Remove Masking from Boxes and Fixtures",
+          "description": "Remove masking from electrical boxes and light fixtures after wall spray priming is complete. Re-seat loosened light fixtures. Do NOT reinstall outlet covers, switch plates, or HVAC registers — they remain off until after finish paint phase.",
+          "task_type": "protect",
+          "task_classification": "binary",
+          "qt_behavior": "all_tiers_identical",
+          "skill_level": "helper",
+          "tools_required": [],
+          "protection_metadata": {
+            "action": "teardown",
+            "zones": ["fixture_covers"],
+            "method_dependent": true
+          },
+          "quality_notes": {
+            "all": "All masking removed. Light fixtures re-seated. Covers and registers remain off for finish paint phase."
+          }
+        }
+      ],
+      "sequence_notes": "Remove covers/registers → Mask boxes/fixtures before spray. After spray: unmask boxes/fixtures and re-seat lights. Covers and registers are NOT reinstalled during prime — they stay off until after finish paint. In NC, if electrical is not yet installed, this module may be skipped."
+    },
+    {
+      "module_id": "MOD_APPLY_WALL_PRIME_ROLL",
+      "name": "Apply Wall Primer - Roller Method",
+      "description": "Apply primer coat to walls using roller with extension pole. Includes cut-in at ceiling edge.",
       "phase": "apply",
       "applies_when": {
         "application_method": ["roll"]
@@ -80,11 +301,12 @@
       ],
       "tasks": [
         {
-          "task_id": "TSK_CUT_IN_CEILING",
+          "task_id": "TSK_WALL_CUT_IN_CEILING",
           "name": "Cut-In Ceiling Edge",
-          "description": "Brush-cut primer along wall-to-ceiling boundary. Cut line should be clean and extend 2-3 inches onto wall for roller overlap.",
+          "description": "Brush-cut primer along wall-to-ceiling boundary. Cut line should be clean and extend 2-3 inches down from ceiling for roller overlap. Working at comfortable height for standard walls; step ladder for taller walls.",
           "task_type": "apply",
-          "task_classification": "binary",
+          "task_classification": "qt_scaled",
+          "qt_behavior": "rate_varies_by_tier",
           "skill_level": "journeyman",
           "tools_required": ["brush_2.5in_angled", "primer", "cut_bucket"],
           "adjacency_metadata": {
@@ -95,71 +317,44 @@
             "application_method": "brush_roll"
           },
           "quality_notes": {
-            "QT2": "Acceptable edge, minor wavering tolerated",
-            "QT3": "Clean, consistent edge",
-            "QT4": "Crisp edge with minimal brush marks, straight line"
+            "QT2": "Acceptable edge, minor wavering tolerated if coverage complete",
+            "QT3": "Clean, consistent edge with no visible wobble at distance",
+            "QT4": "Crisp edge with minimal brush marks, straight line, no visible wobble at 3 feet"
           }
         },
         {
-          "task_id": "TSK_CUT_IN_CEILING_QT4",
-          "name": "Cut-In Ceiling Edge (Premium)",
-          "description": "Premium quality brush-cut primer along wall-to-ceiling boundary. Crisp, straight line with no brush marks. QT4 requires meticulous edge work.",
+          "task_id": "TSK_WALL_ROLL_PRIMER",
+          "name": "Roll Primer on Wall",
+          "description": "Apply primer to wall field using 9-inch roller on extension pole. Work in W-pattern, maintain wet edge, avoid lap marks. Wall rolling is at natural standing position — faster and less fatiguing than ceiling work.",
           "task_type": "apply",
           "task_classification": "binary",
-          "skill_level": "journeyman",
-          "tools_required": ["brush_2.5in_angled", "primer", "cut_bucket"],
-          "adjacency_metadata": {
-            "adjacent_surface": "ceiling_field",
-            "condition": "different_finish",
-            "skip_when": "same_finish_group",
-            "rate_modifier_category": "cut_in",
-            "application_method": "brush_roll"
-          },
-          "quality_notes": {
-            "QT4": "Crisp edge with minimal brush marks, perfectly straight line"
-          }
-        },
-        {
-          "task_id": "TSK_ROLL_PRIMER_WALL",
-          "name": "Roll Primer on Walls",
-          "description": "Apply primer to wall field using 9-inch roller with extension pole. Work in W-pattern, maintain wet edge, avoid lap marks.",
-          "task_classification": "binary",
+          "qt_behavior": "all_tiers_identical",
           "skill_level": "journeyman",
           "tools_required": ["roller_9in", "roller_cover_half_nap", "extension_pole", "paint_tray"],
           "quality_notes": {
-            "all": "No application defects — no drips, sags, holidays, or lap marks at any quality tier. Surface must be uniformly sealed. (Surface condition imperfections governed by inspection task tolerance.)"
+            "all": "All tiers: properly painted surface per PCA. No drips, sags, holidays, or lap marks. Surface must be uniformly sealed."
           }
         },
         {
-          "task_id": "TSK_ROLL_PRIMER_WALL_TEXTURED",
-          "name": "Roll Primer on Walls (Textured Surface)",
-          "description": "Apply primer to textured wall surfaces using 3/4-inch nap roller. Heavier nap required to work primer into texture valleys. Maintain wet edge.",
+          "task_id": "TSK_WALL_ROLL_PRIMER_TEXTURED",
+          "name": "Roll Primer on Wall (Textured Surface)",
+          "description": "Apply primer to textured wall surfaces using 3/4-inch nap roller on extension pole. Heavier nap required to work primer into texture valleys. Maintain wet edge.",
+          "task_type": "apply",
           "task_classification": "binary",
+          "qt_behavior": "all_tiers_identical",
           "skill_level": "journeyman",
           "tools_required": ["roller_9in", "roller_cover_3_4_nap", "extension_pole", "paint_tray"],
           "quality_notes": {
-            "all": "No application defects — no drips, sags, holidays, or lap marks at any quality tier. All texture valleys must be filled and sealed. (Surface condition imperfections governed by inspection task tolerance.)"
-          }
-        },
-        {
-          "task_id": "TSK_ROLL_PRIMER_WALL_QT4",
-          "name": "Roll Primer on Walls (Premium)",
-          "description": "Premium quality primer application for QT4 finish. Uniform mil thickness, no visible lap marks, consistent sheen across all surfaces.",
-          "task_classification": "binary",
-          "skill_level": "journeyman",
-          "tools_required": ["roller_9in", "roller_cover_half_nap", "extension_pole", "paint_tray"],
-          "quality_notes": {
-            "all": "No application defects — no drips, sags, holidays, or lap marks at any quality tier.",
-            "QT4": "Additional: verify uniform mil thickness and consistent sheen"
+            "all": "All tiers: properly painted surface per PCA. No drips, sags, holidays, or lap marks. All texture valleys must be filled and sealed."
           }
         }
       ],
-      "sequence_notes": "Cut-in first, then roll. Maintain wet edge between cut-in and roll to avoid lap marks."
+      "sequence_notes": "Cut-in first, then roll. Maintain wet edge between cut-in and roll to avoid lap marks at ceiling line."
     },
     {
-      "module_id": "MOD_APPLY_PRIME_SPRAY_BACKROLL",
-      "name": "Apply Primer - Spray + Backroll Method",
-      "description": "Apply primer via airless spray followed by backroll for consolidation and leveling.",
+      "module_id": "MOD_APPLY_WALL_PRIME_SPRAY_BACKROLL",
+      "name": "Apply Wall Primer - Spray + Backroll Method",
+      "description": "Apply primer to walls via airless spray followed by backroll for consolidation and leveling. Backroll is strongly recommended on drywall for consolidation into pores. Backroller sets the pace per Estimation_Modifiers_Doctrine.",
       "phase": "apply",
       "applies_when": {
         "application_method": ["spray_backroll"]
@@ -178,74 +373,38 @@
       ],
       "tasks": [
         {
-          "task_id": "TSK_MASK_ADJACENT",
-          "name": "Mask Adjacent Surfaces",
-          "description": "Mask ceiling line, door frames, windows, and floor as needed to protect from overspray.",
-          "task_type": "protect",
-          "skill_level": "helper",
-          "tools_required": ["masking_tape", "masking_paper", "drop_cloth"],
-          "protection_metadata": {
-            "action": "setup",
-            "zones": ["ceiling_line", "trim_edges", "floor_perimeter", "fixture_covers"],
-            "method_dependent": true
-          },
-          "quality_notes": {
-            "QT2": "Basic masking of floors and openings",
-            "QT3": "Complete masking of adjacent surfaces",
-            "QT4": "Precision masking with clean tape lines"
-          }
-        },
-        {
-          "task_id": "TSK_SPRAY_PRIMER",
-          "name": "Spray Primer Coat",
-          "description": "Apply primer via airless sprayer. Maintain 12-inch distance, 50% overlap, consistent speed. Work top-to-bottom, wet edge.",
-          "task_classification": "binary",
-          "skill_level": "journeyman",
-          "tools_required": ["airless_sprayer", "spray_tip_517", "respirator", "goggles"],
-          "quality_notes": {
-            "all": "No application defects — no drips, sags, holidays, or lap marks at any quality tier. (Surface condition imperfections governed by inspection task tolerance.)"
-          }
-        },
-        {
-          "task_id": "TSK_SPRAY_PRIMER_QT4",
-          "name": "Spray Primer Coat (Premium)",
-          "description": "Premium quality spray primer application. Uniform coverage, consistent mil thickness, no drips or sags. Slower pace with meticulous overlap control.",
-          "task_classification": "binary",
-          "skill_level": "journeyman",
-          "tools_required": ["airless_sprayer", "spray_tip_517", "respirator", "goggles"],
-          "quality_notes": {
-            "all": "No application defects — no drips, sags, holidays, or lap marks at any quality tier.",
-            "QT4": "Additional: verify uniform mil thickness"
-          }
-        },
-        {
-          "task_id": "TSK_BACKROLL_PRIMER",
-          "name": "Backroll Sprayed Primer",
-          "description": "Immediately follow spray with 9-inch roller to consolidate primer into surface, eliminate air pockets, and level finish.",
-          "task_classification": "binary",
-          "skill_level": "journeyman",
-          "tools_required": ["roller_9in", "roller_cover_half_nap", "extension_pole"],
-          "quality_notes": {
-            "all": "No application defects — no drips, sags, holidays, or lap marks at any quality tier. Primer must be fully consolidated into surface. (Surface condition imperfections governed by inspection task tolerance.)"
-          }
-        },
-        {
-          "task_id": "TSK_BACKROLL_PRIMER_QT4",
-          "name": "Backroll Sprayed Primer (Premium)",
-          "description": "Premium quality backroll for QT4 finish. Thorough consolidation, no stipple, uniform sheen. Multiple passes if needed.",
-          "task_classification": "binary",
-          "skill_level": "journeyman",
-          "tools_required": ["roller_9in", "roller_cover_half_nap", "extension_pole"],
-          "quality_notes": {
-            "all": "No application defects — no drips, sags, holidays, or lap marks at any quality tier. Primer must be fully consolidated into surface.",
-            "QT4": "Additional: verify uniform sheen, no stipple"
-          }
-        },
-        {
-          "task_id": "TSK_CUT_IN_CEILING_SPRAY",
-          "name": "Cut-In Ceiling Edge After Spray",
-          "description": "Touch up ceiling edge with brush if needed after spray/backroll. Required if masking line is not crisp.",
+          "task_id": "TSK_WALL_SPRAY_PRIMER",
+          "name": "Spray Primer on Wall",
+          "description": "Apply primer via airless sprayer. Maintain proper distance, 50% overlap, consistent speed. Work systematically wall by wall. Spray rate is coupled to backroll rate — sprayer cannot outpace backroller.",
           "task_type": "apply",
+          "task_classification": "binary",
+          "qt_behavior": "all_tiers_identical",
+          "skill_level": "journeyman",
+          "tools_required": ["airless_sprayer", "spray_tip_517", "respirator", "goggles"],
+          "quality_notes": {
+            "all": "All tiers: properly painted surface per PCA. No drips, sags, holidays, or lap marks."
+          }
+        },
+        {
+          "task_id": "TSK_WALL_BACKROLL_PRIMER",
+          "name": "Backroll Sprayed Wall Primer",
+          "description": "Immediately follow spray with 18-inch roller on extension pole to consolidate primer into wall surface. Critical for eliminating air pockets and leveling. Backroller sets the production pace.",
+          "task_type": "apply",
+          "task_classification": "binary",
+          "qt_behavior": "all_tiers_identical",
+          "skill_level": "journeyman",
+          "tools_required": ["roller_18in", "roller_cover_half_nap", "extension_pole"],
+          "quality_notes": {
+            "all": "All tiers: properly painted surface per PCA. No drips, sags, holidays, or lap marks. Primer must be fully consolidated into drywall surface."
+          }
+        },
+        {
+          "task_id": "TSK_WALL_CUT_IN_CEILING_SPRAY",
+          "name": "Cut-In Ceiling Edge After Wall Spray",
+          "description": "Touch up ceiling-line edge with brush after spray/backroll. Required if spray coverage at ceiling line is not clean or if primer extended onto ceiling.",
+          "task_type": "apply",
+          "task_classification": "qt_scaled",
+          "qt_behavior": "rate_varies_by_tier",
           "skill_level": "journeyman",
           "tools_required": ["brush_2.5in_angled", "primer"],
           "adjacency_metadata": {
@@ -256,137 +415,134 @@
             "application_method": "brush_roll"
           },
           "quality_notes": {
-            "QT3": "Clean edge, cover any mask bleed",
-            "QT4": "Crisp edge, straight line"
+            "QT2": "Cover any bleed past ceiling line",
+            "QT3": "Clean edge, cover any spray overshoot",
+            "QT4": "Crisp edge, straight line, no visible overshoot"
           }
         }
       ],
-      "sequence_notes": "Mask → Spray → Backroll (immediately) → Touch-up cut-in. Backroller must follow sprayer closely - spray rate cannot exceed backroll rate."
+      "sequence_notes": "Spray → Backroll (immediately) → Touch-up cut-in at ceiling. Backroller must follow sprayer closely — spray rate cannot exceed backroll rate per Estimation_Modifiers_Doctrine."
     },
     {
-      "module_id": "MOD_APPLY_PRIME_SPRAY_ONLY",
-      "name": "Apply Primer - Spray Only Method",
-      "description": "Apply primer via airless spray without backroll. Faster but may have more visible texture.",
-      "phase": "apply",
-      "applies_when": {
-        "application_method": ["spray"]
-      },
-      "required_inputs": [
-        {
-          "input_name": "IN_SF_WALL_FIELD",
-          "paintscope_key": "PS_SURFACE_SF.WALL_FIELD",
-          "uom": "SF"
-        },
-        {
-          "input_name": "IN_LF_EDGE_TO_CEILING",
-          "paintscope_key": "PS_EDGE_LF.TO_CEILING",
-          "uom": "LF"
-        }
-      ],
-      "tasks": [
-        {
-          "task_id": "TSK_MASK_ADJACENT_SPRAY",
-          "name": "Mask Adjacent Surfaces",
-          "description": "Mask ceiling line, door frames, windows, and floor to protect from overspray.",
-          "task_type": "protect",
-          "skill_level": "helper",
-          "tools_required": ["masking_tape", "masking_paper", "drop_cloth"],
-          "protection_metadata": {
-            "action": "setup",
-            "zones": ["ceiling_line", "trim_edges", "floor_perimeter", "fixture_covers"],
-            "method_dependent": true
-          },
-          "quality_notes": {
-            "QT2": "Basic masking",
-            "QT3": "Complete masking"
-          }
-        },
-        {
-          "task_id": "TSK_SPRAY_PRIMER_ONLY",
-          "name": "Spray Primer Coat (No Backroll)",
-          "description": "Apply primer via airless sprayer. Higher overlap required when not backrolling to ensure even coverage.",
-          "skill_level": "journeyman",
-          "tools_required": ["airless_sprayer", "spray_tip_517", "respirator", "goggles"],
-          "quality_notes": {
-            "all": "No application defects — no drips, sags, holidays, or lap marks at any quality tier. (Surface condition imperfections governed by inspection task tolerance.)"
-          }
-        }
-      ],
-      "sequence_notes": "Mask → Spray. No backroll means sprayer must achieve final finish in single pass."
-    },
-    {
-      "module_id": "MOD_CLEANUP",
-      "name": "Cleanup",
-      "description": "Clean tools, remove masking, inspect work.",
+      "module_id": "MOD_WALL_CLEANUP",
+      "name": "Wall Prime Cleanup",
+      "description": "Clean tools, vacuum floor, and inspect wall prime work.",
       "phase": "cleanup",
       "applies_when": {},
-      "required_inputs": [],
+      "required_inputs": [
+        {
+          "input_name": "IN_SF_FLOOR_VACUUM",
+          "paintscope_key": "PS_META.SF.FLOOR_VACUUM_AREA",
+          "uom": "SF"
+        }
+      ],
       "tasks": [
         {
-          "task_id": "TSK_REMOVE_MASKING",
-          "name": "Remove Masking",
-          "description": "Remove all masking tape and paper. Pull tape at 45-degree angle to avoid peeling primer. NOTE: In NC production sequence, masking may stay in place for subsequent phases (wall paint, trim) — review whether teardown belongs here or in final cleanup spec.",
-          "task_type": "protect",
+          "task_id": "TSK_WALL_VACUUM_FLOOR_POST_PRIME",
+          "name": "Vacuum Floor After Wall Prime",
+          "description": "Vacuum floor area to remove dust, debris, and any primer drips/overspray from floor protection or exposed floor. Applies regardless of whether floor protection was installed.",
+          "task_type": "cleanup",
+          "task_classification": "binary",
+          "qt_behavior": "all_tiers_identical",
           "skill_level": "helper",
-          "tools_required": [],
-          "protection_metadata": {
-            "action": "teardown",
-            "zones": ["ceiling_line", "trim_edges", "floor_perimeter", "fixture_covers"],
-            "method_dependent": true
+          "tools_required": ["HEPA_vacuum"],
+          "quality_notes": {
+            "all": "Floor area clean and free of debris."
           }
         },
         {
-          "task_id": "TSK_CLEAN_TOOLS",
+          "task_id": "TSK_WALL_CLEAN_TOOLS",
           "name": "Clean Tools",
           "description": "Clean brushes, rollers, spray equipment with water. Store or dispose properly.",
+          "task_type": "cleanup",
           "task_classification": "binary",
+          "qt_behavior": "all_tiers_identical",
           "skill_level": "helper",
           "tools_required": ["water_source", "brush_comb"]
         },
         {
-          "task_id": "TSK_LIGHT_SAND_PRIME",
-          "name": "Light Sand Primer",
-          "description": "Light hand sand primed surface with 220 grit to ensure smooth base for finish coats. Required for Level 5 drywall finish at QT4 quality tier. NOTE: This task may belong in the finish spec (SF_DRYWALL_WALL_NC_PAINT) rather than the prime spec — review pending.",
-          "task_classification": "binary",
+          "task_id": "TSK_WALL_FINAL_INSPECT",
+          "name": "Final Wall Inspection",
+          "description": "Walk all primed wall surfaces. Check for holidays, missed spots, drips, or edge issues. Use raking light for inspection. Touch up as needed.",
+          "task_type": "inspect",
+          "task_classification": "qt_scaled",
+          "qt_behavior": "rate_varies_by_tier",
           "skill_level": "journeyman",
-          "tools_required": ["sanding_block", "sandpaper_220_grit"],
+          "tools_required": ["work_light"],
           "quality_notes": {
-            "QT4": "Light sand entire primed surface for Level 5 finish preparation"
+            "QT2": "Quick visual check for major misses",
+            "QT3": "Walk all surfaces, check with raking light, touch up as needed",
+            "QT4": "Comprehensive inspection under bright raking light, touch up any visible defects"
           }
-        },
-        {
-          "task_id": "TSK_FINAL_INSPECT",
-          "name": "Final Inspection",
-          "description": "Walk all primed surfaces. Check for holidays, missed spots, drips, or edge issues. Touch up as needed.",
-          "skill_level": "journeyman",
-          "tools_required": ["work_light"]
         }
       ],
-      "sequence_notes": "Remove masking while primer is still slightly tacky for cleanest edge. Clean tools before primer dries."
+      "sequence_notes": "Vacuum floor → Clean tools → Final inspect. Clean tools before primer dries."
     }
   ],
 
   "round_configurations": [
     {
-      "round_id": "ROUND_SINGLE_PRIME",
-      "name": "Single Prime Round",
-      "description": "Standard single coat of primer for new drywall.",
+      "round_id": "ROUND_SINGLE_WALL_PRIME",
+      "name": "Single Wall Prime Round",
+      "description": "Standard single coat of primer for new drywall walls.",
       "applies_when": {
         "quality_tier": ["QT2", "QT3"]
       },
-      "phase_sequence": ["prep", "apply", "cleanup"],
-      "notes": "Single primer coat is standard for new drywall with topcoat to follow."
+      "phase_sequence": ["prep", "protect", "apply", "cleanup"],
+      "notes": "Single primer coat is standard for new drywall walls with topcoat to follow."
     },
     {
-      "round_id": "ROUND_PRIME_WITH_SAND",
-      "name": "Prime with Light Sand",
-      "description": "Primer application with light sand between for premium finish.",
+      "round_id": "ROUND_WALL_PRIME_QT4",
+      "name": "Wall Prime (Premium)",
+      "description": "Premium primer application for QT4 wall finish.",
       "applies_when": {
-        "quality_tier": ["QT4"],
-        "drywall_finish_level": ["level_5"]
+        "quality_tier": ["QT4"]
       },
-      "phase_sequence": ["prep", "apply", "sand", "cleanup"],
-      "notes": "Light sand (220 grit) after prime to ensure smooth base for topcoat. Required for Level 5 finish."
+      "phase_sequence": ["prep", "protect", "apply", "cleanup"],
+      "notes": "Light sand of primed surface is prep phase of SF_DRYWALL_WALL_NC_FINISH, not part of prime spec."
     }
-  ]
+  ],
+
+  "assumptions": [
+    {
+      "field": "trim_adjacency_tasks",
+      "value": "No trim masking or trim edge tasks included",
+      "source": "Brief Section 9 — NC sequence, trim not installed during prime",
+      "doctrine_gap": false,
+      "note": "Trim (baseboard, door casing, window casing) is not installed during wall prime phase in NC. All trim adjacency edge work is deferred to SF_DRYWALL_WALL_NC_FINISH."
+    },
+    {
+      "field": "ceiling_masking",
+      "value": "No ceiling-line masking task for spray methods",
+      "source": "Brief Section 9 — ceiling is either bare or being primed simultaneously",
+      "doctrine_gap": false,
+      "note": "In NC sequence, ceiling is either bare drywall or being primed in same session. No ceiling masking needed during wall prime. This differs from repaint where ceiling_line masking would be required."
+    }
+  ],
+
+  "exclusions": [
+    {
+      "exclusion_id": "EXCL_SPOT_PRIME",
+      "description": "No spot-priming of fasteners — NC fasteners are mudded and rust-resistant (RC-001)",
+      "source": "Materials_and_Consumables_Doctrine § Primer Product Classification"
+    },
+    {
+      "exclusion_id": "EXCL_TRIM_MASKING",
+      "description": "No trim masking tasks — trim is not installed during NC wall prime phase",
+      "source": "Brief Section 9 — NC sequence"
+    },
+    {
+      "exclusion_id": "EXCL_CEILING_MASKING",
+      "description": "No ceiling-line masking for spray — ceiling is bare or being primed simultaneously in NC",
+      "source": "Brief Section 9 — NC sequence"
+    },
+    {
+      "exclusion_id": "EXCL_FURNITURE_PROTECTION",
+      "description": "No furniture protection — new construction is vacant",
+      "source": "Site_Condition_Vocabulary_Reference — occupancy_state = vacant for NC"
+    }
+  ],
+
+  "doctrine_conflicts": [],
+  "research_corrections": []
 }
