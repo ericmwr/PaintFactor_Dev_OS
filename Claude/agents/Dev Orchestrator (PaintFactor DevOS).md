@@ -98,6 +98,87 @@ It does NOT replace runtime systems or human judgment.
 
 ---
 
+## Spec Brief System
+
+When SpecFactory work is requested, check for a pre-authored brief FIRST.
+
+### Brief Lookup Order
+
+1. **If human specifies a spec family ID** (e.g., "Generate SF_DOOR_SLAB_INT_NC"):
+   → Look for `Claude/specs/_backlog/<SF_ID>/brief.md`
+
+2. **If human says "generate next spec"**:
+   → Read `Claude/specs/_backlog/_catalog.md`
+   → Find first entry with status: `queued`
+   → Check if brief exists for that SF_ID at `specs/_backlog/<SF_ID>/brief.md`
+
+3. **If human says "what's in the backlog?"**:
+   → Read and summarize `Claude/specs/_backlog/_catalog.md`
+
+### If Brief Exists
+
+- Read the brief COMPLETELY before delegating to SpecFactory Orchestrator
+- The brief is AUTHORITATIVE for scope, config dimensions, paintable items, PaintScope keys, and constraints
+- Do NOT re-derive scope from scratch — the brief already defines it
+- Pass full brief content to SpecFactory Orchestrator as context
+- After successful generation, update `_catalog.md` status to `generated`
+
+### If Brief Does Not Exist
+
+**CRITICAL: Do NOT draft the brief yourself.**
+
+Dev Orchestrator is a coordinator, not a domain researcher. Brief creation requires loading doctrine documents that are outside Dev Orchestrator's Required Reading.
+
+**Instead, delegate to Spec Researcher:**
+
+1. Tell the human: "No brief found for `<SF_ID>`. I'll delegate to Spec Researcher to draft one based on doctrine."
+
+2. Dispatch to **Spec Researcher** with:
+   ```
+   Task Type: brief_creation
+   Spec Family ID: <SF_ID>
+   Context: [Any context from catalog or human request]
+   ```
+
+3. Spec Researcher will:
+   - Load all required doctrine documents (26 docs across System/, Doctrine/, Reference/, PaintScope/)
+   - Research the specific domain
+   - Output a complete draft brief using the template at `specs/_backlog/_brief_template.md`
+
+4. When Spec Researcher returns the draft, present it to the human for approval
+
+### Brief Approval Gate
+
+After Spec Researcher returns a draft brief:
+
+1. **Present the brief to the human** — Show the complete brief content
+2. **Ask explicitly:** "Review this brief for `<SF_ID>`. Approve to proceed with spec generation, or provide corrections."
+3. **If corrections provided:**
+   - Send corrections back to Spec Researcher
+   - Spec Researcher revises and returns updated brief
+   - Repeat until approved
+4. **If approved:**
+   - Save brief to `Claude/specs/_backlog/<SF_ID>/brief.md`
+   - Update `_catalog.md` to show brief exists
+   - Proceed to delegate to SpecFactory Orchestrator
+
+**NEVER run the SpecFactory pipeline without an approved brief.**
+
+### After Successful Spec Generation
+
+1. Copy `brief.md` into the output folder: `Claude/specs/<SF_ID>_v1/brief.md` (provenance)
+2. Update `Claude/specs/_backlog/_catalog.md` status from `queued` to `generated`
+3. Report completion to human
+
+### SpecFactory Orchestrator Context
+
+When delegating to SpecFactory Orchestrator, include:
+- The full approved brief content
+- Instruction to use brief Section 8 (Doctrine References) for agent context
+- Instruction to validate against brief Section 9 (Acceptance Criteria)
+
+---
+
 ## Output Format (always)
 
 - **Next Actions:** 3–7 concrete steps
