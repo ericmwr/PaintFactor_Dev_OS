@@ -117,6 +117,55 @@ Masking film is pre-folded plastic that unfolds from the tape edge. Used for lar
 
 ---
 
+## Mask Level Definitions
+
+Mask levels standardize masking terminology based on coverage intent, not material selection.
+
+### Three-Tier System
+
+| Mask Level | Components | Coverage Intent | Primary Use Case |
+|------------|------------|-----------------|------------------|
+| `light_mask` | Tape line only | Edge protection only; surface remains exposed | Brush/roll work requiring clean edge to cut into |
+| `heavy_mask` | Tape line + border drape | Protective border around item being protected | Spray work requiring overspray buffer zone |
+| `full_mask` | Tape line + complete encapsulation | Entire surface covered | Protecting finished surfaces from spray fallout |
+
+### Key Principle
+
+**Mask level describes coverage intent, not material selection.** Material choices are situational within each level.
+
+| Mask Level | Typical Materials |
+|------------|-------------------|
+| `light_mask` | 1.5" or 2" painter's tape |
+| `heavy_mask` | Tape + 12"-24" paper, or 4' masking film |
+| `full_mask` | Tape + 6'-9' film, visqueen, or bulk plastic |
+
+### Application Method Guidance
+
+| Application Method | Typical Mask Level | Rationale |
+|--------------------|-------------------|-----------|
+| Brush only | `light_mask` | Minimal fallout; tape provides cut-in edge |
+| Brush/roll | `light_mask` | Standard approach; splatter risk is low |
+| Roll only | `light_mask` to `heavy_mask` | Splatter risk on surfaces below |
+| Spray | `heavy_mask` to `full_mask` | Overspray requires buffer or encapsulation |
+
+### Operational Example: Cabinets
+
+| Scenario | Mask Level | Implementation |
+|----------|------------|----------------|
+| Brush/roll walls adjacent to cabinets | `light_mask` | Tape line at wall-cabinet edge to cut into |
+| Spray ceilings with cabinets below | `heavy_mask` | Tape + drape covering cabinet tops and faces |
+| Spray work requiring full cabinet isolation | `full_mask` | Tape + plastic wrapped tight around cabinet boxes |
+
+### Relationship to Protection Level Schema
+
+| Mask Level | Maps to `protection_level` |
+|------------|---------------------------|
+| `light_mask` | `edge_only` |
+| `heavy_mask` | `partial_cover` |
+| `full_mask` | `full_cover` |
+
+---
+
 ## Plastic Sheeting Types
 
 ### Visqueen (0.35 mil)
