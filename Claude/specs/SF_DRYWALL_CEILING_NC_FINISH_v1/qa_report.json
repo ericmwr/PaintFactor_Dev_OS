@@ -1,0 +1,165 @@
+{
+  "spec_family_id": "SF_DRYWALL_CEILING_NC_FINISH",
+  "version": "0.1.0",
+  "qa_date": "2026-02-02",
+  "critic_agent": "SpecFactory Critic",
+
+  "overall_result": "PASS",
+
+  "completeness_checklist": {
+    "protection_zones_required": {
+      "status": "PASS",
+      "details": "spec.json includes protection_zones_required array with 2 zones: fixture_covers, opening_cover_lightweight"
+    },
+    "adjacency_declarations": {
+      "status": "PASS",
+      "details": "spec.json includes adjacency_declarations with primary_surface=ceiling_field and adjacent_surfaces=[wall_field]. No affected_tasks — correct for ceiling finish (no edge work)."
+    },
+    "site_condition_rules": {
+      "status": "PASS",
+      "details": "spec.json includes site_condition_rules for access_constraint, occupancy_state, ventilation_condition with proper vocabulary references"
+    },
+    "protection_metadata_on_tasks": {
+      "status": "PASS",
+      "details": "sop_modules.json protection tasks include protection_metadata with action, zones, method_dependent fields"
+    },
+    "site_condition_rules_on_tasks": {
+      "status": "PASS",
+      "details": "sop_modules.json spray tasks include site_condition_rules for access_constraint, occupancy_state, ventilation_condition"
+    },
+    "modifier_values_align": {
+      "status": "PASS",
+      "details": "production.json modifier_ids align with Modifier_Registry.md: H1_STANDARD, H2_TALL, H3_HIGH, H4_EXTREME, QT2_MINIMAL, QT3_STANDARD, QT4_PREMIUM, QT5_SUPERIOR, TEX_SMOOTH, TEX_ORANGE_PEEL, TEX_KNOCKDOWN"
+    }
+  },
+
+  "brief_acceptance_criteria": [
+    {
+      "criterion": "No edge cut-in tasks exist (wall painter establishes ceiling line)",
+      "status": "PASS",
+      "evidence": "No edge cut-in tasks in sop_modules.json. adjacency_declarations.affected_tasks=[] for wall_field adjacency."
+    },
+    {
+      "criterion": "Production rates for spray are ceiling-specific (slower than wall spray due to overhead)",
+      "status": "PASS",
+      "evidence": "production.json overhead_factor documents 15% slower rates. Base rates are ceiling-specific (280 SF/hr roll vs ~350 for walls, 320 SF/hr backroll vs ~400 for walls)."
+    },
+    {
+      "criterion": "Height modifiers are ceiling-specific and more aggressive than wall height modifiers",
+      "status": "PASS",
+      "evidence": "production.json height_effects: H2_TALL=1.15 (vs 1.10 for walls), H3_HIGH=1.5 (vs 1.25 for walls), H4_EXTREME=2.0 (same). More aggressive due to overhead work."
+    },
+    {
+      "criterion": "Fixture protection tasks exist for spray/spray_backroll methods",
+      "status": "PASS",
+      "evidence": "TSK_PROTECT_CEILING_FIXTURES in MOD_PROTECTION_CEILING_FINISH with applies_when application_method=[spray, spray_backroll]"
+    },
+    {
+      "criterion": "Window/door masking verification tasks exist",
+      "status": "PASS",
+      "evidence": "TSK_VERIFY_MASK_OPENINGS in MOD_PROTECTION_CEILING_FINISH covers both windows and doors with opening_cover_lightweight zone"
+    },
+    {
+      "criterion": "Sheen/QT rules match doctrine (QT2-3 = 1 coat flat, QT4 = 2 coats, QT5 = 2 coats semi-gloss+)",
+      "status": "PASS",
+      "evidence": "spec.json quality_sheen_rules and variants correctly implement coat counts per QT"
+    },
+    {
+      "criterion": "Sanding between coats at QT4+ per doctrine",
+      "status": "PASS",
+      "evidence": "MOD_APPLY_CEILING_FINISH_ROLL_R2 and MOD_APPLY_CEILING_FINISH_SPRAY_BACKROLL_R2 include TSK_LIGHT_SAND_BETWEEN_COATS tasks"
+    },
+    {
+      "criterion": "Material system references ceiling-appropriate paint (not primer)",
+      "status": "PASS",
+      "evidence": "materials.json material_systems reference ceiling finish paints: SYS_FLAT_CEILING_PAINT, SYS_PREMIUM_FLAT_CEILING_PAINT, SYS_EGGSHELL_CEILING_PAINT, SYS_SEMI_GLOSS_CEILING_PAINT"
+    },
+    {
+      "criterion": "All PaintScope keys verified in catalog",
+      "status": "PASS",
+      "evidence": "research.json required_paintscope_keys all marked catalog_verified=true. Keys: PS_SURFACE_SF.CEILING_FIELD, PS_PROTECT_SF.FLOOR_EXPOSED, PS_META.EA.ROOMS_TOTAL, PS_OPENING_EA.WINDOW_OPENINGS_TOTAL, PS_OPENING_EA.DOOR_OPENINGS_TOTAL"
+    },
+    {
+      "criterion": "Sequencing notes confirm ceilings-before-walls production order",
+      "status": "PASS",
+      "evidence": "spec.json sequencing_notes.production_sequence = 'Ceilings painted BEFORE walls in NC production'"
+    }
+  ],
+
+  "cross_file_integrity": [
+    {
+      "check": "All task_ids in production.json exist in sop_modules.json",
+      "status": "PASS",
+      "details": "All 34 task production rates reference valid task IDs from sop_modules.json"
+    },
+    {
+      "check": "All paintscope_keys in production.json match required_paintscope_inputs in spec.json",
+      "status": "PASS",
+      "details": "All 5 required inputs have matching production rate entries"
+    },
+    {
+      "check": "Material systems in materials.json align with variants in spec.json",
+      "status": "PASS",
+      "details": "4 material systems cover all sheen/QT combinations in spec variants"
+    },
+    {
+      "check": "Protection zones in spec.json match zones declared in sop_modules.json tasks",
+      "status": "PASS",
+      "details": "fixture_covers and opening_cover_lightweight both declared in spec and used in task protection_metadata"
+    },
+    {
+      "check": "Affected tasks in site_condition_rules exist in sop_modules.json",
+      "status": "PASS",
+      "details": "All task IDs in site_condition_rules are valid: TSK_SPRAY_CEILING_FINISH_R1, TSK_BACKROLL_CEILING_FINISH_R1, TSK_ROLL_CEILING_FINISH_R1, TSK_SPRAY_CEILING_FINISH_ONLY, TSK_SPRAY_CEILING_FINISH_R2"
+    }
+  ],
+
+  "doctrine_compliance": [
+    {
+      "doctrine": "Spec_Completeness_Doctrine.md",
+      "status": "PASS",
+      "details": "All three mandatory declaration layers present: protection_zones_required, adjacency_declarations, site_condition_rules"
+    },
+    {
+      "doctrine": "Quality_Tiers_and_Surface_Condition.md",
+      "status": "PASS",
+      "details": "QT/sheen rules correctly implemented. Sanding standards per tier. Coat counts per doctrine."
+    },
+    {
+      "doctrine": "Modifier_Registry.md",
+      "status": "PASS",
+      "details": "All modifier IDs in production.json match canonical registry values"
+    },
+    {
+      "doctrine": "Protection_Zones_Reference.md",
+      "status": "PASS",
+      "details": "Zone IDs fixture_covers and opening_cover_lightweight are valid per v2.1 reference"
+    },
+    {
+      "doctrine": "Surface_Vocabulary_Reference.md",
+      "status": "PASS",
+      "details": "Surface IDs ceiling_field and wall_field are valid per reference"
+    },
+    {
+      "doctrine": "Site_Condition_Vocabulary_Reference.md",
+      "status": "PASS",
+      "details": "Condition IDs access_constraint, occupancy_state, ventilation_condition and their values are valid"
+    }
+  ],
+
+  "warnings": [
+    {
+      "warning_id": "WARN-001",
+      "severity": "low",
+      "message": "Roll method variants do not include protection_items. This is intentional — roll method has minimal overspray risk and opening covers are primarily for spray fallout.",
+      "recommendation": "Confirm this is acceptable for roll-only projects or consider adding optional opening covers."
+    }
+  ],
+
+  "notes": [
+    "Spec correctly implements NO edge work — this is the key differentiator from wall finish spec",
+    "New opening_cover_lightweight zone added to Protection_Zones_Reference.md v2.1 as part of this spec generation",
+    "Ceiling height modifiers are appropriately more aggressive than wall modifiers",
+    "Sheen application penalties (1.18x eggshell, 1.43x semi-gloss) correctly reflect overhead difficulty"
+  ]
+}
