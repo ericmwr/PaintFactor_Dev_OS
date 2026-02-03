@@ -46,10 +46,11 @@ Before ANY research or brief creation task, load relevant documents from this ma
 
 | Document | Path | Purpose |
 |----------|------|---------|
-| Modifier_Registry.md | `docs/Doctrine/Modifier_Registry.md` | All modifier values (height, QT, condition, complexity) |
+| Modifier_Registry.md | `docs/Doctrine/Modifier_Registry.md` | All modifier values (height, QT, condition, complexity, substrate state) |
 | Protection_Zones_Reference.md | `docs/Reference/Protection_Zones_Reference.md` | Valid protection zone IDs |
 | Surface_Vocabulary_Reference.md | `docs/Reference/Surface_Vocabulary_Reference.md` | Valid surface IDs for adjacency |
 | Site_Condition_Vocabulary_Reference.md | `docs/Reference/Site_Condition_Vocabulary_Reference.md` | Site condition IDs and values |
+| Substrate_State_Reference.md | `docs/Reference/Substrate_State_Reference.md` | Substrate state IDs (SS_*) for state declarations |
 
 **Tier 4: PaintScope Contract (Load for Key Validation)**
 
@@ -104,6 +105,7 @@ docs/Doctrine/Spec_Completeness_Doctrine.md
 docs/Reference/Protection_Zones_Reference.md
 docs/Reference/Surface_Vocabulary_Reference.md
 docs/Reference/Site_Condition_Vocabulary_Reference.md
+docs/Reference/Substrate_State_Reference.md
 docs/Doctrine/Modifier_Registry.md
 docs/PaintScope/PaintScope_Quantity_Key_Catalog.md
 docs/PaintScope/Spec_Input_to_PaintScope_Key_Mapping.md
@@ -482,10 +484,52 @@ Identify which site conditions affect tasks in this spec.
 - Note applicable modifier values from Modifier_Registry.md
 - Not all conditions apply to all specs — only include relevant ones
 
+### 4. Substrate State Analysis (MANDATORY)
+
+Identify substrate state requirements for this spec per Substrate_State_Reference.md.
+
+```json
+{
+  "state_analysis": {
+    "primary_surface": "trim_baseboard",
+    "valid_input_states": {
+      "states": ["SS_PRIMED_FACTORY", "SS_PRIMED_FIELD"],
+      "rationale": "Trim must be primed before finish application"
+    },
+    "output_state": {
+      "state": "SS_PAINTED_SEMIGLOSS",
+      "varies_by": "sheen",
+      "rationale": "Output state varies by sheen configuration"
+    },
+    "adjacent_state_protection_analysis": [
+      {
+        "adjacent_surface": "wall_field",
+        "finished_states": ["SS_PAINTED_FLAT", "SS_PAINTED_SATIN"],
+        "unfinished_states": ["SS_BARE", "SS_PRIMED"],
+        "protection_when_finished": "full_mask",
+        "protection_when_unfinished": "none",
+        "rationale": "Protect finished walls from trim spray overspray"
+      }
+    ],
+    "state_reference": "Substrate_State_Reference.md"
+  }
+}
+```
+
+**Guidance:**
+- Identify the primary surface this spec operates on
+- Determine valid input states (what substrate conditions can this spec accept)
+- Determine output state (what state does this spec produce)
+- If output state varies by configuration dimension (e.g., sheen), note `varies_by`
+- Analyze adjacent surfaces: what protection is needed based on their state
+- Use SS_* state IDs from Substrate_State_Reference.md
+- Protection levels for adjacent states: `none`, `light_mask`, `full_mask`, `full_cover`
+
 ### Reference Documents
 - **Protection_Zones_Reference.md** — Use standard zone IDs
 - **Surface_Vocabulary_Reference.md** — Use standard surface IDs
 - **Site_Condition_Vocabulary_Reference.md** — Use standard condition IDs and values
+- **Substrate_State_Reference.md** — Use standard SS_* state IDs
 
 ---
 
@@ -592,3 +636,4 @@ Use when authoritative, citable knowledge is required. Follow the **Deep Researc
 - **`protection_zones_analysis`** (MANDATORY — Orchestrator blocks without this)
 - **`adjacency_analysis`** (MANDATORY — Orchestrator blocks without this)
 - **`site_condition_analysis`** (MANDATORY — Orchestrator blocks without this)
+- **`state_analysis`** (MANDATORY — Orchestrator blocks without this)

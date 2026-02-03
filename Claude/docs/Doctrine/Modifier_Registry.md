@@ -3,8 +3,8 @@
 **Doctrine Level:** 3
 **Authority:** Estimation_Modifiers_Doctrine.md
 **Status:** Canonical
-**Version:** 1.0
-**Last Updated:** 2026-01-31
+**Version:** 1.1
+**Last Updated:** 2026-02-03
 
 This document is the single source of truth for all modifiers in the PaintFactor estimation system.
 
@@ -89,6 +89,38 @@ Applied to prep tasks based on existing coating type.
 | SURF_ALKYD | 1.20 | Prep tasks | Alkyd/oil-based surface requiring prep | Estimation_Modifiers_Doctrine |
 | SURF_HIGH_SHEEN | 1.20 | Prep tasks | Semi-gloss/high-sheen existing finish requiring scuff | Estimation_Modifiers_Doctrine |
 
+### Substrate State Modifiers
+
+Applied to prep tasks based on the existing coating system state. These modifiers account for the additional prep complexity when working over different substrate conditions.
+
+| Modifier ID | Prep | Prime | Finish | Description | Source |
+|-------------|------|-------|--------|-------------|--------|
+| SS_BARE | 1.00 | 1.00 | 1.00 | Bare substrate (baseline for new work) | Substrate_State_Reference |
+| SS_PRIMED_FACTORY | 1.00 | N/A | 1.00 | Factory-primed (baseline for NC trim) | Substrate_State_Reference |
+| SS_PRIMED_FIELD | 0.90 | N/A | 1.00 | Field-primed (less prep than factory) | Substrate_State_Reference |
+| SS_PAINTED_FLAT | 1.10 | 1.00 | 1.00 | Existing flat/matte latex | Substrate_State_Reference |
+| SS_PAINTED_EGGSHELL | 1.10 | 1.00 | 1.00 | Existing eggshell latex | Substrate_State_Reference |
+| SS_PAINTED_SATIN | 1.15 | 1.00 | 1.00 | Existing satin latex (light degloss) | Substrate_State_Reference |
+| SS_PAINTED_SEMIGLOSS | 1.25 | 1.00 | 1.00 | Existing semi-gloss (degloss required) | Substrate_State_Reference |
+| SS_PAINTED_GLOSS | 1.30 | 1.00 | 1.00 | Existing gloss (full degloss + bonding) | Substrate_State_Reference |
+| SS_PAINTED_ALKYD | 1.35 | 1.00 | 1.00 | Existing alkyd/oil (adhesion test + bonding) | Substrate_State_Reference |
+| SS_PAINTED_UNKNOWN | 1.40 | 1.00 | 1.00 | Unknown paint type (conservative approach) | Substrate_State_Reference |
+| SS_STAINED_PENETRATING | 1.30 | 1.00 | 1.00 | Penetrating stain (shellac seal step) | Substrate_State_Reference |
+| SS_STAINED_FILM | — | — | — | Film-forming stain (follow SS_CLEAR protocol) | Substrate_State_Reference |
+| SS_STAINED_UNKNOWN | 1.40 | 1.00 | 1.00 | Unknown stain (maximum isolation) | Substrate_State_Reference |
+| SS_CLEAR_POLY | 1.50 | 1.00 | 1.00 | Polyurethane (assessment + possible strip) | Substrate_State_Reference |
+| SS_CLEAR_LACQUER | 1.60 | 1.00 | 1.00 | Lacquer (often requires strip) | Substrate_State_Reference |
+| SS_CLEAR_VARNISH | 1.50 | 1.00 | 1.00 | Traditional varnish | Substrate_State_Reference |
+| SS_CLEAR_SHELLAC | 1.40 | 1.00 | 1.00 | Shellac (waxed may require removal) | Substrate_State_Reference |
+| SS_CLEAR_UNKNOWN | 1.60 | 1.00 | 1.00 | Unknown clear (often requires strip) | Substrate_State_Reference |
+
+**Note:** Substrate state modifiers apply primarily to prep tasks. Prime and finish modifiers remain at 1.0 because the prep work normalizes the surface. SS_STAINED_FILM follows SS_CLEAR_* protocols.
+
+**Stacking:** Substrate state modifiers stack with other modifiers per the stacking rules below:
+```
+total_modifier = substrate_state × condition × height × complexity × color_change
+```
+
 ### Site Condition Modifiers
 
 Applied based on project site conditions.
@@ -108,10 +140,12 @@ Applied based on project site conditions.
 
 1. **Multiplicative Stacking:** All modifiers stack multiplicatively
    - Example: H2_TALL (1.30) x COMP_CABINETS (1.50) x COLOR_DARK_TO_LIGHT (1.30) x TEX_KNOCKDOWN (1.15) = 2.92
+   - Example with substrate state: SS_PAINTED_SEMIGLOSS (1.25) x COND_GOOD (1.00) x H2_TALL (1.30) = 1.625
 
 2. **Category Limits:** Only one modifier per category applies
    - Cannot apply both H2 and H3 to same task
    - Cannot apply both COND_GOOD and COND_FAIR to same task
+   - Cannot apply both SS_PAINTED_FLAT and SS_PAINTED_SEMIGLOSS to same task
 
 3. **Application Order:** Order doesn't affect final value (multiplication is commutative)
 
@@ -134,4 +168,5 @@ When adding a new modifier:
 
 | Version | Date | Changes |
 |---------|------|---------|
+| 1.1 | 2026-02-03 | Added Substrate State Modifiers (SS_*) per Substrate_State_Reference.md |
 | 1.0 | 2026-01-31 | Initial registry compiled from existing doctrine |

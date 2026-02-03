@@ -1,0 +1,522 @@
+{
+  "spec_family": {
+    "id": "SF_DOOR_FRAME_NC_FINISH",
+    "name": "New Construction Interior Door Frame Finish Paint",
+    "description": "Complete painting of interior door frames (jamb, stop, head jamb) in new construction. Covers prep through finish coats. Separate from door slab (different measurement, different access, different production rates) and door casing (linear trim, covered by SF_TRIM_NC_PAINT). Uses EA (frame set) as primary unit — one opening = one frame set. Frame sets may share or differ in color from door slabs.",
+    "domain": "interior",
+    "version": "0.1.0",
+    "status": "draft",
+    "review_required": true
+  },
+
+  "scope_boundaries": {
+    "includes": [
+      "Door frame jambs (left, right, head)",
+      "Door stop molding (the ledge the door closes against)",
+      "Hinge mortise touch-up (after slab installation, conditional)",
+      "Strike plate mortise touch-up (conditional)",
+      "Conditional primer coat (bare wood frames)",
+      "Finish coats (2 coats standard)",
+      "Light sanding between coats per quality tier",
+      "Caulk frame-to-casing gap",
+      "Fill stop nail holes"
+    ],
+    "excludes": [
+      {
+        "item": "Door slab (leaf)",
+        "route_to": "SF_DOOR_SLAB_INT_NC"
+      },
+      {
+        "item": "Door casing (trim around opening)",
+        "route_to": "SF_TRIM_NC_PAINT (profile_type: door_casing)"
+      },
+      {
+        "item": "Exterior door frame exterior face",
+        "route_to": "SF_DOOR_FRAME_EXT_NC_FINISH (future)"
+      },
+      {
+        "item": "Bifold door track/hardware",
+        "route_to": "Handled within this spec (frame_type: bifold)"
+      }
+    ]
+  },
+
+  "configuration_dimensions": [
+    {
+      "dimension_id": "quality_tier",
+      "description": "Quality tier applied to this spec. Door frames are scrutinized surfaces — QT2 not applicable. Fine Finish Doctrine governs.",
+      "values": ["QT3", "QT4", "QT5"],
+      "default": "QT4"
+    },
+    {
+      "dimension_id": "application_method",
+      "description": "Primary application technique. Spray is standard NC production. Brush for touch-up or occupied spaces.",
+      "values": ["spray", "brush"],
+      "default": "spray"
+    },
+    {
+      "dimension_id": "sheen",
+      "description": "Finish sheen per Fine Finish Doctrine sheen/QT rules",
+      "values": ["satin", "semi-gloss", "gloss"],
+      "default": "semi-gloss"
+    },
+    {
+      "dimension_id": "frame_type",
+      "description": "Door frame type. Controls complexity and task inclusion.",
+      "values": ["standard", "pocket", "cased_opening", "bifold"],
+      "default": "standard",
+      "notes": "Pocket = no stop. Cased_opening = no stop, no mortise. Bifold = track hardware, no hinge mortise."
+    },
+    {
+      "dimension_id": "substrate_condition",
+      "description": "Frame substrate condition. Controls conditional primer coat.",
+      "values": ["factory_primed", "bare_wood"],
+      "default": "factory_primed"
+    }
+  ],
+
+  "paintable_items": [
+    {
+      "item_id": "ITM_DOOR_FRAME_SET",
+      "name": "Door frame set (jamb + stop)",
+      "unit_of_measure": "EA",
+      "counting_rules": "1 per door opening. Includes both jamb sides, head jamb, and all stop surfaces.",
+      "notes": "Primary paintable item. EA (frame set) is the production unit, not LF. Per PCA standards, surfaces <1 ft width are measured as 1 LF — no frame width modifier applies."
+    },
+    {
+      "item_id": "ITM_DOOR_FRAME_STOP",
+      "name": "Door stop molding",
+      "unit_of_measure": "EA",
+      "counting_rules": "Included in frame set count — not separate.",
+      "notes": "Bundled with frame set. Stop is painted as part of frame coating tasks."
+    },
+    {
+      "item_id": "ITM_HINGE_MORTISE",
+      "name": "Hinge mortise touch-up",
+      "unit_of_measure": "EA",
+      "counting_rules": "Bundled per frame set (3 hinge mortises typical). Conditional on installation_sequence.",
+      "notes": "Touch-up after slab install when doors installed before painting complete."
+    },
+    {
+      "item_id": "ITM_STRIKE_MORTISE",
+      "name": "Strike mortise touch-up",
+      "unit_of_measure": "EA",
+      "counting_rules": "1 per door. Bundled with hinge mortise touch-up task.",
+      "notes": "Touch-up after hardware install. Conditional on installation_sequence."
+    }
+  ],
+
+  "variants": [
+    {
+      "variant_id": "VAR_SPRAY_STANDARD_QT3",
+      "applies_when": {
+        "quality_tier": ["QT3"],
+        "application_method": ["spray"],
+        "frame_type": ["standard"]
+      },
+      "included_items": ["ITM_DOOR_FRAME_SET"],
+      "protection_zones": ["floor_full_8ft_radius", "wall_adjacent_door", "hardware_covers"],
+      "coats": 2,
+      "notes": "Standard spray production. QT3 = quick glance inspection, spot sand between coats."
+    },
+    {
+      "variant_id": "VAR_SPRAY_STANDARD_QT4",
+      "applies_when": {
+        "quality_tier": ["QT4"],
+        "application_method": ["spray"],
+        "frame_type": ["standard"]
+      },
+      "included_items": ["ITM_DOOR_FRAME_SET"],
+      "protection_zones": ["floor_full_8ft_radius", "wall_adjacent_door", "hardware_covers"],
+      "coats": 2,
+      "notes": "Premium spray production. QT4 = systematic scan at 3 feet, full sand 220 between coats."
+    },
+    {
+      "variant_id": "VAR_SPRAY_STANDARD_QT5",
+      "applies_when": {
+        "quality_tier": ["QT5"],
+        "application_method": ["spray"],
+        "frame_type": ["standard"]
+      },
+      "included_items": ["ITM_DOOR_FRAME_SET"],
+      "protection_zones": ["floor_full_8ft_radius", "wall_adjacent_door", "hardware_covers"],
+      "coats": 2,
+      "notes": "Superior spray production. QT5 = critical inspection at arm's length, thorough sand 320 between coats."
+    },
+    {
+      "variant_id": "VAR_BRUSH_STANDARD_QT3",
+      "applies_when": {
+        "quality_tier": ["QT3"],
+        "application_method": ["brush"],
+        "frame_type": ["standard"]
+      },
+      "included_items": ["ITM_DOOR_FRAME_SET"],
+      "protection_zones": ["floor_workzone", "hardware_covers"],
+      "coats": 2,
+      "notes": "Standard brush production. Reduced floor protection vs spray."
+    },
+    {
+      "variant_id": "VAR_BRUSH_STANDARD_QT4",
+      "applies_when": {
+        "quality_tier": ["QT4"],
+        "application_method": ["brush"],
+        "frame_type": ["standard"]
+      },
+      "included_items": ["ITM_DOOR_FRAME_SET"],
+      "protection_zones": ["floor_workzone", "hardware_covers"],
+      "coats": 2,
+      "notes": "Premium brush production. Roll and Tip methodology recommended."
+    },
+    {
+      "variant_id": "VAR_POCKET_QT4",
+      "applies_when": {
+        "quality_tier": ["QT4"],
+        "frame_type": ["pocket"]
+      },
+      "included_items": ["ITM_DOOR_FRAME_SET"],
+      "excluded_items": ["ITM_DOOR_FRAME_STOP"],
+      "notes": "Pocket door frame — no stop (door slides into wall). Reduced surface area. Complexity modifier 0.85."
+    },
+    {
+      "variant_id": "VAR_CASED_OPENING_QT4",
+      "applies_when": {
+        "quality_tier": ["QT4"],
+        "frame_type": ["cased_opening"]
+      },
+      "included_items": ["ITM_DOOR_FRAME_SET"],
+      "excluded_items": ["ITM_DOOR_FRAME_STOP", "ITM_HINGE_MORTISE", "ITM_STRIKE_MORTISE"],
+      "notes": "Cased opening — jambs only, no stop, no hardware. Simplified scope. Complexity modifier 0.75."
+    },
+    {
+      "variant_id": "VAR_BIFOLD_QT4",
+      "applies_when": {
+        "quality_tier": ["QT4"],
+        "frame_type": ["bifold"]
+      },
+      "included_items": ["ITM_DOOR_FRAME_SET"],
+      "excluded_items": ["ITM_HINGE_MORTISE"],
+      "notes": "Bifold frame — track hardware instead of hinges. No hinge mortise touch-up. Complexity modifier 0.90."
+    }
+  ],
+
+  "required_paintscope_inputs": [
+    {
+      "input_name": "IN_EA_DOOR_FRAME_SET",
+      "paintscope_key": "PS_SURFACE_EA.DOOR_FRAME_SET",
+      "uom": "EA",
+      "required": true,
+      "description": "Count of door frame sets (one per opening)"
+    },
+    {
+      "input_name": "IN_EA_DOORS_INTERIOR",
+      "paintscope_key": "PS_OPENING_EA.DOOR_OPENINGS_TOTAL",
+      "uom": "EA",
+      "required": true,
+      "description": "Validation: frame count should match opening count"
+    },
+    {
+      "input_name": "IN_SF_FLOOR_8FT_RADIUS",
+      "paintscope_key": "PS_PROTECT_SF.FLOOR_8FT_RADIUS",
+      "uom": "SF",
+      "required_when": {
+        "application_method": ["spray"]
+      },
+      "description": "Radial floor protection area for spray"
+    },
+    {
+      "input_name": "IN_LF_WALL_ADJACENT_DOOR",
+      "paintscope_key": "PS_PROTECT_LF.WALL_ADJACENT_DOOR",
+      "uom": "LF",
+      "required_when": {
+        "application_method": ["spray"]
+      },
+      "description": "Wall masking perimeter adjacent to door opening"
+    },
+    {
+      "input_name": "IN_SF_FLOOR_WORKZONE",
+      "paintscope_key": "PS_PROTECT_SF.FLOOR_WORKZONE",
+      "uom": "SF",
+      "required_when": {
+        "application_method": ["brush"]
+      },
+      "description": "Localized floor protection for brush/roll"
+    }
+  ],
+
+  "protection_zones_required": [
+    {
+      "zone_id": "floor_workzone",
+      "condition": { "application_method": ["brush"] },
+      "protection_level": "edge_only",
+      "notes": "Drop cloth under door opening for drips during brush/roll work"
+    },
+    {
+      "zone_id": "floor_full_8ft_radius",
+      "condition": { "application_method": ["spray"] },
+      "protection_level": "full_cover",
+      "notes": "Radial floor protection for spray overspray"
+    },
+    {
+      "zone_id": "wall_adjacent_door",
+      "condition": { "application_method": ["spray"] },
+      "protection_level": "partial_cover",
+      "notes": "Mask wall adjacent to frame opening during spray. Wall state condition now handled by state_declarations.adjacent_state_protection_rules for wall_field."
+    },
+    {
+      "zone_id": "hardware_covers",
+      "condition": { "installation_sequence": ["doors_installed_before_painting"] },
+      "protection_level": "item_mask",
+      "notes": "Mask hinges and strike plate if doors/hardware are installed before painting."
+    }
+  ],
+
+  "adjacency_declarations": {
+    "primary_surface": "door_frame",
+    "adjacent_surfaces": [
+      {
+        "surface_id": "door_casing",
+        "edge_type": "complex",
+        "typical_relationship": "same_finish",
+        "continuity_rate_modifier": 1.15,
+        "affected_tasks": [],
+        "notes": "Frame and casing typically same color. Casing applied over frame reveal — painted together or sequentially with no cut-in needed."
+      },
+      {
+        "surface_id": "door_leaf_edge",
+        "edge_type": "complex",
+        "typical_relationship": "same_finish",
+        "continuity_rate_modifier": 1.0,
+        "affected_tasks": [],
+        "notes": "Door edge meets frame stop when closed. Usually same color. If different, door edge is cut-in during slab painting, not frame painting."
+      },
+      {
+        "surface_id": "wall_field",
+        "edge_type": "linear",
+        "typical_relationship": "different_finish",
+        "continuity_rate_modifier": 1.0,
+        "affected_tasks": [],
+        "notes": "Frame meets drywall at reveal edge. Caulked and painted as part of frame prep. No cut-in at runtime."
+      },
+      {
+        "surface_id": "door_stop",
+        "edge_type": "complex",
+        "typical_relationship": "same_finish",
+        "continuity_rate_modifier": 1.0,
+        "affected_tasks": [],
+        "notes": "Stop is part of frame set — always same finish. Bundled in same coating task."
+      }
+    ]
+  },
+
+  "state_declarations": {
+    "primary_surface": "door_frame",
+
+    "valid_input_states": {
+      "states": ["SS_PRIMED_FACTORY", "SS_BARE"],
+      "notes": "NC door frames are typically factory-primed. Bare wood frames (substrate_condition=bare_wood) require conditional primer coat."
+    },
+
+    "output_state": {
+      "state": "SS_PAINTED_SEMIGLOSS",
+      "varies_by": "sheen",
+      "state_map": {
+        "satin": "SS_PAINTED_SATIN",
+        "semi-gloss": "SS_PAINTED_SEMIGLOSS",
+        "gloss": "SS_PAINTED_GLOSS"
+      },
+      "notes": "Output state determined by sheen configuration. Semi-gloss is default for door frames per Fine Finish Doctrine."
+    },
+
+    "adjacent_state_protection_rules": [
+      {
+        "adjacent_surface": "wall_field",
+        "when_state": ["SS_PAINTED_FLAT", "SS_PAINTED_EGGSHELL", "SS_PAINTED_SATIN", "SS_PAINTED_SEMIGLOSS"],
+        "protection_zone": "wall_adjacent_door",
+        "protection_level": "light_mask",
+        "applies_when": { "application_method": ["spray"] },
+        "notes": "Light mask wall adjacent to frame when walls are finished and spraying. Project sequencing decision."
+      },
+      {
+        "adjacent_surface": "wall_field",
+        "when_state": ["SS_PAINTED_FLAT", "SS_PAINTED_EGGSHELL", "SS_PAINTED_SATIN", "SS_PAINTED_SEMIGLOSS"],
+        "protection_zone": null,
+        "protection_level": "none",
+        "applies_when": { "application_method": ["brush"] },
+        "notes": "No wall protection needed for brush application — controlled application, no overspray."
+      },
+      {
+        "adjacent_surface": "wall_field",
+        "when_state": ["SS_BARE", "SS_PRIMED", "SS_PRIMED_FIELD"],
+        "protection_zone": null,
+        "protection_level": "none",
+        "notes": "No wall protection needed for unfinished walls — typical NC sequence has frames painted before wall finish."
+      },
+      {
+        "adjacent_surface": "door_casing",
+        "when_state": ["SS_PAINTED_SATIN", "SS_PAINTED_SEMIGLOSS", "SS_PAINTED_GLOSS"],
+        "when_finish_group": "same",
+        "protection_zone": null,
+        "protection_level": "none",
+        "notes": "No protection at frame-casing junction when same finish group — painted together or sequentially."
+      },
+      {
+        "adjacent_surface": "door_casing",
+        "when_state": ["SS_PAINTED_SATIN", "SS_PAINTED_SEMIGLOSS", "SS_PAINTED_GLOSS"],
+        "when_finish_group": "different",
+        "protection_zone": "casing_edge",
+        "protection_level": "light_mask",
+        "notes": "Light mask required at frame-casing junction when different finish groups (different colors)."
+      },
+      {
+        "adjacent_surface": "door_casing",
+        "when_state": ["SS_PRIMED_FACTORY", "SS_BARE"],
+        "protection_zone": null,
+        "protection_level": "none",
+        "notes": "Unfinished casing needs no protection — will be painted with same trim finishing pass."
+      },
+      {
+        "adjacent_surface": "door_leaf_edge",
+        "when_state": ["SS_PAINTED_SATIN", "SS_PAINTED_SEMIGLOSS", "SS_PAINTED_GLOSS"],
+        "applies_when": { "application_method": ["spray"] },
+        "when_finish_group": "same",
+        "protection_zone": null,
+        "protection_level": "none",
+        "notes": "No protection when same finish group — door slab and frame painted together."
+      },
+      {
+        "adjacent_surface": "door_leaf_edge",
+        "when_state": ["SS_PAINTED_SATIN", "SS_PAINTED_SEMIGLOSS", "SS_PAINTED_GLOSS"],
+        "applies_when": { "application_method": ["spray"] },
+        "when_finish_group": "different",
+        "protection_zone": "door_slab_full",
+        "protection_level": "full_cover",
+        "notes": "Full mask on door slab when different finish group (different color) and spraying frame."
+      },
+      {
+        "adjacent_surface": "door_leaf_edge",
+        "when_state": ["SS_PAINTED_SATIN", "SS_PAINTED_SEMIGLOSS", "SS_PAINTED_GLOSS"],
+        "applies_when": { "application_method": ["brush"] },
+        "protection_zone": null,
+        "protection_level": "none",
+        "notes": "No protection needed for brush application — controlled application at frame-slab junction."
+      },
+      {
+        "adjacent_surface": "door_leaf_edge",
+        "when_state": ["SS_PRIMED_FACTORY", "SS_BARE"],
+        "protection_zone": null,
+        "protection_level": "none",
+        "notes": "Unfinished slab needs no protection."
+      },
+      {
+        "adjacent_surface": "door_stop",
+        "when_state": ["SS_PRIMED_FACTORY", "SS_BARE", "SS_PAINTED_SATIN", "SS_PAINTED_SEMIGLOSS", "SS_PAINTED_GLOSS"],
+        "protection_zone": null,
+        "protection_level": "none",
+        "notes": "Stop is integral to frame set — always painted together, no protection needed."
+      }
+    ]
+  },
+
+  "site_condition_rules": [
+    {
+      "condition_id": "floor_type",
+      "vocabulary_ref": "Site_Condition_Vocabulary_Reference.md § floor_type",
+      "include_when": ["finished", "partial"],
+      "exclude_when": ["subfloor"],
+      "affected_tasks": ["TSK_FRAME_FLOOR_PROTECT_BRUSH", "TSK_FRAME_FLOOR_PROTECT_SPRAY", "TSK_FRAME_FLOOR_PROTECT_TEARDOWN"],
+      "effect": "Floor protection tasks excluded when floor is subfloor. NC often has subfloor during frame painting.",
+      "notes": "Per Site_Condition_Vocabulary_Reference v1.1"
+    },
+    {
+      "condition_id": "access_constraint",
+      "vocabulary_ref": "Site_Condition_Vocabulary_Reference.md § access_constraint",
+      "include_when": ["step_ladder", "extension_ladder"],
+      "affected_tasks": ["TSK_FRAME_FINISH_SPRAY", "TSK_FRAME_FINISH_BRUSH", "TSK_FRAME_PRIME_SPRAY", "TSK_FRAME_PRIME_BRUSH"],
+      "effect": "Height modifier applies for tall door openings (8'0\" doors, transoms above).",
+      "notes": "H2 for 9-12 ft head height, H3 for 13+ ft. Per Modifier_Registry."
+    },
+    {
+      "condition_id": "lead_status",
+      "vocabulary_ref": "Site_Condition_Vocabulary_Reference.md § lead_status",
+      "include_when": ["tested_positive", "unknown_pre1978"],
+      "affected_tasks": ["TSK_FRAME_SAND_PREP", "TSK_FRAME_LIGHT_SAND"],
+      "effect": "Lead protocols. tested_positive=2.0x, unknown_pre1978=1.5x per Modifier_Registry.",
+      "notes": "Not applicable for true NC but may apply to NC-context remodels."
+    }
+  ],
+
+  "sequencing_notes": {
+    "production_sequence": "Frames typically painted before or after door slabs depending on NC workflow. May be before or after walls.",
+    "edge_work": "No edge work at frame-wall junction — caulk seals the reveal gap during prep.",
+    "protection_sequence": "Setup floor protection → Setup wall protection (spray only, if walls finished) → Mask hardware (if doors installed) → Apply coats → Teardown",
+    "coat_sequence": "Prep → Prime (if bare wood) → Interstage → Finish coat 1 → Interstage → Finish coat 2 → Final inspect",
+    "mortise_touchup": "If doors installed before painting, mortise touch-up runs after final finish coat."
+  },
+
+  "relationships": {
+    "often_combined_with": ["SF_DOOR_SLAB_INT_NC", "SF_TRIM_NC_PAINT"],
+    "typical_before": ["SF_DRYWALL_WALL_NC_FINISH"],
+    "typical_after": ["SF_DRYWALL_WALL_NC_PRIME", "SF_DRYWALL_CEILING_NC_FINISH"],
+    "shares_finish_group_with": ["SF_DOOR_SLAB_INT_NC", "SF_TRIM_NC_PAINT"],
+    "notes": "Door system = slab + frame + casing. Often same color as door/casing but not always."
+  },
+
+  "dependencies": {
+    "materials": "materials.json",
+    "sop_modules": "sop_modules.json",
+    "production": "production.json"
+  },
+
+  "doctrine_references": [
+    {
+      "doctrine": "Fine_Finish_Doctrine.md",
+      "sections_used": ["Material Systems", "Quality Tier Scrutiny", "Interstage Process", "Brush and Roll Application Method (§ 15)"]
+    },
+    {
+      "doctrine": "Doors_Doctrine.md",
+      "sections_used": ["Frame/jamb substrate", "Factory-primed assessment", "Mortise touch-up"]
+    },
+    {
+      "doctrine": "Quality_Tiers_and_Surface_Condition.md",
+      "sections_used": ["QT3-QT5 sanding", "Sheen minimums"]
+    },
+    {
+      "doctrine": "Modifier_Registry.md",
+      "sections_used": ["Height Modifiers", "Quality Tier Modifiers"]
+    },
+    {
+      "doctrine": "Protection_and_Masking_Doctrine.md",
+      "sections_used": ["floor_workzone", "wall_adjacent_door zones"]
+    },
+    {
+      "doctrine": "PCA Industry Standards",
+      "sections_used": ["Surfaces <1 ft width measured as 1 LF"]
+    }
+  ],
+
+  "research_corrections": [
+    {
+      "correction_id": "RC-001",
+      "original_claim": "Frame width modifier of 1.20x for wide frames (6-9/16\"+)",
+      "corrected_to": "No frame width modifier. Per PCA standards, surfaces <1 ft width are measured as 1 LF regardless of actual width.",
+      "corrected_by": "Eric",
+      "date": "2026-02-03"
+    },
+    {
+      "correction_id": "RC-002",
+      "original_claim": "Waterborne alkyd preferred for brush/roll due to longer open time",
+      "corrected_to": "Modified urethane / waterborne urethane have SHORT open time (5-10 min). Oil-based has longest working time.",
+      "corrected_by": "Eric",
+      "date": "2026-02-03"
+    }
+  ],
+
+  "change_log": [
+    {
+      "version": "0.1.0",
+      "date": "2026-02-03",
+      "author": "SpecFactory",
+      "changes": "Initial draft spec for NC interior door frame finish. Generated from brief specs/_backlog/SF_DOOR_FRAME_NC_FINISH/brief.md. Key features: EA (frame set) as primary unit per PCA standards, no frame_width modifier, bifold added to frame_type, Gallery Series material system with dedicated primer, floor_type site condition for floor protection, wall_finish_state as project-level sequencing decision for wall protection, open time corrected (modified urethane is SHORT, oil has longest)."
+    }
+  ]
+}

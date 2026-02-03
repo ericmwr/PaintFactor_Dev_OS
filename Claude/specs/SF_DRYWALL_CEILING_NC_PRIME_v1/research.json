@@ -1,0 +1,278 @@
+{
+  "spec_family_id": "SF_DRYWALL_CEILING_NC_PRIME",
+  "version": "0.1.0",
+
+  "scope_summary": "Prime coat application for bare drywall ceiling surfaces in new construction. Single prime coat (no finish coats). Assumes drywall is taped, mudded, and sanded by drywall contractor prior to painting scope. Covers flat ceilings, tray ceiling flat areas, and vaulted/cathedral ceiling areas. Does NOT include wall prime, ceiling finish coats, wood/beadboard ceilings, or coffered ceiling beams.",
+
+  "relevant_findings": [
+    "PVA (polyvinyl acetate) primer is the standard choice for new drywall ceilings — same material systems as wall prime",
+    "Ceiling priming is typically done at the same time as wall priming in NC sequence, but overhead application is distinctly slower",
+    "Spray+backroll is the most common production method for ceilings in NC — spray-only is less common because backroll ensures consolidation on overhead surfaces",
+    "Single primer coat is standard — ceilings have the same drywall absorption characteristics as walls",
+    "New construction drywall fasteners are mudded and rust-resistant — no spot-priming needed (inherits RC-001 from wall prime)",
+    "PVA and acrylic primers are sealers, not stain blockers — zero stain blocking (inherits RC-002 from wall prime)",
+    "Overhead work is physically more demanding and slower than wall work — production rates are 15-25% lower than equivalent wall prime rates",
+    "Height modifiers are more aggressive for ceilings: standard 8-9ft ceiling is baseline, but vaulted (13-17ft) and cathedral (18ft+) require scaffolding/lifts and significantly reduce throughput",
+    "Floor protection is ALWAYS required for ceiling spray work — full room coverage (floor_full), not perimeter only",
+    "Wall protection during ceiling spray depends on NC sequence — if walls are not yet painted (typical), wall masking may not be needed; if walls are finished, wall_adjacent protection applies",
+    "Drywall dust on ceilings is the same concern as walls — must vacuum before priming for proper adhesion",
+    "Ceiling edge cut-in at wall line is the inverse of wall cut-in at ceiling line — same physical edge, different perspective"
+  ],
+
+  "prep_requirements": [
+    {
+      "prep_item": "Dust removal",
+      "method": "HEPA vacuum with brush attachment — overhead technique",
+      "reason": "Drywall dust reduces adhesion and causes visible contamination in primer film. Gravity means less dust accumulation on ceilings than walls, but still critical.",
+      "skip_conditions": "Never — always required"
+    },
+    {
+      "prep_item": "Surface inspection",
+      "method": "Walk with work light (angled to reveal defects), mark defects",
+      "reason": "Identify fastener pops, unfilled joints, damaged paper. Lighting angle is critical for ceiling inspection — direct overhead light hides defects that raking light reveals.",
+      "skip_conditions": "QT2 may reduce to major defects only"
+    }
+  ],
+
+  "primer_system_selection": {
+    "PVA_primer": {
+      "when_to_use": ["QT2", "QT3", "standard_NC_production"],
+      "advantages": ["Low cost", "Excellent sealing", "Water cleanup"],
+      "limitations": ["Zero stain blocking — sealer only, not a stain blocker (RC-002)", "Not for exterior use"],
+      "typical_products": ["Sherwin-Williams PVA Primer", "Benjamin Moore Fresh Start PVA", "PPG Speedhide PVA Primer"]
+    },
+    "acrylic_latex_primer": {
+      "when_to_use": ["QT4", "premium_specifications"],
+      "advantages": ["Better adhesion and build than PVA", "Excellent topcoat holdout"],
+      "limitations": ["Higher cost", "Zero stain blocking — sealer only (RC-002)"],
+      "typical_products": ["Benjamin Moore Fresh Start 023", "Sherwin-Williams ProMar 200 Primer", "PPG Speedhide Interior Latex Primer"]
+    },
+    "high_build_primer": {
+      "when_to_use": ["Level_5_drywall", "uniform_sheen_critical"],
+      "advantages": ["Fills minor imperfections", "Uniform porosity", "Level 5 ready surface"],
+      "limitations": ["Lower coverage (200 SF/gal)", "May require sanding", "Higher cost", "Heavier product overhead increases fatigue"],
+      "typical_products": ["SW High Build", "USG Tuff-Hide"]
+    }
+  },
+
+  "ceiling_specific_considerations": [
+    {
+      "consideration": "Overhead fatigue factor",
+      "impact": "All ceiling tasks take longer than equivalent wall tasks due to overhead body position. Fatigue compounds over time — production rates decrease through the workday for ceiling work more than wall work.",
+      "rate_adjustment": "15-25% slower than wall equivalent rates"
+    },
+    {
+      "consideration": "Height access",
+      "impact": "Standard 8-9ft ceilings: work from floor with extension pole. 10-12ft: step ladder may be needed. 13-17ft vaulted: scaffold or baker staging. 18ft+ cathedral: scaffold, possibly lifts.",
+      "rate_adjustment": "Height modifiers per Estimation_Modifiers_Doctrine: H1=1.0, H2=1.3, H3=1.5, H4=2.0"
+    },
+    {
+      "consideration": "Spray pattern for ceilings",
+      "impact": "Ceiling spray requires different technique than walls — sprayer aims upward, overspray falls straight down onto operator and floor. Full PPE more critical. Spray fan angle and distance differ.",
+      "rate_adjustment": "Ceiling spray rate ~15% slower than wall spray rate"
+    },
+    {
+      "consideration": "Backroll overhead",
+      "impact": "Backrolling a ceiling is done with extension pole at arm's length overhead. Significantly more fatiguing than wall backroll. Roller control is harder — more drips and stipple risk.",
+      "rate_adjustment": "Ceiling backroll rate ~20% slower than wall backroll rate"
+    },
+    {
+      "consideration": "Floor protection scope",
+      "impact": "Ceiling spray creates overspray that falls to the floor across the entire room. Floor protection must be full room (floor_full zone), not just perimeter. This is mandatory regardless of floor type.",
+      "rate_adjustment": "Protection setup time is higher than wall spray protection"
+    }
+  ],
+
+  "required_paintscope_keys": [
+    {
+      "key": "PS_SURFACE_SF.CEILING_FIELD",
+      "description": "Total paintable ceiling field area",
+      "uom": "SF",
+      "required": true,
+      "required_when": "Always — primary quantity driver for ceiling priming",
+      "catalog_status": "EXISTS"
+    },
+    {
+      "key": "PS_EDGE_LF.TO_WALL",
+      "description": "Linear footage of ceiling-to-wall boundary for edge cut-in from the ceiling's perspective. Distinct key from wall's PS_EDGE_LF.TO_CEILING — each surface declares its own edge relationship.",
+      "uom": "LF",
+      "required": false,
+      "required_when": "When application_method is roll, or when spray requires edge touch-up at wall line",
+      "catalog_status": "EXISTS"
+    }
+  ],
+
+  "proposed_new_keys": [],
+
+  "paintscope_key_resolution": {
+    "brief_proposed": "PS_EDGE_LF.TO_WALL",
+    "resolution": "Created PS_EDGE_LF.TO_WALL as a distinct key. Each surface declares its own edge relationship — wall uses PS_EDGE_LF.TO_CEILING, ceiling uses PS_EDGE_LF.TO_WALL.",
+    "spec_input_name": "IN_LF_EDGE_TO_WALL",
+    "maps_to": "PS_EDGE_LF.TO_WALL",
+    "rationale": "Same physical edge but each spec declares its own PaintScope key. This maintains clear ownership: wall specs reference TO_CEILING, ceiling specs reference TO_WALL. PaintScope resolves both from the same measured geometry."
+  },
+
+  "protection_zones_analysis": {
+    "zones_required": [
+      {
+        "zone_id": "floor_full",
+        "condition": "always for spray methods",
+        "rationale": "Ceiling spray creates overspray that falls to floor across entire room. Full floor coverage mandatory.",
+        "protection_level": "full_cover",
+        "paintscope_key": "PS_PROTECT_SF.FLOOR_EXPOSED"
+      },
+      {
+        "zone_id": "floor_perimeter",
+        "condition": "always for roll method",
+        "rationale": "Roll method has minimal drip risk — perimeter drops sufficient.",
+        "protection_level": "edge_only",
+        "paintscope_key": "PS_PROTECT_SF.FLOOR_PERIMETER"
+      },
+      {
+        "zone_id": "wall_adjacent",
+        "condition": "when walls are already finished",
+        "rationale": "If walls have been painted (atypical NC sequence), wall drapes needed during ceiling spray. If walls are bare (typical NC), no wall protection needed.",
+        "protection_level": "partial_cover",
+        "paintscope_key": "PS_PROTECT_LF.WALL_ADJACENT"
+      },
+      {
+        "zone_id": "fixture_covers",
+        "condition": "when spray method used",
+        "rationale": "Any fixtures installed before priming need protection from overspray.",
+        "protection_level": "full_cover",
+        "paintscope_key": "PS_PROTECT_EA.FIXTURE_COVERS"
+      }
+    ]
+  },
+
+  "adjacency_analysis": {
+    "primary_surface": "ceiling_field",
+    "adjacent_surfaces": [
+      {
+        "surface_id": "wall_field",
+        "edge_type": "linear",
+        "typical_relationship": "different_finish",
+        "notes": "Ceiling and walls are almost always different products (primer vs finish, or different colors). Edge work at this boundary is the primary adjacency concern.",
+        "affected_tasks": "Cut-in at wall line, masking at wall line"
+      },
+      {
+        "surface_id": "trim_crown",
+        "edge_type": "linear",
+        "typical_relationship": "different_finish",
+        "notes": "Crown molding, if present, creates a ceiling-to-trim boundary. In NC sequence, crown is typically installed after ceiling prime, so this edge is not relevant during prime phase. Included for completeness — affects ceiling finish spec more than prime.",
+        "affected_tasks": "Masking if crown is pre-installed (atypical)"
+      }
+    ]
+  },
+
+  "site_condition_analysis": {
+    "conditions_affecting_tasks": [
+      {
+        "condition_id": "floor_type",
+        "values": ["finished", "partial", "subfloor"],
+        "impact": "Floor protection material selection: rosin paper on hard floors, canvas/plastic on carpet. Subfloor may not require protection.",
+        "affects_tasks": "Floor protection setup/teardown"
+      },
+      {
+        "condition_id": "access_constraint",
+        "values": ["none", "step_ladder", "extension_ladder", "scaffold"],
+        "impact": "Ceiling height determines access equipment. Standard ceilings = none/step_ladder. Vaulted = scaffold. Cathedral = scaffold/lift.",
+        "affects_tasks": "All ceiling application tasks — production rate modifiers"
+      }
+    ]
+  },
+
+  "adjacency_notes": [
+    {
+      "edge_type": "ceiling_to_wall",
+      "scope_impact": "May require brush cut-in if walls are on separate phase or different product. In NC, walls and ceilings are often primed in same session — edge work may be minimal.",
+      "paintscope_key": "PS_EDGE_LF.TO_WALL",
+      "nc_context": "In NC, ceilings are typically primed at the same time as walls. Ceiling primer should stop at wall line without extending onto wall surface."
+    },
+    {
+      "edge_type": "ceiling_to_crown",
+      "scope_impact": "Crown molding is typically NOT installed during prime phase in NC. If pre-installed (rare), creates masking requirement.",
+      "paintscope_key": null,
+      "nc_context": "Crown molding installed after prime, before finish. Not a prime-phase concern."
+    }
+  ],
+
+  "notes_for_materials_manager": [
+    "Same material systems as wall prime — PVA for QT2-QT3, acrylic latex for QT4, high-build for Level 5",
+    "Coverage rates are the same as wall prime (same drywall substrate, same absorption)",
+    "Ceiling spray may use slightly higher product volume due to overspray losses overhead",
+    "Spray tip selection same as walls — 517 standard",
+    "Roller nap selection same as walls — 1/2\" smooth, 3/4\" textured",
+    "18-inch roller for spray+backroll, 9-inch for roll-only",
+    "Floor protection materials are higher quantity than wall prime — full room coverage needed for spray"
+  ],
+
+  "notes_for_sop_librarian": [
+    "Mirror wall prime SOP structure with ceiling-specific task IDs (TSK_CEIL_* prefix)",
+    "Vacuum step is CRITICAL — same as walls (RC-001 applies: no spot-priming of fasteners)",
+    "Spray+backroll coupling constraint same as walls — backroller sets pace",
+    "Edge cut-in is at WALL line (not ceiling line) — inverse of wall spec",
+    "Floor protection is full-room for spray methods (not perimeter)",
+    "Wall protection is conditional on NC sequence — typically NOT needed during prime phase",
+    "Masking scope is different from wall prime: mask wall tops (not ceiling line), mask floor fully"
+  ],
+
+  "notes_for_estimation_engineer": [
+    "All production rates should be 15-25% slower than wall prime equivalents due to overhead work",
+    "Roll rates: ~300 SF/hr smooth ceiling (vs 350 wall), ~235 SF/hr textured (vs 275 wall)",
+    "Spray rates: ~500 SF/hr ceiling (vs 600 wall)",
+    "Backroll rates: ~325 SF/hr ceiling (vs 400 wall) — overhead fatigue is significant",
+    "Effective spray+backroll rate = backroll rate (coupling constraint, same as walls)",
+    "Cut-in rates: ~85 LF/hr ceiling edge (vs 100 wall) — working overhead",
+    "Height modifiers per Modifier_Registry: H1=1.0 (≤9ft), H2=1.3 (10-12ft), H3=1.5 (13-17ft), H4=2.0 (18ft+)",
+    "Height modifiers compound with the inherent overhead slowdown — a cathedral ceiling is both overhead AND high access",
+    "QT modifiers same as walls: QT2=0.8, QT3=1.0, QT4=1.3",
+    "Floor protection setup is larger scope than wall spray — budget more protection time"
+  ],
+
+  "assumptions": [
+    "All drywall is standard gypsum board (not specialized types)",
+    "New construction surface condition is 'Good' — minimal defects expected",
+    "Standard ceiling height 8-9 ft is baseline; height modifiers apply above that",
+    "Drywall contractor has completed all taping, mudding, and sanding",
+    "Ceilings and walls are typically primed in the same session in NC production",
+    "Floor protection is always needed for ceiling spray — no exceptions",
+    "Crown molding is NOT installed during prime phase (typical NC sequence)"
+  ],
+
+  "uncertainties": [
+    "Exact overhead fatigue factor for ceiling work — 15-25% range needs field validation",
+    "Whether ceiling spray+backroll rate reduction is closer to 15% or 25% vs walls",
+    "Floor condition at time of ceiling prime — site_condition_rules handle this",
+    "Whether wall protection is ever needed during ceiling prime in NC sequence — treated as conditional"
+  ],
+
+  "inherited_research_corrections": [
+    {
+      "id": "RC-001",
+      "title": "No spot-priming NC drywall fasteners",
+      "impact": "No spot-prime tasks in ceiling spec — same reasoning as wall prime",
+      "source": "SF_DRYWALL_WALL_NC_PRIME research.json"
+    },
+    {
+      "id": "RC-002",
+      "title": "PVA/acrylic drywall primers have zero stain blocking",
+      "impact": "No stain blocking claims in materials — same reasoning as wall prime",
+      "source": "SF_DRYWALL_WALL_NC_PRIME research.json"
+    },
+    {
+      "id": "RC-003",
+      "title": "Floor protection conditional on floor_type",
+      "impact": "Site condition rules for floor_type apply — but ceiling spray always requires floor_full regardless",
+      "source": "SF_DRYWALL_WALL_NC_PRIME research.json"
+    },
+    {
+      "id": "RC-004",
+      "title": "Do not specify dry times in specs",
+      "impact": "No dry time references in ceiling spec",
+      "source": "SF_DRYWALL_WALL_NC_PRIME research.json"
+    }
+  ],
+
+  "confidence_level": "high"
+}

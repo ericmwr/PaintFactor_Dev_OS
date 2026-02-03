@@ -111,9 +111,12 @@ VALID_PROTECTION_LEVELS = ["edge_only", "partial_cover", "full_cover"]
 
 # Site Condition Vocabulary (from Site_Condition_Vocabulary_Reference.md)
 VALID_SITE_CONDITIONS: Dict[str, List[str]] = {
+    "floor_type": [
+        "subfloor", "finished", "partial",
+    ],
     "occupancy_state": [
         "vacant", "vacant_with_fixtures", "occupied_owner_assists",
-        "occupied_crew_handles", "occupied_sensitive",
+        "occupied_crew_handles", "occupied_sensitive", "occupied_normal",
     ],
     "access_constraint": [
         "none", "step_ladder", "extension_ladder", "scaffold", "lift",
@@ -141,6 +144,30 @@ VALID_SITE_CONDITIONS: Dict[str, List[str]] = {
 # Set to None to enforce ERROR immediately.
 COMPLETENESS_GRACE_DEADLINE: Optional[str] = "2026-03-02"  # 30 days from doctrine finalization
 VALID_RELATIONSHIPS = ["same_finish", "different_finish", "varies", "not_in_scope"]
+
+# =============================================================================
+# Substrate State Vocabulary (from Substrate_State_Reference.md)
+# =============================================================================
+
+VALID_SUBSTRATE_STATES = [
+    # Bare substrates
+    "SS_BARE",
+    # Primed states
+    "SS_PRIMED", "SS_PRIMED_FACTORY", "SS_PRIMED_FIELD",
+    # Painted states (by sheen)
+    "SS_PAINTED", "SS_PAINTED_FLAT", "SS_PAINTED_EGGSHELL",
+    "SS_PAINTED_SATIN", "SS_PAINTED_SEMIGLOSS", "SS_PAINTED_GLOSS",
+    "SS_PAINTED_ALKYD", "SS_PAINTED_UNKNOWN",
+    # Stained states
+    "SS_STAINED", "SS_STAINED_PENETRATING", "SS_STAINED_FILM", "SS_STAINED_UNKNOWN",
+    # Clear-coated states
+    "SS_CLEAR", "SS_CLEAR_POLY", "SS_CLEAR_LACQUER",
+    "SS_CLEAR_VARNISH", "SS_CLEAR_SHELLAC", "SS_CLEAR_UNKNOWN",
+]
+
+# Adjacent state protection levels (different from protection_zones_required levels)
+# These describe masking intensity, not physical area coverage
+VALID_ADJACENT_STATE_PROTECTION_LEVELS = ["none", "light_mask", "full_mask", "full_cover"]
 
 
 @dataclass
@@ -583,7 +610,18 @@ def validate_site_condition_completeness(
     file_path: str,
     issues: List[Issue],
 ) -> None:
-    """Validate site_condition_rules completeness (Spec_Completeness_Doctrine Layer 3)."""
+    """Validate site_condition_rules completeness (Spec_Completeness_Doctrine Layer 3).
+
+    Expected list format:
+    "site_condition_rules": [
+      {
+        "condition_id": "floor_type",
+        "include_when": ["finished", "partial"],
+        "exclude_when": ["subfloor"],
+        "affects": "Description of effect"
+      }
+    ]
+    """
     for task in tasks:
         task_id = task.get("task_id", "unknown")
 
@@ -591,43 +629,60 @@ def validate_site_condition_completeness(
         if not scr:
             continue  # Not all tasks need site_condition_rules
 
-        # Validate include_when conditions
-        include_when = scr.get("include_when", {})
-        if isinstance(include_when, dict):
-            for cond_id, values in include_when.items():
-                if cond_id not in VALID_SITE_CONDITIONS:
-                    issues.append(Issue(
-                        "ERROR", file_path,
-                        f"TASK_SC_INVALID_CONDITION: Task '{task_id}' include_when references unknown condition '{cond_id}'"
-                    ))
-                elif isinstance(values, list):
-                    valid_vals = VALID_SITE_CONDITIONS[cond_id]
-                    for v in values:
-                        if v not in valid_vals:
-                            issues.append(Issue(
-                                "ERROR", file_path,
-                                f"TASK_SC_INVALID_VALUE: Task '{task_id}' include_when condition '{cond_id}' has invalid value '{v}' (valid: {valid_vals})"
-                            ))
+        # Validate list format
+        if not isinstance(scr, list):
+            issues.append(Issue(
+                "ERROR", file_path,
+                f"TASK_SC_FORMAT_ERROR: Task '{task_id}' site_condition_rules must be a list, got {type(scr).__name__}"
+            ))
+            continue
 
-        # Validate exclude_when conditions
-        exclude_when = scr.get("exclude_when", {})
-        if isinstance(exclude_when, dict):
-            for cond_id, values in exclude_when.items():
-                if cond_id not in VALID_SITE_CONDITIONS:
-                    issues.append(Issue(
-                        "ERROR", file_path,
-                        f"TASK_SC_INVALID_CONDITION: Task '{task_id}' exclude_when references unknown condition '{cond_id}'"
-                    ))
-                elif isinstance(values, list):
-                    valid_vals = VALID_SITE_CONDITIONS[cond_id]
-                    for v in values:
-                        if v not in valid_vals:
-                            issues.append(Issue(
-                                "ERROR", file_path,
-                                f"TASK_SC_INVALID_VALUE: Task '{task_id}' exclude_when condition '{cond_id}' has invalid value '{v}' (valid: {valid_vals})"
-                            ))
+        for rule in scr:
+            if not isinstance(rule, dict):
+                issues.append(Issue(
+                    "ERROR", file_path,
+                    f"TASK_SC_FORMAT_ERROR: Task '{task_id}' site_condition_rules item must be a dict"
+                ))
+                continue
 
-        # Validate modifier_when_included
+            cond_id = rule.get("condition_id")
+            if not cond_id:
+                issues.append(Issue(
+                    "ERROR", file_path,
+                    f"TASK_SC_MISSING_CONDITION_ID: Task '{task_id}' site_condition_rules item missing condition_id"
+                ))
+                continue
+
+            if cond_id not in VALID_SITE_CONDITIONS:
+                issues.append(Issue(
+                    "ERROR", file_path,
+                    f"TASK_SC_INVALID_CONDITION: Task '{task_id}' references unknown condition '{cond_id}'"
+                ))
+                continue
+
+            valid_vals = VALID_SITE_CONDITIONS[cond_id]
+
+            # Validate include_when values
+            include_when = rule.get("include_when", [])
+            if isinstance(include_when, list):
+                for v in include_when:
+                    if v not in valid_vals:
+                        issues.append(Issue(
+                            "ERROR", file_path,
+                            f"TASK_SC_INVALID_VALUE: Task '{task_id}' include_when for '{cond_id}' has invalid value '{v}' (valid: {valid_vals})"
+                        ))
+
+            # Validate exclude_when values
+            exclude_when = rule.get("exclude_when", [])
+            if isinstance(exclude_when, list):
+                for v in exclude_when:
+                    if v not in valid_vals:
+                        issues.append(Issue(
+                            "ERROR", file_path,
+                            f"TASK_SC_INVALID_VALUE: Task '{task_id}' exclude_when for '{cond_id}' has invalid value '{v}' (valid: {valid_vals})"
+                        ))
+
+        # Validate modifier_when_included (separate from site_condition_rules)
         mwi = task.get("modifier_when_included")
         if mwi and isinstance(mwi, dict):
             for cond_id, modifier_map in mwi.items():
@@ -644,6 +699,115 @@ def validate_site_condition_completeness(
                                 "ERROR", file_path,
                                 f"TASK_SC_INVALID_VALUE: Task '{task_id}' modifier_when_included condition '{cond_id}' has invalid value '{v}'"
                             ))
+
+
+def validate_state_declarations(
+    spec: Dict[str, Any],
+    file_path: str,
+    issues: List[Issue],
+) -> None:
+    """Validate state_declarations completeness (Spec_Completeness_Doctrine Layer 4)."""
+    level = _completeness_level(spec)
+
+    sd = spec.get("state_declarations")
+    if sd is None:
+        issues.append(Issue(level, file_path, "SCD_STATE_DECL_PRESENT: spec.json missing 'state_declarations'"))
+        return
+
+    # Validate primary_surface
+    primary = sd.get("primary_surface")
+    if not primary:
+        issues.append(Issue("ERROR", file_path, "SCD_STATE_PRIMARY_SURFACE: state_declarations missing 'primary_surface'"))
+    elif primary not in VALID_SURFACES:
+        issues.append(Issue("WARN", file_path, f"SCD_STATE_PRIMARY_SURFACE: Unknown primary_surface '{primary}' (not in Surface_Vocabulary_Reference)"))
+
+    # Validate valid_input_states
+    vis = sd.get("valid_input_states")
+    if not vis:
+        issues.append(Issue("ERROR", file_path, "SCD_STATE_INPUT_EMPTY: state_declarations missing 'valid_input_states'"))
+    else:
+        states = vis.get("states", [])
+        if not states or not isinstance(states, list) or len(states) == 0:
+            issues.append(Issue("ERROR", file_path, "SCD_STATE_INPUT_EMPTY: valid_input_states.states array is empty"))
+        else:
+            for state in states:
+                if state not in VALID_SUBSTRATE_STATES:
+                    issues.append(Issue(
+                        "ERROR", file_path,
+                        f"SCD_STATE_INPUT_VALID: Invalid input state '{state}' (not in Substrate_State_Reference)"
+                    ))
+
+    # Validate output_state
+    os_obj = sd.get("output_state")
+    if not os_obj:
+        issues.append(Issue("ERROR", file_path, "SCD_STATE_OUTPUT_MISSING: state_declarations missing 'output_state'"))
+    else:
+        output_state = os_obj.get("state")
+        if not output_state:
+            issues.append(Issue("ERROR", file_path, "SCD_STATE_OUTPUT_MISSING: output_state missing 'state' field"))
+        elif output_state not in VALID_SUBSTRATE_STATES:
+            issues.append(Issue(
+                "ERROR", file_path,
+                f"SCD_STATE_OUTPUT_VALID: Invalid output state '{output_state}' (not in Substrate_State_Reference)"
+            ))
+
+        # Validate state_map if varies_by is set
+        varies_by = os_obj.get("varies_by")
+        state_map = os_obj.get("state_map", {})
+        if varies_by and state_map:
+            for config_val, mapped_state in state_map.items():
+                if mapped_state not in VALID_SUBSTRATE_STATES:
+                    issues.append(Issue(
+                        "ERROR", file_path,
+                        f"SCD_STATE_MAP_VALID: Invalid mapped state '{mapped_state}' for config value '{config_val}'"
+                    ))
+
+    # Validate adjacent_state_protection_rules
+    aspr = sd.get("adjacent_state_protection_rules", [])
+    if isinstance(aspr, list):
+        for i, rule in enumerate(aspr):
+            prefix = f"adjacent_state_protection_rules[{i}]"
+
+            # Validate adjacent_surface
+            adj_surface = rule.get("adjacent_surface")
+            if not adj_surface:
+                issues.append(Issue(
+                    "ERROR", file_path,
+                    f"SCD_STATE_PROTECTION_SURFACE_VALID: {prefix} missing 'adjacent_surface'"
+                ))
+            elif adj_surface not in VALID_SURFACES:
+                issues.append(Issue(
+                    "ERROR", file_path,
+                    f"SCD_STATE_PROTECTION_SURFACE_VALID: {prefix} invalid adjacent_surface '{adj_surface}'"
+                ))
+
+            # Validate when_state array
+            when_states = rule.get("when_state", [])
+            if not when_states or not isinstance(when_states, list):
+                issues.append(Issue(
+                    "ERROR", file_path,
+                    f"SCD_STATE_PROTECTION_STATES_VALID: {prefix} missing or empty 'when_state'"
+                ))
+            else:
+                for ws in when_states:
+                    if ws not in VALID_SUBSTRATE_STATES:
+                        issues.append(Issue(
+                            "ERROR", file_path,
+                            f"SCD_STATE_PROTECTION_STATES_VALID: {prefix} invalid when_state '{ws}'"
+                        ))
+
+            # Validate protection_level
+            prot_level = rule.get("protection_level")
+            if not prot_level:
+                issues.append(Issue(
+                    "ERROR", file_path,
+                    f"SCD_STATE_PROTECTION_LEVEL_VALID: {prefix} missing 'protection_level'"
+                ))
+            elif prot_level not in VALID_ADJACENT_STATE_PROTECTION_LEVELS:
+                issues.append(Issue(
+                    "ERROR", file_path,
+                    f"SCD_STATE_PROTECTION_LEVEL_VALID: {prefix} invalid protection_level '{prot_level}' (must be one of: {VALID_ADJACENT_STATE_PROTECTION_LEVELS})"
+                ))
 
 
 def cross_file_checks(
@@ -766,6 +930,9 @@ def cross_file_checks(
 
         # Layer 2: Adjacency Completeness (with task cross-ref)
         validate_adjacency_completeness(artifacts["spec.json"], task_ids, spec_path, issues)
+
+        # Layer 4: State Declarations Completeness
+        validate_state_declarations(artifacts["spec.json"], spec_path, issues)
 
     if "sop_modules.json" in artifacts:
         sop = artifacts["sop_modules.json"]

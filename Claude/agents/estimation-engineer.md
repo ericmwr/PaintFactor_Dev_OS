@@ -26,6 +26,7 @@ This agent defines production RATES and FACTORS. The Estimation Engine multiplie
 ### Protection & Continuity References
 - **[docs/Reference/Protection_Zones_Reference.md](../docs/Reference/Protection_Zones_Reference.md)** — Zone IDs for protection optimization
 - **[docs/Reference/Surface_Vocabulary_Reference.md](../docs/Reference/Surface_Vocabulary_Reference.md)** — Surface IDs for finish continuity
+- **[docs/Reference/Substrate_State_Reference.md § 5](../docs/Reference/Substrate_State_Reference.md)** — Substrate state modifiers for prep task rate adjustments
 
 ### Adjacency Doctrine / PaintScope Contract
 - **[docs/PaintScope/PaintScope_Quantity_Key_Catalog.md](../docs/PaintScope/PaintScope_Quantity_Key_Catalog.md)** — Canonical PaintScope quantity keys
@@ -285,6 +286,7 @@ When tasks include `modifier_when_included` (set by SOP Librarian), the Estimati
 | Surface Condition | Modifier_Registry § Surface Condition Modifiers | Prep tasks based on condition |
 | Site Conditions | Modifier_Registry § Site Condition Modifiers | Per task include/exclude rules |
 | Complexity | Modifier_Registry § Complexity Modifiers | Geometric/detail complexity |
+| Substrate State (SS_*) | Modifier_Registry § Substrate State Modifiers | Prep tasks based on existing coating state |
 
 ### Finish Continuity Rate Modifier Validation
 
@@ -300,6 +302,24 @@ When specs include `continuity_rate_modifier` in adjacency declarations, verify:
 | Complex (door/window system) | 1.20–1.30 (20-30% faster when fully continuous) |
 
 These modifiers are applied by the engine at project assembly based on finish group assignments.
+
+### Substrate State Modifier Application
+
+Reference: **[docs/Reference/Substrate_State_Reference.md § 5](../docs/Reference/Substrate_State_Reference.md)**
+
+When tasks include `substrate_state_rules` (set by SOP Librarian), apply substrate state modifiers to prep tasks:
+
+1. **Prep tasks only:** Substrate state modifiers primarily affect prep task rates
+2. **Prime/Finish unchanged:** Prime and finish modifiers remain at 1.0 (prep normalizes the surface)
+3. **Values from Modifier_Registry:** Use SS_* modifier values from Modifier_Registry.md § Substrate State Modifiers
+4. **Stacking:** Substrate state modifiers stack multiplicatively with other modifiers
+
+```
+total_modifier = substrate_state × condition × height × complexity × color_change
+```
+
+**Example:**
+- SS_PAINTED_SEMIGLOSS (1.25) × COND_GOOD (1.00) × H2_TALL (1.30) = 1.625 total prep modifier
 
 ---
 

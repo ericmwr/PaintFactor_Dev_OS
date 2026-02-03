@@ -1,0 +1,224 @@
+{
+  "spec_family_id": "SF_DOOR_FRAME_NC_FINISH",
+  "version": "0.1.0",
+  "qa_date": "2026-02-03",
+  "critic_agent": "SpecFactory Critic",
+
+  "overall_result": "PASS_WITH_WARNINGS",
+
+  "completeness_checklist": {
+    "protection_zones_required": {
+      "status": "PASS",
+      "details": "research.json includes protection_zones_analysis with 4 zones: floor_workzone, floor_full_8ft_radius, wall_adjacent_door, hardware_covers"
+    },
+    "adjacency_declarations": {
+      "status": "PASS",
+      "details": "research.json includes adjacency_analysis with primary_surface=door_frame and adjacent_surfaces=[door_casing, door_leaf_edge, wall_field, door_stop]"
+    },
+    "site_condition_rules": {
+      "status": "PASS",
+      "details": "research.json includes site_condition_analysis for floor_type, occupancy_state, lead_status, access_constraint. sop_modules.json tasks include floor_type conditions."
+    },
+    "protection_metadata_on_tasks": {
+      "status": "PASS",
+      "details": "sop_modules.json protection tasks include protection_metadata with action, zones, method_dependent fields"
+    },
+    "site_condition_rules_on_tasks": {
+      "status": "PASS",
+      "details": "sop_modules.json protection tasks include site_condition_rules for floor_type (subfloor/finished/partial)"
+    },
+    "modifier_values_align": {
+      "status": "PASS",
+      "details": "production.json modifier_ids align with Modifier_Registry.md: H1_STANDARD=1.0, H2_TALL=1.30, H3_HIGH=1.50, QT3_STANDARD=1.0, QT4_PREMIUM=1.30, QT5_SUPERIOR=1.50"
+    }
+  },
+
+  "brief_acceptance_criteria": [
+    {
+      "criterion": "EA (frame set) as primary unit (not LF, not EA_SIDE)",
+      "status": "PASS",
+      "evidence": "All tasks in sop_modules.json and production.json use IN_EA_DOOR_FRAME_SET with PS_SURFACE_EA.DOOR_FRAME_SET"
+    },
+    {
+      "criterion": "Stop surfaces bundled in frame set (not separate item)",
+      "status": "PASS",
+      "evidence": "No separate stop tasks — stop is included in frame coat tasks (TSK_FRAME_FINISH_SPRAY, TSK_FRAME_FINISH_BRUSH). TSK_FRAME_FILL_STOP_HOLES handles stop nail holes."
+    },
+    {
+      "criterion": "frame_type variants differentiated (standard, pocket, cased_opening, bifold)",
+      "status": "PASS",
+      "evidence": "sop_modules.json includes frame_type_variants array with VAR_FRAME_POCKET, VAR_FRAME_CASED_OPENING, VAR_FRAME_BIFOLD. production.json includes frame_type_complexity modifiers."
+    },
+    {
+      "criterion": "Conditional primer coat based on substrate_condition",
+      "status": "PASS",
+      "evidence": "MOD_FRAME_PRIME has applies_when: substrate_condition=[bare_wood]. Tasks TSK_FRAME_PRIME_SPRAY, TSK_FRAME_PRIME_BRUSH conditional."
+    },
+    {
+      "criterion": "Hinge/strike mortise touch-up tasks conditional on installation sequence",
+      "status": "PASS",
+      "evidence": "MOD_FRAME_MORTISE_TOUCHUP has applies_when: installation_sequence=[doors_installed_before_painting]. Task TSK_FRAME_MORTISE_TOUCHUP conditional."
+    },
+    {
+      "criterion": "Bifold frame variant included in frame_type dimension",
+      "status": "PASS",
+      "evidence": "research.json condition_drivers CD-002 includes bifold in frame_type values. brief.md Section 3 includes bifold."
+    },
+    {
+      "criterion": "Fine Finish Doctrine interstage process at all quality tiers",
+      "status": "PASS",
+      "evidence": "MOD_FRAME_INTERSTAGE module exists with run_rule='Runs AFTER each coat EXCEPT the final coat'. Includes inspect, sand, patch, clean tasks."
+    },
+    {
+      "criterion": "Protection zones include floor_workzone at minimum; floor_full_8ft_radius + wall_adjacent_door when spray",
+      "status": "PASS",
+      "evidence": "sop_modules.json includes TSK_FRAME_FLOOR_PROTECT_BRUSH (floor_workzone), TSK_FRAME_FLOOR_PROTECT_SPRAY (floor_full_8ft_radius), TSK_FRAME_WALL_PROTECT_SPRAY (wall_adjacent_door)"
+    },
+    {
+      "criterion": "Adjacency declares door_frame as primary surface with adjacent: door_casing, door_leaf_edge, wall_field",
+      "status": "PASS",
+      "evidence": "research.json adjacency_analysis has primary_surface=door_frame with all three adjacent surfaces declared"
+    },
+    {
+      "criterion": "Production rates align with faster than door slab (simpler geometry)",
+      "status": "PASS",
+      "evidence": "production.json rate_comparison_notes documents frame_vs_slab='frames are ~1.5x faster'. Spray finish rate=12 EA/hr vs door slab 10 EA_SIDE/hr"
+    }
+  ],
+
+  "cross_file_integrity": [
+    {
+      "check": "All task_ids in production.json exist in sop_modules.json",
+      "status": "PASS",
+      "details": "All 25 task production rates reference valid task IDs from sop_modules.json"
+    },
+    {
+      "check": "All paintscope_keys in production.json match required_paintscope_keys in research.json",
+      "status": "PASS",
+      "details": "PS_SURFACE_EA.DOOR_FRAME_SET used consistently across all task rates"
+    },
+    {
+      "check": "Material systems in materials.json align with Fine Finish Doctrine tiers",
+      "status": "PASS",
+      "details": "4 material systems: SYS_FF_STANDARD_ACRYLIC (QT3), SYS_FF_MODIFIED_URETHANE (QT4), SYS_FF_PREMIUM (QT5), SYS_FF_GALLERY (QT5)"
+    },
+    {
+      "check": "Protection zones in research.json match zones declared in sop_modules.json tasks",
+      "status": "PASS",
+      "details": "floor_workzone, floor_full_8ft_radius, wall_adjacent_door, hardware_covers all declared in research and used in task protection_metadata"
+    },
+    {
+      "check": "Frame type complexity modifiers exist for all frame_type values",
+      "status": "PASS",
+      "details": "production.json frame_type_complexity has entries for standard (1.0), pocket (0.85), cased_opening (0.75), bifold (0.90)"
+    }
+  ],
+
+  "doctrine_compliance": [
+    {
+      "doctrine": "Fine_Finish_Doctrine.md",
+      "status": "PASS",
+      "details": "Material systems match doctrine (SYS_FF_STANDARD_ACRYLIC, SYS_FF_MODIFIED_URETHANE, SYS_FF_PREMIUM, SYS_FF_GALLERY). Interstage module present. Quality tier scrutiny definitions in quality_notes."
+    },
+    {
+      "doctrine": "Spec_Completeness_Doctrine.md",
+      "status": "PASS",
+      "details": "All three mandatory declaration layers present: protection_zones, adjacency_declarations, site_condition_rules"
+    },
+    {
+      "doctrine": "Quality_Tiers_and_Surface_Condition.md",
+      "status": "PASS",
+      "details": "QT modifiers correctly align with Modifier_Registry: QT3=1.0, QT4=1.30, QT5=1.50"
+    },
+    {
+      "doctrine": "Modifier_Registry.md",
+      "status": "PASS",
+      "details": "All modifier IDs in production.json match canonical registry values"
+    },
+    {
+      "doctrine": "Protection_Zones_Reference.md",
+      "status": "PASS",
+      "details": "Zone IDs floor_workzone, floor_full_8ft_radius, wall_adjacent_door, hardware_covers are valid per v2.0 reference"
+    },
+    {
+      "doctrine": "Surface_Vocabulary_Reference.md",
+      "status": "PASS",
+      "details": "Surface IDs door_frame, door_casing, door_leaf_edge, wall_field, door_stop are valid per reference"
+    },
+    {
+      "doctrine": "Site_Condition_Vocabulary_Reference.md",
+      "status": "PASS",
+      "details": "Condition ID floor_type and values subfloor/finished/partial are valid per v1.1 reference"
+    },
+    {
+      "doctrine": "PCA Industry Standards",
+      "status": "PASS",
+      "details": "No frame_width modifier applied per PCA standards (surfaces <1 ft width measured as 1 LF). Documented in research_corrections RC-001."
+    },
+    {
+      "doctrine": "Materials_and_Consumables_Doctrine.md",
+      "status": "PASS",
+      "details": "Tape yields 180 LF/roll. Consumable categories align with doctrine."
+    }
+  ],
+
+  "research_corrections_validated": [
+    {
+      "correction_id": "RC-001",
+      "original_claim": "Frame width modifier of 1.20x for wide frames (6-9/16\"+)",
+      "corrected_to": "No frame width modifier. Per PCA standards, surfaces <1 ft width are measured as 1 LF regardless of actual width.",
+      "status": "APPLIED",
+      "evidence": "production.json has no frame_width modifier. brief.md updated to remove frame_width dimension."
+    },
+    {
+      "correction_id": "RC-002",
+      "original_claim": "Waterborne alkyd preferred for brush/roll due to longer open time",
+      "corrected_to": "Modified urethane / waterborne urethane have SHORT open time (5-10 min). Oil-based has longest working time.",
+      "status": "APPLIED",
+      "evidence": "materials.json SYS_FF_MODIFIED_URETHANE finish notes include 'CAUTION: Short open time (5-10 min)'. research.json finding RF-013 documents correct open time hierarchy."
+    }
+  ],
+
+  "warnings": [
+    {
+      "warning_id": "WARN-002",
+      "severity": "low",
+      "message": "installation_sequence dimension is not in Site_Condition_Vocabulary_Reference.md. Used for mortise touch-up conditionality.",
+      "recommendation": "Consider adding installation_sequence to Site_Condition_Vocabulary_Reference.md as a project configuration dimension."
+    },
+    {
+      "warning_id": "WARN-003",
+      "severity": "low",
+      "message": "Door slab spec (SF_DOOR_SLAB_INT_NC_v1) does not have qa_report.json. Cross-spec validation not possible.",
+      "recommendation": "Generate qa_report.json for door slab spec to enable cross-spec validation."
+    }
+  ],
+
+  "project_level_conditions": [
+    {
+      "condition_id": "PL-001",
+      "condition": "wall_finish_state",
+      "description": "Whether adjacent walls are primed or finished",
+      "handling": "MIGRATED to state_declarations.adjacent_state_protection_rules for wall_field.",
+      "current_implementation": "Engine evaluates wall_field substrate state (SS_PAINTED_*) via adjacent_state_protection_rules to determine wall masking task inclusion."
+    },
+    {
+      "condition_id": "PL-002",
+      "condition": "installation_sequence",
+      "description": "Whether doors are installed before or after painting",
+      "handling": "Project-level configuration dimension.",
+      "current_implementation": "Placeholder applies_when in sop_modules.json."
+    }
+  ],
+
+  "notes": [
+    "Spec correctly implements EA (frame set) as primary unit per brief requirement",
+    "No frame_width modifier applied per PCA industry standards correction",
+    "Bifold added to frame_type dimension per user correction",
+    "Gallery Series system added with dedicated primer per user correction",
+    "Open time hierarchy corrected: modified urethane has SHORT open time (5-10 min)",
+    "Floor protection conditionality correctly uses floor_type site condition",
+    "Wall protection conditionality MIGRATED from wall_finish_state to state_declarations.adjacent_state_protection_rules for wall_field",
+    "Protection continuity across specs is project-level optimization per Protection_Zones_Reference.md"
+  ]
+}

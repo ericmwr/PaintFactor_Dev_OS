@@ -107,6 +107,53 @@
     ]
   },
 
+  "_state_declarations_guidance": {
+    "purpose": "Declares substrate state requirements for engine validation and dynamic protection calculation",
+    "primary_surface": "Same as adjacency_declarations.primary_surface",
+    "valid_input_states": "SS_* states this spec can operate on (e.g., SS_BARE for prime, SS_PRIMED for finish)",
+    "output_state": "SS_* state this spec produces (may vary by config dimension like sheen)",
+    "adjacent_state_protection_rules": "Protection needed based on adjacent surface states at execution time",
+    "protection_level_enum": "none = no masking, light_mask = tape only, full_mask = tape+paper, full_cover = full drape",
+    "reference": "Substrate_State_Reference.md"
+  },
+
+  "state_declarations": {
+    "primary_surface": "trim_baseboard",
+
+    "valid_input_states": {
+      "states": ["SS_PRIMED_FACTORY", "SS_PRIMED_FIELD"],
+      "notes": "Trim must be primed before finish application"
+    },
+
+    "output_state": {
+      "state": "SS_PAINTED_SEMIGLOSS",
+      "varies_by": "sheen",
+      "state_map": {
+        "satin": "SS_PAINTED_SATIN",
+        "semi-gloss": "SS_PAINTED_SEMIGLOSS",
+        "gloss": "SS_PAINTED_GLOSS"
+      },
+      "notes": "Output state varies by sheen configuration"
+    },
+
+    "adjacent_state_protection_rules": [
+      {
+        "adjacent_surface": "wall_field",
+        "when_state": ["SS_PAINTED_FLAT", "SS_PAINTED_EGGSHELL", "SS_PAINTED_SATIN", "SS_PAINTED_SEMIGLOSS"],
+        "protection_zone": "wall_mask_for_trim_spray",
+        "protection_level": "full_mask",
+        "notes": "Protect finished walls from trim spray overspray"
+      },
+      {
+        "adjacent_surface": "wall_field",
+        "when_state": ["SS_BARE", "SS_PRIMED"],
+        "protection_zone": null,
+        "protection_level": "none",
+        "notes": "Unfinished walls need no protection"
+      }
+    ]
+  },
+
   "change_log": [
     {
       "version": "0.1.0",
