@@ -105,6 +105,7 @@ PaintScope sources:   PS_PROTECT_SF.FLOOR_PERIMETER          <- geometry (how mu
 | `glass_mask` | Window panes | Paper, masking film | Window/trim painting | `PS_PROTECT_SF.ASSET.GLASS_AREA` |
 | `backsplash_mask` | Tile backsplash masking | Masking paper, tape | Cabinet spray | `PS_PROTECT_SF.ASSET.TILE_BACKSPLASH` |
 | `sill_protection` | Window sill surface protection | Paper, tape | Window spray | `PS_PROTECT_LF.SILL` |
+| `opening_cover_lightweight` | Lightweight plastic pin-up over window and door openings to catch overspray fallout from overhead or adjacent work. Not intricate masking — quick pin-up protection. Covers both windows and doors. | Lightweight plastic sheeting, tape | Ceiling prime, ceiling paint, wall spray | `PS_OPENING_EA.WINDOW_OPENINGS_TOTAL`, `PS_OPENING_EA.DOOR_OPENINGS_TOTAL` |
 
 ### Millwork/Specialty
 
@@ -216,8 +217,8 @@ At project assembly, the estimation engine will:
 |---------------|-------------|---------------|
 | Wall | brush/roll | `floor_perimeter`, `fixture_covers` |
 | Wall | spray | `floor_full`, `ceiling_line`, `trim_edges`, `fixture_covers` |
-| Ceiling | brush/roll | `floor_full`, `furniture_room`, `fixture_covers` |
-| Ceiling | spray | `floor_full`, `furniture_room`, `fixture_covers`, `wall_upper_band` |
+| Ceiling | brush/roll | `fixture_covers`, `opening_cover_lightweight` |
+| Ceiling | spray | `fixture_covers`, `opening_cover_lightweight` |
 | Trim | brush | `floor_perimeter` |
 | Trim | spray | `floor_perimeter`, `wall_adjacent` |
 | Door | brush/roll | `floor_perimeter`, `hardware_covers` |
@@ -248,3 +249,4 @@ When a new protection scenario is identified:
 |---------|------|---------|
 | 1.0 | 2025-01-26 | Initial zone catalog (14 zones) |
 | 2.0 | 2026-01-31 | Zone/Key Alignment Rollout: renamed 4 zones (`door_hardware`→`hardware_covers`, `window_glass`→`glass_mask`, `countertop`→`countertop_covers`, `appliances`→`appliance_adjacent`/`appliance_covers`), added 12 new zones, added two-layer architecture docs, added related_adjacency field, expanded hierarchy/method-dependent/paired zones tables. Total: 27 zones. |
+| 2.1 | 2026-02-02 | Added `opening_cover_lightweight` zone for lightweight plastic pin-up over window/door openings to catch overspray fallout. Updated ceiling paired zones. Total: 28 zones. |

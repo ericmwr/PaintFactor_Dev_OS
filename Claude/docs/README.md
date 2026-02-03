@@ -29,6 +29,7 @@ docs/
 | [PaintFactor_OS.md](System/PaintFactor_OS.md) | System architecture, layer definitions, design principles, agent roles |
 | [Conventions.md](System/Conventions.md) | ID prefixes, naming standards, versioning expectations |
 | [Schema_Alignment_Changelog.md](System/Schema_Alignment_Changelog.md) | Schema change log across rollouts |
+| [Engine_State_Coordination_Architecture.md](System/Engine_State_Coordination_Architecture.md) | How specs, database, and engine coordinate on substrate state tracking |
 
 ---
 
@@ -74,6 +75,7 @@ docs/
 | [Protection_Zones_Reference.md](Reference/Protection_Zones_Reference.md) | Zone IDs for protection task metadata |
 | [Surface_Vocabulary_Reference.md](Reference/Surface_Vocabulary_Reference.md) | Surface IDs for adjacency metadata and finish group assignments |
 | [Site_Condition_Vocabulary_Reference.md](Reference/Site_Condition_Vocabulary_Reference.md) | Valid site condition IDs, values, and definitions |
+| [Substrate_State_Reference.md](Reference/Substrate_State_Reference.md) | Substrate state IDs (SS_*), sub-states, modifiers, and state declaration format |
 
 ---
 

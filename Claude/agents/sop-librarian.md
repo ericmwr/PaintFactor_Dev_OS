@@ -26,6 +26,7 @@ SOP modules define work sequences; the Estimation Engine applies them to geometr
 ### Protection & Continuity References
 - **[docs/Reference/Protection_Zones_Reference.md](../docs/Reference/Protection_Zones_Reference.md)** — Zone IDs for protection task metadata
 - **[docs/Reference/Surface_Vocabulary_Reference.md](../docs/Reference/Surface_Vocabulary_Reference.md)** — Surface IDs for adjacency metadata
+- **[docs/Reference/Substrate_State_Reference.md](../docs/Reference/Substrate_State_Reference.md)** — Substrate state IDs (SS_*) for state-dependent protection rules
 
 ### Adjacency Doctrine / PaintScope Contract
 - **[docs/PaintScope/PaintScope_Quantity_Key_Catalog.md](../docs/PaintScope/PaintScope_Quantity_Key_Catalog.md)** — Canonical PaintScope quantity keys
@@ -265,6 +266,63 @@ When a task includes `modifier_when_included`, values MUST align with **Modifier
 - All condition IDs MUST exist in Site_Condition_Vocabulary_Reference.md
 - All condition values MUST be valid for their condition ID
 - The Critic will reject invalid condition IDs or values
+
+---
+
+## Substrate State Rules (MANDATORY for State-Dependent Tasks)
+
+Reference: **[docs/Reference/Substrate_State_Reference.md](../docs/Reference/Substrate_State_Reference.md)**
+
+Tasks that depend on substrate state or adjacent surface state MUST include `substrate_state_rules` declaring state-based behavior.
+
+### Which Tasks Need Substrate State Rules
+
+| Task Category | Typical States | Example |
+|---------------|----------------|---------|
+| Prep tasks | Input state affects prep intensity | SS_PAINTED_SEMIGLOSS requires degloss |
+| Protection tasks | Adjacent state affects masking | Protect finished walls (SS_PAINTED_*) from overspray |
+| Prime tasks | Input state determines primer selection | SS_STAINED_* requires shellac-based primer |
+
+### Required Structure for Prep Tasks
+
+```json
+{
+  "task_id": "TSK_PREP_DEGLOSS",
+  "substrate_state_rules": {
+    "applies_when_input_state": ["SS_PAINTED_SEMIGLOSS", "SS_PAINTED_GLOSS"],
+    "skip_when_input_state": ["SS_BARE", "SS_PRIMED_FACTORY", "SS_PRIMED_FIELD"],
+    "modifier_by_state": {
+      "SS_PAINTED_SEMIGLOSS": 1.25,
+      "SS_PAINTED_GLOSS": 1.30
+    }
+  }
+}
+```
+
+### Required Structure for Protection Tasks
+
+```json
+{
+  "task_id": "TSK_MASK_ADJACENT_WALL",
+  "substrate_state_rules": {
+    "adjacent_surface": "wall_field",
+    "protect_when_state": ["SS_PAINTED_FLAT", "SS_PAINTED_EGGSHELL", "SS_PAINTED_SATIN", "SS_PAINTED_SEMIGLOSS"],
+    "skip_when_state": ["SS_BARE", "SS_PRIMED"],
+    "protection_level_by_state": {
+      "SS_PAINTED_FLAT": "light_mask",
+      "SS_PAINTED_SATIN": "full_mask",
+      "SS_PAINTED_SEMIGLOSS": "full_mask"
+    }
+  }
+}
+```
+
+### State ID Validation
+
+- All state IDs MUST exist in Substrate_State_Reference.md
+- Use SS_* pattern for state IDs
+- Protection levels: `none`, `light_mask`, `full_mask`, `full_cover`
+- Modifier values MUST align with Modifier_Registry.md § Substrate State Modifiers
 
 ---
 

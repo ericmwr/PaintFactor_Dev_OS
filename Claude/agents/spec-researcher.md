@@ -15,29 +15,283 @@ Research informs spec design but does not itself produce estimates or runtime be
 
 **Painting is the primary domain.** Research into supporting trades (drywall, carpentry, masonry prep) is permitted only where it directly affects paint outcomes. Supporting trade research may not define painting scope, production rates, or estimating methods.
 
-### Required Reading
-- **[docs/System/PaintFactor_OS.md](../docs/System/PaintFactor_OS.md)** — System architecture and operating doctrine
-- **[docs/PaintScope/PaintScope_EdgeLF_Mapping.md](../docs/PaintScope/PaintScope_EdgeLF_Mapping.md)** — Geometry sourcing rules for edge work
-- **[docs/Doctrine/Quality_Tiers_and_Surface_Condition.md](../docs/Doctrine/Quality_Tiers_and_Surface_Condition.md)** — Quality tier definitions for research context
-- **[docs/Doctrine/Fine_Finish_Doctrine.md](../docs/Doctrine/Fine_Finish_Doctrine.md)** — Fine finish workflow, material systems, quality tier scrutiny definitions
+### Required Reading — Master Doctrine List
+
+Before ANY research or brief creation task, load relevant documents from this master list.
+
+**Tier 1: Core System Doctrine (Always Load)**
+
+| Document | Path | Purpose |
+|----------|------|---------|
+| PaintFactor_OS.md | `docs/System/PaintFactor_OS.md` | System architecture, doctrine authority hierarchy |
+| Conventions.md | `docs/System/Conventions.md` | ID prefixes, naming standards, versioning |
+
+**Tier 2: Domain Doctrine (Load Based on Spec Type)**
+
+| Document | Path | Purpose |
+|----------|------|---------|
+| Quality_Tiers_and_Surface_Condition.md | `docs/Doctrine/Quality_Tiers_and_Surface_Condition.md` | QT definitions (QT2-QT6), surface conditions, sheen rules |
+| Fine_Finish_Doctrine.md | `docs/Doctrine/Fine_Finish_Doctrine.md` | Fine finish workflow, scrutiny by tier (trim, doors, millwork) |
+| Doors_Doctrine.md | `docs/Doctrine/Doors_Doctrine.md` | Door substrates, hardware, panel sequences, cycle times |
+| Window_Systems_Doctrine.md | `docs/Doctrine/Window_Systems_Doctrine.md` | Window substrate treatment, height tiers, trim packages |
+| Millwork_NC_Paint_Doctrine.md | `docs/Doctrine/Millwork_NC_Paint_Doctrine.md` | Millwork new-construction paint, PDCA standards |
+| Materials_and_Consumables_Doctrine.md | `docs/Doctrine/Materials_and_Consumables_Doctrine.md` | Roller sizing, brush usage, consumable rates |
+| Estimation_Modifiers_Doctrine.md | `docs/Doctrine/Estimation_Modifiers_Doctrine.md` | Height/complexity modifiers, spray/backroll coupling |
+| Interior_Protection_Doctrine.md | `docs/Doctrine/Interior_Protection_Doctrine.md` | Protection zones, masking systems, floor/furniture protection |
+| Protection_and_Masking_Doctrine.md | `docs/Doctrine/Protection_and_Masking_Doctrine.md` | Floor protection methods, masking materials |
+| Spec_Completeness_Doctrine.md | `docs/Doctrine/Spec_Completeness_Doctrine.md` | Mandatory completeness requirements, validation rules |
+| Doctrine_Format_Standard.md | `docs/Doctrine/Doctrine_Format_Standard.md` | Standard format for doctrine documents |
+
+**Tier 3: Reference Vocabularies (Load for Validation)**
+
+| Document | Path | Purpose |
+|----------|------|---------|
+| Modifier_Registry.md | `docs/Doctrine/Modifier_Registry.md` | All modifier values (height, QT, condition, complexity, substrate state) |
+| Protection_Zones_Reference.md | `docs/Reference/Protection_Zones_Reference.md` | Valid protection zone IDs |
+| Surface_Vocabulary_Reference.md | `docs/Reference/Surface_Vocabulary_Reference.md` | Valid surface IDs for adjacency |
+| Site_Condition_Vocabulary_Reference.md | `docs/Reference/Site_Condition_Vocabulary_Reference.md` | Site condition IDs and values |
+| Substrate_State_Reference.md | `docs/Reference/Substrate_State_Reference.md` | Substrate state IDs (SS_*) for state declarations |
+
+**Tier 4: PaintScope Contract (Load for Key Validation)**
+
+| Document | Path | Purpose |
+|----------|------|---------|
+| PaintScope_Quantity_Key_Catalog.md | `docs/PaintScope/PaintScope_Quantity_Key_Catalog.md` | Canonical PS keys |
+| Spec_Input_to_PaintScope_Key_Mapping.md | `docs/PaintScope/Spec_Input_to_PaintScope_Key_Mapping.md` | Input → key mapping |
+| PaintScope_EdgeLF_Mapping.md | `docs/PaintScope/PaintScope_EdgeLF_Mapping.md` | Edge LF derivation rules |
+| PaintScope_Asset_Catalog.md | `docs/PaintScope/PaintScope_Asset_Catalog.md` | Asset categories and subtypes |
+| PaintScope_Adjacency_Schema.md | `docs/PaintScope/PaintScope_Adjacency_Schema.md` | Adjacency relationships |
+| PaintScope_Window_Counting_System.md | `docs/PaintScope/PaintScope_Window_Counting_System.md` | Window quantification |
+| PaintScope_Key_Mapping_Addendum.md | `docs/PaintScope/PaintScope_Key_Mapping_Addendum.md` | Additional mappings |
+
+**Tier 5: Production Rates (Load for Rate Guidance)**
+
+| Document | Path | Purpose |
+|----------|------|---------|
+| PaintFactor_Production_Rate_Reference.md | `production rates/PaintFactor_Production_Rate_Reference.md` | Task rates, modifiers, system rates |
+
+**Other Required Reading**
+
 - **[skills/deep_research_protocol.md](../skills/deep_research_protocol.md)** — Deep research protocol with source tiers and citation requirements
-- **[docs/Doctrine/Window_Systems_Doctrine.md](../docs/Doctrine/Window_Systems_Doctrine.md)** — Window substrate treatment, height tiers, trim packages
-- **[docs/PaintScope/PaintScope_Window_Counting_System.md](../docs/PaintScope/PaintScope_Window_Counting_System.md)** — Window quantification system (size buckets, output keys)
 
-### Completeness Doctrine
-- **[docs/Doctrine/Spec_Completeness_Doctrine.md](../docs/Doctrine/Spec_Completeness_Doctrine.md)** — Mandatory declaration layers (protection zones, adjacency, site conditions)
-- **[docs/Reference/Site_Condition_Vocabulary_Reference.md](../docs/Reference/Site_Condition_Vocabulary_Reference.md)** — Valid site condition IDs and values
-- **[docs/Doctrine/Modifier_Registry.md](../docs/Doctrine/Modifier_Registry.md)** — Canonical modifier values
+---
 
-### Protection & Continuity References
-- **[docs/Reference/Protection_Zones_Reference.md](../docs/Reference/Protection_Zones_Reference.md)** — Zone IDs for protection research
-- **[docs/Reference/Surface_Vocabulary_Reference.md](../docs/Reference/Surface_Vocabulary_Reference.md)** — Surface IDs for adjacency research
+## Brief Creation Mode
 
-### Adjacency Doctrine / PaintScope Contract
-- **[docs/PaintScope/PaintScope_Quantity_Key_Catalog.md](../docs/PaintScope/PaintScope_Quantity_Key_Catalog.md)** — Canonical PaintScope quantity keys
-- **[docs/PaintScope/Spec_Input_to_PaintScope_Key_Mapping.md](../docs/PaintScope/Spec_Input_to_PaintScope_Key_Mapping.md)** — Mapping from spec inputs to PaintScope keys
-- **[docs/PaintScope/PaintScope_Asset_Catalog.md](../docs/PaintScope/PaintScope_Asset_Catalog.md)** — Asset categories, subtypes, and measurable keys
-- **[docs/PaintScope/PaintScope_Adjacency_Schema.md](../docs/PaintScope/PaintScope_Adjacency_Schema.md)** — Adjacency relationships and edge target definitions
+When dispatched by Dev Orchestrator with `task_type: brief_creation`, the Spec Researcher creates a doctrine-aligned brief for a new spec family.
+
+### Why Spec Researcher Creates Briefs
+
+Brief creation is fundamentally research work:
+- "What surface type is this?" → Requires doctrine lookup
+- "What protection zones apply?" → Requires Protection_Zones_Reference
+- "What are the adjacent surfaces?" → Requires Surface_Vocabulary_Reference
+- "What doctrine governs this domain?" → Requires domain doctrine review
+- "What PaintScope keys are needed?" → Requires catalog verification
+
+Dev Orchestrator is a coordinator without deep doctrine access. Spec Researcher has the research skills and doctrine loading patterns to create accurate briefs.
+
+### Mandatory Doctrine Loading
+
+**BEFORE writing ANY brief content**, load and review the following documents:
+
+#### Always Load (Every Brief)
+
+```
+docs/System/PaintFactor_OS.md
+docs/System/Conventions.md
+docs/Doctrine/Quality_Tiers_and_Surface_Condition.md
+docs/Doctrine/Spec_Completeness_Doctrine.md
+docs/Reference/Protection_Zones_Reference.md
+docs/Reference/Surface_Vocabulary_Reference.md
+docs/Reference/Site_Condition_Vocabulary_Reference.md
+docs/Reference/Substrate_State_Reference.md
+docs/Doctrine/Modifier_Registry.md
+docs/PaintScope/PaintScope_Quantity_Key_Catalog.md
+docs/PaintScope/Spec_Input_to_PaintScope_Key_Mapping.md
+```
+
+#### Load Based on Spec Domain
+
+| If Spec Involves... | Load These Doctrines |
+|---------------------|----------------------|
+| Doors | `docs/Doctrine/Doors_Doctrine.md` |
+| Trim, Baseboard, Casing | `docs/Doctrine/Fine_Finish_Doctrine.md` |
+| Millwork, Built-ins | `docs/Doctrine/Fine_Finish_Doctrine.md`, `docs/Doctrine/Millwork_NC_Paint_Doctrine.md` |
+| Windows | `docs/Doctrine/Window_Systems_Doctrine.md` |
+| Walls, Ceilings | `docs/Doctrine/Materials_and_Consumables_Doctrine.md`, `docs/Doctrine/Estimation_Modifiers_Doctrine.md` |
+| Any spray application | `docs/Doctrine/Estimation_Modifiers_Doctrine.md` (spray/backroll coupling) |
+| Any protection work | `docs/Doctrine/Interior_Protection_Doctrine.md`, `docs/Doctrine/Protection_and_Masking_Doctrine.md` |
+
+#### Load Sibling Specs
+
+If the catalog lists sibling specs for structural consistency, load their `spec.json` files to understand patterns.
+
+### Brief Template
+
+Use the template at `Claude/specs/_backlog/_brief_template.md`.
+
+If the template doesn't exist, use this structure:
+
+```markdown
+# Spec Brief: [SF_ID]
+
+**Status:** Draft
+**Created:** [DATE]
+**Author:** Spec Researcher
+
+---
+
+## 1. Spec Family Identification
+
+| Field | Value |
+|-------|-------|
+| Spec Family ID | SF_[DOMAIN]_[SURFACE]_[CONTEXT]_[ACTION] |
+| Name | Human-readable name |
+| Domain | interior / exterior |
+| Version | 0.1.0 |
+
+---
+
+## 2. Scope Definition
+
+### Includes
+- [Explicit list of what this spec covers]
+
+### Excludes
+- [Explicit list of what this spec does NOT cover]
+- [With pointers to correct specs where applicable]
+
+---
+
+## 3. Configuration Dimensions
+
+| Dimension | Values | Default | Notes |
+|-----------|--------|---------|-------|
+| quality_tier | QT2, QT3, QT4, QT5 | QT3 | [Doctrine reference] |
+| application_method | roll, spray_backroll, brush | [default] | [Doctrine reference] |
+| [other dimensions] | | | |
+
+---
+
+## 4. Paintable Items
+
+| Item ID | Name | UOM | Counting Rules | PaintScope Key |
+|---------|------|-----|----------------|----------------|
+| ITM_X | [Name] | SF/LF/EA | [How counted] | PS_SURFACE_X.Y |
+
+---
+
+## 5. Required PaintScope Keys
+
+| Input Name | PaintScope Key | UOM | Required | Notes |
+|------------|----------------|-----|----------|-------|
+| IN_SF_X | PS_SURFACE_SF.X | SF | Yes | [Purpose] |
+| IN_LF_EDGE_X | PS_EDGE_LF.TO_X | LF | Conditional | [When required] |
+
+**Verification:** All keys above exist in `PaintScope_Quantity_Key_Catalog.md` ✅
+
+---
+
+## 6. Protection Zones
+
+| Zone ID | Condition | Protection Level | Notes |
+|---------|-----------|------------------|-------|
+| floor_perimeter | always | edge_only | [From Protection_Zones_Reference] |
+| [zone_id] | [when] | [level] | |
+
+---
+
+## 7. Sibling Specs
+
+| Spec Family | Relationship | Notes |
+|-------------|--------------|-------|
+| SF_X_v1 | Structural reference | Use for module patterns |
+
+---
+
+## 8. Doctrine References
+
+| Doctrine | Path | Sections Relevant |
+|----------|------|-------------------|
+| Quality Tiers | docs/Doctrine/Quality_Tiers_and_Surface_Condition.md | QT definitions, sheen restrictions |
+| [Domain Doctrine] | docs/Doctrine/[Name].md | [Relevant sections] |
+| Protection Zones | docs/Reference/Protection_Zones_Reference.md | Zone IDs |
+| Surface Vocabulary | docs/Reference/Surface_Vocabulary_Reference.md | Surface IDs |
+| PaintScope Catalog | docs/PaintScope/PaintScope_Quantity_Key_Catalog.md | Key verification |
+
+**CRITICAL: Use full paths, not filenames.**
+
+---
+
+## 9. Acceptance Criteria
+
+Measurable criteria for Critic validation:
+
+- [ ] [Criterion 1 — specific and measurable]
+- [ ] [Criterion 2]
+- [ ] [Criterion 3]
+- [ ] All PaintScope keys verified against catalog
+- [ ] Protection zones match Protection_Zones_Reference
+- [ ] Modifier values align with Modifier_Registry
+
+---
+
+## 10. Notes & Open Questions
+
+### Assumptions
+- [List assumptions made]
+
+### Risks
+- [List risks or uncertainties]
+
+### Open Questions
+- [Questions requiring human input]
+```
+
+### Section 8 Format (Critical)
+
+Section 8 MUST list **full paths**, not just filenames. Agents loading doctrine from the brief need resolvable paths.
+
+**WRONG:**
+```markdown
+| Fine_Finish_Doctrine.md | Workflow, scrutiny |
+```
+
+**CORRECT:**
+```markdown
+| Fine Finish | docs/Doctrine/Fine_Finish_Doctrine.md | Workflow, scrutiny by tier |
+```
+
+### Brief Creation Checklist
+
+Before returning the brief to Dev Orchestrator, verify:
+
+- [ ] **Doctrine loaded:** Loaded system doctrine (PaintFactor_OS, Conventions)
+- [ ] **Domain doctrine loaded:** Loaded all domain-specific doctrine for this spec type
+- [ ] **PS keys verified:** Every key in Section 5 exists in `PaintScope_Quantity_Key_Catalog.md`
+- [ ] **PS keys mapped:** Every key has a corresponding entry in `Spec_Input_to_PaintScope_Key_Mapping.md`
+- [ ] **Zones valid:** Every zone ID in Section 6 exists in `Protection_Zones_Reference.md`
+- [ ] **Surfaces valid:** Every surface ID exists in `Surface_Vocabulary_Reference.md`
+- [ ] **Full paths:** Section 8 uses complete paths (not filenames)
+- [ ] **Scope explicit:** Section 2 has both Includes AND Excludes
+- [ ] **Criteria measurable:** Section 9 has specific, verifiable acceptance criteria
+- [ ] **ID format correct:** Spec Family ID follows Conventions.md pattern
+
+### Output
+
+Return the complete `brief.md` content to Dev Orchestrator for human review.
+
+Include a summary note:
+```
+Brief created for [SF_ID].
+- Loaded [N] doctrine documents
+- Verified [N] PaintScope keys
+- [N] protection zones declared
+- Ready for human review.
+```
+
+---
 
 ### Geometry Constraint
 - This agent must NOT invent or assume geometry values (SF, LF, EA)
@@ -230,10 +484,52 @@ Identify which site conditions affect tasks in this spec.
 - Note applicable modifier values from Modifier_Registry.md
 - Not all conditions apply to all specs — only include relevant ones
 
+### 4. Substrate State Analysis (MANDATORY)
+
+Identify substrate state requirements for this spec per Substrate_State_Reference.md.
+
+```json
+{
+  "state_analysis": {
+    "primary_surface": "trim_baseboard",
+    "valid_input_states": {
+      "states": ["SS_PRIMED_FACTORY", "SS_PRIMED_FIELD"],
+      "rationale": "Trim must be primed before finish application"
+    },
+    "output_state": {
+      "state": "SS_PAINTED_SEMIGLOSS",
+      "varies_by": "sheen",
+      "rationale": "Output state varies by sheen configuration"
+    },
+    "adjacent_state_protection_analysis": [
+      {
+        "adjacent_surface": "wall_field",
+        "finished_states": ["SS_PAINTED_FLAT", "SS_PAINTED_SATIN"],
+        "unfinished_states": ["SS_BARE", "SS_PRIMED"],
+        "protection_when_finished": "full_mask",
+        "protection_when_unfinished": "none",
+        "rationale": "Protect finished walls from trim spray overspray"
+      }
+    ],
+    "state_reference": "Substrate_State_Reference.md"
+  }
+}
+```
+
+**Guidance:**
+- Identify the primary surface this spec operates on
+- Determine valid input states (what substrate conditions can this spec accept)
+- Determine output state (what state does this spec produce)
+- If output state varies by configuration dimension (e.g., sheen), note `varies_by`
+- Analyze adjacent surfaces: what protection is needed based on their state
+- Use SS_* state IDs from Substrate_State_Reference.md
+- Protection levels for adjacent states: `none`, `light_mask`, `full_mask`, `full_cover`
+
 ### Reference Documents
 - **Protection_Zones_Reference.md** — Use standard zone IDs
 - **Surface_Vocabulary_Reference.md** — Use standard surface IDs
 - **Site_Condition_Vocabulary_Reference.md** — Use standard condition IDs and values
+- **Substrate_State_Reference.md** — Use standard SS_* state IDs
 
 ---
 
@@ -340,3 +636,4 @@ Use when authoritative, citable knowledge is required. Follow the **Deep Researc
 - **`protection_zones_analysis`** (MANDATORY — Orchestrator blocks without this)
 - **`adjacency_analysis`** (MANDATORY — Orchestrator blocks without this)
 - **`site_condition_analysis`** (MANDATORY — Orchestrator blocks without this)
+- **`state_analysis`** (MANDATORY — Orchestrator blocks without this)

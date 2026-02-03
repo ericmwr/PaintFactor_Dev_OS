@@ -12,7 +12,8 @@
     "dependencies",
     "change_log",
     "protection_zones_required",
-    "adjacency_declarations"
+    "adjacency_declarations",
+    "state_declarations"
   ],
   "properties": {
     "spec_family": {
@@ -335,6 +336,98 @@
           }
         }
       }
+    },
+
+    "state_declarations": {
+      "type": "object",
+      "description": "Declares substrate state requirements and transitions for engine validation and protection resolution",
+      "required": ["primary_surface", "valid_input_states", "output_state"],
+      "properties": {
+        "primary_surface": {
+          "type": "string",
+          "description": "Surface ID from Surface_Vocabulary_Reference.md"
+        },
+        "valid_input_states": {
+          "type": "object",
+          "description": "What substrate states can this spec operate on",
+          "required": ["states"],
+          "properties": {
+            "states": {
+              "type": "array",
+              "items": { "type": "string", "pattern": "^SS_" },
+              "minItems": 1,
+              "description": "Valid SS_* state IDs from Substrate_State_Reference.md"
+            },
+            "notes": { "type": "string" }
+          }
+        },
+        "output_state": {
+          "type": "object",
+          "description": "What state does executing this spec leave the surface in",
+          "required": ["state"],
+          "properties": {
+            "state": {
+              "type": "string",
+              "pattern": "^SS_",
+              "description": "Output SS_* state ID"
+            },
+            "varies_by": {
+              "type": ["string", "null"],
+              "description": "Configuration dimension that affects output state (e.g., 'sheen'), or null if output state is fixed"
+            },
+            "state_map": {
+              "type": "object",
+              "additionalProperties": { "type": "string", "pattern": "^SS_" },
+              "description": "Maps config values to output states when varies_by is set"
+            },
+            "notes": { "type": "string" }
+          }
+        },
+        "adjacent_state_protection_rules": {
+          "type": "array",
+          "description": "Protection requirements based on adjacent surface states",
+          "items": {
+            "type": "object",
+            "required": ["adjacent_surface", "when_state", "protection_level"],
+            "properties": {
+              "adjacent_surface": {
+                "type": "string",
+                "description": "Surface ID from Surface_Vocabulary_Reference.md"
+              },
+              "when_state": {
+                "type": "array",
+                "items": { "type": "string", "pattern": "^SS_" },
+                "description": "SS_* states that trigger this protection rule"
+              },
+              "applies_when": {
+                "type": "object",
+                "description": "Conditional application based on configuration dimensions (e.g., application_method)",
+                "additionalProperties": {
+                  "type": "array",
+                  "items": { "type": "string" }
+                }
+              },
+              "when_finish_group": {
+                "type": "string",
+                "enum": ["same", "different"],
+                "description": "Whether adjacent surface is in same or different finish group (color)"
+              },
+              "protection_zone": {
+                "type": ["string", "null"],
+                "description": "Zone ID from Protection_Zones_Reference.md, or null if no zone"
+              },
+              "protection_level": {
+                "type": "string",
+                "enum": ["none", "light_mask", "full_mask", "full_cover"],
+                "description": "Masking intensity for adjacent finished surfaces"
+              },
+              "notes": { "type": "string" }
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
     }
   },
   "additionalProperties": true

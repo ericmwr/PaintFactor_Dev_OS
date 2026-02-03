@@ -1,0 +1,456 @@
+{
+  "spec_family": {
+    "id": "SF_DRYWALL_CEILING_NC_FINISH",
+    "name": "New Construction Drywall Ceiling Finish Coat",
+    "description": "Finish coat application (1-2 coats) for primed drywall ceilings in new construction. Applied over cured primer. Ceilings are painted BEFORE walls — NO edge work required. Wall painter establishes the ceiling line. Mirrors SF_DRYWALL_WALL_NC_FINISH structure adapted for overhead work.",
+    "domain": "interior",
+    "version": "0.1.0",
+    "status": "draft",
+    "review_required": true
+  },
+
+  "scope_boundaries": {
+    "includes": [
+      "Primed drywall ceiling surfaces (primer cured)",
+      "Finish coat application (1 or 2 coats depending on QT)",
+      "Surface preparation (inspection, dust wipe, sanding per QT)",
+      "Light sand between coats (QT4+)",
+      "Ceiling fixture protection (recessed lights, electrical boxes) for spray methods",
+      "Lightweight plastic pin-up over window/door openings for spray methods",
+      "Subfloor vacuum (post-paint cleanup)"
+    ],
+    "excludes": [
+      "Primer application (see SF_DRYWALL_CEILING_NC_PRIME)",
+      "Wall finish coats (see SF_DRYWALL_WALL_NC_FINISH)",
+      "Edge work at ceiling-wall boundary (wall painter establishes ceiling line)",
+      "Wood/beadboard ceiling finish (see SF_WOOD_CEILING_NC)",
+      "Coffered ceiling beam finish (see SF_ARCH_ELEMENT_NC)",
+      "Trim painting (see SF_TRIM_NC_PAINT)",
+      "Texture application (pre-paint trade)"
+    ]
+  },
+
+  "configuration_dimensions": [
+    {
+      "dimension_id": "quality_tier",
+      "description": "Quality tier per doctrine. Sheen restricts minimum QT.",
+      "values": ["QT2", "QT3", "QT4", "QT5"],
+      "default": "QT3",
+      "notes": "QT2-QT3 = 1 coat flat; QT4 = 2 coats (flat for color OR eggshell/satin); QT5 = 2 coats semi-gloss+"
+    },
+    {
+      "dimension_id": "application_method",
+      "description": "Application technique. Spray+backroll uses 18-inch roller per doctrine.",
+      "values": ["roll", "spray_backroll", "spray"],
+      "default": "spray_backroll"
+    },
+    {
+      "dimension_id": "finish_sheen",
+      "description": "Finish sheen. Higher sheens require higher QT and have application penalty on ceilings.",
+      "values": ["flat", "eggshell", "satin", "semi-gloss", "gloss"],
+      "default": "flat",
+      "notes": "Flat is standard for ceilings. Satin/semi-gloss require QT4+. Higher sheens are significantly harder on ceilings."
+    },
+    {
+      "dimension_id": "surface_texture",
+      "description": "Ceiling surface texture",
+      "values": ["smooth", "orange_peel", "knockdown"],
+      "default": "smooth"
+    },
+    {
+      "dimension_id": "ceiling_height",
+      "description": "Ceiling height classification driving height modifiers",
+      "values": ["standard", "tall", "vaulted", "cathedral"],
+      "default": "standard",
+      "notes": "standard (<=9ft), tall (10-12ft), vaulted (13-17ft), cathedral (18ft+). More aggressive than wall height modifiers due to overhead."
+    }
+  ],
+
+  "quality_sheen_rules": {
+    "description": "Per Quality_Tiers_and_Surface_Condition.md",
+    "rules": [
+      {
+        "sheen": ["flat"],
+        "minimum_quality_tier": "QT2",
+        "coats": { "QT2": 1, "QT3": 1, "QT4": 2 }
+      },
+      {
+        "sheen": ["eggshell", "satin"],
+        "minimum_quality_tier": "QT4",
+        "coats": { "QT4": 2 }
+      },
+      {
+        "sheen": ["semi-gloss", "gloss"],
+        "minimum_quality_tier": "QT5",
+        "coats": { "QT5": 2 }
+      }
+    ],
+    "auto_upgrade": "If sheen requires higher QT than specified, auto-upgrade QT"
+  },
+
+  "paintable_items": [
+    {
+      "item_id": "ITM_CEILING_FIELD_FINISH",
+      "name": "Ceiling Field Finish Coat",
+      "unit_of_measure": "SF",
+      "counting_rules": "Source from PS_SURFACE_SF.CEILING_FIELD",
+      "notes": "Primary paintable item — ceiling finish paint application. No edge work items — wall painter establishes ceiling line."
+    }
+  ],
+
+  "protection_items": [
+    {
+      "item_id": "ITM_PROTECT_CEILING_FIXTURES",
+      "name": "Ceiling Fixture Protection (Lights + Electrical)",
+      "unit_of_measure": "EA_ROOM",
+      "counting_rules": "Source from PS_META.EA.ROOMS_TOTAL; heuristic: 6 recessed lights + 2 ceiling electrical boxes per room",
+      "notes": "Stuff recessed cans and ceiling electrical boxes with paper, tape over face. Verify/apply."
+    },
+    {
+      "item_id": "ITM_OPENING_COVER_LIGHTWEIGHT",
+      "name": "Window/Door Opening Lightweight Covers",
+      "unit_of_measure": "EA",
+      "counting_rules": "Source from PS_OPENING_EA.WINDOW_OPENINGS_TOTAL + PS_OPENING_EA.DOOR_OPENINGS_TOTAL",
+      "notes": "Pin lightweight plastic over window and door openings to catch overspray fallout. Verify existing or apply new. Not intricate masking — quick pin-up protection."
+    }
+  ],
+
+  "variants": [
+    {
+      "variant_id": "VAR_SPRAY_BACKROLL_QT2",
+      "applies_when": {
+        "quality_tier": ["QT2"],
+        "application_method": ["spray_backroll"]
+      },
+      "included_items": ["ITM_CEILING_FIELD_FINISH"],
+      "protection_items": ["ITM_PROTECT_CEILING_FIXTURES", "ITM_OPENING_COVER_LIGHTWEIGHT"],
+      "coats": 1,
+      "notes": "Economy spray+backroll — single coat flat"
+    },
+    {
+      "variant_id": "VAR_SPRAY_BACKROLL_QT3",
+      "applies_when": {
+        "quality_tier": ["QT3"],
+        "application_method": ["spray_backroll"]
+      },
+      "included_items": ["ITM_CEILING_FIELD_FINISH"],
+      "protection_items": ["ITM_PROTECT_CEILING_FIXTURES", "ITM_OPENING_COVER_LIGHTWEIGHT"],
+      "coats": 1,
+      "notes": "Standard NC production — spray+backroll, single coat flat"
+    },
+    {
+      "variant_id": "VAR_SPRAY_BACKROLL_QT4_FLAT",
+      "applies_when": {
+        "quality_tier": ["QT4"],
+        "application_method": ["spray_backroll"],
+        "finish_sheen": ["flat"]
+      },
+      "included_items": ["ITM_CEILING_FIELD_FINISH"],
+      "protection_items": ["ITM_PROTECT_CEILING_FIXTURES", "ITM_OPENING_COVER_LIGHTWEIGHT"],
+      "coats": 2,
+      "prep_additions": ["light_sand_between_coats"],
+      "notes": "Premium spray+backroll flat — two coats for colored ceilings. No sheen penalty."
+    },
+    {
+      "variant_id": "VAR_SPRAY_BACKROLL_QT4_EGGSHELL",
+      "applies_when": {
+        "quality_tier": ["QT4"],
+        "application_method": ["spray_backroll"],
+        "finish_sheen": ["eggshell", "satin"]
+      },
+      "included_items": ["ITM_CEILING_FIELD_FINISH"],
+      "protection_items": ["ITM_PROTECT_CEILING_FIXTURES", "ITM_OPENING_COVER_LIGHTWEIGHT"],
+      "coats": 2,
+      "prep_additions": ["light_sand_between_coats"],
+      "notes": "Premium spray+backroll eggshell/satin — two coats. Sheen application penalty applies."
+    },
+    {
+      "variant_id": "VAR_SPRAY_BACKROLL_QT5",
+      "applies_when": {
+        "quality_tier": ["QT5"],
+        "application_method": ["spray_backroll"],
+        "finish_sheen": ["semi-gloss", "gloss"]
+      },
+      "included_items": ["ITM_CEILING_FIELD_FINISH"],
+      "protection_items": ["ITM_PROTECT_CEILING_FIXTURES", "ITM_OPENING_COVER_LIGHTWEIGHT"],
+      "coats": 2,
+      "prep_additions": ["light_sand_between_coats", "critical_inspection"],
+      "notes": "Critical spray+backroll for semi-gloss+ — two coats, critical prep. Significant sheen penalty."
+    },
+    {
+      "variant_id": "VAR_SPRAY_QT2",
+      "applies_when": {
+        "quality_tier": ["QT2"],
+        "application_method": ["spray"]
+      },
+      "included_items": ["ITM_CEILING_FIELD_FINISH"],
+      "protection_items": ["ITM_PROTECT_CEILING_FIXTURES", "ITM_OPENING_COVER_LIGHTWEIGHT"],
+      "coats": 1,
+      "notes": "Economy spray-only — single coat"
+    },
+    {
+      "variant_id": "VAR_SPRAY_QT3",
+      "applies_when": {
+        "quality_tier": ["QT3"],
+        "application_method": ["spray"]
+      },
+      "included_items": ["ITM_CEILING_FIELD_FINISH"],
+      "protection_items": ["ITM_PROTECT_CEILING_FIXTURES", "ITM_OPENING_COVER_LIGHTWEIGHT"],
+      "coats": 1,
+      "notes": "Standard spray-only — single coat"
+    },
+    {
+      "variant_id": "VAR_ROLL_QT2",
+      "applies_when": {
+        "quality_tier": ["QT2"],
+        "application_method": ["roll"]
+      },
+      "included_items": ["ITM_CEILING_FIELD_FINISH"],
+      "protection_items": [],
+      "coats": 1,
+      "notes": "Economy roller — single coat. No protection items for roll method."
+    },
+    {
+      "variant_id": "VAR_ROLL_QT3",
+      "applies_when": {
+        "quality_tier": ["QT3"],
+        "application_method": ["roll"]
+      },
+      "included_items": ["ITM_CEILING_FIELD_FINISH"],
+      "protection_items": [],
+      "coats": 1,
+      "notes": "Standard roller — single coat"
+    },
+    {
+      "variant_id": "VAR_ROLL_QT4_FLAT",
+      "applies_when": {
+        "quality_tier": ["QT4"],
+        "application_method": ["roll"],
+        "finish_sheen": ["flat"]
+      },
+      "included_items": ["ITM_CEILING_FIELD_FINISH"],
+      "protection_items": [],
+      "coats": 2,
+      "prep_additions": ["light_sand_between_coats"],
+      "notes": "Premium roller flat — two coats. No sheen penalty."
+    },
+    {
+      "variant_id": "VAR_ROLL_QT4_EGGSHELL",
+      "applies_when": {
+        "quality_tier": ["QT4"],
+        "application_method": ["roll"],
+        "finish_sheen": ["eggshell", "satin"]
+      },
+      "included_items": ["ITM_CEILING_FIELD_FINISH"],
+      "protection_items": [],
+      "coats": 2,
+      "prep_additions": ["light_sand_between_coats"],
+      "notes": "Premium roller eggshell/satin — two coats. Sheen application penalty applies."
+    },
+    {
+      "variant_id": "VAR_ROLL_QT5",
+      "applies_when": {
+        "quality_tier": ["QT5"],
+        "application_method": ["roll"],
+        "finish_sheen": ["semi-gloss", "gloss"]
+      },
+      "included_items": ["ITM_CEILING_FIELD_FINISH"],
+      "protection_items": [],
+      "coats": 2,
+      "prep_additions": ["light_sand_between_coats", "critical_inspection"],
+      "notes": "Critical roller for semi-gloss+ — two coats, critical prep. Significant sheen penalty."
+    }
+  ],
+
+  "required_paintscope_inputs": [
+    {
+      "input_name": "IN_SF_CEILING_FIELD",
+      "paintscope_key": "PS_SURFACE_SF.CEILING_FIELD",
+      "uom": "SF",
+      "required": true,
+      "description": "Total paintable ceiling field area"
+    },
+    {
+      "input_name": "IN_SF_FLOOR_AREA",
+      "paintscope_key": "PS_PROTECT_SF.FLOOR_EXPOSED",
+      "uom": "SF",
+      "required": true,
+      "description": "Floor area for subfloor vacuum cleanup"
+    },
+    {
+      "input_name": "IN_EA_ROOMS",
+      "paintscope_key": "PS_META.EA.ROOMS_TOTAL",
+      "uom": "EA",
+      "required_when": {
+        "application_method": ["spray", "spray_backroll"]
+      },
+      "description": "Room count for ceiling fixture protection heuristic"
+    },
+    {
+      "input_name": "IN_EA_WINDOW_OPENINGS",
+      "paintscope_key": "PS_OPENING_EA.WINDOW_OPENINGS_TOTAL",
+      "uom": "EA",
+      "required_when": {
+        "application_method": ["spray", "spray_backroll"]
+      },
+      "description": "Count of window openings for lightweight cover verification/application"
+    },
+    {
+      "input_name": "IN_EA_DOOR_OPENINGS",
+      "paintscope_key": "PS_OPENING_EA.DOOR_OPENINGS_TOTAL",
+      "uom": "EA",
+      "required_when": {
+        "application_method": ["spray", "spray_backroll"]
+      },
+      "description": "Count of door openings for lightweight cover verification/application"
+    }
+  ],
+
+  "protection_zones_required": [
+    {
+      "zone_id": "fixture_covers",
+      "condition": { "application_method": ["spray", "spray_backroll"] },
+      "protection_level": "full_cover",
+      "notes": "Ceiling fixtures — recessed lights and electrical boxes"
+    },
+    {
+      "zone_id": "opening_cover_lightweight",
+      "condition": { "application_method": ["spray", "spray_backroll"] },
+      "protection_level": "full_cover",
+      "notes": "Lightweight plastic pin-up over window and door openings to catch overspray fallout"
+    }
+  ],
+
+  "adjacency_declarations": {
+    "primary_surface": "ceiling_field",
+    "adjacent_surfaces": [
+      {
+        "surface_id": "wall_field",
+        "edge_type": "linear",
+        "typical_relationship": "different_finish",
+        "continuity_rate_modifier": 1.0,
+        "affected_tasks": [],
+        "notes": "NO edge tasks — ceiling painter rolls freely into wall area. Wall painter establishes final ceiling line."
+      }
+    ]
+  },
+
+  "state_declarations": {
+    "primary_surface": "ceiling_field",
+
+    "valid_input_states": {
+      "states": ["SS_PRIMED", "SS_PRIMED_FIELD"],
+      "notes": "Ceiling finish requires primed surface (field-primed from ceiling prime spec)"
+    },
+
+    "output_state": {
+      "state": "SS_PAINTED_FLAT",
+      "varies_by": "finish_sheen",
+      "state_map": {
+        "flat": "SS_PAINTED_FLAT",
+        "eggshell": "SS_PAINTED_EGGSHELL",
+        "satin": "SS_PAINTED_SATIN",
+        "semi-gloss": "SS_PAINTED_SEMIGLOSS",
+        "gloss": "SS_PAINTED_GLOSS"
+      },
+      "notes": "Output state varies by sheen configuration"
+    },
+
+    "adjacent_state_protection_rules": [
+      {
+        "adjacent_surface": "wall_field",
+        "when_state": ["SS_PAINTED_FLAT", "SS_PAINTED_EGGSHELL", "SS_PAINTED_SATIN", "SS_PAINTED_SEMIGLOSS"],
+        "protection_zone": "wall_adjacent",
+        "protection_level": "full_mask",
+        "notes": "Full mask required for finished walls — solid tape line at wall-to-ceiling junction with draped plastic along wall. Rare in NC (ceilings before walls) but required for repaint scenarios."
+      },
+      {
+        "adjacent_surface": "wall_field",
+        "when_state": ["SS_BARE", "SS_PRIMED", "SS_PRIMED_FIELD"],
+        "protection_zone": null,
+        "protection_level": "none",
+        "notes": "Unfinished walls need no protection — ceiling paint rollover is acceptable"
+      }
+    ]
+  },
+
+  "site_condition_rules": [
+    {
+      "condition_id": "access_constraint",
+      "vocabulary_ref": "Site_Condition_Vocabulary_Reference.md § access_constraint",
+      "include_when": ["scaffold", "lift"],
+      "affected_tasks": ["TSK_SPRAY_CEILING_FINISH_R1", "TSK_BACKROLL_CEILING_FINISH_R1", "TSK_ROLL_CEILING_FINISH_R1", "TSK_SPRAY_CEILING_FINISH_ONLY"],
+      "effect": "Height modifier applies per production.json height_effects. Scaffold/lift setup adds fixed time.",
+      "notes": "Ceilings above 14ft require scaffold or lift, significantly impacting all overhead tasks"
+    },
+    {
+      "condition_id": "occupancy_state",
+      "vocabulary_ref": "Site_Condition_Vocabulary_Reference.md § occupancy_state",
+      "include_when": ["occupied_normal", "occupied_sensitive"],
+      "affected_tasks": ["TSK_SPRAY_CEILING_FINISH_R1", "TSK_SPRAY_CEILING_FINISH_R2", "TSK_SPRAY_CEILING_FINISH_ONLY"],
+      "effect": "Occupied spaces may restrict spray methods due to overspray and fumes. May force roll-only.",
+      "notes": "NC is typically unoccupied, but phased occupancy can occur in multi-unit projects"
+    },
+    {
+      "condition_id": "ventilation_condition",
+      "vocabulary_ref": "Site_Condition_Vocabulary_Reference.md § ventilation_condition",
+      "include_when": ["poor"],
+      "affected_tasks": ["TSK_SPRAY_CEILING_FINISH_R1", "TSK_SPRAY_CEILING_FINISH_R2", "TSK_SPRAY_CEILING_FINISH_ONLY"],
+      "effect": "Poor ventilation restricts spray methods and slows all work.",
+      "notes": "Enclosed spaces without HVAC running require additional ventilation setup for spray work"
+    }
+  ],
+
+  "sequencing_notes": {
+    "production_sequence": "Ceilings painted BEFORE walls in NC production",
+    "edge_work": "NONE REQUIRED — ceiling painter can roll onto wall area. Wall painter establishes final ceiling line.",
+    "protection_sequence": "Protect ceiling fixtures → Verify/apply opening covers → Apply finish coat(s) → Cleanup",
+    "coat_sequence": "QT4/QT5 only: Coat 1 → Light sand → Coat 2",
+    "masking_persistence": "Opening covers STAY IN PLACE for wall painting — they persist across NC phases"
+  },
+
+  "relationships": {
+    "follows": ["SF_DRYWALL_CEILING_NC_PRIME"],
+    "precedes": ["SF_DRYWALL_WALL_NC_FINISH"],
+    "may_combine_with": ["SF_DRYWALL_CEILING_NC_PRIME"],
+    "interacts_with": ["SF_DRYWALL_WALL_NC_FINISH"]
+  },
+
+  "dependencies": {
+    "materials": "materials.json",
+    "sop_modules": "sop_modules.json",
+    "production": "production.json"
+  },
+
+  "doctrine_references": [
+    {
+      "doctrine": "Quality_Tiers_and_Surface_Condition.md",
+      "sections_used": ["Sanding Standards by Quality Tier", "Sheen and Quality Tier Minimums", "Coat Count Rules"]
+    },
+    {
+      "doctrine": "Materials_and_Consumables_Doctrine.md",
+      "sections_used": ["Spray + Backroll Roller Standard", "Ceiling Paint Specifications"]
+    },
+    {
+      "doctrine": "Estimation_Modifiers_Doctrine.md",
+      "sections_used": ["Height Modifiers", "Spray/Backroll Throughput Coupling"]
+    },
+    {
+      "doctrine": "Protection_and_Masking_Doctrine.md",
+      "sections_used": ["Ceiling Fixture Protection", "Opening Cover Standards"]
+    },
+    {
+      "doctrine": "Modifier_Registry.md",
+      "sections_used": ["Height Modifiers", "Quality Tier Modifiers", "Texture Surface Modifiers"]
+    }
+  ],
+
+  "change_log": [
+    {
+      "version": "0.1.0",
+      "date": "2026-02-02",
+      "author": "SpecFactory",
+      "changes": "Initial draft spec for NC drywall ceiling finish. Generated from brief specs/_backlog/SF_DRYWALL_CEILING_NC_FINISH/brief.md. Key features: NO edge work (wall painter establishes ceiling line), fixture_covers and opening_cover_lightweight protection zones, ceiling-specific overhead rate reductions (15-20% slower than walls), height modifiers per Modifier_Registry, sheen application penalties for eggshell (1.18x) and semi-gloss (1.43x) on ceilings."
+    }
+  ]
+}

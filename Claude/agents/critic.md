@@ -30,6 +30,7 @@ The Critic enforces system doctrine. It is the **final doctrine gate AFTER human
 ### Protection & Continuity References
 - **[docs/Reference/Protection_Zones_Reference.md](../docs/Reference/Protection_Zones_Reference.md)** — Zone IDs for protection metadata validation
 - **[docs/Reference/Surface_Vocabulary_Reference.md](../docs/Reference/Surface_Vocabulary_Reference.md)** — Surface IDs for adjacency metadata validation
+- **[docs/Reference/Substrate_State_Reference.md](../docs/Reference/Substrate_State_Reference.md)** — Substrate state IDs (SS_*) for state declarations validation
 
 ### Adjacency Doctrine / PaintScope Contract
 - **[docs/PaintScope/PaintScope_Quantity_Key_Catalog.md](../docs/PaintScope/PaintScope_Quantity_Key_Catalog.md)** — Canonical PaintScope quantity keys
@@ -499,8 +500,31 @@ Return JSON-compatible:
 - `SCD_SC_VALUES_VALID` — Condition values valid for their condition ID (ERROR if invalid)
 - `SCD_MOD_ALIGNED` — modifier_when_included values match Modifier_Registry.md (ERROR if mismatched)
 - `SCD_TASK_ADJ_ALIGNED` — Tasks in affected_tasks have matching adjacency_metadata (ERROR if missing)
+- `SCD_STATE_DECL_PRESENT` — spec.json has state_declarations object (ERROR if missing)
+- `SCD_STATE_PRIMARY_SURFACE` — state_declarations has primary_surface (ERROR if missing)
+- `SCD_STATE_INPUT_VALID` — valid_input_states.states contains valid SS_* IDs (ERROR if invalid)
+- `SCD_STATE_INPUT_EMPTY` — valid_input_states.states is non-empty (ERROR if empty)
+- `SCD_STATE_OUTPUT_VALID` — output_state.state is valid SS_* ID (ERROR if invalid)
+- `SCD_STATE_OUTPUT_MISSING` — state_declarations has output_state (ERROR if missing)
+- `SCD_STATE_MAP_VALID` — state_map values are valid SS_* IDs when varies_by is set (ERROR if invalid)
+- `SCD_STATE_PROTECTION_SURFACE_VALID` — adjacent_state_protection_rules surfaces are valid (ERROR if invalid)
+- `SCD_STATE_PROTECTION_STATES_VALID` — when_state arrays contain valid SS_* IDs (ERROR if invalid)
+- `SCD_STATE_PROTECTION_LEVEL_VALID` — protection_level is valid enum (ERROR if invalid)
+- `SCD_STATE_MODIFIER_ALIGNED` — substrate_state_rules modifiers match Modifier_Registry (ERROR if mismatched)
 
 **Note on Production Rates:** The Critic does NOT enforce specific production rate values (e.g., 400 SF/hr, 600 SF/hr). Production rates are research-based estimates that will be field-calibrated. Only the spray/backroll coupling rule (spray ≤ backroll) and modifier math (time multipliers, not rate multipliers) are enforced.
+
+---
+
+## Brief Compliance
+
+If a brief.md exists in the spec folder:
+- Verify all acceptance criteria from brief Section 10
+- Verify scope boundaries match brief Section 2 (no scope creep or omission)
+- Verify all config dimensions from brief Section 3 are present in spec.json
+- Verify all paintable items from brief Section 4 are present
+- Verify all PaintScope keys from brief Section 5 are declared
+- Flag any deviation from brief as a WARN (not ERROR — agents may have good reason)
 
 ---
 

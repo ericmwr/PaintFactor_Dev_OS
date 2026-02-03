@@ -1,0 +1,604 @@
+{
+  "spec_family_id": "SF_DOOR_FRAME_NC_FINISH",
+  "version": "0.1.0",
+  "generated_by": "SOP Librarian",
+  "generated_at": "2026-02-03",
+
+  "sop_modules": [
+    {
+      "module_id": "MOD_FRAME_SETUP",
+      "name": "Door Frame Painting Setup",
+      "description": "Floor protection and hardware masking for door frame painting. Protection level varies by application method.",
+      "phase": "setup",
+      "applies_when": {},
+      "required_inputs": [
+        {
+          "input_name": "IN_EA_DOOR_FRAME_SET",
+          "paintscope_key": "PS_SURFACE_EA.DOOR_FRAME_SET",
+          "uom": "EA"
+        }
+      ],
+      "tasks": [
+        {
+          "task_id": "TSK_FRAME_FLOOR_PROTECT_BRUSH",
+          "name": "Floor Protection Setup (Brush/Roll)",
+          "description": "Set up drop cloth under door opening for brush/roll work. Localized protection for drips.",
+          "task_type": "protect",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "tools_required": ["drop_cloth", "masking_tape"],
+          "protection_metadata": {
+            "action": "setup",
+            "zones": ["floor_workzone"],
+            "method_dependent": false
+          },
+          "applies_when": {
+            "application_method": ["brush"]
+          },
+          "site_condition_rules": [
+            {
+              "condition_id": "floor_type",
+              "include_when": ["finished", "partial"],
+              "exclude_when": ["subfloor"]
+            }
+          ],
+          "quality_notes": {
+            "all": "Coverage under immediate work area"
+          },
+          "notes": "Protection continuity from other specs is handled at project level by estimation engine."
+        },
+        {
+          "task_id": "TSK_FRAME_FLOOR_PROTECT_SPRAY",
+          "name": "Floor Protection Setup (Spray)",
+          "description": "Set up rosin paper with 8-foot radius from door opening for spray overspray containment.",
+          "task_type": "protect",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "tools_required": ["rosin_paper", "masking_tape"],
+          "protection_metadata": {
+            "action": "setup",
+            "zones": ["floor_full_8ft_radius"],
+            "method_dependent": true
+          },
+          "applies_when": {
+            "application_method": ["spray"]
+          },
+          "site_condition_rules": [
+            {
+              "condition_id": "floor_type",
+              "include_when": ["finished", "partial"],
+              "exclude_when": ["subfloor"]
+            }
+          ],
+          "quality_notes": {
+            "all": "Full radial coverage, all seams taped"
+          },
+          "notes": "Protection continuity from other specs is handled at project level by estimation engine."
+        },
+        {
+          "task_id": "TSK_FRAME_WALL_PROTECT_SPRAY",
+          "name": "Wall Adjacent Protection (Spray)",
+          "description": "Mask wall surfaces adjacent to door frame opening for spray overspray. Only needed if walls are already finish-coated.",
+          "task_type": "protect",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "tools_required": ["masking_paper_12in", "masking_tape"],
+          "protection_metadata": {
+            "action": "setup",
+            "zones": ["wall_adjacent_door"],
+            "method_dependent": true
+          },
+          "applies_when": {
+            "application_method": ["spray"]
+          },
+          "state_condition_note": "Task inclusion based on adjacent wall state is now driven by state_declarations.adjacent_state_protection_rules for wall_field. Engine evaluates wall_field state (SS_PAINTED_*) to determine if wall masking is required.",
+          "quality_notes": {
+            "all": "Complete coverage of wall adjacent to frame"
+          }
+        },
+        {
+          "task_id": "TSK_FRAME_HARDWARE_MASK",
+          "name": "Mask Door Hardware (Hinges + Strike Plate)",
+          "description": "Mask hinges and strike plate with tape if doors/hardware are installed before painting. Covers hinge leaves visible from frame side and strike plate on latch jamb.",
+          "task_type": "protect",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "tools_required": ["masking_tape"],
+          "protection_metadata": {
+            "action": "setup",
+            "zones": ["hardware_covers"],
+            "method_dependent": false
+          },
+          "applies_when": {
+            "installation_sequence": ["doors_installed_before_painting"]
+          },
+          "quality_notes": {
+            "all": "Complete coverage of hinge leaves"
+          }
+        }
+      ],
+      "sequence_notes": "Floor protection first, then wall protection (if spray), then hardware masking (if doors installed)."
+    },
+    {
+      "module_id": "MOD_FRAME_INITIAL_PREP",
+      "name": "Door Frame Initial Preparation",
+      "description": "Surface prep before first coat. Includes inspection, sanding, filling stop nail holes, and caulking frame-to-drywall gap.",
+      "phase": "prep",
+      "applies_when": {},
+      "required_inputs": [
+        {
+          "input_name": "IN_EA_DOOR_FRAME_SET",
+          "paintscope_key": "PS_SURFACE_EA.DOOR_FRAME_SET",
+          "uom": "EA"
+        }
+      ],
+      "tasks": [
+        {
+          "task_id": "TSK_FRAME_INSPECT",
+          "name": "Inspect Frame Surface",
+          "description": "Visual inspection of each frame set (left jamb, right jamb, head jamb, stop). Assess factory primer condition, identify defects, check stop-to-jamb junction.",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "tools_required": ["work_light", "marking_crayon"],
+          "quality_notes": {
+            "QT3": "Note obvious defects — dents, holes, damaged primer",
+            "QT4": "Systematic inspection, mark all visible defects at 3 feet",
+            "QT5": "Critical inspection under raking light, mark all imperfections"
+          }
+        },
+        {
+          "task_id": "TSK_FRAME_SAND_PREP",
+          "name": "Sand Frame Surface (Prep)",
+          "description": "Scuff sand factory primer with 180-grit for adhesion. Include all jamb surfaces and stop surfaces.",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "tools_required": ["sanding_block", "sandpaper_180"],
+          "quality_notes": {
+            "QT3": "Scuff sand for adhesion — uniform scratch pattern",
+            "QT4": "Full sand 180-grit — all surfaces including stop",
+            "QT5": "Thorough sand 150-180 grit — perfect uniform surface"
+          }
+        },
+        {
+          "task_id": "TSK_FRAME_FILL_STOP_HOLES",
+          "name": "Fill Stop Nail Holes",
+          "description": "Fill nail holes in door stop with lightweight spackle. Stop is typically nailed to frame; nail holes need fill before paint.",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "tools_required": ["putty_knife", "spackle"],
+          "quality_notes": {
+            "QT3": "Fill obvious holes",
+            "QT4": "Fill all visible holes",
+            "QT5": "Fill every hole, no matter how small"
+          }
+        },
+        {
+          "task_id": "TSK_FRAME_SAND_FILL",
+          "name": "Sand Filled Areas",
+          "description": "Sand filler smooth, feather edges to blend with surrounding surface.",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "tools_required": ["sanding_block", "sandpaper_220"],
+          "quality_notes": {
+            "QT3": "Knock down ridges",
+            "QT4": "Sand flush, blend edges",
+            "QT5": "Sand perfectly flush, invisible"
+          }
+        },
+        {
+          "task_id": "TSK_FRAME_CAULK_CASING",
+          "name": "Caulk Frame-to-Casing Gap",
+          "description": "Apply paintable caulk to gap between frame and casing. Standard NC gap treatment.",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "tools_required": ["caulk_gun", "caulk_tube"],
+          "quality_notes": {
+            "QT3": "Fill visible gaps",
+            "QT4": "Continuous clean bead",
+            "QT5": "Perfect smooth bead, tooled finish"
+          }
+        },
+        {
+          "task_id": "TSK_FRAME_CLEAN_DUST",
+          "name": "Clean Sanding Dust",
+          "description": "Remove all sanding dust from frame surfaces with tack cloth. Critical for adhesion and finish quality.",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "tools_required": ["tack_cloth"],
+          "quality_notes": {
+            "all": "All dust removed — surface must be clean to touch"
+          }
+        }
+      ],
+      "sequence_notes": "Inspect → Sand → Fill Stop Holes → Sand Fill → Caulk Reveal → Clean Dust. All prep complete before primer or first finish coat."
+    },
+    {
+      "module_id": "MOD_FRAME_PRIME",
+      "name": "Door Frame Primer Application",
+      "description": "Apply primer coat to frame jambs and stop. Conditional on substrate_condition = bare_wood.",
+      "phase": "prime",
+      "applies_when": {
+        "substrate_condition": ["bare_wood"]
+      },
+      "required_inputs": [
+        {
+          "input_name": "IN_EA_DOOR_FRAME_SET",
+          "paintscope_key": "PS_SURFACE_EA.DOOR_FRAME_SET",
+          "uom": "EA"
+        }
+      ],
+      "tasks": [
+        {
+          "task_id": "TSK_FRAME_PRIME_SPRAY",
+          "name": "Spray Primer on Frame",
+          "description": "Apply primer coat via airless sprayer (310-411 tip). Cover all jamb surfaces, head jamb, and stop in single pass.",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "tools_required": ["airless_sprayer", "spray_tip_310", "respirator"],
+          "applies_when": {
+            "application_method": ["spray"]
+          },
+          "quality_notes": {
+            "all": "No application defects — no drips, sags, holidays, or lap marks."
+          }
+        },
+        {
+          "task_id": "TSK_FRAME_PRIME_BRUSH",
+          "name": "Brush Primer on Frame",
+          "description": "Apply primer coat with brush. Work systematically: head jamb → left jamb → right jamb → stop. Load brush lightly for inside corners.",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "tools_required": ["brush_2.5in_angled", "primer"],
+          "applies_when": {
+            "application_method": ["brush"]
+          },
+          "quality_notes": {
+            "all": "No application defects — no drips, sags, holidays, or lap marks."
+          }
+        }
+      ],
+      "sequence_notes": "Prime after initial prep. Primer is conditional — skip if factory-primed and assessed acceptable."
+    },
+    {
+      "module_id": "MOD_FRAME_INTERSTAGE",
+      "name": "Door Frame Interstage Process",
+      "description": "Light maintenance cycle between coats. Runs AFTER each coat EXCEPT the final coat. Per Fine Finish Doctrine §5.3.",
+      "phase": "interstage",
+      "applies_when": {},
+      "run_rule": "Runs AFTER each coat EXCEPT the final coat",
+      "run_count_formula": "total_coats - 1",
+      "required_inputs": [
+        {
+          "input_name": "IN_EA_DOOR_FRAME_SET",
+          "paintscope_key": "PS_SURFACE_EA.DOOR_FRAME_SET",
+          "uom": "EA"
+        }
+      ],
+      "tasks": [
+        {
+          "task_id": "TSK_FRAME_INSPECT_COAT",
+          "name": "Inspect Coat",
+          "description": "Visual inspection of applied coat. Look for dust nibs, missed areas, surface texture issues on jambs and stop.",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "tools_required": ["work_light"],
+          "quality_notes": {
+            "QT3": "Quick glance — obvious issues only",
+            "QT4": "Systematic scan at 3 feet — mark all visible defects",
+            "QT5": "Lighted critical inspection at arm's length — zero tolerance"
+          }
+        },
+        {
+          "task_id": "TSK_FRAME_LIGHT_SAND",
+          "name": "Light Sand Between Coats",
+          "description": "Scuff sand frame surfaces between coats. Grit per quality tier: QT3=spot sand only, QT4=220 grit full, QT5=320 grit thorough.",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "tools_required": ["sanding_block", "sandpaper_220_or_320"],
+          "quality_notes": {
+            "QT3": "Spot sand only — visible nibs, rough spots",
+            "QT4": "Light full sand 220 grit — entire surface",
+            "QT5": "Thorough full sand 320 grit — uniform scratch pattern"
+          }
+        },
+        {
+          "task_id": "TSK_FRAME_PATCH_REPAIR",
+          "name": "Patch/Repair Defects",
+          "description": "Fill any defects found during inspection. Address issues from previous coat.",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "tools_required": ["putty_knife", "spackle"],
+          "quality_notes": {
+            "QT3": "Glaring defects only",
+            "QT4": "All marked defects",
+            "QT5": "All defects regardless of size"
+          }
+        },
+        {
+          "task_id": "TSK_FRAME_CLEAN_INTERSTAGE",
+          "name": "Clean Sanding Dust (Interstage)",
+          "description": "Remove sanding dust with tack cloth before next coat.",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "tools_required": ["tack_cloth"],
+          "quality_notes": {
+            "all": "Complete dust removal before next coat"
+          }
+        }
+      ],
+      "sequence_notes": "Inspect → Light Sand → Patch (if needed) → Clean. Runs after each coat except the final coat."
+    },
+    {
+      "module_id": "MOD_FRAME_FINISH_COAT",
+      "name": "Door Frame Finish Coat Application",
+      "description": "Apply finish coat to frame jambs and stop. 2 coats standard. Work systematically around opening.",
+      "phase": "finish",
+      "applies_when": {},
+      "required_inputs": [
+        {
+          "input_name": "IN_EA_DOOR_FRAME_SET",
+          "paintscope_key": "PS_SURFACE_EA.DOOR_FRAME_SET",
+          "uom": "EA"
+        }
+      ],
+      "tasks": [
+        {
+          "task_id": "TSK_FRAME_FINISH_SPRAY",
+          "name": "Spray Finish Coat on Frame",
+          "description": "Apply finish coat via airless sprayer (310-411 tip for fine atomization). Systematic pass: head → left jamb → right jamb → stop.",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "tools_required": ["airless_sprayer", "spray_tip_310", "respirator"],
+          "applies_when": {
+            "application_method": ["spray"]
+          },
+          "quality_notes": {
+            "all": "No application defects — no drips, sags, holidays, or lap marks."
+          }
+        },
+        {
+          "task_id": "TSK_FRAME_FINISH_BRUSH",
+          "name": "Brush Finish Coat on Frame",
+          "description": "Apply finish coat with angled sash brush. Work systematically: head jamb → left jamb → right jamb → stop. For modified urethane: apply, tip once, walk away — do not overwork.",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "tools_required": ["brush_2.5in_angled", "paint"],
+          "applies_when": {
+            "application_method": ["brush"]
+          },
+          "quality_notes": {
+            "all": "No application defects — no drips, sags, holidays, or lap marks."
+          }
+        },
+        {
+          "task_id": "TSK_FRAME_FINISH_ROLL_TIP",
+          "name": "Roll and Tip Finish Coat on Frame",
+          "description": "Apply finish using Roll and Tip methodology: 4\" mini roller deposits coating on jamb flats, angled sash brush tips for smooth finish. Inside corners: load brush lightly, work out of corner.",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "tools_required": ["mini_roller_4in", "brush_2.5in_angled", "paint"],
+          "applies_when": {
+            "application_method": ["brush"]
+          },
+          "notes": "Optional alternative to brush-only. Per Fine Finish Doctrine § 15.6. Faster on larger jamb surfaces."
+        }
+      ],
+      "sequence_notes": "Standard: 2 finish coats with interstage between."
+    },
+    {
+      "module_id": "MOD_FRAME_MORTISE_TOUCHUP",
+      "name": "Mortise Touch-Up",
+      "description": "Touch up hinge mortises and strike mortises after door installation. Conditional on doors being installed before painting complete.",
+      "phase": "finish",
+      "applies_when": {
+        "installation_sequence": ["doors_installed_before_painting"]
+      },
+      "required_inputs": [
+        {
+          "input_name": "IN_EA_DOOR_FRAME_SET",
+          "paintscope_key": "PS_SURFACE_EA.DOOR_FRAME_SET",
+          "uom": "EA"
+        }
+      ],
+      "tasks": [
+        {
+          "task_id": "TSK_FRAME_MORTISE_TOUCHUP",
+          "name": "Touch Up Mortise Areas",
+          "description": "Touch up exposed wood at hinge mortises (typically 3 per door) and strike mortise (1 per door). Apply same finish product used on frame. Use small brush for precision.",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "tools_required": ["brush_1in", "paint"],
+          "quality_notes": {
+            "all": "Complete coverage of exposed wood. Color match to surrounding frame."
+          }
+        }
+      ],
+      "sequence_notes": "Runs after finish coats if doors were installed before painting. Per research finding RF-008."
+    },
+    {
+      "module_id": "MOD_FRAME_CLEANUP",
+      "name": "Door Frame Painting Cleanup",
+      "description": "Final inspection, protection removal, tool cleanup.",
+      "phase": "cleanup",
+      "applies_when": {},
+      "required_inputs": [
+        {
+          "input_name": "IN_EA_DOOR_FRAME_SET",
+          "paintscope_key": "PS_SURFACE_EA.DOOR_FRAME_SET",
+          "uom": "EA"
+        }
+      ],
+      "tasks": [
+        {
+          "task_id": "TSK_FRAME_FINAL_INSPECT",
+          "name": "Final Frame Inspection",
+          "description": "Final quality check of all painted frame surfaces (jambs, stop). Verify coverage, inside corners, stop junction quality.",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "tools_required": ["work_light"],
+          "quality_notes": {
+            "QT3": "Quick glance at 6 feet — no obvious defects",
+            "QT4": "Systematic scan at 3 feet — no visible defects",
+            "QT5": "Critical inspection at arm's length — zero tolerance"
+          }
+        },
+        {
+          "task_id": "TSK_FRAME_HARDWARE_UNMASK",
+          "name": "Remove Hardware Masking",
+          "description": "Remove masking tape from hinges and strike plate.",
+          "task_type": "protect",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "tools_required": [],
+          "protection_metadata": {
+            "action": "teardown",
+            "zones": ["hardware_covers"],
+            "method_dependent": false
+          },
+          "applies_when": {
+            "installation_sequence": ["doors_installed_before_painting"]
+          }
+        },
+        {
+          "task_id": "TSK_FRAME_FLOOR_PROTECT_TEARDOWN",
+          "name": "Floor Protection Teardown",
+          "description": "Remove floor protection materials (drop cloths or rosin paper).",
+          "task_type": "protect",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "tools_required": [],
+          "protection_metadata": {
+            "action": "teardown",
+            "zones": ["floor_workzone", "floor_full_8ft_radius"],
+            "method_dependent": true
+          },
+          "site_condition_rules": [
+            {
+              "condition_id": "floor_type",
+              "include_when": ["finished", "partial"],
+              "exclude_when": ["subfloor"]
+            }
+          ],
+          "notes": "Protection continuity/teardown across specs handled at project level."
+        },
+        {
+          "task_id": "TSK_FRAME_WALL_PROTECT_TEARDOWN",
+          "name": "Wall Protection Teardown",
+          "description": "Remove wall masking (spray method only, finished walls only).",
+          "task_type": "protect",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "tools_required": [],
+          "protection_metadata": {
+            "action": "teardown",
+            "zones": ["wall_adjacent_door"],
+            "method_dependent": true
+          },
+          "applies_when": {
+            "application_method": ["spray"]
+          },
+          "state_condition_note": "Task inclusion based on adjacent wall state is now driven by state_declarations.adjacent_state_protection_rules for wall_field."
+        },
+        {
+          "task_id": "TSK_FRAME_CLEAN_TOOLS",
+          "name": "Clean Tools",
+          "description": "Clean brushes, spray equipment, rollers. Proper storage or disposal.",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "tools_required": ["water_source"]
+        }
+      ],
+      "sequence_notes": "Final inspect → Hardware unmask → Protection teardown → Clean tools."
+    }
+  ],
+
+  "frame_type_variants": [
+    {
+      "variant_id": "VAR_FRAME_POCKET",
+      "name": "Pocket Door Frame",
+      "frame_type": "pocket",
+      "description": "Pocket door frames have no door stop (door slides into wall). Reduced surface area, simplified tasks.",
+      "task_exclusions": [
+        "TSK_FRAME_FILL_STOP_HOLES"
+      ],
+      "notes": "Stop-related tasks excluded. Split jamb design may affect head jamb access."
+    },
+    {
+      "variant_id": "VAR_FRAME_CASED_OPENING",
+      "name": "Cased Opening (No Door)",
+      "frame_type": "cased_opening",
+      "description": "Cased openings have frame jambs but no stop and no hardware. No mortise touch-up needed.",
+      "task_exclusions": [
+        "TSK_FRAME_FILL_STOP_HOLES",
+        "TSK_FRAME_MORTISE_TOUCHUP",
+        "TSK_FRAME_HARDWARE_MASK",
+        "TSK_FRAME_HARDWARE_UNMASK"
+      ],
+      "notes": "Simplified scope — jambs only."
+    },
+    {
+      "variant_id": "VAR_FRAME_BIFOLD",
+      "name": "Bifold Door Frame",
+      "frame_type": "bifold",
+      "description": "Bifold frames have jambs and head but use track hardware instead of hinges. Stop configuration differs from standard swing doors.",
+      "task_modifications": [
+        {
+          "task_id": "TSK_FRAME_MORTISE_TOUCHUP",
+          "modification": "exclude",
+          "reason": "No hinge mortises — bifold uses track hardware"
+        }
+      ],
+      "notes": "Track hardware instead of hinge mortises. Stop arrangement may vary."
+    }
+  ],
+
+  "round_configurations": [
+    {
+      "round_id": "ROUND_FRAME_PRIME_FINISH_2COAT",
+      "name": "Prime + 2 Finish Coats (Bare Wood)",
+      "description": "Full system for bare wood frames: primer → interstage → finish coat 1 → interstage → finish coat 2",
+      "applies_when": {
+        "substrate_condition": ["bare_wood"]
+      },
+      "phase_sequence": ["setup", "prep", "prime", "interstage", "finish", "interstage", "finish", "cleanup"],
+      "notes": "Interstage after primer and after finish coat 1. Final inspection after finish coat 2."
+    },
+    {
+      "round_id": "ROUND_FRAME_FINISH_2COAT",
+      "name": "2 Finish Coats (Factory Primed)",
+      "description": "Factory primed frames: prep → finish coat 1 → interstage → finish coat 2",
+      "applies_when": {
+        "substrate_condition": ["factory_primed"]
+      },
+      "phase_sequence": ["setup", "prep", "finish", "interstage", "finish", "cleanup"],
+      "notes": "No primer coat — scuff sand factory primer in prep phase. Interstage after finish coat 1 only."
+    }
+  ],
+
+  "assumptions": [
+    {
+      "assumption_id": "A-001",
+      "field": "installation_sequence",
+      "value": "doors_installed_before_painting is a configuration dimension",
+      "source": "Research finding RF-008",
+      "doctrine_gap": true,
+      "note": "Installation sequence drives mortise touch-up task inclusion. Not explicitly documented in doctrine."
+    },
+    {
+      "assumption_id": "A-002",
+      "field": "wall_finish_state",
+      "value": "Wall protection only needed when walls are finish-coated, not when primed",
+      "source": "User correction",
+      "doctrine_gap": false,
+      "note": "MIGRATED: Now handled by state_declarations.adjacent_state_protection_rules for wall_field. Engine evaluates wall_field state (SS_PAINTED_*) to determine if wall masking task is required."
+    },
+    {
+      "assumption_id": "A-003",
+      "field": "protection_continuity",
+      "value": "Floor protection presence from other specs is project-level determination",
+      "source": "Protection_Zones_Reference.md",
+      "doctrine_gap": false,
+      "note": "Per Protection_Zones_Reference: 'Specs are authored as complete processes; optimization happens at project assembly.' Engine handles zone sharing across specs."
+    }
+  ]
+}

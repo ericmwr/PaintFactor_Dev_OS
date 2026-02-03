@@ -28,6 +28,7 @@ SpecFactory generates spec definitions that will later be consumed by the Estima
 ### Protection & Continuity References
 - **[docs/Reference/Protection_Zones_Reference.md](../docs/Reference/Protection_Zones_Reference.md)** — Zone IDs for protection optimization
 - **[docs/Reference/Surface_Vocabulary_Reference.md](../docs/Reference/Surface_Vocabulary_Reference.md)** — Surface IDs for finish continuity
+- **[docs/Reference/Substrate_State_Reference.md](../docs/Reference/Substrate_State_Reference.md)** — Substrate state IDs (SS_*) for state declarations
 
 ### Adjacency Doctrine / PaintScope Contract
 - **[docs/PaintScope/PaintScope_Quantity_Key_Catalog.md](../docs/PaintScope/PaintScope_Quantity_Key_Catalog.md)** — Canonical PaintScope quantity keys
@@ -106,10 +107,11 @@ The Spec Researcher MUST output these three analysis sections in `research.json`
 | `protection_zones_analysis` | Identifies which protection zones this spec activates | Protection_Zones_Reference.md |
 | `adjacency_analysis` | Identifies adjacent surfaces and edge relationships | Surface_Vocabulary_Reference.md |
 | `site_condition_analysis` | Identifies site conditions affecting tasks | Site_Condition_Vocabulary_Reference.md |
+| `state_analysis` | Identifies substrate state requirements and transitions | Substrate_State_Reference.md |
 
 ### STOP If Analysis Incomplete
 
-If ANY of the three analysis sections is missing from `research.json`:
+If ANY of the four analysis sections is missing from `research.json`:
 - **STOP the workflow immediately**
 - Output a completeness failure with:
   - `completeness_status: "blocked"`
@@ -123,8 +125,8 @@ After passing the Completeness Gate, the Orchestrator MUST verify that downstrea
 
 | Agent | Required Output |
 |-------|----------------|
-| SOP Librarian | `site_condition_rules` on affected tasks, `protection_metadata` on protection tasks, `adjacency_metadata` on edge tasks |
-| Estimation Engineer | Modifier values aligned with Modifier_Registry.md |
+| SOP Librarian | `site_condition_rules` on affected tasks, `protection_metadata` on protection tasks, `adjacency_metadata` on edge tasks, `substrate_state_rules` on state-dependent tasks |
+| Estimation Engineer | Modifier values aligned with Modifier_Registry.md (including substrate state modifiers) |
 | Materials Manager | Protection materials mapped to protection zones |
 
 If a downstream agent provides artifacts missing required completeness elements, the Orchestrator MUST reject and request correction before proceeding.
@@ -149,7 +151,15 @@ Every spec MUST include the three mandatory declaration layers per Spec_Complete
 - Informs project-level finish group optimization
 - Surface IDs from Surface_Vocabulary_Reference.md
 
-### Site Condition Rules (Layer 3 — MANDATORY)
+### State Declarations (Layer 4 — MANDATORY)
+
+`spec.json` MUST include `state_declarations`:
+- Declares valid input states (what substrate conditions this spec can operate on)
+- Declares output state (what state this spec produces)
+- Declares adjacent state protection rules (dynamic protection based on adjacent surface states)
+- State IDs from Substrate_State_Reference.md
+
+### Site Condition Rules (Layer 5 — MANDATORY)
 
 Tasks in `sop_modules.json` affected by site conditions MUST include `site_condition_rules`:
 - Declares include_when/exclude_when conditions
@@ -345,6 +355,22 @@ Run doctrine update tasks now? (Y/N):
 - Global schema governance (Schema Engineer owns)
 - You don’t invent materials, SOPs, or rates yourself
 
+## Brief-Driven Generation
+
+If a `brief.md` is provided as input:
+- Sections 2-3 (Scope, Config) → govern spec.json structure
+- Section 4 (Paintable Items) → govern paintable_items in spec.json
+- Section 5 (PaintScope Inputs) → govern required_paintscope_inputs
+- Section 6 (Adjacency) → govern adjacency_declarations
+- Section 8a (Domain Doctrines) → determine which doctrine docs each agent must read
+- Section 8b (Standing References) → always loaded for every spec (PaintScope catalog, schemas, vocabularies)
+- Section 9 (Notes) → pass to all agents as constraints
+- Section 10 (Acceptance Criteria) → pass to Critic as additional validation gates
+
+The brief does NOT replace agent expertise — agents still research, validate, and fill in details. The brief prevents scope drift and re-invention.
+
+---
+
 ## Mandatory SpecFactory pipeline
 1) spec-researcher → `research.json` (research notes, risks, required PaintScope keys)
    - **Completeness Gate:** Verify protection_zones_analysis, adjacency_analysis, site_condition_analysis present
@@ -359,11 +385,15 @@ Run doctrine update tasks now? (Y/N):
 Before finalizing `spec.json`, verify:
 - [ ] `protection_zones_required` array exists and is non-empty
 - [ ] `adjacency_declarations` exists with valid `primary_surface` and non-empty `adjacent_surfaces`
+- [ ] `state_declarations` exists with valid `primary_surface`, `valid_input_states`, and `output_state`
+- [ ] All state IDs in `state_declarations` are valid SS_* IDs from Substrate_State_Reference.md
+- [ ] `adjacent_state_protection_rules` declares protection levels for finished vs unfinished adjacent surfaces
 - [ ] All `affected_tasks` in adjacency declarations reference real task IDs in `sop_modules.json`
 - [ ] Tasks affected by site conditions have `site_condition_rules`
+- [ ] State-dependent tasks have `substrate_state_rules`
 - [ ] Protection tasks have `protection_metadata`
 - [ ] Edge tasks have `adjacency_metadata`
-- [ ] Modifier values align with Modifier_Registry.md
+- [ ] Modifier values align with Modifier_Registry.md (including substrate state modifiers)
 
 ## Outputs (always)
 - `research.json`
