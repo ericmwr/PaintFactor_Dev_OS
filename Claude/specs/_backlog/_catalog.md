@@ -1,6 +1,6 @@
 # Spec Backlog Catalog
 
-**Last Updated:** 2026-02-01  
+**Last Updated:** 2026-02-03  
 **Reference:** NC_Interior_Spec_Catalog.md  
 
 ---
@@ -20,7 +20,7 @@
 | 1 | SF_DRYWALL_CEILING_NC_PRIME | ✅ authored | generated | — | v0.1.0 draft, pending human review |
 | 2 | SF_DRYWALL_CEILING_NC_FINISH | ✅ authored | generated | — | v0.1.0 draft. Mirror wall finish spec. Brief authored 2026-02-02. |
 | 3 | SF_DOOR_SLAB_INT_NC | ✅ authored | in_progress | — | Atomic door architecture |
-| 4 | SF_DOOR_FRAME_NC | ❌ needed | queued | needs brief | Pairs with door slab |
+| 4 | SF_DOOR_FRAME_NC_FINISH | ✅ authored | generated | — | v1.0.0 complete. EA (frame set) as primary unit. All user corrections applied. |
 | 5 | SF_CLOSET_SHELF_NC | ❌ needed | queued | needs brief | Simple spec |
 | 6 | SF_DRYWALL_WALL_NC_PRIME | ✅ authored | queued | redo in new format | Brief authored 2026-02-01. v0.1.0 exists but predates current spec format. |
 | 7 | SF_DRYWALL_WALL_NC_FINISH | ✅ authored (old) | queued | redo in new format | v0.1.0 exists but predates current spec format. Note: if prime includes inspection/repair, finish eliminates one round. |

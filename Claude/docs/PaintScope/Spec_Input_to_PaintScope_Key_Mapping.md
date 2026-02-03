@@ -84,6 +84,7 @@ No conversions are allowed in specs.
 | Spec Input Name | UOM | PaintScope Key | Required When | Notes |
 |---|---:|---|---|---|
 | IN_SF_CEILING_FIELD | SF | PS_SURFACE_SF.CEILING_FIELD | any ceiling painting work | Core ceiling quantity |
+| IN_LF_EDGE_TO_WALL | LF | PS_EDGE_LF.TO_WALL | ceiling spec includes edge work at wall line | Required for ceiling cut/tape tasks. Same physical edge as wall's TO_CEILING. |
 | IN_SF_PROTECT_FLOOR_EXPOSED | SF | PS_PROTECT_SF.FLOOR_EXPOSED | ceiling work includes full-room drops | Especially relevant for spray strategies |
 | IN_SF_FLOOR_VACUUM | SF | PS_META.SF.FLOOR_VACUUM_AREA | post-application floor vacuum cleanup | Distinct from protection area — vacuum applies regardless of floor protection |
 
@@ -175,6 +176,7 @@ This section maps common adjacency conditions to which PaintScope keys must exis
 | Walls adjacent to cabinets and masking strategy is selected | adjacency (surface→asset:cabinets) | IN_SF_PROTECT_CABINETS_FACE OR IN_LF_EDGE_TO_ASSET | If missing: FAIL spec application |
 | Walls include tape-line cut to trim | edge classification exists | IN_LF_EDGE_TO_TRIM | If missing: FAIL |
 | Walls include cut-in to ceiling | edge classification exists | IN_LF_EDGE_TO_CEILING | If missing: FAIL |
+| Ceilings include cut-in to wall | edge classification exists | IN_LF_EDGE_TO_WALL | If missing: FAIL |
 | Spray selected and floor protection required | floor exposed measurable | IN_SF_PROTECT_FLOOR_EXPOSED | If missing: FAIL or require manual capture workflow |
 
 > Important: adjacency drives eligibility, but protection quantities must still be measurable as PaintScope keys.

@@ -162,9 +162,13 @@ These keys carry classification values used by production rate modifiers. They a
 ## Edge (EdgeLF) Quantity Keys
 
 ### Standard edge targets (Interior)
-- `PS_EDGE_LF.TO_CEILING`  
-  **Meaning:** Total LF of wall-to-ceiling boundary requiring cut/tape strategies (if wall painting occurs).  
+- `PS_EDGE_LF.TO_CEILING`
+  **Meaning:** Total LF of wall-to-ceiling boundary requiring cut/tape strategies (if wall painting occurs). Measured from the wall's perspective.
   **Source:** Derived edges.
+
+- `PS_EDGE_LF.TO_WALL`
+  **Meaning:** Total LF of ceiling-to-wall boundary requiring cut/tape strategies (if ceiling painting occurs). Measured from the ceiling's perspective. Same physical edge as `PS_EDGE_LF.TO_CEILING` but semantically distinct — each surface's spec declares its own edge relationship.
+  **Source:** Derived edges. Same geometry as TO_CEILING.
 
 - `PS_EDGE_LF.TO_TRIM`  
   **Meaning:** Total LF of wall-to-trim boundary (baseboard/top edge, casing edges, crown edges where relevant).  
@@ -492,6 +496,8 @@ Many protection keys can be derived from existing geometry rather than requiring
   - MUST require `PS_SURFACE_SF.WALL_FIELD`
 - If a wall spec includes cut/tape to ceiling:
   - MUST require `PS_EDGE_LF.TO_CEILING`
+- If a ceiling spec includes cut/tape to wall:
+  - MUST require `PS_EDGE_LF.TO_WALL`
 - If a wall spec includes cut/tape to trim:
   - MUST require `PS_EDGE_LF.TO_TRIM`
 - If a spec includes masking adjacent cabinets:

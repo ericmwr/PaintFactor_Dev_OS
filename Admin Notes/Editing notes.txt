@@ -1,0 +1,453 @@
+Confirmed Edit Plan (v3 - Final)
+
+CONFIRMED DECISIONS
+ItemDecisionSource/RationaleHeight ModifiersScale B: Production Rate Reference (5 tiers)1.00/1.30/1.50/2.00/2.50Condition Modifiers1.0x / 1.5x / 2.0x (Good/Fair/Poor)PaintFactor Production Rate ReferenceNew Construction tierRemove from systemShould not existSteel SubstrateResearch and draftWill add to Section 6Bay/Bow WindowsNo modifierIncreased area/LF applies rates appropriatelyColonial/Multi-pane+20% labor modifierResene productivity tablesTrim PackagesExpanded to 5 optionsPer your edits
+
+YOUR EDITS INCORPORATED
+Phase 6 Trim Packages - Updated per your changes:
+PackageComponents IncludedTypical UseNoneWindow not being painted (wall deduction or mask only)Vinyl windows not in scope; unpainted openingsCasingInterior Trim/Casing OnlyCasing treatmentJambExtension Jamb OnlyJamb treatmentCasing and JambCasing and JambCombined casing and jambFull PkgCasing + stool + apronFull interior window treatment
+
+PAINTSCOPE KEY IMPACT ANALYSIS
+The height tier change from 4 tiers to 5 tiers affects PaintScope output keys:
+Current Keys (4-tier system):
+PS_OPENING_EA.WINDOW_H1    // 0-8 ft
+PS_OPENING_EA.WINDOW_H2    // 9-13 ft
+PS_OPENING_EA.WINDOW_H3    // 14-18 ft
+PS_OPENING_EA.WINDOW_H4    // 19+ ft
+Required Keys (5-tier system):
+PS_OPENING_EA.WINDOW_H1    // 0-8 ft (HT_STD)
+PS_OPENING_EA.WINDOW_H2    // 9-12 ft (HT_STEP)
+PS_OPENING_EA.WINDOW_H3    // 13-17 ft (HT_EXT)
+PS_OPENING_EA.WINDOW_H4    // 18-24 ft (HT_SCAFFOLD)
+PS_OPENING_EA.WINDOW_H5    // 25+ ft (HT_LIFT)
+Range Adjustments:
+TierOld RangeNew RangeChangeH10-8 ft0-8 ftNo changeH29-13 ft9-12 ftUpper bound -1 ftH314-18 ft13-17 ftShifted down 1 ftH419+ ft18-24 ftNow capped, not open-endedH5—25+ ftNEW TIER
+
+DEV_OS CHANGE CHECKLIST
+Documents Requiring Updates
+1. Window Counting System Spec (devos/window-counting-system-spec.md)
+
+ Section: Height Tiers table (lines 83-88) — Replace 4-tier system with 5-tier system
+
+Update ranges: H2 becomes 9-12 ft, H3 becomes 13-17 ft, H4 becomes 18-24 ft
+Add H5 tier: 25+ ft, 2.50x modifier
+Update modifier values: H2 from 1.25x to 1.30x, H4 from 1.75x to 2.00x
+
+
+ Section: Height Tiers description (line 90) — Update text about height assignment to reflect 5 tiers
+ Section: Output Keys (lines 170-174) — Add PS_OPENING_EA.WINDOW_H5
+ Section: Data Model - WindowGroup heights object — Add H5 to the heights structure
+ Section: Data Model - WindowException height enum — Add H5 option
+ Section: UI Specification - Height dropdown — Add H5 option (25+ ft)
+ Section: Validation Rules — Update H3/H4 warning thresholds if needed
+
+
+2. Production Rate Reference (production rates/PaintFactor_Production_Rate_Reference.md)
+
+ Section: Condition Modifiers (lines 319-327) — Remove "New construction" row (0.80x)
+ Verify height tier section is authoritative (no changes needed, this is the source of truth)
+
+
+3. Window Systems Painting Doctrine (this document - regenerate with all Phase 1-7 edits)
+
+ Phase 1: Section 7 - Size Bucket Method, Perimeter-First rationale
+ Phase 2: Section 8 - Complete window types, updated productivity table
+ Phase 3: Section 8.3 - 5-tier height modifiers from Production Rate Reference
+ Phase 4: Section 8.4 - Condition modifiers (Good/Fair/Poor)
+ Phase 5: Section 6 - Steel substrate (research and draft)
+ Phase 6: Section 7.4 - Expanded trim packages (5 options per your edits)
+ Phase 7: Section 13 - PaintScope keys including H5, spec patterns, exceptions
+
+
+4. Any Specs Consuming Height Keys (search required)
+
+ Search Dev_OS for any specs referencing PS_OPENING_EA.WINDOW_H* keys
+ Update to handle 5-tier system
+ Verify estimation engine can process H5
+
+
+5. Schema Files (if applicable)
+
+ Check if JSON schemas define height tier enums — update to include H5
+ Check WindowGroup/WindowException schemas for height field validation
+
+
+Terminology Alignment
+
+ System-wide decision: Standardize on "Poor" (Production Rates) vs "Deteriorated" (PaintScope)
+
+Recommend: Use "Poor" in doctrine/specs, note "Deteriorated" as UI label in PaintScope
+Or: Update PaintScope spec to use "Poor" for consistency
+
+
+
+
+EXECUTION ORDER
+
+✅ Plan approved
+Research and draft steel substrate content
+Edit Window Systems Painting Doctrine (Sections 6, 7, 8, 13)
+Regenerate docx
+Present doctrine for review
+Separately: Update Window Counting System Spec for 5-tier height system
+Separately: Remove New Construction tier from Production Rate Reference
+Separately: Search and update any specs consuming height keys
+
+
+Paintscope is going to be a estimators tool for doing jobsite walk downs.  It is intended to be used on a mobile device or laptop.  The idea is the UI/UX will need to capture all the project data along with images.  It will go about the same workflow as a typical painting contractor estimator.  Here is the process for estimating a painting project. 
+
+Generally the phone call comes in for request for estimate.  We schedule the estimate and meet with the customer on site. Walk in, generally some small talk, ask some questions about the job.  Find out what it is they are looking to have done. This includes getting instruction from them on what it is that they want painted, the basic color scheme they're looking for.  We dont always have colors at this point. Customers usually want to hire a contractor first and then start a color consultation or start thinking about it after the estimate .  Take a mental note of the scope of the job.   Then once formalities are out of the way the estimator begins measuring.  For years i used a measuring wheel to measure out each room.  But over the years it became obvious that exact measurements didnt really matter much.  I started pacing out rooms and its really no different.  Even when measuring with a wheel we pad the measure by a foot, rounding up on inches.  This is a pdca standard.  
+So we go room to room.  Usually writing a room name, then starting with the length and width.  Generally the ceilings are all the same level throughout unless its a room exception. So we write the ceiling height once typically unless theres a room that has a higher ceiling in which case we write that ceiling height in.  I've got the perimiter of the room with the length and width and the square of the walls with the ceiling height and the ceiling and floor.  If theres crown, chairrail, wainscote i've got all that info.  Some cases there is a specialty wall that has an accent feature in which i call out in under that room header with details of the accent.  If there is a closet ill typically write down the length and width, but honestly its always an eyeball measurement because closets have pretty standard sizes.  small medium and large.  
+
+When it comes to windows and doors we either keep a tally somewhere on the bid sheet as we go through the house or do them after all the rooms have been recorded.  Usually best to do it after rooms so none get missed.  
+
+Windows we 
+ROOMS
+Ceilings
+Walls
+Window Casing
+Window Jamb
+Window
+Door Casing
+Door Frame
+Door
+Baseboard
+Chair Rail
+Crown
+Wainscote
+
+Misc Items Location Random
+Gable Walls
+Vaulted Ceilings
+Coffered Ceilings
+Beams
+Mantles
+Built ins
+Closets
+Closet Shelving
+Benches
+
+STAIRWAY
+Ceilings, Raked?, Flat length of stairs?  
+Walls How many
+Runs
+Risers 1, x2?, x3?
+Stringers
+Landings Base?
+Railing
+Spindles
+Railing bottom rail
+Newell posts
+
+
+
+
+
+ where is the instruction located that says backroll is less comomon on ceilings and that spray only is standard for flat ceiling primer.  it must be changed. 
+Spotpriming fasteners is NOT necassary.  Fasteners on bare drywall have been mudded over and should be rust resistant screws.  This is an unnecassary step. Where was this instruction 
+
+Floor protection is FULL room for spray method WHEN FINISHED FLOORS PRESENT.  IF SUBFLOOR, FLOOR PROTECTION IS NOT NEEDED. 
+
+
+
+NOTE TO SELF - done
+Need to work on adding a rule that when a json is presented and a correction is made to the draft by me, then in addition to resolving the correction, a flag or note should be additionally generated so that those corrections be added into their appropriate doctrines for future research.  I've been correcting the same things over and over. - done
+
+
+ Backroll is required for any bare drywall always at any tier not qt_conditional. Backrolling is the only way to seal bare drywall.  Sealed drywall is part of a properly painted surface. 
+Even in NC the windows will need to be masked, as well as exterior doors typically.  This is when project drywall is released to painter immedietly after drywall contractor and before flooring and trim/doors are installed.  
+
+There are cases where a new construction project is released to the painting contractor after most items have been installed including Flooring, cabinets, trim, doors, and so on.  
+
+When i run a spec for Bare Drywall.  and it is looking at protection phase for bare drywall.  Instead of neededing to clarify what type of project it is should the spec researcher be researching the different scenarios and nuance of priming bare drywall.  Currently its locking in on things like NC floor covering not required on NC projects so no masking needed.  (Just and example) Shouldnt it include all and say somethign like floor protection dependant upon adjacent surfaces.  My point is it should consider all the nuances of the substrate and job site and material / application, condition in every spec so that we are not forced to make 4 different spec scenarios.   DOes this make sense and is it inforced in prompts/templates/doctrine
+
+Your my ruthless mentor
+Dont sugar coat anything
+if my idea is weak call it trash and tell me why
+Your job is to test everything until i say its bulletproof
+
+modifiers not wired in every spec's production.json
+specfactory prompts must require every doctrine modifier to appear in production.json with applies to tasks list. 
+
+i want to get to a full New construction spec list for testing soon as possible.  Need a list of needed specs to fill complete estimate ready database. 
+
+
+Orchestrations - 
+Create a crew that produces the desired outcome
+
+We are at a good start with the Devos team.  But i need to get this data from spec to working data schema.  There should be a team member that is sole focused on creating the database from the specifications. Can i use sqlite for testing and then upgrade to supabase once the model is working.  can i use that prism mcp for this?>
+
+Another team member needs to be working on the estimate engine
+
+and we need a memember working on paintscope. 
+
+Dont forget about sales and marketing.  Creating a team to make a website, one for content based off of High level description of paintfactor and others based on the spec families and another to go deep into specs and create engaging articles about details and processes. Landing pages and sign up lists and social media.  
+
+Graphic Design 
+
+I need to know how to change the model in an agent. 
+
+Some notes on Spec Completeness Doctrine
+Common Zone patterns by spec type
+We currently have 
+Wall Brush/roll
+Wall spray
+ceilng any
+trim brush 
+trim spray
+Door/window
+cabinets
+
+what we need
+Door brush/roll
+Door spray
+window brush/roll
+window spray
+cabinet brush/roll
+cabinet spray
+
+
+Adjacency Declarations
+under feild definitions we have typical relationship and same finish, different finish or varies.  QUESTION ONLY: how are we accounting for assets that need protection like cabinets, tile wall, stone wall (Fireplace or accent feature) Is this in protection zones and then when different finish is typical relationship a masking task is result?  how does this work? 
+
+Site condition
+ Ventilation condition.  I get the purpose of this item but is it realistic for residential commercial.  In my mind this is more of an enclosed spaces question or containment question. Please explain the benefits of having this included in the process. 
+ 
+ Time constraint - What is phased_occupancy?   I had the immediate thought of "Phased project" could be added meaning that it is a phased approach for the painter.  Phases could include initial primer and ceilings, second phase of trim and walls, third phase of final completion and touch ups.  
+ 
+ FInish Continuity
+ 
+ ther first example has the task id as tsk wall mask to ceiling.  this should be changed to tsk wall cut in to ceiling.  We dont mask ceiling to wall when both substrates are drywall.  if ceiling substrate is millwork there is a chance it could be masked but mostly professionals cut in the ceiling line freehand.  This should be updated anywhere in the system that references masking ceiling. 
+ 
+ Lets talk through this before generating the final markdown update in order to sort through some of these questions. 
+ 
+ SIDE NOTE:  We need to create note for paintscope intial project data should inquire when house was built and when the last time it was painted and was it done professionally.  This question should be part of the onboarding process for clients / projects. 
+ 
+ 
+ update for conversation with claude about above
+ 
+ under door spray it has floor perimeter but this should really be floor full surrounding area (no less than 8' around door area)
+ This would apply to window spray too, need to mask out floor to protect from overspray. 
+ 
+ Window spray.  so assuming finish group is different from jamb and casing would need to have jamb adjacent or something. 
+ 
+ other than that we should be good there. 
+ 
+ 2 adjacency declarations vs asset protection
+ This is why i asked.  I just wanted to know if we were taking care of it in some way.  Now the question is level of protection.  how are we determining if its a masked adjacent edge to the cabinet or a full cover of cabinets?  is this just pointing out the need for protection and is linked to the level of protection later in the workflow?  
+ 
+ I was under the impression that adjacency was tracking all adjacency and filtering out the adjacency finish to determine if it was same finish, different or needed masked/protection.  The way you lay it out sounds fine. 
+ 
+ Your question: Question for you: Should typical_relationship have a third value "not_in_scope" for assets that are never painted? Or do we handle unpainted assets purely through protection zones and NOT through adjacency declarations?
+My instinct: Protection zones handle the what to protect, adjacency handles where edges need work. An unpainted cabinet still creates an edge that needs a task (masking). So it should appear in BOTH: 
+My Answer: If the masking is already handled in the protection zones then its a question of redundancy.  Do we need it to be in both places if the result is already that the work is flagged for its particular scope?  No we dont.  If there is a chance of something being missed and the redundancy ensures that all options are covered then the answer is yes. Please discuss. 
+
+Ventilation condition.  You bring up a good point about dry times.  This is a potential method for identifying areas that will be affected by no air flow and when painting we raise the humidity in the space so areas without airflow or proper ventilation take significantly longer to dry.  Now the question becomes what is the result we are aiming to achieve wtih this information.  Indicate that a fan may be necassary to help aid dry times?  this to me is a contractor descression item.  It does effect time on project though if we add metrics but those are difficult to lock on to as they could vary based on reletive humidity levels which would require actual measuring to produce workable numbers/levels.  Im feeling like we keep this in but not go any further than using it as an empty socket for now. 
+
+It does effect areas where solvent based products woudl be used but two things here, solvent based products are a lot rarer these days although not eliminated completely.  VOC laws are effecting every company.  Also if solvent based products are being used as a general rule we are already going to be flagging for ventilation reqs.  But again, having it as an empty socket for now would create a doorway for future implementation if it arrises as a need. 
+
+Time constraint / phased occupancy
+Yes i like your version of phased occupancy that is definetly a bottleneck worth declaring. It changes up the entire workflow. 
+
+I see your point about phased project and this not being the appropriate place and should be a project config.. lets leave it as is
+
+Ceiling masking correction 
+
+when is ceiling masking appropriate - all correct but acoustic tile has a track on the wall that is easy to cut in to.  there is a gap between track and wall that is easy to cut in.  Now when spraying walls it is pretty important to not risk overspray on acoustic tiles so that would be an occasion when masking is appropriate. 
+
+Number 6. Side Note: PaintScope initial project data. Should I add a section to the doctrine about PaintScope project onboarding fields that feed into site condition defaults? I mean, this would not need to go into this doctrine, but it would be something that we'd want to flag for attention later. I can make a side note, or is there somewhere else we can put it? 
+
+All right, so on number one zone patterns, we have the floor full eight-foot radius, and then several others. We're probably going to have to update the key mapping for all of these, correct? Or what other updates are going to be required with all these new keys? 
+
+All right. Yeah, I definitely like the protection level, adding in edge-only partial cover and full cover. But again, my question is about redundancy. Is this already covered somewhere else in the system, or is this the first opportunity we're getting to address it, or are we redefining? I guess that's what I'm trying to understand. 
+Okay, yeah, now I see the point about protection zone tasks and adjacency tasks. I'm totally with that. That makes complete sense. So area/asset coverage in protection zones would cover the entire cabinet, and linear edge work in adjacency would just be the mask line, the tape line at the junction. That makes total sense. I guess part of the redundancy that I'm talking about would also include other areas of the system, in Doctrine or any other areas where we have keys where they already call this area of work out, or is this like a supremacy, like this has supremacy over all other? 
+
+So yeah, when we're talking about ceiling masking and refined rules, I like the millwork/beam, brush and roll, cut in freehand, millwork/beam, spray, mask, protect from overspray. That's a good one, but it kind of indicates that when spraying walls, you would mask off the beam.
+
+I think this just kind of opens the door for discussion about when you're spraying a ceiling and it's a coffered ceiling and say there's a prefinished wood or some other type of not-in-scope beam at the ceiling, that protection would likely be necessary to avoid all that cut-in on a coffered ceiling. So how would we make this universal, not just when painting walls, but also when painting ceilings. And this would tie into the adjacency. Yeah, again, let's just discuss this because I just want to make sure that, because this is task wall cut into ceiling. These are all task wall protect ceiling. What if it's task ceiling protect millwork or something like that? 
+
+For the PaintScope onboarding fields, where to track, I'm at a toss-up between a new standalone document and creating a tracking issue future work note. I think let's do C, creating a tracking issue future work note. That way, you know, it's documented.
+
+I like the idea behind a new standalone document that lists all initial capture data requirements, defines how each. I mean, that's like a two birds, one stone type of thing. So why don't we create the tracking issue folder path: Claude/docs/Future_Work, and then the document, but then let's create the PaintScope_Project_Onboarding_Fields.md on that file path. 
+
+Let's get another rounded discussion on this before we proceed. 
+
+
+NEW CONTEXT
+
+Zone patterns and key mapping impact. Yeah, so you asked if we should do an audit. Creating a mini-project: Zone/Key Alignment Audit before finalizing this doctrine. Yeah, I would say that would probably be a good idea, just to make sure that we're not leaving any empty sockets anywhere. 
+
+Okay, so. On protection levels, new or redefining, I agree with your recommendation. This formalizes protection level concepts from `Interior_Protection_Doctrine_Residential_Repaint.md`. 
+
+Create a task for Doctrine Authority section to PaintFactor OS. I like the priority level from one to five. When we get through with all these edits on this doctrine, we're going to wind up creating a full prompt for Claude Code to run the edits. So this could be one of the phases in the prompt. 
+
+Okay, yeah, I think that's right. Use the D hybrid for universal protection tasks and directional cut-in blend. Let's go with that method. 
+
+Yeah, for PaintScope onboarding, definitely let's put in the prompt to Claude Code to create that folder path and then the document. 
+
+All right, at this point, go ahead and regenerate the new edited doctrine with all of our discussion, with the results of our discussion, and let me read it for review before we move forward with creating the prompt for Claude Code. 
+
+
+NEW CONTEXT (DRAFT REVIEW)
+
+Okay, so for the prerequisites on the Zone/Key Alignment Audit, let's create a markdown file describing that task and its desired results. 
+
+Okay, so and then the Doctrine Authority addition, add authority hierarchy to PaintFactor OS MD. Let's also create a Markdown file for that task and its desired results. 
+
+And then the PaintScope Onboarding fields, that's just going to be a section in the prompt for Claude code about what, you know, what we're looking for there. 
+
+I think there might be a misunderstanding about residential repaints versus new construction. So this `Interior_Protection_Doctrine_Residential_Repaint.md` Markdown file covers everything we need for residential repaint, but some of these things are going to transfer over to new construction seamlessly, like the floor protection and stuff like that. Just because it's new construction doesn't mean that there's not going to be finished floors present. Those floors are still going to exist. All the same things. It's still a house. It's still an interior. The difference between residential repaint primarily is going to be, you know, that it's furnished. You're going to have things like carpet that typically you wouldn't have in new construction, but everything else—cabinets, millwork, hardwood flooring or tile—all that's still going to be a protection zone declaration. So how are we going to handle those scenarios? Do we need to redirect this Interior Protection Doctrine to encompass both, or is it necessary to have, I guess the question is, is it necessary to categorize the two for protection? And have two separate Markdown files, one for each. 
+
+All right, so on layer three site condition rules, we have the condition ID and then the values. I feel like those values should be defined. And they should also have a recommended use case. You kind of covered it when you put the notes on ventilation_condition and the note on phased_occupancy. I feel like all of the values, however long or short they need to be, should have some sort of a definition attached to them. I mean at the doctrine level, not at the spec level. The doctrine should have the definition. 
+
+Here's a side note. We've got modifiers all over the place because we have `modifier_when_included` on `lead_status` with `tested_positive: 2.0` or `unknown_pre1978: 1.5`. I need to have a file where we have all a compilation of all of our modifiers with descriptions so that we can keep track of these things. I mean, some of these are just going to be difficult to maintain if they're not mapped out. 
+
+Just a quick question for clarification. On Finish Continuity Resolution (Project Assembly), we talk about lookup finish group for primary surface and then lookup finish group for adjacent surface, surface ID. Where are we going to declare these finish groups or the finish type for a substrate? Is that something that needs to be addressed, or is there a functionality in place for this? I'm assuming that would be a `PaintScope` requirement, right? So a key, a `PaintScope` key that we would have in place at project scope declaration or whatever. I just want to be sure that that's included. 
+
+Do not create any of the files yet. Let's discuss the points that have been brought up in this message. 
+
+
+
+NEW CONTEXT (DRAFT REVIEW 2)
+Just for clarification on this, I'm using dictation right now, so our punctuation's all screwed up. Just keep that in mind. 
+
+So on the universal protection, repaint-specific protection, and new construction-specific considerations, you know what, on repaint-specific protection, let's take carpet right on out of there. It doesn't need to be repaint-specific. Let's just put it on universal protection because, I mean, there's always the chance that on new construction the carpet could be installed. There's no need to make that distinction. So go ahead, just make that note and then move forward with this new method. 
+
+Yes, I agree with the site condition value definitions. Those all look good. I just got to your question about whether these definitions should live in this doctrine or in a separate site conditions vocab reference MD. I'm curious what your thoughts are on it, but I'm leaning towards having a separate markdown file with vocab reference. 
+
+Modifier compilation file. This should be a new task file for the Claude Code prompt, and it should not live in this doctrine. 
+
+Okay, so I guess if we're going to crack this right now, the estimation engine derives from color sheen selection.
+
+Option B: The color schedule during estimating determines finish groups.
+
+Option C: User explicitly declares finish groups during estimate configuration. The estimator explicitly groups the surfaces together.
+
+You're right that it should be a combination of these two. But within the system, what we're going to have is a client portal that's going to connect clients with the actual project data. They're going to be able to get in and do their color selection.
+
+My vision is this: a lot of times we don't have color selections on the initial walkthrough of a project. A lot of times customers wait until after they've locked in a contractor, secured an estimate, and they're on the schedule before they even think about colors. It's not uncommon for them to come after the estimate.
+
+The idea is that there would be a system in place once a project is awarded. It would funnel through to a client portal that the customer has access to, obviously, and they can fill out a form for color selection. All of our information from the project creation in the database would then surface for their selection, or even at the proposal level, because they're going to have to pick their quality tier.
+
+And so they could actually pick their quality tier at that point in time, along with their color, or the color could come later in the client portal. So, you know, it's a combination of all those things. It's the estimate. The estimate engine derives from color sheen selection.
+
+And then also the user, me, or the contractor explicitly declares the finish groups during estimate configuration. Because generally the colors, in order to determine the finish group, we would likely know that at the time of estimation because, you know, it would be lined out in the scope.
+
+What's getting painted, what you know, and what's getting a different color, even if the color isn't defined? So I guess we need to look in, you know, kind of talk this out a little bit more. 
+
+Yeah, let's take this and flag this as a PaintScope engine requirement and add this To its own document in the same path as the PaintScope onboarding fields. 
+
+This is the research.json review. 
+	It's falling back to the damn spot priming sealing fasteners is critical to prevent rust bleed-through on finished coats, so we need to fix that. The response that we need to have to it is there is no need to spot prime sealing fasteners as they are covered with mud and they are rust resistant. And that's it. Just stop. Actually, where is that reference made at all? I need to eliminate it and make sure that we're explicit that fasteners in raw drywall do not need to be spot primed. 
+
+	All right, it says window and door masking required for spray methods. Overspray fallout from ceiling work falls onto openings below. In new construction at this phase of the project, it's worth noting that typically the only doors that are going to be installed are exterior doors—sliders, front entry doors, back entry doors, garage entry doors, things like that. Typically, in this stage of the project, that doesn't mean that every time you spray a primer on a new construction project that all the interior doors won't be installed, but it's worth noting. 
+
+	It's also worth noting that it says no floor protection needed beyond subfloor vacuum. New construction pre-trim has subfloor only. This is not always the case, and these specs need to be all-inclusive of situations where there may be tile floors in bathrooms or finished floors before we get into paint. It's not always the case that we're working over a subfloor when priming ceilings. 
+
+	All right, so on the primer system selection for PVA primer, under advantages, it says fast dry one hour. That's marketing garbage. It really depends on the humidity in the room, and how masked off everything is, how much moisture is in the area, how cold it is. I mean, there's a lot of factors that determine the dry time. It's best not to try to pin down a dry time for primer. 
+	It also says under limitations, less stain blocking than shellac. That is probably the biggest understatement I've ever seen. There is zero stain blocking, and it's not even comparable to shellac. The only thing that compares the two is that they're both primers, but they're completely different. Really? 
+
+	And then if you're going to list products, we need to make a note somewhere that we want to use top brands like Sherwin-Williams, Benjamin Moore, like the top three paint manufacturers. We're not looking for Kils, Zinsser, Glidden. 
+
+	Again, this time under acrylic latex primer. It has advantages, and it says better stain blocking. There is no stain blocking in drywall primer. Don't rely on marketing. 
+
+	Right under the `PaintScope` keys, we have `PS_PROTECT_SF.FLOOR_EXPOSED.` It says "required when: Always subfloor vacuum after priming." That key is not appropriate for that task, so we need to come up with a new key that's more appropriate for vacuuming floors. 
+
+	Another thing, for whenever you're priming ceilings, when you're at this stage of the game, typically all you're trying to do is prevent paint fallout onto the doors and windows. So you're not trying to mask off very intricately. You're just trying to pin plastic up over the doors and windows so that no fallout hits it, and then you're going to likely rip that plastic down after you're done priming.
+
+	So we need to create a task or recommendation in order to fit into the system for pinning plastic over doors and windows. 
+
+	All right, so on the protection heuristics, we have recessed lights and we have ceiling electrical boxes. The recessed lights per room are average four, low two, and high six. And then ceiling electrical boxes. We need to reduce that by one on each average low and high. If that means going into another file to make that correction, let's go ahead and get that done. 
+
+
+Second round of edits for drywall ceilings, new construction prime. 
+
+It has recessed lighting cans and ceiling electrical boxes that require protection from overspray. This is true, but sometimes, actually a lot of times, there are going to be holes in the ceiling where recessed lighting cans and electrical boxes go but have not been installed yet. Those holes still need to be filled to prevent overspray. Blown out or blown in insulation from coming out of the hole as you were spraying the ceiling. 
+
+All right, so it's saying that Quality Tier 5 may add light sanding after priming for Level 5 finish preparation. This is true for Quality Tier 4. It's kind of a redundant thing to put in there because that's the step in the finish task. So when you're applying the finish paint, you sand before the first coat. You know, it's really unnecessary to have on a prime scope, but it is what it is. 
+
+
+All right, under Material Systems, you have listed PVA Drywall Ceiling Primer. That's the Polyvinyl Acetate (PVA) Primer for Quality Tier 2 and Quality Tier 3. The product type is PVA primer, and the example products include Sherwin-Williams ProMar 200 PVA Primer, Benjamin Moore Ultra Spec PVA Primer, and PPG Seal Grip PVA Primer.
+
+You're basically just adding PVA into the name of another primer. Sherwin-Williams ProMar 200 is an acrylic primer; it's not a PVA. It's similar, but it's not actually a PVA. You would actually use Sherwin-Williams explicitly PVA primer. It's its own product. And then on quality tier four, you would use Sherwin-Williams ProMar 200 primer. Yeah, because again, on the quality tier 4, you have Sherwin-Williams ProMar 400 interior latex primer, which is subpar to ProMar 200 acrylic latex primer. So you've actually got ProMar 400, a subpar product at quality tier 4. For quality tiers 2 and 3, just use Sherwin-Williams PVA primer. So make sure to take and just put under quality two, three, uh, two and three, just use Sherwin-Williams PVA primer. And then for quality tier four, Sherwin-Williams ProMar 200 acrylic latex primer. And then similar for the Benjamin Moore and the PPG. 
+
+When suggesting roller covers, it's actually the contractor's discretion on whether they want to use a half-inch nap or some choose to use a 3/8-inch nap on drywall just to get a better stipple out of it or reduced stipple with the 3/8-inch nap. So really, we should be listing both as optional roller skins or a range, either 3/8 to 1.5-inch nap when suggesting roller covers. And then also for the orange peel or knockdown, you have a 3/4-inch nap on that, which is probably not wrong, but it should be a range from 1/2-inch to 3/4-inch nap. After all, orange peel and knockdown really isn't that big of a texture, so the need to bump up to something like a 3/4-inch nap is probably not really needed unless it was like a popcorn ceiling or some sort of rough finish, such as a stomp finish on a ceiling. You might need a 3/4-inch nap for a popcorn finish on a ceiling. You might need a three-quarter inch nap or a popcorn finish on a ceiling. You might need a three-quarter inch nap, which are really uncommon these days unless it's a repaint. 
+
+For consumables, we have:
+
+- Consumable ID: Consumable masking tape, 1.5 inch
+  - Unit: Roll
+  - Yield per unit: 60
+  - Yield unit of measure: Linear foot, and that's wrong. So that's how many yards there is. There's 60 yards, but there's 180 linear foot per roll of tape. So that needs to be adjusted. And the same with masking paper, 12-inch. You have a unit roll, yield per unit 500, yield unit of measure is linear foot. No, it's the same as tape: 180 linear feet on a roll of 12-inch masking paper, and that's true for all masking papers, no matter what size. We need to note that somewhere in doctrine. 
+  
+  All right, we need to make a clarification now. Right now we got consumable ID, consumable floor protection drop, name drop cloth/floor protection, category protection, specification canvas drop cloth or plastic sheeting for finished floor protection. So anytime we're dealing with any kind of hard surface flooring, even if it's just a prime coat on a ceiling, typically we're going to default to a rosin paper floor protection taped down at the edges because we never want to run a risk of getting any overspray on finished flooring if we can help it. Canvas drop cloths and plastic sheeting would be appropriate for carpeted areas. But in generally all situations where there's going to be spraying on a ceiling, we're going to be wanting to mask off the floor completely with rosin. 
+  
+  
+ Just for clarification, later on we have Task Mask Windows Ceiling Prime as the task ID, and the name is Pin Plastic Over Window Openings. Is that key task or the ID Task Mask Windows Ceiling Prime? Also, would that also be in use for fully masking windows? Do we need to create an ID for just pinning plastic, lightweight cover? It's just a question, not a direction. I guess the same question would apply to doors as well. If we're just pinning plastic, do we need lightweight plastic sheeting and a full mask, or is there metadata that would take care of this for us? Just a question. 
+ 
+ All right, we got a situation where when we're doing these tasks and we're trying to put quality notes on the task of painting, we keep trying to adjust the level.
+
+So like here, for example:
+- Quality Tier 2: Full coverage, minor variation acceptable.
+- Quality Tier 3: Even coverage, proper mil thickness.
+- Quality Tier 4: Uniform coverage, consistent mil thickness, no drips or sags.
+- Quality Tier 5: Critical coverage, uniform mil thickness for high-build primer, no drips, sags, or holidays.
+
+Under no condition should there be any drips or sags, no matter what quality tier.
+
+We need to refer to these quality tiers when applying paint to ensure a properly painted surface according to the PCA. Even at Quality Tier 2, we don't want drips, sags, or holidays. The distinction between Quality Tier 2 through 5 is mostly going to be inspection, sanding, and patchwork in between coats, and the time spent on the task, and the quality of materials. It's not a sacrifice in quality of application. So that needs to be addressed immediately. We have to put that in doctrine—that the agents need to quit trying to adjust the application quality. For the quality tiers, it all needs to be a properly painted surface. I was only using the task `TSK_SPRAY_CEILING_PRIMER` as an example. It was on the `TSK_BACKROLL_CEILING_PRIMER` also. It had something about lap marks, minor lap marks acceptable. It's not acceptable to have lap marks. They should all be properly painted surfaces. 	
+
+There's a statement under the Task Backroll Ceiling Primer. You have the rate per hour is 350, the low at 300, and the high at 400. It makes the comment that Primer Backroll is slightly faster than Finish Coat Backroll, less layoff concern. This is not true. Primer actually takes a little bit longer than Finish because you are dealing with a porous surface, and anytime you're putting a first application of primer on a porous surface, your production is going to be affected. 
+
+We have defect tolerance as all, and it's saying properly painted surface per PCA standards: no drips, sags, holidays, or lap marks at any quality tier. Primer must be fully consolidated on the surface. That's true for the actual coating itself, which I guess would apply to this particular task.
+
+I just want to be sure that defect tolerance is not indicating that there can't be any defects on the ceiling at quality tier two as far as spackle and surface imperfections like surface imperfections do have a defect tolerance at quality tier two. 
+
+We got the rate per hour of the vacuum floor post prime as 1500 square foot per hour. Kind of think that's a little high. Why don't we just keep that at around 1000 square foot per hour for the vacuum? 
+
+Take an inventory of all the files in this system and 
+Take an inventory of all the folders in this system and the files contained within them.  We need a list of Every file that contains a path reference. And then put them into a file, a Markdown file called System_Directory_Audit.md. 
+
+Brief review for the new construction drywall prime. 
+
+All right, so under the excluded items, it has trim priming and it has route to trim NC paint. That shouldn't be the reference. It should be trim NC Prime. I see what it's doing there—it's including the priming portion of the trim in with the trim NC paint spec, but we need to keep consistency here. So we're going to do an exclusive priming spec for trim to cover all scenarios, whether it's a pre-primed material, bare wood material, or a material that has a substrate that requires priming, like a glossy finish or oil-based finish or something like that, right? So we need to have that included as its own individual spec. And then anything else in the catalog document that needs to be changed due to that change, we need to also go ahead and make those changes. Under Configuration Dimensions, application method, we have a note that says spray-only for speed where backroll is not required, and we're talking about primer on drywall. I don't know where it's at right now, but it should be in some sort of doctrine somewhere that says that.
+
+Under no conditions do we not back roll primer on raw drywall. Figure out why the doctrine or instruction was not followed in order to make that note and also correct the note that's not accurate. 
+
+Also, what agent is producing this brief? 
+
+I'm looking at drywall finish levels, levels three through five. That's all fine. That's the actual drywall finishing. So the release to the painter, that's the level of finish that it was released to the painter at. But the surface texture—oh wait, no, I'm sorry—the notes below it say no quality tier dimension primers. Primer QT doesn't differentiate primer application. That is true, but the inspection and repair of the substrate is a quality tier dimension, not the application of the primer. The primer has to be applied properly, but the inspection and repairs of the drywall are a quality tier dimension and need to be included. I think we took the quality tier dimensions off of inspection and repairs on the ceiling because we were anticipating that that was going to be covered on the finish spec. But in all reality, on a drywall prime, we need to have that round of inspection and repair included for scenarios where we're only priming and we are expected to do the repairs. We can't rely on also doing the finish. So, what we'll have to do is we'll have to carry over that inspection and repair into and eliminate one round from the finish if it was included in the prime. 
+
+There's another note on here that says no ceiling height equivalent. Wall height modifiers are less aggressive than ceiling. Standard 8 to 10 foot walls are baseline. So is that suggesting that all walls are 8 to 10 foot? That's ridiculous. Of course, there is a ceiling height equivalent.
+
+Anytime there's an 18-foot tall ceiling, that means there's an 18-foot tall wall, and the modifiers need to be applied to that wall. 
+
+Under adjacency declarations, we have wall field, ceiling field, linear, different finish, wall field, trim, baseboard, linear, different finish. There should also be wall field, door casing, and there should be wall field, window casing. 
+
+All right, I think I see the issue. So under domain doctrines, 8a, domain doctrines, it lists three doctrines. It doesn't have the Interior Painting Doctrine. There should be other doctrines here, I believe. 
+
+Wall Prime Review of Research.json
+You have failure, uneven sheen for the primer. It doesn't make any sense. There's no sheen with primer, and we're not worried about sheen with primer. It's getting finish coated. 
+
+You have three-quarter inch nap listed for the 9-inch and the 18-inch. It needs to be a range. It should be half-inch to three-quarter inch. For the one that is listed as a half-inch, it should be 3/8 inch to half-inch. That would be at the discretion of the contractor which one he needs to use. Three-quarter inch is pretty much overkill. For any of these scenarios. 
+
+So that's pretty interesting. Under consumable ID, drop cloth, we have drop cloth 4 by 12 foot, unit each, yield per unit 100,000. Yield per unit of measurement is square foot. So I don't know in what world 4 by 12 equals 100,000, but I'd say that's probably wrong. 
+
+Okay, on Spackle Lightweight, Consumable ID, Spackle Lightweight has yield per unit 500, so that would be 500 square foot. We need to raise that to 1500, but that's also going to be affected by the quality tier and the condition modifiers. So, if the quality tier is four, then we're going to get less yield per unit and it should maybe drop by 20%. 
+
+We need to make an exception for task wall cut in ceiling for prime coats because it's applying the quality notes for Q2, Q3, Q4. Obviously, we don't need a crisp edge with minimal brush marks and straight lines when the brush cut primer along the wall to ceiling boundary cut line should be clean and extend 2 to 3 inches onto the wall for roller overlap. There's no crisp line needed there. I guess, is there a way that we can nullify just that one instance of the quality notes when we're dealing with primer on cut-in tasks? Or should we just leave it and make a note to address it later? 
+
+I think we need to make a note that we need to have primer as a finish group. Even though it's not a finish, it still needs to be understood that when two adjoining surfaces are meeting, it's going to be part of the same finish group. Let's make a note about that and we'll address it after. Leave it as is in the spec, but we'll come back and fix it later after we figure out how we're going to handle the primer and finish groups. 3
+
+
+FIX THIS AFTER SPEC GEN
+Again, I'm making the same correction as I did on ceiling primer. The roll and nap for spray back roll should be a range from 3/8 to 1/2 inch, so 3/8 to 1/2 inch for smooth drywall. And for textured drywall, it should be a range from 1/2 inch to 3/4 inch. We need to get this in doctrine so that I don't have to keep repeating this. 
+
+I need to come up with a Sundries usage doctrine to add in with the material doctrine. There's just a lot of occasions where it is listing one of the sundries: paint liners, paint buckets, paint grids, spray tips, tape rolls, and stuff like this that are being used, and the unit of measure and the yield amount are just—some of them are ridiculous, especially for drop cloths. It's got 100,000 yield or square foot per drop right now, which I think might be wrong. That could be wrong. But yeah, we need to list out every sundry and put a range in there and a way of measuring it. 
+
+All right, it has a fixture. Fixture protection. And then it lists. Outlet covers, switch plates, light fixtures, HVAC registers. If outlet covers are on the wall, they should be removed, not masked off. Switch plates and outlet boxes should be protected from overspray if installed. Light fixtures, they could either be loosened off of the wall or ceiling and masked off. HVAC register covers are usually removed and labeled. And then of course you got the reinstallation of all those things after the tasks have been completed. But typically on primer stage, you're not going to be reinstalling any covers or registers because they still need finished paint. 
+
+
+The task: remove covers and registers. We're using a heuristic approach because we're not going to be able to count every single outlet or switch that exists on a job site. So we are going to do a unit of measure per room, and we are going to set that at an average of six outlets and switches per room. So a total of six. And then we'll have a high and low for that also. 
+
+THERE IS NO SPRAY ONLY FOR PRIMING DRYWALL- IT IS NEVER UNNECASSARY TO BACKROLL WHEN PRIMER IS SPRAYED ON BARE DRYWALL.  Drywall Must be sealed.  If it is not sealed you can never get an even sheen on finishes applied to it.  THIS IS GOSPEL,   Why does this keep getting put into specs?

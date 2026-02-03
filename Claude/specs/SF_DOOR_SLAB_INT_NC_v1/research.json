@@ -1,0 +1,267 @@
+{
+  "spec_family_id": "SF_DOOR_SLAB_INT_NC",
+  "version": "0.1.0",
+
+  "scope_summary": "Complete painting of interior door slabs (faces + edges) in new construction. Covers conditional primer coat, 2 finish coats, interstage sanding, and hardware handling. Separate from door frame/jamb (SF_DOOR_FRAME_NC) and door casing (SF_TRIM_NC_PAINT). Uses EA_SIDE as primary unit — each face is an independently paintable unit that may have different finish assignments. Fine Finish Doctrine governs all process and quality tier behavior.",
+
+  "relevant_findings": [
+    "Doors are scrutinized surfaces — QT2 is not applicable per brief. QT3 minimum, QT4 default, QT5 for premium.",
+    "EA_SIDE is the atomic unit: each door face is independently assignable to a finish group. A door with 2 sides in different colors generates 2 separate line items.",
+    "Edge ownership convention: hinge edge → hinge side, latch edge → opening side (room you're standing in when door swings toward you). Top/bottom → shared or assigned to primary side.",
+    "Door type complexity factors per Doors Doctrine: flush=1.0, 2-panel=1.15, 4-panel=1.25, 6-panel=1.35, raised panel=1.4, french 10-lite=1.8, french 15-lite=2.2, bifold flush=0.7, bifold louvered=1.5, louver/closet=1.8",
+    "Factory primer is transit protection, not finish-ready primer — field primer is recommended for quality work (Doors Doctrine §2.2)",
+    "Fine Finish Doctrine interstage process is universal: inspect-repair-clean cycle runs between every coat at ALL quality tiers. What changes is scrutiny level, defect tolerance, and pace.",
+    "Spray is standard NC production method for doors. Brush for touch-up or occupied spaces.",
+    "Hardware removal is conditional on spray method — mask hinges (~5 min/hinge) or swap dummy hinges (~5 min/hinge) per Doors Doctrine §10",
+    "French doors require glass masking — adds 80-120% labor per Doors Doctrine §9.2 complexity modifiers",
+    "Louvered doors: 3 light spray coats preferred over 2 normal coats to manage drip risk on louver slats (Doors Doctrine §12.2)",
+    "Sanding grit progression per Doors Doctrine: QT3=no sand between coats, QT4=220 grit, QT5=320 grit",
+    "Material systems per Fine Finish Doctrine: SYS_FF_STANDARD_ACRYLIC (QT3), SYS_FF_MODIFIED_URETHANE (QT4), SYS_FF_PREMIUM (QT5)",
+    "Sheen restrictions per Fine Finish Doctrine: QT3=satin or lower, QT4=any except gloss, QT5=any including gloss",
+    "Industry benchmarks per Doors Doctrine: flush door interior NC 2-coat = 3.60 man-hours total cycle, sprayed = 3.00 man-hours",
+    "Blocking prevention is critical for doors — use urethane-alkyd hybrids or water-based urethanes (Doors Doctrine §5.4)",
+    "Bifold doors use track system, not standard hinges — hardware removal is different",
+    "Door size affects SF per side: standard 6'8\" ≈ 17.5 SF/side, tall 7'0\"-8'0\" ≈ 18.7-21.3 SF/side, oversized 8'0\"+ > 21.3 SF/side"
+  ],
+
+  "prep_requirements": [
+    {
+      "prep_item": "Surface inspection",
+      "method": "Visual inspection for defects, factory primer condition assessment",
+      "reason": "Identify substrate defects, factory primer damage, and scope of prep work needed",
+      "skip_conditions": "Never — always required"
+    },
+    {
+      "prep_item": "Dust removal / cleaning",
+      "method": "Dust removal, TSP wash if contaminated (high-touch surfaces)",
+      "reason": "Doors accumulate oils and construction dust. Contaminants cause fisheying or delamination.",
+      "skip_conditions": "Never — always required"
+    },
+    {
+      "prep_item": "Light sand factory primer",
+      "method": "180-grit scuff sand of factory primer",
+      "reason": "Factory primer is transit protection — scuff for adhesion",
+      "skip_conditions": "Skip if bare wood (full sand instead)"
+    },
+    {
+      "prep_item": "Fill fastener holes",
+      "method": "Lightweight spackle, sand smooth",
+      "reason": "Pre-hung doors may have nail holes from installation",
+      "skip_conditions": "Skip if no fastener holes present"
+    },
+    {
+      "prep_item": "MDF edge sealing",
+      "method": "Shellac or oil-based sealer on cut MDF edges",
+      "reason": "MDF edges are porous — water causes swelling. Must seal before primer.",
+      "skip_conditions": "Only when substrate is MDF"
+    }
+  ],
+
+  "material_system_selection": {
+    "SYS_FF_STANDARD_ACRYLIC": {
+      "when_to_use": ["QT3"],
+      "products": ["SW ProClassic Waterborne Acrylic Enamel", "BM Regal Select Interior Semi-Gloss", "PPG Break-Through"],
+      "advantages": ["Fast dry/recoat", "Non-yellowing", "Water cleanup"],
+      "limitations": ["Lower hardness than alkyd", "Potential blocking issues on doors"]
+    },
+    "SYS_FF_MODIFIED_URETHANE": {
+      "when_to_use": ["QT4"],
+      "products": ["SW Pro Industrial Waterbased Alkyd Urethane", "BM Advance Waterborne Alkyd", "PPG Glyptex"],
+      "advantages": ["Superior flow and leveling", "Harder cured film", "Reduced brush marks", "Blocking resistant"],
+      "limitations": ["Longer open time", "Extended cure (7+ days for full hardness)"]
+    },
+    "SYS_FF_PREMIUM": {
+      "when_to_use": ["QT5"],
+      "products": ["SW Emerald Urethane Trim Enamel", "BM Scuff-X"],
+      "advantages": ["Maximum durability", "Excellent leveling", "Hardest film"],
+      "limitations": ["Highest cost", "Longer cure time"]
+    }
+  },
+
+  "required_paintscope_keys": [
+    {
+      "key": "PS_SURFACE_EA_SIDE.DOOR_SLAB",
+      "description": "Total count of paintable door slab sides in scope",
+      "uom": "EA_SIDE",
+      "required": true,
+      "catalog_status": "EXISTS"
+    },
+    {
+      "key": "PS_META.EA_SIDE.DOOR_SLAB.SLAB",
+      "description": "Count of flush/slab door sides",
+      "uom": "EA_SIDE",
+      "required_when": "type breakdown needed",
+      "catalog_status": "EXISTS"
+    },
+    {
+      "key": "PS_META.EA_SIDE.DOOR_SLAB.PANEL",
+      "description": "Count of panel door sides (4-panel, 6-panel)",
+      "uom": "EA_SIDE",
+      "required_when": "type breakdown needed",
+      "catalog_status": "EXISTS"
+    },
+    {
+      "key": "PS_META.EA_SIDE.DOOR_SLAB.FRENCH",
+      "description": "Count of french door sides",
+      "uom": "EA_SIDE",
+      "required_when": "type breakdown needed",
+      "catalog_status": "EXISTS"
+    },
+    {
+      "key": "PS_META.EA_SIDE.DOOR_SLAB.BIFOLD",
+      "description": "Count of bifold door panel sides",
+      "uom": "EA_SIDE",
+      "required_when": "type breakdown needed",
+      "catalog_status": "EXISTS"
+    },
+    {
+      "key": "PS_META.EA_SIDE.DOOR_SLAB.LOUVERED",
+      "description": "Count of louvered door sides",
+      "uom": "EA_SIDE",
+      "required_when": "type breakdown needed",
+      "catalog_status": "EXISTS"
+    },
+    {
+      "key": "PS_OPENING_EA.DOOR_OPENINGS_TOTAL",
+      "description": "Count of door units (for hardware removal/reinstall calculation)",
+      "uom": "EA",
+      "required_when": "hardware removal tasks apply (spray method)",
+      "catalog_status": "EXISTS"
+    },
+    {
+      "key": "PS_META.EA.DOOR_PANES_TOTAL",
+      "description": "Total glass pane count for french doors",
+      "uom": "EA",
+      "required_when": "door_type includes french",
+      "catalog_status": "EXISTS"
+    }
+  ],
+
+  "proposed_new_keys": [],
+
+  "paintscope_key_resolution": {
+    "brief_proposed_door_sides": {
+      "brief_key": "PS_META.EA.DOOR_SIDES",
+      "resolution": "Map to existing PS_SURFACE_EA_SIDE.DOOR_SLAB",
+      "rationale": "Catalog already has the correct key with EA_SIDE UOM. Brief's proposed key was a placeholder."
+    },
+    "brief_proposed_doors_interior": {
+      "brief_key": "PS_META.EA.DOORS_INTERIOR",
+      "resolution": "Map to existing PS_OPENING_EA.DOOR_OPENINGS_TOTAL",
+      "rationale": "Catalog has door opening count. Used for hardware removal/reinstall calculations."
+    }
+  },
+
+  "protection_zones_analysis": {
+    "zones_required": [
+      {
+        "zone_id": "floor_workzone",
+        "condition": "always",
+        "rationale": "Door painting creates drips and overspray in immediate work area. Drop cloths under door being painted.",
+        "protection_level": "partial_cover"
+      },
+      {
+        "zone_id": "floor_door_swing",
+        "condition": { "application_method": ["spray"] },
+        "rationale": "Spray creates overspray in door swing arc area. Protect floor in swing path.",
+        "protection_level": "full_cover"
+      },
+      {
+        "zone_id": "wall_adjacent_door",
+        "condition": { "application_method": ["spray"] },
+        "rationale": "Wall surfaces around door opening need protection from spray overspray.",
+        "protection_level": "partial_cover"
+      },
+      {
+        "zone_id": "door_hardware",
+        "condition": "always",
+        "rationale": "Hinges and latch hardware must be masked or removed before painting.",
+        "protection_level": "full_cover"
+      }
+    ]
+  },
+
+  "adjacency_analysis": {
+    "primary_surface": "door_leaf_face",
+    "adjacent_surfaces": [
+      {
+        "surface_id": "door_frame",
+        "edge_type": "complex",
+        "typical_relationship": "varies",
+        "notes": "Door slab meets frame at reveal. Same or different finish — two-tone doors exist. When same finish, slab and frame can be sprayed together. When different, masking required at reveal line."
+      },
+      {
+        "surface_id": "door_leaf_edge",
+        "edge_type": "complex",
+        "typical_relationship": "same_finish",
+        "notes": "Edges always match the face they are assigned to. Hinge edge → hinge side color. Latch edge → opening side color."
+      }
+    ]
+  },
+
+  "site_condition_analysis": {
+    "conditions_affecting_tasks": [
+      {
+        "condition_id": "access_constraint",
+        "values": ["none", "step_ladder"],
+        "impact": "Oversized/tall doors (8'0\"+) may require step ladder for top portions. Standard doors accessed from floor.",
+        "affects_tasks": "Application tasks on tall/oversized doors"
+      },
+      {
+        "condition_id": "floor_type",
+        "values": ["finished", "partial", "subfloor"],
+        "impact": "Floor protection material selection. Finished floors need rosin paper. Subfloor may not need protection.",
+        "affects_tasks": "Floor protection setup/teardown"
+      }
+    ]
+  },
+
+  "notes_for_materials_manager": [
+    "Material systems follow Fine Finish Doctrine: SYS_FF_STANDARD_ACRYLIC (QT3), SYS_FF_MODIFIED_URETHANE (QT4), SYS_FF_PREMIUM (QT5)",
+    "Coverage per door side: ~17.5 SF standard, ~21 SF tall, ~24+ SF oversized",
+    "Spray tip sizing: 310-411 for doors (fine atomization for smooth finish)",
+    "Blocking prevention critical — recommend urethane-modified products for all doors",
+    "MDF edge sealer needed as conditional consumable",
+    "Sanding supplies: 180 grit (prep), 220 grit (QT4 interstage), 320 grit (QT5 interstage)",
+    "Caulk/spackle for fastener holes and joint filling"
+  ],
+
+  "notes_for_sop_librarian": [
+    "Follow Fine Finish Doctrine module structure: Setup → Initial Prep → Prime (conditional) → Finish Coat → Interstage → Final Inspect → Cleanup",
+    "Interstage runs AFTER each coat EXCEPT the final coat (Fine Finish Doctrine §5.3)",
+    "Hardware removal/reinstall tasks conditional on spray method",
+    "Glass masking module required for french door_type",
+    "Louvered doors: 3 light coats instead of 2 standard coats per Doors Doctrine §12.2",
+    "Panel door application sequence: panels first → horizontal rails → vertical stiles → edges (PCA recommended, Doors Doctrine §8.1)",
+    "Edge painting: hinge edge matches hinge side, latch edge matches opening side"
+  ],
+
+  "notes_for_estimation_engineer": [
+    "Primary UOM is EA_SIDE — all rates expressed per door side",
+    "Door type complexity modifiers from Doors Doctrine §1.1: flush=1.0, panel_4=1.25, panel_6=1.35, french=1.8-2.2, bifold=0.7, louvered=1.8",
+    "Quality tier labor factors from Doors Doctrine §6.1: QT3=1.0, QT4=1.4, QT5=1.8",
+    "Industry benchmarks: flush door NC 2-coat = 3.60 man-hours total cycle (Doors Doctrine §9.1)",
+    "Spray vs brush: spray application ~15-20 min/door/coat vs brush 40-60 min/door/coat",
+    "Hardware removal: ~20 min/door (lockset + hinges). Reinstall: 10-20 min/door.",
+    "French door glass masking: ~80-120% additional labor over flush door baseline",
+    "Door size modifiers: standard=1.0, tall=1.1, oversized=1.25"
+  ],
+
+  "assumptions": [
+    "New construction doors — substrate condition is 'Good' (new or factory-primed)",
+    "Interior doors only — exterior faces excluded",
+    "Pre-hung doors installed by carpentry trade before paint scope",
+    "Two finish coats standard at all quality tiers (3 for louvered per Doors Doctrine)",
+    "Hardware is pre-installed or will be installed — hardware removal applies to spray method",
+    "Spray is standard NC production method; brush is alternate for specific conditions"
+  ],
+
+  "uncertainties": [
+    "Exact production rate per door side by type and method needs field calibration",
+    "Whether dummy hinge system is common enough to include as default vs masking",
+    "French door pane count variability (10-lite vs 15-lite) — use PS_META.EA.DOOR_PANES_TOTAL for precision",
+    "Bifold door track handling time variability"
+  ],
+
+  "confidence_level": "high"
+}
