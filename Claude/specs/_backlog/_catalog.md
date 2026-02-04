@@ -21,7 +21,7 @@
 | 2 | SF_DRYWALL_CEILING_NC_FINISH | ✅ authored | generated | — | v0.1.0 draft. Mirror wall finish spec. Brief authored 2026-02-02. |
 | 3 | SF_DOOR_SLAB_INT_NC | ✅ authored | in_progress | — | Atomic door architecture |
 | 4 | SF_DOOR_FRAME_NC_FINISH | ✅ authored | generated | — | v1.0.0 complete. EA (frame set) as primary unit. All user corrections applied. |
-| 5 | SF_CLOSET_SHELF_NC | ❌ needed | queued | needs brief | Simple spec |
+| 5 | SF_CLOSET_SHELF_NC | ✅ authored | generated | — | v0.1.0 draft. Uses Opening Count method per BuiltIns Quantification System v2.0. |
 | 6 | SF_DRYWALL_WALL_NC_PRIME | ✅ authored | queued | redo in new format | Brief authored 2026-02-01. v0.1.0 exists but predates current spec format. |
 | 7 | SF_DRYWALL_WALL_NC_FINISH | ✅ authored (old) | queued | redo in new format | v0.1.0 exists but predates current spec format. Note: if prime includes inspection/repair, finish eliminates one round. |
 | 8 | SF_TRIM_NC_PRIME | ❌ needed | queued | needs brief | NEW — dedicated trim priming spec. Covers all substrate scenarios: pre-primed, bare wood, glossy/oil-based requiring bonding primer. Split from old SF_TRIM_NC_PAINT. |
