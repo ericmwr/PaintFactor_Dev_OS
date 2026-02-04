@@ -136,11 +136,11 @@ Every spec includes `protection_zones_required` in `spec.json`. Materials Manage
 
 Protection levels determine material requirements. Higher levels require more material:
 
-| Protection Level | Description | Typical Materials | Material Coverage |
-|-----------------|-------------|-------------------|-------------------|
-| `edge_only` | Tape line at junction only | 1.5" painter's tape | LF of junction |
-| `partial_cover` | Horizontal surfaces + edge | Paper/plastic on tops + tape | SF of horizontal + LF of edge |
-| `full_cover` | Entire exposed surface | Plastic sheeting, taped edges | SF of full surface + LF of perimeter tape |
+| Protection Level | Mask Level Alias | Description | Typical Materials | Material Coverage |
+|-----------------|------------------|-------------|-------------------|-------------------|
+| `edge_only` | `light_mask` | Tape line at junction only | 1.5" painter's tape | LF of junction |
+| `partial_cover` | `heavy_mask` | Border drape + edge | Tape + 12"-24" paper or 4' film | SF of border + LF of edge |
+| `full_cover` | `full_mask` | Complete surface encapsulation | Tape + 6'-9' film, visqueen, bulk plastic | SF of full surface + LF of perimeter |
 
 ### Zone Category to Material Mapping
 

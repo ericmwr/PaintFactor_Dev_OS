@@ -125,11 +125,13 @@ Every spec MUST include `protection_zones_required` in `spec.json`:
 
 ### Protection Levels
 
-| Level | Description | Typical Materials | When Used |
-|-------|-------------|-------------------|-----------|
-| `edge_only` | Tape line at junction only | 1.5" tape | Brush/roll adjacent to asset |
-| `partial_cover` | Horizontal surfaces + edge | Paper/plastic on tops + tape | Brush/roll with drip risk |
-| `full_cover` | Entire exposed surface | Plastic sheeting, taped edges | Spray adjacent to asset |
+| Level | Alias | Description | Typical Materials | When Used |
+|-------|-------|-------------|-------------------|-----------|
+| `edge_only` | `light_mask` | Tape line at junction only | 1.5" tape | Brush/roll adjacent to asset |
+| `partial_cover` | `heavy_mask` | Border coverage with drape | Paper/film on border + tape | Spray buffer zone; drip risk areas |
+| `full_cover` | `full_mask` | Entire exposed surface encapsulated | Plastic sheeting, taped edges | Spray adjacent to asset; full protection |
+
+> **Mask Level Alias:** The alias column provides operational terminology commonly used in SOP documentation. See Protection_and_Masking_Doctrine.md § Mask Level Definitions for detailed guidance.
 
 ### Zone Patterns by Spec Type
 

@@ -343,14 +343,14 @@ Every spec must include three state-related declarations:
 
 The `adjacent_state_protection_rules.protection_level` uses a **dedicated enum** distinct from `protection_zones_required`:
 
-| Level | Description | Typical Materials |
-|-------|-------------|-------------------|
-| `none` | No masking required | — |
-| `light_mask` | Tape line only at junction | 1.5" blue tape |
-| `full_mask` | Tape + paper/plastic covering | Tape + masking paper or plastic |
-| `full_cover` | Complete enclosure/draping | Plastic sheeting, taped edges |
+| Level | Alias | Description | Typical Materials |
+|-------|-------|-------------|-------------------|
+| `none` | — | No masking required | — |
+| `light_mask` | `edge_only` | Tape line only at junction | 1.5" blue tape |
+| `heavy_mask` | `partial_cover` | Tape + border drape | Tape + 12"-24" paper or 4' masking film |
+| `full_mask` | `full_cover` | Complete encapsulation | Plastic sheeting 6'-9', taped edges |
 
-**Note:** This enum differs from `protection_zones_required.protection_level` (`edge_only`, `partial_cover`, `full_cover`) because it describes **masking intensity for adjacent finished surfaces** rather than **physical area coverage** for floors/fixtures. Both systems coexist in specs — protection zones handle room-level coverage while adjacent state rules handle finish-based masking decisions.
+**Note:** Mask levels (`light_mask`, `heavy_mask`, `full_mask`) are aliases for `protection_level` values (`edge_only`, `partial_cover`, `full_cover`). Mask level vocabulary is preferred in `adjacent_state_protection_rules` because it describes **masking intensity for adjacent finished surfaces** based on application method. See Protection_and_Masking_Doctrine.md § Mask Level Definitions for detailed guidance.
 
 ### 10.2 Spec Declaration Format
 
