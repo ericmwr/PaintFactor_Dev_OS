@@ -24,8 +24,8 @@ All notable changes to this spec family will be documented in this file.
 **Quality Tiers & Coats:**
 - QT2: 1 coat flat (economy)
 - QT3: 1 coat flat (standard)
-- QT4: 2 coats flat (for color) OR 2 coats eggshell/satin (with sheen penalty)
-- QT5: 2 coats semi-gloss+ (critical prep, significant sheen penalty)
+- QT4: 2 coats flat (for color) OR 2 coats eggshell or satin (with sheen penalty)
+- QT5: 2 coats semi-gloss (critical prep, significant sheen penalty)
 
 **Application Methods:**
 - spray_backroll (default, production standard, 18" roller)
@@ -39,7 +39,7 @@ All notable changes to this spec family will be documented in this file.
 **Production Rate Adjustments:**
 - Overhead work factor: ~15-20% slower than equivalent wall rates (factored into base rates)
 - Height modifiers more aggressive than wall: H2=1.15, H3=1.5, H4=2.0
-- Sheen application penalties: eggshell 1.18x, semi-gloss+ 1.43x (harder on ceilings)
+- Sheen application penalties: eggshell 1.18x, satin 1.18x, semi-gloss 1.43x, gloss 1.43x (harder on ceilings)
 - Spray+backroll coupling: backroll rate (320 SF/hr) is the bottleneck
 
 **PaintScope Inputs:**
