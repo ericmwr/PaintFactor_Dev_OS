@@ -1,7 +1,7 @@
 # Registry System & Resolver Agent — Rollout Fix Plan
 
 **Created**: 2026-02-07
-**Status**: Implemented — All fixes applied and validated (2026-02-07)
+**Status**: Implemented — Registry fixes applied (2026-02-07). Agent prompt integration completed separately (2026-02-07).
 **Scope**: Reconcile `_registry/` files with `agents/registry_resolver_agent.md` before pipeline rollout
 
 ---

@@ -293,6 +293,13 @@ Brief created for [SF_ID].
 
 ---
 
+### Registry Integration
+
+- `research.json` is consumed by the Registry Resolver, which produces `resolution.json` (next pipeline step)
+- Researcher proposes PaintScope keys and surface/zone identifiers
+- Resolver validates and resolves them against registries into `resolution.json`
+- Researcher does NOT need to load registry files
+
 ### Geometry Constraint
 - This agent must NOT invent or assume geometry values (SF, LF, EA)
 - Research should identify what geometry inputs a spec family will require

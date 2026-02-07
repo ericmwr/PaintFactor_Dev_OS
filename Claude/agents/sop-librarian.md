@@ -34,6 +34,17 @@ SOP modules define work sequences; the Estimation Engine applies them to geometr
 - **[docs/PaintScope/PaintScope_Asset_Catalog.md](../docs/PaintScope/PaintScope_Asset_Catalog.md)** — Asset categories, subtypes, and measurable keys
 - **[docs/PaintScope/PaintScope_Adjacency_Schema.md](../docs/PaintScope/PaintScope_Adjacency_Schema.md)** — Adjacency relationships and edge target definitions
 
+### Registry Integration
+
+- **Primary input**: `resolution.json` (from Registry Resolver)
+- ALWAYS use `task_classification` (never `task_class`)
+- `TSK_` IDs must use prefix pattern from `resolution.json → task_prefix`
+- `MOD_` IDs must use prefix pattern from `resolution.json → module_prefix`
+- `phase` values MUST come from `resolution.json → applicable_enums → phase`
+- `protection_metadata.zones` must reference zone_ids from `resolution.json → zone_ids`
+- NEVER include `rate_per_hour` in task objects — rates belong in production.json
+- Do NOT load raw registry files — `resolution.json` has everything pre-resolved
+
 ### Geometry Constraint
 - SOP tasks must declare their unit of measure (SF, LF, EA)
 - Tasks involving edge work (cut-in, tape, etc.) MUST use LF from PaintScope

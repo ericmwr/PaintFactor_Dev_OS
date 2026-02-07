@@ -38,6 +38,17 @@ The Critic enforces system doctrine. It is the **final doctrine gate AFTER human
 - **[docs/PaintScope/PaintScope_Asset_Catalog.md](../docs/PaintScope/PaintScope_Asset_Catalog.md)** — Asset categories, subtypes, and measurable keys
 - **[docs/PaintScope/PaintScope_Adjacency_Schema.md](../docs/PaintScope/PaintScope_Adjacency_Schema.md)** — Adjacency relationships and edge target definitions
 
+### Registry Validation
+
+The Critic is the ONLY downstream agent that loads raw registries:
+
+- Load `resolution.json` AND raw registry files (`controlled_enums.json`, `id_registry.json`, `structural_keys.json`)
+- Verify all enum values against `controlled_enums.json` (raw source, not just `resolution.json`)
+- Verify all IDs against `id_registry.json` naming patterns
+- Check for prohibited patterns per AR-009: `CONS_`, `task_class`, phase `protect`, compound sheens, lowercase units, severity `high`/`medium`/`low`/`WARN`, category `"consumable"`
+- Verify downstream agents honored `resolution.json → applicable_enums`
+- Check for `registry_additions_proposed` in ALL files and escalate
+
 ### Geometry Constraint (Non-Negotiable)
 - Specs and SOPs must NOT invent, infer, or compute geometry (SF/LF/EA).
 - All geometry must be declared as required inputs and sourced from **PaintScope** at runtime.

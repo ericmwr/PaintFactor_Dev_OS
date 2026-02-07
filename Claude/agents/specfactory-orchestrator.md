@@ -374,11 +374,13 @@ The brief does NOT replace agent expertise — agents still research, validate, 
 ## Mandatory SpecFactory pipeline
 1) spec-researcher → `research.json` (research notes, risks, required PaintScope keys)
    - **Completeness Gate:** Verify protection_zones_analysis, adjacency_analysis, site_condition_analysis present
-2) materials-manager → `materials.json` (systems, coverage, consumables, compatibility)
-3) sop-librarian → `sop_modules.json` (LEGO SOP modules/tasks/rounds using material systems)
-4) estimation-engineer → `production.json` (production logic, factors, quality behavior)
-5) critic → `qa_report.json` (pass/fail + required fixes)
-6) assembly → `spec.json` + `CHANGELOG.md`
+2) registry-resolver → `resolution.json` (pre-resolved IDs, enums, structural patterns)
+   - **Resolver Gate:** Resolver must produce valid `resolution.json` before downstream agents run. If `registry_additions_proposed` is non-empty, orchestrator flags for human review.
+3) materials-manager → `materials.json` (systems, coverage, consumables, compatibility) — consumes `resolution.json`
+4) sop-librarian → `sop_modules.json` (LEGO SOP modules/tasks/rounds using material systems) — consumes `resolution.json`
+5) estimation-engineer → `production.json` (production logic, factors, quality behavior) — consumes `resolution.json`
+6) critic → `qa_report.json` (pass/fail + required fixes) — consumes `resolution.json` + raw registries
+7) assembly → `spec.json` + `CHANGELOG.md`
 
 ### Assembly Completeness Checklist
 

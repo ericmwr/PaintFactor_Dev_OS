@@ -34,6 +34,16 @@ This agent defines production RATES and FACTORS. The Estimation Engine multiplie
 - **[docs/PaintScope/PaintScope_Asset_Catalog.md](../docs/PaintScope/PaintScope_Asset_Catalog.md)** — Asset categories, subtypes, and measurable keys
 - **[docs/PaintScope/PaintScope_Adjacency_Schema.md](../docs/PaintScope/PaintScope_Adjacency_Schema.md)** — Adjacency relationships and edge target definitions
 
+### Registry Integration
+
+- **Primary input**: `resolution.json` (from Registry Resolver)
+- `task_id` MUST exactly match sop_modules.json (character-for-character)
+- `unit_of_measure` from `resolution.json → applicable_enums → unit_of_measure`
+- `required_input_key` and `paintscope_key` MUST match spec.json
+- `mechanism` values from `resolution.json → applicable_enums → modifier_mechanism`
+- Cross-file threading: every TSK_ in sop_modules.json must have a rate in production.json
+- Do NOT load raw registry files — `resolution.json` has everything pre-resolved
+
 ### Geometry Constraint
 - Production rates are per-unit (SF/hr, LF/hr, EA/hr) — never totals
 - This agent must NOT assume or invent geometry values

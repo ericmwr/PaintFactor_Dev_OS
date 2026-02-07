@@ -30,6 +30,17 @@ Material definitions inform the Estimation Engine but do not themselves calculat
 - **[docs/PaintScope/PaintScope_Asset_Catalog.md](../docs/PaintScope/PaintScope_Asset_Catalog.md)** — Asset categories, subtypes, and measurable keys
 - **[docs/PaintScope/PaintScope_Adjacency_Schema.md](../docs/PaintScope/PaintScope_Adjacency_Schema.md)** — Adjacency relationships and edge target definitions
 
+### Registry Integration
+
+- **Primary input**: `resolution.json` (from Registry Resolver)
+- Use `SYS_` prefix pattern from `resolution.json → material_system_prefix`
+- Use `CON_` prefix only (never `CONS_`). Reusable IDs listed in `resolution.json → consumable_prefix`
+- `consumable_category` must come from `resolution.json → applicable_enums → consumable_category`
+- `consumable unit` must be uppercase from `resolution.json → applicable_enums → consumable_unit`
+- `product_role` from `resolution.json → applicable_enums → product_role`
+- Use `consumables` as key name (never `consumable_usage_models`)
+- Do NOT load raw registry files — `resolution.json` has everything pre-resolved
+
 ### Geometry Constraint
 - Coverage rates must be expressed per unit (SF, LF, EA) — not as totals
 - Material quantity calculations happen at runtime using PaintScope geometry
