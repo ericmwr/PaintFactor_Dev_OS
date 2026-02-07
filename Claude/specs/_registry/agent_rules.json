@@ -1,0 +1,509 @@
+{
+  "_meta": {
+    "name": "Agent Registry Enforcement Rules",
+    "version": "1.0.0",
+    "purpose": "Mandatory rules for ALL agents that create or modify spec JSON files. These rules ensure consistency across the system by requiring registry lookups before creating new IDs, enum values, or key names. Every agent in the SpecFactory pipeline MUST follow these rules. Pipeline order: Spec Researcher → Registry Resolver → Materials Manager → SOP Librarian → Estimation Engineer → QA Critic.",
+    "created": "2026-02-06",
+    "last_updated": "2026-02-06",
+    "authority": "These rules are NON-NEGOTIABLE. An agent that violates these rules produces invalid output that will be rejected by QA.",
+    "registry_files": {
+      "controlled_enums": "_registry/controlled_enums.json",
+      "id_registry": "_registry/id_registry.json",
+      "structural_keys": "_registry/structural_keys.json"
+    }
+  },
+
+  "rule_1_check_before_creating": {
+    "rule_id": "AR-001",
+    "title": "CHECK BEFORE CREATING",
+    "severity": "critical",
+    "applies_to": "all_agents",
+    "description": "Before creating ANY new ID (ITM_, TSK_, SYS_, CON_, MOD_, VAR_, PS_, IN_, COV_, ROUND_, etc.), the agent MUST first check id_registry.json to see if the ID already exists or if a suitable ID is already registered.",
+    "procedure": [
+      "1. Read id_registry.json",
+      "2. Search for the category you need (ITM_, TSK_, etc.)",
+      "3. If an exact match exists → USE IT (do not create a synonym)",
+      "4. If a close match exists → USE the existing ID unless the scope is genuinely different",
+      "5. If no match exists → CREATE a new ID following the naming convention in id_registry.json._meta.naming_rules",
+      "6. If you create a new ID → FLAG it for registry addition (see rule AR-007)"
+    ],
+    "examples": {
+      "correct": "Agent needs a door casing item. Checks registry, finds ITM_DOOR_FRAME_SET exists but no casing item. Creates ITM_TRIM_CASING_DOOR following naming rules. Flags for registry addition.",
+      "incorrect": "Agent needs a door casing item. Does not check registry. Creates ITM_CASING_DOOR_FINISH with a phase suffix. This violates both AR-001 (no registry check) and the ITM_ naming rule (unnecessary phase suffix)."
+    }
+  },
+
+  "rule_2_use_canonical_enum_values": {
+    "rule_id": "AR-002",
+    "title": "USE CANONICAL ENUM VALUES",
+    "severity": "critical",
+    "applies_to": "all_agents",
+    "description": "When writing any value that has a controlled enum in controlled_enums.json, the agent MUST use a value from that enum's valid_values list. NEVER invent new values or use synonyms.",
+    "covered_fields": [
+      "quality_tier → controlled_enums.json → quality_tier",
+      "application_method → controlled_enums.json → application_method",
+      "sheen → controlled_enums.json → sheen",
+      "phase → controlled_enums.json → phase",
+      "task_classification → controlled_enums.json → task_classification",
+      "task_type → controlled_enums.json → task_type",
+      "skill_level → controlled_enums.json → skill_level",
+      "unit_of_measure → controlled_enums.json → unit_of_measure",
+      "consumable_unit → controlled_enums.json → consumable_unit",
+      "consumable_category → controlled_enums.json → consumable_category",
+      "product_role → controlled_enums.json → product_role",
+      "substrate_state → controlled_enums.json → substrate_state",
+      "protection_level → controlled_enums.json → protection_level",
+      "protection_action → controlled_enums.json → protection_action",
+      "edge_type → controlled_enums.json → edge_type",
+      "typical_relationship → controlled_enums.json → typical_relationship",
+      "surface_texture → controlled_enums.json → surface_texture",
+      "drywall_finish_level → controlled_enums.json → drywall_finish_level",
+      "domain → controlled_enums.json → domain",
+      "spec_status → controlled_enums.json → spec_status",
+      "severity → controlled_enums.json → severity",
+      "confidence_level → controlled_enums.json → confidence_level",
+      "modifier_mechanism → controlled_enums.json → modifier_mechanism",
+      "frame_type → controlled_enums.json → frame_type",
+      "floor_type → controlled_enums.json → floor_type"
+    ],
+    "examples": {
+      "correct": "Agent writes task_classification: \"qt_scaled\"",
+      "incorrect_1": "Agent writes task_class: \"qt_scaled\" (wrong key name)",
+      "incorrect_2": "Agent writes task_classification: \"quality_dependent\" (invented value)",
+      "incorrect_3": "Agent writes sheen: \"eggshell/satin\" (compound value — pick one)"
+    }
+  },
+
+  "rule_3_use_canonical_key_names": {
+    "rule_id": "AR-003",
+    "title": "USE CANONICAL KEY NAMES",
+    "severity": "critical",
+    "applies_to": "all_agents",
+    "description": "When writing JSON keys, the agent MUST use the canonical key name defined in structural_keys.json. NEVER use synonyms, abbreviations, or invented key names for established concepts.",
+    "enforcement_table": {
+      "task_classification": { "prohibited": ["task_class", "classification", "task_type_class"] },
+      "consumable_id": { "prohibited": ["consumable_key", "cons_id"], "prefix": "CON_", "never_prefix": "CONS_" },
+      "consumables": { "prohibited": ["consumable_usage_models", "consumable_list", "cons_list"], "notes": "consumable_usage_models is a tolerated synonym but prefer 'consumables'" },
+      "unit_of_measure": { "prohibited": ["uom", "unit", "measure"], "notes": "Always 'unit_of_measure' in task definitions" },
+      "applies_when": { "prohibited": ["conditions", "when", "conditional"], "notes": "Always 'applies_when' for conditional logic" },
+      "rate_per_hour": { "prohibited": ["rate", "speed", "productivity"], "notes": "Always 'rate_per_hour' or 'rates_by_tier' in production.json" }
+    }
+  },
+
+  "rule_4_file_type_boundaries": {
+    "rule_id": "AR-004",
+    "title": "RESPECT FILE TYPE BOUNDARIES",
+    "severity": "major",
+    "applies_to": "all_agents",
+    "description": "Each file type has a specific role. Do not put data in the wrong file.",
+    "boundaries": {
+      "spec.json": {
+        "owns": ["scope definition", "paintable items", "variants", "configuration dimensions", "PaintScope inputs", "protection zones", "adjacency declarations", "state declarations"],
+        "never_contains": ["production rates", "material products", "task sequences", "consumable lists"]
+      },
+      "research.json": {
+        "owns": ["domain knowledge", "findings", "failure modes", "PaintScope key proposals", "state analysis", "assumptions", "QT2 scope analysis"],
+        "never_contains": ["production rates", "task definitions", "material system assignments"]
+      },
+      "materials.json": {
+        "owns": ["material systems", "product selections", "coverage rates", "consumables", "protection materials", "compatibility rules"],
+        "never_contains": ["production rates", "task sequences", "scope definitions"]
+      },
+      "sop_modules.json": {
+        "owns": ["task definitions", "task sequences", "quality notes", "protection metadata", "site condition rules on tasks", "round configurations"],
+        "never_contains": ["production rates", "coverage rates", "material products"]
+      },
+      "production.json": {
+        "owns": ["production rates per task", "modifier tables", "crew configurations", "coupling constraints", "rate basis documentation"],
+        "never_contains": ["task definitions", "material systems", "scope definitions"]
+      },
+      "qa_report.json": {
+        "owns": ["validation results", "cross-file integrity checks", "doctrine compliance", "acceptance criteria", "warnings", "issues"],
+        "never_contains": ["production rates", "task definitions", "material systems"]
+      }
+    }
+  },
+
+  "rule_5_applies_when_pattern": {
+    "rule_id": "AR-005",
+    "title": "USE STANDARD applies_when PATTERN",
+    "severity": "major",
+    "applies_to": "all_agents",
+    "description": "All conditional logic MUST use the applies_when object pattern with consistent semantics.",
+    "pattern": {
+      "structure": "{ \"dimension_id\": [\"value1\", \"value2\"] }",
+      "logic": "OR within a key's array, AND across keys",
+      "example": "{ \"quality_tier\": [\"QT4\", \"QT5\"], \"application_method\": [\"spray\"] }",
+      "reads_as": "(QT4 OR QT5) AND spray"
+    },
+    "rules": [
+      "Keys in applies_when MUST be dimension_ids from the spec's configuration_dimensions",
+      "Values in arrays MUST come from controlled_enums.json for that dimension",
+      "Empty applies_when {} means 'always applies'",
+      "Do NOT use 'conditions', 'when', or 'conditional' as synonyms for applies_when"
+    ]
+  },
+
+  "rule_6_surface_and_zone_lookups": {
+    "rule_id": "AR-006",
+    "title": "LOOKUP SURFACES AND ZONES",
+    "severity": "major",
+    "applies_to": "all_agents",
+    "description": "Before using a surface_id or zone_id, check the canonical vocabulary references.",
+    "procedure": {
+      "surface_ids": [
+        "1. Check id_registry.json → surface_ids → entries_in_active_use",
+        "2. If not found, check Surface_Vocabulary_Reference.md for the full 40+ vocabulary",
+        "3. If still not found, propose a new surface_id following lowercase_with_underscores convention",
+        "4. Flag for vocabulary addition"
+      ],
+      "zone_ids": [
+        "1. Check id_registry.json → zone_ids → entries_in_active_use",
+        "2. Check for retired aliases (e.g., door_hardware → hardware_covers)",
+        "3. If not found, check Protection_Zones_Reference.md for the full 28-zone catalog",
+        "4. If still not found, propose a new zone_id following lowercase_with_underscores convention",
+        "5. Flag for vocabulary addition"
+      ]
+    }
+  },
+
+  "rule_7_flag_registry_additions": {
+    "rule_id": "AR-007",
+    "title": "FLAG NEW IDS FOR REGISTRY ADDITION",
+    "severity": "major",
+    "applies_to": "all_agents",
+    "description": "When an agent creates a new ID that does not exist in the registries, it MUST flag it for addition. This ensures the registries stay current.",
+    "mechanism": {
+      "where_to_flag": "Include a 'registry_additions_proposed' array in the file being written",
+      "structure": {
+        "registry_additions_proposed": [
+          {
+            "registry": "id_registry.json",
+            "section": "ITM_",
+            "proposed_id": "ITM_NEW_EXAMPLE",
+            "name": "Human readable name",
+            "justification": "Why this new ID is needed",
+            "agent": "which-agent-name"
+          }
+        ]
+      },
+      "qa_responsibility": "The QA critic agent MUST check for registry_additions_proposed arrays and escalate them for registry update."
+    }
+  },
+
+  "rule_8_cross_file_threading": {
+    "rule_id": "AR-008",
+    "title": "VERIFY CROSS-FILE THREADING",
+    "severity": "critical",
+    "applies_to": ["qa_critic", "estimation_engineer"],
+    "description": "Every ID that appears in multiple files MUST be identical (exact string match). No synonyms, no abbreviations, no case differences.",
+    "critical_threads": [
+      {
+        "thread": "TSK_ ID",
+        "must_match_in": ["sop_modules.json → tasks[].task_id", "production.json → task_production_rates[].task_id"],
+        "common_error": "TSK_FRAME_LIGHT_SAND in SOP but TSK_FRAME_SAND_LIGHT in production"
+      },
+      {
+        "thread": "IN_ input name",
+        "must_match_in": ["spec.json → required_paintscope_inputs[].input_name", "sop_modules.json → modules[].required_inputs[].input_name", "production.json → task_production_rates[].required_input_key"],
+        "common_error": "IN_SF_FLOOR_AREA in production but IN_SF_FLOOR_PROTECT in spec"
+      },
+      {
+        "thread": "PS_ PaintScope key",
+        "must_match_in": ["spec.json → required_paintscope_inputs[].paintscope_key", "production.json → task_production_rates[].paintscope_key"],
+        "common_error": "PS_SURFACE_SF.CEILING_FIELD vs PS_CEILING_FIELD (missing category prefix)"
+      },
+      {
+        "thread": "SYS_ material system",
+        "must_match_in": ["materials.json → material_systems[].system_id", "Anywhere it's referenced"],
+        "common_error": "SYS_FLAT_CEILING vs SYS_FLAT_CEILING_PAINT"
+      },
+      {
+        "thread": "zone_id",
+        "must_match_in": ["spec.json → protection_zones_required[].zone_id", "sop_modules.json → tasks[].protection_metadata.zones[]", "materials.json → protection_materials keys"],
+        "common_error": "door_hardware in sop_modules but hardware_covers in spec (use hardware_covers)"
+      }
+    ]
+  },
+
+  "rule_9_prohibited_patterns": {
+    "rule_id": "AR-009",
+    "title": "PROHIBITED PATTERNS",
+    "severity": "critical",
+    "applies_to": "all_agents",
+    "description": "These patterns are NEVER allowed. If an agent produces output containing any of these, the output is INVALID.",
+    "prohibited": [
+      {
+        "pattern": "task_class",
+        "reason": "Canonical key is task_classification",
+        "fix": "Replace with task_classification"
+      },
+      {
+        "pattern": "CONS_ prefix on consumable IDs",
+        "reason": "Canonical prefix is CON_",
+        "fix": "Replace CONS_ with CON_"
+      },
+      {
+        "pattern": "Phase value 'protect' or 'protection'",
+        "reason": "Protection setup belongs in 'setup' phase, protection teardown in 'cleanup' phase",
+        "fix": "Use 'setup' or 'cleanup' as phase value"
+      },
+      {
+        "pattern": "Compound sheen values (eggshell/satin, semi-gloss+)",
+        "reason": "Each sheen must be a single canonical value",
+        "fix": "Use one value from controlled_enums.json → sheen"
+      },
+      {
+        "pattern": "Lowercase unit values (each, tip, sheet)",
+        "reason": "All units must be uppercase",
+        "fix": "Use EA, ROLL, SHEET etc. from controlled_enums.json → consumable_unit"
+      },
+      {
+        "pattern": "Production rates in sop_modules.json",
+        "reason": "Rates belong exclusively in production.json",
+        "fix": "Move rate_per_hour to production.json task entry"
+      },
+      {
+        "pattern": "ITM_ IDs with unnecessary phase suffixes",
+        "reason": "Items are physical things — they don't change identity by phase",
+        "fix": "Remove _PRIME/_FINISH suffix unless spec families are phase-split AND collision would occur"
+      },
+      {
+        "pattern": "Severity values high/medium/low/WARN",
+        "reason": "Canonical severity is critical/major/minor",
+        "fix": "Use controlled_enums.json → severity"
+      }
+    ]
+  },
+
+  "rule_10_new_enum_proposals": {
+    "rule_id": "AR-010",
+    "title": "PROPOSE NEW ENUM VALUES",
+    "severity": "major",
+    "applies_to": "all_agents",
+    "description": "When an agent encounters a value that does not exist in controlled_enums.json but is genuinely needed (not a synonym), it MUST propose an addition rather than using the value directly.",
+    "procedure": [
+      "1. Confirm the value is genuinely new (not a synonym of an existing value)",
+      "2. Confirm no existing value covers the concept",
+      "3. Include the proposal in registry_additions_proposed",
+      "4. Use the closest existing value as a temporary placeholder with a note",
+      "5. The QA critic escalates the proposal for registry update"
+    ],
+    "example": {
+      "scenario": "A new spec needs 'venetian plaster' as a surface_texture value",
+      "correct": "Agent proposes adding 'venetian_plaster' to surface_texture enum. Uses 'smooth' as placeholder with note: 'Pending enum addition: venetian_plaster'",
+      "incorrect": "Agent just writes surface_texture: 'venetian_plaster' without checking or proposing"
+    }
+  },
+
+  "agent_specific_rules": {
+    "registry_resolver": {
+      "description": "Agent that creates resolution.json. Runs after the Spec Researcher and before all other downstream agents. Single point of registry judgment — all ID, enum, and structural key decisions flow through this agent.",
+      "primary_rules": ["AR-001", "AR-002", "AR-003", "AR-006", "AR-007", "AR-010"],
+      "specific_instructions": [
+        "Check ALL ID prefixes (ITM_, TSK_, MOD_, SYS_, CON_, PS_, IN_, COV_, ROUND_, XSPEC_, COMP_) against id_registry.json before proposing new ones",
+        "Provide only controlled_enums.json valid_values to downstream agents via applicable_enums — filter to spec scope",
+        "Flag every proposed new ID or enum addition in registry_additions_proposed — no silent introductions",
+        "Do NOT make domain decisions — materials selection, task sequencing, production rates, and validation are other agents' responsibilities",
+        "Verify TSK_ context prefix has no collision with id_registry.json → TSK_ → context_prefixes_in_use",
+        "Verify all surface_ids and zone_ids against entries_in_active_use and retired_aliases before including in output",
+        "Include structural reminders and cross-file threading rules from structural_keys.json so downstream agents do not need to load that file"
+      ]
+    },
+    "spec_researcher": {
+      "description": "Agent that creates research.json",
+      "primary_rules": ["AR-001", "AR-002", "AR-006", "AR-007", "AR-010"],
+      "specific_instructions": [
+        "When proposing new PaintScope keys (PS_), check id_registry.json → PS_ for existing keys before proposing new ones",
+        "When identifying surfaces, check Surface_Vocabulary_Reference.md first",
+        "When identifying protection zones, check Protection_Zones_Reference.md first",
+        "Always use canonical substrate_state values (SS_BARE, SS_PRIMED, etc.)",
+        "Flag any new ITM_ IDs for registry addition — DO NOT create IDs with phase suffixes unless necessary"
+      ]
+    },
+    "materials_manager": {
+      "description": "Agent that creates materials.json",
+      "primary_rules": ["AR-001", "AR-002", "AR-003", "AR-004", "AR-007"],
+      "specific_instructions": [
+        "Consume resolution.json for pre-resolved SYS_, CON_, COV_ prefixes and applicable enum subsets. Do not load raw registry files. Do not re-derive from raw registries.",
+        "SYS_ IDs must use the prefix pattern from resolution.json → material_system_prefix",
+        "CON_ prefix only — never CONS_. Reusable consumables listed in resolution.json → consumable_prefix",
+        "consumable_category must come from resolution.json → applicable_enums → consumable_category",
+        "consumable unit must be uppercase from resolution.json → applicable_enums → consumable_unit",
+        "product_role must come from resolution.json → applicable_enums → product_role",
+        "coverage_profiles use COV_ prefix per resolution.json → coverage_profiles",
+        "Use 'consumables' as key name, not 'consumable_usage_models'"
+      ]
+    },
+    "sop_librarian": {
+      "description": "Agent that creates sop_modules.json",
+      "primary_rules": ["AR-001", "AR-002", "AR-003", "AR-004", "AR-005", "AR-007", "AR-009"],
+      "specific_instructions": [
+        "Consume resolution.json for pre-resolved TSK_ prefix, MOD_ prefix, zone_ids, and applicable enum subsets. Do not load raw registry files. Do not re-derive from raw registries.",
+        "ALWAYS use 'task_classification', NEVER 'task_class'",
+        "MOD_ IDs must use the prefix pattern from resolution.json → module_prefix",
+        "TSK_ IDs must use the prefix pattern from resolution.json → task_prefix",
+        "phase values MUST come from resolution.json → applicable_enums → phase",
+        "NEVER include rate_per_hour or coverage data in task objects — those belong in production.json and materials.json",
+        "protection_metadata.action must come from resolution.json → applicable_enums → protection_action",
+        "protection_metadata.zones must reference zone_ids from resolution.json → zone_ids",
+        "Module ordering must follow phase sequence: setup → prep → prime → apply → interstage → finish → cleanup"
+      ]
+    },
+    "estimation_engineer": {
+      "description": "Agent that creates production.json",
+      "primary_rules": ["AR-001", "AR-002", "AR-003", "AR-004", "AR-008"],
+      "specific_instructions": [
+        "Consume resolution.json for pre-resolved cross-file threading rules, structural reminders, and applicable enum subsets. Do not load raw registry files. Do not re-derive from raw registries.",
+        "task_id MUST exactly match sop_modules.json (character-for-character)",
+        "unit_of_measure MUST come from resolution.json → applicable_enums → unit_of_measure",
+        "required_input_key and paintscope_key MUST exactly match spec.json required_paintscope_inputs",
+        "mechanism values in quality_tier_effects MUST come from resolution.json → applicable_enums → modifier_mechanism",
+        "When specifying crew_configurations, config_id should follow CREW_{CONTEXT}_{METHOD} pattern"
+      ]
+    },
+    "qa_critic": {
+      "description": "Agent that creates qa_report.json and validates all files",
+      "primary_rules": ["AR-008", "AR-009"],
+      "specific_instructions": [
+        "Load BOTH resolution.json AND raw registry files (controlled_enums.json, id_registry.json, structural_keys.json). The Critic is the ONLY downstream agent that loads raw registries — its job is to verify the Resolver's decisions were correct and that downstream agents honored them.",
+        "severity MUST be critical/major/minor (never high/medium/low/WARN)",
+        "issue_id uses ISS_ prefix",
+        "MUST check for registry_additions_proposed arrays in ALL files (including resolution.json) and escalate them",
+        "MUST verify cross-file threading per rules AR-008 and threading rules 9, 10, 11",
+        "MUST check for prohibited patterns per rule AR-009",
+        "MUST validate all enum values against controlled_enums.json (raw source)",
+        "MUST validate all IDs against id_registry.json naming patterns (raw source)",
+        "MUST verify module phase ordering per structural_keys.json → cross_file_threading_rules → rule_7",
+        "MUST verify downstream agents used only enum values from resolution.json → applicable_enums (threading rule 11)"
+      ]
+    }
+  },
+
+  "migration_checklist": {
+    "description": "Known inconsistencies in existing specs. Phase 2 migration completed 2026-02-07 for all committed specs.",
+    "completed_items": [
+      {
+        "spec": "SF_CLOSET_SHELF_NC_v1",
+        "issue": "CONS_ prefix on consumable IDs",
+        "fix": "Changed CONS_BRUSH_ANGLE → CON_BRUSH_ANGLE, etc. (6 IDs)",
+        "rule": "AR-009",
+        "resolved": "2026-02-07"
+      },
+      {
+        "spec": "SF_CLOSET_SHELF_NC_v1",
+        "issue": "Severity values high/medium/low in research.json and qa_report.json",
+        "fix": "Changed to critical/major/minor",
+        "rule": "AR-002",
+        "resolved": "2026-02-07"
+      },
+      {
+        "spec": "SF_DOOR_FRAME_NC_FINISH_v1",
+        "issue": "Uses 'consumable_usage_models' key instead of 'consumables'",
+        "fix": "Renamed key to 'consumables'",
+        "rule": "AR-003",
+        "resolved": "2026-02-07"
+      },
+      {
+        "spec": "SF_DOOR_FRAME_NC_FINISH_v1",
+        "issue": "materials.json risk_notes use severity 'medium' and 'low'",
+        "fix": "Changed to 'major' and 'minor'",
+        "rule": "AR-002",
+        "resolved": "2026-02-07"
+      },
+      {
+        "spec": "SF_DOOR_FRAME_NC_FINISH_v1",
+        "issue": "materials.json consumable units lowercase (each, sheet, quart, tube, tip, roll)",
+        "fix": "Changed to EA, SHEET, QT, TUBE, EA, ROLL (14 entries)",
+        "rule": "AR-002",
+        "resolved": "2026-02-07"
+      },
+      {
+        "spec": "SF_DOOR_FRAME_NC_FINISH_v1",
+        "issue": "research.json failure_modes severity high/medium/low",
+        "fix": "Changed to critical/major/minor (6 values)",
+        "rule": "AR-002",
+        "resolved": "2026-02-07"
+      },
+      {
+        "spec": "SF_DRYWALL_CEILING_NC_FINISH_v1",
+        "issue": "production.json quality_tier_effects use compound sheen 'eggshell/satin' and 'semi-gloss+'",
+        "fix": "Split into separate entries: eggshell, satin, semi-gloss, gloss",
+        "rule": "AR-002",
+        "resolved": "2026-02-07"
+      },
+      {
+        "spec": "SF_DRYWALL_CEILING_NC_FINISH_v1",
+        "issue": "materials.json consumable categories used generic 'consumable'",
+        "fix": "Changed to specific categories: applicator, protection, abrasive (6 entries)",
+        "rule": "AR-002",
+        "resolved": "2026-02-07"
+      },
+      {
+        "spec": "SF_DRYWALL_CEILING_NC_FINISH_v1",
+        "issue": "qa_report.json severity 'low'",
+        "fix": "Changed to 'minor'",
+        "rule": "AR-002",
+        "resolved": "2026-02-07"
+      },
+      {
+        "spec": "SF_DOOR_SLAB_INT_NC_v1",
+        "issue": "sop_modules.json uses retired zone 'door_hardware'",
+        "fix": "Changed to 'hardware_covers' (4 references)",
+        "rule": "AR-006",
+        "resolved": "2026-02-07"
+      },
+      {
+        "spec": "SF_DOOR_SLAB_INT_NC_v1",
+        "issue": "materials.json consumable units lowercase (sheet, quart, tube, tip, roll, each)",
+        "fix": "Changed to SHEET, QT, TUBE, EA, ROLL, EA (10 entries)",
+        "rule": "AR-002",
+        "resolved": "2026-02-07"
+      },
+      {
+        "spec": "SF_DRYWALL_CEILING_NC_PRIME_v1",
+        "issue": "sop_modules.json uses phase 'protect'",
+        "fix": "Changed to 'setup'",
+        "rule": "AR-009",
+        "resolved": "2026-02-07"
+      },
+      {
+        "spec": "SF_DRYWALL_CEILING_NC_PRIME_v1",
+        "issue": "qa_report.json severity 'WARN'",
+        "fix": "Changed to 'minor'",
+        "rule": "AR-002",
+        "resolved": "2026-02-07"
+      },
+      {
+        "spec": "SF_DRYWALL_CEILING_NC_PRIME_v1",
+        "issue": "materials.json consumable categories used generic 'consumable'",
+        "fix": "Changed to specific categories: applicator, protection (4 entries)",
+        "rule": "AR-002",
+        "resolved": "2026-02-07"
+      },
+      {
+        "spec": "Templates/Schemas",
+        "issue": "task_class used instead of task_classification in templates",
+        "fix": "Changed to task_classification in sop_modules, production, fine_finish templates",
+        "rule": "AR-003",
+        "resolved": "2026-02-07"
+      }
+    ],
+    "deferred_items": [
+      {
+        "spec": "Multiple",
+        "issue": "IN_EA_ROOMS vs IN_EA_ROOMS_TOTAL duplication",
+        "fix": "Consolidate to one canonical name (recommend IN_EA_ROOMS_TOTAL)",
+        "rule": "AR-001",
+        "notes": "Deferred — requires cross-spec threading audit. See memory/deferred_input_audit.md"
+      },
+      {
+        "spec": "Multiple",
+        "issue": "IN_SF_FLOOR_AREA vs IN_SF_FLOOR_PROTECT vs IN_SF_PROTECT_FLOOR_EXPOSED overlap",
+        "fix": "Consolidate to canonical names based on purpose",
+        "rule": "AR-001",
+        "notes": "Deferred — requires cross-spec threading audit. See memory/deferred_input_audit.md"
+      }
+    ]
+  }
+}

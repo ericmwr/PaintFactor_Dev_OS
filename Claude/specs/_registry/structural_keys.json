@@ -1,0 +1,832 @@
+{
+  "_meta": {
+    "name": "Structural Key-Name Standards",
+    "version": "1.0.0",
+    "purpose": "Defines the canonical key names and structural patterns for every JSON file type in the spec system. Agents MUST use these exact key names — no synonyms, no abbreviations, no invented alternatives. When a key is listed as 'required', every instance of that file type must include it. When a key is listed as 'prohibited', agents must never use it (use the canonical alternative instead).",
+    "created": "2026-02-06",
+    "last_updated": "2026-02-06",
+    "file_types_covered": ["spec.json", "research.json", "resolution.json", "materials.json", "sop_modules.json", "production.json", "qa_report.json"],
+    "authority": "This registry defines the structure. controlled_enums.json defines the values. id_registry.json defines the IDs. All three registries work together."
+  },
+
+  "spec_json": {
+    "description": "The master spec file. Defines scope, items, dimensions, variants, inputs, protection zones, adjacencies, state machine, and cross-spec coordination.",
+    "filename": "spec.json",
+    "role": "Orchestrator — connects all other files. Defines WHAT is in scope, not HOW it's done.",
+
+    "required_top_level_keys": {
+      "spec_family": {
+        "type": "object",
+        "description": "Spec family identity block",
+        "required_children": {
+          "id": { "type": "string", "pattern": "^SF_[A-Z0-9_]+$", "source": "id_registry.json → SF_" },
+          "name": { "type": "string", "description": "Human-readable spec family name" },
+          "description": { "type": "string", "description": "Clear scope description (2-4 sentences)" },
+          "domain": { "type": "enum", "source": "controlled_enums.json → domain" },
+          "version": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" },
+          "status": { "type": "enum", "source": "controlled_enums.json → spec_status" },
+          "review_required": { "type": "boolean" }
+        }
+      },
+      "scope_boundaries": {
+        "type": "object",
+        "required_children": {
+          "includes": { "type": "array", "description": "What this spec covers (strings or objects with item/route_to)" },
+          "excludes": { "type": "array", "description": "What is explicitly out of scope, with route_to for handoff" }
+        }
+      },
+      "configuration_dimensions": {
+        "type": "array",
+        "description": "Dimensions that produce spec variants",
+        "item_structure": {
+          "required_keys": ["dimension_id", "description", "values", "default"],
+          "optional_keys": ["notes"]
+        },
+        "notes": "Values in each dimension MUST come from controlled_enums.json when an enum exists for that dimension (quality_tier, application_method, sheen, substrate_state, surface_texture, drywall_finish_level, frame_type, floor_type)."
+      },
+      "paintable_items": {
+        "type": "array",
+        "description": "The physical things being painted",
+        "item_structure": {
+          "required_keys": ["item_id", "name", "unit_of_measure", "counting_rules"],
+          "optional_keys": ["notes"]
+        },
+        "notes": "item_id MUST come from id_registry.json → ITM_. unit_of_measure MUST come from controlled_enums.json → unit_of_measure."
+      },
+      "variants": {
+        "type": "array",
+        "description": "Conditional configurations determining which items are included/excluded",
+        "item_structure": {
+          "required_keys": ["variant_id", "applies_when", "included_items"],
+          "optional_keys": ["excluded_items", "notes"]
+        }
+      },
+      "required_paintscope_inputs": {
+        "type": "array",
+        "description": "Data inputs sourced from PaintScope",
+        "item_structure": {
+          "required_keys": ["input_name", "paintscope_key", "uom", "description"],
+          "conditional_keys": {
+            "required": { "type": "boolean", "when": "always required" },
+            "required_when": { "type": "object", "when": "conditionally required" }
+          }
+        },
+        "notes": "input_name pattern: IN_{UOM}_{WHAT}. paintscope_key pattern: PS_{CATEGORY}.{SURFACE}."
+      },
+      "protection_zones_required": {
+        "type": "array",
+        "description": "Protection zones needed for this spec's work",
+        "item_structure": {
+          "required_keys": ["zone_id", "condition", "protection_level"],
+          "optional_keys": ["notes", "upgrades_to_zone", "upgrades_to_level", "upgrade_condition"]
+        },
+        "notes": "zone_id from id_registry.json → zone_ids. protection_level from controlled_enums.json."
+      },
+      "adjacency_declarations": {
+        "type": "object",
+        "required_children": {
+          "primary_surface": { "type": "string", "source": "id_registry.json → surface_ids" },
+          "adjacent_surfaces": {
+            "type": "array",
+            "item_structure": {
+              "required_keys": ["surface_id", "edge_type", "typical_relationship", "affected_tasks"],
+              "optional_keys": ["continuity_rate_modifier", "notes"]
+            }
+          }
+        },
+        "notes": "surface_id from id_registry.json → surface_ids. edge_type from controlled_enums.json. typical_relationship from controlled_enums.json."
+      },
+      "state_declarations": {
+        "type": "object",
+        "description": "Substrate state machine — what comes in, what goes out",
+        "required_children": {
+          "primary_surface": { "type": "string", "source": "id_registry.json → surface_ids" },
+          "valid_input_states": {
+            "type": "object",
+            "required_children": {
+              "states": { "type": "array", "items": "controlled_enums.json → substrate_state" },
+              "notes": { "type": "string" }
+            }
+          },
+          "output_state": {
+            "type": "object",
+            "required_children": {
+              "state": { "type": "string", "source": "controlled_enums.json → substrate_state" }
+            },
+            "optional_children": {
+              "varies_by": { "type": "string|null", "description": "Dimension that changes output state (e.g., 'sheen')" },
+              "state_map": { "type": "object", "description": "Maps dimension values to output states when varies_by is set" },
+              "notes": { "type": "string" }
+            }
+          },
+          "adjacent_state_protection_rules": {
+            "type": "array",
+            "item_structure": {
+              "required_keys": ["adjacent_surface", "when_state", "protection_zone", "protection_level"],
+              "optional_keys": ["notes"]
+            }
+          }
+        }
+      },
+      "dependencies": {
+        "type": "object",
+        "description": "References to companion files",
+        "typical_keys": ["materials", "sop_modules", "production", "research"]
+      },
+      "change_log": {
+        "type": "array",
+        "item_structure": {
+          "required_keys": ["version", "date", "author", "changes"]
+        }
+      }
+    },
+
+    "optional_top_level_keys": {
+      "site_condition_rules": {
+        "type": "array",
+        "description": "Site conditions that affect task inclusion",
+        "item_structure": {
+          "required_keys": ["condition_id", "include_when", "exclude_when", "affects"],
+          "optional_keys": ["vocabulary_ref", "affected_tasks", "effect", "values_applicable"]
+        }
+      },
+      "cross_spec_coordination": {
+        "type": "object",
+        "description": "Flags and coordination with other spec families",
+        "optional_keys": ["deduplication_note", "shared_session_note"]
+      },
+      "inherited_research_corrections": {
+        "type": "array",
+        "description": "Research corrections from other specs that affect this one",
+        "item_structure": {
+          "required_keys": ["id", "title", "impact"]
+        }
+      },
+      "research_corrections": {
+        "type": "array",
+        "description": "Research corrections discovered during this spec's creation",
+        "item_structure": {
+          "required_keys": ["correction_id", "agent", "original_claim", "original_source", "corrected_to", "rationale", "corrected_by"],
+          "optional_keys": ["doctrine_target", "is_new_doctrine", "doctrine_update_status"]
+        }
+      },
+      "doctrine_overrides": { "type": "array" },
+      "sequencing_notes": { "type": "object" },
+      "relationships": { "type": "object" },
+      "doctrine_references": { "type": "array" }
+    },
+
+    "prohibited_key_names": {
+      "spec_family_id": "Use spec_family.id instead (spec_family_id is for companion files only)",
+      "tasks": "Tasks belong in sop_modules.json, not spec.json",
+      "production_rates": "Production rates belong in production.json",
+      "material_systems": "Material systems belong in materials.json"
+    }
+  },
+
+  "research_json": {
+    "description": "Research findings that inform spec creation. Created first by the research agent. Consumed by materials, SOP, and production agents.",
+    "filename": "research.json",
+    "role": "Knowledge base — domain expertise captured for downstream agents.",
+
+    "required_top_level_keys": {
+      "spec_family_id": { "type": "string", "pattern": "^SF_[A-Z0-9_]+$" },
+      "version": { "type": "string" },
+      "scope_summary": { "type": "string" },
+      "relevant_findings": { "type": "array" },
+      "condition_drivers": { "type": "array" },
+      "quality_differences": { "type": "array" },
+      "failure_modes": { "type": "array" },
+      "required_paintscope_keys": {
+        "type": "array",
+        "item_structure": {
+          "required_keys": ["key", "description", "uom"],
+          "optional_keys": ["required", "required_when"]
+        }
+      },
+      "state_analysis": {
+        "type": "object",
+        "required_children": {
+          "primary_surface": { "type": "string" },
+          "valid_input_states": { "type": "object" },
+          "output_state": { "type": "object" }
+        },
+        "optional_children": {
+          "adjacent_state_protection_analysis": { "type": "array" },
+          "state_reference": { "type": "string" }
+        }
+      },
+      "assumptions": { "type": "array" },
+      "uncertainties": { "type": "array" },
+      "confidence_level": { "type": "enum", "source": "controlled_enums.json → confidence_level" }
+    },
+
+    "optional_top_level_keys": {
+      "proposed_new_keys": { "type": "array", "description": "New PaintScope keys that need to be created" },
+      "adjacency_notes": { "type": "array" },
+      "notes_for_materials_manager": { "type": "array" },
+      "notes_for_sop_librarian": { "type": "array" },
+      "notes_for_estimation_engineer": { "type": "array" },
+      "protection_zones_analysis": { "type": "array|object" },
+      "adjacency_analysis": { "type": "object" },
+      "site_condition_analysis": { "type": "array|object" },
+      "qt2_scope_analysis": { "type": "object", "description": "QT2 economy scope reduction details" },
+      "research_corrections": { "type": "array" }
+    }
+  },
+
+  "resolution_json": {
+    "description": "Pre-resolved registry values for downstream agents. Created by the Registry Resolver after research.json. Downstream agents (Materials Manager, SOP Librarian, Estimation Engineer) consume this file instead of loading raw registry files. The QA Critic loads both this file and raw registries to verify correctness.",
+    "filename": "resolution.json",
+    "role": "Registry bridge — pre-resolves all IDs, enums, and structural patterns for downstream agents.",
+
+    "required_top_level_keys": {
+      "_meta": {
+        "type": "object",
+        "required_children": {
+          "spec_family_id": { "type": "string", "pattern": "^SF_[A-Z0-9_]+$" },
+          "generated_by": { "type": "string", "value": "registry_resolver" },
+          "generated_at": { "type": "string" },
+          "version": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" },
+          "purpose": { "type": "string" },
+          "input_files": { "type": "array" }
+        }
+      },
+      "spec_identity": {
+        "type": "object",
+        "required_children": {
+          "spec_family_id": { "type": "string", "source": "id_registry.json → SF_" },
+          "status": { "type": "enum", "source": "controlled_enums.json → spec_status" },
+          "context_prefix": { "type": "string", "description": "Short context name driving TSK_, MOD_, and related prefixes" }
+        },
+        "optional_children": {
+          "notes": { "type": "string" }
+        }
+      },
+      "paintable_items": {
+        "type": "array",
+        "item_structure": {
+          "required_keys": ["item_id", "name", "unit_of_measure", "surface_ref", "status"],
+          "optional_keys": ["notes"]
+        },
+        "notes": "item_id from id_registry.json → ITM_. status is 'existing' or 'proposed'. unit_of_measure from controlled_enums.json."
+      },
+      "task_prefix": {
+        "type": "object",
+        "required_children": {
+          "pattern": { "type": "string", "description": "TSK_{CONTEXT}_ pattern" },
+          "context": { "type": "string" },
+          "collision_check": { "type": "string" },
+          "naming_rule": { "type": "string" }
+        }
+      },
+      "module_prefix": {
+        "type": "object",
+        "required_children": {
+          "pattern": { "type": "string", "description": "MOD_{CONTEXT}_ pattern" },
+          "expected_modules": { "type": "array", "description": "Array of { module_id, phase } objects" }
+        }
+      },
+      "paintscope_keys": {
+        "type": "array",
+        "item_structure": {
+          "required_keys": ["paintscope_key", "input_name", "uom", "status"],
+          "optional_keys": ["description", "notes"]
+        },
+        "notes": "paintscope_key pattern: PS_{CATEGORY}.{SURFACE}. input_name pattern: IN_{UOM}_{WHAT}. status is 'existing' or 'proposed'."
+      },
+      "applicable_enums": {
+        "type": "object",
+        "description": "Filtered enum subsets from controlled_enums.json. Each key is an enum type, value is { values, prohibited (optional), default (optional) }. Downstream agents MUST use only values present here.",
+        "notes": "Resolver pulls full valid_values from controlled_enums.json and filters to spec scope. Downstream agents do not load controlled_enums.json directly."
+      },
+      "surface_ids": {
+        "type": "object",
+        "required_children": {
+          "primary_surface": { "type": "string", "source": "id_registry.json → surface_ids" },
+          "adjacent_surfaces": { "type": "array" },
+          "all_status": { "type": "string", "description": "'existing' or 'contains_proposed'" }
+        }
+      },
+      "zone_ids": {
+        "type": "array",
+        "item_structure": {
+          "required_keys": ["zone_id", "status"],
+          "optional_keys": ["retired_alias_warning"]
+        },
+        "notes": "zone_id from id_registry.json → zone_ids. status is 'existing' or 'proposed'."
+      },
+      "structural_reminders": {
+        "type": "object",
+        "description": "Abbreviated structural patterns for downstream file types (materials.json, sop_modules.json, production.json, qa_report.json). Key names and types only.",
+        "notes": "Derived from structural_keys.json. Keeps downstream agents from needing to load the full structural registry."
+      },
+      "cross_file_threading": {
+        "type": "array",
+        "description": "Cross-file threading rules as brief reminder strings. Derived from structural_keys.json → cross_file_threading_rules."
+      },
+      "registry_additions_proposed": {
+        "type": "array",
+        "item_structure": {
+          "required_keys": ["registry", "section", "proposed_id", "name", "justification"]
+        },
+        "notes": "Every new ID, enum value, or key proposed during resolution. Must be complete — no new values appear in the output without a proposal entry here."
+      }
+    },
+
+    "optional_top_level_keys": {
+      "material_system_prefix": {
+        "type": "object",
+        "description": "SYS_ naming pattern and existing systems to consider"
+      },
+      "consumable_prefix": {
+        "type": "object",
+        "description": "CON_ canonical prefix, prohibited CONS_ prefix, reusable consumable IDs"
+      },
+      "round_configurations": {
+        "type": "object",
+        "description": "ROUND_ existing patterns and naming convention"
+      },
+      "coverage_profiles": {
+        "type": "object",
+        "description": "COV_ existing profiles and naming convention"
+      },
+      "cross_spec_coordination": {
+        "type": "object",
+        "description": "XSPEC_ flags and COMP_ modifiers for this spec"
+      },
+      "migration_warnings": {
+        "type": "array",
+        "description": "Relevant items from agent_rules.json → migration_checklist"
+      }
+    }
+  },
+
+  "materials_json": {
+    "description": "Material systems, consumables, coverage profiles, and protection materials. Defines WHAT products are used.",
+    "filename": "materials.json",
+    "role": "Bill of materials — product selection, coverage rates, consumable usage models.",
+
+    "required_top_level_keys": {
+      "spec_family_id": { "type": "string", "pattern": "^SF_[A-Z0-9_]+$" },
+      "version": { "type": "string" },
+      "material_systems": {
+        "type": "array",
+        "description": "Product combinations tied to quality tiers",
+        "item_structure": {
+          "required_keys": ["system_id", "name"],
+          "conditional_keys": {
+            "quality_tier": { "type": "array|key", "description": "Which QTs use this system. May also appear as 'applies_when.quality_tier'" },
+            "applies_when": { "type": "object", "description": "Alternative to direct quality_tier key" }
+          },
+          "optional_keys": ["description", "primer", "finish", "edge_sealer", "interstage_sand", "allowed_sheens", "notes", "products"]
+        },
+        "notes": "system_id MUST come from id_registry.json → SYS_."
+      },
+      "consumables": {
+        "type": "array",
+        "description": "Expendable items consumed during work. May also appear as 'consumable_usage_models' (synonym — prefer 'consumables').",
+        "item_structure": {
+          "required_keys": ["consumable_id", "name", "category"],
+          "optional_keys": ["usage_rate", "unit", "specification", "yield_per_unit", "yield_uom", "applies_when", "notes", "grit_by_tier", "usage"]
+        },
+        "notes": "consumable_id MUST use CON_ prefix (never CONS_). category from controlled_enums.json → consumable_category. unit from controlled_enums.json → consumable_unit."
+      }
+    },
+
+    "optional_top_level_keys": {
+      "generated_by": { "type": "string" },
+      "generated_at": { "type": "string" },
+      "materials_date": { "type": "string" },
+      "specialty_primers": {
+        "type": "array",
+        "item_structure": {
+          "required_keys": ["primer_id", "name", "when_to_use"],
+          "optional_keys": ["products", "coverage_sf_per_gallon", "notes"]
+        }
+      },
+      "coverage_profiles": {
+        "type": "array",
+        "description": "Formal coverage rate profiles",
+        "item_structure": {
+          "required_keys": ["profile_id", "material_system", "product_role", "surface_texture", "coverage_sf_per_gallon"],
+          "optional_keys": ["coverage_range_low", "coverage_range_high", "surface_condition", "notes", "assumptions"]
+        },
+        "notes": "profile_id MUST use COV_ prefix."
+      },
+      "protection_materials": {
+        "type": "object",
+        "description": "Maps protection zones to consumable materials",
+        "key_pattern": "zone_id from id_registry.json → zone_ids",
+        "value_structure": {
+          "required_keys": ["description", "materials"],
+          "optional_keys": ["required_paintscope_key", "applies_when", "condition", "notes"]
+        }
+      },
+      "compatibility_rules": { "type": "array" },
+      "risk_notes": {
+        "type": "array",
+        "item_structure": {
+          "required_keys": ["risk_id", "topic", "risk", "mitigation", "severity"],
+          "notes": "severity from controlled_enums.json → severity"
+        }
+      },
+      "material_notes": { "type": "object" },
+      "required_inputs": { "type": "array" },
+      "coverage_notes": { "type": "array" },
+      "material_quantity_notes": { "type": "object" },
+      "assumptions": { "type": "array" }
+    },
+
+    "prohibited_key_names": {
+      "consumable_usage_models": "Deprecated. Use 'consumables'. Existing specs using 'consumable_usage_models' must be migrated."
+    },
+
+    "known_inconsistencies": {
+      "consumables_vs_consumable_usage_models": "Door frame uses 'consumable_usage_models' — migration required. Closet shelf and ceiling finish already use canonical 'consumables'.",
+      "quality_tier_vs_applies_when": "Closet shelf puts quality_tier directly on the system object. Door frame and ceiling finish use applies_when.quality_tier. Both are valid, but applies_when is preferred for consistency with sop_modules pattern."
+    }
+  },
+
+  "sop_modules_json": {
+    "description": "Standard Operating Procedure modules. Defines the task sequence, conditions, and quality notes for how work is performed.",
+    "filename": "sop_modules.json",
+    "role": "Process definition — WHAT tasks in WHAT order under WHAT conditions.",
+
+    "required_top_level_keys": {
+      "spec_family_id": { "type": "string", "pattern": "^SF_[A-Z0-9_]+$" },
+      "version": { "type": "string" },
+      "sop_modules": {
+        "type": "array",
+        "description": "Ordered array of SOP modules (phases)",
+        "item_structure": {
+          "required_keys": ["module_id", "name", "phase", "tasks"],
+          "optional_keys": ["description", "applies_when", "required_inputs", "run_rule", "run_count_formula", "sequence_notes"]
+        }
+      }
+    },
+
+    "module_structure": {
+      "module_id": { "type": "string", "pattern": "^MOD_[A-Z0-9_]+$", "source": "id_registry.json → MOD_" },
+      "name": { "type": "string", "description": "Human-readable module name" },
+      "phase": { "type": "enum", "source": "controlled_enums.json → phase" },
+      "tasks": { "type": "array", "description": "Tasks within this module" },
+      "applies_when": { "type": "object", "description": "Module-level conditions (e.g., substrate_condition)" },
+      "required_inputs": {
+        "type": "array",
+        "item_structure": {
+          "required_keys": ["input_name", "paintscope_key", "uom"]
+        }
+      },
+      "run_rule": { "type": "string", "description": "When/how many times this module runs (interstage)" },
+      "run_count_formula": { "type": "string", "description": "Formula for number of runs" }
+    },
+
+    "task_structure": {
+      "description": "Structure of individual task objects within a module's tasks array",
+      "required_keys": {
+        "task_id": { "type": "string", "pattern": "^TSK_[A-Z0-9_]+$", "source": "id_registry.json → TSK_" },
+        "name": { "type": "string", "description": "Human-readable task name" },
+        "task_classification": { "type": "enum", "source": "controlled_enums.json → task_classification" },
+        "skill_level": { "type": "enum", "source": "controlled_enums.json → skill_level" }
+      },
+      "optional_keys": {
+        "description": { "type": "string" },
+        "task_type": { "type": "enum", "source": "controlled_enums.json → task_type" },
+        "tools_required": { "type": "array" },
+        "applies_when": { "type": "object", "description": "Task-level conditions" },
+        "appears_in_tiers": { "type": "array", "description": "Which QTs include this task" },
+        "qt2_notes": { "type": "string", "description": "QT2-specific scope reduction notes" },
+        "quality_notes": { "type": "object", "description": "Per-tier quality expectations. Keys are tier names or 'all'." },
+        "notes": { "type": "string" },
+        "protection_metadata": {
+          "type": "object",
+          "required_keys": ["action", "zones"],
+          "optional_keys": ["method_dependent"],
+          "notes": "action from controlled_enums.json → protection_action. zones from id_registry.json → zone_ids."
+        },
+        "site_condition_rules": {
+          "type": "array|object",
+          "description": "Site conditions affecting task inclusion",
+          "notes": "Array of condition objects (door frame pattern) or single object with include_when/exclude_when (closet shelf pattern). Prefer array pattern."
+        },
+        "substrate_state_rules": {
+          "type": "object",
+          "description": "Substrate state conditions for task inclusion",
+          "required_keys": ["include_when", "exclude_when"],
+          "notes": "Values from controlled_enums.json → substrate_state"
+        },
+        "state_condition_note": { "type": "string" }
+      },
+
+      "prohibited_keys": {
+        "task_class": "ALWAYS use 'task_classification'. Never 'task_class'.",
+        "rate_per_hour": "Production rates belong in production.json, not sop_modules.json.",
+        "coverage_sf_per_gallon": "Coverage data belongs in materials.json."
+      }
+    },
+
+    "optional_top_level_keys": {
+      "generated_by": { "type": "string" },
+      "generated_at": { "type": "string" },
+      "sop_date": { "type": "string" },
+      "frame_type_variants": {
+        "type": "array",
+        "description": "Variant-specific task exclusions/modifications"
+      },
+      "round_configurations": {
+        "type": "array",
+        "description": "Coat sequence patterns",
+        "item_structure": {
+          "required_keys": ["round_id", "name", "description", "applies_when", "phase_sequence"],
+          "optional_keys": ["notes"]
+        }
+      },
+      "qt2_exclusion_notice": { "type": "object", "description": "Notice when QT2 is excluded from spec" },
+      "assumptions": { "type": "array" }
+    }
+  },
+
+  "production_json": {
+    "description": "Production rates, modifiers, and crew configurations. Defines HOW FAST work is performed.",
+    "filename": "production.json",
+    "role": "Rate engine — production rates per task, modifier tables, crew sizing.",
+
+    "required_top_level_keys": {
+      "spec_family_id": { "type": "string", "pattern": "^SF_[A-Z0-9_]+$" },
+      "version": { "type": "string" },
+      "task_production_rates": {
+        "type": "array",
+        "description": "Production rate for each task in the spec",
+        "item_structure": {
+          "required_keys": ["task_id", "unit_of_measure"],
+          "conditional_keys": {
+            "rate_per_hour": { "type": "number", "when": "Single rate for all conditions" },
+            "rates_by_tier": { "type": "object", "when": "Rate varies by opening/item tier (S/M/L/XL)" },
+            "fixed_time_minutes": { "type": "number", "when": "unit_of_measure is FIXED" }
+          },
+          "optional_keys": [
+            "name",
+            "task_classification",
+            "required_input_key",
+            "paintscope_key",
+            "rate_range_low",
+            "rate_range_high",
+            "fixed_time_range_low",
+            "fixed_time_range_high",
+            "crew_size",
+            "rate_basis_notes",
+            "rate_unit",
+            "applies_when",
+            "qt_modifier_applies",
+            "state_condition_note",
+            "heuristic_items_per_room",
+            "additional_input_keys",
+            "notes"
+          ]
+        },
+        "notes": "task_id MUST match a task in sop_modules.json. unit_of_measure from controlled_enums.json → unit_of_measure."
+      }
+    },
+
+    "optional_top_level_keys": {
+      "generated_by": { "type": "string" },
+      "generated_at": { "type": "string" },
+      "production_date": { "type": "string" },
+      "rate_basis": { "type": "string", "description": "Source document for rate methodology" },
+      "rate_notes": { "type": "array" },
+      "quality_tier_effects": {
+        "type": "array",
+        "description": "How quality tiers modify production rates",
+        "item_structure": {
+          "required_keys": ["quality_tier", "time_modifier", "description", "mechanism"],
+          "optional_keys": ["modifier_id", "sheen", "coats", "notes"]
+        },
+        "notes": "mechanism from controlled_enums.json → modifier_mechanism"
+      },
+      "opening_modifiers": {
+        "type": "object",
+        "description": "Closet shelf opening modifiers (depth, detail, access)"
+      },
+      "qt_modifiers": {
+        "type": "object",
+        "description": "Quality tier multiplier table"
+      },
+      "coat_counts": {
+        "type": "object",
+        "description": "Coat counts by quality tier"
+      },
+      "modifier_stacking": { "type": "string", "description": "How modifiers combine (multiplicative)" },
+      "frame_type_complexity": { "type": "array" },
+      "height_access_effects": { "type": "array" },
+      "height_effects": { "type": "array" },
+      "application_method_effects": { "type": "array" },
+      "sheen_application_effects": { "type": "array" },
+      "texture_effects": { "type": "array" },
+      "coupling_constraints": {
+        "type": "array",
+        "description": "Tasks that are coupled (spray+backroll pace constraint)"
+      },
+      "crew_configurations": {
+        "type": "array",
+        "item_structure": {
+          "required_keys": ["config_id", "name", "crew_size", "roles", "applies_when"],
+          "optional_keys": ["notes"]
+        }
+      },
+      "overhead_factor": { "type": "object" },
+      "rate_comparison_notes": { "type": "object" },
+      "assumptions": { "type": "array" },
+      "validation_plan": { "type": "array" }
+    },
+
+    "prohibited_key_names": {
+      "tasks": "Tasks belong in sop_modules.json. Production only has rates.",
+      "sop_modules": "Module definitions belong in sop_modules.json."
+    }
+  },
+
+  "qa_report_json": {
+    "description": "Quality assurance report. Validates cross-file integrity, doctrine compliance, and acceptance criteria.",
+    "filename": "qa_report.json",
+    "role": "Validator — ensures all files are consistent, complete, and doctrine-compliant.",
+
+    "required_top_level_keys": {
+      "spec_family_id": { "type": "string", "pattern": "^SF_[A-Z0-9_]+$" },
+      "version": { "type": "string" },
+      "overall_result": { "type": "enum", "valid_values": ["PASS", "PASS_WITH_WARNINGS", "FAIL"] }
+    },
+
+    "optional_top_level_keys": {
+      "qa_date": { "type": "string" },
+      "reviewed_by": { "type": "string" },
+      "review_date": { "type": "string" },
+      "critic_agent": { "type": "string" },
+      "qt2_integration_date": { "type": "string" },
+      "status": { "type": "enum", "valid_values": ["pass", "pass_with_warnings", "fail"] },
+      "validation_gates": {
+        "type": "object",
+        "description": "Automated validation checks",
+        "common_gates": [
+          "schema_compliance",
+          "paintscope_readiness",
+          "uom_alignment",
+          "edge_lf_declarations",
+          "modifier_math",
+          "spray_backroll_coupling"
+        ],
+        "gate_structure": {
+          "required_keys": ["passed"],
+          "optional_keys": ["notes", "missing_keys", "unmapped_inputs", "violations", "undeclared_edge_work"]
+        }
+      },
+      "completeness_checklist": {
+        "type": "object",
+        "description": "Manual completeness checks",
+        "item_structure": {
+          "required_keys": ["status", "details"]
+        }
+      },
+      "brief_acceptance_criteria": {
+        "type": "array",
+        "description": "Criteria from the brief that must be met",
+        "item_structure": {
+          "required_keys": ["criterion", "status", "evidence"]
+        }
+      },
+      "cross_file_integrity": {
+        "type": "array",
+        "item_structure": {
+          "required_keys": ["check", "status", "details"]
+        }
+      },
+      "doctrine_compliance": {
+        "type": "array",
+        "item_structure": {
+          "required_keys": ["doctrine", "status", "details"]
+        }
+      },
+      "research_corrections_validated": {
+        "type": "array",
+        "item_structure": {
+          "required_keys": ["correction_id", "original_claim", "corrected_to", "status", "evidence"]
+        }
+      },
+      "issues": {
+        "type": "array",
+        "item_structure": {
+          "required_keys": ["issue_id", "severity", "area", "file", "description", "suggested_fix"],
+          "optional_keys": ["location", "recommended_agent"]
+        },
+        "notes": "issue_id uses ISS_ prefix. severity from controlled_enums.json → severity."
+      },
+      "warnings": {
+        "type": "array",
+        "item_structure": {
+          "required_keys": ["warning_id", "severity", "message"],
+          "optional_keys": ["recommendation"]
+        }
+      },
+      "project_level_conditions": { "type": "array" },
+      "human_feedback_gate": { "type": "object" },
+      "summary": { "type": "string" },
+      "notes": { "type": "array" },
+      "review_notes": { "type": "array" }
+    }
+  },
+
+  "cross_file_threading_rules": {
+    "description": "Rules for how IDs and keys thread across the 5 core files. These are the critical consistency constraints.",
+
+    "rule_1_task_id_thread": {
+      "rule": "Every TSK_ ID that appears in sop_modules.json MUST also appear in production.json with a matching rate entry.",
+      "source_of_truth": "sop_modules.json defines the task. production.json provides the rate.",
+      "exception": "Tasks that are bundled (e.g., stop surfaces bundled into frame set) may not have separate production entries."
+    },
+
+    "rule_2_item_id_thread": {
+      "rule": "Every ITM_ ID in spec.json paintable_items MUST appear in at least one variant's included_items.",
+      "source_of_truth": "spec.json defines items and their variant membership."
+    },
+
+    "rule_3_system_id_thread": {
+      "rule": "Every SYS_ ID in materials.json MUST have quality_tier values that match a tier declared in spec.json configuration_dimensions.",
+      "source_of_truth": "spec.json declares valid tiers. materials.json assigns systems to tiers."
+    },
+
+    "rule_4_input_thread": {
+      "rule": "Every IN_ input declared in spec.json required_paintscope_inputs should be consumed by at least one task in sop_modules.json (via module required_inputs) or production.json (via required_input_key).",
+      "source_of_truth": "spec.json declares inputs. sop_modules.json and production.json consume them."
+    },
+
+    "rule_5_paintscope_key_thread": {
+      "rule": "Every PS_ key used in production.json task rates MUST match a PS_ key declared in spec.json required_paintscope_inputs.",
+      "source_of_truth": "spec.json is the canonical list of PS_ keys for the spec."
+    },
+
+    "rule_6_zone_id_thread": {
+      "rule": "Every zone_id in spec.json protection_zones_required MUST match at least one zone reference in sop_modules.json task protection_metadata.zones.",
+      "source_of_truth": "spec.json declares zone needs. sop_modules.json implements them in tasks."
+    },
+
+    "rule_7_module_phase_sequence": {
+      "rule": "sop_modules array MUST be ordered by phase sequence: setup → prep → prime → apply → interstage → finish → cleanup. Modules within the same phase may appear in any order.",
+      "source_of_truth": "controlled_enums.json → phase → sequence_order"
+    },
+
+    "rule_8_unit_of_measure_consistency": {
+      "rule": "A task's unit_of_measure MUST be the same in both sop_modules.json (if declared) and production.json. MUST come from controlled_enums.json → unit_of_measure.",
+      "source_of_truth": "controlled_enums.json is the UOM authority."
+    },
+
+    "rule_9_resolver_prefix_thread": {
+      "rule": "Every TSK_ context prefix established in resolution.json MUST be used as the prefix for all TSK_ IDs in sop_modules.json and production.json. The Resolver sets the naming convention; downstream agents follow it.",
+      "source_of_truth": "resolution.json → task_prefix.pattern defines the canonical prefix."
+    },
+
+    "rule_10_resolver_item_id_thread": {
+      "rule": "Every ITM_ ID marked as 'existing' in resolution.json MUST use the exact registered ID in spec.json. No synonyms or re-derivations.",
+      "source_of_truth": "resolution.json → paintable_items[].item_id for existing entries."
+    },
+
+    "rule_11_resolver_enum_authority": {
+      "rule": "Downstream agents (Materials Manager, SOP Librarian, Estimation Engineer) MUST use only enum values present in resolution.json → applicable_enums. If a value is needed that is not in the filtered set, the agent MUST flag it as an issue for the Resolver to address — never pull directly from raw registries to bypass the Resolver's filtering.",
+      "source_of_truth": "resolution.json → applicable_enums is the downstream enum authority. Only the QA Critic loads raw controlled_enums.json to verify."
+    }
+  },
+
+  "global_prohibited_patterns": {
+    "description": "Key names and patterns that are NEVER allowed anywhere in the system.",
+    "prohibited": {
+      "task_class": "Always use 'task_classification'",
+      "CONS_": "Always use 'CON_' prefix for consumables",
+      "protect_phase": "Never use 'protect' or 'protection' as a phase value. Use 'setup' or 'cleanup'",
+      "compound_sheens": "Never use 'eggshell/satin' or 'semi-gloss+'. Always use a single enum value from controlled_enums.json → sheen",
+      "lowercase_units": "Never use 'each', 'tip', 'sheet', 'quart'. Always uppercase per controlled_enums.json → consumable_unit",
+      "inline_rate_in_sop": "Never put rate_per_hour in sop_modules.json tasks. Rates belong in production.json only.",
+      "inline_coverage_in_sop": "Never put coverage_sf_per_gallon in sop_modules.json. Coverage belongs in materials.json only."
+    }
+  },
+
+  "naming_conventions_summary": {
+    "file_date_keys": {
+      "spec.json": "No date key (use change_log)",
+      "research.json": "No date key (use version)",
+      "materials.json": "materials_date OR generated_at",
+      "sop_modules.json": "sop_date OR generated_at",
+      "production.json": "production_date OR generated_at",
+      "qa_report.json": "qa_date OR review_date"
+    },
+    "generator_keys": {
+      "pattern": "generated_by (string) + generated_at (date string)",
+      "used_in": ["materials.json", "sop_modules.json", "production.json"],
+      "notes": "Identifies which agent generated the file."
+    },
+    "applies_when_pattern": {
+      "description": "The universal condition pattern used throughout the system",
+      "structure": "Object with dimension_id keys mapping to arrays of valid values",
+      "logic": "OR within a key's array, AND across keys",
+      "example": "{ \"quality_tier\": [\"QT4\", \"QT5\"], \"application_method\": [\"spray\"] } means (QT4 OR QT5) AND (spray)"
+    }
+  }
+}
