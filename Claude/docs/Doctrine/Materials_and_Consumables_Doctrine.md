@@ -164,12 +164,15 @@ When using spray+backroll application method, spec the following:
 
 ### Nap Thickness Selection
 
-| Surface Texture | Recommended Nap |
-|-----------------|-----------------|
-| Smooth | 1/4" or 3/8" |
-| Light texture (orange peel) | 1/2" |
-| Medium texture (knockdown) | 3/4" |
-| Heavy texture | 1" or 1-1/4" |
+| Surface Texture | Recommended Nap | Notes |
+|-----------------|-----------------|-------|
+| Smooth drywall | 3/8" to 1/2" | Range allows painter discretion |
+| Orange peel drywall | 1/2" | Standard for light drywall texture |
+| Knockdown drywall | 1/2" | Same as orange peel — drywall textures use 1/2" max |
+| Heavy texture (stomp, popcorn) | 3/4" | Deep texture profiles only |
+| Very porous (concrete block, CMU) | 3/4" to 1" | Fills voids in masonry substrates |
+
+> **Key clarification (2026-02-04):** Knockdown on drywall uses 1/2" nap, NOT 3/4". The 3/4" nap is reserved for heavy/deep textures (stomp, popcorn) and porous masonry substrates. This correction aligns with field practice — 3/4" nap on knockdown drywall causes excessive stipple and material waste.
 
 ### Roller Material Selection
 

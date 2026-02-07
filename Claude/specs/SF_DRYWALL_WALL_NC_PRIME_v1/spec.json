@@ -1,149 +1,92 @@
 {
   "spec_family": {
     "id": "SF_DRYWALL_WALL_NC_PRIME",
-    "name": "New Construction Drywall Wall Prime Coat",
-    "description": "PVA or drywall primer on new drywall wall surfaces in new construction. Covers all paintable wall field area excluding openings. Separate from ceiling prime (vertical vs overhead application, different spray patterns, different edge relationships) and wall finish (prime happens before trim install, uses different material systems). Single primer coat, no finish coats. Includes substrate inspection and repair as a quality-tier-driven prep phase.",
+    "name": "New Construction Drywall Wall Prime",
+    "description": "PVA or drywall primer on bare drywall wall surfaces in new construction. Single primer coat to seal drywall and provide uniform porosity for finish coats. Includes QT-driven substrate inspection/repair as prep phase. Spray-only is NEVER valid — backroll is mandatory for primer on bare drywall.",
     "domain": "interior",
-    "version": "0.1.0",
+    "context": "NC",
+    "version": "1.0.0",
     "status": "draft",
     "review_required": true
-  },
-
-  "scope_boundaries": {
-    "includes": [
-      "New drywall wall field area (all paintable wall surfaces excluding openings)",
-      "Drywall primer application (1 coat)",
-      "Surface preparation (dust removal, inspection)",
-      "Substrate inspection and repair (QT-driven intensity)",
-      "Wall-to-ceiling edge cut-in when required",
-      "Fixture protection (cover/register removal, box/fixture masking) for spray_backroll method"
-    ],
-    "excludes": [
-      "Wall finish coats (SF_DRYWALL_WALL_NC_FINISH)",
-      "Ceiling priming (SF_DRYWALL_CEILING_NC_PRIME)",
-      "Wood/panel walls (SF_WOOD_WALL_NC)",
-      "Trim priming (SF_TRIM_NC_PRIME)",
-      "Drywall repair beyond normal joint compound (drywall contractor)",
-      "Texture application (pre-paint trade, out of scope)",
-      "Stain blocking for smoke/water damage (use repaint spec)"
-    ]
   },
 
   "configuration_dimensions": [
     {
       "dimension_id": "quality_tier",
-      "description": "Drives inspection/repair intensity and edge discipline. Does NOT differentiate primer application — primer must be applied properly at all tiers.",
+      "description": "Drives inspection/repair intensity. Application quality is constant at all tiers.",
       "values": ["QT2", "QT3", "QT4"],
       "default": "QT3",
-      "notes": "QT affects prep scrutiny. Application quality is constant across tiers."
+      "notes": "QT5 not applicable to primer-only scope."
     },
     {
       "dimension_id": "application_method",
-      "description": "Primary application technique for wall primer",
+      "description": "Method for applying primer to walls.",
       "values": ["roll", "spray_backroll"],
       "default": "spray_backroll",
-      "notes": "Spray+backroll is standard for NC wall prime. Roll for smaller jobs or occupied spaces. Spray-only is NEVER valid for priming bare drywall — backroll is always required for sealing (RC-005)."
+      "notes": "Spray-only is NEVER valid for priming bare drywall. Backroll is mandatory."
     },
     {
       "dimension_id": "wall_height",
-      "description": "Wall height classification driving access requirements and height modifiers",
+      "description": "Wall height category affecting production rates.",
       "values": ["standard", "tall", "high", "extreme"],
       "default": "standard",
-      "notes": "standard (7-8ft) = H1 1.0, tall (9-12ft) = H2 1.3, high (13-17ft) = H3 1.5, extreme (18ft+) = H4 2.0. Per Estimation_Modifiers_Doctrine. 18ft ceiling = 18ft walls."
+      "notes": "standard (7-8ft)=H1, tall (9-12ft)=H2, high (13-17ft)=H3, extreme (18ft+)=H4"
     },
     {
       "dimension_id": "drywall_finish_level",
-      "description": "Drywall finish level per GA-214 standard",
+      "description": "Drywall finish level affecting primer coverage rate.",
       "values": ["level_3", "level_4", "level_5"],
       "default": "level_4",
-      "notes": "Affects coverage rate and absorption. Level 3 = more absorption. Level 5 = uniform surface."
+      "notes": "Level 3 = more absorption. Level 5 = may require high-build primer."
     },
     {
       "dimension_id": "surface_texture",
-      "description": "Wall surface texture (if applied before priming)",
+      "description": "Wall texture affecting coverage rate and roller nap selection.",
       "values": ["smooth", "orange_peel", "knockdown"],
       "default": "smooth",
-      "notes": "Texture affects coverage rate and nap selection. smooth=1.0, orange_peel=1.1, knockdown=1.15."
+      "notes": "Modifiers: smooth=1.0, orange_peel=1.10, knockdown=1.15. Use 1/2\" nap for textured, NOT 3/4\"."
     }
   ],
 
   "paintable_items": [
     {
       "item_id": "ITM_WALL_FIELD_PRIME",
-      "name": "Wall Field Prime Coat",
+      "name": "Wall field prime coat",
       "unit_of_measure": "SF",
-      "counting_rules": "Source from PaintScope PS_SURFACE_SF.WALL_FIELD; covers all paintable wall area excluding openings",
-      "notes": "Primary item for wall priming scope"
+      "counting_rules": "PaintScope: PS_SURFACE_SF.WALL_FIELD",
+      "conditional": false,
+      "notes": "Total paintable wall field area (excluding openings)"
     },
     {
       "item_id": "ITM_WALL_EDGE_CEILING",
-      "name": "Ceiling Edge Cut-In",
+      "name": "Ceiling edge cut-in",
       "unit_of_measure": "LF",
-      "counting_rules": "Source from PaintScope PS_EDGE_LF.TO_CEILING; wall-to-ceiling boundary requiring brush cut-in. Same physical edge as ceiling spec's TO_WALL key.",
-      "notes": "Required when roll method used or spray requires edge touch-up at ceiling line"
+      "counting_rules": "PaintScope: PS_EDGE_LF.TO_CEILING",
+      "conditional": true,
+      "conditional_on": {
+        "application_method": ["roll"]
+      },
+      "notes": "Cut-in required for roll method. For spray_backroll when ceiling is primed, spray directly into corner — no cut-in needed."
     }
   ],
 
   "variants": [
     {
-      "variant_id": "VAR_ROLL_QT2",
+      "variant_id": "VAR_WALL_PRIME_ROLL",
       "applies_when": {
-        "quality_tier": ["QT2"],
-        "application_method": ["roll"]
-      },
-      "included_items": ["ITM_WALL_FIELD_PRIME"],
-      "excluded_items": ["ITM_WALL_EDGE_CEILING"],
-      "notes": "Minimal economy roller application — edge work not separated at QT2"
-    },
-    {
-      "variant_id": "VAR_ROLL_QT3",
-      "applies_when": {
-        "quality_tier": ["QT3"],
         "application_method": ["roll"]
       },
       "included_items": ["ITM_WALL_FIELD_PRIME", "ITM_WALL_EDGE_CEILING"],
-      "excluded_items": [],
-      "notes": "Standard quality roller application with ceiling edge cut-in"
+      "notes": "Roll method includes ceiling edge cut-in"
     },
     {
-      "variant_id": "VAR_ROLL_QT4",
+      "variant_id": "VAR_WALL_PRIME_SPRAY_BACKROLL",
       "applies_when": {
-        "quality_tier": ["QT4"],
-        "application_method": ["roll"]
-      },
-      "included_items": ["ITM_WALL_FIELD_PRIME", "ITM_WALL_EDGE_CEILING"],
-      "excluded_items": [],
-      "notes": "Premium roller application with crisp ceiling edge work"
-    },
-    {
-      "variant_id": "VAR_SPRAY_BACKROLL_QT2",
-      "applies_when": {
-        "quality_tier": ["QT2"],
         "application_method": ["spray_backroll"]
       },
       "included_items": ["ITM_WALL_FIELD_PRIME"],
       "excluded_items": ["ITM_WALL_EDGE_CEILING"],
-      "notes": "Economy spray+backroll — edge work not separated at QT2"
-    },
-    {
-      "variant_id": "VAR_SPRAY_BACKROLL_QT3",
-      "applies_when": {
-        "quality_tier": ["QT3"],
-        "application_method": ["spray_backroll"]
-      },
-      "included_items": ["ITM_WALL_FIELD_PRIME", "ITM_WALL_EDGE_CEILING"],
-      "excluded_items": [],
-      "notes": "Standard production spray+backroll with ceiling edge touch-up"
-    },
-    {
-      "variant_id": "VAR_SPRAY_BACKROLL_QT4",
-      "applies_when": {
-        "quality_tier": ["QT4"],
-        "application_method": ["spray_backroll"]
-      },
-      "included_items": ["ITM_WALL_FIELD_PRIME", "ITM_WALL_EDGE_CEILING"],
-      "excluded_items": [],
-      "notes": "Premium spray+backroll with attention to edge discipline"
+      "notes": "Spray+backroll excludes cut-in when ceiling is primed — spray directly into corner"
     }
   ],
 
@@ -159,65 +102,78 @@
       "input_name": "IN_LF_EDGE_TO_CEILING",
       "paintscope_key": "PS_EDGE_LF.TO_CEILING",
       "uom": "LF",
+      "required": false,
       "required_when": {
-        "quality_tier": ["QT3", "QT4"],
-        "application_method": ["roll", "spray_backroll"]
+        "application_method": ["roll"]
       },
-      "description": "Wall-to-ceiling boundary for edge cut-in. Same physical edge as ceiling's PS_EDGE_LF.TO_WALL but from wall's perspective."
+      "description": "Wall-to-ceiling boundary for cut-in. Required for roll method."
     },
     {
       "input_name": "IN_SF_PROTECT_FLOOR_PERIMETER",
       "paintscope_key": "PS_PROTECT_SF.FLOOR_PERIMETER",
       "uom": "SF",
+      "required": false,
       "required_when": {
         "application_method": ["roll"]
       },
-      "description": "Floor perimeter area for drop cloth placement during roll method."
+      "description": "Perimeter floor protection area"
     },
     {
       "input_name": "IN_SF_PROTECT_FLOOR_EXPOSED",
       "paintscope_key": "PS_PROTECT_SF.FLOOR_EXPOSED",
       "uom": "SF",
+      "required": false,
       "required_when": {
         "application_method": ["spray_backroll"]
       },
-      "description": "Full floor area requiring protection during wall spray. Overspray falls to floor."
+      "description": "Full floor protection area for spray overspray"
     },
     {
       "input_name": "IN_EA_ROOMS_TOTAL",
       "paintscope_key": "PS_META.EA.ROOMS_TOTAL",
       "uom": "EA",
+      "required": false,
       "required_when": {
         "application_method": ["spray_backroll"]
       },
-      "description": "Total room count for per-room fixture removal heuristic (avg 6 outlets/switches per room)."
+      "description": "Room count for fixture protection heuristic (avg 6 outlets/switches per room)"
     },
     {
       "input_name": "IN_SF_FLOOR_VACUUM",
       "paintscope_key": "PS_META.SF.FLOOR_VACUUM_AREA",
       "uom": "SF",
       "required": true,
-      "description": "Floor area for post-prime vacuum cleanup."
+      "description": "Floor area for post-prime vacuum cleanup"
     }
   ],
 
+  "dependencies": {
+    "research": "research.json",
+    "materials": "materials.json",
+    "sop_modules": "sop_modules.json",
+    "production": "production.json"
+  },
+
   "protection_zones_required": [
     {
-      "zone_id": "floor_perimeter",
-      "condition": { "application_method": ["roll"] },
-      "protection_level": "edge_only",
-      "upgrades_to_zone": "floor_full",
-      "upgrades_to_level": "full_cover",
-      "upgrade_condition": { "application_method": ["spray_backroll"] }
-    },
-    {
       "zone_id": "floor_full",
-      "condition": { "application_method": ["spray_backroll"] },
+      "condition": {
+        "application_method": ["spray_backroll"]
+      },
       "protection_level": "full_cover"
     },
     {
+      "zone_id": "floor_perimeter",
+      "condition": {
+        "application_method": ["roll"]
+      },
+      "protection_level": "edge_only"
+    },
+    {
       "zone_id": "fixture_covers",
-      "condition": { "application_method": ["spray_backroll"] },
+      "condition": {
+        "application_method": ["spray_backroll"]
+      },
       "protection_level": "full_cover"
     }
   ],
@@ -229,134 +185,120 @@
         "surface_id": "ceiling_field",
         "edge_type": "linear",
         "typical_relationship": "different_finish",
-        "continuity_rate_modifier": 1.15,
-        "affected_tasks": ["TSK_WALL_CUT_IN_CEILING", "TSK_WALL_CUT_IN_CEILING_SPRAY"]
+        "affected_tasks": ["TSK_WALL_CUT_IN_CEILING"],
+        "notes": "We do NOT mask drywall ceilings. Cut in (roll) or spray into corner (spray_backroll)."
       },
       {
         "surface_id": "trim_baseboard",
         "edge_type": "linear",
-        "typical_relationship": "different_finish",
+        "typical_relationship": "not_in_scope",
         "affected_tasks": [],
-        "notes": "Baseboard not installed during NC wall prime. Declared for project-level finish group optimization."
+        "notes": "Baseboard not installed during prime phase in NC"
       },
       {
         "surface_id": "trim_casing_door",
         "edge_type": "linear",
-        "typical_relationship": "different_finish",
+        "typical_relationship": "not_in_scope",
         "affected_tasks": [],
-        "notes": "Door casing not installed during NC wall prime. Declared for project-level adjacency tracking."
+        "notes": "Door casing not installed during prime phase in NC"
       },
       {
         "surface_id": "trim_casing_window",
         "edge_type": "linear",
-        "typical_relationship": "different_finish",
+        "typical_relationship": "not_in_scope",
         "affected_tasks": [],
-        "notes": "Window casing not installed during NC wall prime. Declared for project-level adjacency tracking."
+        "notes": "Window casing not installed during prime phase in NC"
       }
     ]
   },
 
   "state_declarations": {
     "primary_surface": "wall_field",
-
     "valid_input_states": {
       "states": ["SS_BARE"],
-      "notes": "NC wall prime operates on bare new drywall only"
+      "notes": "NC wall prime operates only on bare drywall"
     },
-
     "output_state": {
       "state": "SS_PRIMED_FIELD",
       "varies_by": null,
-      "notes": "Wall prime produces field-primed state ready for finish coat"
+      "notes": "Wall prime leaves surface field-primed, ready for finish coats"
     },
-
     "adjacent_state_protection_rules": [
       {
         "adjacent_surface": "ceiling_field",
-        "when_state": ["SS_PAINTED_FLAT", "SS_PAINTED_EGGSHELL", "SS_PAINTED_SATIN", "SS_PAINTED_SEMIGLOSS"],
-        "protection_zone": null,
+        "when_state": ["SS_BARE", "SS_PRIMED_FIELD", "SS_PAINTED_FLAT", "SS_PAINTED_EGGSHELL"],
         "protection_level": "none",
-        "notes": "Per doctrine: walls always cut into ceilings freehand — no tape or mask. Cut-in task handles edge cleanly."
+        "notes": "We do NOT mask drywall ceilings when working on walls, regardless of ceiling state."
       },
       {
-        "adjacent_surface": "ceiling_field",
-        "when_state": ["SS_BARE", "SS_PRIMED", "SS_PRIMED_FIELD"],
-        "protection_zone": null,
+        "adjacent_surface": "trim_baseboard",
+        "when_state": ["SS_PAINTED_SATIN", "SS_PAINTED_SEMIGLOSS"],
+        "protection_level": "light_mask",
+        "notes": "Rare in NC — baseboard typically not installed during prime"
+      },
+      {
+        "adjacent_surface": "trim_baseboard",
+        "when_state": ["SS_BARE", "SS_PRIMED_FACTORY"],
         "protection_level": "none",
-        "notes": "Unfinished ceilings need no protection"
+        "notes": "Unfinished trim needs no protection"
       }
     ]
   },
 
-  "site_condition_rules": [
-    {
-      "condition_id": "floor_type",
-      "include_when": ["finished", "partial"],
-      "exclude_when": ["subfloor"],
-      "affects": "Floor protection tasks — rosin paper on hard floors, plastic on carpet. Subfloor does not require protection (RC-003)."
-    },
-    {
-      "condition_id": "access_constraint",
-      "values_applicable": ["none", "step_ladder", "extension_ladder", "scaffold", "lift"],
-      "affects": "Wall height determines access equipment and triggers height modifiers. Standard = none. Tall = step_ladder. High = scaffold. Extreme = scaffold/lift."
-    }
-  ],
-
-  "cross_spec_coordination": {
-    "deduplication_note": "If substrate inspection/repair is performed during SF_DRYWALL_WALL_NC_PRIME, the finish spec SF_DRYWALL_WALL_NC_FINISH should eliminate its first inspection/repair round to avoid double-counting labor. Tracked via XSPEC_WALL_REPAIR_DONE flag in sop_modules.json.",
-    "shared_session_note": "Wall prime and ceiling prime (SF_DRYWALL_CEILING_NC_PRIME) are typically performed in the same work session. Project assembly should optimize shared protection setup/teardown."
-  },
-
-  "inherited_research_corrections": [
-    {
-      "id": "RC-001",
-      "title": "No spot-priming NC drywall fasteners",
-      "impact": "No spot-prime tasks — fasteners are mudded and rust-resistant"
-    },
-    {
-      "id": "RC-002",
-      "title": "PVA/acrylic drywall primers have zero stain blocking",
-      "impact": "No stain blocking claims in materials — sealers only"
-    },
-    {
-      "id": "RC-003",
-      "title": "Floor protection conditional on floor_type",
-      "impact": "Site condition rules for floor_type drive floor protection inclusion"
-    },
-    {
-      "id": "RC-004",
-      "title": "Do not specify dry times in specs",
-      "impact": "No dry time references — refer to PDS"
-    },
-    {
-      "id": "RC-005",
-      "title": "Spray-only is never valid for priming bare drywall",
-      "impact": "application_method reduced to [roll, spray_backroll]. Backroll is always required when spraying primer on bare drywall for sealing and consolidation."
-    }
-  ],
-
   "research_corrections": [
     {
-      "correction_id": "RC-005",
-      "agent": "estimation-engineer",
-      "original_claim": "Spray-only is a valid application method for drywall wall prime (from brief Section 3)",
-      "original_source": "Brief Section 3 configuration dimensions",
-      "corrected_to": "Spray-only is NEVER valid for priming bare drywall. Backroll is always required for sealing. Drywall must be sealed or even sheen on finishes is impossible.",
-      "rationale": "Stakeholder directive (Eric): backroll is always required when spraying primer on bare drywall. This is non-negotiable. Unsealed drywall cannot achieve even sheen on finish coats.",
-      "corrected_by": "Eric (stakeholder)",
-      "doctrine_target": "docs/Doctrine/Materials_and_Consumables_Doctrine.md",
+      "correction_id": "RC-001",
+      "original_claim": "NC drywall fasteners require spot-priming",
+      "corrected_to": "NC drywall fasteners do NOT require spot-priming — fasteners are mudded by drywall contractor and modern screws are rust-resistant",
+      "rationale": "Field contractor expertise: fasteners are covered with joint compound, no exposed metal",
+      "corrected_by": "Eric (field contractor)",
+      "doctrine_target": "Materials_and_Consumables_Doctrine.md",
       "is_new_doctrine": true,
-      "doctrine_update_status": "pending"
+      "doctrine_update_status": "complete"
+    },
+    {
+      "correction_id": "RC-002",
+      "original_claim": "PVA primer has stain-blocking capability",
+      "corrected_to": "PVA and acrylic latex drywall primers are SEALERS only — zero stain blocking capability",
+      "rationale": "Field contractor expertise: these products seal porous drywall but do not block stains",
+      "corrected_by": "Eric (field contractor)",
+      "doctrine_target": "Materials_and_Consumables_Doctrine.md",
+      "is_new_doctrine": true,
+      "doctrine_update_status": "complete"
+    },
+    {
+      "correction_id": "RC-003",
+      "original_claim": "Floor protection is always required",
+      "corrected_to": "Floor protection is conditional on floor_type site condition — subfloor may require no protection",
+      "rationale": "Field contractor expertise: NC sequence often has subfloor only, no protection needed",
+      "corrected_by": "Eric (field contractor)",
+      "doctrine_target": "Protection_and_Masking_Doctrine.md",
+      "is_new_doctrine": true,
+      "doctrine_update_status": "complete"
+    },
+    {
+      "correction_id": "RC-004",
+      "original_claim": "Dry times can be specified in specs",
+      "corrected_to": "Do not specify dry times in specs — too many variables, refer to PDS",
+      "rationale": "Field contractor expertise: ambient conditions, ventilation, film thickness all affect dry time",
+      "corrected_by": "Eric (field contractor)",
+      "doctrine_target": "Materials_and_Consumables_Doctrine.md",
+      "is_new_doctrine": true,
+      "doctrine_update_status": "complete"
     }
   ],
 
-  "doctrine_overrides": [],
+  "critical_constraints": {
+    "spray_only_prohibited": "Spray-only is NEVER a valid application method for primer on bare drywall. Backroll is MANDATORY to consolidate primer into drywall pores.",
+    "no_ceiling_masking": "Do NOT mask drywall ceilings when working on walls. Cut in (roll method) or spray directly into corner (spray_backroll when ceiling is primed).",
+    "roller_nap_textured": "Use 1/2\" nap for orange peel and knockdown textures. Do NOT use 3/4\" nap — that's only for stomp/popcorn or porous masonry.",
+    "roller_size_flexibility": "18-inch roller is typical for spray+backroll but 9-inch is acceptable when obstacles prevent 18-inch use."
+  },
 
-  "dependencies": {
-    "research": "research.json",
-    "materials": "materials.json",
-    "sop_modules": "sop_modules.json",
-    "production": "production.json"
+  "cross_spec_coordination": {
+    "xspec_flag": "XSPEC_WALL_PRIME_INSPECTION_COMPLETE",
+    "impact": "If inspection/repair is performed during wall prime, SF_DRYWALL_WALL_NC_FINISH should check this flag and reduce or eliminate its first inspection/repair round to avoid double-counting labor.",
+    "coordination_with": ["SF_DRYWALL_WALL_NC_FINISH"]
   },
 
   "change_log": [
@@ -364,7 +306,13 @@
       "version": "0.1.0",
       "date": "2026-02-02",
       "author": "SpecFactory",
-      "changes": "Initial draft spec family for NC drywall wall priming. Generated from brief specs/_backlog/SF_DRYWALL_WALL_NC_PRIME/brief.md. Mirrors SF_DRYWALL_CEILING_NC_PRIME structure with wall-specific adjustments: faster production rates (no overhead fatigue), wall height modifiers (H1-H4), floor_perimeter protection for roll / floor_full for spray_backroll, fixture removal via per-room heuristic (avg 6/room), RC-005 enforced (spray-only removed — backroll always required on bare drywall). All 10 brief acceptance criteria met. QA passed with warnings (QA-001: brief sync, QA-002: RC-005 doctrine assignment, QA-003: fixture module scope)."
+      "changes": "Initial draft spec family for NC drywall wall priming."
+    },
+    {
+      "version": "1.0.0",
+      "date": "2026-02-04",
+      "author": "SpecFactory Pipeline (Claude)",
+      "changes": "Complete redo in new format with all review corrections applied. Key changes: (1) Spray-only prohibited — backroll mandatory; (2) No ceiling masking — cut in or spray into corner; (3) 1/2\" nap for knockdown (not 3/4\"); (4) 18\" roller typical but 9\" acceptable; (5) Floor protection conditional on floor_type; (6) Wall rates are independent (not derived from ceiling); (7) Cut-in for roll method only; (8) All RC-001 through RC-004 applied."
     }
   ]
 }

@@ -1,0 +1,604 @@
+{
+  "spec_family_id": "SF_TRIM_NC_PRIME",
+  "version": "0.1.0",
+
+  "scope_summary": "Primer application for interior trim (baseboard, door casing, window casing, other trim) in new construction. Covers substrate-specific primer selection: factory-primed trim (optional additional primer), bare MDF (solvent-based edge sealer + latex face primer), bare FJP (stain-blocking primer required), bare solid wood (standard primer-sealer), and glossy/oil-based existing substrates (bonding primer). Primer requirement is driven by substrate_condition dimension, NOT quality tier. Uses LF as primary UOM per PDCA standard (1 LF trim = 1 SF). This spec is PRIME ONLY - finish coats belong to SF_TRIM_NC_PAINT.",
+
+  "relevant_findings": [
+    "Primer requirement is driven by substrate condition and system specification, NOT quality tier (Fine_Finish_Doctrine Section 2.1 - mandatory doctrine)",
+    "MDF edges MUST receive solvent-based sealer (shellac or oil-based) before ANY latex products. Water-based primers cause irreversible fiber raise on MDF edges. This creates a two-step process for bare MDF.",
+    "FJP (Finger-Joint Pine) REQUIRES stain-blocking primer. Without stain-blocking, resin bleed-through will appear as amber/yellow discoloration within weeks/months. This is non-negotiable for bare FJP.",
+    "Factory primer on pre-primed trim is transit protection, not finish-ready prep. Per Millwork_NC_Paint_Doctrine Section 2.3: factory primer is often thin and may have handling damage.",
+    "Per PDCA standard, each LF of trim is counted as 1 SF regardless of actual width (Millwork_NC_Paint_Doctrine Section 1.3)",
+    "Brush is the NC production standard for trim priming. Spray requires wall protection but is faster for large scope (Fine_Finish_Doctrine Section 15.1.1).",
+    "Profile complexity modifiers per Millwork_NC_Paint_Doctrine Section 7.2: Simple=0.85x, Standard=1.0x, Complex=1.25x, Ornate=1.40x",
+    "In NC sequence, trim is typically installed AFTER walls are primed but BEFORE walls are finish painted",
+    "Quality tier controls inspection/repair scrutiny, NOT primer selection or application quality",
+    "Trim joints (miters, copes, scarf joints) require caulking - approximately 1 joint per 8-12 LF of trim",
+    "Casing end grain exposures require grain fill - typically 2 per door opening, 4 per window opening",
+    "Floor protection is conditional on floor_type site condition - subfloor may require no protection",
+    "Glossy/oil-based existing substrates require adhesion testing and bonding primer"
+  ],
+
+  "condition_drivers": [
+    {
+      "driver": "substrate_condition",
+      "impact": "Primary driver for primer system selection. Each substrate type requires different primer chemistry and may require multiple steps (e.g., MDF edge seal + face prime).",
+      "values": ["factory_primed", "bare_mdf", "bare_fjp", "bare_solid_wood", "glossy_existing", "oil_based_existing"]
+    },
+    {
+      "driver": "primer_on_factory_primed",
+      "impact": "User configuration whether to apply additional primer coat on factory-primed trim. Factory primer is transit protection, often thin.",
+      "values": ["true", "false"]
+    },
+    {
+      "driver": "quality_tier",
+      "impact": "Drives inspection/repair intensity and scrutiny level. Does NOT affect primer selection. QT3=quick glance at 6ft, QT4=systematic scan at 3ft, QT5=lighted critical at arm's length.",
+      "values": ["QT3", "QT4", "QT5"]
+    },
+    {
+      "driver": "application_method",
+      "impact": "Brush is NC production standard. Spray requires wall protection but faster for large volume. Both must achieve QT standards.",
+      "values": ["brush", "spray"]
+    },
+    {
+      "driver": "profile_complexity",
+      "impact": "Affects production rates. More complex profiles require more time per LF.",
+      "values": ["simple", "standard", "complex", "ornate"]
+    },
+    {
+      "driver": "trim_height",
+      "impact": "Affects production via height modifiers. Standard (7-8ft) = H1, Tall (9-12ft) = H2, High (13ft+) = H3.",
+      "values": ["standard", "tall", "high"]
+    }
+  ],
+
+  "quality_differences": [
+    {
+      "aspect": "Inspection scrutiny",
+      "qt3": "Quick glance at 6ft distance - obvious defects only",
+      "qt4": "Systematic scan at 3ft - all visible defects marked",
+      "qt5": "Lighted critical inspection at arm's length - zero tolerance"
+    },
+    {
+      "aspect": "Fastener hole fill",
+      "qt3": "Fill obvious holes; small pinholes may be left",
+      "qt4": "Fill all visible holes",
+      "qt5": "Fill every hole, no matter how small"
+    },
+    {
+      "aspect": "Gap/crack fill",
+      "qt3": "Fill gaps that would show through finish",
+      "qt4": "Fill all gaps",
+      "qt5": "Fill all gaps, perfect smooth finish"
+    },
+    {
+      "aspect": "Caulk joints",
+      "qt3": "Functional caulk; bead appearance acceptable",
+      "qt4": "Smooth caulk lines",
+      "qt5": "Perfect tooled caulk, invisible joints"
+    },
+    {
+      "aspect": "Surface sand",
+      "qt3": "Light scuff for adhesion (150-180 grit)",
+      "qt4": "Full sand 180-220 grit",
+      "qt5": "Thorough sand 220+ grit, uniform scratch pattern"
+    },
+    {
+      "aspect": "Primer application quality",
+      "qt3": "Same as QT4/QT5 - application quality is NOT tiered",
+      "qt4": "Same as QT3/QT5",
+      "qt5": "Same as QT3/QT4"
+    }
+  ],
+
+  "failure_modes": [
+    {
+      "failure": "MDF edge fiber raise",
+      "cause": "Applying water-based primer to raw MDF edges before solvent-based sealer",
+      "prevention": "ALWAYS seal MDF edges with shellac-based or oil-based sealer FIRST, then apply latex primer to faces",
+      "severity": "critical",
+      "reversibility": "Difficult - requires sanding back to substrate"
+    },
+    {
+      "failure": "FJP resin bleed-through",
+      "cause": "Using non-stain-blocking primer on FJP",
+      "prevention": "ALWAYS use stain-blocking primer on bare FJP (shellac-based like BIN, or high-quality acrylic stain-blocking like KILZ 3)",
+      "severity": "critical",
+      "reversibility": "Difficult - bleed may re-emerge through multiple finish coats"
+    },
+    {
+      "failure": "Adhesion failure on glossy/oil substrates",
+      "cause": "Painting over glossy or oil-based existing finish without proper prep and bonding primer",
+      "prevention": "Adhesion test, thorough degloss/sand, and bonding primer (STIX, BIN, or equivalent)",
+      "severity": "critical",
+      "reversibility": "Requires stripping and restart"
+    },
+    {
+      "failure": "Primer lifting from factory-primed trim",
+      "cause": "Factory primer contaminated with oils, wax, or silicone from handling/shipping",
+      "prevention": "Scuff sand factory-primed surfaces and clean with tack cloth before additional primer or finish",
+      "severity": "major",
+      "reversibility": "Spot scrape and reprime affected areas"
+    },
+    {
+      "failure": "Telegraphing joints on FJP",
+      "cause": "FJP finger joints moving and showing through finish over time",
+      "prevention": "High-build primer, multiple coats, proper joint sealing",
+      "severity": "major",
+      "reversibility": "Difficult - structural movement continues"
+    },
+    {
+      "failure": "Grain raise on bare wood",
+      "cause": "Water-based primer raising wood grain on bare softwood",
+      "prevention": "Accept first coat grain raise, sand smooth before additional coats. Expected behavior.",
+      "severity": "minor",
+      "reversibility": "Normal interstage sanding addresses this"
+    },
+    {
+      "failure": "Flash rusting at fasteners",
+      "cause": "Water-based primer over bare nail heads causing rust spots",
+      "prevention": "Spot-prime fastener heads with shellac or oil-based primer before full coat (mostly repaint concern)",
+      "severity": "minor",
+      "reversibility": "Spot treat and reprime"
+    }
+  ],
+
+  "substrate_specific_requirements": [
+    {
+      "substrate": "factory_primed",
+      "primer_type": "High-build latex (optional)",
+      "prep_required": ["Light scuff sand (150-180 grit)", "Clean with tack cloth", "Fill fastener holes", "Caulk joints"],
+      "mandatory": false,
+      "notes": "Factory primer is transit protection. Additional primer recommended for quality work but user-configurable."
+    },
+    {
+      "substrate": "bare_mdf",
+      "primer_type": "Two-step: (1) Solvent-based sealer on EDGES ONLY, (2) High-build latex on FACES",
+      "prep_required": ["Sand faces 220 grit", "Sand edges 120 grit (open pores)", "Clean dust thoroughly", "Fill fastener holes", "Caulk joints"],
+      "mandatory": true,
+      "notes": "MDF edge sealing is MANDATORY. Water-based primers cause irreversible fiber raise on MDF edges. Edges require solvent-based sealer (shellac or oil-based) BEFORE any latex. Faces can receive latex primer after edge seal."
+    },
+    {
+      "substrate": "bare_fjp",
+      "primer_type": "Stain-blocking primer (shellac-based or high-quality acrylic)",
+      "prep_required": ["Light sand 150-180 grit", "Clean dust", "Fill fastener holes", "Fill joint voids if present", "Caulk joints"],
+      "mandatory": true,
+      "notes": "FJP stain-blocking is MANDATORY. Without stain-blocking, resin bleed will occur. Shellac-based (BIN) or high-quality acrylic stain-blocking (KILZ 3) required. Standard primers will NOT block resin."
+    },
+    {
+      "substrate": "bare_solid_wood",
+      "primer_type": "Standard primer-sealer (acrylic latex)",
+      "prep_required": ["Sand 150-180 grit", "Clean dust", "Fill fastener holes", "Caulk joints", "Spot prime knots with shellac if present"],
+      "mandatory": true,
+      "notes": "Standard softwood (pine, poplar) requires basic primer-sealer. Knots may require shellac spot prime for stain blocking."
+    },
+    {
+      "substrate": "glossy_existing",
+      "primer_type": "Bonding primer",
+      "prep_required": ["Degloss/sand 120-150 grit", "Clean thoroughly", "Fill defects", "Caulk as needed"],
+      "mandatory": true,
+      "notes": "Glossy surfaces have low porosity - degloss and bonding primer required for adhesion."
+    },
+    {
+      "substrate": "oil_based_existing",
+      "primer_type": "Bonding primer",
+      "prep_required": ["Adhesion test", "Degloss/sand 120-150 grit", "Clean with solvent", "Fill defects", "Caulk as needed"],
+      "mandatory": true,
+      "notes": "Oil-based/alkyd finishes require adhesion testing and bonding primer. Latex over oil can fail without proper bonding primer."
+    }
+  ],
+
+  "required_paintscope_keys": [
+    {
+      "key": "PS_SURFACE_LF.TRIM_BASEBOARD",
+      "description": "Baseboard linear footage",
+      "uom": "LF",
+      "required": false,
+      "required_when": "When baseboard is in scope",
+      "catalog_status": "EXISTS"
+    },
+    {
+      "key": "PS_SURFACE_LF.TRIM_CASING_DOOR",
+      "description": "Door casing linear footage",
+      "uom": "LF",
+      "required": false,
+      "required_when": "When door casing is in scope",
+      "catalog_status": "EXISTS"
+    },
+    {
+      "key": "PS_SURFACE_LF.TRIM_CASING_WINDOW",
+      "description": "Window casing linear footage",
+      "uom": "LF",
+      "required": false,
+      "required_when": "When window casing is in scope",
+      "catalog_status": "EXISTS"
+    },
+    {
+      "key": "PS_SURFACE_LF.TRIM_OTHER",
+      "description": "Other trim linear footage (chair rail, picture rail, etc.)",
+      "uom": "LF",
+      "required": false,
+      "required_when": "When other trim types are in scope",
+      "catalog_status": "EXISTS"
+    },
+    {
+      "key": "PS_EDGE_LF.TRIM_JOINTS",
+      "description": "Trim joint linear footage for caulking (miters, copes, scarf joints)",
+      "uom": "LF",
+      "required": true,
+      "required_when": "Always - all trim has joints requiring caulk",
+      "catalog_status": "EXISTS",
+      "derivation_note": "Approximately 1 joint per 8-12 LF of trim. Can derive from total trim LF."
+    },
+    {
+      "key": "PS_META.EA.CASING_END_COUNT",
+      "description": "Count of casing end grain exposures requiring grain fill",
+      "uom": "EA",
+      "required": false,
+      "required_when": "When bare wood substrate (not factory primed)",
+      "catalog_status": "EXISTS",
+      "derivation_note": "Typically 2 per door opening, 4 per window opening"
+    },
+    {
+      "key": "PS_PROTECT_SF.FLOOR_PERIMETER",
+      "description": "Perimeter floor protection area",
+      "uom": "SF",
+      "required": true,
+      "required_when": "Always for brush method, floor_type is finished or partial",
+      "catalog_status": "EXISTS"
+    },
+    {
+      "key": "PS_PROTECT_LF.WALL_ADJACENT",
+      "description": "Wall masking at trim edge when spraying",
+      "uom": "LF",
+      "required": false,
+      "required_when": "application_method = spray",
+      "catalog_status": "EXISTS"
+    },
+    {
+      "key": "PS_PROTECT_EA.ASSET.FIXTURES",
+      "description": "Count of fixtures (outlets/switches) near spray zone",
+      "uom": "EA",
+      "required": false,
+      "required_when": "application_method = spray",
+      "catalog_status": "EXISTS"
+    }
+  ],
+
+  "proposed_new_keys": [],
+
+  "adjacency_notes": [
+    {
+      "edge_type": "trim_to_wall",
+      "scope_impact": "Trim priming occurs against wall. In NC sequence, walls are typically primed but not finish painted when trim prime occurs. No masking of walls for brush method. Spray method requires wall masking (light_mask if primed, full_mask if finished).",
+      "paintscope_key": "PS_PROTECT_LF.WALL_ADJACENT",
+      "nc_context": "Walls at SS_PRIMED state during trim prime phase (typical NC sequence)"
+    },
+    {
+      "edge_type": "trim_baseboard_to_floor",
+      "scope_impact": "Baseboard bottom edge meets floor. Floor is not painted. Floor protection (drops) required to catch drips.",
+      "paintscope_key": null,
+      "nc_context": "Floor may be subfloor or finished depending on construction sequence"
+    },
+    {
+      "edge_type": "trim_casing_to_door_frame",
+      "scope_impact": "Door casing typically same finish as door frame. Often painted in same session.",
+      "paintscope_key": null,
+      "nc_context": "Door frame and casing often share finish group"
+    },
+    {
+      "edge_type": "trim_casing_to_window_jamb",
+      "scope_impact": "Window casing typically same finish as window jamb. Often painted in same session.",
+      "paintscope_key": null,
+      "nc_context": "Window jamb and casing often share finish group"
+    }
+  ],
+
+  "protection_zones_analysis": {
+    "spec_category": "trim",
+    "zones": [
+      {
+        "zone_id": "floor_perimeter",
+        "condition": "always (when floor_type = finished or partial)",
+        "protection_level": "edge_only",
+        "paintscope_key": "PS_PROTECT_SF.FLOOR_PERIMETER",
+        "upgrade_scenario": null,
+        "notes": "Drop cloth runners along trim work area for drip catching. Both brush and spray methods."
+      },
+      {
+        "zone_id": "wall_adjacent",
+        "condition": "application_method = spray",
+        "protection_level": "light_mask",
+        "paintscope_key": "PS_PROTECT_LF.WALL_ADJACENT",
+        "upgrade_scenario": "Upgrades to heavy_mask if walls are SS_PAINTED",
+        "notes": "Tape line + paper at wall-trim edge when spraying. Protects wall from overspray."
+      },
+      {
+        "zone_id": "fixture_covers",
+        "condition": "application_method = spray",
+        "protection_level": "partial_cover",
+        "paintscope_key": "PS_PROTECT_EA.ASSET.FIXTURES",
+        "upgrade_scenario": null,
+        "notes": "Cover outlets/switches near spray zone"
+      }
+    ],
+    "zone_reference": "docs/Reference/Protection_Zones_Reference.md",
+    "conditional_protection_note": "Floor protection is conditional on floor_type site condition. Subfloor (typical early NC sequence) may require no floor protection. Finished/partial floors require protection regime."
+  },
+
+  "adjacency_analysis": {
+    "primary_surface": "trim (baseboard, casing)",
+    "adjacent_surfaces": [
+      {
+        "surface_id": "wall_field",
+        "edge_type": "linear",
+        "typical_relationship": "different_finish",
+        "edge_work_required": false,
+        "notes": "Trim and wall commonly different colors. Trim prime does not require wall edge work - wall is painted later and cuts into trim edge. For spray method, wall masking IS required."
+      },
+      {
+        "surface_id": "floor",
+        "edge_type": "linear",
+        "typical_relationship": "not_in_scope",
+        "edge_work_required": false,
+        "notes": "Floor is not painted. Floor protection only."
+      },
+      {
+        "surface_id": "door_frame",
+        "edge_type": "linear",
+        "typical_relationship": "same_finish",
+        "edge_work_required": false,
+        "notes": "Door casing and door frame typically share finish. Often painted in same session."
+      },
+      {
+        "surface_id": "window_jamb",
+        "edge_type": "linear",
+        "typical_relationship": "same_finish",
+        "edge_work_required": false,
+        "notes": "Window casing and window jamb typically share finish. Often painted in same session."
+      },
+      {
+        "surface_id": "ceiling_field",
+        "edge_type": "linear",
+        "typical_relationship": "different_finish",
+        "edge_work_required": false,
+        "notes": "Crown molding touches ceiling. In NC, ceiling is typically primed when crown is installed. No crown masking of ceiling needed - ceiling will be cut in during ceiling finish."
+      }
+    ],
+    "surface_reference": "docs/Reference/Surface_Vocabulary_Reference.md"
+  },
+
+  "site_condition_analysis": {
+    "affected_conditions": [
+      {
+        "condition_id": "floor_type",
+        "affected_task_types": ["protect"],
+        "include_values": ["finished", "partial"],
+        "exclude_values": ["subfloor"],
+        "modifier_notes": null,
+        "notes": "Floor protection required only when finished floors present. Subfloor requires no protection."
+      },
+      {
+        "condition_id": "occupancy_state",
+        "affected_task_types": ["protect"],
+        "include_values": ["occupied_crew_handles", "occupied_sensitive"],
+        "exclude_values": ["vacant"],
+        "modifier_notes": "occupied_sensitive triggers OCC_SENSITIVE modifier 1.30x on protection tasks per Modifier_Registry",
+        "notes": "Additional furniture/item protection when occupied. Rare in NC context."
+      },
+      {
+        "condition_id": "lead_status",
+        "affected_task_types": ["prep", "prime"],
+        "include_values": ["tested_positive", "unknown_pre1978"],
+        "exclude_values": ["tested_negative", "not_applicable"],
+        "modifier_notes": "tested_positive=2.0x, unknown_pre1978=1.5x per Modifier_Registry",
+        "notes": "Lead-safe practices when applicable. Rare in NC (post-1978 construction)."
+      },
+      {
+        "condition_id": "access_constraint",
+        "affected_task_types": ["prep", "prime"],
+        "include_values": ["step_ladder", "extension_ladder"],
+        "exclude_values": ["none"],
+        "modifier_notes": "Height modifiers H1-H4 per Modifier_Registry: H1=1.0, H2=1.3, H3=1.5, H4=2.0",
+        "notes": "Height access for elevated trim (crown, high casings). Standard baseboard/casing at floor level."
+      }
+    ],
+    "condition_reference": "docs/Reference/Site_Condition_Vocabulary_Reference.md",
+    "modifier_reference": "docs/Doctrine/Modifier_Registry.md"
+  },
+
+  "state_analysis": {
+    "primary_surface": "trim (baseboard, casing, other)",
+    "valid_input_states": {
+      "states": ["SS_PRIMED_FACTORY", "SS_BARE", "SS_PAINTED_SEMIGLOSS", "SS_PAINTED_GLOSS", "SS_PAINTED_ALKYD"],
+      "rationale": "NC trim arrives as factory-primed (most common) or bare. Remodel/addition scenarios may encounter existing painted trim. Each input state drives primer selection."
+    },
+    "output_state": {
+      "state": "SS_PRIMED_FIELD",
+      "varies_by": null,
+      "rationale": "All substrate scenarios output field-primed state, ready for finish coats. This is the target state for SF_TRIM_NC_PAINT input."
+    },
+    "adjacent_state_protection_analysis": [
+      {
+        "adjacent_surface": "wall_field",
+        "finished_states": ["SS_PAINTED_FLAT", "SS_PAINTED_EGGSHELL", "SS_PAINTED_SATIN"],
+        "unfinished_states": ["SS_BARE", "SS_PRIMED_FIELD"],
+        "protection_when_finished": "light_mask",
+        "protection_when_unfinished": "none",
+        "rationale": "In typical NC sequence, walls are primed but not finish painted during trim prime. No wall protection needed for brush. Spray requires light_mask at wall-trim edge. If walls are already finish painted (atypical), full protection required."
+      },
+      {
+        "adjacent_surface": "floor",
+        "finished_states": ["finished flooring installed"],
+        "unfinished_states": ["subfloor"],
+        "protection_when_finished": "floor_perimeter",
+        "protection_when_unfinished": "none",
+        "rationale": "Floor protection via perimeter drops when finished floors present. No protection needed on subfloor."
+      }
+    ],
+    "state_reference": "docs/Reference/Substrate_State_Reference.md"
+  },
+
+  "notes_for_materials_manager": [
+    "Material selection is SUBSTRATE-DRIVEN per Fine_Finish_Doctrine Section 2.1 - this is mandatory doctrine",
+    "MDF edges: Solvent-based sealer ONLY (shellac-based like Zinsser BIN, or oil-based like KILZ Original). Water-based causes fiber raise.",
+    "MDF faces: High-build latex primer (ProClassic Undercoater, Fresh Start 046)",
+    "FJP: Stain-blocking primer MANDATORY (Zinsser BIN Shellac, KILZ 3, Cover Stain). Non-stain-blocking primers WILL fail on FJP.",
+    "Bare solid wood: Standard acrylic primer-sealer (Zinsser Bulls Eye 1-2-3, KILZ 2). Spot prime knots with shellac if present.",
+    "Glossy/oil existing: Bonding primer (Zinsser STIX, BIN, XIM UMA)",
+    "Factory primed (if adding primer): High-build latex undercoater",
+    "Coverage rates per Millwork_NC_Paint_Doctrine: ~400-500 LF/gal for standard primer",
+    "Caulk: Paintable acrylic latex caulk for all trim joints",
+    "Filler: Lightweight spackling for fastener holes, wood filler for grain fill on end grain"
+  ],
+
+  "notes_for_sop_librarian": [
+    "Module structure follows Fine Finish pattern: MOD_FF_SETUP, MOD_FF_INITIAL_PREP, MOD_FF_PRIME, MOD_FF_CLEANUP",
+    "NO interstage or finish modules in prime spec - those belong to SF_TRIM_NC_PAINT",
+    "Substrate condition dimension drives which primer tasks are included",
+    "MDF requires TWO prime tasks: TSK_TRIM_SEAL_MDF_EDGES (solvent-based) + TSK_TRIM_PRIME_MDF_FACES (latex)",
+    "FJP requires stain-blocking primer task - NOT optional, NOT configurable",
+    "Task IDs should use TSK_TRIM_PRIME_* prefix",
+    "Fill fastener holes task: TSK_TRIM_FILL_FASTENERS (use LF heuristic: 2 holes per 12-16 inches)",
+    "Caulk joints task: TSK_TRIM_CAULK_JOINTS (all miter/cope/scarf joints)",
+    "Grain fill task: TSK_TRIM_FILL_GRAIN (end grain on bare wood casings)",
+    "Inspection/repair intensity is QT-scaled but primer application is binary (same at all tiers)",
+    "Floor protection tasks conditional on floor_type site condition",
+    "Wall masking tasks conditional on application_method = spray"
+  ],
+
+  "notes_for_estimation_engineer": [
+    "Base rates from PaintFactor_Production_Rate_Reference.md - use SYSTEM 3: INTERIOR TRIM rates",
+    "Brush primer rate baseline: ~100 LF/hr (TSK_TRIM_BRUSH_PRIME)",
+    "Spray primer rate baseline: ~400 LF/hr (TSK_TRIM_SPRAY_PRIME)",
+    "Fill fastener holes: ~120 LF/hr (TSK_TRIM_FILL_FASTENERS)",
+    "Caulk joints: ~120-150 LF/hr (TSK_TRIM_CAULK_JOINTS)",
+    "Initial sand: ~400 LF/hr (TSK_TRIM_SAND_INITIAL)",
+    "Clean sanding dust: ~600 LF/hr (TSK_TRIM_CLEAN_DUST)",
+    "Profile complexity modifiers (Millwork_NC_Paint_Doctrine Section 7.2): Simple=0.85, Standard=1.0, Complex=1.25, Ornate=1.40",
+    "Height modifiers (Modifier_Registry): H1=1.0 (7-8ft), H2=1.3 (9-12ft), H3=1.5 (13-17ft)",
+    "QT modifiers for inspection/repair only (not application): QT3=1.0, QT4=1.3, QT5=1.5",
+    "MDF edge sealing adds separate task time - not faster, different task",
+    "FJP stain-blocking primer applies at same rate as standard primer",
+    "Surface type modifiers (Production Rate Reference): MDF=1.0, pine=1.05, ornate=1.40"
+  ],
+
+  "assumptions": [
+    "NC trim is predominantly factory-primed MDF or FJP - bare wood trim is less common but supported",
+    "Standard ceiling height 7-8ft is baseline; height modifiers apply for elevated trim work",
+    "Trim is installed AFTER walls are primed in typical NC sequence",
+    "Trim joints are properly cut (miters, copes) by carpenter - painter fills and caulks, does not repair structural gaps",
+    "Drywall is complete before trim installation - no painter interaction with drywall contractor",
+    "Factory primer is intact but may be thin or have handling damage - requires scuff sand",
+    "MDF edge condition is raw (not sealed at factory) for bare MDF substrate condition",
+    "Floor type varies by construction sequence - floor_type site condition determines protection"
+  ],
+
+  "uncertainties": [
+    "Exact prevalence of factory-primed vs bare trim in NC market - assumed factory-primed is majority",
+    "MDF edge sealer coverage rate (LF/qt) - needs field validation",
+    "FJP joint telegraphing rate over time - structural, beyond painter control",
+    "Profile complexity distribution in typical NC project - assumed 70% standard, 20% simple, 10% complex/ornate",
+    "Spray vs brush preference by contractor for NC trim priming - assumed brush is more common"
+  ],
+
+  "production_rate_summary": {
+    "brush_prime_lf_per_hour": {
+      "simple_profile": 118,
+      "standard_profile": 100,
+      "complex_profile": 80,
+      "ornate_profile": 71,
+      "notes": "Base 100 LF/hr with complexity modifiers applied"
+    },
+    "spray_prime_lf_per_hour": {
+      "simple_profile": 470,
+      "standard_profile": 400,
+      "complex_profile": 320,
+      "ornate_profile": 286,
+      "notes": "Base 400 LF/hr with complexity modifiers applied. Requires wall masking setup time."
+    },
+    "prep_tasks_lf_per_hour": {
+      "fill_fasteners": 120,
+      "caulk_joints": 120,
+      "initial_sand": 400,
+      "clean_dust": 600,
+      "notes": "Prep tasks are generally binary (same at all QTs) but fill/caulk scrutiny varies"
+    },
+    "height_adjusted_note": "Apply H1-H4 modifiers for elevated work (crown molding, high casings)"
+  },
+
+  "method_comparison": {
+    "brush": {
+      "advantages": ["No wall masking needed", "No overspray risk", "Works in occupied spaces", "Lower setup cost"],
+      "disadvantages": ["Slower production rate", "More labor intensive"],
+      "appropriate_when": ["Small to medium scope", "Occupied spaces", "Walls are already finish painted", "Punch list/touch-up"]
+    },
+    "spray": {
+      "advantages": ["4x faster application rate", "More uniform coating", "Better for large volume NC"],
+      "disadvantages": ["Wall masking required", "Floor protection for overspray", "Equipment setup time", "Not suitable for occupied"],
+      "appropriate_when": ["Large volume NC production", "Walls not yet finish painted", "Unoccupied construction site", "Full floor protection acceptable"]
+    },
+    "doctrine_reference": "Fine_Finish_Doctrine Section 15.1.1"
+  },
+
+  "doctrine_references": [
+    {
+      "doctrine": "Fine Finish Doctrine",
+      "path": "docs/Doctrine/Fine_Finish_Doctrine.md",
+      "sections_used": ["Section 2.1 (Primer is configuration)", "Section 3.6 (Primer selection by substrate)", "Section 5 (Module structure)", "Section 6 (Initial Prep Phase)", "Section 10.1 (Trim substrate considerations)", "Section 15 (Brush and Roll Method)"]
+    },
+    {
+      "doctrine": "Millwork NC Paint Doctrine",
+      "path": "docs/Doctrine/Millwork_NC_Paint_Doctrine.md",
+      "sections_used": ["Section 1.3 (LF to SF conversion - PDCA standard)", "Section 2 (Substrate classification - MDF, FJP)", "Section 3 (Surface Preparation Matrix)", "Section 4 (Primer Systems)", "Section 7.2 (Complexity Modifiers)"]
+    },
+    {
+      "doctrine": "Quality Tiers and Surface Condition",
+      "path": "docs/Doctrine/Quality_Tiers_and_Surface_Condition.md",
+      "sections_used": ["QT definitions", "Task classification (binary vs qt_scaled)", "Inspection discipline by tier"]
+    },
+    {
+      "doctrine": "Protection and Masking Doctrine",
+      "path": "docs/Doctrine/Protection_and_Masking_Doctrine.md",
+      "sections_used": ["Mask level definitions", "Floor protection by method"]
+    },
+    {
+      "doctrine": "Modifier Registry",
+      "path": "docs/Doctrine/Modifier_Registry.md",
+      "sections_used": ["Height modifiers (H1-H4)", "Quality tier modifiers", "Surface condition modifiers"]
+    },
+    {
+      "reference": "Protection Zones Reference",
+      "path": "docs/Reference/Protection_Zones_Reference.md",
+      "sections_used": ["Zone catalog", "Commonly paired zones by spec type - Trim"]
+    },
+    {
+      "reference": "Surface Vocabulary Reference",
+      "path": "docs/Reference/Surface_Vocabulary_Reference.md",
+      "sections_used": ["Trim surfaces - Linear", "Door system surfaces"]
+    },
+    {
+      "reference": "Site Condition Vocabulary Reference",
+      "path": "docs/Reference/Site_Condition_Vocabulary_Reference.md",
+      "sections_used": ["floor_type", "occupancy_state", "lead_status", "access_constraint"]
+    },
+    {
+      "reference": "Substrate State Reference",
+      "path": "docs/Reference/Substrate_State_Reference.md",
+      "sections_used": ["SS_PRIMED_FACTORY", "SS_BARE", "SS_PRIMED_FIELD", "State transition declarations"]
+    },
+    {
+      "reference": "PaintScope Quantity Key Catalog",
+      "path": "docs/PaintScope/PaintScope_Quantity_Key_Catalog.md",
+      "sections_used": ["Trim (LF-based)", "Edge (EdgeLF) Quantity Keys", "Protection Quantity Keys"]
+    },
+    {
+      "reference": "PaintFactor Production Rate Reference",
+      "path": "production rates/PaintFactor_Production_Rate_Reference.md",
+      "sections_used": ["SYSTEM 3: INTERIOR TRIM", "MOD_SURF modifiers", "MOD_HT modifiers"]
+    }
+  ],
+
+  "confidence_level": "high"
+}

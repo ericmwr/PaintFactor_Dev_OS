@@ -1,0 +1,434 @@
+{
+  "spec_family": {
+    "id": "SF_DRYWALL_WALL_NC_FINISH",
+    "name": "New Construction Drywall Wall Finish Coat",
+    "description": "Finish coat application (1-2 coats) for primed drywall walls in new construction. Applied over cured primer. Wall painter establishes the clean ceiling line via cut-in at the wall-to-ceiling boundary. Walls are painted AFTER ceilings in NC production. Separate from prime because finish happens after primer cures and may occur after trim install begins.",
+    "domain": "interior",
+    "context": "NC",
+    "version": "0.1.0",
+    "status": "draft",
+    "review_required": true
+  },
+
+  "configuration_dimensions": [
+    {
+      "dimension_id": "quality_tier",
+      "description": "Quality tier affects coat count, prep intensity, and inspection scrutiny",
+      "values": ["QT2", "QT3", "QT4", "QT5"],
+      "default": "QT3",
+      "notes": "Coat count: QT2=1 coat, QT3=2 coats (1 if coverage achieved), QT4-QT5=2 coats. Sheen restricts minimum QT: flat/matte/eggshell=any QT, satin/semi-gloss=QT4+, gloss=QT5."
+    },
+    {
+      "dimension_id": "application_method",
+      "description": "Method of applying wall finish paint",
+      "values": ["roll", "spray_backroll", "spray"],
+      "default": "spray_backroll",
+      "notes": "Spray+backroll is NC production standard. 18\" roller per doctrine."
+    },
+    {
+      "dimension_id": "finish_sheen",
+      "description": "Sheen level of the wall finish paint",
+      "values": ["flat", "matte", "eggshell", "satin", "semi-gloss"],
+      "default": "eggshell",
+      "notes": "Eggshell is standard for walls. Flat/matte/eggshell available at any QT. Satin/semi-gloss require QT4+. Gloss is NOT available for drywall walls."
+    },
+    {
+      "dimension_id": "surface_texture",
+      "description": "Surface texture of the drywall wall",
+      "values": ["smooth", "orange_peel", "knockdown"],
+      "default": "smooth",
+      "notes": "Texture affects coverage rate and application technique"
+    },
+    {
+      "dimension_id": "wall_height",
+      "description": "Height classification affecting access and productivity",
+      "values": ["standard", "tall", "high", "extreme"],
+      "default": "standard",
+      "notes": "standard (<=9ft), tall (10-12ft), high (13-17ft), extreme (18ft+). Drives height modifier per Estimation_Modifiers_Doctrine."
+    }
+  ],
+
+  "paintable_items": [
+    {
+      "item_id": "ITM_WALL_FIELD_FINISH",
+      "name": "Wall field finish coat",
+      "unit_of_measure": "SF",
+      "counting_rules": "PaintScope: PS_SURFACE_SF.WALL_FIELD",
+      "notes": "Total wall area receiving finish coat(s)"
+    },
+    {
+      "item_id": "ITM_WALL_EDGE_CEILING",
+      "name": "Ceiling edge cut-in",
+      "unit_of_measure": "LF",
+      "counting_rules": "PaintScope: PS_EDGE_LF.TO_CEILING",
+      "notes": "Wall painter establishes ceiling line. Critical difference from ceiling finish."
+    }
+  ],
+
+  "variants": [
+    {
+      "variant_id": "VAR_QT2_SINGLE_COAT",
+      "applies_when": {
+        "quality_tier": ["QT2"]
+      },
+      "included_items": ["ITM_WALL_FIELD_FINISH", "ITM_WALL_EDGE_CEILING"],
+      "excluded_items": [],
+      "notes": "QT2 economy tier: single coat, minimal prep, no inspection/repair module"
+    },
+    {
+      "variant_id": "VAR_QT3_TWO_COAT",
+      "applies_when": {
+        "quality_tier": ["QT3"]
+      },
+      "included_items": ["ITM_WALL_FIELD_FINISH", "ITM_WALL_EDGE_CEILING"],
+      "excluded_items": [],
+      "notes": "QT3 standard tier: two coats default (1 acceptable if coverage achieved), inspection/repair module"
+    },
+    {
+      "variant_id": "VAR_QT4_QT5_PREMIUM",
+      "applies_when": {
+        "quality_tier": ["QT4", "QT5"]
+      },
+      "included_items": ["ITM_WALL_FIELD_FINISH", "ITM_WALL_EDGE_CEILING"],
+      "excluded_items": [],
+      "notes": "QT4/QT5 premium: two coats mandatory, intercoat sanding, critical inspection"
+    }
+  ],
+
+  "required_paintscope_inputs": [
+    {
+      "input_name": "IN_SF_WALL_FIELD",
+      "paintscope_key": "PS_SURFACE_SF.WALL_FIELD",
+      "uom": "SF",
+      "required": true,
+      "description": "Total wall area to finish"
+    },
+    {
+      "input_name": "IN_LF_EDGE_TO_CEILING",
+      "paintscope_key": "PS_EDGE_LF.TO_CEILING",
+      "uom": "LF",
+      "required": true,
+      "description": "Wall-to-ceiling boundary for cut-in (wall painter establishes ceiling line)"
+    },
+    {
+      "input_name": "IN_SF_FLOOR_VACUUM_AREA",
+      "paintscope_key": "PS_META.SF.FLOOR_VACUUM_AREA",
+      "uom": "SF",
+      "required": true,
+      "description": "Floor area for post-application vacuum cleanup"
+    },
+    {
+      "input_name": "IN_SF_FLOOR_PROTECTION",
+      "paintscope_key": "PS_PROTECT_SF.FLOOR_EXPOSED",
+      "uom": "SF",
+      "required": false,
+      "required_when": {
+        "application_method": ["spray", "spray_backroll"],
+        "floor_type": ["finished", "partial"]
+      },
+      "description": "Floor area requiring full protection for spray methods"
+    },
+    {
+      "input_name": "IN_SF_FLOOR_PERIMETER",
+      "paintscope_key": "PS_PROTECT_SF.FLOOR_PERIMETER",
+      "uom": "SF",
+      "required": false,
+      "required_when": {
+        "application_method": ["roll"]
+      },
+      "description": "Perimeter floor protection area for roll method"
+    },
+    {
+      "input_name": "IN_EA_ROOMS",
+      "paintscope_key": "PS_META.EA.ROOMS_TOTAL",
+      "uom": "EA",
+      "required": false,
+      "required_when": {
+        "application_method": ["spray", "spray_backroll"]
+      },
+      "description": "Room count for fixture protection heuristic (avg 6 outlets/switches per room)"
+    },
+    {
+      "input_name": "IN_LF_TRIM_EDGES",
+      "paintscope_key": "PS_PROTECT_LF.TRIM_EDGES",
+      "uom": "LF",
+      "required": true,
+      "description": "Linear feet of trim edges to mask before wall finish application"
+    }
+  ],
+
+  "protection_zones_required": [
+    {
+      "zone_id": "floor_perimeter",
+      "condition": {
+        "application_method": ["roll"]
+      },
+      "protection_level": "edge_only",
+      "upgrades_to_zone": "floor_full",
+      "upgrades_to_level": "full_cover",
+      "upgrade_condition": {
+        "application_method": ["spray", "spray_backroll"]
+      }
+    },
+    {
+      "zone_id": "floor_full",
+      "condition": {
+        "application_method": ["spray", "spray_backroll"]
+      },
+      "protection_level": "full_cover"
+    },
+    {
+      "zone_id": "fixture_covers",
+      "condition": {
+        "application_method": ["spray", "spray_backroll"]
+      },
+      "protection_level": "full_cover"
+    },
+    {
+      "zone_id": "trim_edges",
+      "condition": "always",
+      "protection_level": "edge_only"
+    }
+  ],
+
+  "adjacency_declarations": {
+    "primary_surface": "wall_field",
+    "adjacent_surfaces": [
+      {
+        "surface_id": "ceiling_field",
+        "edge_type": "linear",
+        "typical_relationship": "different_finish",
+        "affected_tasks": ["TSK_CUTIN_WALL_TO_CEILING", "TSK_CUTIN_WALL_TO_CEILING_R2"],
+        "notes": "Wall painter establishes ceiling line via freehand cut-in. Critical edge relationship."
+      },
+      {
+        "surface_id": "trim_baseboard",
+        "edge_type": "linear",
+        "typical_relationship": "different_finish",
+        "affected_tasks": ["TSK_MASK_TRIM_BASEBOARD", "TSK_CUTIN_WALL_TO_TRIM_R1", "TSK_CUTIN_WALL_TO_TRIM_R2", "TSK_CUTIN_WALL_TO_TRIM_SPRAY_R1", "TSK_CUTIN_WALL_TO_TRIM_SPRAY_R2", "TSK_CUTIN_WALL_TO_TRIM_SPRAY_ONLY_R1"],
+        "notes": "Trim package complete and masked before wall finish. Wall painter cuts to tape line at baseboard top edge."
+      },
+      {
+        "surface_id": "trim_casing_door",
+        "edge_type": "linear",
+        "typical_relationship": "different_finish",
+        "affected_tasks": ["TSK_MASK_TRIM_DOOR_CASING", "TSK_CUTIN_WALL_TO_TRIM_R1", "TSK_CUTIN_WALL_TO_TRIM_R2", "TSK_CUTIN_WALL_TO_TRIM_SPRAY_R1", "TSK_CUTIN_WALL_TO_TRIM_SPRAY_R2", "TSK_CUTIN_WALL_TO_TRIM_SPRAY_ONLY_R1"],
+        "notes": "Door casing masked before wall finish. Wall painter cuts to tape line at door casing edges."
+      },
+      {
+        "surface_id": "trim_casing_window",
+        "edge_type": "linear",
+        "typical_relationship": "different_finish",
+        "affected_tasks": ["TSK_MASK_TRIM_WINDOW_CASING", "TSK_CUTIN_WALL_TO_TRIM_R1", "TSK_CUTIN_WALL_TO_TRIM_R2", "TSK_CUTIN_WALL_TO_TRIM_SPRAY_R1", "TSK_CUTIN_WALL_TO_TRIM_SPRAY_R2", "TSK_CUTIN_WALL_TO_TRIM_SPRAY_ONLY_R1"],
+        "notes": "Window casing masked before wall finish. Wall painter cuts to tape line at window casing edges."
+      },
+      {
+        "surface_id": "trim_other",
+        "edge_type": "linear",
+        "typical_relationship": "different_finish",
+        "affected_tasks": ["TSK_CUTIN_WALL_TO_TRIM_R1", "TSK_CUTIN_WALL_TO_TRIM_R2", "TSK_CUTIN_WALL_TO_TRIM_SPRAY_R1", "TSK_CUTIN_WALL_TO_TRIM_SPRAY_R2", "TSK_CUTIN_WALL_TO_TRIM_SPRAY_ONLY_R1"],
+        "notes": "Other trim types (crown molding, chair rail, shadow boxes, etc.) when present. Masked and cut to tape line same as other trim."
+      }
+    ]
+  },
+
+  "state_declarations": {
+    "primary_surface": "wall_field",
+    "valid_input_states": {
+      "states": ["SS_PRIMED", "SS_PRIMED_FIELD"],
+      "notes": "Wall finish requires primed surface. Primer must be cured (refer to PDS for dry times)."
+    },
+    "output_state": {
+      "state": "SS_PAINTED_EGGSHELL",
+      "varies_by": "finish_sheen",
+      "state_map": {
+        "flat": "SS_PAINTED_FLAT",
+        "matte": "SS_PAINTED_FLAT",
+        "eggshell": "SS_PAINTED_EGGSHELL",
+        "satin": "SS_PAINTED_SATIN",
+        "semi-gloss": "SS_PAINTED_SEMIGLOSS"
+      },
+      "notes": "Output state varies by sheen configuration. Eggshell is default for walls."
+    },
+    "adjacent_state_protection_rules": [
+      {
+        "adjacent_surface": "ceiling_field",
+        "when_state": ["SS_PAINTED_FLAT", "SS_PAINTED_EGGSHELL", "SS_PAINTED_SATIN", "SS_PAINTED_SEMIGLOSS"],
+        "protection_zone": null,
+        "protection_level": "none",
+        "notes": "Per doctrine: walls always cut into ceilings freehand, no tape or mask. Wall painter establishes ceiling line with brush cut-in."
+      },
+      {
+        "adjacent_surface": "trim_baseboard",
+        "when_state": ["SS_PAINTED_SATIN", "SS_PAINTED_SEMIGLOSS", "SS_PAINTED_GLOSS"],
+        "protection_zone": "trim_edges",
+        "protection_level": "light_mask",
+        "notes": "Trim package complete and masked before wall finish. Tape line provides cut-in target."
+      },
+      {
+        "adjacent_surface": "trim_casing_door",
+        "when_state": ["SS_PAINTED_SATIN", "SS_PAINTED_SEMIGLOSS", "SS_PAINTED_GLOSS"],
+        "protection_zone": "trim_edges",
+        "protection_level": "light_mask",
+        "notes": "Door casing complete and masked before wall finish."
+      },
+      {
+        "adjacent_surface": "trim_casing_window",
+        "when_state": ["SS_PAINTED_SATIN", "SS_PAINTED_SEMIGLOSS", "SS_PAINTED_GLOSS"],
+        "protection_zone": "trim_edges",
+        "protection_level": "light_mask",
+        "notes": "Window casing complete and masked before wall finish."
+      }
+    ]
+  },
+
+  "dependencies": {
+    "materials": "materials.json",
+    "sop_modules": "sop_modules.json",
+    "production": "production.json",
+    "research": "research.json"
+  },
+
+  "cross_spec_coordination": {
+    "flag_id": "XSPEC_WALL_REPAIR_DONE",
+    "source_spec": "SF_DRYWALL_WALL_NC_PRIME",
+    "description": "If SF_DRYWALL_WALL_NC_PRIME performed comprehensive inspection/repair, wall finish inspection/repair module may be reduced to avoid double-counting."
+  },
+
+  "scope_exclusions": [
+    {
+      "item": "Primer application",
+      "route_to": "SF_DRYWALL_WALL_NC_PRIME"
+    },
+    {
+      "item": "Ceiling finish coats",
+      "route_to": "SF_DRYWALL_CEILING_NC_FINISH"
+    },
+    {
+      "item": "Trim painting",
+      "route_to": "SF_TRIM_NC_PAINT"
+    },
+    {
+      "item": "Textured wall application",
+      "route_to": "Out of scope (texture is pre-paint trade)"
+    }
+  ],
+
+  "quality_sheen_rules": {
+    "description": "Sheen availability by quality tier",
+    "rules": [
+      {
+        "sheens": ["flat", "matte", "eggshell"],
+        "minimum_qt": "QT2",
+        "notes": "Lower sheens hide imperfections; available at any quality tier"
+      },
+      {
+        "sheens": ["satin"],
+        "minimum_qt": "QT4",
+        "notes": "Satin reveals imperfections; requires enhanced prep and sanding discipline"
+      },
+      {
+        "sheens": ["semi-gloss"],
+        "minimum_qt": "QT5",
+        "notes": "Semi-gloss magnifies imperfections on drywall; requires meticulous workmanship"
+      }
+    ],
+    "gloss_note": "Gloss is NOT available for drywall walls. Not a real-world application."
+  },
+
+  "coat_count_rules": {
+    "description": "Coat count by quality tier",
+    "rules": {
+      "QT2": {
+        "coats": 1,
+        "notes": "Economy tier single coat"
+      },
+      "QT3": {
+        "coats": 2,
+        "notes": "Standard residential. Default 2 coats for uniform color depth and hide. 1 coat acceptable if full coverage achieved."
+      },
+      "QT4": {
+        "coats": 2,
+        "notes": "Premium tier. 2 coats mandatory with full sand between coats."
+      },
+      "QT5": {
+        "coats": 2,
+        "notes": "Superior tier. 2 coats mandatory with full sand between coats and critical inspection."
+      }
+    },
+    "important": "Coat count is NOT automatically derived from quality tier. These are spec defaults only. Actual coat count comes from PaintScope specification."
+  },
+
+  "doctrine_conflicts": [
+    {
+      "conflict_id": "DC-001",
+      "agent": "Materials Manager",
+      "doctrine_source": "docs/Doctrine/Materials_and_Consumables_Doctrine.md - Nap Thickness Selection table",
+      "doctrine_says": "Medium texture (knockdown) = 3/4\" nap; Light texture (orange peel) = 1/2\" nap",
+      "research_says": "For drywall walls with orange peel or knockdown texture, use 1/2\" nap. 3/4\" nap is only appropriate for very porous concrete, stomp texture, or popcorn ceilings.",
+      "research_source": "Field contractor review (30 years experience), Review Notes 2026-02-04",
+      "affected_field": "consumables[].specification (roller nap thickness)",
+      "recommendation": "Update Materials_and_Consumables_Doctrine.md to clarify: 3/8\" to 1/2\" nap for all standard drywall textures; 3/4\" nap reserved for heavy textures only.",
+      "status": "pending_resolution",
+      "severity": "warning"
+    }
+  ],
+
+  "research_corrections": [
+    {
+      "correction_id": "RC-001",
+      "title": "No spot-priming NC drywall fasteners",
+      "inherited_from": "SF_DRYWALL_WALL_NC_PRIME",
+      "impact": "No spot-prime tasks needed - fasteners are mudded and not exposed"
+    },
+    {
+      "correction_id": "RC-004",
+      "title": "Do not specify dry times in specs",
+      "inherited_from": "SF_DRYWALL_WALL_NC_PRIME",
+      "impact": "No dry time references in materials - refer to PDS"
+    },
+    {
+      "correction_id": "RC-005",
+      "title": "Gloss not available for drywall walls",
+      "source": "Review Notes 2026-02-04",
+      "impact": "Removed gloss from available sheens. Gloss on drywall is not a real-world application."
+    },
+    {
+      "correction_id": "RC-006",
+      "title": "Semi-gloss gated at QT5 only",
+      "source": "Review Notes 2026-02-04",
+      "impact": "Semi-gloss requires QT5 for drywall walls, not QT4+."
+    },
+    {
+      "correction_id": "RC-007",
+      "title": "Coat count not derived from QT",
+      "source": "Review Notes 2026-02-04",
+      "impact": "Coat count specified in PaintScope. QT provides defaults but actual coat count can differ."
+    },
+    {
+      "correction_id": "RC-010",
+      "title": "Wall finish spec owns trim masking task",
+      "source": "Review Notes 2026-02-04",
+      "impact": "When painting finish on drywall walls, trim is always masked. This spec owns that task."
+    }
+  ],
+
+  "uncertainties": [
+    {
+      "uncertainty_id": "U-001",
+      "topic": "Wall-specific height modifiers",
+      "description": "Brief stated wall height modifiers should be lighter than ceiling (1.15/1.3/1.5 vs 1.30/1.50/2.00) due to no overhead fatigue. Using Modifier_Registry standard values pending doctrine update.",
+      "current_approach": "Using Modifier_Registry values: H1=1.0, H2=1.30, H3=1.50, H4=2.00",
+      "resolution_needed": true
+    }
+  ],
+
+  "change_log": [
+    {
+      "version": "0.1.0",
+      "date": "2026-02-04",
+      "author": "SpecFactory Assembly Agent",
+      "changes": "Initial spec generation via SpecFactory pipeline. Stage 6 assembly from brief, research, materials, sop_modules, production, and qa_report. Critic status: PASS WITH WARNINGS (DC-001 pending resolution)."
+    }
+  ]
+}

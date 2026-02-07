@@ -1,0 +1,347 @@
+{
+  "spec_family": {
+    "id": "SF_TRIM_NC_PRIME",
+    "name": "New Construction Interior Trim Priming",
+    "description": "Primer application for interior trim (baseboard, door casing, window casing, other trim) in new construction. Covers substrate-specific primer selection: factory-primed trim (optional additional primer), bare MDF (solvent-based edge sealer + latex face primer), bare FJP (stain-blocking primer required), bare solid wood (standard primer-sealer), and glossy/oil-based existing substrates (bonding primer). Primer requirement is driven by substrate_condition dimension, NOT quality tier. Uses LF as primary UOM per PDCA standard (1 LF trim = 1 SF). This spec is PRIME ONLY - finish coats belong to SF_TRIM_NC_PAINT.",
+    "domain": "interior",
+    "context": "NC",
+    "version": "0.1.0",
+    "status": "draft",
+    "review_required": true
+  },
+
+  "configuration_dimensions": [
+    {
+      "dimension_id": "substrate_condition",
+      "description": "Primary driver for primer system selection. Each substrate type requires different primer chemistry.",
+      "values": ["factory_primed", "bare_mdf", "bare_fjp", "bare_solid_wood", "glossy_existing", "oil_based_existing"],
+      "default": "factory_primed",
+      "notes": "Factory primed is NC default. MDF requires two-step process (edge seal + face prime). FJP requires stain-blocking (mandatory)."
+    },
+    {
+      "dimension_id": "primer_on_factory_primed",
+      "description": "User choice to add additional primer coat on factory-primed trim.",
+      "values": ["true", "false"],
+      "default": "false",
+      "notes": "Factory primer is transit protection, often thin. Additional primer recommended for quality work but user-configurable."
+    },
+    {
+      "dimension_id": "quality_tier",
+      "description": "Drives inspection/repair intensity and scrutiny. Does NOT affect primer selection.",
+      "values": ["QT3", "QT4", "QT5"],
+      "default": "QT3",
+      "notes": "QT3=quick glance at 6ft, QT4=systematic scan at 3ft, QT5=lighted critical at arm's length. Per Fine_Finish_Doctrine."
+    },
+    {
+      "dimension_id": "application_method",
+      "description": "Primary application technique for primer.",
+      "values": ["brush", "spray"],
+      "default": "brush",
+      "notes": "Brush is NC production standard for trim. Spray requires wall protection but faster for large scope."
+    },
+    {
+      "dimension_id": "profile_complexity",
+      "description": "Trim profile complexity affecting production rates.",
+      "values": ["simple", "standard", "complex", "ornate"],
+      "default": "standard",
+      "notes": "Simple=0.85x, Standard=1.0x, Complex=1.25x, Ornate=1.40x per Millwork_NC_Paint_Doctrine Section 7.2."
+    },
+    {
+      "dimension_id": "trim_height",
+      "description": "Height of trim work affecting production via height modifiers.",
+      "values": ["standard", "tall", "high"],
+      "default": "standard",
+      "notes": "Standard (7-8ft)=H1, Tall (9-12ft)=H2, High (13ft+)=H3. Primarily affects crown molding and high casing."
+    }
+  ],
+
+  "paintable_items": [
+    {
+      "item_id": "ITM_TRIM_BASEBOARD_PRIME",
+      "name": "Baseboard prime coat",
+      "unit_of_measure": "LF",
+      "counting_rules": "PaintScope: PS_SURFACE_LF.TRIM_BASEBOARD. Per PDCA standard, 1 LF = 1 SF regardless of width.",
+      "conditional": false,
+      "notes": "When baseboard is in scope"
+    },
+    {
+      "item_id": "ITM_TRIM_CASING_DOOR_PRIME",
+      "name": "Door casing prime coat",
+      "unit_of_measure": "LF",
+      "counting_rules": "PaintScope: PS_SURFACE_LF.TRIM_CASING_DOOR",
+      "conditional": false,
+      "notes": "When door casing is in scope"
+    },
+    {
+      "item_id": "ITM_TRIM_CASING_WINDOW_PRIME",
+      "name": "Window casing prime coat",
+      "unit_of_measure": "LF",
+      "counting_rules": "PaintScope: PS_SURFACE_LF.TRIM_CASING_WINDOW",
+      "conditional": false,
+      "notes": "When window casing is in scope"
+    },
+    {
+      "item_id": "ITM_TRIM_OTHER_PRIME",
+      "name": "Other trim prime coat",
+      "unit_of_measure": "LF",
+      "counting_rules": "PaintScope: PS_SURFACE_LF.TRIM_OTHER",
+      "conditional": true,
+      "conditional_on": "When other trim types present (chair rail, picture rail, etc.)",
+      "notes": "Fallback for non-standard trim types"
+    },
+    {
+      "item_id": "ITM_TRIM_JOINTS_CAULK",
+      "name": "Trim joint caulking",
+      "unit_of_measure": "LF",
+      "counting_rules": "PaintScope: PS_EDGE_LF.TRIM_JOINTS. Approximately 1 joint per 8-12 LF of trim.",
+      "conditional": false,
+      "notes": "All miter/cope/scarf joints require caulking"
+    },
+    {
+      "item_id": "ITM_CASING_ENDS_FILL",
+      "name": "Casing end grain fill",
+      "unit_of_measure": "EA",
+      "counting_rules": "PaintScope: PS_META.EA.CASING_END_COUNT. Typically 2 per door, 4 per window.",
+      "conditional": true,
+      "conditional_on": {
+        "substrate_condition": ["bare_mdf", "bare_fjp", "bare_solid_wood"]
+      },
+      "notes": "End grain exposures on bare wood substrates"
+    }
+  ],
+
+  "variants": [
+    {
+      "variant_id": "VAR_FACTORY_PRIMED_NO_ADDITIONAL",
+      "applies_when": {
+        "substrate_condition": ["factory_primed"],
+        "primer_on_factory_primed": ["false"]
+      },
+      "included_items": ["ITM_TRIM_JOINTS_CAULK"],
+      "excluded_items": ["ITM_TRIM_BASEBOARD_PRIME", "ITM_TRIM_CASING_DOOR_PRIME", "ITM_TRIM_CASING_WINDOW_PRIME", "ITM_TRIM_OTHER_PRIME", "ITM_CASING_ENDS_FILL"],
+      "notes": "Factory primed with no additional primer - prep and caulk only, no primer coat"
+    },
+    {
+      "variant_id": "VAR_FACTORY_PRIMED_WITH_ADDITIONAL",
+      "applies_when": {
+        "substrate_condition": ["factory_primed"],
+        "primer_on_factory_primed": ["true"]
+      },
+      "included_items": ["ITM_TRIM_BASEBOARD_PRIME", "ITM_TRIM_CASING_DOOR_PRIME", "ITM_TRIM_CASING_WINDOW_PRIME", "ITM_TRIM_OTHER_PRIME", "ITM_TRIM_JOINTS_CAULK"],
+      "excluded_items": ["ITM_CASING_ENDS_FILL"],
+      "notes": "Factory primed with additional high-build primer coat"
+    },
+    {
+      "variant_id": "VAR_BARE_WOOD",
+      "applies_when": {
+        "substrate_condition": ["bare_mdf", "bare_fjp", "bare_solid_wood"]
+      },
+      "included_items": ["ITM_TRIM_BASEBOARD_PRIME", "ITM_TRIM_CASING_DOOR_PRIME", "ITM_TRIM_CASING_WINDOW_PRIME", "ITM_TRIM_OTHER_PRIME", "ITM_TRIM_JOINTS_CAULK", "ITM_CASING_ENDS_FILL"],
+      "notes": "Bare wood requires full primer coat and end grain fill"
+    },
+    {
+      "variant_id": "VAR_EXISTING_FINISH",
+      "applies_when": {
+        "substrate_condition": ["glossy_existing", "oil_based_existing"]
+      },
+      "included_items": ["ITM_TRIM_BASEBOARD_PRIME", "ITM_TRIM_CASING_DOOR_PRIME", "ITM_TRIM_CASING_WINDOW_PRIME", "ITM_TRIM_OTHER_PRIME", "ITM_TRIM_JOINTS_CAULK"],
+      "excluded_items": ["ITM_CASING_ENDS_FILL"],
+      "notes": "Existing finish requires bonding primer, no end grain fill"
+    }
+  ],
+
+  "required_paintscope_inputs": [
+    {
+      "input_name": "IN_LF_BASEBOARD",
+      "paintscope_key": "PS_SURFACE_LF.TRIM_BASEBOARD",
+      "uom": "LF",
+      "required": false,
+      "required_when": "When baseboard is in scope",
+      "description": "Baseboard linear footage"
+    },
+    {
+      "input_name": "IN_LF_DOOR_CASING",
+      "paintscope_key": "PS_SURFACE_LF.TRIM_CASING_DOOR",
+      "uom": "LF",
+      "required": false,
+      "required_when": "When door casing is in scope",
+      "description": "Door casing linear footage"
+    },
+    {
+      "input_name": "IN_LF_WINDOW_CASING",
+      "paintscope_key": "PS_SURFACE_LF.TRIM_CASING_WINDOW",
+      "uom": "LF",
+      "required": false,
+      "required_when": "When window casing is in scope",
+      "description": "Window casing linear footage"
+    },
+    {
+      "input_name": "IN_LF_TRIM_OTHER",
+      "paintscope_key": "PS_SURFACE_LF.TRIM_OTHER",
+      "uom": "LF",
+      "required": false,
+      "required_when": "When other trim types present",
+      "description": "Other trim linear footage (chair rail, picture rail, etc.)"
+    },
+    {
+      "input_name": "IN_LF_TRIM_JOINTS",
+      "paintscope_key": "PS_EDGE_LF.TRIM_JOINTS",
+      "uom": "LF",
+      "required": true,
+      "description": "Trim joint linear footage for caulking"
+    },
+    {
+      "input_name": "IN_EA_CASING_ENDS",
+      "paintscope_key": "PS_META.EA.CASING_END_COUNT",
+      "uom": "EA",
+      "required": false,
+      "required_when": {
+        "substrate_condition": ["bare_mdf", "bare_fjp", "bare_solid_wood"]
+      },
+      "description": "End grain exposures for grain fill"
+    },
+    {
+      "input_name": "IN_SF_PROTECT_FLOOR_PERIMETER",
+      "paintscope_key": "PS_PROTECT_SF.FLOOR_PERIMETER",
+      "uom": "SF",
+      "required": true,
+      "description": "Perimeter floor protection area"
+    },
+    {
+      "input_name": "IN_LF_PROTECT_WALL_ADJACENT",
+      "paintscope_key": "PS_PROTECT_LF.WALL_ADJACENT",
+      "uom": "LF",
+      "required": false,
+      "required_when": {
+        "application_method": ["spray"]
+      },
+      "description": "Wall masking at trim edge when spraying"
+    },
+    {
+      "input_name": "IN_EA_FIXTURES",
+      "paintscope_key": "PS_PROTECT_EA.ASSET.FIXTURES",
+      "uom": "EA",
+      "required": false,
+      "required_when": {
+        "application_method": ["spray"]
+      },
+      "description": "Count of fixtures near spray zone"
+    }
+  ],
+
+  "dependencies": {
+    "research": "research.json",
+    "materials": "materials.json",
+    "sop_modules": "sop_modules.json",
+    "production": "production.json"
+  },
+
+  "protection_zones_required": [
+    {
+      "zone_id": "floor_perimeter",
+      "condition": "always",
+      "protection_level": "edge_only",
+      "site_condition_override": {
+        "skip_when": {
+          "floor_type": "subfloor"
+        }
+      },
+      "notes": "Drop cloth runners along trim work area. Skip on subfloor."
+    },
+    {
+      "zone_id": "wall_adjacent",
+      "condition": {
+        "application_method": ["spray"]
+      },
+      "protection_level": "light_mask",
+      "notes": "Tape line + paper at wall-trim edge when spraying"
+    },
+    {
+      "zone_id": "fixture_covers",
+      "condition": {
+        "application_method": ["spray"]
+      },
+      "protection_level": "partial_cover",
+      "notes": "Cover outlets/switches near spray zone"
+    }
+  ],
+
+  "adjacency_declarations": {
+    "primary_surface": "trim_baseboard",
+    "adjacent_surfaces": [
+      {
+        "surface_id": "wall_field",
+        "edge_type": "linear",
+        "typical_relationship": "different_finish",
+        "affected_tasks": ["TSK_SETUP_WALL_MASK", "TSK_REMOVE_WALL_MASK"],
+        "notes": "Trim and wall commonly different colors. Wall masking required for spray only."
+      },
+      {
+        "surface_id": "floor",
+        "edge_type": "linear",
+        "typical_relationship": "not_in_scope",
+        "affected_tasks": ["TSK_SETUP_FLOOR_PROTECTION", "TSK_REMOVE_FLOOR_PROTECTION"],
+        "notes": "Floor is not painted. Floor protection via perimeter drops."
+      },
+      {
+        "surface_id": "door_frame",
+        "edge_type": "linear",
+        "typical_relationship": "same_finish",
+        "affected_tasks": [],
+        "notes": "Door casing and door frame typically share finish. Often painted in same session."
+      },
+      {
+        "surface_id": "window_jamb",
+        "edge_type": "linear",
+        "typical_relationship": "same_finish",
+        "affected_tasks": [],
+        "notes": "Window casing and window jamb typically share finish."
+      }
+    ]
+  },
+
+  "state_declarations": {
+    "primary_surface": "trim_baseboard",
+    "valid_input_states": {
+      "states": ["SS_PRIMED_FACTORY", "SS_BARE", "SS_PAINTED_SEMIGLOSS", "SS_PAINTED_GLOSS", "SS_PAINTED_ALKYD"],
+      "notes": "NC trim arrives as factory-primed (most common) or bare. Remodel scenarios may encounter existing painted trim."
+    },
+    "output_state": {
+      "state": "SS_PRIMED_FIELD",
+      "varies_by": null,
+      "notes": "All substrate scenarios output field-primed state, ready for SF_TRIM_NC_PAINT"
+    },
+    "adjacent_state_protection_rules": [
+      {
+        "adjacent_surface": "wall_field",
+        "when_state": ["SS_BARE", "SS_PRIMED_FIELD"],
+        "protection_level": "none",
+        "notes": "Unfinished/primed walls need no protection during trim prime (typical NC sequence)"
+      },
+      {
+        "adjacent_surface": "wall_field",
+        "when_state": ["SS_PAINTED_FLAT", "SS_PAINTED_EGGSHELL", "SS_PAINTED_SATIN", "SS_PAINTED_SEMIGLOSS"],
+        "protection_level": "light_mask",
+        "protection_zone": "wall_adjacent",
+        "notes": "Protect finished walls from primer drips (brush) or overspray (spray)"
+      }
+    ]
+  },
+
+  "critical_constraints": {
+    "substrate_driven_primer": "Primer selection is driven by substrate_condition dimension, NOT quality tier. Per Fine_Finish_Doctrine Section 2.1 - mandatory doctrine.",
+    "mdf_edge_sealer_mandatory": "MDF edges MUST receive solvent-based sealer (shellac or oil-based) BEFORE any latex products. Water-based primers cause irreversible fiber raise on MDF edges.",
+    "fjp_stain_blocking_mandatory": "FJP (Finger-Joint Pine) REQUIRES stain-blocking primer. Without stain-blocking, resin bleed will occur. NOT optional, NOT configurable.",
+    "pdca_lf_sf_standard": "Per PDCA standard, 1 LF of trim = 1 SF regardless of actual width. Do not convert based on profile width.",
+    "application_quality_not_tiered": "Primer application quality (drips, sags, holidays) must meet standard at ALL quality tiers. Application defects are workmanship failures, not tier differences."
+  },
+
+  "change_log": [
+    {
+      "version": "0.1.0",
+      "date": "2026-02-04",
+      "author": "SpecFactory Pipeline (Claude)",
+      "changes": "Initial draft spec family for NC interior trim priming. Complete SpecFactory pipeline with all artifacts."
+    }
+  ]
+}

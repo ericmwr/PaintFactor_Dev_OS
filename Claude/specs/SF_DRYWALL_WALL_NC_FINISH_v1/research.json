@@ -1,0 +1,595 @@
+{
+  "research_metadata": {
+    "spec_family_id": "SF_DRYWALL_WALL_NC_FINISH",
+    "research_mode": "lightweight",
+    "brief_source": "specs/_backlog/SF_DRYWALL_WALL_NC_FINISH/brief.md",
+    "doctrine_loaded": [
+      "docs/System/PaintFactor_OS.md",
+      "docs/System/Conventions.md",
+      "docs/Doctrine/Quality_Tiers_and_Surface_Condition.md",
+      "docs/Doctrine/Materials_and_Consumables_Doctrine.md",
+      "docs/Doctrine/Estimation_Modifiers_Doctrine.md",
+      "docs/Doctrine/Interior_Protection_Doctrine.md",
+      "docs/Doctrine/Protection_and_Masking_Doctrine.md",
+      "docs/Doctrine/Modifier_Registry.md",
+      "docs/Reference/Protection_Zones_Reference.md",
+      "docs/Reference/Surface_Vocabulary_Reference.md",
+      "docs/Reference/Site_Condition_Vocabulary_Reference.md",
+      "docs/Reference/Substrate_State_Reference.md",
+      "docs/PaintScope/PaintScope_Quantity_Key_Catalog.md",
+      "production rates/PaintFactor_Production_Rate_Reference.md"
+    ],
+    "sibling_specs_reviewed": [
+      "specs/SF_DRYWALL_CEILING_NC_FINISH_v1/spec.json",
+      "specs/SF_DRYWALL_WALL_NC_PRIME_v1/spec.json"
+    ],
+    "researcher": "Spec Researcher Agent",
+    "date": "2026-02-04"
+  },
+
+  "protection_zones_analysis": {
+    "spec_category": "wall",
+    "application_method_sensitivity": true,
+    "zones": [
+      {
+        "zone_id": "floor_perimeter",
+        "condition": { "application_method": ["roll"] },
+        "protection_level": "edge_only",
+        "upgrade_scenario": "Upgrades to floor_full when spray or spray_backroll",
+        "paintscope_key": "PS_PROTECT_SF.FLOOR_PERIMETER",
+        "notes": "Perimeter drop cloths for drip risk during roll application. Brush/roll method creates minimal fallout."
+      },
+      {
+        "zone_id": "floor_full",
+        "condition": { "application_method": ["spray", "spray_backroll"] },
+        "protection_level": "full_cover",
+        "paintscope_key": "PS_PROTECT_SF.FLOOR_EXPOSED",
+        "notes": "Full floor coverage required for spray methods. Rosin paper on hard floors, plastic on carpet per Protection_and_Masking_Doctrine."
+      },
+      {
+        "zone_id": "fixture_covers",
+        "condition": { "application_method": ["spray", "spray_backroll"] },
+        "protection_level": "full_cover",
+        "paintscope_key": "PS_PROTECT_EA.ASSET.FIXTURES",
+        "notes": "Outlets, switches, and wall-mounted fixtures require masking for spray methods. Per-room heuristic: avg 6 outlets/switches per room."
+      },
+      {
+        "zone_id": "trim_edges",
+        "condition": "after_trim_package_complete",
+        "protection_level": "light_mask",
+        "paintscope_key": "PS_PROTECT_LF.TRIM_EDGES",
+        "notes": "Trim package must be complete and masked off BEFORE wall finish per NC production sequence. Tape line at trim edges for wall painter to cut into."
+      },
+    ],
+    "zone_reference": "Protection_Zones_Reference.md v2.1",
+    "method_escalation": "brush_only < brush_roll < spray_backroll < spray"
+  },
+
+  "adjacency_analysis": {
+    "primary_surface": "wall_field",
+    "adjacent_surfaces": [
+      {
+        "surface_id": "ceiling_field",
+        "edge_type": "linear",
+        "typical_relationship": "different_finish",
+        "edge_work_required": true,
+        "edge_owner": "wall_painter",
+        "notes": "Wall painter establishes the clean ceiling line via cut-in. This is the CRITICAL difference from ceiling finish spec — ceiling painter rolled freely, wall painter creates the final line. Ceiling is typically painted first in NC, so ceiling finish exists when walls are painted."
+      },
+      {
+        "surface_id": "trim_baseboard",
+        "edge_type": "linear",
+        "typical_relationship": "different_finish",
+        "edge_work_required": false,
+        "notes": "Trim package is complete and masked off before wall finish. Wall painter cuts to tape line at baseboard top edge. Protection rather than edge work."
+      },
+      {
+        "surface_id": "trim_casing_door",
+        "edge_type": "linear",
+        "typical_relationship": "different_finish",
+        "edge_work_required": false,
+        "notes": "Door casing is complete and masked off before wall finish. Wall painter cuts to tape line. Protection rather than edge work."
+      },
+      {
+        "surface_id": "trim_casing_window",
+        "edge_type": "linear",
+        "typical_relationship": "different_finish",
+        "edge_work_required": false,
+        "notes": "Window casing is complete and masked off before wall finish. Wall painter cuts to tape line. Protection rather than edge work."
+      }
+    ],
+    "surface_reference": "Surface_Vocabulary_Reference.md v1.0",
+    "key_finding": "Wall finish has ONE edge work requirement: ceiling line cut-in. All other edges (trim) are protection/masking relationships since trim package is complete before wall finish."
+  },
+
+  "site_condition_analysis": {
+    "affected_conditions": [
+      {
+        "condition_id": "floor_type",
+        "vocabulary_ref": "Site_Condition_Vocabulary_Reference.md § floor_type",
+        "affected_task_types": ["protect"],
+        "include_values": ["finished", "partial"],
+        "exclude_values": ["subfloor"],
+        "notes": "Floor protection conditional on flooring status. Subfloor (typical early NC) needs no protection. Finished flooring requires rosin paper (hard) or plastic (carpet). Per RC-003 from prime spec."
+      },
+      {
+        "condition_id": "occupancy_state",
+        "vocabulary_ref": "Site_Condition_Vocabulary_Reference.md § occupancy_state",
+        "affected_task_types": ["protect", "application"],
+        "include_values": ["occupied_crew_handles", "occupied_sensitive"],
+        "effect_notes": "NC is typically unoccupied, but phased occupancy can occur. Occupied spaces may restrict spray methods due to overspray and fumes. Protection modifiers: occupied_crew_handles=1.15x, occupied_sensitive=1.30x per Modifier_Registry.",
+        "notes": "Rare for NC wall finish but possible in multi-unit phased projects"
+      },
+      {
+        "condition_id": "access_constraint",
+        "vocabulary_ref": "Site_Condition_Vocabulary_Reference.md § access_constraint",
+        "affected_task_types": ["application", "cut_in", "prep"],
+        "include_values": ["step_ladder", "extension_ladder", "scaffold", "lift"],
+        "effect_notes": "Wall height drives access equipment. Height modifiers per Modifier_Registry: standard=1.0 (none), tall=1.3 (step_ladder), high=1.5 (scaffold), extreme=2.0 (scaffold/lift).",
+        "notes": "Wall height modifiers are less aggressive than ceiling modifiers — no overhead fatigue"
+      },
+      {
+        "condition_id": "temperature_condition",
+        "vocabulary_ref": "Site_Condition_Vocabulary_Reference.md § temperature_condition",
+        "affected_task_types": ["application"],
+        "include_values": ["cold_below_50f", "hot_above_90f"],
+        "effect_notes": "Temperature affects dry times and application quality. cold_below_50f=1.30x modifier, hot_above_90f=1.15x modifier per Modifier_Registry.",
+        "notes": "NC sites may lack HVAC — temperature considerations important"
+      }
+    ],
+    "condition_reference": "Site_Condition_Vocabulary_Reference.md v1.1",
+    "modifier_reference": "Modifier_Registry.md v1.1"
+  },
+
+  "state_analysis": {
+    "primary_surface": "wall_field",
+    "valid_input_states": {
+      "states": ["SS_PRIMED", "SS_PRIMED_FIELD"],
+      "rationale": "Wall finish requires primed surface. Primer must be cured (refer to PDS for dry times). SS_PRIMED_FIELD is output from SF_DRYWALL_WALL_NC_PRIME."
+    },
+    "output_state": {
+      "state": "SS_PAINTED_EGGSHELL",
+      "varies_by": "finish_sheen",
+      "state_map": {
+        "flat": "SS_PAINTED_FLAT",
+        "matte": "SS_PAINTED_FLAT",
+        "eggshell": "SS_PAINTED_EGGSHELL",
+        "satin": "SS_PAINTED_SATIN",
+        "semi-gloss": "SS_PAINTED_SEMIGLOSS",
+        "gloss": "SS_PAINTED_GLOSS"
+      },
+      "rationale": "Output state varies by sheen configuration. Eggshell is default for walls."
+    },
+    "adjacent_state_protection_analysis": [
+      {
+        "adjacent_surface": "ceiling_field",
+        "finished_states": ["SS_PAINTED_FLAT", "SS_PAINTED_EGGSHELL", "SS_PAINTED_SATIN", "SS_PAINTED_SEMIGLOSS"],
+        "unfinished_states": ["SS_BARE", "SS_PRIMED", "SS_PRIMED_FIELD"],
+        "protection_when_finished": "none",
+        "protection_when_unfinished": "none",
+        "rationale": "Per doctrine: walls always cut into ceilings freehand — no tape or mask. Wall painter establishes the ceiling line with brush cut-in, not protection. This is the defining edge relationship for wall finish."
+      },
+      {
+        "adjacent_surface": "trim_baseboard",
+        "finished_states": ["SS_PAINTED_SATIN", "SS_PAINTED_SEMIGLOSS", "SS_PAINTED_GLOSS"],
+        "unfinished_states": ["SS_PRIMED_FACTORY", "SS_PRIMED_FIELD"],
+        "protection_when_finished": "light_mask",
+        "protection_when_unfinished": "none",
+        "rationale": "Trim package is complete and masked off before wall finish. Tape line at trim edge provides cut-in target for wall painter. This is protection not edge work."
+      },
+      {
+        "adjacent_surface": "trim_casing_door",
+        "finished_states": ["SS_PAINTED_SATIN", "SS_PAINTED_SEMIGLOSS", "SS_PAINTED_GLOSS"],
+        "unfinished_states": ["SS_PRIMED_FACTORY", "SS_PRIMED_FIELD"],
+        "protection_when_finished": "light_mask",
+        "protection_when_unfinished": "none",
+        "rationale": "Door casing complete and masked. Same as baseboard."
+      },
+      {
+        "adjacent_surface": "trim_casing_window",
+        "finished_states": ["SS_PAINTED_SATIN", "SS_PAINTED_SEMIGLOSS", "SS_PAINTED_GLOSS"],
+        "unfinished_states": ["SS_PRIMED_FACTORY", "SS_PRIMED_FIELD"],
+        "protection_when_finished": "light_mask",
+        "protection_when_unfinished": "none",
+        "rationale": "Window casing complete and masked. Same as baseboard."
+      }
+    ],
+    "state_reference": "Substrate_State_Reference.md v1.0.0"
+  },
+
+  "required_paintscope_keys": [
+    {
+      "key": "PS_SURFACE_SF.WALL_FIELD",
+      "uom": "SF",
+      "purpose": "Primary paintable item — total wall field area for finish coat application",
+      "required": true
+    },
+    {
+      "key": "PS_EDGE_LF.TO_CEILING",
+      "uom": "LF",
+      "purpose": "Wall-to-ceiling boundary for cut-in. Wall painter establishes ceiling line.",
+      "required": true
+    },
+    {
+      "key": "PS_META.SF.FLOOR_VACUUM_AREA",
+      "uom": "SF",
+      "purpose": "Floor area for post-application vacuum cleanup",
+      "required": true
+    },
+    {
+      "key": "PS_PROTECT_SF.FLOOR_EXPOSED",
+      "uom": "SF",
+      "purpose": "Floor area requiring protection (spray methods)",
+      "required_when": { "application_method": ["spray", "spray_backroll"] }
+    },
+    {
+      "key": "PS_PROTECT_SF.FLOOR_PERIMETER",
+      "uom": "SF",
+      "purpose": "Perimeter floor protection area (roll method)",
+      "required_when": { "application_method": ["roll"] }
+    },
+    {
+      "key": "PS_META.EA.ROOMS_TOTAL",
+      "uom": "EA",
+      "purpose": "Room count for fixture protection heuristic (avg 6 outlets/switches per room)",
+      "required_when": { "application_method": ["spray", "spray_backroll"] }
+    },
+  ],
+
+  "proposed_new_keys": [],
+
+  "relevant_findings": [
+    {
+      "finding_id": "RF-001",
+      "topic": "Wall painter establishes ceiling line",
+      "finding": "In NC production, ceilings are painted BEFORE walls. The ceiling painter rolls/sprays freely past the wall line. Later, the wall painter cuts in at the ceiling to establish the clean ceiling line. This is the defining difference from ceiling finish spec which has NO edge work.",
+      "source": "Brief Section 9, Production sequence doctrine",
+      "confidence": "high",
+      "impact": "Edge cut-in tasks required at ceiling line. PS_EDGE_LF.TO_CEILING is mandatory input."
+    },
+    {
+      "finding_id": "RF-002",
+      "topic": "Trim package complete before wall finish",
+      "finding": "NC production sequence: Prime ceilings -> Prime walls -> Finish ceilings -> Complete trim package (fill, sand, caulk, prime if needed, 2 coats finish, sand between coats, mask off) -> Wall finish. Wall finish is one of the LAST operations.",
+      "source": "Brief Section 7",
+      "confidence": "high",
+      "impact": "Trim protection (light_mask) is required, not trim edge work. Wall painter cuts to tape line at trim, not freehand."
+    },
+    {
+      "finding_id": "RF-003",
+      "topic": "Wall height modifiers less aggressive than ceiling",
+      "finding": "Walls don't have overhead fatigue. Wall-specific height modifiers from Modifier_Registry: standard (<=9ft) = H1_STANDARD 1.0, tall (10-12ft) = H2_TALL 1.15 (not 1.3), high (13-17ft) = H3_HIGH 1.3 (not 1.5), extreme (18ft+) = H4_EXTREME 1.5 (not 2.0). NOTE: Brief states 1.15/1.3/1.5 but Modifier_Registry shows 1.0/1.30/1.50/2.0 — using Modifier_Registry values as canonical.",
+      "source": "Brief Section 9, Modifier_Registry.md",
+      "doctrine_alignment": "Modifier_Registry.md is authoritative. Brief values may need correction.",
+      "confidence": "medium",
+      "impact": "Height modifiers per Modifier_Registry: H1=1.0, H2=1.30, H3=1.50, H4=2.00. Brief's wall-specific values (1.15/1.3/1.5) are aspirational but not in doctrine."
+    },
+    {
+      "finding_id": "RF-004",
+      "topic": "Wall finish production faster than ceiling finish",
+      "finding": "Wall production is ~15-20% faster than ceiling for same method due to no overhead work. This affects base rates, not modifiers.",
+      "source": "Brief Section 9, PaintFactor_Production_Rate_Reference.md",
+      "confidence": "high",
+      "impact": "Production rates should reflect wall advantage over ceiling. Ceiling rates have POS_CEILING modifier 1.15; wall rates have POS_WALL 1.0."
+    },
+    {
+      "finding_id": "RF-005",
+      "topic": "Coat count by quality tier",
+      "finding": "QT2=1 coat, QT3=2 coats default (1 coat acceptable if full coverage achieved), QT4-QT5=2 coats mandatory. Per Quality_Tiers_and_Surface_Condition.md.",
+      "source": "Brief Section 3, Quality_Tiers_and_Surface_Condition.md",
+      "confidence": "high",
+      "impact": "Variants must reflect coat count rules. QT3 2-coat is default but single coat acceptable path exists."
+    },
+    {
+      "finding_id": "RF-006",
+      "topic": "Sheen/QT minimum requirements",
+      "finding": "Flat/matte/eggshell = any QT (QT2+), Satin/semi-gloss = QT4+, Gloss = QT5 (per brief). This differs slightly from ceiling spec which showed semi-gloss at QT5. Doctrine says QT4+ for all semi-gloss. Using doctrine.",
+      "source": "Brief Section 3, Quality_Tiers_and_Surface_Condition.md",
+      "confidence": "high",
+      "impact": "quality_sheen_rules in spec must enforce minimum QT for higher sheens."
+    },
+    {
+      "finding_id": "RF-007",
+      "topic": "Inspection/repair deduplication with prime spec",
+      "finding": "If SF_DRYWALL_WALL_NC_PRIME performed inspection/repair, wall finish should eliminate its first inspection/repair round to avoid double-counting. This is cross-spec coordination.",
+      "source": "Brief Section 9",
+      "confidence": "high",
+      "impact": "Spec must include cross_spec_coordination note. May use XSPEC flag pattern from prime spec."
+    },
+    {
+      "finding_id": "RF-008",
+      "topic": "No opening cover lightweight for wall finish",
+      "finding": "Opening cover lightweight (plastic pin-up over windows/doors) is NOT needed for wall finish. The ceiling phase opening covers were removed before trim work. By wall finish, the trim package is complete and masked off — the trim_edges zone (tape line at trim edges) provides all necessary protection at window and door openings. Adding opening covers on top of trim masking would be redundant.",
+      "source": "NC production sequence analysis, Brief Section 7",
+      "confidence": "high",
+      "impact": "Do not include opening_cover_lightweight zone. Trim_edges zone handles window/door adjacency protection."
+    }
+  ],
+
+  "condition_drivers": [
+    {
+      "driver_id": "CD-001",
+      "condition": "quality_tier",
+      "values": ["QT2", "QT3", "QT4", "QT5"],
+      "affects": ["coat_count", "sanding_between_coats", "edge_discipline", "inspection_scrutiny"],
+      "notes": "QT2=1 coat, QT3=2 coats (1 if coverage achieved), QT4-QT5=2 coats. Sanding between coats at QT4+. Edge discipline increases with tier."
+    },
+    {
+      "driver_id": "CD-002",
+      "condition": "application_method",
+      "values": ["roll", "spray_backroll", "spray"],
+      "affects": ["protection_zones", "production_rates", "crew_configuration"],
+      "notes": "spray_backroll is NC production standard with 18\" roller. Roll for smaller jobs. Spray-only for controlled conditions. Protection escalates with spray methods."
+    },
+    {
+      "driver_id": "CD-003",
+      "condition": "finish_sheen",
+      "values": ["flat", "matte", "eggshell", "satin", "semi-gloss", "gloss"],
+      "affects": ["minimum_quality_tier", "application_technique"],
+      "notes": "Higher sheens require higher QT. Eggshell is default for walls. Satin+ requires QT4+."
+    },
+    {
+      "driver_id": "CD-004",
+      "condition": "wall_height",
+      "values": ["standard", "tall", "high", "extreme"],
+      "affects": ["height_modifier", "access_equipment", "production_rate"],
+      "notes": "Height modifiers per Modifier_Registry: 1.0/1.30/1.50/2.00. Walls are faster than ceilings at equivalent height."
+    },
+    {
+      "driver_id": "CD-005",
+      "condition": "surface_texture",
+      "values": ["smooth", "orange_peel", "knockdown"],
+      "affects": ["coverage_rate", "nap_selection", "texture_modifier"],
+      "notes": "Texture modifiers per Modifier_Registry: TEX_SMOOTH=1.0, TEX_ORANGE_PEEL=1.10, TEX_KNOCKDOWN=1.15."
+    }
+  ],
+
+  "quality_differences": [
+    {
+      "aspect": "coat_count",
+      "qt2": "1 coat",
+      "qt3": "2 coats default, 1 coat acceptable if coverage achieved",
+      "qt4": "2 coats mandatory",
+      "qt5": "2 coats mandatory",
+      "notes": "Per Quality_Tiers_and_Surface_Condition.md and brief"
+    },
+    {
+      "aspect": "sanding_between_coats",
+      "qt2": "None",
+      "qt3": "Spot sand patches only if necessary",
+      "qt4": "Full sand between coats (220 grit)",
+      "qt5": "Full sand between coats (220 grit)",
+      "notes": "Per Quality_Tiers_and_Surface_Condition.md Sanding Standards table"
+    },
+    {
+      "aspect": "edge_discipline",
+      "qt2": "Acceptable if neat",
+      "qt3": "Reasonably straight line, minor wobble acceptable at distance",
+      "qt4": "Clean line, no visible wobble at 3 feet",
+      "qt5": "Crisp line, no visible wobble at arm's length",
+      "notes": "Wall painter establishing ceiling line must meet QT standards"
+    },
+    {
+      "aspect": "inspection_rate",
+      "qt2": "1500 SF/hr (quick glance)",
+      "qt3": "800 SF/hr (standard visual)",
+      "qt4": "500 SF/hr (thorough with raking light)",
+      "qt5": "300 SF/hr (critical inspection)",
+      "notes": "Per PaintFactor_Production_Rate_Reference.md QC system"
+    },
+    {
+      "aspect": "touch_up_rate",
+      "qt2": "600 SF/hr",
+      "qt3": "400 SF/hr",
+      "qt4": "300 SF/hr",
+      "qt5": "200 SF/hr",
+      "notes": "More thorough touch-up at higher tiers"
+    }
+  ],
+
+  "failure_modes": [
+    {
+      "mode_id": "FM-001",
+      "failure": "Ceiling line bleed",
+      "cause": "Inadequate brush control during ceiling line cut-in",
+      "prevention": "Use quality brushes, proper loading technique, steady hand",
+      "mitigation": "Touch-up with ceiling paint if wall paint gets on ceiling",
+      "risk_level": "medium"
+    },
+    {
+      "mode_id": "FM-002",
+      "failure": "Lap marks on walls",
+      "cause": "Failure to maintain wet edge during roll or spray application",
+      "prevention": "Work in sections, maintain wet edge, proper spray overlap",
+      "mitigation": "Additional coat may be required to hide lap marks",
+      "risk_level": "medium"
+    },
+    {
+      "mode_id": "FM-003",
+      "failure": "Flashing/sheen variance",
+      "cause": "Inconsistent film build, uneven primer absorption, spot repairs not blended",
+      "prevention": "Consistent mil thickness, proper backroll technique, spot-prime repairs before finish",
+      "mitigation": "Additional coat to equalize absorption",
+      "risk_level": "medium"
+    },
+    {
+      "mode_id": "FM-004",
+      "failure": "Trim paint contamination",
+      "cause": "Wall paint getting on finished trim that wasn't properly masked",
+      "prevention": "Verify trim masking complete before wall finish, proper tape adhesion",
+      "mitigation": "Touch-up trim if contaminated",
+      "risk_level": "low"
+    },
+    {
+      "mode_id": "FM-005",
+      "failure": "Orange peel texture in spray finish",
+      "cause": "Spray technique issues — wrong tip size, pressure, distance, or material viscosity",
+      "prevention": "Proper spray setup per PDS, backroll to level texture",
+      "mitigation": "Backroll immediately after spray, or sand and recoat",
+      "risk_level": "medium"
+    },
+    {
+      "mode_id": "FM-006",
+      "failure": "Coverage failure (holidays)",
+      "cause": "Insufficient mil build, poor lighting during application, missed areas",
+      "prevention": "Proper lighting, systematic application pattern, wet mil check",
+      "mitigation": "Additional coat on affected areas",
+      "risk_level": "low"
+    }
+  ],
+
+  "notes_for_materials_manager": [
+    {
+      "note_id": "MAT-001",
+      "topic": "Wall finish paint selection",
+      "content": "Wall finish uses different product than ceiling flat. Eggshell is default for walls. Material system should be SYS_LATEX_WALL_STANDARD or similar. Do NOT use ceiling flat on walls unless matching."
+    },
+    {
+      "note_id": "MAT-002",
+      "topic": "18-inch roller for spray+backroll",
+      "content": "Per Materials_and_Consumables_Doctrine, spray+backroll uses 18-inch roller frame and nap. This increases backroll throughput and is standard for NC production."
+    },
+    {
+      "note_id": "MAT-003",
+      "topic": "Nap selection by texture",
+      "content": "Smooth = 3/8\" nap, Orange peel = 1/2\" nap, Knockdown = 3/4\" nap. Per Materials_and_Consumables_Doctrine."
+    },
+    {
+      "note_id": "MAT-004",
+      "topic": "Sheen-appropriate products",
+      "content": "Higher sheen finishes (satin, semi-gloss) require products designed for those sheens. Ensure material system includes sheen variants."
+    },
+    {
+      "note_id": "MAT-005",
+      "topic": "Masking tape for trim protection",
+      "content": "Blue painter's tape for trim edge masking. Green edge-seal tape if crisp line required at higher QT. Per Materials_and_Consumables_Doctrine tape taxonomy."
+    }
+  ],
+
+  "notes_for_sop_librarian": [
+    {
+      "note_id": "SOP-001",
+      "topic": "Ceiling line cut-in module required",
+      "content": "Wall finish REQUIRES edge cut-in at ceiling line. Create or reference MOD_WALL_CUTIN_CEILING. This is the critical task that establishes the ceiling line — ceiling spec had NO edge work."
+    },
+    {
+      "note_id": "SOP-002",
+      "topic": "Trim masking verification task",
+      "content": "Before wall finish application, verify trim package is complete and properly masked. Add TSK_VERIFY_TRIM_MASKING task or similar."
+    },
+    {
+      "note_id": "SOP-003",
+      "topic": "Window/door protection via trim masking",
+      "content": "Window and door openings are protected by the trim masking (trim_edges zone). Ceiling phase opening covers were removed before trim work. No separate opening cover lightweight needed — trim tape line provides cut-in target and protection."
+    },
+    {
+      "note_id": "SOP-004",
+      "topic": "Sanding between coats module (QT4+)",
+      "content": "At QT4+, include full sand between finish coats (220 grit). Reference MOD_WALL_SAND_BETWEEN or create new. Not needed at QT2/QT3."
+    },
+    {
+      "note_id": "SOP-005",
+      "topic": "Cross-spec inspection deduplication",
+      "content": "If wall prime performed substrate inspection/repair, wall finish first inspection round may be reduced or eliminated. Track via XSPEC flag pattern (XSPEC_WALL_REPAIR_DONE) from prime spec."
+    },
+    {
+      "note_id": "SOP-006",
+      "topic": "Subfloor vacuum cleanup",
+      "content": "Post-application vacuum cleanup task using PS_META.SF.FLOOR_VACUUM_AREA. Same as prime spec pattern."
+    }
+  ],
+
+  "notes_for_estimation_engineer": [
+    {
+      "note_id": "EST-001",
+      "topic": "Wall production rates faster than ceiling",
+      "content": "Wall finish is ~15-20% faster than ceiling due to no overhead fatigue. Base rates should use POS_WALL modifier (1.0) vs ceiling's POS_CEILING (1.15). Per PaintFactor_Production_Rate_Reference."
+    },
+    {
+      "note_id": "EST-002",
+      "topic": "Height modifiers use standard registry values",
+      "content": "Use Modifier_Registry height values: H1_STANDARD=1.0, H2_TALL=1.30, H3_HIGH=1.50, H4_EXTREME=2.00. Brief suggested wall-specific values (1.15/1.3/1.5) but these are not in doctrine. Use registry values."
+    },
+    {
+      "note_id": "EST-003",
+      "topic": "Spray/backroll throughput coupling",
+      "content": "Per Estimation_Modifiers_Doctrine: spray rate MUST BE <= backroll rate. Backroll is bottleneck. Credit spray+backroll at backroll rate, not spray rate."
+    },
+    {
+      "note_id": "EST-004",
+      "topic": "Ceiling line cut-in rate",
+      "content": "Cut-in at ceiling line: base 100 LF/hr. QT-scaled per PaintFactor_Production_Rate_Reference: QT2=130, QT3=100, QT4=80, QT5=60 LF/hr."
+    },
+    {
+      "note_id": "EST-005",
+      "topic": "Coat sequence modifiers",
+      "content": "Per PaintFactor_Production_Rate_Reference: COAT_FINISH_1=1.05 modifier, COAT_FINISH_2=0.90 modifier. First coat is slightly slower, second coat is faster."
+    },
+    {
+      "note_id": "EST-006",
+      "topic": "Texture modifiers apply to rolling and spraying",
+      "content": "Texture modifiers (1.0/1.10/1.15) apply to roll, spray, and cut-in tasks. Per Estimation_Modifiers_Doctrine."
+    },
+    {
+      "note_id": "EST-007",
+      "topic": "QT modifiers",
+      "content": "Quality tier modifiers from Modifier_Registry: QT2=0.80, QT3=1.00, QT4=1.30, QT5=1.50."
+    }
+  ],
+
+  "inherited_research_corrections": [
+    {
+      "id": "RC-001",
+      "title": "No spot-priming NC drywall fasteners",
+      "source": "SF_DRYWALL_WALL_NC_PRIME research",
+      "impact": "No spot-prime tasks needed for wall finish — fasteners are mudded and not exposed"
+    },
+    {
+      "id": "RC-004",
+      "title": "Do not specify dry times in specs",
+      "source": "SF_DRYWALL_WALL_NC_PRIME research",
+      "impact": "No dry time references in materials or sop_modules — refer to PDS"
+    }
+  ],
+
+  "assumptions": [
+    {
+      "assumption_id": "A-001",
+      "field": "production_sequence",
+      "value": "Trim package complete before wall finish",
+      "source": "Brief Section 7",
+      "doctrine_gap": false,
+      "note": "Established NC production sequence"
+    },
+    {
+      "assumption_id": "A-002",
+      "field": "trim_protection",
+      "value": "Trim is masked (tape line) before wall finish",
+      "source": "Brief Section 7, Interior_Protection_Doctrine",
+      "doctrine_gap": false,
+      "note": "Wall painter cuts to tape line at trim, not freehand"
+    },
+    {
+      "assumption_id": "A-003",
+      "field": "ceiling_state_at_wall_finish",
+      "value": "Ceiling is typically SS_PAINTED_FLAT when wall finish occurs",
+      "source": "NC production sequence",
+      "doctrine_gap": false,
+      "note": "Ceiling finish precedes wall finish in NC"
+    }
+  ],
+
+  "uncertainties": [
+    {
+      "uncertainty_id": "U-001",
+      "topic": "Wall-specific height modifiers",
+      "description": "Brief Section 9 states wall height modifiers are 'less aggressive' at 1.15/1.3/1.5. Modifier_Registry shows standard values 1.30/1.50/2.00. Need clarification on whether wall-specific values should be added to registry or use standard values.",
+      "current_approach": "Using Modifier_Registry standard values as canonical",
+      "resolution_needed": true
+    }
+  ],
+
+  "doctrine_conflicts": [],
+
+  "confidence_level": "high"
+}

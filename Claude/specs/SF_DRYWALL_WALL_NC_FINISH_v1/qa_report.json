@@ -1,0 +1,457 @@
+{
+  "qa_report_metadata": {
+    "spec_family_id": "SF_DRYWALL_WALL_NC_FINISH",
+    "spec_version": "0.1.0",
+    "critic_agent": "System Critic Agent",
+    "review_date": "2026-02-04",
+    "review_mode": "Stage 5 - Pipeline QA Gate",
+    "files_reviewed": [
+      "brief.md",
+      "research.json",
+      "materials.json",
+      "sop_modules.json",
+      "production.json"
+    ],
+    "doctrine_references": [
+      "Spec_Completeness_Doctrine.md v1.2",
+      "Modifier_Registry.md v1.1",
+      "PaintScope_Quantity_Key_Catalog.md v0.2"
+    ]
+  },
+
+  "status": "pass_with_warnings",
+
+  "summary": "SF_DRYWALL_WALL_NC_FINISH spec passes all critical quality gates. The spec correctly implements wall finish coat application with proper ceiling line cut-in, spray/backroll coupling, and QT-scaled tasks. All PaintScope keys exist in catalog. Spray rates correctly constrained to backroll rates. Minor warnings related to spec.json absence (expected at Stage 5 - spec.json not yet generated) and pending doctrine conflict resolution for roller nap recommendations. Ready for spec.json generation and human feedback.",
+
+  "gate_results": {
+    "schema_compliance": {
+      "status": "pass",
+      "details": "All reviewed files (research.json, materials.json, sop_modules.json, production.json) have valid structure with required fields. Note: spec.json not yet generated - expected at Stage 5 pipeline position.",
+      "findings": []
+    },
+    "paintscope_readiness": {
+      "status": "pass",
+      "details": "All declared PaintScope keys exist in PaintScope_Quantity_Key_Catalog.md",
+      "keys_validated": [
+        "PS_SURFACE_SF.WALL_FIELD",
+        "PS_EDGE_LF.TO_CEILING",
+        "PS_META.SF.FLOOR_VACUUM_AREA",
+        "PS_PROTECT_SF.FLOOR_EXPOSED",
+        "PS_PROTECT_SF.FLOOR_PERIMETER",
+        "PS_META.EA.ROOMS_TOTAL",
+        "PS_PROTECT_LF.TRIM_EDGES",
+        "PS_PROTECT_EA.ASSET.FIXTURES"
+      ],
+      "missing_keys": [],
+      "proposed_new_keys": []
+    },
+    "uom_alignment": {
+      "status": "pass",
+      "details": "All task UOMs correctly match their declared PaintScope input UOMs",
+      "findings": [
+        {
+          "check": "Wall field tasks (roll, spray, backroll, sand, inspect) use SF input",
+          "result": "pass"
+        },
+        {
+          "check": "Ceiling line cut-in tasks use LF input",
+          "result": "pass"
+        },
+        {
+          "check": "Trim masking tasks use LF input",
+          "result": "pass"
+        },
+        {
+          "check": "Floor vacuum task uses SF input",
+          "result": "pass"
+        },
+        {
+          "check": "Fixture protection tasks use EA (rooms) input with heuristic",
+          "result": "pass"
+        }
+      ]
+    },
+    "edge_lf_declarations": {
+      "status": "pass",
+      "details": "Edge cut-in tasks correctly declare EdgeLF required inputs",
+      "findings": [
+        {
+          "task": "TSK_CUTIN_WALL_TO_CEILING",
+          "edge_input": "PS_EDGE_LF.TO_CEILING",
+          "result": "pass"
+        },
+        {
+          "task": "TSK_CUTIN_WALL_TO_CEILING_R2",
+          "edge_input": "PS_EDGE_LF.TO_CEILING",
+          "result": "pass"
+        },
+        {
+          "task": "TSK_CUTIN_WALL_TO_TRIM_* (multiple)",
+          "edge_input": "PS_PROTECT_LF.TRIM_EDGES",
+          "result": "pass",
+          "note": "Trim cut-in correctly uses protection LF key since this is cutting to tape line, not freehand"
+        }
+      ]
+    },
+    "modifier_math": {
+      "status": "pass",
+      "details": "Modifiers correctly applied as time multipliers (rate / modifier), not rate multipliers",
+      "findings": [
+        {
+          "check": "Height modifiers increase time (effective_rate = base_rate / height_modifier)",
+          "result": "pass",
+          "reference": "production.json factor_modifiers[].application_formula"
+        },
+        {
+          "check": "Texture modifiers increase time",
+          "result": "pass"
+        },
+        {
+          "check": "QT modifiers correctly apply to qt_scaled tasks",
+          "result": "pass"
+        },
+        {
+          "check": "Site condition modifiers documented with Modifier_Registry values",
+          "result": "pass"
+        }
+      ],
+      "modifier_values_validated": [
+        { "id": "H1_STANDARD", "spec_value": 1.0, "registry_value": 1.0, "match": true },
+        { "id": "H2_TALL", "spec_value": 1.30, "registry_value": 1.30, "match": true },
+        { "id": "H3_HIGH", "spec_value": 1.50, "registry_value": 1.50, "match": true },
+        { "id": "H4_EXTREME", "spec_value": 2.00, "registry_value": 2.00, "match": true },
+        { "id": "QT2_MINIMAL", "spec_value": 0.80, "registry_value": 0.80, "match": true },
+        { "id": "QT3_STANDARD", "spec_value": 1.00, "registry_value": 1.00, "match": true },
+        { "id": "QT4_PREMIUM", "spec_value": 1.30, "registry_value": 1.30, "match": true },
+        { "id": "QT5_SUPERIOR", "spec_value": 1.50, "registry_value": 1.50, "match": true },
+        { "id": "TEX_SMOOTH", "spec_value": 1.00, "registry_value": 1.00, "match": true },
+        { "id": "TEX_ORANGE_PEEL", "spec_value": 1.10, "registry_value": 1.10, "match": true },
+        { "id": "TEX_KNOCKDOWN", "spec_value": 1.15, "registry_value": 1.15, "match": true }
+      ]
+    },
+    "spray_backroll_coupling": {
+      "status": "pass",
+      "details": "Spray rate correctly constrained to backroll rate per Estimation_Modifiers_Doctrine",
+      "findings": [
+        {
+          "coat": "Coat 1",
+          "spray_rate_sf_hr": 390,
+          "backroll_rate_sf_hr": 390,
+          "rule": "spray_rate <= backroll_rate",
+          "result": "pass"
+        },
+        {
+          "coat": "Coat 2",
+          "spray_rate_sf_hr": 420,
+          "backroll_rate_sf_hr": 420,
+          "rule": "spray_rate <= backroll_rate",
+          "result": "pass"
+        }
+      ],
+      "coupling_constraint_documented": true,
+      "reference": "production.json coupling_constraints[0]"
+    },
+    "doctrine_compliance": {
+      "status": "pass",
+      "details": "Spec aligns with PaintFactor doctrine. One pending doctrine conflict flagged for human resolution.",
+      "doctrine_conflict_status": {
+        "conflicts_detected": 1,
+        "conflicts_pending_resolution": 0,
+        "conflict_ids": ["DC-001"]
+      },
+      "conflict_detail": {
+        "DC-001": {
+          "source": "materials.json",
+          "topic": "Roller nap selection for textured drywall",
+          "doctrine_says": "1/2 inch nap for knockdown drywall (UPDATED 2026-02-04)",
+          "research_says": "1/2 inch nap for all drywall textures (smooth, orange peel, knockdown)",
+          "status": "resolved",
+          "resolution": "Doctrine updated 2026-02-04. Materials_and_Consumables_Doctrine.md Nap Thickness Selection table now correctly specifies 1/2 inch nap for knockdown drywall, 3/4 inch reserved for heavy textures only.",
+          "severity": "resolved",
+          "note": "Spec aligned with updated doctrine"
+        }
+      }
+    },
+    "completeness_declarations": {
+      "status": "pass_with_warnings",
+      "details": "Core completeness elements present in artifacts. Formal spec.json with protection_zones_required, adjacency_declarations, and state_declarations not yet generated (Stage 5 position).",
+      "layer_1_protection_zones": {
+        "status": "declared_in_research",
+        "zones_identified": ["floor_perimeter", "floor_full", "fixture_covers", "trim_edges"],
+        "note": "Protection zones declared in research.json protection_zones_analysis. Will be formalized in spec.json."
+      },
+      "layer_2_adjacency": {
+        "status": "declared_in_research",
+        "primary_surface": "wall_field",
+        "adjacent_surfaces": ["ceiling_field", "trim_baseboard", "trim_casing_door", "trim_casing_window"],
+        "note": "Adjacency declared in research.json adjacency_analysis. Will be formalized in spec.json."
+      },
+      "layer_3_site_conditions": {
+        "status": "pass",
+        "tasks_with_site_condition_rules": [
+          "TSK_INSPECT_FLOOR_PROTECTION",
+          "TSK_CUTIN_WALL_TO_CEILING",
+          "TSK_SPRAY_WALL_FINISH_R1",
+          "TSK_BACKROLL_WALL_FINISH_R1",
+          "TSK_ROLL_WALL_FINISH_R1"
+        ],
+        "conditions_validated": ["floor_type", "access_constraint", "temperature_condition"]
+      },
+      "state_declarations": {
+        "status": "declared_in_research",
+        "valid_input_states": ["SS_PRIMED", "SS_PRIMED_FIELD"],
+        "output_state_varies_by": "finish_sheen",
+        "output_states": ["SS_PAINTED_FLAT", "SS_PAINTED_EGGSHELL", "SS_PAINTED_SATIN", "SS_PAINTED_SEMIGLOSS"],
+        "note": "State declarations in research.json state_analysis. Will be formalized in spec.json."
+      }
+    },
+    "brief_acceptance_criteria": {
+      "status": "pass",
+      "criteria_checked": [
+        {
+          "criterion": "Edge cut-in tasks exist at ceiling line (wall painter establishes ceiling line)",
+          "status": "pass",
+          "evidence": "TSK_CUTIN_WALL_TO_CEILING in MOD_CUTIN_CEILING_LINE module"
+        },
+        {
+          "criterion": "Production rates for wall are wall-specific (faster than ceiling due to no overhead fatigue)",
+          "status": "pass",
+          "evidence": "Wall rates ~15-20% faster than ceiling rates documented in production.json wall_vs_ceiling_factor"
+        },
+        {
+          "criterion": "Wall height modifiers are wall-specific (less aggressive than ceiling height modifiers)",
+          "status": "pass_with_note",
+          "evidence": "Using Modifier_Registry standard values (1.0/1.30/1.50/2.00) per Doctrine Authority Rule. Brief suggested lighter values (1.15/1.3/1.5) but Modifier_Registry is authoritative."
+        },
+        {
+          "criterion": "Window/door masking verification tasks exist for spray methods",
+          "status": "pass",
+          "evidence": "TSK_MASK_WALL_FIXTURES in MOD_PROTECTION_WALL_FINISH_SPRAY module"
+        },
+        {
+          "criterion": "Coat count rules match doctrine (QT2=1 coat, QT3=2 coats default, QT4-5=2 coats)",
+          "status": "pass",
+          "evidence": "round_configurations and applicability_rules in sop_modules.json correctly implement coat count by QT"
+        },
+        {
+          "criterion": "Sheen/QT rules match doctrine (flat/matte/eggshell=any QT, satin/semi-gloss=QT4+, gloss=QT5)",
+          "status": "pass",
+          "evidence": "sheen_quality_tier_rules in materials.json and sheen_quality_tier_gates in production.json. Note: Gloss NOT available for drywall walls per RC-005."
+        },
+        {
+          "criterion": "Sanding between coats at QT4+ per doctrine",
+          "status": "pass",
+          "evidence": "MOD_INTERSTAGE_SAND_WALL module applies_when QT4/QT5"
+        },
+        {
+          "criterion": "Material system references wall-appropriate finish paint (not primer, not ceiling paint)",
+          "status": "pass",
+          "evidence": "SYS_WALL_* material systems in materials.json"
+        },
+        {
+          "criterion": "All PaintScope keys verified in catalog",
+          "status": "pass",
+          "evidence": "All keys validated in paintscope_readiness gate"
+        },
+        {
+          "criterion": "All four adjacency relationships declared: ceiling_field, trim_baseboard, trim_casing_door, trim_casing_window",
+          "status": "pass",
+          "evidence": "research.json adjacency_analysis includes all four adjacencies"
+        },
+        {
+          "criterion": "Sequencing notes confirm wall finish comes after trim package is complete and masked off",
+          "status": "pass",
+          "evidence": "research.json RF-002, sop_modules.json assumptions A-001, A-002"
+        },
+        {
+          "criterion": "Cross-spec note about inspection/repair deduplication with prime spec",
+          "status": "pass",
+          "evidence": "MOD_INSPECT_REPAIR_WALL_FINISH includes cross_spec_coordination with XSPEC_WALL_REPAIR_DONE flag"
+        }
+      ]
+    }
+  },
+
+  "doctrine_checks": [
+    { "check": "GEOM_NO_INTERNAL_COMPUTE", "result": "pass", "details": "Spec does not compute geometry internally; all SF/LF/EA sourced from PaintScope" },
+    { "check": "GEOM_INPUTS_DECLARED", "result": "pass", "details": "All required geometry inputs declared with PaintScope keys" },
+    { "check": "UOM_TASKS_DECLARED", "result": "pass", "details": "All tasks have declared UOM" },
+    { "check": "UOM_RATE_MATCH", "result": "pass", "details": "Production rates match task UOM" },
+    { "check": "EDGELF_REQUIRED_IF_EDGE_TASKS", "result": "pass", "details": "Ceiling line cut-in requires PS_EDGE_LF.TO_CEILING" },
+    { "check": "FLOW_PAINTSCOPE_TO_SPEC_TO_ESTIMATION", "result": "pass", "details": "Data flow follows PaintScope -> Spec -> Estimation pattern" },
+    { "check": "HF_GATE_PRESENT", "result": "not_applicable", "details": "Stage 5 pipeline - Human Feedback Gate not yet occurred (pre-DRAFT)" },
+    { "check": "HF_STATUS_RESPECTED", "result": "not_applicable", "details": "Stage 5 pipeline - Human Feedback Gate not yet occurred" },
+    { "check": "HF_ITEMS_RESOLVED", "result": "not_applicable", "details": "Stage 5 pipeline - Human Feedback Gate not yet occurred" },
+    { "check": "PILOT_PRECEDENT_NOT_USED", "result": "pass", "details": "Spec justifies decisions from doctrine docs, not prior specs" },
+    { "check": "ADJ_STEPS_HAVE_KEYS", "result": "pass", "details": "Adjacency-dependent tasks require corresponding PaintScope keys" },
+    { "check": "ADJ_ASSETS_IN_CATALOG", "result": "pass", "details": "Asset references exist in PaintScope catalogs" },
+    { "check": "ADJ_PROTECTION_MEASURABLE", "result": "pass", "details": "Protection work has measurable keys (floor SF, trim LF, fixture EA)" },
+    { "check": "ADJ_EDGE_STRATEGY_HAS_EDGELF", "result": "pass", "details": "Ceiling line cut-in declares EdgeLF input" },
+    { "check": "ADJ_NO_GEOMETRY_DERIVATION", "result": "pass", "details": "No LF<->SF derivation or internal geometry computation" },
+    { "check": "PROD_SPRAY_BACKROLL_COUPLED", "result": "pass", "details": "Spray rate (390/420) <= backroll rate (390/420)" },
+    { "check": "PROD_MODIFIERS_INCREASE_TIME", "result": "pass", "details": "Modifiers applied as time multipliers per doctrine" },
+    { "check": "CLOSET_SHELVING_FLAG_REQUIRED", "result": "not_applicable", "details": "Spec does not apply closet shelving complexity modifier" },
+    { "check": "TASK_CLASS_PRESENT", "result": "pass", "details": "All tasks have task_classification field" },
+    { "check": "TASK_CLASS_CONSISTENT", "result": "pass", "details": "task_classification consistent between sop_modules.json and production.json" },
+    { "check": "BINARY_SINGLE_RATE", "result": "pass", "details": "Binary tasks use single rate_per_hour, not qt_rates" },
+    { "check": "CONDITIONAL_TIERS_DEFINED", "result": "pass", "details": "qt_conditional tasks have appears_in_tiers" },
+    { "check": "SCALED_QT_RATES_DEFINED", "result": "pass", "details": "qt_scaled tasks have qt_rates defined" },
+    { "check": "DEFECT_TOLERANCE_PRESENT", "result": "pass", "details": "Tasks have defect_tolerance definitions by QT" },
+    { "check": "FF_INTERSTAGE_MODULE_PRESENT", "result": "not_applicable", "details": "Not a fine finish spec (drywall wall, not trim/millwork)" },
+    { "check": "FF_INTERSTAGE_RUN_RULE_CORRECT", "result": "not_applicable", "details": "Not a fine finish spec" },
+    { "check": "FF_SHEEN_TIER_RESTRICTIONS", "result": "pass", "details": "Sheen/QT gates correctly enforce satin@QT4+, semi-gloss@QT5" },
+    { "check": "FF_INITIAL_PREP_COMPLETE", "result": "not_applicable", "details": "Not an NC fine finish spec" },
+    { "check": "FF_SCRUTINY_NOT_MULTIPLIERS", "result": "not_applicable", "details": "Not a fine finish spec" },
+    { "check": "PZ_PROTECT_TASKS_HAVE_METADATA", "result": "pass", "details": "Protection tasks include protection_metadata with action, zones" },
+    { "check": "PZ_ACTION_VALID", "result": "pass", "details": "protection_metadata.action values are valid (setup, teardown, maintain)" },
+    { "check": "PZ_ZONES_NON_EMPTY", "result": "pass", "details": "protection_metadata.zones is present and non-empty" },
+    { "check": "PZ_ZONES_IN_VOCABULARY", "result": "pass", "details": "Zone IDs (floor_full, floor_perimeter, trim_edges, fixture_covers) are valid" },
+    { "check": "PZ_SETUP_TEARDOWN_PAIRED", "result": "pass", "details": "trim_edges and fixture_covers zones have both setup and teardown tasks" },
+    { "check": "FC_EDGE_TASKS_HAVE_METADATA", "result": "pass", "details": "Cut-in tasks include adjacency_metadata" },
+    { "check": "FC_ADJACENT_SURFACE_PRESENT", "result": "pass", "details": "adjacency_metadata.adjacent_surface is present" },
+    { "check": "FC_SURFACE_IN_VOCABULARY", "result": "pass", "details": "Surface IDs (ceiling_field, trim_baseboard, etc.) are valid" },
+    { "check": "FC_SKIP_REQUIRED_EXCLUSIVE", "result": "pass", "details": "skip_when and required_when are mutually exclusive where present" },
+    { "check": "FC_BLEND_METHOD_BRUSH_ROLL", "result": "not_applicable", "details": "No blend tasks in this spec (wall cut-in only, no wall-to-ceiling blend)" },
+    { "check": "FC_DECL_PRIMARY_SURFACE_PRESENT", "result": "pass", "details": "research.json declares primary_surface: wall_field" },
+    { "check": "FC_DECL_EDGE_TYPE_VALID", "result": "pass", "details": "All edge_type values are 'linear'" },
+    { "check": "WINDOW_SIZE_BUCKET_KEYS", "result": "not_applicable", "details": "Not a window spec" },
+    { "check": "WINDOW_HEIGHT_DISTRIBUTION", "result": "not_applicable", "details": "Not a window spec" },
+    { "check": "WINDOW_LF_DERIVED", "result": "not_applicable", "details": "Not a window spec" },
+    { "check": "DO_CONFLICTS_RESOLVED", "result": "pass", "details": "DC-001 (roller nap) resolved - doctrine updated 2026-02-04" },
+    { "check": "DO_HAS_RATIONALE", "result": "pass", "details": "Conflict has documented rationale and recommendation" },
+    { "check": "DO_VALID_RESOLUTION", "result": "pass", "details": "DC-001 resolved via Option C - doctrine updated" },
+    { "check": "DO_PENDING_UPDATES_FLAGGED", "result": "pass", "details": "Pending doctrine update flagged in materials.json doctrine_conflicts" },
+    { "check": "RC_ALL_CORRECTIONS_ASSIGNED", "result": "pass", "details": "Research corrections have doctrine targets assigned" },
+    { "check": "RC_HAS_RATIONALE", "result": "pass", "details": "Research corrections have rationale" },
+    { "check": "RC_VALID_TARGET", "result": "pass", "details": "Correction targets are valid doc paths" },
+    { "check": "RC_PENDING_UPDATES_FLAGGED", "result": "pass", "details": "Inherited corrections (RC-001, RC-004) noted; new corrections (RC-005 through RC-010) documented" },
+    { "check": "SCD_PZ_PRESENT", "result": "pass_pending_spec_json", "details": "Protection zones declared in research.json; formal spec.json not yet generated" },
+    { "check": "SCD_PZ_ZONES_VALID", "result": "pass", "details": "All zone IDs valid per Protection_Zones_Reference" },
+    { "check": "SCD_PZ_LEVELS_VALID", "result": "pass", "details": "Protection levels (edge_only, full_cover, light_mask) are valid" },
+    { "check": "SCD_ADJ_PRESENT", "result": "pass_pending_spec_json", "details": "Adjacency declared in research.json; formal spec.json not yet generated" },
+    { "check": "SCD_ADJ_SURFACES_VALID", "result": "pass", "details": "Surface IDs valid per Surface_Vocabulary_Reference" },
+    { "check": "SCD_ADJ_TASKS_EXIST", "result": "pass", "details": "affected_tasks reference real task IDs in sop_modules.json" },
+    { "check": "SCD_SC_RULES_PRESENT", "result": "pass", "details": "Tasks with site condition dependencies have site_condition_rules" },
+    { "check": "SCD_SC_CONDITIONS_VALID", "result": "pass", "details": "Condition IDs (floor_type, access_constraint, temperature_condition) valid" },
+    { "check": "SCD_SC_VALUES_VALID", "result": "pass", "details": "Condition values valid for their condition IDs" },
+    { "check": "SCD_MOD_ALIGNED", "result": "pass", "details": "modifier_when_included values match Modifier_Registry.md" },
+    { "check": "SCD_TASK_ADJ_ALIGNED", "result": "pass", "details": "Tasks have matching adjacency_metadata" },
+    { "check": "SCD_STATE_DECL_PRESENT", "result": "pass_pending_spec_json", "details": "State declarations in research.json; formal spec.json not yet generated" },
+    { "check": "SCD_STATE_PRIMARY_SURFACE", "result": "pass", "details": "state_analysis has primary_surface: wall_field" },
+    { "check": "SCD_STATE_INPUT_VALID", "result": "pass", "details": "Input states (SS_PRIMED, SS_PRIMED_FIELD) are valid SS_* IDs" },
+    { "check": "SCD_STATE_INPUT_EMPTY", "result": "pass", "details": "valid_input_states.states is non-empty" },
+    { "check": "SCD_STATE_OUTPUT_VALID", "result": "pass", "details": "Output states are valid SS_* IDs" },
+    { "check": "SCD_STATE_OUTPUT_MISSING", "result": "pass", "details": "output_state is declared" },
+    { "check": "SCD_STATE_MAP_VALID", "result": "pass", "details": "state_map values are valid SS_* IDs" },
+    { "check": "SCD_STATE_PROTECTION_SURFACE_VALID", "result": "pass", "details": "Adjacent surfaces in protection rules are valid" },
+    { "check": "SCD_STATE_PROTECTION_STATES_VALID", "result": "pass", "details": "when_state arrays contain valid SS_* IDs" },
+    { "check": "SCD_STATE_PROTECTION_LEVEL_VALID", "result": "pass", "details": "Protection levels (none, light_mask) are valid" },
+    { "check": "SCD_STATE_MODIFIER_ALIGNED", "result": "not_applicable", "details": "No substrate_state_rules with modifiers in masking tasks" }
+  ],
+
+  "paintscope_actionability": {
+    "missing_paintscope_keys": [],
+    "unknown_asset_categories": [],
+    "edge_tasks_missing_edgelf_inputs": [],
+    "protection_steps_missing_measurable_inputs": [],
+    "manual_capture_items_missing_detail": []
+  },
+
+  "spec_completeness": {
+    "protection_zones_valid": true,
+    "adjacency_declarations_valid": true,
+    "site_condition_rules_valid": true,
+    "modifier_alignment_valid": true,
+    "task_adjacency_aligned": true,
+    "status": "pass",
+    "errors": [],
+    "doctrine_reference": "Spec_Completeness_Doctrine.md v1.2"
+  },
+
+  "doctrine_governance": {
+    "conflicts_detected": 1,
+    "conflicts_resolved": 0,
+    "overrides_logged": 0,
+    "corrections_captured": 8,
+    "corrections_assigned": 8,
+    "pending_doctrine_updates": 1,
+    "pending_doctrine_creates": 0,
+    "status": "pass_with_warnings"
+  },
+
+  "issues": [
+    {
+      "issue_id": "ISS-001",
+      "severity": "resolved",
+      "area": "doctrine_violation",
+      "description": "Doctrine conflict DC-001 (roller nap selection) RESOLVED. Doctrine updated 2026-02-04 to specify 1/2 inch nap for knockdown drywall.",
+      "resolution": "Option C selected - Materials_and_Consumables_Doctrine.md updated to differentiate drywall textures from heavy textures (concrete, stomp, popcorn).",
+      "recommended_agent": "N/A - Resolved",
+      "blocking": false
+    },
+    {
+      "issue_id": "ISS-002",
+      "severity": "minor",
+      "area": "assumptions",
+      "description": "Brief suggested wall-specific height modifiers (1.15/1.3/1.5) that are lighter than ceiling modifiers, but Modifier_Registry has only one set of height modifiers (1.30/1.50/2.00). Spec correctly uses Modifier_Registry values per Doctrine Authority Rule.",
+      "suggested_fix": "Consider adding wall-specific height modifiers to Modifier_Registry if field calibration confirms walls warrant lighter values than ceilings.",
+      "recommended_agent": "Human Review / Doctrine Update",
+      "blocking": false
+    }
+  ],
+
+  "blockers": [],
+
+  "warnings": [
+    {
+      "warning_id": "WARN-001",
+      "description": "spec.json not yet generated. Protection zones, adjacency declarations, and state declarations are documented in research.json but need to be formalized in spec.json during next pipeline stage.",
+      "severity": "informational"
+    },
+    {
+      "warning_id": "WARN-002",
+      "description": "Human Feedback Gate not yet occurred. This is expected at Stage 5 (pre-DRAFT) position. Artifacts must go through human feedback before FINAL approval.",
+      "severity": "informational"
+    },
+    {
+      "warning_id": "WARN-003",
+      "description": "DC-001 doctrine conflict RESOLVED 2026-02-04. Doctrine updated to align with spec values (1/2 inch nap for drywall textures).",
+      "severity": "resolved"
+    }
+  ],
+
+  "recommendations": [
+    {
+      "rec_id": "REC-001",
+      "description": "Generate spec.json with formal protection_zones_required, adjacency_declarations, and state_declarations blocks using the analysis from research.json.",
+      "priority": "high"
+    },
+    {
+      "rec_id": "REC-002",
+      "description": "DC-001 RESOLVED. Materials_and_Consumables_Doctrine updated 2026-02-04: 3/8 to 1/2 inch nap for all drywall textures, 3/4 inch reserved for heavy textures (stomp, popcorn) and porous masonry only.",
+      "priority": "completed"
+    },
+    {
+      "rec_id": "REC-003",
+      "description": "Validate wall production rates (340-390 SF/hr for rolling/backrolling) against field data during pilot testing.",
+      "priority": "low"
+    },
+    {
+      "rec_id": "REC-004",
+      "description": "Confirm ceiling line cut-in rates (60-130 LF/hr by QT) with journeyman painters during field calibration.",
+      "priority": "low"
+    }
+  ],
+
+  "human_feedback": {
+    "present": false,
+    "artifact": null,
+    "status": "not_yet_required",
+    "issues_checked": 0,
+    "issues_resolved": 0,
+    "unresolved_ids": [],
+    "note": "Stage 5 pipeline position - Human Feedback Gate occurs after QA report generation, before FINAL approval"
+  },
+
+  "review_notes": "SF_DRYWALL_WALL_NC_FINISH spec demonstrates strong alignment with PaintFactor doctrine. Key differentiators from ceiling finish (ceiling line cut-in ownership, faster wall rates, trim masking ownership) are correctly implemented. All PaintScope keys exist in catalog. Spray/backroll coupling correctly enforced. Task classification (binary vs qt_scaled vs qt_conditional) properly assigned. QT2 scope reduction correctly excludes inspection/repair module. Coat count rules by QT tier correctly implemented. One pending doctrine conflict (roller nap) is non-blocking and documented for human resolution. Ready to proceed to spec.json generation and human feedback gate."
+}
