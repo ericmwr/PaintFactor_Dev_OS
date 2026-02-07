@@ -1,0 +1,559 @@
+{
+  "_meta": {
+    "name": "ID Registry",
+    "version": "1.0.0",
+    "purpose": "Canonical registry of all prefixed IDs in the spec system. Agents MUST check this registry before creating new IDs. If the needed ID exists, use it exactly. If it does not exist, propose an addition - do not invent on the fly.",
+    "created": "2026-02-06",
+    "last_updated": "2026-02-06",
+    "naming_rules": {
+      "general": "ALL_CAPS_WITH_UNDERSCORES. Prefix identifies the type. ID must be unique across the entire system.",
+      "ITM_": "Paintable item. Identifies the PHYSICAL THING being painted. NEVER include phase suffixes (_PRIME, _FINISH) unless the spec family is phase-split AND a collision would occur.",
+      "TSK_": "Task. Identifies an ACTION performed. Prefix with spec context (e.g., TSK_FRAME_, TSK_DOOR_, TSK_CEIL_) to avoid collisions across specs.",
+      "MOD_": "SOP Module. Groups tasks into a phase. Prefix with spec context.",
+      "SYS_": "Material System. A product combination (primer + finish). Tied to quality tiers.",
+      "COV_": "Coverage Profile. Coverage rates for a material on a surface type.",
+      "CON_": "Consumable. An expendable item used during work.",
+      "VAR_": "Variant. A conditional combination of items, methods, and tiers.",
+      "IN_": "Input. A value sourced from PaintScope. Pattern: IN_{UOM}_{WHAT}",
+      "PS_": "PaintScope Key. External data source key. Pattern: PS_{CATEGORY}.{SURFACE_OR_ZONE}",
+      "SF_": "Spec Family. The top-level scope identifier.",
+      "FAC_": "Factor Modifier. A rate-adjusting multiplier.",
+      "ROUND_": "Round Configuration. A coat sequence pattern.",
+      "COMP_": "Composition/Complexity Modifier. Cross-spec impact modifier.",
+      "COUPLE_": "Coupling Constraint. Links two tasks that must run together.",
+      "EXCL_": "Exclusion Rule. Declares what is explicitly out of scope.",
+      "PRIMER_": "Specialty Primer. A conditional primer product (knot sealer, etc).",
+      "RC_": "Research Correction. A corrected finding from research phase.",
+      "ISS_": "QA Issue. A validation problem found during QA.",
+      "XSPEC_": "Cross-Spec Flag. A flag passed between specs to avoid double-counting."
+    }
+  },
+
+  "SF_": {
+    "description": "Spec Family IDs. Each represents a distinct scope of work.",
+    "pattern": "^SF_[A-Z0-9_]+$",
+    "entries": {
+      "SF_CLOSET_SHELF_NC": {
+        "name": "New Construction Closet Shelf Paint",
+        "domain": "interior",
+        "phase_scope": "full",
+        "status": "active"
+      },
+      "SF_DOOR_FRAME_NC_FINISH": {
+        "name": "New Construction Interior Door Frame Finish Paint",
+        "domain": "interior",
+        "phase_scope": "finish",
+        "status": "active"
+      },
+      "SF_DOOR_SLAB_INT_NC": {
+        "name": "New Construction Interior Door Slab Paint",
+        "domain": "interior",
+        "phase_scope": "full",
+        "status": "active"
+      },
+      "SF_DRYWALL_CEILING_NC_FINISH": {
+        "name": "New Construction Drywall Ceiling Finish Coat",
+        "domain": "interior",
+        "phase_scope": "finish",
+        "status": "active"
+      },
+      "SF_DRYWALL_CEILING_NC_PRIME": {
+        "name": "New Construction Drywall Ceiling Prime Coat",
+        "domain": "interior",
+        "phase_scope": "prime",
+        "status": "active"
+      },
+      "SF_DRYWALL_WALL_NC_PRIME": {
+        "name": "New Construction Drywall Wall Prime Coat",
+        "domain": "interior",
+        "phase_scope": "prime",
+        "status": "active"
+      },
+      "SF_DRYWALL_WALL_NC_FINISH": {
+        "name": "New Construction Drywall Wall Finish Coat",
+        "domain": "interior",
+        "phase_scope": "finish",
+        "status": "referenced_not_built",
+        "notes": "Referenced by other specs but not yet created"
+      },
+      "SF_TRIM_NC_PAINT": {
+        "name": "New Construction Trim Paint",
+        "domain": "interior",
+        "phase_scope": "full",
+        "status": "referenced_not_built",
+        "notes": "Referenced by closet shelf and door frame specs"
+      }
+    },
+    "naming_convention": "SF_{SURFACE}_{CONTEXT}_{PHASE} where PHASE is optional. Use _PRIME/_FINISH suffix ONLY when prime and finish are genuinely separate spec families (different crews, different sequencing, different bid items). If the spec covers prep through finish in one scope, omit the phase suffix."
+  },
+
+  "ITM_": {
+    "description": "Paintable Item IDs. Identifies the PHYSICAL THING being painted. The item is the constant - tasks are what you do to it.",
+    "pattern": "^ITM_[A-Z0-9_]+$",
+    "critical_rule": "An ITM_ ID represents a physical object, NOT a phase of work. Do NOT create ITM_TRIM_CASING_DOOR_FINISH - the item is ITM_TRIM_CASING_DOOR regardless of whether you are priming or finishing it. The spec family context (SF_..._PRIME vs SF_..._FINISH) already provides the phase.",
+    "phase_suffix_exception": "ONLY use _PRIME or _FINISH suffix on an ITM_ when: (1) the prime and finish specs are separate spec families, AND (2) the same item_id would collide across those families. Even then, prefer no suffix if there is no actual collision risk.",
+    "entries": {
+      "ITM_OPENING_S": {
+        "name": "Small opening (6-18\" x 6-18\")",
+        "unit_of_measure": "EA",
+        "used_in": ["SF_CLOSET_SHELF_NC"],
+        "surface_ref": "builtin_shelf"
+      },
+      "ITM_OPENING_M": {
+        "name": "Medium opening (18-36\" x 12-30\")",
+        "unit_of_measure": "EA",
+        "used_in": ["SF_CLOSET_SHELF_NC"],
+        "surface_ref": "builtin_shelf"
+      },
+      "ITM_OPENING_L": {
+        "name": "Large opening (36-60\" x 18-42\")",
+        "unit_of_measure": "EA",
+        "used_in": ["SF_CLOSET_SHELF_NC"],
+        "surface_ref": "builtin_shelf"
+      },
+      "ITM_OPENING_XL": {
+        "name": "XL opening (60\"+ x 30\"+)",
+        "unit_of_measure": "EA",
+        "used_in": ["SF_CLOSET_SHELF_NC"],
+        "surface_ref": "builtin_shelf"
+      },
+      "ITM_DOOR_FRAME_SET": {
+        "name": "Door frame set (jamb + stop)",
+        "unit_of_measure": "EA",
+        "used_in": ["SF_DOOR_FRAME_NC_FINISH"],
+        "surface_ref": "door_frame"
+      },
+      "ITM_DOOR_FRAME_STOP": {
+        "name": "Door stop molding",
+        "unit_of_measure": "EA",
+        "used_in": ["SF_DOOR_FRAME_NC_FINISH"],
+        "surface_ref": "door_stop",
+        "notes": "Bundled with frame set, not counted separately"
+      },
+      "ITM_HINGE_MORTISE": {
+        "name": "Hinge mortise touch-up",
+        "unit_of_measure": "EA",
+        "used_in": ["SF_DOOR_FRAME_NC_FINISH"],
+        "surface_ref": "door_frame",
+        "notes": "Conditional on installation_sequence"
+      },
+      "ITM_STRIKE_MORTISE": {
+        "name": "Strike mortise touch-up",
+        "unit_of_measure": "EA",
+        "used_in": ["SF_DOOR_FRAME_NC_FINISH"],
+        "surface_ref": "door_frame",
+        "notes": "Conditional on installation_sequence"
+      },
+      "ITM_CEILING_FIELD_PRIME": {
+        "name": "Ceiling Field Prime Coat",
+        "unit_of_measure": "SF",
+        "used_in": ["SF_DRYWALL_CEILING_NC_PRIME"],
+        "surface_ref": "ceiling_field",
+        "notes": "Phase suffix used because prime/finish are separate spec families sharing the same surface"
+      },
+      "ITM_CEILING_FIELD_FINISH": {
+        "name": "Ceiling Field Finish Coat",
+        "unit_of_measure": "SF",
+        "used_in": ["SF_DRYWALL_CEILING_NC_FINISH"],
+        "surface_ref": "ceiling_field",
+        "notes": "Phase suffix used because prime/finish are separate spec families sharing the same surface"
+      },
+      "ITM_CEILING_EDGE_WALL": {
+        "name": "Wall Edge Cut-In (from ceiling perspective)",
+        "unit_of_measure": "LF",
+        "used_in": ["SF_DRYWALL_CEILING_NC_PRIME"],
+        "surface_ref": "ceiling_field"
+      },
+      "ITM_WALL_FIELD_PRIME": {
+        "name": "Wall Field Prime Coat",
+        "unit_of_measure": "SF",
+        "used_in": ["SF_DRYWALL_WALL_NC_PRIME"],
+        "surface_ref": "wall_field",
+        "notes": "Phase suffix used because prime/finish are separate spec families sharing the same surface"
+      },
+      "ITM_WALL_EDGE_CEILING": {
+        "name": "Ceiling Edge Cut-In (from wall perspective)",
+        "unit_of_measure": "LF",
+        "used_in": ["SF_DRYWALL_WALL_NC_PRIME"],
+        "surface_ref": "wall_field"
+      },
+      "ITM_PROTECT_CEILING_FIXTURES": {
+        "name": "Ceiling Fixture Protection (Lights + Electrical)",
+        "unit_of_measure": "EA_ROOM",
+        "used_in": ["SF_DRYWALL_CEILING_NC_FINISH"],
+        "surface_ref": null,
+        "notes": "Protection item, not a paintable surface"
+      },
+      "ITM_OPENING_COVER_LIGHTWEIGHT": {
+        "name": "Window/Door Opening Lightweight Covers",
+        "unit_of_measure": "EA",
+        "used_in": ["SF_DRYWALL_CEILING_NC_FINISH"],
+        "surface_ref": null,
+        "notes": "Protection item, not a paintable surface"
+      }
+    }
+  },
+
+  "SYS_": {
+    "description": "Material System IDs. Each defines a product combination tied to quality tiers.",
+    "pattern": "^SYS_[A-Z0-9_]+$",
+    "entries": {
+      "SYS_CLOSET_SHELF_STANDARD": {
+        "name": "Standard Acrylic Enamel System",
+        "quality_tiers": ["QT2", "QT3"],
+        "used_in": ["SF_CLOSET_SHELF_NC"]
+      },
+      "SYS_CLOSET_SHELF_PREMIUM": {
+        "name": "Premium Waterborne Urethane System",
+        "quality_tiers": ["QT4", "QT5"],
+        "used_in": ["SF_CLOSET_SHELF_NC"]
+      },
+      "SYS_FF_STANDARD_ACRYLIC": {
+        "name": "Standard Acrylic Trim Enamel",
+        "quality_tiers": ["QT3"],
+        "used_in": ["SF_DOOR_FRAME_NC_FINISH"]
+      },
+      "SYS_FF_MODIFIED_URETHANE": {
+        "name": "Modified Urethane Trim Enamel",
+        "quality_tiers": ["QT4"],
+        "used_in": ["SF_DOOR_FRAME_NC_FINISH"]
+      },
+      "SYS_FF_PREMIUM": {
+        "name": "Premium Urethane Trim Enamel",
+        "quality_tiers": ["QT5"],
+        "used_in": ["SF_DOOR_FRAME_NC_FINISH"]
+      },
+      "SYS_FF_GALLERY": {
+        "name": "Gallery Series Full System",
+        "quality_tiers": ["QT5"],
+        "used_in": ["SF_DOOR_FRAME_NC_FINISH"],
+        "notes": "Architect-spec matched system with dedicated primer"
+      }
+    },
+    "naming_convention": "SYS_{CONTEXT}_{DESCRIPTION}. Fine Finish systems use SYS_FF_ prefix."
+  },
+
+  "surface_ids": {
+    "description": "Surface vocabulary IDs used in adjacency_declarations. These are NOT prefixed - they use lowercase_with_underscores. Canonical source: Surface_Vocabulary_Reference.md",
+    "canonical_source": "docs/Reference/Surface_Vocabulary_Reference.md",
+    "entries_in_active_use": [
+      "builtin_shelf",
+      "ceiling_field",
+      "door_casing",
+      "door_frame",
+      "door_leaf_edge",
+      "door_leaf_face",
+      "door_stop",
+      "trim_baseboard",
+      "trim_casing_door",
+      "trim_casing_window",
+      "trim_crown",
+      "wall_field"
+    ],
+    "rule": "Always check Surface_Vocabulary_Reference.md before creating a new surface ID. The full vocabulary includes 40+ surfaces across walls, ceilings, trim, doors, windows, cabinets, built-ins, and millwork."
+  },
+
+  "zone_ids": {
+    "description": "Protection zone IDs used in protection_zones_required and protection_metadata. Lowercase_with_underscores. Canonical source: Protection_Zones_Reference.md",
+    "canonical_source": "docs/Reference/Protection_Zones_Reference.md",
+    "entries_in_active_use": [
+      "fixture_covers",
+      "floor_door_swing",
+      "floor_full",
+      "floor_full_8ft_radius",
+      "floor_perimeter",
+      "floor_workzone",
+      "hardware_covers",
+      "opening_cover_lightweight",
+      "wall_adjacent",
+      "wall_adjacent_door"
+    ],
+    "retired_aliases": {
+      "door_hardware": "Use hardware_covers instead"
+    },
+    "rule": "Always check Protection_Zones_Reference.md before creating a new zone ID. The full catalog includes 28 zones. Note: door_hardware appears in SF_DOOR_SLAB_INT_NC_v1 but should be migrated to hardware_covers per Protection_Zones_Reference v2.0."
+  },
+
+  "PS_": {
+    "description": "PaintScope keys. External data source references. Pattern: PS_{CATEGORY}.{SURFACE_OR_ZONE}",
+    "pattern": "^PS_[A-Z_]+\\.[A-Z0-9_.]+$",
+    "categories": {
+      "PS_SURFACE_SF.": "Square footage of a paintable surface",
+      "PS_SURFACE_EA.": "Count of a paintable item",
+      "PS_SURFACE_EA_SIDE.": "Count of paintable sides (door slabs)",
+      "PS_EDGE_LF.": "Linear footage of an edge/junction",
+      "PS_OPENING_EA.": "Count of openings by type",
+      "PS_OPENING_MOD.": "Opening modifier enum values",
+      "PS_PROTECT_SF.": "Square footage of protection area",
+      "PS_PROTECT_LF.": "Linear footage of protection edge",
+      "PS_PROTECT_EA.": "Count of protection items",
+      "PS_META.EA.": "Project metadata counts",
+      "PS_META.SF.": "Project metadata areas"
+    },
+    "entries_in_active_use": [
+      "PS_SURFACE_SF.CEILING_FIELD",
+      "PS_SURFACE_SF.WALL_FIELD",
+      "PS_SURFACE_EA.DOOR_FRAME_SET",
+      "PS_SURFACE_EA_SIDE.DOOR_SLAB",
+      "PS_EDGE_LF.TO_CEILING",
+      "PS_EDGE_LF.TO_WALL",
+      "PS_OPENING_EA.CLOSET_SHELF.S",
+      "PS_OPENING_EA.CLOSET_SHELF.M",
+      "PS_OPENING_EA.CLOSET_SHELF.L",
+      "PS_OPENING_EA.CLOSET_SHELF.XL",
+      "PS_OPENING_EA.DOOR_OPENINGS_TOTAL",
+      "PS_OPENING_EA.WINDOW_OPENINGS_TOTAL",
+      "PS_OPENING_MOD.DEPTH",
+      "PS_OPENING_MOD.DETAIL",
+      "PS_OPENING_MOD.ACCESS",
+      "PS_PROTECT_SF.FLOOR_EXPOSED",
+      "PS_PROTECT_SF.FLOOR_WORKZONE",
+      "PS_PROTECT_SF.FLOOR_PERIMETER",
+      "PS_PROTECT_SF.FLOOR_8FT_RADIUS",
+      "PS_PROTECT_LF.WALL_ADJACENT_DOOR",
+      "PS_META.EA.ROOMS_TOTAL",
+      "PS_META.EA.DOOR_PANES_TOTAL",
+      "PS_META.SF.FLOOR_VACUUM_AREA"
+    ]
+  },
+
+  "IN_": {
+    "description": "Input IDs. Values sourced from PaintScope into spec calculations. Pattern: IN_{UOM}_{WHAT}",
+    "pattern": "^IN_[A-Z0-9_]+$",
+    "entries_in_active_use": [
+      "IN_EA_OPENING_S",
+      "IN_EA_OPENING_M",
+      "IN_EA_OPENING_L",
+      "IN_EA_OPENING_XL",
+      "IN_EA_DOOR_FRAME_SET",
+      "IN_EA_DOORS_INTERIOR",
+      "IN_EA_DOOR_OPENINGS",
+      "IN_EA_DOOR_PANES",
+      "IN_EA_ROOMS",
+      "IN_EA_ROOMS_TOTAL",
+      "IN_EA_SIDE_DOOR_SLAB_TOTAL",
+      "IN_EA_WINDOW_OPENINGS",
+      "IN_LF_EDGE_TO_CEILING",
+      "IN_LF_EDGE_TO_WALL",
+      "IN_LF_WALL_ADJACENT_DOOR",
+      "IN_MOD_ACCESS",
+      "IN_MOD_DEPTH",
+      "IN_MOD_DETAIL",
+      "IN_SF_CEILING_FIELD",
+      "IN_SF_FLOOR_8FT_RADIUS",
+      "IN_SF_FLOOR_AREA",
+      "IN_SF_FLOOR_PROTECT",
+      "IN_SF_FLOOR_VACUUM",
+      "IN_SF_FLOOR_WORKZONE",
+      "IN_SF_PROTECT_FLOOR_EXPOSED",
+      "IN_SF_PROTECT_FLOOR_PERIMETER",
+      "IN_SF_WALL_FIELD"
+    ],
+    "known_duplicates": {
+      "issue": "IN_EA_ROOMS vs IN_EA_ROOMS_TOTAL and IN_SF_FLOOR_AREA vs IN_SF_FLOOR_PROTECT vs IN_SF_PROTECT_FLOOR_EXPOSED all potentially reference the same data",
+      "resolution": "Pending consolidation. New specs should use the most specific name available."
+    }
+  },
+
+  "TSK_": {
+    "description": "Task IDs. Each represents a discrete action performed on a paintable item. Too numerous to list individually here - see individual spec sop_modules.json files for full task lists.",
+    "pattern": "^TSK_[A-Z0-9_]+$",
+    "naming_convention": "TSK_{SPEC_CONTEXT}_{ACTION}. Examples: TSK_FRAME_SAND_PREP, TSK_DOOR_FINISH_SPRAY, TSK_CEIL_CUT_IN_WALL",
+    "context_prefixes_in_use": {
+      "TSK_FLOOR_PROTECT": "Generic floor protection (closet shelf)",
+      "TSK_DUST_WIPE": "Generic dust wipe (closet shelf)",
+      "TSK_LIGHT_SAND": "Generic light sand (closet shelf)",
+      "TSK_EDGE_SEAL": "Generic edge seal (closet shelf)",
+      "TSK_SPOT_FILL": "Generic spot fill (closet shelf)",
+      "TSK_CAULK": "Generic caulk (closet shelf)",
+      "TSK_PRIME_*": "Generic prime tasks (closet shelf)",
+      "TSK_FINISH_*": "Generic finish tasks (closet shelf)",
+      "TSK_INTERSTAGE_SAND": "Generic interstage sand (closet shelf)",
+      "TSK_FINAL_INSPECT": "Generic final inspection (closet shelf)",
+      "TSK_FRAME_*": "Door frame tasks (25 tasks)",
+      "TSK_DOOR_*": "Door slab tasks (18 tasks)",
+      "TSK_CEIL_*": "Ceiling prime tasks",
+      "TSK_INSPECT_PRIMED_CEILING*": "Ceiling finish inspection tasks",
+      "TSK_SPACKLE_CEILING*": "Ceiling finish repair tasks",
+      "TSK_SAND_SPACKLE_CEILING*": "Ceiling finish sanding tasks",
+      "TSK_SPOT_PRIME_CEILING": "Ceiling finish spot prime",
+      "TSK_VACUUM_*": "Various vacuum tasks",
+      "TSK_LIGHT_SAND_CEILING*": "Ceiling full-surface sanding",
+      "TSK_LIGHT_SAND_BETWEEN_COATS*": "Ceiling intercoat sanding",
+      "TSK_PROTECT_CEILING_FIXTURES": "Ceiling fixture protection",
+      "TSK_VERIFY_MASK_OPENINGS": "Opening cover verification",
+      "TSK_ROLL_CEILING_FINISH_*": "Ceiling roll application tasks",
+      "TSK_SPRAY_CEILING_FINISH_*": "Ceiling spray application tasks",
+      "TSK_BACKROLL_CEILING_FINISH_*": "Ceiling backroll tasks",
+      "TSK_REMOVE_CEILING_PROTECTION": "Ceiling protection teardown",
+      "TSK_CLEAN_TOOLS_CEILING": "Ceiling tool cleanup",
+      "TSK_FINAL_INSPECT_CEILING*": "Ceiling final inspection",
+      "TSK_WALL_*": "Wall prime tasks"
+    },
+    "inconsistency_notes": "The closet shelf spec uses short generic names (TSK_LIGHT_SAND) while other specs use context-prefixed names (TSK_FRAME_LIGHT_SAND, TSK_DOOR_LIGHT_SAND). Ceiling finish spec uses long descriptive names (TSK_LIGHT_SAND_BETWEEN_COATS_SPRAY). Future specs should use the context-prefixed pattern: TSK_{CONTEXT}_{ACTION}."
+  },
+
+  "MOD_": {
+    "description": "SOP Module IDs. Groups tasks into a phase within a spec.",
+    "pattern": "^MOD_[A-Z0-9_]+$",
+    "entries_in_active_use": {
+      "SF_CLOSET_SHELF_NC": [
+        "MOD_CLOSET_SHELF_SETUP",
+        "MOD_CLOSET_SHELF_PREP",
+        "MOD_CLOSET_SHELF_PRIME",
+        "MOD_CLOSET_SHELF_FINISH",
+        "MOD_CLOSET_SHELF_CLEANUP"
+      ],
+      "SF_DOOR_FRAME_NC_FINISH": [
+        "MOD_FRAME_SETUP",
+        "MOD_FRAME_INITIAL_PREP",
+        "MOD_FRAME_PRIME",
+        "MOD_FRAME_INTERSTAGE",
+        "MOD_FRAME_FINISH_COAT",
+        "MOD_FRAME_MORTISE_TOUCHUP",
+        "MOD_FRAME_CLEANUP"
+      ],
+      "SF_DOOR_SLAB_INT_NC": [
+        "MOD_DOOR_SETUP",
+        "MOD_DOOR_INITIAL_PREP",
+        "MOD_DOOR_PRIME",
+        "MOD_DOOR_INTERSTAGE",
+        "MOD_DOOR_FINISH_COAT",
+        "MOD_DOOR_FRENCH_GLASS_MASK",
+        "MOD_DOOR_CLEANUP"
+      ],
+      "SF_DRYWALL_CEILING_NC_FINISH": [
+        "MOD_INSPECT_REPAIR_CEILING_FINISH",
+        "MOD_PREP_CEILING_FINISH_PREMIUM",
+        "MOD_PROTECTION_CEILING_FINISH",
+        "MOD_APPLY_CEILING_FINISH_ROLL",
+        "MOD_APPLY_CEILING_FINISH_ROLL_R2",
+        "MOD_APPLY_CEILING_FINISH_SPRAY_BACKROLL",
+        "MOD_APPLY_CEILING_FINISH_SPRAY_BACKROLL_R2",
+        "MOD_APPLY_CEILING_FINISH_SPRAY_ONLY",
+        "MOD_CLEANUP_CEILING_FINISH"
+      ],
+      "SF_DRYWALL_CEILING_NC_PRIME": "See spec sop_modules.json",
+      "SF_DRYWALL_WALL_NC_PRIME": "See spec sop_modules.json"
+    },
+    "naming_convention": "MOD_{CONTEXT}_{PHASE_OR_FUNCTION}. Context should match the spec's shorthand."
+  },
+
+  "VAR_": {
+    "description": "Variant IDs. Conditional combinations of items, methods, and tiers.",
+    "pattern": "^VAR_[A-Z0-9_]+$",
+    "total_in_system": 28,
+    "naming_convention": "VAR_{METHOD}_{CONDITION}_{TIER} or VAR_{TYPE}_{TIER}. Should be self-documenting.",
+    "note": "Variants are spec-specific and do not cross-reference. No registry needed beyond naming convention."
+  },
+
+  "ROUND_": {
+    "description": "Round Configuration IDs. Define coat sequence patterns.",
+    "pattern": "^ROUND_[A-Z0-9_]+$",
+    "entries_in_active_use": [
+      "ROUND_SINGLE_COAT",
+      "ROUND_TWO_COAT",
+      "ROUND_FRAME_PRIME_FINISH_2COAT",
+      "ROUND_FRAME_FINISH_2COAT",
+      "ROUND_DOOR_PRIME_FINISH_2COAT",
+      "ROUND_DOOR_FINISH_2COAT",
+      "ROUND_DOOR_LOUVERED_3COAT"
+    ]
+  },
+
+  "COV_": {
+    "description": "Coverage Profile IDs. Material coverage rates by surface condition.",
+    "pattern": "^COV_[A-Z0-9_]+$",
+    "entries_in_active_use": [
+      "COV_FRAME_PRIMER",
+      "COV_FRAME_PRIMER_BARE",
+      "COV_FRAME_FINISH"
+    ],
+    "notes": "Only door frame spec currently uses formal coverage profile IDs. Other specs embed coverage rates directly in material_systems. Future standardization should extract all coverage data into COV_ profiles."
+  },
+
+  "CON_": {
+    "description": "Consumable IDs. Expendable items used during work.",
+    "pattern": "^CON_[A-Z0-9_]+$",
+    "known_inconsistency": "Closet shelf spec uses CONS_ prefix (CONS_BRUSH_ANGLE, CONS_ROLLER_MINI). Door frame spec uses CON_ prefix (CON_SANDPAPER_180, CON_BRUSH_ANGLED_SASH). The canonical prefix is CON_. CONS_ entries should be migrated.",
+    "entries_in_active_use": [
+      "CON_SANDPAPER_180",
+      "CON_SANDPAPER_220",
+      "CON_SANDPAPER_320",
+      "CON_SANDING_BLOCK_FINE",
+      "CON_SPACKLE_LIGHTWEIGHT",
+      "CON_CAULK_PAINTABLE",
+      "CON_SPRAY_TIP_310",
+      "CON_BRUSH_ANGLED_SASH",
+      "CON_MINI_ROLLER_4IN",
+      "CON_MASKING_TAPE_BLUE",
+      "CON_MASKING_PAPER_12IN",
+      "CON_DROP_CLOTH_CANVAS",
+      "CON_ROSIN_PAPER",
+      "CON_TACK_CLOTH"
+    ],
+    "pending_migration": [
+      {
+        "current_id": "CONS_BRUSH_ANGLE",
+        "target_id": "CON_BRUSH_ANGLE",
+        "spec": "SF_CLOSET_SHELF_NC",
+        "rule": "AR-009"
+      },
+      {
+        "current_id": "CONS_ROLLER_MINI",
+        "target_id": "CON_ROLLER_MINI",
+        "spec": "SF_CLOSET_SHELF_NC",
+        "rule": "AR-009"
+      },
+      {
+        "current_id": "CONS_SANDPAPER",
+        "target_id": "CON_SANDPAPER",
+        "spec": "SF_CLOSET_SHELF_NC",
+        "rule": "AR-009"
+      },
+      {
+        "current_id": "CONS_TACK_CLOTH",
+        "target_id": "CON_TACK_CLOTH",
+        "spec": "SF_CLOSET_SHELF_NC",
+        "rule": "AR-009"
+      },
+      {
+        "current_id": "CONS_DROP_CLOTH",
+        "target_id": "CON_DROP_CLOTH",
+        "spec": "SF_CLOSET_SHELF_NC",
+        "rule": "AR-009"
+      },
+      {
+        "current_id": "CONS_CAULK",
+        "target_id": "CON_CAULK",
+        "spec": "SF_CLOSET_SHELF_NC",
+        "rule": "AR-009"
+      }
+    ]
+  },
+
+  "XSPEC_": {
+    "description": "Cross-Spec Flags. Passed between specs to coordinate work and avoid double-counting.",
+    "pattern": "^XSPEC_[A-Z0-9_]+$",
+    "entries": {
+      "XSPEC_WALL_REPAIR_DONE": {
+        "description": "Set by SF_DRYWALL_WALL_NC_PRIME when substrate inspection/repair is performed. SF_DRYWALL_WALL_NC_FINISH should skip its first inspection/repair round when this flag is set.",
+        "set_by": "SF_DRYWALL_WALL_NC_PRIME",
+        "consumed_by": "SF_DRYWALL_WALL_NC_FINISH"
+      }
+    }
+  },
+
+  "COMP_": {
+    "description": "Composition/Complexity Modifiers. Cross-spec impact when work areas overlap.",
+    "pattern": "^COMP_[A-Z0-9_]+$",
+    "entries": {
+      "COMP_CLOSET_SHELVING": {
+        "value": 1.5,
+        "description": "Closet shelving presence causes 1.5x modifier on wall/ceiling specs in same closet",
+        "set_by": "SF_CLOSET_SHELF_NC",
+        "affects": ["SF_DRYWALL_WALL_NC_PRIME", "SF_DRYWALL_WALL_NC_FINISH", "SF_DRYWALL_CEILING_NC_PRIME", "SF_DRYWALL_CEILING_NC_FINISH"]
+      }
+    }
+  }
+}
