@@ -1,0 +1,253 @@
+{
+  "spec_family_id": "SF_WINDOW_INT_NC",
+  "version": "0.1.0",
+  "generated_by": "System Critic",
+  "generated_at": "2026-02-07",
+  "status": "draft",
+  "review_required": true,
+
+  "overall_result": "pass_with_warnings",
+
+  "summary": "SF_WINDOW_INT_NC_v1 draft artifacts (research, resolution, materials, sop_modules, production) pass all critical doctrine checks. 29 tasks thread correctly between sop_modules.json and production.json. Registry compliance verified — no prohibited patterns found. Fine Finish Doctrine and Window Systems Doctrine compliance confirmed. Combined prime+paint module structure correctly implemented with conditional primer. EA-based counting with size bucket, window type, muntin, and 5-tier height modifiers all present. 4 minor warnings and 2 informational notes flagged for review. All artifacts remain DRAFT pending human review and spec.json assembly.",
+
+  "artifacts_reviewed": [
+    { "file": "research.json", "status": "reviewed", "human_feedback": "pending" },
+    { "file": "resolution.json", "status": "reviewed", "human_feedback": "pending" },
+    { "file": "materials.json", "status": "reviewed", "human_feedback": "pending" },
+    { "file": "sop_modules.json", "status": "reviewed", "human_feedback": "pending" },
+    { "file": "production.json", "status": "reviewed", "human_feedback": "pending" },
+    { "file": "spec.json", "status": "not_yet_created", "human_feedback": "n/a" }
+  ],
+
+  "issues": [
+    {
+      "issue_id": "QA-001",
+      "severity": "minor",
+      "area": "production_logic",
+      "file": "production.json",
+      "description": "12 binary tasks missing defect_tolerance definitions: TSK_WIN_FLOOR_PROTECT, TSK_WIN_GLASS_MASK, TSK_WIN_HARDWARE_PROTECT, TSK_WIN_WALL_MASK, TSK_WIN_SILL_PROTECT, TSK_WIN_PREP_SCUFF, TSK_WIN_PREP_METAL_DEGREASE, TSK_WIN_PREP_ALUMINUM_ETCH, TSK_WIN_PREP_CLEAN, TSK_WIN_CLEAN_INTERSTAGE, TSK_WIN_PROTECT_TEARDOWN, TSK_WIN_CLEAN_TOOLS. Defect tolerance is most meaningful for application/inspection tasks (which are covered) but doctrine recommends it for every task.",
+      "suggested_fix": "Add defect_tolerance to missing tasks. For protection/cleanup tasks, defect_tolerance can be simple (e.g., 'Complete coverage of all protection zones').",
+      "recommended_agent": "Estimation Engineer"
+    },
+    {
+      "issue_id": "QA-002",
+      "severity": "minor",
+      "area": "modifier_registry",
+      "file": "production.json",
+      "description": "Size bucket modifiers (S=0.75, M=1.00, L=1.40) and window type modifiers (DH=1.00, casement=0.96, slider=0.96, fixed=0.78, awning=1.00) are in production.json but NOT in Modifier_Registry.md. These are window-specific modifiers that should be centrally registered for single-source-of-truth consistency.",
+      "suggested_fix": "Add 'Window Size Bucket Modifiers' and 'Window Type Modifiers' sections to Modifier_Registry.md. Values: SIZE_S=0.75, SIZE_M=1.00, SIZE_L=1.40, TYPE_DH=1.00, TYPE_CASEMENT=0.96, TYPE_SLIDER=0.96, TYPE_FIXED=0.78, TYPE_AWNING=1.00.",
+      "recommended_agent": "Product Architect"
+    },
+    {
+      "issue_id": "QA-003",
+      "severity": "minor",
+      "area": "assumptions",
+      "file": "production.json",
+      "description": "5 doctrine gap assumptions in production.json (A-001 through A-005). Size bucket modifiers (A-001), task rate decomposition (A-003), coat 3 rates (A-004), and glass masking SF rate (A-005) all lack canonical doctrine backing. These are research-derived estimates that need field validation.",
+      "suggested_fix": "Flag for validation per production.json validation_plan. After field validation, update doctrine if rates are confirmed or adjust production rates if they differ from practice.",
+      "recommended_agent": "Estimation Engineer"
+    },
+    {
+      "issue_id": "QA-004",
+      "severity": "minor",
+      "area": "schema_alignment",
+      "file": "sop_modules.json",
+      "description": "MOD_WIN_PRIME applies_when uses non-standard keys (condition, primer_required_when, primer_skipped_when) instead of the standard enum-based applies_when pattern. While descriptive, the estimation engine needs explicit logic to evaluate these conditions. The standard applies_when pattern would use substrate_state enum.",
+      "suggested_fix": "No structural change needed — the applies_when clearly documents the primer conditionality. Engine integration should parse 'substrate_state = SS_BARE OR substrate in [aluminum, steel]' as primer trigger. Document this conditional module pattern in structural_keys.json for future combined specs.",
+      "recommended_agent": "Product Architect"
+    }
+  ],
+
+  "blockers": [],
+
+  "doctrine_checks": [
+    { "check": "GEOM_NO_INTERNAL_COMPUTE", "result": "pass", "details": "No geometry computation in any artifact. All geometry sourced from PaintScope inputs (EA window counts, SF glass area, LF wall/sill masking)." },
+    { "check": "GEOM_INPUTS_DECLARED", "result": "pass", "details": "All 17 required inputs declared with paintscope_key mappings in materials, sop_modules, and production." },
+    { "check": "UOM_TASKS_DECLARED", "result": "pass", "details": "All 29 tasks have unit_of_measure declared (EA, SF, LF, FIXED)." },
+    { "check": "UOM_RATE_MATCH", "result": "pass", "details": "All production rates match task UOM. EA tasks have EA/hr rates, SF tasks have SF/hr rates, LF tasks have LF/hr rates, FIXED has fixed_time_minutes." },
+    { "check": "EDGELF_REQUIRED_IF_EDGE_TASKS", "result": "pass", "details": "No edge tasks in this spec. Wall masking is protection work, not edge work. Window-to-glass interface is masking, not cut-in." },
+    { "check": "FLOW_PAINTSCOPE_TO_SPEC_TO_ESTIMATION", "result": "pass", "details": "All inputs flow PaintScope → spec inputs → task rates. No bypass. Size bucket counts → per-EA rates. Glass SF → masking rate." },
+    { "check": "HF_GATE_PRESENT", "result": "pending", "details": "No human feedback gate completed yet. Research.json is DRAFT awaiting human review. All downstream artifacts are also DRAFT." },
+    { "check": "HF_STATUS_RESPECTED", "result": "pending", "details": "Pending human review of all artifacts." },
+    { "check": "PILOT_PRECEDENT_NOT_USED", "result": "pass", "details": "All authority drawn from doctrine docs (Window_Systems_Doctrine, Fine_Finish_Doctrine, Modifier_Registry). Trim spec used for STRUCTURAL pattern only, not production rate precedent." },
+    { "check": "ADJ_STEPS_HAVE_KEYS", "result": "pass", "details": "Wall masking has PS_PROTECT_LF.WALL_ADJACENT_WINDOW, sill protection has PS_PROTECT_LF.SILL. All protection steps have measurable PaintScope inputs." },
+    { "check": "ADJ_PROTECTION_MEASURABLE", "result": "pass", "details": "All 6 protection zones have measurable inputs: glass (SF), floor_perimeter (SF), floor_8ft_radius (SF), wall_adjacent_window (LF), hardware_covers (EA), sill (LF)." },
+    { "check": "ADJ_NO_GEOMETRY_DERIVATION", "result": "pass", "details": "No LF↔SF derivation. Window area estimated via size bucket perimeter math (Area = P²÷16) but this is done by PaintScope, not the spec." },
+    { "check": "PROD_MODIFIERS_INCREASE_TIME", "result": "pass", "details": "production.json rate_notes explicitly states: 'effective_time = base_time × modifier_product. For ea_per_hour rates: effective_rate = base_rate / modifier_product.' All modifiers documented as time multipliers." },
+    { "check": "TASK_CLASS_PRESENT", "result": "pass", "details": "All 29 tasks in sop_modules.json have task_classification defined (20 binary, 9 qt_scaled)." },
+    { "check": "TASK_CLASS_CONSISTENT", "result": "pass", "details": "task_classification matches between sop_modules.json and production.json for all 29 tasks. Binary tasks use rate_per_hour, qt_scaled tasks use qt_rates." },
+    { "check": "BINARY_SINGLE_RATE", "result": "pass", "details": "All 20 binary tasks have single rate_per_hour (or fixed_time_minutes). None have qt_rates." },
+    { "check": "SCALED_QT_RATES_DEFINED", "result": "pass", "details": "All 9 qt_scaled tasks have qt_rates with QT3, QT4, QT5 entries." },
+    { "check": "DEFECT_TOLERANCE_PRESENT", "result": "warn", "details": "12 of 29 tasks missing defect_tolerance. Present on all application, inspection, and sanding tasks. Missing on protection, cleanup, and prep utility tasks. See QA-001." },
+    { "check": "FF_INTERSTAGE_MODULE_PRESENT", "result": "pass", "details": "MOD_WIN_INTERSTAGE exists with 5 tasks (inspect, sand, patch, spot coat, clean). Follows Fine Finish interstage pattern." },
+    { "check": "FF_INTERSTAGE_RUN_RULE_CORRECT", "result": "pass", "details": "run_rule: 'Runs AFTER each coat EXCEPT the final coat'. run_count_formula: 'total_coats - 1'. Correct per FFD 5.3." },
+    { "check": "FF_SHEEN_TIER_RESTRICTIONS", "result": "pass", "details": "Sheen/QT gate in resolution.json: satin at QT3+, semi-gloss at QT4+, gloss at QT5 only. materials.json allowed_sheens match: SYS_FF_STANDARD_ACRYLIC=[satin], SYS_FF_MODIFIED_URETHANE=[satin, semi-gloss], SYS_FF_PREMIUM=[satin, semi-gloss, gloss]." },
+    { "check": "FF_SCRUTINY_NOT_MULTIPLIERS", "result": "pass", "details": "qt_scaled tasks use explicit qt_rates with scrutiny-based notes. Not simple QT modifier multiplication." },
+    { "check": "FF_SANDING_BLOCK_MANDATE", "result": "pass", "details": "Rigid sanding block mandate (FFD 15.4.1) referenced in sanding task descriptions and production rate basis notes." },
+    { "check": "FF_APPLICATION_NOT_TIERED", "result": "pass", "details": "All finish coat and primer tasks are binary (same quality at all tiers). defect_tolerance says 'Application quality is NOT tiered' for all application tasks." },
+    { "check": "FF_WORKING_TIME_NOTED", "result": "pass", "details": "'Apply, tip once, walk away' documented in finish coat module and task descriptions per FFD 15.3.1." },
+    { "check": "FF_QT5_3COAT_SUPPORTED", "result": "pass", "details": "ROUND_WIN_3FINISH round configuration supports QT5 brush/roll 3+ coats per FFD 15.10.3." },
+    { "check": "WSD_SUBSTRATE_PREP_DIFFERENTIATED", "result": "pass", "details": "MOD_WIN_PREP has substrate-conditional tasks: wood (sand, fill), aluminum (degrease, etch), steel (degrease, rust treatment). Correct per Window_Systems_Doctrine Sections 3, 6.2, 6.3." },
+    { "check": "WSD_PRIMER_CONDITIONAL", "result": "pass", "details": "MOD_WIN_PRIME is conditional on substrate_state=SS_BARE (wood) or substrate=aluminum/steel. Skipped when SS_PRIMED_FACTORY. Correct per Window_Systems_Doctrine and research RF-002." },
+    { "check": "WSD_PRIMER_SUBSTRATE_DRIVEN", "result": "pass", "details": "4 primer systems in materials.json are substrate-driven (wood acrylic, wood shellac, aluminum DTM, steel DTM). Primer is NOT QT-driven. Correct per Window_Systems_Doctrine Sections 3, 6." },
+    { "check": "WSD_GLASS_MASKING_MANDATORY", "result": "pass", "details": "TSK_WIN_GLASS_MASK has no applies_when restriction — runs at all tiers and all methods. protection_metadata.method_dependent=false. Correct per research RF-007." },
+    { "check": "WSD_BLOCKING_PREVENTION", "result": "pass", "details": "Blocking prevention notes in all finish coat task descriptions: 'paint sashes in ajar position', 'do NOT close before full cure (3-7 days for enamels)'. Per Window_Systems_Doctrine Section 10.1." },
+    { "check": "WSD_GLASS_SCRAPE_IN_CLEANUP", "result": "pass", "details": "TSK_WIN_GLASS_SCRAPE is in MOD_WIN_CLEANUP (cleanup phase), not interstage. Notes 'occurs AFTER full cure'. Per Window_Systems_Doctrine Section 4.1.1." },
+    { "check": "WSD_HEIGHT_5_TIER", "result": "pass", "details": "5-tier height system (H1-H5) in production.json matches Modifier_Registry v1.2: H1=1.00, H2=1.30, H3=1.50, H4=2.00, H5=2.50. PaintScope keys PS_OPENING_EA.WINDOW_H1-H5 all present." },
+    { "check": "WSD_SIZE_BUCKET_METHOD", "result": "pass", "details": "Size bucket modifiers (S, M, L, O) defined in production.json. EA-based counting with size modifier. M is baseline. Per Window_Systems_Doctrine Section 7 and PaintScope_Window_Counting_System." },
+    { "check": "WSD_WINDOW_TYPE_MODIFIERS", "result": "pass", "details": "5 window type modifiers (DH, casement, slider, fixed, awning) defined in production.json. Values normalized from Window_Systems_Doctrine Section 8.3 rates." },
+    { "check": "WSD_MUNTIN_MODIFIER", "result": "pass", "details": "Muntin modifier 1.20x defined in production.json. Applies to application and sanding tasks. Does not apply to setup/cleanup. Per Window_Systems_Doctrine Section 8.3." },
+    { "check": "WSD_DUAL_MATERIAL_SYSTEM", "result": "pass", "details": "materials.json has dual system: 4 primer systems (substrate-driven) + 3 finish systems (QT-driven). Any primer can pair with any finish. Correct architecture per research RF-009." },
+    { "check": "WSD_BRUSH_SIZE_NOTED", "result": "pass", "details": "1.5\" angled sash brush for detail work and 2-2.5\" for frame faces documented in SOP and production tasks. Per Window_Systems_Doctrine Section 8.2.1." },
+    { "check": "WSD_SPRAY_WASTE_FACTOR", "result": "pass", "details": "20-40% spray material waste documented in materials.json coverage profiles and production rate notes. Per Window_Systems_Doctrine Section 8.2.2." },
+    { "check": "PZ_PROTECT_TASKS_HAVE_METADATA", "result": "pass", "details": "5 protection setup tasks and 1 teardown task have protection_metadata with action and zones fields." },
+    { "check": "PZ_ACTION_VALID", "result": "pass", "details": "All protection_metadata.action values are 'setup' or 'teardown' — valid enum." },
+    { "check": "PZ_ZONES_IN_VOCABULARY", "result": "pass", "details": "Zone IDs floor_perimeter, floor_full_8ft_radius, glass_mask, hardware_covers, wall_adjacent_window, sill_protection all in resolution.json zone_ids." },
+    { "check": "PZ_SETUP_TEARDOWN_PAIRED", "result": "pass", "details": "TSK_WIN_PROTECT_TEARDOWN covers all 5 non-glass zones. Glass masking teardown handled by TSK_WIN_GLASS_SCRAPE. All zones paired." },
+    { "check": "SCD_SC_RULES_PRESENT", "result": "pass", "details": "Protection tasks have site_condition_rules (floor_type include/exclude). State condition notes for wall masking and sill protection." },
+    { "check": "SCD_SC_CONDITIONS_VALID", "result": "pass", "details": "Condition IDs (floor_type) and values (finished, partial, subfloor) valid per Site_Condition_Vocabulary_Reference." },
+    { "check": "SCD_MOD_ALIGNED", "result": "pass", "details": "QT modifiers (1.00/1.30/1.50), height modifiers (1.00/1.30/1.50/2.00/2.50), condition modifiers (1.00/1.50/2.00) match Modifier_Registry.md v1.2 exactly." },
+    { "check": "SCD_STATE_INPUT_VALID", "result": "pass", "details": "Valid input states: SS_BARE, SS_PRIMED_FACTORY. Both are valid SS_* IDs in Substrate_State_Reference." },
+    { "check": "SCD_STATE_OUTPUT_VALID", "result": "pass", "details": "Output states: SS_PAINTED_SATIN, SS_PAINTED_SEMIGLOSS, SS_PAINTED_GLOSS. All valid SS_* IDs." },
+    { "check": "SCD_STATE_MAP_VALID", "result": "pass", "details": "State map (satin→SS_PAINTED_SATIN, semi-gloss→SS_PAINTED_SEMIGLOSS, gloss→SS_PAINTED_GLOSS) in resolution.json is valid." },
+    { "check": "SCD_STATE_PROTECTION_RULES", "result": "pass", "details": "Wall masking and sill protection have substrate_state_rules with protect_when_state and skip_when_state. Valid SS_* IDs used." },
+    { "check": "DO_CONFLICTS_RESOLVED", "result": "pass", "details": "No doctrine_conflicts in research.json. Zero conflicts detected." },
+    { "check": "DO_HAS_RATIONALE", "result": "pass", "details": "No doctrine overrides needed." },
+    { "check": "RC_ALL_CORRECTIONS_ASSIGNED", "result": "pass", "details": "3 inherited research corrections referenced: RC-004 (no dry times), RC-005 (material recommendations), RC-006 (product classification). All applied in downstream artifacts." },
+    { "check": "FC_DECL_PRIMARY_SURFACE_PRESENT", "result": "deferred", "details": "Deferred to spec.json assembly — adjacency_declarations will be in spec.json." },
+    { "check": "FC_DECL_EDGE_TYPE_VALID", "result": "deferred", "details": "Deferred to spec.json assembly." },
+    { "check": "SCD_PZ_PRESENT", "result": "deferred", "details": "Deferred to spec.json assembly." },
+    { "check": "SCD_ADJ_PRESENT", "result": "deferred", "details": "Deferred to spec.json assembly." },
+    { "check": "SCD_STATE_DECL_PRESENT", "result": "deferred", "details": "Deferred to spec.json assembly." }
+  ],
+
+  "registry_compliance": {
+    "prohibited_patterns_checked": [
+      { "pattern": "CONS_ prefix", "result": "clean", "details": "CON_ prefix used consistently in materials.json (16 consumables)" },
+      { "pattern": "task_class key name", "result": "clean", "details": "task_classification used in all files" },
+      { "pattern": "phase 'protect' or 'protection'", "result": "clean", "details": "Valid phases only: setup, prep, prime, interstage, finish, cleanup" },
+      { "pattern": "compound sheens", "result": "clean", "details": "Single sheen values only: satin, semi-gloss, gloss" },
+      { "pattern": "lowercase units", "result": "clean", "details": "All uppercase: EA, SF, LF, ROLL, SHEET, QT, FIXED" },
+      { "pattern": "severity high/medium/low/WARN", "result": "clean", "details": "severity values: critical, major, minor" },
+      { "pattern": "consumable category 'consumable'", "result": "clean", "details": "Categories: applicator, protection, prep, abrasive, fill_material, tool" },
+      { "pattern": "door_hardware zone", "result": "clean", "details": "hardware_covers used consistently (never door_hardware)" },
+      { "pattern": "vinyl substrate", "result": "clean", "details": "vinyl excluded per applicable_enums.substrate.prohibited" }
+    ],
+    "overall": "clean"
+  },
+
+  "cross_file_threading": {
+    "sop_to_production_task_match": {
+      "sop_task_count": 29,
+      "production_task_count": 29,
+      "orphaned_sop_tasks": [],
+      "orphaned_production_tasks": [],
+      "task_classification_mismatches": [],
+      "uom_mismatches": [],
+      "status": "pass"
+    },
+    "research_corrections_propagated": {
+      "RC-004": "No dry times in materials.json or sop_modules.json — refer to PDS",
+      "RC-005": "materials.json notes material systems as recommendations (contractor discretion). materials_notes.product_classification correct.",
+      "RC-006": "materials.json correctly classifies Emerald Urethane as acrylic-urethane enamel (not waterborne alkyd). Advance classified as waterborne alkyd.",
+      "status": "pass"
+    },
+    "resolution_to_downstream": {
+      "context_prefix_WIN": "used consistently in all TSK_WIN_*, MOD_WIN_* IDs",
+      "applicable_enums_honored": "All enum values in downstream files are within resolution.json applicable_enums (phases, task_classification, severity, UOM, sheens, substrates, etc.)",
+      "proposed_registry_additions": "9 additions proposed in resolution.json — need registry update before finalization",
+      "status": "pass"
+    },
+    "materials_to_sop": {
+      "primer_systems_referenced": "4 primer systems (SYS_PRIMER_WOOD_ACRYLIC, SHELLAC, ALUMINUM_DTM, STEEL_DTM) referenced in MOD_WIN_PRIME description",
+      "finish_systems_referenced": "3 finish systems (SYS_FF_STANDARD_ACRYLIC, MODIFIED_URETHANE, PREMIUM) referenced in MOD_WIN_FINISH_COAT description",
+      "consumables_available": "All tools_required in SOP tasks have corresponding consumables in materials.json",
+      "status": "pass"
+    }
+  },
+
+  "Fine_Finish_Doctrine": {
+    "status": "PASS",
+    "version_checked": "1.1",
+    "findings": [
+      "Combined prime+paint module structure correctly implemented — primer module conditional on substrate_state/substrate",
+      "Interstage module present with correct run_rule (after each coat except final, total_coats - 1)",
+      "Between-coat sanding discipline varies by tier (spot/full/thorough) per FFD 8.3, 15.3",
+      "Rigid sanding block mandate referenced in task descriptions (FFD 15.4.1)",
+      "Application philosophy 'apply, tip once, walk away' documented in all finish coat tasks (FFD 15.3.1)",
+      "QT5 brush/roll 3+ coats supported via ROUND_WIN_3FINISH (FFD 15.10.3)",
+      "Application quality NOT tiered — defect_tolerance same baseline at all QTs for application tasks",
+      "Sheen/QT gate enforced: materials.json allowed_sheens match restrictions",
+      "Material systems correctly positioned as recommendations, not mandates (RC-005)"
+    ]
+  },
+
+  "Window_Systems_Doctrine": {
+    "status": "PASS",
+    "version_checked": "1.1",
+    "findings": [
+      "Substrate-specific prep protocols implemented (wood Section 3, aluminum Section 6.2, steel Section 6.3)",
+      "Substrate-driven primer selection (not QT-driven) — correct per Sections 3, 6",
+      "Glass masking mandatory regardless of method — correct per Sections 4.1, 4.2",
+      "1/16-inch seal technique referenced for wood windows — per Section 4.1",
+      "Blocking prevention documented in all finish coat tasks — per Section 10.1",
+      "Glass scraping in cleanup module (not interstage) — per Section 4.1.1",
+      "5-tier height system matches Modifier_Registry v1.2 — per Section 8.4",
+      "Window type base rates from Section 8.3 used for type modifiers",
+      "Muntin modifier +20% from Section 8.3 applied to application and sanding tasks",
+      "Condition modifiers apply to prep ONLY — per Section 8.5",
+      "1.5-inch angled sash brush for detail work — per Section 8.2.1",
+      "Spray waste factor 20-40% documented — per Section 8.2.2",
+      "Vinyl excluded per user decision — separate specialty spec"
+    ]
+  },
+
+  "doctrine_governance": {
+    "conflicts_detected": 0,
+    "conflicts_resolved": 0,
+    "overrides_logged": 0,
+    "corrections_captured": 0,
+    "corrections_inherited": 3,
+    "pending_doctrine_updates": 0,
+    "pending_doctrine_creates": 0,
+    "status": "pass"
+  },
+
+  "spec_completeness": {
+    "protection_zones_valid": true,
+    "adjacency_declarations_valid": "deferred_to_spec_json",
+    "site_condition_rules_valid": true,
+    "modifier_alignment_valid": true,
+    "task_adjacency_aligned": true,
+    "status": "pass_pending_spec_json",
+    "errors": [],
+    "doctrine_reference": "Spec_Completeness_Doctrine.md v1.0"
+  },
+
+  "paintscope_actionability": {
+    "missing_paintscope_keys": [],
+    "unknown_asset_categories": [],
+    "edge_tasks_missing_edgelf_inputs": [],
+    "protection_steps_missing_measurable_inputs": [],
+    "manual_capture_items_missing_detail": [],
+    "notes": "All 17 PaintScope keys are status='existing' per resolution.json. No proposed new keys needed — window counting keys, glass area, and protection keys all exist in PaintScope catalog."
+  },
+
+  "human_feedback": {
+    "present": false,
+    "artifact": "n/a",
+    "status": "pending",
+    "notes": "No human feedback gate completed yet for this spec. All artifacts are DRAFT awaiting human review. User authorized pipeline generation ('go ahead, run the pipeline') — human review occurs after full assembly."
+  },
+
+  "review_notes": [
+    "All 29 TSK_WIN_* IDs thread correctly between sop_modules.json and production.json (20 binary + 9 qt_scaled)",
+    "Size bucket modifiers and window type modifiers should be added to Modifier_Registry.md for consistency (QA-002)",
+    "5 research-derived assumptions in production.json need field validation per validation_plan (QA-003)",
+    "MOD_WIN_PRIME conditional logic is non-standard but well-documented — engine needs to support substrate-conditional module activation (QA-004)",
+    "9 proposed registry additions (SF_WINDOW_INT_NC, 2 ITM_, TSK_WIN_*, 3 ROUND_, 2 COV_) need id_registry.json update before finalization",
+    "7 doctrine checks deferred to spec.json assembly (spec completeness checks)",
+    "No doctrine conflicts detected. No precedent contamination. All authority from Window_Systems_Doctrine and Fine_Finish_Doctrine.",
+    "Dual material system architecture (substrate-driven primer + QT-driven finish) is a structural innovation for this spec — first combined prime+paint spec in the system"
+  ]
+}

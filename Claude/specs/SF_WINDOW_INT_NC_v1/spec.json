@@ -1,0 +1,676 @@
+{
+  "spec_family": {
+    "id": "SF_WINDOW_INT_NC",
+    "name": "New Construction Interior Window Painting",
+    "description": "Combined prime+paint spec for interior window units in new construction. Covers 3 substrates (wood, aluminum, steel) with substrate-driven primer selection and QT-driven finish systems. Primer is conditional on substrate_state: SS_BARE requires primer, SS_PRIMED_FACTORY skips to finish coats. Uses EA as primary UOM with Size Bucket Method (S/M/L/O) for rate scaling. 5-tier height system (H1-H5). Window type and muntin modifiers. Glass masking mandatory regardless of method. Material systems are QT-driven recommendations — contractor retains discretion on product selection.",
+    "domain": "interior",
+    "version": "0.1.0",
+    "status": "draft",
+    "review_required": true
+  },
+
+  "scope_boundaries": {
+    "includes": [
+      "Window frame interior face painting",
+      "Operable sash painting (double-hung, casement, slider, awning)",
+      "Fixed sash painting",
+      "True divided light (TDL) muntin painting",
+      "Extension jamb / reveal painting",
+      "Substrate-specific preparation (wood sand/fill, aluminum degrease/etch, steel degrease/rust treatment)",
+      "Primer coat — conditional on substrate_state = SS_BARE or substrate = aluminum/steel",
+      "Finish coat application (brush or spray) — 2 coats standard, 3+ at QT5 brush/roll per FFD 15.10.3",
+      "Between-coat interstage process (inspect, sand, repair, clean) at ALL quality tiers",
+      "Glass masking (mandatory regardless of application method)",
+      "Hardware protection (remove or mask: locks, latches, crank operators)",
+      "Floor protection in window work area",
+      "Wall masking around window (spray, or brush when walls SS_PAINTED_*)",
+      "Sill/stool protection (spray when stool is SS_PAINTED_*)",
+      "Final inspection and touch-up",
+      "Glass scraping / cleanup after cure",
+      "Hardware reinstallation"
+    ],
+    "excludes": [
+      {
+        "item": "Window casing (exterior trim around window opening)",
+        "route_to": "SF_TRIM_NC_PAINT"
+      },
+      {
+        "item": "Window stool / apron painting",
+        "route_to": "SF_TRIM_NC_PAINT / SF_TRIM_NC_PRIME"
+      },
+      {
+        "item": "Vinyl window painting",
+        "route_to": "Future specialty vinyl window spec"
+      },
+      {
+        "item": "Exterior window painting",
+        "route_to": "Future exterior window spec"
+      },
+      {
+        "item": "Masking off finished windows for subsequent wall painting",
+        "route_to": "SF_DRYWALL_WALL_NC_FINISH (wall spec responsibility)"
+      },
+      {
+        "item": "Simulated divided light (SDL) grille removal/reinstall",
+        "route_to": "Not painting scope — SDL grilles snapped out by installer"
+      }
+    ]
+  },
+
+  "configuration_dimensions": [
+    {
+      "dimension_id": "quality_tier",
+      "description": "Quality tier controlling inspection scrutiny, sanding discipline, repair scope, and coat count. Does NOT affect application quality (binary at all tiers). Does NOT drive primer selection (substrate-driven).",
+      "values": ["QT3", "QT4", "QT5"],
+      "default": "QT3",
+      "notes": "QT3=standard production. QT4=premium (full sand, systematic inspect). QT5=superior (thorough sand, critical inspect, 3+ coats brush/roll). Sheen/QT gate enforced at runtime."
+    },
+    {
+      "dimension_id": "application_method",
+      "description": "Primary application technique for primer and finish coats.",
+      "values": ["brush", "spray"],
+      "default": "brush",
+      "notes": "Brush is default for window detail work — 1.5-inch angled sash brush per Window_Systems_Doctrine Section 8.2.1. Spray available for high-volume NC production but requires extensive masking. QT5 gloss with brush is achievable — do NOT enforce spray."
+    },
+    {
+      "dimension_id": "sheen",
+      "description": "Finish sheen. Constrained by quality tier gate.",
+      "values": ["satin", "semi-gloss", "gloss"],
+      "default": "semi-gloss",
+      "sheen_qt_gate": {
+        "satin": ["QT3", "QT4", "QT5"],
+        "semi-gloss": ["QT4", "QT5"],
+        "gloss": ["QT5"]
+      },
+      "notes": "Default semi-gloss requires minimum QT4. If user selects QT3, semi-gloss is rejected and satin offered. Gloss is QT5 only."
+    },
+    {
+      "dimension_id": "substrate",
+      "description": "Window substrate material. Drives prep protocol and primer selection.",
+      "values": ["wood", "aluminum", "steel"],
+      "default": "wood",
+      "notes": "Vinyl excluded — separate specialty spec per user decision. Each substrate has fundamentally different prep and primer requirements per Window_Systems_Doctrine Sections 3, 6."
+    },
+    {
+      "dimension_id": "substrate_state",
+      "description": "Input substrate condition. Drives primer requirement and prep scope.",
+      "values": ["SS_BARE", "SS_PRIMED_FACTORY"],
+      "default": "SS_PRIMED_FACTORY",
+      "notes": "SS_BARE: full primer coat required, heavier prep (full sand, grain fill for wood; etch/DTM for metal). SS_PRIMED_FACTORY: skip primer, lighter prep (scuff sand only). Metal substrates always require primer regardless of state."
+    },
+    {
+      "dimension_id": "window_type",
+      "description": "Window operating type. Controls base production rate modifier.",
+      "values": ["double_hung", "casement", "slider", "fixed", "awning"],
+      "default": "double_hung",
+      "modifiers": {
+        "double_hung": 1.00,
+        "casement": 0.96,
+        "slider": 0.96,
+        "fixed": 0.78,
+        "awning": 1.00
+      },
+      "notes": "Per Window_Systems_Doctrine Section 8.3. Double-hung is baseline (most common NC residential window). Fixed is simplest (no operable parts)."
+    },
+    {
+      "dimension_id": "has_muntins",
+      "description": "True divided light (TDL) muntins present. Adds +20% labor to application and sanding tasks.",
+      "values": [true, false],
+      "default": false,
+      "modifier": 1.20,
+      "notes": "Per Window_Systems_Doctrine Section 8.3. Only applies to TDL. SDL grilles are removed before painting — no modifier."
+    },
+    {
+      "dimension_id": "size_bucket",
+      "description": "Window size category per PaintScope Size Bucket Method.",
+      "values": ["S", "M", "L", "O"],
+      "default": "M",
+      "modifiers": {
+        "S": 0.75,
+        "M": 1.00,
+        "L": 1.40,
+        "O": "measured"
+      },
+      "notes": "Per PaintScope_Window_Counting_System. S=~8 LF perimeter, M=~12 LF (baseline), L=~17 LF, O=measured perimeter. Modifiers are research estimates (production assumption A-001)."
+    }
+  ],
+
+  "paintable_items": [
+    {
+      "item_id": "ITM_WINDOW_UNIT",
+      "name": "Window unit (frame, sash, muntins)",
+      "unit_of_measure": "EA",
+      "counting_rules": "Count each window opening as one EA. Includes frame interior face, operable sash(es), and TDL muntins as a single assembly. Counted by size bucket (S/M/L/O) and height tier (H1-H5).",
+      "notes": "Primary paintable item. EA-based with Size Bucket Method for rate scaling. Window type and muntin modifiers apply per window."
+    },
+    {
+      "item_id": "ITM_WINDOW_JAMB",
+      "name": "Extension jamb / reveal",
+      "unit_of_measure": "EA",
+      "counting_rules": "Same count as ITM_WINDOW_UNIT — one extension jamb per window opening. May not be present on all windows (some have no extension jamb).",
+      "notes": "Separate item because extension jamb may have different prep requirements (deeper reveal, different access angle). Same size bucket and height modifiers apply."
+    }
+  ],
+
+  "variants": [
+    {
+      "variant_id": "VAR_BARE_QT3_BRUSH_SATIN",
+      "applies_when": {
+        "substrate_state": ["SS_BARE"],
+        "quality_tier": ["QT3"],
+        "application_method": ["brush"],
+        "sheen": ["satin"]
+      },
+      "coats_primer": 1,
+      "coats_finish": 2,
+      "round_id": "ROUND_WIN_PRIME_2FINISH",
+      "notes": "Bare substrate, standard brush production. Primer + 2 finish coats. Satin is the only sheen at QT3."
+    },
+    {
+      "variant_id": "VAR_BARE_QT4_BRUSH_SEMIGLOSS",
+      "applies_when": {
+        "substrate_state": ["SS_BARE"],
+        "quality_tier": ["QT4"],
+        "application_method": ["brush"],
+        "sheen": ["semi-gloss"]
+      },
+      "coats_primer": 1,
+      "coats_finish": 2,
+      "round_id": "ROUND_WIN_PRIME_2FINISH",
+      "notes": "Bare substrate, premium brush. Primer + 2 finish coats. Semi-gloss typical at QT4."
+    },
+    {
+      "variant_id": "VAR_BARE_QT5_BRUSH_GLOSS",
+      "applies_when": {
+        "substrate_state": ["SS_BARE"],
+        "quality_tier": ["QT5"],
+        "application_method": ["brush"],
+        "sheen": ["gloss"]
+      },
+      "coats_primer": 1,
+      "coats_finish": 3,
+      "round_id": "ROUND_WIN_3FINISH",
+      "notes": "Bare substrate, superior brush with gloss. Primer + 3 finish coats per FFD 15.10.3."
+    },
+    {
+      "variant_id": "VAR_FACTORY_QT3_BRUSH_SATIN",
+      "applies_when": {
+        "substrate_state": ["SS_PRIMED_FACTORY"],
+        "quality_tier": ["QT3"],
+        "application_method": ["brush"],
+        "sheen": ["satin"]
+      },
+      "coats_primer": 0,
+      "coats_finish": 2,
+      "round_id": "ROUND_WIN_2FINISH",
+      "notes": "Factory-primed wood, standard brush. No primer — scuff sand then 2 finish coats. Most common NC scenario."
+    },
+    {
+      "variant_id": "VAR_FACTORY_QT4_BRUSH_SEMIGLOSS",
+      "applies_when": {
+        "substrate_state": ["SS_PRIMED_FACTORY"],
+        "quality_tier": ["QT4"],
+        "application_method": ["brush"],
+        "sheen": ["semi-gloss"]
+      },
+      "coats_primer": 0,
+      "coats_finish": 2,
+      "round_id": "ROUND_WIN_2FINISH",
+      "notes": "Factory-primed wood, premium brush. No primer — 2 finish coats."
+    },
+    {
+      "variant_id": "VAR_FACTORY_QT5_BRUSH_GLOSS",
+      "applies_when": {
+        "substrate_state": ["SS_PRIMED_FACTORY"],
+        "quality_tier": ["QT5"],
+        "application_method": ["brush"],
+        "sheen": ["gloss"]
+      },
+      "coats_primer": 0,
+      "coats_finish": 3,
+      "round_id": "ROUND_WIN_3FINISH",
+      "notes": "Factory-primed wood, superior brush with gloss. 3 finish coats per FFD 15.10.3."
+    },
+    {
+      "variant_id": "VAR_FACTORY_QT3_SPRAY_SATIN",
+      "applies_when": {
+        "substrate_state": ["SS_PRIMED_FACTORY"],
+        "quality_tier": ["QT3"],
+        "application_method": ["spray"],
+        "sheen": ["satin"]
+      },
+      "coats_primer": 0,
+      "coats_finish": 2,
+      "round_id": "ROUND_WIN_2FINISH",
+      "protection_zones": ["floor_full_8ft_radius", "glass_mask", "hardware_covers", "wall_adjacent_window", "sill_protection"],
+      "notes": "Factory-primed wood, standard spray. Full protection required. Fastest production."
+    },
+    {
+      "variant_id": "VAR_FACTORY_QT4_SPRAY_SEMIGLOSS",
+      "applies_when": {
+        "substrate_state": ["SS_PRIMED_FACTORY"],
+        "quality_tier": ["QT4"],
+        "application_method": ["spray"],
+        "sheen": ["semi-gloss"]
+      },
+      "coats_primer": 0,
+      "coats_finish": 2,
+      "round_id": "ROUND_WIN_2FINISH",
+      "protection_zones": ["floor_full_8ft_radius", "glass_mask", "hardware_covers", "wall_adjacent_window", "sill_protection"],
+      "notes": "Factory-primed wood, premium spray. Full protection."
+    },
+    {
+      "variant_id": "VAR_FACTORY_QT5_SPRAY_SEMIGLOSS",
+      "applies_when": {
+        "substrate_state": ["SS_PRIMED_FACTORY"],
+        "quality_tier": ["QT5"],
+        "application_method": ["spray"],
+        "sheen": ["semi-gloss"]
+      },
+      "coats_primer": 0,
+      "coats_finish": 2,
+      "round_id": "ROUND_WIN_2FINISH",
+      "protection_zones": ["floor_full_8ft_radius", "glass_mask", "hardware_covers", "wall_adjacent_window", "sill_protection"],
+      "notes": "Factory-primed wood, superior spray. QT5 spray uses 2 coats (not 3). Full protection."
+    }
+  ],
+
+  "required_paintscope_inputs": [
+    {
+      "input_name": "IN_EA_WINDOW_S",
+      "paintscope_key": "PS_OPENING_EA.WINDOW_S",
+      "uom": "EA",
+      "required": false,
+      "required_when": "When small windows are in scope",
+      "description": "Small window count (bucket S, ~8 LF perimeter)"
+    },
+    {
+      "input_name": "IN_EA_WINDOW_M",
+      "paintscope_key": "PS_OPENING_EA.WINDOW_M",
+      "uom": "EA",
+      "required": false,
+      "required_when": "When medium windows are in scope",
+      "description": "Medium window count (bucket M, ~12 LF perimeter)"
+    },
+    {
+      "input_name": "IN_EA_WINDOW_L",
+      "paintscope_key": "PS_OPENING_EA.WINDOW_L",
+      "uom": "EA",
+      "required": false,
+      "required_when": "When large windows are in scope",
+      "description": "Large window count (bucket L, ~17 LF perimeter)"
+    },
+    {
+      "input_name": "IN_EA_WINDOW_O",
+      "paintscope_key": "PS_OPENING_EA.WINDOW_O",
+      "uom": "EA",
+      "required": false,
+      "required_when": "When oversized windows are in scope",
+      "description": "Oversized window count (bucket O, measured perimeter)"
+    },
+    {
+      "input_name": "IN_EA_WINDOW_TOTAL",
+      "paintscope_key": "PS_OPENING_EA.WINDOW_TOTAL",
+      "uom": "EA",
+      "required": true,
+      "description": "Total window count — validation sum of all size buckets"
+    },
+    {
+      "input_name": "IN_EA_WINDOW_H1",
+      "paintscope_key": "PS_OPENING_EA.WINDOW_H1",
+      "uom": "EA",
+      "required": true,
+      "description": "Windows at H1 (0-8 ft, 1.00x height modifier)"
+    },
+    {
+      "input_name": "IN_EA_WINDOW_H2",
+      "paintscope_key": "PS_OPENING_EA.WINDOW_H2",
+      "uom": "EA",
+      "required": true,
+      "description": "Windows at H2 (9-12 ft, 1.30x height modifier)"
+    },
+    {
+      "input_name": "IN_EA_WINDOW_H3",
+      "paintscope_key": "PS_OPENING_EA.WINDOW_H3",
+      "uom": "EA",
+      "required": true,
+      "description": "Windows at H3 (13-17 ft, 1.50x height modifier)"
+    },
+    {
+      "input_name": "IN_EA_WINDOW_H4",
+      "paintscope_key": "PS_OPENING_EA.WINDOW_H4",
+      "uom": "EA",
+      "required": true,
+      "description": "Windows at H4 (18-24 ft, 2.00x height modifier)"
+    },
+    {
+      "input_name": "IN_EA_WINDOW_H5",
+      "paintscope_key": "PS_OPENING_EA.WINDOW_H5",
+      "uom": "EA",
+      "required": true,
+      "description": "Windows at H5 (25+ ft, 2.50x height modifier)"
+    },
+    {
+      "input_name": "IN_EA_WINDOW_EXCEPTION",
+      "paintscope_key": "PS_OPENING_EA.WINDOW_EXCEPTION",
+      "uom": "EA",
+      "required": true,
+      "description": "Count of flagged exceptions (poor condition, bay/bow, other)"
+    },
+    {
+      "input_name": "IN_SF_PROTECT_GLASS",
+      "paintscope_key": "PS_PROTECT_SF.ASSET.GLASS_AREA",
+      "uom": "SF",
+      "required": true,
+      "description": "Total glass area for masking — mandatory"
+    },
+    {
+      "input_name": "IN_SF_PROTECT_FLOOR_PERIMETER",
+      "paintscope_key": "PS_PROTECT_SF.FLOOR_PERIMETER",
+      "uom": "SF",
+      "required": false,
+      "required_when": "application_method = brush AND floor_type = finished or partial",
+      "description": "Perimeter floor protection area (brush method)"
+    },
+    {
+      "input_name": "IN_SF_PROTECT_FLOOR_8FT_RADIUS",
+      "paintscope_key": "PS_PROTECT_SF.FLOOR_8FT_RADIUS",
+      "uom": "SF",
+      "required": false,
+      "required_when": "application_method = spray AND floor_type = finished or partial",
+      "description": "Radial floor protection area (spray method)"
+    },
+    {
+      "input_name": "IN_LF_PROTECT_WALL_ADJACENT_WINDOW",
+      "paintscope_key": "PS_PROTECT_LF.WALL_ADJACENT_WINDOW",
+      "uom": "LF",
+      "required": false,
+      "required_when": "application_method = spray, or walls are SS_PAINTED_*",
+      "description": "Wall masking LF around window perimeter"
+    },
+    {
+      "input_name": "IN_EA_PROTECT_HARDWARE",
+      "paintscope_key": "PS_PROTECT_EA.ASSET.HARDWARE_GROUPS",
+      "uom": "EA",
+      "required": true,
+      "description": "Window hardware groups for protection (locks, latches, operators) — mandatory"
+    },
+    {
+      "input_name": "IN_LF_PROTECT_SILL",
+      "paintscope_key": "PS_PROTECT_LF.SILL",
+      "uom": "LF",
+      "required": false,
+      "required_when": "application_method = spray AND stool is SS_PAINTED_*",
+      "description": "Sill edge masking LF during spray"
+    }
+  ],
+
+  "protection_zones_required": [
+    {
+      "zone_id": "floor_perimeter",
+      "condition": { "application_method": ["brush"], "floor_type": ["finished", "partial"] },
+      "protection_level": "edge_only",
+      "notes": "Runner-style drop cloths along window work perimeter. Brush method only. Excluded when floor is subfloor."
+    },
+    {
+      "zone_id": "floor_full_8ft_radius",
+      "condition": { "application_method": ["spray"], "floor_type": ["finished", "partial"] },
+      "protection_level": "full_cover",
+      "notes": "Radial floor protection around spray zone. 8 ft radius from each window. Replaces perimeter drops when spraying."
+    },
+    {
+      "zone_id": "glass_mask",
+      "condition": "ALWAYS — mandatory regardless of application method",
+      "protection_level": "full_cover",
+      "notes": "Paper/film masking on all window glass panes. Mandatory. 1/16-inch seal technique may apply for wood windows per Window_Systems_Doctrine Section 4.1."
+    },
+    {
+      "zone_id": "hardware_covers",
+      "condition": "ALWAYS — mandatory",
+      "protection_level": "partial_cover",
+      "notes": "Tape/bag or remove window hardware (locks, latches, crank operators). Removal preferred when feasible."
+    },
+    {
+      "zone_id": "wall_adjacent_window",
+      "condition": { "application_method": ["spray"] },
+      "protection_level": "light_mask",
+      "notes": "Wall masking around window perimeter for spray method. Also required for brush when walls are SS_PAINTED_* (finished)."
+    },
+    {
+      "zone_id": "sill_protection",
+      "condition": { "application_method": ["spray"] },
+      "protection_level": "light_mask",
+      "notes": "Protect stool/sill from overspray. Only when stool is already finished (SS_PAINTED_*) by trim spec."
+    }
+  ],
+
+  "adjacency_declarations": {
+    "primary_surface": "window_frame",
+    "additional_primary_surfaces": ["window_sash", "window_muntin", "window_jamb"],
+    "adjacent_surfaces": [
+      {
+        "surface_id": "wall_field",
+        "edge_type": "linear",
+        "typical_relationship": "different_finish",
+        "continuity_rate_modifier": 1.0,
+        "affected_tasks": [],
+        "notes": "Window frame meets wall at perimeter. Typical NC: walls at SS_PRIMED_FIELD — no wall protection for brush. Spray: always mask. When walls SS_PAINTED_*: mask for both methods. No edge work — protection only."
+      },
+      {
+        "surface_id": "window_casing",
+        "edge_type": "linear",
+        "typical_relationship": "same_finish",
+        "continuity_rate_modifier": 1.0,
+        "affected_tasks": [],
+        "notes": "Window casing handled by SF_TRIM_NC_PAINT. Often same finish color/sheen. Casing-to-frame edge requires careful brush work but no separate edge task. Often painted in same session."
+      },
+      {
+        "surface_id": "window_stool",
+        "edge_type": "linear",
+        "typical_relationship": "same_finish",
+        "continuity_rate_modifier": 1.0,
+        "affected_tasks": [],
+        "notes": "Stool handled by SF_TRIM_NC_PAINT / SF_TRIM_NC_PRIME as linear trim. Often same finish. When already finished, protect from overspray during spray window painting."
+      },
+      {
+        "surface_id": "window_glass",
+        "edge_type": "complex",
+        "typical_relationship": "not_in_scope",
+        "continuity_rate_modifier": 1.0,
+        "affected_tasks": ["TSK_WIN_GLASS_MASK", "TSK_WIN_GLASS_SCRAPE"],
+        "notes": "Glass is NOT painted. Glass masking is mandatory (protection zone). 1/16-inch seal technique creates intentional paint-to-glass seal for wood windows. Glass scraping/cleanup after cure."
+      }
+    ]
+  },
+
+  "state_declarations": {
+    "primary_surface": "window_frame",
+    "additional_primary_surfaces": ["window_sash", "window_muntin", "window_jamb"],
+
+    "valid_input_states": {
+      "states": ["SS_BARE", "SS_PRIMED_FACTORY"],
+      "notes": "Combined prime+paint spec. SS_BARE (bare wood, bare metal) requires full primer coat + heavier prep. SS_PRIMED_FACTORY (standard NC wood windows) requires scuff sand only — skip primer, go directly to finish coats. Metal substrates (aluminum, steel) always require primer regardless of state."
+    },
+
+    "output_state": {
+      "state": "SS_PAINTED_SEMIGLOSS",
+      "varies_by": "sheen",
+      "state_map": {
+        "satin": "SS_PAINTED_SATIN",
+        "semi-gloss": "SS_PAINTED_SEMIGLOSS",
+        "gloss": "SS_PAINTED_GLOSS"
+      },
+      "notes": "Output state varies by sheen dimension. Semi-gloss is window default (requires QT4+)."
+    },
+
+    "adjacent_state_protection_rules": [
+      {
+        "adjacent_surface": "wall_field",
+        "when_state": ["SS_PAINTED_FLAT", "SS_PAINTED_EGGSHELL", "SS_PAINTED_SATIN", "SS_PAINTED_SEMIGLOSS"],
+        "protection_zone": "wall_adjacent_window",
+        "protection_level": "light_mask",
+        "applies_when": { "application_method": ["spray", "brush"] },
+        "notes": "When walls are finished (SS_PAINTED_*), wall masking around window required for BOTH spray and brush methods. Spray: tape + paper. Brush: tape only."
+      },
+      {
+        "adjacent_surface": "wall_field",
+        "when_state": ["SS_BARE", "SS_PRIMED_FIELD"],
+        "protection_zone": "wall_adjacent_window",
+        "protection_level": "light_mask",
+        "applies_when": { "application_method": ["spray"] },
+        "notes": "When walls are unfinished (typical NC), spray method still requires wall masking to prevent overspray."
+      },
+      {
+        "adjacent_surface": "wall_field",
+        "when_state": ["SS_BARE", "SS_PRIMED_FIELD"],
+        "protection_zone": null,
+        "protection_level": "none",
+        "applies_when": { "application_method": ["brush"] },
+        "notes": "When walls are unfinished and brush method, no wall protection needed. Typical NC scenario."
+      },
+      {
+        "adjacent_surface": "window_stool",
+        "when_state": ["SS_PAINTED_SATIN", "SS_PAINTED_SEMIGLOSS", "SS_PAINTED_GLOSS"],
+        "protection_zone": "sill_protection",
+        "protection_level": "light_mask",
+        "applies_when": { "application_method": ["spray"] },
+        "notes": "When stool is already finished by trim spec, protect from overspray during spray window painting."
+      },
+      {
+        "adjacent_surface": "window_stool",
+        "when_state": ["SS_BARE", "SS_PRIMED_FACTORY"],
+        "protection_zone": null,
+        "protection_level": "none",
+        "applies_when": {},
+        "notes": "Unfinished stool needs no protection."
+      }
+    ]
+  },
+
+  "site_condition_rules": [
+    {
+      "condition_id": "floor_type",
+      "vocabulary_ref": "Site_Condition_Vocabulary_Reference.md § floor_type",
+      "include_when": ["finished", "partial"],
+      "exclude_when": ["subfloor"],
+      "affected_tasks": ["TSK_WIN_FLOOR_PROTECT", "TSK_WIN_PROTECT_TEARDOWN"],
+      "effect": "Floor protection excluded when floor is subfloor.",
+      "notes": "NC often has subfloor during window painting. Finished/partial floors require drop cloth runners (brush) or full radial coverage (spray)."
+    },
+    {
+      "condition_id": "access_constraint",
+      "vocabulary_ref": "Site_Condition_Vocabulary_Reference.md § access_constraint",
+      "include_when": ["step_ladder", "extension_ladder", "scaffold", "lift"],
+      "affected_tasks": ["TSK_WIN_BRUSH_FINISH_1", "TSK_WIN_BRUSH_FINISH_2", "TSK_WIN_SPRAY_FINISH_1", "TSK_WIN_SPRAY_FINISH_2", "TSK_WIN_PRIME_BRUSH", "TSK_WIN_PRIME_SPRAY", "TSK_WIN_SAND_BETWEEN", "TSK_WIN_INSPECT_COAT", "TSK_WIN_FINAL_INSPECT", "TSK_WIN_GLASS_MASK", "TSK_WIN_GLASS_SCRAPE"],
+      "effect": "Height modifier applies per 5-tier system: H1=1.00, H2=1.30, H3=1.50, H4=2.00, H5=2.50.",
+      "notes": "Per Modifier_Registry v1.2. Height distribution captured by PS_OPENING_EA.WINDOW_H1-H5. Weighted average or per-window calculation."
+    },
+    {
+      "condition_id": "lead_status",
+      "vocabulary_ref": "Site_Condition_Vocabulary_Reference.md § lead_status",
+      "include_when": ["tested_positive", "unknown_pre1978"],
+      "affected_tasks": ["TSK_WIN_PREP_WOOD_SAND", "TSK_WIN_PREP_SCUFF", "TSK_WIN_SAND_BETWEEN"],
+      "effect": "Lead-safe practices for sanding tasks. tested_positive=2.0x, unknown_pre1978=1.5x.",
+      "notes": "Windows are HIGH-RISK for lead exposure — friction surfaces (sashes in frames) are major lead dust generators per Window_Systems_Doctrine Section 11. Rare in NC (post-1978). RRP protocol triggered."
+    },
+    {
+      "condition_id": "temperature_condition",
+      "vocabulary_ref": "Site_Condition_Vocabulary_Reference.md § temperature_condition",
+      "include_when": ["cold_below_50f", "hot_above_90f"],
+      "affected_tasks": ["TSK_WIN_PRIME_BRUSH", "TSK_WIN_PRIME_SPRAY", "TSK_WIN_BRUSH_FINISH_1", "TSK_WIN_BRUSH_FINISH_2", "TSK_WIN_SPRAY_FINISH_1", "TSK_WIN_SPRAY_FINISH_2"],
+      "effect": "Temperature affects dry times, open time, and leveling. cold_below_50f=1.30x, hot_above_90f=1.15x.",
+      "notes": "Critical for blocking prevention — windows must remain open during cure (3-7 days). Cold may extend cure time. NC sites may lack HVAC."
+    }
+  ],
+
+  "sequencing_notes": {
+    "production_sequence": "Window painting is part of the trim package in NC. Typical sequence: Prime ceilings → Prime walls → Finish ceilings → Trim/window package (prime → finish → mask off) → Wall finish. Pairs naturally with SF_TRIM_NC_PAINT for shared protection setup and same material system.",
+    "edge_work": "No edge work in this spec. All adjacent surfaces are protection relationships only (masking), not cut-in. Window-to-glass interface is masking, not painting.",
+    "protection_sequence": "Setup floor protection → Glass masking (mandatory) → Hardware protection → Wall masking (if applicable) → Sill protection (if applicable) → Apply coats → Teardown. Glass masking removed during glass scraping (cleanup), not during protection teardown.",
+    "coat_sequence": "Prep (substrate-specific) → [Primer (conditional)] → [Interstage] → Finish coat 1 → Interstage → Finish coat 2 → [QT5 brush: Interstage → Finish coat 3] → Final inspect → Cleanup",
+    "blocking_prevention": "All operable sashes must be painted in AJAR position. Do NOT close before full cure (3-7 days for enamels). Per Window_Systems_Doctrine Section 10.1.",
+    "glass_scraping_timing": "Glass scraping occurs AFTER full cure (3-7 days), NOT between coats. May happen on a different day than other cleanup tasks."
+  },
+
+  "relationships": {
+    "companion_specs": ["SF_TRIM_NC_PAINT", "SF_TRIM_NC_PRIME"],
+    "often_combined_with": ["SF_TRIM_NC_PAINT"],
+    "typical_before": ["SF_DRYWALL_WALL_NC_FINISH"],
+    "typical_after": ["SF_DRYWALL_CEILING_NC_FINISH", "SF_DRYWALL_WALL_NC_PRIME"],
+    "shares_finish_group_with": ["SF_TRIM_NC_PAINT", "SF_DOOR_FRAME_NC_FINISH"],
+    "notes": "Window painting is part of the trim package in NC. Same crew, same material system, same session. Window casing and stool belong to SF_TRIM_NC_PAINT / SF_TRIM_NC_PRIME. Window masking for wall painting is SF_DRYWALL_WALL_NC_FINISH responsibility."
+  },
+
+  "dependencies": {
+    "research": "research.json",
+    "resolution": "resolution.json",
+    "materials": "materials.json",
+    "sop_modules": "sop_modules.json",
+    "production": "production.json",
+    "qa_report": "qa_report.json"
+  },
+
+  "doctrine_references": [
+    {
+      "doctrine": "Window_Systems_Doctrine.md",
+      "sections_used": ["Section 3 — Wood Substrate Prep", "Section 4.1 — Glass Masking & 1/16-inch Seal", "Section 4.2 — Liquid Masking", "Section 6.1 — Metal Degreasing", "Section 6.2 — Aluminum Prep & DTM Primer", "Section 6.3 — Steel Prep & Rust Treatment", "Section 7 — Size Bucket Method", "Section 8.2 — Application Methods (Brush/Spray)", "Section 8.3 — Window Type Base Rates & Muntin Modifier", "Section 8.4 — Height Access System", "Section 8.5 — Condition Modifiers", "Section 10.1 — Blocking Prevention", "Section 11 — Lead Safety (Friction Surfaces)"]
+    },
+    {
+      "doctrine": "Fine_Finish_Doctrine.md",
+      "sections_used": ["Section 3 — Material Systems", "Section 5.2 — Scenario A/B (Combined Prime+Paint)", "Section 5.3 — Interstage Run Rule", "Section 7 — Interstage Process", "Section 8.3 — Sanding Discipline by Tier", "Section 15.3.1 — Waterborne Application Philosophy", "Section 15.4.1 — Rigid Sanding Block", "Section 15.10.3 — QT5 Brush/Roll Coat Count"]
+    },
+    {
+      "doctrine": "Quality_Tiers_and_Surface_Condition.md",
+      "sections_used": ["QT3-QT5 Definitions", "Sheen/QT Gate"]
+    },
+    {
+      "doctrine": "Modifier_Registry.md",
+      "sections_used": ["Height Modifiers (H1-H5)", "Quality Tier Modifiers (QT3/QT4/QT5)", "Condition Modifiers"]
+    },
+    {
+      "doctrine": "Protection_and_Masking_Doctrine.md",
+      "sections_used": ["Floor Protection", "Glass Masking", "Hardware Protection", "Wall Adjacent Masking"]
+    },
+    {
+      "doctrine": "Estimation_Modifiers_Doctrine.md",
+      "sections_used": ["Production Rate Philosophy", "Modifier Application Rule", "Multiplicative Stacking"]
+    },
+    {
+      "doctrine": "PaintScope_Window_Counting_System.md",
+      "sections_used": ["Size Bucket Method (S/M/L/O)", "Height Distribution Capture", "Exception Flagging"]
+    }
+  ],
+
+  "inherited_research_corrections": [
+    {
+      "correction_id": "RC-004",
+      "original_claim": "Dry times should be specified in specs",
+      "corrected_to": "No dry times in specs — refer to product PDS. Dry times vary by product, temperature, humidity.",
+      "corrected_by": "Eric",
+      "source": "SF_DRYWALL_WALL_NC_PRIME research"
+    },
+    {
+      "correction_id": "RC-005",
+      "original_claim": "Material system selection is mandatory doctrine — QT drives material system",
+      "corrected_to": "Material systems are suggestions per QT — contractor has discretion on product selection.",
+      "corrected_by": "Eric",
+      "source": "SF_TRIM_NC_PAINT research"
+    },
+    {
+      "correction_id": "RC-006",
+      "original_claim": "Waterborne alkyds have longer open time",
+      "corrected_to": "Both Advance (waterborne alkyd) and Emerald Urethane (acrylic-urethane enamel, NOT waterborne alkyd) have SHORT working times. Fast dry demands proper first-pass technique.",
+      "corrected_by": "Eric",
+      "source": "SF_TRIM_NC_PAINT research"
+    }
+  ],
+
+  "change_log": [
+    {
+      "version": "0.1.0",
+      "date": "2026-02-07",
+      "author": "SpecFactory",
+      "changes": "Initial draft spec for NC interior window painting (Spec #10 in Phase 1 catalog). Key features: combined prime+paint with conditional primer (substrate-driven primer, QT-driven finish), 3 substrates (wood, aluminum, steel — vinyl excluded per user decision), EA-based counting with Size Bucket Method (S/M/L/O), 5-tier height system (H1-H5 per Modifier_Registry v1.2), window type modifiers (DH/casement/slider/fixed/awning), muntin +20% modifier for TDL, glass masking mandatory at all methods, blocking prevention work practice, dual material system (4 primer + 3 finish systems), 29 SOP tasks across 8 modules, 3 round configurations, 6 protection zones. First combined prime+paint spec in the system."
+    }
+  ]
+}
