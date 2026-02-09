@@ -1,0 +1,463 @@
+{
+  "spec_family_id": "SF_BUILTIN_NC",
+  "version": "0.1.0",
+  "research_date": "2026-02-09",
+  "researcher": "Spec Researcher",
+  "confidence_level": "high",
+
+  "relevant_findings": [
+    {
+      "finding": "Built-in millwork uses Opening Count quantification method for interior compartments",
+      "source": "BuiltIns_Shelving Quantification System.md v2.0",
+      "impact": "Primary UOM is EA (openings by tier S/M/L/XL). Avoids complex SF/LF measurement of variable shelf geometry. Three modifiers (depth, detail, access) capture complexity without changing the count."
+    },
+    {
+      "finding": "Built-ins with doors/drawers require removal for flat painting on sawhorses",
+      "source": "Fine_Finish_Doctrine.md SS10.3",
+      "impact": "Separate ITM_BUILTIN_DOOR paintable item (EA). Doors painted flat for gravity-assisted leveling. 5-7 day cure for waterborne alkyd (QT4+) before closing doors -- premature closing causes finish fusion."
+    },
+    {
+      "finding": "NC built-in substrates are factory-primed MDF or bare wood (MDF, FJP, softwood)",
+      "source": "Millwork_NC_Paint_Doctrine.md SS2",
+      "impact": "Substrate state drives primer task: SS_BARE requires full primer (substrate-driven chemistry), SS_PRIMED_FACTORY skips primer. MDF edges require solvent-based sealer to prevent fiber raise -- step 1 of two-step prime."
+    },
+    {
+      "finding": "Built-ins are prominent millwork -- QT2 is prohibited",
+      "source": "Millwork_NC_Paint_Doctrine.md SS6",
+      "impact": "QT3 is minimum quality tier. Built-ins are visible, inspected millwork surfaces that require production discipline."
+    },
+    {
+      "finding": "Fine Finish workflow governs all built-in painting",
+      "source": "Fine_Finish_Doctrine.md SS5",
+      "impact": "Standard module sequence: SETUP > INITIAL_PREP > PRIME (conditional) > INTERSTAGE > FINISH_COAT_1 > INTERSTAGE > FINISH_COAT_2 > FINAL_INSPECT > CLEANUP. Interstage runs after each coat except final."
+    },
+    {
+      "finding": "Face frame and exterior surface complexity captured by DETAIL modifier, not separate items",
+      "source": "BuiltIns_Shelving Quantification System.md SS4.2, SS10.1",
+      "impact": "FACE_FRAME adds face frame edges/rails/stiles to opening rate. CROWN_VALANCE adds decorative top details. BEADED_ROUTED adds profile complexity. Optional separate exterior PS keys (BUILTIN_END_PANEL, BUILTIN_FACEFRAME, BUILTIN_TOP) are available if production accuracy demands but not required for v1."
+    },
+    {
+      "finding": "Hardware removal and reinstallation is a distinct labor task",
+      "source": "Fine_Finish_Doctrine.md SS10.3",
+      "impact": "PS_META.EA.BUILTIN_HARDWARE drives hardware removal/reinstall tasks. Remove all hardware (hinges, knobs, pulls, catches) before coating."
+    },
+    {
+      "finding": "Spray preferred for complex built-in interiors; brush viable with rigid-block sanding strategy",
+      "source": "Fine_Finish_Doctrine.md SS15.3.1, SS15.4.1",
+      "impact": "Spray reaches all interior surfaces uniformly. Brush requires rigid-block sanding between coats (mandatory doctrine). QT5 brush may need 3+ coats where spray needs 2. The 2-minute window for waterborne products is critical -- apply, tip once, walk away."
+    },
+    {
+      "finding": "Built-ins are the SOURCE of complexity modifier on adjacent wall/ceiling specs",
+      "source": "Modifier_Registry.md (COMP_CABINETS 1.50x, COMP_CLOSET_SHELVING 1.50x pattern)",
+      "impact": "This spec does not receive a COMP_ modifier from itself. Adjacent specs (wall, ceiling) receive complexity modifier when built-ins are present in the room. No COMP_BUILTIN exists yet -- may need proposal."
+    }
+  ],
+
+  "condition_drivers": [
+    {
+      "driver": "substrate_state",
+      "values": ["SS_BARE", "SS_PRIMED_FACTORY"],
+      "effect": "SS_BARE requires primer coat + heavier prep (full sand, MDF edge seal). SS_PRIMED_FACTORY skips primer, lighter prep (scuff sand only)."
+    },
+    {
+      "driver": "application_method",
+      "values": ["spray", "brush"],
+      "effect": "Spray preferred for production and complex interiors. Brush for occupied spaces, small scope, or limited spray access. Spray activates floor_workzone and wall_adjacent protection zones."
+    },
+    {
+      "driver": "quality_tier",
+      "values": ["QT3", "QT4", "QT5"],
+      "effect": "QT3=standard production (1.0x). QT4=premium, full sand, systematic inspect (1.30x). QT5=superior, thorough sand, critical inspect, 3+ coats brush (1.50x). Sheen/QT gate enforced."
+    },
+    {
+      "driver": "opening_depth",
+      "values": ["SHALLOW", "DEEP", "VERY_DEEP"],
+      "effect": "Depth increases labor for reach, masking difficulty, and edge work. PaintScope-provided modifier."
+    },
+    {
+      "driver": "opening_detail",
+      "values": ["SIMPLE_BOX", "FACE_FRAME", "CROWN_VALANCE", "BEADED_ROUTED"],
+      "effect": "Profile complexity affects production rate. SIMPLE_BOX=baseline. FACE_FRAME adds stiles/rails. CROWN_VALANCE adds decorative top. BEADED_ROUTED adds detailed profiles."
+    },
+    {
+      "driver": "opening_access",
+      "values": ["OPEN_ACCESS", "CRAMPED", "OBSTRUCTED"],
+      "effect": "Workspace restrictions affect production rate. CRAMPED=tight closet or hallway. OBSTRUCTED=permanent obstacles."
+    },
+    {
+      "driver": "has_doors",
+      "values": [true, false],
+      "effect": "When true, activates door/drawer removal, flat painting, hardware removal, and reinstallation tasks. Glass doors excluded (not painted)."
+    }
+  ],
+
+  "quality_differences": [
+    {
+      "tier": "QT3",
+      "description": "Standard quality. Even coverage, light imperfections acceptable at 39\" inspection. 2 finish coats. Spot sand between coats only if necessary. Pinholes may be left during fill.",
+      "inspection_distance": "39 in (P1 standard)",
+      "sanding": "Light scuff 120 grit for adhesion",
+      "interstage": "Spot sand obvious nibs only"
+    },
+    {
+      "tier": "QT4",
+      "description": "Premium quality. Smooth finish, systematic scan at 3 feet. 2 finish coats with full sanding between. All visible holes filled. Crisp caulk lines.",
+      "inspection_distance": "3 ft with raking light",
+      "sanding": "Full sand 180-220 grit",
+      "interstage": "Full sand 220 grit between coats"
+    },
+    {
+      "tier": "QT5",
+      "description": "Superior quality. Near-flawless, lighted critical inspection at arm's length. 2-3 finish coats (3 if brush). Every hole filled regardless of size. Perfect tooled caulk.",
+      "inspection_distance": "Arm's length with light",
+      "sanding": "Thorough sand 220-320 grit",
+      "interstage": "Thorough sand 220-320 grit, zero tolerance",
+      "condition_gate": "QT5 modifier (1.5x) applies ONLY to Good condition. Fair/Poor = hourly (QT6)."
+    }
+  ],
+
+  "failure_modes": [
+    {
+      "mode": "Fiber raise on MDF edges",
+      "cause": "Water-based primer applied directly to unsealed MDF edge",
+      "prevention": "Solvent-based edge sealer BEFORE latex primer (two-step prime per Millwork Doctrine SS4)",
+      "severity": "critical"
+    },
+    {
+      "mode": "Finish fusion on built-in doors",
+      "cause": "Doors closed before waterborne alkyd fully cured (< 5-7 days)",
+      "prevention": "Minimum 5-7 day cure before closing doors per FFD SS15.11.3. Keep doors propped open during cure.",
+      "severity": "critical"
+    },
+    {
+      "mode": "FJP resin bleed through finish",
+      "cause": "Finger-joint pine resin not adequately blocked before finish coats",
+      "prevention": "Stain-blocking primer (Zinsser BIN / Kilz Original) on FJP substrate per Millwork Doctrine SS4",
+      "severity": "major"
+    },
+    {
+      "mode": "Brush marks on flat built-in surfaces",
+      "cause": "Re-brushing waterborne product after 2-3 minute window, or using flexible sanding block",
+      "prevention": "Apply, tip once, walk away (2-minute window per FFD SS15.7.1). Rigid-block sanding between coats. Build finish through multiple sanded coats.",
+      "severity": "major"
+    },
+    {
+      "mode": "Drips inside deep compartments",
+      "cause": "Over-application on vertical surfaces inside deep openings",
+      "prevention": "Light coats, proper technique, good lighting inside compartments. DEEP and VERY_DEEP modifiers account for slower pace.",
+      "severity": "minor"
+    },
+    {
+      "mode": "Poor primer adhesion on factory-primed surface",
+      "cause": "Factory primer too thin or contaminated",
+      "prevention": "Inspect factory primer during prep. If damaged or suspect, treat as SS_BARE (full prime). Standard scuff sand provides adhesion for intact primer.",
+      "severity": "minor"
+    }
+  ],
+
+  "notes_for_materials_manager": [
+    "MDF edge sealer required for SS_BARE MDF -- solvent-based (BIN, Kilz Original)",
+    "QT-driven finish systems: SYS_FF_STANDARD_ACRYLIC (QT3), SYS_FF_MODIFIED_URETHANE (QT4), SYS_FF_PREMIUM (QT5) -- all reuse existing IDs",
+    "Primer selection substrate-driven per Millwork Doctrine SS4: MDF=two-step (edge seal + latex build), FJP=stain-blocking, softwood=standard acrylic, factory-primed=optional",
+    "Masking materials: 72\" pre-taped film for standard built-ins, 99\" for floor-to-ceiling units (Protection_and_Masking_Doctrine)",
+    "Yellow delicate-surface tape for built-in edges and fresh paint -- longer duration safe",
+    "Spackle usage higher in NC: overfill/sand method for fastener holes, 3-5x standard per Millwork Doctrine",
+    "Caulk at built-in-to-wall junctions: ~72 LF/tube NC rate",
+    "RC-005: Material systems are suggestions per QT -- contractor has discretion",
+    "RC-006: Both Advance and Emerald Urethane have SHORT working times (not long open time)"
+  ],
+
+  "notes_for_sop_librarian": [
+    "Use Opening Count (EA by tier) as quantity driver for carcass painting tasks",
+    "Separate task chain for door/drawer fronts: remove > paint flat > cure > reinstall",
+    "Hardware removal/reinstall as separate FIXED tasks (binary, not qt_scaled)",
+    "MDF edge seal task conditional on substrate_state = SS_BARE AND substrate_type includes MDF",
+    "Application method task variants: spray (carcass + doors), brush (carcass + doors)",
+    "Interstage after each coat except final: 2 runs for prime+2finish, 1 run for 2finish-only",
+    "Floor protection and wall masking are per-room FIXED tasks (room setup)",
+    "Context prefix: BLTN -- TSK_BLTN_*, MOD_BLTN_*",
+    "Keep module structure parallel to closet shelf but with additional door/hardware modules",
+    "5-7 day cure note goes in door reinstallation task as constraint, not as a separate task"
+  ],
+
+  "notes_for_estimation_engineer": [
+    "Opening-based rates (EA/hr) vary by tier: S=fastest, XL=slowest per EA",
+    "PaintScope modifiers DEPTH, DETAIL, ACCESS multiply production time (not rate)",
+    "Height modifier (H1-H4) for tall units -- floor-to-ceiling bookcases may be H2",
+    "QT modifiers per Modifier_Registry.md: QT3=1.0x, QT4=1.30x, QT5=1.50x",
+    "Door/drawer front rates similar to door slab rates (EA/hr) -- painted flat on sawhorses",
+    "No COMP_BUILTIN modifier on this spec -- it causes complexity on adjacent specs, not itself",
+    "Spray rates faster than brush for both carcass and door work",
+    "Modifier stacking: total = height x depth x detail x access x QT (multiply, not add). Flag if > 4.0x.",
+    "Reference Millwork Doctrine SS7.1 for LF-based trim rates, adapt for opening EA rates",
+    "QT5 brush adds 3rd finish coat -- account for additional coat time and interstage"
+  ],
+
+  "required_paintscope_keys": [
+    "PS_OPENING_EA.BUILTIN_SHELF.S",
+    "PS_OPENING_EA.BUILTIN_SHELF.M",
+    "PS_OPENING_EA.BUILTIN_SHELF.L",
+    "PS_OPENING_EA.BUILTIN_SHELF.XL",
+    "PS_OPENING_MOD.DEPTH",
+    "PS_OPENING_MOD.DETAIL",
+    "PS_OPENING_MOD.ACCESS",
+    "PS_META.EA.BUILTIN_DOORS",
+    "PS_META.EA.BUILTIN_HARDWARE",
+    "PS_META.EA.ROOMS_TOTAL",
+    "PS_META.HEIGHT_BAND",
+    "PS_META.SUBSTRATE_STATE.BUILTIN",
+    "PS_META.SURFACE_CONDITION.BUILTIN",
+    "PS_PROTECT_SF.FLOOR_PERIMETER",
+    "PS_PROTECT_SF.FLOOR_WORKZONE",
+    "PS_META.SF.FLOOR_VACUUM_AREA"
+  ],
+
+  "proposed_new_keys": [
+    {
+      "proposed_key": "PS_OPENING_EA.BUILTIN_SHELF.S",
+      "uom": "EA",
+      "description": "Small built-in openings (6-18\" x 6-18\") -- cubbies, shoe shelves, small niches",
+      "justification": "Generic built-in key from BuiltIns Quantification System v2.0. Distinct from closet-specific PS_OPENING_EA.CLOSET_SHELF.* keys."
+    },
+    {
+      "proposed_key": "PS_OPENING_EA.BUILTIN_SHELF.M",
+      "uom": "EA",
+      "description": "Medium built-in openings (18-36\" x 12-30\") -- standard bookshelf bays, typical built-in compartments",
+      "justification": "Most common tier for residential built-ins."
+    },
+    {
+      "proposed_key": "PS_OPENING_EA.BUILTIN_SHELF.L",
+      "uom": "EA",
+      "description": "Large built-in openings (36-60\" x 18-42\") -- wide media shelving, large compartments",
+      "justification": "Entertainment center and wide bookcase bays."
+    },
+    {
+      "proposed_key": "PS_OPENING_EA.BUILTIN_SHELF.XL",
+      "uom": "EA",
+      "description": "XL built-in openings (60\"+ x 30\"+) -- oversized feature bays",
+      "justification": "Custom feature units, oversized media bays."
+    },
+    {
+      "proposed_key": "PS_META.EA.BUILTIN_DOORS",
+      "uom": "EA",
+      "description": "Count of solid built-in doors and drawer fronts to remove, paint, and reinstall",
+      "justification": "Distinct from PS_META.EA.CABINET_DOORS (kitchen cabinets). Built-in doors vary widely in size and type."
+    },
+    {
+      "proposed_key": "PS_META.EA.BUILTIN_HARDWARE",
+      "uom": "EA",
+      "description": "Count of hardware pieces (knobs, pulls, hinges, catches) to remove and reinstall",
+      "justification": "Labor driver for hardware removal/reinstall tasks. Typically 2-3 pieces per door."
+    }
+  ],
+
+  "adjacency_notes": [
+    "Primary surface: builtin_carcass (from Surface_Vocabulary_Reference.md)",
+    "Adjacent to wall_field on sides and top (linear edge, different_finish typically)",
+    "Adjacent to ceiling_field for floor-to-ceiling units (linear edge, different_finish)",
+    "Adjacent to floor at base (not_in_scope -- floor never painted)",
+    "Built-in enamel (satin/semi-gloss) typically differs from wall paint (flat/eggshell)",
+    "Caulk seals built-in-to-wall junction during prep -- no cut-in at paint time for brush work",
+    "Spray work requires wall masking at built-in-to-wall junction to prevent overspray"
+  ],
+
+  "protection_zones_analysis": {
+    "spec_category": "builtin_millwork",
+    "zones": [
+      {
+        "zone_id": "floor_perimeter",
+        "condition": "application_method = brush",
+        "protection_level": "edge_only",
+        "notes": "Drop cloth runners at base of built-in work area. Standard for brush millwork. Drips and sanding dust are primary concern."
+      },
+      {
+        "zone_id": "floor_workzone",
+        "condition": "application_method = spray",
+        "protection_level": "full_cover",
+        "upgrade_scenario": "Upgrades from floor_perimeter when spray method selected",
+        "notes": "Localized floor coverage around spray target. Built-ins are discrete -- not full room coverage. Rosin paper or canvas drops."
+      },
+      {
+        "zone_id": "wall_adjacent",
+        "condition": "application_method = spray",
+        "protection_level": "partial_cover",
+        "notes": "Wall masking near built-in-to-wall junction to prevent overspray. Paper + tape or masking film at junction."
+      },
+      {
+        "zone_id": "fixture_covers",
+        "condition": "application_method = spray AND ceiling fixtures near work area",
+        "protection_level": "full_cover",
+        "notes": "Ceiling fixtures near spray work area. Plastic bag or film covers."
+      }
+    ],
+    "zone_reference": "Protection_Zones_Reference.md"
+  },
+
+  "adjacency_analysis": {
+    "primary_surface": "builtin_carcass",
+    "adjacent_surfaces": [
+      {
+        "surface_id": "wall_field",
+        "edge_type": "linear",
+        "typical_relationship": "different_finish",
+        "edge_work_required": false,
+        "notes": "Built-in meets wall on sides and top. Different finish -- built-in enamel vs wall paint. Caulk seals gap during prep. Spray requires wall masking."
+      },
+      {
+        "surface_id": "ceiling_field",
+        "edge_type": "linear",
+        "typical_relationship": "different_finish",
+        "edge_work_required": false,
+        "notes": "Floor-to-ceiling units meet ceiling. Different finish. Not all built-ins reach ceiling -- conditional on unit height. Spray requires ceiling masking."
+      },
+      {
+        "surface_id": "floor",
+        "edge_type": "linear",
+        "typical_relationship": "not_in_scope",
+        "edge_work_required": false,
+        "notes": "Built-in base meets floor. Floor is never painted. Protection zone covers floor."
+      }
+    ],
+    "surface_reference": "Surface_Vocabulary_Reference.md"
+  },
+
+  "site_condition_analysis": {
+    "affected_conditions": [
+      {
+        "condition_id": "floor_type",
+        "affected_task_types": ["protect"],
+        "include_values": ["finished", "partial"],
+        "exclude_values": ["subfloor"],
+        "notes": "Floor protection only when finished floors present. NC may have subfloor during built-in painting."
+      },
+      {
+        "condition_id": "occupancy_state",
+        "affected_task_types": ["protect"],
+        "include_values": ["occupied_crew_handles", "occupied_sensitive"],
+        "exclude_values": ["vacant"],
+        "modifier_notes": "OCC_SENSITIVE=1.30x, OCC_CREW_HANDLES=1.15x on protection tasks per Modifier_Registry",
+        "notes": "Rare in NC. Additional protection and daily reset when occupied."
+      },
+      {
+        "condition_id": "temperature_condition",
+        "affected_task_types": ["prime", "apply"],
+        "include_values": ["cold_below_50f", "hot_above_90f"],
+        "modifier_notes": "Affects dry times, open time, and flow-out. Critical for waterborne alkyd (QT4+).",
+        "notes": "Refer to manufacturer PDS for temperature limits. Cold extends cure time for door reinstallation."
+      },
+      {
+        "condition_id": "ventilation_condition",
+        "affected_task_types": ["prime", "apply"],
+        "include_values": ["poor"],
+        "modifier_notes": "MDF edge sealing uses solvent-based products -- adequate ventilation required. Spray generates overspray. Poor ventilation extends dry times.",
+        "notes": "Particularly relevant for enclosed rooms (studies, libraries) where built-ins are common."
+      },
+      {
+        "condition_id": "access_constraint",
+        "affected_task_types": ["prep", "prime", "apply"],
+        "include_values": ["cramped"],
+        "modifier_notes": "ACCESS modifier from BuiltIns Quantification System handles workspace restrictions",
+        "notes": "Tight spaces reduce production rate. Handled by PS_OPENING_MOD.ACCESS."
+      }
+    ],
+    "condition_reference": "Site_Condition_Vocabulary_Reference.md",
+    "modifier_reference": "Modifier_Registry.md"
+  },
+
+  "state_analysis": {
+    "primary_surface": "builtin_carcass",
+    "valid_input_states": {
+      "states": ["SS_BARE", "SS_PRIMED_FACTORY"],
+      "rationale": "Combined prime+paint spec for NC. SS_BARE requires full primer (substrate-driven). SS_PRIMED_FACTORY skips primer -- standard NC delivery is factory-primed."
+    },
+    "output_state": {
+      "state": "SS_PAINTED_SATIN",
+      "varies_by": "sheen",
+      "state_map": {
+        "satin": "SS_PAINTED_SATIN",
+        "semi-gloss": "SS_PAINTED_SEMIGLOSS",
+        "gloss": "SS_PAINTED_GLOSS"
+      },
+      "rationale": "Output state determined by sheen configuration. Satin is default for softer appearance."
+    },
+    "adjacent_state_protection_analysis": [
+      {
+        "adjacent_surface": "wall_field",
+        "finished_states": ["SS_PAINTED_FLAT", "SS_PAINTED_EGGSHELL", "SS_PAINTED_SATIN"],
+        "unfinished_states": ["SS_BARE", "SS_PRIMED_FIELD"],
+        "protection_when_finished": "light_mask",
+        "protection_when_unfinished": "none",
+        "applies_when": {"application_method": ["spray"]},
+        "rationale": "Wall masking near built-in during spray to prevent overspray on finished walls. Unfinished walls need no protection. Brush application has no overspray risk."
+      },
+      {
+        "adjacent_surface": "wall_field",
+        "finished_states": ["SS_PAINTED_FLAT", "SS_PAINTED_EGGSHELL", "SS_PAINTED_SATIN"],
+        "unfinished_states": ["SS_BARE", "SS_PRIMED_FIELD"],
+        "protection_when_finished": "none",
+        "protection_when_unfinished": "none",
+        "applies_when": {"application_method": ["brush"]},
+        "rationale": "Brush application has no overspray risk. Built-in-to-wall junction is caulked. No masking needed."
+      },
+      {
+        "adjacent_surface": "ceiling_field",
+        "finished_states": ["SS_PAINTED_FLAT", "SS_PAINTED_EGGSHELL"],
+        "unfinished_states": ["SS_BARE", "SS_PRIMED_FIELD"],
+        "protection_when_finished": "light_mask",
+        "protection_when_unfinished": "none",
+        "applies_when": {"application_method": ["spray"]},
+        "rationale": "Ceiling masking for floor-to-ceiling units during spray. Only when ceiling is finished and built-in reaches ceiling."
+      }
+    ],
+    "state_reference": "Substrate_State_Reference.md"
+  },
+
+  "assumptions": [
+    {
+      "field": "scope_boundary",
+      "value": "Closet shelving excluded -- routed to SF_CLOSET_SHELF_NC",
+      "source": "Brief Section 2",
+      "doctrine_gap": false,
+      "note": "Clear scope separation: closet shelving is a simple dedicated spec"
+    },
+    {
+      "field": "scope_boundary",
+      "value": "Kitchen/bathroom cabinets excluded -- routed to SF_CABINET_NC_PAINT (future)",
+      "source": "Brief Section 2",
+      "doctrine_gap": false,
+      "note": "Cabinets have unique protection requirements (countertops, appliances, backsplash)"
+    },
+    {
+      "field": "door_handling",
+      "value": "All removable solid doors and drawer fronts painted flat on sawhorses",
+      "source": "Fine_Finish_Doctrine.md SS10.3, SS15.11.3",
+      "doctrine_gap": false,
+      "note": "Horizontal painting for gravity-assisted leveling and drip prevention"
+    },
+    {
+      "field": "exterior_surfaces",
+      "value": "End panels, tops, face frames bundled with opening rates via DETAIL modifier for v1",
+      "source": "BuiltIns_Shelving Quantification System.md SS10.1",
+      "doctrine_gap": false,
+      "note": "Optional separate PS keys for exterior surfaces deferred to v2 if production accuracy demands"
+    }
+  ],
+
+  "uncertainties": [
+    {
+      "topic": "COMP_BUILTIN modifier",
+      "description": "No COMP_BUILTIN modifier exists in Modifier_Registry for adjacent wall/ceiling specs. COMP_CABINETS (1.50x) and COMP_CLOSET_SHELVING (1.50x) exist as precedent. May need proposal.",
+      "resolution": "Flag for human review. Does not block this spec -- the modifier would apply to OTHER specs, not this one."
+    },
+    {
+      "topic": "PS_OPENING_MOD keys in PaintScope catalog",
+      "description": "PS_OPENING_MOD.DEPTH, PS_OPENING_MOD.DETAIL, PS_OPENING_MOD.ACCESS are documented in BuiltIns Quantification System but may not be formally in PaintScope Quantity Key Catalog yet.",
+      "resolution": "Include in proposed_new_keys if not in catalog. Pipeline should not block -- these are modifier enums, not quantity keys."
+    },
+    {
+      "topic": "Opening-based production rates",
+      "description": "No established per-opening-tier production rates exist in doctrine. Closet shelf spec has rates but general built-ins may differ.",
+      "resolution": "Estimation Engineer to establish rates using Millwork Doctrine SS7.1 trim rates as reference, adapted for opening-based work."
+    }
+  ]
+}
