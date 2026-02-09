@@ -1,0 +1,710 @@
+{
+  "research_metadata": {
+    "spec_family_id": "SF_WAINSCOT_PANEL_NC",
+    "research_mode": "lightweight",
+    "brief_source": "specs/_backlog/SF_WAINSCOT_PANEL_NC/brief.md",
+    "doctrine_loaded": [
+      "docs/Doctrine/Millwork_NC_Paint_Doctrine.md",
+      "docs/Doctrine/Fine_Finish_Doctrine.md",
+      "docs/Doctrine/Quality_Tiers_and_Surface_Condition.md",
+      "docs/Doctrine/Protection_and_Masking_Doctrine.md",
+      "docs/Doctrine/Materials_and_Consumables_Doctrine.md",
+      "docs/Doctrine/Modifier_Registry.md",
+      "docs/Doctrine/Spec_Completeness_Doctrine.md",
+      "docs/Reference/Protection_Zones_Reference.md",
+      "docs/Reference/Surface_Vocabulary_Reference.md",
+      "docs/Reference/Site_Condition_Vocabulary_Reference.md",
+      "docs/Reference/Substrate_State_Reference.md",
+      "docs/PaintScope/PaintScope_Quantity_Key_Catalog.md",
+      "docs/PaintScope/Spec_Input_to_PaintScope_Key_Mapping.md"
+    ],
+    "sibling_specs_reviewed": [
+      "specs/SF_STAIR_RISER_NC_v1/research.json",
+      "specs/SF_STAIR_RISER_NC_v1/spec.json",
+      "specs/SF_WINDOW_INT_NC_v1/spec.json",
+      "specs/SF_TRIM_NC_PAINT_v1/spec.json"
+    ],
+    "researcher": "Spec Researcher Agent",
+    "date": "2026-02-09",
+    "status": "draft",
+    "review_required": true
+  },
+
+  "protection_zones_analysis": {
+    "spec_category": "millwork",
+    "application_method_sensitivity": true,
+    "zones": [
+      {
+        "zone_id": "floor_perimeter",
+        "condition": "always",
+        "protection_level": "edge_only",
+        "paintscope_key": "PS_PROTECT_SF.FLOOR_PERIMETER",
+        "upgrade_scenario": null,
+        "notes": "Drop cloth runners at base of wainscot work area. Wainscot is low to floor — drips from brush/spray and sanding dust are the primary concerns. Standard edge protection."
+      },
+      {
+        "zone_id": "wall_adjacent",
+        "condition": { "application_method": "spray" },
+        "protection_level": "light_mask",
+        "paintscope_key": "PS_PROTECT_LF.WALL_ADJACENT",
+        "upgrade_scenario": "Upgrades to heavy_mask when wall above is SS_PAINTED_*",
+        "notes": "Paper masking above the wainscot cap rail line to protect finished wall field from overspray. Only needed for spray application. Brush application typically needs no wall masking."
+      }
+    ],
+    "zone_reference": "Protection_Zones_Reference.md v2.1",
+    "method_escalation": "brush < spray",
+    "conditional_protection_note": "Floor protection is always required regardless of method. Wall masking is conditional on application_method = spray. Both zones use existing zone IDs — no new zones needed."
+  },
+
+  "adjacency_analysis": {
+    "primary_surface": "wainscot_panel",
+    "adjacent_surfaces": [
+      {
+        "surface_id": "wall_field",
+        "edge_type": "linear",
+        "typical_relationship": "different_finish",
+        "edge_work_required": false,
+        "notes": "Wall field above wainscot meets at cap rail line. Different finish — wall paint (flat/eggshell) vs millwork enamel (satin/semi-gloss). Junction is at cap rail, which is handled by SF_TRIM_NC_PAINT. No edge work from this spec — the cap rail provides the transition."
+      },
+      {
+        "surface_id": "trim_wainscot_rail",
+        "edge_type": "linear",
+        "typical_relationship": "same_finish",
+        "edge_work_required": false,
+        "notes": "Cap rail at top of wainscot. Typically same color and sheen as wainscot panels. Cap rail handled by SF_TRIM_NC_PAINT (ITM_TRIM_WAINSCOT_RAIL). Same finish group means no masking needed between them when painted in same session."
+      },
+      {
+        "surface_id": "trim_baseboard",
+        "edge_type": "linear",
+        "typical_relationship": "same_finish",
+        "edge_work_required": false,
+        "notes": "Standard baseboard below wainscot. Often same finish group. Baseboard handled by SF_TRIM_NC_PAINT (ITM_TRIM_BASEBOARD). May be same or different color — when different, treated as separate finish group."
+      },
+      {
+        "surface_id": "trim_casing_door",
+        "edge_type": "complex",
+        "typical_relationship": "same_finish",
+        "edge_work_required": false,
+        "notes": "Wainscot meets door casing where both are present in the same wall. Complex intersection — wainscot panels terminate at casing edge. Typically same finish group."
+      },
+      {
+        "surface_id": "trim_casing_window",
+        "edge_type": "complex",
+        "typical_relationship": "same_finish",
+        "edge_work_required": false,
+        "notes": "Wainscot meets window casing where windows are within wainscot height zone. Complex intersection similar to door casing. Typically same finish group."
+      }
+    ],
+    "surface_reference": "Surface_Vocabulary_Reference.md v1.0 — wainscot_panel, wainscot_rail, wainscot_stile, wainscot_cap all exist in Millwork Surfaces section",
+    "key_finding": "Wainscot is typically part of the same finish group as surrounding trim (cap rail, baseboard, casings). Most adjacencies are same_finish relationships. The key different_finish adjacency is wall field above — separated by the cap rail. No edge work generated by this spec because transition surfaces (cap rail, baseboard) are separate specs."
+  },
+
+  "site_condition_analysis": {
+    "affected_conditions": [
+      {
+        "condition_id": "floor_type",
+        "vocabulary_ref": "Site_Condition_Vocabulary_Reference.md § floor_type",
+        "affected_task_types": ["protect"],
+        "include_values": ["finished", "partial"],
+        "exclude_values": ["subfloor"],
+        "modifier_notes": null,
+        "notes": "Floor protection at wainscot base required when finished floors present. Subfloor requires no protection."
+      },
+      {
+        "condition_id": "occupancy_state",
+        "vocabulary_ref": "Site_Condition_Vocabulary_Reference.md § occupancy_state",
+        "affected_task_types": ["protect"],
+        "include_values": ["occupied_crew_handles", "occupied_sensitive"],
+        "exclude_values": ["vacant"],
+        "modifier_notes": "occupied_sensitive triggers OCC_SENSITIVE modifier 1.30x on protection tasks per Modifier_Registry",
+        "notes": "Additional protection when occupied. Rare in NC context but possible for renovation projects."
+      },
+      {
+        "condition_id": "temperature_condition",
+        "vocabulary_ref": "Site_Condition_Vocabulary_Reference.md § temperature_condition",
+        "affected_task_types": ["prime", "finish"],
+        "include_values": ["cold_below_50f", "hot_above_90f"],
+        "exclude_values": ["normal"],
+        "modifier_notes": null,
+        "notes": "Temperature affects dry times, open time, and flow-out. Particularly impacts waterborne alkyd products at QT4+ which rely on extended open time for leveling."
+      },
+      {
+        "condition_id": "ventilation_condition",
+        "vocabulary_ref": "Site_Condition_Vocabulary_Reference.md § ventilation_condition",
+        "affected_task_types": ["prime", "finish"],
+        "include_values": ["poor"],
+        "exclude_values": ["adequate", "good"],
+        "modifier_notes": null,
+        "notes": "MDF edge sealing uses solvent-based products (shellac/oil-based) — adequate ventilation required. Spray application generates overspray requiring air movement. Poor ventilation extends dry times for all coats."
+      }
+    ],
+    "condition_reference": "Site_Condition_Vocabulary_Reference.md v1.1",
+    "modifier_reference": "Modifier_Registry.md v1.2"
+  },
+
+  "state_analysis": {
+    "primary_surface": "wainscot_panel",
+    "valid_input_states": {
+      "states": ["SS_BARE", "SS_PRIMED_FACTORY"],
+      "rationale": "Combined prime+paint spec. SS_BARE (uncoated MDF, FJP, or solid wood wainscot) requires full primer coat — primer type driven by substrate. SS_PRIMED_FACTORY (standard NC — factory-primed MDF or FJP panels) skips primer, lighter prep."
+    },
+    "output_state": {
+      "state": "SS_PAINTED",
+      "varies_by": "sheen",
+      "state_map": {
+        "satin": "SS_PAINTED_SATIN",
+        "semi-gloss": "SS_PAINTED_SEMIGLOSS",
+        "gloss": "SS_PAINTED_GLOSS"
+      },
+      "rationale": "Output state varies by sheen configuration dimension. Satin is default for wainscot (softer appearance on large panel areas)."
+    },
+    "adjacent_state_protection_analysis": [
+      {
+        "adjacent_surface": "wall_field",
+        "finished_states": ["SS_PAINTED_FLAT", "SS_PAINTED_EGGSHELL", "SS_PAINTED_SATIN"],
+        "unfinished_states": ["SS_BARE", "SS_PRIMED_FIELD"],
+        "protection_when_finished": "light_mask (wall_adjacent zone, spray only)",
+        "protection_when_unfinished": "none",
+        "rationale": "Typical NC: walls may be painted before wainscot (drywall painting before millwork detail). When walls SS_PAINTED_*: masking required above cap rail line during spray. When walls unfinished: no protection needed."
+      },
+      {
+        "adjacent_surface": "trim_wainscot_rail",
+        "finished_states": ["SS_PAINTED_SATIN", "SS_PAINTED_SEMIGLOSS"],
+        "unfinished_states": ["SS_BARE", "SS_PRIMED_FACTORY"],
+        "protection_when_finished": "light_mask (top edge)",
+        "protection_when_unfinished": "none",
+        "rationale": "If cap rail already painted, mask top edge during wainscot spray. Typically same finish group — usually painted in same session, so rarely needs protection."
+      },
+      {
+        "adjacent_surface": "trim_baseboard",
+        "finished_states": ["SS_PAINTED_SATIN", "SS_PAINTED_SEMIGLOSS"],
+        "unfinished_states": ["SS_BARE", "SS_PRIMED_FACTORY"],
+        "protection_when_finished": "light_mask (top edge)",
+        "protection_when_unfinished": "none",
+        "rationale": "If baseboard already painted, mask during wainscot work. Same session painting typical."
+      }
+    ],
+    "state_reference": "Substrate_State_Reference.md v1.0.0"
+  },
+
+  "required_paintscope_keys": [
+    {
+      "key": "PS_SURFACE_SF.WAINSCOTING",
+      "description": "Total SF of wainscot panel assembly below cap rail",
+      "uom": "SF",
+      "required": true,
+      "required_when": "Always",
+      "catalog_status": "PROPOSED — defined in Millwork Doctrine §1.1 but not yet in PaintScope catalog active entries"
+    },
+    {
+      "key": "PS_META.EA.ROOMS_TOTAL",
+      "description": "Room count for setup/cleanup operations",
+      "uom": "EA",
+      "required": true,
+      "required_when": "Always",
+      "catalog_status": "EXISTS — Room / Zone meta section"
+    },
+    {
+      "key": "PS_PROTECT_SF.FLOOR_PERIMETER",
+      "description": "Floor protection area at wainscot work zone",
+      "uom": "SF",
+      "required": true,
+      "required_when": "Always",
+      "catalog_status": "EXISTS — Floor Protection Keys (SF)"
+    },
+    {
+      "key": "PS_PROTECT_LF.WALL_ADJACENT",
+      "description": "Wall masking LF above wainscot cap rail line (spray only)",
+      "uom": "LF",
+      "required": false,
+      "required_when": "application_method = spray",
+      "catalog_status": "EXISTS — Surface-Adjacent Protection Keys (LF)"
+    },
+    {
+      "key": "PS_META.SF.FLOOR_VACUUM_AREA",
+      "description": "Post-work vacuum cleanup area",
+      "uom": "SF",
+      "required": true,
+      "required_when": "Always",
+      "catalog_status": "EXISTS — Room / Zone meta section"
+    }
+  ],
+
+  "proposed_new_keys": [
+    {
+      "key": "PS_SURFACE_SF.WAINSCOTING",
+      "uom": "SF",
+      "description": "Total SF of wainscot panel assembly below cap rail — includes panels, internal rails/stiles, base rail, and applied molding. Measured as wall area covered by wainscot system.",
+      "justification": "Defined in Millwork Doctrine §1.1 (Wainscoting: SF, PS_SURFACE_SF.WAINSCOTING) but not yet in PaintScope catalog active entries. Required as the primary input for this spec."
+    }
+  ],
+
+  "adjacency_notes": [
+    {
+      "edge_type": "wainscot_to_wall",
+      "scope_impact": "Wainscot meets wall field at cap rail line. The cap rail (SF_TRIM_NC_PAINT) provides the physical transition. No edge work from this spec — wall protection during spray is the only concern.",
+      "paintscope_key": "PS_PROTECT_LF.WALL_ADJACENT",
+      "nc_context": "Typical NC: wall above may be at SS_BARE, SS_PRIMED_FIELD, or SS_PAINTED depending on sequence. Wall painting often precedes wainscot detail work."
+    },
+    {
+      "edge_type": "wainscot_to_cap_rail",
+      "scope_impact": "Wainscot panel top edge meets cap rail bottom edge. Same finish group typical. Cap rail is trim spec scope. Panel-to-rail caulk joint included in this spec as prep task.",
+      "paintscope_key": null,
+      "nc_context": "Cap rail and wainscot typically painted in same session with same material."
+    },
+    {
+      "edge_type": "wainscot_to_baseboard",
+      "scope_impact": "Wainscot base rail meets standard baseboard. Baseboard is trim spec scope. May be same or different finish group.",
+      "paintscope_key": null,
+      "nc_context": "Baseboard installed after wainscot panels in typical NC sequence."
+    },
+    {
+      "edge_type": "panel_to_frame",
+      "scope_impact": "Internal edges within the wainscot assembly — panels meet internal rails and stiles. These are ALL within this spec's scope. Caulking at panel-to-frame joints is a mandatory prep task. Junction detail drives wainscot_type complexity modifier.",
+      "paintscope_key": null,
+      "nc_context": "Internal assembly joints — all caulked during prep phase."
+    }
+  ],
+
+  "relevant_findings": [
+    {
+      "finding_id": "RF-001",
+      "topic": "Single SF item for entire wainscot assembly",
+      "finding": "The wainscot assembly (panels, internal rails, stiles, base rail, applied molding) is measured as ONE item in SF. Internal framing complexity is captured by the wainscot_type modifier, not by splitting into separate LF and SF items. This matches Millwork Doctrine §1.1 which lists wainscoting as SF-based (PS_SURFACE_SF.WAINSCOTING).",
+      "source": "Brief Section 4, Millwork_NC_Paint_Doctrine §1.1",
+      "confidence": "high",
+      "impact": "Single ITM_WAINSCOT_PANEL with SF UOM. All production rates expressed in SF/hr or hrs/SF."
+    },
+    {
+      "finding_id": "RF-002",
+      "topic": "Combined prime+paint spec — primer conditional on substrate_state",
+      "finding": "This spec includes both primer and finish coats, but primer is conditional. SS_BARE requires full primer coat (substrate-driven chemistry). SS_PRIMED_FACTORY skips primer — lighter prep only. Matches SF_WINDOW_INT_NC and SF_STAIR_RISER_NC pattern. Rationale: wainscot is a self-contained assembly with continuous surfaces that flow between components.",
+      "source": "Brief Section 1, 13; Fine_Finish_Doctrine §5.2",
+      "confidence": "high",
+      "impact": "Module structure must support both workflows. Prime module is conditional. Two variant round configs: with/without primer."
+    },
+    {
+      "finding_id": "RF-003",
+      "topic": "Substrate drives primer chemistry — 5 distinct primer paths",
+      "finding": "MDF cut/routed edges: solvent-based sealer (Zinsser BIN Shellac, KILZ Original) — water-based causes irreversible fiber swelling. MDF faces: high-build latex (BM Enamel Underbody 217). FJP: stain-blocking primer MANDATORY (BM Prime Lock Plus). Solid wood softwood: standard primer-sealer (Zinsser Bulls Eye 1-2-3). Solid wood hardwood: tannin-blocking primer (BM Prime Lock Plus, SW Extreme Block). MDF requires TWO-STEP prime: edge seal (solvent) then face prime (latex).",
+      "source": "Millwork_NC_Paint_Doctrine §2-4, Brief Section 11",
+      "confidence": "high",
+      "impact": "Materials Manager must include 5 substrate-driven primer systems. SOP must have substrate-conditional primer tasks. MDF edge sealing is a separate mandatory task before latex primer."
+    },
+    {
+      "finding_id": "RF-004",
+      "topic": "Wainscot type drives complexity modifier per Millwork Doctrine §7.2",
+      "finding": "Three wainscot types with distinct production rate modifiers: flat_panel (1.0× — standard flat panels with simple frame), raised_panel (1.25× — 3D panel faces with detail edges, more cutting-in), beadboard (1.15× — uniform vertical grooves requiring additional attention). These map to Millwork Doctrine §7.2 complexity categories: flat_panel=simple profile (but not 0.85× because wainscot has internal framing), raised_panel=complex profile (1.25×), beadboard between standard and complex.",
+      "source": "Brief Section 3, 13; Millwork_NC_Paint_Doctrine §7.2",
+      "confidence": "high",
+      "impact": "wainscot_type is a configuration dimension driving production rate complexity modifier. Applied to all qt_scaled tasks."
+    },
+    {
+      "finding_id": "RF-005",
+      "topic": "Cap rail exclusion — separate trim spec scope",
+      "finding": "The cap rail (wainscot top rail) is explicitly EXCLUDED from this spec. It is handled by SF_TRIM_NC_PRIME and SF_TRIM_NC_PAINT as ITM_TRIM_WAINSCOT_RAIL (LF-based, PS_SURFACE_LF.TRIM_WAINSCOT_RAIL). The cap rail is trim; the panel system below it is millwork. Same scope boundary logic as door casing (trim) vs door slab (separate spec).",
+      "source": "Brief Section 2, 13",
+      "confidence": "high",
+      "impact": "No cap rail tasks in SOP. Caulk at wainscot-to-cap-rail junction IS included (prep task). Wall masking above cap rail line IS included (protection task for spray)."
+    },
+    {
+      "finding_id": "RF-006",
+      "topic": "MDF edge sealing is a non-negotiable two-step process",
+      "finding": "When substrate is MDF and substrate_state is SS_BARE, the SOP MUST include solvent-based edge sealing as a separate prep task BEFORE latex face primer. Water-based primer on raw MDF edges causes irreversible fiber swelling. This is the same constraint as in SF_STAIR_RISER_NC — it is task-sequence critical, not just material selection.",
+      "source": "Millwork_NC_Paint_Doctrine §2.1, §3.1, §4.1; Brief Section 13",
+      "confidence": "high",
+      "impact": "SOP must enforce edge seal before face prime for bare MDF. Two separate tasks in prime module."
+    },
+    {
+      "finding_id": "RF-007",
+      "topic": "QT2 not applicable — wainscot is prominent millwork",
+      "finding": "Per Millwork Doctrine §6 and Fine Finish Doctrine: wainscot is a prominent, scrutinized surface. QT2 is not applicable. Minimum quality tier is QT3. This is consistent with all millwork/fine finish specs.",
+      "source": "Brief Section 3, Millwork_NC_Paint_Doctrine §6",
+      "confidence": "high",
+      "impact": "Spec configuration_dimensions must exclude QT2. Only QT3, QT4, QT5 valid."
+    },
+    {
+      "finding_id": "RF-008",
+      "topic": "Finish material systems — reuse existing SYS_FF_ IDs",
+      "finding": "Same SYS_FF_ finish systems as SF_TRIM_NC_PAINT, SF_WINDOW_INT_NC, and SF_STAIR_RISER_NC. QT3: SYS_FF_STANDARD_ACRYLIC (100% acrylic enamel). QT4: SYS_FF_MODIFIED_URETHANE (waterborne alkyd). QT5: SYS_FF_PREMIUM (premium urethane enamel). Material systems are recommendations — contractor has discretion (RC-005).",
+      "source": "Fine_Finish_Doctrine §3, Brief Section 11",
+      "confidence": "high",
+      "impact": "Reuse existing SYS_FF_ IDs. No new finish systems needed."
+    },
+    {
+      "finding_id": "RF-009",
+      "topic": "Interstage is universal at ALL quality tiers",
+      "finding": "Same pattern as all fine finish specs. Interstage runs after every coat except the final coat. Sanding discipline: QT3=spot sand only (nibs, rough spots), QT4=full 220 grit, QT5=thorough 220-320 grit. Rigid sanding block mandatory for defect removal (FFD §15.4.1).",
+      "source": "Fine_Finish_Doctrine §2.2, §5.3, §7",
+      "confidence": "high",
+      "impact": "Interstage module present at all QTs. Sanding discipline varies by QT."
+    },
+    {
+      "finding_id": "RF-010",
+      "topic": "H1 height for all wainscot tasks — always below waist height",
+      "finding": "Standard wainscot is 32-42 inches tall. All work performed standing or kneeling. No access equipment required. Always H1 (1.0× modifier). Full-height paneling (floor-to-ceiling) is a separate future spec (SF_WOOD_WALL_NC).",
+      "source": "Brief Section 3, Q4 (RESOLVED)",
+      "confidence": "high",
+      "impact": "No height dimension needed. All tasks use H1 modifier (1.0×)."
+    },
+    {
+      "finding_id": "RF-011",
+      "topic": "Spray technique for wainscot — large panels spray efficiently",
+      "finding": "Wainscot panels have large flat areas that spray efficiently. Key challenge is detail at panel-to-frame junctions and frame profiles. Spray technique: field panels first (broad passes), then HVLP or fine-finish tip for frame detail. Backroll optional on flat panels for texture management. When spraying, wall above must be masked at cap rail line.",
+      "source": "Brief Section 13",
+      "confidence": "high",
+      "impact": "Spray is default application method for NC production. Backroll is optional (not coupled like wall spray). Wall masking is a spray-conditional protection task."
+    },
+    {
+      "finding_id": "RF-012",
+      "topic": "Caulking at three joint types within assembly",
+      "finding": "Wainscot prep includes caulking at: (1) panel-to-rail joints (horizontal internal joints), (2) panel-to-stile joints (vertical internal joints), (3) wainscot-to-wall junction (assembly perimeter where it meets drywall). All joints use paintable acrylic latex caulk. Caulk quantity derived from assembly SF — internal joint density varies by wainscot_type.",
+      "source": "Brief Section 2 Includes",
+      "confidence": "high",
+      "impact": "Three caulk task types in prep. Internal joint caulking is more intensive for raised_panel (more joints) and beadboard (groove-to-frame joints)."
+    }
+  ],
+
+  "condition_drivers": [
+    {
+      "driver_id": "CD-001",
+      "condition": "quality_tier",
+      "values": ["QT3", "QT4", "QT5"],
+      "affects": ["material_system_finish", "sheen_gate", "sanding_discipline", "inspection_scrutiny", "coat_count_at_qt5"],
+      "notes": "QT drives finish material system (recommendations), sheen restrictions, sanding between coats, inspection scrutiny. Does NOT drive primer selection (substrate-driven). Does NOT affect application quality baseline."
+    },
+    {
+      "driver_id": "CD-002",
+      "condition": "application_method",
+      "values": ["spray", "brush"],
+      "affects": ["protection_zones", "production_rates", "material_waste"],
+      "notes": "Spray is default for NC production — large flat panels spray efficiently. Brush for occupied spaces, small areas, or touch-up. Spray requires wall_adjacent masking. Per FFD §15.1.1."
+    },
+    {
+      "driver_id": "CD-003",
+      "condition": "wainscot_type",
+      "values": ["flat_panel", "raised_panel", "beadboard"],
+      "affects": ["production_rate_modifier"],
+      "notes": "flat_panel=1.0× (standard), raised_panel=1.25× (complex 3D profile), beadboard=1.15× (groove detail). Modifiers from Millwork Doctrine §7.2 complexity categories."
+    },
+    {
+      "driver_id": "CD-004",
+      "condition": "substrate_state",
+      "values": ["SS_BARE", "SS_PRIMED_FACTORY"],
+      "affects": ["primer_required", "prep_scope"],
+      "notes": "SS_BARE: full primer coat required (substrate-driven chemistry), heavier prep. SS_PRIMED_FACTORY: skip primer, scuff sand only. Standard NC delivery is factory-primed."
+    },
+    {
+      "driver_id": "CD-005",
+      "condition": "sheen",
+      "values": ["satin", "semi-gloss", "gloss"],
+      "affects": ["minimum_quality_tier", "output_state"],
+      "notes": "Sheen/QT gate per FFD §4.1: satin at QT3+, semi-gloss at QT4+, gloss at QT5 only. Satin is default (softer appearance on wainscot panels)."
+    }
+  ],
+
+  "quality_differences": [
+    {
+      "aspect": "Material system (finish)",
+      "qt3": "SYS_FF_STANDARD_ACRYLIC — 100% acrylic enamel (ProClassic WB, Regal Select)",
+      "qt4": "SYS_FF_MODIFIED_URETHANE — waterborne alkyd (BM Advance, SW Pro Industrial WB Alkyd)",
+      "qt5": "SYS_FF_PREMIUM — premium urethane enamel (Emerald Urethane, Scuff-X)"
+    },
+    {
+      "aspect": "Between-coat sanding",
+      "qt3": "Spot sand only — visible nibs, rough spots",
+      "qt4": "Light full sand — 220 grit, entire surface for adhesion",
+      "qt5": "Thorough full sand — 220-320 grit, uniform scratch pattern"
+    },
+    {
+      "aspect": "Inspection scrutiny",
+      "qt3": "Quick glance at 6ft distance — obvious defects only",
+      "qt4": "Systematic scan at 3ft — all visible defects marked",
+      "qt5": "Lighted critical inspection at arm's length — zero tolerance"
+    },
+    {
+      "aspect": "Coat count",
+      "qt3": "2 finish coats",
+      "qt4": "2 finish coats",
+      "qt5": "2-3 finish coats (3+ typical for brush per FFD §15.10.3)"
+    },
+    {
+      "aspect": "Application quality",
+      "qt3": "Same baseline — no drips, sags, holidays, lap marks (NOT tiered)",
+      "qt4": "Same baseline (NOT tiered)",
+      "qt5": "Same baseline (NOT tiered)"
+    },
+    {
+      "aspect": "Prep thoroughness",
+      "qt3": "Fill obvious holes, functional caulk lines, light scuff sand",
+      "qt4": "Fill all visible holes, smooth caulk lines, full sand 180-220",
+      "qt5": "Fill every hole, perfect caulk, thorough sand 220+, uniform scratch"
+    }
+  ],
+
+  "failure_modes": [
+    {
+      "failure": "MDF fiber swelling on cut/routed edges",
+      "cause": "Applying water-based primer to raw MDF cut/routed edges before solvent-based sealer",
+      "prevention": "ALWAYS seal MDF edges with shellac-based (Zinsser BIN) or oil-based (KILZ Original) sealer FIRST. Two-step prime process for bare MDF. Per Millwork_NC_Paint_Doctrine §2.1 and §4.1.",
+      "severity": "critical",
+      "reversibility": "Difficult — requires sanding back to substrate, fiber swelling is irreversible without aggressive sanding"
+    },
+    {
+      "failure": "FJP resin bleed-through",
+      "cause": "Using non-stain-blocking primer on bare finger-joint pine",
+      "prevention": "ALWAYS use stain-blocking primer on bare FJP. BM Prime Lock Plus, BM Fresh Start oil-based, or Zinsser BIN Shellac. MANDATORY per Millwork Doctrine §2.2 and §4.1.",
+      "severity": "critical",
+      "reversibility": "Difficult — resin bleed re-emerges through multiple finish coats. Requires shellac-based primer to permanently block."
+    },
+    {
+      "failure": "Tannin bleed on hardwood panels",
+      "cause": "Using water-based primer without tannin-blocking properties on bare hardwood (oak, maple, cherry)",
+      "prevention": "ALWAYS use tannin-blocking primer on bare hardwood. BM Prime Lock Plus, SW Extreme Block, or shellac-based primer.",
+      "severity": "critical",
+      "reversibility": "Difficult — tannin bleed re-emerges through multiple finish coats. Requires stripping to bare wood and proper tannin-blocking primer."
+    },
+    {
+      "failure": "Raised panel detail holidays",
+      "cause": "Incomplete coverage in raised panel profiles — brush/spray misses recessed areas at panel-to-frame transitions",
+      "prevention": "Spray technique: field panels first, then HVLP for frame detail. Brush technique: work panel-to-frame sequence. Check all recessed profiles for holidays before moving on.",
+      "severity": "major",
+      "reversibility": "Easy — additional coat addresses holidays. Part of interstage inspection."
+    },
+    {
+      "failure": "Beadboard groove fill",
+      "cause": "Excessive paint buildup in beadboard grooves, losing groove definition",
+      "prevention": "Thin coats on beadboard. Spray preferred — atomized application minimizes groove fill. If brushing, use brush sized to groove width. Avoid over-application.",
+      "severity": "major",
+      "reversibility": "Moderate — requires careful sanding in grooves to restore definition, then recoat."
+    },
+    {
+      "failure": "Brush marks on large flat panel areas",
+      "cause": "Overworking waterborne product on large flat surfaces, inadequate open time management",
+      "prevention": "Waterborne philosophy (FFD §15.3.1): Apply, tip once, walk away. Use quality brush with proper loading. Roll and Tip methodology (FFD §15.6) on flat panels. Sand out marks between coats with rigid block.",
+      "severity": "major",
+      "reversibility": "Addressable — sand between coats with rigid block and recoat"
+    },
+    {
+      "failure": "Panel-to-frame caulk failure",
+      "cause": "Wood movement and seasonal expansion/contraction in wainscot assembly, especially raised panels which move more than flat panels",
+      "prevention": "Use quality paintable acrylic latex caulk. Apply after primer cure when possible. Proper joint width. Raised panel systems may experience more movement — use flexible caulk.",
+      "severity": "minor",
+      "reversibility": "Easy — re-caulk and touch-up. Part of maintenance."
+    },
+    {
+      "failure": "Wainscot-to-wall junction cracking",
+      "cause": "Differential movement between wood wainscot assembly and drywall wall, settling",
+      "prevention": "Caulk at wainscot-to-wall junction. Flexible caulk accommodates movement. Standard NC prep task.",
+      "severity": "minor",
+      "reversibility": "Easy — re-caulk and touch-up."
+    }
+  ],
+
+  "notes_for_materials_manager": [
+    {
+      "note_id": "MAT-001",
+      "topic": "Dual material system — substrate-driven primer, QT-driven finish",
+      "content": "This spec has TWO independent material system layers: (1) Primer systems are substrate-driven (MDF edge seal + face prime, FJP stain-blocking, hardwood tannin-blocking, softwood standard). (2) Finish systems are QT-driven (SYS_FF_STANDARD_ACRYLIC, SYS_FF_MODIFIED_URETHANE, SYS_FF_PREMIUM). Same pattern as SF_STAIR_RISER_NC and SF_WINDOW_INT_NC."
+    },
+    {
+      "note_id": "MAT-002",
+      "topic": "Primer selection by substrate",
+      "content": "MDF cut/routed edges: Solvent-based sealer (Zinsser BIN Shellac, KILZ Original). MDF factory faces: High-build latex (BM Enamel Underbody 217, ProClassic Undercoater). FJP: Stain-blocking primer MANDATORY (BM Prime Lock Plus, BM Fresh Start oil-based). Softwood: Standard primer-sealer (Zinsser Bulls Eye 1-2-3, KILZ 2). Hardwood: Tannin-blocking primer (BM Prime Lock Plus, SW Extreme Block). Factory-primed: No primer needed."
+    },
+    {
+      "note_id": "MAT-003",
+      "topic": "Finish material systems — reuse from trim/riser spec",
+      "content": "Same SYS_FF_ finish systems as all other fine finish specs. Material systems are recommendations — contractor has discretion (RC-005)."
+    },
+    {
+      "note_id": "MAT-004",
+      "topic": "Caulk for three joint types",
+      "content": "Paintable acrylic latex caulk for: (1) panel-to-rail joints (internal horizontal joints), (2) panel-to-stile joints (internal vertical joints), (3) wainscot-to-wall junction (assembly perimeter). Caulk quantity derived from assembly SF — internal joint density varies by wainscot_type."
+    },
+    {
+      "note_id": "MAT-005",
+      "topic": "Coverage rates for wainscot SF",
+      "content": "Wainscot is measured directly in SF. Typical coverage: 350-450 SF/gal for finish coat on primed smooth surface. Raised panel may consume ~10% more material due to increased surface area from 3D profile."
+    },
+    {
+      "note_id": "MAT-006",
+      "topic": "Sanding consumables vary by tier",
+      "content": "QT3: 220 grit for spot sanding only. QT4: 220 grit for full surface. QT5: 220-320 grit for full surface. Rigid sanding blocks mandatory for defect removal (FFD §15.4.1). Flexible sanding sponge acceptable for beadboard grooves and raised panel profiles."
+    },
+    {
+      "note_id": "MAT-007",
+      "topic": "Floor protection materials",
+      "content": "Drop cloth runners at base of wainscot work area. Canvas drop cloths or builder's paper. Wainscot is low to floor — drip protection is primary concern."
+    }
+  ],
+
+  "notes_for_sop_librarian": [
+    {
+      "note_id": "SOP-001",
+      "topic": "Module structure is combined prime+paint with single SF UOM",
+      "content": "SETUP → PREP → [PRIME (conditional)] → FINISH_COAT_1 → INTERSTAGE → FINISH_COAT_2 → [INTERSTAGE → FINISH_COAT_3 at QT5 brush] → FINAL_INSPECT → CLEANUP. Prime module runs only when substrate_state = SS_BARE. Factory-primed substrates skip from prep to finish."
+    },
+    {
+      "note_id": "SOP-002",
+      "topic": "No canonical painting sequence — single paintable item",
+      "content": "Unlike SF_STAIR_RISER_NC (stringers before risers) or SF_STAIR_RAILING_NC (balusters/newels/handrails), wainscot has only ONE paintable item (ITM_WAINSCOT_PANEL, SF). No component-level sequencing required. Spray technique within the assembly: field panels first, then frame detail."
+    },
+    {
+      "note_id": "SOP-003",
+      "topic": "Prep tasks vary by substrate type",
+      "content": "Bare MDF: sand faces 220, clean dust, fill fastener holes, caulk joints, MDF edge seal (separate mandatory task). Bare FJP: light sand 150-180, clean, fill, caulk. Bare softwood: sand 150-180, clean, fill, caulk. Bare hardwood: sand 150-220, clean, fill, caulk. Factory-primed: scuff sand 150-180, clean, fill, caulk."
+    },
+    {
+      "note_id": "SOP-004",
+      "topic": "Three caulk joint types in prep",
+      "content": "(1) Panel-to-rail joints (horizontal internal), (2) panel-to-stile joints (vertical internal), (3) wainscot-to-wall junction (perimeter). All use paintable acrylic latex caulk. Caulk after fill and sand, before primer."
+    },
+    {
+      "note_id": "SOP-005",
+      "topic": "MDF edge sealing is a separate mandatory task",
+      "content": "For bare MDF: edge seal (solvent-based) MUST run BEFORE latex primer. Two-step prime: (1) TSK_WNSC_SEAL_MDF_EDGES, (2) TSK_WNSC_PRIME_FACES. Water-based primers cause irreversible fiber swelling on MDF edges."
+    },
+    {
+      "note_id": "SOP-006",
+      "topic": "Task IDs use TSK_WNSC_ prefix",
+      "content": "All task IDs use the WNSC context prefix per brief. Examples: TSK_WNSC_FLOOR_PROTECT, TSK_WNSC_WALL_MASK, TSK_WNSC_DUST_CLEAN, TSK_WNSC_SAND_PREP, TSK_WNSC_FILL_FASTENERS, TSK_WNSC_CAULK_JOINTS, TSK_WNSC_SEAL_MDF_EDGES, TSK_WNSC_PRIME_FACES, TSK_WNSC_FINISH_COAT, TSK_WNSC_INTERSTAGE_SAND, TSK_WNSC_FINAL_INSPECT."
+    },
+    {
+      "note_id": "SOP-007",
+      "topic": "Interstage is universal at ALL quality tiers",
+      "content": "Interstage runs after every coat except the final coat. Tasks: clean area, inspect coat, sand (spot or full per QT), patch/repair defects, sand patches, spot coat. Scrutiny level is qt_scaled."
+    },
+    {
+      "note_id": "SOP-008",
+      "topic": "Wall masking is spray-conditional setup task",
+      "content": "When application_method=spray: paper masking above cap rail line to protect wall field from overspray. Binary task — same at all QTs. Only applies to spray method."
+    },
+    {
+      "note_id": "SOP-009",
+      "topic": "QT5 brush may require 3+ coats",
+      "content": "At QT5 with brush application (especially semi-gloss/gloss), 3+ coats may be needed per FFD §15.10.3. Add additional FINISH_COAT + INTERSTAGE cycle as variant."
+    }
+  ],
+
+  "notes_for_estimation_engineer": [
+    {
+      "note_id": "EST-001",
+      "topic": "SF-based production rates",
+      "content": "All tasks use SF as the primary UOM. Production rates expressed in SF/hr. Wainscot SF directly from PaintScope input — no conversion needed."
+    },
+    {
+      "note_id": "EST-002",
+      "topic": "Production rate estimates from brief and doctrine",
+      "content": "Brief Section 13 provides rate guidance: Spray finish coat ~150-200 SF/hr (flat panel, QT3). Brush finish coat ~60-80 SF/hr (flat panel, QT3). QT4 multiplier ~0.80× on qt_scaled tasks. QT5 multiplier ~0.60× on qt_scaled tasks. These derive from Millwork Doctrine §7.1 trim rates adapted for panel SF."
+    },
+    {
+      "note_id": "EST-003",
+      "topic": "Wainscot type complexity modifier",
+      "content": "flat_panel=1.0× baseline, raised_panel=1.25× (complex 3D profile), beadboard=1.15× (groove detail). Apply to all qt_scaled tasks. Modifiers from Millwork Doctrine §7.2."
+    },
+    {
+      "note_id": "EST-004",
+      "topic": "Height modifier — always H1",
+      "content": "Standard wainscot is 32-42 inches tall. Always H1 (1.0×). No access equipment needed. All work performed standing or kneeling."
+    },
+    {
+      "note_id": "EST-005",
+      "topic": "QT modifiers for inspection/repair tasks",
+      "content": "QT3=1.00, QT4=1.30, QT5=1.50. Apply to inspection, repair, and sanding tasks. Do NOT apply to application rate — application quality is the same at all tiers."
+    },
+    {
+      "note_id": "EST-006",
+      "topic": "Application method impact on rates",
+      "content": "Spray is significantly faster than brush on large flat panel areas (~2-3× for flat panels). The gap narrows for raised panel and beadboard where detail work is required regardless of method."
+    }
+  ],
+
+  "inherited_research_corrections": [
+    {
+      "id": "RC-004",
+      "title": "Do not specify dry times in specs",
+      "source": "SF_DRYWALL_WALL_NC_PRIME research",
+      "impact": "No dry time references in materials or sop_modules — refer to PDS"
+    },
+    {
+      "id": "RC-005",
+      "title": "Material systems are recommendations, not mandates",
+      "source": "SF_TRIM_NC_PAINT research",
+      "impact": "Finish material systems are QT-driven recommendations — contractor has discretion"
+    },
+    {
+      "id": "RC-006",
+      "title": "Advance is waterborne alkyd; Emerald Urethane is acrylic-urethane enamel",
+      "source": "SF_TRIM_NC_PAINT research",
+      "impact": "Correct product classification in materials.json"
+    }
+  ],
+
+  "assumptions": [
+    {
+      "assumption_id": "A-001",
+      "field": "wainscot_spray_production_rate",
+      "value": "Spray finish coat ~150-200 SF/hr for flat_panel at QT3",
+      "source": "Brief Section 13 — derived from trim rates and panel SF adaptation",
+      "doctrine_gap": true,
+      "note": "No doctrine provides wainscot-specific SF production rates. Brief provides estimated ranges derived from trim LF rates. Field validation recommended."
+    },
+    {
+      "assumption_id": "A-002",
+      "field": "wainscot_brush_production_rate",
+      "value": "Brush finish coat ~60-80 SF/hr for flat_panel at QT3",
+      "source": "Brief Section 13 — derived from trim rates",
+      "doctrine_gap": true,
+      "note": "No doctrine provides wainscot-specific brush SF rates. Estimates reasonable given trim brush rates of 80 LF/hr (Millwork Doctrine §7.1)."
+    },
+    {
+      "assumption_id": "A-003",
+      "field": "beadboard_modifier",
+      "value": "1.15× complexity modifier for beadboard wainscot",
+      "source": "Brief Section 13 Q2 (RESOLVED)",
+      "doctrine_gap": true,
+      "note": "Millwork Doctrine §7.2 has standard (1.0×) and complex (1.25×) modifiers. Beadboard at 1.15× is between these two categories — not explicitly in doctrine. Reasonable interpolation."
+    },
+    {
+      "assumption_id": "A-004",
+      "field": "caulk_joint_density",
+      "value": "Internal caulk joints per SF varies by wainscot_type — more joints in raised_panel than flat_panel",
+      "source": "Research estimate based on typical wainscot construction",
+      "doctrine_gap": true,
+      "note": "No doctrine defines internal joint density for wainscot types. Caulk consumption should be estimated per assembly, not per SF."
+    }
+  ],
+
+  "uncertainties": [
+    {
+      "uncertainty_id": "U-001",
+      "topic": "PS_SURFACE_SF.WAINSCOTING key activation status",
+      "description": "Millwork Doctrine §1.1 defines PS_SURFACE_SF.WAINSCOTING as the PaintScope key for wainscot measurement, but the key may not yet be active in the PaintScope catalog. Proposed as new key.",
+      "current_approach": "Proposed as new key in proposed_new_keys. Proceeding with assumption it will be activated.",
+      "resolution_needed": false
+    },
+    {
+      "uncertainty_id": "U-002",
+      "topic": "Sheen/QT default tension",
+      "description": "Brief sets QT3 default and satin default. These are compatible (satin at QT3+ per FFD §4.1). No tension exists — unlike stair riser spec where semi-gloss default conflicted with QT3 default.",
+      "current_approach": "No issue — QT3+satin is a valid combination. No runtime gate rejection.",
+      "resolution_needed": false
+    },
+    {
+      "uncertainty_id": "U-003",
+      "topic": "Raised panel material consumption increase",
+      "description": "Raised panels have more surface area than flat panels due to 3D profile. Actual increase depends on profile depth and complexity. Estimated ~10% more material consumption.",
+      "current_approach": "Flagged for Materials Manager to factor into coverage rates.",
+      "resolution_needed": false
+    }
+  ],
+
+  "doctrine_conflicts": [],
+
+  "research_corrections": [],
+
+  "pending_doctrine_updates": [],
+
+  "confidence_level": "high"
+}

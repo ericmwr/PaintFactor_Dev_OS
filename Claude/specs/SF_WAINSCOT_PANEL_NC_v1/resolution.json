@@ -1,0 +1,372 @@
+{
+  "_meta": {
+    "spec_family_id": "SF_WAINSCOT_PANEL_NC",
+    "generated_by": "registry_resolver",
+    "generated_at": "2026-02-09",
+    "version": "1.0.0",
+    "purpose": "Pre-resolved registry values for downstream agents. Agents consuming this file do NOT need to load raw registry files.",
+    "input_files": ["research.json", "controlled_enums.json", "id_registry.json", "structural_keys.json", "agent_rules.json"]
+  },
+
+  "spec_identity": {
+    "spec_family_id": "SF_WAINSCOT_PANEL_NC",
+    "status": "proposed",
+    "context_prefix": "WNSC",
+    "notes": "New spec. TSK_WNSC_* not in context_prefixes_in_use — no collision. Combined prime+paint spec (primer conditional on substrate_state). Domain: interior, context: NC. SF-based wainscot panel assembly measurement. wainscot_type (flat_panel/raised_panel/beadboard) is a configuration dimension driving complexity modifier."
+  },
+
+  "paintable_items": [
+    {
+      "item_id": "ITM_WAINSCOT_PANEL",
+      "name": "Wainscot panel assembly",
+      "unit_of_measure": "SF",
+      "surface_ref": "wainscot_panel",
+      "status": "proposed",
+      "notes": "Single SF item for entire assembly (panels + internal rails/stiles + base rail + applied molding). Measured as wall area covered by wainscot system below cap rail. Internal framing complexity captured by wainscot_type modifier."
+    }
+  ],
+
+  "task_prefix": {
+    "pattern": "TSK_WNSC_",
+    "context": "WNSC",
+    "collision_check": "No collision. TSK_WNSC_* not in context_prefixes_in_use.",
+    "naming_rule": "TSK_WNSC_{ACTION} — action should be verb-based (FLOOR_PROTECT, WALL_MASK, DUST_CLEAN, SAND_PREP, FILL_FASTENERS, CAULK_JOINTS, CAULK_WALL, SEAL_MDF_EDGES, PRIME_FACES, FINISH_SPRAY, FINISH_BRUSH, SAND_BETWEEN, INSPECT_COAT, FINAL_INSPECT, REMOVE_PROTECTION, VACUUM)"
+  },
+
+  "module_prefix": {
+    "pattern": "MOD_WNSC_",
+    "expected_modules": [
+      { "module_id": "MOD_WNSC_SETUP", "phase": "setup", "description": "Floor protection, wall masking above cap rail (spray only), staging" },
+      { "module_id": "MOD_WNSC_PREP", "phase": "prep", "description": "Dust wipe, sand per substrate/QT, fill fastener holes, caulk panel-to-frame joints, caulk wainscot-to-wall junction, MDF edge seal (bare MDF only)" },
+      { "module_id": "MOD_WNSC_PRIME", "phase": "prime", "description": "Primer coat — conditional on substrate_state = SS_BARE. Primer type driven by substrate (MDF two-step, FJP stain-block, softwood standard, hardwood tannin-block)." },
+      { "module_id": "MOD_WNSC_FINISH_COAT", "phase": "finish", "description": "Finish coat application. Spray: panels first, then frame detail. Brush: panel-to-frame sequence." },
+      { "module_id": "MOD_WNSC_INTERSTAGE", "phase": "interstage", "description": "Between-coat inspect, sand, repair — universal at ALL quality tiers. Rigid block sanding per FFD §15.4.1." },
+      { "module_id": "MOD_WNSC_FINAL_INSPECT", "phase": "finish", "description": "Final quality check. Visual inspection at tier-appropriate distance. Check holidays at panel-to-frame junctions." },
+      { "module_id": "MOD_WNSC_CLEANUP", "phase": "cleanup", "description": "Protection teardown, floor vacuum, tool cleaning." }
+    ],
+    "notes": "Combined prime+paint spec. Prime module conditional on substrate_state = SS_BARE. No internal component sequencing needed — single SF item."
+  },
+
+  "paintscope_keys": [
+    { "paintscope_key": "PS_SURFACE_SF.WAINSCOTING", "input_name": "IN_SF_WAINSCOT", "uom": "SF", "status": "proposed", "description": "Total SF of wainscot panel assembly below cap rail. Defined in Millwork Doctrine §1.1 but not yet active in PaintScope catalog.", "notes": "Primary input for this spec." },
+    { "paintscope_key": "PS_META.EA.ROOMS_TOTAL", "input_name": "IN_EA_ROOMS_TOTAL", "uom": "EA", "status": "existing", "description": "Room count for setup/cleanup operations." },
+    { "paintscope_key": "PS_PROTECT_SF.FLOOR_PERIMETER", "input_name": "IN_SF_PROTECT_FLOOR_PERIMETER", "uom": "SF", "status": "existing", "description": "Floor protection area at wainscot work zone." },
+    { "paintscope_key": "PS_PROTECT_LF.WALL_ADJACENT", "input_name": "IN_LF_WALL_ADJACENT", "uom": "LF", "status": "existing", "description": "Wall masking LF above wainscot cap rail line. Spray only.", "notes": "Conditional on application_method = spray." },
+    { "paintscope_key": "PS_META.SF.FLOOR_VACUUM_AREA", "input_name": "IN_SF_FLOOR_VACUUM_AREA", "uom": "SF", "status": "existing", "description": "Post-work vacuum cleanup area." }
+  ],
+
+  "applicable_enums": {
+    "quality_tier": {
+      "values": ["QT3", "QT4", "QT5"],
+      "default": "QT3",
+      "prohibited": ["QT2"],
+      "notes": "QT2 not applicable — wainscot is prominent millwork per Millwork Doctrine."
+    },
+    "application_method": {
+      "values": ["spray", "brush"],
+      "default": "spray",
+      "prohibited": [],
+      "notes": "Spray preferred for NC production — large flat panels spray efficiently. Brush for occupied spaces, small areas, or touch-up."
+    },
+    "wainscot_type": {
+      "values": ["flat_panel", "raised_panel", "beadboard"],
+      "default": "flat_panel",
+      "prohibited": [],
+      "notes": "Drives production rate complexity modifier: flat_panel=1.0×, raised_panel=1.25×, beadboard=1.15×. Per Millwork Doctrine §7.2."
+    },
+    "sheen": {
+      "values": ["satin", "semi-gloss", "gloss"],
+      "default": "satin",
+      "prohibited": ["eggshell/satin", "semi-gloss+", "eggshell or satin", "semi-gloss or higher"],
+      "notes": "Sheen/QT gate: satin at QT3+, semi-gloss at QT4+, gloss at QT5 only. Satin default for softer wainscot appearance."
+    },
+    "substrate_state": {
+      "input_states": ["SS_BARE", "SS_PRIMED_FACTORY"],
+      "default": "SS_PRIMED_FACTORY",
+      "output_states": {
+        "satin": "SS_PAINTED_SATIN",
+        "semi-gloss": "SS_PAINTED_SEMIGLOSS",
+        "gloss": "SS_PAINTED_GLOSS"
+      },
+      "notes": "SS_BARE requires primer (substrate-driven chemistry). SS_PRIMED_FACTORY skips primer. Standard NC delivery is factory-primed."
+    },
+    "phase": {
+      "values": ["setup", "prep", "prime", "interstage", "finish", "cleanup"],
+      "full_sequence": ["setup", "prep", "prime", "apply", "interstage", "finish", "cleanup"],
+      "prohibited": ["protect", "protection"]
+    },
+    "task_classification": {
+      "values": ["binary", "qt_conditional", "qt_scaled"],
+      "prohibited_key_names": ["task_class"]
+    },
+    "task_type": {
+      "values": ["prep", "prime", "finish", "protect", "inspect", "cleanup", "detail"]
+    },
+    "skill_level": {
+      "values": ["helper", "journeyman", "lead"]
+    },
+    "unit_of_measure": {
+      "values": ["SF", "EA_ROOM", "LF", "FIXED"],
+      "prohibited": ["each", "ROOM", "FIXED_TIME"],
+      "notes": "SF for wainscot panel tasks. EA_ROOM for room-level setup/cleanup. LF for protection masking. FIXED for tool cleanup."
+    },
+    "uom_input": {
+      "values": ["EA", "LF", "SF"]
+    },
+    "severity": {
+      "values": ["critical", "major", "minor"],
+      "prohibited": ["high", "medium", "low", "WARN"]
+    },
+    "consumable_unit": {
+      "values": ["EA", "ROLL", "SHEET", "TUBE"],
+      "prohibited": ["each", "roll", "sheet", "tube"]
+    },
+    "consumable_category": {
+      "values": ["applicator", "protection", "abrasive", "tool", "prep", "fill_material"]
+    },
+    "product_role": {
+      "values": ["primer", "finish", "sealer"],
+      "notes": "Combined prime+paint spec. Sealer for MDF edge sealing (solvent-based)."
+    },
+    "yield_uom": {
+      "values": ["SF", "LF", "EA"]
+    },
+    "protection_level": {
+      "values": ["none", "edge_only", "light_mask"]
+    },
+    "protection_action": {
+      "values": ["setup", "teardown"]
+    },
+    "edge_type": {
+      "values": ["linear", "complex"]
+    },
+    "typical_relationship": {
+      "values": ["same_finish", "different_finish"]
+    },
+    "surface_texture": {
+      "values": ["smooth"],
+      "notes": "Wainscot panel surfaces are smooth."
+    },
+    "modifier_mechanism": {
+      "values": ["baseline", "selective_multiplier", "additional_rounds"],
+      "notes": "QT3=baseline, QT4/QT5=selective_multiplier on qt_scaled tasks, QT5 brush=additional_rounds."
+    },
+    "floor_type": {
+      "values": ["finished", "partial", "subfloor"]
+    }
+  },
+
+  "surface_ids": {
+    "primary_surface": "wainscot_panel",
+    "adjacent_surfaces": ["wall_field", "trim_wainscot_rail", "trim_baseboard", "trim_casing_door", "trim_casing_window"],
+    "proposed_new": ["wainscot_panel"],
+    "existing": ["wall_field", "trim_wainscot_rail", "trim_baseboard", "trim_casing_door", "trim_casing_window"],
+    "notes": "wainscot_panel exists in Surface_Vocabulary_Reference.md Millwork Surfaces section but not yet in id_registry active entries. All adjacent surface IDs are existing."
+  },
+
+  "zone_ids": [
+    { "zone_id": "floor_perimeter", "status": "existing", "retired_alias_warning": null, "notes": "Drop cloth runners at base of wainscot work area." },
+    { "zone_id": "wall_adjacent", "status": "existing", "retired_alias_warning": null, "notes": "Paper masking above cap rail line — spray only." }
+  ],
+
+  "material_system_prefix": {
+    "pattern": "SYS_{DESCRIPTION}",
+    "existing_systems_to_reuse": [
+      { "system_id": "SYS_FF_STANDARD_ACRYLIC", "name": "Standard Acrylic Trim Enamel", "quality_tiers": ["QT3"], "status": "existing" },
+      { "system_id": "SYS_FF_MODIFIED_URETHANE", "name": "Modified Urethane Trim Enamel", "quality_tiers": ["QT4"], "status": "existing" },
+      { "system_id": "SYS_FF_PREMIUM", "name": "Premium Urethane Trim Enamel", "quality_tiers": ["QT5"], "status": "existing" }
+    ],
+    "primer_systems": [
+      { "system_id": "SYS_PRIMER_MDF_SHELLAC", "name": "Solvent-based MDF edge sealer", "applies_when": { "substrate": "mdf", "substrate_state": "SS_BARE", "surface": "cut_edges" }, "status": "existing", "notes": "Reuse from SF_STAIR_RISER_NC. Step 1 of two-step MDF prime." },
+      { "system_id": "SYS_PRIMER_MDF_LATEX", "name": "High-build latex face primer for MDF", "applies_when": { "substrate": "mdf", "substrate_state": "SS_BARE", "surface": "faces" }, "status": "existing", "notes": "Reuse from SF_STAIR_RISER_NC. Step 2 of two-step MDF prime." },
+      { "system_id": "SYS_PRIMER_POPLAR_STAINBLOCK", "name": "Stain-blocking primer for FJP/poplar", "applies_when": { "substrate": "fjp", "substrate_state": "SS_BARE" }, "status": "existing", "notes": "Reuse from SF_STAIR_RISER_NC. MANDATORY for bare FJP." },
+      { "system_id": "SYS_PRIMER_HARDWOOD_TANNINBLOCK", "name": "Tannin-blocking primer for hardwood", "applies_when": { "substrate": "hardwood", "substrate_state": "SS_BARE" }, "status": "existing", "notes": "Reuse from SF_STAIR_RISER_NC." },
+      { "system_id": "SYS_PRIMER_WOOD_ACRYLIC", "name": "Acrylic wood primer for softwood", "applies_when": { "substrate": "softwood", "substrate_state": "SS_BARE" }, "status": "existing", "notes": "Reuse from SF_WINDOW_INT_NC. Standard acrylic primer-sealer for bare softwood wainscot. Brief proposed SYS_PRIMER_WOOD_STANDARD_WAINSCOT but SYS_PRIMER_WOOD_ACRYLIC covers the same product category — REUSE OVER CREATION." }
+    ],
+    "notes": "All material systems reuse existing IDs. 3 finish systems (SYS_FF_*) + 5 primer systems (SYS_PRIMER_*). No new system IDs needed. Material systems are recommendations — contractor has discretion."
+  },
+
+  "consumable_prefix": {
+    "canonical_prefix": "CON_",
+    "prohibited_prefix": "CONS_",
+    "reusable_consumables": [
+      "CON_SANDPAPER_150",
+      "CON_SANDPAPER_220",
+      "CON_SANDPAPER_320",
+      "CON_SANDING_BLOCK_FINE",
+      "CON_BRUSH_ANGLED_SASH",
+      "CON_TACK_CLOTH",
+      "CON_MASKING_TAPE_BLUE",
+      "CON_MASKING_PAPER_12IN",
+      "CON_DROP_CLOTH_CANVAS",
+      "CON_CAULK_PAINTABLE",
+      "CON_SPACKLE_LIGHTWEIGHT",
+      "CON_WOOD_FILLER",
+      "CON_SPRAY_TIP_310"
+    ],
+    "proposed_new_consumables": []
+  },
+
+  "round_configurations": {
+    "existing_patterns": [
+      "ROUND_SINGLE_COAT",
+      "ROUND_TWO_COAT",
+      "ROUND_WIN_PRIME_2FINISH",
+      "ROUND_WIN_2FINISH",
+      "ROUND_WIN_3FINISH",
+      "ROUND_STRS_PRIME_2FINISH",
+      "ROUND_STRS_2FINISH",
+      "ROUND_STRS_3FINISH"
+    ],
+    "proposed_for_this_spec": [
+      { "round_id": "ROUND_WNSC_PRIME_2FINISH", "description": "Primer + 2 finish coats (SS_BARE, QT3/QT4)", "status": "proposed" },
+      { "round_id": "ROUND_WNSC_2FINISH", "description": "2 finish coats, no primer (SS_PRIMED_FACTORY, QT3/QT4)", "status": "proposed" },
+      { "round_id": "ROUND_WNSC_3FINISH", "description": "3 finish coats (QT5 brush per FFD §15.10.3)", "status": "proposed" }
+    ],
+    "naming_pattern": "ROUND_{CONTEXT}_{DESCRIPTION}"
+  },
+
+  "coverage_profiles": {
+    "existing_profiles": ["COV_FRAME_PRIMER", "COV_FRAME_PRIMER_BARE", "COV_FRAME_FINISH", "COV_TRIM_FINISH", "COV_WIN_PRIMER", "COV_WIN_FINISH", "COV_STRS_PRIMER", "COV_STRS_FINISH"],
+    "proposed_for_this_spec": [
+      { "profile_id": "COV_WNSC_PRIMER", "description": "Wainscot panel primer coverage rate", "status": "proposed" },
+      { "profile_id": "COV_WNSC_FINISH", "description": "Wainscot panel finish coat coverage rate", "status": "proposed" }
+    ],
+    "naming_pattern": "COV_{CONTEXT}_{PRODUCT_ROLE}"
+  },
+
+  "cross_spec_coordination": {
+    "xspec_flags_consumed": [],
+    "xspec_flags_set": [],
+    "comp_modifiers_set": [],
+    "comp_modifiers_affected_by": [],
+    "notes": "No cross-spec flags. Wainscot panel work pairs with SF_TRIM_NC_PAINT for shared finish group (cap rail, baseboard) and SF_DRYWALL_WALL_NC_FINISH for wall above."
+  },
+
+  "structural_reminders": {
+    "materials_json": {
+      "required_keys": ["spec_family_id", "version", "material_systems", "consumables"],
+      "system_item_keys": ["system_id", "name", "quality_tier or applies_when"],
+      "consumable_item_keys": ["consumable_id", "name", "category"],
+      "prohibited": { "consumable_usage_models": "use 'consumables'" }
+    },
+    "sop_modules_json": {
+      "required_keys": ["spec_family_id", "version", "sop_modules"],
+      "module_keys": ["module_id", "name", "phase", "tasks"],
+      "task_required_keys": ["task_id", "name", "task_classification", "skill_level"],
+      "task_prohibited_keys": ["task_class", "rate_per_hour", "coverage_sf_per_gallon"]
+    },
+    "production_json": {
+      "required_keys": ["spec_family_id", "version", "task_production_rates"],
+      "rate_item_keys": ["task_id", "unit_of_measure", "rate_per_hour or rates_by_tier or fixed_time_minutes"],
+      "prohibited": { "tasks": "use sop_modules.json", "sop_modules": "use sop_modules.json" }
+    },
+    "qa_report_json": {
+      "required_keys": ["spec_family_id", "version", "overall_result"],
+      "issue_keys": ["issue_id", "severity", "area", "file", "description", "suggested_fix"]
+    }
+  },
+
+  "cross_file_threading": [
+    "RULE 1: Every TSK_ in sop_modules.json MUST have a matching rate in production.json",
+    "RULE 2: Every ITM_ in spec.json MUST appear in at least one variant",
+    "RULE 3: Every SYS_ quality_tier MUST match spec.json configuration_dimensions",
+    "RULE 4: Every IN_ input in spec.json SHOULD be consumed by sop_modules or production",
+    "RULE 5: Every PS_ key in production.json MUST match spec.json required_paintscope_inputs",
+    "RULE 6: Every zone_id in spec.json MUST match sop_modules.json protection_metadata.zones",
+    "RULE 7: Module phase order: setup > prep > prime > apply > interstage > finish > cleanup",
+    "RULE 8: UOM for a task MUST match between sop_modules.json and production.json",
+    "RULE 9: TSK_ prefix from resolution.json MUST be used in sop_modules and production",
+    "RULE 10: ITM_ IDs marked existing in resolution.json MUST use exact registered ID in spec.json",
+    "RULE 11: Downstream agents MUST use only enum values in resolution.json applicable_enums"
+  ],
+
+  "migration_warnings": [],
+
+  "registry_additions_proposed": [
+    {
+      "registry": "id_registry.json",
+      "section": "SF_",
+      "proposed_id": "SF_WAINSCOT_PANEL_NC",
+      "name": "New Construction Wainscot Panel System Painting",
+      "justification": "New spec. Combined prime+paint for wainscot panel assembly (SF)."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "ITM_",
+      "proposed_id": "ITM_WAINSCOT_PANEL",
+      "name": "Wainscot panel assembly",
+      "justification": "New paintable item. SF-based. Covers panels + internal rails/stiles + base rail."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "TSK_",
+      "proposed_id": "TSK_WNSC_*",
+      "name": "Wainscot panel painting tasks",
+      "justification": "New context prefix WNSC. No collision."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "MOD_",
+      "proposed_id": "MOD_WNSC_*",
+      "name": "Wainscot panel SOP modules",
+      "justification": "7 modules: SETUP, PREP, PRIME, FINISH_COAT, INTERSTAGE, FINAL_INSPECT, CLEANUP."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "ROUND_",
+      "proposed_id": "ROUND_WNSC_PRIME_2FINISH",
+      "name": "Primer + 2 finish coat sequence",
+      "justification": "For SS_BARE substrates at QT3/QT4."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "ROUND_",
+      "proposed_id": "ROUND_WNSC_2FINISH",
+      "name": "2 finish coat sequence (no primer)",
+      "justification": "For SS_PRIMED_FACTORY at QT3/QT4."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "ROUND_",
+      "proposed_id": "ROUND_WNSC_3FINISH",
+      "name": "3 finish coat sequence (QT5 brush)",
+      "justification": "Per FFD §15.10.3."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "COV_",
+      "proposed_id": "COV_WNSC_PRIMER",
+      "name": "Wainscot panel primer coverage",
+      "justification": "New coverage profile for wainscot SF."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "COV_",
+      "proposed_id": "COV_WNSC_FINISH",
+      "name": "Wainscot panel finish coverage",
+      "justification": "New coverage profile for wainscot SF."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "PS_",
+      "proposed_id": "PS_SURFACE_SF.WAINSCOTING",
+      "name": "Wainscot panel assembly SF",
+      "justification": "Defined in Millwork Doctrine §1.1 but not yet in PaintScope catalog active entries."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "IN_",
+      "proposed_id": "IN_SF_WAINSCOT",
+      "name": "Wainscot panel SF input",
+      "justification": "New input ID for primary surface measurement."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "surface_ids",
+      "proposed_id": "wainscot_panel",
+      "name": "Wainscot panel surface",
+      "justification": "Exists in Surface_Vocabulary_Reference.md Millwork Surfaces section but not in id_registry active entries. Needs activation."
+    }
+  ]
+}

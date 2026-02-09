@@ -1,0 +1,313 @@
+{
+  "research_metadata": {
+    "spec_family_id": "SF_STAIR_RAILING_NC",
+    "research_mode": "lightweight",
+    "brief_source": "specs/_backlog/SF_STAIR_RAILING_NC/brief.md",
+    "doctrine_loaded": [
+      "docs/Doctrine/Stairway_Systems_Doctrine.md",
+      "docs/Doctrine/PaintScope_Stairwell_Geometry_System.md",
+      "docs/Doctrine/Fine_Finish_Doctrine.md",
+      "docs/Doctrine/Millwork_NC_Paint_Doctrine.md",
+      "docs/Doctrine/Quality_Tiers_and_Surface_Condition.md",
+      "docs/Doctrine/Protection_and_Masking_Doctrine.md",
+      "docs/Doctrine/Modifier_Registry.md",
+      "docs/Doctrine/Spec_Completeness_Doctrine.md",
+      "docs/Reference/Protection_Zones_Reference.md",
+      "docs/Reference/Surface_Vocabulary_Reference.md",
+      "docs/Reference/Site_Condition_Vocabulary_Reference.md",
+      "docs/Reference/Substrate_State_Reference.md",
+      "docs/PaintScope/PaintScope_Quantity_Key_Catalog.md",
+      "docs/PaintScope/PaintScope_Asset_Catalog.md",
+      "docs/PaintScope/Spec_Input_to_PaintScope_Key_Mapping.md"
+    ],
+    "sibling_specs_reviewed": [
+      "specs/SF_STAIR_RISER_NC_v1/research.json",
+      "specs/SF_STAIR_RISER_NC_v1/spec.json",
+      "specs/SF_WINDOW_INT_NC_v1/spec.json",
+      "specs/SF_TRIM_NC_PAINT_v1/spec.json"
+    ],
+    "researcher": "Spec Researcher Agent",
+    "date": "2026-02-08",
+    "status": "draft",
+    "review_required": true
+  },
+
+  "protection_zones_analysis": {
+    "spec_category": "stair_component",
+    "application_method_sensitivity": true,
+    "zones": [
+      {
+        "zone_id": "stair_tread_covers",
+        "condition": "always (all methods)",
+        "protection_level": "heavy_cover",
+        "paintscope_key": "PS_PROTECT_SF.ASSET.STAIR_TREADS",
+        "upgrade_scenario": null,
+        "notes": "Mandatory tread protection throughout all railing work. If riser spec was completed first, tread protection should already be in place — verify rather than re-install. Ram Board Stair Armor or equivalent non-slip protection. Standard plastic sheeting is EXTREME FALL HAZARD per Stairway_Systems_Doctrine Section 6.2."
+      },
+      {
+        "zone_id": "floor_perimeter",
+        "condition": "always (when floor_type = finished or partial)",
+        "protection_level": "edge_only",
+        "paintscope_key": "PS_PROTECT_SF.FLOOR_PERIMETER",
+        "upgrade_scenario": null,
+        "notes": "Drop cloth runners at landing areas to protect finished floors."
+      },
+      {
+        "zone_id": "wall_adjacent",
+        "condition": { "application_method": "spray" },
+        "protection_level": "light_mask",
+        "paintscope_key": "PS_PROTECT_LF.WALL_ADJACENT",
+        "upgrade_scenario": "Upgrades to heavy_mask when walls are SS_PAINTED_*",
+        "notes": "Wall masking for overspray containment when spraying balusters. Tape & Drape pre-taped plastic creates containment zones per doctrine 6.3. HVLP preferred over airless for in-place baluster work."
+      }
+    ],
+    "zone_reference": "Protection_Zones_Reference.md v2.1 + stair_tread_covers zone (proposed in SF_STAIR_RISER_NC)",
+    "method_escalation": "brush < spray",
+    "conditional_protection_note": "Tread protection is UNCONDITIONAL. Floor protection conditional on floor_type. Wall masking conditional on spray method. Spray containment for balusters requires additional materials: cardboard shields, Tape & Drape, HVLP spray equipment."
+  },
+
+  "adjacency_analysis": {
+    "primary_surface": "stair_baluster, stair_newel, stair_handrail, stair_base_rail",
+    "adjacent_surfaces": [
+      {
+        "surface_id": "stair_handrail",
+        "edge_type": "complex",
+        "typical_relationship": "same_finish",
+        "edge_work_required": true,
+        "notes": "Baluster-to-handrail junction is the most labor-intensive edge in the railing system. In two-tone systems, relationship is different_finish — paint balusters first (light), handrail last (dark) to cover overlap at junction."
+      },
+      {
+        "surface_id": "stair_tread",
+        "edge_type": "complex",
+        "typical_relationship": "different_finish",
+        "edge_work_required": false,
+        "notes": "Balusters penetrate treads. Treads may be stain-grade or floor-rated coating. Not painted in this spec. Tread protection must be in place."
+      },
+      {
+        "surface_id": "wall_field",
+        "edge_type": "complex",
+        "typical_relationship": "different_finish",
+        "edge_work_required": false,
+        "notes": "Handrail brackets attach through wall. At QT4+, brackets are removed and handrails finished horizontally. Wall-to-handrail edge occurs at bracket attachment points."
+      },
+      {
+        "surface_id": "trim_baseboard",
+        "edge_type": "linear",
+        "typical_relationship": "same_finish",
+        "edge_work_required": false,
+        "notes": "Newel base meets baseboard at landing level. Typically same color/sheen. Baseboard handled by SF_TRIM_NC_PAINT."
+      },
+      {
+        "surface_id": "stair_riser",
+        "edge_type": "complex",
+        "typical_relationship": "same_finish",
+        "edge_work_required": false,
+        "notes": "Risers are below balusters. If risers already painted (SF_STAIR_RISER_NC completed first), light masking needed at riser-to-baluster base junction."
+      }
+    ],
+    "surface_reference": "Surface_Vocabulary_Reference.md v1.0 — stair railing surfaces are NEW, not yet in vocabulary",
+    "key_finding": "Railing system painting is defined by JUNCTION COMPLEXITY, not surface area. The baluster-to-handrail junction is the dominant cost driver — taping 62 balusters takes ~2 hours vs. faster artist-brush cut-in technique. Two-tone systems amplify junction cost. Canonical painting sequence (balusters → newels → handrails) minimizes junction work in two-tone scenarios."
+  },
+
+  "site_condition_analysis": {
+    "affected_conditions": [
+      {
+        "condition_id": "floor_type",
+        "vocabulary_ref": "Site_Condition_Vocabulary_Reference.md § floor_type",
+        "affected_task_types": ["protect"],
+        "include_values": ["finished", "partial"],
+        "exclude_values": ["subfloor"],
+        "modifier_notes": null,
+        "notes": "Landing floor protection required only when finished floors present."
+      },
+      {
+        "condition_id": "occupancy_state",
+        "vocabulary_ref": "Site_Condition_Vocabulary_Reference.md § occupancy_state",
+        "affected_task_types": ["protect"],
+        "include_values": ["occupied_crew_handles", "occupied_sensitive"],
+        "exclude_values": ["vacant"],
+        "modifier_notes": "occupied_sensitive triggers OCC_SENSITIVE modifier 1.30x on protection tasks per Modifier_Registry",
+        "notes": "Additional protection when occupied. Rare in NC context."
+      },
+      {
+        "condition_id": "lead_status",
+        "vocabulary_ref": "Site_Condition_Vocabulary_Reference.md § lead_status",
+        "affected_task_types": ["prep", "prime"],
+        "include_values": ["tested_positive", "unknown_pre1978"],
+        "exclude_values": ["tested_negative", "not_applicable"],
+        "modifier_notes": "tested_positive triggers LEAD_POSITIVE modifier 2.00x per Modifier_Registry. Rare in NC.",
+        "notes": "Railings, balusters, and newels are among the components most likely to carry lead paint in pre-1978 homes per doctrine 13.2. Extremely rare in NC context."
+      }
+    ]
+  },
+
+  "state_analysis": {
+    "input_states": [
+      {
+        "state_id": "SS_BARE",
+        "description": "Uncoated wood or bare iron railing components requiring full primer",
+        "prep_modifier": 1.0,
+        "primer_required": true,
+        "notes": "Wood: standard millwork primer per substrate. Iron: DTM acrylic primer (SSPC-SP 1 solvent cleaning mandatory before any primer)."
+      },
+      {
+        "state_id": "SS_PRIMED_FACTORY",
+        "description": "Factory-primed wood components — skip primer, lighter prep",
+        "prep_modifier": 1.0,
+        "primer_required": false,
+        "notes": "Standard NC — wood components arrive pre-primed from mill. Scuff sand for adhesion."
+      },
+      {
+        "state_id": "SS_POWDER_COATED",
+        "description": "Iron balusters with factory powder coat — bonding primer required after scuff-sand",
+        "prep_modifier": 1.0,
+        "primer_required": true,
+        "notes": "Applies to iron balusters when railing_type=iron_and_wood. Scuff-sand with 180-220 grit. Bonding primer only — self-etching primers do NOT work on powder coat per doctrine 4.4."
+      }
+    ],
+    "output_state": {
+      "state_id": "SS_PAINTED",
+      "varies_by": "sheen",
+      "output_sub_states": ["SS_PAINTED_SATIN", "SS_PAINTED_SEMIGLOSS", "SS_PAINTED_GLOSS"]
+    }
+  },
+
+  "relevant_findings": [
+    {
+      "finding_id": "RF-001",
+      "topic": "Baluster labor density",
+      "finding": "Balusters have the highest per-unit labor density of any stairway component. Square balusters: 3-5 min/EA per coat. Turned/ornate: 5-10 min/EA per coat. A system with 62 balusters at 3 coats = 930-1860 minutes of baluster painting alone.",
+      "source": "Stairway_Systems_Doctrine Section 9.2",
+      "impact": "Baluster count is the primary cost driver. Production rate varies 2x between square and turned profiles."
+    },
+    {
+      "finding_id": "RF-002",
+      "topic": "Two-person baluster technique",
+      "finding": "One painter works each side of the baluster simultaneously, dramatically increasing throughput on large baluster counts.",
+      "source": "Stairway_Systems_Doctrine Section 12.1",
+      "impact": "Conditional technique for large baluster counts. Not modeled as separate task — captured in production rate variability."
+    },
+    {
+      "finding_id": "RF-003",
+      "topic": "Artist brush vs taping at junctions",
+      "finding": "Taping 62 balusters at the baluster-rail junction takes ~2 hours. Artist brush cut-in is faster and produces cleaner results. German round trim brushes (1.25 inch) are purpose-made for turned baluster profiles.",
+      "source": "Stairway_Systems_Doctrine Section 12.1",
+      "impact": "Technique selection affects time but not task structure. Both approaches accomplish the same task."
+    },
+    {
+      "finding_id": "RF-004",
+      "topic": "Handrail underside technique",
+      "finding": "On two-tone systems, coat the entire handrail underside in the baluster color to eliminate precise cutting-in at the junction — the underside is rarely inspected.",
+      "source": "Stairway_Systems_Doctrine Section 12.1",
+      "impact": "Reduces junction labor in two-tone scenarios. Finish group decision, not spec-level config."
+    },
+    {
+      "finding_id": "RF-005",
+      "topic": "Iron baluster solvent cleaning",
+      "finding": "Per SSPC-SP 1, ALL iron/steel balusters must receive solvent cleaning before any primer. Oils and drawing compounds from manufacturing cause fish-eye defects and delamination.",
+      "source": "Stairway_Systems_Doctrine Section 4.4",
+      "impact": "Mandatory prep step for iron balusters. Non-negotiable regardless of quality tier."
+    },
+    {
+      "finding_id": "RF-006",
+      "topic": "Handrail bracket removal",
+      "finding": "Remove handrails and brackets, label and bag each piece, paint behind attachment points, finish handrails horizontally to reduce runs/sags, then reinstall.",
+      "source": "Stairway_Systems_Doctrine Section 12.1",
+      "impact": "QT4+ technique. Requires dedicated prep and reinstall tasks. At QT3, brackets are masked in place."
+    },
+    {
+      "finding_id": "RF-007",
+      "topic": "HVLP vs airless for balusters",
+      "finding": "HVLP sprayers produce significantly less overspray than airless and are preferred for in-place baluster work. When using airless: fine-finish tips (Graco FFLP 108, 210/310 series, 4-6 inch fan).",
+      "source": "Stairway_Systems_Doctrine Section 6.3",
+      "impact": "Spray method selection affects containment requirements and material waste."
+    },
+    {
+      "finding_id": "RF-008",
+      "topic": "Handrail poly topcoat",
+      "finding": "Some professionals apply a polyurethane topcoat over paint on handrails for additional hand-oil resistance.",
+      "source": "Stairway_Systems_Doctrine Section 8.1",
+      "impact": "Optional QT5 upgrade. Additional clear coat on handrails only."
+    },
+    {
+      "finding_id": "RF-009",
+      "topic": "Flow additives for detail work",
+      "finding": "Adding extender (Floetrol for latex, Penetrol for alkyd) improves leveling and extends working time on detail-intensive baluster work. Prevents roping on complex profiles.",
+      "source": "Stairway_Systems_Doctrine Section 8.4",
+      "impact": "Material recommendation for brush application on turned balusters."
+    }
+  ],
+
+  "condition_drivers": [
+    { "driver": "railing_type", "effect": "all_wood vs iron_and_wood drives primer chemistry for balusters" },
+    { "driver": "baluster_profile", "effect": "square vs turned drives production rate (2x difference)" },
+    { "driver": "substrate_state", "effect": "SS_BARE/SS_POWDER_COATED requires primer; SS_PRIMED_FACTORY skips" },
+    { "driver": "quality_tier", "effect": "QT3=spot sand, QT4=full sand + bracket removal, QT5=thorough sand + feel test + optional poly" },
+    { "driver": "application_method", "effect": "brush vs spray drives containment requirements and production rates" },
+    { "driver": "baluster_count", "effect": "High count (62+) may justify spray + two-person technique" }
+  ],
+
+  "quality_differences": [
+    { "tier": "QT3", "prep": "Fill obvious holes, spot sand nibs", "inspect": "Quick scan 6ft", "finish": "Brush acceptable, 2 coats", "extras": "Brackets masked in place" },
+    { "tier": "QT4", "prep": "Fill all visible holes, full 220 sand", "inspect": "Systematic 3ft review", "finish": "Spray preferred, 2 coats", "extras": "Bracket removal, label and bag" },
+    { "tier": "QT5", "prep": "Fill all holes, thorough 220-320 sand", "inspect": "Critical arm's length + feel test on handrails", "finish": "Spray required for glass-smooth, 2-3 coats", "extras": "Bracket removal, optional poly topcoat on handrails" }
+  ],
+
+  "failure_modes": [
+    { "mode": "Fish-eye on iron balusters", "cause": "Failure to solvent-clean before priming", "prevention": "SSPC-SP 1 mandatory first step" },
+    { "mode": "Drip/sag on handrails", "cause": "Excessive film build, high humidity", "prevention": "Thin coats, flow additive, proper dry time" },
+    { "mode": "Dry-spray texture on balusters", "cause": "Spray tip too far, insufficient material flow", "prevention": "6-8 inch distance, fine-finish tips, bottom-to-top for primer" },
+    { "mode": "Roping on turned profiles", "cause": "Fast-drying waterborne product with 2-minute working window", "prevention": "Flow additive (Floetrol/Penetrol), German round trim brushes" },
+    { "mode": "Tread damage", "cause": "Drips on unprotected treads during railing work", "prevention": "Tread protection mandatory throughout" },
+    { "mode": "Paint delamination on powder coat", "cause": "Using self-etching primer instead of bonding primer", "prevention": "Scuff-sand 180-220 grit + bonding primer only" }
+  ],
+
+  "notes_for_materials_manager": [
+    "Reuse existing SYS_FF_ finish systems (QT3/QT4/QT5) — same as riser/trim/window specs",
+    "Add SYS_PRIMER_IRON_DTM for bare iron balusters — new substrate-driven primer",
+    "Add SYS_PRIMER_POWDER_COAT_BOND for powder-coated iron — bonding primer after scuff-sand",
+    "Reuse SYS_PRIMER_* wood primer systems from riser spec where applicable",
+    "New consumable: CON_BRUSH_ROUND_GERMAN_1_25IN for turned baluster profiles",
+    "New consumable: CON_SCOTCH_BRITE_PAD for iron baluster scuff-sand",
+    "New consumable: CON_SOLVENT_CLEANER for SSPC-SP 1 iron baluster cleaning",
+    "Reuse CON_STAIR_ARMOR, CON_MASKING_TAPE_SAFE_RELEASE from riser spec",
+    "Optional: CON_FLOW_ADDITIVE for brush work on complex profiles"
+  ],
+
+  "notes_for_sop_librarian": [
+    "Context prefix: STRL — TSK_STRL_*, MOD_STRL_*",
+    "Canonical sequence: balusters (#5) → newels (#6) → handrails (#7)",
+    "Iron baluster solvent cleaning is FIRST prep step (before any sanding)",
+    "Handrail bracket removal at QT4+ — separate prep/reinstall tasks",
+    "Spray containment setup is a protection task (spray method only)",
+    "Tread protection VERIFY task (not install — may already be in place from riser spec)",
+    "Optional poly topcoat task on handrails at QT5",
+    "Feel test on handrails at QT5 final inspection",
+    "Base rail tasks are CONDITIONAL on system having base rail"
+  ],
+
+  "notes_for_estimation_engineer": [
+    "Baluster rates from doctrine Section 9.2: square 3-5 min/EA, turned 5-10 min/EA per coat",
+    "Use 4 min/EA for square (midpoint), 7 min/EA for turned (midpoint) as baseline brush rates",
+    "Newel rates: ~10-15 min/EA per coat (larger, more detail than balusters)",
+    "Handrail rates: comparable to trim LF rates but slower due to 4-surface coverage (top, 2 sides, underside)",
+    "H1 for all components — no height modifier",
+    "baluster_profile modifier: square=1.0, turned=1.75 (ratio of 7/4 midpoint times)",
+    "Spray rates: 2-3x faster than brush for balusters but containment setup offsets some of the gain",
+    "No access staging overhead modeled per-task — project-level factor",
+    "Taping approach: ~2 min/EA for baluster junction taping (incorporated into brush finish rate)"
+  ],
+
+  "assumptions": [
+    { "id": "A-001", "assumption": "Baluster production rates from Stairway_Systems_Doctrine Section 9.2 are per-coat brush rates", "risk": "low" },
+    { "id": "A-002", "assumption": "Newel post production rates derived from baluster rates scaled by relative size (2-3x larger)", "risk": "medium" },
+    { "id": "A-003", "assumption": "Handrail rates comparable to trim LF but 25% slower due to 4-surface access", "risk": "medium" },
+    { "id": "A-004", "assumption": "Base rail rates same as handrail rates (similar LF-based linear surface)", "risk": "low" },
+    { "id": "A-005", "assumption": "Iron baluster solvent cleaning adds ~1 min/EA to prep", "risk": "low" }
+  ],
+
+  "uncertainties": [
+    { "id": "U-001", "description": "Default QT3 + default semi-gloss creates sheen/QT gate tension (same as riser spec)", "impact": "Runtime gate handles correctly", "resolution": "Documented — effective default is QT3+satin or QT4+semi-gloss" },
+    { "id": "U-002", "description": "Spray containment setup time for balusters is highly variable (depends on stairwell configuration and baluster count)", "impact": "Containment time modeled as fixed per-system, not per-baluster", "resolution": "Acceptable approximation for initial spec" }
+  ]
+}

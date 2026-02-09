@@ -1,6 +1,6 @@
 # Spec Backlog Catalog
 
-**Last Updated:** 2026-02-04  
+**Last Updated:** 2026-02-09
 **Reference:** NC_Interior_Spec_Catalog.md  
 
 ---
@@ -25,21 +25,21 @@
 | 6 | SF_DRYWALL_WALL_NC_PRIME | ✅ authored | generated | — | v1.0.0 complete. Pipeline complete 2026-02-04. All review corrections applied. |
 | 7 | SF_DRYWALL_WALL_NC_FINISH | ✅ authored | generated | — | v0.1.0 draft. Pipeline complete 2026-02-04. Critic PASS WITH WARNINGS (DC-001 roller nap pending). |
 | 8 | SF_TRIM_NC_PRIME | ✅ authored | generated | — | v0.1.0 draft complete 2026-02-04. Full SpecFactory pipeline. Critic PASS_WITH_WARNINGS. |
-| 9 | SF_TRIM_NC_PAINT | ✅ authored (old) | queued | redo in new format | Finish coats only. v0.1.0 exists; needs profile_type expansion + redo in new format. Priming scope moved to SF_TRIM_NC_PRIME. |
+| 9 | SF_TRIM_NC_PAINT | ✅ authored | generated | — | v0.1.0 draft complete 2026-02-08. Full SpecFactory pipeline. |
 
 ## Phase 2 — Extended Coverage (P2)
 
 | # | Spec Family ID | Brief | Status | Blocker | Notes |
 |---|----------------|-------|--------|---------|-------|
-| 10 | SF_WINDOW_INT_NC | ❌ needed | queued | needs brief + doctrine review | Window Systems Doctrine exists |
-| 11 | SF_STAIR_RISER_NC | ❌ needed | queued | needs brief + doctrine | No stair doctrine yet |
-| 12 | SF_STAIR_RAILING_NC | ❌ needed | queued | needs brief + doctrine | No stair doctrine yet |
+| 10 | SF_WINDOW_INT_NC | ✅ authored | generated | — | v0.1.0 draft complete 2026-02-08. Combined prime+paint, EA-based with Size Bucket Method. |
+| 11 | SF_STAIR_RISER_NC | ✅ authored | generated | — | v0.1.0 draft complete 2026-02-08. Dual UOM (EA risers, LF stringers). Combined prime+paint. |
+| 12 | SF_STAIR_RAILING_NC | ✅ authored | generated | — | v0.1.0 draft complete 2026-02-08. 4 paintable items, iron/wood handling, 43 tasks, 7 modules. |
 
 ## Phase 3 — Custom/Architectural (P3)
 
 | # | Spec Family ID | Brief | Status | Blocker | Notes |
 |---|----------------|-------|--------|---------|-------|
-| 13 | SF_WAINSCOT_PANEL_NC | ❌ needed | queued | needs brief | Millwork Doctrine covers |
+| 13 | SF_WAINSCOT_PANEL_NC | ✅ authored | generated | — | v0.1.0 draft complete 2026-02-09. Combined prime+paint, SF-based. wainscot_type complexity modifier. 25 tasks, 7 modules. |
 | 14 | SF_WOOD_WALL_NC | ❌ needed | queued | needs brief | Fine Finish Doctrine |
 | 15 | SF_WOOD_CEILING_NC | ❌ needed | queued | needs brief | Fine Finish + overhead |
 | 16 | SF_ARCH_ELEMENT_NC | ❌ needed | queued | needs brief | Beams, columns, mantels |
