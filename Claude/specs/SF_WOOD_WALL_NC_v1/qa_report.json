@@ -1,0 +1,239 @@
+{
+  "spec_family_id": "SF_WOOD_WALL_NC",
+  "version": "0.1.0",
+  "generated_by": "Critic Agent",
+  "generated_at": "2026-02-09",
+
+  "overall_result": "pass_with_warnings",
+  "summary": "SF_WOOD_WALL_NC_v1 passes QA with 5 minor warnings and 0 blockers. All 5 pipeline files reviewed (spec.json pending assembly). Cross-file threading validated: 25 TSK_WDWL_* IDs in sop_modules match 25 rates in production. Single SF-based paintable item (ITM_WOOD_WALL_PANEL). Combined prime+paint with primer conditional on substrate_state. 5 substrate-driven primer systems + 3 QT-driven finish systems, all reusing existing SYS_ IDs. Wall style complexity modifier (flat_panel/shiplap/tongue_and_groove/library_panel) correctly modeled with effective_rate = base_rate / modifier. Height varies per room via PS_META.HEIGHT_BAND — key distinction from SF_WAINSCOT_PANEL_NC (always H1). Ceiling_line zone replaces wall_adjacent zone (no cap rail). Sheen/QT gate compatible (QT3+satin default — no tension). Human Feedback Gate has NOT occurred — expected for v0.1.0 draft.",
+
+  "files_reviewed": [
+    "research.json",
+    "resolution.json",
+    "materials.json",
+    "sop_modules.json",
+    "production.json"
+  ],
+
+  "cross_file_threading_check": {
+    "rule_1_tsk_sop_to_production": {
+      "status": "pass",
+      "details": "All 25 TSK_WDWL_* task IDs in sop_modules.json have matching entries in production.json. Complete list verified: FLOOR_PROTECT, CEILING_MASK, DUST_CLEAN, SAND_PREP, FILL_FASTENERS, SAND_FILL, CAULK_JOINTS, CAULK_PERIMETER, SEAL_MDF_EDGES, PRIME_FACES, SAND_PRIMER, SPRAY_FINISH, BRUSH_FINISH, CLEAN_AREA, INSPECT_COAT, SAND_BETWEEN, PATCH_DEFECTS, SPOT_COAT, TACK_CLEAN, FINAL_INSPECT, TOUCHUP, REMOVE_CEILING_MASK, REMOVE_FLOOR_PROTECT, VACUUM, TOOL_CLEANUP."
+    },
+    "rule_2_itm_in_variants": {
+      "status": "pending",
+      "details": "ITM_WOOD_WALL_PANEL proposed in resolution.json. Verify in spec.json when assembled."
+    },
+    "rule_3_sys_qt_match": {
+      "status": "pass",
+      "details": "SYS_FF_STANDARD_ACRYLIC quality_tier=[QT3], SYS_FF_MODIFIED_URETHANE quality_tier=[QT4], SYS_FF_PREMIUM quality_tier=[QT5] in materials.json match resolution.json applicable_enums.quality_tier values."
+    },
+    "rule_4_inputs_consumed": {
+      "status": "pass",
+      "details": "All 6 IN_ inputs from resolution.json consumed: IN_SF_WOOD_WALL (primary surface SF for all SF tasks), IN_EA_ROOMS_TOTAL (setup/cleanup per-room tasks), IN_SF_PROTECT_FLOOR_PERIMETER (TSK_WDWL_FLOOR_PROTECT), IN_LF_PROTECT_CEILING_LINE (TSK_WDWL_CEILING_MASK), IN_SF_FLOOR_VACUUM_AREA (TSK_WDWL_VACUUM), IN_ENUM_HEIGHT_BAND (modifier_registry height selection). Materials.json required_inputs also declares all 6."
+    },
+    "rule_5_ps_keys_match": {
+      "status": "pass",
+      "details": "All PS_ keys referenced in sop_modules/production match resolution.json paintscope_keys: PS_SURFACE_SF.WOOD_WALL (proposed new key), PS_META.EA.ROOMS_TOTAL, PS_PROTECT_SF.FLOOR_PERIMETER, PS_PROTECT_LF.CEILING_LINE (proposed activation), PS_META.SF.FLOOR_VACUUM_AREA, PS_META.HEIGHT_BAND (proposed activation)."
+    },
+    "rule_6_zones_match": {
+      "status": "pass",
+      "details": "2 zone_ids (floor_perimeter, ceiling_line) match between resolution.json zone_ids and sop_modules.json protection_metadata.zones. Ceiling_line zone replaces wainscot's wall_adjacent zone — correct for wood wall that meets ceiling directly (no cap rail)."
+    },
+    "rule_7_phase_order": {
+      "status": "pass",
+      "details": "Module sequence_order: setup(1) > prep(2) > prime(3) > finish(4) > interstage(5) > finish(6) > cleanup(7). Correct phase ordering maintained. All module phase values are valid per resolution.json applicable_enums.phase.values."
+    },
+    "rule_8_uom_match": {
+      "status": "pass",
+      "details": "UOM consistent across all 25 tasks between sop_modules and production: 18 SF tasks have SF rates, 2 LF tasks (CEILING_MASK, REMOVE_CEILING_MASK) have LF rates, 5 FIXED tasks (DUST_CLEAN, CLEAN_AREA, PATCH_DEFECTS, SPOT_COAT, TOOL_CLEANUP) have fixed_time_minutes. TOUCHUP is FIXED in both files. No mismatches."
+    },
+    "rule_9_tsk_prefix": {
+      "status": "pass",
+      "details": "All 25 tasks use TSK_WDWL_ prefix per resolution.json context prefix WDWL. No prefix deviations found."
+    },
+    "rule_10_itm_ids": {
+      "status": "pass",
+      "details": "ITM_WOOD_WALL_PANEL is proposed (new), correctly marked status='proposed' in resolution.json paintable_items."
+    },
+    "rule_11_enum_values": {
+      "status": "pass",
+      "details": "All enum values used across files match resolution.json applicable_enums. quality_tier: QT3/QT4/QT5 (QT2 excluded). application_method: spray/brush. wall_style: flat_panel/shiplap/tongue_and_groove/library_panel. sheen: satin/semi-gloss/gloss. substrate_state: SS_BARE/SS_PRIMED_FACTORY. task_classification: binary/qt_scaled. unit_of_measure: SF/LF/FIXED. skill_level: helper/journeyman/lead. severity: critical/major/minor. consumable_category: protection/abrasive/tool/applicator/prep/fill_material. consumable units: EA/ROLL/SHEET/TUBE/QT. No prohibited values detected."
+    }
+  },
+
+  "prohibited_pattern_check": {
+    "AR_009_violations": [],
+    "checks": [
+      { "pattern": "CONS_ prefix", "found": false },
+      { "pattern": "task_class (instead of task_classification)", "found": false },
+      { "pattern": "phase 'protect' or 'protection'", "found": false },
+      { "pattern": "compound sheens (eggshell/satin, semi-gloss+)", "found": false },
+      { "pattern": "lowercase units (each, sheet, tip)", "found": false },
+      { "pattern": "severity high/medium/low/WARN", "found": false },
+      { "pattern": "consumable_category 'consumable'", "found": false },
+      { "pattern": "IN_EA_ROOMS (should be IN_EA_ROOMS_TOTAL)", "found": false },
+      { "pattern": "IN_SF_FLOOR_VACUUM (should be IN_SF_FLOOR_VACUUM_AREA)", "found": false },
+      { "pattern": "IN_SF_FLOOR_PERIMETER (should be IN_SF_PROTECT_FLOOR_PERIMETER)", "found": false }
+    ],
+    "status": "pass"
+  },
+
+  "fine_finish_doctrine_compliance": {
+    "status": "pass",
+    "version_checked": "1.1",
+    "findings": [
+      { "check": "FF_INTERSTAGE_MODULE_PRESENT", "result": "pass", "details": "MOD_WDWL_INTERSTAGE present with 6 tasks: CLEAN_AREA, INSPECT_COAT, SAND_BETWEEN, PATCH_DEFECTS, SPOT_COAT, TACK_CLEAN." },
+      { "check": "FF_INTERSTAGE_RUN_RULE_CORRECT", "result": "pass", "details": "run_rule states 'Runs AFTER each coat EXCEPT the final coat'. run_count_formula = 'total_coats - 1'. Coat counts: QT3/QT4 = 2 finish + optional primer = 1-2 interstages. QT5 brush = 3 finish + optional primer = 2-3 interstages." },
+      { "check": "FF_SHEEN_TIER_RESTRICTIONS", "result": "pass", "details": "Satin at QT3+, semi-gloss at QT4+, gloss at QT5 only. Default QT3+satin is compatible — no tension. Enforced in resolution.json and materials.json allowed_sheens." },
+      { "check": "FF_INITIAL_PREP_COMPLETE", "result": "pass", "details": "MOD_WDWL_PREP includes: DUST_CLEAN, SAND_PREP, FILL_FASTENERS, SAND_FILL, CAULK_JOINTS, CAULK_PERIMETER, SEAL_MDF_EDGES. Complete prep coverage." },
+      { "check": "FF_SCRUTINY_NOT_MULTIPLIERS", "result": "pass", "details": "Quality tier differences expressed through defect_tolerance scrutiny definitions in production.json task entries and task notes in sop_modules.json — not simple rate multipliers. QT determines inspection distance, sanding scope, fill standard." },
+      { "check": "FF_TASK_CLASSIFICATION_CORRECT", "result": "pass", "details": "Binary tasks: all application (SPRAY_FINISH, BRUSH_FINISH, PRIME_FACES), setup/cleanup, protection, sanding prep, caulk tasks (17 total). qt_scaled: inspection (INSPECT_COAT, FINAL_INSPECT), between-coat sanding (SAND_BETWEEN), fill (FILL_FASTENERS, SAND_FILL), repair (PATCH_DEFECTS, SPOT_COAT, TOUCHUP) (8 total). Correct binary/qt_scaled split." }
+    ]
+  },
+
+  "protection_metadata_check": {
+    "status": "pass",
+    "findings": [
+      { "check": "PZ_PROTECT_TASKS_HAVE_METADATA", "result": "pass", "details": "TSK_WDWL_FLOOR_PROTECT has protection_metadata with action=setup, zones=[floor_perimeter]. TSK_WDWL_CEILING_MASK has protection_metadata with action=setup, zones=[ceiling_line]. TSK_WDWL_REMOVE_CEILING_MASK has protection_metadata with action=teardown, zones=[ceiling_line]. TSK_WDWL_REMOVE_FLOOR_PROTECT has protection_metadata with action=teardown, zones=[floor_perimeter]." },
+      { "check": "PZ_ACTION_VALID", "result": "pass", "details": "All protection_metadata.action values are valid: setup (FLOOR_PROTECT, CEILING_MASK), teardown (REMOVE_CEILING_MASK, REMOVE_FLOOR_PROTECT)." },
+      { "check": "PZ_ZONES_NON_EMPTY", "result": "pass", "details": "All protection_metadata.zones are non-empty arrays." },
+      { "check": "PZ_ZONES_IN_VOCABULARY", "result": "pass", "details": "floor_perimeter is existing zone ID. ceiling_line is proposed (exists in Protection_Zones_Reference.md, needs activation). Both in standard vocabulary." },
+      { "check": "PZ_SETUP_TEARDOWN_PAIRED", "result": "pass", "details": "floor_perimeter: TSK_WDWL_FLOOR_PROTECT (setup) <-> TSK_WDWL_REMOVE_FLOOR_PROTECT (teardown). ceiling_line: TSK_WDWL_CEILING_MASK (setup) <-> TSK_WDWL_REMOVE_CEILING_MASK (teardown). Both zones fully paired." }
+    ]
+  },
+
+  "geometry_validation": {
+    "GEOM_NO_INTERNAL_COMPUTE": { "result": "pass", "details": "No internal geometry computation. Wood wall SF from PaintScope input PS_SURFACE_SF.WOOD_WALL. No LF-to-SF or SF-to-LF conversion performed at runtime." },
+    "GEOM_INPUTS_DECLARED": { "result": "pass", "details": "6 inputs declared in resolution.json and materials.json: IN_SF_WOOD_WALL, IN_EA_ROOMS_TOTAL, IN_SF_PROTECT_FLOOR_PERIMETER, IN_LF_PROTECT_CEILING_LINE, IN_SF_FLOOR_VACUUM_AREA, IN_ENUM_HEIGHT_BAND." },
+    "UOM_TASKS_DECLARED": { "result": "pass", "details": "All 25 tasks have unit_of_measure declared in sop_modules.json." },
+    "UOM_RATE_MATCH": { "result": "pass", "details": "All production rates match task UOM. SF tasks have SF/hr rates or rates_by_tier with rate_sf_per_hour. LF tasks (CEILING_MASK, REMOVE_CEILING_MASK) have LF/hr rates. FIXED tasks (DUST_CLEAN, CLEAN_AREA, PATCH_DEFECTS, SPOT_COAT, TOUCHUP, TOOL_CLEANUP) have fixed_time_minutes or fixed_time_minutes_by_tier." },
+    "ADJ_NO_GEOMETRY_DERIVATION": { "result": "pass", "details": "No LF<>SF derivation at runtime. Caulk rates expressed in SF/hr with noted LF/SF density ratios (~1.5 LF/SF for board styles, ~1.4 LF/SF for panel styles, ~0.5 LF/SF for perimeter) for documentation only — no runtime geometry derivation. Wall style modifier captures density variation." },
+    "FLOW_PAINTSCOPE_TO_SPEC_TO_ESTIMATION": { "result": "pass", "details": "Correct data flow: PaintScope (PS_SURFACE_SF.WOOD_WALL) > spec inputs (IN_SF_WOOD_WALL) > sop tasks (unit_of_measure: SF) > production rates (rate_per_hour in SF/hr). Height modifier applied externally by engine via PS_META.HEIGHT_BAND." }
+  },
+
+  "modifier_validation": {
+    "PROD_MODIFIERS_INCREASE_TIME": { "result": "pass", "details": "wall_style modifier documented as 'effective_rate = base_rate / modifier' in production.json modifier_registry. flat_panel=1.0 (baseline), shiplap=1.15 (divides rate, increases time by 15%), tongue_and_groove=1.10 (10%), library_panel=1.25 (25%). Height modifier same pattern: 'effective_rate = base_rate / height_modifier'. QT modifier same: 'effective_rate = base_rate / modifier'. All correctly documented as time multipliers." },
+    "PROD_SPRAY_BACKROLL_COUPLED": { "result": "not_applicable", "details": "This spec does not use spray+backroll coupling. Wood panel/board surfaces do not require backrolling. Spray and brush are separate application methods." },
+    "CLOSET_SHELVING_FLAG_REQUIRED": { "result": "not_applicable", "details": "No closet shelving complexity in this spec." }
+  },
+
+  "doctrine_governance": {
+    "conflicts_detected": 0,
+    "conflicts_resolved": 0,
+    "overrides_logged": 0,
+    "corrections_captured": 3,
+    "corrections_assigned": 3,
+    "pending_doctrine_updates": 0,
+    "pending_doctrine_creates": 0,
+    "human_feedback_gate": "pending — expected for v0.1.0 draft, NOT a blocker",
+    "status": "pass",
+    "notes": "Inherited corrections RC-004 (no dry times — no dry time references in materials or sop_modules), RC-005 (material systems are recommendations — noted throughout materials.json), RC-006 (correct product classification — Advance is waterborne alkyd, Emerald Urethane is acrylic-urethane enamel per materials.json material_notes.product_classification). All three corrections respected in downstream files."
+  },
+
+  "paintscope_actionability": {
+    "missing_paintscope_keys": [
+      {
+        "key": "PS_SURFACE_SF.WOOD_WALL",
+        "status": "proposed_new_key",
+        "justification": "No existing PaintScope key covers full-height wood wall surfaces. PS_SURFACE_SF.WALL_FIELD is for drywall. PS_SURFACE_SF.WAINSCOTING is for partial-height wainscot. Semantically distinct surface type. Acknowledged as proposed — will need activation.",
+        "blocking": false
+      },
+      {
+        "key": "PS_PROTECT_LF.CEILING_LINE",
+        "status": "proposed_activation",
+        "justification": "Zone and key exist in Protection_Zones_Reference.md but not in id_registry PS_ entries_in_active_use. Needs activation for spray-conditional ceiling masking.",
+        "blocking": false
+      },
+      {
+        "key": "PS_META.HEIGHT_BAND",
+        "status": "proposed_activation",
+        "justification": "Exists in PaintScope Quantity Key Catalog (Modifier Meta Keys section) but not in id_registry PS_ entries_in_active_use. Needs activation for height modifier selection.",
+        "blocking": false
+      }
+    ],
+    "unknown_asset_categories": [],
+    "edge_tasks_missing_edgelf_inputs": [],
+    "protection_steps_missing_measurable_inputs": [],
+    "manual_capture_items_missing_detail": []
+  },
+
+  "issues": [
+    {
+      "issue_id": "QA-001",
+      "severity": "minor",
+      "area": "production_logic",
+      "file": "production.json",
+      "description": "Wood wall SF production rates are research estimates — no canonical doctrine provides wood-wall-specific SF rates. Spray 175 SF/hr and brush 70 SF/hr derived from brief guidance and Millwork Doctrine section 7.1 trim rates adapted for panel SF. Same baseline values as SF_WAINSCOT_PANEL_NC.",
+      "suggested_fix": "Flag for field validation. Rates are reasonable midpoint estimates within the documented ranges (spray 150-200, brush 60-80). Refine after field testing with production data."
+    },
+    {
+      "issue_id": "QA-002",
+      "severity": "minor",
+      "area": "production_logic",
+      "file": "production.json",
+      "description": "Shiplap modifier (1.15x) and tongue-and-groove modifier (1.10x) are interpolated between Millwork Doctrine section 7.2 standard (1.0x) and complex (1.25x) categories. Doctrine does not explicitly define modifiers for board-style wall surfaces.",
+      "suggested_fix": "Acceptable interpolation based on groove/joint complexity. Field validation recommended. Consider updating Millwork Doctrine section 7.2 to explicitly include board-style wall surface modifiers (shiplap, tongue-and-groove)."
+    },
+    {
+      "issue_id": "QA-003",
+      "severity": "minor",
+      "area": "production_logic",
+      "file": "production.json",
+      "description": "Internal caulk joint density estimates (~1.5 LF/SF for board styles, ~1.4 LF/SF for panel styles) are research estimates used to derive SF/hr caulk rates. No doctrine defines joint density for wood wall styles. Caulk rates (45-50 SF/hr for joints, 120 SF/hr for perimeter) are based on these density assumptions.",
+      "suggested_fix": "Flag for field validation. Rates appear reasonable for typical board widths (5.5-inch shiplap, 3.5-inch T&G) and standard panel geometry."
+    },
+    {
+      "issue_id": "QA-004",
+      "severity": "minor",
+      "area": "resolution_consistency",
+      "file": "resolution.json",
+      "description": "Resolution.json applicable_enums.phase has full_sequence including 'apply' but the values array does not include 'apply'. No module actually uses 'apply' as a phase (MOD_WDWL_FINISH_COAT uses phase='finish'). Minor internal inconsistency within resolution.json.",
+      "suggested_fix": "Align the full_sequence and values arrays. Either add 'apply' to the values array or remove it from full_sequence. Non-blocking — modules correctly use values from the values array."
+    },
+    {
+      "issue_id": "QA-005",
+      "severity": "minor",
+      "area": "paintscope_keys",
+      "file": "resolution.json",
+      "description": "Three PaintScope keys require activation or creation before this spec is production-ready: PS_SURFACE_SF.WOOD_WALL (new key), PS_PROTECT_LF.CEILING_LINE (activation), PS_META.HEIGHT_BAND (activation). All are acknowledged as proposed/activation in resolution.json.",
+      "suggested_fix": "Activate these keys during Human Feedback Gate / spec assembly. Not a blocker for v0.1.0 draft — keys are documented and justified."
+    }
+  ],
+
+  "doctrine_compliance": {
+    "millwork_nc_paint_doctrine": "Compliant. MDF two-step prime enforced (edge seal with shellac/oil-based BEFORE latex face primer — separate mandatory task TSK_WDWL_SEAL_MDF_EDGES). FJP stain-blocking mandatory (SYS_PRIMER_POPLAR_STAINBLOCK). Hardwood tannin-blocking (SYS_PRIMER_HARDWOOD_TANNINBLOCK). Complexity modifiers from section 7.2. SF-based measurement from section 1.1.",
+    "fine_finish_doctrine": "Compliant. Combined prime+paint with conditional primer. Interstage universal at all QTs with correct sanding discipline per tier (QT3=spot, QT4=full 220, QT5=thorough 220-320). QT5 brush 3+ coats (ROUND_WDWL_3FINISH). Material systems: SYS_FF_STANDARD_ACRYLIC (QT3), SYS_FF_MODIFIED_URETHANE (QT4), SYS_FF_PREMIUM (QT5). Sheen/QT gate enforced. Waterborne philosophy documented (apply, tip once, walk away).",
+    "modifier_registry": "Compliant. Height varies per room via PS_META.HEIGHT_BAND (H1=1.0, H2=1.30, H3=1.50, H4=2.00) — key distinction from wainscot (always H1). QT modifiers on qt_scaled tasks only (QT3=1.0, QT4=1.3, QT5=1.5). wall_style modifier applied as time multiplier (effective_rate = base_rate / modifier). NOT applied to protection, cleanup, or FIXED tasks.",
+    "protection_and_masking_doctrine": "Compliant. Floor protection always (floor_perimeter zone, edge_only level). Ceiling masking spray-conditional (ceiling_line zone, light_mask level). Both zones have paired setup/teardown tasks. Key distinction from wainscot: ceiling_line replaces wall_adjacent (no cap rail intermediary).",
+    "materials_and_consumables_doctrine": "Compliant. CON_ prefix throughout (no CONS_). Elevated spackle consumption documented for board-style walls (high fastener density). Overfill-sand-flush method referenced. All consumable categories valid (protection, abrasive, tool, applicator, prep, fill_material).",
+    "conventions": "Compliant. CON_ prefix. task_classification (never task_class). Severity: critical/major/minor. Phase values: setup/prep/prime/interstage/finish/cleanup (no 'protect' or 'protection'). All units uppercase (SF, LF, EA, SHEET, ROLL, TUBE, QT). Input IDs canonical: IN_EA_ROOMS_TOTAL, IN_SF_PROTECT_FLOOR_PERIMETER, IN_SF_FLOOR_VACUUM_AREA. No prohibited patterns detected."
+  },
+
+  "key_characteristics": [
+    "First spec with wall_style configuration dimension (flat_panel/shiplap/tongue_and_groove/library_panel) driving complexity modifier — four styles vs wainscot's three types",
+    "Single SF paintable item (ITM_WOOD_WALL_PANEL) covering entire wood wall surface — panels/boards + internal framing + joint detail + applied molding",
+    "No cap rail — wood wall meets ceiling directly. Ceiling_line zone replaces wainscot's wall_adjacent zone. Crown molding (when present) handled by SF_TRIM_NC_PAINT",
+    "Height varies per room (PS_META.HEIGHT_BAND: H1-H4) — key distinction from SF_WAINSCOT_PANEL_NC (always H1, 32-42 inches). Engine applies height modifier externally, not embedded in base rates",
+    "Board-style walls (shiplap, T&G) have significantly higher fastener density and caulk joint density than panel-style walls — documented in materials.json and production.json",
+    "All 8 material system IDs reuse existing entries — 5 primer SYS_ + 3 finish SYS_ — no new SYS_ IDs needed (REUSE OVER CREATION)",
+    "QT3+satin default has no sheen/QT gate tension",
+    "Shiplap V-groove caulking noted as optional per design intent — aesthetic decision, not paint standard",
+    "Production has defect_tolerance definitions for all 25 tasks across all QT levels"
+  ],
+
+  "registry_additions_count": {
+    "SF_": 1,
+    "ITM_": 1,
+    "TSK_": "25 tasks under TSK_WDWL_*",
+    "MOD_": "7 modules under MOD_WDWL_*",
+    "ROUND_": 3,
+    "COV_": 2,
+    "SYS_": 0,
+    "PS_": "1 new (PS_SURFACE_SF.WOOD_WALL) + 2 activations (PS_PROTECT_LF.CEILING_LINE, PS_META.HEIGHT_BAND)",
+    "IN_": "1 new (IN_SF_WOOD_WALL) + 2 new (IN_LF_PROTECT_CEILING_LINE, IN_ENUM_HEIGHT_BAND)",
+    "surface_ids": "1 activation (wall_panel)",
+    "zone_ids": "1 activation (ceiling_line)",
+    "CON_": 0
+  }
+}

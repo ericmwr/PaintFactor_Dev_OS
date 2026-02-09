@@ -1,0 +1,784 @@
+{
+  "research_metadata": {
+    "spec_family_id": "SF_WOOD_WALL_NC",
+    "research_mode": "lightweight",
+    "brief_source": "specs/_backlog/SF_WOOD_WALL_NC/brief.md",
+    "doctrine_loaded": [
+      "docs/Doctrine/Millwork_NC_Paint_Doctrine.md",
+      "docs/Doctrine/Fine_Finish_Doctrine.md",
+      "docs/Doctrine/Quality_Tiers_and_Surface_Condition.md",
+      "docs/Doctrine/Protection_and_Masking_Doctrine.md",
+      "docs/Doctrine/Materials_and_Consumables_Doctrine.md",
+      "docs/Doctrine/Modifier_Registry.md",
+      "docs/Doctrine/Spec_Completeness_Doctrine.md",
+      "docs/Reference/Protection_Zones_Reference.md",
+      "docs/Reference/Surface_Vocabulary_Reference.md",
+      "docs/Reference/Site_Condition_Vocabulary_Reference.md",
+      "docs/Reference/Substrate_State_Reference.md",
+      "docs/PaintScope/PaintScope_Quantity_Key_Catalog.md",
+      "docs/PaintScope/Spec_Input_to_PaintScope_Key_Mapping.md"
+    ],
+    "sibling_specs_reviewed": [
+      "specs/SF_WAINSCOT_PANEL_NC_v1/research.json",
+      "specs/SF_WAINSCOT_PANEL_NC_v1/spec.json",
+      "specs/SF_WINDOW_INT_NC_v1/spec.json",
+      "specs/SF_STAIR_RISER_NC_v1/spec.json"
+    ],
+    "researcher": "Spec Researcher Agent",
+    "date": "2026-02-09",
+    "status": "draft",
+    "review_required": true
+  },
+
+  "protection_zones_analysis": {
+    "spec_category": "millwork",
+    "application_method_sensitivity": true,
+    "zones": [
+      {
+        "zone_id": "floor_perimeter",
+        "condition": "always",
+        "protection_level": "edge_only",
+        "paintscope_key": "PS_PROTECT_SF.FLOOR_PERIMETER",
+        "upgrade_scenario": null,
+        "notes": "Drop cloth runners at base of wood wall work area. Wood wall is floor-to-ceiling — drips from brush/spray and sanding dust are the primary concerns. Standard edge protection regardless of application method."
+      },
+      {
+        "zone_id": "ceiling_line",
+        "condition": { "application_method": "spray" },
+        "protection_level": "light_mask",
+        "paintscope_key": "PS_PROTECT_LF.CEILING_LINE",
+        "upgrade_scenario": "Upgrades to heavy_mask when ceiling above is SS_PAINTED_*",
+        "notes": "Paper masking at the ceiling-wall junction to protect finished ceiling from overspray. Only needed for spray application. Brush application typically needs no ceiling masking. Unlike wainscot (which masks the wall above via wall_adjacent zone), wood wall meets the ceiling directly — no cap rail intermediary."
+      }
+    ],
+    "zone_reference": "Protection_Zones_Reference.md v2.1",
+    "method_escalation": "brush < spray",
+    "conditional_protection_note": "Floor protection is always required regardless of method. Ceiling masking is conditional on application_method = spray. Both zones use existing zone IDs — no new zones needed. Key distinction from SF_WAINSCOT_PANEL_NC: wainscot uses wall_adjacent zone (masking wall above cap rail); wood wall uses ceiling_line zone (masking ceiling at wall-ceiling junction)."
+  },
+
+  "adjacency_analysis": {
+    "primary_surface": "wall_panel",
+    "adjacent_surfaces": [
+      {
+        "surface_id": "ceiling_field",
+        "edge_type": "linear",
+        "typical_relationship": "different_finish",
+        "edge_work_required": false,
+        "notes": "Ceiling field directly above wood wall. Different finish — ceiling paint (flat) vs millwork enamel (satin/semi-gloss). Direct junction at ceiling-wall line. No cap rail intermediary (key distinction from wainscot). When spraying, ceiling must be masked at this junction."
+      },
+      {
+        "surface_id": "trim_baseboard",
+        "edge_type": "linear",
+        "typical_relationship": "same_finish",
+        "edge_work_required": false,
+        "notes": "Standard baseboard below wood wall at floor line. Often same finish group — baseboard and wood wall share color/sheen. Baseboard handled by SF_TRIM_NC_PAINT (ITM_TRIM_BASEBOARD). May be same or different finish group depending on design."
+      },
+      {
+        "surface_id": "trim_crown",
+        "edge_type": "linear",
+        "typical_relationship": "same_finish",
+        "edge_work_required": false,
+        "notes": "Crown molding at ceiling line when present. Often same finish group as wood wall — both are millwork, typically same color/sheen. Crown handled by SF_TRIM_NC_PAINT (ITM_TRIM_CROWN). When crown is present, it provides the ceiling junction instead of a direct wall-to-ceiling meeting."
+      },
+      {
+        "surface_id": "trim_casing_door",
+        "edge_type": "complex",
+        "typical_relationship": "same_finish",
+        "edge_work_required": false,
+        "notes": "Wood wall meets door casing where both are present in the same wall. Complex intersection — wood wall panels/boards terminate at casing edge. Typically same finish group (both millwork enamel)."
+      },
+      {
+        "surface_id": "trim_casing_window",
+        "edge_type": "complex",
+        "typical_relationship": "same_finish",
+        "edge_work_required": false,
+        "notes": "Wood wall meets window casing where windows are within the wall surface. Complex intersection similar to door casing. Typically same finish group."
+      },
+      {
+        "surface_id": "wall_field",
+        "edge_type": "linear",
+        "typical_relationship": "different_finish",
+        "edge_work_required": false,
+        "notes": "Adjacent drywall wall field where wood wall meets non-wood wall at inside corner or transition. Different finish — wood wall enamel (satin/semi-gloss) meets drywall wall paint (flat/eggshell). Junction at vertical corner."
+      }
+    ],
+    "surface_reference": "Surface_Vocabulary_Reference.md v1.0 — wall_panel exists in Wall Surfaces section. All adjacent surface IDs verified.",
+    "key_finding": "Wood wall is typically part of the same finish group as surrounding trim (baseboard, crown, casings). Most adjacencies are same_finish relationships. The key different_finish adjacencies are: (1) ceiling field above — direct junction, no cap rail intermediary, and (2) adjacent drywall wall field — different paint system at transition. No edge work generated by this spec because transition surfaces (crown, baseboard, casings) are separate specs."
+  },
+
+  "site_condition_analysis": {
+    "affected_conditions": [
+      {
+        "condition_id": "floor_type",
+        "vocabulary_ref": "Site_Condition_Vocabulary_Reference.md § floor_type",
+        "affected_task_types": ["protect"],
+        "include_values": ["finished", "partial"],
+        "exclude_values": ["subfloor"],
+        "modifier_notes": null,
+        "notes": "Floor protection at wood wall base required when finished floors present. Subfloor requires no protection. NC may have subfloor during wood wall painting."
+      },
+      {
+        "condition_id": "occupancy_state",
+        "vocabulary_ref": "Site_Condition_Vocabulary_Reference.md § occupancy_state",
+        "affected_task_types": ["protect"],
+        "include_values": ["occupied_crew_handles", "occupied_sensitive"],
+        "exclude_values": ["vacant"],
+        "modifier_notes": "occupied_sensitive triggers OCC_SENSITIVE modifier 1.30x on protection tasks per Modifier_Registry",
+        "notes": "Additional protection when occupied. Rare in NC context but possible for renovation projects or partially occupied homes."
+      },
+      {
+        "condition_id": "temperature_condition",
+        "vocabulary_ref": "Site_Condition_Vocabulary_Reference.md § temperature_condition",
+        "affected_task_types": ["prime", "finish"],
+        "include_values": ["cold_below_50f", "hot_above_90f"],
+        "exclude_values": ["normal"],
+        "modifier_notes": null,
+        "notes": "Temperature affects dry times, open time, and flow-out. Particularly impacts waterborne alkyd products at QT4+ which rely on extended open time for leveling. Large wood wall surfaces (potentially 100+ SF per wall) amplify temperature sensitivity — material open time is critical when spraying large contiguous areas."
+      },
+      {
+        "condition_id": "ventilation_condition",
+        "vocabulary_ref": "Site_Condition_Vocabulary_Reference.md § ventilation_condition",
+        "affected_task_types": ["prime", "finish"],
+        "include_values": ["poor"],
+        "exclude_values": ["adequate", "good"],
+        "modifier_notes": null,
+        "notes": "MDF edge sealing uses solvent-based products (shellac/oil-based) — adequate ventilation required. Spray application generates overspray requiring air movement. Poor ventilation extends dry times for all coats. Particularly relevant for enclosed rooms (libraries, studies) where wood walls are common."
+      }
+    ],
+    "condition_reference": "Site_Condition_Vocabulary_Reference.md v1.1",
+    "modifier_reference": "Modifier_Registry.md v1.2"
+  },
+
+  "state_analysis": {
+    "primary_surface": "wall_panel",
+    "valid_input_states": {
+      "states": ["SS_BARE", "SS_PRIMED_FACTORY"],
+      "rationale": "Combined prime+paint spec. SS_BARE (uncoated MDF, FJP, or solid wood wall panels/boards) requires full primer coat — primer type driven by substrate. SS_PRIMED_FACTORY (standard NC — factory-primed MDF, FJP, or pre-primed boards) skips primer, lighter prep."
+    },
+    "output_state": {
+      "state": "SS_PAINTED",
+      "varies_by": "sheen",
+      "state_map": {
+        "satin": "SS_PAINTED_SATIN",
+        "semi-gloss": "SS_PAINTED_SEMIGLOSS",
+        "gloss": "SS_PAINTED_GLOSS"
+      },
+      "rationale": "Output state varies by sheen configuration dimension. Satin is default for wood walls (softer appearance on large panel/board areas)."
+    },
+    "adjacent_state_protection_analysis": [
+      {
+        "adjacent_surface": "ceiling_field",
+        "finished_states": ["SS_PAINTED_FLAT", "SS_PAINTED_EGGSHELL", "SS_PAINTED_SATIN"],
+        "unfinished_states": ["SS_BARE", "SS_PRIMED_FIELD"],
+        "protection_when_finished": "light_mask (ceiling_line zone, spray only)",
+        "protection_when_unfinished": "none",
+        "rationale": "Typical NC: ceilings often painted before wood walls (ceiling is field painting, wood wall is detail work). When ceiling SS_PAINTED_*: masking required at ceiling-wall junction during spray. When ceiling unfinished: no protection needed."
+      },
+      {
+        "adjacent_surface": "trim_baseboard",
+        "finished_states": ["SS_PAINTED_SATIN", "SS_PAINTED_SEMIGLOSS"],
+        "unfinished_states": ["SS_BARE", "SS_PRIMED_FACTORY"],
+        "protection_when_finished": "light_mask (top edge)",
+        "protection_when_unfinished": "none",
+        "rationale": "If baseboard already painted, mask top edge during wood wall work. Typically same finish group — usually painted in same session, so rarely needs protection."
+      },
+      {
+        "adjacent_surface": "wall_field",
+        "finished_states": ["SS_PAINTED_FLAT", "SS_PAINTED_EGGSHELL"],
+        "unfinished_states": ["SS_BARE", "SS_PRIMED_FIELD"],
+        "protection_when_finished": "light_mask (at transition edge, spray only)",
+        "protection_when_unfinished": "none",
+        "rationale": "Adjacent drywall wall may be painted before wood wall (walls-first, then millwork detail). When drywall SS_PAINTED_*: masking at transition during spray. When unfinished: no protection needed."
+      }
+    ],
+    "state_reference": "Substrate_State_Reference.md v1.0.0"
+  },
+
+  "required_paintscope_keys": [
+    {
+      "key": "PS_SURFACE_SF.WOOD_WALL",
+      "description": "Total SF of wood paneled wall surface from floor to ceiling",
+      "uom": "SF",
+      "required": true,
+      "required_when": "Always",
+      "catalog_status": "PROPOSED — no existing key covers full-height wood wall surfaces. PS_SURFACE_SF.WALL_FIELD is for drywall walls. PS_SURFACE_SF.WAINSCOTING is for partial-height wainscot."
+    },
+    {
+      "key": "PS_META.EA.ROOMS_TOTAL",
+      "description": "Room count for setup/cleanup operations",
+      "uom": "EA",
+      "required": true,
+      "required_when": "Always",
+      "catalog_status": "EXISTS — Room / Zone meta section"
+    },
+    {
+      "key": "PS_PROTECT_SF.FLOOR_PERIMETER",
+      "description": "Floor protection area at wood wall work zone",
+      "uom": "SF",
+      "required": true,
+      "required_when": "Always",
+      "catalog_status": "EXISTS — Floor Protection Keys (SF)"
+    },
+    {
+      "key": "PS_PROTECT_LF.CEILING_LINE",
+      "description": "Ceiling masking LF at ceiling-wall junction (spray only)",
+      "uom": "LF",
+      "required": false,
+      "required_when": "application_method = spray",
+      "catalog_status": "EXISTS — Surface-Adjacent Protection Keys (LF)"
+    },
+    {
+      "key": "PS_META.SF.FLOOR_VACUUM_AREA",
+      "description": "Post-work vacuum cleanup area",
+      "uom": "SF",
+      "required": true,
+      "required_when": "Always",
+      "catalog_status": "EXISTS — Room / Zone meta section"
+    },
+    {
+      "key": "PS_META.HEIGHT_BAND",
+      "description": "Height classification for modifier selection — wood wall height varies by room",
+      "uom": "ENUM",
+      "required": true,
+      "required_when": "Always",
+      "catalog_status": "EXISTS — Modifier Meta Keys section"
+    }
+  ],
+
+  "proposed_new_keys": [
+    {
+      "key": "PS_SURFACE_SF.WOOD_WALL",
+      "uom": "SF",
+      "description": "Total SF of wood paneled wall surface from floor to ceiling. Includes board faces and joint detail (shiplap, T&G) or panels, internal rails/stiles, and applied molding (flat_panel, library_panel). Measured as total wall area covered by wood surface.",
+      "justification": "No existing key covers full-height wood wall surfaces. PS_SURFACE_SF.WALL_FIELD is semantically for drywall walls. PS_SURFACE_SF.WAINSCOTING is for partial-height wainscot (32-42 inches). This surface is semantically distinct — wood substrate, fine finish doctrine, different prep and production rates, full-height coverage with variable height modifier."
+    }
+  ],
+
+  "adjacency_notes": [
+    {
+      "edge_type": "wood_wall_to_ceiling",
+      "scope_impact": "Wood wall meets ceiling field directly at ceiling-wall junction. No cap rail intermediary (key distinction from wainscot). The ceiling junction creates the primary protection concern — spray overspray on finished ceiling.",
+      "paintscope_key": "PS_PROTECT_LF.CEILING_LINE",
+      "nc_context": "Typical NC: ceiling above may be at SS_BARE, SS_PRIMED_FIELD, or SS_PAINTED depending on sequence. Ceiling painting typically precedes wood wall detail work."
+    },
+    {
+      "edge_type": "wood_wall_to_baseboard",
+      "scope_impact": "Wood wall base meets standard baseboard at floor line. Baseboard is trim spec scope. May be same or different finish group.",
+      "paintscope_key": null,
+      "nc_context": "Baseboard installed after wood wall panels/boards in typical NC sequence."
+    },
+    {
+      "edge_type": "wood_wall_to_crown",
+      "scope_impact": "When crown molding is present, it occupies the ceiling-wall junction and provides the physical transition between wood wall and ceiling. Crown is trim spec scope (SF_TRIM_NC_PAINT). When crown is present, the ceiling_line masking zone may be partially handled by the crown installation.",
+      "paintscope_key": null,
+      "nc_context": "Crown and wood wall typically same finish group — painted in same session."
+    },
+    {
+      "edge_type": "wood_wall_to_drywall_wall",
+      "scope_impact": "Where wood wall terminates and drywall wall begins at inside corner or transition. Different finish — enamel meets latex wall paint. Transition may be at inside corner (simple) or at a vertical reveal/trim piece (complex).",
+      "paintscope_key": null,
+      "nc_context": "Adjacent drywall walls typically painted before wood wall detail work."
+    },
+    {
+      "edge_type": "board_to_board_internal",
+      "scope_impact": "Internal edges within the wood wall surface — board-to-board joints (shiplap, T&G) or panel-to-frame joints (library_panel). These are ALL within this spec's scope. Caulking at board/panel joints is a mandatory prep task. Joint detail drives wall_style complexity modifier.",
+      "paintscope_key": null,
+      "nc_context": "Internal assembly joints — caulked during prep phase where applicable."
+    }
+  ],
+
+  "relevant_findings": [
+    {
+      "finding_id": "RF-001",
+      "topic": "Single SF item for entire wood wall surface",
+      "finding": "The wood wall surface (boards or panel assembly) is measured as ONE item in SF. For library_panel style, internal framing complexity is captured by the wall_style modifier, not by splitting into separate LF and SF items. For board styles (shiplap, T&G), joint detail complexity is captured by the wall_style modifier. This matches Millwork Doctrine §1.1 approach and parallels SF_WAINSCOT_PANEL_NC's single-item design.",
+      "source": "Brief Section 4, 13; Millwork_NC_Paint_Doctrine §1.1",
+      "confidence": "high",
+      "impact": "Single ITM_WOOD_WALL_PANEL with SF UOM. All production rates expressed in SF/hr or hrs/SF."
+    },
+    {
+      "finding_id": "RF-002",
+      "topic": "Combined prime+paint spec — primer conditional on substrate_state",
+      "finding": "This spec includes both primer and finish coats, but primer is conditional. SS_BARE requires full primer coat (substrate-driven chemistry). SS_PRIMED_FACTORY skips primer — lighter prep only. Matches SF_WINDOW_INT_NC, SF_STAIR_RISER_NC, and SF_WAINSCOT_PANEL_NC pattern. Rationale: a wood wall is a self-contained surface with continuous finish — primer and paint flow continuously across the entire wall field in the same session.",
+      "source": "Brief Section 1, 13; Fine_Finish_Doctrine §5.2",
+      "confidence": "high",
+      "impact": "Module structure must support both workflows. Prime module is conditional. Two variant round configs: with/without primer."
+    },
+    {
+      "finding_id": "RF-003",
+      "topic": "Substrate drives primer chemistry — 5 distinct primer paths",
+      "finding": "MDF cut/routed edges: solvent-based sealer (Zinsser BIN Shellac, KILZ Original) — water-based causes irreversible fiber swelling. MDF faces: high-build latex (BM Enamel Underbody 217). FJP: stain-blocking primer MANDATORY (BM Prime Lock Plus). Solid wood softwood: standard primer-sealer (Zinsser Bulls Eye 1-2-3). Solid wood hardwood: tannin-blocking primer (BM Prime Lock Plus, SW Extreme Block). MDF requires TWO-STEP prime: edge seal (solvent) then face prime (latex). Identical primer chemistry matrix to SF_WAINSCOT_PANEL_NC.",
+      "source": "Millwork_NC_Paint_Doctrine §2-4, Brief Section 11",
+      "confidence": "high",
+      "impact": "Materials Manager must include 5 substrate-driven primer systems. SOP must have substrate-conditional primer tasks. MDF edge sealing is a separate mandatory task before latex primer."
+    },
+    {
+      "finding_id": "RF-004",
+      "topic": "Wall style drives complexity modifier per Millwork Doctrine §7.2",
+      "finding": "Four wall styles with distinct production rate modifiers: flat_panel (1.0x — standard flat board or panel surface), shiplap (1.15x — overlapping horizontal boards with V-groove at each joint, many joints require attention to prevent holidays and runs in grooves), tongue_and_groove (1.10x — interlocking boards with tight joints, similar to shiplap but less groove detail), library_panel (1.25x — traditional panel system with rails, stiles, and panel fields, most complex with multiple profile changes). These map to Millwork Doctrine §7.2 complexity categories.",
+      "source": "Brief Section 3, 13; Millwork_NC_Paint_Doctrine §7.2",
+      "confidence": "high",
+      "impact": "wall_style is a configuration dimension driving production rate complexity modifier. Applied to all qt_scaled tasks."
+    },
+    {
+      "finding_id": "RF-005",
+      "topic": "No cap rail concept — wood wall meets ceiling directly",
+      "finding": "Unlike SF_WAINSCOT_PANEL_NC where the cap rail provides the transition between wainscot and the wall above, wood wall panels/boards extend floor-to-ceiling. The top junction is directly to the ceiling field (or to crown molding when present). This changes the protection zone from wall_adjacent (wainscot) to ceiling_line (wood wall). Crown molding, baseboard, and casings are all excluded — routed to SF_TRIM_NC_PAINT.",
+      "source": "Brief Section 2, 13",
+      "confidence": "high",
+      "impact": "Ceiling masking replaces wall masking for spray. No cap rail caulk junction — instead, caulk at wall-to-ceiling junction and wall-to-floor junction (perimeter caulk)."
+    },
+    {
+      "finding_id": "RF-006",
+      "topic": "MDF edge sealing is a non-negotiable two-step process",
+      "finding": "When substrate is MDF and substrate_state is SS_BARE, the SOP MUST include solvent-based edge sealing as a separate prep task BEFORE latex face primer. Water-based primer on raw MDF edges causes irreversible fiber swelling. This is the same constraint as in SF_WAINSCOT_PANEL_NC and SF_STAIR_RISER_NC — it is task-sequence critical, not just material selection.",
+      "source": "Millwork_NC_Paint_Doctrine §2.1, §3.1, §4.1; Brief Section 13",
+      "confidence": "high",
+      "impact": "SOP must enforce edge seal before face prime for bare MDF. Two separate tasks in prime module."
+    },
+    {
+      "finding_id": "RF-007",
+      "topic": "QT2 not applicable — wood walls are prominent millwork",
+      "finding": "Per Millwork Doctrine §6 and Fine Finish Doctrine: wood walls are prominent, scrutinized surfaces. QT2 is not applicable. Minimum quality tier is QT3. This is consistent with all millwork/fine finish specs. Wood walls are design features (accent walls, libraries, foyers) — they are always prominent and visible.",
+      "source": "Brief Section 3, Millwork_NC_Paint_Doctrine §6",
+      "confidence": "high",
+      "impact": "Spec configuration_dimensions must exclude QT2. Only QT3, QT4, QT5 valid."
+    },
+    {
+      "finding_id": "RF-008",
+      "topic": "Finish material systems — reuse existing SYS_FF_ IDs",
+      "finding": "Same SYS_FF_ finish systems as SF_TRIM_NC_PAINT, SF_WINDOW_INT_NC, SF_STAIR_RISER_NC, and SF_WAINSCOT_PANEL_NC. QT3: SYS_FF_STANDARD_ACRYLIC (100% acrylic enamel). QT4: SYS_FF_MODIFIED_URETHANE (waterborne alkyd). QT5: SYS_FF_PREMIUM (premium urethane enamel). Material systems are recommendations — contractor has discretion (RC-005). REUSE OVER CREATION — no new finish systems needed.",
+      "source": "Fine_Finish_Doctrine §3, Brief Section 11",
+      "confidence": "high",
+      "impact": "Reuse existing SYS_FF_ IDs. Same primer SYS_ IDs as wainscot. No new material systems needed."
+    },
+    {
+      "finding_id": "RF-009",
+      "topic": "Interstage is universal at ALL quality tiers",
+      "finding": "Same pattern as all fine finish specs. Interstage runs after every coat except the final coat. Sanding discipline: QT3=spot sand only (nibs, rough spots), QT4=full 220 grit, QT5=thorough 220-320 grit. Rigid sanding block mandatory for defect removal (FFD §15.4.1). On large flat wood wall areas, rigid block sanding is particularly effective for leveling brush marks.",
+      "source": "Fine_Finish_Doctrine §2.2, §5.3, §7",
+      "confidence": "high",
+      "impact": "Interstage module present at all QTs. Sanding discipline varies by QT."
+    },
+    {
+      "finding_id": "RF-010",
+      "topic": "Height varies — PS_META.HEIGHT_BAND applies unlike fixed H1 wainscot",
+      "finding": "Wood walls span floor to ceiling. Standard rooms are 8-9 ft (H1 = 1.0x), but great rooms, foyers, and stairwells may be 10-18+ ft requiring step ladders (H2 = 1.30x), extension ladders (H3 = 1.50x), or scaffolding (H4 = 2.00x). The height modifier is applied by the estimation engine via PS_META.HEIGHT_BAND, not as a spec config dimension. This is a KEY DISTINCTION from SF_WAINSCOT_PANEL_NC (always H1, 32-42 inches).",
+      "source": "Brief Section 3, 13; Modifier_Registry.md Height Modifiers",
+      "confidence": "high",
+      "impact": "No height dimension in spec. Height modifier applied by estimation engine per room. Production rate tasks must declare height_band sensitivity."
+    },
+    {
+      "finding_id": "RF-011",
+      "topic": "Spray technique varies by wall_style — large flat areas spray efficiently",
+      "finding": "Wood wall panels have large flat areas that spray efficiently. Spray technique varies by wall_style: shiplap/T&G — sweep horizontal passes following board direction, maintain consistent distance to avoid pooling in grooves, light back-brush on grooves if needed; flat_panel — broad sweep passes, straightforward; library_panel — field panels first (broad passes), then HVLP or fine-finish tip for frame detail (same technique as wainscot). When spraying, ceiling above must be masked at ceiling-wall junction.",
+      "source": "Brief Section 13",
+      "confidence": "high",
+      "impact": "Spray is default application method for NC production. Ceiling masking is a spray-conditional protection task."
+    },
+    {
+      "finding_id": "RF-012",
+      "topic": "Board joint caulking varies by wall_style",
+      "finding": "Caulking requirements vary significantly by wall_style: shiplap — ~1 joint per 6-8 inches of wall height, high joint density translates to significant caulk labor on large walls; T&G — joints are tighter and may not require caulking unless specified, when caulked similar density to shiplap; flat_panel/library_panel — caulk at panel-to-frame joints and perimeter junctions, similar pattern to wainscot. Additionally, perimeter caulk at wall-to-ceiling junction and wall-to-floor junction applies to ALL wall_styles. The caulk task uses SF as the UOM because joint density is a function of wall area and wall_style — the wall_style modifier captures the variation.",
+      "source": "Brief Section 13",
+      "confidence": "high",
+      "impact": "Multiple caulk task types in prep: board/panel joints (wall_style-driven density), wall-to-ceiling perimeter, wall-to-floor perimeter. UOM is SF for all caulk tasks."
+    },
+    {
+      "finding_id": "RF-013",
+      "topic": "Sheen/QT gate — no tension with defaults",
+      "finding": "Brief sets QT3 default and satin default. These are compatible per FFD §4.1: satin at QT3+, semi-gloss at QT4+, gloss at QT5 only. No tension exists — QT3+satin is a valid combination. Same as SF_WAINSCOT_PANEL_NC. Wood walls typically use satin for a softer appearance on large panel/board surfaces.",
+      "source": "Fine_Finish_Doctrine §4.1, Brief Section 3",
+      "confidence": "high",
+      "impact": "No runtime gate rejection. Satin default compatible with QT3 default."
+    },
+    {
+      "finding_id": "RF-014",
+      "topic": "Fastener hole filling — significant scope on board-style walls",
+      "finding": "Board-style wood walls (shiplap, T&G) are face-nailed or pneumatic-nailed with many fastener holes per board. A standard 8 ft wall with 6-inch boards has approximately 16 boards per wall width, each nailed at studs (typically 16 inches OC). This creates a high density of fastener holes requiring fill-sand-fill cycles. Library_panel and flat_panel styles have fewer fastener holes as internal framing is typically hidden. Per Materials_and_Consumables_Doctrine: NC trim fastener filling uses overfill-sand-flush method with HIGH waste factor — significantly higher spackle consumption than standard repaint.",
+      "source": "Materials_and_Consumables_Doctrine § Spackle, Brief Section 2",
+      "confidence": "high",
+      "impact": "Board-style walls have significantly more fastener fill labor than panel-style walls. The wall_style modifier partially captures this, but Materials Manager should note elevated spackle consumption."
+    }
+  ],
+
+  "condition_drivers": [
+    {
+      "driver_id": "CD-001",
+      "condition": "quality_tier",
+      "values": ["QT3", "QT4", "QT5"],
+      "affects": ["material_system_finish", "sheen_gate", "sanding_discipline", "inspection_scrutiny", "coat_count_at_qt5"],
+      "notes": "QT drives finish material system (recommendations), sheen restrictions, sanding between coats, inspection scrutiny. Does NOT drive primer selection (substrate-driven). Does NOT affect application quality baseline."
+    },
+    {
+      "driver_id": "CD-002",
+      "condition": "application_method",
+      "values": ["spray", "brush"],
+      "affects": ["protection_zones", "production_rates", "material_waste"],
+      "notes": "Spray is default for NC production — large flat wall areas spray efficiently. Brush for occupied spaces, small areas, or touch-up. Spray requires ceiling_line masking (not wall_adjacent like wainscot). Per FFD §15.1.1."
+    },
+    {
+      "driver_id": "CD-003",
+      "condition": "wall_style",
+      "values": ["flat_panel", "shiplap", "tongue_and_groove", "library_panel"],
+      "affects": ["production_rate_modifier", "caulk_joint_density", "fastener_hole_density", "spray_technique"],
+      "notes": "flat_panel=1.0x baseline, shiplap=1.15x (V-groove detail), tongue_and_groove=1.10x (tight joint), library_panel=1.25x (complex profile with rails/stiles). Modifiers from Millwork Doctrine §7.2 complexity categories. Shiplap and T&G are board styles with high joint density and fastener holes. Flat_panel and library_panel are panel assembly styles."
+    },
+    {
+      "driver_id": "CD-004",
+      "condition": "substrate_state",
+      "values": ["SS_BARE", "SS_PRIMED_FACTORY"],
+      "affects": ["primer_required", "prep_scope"],
+      "notes": "SS_BARE: full primer coat required (substrate-driven chemistry), heavier prep. SS_PRIMED_FACTORY: skip primer, scuff sand only. Standard NC delivery is factory-primed."
+    },
+    {
+      "driver_id": "CD-005",
+      "condition": "sheen",
+      "values": ["satin", "semi-gloss", "gloss"],
+      "affects": ["minimum_quality_tier", "output_state"],
+      "notes": "Sheen/QT gate per FFD §4.1: satin at QT3+, semi-gloss at QT4+, gloss at QT5 only. Satin is default (softer appearance on large wood wall surfaces)."
+    }
+  ],
+
+  "quality_differences": [
+    {
+      "aspect": "Material system (finish)",
+      "qt3": "SYS_FF_STANDARD_ACRYLIC — 100% acrylic enamel (ProClassic WB, Regal Select)",
+      "qt4": "SYS_FF_MODIFIED_URETHANE — waterborne alkyd (BM Advance, SW Pro Industrial WB Alkyd)",
+      "qt5": "SYS_FF_PREMIUM — premium urethane enamel (Emerald Urethane, Scuff-X)"
+    },
+    {
+      "aspect": "Between-coat sanding",
+      "qt3": "Spot sand only — visible nibs, rough spots",
+      "qt4": "Light full sand — 220 grit, entire surface for adhesion",
+      "qt5": "Thorough full sand — 220-320 grit, uniform scratch pattern"
+    },
+    {
+      "aspect": "Inspection scrutiny",
+      "qt3": "Quick glance at 6ft distance — obvious defects only",
+      "qt4": "Systematic scan at 3ft — all visible defects marked",
+      "qt5": "Lighted critical inspection at arm's length — zero tolerance"
+    },
+    {
+      "aspect": "Coat count",
+      "qt3": "2 finish coats",
+      "qt4": "2 finish coats",
+      "qt5": "2-3 finish coats (3+ typical for brush per FFD §15.10.3)"
+    },
+    {
+      "aspect": "Application quality",
+      "qt3": "Same baseline — no drips, sags, holidays, lap marks (NOT tiered)",
+      "qt4": "Same baseline (NOT tiered)",
+      "qt5": "Same baseline (NOT tiered)"
+    },
+    {
+      "aspect": "Prep thoroughness",
+      "qt3": "Fill obvious holes, functional caulk lines, light scuff sand",
+      "qt4": "Fill all visible holes, smooth caulk lines, full sand 180-220",
+      "qt5": "Fill every hole, perfect caulk, thorough sand 220+, uniform scratch"
+    }
+  ],
+
+  "failure_modes": [
+    {
+      "failure": "MDF fiber swelling on cut/routed edges",
+      "cause": "Applying water-based primer to raw MDF cut/routed edges before solvent-based sealer",
+      "prevention": "ALWAYS seal MDF edges with shellac-based (Zinsser BIN) or oil-based (KILZ Original) sealer FIRST. Two-step prime process for bare MDF. Per Millwork_NC_Paint_Doctrine §2.1 and §4.1.",
+      "severity": "critical",
+      "reversibility": "Difficult — requires sanding back to substrate, fiber swelling is irreversible without aggressive sanding"
+    },
+    {
+      "failure": "FJP resin bleed-through",
+      "cause": "Using non-stain-blocking primer on bare finger-joint pine",
+      "prevention": "ALWAYS use stain-blocking primer on bare FJP. BM Prime Lock Plus, BM Fresh Start oil-based, or Zinsser BIN Shellac. MANDATORY per Millwork Doctrine §2.2 and §4.1.",
+      "severity": "critical",
+      "reversibility": "Difficult — resin bleed re-emerges through multiple finish coats. Requires shellac-based primer to permanently block."
+    },
+    {
+      "failure": "Tannin bleed on hardwood panels",
+      "cause": "Using water-based primer without tannin-blocking properties on bare hardwood (oak, maple, cherry)",
+      "prevention": "ALWAYS use tannin-blocking primer on bare hardwood. BM Prime Lock Plus, SW Extreme Block, or shellac-based primer.",
+      "severity": "critical",
+      "reversibility": "Difficult — tannin bleed re-emerges through multiple finish coats. Requires stripping to bare wood and proper tannin-blocking primer."
+    },
+    {
+      "failure": "Shiplap/T&G groove holidays",
+      "cause": "Incomplete coverage in V-groove joints — spray passes too fast across grooves, brush misses groove bottoms",
+      "prevention": "Spray technique: maintain consistent distance, angle passes to reach groove bottoms. Brush technique: size brush to groove width, work coating into groove detail. Check all grooves for holidays before moving on. Back-brushing grooves after spray is recommended.",
+      "severity": "major",
+      "reversibility": "Easy — additional coat addresses holidays. Part of interstage inspection."
+    },
+    {
+      "failure": "Library panel detail holidays at frame-to-panel transitions",
+      "cause": "Incomplete coverage in panel profiles — brush/spray misses recessed areas at panel-to-frame transitions",
+      "prevention": "Spray technique: field panels first, then HVLP for frame detail. Brush technique: work panel-to-frame sequence. Check all recessed profiles for holidays before moving on.",
+      "severity": "major",
+      "reversibility": "Easy — additional coat addresses holidays. Part of interstage inspection."
+    },
+    {
+      "failure": "Shiplap/T&G groove fill — loss of groove definition",
+      "cause": "Excessive paint buildup in grooves, filling the V-groove profile and losing board definition",
+      "prevention": "Thin coats on board-style walls. Spray preferred — atomized application minimizes groove fill. If brushing, use brush sized to groove width. Avoid over-application. Multiple thin coats better than one heavy coat.",
+      "severity": "major",
+      "reversibility": "Moderate — requires careful sanding in grooves to restore definition, then recoat."
+    },
+    {
+      "failure": "Brush marks on large flat areas",
+      "cause": "Overworking waterborne product on large flat surfaces, inadequate open time management",
+      "prevention": "Waterborne philosophy (FFD §15.3.1): Apply, tip once, walk away. Use quality brush with proper loading. Roll and Tip methodology (FFD §15.6) on flat panels. Sand out marks between coats with rigid block. Large wood wall areas amplify this risk — work in manageable sections.",
+      "severity": "major",
+      "reversibility": "Addressable — sand between coats with rigid block and recoat"
+    },
+    {
+      "failure": "Board joint caulk failure — cracking at board-to-board joints",
+      "cause": "Wood movement and seasonal expansion/contraction in board-style walls. Shiplap boards move more than T&G due to less constraint at joints.",
+      "prevention": "Use quality paintable acrylic latex caulk. Apply after primer cure when possible. Proper joint width. Flexible caulk accommodates movement. Shiplap joints may not be caulked by design — V-groove is intentional.",
+      "severity": "minor",
+      "reversibility": "Easy — re-caulk and touch-up. Part of maintenance."
+    },
+    {
+      "failure": "Height-related drip accumulation on tall walls",
+      "cause": "Gravity causes paint to run and accumulate on lower portions of tall (12+ ft) walls during spray or heavy brush application",
+      "prevention": "Apply thinner coats on tall walls. For spray, maintain consistent distance and speed from top to bottom. For brush, watch for runs collecting on lower boards/panels. Back-check lower sections while upper sections are still wet.",
+      "severity": "major",
+      "reversibility": "Addressable — sand between coats and recoat. More difficult on tall walls due to access."
+    }
+  ],
+
+  "notes_for_materials_manager": [
+    {
+      "note_id": "MAT-001",
+      "topic": "Dual material system — substrate-driven primer, QT-driven finish",
+      "content": "This spec has TWO independent material system layers: (1) Primer systems are substrate-driven (MDF edge seal + face prime, FJP stain-blocking, hardwood tannin-blocking, softwood standard). (2) Finish systems are QT-driven (SYS_FF_STANDARD_ACRYLIC, SYS_FF_MODIFIED_URETHANE, SYS_FF_PREMIUM). Same pattern as SF_WAINSCOT_PANEL_NC, SF_STAIR_RISER_NC, and SF_WINDOW_INT_NC. All SYS_ IDs reused — no new material systems needed."
+    },
+    {
+      "note_id": "MAT-002",
+      "topic": "Primer selection by substrate — identical to wainscot",
+      "content": "MDF cut/routed edges: Solvent-based sealer (SYS_PRIMER_MDF_SHELLAC — Zinsser BIN Shellac, KILZ Original). MDF factory faces: High-build latex (SYS_PRIMER_MDF_LATEX — BM Enamel Underbody 217, ProClassic Undercoater). FJP: Stain-blocking primer MANDATORY (SYS_PRIMER_POPLAR_STAINBLOCK — BM Prime Lock Plus, BM Fresh Start oil-based). Softwood: Standard primer-sealer (SYS_PRIMER_WOOD_STANDARD — Zinsser Bulls Eye 1-2-3, KILZ 2). Hardwood: Tannin-blocking primer (SYS_PRIMER_HARDWOOD_TANNINBLOCK — BM Prime Lock Plus, SW Extreme Block). Factory-primed: No primer needed."
+    },
+    {
+      "note_id": "MAT-003",
+      "topic": "Finish material systems — reuse from all fine finish specs",
+      "content": "Same SYS_FF_ finish systems as all other fine finish specs. Material systems are recommendations — contractor has discretion (RC-005). QT3: SYS_FF_STANDARD_ACRYLIC, QT4: SYS_FF_MODIFIED_URETHANE, QT5: SYS_FF_PREMIUM."
+    },
+    {
+      "note_id": "MAT-004",
+      "topic": "Caulk for board joints and perimeter",
+      "content": "Paintable acrylic latex caulk for: (1) board-to-board joints — shiplap V-groove, T&G joints (when caulked), panel-to-frame joints (library_panel, flat_panel), (2) wall-to-ceiling junction perimeter, (3) wall-to-floor junction perimeter. Caulk quantity derived from wall SF — joint density varies by wall_style. Shiplap has highest joint density. Note: shiplap V-grooves are sometimes left uncaulked by design to preserve board definition."
+    },
+    {
+      "note_id": "MAT-005",
+      "topic": "Coverage rates for wood wall SF",
+      "content": "Wood wall is measured directly in SF. Typical coverage: 350-450 SF/gal for finish coat on primed smooth surface. Library_panel may consume ~10% more material due to increased surface area from 3D profile with rails and stiles. Shiplap/T&G groove detail also increases material consumption slightly (~5-10%) due to paint in grooves."
+    },
+    {
+      "note_id": "MAT-006",
+      "topic": "Sanding consumables vary by tier",
+      "content": "QT3: 220 grit for spot sanding only. QT4: 220 grit for full surface. QT5: 220-320 grit for full surface. Rigid sanding blocks mandatory for defect removal (FFD §15.4.1). Flexible sanding sponge acceptable for shiplap/T&G grooves and library_panel profiles. On large wall areas, pole sanders may be used for field work above H1 height."
+    },
+    {
+      "note_id": "MAT-007",
+      "topic": "Floor protection and ceiling masking materials",
+      "content": "Drop cloth runners at base of wood wall work area. Canvas drop cloths or builder's paper. For spray application: paper masking at ceiling-wall junction with tape line. Masking paper width per Protection_and_Masking_Doctrine: 12-18 inches from tape edge for ceiling_line zone."
+    },
+    {
+      "note_id": "MAT-008",
+      "topic": "Elevated spackle consumption for board-style walls",
+      "content": "Board-style wood walls (shiplap, T&G) have high fastener density — each board is nailed at every stud. Spackle consumption for fastener filling will be significantly higher than panel-style walls (flat_panel, library_panel) where internal framing is typically hidden. Per Materials_and_Consumables_Doctrine: NC fastener fill uses overfill-sand-flush method with HIGH waste factor."
+    }
+  ],
+
+  "notes_for_sop_librarian": [
+    {
+      "note_id": "SOP-001",
+      "topic": "Module structure is combined prime+paint with single SF UOM",
+      "content": "SETUP → PREP → [PRIME (conditional)] → FINISH_COAT_1 → INTERSTAGE → FINISH_COAT_2 → [INTERSTAGE → FINISH_COAT_3 at QT5 brush] → FINAL_INSPECT → CLEANUP. Prime module runs only when substrate_state = SS_BARE. Factory-primed substrates skip from prep to finish."
+    },
+    {
+      "note_id": "SOP-002",
+      "topic": "No canonical painting sequence — single paintable item",
+      "content": "Like SF_WAINSCOT_PANEL_NC, this spec has only ONE paintable item (ITM_WOOD_WALL_PANEL, SF). No component-level sequencing required. Spray technique within the wall varies by wall_style: shiplap/T&G — sweep horizontal passes following board direction; flat_panel — broad sweep passes; library_panel — field panels first, then frame detail."
+    },
+    {
+      "note_id": "SOP-003",
+      "topic": "Prep tasks vary by substrate type",
+      "content": "Bare MDF: sand faces 220, clean dust, fill fastener holes, caulk joints, MDF edge seal (separate mandatory task). Bare FJP: light sand 150-180, clean, fill, caulk. Bare softwood: sand 150-180, clean, fill, caulk. Bare hardwood: sand 150-220, clean, fill, caulk. Factory-primed: scuff sand 150-180, clean, fill, caulk."
+    },
+    {
+      "note_id": "SOP-004",
+      "topic": "Caulk joint types in prep — wall_style dependent",
+      "content": "Board styles (shiplap, T&G): (1) board-to-board joints (V-groove or tight joint — note shiplap grooves may be uncaulked by design), (2) wall-to-ceiling junction perimeter, (3) wall-to-floor junction perimeter. Panel styles (flat_panel, library_panel): (1) panel-to-frame joints (horizontal and vertical internal joints), (2) wall-to-ceiling junction perimeter, (3) wall-to-floor junction perimeter. All use paintable acrylic latex caulk. Caulk after fill and sand, before primer."
+    },
+    {
+      "note_id": "SOP-005",
+      "topic": "MDF edge sealing is a separate mandatory task",
+      "content": "For bare MDF: edge seal (solvent-based) MUST run BEFORE latex primer. Two-step prime: (1) TSK_WDWL_SEAL_MDF_EDGES, (2) TSK_WDWL_PRIME_FACES. Water-based primers cause irreversible fiber swelling on MDF edges. Same constraint as SF_WAINSCOT_PANEL_NC."
+    },
+    {
+      "note_id": "SOP-006",
+      "topic": "Task IDs use TSK_WDWL_ prefix",
+      "content": "All task IDs use the WDWL context prefix per brief. Examples: TSK_WDWL_FLOOR_PROTECT, TSK_WDWL_CEILING_MASK, TSK_WDWL_DUST_CLEAN, TSK_WDWL_SAND_PREP, TSK_WDWL_FILL_FASTENERS, TSK_WDWL_CAULK_JOINTS, TSK_WDWL_CAULK_PERIMETER, TSK_WDWL_SEAL_MDF_EDGES, TSK_WDWL_PRIME_FACES, TSK_WDWL_FINISH_COAT, TSK_WDWL_INTERSTAGE_SAND, TSK_WDWL_FINAL_INSPECT."
+    },
+    {
+      "note_id": "SOP-007",
+      "topic": "Interstage is universal at ALL quality tiers",
+      "content": "Interstage runs after every coat except the final coat. Tasks: clean area, inspect coat, sand (spot or full per QT), patch/repair defects, sand patches, spot coat. Scrutiny level is qt_scaled."
+    },
+    {
+      "note_id": "SOP-008",
+      "topic": "Ceiling masking is spray-conditional setup task",
+      "content": "When application_method=spray: paper masking at ceiling-wall junction to protect ceiling from overspray. Binary task — same at all QTs. Only applies to spray method. Uses ceiling_line zone (NOT wall_adjacent like wainscot). TSK_WDWL_CEILING_MASK and TSK_WDWL_REMOVE_CEILING_MASK."
+    },
+    {
+      "note_id": "SOP-009",
+      "topic": "QT5 brush may require 3+ coats",
+      "content": "At QT5 with brush application (especially semi-gloss/gloss), 3+ coats may be needed per FFD §15.10.3. Add additional FINISH_COAT + INTERSTAGE cycle as variant."
+    },
+    {
+      "note_id": "SOP-010",
+      "topic": "Height impacts task execution",
+      "content": "Unlike wainscot (always H1), wood wall height varies. Production rate tasks must be height-band sensitive — the estimation engine applies MOD_HT per room. At H2+ heights, tasks require access equipment (step ladder, extension ladder, scaffold). SOP should note that tall walls (12+ ft) may require back-checking lower sections for drip accumulation."
+    }
+  ],
+
+  "notes_for_estimation_engineer": [
+    {
+      "note_id": "EST-001",
+      "topic": "SF-based production rates",
+      "content": "All tasks use SF as the primary UOM. Production rates expressed in SF/hr. Wood wall SF directly from PaintScope input — no conversion needed."
+    },
+    {
+      "note_id": "EST-002",
+      "topic": "Production rate estimates from brief and doctrine",
+      "content": "Brief Section 13 provides rate guidance: Spray finish coat ~150-200 SF/hr (flat_panel, QT3). Brush finish coat ~60-80 SF/hr (flat_panel, QT3). QT4 multiplier ~0.80x on qt_scaled tasks. QT5 multiplier ~0.60x on qt_scaled tasks. These derive from Millwork Doctrine §7.1 trim rates adapted for panel/board SF."
+    },
+    {
+      "note_id": "EST-003",
+      "topic": "Wall style complexity modifier",
+      "content": "flat_panel=1.0x baseline, shiplap=1.15x (V-groove detail, many joints), tongue_and_groove=1.10x (tight joint detail), library_panel=1.25x (complex profile with rails/stiles). Apply to all qt_scaled tasks. Modifiers from Millwork Doctrine §7.2."
+    },
+    {
+      "note_id": "EST-004",
+      "topic": "Height modifier — varies per room (NOT fixed H1 like wainscot)",
+      "content": "Wood wall spans floor to ceiling. Height varies by room: H1=1.0x (8-9 ft, standard), H2=1.30x (9-12 ft, step ladder), H3=1.50x (13-17 ft, extension ladder/scaffold), H4=2.00x (18-24 ft, scaffold required). Applied by estimation engine via PS_META.HEIGHT_BAND per room. This is a KEY distinction from SF_WAINSCOT_PANEL_NC (always H1)."
+    },
+    {
+      "note_id": "EST-005",
+      "topic": "QT modifiers for inspection/repair tasks",
+      "content": "QT3=1.00, QT4=1.30, QT5=1.50. Apply to inspection, repair, and sanding tasks. Do NOT apply to application rate — application quality is the same at all tiers."
+    },
+    {
+      "note_id": "EST-006",
+      "topic": "Application method impact on rates",
+      "content": "Spray is significantly faster than brush on large flat wall areas (~2-3x for flat_panel). The gap narrows for library_panel where detail work is required regardless of method. Shiplap/T&G spray efficiency is high on board faces but grooves require attention."
+    },
+    {
+      "note_id": "EST-007",
+      "topic": "Interstage tasks use SF (not FIXED)",
+      "content": "Wood wall area varies significantly between rooms (small accent wall 40 SF vs great room wall 200+ SF) and between rooms of different heights. Interstage tasks must use SF as UOM — same rationale as SF_WAINSCOT_PANEL_NC where interstage is SF-based because wainscot area varies."
+    }
+  ],
+
+  "inherited_research_corrections": [
+    {
+      "id": "RC-004",
+      "title": "Do not specify dry times in specs",
+      "source": "SF_DRYWALL_WALL_NC_PRIME research",
+      "impact": "No dry time references in materials or sop_modules — refer to PDS"
+    },
+    {
+      "id": "RC-005",
+      "title": "Material systems are recommendations, not mandates",
+      "source": "SF_TRIM_NC_PAINT research",
+      "impact": "Finish material systems are QT-driven recommendations — contractor has discretion"
+    },
+    {
+      "id": "RC-006",
+      "title": "Advance is waterborne alkyd; Emerald Urethane is acrylic-urethane enamel",
+      "source": "SF_TRIM_NC_PAINT research",
+      "impact": "Correct product classification in materials.json"
+    }
+  ],
+
+  "assumptions": [
+    {
+      "assumption_id": "A-001",
+      "field": "wood_wall_spray_production_rate",
+      "value": "Spray finish coat ~150-200 SF/hr for flat_panel at QT3",
+      "source": "Brief Section 13 — derived from trim rates and panel SF adaptation",
+      "doctrine_gap": true,
+      "note": "No doctrine provides wood wall-specific SF production rates. Brief provides estimated ranges derived from trim LF rates. Same assumption as SF_WAINSCOT_PANEL_NC. Field validation recommended."
+    },
+    {
+      "assumption_id": "A-002",
+      "field": "wood_wall_brush_production_rate",
+      "value": "Brush finish coat ~60-80 SF/hr for flat_panel at QT3",
+      "source": "Brief Section 13 — derived from trim rates",
+      "doctrine_gap": true,
+      "note": "No doctrine provides wood wall-specific brush SF rates. Estimates reasonable given trim brush rates of 80 LF/hr (Millwork Doctrine §7.1)."
+    },
+    {
+      "assumption_id": "A-003",
+      "field": "shiplap_modifier",
+      "value": "1.15x complexity modifier for shiplap wood wall",
+      "source": "Brief Section 13 Q2 (RESOLVED); Millwork Doctrine §7.2",
+      "doctrine_gap": true,
+      "note": "Millwork Doctrine §7.2 has standard (1.0x) and complex (1.25x) modifiers. Shiplap at 1.15x is between these two categories — not explicitly named in doctrine for wall surfaces. Reasonable interpolation based on groove detail complexity."
+    },
+    {
+      "assumption_id": "A-004",
+      "field": "tongue_and_groove_modifier",
+      "value": "1.10x complexity modifier for tongue-and-groove wood wall",
+      "source": "Brief Section 13 Q2 (RESOLVED)",
+      "doctrine_gap": true,
+      "note": "Millwork Doctrine §7.2 does not explicitly list T&G wall modifier. 1.10x is between standard (1.0x) and shiplap (1.15x) — T&G has tighter joints with less groove detail than shiplap. Reasonable interpolation."
+    },
+    {
+      "assumption_id": "A-005",
+      "field": "board_joint_caulk_density",
+      "value": "Board joint density per SF varies by wall_style — shiplap has highest density (~1.5+ LF of joints per SF for 6-inch boards on 8 ft wall)",
+      "source": "Research estimate based on typical board dimensions",
+      "doctrine_gap": true,
+      "note": "No doctrine defines board joint density for wood wall styles. Caulk consumption should be estimated per wall SF with wall_style modifier applied."
+    }
+  ],
+
+  "uncertainties": [
+    {
+      "uncertainty_id": "U-001",
+      "topic": "PS_SURFACE_SF.WOOD_WALL key activation status",
+      "description": "No existing PaintScope key covers full-height wood wall surfaces. PS_SURFACE_SF.WALL_FIELD is for drywall. PS_SURFACE_SF.WAINSCOTING is for partial-height wainscot. Proposed PS_SURFACE_SF.WOOD_WALL as a new key.",
+      "current_approach": "Proposed as new key in proposed_new_keys. Proceeding with assumption it will be activated.",
+      "resolution_needed": false
+    },
+    {
+      "uncertainty_id": "U-002",
+      "topic": "Shiplap V-groove caulking — design intent vs paint prep",
+      "description": "Shiplap V-grooves may be intentionally left uncaulked to preserve the board-line aesthetic. Caulking all grooves would fill and smooth the distinctive shiplap pattern. However, some painters caulk grooves for a cleaner painted finish. This is a design/aesthetic decision, not a paint standard.",
+      "current_approach": "Include caulk task for board joints but note that shiplap groove caulking is optional per design intent. The wall_style modifier already captures groove detail labor regardless of caulking.",
+      "resolution_needed": false
+    },
+    {
+      "uncertainty_id": "U-003",
+      "topic": "Library panel material consumption increase",
+      "description": "Library panels have more surface area than flat panels due to 3D profile with rails and stiles. Actual increase depends on profile depth and complexity. Estimated ~10% more material consumption. Same uncertainty as raised_panel in wainscot.",
+      "current_approach": "Flagged for Materials Manager to factor into coverage rates.",
+      "resolution_needed": false
+    },
+    {
+      "uncertainty_id": "U-004",
+      "topic": "Height modifier interaction with wall_style modifier",
+      "description": "On tall walls (H2+), the combination of height modifier and wall_style modifier may over-estimate or under-estimate labor for certain styles. For example, spraying a tall shiplap wall may not be 1.15x * 1.30x = 1.495x slower if the spray technique for tall walls is similar to short walls. However, this interaction is standard modifier stacking per Estimation_Modifiers_Doctrine and should be validated with field data.",
+      "current_approach": "Standard multiplicative stacking per doctrine. No special interaction handling.",
+      "resolution_needed": false
+    }
+  ],
+
+  "doctrine_conflicts": [],
+
+  "research_corrections": [],
+
+  "pending_doctrine_updates": [],
+
+  "confidence_level": "high"
+}

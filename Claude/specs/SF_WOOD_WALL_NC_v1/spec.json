@@ -1,0 +1,536 @@
+{
+  "spec_family": {
+    "id": "SF_WOOD_WALL_NC",
+    "name": "New Construction Wood Wall Panel/Board System Painting",
+    "description": "Combined prime+paint spec for full-height wood wall panel and board surfaces in new construction. Covers the entire wood wall surface as a single SF-based item (ITM_WOOD_WALL_PANEL): panels or boards, internal rails/stiles (library_panel), joint detail (shiplap/T&G), and applied molding. Wall_style (flat_panel, shiplap, tongue_and_groove, library_panel) drives production rate complexity modifier. Height varies per room (PS_META.HEIGHT_BAND) -- key distinction from SF_WAINSCOT_PANEL_NC (always H1). Substrate-driven primer selection for bare substrates; primer conditional on substrate_state (SS_BARE requires primer, SS_PRIMED_FACTORY skips to finish). QT-driven finish systems: SYS_FF_STANDARD_ACRYLIC (QT3), SYS_FF_MODIFIED_URETHANE (QT4), SYS_FF_PREMIUM (QT5). No cap rail -- wood wall meets ceiling directly. Crown molding, baseboard, and casings excluded -- handled by SF_TRIM_NC_PAINT. Material systems are QT-driven recommendations -- contractor retains discretion.",
+    "domain": "interior",
+    "version": "0.1.0",
+    "status": "draft",
+    "review_required": true
+  },
+
+  "scope_boundaries": {
+    "includes": [
+      "Wood wall surface priming and painting (4 styles: flat_panel, shiplap, tongue_and_groove, library_panel)",
+      "Surface prep per substrate (sanding, dust removal, MDF edge sealing)",
+      "Fastener hole filling and sanding (elevated density on board-style walls)",
+      "Board-to-board or panel-to-frame internal joint caulking",
+      "Perimeter caulking at wall-to-ceiling and wall-to-floor junctions",
+      "MDF edge sealing with solvent-based sealer (bare MDF only -- step 1 of two-step prime)",
+      "Primer coat -- conditional on substrate_state = SS_BARE",
+      "Finish coat application (spray or brush) -- 2 coats standard, 3+ at QT5 brush per FFD SS15.10.3",
+      "Between-coat interstage process (inspect, sand, repair, clean) at ALL quality tiers",
+      "Floor protection at wood wall work zone base",
+      "Ceiling masking at wall-ceiling junction (spray method only)",
+      "Final inspection and touch-up",
+      "Protection teardown and cleanup"
+    ],
+    "excludes": [
+      {
+        "item": "Crown molding at ceiling line -- LF-based trim item",
+        "route_to": "SF_TRIM_NC_PAINT (ITM_TRIM_CROWN)"
+      },
+      {
+        "item": "Baseboard at floor line -- LF-based trim item",
+        "route_to": "SF_TRIM_NC_PAINT (ITM_TRIM_BASEBOARD)"
+      },
+      {
+        "item": "Door casings within wood wall surface",
+        "route_to": "SF_TRIM_NC_PAINT / SF_DOOR_FRAME_NC_FINISH"
+      },
+      {
+        "item": "Window casings within wood wall surface",
+        "route_to": "SF_TRIM_NC_PAINT / SF_WINDOW_INT_NC"
+      },
+      {
+        "item": "Ceiling field above wood wall",
+        "route_to": "SF_DRYWALL_CEILING_NC_FINISH"
+      },
+      {
+        "item": "Adjacent drywall wall at transitions",
+        "route_to": "SF_DRYWALL_WALL_NC_FINISH"
+      },
+      {
+        "item": "Wainscot (partial-height panel system below cap rail)",
+        "route_to": "SF_WAINSCOT_PANEL_NC"
+      }
+    ]
+  },
+
+  "configuration_dimensions": [
+    {
+      "dimension_id": "quality_tier",
+      "description": "Quality tier controlling inspection scrutiny, sanding discipline, repair scope, and coat count. Does NOT affect application quality (binary at all tiers). Does NOT drive primer selection (substrate-driven).",
+      "values": ["QT3", "QT4", "QT5"],
+      "default": "QT3",
+      "prohibited": ["QT2"],
+      "notes": "QT2 not applicable -- wood walls are prominent, scrutinized millwork per Millwork Doctrine SS6. QT3=standard production. QT4=premium (full sand, systematic inspect). QT5=superior (thorough sand, critical inspect, 3+ coats brush). Sheen/QT gate enforced at runtime."
+    },
+    {
+      "dimension_id": "application_method",
+      "description": "Primary application technique for primer and finish coats.",
+      "values": ["spray", "brush"],
+      "default": "spray",
+      "notes": "Spray preferred for NC production -- large flat wall areas spray efficiently. Brush for occupied spaces, small areas, or touch-up. Spray requires ceiling masking at wall-ceiling junction."
+    },
+    {
+      "dimension_id": "wall_style",
+      "description": "Wood wall construction type. Drives production rate complexity modifier.",
+      "values": ["flat_panel", "shiplap", "tongue_and_groove", "library_panel"],
+      "default": "flat_panel",
+      "modifiers": {
+        "flat_panel": 1.0,
+        "shiplap": 1.15,
+        "tongue_and_groove": 1.10,
+        "library_panel": 1.25
+      },
+      "notes": "flat_panel=baseline (standard flat panels or simple board surface). shiplap=1.15x time modifier (overlapping horizontal boards with V-groove detail at each joint, many joints require attention). tongue_and_groove=1.10x (interlocking boards with tight joints, less groove detail than shiplap). library_panel=1.25x (traditional panel system with rails, stiles, and panel fields -- most complex with multiple profile changes). Modifiers from Millwork Doctrine SS7.2 complexity categories. Shiplap 1.15x and T&G 1.10x are interpolated (doctrine has standard 1.0x and complex 1.25x)."
+    },
+    {
+      "dimension_id": "sheen",
+      "description": "Finish sheen. Constrained by quality tier gate.",
+      "values": ["satin", "semi-gloss", "gloss"],
+      "default": "satin",
+      "sheen_qt_gate": {
+        "satin": ["QT3", "QT4", "QT5"],
+        "semi-gloss": ["QT4", "QT5"],
+        "gloss": ["QT5"]
+      },
+      "notes": "Satin default for softer appearance on large wood wall surfaces. QT3+satin is a compatible default (no tension). Semi-gloss available at QT4+. Gloss at QT5 only."
+    },
+    {
+      "dimension_id": "substrate_state",
+      "description": "Input substrate condition. Drives primer requirement and prep scope.",
+      "values": ["SS_BARE", "SS_PRIMED_FACTORY"],
+      "default": "SS_PRIMED_FACTORY",
+      "notes": "SS_BARE: full primer coat required (substrate-driven chemistry), heavier prep (full sand). SS_PRIMED_FACTORY: skip primer, lighter prep (scuff sand only). Standard NC wood wall panels/boards arrive pre-primed from mill."
+    }
+  ],
+
+  "paintable_items": [
+    {
+      "item_id": "ITM_WOOD_WALL_PANEL",
+      "name": "Wood wall panel/board surface",
+      "unit_of_measure": "SF",
+      "counting_rules": "Measure total SF of wood wall surface from floor to ceiling. Includes board faces and joint detail (shiplap, T&G) or panels, internal rails/stiles, and applied molding (flat_panel, library_panel). Measured as total wall area covered by wood surface. Sourced from PaintScope input PS_SURFACE_SF.WOOD_WALL. Internal complexity captured by wall_style modifier -- no separate LF item for framing.",
+      "notes": "Single SF item for entire wood wall surface. Height varies per room -- estimation engine applies height modifier via PS_META.HEIGHT_BAND. Key distinction from SF_WAINSCOT_PANEL_NC (always H1, 32-42 inches). Library_panel adds ~10% effective surface area over measured wall SF due to 3D profile. Shiplap/T&G groove detail adds ~5-10% effective surface area."
+    }
+  ],
+
+  "variants": [
+    {
+      "variant_id": "VAR_FACTORY_QT3_SPRAY_SATIN",
+      "applies_when": {
+        "substrate_state": ["SS_PRIMED_FACTORY"],
+        "quality_tier": ["QT3"],
+        "application_method": ["spray"],
+        "sheen": ["satin"]
+      },
+      "coats_primer": 0,
+      "coats_finish": 2,
+      "round_id": "ROUND_WDWL_2FINISH",
+      "protection_zones": ["floor_perimeter", "ceiling_line"],
+      "notes": "Most common NC scenario. Factory-primed, standard spray production. No primer -- scuff sand then 2 finish coats. Fastest production variant."
+    },
+    {
+      "variant_id": "VAR_FACTORY_QT4_SPRAY_SEMIGLOSS",
+      "applies_when": {
+        "substrate_state": ["SS_PRIMED_FACTORY"],
+        "quality_tier": ["QT4"],
+        "application_method": ["spray"],
+        "sheen": ["semi-gloss"]
+      },
+      "coats_primer": 0,
+      "coats_finish": 2,
+      "round_id": "ROUND_WDWL_2FINISH",
+      "protection_zones": ["floor_perimeter", "ceiling_line"],
+      "notes": "Factory-primed, premium spray. Full protection."
+    },
+    {
+      "variant_id": "VAR_FACTORY_QT5_SPRAY_SEMIGLOSS",
+      "applies_when": {
+        "substrate_state": ["SS_PRIMED_FACTORY"],
+        "quality_tier": ["QT5"],
+        "application_method": ["spray"],
+        "sheen": ["semi-gloss"]
+      },
+      "coats_primer": 0,
+      "coats_finish": 2,
+      "round_id": "ROUND_WDWL_2FINISH",
+      "protection_zones": ["floor_perimeter", "ceiling_line"],
+      "notes": "Factory-primed, superior spray. QT5 spray uses 2 coats (not 3). Full protection."
+    },
+    {
+      "variant_id": "VAR_FACTORY_QT3_BRUSH_SATIN",
+      "applies_when": {
+        "substrate_state": ["SS_PRIMED_FACTORY"],
+        "quality_tier": ["QT3"],
+        "application_method": ["brush"],
+        "sheen": ["satin"]
+      },
+      "coats_primer": 0,
+      "coats_finish": 2,
+      "round_id": "ROUND_WDWL_2FINISH",
+      "protection_zones": ["floor_perimeter"],
+      "notes": "Factory-primed, standard brush. No ceiling masking needed. 2 finish coats."
+    },
+    {
+      "variant_id": "VAR_FACTORY_QT4_BRUSH_SEMIGLOSS",
+      "applies_when": {
+        "substrate_state": ["SS_PRIMED_FACTORY"],
+        "quality_tier": ["QT4"],
+        "application_method": ["brush"],
+        "sheen": ["semi-gloss"]
+      },
+      "coats_primer": 0,
+      "coats_finish": 2,
+      "round_id": "ROUND_WDWL_2FINISH",
+      "protection_zones": ["floor_perimeter"],
+      "notes": "Factory-primed, premium brush. 2 finish coats."
+    },
+    {
+      "variant_id": "VAR_FACTORY_QT5_BRUSH_GLOSS",
+      "applies_when": {
+        "substrate_state": ["SS_PRIMED_FACTORY"],
+        "quality_tier": ["QT5"],
+        "application_method": ["brush"],
+        "sheen": ["gloss"]
+      },
+      "coats_primer": 0,
+      "coats_finish": 3,
+      "round_id": "ROUND_WDWL_3FINISH",
+      "protection_zones": ["floor_perimeter"],
+      "notes": "Factory-primed, superior brush with gloss. 3 finish coats per FFD SS15.10.3."
+    },
+    {
+      "variant_id": "VAR_BARE_QT3_SPRAY_SATIN",
+      "applies_when": {
+        "substrate_state": ["SS_BARE"],
+        "quality_tier": ["QT3"],
+        "application_method": ["spray"],
+        "sheen": ["satin"]
+      },
+      "coats_primer": 1,
+      "coats_finish": 2,
+      "round_id": "ROUND_WDWL_PRIME_2FINISH",
+      "protection_zones": ["floor_perimeter", "ceiling_line"],
+      "notes": "Bare substrate, standard spray. Primer + 2 finish coats. Full protection."
+    },
+    {
+      "variant_id": "VAR_BARE_QT4_SPRAY_SEMIGLOSS",
+      "applies_when": {
+        "substrate_state": ["SS_BARE"],
+        "quality_tier": ["QT4"],
+        "application_method": ["spray"],
+        "sheen": ["semi-gloss"]
+      },
+      "coats_primer": 1,
+      "coats_finish": 2,
+      "round_id": "ROUND_WDWL_PRIME_2FINISH",
+      "protection_zones": ["floor_perimeter", "ceiling_line"],
+      "notes": "Bare substrate, premium spray. Primer + 2 finish coats."
+    },
+    {
+      "variant_id": "VAR_BARE_QT5_BRUSH_GLOSS",
+      "applies_when": {
+        "substrate_state": ["SS_BARE"],
+        "quality_tier": ["QT5"],
+        "application_method": ["brush"],
+        "sheen": ["gloss"]
+      },
+      "coats_primer": 1,
+      "coats_finish": 3,
+      "round_id": "ROUND_WDWL_3FINISH",
+      "protection_zones": ["floor_perimeter"],
+      "notes": "Bare substrate, superior brush with gloss. Primer + 3 finish coats. 4 total coats, 3 interstage cycles."
+    }
+  ],
+
+  "required_paintscope_inputs": [
+    {
+      "input_name": "IN_SF_WOOD_WALL",
+      "paintscope_key": "PS_SURFACE_SF.WOOD_WALL",
+      "uom": "SF",
+      "required": true,
+      "description": "Total SF of wood paneled wall surface from floor to ceiling. Includes board faces and joint detail (shiplap, T&G) or panels, internal rails/stiles, and applied molding (flat_panel, library_panel).",
+      "status": "proposed"
+    },
+    {
+      "input_name": "IN_EA_ROOMS_TOTAL",
+      "paintscope_key": "PS_META.EA.ROOMS_TOTAL",
+      "uom": "EA",
+      "required": true,
+      "description": "Room count for setup/cleanup operations.",
+      "status": "existing"
+    },
+    {
+      "input_name": "IN_SF_PROTECT_FLOOR_PERIMETER",
+      "paintscope_key": "PS_PROTECT_SF.FLOOR_PERIMETER",
+      "uom": "SF",
+      "required": true,
+      "description": "Floor protection area at wood wall work zone base. Drop cloth runners.",
+      "status": "existing"
+    },
+    {
+      "input_name": "IN_LF_PROTECT_CEILING_LINE",
+      "paintscope_key": "PS_PROTECT_LF.CEILING_LINE",
+      "uom": "LF",
+      "required": false,
+      "required_when": "application_method = spray",
+      "description": "Ceiling masking LF at ceiling-wall junction for spray method.",
+      "status": "proposed"
+    },
+    {
+      "input_name": "IN_SF_FLOOR_VACUUM_AREA",
+      "paintscope_key": "PS_META.SF.FLOOR_VACUUM_AREA",
+      "uom": "SF",
+      "required": true,
+      "description": "Post-work vacuum cleanup area.",
+      "status": "existing"
+    },
+    {
+      "input_name": "IN_ENUM_HEIGHT_BAND",
+      "paintscope_key": "PS_META.HEIGHT_BAND",
+      "uom": "ENUM",
+      "required": true,
+      "description": "Height classification for modifier selection -- wood wall height varies by room. Values: STD (0-8 ft), STEP (9-12 ft), EXT (13-17 ft), SCAFFOLD (18-24 ft).",
+      "status": "proposed"
+    }
+  ],
+
+  "protection_zones_required": [
+    {
+      "zone_id": "floor_perimeter",
+      "condition": "always",
+      "protection_level": "edge_only",
+      "notes": "Canvas drop cloth runners at base of wood wall work area. Wood wall is floor-to-ceiling -- drips from brush/spray and sanding dust are the primary concern. Always required regardless of application method."
+    },
+    {
+      "zone_id": "ceiling_line",
+      "condition": { "application_method": ["spray"] },
+      "protection_level": "light_mask",
+      "notes": "Paper + tape masking at ceiling-wall junction to protect ceiling from overspray. Spray method only. Key distinction from wainscot: wood wall meets ceiling directly (no cap rail), so ceiling_line zone replaces wall_adjacent zone."
+    }
+  ],
+
+  "adjacency_declarations": {
+    "primary_surface": "wall_panel",
+    "adjacent_surfaces": [
+      {
+        "surface_id": "ceiling_field",
+        "edge_type": "linear",
+        "typical_relationship": "different_finish",
+        "continuity_rate_modifier": 1.0,
+        "affected_tasks": ["TSK_WDWL_CEILING_MASK", "TSK_WDWL_REMOVE_CEILING_MASK"],
+        "notes": "Ceiling field directly above wood wall. Different finish -- ceiling paint (flat) vs millwork enamel (satin/semi-gloss). Direct junction at ceiling-wall line. No cap rail intermediary (key distinction from wainscot). When spraying, ceiling must be masked at this junction."
+      },
+      {
+        "surface_id": "trim_baseboard",
+        "edge_type": "linear",
+        "typical_relationship": "same_finish",
+        "continuity_rate_modifier": 1.15,
+        "affected_tasks": [],
+        "notes": "Standard baseboard at floor line below wood wall. Often same finish group -- baseboard and wood wall share color/sheen. Baseboard handled by SF_TRIM_NC_PAINT (ITM_TRIM_BASEBOARD)."
+      },
+      {
+        "surface_id": "trim_crown",
+        "edge_type": "linear",
+        "typical_relationship": "same_finish",
+        "continuity_rate_modifier": 1.15,
+        "affected_tasks": [],
+        "notes": "Crown molding at ceiling line when present. Often same finish group as wood wall -- both are millwork, typically same color/sheen. Crown handled by SF_TRIM_NC_PAINT (ITM_TRIM_CROWN). When crown is present, it provides the ceiling junction instead of a direct wall-to-ceiling meeting."
+      },
+      {
+        "surface_id": "trim_casing_door",
+        "edge_type": "complex",
+        "typical_relationship": "same_finish",
+        "continuity_rate_modifier": 1.0,
+        "affected_tasks": [],
+        "notes": "Wood wall meets door casing where both present in same wall. Complex intersection -- wood wall panels/boards terminate at casing edge. Typically same finish group (both millwork enamel)."
+      },
+      {
+        "surface_id": "trim_casing_window",
+        "edge_type": "complex",
+        "typical_relationship": "same_finish",
+        "continuity_rate_modifier": 1.0,
+        "affected_tasks": [],
+        "notes": "Wood wall meets window casing where windows are within the wall surface. Complex intersection similar to door casing. Typically same finish group."
+      },
+      {
+        "surface_id": "wall_field",
+        "edge_type": "linear",
+        "typical_relationship": "different_finish",
+        "continuity_rate_modifier": 1.0,
+        "affected_tasks": [],
+        "notes": "Adjacent drywall wall field where wood wall meets non-wood wall at inside corner or transition. Different finish -- wood wall enamel (satin/semi-gloss) meets drywall wall paint (flat/eggshell). Junction at vertical corner."
+      }
+    ]
+  },
+
+  "state_declarations": {
+    "primary_surface": "wall_panel",
+
+    "valid_input_states": {
+      "states": ["SS_BARE", "SS_PRIMED_FACTORY"],
+      "notes": "Combined prime+paint spec. SS_BARE requires full primer coat (substrate-driven chemistry). SS_PRIMED_FACTORY skips primer -- lighter prep only. Standard NC delivery is factory-primed."
+    },
+
+    "output_state": {
+      "state": "SS_PAINTED_SATIN",
+      "varies_by": "sheen",
+      "state_map": {
+        "satin": "SS_PAINTED_SATIN",
+        "semi-gloss": "SS_PAINTED_SEMIGLOSS",
+        "gloss": "SS_PAINTED_GLOSS"
+      },
+      "notes": "Output state varies by sheen dimension. Satin is default."
+    },
+
+    "adjacent_state_protection_rules": [
+      {
+        "adjacent_surface": "ceiling_field",
+        "when_state": ["SS_BARE", "SS_PRIMED_FIELD"],
+        "protection_zone": null,
+        "protection_level": "none",
+        "applies_when": { "application_method": ["brush"] },
+        "notes": "Unfinished ceiling needs no protection during brush application. Typical NC scenario -- ceiling may still be bare when wood wall is painted."
+      },
+      {
+        "adjacent_surface": "ceiling_field",
+        "when_state": ["SS_BARE", "SS_PRIMED_FIELD"],
+        "protection_zone": "ceiling_line",
+        "protection_level": "light_mask",
+        "applies_when": { "application_method": ["spray"] },
+        "notes": "Spray method requires ceiling masking even on unfinished ceilings to prevent overspray."
+      },
+      {
+        "adjacent_surface": "ceiling_field",
+        "when_state": ["SS_PAINTED_FLAT", "SS_PAINTED_EGGSHELL", "SS_PAINTED_SATIN"],
+        "protection_zone": "ceiling_line",
+        "protection_level": "light_mask",
+        "applies_when": { "application_method": ["brush", "spray"] },
+        "notes": "When ceiling is finished (SS_PAINTED_*), ceiling masking at junction required for BOTH methods."
+      }
+    ]
+  },
+
+  "site_condition_rules": [
+    {
+      "condition_id": "floor_type",
+      "vocabulary_ref": "Site_Condition_Vocabulary_Reference.md SS floor_type",
+      "include_when": ["finished", "partial"],
+      "exclude_when": ["subfloor"],
+      "affected_tasks": ["TSK_WDWL_FLOOR_PROTECT", "TSK_WDWL_REMOVE_FLOOR_PROTECT"],
+      "effect": "Floor protection excluded when floor is subfloor.",
+      "notes": "NC may have subfloor during wood wall painting. Finished/partial floors require drop cloth runners."
+    },
+    {
+      "condition_id": "occupancy_state",
+      "vocabulary_ref": "Site_Condition_Vocabulary_Reference.md SS occupancy_state",
+      "include_when": ["occupied_crew_handles", "occupied_sensitive"],
+      "affected_tasks": ["TSK_WDWL_FLOOR_PROTECT"],
+      "effect": "Additional protection when occupied.",
+      "notes": "Rare in NC. Occupied sensitive triggers OCC_SENSITIVE modifier 1.30x on protection tasks per Modifier_Registry."
+    },
+    {
+      "condition_id": "temperature_condition",
+      "vocabulary_ref": "Site_Condition_Vocabulary_Reference.md SS temperature_condition",
+      "include_when": ["cold_below_50f", "hot_above_90f"],
+      "affected_tasks": ["TSK_WDWL_PRIME_FACES", "TSK_WDWL_SPRAY_FINISH", "TSK_WDWL_BRUSH_FINISH"],
+      "effect": "Temperature affects dry times, open time, and flow-out. Particularly impacts waterborne alkyd at QT4+ which relies on extended open time. Large wood wall surfaces (potentially 100+ SF per wall) amplify temperature sensitivity -- material open time is critical when spraying large contiguous areas.",
+      "notes": "Refer to manufacturer PDS for temperature limits."
+    },
+    {
+      "condition_id": "ventilation_condition",
+      "vocabulary_ref": "Site_Condition_Vocabulary_Reference.md SS ventilation_condition",
+      "include_when": ["poor"],
+      "affected_tasks": ["TSK_WDWL_SEAL_MDF_EDGES", "TSK_WDWL_SPRAY_FINISH"],
+      "effect": "MDF edge sealing uses solvent-based products -- adequate ventilation required. Spray generates overspray requiring air movement. Poor ventilation extends dry times for all coats.",
+      "notes": "Particularly relevant for enclosed rooms (libraries, studies) where wood walls are common."
+    }
+  ],
+
+  "sequencing_notes": {
+    "production_sequence": "Wood wall painting is part of the millwork/trim package in NC. Typical project sequence: Prime ceilings > Prime walls > Finish ceilings > Trim/wood wall/window package > Wall finish. Wood wall pairs with SF_TRIM_NC_PAINT for shared finish group (baseboard, crown, casings often same color/sheen).",
+    "internal_sequence": "Single paintable item -- no internal component sequencing needed. Spray technique within wall varies by wall_style: shiplap/T&G -- sweep horizontal passes following board direction. flat_panel -- broad sweep passes. library_panel -- field panels first (broad passes), then HVLP or fine-finish tip for frame detail.",
+    "protection_sequence": "Floor protection > Ceiling masking (spray) > Apply coats > Teardown ceiling mask > Teardown floor drops > Vacuum.",
+    "coat_sequence": "Prep (substrate-specific) > [MDF edge seal if bare MDF] > [Primer (conditional on SS_BARE)] > [Interstage] > Finish coat 1 > Interstage > Finish coat 2 > [QT5 brush: Interstage > Finish coat 3] > Final inspect > Cleanup"
+  },
+
+  "relationships": {
+    "companion_specs": ["SF_TRIM_NC_PAINT", "SF_TRIM_NC_PRIME"],
+    "shares_finish_group_with": ["SF_TRIM_NC_PAINT", "SF_DOOR_FRAME_NC_FINISH"],
+    "typical_after": ["SF_DRYWALL_WALL_NC_PRIME", "SF_DRYWALL_CEILING_NC_PRIME"],
+    "typical_before": ["SF_DRYWALL_WALL_NC_FINISH"],
+    "notes": "Wood wall painting is part of the trim package in NC. Same crew, same material system, same session as other trim. Baseboard, crown, and casings typically painted in same session as wood wall panels. No cap rail concept -- unlike wainscot. Crown molding (when present) provides the ceiling junction intermediary."
+  },
+
+  "dependencies": {
+    "research": "research.json",
+    "resolution": "resolution.json",
+    "materials": "materials.json",
+    "sop_modules": "sop_modules.json",
+    "production": "production.json",
+    "qa_report": "qa_report.json"
+  },
+
+  "doctrine_references": [
+    {
+      "doctrine": "Millwork_NC_Paint_Doctrine.md",
+      "sections_used": ["SS1.1 -- Wood Wall SF Measurement (PS_SURFACE_SF.WOOD_WALL)", "SS2 -- Substrate Classification (MDF, FJP, softwood, hardwood)", "SS3 -- Surface Preparation Matrix", "SS4 -- Primer Systems (MDF edge seal, FJP stain-block, hardwood tannin-block, softwood standard)", "SS6 -- Prominent Millwork (QT2 prohibited)", "SS7.1 -- Trim Production Rates (adapted for panel/board SF)", "SS7.2 -- Complexity Modifiers (flat_panel 1.0x, shiplap 1.15x, T&G 1.10x, library_panel 1.25x)"]
+    },
+    {
+      "doctrine": "Fine_Finish_Doctrine.md",
+      "sections_used": ["SS2 -- Core Principles (primer is configuration, interstage is universal)", "SS3 -- Material Systems (SYS_FF_STANDARD_ACRYLIC, SYS_FF_MODIFIED_URETHANE, SYS_FF_PREMIUM)", "SS4 -- Sheen/QT Gate", "SS5 -- Module Structure", "SS7 -- Interstage Process", "SS15.3.1 -- Waterborne Application Philosophy", "SS15.4.1 -- Rigid Sanding Block", "SS15.6 -- Roll and Tip Methodology", "SS15.10.3 -- QT5 Brush/Roll Coat Count"]
+    },
+    {
+      "doctrine": "Quality_Tiers_and_Surface_Condition.md",
+      "sections_used": ["QT3-QT5 Definitions", "Sheen/QT Gate"]
+    },
+    {
+      "doctrine": "Modifier_Registry.md",
+      "sections_used": ["Height Modifiers (H1-H4 for wood wall -- height varies per room)", "Quality Tier Modifiers (QT3/QT4/QT5)", "Wall Style Complexity Modifiers"]
+    },
+    {
+      "doctrine": "Protection_and_Masking_Doctrine.md",
+      "sections_used": ["Floor Protection", "Ceiling Line Masking (spray only)"]
+    },
+    {
+      "doctrine": "Estimation_Modifiers_Doctrine.md",
+      "sections_used": ["Production Rate Philosophy", "Modifier Application Rule (time multipliers, not rate multipliers)"]
+    }
+  ],
+
+  "inherited_research_corrections": [
+    {
+      "correction_id": "RC-004",
+      "original_claim": "Dry times should be specified in specs",
+      "corrected_to": "No dry times in specs -- refer to product PDS.",
+      "corrected_by": "Eric",
+      "source": "SF_DRYWALL_WALL_NC_PRIME research"
+    },
+    {
+      "correction_id": "RC-005",
+      "original_claim": "Material system selection is mandatory doctrine",
+      "corrected_to": "Material systems are suggestions per QT -- contractor has discretion.",
+      "corrected_by": "Eric",
+      "source": "SF_TRIM_NC_PAINT research"
+    },
+    {
+      "correction_id": "RC-006",
+      "original_claim": "Waterborne alkyds have longer open time",
+      "corrected_to": "Both Advance (waterborne alkyd) and Emerald Urethane (acrylic-urethane enamel, NOT waterborne alkyd) have SHORT working times.",
+      "corrected_by": "Eric",
+      "source": "SF_TRIM_NC_PAINT research"
+    }
+  ],
+
+  "change_log": [
+    {
+      "version": "0.1.0",
+      "date": "2026-02-09",
+      "author": "SpecFactory",
+      "changes": "Initial draft spec for NC wood wall panel/board system painting (Spec #14 in Phase 3 catalog). Key features: combined prime+paint with conditional primer (substrate-driven primer, QT-driven finish), single SF paintable item (ITM_WOOD_WALL_PANEL) covering entire wood wall surface, wall_style configuration dimension (flat_panel/shiplap/tongue_and_groove/library_panel) with complexity modifiers (1.0x/1.15x/1.10x/1.25x), height varies per room via PS_META.HEIGHT_BAND (H1-H4) -- key distinction from SF_WAINSCOT_PANEL_NC (always H1), 5 substrate-driven primer paths (MDF two-step, FJP stain-block, hardwood tannin-block, softwood standard, plus factory-primed skip), 3 QT-driven finish systems (all reusing existing SYS_FF_* IDs), ceiling_line zone replaces wainscot wall_adjacent zone (no cap rail), 25 SOP tasks across 7 modules, 3 round configurations, 2 protection zones, 9 variants. All material system IDs reuse existing entries -- no new SYS_ IDs needed. Crown, baseboard, and casings excluded -- routed to SF_TRIM_NC_PAINT."
+    }
+  ]
+}
