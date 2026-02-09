@@ -41,8 +41,8 @@
 |---|----------------|-------|--------|---------|-------|
 | 13 | SF_WAINSCOT_PANEL_NC | ✅ authored | generated | — | v0.1.0 draft complete 2026-02-09. Combined prime+paint, SF-based. wainscot_type complexity modifier. 25 tasks, 7 modules. |
 | 14 | SF_WOOD_WALL_NC | ✅ authored | generated | — | v0.1.0 draft complete 2026-02-09. Combined prime+paint, SF-based. 4 wall_style complexity modifiers. Height varies (PS_META.HEIGHT_BAND). 25 tasks, 7 modules. |
-| 15 | SF_WOOD_CEILING_NC | ❌ needed | queued | needs brief | Fine Finish + overhead |
-| 16 | SF_ARCH_ELEMENT_NC | ❌ needed | queued | needs brief | Beams, columns, mantels |
+| 15 | SF_WOOD_CEILING_NC | ✅ authored | generated | — | v0.1.0 draft complete 2026-02-09. Combined prime+paint, SF-based. Overhead height modifiers. Full pipeline committed. |
+| 16 | SF_ARCH_ELEMENT_NC | ✅ authored | generated | — | v0.1.0 draft complete 2026-02-09. Combined prime+paint, 3 paintable items (beam LF, column EA, mantel EA). 3 element-specific complexity modifiers. 39 tasks, 7 modules. |
 | 17 | SF_BUILTIN_NC | ❌ needed | queued | needs brief | Fine Finish Doctrine |
 | 18 | SF_CABINET_NC_PAINT | ❌ needed | queued | needs brief + doctrine | May need cabinet doctrine |
 

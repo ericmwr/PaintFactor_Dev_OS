@@ -1,0 +1,650 @@
+{
+  "spec_family": {
+    "id": "SF_ARCH_ELEMENT_NC",
+    "name": "New Construction Architectural Element Painting",
+    "description": "Combined prime+paint spec for standalone decorative architectural elements in new construction: exposed beams (not part of coffered ceiling systems), decorative column wraps, and fireplace mantels/surrounds. Three paintable items with distinct UOMs (LF for beams, EA for columns, EA for mantels) unified under a single spec because they share identical substrate handling, material systems, interstage process, and quality tier behavior. Each element type has its own profile/complexity modifier: beam_profile (1.0-1.40x), column_type (1.0-1.30x), mantel_type (1.0-1.50x). Mixed working heights: beams overhead (ceiling-mounted), columns full-height, mantels wall-height. Substrate-driven primer selection for bare substrates; primer conditional on substrate_state. QT-driven finish systems: SYS_FF_STANDARD_ACRYLIC (QT3), SYS_FF_MODIFIED_URETHANE (QT4), SYS_FF_PREMIUM (QT5). Localized protection (floor_workzone for spray, floor_perimeter for brush) — discrete elements, not room-spanning. Material systems are QT-driven recommendations — contractor retains discretion.",
+    "domain": "interior",
+    "version": "0.1.0",
+    "status": "draft",
+    "review_required": true
+  },
+
+  "scope_boundaries": {
+    "includes": [
+      "Standalone decorative beam painting (exposed 3-sided box beams, faux timber wraps, decorative ceiling beams NOT integrated into a coffered grid)",
+      "Decorative column wrap painting (square, round, fluted, paneled — floor-to-ceiling or partial-height)",
+      "Fireplace mantel and surround painting (shelf mantels, leg/pilaster surrounds, full assemblies)",
+      "Surface prep per substrate and element type (dust removal, sanding per substrate state)",
+      "MDF edge sealing with solvent-based sealer (bare MDF only — step 1 of two-step prime)",
+      "Fastener hole filling and sanding per element type (beam LF, column EA, mantel EA)",
+      "Caulking at element-to-structure junctions (beam-ceiling, column-top/bottom, mantel-wall)",
+      "Primer coat — conditional on substrate_state = SS_BARE (substrate-driven chemistry)",
+      "Finish coat application (spray or brush) — 2 coats standard, 3+ at QT5 brush per FFD SS15.10.3",
+      "Between-coat interstage process (inspect, sand per element, repair, clean) at ALL quality tiers",
+      "Floor protection (perimeter for brush, localized workzone for spray)",
+      "Wall adjacent masking when spraying near finished surfaces",
+      "Ceiling fixture masking near beam spray work",
+      "Final quality inspection",
+      "Protection teardown and cleanup"
+    ],
+    "excludes": [
+      {
+        "item": "Coffered ceiling beams (integrated into ceiling grid system)",
+        "route_to": "SF_WOOD_CEILING_NC (coffered ceiling_style covers beam faces within the grid)"
+      },
+      {
+        "item": "Crown molding — LF-based trim item",
+        "route_to": "SF_TRIM_NC_PAINT (ITM_TRIM_CROWN)"
+      },
+      {
+        "item": "Wainscoting / wall panels",
+        "route_to": "SF_WAINSCOT_PANEL_NC or SF_WOOD_WALL_NC"
+      },
+      {
+        "item": "Stone/brick/tile fireplace surround",
+        "route_to": "Not a painting scope — masonry/tile trade"
+      },
+      {
+        "item": "Structural columns (steel, concrete)",
+        "route_to": "Future exterior/industrial spec"
+      },
+      {
+        "item": "Stair newel posts (part of railing system)",
+        "route_to": "SF_STAIR_RAILING_NC (ITM_RAILING_NEWEL)"
+      },
+      {
+        "item": "Exterior columns / porch posts",
+        "route_to": "Future exterior spec"
+      },
+      {
+        "item": "Cabinet/built-in millwork",
+        "route_to": "SF_BUILTIN_NC (future) or SF_CABINET_NC_PAINT (future)"
+      }
+    ]
+  },
+
+  "configuration_dimensions": [
+    {
+      "dimension_id": "quality_tier",
+      "description": "Quality tier controlling inspection scrutiny, sanding discipline, repair scope, and coat count.",
+      "values": ["QT3", "QT4", "QT5"],
+      "default": "QT3",
+      "prohibited": ["QT2"],
+      "notes": "QT2 prohibited — prominent millwork per Millwork Doctrine SS6."
+    },
+    {
+      "dimension_id": "application_method",
+      "description": "Primary application technique for primer and finish coats.",
+      "values": ["spray", "brush"],
+      "default": "spray",
+      "notes": "Spray preferred for production speed. Brush for occupied spaces, small scope, or intricate profiles. No roll — these are millwork."
+    },
+    {
+      "dimension_id": "sheen",
+      "description": "Finish sheen. Constrained by quality tier gate.",
+      "values": ["satin", "semi-gloss", "gloss"],
+      "default": "satin",
+      "sheen_qt_gate": {
+        "satin": ["QT3", "QT4", "QT5"],
+        "semi-gloss": ["QT4", "QT5"],
+        "gloss": ["QT5"]
+      }
+    },
+    {
+      "dimension_id": "substrate_state",
+      "description": "Input substrate condition. Drives primer requirement and prep scope.",
+      "values": ["SS_BARE", "SS_PRIMED_FACTORY"],
+      "default": "SS_PRIMED_FACTORY",
+      "notes": "SS_BARE: full primer coat required (substrate-driven chemistry). SS_PRIMED_FACTORY: skip primer."
+    },
+    {
+      "dimension_id": "beam_profile",
+      "description": "Beam construction/profile type. Drives beam-specific complexity modifier.",
+      "values": ["small_box", "standard_box", "large_timber", "ornate"],
+      "default": "standard_box",
+      "modifiers": {
+        "small_box": 1.0,
+        "standard_box": 1.10,
+        "large_timber": 1.20,
+        "ornate": 1.40
+      },
+      "applies_to": "ITM_ARCH_BEAM tasks only",
+      "notes": "small_box=narrow flat faces (4-6 in). standard_box=typical decorative (6-8 in). large_timber=heavy timber (10+ in). ornate=carved/detailed profile."
+    },
+    {
+      "dimension_id": "column_type",
+      "description": "Column construction/profile type. Drives column-specific complexity modifier.",
+      "values": ["square_smooth", "square_detailed", "round_smooth", "round_fluted"],
+      "default": "square_smooth",
+      "modifiers": {
+        "square_smooth": 1.0,
+        "square_detailed": 1.15,
+        "round_smooth": 1.10,
+        "round_fluted": 1.30
+      },
+      "applies_to": "ITM_ARCH_COLUMN tasks only",
+      "notes": "square_smooth=flat panel faces. square_detailed=panel with applied molding. round_smooth=turned cylinder. round_fluted=fluted with channel detail."
+    },
+    {
+      "dimension_id": "mantel_type",
+      "description": "Mantel assembly complexity. Drives mantel-specific complexity modifier.",
+      "values": ["shelf_only", "standard_surround", "full_assembly"],
+      "default": "standard_surround",
+      "modifiers": {
+        "shelf_only": 1.0,
+        "standard_surround": 1.25,
+        "full_assembly": 1.50
+      },
+      "applies_to": "ITM_ARCH_MANTEL tasks only",
+      "notes": "shelf_only=single floating shelf. standard_surround=shelf + legs/pilasters. full_assembly=elaborate surround with crown/dentil/paneling. full_assembly may not capture most complex installations — assess individually."
+    }
+  ],
+
+  "paintable_items": [
+    {
+      "item_id": "ITM_ARCH_BEAM",
+      "name": "Decorative beam",
+      "unit_of_measure": "LF",
+      "counting_rules": "Running LF of exposed beam length. Profile complexity (width, face count, detail) handled by beam_profile modifier. Typically 3 exposed faces (bottom + 2 sides) for ceiling-mounted beams.",
+      "conditional": true,
+      "condition": "When beams are in scope",
+      "notes": "Overhead work. Height modifier applies via PS_META.HEIGHT_BAND. Beam overhead factor ~0.85x baked into base production rates."
+    },
+    {
+      "item_id": "ITM_ARCH_COLUMN",
+      "name": "Decorative column wrap",
+      "unit_of_measure": "EA",
+      "counting_rules": "Each column counted individually. Size and profile complexity handled by column_type modifier. Height captured via PS_META.HEIGHT_BAND — columns run floor-to-ceiling or partial-height.",
+      "conditional": true,
+      "condition": "When columns are in scope",
+      "notes": "Full height work. Height modifier applies — upper column requires ladder/scaffold."
+    },
+    {
+      "item_id": "ITM_ARCH_MANTEL",
+      "name": "Fireplace mantel/surround",
+      "unit_of_measure": "EA",
+      "counting_rules": "Each mantel counted individually. Assembly complexity handled by mantel_type modifier.",
+      "conditional": true,
+      "condition": "When mantels are in scope",
+      "notes": "Standard wall height work (H1 typical). Stone/brick/tile surround is NOT in painting scope."
+    }
+  ],
+
+  "variants": [
+    {
+      "variant_id": "VAR_FACTORY_QT3_SPRAY_SATIN",
+      "applies_when": {
+        "substrate_state": ["SS_PRIMED_FACTORY"],
+        "quality_tier": ["QT3"],
+        "application_method": ["spray"],
+        "sheen": ["satin"]
+      },
+      "coats_primer": 0,
+      "coats_finish": 2,
+      "round_id": "ROUND_ARCH_2FINISH",
+      "protection_zones": ["floor_workzone", "wall_adjacent", "fixture_covers"],
+      "notes": "Most common NC scenario. Factory-primed, standard spray. Fastest production variant."
+    },
+    {
+      "variant_id": "VAR_FACTORY_QT4_SPRAY_SEMIGLOSS",
+      "applies_when": {
+        "substrate_state": ["SS_PRIMED_FACTORY"],
+        "quality_tier": ["QT4"],
+        "application_method": ["spray"],
+        "sheen": ["semi-gloss"]
+      },
+      "coats_primer": 0,
+      "coats_finish": 2,
+      "round_id": "ROUND_ARCH_2FINISH",
+      "protection_zones": ["floor_workzone", "wall_adjacent", "fixture_covers"],
+      "notes": "Factory-primed, premium spray."
+    },
+    {
+      "variant_id": "VAR_FACTORY_QT5_SPRAY_SEMIGLOSS",
+      "applies_when": {
+        "substrate_state": ["SS_PRIMED_FACTORY"],
+        "quality_tier": ["QT5"],
+        "application_method": ["spray"],
+        "sheen": ["semi-gloss"]
+      },
+      "coats_primer": 0,
+      "coats_finish": 2,
+      "round_id": "ROUND_ARCH_2FINISH",
+      "protection_zones": ["floor_workzone", "wall_adjacent", "fixture_covers"],
+      "notes": "Factory-primed, superior spray. QT5 spray uses 2 coats."
+    },
+    {
+      "variant_id": "VAR_FACTORY_QT3_BRUSH_SATIN",
+      "applies_when": {
+        "substrate_state": ["SS_PRIMED_FACTORY"],
+        "quality_tier": ["QT3"],
+        "application_method": ["brush"],
+        "sheen": ["satin"]
+      },
+      "coats_primer": 0,
+      "coats_finish": 2,
+      "round_id": "ROUND_ARCH_2FINISH",
+      "protection_zones": ["floor_perimeter"],
+      "notes": "Factory-primed, standard brush. Minimal protection — brush drip only."
+    },
+    {
+      "variant_id": "VAR_FACTORY_QT4_BRUSH_SEMIGLOSS",
+      "applies_when": {
+        "substrate_state": ["SS_PRIMED_FACTORY"],
+        "quality_tier": ["QT4"],
+        "application_method": ["brush"],
+        "sheen": ["semi-gloss"]
+      },
+      "coats_primer": 0,
+      "coats_finish": 2,
+      "round_id": "ROUND_ARCH_2FINISH",
+      "protection_zones": ["floor_perimeter"],
+      "notes": "Factory-primed, premium brush."
+    },
+    {
+      "variant_id": "VAR_FACTORY_QT5_BRUSH_GLOSS",
+      "applies_when": {
+        "substrate_state": ["SS_PRIMED_FACTORY"],
+        "quality_tier": ["QT5"],
+        "application_method": ["brush"],
+        "sheen": ["gloss"]
+      },
+      "coats_primer": 0,
+      "coats_finish": 3,
+      "round_id": "ROUND_ARCH_3FINISH",
+      "protection_zones": ["floor_perimeter"],
+      "notes": "Factory-primed, superior brush with gloss. 3 finish coats per FFD SS15.10.3."
+    },
+    {
+      "variant_id": "VAR_BARE_QT3_SPRAY_SATIN",
+      "applies_when": {
+        "substrate_state": ["SS_BARE"],
+        "quality_tier": ["QT3"],
+        "application_method": ["spray"],
+        "sheen": ["satin"]
+      },
+      "coats_primer": 1,
+      "coats_finish": 2,
+      "round_id": "ROUND_ARCH_PRIME_2FINISH",
+      "protection_zones": ["floor_workzone", "wall_adjacent", "fixture_covers"],
+      "notes": "Bare substrate, standard spray. Primer + 2 finish coats. Full spray protection."
+    },
+    {
+      "variant_id": "VAR_BARE_QT4_SPRAY_SEMIGLOSS",
+      "applies_when": {
+        "substrate_state": ["SS_BARE"],
+        "quality_tier": ["QT4"],
+        "application_method": ["spray"],
+        "sheen": ["semi-gloss"]
+      },
+      "coats_primer": 1,
+      "coats_finish": 2,
+      "round_id": "ROUND_ARCH_PRIME_2FINISH",
+      "protection_zones": ["floor_workzone", "wall_adjacent", "fixture_covers"],
+      "notes": "Bare substrate, premium spray."
+    },
+    {
+      "variant_id": "VAR_BARE_QT5_BRUSH_GLOSS",
+      "applies_when": {
+        "substrate_state": ["SS_BARE"],
+        "quality_tier": ["QT5"],
+        "application_method": ["brush"],
+        "sheen": ["gloss"]
+      },
+      "coats_primer": 1,
+      "coats_finish": 3,
+      "round_id": "ROUND_ARCH_3FINISH",
+      "protection_zones": ["floor_perimeter"],
+      "notes": "Bare substrate, superior brush. Primer + 3 finish coats. 4 total coats, 3 interstage cycles. Slowest variant."
+    }
+  ],
+
+  "required_paintscope_inputs": [
+    {
+      "input_name": "IN_LF_ARCH_BEAM",
+      "paintscope_key": "PS_SURFACE_LF.ARCH_BEAM",
+      "uom": "LF",
+      "required": false,
+      "required_when": "beams in scope",
+      "description": "Running LF of standalone decorative beams.",
+      "status": "proposed"
+    },
+    {
+      "input_name": "IN_EA_ARCH_COLUMN",
+      "paintscope_key": "PS_SURFACE_EA.ARCH_COLUMN",
+      "uom": "EA",
+      "required": false,
+      "required_when": "columns in scope",
+      "description": "Count of decorative column wraps.",
+      "status": "proposed"
+    },
+    {
+      "input_name": "IN_EA_ARCH_MANTEL",
+      "paintscope_key": "PS_SURFACE_EA.ARCH_MANTEL",
+      "uom": "EA",
+      "required": false,
+      "required_when": "mantels in scope",
+      "description": "Count of fireplace mantels/surrounds.",
+      "status": "proposed"
+    },
+    {
+      "input_name": "IN_EA_ROOMS_TOTAL",
+      "paintscope_key": "PS_META.EA.ROOMS_TOTAL",
+      "uom": "EA",
+      "required": true,
+      "description": "Room count for setup/cleanup operations.",
+      "status": "existing"
+    },
+    {
+      "input_name": "IN_SF_PROTECT_FLOOR_PERIMETER",
+      "paintscope_key": "PS_PROTECT_SF.FLOOR_PERIMETER",
+      "uom": "SF",
+      "required": false,
+      "required_when": "application_method = brush",
+      "description": "Perimeter floor protection near element work areas.",
+      "status": "existing"
+    },
+    {
+      "input_name": "IN_SF_PROTECT_FLOOR_WORKZONE",
+      "paintscope_key": "PS_PROTECT_SF.FLOOR_WORKZONE",
+      "uom": "SF",
+      "required": false,
+      "required_when": "application_method = spray",
+      "description": "Localized floor protection around spray work area.",
+      "status": "existing"
+    },
+    {
+      "input_name": "IN_LF_WALL_ADJACENT",
+      "paintscope_key": "PS_PROTECT_LF.WALL_ADJACENT",
+      "uom": "LF",
+      "required": false,
+      "required_when": "application_method = spray",
+      "description": "Wall masking LF near spray target (beam-wall, column-wall, mantel-wall junctions).",
+      "status": "existing"
+    },
+    {
+      "input_name": "IN_EA_ASSET_FIXTURES",
+      "paintscope_key": "PS_PROTECT_EA.ASSET.FIXTURES",
+      "uom": "EA",
+      "required": false,
+      "required_when": "application_method = spray AND fixtures near beam work area",
+      "description": "Ceiling fixture count near beam spray work.",
+      "status": "existing"
+    },
+    {
+      "input_name": "IN_ENUM_HEIGHT_BAND",
+      "paintscope_key": "PS_META.HEIGHT_BAND",
+      "uom": "ENUM",
+      "required": true,
+      "description": "Height modifier for beams (overhead) and columns (full-height). Mantels typically H1.",
+      "status": "existing"
+    },
+    {
+      "input_name": "IN_SF_FLOOR_VACUUM_AREA",
+      "paintscope_key": "PS_META.SF.FLOOR_VACUUM_AREA",
+      "uom": "SF",
+      "required": true,
+      "description": "Post-work vacuum cleanup area.",
+      "status": "existing"
+    }
+  ],
+
+  "protection_zones_required": [
+    {
+      "zone_id": "floor_workzone",
+      "condition": { "application_method": ["spray"] },
+      "protection_level": "full_cover",
+      "notes": "Localized floor coverage around spray target. Not full room — architectural elements are discrete items. Canvas drop cloths around beam, column, and mantel work areas."
+    },
+    {
+      "zone_id": "floor_perimeter",
+      "condition": { "application_method": ["brush"] },
+      "protection_level": "edge_only",
+      "notes": "Drop cloth runners near element work areas. Brush drip protection."
+    },
+    {
+      "zone_id": "wall_adjacent",
+      "condition": { "application_method": ["spray"] },
+      "protection_level": "partial_cover",
+      "notes": "Paper/film + tape masking at beam-wall, column-wall, and mantel-wall junctions. Protects finished wall surfaces from overspray. Spray only."
+    },
+    {
+      "zone_id": "fixture_covers",
+      "condition": { "application_method": ["spray"] },
+      "protection_level": "full_cover",
+      "notes": "Ceiling fixtures near beam spray work. Tape and plastic bag over each fixture. Spray only."
+    }
+  ],
+
+  "adjacency_declarations": [
+    {
+      "primary_surface": "beam_wrap",
+      "adjacent_surfaces": [
+        {
+          "surface_id": "ceiling_field",
+          "edge_type": "linear",
+          "typical_relationship": "different_finish",
+          "continuity_rate_modifier": 1.0,
+          "affected_tasks": ["TSK_ARCH_WALL_MASK", "TSK_ARCH_REMOVE_WALL_MASK"],
+          "notes": "Beam meets drywall ceiling along full length. Different finish — beam enamel vs ceiling flat."
+        },
+        {
+          "surface_id": "wall_field",
+          "edge_type": "linear",
+          "typical_relationship": "different_finish",
+          "continuity_rate_modifier": 1.0,
+          "affected_tasks": ["TSK_ARCH_WALL_MASK", "TSK_ARCH_REMOVE_WALL_MASK"],
+          "notes": "Beam meets wall at end supports. Different finish — beam enamel vs wall latex."
+        }
+      ]
+    },
+    {
+      "primary_surface": "column_wrap",
+      "adjacent_surfaces": [
+        {
+          "surface_id": "ceiling_field",
+          "edge_type": "linear",
+          "typical_relationship": "different_finish",
+          "continuity_rate_modifier": 1.0,
+          "affected_tasks": [],
+          "notes": "Column top meets ceiling. Caulk joint at perimeter."
+        },
+        {
+          "surface_id": "wall_field",
+          "edge_type": "linear",
+          "typical_relationship": "varies",
+          "continuity_rate_modifier": 1.0,
+          "affected_tasks": ["TSK_ARCH_WALL_MASK", "TSK_ARCH_REMOVE_WALL_MASK"],
+          "notes": "Column meets wall at back (wall-mounted). Freestanding columns have no wall adjacency."
+        }
+      ]
+    },
+    {
+      "primary_surface": "mantel",
+      "adjacent_surfaces": [
+        {
+          "surface_id": "wall_field",
+          "edge_type": "linear",
+          "typical_relationship": "different_finish",
+          "continuity_rate_modifier": 1.0,
+          "affected_tasks": ["TSK_ARCH_WALL_MASK", "TSK_ARCH_REMOVE_WALL_MASK"],
+          "notes": "Mantel meets wall at all contact edges. Different finish — mantel enamel vs wall latex."
+        }
+      ]
+    }
+  ],
+
+  "state_declarations": {
+    "primary_surfaces": ["beam_wrap", "column_wrap", "mantel"],
+
+    "valid_input_states": {
+      "states": ["SS_BARE", "SS_PRIMED_FACTORY"],
+      "notes": "Combined prime+paint spec. SS_BARE requires full primer (substrate-driven chemistry). SS_PRIMED_FACTORY skips primer."
+    },
+
+    "output_state": {
+      "state": "SS_PAINTED_SATIN",
+      "varies_by": "sheen",
+      "state_map": {
+        "satin": "SS_PAINTED_SATIN",
+        "semi-gloss": "SS_PAINTED_SEMIGLOSS",
+        "gloss": "SS_PAINTED_GLOSS"
+      }
+    },
+
+    "adjacent_state_protection_rules": [
+      {
+        "adjacent_surface": "wall_field",
+        "when_state": ["SS_BARE", "SS_PRIMED_FIELD"],
+        "protection_zone": null,
+        "protection_level": "none",
+        "applies_when": { "application_method": ["brush"] },
+        "notes": "Unfinished wall needs no protection during brush application."
+      },
+      {
+        "adjacent_surface": "wall_field",
+        "when_state": ["SS_PAINTED_FLAT", "SS_PAINTED_EGGSHELL", "SS_PAINTED_SATIN"],
+        "protection_zone": "wall_adjacent",
+        "protection_level": "partial_cover",
+        "applies_when": { "application_method": ["spray"] },
+        "notes": "Finished walls need masking during spray to prevent overspray on completed surfaces."
+      },
+      {
+        "adjacent_surface": "ceiling_field",
+        "when_state": ["SS_PAINTED_FLAT", "SS_PAINTED_EGGSHELL"],
+        "protection_zone": null,
+        "protection_level": "none",
+        "applies_when": { "application_method": ["brush"] },
+        "notes": "Ceiling protection not needed for brush work on discrete elements below."
+      }
+    ]
+  },
+
+  "site_condition_rules": [
+    {
+      "condition_id": "floor_type",
+      "vocabulary_ref": "Site_Condition_Vocabulary_Reference.md",
+      "include_when": ["finished", "partial"],
+      "exclude_when": ["subfloor"],
+      "affected_tasks": ["TSK_ARCH_FLOOR_PROTECT_WORKZONE", "TSK_ARCH_FLOOR_PROTECT_PERIM", "TSK_ARCH_REMOVE_FLOOR_PROTECT"],
+      "effect": "Floor protection excluded when floor is subfloor.",
+      "notes": "NC may have subfloor during architectural element painting."
+    },
+    {
+      "condition_id": "occupancy_state",
+      "vocabulary_ref": "Site_Condition_Vocabulary_Reference.md",
+      "include_when": ["occupied_crew_handles", "occupied_sensitive"],
+      "affected_tasks": ["TSK_ARCH_FLOOR_PROTECT_WORKZONE", "TSK_ARCH_FLOOR_PROTECT_PERIM"],
+      "effect": "Additional protection when occupied.",
+      "notes": "Rare in NC."
+    },
+    {
+      "condition_id": "temperature_condition",
+      "vocabulary_ref": "Site_Condition_Vocabulary_Reference.md",
+      "include_when": ["cold_below_50f", "hot_above_90f"],
+      "affected_tasks": ["TSK_ARCH_PRIME_BEAM", "TSK_ARCH_PRIME_COLUMN", "TSK_ARCH_PRIME_MANTEL", "TSK_ARCH_SPRAY_BEAM", "TSK_ARCH_SPRAY_COLUMN", "TSK_ARCH_SPRAY_MANTEL", "TSK_ARCH_BRUSH_BEAM", "TSK_ARCH_BRUSH_COLUMN", "TSK_ARCH_BRUSH_MANTEL"],
+      "effect": "Temperature affects dry times and open time for waterborne products.",
+      "notes": "Refer to manufacturer PDS for temperature limits."
+    },
+    {
+      "condition_id": "ventilation_condition",
+      "vocabulary_ref": "Site_Condition_Vocabulary_Reference.md",
+      "include_when": ["poor"],
+      "affected_tasks": ["TSK_ARCH_SEAL_MDF_EDGES"],
+      "effect": "MDF edge sealing uses solvent-based products — adequate ventilation required.",
+      "notes": "Shellac-based edge sealer produces fumes."
+    },
+    {
+      "condition_id": "access_constraint",
+      "vocabulary_ref": "Site_Condition_Vocabulary_Reference.md",
+      "include_when": ["step_ladder", "extension_ladder", "scaffold"],
+      "affected_tasks": ["all beam tasks (overhead)", "all column tasks (full-height)"],
+      "effect": "Height modifier via PS_META.HEIGHT_BAND: H1=1.0x, H2=1.30x, H3=1.50x, H4=2.00x.",
+      "notes": "Beams are overhead at ceiling height. Columns are full-height. Mantels are wall-height (H1 typical, usually no access constraint)."
+    }
+  ],
+
+  "sequencing_notes": {
+    "production_sequence": "Architectural element painting is part of the millwork/trim package in NC. Typically painted with or after trim and before wall finish. Elements may be painted in situ (ceiling-mounted beams, wall-mounted columns) or partially pre-finished.",
+    "internal_sequence": "Three paintable items — can be painted in any order. Beams first (overhead, then can walk under), columns second, mantels last is a common approach. All items share the same interstage cycle.",
+    "protection_sequence": "Floor protection > Wall adjacent masking (spray) > Fixture masking (spray near beams) > Apply coats > Teardown in reverse > Vacuum.",
+    "coat_sequence": "Prep per element > [MDF edge seal if bare MDF] > [Primer per element (conditional on SS_BARE)] > Interstage > Finish coat 1 per element > Interstage > Finish coat 2 per element > [QT5 brush: Interstage > Finish coat 3] > Final inspect > Cleanup"
+  },
+
+  "relationships": {
+    "companion_specs": ["SF_WOOD_CEILING_NC", "SF_WOOD_WALL_NC", "SF_TRIM_NC_PAINT"],
+    "shares_finish_group_with": ["SF_TRIM_NC_PAINT", "SF_WOOD_WALL_NC", "SF_WOOD_CEILING_NC"],
+    "typical_after": ["SF_DRYWALL_CEILING_NC_PRIME", "SF_DRYWALL_WALL_NC_PRIME"],
+    "typical_before": ["SF_DRYWALL_WALL_NC_FINISH"],
+    "notes": "Architectural element painting is part of the millwork detail package. Same crew, same material system as other millwork. Mantels are the SOURCE of COMP_FIREPLACE complexity (1.30x) for adjacent wall/ceiling specs — this spec IS the architectural element work, not affected by the modifier itself."
+  },
+
+  "dependencies": {
+    "research": "research.json",
+    "resolution": "resolution.json",
+    "materials": "materials.json",
+    "sop_modules": "sop_modules.json",
+    "production": "production.json",
+    "qa_report": "qa_report.json"
+  },
+
+  "doctrine_references": [
+    {
+      "doctrine": "Millwork_NC_Paint_Doctrine.md",
+      "sections_used": ["SS1.1 — Millwork Measurement", "SS2 — Substrate Classification", "SS3 — Surface Preparation Matrix", "SS4 — Primer Systems (MDF edge seal, FJP stain-block, hardwood tannin-block)", "SS6 — Prominent Millwork (QT2 prohibited)", "SS7.2 — Complexity Modifiers (adapted for beam_profile, column_type, mantel_type)"]
+    },
+    {
+      "doctrine": "Fine_Finish_Doctrine.md",
+      "sections_used": ["SS1.1 — Fine Finish Surfaces", "SS2 — Core Principles", "SS3 — Material Systems", "SS4 — Sheen/QT Gate", "SS7 — Interstage Process", "SS15.3.1 — Waterborne Application Philosophy", "SS15.4.1 — Rigid Sanding Block", "SS15.6 — Roll and Tip Method", "SS15.10.3 — QT5 Brush/Roll Coat Count"]
+    },
+    {
+      "doctrine": "Quality_Tiers_and_Surface_Condition.md",
+      "sections_used": ["QT3-QT5 Definitions", "Sheen/QT Gate"]
+    },
+    {
+      "doctrine": "Modifier_Registry.md",
+      "sections_used": ["Height Modifiers (H1-H4)", "Quality Tier Modifiers (QT3/QT4/QT5)"]
+    },
+    {
+      "doctrine": "Protection_and_Masking_Doctrine.md",
+      "sections_used": ["Floor Protection (localized workzone for spray, perimeter for brush)", "Wall Adjacent Masking (spray only)", "Fixture Masking"]
+    },
+    {
+      "doctrine": "Estimation_Modifiers_Doctrine.md",
+      "sections_used": ["Production Rate Philosophy", "Modifier Application Rule (time multipliers)"]
+    }
+  ],
+
+  "inherited_research_corrections": [
+    {
+      "correction_id": "RC-004",
+      "original_claim": "Dry times should be specified in specs",
+      "corrected_to": "No dry times in specs — refer to product PDS.",
+      "corrected_by": "Eric",
+      "source": "SF_DRYWALL_WALL_NC_PRIME research"
+    },
+    {
+      "correction_id": "RC-005",
+      "original_claim": "Material system selection is mandatory doctrine",
+      "corrected_to": "Material systems are suggestions per QT — contractor has discretion.",
+      "corrected_by": "Eric",
+      "source": "SF_TRIM_NC_PAINT research"
+    },
+    {
+      "correction_id": "RC-006",
+      "original_claim": "Waterborne alkyds have longer open time",
+      "corrected_to": "Both Advance (waterborne alkyd) and Emerald Urethane (acrylic-urethane enamel) have SHORT working times.",
+      "corrected_by": "Eric",
+      "source": "SF_TRIM_NC_PAINT research"
+    }
+  ],
+
+  "change_log": [
+    {
+      "version": "0.1.0",
+      "date": "2026-02-09",
+      "author": "SpecFactory",
+      "changes": "Initial draft spec for NC architectural element painting (Spec #16). Key features: 3 paintable items with distinct UOMs (beam LF, column EA, mantel EA), combined prime+paint with conditional primer (substrate-driven), 3 element-specific complexity modifiers (beam_profile 1.0-1.40x, column_type 1.0-1.30x, mantel_type 1.0-1.50x), 7 configuration dimensions, mixed working heights (beam overhead, column full-height, mantel wall-height), localized protection (floor_workzone, not floor_full), 4 protection zones, 39 SOP tasks across 7 modules (24 binary + 15 qt_scaled), 3 round configurations, 9 variants. All 8 material system IDs reuse existing entries. 3 proposed PaintScope keys (PS_SURFACE_LF.ARCH_BEAM, PS_SURFACE_EA.ARCH_COLUMN, PS_SURFACE_EA.ARCH_MANTEL). 18 registry additions proposed. QA: pass_with_warnings (5 minor, 0 blockers)."
+    }
+  ]
+}

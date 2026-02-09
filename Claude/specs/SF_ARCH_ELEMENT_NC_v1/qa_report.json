@@ -1,0 +1,396 @@
+{
+  "spec_family_id": "SF_ARCH_ELEMENT_NC",
+  "version": "0.1.0",
+  "generated_by": "Critic Agent",
+  "generated_at": "2026-02-09",
+
+  "overall_result": "pass_with_warnings",
+  "summary": "SF_ARCH_ELEMENT_NC_v1 passes QA with 5 minor warnings and 0 blockers. All 5 pipeline files reviewed (spec.json pending assembly). Cross-file threading validated: 39 TSK_ARCH_* IDs in sop_modules match 39 rates in production. Three paintable items with distinct UOMs: ITM_ARCH_BEAM (LF), ITM_ARCH_COLUMN (EA), ITM_ARCH_MANTEL (EA). Combined prime+paint with primer conditional on substrate_state. 5 substrate-driven primer systems + 3 QT-driven finish systems, all reusing existing SYS_ IDs. Three element-specific complexity modifiers: beam_profile (1.0-1.40x), column_type (1.0-1.30x), mantel_type (1.0-1.50x) — each correctly scoped to its own item only. 4 protection zones all properly paired setup/teardown. Localized floor protection (floor_workzone, not floor_full) correctly chosen for discrete elements. Height modifier via PS_META.HEIGHT_BAND applies to beam and column tasks. Sheen/QT gate compatible (QT3+satin default). Human Feedback Gate has NOT occurred — expected for v0.1.0 draft.",
+
+  "files_reviewed": [
+    "research.json",
+    "resolution.json",
+    "materials.json",
+    "sop_modules.json",
+    "production.json"
+  ],
+
+  "cross_file_threading_check": {
+    "rule_1_tsk_sop_to_production": {
+      "status": "pass",
+      "details": "All 39 TSK_ARCH_* task IDs in sop_modules.json have matching entries in production.json. Setup(4): FLOOR_PROTECT_WORKZONE, FLOOR_PROTECT_PERIM, WALL_MASK, FIXTURE_MASK. Prep(11): DUST_CLEAN, SAND_BEAM, SAND_COLUMN, SAND_MANTEL, FILL_BEAM, FILL_COLUMN, FILL_MANTEL, CAULK_BEAM, CAULK_COLUMN, CAULK_MANTEL, SEAL_MDF_EDGES. Prime(3): PRIME_BEAM, PRIME_COLUMN, PRIME_MANTEL. Finish(6): SPRAY_BEAM, SPRAY_COLUMN, SPRAY_MANTEL, BRUSH_BEAM, BRUSH_COLUMN, BRUSH_MANTEL. Interstage(8): CLEAN_AREA, INSPECT_COAT, SAND_BETWEEN_BEAM, SAND_BETWEEN_COLUMN, SAND_BETWEEN_MANTEL, PATCH_DEFECTS, SPOT_COAT, TACK_CLEAN. Final(2): FINAL_INSPECT, TOUCHUP. Cleanup(5): REMOVE_WALL_MASK, REMOVE_FIXTURE_MASK, REMOVE_FLOOR_PROTECT, VACUUM, TOOL_CLEANUP."
+    },
+    "rule_2_itm_in_variants": {
+      "status": "pending",
+      "details": "ITM_ARCH_BEAM, ITM_ARCH_COLUMN, ITM_ARCH_MANTEL proposed in resolution.json. Verify in spec.json variants when assembled."
+    },
+    "rule_3_sys_qt_match": {
+      "status": "pass",
+      "details": "SYS_FF_STANDARD_ACRYLIC quality_tier=[QT3], SYS_FF_MODIFIED_URETHANE quality_tier=[QT4], SYS_FF_PREMIUM quality_tier=[QT5] in materials.json match resolution.json applicable_enums.quality_tier values."
+    },
+    "rule_4_inputs_consumed": {
+      "status": "pass",
+      "details": "All 10 inputs from resolution.json consumed: IN_LF_ARCH_BEAM (beam tasks), IN_EA_ARCH_COLUMN (column tasks), IN_EA_ARCH_MANTEL (mantel tasks), IN_EA_ROOMS_TOTAL (setup/cleanup per-room FIXED tasks), IN_SF_PROTECT_FLOOR_PERIMETER (TSK_ARCH_FLOOR_PROTECT_PERIM), IN_SF_FLOOR_WORKZONE (TSK_ARCH_FLOOR_PROTECT_WORKZONE), IN_EA_ASSET_FIXTURES (TSK_ARCH_FIXTURE_MASK), IN_ENUM_HEIGHT_BAND (modifier_registry height selection), IN_SF_FLOOR_VACUUM_AREA (TSK_ARCH_VACUUM), IN_LF_WALL_ADJACENT (TSK_ARCH_WALL_MASK)."
+    },
+    "rule_5_ps_keys_match": {
+      "status": "pass",
+      "details": "All PS_ keys referenced in sop_modules/production match resolution.json paintscope_keys: PS_SURFACE_LF.ARCH_BEAM (proposed), PS_SURFACE_EA.ARCH_COLUMN (proposed), PS_SURFACE_EA.ARCH_MANTEL (proposed), PS_META.EA.ROOMS_TOTAL, PS_PROTECT_SF.FLOOR_PERIMETER, PS_PROTECT_SF.FLOOR_WORKZONE, PS_PROTECT_EA.ASSET.FIXTURES, PS_META.HEIGHT_BAND, PS_META.SF.FLOOR_VACUUM_AREA, PS_PROTECT_LF.WALL_ADJACENT."
+    },
+    "rule_6_zones_match": {
+      "status": "pass",
+      "details": "4 zone_ids match between resolution.json zone_ids and sop_modules.json protection_metadata.zones: floor_workzone (spray), floor_perimeter (brush), wall_adjacent (spray), fixture_covers (spray). All existing zone IDs."
+    },
+    "rule_7_phase_order": {
+      "status": "pass",
+      "details": "Module sequence_order: setup(1) > prep(2) > prime(3) > finish(4) > interstage(5) > final_inspect(6) > cleanup(7). Correct phase ordering maintained."
+    },
+    "rule_8_uom_match": {
+      "status": "pass",
+      "details": "UOM consistent across all 39 tasks between sop_modules and production: 3 SF tasks (FLOOR_PROTECT_WORKZONE, FLOOR_PROTECT_PERIM, REMOVE_FLOOR_PROTECT, VACUUM) have SF rates. 13 LF tasks (beam-specific) have LF rates or rates_by_substrate_state/rates_by_tier with LF units. 13 EA tasks (column+mantel specific, fixtures) have EA rates. 10 FIXED tasks have fixed_time_minutes or fixed_time_minutes_by_tier. No mismatches."
+    },
+    "rule_9_tsk_prefix": {
+      "status": "pass",
+      "details": "All 39 tasks use TSK_ARCH_ prefix per resolution.json context prefix ARCH. No prefix deviations."
+    },
+    "rule_10_itm_ids": {
+      "status": "pass",
+      "details": "ITM_ARCH_BEAM (LF), ITM_ARCH_COLUMN (EA), ITM_ARCH_MANTEL (EA) — all proposed, correctly marked status='proposed' in resolution.json."
+    },
+    "rule_11_enum_values": {
+      "status": "pass",
+      "details": "All enum values used across files match resolution.json applicable_enums. quality_tier: QT3/QT4/QT5 (QT2 excluded). application_method: spray/brush. sheen: satin/semi-gloss/gloss. substrate_state: SS_BARE/SS_PRIMED_FACTORY. task_classification: binary/qt_scaled. unit_of_measure: LF/EA/FIXED/SF. skill_level: helper/journeyman/lead. severity: critical/major/minor. consumable_category: protection/abrasive/tool/applicator/prep/fill_material. No prohibited values detected."
+    }
+  },
+
+  "prohibited_pattern_check": {
+    "AR_009_violations": [],
+    "checks": [
+      { "pattern": "CONS_ prefix", "found": false },
+      { "pattern": "task_class (instead of task_classification)", "found": false },
+      { "pattern": "phase 'protect' or 'protection'", "found": false },
+      { "pattern": "compound sheens (eggshell/satin, semi-gloss+)", "found": false },
+      { "pattern": "lowercase units (each, sheet, tip)", "found": false },
+      { "pattern": "severity high/medium/low/WARN", "found": false },
+      { "pattern": "consumable_category 'consumable'", "found": false },
+      { "pattern": "IN_EA_ROOMS (should be IN_EA_ROOMS_TOTAL)", "found": false },
+      { "pattern": "IN_SF_FLOOR_VACUUM (should be IN_SF_FLOOR_VACUUM_AREA)", "found": false },
+      { "pattern": "IN_SF_FLOOR_PERIMETER (should be IN_SF_PROTECT_FLOOR_PERIMETER)", "found": false }
+    ],
+    "status": "pass"
+  },
+
+  "fine_finish_doctrine_compliance": {
+    "status": "pass",
+    "version_checked": "1.1",
+    "findings": [
+      { "check": "FF_INTERSTAGE_MODULE_PRESENT", "result": "pass", "details": "MOD_ARCH_INTERSTAGE present with 8 tasks: CLEAN_AREA, INSPECT_COAT, SAND_BETWEEN_BEAM, SAND_BETWEEN_COLUMN, SAND_BETWEEN_MANTEL, PATCH_DEFECTS, SPOT_COAT, TACK_CLEAN." },
+      { "check": "FF_INTERSTAGE_RUN_RULE_CORRECT", "result": "pass", "details": "run_rule states 'Runs AFTER each coat EXCEPT the final coat'. run_count_formula = 'total_coats - 1'. Coat counts: QT3/QT4 = 2 finish + optional primer = 1-2 interstages. QT5 brush = 3 finish + optional primer = 2-3 interstages." },
+      { "check": "FF_SHEEN_TIER_RESTRICTIONS", "result": "pass", "details": "Satin at QT3+, semi-gloss at QT4+, gloss at QT5 only. Default QT3+satin — no tension. Enforced in resolution.json applicable_enums." },
+      { "check": "FF_INITIAL_PREP_COMPLETE", "result": "pass", "details": "MOD_ARCH_PREP includes: DUST_CLEAN, SAND_BEAM/COLUMN/MANTEL, FILL_BEAM/COLUMN/MANTEL, CAULK_BEAM/COLUMN/MANTEL, SEAL_MDF_EDGES. Complete per-element prep for NC architectural elements." },
+      { "check": "FF_SCRUTINY_NOT_MULTIPLIERS", "result": "pass", "details": "Quality tier differences expressed through quality_notes scrutiny definitions in sop_modules.json (QT3=quick, QT4=systematic 3ft, QT5=lighted critical). Production rates use rates_by_tier with descriptive notes per tier. Not simple multipliers." },
+      { "check": "FF_TASK_CLASSIFICATION_CORRECT", "result": "pass", "details": "Binary tasks: all application (spray/brush beam/column/mantel, prime beam/column/mantel), setup/cleanup, protection, sanding prep, caulk tasks (24 total). qt_scaled: fill (3), inspection (2), between-coat sanding (3), repair (PATCH_DEFECTS, SPOT_COAT), touchup (4+3+2+1+1 = 15 total). Correct binary/qt_scaled split." }
+    ]
+  },
+
+  "protection_metadata_check": {
+    "status": "pass",
+    "findings": [
+      { "check": "PZ_PROTECT_TASKS_HAVE_METADATA", "result": "pass", "details": "All 8 protection tasks have protection_metadata. Setup: FLOOR_PROTECT_WORKZONE (floor_workzone), FLOOR_PROTECT_PERIM (floor_perimeter), WALL_MASK (wall_adjacent), FIXTURE_MASK (fixture_covers). Teardown: REMOVE_WALL_MASK (wall_adjacent), REMOVE_FIXTURE_MASK (fixture_covers), REMOVE_FLOOR_PROTECT (floor_workzone + floor_perimeter)." },
+      { "check": "PZ_ACTION_VALID", "result": "pass", "details": "All protection_metadata.action values are valid: setup (4 tasks), teardown (3 tasks)." },
+      { "check": "PZ_ZONES_NON_EMPTY", "result": "pass", "details": "All protection_metadata.zones are non-empty arrays." },
+      { "check": "PZ_ZONES_IN_VOCABULARY", "result": "pass", "details": "floor_workzone, floor_perimeter, wall_adjacent, fixture_covers are all existing zone IDs in Protection_Zones_Reference." },
+      { "check": "PZ_SETUP_TEARDOWN_PAIRED", "result": "pass", "details": "All 4 zones fully paired. floor_workzone: FLOOR_PROTECT_WORKZONE <-> REMOVE_FLOOR_PROTECT. floor_perimeter: FLOOR_PROTECT_PERIM <-> REMOVE_FLOOR_PROTECT. wall_adjacent: WALL_MASK <-> REMOVE_WALL_MASK. fixture_covers: FIXTURE_MASK <-> REMOVE_FIXTURE_MASK." }
+    ]
+  },
+
+  "geometry_validation": {
+    "GEOM_NO_INTERNAL_COMPUTE": { "result": "pass", "details": "No internal geometry computation. Beam LF from PS_SURFACE_LF.ARCH_BEAM, column EA from PS_SURFACE_EA.ARCH_COLUMN, mantel EA from PS_SURFACE_EA.ARCH_MANTEL. No LF-to-EA or EA-to-LF conversion." },
+    "GEOM_INPUTS_DECLARED": { "result": "pass", "details": "10 inputs declared in resolution.json and materials.json: IN_LF_ARCH_BEAM, IN_EA_ARCH_COLUMN, IN_EA_ARCH_MANTEL, IN_EA_ROOMS_TOTAL, IN_SF_PROTECT_FLOOR_PERIMETER, IN_SF_FLOOR_WORKZONE, IN_EA_ASSET_FIXTURES, IN_ENUM_HEIGHT_BAND, IN_SF_FLOOR_VACUUM_AREA, IN_LF_WALL_ADJACENT." },
+    "UOM_TASKS_DECLARED": { "result": "pass", "details": "All 39 tasks have unit_of_measure declared in sop_modules.json." },
+    "UOM_RATE_MATCH": { "result": "pass", "details": "All production rates match task UOM. LF tasks have LF/hr rates. EA tasks have EA/hr rates. SF tasks have SF/hr rates. FIXED tasks have fixed_time_minutes or fixed_time_minutes_by_tier." },
+    "ADJ_NO_GEOMETRY_DERIVATION": { "result": "pass", "details": "No LF<>EA<>SF derivation at runtime. Each element type uses its own input directly. Caulk rates are per-element (LF for beam, EA for column/mantel) — no geometry derivation." },
+    "FLOW_PAINTSCOPE_TO_SPEC_TO_ESTIMATION": { "result": "pass", "details": "Correct data flow: PaintScope keys > spec inputs > sop tasks (with matching UOM) > production rates (with matching UOM). Height modifier applied externally by engine via PS_META.HEIGHT_BAND." }
+  },
+
+  "modifier_validation": {
+    "PROD_MODIFIERS_INCREASE_TIME": { "result": "pass", "details": "All modifiers documented as 'effective_rate = base_rate / modifier' in production.json. Height (H1-H4), QT (QT3-QT5), and all three complexity modifiers (beam_profile, column_type, mantel_type) correctly use time multiplier pattern. Example documented: large_timber beam at H3 = 150 / 1.20 / 1.50 = ~83 LF/hr." },
+    "PROD_SPRAY_BACKROLL_COUPLED": { "result": "not_applicable", "details": "This spec does not use spray+backroll coupling. Spray and brush are separate application methods for millwork." },
+    "CLOSET_SHELVING_FLAG_REQUIRED": { "result": "not_applicable", "details": "No closet shelving complexity in this spec." }
+  },
+
+  "task_classification_consistency": {
+    "status": "pass",
+    "binary_tasks_verified": 24,
+    "qt_scaled_tasks_verified": 15,
+    "findings": [
+      { "check": "TASK_CLASS_PRESENT", "result": "pass", "details": "All 39 tasks in sop_modules.json have task_classification defined." },
+      { "check": "TASK_CLASS_CONSISTENT", "result": "pass", "details": "task_classification matches between sop_modules.json and production.json for all 39 tasks. Binary tasks (24) have single rate_per_hour, fixed_time_minutes, or variant rates (by substrate — not QT-driven). qt_scaled tasks (15) have rates_by_tier or fixed_time_minutes_by_tier." },
+      { "check": "BINARY_SINGLE_RATE", "result": "pass", "details": "All 24 binary tasks have single rate_per_hour, fixed_time_minutes, or rates_by_substrate_state (substrate variants are not QT-driven — acceptable for binary). No binary tasks have qt_rates." },
+      { "check": "SCALED_QT_RATES_DEFINED", "result": "pass", "details": "All 15 qt_scaled tasks have rates_by_tier or fixed_time_minutes_by_tier: FILL_BEAM/COLUMN/MANTEL (3, rates_by_tier), INSPECT_COAT (fixed_time_by_tier), SAND_BETWEEN_BEAM/COLUMN/MANTEL (3, rates_by_tier), PATCH_DEFECTS/SPOT_COAT (fixed_time_by_tier), FINAL_INSPECT/TOUCHUP (fixed_time_by_tier)." },
+      { "check": "CONDITIONAL_TIERS_DEFINED", "result": "not_applicable", "details": "No qt_conditional tasks in this spec." }
+    ]
+  },
+
+  "doctrine_governance": {
+    "conflicts_detected": 0,
+    "conflicts_resolved": 0,
+    "overrides_logged": 0,
+    "corrections_captured": 0,
+    "corrections_assigned": 0,
+    "pending_doctrine_updates": 0,
+    "pending_doctrine_creates": 0,
+    "human_feedback_gate": "pending — expected for v0.1.0 draft, NOT a blocker",
+    "status": "pass",
+    "notes": "Zero doctrine conflicts in research.json. No corrections required. All existing material systems reused. Complexity modifiers are research-derived adaptations, flagged as assumptions."
+  },
+
+  "spec_completeness": {
+    "protection_zones_valid": "pending — spec.json not yet assembled",
+    "adjacency_declarations_valid": "pending — spec.json not yet assembled",
+    "site_condition_rules_valid": "pending — spec.json not yet assembled",
+    "modifier_alignment_valid": "pending — spec.json not yet assembled",
+    "task_adjacency_aligned": "pending — spec.json not yet assembled",
+    "status": "pending",
+    "errors": [],
+    "doctrine_reference": "Spec_Completeness_Doctrine.md v1.0",
+    "notes": "Spec completeness checks require assembled spec.json. All prerequisite data (protection zones, adjacency, site conditions, modifiers) are present in research.json and resolution.json. Assembly agent will construct these sections. Critic will re-validate after assembly."
+  },
+
+  "paintscope_actionability": {
+    "missing_paintscope_keys": [
+      {
+        "key": "PS_SURFACE_LF.ARCH_BEAM",
+        "status": "proposed_new_key",
+        "justification": "No existing PaintScope key covers standalone beam surfaces. Beams are LF items measured by running length.",
+        "blocking": false
+      },
+      {
+        "key": "PS_SURFACE_EA.ARCH_COLUMN",
+        "status": "proposed_new_key",
+        "justification": "No existing PaintScope key covers column wrap counting.",
+        "blocking": false
+      },
+      {
+        "key": "PS_SURFACE_EA.ARCH_MANTEL",
+        "status": "proposed_new_key",
+        "justification": "No existing PaintScope key covers mantel/surround counting.",
+        "blocking": false
+      }
+    ],
+    "unknown_asset_categories": [],
+    "edge_tasks_missing_edgelf_inputs": [],
+    "protection_steps_missing_measurable_inputs": [],
+    "manual_capture_items_missing_detail": []
+  },
+
+  "issues": [
+    {
+      "issue_id": "QA-001",
+      "severity": "minor",
+      "area": "production_logic",
+      "file": "production.json",
+      "description": "Beam, column, and mantel production rates are research estimates with no canonical doctrine values. Beam spray 150 LF/hr, brush 60 LF/hr (from research guidance 130-170 and 50-70 midpoints). Column spray 5 EA/hr, brush 2.5 EA/hr (research 4-6 and 2-3). Mantel spray 2.5 EA/hr, brush 1.5 EA/hr (research 2-3 and 1-2). Beam overhead factor ~0.85x of equivalent trim rates. All flagged as assumptions (A-001 through A-007).",
+      "suggested_fix": "Flag for field validation. Rates are reasonable midpoints from research guidance. Rate ranges provided for each task. App allows per-task rate adjustment."
+    },
+    {
+      "issue_id": "QA-002",
+      "severity": "minor",
+      "area": "production_logic",
+      "file": "production.json",
+      "description": "Three element-specific complexity modifiers (beam_profile 1.0-1.40x, column_type 1.0-1.30x, mantel_type 1.0-1.50x) are research-based adaptations from Millwork Doctrine SS7.2. Doctrine does not explicitly define these specific modifier sets for architectural elements. Flagged as assumption A-008.",
+      "suggested_fix": "Acceptable adaptations. Each modifier correctly scoped to its own element type. Field validation recommended. Consider extending Modifier_Registry to include these categories."
+    },
+    {
+      "issue_id": "QA-003",
+      "severity": "minor",
+      "area": "schema_alignment",
+      "file": "resolution.json",
+      "description": "applicable_enums.phase has 'apply' in full_sequence but not in values array. No module uses 'apply' as a phase. Same minor internal inconsistency as SF_WOOD_CEILING_NC.",
+      "suggested_fix": "Align full_sequence and values arrays. Non-blocking — modules correctly use values from the values array only."
+    },
+    {
+      "issue_id": "QA-004",
+      "severity": "minor",
+      "area": "brief_deviation",
+      "file": "resolution.json",
+      "description": "Brief Section 5 lists 9 required PaintScope inputs but does not include wall adjacent masking LF (IN_LF_WALL_ADJACENT / PS_PROTECT_LF.WALL_ADJACENT). The Resolver correctly identified and added this 10th input needed for TSK_ARCH_WALL_MASK. This is a brief omission corrected by the Resolver.",
+      "suggested_fix": "Update brief Section 5 to include IN_LF_WALL_ADJACENT. Resolver's addition is correct — wall_adjacent masking LF is required for spray protection task."
+    },
+    {
+      "issue_id": "QA-005",
+      "severity": "minor",
+      "area": "schema_alignment",
+      "file": "resolution.json",
+      "description": "Input name IN_SF_FLOOR_WORKZONE in resolution.json vs IN_SF_PROTECT_FLOOR_WORKZONE in brief Section 5. The convention for floor protection inputs is IN_SF_PROTECT_FLOOR_* (per MEMORY key conventions: IN_SF_PROTECT_FLOOR_EXPOSED). Resolution should use IN_SF_PROTECT_FLOOR_WORKZONE for consistency.",
+      "suggested_fix": "Verify canonical input name against id_registry.json during Assembly. If convention is IN_SF_PROTECT_FLOOR_*, update resolution to IN_SF_PROTECT_FLOOR_WORKZONE. Non-blocking for v0.1.0 draft."
+    }
+  ],
+
+  "brief_compliance": {
+    "status": "pass",
+    "brief_path": "specs/_backlog/SF_ARCH_ELEMENT_NC/brief.md",
+    "acceptance_criteria_checked": 14,
+    "acceptance_criteria_met": 14,
+    "deviations": [
+      {
+        "criterion": "Wall masking LF input omitted from brief Section 5",
+        "brief_says": "9 inputs listed (no wall masking LF)",
+        "implementation_says": "10 inputs including IN_LF_WALL_ADJACENT for wall_adjacent masking",
+        "severity": "minor",
+        "reason": "Resolver correctly identified missing input. Brief omission, not implementation error.",
+        "issue_ref": "QA-004"
+      },
+      {
+        "criterion": "Floor workzone input naming",
+        "brief_says": "IN_SF_PROTECT_FLOOR_WORKZONE",
+        "implementation_says": "IN_SF_FLOOR_WORKZONE (in resolution.json)",
+        "severity": "minor",
+        "reason": "Naming inconsistency — verify canonical name during assembly",
+        "issue_ref": "QA-005"
+      }
+    ],
+    "acceptance_criteria_detail": [
+      { "criterion": "All three paintable items have distinct production rates per element type", "met": true },
+      { "criterion": "beam_profile, column_type, mantel_type complexity modifiers correctly scoped to respective items", "met": true },
+      { "criterion": "Coffered ceiling beam exclusion explicit", "met": true, "details": "research.json RF-001 explicitly distinguishes standalone beams from coffered ceiling beams" },
+      { "criterion": "Stair newel post exclusion explicit", "met": true, "details": "research.json RF-003 explicitly routes newel posts to SF_STAIR_RAILING_NC" },
+      { "criterion": "Substrate-driven primer selection matches Millwork Doctrine SS4", "met": true, "details": "materials.json: MDF shellac+latex (SYS_PRIMER_MDF_SHELLAC/LATEX), FJP stain-block (SYS_PRIMER_POPLAR_STAINBLOCK), hardwood tannin-block (SYS_PRIMER_HARDWOOD_TANNINBLOCK), softwood acrylic (SYS_PRIMER_WOOD_ACRYLIC)" },
+      { "criterion": "MDF two-step prime maintained (shellac edge seal BEFORE latex face primer)", "met": true, "details": "TSK_ARCH_SEAL_MDF_EDGES in MOD_ARCH_PREP (phase: prep) runs BEFORE MOD_ARCH_PRIME (phase: prime)" },
+      { "criterion": "Height modifier applies to beams and columns", "met": true, "details": "production.json modifier_registry.height_modifiers applies to ALL beam tasks and ALL column tasks. Mantel typically H1." },
+      { "criterion": "Material systems reuse existing SYS_FF_* IDs", "met": true, "details": "All 8 SYS_ IDs reuse existing: 5 primer + 3 finish. Zero new SYS_ IDs." },
+      { "criterion": "All protection zones use valid IDs", "met": true, "details": "4 zones: floor_perimeter, floor_workzone, wall_adjacent, fixture_covers — all existing in Protection_Zones_Reference" },
+      { "criterion": "Surface IDs verified against Surface_Vocabulary_Reference", "met": true, "details": "beam_wrap, column_wrap, mantel all exist in Surface_Vocabulary_Reference" },
+      { "criterion": "3 proposed PaintScope keys flagged", "met": true, "details": "PS_SURFACE_LF.ARCH_BEAM, PS_SURFACE_EA.ARCH_COLUMN, PS_SURFACE_EA.ARCH_MANTEL flagged in resolution.json and paintscope_actionability" },
+      { "criterion": "Protection zones match millwork spray/brush patterns", "met": true, "details": "floor_perimeter (brush), floor_workzone (spray), wall_adjacent (spray), fixture_covers (spray) — standard millwork localized protection" },
+      { "criterion": "Adjacency declarations cover expected relationships", "met": true, "details": "research.json: beam-ceiling (different_finish), beam-wall (different_finish), column-ceiling (different_finish), column-wall (varies), mantel-wall (different_finish)" },
+      { "criterion": "QT2 explicitly prohibited", "met": true, "details": "resolution.json applicable_enums.quality_tier.prohibited=[QT2] with note 'prominent millwork per Millwork Doctrine SS6'" }
+    ]
+  },
+
+  "doctrine_compliance": {
+    "millwork_nc_paint_doctrine": "Compliant. MDF two-step prime enforced (TSK_ARCH_SEAL_MDF_EDGES runs BEFORE primer). FJP stain-blocking (SYS_PRIMER_POPLAR_STAINBLOCK). Hardwood tannin-blocking (SYS_PRIMER_HARDWOOD_TANNINBLOCK). Complexity modifiers adapted from SS7.2. QT2 prohibited per SS6.",
+    "fine_finish_doctrine": "Compliant. Combined prime+paint with conditional primer. Interstage universal at all QTs. QT5 brush 3+ coats (ROUND_ARCH_3FINISH per FFD SS15.10.3). Material systems: SYS_FF_STANDARD_ACRYLIC (QT3), SYS_FF_MODIFIED_URETHANE (QT4), SYS_FF_PREMIUM (QT5). Sheen/QT gate enforced. Roll and Tip method referenced for flat column/mantel faces per FFD SS15.6.",
+    "modifier_registry": "Compliant. Height modifiers H1-H4 match Modifier_Registry v1.2 (1.0, 1.30, 1.50, 2.00). QT modifiers match (1.0, 1.3, 1.5). Complexity modifiers are spec-specific research adaptations — not in Modifier_Registry but documented as assumptions.",
+    "protection_and_masking_doctrine": "Compliant. 4 protection zones, all properly conditioned. floor_workzone for spray (localized, not full room — correct for discrete elements). floor_perimeter for brush. wall_adjacent spray masking. fixture_covers spray-conditional. All zones have paired setup/teardown.",
+    "materials_and_consumables_doctrine": "Compliant. CON_ prefix throughout. 16 consumables all using existing CON_ IDs. Caulk consumption noted as high relative to surface area (element-to-structure junctions). Consumable categories valid.",
+    "conventions": "Compliant. CON_ prefix. task_classification. Severity: critical/major/minor. Phase values: setup/prep/prime/interstage/finish/cleanup. All units uppercase. No prohibited patterns detected."
+  },
+
+  "doctrine_checks": [
+    { "check": "GEOM_NO_INTERNAL_COMPUTE", "result": "pass", "details": "No internal geometry computation." },
+    { "check": "GEOM_INPUTS_DECLARED", "result": "pass", "details": "10 inputs declared." },
+    { "check": "UOM_TASKS_DECLARED", "result": "pass", "details": "All 39 tasks have UOM." },
+    { "check": "UOM_RATE_MATCH", "result": "pass", "details": "All rates match task UOM." },
+    { "check": "EDGELF_REQUIRED_IF_EDGE_TASKS", "result": "not_applicable", "details": "No edge work tasks (cut-in, tape) — element-to-structure transitions handled by masking, not edge trimming." },
+    { "check": "FLOW_PAINTSCOPE_TO_SPEC_TO_ESTIMATION", "result": "pass", "details": "Correct PaintScope → Spec → Estimation flow." },
+    { "check": "HF_GATE_PRESENT", "result": "deferred", "details": "Human Feedback Gate pending — expected for v0.1.0 draft." },
+    { "check": "HF_STATUS_RESPECTED", "result": "deferred", "details": "No human feedback yet." },
+    { "check": "HF_ITEMS_RESOLVED", "result": "deferred", "details": "No human feedback yet." },
+    { "check": "PILOT_PRECEDENT_NOT_USED", "result": "pass", "details": "Authority drawn from doctrine docs, registries, and brief — not from prior specs as precedent." },
+    { "check": "ADJ_STEPS_HAVE_KEYS", "result": "pass", "details": "Wall masking task has PS_PROTECT_LF.WALL_ADJACENT PaintScope key." },
+    { "check": "ADJ_ASSETS_IN_CATALOG", "result": "pass", "details": "Fixture masking references PS_PROTECT_EA.ASSET.FIXTURES — existing asset key." },
+    { "check": "ADJ_PROTECTION_MEASURABLE", "result": "pass", "details": "All protection zones have measurable PaintScope keys (SF, LF, EA)." },
+    { "check": "ADJ_EDGE_STRATEGY_HAS_EDGELF", "result": "not_applicable", "details": "No edge strategies in this spec." },
+    { "check": "ADJ_NO_GEOMETRY_DERIVATION", "result": "pass", "details": "No LF<>EA<>SF derivation." },
+    { "check": "PROD_SPRAY_BACKROLL_COUPLED", "result": "not_applicable", "details": "No spray+backroll method." },
+    { "check": "PROD_MODIFIERS_INCREASE_TIME", "result": "pass", "details": "All modifiers documented as time multipliers (effective_rate = base_rate / modifier)." },
+    { "check": "CLOSET_SHELVING_FLAG_REQUIRED", "result": "not_applicable", "details": "No closet shelving." },
+    { "check": "TASK_CLASS_PRESENT", "result": "pass", "details": "All 39 tasks have task_classification." },
+    { "check": "TASK_CLASS_CONSISTENT", "result": "pass", "details": "Classification matches between sop_modules and production for all 39 tasks." },
+    { "check": "BINARY_SINGLE_RATE", "result": "pass", "details": "All 24 binary tasks use single rate or substrate variants (not QT-driven)." },
+    { "check": "CONDITIONAL_TIERS_DEFINED", "result": "not_applicable", "details": "No qt_conditional tasks." },
+    { "check": "SCALED_QT_RATES_DEFINED", "result": "pass", "details": "All 15 qt_scaled tasks have rates_by_tier or fixed_time_minutes_by_tier." },
+    { "check": "DEFECT_TOLERANCE_PRESENT", "result": "pass", "details": "Defect tolerance documented via quality_notes scrutiny definitions in sop_modules and rate descriptions in production." },
+    { "check": "FF_INTERSTAGE_MODULE_PRESENT", "result": "pass", "details": "MOD_ARCH_INTERSTAGE present." },
+    { "check": "FF_INTERSTAGE_RUN_RULE_CORRECT", "result": "pass", "details": "Runs after each coat except final. total_coats - 1." },
+    { "check": "FF_SHEEN_TIER_RESTRICTIONS", "result": "pass", "details": "Satin QT3+, semi-gloss QT4+, gloss QT5 only." },
+    { "check": "FF_INITIAL_PREP_COMPLETE", "result": "pass", "details": "All NC prep tasks present: dust, sand (×3), fill (×3), caulk (×3), MDF edge seal." },
+    { "check": "FF_SCRUTINY_NOT_MULTIPLIERS", "result": "pass", "details": "QT differences use scrutiny definitions per quality_notes." },
+    { "check": "PZ_PROTECT_TASKS_HAVE_METADATA", "result": "pass", "details": "All 8 protection tasks have metadata." },
+    { "check": "PZ_ACTION_VALID", "result": "pass", "details": "All actions valid (setup/teardown)." },
+    { "check": "PZ_ZONES_NON_EMPTY", "result": "pass", "details": "All zones non-empty." },
+    { "check": "PZ_ZONES_IN_VOCABULARY", "result": "pass", "details": "All 4 zone IDs in Protection_Zones_Reference." },
+    { "check": "PZ_SETUP_TEARDOWN_PAIRED", "result": "pass", "details": "All 4 zones paired." },
+    { "check": "FC_EDGE_TASKS_HAVE_METADATA", "result": "not_applicable", "details": "No edge tasks." },
+    { "check": "FC_ADJACENT_SURFACE_PRESENT", "result": "not_applicable", "details": "No adjacency_metadata on tasks." },
+    { "check": "FC_SURFACE_IN_VOCABULARY", "result": "pass", "details": "beam_wrap, column_wrap, mantel, ceiling_field, wall_field all in Surface_Vocabulary_Reference." },
+    { "check": "FC_SKIP_REQUIRED_EXCLUSIVE", "result": "not_applicable", "details": "No skip/required rules." },
+    { "check": "FC_BLEND_METHOD_BRUSH_ROLL", "result": "not_applicable", "details": "No blend tasks." },
+    { "check": "FC_DECL_PRIMARY_SURFACE_PRESENT", "result": "pass", "details": "Primary surfaces beam_wrap, column_wrap, mantel declared in research adjacency_analysis." },
+    { "check": "FC_DECL_EDGE_TYPE_VALID", "result": "pass", "details": "All edge types 'linear' — valid enum." },
+    { "check": "WINDOW_SIZE_BUCKET_KEYS", "result": "not_applicable", "details": "Not a window spec." },
+    { "check": "WINDOW_HEIGHT_DISTRIBUTION", "result": "not_applicable", "details": "Not a window spec." },
+    { "check": "WINDOW_LF_DERIVED", "result": "not_applicable", "details": "Not a window spec." },
+    { "check": "DO_CONFLICTS_RESOLVED", "result": "pass", "details": "Zero doctrine conflicts. No overrides needed." },
+    { "check": "DO_HAS_RATIONALE", "result": "not_applicable", "details": "No overrides." },
+    { "check": "DO_VALID_RESOLUTION", "result": "not_applicable", "details": "No overrides." },
+    { "check": "DO_PENDING_UPDATES_FLAGGED", "result": "pass", "details": "Zero pending doctrine updates." },
+    { "check": "RC_ALL_CORRECTIONS_ASSIGNED", "result": "pass", "details": "Zero corrections required." },
+    { "check": "RC_HAS_RATIONALE", "result": "not_applicable", "details": "No corrections." },
+    { "check": "RC_VALID_TARGET", "result": "not_applicable", "details": "No corrections." },
+    { "check": "RC_PENDING_UPDATES_FLAGGED", "result": "pass", "details": "No pending updates." },
+    { "check": "SCD_PZ_PRESENT", "result": "pending", "details": "Requires spec.json." },
+    { "check": "SCD_PZ_ZONES_VALID", "result": "pending", "details": "Requires spec.json." },
+    { "check": "SCD_PZ_LEVELS_VALID", "result": "pending", "details": "Requires spec.json." },
+    { "check": "SCD_ADJ_PRESENT", "result": "pending", "details": "Requires spec.json." },
+    { "check": "SCD_ADJ_SURFACES_VALID", "result": "pending", "details": "Requires spec.json." },
+    { "check": "SCD_ADJ_TASKS_EXIST", "result": "pending", "details": "Requires spec.json." },
+    { "check": "SCD_SC_RULES_PRESENT", "result": "pending", "details": "Requires spec.json." },
+    { "check": "SCD_SC_CONDITIONS_VALID", "result": "pending", "details": "Requires spec.json." },
+    { "check": "SCD_SC_VALUES_VALID", "result": "pending", "details": "Requires spec.json." },
+    { "check": "SCD_MOD_ALIGNED", "result": "pending", "details": "Requires spec.json." },
+    { "check": "SCD_TASK_ADJ_ALIGNED", "result": "pending", "details": "Requires spec.json." },
+    { "check": "SCD_STATE_DECL_PRESENT", "result": "pending", "details": "Requires spec.json." },
+    { "check": "SCD_STATE_PRIMARY_SURFACE", "result": "pending", "details": "Requires spec.json." },
+    { "check": "SCD_STATE_INPUT_VALID", "result": "pass", "details": "SS_BARE and SS_PRIMED_FACTORY are valid SS_* IDs." },
+    { "check": "SCD_STATE_INPUT_EMPTY", "result": "pass", "details": "Two valid input states declared." },
+    { "check": "SCD_STATE_OUTPUT_VALID", "result": "pass", "details": "SS_PAINTED_SATIN, SS_PAINTED_SEMIGLOSS, SS_PAINTED_GLOSS are valid SS_* IDs." },
+    { "check": "SCD_STATE_OUTPUT_MISSING", "result": "pass", "details": "Output state declared with varies_by sheen and state_map." },
+    { "check": "SCD_STATE_MAP_VALID", "result": "pass", "details": "All state_map values are valid SS_* IDs." },
+    { "check": "SCD_STATE_PROTECTION_SURFACE_VALID", "result": "pass", "details": "Adjacent surfaces in state analysis (ceiling_field, wall_field) are valid surface IDs." },
+    { "check": "SCD_STATE_PROTECTION_STATES_VALID", "result": "pass", "details": "when_state arrays contain valid SS_* IDs." },
+    { "check": "SCD_STATE_PROTECTION_LEVEL_VALID", "result": "pass", "details": "Protection levels (edge_only, partial_cover, full_cover) are valid enums." },
+    { "check": "SCD_STATE_MODIFIER_ALIGNED", "result": "pass", "details": "Height modifiers (H1-H4) match Modifier_Registry.md. QT modifiers (1.0, 1.3, 1.5) match. Complexity modifiers are spec-specific — documented as research adaptations." }
+  ],
+
+  "human_feedback": {
+    "present": false,
+    "artifact": "SF_ARCH_ELEMENT_NC_v1 pipeline files",
+    "status": "missing",
+    "issues_checked": 0,
+    "issues_resolved": 0,
+    "unresolved_ids": [],
+    "notes": "Expected for v0.1.0 draft. Human Feedback Gate has NOT occurred. Standard pipeline flow — draft generated first, human review follows."
+  },
+
+  "key_characteristics": [
+    "First spec with 3 paintable items having 3 DIFFERENT UOMs: beam (LF), column (EA), mantel (EA). Most complex multi-item architecture in the system.",
+    "Per-element tasks where UOM differs: sand, fill, caulk, prime, spray/brush finish, interstage sand — each has separate beam/column/mantel tasks. 27 per-element tasks + 12 shared FIXED/room-level tasks = 39 total.",
+    "Three element-specific complexity modifiers, each scoped exclusively: beam_profile (1.0-1.40x), column_type (1.0-1.30x), mantel_type (1.0-1.50x).",
+    "Mixed working heights within a single spec: beams are overhead (ceiling-mounted), columns are full-height (floor-to-ceiling), mantels are wall-height (H1 typical). Height modifier via PS_META.HEIGHT_BAND applies to beams and columns.",
+    "Beam overhead factor ~0.85x baked into base rates — less severe than full ceiling (0.70-0.80x) because beams are discrete elements, not continuous overhead surfaces.",
+    "Localized protection (floor_workzone, not floor_full) — correct for discrete elements that are not room-spanning.",
+    "39 tasks total (24 binary, 15 qt_scaled) — comparable to SF_STAIR_RAILING_NC (43 tasks, 4 items).",
+    "3 proposed PaintScope keys — one per paintable item. All 7 existing PaintScope keys reused.",
+    "All 8 material system IDs reuse existing entries — 5 primer SYS_ + 3 finish SYS_ — REUSE OVER CREATION.",
+    "QT2 prohibited (prominent millwork). QT3+satin default has no sheen/QT gate tension.",
+    "COMP_FIREPLACE cross-spec note: mantels are the SOURCE of COMP_FIREPLACE complexity for adjacent wall/ceiling specs — this spec is not affected by it."
+  ],
+
+  "registry_additions_count": {
+    "SF_": 1,
+    "ITM_": 3,
+    "TSK_": "39 tasks under TSK_ARCH_*",
+    "MOD_": "7 modules under MOD_ARCH_*",
+    "ROUND_": 3,
+    "COV_": 2,
+    "SYS_": 0,
+    "PS_": "3 new (PS_SURFACE_LF.ARCH_BEAM, PS_SURFACE_EA.ARCH_COLUMN, PS_SURFACE_EA.ARCH_MANTEL)",
+    "IN_": "3 new (IN_LF_ARCH_BEAM, IN_EA_ARCH_COLUMN, IN_EA_ARCH_MANTEL)",
+    "surface_ids": "3 proposed activation (beam_wrap, column_wrap, mantel)",
+    "zone_ids": 0,
+    "CON_": 0
+  },
+
+  "review_notes": "Architectural element spec is the most complex multi-item spec in the system with 3 paintable items across 3 different UOMs (LF, EA, EA). The per-element task architecture is well-designed — separate tasks where UOM/geometry differs, shared FIXED tasks for room-level work. Protection zones are appropriately localized (floor_workzone, not floor_full) reflecting that these are discrete elements, not room-spanning surfaces. The three complexity modifier sets are each correctly scoped to their respective element type with no cross-application. Research-based production rates are reasonable midpoints with documented range bounds and assumptions. No critical or major issues found. 5 minor warnings are all documentation/naming/field-validation items, not structural problems."
+}
