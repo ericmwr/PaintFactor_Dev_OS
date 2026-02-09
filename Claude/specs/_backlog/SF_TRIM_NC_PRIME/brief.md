@@ -66,10 +66,15 @@
 
 | Item ID | Name | UOM | Counting Rules | Conditional? |
 |---------|------|-----|----------------|-------------|
-| ITM_TRIM_BASEBOARD_PRIME | Baseboard prime coat | LF | PaintScope: PS_SURFACE_LF.TRIM_BASEBOARD | Always (when baseboard in scope) |
-| ITM_TRIM_CASING_DOOR_PRIME | Door casing prime coat | LF | PaintScope: PS_SURFACE_LF.TRIM_CASING_DOOR | Always (when door casing in scope) |
-| ITM_TRIM_CASING_WINDOW_PRIME | Window casing prime coat | LF | PaintScope: PS_SURFACE_LF.TRIM_CASING_WINDOW | Always (when window casing in scope) |
-| ITM_TRIM_OTHER_PRIME | Other trim prime coat | LF | PaintScope: PS_SURFACE_LF.TRIM_OTHER | When other trim types present (chair rail, etc.) |
+| ITM_TRIM_BASEBOARD | Baseboard | LF | PaintScope: PS_SURFACE_LF.TRIM_BASEBOARD | Always (when baseboard in scope) |
+| ITM_TRIM_CASING_DOOR | Door casing | LF | PaintScope: PS_SURFACE_LF.TRIM_CASING_DOOR | Always (when door casing in scope) |
+| ITM_TRIM_CASING_WINDOW | Window casing | LF | PaintScope: PS_SURFACE_LF.TRIM_CASING_WINDOW | Always (when window casing in scope) |
+| ITM_TRIM_CROWN | Crown molding | LF | PaintScope: PS_SURFACE_LF.TRIM_CROWN | When crown molding present |
+| ITM_TRIM_CHAIR_RAIL | Chair rail | LF | PaintScope: PS_SURFACE_LF.TRIM_CHAIR_RAIL | When chair rail present |
+| ITM_TRIM_WAINSCOT_RAIL | Wainscot rail | LF | PaintScope: PS_SURFACE_LF.TRIM_WAINSCOT_RAIL | When wainscot rail present |
+| ITM_TRIM_SHADOW_BOX | Shadow box molding | LF | PaintScope: PS_SURFACE_LF.TRIM_SHADOW_BOX | When shadow box present |
+| ITM_TRIM_PANEL_MOLD | Panel molding | LF | PaintScope: PS_SURFACE_LF.TRIM_PANEL_MOLD | When panel molding present |
+| ITM_TRIM_PICTURE_RAIL | Picture rail | LF | PaintScope: PS_SURFACE_LF.TRIM_PICTURE_RAIL | When picture rail present |
 | ITM_TRIM_JOINTS_CAULK | Trim joint caulking | LF | PaintScope: PS_EDGE_LF.TRIM_JOINTS | Always — miter/cope/scarf joints |
 | ITM_CASING_ENDS_FILL | Casing end grain fill | EA | PaintScope: PS_META.EA.CASING_END_COUNT | When bare wood (not factory primed) |
 
@@ -82,7 +87,12 @@
 | IN_LF_BASEBOARD | PS_SURFACE_LF.TRIM_BASEBOARD | LF | Conditional | When baseboard in scope. 1 LF = 1 SF per PDCA standard. |
 | IN_LF_DOOR_CASING | PS_SURFACE_LF.TRIM_CASING_DOOR | LF | Conditional | When door casing in scope |
 | IN_LF_WINDOW_CASING | PS_SURFACE_LF.TRIM_CASING_WINDOW | LF | Conditional | When window casing in scope |
-| IN_LF_TRIM_OTHER | PS_SURFACE_LF.TRIM_OTHER | LF | Conditional | Fallback for chair rail, picture rail, etc. |
+| IN_LF_CROWN | PS_SURFACE_LF.TRIM_CROWN | LF | Conditional | When crown molding present |
+| IN_LF_CHAIR_RAIL | PS_SURFACE_LF.TRIM_CHAIR_RAIL | LF | Conditional | When chair rail present |
+| IN_LF_WAINSCOT_RAIL | PS_SURFACE_LF.TRIM_WAINSCOT_RAIL | LF | Conditional | When wainscot rail present |
+| IN_LF_SHADOW_BOX | PS_SURFACE_LF.TRIM_SHADOW_BOX | LF | Conditional | When shadow box present |
+| IN_LF_PANEL_MOLD | PS_SURFACE_LF.TRIM_PANEL_MOLD | LF | Conditional | When panel molding present |
+| IN_LF_PICTURE_RAIL | PS_SURFACE_LF.TRIM_PICTURE_RAIL | LF | Conditional | When picture rail present |
 | IN_LF_TRIM_JOINTS | PS_EDGE_LF.TRIM_JOINTS | LF | Always | Joint LF for caulking. Derived: ~1 joint per 8-12 LF trim. |
 | IN_EA_CASING_ENDS | PS_META.EA.CASING_END_COUNT | EA | When bare wood | End grain exposures for grain fill. 2 per door, 4 per window typically. |
 | IN_SF_PROTECT_FLOOR_PERIMETER | PS_PROTECT_SF.FLOOR_PERIMETER | SF | Always | Perimeter floor protection for drip catching |
@@ -94,7 +104,12 @@ All keys exist in `docs/PaintScope/PaintScope_Quantity_Key_Catalog.md`:
 - `PS_SURFACE_LF.TRIM_BASEBOARD` - Section "Trim (LF-based)"
 - `PS_SURFACE_LF.TRIM_CASING_DOOR` - Section "Trim (LF-based)"
 - `PS_SURFACE_LF.TRIM_CASING_WINDOW` - Section "Trim (LF-based)"
-- `PS_SURFACE_LF.TRIM_OTHER` - Section "Trim (LF-based)"
+- `PS_SURFACE_LF.TRIM_CROWN` - Section "Trim (LF-based)"
+- `PS_SURFACE_LF.TRIM_CHAIR_RAIL` - Section "Trim (LF-based)"
+- `PS_SURFACE_LF.TRIM_WAINSCOT_RAIL` - Section "Trim (LF-based)"
+- `PS_SURFACE_LF.TRIM_SHADOW_BOX` - Section "Trim (LF-based)"
+- `PS_SURFACE_LF.TRIM_PANEL_MOLD` - Section "Trim (LF-based)"
+- `PS_SURFACE_LF.TRIM_PICTURE_RAIL` - Section "Trim (LF-based)"
 - `PS_EDGE_LF.TRIM_JOINTS` - Section "Trim-specific edges"
 - `PS_META.EA.CASING_END_COUNT` - Section "Trim (LF-based)"
 - `PS_PROTECT_SF.FLOOR_PERIMETER` - Section "Floor Protection Keys (SF)"
@@ -131,6 +146,13 @@ All keys exist in `docs/PaintScope/PaintScope_Quantity_Key_Catalog.md`:
 | trim_casing_door | door_frame | linear | same_finish (often) |
 | trim_casing_window | wall_field | linear | different_finish |
 | trim_casing_window | window_jamb | linear | same_finish (often) |
+| trim_crown | ceiling_field | linear | different_finish |
+| trim_crown | wall_field | linear | different_finish |
+| trim_chair_rail | wall_field | linear | different_finish |
+| trim_wainscot_rail | wall_field | linear | different_finish |
+| trim_shadow_box | wall_field | linear | different_finish |
+| trim_panel_mold | wall_field | linear | different_finish |
+| trim_picture_rail | wall_field | linear | different_finish |
 
 **Surface IDs verified against:** Surface_Vocabulary_Reference.md v1.0
 
@@ -311,10 +333,10 @@ Should crown molding priming be included in this spec (via profile_complexity = 
 
 **Recommendation:** Include crown in this spec with profile_complexity and trim_height dimensions. Create separate spec only if crown requires fundamentally different workflow.
 
-### Q2: Chair Rail / Wainscot Cap
-Should chair rail, picture rail, and wainscot cap be included via IN_LF_TRIM_OTHER, or require explicit PaintScope keys?
+### Q2: Chair Rail / Wainscot Cap — **RESOLVED**
+~~Should chair rail, picture rail, and wainscot cap be included via IN_LF_TRIM_OTHER, or require explicit PaintScope keys?~~
 
-**Recommendation:** Use IN_LF_TRIM_OTHER for these items. They follow the same workflow as baseboard/casing. Explicit keys can be added later if quantification requires it.
+**Resolution:** Each trim type now has its own item ID and PaintScope key (ITM_TRIM_CROWN, ITM_TRIM_CHAIR_RAIL, ITM_TRIM_WAINSCOT_RAIL, ITM_TRIM_SHADOW_BOX, ITM_TRIM_PANEL_MOLD, ITM_TRIM_PICTURE_RAIL). ITM_TRIM_OTHER and IN_LF_TRIM_OTHER are DEPRECATED.
 
 ### Q3: Pre-Finish Sanding
 Factory-primed trim often benefits from a light scuff sand (150-180 grit) before additional primer or direct-to-finish. Should this be a mandatory prep task or user-configurable?

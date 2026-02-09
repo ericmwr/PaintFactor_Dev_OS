@@ -132,7 +132,12 @@ These keys carry classification values used by production rate modifiers. They a
 - `PS_SURFACE_LF.TRIM_CROWN`
 - `PS_SURFACE_LF.TRIM_CASING_DOOR`
 - `PS_SURFACE_LF.TRIM_CASING_WINDOW`
-- `PS_SURFACE_LF.TRIM_OTHER` (fallback bucket; avoid if possible)
+- `PS_SURFACE_LF.TRIM_CHAIR_RAIL`
+- `PS_SURFACE_LF.TRIM_WAINSCOT_RAIL`
+- `PS_SURFACE_LF.TRIM_SHADOW_BOX`
+- `PS_SURFACE_LF.TRIM_PANEL_MOLD`
+- `PS_SURFACE_LF.TRIM_PICTURE_RAIL`
+- ~~`PS_SURFACE_LF.TRIM_OTHER`~~ **DEPRECATED** — Use specific trim type keys above instead
 
 - `PS_META.EA.CASING_END_COUNT`
   **Meaning:** Count of trim casing end-grain exposures requiring grain filler.

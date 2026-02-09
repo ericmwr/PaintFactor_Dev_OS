@@ -50,6 +50,7 @@ Surface IDs identify specific substrate types for:
 | `trim_wainscot_rail` | Wainscot cap/rail | wall_field, wainscot_panel |
 | `trim_shadow_box` | Shadow box / picture frame molding | wall_field |
 | `trim_panel_mold` | Panel molding | wall_panel |
+| `trim_picture_rail` | Picture rail | wall_field (above/below) |
 
 ---
 

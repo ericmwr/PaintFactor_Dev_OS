@@ -86,7 +86,7 @@ No conversions are allowed in specs.
 | IN_SF_CEILING_FIELD | SF | PS_SURFACE_SF.CEILING_FIELD | any ceiling painting work | Core ceiling quantity |
 | IN_LF_EDGE_TO_WALL | LF | PS_EDGE_LF.TO_WALL | ceiling spec includes edge work at wall line | Required for ceiling cut/tape tasks. Same physical edge as wall's TO_CEILING. |
 | IN_SF_PROTECT_FLOOR_EXPOSED | SF | PS_PROTECT_SF.FLOOR_EXPOSED | ceiling work includes full-room drops | Especially relevant for spray strategies |
-| IN_SF_FLOOR_VACUUM | SF | PS_META.SF.FLOOR_VACUUM_AREA | post-application floor vacuum cleanup | Distinct from protection area — vacuum applies regardless of floor protection |
+| IN_SF_FLOOR_VACUUM_AREA | SF | PS_META.SF.FLOOR_VACUUM_AREA | post-application floor vacuum cleanup | Distinct from protection area — vacuum applies regardless of floor protection |
 
 ---
 
@@ -98,7 +98,12 @@ No conversions are allowed in specs.
 | IN_LF_CROWN | LF | PS_SURFACE_LF.TRIM_CROWN | crown painting included | |
 | IN_LF_DOOR_CASING | LF | PS_SURFACE_LF.TRIM_CASING_DOOR | door casing painting included | |
 | IN_LF_WINDOW_CASING | LF | PS_SURFACE_LF.TRIM_CASING_WINDOW | window casing painting included | |
-| IN_LF_TRIM_OTHER | LF | PS_SURFACE_LF.TRIM_OTHER | fallback only | Avoid if possible; define more categories instead |
+| ~~IN_LF_TRIM_OTHER~~ | ~~LF~~ | ~~PS_SURFACE_LF.TRIM_OTHER~~ | **DEPRECATED** | Use specific trim type inputs below instead |
+| IN_LF_CHAIR_RAIL | LF | PS_SURFACE_LF.TRIM_CHAIR_RAIL | chair rail painting included | |
+| IN_LF_WAINSCOT_RAIL | LF | PS_SURFACE_LF.TRIM_WAINSCOT_RAIL | wainscot rail painting included | |
+| IN_LF_SHADOW_BOX | LF | PS_SURFACE_LF.TRIM_SHADOW_BOX | shadow box molding painting included | |
+| IN_LF_PANEL_MOLD | LF | PS_SURFACE_LF.TRIM_PANEL_MOLD | panel molding painting included | |
+| IN_LF_PICTURE_RAIL | LF | PS_SURFACE_LF.TRIM_PICTURE_RAIL | picture rail painting included | |
 | IN_LF_TRIM_JOINTS | LF | PS_EDGE_LF.TRIM_JOINTS | trim caulk joint tasks | Miter/cope joints |
 | IN_EA_CASING_ENDS | EA | PS_META.EA.CASING_END_COUNT | grain fill tasks | End-grain exposures |
 

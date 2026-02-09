@@ -49,7 +49,7 @@ Material definitions inform the Estimation Engine but do not themselves calculat
 ### Adjacency-Safe Constraints
 
 1. **Protection Materials Must Have Measurable Inputs:** All protection materials (paper, plastic, film, tape, visqueen, drop cloths) MUST be tied to measurable inputs via declared required keys:
-   - Floor protection → requires SF key (e.g., `IN_SF_FLOOR_PROTECTION_AREA`)
+   - Floor protection → requires SF key (e.g., `IN_SF_PROTECT_FLOOR_EXPOSED`)
    - Edge tape → requires LF key (e.g., `IN_LF_EDGE_TO_TRIM`, `IN_LF_EDGE_TO_CEILING`)
    - Asset covers → requires EA key (from Asset Catalog) or SF/LF for sized covers
 
@@ -72,7 +72,7 @@ Material definitions inform the Estimation Engine but do not themselves calculat
 Every entry in `required_inputs[]` MUST include:
 ```json
 {
-  "input_name": "IN_SF_FLOOR_PROTECTION_AREA",
+  "input_name": "IN_SF_PROTECT_FLOOR_EXPOSED",
   "paintscope_key": "PS_PROTECT_SF.FLOOR_EXPOSED",
   "uom": "SF"
 }

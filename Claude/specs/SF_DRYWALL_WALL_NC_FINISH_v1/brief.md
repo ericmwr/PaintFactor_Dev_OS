@@ -77,9 +77,9 @@
 |------------|---------------|-----|----------|-------|
 | IN_SF_WALL_FIELD | PS_SURFACE_SF.WALL_FIELD | SF | Always | Total wall area to finish |
 | IN_LF_EDGE_TO_CEILING | PS_EDGE_LF.TO_CEILING | LF | Always | Wall-to-ceiling boundary for cut-in (wall painter establishes ceiling line) |
-| IN_SF_FLOOR_AREA | PS_META.SF.FLOOR_VACUUM_AREA | SF | Always | Floor area for post-application vacuum cleanup |
-| IN_SF_FLOOR_AREA | PS_PROTECT_SF.FLOOR_EXPOSED | SF | When floor covering exists | Inspect previously installed floor covering for defects, repair as needed |
-| IN_EA_ROOMS | PS_META.EA.ROOMS_TOTAL | EA | When spray/spray_backroll | Room count for protection heuristics |
+| IN_SF_FLOOR_VACUUM_AREA | PS_META.SF.FLOOR_VACUUM_AREA | SF | Always | Floor area for post-application vacuum cleanup |
+| IN_SF_PROTECT_FLOOR_EXPOSED | PS_PROTECT_SF.FLOOR_EXPOSED | SF | When floor covering exists | Inspect previously installed floor covering for defects, repair as needed |
+| IN_EA_ROOMS_TOTAL | PS_META.EA.ROOMS_TOTAL | EA | When spray/spray_backroll | Room count for protection heuristics |
 | IN_EA_WINDOW_OPENINGS | PS_OPENING_EA.WINDOW_OPENINGS_TOTAL | EA | Always | Count of window openings to verify/apply masking |
 | IN_EA_DOOR_OPENINGS | PS_OPENING_EA.DOOR_OPENINGS_TOTAL | EA | Always | Count of door openings to verify/apply masking |
 

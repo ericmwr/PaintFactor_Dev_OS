@@ -1,0 +1,839 @@
+{
+  "research_metadata": {
+    "spec_family_id": "SF_TRIM_NC_PAINT",
+    "research_mode": "lightweight",
+    "brief_source": "specs/_backlog/SF_TRIM_NC_PAINT/brief.md",
+    "companion_spec": "specs/SF_TRIM_NC_PRIME_v1/spec.json",
+    "doctrine_loaded": [
+      "docs/System/PaintFactor_OS.md",
+      "docs/System/Conventions.md",
+      "docs/Doctrine/Quality_Tiers_and_Surface_Condition.md",
+      "docs/Doctrine/Fine_Finish_Doctrine.md",
+      "docs/Doctrine/Millwork_NC_Paint_Doctrine.md",
+      "docs/Doctrine/Materials_and_Consumables_Doctrine.md",
+      "docs/Doctrine/Estimation_Modifiers_Doctrine.md",
+      "docs/Doctrine/Interior_Protection_Doctrine.md",
+      "docs/Doctrine/Protection_and_Masking_Doctrine.md",
+      "docs/Doctrine/Modifier_Registry.md",
+      "docs/Doctrine/Spec_Completeness_Doctrine.md",
+      "docs/Reference/Protection_Zones_Reference.md",
+      "docs/Reference/Surface_Vocabulary_Reference.md",
+      "docs/Reference/Site_Condition_Vocabulary_Reference.md",
+      "docs/Reference/Substrate_State_Reference.md",
+      "docs/PaintScope/PaintScope_Quantity_Key_Catalog.md",
+      "docs/PaintScope/Spec_Input_to_PaintScope_Key_Mapping.md",
+      "production rates/PaintFactor_Production_Rate_Reference.md"
+    ],
+    "sibling_specs_reviewed": [
+      "specs/SF_TRIM_NC_PRIME_v1/spec.json",
+      "specs/SF_TRIM_NC_PRIME_v1/research.json",
+      "specs/SF_DRYWALL_WALL_NC_FINISH_v1/research.json"
+    ],
+    "researcher": "Spec Researcher Agent",
+    "date": "2026-02-07",
+    "status": "draft",
+    "review_required": true
+  },
+
+  "protection_zones_analysis": {
+    "spec_category": "trim",
+    "application_method_sensitivity": true,
+    "zones": [
+      {
+        "zone_id": "floor_perimeter",
+        "condition": "always (when floor_type = finished or partial)",
+        "protection_level": "edge_only",
+        "paintscope_key": "PS_PROTECT_SF.FLOOR_PERIMETER",
+        "upgrade_scenario": null,
+        "notes": "Drop cloth runners along trim work area for drip catching. Required for both brush and spray methods. Identical to prime spec protection zone."
+      },
+      {
+        "zone_id": "wall_adjacent",
+        "condition": { "application_method": "spray" },
+        "protection_level": "light_mask",
+        "paintscope_key": "PS_PROTECT_LF.WALL_ADJACENT",
+        "upgrade_scenario": "Upgrades to heavy_mask if walls are SS_PAINTED_*",
+        "notes": "Tape line + paper at wall-trim edge when spraying. Protects wall from overspray. Not needed for brush method."
+      },
+      {
+        "zone_id": "fixture_covers",
+        "condition": { "application_method": "spray" },
+        "protection_level": "partial_cover",
+        "paintscope_key": "PS_PROTECT_EA.ASSET.FIXTURES",
+        "upgrade_scenario": null,
+        "notes": "Cover outlets/switches near spray zone. Same as prime spec."
+      }
+    ],
+    "zone_reference": "Protection_Zones_Reference.md v2.0",
+    "method_escalation": "brush < spray",
+    "conditional_protection_note": "Floor protection is conditional on floor_type site condition. Subfloor (typical early NC sequence) may require no floor protection. Finished/partial floors require drop cloth runners along trim perimeter."
+  },
+
+  "adjacency_analysis": {
+    "primary_surface": "trim (baseboard, casing, crown, chair rail, wainscot rail, shadow box, panel mold, picture rail)",
+    "adjacent_surfaces": [
+      {
+        "surface_id": "wall_field",
+        "edge_type": "linear",
+        "typical_relationship": "different_finish",
+        "edge_work_required": false,
+        "notes": "Trim and wall commonly different colors/sheens. Trim finish does not require wall edge work — wall is painted AFTER trim package completes. Wall painter cuts into the trim edge later. For spray method, wall masking IS required to protect wall from overspray."
+      },
+      {
+        "surface_id": "floor",
+        "edge_type": "linear",
+        "typical_relationship": "not_in_scope",
+        "edge_work_required": false,
+        "notes": "Floor is not painted. Floor protection only (drop cloth runners)."
+      },
+      {
+        "surface_id": "door_frame",
+        "edge_type": "linear",
+        "typical_relationship": "same_finish",
+        "edge_work_required": false,
+        "notes": "Door casing and door frame typically share finish color/sheen. Often painted in same session by same crew."
+      },
+      {
+        "surface_id": "window_jamb",
+        "edge_type": "linear",
+        "typical_relationship": "same_finish",
+        "edge_work_required": false,
+        "notes": "Window casing and window jamb typically share finish. Often painted in same session."
+      },
+      {
+        "surface_id": "ceiling_field",
+        "edge_type": "linear",
+        "typical_relationship": "different_finish",
+        "edge_work_required": false,
+        "notes": "Crown molding touches ceiling. In NC, ceiling is typically finished (SS_PAINTED_FLAT) when trim finish occurs. Brush method unlikely to contact ceiling; spray method may require light masking at crown-ceiling junction."
+      }
+    ],
+    "surface_reference": "Surface_Vocabulary_Reference.md v1.0",
+    "key_finding": "Trim finish has NO edge work requirements. All adjacent surfaces are either same_finish (frame, jamb) or will be cut into later by another painter (wall_field). Protection relationships only."
+  },
+
+  "site_condition_analysis": {
+    "affected_conditions": [
+      {
+        "condition_id": "floor_type",
+        "vocabulary_ref": "Site_Condition_Vocabulary_Reference.md § floor_type",
+        "affected_task_types": ["protect"],
+        "include_values": ["finished", "partial"],
+        "exclude_values": ["subfloor"],
+        "modifier_notes": null,
+        "notes": "Floor protection required only when finished floors present. Subfloor requires no protection. Same as prime spec."
+      },
+      {
+        "condition_id": "occupancy_state",
+        "vocabulary_ref": "Site_Condition_Vocabulary_Reference.md § occupancy_state",
+        "affected_task_types": ["protect"],
+        "include_values": ["occupied_crew_handles", "occupied_sensitive"],
+        "exclude_values": ["vacant"],
+        "modifier_notes": "occupied_sensitive triggers OCC_SENSITIVE modifier 1.30x on protection tasks per Modifier_Registry",
+        "notes": "Additional furniture/item protection when occupied. Rare in NC context."
+      },
+      {
+        "condition_id": "lead_status",
+        "vocabulary_ref": "Site_Condition_Vocabulary_Reference.md § lead_status",
+        "affected_task_types": ["prep", "finish"],
+        "include_values": ["tested_positive", "unknown_pre1978"],
+        "exclude_values": ["tested_negative", "not_applicable"],
+        "modifier_notes": "tested_positive=2.0x, unknown_pre1978=1.5x per Modifier_Registry",
+        "notes": "Lead-safe practices when applicable. Rare in NC (post-1978 construction). Between-coat sanding generates dust that requires containment under RRP."
+      },
+      {
+        "condition_id": "access_constraint",
+        "vocabulary_ref": "Site_Condition_Vocabulary_Reference.md § access_constraint",
+        "affected_task_types": ["prep", "finish", "interstage"],
+        "include_values": ["step_ladder", "extension_ladder"],
+        "exclude_values": ["none"],
+        "modifier_notes": "Height modifiers per Modifier_Registry: H1_STANDARD=1.0, H2_TALL=1.30, H3_HIGH=1.50",
+        "notes": "Height access for elevated trim (crown, high casings). Standard baseboard/casing at floor level requires no access equipment."
+      },
+      {
+        "condition_id": "temperature_condition",
+        "vocabulary_ref": "Site_Condition_Vocabulary_Reference.md § temperature_condition",
+        "affected_task_types": ["finish"],
+        "include_values": ["cold_below_50f", "hot_above_90f"],
+        "exclude_values": [],
+        "modifier_notes": "cold_below_50f=1.30x, hot_above_90f=1.15x per Modifier_Registry",
+        "notes": "Temperature affects dry times, open time, and leveling of waterborne alkyds. Critical for QT4/QT5 material systems that rely on extended open time for flow and leveling. NC sites may lack HVAC."
+      }
+    ],
+    "condition_reference": "Site_Condition_Vocabulary_Reference.md v1.1",
+    "modifier_reference": "Modifier_Registry.md v1.1"
+  },
+
+  "state_analysis": {
+    "primary_surface": "trim (baseboard, casing, crown, chair rail, wainscot rail, shadow box, panel mold, picture rail)",
+    "valid_input_states": {
+      "states": ["SS_PRIMED_FIELD", "SS_PRIMED_FACTORY"],
+      "rationale": "This is a finish-only spec. Trim must be primed before finish application. SS_PRIMED_FIELD is the output from SF_TRIM_NC_PRIME (standard NC workflow). SS_PRIMED_FACTORY applies when factory primer is deemed sufficient and no additional primer is applied."
+    },
+    "output_state": {
+      "state": "SS_PAINTED",
+      "varies_by": "sheen",
+      "state_map": {
+        "satin": "SS_PAINTED_SATIN",
+        "semi-gloss": "SS_PAINTED_SEMIGLOSS",
+        "gloss": "SS_PAINTED_GLOSS"
+      },
+      "rationale": "Output state varies by sheen configuration dimension. Semi-gloss is trim default."
+    },
+    "adjacent_state_protection_analysis": [
+      {
+        "adjacent_surface": "wall_field",
+        "finished_states": ["SS_PAINTED_FLAT", "SS_PAINTED_EGGSHELL", "SS_PAINTED_SATIN", "SS_PAINTED_SEMIGLOSS"],
+        "unfinished_states": ["SS_BARE", "SS_PRIMED_FIELD"],
+        "protection_when_finished": "light_mask",
+        "protection_when_unfinished": "none",
+        "rationale": "Two scenarios: (1) Typical NC: walls at SS_PRIMED_FIELD — no wall protection for brush, light_mask for spray at trim-wall edge. (2) Walls already at SS_PAINTED_*: light_mask required for BOTH brush and spray to protect finished wall paint from contact/drips. Spec must support both scenarios."
+      },
+      {
+        "adjacent_surface": "ceiling_field",
+        "finished_states": ["SS_PAINTED_FLAT"],
+        "unfinished_states": ["SS_BARE", "SS_PRIMED_FIELD"],
+        "protection_when_finished": "none (brush), light_mask (spray)",
+        "protection_when_unfinished": "none",
+        "rationale": "Crown molding adjacent to finished ceiling. Brush method is unlikely to contact ceiling surface. Spray method may require masking at crown-ceiling junction to prevent overspray on finished ceiling."
+      },
+      {
+        "adjacent_surface": "floor",
+        "finished_states": ["finished flooring installed"],
+        "unfinished_states": ["subfloor"],
+        "protection_when_finished": "floor_perimeter",
+        "protection_when_unfinished": "none",
+        "rationale": "Floor protection via perimeter drops when finished floors present. No protection needed on subfloor."
+      }
+    ],
+    "state_reference": "Substrate_State_Reference.md v1.0.0"
+  },
+
+  "required_paintscope_keys": [
+    {
+      "key": "PS_SURFACE_LF.TRIM_BASEBOARD",
+      "description": "Baseboard linear footage",
+      "uom": "LF",
+      "required": false,
+      "required_when": "When baseboard is in scope",
+      "catalog_status": "EXISTS"
+    },
+    {
+      "key": "PS_SURFACE_LF.TRIM_CASING_DOOR",
+      "description": "Door casing linear footage",
+      "uom": "LF",
+      "required": false,
+      "required_when": "When door casing is in scope",
+      "catalog_status": "EXISTS"
+    },
+    {
+      "key": "PS_SURFACE_LF.TRIM_CASING_WINDOW",
+      "description": "Window casing linear footage",
+      "uom": "LF",
+      "required": false,
+      "required_when": "When window casing is in scope",
+      "catalog_status": "EXISTS"
+    },
+    {
+      "key": "PS_SURFACE_LF.TRIM_CROWN",
+      "description": "Crown molding linear footage",
+      "uom": "LF",
+      "required": false,
+      "required_when": "When crown molding is in scope",
+      "catalog_status": "EXISTS"
+    },
+    {
+      "key": "PS_SURFACE_LF.TRIM_CHAIR_RAIL",
+      "description": "Chair rail linear footage",
+      "uom": "LF",
+      "required": false,
+      "required_when": "When chair rail is in scope",
+      "catalog_status": "EXISTS"
+    },
+    {
+      "key": "PS_SURFACE_LF.TRIM_WAINSCOT_RAIL",
+      "description": "Wainscot cap/rail linear footage",
+      "uom": "LF",
+      "required": false,
+      "required_when": "When wainscot rail is in scope",
+      "catalog_status": "EXISTS"
+    },
+    {
+      "key": "PS_SURFACE_LF.TRIM_SHADOW_BOX",
+      "description": "Shadow box / picture frame molding linear footage",
+      "uom": "LF",
+      "required": false,
+      "required_when": "When shadow box molding is in scope",
+      "catalog_status": "EXISTS"
+    },
+    {
+      "key": "PS_SURFACE_LF.TRIM_PANEL_MOLD",
+      "description": "Panel molding linear footage",
+      "uom": "LF",
+      "required": false,
+      "required_when": "When panel molding is in scope",
+      "catalog_status": "EXISTS"
+    },
+    {
+      "key": "PS_SURFACE_LF.TRIM_PICTURE_RAIL",
+      "description": "Picture rail linear footage",
+      "uom": "LF",
+      "required": false,
+      "required_when": "When picture rail is in scope",
+      "catalog_status": "EXISTS"
+    },
+    {
+      "key": "PS_EDGE_LF.TRIM_JOINTS",
+      "description": "Trim joint linear footage for touch-up caulking in initial prep",
+      "uom": "LF",
+      "required": true,
+      "required_when": "Always - joints may need touch-up caulk after primer cure",
+      "catalog_status": "EXISTS",
+      "derivation_note": "Approximately 1 joint per 8-12 LF of trim. Can derive from total trim LF."
+    },
+    {
+      "key": "PS_PROTECT_SF.FLOOR_PERIMETER",
+      "description": "Perimeter floor protection area",
+      "uom": "SF",
+      "required": true,
+      "required_when": "Always (when floor_type = finished or partial)",
+      "catalog_status": "EXISTS"
+    },
+    {
+      "key": "PS_PROTECT_LF.WALL_ADJACENT",
+      "description": "Wall masking at trim edge when spraying",
+      "uom": "LF",
+      "required": false,
+      "required_when": "application_method = spray",
+      "catalog_status": "EXISTS"
+    },
+    {
+      "key": "PS_PROTECT_EA.ASSET.FIXTURES",
+      "description": "Count of fixtures (outlets/switches) near spray zone",
+      "uom": "EA",
+      "required": false,
+      "required_when": "application_method = spray",
+      "catalog_status": "EXISTS"
+    }
+  ],
+
+  "proposed_new_keys": [],
+
+  "adjacency_notes": [
+    {
+      "edge_type": "trim_to_wall",
+      "scope_impact": "Trim finish typically occurs BEFORE wall finish in NC, but may also occur AFTER walls are painted. When walls are at SS_PRIMED_FIELD: no wall masking needed for brush, light_mask for spray. When walls are at SS_PAINTED_*: wall masking required at trim-to-wall edge for BOTH brush and spray methods.",
+      "paintscope_key": "PS_PROTECT_LF.WALL_ADJACENT",
+      "nc_context": "Typical: walls at SS_PRIMED_FIELD. Alternate: walls at SS_PAINTED_* (requires wall masking for all methods)"
+    },
+    {
+      "edge_type": "trim_baseboard_to_floor",
+      "scope_impact": "Baseboard bottom edge meets floor. Floor is not painted. Floor protection (drops) required to catch drips from finish coat application.",
+      "paintscope_key": null,
+      "nc_context": "Floor may be subfloor or finished depending on construction sequence"
+    },
+    {
+      "edge_type": "trim_casing_to_door_frame",
+      "scope_impact": "Door casing and door frame typically share the same finish color and sheen. Often painted in same session by same crew. SF_DOOR_FRAME_NC_FINISH may share protection setup.",
+      "paintscope_key": null,
+      "nc_context": "Door frame and casing share finish group — same material system, color, sheen"
+    },
+    {
+      "edge_type": "trim_casing_to_window_jamb",
+      "scope_impact": "Window casing and window jamb typically share same finish. Often painted in same session.",
+      "paintscope_key": null,
+      "nc_context": "Window jamb and casing share finish group"
+    },
+    {
+      "edge_type": "trim_crown_to_ceiling",
+      "scope_impact": "Crown molding touches finished ceiling (SS_PAINTED_FLAT). Brush method has minimal risk of contacting ceiling surface. Spray method requires consideration of overspray near ceiling.",
+      "paintscope_key": null,
+      "nc_context": "Ceiling is typically SS_PAINTED_FLAT when crown finish occurs"
+    }
+  ],
+
+  "relevant_findings": [
+    {
+      "finding_id": "RF-001",
+      "topic": "Material system is quality-tier-driven, NOT substrate-driven",
+      "finding": "Unlike primer (substrate-driven per Fine_Finish_Doctrine Section 2.1), finish coat material selection is suggested by quality tier per Fine_Finish_Doctrine Section 3. QT3 recommends SYS_FF_STANDARD_ACRYLIC (100% acrylic enamel), QT4 recommends SYS_FF_MODIFIED_URETHANE (waterborne alkyd), QT5 recommends SYS_FF_PREMIUM (premium urethane enamel). These are recommendations — contractor has discretion to select materials appropriate to the project. The system identifies proper application characteristics for each product category.",
+      "source": "Fine_Finish_Doctrine.md Section 3, Brief Section 11, Human review",
+      "confidence": "high",
+      "impact": "Materials Manager should recommend finish material by QT, not by substrate condition. Contractor retains discretion on actual product selection. System identifies proper application for each product category. Doctrine update needed: Fine_Finish_Doctrine Section 3 should clarify that material systems are recommendations, not mandates."
+    },
+    {
+      "finding_id": "RF-002",
+      "topic": "Sheen/QT gate for trim is different from wall restrictions",
+      "finding": "Per Fine_Finish_Doctrine Section 4.1: QT3 allows satin or lower, QT4 allows any except gloss, QT5 allows any including gloss. The wall-specific restriction (eggshell max at QT3) does NOT apply to trim per Quality_Tiers_and_Surface_Condition.md exception. Trim default is semi-gloss, which requires QT4+.",
+      "source": "Fine_Finish_Doctrine.md Section 4.1, Quality_Tiers_and_Surface_Condition.md",
+      "confidence": "high",
+      "impact": "Spec must enforce sheen/QT gate: satin at QT3+, semi-gloss at QT4+, gloss at QT5 only. Default semi-gloss means default QT must be at least QT4, OR brief's QT3 default means actual default sheen must be satin."
+    },
+    {
+      "finding_id": "RF-003",
+      "topic": "Initial prep is LIGHT — post-primer-cure touch-up only",
+      "finding": "SF_TRIM_NC_PRIME performed the heavy fill/caulk/sand prep. This finish spec's initial prep is the lighter post-primer-cure touch-up: inspection, light sand for adhesion, touch-up caulk (cracked joints from primer cure), dust cleanup. Per brief Section 13: Do NOT duplicate the heavy prep from the prime spec.",
+      "source": "Brief Section 13, Fine_Finish_Doctrine.md Section 6 vs Section 7",
+      "confidence": "high",
+      "impact": "SOP Librarian must create LIGHT initial prep module, not the heavy version. Differentiate from prime spec's MOD_FF_INITIAL_PREP which was the heavy lift."
+    },
+    {
+      "finding_id": "RF-004",
+      "topic": "Interstage between-coat process is universal at ALL quality tiers",
+      "finding": "Per Fine_Finish_Doctrine Section 2.2, the inspect-repair-clean cycle runs between every coat at ALL quality tiers. What changes by tier is scrutiny level, defect tolerance, and pace. Interstage runs AFTER each coat EXCEPT the final coat (Section 5.3).",
+      "source": "Fine_Finish_Doctrine.md Sections 2.2, 5.3, 7",
+      "confidence": "high",
+      "impact": "Spec must include interstage at all QTs. For 2-coat system: 1 interstage (after coat 1, before coat 2). For 3-coat QT5: 2 interstages."
+    },
+    {
+      "finding_id": "RF-005",
+      "topic": "Between-coat sanding discipline varies by quality tier",
+      "finding": "Per Fine_Finish_Doctrine Section 8.3 and Section 15.3: QT3=spot sand only (visible nibs, rough spots), QT4=light full sand (220 grit, entire surface), QT5=thorough full sand (220-320 grit, uniform scratch pattern). Section 15.4.1: rigid sanding block mandatory for defect removal (flexible sponges conform to defects instead of removing them).",
+      "source": "Fine_Finish_Doctrine.md Sections 8.3, 15.3, 15.4.1",
+      "confidence": "high",
+      "impact": "Sanding task within interstage module must be qt_scaled. Tool/consumable selection varies by tier (spot sand vs full surface)."
+    },
+    {
+      "finding_id": "RF-006",
+      "topic": "Coat count derived from quality tier — no coat_count dimension",
+      "finding": "Per brief Section 3 and Quality_Tiers_and_Surface_Condition.md: QT3=2 finish coats, QT4=2 finish coats, QT5=2-3 finish coats (3+ typical for brush/roll per Fine_Finish_Doctrine 15.10.3). There is no separate coat_count dimension — coat count is derived from quality_tier.",
+      "source": "Brief Section 3, Quality_Tiers_and_Surface_Condition.md, Fine_Finish_Doctrine.md Section 15.10.3",
+      "confidence": "high",
+      "impact": "Estimation Engineer must handle QT5 brush/roll as 3-coat scenario in variants. No user-configurable coat_count dimension."
+    },
+    {
+      "finding_id": "RF-007",
+      "topic": "Waterborne application philosophy: Apply, tip once, walk away",
+      "finding": "Per Fine_Finish_Doctrine Section 15.3.1: Do NOT overwork waterborne products. Apply, tip once, walk away. If brush marks or texture remain, sand them out between coats. Build the finish through multiple sanded coats. Both Advance (waterborne alkyd) and Emerald Urethane (acrylic-urethane enamel) have short working times and dry fast. This fast dry is a production benefit but demands proper first-pass technique — do not attempt to rework after application.",
+      "source": "Fine_Finish_Doctrine.md Section 15.3.1, Section 15.2.2, Human review",
+      "confidence": "high",
+      "impact": "SOP Librarian should include application philosophy note in finish coat task descriptions. Emphasize short working time — apply and move on."
+    },
+    {
+      "finding_id": "RF-008",
+      "topic": "Application quality is NOT tiered",
+      "finding": "Per Quality_Tiers_and_Surface_Condition.md: A properly painted surface — free of drips, sags, holidays, and lap marks — is the baseline expectation at EVERY quality tier. There is no tier at which application defects are acceptable. Per Fine_Finish_Doctrine Section 9.2: runs, sags, drips, holidays indicate application failure and are NEVER acceptable at any tier.",
+      "source": "Quality_Tiers_and_Surface_Condition.md, Fine_Finish_Doctrine.md Section 9.2",
+      "confidence": "high",
+      "impact": "QA criteria must not vary application defect tolerance by tier. Only inspection scrutiny and surface texture tolerance vary."
+    },
+    {
+      "finding_id": "RF-009",
+      "topic": "QT5 gloss with brush/roll is achievable but demands meticulous technique",
+      "finding": "Per human resolution (Brief Q3): QT5 gloss with brush/roll is achievable by a skilled painter. Do NOT enforce spray for gloss. Production rates should reflect higher coat count (3+) and meticulous between-coat sanding required. Per Fine_Finish_Doctrine Section 15.10.3, this combination requires extra coats with thorough sanding.",
+      "source": "Brief Q3 (RESOLVED), Fine_Finish_Doctrine.md Section 15.10.3",
+      "confidence": "high",
+      "impact": "Spec allows QT5+gloss+brush combination. Estimation Engineer should apply coat count modifier (3+ coats) and sanding intensity modifier for this variant."
+    },
+    {
+      "finding_id": "RF-010",
+      "topic": "Profile complexity modifiers affect production rates",
+      "finding": "Per Millwork_NC_Paint_Doctrine Section 7.2: Simple (flat/square edge)=0.85x, Standard (ogee/cove)=1.0x, Complex (multi-piece/built-up)=1.25x, Ornate (dentil/egg-and-dart)=1.40x. These modifiers apply to ALL application and sanding tasks — complex profiles take longer per LF for both coating and between-coat maintenance.",
+      "source": "Millwork_NC_Paint_Doctrine.md Section 7.2",
+      "confidence": "high",
+      "impact": "Estimation Engineer must apply profile_complexity modifier to finish coat, sanding, and inspection tasks."
+    },
+    {
+      "finding_id": "RF-011",
+      "topic": "Production rates from PaintFactor_Production_Rate_Reference System 3",
+      "finding": "System 3 (SYS_TRIM_NC_PAINT) provides task-level rates for trim finish. Key rates: brush finish 80-90 LF/hr (coat 1/2), spray finish 380-445 LF/hr, sand between coats 400 LF/hr, inspect after coat 800 LF/hr, final inspection 600 LF/hr, touch-up 400 LF/hr. Fill fasteners 120 LF/hr, caulk joints 120 LF/hr (for initial prep touch-up at reduced scope).",
+      "source": "PaintFactor_Production_Rate_Reference.md System 3",
+      "confidence": "high",
+      "impact": "Estimation Engineer uses these as base rates with QT, complexity, and height modifiers applied."
+    },
+    {
+      "finding_id": "RF-012",
+      "topic": "NC production sequence: trim finish before wall finish",
+      "finding": "In NC, the TYPICAL sequence is: Prime ceilings -> Prime walls -> Finish ceilings -> Trim package (prime -> finish) -> Wall finish. Trim finish usually occurs before wall finish. However, there are conditions where walls are already painted when trim finish occurs — the spec must support both scenarios. When walls are at SS_PAINTED_*, wall masking at the trim-to-wall edge is required even for brush method. This spec pairs naturally with SF_DOOR_FRAME_NC_FINISH for shared protection setup and same material system.",
+      "source": "Brief Section 13, Human review",
+      "confidence": "high",
+      "impact": "Default: walls at SS_PRIMED_FIELD during trim finish (no wall masking for brush). Alternate: walls at SS_PAINTED_* (wall masking required at trim-to-wall edge for both brush and spray). Note: masking off finished trim for subsequent wall painting is the WALL spec's responsibility, not this trim spec."
+    }
+  ],
+
+  "condition_drivers": [
+    {
+      "driver_id": "CD-001",
+      "condition": "quality_tier",
+      "values": ["QT3", "QT4", "QT5"],
+      "affects": ["material_system", "sheen_gate", "sanding_discipline", "inspection_scrutiny", "coat_count_at_qt5"],
+      "notes": "QT suggests material system (SYS_FF_STANDARD_ACRYLIC, SYS_FF_MODIFIED_URETHANE, SYS_FF_PREMIUM) — contractor discretion applies. Also drives sheen restrictions, sanding between coats (spot vs full), inspection scrutiny, and coat count at QT5 (3+ for brush/roll). Does NOT affect application quality baseline."
+    },
+    {
+      "driver_id": "CD-002",
+      "condition": "application_method",
+      "values": ["brush", "spray"],
+      "affects": ["protection_zones", "production_rates", "coat_count_at_qt5"],
+      "notes": "Brush is NC default for trim. Spray requires wall/floor protection but faster. Brush at QT5+gloss may require 3+ coats. Default is brush per human resolution (Brief Q2)."
+    },
+    {
+      "driver_id": "CD-003",
+      "condition": "sheen",
+      "values": ["satin", "semi-gloss", "gloss"],
+      "affects": ["minimum_quality_tier", "output_state"],
+      "notes": "Sheen is constrained by QT gate. Satin at QT3+, semi-gloss at QT4+, gloss at QT5 only. Semi-gloss is default. Output state varies by sheen."
+    },
+    {
+      "driver_id": "CD-004",
+      "condition": "profile_complexity",
+      "values": ["simple", "standard", "complex", "ornate"],
+      "affects": ["production_rates"],
+      "notes": "Profile complexity modifiers: Simple=0.85, Standard=1.0, Complex=1.25, Ornate=1.40 per Millwork_NC_Paint_Doctrine Section 7.2. Applies to all application and sanding tasks."
+    },
+    {
+      "driver_id": "CD-005",
+      "condition": "trim_height",
+      "values": ["standard", "tall", "high"],
+      "affects": ["height_modifier", "access_equipment"],
+      "notes": "Standard (7-8ft)=H1 1.0, Tall (9-12ft)=H2 1.30, High (13ft+)=H3 1.50 per Modifier_Registry. Primarily affects crown molding and high casings."
+    }
+  ],
+
+  "quality_differences": [
+    {
+      "aspect": "Material system",
+      "qt3": "SYS_FF_STANDARD_ACRYLIC — 100% acrylic enamel (ProClassic WB, Regal Select)",
+      "qt4": "SYS_FF_MODIFIED_URETHANE — waterborne alkyd (BM Advance, SW Pro Industrial WB Alkyd)",
+      "qt5": "SYS_FF_PREMIUM — premium urethane enamel (Emerald Urethane, Scuff-X)"
+    },
+    {
+      "aspect": "Between-coat sanding",
+      "qt3": "Spot sand only — visible nibs, rough spots",
+      "qt4": "Light full sand — 220 grit, entire surface for adhesion",
+      "qt5": "Thorough full sand — 220-320 grit, uniform scratch pattern"
+    },
+    {
+      "aspect": "Inspection scrutiny",
+      "qt3": "Quick glance at 6ft distance — obvious defects only",
+      "qt4": "Systematic scan at 3ft — all visible defects marked",
+      "qt5": "Lighted critical inspection at arm's length — zero tolerance"
+    },
+    {
+      "aspect": "Coat count",
+      "qt3": "2 finish coats",
+      "qt4": "2 finish coats",
+      "qt5": "2-3 finish coats (3+ typical for brush/roll per FFD 15.10.3)"
+    },
+    {
+      "aspect": "Interstage repair scope",
+      "qt3": "Repair only glaring defects — deep scratches, obvious holes",
+      "qt4": "Repair all marked defects — visible at 3 feet",
+      "qt5": "Repair all defects regardless of size — anything that could telegraph through finish"
+    },
+    {
+      "aspect": "Application quality",
+      "qt3": "Same baseline — no drips, sags, holidays, lap marks (NOT tiered)",
+      "qt4": "Same baseline (NOT tiered)",
+      "qt5": "Same baseline (NOT tiered)"
+    }
+  ],
+
+  "failure_modes": [
+    {
+      "failure": "Brush marks in finish coat",
+      "cause": "Overworking waterborne product, wrong brush technique, material too thick or cold",
+      "prevention": "Apply, tip once, walk away (FFD Section 15.3.1). Use quality brush with proper loading. Sand out marks between coats with rigid block.",
+      "severity": "major",
+      "reversibility": "Addressable — sand between coats with rigid block and recoat. Build finish through multiple sanded coats."
+    },
+    {
+      "failure": "Adhesion failure over primer",
+      "cause": "Primer not fully cured, contaminated primer surface, incompatible finish/primer chemistry",
+      "prevention": "Verify primer cure per PDS. Light sand primer for mechanical adhesion. Ensure system compatibility.",
+      "severity": "critical",
+      "reversibility": "Difficult — requires stripping to primer and restart"
+    },
+    {
+      "failure": "Orange peel texture in spray finish",
+      "cause": "Wrong tip size, incorrect pressure, wrong spray distance, material viscosity issue",
+      "prevention": "Proper spray setup per PDS, test pattern on cardboard before production",
+      "severity": "major",
+      "reversibility": "Sand out between coats. May require additional coat to achieve smooth finish."
+    },
+    {
+      "failure": "Cracked caulk at joints after primer cure",
+      "cause": "Primer shrinkage revealing joint movement, initial caulk failure, seasonal wood movement",
+      "prevention": "Initial prep includes touch-up caulk inspection. Re-caulk cracked joints before first finish coat.",
+      "severity": "minor",
+      "reversibility": "Easy — re-caulk and recoat during initial prep phase"
+    },
+    {
+      "failure": "Dust nibs in finish coat",
+      "cause": "Inadequate dust cleanup between coats, construction site dust contamination, poor work area cleanliness",
+      "prevention": "Thorough tack cloth / vacuum between every coat. Clean work area per interstage protocol. Close doors/windows during application.",
+      "severity": "minor",
+      "reversibility": "Normal — sand out nibs during interstage process"
+    },
+    {
+      "failure": "Sheen inconsistency across trim surfaces",
+      "cause": "Different film thickness, uneven sanding, mixing different product batches, spot repairs not blended",
+      "prevention": "Consistent mil thickness, box materials from same batch, full coat over spot repairs",
+      "severity": "major",
+      "reversibility": "Moderate — additional full coat to equalize. May require full sand and recoat for severe cases."
+    },
+    {
+      "failure": "Runs/sags on vertical trim surfaces",
+      "cause": "Over-application, material too thick, cold temperature slowing flow-out",
+      "prevention": "Proper material loading. Thin coats per waterborne philosophy. Check temperature conditions. Application failure — NOT acceptable at ANY tier.",
+      "severity": "critical",
+      "reversibility": "Sand out when fully cured with rigid block. May require additional coat."
+    },
+    {
+      "failure": "Gloss defects at QT5",
+      "cause": "Insufficient between-coat sanding, dust contamination, inconsistent film build",
+      "prevention": "Thorough 220-320 grit sanding between every coat. Meticulous dust cleanup. Controlled environment. 3+ coats for brush/roll at gloss.",
+      "severity": "major",
+      "reversibility": "Sand back and add coats. Gloss finish magnifies every imperfection."
+    }
+  ],
+
+  "notes_for_materials_manager": [
+    {
+      "note_id": "MAT-001",
+      "topic": "Material selection is QUALITY-TIER-DRIVEN",
+      "content": "Unlike primer (substrate-driven), finish coat material is recommended by quality tier per Fine_Finish_Doctrine Section 3. QT3 recommends SYS_FF_STANDARD_ACRYLIC (100% acrylic enamel), QT4 recommends SYS_FF_MODIFIED_URETHANE (waterborne alkyd), QT5 recommends SYS_FF_PREMIUM (premium urethane enamel). These are recommendations — contractor has discretion on actual product selection. System identifies proper application characteristics for each product category."
+    },
+    {
+      "note_id": "MAT-002",
+      "topic": "Specific product examples by system",
+      "content": "QT3: ProClassic WB, Regal Select. QT4: BM Advance, SW Pro Industrial WB Alkyd. QT5: Emerald Urethane, Scuff-X. Per Fine_Finish_Doctrine Sections 3.2-3.4."
+    },
+    {
+      "note_id": "MAT-003",
+      "topic": "Waterborne alkyd preferred for brush/roll",
+      "content": "Advance (waterborne alkyd, QT4 system) and Emerald Urethane (acrylic-urethane enamel, QT5 system) both have short working times — they dry fast, which is a production benefit but demands proper first-pass technique. Do not overwork. Per Fine_Finish_Doctrine Section 15.2.2 and 15.3.1. Note: doctrine lists waterborne alkyd open time as 'up to 30 mins' but field experience indicates shorter effective working time for Advance. Premium products sand more easily between coats, which is the key advantage for brush/roll."
+    },
+    {
+      "note_id": "MAT-004",
+      "topic": "Sanding consumables vary by tier",
+      "content": "QT3: 220 grit for spot sanding only. QT4: 220 grit for full surface. QT5: 220-320 grit for full surface. Rigid sanding blocks mandatory for defect removal (per FFD Section 15.4.1). Flexible sponges are NOT acceptable for between-coat sanding."
+    },
+    {
+      "note_id": "MAT-005",
+      "topic": "Coverage rates for trim finish",
+      "content": "Per Millwork_NC_Paint_Doctrine: ~350-450 LF/gal for finish coat on standard trim profile. Varies by product and profile complexity. Use manufacturer PDS for specific products."
+    },
+    {
+      "note_id": "MAT-006",
+      "topic": "Touch-up caulk for initial prep",
+      "content": "Paintable acrylic latex caulk for touch-up of cracked joints in initial prep. Same product as prime spec caulk. Smaller quantity — only touch-up, not full caulk job."
+    },
+    {
+      "note_id": "MAT-007",
+      "topic": "Sheen availability by system",
+      "content": "All three material systems are available in satin and semi-gloss. Gloss is available in QT5 systems (Emerald Urethane, Scuff-X). Verify PDS for specific sheen options per product."
+    }
+  ],
+
+  "notes_for_sop_librarian": [
+    {
+      "note_id": "SOP-001",
+      "topic": "Module structure follows Fine Finish finish-only pattern (Scenario B)",
+      "content": "SETUP -> INITIAL_PREP -> FINISH_COAT_1 -> INTERSTAGE -> FINISH_COAT_2 -> FINAL_INSPECT -> CLEANUP. No primer module — that belongs to SF_TRIM_NC_PRIME. Per Fine_Finish_Doctrine Section 5.2 Scenario B."
+    },
+    {
+      "note_id": "SOP-002",
+      "topic": "Initial prep is LIGHT — post-primer-cure touch-up",
+      "content": "Initial prep for this finish spec includes: (1) Inspect primer for cracked caulk, missed fills. (2) Light sand primer surface for adhesion (150-220 grit). (3) Touch-up caulk any cracked joints. (4) Touch-up fill any revealed defects. (5) Clean sanding dust. This is NOT the heavy fill/caulk/sand from prime spec."
+    },
+    {
+      "note_id": "SOP-003",
+      "topic": "Interstage is universal at ALL quality tiers",
+      "content": "Interstage runs after coat 1 (before coat 2) at all tiers. Tasks: clean work area, inspect coat, light sand, patch/repair defects, sand patches, spot coat patches. Scrutiny level is qt_scaled. Per Fine_Finish_Doctrine Section 7."
+    },
+    {
+      "note_id": "SOP-004",
+      "topic": "Between-coat sanding discipline by tier",
+      "content": "QT3=spot sand only (nibs, rough spots). QT4=full 220 grit. QT5=full 220-320 grit. Rigid sanding block mandatory for defect removal (FFD 15.4.1). This is part of interstage, not a separate module."
+    },
+    {
+      "note_id": "SOP-005",
+      "topic": "QT5 brush/roll may require 3+ coats",
+      "content": "At QT5 with brush/roll (especially gloss), 3+ coats may be needed per Fine_Finish_Doctrine Section 15.10.3. Add additional FINISH_COAT + INTERSTAGE cycle as variant. Per human resolution (Brief Q3): do NOT enforce spray."
+    },
+    {
+      "note_id": "SOP-006",
+      "topic": "Task IDs should use TSK_TRIM_* prefix for finish tasks",
+      "content": "Per Production Rate Reference System 3: TSK_TRIM_BRUSH_FINISH_1, TSK_TRIM_BRUSH_FINISH_2, TSK_TRIM_SPRAY_FINISH_1, TSK_TRIM_SPRAY_FINISH_2, TSK_TRIM_SAND_BETWEEN, TSK_TRIM_INSPECT_COAT, TSK_TRIM_PATCH_DEFECTS, TSK_TRIM_SPOT_COAT, TSK_TRIM_FINAL_INSPECT, TSK_TRIM_TOUCHUP."
+    },
+    {
+      "note_id": "SOP-007",
+      "topic": "Protection tasks conditional on method and floor type",
+      "content": "Floor protection: conditional on floor_type site condition. Wall masking: conditional on application_method = spray. Fixture covers: conditional on application_method = spray. Same pattern as prime spec."
+    },
+    {
+      "note_id": "SOP-008",
+      "topic": "Application philosophy note for finish coat tasks",
+      "content": "Waterborne philosophy (FFD 15.3.1): Apply, tip once, walk away. Do NOT overwork. If marks remain, sand out between coats. Build finish through multiple sanded coats. Both Advance and Emerald Urethane dry fast — short working time demands proper first-pass technique."
+    }
+  ],
+
+  "notes_for_estimation_engineer": [
+    {
+      "note_id": "EST-001",
+      "topic": "Base rates from Production Rate Reference System 3",
+      "content": "Use SYS_TRIM_NC_PAINT rates: brush finish 80-90 LF/hr (coat 1/2), spray finish 380-445 LF/hr (coat 1/2), sand between coats 400 LF/hr, inspect coat 800 LF/hr, patch defects 400 LF/hr, spot coat 500 LF/hr, final inspection 600 LF/hr, touch-up 400 LF/hr."
+    },
+    {
+      "note_id": "EST-002",
+      "topic": "Profile complexity modifiers",
+      "content": "Per Millwork_NC_Paint_Doctrine Section 7.2: Simple=0.85, Standard=1.0, Complex=1.25, Ornate=1.40. Apply to ALL application, sanding, and inspection tasks."
+    },
+    {
+      "note_id": "EST-003",
+      "topic": "Height modifiers from Modifier Registry",
+      "content": "H1_STANDARD=1.0 (7-8ft), H2_TALL=1.30 (9-12ft), H3_HIGH=1.50 (13ft+). Apply to elevated trim tasks (crown molding, high casings). Standard baseboard/casing has no height modifier."
+    },
+    {
+      "note_id": "EST-004",
+      "topic": "QT modifiers for inspection/repair tasks",
+      "content": "Quality tier modifiers from Modifier_Registry: QT3=1.00, QT4=1.30, QT5=1.50. Apply to inspection, repair, and sanding tasks. Do NOT apply to application rate — application quality is not tiered."
+    },
+    {
+      "note_id": "EST-005",
+      "topic": "Coat count variants",
+      "content": "QT3/QT4: 2 finish coats (standard). QT5 spray: 2 finish coats. QT5 brush/roll: 3+ finish coats (per human resolution and FFD 15.10.3). Each additional coat adds FINISH_COAT + INTERSTAGE cycle."
+    },
+    {
+      "note_id": "EST-006",
+      "topic": "Initial prep rate estimates",
+      "content": "Touch-up caulk: ~150 LF/hr (faster than full caulk — fewer joints need work). Touch-up fill: ~200 LF/hr (spot work only). Light sand primer: ~400 LF/hr. Clean dust: ~600 LF/hr. These are LIGHTER than prime spec prep rates."
+    },
+    {
+      "note_id": "EST-007",
+      "topic": "Coat sequence modifiers",
+      "content": "Per Production Rate Reference: coat 1 is slower (surface absorption, establishing coverage), coat 2 is faster (consistent substrate). Brush: 80 LF/hr coat 1, 90 LF/hr coat 2. Spray: 380 LF/hr coat 1, 445 LF/hr coat 2."
+    },
+    {
+      "note_id": "EST-008",
+      "topic": "Temperature modifiers",
+      "content": "Cold (<50F)=1.30x, Hot (>90F)=1.15x per Modifier_Registry. Temperature affects dry time and application quality for all waterborne products. Cold slows drying. Hot accelerates drying, further shortening already-short working times for Advance and Emerald Urethane."
+    }
+  ],
+
+  "inherited_research_corrections": [
+    {
+      "id": "RC-004",
+      "title": "Do not specify dry times in specs",
+      "source": "SF_DRYWALL_WALL_NC_PRIME research",
+      "impact": "No dry time references in materials or sop_modules — refer to PDS"
+    }
+  ],
+
+  "assumptions": [
+    {
+      "assumption_id": "A-001",
+      "field": "input_state",
+      "value": "Trim is primed (SS_PRIMED_FIELD or SS_PRIMED_FACTORY) before finish application",
+      "source": "Brief Section 8.1, Fine_Finish_Doctrine Section 5.2",
+      "doctrine_gap": false,
+      "note": "This is a finish-only spec. Primer is handled by SF_TRIM_NC_PRIME."
+    },
+    {
+      "assumption_id": "A-002",
+      "field": "wall_state_during_trim_finish",
+      "value": "Walls are at SS_PRIMED_FIELD (not SS_PAINTED) during trim finish in NC sequence",
+      "source": "Brief Section 13, NC production sequence",
+      "doctrine_gap": false,
+      "note": "Trim package completes before wall finish. Walls are primed but not finish painted."
+    },
+    {
+      "assumption_id": "A-003",
+      "field": "ceiling_state_during_trim_finish",
+      "value": "Ceilings are at SS_PAINTED_FLAT during trim finish (finished before trim package)",
+      "source": "NC production sequence",
+      "doctrine_gap": false,
+      "note": "Ceiling finish precedes trim package in NC sequence."
+    },
+    {
+      "assumption_id": "A-004",
+      "field": "brush_default",
+      "value": "Brush is the default application method for trim finish in NC",
+      "source": "Brief Q2 (RESOLVED), Fine_Finish_Doctrine Section 15.1.1",
+      "doctrine_gap": false,
+      "note": "Human resolved: brush is default. Spray available for large volume NC production."
+    },
+    {
+      "assumption_id": "A-005",
+      "field": "initial_prep_scope",
+      "value": "Initial prep is light touch-up only — heavy prep was done by prime spec",
+      "source": "Brief Section 13",
+      "doctrine_gap": false,
+      "note": "Finish spec initial prep: inspect, light sand, touch-up caulk, dust cleanup. NOT heavy fill/caulk/sand."
+    }
+  ],
+
+  "uncertainties": [
+    {
+      "uncertainty_id": "U-001",
+      "topic": "QT3 default with semi-gloss default tension",
+      "description": "Brief sets quality_tier default to QT3 and sheen default to semi-gloss. But sheen/QT gate says semi-gloss requires QT4+. This means the two defaults are incompatible. Either: (A) QT3 default forces satin as effective default sheen, or (B) semi-gloss default should force QT4 as effective minimum tier. Need clarification on which default takes precedence.",
+      "current_approach": "Proceeding with both defaults as stated in brief. Spec will enforce sheen/QT gate at runtime — if user selects QT3, semi-gloss will be rejected and satin offered as alternative.",
+      "resolution_needed": false
+    },
+    {
+      "uncertainty_id": "U-002",
+      "topic": "Touch-up caulk quantity in initial prep",
+      "description": "Initial prep includes touch-up caulk for cracked joints. The scope is unclear — what percentage of joints typically crack after primer cure? Assumed ~10-15% of joints need re-caulk.",
+      "current_approach": "Using reduced rate for touch-up caulk (faster than full caulk job). Estimation Engineer should treat as fraction of prime spec caulk scope.",
+      "resolution_needed": false
+    }
+  ],
+
+  "doctrine_conflicts": [],
+
+  "research_corrections": [
+    {
+      "id": "RC-005",
+      "title": "Material systems are recommendations, not mandates",
+      "source": "Human review of RF-001",
+      "original_claim": "Material system selection is mandatory doctrine — QT drives material system",
+      "corrected_value": "Material systems are suggestions per QT — contractor has discretion on product selection. System identifies proper application characteristics for each product category.",
+      "rationale": "In practice, contractors select materials based on project needs, budget, availability, and experience. QT-driven material systems are recommendations that identify the proper application for each product category.",
+      "doctrine_update_needed": true,
+      "doctrine_target": "docs/Doctrine/Fine_Finish_Doctrine.md Section 3",
+      "proposed_doctrine_change": "Add note clarifying that material systems are recommendations — contractor retains discretion on product selection. System identifies proper application characteristics."
+    },
+    {
+      "id": "RC-006",
+      "title": "Advance and Emerald Urethane have short working time (dry fast)",
+      "source": "Human review of research.json working time claims",
+      "original_claim": "Waterborne alkyds (Advance, Emerald Urethane) are preferred for brush/roll due to longer open time",
+      "corrected_value": "Both Advance and Emerald Urethane have short working times — they dry fast. This is a production benefit but demands proper first-pass technique. Additionally, Emerald Urethane is an acrylic-urethane enamel, NOT a waterborne alkyd.",
+      "rationale": "Field experience: both products dry faster than doctrine's stated 30-min open time for waterborne alkyds would suggest. Fast dry time is beneficial for production pace. Premium products sand more easily between coats, which is the key brush/roll advantage.",
+      "doctrine_update_needed": true,
+      "doctrine_target": "docs/Doctrine/Fine_Finish_Doctrine.md Section 15.2.2",
+      "proposed_doctrine_change": "Review waterborne alkyd open time claim ('up to 30 mins') against field experience with Advance. Consider adding note that effective working time in field conditions may be shorter than laboratory-measured open time. Clarify product classifications."
+    },
+    {
+      "id": "RC-007",
+      "title": "Trim finish may occur after walls are painted — spec must support both scenarios",
+      "source": "Human review of RF-012",
+      "original_claim": "Walls are at SS_PRIMED_FIELD during trim finish. After trim finish, trim is masked off for wall painting.",
+      "corrected_value": "Spec must support both scenarios: (1) typical NC where walls are primed during trim finish, and (2) alternate where walls are already painted. When walls are SS_PAINTED_*, wall masking at trim-to-wall edge is required for both brush and spray. Masking off finished trim for wall painting belongs in the WALL spec, not this trim spec.",
+      "rationale": "There are real conditions where walls are already painted when trim finish occurs. The spec should not assume NC sequence as the only scenario. Trim masking for wall painting is the wall spec's scope, not trim spec's.",
+      "doctrine_update_needed": false
+    }
+  ],
+
+  "pending_doctrine_updates": [
+    {
+      "task_id": "DU-005",
+      "target_doc": "docs/Doctrine/Fine_Finish_Doctrine.md",
+      "target_section": "Section 3 — Material Systems",
+      "proposed_change": "Add clarifying note that QT-driven material systems are recommendations — contractor retains discretion on product selection. System identifies proper application characteristics for each product category, not mandated products.",
+      "source_correction_id": "RC-005",
+      "status": "pending"
+    },
+    {
+      "task_id": "DU-006",
+      "target_doc": "docs/Doctrine/Fine_Finish_Doctrine.md",
+      "target_section": "Section 15.2.2 — Coating System Comparison",
+      "proposed_change": "Review waterborne alkyd open time (stated 'up to 30 mins') against field experience with BM Advance. Field reports indicate shorter effective working time. Consider adding field note or adjusting stated value. Also verify Emerald Urethane classification — doctrine correctly lists it as acrylic-urethane enamel (not waterborne alkyd).",
+      "source_correction_id": "RC-006",
+      "status": "pending"
+    }
+  ],
+
+  "confidence_level": "high"
+}

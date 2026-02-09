@@ -3,7 +3,7 @@
 **Doctrine Level:** 3
 **Authority:** Estimation_Modifiers_Doctrine.md
 **Status:** Canonical
-**Version:** 1.1
+**Version:** 1.2
 **Last Updated:** 2026-02-03
 
 This document is the single source of truth for all modifiers in the PaintFactor estimation system.
@@ -21,7 +21,8 @@ Applied to all labor tasks based on working height.
 | H1_STANDARD | 1.00 | 7-8 ft ceiling, floor-level access | Estimation_Modifiers_Doctrine |
 | H2_TALL | 1.30 | 9-12 ft ceiling, step/extension ladder | Estimation_Modifiers_Doctrine |
 | H3_HIGH | 1.50 | 13-17 ft ceiling, scaffold likely | Estimation_Modifiers_Doctrine |
-| H4_EXTREME | 2.00 | 18+ ft ceiling, scaffold or lift required | Estimation_Modifiers_Doctrine |
+| H4_SCAFFOLD | 2.00 | 18-24 ft ceiling, scaffold required | Estimation_Modifiers_Doctrine |
+| H5_LIFT | 2.50 | 25+ ft ceiling, lift equipment required | Window_Systems_Doctrine, PaintScope_Window_Counting_System |
 
 ### Quality Tier Modifiers
 
@@ -168,5 +169,6 @@ When adding a new modifier:
 
 | Version | Date | Changes |
 |---------|------|---------|
+| 1.2 | 2026-02-07 | Added H5_LIFT height modifier (25+ ft, 2.50x). Renamed H4_EXTREME → H4_SCAFFOLD, narrowed range to 18-24 ft. Aligns with Window_Systems_Doctrine and PaintScope_Window_Counting_System 5-tier height system. |
 | 1.1 | 2026-02-03 | Added Substrate State Modifiers (SS_*) per Substrate_State_Reference.md |
 | 1.0 | 2026-01-31 | Initial registry compiled from existing doctrine |

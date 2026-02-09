@@ -1,0 +1,606 @@
+{
+  "spec_family": {
+    "id": "SF_TRIM_NC_PAINT",
+    "name": "New Construction Interior Trim Finish Coat",
+    "description": "Finish coat painting for 9 interior trim types in new construction. Covers post-primer initial prep (light touch-up), finish coat application (brush or spray), interstage between-coat process, and final inspection. Finish-only spec (Scenario B per Fine Finish Doctrine Section 5.2) — primer handled by companion SF_TRIM_NC_PRIME. Uses LF as primary UOM (1 LF = 1 SF per PCA standard for trim <1 ft width). Material systems are quality-tier-driven recommendations — contractor retains discretion on product selection.",
+    "domain": "interior",
+    "version": "0.1.0",
+    "status": "draft",
+    "review_required": true
+  },
+
+  "scope_boundaries": {
+    "includes": [
+      "Baseboard finish painting",
+      "Door casing finish painting",
+      "Window casing finish painting",
+      "Crown molding finish painting",
+      "Chair rail finish painting",
+      "Wainscot cap/rail finish painting",
+      "Shadow box / picture frame molding finish painting",
+      "Panel molding finish painting",
+      "Picture rail finish painting",
+      "Post-primer initial prep (light touch-up: inspect, light sand, touch-up caulk, dust cleanup)",
+      "Between-coat interstage process (inspect, sand, repair, clean) at ALL quality tiers",
+      "Floor perimeter protection (drop cloths)",
+      "Wall masking at trim-to-wall edge (spray or when walls are SS_PAINTED_*)",
+      "Fixture covers near spray zone",
+      "Final inspection and touch-up",
+      "2 finish coats standard; 3+ coats at QT5 brush/roll per FFD 15.10.3"
+    ],
+    "excludes": [
+      {
+        "item": "Primer coat (fill, heavy caulk, heavy sand, prime application)",
+        "route_to": "SF_TRIM_NC_PRIME"
+      },
+      {
+        "item": "Door frame (jamb, stop, head) painting",
+        "route_to": "SF_DOOR_FRAME_NC_FINISH"
+      },
+      {
+        "item": "Door slab painting",
+        "route_to": "SF_DOOR_SLAB_INT_NC"
+      },
+      {
+        "item": "Window jamb/sill painting",
+        "route_to": "Future window trim spec"
+      },
+      {
+        "item": "Masking off finished trim for subsequent wall painting",
+        "route_to": "SF_DRYWALL_WALL_NC_FINISH (wall spec responsibility per RC-007)"
+      },
+      {
+        "item": "Exterior trim painting",
+        "route_to": "Future exterior trim spec"
+      }
+    ]
+  },
+
+  "configuration_dimensions": [
+    {
+      "dimension_id": "quality_tier",
+      "description": "Quality tier controlling inspection scrutiny, sanding discipline, repair scope, and coat count. Does NOT affect application quality (binary at all tiers).",
+      "values": ["QT3", "QT4", "QT5"],
+      "default": "QT3",
+      "notes": "QT3=standard production. QT4=premium (full sand, systematic inspect). QT5=superior (thorough sand, critical inspect, 3+ coats brush/roll). Sheen/QT gate enforced at runtime."
+    },
+    {
+      "dimension_id": "application_method",
+      "description": "Primary finish coat application technique. Brush is default for NC trim.",
+      "values": ["brush", "spray"],
+      "default": "brush",
+      "notes": "Brush is default per human resolution. Spray available for high-volume NC production. QT5 gloss with brush is achievable — do NOT enforce spray."
+    },
+    {
+      "dimension_id": "sheen",
+      "description": "Finish sheen. Constrained by quality tier gate.",
+      "values": ["satin", "semi-gloss", "gloss"],
+      "default": "semi-gloss",
+      "sheen_qt_gate": {
+        "satin": ["QT3", "QT4", "QT5"],
+        "semi-gloss": ["QT4", "QT5"],
+        "gloss": ["QT5"]
+      },
+      "notes": "Default semi-gloss requires minimum QT4. If user selects QT3, semi-gloss is rejected and satin offered. Gloss is QT5 only."
+    },
+    {
+      "dimension_id": "profile_complexity",
+      "description": "Trim profile complexity. Controls production rate modifiers.",
+      "values": ["simple", "standard", "complex", "ornate"],
+      "default": "standard",
+      "modifiers": {
+        "simple": 0.85,
+        "standard": 1.00,
+        "complex": 1.25,
+        "ornate": 1.40
+      },
+      "notes": "Per Millwork_NC_Paint_Doctrine Section 7.2. Simple=flat/square edge. Standard=ogee/cove. Complex=multi-piece/built-up. Ornate=dentil/egg-and-dart. Applied per trim item — different items in same room may have different profiles."
+    }
+  ],
+
+  "paintable_items": [
+    {
+      "item_id": "ITM_TRIM_BASEBOARD",
+      "name": "Baseboard",
+      "unit_of_measure": "LF",
+      "counting_rules": "Total linear footage of baseboard. 1 LF = 1 SF per PCA standard for trim <1 ft width.",
+      "notes": "Most common trim type. Present in nearly all rooms."
+    },
+    {
+      "item_id": "ITM_TRIM_CASING_DOOR",
+      "name": "Door casing",
+      "unit_of_measure": "LF",
+      "counting_rules": "Total linear footage of door casing (both sides of each opening). Does NOT include door frame (jamb/stop).",
+      "notes": "Door casing (exterior trim around opening). Door frame/jamb is SF_DOOR_FRAME_NC_FINISH."
+    },
+    {
+      "item_id": "ITM_TRIM_CASING_WINDOW",
+      "name": "Window casing",
+      "unit_of_measure": "LF",
+      "counting_rules": "Total linear footage of window casing. Does NOT include window jamb/sill.",
+      "notes": "Window casing (exterior trim around window opening)."
+    },
+    {
+      "item_id": "ITM_TRIM_CROWN",
+      "name": "Crown molding",
+      "unit_of_measure": "LF",
+      "counting_rules": "Total linear footage of crown molding at wall-ceiling junction.",
+      "notes": "Height modifier typically applies — crown is at ceiling height. May need step/extension ladder."
+    },
+    {
+      "item_id": "ITM_TRIM_CHAIR_RAIL",
+      "name": "Chair rail",
+      "unit_of_measure": "LF",
+      "counting_rules": "Total linear footage of chair rail at wall mid-height.",
+      "notes": "Standard height (~32-36 inches from floor). No height modifier."
+    },
+    {
+      "item_id": "ITM_TRIM_WAINSCOT_RAIL",
+      "name": "Wainscot cap/rail",
+      "unit_of_measure": "LF",
+      "counting_rules": "Total linear footage of wainscot cap rail.",
+      "notes": "Often paired with chair rail. No height modifier."
+    },
+    {
+      "item_id": "ITM_TRIM_SHADOW_BOX",
+      "name": "Shadow box / picture frame molding",
+      "unit_of_measure": "LF",
+      "counting_rules": "Total linear footage of shadow box or picture frame molding on walls.",
+      "notes": "Decorative wall molding. Profile complexity often 'complex' or 'ornate'."
+    },
+    {
+      "item_id": "ITM_TRIM_PANEL_MOLD",
+      "name": "Panel molding",
+      "unit_of_measure": "LF",
+      "counting_rules": "Total linear footage of panel molding.",
+      "notes": "Applied wall panel molding. May be simple or complex profile."
+    },
+    {
+      "item_id": "ITM_TRIM_PICTURE_RAIL",
+      "name": "Picture rail",
+      "unit_of_measure": "LF",
+      "counting_rules": "Total linear footage of picture rail near ceiling.",
+      "notes": "Near ceiling height — height modifier may apply. Less common in NC."
+    }
+  ],
+
+  "variants": [
+    {
+      "variant_id": "VAR_QT3_BRUSH_SATIN",
+      "applies_when": {
+        "quality_tier": ["QT3"],
+        "application_method": ["brush"],
+        "sheen": ["satin"]
+      },
+      "coats": 2,
+      "notes": "Standard brush production at QT3. Satin is the only sheen available at QT3 per gate. Spot sand between coats. Quick glance inspection."
+    },
+    {
+      "variant_id": "VAR_QT4_BRUSH_SEMIGLOSS",
+      "applies_when": {
+        "quality_tier": ["QT4"],
+        "application_method": ["brush"],
+        "sheen": ["semi-gloss"]
+      },
+      "coats": 2,
+      "notes": "Premium brush production. Semi-gloss typical at QT4. Full 220 grit sand between coats. Systematic inspection at 3 feet."
+    },
+    {
+      "variant_id": "VAR_QT5_BRUSH_GLOSS",
+      "applies_when": {
+        "quality_tier": ["QT5"],
+        "application_method": ["brush"],
+        "sheen": ["gloss"]
+      },
+      "coats": 3,
+      "notes": "Superior brush production at QT5 gloss. 3+ coats per FFD 15.10.3. Thorough 220-320 grit sand between coats. Critical inspection at arm's length. Uses ROUND_TRIM_FINISH_3COAT."
+    },
+    {
+      "variant_id": "VAR_QT3_SPRAY_SATIN",
+      "applies_when": {
+        "quality_tier": ["QT3"],
+        "application_method": ["spray"],
+        "sheen": ["satin"]
+      },
+      "coats": 2,
+      "protection_zones": ["floor_perimeter", "wall_adjacent", "fixture_covers"],
+      "notes": "Standard spray production. Requires full protection setup. Fastest production method."
+    },
+    {
+      "variant_id": "VAR_QT4_SPRAY_SEMIGLOSS",
+      "applies_when": {
+        "quality_tier": ["QT4"],
+        "application_method": ["spray"],
+        "sheen": ["semi-gloss"]
+      },
+      "coats": 2,
+      "protection_zones": ["floor_perimeter", "wall_adjacent", "fixture_covers"],
+      "notes": "Premium spray production. Semi-gloss standard. Full protection."
+    },
+    {
+      "variant_id": "VAR_QT5_SPRAY_SEMIGLOSS",
+      "applies_when": {
+        "quality_tier": ["QT5"],
+        "application_method": ["spray"],
+        "sheen": ["semi-gloss"]
+      },
+      "coats": 2,
+      "protection_zones": ["floor_perimeter", "wall_adjacent", "fixture_covers"],
+      "notes": "Superior spray production. QT5 spray uses 2 coats (not 3). Thorough interstage process."
+    }
+  ],
+
+  "required_paintscope_inputs": [
+    {
+      "input_name": "IN_LF_BASEBOARD",
+      "paintscope_key": "PS_SURFACE_LF.TRIM_BASEBOARD",
+      "uom": "LF",
+      "required": false,
+      "required_when": "When baseboard is in scope",
+      "description": "Baseboard linear footage"
+    },
+    {
+      "input_name": "IN_LF_DOOR_CASING",
+      "paintscope_key": "PS_SURFACE_LF.TRIM_CASING_DOOR",
+      "uom": "LF",
+      "required": false,
+      "required_when": "When door casing is in scope",
+      "description": "Door casing linear footage"
+    },
+    {
+      "input_name": "IN_LF_WINDOW_CASING",
+      "paintscope_key": "PS_SURFACE_LF.TRIM_CASING_WINDOW",
+      "uom": "LF",
+      "required": false,
+      "required_when": "When window casing is in scope",
+      "description": "Window casing linear footage"
+    },
+    {
+      "input_name": "IN_LF_CROWN",
+      "paintscope_key": "PS_SURFACE_LF.TRIM_CROWN",
+      "uom": "LF",
+      "required": false,
+      "required_when": "When crown molding is in scope",
+      "description": "Crown molding linear footage"
+    },
+    {
+      "input_name": "IN_LF_CHAIR_RAIL",
+      "paintscope_key": "PS_SURFACE_LF.TRIM_CHAIR_RAIL",
+      "uom": "LF",
+      "required": false,
+      "required_when": "When chair rail is in scope",
+      "description": "Chair rail linear footage"
+    },
+    {
+      "input_name": "IN_LF_WAINSCOT_RAIL",
+      "paintscope_key": "PS_SURFACE_LF.TRIM_WAINSCOT_RAIL",
+      "uom": "LF",
+      "required": false,
+      "required_when": "When wainscot rail is in scope",
+      "description": "Wainscot cap/rail linear footage"
+    },
+    {
+      "input_name": "IN_LF_SHADOW_BOX",
+      "paintscope_key": "PS_SURFACE_LF.TRIM_SHADOW_BOX",
+      "uom": "LF",
+      "required": false,
+      "required_when": "When shadow box molding is in scope",
+      "description": "Shadow box / picture frame molding linear footage"
+    },
+    {
+      "input_name": "IN_LF_PANEL_MOLD",
+      "paintscope_key": "PS_SURFACE_LF.TRIM_PANEL_MOLD",
+      "uom": "LF",
+      "required": false,
+      "required_when": "When panel molding is in scope",
+      "description": "Panel molding linear footage"
+    },
+    {
+      "input_name": "IN_LF_PICTURE_RAIL",
+      "paintscope_key": "PS_SURFACE_LF.TRIM_PICTURE_RAIL",
+      "uom": "LF",
+      "required": false,
+      "required_when": "When picture rail is in scope",
+      "description": "Picture rail linear footage"
+    },
+    {
+      "input_name": "IN_LF_TRIM_EDGES",
+      "paintscope_key": "PS_EDGE_LF.TRIM_JOINTS",
+      "uom": "LF",
+      "required": true,
+      "description": "Trim joint linear footage for touch-up caulking in initial prep"
+    },
+    {
+      "input_name": "IN_SF_PROTECT_FLOOR_PERIMETER",
+      "paintscope_key": "PS_PROTECT_SF.FLOOR_PERIMETER",
+      "uom": "SF",
+      "required": true,
+      "required_when": "When floor_type = finished or partial",
+      "description": "Perimeter floor protection area for drop cloth runners"
+    },
+    {
+      "input_name": "IN_LF_WALL_ADJACENT",
+      "paintscope_key": "PS_PROTECT_LF.WALL_ADJACENT",
+      "uom": "LF",
+      "required": false,
+      "required_when": "application_method = spray, or any method when walls are SS_PAINTED_*",
+      "description": "Wall masking LF at trim-to-wall edge",
+      "registry_status": "proposed"
+    },
+    {
+      "input_name": "IN_EA_ASSET_FIXTURES",
+      "paintscope_key": "PS_PROTECT_EA.ASSET.FIXTURES",
+      "uom": "EA",
+      "required": false,
+      "required_when": "application_method = spray",
+      "description": "Count of fixtures (outlets/switches) near spray zone requiring covers",
+      "registry_status": "proposed"
+    }
+  ],
+
+  "protection_zones_required": [
+    {
+      "zone_id": "floor_perimeter",
+      "condition": { "floor_type": ["finished", "partial"] },
+      "protection_level": "edge_only",
+      "notes": "Runner-style drop cloths along trim perimeter for drip catching. Excluded when floor is subfloor."
+    },
+    {
+      "zone_id": "wall_adjacent",
+      "condition": { "application_method": ["spray"] },
+      "protection_level": "light_mask",
+      "notes": "Tape + paper masking at trim-to-wall edge for spray method. Also required for brush when walls are SS_PAINTED_* (RC-007)."
+    },
+    {
+      "zone_id": "fixture_covers",
+      "condition": { "application_method": ["spray"] },
+      "protection_level": "partial_cover",
+      "notes": "Cover outlets/switches near spray zone."
+    }
+  ],
+
+  "adjacency_declarations": {
+    "primary_surface": "trim_baseboard",
+    "additional_primary_surfaces": ["trim_casing_door", "trim_casing_window", "trim_crown", "trim_chair_rail", "trim_wainscot_rail", "trim_shadow_box", "trim_panel_mold", "trim_picture_rail"],
+    "adjacent_surfaces": [
+      {
+        "surface_id": "wall_field",
+        "edge_type": "linear",
+        "typical_relationship": "different_finish",
+        "continuity_rate_modifier": 1.0,
+        "affected_tasks": [],
+        "notes": "Trim and wall commonly different colors/sheens. No edge work — wall is painted AFTER trim package completes. Wall painter cuts into trim edge later. Protection only (masking for spray or when walls SS_PAINTED_*)."
+      },
+      {
+        "surface_id": "door_frame",
+        "edge_type": "linear",
+        "typical_relationship": "same_finish",
+        "continuity_rate_modifier": 1.15,
+        "affected_tasks": [],
+        "notes": "Door casing and door frame typically share finish color/sheen. Often painted in same session. Protection setup may be shared."
+      },
+      {
+        "surface_id": "ceiling_field",
+        "edge_type": "linear",
+        "typical_relationship": "different_finish",
+        "continuity_rate_modifier": 1.0,
+        "affected_tasks": [],
+        "notes": "Crown molding touches finished ceiling. Brush method unlikely to contact ceiling. Spray method may require light masking at crown-ceiling junction."
+      }
+    ]
+  },
+
+  "state_declarations": {
+    "primary_surface": "trim_baseboard",
+    "additional_primary_surfaces": ["trim_casing_door", "trim_casing_window", "trim_crown", "trim_chair_rail", "trim_wainscot_rail", "trim_shadow_box", "trim_panel_mold", "trim_picture_rail"],
+
+    "valid_input_states": {
+      "states": ["SS_PRIMED_FIELD", "SS_PRIMED_FACTORY"],
+      "notes": "This is a finish-only spec. Trim must be primed before finish application. SS_PRIMED_FIELD is the output from SF_TRIM_NC_PRIME. SS_PRIMED_FACTORY applies when factory primer is deemed sufficient."
+    },
+
+    "output_state": {
+      "state": "SS_PAINTED_SEMIGLOSS",
+      "varies_by": "sheen",
+      "state_map": {
+        "satin": "SS_PAINTED_SATIN",
+        "semi-gloss": "SS_PAINTED_SEMIGLOSS",
+        "gloss": "SS_PAINTED_GLOSS"
+      },
+      "notes": "Output state varies by sheen dimension. Semi-gloss is trim default (requires QT4+)."
+    },
+
+    "adjacent_state_protection_rules": [
+      {
+        "adjacent_surface": "wall_field",
+        "when_state": ["SS_PAINTED_FLAT", "SS_PAINTED_EGGSHELL", "SS_PAINTED_SATIN", "SS_PAINTED_SEMIGLOSS"],
+        "protection_zone": "wall_adjacent",
+        "protection_level": "light_mask",
+        "applies_when": { "application_method": ["spray", "brush"] },
+        "notes": "When walls are finished (SS_PAINTED_*), wall masking at trim-to-wall edge required for BOTH spray and brush methods (RC-007). Spray uses tape + paper. Brush uses tape only."
+      },
+      {
+        "adjacent_surface": "wall_field",
+        "when_state": ["SS_BARE", "SS_PRIMED_FIELD"],
+        "protection_zone": "wall_adjacent",
+        "protection_level": "light_mask",
+        "applies_when": { "application_method": ["spray"] },
+        "notes": "When walls are unfinished (typical NC), spray method still requires masking at trim-to-wall edge to prevent overspray."
+      },
+      {
+        "adjacent_surface": "wall_field",
+        "when_state": ["SS_BARE", "SS_PRIMED_FIELD"],
+        "protection_zone": null,
+        "protection_level": "none",
+        "applies_when": { "application_method": ["brush"] },
+        "notes": "When walls are unfinished and brush method, no wall protection needed — controlled application, no overspray. Typical NC scenario."
+      },
+      {
+        "adjacent_surface": "ceiling_field",
+        "when_state": ["SS_PAINTED_FLAT"],
+        "protection_zone": null,
+        "protection_level": "none",
+        "applies_when": { "application_method": ["brush"] },
+        "notes": "Brush method on crown — minimal risk of contacting ceiling surface."
+      },
+      {
+        "adjacent_surface": "ceiling_field",
+        "when_state": ["SS_PAINTED_FLAT"],
+        "protection_zone": "wall_adjacent",
+        "protection_level": "light_mask",
+        "applies_when": { "application_method": ["spray"] },
+        "notes": "Spray method on crown requires light masking at crown-ceiling junction. Uses same masking approach as wall-adjacent."
+      }
+    ]
+  },
+
+  "site_condition_rules": [
+    {
+      "condition_id": "floor_type",
+      "vocabulary_ref": "Site_Condition_Vocabulary_Reference.md § floor_type",
+      "include_when": ["finished", "partial"],
+      "exclude_when": ["subfloor"],
+      "affected_tasks": ["TSK_TRIM_FLOOR_PROTECT", "TSK_TRIM_PROTECT_TEARDOWN"],
+      "effect": "Floor protection excluded when floor is subfloor.",
+      "notes": "NC often has subfloor during trim painting. Finished/partial floors require drop cloth runners."
+    },
+    {
+      "condition_id": "access_constraint",
+      "vocabulary_ref": "Site_Condition_Vocabulary_Reference.md § access_constraint",
+      "include_when": ["step_ladder", "extension_ladder"],
+      "affected_tasks": ["TSK_TRIM_BRUSH_FINISH_1", "TSK_TRIM_BRUSH_FINISH_2", "TSK_TRIM_SPRAY_FINISH_1", "TSK_TRIM_SPRAY_FINISH_2", "TSK_TRIM_SAND_BETWEEN", "TSK_TRIM_INSPECT_COAT", "TSK_TRIM_FINAL_INSPECT"],
+      "effect": "Height modifier applies for elevated trim (crown molding, high casings, picture rail). H2=1.30 for 9-12ft, H3=1.50 for 13ft+.",
+      "notes": "Per Modifier_Registry. Standard baseboard/casing at floor level has no height modifier."
+    },
+    {
+      "condition_id": "lead_status",
+      "vocabulary_ref": "Site_Condition_Vocabulary_Reference.md § lead_status",
+      "include_when": ["tested_positive", "unknown_pre1978"],
+      "affected_tasks": ["TSK_TRIM_LIGHT_SAND_PRIMER", "TSK_TRIM_SAND_BETWEEN"],
+      "effect": "Lead-safe practices for sanding tasks. tested_positive=2.0x, unknown_pre1978=1.5x.",
+      "notes": "Rare in NC (post-1978 construction). Between-coat sanding generates dust requiring containment under RRP."
+    },
+    {
+      "condition_id": "temperature_condition",
+      "vocabulary_ref": "Site_Condition_Vocabulary_Reference.md § temperature_condition",
+      "include_when": ["cold_below_50f", "hot_above_90f"],
+      "affected_tasks": ["TSK_TRIM_BRUSH_FINISH_1", "TSK_TRIM_BRUSH_FINISH_2", "TSK_TRIM_SPRAY_FINISH_1", "TSK_TRIM_SPRAY_FINISH_2"],
+      "effect": "Temperature affects dry times, open time, and leveling. cold_below_50f=1.30x, hot_above_90f=1.15x.",
+      "notes": "Critical for waterborne products with already short working times. NC sites may lack HVAC."
+    }
+  ],
+
+  "sequencing_notes": {
+    "production_sequence": "Trim finish typically occurs AFTER ceiling finish and wall prime, BEFORE wall finish in NC sequence. However, spec supports trim finish AFTER walls are painted (requires wall masking per RC-007).",
+    "edge_work": "No edge work in this spec. Trim-to-wall edge is protection (masking), not cut-in. Wall painter cuts into trim edge during wall finish.",
+    "protection_sequence": "Setup floor protection → Wall masking (if applicable) → Fixture covers (spray only) → Apply coats → Teardown",
+    "coat_sequence": "Initial prep (light touch-up) → Finish coat 1 → Interstage → Finish coat 2 → [QT5 brush: Interstage → Finish coat 3] → Final inspect → Cleanup",
+    "companion_spec": "SF_TRIM_NC_PRIME handles all heavy prep and primer application. This spec assumes primed substrate."
+  },
+
+  "relationships": {
+    "companion_spec": "SF_TRIM_NC_PRIME",
+    "often_combined_with": ["SF_DOOR_FRAME_NC_FINISH"],
+    "typical_before": ["SF_DRYWALL_WALL_NC_FINISH"],
+    "typical_after": ["SF_TRIM_NC_PRIME", "SF_DRYWALL_CEILING_NC_FINISH"],
+    "shares_finish_group_with": ["SF_DOOR_FRAME_NC_FINISH"],
+    "notes": "Trim package = SF_TRIM_NC_PRIME + SF_TRIM_NC_PAINT. Often painted in same session as door frames (shared material system, same crew). Trim masking for wall painting is SF_DRYWALL_WALL_NC_FINISH responsibility."
+  },
+
+  "dependencies": {
+    "research": "research.json",
+    "resolution": "resolution.json",
+    "materials": "materials.json",
+    "sop_modules": "sop_modules.json",
+    "production": "production.json",
+    "qa_report": "qa_report.json"
+  },
+
+  "doctrine_references": [
+    {
+      "doctrine": "Fine_Finish_Doctrine.md",
+      "sections_used": ["Section 3 — Material Systems", "Section 5.2 — Scenario B Finish-Only", "Section 5.3 — Interstage Run Rule", "Section 7 — Interstage Process", "Section 8.3 — Sanding Discipline by Tier", "Section 9.2 — Application Defects", "Section 15.2.2 — Coating System Comparison", "Section 15.3.1 — Waterborne Application Philosophy", "Section 15.4.1 — Rigid Sanding Block", "Section 15.10.3 — QT5 Brush/Roll Coat Count"]
+    },
+    {
+      "doctrine": "Millwork_NC_Paint_Doctrine.md",
+      "sections_used": ["Section 7.2 — Profile Complexity Modifiers"]
+    },
+    {
+      "doctrine": "Quality_Tiers_and_Surface_Condition.md",
+      "sections_used": ["QT3-QT5 Definitions", "Sheen/QT Gate for Trim"]
+    },
+    {
+      "doctrine": "Modifier_Registry.md",
+      "sections_used": ["Height Modifiers", "Quality Tier Modifiers"]
+    },
+    {
+      "doctrine": "Protection_and_Masking_Doctrine.md",
+      "sections_used": ["Floor Perimeter Protection", "Wall Adjacent Masking"]
+    },
+    {
+      "doctrine": "Estimation_Modifiers_Doctrine.md",
+      "sections_used": ["Production Rate Philosophy", "Modifier Application Rule"]
+    },
+    {
+      "doctrine": "PCA Industry Standards",
+      "sections_used": ["Surfaces <1 ft width measured as 1 LF"]
+    }
+  ],
+
+  "research_corrections": [
+    {
+      "correction_id": "RC-005",
+      "original_claim": "Material system selection is mandatory doctrine — QT drives material system",
+      "corrected_to": "Material systems are suggestions per QT — contractor has discretion on product selection. System identifies proper application characteristics for each product category.",
+      "corrected_by": "Eric",
+      "date": "2026-02-07",
+      "doctrine_update_needed": true,
+      "doctrine_target": "Fine_Finish_Doctrine.md Section 3"
+    },
+    {
+      "correction_id": "RC-006",
+      "original_claim": "Waterborne alkyds have longer open time, benefiting brush/roll",
+      "corrected_to": "Both Advance (waterborne alkyd) and Emerald Urethane (acrylic-urethane enamel, NOT waterborne alkyd) have SHORT working times — they dry fast. Fast dry is a production benefit but demands proper first-pass technique.",
+      "corrected_by": "Eric",
+      "date": "2026-02-07",
+      "doctrine_update_needed": true,
+      "doctrine_target": "Fine_Finish_Doctrine.md Section 15.2.2"
+    },
+    {
+      "correction_id": "RC-007",
+      "original_claim": "Walls at SS_PRIMED_FIELD during trim finish. After trim finish, trim is masked for wall painting.",
+      "corrected_to": "Spec supports both scenarios: (1) walls primed during trim finish (typical NC), (2) walls already painted (requires wall masking at trim-to-wall edge for both brush and spray). Masking off finished trim for wall painting belongs in the WALL spec.",
+      "corrected_by": "Eric",
+      "date": "2026-02-07",
+      "doctrine_update_needed": false
+    }
+  ],
+
+  "pending_doctrine_updates": [
+    {
+      "task_id": "DU-005",
+      "target_doc": "docs/Doctrine/Fine_Finish_Doctrine.md",
+      "target_section": "Section 3 — Material Systems",
+      "proposed_change": "Add note clarifying that QT-driven material systems are recommendations — contractor retains discretion.",
+      "source": "RC-005",
+      "status": "pending"
+    },
+    {
+      "task_id": "DU-006",
+      "target_doc": "docs/Doctrine/Fine_Finish_Doctrine.md",
+      "target_section": "Section 15.2.2 — Coating System Comparison",
+      "proposed_change": "Review waterborne alkyd open time claim. Clarify Emerald Urethane classification as acrylic-urethane enamel.",
+      "source": "RC-006",
+      "status": "pending"
+    }
+  ],
+
+  "change_log": [
+    {
+      "version": "0.1.0",
+      "date": "2026-02-07",
+      "author": "SpecFactory",
+      "changes": "Initial draft spec for NC interior trim finish coat (Spec #9 in Phase 1 catalog). Key features: 9 trim types as separate paintable items (shared with SF_TRIM_NC_PRIME), LF as primary UOM per PCA standard, finish-only Scenario B module structure, 4 material systems as QT-driven recommendations (not mandates per RC-005), sheen/QT gate (satin QT3+, semi-gloss QT4+, gloss QT5 only), profile complexity modifiers (simple/standard/complex/ornate), 2-coat standard with 3+ coats at QT5 brush/roll per FFD 15.10.3, support for trim finish after wall painting (RC-007), product classification correction for Emerald Urethane (RC-006), waterborne application philosophy (apply/tip/walk away per FFD 15.3.1)."
+    }
+  ]
+}
