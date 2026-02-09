@@ -1,0 +1,735 @@
+{
+  "research_metadata": {
+    "spec_family_id": "SF_STAIR_RISER_NC",
+    "research_mode": "lightweight",
+    "brief_source": "specs/_backlog/SF_STAIR_RISER_NC/brief.md",
+    "doctrine_loaded": [
+      "docs/Doctrine/Stairway_Systems_Doctrine.md",
+      "docs/Doctrine/PaintScope_Stairwell_Geometry_System.md",
+      "docs/Doctrine/Fine_Finish_Doctrine.md",
+      "docs/Doctrine/Millwork_NC_Paint_Doctrine.md",
+      "docs/Doctrine/Quality_Tiers_and_Surface_Condition.md",
+      "docs/Doctrine/Protection_and_Masking_Doctrine.md",
+      "docs/Doctrine/Modifier_Registry.md",
+      "docs/Doctrine/Spec_Completeness_Doctrine.md",
+      "docs/Reference/Protection_Zones_Reference.md",
+      "docs/Reference/Surface_Vocabulary_Reference.md",
+      "docs/Reference/Site_Condition_Vocabulary_Reference.md",
+      "docs/Reference/Substrate_State_Reference.md",
+      "docs/PaintScope/PaintScope_Quantity_Key_Catalog.md",
+      "docs/PaintScope/PaintScope_Asset_Catalog.md",
+      "docs/PaintScope/Spec_Input_to_PaintScope_Key_Mapping.md"
+    ],
+    "sibling_specs_reviewed": [
+      "specs/SF_WINDOW_INT_NC_v1/research.json",
+      "specs/SF_WINDOW_INT_NC_v1/spec.json",
+      "specs/SF_TRIM_NC_PAINT_v1/spec.json",
+      "specs/SF_TRIM_NC_PRIME_v1/spec.json"
+    ],
+    "researcher": "Spec Researcher Agent",
+    "date": "2026-02-08",
+    "status": "draft",
+    "review_required": true
+  },
+
+  "protection_zones_analysis": {
+    "spec_category": "stair_component",
+    "application_method_sensitivity": true,
+    "zones": [
+      {
+        "zone_id": "stair_tread_covers",
+        "condition": "always (all methods)",
+        "protection_level": "heavy_cover",
+        "paintscope_key": "PS_PROTECT_SF.ASSET.STAIR_TREADS",
+        "upgrade_scenario": null,
+        "notes": "Mandatory tread protection from Day 1 through cleanup. Ram Board Stair Armor or equivalent non-slip protection. Standard plastic sheeting on treads is EXTREME FALL HAZARD per Stairway_Systems_Doctrine Section 6.2. Low-tack Safe-Release tape for securing. Covers riser face bottom edge, tread surface, and bullnose in one piece."
+      },
+      {
+        "zone_id": "floor_perimeter",
+        "condition": "always (when floor_type = finished or partial)",
+        "protection_level": "edge_only",
+        "paintscope_key": "PS_PROTECT_SF.FLOOR_PERIMETER",
+        "upgrade_scenario": null,
+        "notes": "Drop cloth runners at landing areas to protect finished floors from drips and spills."
+      },
+      {
+        "zone_id": "wall_adjacent",
+        "condition": { "application_method": "spray" },
+        "protection_level": "light_mask",
+        "paintscope_key": "PS_PROTECT_LF.WALL_ADJACENT",
+        "upgrade_scenario": "Upgrades to heavy_mask when walls are SS_PAINTED_*",
+        "notes": "Wall masking along stringer top edge when spraying. Not needed for brush method when walls are unfinished (typical NC)."
+      }
+    ],
+    "zone_reference": "Protection_Zones_Reference.md v2.0 + proposed stair_tread_covers zone",
+    "method_escalation": "brush < spray",
+    "conditional_protection_note": "Tread protection is UNCONDITIONAL — always required regardless of method or any other condition. Floor protection is conditional on floor_type. Wall masking is conditional on application_method = spray. Tread protection is the single most critical safety requirement in stair painting — plastic sheeting on treads is an extreme fall hazard."
+  },
+
+  "adjacency_analysis": {
+    "primary_surface": "stair_riser, stair_stringer",
+    "adjacent_surfaces": [
+      {
+        "surface_id": "stair_tread",
+        "edge_type": "linear",
+        "typical_relationship": "different_finish",
+        "edge_work_required": false,
+        "notes": "Treads are above and below each riser. Treads may be stain-grade or floor-rated coating — always different from trim enamel. Treads are NOT painted in this spec (future SF_STAIR_TREAD_NC). Riser-to-tread edge masking required when treads are already finished or stain-grade."
+      },
+      {
+        "surface_id": "wall_field",
+        "edge_type": "linear",
+        "typical_relationship": "different_finish",
+        "edge_work_required": false,
+        "notes": "Stringer meets wall at continuous linear joint. In NC, walls typically at SS_PRIMED_FIELD during stair trim work — no wall protection needed for brush. Stringer-to-wall caulk is a mandatory prep task for closed stringers."
+      },
+      {
+        "surface_id": "trim_baseboard",
+        "edge_type": "linear",
+        "typical_relationship": "same_finish",
+        "edge_work_required": false,
+        "notes": "Stringer connects to baseboard at top/bottom of flight. Typically same color/sheen. Baseboard handled by SF_TRIM_NC_PAINT."
+      }
+    ],
+    "surface_reference": "Surface_Vocabulary_Reference.md v1.0 — stair surfaces are NEW, not yet in vocabulary",
+    "key_finding": "Stair component painting has two primary surfaces (risers and stringers) with dual UOM (EA and LF). Key adjacency is tread protection — treads are always protected, never painted in this spec. Stringer-to-wall caulk is a mandatory prep task, not just a protection relationship."
+  },
+
+  "site_condition_analysis": {
+    "affected_conditions": [
+      {
+        "condition_id": "floor_type",
+        "vocabulary_ref": "Site_Condition_Vocabulary_Reference.md § floor_type",
+        "affected_task_types": ["protect"],
+        "include_values": ["finished", "partial"],
+        "exclude_values": ["subfloor"],
+        "modifier_notes": null,
+        "notes": "Landing floor protection required only when finished floors present. Subfloor requires no protection."
+      },
+      {
+        "condition_id": "occupancy_state",
+        "vocabulary_ref": "Site_Condition_Vocabulary_Reference.md § occupancy_state",
+        "affected_task_types": ["protect"],
+        "include_values": ["occupied_crew_handles", "occupied_sensitive"],
+        "exclude_values": ["vacant"],
+        "modifier_notes": "occupied_sensitive triggers OCC_SENSITIVE modifier 1.30x on protection tasks per Modifier_Registry",
+        "notes": "Additional protection when occupied. Rare in NC context."
+      },
+      {
+        "condition_id": "lead_status",
+        "vocabulary_ref": "Site_Condition_Vocabulary_Reference.md § lead_status",
+        "affected_task_types": ["prep", "prime"],
+        "include_values": ["tested_positive", "unknown_pre1978"],
+        "exclude_values": ["tested_negative", "not_applicable"],
+        "modifier_notes": "tested_positive=2.0x, unknown_pre1978=1.5x per Modifier_Registry",
+        "notes": "Lead-safe practices when applicable. Rare in NC (post-1978) but possible in gut renovation."
+      },
+      {
+        "condition_id": "temperature_condition",
+        "vocabulary_ref": "Site_Condition_Vocabulary_Reference.md § temperature_condition",
+        "affected_task_types": ["prime", "finish"],
+        "include_values": ["cold_below_50f", "hot_above_90f"],
+        "exclude_values": ["normal"],
+        "modifier_notes": null,
+        "notes": "Temperature affects dry times and open time. Stairwells may lack HVAC in NC — temperature varies by floor level."
+      }
+    ],
+    "condition_reference": "Site_Condition_Vocabulary_Reference.md v1.1",
+    "modifier_reference": "Modifier_Registry.md v1.2"
+  },
+
+  "state_analysis": {
+    "primary_surface": "stair_riser, stair_stringer",
+    "valid_input_states": {
+      "states": ["SS_BARE", "SS_PRIMED_FACTORY"],
+      "rationale": "Combined prime+paint spec. SS_BARE (uncoated riser/stringer) requires full primer coat — primer type driven by substrate. SS_PRIMED_FACTORY (standard NC — trim arrives pre-primed from mill) skips primer, lighter prep."
+    },
+    "output_state": {
+      "state": "SS_PAINTED",
+      "varies_by": "sheen",
+      "state_map": {
+        "satin": "SS_PAINTED_SATIN",
+        "semi-gloss": "SS_PAINTED_SEMIGLOSS",
+        "gloss": "SS_PAINTED_GLOSS"
+      },
+      "rationale": "Output state varies by sheen configuration dimension. Semi-gloss is default for risers (toe-kick scuff resistance)."
+    },
+    "adjacent_state_protection_analysis": [
+      {
+        "adjacent_surface": "wall_field",
+        "finished_states": ["SS_PAINTED_FLAT", "SS_PAINTED_EGGSHELL", "SS_PAINTED_SATIN"],
+        "unfinished_states": ["SS_BARE", "SS_PRIMED_FIELD"],
+        "protection_when_finished": "light_mask (wall_adjacent zone)",
+        "protection_when_unfinished": "none",
+        "rationale": "Typical NC: walls at SS_PRIMED_FIELD — no protection for brush. When walls SS_PAINTED_*: masking required for brush near wall edge and always for spray."
+      },
+      {
+        "adjacent_surface": "stair_tread",
+        "finished_states": ["any"],
+        "unfinished_states": ["any"],
+        "protection_when_finished": "heavy_cover (stair_tread_covers)",
+        "protection_when_unfinished": "heavy_cover (stair_tread_covers)",
+        "rationale": "Treads ALWAYS protected regardless of state. May be stain-grade (never painted), may be subfloor (painted last), or may be finished. Protection is unconditional per Stairway_Systems_Doctrine Section 6.2."
+      }
+    ],
+    "state_reference": "Substrate_State_Reference.md v1.0.0"
+  },
+
+  "required_paintscope_keys": [
+    {
+      "key": "PS_SURFACE_EA.STAIR_RISER",
+      "description": "Count of individual stair risers to paint",
+      "uom": "EA",
+      "required": true,
+      "required_when": "Always",
+      "catalog_status": "PROPOSED — sourced from PS_META.STAIRWELL.RISERS in geometry system"
+    },
+    {
+      "key": "PS_SURFACE_LF.STAIR_STRINGER",
+      "description": "Total LF of stringer/skirtboard runs to paint",
+      "uom": "LF",
+      "required": true,
+      "required_when": "Always",
+      "catalog_status": "PROPOSED — derivable from geometry system rake_length"
+    },
+    {
+      "key": "PS_EDGE_LF.STAIR_STRINGER_TO_WALL",
+      "description": "Stringer-to-wall caulk junction LF (closed stringers only)",
+      "uom": "LF",
+      "required": false,
+      "required_when": "stringer_type = closed",
+      "catalog_status": "PROPOSED"
+    },
+    {
+      "key": "PS_PROTECT_SF.ASSET.STAIR_TREADS",
+      "description": "Tread protection area",
+      "uom": "SF",
+      "required": true,
+      "required_when": "Always — tread protection is mandatory",
+      "catalog_status": "EXISTS — PaintScope Asset Catalog Section 8"
+    },
+    {
+      "key": "PS_PROTECT_SF.FLOOR_PERIMETER",
+      "description": "Landing floor protection area",
+      "uom": "SF",
+      "required": false,
+      "required_when": "floor_type = finished or partial",
+      "catalog_status": "EXISTS"
+    },
+    {
+      "key": "PS_PROTECT_LF.WALL_ADJACENT",
+      "description": "Wall masking along stringer edge (spray only)",
+      "uom": "LF",
+      "required": false,
+      "required_when": "application_method = spray",
+      "catalog_status": "EXISTS"
+    }
+  ],
+
+  "proposed_new_keys": [
+    {
+      "key": "PS_SURFACE_EA.STAIR_RISER",
+      "uom": "EA",
+      "description": "Count of individual stair risers to paint",
+      "justification": "Component spec needs its own surface key. Value may equal PS_META.STAIRWELL.RISERS from geometry system."
+    },
+    {
+      "key": "PS_SURFACE_LF.STAIR_STRINGER",
+      "uom": "LF",
+      "description": "Total LF of stringer/skirtboard runs to paint",
+      "justification": "No existing key for painted stringer measurement. PS_SURFACE_SF.STAIRWELL_WALL_STRINGER covers wall behind stringer, not the stringer board itself."
+    },
+    {
+      "key": "PS_EDGE_LF.STAIR_STRINGER_TO_WALL",
+      "uom": "LF",
+      "description": "Stringer-to-wall caulk junction LF",
+      "justification": "No existing key for this edge relationship. Closed stringers only."
+    }
+  ],
+
+  "adjacency_notes": [
+    {
+      "edge_type": "riser_to_tread",
+      "scope_impact": "Riser meets tread at top and bottom edges. Treads are NOT painted in this spec — they are either stain-grade, subfloor, or painted last by future SF_STAIR_TREAD_NC. Riser-to-tread edge masking required when treads are already finished.",
+      "paintscope_key": "PS_PROTECT_SF.ASSET.STAIR_TREADS",
+      "nc_context": "In NC, treads are typically subfloor during riser painting. Tread protection is for the tread surface itself, not for paint-to-paint edge."
+    },
+    {
+      "edge_type": "stringer_to_wall",
+      "scope_impact": "Stringer meets wall at continuous linear junction. Stringer-to-wall caulk is mandatory for closed stringers — highly visible joint. Open stringers have no wall junction on exposed side.",
+      "paintscope_key": "PS_EDGE_LF.STAIR_STRINGER_TO_WALL",
+      "nc_context": "Typical: walls at SS_PRIMED_FIELD. Caulk applied during prep phase."
+    },
+    {
+      "edge_type": "riser_to_stringer",
+      "scope_impact": "Riser meets stringer at left and right edges (2 joints per riser). Riser-to-stringer caulk fills visible gaps at this junction. Both surfaces painted in this spec — typically same finish.",
+      "paintscope_key": null,
+      "nc_context": "Caulk LF derived from riser_count × 2 × stairwell_width. No dedicated PaintScope key — derived quantity."
+    },
+    {
+      "edge_type": "stringer_to_baseboard",
+      "scope_impact": "Stringer connects to baseboard at top/bottom of flight. Typically same finish group. Baseboard handled by SF_TRIM_NC_PAINT. Stringer-to-baseboard caulk included in this spec per brief Q2 resolution.",
+      "paintscope_key": null,
+      "nc_context": "Natural transition point. Painter doing stringer work is already on-site with caulk."
+    }
+  ],
+
+  "relevant_findings": [
+    {
+      "finding_id": "RF-001",
+      "topic": "Dual UOM — EA for risers, LF for stringers",
+      "finding": "This spec uses two units of measure: risers are counted as EA (each), stringers are measured as LF (linear feet). Risers are flat vertical panels with uniform size within a flight — no size bucket variation needed. Riser surface area is derivable: riser_SF = stairwell_width × riser_height (typically 3.5 ft × 0.625 ft ≈ 2.2 SF). Stringers are linear trim comparable to baseboard, measured in LF.",
+      "source": "Brief Sections 4-5, PaintScope_Stairwell_Geometry_System.md, Brief Q3 (RESOLVED)",
+      "confidence": "high",
+      "impact": "Production rates must be expressed in two UOMs: hrs/EA for riser tasks, hrs/LF or LF/hr for stringer tasks."
+    },
+    {
+      "finding_id": "RF-002",
+      "topic": "Combined prime+paint spec — primer is conditional on substrate_state",
+      "finding": "This spec includes both primer and finish coats, but primer is conditional. SS_BARE requires full primer coat (substrate-driven selection). SS_PRIMED_FACTORY skips primer — factory primer is transit protection. This matches SF_WINDOW_INT_NC pattern. Rationale: stairway work is a self-contained zone with dedicated staging, shared tread protection, and same-session execution.",
+      "source": "Brief Section 1, 10, 13; Fine_Finish_Doctrine Section 5.2",
+      "confidence": "high",
+      "impact": "Module structure must support both workflows. Prime module is conditional. Two variant round configs: with/without primer."
+    },
+    {
+      "finding_id": "RF-003",
+      "topic": "Substrate drives primer chemistry — 5 distinct primer paths",
+      "finding": "MDF cut/routed edges: solvent-based sealer (Zinsser BIN Shellac, KILZ Original) — water-based causes irreversible fiber swelling. MDF factory faces: high-build latex (BM Enamel Underbody 217). Poplar: stain-blocking primer MANDATORY (BM Prime Lock Plus). Hardwood: tannin-blocking primer (BM Prime Lock Plus, SW Extreme Block). Paint-grade plywood: standard primer-sealer (Zinsser Bulls Eye 1-2-3). MDF requires TWO-STEP prime: edge seal (solvent) then face prime (latex).",
+      "source": "Stairway_Systems_Doctrine Section 4, Millwork_NC_Paint_Doctrine Section 2-4",
+      "confidence": "high",
+      "impact": "Materials Manager must include 5 substrate-driven primer systems. SOP must have substrate-conditional primer tasks. MDF edge sealing is a separate mandatory task before latex primer."
+    },
+    {
+      "finding_id": "RF-004",
+      "topic": "Canonical painting sequence — stringers before risers",
+      "finding": "Per Stairway_Systems_Doctrine Section 3.2: Stringers are position #4 in the 9-position canonical sequence, risers are position #8. Within every module phase (prep, prime, finish), stringer tasks MUST precede riser tasks. Rationale: painting stringers first avoids contact with wet riser surfaces when moving between treads.",
+      "source": "Stairway_Systems_Doctrine Section 3.2, Brief Section 13",
+      "confidence": "high",
+      "impact": "SOP must enforce stringer-before-riser ordering in every module. Task sequencing is non-negotiable."
+    },
+    {
+      "finding_id": "RF-005",
+      "topic": "Tread protection is non-negotiable safety requirement",
+      "finding": "Per Stairway_Systems_Doctrine Section 6.2: 'Tread protection must begin before any painting starts and remain in place until the very final phase.' Ram Board Stair Armor is industry standard — covers riser face bottom edge, tread surface, and bullnose in one piece with Spill Guard and Tread-Trac grip strips. Standard plastic sheeting on treads is an EXTREME FALL HAZARD. Tread protection is first task in setup, last task in cleanup (or deferred if railing/tread work follows).",
+      "source": "Stairway_Systems_Doctrine Section 6.2, Brief Section 13",
+      "confidence": "high",
+      "impact": "Setup module starts with tread protection. Cleanup module ends with protection removal. Protection remains through ALL phases. Safety-critical — no exceptions."
+    },
+    {
+      "finding_id": "RF-006",
+      "topic": "Height/access modifiers — risers H1, stringers use stairwell access modifiers",
+      "finding": "Risers always use H1 (1.0x) — painter stands on adjacent treads, always accessible. Stringers use stairwell access modifiers from PaintScope_Stairwell_Geometry_System based on PS_STAIRWELL.MAX_WORKING_HEIGHT_FT: step_ladder (≤12 ft)=1.3x, extension_ladder (≤18 ft)=1.6x, scaffolding (≤24 ft)=2.0x, lift (≤28 ft)=2.5x, tall_lift (28+ ft)=2.8x. For stair component work (this spec), access modifier alone applies to stringers. For stairwell drywall/ceiling work (separate specs), access modifiers ADD TO standard height modifiers.",
+      "source": "Brief Section 13 Q4 (RESOLVED), PaintScope_Stairwell_Geometry_System.md",
+      "confidence": "high",
+      "impact": "Estimation Engineer applies H1 to all riser tasks, stairwell access modifier to all stringer tasks. Access modifiers do NOT stack with height modifiers for stair component work."
+    },
+    {
+      "finding_id": "RF-007",
+      "topic": "Open vs closed stringers — production rate impact",
+      "finding": "Open stringers have notched profile visible from exposed side, following tread/riser pattern. They have significantly more surface area and complex geometry compared to closed (flat board against wall) stringers. Production rate for open stringers: 1.3-1.5x that of closed stringers. Open stringers have stringer-to-wall caulk only on wall side; exposed side has no wall junction.",
+      "source": "Brief Section 13, Stairway_Systems_Doctrine Section 9",
+      "confidence": "high",
+      "impact": "stringer_type is a configuration dimension. Production rates must include open stringer multiplier. Caulk tasks are conditional on closed stringers."
+    },
+    {
+      "finding_id": "RF-008",
+      "topic": "QT2 prohibited — stairways are scrutinized surfaces",
+      "finding": "Per Stairway_Systems_Doctrine Section 10.1: stairways are scrutinized, prominent surfaces. QT2 is not applicable. Minimum quality tier is QT3.",
+      "source": "Stairway_Systems_Doctrine Section 10.1, Brief Section 3",
+      "confidence": "high",
+      "impact": "Spec configuration_dimensions must prohibit QT2. Only QT3, QT4, QT5 are valid."
+    },
+    {
+      "finding_id": "RF-009",
+      "topic": "Finish material systems — reuse from trim spec (QT-driven)",
+      "finding": "Same SYS_FF_ finish systems as SF_TRIM_NC_PAINT and SF_WINDOW_INT_NC. QT3: SYS_FF_STANDARD_ACRYLIC (100% acrylic enamel). QT4: SYS_FF_MODIFIED_URETHANE (waterborne alkyd). QT5: SYS_FF_PREMIUM (premium urethane enamel). Material systems are recommendations — contractor has discretion (RC-005 from trim spec).",
+      "source": "Fine_Finish_Doctrine Section 3, Brief Section 11",
+      "confidence": "high",
+      "impact": "Reuse existing SYS_FF_ IDs. No new finish systems needed."
+    },
+    {
+      "finding_id": "RF-010",
+      "topic": "Interstage is universal at ALL quality tiers",
+      "finding": "Same as trim and window specs. Interstage runs after every coat except the final coat. Sanding discipline: QT3=spot sand only (nibs, rough spots), QT4=full 220 grit, QT5=thorough 220-320 grit. Rigid sanding block mandatory for defect removal (FFD 15.4.1).",
+      "source": "Fine_Finish_Doctrine Sections 2.2, 5.3, 7",
+      "confidence": "high",
+      "impact": "Interstage module present at all QTs. Sanding discipline varies by QT."
+    },
+    {
+      "finding_id": "RF-011",
+      "topic": "Riser surface area derivable from geometry system",
+      "finding": "Riser width = stairwell width (PS_META.STAIRWELL.WIDTH_FT). Riser height is standard ~7.5 inches (0.625 ft). Riser SF per unit = stairwell_width × riser_height. Typical: 3.5 ft × 0.625 ft ≈ 2.2 SF per riser. Risers are uniform within a flight — no size bucket variation.",
+      "source": "PaintScope_Stairwell_Geometry_System.md, Brief Q3 (RESOLVED)",
+      "confidence": "high",
+      "impact": "Material coverage derived from riser count × SF per riser. Production rates in hrs/EA based on this typical SF."
+    },
+    {
+      "finding_id": "RF-012",
+      "topic": "Access staging overhead — 15-40% of project time",
+      "finding": "Per Stairway_Systems_Doctrine Section 5.6: stairway projects have 15-40% of total time consumed by access staging (moving ladders, platforms, tools up/down stairs). This is a project-level overhead, not a per-task modifier.",
+      "source": "Stairway_Systems_Doctrine Section 5.6",
+      "confidence": "high",
+      "impact": "Estimation Engineer should note access staging overhead for project-level estimation. Not modeled as task-level modifier."
+    }
+  ],
+
+  "condition_drivers": [
+    {
+      "driver_id": "CD-001",
+      "condition": "quality_tier",
+      "values": ["QT3", "QT4", "QT5"],
+      "affects": ["material_system_finish", "sheen_gate", "sanding_discipline", "inspection_scrutiny", "coat_count_at_qt5"],
+      "notes": "QT drives finish material system (recommendations), sheen restrictions, sanding between coats, inspection scrutiny. Does NOT drive primer selection (substrate-driven). Does NOT affect application quality baseline."
+    },
+    {
+      "driver_id": "CD-002",
+      "condition": "application_method",
+      "values": ["brush", "spray"],
+      "affects": ["protection_zones", "production_rates", "material_waste"],
+      "notes": "Brush is default for stair component detail work. Spray requires extensive tread/wall masking but faster application."
+    },
+    {
+      "driver_id": "CD-003",
+      "condition": "substrate",
+      "values": ["mdf", "poplar", "hardwood", "paint_grade_plywood"],
+      "affects": ["prep_protocol", "primer_selection"],
+      "notes": "Substrate drives primer chemistry. MDF: two-step (edge seal + face prime). Poplar: stain-blocking MANDATORY. Hardwood: tannin-blocking. Plywood: standard sealer."
+    },
+    {
+      "driver_id": "CD-004",
+      "condition": "substrate_state",
+      "values": ["SS_BARE", "SS_PRIMED_FACTORY"],
+      "affects": ["primer_required", "prep_scope"],
+      "notes": "SS_BARE: full primer coat required, heavier prep. SS_PRIMED_FACTORY: skip primer, scuff sand only."
+    },
+    {
+      "driver_id": "CD-005",
+      "condition": "stringer_type",
+      "values": ["open", "closed"],
+      "affects": ["production_rate_modifier", "caulk_scope"],
+      "notes": "Open stringers: 1.3-1.5x production rate multiplier, notched profile. Closed stringers: baseline rate, flat board. Stringer-to-wall caulk applies to closed stringers only (and wall side of open stringers if present)."
+    },
+    {
+      "driver_id": "CD-006",
+      "condition": "sheen",
+      "values": ["satin", "semi-gloss", "gloss"],
+      "affects": ["minimum_quality_tier", "output_state"],
+      "notes": "Sheen/QT gate: satin at QT3+, semi-gloss at QT4+, gloss at QT5 only. Semi-gloss is default (toe-kick scuff resistance)."
+    }
+  ],
+
+  "quality_differences": [
+    {
+      "aspect": "Material system (finish)",
+      "qt3": "SYS_FF_STANDARD_ACRYLIC — 100% acrylic enamel (ProClassic WB, Regal Select)",
+      "qt4": "SYS_FF_MODIFIED_URETHANE — waterborne alkyd (BM Advance, SW Pro Industrial WB Alkyd)",
+      "qt5": "SYS_FF_PREMIUM — premium urethane enamel (Emerald Urethane, Scuff-X)"
+    },
+    {
+      "aspect": "Between-coat sanding",
+      "qt3": "Spot sand only — visible nibs, rough spots",
+      "qt4": "Light full sand — 220 grit, entire surface for adhesion",
+      "qt5": "Thorough full sand — 220-320 grit, uniform scratch pattern"
+    },
+    {
+      "aspect": "Inspection scrutiny",
+      "qt3": "Quick glance at 6ft distance — obvious defects only",
+      "qt4": "Systematic scan at 3ft — all visible defects marked",
+      "qt5": "Lighted critical inspection at arm's length — zero tolerance"
+    },
+    {
+      "aspect": "Coat count",
+      "qt3": "2 finish coats",
+      "qt4": "2 finish coats",
+      "qt5": "2-3 finish coats (3+ typical for brush/roll per FFD 15.10.3)"
+    },
+    {
+      "aspect": "Application quality",
+      "qt3": "Same baseline — no drips, sags, holidays, lap marks (NOT tiered)",
+      "qt4": "Same baseline (NOT tiered)",
+      "qt5": "Same baseline (NOT tiered)"
+    }
+  ],
+
+  "failure_modes": [
+    {
+      "failure": "Tannin bleed on hardwood risers/stringers",
+      "cause": "Using water-based primer without tannin-blocking properties on bare hardwood",
+      "prevention": "ALWAYS use tannin-blocking primer on bare hardwood. BM Prime Lock Plus, SW Extreme Block, or shellac-based primer. Per Stairway_Systems_Doctrine Section 4.",
+      "severity": "critical",
+      "reversibility": "Difficult — tannin bleed re-emerges through multiple finish coats. Requires stripping to bare wood and using proper tannin-blocking primer."
+    },
+    {
+      "failure": "MDF fiber swelling on cut edges",
+      "cause": "Applying water-based primer to raw MDF cut/routed edges before solvent-based sealer",
+      "prevention": "ALWAYS seal MDF edges with shellac-based (Zinsser BIN) or oil-based (KILZ Original) sealer FIRST. Two-step prime process for bare MDF. Per Millwork_NC_Paint_Doctrine Section 2 and Stairway_Systems_Doctrine Section 4.3.",
+      "severity": "critical",
+      "reversibility": "Difficult — requires sanding back to substrate, fiber swelling is irreversible without aggressive sanding"
+    },
+    {
+      "failure": "Poplar green mineral bleed-through",
+      "cause": "Using non-stain-blocking primer on bare poplar",
+      "prevention": "ALWAYS use stain-blocking primer on bare poplar. BM Prime Lock Plus, BM Fresh Start oil-based, or Zinsser BIN Shellac. MANDATORY, not optional. Per Stairway_Systems_Doctrine Section 4.1.",
+      "severity": "critical",
+      "reversibility": "Difficult — bleed may re-emerge through multiple finish coats. Requires shellac-based primer to permanently block."
+    },
+    {
+      "failure": "Tread finish damage from inadequate protection",
+      "cause": "Painting risers/stringers without proper tread protection, or using slippery plastic sheeting on treads",
+      "prevention": "Mandatory tread protection from Day 1. Ram Board Stair Armor or equivalent non-slip protection. NEVER use plastic sheeting on treads — extreme fall hazard. Per Stairway_Systems_Doctrine Section 6.2.",
+      "severity": "critical",
+      "reversibility": "Moderate to difficult — depends on damage extent. Damaged treads may require re-sanding and re-finishing."
+    },
+    {
+      "failure": "Runs/sags on vertical riser surfaces",
+      "cause": "Over-application on vertical surfaces, material too thick, cold temperature slowing flow-out",
+      "prevention": "Thin coats per waterborne philosophy. Proper brush loading. Risers are vertical surfaces — gravity pulls runs. Check for sags after moving to next riser. Application failure — NOT acceptable at ANY tier.",
+      "severity": "critical",
+      "reversibility": "Sand out when fully cured with rigid block. May require additional coat."
+    },
+    {
+      "failure": "Brush marks in finish coat",
+      "cause": "Overworking waterborne product, wrong brush technique, material too thick or cold",
+      "prevention": "Apply, tip once, walk away (FFD Section 15.3.1). Use quality brush with proper loading. Sand out marks between coats with rigid block.",
+      "severity": "major",
+      "reversibility": "Addressable — sand between coats with rigid block and recoat"
+    },
+    {
+      "failure": "Caulk failure at stringer-to-wall junction",
+      "cause": "Structural movement, seasonal expansion/contraction, poor caulk adhesion",
+      "prevention": "Use quality paintable acrylic latex caulk. Apply after primer cure. Proper joint width (1/8 to 1/4 inch).",
+      "severity": "minor",
+      "reversibility": "Easy — re-caulk and touch-up. Part of interstage inspection."
+    },
+    {
+      "failure": "Alkyd yellowing in basement/enclosed stairwells",
+      "cause": "Oil-modified/alkyd products yellowing in UV-deprived environments",
+      "prevention": "Use non-yellowing waterborne products for enclosed stairwells. SYS_FF_STANDARD_ACRYLIC (100% acrylic) does not yellow. Verify product PDS for yellowing resistance.",
+      "severity": "major",
+      "reversibility": "Moderate — requires full recoat with non-yellowing product."
+    }
+  ],
+
+  "notes_for_materials_manager": [
+    {
+      "note_id": "MAT-001",
+      "topic": "Dual material system — substrate-driven primer, QT-driven finish",
+      "content": "This spec has TWO independent material system layers: (1) Primer systems are substrate-driven (MDF edge seal + face prime, poplar stain-blocking, hardwood tannin-blocking, plywood standard). (2) Finish systems are QT-driven (SYS_FF_STANDARD_ACRYLIC, SYS_FF_MODIFIED_URETHANE, SYS_FF_PREMIUM). Same pattern as SF_WINDOW_INT_NC."
+    },
+    {
+      "note_id": "MAT-002",
+      "topic": "Primer selection by substrate",
+      "content": "MDF cut/routed edges: Solvent-based sealer (Zinsser BIN Shellac, KILZ Original). MDF factory faces: High-build latex (BM Enamel Underbody 217, ProClassic Undercoater). Poplar: Stain-blocking primer MANDATORY (BM Prime Lock Plus, BM Fresh Start oil-based). Hardwood: Tannin-blocking primer (BM Prime Lock Plus, SW Extreme Block). Plywood: Standard primer-sealer (Zinsser Bulls Eye 1-2-3, KILZ 2). Factory-primed: No primer needed."
+    },
+    {
+      "note_id": "MAT-003",
+      "topic": "Finish material systems — reuse from trim spec",
+      "content": "Same SYS_FF_ finish systems as SF_TRIM_NC_PAINT and SF_WINDOW_INT_NC. Material systems are recommendations — contractor has discretion (RC-005)."
+    },
+    {
+      "note_id": "MAT-004",
+      "topic": "Tread protection materials — non-slip mandatory",
+      "content": "Ram Board Stair Armor is industry standard. Alternatives: rosin paper + masonite (premium), Trimaco Stay Put Canvas Plus. Standard plastic sheeting PROHIBITED on treads (extreme fall hazard). Low-tack Safe-Release tape for securing all tread protection."
+    },
+    {
+      "note_id": "MAT-005",
+      "topic": "Caulk for two joint types",
+      "content": "Paintable acrylic latex caulk for: (1) Stringer-to-wall junction (closed stringers — continuous linear joint), (2) Riser-to-stringer junction (2 joints per riser). Caulk quantity: stringer-to-wall LF + (riser_count × 2 × riser_width) for riser-to-stringer joints."
+    },
+    {
+      "note_id": "MAT-006",
+      "topic": "Coverage rates for risers and stringers",
+      "content": "Risers: coverage from EA count × riser SF each (typically 2.2 SF per riser). Stringers: 1 LF ≈ 1 SF per PDCA standard for linear trim. Typical coverage: 350-450 SF/gal for finish coat on primed smooth surface."
+    },
+    {
+      "note_id": "MAT-007",
+      "topic": "Sanding consumables vary by tier",
+      "content": "QT3: 220 grit for spot sanding only. QT4: 220 grit for full surface. QT5: 220-320 grit for full surface. Rigid sanding blocks mandatory for defect removal (FFD 15.4.1)."
+    }
+  ],
+
+  "notes_for_sop_librarian": [
+    {
+      "note_id": "SOP-001",
+      "topic": "Module structure is combined prime+paint with dual UOM",
+      "content": "SETUP → INITIAL_PREP → [PRIME (conditional)] → [INTERSTAGE] → FINISH_COAT_1 → INTERSTAGE → FINISH_COAT_2 → FINAL_INSPECT → CLEANUP. Prime module runs only when substrate_state = SS_BARE. Tasks within each module split by component: stringer tasks first, then riser tasks (canonical sequence)."
+    },
+    {
+      "note_id": "SOP-002",
+      "topic": "Canonical sequence — stringers before risers in every phase",
+      "content": "Within each module (prep, prime, finish), stringer tasks MUST precede riser tasks. Per Stairway_Systems_Doctrine Section 3.2: stringers at position #4, risers at position #8."
+    },
+    {
+      "note_id": "SOP-003",
+      "topic": "Tread protection is the FIRST and LAST task",
+      "content": "First task in SETUP: install tread protection. Last task in CLEANUP: remove tread protection (or defer if railing/tread work follows). Protection remains through ALL phases."
+    },
+    {
+      "note_id": "SOP-004",
+      "topic": "Prep tasks vary by substrate type",
+      "content": "Bare MDF: sand faces 220, sand edges 120, clean dust, fill holes, caulk joints, MDF edge seal. Bare poplar: light sand 150-180, clean, fill, caulk. Bare hardwood: sand 150-220, clean, fill, caulk. Bare plywood: sand 150-180, clean, fill, caulk. Factory-primed: scuff sand 150-180, clean, fill, caulk."
+    },
+    {
+      "note_id": "SOP-005",
+      "topic": "Two caulk joint types in initial prep",
+      "content": "(1) Stringer-to-wall caulk — continuous joint for closed stringers, mandatory. (2) Riser-to-stringer caulk — 2 joints per riser. Both use paintable acrylic latex caulk. Caulk after fill and sand, before primer."
+    },
+    {
+      "note_id": "SOP-006",
+      "topic": "MDF edge sealing is a separate mandatory task",
+      "content": "For bare MDF: edge seal (solvent-based) MUST run BEFORE latex primer. Two-step prime: (1) TSK_STRS_SEAL_MDF_EDGES, (2) TSK_STRS_PRIME_FACES. Water-based primers cause irreversible fiber swelling on MDF edges."
+    },
+    {
+      "note_id": "SOP-007",
+      "topic": "Task IDs use TSK_STRS_ prefix",
+      "content": "Examples: TSK_STRS_TREAD_PROTECT, TSK_STRS_FLOOR_PROTECT, TSK_STRS_FILL_FASTENERS, TSK_STRS_CAULK_STRINGER_WALL, TSK_STRS_CAULK_RISER_STRINGER, TSK_STRS_SAND_PREP, TSK_STRS_SEAL_MDF_EDGES, TSK_STRS_PRIME_STRINGER, TSK_STRS_PRIME_RISER, TSK_STRS_BRUSH_FINISH_STRINGER_1, TSK_STRS_BRUSH_FINISH_RISER_1."
+    },
+    {
+      "note_id": "SOP-008",
+      "topic": "Interstage is universal at ALL quality tiers",
+      "content": "Interstage runs after every coat except the final coat. Tasks: clean area, inspect coat, sand (spot or full per QT), patch/repair defects, sand patches, spot coat. Scrutiny level is qt_scaled."
+    },
+    {
+      "note_id": "SOP-009",
+      "topic": "Application philosophy for vertical riser surfaces",
+      "content": "Waterborne philosophy (FFD 15.3.1): Apply, tip once, walk away. Risers are vertical — gravity pulls runs. Thin coats essential. Proper brush loading critical."
+    },
+    {
+      "note_id": "SOP-010",
+      "topic": "QT5 brush/roll may require 3+ coats",
+      "content": "At QT5 with brush/roll (especially gloss), 3+ coats may be needed per FFD 15.10.3. Add additional FINISH_COAT + INTERSTAGE cycle as variant."
+    }
+  ],
+
+  "notes_for_estimation_engineer": [
+    {
+      "note_id": "EST-001",
+      "topic": "Dual UOM production rates — hrs/EA for risers, LF/hr for stringers",
+      "content": "Risers use EA-based rates (flat vertical panel, ~2.2 SF each). Stringers use LF-based rates (linear trim, similar to baseboard). Rates comparable to trim rates from Production Rate Reference System 3."
+    },
+    {
+      "note_id": "EST-002",
+      "topic": "Riser production rate estimates",
+      "content": "Risers are flat vertical panels ~2.2 SF each. Brush finish estimate: ~0.05-0.08 hrs/EA per coat. Prep rate: ~0.03-0.05 hrs/EA. Doctrine Section 9.2 confirms 'production rates similar to trim' but provides no per-EA rates."
+    },
+    {
+      "note_id": "EST-003",
+      "topic": "Stringer production rate estimates",
+      "content": "Closed stringers: use baseboard trim rates as baseline (80-90 LF/hr brush finish). Open stringers: apply 1.3-1.5x multiplier for notched profile complexity."
+    },
+    {
+      "note_id": "EST-004",
+      "topic": "Height/access modifiers — different for risers vs stringers",
+      "content": "Risers: H1 (1.0x) always. Stringers: stairwell access modifiers from geometry system based on max_working_height. Access modifiers do NOT stack with height modifiers for stair component work."
+    },
+    {
+      "note_id": "EST-005",
+      "topic": "Stringer_type modifier",
+      "content": "Closed stringer: 1.0x baseline. Open stringer: 1.3-1.5x multiplier. Open stringers have notched profile with more surface area."
+    },
+    {
+      "note_id": "EST-006",
+      "topic": "Access staging overhead — 15-40% of project time",
+      "content": "Per doctrine Section 5.6: 15-40% of total time consumed by access staging. Project-level overhead, not per-task modifier."
+    },
+    {
+      "note_id": "EST-007",
+      "topic": "QT modifiers for inspection/repair tasks",
+      "content": "QT3=1.00, QT4=1.30, QT5=1.50. Apply to inspection, repair, and sanding tasks. Do NOT apply to application rate."
+    },
+    {
+      "note_id": "EST-008",
+      "topic": "Tread protection setup/removal time",
+      "content": "Ram Board Stair Armor install: ~2-3 min per tread (14 treads = ~30-45 min). Removal: ~1-2 min per tread. Binary task (same at all QTs)."
+    }
+  ],
+
+  "inherited_research_corrections": [
+    {
+      "id": "RC-004",
+      "title": "Do not specify dry times in specs",
+      "source": "SF_DRYWALL_WALL_NC_PRIME research",
+      "impact": "No dry time references in materials or sop_modules — refer to PDS"
+    },
+    {
+      "id": "RC-005",
+      "title": "Material systems are recommendations, not mandates",
+      "source": "SF_TRIM_NC_PAINT research",
+      "impact": "Finish material systems are QT-driven recommendations — contractor has discretion"
+    },
+    {
+      "id": "RC-006",
+      "title": "Advance is waterborne alkyd; Emerald Urethane is acrylic-urethane enamel",
+      "source": "SF_TRIM_NC_PAINT research",
+      "impact": "Correct product classification in materials.json"
+    }
+  ],
+
+  "assumptions": [
+    {
+      "assumption_id": "A-001",
+      "field": "riser_surface_area",
+      "value": "Riser SF per unit = stairwell_width × riser_height (typically 3.5 ft × 0.625 ft ≈ 2.2 SF)",
+      "source": "PaintScope_Stairwell_Geometry_System.md, Brief Q3 (RESOLVED)",
+      "doctrine_gap": false,
+      "note": "Riser dimensions derivable from geometry system. Risers uniform within a flight."
+    },
+    {
+      "assumption_id": "A-002",
+      "field": "riser_production_rate",
+      "value": "Brush finish ~0.05-0.08 hrs/EA per coat, prep ~0.03-0.05 hrs/EA",
+      "source": "Research estimate — derived from trim rates and riser SF",
+      "doctrine_gap": true,
+      "note": "Doctrine confirms 'production rates similar to trim' but provides no per-EA riser rates."
+    },
+    {
+      "assumption_id": "A-003",
+      "field": "stringer_production_rate",
+      "value": "Closed stringers: baseboard trim rates (80-90 LF/hr brush finish). Open stringers: 1.3-1.5x.",
+      "source": "Brief Section 13, Stairway_Systems_Doctrine Section 9",
+      "doctrine_gap": true,
+      "note": "No stringer-specific production rates in doctrine. Baseboard rates as baseline."
+    },
+    {
+      "assumption_id": "A-004",
+      "field": "tread_protection_install_rate",
+      "value": "~2-3 min per tread install, ~1-2 min per tread removal",
+      "source": "Research estimate from industry practice",
+      "doctrine_gap": true,
+      "note": "No doctrine defines tread protection installation rates."
+    },
+    {
+      "assumption_id": "A-005",
+      "field": "open_stringer_multiplier",
+      "value": "1.3-1.5x production rate multiplier for open vs closed stringers",
+      "source": "Brief Section 13",
+      "doctrine_gap": true,
+      "note": "Brief specifies range. No canonical doctrine value."
+    }
+  ],
+
+  "uncertainties": [
+    {
+      "uncertainty_id": "U-001",
+      "topic": "QT3 default with semi-gloss default tension",
+      "description": "Brief sets QT3 default and semi-gloss default. But sheen/QT gate says semi-gloss requires QT4+. Two defaults are incompatible.",
+      "current_approach": "Proceeding with both defaults as stated. Spec enforces sheen/QT gate at runtime — QT3 with semi-gloss rejected, satin offered.",
+      "resolution_needed": false
+    },
+    {
+      "uncertainty_id": "U-002",
+      "topic": "Open stringer multiplier precision",
+      "description": "Brief specifies 1.3-1.5x range. No canonical doctrine value. Exact multiplier depends on notch depth and profile.",
+      "current_approach": "Using 1.4x as midpoint estimate.",
+      "resolution_needed": false
+    }
+  ],
+
+  "doctrine_conflicts": [],
+
+  "research_corrections": [],
+
+  "pending_doctrine_updates": [],
+
+  "confidence_level": "high"
+}

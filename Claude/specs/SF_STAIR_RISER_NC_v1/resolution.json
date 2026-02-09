@@ -1,0 +1,488 @@
+{
+  "_meta": {
+    "spec_family_id": "SF_STAIR_RISER_NC",
+    "generated_by": "registry_resolver",
+    "generated_at": "2026-02-08",
+    "version": "1.0.0",
+    "purpose": "Pre-resolved registry values for downstream agents. Agents consuming this file do NOT need to load raw registry files.",
+    "input_files": ["brief.md", "controlled_enums.json", "id_registry.json", "structural_keys.json", "agent_rules.json"]
+  },
+
+  "spec_identity": {
+    "spec_family_id": "SF_STAIR_RISER_NC",
+    "status": "new",
+    "context_prefix": "STRS",
+    "notes": "New spec. TSK_STRS_* not in context_prefixes_in_use — no collision. Combined prime+paint spec (primer conditional on substrate_state). Domain: interior, context: NC. EA-based riser counting + LF-based stringer counting. stringer_type (open/closed) is a configuration dimension."
+  },
+
+  "paintable_items": [
+    { "item_id": "ITM_STAIR_RISER", "name": "Stair riser face", "unit_of_measure": "EA", "surface_ref": "stair_riser", "status": "proposed" },
+    { "item_id": "ITM_STAIR_STRINGER", "name": "Stringer / skirtboard", "unit_of_measure": "LF", "surface_ref": "stair_stringer", "status": "proposed" }
+  ],
+
+  "task_prefix": {
+    "pattern": "TSK_STRS_",
+    "context": "STRS",
+    "collision_check": "No collision. TSK_STRS_* not in context_prefixes_in_use.",
+    "naming_rule": "TSK_STRS_{ACTION} — action should be verb-based (TREAD_PROTECT, FLOOR_PROTECT, WALL_MASK, FILL_SAND, CAULK_STRINGER_WALL, CAULK_RISER_STRINGER, SEAL_MDF_EDGES, SAND_PREP, PRIME_STRINGER, PRIME_RISER, BRUSH_FINISH_STRINGER, BRUSH_FINISH_RISER, SPRAY_FINISH_STRINGER, SPRAY_FINISH_RISER, SAND_BETWEEN, INSPECT_COAT, FINAL_INSPECT, REMOVE_PROTECTION)"
+  },
+
+  "module_prefix": {
+    "pattern": "MOD_STRS_",
+    "expected_modules": [
+      { "module_id": "MOD_STRS_SETUP", "phase": "setup", "description": "Tread protection (Ram Board Stair Armor), landing floor protection, staging/access setup" },
+      { "module_id": "MOD_STRS_PREP", "phase": "prep", "description": "Fill holes, caulk joints (stringer-to-wall, riser-to-stringer), sand per substrate, MDF edge seal (bare MDF only)" },
+      { "module_id": "MOD_STRS_PRIME", "phase": "prime", "description": "Primer coat — conditional on substrate_state = SS_BARE. Primer type driven by substrate." },
+      { "module_id": "MOD_STRS_FINISH_COAT", "phase": "finish", "description": "Finish coat application. Stringers first (#4), then risers (#8) per canonical painting sequence." },
+      { "module_id": "MOD_STRS_INTERSTAGE", "phase": "interstage", "description": "Between-coat inspect, sand, repair — universal at ALL quality tiers." },
+      { "module_id": "MOD_STRS_FINAL_INSPECT", "phase": "finish", "description": "Final quality inspection and touch-up." },
+      { "module_id": "MOD_STRS_CLEANUP", "phase": "cleanup", "description": "Protection removal. Tread covers may remain if railing/tread work follows." }
+    ],
+    "notes": "Combined prime+paint spec. Prime module conditional on substrate_state = SS_BARE. Internal sequencing: stringers before risers per canonical sequence."
+  },
+
+  "paintscope_keys": [
+    { "paintscope_key": "PS_SURFACE_EA.STAIR_RISER", "input_name": "IN_EA_STAIR_RISER", "uom": "EA", "status": "proposed", "description": "Count of individual stair risers to paint. Sourced from geometry system riser count." },
+    { "paintscope_key": "PS_SURFACE_LF.STAIR_STRINGER", "input_name": "IN_LF_STAIR_STRINGER", "uom": "LF", "status": "proposed", "description": "Total LF of stringer/skirtboard runs. Derivable from geometry system rake_length." },
+    { "paintscope_key": "PS_EDGE_LF.STAIR_STRINGER_TO_WALL", "input_name": "IN_LF_STAIR_STRINGER_CAULK", "uom": "LF", "status": "proposed", "description": "Stringer-to-wall caulk junction LF. Closed stringers only." },
+    { "paintscope_key": "PS_PROTECT_SF.ASSET.STAIR_TREADS", "input_name": "IN_SF_STAIR_TREAD_PROTECT", "uom": "SF", "status": "existing", "description": "Tread protection area. PaintScope Asset Catalog Section 8." },
+    { "paintscope_key": "PS_PROTECT_SF.FLOOR_PERIMETER", "input_name": "IN_SF_PROTECT_FLOOR_PERIMETER", "uom": "SF", "status": "existing", "description": "Landing floor protection." },
+    { "paintscope_key": "PS_PROTECT_LF.WALL_ADJACENT", "input_name": "IN_LF_WALL_ADJACENT", "uom": "LF", "status": "existing", "description": "Wall masking along stringer edge when spraying." }
+  ],
+
+  "applicable_enums": {
+    "quality_tier": {
+      "values": ["QT3", "QT4", "QT5"],
+      "default": "QT3",
+      "prohibited": ["QT2"],
+      "notes": "QT2 not applicable — stairways are scrutinized, prominent surfaces per Stairway_Systems_Doctrine Section 10.1."
+    },
+    "application_method": {
+      "values": ["brush", "spray"],
+      "default": "brush",
+      "prohibited": [],
+      "notes": "Brush is default for stair component detail work. Spray available for large-scope NC."
+    },
+    "substrate": {
+      "values": ["mdf", "poplar", "hardwood", "paint_grade_plywood"],
+      "default": "mdf",
+      "prohibited": [],
+      "notes": "Drives primer chemistry. MDF edges need solvent-based sealer. Poplar requires stain-blocking. Hardwood requires tannin-blocking."
+    },
+    "sheen": {
+      "values": ["satin", "semi-gloss", "gloss"],
+      "default": "semi-gloss",
+      "prohibited": ["eggshell/satin", "semi-gloss+", "eggshell or satin", "semi-gloss or higher"],
+      "notes": "Sheen/QT gate: satin at QT3+, semi-gloss at QT4+, gloss at QT5 only."
+    },
+    "substrate_state": {
+      "input_states": ["SS_BARE", "SS_PRIMED_FACTORY"],
+      "default": "SS_PRIMED_FACTORY",
+      "output_states": {
+        "satin": "SS_PAINTED_SATIN",
+        "semi-gloss": "SS_PAINTED_SEMIGLOSS",
+        "gloss": "SS_PAINTED_GLOSS"
+      },
+      "notes": "SS_BARE requires primer. SS_PRIMED_FACTORY skips primer. Output varies by sheen."
+    },
+    "stringer_type": {
+      "values": ["open", "closed"],
+      "default": "closed",
+      "prohibited": [],
+      "notes": "Open stringers: notched profile, 1.3-1.5x production rate multiplier. Closed: flat board against wall."
+    },
+    "phase": {
+      "values": ["setup", "prep", "prime", "interstage", "finish", "cleanup"],
+      "full_sequence": ["setup", "prep", "prime", "apply", "interstage", "finish", "cleanup"],
+      "prohibited": ["protect", "protection"]
+    },
+    "task_classification": {
+      "values": ["binary", "qt_conditional", "qt_scaled"],
+      "prohibited_key_names": ["task_class"]
+    },
+    "task_type": {
+      "values": ["prep", "prime", "finish", "protect", "inspect", "cleanup", "detail"]
+    },
+    "skill_level": {
+      "values": ["helper", "journeyman", "lead"]
+    },
+    "unit_of_measure": {
+      "values": ["EA", "LF", "SF", "FIXED"],
+      "prohibited": ["each", "ROOM", "FIXED_TIME"],
+      "notes": "EA for riser items. LF for stringer items and caulk joints. SF for protection areas. FIXED for tool cleanup."
+    },
+    "uom_input": {
+      "values": ["EA", "LF", "SF", "ENUM", "BOOL"]
+    },
+    "severity": {
+      "values": ["critical", "major", "minor"],
+      "prohibited": ["high", "medium", "low", "WARN"]
+    },
+    "consumable_unit": {
+      "values": ["EA", "ROLL", "SHEET", "TUBE", "QT"],
+      "prohibited": ["each", "roll", "sheet", "tube"]
+    },
+    "consumable_category": {
+      "values": ["applicator", "protection", "abrasive", "tool", "prep", "fill_material"]
+    },
+    "product_role": {
+      "values": ["primer", "finish", "sealer"],
+      "notes": "Combined prime+paint spec. Sealer is for MDF edge sealing (solvent-based)."
+    },
+    "yield_uom": {
+      "values": ["EA", "SF", "LF"]
+    },
+    "protection_level": {
+      "values": ["none", "edge_only", "light_mask", "partial_cover", "full_cover", "heavy_cover"]
+    },
+    "protection_action": {
+      "values": ["setup", "maintain", "teardown"]
+    },
+    "edge_type": {
+      "values": ["linear", "complex"]
+    },
+    "typical_relationship": {
+      "values": ["same_finish", "different_finish", "not_in_scope"]
+    },
+    "surface_texture": {
+      "values": ["smooth"],
+      "notes": "Stair riser and stringer surfaces are smooth."
+    },
+    "modifier_mechanism": {
+      "values": ["baseline", "selective_multiplier", "additional_rounds"],
+      "notes": "QT3=baseline, QT4/QT5=selective_multiplier on qt_scaled tasks, QT5 brush/roll=additional_rounds."
+    },
+    "floor_type": {
+      "values": ["finished", "partial", "subfloor"]
+    }
+  },
+
+  "surface_ids": {
+    "primary_surface": "stair_riser",
+    "additional_primary_surfaces": ["stair_stringer"],
+    "adjacent_surfaces": ["wall_field", "stair_tread", "trim_baseboard"],
+    "proposed_new": ["stair_riser", "stair_stringer", "stair_tread"],
+    "existing": ["wall_field", "trim_baseboard"],
+    "notes": "stair_riser, stair_stringer, stair_tread are NEW — not yet in Surface_Vocabulary_Reference.md."
+  },
+
+  "zone_ids": [
+    { "zone_id": "stair_tread_covers", "status": "proposed", "retired_alias_warning": null, "notes": "Mandatory tread protection. Ram Board Stair Armor or equivalent. Plastic sheeting on treads is EXTREME FALL HAZARD." },
+    { "zone_id": "floor_perimeter", "status": "existing", "retired_alias_warning": null },
+    { "zone_id": "wall_adjacent", "status": "existing", "retired_alias_warning": null, "notes": "Wall masking along stringer edge — spray only." }
+  ],
+
+  "material_system_prefix": {
+    "pattern": "SYS_{DESCRIPTION}",
+    "existing_systems_to_reuse": [
+      { "system_id": "SYS_FF_STANDARD_ACRYLIC", "name": "Standard Acrylic Trim Enamel", "quality_tiers": ["QT3"], "status": "existing" },
+      { "system_id": "SYS_FF_MODIFIED_URETHANE", "name": "Modified Urethane Trim Enamel", "quality_tiers": ["QT4"], "status": "existing" },
+      { "system_id": "SYS_FF_PREMIUM", "name": "Premium Urethane Trim Enamel", "quality_tiers": ["QT5"], "status": "existing" }
+    ],
+    "primer_systems": [
+      { "system_id": "SYS_PRIMER_MDF_SHELLAC", "name": "Solvent-based MDF edge sealer", "applies_when": { "substrate": "mdf", "substrate_state": "SS_BARE", "surface": "cut_edges" }, "status": "proposed" },
+      { "system_id": "SYS_PRIMER_MDF_LATEX", "name": "High-build latex face primer for MDF", "applies_when": { "substrate": "mdf", "substrate_state": "SS_BARE", "surface": "faces" }, "status": "proposed" },
+      { "system_id": "SYS_PRIMER_POPLAR_STAINBLOCK", "name": "Stain-blocking primer for poplar", "applies_when": { "substrate": "poplar", "substrate_state": "SS_BARE" }, "status": "proposed" },
+      { "system_id": "SYS_PRIMER_HARDWOOD_TANNINBLOCK", "name": "Tannin-blocking primer for hardwood", "applies_when": { "substrate": "hardwood", "substrate_state": "SS_BARE" }, "status": "proposed" },
+      { "system_id": "SYS_PRIMER_PLYWOOD_SEALER", "name": "Standard primer-sealer for plywood", "applies_when": { "substrate": "paint_grade_plywood", "substrate_state": "SS_BARE" }, "status": "proposed" }
+    ],
+    "notes": "Reuse existing SYS_FF_ finish systems. Primer systems are NEW and substrate-driven. MDF requires two-step prime (edge seal + face prime). Material systems are recommendations — contractor has discretion."
+  },
+
+  "consumable_prefix": {
+    "canonical_prefix": "CON_",
+    "prohibited_prefix": "CONS_",
+    "reusable_consumables": [
+      "CON_SANDPAPER_150",
+      "CON_SANDPAPER_220",
+      "CON_SANDPAPER_320",
+      "CON_SANDING_BLOCK_FINE",
+      "CON_BRUSH_ANGLED_SASH_1_5IN",
+      "CON_TACK_CLOTH",
+      "CON_MASKING_TAPE_BLUE",
+      "CON_DROP_CLOTH_CANVAS",
+      "CON_CAULK_PAINTABLE",
+      "CON_WOOD_FILLER",
+      "CON_SPRAY_TIP_310",
+      "CON_ROSIN_PAPER"
+    ],
+    "proposed_new_consumables": [
+      { "consumable_id": "CON_STAIR_ARMOR", "name": "Ram Board Stair Armor tread protector", "category": "protection", "unit": "EA", "status": "proposed" },
+      { "consumable_id": "CON_MASKING_TAPE_SAFE_RELEASE", "name": "Low-tack safe-release masking tape", "category": "protection", "unit": "ROLL", "status": "proposed" }
+    ]
+  },
+
+  "round_configurations": {
+    "existing_patterns": [
+      "ROUND_SINGLE_COAT",
+      "ROUND_TWO_COAT",
+      "ROUND_TRIM_FINISH_2COAT",
+      "ROUND_TRIM_FINISH_3COAT",
+      "ROUND_WIN_PRIME_2FINISH",
+      "ROUND_WIN_2FINISH",
+      "ROUND_WIN_3FINISH"
+    ],
+    "proposed_for_this_spec": [
+      { "round_id": "ROUND_STRS_PRIME_2FINISH", "description": "Primer + 2 finish coats (SS_BARE, QT3/QT4)", "status": "proposed" },
+      { "round_id": "ROUND_STRS_2FINISH", "description": "2 finish coats, no primer (SS_PRIMED_FACTORY, QT3/QT4)", "status": "proposed" },
+      { "round_id": "ROUND_STRS_3FINISH", "description": "3 finish coats (QT5 brush/roll per FFD 15.10.3)", "status": "proposed" }
+    ],
+    "naming_pattern": "ROUND_{CONTEXT}_{DESCRIPTION}"
+  },
+
+  "coverage_profiles": {
+    "existing_profiles": ["COV_FRAME_PRIMER", "COV_FRAME_PRIMER_BARE", "COV_FRAME_FINISH", "COV_TRIM_FINISH", "COV_WIN_PRIMER", "COV_WIN_FINISH"],
+    "proposed_for_this_spec": [
+      { "profile_id": "COV_STRS_PRIMER", "description": "Stair riser/stringer primer coverage rate", "status": "proposed" },
+      { "profile_id": "COV_STRS_FINISH", "description": "Stair riser/stringer finish coat coverage rate", "status": "proposed" }
+    ],
+    "naming_pattern": "COV_{CONTEXT}_{PRODUCT_ROLE}"
+  },
+
+  "cross_spec_coordination": {
+    "xspec_flags_consumed": [],
+    "xspec_flags_set": [],
+    "comp_modifiers_set": [],
+    "comp_modifiers_affected_by": [],
+    "notes": "No cross-spec flags. Stair riser/stringer work pairs with SF_TRIM_NC_PAINT for shared finish group and with future SF_STAIR_RAILING_NC / SF_STAIR_TREAD_NC for shared staging."
+  },
+
+  "structural_reminders": {
+    "materials_json": {
+      "required_keys": ["spec_family_id", "version", "material_systems", "consumables"],
+      "system_item_keys": ["system_id", "name", "quality_tier or applies_when"],
+      "consumable_item_keys": ["consumable_id", "name", "category"],
+      "prohibited": { "consumable_usage_models": "use 'consumables'" }
+    },
+    "sop_modules_json": {
+      "required_keys": ["spec_family_id", "version", "sop_modules"],
+      "module_keys": ["module_id", "name", "phase", "tasks"],
+      "task_required_keys": ["task_id", "name", "task_classification", "skill_level"],
+      "task_prohibited_keys": ["task_class", "rate_per_hour", "coverage_sf_per_gallon"]
+    },
+    "production_json": {
+      "required_keys": ["spec_family_id", "version", "task_production_rates"],
+      "rate_item_keys": ["task_id", "unit_of_measure", "rate_per_hour or rates_by_tier or fixed_time_minutes"],
+      "prohibited": { "tasks": "use sop_modules.json", "sop_modules": "use sop_modules.json" }
+    },
+    "qa_report_json": {
+      "required_keys": ["spec_family_id", "version", "overall_result"],
+      "issue_keys": ["issue_id", "severity", "area", "file", "description", "suggested_fix"]
+    }
+  },
+
+  "cross_file_threading": [
+    "RULE 1: Every TSK_ in sop_modules.json MUST have a matching rate in production.json",
+    "RULE 2: Every ITM_ in spec.json MUST appear in at least one variant",
+    "RULE 3: Every SYS_ quality_tier MUST match spec.json configuration_dimensions",
+    "RULE 4: Every IN_ input in spec.json SHOULD be consumed by sop_modules or production",
+    "RULE 5: Every PS_ key in production.json MUST match spec.json required_paintscope_inputs",
+    "RULE 6: Every zone_id in spec.json MUST match sop_modules.json protection_metadata.zones",
+    "RULE 7: Module phase order: setup > prep > prime > apply > interstage > finish > cleanup",
+    "RULE 8: UOM for a task MUST match between sop_modules.json and production.json",
+    "RULE 9: TSK_ prefix from resolution.json MUST be used in sop_modules and production",
+    "RULE 10: ITM_ IDs marked existing in resolution.json MUST use exact registered ID in spec.json",
+    "RULE 11: Downstream agents MUST use only enum values in resolution.json applicable_enums"
+  ],
+
+  "migration_warnings": [],
+
+  "registry_additions_proposed": [
+    {
+      "registry": "id_registry.json",
+      "section": "SF_",
+      "proposed_id": "SF_STAIR_RISER_NC",
+      "name": "New Construction Stair Riser & Stringer Painting",
+      "justification": "New spec. Combined prime+paint for stair risers (EA) and stringers (LF)."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "ITM_",
+      "proposed_id": "ITM_STAIR_RISER",
+      "name": "Stair riser face",
+      "justification": "New paintable item. EA-based."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "ITM_",
+      "proposed_id": "ITM_STAIR_STRINGER",
+      "name": "Stringer / skirtboard",
+      "justification": "New paintable item. LF-based."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "TSK_",
+      "proposed_id": "TSK_STRS_*",
+      "name": "Stair riser/stringer painting tasks",
+      "justification": "New context prefix STRS. No collision."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "MOD_",
+      "proposed_id": "MOD_STRS_*",
+      "name": "Stair riser/stringer SOP modules",
+      "justification": "7 modules: SETUP, PREP, PRIME, FINISH_COAT, INTERSTAGE, FINAL_INSPECT, CLEANUP."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "ROUND_",
+      "proposed_id": "ROUND_STRS_PRIME_2FINISH",
+      "name": "Primer + 2 finish coat sequence",
+      "justification": "For SS_BARE substrates at QT3/QT4."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "ROUND_",
+      "proposed_id": "ROUND_STRS_2FINISH",
+      "name": "2 finish coat sequence (no primer)",
+      "justification": "For SS_PRIMED_FACTORY at QT3/QT4."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "ROUND_",
+      "proposed_id": "ROUND_STRS_3FINISH",
+      "name": "3 finish coat sequence (QT5 brush/roll)",
+      "justification": "Per FFD 15.10.3."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "COV_",
+      "proposed_id": "COV_STRS_PRIMER",
+      "name": "Stair component primer coverage",
+      "justification": "New coverage profile."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "COV_",
+      "proposed_id": "COV_STRS_FINISH",
+      "name": "Stair component finish coverage",
+      "justification": "New coverage profile."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "SYS_",
+      "proposed_id": "SYS_PRIMER_MDF_SHELLAC",
+      "name": "Solvent-based MDF edge sealer",
+      "justification": "New substrate-driven primer for MDF cut/routed edges."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "SYS_",
+      "proposed_id": "SYS_PRIMER_MDF_LATEX",
+      "name": "High-build latex face primer for MDF",
+      "justification": "Step 2 of two-step MDF prime."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "SYS_",
+      "proposed_id": "SYS_PRIMER_POPLAR_STAINBLOCK",
+      "name": "Stain-blocking primer for poplar",
+      "justification": "MANDATORY for bare poplar."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "SYS_",
+      "proposed_id": "SYS_PRIMER_HARDWOOD_TANNINBLOCK",
+      "name": "Tannin-blocking primer for hardwood",
+      "justification": "Blocks tannin bleed-through."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "SYS_",
+      "proposed_id": "SYS_PRIMER_PLYWOOD_SEALER",
+      "name": "Standard primer-sealer for plywood",
+      "justification": "Standard sealer for plywood surfaces."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "PS_",
+      "proposed_id": "PS_SURFACE_EA.STAIR_RISER",
+      "name": "Stair riser count",
+      "justification": "New PaintScope key for component spec."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "PS_",
+      "proposed_id": "PS_SURFACE_LF.STAIR_STRINGER",
+      "name": "Stringer/skirtboard LF",
+      "justification": "New PaintScope key."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "PS_",
+      "proposed_id": "PS_EDGE_LF.STAIR_STRINGER_TO_WALL",
+      "name": "Stringer-to-wall caulk junction LF",
+      "justification": "New PaintScope key."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "IN_",
+      "proposed_id": "IN_EA_STAIR_RISER",
+      "name": "Stair riser count input",
+      "justification": "New input ID."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "IN_",
+      "proposed_id": "IN_LF_STAIR_STRINGER",
+      "name": "Stringer LF input",
+      "justification": "New input ID."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "IN_",
+      "proposed_id": "IN_LF_STAIR_STRINGER_CAULK",
+      "name": "Stringer-to-wall caulk LF input",
+      "justification": "New input ID."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "IN_",
+      "proposed_id": "IN_SF_STAIR_TREAD_PROTECT",
+      "name": "Stair tread protection area input",
+      "justification": "New input ID."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "surface_ids",
+      "proposed_id": "stair_riser",
+      "name": "Stair riser surface",
+      "justification": "New surface ID."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "surface_ids",
+      "proposed_id": "stair_stringer",
+      "name": "Stringer/skirtboard surface",
+      "justification": "New surface ID."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "surface_ids",
+      "proposed_id": "stair_tread",
+      "name": "Stair tread surface (adjacent, not painted in this spec)",
+      "justification": "New surface ID. Protection target."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "zone_ids",
+      "proposed_id": "stair_tread_covers",
+      "name": "Stair tread surface protection zone",
+      "justification": "New protection zone. Mandatory. Plastic sheeting is EXTREME FALL HAZARD."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "CON_",
+      "proposed_id": "CON_STAIR_ARMOR",
+      "name": "Ram Board Stair Armor tread protector",
+      "justification": "Industry standard tread protection."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "CON_",
+      "proposed_id": "CON_MASKING_TAPE_SAFE_RELEASE",
+      "name": "Low-tack safe-release masking tape",
+      "justification": "Required for tread protection — low-tack prevents damage."
+    }
+  ]
+}
