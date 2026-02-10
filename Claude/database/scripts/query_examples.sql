@@ -99,13 +99,17 @@ ORDER BY t.sort_order;
 -- ============================================================
 -- Q7: Get material system for a spec family at a given quality tier
 -- ============================================================
-SELECT id, name, coat_sequence, cleanup_class
-FROM material_systems
-WHERE spec_family_id = 'SF_TRIM_NC_PAINT'
+SELECT ms.id, ms.name, ms.description, ms.allowed_sheens,
+       msp.product_role, msp.product_type, msp.coats_required
+FROM material_systems ms
+LEFT JOIN material_system_products msp
+  ON ms.id = msp.system_id AND ms.spec_family_id = msp.spec_family_id
+WHERE ms.spec_family_id = 'SF_TRIM_NC_PAINT'
   AND EXISTS (
-    SELECT 1 FROM json_each(json_extract(applies_when, '$.quality_tier'))
+    SELECT 1 FROM json_each(json_extract(ms.applies_when, '$.quality_tier'))
     WHERE value = 'QT4'
-  );
+  )
+ORDER BY ms.id, msp.product_role;
 
 
 -- ============================================================
@@ -165,16 +169,17 @@ ORDER BY quality_tier;
 -- ============================================================
 -- Q13: Full bill of materials — systems + coverage + consumables
 -- ============================================================
-SELECT 'system' AS type, ms.id, ms.name, ms.coat_sequence, NULL AS usage_rate
+SELECT 'system' AS type, ms.id, ms.name, ms.description, NULL AS extra
 FROM material_systems ms
 WHERE ms.spec_family_id = 'SF_TRIM_NC_PAINT'
 UNION ALL
 SELECT 'coverage', cp.id, cp.product_role,
-       printf('%.0f SF/gal, %.0f%% loss', cp.spread_rate_sf_per_gal, cp.loss_factor_pct), NULL
+       printf('%.0f SF/gal (%.0f-%.0f)', cp.coverage_sf_per_gallon, cp.coverage_range_low, cp.coverage_range_high),
+       cp.coverage_model
 FROM material_coverage_profiles cp
 WHERE cp.spec_family_id = 'SF_TRIM_NC_PAINT'
 UNION ALL
-SELECT 'consumable', mc.id, mc.name, mc.consumable_category, mc.usage_rate
+SELECT 'consumable', mc.id, mc.name, mc.consumable_category, mc.unit
 FROM material_consumables mc
 WHERE mc.spec_family_id = 'SF_TRIM_NC_PAINT';
 
