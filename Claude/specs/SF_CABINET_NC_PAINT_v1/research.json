@@ -1,0 +1,1313 @@
+{
+  "metadata": {
+    "spec_id": "SF_CABINET_NC_PAINT_v1",
+    "spec_family": "SF_CABINET_NC_PAINT",
+    "version": "1.0.0",
+    "created_by": "spec-researcher",
+    "created_date": "2026-02-09",
+    "doctrine_sources": [
+      "Fine_Finish_Doctrine.md v1.3.0",
+      "Millwork_NC_Paint_Doctrine.md v1.0.0",
+      "Quality_Tiers_and_Surface_Condition.md v1.3",
+      "Materials_and_Consumables_Doctrine.md v1.2",
+      "Estimation_Modifiers_Doctrine.md v1.1"
+    ],
+    "research_sources": [
+      "PaintFactor domain research",
+      "Fine Finish Doctrine § 10.3 (Built-Ins and Cabinets)",
+      "Fine Finish Doctrine § 15.11.3 (Cabinetry — Thin to Win)",
+      "Millwork NC Paint Doctrine substrate classification",
+      "AWI/ANSI 0400 Architectural Woodwork Standards",
+      "PDCA P14 Surface Preparation Standards",
+      "SF_BUILTIN_NC_v1 research (adjacent spec, opening-based workflow)",
+      "SF_DOOR_SLAB_INT_NC_v1 research (door painting methodology)",
+      "SF_TRIM_NC_PAINT_v1 research (fine finish linear workflow)"
+    ],
+    "status": "complete"
+  },
+
+  "scope_summary": {
+    "description": "New construction cabinet painting — on-site finishing of factory-built or site-built kitchen, bathroom, and utility cabinets. Covers box exteriors, face frames, doors, drawers, and optionally cabinet interiors. Doors and drawers are removed, painted flat on sawhorses, cured 5-7 days minimum, then reinstalled. Box/frame work is done in-place. This is NEW CONSTRUCTION painting (prime + paint or paint-only on factory-primed), NOT cabinet refinishing (strip/sand existing finish).",
+    "context_prefix": "CABT",
+    "surface_family": "fine_finish",
+    "primary_doctrine": "Fine_Finish_Doctrine.md",
+    "supporting_doctrines": [
+      "Millwork_NC_Paint_Doctrine.md",
+      "Quality_Tiers_and_Surface_Condition.md",
+      "Materials_and_Consumables_Doctrine.md",
+      "Estimation_Modifiers_Doctrine.md"
+    ],
+    "paintable_items": [
+      {
+        "item_id": "ITM_CABINET_DOOR",
+        "description": "Cabinet door — single face. Includes slab doors, shaker doors, raised panel doors, glass-frame doors. Counted per face (exterior face standard; interior face if scope=full_with_interior). Removed from cabinet, painted flat on sawhorses.",
+        "uom": "EA",
+        "uom_rationale": "Doors are discrete countable units with variable size but consistent per-unit workflow. EA allows tier-based sizing (S/M/L) if needed in future versions. Current v1 uses single EA rate with style modifier.",
+        "notes": "Style complexity handled via door_style modifier (slab 1.0, shaker 1.15, raised_panel 1.30, glass_frame 1.20). Both faces counted separately if scope includes interior."
+      },
+      {
+        "item_id": "ITM_CABINET_DRAWER",
+        "description": "Cabinet drawer front — single face. Removed from cabinet, painted flat on sawhorses. Drawer box interior NOT painted (functional surface, not cosmetic).",
+        "uom": "EA",
+        "uom_rationale": "Drawer fronts are discrete countable units. Smaller than doors on average but same per-unit workflow structure.",
+        "notes": "Drawer fronts follow same style modifier as doors (slab/shaker/raised_panel). Drawer box sides/back/bottom are NOT in scope — they are functional surfaces typically left unfinished or with factory finish."
+      },
+      {
+        "item_id": "ITM_CABINET_FRAME",
+        "description": "Cabinet face frame and exposed box exterior surfaces — stiles, rails, end panels, toe kicks, filler strips, light valances. Painted in-place after doors/drawers removed. Measured in SF of paintable surface.",
+        "uom": "SF",
+        "uom_rationale": "Face frame and exposed box surfaces vary significantly by kitchen/room layout. SF captures actual paintable area. Includes end panels (full cabinet-height panels visible at ends of runs), toe kicks, and any exposed box surfaces.",
+        "notes": "Face frame = vertical stiles + horizontal rails forming the front perimeter of the cabinet box. End panels are large flat surfaces — fast to spray, moderate to brush. Toe kick is low and awkward — access modifier applies."
+      },
+      {
+        "item_id": "ITM_CABINET_INTERIOR",
+        "description": "Cabinet interior surfaces — inside walls, ceiling, floor of cabinet box. Shelves if fixed. Conditional on scope=full_with_interior. Lower quality tier acceptable per AWI semi-exposed standard.",
+        "uom": "SF",
+        "uom_rationale": "Interior surfaces vary significantly by cabinet size and configuration. SF captures actual paintable area.",
+        "notes": "AWI categorizes cabinet interiors as 'semi-exposed' — visible only when doors open. Lower tier acceptable (typically QT3 regardless of exterior tier). Spray strongly preferred for interiors due to access constraints. Interior scope is a separate line item to allow independent pricing and optional inclusion."
+      }
+    ],
+    "config_dimensions": [
+      {
+        "dimension": "quality_tier",
+        "values": ["QT3", "QT4", "QT5"],
+        "default": "QT3",
+        "notes": "QT3 standard residential. QT4 premium — waterborne alkyd recommended. QT5 showroom — premium product mandatory, spray strongly preferred. Per Quality Tiers Doctrine, QT5 requires Good condition (NC qualifies). Cabinet interiors default QT3 regardless of exterior tier selection."
+      },
+      {
+        "dimension": "application_method",
+        "values": ["spray", "brush"],
+        "default": "spray",
+        "notes": "Spray is strongly preferred for cabinets per Fine Finish Doctrine § 10.3 and § 15.1.2. Brush method uses Roll and Tip technique per § 15.6. Brush method adds complexity modifier. Cabinet interiors are spray-only in practice (access constraints). 'brush' here means brush/roll using Roll and Tip methodology."
+      },
+      {
+        "dimension": "sheen",
+        "values": ["satin", "semi-gloss", "gloss"],
+        "default": "semi-gloss",
+        "notes": "Per Fine Finish Doctrine § 4.1: QT3 max satin, QT4 max semi-gloss, QT5 any. Gloss requires QT5. Semi-gloss is kitchen/bath standard for cleanability. Per common usage table § 4.3: cabinets = semi-gloss or satin per client preference."
+      },
+      {
+        "dimension": "substrate_state",
+        "values": ["SS_BARE", "SS_PRIMED_FACTORY"],
+        "default": "SS_BARE",
+        "notes": "SS_BARE = unprimed wood/MDF — requires full primer coat. SS_PRIMED_FACTORY = factory-applied primer — primer coat optional (user decision per Doctrine § 2.1). New construction cabinets are commonly MDF (doors/drawer fronts) with hardwood or MDF face frames. Substrate drives primer selection: MDF requires shellac edge seal per SF_BUILTIN_NC_v1 precedent."
+      },
+      {
+        "dimension": "scope",
+        "values": ["doors_only", "full_exterior", "full_with_interior"],
+        "default": "full_exterior",
+        "notes": "doors_only = doors + drawer fronts only (frame already finished or not in scope). full_exterior = doors + drawers + face frame + end panels + toe kick. full_with_interior = full exterior + cabinet interior surfaces. Scope dimension controls which items are active."
+      }
+    ],
+    "scope_boundaries": {
+      "included": [
+        "Kitchen cabinets (upper, lower, pantry, island)",
+        "Bathroom vanity cabinets",
+        "Laundry room cabinets",
+        "Mudroom/utility cabinets",
+        "Cabinet doors (all styles: slab, shaker, raised panel, glass frame)",
+        "Cabinet drawer fronts",
+        "Face frames (stiles, rails)",
+        "End panels and exposed box surfaces",
+        "Toe kicks and filler strips",
+        "Light valances and decorative trim pieces",
+        "Crown molding applied to cabinet tops (if integral to cabinet)",
+        "Hardware removal and reinstallation",
+        "Door/drawer removal and reinstallation after cure"
+      ],
+      "excluded": [
+        "Cabinet refinishing / strip-and-repaint (separate future spec SF_CABINET_REFINISH)",
+        "Built-in bookshelves, entertainment centers, mudroom cubbies (SF_BUILTIN_NC_v1)",
+        "Closet shelving systems (SF_CLOSET_SHELF_NC_v1)",
+        "Countertop removal/protection (GC responsibility)",
+        "Plumbing disconnect for sink base (GC responsibility)",
+        "Appliance removal (GC responsibility)",
+        "Drawer box interiors (functional surfaces, not cosmetic)",
+        "Cabinet installation or modification (carpentry scope)",
+        "Glass panel inserts (glazier scope)",
+        "Standalone furniture pieces",
+        "Exterior-rated cabinets (outdoor kitchen — future exterior doctrine)"
+      ]
+    }
+  },
+
+  "relevant_findings": {
+    "surface_preparation": {
+      "substrate_types": [
+        {
+          "substrate": "MDF (Medium Density Fiberboard)",
+          "prevalence": "High — most common NC cabinet door and drawer front material",
+          "characteristics": "Smooth, dense, uniform surface. Highly absorbent at cut edges. No grain pattern. Takes paint extremely well on faces. Edges are porous and require special treatment.",
+          "prep_requirements": "Faces: light sand 220 grit for tooth. Edges: MANDATORY shellac edge seal before latex primer — MDF edges absorb water from latex primer causing swelling and roughness. Two-step prime: shellac edge seal → latex face primer. Per SF_BUILTIN_NC_v1 precedent.",
+          "primer_system": "SYS_PRIMER_SHELLAC (edges) + SYS_PRIMER_ACRYLIC_LATEX (faces), or SYS_PRIMER_BONDING (all surfaces for QT4+)"
+        },
+        {
+          "substrate": "Hardwood (Maple, Cherry, Birch, Alder)",
+          "prevalence": "Medium — premium cabinet face frames, some door styles",
+          "characteristics": "Dense, tight grain. Minimal absorption. May have natural tannins (cherry especially). Excellent paint surface when properly prepared.",
+          "prep_requirements": "Sand 180-220 grit. Fill open grain if present (maple typically closed grain, oak open grain — oak rare in painted cabinets). Tannin-prone species (cherry) may need shellac spot prime on knots/sapwood.",
+          "primer_system": "SYS_PRIMER_ACRYLIC_LATEX (standard) or SYS_PRIMER_BONDING (QT4+)"
+        },
+        {
+          "substrate": "Softwood (Pine, Poplar)",
+          "prevalence": "Medium — face frames, some traditional door styles",
+          "characteristics": "Open grain, knots possible (pine), softer surface. Poplar is excellent paint-grade wood. Pine requires knot treatment.",
+          "prep_requirements": "Sand 150-180 grit. Fill nail holes and defects. Shellac spot prime all knots (pine) to prevent tannin bleed. Poplar: standard prep, minimal knot issues.",
+          "primer_system": "SYS_PRIMER_SHELLAC (knot spots on pine) + SYS_PRIMER_ACRYLIC_LATEX (faces)"
+        },
+        {
+          "substrate": "Thermofoil / Melamine",
+          "prevalence": "Low — budget cabinets, typically NOT painted",
+          "characteristics": "Vinyl or melamine wrap over MDF/particleboard. Smooth, non-porous. Paint adhesion is problematic.",
+          "prep_requirements": "NOT RECOMMENDED for on-site painting in this spec. If encountered, requires bonding primer and careful adhesion testing. Refer to cabinet refinishing spec (future).",
+          "primer_system": "Out of scope — these are factory-finished surfaces"
+        },
+        {
+          "substrate": "Factory-Primed (any substrate)",
+          "prevalence": "High — many NC cabinets arrive factory-primed",
+          "characteristics": "Consistent primer coat applied in controlled factory environment. Quality varies by manufacturer. Surface is ready for light sand and finish coat.",
+          "prep_requirements": "Light sand 220 grit for tooth. Inspect for defects (runs, drips, thin spots, damage from shipping/install). Fill nail holes from installation. Caulk frame-to-wall joints.",
+          "primer_system": "None required (optional additional primer per user preference). Per Doctrine § 2.1: primer on factory-primed is optional."
+        }
+      ],
+      "mdf_edge_seal_protocol": {
+        "description": "MDF cut edges are highly porous and absorb water from latex primers, causing edge swelling, roughness, and fiber raising. This is the #1 quality issue in painted MDF cabinet work.",
+        "mandatory_sequence": [
+          "1. Sand MDF edges smooth (180 grit)",
+          "2. Apply shellac-based sealer to ALL cut edges (BIN or equivalent)",
+          "3. Allow shellac to dry (15-30 minutes)",
+          "4. Light sand shellac coat (220 grit) to smooth any raised fibers",
+          "5. Apply latex primer to faces and sealed edges",
+          "6. Proceed with normal finish coat workflow"
+        ],
+        "precedent": "SF_BUILTIN_NC_v1 established this as mandatory protocol for MDF substrates",
+        "products": "Zinsser BIN Shellac Primer (spray or brush), SealCoat dewaxed shellac"
+      },
+      "new_construction_fastener_protocol": {
+        "description": "Per Materials Doctrine: NC cabinets have nail holes from face-frame assembly and installation. These must be filled during initial prep phase.",
+        "filling_method": "Lightweight spackle or wood filler. Fill flush, sand smooth after drying. At QT3: fill obvious holes. At QT4: fill all visible holes. At QT5: fill every hole regardless of size.",
+        "timing": "Fill after primer coat (filler adheres better to primed surface and is easier to see against primer color). Sand filler before first finish coat."
+      },
+      "caulking_protocol": {
+        "description": "Cabinet-to-wall joints, frame-to-wall gaps, and molding joints require caulk for a finished appearance.",
+        "joint_types": [
+          "Face frame to wall (sides and top)",
+          "Crown molding to cabinet top and ceiling",
+          "Filler strip to cabinet and wall",
+          "End panel to wall",
+          "Toe kick to floor (if painting toe kick)"
+        ],
+        "product": "Paintable acrylic latex caulk. Per Materials Doctrine: standard 10.3oz tube, smooth bead, tool clean.",
+        "timing": "After primer, before first finish coat (caulk adheres better to primed surface)."
+      }
+    },
+
+    "application_methods": {
+      "spray_method": {
+        "description": "HVLP or airless spray is the preferred method for cabinet work per Fine Finish Doctrine § 10.3 and § 15.1.2. Spray reaches all surfaces evenly, provides factory-like finish, and is significantly faster for production work.",
+        "equipment": "HVLP spray gun (preferred for fine finish control) or fine-finish airless tip (310-412). Turbine HVLP systems popular for cabinet work.",
+        "technique": {
+          "doors_and_drawers": "Remove from cabinet. Set on sawhorses or painting pyramids. Spray face up (horizontal). Allow to cure. Flip and spray back if needed. Horizontal spraying eliminates runs and allows maximum leveling.",
+          "face_frames": "Spray in-place after doors/drawers removed. Mask adjacent surfaces (countertops, walls, floors). Work systematically: horizontal rails first, then vertical stiles.",
+          "interiors": "Spray in-place. Angle gun into cabinet box. Work from back wall forward, ceiling down. Interiors are spray-only in practice due to access constraints.",
+          "end_panels": "Spray in-place. Large flat surfaces — easy to spray, watch for runs on vertical surfaces."
+        },
+        "spray_room_consideration": "For highest quality (QT5), doors and drawer fronts are ideally sprayed in a dedicated spray room or clean enclosed area with filtered air. On-site spraying in open rooms requires dust control measures per Fine Finish Doctrine § 15.12.",
+        "overspray_management": "Cabinet spray work generates significant overspray. Full room masking required: floors, countertops, appliances (if not removed), walls, ceilings. Masking is a major time component of cabinet spray work."
+      },
+      "brush_method": {
+        "description": "Brush/roll application using Roll and Tip methodology per Fine Finish Doctrine § 15.6. Viable for cabinet work but requires significantly more skill and time to achieve equivalent results.",
+        "technique": {
+          "doors_and_drawers": "Remove from cabinet. Lay flat on sawhorses. Roll and Tip: apply with small foam roller or microfiber roller, immediately tip off with quality brush per § 15.6. 'Thin to Win' philosophy per § 15.11.3 — apply thin coats to avoid sags.",
+          "face_frames": "Brush in-place. Use 2-2.5 inch angled sash brush. Work stiles and rails systematically. Watch for drips at intersections.",
+          "interiors": "NOT RECOMMENDED for brush method. Access too constrained for quality brush work. If brush method selected, interiors should still be sprayed or scope should exclude interiors.",
+          "end_panels": "Roll and Tip. Large flat surface — roller deposits material quickly, brush tips off for smooth finish."
+        },
+        "brush_roll_modifier": "1.4x time modifier for brush vs spray on cabinet work. Reflects slower application, more coats potentially needed, and increased sanding between coats.",
+        "product_selection": "Waterborne alkyd (BM Advance, SW Emerald Urethane) STRONGLY recommended for brush/roll cabinet work per Fine Finish Doctrine § 15.11.3. Extended open time critical for Roll and Tip technique. Standard acrylic dries too fast for quality brush work on cabinets."
+      },
+      "door_style_impact_on_method": {
+        "slab_door": "Simplest to paint by any method. Large flat surface. Roll and Tip very effective. Spray fast and easy.",
+        "shaker_door": "Recessed panel with square-profile frame. Moderate complexity. Brush into corners of recessed panel first, then roll/tip flat surfaces. Spray handles corners naturally.",
+        "raised_panel_door": "Most complex common style. Recessed areas around raised panel require careful brush work to avoid buildup in reveals. Spray preferred. Brush method requires working reveals first, then field, then frame — per panel door sequence § 15.11.2.",
+        "glass_frame_door": "Frame only (glass removed or masked). Narrow frame members require careful brush work. Spray requires careful masking of glass or glass removal."
+      }
+    },
+
+    "quality_tiers": {
+      "qt3_standard": {
+        "description": "Standard residential cabinet painting. Suitable for rental properties, basic builder-grade homes, utility areas.",
+        "material_system": "SYS_FF_STANDARD_ACRYLIC — 100% acrylic enamel (ProClassic, Regal Select equivalent)",
+        "sheen_max": "Satin (per Fine Finish Doctrine § 4.1)",
+        "coat_system": "Prime + 2 finish coats (bare substrate) or 2 finish coats (factory primed)",
+        "prep_standard": "Fill obvious holes, caulk visible gaps, light scuff sand for adhesion",
+        "inspection_standard": "Quick glance at 6 feet. Obvious defects only.",
+        "interstage": "Spot sand visible nibs/defects. Not full surface.",
+        "tolerance": "Minor dust nibs acceptable. Light brush marks acceptable if minimal. Minor orange peel acceptable.",
+        "application_note": "Spray or brush. QT3 brush work achievable with standard skill level."
+      },
+      "qt4_premium": {
+        "description": "Premium residential cabinet painting. Custom homes, kitchen focal points, client-facing areas.",
+        "material_system": "SYS_FF_MODIFIED_URETHANE — Waterborne alkyd (BM Advance, SW Pro Industrial WB Alkyd equivalent). Recommended over standard acrylic for superior leveling.",
+        "sheen_max": "Semi-gloss (per Fine Finish Doctrine § 4.1). Automatic sheen upgrade from satin to semi-gloss per Quality Tiers Doctrine sheen gate.",
+        "coat_system": "Prime + 2 finish coats minimum. May require 3 finish coats for brush method.",
+        "prep_standard": "Fill all visible holes, smooth caulk lines, full sand 180-220 grit",
+        "inspection_standard": "Systematic scan at 3 feet. All defects marked and addressed.",
+        "interstage": "Light full sand 220 grit. All marked defects repaired. Spot coat patches.",
+        "tolerance": "Dust nibs must be sanded. Brush marks must be minimal. Uniform sheen required.",
+        "application_note": "Spray preferred. Brush achievable with skill using waterborne alkyd and rigorous sanding between coats."
+      },
+      "qt5_superior": {
+        "description": "Showroom quality cabinet painting. High-end custom homes, designer kitchens, architectural millwork.",
+        "material_system": "SYS_FF_PREMIUM — Emerald Urethane Trim Enamel or equivalent. Premium product MANDATORY per Fine Finish Doctrine.",
+        "sheen_max": "Any including gloss. Gloss requires spray method.",
+        "coat_system": "Prime + 2-3 finish coats. Brush method may require 3+ coats per Fine Finish Doctrine § 15.10.3.",
+        "prep_standard": "Fill every hole regardless of size, perfect caulk joints invisible, thorough sand 220+ grit with uniform scratch pattern",
+        "inspection_standard": "Lighted critical inspection at arm's length. Zero tolerance.",
+        "interstage": "Thorough full sand 220-320 grit. All defects repaired. Surface uniformly smooth to touch. Spot coat all patches.",
+        "tolerance": "Zero tolerance for dust nibs, brush marks, orange peel, texture variation. Factory-equivalent finish required.",
+        "application_note": "Spray STRONGLY preferred. Brush achievable with high skill on satin/semi-gloss only — gloss requires spray per Fine Finish Doctrine § 15.10.3. QT5 + gloss + brush is NOT RECOMMENDED.",
+        "condition_requirement": "QT5 requires Good condition per Quality Tiers Doctrine. NC cabinets qualify as Good condition."
+      }
+    },
+
+    "cure_times": {
+      "critical_doctrine": "Per Fine Finish Doctrine § 15.11.3: Cabinets require a MINIMUM of 5-7 days cure time before doors are reinstalled and closed. Closing doors prematurely causes finishes to fuse together (blocking), leading to catastrophic peeling when doors are eventually opened. This is the single most common cabinet painting failure mode.",
+      "by_product_type": [
+        {
+          "product_type": "Standard acrylic enamel (QT3)",
+          "touch_dry": "1 hour",
+          "recoat": "2-4 hours",
+          "full_cure": "7-14 days",
+          "door_reinstall_minimum": "5 days (7 preferred)",
+          "notes": "Faster initial dry but full cure still requires days. Do not close doors until fully cured."
+        },
+        {
+          "product_type": "Waterborne alkyd (QT4 — Advance, etc.)",
+          "touch_dry": "2-4 hours",
+          "recoat": "16-24 hours",
+          "full_cure": "14-30 days",
+          "door_reinstall_minimum": "7 days (14 preferred)",
+          "notes": "Significantly longer cure than acrylic. The 16-24 hour recoat window is a scheduling constraint — cannot do two coats in one day. Plan for multi-day workflow."
+        },
+        {
+          "product_type": "Urethane enamel (QT5 — Emerald Urethane, etc.)",
+          "touch_dry": "1-2 hours",
+          "recoat": "4 hours",
+          "full_cure": "7-14 days",
+          "door_reinstall_minimum": "5 days (7 preferred)",
+          "notes": "Faster recoat than waterborne alkyd but still requires multi-day cure before door reinstall."
+        }
+      ],
+      "scheduling_impact": {
+        "description": "Cabinet painting is NOT a single-visit scope. The cure time requirement means doors/drawers must be left off cabinets for 5-14 days after final coat. This creates a scheduling dependency with other trades and final client walkthrough.",
+        "typical_workflow": [
+          "Day 1: Remove doors/drawers, label, prep cabinet boxes and frames",
+          "Day 1-2: Prime boxes/frames, prime doors/drawers (horizontal)",
+          "Day 2-3: Sand prime coat, first finish coat on boxes/frames and doors/drawers",
+          "Day 3-4: Interstage sand, second finish coat (may be Day 4-5 for waterborne alkyd)",
+          "Day 5-12: CURE PERIOD — doors left off, stored safely",
+          "Day 12-14: Reinstall doors and drawers, install hardware, final touch-up"
+        ],
+        "client_communication": "Client must be informed that kitchen will be without cabinet doors for 1-2 weeks. This is a product requirement, not a contractor choice."
+      }
+    },
+
+    "material_systems": {
+      "finish_systems": [
+        {
+          "system_id": "SYS_FF_STANDARD_ACRYLIC",
+          "name": "Standard Acrylic Trim Enamel",
+          "quality_tier": "QT3",
+          "products": [
+            "Sherwin-Williams ProClassic Waterborne Interior Acrylic Enamel (B31)",
+            "Benjamin Moore Regal Select Interior Semi-Gloss (N551)",
+            "PPG Break-Through Interior/Exterior Acrylic (V52)",
+            "Behr Pro Interior Semi-Gloss Enamel"
+          ],
+          "characteristics": "Fast dry/recoat. Good leveling but not alkyd-level. Non-yellowing. Water cleanup.",
+          "cabinet_suitability": "Adequate for QT3 cabinet work. Not recommended for QT4+ due to inferior leveling and short open time.",
+          "coverage_rate": "350-400 SF/gallon (per manufacturer PDS)"
+        },
+        {
+          "system_id": "SYS_FF_MODIFIED_URETHANE",
+          "name": "Modified Urethane / Waterborne Alkyd Trim Enamel",
+          "quality_tier": "QT4",
+          "products": [
+            "Benjamin Moore Advance Waterborne Interior Alkyd (N794)",
+            "Sherwin-Williams Pro Industrial Waterbased Alkyd Urethane (B53)",
+            "PPG Glyptex Interior/Exterior Urethane Alkyd",
+            "Behr Premium Urethane Alkyd Semi-Gloss Enamel (No. 3900)"
+          ],
+          "characteristics": "Superior flow and leveling. Longer open time (up to 30 min). Harder cured film. Extended cure time (7+ days full). Water cleanup.",
+          "cabinet_suitability": "RECOMMENDED for cabinet work. Superior leveling reduces brush marks. Harder film resists wear on high-touch surfaces. 16-24 hour recoat is scheduling constraint.",
+          "coverage_rate": "350-400 SF/gallon (per manufacturer PDS)"
+        },
+        {
+          "system_id": "SYS_FF_PREMIUM",
+          "name": "Premium Urethane Trim Enamel",
+          "quality_tier": "QT5",
+          "products": [
+            "Sherwin-Williams Emerald Urethane Trim Enamel",
+            "Benjamin Moore Scuff-X",
+            "PPG Manor Hall Interior/Exterior"
+          ],
+          "characteristics": "Best-in-class flow, leveling, and hardness. Excellent block resistance. 4-hour recoat. Premium price point.",
+          "cabinet_suitability": "Ideal for QT5 cabinet work. Premium product mandatory at QT5 per doctrine. Sands easily between coats — critical for brush/roll method.",
+          "coverage_rate": "350-400 SF/gallon (per manufacturer PDS)"
+        }
+      ],
+      "primer_systems": [
+        {
+          "system_id": "SYS_PRIMER_SHELLAC",
+          "name": "Shellac-Based Primer/Sealer",
+          "use_case": "MDF edge sealing (MANDATORY), knot/tannin blocking on pine/cherry",
+          "products": ["Zinsser BIN Shellac Primer"],
+          "application": "Spray or brush. Thin coat on edges — do not flood. Dries fast (15-30 min).",
+          "notes": "Used for MDF edge seal BEFORE latex primer. Also used for spot-priming knots on softwood. NOT a full-surface primer for faces."
+        },
+        {
+          "system_id": "SYS_PRIMER_ACRYLIC_LATEX",
+          "name": "Acrylic Latex Primer",
+          "use_case": "General purpose primer for bare wood, MDF faces (after edge seal), factory-primed touch-up",
+          "products": [
+            "Sherwin-Williams ProBlock Interior Latex Primer",
+            "Benjamin Moore Fresh Start All Purpose Primer",
+            "PPG Gripper Interior/Exterior Primer"
+          ],
+          "application": "Spray or brush/roll. Full coverage coat. Sand smooth after dry.",
+          "notes": "Standard primer for NC cabinet work on bare substrates. Per Materials Doctrine: acrylic latex primers are SEALERS not stain blockers — they seal the surface for uniform topcoat absorption but do not block tannin bleed."
+        },
+        {
+          "system_id": "SYS_PRIMER_BONDING",
+          "name": "Bonding Primer",
+          "use_case": "Premium adhesion on smooth/hard substrates, questionable adhesion situations, QT4+ recommended",
+          "products": [
+            "Sherwin-Williams Extreme Bond Primer",
+            "Benjamin Moore Stix Waterborne Bonding Primer",
+            "PPG Gripper Premium Bonding Primer"
+          ],
+          "application": "Spray or brush/roll. Provides enhanced adhesion on hard-to-bond surfaces.",
+          "notes": "Recommended for QT4+ cabinet work where maximum adhesion is desired. Also used when factory primer quality is questionable."
+        }
+      ],
+      "primer_selection_matrix": {
+        "bare_mdf": {
+          "edges": "SYS_PRIMER_SHELLAC (mandatory)",
+          "faces_qt3": "SYS_PRIMER_ACRYLIC_LATEX",
+          "faces_qt4_qt5": "SYS_PRIMER_BONDING (recommended)"
+        },
+        "bare_hardwood": {
+          "qt3": "SYS_PRIMER_ACRYLIC_LATEX",
+          "qt4_qt5": "SYS_PRIMER_BONDING (recommended)"
+        },
+        "bare_softwood_pine": {
+          "knots": "SYS_PRIMER_SHELLAC (spot prime)",
+          "faces_qt3": "SYS_PRIMER_ACRYLIC_LATEX",
+          "faces_qt4_qt5": "SYS_PRIMER_BONDING (recommended)"
+        },
+        "factory_primed": {
+          "all_tiers": "None required. Optional additional primer per user preference."
+        }
+      }
+    },
+
+    "protection_requirements": {
+      "overview": "Cabinet painting generates significant overspray (spray method) and requires extensive protection of adjacent surfaces. Kitchen/bath environments have expensive fixed surfaces (countertops, appliances, backsplash) that must be fully protected. Protection scope is larger than most specs due to the enclosed room environment and spray reach.",
+      "zones": "See protection_zones_analysis section for full 9-zone breakdown.",
+      "masking_scope": {
+        "spray_method": "Full room masking required. Floors, countertops, backsplash, walls, ceiling, appliances (if present), light fixtures, plumbing fixtures. Overspray travels throughout enclosed room.",
+        "brush_method": "Reduced masking. Floors, countertops, backsplash. Walls adjacent to cabinet frame require edge masking. No ceiling/room-wide masking needed."
+      },
+      "countertop_protection": {
+        "critical": true,
+        "description": "Countertops are high-value surfaces (granite, quartz, marble, butcher block) directly below upper cabinets and directly adjacent to lower cabinet frames. Paint drips on stone countertops can cause permanent damage.",
+        "method": "Cover with kraft paper or rosin paper. Tape edges to prevent paint migration underneath. For spray work: add plastic sheeting over paper for overspray protection. Do NOT use drop cloths alone — paint bleeds through fabric.",
+        "notes": "Some contractors remove countertops for full cabinet painting access. This is GC scope, not painter scope."
+      },
+      "hardware_protection": {
+        "description": "All cabinet hardware (hinges, pulls, knobs, drawer slides, soft-close mechanisms) must be removed before painting. Label and bag by location for reinstallation.",
+        "method": "Remove all hardware. Bag and label (use painter's tape labels: 'Upper Left Door 1', etc.). Store in labeled container. Reinstall after full cure.",
+        "notes": "Hardware removal/reinstall is a significant time component. Budget 1-2 minutes per hinge, 30 seconds per pull/knob."
+      }
+    },
+
+    "production_rates": {
+      "rate_philosophy": "Per Estimation Modifiers Doctrine: production rates are research-based estimates, not fixed doctrine values. Rates vary by surface type, application method, quality tier, and condition class. Modifiers are TIME modifiers (multiply hours, not rates). Effective rate = base_rate / modifier.",
+      "cabinet_door_rates_spray": {
+        "description": "Per-door rates for spray application, including pick-up, position, spray one face, set down. Doors painted horizontal on sawhorses/pyramids.",
+        "prime_coat": {
+          "qt3": "12-15 doors/hour (faces, one side)",
+          "qt4": "10-12 doors/hour",
+          "qt5": "8-10 doors/hour"
+        },
+        "finish_coat": {
+          "qt3": "10-12 doors/hour",
+          "qt4": "8-10 doors/hour",
+          "qt5": "6-8 doors/hour"
+        },
+        "notes": "Rates assume slab or simple shaker doors. Apply door_style modifier for raised panel (1.30x) and glass frame (1.20x). Rates include pick-up/set-down time."
+      },
+      "cabinet_door_rates_brush": {
+        "description": "Per-door rates for brush/roll application using Roll and Tip technique. Doors painted horizontal.",
+        "prime_coat": {
+          "qt3": "6-8 doors/hour",
+          "qt4": "5-6 doors/hour",
+          "qt5": "3-4 doors/hour"
+        },
+        "finish_coat": {
+          "qt3": "5-7 doors/hour",
+          "qt4": "4-5 doors/hour",
+          "qt5": "2-3 doors/hour"
+        },
+        "notes": "Significantly slower than spray. Brush method requires more careful technique and potentially more coats."
+      },
+      "cabinet_drawer_rates": {
+        "description": "Drawer fronts are smaller than doors — faster per unit. Same workflow structure.",
+        "modifier_vs_doors": "0.7x time per unit vs doors (drawer fronts average 60-70% of door area)",
+        "notes": "Small drawer fronts (spice drawers, utensil drawers) are very fast. Large pot drawers approach door size."
+      },
+      "face_frame_rates_spray": {
+        "description": "Face frame and exposed box surface rates in SF/hour. Spray in-place after doors removed.",
+        "prime_coat": {
+          "qt3": "200-250 SF/hour",
+          "qt4": "150-200 SF/hour",
+          "qt5": "120-150 SF/hour"
+        },
+        "finish_coat": {
+          "qt3": "180-220 SF/hour",
+          "qt4": "140-180 SF/hour",
+          "qt5": "100-140 SF/hour"
+        },
+        "notes": "Face frame rates slower than flat wall/ceiling spray due to narrow members and multiple angles. End panels are faster (large flat surface). Toe kick is slower (low, awkward access)."
+      },
+      "face_frame_rates_brush": {
+        "description": "Face frame brush rates. Brush works reasonably well on narrow frame members.",
+        "prime_coat": {
+          "qt3": "100-130 SF/hour",
+          "qt4": "80-100 SF/hour",
+          "qt5": "60-80 SF/hour"
+        },
+        "finish_coat": {
+          "qt3": "90-120 SF/hour",
+          "qt4": "70-90 SF/hour",
+          "qt5": "50-70 SF/hour"
+        }
+      },
+      "interior_rates_spray": {
+        "description": "Cabinet interior spray rates. Spray is the only practical method for interiors.",
+        "prime_coat": {
+          "qt3": "150-200 SF/hour"
+        },
+        "finish_coat": {
+          "qt3": "130-170 SF/hour"
+        },
+        "notes": "Interiors always QT3 regardless of exterior tier. Awkward angles slow production. Upper cabinets faster than lower (less bending)."
+      },
+      "prep_rates": {
+        "hardware_removal": "30-45 pieces/hour (hinges, pulls, knobs — includes labeling)",
+        "hardware_reinstall": "20-30 pieces/hour (alignment takes longer than removal)",
+        "door_removal": "15-20 doors/hour (includes labeling)",
+        "door_reinstall": "8-12 doors/hour (alignment, adjustment, soft-close check)",
+        "fill_fasteners": "60-100 holes/hour (QT3), 40-60 holes/hour (QT5)",
+        "caulk_joints": "60-80 LF/hour (cabinet-to-wall joints)",
+        "sanding_between_coats_doors": "15-20 doors/hour (220 grit scuff, QT3) / 8-12 doors/hour (320 grit thorough, QT5)",
+        "sanding_between_coats_frame": "150-200 SF/hour (QT3) / 80-120 SF/hour (QT5)"
+      },
+      "masking_rates": {
+        "countertop_protection": "80-100 SF/hour (paper + tape + plastic)",
+        "floor_protection": "200-300 SF/hour (drop cloth + tape edges)",
+        "wall_masking_spray": "100-150 SF/hour (plastic sheeting + tape)",
+        "backsplash_masking": "40-60 LF/hour (careful edge work around tile)",
+        "appliance_masking": "15-25 minutes per appliance (plastic wrap + tape)"
+      }
+    },
+
+    "failure_modes": {
+      "blocking": {
+        "severity": "critical",
+        "description": "Finish coats fuse together when cabinet doors are closed before full cure. When doors are opened, paint peels catastrophically — often pulling finish off both the door edge and the face frame. Requires complete strip and repaint.",
+        "prevention": "MANDATORY 5-7 day minimum cure before door reinstallation. 7-14 days for waterborne alkyd products. Do NOT close doors until fully cured. Per Fine Finish Doctrine § 15.11.3.",
+        "frequency": "Most common cabinet painting failure. Occurs primarily with waterborne products that have long cure times."
+      },
+      "mdf_edge_swell": {
+        "severity": "critical",
+        "description": "MDF cut edges absorb water from latex primer, causing irreversible fiber swelling and permanent rough texture. Cannot be sanded smooth after swelling — the damage is structural.",
+        "prevention": "MANDATORY shellac edge seal on all MDF cut edges BEFORE latex primer application. Per SF_BUILTIN_NC_v1 established protocol.",
+        "frequency": "Common when painters unfamiliar with MDF skip edge seal step."
+      },
+      "tannin_bleed": {
+        "severity": "major",
+        "description": "Natural tannins in wood (especially pine knots, cherry, red oak) bleed through latex primer and discolor finish coats with yellow-brown staining.",
+        "prevention": "Shellac spot prime all knots and tannin-prone areas. BIN shellac primer blocks tannin. Latex primers do NOT block tannin per Materials Doctrine.",
+        "frequency": "Common with pine cabinets. Less common with maple/poplar (low tannin)."
+      },
+      "adhesion_failure": {
+        "severity": "critical",
+        "description": "Paint film peels or flakes from substrate. Causes: insufficient surface prep (no sanding), incompatible primer, contaminated surface (silicone, wax, grease), painting over thermofoil/melamine without bonding primer.",
+        "prevention": "Proper surface preparation per substrate type. Bonding primer on questionable surfaces. Adhesion test on factory-primed surfaces. Do not paint thermofoil/melamine with standard primers.",
+        "frequency": "Occasional. More common on factory-primed surfaces with unknown primer type."
+      },
+      "sagging_curtaining": {
+        "severity": "major",
+        "description": "Paint sags or curtains on vertical surfaces (cabinet gables, face frame stiles). Waterborne alkyds (Advance) are particularly prone due to low initial viscosity.",
+        "prevention": "'Thin to Win' per Fine Finish Doctrine § 15.11.3. Apply thin coats on vertical surfaces. Paint horizontal when possible (remove doors). Multiple thin coats rather than one heavy coat.",
+        "frequency": "Common with waterborne alkyd on vertical surfaces. Less common with spray (finer atomization = thinner film)."
+      },
+      "dust_contamination": {
+        "severity": "major",
+        "description": "Dust nibs embedded in wet finish coat. Kitchen/construction environments are dusty. Each nib creates a visible bump in the finish.",
+        "prevention": "Environmental controls per Fine Finish Doctrine § 15.12. HEPA vacuum, tack cloth immediately before coating, seal HVAC vents, isolate work zone with zippered barriers.",
+        "frequency": "Very common in active construction sites. Primary reason cabinet work should ideally be done after other dusty trades complete."
+      },
+      "orange_peel_texture": {
+        "severity": "minor",
+        "description": "Textured finish resembling orange peel surface. Caused by spray tip too small, pressure too high, or spraying too far from surface. Also caused by thick-nap rollers on brush method.",
+        "prevention": "Proper spray setup (tip size, pressure, distance). For brush: use foam roller or 1/4 inch microfiber. Sand between coats with rigid block to level texture.",
+        "frequency": "Common at QT3 (acceptable). Unacceptable at QT4+ — must be sanded out between coats."
+      },
+      "brush_marks": {
+        "severity": "minor",
+        "description": "Visible brush stroke texture in finish coat. More visible at higher sheens.",
+        "prevention": "Use waterborne alkyd for longer open time. Roll and Tip technique. Do not overwork — apply, tip once, walk away per § 15.7.2. Sand between coats with rigid block.",
+        "frequency": "Common with brush method on standard acrylic. Less common with waterborne alkyd (better leveling)."
+      }
+    }
+  },
+
+  "condition_drivers": {
+    "description": "New construction cabinets have predictable condition — substrate state is the primary driver, not damage assessment. Cabinets arrive from factory in known condition. Condition variability comes from substrate type and factory primer quality.",
+    "primary_drivers": [
+      {
+        "driver": "substrate_state",
+        "values": ["SS_BARE", "SS_PRIMED_FACTORY"],
+        "impact": "Controls whether primer coat is required. SS_BARE requires full primer workflow. SS_PRIMED_FACTORY skips primer (optional)."
+      },
+      {
+        "driver": "substrate_material",
+        "values": ["MDF", "hardwood", "softwood_pine", "softwood_poplar"],
+        "impact": "Controls primer selection and edge treatment. MDF requires shellac edge seal. Pine requires knot treatment. Hardwood and poplar are straightforward."
+      },
+      {
+        "driver": "door_style",
+        "values": ["slab", "shaker", "raised_panel", "glass_frame"],
+        "impact": "Controls complexity modifier on door/drawer painting rates. Slab = 1.0x, Shaker = 1.15x, Raised Panel = 1.30x, Glass Frame = 1.20x."
+      },
+      {
+        "driver": "scope",
+        "values": ["doors_only", "full_exterior", "full_with_interior"],
+        "impact": "Controls which paintable items are active. doors_only = ITM_CABINET_DOOR + ITM_CABINET_DRAWER. full_exterior adds ITM_CABINET_FRAME. full_with_interior adds ITM_CABINET_INTERIOR."
+      }
+    ],
+    "condition_class": "NC cabinets are always CON_GOOD (new construction). Per Quality Tiers Doctrine: NC qualifies for all quality tiers including QT5."
+  },
+
+  "quality_differences": {
+    "description": "Quality tier differences for cabinet painting follow Fine Finish Doctrine universally — same process, different scrutiny. Key differences summarized below.",
+    "prep_differences": {
+      "qt3": "Fill obvious holes, caulk visible gaps, light scuff sand (180-220). Functional prep.",
+      "qt4": "Fill all visible holes, smooth caulk lines, full sand 180-220 grit. Systematic prep.",
+      "qt5": "Fill every hole regardless of size, invisible caulk joints, thorough sand 220+ grit with uniform scratch pattern. Perfection prep."
+    },
+    "application_differences": {
+      "qt3": "Standard spray technique or competent brush/roll. Production pace. 2 finish coats standard.",
+      "qt4": "Careful spray technique with attention to uniformity. Brush requires waterborne alkyd + rigorous sanding. 2 finish coats minimum, 3 for brush.",
+      "qt5": "Meticulous spray technique in controlled environment. Brush: 3+ coats with thorough sanding between each. Premium product mandatory."
+    },
+    "interstage_differences": {
+      "qt3": "Spot sand visible defects only. Quick inspection.",
+      "qt4": "Full light sand 220 grit entire surface. Systematic inspection at 3 feet. All defects repaired.",
+      "qt5": "Thorough full sand 220-320 grit. Lighted critical inspection at arm's length. Zero tolerance. Every defect repaired."
+    },
+    "final_inspection_differences": {
+      "qt3": "Quick visual check. No obvious defects at 6 feet.",
+      "qt4": "Systematic scan at 3 feet. Uniform sheen, no visible defects, smooth touch.",
+      "qt5": "Lighted critical inspection. Factory-equivalent finish. Zero visible defects at arm's length. Per AWI Premium grade."
+    }
+  },
+
+  "notes_for_materials_manager": {
+    "finish_products": [
+      "3 finish systems mapped to quality tiers: SYS_FF_STANDARD_ACRYLIC (QT3), SYS_FF_MODIFIED_URETHANE (QT4), SYS_FF_PREMIUM (QT5). All systems previously registered — reuse existing SYS_ IDs.",
+      "Coverage rate: 350-400 SF/gallon for all finish systems (per manufacturer PDS). Use 375 SF/gallon as planning estimate.",
+      "Sheen options: satin (QT3 max), semi-gloss (QT3-QT4), gloss (QT5 only). Single sheen values per Materials Doctrine — never compound sheens."
+    ],
+    "primer_products": [
+      "3 primer systems: SYS_PRIMER_SHELLAC (MDF edges + knot spots), SYS_PRIMER_ACRYLIC_LATEX (general bare substrate), SYS_PRIMER_BONDING (QT4+ recommended). All previously registered.",
+      "MDF edge seal: shellac primer at approximately 400-500 LF of edge per quart. Small quantity needed — QT size appropriate.",
+      "Full surface primer: 350-400 SF/gallon coverage."
+    ],
+    "consumables": [
+      "Sandpaper: 180, 220, 320 grit. Sheets and sanding blocks. Significant sanding volume — budget 1 sheet per 2-3 doors (between coats).",
+      "Caulk: paintable acrylic latex, 10.3oz tubes. 1 tube per 30-40 LF of cabinet-to-wall joint (per Materials Doctrine).",
+      "Spackle/filler: lightweight spackle for fastener holes. Small quantity for NC (mainly installation nail holes on face frames).",
+      "Tack cloth: 1 per 20-30 doors/drawer fronts. Essential for dust control before each coat.",
+      "Painter's tape: 1.5 inch for edge masking, 2 inch for general masking. Green tape for edge seal on countertops.",
+      "Masking paper/plastic: kraft paper for countertops, plastic sheeting for walls/ceiling (spray method). Significant quantity for spray masking.",
+      "Drop cloths: canvas for floor protection.",
+      "Labeling supplies: painter's tape + marker for door/drawer/hardware labeling.",
+      "Hardware bags: zip-lock bags for hardware storage per cabinet.",
+      "Painting pyramids or points: for setting doors/drawers while drying (alternative to sawhorses).",
+      "Sawhorses: 2-4 per painting station for door support."
+    ],
+    "quantity_scaling": "Cabinet projects vary enormously in size. A small bathroom vanity might have 2 doors and 3 drawers. A large kitchen might have 30+ doors and 20+ drawers. Material quantities must scale from PaintScope inputs, not fixed estimates.",
+    "material_architecture": "Dual material architecture similar to SF_BUILTIN_NC_v1: substrate-driven primers + QT-driven finish systems. Primer selection by substrate_state and substrate_material. Finish selection by quality_tier."
+  },
+
+  "notes_for_sop_librarian": {
+    "module_structure": [
+      "Standard fine finish module structure per Fine Finish Doctrine § 5.1.",
+      "Context prefix: CABT — all task IDs use TSK_CABT_*, all module IDs use MOD_CABT_*.",
+      "Unique cabinet modules: MOD_CABT_DISASSEMBLY (door/drawer/hardware removal + labeling), MOD_CABT_REASSEMBLY (hardware + door/drawer reinstallation after cure)."
+    ],
+    "workflow_sequence": {
+      "full_workflow_bare_substrate": [
+        "MOD_CABT_PROTECTION — floor, countertop, wall, backsplash, ceiling (spray), appliance masking",
+        "MOD_CABT_DISASSEMBLY — hardware removal + labeling, door removal + labeling, drawer removal + labeling",
+        "MOD_CABT_PREP — fill fastener holes, caulk joints, sand surfaces, clean dust, MDF edge seal (if applicable)",
+        "MOD_CABT_PRIME — shellac edge seal (MDF), primer coat on frames/boxes, primer coat on doors/drawers (horizontal)",
+        "MOD_CABT_INTERSTAGE_1 — sand prime coat, inspect, patch, clean",
+        "MOD_CABT_FINISH_1 — first finish coat on frames/boxes, first finish coat on doors/drawers",
+        "MOD_CABT_INTERSTAGE_2 — sand first finish coat, inspect, patch, clean",
+        "MOD_CABT_FINISH_2 — second finish coat on frames/boxes, second finish coat on doors/drawers",
+        "MOD_CABT_FINAL_INSPECT — final quality inspection per tier standard",
+        "MOD_CABT_CURE — 5-7 day cure period (doors stored safely, cabinets left open)",
+        "MOD_CABT_REASSEMBLY — reinstall hardware, reinstall doors, reinstall drawers, adjust alignment, final touch-up",
+        "MOD_CABT_CLEANUP — remove protection, clean work area, final walk"
+      ],
+      "factory_primed_workflow": "Same as above but skip MOD_CABT_PRIME. MOD_CABT_PREP still includes fill/caulk/sand."
+    },
+    "task_classification": {
+      "binary_tasks": [
+        "TSK_CABT_PROTECT_FLOOR — floor protection (drop cloths + tape)",
+        "TSK_CABT_PROTECT_COUNTERTOP — countertop protection (paper + plastic)",
+        "TSK_CABT_PROTECT_BACKSPLASH — backsplash masking",
+        "TSK_CABT_PROTECT_WALL — wall masking (spray method)",
+        "TSK_CABT_PROTECT_CEILING — ceiling masking (spray method)",
+        "TSK_CABT_PROTECT_APPLIANCE — appliance masking",
+        "TSK_CABT_PROTECT_PLUMBING — sink/plumbing masking in base cabinets",
+        "TSK_CABT_PROTECT_ELECTRICAL — switch/outlet/undercab lighting masking",
+        "TSK_CABT_PROTECT_WINDOW — window masking if in spray zone",
+        "TSK_CABT_REMOVE_HARDWARE — remove all hardware, bag, label",
+        "TSK_CABT_REMOVE_DOORS — remove doors, label",
+        "TSK_CABT_REMOVE_DRAWERS — remove drawers, label",
+        "TSK_CABT_REINSTALL_HARDWARE — reinstall all hardware",
+        "TSK_CABT_REINSTALL_DOORS — reinstall doors, adjust hinges",
+        "TSK_CABT_REINSTALL_DRAWERS — reinstall drawers, check slides",
+        "TSK_CABT_CLEAN_DUST — clean sanding dust before coating",
+        "TSK_CABT_CLEAN_WORK_AREA — clean work area between coats",
+        "TSK_CABT_CLEANUP_FINAL — remove protection, clean room, final walk",
+        "TSK_CABT_VACUUM_FLOOR — vacuum floor after sanding"
+      ],
+      "qt_scaled_tasks": [
+        "TSK_CABT_FILL_FASTENERS — fill nail/screw holes on face frames",
+        "TSK_CABT_CAULK_JOINTS — caulk cabinet-to-wall joints",
+        "TSK_CABT_SAND_FILL — sand filled areas smooth",
+        "TSK_CABT_SAND_FRAMES — sand face frames and exposed box surfaces",
+        "TSK_CABT_SAND_DOORS — sand doors (initial prep or interstage)",
+        "TSK_CABT_SAND_DRAWERS — sand drawer fronts (initial prep or interstage)",
+        "TSK_CABT_EDGE_SEAL — shellac edge seal on MDF cut edges",
+        "TSK_CABT_PRIME_FRAMES — prime face frames and box surfaces",
+        "TSK_CABT_PRIME_DOORS — prime doors (horizontal)",
+        "TSK_CABT_PRIME_DRAWERS — prime drawer fronts (horizontal)",
+        "TSK_CABT_PRIME_INTERIOR — prime cabinet interiors (spray)",
+        "TSK_CABT_FINISH_FRAMES — finish coat face frames and box surfaces",
+        "TSK_CABT_FINISH_DOORS — finish coat doors (horizontal)",
+        "TSK_CABT_FINISH_DRAWERS — finish coat drawer fronts (horizontal)",
+        "TSK_CABT_FINISH_INTERIOR — finish coat cabinet interiors (spray)",
+        "TSK_CABT_INSPECT_COAT — inspect coat per tier standard",
+        "TSK_CABT_PATCH_REPAIR — patch/repair defects found during inspection",
+        "TSK_CABT_SAND_PATCHES — sand patches smooth",
+        "TSK_CABT_SPOT_COAT — spot coat patched areas",
+        "TSK_CABT_FINAL_INSPECT — final quality inspection per tier standard",
+        "TSK_CABT_TOUCH_UP — final touch-up after door/drawer reinstallation"
+      ]
+    },
+    "round_configs": {
+      "description": "Cabinet painting uses round-based coat application. Each 'round' is a complete pass through all active items.",
+      "rounds": [
+        {
+          "round_id": "ROUND_PRIME",
+          "description": "Primer round — one coat on all items. Conditional on substrate_state=SS_BARE.",
+          "items": ["ITM_CABINET_FRAME", "ITM_CABINET_DOOR", "ITM_CABINET_DRAWER", "ITM_CABINET_INTERIOR"],
+          "notes": "MDF edge seal happens BEFORE this round (separate task). Interior priming conditional on scope=full_with_interior."
+        },
+        {
+          "round_id": "ROUND_FINISH_1",
+          "description": "First finish coat — all items.",
+          "items": ["ITM_CABINET_FRAME", "ITM_CABINET_DOOR", "ITM_CABINET_DRAWER", "ITM_CABINET_INTERIOR"],
+          "notes": "Interstage follows this round (sand, inspect, patch, clean)."
+        },
+        {
+          "round_id": "ROUND_FINISH_2",
+          "description": "Second finish coat — all items. Final coat for QT3/QT4.",
+          "items": ["ITM_CABINET_FRAME", "ITM_CABINET_DOOR", "ITM_CABINET_DRAWER", "ITM_CABINET_INTERIOR"],
+          "notes": "Final coat for most configurations. QT5 brush method may need ROUND_FINISH_3."
+        },
+        {
+          "round_id": "ROUND_FINISH_3",
+          "description": "Optional third finish coat — QT5 brush method only.",
+          "items": ["ITM_CABINET_FRAME", "ITM_CABINET_DOOR", "ITM_CABINET_DRAWER"],
+          "notes": "Conditional: quality_tier=QT5 AND application_method=brush. Not applied to interiors (always QT3)."
+        }
+      ]
+    },
+    "door_drawer_workflow_note": "Doors and drawers are painted HORIZONTALLY on sawhorses/pyramids — this eliminates runs and allows maximum leveling. This is a critical workflow difference from in-place painting. Doors must be flipped to paint the second face (if interior scope). Allow adequate dry time before flipping (touch dry minimum).",
+    "parallel_workflow_note": "Frames and doors/drawers can be worked in parallel by different crew members. While one painter sprays/brushes frames in-place, another handles doors/drawers on sawhorses in a separate staging area. This parallelism should be reflected in crew planning but does not change per-task rates."
+  },
+
+  "notes_for_estimation_engineer": {
+    "modifier_framework": [
+      "Per Estimation Modifiers Doctrine: all modifiers are TIME modifiers. adjusted_hours = base_hours × modifier. effective_rate = base_rate / modifier.",
+      "Modifier stacking: multiply, do not add. Flag if combined modifier exceeds 4.0x."
+    ],
+    "modifiers": [
+      {
+        "modifier_id": "MOD_CABT_DOOR_STYLE",
+        "description": "Door/drawer front style complexity modifier",
+        "values": {
+          "slab": 1.0,
+          "shaker": 1.15,
+          "raised_panel": 1.30,
+          "glass_frame": 1.20
+        },
+        "applies_to": ["ITM_CABINET_DOOR", "ITM_CABINET_DRAWER"],
+        "rationale": "Raised panel doors have recessed areas, reveals, and complex geometry requiring more careful application and prep. Glass frame doors require careful masking or glass removal. Shaker doors have a single recessed panel — moderate additional complexity."
+      },
+      {
+        "modifier_id": "MOD_CABT_APPLICATION_METHOD",
+        "description": "Brush/roll vs spray time modifier",
+        "values": {
+          "spray": 1.0,
+          "brush": 1.4
+        },
+        "applies_to": ["ITM_CABINET_DOOR", "ITM_CABINET_DRAWER", "ITM_CABINET_FRAME"],
+        "rationale": "Brush/roll takes approximately 40% longer than spray for equivalent coverage and quality. Based on production rate comparison in relevant_findings.production_rates."
+      },
+      {
+        "modifier_id": "MOD_CABT_QUALITY_TIER",
+        "description": "Quality tier scrutiny modifier — per Quality Tiers Doctrine",
+        "values": {
+          "QT3": 1.0,
+          "QT4": 1.3,
+          "QT5": 1.5
+        },
+        "applies_to": ["all qt_scaled tasks"],
+        "rationale": "Per Quality Tiers Doctrine standard QT multipliers. QT4 adds systematic inspection and full interstage sanding. QT5 adds critical inspection, thorough sanding, zero-tolerance repair."
+      },
+      {
+        "modifier_id": "MOD_CABT_HEIGHT",
+        "description": "Upper cabinet height access modifier",
+        "values": {
+          "standard_8ft_ceiling": 1.0,
+          "tall_9_10ft_ceiling": 1.15,
+          "extra_tall_11_12ft_ceiling": 1.3
+        },
+        "applies_to": ["ITM_CABINET_FRAME (upper cabinets only)", "protection tasks for upper areas"],
+        "rationale": "Per Estimation Modifiers Doctrine height modifiers. Upper cabinets in tall kitchens require step ladders or scaffolding. Standard 8ft ceiling puts upper cabinet tops at ~7ft — reachable. 10ft ceiling puts tops at ~9ft — step ladder required. 12ft ceiling puts tops at ~11ft — scaffold may be needed. Applies to frame painting only (doors are removed and painted at ground level)."
+      },
+      {
+        "modifier_id": "MOD_CABT_KITCHEN_COMPLEXITY",
+        "description": "Kitchen layout complexity modifier",
+        "values": {
+          "simple": 1.0,
+          "standard": 1.1,
+          "complex": 1.2,
+          "very_complex": 1.3
+        },
+        "applies_to": ["protection tasks", "frame painting tasks"],
+        "rationale": "Per Estimation Modifiers Doctrine room complexity. Simple = straight run of base or upper cabinets. Standard = L-shaped kitchen, island. Complex = U-shaped with island, multiple corner cabinets. Very complex = large custom kitchen with multiple zones, butler's pantry, etc. Corner cabinets and island cabinets are harder to access and protect."
+      },
+      {
+        "modifier_id": "MOD_CABT_MASKING_METHOD",
+        "description": "Spray masking scope modifier — spray method requires full room masking",
+        "values": {
+          "spray": 1.0,
+          "brush": 0.4
+        },
+        "applies_to": ["protection/masking tasks"],
+        "rationale": "Brush method requires approximately 40% of the masking effort vs spray. No ceiling masking, no full-wall masking, no appliance wrapping. Only countertop, backsplash, and floor protection needed for brush."
+      }
+    ],
+    "stacking_examples": [
+      {
+        "scenario": "QT5 + brush + raised panel doors",
+        "calculation": "1.5 (QT5) × 1.4 (brush) × 1.30 (raised panel) = 2.73x",
+        "note": "Under 4.0x threshold — valid combination but expensive."
+      },
+      {
+        "scenario": "QT5 + brush + raised panel + tall ceiling frame work",
+        "calculation": "1.5 (QT5) × 1.4 (brush) × 1.30 (raised panel) × 1.3 (height) = 3.55x",
+        "note": "Approaching 4.0x threshold. Flag for review but still valid."
+      }
+    ],
+    "ps_key_requirements": "See required_paintscope_keys section for full list of inputs needed from PaintScope.",
+    "pricing_structure_note": "Cabinet painting should be priced as a PACKAGE per kitchen/room, not per individual task. The PaintScope should collect room-level inputs (number of doors, drawers, LF of face frame, etc.) and the spec calculates total hours. Per-task granularity is for SOP and crew planning, not client-facing pricing."
+  },
+
+  "assumptions": [
+    "New construction cabinets in good condition — no damage, no previous coatings to remove.",
+    "Cabinets are fully installed before painting begins (GC completes installation).",
+    "Countertops are installed (painter must protect). If countertops not yet installed, protection scope is simpler but painter must return after install for touch-up.",
+    "Appliances are NOT installed (NC standard — appliances installed after painting). If appliances present, masking scope increases.",
+    "Plumbing is roughed in but sinks are NOT installed (NC standard). If sink installed, masking scope increases.",
+    "Electrical is complete — under-cabinet lighting, switches, outlets in place and need masking.",
+    "HVAC is operational — relevant for cure time management and dust control.",
+    "Doors and drawer fronts are removable (not fixed/glued). If not removable, rates change significantly.",
+    "MDF is the most common door/drawer material in NC. Rates calibrated to MDF as default substrate.",
+    "Spray equipment is available for spray method (HVLP or airless with fine-finish tips).",
+    "Sawhorses or painting pyramids available for horizontal door/drawer painting.",
+    "Adequate staging area exists for door/drawer painting and drying/curing (garage, separate room, etc.).",
+    "Standard residential ceiling height (8-10 ft). Heights above 10ft addressed by height modifier.",
+    "Single-color scope — all cabinets same color. Multi-color (upper/lower different) would require separate line items.",
+    "No glazing, distressing, or specialty finishes — standard opaque paint only."
+  ],
+
+  "uncertainties": [
+    {
+      "topic": "Door/drawer count variability",
+      "description": "Kitchen cabinet configurations vary enormously — from 6 doors in a small kitchen to 40+ in a large custom kitchen. Production rates are per-unit but total project hours depend entirely on count. PaintScope must capture accurate counts.",
+      "impact": "High — directly affects total hours and material quantity",
+      "mitigation": "PaintScope input validation: require door count, drawer count, approximate face frame SF"
+    },
+    {
+      "topic": "Factory primer quality variation",
+      "description": "Factory-applied primers vary significantly by cabinet manufacturer. Budget cabinets may have thin, inconsistent primer. Premium cabinets may have excellent factory finish. Difficult to assess until on-site.",
+      "impact": "Medium — may require additional primer coat on factory-primed cabinets",
+      "mitigation": "substrate_state=SS_PRIMED_FACTORY makes primer optional. Estimator can add primer if factory quality is questionable."
+    },
+    {
+      "topic": "Cure time scheduling impact",
+      "description": "The 5-14 day cure period creates a scheduling gap. Project may require two separate mobilizations (paint, then return for reinstall). This adds mobilization cost not captured in per-task rates.",
+      "impact": "Medium — affects project scheduling and may add mobilization costs",
+      "mitigation": "Include return-trip mobilization as a binary task or flag for estimator."
+    },
+    {
+      "topic": "Staging area availability",
+      "description": "Horizontal door/drawer painting requires significant staging space. A 30-door kitchen needs 30+ door drying positions. On-site space may be limited.",
+      "impact": "Medium — limited space may require phased painting (batch doors in groups)",
+      "mitigation": "Note in SOP that doors can be batched if staging space is limited. Adds time for multiple setup/cleanup cycles."
+    },
+    {
+      "topic": "Interior scope actual SF",
+      "description": "Cabinet interior SF is difficult to estimate without detailed cabinet drawings. Varies enormously by cabinet depth, height, and number of fixed shelves.",
+      "impact": "Low-medium — interior painting is optional scope and always QT3",
+      "mitigation": "PaintScope could estimate interior SF as a multiplier of exterior face frame SF, or require manual measurement."
+    },
+    {
+      "topic": "Brush method third coat frequency",
+      "description": "QT5 brush method may or may not require a third finish coat depending on operator skill, product selection, and sanding quality. Difficult to predict in advance.",
+      "impact": "Low-medium — affects QT5 brush hours only",
+      "mitigation": "Include third coat as conditional round (ROUND_FINISH_3). Estimator can include or exclude."
+    }
+  ],
+
+  "required_paintscope_keys": [
+    {
+      "key": "IN_EA_CABINET_DOORS",
+      "description": "Total count of cabinet doors to be painted (count per FACE — if painting both sides, count each face separately)",
+      "uom": "EA",
+      "required": true
+    },
+    {
+      "key": "IN_EA_CABINET_DRAWERS",
+      "description": "Total count of cabinet drawer fronts to be painted",
+      "uom": "EA",
+      "required": true
+    },
+    {
+      "key": "IN_SF_CABINET_FRAME",
+      "description": "Total square footage of face frame and exposed box surfaces (stiles, rails, end panels, toe kicks, filler strips)",
+      "uom": "SF",
+      "required": true,
+      "notes": "Required when scope includes full_exterior or full_with_interior"
+    },
+    {
+      "key": "IN_SF_CABINET_INTERIOR",
+      "description": "Total square footage of cabinet interior surfaces to be painted",
+      "uom": "SF",
+      "required": false,
+      "notes": "Required only when scope=full_with_interior"
+    },
+    {
+      "key": "IN_EA_CABINET_HARDWARE_PIECES",
+      "description": "Total count of hardware pieces to remove/reinstall (hinges + pulls + knobs). Each hinge = 1 piece, each pull = 1 piece.",
+      "uom": "EA",
+      "required": true
+    },
+    {
+      "key": "IN_LF_CABINET_CAULK",
+      "description": "Total linear footage of cabinet-to-wall caulk joints",
+      "uom": "LF",
+      "required": true
+    },
+    {
+      "key": "IN_EA_ROOMS_TOTAL",
+      "description": "Number of rooms with cabinets (kitchen, bathrooms, laundry, etc.)",
+      "uom": "EA",
+      "required": true
+    },
+    {
+      "key": "IN_SF_PROTECT_FLOOR_EXPOSED",
+      "description": "Floor area requiring protection in cabinet work zone",
+      "uom": "SF",
+      "required": true
+    },
+    {
+      "key": "IN_SF_PROTECT_COUNTERTOP",
+      "description": "Countertop surface area requiring protection",
+      "uom": "SF",
+      "required": true
+    },
+    {
+      "key": "IN_LF_PROTECT_BACKSPLASH",
+      "description": "Linear footage of backsplash requiring masking",
+      "uom": "LF",
+      "required": true
+    },
+    {
+      "key": "IN_SF_PROTECT_WALL_SPRAY",
+      "description": "Wall area requiring masking for spray overspray protection",
+      "uom": "SF",
+      "required": false,
+      "notes": "Required only when application_method=spray"
+    },
+    {
+      "key": "IN_SF_PROTECT_CEILING_SPRAY",
+      "description": "Ceiling area requiring masking for spray overspray protection",
+      "uom": "SF",
+      "required": false,
+      "notes": "Required only when application_method=spray"
+    },
+    {
+      "key": "IN_EA_APPLIANCE_MASK",
+      "description": "Number of appliances requiring masking (if present during painting)",
+      "uom": "EA",
+      "required": false,
+      "notes": "NC standard: appliances not yet installed. Include if appliances are present."
+    },
+    {
+      "key": "IN_SF_FLOOR_VACUUM_AREA",
+      "description": "Floor area requiring vacuum after sanding operations",
+      "uom": "SF",
+      "required": true
+    },
+    {
+      "key": "IN_SF_PROTECT_FLOOR_PERIMETER",
+      "description": "Perimeter footage for floor protection tape-down",
+      "uom": "SF",
+      "required": true
+    }
+  ],
+
+  "proposed_new_keys": [
+    {
+      "key": "IN_EA_CABINET_DOORS",
+      "justification": "No existing key for cabinet door count. Distinct from IN_EA_DOORS (interior passage doors) or opening tier keys used in built-ins.",
+      "status": "new"
+    },
+    {
+      "key": "IN_EA_CABINET_DRAWERS",
+      "justification": "No existing key for cabinet drawer front count. New item type unique to cabinet spec.",
+      "status": "new"
+    },
+    {
+      "key": "IN_SF_CABINET_FRAME",
+      "justification": "No existing key for cabinet face frame area. Distinct from wall/ceiling/trim SF inputs.",
+      "status": "new"
+    },
+    {
+      "key": "IN_SF_CABINET_INTERIOR",
+      "justification": "No existing key for cabinet interior area. Conditional input — only needed for full_with_interior scope.",
+      "status": "new"
+    },
+    {
+      "key": "IN_EA_CABINET_HARDWARE_PIECES",
+      "justification": "No existing key for cabinet hardware piece count. Distinct from door hardware (IN_EA_HARDWARE is not specific enough). Needed for removal/reinstall time calculation.",
+      "status": "new"
+    },
+    {
+      "key": "IN_SF_PROTECT_COUNTERTOP",
+      "justification": "No existing key for countertop protection area. Cabinet-specific protection requirement.",
+      "status": "new"
+    },
+    {
+      "key": "IN_LF_PROTECT_BACKSPLASH",
+      "justification": "No existing key for backsplash masking. Cabinet-specific protection requirement.",
+      "status": "new"
+    },
+    {
+      "key": "IN_SF_PROTECT_WALL_SPRAY",
+      "justification": "No existing key for spray overspray wall masking. May be reusable across spray specs. Distinct from wall painting area.",
+      "status": "new"
+    },
+    {
+      "key": "IN_SF_PROTECT_CEILING_SPRAY",
+      "justification": "No existing key for spray overspray ceiling masking. Distinct from ceiling painting area.",
+      "status": "new"
+    },
+    {
+      "key": "IN_EA_APPLIANCE_MASK",
+      "justification": "No existing key for appliance masking count. Cabinet/kitchen-specific.",
+      "status": "new"
+    }
+  ],
+
+  "adjacency_notes": {
+    "description": "Cabinet painting interacts with several existing and future specs. Key adjacencies documented below.",
+    "adjacent_specs": [
+      {
+        "spec_id": "SF_BUILTIN_NC_v1",
+        "relationship": "Sibling — shares substrate types (MDF, hardwood), primer systems, and fine finish workflow. SF_BUILTIN_NC_v1 covers built-in shelving, bookcases, entertainment centers. SF_CABINET_NC_PAINT covers kitchen/bath/utility cabinets.",
+        "shared_elements": "MDF edge seal protocol, shellac primer system, opening-based complexity concept, door/drawer removal workflow, 5-7 day cure requirement.",
+        "boundary": "Cabinets with doors/drawers → SF_CABINET_NC_PAINT. Open shelving and built-in units without cabinet doors → SF_BUILTIN_NC_v1. Mudroom cubbies with doors → could go either way; default to SF_BUILTIN_NC_v1 unless cabinet-style construction."
+      },
+      {
+        "spec_id": "SF_TRIM_NC_PAINT_v1",
+        "relationship": "Adjacent — trim around cabinets (base shoe, crown on cabinet tops) may be painted as part of trim spec or cabinet spec.",
+        "shared_elements": "Fine finish material systems, interstage process, brush technique.",
+        "boundary": "Crown molding integral to cabinet top → SF_CABINET_NC_PAINT. Room crown that happens to meet cabinet → SF_TRIM_NC_PAINT. Base shoe at toe kick → typically SF_TRIM_NC_PAINT."
+      },
+      {
+        "spec_id": "SF_DOOR_SLAB_INT_NC_v1",
+        "relationship": "Adjacent — shares door painting methodology (horizontal on sawhorses, spray technique, cure time).",
+        "shared_elements": "Door painting rates, panel door sequence (§ 15.11.2), horizontal painting technique, cure time requirements.",
+        "boundary": "Interior passage doors → SF_DOOR_SLAB_INT_NC. Cabinet doors → SF_CABINET_NC_PAINT. The workflow is similar but rates differ (cabinet doors are smaller)."
+      },
+      {
+        "spec_id": "SF_CLOSET_SHELF_NC_v1",
+        "relationship": "Distant sibling — closet shelving shares opening-based complexity from built-ins but is structurally different from cabinets.",
+        "boundary": "Closet systems → SF_CLOSET_SHELF_NC. Pantry cabinets → SF_CABINET_NC_PAINT."
+      },
+      {
+        "spec_id": "SF_CABINET_REFINISH (future)",
+        "relationship": "Future sibling — covers repainting/refinishing existing cabinets (strip, sand, prime, paint). Significantly different workflow due to existing finish removal.",
+        "boundary": "New construction (bare/factory-primed) → SF_CABINET_NC_PAINT. Repaint/refinish existing → SF_CABINET_REFINISH (future)."
+      }
+    ]
+  },
+
+  "protection_zones_analysis": {
+    "description": "Cabinet painting requires 9 protection zones — more than most specs due to the enclosed kitchen/bath environment and high-value adjacent surfaces.",
+    "zones": [
+      {
+        "zone_id": "ZONE_CABT_FLOOR",
+        "description": "Floor protection in cabinet work zone. Canvas drop cloths taped at edges. Extends to full room for spray method.",
+        "method": "Canvas drop cloths, taped edges. Full room coverage for spray. Work zone only for brush.",
+        "input_key": "IN_SF_PROTECT_FLOOR_EXPOSED",
+        "applicability": "always"
+      },
+      {
+        "zone_id": "ZONE_CABT_COUNTERTOP",
+        "description": "Countertop protection. High-value surface directly adjacent to painting. Kraft paper + plastic sheeting for spray.",
+        "method": "Kraft paper or rosin paper taped to countertop surface. Plastic sheeting over paper for spray overspray. Tape edges carefully to prevent paint migration.",
+        "input_key": "IN_SF_PROTECT_COUNTERTOP",
+        "applicability": "always (when countertops installed)"
+      },
+      {
+        "zone_id": "ZONE_CABT_BACKSPLASH",
+        "description": "Backsplash masking. Tile/stone backsplash between counter and upper cabinets. Careful edge work.",
+        "method": "Painter's tape along cabinet frame edge. Plastic or paper below upper cabinets. Green tape edge seal against tile for clean line.",
+        "input_key": "IN_LF_PROTECT_BACKSPLASH",
+        "applicability": "always (when backsplash installed)"
+      },
+      {
+        "zone_id": "ZONE_CABT_WALL",
+        "description": "Wall masking for spray overspray. Plastic sheeting taped to walls.",
+        "method": "Plastic sheeting (1 mil) taped to walls with painter's tape. Full wall coverage for spray method.",
+        "input_key": "IN_SF_PROTECT_WALL_SPRAY",
+        "applicability": "application_method=spray"
+      },
+      {
+        "zone_id": "ZONE_CABT_CEILING",
+        "description": "Ceiling masking for spray overspray. Plastic sheeting taped to ceiling.",
+        "method": "Plastic sheeting taped to ceiling perimeter. May use pre-taped masking film for efficiency.",
+        "input_key": "IN_SF_PROTECT_CEILING_SPRAY",
+        "applicability": "application_method=spray"
+      },
+      {
+        "zone_id": "ZONE_CABT_APPLIANCE",
+        "description": "Appliance masking. Refrigerator, range, dishwasher if present during painting.",
+        "method": "Plastic sheeting wrapped around appliance. Tape at edges. May need to pull appliance away from cabinet for frame access.",
+        "input_key": "IN_EA_APPLIANCE_MASK",
+        "applicability": "conditional (appliances present — atypical for NC)"
+      },
+      {
+        "zone_id": "ZONE_CABT_PLUMBING",
+        "description": "Sink/plumbing masking in base cabinets. Pipes, valves, disposal unit if present.",
+        "method": "Plastic wrap around plumbing fixtures. Tape at connections. Protect shut-off valves.",
+        "input_key": "none (fixed small scope per base cabinet with sink)",
+        "applicability": "always (sink base cabinet)"
+      },
+      {
+        "zone_id": "ZONE_CABT_ELECTRICAL",
+        "description": "Switch plates, outlet covers, under-cabinet lighting masking.",
+        "method": "Remove switch plates and outlet covers (bag with hardware). Mask under-cabinet light fixtures with tape and paper.",
+        "input_key": "none (included in hardware removal count)",
+        "applicability": "always"
+      },
+      {
+        "zone_id": "ZONE_CABT_WINDOW",
+        "description": "Window masking if window is within spray zone (kitchen window above sink is common).",
+        "method": "Plastic sheeting taped over window frame and glass. Protect sill and casing.",
+        "input_key": "none (included in wall masking for spray, or edge tape for brush)",
+        "applicability": "conditional (window in spray zone)"
+      }
+    ]
+  },
+
+  "adjacency_analysis": {
+    "description": "Analysis of how SF_CABINET_NC_PAINT_v1 interacts with adjacent scopes and other trades on a new construction site.",
+    "trade_adjacencies": [
+      {
+        "trade": "Cabinet installer (GC sub)",
+        "interaction": "Cabinets must be fully installed before painter begins. Installation nail holes on face frames must be filled by painter. Crown molding on cabinet tops may be installed by cabinet installer or trim carpenter — affects scope boundary.",
+        "timing": "Cabinet install complete → painter begins"
+      },
+      {
+        "trade": "Countertop installer",
+        "interaction": "Countertops typically installed before painting. Painter must protect countertops. If countertops NOT yet installed, painter has better frame access but must return for touch-up after countertop install.",
+        "timing": "Ideally: countertops installed → cabinet painting → appliance install"
+      },
+      {
+        "trade": "Plumber",
+        "interaction": "Rough plumbing in place. Sink and faucet typically NOT installed during painting. If installed, painter must mask.",
+        "timing": "Rough plumbing complete → cabinet painting → finish plumbing after paint cure"
+      },
+      {
+        "trade": "Electrician",
+        "interaction": "Wiring complete, outlets/switches installed. Under-cabinet lighting may be installed. Painter masks all electrical.",
+        "timing": "Electrical rough and trim complete → cabinet painting"
+      },
+      {
+        "trade": "Flooring installer",
+        "interaction": "Flooring should be protected. Toe kick painting may drip on floor. Some GCs prefer flooring after painting.",
+        "timing": "Variable — painter must protect regardless of sequence"
+      },
+      {
+        "trade": "Other painters (same crew)",
+        "interaction": "Cabinet painting often done by same crew handling drywall/trim painting. Scheduling: cabinets should be done AFTER dusty work (drywall sanding, trim sanding) to minimize dust contamination. Ideally last interior painting scope.",
+        "timing": "Drywall paint → trim paint → cabinet paint (least dusty → most sensitive)"
+      }
+    ],
+    "scope_adjacencies": [
+      {
+        "scope": "Trim painting (SF_TRIM_NC_PAINT)",
+        "overlap_risk": "Crown molding on cabinet tops could be claimed by either spec. Define boundary: integral cabinet crown → cabinet spec. Room crown that meets cabinet → trim spec.",
+        "resolution": "PaintScope should not double-count crown molding. Flag at input collection."
+      },
+      {
+        "scope": "Wall painting (SF_DRYWALL_WALL_NC)",
+        "overlap_risk": "Wall masking for cabinet spray work overlaps with wall painting protection. If walls are already painted, overspray on walls is a damage risk. If walls not yet painted, overspray is less critical.",
+        "resolution": "Sequence recommendation: paint cabinets before walls when possible (cabinet overspray on unpainted drywall is easily covered by wall paint)."
+      },
+      {
+        "scope": "Ceiling painting (SF_DRYWALL_CEILING_NC)",
+        "overlap_risk": "Similar to wall — spray overspray on ceiling. If ceiling not yet painted, less critical.",
+        "resolution": "Same sequence recommendation: cabinets before ceiling/wall painting when possible."
+      }
+    ]
+  },
+
+  "site_condition_analysis": {
+    "description": "New construction site conditions affecting cabinet painting workflow and quality.",
+    "conditions": [
+      {
+        "condition": "Dust from other trades",
+        "impact": "HIGH — construction dust is the primary quality enemy for cabinet finishing. Drywall dust, sawdust from trim install, concrete dust from flooring all contaminate wet finishes.",
+        "mitigation": "Schedule cabinet painting AFTER dusty trades complete. Isolate work zone with zippered barriers (ZipWall). HEPA vacuum before each coat. Tack cloth immediately before application. Seal HVAC vents to prevent dust circulation."
+      },
+      {
+        "condition": "Temperature and humidity",
+        "impact": "MEDIUM — affects dry time, cure time, and application quality. NC homes may not have final HVAC commissioning. Uncontrolled temperature/humidity in seasonal extremes.",
+        "mitigation": "Ensure HVAC is operational and maintaining 65-80°F, 40-60% RH. If not available, portable heaters/dehumidifiers. Per Fine Finish Doctrine § 15.7.5: high heat causes flash drying and heavy brush marks; low humidity accelerates drying; high humidity extends dry time."
+      },
+      {
+        "condition": "Lighting",
+        "impact": "MEDIUM — good lighting essential for quality inspection. NC homes may have temporary construction lighting only. Under-cabinet lighting may not be functional.",
+        "mitigation": "Bring portable work lights for inspection. QT5 requires lighted critical inspection — inadequate lighting masks defects."
+      },
+      {
+        "condition": "Staging space",
+        "impact": "MEDIUM — horizontal door/drawer painting requires significant space. A large kitchen may have 30+ doors needing simultaneous drying space.",
+        "mitigation": "Identify staging area before starting (garage, empty room, covered outdoor area). Painting pyramids allow doors to stand on points — uses less space than sawhorses. May need to batch doors in groups if space is limited."
+      },
+      {
+        "condition": "Access and clearance",
+        "impact": "LOW-MEDIUM — upper cabinets may require step ladder. Corner cabinets have limited access. Island cabinets may have limited back access if pushed against wall during construction.",
+        "mitigation": "Step ladders for upper cabinet frame work. Height modifier for tall ceilings. Plan access before masking — masking may need to accommodate ladder placement."
+      },
+      {
+        "condition": "Other trades working simultaneously",
+        "impact": "MEDIUM — vibration from work in adjacent rooms can cause dust to fall. Foot traffic tracks dirt. Door-opening creates air drafts that carry dust.",
+        "mitigation": "Coordinate with GC for exclusive room access during spray work. Isolate work zone. No foot traffic during wet coat application and drying."
+      }
+    ]
+  },
+
+  "state_analysis": {
+    "description": "State tracking for cabinet painting workflow — what state are cabinets in at each stage.",
+    "states": [
+      {
+        "state": "AS_INSTALLED",
+        "description": "Cabinets installed by cabinet installer. Doors and drawers on. Hardware on. No paint applied.",
+        "condition": "Starting state for painter. Inspect for installation damage, note defects."
+      },
+      {
+        "state": "DISASSEMBLED",
+        "description": "Doors removed and labeled. Drawers removed and labeled. Hardware removed and bagged. Cabinet boxes exposed for frame painting.",
+        "condition": "Ready for prep work. All removable components stored safely."
+      },
+      {
+        "state": "PREPPED",
+        "description": "All filling, caulking, sanding, edge sealing complete. Surfaces ready for primer or first finish coat.",
+        "condition": "Dust cleaned. Tack cloth wiped. Ready for first coat."
+      },
+      {
+        "state": "PRIMED",
+        "description": "Primer coat applied to all surfaces (if substrate_state=SS_BARE). Primer cured.",
+        "condition": "Ready for interstage sand and first finish coat."
+      },
+      {
+        "state": "FINISH_COAT_1",
+        "description": "First finish coat applied to all items. Curing.",
+        "condition": "Ready for interstage process (sand, inspect, patch, clean)."
+      },
+      {
+        "state": "INTERSTAGE_COMPLETE",
+        "description": "Interstage sanding, inspection, patching complete. Surface prepped for next coat.",
+        "condition": "Ready for next finish coat."
+      },
+      {
+        "state": "FINISH_COAT_2",
+        "description": "Second finish coat applied. Final coat for most configurations.",
+        "condition": "Ready for final inspection (QT3/QT4) or interstage → third coat (QT5 brush)."
+      },
+      {
+        "state": "FINISH_COAT_3",
+        "description": "Optional third finish coat (QT5 brush method).",
+        "condition": "Ready for final inspection."
+      },
+      {
+        "state": "INSPECTED",
+        "description": "Final quality inspection complete. All defects addressed. Finish meets tier standard.",
+        "condition": "Ready for cure period. Frames complete. Doors/drawers set to cure."
+      },
+      {
+        "state": "CURING",
+        "description": "5-14 day cure period. Doors and drawers stored safely, not touching each other or any surface. Cabinet boxes open (no doors).",
+        "condition": "DO NOT reinstall doors until cure period complete. Client informed kitchen will be without doors."
+      },
+      {
+        "state": "REASSEMBLED",
+        "description": "Hardware reinstalled. Doors rehung and aligned. Drawers reinstalled and checked. Soft-close mechanisms adjusted.",
+        "condition": "Ready for final touch-up and cleanup."
+      },
+      {
+        "state": "COMPLETE",
+        "description": "Final touch-up complete. Protection removed. Work area cleaned. Cabinet painting complete.",
+        "condition": "Ready for client walkthrough / final inspection."
+      }
+    ]
+  }
+}

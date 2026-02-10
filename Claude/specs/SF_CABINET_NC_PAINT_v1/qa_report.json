@@ -1,0 +1,368 @@
+{
+  "spec_family_id": "SF_CABINET_NC_PAINT",
+  "version": "0.1.0",
+  "generated_by": "Spec Critic",
+  "generated_at": "2026-02-09",
+
+  "overall_result": "pass_with_warnings",
+  "summary": "SF_CABINET_NC_PAINT_v1 passes QA with 8 issues (0 critical, 2 major, 6 minor) and 0 blockers. All 5 pipeline files reviewed (spec.json pending assembly). Cross-file threading validated: 58 TSK_CABT_* IDs in sop_modules match 58 rates in production. 4 paintable items: ITM_CABINET_DOOR (EA), ITM_CABINET_DRAWER (EA), ITM_CABINET_FRAME (SF), ITM_CABINET_INTERIOR (SF conditional). Separate spray/brush finish tasks (7 in MOD_CABT_FINISH_COAT). Combined prime+paint with primer conditional on substrate_state. 7 substrate-driven primer systems (6 existing + 1 proposed SYS_PRIMER_BONDING) + 3 QT-driven finish systems, all reusing existing SYS_FF_* IDs. 9 protection zones across 7+6 setup/teardown tasks properly paired. MDF edge seal protocol correctly sequenced (MOD_CABT_PREP before MOD_CABT_PRIME). Door style modifier correctly scoped to door/drawer tasks only. 5-7 day cure period documented. Modifier stacking max 3.29x — well under 4.0x flag. Two major issues: (1) task_count_summary claims 61 tasks but actual count is 58, (2) skill_level key missing from all SOP tasks. 6 minor issues: PS key UOM inconsistencies in backsplash/wall masking tasks, research primer ID mapping note, PROTECT_CEILING zone mismatch, production rates are research-based assumptions, and binary/qt_scaled classification counts off. Human Feedback Gate has NOT occurred — expected for v0.1.0 draft.",
+
+  "files_reviewed": [
+    "research.json",
+    "resolution.json",
+    "materials.json",
+    "sop_modules.json",
+    "production.json"
+  ],
+
+  "statistics": {
+    "total_issues": 8,
+    "critical": 0,
+    "major": 2,
+    "minor": 6
+  },
+
+  "cross_file_validation": {
+    "task_id_match": {
+      "status": "pass",
+      "mismatches": [],
+      "details": "All 58 TSK_CABT_* task IDs in sop_modules.json have matching entries in production.json. Setup(12): PROTECT_FLOOR_FULL, PROTECT_FLOOR_PERIM, PROTECT_COUNTERTOP, PROTECT_BACKSPLASH, PROTECT_WALL, PROTECT_CEILING, PROTECT_APPLIANCE, PROTECT_PLUMBING, PROTECT_ELECTRICAL, REMOVE_HARDWARE, REMOVE_DOORS, REMOVE_DRAWERS. Prep(11): DUST_CLEAN, FILL_FRAMES, FILL_DOORS, FILL_DRAWERS, CAULK_JOINTS, SAND_FRAMES, SAND_DOORS, SAND_DRAWERS, SAND_FILL, EDGE_SEAL, VACUUM_FLOOR. Prime(4): PRIME_FRAMES, PRIME_DOORS, PRIME_DRAWERS, PRIME_INTERIOR. Finish(7): SPRAY_FRAMES, BRUSH_FRAMES, SPRAY_DOORS, BRUSH_DOORS, SPRAY_DRAWERS, BRUSH_DRAWERS, SPRAY_INTERIOR. Interstage(9): CLEAN_AREA, INSPECT_COAT, SAND_BETWEEN_FRAMES, SAND_BETWEEN_DOORS, SAND_BETWEEN_DRAWERS, SAND_BETWEEN_INTERIOR, PATCH_DEFECTS, SPOT_COAT, TACK_CLEAN. Final(2): FINAL_INSPECT, TOUCHUP. Cleanup(13): CURE_PERIOD, REINSTALL_HARDWARE, REINSTALL_DOORS, REINSTALL_DRAWERS, REINSTALL_TOUCHUP, REMOVE_COUNTERTOP_PROTECT, REMOVE_BACKSPLASH_MASK, REMOVE_WALL_MASK, REMOVE_CEILING_MASK, REMOVE_APPLIANCE_MASK, REMOVE_FLOOR_PROTECT, VACUUM_FINAL, TOOL_CLEANUP."
+    },
+    "uom_match": {
+      "status": "pass",
+      "mismatches": [],
+      "details": "UOM consistent across all 58 tasks between sop_modules and production. 12 SF tasks have SF/hr rates. 10 EA tasks have EA/hr rates. 2 LF tasks have LF/hr rates. 14 FIXED tasks have fixed_time_minutes or fixed_time_minutes_by_tier. 4 prime tasks have rates_by_method (with matching UOM). 20 qt_scaled tasks have rates_by_tier or tiered fixed times. No mismatches."
+    },
+    "paintscope_key_consistency": {
+      "status": "pass_with_warnings",
+      "issues": [
+        "TSK_CABT_PROTECT_BACKSPLASH uses PS_PROTECT_SF.ASSET.TILE_BACKSPLASH but task UOM is LF (not SF). The PS_ key uses SF in its name but resolution.json notes backsplash is measured in LF. Minor UOM naming tension — see ISS_CABT_004.",
+        "TSK_CABT_PROTECT_WALL uses PS_PROTECT_LF.WALL_ADJACENT_CABINET but task UOM is SF. The PS_ key uses LF in its name but resolution.json and production.json both use SF rates. Minor UOM naming tension — see ISS_CABT_005."
+      ],
+      "details": "All PS_ keys referenced in sop_modules/production match resolution.json paintscope_keys. Surface keys: PS_SURFACE_EA.CABINET_DOOR, PS_SURFACE_EA.CABINET_DRAWER, PS_SURFACE_SF.CABINET_FRAME, PS_SURFACE_SF.CABINET_INTERIOR. Protection keys: PS_PROTECT_SF.FLOOR_EXPOSED, PS_PROTECT_SF.FLOOR_PERIMETER, PS_PROTECT_SF.ASSET.COUNTERTOPS, PS_PROTECT_SF.ASSET.TILE_BACKSPLASH, PS_PROTECT_LF.WALL_ADJACENT_CABINET, PS_PROTECT_SF.CEILING_SPRAY, PS_PROTECT_EA.APPLIANCE_COVERS. Utility keys: PS_META.EA.CABINET_HARDWARE, PS_EDGE_LF.CABINET_CAULK, PS_META.SF.FLOOR_VACUUM_AREA. PS_ keys match between sop_modules and production for tasks that share them."
+    },
+    "material_system_ids": {
+      "status": "pass",
+      "issues": [],
+      "details": "10 material systems in materials.json. 6 existing primer systems reused: SYS_PRIMER_MDF_SHELLAC, SYS_PRIMER_MDF_LATEX, SYS_PRIMER_WOOD_ACRYLIC, SYS_PRIMER_WOOD_SHELLAC, SYS_PRIMER_HARDWOOD_TANNINBLOCK, SYS_PRIMER_POPLAR_STAINBLOCK. 1 proposed primer: SYS_PRIMER_BONDING (flagged in resolution.json registry_additions_proposed). 3 existing finish systems reused: SYS_FF_STANDARD_ACRYLIC (QT3), SYS_FF_MODIFIED_URETHANE (QT4), SYS_FF_PREMIUM (QT5). All existing IDs verified against resolution.json material_system_prefix.existing_systems_to_reuse."
+    }
+  },
+
+  "cross_file_threading_check": {
+    "rule_1_tsk_sop_to_production": {
+      "status": "pass",
+      "details": "58/58 task IDs match between sop_modules.json and production.json. Zero mismatches."
+    },
+    "rule_3_sys_qt_match": {
+      "status": "pass",
+      "details": "SYS_FF_STANDARD_ACRYLIC quality_tier=[QT3], SYS_FF_MODIFIED_URETHANE quality_tier=[QT4], SYS_FF_PREMIUM quality_tier=[QT5] in materials.json match resolution.json applicable_enums.quality_tier. 7 primer systems match substrate-driven selection in resolution.json."
+    },
+    "rule_5_ps_keys_match": {
+      "status": "pass",
+      "details": "All PS_ keys used in production.json have corresponding entries in resolution.json paintscope_keys and sop_modules.json task paintscope_key fields."
+    },
+    "rule_7_phase_order": {
+      "status": "pass",
+      "details": "Module sequence_order: setup(1) > prep(2) > prime(3) > finish(4) > interstage(5) > finish(6) > cleanup(7). Phase ordering maintained per structural_keys.json rule 7."
+    },
+    "rule_8_uom_match": {
+      "status": "pass",
+      "details": "UOM consistent between sop_modules.json and production.json for all 58 tasks. SF, EA, LF, FIXED all match."
+    },
+    "rule_9_tsk_prefix": {
+      "status": "pass",
+      "details": "All 58 tasks use TSK_CABT_ prefix per resolution.json context prefix CABT. No prefix deviations."
+    },
+    "rule_11_enum_values": {
+      "status": "pass",
+      "details": "All enum values used across files match resolution.json applicable_enums. quality_tier: QT3/QT4/QT5. application_method: spray/brush. sheen: satin/semi-gloss/gloss. substrate_state: SS_BARE/SS_PRIMED_FACTORY. task_classification: binary/qt_scaled. unit_of_measure: EA/SF/LF/FIXED. consumable_category: protection/abrasive/tool/applicator/prep/fill_material/cleanup. severity: critical/major/minor. No prohibited values detected."
+    }
+  },
+
+  "prohibited_pattern_check": {
+    "AR_009_violations": [],
+    "checks": [
+      { "pattern": "CONS_ prefix", "found": false },
+      { "pattern": "task_class (instead of task_classification)", "found": false },
+      { "pattern": "phase 'protect' or 'protection'", "found": false },
+      { "pattern": "compound sheens (eggshell/satin, semi-gloss+)", "found": false },
+      { "pattern": "lowercase units (each, sheet, tip)", "found": false },
+      { "pattern": "severity high/medium/low/WARN", "found": false },
+      { "pattern": "consumable_category 'consumable'", "found": false },
+      { "pattern": "IN_EA_ROOMS (should be IN_EA_ROOMS_TOTAL)", "found": false },
+      { "pattern": "IN_SF_FLOOR_VACUUM (should be IN_SF_FLOOR_VACUUM_AREA)", "found": false },
+      { "pattern": "IN_SF_FLOOR_PERIMETER (should be IN_SF_PROTECT_FLOOR_PERIMETER)", "found": false },
+      { "pattern": "rate_per_hour in sop_modules.json", "found": false },
+      { "pattern": "coverage_sf_per_gallon in sop_modules.json", "found": false }
+    ],
+    "status": "pass"
+  },
+
+  "enum_compliance": {
+    "phase_values": {
+      "status": "pass",
+      "details": "Module phases used: setup, prep, prime, finish, interstage, cleanup. All valid. No prohibited 'protect' or 'protection' values."
+    },
+    "task_classification": {
+      "status": "pass",
+      "details": "All tasks use 'binary' or 'qt_scaled'. No 'task_class' key found. No prohibited values."
+    },
+    "severity": {
+      "status": "pass",
+      "details": "materials.json risk_notes use severity: critical, major, minor. All valid. No high/medium/low/WARN."
+    },
+    "unit_of_measure": {
+      "status": "pass",
+      "details": "All UOM values are EA, SF, LF, or FIXED. All uppercase. No prohibited lowercase values."
+    },
+    "consumable_prefix": {
+      "status": "pass",
+      "details": "All 20 consumable IDs use CON_ prefix. No CONS_ found."
+    },
+    "consumable_category": {
+      "status": "pass",
+      "details": "Categories used: protection, abrasive, tool, applicator, prep, fill_material. All valid per resolution.json applicable_enums."
+    },
+    "consumable_unit": {
+      "status": "pass",
+      "details": "Units used: EA, ROLL, SHEET, TUBE, QT. All uppercase. No lowercase violations."
+    },
+    "sheen": {
+      "status": "pass",
+      "details": "Sheens used: satin, semi-gloss, gloss. All single values. No compound sheens."
+    }
+  },
+
+  "structural_compliance": {
+    "materials_required_keys": {
+      "status": "pass",
+      "details": "materials.json has spec_family_id, version, material_systems, consumables. All required top-level keys present per structural_keys.json."
+    },
+    "sop_required_keys": {
+      "status": "pass_with_warnings",
+      "details": "sop_modules.json has spec_family_id, version, sop_modules. Module-level keys: module_id, name, phase, tasks present on all 7 modules. Task-level REQUIRED keys: task_id, name, task_classification present on all 58 tasks. HOWEVER: skill_level is listed as required in structural_keys.json but is MISSING from all 58 tasks. See ISS_CABT_001."
+    },
+    "production_required_keys": {
+      "status": "pass",
+      "details": "production.json has spec_family_id, version, task_production_rates. All 58 rate entries have task_id and unit_of_measure. Conditional keys (rate_per_hour, rates_by_tier, rates_by_method, fixed_time_minutes, fixed_time_minutes_by_tier) present as appropriate."
+    },
+    "prohibited_keys": {
+      "status": "pass",
+      "details": "No prohibited keys found. No task_class in SOP. No rate_per_hour in SOP. No coverage_sf_per_gallon in SOP. No tasks or sop_modules in production.json."
+    },
+    "task_count_summary": {
+      "status": "fail",
+      "details": "sop_modules.json task_count_summary claims total_tasks=61, binary=33, qt_scaled=28. Actual counts: total_tasks=58, binary=31, qt_scaled=27. Discrepancy of 3 tasks in total and 2 in binary + 1 in qt_scaled. By-module counts are also off: summary claims MOD_CABT_CLEANUP=13 (correct) but total does not add up to 61. 12+11+4+7+9+2+13=58. See ISS_CABT_002."
+    }
+  },
+
+  "domain_checks": {
+    "mdf_edge_seal_protocol": {
+      "status": "pass",
+      "details": "TSK_CABT_EDGE_SEAL is in MOD_CABT_PREP (sequence_order=2) which runs BEFORE MOD_CABT_PRIME (sequence_order=3). This enforces shellac edge seal before latex primer. Task notes state 'MANDATORY step 1 of MDF two-step prime. NON-NEGOTIABLE.' Correctly conditioned on substrate_state=SS_BARE. Materials.json SYS_PRIMER_MDF_SHELLAC notes confirm 'MUST be applied to MDF cut/routed edges BEFORE any latex product'."
+    },
+    "cabinet_interiors_qt3": {
+      "status": "pass",
+      "details": "TSK_CABT_SPRAY_INTERIOR notes: 'Always QT3 regardless of exterior tier.' Production rate for TSK_CABT_SPRAY_INTERIOR is a single rate (150 SF/hr) not tiered — consistent with always-QT3. TSK_CABT_SAND_BETWEEN_INTERIOR also uses single rate (150 SF/hr). Materials.json SYS_FF_STANDARD_ACRYLIC (QT3) notes: 'Cabinet interiors always use this system regardless of exterior tier.' COMPAT_005 rule enforces override_to_QT3."
+    },
+    "door_style_modifier_scope": {
+      "status": "pass",
+      "details": "MOD_CABT_DOOR_STYLE in production.json applies_to list includes only door/drawer tasks: SAND_DOORS, SAND_DRAWERS, PRIME_DOORS, PRIME_DRAWERS, SPRAY_DOORS, BRUSH_DOORS, SPRAY_DRAWERS, BRUSH_DRAWERS, SAND_BETWEEN_DOORS, SAND_BETWEEN_DRAWERS, FILL_DOORS, FILL_DRAWERS. does_not_apply_to explicitly lists 'frame tasks (SF-based)', interior tasks, protection tasks, FIXED tasks, hardware tasks, cleanup tasks. Correctly scoped."
+    },
+    "cure_period_constraint": {
+      "status": "pass",
+      "details": "TSK_CABT_CURE_PERIOD in production.json: fixed_time_minutes=0 (calendar days, not work hours). Notes: 'MANDATORY 5-7 day minimum. 7-14 days for waterborne alkyd (QT4).' SOP task notes match. MOD_CABT_CLEANUP notes: '5-7 day cure period (minimum), then reassembly. SEPARATE MOBILIZATION.' estimation_notes.cure_time_constraint and two_mobilizations sections document scheduling impact."
+    },
+    "modifier_stacking_threshold": {
+      "status": "pass",
+      "details": "modifier_stacking_validation.maximum_theoretical: QT5 + raised_panel + extra_tall + very_complex = 1.5 * 1.30 * 1.30 * 1.30 = 3.29x (frame tasks). Note: raised_panel does not normally apply to frame tasks, so realistic max for frames = 2.54x, realistic max for doors = 1.95x. All well under 4.0x flag threshold. flag_threshold documented as 4.0."
+    }
+  },
+
+  "rate_reasonableness": {
+    "cabinet_vs_builtin_comparison": {
+      "status": "pass",
+      "details": "BLTN door spray rate ~10 EA/hr. CABT door spray finish rate 11 EA/hr — within expected range (cabinet doors similar size to built-in doors). BLTN door brush rate not directly comparable but CABT 6 EA/hr brush is ~55% of spray — reasonable spray-to-brush ratio. BLTN hardware removal ~30-45 pieces/hr vs CABT 35 EA/hr — consistent. BLTN door removal ~15-20/hr vs CABT 18 EA/hr — consistent. No rates more than 2x different from BLTN precedent without explanation."
+    },
+    "spray_vs_brush_rates": {
+      "status": "pass",
+      "details": "Frame spray finish 200 SF/hr vs brush 105 SF/hr — spray ~1.9x faster. Door spray finish 11 EA/hr vs brush 6 EA/hr — spray ~1.83x faster. Drawer spray 15 EA/hr vs brush 8 EA/hr — spray ~1.88x faster. Frame prime spray 225 SF/hr vs brush 115 SF/hr — spray ~1.96x faster. All spray rates exceed brush rates as expected. Ratios consistent with 1.4x brush time modifier documented in research."
+    },
+    "drawer_vs_door_ratio": {
+      "status": "pass",
+      "details": "Drawer-to-door ratios: spray finish 15/11=0.73x faster (matching 0.7x research target). Brush finish 8/6=0.75x faster. Sand doors 18/24(drawers)=0.75x (drawers faster). Fill drawers 20/15(doors)=0.75x (drawers faster). Consistent 0.7-0.75x ratio throughout — matches research.json 0.7x specification."
+    },
+    "interior_rates": {
+      "status": "pass",
+      "details": "Interior prime 175 SF/hr, finish 150 SF/hr. Research range: prime 150-200, finish 130-170. Both within documented ranges. Interior rates slower than frame rates (225/200 spray) due to awkward enclosed access — reasonable."
+    }
+  },
+
+  "fine_finish_doctrine_compliance": {
+    "status": "pass",
+    "findings": [
+      { "check": "FF_INTERSTAGE_MODULE_PRESENT", "result": "pass", "details": "MOD_CABT_INTERSTAGE present with 9 tasks. run_rule: 'Runs AFTER each coat EXCEPT the final coat'." },
+      { "check": "FF_SHEEN_TIER_RESTRICTIONS", "result": "pass", "details": "SYS_FF_STANDARD_ACRYLIC allowed_sheens=[satin]. SYS_FF_MODIFIED_URETHANE allowed_sheens=[satin, semi-gloss]. SYS_FF_PREMIUM allowed_sheens=[satin, semi-gloss, gloss]. Gloss correctly restricted to QT5." },
+      { "check": "FF_INITIAL_PREP_COMPLETE", "result": "pass", "details": "MOD_CABT_PREP includes fill, caulk, sand, edge seal, vacuum — complete NC prep for cabinet surfaces." },
+      { "check": "FF_TASK_CLASSIFICATION_CORRECT", "result": "pass", "details": "Binary tasks: all protection setup/teardown, hardware/door/drawer removal/reinstall, cleaning, edge seal, prime, cure period (31 total). qt_scaled: fill, sand, caulk, finish coat (spray/brush), interstage sand, inspect, patch, spot coat, touchup (27 total). Correct split." },
+      { "check": "FF_DOOR_CURE_CONSTRAINT", "result": "pass", "details": "TSK_CABT_CURE_PERIOD documents '5-7 day minimum. 7-14 days for waterborne alkyd.' estimation_notes.cure_time_constraint reinforces this." },
+      { "check": "FF_QT5_BRUSH_EXTRA_COATS", "result": "pass", "details": "ROUND_CABT_PRIME_3FINISH and ROUND_CABT_3FINISH provide 3 finish coats for QT5+brush per FFD SS15.10.3." }
+    ]
+  },
+
+  "protection_check": {
+    "status": "pass",
+    "details": "9 zones documented in research. 7 protection setup tasks in MOD_CABT_SETUP covering floor(2), countertop, backsplash, wall, ceiling, appliance, plumbing, electrical. 8 protection teardown tasks in MOD_CABT_CLEANUP covering countertop, backsplash, wall, ceiling, appliance, floor, plus 2 vacuum tasks. Setup/teardown properly paired. Spray-conditional tasks correctly conditioned via applies_when.",
+    "zone_pairing": [
+      { "zone": "floor_full_kitchen", "setup": "TSK_CABT_PROTECT_FLOOR_FULL", "teardown": "TSK_CABT_REMOVE_FLOOR_PROTECT" },
+      { "zone": "floor_perimeter", "setup": "TSK_CABT_PROTECT_FLOOR_PERIM", "teardown": "TSK_CABT_REMOVE_FLOOR_PROTECT" },
+      { "zone": "countertop_covers", "setup": "TSK_CABT_PROTECT_COUNTERTOP", "teardown": "TSK_CABT_REMOVE_COUNTERTOP_PROTECT" },
+      { "zone": "backsplash_mask", "setup": "TSK_CABT_PROTECT_BACKSPLASH", "teardown": "TSK_CABT_REMOVE_BACKSPLASH_MASK" },
+      { "zone": "wall_adjacent_cabinet", "setup": "TSK_CABT_PROTECT_WALL", "teardown": "TSK_CABT_REMOVE_WALL_MASK" },
+      { "zone": "fixture_covers", "setup": "TSK_CABT_PROTECT_CEILING + PROTECT_PLUMBING + PROTECT_ELECTRICAL", "teardown": "TSK_CABT_REMOVE_CEILING_MASK" },
+      { "zone": "appliance_covers", "setup": "TSK_CABT_PROTECT_APPLIANCE", "teardown": "TSK_CABT_REMOVE_APPLIANCE_MASK" },
+      { "zone": "cabinet_hardware", "setup": "TSK_CABT_REMOVE_HARDWARE (removal = protection)", "teardown": "TSK_CABT_REINSTALL_HARDWARE" }
+    ]
+  },
+
+  "issues": [
+    {
+      "issue_id": "ISS_CABT_001",
+      "severity": "major",
+      "area": "structural",
+      "file": "sop_modules.json",
+      "description": "skill_level key is MISSING from all 58 tasks in sop_modules.json. Per structural_keys.json task_structure.required_keys, skill_level is a required task key. The BLTN sibling spec includes skill_level on all 35 tasks. This is a structural compliance gap.",
+      "suggested_fix": "Add skill_level to each task: 'helper' for protection setup/teardown and cleaning tasks, 'journeyman' for prep/prime/finish application tasks, 'lead' for inspection and quality-critical tasks (FINAL_INSPECT, TOUCHUP, edge seal). Follow BLTN precedent for assignment pattern."
+    },
+    {
+      "issue_id": "ISS_CABT_002",
+      "severity": "major",
+      "area": "structural",
+      "file": "sop_modules.json",
+      "description": "task_count_summary claims total_tasks=61 (binary=33, qt_scaled=28) but actual count is 58 (binary=31, qt_scaled=27). The by_module breakdown 12+11+4+7+9+2+13=58, which matches the actual tasks, but the summary totals are inflated by 3. The per-classification counts are also wrong: actual binary=31, actual qt_scaled=27.",
+      "suggested_fix": "Update task_count_summary to: total_tasks=58, binary=31, qt_scaled=27. Verify the by_module counts match (they already do: 12+11+4+7+9+2+13=58)."
+    },
+    {
+      "issue_id": "ISS_CABT_003",
+      "severity": "minor",
+      "area": "cross_file",
+      "file": "sop_modules.json",
+      "description": "TSK_CABT_PROTECT_CEILING uses zone 'fixture_covers' but this is a ceiling masking task. The resolution.json does not list a dedicated ceiling spray protection zone — fixture_covers is the closest existing zone but semantically represents light/outlet fixtures, not ceiling plastic sheeting. PROTECT_PLUMBING and PROTECT_ELECTRICAL also share fixture_covers zone, which is correct for those tasks. The ceiling task would more properly use a ceiling-specific zone or a spray masking zone.",
+      "suggested_fix": "Acceptable for v0.1.0 — fixture_covers is a reasonable zone assignment. During spec.json assembly, consider whether a dedicated spray_masking or ceiling_spray zone is needed. Non-blocking."
+    },
+    {
+      "issue_id": "ISS_CABT_004",
+      "severity": "minor",
+      "area": "cross_file",
+      "file": "sop_modules.json",
+      "description": "TSK_CABT_PROTECT_BACKSPLASH has unit_of_measure=LF and paintscope_key=PS_PROTECT_SF.ASSET.TILE_BACKSPLASH. The PS_ key name contains 'SF' but the actual measurement is in LF. Resolution.json notes this tension: 'PS_ key from Reference is SF-based; downstream may need to reconcile or create a LF variant.' The task correctly uses LF as the operational UOM, but the PS_ key prefix suggests SF.",
+      "suggested_fix": "Non-blocking for v0.1.0. During registry update, consider renaming to PS_PROTECT_LF.ASSET.TILE_BACKSPLASH for consistency, or document that the PS_ category prefix does not always match the UOM."
+    },
+    {
+      "issue_id": "ISS_CABT_005",
+      "severity": "minor",
+      "area": "cross_file",
+      "file": "sop_modules.json",
+      "description": "TSK_CABT_PROTECT_WALL has unit_of_measure=SF and paintscope_key=PS_PROTECT_LF.WALL_ADJACENT_CABINET. The PS_ key name contains 'LF' but the actual measurement is in SF (wall masking area). Resolution.json notes: 'PS_ key exists in Protection_Zones_Reference (wall_adjacent_cabinet zone) but uses LF in reference. Research uses SF for wall masking area.' The task and production.json correctly use SF rates.",
+      "suggested_fix": "Non-blocking for v0.1.0. During registry update, consider creating PS_PROTECT_SF.WALL_ADJACENT_CABINET for SF-based measurement, or document the PS_ naming convention exception."
+    },
+    {
+      "issue_id": "ISS_CABT_006",
+      "severity": "minor",
+      "area": "cross_file",
+      "file": "materials.json",
+      "description": "SYS_PRIMER_BONDING is a PROPOSED new system ID. Resolution.json correctly flags it in registry_additions_proposed. It is not yet in id_registry.json. This is expected for a new spec but must be registered before deployment.",
+      "suggested_fix": "Register SYS_PRIMER_BONDING in id_registry.json during assembly step. Non-blocking for v0.1.0 draft."
+    },
+    {
+      "issue_id": "ISS_CABT_007",
+      "severity": "minor",
+      "area": "rate_reasonableness",
+      "file": "production.json",
+      "description": "All production rates are research-based estimates with doctrine gaps flagged (assumptions A-001 through A-010). No canonical doctrine provides per-door, per-drawer, or per-frame-SF cabinet painting rates. Rates are calibrated from research ranges and cross-referenced against BLTN precedent. Door spray finish 11 EA/hr (research: 10-12) and frame spray 200 SF/hr (research: 180-220) are reasonable midpoint selections.",
+      "suggested_fix": "Flag for field validation. Rate ranges provided throughout. All rates within research-documented ranges. App allows per-task rate adjustment."
+    },
+    {
+      "issue_id": "ISS_CABT_008",
+      "severity": "minor",
+      "area": "domain",
+      "file": "sop_modules.json",
+      "description": "Prime tasks (TSK_CABT_PRIME_FRAMES, PRIME_DOORS, PRIME_DRAWERS, PRIME_INTERIOR) are classified as 'binary' but have rates_by_method in production.json (spray/brush variants). Binary classification is correct per doctrine — primer application rate does not vary by quality tier. The rates_by_method structure on binary tasks is non-standard (BLTN used rates_by_substrate_state for binary), but the content is valid: primer rate depends on method, not QT.",
+      "suggested_fix": "Acceptable. rates_by_method on binary tasks is a valid pattern for method-dependent rates that are NOT QT-driven. Document this pattern for future specs."
+    }
+  ],
+
+  "validation_checklist": [
+    { "check": "Task ID match: SOP to Production", "result": "pass", "notes": "58/58 tasks match" },
+    { "check": "UOM match: SOP to Production", "result": "pass", "notes": "All 58 tasks have identical UOM" },
+    { "check": "PaintScope key consistency across files", "result": "warning", "notes": "PS_ keys match but 2 have UOM naming tension (backsplash LF vs SF prefix, wall SF vs LF prefix)" },
+    { "check": "Material system IDs registered/proposed", "result": "pass", "notes": "9 existing + 1 proposed (SYS_PRIMER_BONDING)" },
+    { "check": "Phase values compliant", "result": "pass", "notes": "setup/prep/prime/interstage/finish/cleanup — no prohibited values" },
+    { "check": "task_classification used (not task_class)", "result": "pass", "notes": "All 58 tasks use task_classification" },
+    { "check": "Severity values compliant", "result": "pass", "notes": "critical/major/minor only" },
+    { "check": "UOM values uppercase", "result": "pass", "notes": "EA/SF/LF/FIXED — all uppercase" },
+    { "check": "CON_ prefix (not CONS_)", "result": "pass", "notes": "All 20 consumables use CON_" },
+    { "check": "Sheen single values", "result": "pass", "notes": "satin/semi-gloss/gloss — no compounds" },
+    { "check": "Required top-level keys present", "result": "pass", "notes": "All files have required keys per structural_keys.json" },
+    { "check": "No prohibited keys", "result": "pass", "notes": "No task_class, rate_per_hour in SOP, etc." },
+    { "check": "task_count_summary accurate", "result": "fail", "notes": "Claims 61, actual 58. binary claims 33, actual 31. qt_scaled claims 28, actual 27." },
+    { "check": "skill_level on all SOP tasks", "result": "fail", "notes": "Missing from all 58 tasks — required per structural_keys.json" },
+    { "check": "MDF edge seal before latex primer", "result": "pass", "notes": "EDGE_SEAL in MOD_CABT_PREP (seq 2) before MOD_CABT_PRIME (seq 3)" },
+    { "check": "Cabinet interiors always QT3", "result": "pass", "notes": "Interior tasks use single rate (not tiered), materials COMPAT_005 enforces QT3 override" },
+    { "check": "Door style modifier scoped to doors/drawers only", "result": "pass", "notes": "applies_to lists only door/drawer tasks; does_not_apply_to excludes frames" },
+    { "check": "Cure period documented in production", "result": "pass", "notes": "TSK_CABT_CURE_PERIOD with 5-7 day minimum, scheduling notes" },
+    { "check": "Modifier stacking under 4.0x", "result": "pass", "notes": "Max theoretical 3.29x (frames) and 1.95x (doors)" },
+    { "check": "Spray rates > brush rates", "result": "pass", "notes": "All spray rates ~1.8-2.0x faster than brush equivalents" },
+    { "check": "Cabinet rates vs BLTN precedent within 2x", "result": "pass", "notes": "Door spray 11 vs BLTN 10 EA/hr. Hardware 35 vs BLTN 30-45. All within range." },
+    { "check": "Module phase ordering correct", "result": "pass", "notes": "setup(1) > prep(2) > prime(3) > finish(4) > interstage(5) > finish(6) > cleanup(7)" },
+    { "check": "TSK_CABT_ prefix on all tasks", "result": "pass", "notes": "58/58 tasks use correct prefix" },
+    { "check": "Round configurations complete", "result": "pass", "notes": "4 rounds cover all substrate x QT x method combinations" },
+    { "check": "Protection setup/teardown paired", "result": "pass", "notes": "All zones have matching setup and teardown tasks" },
+    { "check": "Workflow sequence documented", "result": "pass", "notes": "3 workflow variants documented: standard_bare_spray, standard_factory_primed, qt5_brush_bare" }
+  ],
+
+  "registry_additions_count": {
+    "SF_": 1,
+    "ITM_": "4 new (ITM_CABINET_DOOR, ITM_CABINET_DRAWER, ITM_CABINET_FRAME, ITM_CABINET_INTERIOR)",
+    "TSK_": "58 tasks under TSK_CABT_*",
+    "MOD_": "7 modules under MOD_CABT_*",
+    "ROUND_": 4,
+    "COV_": 2,
+    "SYS_": "1 new (SYS_PRIMER_BONDING), 9 used_in updates",
+    "PS_": "10 new proposed",
+    "IN_": "11 new proposed",
+    "surface_ids": "5 proposed activation (cabinet_face_frame, cabinet_door, cabinet_drawer, cabinet_box_interior, cabinet_end_panel)",
+    "zone_ids": "7 proposed activation (floor_full_kitchen, countertop_covers, backsplash_mask, wall_adjacent_cabinet, appliance_covers, appliance_adjacent, cabinet_hardware)",
+    "CON_": "3 new (CON_MASKING_FILM_PLASTIC, CON_PAINTING_PYRAMIDS, CON_HARDWARE_BAGS)"
+  },
+
+  "doctrine_compliance": {
+    "fine_finish_doctrine": "Compliant. Combined prime+paint with conditional primer. Interstage universal. QT5 brush 3+ coats via ROUND_CABT_PRIME_3FINISH/ROUND_CABT_3FINISH. Material systems: SYS_FF_STANDARD_ACRYLIC (QT3), SYS_FF_MODIFIED_URETHANE (QT4), SYS_FF_PREMIUM (QT5). Sheen/QT gates enforced. Roll and Tip method referenced for brush work. 5-7 day cure constraint documented.",
+    "millwork_nc_paint_doctrine": "Compliant. MDF two-step prime enforced (edge seal in MOD_CABT_PREP before primer in MOD_CABT_PRIME). Substrate-driven primer selection: MDF shellac+latex, hardwood tannin-block, poplar stain-block, wood acrylic. New bonding primer proposed for QT4+ smooth substrates.",
+    "materials_and_consumables_doctrine": "Compliant. CON_ prefix throughout. 20 consumables using valid categories and uppercase units. Coverage profiles documented (COV_CABT_PRIMER, COV_CABT_FINISH). Caulk at 72 LF/tube matches Materials Doctrine standard.",
+    "estimation_modifiers_doctrine": "Compliant. All modifiers are TIME modifiers (effective_rate = base_rate / modifier). 5 modifier types: door_style, quality_tier, height, kitchen_complexity, masking_scope. Stacking is multiplicative. Max theoretical 3.29x under 4.0x flag.",
+    "conventions": "Compliant. CON_ prefix. task_classification (not task_class). Severity: critical/major/minor. Phase values: setup/prep/prime/interstage/finish/cleanup. All units uppercase. IN_EA_ROOMS_TOTAL, IN_SF_PROTECT_FLOOR_EXPOSED, IN_SF_FLOOR_VACUUM_AREA, IN_SF_PROTECT_FLOOR_PERIMETER all use canonical names."
+  },
+
+  "human_feedback": {
+    "present": false,
+    "artifact": "SF_CABINET_NC_PAINT_v1 pipeline files",
+    "status": "missing",
+    "notes": "Expected for v0.1.0 draft. Human Feedback Gate has NOT occurred. Standard pipeline flow."
+  },
+
+  "key_characteristics": [
+    "4 paintable items: ITM_CABINET_DOOR (EA), ITM_CABINET_DRAWER (EA), ITM_CABINET_FRAME (SF), ITM_CABINET_INTERIOR (SF conditional on scope=full_with_interior).",
+    "58 tasks total (31 binary, 27 qt_scaled) across 7 modules — complex spec reflecting kitchen/bath cabinet painting with 9 protection zones.",
+    "Separate spray/brush finish tasks (7 tasks in MOD_CABT_FINISH_COAT) with method-specific rates. Spray 1.8-2.0x faster than brush throughout.",
+    "Door/drawer removal workflow: remove in SETUP, paint flat on sawhorses in FINISH_COAT, reinstall in CLEANUP after 5-7 day cure. Two separate mobilizations.",
+    "5 modifiers: door_style (slab/shaker/raised_panel/glass_frame), quality_tier (QT3-QT5), height (8-12ft), kitchen_complexity (simple-very_complex), masking_scope (informational only — handled by task activation).",
+    "Drawer-to-door time ratio consistently 0.7x across all task types — matches research specification.",
+    "Cabinet interiors always QT3 regardless of exterior tier (AWI semi-exposed standard), spray-only.",
+    "7 primer systems (6 existing + 1 proposed SYS_PRIMER_BONDING) + 3 finish systems (all reused SYS_FF_*). REUSE OVER CREATION principle followed for finish systems.",
+    "4 round configurations cover all substrate_state x quality_tier x method combinations.",
+    "9 protection zones — most of any spec — reflecting enclosed kitchen environment with high-value adjacent surfaces (countertops, backsplash, appliances)."
+  ],
+
+  "review_notes": "Cabinet painting spec successfully builds on the BLTN precedent for door removal/flat painting/cure/reinstall workflow while adding cabinet-specific complexity: 4 distinct item types (door, drawer, frame, interior), 9 protection zones, kitchen_complexity modifier, and countertop/backsplash protection. The dual spray/brush task architecture (7 finish coat tasks) is more sophisticated than BLTN's 4 finish tasks and correctly captures the rate differential. Drawer-to-door 0.7x ratio is consistently maintained. Interior QT3 override is properly enforced. MDF edge seal sequencing is correct. Two major issues require fix before deployment: (1) add skill_level to all 58 SOP tasks, (2) correct task_count_summary from 61 to 58. The 6 minor issues are naming tensions, documentation items, and field validation flags — all acceptable for v0.1.0 draft."
+}
