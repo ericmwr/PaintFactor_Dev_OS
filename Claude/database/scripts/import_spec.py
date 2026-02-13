@@ -425,7 +425,7 @@ def import_materials_json(conn, materials, sf_id, report):
                        VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
                     (sf_id, sys_id, prod.get("product_role"), prod.get("product_type"),
                      json_str(prod.get("example_products")), prod.get("sheen"),
-                     prod.get("coats_required"), prod.get("notes")),
+                     prod.get("coats_required") or prod.get("default_coats"), prod.get("notes")),
                 )
                 product_count += 1
         else:
@@ -661,7 +661,7 @@ def import_production_json(conn, production, sf_id, report):
             name=h.get("wall_height"),
             description=h.get("height_range"),
             modifier_type="multiplier",
-            time_mod=h.get("time_modifier"),
+            time_mod=h.get("time_increase_modifier") or h.get("time_modifier"),
             notes=h.get("notes"),
         )
 
