@@ -80,8 +80,10 @@ It does NOT replace runtime systems or human judgment.
 
 1. Restate the objective in 1–3 lines.
 2. Classify the request:
-   - **DevOS work** (architecture, schemas, UI, docs)
+   - **DevOS work** (architecture, schemas, docs)
    - **SpecFactory work** (spec generation)
+   - **DataFactory work** (JSON → SQLite import)
+   - **AppFactory work** (prototype UI, estimation engine, data integration)
 3. If SpecFactory work:
    - Delegate to **SpecFactory Orchestrator** (do not run agents directly)
    - SpecFactory Orchestrator owns the pipeline sequence:
@@ -176,6 +178,31 @@ When delegating to SpecFactory Orchestrator, include:
 - The full approved brief content
 - Instruction to use brief Section 8 (Doctrine References) for agent context
 - Instruction to validate against brief Section 9 (Acceptance Criteria)
+
+---
+
+## AppFactory Delegation
+
+When the request involves the PaintScope prototype UI, estimation engine, or data integration:
+
+1. Delegate to **AppFactory Orchestrator** (do not run AppFactory agents directly)
+2. AppFactory Orchestrator owns the routing:
+   - UI fixes/features → UI-Designer Agent
+   - Engine bugs/features → Engine Agent
+   - Data loading issues → Data Integration Agent
+   - Cross-cutting → sequenced multi-agent work
+   - After any fix → Prototype Critic validation
+3. Dev Orchestrator monitors for completion and Prototype Critic PASS
+
+### AppFactory Request Examples
+
+| Request | Route |
+|---------|-------|
+| "Fix the trim calculation" | AppFactory → Engine Agent |
+| "Add stairwell support to PaintScope" | AppFactory → UI-Designer + Engine + Data Integration |
+| "The new spec isn't showing up" | AppFactory → Data Integration Agent |
+| "Redesign the estimate view" | AppFactory → UI-Designer Agent |
+| "Move from prototype to modular architecture" | AppFactory → all agents (phased transition) |
 
 ---
 
