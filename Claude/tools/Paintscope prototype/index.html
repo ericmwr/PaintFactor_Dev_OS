@@ -1083,13 +1083,9 @@ function exportProject(state) {
 // ESTIMATION ENGINE — Pure functions, no side effects
 // ============================================================
 
-// Doctrine canonical fallback values
-const DOCTRINE = {
-  height: { STD:1.0, STEP:1.3, EXT:1.5, SCAFFOLD:2.0, LIFT:2.5 },
-  texture: { smooth:1.0, orange_peel:1.1, knockdown:1.15, heavy_texture:1.25, skip_trowel:1.2 },
-  complexity: { OPEN:0.9, STD:1.0, MOD:1.3, COMPLEX:1.5, VCOMPLEX:2.0 },
-  qt_default: { QT2:0.8, QT3:1.0, QT4:1.3, QT5:1.5 }
-};
+// DOCTRINE fallbacks removed — per doctrine, all modifier values must come from
+// the data layer. If a modifier is missing from DB, the engine warns (fail loud)
+// and uses 1.0 (neutral) rather than silently applying a hardcoded value.
 
 const PHASE_ORDER = ['setup','prep','prime','apply','interstage','finish','cleanup'];
 
@@ -1432,19 +1428,22 @@ function evaluateAppliesWhen(condition, ctx) {
  * Compute modifier stack for a spec family + room context.
  * Returns { qt, height, texture, complexity, total }
  */
-function computeModifierStack(specFamilyId, ctx, db) {
-  // 1. QT modifier — from quality_tier_effects table first, then Doctrine
+function computeModifierStack(specFamilyId, ctx, db, warnings) {
+  // Per doctrine: all modifier values must come from the data layer.
+  // If a modifier is missing, warn and use 1.0 (neutral) — never silently fallback.
+
+  // 1. QT modifier — from quality_tier_effects table
   let qtMod = 1.0;
   const qteRow = db.quality_tier_effects.find(
     r => r.spec_family_id === specFamilyId && r.quality_tier === ctx.quality_tier
   );
   if (qteRow && qteRow.time_modifier != null) {
     qtMod = qteRow.time_modifier;
-  } else {
-    qtMod = DOCTRINE.qt_default[ctx.quality_tier] || 1.0;
+  } else if (ctx.quality_tier && ctx.quality_tier !== 'QT3') {
+    warnings.push(`QT modifier for ${ctx.quality_tier} not found in DB for ${specFamilyId}. Using 1.0 (neutral).`);
   }
 
-  // 2. Height modifier — from factor_modifiers or Doctrine
+  // 2. Height modifier — from factor_modifiers
   let heightMod = 1.0;
   const heightFactors = db.factor_modifiers.filter(
     f => f.spec_family_id === specFamilyId && f.modifier_category === 'height'
@@ -1454,7 +1453,6 @@ function computeModifierStack(specFamilyId, ctx, db) {
     for (const hf of heightFactors) {
       if (hf.condition && typeof hf.condition === 'object') {
         const bandKey = ctx.height_band ? ctx.height_band.toLowerCase() : 'standard';
-        // Check various naming patterns
         for (const [k, v] of Object.entries(hf.condition)) {
           const kLower = k.toLowerCase();
           if (kLower.includes(bandKey) || kLower === bandKey ||
@@ -1476,15 +1474,14 @@ function computeModifierStack(specFamilyId, ctx, db) {
         }
       }
     }
-    // If still 1.0 and we have a non-STD height, fall back to Doctrine
     if (heightMod === 1.0 && ctx.height_band && ctx.height_band !== 'STD') {
-      heightMod = DOCTRINE.height[ctx.height_band] || 1.0;
+      warnings.push(`Height modifier for band ${ctx.height_band} not resolved from DB for ${specFamilyId}. Using 1.0 (neutral).`);
     }
-  } else {
-    heightMod = DOCTRINE.height[ctx.height_band] || 1.0;
+  } else if (ctx.height_band && ctx.height_band !== 'STD') {
+    warnings.push(`No height modifiers in DB for ${specFamilyId}. Using 1.0 (neutral).`);
   }
 
-  // 3. Texture modifier — from factor_modifiers.value or Doctrine
+  // 3. Texture modifier — from factor_modifiers
   let textureMod = 1.0;
   const texFactors = db.factor_modifiers.filter(
     f => f.spec_family_id === specFamilyId && f.modifier_category === 'texture'
@@ -1502,12 +1499,15 @@ function computeModifierStack(specFamilyId, ctx, db) {
       }
     }
   }
-  if (textureMod === 1.0) {
-    textureMod = DOCTRINE.texture[ctx.texture] || 1.0;
+  if (textureMod === 1.0 && ctx.texture && ctx.texture !== 'smooth') {
+    warnings.push(`Texture modifier for ${ctx.texture} not found in DB for ${specFamilyId}. Using 1.0 (neutral).`);
   }
 
-  // 4. Complexity modifier — Doctrine only (no DB rows for this yet)
-  const complexityMod = DOCTRINE.complexity[ctx.complexity] || 1.0;
+  // 4. Complexity modifier — no DB rows exist yet; warn if non-standard
+  let complexityMod = 1.0;
+  if (ctx.complexity && ctx.complexity !== 'STD') {
+    warnings.push(`Complexity modifier for ${ctx.complexity} not available in DB for ${specFamilyId}. Using 1.0 (neutral).`);
+  }
 
   const total = qtMod * heightMod * textureMod * complexityMod;
 
@@ -1642,7 +1642,7 @@ function runEstimate(state, db) {
         texture: (room.substrates?.walls?.texture) || (room.substrates?.ceiling?.texture) || project.default_texture
       };
 
-      const modStack = computeModifierStack(spec.id, ctx, db);
+      const modStack = computeModifierStack(spec.id, ctx, db, warnings);
 
       // For each module -> task
       modules.forEach(mod => {
@@ -1662,7 +1662,10 @@ function runEstimate(state, db) {
 
           // Get production rates for this task
           const rates = ratesByTask[`${spec.id}::${task.id}`] || [];
-          if (rates.length === 0) return;
+          if (rates.length === 0) {
+            warnings.push(`No production rate found for task ${task.id} in ${spec.id} with config ${JSON.stringify(ctx)}`);
+            return;
+          }
 
           rates.forEach(rateRow => {
             // Check rate applies_when
@@ -1676,8 +1679,8 @@ function runEstimate(state, db) {
             let displayRate = null;
 
             if (resolved.isFixed) {
-              // FIXED: hours = fixed_minutes * total_modifier / 60
-              hours = (resolved.fixedMinutes * modStack.total) / 60;
+              // FIXED: hours = fixed_minutes / 60 (no modifier per doctrine)
+              hours = resolved.fixedMinutes / 60;
               quantity = 1;
               displayRate = `${resolved.fixedMinutes}m`;
             } else {
@@ -1905,9 +1908,9 @@ function computeMaterialEstimates(state, db, roomLookups) {
 
     if (!matchedProfile || !matchedProfile.coverage_sf_per_gallon) return;
 
-    // Compute gallons: (SF * coats) / coverage_rate * (1 + spray_loss)
+    // Compute gallons: (SF * coats) / coverage_rate / (1 - spray_loss)
     const rawGallons = (specSF * coats) / matchedProfile.coverage_sf_per_gallon;
-    const sprayMultiplier = isSpray ? (1 + SPRAY_LOSS_FACTOR) : 1;
+    const sprayMultiplier = isSpray ? (1 / (1 - SPRAY_LOSS_FACTOR)) : 1;
     const gallons = rawGallons * sprayMultiplier;
 
     estimates.push({
