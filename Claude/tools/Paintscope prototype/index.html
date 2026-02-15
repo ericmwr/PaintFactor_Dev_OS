@@ -582,6 +582,48 @@ const SPEC_SUBSTRATE_MAP = {
   'SF_CABINET_NC_PAINT':         'doors',
 };
 
+// Maps UI substrate_state values to spec system enum values (SS_* codes)
+const UI_STATE_TO_SPEC_STATE = {
+  'bare_drywall':       'SS_BARE',
+  'field_primed':       'SS_PRIMED_FIELD',
+  'factory_primed':     'SS_PRIMED_FACTORY',
+  'previously_painted': 'SS_PAINTED',           // Generic prefix — matches any SS_PAINTED_*
+  'bare_wood':          'SS_BARE',
+  'stained':            'SS_STAINED',
+  'wood':               'SS_BARE',              // Unpainted wood = bare
+  'vinyl_clad':         null                    // Not paintable via current NC specs
+};
+
+// Valid input states per spec family (from spec_state_declarations table)
+const SPEC_VALID_INPUT_STATES = {
+  'SF_DRYWALL_WALL_NC_PRIME':    ['SS_BARE'],
+  'SF_DRYWALL_WALL_NC_FINISH':   ['SS_PRIMED','SS_PRIMED_FIELD'],
+  'SF_DRYWALL_CEILING_NC_PRIME': ['SS_BARE'],
+  'SF_DRYWALL_CEILING_NC_FINISH':['SS_PRIMED','SS_PRIMED_FIELD'],
+  'SF_TRIM_NC_PRIME':            ['SS_PRIMED_FACTORY','SS_BARE','SS_PAINTED_SEMIGLOSS','SS_PAINTED_GLOSS','SS_PAINTED_ALKYD'],
+  'SF_TRIM_NC_PAINT':            ['SS_PRIMED_FIELD','SS_PRIMED_FACTORY'],
+  'SF_DOOR_SLAB_INT_NC':         ['SS_PRIMED_FACTORY','SS_BARE'],
+  'SF_DOOR_FRAME_NC_FINISH':     ['SS_PRIMED_FACTORY','SS_BARE'],
+  'SF_WINDOW_INT_NC':            ['SS_BARE','SS_PRIMED_FACTORY'],
+  'SF_WAINSCOT_PANEL_NC':        ['SS_BARE','SS_PRIMED_FACTORY'],
+  'SF_WOOD_WALL_NC':             ['SS_BARE','SS_PRIMED_FACTORY'],
+  'SF_WOOD_CEILING_NC':          ['SS_BARE','SS_PRIMED_FACTORY'],
+  'SF_CLOSET_SHELF_NC':          ['SS_BARE','SS_PRIMED_FACTORY'],
+  'SF_ARCH_ELEMENT_NC':          ['SS_BARE','SS_PRIMED_FACTORY'],
+  'SF_BUILTIN_NC':               ['SS_BARE','SS_PRIMED_FACTORY'],
+  'SF_STAIR_RISER_NC':           ['SS_BARE','SS_PRIMED_FACTORY'],
+  'SF_STAIR_RAILING_NC':         ['SS_BARE','SS_PRIMED_FACTORY','SS_POWDER_COATED'],
+  'SF_CABINET_NC_PAINT':         ['SS_BARE','SS_PRIMED_FACTORY'],
+};
+
+// Output states for specs that produce intermediate states (for chain activation)
+// Only separate prime specs need this — combined specs handle state internally
+const SPEC_OUTPUT_STATES = {
+  'SF_DRYWALL_WALL_NC_PRIME':    'SS_PRIMED_FIELD',
+  'SF_DRYWALL_CEILING_NC_PRIME': 'SS_PRIMED_FIELD',
+  'SF_TRIM_NC_PRIME':            'SS_PRIMED_FIELD',
+};
+
 // Grouped for the Scope panel checklist
 const SUBSTRATE_GROUPS = [...new Set(SUBSTRATE_CATALOG.map(s => s.group))].map(g => ({
   group: g,
@@ -1511,6 +1553,91 @@ function resolveTextureForSpec(specId, room, project) {
 }
 
 /**
+ * Resolve the spec system state (SS_*) for a spec's primary substrate in a room.
+ * For items-based substrates (doors/windows), checks the first item's state.
+ * Falls back to SUBSTRATE_CATALOG default when substrate_state is null.
+ */
+function resolveSubstrateStateForSpec(specId, room) {
+  const primarySub = SPEC_SUBSTRATE_MAP[specId];
+  if (!primarySub) return null;
+
+  const subs = room.substrates || {};
+
+  // For trim specs, check all trim-group substrates (they share prime/paint specs)
+  const subIds = (primarySub === 'baseboard')
+    ? SUBSTRATE_CATALOG.filter(s => s.group === 'Trim').map(s => s.id).filter(id => subs[id])
+    : (subs[primarySub] ? [primarySub] : []);
+
+  // Return array of resolved SS_* states for all relevant substrates in this room
+  const states = [];
+  for (const sid of subIds) {
+    const config = subs[sid];
+    if (!config) continue;
+
+    let uiState = config.substrate_state;
+    // Items-based substrates: use first item's state
+    if (!uiState && config.items && config.items.length > 0) {
+      uiState = config.items[0].substrate_state;
+    }
+    // Fall back to catalog default
+    if (!uiState) {
+      const cat = SUBSTRATE_MAP[sid];
+      if (cat && cat.defaultConfig) uiState = cat.defaultConfig.substrate_state;
+    }
+    if (uiState) {
+      const mapped = UI_STATE_TO_SPEC_STATE[uiState];
+      if (mapped) states.push(mapped);
+    }
+  }
+  return states;
+}
+
+/**
+ * Check if a spec's valid_input_states accepts a given SS_* state.
+ * Handles 'SS_PAINTED' prefix matching for previously_painted substrates.
+ */
+function specAcceptsState(specId, specState) {
+  const validStates = SPEC_VALID_INPUT_STATES[specId];
+  if (!validStates) return true;
+  if (!specState) return true;
+  if (validStates.includes(specState)) return true;
+  // Prefix match: previously_painted maps to generic SS_PAINTED
+  if (specState === 'SS_PAINTED') {
+    return validStates.some(s => s.startsWith('SS_PAINTED'));
+  }
+  return false;
+}
+
+/**
+ * Check if a spec should activate for a room based on substrate state compatibility.
+ * Uses direct match + one-level chain activation: if another spec produces a state
+ * this spec accepts (e.g., wall prime outputs SS_PRIMED_FIELD → wall finish accepts it).
+ */
+function isSpecStateCompatible(specId, room) {
+  const states = resolveSubstrateStateForSpec(specId, room);
+  if (!states || states.length === 0) return true; // No state info = allow
+
+  for (const specState of states) {
+    // Direct match: substrate state is in this spec's valid_input_states
+    if (specAcceptsState(specId, specState)) return true;
+
+    // Chain match: another spec produces a state this spec accepts
+    const primarySub = SPEC_SUBSTRATE_MAP[specId];
+    for (const [producerSpecId, outputState] of Object.entries(SPEC_OUTPUT_STATES)) {
+      if (producerSpecId === specId) continue;
+      // Producer must serve the same substrate group
+      if (SPEC_SUBSTRATE_MAP[producerSpecId] !== primarySub) continue;
+      // Producer must accept the current substrate state
+      if (!specAcceptsState(producerSpecId, specState)) continue;
+      // This spec must accept the producer's output
+      const validStates = SPEC_VALID_INPUT_STATES[specId];
+      if (validStates && validStates.includes(outputState)) return true;
+    }
+  }
+  return false;
+}
+
+/**
  * Evaluate applies_when JSON condition against room context.
  * Condition format: {"quality_tier":["QT3","QT4"], "application_method":["spray_backroll"]}
  * All keys must match (AND logic). Each value is an array of allowed values (OR logic).
@@ -1705,6 +1832,7 @@ function runEstimate(state, db) {
     if (modules.length === 0) return; // No modules = skip
 
     // Check if this spec has any matching quantities across all rooms
+    // AND substrate state is compatible with the spec's valid_input_states
     let specHasQuantity = false;
     const allPsKeys = inputs.map(i => i.paintscope_key);
     // For activation: only check surface/opening keys — meta, protection, edge, and modifier
@@ -1714,12 +1842,15 @@ function runEstimate(state, db) {
     rooms.forEach((room, ri) => {
       const roomQty = roomLookups.get(ri);
       if (psKeys.some(k => roomQty && roomQty.has(k) && roomQty.get(k).value > 0)) {
-        specHasQuantity = true;
+        // Quantity exists — now check substrate state compatibility
+        if (isSpecStateCompatible(spec.id, room)) {
+          specHasQuantity = true;
+        }
       }
     });
 
     if (!specHasQuantity) {
-      return; // Skip spec — no rate-based quantities match in any room
+      return; // Skip spec — no quantities match or substrate state incompatible
     }
 
     let specTotalHours = 0;
@@ -1731,17 +1862,21 @@ function runEstimate(state, db) {
       const roomQty = roomLookups.get(ri);
 
       // Per-room activation: skip this room if it has NONE of the spec's activation keys
-      // (A spec may be activated by Room A but should not produce tasks in Room B if Room B
-      // has none of the spec's surface/opening quantities)
+      // OR if the room's substrate state is incompatible with this spec
       const roomHasSpec = psKeys.some(k => roomQty && roomQty.has(k) && roomQty.get(k).value > 0);
       if (!roomHasSpec) return;
+      if (!isSpecStateCompatible(spec.id, room)) return;
 
+      // Resolve substrate_state for this spec's substrate in this room (SS_* enum)
+      // Used by combined specs' applies_when conditions on primer modules
+      const roomSpecStates = resolveSubstrateStateForSpec(spec.id, room);
       const ctx = {
         quality_tier: room.quality_tier || project.default_quality_tier,
         height_band: room.height_band || project.default_height_band,
         complexity: room.complexity || project.default_complexity,
         application_method: resolveApplicationMethod(spec.id, room, project),
-        surface_texture: resolveTextureForSpec(spec.id, room, project)
+        surface_texture: resolveTextureForSpec(spec.id, room, project),
+        substrate_state: (roomSpecStates && roomSpecStates.length > 0) ? roomSpecStates[0] : null
       };
 
       const modStack = computeModifierStack(spec.id, ctx, db, warnings);
