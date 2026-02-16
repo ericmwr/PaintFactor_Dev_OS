@@ -487,65 +487,76 @@
     }
   ],
 
-  "modifier_registry": {
-    "height_modifiers": {
-      "arch_elements": {
-        "H1_STANDARD": { "value": 1.0, "height_range": "8-9 ft", "description": "Standard ceiling height. Step ladder for overhead beam work. Standing work for columns and mantels." },
-        "H2_STEP": { "value": 1.30, "height_range": "9-12 ft", "description": "Taller step ladder. Beams harder overhead. Columns need larger ladder for top." },
-        "H3_EXT": { "value": 1.50, "height_range": "13-17 ft", "description": "Extension ladder or scaffold. Beams require scaffold platform. Tall columns require repositioning." },
-        "H4_SCAFFOLD": { "value": 2.00, "height_range": "18-24 ft", "description": "Full scaffold. Significant access setup. Beams at cathedral ceiling height." }
-      },
-      "application_rule": "Engine applies height modifier per room via PS_META.HEIGHT_BAND. NOT embedded in base rates. effective_rate = base_rate / height_modifier. Applies to ALL beam tasks (overhead) and ALL column tasks (full-height). Mantel tasks typically H1 but engine can override if mantel is at unusual height (overmantel, etc.).",
-      "notes": "Height modifiers from Modifier_Registry v1.2. Beam overhead penalty (~0.85x of trim rates) is BAKED INTO base rates. Height modifier stacks ON TOP of overhead penalty for beams. For columns, height modifier is the primary access factor — no separate overhead penalty."
+  "factor_modifiers": [
+    {
+      "modifier_category": "height",
+      "applies_to": ["all_beam_tasks", "all_column_tasks"],
+      "application_rule": "Engine applies height modifier per room via PS_META.HEIGHT_BAND. NOT embedded in base rates. effective_rate = base_rate / height_modifier. Applies to ALL beam tasks (overhead) and ALL column tasks (full-height). Mantel tasks typically H1 but engine can override if mantel is at unusual height.",
+      "notes": "Height modifiers from Modifier_Registry v1.2. Beam overhead penalty (~0.85x of trim rates) is BAKED INTO base rates. Height modifier stacks ON TOP of overhead penalty for beams. For columns, height modifier is the primary access factor.",
+      "modifiers": [
+        { "modifier_id": "H1_STANDARD", "time_multiplier": 1.0, "height_range": "8-9 ft", "notes": "Standard ceiling height. Step ladder for overhead beam work. Standing work for columns and mantels." },
+        { "modifier_id": "H2_STEP", "time_multiplier": 1.30, "height_range": "9-12 ft", "notes": "Taller step ladder. Beams harder overhead. Columns need larger ladder for top." },
+        { "modifier_id": "H3_EXT", "time_multiplier": 1.50, "height_range": "13-17 ft", "notes": "Extension ladder or scaffold. Beams require scaffold platform. Tall columns require repositioning." },
+        { "modifier_id": "H4_SCAFFOLD", "time_multiplier": 2.00, "height_range": "18-24 ft", "notes": "Full scaffold. Significant access setup. Beams at cathedral ceiling height." }
+      ]
     },
-    "quality_tier_modifiers": {
+    {
+      "modifier_category": "quality_tier",
       "source": "Modifier_Registry.md v1.2",
-      "applies_to": "qt_scaled tasks only",
+      "applies_to": ["qt_scaled tasks only"],
       "does_not_apply_to": "binary tasks — application (prime, spray, brush) quality is NOT tiered; protection and cleanup tasks",
-      "values": {
-        "QT3": 1.0,
-        "QT4": 1.3,
-        "QT5": 1.5
-      },
-      "application_rule": "Modifiers increase TIME. effective_rate = base_rate / modifier. QT modifiers apply ONLY to qt_scaled tasks (fill, interstage sand, inspect, patch, spot coat, touchup, final inspect)."
+      "application_rule": "Modifiers increase TIME. effective_rate = base_rate / modifier. QT modifiers apply ONLY to qt_scaled tasks (fill, interstage sand, inspect, patch, spot coat, touchup, final inspect).",
+      "modifiers": [
+        { "modifier_id": "QT3", "time_multiplier": 1.0 },
+        { "modifier_id": "QT4", "time_multiplier": 1.3 },
+        { "modifier_id": "QT5", "time_multiplier": 1.5 }
+      ]
     },
-    "complexity_modifiers": {
-      "beam_profile": {
-        "source": "Research CD-004, adapted from Millwork_NC_Paint_Doctrine SS7.2",
-        "applies_to": "ITM_ARCH_BEAM tasks only (TSK_ARCH_*_BEAM)",
-        "small_box": 1.0,
-        "standard_box": 1.10,
-        "large_timber": 1.20,
-        "ornate": 1.40,
-        "application_rule": "Modifiers increase TIME. effective_rate = base_rate / beam_profile_modifier. small_box=narrow flat faces (4-6 in), standard_box=typical decorative (6-8 in), large_timber=heavy timber (10+ in), ornate=carved/detailed profile.",
-        "notes": "Beam profile modifier is scoped to BEAM TASKS ONLY. Does NOT affect column, mantel, or room-level tasks."
-      },
-      "column_type": {
-        "source": "Research CD-005, adapted from Millwork_NC_Paint_Doctrine SS7.2",
-        "applies_to": "ITM_ARCH_COLUMN tasks only (TSK_ARCH_*_COLUMN)",
-        "square_smooth": 1.0,
-        "square_detailed": 1.15,
-        "round_smooth": 1.10,
-        "round_fluted": 1.30,
-        "application_rule": "Modifiers increase TIME. effective_rate = base_rate / column_type_modifier. square_smooth=flat panel faces, square_detailed=panel with applied molding/pilaster detail, round_smooth=turned or wrapped cylinder, round_fluted=fluted with channel detail.",
-        "notes": "Column type modifier is scoped to COLUMN TASKS ONLY. Does NOT affect beam, mantel, or room-level tasks."
-      },
-      "mantel_type": {
-        "source": "Research CD-006, adapted from Millwork_NC_Paint_Doctrine SS7.2",
-        "applies_to": "ITM_ARCH_MANTEL tasks only (TSK_ARCH_*_MANTEL)",
-        "shelf_only": 1.0,
-        "standard_surround": 1.25,
-        "full_assembly": 1.50,
-        "application_rule": "Modifiers increase TIME. effective_rate = base_rate / mantel_type_modifier. shelf_only=single floating shelf, standard_surround=shelf + legs/pilasters framing firebox, full_assembly=elaborate surround with crown/dentil/paneling.",
-        "notes": "Mantel type modifier is scoped to MANTEL TASKS ONLY. full_assembly (1.50x) may not capture the most complex installations — flag for individual assessment per UNC-002."
-      }
+    {
+      "modifier_category": "complexity",
+      "sub_category": "beam_profile",
+      "source": "Research CD-004, adapted from Millwork_NC_Paint_Doctrine SS7.2",
+      "applies_to": ["ITM_ARCH_BEAM tasks only (TSK_ARCH_*_BEAM)"],
+      "application_rule": "Modifiers increase TIME. effective_rate = base_rate / beam_profile_modifier. Does NOT affect column, mantel, or room-level tasks.",
+      "modifiers": [
+        { "modifier_id": "small_box", "time_multiplier": 1.0, "notes": "Narrow flat faces (4-6 in)" },
+        { "modifier_id": "standard_box", "time_multiplier": 1.10, "notes": "Typical decorative (6-8 in)" },
+        { "modifier_id": "large_timber", "time_multiplier": 1.20, "notes": "Heavy timber (10+ in)" },
+        { "modifier_id": "ornate", "time_multiplier": 1.40, "notes": "Carved/detailed profile" }
+      ]
     },
-    "coat_count": {
-      "QT3": { "finish_coats": 2, "interstage_cycles": 1 },
-      "QT4": { "finish_coats": 2, "interstage_cycles": 1 },
-      "QT5_spray": { "finish_coats": 2, "interstage_cycles": 1 },
-      "QT5_brush": { "finish_coats": 3, "interstage_cycles": 2, "notes": "3+ coats per FFD SS15.10.3" }
+    {
+      "modifier_category": "complexity",
+      "sub_category": "column_type",
+      "source": "Research CD-005, adapted from Millwork_NC_Paint_Doctrine SS7.2",
+      "applies_to": ["ITM_ARCH_COLUMN tasks only (TSK_ARCH_*_COLUMN)"],
+      "application_rule": "Modifiers increase TIME. effective_rate = base_rate / column_type_modifier. Does NOT affect beam, mantel, or room-level tasks.",
+      "modifiers": [
+        { "modifier_id": "square_smooth", "time_multiplier": 1.0, "notes": "Flat panel faces" },
+        { "modifier_id": "square_detailed", "time_multiplier": 1.15, "notes": "Panel with applied molding/pilaster detail" },
+        { "modifier_id": "round_smooth", "time_multiplier": 1.10, "notes": "Turned or wrapped cylinder" },
+        { "modifier_id": "round_fluted", "time_multiplier": 1.30, "notes": "Fluted with channel detail" }
+      ]
+    },
+    {
+      "modifier_category": "complexity",
+      "sub_category": "mantel_type",
+      "source": "Research CD-006, adapted from Millwork_NC_Paint_Doctrine SS7.2",
+      "applies_to": ["ITM_ARCH_MANTEL tasks only (TSK_ARCH_*_MANTEL)"],
+      "application_rule": "Modifiers increase TIME. effective_rate = base_rate / mantel_type_modifier. full_assembly (1.50x) may not capture the most complex installations — flag for individual assessment per UNC-002.",
+      "modifiers": [
+        { "modifier_id": "shelf_only", "time_multiplier": 1.0, "notes": "Single floating shelf" },
+        { "modifier_id": "standard_surround", "time_multiplier": 1.25, "notes": "Shelf + legs/pilasters framing firebox" },
+        { "modifier_id": "full_assembly", "time_multiplier": 1.50, "notes": "Elaborate surround with crown/dentil/paneling" }
+      ]
     }
+  ],
+
+  "coat_count": {
+    "QT3": { "finish_coats": 2, "interstage_cycles": 1 },
+    "QT4": { "finish_coats": 2, "interstage_cycles": 1 },
+    "QT5_spray": { "finish_coats": 2, "interstage_cycles": 1 },
+    "QT5_brush": { "finish_coats": 3, "interstage_cycles": 2, "notes": "3+ coats per FFD SS15.10.3" }
   },
 
   "estimation_notes": {
