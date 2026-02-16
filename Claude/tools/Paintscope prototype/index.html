@@ -421,11 +421,11 @@ const ENUMS = {
     { value:'skip_trowel', label:'Skip Trowel' }
   ],
   heightBands: [
-    { value:'STD', label:'STD (0-9 ft)' },
-    { value:'STEP', label:'STEP (10-12 ft)' },
-    { value:'EXT', label:'EXT (13-17 ft)' },
-    { value:'SCAFFOLD', label:'SCAFFOLD (18-24 ft)' },
-    { value:'LIFT', label:'LIFT (25+ ft)' }
+    { value:'STD', label:'Standard (≤9 ft)' },
+    { value:'STEP', label:'Step/Ext Ladder (10-12 ft)' },
+    { value:'EXT', label:'Scaffold (13-17 ft)' },
+    { value:'SCAFFOLD', label:'Full Scaffold (18-24 ft)' },
+    { value:'LIFT', label:'Mech Lift (25+ ft)' }
   ],
   complexity: [
     { value:'OPEN', label:'Open' },
@@ -871,7 +871,8 @@ const initialState = {
     name: '', new_construction: true,
     default_quality_tier: 'QT3', default_height_band: 'STD',
     default_complexity: 'STD', default_application_method: 'spray_backroll',
-    default_texture: 'smooth', notes: ''
+    default_texture: 'smooth', notes: '',
+    default_substrates: ['ceiling', 'walls', 'baseboard', 'doors', 'windows', 'door_casing', 'window_casing', 'window_jamb', 'door_frames']
   },
   rooms: [createRoom()],
   ui: { activeRoomId: null, activeTab:'scope', view:'setup' }
@@ -880,6 +881,14 @@ const initialState = {
 // ============================================================
 // AUTO-DERIVATION
 // ============================================================
+function deriveHeightBand(heightFt) {
+  if (heightFt >= 25) return 'LIFT';
+  if (heightFt >= 18) return 'SCAFFOLD';
+  if (heightFt >= 13) return 'EXT';
+  if (heightFt >= 10) return 'STEP';
+  return 'STD';
+}
+
 function deriveRoom(room) {
   const L = parseFloat(room.length_ft) || 0;
   const W = parseFloat(room.width_ft) || 0;
@@ -998,9 +1007,14 @@ function deriveRoom(room) {
   const door_frames_ea = subs.door_frames ? (SUBSTRATE_MAP.door_frames.autoDerive({ totalDoors })) : 0;
   const window_jamb_ea = subs.window_jamb ? (SUBSTRATE_MAP.window_jamb.autoDerive({ totalWindows })) : 0;
 
+  const effectiveHeight = (room.vaulted_ceiling && parseFloat(room.peak_height_ft) > H)
+    ? parseFloat(room.peak_height_ft) : H;
+  const heightBand = deriveHeightBand(effectiveHeight);
+
   return {
-    L, W, H, perimeter, totalDoors, totalWindows, openingDeduction,
+    L, W, H, effectiveHeight, perimeter, totalDoors, totalWindows, openingDeduction,
     wallGross, wallNet, ceilingSF, vaultedExtra, gableExtra, pitch,
+    heightBand,
     wall_field_sf, ceiling_field_sf,
     baseboard_lf, crown_lf, door_casing_lf, window_casing_lf,
     chair_rail_lf, shoe_mold_lf, wainscot_cap_lf, picture_rail_lf,
@@ -1059,11 +1073,29 @@ function reducer(state, action) {
   }
   switch (type) {
     case 'SET_PROJECT': return { ...state, project: { ...state.project, [payload.field]: payload.value } };
+    case 'TOGGLE_PROJECT_SUBSTRATE': {
+      const subs = state.project.default_substrates || [];
+      const id = payload;
+      const next = subs.includes(id) ? subs.filter(s => s !== id) : [...subs, id];
+      return { ...state, project: { ...state.project, default_substrates: next } };
+    }
     case 'SET_VIEW': return { ...state, ui: { ...state.ui, view: payload } };
     case 'SET_TAB': return { ...state, ui: { ...state.ui, activeTab: payload } };
     case 'SET_ACTIVE_ROOM': return { ...state, ui: { ...state.ui, activeRoomId: payload } };
     case 'ADD_ROOM': {
       const room = createRoom(payload || {});
+      const projSubs = state.project.default_substrates || [];
+      projSubs.forEach(subId => {
+        if (!room.substrates[subId]) {
+          if (subId === 'doors') {
+            room.substrates[subId] = createSubstrateConfig(subId, { items: [createDoor()] });
+          } else if (subId === 'windows') {
+            room.substrates[subId] = createSubstrateConfig(subId, { items: [createWindow()] });
+          } else {
+            room.substrates[subId] = createSubstrateConfig(subId);
+          }
+        }
+      });
       return { ...state, rooms:[...state.rooms, room], ui:{...state.ui, activeRoomId:room.id, activeTab:'scope', view:'editor'} };
     }
     case 'REMOVE_ROOM': {
@@ -1215,8 +1247,8 @@ function exportProject(state) {
   rooms.forEach((room, ri) => {
     const d = deriveRoom(room);
     const subs = room.substrates || {};
-    const effectiveQT = room.quality_tier || project.default_quality_tier;
-    const effectiveHeight = room.height_band || project.default_height_band;
+    const effectiveQT = project.default_quality_tier;
+    const effectiveHeight = d.heightBand;
     const effectiveComplexity = room.complexity || project.default_complexity;
     const effectiveMethod = room.application_method || project.default_application_method;
     const effectiveTexture = (subs.walls?.texture) || (subs.ceiling?.texture) || project.default_texture;
@@ -1818,6 +1850,17 @@ function buildRoomQuantityLookups(state) {
  * Resolve the effective application_method for a given spec+room combination.
  * Priority: substrate config override -> substrate type default -> room override -> project default.
  */
+function resolveQualityTier(specId, room, project) {
+  const primarySub = SPEC_SUBSTRATE_MAP[specId];
+  if (primarySub) {
+    const subConfig = room.substrates && room.substrates[primarySub];
+    if (subConfig && subConfig.quality_tier) {
+      return subConfig.quality_tier;
+    }
+  }
+  return project.default_quality_tier;
+}
+
 function resolveApplicationMethod(specId, room, project) {
   const primarySub = SPEC_SUBSTRATE_MAP[specId];
   if (primarySub) {
@@ -2000,7 +2043,8 @@ function computeModifierStack(specFamilyId, ctx, db, warnings) {
         if ((band === 'std' && (idLower.startsWith('h1') || idLower.includes('standard'))) ||
             (band === 'step' && (idLower.startsWith('h2') || idLower.includes('tall'))) ||
             (band === 'ext' && (idLower.startsWith('h3') || idLower.includes('high'))) ||
-            (band === 'scaffold' && (idLower.startsWith('h4') || idLower.includes('scaffold')))) {
+            (band === 'scaffold' && (idLower.startsWith('h4') || idLower.includes('scaffold'))) ||
+            (band === 'lift' && (idLower.startsWith('h5') || idLower.includes('lift')))) {
           heightMod = modValue;
         }
       }
@@ -2242,9 +2286,10 @@ function runEstimate(state, db) {
       // Resolve substrate_state for this spec's substrate in this room (SS_* enum)
       // Used by combined specs' applies_when conditions on primer modules
       const roomSpecStates = resolveSubstrateStateForSpec(spec.id, room);
+      const roomDerived = deriveRoom(room);
       const ctx = {
-        quality_tier: room.quality_tier || project.default_quality_tier,
-        height_band: room.height_band || project.default_height_band,
+        quality_tier: resolveQualityTier(spec.id, room, project),
+        height_band: roomDerived.heightBand,
         complexity: room.complexity || project.default_complexity,
         application_method: resolveApplicationMethod(spec.id, room, project),
         surface_texture: resolveTextureForSpec(spec.id, room, project),
@@ -2266,10 +2311,7 @@ function runEstimate(state, db) {
         // Height: use peak_height_ft (beams are always overhead)
         const peakFt = parseFloat(room.peak_height_ft) || 0;
         if (peakFt > 0) {
-          if (peakFt >= 20) ctx.height_band = 'SCAFFOLD';
-          else if (peakFt >= 14) ctx.height_band = 'EXT';
-          else if (peakFt >= 10) ctx.height_band = 'STEP';
-          else ctx.height_band = 'STD';
+          ctx.height_band = deriveHeightBand(peakFt);
         }
         // Application method: use beam-specific setting
         if (room.beam_application_method) {
@@ -2742,10 +2784,6 @@ function ProjectSetup({ project, dispatch }) {
           <Sel options={ENUMS.qualityTiers} value={project.default_quality_tier} onChange={v=>set('default_quality_tier',v)} />
         </div>
         <div className="setup-field">
-          <label>Default Height Band</label>
-          <Sel options={ENUMS.heightBands} value={project.default_height_band} onChange={v=>set('default_height_band',v)} />
-        </div>
-        <div className="setup-field">
           <label>Default Complexity</label>
           <Sel options={ENUMS.complexity} value={project.default_complexity} onChange={v=>set('default_complexity',v)} />
         </div>
@@ -2756,6 +2794,26 @@ function ProjectSetup({ project, dispatch }) {
         <div className="setup-field">
           <label>Default Surface Texture</label>
           <Sel options={ENUMS.textures} value={project.default_texture} onChange={v=>set('default_texture',v)} />
+        </div>
+      </div>
+      <div className="setup-field" style={{marginTop:12}}>
+        <label>Default Paintable Surfaces</label>
+        <div className="hint">New rooms will include these surfaces by default</div>
+        <div style={{display:'grid', gridTemplateColumns:'auto auto 24px auto auto 24px auto auto', alignItems:'center', gap:'6px 0', marginTop:8}}>
+          {[
+            {id:'ceiling', label:'Ceiling'}, {id:'walls', label:'Walls'}, {id:'baseboard', label:'Baseboard'},
+            {id:'doors', label:'Door Slabs'}, {id:'windows', label:'Windows'}, {id:'door_casing', label:'Door Casing'},
+            {id:'window_casing', label:'Window Casing'}, {id:'window_jamb', label:'Window Jambs'}, {id:'door_frames', label:'Door Frames'}
+          ].map((s, i) => {
+            const col = i % 3;
+            const colStart = col * 3 + 1; // 1, 4, 7
+            return React.createElement(React.Fragment, {key:s.id},
+              React.createElement('span', {style:{gridColumn:colStart, fontSize:13, whiteSpace:'nowrap'}}, s.label),
+              React.createElement('input', {type:'checkbox', style:{gridColumn:colStart+1, justifySelf:'center'},
+                checked:(project.default_substrates||[]).includes(s.id),
+                onChange:() => dispatch({type:'TOGGLE_PROJECT_SUBSTRATE', payload:s.id})})
+            );
+          })}
         </div>
       </div>
       <div className="setup-field" style={{marginTop:8}}>
@@ -2846,25 +2904,16 @@ function ScopePanel({ room, derived, dispatch, project, focusedSubstrate, setFoc
     <div>
       <div className="panel-section">
         <div className="section-title">Room-Level Overrides</div>
-        <div className="form-grid" style={{gridTemplateColumns:'1fr 1fr 1fr 1fr'}}>
-          <div>
-            <div className="field-label">Quality Tier <span style={{color:'var(--text-muted)'}}>({project.default_quality_tier})</span></div>
-            <Sel options={ENUMS.qualityTiers} value={room.quality_tier} onChange={v=>setRoomNullable('quality_tier',v)} placeholder="Project Default" />
-          </div>
-          <div>
-            <div className="field-label">Height Band <span style={{color:'var(--text-muted)'}}>({project.default_height_band})</span></div>
-            <Sel options={ENUMS.heightBands} value={room.height_band} onChange={v=>setRoomNullable('height_band',v)} placeholder="Project Default" />
-          </div>
+        <div className="form-grid" style={{gridTemplateColumns:'1fr 1fr'}}>
           <div>
             <div className="field-label">Complexity <span style={{color:'var(--text-muted)'}}>({project.default_complexity})</span></div>
             <Sel options={ENUMS.complexity} value={room.complexity} onChange={v=>setRoomNullable('complexity',v)} placeholder="Project Default" />
           </div>
           <div>
-            <div className="field-label">Surface App Method</div>
-            <Sel options={ENUMS.applicationMethods} value={room.application_method} onChange={v=>setRoomNullable('application_method',v)} placeholder="Project Default" />
+            <div className="field-label">Height Band</div>
+            <div style={{padding:'6px 0',fontSize:13,color:'var(--accent)',fontWeight:600}}>{derived.heightBand} <span style={{fontWeight:400,color:'var(--text-muted)',fontSize:11}}>— auto from {derived.effectiveHeight} ft{derived.effectiveHeight > derived.H ? ' (peak)' : ''}</span></div>
           </div>
         </div>
-        <div style={{fontSize:10,color:'var(--text-muted)',marginTop:6}}>Trim, doors, windows, and specialty items have their own application method set on each item's config panel.</div>
       </div>
       <div className="panel-section">
         <div className="section-title">Room Identity</div>
@@ -3041,7 +3090,7 @@ function ScopePanel({ room, derived, dispatch, project, focusedSubstrate, setFoc
                   </div>
                   <button onClick={()=>setFocusedSubstrate(null)} style={{background:'none',border:'none',color:'var(--text-muted)',cursor:'pointer',fontSize:16}}>&times;</button>
                 </div>
-                <SubstrateDetailPanel room={room} derived={derived} dispatch={dispatch} substrateId={focusedSubstrate} />
+                <SubstrateDetailPanel room={room} derived={derived} dispatch={dispatch} substrateId={focusedSubstrate} project={project} />
               </div>
             ) : (
               <div className="detail-panel-empty">Select an item to configure</div>
@@ -3213,12 +3262,6 @@ function ScopePanel({ room, derived, dispatch, project, focusedSubstrate, setFoc
         </div>
       </div>
 
-      <div className="panel-section">
-        <div className="section-title">Flags</div>
-        <div className="form-row">
-          <Toggle checked={room.is_interior} onChange={v=>setRoom('is_interior',v)} label="Interior Room" />
-        </div>
-      </div>
     </div>
   );
 }
@@ -3231,7 +3274,7 @@ function SubstrateStateSelect({ substrateId, value, onChange }) {
 
 // === GENERIC SUBSTRATE DETAIL PANEL ===
 // Handles most trim, simple surfaces, and specialty items
-function SubstrateDetailPanel({ room, derived, dispatch, substrateId }) {
+function SubstrateDetailPanel({ room, derived, dispatch, substrateId, project }) {
   const rid = room.id;
   const config = room.substrates[substrateId];
   if (!config) return null;
@@ -3269,6 +3312,12 @@ function SubstrateDetailPanel({ room, derived, dispatch, substrateId }) {
           <div>
             <div className="field-label">Substrate State</div>
             <SubstrateStateSelect substrateId={substrateId} value={config.substrate_state} onChange={v=>setSub('substrate_state',v)} />
+          </div>
+
+          {/* Quality Tier per-substrate override */}
+          <div>
+            <div className="field-label">Quality Tier</div>
+            <Sel options={ENUMS.qualityTiers} value={config.quality_tier || null} onChange={v=>setSub('quality_tier',v||null)} placeholder={`Project Default (${project?.default_quality_tier || 'QT3'})`} />
           </div>
 
           {/* Application Method per-substrate */}
@@ -3588,7 +3637,7 @@ function ProjectSummary({ state }) {
                   <td style={{fontFamily:'var(--font-mono)'}}>{d.totalDoors}</td>
                   <td style={{fontFamily:'var(--font-mono)'}}>{d.totalWindows}</td>
                   <td style={{fontSize:11,color:'var(--text-secondary)'}}>{subCount > 0 ? Object.keys(room.substrates).map(s => SUBSTRATE_MAP[s]?.label || s).join(', ') : '—'}</td>
-                  <td>{room.quality_tier || state.project.default_quality_tier}</td>
+                  <td>{state.project.default_quality_tier} <span style={{fontSize:10,color:'var(--text-muted)'}}>({d.heightBand})</span></td>
                 </tr>
               );
             })}
@@ -3738,7 +3787,6 @@ function EstimateView({ state }) {
 
   const projCtx = {
     quality_tier: state.project.default_quality_tier,
-    height_band: state.project.default_height_band,
     complexity: state.project.default_complexity,
     texture: state.project.default_texture
   };
@@ -3783,7 +3831,6 @@ function EstimateView({ state }) {
 
       <div className="modifier-summary">
         <div className="mod-chip"><span className="mod-label">QT:</span><span className="mod-val">{projCtx.quality_tier}</span></div>
-        <div className="mod-chip"><span className="mod-label">Height:</span><span className="mod-val">{projCtx.height_band}</span></div>
         <div className="mod-chip"><span className="mod-label">Texture:</span><span className="mod-val">{projCtx.texture}</span></div>
         <div className="mod-chip"><span className="mod-label">Complexity:</span><span className="mod-val">{projCtx.complexity}</span></div>
       </div>
@@ -4239,7 +4286,7 @@ function migrateV02toV03(state) {
       length_ft: room.length_ft || 0, width_ft: room.width_ft || 0, height_ft: room.height_ft || 8,
       vaulted_ceiling: false, vaulted_ceiling_extra_sf: 0,
       gable_walls: 0, gable_wall_extra_sf: 0,
-      quality_tier: room.quality_tier || null, height_band: room.height_band || null,
+      quality_tier: room.quality_tier || null,
       complexity: room.complexity || null, application_method: room.application_method || null,
       substrates: subs,
       notes: room.notes || ''
@@ -4260,6 +4307,16 @@ function App() {
         let parsed = JSON.parse(saved);
         if (parsed.project && parsed.rooms) {
           parsed = migrateV02toV03(parsed);
+          // Bump nextId past all existing IDs to prevent collisions
+          let maxId = 0;
+          const extractNum = (s) => { const m = s && s.match(/_(\d+)$/); return m ? parseInt(m[1]) : 0; };
+          parsed.rooms.forEach(r => {
+            maxId = Math.max(maxId, extractNum(r.id));
+            const subs = r.substrates || {};
+            (subs.doors?.items || []).forEach(d => { maxId = Math.max(maxId, extractNum(d.id)); });
+            (subs.windows?.items || []).forEach(w => { maxId = Math.max(maxId, extractNum(w.id)); });
+          });
+          if (maxId >= nextId) nextId = maxId + 1;
           return { ...parsed, ui: parsed.ui || init.ui };
         }
       }
@@ -4304,7 +4361,7 @@ function App() {
         </div>
         <div className="main-content">
           {view === 'setup' && <ProjectSetup project={state.project} dispatch={dispatch} />}
-          {view === 'editor' && activeRoom && <RoomEditor room={activeRoom} project={state.project} dispatch={dispatch} />}
+          {view === 'editor' && activeRoom && <RoomEditor key={activeRoom.id} room={activeRoom} project={state.project} dispatch={dispatch} />}
           {view === 'editor' && !activeRoom && <div style={{color:'var(--text-muted)',textAlign:'center',paddingTop:40}}>No rooms yet. Add a room from the sidebar.</div>}
           {view === 'summary' && <ProjectSummary state={state} />}
           {view === 'estimate' && <EstimateView state={state} />}
