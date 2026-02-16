@@ -773,9 +773,17 @@ function createRoom(overrides={}) {
     length_ft: 0, width_ft: 0, height_ft: 8,
     // v0.3 vault/gable
     vaulted_ceiling: false,
-    vaulted_ceiling_extra_sf: 0,
+    peak_height_ft: 0,
+    ridge_direction: 'length',
     gable_walls: 0,
-    gable_wall_extra_sf: 0,
+    // v0.4 ceiling beams (conditional on vaulted_ceiling)
+    beams_enabled: false,
+    peak_beam: false,
+    cross_beam_count: 0,
+    ridge_beam_count: 0,
+    beam_width_in: 6,
+    beam_depth_in: 6,
+    beam_substrate_state: 'bare_wood',
     // Room-level overrides
     quality_tier: null, height_band: null, complexity: null, application_method: null,
     // v0.3 substrate model — starts blank, presence = in scope
@@ -832,9 +840,67 @@ function deriveRoom(room) {
   const wallNet = Math.max(0, wallGross - openingDeduction);
   const ceilingSF = L * W;
 
-  // Vault/gable additions
-  const vaultedExtra = room.vaulted_ceiling ? (parseFloat(room.vaulted_ceiling_extra_sf)||0) : 0;
-  const gableExtra = (parseInt(room.gable_walls)||0) > 0 ? (parseFloat(room.gable_wall_extra_sf)||0) : 0;
+  // Vault/gable additions — auto-calculated from peak height + ridge direction
+  let vaultedExtra = 0;
+  let gableExtra = 0;
+  let pitch = 0;
+  if (room.vaulted_ceiling) {
+    const P = parseFloat(room.peak_height_ft) || 0;
+    const rise = Math.max(0, P - H);
+    if (rise > 0) {
+      const ridgeAlongLength = (room.ridge_direction || 'length') === 'length';
+      const slopeRun = ridgeAlongLength ? W / 2 : L / 2;
+      const slopeHyp = Math.sqrt(slopeRun * slopeRun + rise * rise);
+      const slopedCeilingSF = ridgeAlongLength ? 2 * slopeHyp * L : 2 * slopeHyp * W;
+      vaultedExtra = Math.round(slopedCeilingSF - ceilingSF);
+      pitch = slopeRun > 0 ? Math.round(rise / slopeRun * 12 * 10) / 10 : 0;
+      const gableCount = parseInt(room.gable_walls) || 0;
+      const gableBase = ridgeAlongLength ? W : L;
+      gableExtra = Math.round(gableCount * (gableBase * rise) / 2);
+    }
+  }
+
+  // Ceiling beams — auto-calculated from vault geometry + beam config
+  let beamTotalSF = 0, beamPeakLF = 0, beamCrossLFEach = 0, beamRidgeLFEach = 0;
+  if (room.vaulted_ceiling && room.beams_enabled) {
+    const bwIn = parseFloat(room.beam_width_in) || 6;
+    const bdIn = parseFloat(room.beam_depth_in) || 6;
+    const widthMult = Math.ceil(bwIn / 12);
+    const depthMult = Math.ceil(bdIn / 12);
+    const fullFaces = widthMult + 2 * depthMult;
+    const halfFaces = widthMult + depthMult;
+
+    const ridgeAlongLength = (room.ridge_direction || 'length') === 'length';
+    const P = parseFloat(room.peak_height_ft) || 0;
+    const rise = Math.max(0, P - H);
+    const slopeRun = ridgeAlongLength ? W / 2 : L / 2;
+    const slopeHyp = (rise > 0 && slopeRun > 0)
+      ? Math.sqrt(slopeRun * slopeRun + rise * rise) : 0;
+
+    // Peak beam — runs along the apex (horizontal)
+    if (room.peak_beam) {
+      beamPeakLF = ridgeAlongLength ? L : W;
+      beamTotalSF += beamPeakLF * fullFaces;
+    }
+
+    // Cross beams — perpendicular to ridge, follow ceiling slope (2 slope runs)
+    const crossCount = parseInt(room.cross_beam_count) || 0;
+    if (crossCount > 0) {
+      beamCrossLFEach = slopeHyp > 0
+        ? Math.round(2 * slopeHyp * 10) / 10
+        : (ridgeAlongLength ? W : L);
+      beamTotalSF += crossCount * beamCrossLFEach * fullFaces;
+    }
+
+    // Ridge beams (half-beams) — along gable slope (1 slope run)
+    const ridgeCount = parseInt(room.ridge_beam_count) || 0;
+    if (ridgeCount > 0) {
+      beamRidgeLFEach = slopeHyp > 0 ? slopeHyp : 0;
+      beamTotalSF += ridgeCount * beamRidgeLFEach * halfFaces;
+    }
+
+    beamTotalSF = Math.round(beamTotalSF);
+  }
 
   // Walls — only derive if substrate checked
   const wall_field_sf = subs.walls
@@ -874,13 +940,14 @@ function deriveRoom(room) {
 
   return {
     L, W, H, perimeter, totalDoors, totalWindows, openingDeduction,
-    wallGross, wallNet, ceilingSF, vaultedExtra, gableExtra,
+    wallGross, wallNet, ceilingSF, vaultedExtra, gableExtra, pitch,
     wall_field_sf, ceiling_field_sf,
     baseboard_lf, crown_lf, door_casing_lf, window_casing_lf,
     chair_rail_lf, shoe_mold_lf, wainscot_cap_lf, picture_rail_lf,
     window_stool_lf, window_apron_lf, shadow_box_lf, panel_mold_lf,
     door_frames_ea, window_jamb_ea,
-    totalDoorSides
+    totalDoorSides,
+    beamTotalSF, beamPeakLF, beamCrossLFEach, beamRidgeLFEach
   };
 }
 
@@ -1552,6 +1619,11 @@ function buildRoomQuantityLookups(state) {
         if (v > 0) addQ(psKey, uom, v);
       }
     });
+
+    // Ceiling beams — geometry-derived from vault config
+    if (room.vaulted_ceiling && room.beams_enabled && d.beamTotalSF > 0) {
+      addQ('PS_SURFACE_SF.CEILING_BEAM', 'SF', d.beamTotalSF);
+    }
 
     // Edges
     addQ('PS_EDGE_LF.TO_CEILING', 'LF', d.perimeter);
@@ -2603,19 +2675,90 @@ function ScopePanel({ room, derived, dispatch, project, focusedSubstrate, setFoc
             <Toggle checked={!!room.vaulted_ceiling} onChange={v=>setRoom('vaulted_ceiling',v)} label="Vaulted Ceiling" />
           </div>
           <div>
-            <div className="field-label">Extra Ceiling SF</div>
-            <input type="number" value={room.vaulted_ceiling_extra_sf||0} onChange={e=>setRoom('vaulted_ceiling_extra_sf',parseFloat(e.target.value)||0)} min="0" disabled={!room.vaulted_ceiling} style={{opacity:room.vaulted_ceiling?1:0.4}} />
+            <div className="field-label">Peak Height (ft)</div>
+            <input type="number" value={room.peak_height_ft||0} onChange={e=>setRoom('peak_height_ft',parseFloat(e.target.value)||0)} min="0" step="0.5" disabled={!room.vaulted_ceiling} style={{opacity:room.vaulted_ceiling?1:0.4}} />
           </div>
+          <div>
+            <div className="field-label">Ridge Direction</div>
+            <select value={room.ridge_direction||'length'} onChange={e=>setRoom('ridge_direction',e.target.value)} disabled={!room.vaulted_ceiling} style={{opacity:room.vaulted_ceiling?1:0.4}}>
+              <option value="length">Along Length</option>
+              <option value="width">Along Width</option>
+            </select>
+          </div>
+          <div>
+            <div className="field-label">Pitch</div>
+            <div style={{padding:'6px 0',fontSize:13,color:room.vaulted_ceiling&&derived.pitch>0?'var(--text-primary)':'var(--text-muted)'}}>{derived.pitch > 0 ? `${derived.pitch}:12` : '—'}</div>
+          </div>
+        </div>
+        <div className="form-grid" style={{gridTemplateColumns:'1fr 2fr',marginTop:4}}>
           <div>
             <div className="field-label">Gable Walls</div>
-            <input type="number" value={room.gable_walls||0} onChange={e=>setRoom('gable_walls',parseInt(e.target.value)||0)} min="0" max="4" style={{width:60}} />
+            <input type="number" value={room.gable_walls||0} onChange={e=>setRoom('gable_walls',parseInt(e.target.value)||0)} min="0" max="4" disabled={!room.vaulted_ceiling} style={{width:60,opacity:room.vaulted_ceiling?1:0.4}} />
           </div>
-          <div>
-            <div className="field-label">Extra Wall SF</div>
-            <input type="number" value={room.gable_wall_extra_sf||0} onChange={e=>setRoom('gable_wall_extra_sf',parseFloat(e.target.value)||0)} min="0" disabled={!(parseInt(room.gable_walls)||0)} style={{opacity:(parseInt(room.gable_walls)||0)?1:0.4}} />
+          <div style={{display:'flex',alignItems:'flex-end',paddingBottom:4}}>
+            {room.vaulted_ceiling && (derived.vaultedExtra > 0 || derived.gableExtra > 0) && (
+              <span style={{fontSize:11,color:'var(--text-secondary)',fontFamily:'var(--font-mono)'}}>
+                {derived.vaultedExtra > 0 && <span>Extra Ceiling: <b style={{color:'var(--accent)'}}>+{derived.vaultedExtra} SF</b></span>}
+                {derived.vaultedExtra > 0 && derived.gableExtra > 0 && <span style={{margin:'0 8px'}}>|</span>}
+                {derived.gableExtra > 0 && <span>Extra Wall: <b style={{color:'var(--accent)'}}>+{derived.gableExtra} SF</b></span>}
+              </span>
+            )}
           </div>
         </div>
       </div>
+
+      {room.vaulted_ceiling && (
+      <div className="panel-section">
+        <div className="section-title">Ceiling Beams</div>
+        <div className="form-grid" style={{gridTemplateColumns:'1fr 1fr 1fr 1fr'}}>
+          <div>
+            <Toggle checked={!!room.beams_enabled} onChange={v=>setRoom('beams_enabled',v)} label="Ceiling Beams" />
+          </div>
+          <div>
+            <div className="field-label">Width (in)</div>
+            <input type="number" value={room.beam_width_in||6} onChange={e=>setRoom('beam_width_in',parseFloat(e.target.value)||6)} min="2" max="36" step="1" disabled={!room.beams_enabled} style={{opacity:room.beams_enabled?1:0.4}} />
+          </div>
+          <div>
+            <div className="field-label">Depth (in)</div>
+            <input type="number" value={room.beam_depth_in||6} onChange={e=>setRoom('beam_depth_in',parseFloat(e.target.value)||6)} min="2" max="36" step="1" disabled={!room.beams_enabled} style={{opacity:room.beams_enabled?1:0.4}} />
+          </div>
+          <div>
+            <div className="field-label">Substrate</div>
+            <select value={room.beam_substrate_state||'bare_wood'} onChange={e=>setRoom('beam_substrate_state',e.target.value)} disabled={!room.beams_enabled} style={{opacity:room.beams_enabled?1:0.4}}>
+              <option value="bare_wood">Bare Wood</option>
+              <option value="factory_primed">Factory Primed</option>
+              <option value="stained_sealed">Stained / Sealed</option>
+              <option value="previously_finished">Previously Finished</option>
+              <option value="drywall">Drywall</option>
+            </select>
+          </div>
+        </div>
+        <div className="form-grid" style={{gridTemplateColumns:'1fr 1fr 1fr 1fr',marginTop:4}}>
+          <div>
+            <Toggle checked={!!room.peak_beam} onChange={v=>setRoom('peak_beam',v)} label="Peak Beam" disabled={!room.beams_enabled} />
+          </div>
+          <div>
+            <div className="field-label">Cross Beams</div>
+            <input type="number" value={room.cross_beam_count||0} onChange={e=>setRoom('cross_beam_count',parseInt(e.target.value)||0)} min="0" max="20" disabled={!room.beams_enabled} style={{width:60,opacity:room.beams_enabled?1:0.4}} />
+          </div>
+          <div>
+            <div className="field-label">Ridge Beams (half)</div>
+            <input type="number" value={room.ridge_beam_count||0} onChange={e=>setRoom('ridge_beam_count',parseInt(e.target.value)||0)} min="0" max="20" disabled={!room.beams_enabled} style={{width:60,opacity:room.beams_enabled?1:0.4}} />
+          </div>
+          <div></div>
+        </div>
+        {room.beams_enabled && derived.beamTotalSF > 0 && (
+          <div style={{marginTop:6,padding:'6px 8px',background:'var(--bg-tertiary)',borderRadius:4,fontSize:11,fontFamily:'var(--font-mono)',color:'var(--text-secondary)'}}>
+            {room.peak_beam && derived.beamPeakLF > 0 && <span>Peak: {derived.beamPeakLF} LF × 3 faces</span>}
+            {room.peak_beam && derived.beamPeakLF > 0 && (room.cross_beam_count > 0 || room.ridge_beam_count > 0) && <span style={{margin:'0 6px'}}>|</span>}
+            {room.cross_beam_count > 0 && derived.beamCrossLFEach > 0 && <span>Cross: {room.cross_beam_count} × {derived.beamCrossLFEach} LF × 3 faces</span>}
+            {room.cross_beam_count > 0 && derived.beamCrossLFEach > 0 && room.ridge_beam_count > 0 && <span style={{margin:'0 6px'}}>|</span>}
+            {room.ridge_beam_count > 0 && derived.beamRidgeLFEach > 0 && <span>Ridge: {room.ridge_beam_count} × {Math.round(derived.beamRidgeLFEach*10)/10} LF × 2 faces</span>}
+            <span style={{marginLeft:8,color:'var(--accent)',fontWeight:600}}>Total: {derived.beamTotalSF} SF</span>
+          </div>
+        )}
+      </div>
+      )}
 
       <div className="panel-section">
         <div className="section-title">What Are We Painting?</div>
