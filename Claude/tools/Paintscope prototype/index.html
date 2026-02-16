@@ -251,6 +251,14 @@ label { display:flex; align-items:center; gap:6px; font-size:12px; color:var(--t
   color:var(--text-muted); font-size:12px; font-style:italic;
 }
 
+/* Protection badges */
+.protection-row { display:flex; align-items:center; gap:6px; padding:3px 0; font-size:11px; }
+.protection-badge { font-size:9px; font-weight:600; padding:1px 5px; border-radius:3px; text-transform:uppercase; }
+.protection-badge.light_mask { background:#2a3a2a; color:#6ec96e; }
+.protection-badge.medium_mask { background:#3a3520; color:#e0b840; }
+.protection-badge.heavy_mask { background:#3a2020; color:#e05050; }
+.auto-tag { font-size:9px; color:var(--text-muted); font-style:italic; }
+
 /* Toast / status */
 .toast {
   position:fixed; bottom:20px; right:20px; background:var(--bg-card);
@@ -662,6 +670,42 @@ const SUBSTRATE_GROUPS = [...new Set(SUBSTRATE_CATALOG.map(s => s.group))].map(g
 }));
 
 // ============================================================
+// FIXTURE CATALOG — items present but not being painted (v0.5)
+// ============================================================
+const FIXTURE_CATALOG = [
+  // Kitchen
+  { id: 'cabinets',    group: 'Kitchen',  label: 'Cabinets',         defaultProtection: 'heavy_mask' },
+  { id: 'countertops', group: 'Kitchen',  label: 'Countertops',      defaultProtection: 'heavy_mask' },
+  { id: 'appliances',  group: 'Kitchen',  label: 'Appliances',       defaultProtection: 'medium_mask' },
+  { id: 'backsplash',  group: 'Kitchen',  label: 'Backsplash',       defaultProtection: 'medium_mask' },
+  // Bathroom
+  { id: 'bathtub',     group: 'Bathroom', label: 'Bathtub',          defaultProtection: 'heavy_mask' },
+  { id: 'shower',      group: 'Bathroom', label: 'Shower/Enclosure', defaultProtection: 'heavy_mask' },
+  { id: 'toilet',      group: 'Bathroom', label: 'Toilet',           defaultProtection: 'medium_mask' },
+  { id: 'vanity',      group: 'Bathroom', label: 'Vanity',           defaultProtection: 'medium_mask' },
+  // Features
+  { id: 'fireplace',        group: 'Feature', label: 'Fireplace',         defaultProtection: 'heavy_mask' },
+  { id: 'stone_fireplace',  group: 'Feature', label: 'Stone Fireplace',   defaultProtection: 'heavy_mask' },
+  { id: 'builtin_shelving', group: 'Feature', label: 'Built-in Shelving', defaultProtection: 'medium_mask' },
+  { id: 'light_fixtures',   group: 'Feature', label: 'Light Fixtures',    defaultProtection: 'light_mask' },
+];
+
+const FIXTURE_MAP = Object.fromEntries(FIXTURE_CATALOG.map(f => [f.id, f]));
+const FIXTURE_GROUPS = [...new Set(FIXTURE_CATALOG.map(f => f.group))].map(g => ({
+  group: g,
+  items: FIXTURE_CATALOG.filter(f => f.group === g)
+}));
+
+const FLOOR_TYPES = [
+  { id: 'subfloor',  label: 'Subfloor (Plywood/OSB)', defaultProtection: 'light_mask' },
+  { id: 'hardwood',  label: 'Hardwood',               defaultProtection: 'heavy_mask' },
+  { id: 'tile',      label: 'Tile / Stone',            defaultProtection: 'medium_mask' },
+  { id: 'carpet',    label: 'Carpet',                  defaultProtection: 'heavy_mask' },
+  { id: 'lvp',       label: 'LVP / Laminate',          defaultProtection: 'medium_mask' },
+  { id: 'concrete',  label: 'Concrete',                defaultProtection: 'light_mask' },
+];
+
+// ============================================================
 // ROOM PRESETS (v0.3 — substrate-based)
 // ============================================================
 const ROOM_PRESETS = {
@@ -788,6 +832,10 @@ function createRoom(overrides={}) {
     quality_tier: null, height_band: null, complexity: null, application_method: null,
     // v0.3 substrate model — starts blank, presence = in scope
     substrates: {},
+    // v0.5 adjacency — items present but not being painted
+    floor_type: '',
+    floor_protection: '',
+    fixtures: {},  // keyed by fixture_id → { protection: 'medium_mask', count: 1, size: '', notes: '' }
     notes: ''
   };
 
@@ -952,6 +1000,43 @@ function deriveRoom(room) {
 }
 
 // ============================================================
+// PROTECTION DERIVATION (v0.5)
+// ============================================================
+function deriveProtectionSummary(room, subs, applicationMethod) {
+  const items = [];
+
+  // Floor — only if a type is selected and it's not subfloor (subfloor needs no protection)
+  if (room.floor_type && room.floor_type !== 'subfloor') {
+    const floorType = FLOOR_TYPES.find(f => f.id === room.floor_type);
+    if (floorType) {
+      items.push({ zone: 'floor', label: floorType.label, protection: room.floor_protection || floorType.defaultProtection, auto: true });
+    }
+  }
+
+  // Unpainted surfaces adjacent to painted ones
+  const anyPainted = Object.keys(subs).length > 0;
+  if (anyPainted) {
+    if (!subs.walls && subs.ceiling) items.push({ zone: 'walls_adjacent', label: 'Walls (unpainted)', protection: applicationMethod === 'spray' ? 'heavy_mask' : 'light_mask', auto: true });
+    if (!subs.ceiling && subs.walls) items.push({ zone: 'ceiling_adjacent', label: 'Ceiling (unpainted)', protection: applicationMethod === 'spray' ? 'medium_mask' : 'light_mask', auto: true });
+  }
+
+  // Fixtures from room.fixtures
+  Object.entries(room.fixtures || {}).forEach(function([fId, cfg]) {
+    const cat = FIXTURE_MAP[fId];
+    if (!cat) return;
+    if (fId === 'cabinets') {
+      const lf = parseFloat(cfg.linear_ft) || 0;
+      const layoutLabel = cfg.layout === 'lower_only' ? 'Lower' : 'Lower + Upper';
+      items.push({ zone: 'fixture_cabinets', label: cat.label + ' (' + layoutLabel + (lf > 0 ? ', ' + lf + ' LF' : '') + ')', protection: cfg.protection || cat.defaultProtection, auto: false });
+    } else {
+      items.push({ zone: 'fixture_' + fId, label: cat.label, protection: cfg.protection || cat.defaultProtection, count: cfg.count || 1, auto: false });
+    }
+  });
+
+  return items;
+}
+
+// ============================================================
 // REDUCER
 // ============================================================
 function reducer(state, action) {
@@ -1059,6 +1144,34 @@ function reducer(state, action) {
       return mapRoom(payload.roomId, r => {
         if (!r.substrates.windows) return r;
         return { ...r, substrates: { ...r.substrates, windows: { ...r.substrates.windows, items: r.substrates.windows.items.map(w => w.id === payload.winId ? { ...w, [payload.field]: payload.value } : w) } } };
+      });
+    }
+
+    // v0.5: Fixture toggle on/off
+    case 'TOGGLE_FIXTURE': {
+      const { roomId, fixtureId } = payload;
+      return mapRoom(roomId, r => {
+        const fixtures = { ...r.fixtures };
+        if (fixtures[fixtureId]) {
+          delete fixtures[fixtureId];
+        } else {
+          const cat = FIXTURE_MAP[fixtureId];
+          if (fixtureId === 'cabinets') {
+            fixtures[fixtureId] = { protection: 'heavy_mask', layout: 'lower_upper', linear_ft: 0, upper_height_ft: 2.5, notes: '' };
+          } else {
+            fixtures[fixtureId] = { protection: cat ? cat.defaultProtection : 'medium_mask', count: 1, size: '', notes: '' };
+          }
+        }
+        return { ...r, fixtures };
+      });
+    }
+
+    // v0.5: Set a field within a specific fixture config
+    case 'SET_FIXTURE': {
+      const { roomId, fixtureId, field, value } = payload;
+      return mapRoom(roomId, r => {
+        if (!r.fixtures[fixtureId]) return r;
+        return { ...r, fixtures: { ...r.fixtures, [fixtureId]: { ...r.fixtures[fixtureId], [field]: value } } };
       });
     }
 
@@ -1239,9 +1352,15 @@ function exportProject(state) {
     addQty('PS_EDGE_LF.TO_CEILING', 'LF', d.perimeter);
     addQty('PS_EDGE_LF.TO_TRIM', 'LF', trimLF);
 
-    // Protection quantity keys (derived)
-    addQty('PS_PROTECT_SF.FLOOR_EXPOSED', 'SF', d.ceilingSF);
-    addQty('PS_PROTECT_SF.FLOOR_PERIMETER', 'SF', d.perimeter * 2);
+    // Protection quantity keys (derived) — floor level driven by floor_type
+    const floorProt = room.floor_protection || '';
+    const hasFloorProtection = room.floor_type && room.floor_type !== 'subfloor' && floorProt;
+    if (hasFloorProtection) {
+      addQty('PS_PROTECT_SF.FLOOR_EXPOSED', 'SF', d.ceilingSF);
+      if (floorProt === 'heavy_mask' || floorProt === 'medium_mask') {
+        addQty('PS_PROTECT_SF.FLOOR_PERIMETER', 'SF', d.perimeter * 2);
+      }
+    }
     // WORKZONE = localized spray overspray zones: 8ft radius semicircle per door (~101 SF),
     // 8ft radius quarter-circle per window (~50 SF, half arc since against wall), capped at floor area
     const workzoneSF = Math.min(
@@ -1255,6 +1374,17 @@ function exportProject(state) {
     if (subs.window_casing) addQty('PS_PROTECT_LF.TRIM_CASING_WINDOW', 'LF', d.window_casing_lf);
     addQty('PS_PROTECT_LF.CEILING_LINE', 'LF', d.perimeter);
     addQty('PS_META.SF.FLOOR_VACUUM_AREA', 'SF', d.ceilingSF);
+
+    // Fixture protection keys (v0.5)
+    Object.entries(room.fixtures || {}).forEach(function([fId, cfg]) {
+      if (fId === 'cabinets') {
+        const lf = parseFloat(cfg.linear_ft) || 0;
+        if (lf > 0) addQty('PS_PROTECT_LF.FIXTURE_CABINETS', 'LF', lf);
+      } else {
+        const cnt = parseInt(cfg.count) || 1;
+        addQty('PS_PROTECT_EA.FIXTURE_' + fId.toUpperCase(), 'EA', cnt);
+      }
+    });
 
     // Meta
     addQty('PS_META.EA.ROOMS_TOTAL', 'EA', 1);
@@ -1630,9 +1760,15 @@ function buildRoomQuantityLookups(state) {
     const trimLF = d.baseboard_lf + d.door_casing_lf + d.window_casing_lf;
     addQ('PS_EDGE_LF.TO_TRIM', 'LF', trimLF);
 
-    // Protection
-    addQ('PS_PROTECT_SF.FLOOR_EXPOSED', 'SF', d.ceilingSF);
-    addQ('PS_PROTECT_SF.FLOOR_PERIMETER', 'SF', d.perimeter * 2);
+    // Protection — floor level driven by floor_type + user override
+    const floorProt2 = room.floor_protection || '';
+    const hasFloorProt = room.floor_type && room.floor_type !== 'subfloor' && floorProt2;
+    if (hasFloorProt) {
+      addQ('PS_PROTECT_SF.FLOOR_EXPOSED', 'SF', d.ceilingSF);
+      if (floorProt2 === 'heavy_mask' || floorProt2 === 'medium_mask') {
+        addQ('PS_PROTECT_SF.FLOOR_PERIMETER', 'SF', d.perimeter * 2);
+      }
+    }
     // WORKZONE = localized spray zones: 8ft radius semicircle per door, quarter-circle per window
     const wzSF = Math.min(
       Math.round(d.totalDoors * (Math.PI * 64 / 2) + d.totalWindows * (Math.PI * 64 / 4)),
@@ -1644,6 +1780,17 @@ function buildRoomQuantityLookups(state) {
     if (subs.door_casing) addQ('PS_PROTECT_LF.TRIM_CASING_DOOR', 'LF', d.door_casing_lf);
     if (subs.window_casing) addQ('PS_PROTECT_LF.TRIM_CASING_WINDOW', 'LF', d.window_casing_lf);
     addQ('PS_PROTECT_LF.CEILING_LINE', 'LF', d.perimeter);
+
+    // Fixture protection keys (v0.5)
+    Object.entries(room.fixtures || {}).forEach(function([fId, cfg]) {
+      if (fId === 'cabinets') {
+        const lf = parseFloat(cfg.linear_ft) || 0;
+        if (lf > 0) addQ('PS_PROTECT_LF.FIXTURE_CABINETS', 'LF', lf);
+      } else {
+        const cnt = parseInt(cfg.count) || 1;
+        addQ('PS_PROTECT_EA.FIXTURE_' + fId.toUpperCase(), 'EA', cnt);
+      }
+    });
 
     // Meta
     addQ('PS_META.EA.ROOMS_TOTAL', 'EA', 1);
@@ -2587,6 +2734,11 @@ function ScopePanel({ room, derived, dispatch, project, focusedSubstrate, setFoc
   const setRoomNullable = (f,v) => dispatch({type:'SET_ROOM',payload:{roomId:rid,field:f,value:v||null}});
   const subs = room.substrates || {};
 
+  // v0.5 fixture focus state
+  const [focusedFixture, setFocusedFixture] = useState(null);
+  const applicationMethod = room.application_method || project.default_application_method;
+  const protectionSummary = useMemo(() => deriveProtectionSummary(room, subs, applicationMethod), [room, subs, applicationMethod]);
+
   // Handle checkbox toggle + auto-focus
   const handleToggle = (catId) => {
     const isChecked = !!subs[catId];
@@ -2803,6 +2955,169 @@ function ScopePanel({ room, derived, dispatch, project, focusedSubstrate, setFoc
             ) : (
               <div className="detail-panel-empty">Select an item to configure</div>
             )}
+          </div>
+        </div>
+      </div>
+
+      <div className="panel-section">
+        <div className="section-title">Room Adjacency &amp; Protection</div>
+        <div style={{fontSize:11,color:'var(--text-muted)',marginBottom:8}}>
+          Mark items present in the room that are not being painted.
+        </div>
+
+        {/* Floor Type — always visible */}
+        <div className="form-grid" style={{gridTemplateColumns:'1fr 1fr 1fr'}}>
+          <div>
+            <div className="field-label">Floor Type</div>
+            <select value={room.floor_type||''} onChange={e=>{
+              const ft = FLOOR_TYPES.find(f=>f.id===e.target.value);
+              setRoom('floor_type',e.target.value||'');
+              setRoom('floor_protection', ft ? ft.defaultProtection : '');
+            }} style={{width:'100%'}}>
+              <option value="">— Select —</option>
+              {FLOOR_TYPES.map(f => <option key={f.id} value={f.id}>{f.label}</option>)}
+            </select>
+          </div>
+          <div>
+            <div className="field-label">Floor Protection</div>
+            <select value={room.floor_protection||''} onChange={e=>setRoom('floor_protection',e.target.value)} style={{width:'100%'}} disabled={!room.floor_type || room.floor_type === 'subfloor'}>
+              <option value="">—</option>
+              <option value="light_mask">Light Mask</option>
+              <option value="medium_mask">Medium Mask</option>
+              <option value="heavy_mask">Heavy Mask</option>
+            </select>
+          </div>
+          <div style={{alignSelf:'end',fontSize:11,color:'var(--text-muted)'}}>
+            {!room.floor_type ? '' : room.floor_type === 'subfloor' ? 'Subfloor — no protection needed' : ''}
+          </div>
+        </div>
+
+        {/* Master/Detail: Fixture Checklist + Config/Summary */}
+        <div className="master-detail-container" style={{marginTop:8}}>
+          {/* LEFT: Fixture checklist grouped by Kitchen/Bathroom/Feature */}
+          <div className="master-list">
+            {FIXTURE_GROUPS.map(g => (
+              <div key={g.group} style={{marginBottom:10}}>
+                <div style={{fontSize:11,fontWeight:600,color:'var(--text-secondary)',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:4}}>{g.group}</div>
+                <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'2px 8px'}}>
+                  {g.items.map(fix => {
+                    const checked = !!(room.fixtures && room.fixtures[fix.id]);
+                    const isFocused = focusedFixture === fix.id;
+                    return (
+                      <div key={fix.id} className={'substrate-item' + (isFocused ? ' focused' : '')}
+                        onClick={() => { if (checked) setFocusedFixture(fix.id); }}>
+                        <input type="checkbox" checked={checked}
+                          onChange={(e) => {
+                            e.stopPropagation();
+                            dispatch({type:'TOGGLE_FIXTURE',payload:{roomId:rid,fixtureId:fix.id}});
+                            if (!checked) setFocusedFixture(fix.id);
+                            else if (focusedFixture === fix.id) setFocusedFixture(null);
+                          }}
+                          onClick={(e) => e.stopPropagation()} />
+                        <span style={{color:checked?'var(--text-primary)':'var(--text-muted)'}}>{fix.label}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* RIGHT: Per-fixture config (top) + Accumulated summary (bottom) */}
+          <div className="detail-panel">
+            {/* Per-fixture config when one is focused */}
+            {focusedFixture && room.fixtures && room.fixtures[focusedFixture] && (() => {
+              const cfg = room.fixtures[focusedFixture];
+              const setFix = (f,v) => dispatch({type:'SET_FIXTURE',payload:{roomId:rid,fixtureId:focusedFixture,field:f,value:v}});
+              const header = (
+                <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:8}}>
+                  <span style={{fontWeight:600,fontSize:13}}>{FIXTURE_MAP[focusedFixture].label}</span>
+                  <button onClick={()=>setFocusedFixture(null)} style={{background:'none',border:'none',color:'var(--text-muted)',cursor:'pointer',fontSize:16}}>&times;</button>
+                </div>
+              );
+
+              // Cabinet-specific config
+              if (focusedFixture === 'cabinets') return (
+                <div style={{marginBottom:12}}>
+                  {header}
+                  <div className="form-grid" style={{gridTemplateColumns:'1fr 1fr'}}>
+                    <div>
+                      <div className="field-label">Layout</div>
+                      <select value={cfg.layout||'lower_upper'} onChange={e=>setFix('layout',e.target.value)} style={{width:'100%'}}>
+                        <option value="lower_only">Lower Only</option>
+                        <option value="lower_upper">Lower + Upper</option>
+                      </select>
+                    </div>
+                    <div>
+                      <div className="field-label">Protection Level</div>
+                      <select value={cfg.protection||'heavy_mask'} onChange={e=>setFix('protection',e.target.value)} style={{width:'100%'}}>
+                        <option value="light_mask">Light — edge mask</option>
+                        <option value="medium_mask">Medium — pin off</option>
+                        <option value="heavy_mask">Heavy — full bag</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div className="form-grid" style={{gridTemplateColumns:'1fr 1fr',marginTop:6}}>
+                    <div>
+                      <div className="field-label">Linear Feet</div>
+                      <input type="number" min="0" max="200" step="0.5" value={cfg.linear_ft||0} onChange={e=>setFix('linear_ft',parseFloat(e.target.value)||0)} />
+                    </div>
+                    {(cfg.layout === 'lower_upper') && (
+                      <div>
+                        <div className="field-label">Upper Height (ft)</div>
+                        <input type="number" min="1" max="6" step="0.5" value={cfg.upper_height_ft||2.5} onChange={e=>setFix('upper_height_ft',parseFloat(e.target.value)||2.5)} />
+                      </div>
+                    )}
+                  </div>
+                  <div style={{marginTop:6}}>
+                    <div className="field-label">Notes</div>
+                    <input type="text" value={cfg.notes||''} onChange={e=>setFix('notes',e.target.value)} style={{width:'100%'}} placeholder="e.g., L-shaped run, island separate" />
+                  </div>
+                </div>
+              );
+
+              // Generic fixture config
+              return (
+                <div style={{marginBottom:12}}>
+                  {header}
+                  <div className="form-grid" style={{gridTemplateColumns:'1fr 1fr'}}>
+                    <div>
+                      <div className="field-label">Count</div>
+                      <input type="number" min="1" max="20" value={cfg.count||1} onChange={e=>setFix('count',parseInt(e.target.value)||1)} />
+                    </div>
+                    <div>
+                      <div className="field-label">Protection Level</div>
+                      <select value={cfg.protection||'medium_mask'} onChange={e=>setFix('protection',e.target.value)} style={{width:'100%'}}>
+                        <option value="light_mask">Light Mask</option>
+                        <option value="medium_mask">Medium Mask</option>
+                        <option value="heavy_mask">Heavy Mask</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div style={{marginTop:6}}>
+                    <div className="field-label">Size / Notes</div>
+                    <input type="text" value={cfg.size||''} onChange={e=>setFix('size',e.target.value)} style={{width:'100%'}} placeholder="e.g., 6ft granite island" />
+                  </div>
+                </div>
+              );
+            })()}
+
+            {/* Accumulated protection summary — always visible */}
+            <div style={{borderTop: focusedFixture && room.fixtures && room.fixtures[focusedFixture] ? '1px solid var(--border)' : 'none', paddingTop:8}}>
+              <div className="field-label" style={{marginBottom:4}}>Protection Summary</div>
+              {protectionSummary.map(item => {
+                const badgeLabel = item.protection === 'light_mask' ? 'LIGHT' : item.protection === 'medium_mask' ? 'MEDIUM' : 'HEAVY';
+                return (
+                  <div key={item.zone} className="protection-row">
+                    <span className={'protection-badge ' + item.protection}>{badgeLabel}</span>
+                    <span>{item.label}</span>
+                    {item.count > 1 && <span style={{fontSize:10,color:'var(--text-muted)'}}>×{item.count}</span>}
+                    {item.auto && <span className="auto-tag">auto</span>}
+                  </div>
+                );
+              })}
+              {protectionSummary.length === 0 && <div className="detail-panel-empty">No protection required</div>}
+            </div>
           </div>
         </div>
       </div>
