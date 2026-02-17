@@ -166,6 +166,16 @@ label { display:flex; align-items:center; gap:6px; font-size:12px; color:var(--t
 
 /* Panel sections */
 .panel-section { margin-bottom:20px; }
+.panel-section[data-section] { padding:10px 12px; border-radius:6px; border:1px solid transparent; }
+.panel-section[data-section="identity"]   { background:rgba(130,170,255,0.06); border-color:rgba(130,170,255,0.12); }
+.panel-section[data-section="dimensions"] { background:rgba(100,210,140,0.06); border-color:rgba(100,210,140,0.12); }
+.panel-section[data-section="vault"]      { background:rgba(180,140,255,0.06); border-color:rgba(180,140,255,0.12); }
+.panel-section[data-section="beams"]      { background:rgba(180,140,255,0.06); border-color:rgba(180,140,255,0.12); }
+.panel-section[data-section="openings"]   { background:rgba(255,190,100,0.06); border-color:rgba(255,190,100,0.12); }
+.panel-section[data-section="substrates"] { background:rgba(80,200,220,0.06);  border-color:rgba(80,200,220,0.12); }
+.panel-section[data-section="adjacency"]  { background:rgba(160,160,160,0.06); border-color:rgba(160,160,160,0.12); }
+.panel-section[data-section="overrides"]  { background:rgba(255,160,180,0.06); border-color:rgba(255,160,180,0.12); }
+.panel-section[data-section] .section-title { border-bottom-color:inherit; }
 .section-title {
   font-size:12px; font-weight:600; color:var(--text-secondary);
   margin-bottom:8px; padding-bottom:4px; border-bottom:1px solid var(--border);
@@ -490,9 +500,9 @@ const SUBSTRATE_CATALOG = [
   { id:'crown',             group:'Trim',            label:'Crown Molding',      uom:'LF',
     autoDerive:(d)=>d.perimeter,         defaultConfig:{ substrate_state:'factory_primed', application_method:null, lf_override:false, lf_manual:0 } },
   { id:'door_casing',       group:'Trim',            label:'Door Casing',        uom:'LF',
-    autoDerive:(d)=>d.totalDoors*17,     defaultConfig:{ substrate_state:'factory_primed', application_method:null, style:null, lf_override:false, lf_manual:0 } },
+    autoDerive:(d)=>d.openingCasingLF,   defaultConfig:{ substrate_state:'factory_primed', application_method:null, style:null, lf_override:false, lf_manual:0, painting:false } },
   { id:'window_casing',     group:'Trim',            label:'Window Casing',      uom:'LF',
-    autoDerive:(d)=>d.totalWindows*12,   defaultConfig:{ substrate_state:'factory_primed', application_method:null, style:null, lf_override:false, lf_manual:0 } },
+    autoDerive:(d)=>d.totalWindows*12,   defaultConfig:{ substrate_state:'factory_primed', application_method:null, style:null, lf_override:false, lf_manual:0, painting:false } },
   { id:'chair_rail',        group:'Trim',            label:'Chair Rail',         uom:'LF',
     autoDerive:null,                     defaultConfig:{ substrate_state:'factory_primed', application_method:null, lf_manual:0 } },
   { id:'shoe_mold',         group:'Trim',            label:'Shoe Mold',          uom:'LF',
@@ -512,11 +522,11 @@ const SUBSTRATE_CATALOG = [
 
   // --- Doors & Windows ---
   { id:'doors',             group:'Doors & Windows', label:'Door Slabs',         uom:'EA_SIDE',
-    autoDerive:null,                     defaultConfig:{ items:[], application_method:null } },
+    autoDerive:null,                     defaultConfig:{ items:[], application_method:null, painting:false } },
   { id:'door_frames',       group:'Doors & Windows', label:'Door Frames',        uom:'EA',
-    autoDerive:(d)=>d.totalDoors,        defaultConfig:{ substrate_state:'factory_primed', application_method:null } },
+    autoDerive:(d)=>d.totalOpenings,     defaultConfig:{ substrate_state:'factory_primed', application_method:null } },
   { id:'windows',           group:'Doors & Windows', label:'Windows',            uom:'EA',
-    autoDerive:null,                     defaultConfig:{ items:[], application_method:null } },
+    autoDerive:null,                     defaultConfig:{ items:[], application_method:null, painting:false } },
   { id:'window_jamb',       group:'Doors & Windows', label:'Window Jambs',       uom:'EA',
     autoDerive:(d)=>d.totalWindows,      defaultConfig:{ substrate_state:'bare_wood', application_method:null } },
 
@@ -665,6 +675,7 @@ const DOOR_TYPE_MODIFIERS = { flush: 1.0, panel_4: 1.25, panel_6: 1.35, french: 
 const WINDOW_TYPE_LABELS = { double_hung:'Double Hung', single_hung:'Single Hung', casement:'Casement', slider:'Slider', fixed:'Fixed', awning:'Awning' };
 const WINDOW_SIZE_LABELS = { S:'SM', M:'STD', L:'LG', O:'XL' };
 const DOOR_TYPE_LABELS = { flush:'Flush/Slab', panel_4:'4-Panel', panel_6:'6-Panel', french:'French', bifold:'Bifold', louvered:'Louvered' };
+const ARCH_ELEMENT_PS_GROUPS = { 'PS_SURFACE_LF.ARCH_BEAM':'Beams', 'PS_SURFACE_EA.ARCH_COLUMN':'Columns', 'PS_SURFACE_EA.ARCH_MANTEL':'Mantels' };
 
 // Grouped for the Scope panel checklist
 const SUBSTRATE_GROUPS = [...new Set(SUBSTRATE_CATALOG.map(s => s.group))].map(g => ({
@@ -793,11 +804,23 @@ const DB_BUNDLE = {"spec_families":[{"id":"SF_ARCH_ELEMENT_NC","name":"New Const
 // endregion DB_BUNDLE
 
 // ============================================================
+// OPENING TYPES — structural wall holes (deductions, casing, frames)
+// ============================================================
+const OPENING_TYPES = {
+  single: { label: 'Single Door',  width_ft: 3,  height_ft: 7, deduction_sf: 21, casing_lf: 17 },
+  double: { label: 'Double Door',  width_ft: 6,  height_ft: 7, deduction_sf: 42, casing_lf: 20 },
+  wide:   { label: 'Wide Opening', width_ft: 12, height_ft: 7, deduction_sf: 84, casing_lf: 26 }
+};
+
+// ============================================================
 // STATE FACTORY
 // ============================================================
 let nextId = 1;
 function genId(prefix) { return `${prefix}_${nextId++}`; }
 
+function createOpening(overrides={}) {
+  return { id:genId('opn'), opening_type:'single', count:1, ...overrides };
+}
 function createDoor(overrides={}) {
   return { id:genId('door'), count:1, door_type:'panel_6', substrate_state:'factory_primed', sides_per_door:2, ...overrides };
 }
@@ -842,8 +865,11 @@ function createRoom(overrides={}) {
     beam_application_method: 'brush',
     // Room-level overrides
     quality_tier: null, height_band: null, complexity: null, application_method: null,
+    openings_quality_tier: null, // v0.8 — QT override for all opening-related specs (doors, windows, casing, frames, jambs)
     // v0.3 substrate model — starts blank, presence = in scope
     substrates: {},
+    // v0.7 openings — structural wall holes (deductions, casing, frames); separate from door items
+    openings: [],
     // v0.5 adjacency — items present but not being painted
     floor_type: '',
     floor_protection: '',
@@ -861,8 +887,24 @@ function createRoom(overrides={}) {
       Object.entries(preset.substrates).forEach(([subId, config]) => {
         base.substrates[subId] = createSubstrateConfig(subId, config);
       });
+      // Presets that include doors/windows/casing → set painting=true (they opted in explicitly)
+      if (base.substrates.doors) base.substrates.doors.painting = true;
+      if (base.substrates.windows) base.substrates.windows.painting = true;
+      if (base.substrates.door_casing) base.substrates.door_casing.painting = true;
+      if (base.substrates.window_casing) base.substrates.window_casing.painting = true;
+      // Auto-generate openings from preset door items (1 single opening per door count)
+      const presetDoorItems = base.substrates.doors?.items || [];
+      const presetDoorTotal = presetDoorItems.reduce((s,d) => s + (parseInt(d.count)||0), 0);
+      if (presetDoorTotal > 0) {
+        base.openings = [createOpening({ count: presetDoorTotal })];
+      }
     }
   }
+  // Doors, windows, and casing always present (for deductions + masking); painting flag controls spec activation
+  if (!base.substrates.doors) base.substrates.doors = createSubstrateConfig('doors');
+  if (!base.substrates.windows) base.substrates.windows = createSubstrateConfig('windows');
+  if (!base.substrates.door_casing) base.substrates.door_casing = createSubstrateConfig('door_casing');
+  if (!base.substrates.window_casing) base.substrates.window_casing = createSubstrateConfig('window_casing');
   return base;
 }
 
@@ -872,7 +914,7 @@ const initialState = {
     default_quality_tier: 'QT3', default_height_band: 'STD',
     default_complexity: 'STD', default_application_method: 'spray_backroll',
     default_texture: 'smooth', notes: '',
-    default_substrates: ['ceiling', 'walls', 'baseboard', 'doors', 'windows', 'door_casing', 'window_casing', 'window_jamb', 'door_frames']
+    default_substrates: ['ceiling', 'walls', 'baseboard']
   },
   rooms: [createRoom()],
   ui: { activeRoomId: null, activeTab:'scope', view:'setup' }
@@ -896,15 +938,29 @@ function deriveRoom(room) {
   const perimeter = 2 * (L + W);
   const subs = room.substrates || {};
 
-  // Door/window counts from substrates
+  // Openings — structural wall holes (drive deductions, casing, frames)
+  const openings = room.openings || [];
+  const totalOpenings = openings.reduce((s, o) => s + (parseInt(o.count) || 0), 0);
+  const openingCasingLF = openings.reduce((s, o) => {
+    const cnt = parseInt(o.count) || 0;
+    const type = OPENING_TYPES[o.opening_type] || OPENING_TYPES.single;
+    return s + cnt * type.casing_lf;
+  }, 0);
+  const doorOpeningDeduction = openings.reduce((s, o) => {
+    const cnt = parseInt(o.count) || 0;
+    const type = OPENING_TYPES[o.opening_type] || OPENING_TYPES.single;
+    return s + cnt * type.deduction_sf;
+  }, 0);
+
+  // Door/window counts from substrates (painting scope only)
   const doorItems = subs.doors?.items || [];
   const windowItems = subs.windows?.items || [];
   const totalDoors = doorItems.reduce((s,d) => s + (parseInt(d.count)||0), 0);
   const totalWindows = windowItems.reduce((s,w) => s + (parseInt(w.count)||0), 0);
   const totalDoorSides = doorItems.reduce((s,d) => s + ((parseInt(d.count)||0) * (parseInt(d.sides_per_door)||2)), 0);
 
-  // Opening deduction only if those substrates exist
-  const openingDeduction = (totalDoors * 21) + (totalWindows * 15);
+  // Opening deduction from openings + windows (always present for wall area calculation)
+  const openingDeduction = doorOpeningDeduction + (totalWindows * 15);
   const wallGross = perimeter * H;
   const wallNet = Math.max(0, wallGross - openingDeduction);
   const ceilingSF = L * W;
@@ -986,7 +1042,7 @@ function deriveRoom(room) {
     if (!subs[subId]) return 0;
     const cat = SUBSTRATE_MAP[subId];
     if (subs[subId].lf_override) return parseFloat(subs[subId].lf_manual)||0;
-    if (cat?.autoDerive) return Math.round(cat.autoDerive({ perimeter, totalDoors, totalWindows, wall_field_sf, ceiling_field_sf }));
+    if (cat?.autoDerive) return Math.round(cat.autoDerive({ perimeter, totalDoors, totalWindows, totalOpenings, openingCasingLF, wall_field_sf, ceiling_field_sf }));
     return parseFloat(subs[subId].lf_manual)||0;
   }
 
@@ -1004,7 +1060,7 @@ function deriveRoom(room) {
   const panel_mold_lf = deriveLF('panel_mold');
 
   // EA-based substrates
-  const door_frames_ea = subs.door_frames ? (SUBSTRATE_MAP.door_frames.autoDerive({ totalDoors })) : 0;
+  const door_frames_ea = subs.door_frames ? (SUBSTRATE_MAP.door_frames.autoDerive({ totalOpenings })) : 0;
   const window_jamb_ea = subs.window_jamb ? (SUBSTRATE_MAP.window_jamb.autoDerive({ totalWindows })) : 0;
 
   const effectiveHeight = (room.vaulted_ceiling && parseFloat(room.peak_height_ft) > H)
@@ -1012,7 +1068,9 @@ function deriveRoom(room) {
   const heightBand = deriveHeightBand(effectiveHeight);
 
   return {
-    L, W, H, effectiveHeight, perimeter, totalDoors, totalWindows, openingDeduction,
+    L, W, H, effectiveHeight, perimeter,
+    totalOpenings, openingCasingLF, doorOpeningDeduction,
+    totalDoors, totalWindows, openingDeduction,
     wallGross, wallNet, ceilingSF, vaultedExtra, gableExtra, pitch,
     heightBand,
     wall_field_sf, ceiling_field_sf,
@@ -1040,7 +1098,8 @@ function deriveProtectionSummary(room, subs, applicationMethod) {
   }
 
   // Unpainted surfaces adjacent to painted ones
-  const anyPainted = Object.keys(subs).length > 0;
+  const alwaysPresentIds = new Set(['doors','windows','door_casing','window_casing']);
+  const anyPainted = Object.keys(subs).some(k => alwaysPresentIds.has(k) ? subs[k]?.painting : true);
   if (anyPainted) {
     if (!subs.walls && subs.ceiling) items.push({ zone: 'walls_adjacent', label: 'Walls (unpainted)', protection: applicationMethod === 'spray' ? 'heavy_mask' : 'light_mask', auto: true });
     if (!subs.ceiling && subs.walls) items.push({ zone: 'ceiling_adjacent', label: 'Ceiling (unpainted)', protection: applicationMethod === 'spray' ? 'medium_mask' : 'light_mask', auto: true });
@@ -1086,14 +1145,17 @@ function reducer(state, action) {
       const room = createRoom(payload || {});
       const projSubs = state.project.default_substrates || [];
       projSubs.forEach(subId => {
-        if (!room.substrates[subId]) {
-          if (subId === 'doors') {
-            room.substrates[subId] = createSubstrateConfig(subId, { items: [createDoor()] });
-          } else if (subId === 'windows') {
-            room.substrates[subId] = createSubstrateConfig(subId, { items: [createWindow()] });
-          } else {
-            room.substrates[subId] = createSubstrateConfig(subId);
+        if (subId === 'doors' || subId === 'windows') {
+          // doors/windows always exist from createRoom; project default sets painting flag + default item
+          room.substrates[subId].painting = true;
+          if ((room.substrates[subId].items || []).length === 0) {
+            room.substrates[subId].items = subId === 'doors' ? [createDoor()] : [createWindow()];
           }
+        } else if (subId === 'door_casing' || subId === 'window_casing') {
+          // casing always exists from createRoom; project default sets painting flag
+          room.substrates[subId].painting = true;
+        } else if (!room.substrates[subId]) {
+          room.substrates[subId] = createSubstrateConfig(subId);
         }
       });
       return { ...state, rooms:[...state.rooms, room], ui:{...state.ui, activeRoomId:room.id, activeTab:'scope', view:'editor'} };
@@ -1109,9 +1171,10 @@ function reducer(state, action) {
       const copy = JSON.parse(JSON.stringify(src));
       copy.id = genId('room');
       copy.label = src.label + ' (copy)';
-      // Re-stamp IDs on door/window items inside substrates
+      // Re-stamp IDs on door/window items and openings
       if (copy.substrates.doors?.items) copy.substrates.doors.items.forEach(d => d.id = genId('door'));
       if (copy.substrates.windows?.items) copy.substrates.windows.items.forEach(w => w.id = genId('win'));
+      if (copy.openings) copy.openings.forEach(o => o.id = genId('opn'));
       const idx = state.rooms.findIndex(r => r.id === payload);
       const rooms = [...state.rooms]; rooms.splice(idx+1, 0, copy);
       return { ...state, rooms, ui:{...state.ui, activeRoomId:copy.id} };
@@ -1125,7 +1188,11 @@ function reducer(state, action) {
       const { roomId, substrateId } = payload;
       return mapRoom(roomId, r => {
         const subs = { ...r.substrates };
-        if (subs[substrateId]) {
+        if (substrateId === 'doors' || substrateId === 'windows' || substrateId === 'door_casing' || substrateId === 'window_casing') {
+          // Never delete always-present substrates — toggle painting flag instead
+          if (!subs[substrateId]) subs[substrateId] = createSubstrateConfig(substrateId);
+          subs[substrateId] = { ...subs[substrateId], painting: !subs[substrateId].painting };
+        } else if (subs[substrateId]) {
           // Remove substrate (uncheck)
           delete subs[substrateId];
         } else {
@@ -1188,6 +1255,23 @@ function reducer(state, action) {
       return mapRoom(payload.roomId, r => {
         if (!r.substrates.windows) return r;
         return { ...r, substrates: { ...r.substrates, windows: { ...r.substrates.windows, items: r.substrates.windows.items.map(w => w.id === payload.winId ? { ...w, [payload.field]: payload.value } : w) } } };
+      });
+    }
+
+    // v0.7: Openings — structural wall holes
+    case 'ADD_OPENING': {
+      return mapRoom(payload.roomId, r => {
+        return { ...r, openings: [...(r.openings||[]), createOpening()] };
+      });
+    }
+    case 'REMOVE_OPENING': {
+      return mapRoom(payload.roomId, r => {
+        return { ...r, openings: (r.openings||[]).filter(o => o.id !== payload.openingId) };
+      });
+    }
+    case 'SET_OPENING': {
+      return mapRoom(payload.roomId, r => {
+        return { ...r, openings: (r.openings||[]).map(o => o.id === payload.openingId ? { ...o, [payload.field]: payload.value } : o) };
       });
     }
 
@@ -1260,7 +1344,11 @@ function exportProject(state) {
       quality_tier: effectiveQT, height_band: effectiveHeight,
       complexity: effectiveComplexity, application_method: effectiveMethod, texture: effectiveTexture,
       vaulted_ceiling: !!room.vaulted_ceiling, gable_walls: parseInt(room.gable_walls)||0,
-      substrates_in_scope: Object.keys(subs),
+      openings_quality_tier: room.openings_quality_tier || null,
+      substrates_in_scope: Object.keys(subs).filter(k => {
+        const alwaysPresent = k === 'doors' || k === 'windows' || k === 'door_casing' || k === 'window_casing';
+        return alwaysPresent ? subs[k]?.painting : true;
+      }),
       notes: room.notes || null
     });
 
@@ -1289,21 +1377,25 @@ function exportProject(state) {
       ['shadow_box', 'TRIM_SHADOW_BOX', 'shadow_box_lf'],
       ['panel_mold', 'TRIM_PANEL_MOLD', 'panel_mold_lf'],
     ];
+    const casingIds = new Set(['door_casing','window_casing']);
     trimSurfaces.forEach(([subId, surfType, derivedKey]) => {
-      if (subs[subId]) {
+      // Casing always present — only emit surface when painting flag is on
+      const present = casingIds.has(subId) ? subs[subId]?.painting : !!subs[subId];
+      if (present) {
         const lf = d[derivedKey] || 0;
         const isOverride = subs[subId].lf_override || (!SUBSTRATE_MAP[subId]?.autoDerive);
         addSurface(surfType, 'LF', lf, isOverride?'manual':'derived', {substrate_state:subs[subId].substrate_state});
       }
     });
 
-    // Doors — from substrates.doors.items
+    // Doors — from substrates.doors.items (surfaces only when painting)
     const doorItems = subs.doors?.items || [];
+    const doorsPainting = subs.doors?.painting;
     doorItems.forEach(door => {
       const cnt = parseInt(door.count)||0;
       const sides = cnt * (parseInt(door.sides_per_door)||2);
       if (cnt > 0) {
-        addSurface('DOOR_SLAB', 'EA_SIDE', sides, 'manual', {door_type:door.door_type, substrate_state:door.substrate_state});
+        if (doorsPainting) addSurface('DOOR_SLAB', 'EA_SIDE', sides, 'manual', {door_type:door.door_type, substrate_state:door.substrate_state});
         assetsData.push({ room_label:room.label, room_index:ri, asset_category:'DOOR', asset_subtype:door.door_type, protect_uom:'EA', protect_qty:cnt, attributes:{substrate_state:door.substrate_state, sides_per_door:door.sides_per_door} });
       }
     });
@@ -1311,12 +1403,13 @@ function exportProject(state) {
     // Door Frames — independent substrate
     if (subs.door_frames) addSurface('DOOR_FRAME', 'EA', d.door_frames_ea, 'derived', {substrate_state:subs.door_frames.substrate_state});
 
-    // Windows — from substrates.windows.items
+    // Windows — from substrates.windows.items (surfaces only when painting)
     const windowItems = subs.windows?.items || [];
+    const windowsPainting = subs.windows?.painting;
     windowItems.forEach(win => {
       const cnt = parseInt(win.count)||0;
       if (cnt > 0) {
-        addSurface(`WINDOW_${win.size_bucket}`, 'EA', cnt, 'manual', {window_type:win.window_type, substrate_state:win.substrate_state});
+        if (windowsPainting) addSurface(`WINDOW_${win.size_bucket}`, 'EA', cnt, 'manual', {window_type:win.window_type, substrate_state:win.substrate_state});
         assetsData.push({ room_label:room.label, room_index:ri, asset_category:'WINDOW', asset_subtype:win.window_type, protect_uom:'EA', protect_qty:cnt, attributes:{size_bucket:win.size_bucket, substrate_state:win.substrate_state} });
       }
     });
@@ -1349,21 +1442,25 @@ function exportProject(state) {
     if (subs.ceiling) addQty('PS_SURFACE_SF.CEILING_FIELD', 'SF', d.ceiling_field_sf);
 
     trimSurfaces.forEach(([subId, surfType, derivedKey]) => {
-      if (subs[subId]) addQty(`PS_SURFACE_LF.${surfType}`, 'LF', d[derivedKey]||0);
+      const active = casingIds.has(subId) ? subs[subId]?.painting : !!subs[subId];
+      if (active) addQty(`PS_SURFACE_LF.${surfType}`, 'LF', d[derivedKey]||0);
     });
 
-    // Door quantity keys
+    // Door quantity keys — surface keys only when painting (doors are painting scope)
     doorItems.forEach(door => {
       const cnt = parseInt(door.count)||0;
       const sides = cnt * (parseInt(door.sides_per_door)||2);
-      addQty('PS_SURFACE_EA_SIDE.DOOR_SLAB', 'EA_SIDE', sides);
-      addQty('PS_OPENING_EA.DOOR_OPENINGS_TOTAL', 'EA', cnt);
-      const dtMap = { flush:'SLAB', panel_4:'PANEL', panel_6:'PANEL', french:'FRENCH', bifold:'BIFOLD', louvered:'LOUVERED' };
-      if (dtMap[door.door_type]) addQty(`PS_META.EA_SIDE.DOOR_SLAB.${dtMap[door.door_type]}`, 'EA_SIDE', sides);
+      if (doorsPainting) {
+        addQty('PS_SURFACE_EA_SIDE.DOOR_SLAB', 'EA_SIDE', sides);
+        const dtMap = { flush:'SLAB', panel_4:'PANEL', panel_6:'PANEL', french:'FRENCH', bifold:'BIFOLD', louvered:'LOUVERED' };
+        if (dtMap[door.door_type]) addQty(`PS_META.EA_SIDE.DOOR_SLAB.${dtMap[door.door_type]}`, 'EA_SIDE', sides);
+      }
     });
+    // Opening counts from openings table (structural, always emit)
+    addQty('PS_OPENING_EA.DOOR_OPENINGS_TOTAL', 'EA', d.totalOpenings);
     if (subs.door_frames) addQty('PS_SURFACE_EA.DOOR_FRAME_SET', 'EA', d.door_frames_ea);
 
-    // Window quantity keys
+    // Window quantity keys — opening counts always emit, surface keys only when painting
     windowItems.forEach(win => {
       const cnt = parseInt(win.count)||0;
       addQty(`PS_OPENING_EA.WINDOW_${win.size_bucket}`, 'EA', cnt);
@@ -1372,7 +1469,7 @@ function exportProject(state) {
     });
     if (subs.window_jamb) {
       addQty('PS_SURFACE_EA.WINDOW_JAMB', 'EA', d.window_jamb_ea);
-      if (!subs.windows || !windowItems.length) {
+      if (!windowsPainting || !windowItems.length) {
         addQty('PS_OPENING_EA.WINDOW_TOTAL', 'EA', d.window_jamb_ea);
       }
     }
@@ -1386,8 +1483,11 @@ function exportProject(state) {
       }
     });
 
-    // Aggregate all trim LF for specs that use PS_SURFACE_LF.TRIM_TOTAL
-    const allTrimLF = trimSurfaces.reduce((s, [subId,,derivedKey]) => s + (subs[subId] ? (d[derivedKey]||0) : 0), 0);
+    // Aggregate all trim LF for specs that use PS_SURFACE_LF.TRIM_TOTAL (only painting trim)
+    const allTrimLF = trimSurfaces.reduce((s, [subId,,derivedKey]) => {
+      const active = casingIds.has(subId) ? subs[subId]?.painting : !!subs[subId];
+      return s + (active ? (d[derivedKey]||0) : 0);
+    }, 0);
     addQty('PS_SURFACE_LF.TRIM_TOTAL', 'LF', allTrimLF);
     // Trim joints — approximately equal to total trim LF (every piece has joints)
     addQty('PS_EDGE_LF.TRIM_JOINTS', 'LF', allTrimLF);
@@ -1405,17 +1505,20 @@ function exportProject(state) {
         addQty('PS_PROTECT_SF.FLOOR_PERIMETER', 'SF', d.perimeter * 2);
       }
     }
-    // WORKZONE = localized spray overspray zones: 8ft radius semicircle per door (~101 SF),
+    // WORKZONE = localized spray overspray zones: 8ft radius semicircle per opening (~101 SF),
     // 8ft radius quarter-circle per window (~50 SF, half arc since against wall), capped at floor area
     const workzoneSF = Math.min(
-      Math.round(d.totalDoors * (Math.PI * 64 / 2) + d.totalWindows * (Math.PI * 64 / 4)),
+      Math.round(d.totalOpenings * (Math.PI * 64 / 2) + d.totalWindows * (Math.PI * 64 / 4)),
       d.ceilingSF
     );
     addQty('PS_PROTECT_SF.FLOOR_WORKZONE', 'SF', workzoneSF);
     addQty('PS_PROTECT_LF.TRIM_EDGES', 'LF', trimLF);
     if (subs.baseboard) addQty('PS_PROTECT_LF.TRIM_BASEBOARD', 'LF', d.baseboard_lf);
-    if (subs.door_casing) addQty('PS_PROTECT_LF.TRIM_CASING_DOOR', 'LF', d.door_casing_lf);
-    if (subs.window_casing) addQty('PS_PROTECT_LF.TRIM_CASING_WINDOW', 'LF', d.window_casing_lf);
+    // Casing protection always emits when walls are painted (masking casing during wall work)
+    if (subs.walls) {
+      addQty('PS_PROTECT_LF.TRIM_CASING_DOOR', 'LF', d.door_casing_lf);
+      addQty('PS_PROTECT_LF.TRIM_CASING_WINDOW', 'LF', d.window_casing_lf);
+    }
     addQty('PS_PROTECT_LF.CEILING_LINE', 'LF', d.perimeter);
     addQty('PS_META.SF.FLOOR_VACUUM_AREA', 'SF', d.ceilingSF);
 
@@ -1432,7 +1535,7 @@ function exportProject(state) {
 
     // Meta
     addQty('PS_META.EA.ROOMS_TOTAL', 'EA', 1);
-    addQty('PS_META.EA.CASING_END_COUNT', 'EA', d.totalDoors*2 + d.totalWindows*4);
+    addQty('PS_META.EA.CASING_END_COUNT', 'EA', d.totalOpenings*2 + d.totalWindows*4);
   });
 
   return {
@@ -1727,7 +1830,8 @@ function buildRoomQuantityLookups(state) {
     if (subs.walls) addQ('PS_SURFACE_SF.WALL_FIELD', 'SF', d.wall_field_sf);
     if (subs.ceiling) addQ('PS_SURFACE_SF.CEILING_FIELD', 'SF', d.ceiling_field_sf);
 
-    // Trim — conditional on substrate presence
+    // Trim — conditional on substrate presence (casing: painting flag)
+    const casingIds2 = new Set(['door_casing','window_casing']);
     const trimKeys = [
       ['baseboard', 'TRIM_BASEBOARD', 'baseboard_lf'],
       ['crown', 'TRIM_CROWN', 'crown_lf'],
@@ -1743,27 +1847,34 @@ function buildRoomQuantityLookups(state) {
       ['panel_mold', 'TRIM_PANEL_MOLD', 'panel_mold_lf'],
     ];
     trimKeys.forEach(([subId, surfType, derivedKey]) => {
-      if (subs[subId]) addQ(`PS_SURFACE_LF.${surfType}`, 'LF', d[derivedKey]||0);
+      const active = casingIds2.has(subId) ? subs[subId]?.painting : !!subs[subId];
+      if (active) addQ(`PS_SURFACE_LF.${surfType}`, 'LF', d[derivedKey]||0);
     });
 
-    // Aggregate all trim LF for specs that use PS_SURFACE_LF.TRIM_TOTAL
-    const allTrimLF = trimKeys.reduce((s, [subId,,derivedKey]) => s + (subs[subId] ? (d[derivedKey]||0) : 0), 0);
+    // Aggregate all trim LF for specs that use PS_SURFACE_LF.TRIM_TOTAL (only painting trim)
+    const allTrimLF = trimKeys.reduce((s, [subId,,derivedKey]) => {
+      const active = casingIds2.has(subId) ? subs[subId]?.painting : !!subs[subId];
+      return s + (active ? (d[derivedKey]||0) : 0);
+    }, 0);
     addQ('PS_SURFACE_LF.TRIM_TOTAL', 'LF', allTrimLF);
     // Trim joints — approximately equal to total trim LF (every piece has joints)
     addQ('PS_EDGE_LF.TRIM_JOINTS', 'LF', allTrimLF);
 
-    // Doors — from substrates.doors.items
+    // Doors — from substrates.doors.items; surface keys only when painting (doors are painting scope)
     const doorItems = subs.doors?.items || [];
+    const doorsPainting2 = subs.doors?.painting;
     doorItems.forEach(door => {
       const cnt = parseInt(door.count)||0;
       const sides = cnt * (parseInt(door.sides_per_door)||2);
-      addQ('PS_SURFACE_EA_SIDE.DOOR_SLAB', 'EA_SIDE', sides);
-      addQ('PS_OPENING_EA.DOOR_OPENINGS_TOTAL', 'EA', cnt);
+      if (doorsPainting2) addQ('PS_SURFACE_EA_SIDE.DOOR_SLAB', 'EA_SIDE', sides);
     });
+    // Opening counts from openings table (structural, always emit)
+    addQ('PS_OPENING_EA.DOOR_OPENINGS_TOTAL', 'EA', d.totalOpenings);
     if (subs.door_frames) addQ('PS_SURFACE_EA.DOOR_FRAME_SET', 'EA', d.door_frames_ea);
 
-    // Windows — from substrates.windows.items
+    // Windows — from substrates.windows.items; surface keys only when painting, opening counts always
     const windowItems = subs.windows?.items || [];
+    const windowsPainting2 = subs.windows?.painting;
     windowItems.forEach(win => {
       const cnt = parseInt(win.count)||0;
       addQ(`PS_OPENING_EA.WINDOW_${win.size_bucket}`, 'EA', cnt);
@@ -1772,9 +1883,8 @@ function buildRoomQuantityLookups(state) {
     });
     if (subs.window_jamb) {
       addQ('PS_SURFACE_EA.WINDOW_JAMB', 'EA', d.window_jamb_ea);
-      // Jamb count also contributes to WINDOW_TOTAL when windows not already selected
-      // (per-window rates include jamb work — same EA count)
-      if (!subs.windows || !windowItems.length) {
+      // Jamb count also contributes to WINDOW_TOTAL when windows not already painting
+      if (!windowsPainting2 || !windowItems.length) {
         addQ('PS_OPENING_EA.WINDOW_TOTAL', 'EA', d.window_jamb_ea);
       }
     }
@@ -1813,16 +1923,19 @@ function buildRoomQuantityLookups(state) {
         addQ('PS_PROTECT_SF.FLOOR_PERIMETER', 'SF', d.perimeter * 2);
       }
     }
-    // WORKZONE = localized spray zones: 8ft radius semicircle per door, quarter-circle per window
+    // WORKZONE = localized spray zones: 8ft radius semicircle per opening, quarter-circle per window
     const wzSF = Math.min(
-      Math.round(d.totalDoors * (Math.PI * 64 / 2) + d.totalWindows * (Math.PI * 64 / 4)),
+      Math.round(d.totalOpenings * (Math.PI * 64 / 2) + d.totalWindows * (Math.PI * 64 / 4)),
       d.ceilingSF
     );
     addQ('PS_PROTECT_SF.FLOOR_WORKZONE', 'SF', wzSF);
     addQ('PS_PROTECT_LF.TRIM_EDGES', 'LF', trimLF);
     if (subs.baseboard) addQ('PS_PROTECT_LF.TRIM_BASEBOARD', 'LF', d.baseboard_lf);
-    if (subs.door_casing) addQ('PS_PROTECT_LF.TRIM_CASING_DOOR', 'LF', d.door_casing_lf);
-    if (subs.window_casing) addQ('PS_PROTECT_LF.TRIM_CASING_WINDOW', 'LF', d.window_casing_lf);
+    // Casing protection always emits when walls are painted (masking casing during wall work)
+    if (subs.walls) {
+      addQ('PS_PROTECT_LF.TRIM_CASING_DOOR', 'LF', d.door_casing_lf);
+      addQ('PS_PROTECT_LF.TRIM_CASING_WINDOW', 'LF', d.window_casing_lf);
+    }
     addQ('PS_PROTECT_LF.CEILING_LINE', 'LF', d.perimeter);
 
     // Fixture protection keys (v0.5)
@@ -1838,7 +1951,7 @@ function buildRoomQuantityLookups(state) {
 
     // Meta
     addQ('PS_META.EA.ROOMS_TOTAL', 'EA', 1);
-    addQ('PS_META.EA.CASING_END_COUNT', 'EA', d.totalDoors*2 + d.totalWindows*4);
+    addQ('PS_META.EA.CASING_END_COUNT', 'EA', d.totalOpenings*2 + d.totalWindows*4);
     addQ('PS_META.SF.FLOOR_VACUUM_AREA', 'SF', d.ceilingSF);
 
     roomLookups.set(ri, qty);
@@ -1850,8 +1963,15 @@ function buildRoomQuantityLookups(state) {
  * Resolve the effective application_method for a given spec+room combination.
  * Priority: substrate config override -> substrate type default -> room override -> project default.
  */
+// Substrates whose specs should use the openings_quality_tier override
+const OPENING_SUBSTRATES = new Set(['doors','windows','door_casing','window_casing','door_frames','window_jamb']);
+
 function resolveQualityTier(specId, room, project) {
   const primarySub = SPEC_SUBSTRATE_MAP[specId];
+  // Opening QT override takes priority for opening-related specs
+  if (primarySub && OPENING_SUBSTRATES.has(primarySub) && room.openings_quality_tier) {
+    return room.openings_quality_tier;
+  }
   if (primarySub) {
     const subConfig = room.substrates && room.substrates[primarySub];
     if (subConfig && subConfig.quality_tier) {
@@ -1909,7 +2029,7 @@ function resolveSubstrateStateForSpec(specId, room) {
   const subIds = (primarySub === 'baseboard')
     ? SUBSTRATE_CATALOG.filter(s => s.group === 'Trim').map(s => s.id).filter(id => subs[id])
     : (primarySub === 'windows')
-      ? [subs.windows ? 'windows' : null, subs.window_jamb ? 'window_jamb' : null].filter(Boolean)
+      ? [subs.windows?.painting ? 'windows' : null, subs.window_jamb ? 'window_jamb' : null].filter(Boolean)
       : (subs[primarySub] ? [primarySub] : []);
 
   // Return array of resolved SS_* states for all relevant substrates in this room
@@ -2453,7 +2573,9 @@ function runEstimate(state, db) {
               // Standard rate-based calculation
               const quantity = roomQty.get(psKey).value;
               const effRate = resolved.effectiveRate / modStack.total;
-              pushResult(quantity / effRate, quantity, null, { ...modStack });
+              // Arch element per-item grouping: assign itemGroup by PS key
+              const archGroup = (spec.id === 'SF_ARCH_ELEMENT_NC') ? (ARCH_ELEMENT_PS_GROUPS[psKey] || null) : null;
+              pushResult(quantity / effRate, quantity, null, { ...modStack }, archGroup);
             } else if (!psKey) {
               return; // No PS key — skip
             } else {
@@ -2478,7 +2600,7 @@ function runEstimate(state, db) {
   });
 
   // Split door/window specs into per-type sub-entries for grouped display
-  const SPECS_WITH_ITEM_GROUPS = ['SF_DOOR_SLAB_INT_NC', 'SF_WINDOW_INT_NC'];
+  const SPECS_WITH_ITEM_GROUPS = ['SF_DOOR_SLAB_INT_NC', 'SF_WINDOW_INT_NC', 'SF_ARCH_ELEMENT_NC'];
   const expandedSpecResults = [];
   specResults.forEach(sr => {
     // Check if this spec has per-item grouped tasks
@@ -2524,7 +2646,10 @@ function runEstimate(state, db) {
 
       expandedSpecResults.push({
         ...sr,
-        specName: `${SPEC_DISPLAY_NAMES[sr.specId] || sr.specName} — ${group}`,
+        specName: sr.specId === 'SF_DOOR_SLAB_INT_NC' ? `${group} Door`
+                : sr.specId === 'SF_WINDOW_INT_NC' ? `${group} Window`
+                : sr.specId === 'SF_ARCH_ELEMENT_NC' ? group
+                : `${SPEC_DISPLAY_NAMES[sr.specId] || sr.specName} — ${group}`,
         specId: sr.specId,
         itemGroup: group,
         totalHours: Math.round(totalHours * 100) / 100,
@@ -2798,12 +2923,11 @@ function ProjectSetup({ project, dispatch }) {
       </div>
       <div className="setup-field" style={{marginTop:12}}>
         <label>Default Paintable Surfaces</label>
-        <div className="hint">New rooms will include these surfaces by default</div>
+        <div className="hint">New rooms will include these surfaces by default. Doors & windows are configured per-room in the Openings section.</div>
         <div style={{display:'grid', gridTemplateColumns:'auto auto 24px auto auto 24px auto auto', alignItems:'center', gap:'6px 0', marginTop:8}}>
           {[
             {id:'ceiling', label:'Ceiling'}, {id:'walls', label:'Walls'}, {id:'baseboard', label:'Baseboard'},
-            {id:'doors', label:'Door Slabs'}, {id:'windows', label:'Windows'}, {id:'door_casing', label:'Door Casing'},
-            {id:'window_casing', label:'Window Casing'}, {id:'window_jamb', label:'Window Jambs'}, {id:'door_frames', label:'Door Frames'}
+            {id:'crown', label:'Crown'}, {id:'chair_rail', label:'Chair Rail'}, {id:'shoe_mold', label:'Shoe Mold'}
           ].map((s, i) => {
             const col = i % 3;
             const colStart = col * 3 + 1; // 1, 4, 7
@@ -2846,7 +2970,7 @@ function RoomList({ rooms, activeRoomId, dispatch }) {
               <div>
                 <div className="room-item-label">{room.label || 'Unnamed'}</div>
                 <div className="room-item-meta">
-                  {d.L>0?`${d.L}x${d.W}x${d.H}`:'—'} | {Object.keys(room.substrates||{}).length} substrates
+                  {d.L>0?`${d.L}x${d.W}x${d.H}`:'—'} | {Object.keys(room.substrates||{}).filter(k=>{const ap=k==='doors'||k==='windows'||k==='door_casing'||k==='window_casing';return ap?room.substrates[k]?.painting:true;}).length} substrates
                 </div>
               </div>
               <div className="room-item-actions">
@@ -2870,6 +2994,267 @@ function RoomList({ rooms, activeRoomId, dispatch }) {
   );
 }
 
+// === OPENINGS SECTION (v0.7 — openings table + doors/windows for painting) ===
+function OpeningsSection({ room, derived, dispatch, project }) {
+  const rid = room.id;
+  const subs = room.substrates || {};
+  const openings = room.openings || [];
+  const doorItems = subs.doors?.items || [];
+  const windowItems = subs.windows?.items || [];
+  const doorsPainting = !!subs.doors?.painting;
+  const windowsPainting = !!subs.windows?.painting;
+  const doorStates = ENUMS.substrateStates.filter(s => s.applies_to.includes('doors'));
+  const winStates = ENUMS.substrateStates.filter(s => s.applies_to.includes('windows'));
+  const casingStates = ENUMS.substrateStates.filter(s => s.applies_to.includes('door_casing'));
+  const frameStates = ENUMS.substrateStates.filter(s => s.applies_to.includes('door_frames'));
+  const winCasingStates = ENUMS.substrateStates.filter(s => s.applies_to.includes('window_casing'));
+  const jambStates = ENUMS.substrateStates.filter(s => s.applies_to.includes('window_jamb'));
+
+  const totalOpenings = derived.totalOpenings;
+  const totalWindows = derived.totalWindows;
+  const doorDeduct = derived.doorOpeningDeduction;
+  const winDeduct = totalWindows * 15;
+  const totalDeduct = derived.openingDeduction;
+  const doorCasingLF = derived.openingCasingLF;
+  const winCasingLF = totalWindows * 12;
+
+  const openingTypeOptions = Object.entries(OPENING_TYPES).map(([k,v]) => ({value:k, label:v.label}));
+  const setRoomField = (f,v) => dispatch({type:'SET_ROOM',payload:{roomId:rid,field:f,value:v||null}});
+  const setSub = (subId,field,value) => dispatch({type:'SET_SUBSTRATE',payload:{roomId:rid,substrateId:subId,field,value:value||null}});
+
+  // Any paintable opening item active?
+  const anyPaintable = doorsPainting || windowsPainting || !!subs.door_casing?.painting || !!subs.door_frames || !!subs.window_casing?.painting || !!subs.window_jamb;
+  const effectiveQT = room.openings_quality_tier || project.default_quality_tier;
+
+  return (
+    <div className="panel-section" data-section="openings">
+      <div className="section-title">Openings</div>
+      {/* Quality Tier override for all opening items */}
+      {anyPaintable && (
+        <div style={{display:'flex',alignItems:'center',gap:12,marginBottom:8,padding:'6px 8px',background:'var(--bg-tertiary)',borderRadius:4}}>
+          <span style={{fontSize:12,fontWeight:600,color:'var(--text-secondary)'}}>Openings Quality Tier</span>
+          <Sel options={ENUMS.qualityTiers} value={room.openings_quality_tier} onChange={v=>setRoomField('openings_quality_tier',v)} placeholder={`Project Default (${project.default_quality_tier})`} style={{width:200}} />
+          <span style={{fontSize:10,color:'var(--text-muted)'}}>Applies to doors, windows, frames</span>
+        </div>
+      )}
+      {(totalOpenings > 0 || totalWindows > 0) && (
+        <div style={{padding:'6px 8px',background:'var(--bg-tertiary)',borderRadius:4,fontSize:11,fontFamily:'var(--font-mono)',color:'var(--text-secondary)',marginBottom:8}}>
+          <div>Wall deductions: {totalOpenings > 0 && <span>{openings.map(o => { const t = OPENING_TYPES[o.opening_type]||OPENING_TYPES.single; return `${o.count} ${t.label.toLowerCase()} x ${t.deduction_sf} SF`; }).join(' + ')}</span>}
+          {totalOpenings > 0 && totalWindows > 0 && ' + '}
+          {totalWindows > 0 && <span>{totalWindows} window{totalWindows!==1?'s':''} x 15 SF</span>}
+          {' = '}<b style={{color:'var(--warning)'}}>{totalDeduct} SF deducted</b></div>
+          <div style={{marginTop:2}}>Masking: {doorCasingLF > 0 && <span>{doorCasingLF} LF door casing</span>}
+          {doorCasingLF > 0 && winCasingLF > 0 && ' | '}
+          {winCasingLF > 0 && <span>{totalWindows} window{totalWindows!==1?'s':''} x 12 = {winCasingLF} LF window casing</span>}</div>
+        </div>
+      )}
+
+      {/* === OPENINGS TABLE — structural wall holes === */}
+      <div style={{marginBottom:12}}>
+        <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:6}}>
+          <span style={{fontWeight:600,fontSize:13}}>Door Openings</span>
+          <span style={{fontSize:11,color:'var(--text-muted)'}}>(wall deductions, casing, frames)</span>
+          <button className="btn btn-sm btn-accent" style={{marginLeft:'auto'}} onClick={()=>dispatch({type:'ADD_OPENING',payload:{roomId:rid}})}>+ Add Opening</button>
+        </div>
+        {openings.length === 0 ? (
+          <div style={{color:'var(--text-muted)',padding:8,textAlign:'center',fontSize:12}}>No openings added yet.</div>
+        ) : (
+          <table className="data-table">
+            <thead><tr><th>Count</th><th>Type</th><th>Width</th><th>Deduction</th><th>Casing LF</th><th></th></tr></thead>
+            <tbody>
+              {openings.map(opn => {
+                const t = OPENING_TYPES[opn.opening_type] || OPENING_TYPES.single;
+                const cnt = parseInt(opn.count)||0;
+                return (
+                  <tr key={opn.id}>
+                    <td><input type="number" value={opn.count} min="0" onChange={e=>dispatch({type:'SET_OPENING',payload:{roomId:rid,openingId:opn.id,field:'count',value:parseInt(e.target.value)||0}})} style={{width:60}} /></td>
+                    <td><Sel options={openingTypeOptions} value={opn.opening_type} onChange={v=>dispatch({type:'SET_OPENING',payload:{roomId:rid,openingId:opn.id,field:'opening_type',value:v}})} /></td>
+                    <td style={{fontFamily:'var(--font-mono)',color:'var(--text-secondary)'}}>{t.width_ft} ft</td>
+                    <td style={{fontFamily:'var(--font-mono)',color:'var(--warning)'}}>{cnt * t.deduction_sf} SF</td>
+                    <td style={{fontFamily:'var(--font-mono)',color:'var(--derived)'}}>{cnt * t.casing_lf} LF</td>
+                    <td><button className="btn btn-sm btn-danger" onClick={()=>dispatch({type:'REMOVE_OPENING',payload:{roomId:rid,openingId:opn.id}})}>&#x2715;</button></td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        )}
+        {/* Associated Door Trim — derived from openings */}
+        <div style={{marginTop:6,paddingLeft:16,borderLeft:'2px solid var(--border)'}}>
+          <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:3}}>
+            <Toggle checked={!!subs.door_casing?.painting} onChange={()=>dispatch({type:'TOGGLE_SUBSTRATE',payload:{roomId:rid,substrateId:'door_casing'}})} label="Paint" />
+            <span style={{fontSize:12,color:'var(--text-primary)'}}>Door Casing</span>
+            <span style={{fontSize:10,color:subs.door_casing?.painting?'var(--accent)':'var(--text-muted)',fontWeight:500}}>{subs.door_casing?.painting ? 'PAINT' : 'PROTECT'}</span>
+            <span style={{fontSize:11,fontFamily:'var(--font-mono)',color:'var(--derived)',marginLeft:'auto'}}>{doorCasingLF > 0 ? `${doorCasingLF} LF` : '—'}</span>
+          </div>
+          {subs.door_casing?.painting && (
+            <div style={{display:'flex',gap:10,marginBottom:4,paddingLeft:24}}>
+              <div style={{display:'flex',alignItems:'center',gap:4}}>
+                <span style={{fontSize:10,color:'var(--text-muted)'}}>State</span>
+                <Sel options={casingStates} value={subs.door_casing?.substrate_state||null} onChange={v=>setSub('door_casing','substrate_state',v)} placeholder="Default" style={{width:130,fontSize:11}} />
+              </div>
+              <div style={{display:'flex',alignItems:'center',gap:4}}>
+                <span style={{fontSize:10,color:'var(--text-muted)'}}>App</span>
+                {(() => { const sam = SUBSTRATE_APPLICATION_METHODS['door_casing'];
+                  const opts = ENUMS.applicationMethods.filter(m => sam.methods.includes(m.value));
+                  return <Sel options={opts} value={subs.door_casing?.application_method||null} onChange={v=>setSub('door_casing','application_method',v)} placeholder={`Default (${sam.default})`} style={{width:130,fontSize:11}} />;
+                })()}
+              </div>
+            </div>
+          )}
+          <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:3}}>
+            <input type="checkbox" checked={!!subs.door_frames} onChange={()=>dispatch({type:'TOGGLE_SUBSTRATE',payload:{roomId:rid,substrateId:'door_frames'}})} />
+            <span style={{fontSize:12,color:subs.door_frames?'var(--text-primary)':'var(--text-muted)'}}>Door Frames</span>
+            <span style={{fontSize:11,fontFamily:'var(--font-mono)',color:'var(--derived)',marginLeft:'auto'}}>{totalOpenings > 0 ? `${totalOpenings} EA` : '—'}</span>
+          </div>
+          {!!subs.door_frames && (
+            <div style={{display:'flex',gap:10,marginBottom:4,paddingLeft:24}}>
+              <div style={{display:'flex',alignItems:'center',gap:4}}>
+                <span style={{fontSize:10,color:'var(--text-muted)'}}>State</span>
+                <Sel options={frameStates} value={subs.door_frames?.substrate_state||null} onChange={v=>setSub('door_frames','substrate_state',v)} placeholder="Default" style={{width:130,fontSize:11}} />
+              </div>
+              <div style={{display:'flex',alignItems:'center',gap:4}}>
+                <span style={{fontSize:10,color:'var(--text-muted)'}}>App</span>
+                {(() => { const sam = SUBSTRATE_APPLICATION_METHODS['door_frames'];
+                  const opts = ENUMS.applicationMethods.filter(m => sam.methods.includes(m.value));
+                  return <Sel options={opts} value={subs.door_frames?.application_method||null} onChange={v=>setSub('door_frames','application_method',v)} placeholder={`Default (${sam.default})`} style={{width:130,fontSize:11}} />;
+                })()}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* === DOORS SUB-SECTION — paintable panels === */}
+      <div style={{marginBottom:12}}>
+        <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:6}}>
+          <span style={{fontWeight:600,fontSize:13}}>Door Panels</span>
+          <span style={{fontSize:11,color:'var(--text-muted)'}}>(painting scope)</span>
+          <Toggle checked={doorsPainting} onChange={()=>dispatch({type:'TOGGLE_SUBSTRATE',payload:{roomId:rid,substrateId:'doors'}})} label="Paint Doors" />
+          <button className="btn btn-sm btn-accent" style={{marginLeft:'auto'}} onClick={()=>dispatch({type:'ADD_DOOR',payload:{roomId:rid}})}>+ Add Door</button>
+        </div>
+        {doorsPainting && (
+          <div style={{display:'flex',gap:12,marginBottom:6}}>
+            <div>
+              <span className="field-label" style={{marginRight:4}}>Application</span>
+              {(() => { const sam = SUBSTRATE_APPLICATION_METHODS['doors'];
+                const methodOptions = ENUMS.applicationMethods.filter(m => sam.methods.includes(m.value));
+                return <Sel options={methodOptions} value={subs.doors?.application_method||null}
+                  onChange={v=>dispatch({type:'SET_SUBSTRATE',payload:{roomId:rid,substrateId:'doors',field:'application_method',value:v||null}})}
+                  placeholder={`Default (${sam.default})`} style={{width:150}} />;
+              })()}
+            </div>
+          </div>
+        )}
+        {doorItems.length === 0 ? (
+          <div style={{color:'var(--text-muted)',padding:8,textAlign:'center',fontSize:12}}>No door panels added yet.</div>
+        ) : (
+          <table className="data-table">
+            <thead><tr><th>Count</th><th>Type</th><th>Substrate State</th><th>Sides</th><th>Total Sides</th><th></th></tr></thead>
+            <tbody>
+              {doorItems.map(door => (
+                <tr key={door.id}>
+                  <td><input type="number" value={door.count} min="0" onChange={e=>dispatch({type:'SET_DOOR',payload:{roomId:rid,doorId:door.id,field:'count',value:parseInt(e.target.value)||0}})} style={{width:60}} /></td>
+                  <td><Sel options={ENUMS.doorTypes} value={door.door_type} onChange={v=>dispatch({type:'SET_DOOR',payload:{roomId:rid,doorId:door.id,field:'door_type',value:v}})} /></td>
+                  <td><Sel options={doorStates} value={door.substrate_state} onChange={v=>dispatch({type:'SET_DOOR',payload:{roomId:rid,doorId:door.id,field:'substrate_state',value:v}})} /></td>
+                  <td><input type="number" value={door.sides_per_door} min="1" max="2" onChange={e=>dispatch({type:'SET_DOOR',payload:{roomId:rid,doorId:door.id,field:'sides_per_door',value:parseInt(e.target.value)||2}})} style={{width:50}} /></td>
+                  <td style={{fontFamily:'var(--font-mono)',color:'var(--accent)'}}>{(parseInt(door.count)||0)*(parseInt(door.sides_per_door)||2)} EA_SIDE</td>
+                  <td><button className="btn btn-sm btn-danger" onClick={()=>dispatch({type:'REMOVE_DOOR',payload:{roomId:rid,doorId:door.id}})}>&#x2715;</button></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
+
+      {/* === WINDOWS SUB-SECTION === */}
+      <div>
+        <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:6}}>
+          <span style={{fontWeight:600,fontSize:13}}>Windows</span>
+          <Toggle checked={windowsPainting} onChange={()=>dispatch({type:'TOGGLE_SUBSTRATE',payload:{roomId:rid,substrateId:'windows'}})} label="Paint Windows" />
+          <button className="btn btn-sm btn-accent" style={{marginLeft:'auto'}} onClick={()=>dispatch({type:'ADD_WINDOW',payload:{roomId:rid}})}>+ Add Window</button>
+        </div>
+        {windowsPainting && (
+          <div style={{display:'flex',gap:12,marginBottom:6}}>
+            <div>
+              <span className="field-label" style={{marginRight:4}}>Application</span>
+              {(() => { const sam = SUBSTRATE_APPLICATION_METHODS['windows'];
+                const methodOptions = ENUMS.applicationMethods.filter(m => sam.methods.includes(m.value));
+                return <Sel options={methodOptions} value={subs.windows?.application_method||null}
+                  onChange={v=>dispatch({type:'SET_SUBSTRATE',payload:{roomId:rid,substrateId:'windows',field:'application_method',value:v||null}})}
+                  placeholder={`Default (${sam.default})`} style={{width:150}} />;
+              })()}
+            </div>
+          </div>
+        )}
+        {windowItems.length === 0 ? (
+          <div style={{color:'var(--text-muted)',padding:8,textAlign:'center',fontSize:12}}>No windows added yet.</div>
+        ) : (
+          <table className="data-table">
+            <thead><tr><th>Count</th><th>Type</th><th>Size Bucket</th><th>Substrate State</th><th>PS Key</th><th></th></tr></thead>
+            <tbody>
+              {windowItems.map(win => (
+                <tr key={win.id}>
+                  <td><input type="number" value={win.count} min="0" onChange={e=>dispatch({type:'SET_WINDOW',payload:{roomId:rid,winId:win.id,field:'count',value:parseInt(e.target.value)||0}})} style={{width:60}} /></td>
+                  <td><Sel options={ENUMS.windowTypes} value={win.window_type} onChange={v=>dispatch({type:'SET_WINDOW',payload:{roomId:rid,winId:win.id,field:'window_type',value:v}})} /></td>
+                  <td><Sel options={ENUMS.windowSizes} value={win.size_bucket} onChange={v=>dispatch({type:'SET_WINDOW',payload:{roomId:rid,winId:win.id,field:'size_bucket',value:v}})} /></td>
+                  <td><Sel options={winStates} value={win.substrate_state} onChange={v=>dispatch({type:'SET_WINDOW',payload:{roomId:rid,winId:win.id,field:'substrate_state',value:v}})} /></td>
+                  <td style={{fontFamily:'var(--font-mono)',fontSize:11,color:'var(--derived)'}}>PS_OPENING_EA.WINDOW_{win.size_bucket}</td>
+                  <td><button className="btn btn-sm btn-danger" onClick={()=>dispatch({type:'REMOVE_WINDOW',payload:{roomId:rid,winId:win.id}})}>&#x2715;</button></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+        {/* Associated Window Trim — casing always present for masking, toggle controls paint */}
+        <div style={{marginTop:6,paddingLeft:16,borderLeft:'2px solid var(--border)'}}>
+          <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:3}}>
+            <Toggle checked={!!subs.window_casing?.painting} onChange={()=>dispatch({type:'TOGGLE_SUBSTRATE',payload:{roomId:rid,substrateId:'window_casing'}})} label="Paint" />
+            <span style={{fontSize:12,color:'var(--text-primary)'}}>Window Casing</span>
+            <span style={{fontSize:10,color:subs.window_casing?.painting?'var(--accent)':'var(--text-muted)',fontWeight:500}}>{subs.window_casing?.painting ? 'PAINT' : 'PROTECT'}</span>
+            <span style={{fontSize:11,fontFamily:'var(--font-mono)',color:'var(--derived)',marginLeft:'auto'}}>{totalWindows > 0 ? `${totalWindows} x 12 = ${totalWindows*12} LF` : '—'}</span>
+          </div>
+          {subs.window_casing?.painting && (
+            <div style={{display:'flex',gap:10,marginBottom:4,paddingLeft:24}}>
+              <div style={{display:'flex',alignItems:'center',gap:4}}>
+                <span style={{fontSize:10,color:'var(--text-muted)'}}>State</span>
+                <Sel options={winCasingStates} value={subs.window_casing?.substrate_state||null} onChange={v=>setSub('window_casing','substrate_state',v)} placeholder="Default" style={{width:130,fontSize:11}} />
+              </div>
+              <div style={{display:'flex',alignItems:'center',gap:4}}>
+                <span style={{fontSize:10,color:'var(--text-muted)'}}>App</span>
+                {(() => { const sam = SUBSTRATE_APPLICATION_METHODS['window_casing'];
+                  const opts = ENUMS.applicationMethods.filter(m => sam.methods.includes(m.value));
+                  return <Sel options={opts} value={subs.window_casing?.application_method||null} onChange={v=>setSub('window_casing','application_method',v)} placeholder={`Default (${sam.default})`} style={{width:130,fontSize:11}} />;
+                })()}
+              </div>
+            </div>
+          )}
+          <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:3}}>
+            <input type="checkbox" checked={!!subs.window_jamb} onChange={()=>dispatch({type:'TOGGLE_SUBSTRATE',payload:{roomId:rid,substrateId:'window_jamb'}})} />
+            <span style={{fontSize:12,color:subs.window_jamb?'var(--text-primary)':'var(--text-muted)'}}>Window Jambs</span>
+            <span style={{fontSize:11,fontFamily:'var(--font-mono)',color:'var(--derived)',marginLeft:'auto'}}>{totalWindows > 0 ? `${totalWindows} EA` : '—'}</span>
+          </div>
+          {!!subs.window_jamb && (
+            <div style={{display:'flex',gap:10,marginBottom:4,paddingLeft:24}}>
+              <div style={{display:'flex',alignItems:'center',gap:4}}>
+                <span style={{fontSize:10,color:'var(--text-muted)'}}>State</span>
+                <Sel options={jambStates} value={subs.window_jamb?.substrate_state||null} onChange={v=>setSub('window_jamb','substrate_state',v)} placeholder="Default" style={{width:130,fontSize:11}} />
+              </div>
+              <div style={{display:'flex',alignItems:'center',gap:4}}>
+                <span style={{fontSize:10,color:'var(--text-muted)'}}>App</span>
+                {(() => { const sam = SUBSTRATE_APPLICATION_METHODS['window_jamb'];
+                  const opts = ENUMS.applicationMethods.filter(m => sam.methods.includes(m.value));
+                  return <Sel options={opts} value={subs.window_jamb?.application_method||null} onChange={v=>setSub('window_jamb','application_method',v)} placeholder={`Default (${sam.default})`} style={{width:130,fontSize:11}} />;
+                })()}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // === SCOPE PANEL (v0.3 — replaces DimensionsPanel) ===
 function ScopePanel({ room, derived, dispatch, project, focusedSubstrate, setFocusedSubstrate }) {
   const rid = room.id;
@@ -2882,11 +3267,14 @@ function ScopePanel({ room, derived, dispatch, project, focusedSubstrate, setFoc
   const applicationMethod = room.application_method || project.default_application_method;
   const protectionSummary = useMemo(() => deriveProtectionSummary(room, subs, applicationMethod), [room, subs, applicationMethod]);
 
+  // Opening substrates handled by OpeningsSection — filter out of checklist
+  const openingIds = new Set(['doors','windows','door_casing','window_casing','door_frames','window_jamb']);
+  const filteredGroups = SUBSTRATE_GROUPS.map(g => ({...g, items: g.items.filter(c => !openingIds.has(c.id))})).filter(g => g.items.length > 0);
+
   // Handle checkbox toggle + auto-focus
   const handleToggle = (catId) => {
     const isChecked = !!subs[catId];
     dispatch({type:'TOGGLE_SUBSTRATE',payload:{roomId:rid,substrateId:catId}});
-    if (catId === 'doors' || catId === 'windows') return; // these have their own tabs
     if (!isChecked) {
       setFocusedSubstrate(catId); // newly checked → auto-focus
     } else if (focusedSubstrate === catId) {
@@ -2896,13 +3284,12 @@ function ScopePanel({ room, derived, dispatch, project, focusedSubstrate, setFoc
 
   // Handle clicking an already-checked item label → set focus
   const handleItemClick = (catId) => {
-    if (catId === 'doors' || catId === 'windows') return;
     if (subs[catId]) setFocusedSubstrate(catId);
   };
 
   return (
     <div>
-      <div className="panel-section">
+      <div className="panel-section" data-section="overrides">
         <div className="section-title">Room-Level Overrides</div>
         <div className="form-grid" style={{gridTemplateColumns:'1fr 1fr'}}>
           <div>
@@ -2915,7 +3302,7 @@ function ScopePanel({ room, derived, dispatch, project, focusedSubstrate, setFoc
           </div>
         </div>
       </div>
-      <div className="panel-section">
+      <div className="panel-section" data-section="identity">
         <div className="section-title">Room Identity</div>
         <div className="form-grid" style={{gridTemplateColumns:'2fr 2fr'}}>
           <div>
@@ -2928,7 +3315,7 @@ function ScopePanel({ room, derived, dispatch, project, focusedSubstrate, setFoc
           </div>
         </div>
       </div>
-      <div className="panel-section">
+      <div className="panel-section" data-section="dimensions">
         <div className="section-title">Dimensions</div>
         <div className="form-row">
           <div>
@@ -2954,7 +3341,7 @@ function ScopePanel({ room, derived, dispatch, project, focusedSubstrate, setFoc
         </div>
       </div>
 
-      <div className="panel-section">
+      <div className="panel-section" data-section="vault">
         <div className="section-title">Vault &amp; Gable</div>
         <div className="form-grid" style={{gridTemplateColumns:'1fr 1fr 1fr 1fr'}}>
           <div>
@@ -2994,7 +3381,7 @@ function ScopePanel({ room, derived, dispatch, project, focusedSubstrate, setFoc
       </div>
 
       {room.vaulted_ceiling && (
-      <div className="panel-section">
+      <div className="panel-section" data-section="beams">
         <div className="section-title">Ceiling Beams</div>
         <div className="form-grid" style={{gridTemplateColumns:'1fr 1fr 1fr 1fr'}}>
           <div>
@@ -3052,17 +3439,18 @@ function ScopePanel({ room, derived, dispatch, project, focusedSubstrate, setFoc
       </div>
       )}
 
-      <div className="panel-section">
+      <OpeningsSection room={room} derived={derived} dispatch={dispatch} project={project} />
+
+      <div className="panel-section" data-section="substrates">
         <div className="section-title">What Are We Painting?</div>
         <div style={{fontSize:11,color:'var(--text-muted)',marginBottom:8}}>Click a checked item to configure it in the panel to the right.</div>
         <div className="master-detail-container">
           <div className="master-list">
-            {SUBSTRATE_GROUPS.map(g => (
+            {filteredGroups.map(g => (
               <div key={g.group} style={{marginBottom:10}}>
                 <div style={{fontSize:11,fontWeight:600,color:'var(--text-secondary)',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:4}}>{g.group}</div>
                 <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'2px 8px'}}>
                   {g.items.map(cat => {
-                    const isDoorWin = cat.id === 'doors' || cat.id === 'windows';
                     const checked = !!subs[cat.id];
                     const isFocused = focusedSubstrate === cat.id;
                     return (
@@ -3072,7 +3460,6 @@ function ScopePanel({ room, derived, dispatch, project, focusedSubstrate, setFoc
                           onChange={(e)=>{e.stopPropagation();handleToggle(cat.id);}}
                           onClick={(e)=>e.stopPropagation()} />
                         <span style={{color:checked?'var(--text-primary)':'var(--text-muted)'}}>{cat.label}</span>
-                        {checked && isDoorWin && <span className="tab-indicator">{'\u2192'} tab</span>}
                       </div>
                     );
                   })}
@@ -3099,7 +3486,7 @@ function ScopePanel({ room, derived, dispatch, project, focusedSubstrate, setFoc
         </div>
       </div>
 
-      <div className="panel-section">
+      <div className="panel-section" data-section="adjacency">
         <div className="section-title">Room Adjacency &amp; Protection</div>
         <div style={{fontSize:11,color:'var(--text-muted)',marginBottom:8}}>
           Mark items present in the room that are not being painted.
@@ -3292,7 +3679,7 @@ function SubstrateDetailPanel({ room, derived, dispatch, substrateId, project })
     // Look up the derived value by key convention
     const dKey = Object.keys(derived).find(k => k.startsWith(substrateId.replace(/_/g, '_')));
     if (dKey) autoDerivedVal = derived[dKey] || 0;
-    else autoDerivedVal = cat.autoDerive({ perimeter:derived.perimeter, totalDoors:derived.totalDoors, totalWindows:derived.totalWindows, wall_field_sf:derived.wall_field_sf, ceiling_field_sf:derived.ceiling_field_sf }) || 0;
+    else autoDerivedVal = cat.autoDerive({ perimeter:derived.perimeter, totalDoors:derived.totalDoors, totalWindows:derived.totalWindows, totalOpenings:derived.totalOpenings, openingCasingLF:derived.openingCasingLF, wall_field_sf:derived.wall_field_sf, ceiling_field_sf:derived.ceiling_field_sf }) || 0;
   }
 
   // For SF-based surfaces (walls, ceiling)
@@ -3413,108 +3800,10 @@ function SubstrateDetailPanel({ room, derived, dispatch, substrateId, project })
   );
 }
 
-// === DOORS PANEL (v0.3 — reads from substrates.doors.items) ===
-function DoorsPanel({ room, dispatch }) {
-  const rid = room.id;
-  const items = room.substrates.doors?.items || [];
-  // Filter substrate states applicable to doors
-  const doorStates = ENUMS.substrateStates.filter(s => s.applies_to.includes('doors'));
-  return (
-    <div>
-      <div className="panel-section">
-        <div className="section-title">
-          Door Slabs
-          <button className="btn btn-sm btn-accent" onClick={()=>dispatch({type:'ADD_DOOR',payload:{roomId:rid}})}>+ Add Door</button>
-        </div>
-        {(() => {
-          const sam = SUBSTRATE_APPLICATION_METHODS['doors'];
-          const methodOptions = ENUMS.applicationMethods.filter(m => sam.methods.includes(m.value));
-          const doorConfig = room.substrates.doors || {};
-          return (
-            <div style={{marginBottom:8}}>
-              <span className="field-label" style={{marginRight:8}}>Application Method</span>
-              <Sel options={methodOptions} value={doorConfig.application_method||null}
-                onChange={v=>dispatch({type:'SET_SUBSTRATE',payload:{roomId:rid,substrateId:'doors',field:'application_method',value:v||null}})}
-                placeholder={`Default (${sam.default})`} style={{width:180}} />
-            </div>
-          );
-        })()}
-        {items.length === 0 ? (
-          <div style={{color:'var(--text-muted)',padding:12,textAlign:'center'}}>No doors. Click + Add Door.</div>
-        ) : (
-          <table className="data-table">
-            <thead><tr><th>Count</th><th>Type</th><th>Substrate State</th><th>Sides</th><th>Total Sides</th><th></th></tr></thead>
-            <tbody>
-              {items.map(door => (
-                <tr key={door.id}>
-                  <td><input type="number" value={door.count} min="0" onChange={e=>dispatch({type:'SET_DOOR',payload:{roomId:rid,doorId:door.id,field:'count',value:parseInt(e.target.value)||0}})} style={{width:60}} /></td>
-                  <td><Sel options={ENUMS.doorTypes} value={door.door_type} onChange={v=>dispatch({type:'SET_DOOR',payload:{roomId:rid,doorId:door.id,field:'door_type',value:v}})} /></td>
-                  <td><Sel options={doorStates} value={door.substrate_state} onChange={v=>dispatch({type:'SET_DOOR',payload:{roomId:rid,doorId:door.id,field:'substrate_state',value:v}})} /></td>
-                  <td><input type="number" value={door.sides_per_door} min="1" max="2" onChange={e=>dispatch({type:'SET_DOOR',payload:{roomId:rid,doorId:door.id,field:'sides_per_door',value:parseInt(e.target.value)||2}})} style={{width:50}} /></td>
-                  <td style={{fontFamily:'var(--font-mono)',color:'var(--accent)'}}>{(parseInt(door.count)||0)*(parseInt(door.sides_per_door)||2)} EA_SIDE</td>
-                  <td><button className="btn btn-sm btn-danger" onClick={()=>dispatch({type:'REMOVE_DOOR',payload:{roomId:rid,doorId:door.id}})}>&#x2715;</button></td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-      </div>
-    </div>
-  );
-}
+// DoorsPanel and WindowsPanel removed in v0.6 — absorbed into OpeningsSection
 
-// === WINDOWS PANEL (v0.3 — reads from substrates.windows.items) ===
-function WindowsPanel({ room, dispatch }) {
-  const rid = room.id;
-  const items = room.substrates.windows?.items || [];
-  const winStates = ENUMS.substrateStates.filter(s => s.applies_to.includes('windows'));
-  return (
-    <div>
-      <div className="panel-section">
-        <div className="section-title">
-          Windows
-          <button className="btn btn-sm btn-accent" onClick={()=>dispatch({type:'ADD_WINDOW',payload:{roomId:rid}})}>+ Add Window</button>
-        </div>
-        {(() => {
-          const sam = SUBSTRATE_APPLICATION_METHODS['windows'];
-          const methodOptions = ENUMS.applicationMethods.filter(m => sam.methods.includes(m.value));
-          const winConfig = room.substrates.windows || {};
-          return (
-            <div style={{marginBottom:8}}>
-              <span className="field-label" style={{marginRight:8}}>Application Method</span>
-              <Sel options={methodOptions} value={winConfig.application_method||null}
-                onChange={v=>dispatch({type:'SET_SUBSTRATE',payload:{roomId:rid,substrateId:'windows',field:'application_method',value:v||null}})}
-                placeholder={`Default (${sam.default})`} style={{width:180}} />
-            </div>
-          );
-        })()}
-        {items.length === 0 ? (
-          <div style={{color:'var(--text-muted)',padding:12,textAlign:'center'}}>No windows. Click + Add Window.</div>
-        ) : (
-          <table className="data-table">
-            <thead><tr><th>Count</th><th>Type</th><th>Size Bucket</th><th>Substrate State</th><th>PS Key</th><th></th></tr></thead>
-            <tbody>
-              {items.map(win => (
-                <tr key={win.id}>
-                  <td><input type="number" value={win.count} min="0" onChange={e=>dispatch({type:'SET_WINDOW',payload:{roomId:rid,winId:win.id,field:'count',value:parseInt(e.target.value)||0}})} style={{width:60}} /></td>
-                  <td><Sel options={ENUMS.windowTypes} value={win.window_type} onChange={v=>dispatch({type:'SET_WINDOW',payload:{roomId:rid,winId:win.id,field:'window_type',value:v}})} /></td>
-                  <td><Sel options={ENUMS.windowSizes} value={win.size_bucket} onChange={v=>dispatch({type:'SET_WINDOW',payload:{roomId:rid,winId:win.id,field:'size_bucket',value:v}})} /></td>
-                  <td><Sel options={winStates} value={win.substrate_state} onChange={v=>dispatch({type:'SET_WINDOW',payload:{roomId:rid,winId:win.id,field:'substrate_state',value:v}})} /></td>
-                  <td style={{fontFamily:'var(--font-mono)',fontSize:11,color:'var(--derived)'}}>PS_OPENING_EA.WINDOW_{win.size_bucket}</td>
-                  <td><button className="btn btn-sm btn-danger" onClick={()=>dispatch({type:'REMOVE_WINDOW',payload:{roomId:rid,winId:win.id}})}>&#x2715;</button></td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-      </div>
-    </div>
-  );
-}
-
-// === ROOM EDITOR (v0.4 — master/detail layout) ===
+// === ROOM EDITOR (v0.6 — single Scope view, no tabs) ===
 function RoomEditor({ room, project, dispatch }) {
-  const [activeTab, setActiveTab] = useState('scope');
   const [focusedSubstrate, setFocusedSubstrate] = useState(null);
   const derived = useMemo(() => deriveRoom(room), [room]);
   const subs = room.substrates || {};
@@ -3524,42 +3813,10 @@ function RoomEditor({ room, project, dispatch }) {
     if (focusedSubstrate && !subs[focusedSubstrate]) setFocusedSubstrate(null);
   }, [subs, focusedSubstrate]);
 
-  // Only Scope + conditional Doors/Windows tabs
-  const allTabs = useMemo(() => {
-    const tabs = [
-      { key:'scope', label:'Scope & Configuration', badge: `${Object.keys(subs).length}` },
-    ];
-    if (subs.doors) tabs.push({ key:'doors', label:'Doors', badge: subs.doors?.items?.length ? `${derived.totalDoors}` : null, group:'Doors & Windows' });
-    if (subs.windows) tabs.push({ key:'windows', label:'Windows', badge: subs.windows?.items?.length ? `${derived.totalWindows}` : null, group:'Doors & Windows' });
-    return tabs;
-  }, [subs, derived]);
-
-  // If active tab is no longer valid, fall back to scope
-  const validTabKeys = allTabs.map(t => t.key);
-  const safeActiveTab = validTabKeys.includes(activeTab) ? activeTab : 'scope';
-
-  function renderPanel() {
-    if (safeActiveTab === 'scope') return <ScopePanel room={room} derived={derived} dispatch={dispatch} project={project} focusedSubstrate={focusedSubstrate} setFocusedSubstrate={setFocusedSubstrate} />;
-    if (safeActiveTab === 'doors') return <DoorsPanel room={room} dispatch={dispatch} />;
-    if (safeActiveTab === 'windows') return <WindowsPanel room={room} dispatch={dispatch} />;
-    return null;
-  }
-
   return (
     <div style={{flex:1,display:'flex',flexDirection:'column',overflow:'hidden'}}>
-      <div className="tab-bar" style={{flexWrap:'wrap'}}>
-        {allTabs.map(t => {
-          const groupColors = {'Doors & Windows':'#ffb74d'};
-          const tabStyle = t.group ? {borderBottom:safeActiveTab===t.key?`2px solid ${groupColors[t.group]||'var(--accent)'}`:undefined} : {};
-          return (
-            <div key={t.key} className={`tab ${safeActiveTab===t.key?'active':''}`} onClick={()=>setActiveTab(t.key)} style={tabStyle}>
-              {t.label} {t.badge && <span className="badge-count">{t.badge}</span>}
-            </div>
-          );
-        })}
-      </div>
       <div style={{flex:1,overflowY:'auto',padding:'16px 20px'}}>
-        {renderPanel()}
+        <ScopePanel room={room} derived={derived} dispatch={dispatch} project={project} focusedSubstrate={focusedSubstrate} setFocusedSubstrate={setFocusedSubstrate} />
       </div>
     </div>
   );
@@ -3578,7 +3835,7 @@ function ProjectSummary({ state }) {
     if (hasFullCover) return 'PS_PROTECT_SF.FLOOR_EXPOSED';
     const hasWorkzone = state.rooms.some(r => {
       const subs = r.substrates || {};
-      return subs.doors || subs.windows || subs.door_frames || subs.window_jamb;
+      return subs.doors?.painting || subs.windows?.painting || subs.door_frames || subs.window_jamb;
     });
     if (hasWorkzone) return 'PS_PROTECT_SF.FLOOR_WORKZONE';
     return 'PS_PROTECT_SF.FLOOR_PERIMETER';
@@ -3622,11 +3879,11 @@ function ProjectSummary({ state }) {
       <div className="panel-section">
         <div className="section-title">Room Breakdown</div>
         <table className="data-table">
-          <thead><tr><th>Room</th><th>Area Group</th><th>Dims</th><th>Wall SF</th><th>Ceiling SF</th><th>Doors</th><th>Windows</th><th>Substrates</th><th>QT</th></tr></thead>
+          <thead><tr><th>Room</th><th>Area Group</th><th>Dims</th><th>Wall SF</th><th>Ceiling SF</th><th>Openings</th><th>Windows</th><th>Substrates</th><th>QT</th></tr></thead>
           <tbody>
             {state.rooms.map(room => {
               const d = deriveRoom(room);
-              const subCount = Object.keys(room.substrates||{}).length;
+              const activeSubKeys = Object.keys(room.substrates||{}).filter(k=>{const ap=k==='doors'||k==='windows'||k==='door_casing'||k==='window_casing';return ap?room.substrates[k]?.painting:true;});
               return (
                 <tr key={room.id}>
                   <td style={{fontWeight:500}}>{room.label}</td>
@@ -3634,9 +3891,9 @@ function ProjectSummary({ state }) {
                   <td style={{fontFamily:'var(--font-mono)'}}>{d.L}×{d.W}×{d.H}</td>
                   <td style={{fontFamily:'var(--font-mono)',color:'var(--accent)'}}>{d.wall_field_sf}</td>
                   <td style={{fontFamily:'var(--font-mono)',color:'var(--accent)'}}>{d.ceiling_field_sf}</td>
-                  <td style={{fontFamily:'var(--font-mono)'}}>{d.totalDoors}</td>
+                  <td style={{fontFamily:'var(--font-mono)'}}>{d.totalOpenings}</td>
                   <td style={{fontFamily:'var(--font-mono)'}}>{d.totalWindows}</td>
-                  <td style={{fontSize:11,color:'var(--text-secondary)'}}>{subCount > 0 ? Object.keys(room.substrates).map(s => SUBSTRATE_MAP[s]?.label || s).join(', ') : '—'}</td>
+                  <td style={{fontSize:11,color:'var(--text-secondary)'}}>{activeSubKeys.length > 0 ? activeSubKeys.map(s => SUBSTRATE_MAP[s]?.label || s).join(', ') : '—'}</td>
                   <td>{state.project.default_quality_tier} <span style={{fontSize:10,color:'var(--text-muted)'}}>({d.heightBand})</span></td>
                 </tr>
               );
@@ -3899,7 +4156,7 @@ function EstimateView({ state }) {
             {isRoomOpen && specEntries.map(([specId, specData]) => {
               const itemKey = `${ri}::${specId}`;
               const isItemOpen = expandedItems[itemKey];
-              const displayName = specData.specName || specDisplayName(specId);
+              const displayName = specDisplayName(specId) || specData.specName;
 
               return (
                 <div key={specId} className="spec-section" style={{marginLeft:16,borderLeft:'3px solid var(--border)',paddingLeft:12,marginBottom:8}}>
@@ -4142,7 +4399,7 @@ function WorkOrderView({ state }) {
                 {isRoomOpen && specEntries.map(([specId, specData]) => {
                   const itemKey = `wo::${ri}::${specId}`;
                   const isItemOpen = expandedItems[itemKey] !== false;
-                  const displayName = specData.specName || specDisplayName(specId);
+                  const displayName = specDisplayName(specId) || specData.specName;
                   // Group tasks by phase within this item
                   const itemByPhase = {};
                   specData.tasks.forEach(t => {
@@ -4307,6 +4564,28 @@ function App() {
         let parsed = JSON.parse(saved);
         if (parsed.project && parsed.rooms) {
           parsed = migrateV02toV03(parsed);
+          // v0.6 migration: ensure doors/windows/casing always present with painting flag
+          parsed.rooms.forEach(r => {
+            const subs = r.substrates || {};
+            if (!subs.doors) subs.doors = createSubstrateConfig('doors');
+            if (!subs.windows) subs.windows = createSubstrateConfig('windows');
+            if (!subs.door_casing) subs.door_casing = createSubstrateConfig('door_casing');
+            if (!subs.window_casing) subs.window_casing = createSubstrateConfig('window_casing');
+            // Existing substrates had painting implicitly true (they were opted-in)
+            if (subs.doors.painting === undefined) subs.doors.painting = true;
+            if (subs.windows.painting === undefined) subs.windows.painting = true;
+            if (subs.door_casing.painting === undefined) subs.door_casing.painting = true;
+            if (subs.window_casing.painting === undefined) subs.window_casing.painting = true;
+            r.substrates = subs;
+            // v0.8 migration: ensure openings_quality_tier exists
+            if (r.openings_quality_tier === undefined) r.openings_quality_tier = null;
+            // v0.7 migration: initialize openings array; convert existing door items to single openings
+            if (!r.openings) {
+              const doorItems = subs.doors?.items || [];
+              const totalDoors = doorItems.reduce((s,d) => s + (parseInt(d.count)||0), 0);
+              r.openings = totalDoors > 0 ? [createOpening({ count: totalDoors })] : [];
+            }
+          });
           // Bump nextId past all existing IDs to prevent collisions
           let maxId = 0;
           const extractNum = (s) => { const m = s && s.match(/_(\d+)$/); return m ? parseInt(m[1]) : 0; };
@@ -4315,6 +4594,7 @@ function App() {
             const subs = r.substrates || {};
             (subs.doors?.items || []).forEach(d => { maxId = Math.max(maxId, extractNum(d.id)); });
             (subs.windows?.items || []).forEach(w => { maxId = Math.max(maxId, extractNum(w.id)); });
+            (r.openings || []).forEach(o => { maxId = Math.max(maxId, extractNum(o.id)); });
           });
           if (maxId >= nextId) nextId = maxId + 1;
           return { ...parsed, ui: parsed.ui || init.ui };
