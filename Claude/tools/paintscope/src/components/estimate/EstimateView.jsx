@@ -1,0 +1,333 @@
+import { useState, useMemo } from 'react';
+import { useProject } from '../../hooks/useProject';
+import { useEstimate } from '../../hooks/useEstimate';
+import { deriveRoom } from '../../engine/derive-room';
+import { PHASE_ORDER, PHASE_COLORS, specDisplayName } from '../../data/constants';
+import { FLOOR_TYPES, FLOOR_PROTECTION_LABEL } from '../../data/fixture-catalog';
+import { DB_BUNDLE } from '../../data/db-bundle';
+
+// Solid colors for the stacked phase bars (visible on dark backgrounds)
+const PHASE_BAR_COLORS = {
+  setup:      '#3a5a8a',
+  prep:       '#4a6a3a',
+  prime:      '#6a5a8a',
+  apply:      '#5a4a6a',
+  interstage: '#6a5a3a',
+  finish:     '#3a6a5a',
+  cleanup:    '#5a3a4a',
+};
+
+/** Stacked horizontal phase bar */
+const PhaseBar = ({ phaseHours, total, height = 24 }) => {
+  if (!total || total <= 0) return null;
+  return (
+    <div style={{ display: 'flex', borderRadius: 4, overflow: 'hidden', height, width: '100%' }}>
+      {PHASE_ORDER.filter(p => phaseHours[p] > 0).map(p => {
+        const pct = (phaseHours[p] / total) * 100;
+        return (
+          <div key={p} style={{
+            width: `${pct}%`, minWidth: pct > 5 ? 'auto' : 0,
+            background: PHASE_BAR_COLORS[p] || 'var(--bg-tertiary)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: 10, color: '#fff', fontWeight: 600,
+            padding: '0 4px', overflow: 'hidden', whiteSpace: 'nowrap',
+          }}>
+            {pct > 8 ? `${p} ${phaseHours[p].toFixed(1)}h` : ''}
+          </div>
+        );
+      })}
+    </div>
+  );
+};
+
+export default function EstimateView() {
+  const { state } = useProject();
+  const estimate = useEstimate();
+
+  const [expandedRooms, setExpandedRooms] = useState({});
+  const [expandedItems, setExpandedItems] = useState({});
+
+  // Task name suffix: adds coat count and/or floor protection material
+  const taskNameSuffix = (t) => {
+    const parts = [];
+    if (t.coatMultiplier > 1) parts.push(`${t.coatMultiplier} coats`);
+    if (t.floorType && t.taskName && t.taskName.toLowerCase().includes('floor prot') && FLOOR_PROTECTION_LABEL[t.floorType]) {
+      parts.push(`${FLOOR_PROTECTION_LABEL[t.floorType]} \u2014 ${(FLOOR_TYPES.find(f=>f.id===t.floorType)||{}).label||t.floorType}`);
+    }
+    return parts.length > 0 ? ` (${parts.join(', ')})` : '';
+  };
+
+  if (!estimate) return <div className="no-data-msg">Error running estimate. Check console for details.</div>;
+  if (estimate.specResults.length === 0) return (
+    <div className="no-data-msg">
+      <div style={{fontSize:18,marginBottom:8}}>No Specs Activated</div>
+      <div>Add rooms with geometry (wall SF, doors, trim, etc.) to activate specs.</div>
+      <div style={{marginTop:8,fontSize:12}}>The engine checks {DB_BUNDLE.spec_families.length} spec families against your project's PaintScope quantity keys.</div>
+    </div>
+  );
+
+  const toggleRoom = (id) => setExpandedRooms(p => ({...p, [id]: p[id] === false ? true : false}));
+  const toggleItem = (id) => setExpandedItems(p => ({...p, [id]: !p[id]}));
+
+  const projCtx = {
+    quality_tier: state.project.default_quality_tier,
+    complexity: state.project.default_complexity,
+    texture: state.project.default_texture
+  };
+
+  // Build room-grouped structure: room -> spec (paintable item) -> tasks
+  const allTasks = estimate.specResults.flatMap(s =>
+    s.tasks.map(t => ({...t, specId: s.specId, specName: s.specName, itemGroup: s.itemGroup || null}))
+  );
+
+  const roomMap = {};
+  allTasks.forEach(t => {
+    const ri = t.roomIndex;
+    const specKey = t.itemGroup ? `${t.specId}::${t.itemGroup}` : t.specId;
+    if (!roomMap[ri]) roomMap[ri] = { label: t.roomLabel, specs: {}, totalHours: 0, phaseHours: {} };
+    if (!roomMap[ri].specs[specKey]) roomMap[ri].specs[specKey] = { specName: t.specName, tasks: [], totalHours: 0, phaseHours: {} };
+    roomMap[ri].specs[specKey].tasks.push(t);
+    roomMap[ri].specs[specKey].totalHours += t.hours;
+    const p = t.phase || 'apply';
+    roomMap[ri].specs[specKey].phaseHours[p] = (roomMap[ri].specs[specKey].phaseHours[p] || 0) + t.hours;
+    roomMap[ri].totalHours += t.hours;
+    roomMap[ri].phaseHours[p] = (roomMap[ri].phaseHours[p] || 0) + t.hours;
+  });
+
+  // Add room protection hours to room totals and phase totals
+  if (estimate.roomProtection) {
+    Object.entries(estimate.roomProtection).forEach(([ri, rp]) => {
+      if (roomMap[ri]) {
+        roomMap[ri].totalHours += rp.totalHours;
+        rp.tasks.forEach(t => {
+          const p = t.phase || 'setup';
+          roomMap[ri].phaseHours[p] = (roomMap[ri].phaseHours[p] || 0) + t.hours;
+        });
+      }
+    });
+  }
+
+  const roomEntries = Object.entries(roomMap).sort((a,b) => parseInt(a[0]) - parseInt(b[0]));
+
+  // Project-wide phase hours
+  const projectPhaseHours = {};
+  roomEntries.forEach(([, roomData]) => {
+    Object.entries(roomData.phaseHours).forEach(([p, h]) => {
+      projectPhaseHours[p] = (projectPhaseHours[p] || 0) + h;
+    });
+  });
+  const projectTotalHours = parseFloat(estimate.totalHours) || 0;
+
+  // Consolidated material estimates: group by systemName + surfaceTexture
+  const consolidatedMaterials = useMemo(() => {
+    if (!estimate.materialEstimates || estimate.materialEstimates.length === 0) return [];
+    const groups = {};
+    estimate.materialEstimates.forEach(m => {
+      const key = `${m.systemName || m.specFamilyId}||${m.surfaceTexture || ''}`;
+      if (!groups[key]) {
+        groups[key] = {
+          systemName: m.systemName || m.specFamilyId,
+          surfaceTexture: m.surfaceTexture || '',
+          gallons: 0,
+          totalSF: 0,
+          coats: m.coats || 1,
+          coverageRate: m.coverageRate,
+          sprayLoss: m.sprayLoss,
+        };
+      }
+      groups[key].gallons += m.gallons;
+      groups[key].totalSF += m.totalSF;
+    });
+    return Object.values(groups);
+  }, [estimate.materialEstimates]);
+
+  // Group materials by product type (first word of systemName as heuristic)
+  const materialsByType = useMemo(() => {
+    const byType = {};
+    consolidatedMaterials.forEach(m => {
+      const type = m.systemName.includes(' ') ? m.systemName.split(' ')[0] : 'Paint';
+      if (!byType[type]) byType[type] = [];
+      byType[type].push(m);
+    });
+    return byType;
+  }, [consolidatedMaterials]);
+
+  return (
+    <div>
+      {/* ── Dashboard Header Card ── */}
+      <div className="estimate-header">
+        <h2>Estimate{state.project.name ? ` \u2014 ${state.project.name}` : ''}</h2>
+        <div className="estimate-totals">
+          <div><span className="big-num">{estimate.totalHours}</span><span className="unit">hrs</span></div>
+          <div><span className="big-num">{estimate.totalCrewDays}</span><span className="unit">crew days</span><span style={{fontSize:11,color:'var(--text-muted)',marginLeft:4}}>(@ 8hr, 2 crew)</span></div>
+          <div style={{color:'var(--text-secondary)',alignSelf:'center'}}>{estimate.activatedSpecs}/{estimate.totalSpecs} specs | {state.rooms.length} rooms</div>
+        </div>
+
+        {/* Project-wide stacked phase bar */}
+        <div style={{marginTop:12}}>
+          <PhaseBar phaseHours={projectPhaseHours} total={projectTotalHours} height={24} />
+        </div>
+      </div>
+
+      {/* Modifier chips */}
+      <div className="modifier-summary">
+        <div className="mod-chip"><span className="mod-label">QT:</span><span className="mod-val">{projCtx.quality_tier}</span></div>
+        <div className="mod-chip"><span className="mod-label">Texture:</span><span className="mod-val">{projCtx.texture}</span></div>
+        <div className="mod-chip"><span className="mod-label">Complexity:</span><span className="mod-val">{projCtx.complexity}</span></div>
+      </div>
+
+      {/* Warnings */}
+      {estimate.warnings.length > 0 && (
+        <details className="warn-panel">
+          <summary>{estimate.warnings.length} warning{estimate.warnings.length>1?'s':''}</summary>
+          <ul>{estimate.warnings.map((w,i) => <li key={i}>{w}</li>)}</ul>
+        </details>
+      )}
+
+      {/* ── Room Cards ── */}
+      {roomEntries.map(([ri, roomData]) => {
+        const room = state.rooms[parseInt(ri)];
+        const d = room ? deriveRoom(room) : null;
+        const isRoomOpen = expandedRooms[ri] !== false;
+        const specEntries = Object.entries(roomData.specs).sort((a,b) => b[1].totalHours - a[1].totalHours);
+
+        return (
+          <div key={ri} className="spec-section" style={{marginBottom:12}}>
+            {/* Room header */}
+            <div className="spec-header" onClick={() => toggleRoom(ri)}>
+              <span className={`chevron${isRoomOpen ? ' open' : ''}`}>{'\u25B6'}</span>
+              <span className="spec-name" style={{marginLeft:8}}>
+                {roomData.label}
+                {d && <span className="wo-room-dims">{d.L}x{d.W}x{d.H} | {d.wall_field_sf} SF wall | {d.ceiling_field_sf} SF ceil</span>}
+              </span>
+              <span style={{flex:'0 0 auto', marginRight:12}}>
+                <PhaseBar phaseHours={roomData.phaseHours} total={roomData.totalHours} height={14} />
+              </span>
+              <span className="spec-hours">{roomData.totalHours.toFixed(1)} hrs</span>
+            </div>
+
+            {/* Expanded room content */}
+            {isRoomOpen && (
+              <div style={{padding:'0 16px 12px'}}>
+                {/* Room Protection */}
+                {estimate.roomProtection && estimate.roomProtection[ri] && (() => {
+                  const rp = estimate.roomProtection[ri];
+                  const rpKey = ri + '::__ROOM_PROTECTION__';
+                  const isRpOpen = expandedItems[rpKey];
+                  const levelLabel = (rp.protectionLevel || 'edge_only').replace(/_/g, ' ');
+                  return (
+                    <div className="spec-section" style={{marginBottom:8}}>
+                      <div className="spec-header" onClick={() => toggleItem(rpKey)}>
+                        <span className={`chevron${isRpOpen ? ' open' : ''}`}>{'\u25B6'}</span>
+                        <span className="spec-name" style={{marginLeft:8,color:'#e6a817'}}>Room Protection</span>
+                        <span style={{fontSize:11,color:'var(--text-muted)',textTransform:'capitalize',marginLeft:8}}>{levelLabel}</span>
+                        <span className="spec-hours">{rp.totalHours.toFixed(2)} hrs</span>
+                      </div>
+                      {isRpOpen && (
+                        <div className="task-detail">
+                          <table className="task-table">
+                            <thead><tr><th>Task</th><th>Phase</th><th>Source Spec</th><th style={{textAlign:'right'}}>Qty</th><th style={{textAlign:'right'}}>Rate</th><th style={{textAlign:'right'}}>Hours</th></tr></thead>
+                            <tbody>
+                              {rp.tasks.map((t, i) => (
+                                <tr key={i} style={{background: PHASE_COLORS[t.phase] || 'transparent'}}>
+                                  <td className="task-name-col">{t.taskName}{taskNameSuffix(t)}</td>
+                                  <td style={{fontSize:11,color:'var(--text-muted)',textTransform:'capitalize'}}>{t.phase}</td>
+                                  <td style={{fontSize:10,color:'var(--derived)'}}>{specDisplayName(t.donorSpecId)}</td>
+                                  <td style={{textAlign:'right'}}>{t.isFixed ? '\u2014' : t.quantity}</td>
+                                  <td style={{textAlign:'right',color:'var(--text-muted)'}}>{t.baseRate}</td>
+                                  <td style={{textAlign:'right',color:'var(--accent)',fontWeight:600}}>
+                                    {t.hours.toFixed(2)}
+                                    {t.coatMultiplier > 1 && <span style={{fontSize:9,color:'var(--text-muted)',marginLeft:3}}>{'\u00d7'}{t.coatMultiplier}</span>}
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
+
+                {/* Spec rows */}
+                {specEntries.map(([specId, specData]) => {
+                  const itemKey = `${ri}::${specId}`;
+                  const isItemOpen = expandedItems[itemKey];
+                  const baseSpecId = specId.includes('::') ? specId.split('::')[0] : specId;
+                  const displayName = specId.includes('::') ? specData.specName : (specDisplayName(baseSpecId) || specData.specName);
+
+                  return (
+                    <div key={specId} className="spec-section" style={{marginBottom:8}}>
+                      <div className="spec-header" onClick={() => toggleItem(itemKey)}>
+                        <span className={`chevron${isItemOpen ? ' open' : ''}`}>{'\u25B6'}</span>
+                        <span className="spec-name" style={{marginLeft:8}} title={specId.split('::')[0]}>{displayName}</span>
+                        <div className="phase-bar" style={{flex:'0 0 auto',padding:0,gap:3,marginRight:8}}>
+                          {PHASE_ORDER.filter(p => specData.phaseHours[p]).map(p => (
+                            <div key={p} className="phase-chip">
+                              <span className="phase-label">{p}</span>
+                              <span className="phase-hrs">{specData.phaseHours[p].toFixed(1)}h</span>
+                            </div>
+                          ))}
+                        </div>
+                        <span className="spec-hours">{specData.totalHours.toFixed(2)} hrs</span>
+                      </div>
+                      {isItemOpen && (
+                        <div className="task-detail">
+                          <table className="task-table">
+                            <thead><tr><th>Task</th><th>Phase</th><th>PS Key</th><th>UOM</th><th style={{textAlign:'right'}}>Qty</th><th style={{textAlign:'right'}}>Rate</th><th style={{textAlign:'right'}}>Mod</th><th style={{textAlign:'right'}}>Hours</th></tr></thead>
+                            <tbody>
+                              {specData.tasks.map((t, i) => (
+                                <tr key={i} style={{background: PHASE_COLORS[t.phase] || 'transparent'}}>
+                                  <td className="task-name-col" title={t.taskName}>{t.taskName}{taskNameSuffix(t)}</td>
+                                  <td style={{fontSize:11,color:'var(--text-muted)',textTransform:'capitalize'}}>{t.phase}</td>
+                                  <td style={{fontSize:10,color:'var(--derived)'}}>{t.psKey}</td>
+                                  <td style={{fontSize:11}}>{t.uom}</td>
+                                  <td style={{textAlign:'right'}}>{t.isFixed ? '\u2014' : t.quantity}</td>
+                                  <td style={{textAlign:'right',color:'var(--text-muted)'}}>{t.baseRate}</td>
+                                  <td style={{textAlign:'right',color:t.modStack.total>1.5?'var(--warning)':'var(--text-secondary)'}}
+                                      title={[
+                                        t.modStack.qt !== 1 && `QT:${t.modStack.qt}`,
+                                        t.modStack.height !== 1 && `Ht:${t.modStack.height}`,
+                                        t.modStack.sizeMod && t.modStack.sizeMod !== 1 && `Size:${t.modStack.sizeMod}`,
+                                        t.modStack.typeMod && t.modStack.typeMod !== 1 && `Type:${t.modStack.typeMod}`
+                                      ].filter(Boolean).join(' \u00d7 ') || 'No modifiers'}>{t.modStack.total.toFixed(2)}x</td>
+                                  <td style={{textAlign:'right',color:'var(--accent)',fontWeight:600}}
+                                      title={t.coatMultiplier > 1 ? `${(t.hours / t.coatMultiplier).toFixed(2)} hrs \u00d7 ${t.coatMultiplier} coats` : ''}>
+                                    {t.hours.toFixed(2)}
+                                    {t.coatMultiplier > 1 && <span style={{fontSize:9,color:'var(--text-muted)',marginLeft:3}}>{'\u00d7'}{t.coatMultiplier}</span>}
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        );
+      })}
+
+      {/* ── Material Summary ── */}
+      {consolidatedMaterials.length > 0 && (
+        <div className="material-section">
+          <h3>Material Estimates</h3>
+          {Object.entries(materialsByType).map(([type, mats]) => (
+            <div key={type} style={{marginBottom:12}}>
+              <div style={{fontSize:11,fontWeight:600,color:'var(--text-muted)',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:4}}>{type}</div>
+              {mats.map((m, i) => (
+                <div key={i} className="mat-row">
+                  <span className="mat-name">{m.systemName}{m.surfaceTexture ? ` (${m.surfaceTexture})` : ''}</span>
+                  <span className="mat-qty">{m.gallons} gal <span style={{color:'var(--text-muted)',fontSize:11}}>({m.totalSF} SF {'\u00d7'} {m.coats} coat{m.coats>1?'s':''} @ {m.coverageRate} SF/gal{m.sprayLoss ? ' +5% spray' : ''})</span></span>
+                </div>
+              ))}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
