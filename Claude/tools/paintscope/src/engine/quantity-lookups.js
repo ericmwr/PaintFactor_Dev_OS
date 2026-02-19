@@ -1,0 +1,199 @@
+import { deriveRoom, deriveCloset } from './derive-room.js';
+import { SUBSTRATE_MAP, SUBSTRATE_CATALOG, SUBSTRATE_APPLICATION_METHODS } from '../data/substrate-catalog.js';
+import { OPENING_TYPES } from '../data/opening-types.js';
+
+/**
+ * Build per-room quantity lookup from the prototype state.
+ * Returns Map<roomIndex, Map<psKey, {value, uom}>>
+ */
+export function buildRoomQuantityLookups(state) {
+  const { project, rooms } = state;
+  const roomLookups = new Map();
+
+  rooms.forEach((room, ri) => {
+    const d = deriveRoom(room);
+    const subs = room.substrates || {};
+    const qty = new Map();
+
+    function addQ(key, uom, val) {
+      if (!val || val <= 0) return;
+      const existing = qty.get(key);
+      if (existing) existing.value += val;
+      else qty.set(key, { value: val, uom });
+    }
+
+    // Wall + Ceiling — conditional
+    if (subs.walls) addQ('PS_SURFACE_SF.WALL_FIELD', 'SF', d.wall_field_sf);
+    if (subs.ceiling) addQ('PS_SURFACE_SF.CEILING_FIELD', 'SF', d.ceiling_field_sf);
+
+    // Trim — conditional on substrate presence (casing: painting flag)
+    const casingIds2 = new Set(['door_casing','window_casing']);
+    const trimKeys = [
+      ['baseboard', 'TRIM_BASEBOARD', 'baseboard_lf'],
+      ['crown', 'TRIM_CROWN', 'crown_lf'],
+      ['door_casing', 'TRIM_CASING_DOOR', 'door_casing_lf'],
+      ['window_casing', 'TRIM_CASING_WINDOW', 'window_casing_lf'],
+      ['chair_rail', 'TRIM_CHAIR_RAIL', 'chair_rail_lf'],
+      ['shoe_mold', 'TRIM_SHOE_MOLD', 'shoe_mold_lf'],
+      ['wainscot_cap', 'TRIM_WAINSCOT_CAP', 'wainscot_cap_lf'],
+      ['picture_rail', 'TRIM_PICTURE_RAIL', 'picture_rail_lf'],
+      ['window_stool', 'TRIM_WINDOW_STOOL', 'window_stool_lf'],
+      ['window_apron', 'TRIM_WINDOW_APRON', 'window_apron_lf'],
+      ['shadow_box', 'TRIM_SHADOW_BOX', 'shadow_box_lf'],
+      ['panel_mold', 'TRIM_PANEL_MOLD', 'panel_mold_lf'],
+    ];
+    trimKeys.forEach(([subId, surfType, derivedKey]) => {
+      const active = casingIds2.has(subId) ? subs[subId]?.painting : !!subs[subId];
+      if (active) addQ(`PS_SURFACE_LF.${surfType}`, 'LF', d[derivedKey]||0);
+    });
+
+    // Aggregate all trim LF for specs that use PS_SURFACE_LF.TRIM_TOTAL (only painting trim)
+    const allTrimLF = trimKeys.reduce((s, [subId,,derivedKey]) => {
+      const active = casingIds2.has(subId) ? subs[subId]?.painting : !!subs[subId];
+      return s + (active ? (d[derivedKey]||0) : 0);
+    }, 0);
+    addQ('PS_SURFACE_LF.TRIM_TOTAL', 'LF', allTrimLF);
+    // Trim joints — approximately equal to total trim LF (every piece has joints)
+    addQ('PS_EDGE_LF.TRIM_JOINTS', 'LF', allTrimLF);
+
+    // Doors — from substrates.doors.items; surface keys only when painting (doors are painting scope)
+    const doorItems = subs.doors?.items || [];
+    const doorsPainting2 = subs.doors?.painting;
+    doorItems.forEach(door => {
+      const cnt = parseInt(door.count)||0;
+      const sides = cnt * (parseInt(door.sides_per_door)||2);
+      if (doorsPainting2) addQ('PS_SURFACE_EA_SIDE.DOOR_SLAB', 'EA_SIDE', sides);
+    });
+    // Opening counts from openings table (structural, always emit)
+    addQ('PS_OPENING_EA.DOOR_OPENINGS_TOTAL', 'EA', d.totalOpenings);
+    if (subs.door_frames) addQ('PS_SURFACE_EA.DOOR_FRAME_SET', 'EA', d.door_frames_ea);
+
+    // Windows — from substrates.windows.items; surface keys only when painting, opening counts always
+    const windowItems = subs.windows?.items || [];
+    const windowsPainting2 = subs.windows?.painting;
+    windowItems.forEach(win => {
+      const cnt = parseInt(win.count)||0;
+      addQ(`PS_OPENING_EA.WINDOW_${win.size_bucket}`, 'EA', cnt);
+      addQ('PS_OPENING_EA.WINDOW_TOTAL', 'EA', cnt);
+      addQ('PS_OPENING_EA.WINDOW_OPENINGS_TOTAL', 'EA', cnt);
+    });
+    if (subs.window_jamb) {
+      addQ('PS_SURFACE_EA.WINDOW_JAMB', 'EA', d.window_jamb_ea);
+      // Jamb count also contributes to WINDOW_TOTAL when windows not already painting
+      if (!windowsPainting2 || !windowItems.length) {
+        addQ('PS_OPENING_EA.WINDOW_TOTAL', 'EA', d.window_jamb_ea);
+      }
+    }
+
+    // Specialty — conditional
+    const specKeys = [
+      ['wainscoting','PS_SURFACE_SF.WAINSCOTING','SF','sf_manual'], ['wood_feature_wall','PS_SURFACE_SF.WOOD_WALL','SF','sf_manual'],
+      ['wood_ceiling','PS_SURFACE_SF.WOOD_CEILING','SF','sf_manual'], ['closet_shelving','PS_SURFACE_LF.CLOSET_SHELF','LF','lf_manual'],
+      ['beams','PS_SURFACE_LF.ARCH_BEAM','LF','ea_manual'], ['columns','PS_SURFACE_EA.ARCH_COLUMN','EA','ea_manual'],
+      ['mantels','PS_SURFACE_EA.ARCH_MANTEL','EA','ea_manual'], ['builtins','PS_SURFACE_EA.BUILTIN','EA','ea_manual'],
+      ['stair_risers','PS_SURFACE_EA.STAIR_RISER','EA','ea_manual'], ['stair_railing','PS_SURFACE_EA.STAIR_RAILING','EA','ea_manual']
+    ];
+    specKeys.forEach(([subId, psKey, uom, manualKey]) => {
+      if (subs[subId]) {
+        const v = parseFloat(subs[subId][manualKey])||0;
+        if (v > 0) addQ(psKey, uom, v);
+      }
+    });
+
+    // Ceiling beams — geometry-derived LF from vault config, feeds ARCH_BEAM spec
+    if (room.vaulted_ceiling && room.beams_enabled && d.beamTotalLF > 0) {
+      addQ('PS_SURFACE_LF.ARCH_BEAM', 'LF', d.beamTotalLF);
+    }
+
+    // Edges
+    addQ('PS_EDGE_LF.TO_CEILING', 'LF', d.perimeter);
+    const trimLF = d.baseboard_lf + d.door_casing_lf + d.window_casing_lf;
+    addQ('PS_EDGE_LF.TO_TRIM', 'LF', trimLF);
+
+    // Protection — floor level driven by floor_type + user override
+    const floorProt2 = room.floor_protection || '';
+    const hasFloorProt = room.floor_type && room.floor_type !== 'subfloor' && floorProt2;
+    if (hasFloorProt) {
+      addQ('PS_PROTECT_SF.FLOOR_EXPOSED', 'SF', d.ceilingSF);
+      if (floorProt2 === 'heavy_mask' || floorProt2 === 'medium_mask') {
+        addQ('PS_PROTECT_SF.FLOOR_PERIMETER', 'SF', d.perimeter * 2);
+      }
+    }
+    // WORKZONE = localized spray zones: 8ft radius semicircle per opening, quarter-circle per window
+    const wzSF = Math.min(
+      Math.round(d.totalOpenings * (Math.PI * 64 / 2) + d.totalWindows * (Math.PI * 64 / 4)),
+      d.ceilingSF
+    );
+    addQ('PS_PROTECT_SF.FLOOR_WORKZONE', 'SF', wzSF);
+    addQ('PS_PROTECT_LF.TRIM_EDGES', 'LF', trimLF);
+    if (subs.baseboard) addQ('PS_PROTECT_LF.TRIM_BASEBOARD', 'LF', d.baseboard_lf);
+    // Casing protection always emits when walls are painted (masking casing during wall work)
+    if (subs.walls) {
+      addQ('PS_PROTECT_LF.TRIM_CASING_DOOR', 'LF', d.door_casing_lf);
+      addQ('PS_PROTECT_LF.TRIM_CASING_WINDOW', 'LF', d.window_casing_lf);
+    }
+    addQ('PS_PROTECT_LF.CEILING_LINE', 'LF', d.perimeter);
+
+    // Fixture protection keys (v0.5)
+    Object.entries(room.fixtures || {}).forEach(function([fId, cfg]) {
+      if (fId === 'cabinets') {
+        const lf = parseFloat(cfg.linear_ft) || 0;
+        if (lf > 0) addQ('PS_PROTECT_LF.FIXTURE_CABINETS', 'LF', lf);
+      } else {
+        const cnt = parseInt(cfg.count) || 1;
+        addQ('PS_PROTECT_EA.FIXTURE_' + fId.toUpperCase(), 'EA', cnt);
+      }
+    });
+
+    // Meta
+    addQ('PS_META.EA.ROOMS_TOTAL', 'EA', 1);
+    addQ('PS_META.EA.CASING_END_COUNT', 'EA', d.totalOpenings*2 + d.totalWindows*4);
+    addQ('PS_META.SF.FLOOR_VACUUM_AREA', 'SF', d.ceilingSF);
+
+    // Closets — sub-rooms that roll up quantities into the parent room
+    const closets = room.closets || [];
+    closets.forEach((closet) => {
+      const cd = deriveCloset(closet, room);
+      // Closet walls
+      if (subs.walls && cd.wall_field_sf > 0) {
+        addQ('PS_SURFACE_SF.WALL_FIELD', 'SF', cd.wall_field_sf);
+      }
+      // Closet ceiling
+      if (subs.ceiling && cd.ceiling_field_sf > 0) {
+        addQ('PS_SURFACE_SF.CEILING_FIELD', 'SF', cd.ceiling_field_sf);
+      }
+      // Closet baseboard
+      if (subs.baseboard && cd.baseboard_lf > 0) {
+        addQ('PS_SURFACE_LF.TRIM_BASEBOARD', 'LF', cd.baseboard_lf);
+        addQ('PS_SURFACE_LF.TRIM_TOTAL', 'LF', cd.baseboard_lf);
+        addQ('PS_EDGE_LF.TRIM_JOINTS', 'LF', cd.baseboard_lf);
+      }
+      // Closet shelving
+      if (closet.shelving_type !== 'none' && cd.shelving_lf > 0) {
+        addQ('PS_SURFACE_LF.CLOSET_SHELF', 'LF', cd.shelving_lf);
+      }
+      // Closet perimeter edges + protection
+      addQ('PS_EDGE_LF.TO_CEILING', 'LF', cd.perimeter);
+      if (cd.baseboard_lf > 0) {
+        addQ('PS_EDGE_LF.TO_TRIM', 'LF', cd.baseboard_lf);
+        if (subs.baseboard) addQ('PS_PROTECT_LF.TRIM_BASEBOARD', 'LF', cd.baseboard_lf);
+      }
+      addQ('PS_PROTECT_LF.CEILING_LINE', 'LF', cd.perimeter);
+      // Floor protection (inherits parent floor type)
+      if (hasFloorProt) {
+        addQ('PS_PROTECT_SF.FLOOR_EXPOSED', 'SF', cd.ceilingSF);
+      }
+      // Meta
+      addQ('PS_META.SF.FLOOR_VACUUM_AREA', 'SF', cd.ceilingSF);
+    });
+    if (closets.length > 0) {
+      addQ('PS_META.EA.CLOSETS_TOTAL', 'EA', closets.length);
+    }
+
+    roomLookups.set(ri, qty);
+  });
+  return roomLookups;
+}
+
+// Substrates whose specs should use the openings_quality_tier override
+export const OPENING_SUBSTRATES = new Set(['doors','windows','door_casing','window_casing','door_frames','window_jamb']);
