@@ -1,7 +1,7 @@
 # Spec Backlog Catalog
 
 **Last Updated:** 2026-02-09
-**Reference:** NC_Interior_Spec_Catalog.md  
+**Reference:** NC_Interior_Spec_Catalog.md
 
 ---
 
