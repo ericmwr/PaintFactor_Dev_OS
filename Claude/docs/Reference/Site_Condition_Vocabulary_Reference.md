@@ -212,3 +212,153 @@ All condition IDs and values in this document are the canonical set. Specs refer
 |---------|------|---------|
 | 1.0 | 2026-01-31 | Initial vocabulary definition |
 | 1.1 | 2026-01-31 | Added floor_type condition (subfloor/finished/partial) per RC-003 |
+
+---
+
+## Exterior-Only Site Conditions
+
+The following conditions apply exclusively to exterior painting scopes. They are not valid for interior spec `site_condition_rules`. Exterior conditions drive modifier selection, task inclusion/exclusion, and protection zone activation.
+
+---
+
+## wind_condition
+
+Describes ambient wind speed at the work elevation. Drives spray application decisions and masking stability.
+
+| Value | Definition | Typical Impact |
+|-------|------------|----------------|
+| `calm` | < 5 mph — ideal for spray application | No restriction; full spray permitted |
+| `light_breeze` | 5–10 mph — manageable; minor drift | Spray restricted to low-pressure; masking checked more frequently |
+| `moderate` | 10–20 mph — spray not recommended | Brush/roll only; masking may lift; extra securing time |
+| `high` | > 20 mph — exterior work should pause | Production halt for spray and fine work; safety concern |
+
+**Use in site_condition_rules:**
+```json
+{
+  "exclude_when": { "wind_condition": ["high"] },
+  "modifier_when_included": {
+    "wind_condition": {
+      "calm": 1.00,
+      "light_breeze": 1.10,
+      "moderate": 1.25
+    }
+  }
+}
+```
+
+**Related Modifier:** FAC_EXT_WIND
+
+---
+
+## dew_point_risk
+
+Describes the risk of moisture condensation on the painted surface. Surface temperature must be sufficiently above the dew point for proper adhesion and cure.
+
+| Value | Definition | Typical Impact |
+|-------|------------|----------------|
+| `safe` | Surface temp ≥ 5°F above dew point | Apply freely; standard conditions |
+| `marginal` | Surface temp 3–5°F above dew point | Monitor closely; plan for delayed start or early stop |
+| `unsafe` | Surface temp < 3°F above dew point | Do not apply; adhesion and blushing risk |
+
+**Use in site_condition_rules:**
+```json
+{
+  "exclude_when": { "dew_point_risk": ["unsafe"] }
+}
+```
+
+---
+
+## sun_exposure
+
+Describes the sun exposure pattern on the work surface throughout the day. Affects open time, drying rate, and crew scheduling.
+
+| Value | Definition | Typical Impact |
+|-------|------------|----------------|
+| `full_shade` | Surface in shade all day | Slower dry; extended recoat window; reduced flash-dry risk |
+| `partial_shade` | Mixed sun and shade throughout day | Standard planning; monitor transitions |
+| `full_sun` | Direct sun all day; surface heats significantly | Accelerated dry; compressed open time; early morning start recommended; dark surfaces risk blistering |
+
+**Use in site_condition_rules:**
+```json
+{
+  "modifier_when_included": {
+    "sun_exposure": {
+      "full_shade": 1.05,
+      "partial_shade": 1.00,
+      "full_sun": 1.15
+    }
+  }
+}
+```
+
+**Related Modifier:** FAC_EXT_SUN_EXPOSURE
+
+---
+
+## surface_temperature
+
+Describes the measured or estimated surface temperature of the substrate at time of application. Distinct from ambient air temperature.
+
+| Value | Definition | Typical Impact |
+|-------|------------|----------------|
+| `optimal` | 50°F to 85°F surface temp | Ideal application window per most exterior PDS |
+| `cold_surface` | < 50°F surface temp | Slow cure; adhesion risk; extended recoat window |
+| `hot_surface` | > 85°F surface temp | Flash dry risk; application streaking; blistering on dark substrates |
+
+**Use in site_condition_rules:**
+```json
+{
+  "exclude_when": { "surface_temperature": ["cold_surface", "hot_surface"] },
+  "modifier_when_included": {
+    "surface_temperature": {
+      "optimal": 1.00,
+      "cold_surface": 1.20,
+      "hot_surface": 1.25
+    }
+  }
+}
+```
+
+**Related Modifier:** FAC_EXT_SURFACE_TEMP
+
+---
+
+## access_type
+
+Describes the access equipment required to reach exterior work surfaces. Applies to elevation work on siding, fascia, soffit, trim, and upper-story surfaces. Replaces `access_constraint` for exterior elevation scopes (access_constraint remains valid for interior work).
+
+| Value | Definition | Typical Impact |
+|-------|------------|----------------|
+| `ground` | No equipment needed; standard reach from ground | Baseline rate; no modifier |
+| `ladder` | Extension ladder required — typically 1–2 story work | Moderate repositioning time; setup overhead per run |
+| `scaffold` | Scaffold system required — 3+ stories or large continuous area | Scaffold setup/move/teardown tasks added; significant time impact |
+| `lift` | Aerial lift required — high elevation or irregular access | Lift delivery, setup, operator time; often more efficient than scaffold for point work |
+| `rope_access` | Rope or swing stage — specialty application; large or irregular facade | Charge hourly; production rate unpredictable; exclude from fixed-price |
+
+**Use in site_condition_rules:**
+```json
+{
+  "exclude_when": { "access_type": ["rope_access"] },
+  "modifier_when_included": {
+    "access_type": {
+      "ground": 1.00,
+      "ladder": 1.35,
+      "scaffold": 1.60,
+      "lift": 1.50
+    }
+  }
+}
+```
+
+**Related Modifier:** FAC_EXT_ACCESS
+
+---
+
+## Changelog (Updated)
+
+| Version | Date | Changes |
+|---------|------|---------|
+| 1.0 | 2026-01-31 | Initial vocabulary definition |
+| 1.1 | 2026-01-31 | Added floor_type condition (subfloor/finished/partial) per RC-003 |
+| 1.2 | 2026-02-20 | Added exterior-only conditions: wind_condition, dew_point_risk, sun_exposure, surface_temperature, access_type |
