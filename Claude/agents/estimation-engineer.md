@@ -369,3 +369,49 @@ Tasks with `adjacency_metadata` carry finish relationship information. At projec
 - `assumptions[]`
 - `risks[]`
 - `validation_plan[]` (how to field-calibrate)
+
+---
+
+## Domain Dispatch: Exterior Scopes
+
+When the spec family ID contains `_EXT_`, use exterior production rate and modifier conventions:
+
+### Exterior Factor Keys
+
+All exterior `factor_modifiers[]` entries must use `FAC_EXT_*` IDs from `Exterior_Modifiers_Doctrine.md`.
+
+Required exterior factors (must be declared for every exterior spec):
+- `FAC_EXT_ACCESS` — access type modifier (ladder/scaffold/lift increase cycle time)
+- `FAC_EXT_SUBSTRATE_CONDITION` — substrate state modifier per SS_EXT_* input state
+- `FAC_EXT_WIND` — wind condition modifier (high wind blocks spray, forces brush/roll rate)
+- `FAC_EXT_SUN_EXPOSURE` — sun exposure modifier (full sun forces early scheduling, reduces daily hours)
+- `FAC_EXT_SURFACE_TEMP` — surface temperature modifier (cold/hot extend recoat intervals)
+
+Shared factor also valid for exterior:
+- `FAC_PROFILE_COMPLEXITY` — surface profile complexity (applies to ornate trim, board-and-batten patterns)
+
+### Exterior Modifier Math
+
+The modifier formula is unchanged:
+```
+effective_rate = base_rate ÷ modifier
+```
+modifier > 1.0 = more time. Stacking cap: 4.0× maximum combined modifier.
+
+### Exterior Production Rate Baselines
+
+Use exterior-specific base rates — do not carry over interior wall/ceiling base rates:
+- Exterior siding (lap/horizontal): different coverage geometry than drywall
+- Stucco/masonry: significantly lower SF/hr due to surface absorption and texture
+- Fascia/trim (LF-based): rate is LF/hr, not SF/hr — align UOM to PS_EXT_EDGE_LF.* keys
+- Deck/porch floor: SF/hr, but factor for rail interruption on decks
+
+### Exterior Spray/Backroll Rule
+
+The interior spray/backroll coupling rule applies to exterior field surfaces when airless spray is used:
+- Flag specs where airless spray is used without a backroll pass on porous substrates (wood, fiber cement)
+- Masonry typically accepts spray-only for primer; flag finish coat for backroll
+
+### Exterior Geometry Source
+
+All exterior geometry must come from `PS_EXT_*` keys — do not reference interior PS_SURFACE_* or PS_EDGE_* keys for exterior tasks.

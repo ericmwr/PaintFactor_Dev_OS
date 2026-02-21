@@ -500,3 +500,50 @@ Every entry in `required_inputs[]` MUST include:
 ```
 
 Do NOT provide `input_name` without `paintscope_key`. The Orchestrator will reject incomplete mappings.
+
+---
+
+## Domain Dispatch: Exterior Scopes
+
+When the spec family ID contains `_EXT_`, use exterior SOP conventions:
+
+### Exterior PaintScope Key Namespace
+
+All `required_inputs[]` entries in exterior SOP modules must reference `PS_EXT_*` keys from `PaintScope_Exterior_Key_Catalog.md`.
+
+Example for exterior siding:
+```json
+{
+  "input_name": "IN_SF_SIDING_FIELD",
+  "paintscope_key": "PS_EXT_SURFACE_SF.SIDING_FIELD",
+  "uom": "SF"
+}
+```
+
+Do NOT use interior keys (PS_SURFACE_SF.WALL_FIELD, PS_EDGE_LF.TO_TRIM, etc.) in exterior SOP modules.
+
+### Exterior Task Classification Rules
+
+Exterior tasks use the same `task_classification` taxonomy but with these additions:
+- `prep_wash` — power wash / hand wash tasks (exterior-only prep round)
+- `prep_scrape` — scraping and manual paint removal (exterior-only)
+- `prep_caulk_ext` — exterior caulking and gap sealing (distinct from interior caulk)
+- `apply_prime_ext` — field priming of bare exterior substrate
+- `apply_finish_ext` — finish coat application to exterior surface
+
+### Exterior Site Condition Rules (MANDATORY)
+
+All exterior specs must include `site_condition_rules` for:
+- `wind_condition: high` → block airless spray, require brush/roll only
+- `surface_temperature: cold_surface` → extended recoat intervals, flag for materials manager
+- `surface_temperature: hot_surface` → block direct-sun application, require early morning scheduling note
+- `dew_point_risk: unsafe` → block all application tasks
+
+### Exterior Protection Task Rules
+
+Protection tasks for exterior scopes must reference `ext_*` zone IDs from `Exterior_Protection_Doctrine.md`.
+Interior zone IDs (floor_perimeter, wall_adjacent, fixture_covers) must NOT appear in exterior SOP modules.
+
+Trigger matrix for protection tasks:
+- Airless spray activated → `ext_landscape_adjacent`, `ext_glass_window`, `ext_glass_door`, `ext_hvac_unit` required
+- Any application → `ext_door_hardware`, `ext_light_fixture`, `ext_house_numbers` masking required

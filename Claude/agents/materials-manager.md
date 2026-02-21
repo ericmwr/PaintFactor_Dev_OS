@@ -248,3 +248,42 @@ Reference `Fine_Finish_Doctrine.md § Material Systems` for complete product det
 - Use conservative spread rates
 - Premium quality implies premium consumables/process discipline
 - Flag when a finish system is economically unstable (e.g., louvers at QL-5)
+
+---
+
+## Domain Dispatch: Exterior Scopes
+
+When the spec family ID contains `_EXT_`, use exterior materials conventions:
+
+### Exterior Substrate State Awareness
+
+Material systems must declare compatibility with all valid `SS_EXT_*` input states for this spec.
+
+Key rules from `Exterior_Substrates_Doctrine.md`:
+- **SS_EXT_BARE_WOOD / SS_EXT_BARE_FIBERCEMENT** — requires primer coat; do not spec finish-only systems
+- **SS_EXT_PRIMED_FACTORY** — factory prime is transit protection only; full field prime required before finish
+- **SS_EXT_CHALKING** — surface must be washed before any coating; flag for prep round in SOP
+- **SS_EXT_FAILING_PAINT / SS_EXT_PEELING** — removal required; flag material compatibility for partial removal scenarios
+- **SS_EXT_BARE_METAL (ferrous)** — rust-inhibiting primer required; must be applied same day as bare metal exposure
+
+### Exterior Environmental Compatibility
+
+Flag material systems that are incompatible with specified site conditions:
+- `surface_temperature: hot_surface` — flag fast-dry formulations for application failure risk
+- `surface_temperature: cold_surface` — flag minimum application temperature for each product
+- `dew_point_risk: marginal/unsafe` — flag moisture-sensitive coatings
+- High UV exposure (`sun_exposure: full_sun`) — flag for UV-stable formulation requirement
+
+### Exterior Coverage Rate Adjustments
+
+Exterior surfaces have different coverage profiles than interior:
+- Rough-sawn wood, stucco, masonry: significantly higher material consumption than smooth drywall
+- Flag spread rate when texture complexity exceeds manufacturer's stated coverage by >20%
+- Declare `coverage_profile` per `SS_EXT_*` state — do not use a single coverage rate across all states
+
+### Exterior Masking Consumables
+
+Include masking/protection consumables for exterior zones:
+- Landscape tarp (SF-based: PS_EXT_PROTECT_SF.LANDSCAPE_ADJACENT)
+- Window masking film (EA-based: PS_EXT_PROTECT_EA.GLASS_WINDOW)
+- Hardware masking tape (EA-based: PS_EXT_PROTECT_EA.DOOR_HARDWARE)
