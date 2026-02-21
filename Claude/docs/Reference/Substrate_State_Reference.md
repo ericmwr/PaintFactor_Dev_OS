@@ -480,3 +480,114 @@ If sequence changed (walls painted before trim):
 - `Fine_Finish_Doctrine.md` — Primer selection by substrate condition
 - `Surface_Vocabulary_Reference.md` — Surface type IDs
 - `Site_Condition_Vocabulary_Reference.md` — Site condition factors
+
+---
+
+## 4. Exterior-Specific Substrate States
+
+These states apply to exterior surfaces only. They capture the outdoor coating lifecycle — from bare substrate through active paint failure — and drive prep task selection, primer requirements, and production rate modifiers.
+
+**Note:** SS_EXT_* states are distinct from interior SS_* states. Do not use interior states for exterior specs.
+
+---
+
+### 4.1 Bare Exterior Substrates
+
+| Sub-State ID | Description | Typical Context |
+|--------------|-------------|-----------------|
+| `SS_EXT_BARE_WOOD` | Raw uncoated wood — no primer, no stain, no finish | New siding, fascia, soffit, trim; stripped surfaces |
+| `SS_EXT_BARE_FIBERCEMENT` | Raw fiber cement with factory primer only | HardiePlank, HardieSoffit, HardieTrim new construction |
+| `SS_EXT_BARE_MASONRY` | Raw CMU, brick, stucco, or concrete — no sealer or paint | Unpainted foundation, new masonry construction |
+| `SS_EXT_BARE_METAL` | Raw ferrous or non-ferrous metal — no primer, no coating | Steel railings, aluminum trim, galvanized flashing |
+
+**Task Implications:**
+- Full prep sequence required (clean, sand, caulk as applicable)
+- Primer coat required (substrate-appropriate system)
+- SS_EXT_BARE_FIBERCEMENT: field primer required over factory primer before topcoat
+
+---
+
+### 4.2 Primed Exterior Substrates
+
+| Sub-State ID | Description | Typical Context |
+|--------------|-------------|-----------------|
+| `SS_EXT_PRIMED_FACTORY` | Factory-applied primer on fiber cement or engineered wood | HardiePlank, LP SmartSide new construction |
+| `SS_EXT_PRIMED_FIELD` | Field-applied exterior primer — ready for topcoat | Any substrate primed on-site by painter |
+
+**Task Implications:**
+
+| Sub-State | Scuff Sand | Spot Prime | Full Prime | Notes |
+|-----------|------------|------------|------------|-------|
+| `SS_EXT_PRIMED_FACTORY` | Yes | Damaged areas | Required (field prime over factory) | Factory primer is transit/weather protection, not finish-ready |
+| `SS_EXT_PRIMED_FIELD` | Light | As needed | No | Assumes proper exterior primer applied |
+
+---
+
+### 4.3 Existing Painted Exterior Substrates
+
+| Sub-State ID | Description | Typical Context |
+|--------------|-------------|-----------------|
+| `SS_EXT_SOUND_PAINT` | Existing coating adhered, no peeling, minimal chalk | Repaint candidate; good condition exterior |
+| `SS_EXT_CHALKING` | Existing coating chalky but adhered; chalk transfers on touch | Weathered latex; requires TSP wash before prime or topcoat |
+| `SS_EXT_FAILING_PAINT` | Existing coating cracking or peeling in areas; not yet active | Moderate prep required; scrape, sand, spot prime |
+| `SS_EXT_PEELING` | Active peeling; coating lifting from substrate | Major prep required; full scrape, sand to bare, prime |
+| `SS_EXT_WEATHERED` | Uncoated substrate exposed and weathered (gray/oxidized wood) | Missed maintenance; wood checking and oxidation present |
+
+**Task Implications:**
+
+| Sub-State | Wash | Scrape | Sand | Spot Prime | Full Prime |
+|-----------|------|--------|------|------------|------------|
+| `SS_EXT_SOUND_PAINT` | TSP wash | None | Light scuff | Small repairs | No |
+| `SS_EXT_CHALKING` | TSP + mildewcide | None | Light scuff | As needed | No |
+| `SS_EXT_FAILING_PAINT` | TSP wash | Loose areas | Medium | Scraped areas | No |
+| `SS_EXT_PEELING` | TSP wash | Full | Heavy | All bare areas | Bare sections |
+| `SS_EXT_WEATHERED` | TSP wash | None | Full | Full surface | Yes |
+
+---
+
+### 4.4 Existing Stained Exterior Substrates
+
+| Sub-State ID | Description | Typical Context |
+|--------------|-------------|-----------------|
+| `SS_EXT_STAINED_SOLID` | Existing solid body stain (opaque) | Deck boards, siding with solid stain history |
+| `SS_EXT_STAINED_SEMI` | Existing semi-transparent stain (partial grain visible) | Decks, fences, cedar siding |
+| `SS_EXT_STAINED_CLEAR` | Existing clear penetrating sealer or film-forming clear | Natural wood decks, clear-coated trim |
+
+**Task Implications:**
+- SS_EXT_STAINED_SOLID: treat as painted surface for prep; compatible with paint topcoat
+- SS_EXT_STAINED_SEMI: cannot paint over with film-forming paint without full stripping; re-stain only
+- SS_EXT_STAINED_CLEAR: pressure wash + sand before re-coat; film formers require stripping if switching to penetrating
+
+---
+
+### 4.5 Production Rate Modifier Table (Exterior States)
+
+These modifiers apply to prep, prime, and finish tasks. Applied via FAC_EXT_SUBSTRATE_CONDITION.
+
+| State | Prep Modifier | Prime Modifier | Finish Modifier |
+|-------|---------------|----------------|-----------------|
+| `SS_EXT_BARE_WOOD` | 1.00 | 1.00 | 1.00 |
+| `SS_EXT_BARE_FIBERCEMENT` | 0.80 | 1.00 (field prime required) | 1.00 |
+| `SS_EXT_BARE_MASONRY` | 1.30 | 1.20 | 1.00 |
+| `SS_EXT_BARE_METAL` | 1.20 | 1.10 | 1.00 |
+| `SS_EXT_PRIMED_FACTORY` | 0.80 | N/A | 1.00 |
+| `SS_EXT_PRIMED_FIELD` | 0.90 | N/A | 1.00 |
+| `SS_EXT_SOUND_PAINT` | 1.10 | 1.00 | 1.00 |
+| `SS_EXT_CHALKING` | 1.40 | 1.10 | 1.00 |
+| `SS_EXT_FAILING_PAINT` | 1.80 | 1.10 | 1.00 |
+| `SS_EXT_PEELING` | 2.50 | 1.20 | 1.00 |
+| `SS_EXT_WEATHERED` | 1.60 | 1.20 | 1.00 |
+| `SS_EXT_STAINED_SOLID` | 1.20 | 1.00 | 1.00 |
+| `SS_EXT_STAINED_SEMI` | 1.30 | 1.00 | 1.00 |
+| `SS_EXT_STAINED_CLEAR` | 1.10 | 1.00 | 1.00 |
+
+**Modifier math:** `effective_rate = base_rate ÷ modifier` (modifier increases time, not rate)
+
+---
+
+## 12. Change Log (Updated)
+
+| Version | Date | Author | Changes |
+|---------|------|--------|---------|
+| 1.0.0 | 2026-02-03 | Eric + Claude | Initial reference document |
+| 1.1.0 | 2026-02-20 | Claude | Added §4 Exterior-Specific Substrate States (SS_EXT_* series) |

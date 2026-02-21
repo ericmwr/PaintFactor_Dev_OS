@@ -274,3 +274,59 @@ The Prototype Critic is the AppFactory equivalent of the System Critic (SpecFact
 - Always report the **recommended_agent** for each issue — route fixes to the right specialist
 - Run ALL checks in the validation inventory — do not skip categories
 - When a fix is applied, re-validate from scratch — do not trust partial re-runs
+
+---
+
+## Domain Dispatch: Exterior Scopes
+
+When validating a spec or prototype that contains `_EXT_` in the spec family ID, activate exterior validation checks:
+
+### Exterior Validation Checks (Additional)
+
+**EXT-1: Key Namespace Integrity**
+- All `paintscope_key` references use `PS_EXT_*` namespace
+- No interior keys (PS_SURFACE_*, PS_EDGE_*, PS_PROTECT_*) appear in exterior spec inputs
+- CRITICAL if violated
+
+**EXT-2: Substrate State Validity**
+- All `valid_input_states` reference `SS_EXT_*` IDs only
+- No `SS_INT_*` IDs appear in exterior spec state declarations
+- CRITICAL if violated
+
+**EXT-3: Protection Zone Integrity**
+- All protection zone IDs use `ext_*` prefix from `Exterior_Protection_Doctrine.md`
+- No interior zone IDs (floor_perimeter, wall_adjacent, fixture_covers) appear in exterior protection declarations
+- CRITICAL if violated
+
+**EXT-4: Mandatory Site Condition Rules**
+- `wind_condition: high` rule is declared (blocks spray)
+- `surface_temperature: cold_surface` rule is declared (extends recoat)
+- `surface_temperature: hot_surface` rule is declared (scheduling flag)
+- `dew_point_risk: unsafe` rule is declared (blocks application)
+- MAJOR if any missing
+
+**EXT-5: Exterior Factor Keys**
+- `FAC_EXT_ACCESS` is declared in `factor_modifiers[]`
+- `FAC_EXT_SUBSTRATE_CONDITION` is declared
+- `FAC_EXT_WIND` is declared
+- MAJOR if missing
+
+**EXT-6: Modifier Math**
+- Verify modifier formula uses division: `effective_rate = base_rate ÷ modifier`
+- Verify stacking cap is 4.0× maximum
+- CRITICAL if formula uses multiplication instead of division
+
+**EXT-7: Material State Compatibility**
+- Each material system declares compatibility with all `SS_EXT_*` input states
+- `SS_EXT_PRIMED_FACTORY` does not skip field prime requirement
+- `SS_EXT_BARE_METAL` (ferrous) includes rust-inhibiting primer
+- MAJOR if missing
+
+### Exterior Smoke Test Scenarios
+
+In addition to standard smoke tests, run:
+
+1. **Access escalation test** — Set `access_type: scaffold`, verify production rates increase relative to `access_type: ground`
+2. **Wind block test** — Set `wind_condition: high`, verify airless spray tasks are blocked and brush/roll path activates
+3. **Bare substrate test** — Set input state to `SS_EXT_BARE_WOOD`, verify primer round is present before finish round
+4. **Factory prime test** — Set input state to `SS_EXT_PRIMED_FACTORY`, verify field prime round is still required (factory prime is not a field prime substitute)

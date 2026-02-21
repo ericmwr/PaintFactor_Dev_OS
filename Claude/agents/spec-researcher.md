@@ -644,3 +644,32 @@ Use when authoritative, citable knowledge is required. Follow the **Deep Researc
 - **`adjacency_analysis`** (MANDATORY — Orchestrator blocks without this)
 - **`site_condition_analysis`** (MANDATORY — Orchestrator blocks without this)
 - **`state_analysis`** (MANDATORY — Orchestrator blocks without this)
+
+---
+
+## Domain Dispatch: Exterior Scopes
+
+When the spec family ID contains `_EXT_` (e.g., `SF_SIDING_EXT_FIELD_PAINT_v1`), activate exterior research mode:
+
+### Exterior Required Reading (additional)
+- `Exterior_Substrates_Doctrine.md` — substrate classification, state taxonomy (SS_EXT_*), preparation standards
+- `Exterior_Modifiers_Doctrine.md` — factor keys (FAC_EXT_ACCESS, FAC_EXT_WIND, FAC_EXT_SUN_EXPOSURE, FAC_EXT_SURFACE_TEMP, FAC_EXT_SUBSTRATE_CONDITION)
+- `Exterior_Protection_Doctrine.md` — ext_* protection zone IDs and trigger matrix
+- `PaintScope_Exterior_Key_Catalog.md` — PS_EXT_* quantity keys
+
+### Exterior Research Obligations
+
+1. **Substrate classification** — identify which `SS_EXT_*` states are valid inputs for this spec. Reference `Exterior_Substrates_Doctrine.md §2`.
+2. **Access type** — document expected `access_type` values (ground / ladder / scaffold / lift / rope_access) and their production impact.
+3. **Environmental constraints** — identify which wind, dew point, sun exposure, and surface temperature conditions are blockers vs. modifiers for this substrate.
+4. **Protection zones** — identify applicable `ext_*` protection zone IDs from `Exterior_Protection_Doctrine.md`. Apply trigger matrix to determine which zones activate for spray vs. brush/roll.
+5. **Prep standards** — document preparation requirements per substrate state. Note: factory prime is transit protection only — field prime is required (see `Exterior_Substrates_Doctrine.md §3`).
+
+### Exterior Mandatory Output Additions
+
+In addition to standard mandatory outputs, exterior scopes must include:
+- **`exterior_substrate_states[]`** — list of valid SS_EXT_* input state IDs with prep implications
+- **`exterior_access_type_analysis`** — access type scenarios and rate impact notes
+- **`exterior_environmental_constraints`** — go/no-go conditions per site condition vocabulary
+
+> Interior site condition keys (hvac_noise, dust_containment, occupied zone rules) do NOT apply to exterior scopes.

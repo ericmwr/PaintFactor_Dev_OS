@@ -409,3 +409,36 @@ Before finalizing `spec.json`, verify:
 All outputs default to:
 - `status: draft`
 - `review_required: true`
+
+---
+
+## Domain Dispatch: Exterior Scopes
+
+When the spec family ID contains `_EXT_` (e.g., `SF_SIDING_EXT_FIELD_PAINT_v1`), activate exterior orchestration mode:
+
+### Exterior PaintScope Readiness Gate (Step 0 — Exterior Addition)
+
+Before pipeline execution, verify:
+- [ ] Spec ID contains `_EXT_` — confirms exterior domain
+- [ ] `PS_EXT_META.EA.ELEVATIONS_TOTAL` is declared as a required input
+- [ ] `PS_EXT_META.ENUM.ACCESS_TYPE` is declared
+- [ ] At least one `PS_EXT_SURFACE_SF.*` key is declared for the primary field surface
+- [ ] Substrate state IDs use `SS_EXT_*` prefix (not `SS_INT_*`)
+
+### Exterior Completeness Gate (Step 0.5 — Exterior Addition)
+
+Block spec finalization unless all three mandatory exterior declaration systems are present:
+
+1. **Protection zone declarations** — at least one `ext_*` zone ID from `Exterior_Protection_Doctrine.md`
+2. **Site condition rules** — `wind_condition` and `surface_temperature` rules are mandatory for all exterior specs
+3. **Substrate state declarations** — `valid_input_states` must reference only `SS_EXT_*` IDs
+
+### Exterior State Validation
+
+- All `state_declarations.valid_input_states` must be valid `SS_EXT_*` IDs from `Substrate_State_Reference.md §4`
+- Interior state IDs (`SS_INT_*`) are invalid in exterior specs — block and flag
+
+### Exterior Key Namespace Check
+
+- All `paintscope_key` references in SOP `required_inputs[]` must use `PS_EXT_*` namespace
+- Flag any `PS_SURFACE_*`, `PS_EDGE_*`, or `PS_PROTECT_*` keys (interior namespace) appearing in exterior spec inputs

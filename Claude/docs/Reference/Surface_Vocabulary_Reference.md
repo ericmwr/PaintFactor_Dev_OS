@@ -175,3 +175,110 @@ When a new surface type is identified:
    - Lowercase with underscores
 3. Add to appropriate category in this reference
 4. Document common adjacencies
+
+---
+
+## Exterior Surfaces
+
+Exterior surface IDs follow the same naming convention as interior (lowercase with underscores), prefixed with `ext_` for trim surfaces that share names with interior counterparts. Field surfaces (siding, soffit, masonry) use their plain name since they have no interior equivalent.
+
+**Note:** These IDs are for use in exterior spec `adjacency_declarations` and `finish_groups`. Do not use interior surface IDs in exterior specs.
+
+---
+
+### Siding and Field Surfaces
+
+| Surface ID | Description | Common Adjacencies |
+|------------|-------------|-------------------|
+| `siding_field` | Main horizontal or vertical siding field (clapboard, shiplap, T1-11, LP SmartSide, HardiePlank) | fascia, ext_trim_corner, ext_trim_frieze, ext_trim_window_casing, ext_trim_door_casing, foundation_wall |
+| `siding_board_batten` | Board and batten vertical siding (if tracked separately from siding_field) | ext_trim_corner, fascia |
+| `soffit_field` | Underside of roof overhang | fascia, ext_trim_frieze |
+| `porch_ceiling` | Porch ceiling surface (often painted separately from soffit) | fascia, ext_trim_frieze |
+| `porch_floor` | Painted or stained porch floor surface | porch_ceiling, ext_trim_corner |
+
+---
+
+### Fascia and Roofline Trim
+
+| Surface ID | Description | Common Adjacencies |
+|------------|-------------|-------------------|
+| `fascia` | Horizontal fascia board at roofline | soffit_field, ext_trim_rake, siding_field |
+| `ext_trim_rake` | Rake board along gable slope | fascia, siding_field |
+| `ext_trim_frieze` | Frieze board — horizontal trim between soffit and siding | soffit_field, siding_field, ext_trim_corner |
+
+---
+
+### Corner and Band Trim
+
+| Surface ID | Description | Common Adjacencies |
+|------------|-------------|-------------------|
+| `ext_trim_corner` | Corner boards (vertical trim at building corners) | siding_field, fascia, foundation_wall |
+| `ext_trim_band` | Band board or belt course (horizontal accent between floors) | siding_field, ext_trim_corner |
+
+---
+
+### Window and Door Trim (Exterior)
+
+| Surface ID | Description | Common Adjacencies |
+|------------|-------------|-------------------|
+| `ext_trim_window_casing` | Exterior window casing and trim surround | siding_field, window_glass_ext, ext_trim_band |
+| `ext_trim_door_casing` | Exterior door casing and trim surround | siding_field, door_slab_ext |
+| `ext_sill` | Exterior window sill | ext_trim_window_casing, siding_field |
+
+---
+
+### Door and Window Faces (Exterior)
+
+| Surface ID | Description | Common Adjacencies |
+|------------|-------------|-------------------|
+| `door_slab_ext` | Exterior face of exterior door slab | ext_trim_door_casing, door_frame_ext |
+| `door_frame_ext` | Exterior door frame (jamb visible from outside) | door_slab_ext, ext_trim_door_casing |
+| `window_glass_ext` | Exterior window glass (protection target — not painted) | ext_trim_window_casing |
+| `garage_door_ext` | Exterior face of garage door (panels or flush) | siding_field, ext_trim_corner |
+
+---
+
+### Masonry and Structural
+
+| Surface ID | Description | Common Adjacencies |
+|------------|-------------|-------------------|
+| `foundation_wall` | Visible foundation above grade | siding_field, ext_trim_corner |
+| `masonry_wall` | Brick, CMU, or block exterior wall field | ext_trim_corner, foundation_wall |
+| `stucco_field` | Stucco-finished exterior wall field | ext_trim_corner, ext_trim_band |
+
+---
+
+### Decks, Fences, and Accessory Structures
+
+| Surface ID | Description | Common Adjacencies |
+|------------|-------------|-------------------|
+| `deck_field` | Horizontal deck board field (stain or paint) | deck_railing, porch_floor |
+| `deck_railing` | Deck railing system (rails, balusters, posts) | deck_field |
+| `fence_field` | Fence panel field (boards or pickets) | fence_post |
+| `fence_post` | Fence posts | fence_field |
+
+---
+
+### Protection Targets (Exterior — Not Painted)
+
+These surfaces are adjacency and protection targets only — they are not painted under exterior specs.
+
+| Surface ID | Description | Role |
+|------------|-------------|------|
+| `landscape_adjacent` | Plants, beds, lawn within spray reach | Protection target |
+| `hardscape_patio` | Concrete or brick patio below work area | Protection target |
+| `ext_hvac_unit` | Exterior HVAC condenser or AC unit | Protection target |
+| `ext_utility_panel` | Electrical panel, gas meter, water shutoff | Protection target |
+
+---
+
+## Adding New Exterior Surfaces
+
+Follow the same process as interior surfaces:
+1. Check if existing exterior surface ID covers it
+2. If not, propose new ID:
+   - Use `ext_` prefix only for surfaces that share a name with an interior surface
+   - Plain names for surfaces with no interior equivalent (e.g., `fascia`, `siding_field`)
+   - Lowercase with underscores
+3. Add to appropriate category above
+4. Document common adjacencies
