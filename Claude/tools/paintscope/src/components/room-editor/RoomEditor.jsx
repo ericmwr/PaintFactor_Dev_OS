@@ -9,6 +9,8 @@ import TrimTab from './tabs/TrimTab';
 import SpecialtyTab from './tabs/SpecialtyTab';
 import ClosetsTab from './tabs/ClosetsTab';
 import ProtectionTab from './tabs/ProtectionTab';
+import PhotoAnalysisModal from '../photo-analysis/PhotoAnalysisModal';
+import { usePhotoAnalysis } from '../../hooks/usePhotoAnalysis';
 
 const TABS = [
   { id: 'identity',   label: 'Identity' },
@@ -26,6 +28,7 @@ export default function RoomEditor({ room, project, dispatch }) {
   const [focusedSubstrate, setFocusedSubstrate] = useState(null);
   const derived = useDerivedRoom(room);
   const subs = room.substrates || {};
+  const photoAnalysis = usePhotoAnalysis();
 
   // Clear focus if substrate was unchecked externally
   useEffect(() => {
@@ -76,8 +79,31 @@ export default function RoomEditor({ room, project, dispatch }) {
 
   return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-      {/* Quick stats bar */}
-      <RoomQuickStats room={room} derived={derived} />
+      {/* Quick stats bar + camera button */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <div style={{ flex: 1 }}><RoomQuickStats room={room} derived={derived} /></div>
+        <button
+          className="btn-camera"
+          onClick={() => photoAnalysis.openForRoom(room.id)}
+          title="Scan room photos with AI"
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/>
+            <circle cx="12" cy="13" r="4"/>
+          </svg>
+          Scan
+        </button>
+      </div>
+
+      {/* Photo analysis modal */}
+      {photoAnalysis.showModal && (
+        <PhotoAnalysisModal
+          roomId={photoAnalysis.targetRoomId}
+          onApply={(roomId, patch) => dispatch({ type: 'APPLY_PHOTO_ANALYSIS', payload: { roomId, patch } })}
+          onCreateRoom={(patch) => dispatch({ type: 'CREATE_ROOM_FROM_PHOTO', payload: { patch } })}
+          onClose={photoAnalysis.close}
+        />
+      )}
 
       {/* Tab bar */}
       <div className="editor-tab-bar" role="tablist" onKeyDown={handleKeyDown}>

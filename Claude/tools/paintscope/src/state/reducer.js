@@ -232,6 +232,71 @@ export function reducer(state, action) {
       });
     }
 
+    // Photo analysis — apply accepted detections to an existing room
+    case 'APPLY_PHOTO_ANALYSIS': {
+      const { roomId, patch } = payload;
+      return mapRoom(roomId, r => {
+        const updated = { ...r };
+        // Merge room-level scalar fields (label, dimensions, complexity, etc.)
+        const { substrates: newSubs, openings: newOpenings, fixtures: newFixtures, ...roomFields } = patch;
+        Object.assign(updated, roomFields);
+
+        // Merge substrates — photo detections override existing
+        if (newSubs) {
+          const merged = { ...r.substrates };
+          for (const [id, config] of Object.entries(newSubs)) {
+            if (id === 'doors' || id === 'windows') {
+              // For doors/windows, merge items into existing
+              const existing = merged[id] || createSubstrateConfig(id);
+              const existingItems = existing.items || [];
+              const newItems = config.items || [];
+              merged[id] = { ...existing, ...config, items: [...existingItems, ...newItems], painting: true };
+            } else if (id === 'door_casing' || id === 'window_casing') {
+              merged[id] = { ...(merged[id] || createSubstrateConfig(id)), ...config, painting: true };
+            } else {
+              merged[id] = config;
+            }
+          }
+          updated.substrates = merged;
+        }
+
+        // Merge openings
+        if (newOpenings && newOpenings.length > 0) {
+          updated.openings = [...(r.openings || []), ...newOpenings];
+        }
+
+        // Merge fixtures
+        if (newFixtures) {
+          updated.fixtures = { ...r.fixtures, ...newFixtures };
+        }
+
+        return updated;
+      });
+    }
+
+    // Photo analysis — create a new room pre-populated from photo analysis
+    case 'CREATE_ROOM_FROM_PHOTO': {
+      const room = createRoom();
+      const { substrates: newSubs, openings: newOpenings, fixtures: newFixtures, ...roomFields } = payload.patch;
+      Object.assign(room, roomFields);
+
+      if (newSubs) {
+        for (const [id, config] of Object.entries(newSubs)) {
+          if (id === 'doors' || id === 'windows') {
+            room.substrates[id] = { ...room.substrates[id], ...config, painting: true };
+          } else if (id === 'door_casing' || id === 'window_casing') {
+            room.substrates[id] = { ...room.substrates[id], ...config, painting: true };
+          } else {
+            room.substrates[id] = config;
+          }
+        }
+      }
+      if (newOpenings) room.openings = newOpenings;
+      if (newFixtures) room.fixtures = newFixtures;
+
+      return { ...state, rooms: [...state.rooms, room], ui: { ...state.ui, activeRoomId: room.id, view: 'editor' } };
+    }
+
     case 'IMPORT_PROJECT': {
       return payload;
     }
