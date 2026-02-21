@@ -10,6 +10,8 @@ import ProjectSummary from './components/summary/ProjectSummary';
 import EstimateView from './components/estimate/EstimateView';
 import WorkOrderView from './components/workorder/WorkOrderView';
 import ExportImport from './components/export/ExportImport';
+import PhotoAnalysisModal from './components/photo-analysis/PhotoAnalysisModal';
+import { usePhotoAnalysis } from './hooks/usePhotoAnalysis';
 
 const NAV_VIEWS = [
   { id:'setup',    label:'Setup',        key:'1' },
@@ -24,6 +26,7 @@ function AppShell() {
   const { state, dispatch } = useProject();
   const estimate = useEstimate();
   const view = state.ui.view;
+  const photoAnalysis = usePhotoAnalysis();
   const activeRoom = state.rooms.find(r => r.id === state.ui.activeRoomId) || state.rooms[0];
   const [saveFlash, setSaveFlash] = useState(false);
 
@@ -77,6 +80,17 @@ function AppShell() {
           <span className="sidebar-title">Rooms</span>
           <button className="btn btn-sm" onClick={() => dispatch({type:'ADD_ROOM'})} title="Ctrl+N">+ Add</button>
         </div>
+        <button
+          className="btn-scan-room"
+          onClick={photoAnalysis.openForNewRoom}
+          title="Create room from photos"
+        >
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/>
+            <circle cx="12" cy="13" r="4"/>
+          </svg>
+          Scan Room
+        </button>
         <div className="room-list">
           {state.rooms.map(r => (
             <div
@@ -167,6 +181,16 @@ function AppShell() {
           </ErrorBoundary>
         </div>
       </div>
+
+      {/* Photo analysis modal (from sidebar "Scan Room") */}
+      {photoAnalysis.showModal && (
+        <PhotoAnalysisModal
+          roomId={photoAnalysis.targetRoomId}
+          onApply={(roomId, patch) => dispatch({ type: 'APPLY_PHOTO_ANALYSIS', payload: { roomId, patch } })}
+          onCreateRoom={(patch) => dispatch({ type: 'CREATE_ROOM_FROM_PHOTO', payload: { patch } })}
+          onClose={photoAnalysis.close}
+        />
+      )}
     </div>
   );
 }

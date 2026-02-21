@@ -43,7 +43,8 @@ export const ENUMS = {
     { value:'panel_6', label:'6-Panel' },
     { value:'french', label:'French' },
     { value:'bifold', label:'Bifold' },
-    { value:'louvered', label:'Louvered' }
+    { value:'louvered', label:'Louvered' },
+    { value:'sliding_glass', label:'Sliding Glass' }
   ],
   windowTypes: [
     { value:'single_hung', label:'Single Hung' },
