@@ -34,6 +34,52 @@ SOP modules define work sequences; the Estimation Engine applies them to geometr
 - **[docs/PaintScope/PaintScope_Asset_Catalog.md](../docs/PaintScope/PaintScope_Asset_Catalog.md)** — Asset categories, subtypes, and measurable keys
 - **[docs/PaintScope/PaintScope_Adjacency_Schema.md](../docs/PaintScope/PaintScope_Adjacency_Schema.md)** — Adjacency relationships and edge target definitions
 
+### Domain-Specific Context Loading
+
+After reading the base Required Reading list above, load the following based on `spec_family.domain`:
+
+#### If `domain == "exterior"`:
+
+LOAD — Exterior Doctrine:
+- docs/Doctrine/Exterior_Substrates_Doctrine.md
+- docs/Doctrine/Exterior_Modifiers_Doctrine.md
+- docs/Doctrine/Exterior_Protection_Doctrine.md
+
+LOAD — Exterior Reference Vocabulary:
+- docs/Reference/Substrate_State_Reference.md §4 (Exterior-Specific States)
+- docs/Reference/Surface_Vocabulary_Reference.md §Exterior Surfaces
+- docs/Reference/Site_Condition_Vocabulary_Reference.md §9–13 (Exterior Conditions)
+
+LOAD — Exterior PaintScope Keys:
+- docs/PaintScope/PaintScope_Exterior_Key_Catalog.md
+
+DO NOT APPLY to exterior specs:
+- docs/Doctrine/Interior_Protection_Doctrine.md (interior zones do not apply)
+- docs/Doctrine/Fine_Finish_Doctrine.md (unless scope explicitly includes interior-style trim at QT4+)
+- docs/Doctrine/Interior_Protection_Doctrine_Final.md
+- PS_ keys from PaintScope_Quantity_Key_Catalog.md §Core Interior Keys (use EXT_ keys instead)
+
+EXTERIOR MODIFIER OVERRIDE:
+- Use FAC_EXT_ACCESS (not FAC_HEIGHT) for elevation work
+- Use FAC_EXT_SUBSTRATE_CONDITION for prep rate scaling
+- Use FAC_EXT_WIND, FAC_EXT_SUN_EXPOSURE, FAC_EXT_SURFACE_TEMP for environmental modifiers
+- FAC_PROFILE_COMPLEXITY applies for exterior trim (shared modifier)
+
+#### If `domain == "interior"`:
+[existing behavior — no changes; read all required reading as currently listed]
+
+### Pipeline Sequencing — SOP Defines Canonical Task IDs
+
+> **The SOP Librarian runs BEFORE the Estimation Engineer.**
+> Task IDs defined in `sop_modules.json` are the canonical source of truth.
+> The Estimation Engineer will read this file and match every task_id character-for-character in `production.json`.
+>
+> **Implications for task ID naming:**
+> - Use clear, unambiguous task IDs with consistent word order
+> - Prefer `TSK_{PREFIX}_{VERB}_{OBJECT}` pattern (e.g., `TSK_DRRP_SCRAPE_LIGHT`, not `TSK_DRRP_LIGHT_SCRAPE`)
+> - Do not use synonyms or abbreviations that could be misinterpreted
+> - Every task ID you define WILL be used downstream — name them carefully
+
 ### Registry Integration
 
 - **Primary input**: `resolution.json` (from Registry Resolver)
@@ -506,6 +552,21 @@ Do NOT provide `input_name` without `paintscope_key`. The Orchestrator will reje
 ## Domain Dispatch: Exterior Scopes
 
 When the spec family ID contains `_EXT_`, use exterior SOP conventions:
+
+### Exterior SOP Module Patterns
+
+When domain == "exterior", standard module sequence is:
+  MOD_EXT_SETUP (setup) — staging, protection deployment, equipment
+  MOD_EXT_PREP (prep) — pressure wash, scrape, sand, caulk, spot prime
+  MOD_EXT_PRIME (prime) — full prime coat (if required by substrate state)
+  MOD_EXT_FINISH_COAT (finish) — coat 1
+  MOD_EXT_INTERSTAGE (interstage) — inspect, sand, repair (QT4+ only)
+  MOD_EXT_FINISH_COAT_2 (finish) — coat 2
+  MOD_EXT_FINAL_INSPECT (inspect) — final walkthrough
+  MOD_EXT_CLEANUP (cleanup) — teardown protection, clean equipment
+
+DO NOT use interior fine-finish module pattern (MOD_FF_*) for exterior specs
+  unless the spec explicitly covers interior-style millwork applied to exterior.
 
 ### Exterior PaintScope Key Namespace
 

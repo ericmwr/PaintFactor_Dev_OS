@@ -1,0 +1,241 @@
+{
+  "spec_family_id": "SF_SIDING_ENGINEERED_EXT_NC",
+  "version": "0.1.0",
+  "generated_by": "System Critic",
+  "generated_at": "2026-03-09",
+  "status": "draft",
+  "review_required": true,
+
+  "overall_result": "pass",
+
+  "summary": "SF_SIDING_ENGINEERED_EXT_NC_v1 draft artifacts pass all critical and major doctrine checks. Third exterior siding spec — follows SF_SIDING_FIBERCEMENT_EXT_NC_v1 pattern with engineered wood-specific departures. 29 tasks thread correctly between sop_modules.json and production.json (23 binary, 4 qt_scaled, 2 qt_conditional). All PaintScope keys use PS_EXT_* namespace. All substrate states use SS_EXT_* prefix (SS_EXT_BARE_WOOD correctly used instead of SS_EXT_BARE_FIBERCEMENT). All protection zones use ext_* prefix. No interior keys, states, or zones present. Key departures from fiber cement sibling: spray_backroll application method added (MANDATORY for T1-11 profile, crew_size=2 on all 3 spray_backroll tasks), no alkali-resistant primer path (engineered wood is neutral pH, not cementitious pH 13), SS_EXT_BARE_WOOD replaces SS_EXT_BARE_FIBERCEMENT, T1-11 profile replaces shingle, moisture check task added (engineered wood is more moisture-sensitive). Edge sealing task present (most critical prep task for OSB core protection). Environmental conditions correctly excluded from estimation per RC-003. Modifier stacking cap respected (worst case 3.744x < 4.0x). LP SmartSide warranty product references throughout. 2 minor QA observations, no blockers.",
+
+  "artifacts_reviewed": [
+    { "file": "research.json", "status": "reviewed", "human_feedback": "none" },
+    { "file": "resolution.json", "status": "reviewed", "human_feedback": "none" },
+    { "file": "materials.json", "status": "reviewed", "human_feedback": "none" },
+    { "file": "sop_modules.json", "status": "reviewed", "human_feedback": "none" },
+    { "file": "production.json", "status": "reviewed", "human_feedback": "none" },
+    { "file": "spec.json", "status": "not_yet_created", "human_feedback": "n/a" }
+  ],
+
+  "issues": [
+    {
+      "issue_id": "QA-001",
+      "severity": "minor",
+      "area": "coverage_profiles",
+      "file": "resolution.json vs materials.json",
+      "status": "acknowledged",
+      "description": "Resolution.json proposed separate coverage profiles COV_ENSD_PRIMER and COV_ENSD_PRIMER_BARE for factory-primed vs bare wood surfaces. Materials.json combined them into a single COV_ENSD_PRIMER profile with per_substrate_state coverage_by_state model (350 SF/gal for SS_EXT_PRIMED_FACTORY, 275 SF/gal for SS_EXT_BARE_WOOD). This is a design improvement over the resolution proposal — fewer profiles, same data — but the resolution's COV_ENSD_PRIMER_BARE ID is not materialized as a standalone profile.",
+      "resolution": "Acknowledged — materials.json approach is superior. The per_substrate_state model within COV_ENSD_PRIMER captures both coverage rates without requiring a separate profile. Registry addition for COV_ENSD_PRIMER_BARE can be dropped or marked as merged into COV_ENSD_PRIMER. No functional impact on estimation."
+    },
+    {
+      "issue_id": "QA-002",
+      "severity": "minor",
+      "area": "site_conditions",
+      "file": "resolution.json",
+      "status": "acknowledged",
+      "description": "Resolution.json site_condition_rules declares only access_type. Wind, dew_point, and temperature conditions are referenced in sop_modules.json task-level site_condition_rules (exclude_when blocks on spray tasks) but not declared as formal site_condition_rules in resolution.json. This is consistent with RC-003 (environmental conditions are SOP references, not estimation modifiers) but could cause confusion if a future reader expects all site conditions to be enumerated in resolution.",
+      "resolution": "Acknowledged — consistent with RC-003 and fiber cement sibling pattern. Environmental conditions (wind, dew_point) are process/scheduling constraints referenced in SOP task exclude_when blocks, not estimatable modifiers. Access_type is the only site condition that feeds estimation (via FAC_EXT_ACCESS). No change needed."
+    }
+  ],
+
+  "blockers": [],
+
+  "doctrine_checks": [
+    {
+      "check": "THREADING-1: Task ID Completeness",
+      "result": "pass",
+      "details": "All 29 task_ids in sop_modules.json have matching entries in production.json. No orphaned tasks in either direction. Count by module: SETUP=5, PREP=6, PRIME=3, FINISH_1=3, INTERSTAGE=4, FINISH_2=3, FINAL_INSPECT=2, CLEANUP=3."
+    },
+    {
+      "check": "THREADING-2: task_classification Match",
+      "result": "pass",
+      "details": "All task_classification values match between files. 4 qt_scaled tasks (INSPECT_COAT, TOUCHUP_REPAIR, FINAL_INSPECT, FINAL_TOUCHUP) have qt_rates in production.json. 2 qt_conditional tasks (SAND_BETWEEN, DUST_INTERCOAT) have appears_in_tiers [QT4] in production.json. 23 binary tasks use flat rate_per_hour or fixed_time_minutes. No mismatches found."
+    },
+    {
+      "check": "THREADING-3: applies_when Consistency",
+      "result": "pass",
+      "details": "Application method gating consistent between files: spray tasks gate on [spray], spray_backroll on [spray_backroll], brush_roll on [brush_roll]. Equipment setup tasks correctly gate on their respective methods. MOD_ENSD_FINISH_2 applies_when quality_tier [QT3, QT4] — matches coat count structure (QT2 is single coat)."
+    },
+    {
+      "check": "THREADING-4: UOM Match",
+      "result": "pass",
+      "details": "All task UOMs match between sop_modules.json and production.json. SF-based: 18 tasks (wash, sand, prime, finish, inspect, touchup, dust, moisture check). EA-based: 2 tasks (fixture mask, seal cut edges). LF-based: 2 tasks (landscape protect, caulk joints). FIXED: 3 tasks (equipment setup spray, equipment setup brush, clean equipment, site cleanup — 4 tasks total). Note: PROTECT_TEARDOWN uses LF consistent with landscape perimeter basis."
+    },
+    {
+      "check": "THREADING-5: Task Prefix",
+      "result": "pass",
+      "details": "All 29 task IDs use TSK_ENSD_ prefix. No collisions with existing prefixes (SDNG, FCSD, etc.)."
+    },
+    {
+      "check": "THREADING-6: Module Prefix",
+      "result": "pass",
+      "details": "All 8 module IDs use MOD_ENSD_ prefix: SETUP, PREP, PRIME, FINISH_1, INTERSTAGE, FINISH_2, FINAL_INSPECT, CLEANUP."
+    },
+    {
+      "check": "EXT-1: Key Namespace Integrity",
+      "result": "pass",
+      "details": "All paintscope_key references use PS_EXT_* namespace. 9 PS keys declared in resolution.json: PS_EXT_SURFACE_SF.SIDING_FIELD, PS_EXT_META.EA.ELEVATIONS_TOTAL, PS_EXT_META.ENUM.ACCESS_TYPE, PS_EXT_META.FLAG.NEW_CONSTRUCTION, PS_EXT_PROTECT_LF.LANDSCAPE_PERIMETER, PS_EXT_PROTECT_SF.HARDSCAPE_WALK, PS_EXT_PROTECT_SF.HARDSCAPE_PATIO, PS_EXT_PROTECT_EA.LIGHT_FIXTURE, PS_EXT_PROTECT_EA.HVAC_UNIT. No interior keys found."
+    },
+    {
+      "check": "EXT-2: Substrate State Validity",
+      "result": "pass",
+      "details": "All substrate states use SS_EXT_* prefix. 4 input states: SS_EXT_PRIMED_FACTORY, SS_EXT_BARE_WOOD, SS_EXT_PRIMED_FIELD, SS_EXT_FACTORY_FINISHED. 3 output states: SS_EXT_PAINTED_FLAT, SS_EXT_PAINTED_SATIN, SS_EXT_PAINTED_SEMIGLOSS. No SS_INT_* or bare SS_ IDs. Critically: SS_EXT_BARE_FIBERCEMENT does NOT appear anywhere in this spec — correctly excluded (fiber cement only)."
+    },
+    {
+      "check": "EXT-3: Protection Zone Integrity",
+      "result": "pass",
+      "details": "All 5 protection zones use ext_* prefix: ext_landscape_perimeter, ext_hardscape_walk, ext_hardscape_patio, ext_light_fixture, ext_hvac_unit. No interior zone IDs. Window/door zones correctly excluded per wood siding RC-001."
+    },
+    {
+      "check": "EXT-4: Mandatory Site Condition Rules",
+      "result": "pass",
+      "details": "Access_type declared as site_condition_rule with height modifier values (ground=1.00, ladder=1.35, scaffold=1.60, lift=1.50). Wind and dew_point referenced in SOP task exclude_when blocks (process constraints, not estimation modifiers per RC-003)."
+    },
+    {
+      "check": "EXT-5: Exterior Factor Keys",
+      "result": "pass",
+      "details": "FAC_EXT_ACCESS reused from wood/fiber cement siding specs. FAC_ENSD_SIDING_PROFILE declared (lap=1.00, panel=1.10, t1_11=1.80). FAC_ENSD_SURFACE_TEXTURE declared (smooth=1.00, cedarmill=1.20, roughsawn=1.30). No FAC_HEIGHT (interior). No FAC_EXT_SUBSTRATE_CONDITION (correctly excluded per fiber cement sibling correction)."
+    },
+    {
+      "check": "EXT-6: Modifier Math",
+      "result": "pass",
+      "details": "All 3 modifiers use division formula: effective_rate = base_rate / modifier. Stacking cap 4.0x declared. 5 stacking examples provided. Maximum combination (T1-11 1.80 x roughsawn 1.30 x scaffold 1.60 = 3.744x) is under 4.0x cap. All examples produce credible effective rates."
+    },
+    {
+      "check": "EXT-7: Material State Compatibility",
+      "result": "pass",
+      "details": "Two substrate-driven primer paths: acrylic (SYS_EXT_EW_PRIMER_ACRYLIC) for SS_EXT_PRIMED_FACTORY and SS_EXT_BARE_WOOD, bonding (SYS_EXT_EW_PRIMER_BONDING) for SS_EXT_FACTORY_FINISHED. SS_EXT_PRIMED_FIELD skips prime module entirely. Compatibility rules COMPAT-001 through COMPAT-007 enforce correct routing. NO alkali-resistant primer path — correctly omitted (engineered wood is neutral pH, not cementitious)."
+    },
+    {
+      "check": "SPEC-1: Back-Rolling Tasks",
+      "result": "pass",
+      "details": "3 spray_backroll tasks present: TSK_ENSD_PRIME_SPRAY_BACKROLL, TSK_ENSD_FINISH_1_SPRAY_BACKROLL, TSK_ENSD_FINISH_2_SPRAY_BACKROLL. All have crew_size=2 in production.json. All gate on application_method [spray_backroll]. SOP describes two-person operation (sprayer leads, roller follows). KEY DIFFERENCE from fiber cement (no back-rolling)."
+    },
+    {
+      "check": "SPEC-2: No Alkali-Resistant Primer",
+      "result": "pass",
+      "details": "No alkali-resistant primer system, path, or reference exists in any artifact. Correctly omitted — engineered wood is wood-based (neutral pH), NOT cementitious (pH 13.0). Validation note in resolution.json explicitly confirms this."
+    },
+    {
+      "check": "SPEC-3: Substrate States",
+      "result": "pass",
+      "details": "Uses SS_EXT_BARE_WOOD for bare surfaces (NOT SS_EXT_BARE_FIBERCEMENT). SS_EXT_BARE_FIBERCEMENT does not appear in any artifact. Resolution validation_notes explicitly warn against SS_EXT_BARE_FIBERCEMENT usage."
+    },
+    {
+      "check": "SPEC-4: Siding Profiles",
+      "result": "pass",
+      "details": "3 profiles declared: lap, panel, t1_11. No shingle profile (fiber cement only). T1-11 is unique to this spec. Profile modifier FAC_ENSD_SIDING_PROFILE reflects correct values: lap=1.00 (fastest), panel=1.10, t1_11=1.80 (slowest, mandatory back-rolling)."
+    },
+    {
+      "check": "SPEC-5: Edge Sealing Task",
+      "result": "pass",
+      "details": "TSK_ENSD_SEAL_CUT_EDGES present in MOD_ENSD_PREP. Appears in all tiers (QT2-QT4). Substrate state rules: required for SS_EXT_PRIMED_FACTORY, SS_EXT_BARE_WOOD, SS_EXT_FACTORY_FINISHED; excluded for SS_EXT_PRIMED_FIELD. Uses CON_ENSD_END_SEALER (LP SmartSide Cut End Seal). Correctly identified as most critical prep task for OSB core protection."
+    },
+    {
+      "check": "SPEC-6: Moisture Check Task",
+      "result": "pass",
+      "details": "TSK_ENSD_MOISTURE_CHECK present in MOD_ENSD_PREP. Appears in all tiers (QT2-QT4). Requires < 15% MC before coating. Quality notes scale by tier (spot check QT2, systematic QT4). Engineered wood-specific — more moisture-sensitive than fiber cement."
+    },
+    {
+      "check": "SPEC-7: LP SmartSide Warranty References",
+      "result": "pass",
+      "details": "LP SmartSide warranty requirements referenced in materials.json (approved product list, minimum coat count), sop_modules.json (edge seal, field prime mandatory), and production.json (rate basis notes). Compatibility rule COMPAT-004 documents LP-specific product approval requirement."
+    },
+    {
+      "check": "SPEC-8: Geometry Source",
+      "result": "pass",
+      "details": "No internal geometry computation. All area/quantity from PaintScope inputs (PS_EXT_SURFACE_SF.SIDING_FIELD for siding area). Manual capture for cut edge count (EA) and caulk joints (LF) — properly documented with manual_capture_required flag in production.json."
+    },
+    {
+      "check": "COMPLETENESS-1: Protection Zones",
+      "result": "pass",
+      "details": "5 protection zones declared in resolution.json with conditions, protection_levels, upgrade conditions, and paintscope_key mappings. All zones referenced in sop_modules.json protection_metadata (setup in SETUP module, teardown in CLEANUP module)."
+    },
+    {
+      "check": "COMPLETENESS-2: Adjacency Declarations",
+      "result": "pass",
+      "details": "6 adjacent surfaces declared in resolution.json adjacency_declarations: soffit_field, ext_trim_frieze, ext_trim_corner, ext_trim_window_casing, ext_trim_door_casing, foundation_wall. All with edge_type and typical_relationship. Identical pattern to fiber cement sibling."
+    },
+    {
+      "check": "COMPLETENESS-3: Site Condition Rules",
+      "result": "pass",
+      "details": "access_type rule declared with 4 values (ground, ladder, scaffold, lift) and corresponding modifiers. Applied per elevation."
+    },
+    {
+      "check": "COMPLETENESS-4: Cross-Spec Boundaries",
+      "result": "pass",
+      "details": "Cross-spec boundaries documented in resolution.json: window/door protection excluded (owned by window/door specs), trim excluded (separate spec), soffit/fascia excluded (separate spec), foundation excluded (separate spec), environmental conditions excluded from modifiers per RC-003."
+    },
+    {
+      "check": "COMPLETENESS-5: Input Declarations",
+      "result": "pass",
+      "details": "9 input declarations in resolution.json with paintscope_key mappings: 1 required surface input (IN_SF_SIDING_FIELD), 2 required meta inputs (IN_EA_ELEVATIONS, IN_ENUM_ACCESS_TYPE), 1 required flag (IN_BOOL_NEW_CONSTRUCTION), 5 conditional protection inputs (landscape, hardscape walk, hardscape patio, light fixture, HVAC unit)."
+    },
+    {
+      "check": "COMPLETENESS-6: Round Configurations",
+      "result": "pass",
+      "details": "4 round configurations declared in sop_modules.json: ROUND_ENSD_PRIME_2FINISH (QT3/QT4, 3 coats), ROUND_ENSD_PRIME_1FINISH (QT2, 2 coats), ROUND_ENSD_2FINISH (SS_EXT_PRIMED_FIELD QT3/QT4, 2 coats), ROUND_ENSD_1FINISH (SS_EXT_PRIMED_FIELD QT2, 1 coat). Covers all quality_tier x substrate_state combinations."
+    },
+    {
+      "check": "COMPLETENESS-7: Module Phase Order",
+      "result": "pass",
+      "details": "Module phase sequence: setup (SETUP) -> prep (PREP) -> prime (PRIME) -> finish (FINISH_1) -> interstage (INTERSTAGE) -> finish (FINISH_2) -> cleanup (FINAL_INSPECT, CLEANUP). Correct phase ordering per structural_keys."
+    },
+    {
+      "check": "ENUM-1: Convention Compliance",
+      "result": "pass",
+      "details": "All enums comply with project conventions: CON_ prefix (not CONS_), task_classification (not task_class), severity uses critical/major/minor, phase values from approved set (no 'protect' or 'protection' phase), all units uppercase (EA, SF, LF, FIXED), consumable_category from approved set, zone uses ext_* prefix, sheen single values only."
+    }
+  ],
+
+  "exterior_validation_summary": {
+    "first_exterior_spec": false,
+    "sibling_spec": "SF_SIDING_FIBERCEMENT_EXT_NC_v1",
+    "domain_dispatch_activated": true,
+    "interior_contamination": "none — no interior keys, states, or zones found",
+    "research_corrections_applied": 0,
+    "user_corrections_applied": 0,
+    "key_departures_from_fiber_cement_sibling": [
+      "spray_backroll application method added — 3 back-roll tasks with crew_size=2 (fiber cement has NO back-roll tasks)",
+      "Only 2 primer paths (acrylic + bonding) — fiber cement has 3 (acrylic + alkali-resistant + bonding)",
+      "SS_EXT_BARE_WOOD replaces SS_EXT_BARE_FIBERCEMENT for bare substrate state",
+      "T1-11 profile replaces shingle — unique vertical groove geometry requiring mandatory back-rolling",
+      "Moisture check task added (TSK_ENSD_MOISTURE_CHECK) — engineered wood is more moisture-sensitive than fiber cement",
+      "Edge sealer is LP SmartSide-specific OSB sealer (CON_ENSD_END_SEALER) — different product than fiber cement edge sealer",
+      "LP SmartSide-approved product list is DIFFERENT from James Hardie-approved list",
+      "29 total tasks vs 25 for fiber cement (4 additional: 3 spray_backroll + 1 moisture check)"
+    ]
+  },
+
+  "task_cross_reference": {
+    "total_sop_tasks": 29,
+    "total_production_rates": 29,
+    "orphaned_in_sop": 0,
+    "orphaned_in_production": 0,
+    "classification_mismatches": 0,
+    "uom_mismatches": 0,
+    "applies_when_mismatches": 0
+  },
+
+  "modifier_stacking_validation": {
+    "max_theoretical_stack": 3.744,
+    "stacking_cap": 4.0,
+    "within_cap": true,
+    "worst_case_scenario": "T1-11 siding, roughsawn texture, scaffold access (1.80 x 1.30 x 1.60 = 3.744x)",
+    "worst_case_effective_rate": "47 SF/hr per 2-person crew on spray_backroll finish — very slow but viable"
+  },
+
+  "material_system_validation": {
+    "primer_systems": 2,
+    "finish_systems": 2,
+    "total_systems": 4,
+    "coverage_profiles": 3,
+    "consumables": 15,
+    "compatibility_rules": 7,
+    "all_systems_have_quality_tier": true,
+    "all_systems_have_substrate_state_routing": true,
+    "no_alkali_resistant_primer": true
+  }
+}

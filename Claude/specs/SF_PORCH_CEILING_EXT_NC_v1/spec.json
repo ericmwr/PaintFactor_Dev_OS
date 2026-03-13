@@ -1,0 +1,641 @@
+{
+  "spec_family": {
+    "id": "SF_PORCH_CEILING_EXT_NC",
+    "name": "Exterior Porch Ceiling Prime and Paint",
+    "description": "Combined prime and finish for porch/veranda ceiling (overhead). Key differences from soffit: spray always eligible (no attic vent concern), no vinyl substrate, beadboard panel type added. Overhead work penalty (~25-35% from vertical baselines) baked into all rates. Sheltered surface with higher mildew risk. Flat to satin sheen only.",
+    "domain": "exterior",
+    "version": "0.1.0",
+    "status": "draft",
+    "review_required": true
+  },
+
+  "scope_boundaries": {
+    "includes": [
+      "Porch/veranda ceiling field painting — all overhead ceiling surfaces",
+      "Surface preparation (low-pressure wash, substrate-specific sanding, dust cleanup)",
+      "T&G and beadboard groove work (brush detail for groove joints)",
+      "End-seal fiber cement cut edges (RISK-PRCH-004 prevention)",
+      "Tannin spot-prime knots on wood ceiling (cedar/redwood)",
+      "Caulk panel joints and ceiling-to-fascia/wall junctions",
+      "Full field prime coat (3 substrate-driven primer paths)",
+      "Finish coat application (1-2 coats by quality tier)",
+      "Interstage inspection and intercoat sand (QT4)",
+      "Cut-in at fascia, wall, and column junctions",
+      "Porch floor protection (critical for overhead drip fallout)",
+      "Porch furniture cover/removal",
+      "Ceiling-mounted fixture masking (ceiling fans, pendant lights, recessed cans)",
+      "Adjacent finished fascia/wall masking"
+    ],
+    "excludes": [
+      {
+        "item": "Fascia painting",
+        "route_to": "SF_TRIM_EXT_NC — fascia is trim scope"
+      },
+      {
+        "item": "Soffit painting",
+        "route_to": "SF_SOFFIT_EXT_NC — separate scope for enclosed eave soffit"
+      },
+      {
+        "item": "Porch floor painting",
+        "route_to": "Future SF_PORCH_FLOOR_EXT_NC or out of scope"
+      },
+      {
+        "item": "Porch column painting",
+        "route_to": "Future spec or SF_TRIM_EXT_NC"
+      },
+      {
+        "item": "House wall painting at porch attachment",
+        "route_to": "Siding spec (SF_WOOD_SIDING_EXT_NC_PAINT / etc.)"
+      },
+      {
+        "item": "Power washing / high-pressure wash",
+        "route_to": "PROHIBITED on porch ceiling (COMPAT-PRCH-006)"
+      }
+    ]
+  },
+
+  "configuration_dimensions": [
+    {
+      "dimension_id": "quality_tier",
+      "description": "Quality tier controlling coat count, inspection scrutiny, interstage sanding, and defect tolerance.",
+      "values": ["QT2", "QT3", "QT4"],
+      "default": "QT3",
+      "notes": "QT2=economy (single finish coat). QT3=standard (2 coats). QT4=premium (2 coats, interstage sand, systematic inspection). QT5 excluded — porch ceiling is a field surface, not fine millwork."
+    },
+    {
+      "dimension_id": "application_method",
+      "description": "Primary application technique. Both always eligible — no vent type constraint.",
+      "values": ["brush_roll", "spray"],
+      "default": "brush_roll",
+      "notes": "Both methods ALWAYS eligible on porch ceiling (no attic vent concern, unlike soffit). spray_backroll NOT valid — overhead back-rolling is impractical."
+    },
+    {
+      "dimension_id": "substrate_material",
+      "description": "Porch ceiling substrate material type.",
+      "values": ["wood", "fiber_cement"],
+      "default": "wood",
+      "notes": "Wood: T&G boards, beadboard panels, plywood. Fiber cement: HardieSoffit-style panels. No vinyl substrate."
+    },
+    {
+      "dimension_id": "sheen",
+      "description": "Finish sheen level.",
+      "values": ["flat", "satin"],
+      "default": "flat",
+      "notes": "Overhead surfaces use flat or satin only. Flat is most common porch ceiling sheen."
+    },
+    {
+      "dimension_id": "porch_ceiling_panel_type",
+      "description": "Ceiling panel/board construction type. Drives joint complexity modifier.",
+      "values": ["tg_board", "beadboard", "solid_panel"],
+      "default": "solid_panel",
+      "notes": "T&G and beadboard both have 20% higher labor (FAC_PRCH_PANEL_JOINTS). Solid panel has no joint penalty."
+    }
+  ],
+
+  "paintable_items": [
+    {
+      "item_id": "ITM_PORCH_CEILING_FIELD",
+      "name": "Exterior porch ceiling field surface",
+      "unit_of_measure": "SF",
+      "counting_rules": "Net paintable porch ceiling area in square feet. Porch width x porch length. Excludes fixture openings.",
+      "notes": "Single paintable item — covers wood and fiber cement. SF-based."
+    }
+  ],
+
+  "substrate_state_rules": {
+    "primary_surface": "porch_ceiling",
+
+    "valid_input_states": {
+      "states": ["SS_EXT_BARE_WOOD", "SS_EXT_PRIMED_FACTORY", "SS_EXT_PRIMED_FIELD"],
+      "notes": "SS_EXT_BARE_WOOD: bare wood T&G, beadboard, or plywood. SS_EXT_PRIMED_FACTORY: fiber cement with factory primer. SS_EXT_PRIMED_FIELD: already field-primed — skip prime module."
+    },
+
+    "output_state": {
+      "state": "SS_EXT_PAINTED_FLAT",
+      "varies_by": "sheen",
+      "state_map": {
+        "flat": "SS_EXT_PAINTED_FLAT",
+        "satin": "SS_EXT_PAINTED_SATIN"
+      }
+    }
+  },
+
+  "material_systems": [
+    {
+      "system_id": "SYS_EXT_PRCH_PRIMER_ACRYLIC",
+      "name": "Exterior Acrylic Primer for Wood/FC Porch Ceiling",
+      "product_role": "primer",
+      "quality_tier": ["QT2", "QT3", "QT4"],
+      "applies_when": { "substrate_material": ["wood", "fiber_cement"], "substrate_state": ["SS_EXT_BARE_WOOD", "SS_EXT_PRIMED_FACTORY"] },
+      "allowed_sheens": ["n/a"],
+      "notes": "100% acrylic exterior primer for bare wood and factory-primed FC."
+    },
+    {
+      "system_id": "SYS_EXT_PRCH_PRIMER_TANNIN_SPOT",
+      "name": "Alkyd/Shellac Spot Primer for Tannin Knots",
+      "product_role": "specialty",
+      "quality_tier": ["QT2", "QT3", "QT4"],
+      "applies_when": { "substrate_material": ["wood"], "substrate_state": ["SS_EXT_BARE_WOOD"] },
+      "allowed_sheens": ["n/a"],
+      "notes": "Spot-applied to knots on cedar/redwood. Prevents tannin bleed."
+    },
+    {
+      "system_id": "SYS_EXT_PRCH_PRIMER_ALKALI",
+      "name": "Alkali-Resistant Primer for Bare FC Porch Ceiling",
+      "product_role": "primer",
+      "quality_tier": ["QT2", "QT3", "QT4"],
+      "applies_when": { "substrate_material": ["fiber_cement"], "substrate_state": ["SS_EXT_BARE_WOOD"] },
+      "allowed_sheens": ["n/a"],
+      "notes": "Required for bare/damaged FC (pH 13.0). Prevents saponification."
+    },
+    {
+      "system_id": "SYS_EXT_PRCH_FINISH_STANDARD",
+      "name": "Standard Exterior Acrylic Porch Ceiling Paint",
+      "product_role": "finish",
+      "quality_tier": ["QT2", "QT3"],
+      "allowed_sheens": ["flat", "satin"],
+      "notes": "100% acrylic with mildewcide. QT2: 1 coat. QT3: 2 coats."
+    },
+    {
+      "system_id": "SYS_EXT_PRCH_FINISH_PREMIUM",
+      "name": "Premium Exterior Acrylic Porch Ceiling Paint",
+      "product_role": "finish",
+      "quality_tier": ["QT4"],
+      "allowed_sheens": ["flat", "satin"],
+      "notes": "Premium materials. 2 coats. Intercoat sand. Mildew-resistant."
+    }
+  ],
+
+  "sop_module_summary": {
+    "total_modules": 8,
+    "total_tasks": 31,
+    "task_classification_breakdown": {
+      "binary": 23,
+      "qt_scaled": 6,
+      "qt_conditional": 2
+    },
+    "modules": [
+      {
+        "module_id": "MOD_PRCH_SETUP",
+        "name": "Exterior Porch Ceiling Protection & Equipment Setup",
+        "phase": "setup",
+        "task_count": 6,
+        "tasks": [
+          "TSK_PRCH_FLOOR_PROTECT",
+          "TSK_PRCH_FURNITURE_PROTECT",
+          "TSK_PRCH_FIXTURE_MASK",
+          "TSK_PRCH_FASCIA_MASK",
+          "TSK_PRCH_EQUIPMENT_SETUP_BRUSH",
+          "TSK_PRCH_EQUIPMENT_SETUP_SPRAY"
+        ]
+      },
+      {
+        "module_id": "MOD_PRCH_PREP",
+        "name": "Exterior Porch Ceiling Surface Preparation",
+        "phase": "prep",
+        "task_count": 7,
+        "tasks": [
+          "TSK_PRCH_WASH_LOW_PRESSURE",
+          "TSK_PRCH_SAND_PREP_WOOD",
+          "TSK_PRCH_SAND_PREP_FC",
+          "TSK_PRCH_SEAL_CUT_EDGES",
+          "TSK_PRCH_SPOT_PRIME_KNOTS",
+          "TSK_PRCH_CAULK_JOINTS",
+          "TSK_PRCH_DUST_CLEANUP"
+        ]
+      },
+      {
+        "module_id": "MOD_PRCH_PRIME",
+        "name": "Exterior Porch Ceiling Prime Coat",
+        "phase": "prime",
+        "task_count": 4,
+        "tasks": [
+          "TSK_PRCH_PRIME_BRUSH_ROLL",
+          "TSK_PRCH_PRIME_SPRAY",
+          "TSK_PRCH_PRIME_ALKALI_BRUSH_ROLL",
+          "TSK_PRCH_PRIME_ALKALI_SPRAY"
+        ]
+      },
+      {
+        "module_id": "MOD_PRCH_FINISH_1",
+        "name": "Exterior Porch Ceiling Finish Coat 1",
+        "phase": "finish",
+        "task_count": 4,
+        "tasks": [
+          "TSK_PRCH_CUTIN_JUNCTIONS_1",
+          "TSK_PRCH_FINISH_1_BRUSH_ROLL",
+          "TSK_PRCH_FINISH_1_SPRAY",
+          "TSK_PRCH_GROOVE_BRUSH_BACK_1"
+        ]
+      },
+      {
+        "module_id": "MOD_PRCH_INTERSTAGE",
+        "name": "Exterior Porch Ceiling Interstage Inspection",
+        "phase": "interstage",
+        "task_count": 4,
+        "tasks": [
+          "TSK_PRCH_INSPECT_COAT",
+          "TSK_PRCH_SAND_INTERCOAT",
+          "TSK_PRCH_TOUCHUP_REPAIR",
+          "TSK_PRCH_DUST_INTERCOAT"
+        ]
+      },
+      {
+        "module_id": "MOD_PRCH_FINISH_2",
+        "name": "Exterior Porch Ceiling Finish Coat 2",
+        "phase": "finish",
+        "task_count": 4,
+        "applies_when": { "quality_tier": ["QT3", "QT4"] },
+        "tasks": [
+          "TSK_PRCH_CUTIN_JUNCTIONS_2",
+          "TSK_PRCH_FINISH_2_BRUSH_ROLL",
+          "TSK_PRCH_FINISH_2_SPRAY",
+          "TSK_PRCH_GROOVE_BRUSH_BACK_2"
+        ]
+      },
+      {
+        "module_id": "MOD_PRCH_FINAL_INSPECT",
+        "name": "Exterior Porch Ceiling Final Inspection",
+        "phase": "cleanup",
+        "task_count": 2,
+        "tasks": [
+          "TSK_PRCH_FINAL_INSPECT",
+          "TSK_PRCH_FINAL_TOUCHUP"
+        ]
+      },
+      {
+        "module_id": "MOD_PRCH_CLEANUP",
+        "name": "Exterior Porch Ceiling Cleanup & Protection Teardown",
+        "phase": "cleanup",
+        "task_count": 3,
+        "tasks": [
+          "TSK_PRCH_PROTECT_TEARDOWN",
+          "TSK_PRCH_CLEAN_EQUIPMENT",
+          "TSK_PRCH_SITE_CLEANUP"
+        ]
+      }
+    ]
+  },
+
+  "production_summary": {
+    "overhead_rate_design": "BAKED_INTO_BASE_RATES — all rates include ~25-35% overhead penalty. FAC_PRCH_OVERHEAD NOT applied as stacking modifier.",
+    "factor_modifiers": [
+      {
+        "factor_id": "FAC_EXT_ACCESS",
+        "name": "Access Type Modifier",
+        "mechanism": "time_multiplier",
+        "values": { "ground": 1.00, "ladder": 1.35, "scaffold": 1.60, "lift": 1.50 },
+        "formula": "effective_rate = base_rate / modifier",
+        "applies_to": "23 overhead tasks",
+        "notes": "Stacks on top of overhead-adjusted base rates."
+      },
+      {
+        "factor_id": "FAC_PRCH_PANEL_JOINTS",
+        "name": "T&G / Beadboard Joint Complexity Modifier",
+        "mechanism": "time_multiplier",
+        "values": { "solid_panel": 1.00, "tg_board": 1.20, "beadboard": 1.20 },
+        "formula": "effective_rate = base_rate / modifier",
+        "applies_to": "Brush/roll application and wood sand prep tasks",
+        "notes": "T&G and beadboard both have groove joints. Groove brush-back tasks excluded (rate already reflects groove work)."
+      }
+    ],
+    "modifier_stacking": {
+      "stacking_cap": 4.0,
+      "max_theoretical_stack": 1.92,
+      "worst_case_scenario": "T&G/beadboard + scaffold = 1.20 x 1.60 = 1.92x",
+      "worst_case_effective_rate": "63 SF/hr brush/roll finish"
+    }
+  },
+
+  "variants": [
+    {
+      "variant_id": "VAR_QT2_BRUSH_ROLL_BARE",
+      "applies_when": { "quality_tier": ["QT2"], "application_method": ["brush_roll"], "substrate_state": ["SS_EXT_BARE_WOOD", "SS_EXT_PRIMED_FACTORY"] },
+      "coats": { "prime": 1, "finish": 1 },
+      "protection_zones": ["ext_porch_floor", "ext_porch_furniture", "ext_light_fixture"],
+      "notes": "Economy brush/roll on bare/factory-primed. Single finish coat."
+    },
+    {
+      "variant_id": "VAR_QT3_BRUSH_ROLL_BARE",
+      "applies_when": { "quality_tier": ["QT3"], "application_method": ["brush_roll"], "substrate_state": ["SS_EXT_BARE_WOOD", "SS_EXT_PRIMED_FACTORY"] },
+      "coats": { "prime": 1, "finish": 2 },
+      "protection_zones": ["ext_porch_floor", "ext_porch_furniture", "ext_light_fixture", "ext_fascia_adjacent", "ext_wall_adjacent"],
+      "notes": "Standard brush/roll. Two finish coats."
+    },
+    {
+      "variant_id": "VAR_QT4_BRUSH_ROLL_BARE",
+      "applies_when": { "quality_tier": ["QT4"], "application_method": ["brush_roll"], "substrate_state": ["SS_EXT_BARE_WOOD", "SS_EXT_PRIMED_FACTORY"] },
+      "coats": { "prime": 1, "finish": 2 },
+      "protection_zones": ["ext_porch_floor", "ext_porch_furniture", "ext_light_fixture", "ext_fascia_adjacent", "ext_wall_adjacent"],
+      "notes": "Premium brush/roll. Interstage sand. Systematic inspection."
+    },
+    {
+      "variant_id": "VAR_QT3_SPRAY_BARE",
+      "applies_when": { "quality_tier": ["QT3"], "application_method": ["spray"], "substrate_state": ["SS_EXT_BARE_WOOD", "SS_EXT_PRIMED_FACTORY"] },
+      "coats": { "prime": 1, "finish": 2 },
+      "protection_zones": ["ext_porch_floor", "ext_porch_furniture", "ext_light_fixture", "ext_fascia_adjacent", "ext_wall_adjacent"],
+      "notes": "Standard spray. Full protection for overspray."
+    },
+    {
+      "variant_id": "VAR_QT4_SPRAY_BARE",
+      "applies_when": { "quality_tier": ["QT4"], "application_method": ["spray"], "substrate_state": ["SS_EXT_BARE_WOOD", "SS_EXT_PRIMED_FACTORY"] },
+      "coats": { "prime": 1, "finish": 2 },
+      "protection_zones": ["ext_porch_floor", "ext_porch_furniture", "ext_light_fixture", "ext_fascia_adjacent", "ext_wall_adjacent"],
+      "notes": "Premium spray. Interstage sand. Systematic inspection."
+    },
+    {
+      "variant_id": "VAR_QT2_FIELD_PRIMED",
+      "applies_when": { "quality_tier": ["QT2"], "substrate_state": ["SS_EXT_PRIMED_FIELD"] },
+      "coats": { "prime": 0, "finish": 1 },
+      "protection_zones": ["ext_porch_floor", "ext_porch_furniture", "ext_light_fixture"],
+      "notes": "Economy on field-primed. Skip prime. Single finish."
+    },
+    {
+      "variant_id": "VAR_QT3_FIELD_PRIMED",
+      "applies_when": { "quality_tier": ["QT3"], "substrate_state": ["SS_EXT_PRIMED_FIELD"] },
+      "coats": { "prime": 0, "finish": 2 },
+      "protection_zones": ["ext_porch_floor", "ext_porch_furniture", "ext_light_fixture", "ext_fascia_adjacent", "ext_wall_adjacent"],
+      "notes": "Standard on field-primed. Skip prime. Two finish coats."
+    }
+  ],
+
+  "required_paintscope_inputs": [
+    {
+      "input_name": "IN_SF_PORCH_CEILING",
+      "paintscope_key": "PS_EXT_SURFACE_SF.PORCH_CEILING",
+      "uom": "SF",
+      "required": true,
+      "description": "Net paintable porch ceiling area"
+    },
+    {
+      "input_name": "IN_EA_ELEVATIONS",
+      "paintscope_key": "PS_EXT_META.EA.ELEVATIONS_TOTAL",
+      "uom": "EA",
+      "required": true,
+      "description": "Number of porch sections/elevations in scope"
+    },
+    {
+      "input_name": "IN_ENUM_ACCESS_TYPE",
+      "paintscope_key": "PS_EXT_META.ENUM.ACCESS_TYPE",
+      "uom": "ENUM",
+      "required": true,
+      "description": "Access type (ground/ladder/scaffold/lift)"
+    },
+    {
+      "input_name": "IN_BOOL_NEW_CONSTRUCTION",
+      "paintscope_key": "PS_EXT_META.FLAG.NEW_CONSTRUCTION",
+      "uom": "BOOL",
+      "required": true,
+      "description": "New construction flag. Always true for NC spec."
+    },
+    {
+      "input_name": "IN_ENUM_PORCH_CEILING_PANEL_TYPE",
+      "paintscope_key": "PS_EXT_META.ENUM.PORCH_CEILING_PANEL_TYPE",
+      "uom": "ENUM",
+      "required": true,
+      "description": "Panel type (solid_panel/tg_board/beadboard). Drives FAC_PRCH_PANEL_JOINTS."
+    },
+    {
+      "input_name": "IN_SF_EXT_PROTECT_PORCH_FLOOR",
+      "paintscope_key": "PS_EXT_PROTECT_SF.PORCH_FLOOR",
+      "uom": "SF",
+      "required": false,
+      "required_when": "When porch floor is below ceiling work zone (always for porch ceiling)",
+      "description": "Porch floor area requiring protection"
+    },
+    {
+      "input_name": "IN_EA_EXT_PROTECT_PORCH_FURNITURE",
+      "paintscope_key": "PS_EXT_PROTECT_EA.PORCH_FURNITURE",
+      "uom": "EA",
+      "required": false,
+      "required_when": "When porch furniture is present",
+      "description": "Count of porch furniture items to cover/remove"
+    },
+    {
+      "input_name": "IN_EA_EXT_PROTECT_LIGHT_FIXTURE",
+      "paintscope_key": "PS_EXT_PROTECT_EA.LIGHT_FIXTURE",
+      "uom": "EA",
+      "required": false,
+      "required_when": "When ceiling fixtures are present",
+      "description": "Count of ceiling-mounted fixtures (fans, lights, cans)"
+    }
+  ],
+
+  "protection_zones_required": [
+    {
+      "zone_id": "ext_porch_floor",
+      "condition": "always",
+      "protection_level": "edge_only",
+      "upgrade_when": { "application_method": ["spray"] },
+      "upgrade_level": "full_cover",
+      "notes": "CRITICAL for overhead. All drips onto porch floor. Canvas for crew traffic."
+    },
+    {
+      "zone_id": "ext_porch_furniture",
+      "condition": "when_present",
+      "protection_level": "full_cover",
+      "notes": "Cover with plastic or remove. Removal preferred."
+    },
+    {
+      "zone_id": "ext_light_fixture",
+      "condition": "when_present",
+      "protection_level": "light_mask",
+      "notes": "Ceiling fans, pendant lights, recessed cans. Remove fan blades if possible."
+    },
+    {
+      "zone_id": "ext_fascia_adjacent",
+      "condition": "when_finished",
+      "protection_level": "light_mask",
+      "notes": "Tape + film at fascia-ceiling junction when fascia is painted."
+    },
+    {
+      "zone_id": "ext_wall_adjacent",
+      "condition": "when_finished",
+      "protection_level": "light_mask",
+      "notes": "Tape at wall-ceiling junction when wall is painted."
+    }
+  ],
+
+  "adjacency_declarations": {
+    "primary_surface": "porch_ceiling",
+    "adjacent_surfaces": [
+      {
+        "surface_id": "soffit_field",
+        "edge_type": "linear",
+        "typical_relationship": "same_finish",
+        "continuity_rate_modifier": 1.0,
+        "notes": "May be continuous with eave soffit. Often same color. Minimal edge work."
+      },
+      {
+        "surface_id": "ext_trim_fascia",
+        "edge_type": "linear",
+        "typical_relationship": "different_finish",
+        "continuity_rate_modifier": 1.0,
+        "notes": "Fascia at porch roof edge. Trim color. Cut-in required."
+      },
+      {
+        "surface_id": "wall_field",
+        "edge_type": "linear",
+        "typical_relationship": "different_finish",
+        "continuity_rate_modifier": 1.0,
+        "notes": "House wall at porch attachment. Cut-in required."
+      },
+      {
+        "surface_id": "porch_column",
+        "edge_type": "linear",
+        "typical_relationship": "different_finish",
+        "continuity_rate_modifier": 1.0,
+        "notes": "Porch columns/posts. Cut-in at column-to-ceiling junction."
+      },
+      {
+        "surface_id": "porch_floor",
+        "edge_type": "linear",
+        "typical_relationship": "different_finish",
+        "continuity_rate_modifier": 1.0,
+        "notes": "Below ceiling. Different material/color. No cut-in (vertical separation)."
+      }
+    ]
+  },
+
+  "site_condition_rules": [
+    {
+      "condition_id": "access_type",
+      "treatment": "height_modifier",
+      "vocabulary_ref": "Exterior_Modifiers_Doctrine.md FAC_EXT_ACCESS",
+      "affected_tasks": "23 overhead tasks",
+      "effect": "ground=1.00, ladder=1.35, scaffold=1.60, lift=1.50.",
+      "notes": "Stacks on overhead-adjusted base rates."
+    }
+  ],
+
+  "cross_spec_boundaries": {
+    "deduplication_notes": [
+      "Fascia is SF_TRIM_EXT_NC scope. This spec handles ceiling side of fascia-ceiling junction.",
+      "Soffit is SF_SOFFIT_EXT_NC scope. When continuous, edge work at transition is minimal (same color typical).",
+      "Porch floor is NOT this spec — future separate scope.",
+      "Porch columns are NOT this spec — future or trim scope.",
+      "House wall at porch is siding spec scope."
+    ],
+    "xspec_flags_consumed": [],
+    "xspec_flags_set": [],
+    "comp_modifiers_set": [],
+    "comp_modifiers_affected_by": []
+  },
+
+  "round_configurations": [
+    {
+      "round_id": "ROUND_PRCH_PRIME_2FINISH",
+      "name": "Prime + 2 Finish Coats",
+      "description": "Standard NC: 1 prime + 2 finish at QT3/QT4.",
+      "applies_when": { "quality_tier": ["QT3", "QT4"], "substrate_state": ["SS_EXT_BARE_WOOD", "SS_EXT_PRIMED_FACTORY"] },
+      "phase_sequence": ["prime", "finish", "interstage", "finish"],
+      "total_coats": 3,
+      "interstage_cycles": 1
+    },
+    {
+      "round_id": "ROUND_PRCH_PRIME_1FINISH",
+      "name": "Prime + 1 Finish Coat (Economy)",
+      "description": "Economy QT2: 1 prime + 1 finish.",
+      "applies_when": { "quality_tier": ["QT2"], "substrate_state": ["SS_EXT_BARE_WOOD", "SS_EXT_PRIMED_FACTORY"] },
+      "phase_sequence": ["prime", "finish"],
+      "total_coats": 2,
+      "interstage_cycles": 0
+    },
+    {
+      "round_id": "ROUND_PRCH_2FINISH",
+      "name": "2 Finish Coats Only (Field-Primed)",
+      "description": "Skip prime, 2 finish at QT3/QT4 on field-primed.",
+      "applies_when": { "quality_tier": ["QT3", "QT4"], "substrate_state": ["SS_EXT_PRIMED_FIELD"] },
+      "phase_sequence": ["finish", "interstage", "finish"],
+      "total_coats": 2,
+      "interstage_cycles": 1
+    },
+    {
+      "round_id": "ROUND_PRCH_1FINISH",
+      "name": "1 Finish Coat Only (Economy, Field-Primed)",
+      "description": "Economy QT2 single finish on field-primed.",
+      "applies_when": { "quality_tier": ["QT2"], "substrate_state": ["SS_EXT_PRIMED_FIELD"] },
+      "phase_sequence": ["finish"],
+      "total_coats": 1,
+      "interstage_cycles": 0
+    }
+  ],
+
+  "qa_summary": {
+    "overall_result": "pass",
+    "total_issues": 2,
+    "critical_issues": 0,
+    "major_issues": 0,
+    "minor_issues": 2,
+    "issues": [
+      {
+        "issue_id": "QA-001",
+        "severity": "minor",
+        "status": "acknowledged",
+        "description": "Beadboard 1.20x modifier assumed equal to T&G. Flag for field calibration."
+      },
+      {
+        "issue_id": "QA-002",
+        "severity": "minor",
+        "status": "acknowledged",
+        "description": "Ceiling fan masking rate (8 EA/hr) is blended average. Complex fans may take longer."
+      }
+    ],
+    "blockers": [],
+    "critical_risks": [
+      "RISK-PRCH-004: Edge wicking on FC panels — mitigated by edge sealing task"
+    ]
+  },
+
+  "sequencing_notes": {
+    "production_sequence": "Setup -> Prep -> Prime -> Finish 1 -> Interstage -> Finish 2 -> Final Inspect -> Cleanup",
+    "edge_work": "Cut-in at fascia, wall, and column junctions. Required for both methods.",
+    "protection_sequence": "Porch floor -> Furniture cover/removal -> Fixture masking -> Fascia/wall masking -> Equipment setup -> Coating -> Teardown -> Cleanup",
+    "coat_sequence": "Prep -> Prime (1 coat, skip for field-primed) -> Finish 1 -> Interstage -> Finish 2 (QT3/QT4) -> Final inspect -> Touch up",
+    "key_prohibitions": "NO power washing. NO semi-gloss or gloss sheen."
+  },
+
+  "relationships": {
+    "companion_spec": null,
+    "often_combined_with": [],
+    "sibling_spec": "SF_SOFFIT_EXT_NC_v1",
+    "typical_before": ["SF_TRIM_EXT_NC_v1"],
+    "typical_after": [],
+    "cross_spec_protection_note": "Fascia/wall protection during ceiling work is this spec's responsibility when those surfaces are already finished.",
+    "notes": "Second exterior overhead field-surface spec. Closely mirrors soffit with key simplifications: no vent constraint, no vinyl, beadboard added. 31 tasks (vs 37 soffit). 5 material systems (vs 7 soffit). Max stacking 1.92x (vs 2.208x soffit)."
+  },
+
+  "dependencies": {
+    "research": "research.json",
+    "resolution": "resolution.json",
+    "sop_modules": "sop_modules.json",
+    "materials": "materials.json",
+    "production": "production.json",
+    "qa_report": "qa_report.json"
+  },
+
+  "doctrine_references": [
+    { "doctrine": "Exterior_Trim_Systems_Doctrine.md", "sections_used": ["Porch ceiling classification", "Sequencing"] },
+    { "doctrine": "Exterior_Substrates_Doctrine.md", "sections_used": ["Wood substrates", "Fiber cement", "QT exclusions"] },
+    { "doctrine": "Exterior_Access_Staging_Systems_Doctrine.md", "sections_used": ["Height modifiers", "Overhead work"] },
+    { "doctrine": "Exterior_Application_Methods_Doctrine.md", "sections_used": ["Spray rates", "Brush/roll rates"] },
+    { "doctrine": "Exterior_Primer_Systems_Doctrine.md", "sections_used": ["Acrylic primer", "Tannin spot-prime", "Alkali-resistant"] },
+    { "doctrine": "Exterior_Protection_Doctrine_T3.md", "sections_used": ["Fixture zones", "Adjacent trim protection"] },
+    { "doctrine": "Exterior_Color_Sheen_Configuration_Doctrine.md", "sections_used": ["Overhead sheen: flat/satin only"] },
+    { "doctrine": "Quality_Tiers_and_Surface_Condition.md", "sections_used": ["QT2-QT4 definitions"] },
+    { "doctrine": "Estimation_Modifiers_Doctrine.md", "sections_used": ["Modifier stacking, division formula, 4.0x cap"] }
+  ],
+
+  "research_corrections": [],
+
+  "user_corrections": [],
+
+  "change_log": [
+    {
+      "version": "0.1.0",
+      "date": "2026-03-11",
+      "author": "SpecFactory",
+      "changes": "Initial draft spec for exterior porch/veranda ceiling prime and paint (new construction). Second exterior overhead field-surface spec. Combined prime+paint (single mobilization). Key features: overhead-adjusted base rates, spray ALWAYS eligible (no vent constraint unlike soffit), no vinyl substrate (3 primer paths instead of 4, 5 material systems instead of 7), beadboard panel type added (same 1.20x modifier as T&G), 5 configuration dimensions (quality_tier QT2-QT4, application_method, substrate_material wood/FC, sheen flat/satin, panel_type), 31 tasks across 8 modules (23 binary + 6 qt_scaled + 2 qt_conditional), 5 protection zones (porch floor, furniture, fixtures, fascia, wall), 2 stacking modifiers (access/panel joints, max 1.92x). QA result: pass (2 minor observations)."
+    }
+  ]
+}

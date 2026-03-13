@@ -2,6 +2,7 @@
 // Step 1: Upload photos
 // Step 2: Analyzing (progress spinner)
 // Step 3: Review & Accept detections
+// Supports re-opening with previously saved analysis via savedResult prop.
 
 import { useState, useCallback, useRef } from 'react';
 import PhotoUploader from './PhotoUploader';
@@ -17,12 +18,13 @@ const PHASE_LABELS = {
   merge: 'Preparing results...',
 };
 
-export default function PhotoAnalysisModal({ roomId, onApply, onCreateRoom, onClose }) {
-  const [step, setStep] = useState('upload'); // upload | analyzing | review | error
+export default function PhotoAnalysisModal({ roomId, savedResult, onApply, onCreateRoom, onClose }) {
+  // If we have a saved result, start in review mode
+  const [step, setStep] = useState(savedResult ? 'review' : 'upload');
   const [files, setFiles] = useState([]);
   const [phase, setPhase] = useState('');
   const [error, setError] = useState('');
-  const [result, setResult] = useState(null);
+  const [result, setResult] = useState(savedResult || null);
   const abortRef = useRef(null);
 
   const handleAnalyze = useCallback(async () => {
@@ -57,15 +59,14 @@ export default function PhotoAnalysisModal({ roomId, onApply, onCreateRoom, onCl
     if (!result) return;
     const patch = buildRoomPatch(result);
     if (roomId) {
-      onApply(roomId, patch);
+      onApply(roomId, patch, result);
     } else {
-      onCreateRoom(patch);
+      onCreateRoom(patch, result);
     }
     onClose();
   }, [result, roomId, onApply, onCreateRoom, onClose]);
 
-  // Count accepted items
-  const acceptedCount = result ? countAccepted(result) : 0;
+  const activeCount = result ? countActive(result) : 0;
 
   return (
     <div className="photo-modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
@@ -113,21 +114,25 @@ export default function PhotoAnalysisModal({ roomId, onApply, onCreateRoom, onCl
           {step === 'review' && result && (
             <>
               <div className="photo-review-layout">
-                {/* Photo thumbnails on left */}
-                <div className="photo-review-images">
-                  {files.map((f, i) => (
-                    <img key={i} src={URL.createObjectURL(f)} alt={`Room photo ${i + 1}`} className="review-thumb" />
-                  ))}
-                </div>
-                {/* Detections on right */}
-                <div className="photo-review-detections">
+                {/* Photo thumbnails on left (only available for fresh scans) */}
+                {files.length > 0 && (
+                  <div className="photo-review-images">
+                    {files.map((f, i) => (
+                      <img key={i} src={URL.createObjectURL(f)} alt={`Room photo ${i + 1}`} className="review-thumb" />
+                    ))}
+                  </div>
+                )}
+                {/* Detections */}
+                <div className={`photo-review-detections${files.length === 0 ? ' photo-review-detections-full' : ''}`}>
                   <AnalysisReview result={result} onResultChange={setResult} />
                 </div>
               </div>
               <div className="photo-modal-actions">
-                <button className="btn" onClick={() => setStep('upload')}>Back</button>
+                <button className="btn" onClick={() => { setResult(null); setStep('upload'); }}>
+                  {savedResult ? 'New Scan' : 'Back'}
+                </button>
                 <button className="btn btn-primary" onClick={handleApply}>
-                  Apply {acceptedCount} Detection{acceptedCount !== 1 ? 's' : ''}
+                  Apply {activeCount} Detection{activeCount !== 1 ? 's' : ''}
                 </button>
               </div>
             </>
@@ -149,15 +154,16 @@ export default function PhotoAnalysisModal({ roomId, onApply, onCreateRoom, onCl
   );
 }
 
-function countAccepted(result) {
+// Count non-skip detections
+function countActive(result) {
   let count = 0;
-  if (result.surfaces) count += Object.values(result.surfaces).filter(s => s.accepted).length;
-  if (result.trim) count += Object.values(result.trim).filter(t => t.accepted).length;
-  if (result.doors) count += result.doors.filter(d => d.accepted).length;
-  if (result.windows) count += result.windows.filter(w => w.accepted).length;
-  if (result.openings) count += result.openings.filter(o => o.accepted).length;
-  if (result.fixtures) count += result.fixtures.filter(f => f.accepted).length;
-  if (result.specialty) count += Object.values(result.specialty).filter(s => s.accepted).length;
-  if (result.roomPatch) count += 1; // room overview always counts as 1
+  if (result.surfaces) count += Object.values(result.surfaces).filter(s => s.scope && s.scope !== 'skip').length;
+  if (result.trim) count += Object.values(result.trim).filter(t => t.scope && t.scope !== 'skip').length;
+  if (result.doors) count += result.doors.filter(d => d.scope && d.scope !== 'skip').length;
+  if (result.windows) count += result.windows.filter(w => w.scope && w.scope !== 'skip').length;
+  if (result.openings) count += result.openings.filter(o => o.scope && o.scope !== 'skip').length;
+  if (result.fixtures) count += result.fixtures.filter(f => f.scope && f.scope !== 'skip').length;
+  if (result.specialty) count += Object.values(result.specialty).filter(s => s.scope && s.scope !== 'skip').length;
+  if (result.roomPatch) count += 1;
   return count;
 }

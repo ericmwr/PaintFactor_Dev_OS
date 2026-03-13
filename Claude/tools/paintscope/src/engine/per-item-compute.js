@@ -1,4 +1,9 @@
 import { WINDOW_SIZE_MODIFIERS, WINDOW_TYPE_MODIFIERS, MUNTIN_MODIFIER, DOOR_TYPE_MODIFIERS, WINDOW_TYPE_LABELS, WINDOW_SIZE_LABELS, DOOR_TYPE_LABELS } from '../data/modifiers.js';
+import {
+  EXT_WINDOW_SIZE_MODIFIERS, EXT_WINDOW_TYPE_MODIFIERS, EXT_WINDOW_TYPE_LABELS, EXT_WINDOW_SIZE_LABELS,
+  EXT_DOOR_TYPE_MODIFIERS, EXT_DOOR_SUBSTRATE_MODIFIERS, EXT_DOOR_TYPE_LABELS, EXT_DOOR_SUBSTRATE_LABELS,
+  EXT_GARAGE_SIZE_MODIFIERS, EXT_GARAGE_PANEL_MODIFIERS, EXT_GARAGE_SIZE_LABELS, EXT_GARAGE_PANEL_LABELS
+} from '../data/modifiers.js';
 
 /**
  * Compute per-item results for window tasks using PS_OPENING_EA.WINDOW_TOTAL.
@@ -60,6 +65,112 @@ export function computeDoorPerItemResults(effRate, modStackTotal, room, useSides
       label: typeLabel,
       typeMod,
       itemMod: typeMod
+    });
+  });
+
+  return results.length > 0 ? results : null;
+}
+
+// ============================================================
+// EXTERIOR PER-ITEM COMPUTE
+// ============================================================
+
+/**
+ * Compute per-item results for exterior window tasks.
+ * Exterior windows are stored per-elevation: elevation.windows[] with { type, size, count }.
+ * Returns array of { hours, quantity, label, sizeMod, typeMod, itemMod } or null.
+ */
+export function computeExtWindowPerItemResults(effRate, modStackTotal, elevation) {
+  const wins = elevation.windows || [];
+  const results = [];
+
+  wins.forEach(win => {
+    const cnt = parseInt(win.count) || 0;
+    if (cnt <= 0) return;
+    const sizeMod = EXT_WINDOW_SIZE_MODIFIERS[win.size] || 1.0;
+    const typeMod = EXT_WINDOW_TYPE_MODIFIERS[win.type] || 1.0;
+    const itemMod = sizeMod * typeMod;
+    const itemEffRate = effRate / (modStackTotal * itemMod);
+    const hours = cnt / itemEffRate;
+    const typeLabel = EXT_WINDOW_TYPE_LABELS[win.type] || win.type;
+    const sizeLabel = EXT_WINDOW_SIZE_LABELS[win.size] || win.size;
+    results.push({
+      hours,
+      quantity: cnt,
+      label: `${typeLabel} ${sizeLabel}`,
+      sizeMod,
+      typeMod,
+      itemMod
+    });
+  });
+
+  return results.length > 0 ? results : null;
+}
+
+/**
+ * Compute per-item results for exterior door tasks.
+ * Exterior doors: elevation.doors[] with { type, complexity, substrate, count }.
+ * Groups by type+substrate for separate line items.
+ * Returns array of { hours, quantity, label, typeMod, substrateMod, itemMod } or null.
+ */
+export function computeExtDoorPerItemResults(effRate, modStackTotal, elevation) {
+  const doors = elevation.doors || [];
+  const results = [];
+
+  doors.forEach(door => {
+    const cnt = parseInt(door.count) || 0;
+    if (cnt <= 0) return;
+    const typeMod = EXT_DOOR_TYPE_MODIFIERS[door.type] || 1.0;
+    const substrateMod = EXT_DOOR_SUBSTRATE_MODIFIERS[door.substrate] || 1.0;
+    const itemMod = typeMod * substrateMod;
+    const itemEffRate = effRate / (modStackTotal * itemMod);
+    const hours = cnt / itemEffRate;
+    const typeLabel = EXT_DOOR_TYPE_LABELS[door.type] || door.type;
+    const subLabel = EXT_DOOR_SUBSTRATE_LABELS[door.substrate] || '';
+    const label = subLabel ? `${subLabel} ${typeLabel}` : typeLabel;
+    results.push({
+      hours,
+      quantity: cnt,
+      label,
+      typeMod,
+      substrateMod,
+      itemMod
+    });
+  });
+
+  return results.length > 0 ? results : null;
+}
+
+/**
+ * Compute per-item results for garage door tasks.
+ * Garage doors: standalone.garage_doors[] with { size, panel_type, substrate, has_windows, count }.
+ * Returns array of { hours, quantity, label, sizeMod, panelMod, itemMod } or null.
+ */
+export function computeGarageDoorPerItemResults(effRate, modStackTotal, garageDoors) {
+  if (!garageDoors || garageDoors.length === 0) return null;
+  const results = [];
+
+  garageDoors.forEach(gd => {
+    const cnt = parseInt(gd.count) || 1;
+    if (cnt <= 0) return;
+    const sizeMod = EXT_GARAGE_SIZE_MODIFIERS[gd.size] || 1.0;
+    const panelMod = EXT_GARAGE_PANEL_MODIFIERS[gd.panel_type] || 1.0;
+    const windowMod = gd.has_windows ? 1.15 : 1.0;
+    const itemMod = sizeMod * panelMod * windowMod;
+    const itemEffRate = effRate / (modStackTotal * itemMod);
+    const hours = cnt / itemEffRate;
+    const sizeLabel = EXT_GARAGE_SIZE_LABELS[gd.size] || gd.size;
+    const panelLabel = EXT_GARAGE_PANEL_LABELS[gd.panel_type] || '';
+    const winLabel = gd.has_windows ? ' w/Windows' : '';
+    const label = `${sizeLabel} ${panelLabel}${winLabel}`.trim();
+    results.push({
+      hours,
+      quantity: cnt,
+      label,
+      sizeMod,
+      panelMod,
+      windowMod,
+      itemMod
     });
   });
 

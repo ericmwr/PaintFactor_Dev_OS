@@ -1,5 +1,6 @@
 import { SUBSTRATE_MAP } from '../data/substrate-catalog';
 import { ROOM_PRESETS } from '../data/room-presets';
+import { createExteriorState } from './exterior-state';
 
 // ============================================================
 // STATE FACTORY
@@ -93,7 +94,7 @@ export function createRoom(overrides={}) {
     // v0.5 adjacency — items present but not being painted
     floor_type: '',
     floor_protection: '',
-    fixtures: {},  // keyed by fixture_id → { protection: 'medium_mask', count: 1, size: '', notes: '' }
+    fixtures: {},  // keyed by fixture_id → { protection: 'partial_cover', count: 1, size: '', notes: '' }
     notes: ''
   };
 
@@ -137,5 +138,6 @@ export const initialState = {
     default_substrates: ['ceiling', 'walls', 'baseboard']
   },
   rooms: [createRoom()],
+  exterior: createExteriorState(),
   ui: { activeRoomId: null, activeTab:'scope', view:'setup' }
 };

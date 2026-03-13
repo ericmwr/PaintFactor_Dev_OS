@@ -1,0 +1,989 @@
+{
+  "spec_family_id": "SF_SIDING_ALUMINUM_EXT_RP",
+  "version": "0.2.0",
+  "generated_by": "Estimation Engineer",
+  "generated_at": "2026-03-12",
+  "revision_note": "Regenerated to align task_ids with sop_modules.json. All task_ids now match SOP character-for-character. Rate values preserved from v0.1.0 where task intent matches.",
+
+  "MODIFIER_STACKING_ANALYSIS": {
+    "severity": "minor",
+    "description": "Aluminum siding repaint has a stacking PARTITION: chalk_severity modifier (FAC_ALRP_CHALK) applies to PREP tasks only. QT modifier (FAC_ALRP_QT) applies to coating tasks only. Access and environmental modifiers apply to all variable-rate tasks. Two independent stacking pools.",
+    "worst_case_prep": "heavy chalk (1.75) x scaffold (1.60) = 2.80x on prep tasks",
+    "worst_case_coating": "QT3 (1.00) x scaffold (1.60) x full_sun (1.15) x cold_temp (1.30) = 2.39x on coating tasks",
+    "worst_case_theoretical_prep": "heavy chalk (1.75) x scaffold (1.60) x moderate_wind (1.25) = 3.50x (theoretical extreme — wind affects outdoor tasks)",
+    "worst_case_theoretical_coating": "QT3 (1.00) x scaffold (1.60) x full_sun (1.15) x cold_temp (1.30) x moderate_wind (1.25) = 2.99x (meteorologically improbable)",
+    "resolution": "Both pools well under 4.0x cap. Stacking partition keeps prep and coating modifier pools separate — chalk severity never inflates coating rates.",
+    "stacking_rules": {
+      "prep_tasks": {
+        "formula": "effective_rate = base_rate / (FAC_ALRP_CHALK x FAC_EXT_ACCESS)",
+        "max_stack": "1.75 x 1.60 = 2.80x (heavy chalk + scaffold)",
+        "note": "FAC_ALRP_CHALK applies to prep/wash tasks ONLY. FAC_ALRP_QT does NOT apply to prep tasks."
+      },
+      "coating_tasks": {
+        "formula": "effective_rate = base_rate / (FAC_ALRP_QT x FAC_EXT_ACCESS x FAC_EXT_WIND x FAC_EXT_SUN_EXPOSURE x FAC_EXT_SURFACE_TEMP)",
+        "max_stack": "1.00 x 1.60 x 1.25 x 1.15 x 1.30 = 2.99x (QT3 baseline — QT2 at 0.85 actually speeds up)",
+        "note": "FAC_ALRP_CHALK does NOT apply to coating tasks. Environmental modifiers apply to coating tasks only."
+      },
+      "fixed_tasks": {
+        "formula": "fixed_time_minutes (no modifiers)",
+        "note": "Administrative gates, equipment setup/cleanup, chalk verification, DFT verification are fixed-time tasks. No modifiers applied."
+      }
+    }
+  },
+
+  "siding_surface_input_group": {
+    "description": "Rate per SF applies to net siding field area from PaintScope. Engine divides SF by rate to calculate hours.",
+    "inputs": [
+      { "input_name": "IN_SF_SIDING_FIELD", "paintscope_key": "PS_EXT_SURFACE_SF.SIDING_FIELD" }
+    ]
+  },
+
+  "task_production_rates": [
+
+    {
+      "task_id": "TSK_ALRP_MOBILIZE",
+      "name": "Crew Mobilization & Equipment Staging",
+      "unit_of_measure": "FIXED",
+      "fixed_time_minutes": 45,
+      "crew_size": 1,
+      "task_classification": "binary",
+      "rate_basis_notes": "Mobilize crew, transport materials and equipment to site. Stage self-etching primer, epoxy intermediate (if coastal), finish paint, spray equipment, DFT gauge, abrasive pads, and protection materials. Verify material against spec — confirm self-etching primer (phosphoric acid + zinc), NOT STIX. ~45 min includes dual-tip setup for spray (fine-atomization 311-413 for primer + standard 413-515 for finish).",
+      "applies_when": {},
+      "defect_tolerance": {
+        "QT2": "All materials on-site and verified, equipment functional",
+        "QT3": "All materials on-site and verified against spec, DFT gauge present, both tip sets tested"
+      }
+    },
+    {
+      "task_id": "TSK_ALRP_SCAFFOLD_SETUP",
+      "name": "Scaffold / Lift Setup",
+      "unit_of_measure": "FIXED",
+      "fixed_time_minutes": 90,
+      "crew_size": 2,
+      "task_classification": "binary",
+      "rate_basis_notes": "Erect scaffold, position aerial lift, or stage extension ladders per access plan. OSHA-compliant setup with fall protection. ~90 min for typical two-story scaffold setup. Scaffold preferred for multi-story aluminum to improve spray stability for DFT control.",
+      "applies_when": { "access_type": ["scaffold", "lift", "ladder"] },
+      "defect_tolerance": {
+        "QT2": "Level, plumb, tied off, fall protection in place",
+        "QT3": "Level, plumb, tied off, fall protection in place, base plates on firm footing"
+      }
+    },
+
+    {
+      "task_id": "TSK_ALRP_PROTECT_LANDSCAPE",
+      "name": "Landscape Protection Setup",
+      "required_input_key": "IN_SF_EXT_PROTECT_LANDSCAPE_ADJ",
+      "paintscope_key": "PS_EXT_PROTECT_SF.LANDSCAPE_ADJACENT",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 200,
+      "rate_range_low": 150,
+      "rate_range_high": 300,
+      "crew_size": 1,
+      "task_classification": "binary",
+      "rate_basis_notes": "Deploy plastic sheeting and tarps over adjacent landscape beds and plantings. Stake and secure. ~18 sec per SF. Additional concern: chalk-laden wash runoff stains landscape — protection before wash step.",
+      "applies_when": {},
+      "defect_tolerance": {
+        "QT2": "Major plantings covered, gaps tolerable at perimeter",
+        "QT3": "Full coverage of all adjacent landscape with secured edges"
+      }
+    },
+    {
+      "task_id": "TSK_ALRP_PROTECT_HARDSCAPE",
+      "name": "Hardscape Protection (Walkway + Patio + Driveway)",
+      "required_input_key": "IN_SF_EXT_PROTECT_HARDSCAPE_WALK",
+      "paintscope_key": "PS_EXT_PROTECT_SF.HARDSCAPE_WALK",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 250,
+      "rate_range_low": 200,
+      "rate_range_high": 350,
+      "crew_size": 1,
+      "task_classification": "binary",
+      "rate_basis_notes": "Lay drop cloths and plastic on walkways, patios, and driveways adjacent to working elevations. ~14 sec per SF. Chalk-laden wash runoff stains concrete — drop cloths at foundation line critical.",
+      "applies_when": {},
+      "defect_tolerance": {
+        "QT2": "Drop cloths covering primary traffic paths and adjacent hardscape",
+        "QT3": "Full hardscape coverage with taped edges, foundation line protected"
+      }
+    },
+    {
+      "task_id": "TSK_ALRP_PROTECT_WINDOW_MASK",
+      "name": "Window Spray Masking",
+      "required_input_key": "IN_EA_EXT_PROTECT_GLASS_WINDOW",
+      "paintscope_key": "PS_EXT_PROTECT_EA.GLASS_WINDOW",
+      "unit_of_measure": "EA",
+      "rate_per_hour": 8,
+      "rate_range_low": 6,
+      "rate_range_high": 10,
+      "crew_size": 1,
+      "task_classification": "binary",
+      "rate_basis_notes": "Paper or masking film over window glass + tape around frame. ~7.5 min per window. Spray method requires full glass masking.",
+      "applies_when": { "application_method": ["spray"] },
+      "defect_tolerance": {
+        "QT2": "Glass covered, minor tape gaps at corners tolerable",
+        "QT3": "Full glass coverage with clean tape lines at all edges"
+      }
+    },
+    {
+      "task_id": "TSK_ALRP_PROTECT_DOOR_MASK",
+      "name": "Door Spray Masking",
+      "required_input_key": "IN_EA_EXT_PROTECT_GLASS_DOOR",
+      "paintscope_key": "PS_EXT_PROTECT_EA.GLASS_DOOR",
+      "unit_of_measure": "EA",
+      "rate_per_hour": 5,
+      "rate_range_low": 4,
+      "rate_range_high": 6,
+      "crew_size": 1,
+      "task_classification": "binary",
+      "rate_basis_notes": "Full cover door with masking film or plastic. ~12 min per door. Doors are larger than windows.",
+      "applies_when": { "application_method": ["spray"] },
+      "defect_tolerance": {
+        "QT2": "Door fully covered",
+        "QT3": "Door fully covered with clean sealed edges"
+      }
+    },
+    {
+      "task_id": "TSK_ALRP_PROTECT_TRIM_MASK",
+      "name": "Corner Trim Masking at Siding-to-Trim Transition",
+      "required_input_key": "IN_LF_EXT_TRIM_CORNER",
+      "paintscope_key": "PS_EXT_EDGE_LF.TRIM_CORNER",
+      "unit_of_measure": "LF",
+      "rate_per_hour": 60,
+      "rate_range_low": 45,
+      "rate_range_high": 80,
+      "crew_size": 1,
+      "task_classification": "binary",
+      "rate_basis_notes": "Tape line or paper mask at siding-to-trim junction when trim is different color. ~1 min per LF.",
+      "applies_when": { "application_method": ["spray"] },
+      "defect_tolerance": {
+        "QT2": "Tape line applied along trim edge",
+        "QT3": "Clean tape line with paper backing where needed"
+      }
+    },
+    {
+      "task_id": "TSK_ALRP_PROTECT_LIGHT_FIXTURE",
+      "name": "Light Fixture Masking",
+      "required_input_key": "IN_EA_EXT_PROTECT_LIGHT_FIXTURE",
+      "paintscope_key": "PS_EXT_PROTECT_EA.LIGHT_FIXTURE",
+      "unit_of_measure": "EA",
+      "rate_per_hour": 15,
+      "rate_range_low": 10,
+      "rate_range_high": 20,
+      "crew_size": 1,
+      "task_classification": "binary",
+      "rate_basis_notes": "Bag and tape light fixtures. ~4 min per fixture.",
+      "applies_when": {},
+      "defect_tolerance": {
+        "QT2": "Fixture bagged",
+        "QT3": "Fixture bagged with sealed tape edges"
+      }
+    },
+    {
+      "task_id": "TSK_ALRP_PROTECT_HVAC",
+      "name": "HVAC Unit Cover",
+      "required_input_key": "IN_EA_EXT_PROTECT_HVAC_UNIT",
+      "paintscope_key": "PS_EXT_PROTECT_EA.HVAC_UNIT",
+      "unit_of_measure": "EA",
+      "rate_per_hour": 6,
+      "rate_range_low": 4,
+      "rate_range_high": 8,
+      "crew_size": 1,
+      "task_classification": "binary",
+      "rate_basis_notes": "Wrap condenser unit in plastic sheeting and tape. ~10 min per unit.",
+      "applies_when": {},
+      "defect_tolerance": {
+        "QT2": "Unit covered with plastic",
+        "QT3": "Unit fully wrapped with taped seams"
+      }
+    },
+    {
+      "task_id": "TSK_ALRP_PROTECT_UTILITY",
+      "name": "Utility Panel Masking",
+      "required_input_key": "IN_EA_EXT_PROTECT_UTILITY_PANEL",
+      "paintscope_key": "PS_EXT_PROTECT_EA.UTILITY_PANEL",
+      "unit_of_measure": "EA",
+      "rate_per_hour": 12,
+      "rate_range_low": 8,
+      "rate_range_high": 15,
+      "crew_size": 1,
+      "task_classification": "binary",
+      "rate_basis_notes": "Mask electrical panel, gas meter, hose bibs. ~5 min per unit.",
+      "applies_when": {},
+      "defect_tolerance": {
+        "QT2": "Panel covered",
+        "QT3": "Panel fully masked with sealed edges"
+      }
+    },
+
+    {
+      "task_id": "TSK_ALRP_WASH_MIX",
+      "name": "Mix Alkaline Cleaning Solution",
+      "unit_of_measure": "FIXED",
+      "fixed_time_minutes": 10,
+      "crew_size": 1,
+      "task_classification": "binary",
+      "rate_basis_notes": "Mix TSP or dedicated aluminum siding cleaner concentrate with water per manufacturer directions. Load into pressure washer downstream injector. ~10 min. Increase concentration for heavy chalk projects.",
+      "applies_when": {},
+      "defect_tolerance": {
+        "QT2": "Solution mixed at standard concentration, loaded into equipment",
+        "QT3": "Solution mixed per manufacturer spec, concentration adjusted for chalk severity"
+      }
+    },
+    {
+      "task_id": "TSK_ALRP_WASH_PRESSURE",
+      "name": "Pressure Wash Aluminum Siding — Standard",
+      "input_group": "siding_surface_input_group",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 750,
+      "rate_range_low": 400,
+      "rate_range_high": 1000,
+      "crew_size": 1,
+      "task_classification": "binary",
+      "rate_basis_notes": "Pressure wash 1000-1500 PSI with alkaline cleaner (TSP) in downward spray pattern. Removes dirt, mildew, surface contamination. 750 SF/hr for chalk_severity=none. Mandatory first production step. Do not exceed 2000 PSI to avoid denting thin-gauge panels.",
+      "applies_when": { "chalk_severity": ["none"] },
+      "defect_tolerance": {
+        "QT2": "Visible dirt and mildew removed",
+        "QT3": "All dirt, mildew fully removed. Surface clean for chalk verification."
+      }
+    },
+    {
+      "task_id": "TSK_ALRP_WASH_CHALK_LIGHT",
+      "name": "Pressure Wash — Light Chalk Removal",
+      "input_group": "siding_surface_input_group",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 600,
+      "rate_range_low": 450,
+      "rate_range_high": 750,
+      "crew_size": 1,
+      "task_classification": "binary",
+      "rate_basis_notes": "Pressure wash with TSP at increased concentration for light chalk removal. Apply cleaner, 5-10 min dwell time, rinse at 1000-1500 PSI. Focus south/west facades. Effective rate derived from base 750 SF/hr / light chalk modifier 1.25 = ~600 SF/hr.",
+      "applies_when": { "chalk_severity": ["light"] },
+      "defect_tolerance": {
+        "QT2": "Visible chalk removed, light residue acceptable if verification passes",
+        "QT3": "All chalk removed, chalk verification test passes with zero transfer"
+      }
+    },
+    {
+      "task_id": "TSK_ALRP_WASH_CHALK_HEAVY",
+      "name": "Pressure Wash — Heavy Chalk Removal (Multi-Pass)",
+      "input_group": "siding_surface_input_group",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 430,
+      "rate_range_low": 300,
+      "rate_range_high": 550,
+      "crew_size": 1,
+      "task_classification": "binary",
+      "rate_basis_notes": "Extended wash protocol for heavy chalk. Multiple passes with TSP at increased concentration. First pass: apply cleaner, 10-15 min dwell, pressure rinse. Second pass: mechanical scrubbing on stubborn areas. Third pass: final rinse. Effective rate derived from base 750 SF/hr / heavy chalk modifier 1.75 = ~430 SF/hr.",
+      "applies_when": { "chalk_severity": ["heavy"] },
+      "defect_tolerance": {
+        "QT2": "Chalk removed after multi-pass, verification passes",
+        "QT3": "Complete chalk removal, verification passes on all tested areas, documented in QC log"
+      }
+    },
+
+    {
+      "task_id": "TSK_ALRP_CHALK_VERIFY",
+      "name": "Chalk Verification Gate",
+      "unit_of_measure": "FIXED",
+      "fixed_time_minutes": 20,
+      "crew_size": 1,
+      "task_classification": "binary",
+      "rate_basis_notes": "MANDATORY GATE. Hand-rub test with dark cloth on each elevation section after wash and dry. Any white chalk transfer = re-wash required. ~15-20 min per section. Must pass before scuff/prime proceeds. Applies to ALL substrate states including SS_EXT_SOUND_PAINT.",
+      "applies_when": {},
+      "defect_tolerance": {
+        "QT2": "Dark cloth shows no visible chalk transfer",
+        "QT3": "Dark cloth shows zero chalk transfer on all tested areas, documented in QC log"
+      }
+    },
+
+    {
+      "task_id": "TSK_ALRP_OXIDE_SCUFF",
+      "name": "Oxide Layer Scuff — 180-320 Grit",
+      "input_group": "siding_surface_input_group",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 250,
+      "rate_range_low": 200,
+      "rate_range_high": 300,
+      "crew_size": 1,
+      "task_classification": "qt_scaled",
+      "qt_rates": {
+        "QT2": { "rate_sf_per_hour": 275, "notes": "Scuff visible oxide and high-gloss areas. Focus on elevation faces with most weathering." },
+        "QT3": { "rate_sf_per_hour": 250, "notes": "Full-surface scuff on all elevations. Uniform matte appearance after scuffing. No glossy areas remaining." }
+      },
+      "rate_basis_notes": "Mechanically break Al2O3 oxide film with synthetic steel wool or 180-320 grit abrasive pads. More aggressive than vinyl light scuff. ~14 sec per SF at QT3. CRITICAL: Do NOT use real steel wool — ferrous particles cause galvanic corrosion. TIMING: must prime within 4-8 hours (2-4 hours coastal).",
+      "applies_when": {},
+      "defect_tolerance": {
+        "QT2": "Scuff marks visible across majority of field, some light areas acceptable",
+        "QT3": "Uniform scuff pattern across all surfaces, no un-scuffed glossy areas, 100% coverage verified"
+      }
+    },
+    {
+      "task_id": "TSK_ALRP_DUST_CLEAN",
+      "name": "Post-Scuff Dust Cleanup",
+      "input_group": "siding_surface_input_group",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 600,
+      "rate_range_low": 400,
+      "rate_range_high": 800,
+      "crew_size": 1,
+      "task_classification": "binary",
+      "rate_basis_notes": "Compressed air or tack cloth to remove scuff dust and abrasive residue from aluminum surface before priming. ~6 sec per SF. Self-etching primer acid must contact clean metal — dust acts as bond-breaker.",
+      "applies_when": {},
+      "defect_tolerance": {
+        "QT2": "Visible dust removed from field surfaces",
+        "QT3": "All dust removed, tack cloth shows clean on final pass"
+      }
+    },
+
+    {
+      "task_id": "TSK_ALRP_CAULK_ASSESS",
+      "name": "Caulk Joint Assessment",
+      "required_input_key": "IN_LF_EXT_TRIM_CORNER",
+      "paintscope_key": "PS_EXT_EDGE_LF.TRIM_CORNER",
+      "unit_of_measure": "LF",
+      "rate_per_hour": 200,
+      "rate_range_low": 150,
+      "rate_range_high": 250,
+      "crew_size": 1,
+      "task_classification": "qt_conditional",
+      "appears_in_tiers": ["QT3"],
+      "rate_basis_notes": "Inspect siding-to-trim joints for failed caulk. ~18 sec per LF to probe and mark. QT3 only. Aluminum has minimal thermal movement at joints — less caulk failure than vinyl.",
+      "applies_when": { "quality_tier": ["QT3"] },
+      "defect_tolerance": {
+        "QT3": "All joints inspected and failed sections marked for replacement"
+      }
+    },
+    {
+      "task_id": "TSK_ALRP_CAULK_APPLY",
+      "name": "Spot Caulk Replacement",
+      "required_input_key": "IN_LF_EXT_TRIM_CORNER",
+      "paintscope_key": "PS_EXT_EDGE_LF.TRIM_CORNER",
+      "unit_of_measure": "LF",
+      "rate_per_hour": 75,
+      "rate_range_low": 50,
+      "rate_range_high": 100,
+      "crew_size": 1,
+      "task_classification": "qt_conditional",
+      "appears_in_tiers": ["QT3"],
+      "rate_basis_notes": "Remove failed caulk, clean joint, apply siliconized acrylic caulk, tool smooth. ~48 sec per LF. QT3 only. Siliconized acrylic adequate — aluminum has minimal thermal movement (polyurethane not required).",
+      "applies_when": { "quality_tier": ["QT3"] },
+      "defect_tolerance": {
+        "QT3": "Smooth, continuous caulk bead, no gaps, no smears on adjacent surfaces"
+      }
+    },
+
+    {
+      "task_id": "TSK_ALRP_PRIME_ETCH_SPRAY",
+      "name": "Self-Etching Primer — Spray",
+      "input_group": "siding_surface_input_group",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 425,
+      "rate_range_low": 400,
+      "rate_range_high": 450,
+      "crew_size": 1,
+      "task_classification": "binary",
+      "rate_basis_notes": "Airless spray self-etching primer (phosphoric acid + zinc) on scuffed aluminum. MANDATORY single coat. Fine-atomization tip (311-413). Single-pass technique — do NOT double-back. DFT 0.5-1.0 mil ONLY. Over-application causes cohesive failure. ~8.5 sec per SF. Midpoint 425 SF/hr.",
+      "applies_when": { "application_method": ["spray"] },
+      "defect_tolerance": {
+        "QT2": "Full coverage, no bare aluminum visible, no runs or pooling",
+        "QT3": "Full even coverage, no runs, no sags, uniform thin film build verified by DFT gauge spot checks"
+      }
+    },
+    {
+      "task_id": "TSK_ALRP_PRIME_ETCH_BRUSH_ROLL",
+      "name": "Self-Etching Primer — Brush/Roll",
+      "input_group": "siding_surface_input_group",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 125,
+      "rate_range_low": 100,
+      "rate_range_high": 150,
+      "crew_size": 1,
+      "task_classification": "binary",
+      "rate_basis_notes": "Brush edges, roll field with 3/8 nap roller for self-etching primer. DFT control is harder with roller — risk of over-application in lap overlaps. ~29 sec per SF. Spray is strongly preferred. Brush/roll only when spray is not feasible.",
+      "applies_when": { "application_method": ["brush_roll"] },
+      "defect_tolerance": {
+        "QT2": "Full coverage, no bare aluminum visible",
+        "QT3": "Full even coverage, thin film maintained, no pooling at lap overlaps"
+      }
+    },
+    {
+      "task_id": "TSK_ALRP_DFT_VERIFY",
+      "name": "DFT Verification — Self-Etching Primer",
+      "unit_of_measure": "FIXED",
+      "fixed_time_minutes": 15,
+      "crew_size": 1,
+      "task_classification": "binary",
+      "rate_basis_notes": "CRITICAL QC GATE. Verify self-etching primer DFT is within 0.5-1.0 mil range using wet/dry film thickness gauge. Check minimum 3 points per elevation section. Over-application (>1.0 mil) causes cohesive failure — requires strip and re-prime. ~10-15 min per zone. Unique to aluminum siding.",
+      "applies_when": {},
+      "defect_tolerance": {
+        "QT2": "DFT readings within 0.5-1.0 mil on spot checks (2+ per elevation)",
+        "QT3": "DFT readings within 0.5-1.0 mil on systematic grid checks (3+ per elevation), documented in QC log"
+      }
+    },
+
+    {
+      "task_id": "TSK_ALRP_PRIME_EPOXY_SPRAY",
+      "name": "Epoxy Intermediate Coat — Spray (Coastal Only)",
+      "input_group": "siding_surface_input_group",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 375,
+      "rate_range_low": 350,
+      "rate_range_high": 400,
+      "crew_size": 1,
+      "task_classification": "binary",
+      "rate_basis_notes": "COASTAL CONDITIONAL. Airless spray epoxy intermediate coat over cured self-etching primer. Creates corrosion barrier for salt-air environments. Standard spray tip (413-515). Single coat per manufacturer DFT spec. ~9.6 sec per SF. Midpoint 375 SF/hr.",
+      "applies_when": { "application_method": ["spray"], "coastal_environment": true },
+      "defect_tolerance": {
+        "QT2": "Full coverage, no bare primer visible, uniform film",
+        "QT3": "Full even coverage, uniform DFT, no runs or sags, edges feathered at trim transitions"
+      }
+    },
+    {
+      "task_id": "TSK_ALRP_PRIME_EPOXY_BRUSH_ROLL",
+      "name": "Epoxy Intermediate Coat — Brush/Roll (Coastal Only)",
+      "input_group": "siding_surface_input_group",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 100,
+      "rate_range_low": 80,
+      "rate_range_high": 125,
+      "crew_size": 1,
+      "task_classification": "binary",
+      "rate_basis_notes": "COASTAL CONDITIONAL. Brush edges, roll field with epoxy intermediate. Two-component epoxy is thicker and has shorter pot life — significantly slower than spray. ~36 sec per SF. Brush/roll only when spray is not feasible.",
+      "applies_when": { "application_method": ["brush_roll"], "coastal_environment": true },
+      "defect_tolerance": {
+        "QT2": "Full coverage over self-etching primer",
+        "QT3": "Full even coverage, smooth roller finish, no holidays"
+      }
+    },
+
+    {
+      "task_id": "TSK_ALRP_FINISH_SPRAY_1",
+      "name": "Finish Coat 1 — Spray",
+      "input_group": "siding_surface_input_group",
+      "unit_of_measure": "SF",
+      "task_classification": "qt_scaled",
+      "qt_rates": {
+        "QT2": { "rate_sf_per_hour": 475, "notes": "Economy pace — even coverage, no detailed transition work" },
+        "QT3": { "rate_sf_per_hour": 450, "notes": "Standard pace — uniform mil build, clean transitions at J-channels" }
+      },
+      "rate_range_low": 400,
+      "rate_range_high": 500,
+      "crew_size": 1,
+      "rate_basis_notes": "Airless spray 100% acrylic latex finish on primed aluminum. Standard tip (413-515). No backbrush (non-porous metal). ~8 sec per SF at QT3.",
+      "applies_when": { "application_method": ["spray"] },
+      "defect_tolerance": {
+        "QT2": "Uniform color coverage, minor overspray at transitions tolerable",
+        "QT3": "Uniform color, no runs, no sags, clean transitions at J-channels and trim"
+      }
+    },
+    {
+      "task_id": "TSK_ALRP_FINISH_BRUSH_ROLL_1",
+      "name": "Finish Coat 1 — Brush/Roll",
+      "input_group": "siding_surface_input_group",
+      "unit_of_measure": "SF",
+      "task_classification": "qt_scaled",
+      "qt_rates": {
+        "QT2": { "rate_sf_per_hour": 130, "notes": "Economy pace — even coverage" },
+        "QT3": { "rate_sf_per_hour": 120, "notes": "Standard pace — no brush marks in roller field, maintain wet edge" }
+      },
+      "rate_range_low": 100,
+      "rate_range_high": 150,
+      "crew_size": 1,
+      "rate_basis_notes": "Brush edges, roll field with 3/8 nap roller for finish coat. Smooth aluminum surface. ~30 sec per SF at QT3.",
+      "applies_when": { "application_method": ["brush_roll"] },
+      "defect_tolerance": {
+        "QT2": "Uniform color, minor roller stipple acceptable",
+        "QT3": "Uniform color, smooth lay-off, no roller lines or holidays"
+      }
+    },
+
+    {
+      "task_id": "TSK_ALRP_FINISH_SPRAY_2",
+      "name": "Finish Coat 2 — Spray",
+      "input_group": "siding_surface_input_group",
+      "unit_of_measure": "SF",
+      "task_classification": "qt_scaled",
+      "qt_rates": {
+        "QT3": { "rate_sf_per_hour": 450, "notes": "Same rate as coat 1 spray. Critical for full hide, proper DFT, and maximum durability." }
+      },
+      "rate_range_low": 400,
+      "rate_range_high": 500,
+      "crew_size": 1,
+      "rate_basis_notes": "Second and final finish coat by spray. QT3 only — QT2 uses single finish coat. ~8 sec per SF. Allow recoat time per TDS between coats. No backbrushing.",
+      "applies_when": { "application_method": ["spray"], "quality_tier": ["QT3"] },
+      "defect_tolerance": {
+        "QT3": "Uniform color with full hide, no runs, no sags, clean transitions"
+      }
+    },
+    {
+      "task_id": "TSK_ALRP_FINISH_BRUSH_ROLL_2",
+      "name": "Finish Coat 2 — Brush/Roll",
+      "input_group": "siding_surface_input_group",
+      "unit_of_measure": "SF",
+      "task_classification": "qt_scaled",
+      "qt_rates": {
+        "QT3": { "rate_sf_per_hour": 120, "notes": "Same rate as coat 1 brush/roll." }
+      },
+      "rate_range_low": 100,
+      "rate_range_high": 150,
+      "crew_size": 1,
+      "rate_basis_notes": "Second and final finish coat by brush and roller. QT3 only. ~30 sec per SF.",
+      "applies_when": { "application_method": ["brush_roll"], "quality_tier": ["QT3"] },
+      "defect_tolerance": {
+        "QT3": "Uniform color with full hide, smooth lay-off, no roller lines"
+      }
+    },
+
+    {
+      "task_id": "TSK_ALRP_DETAIL_JCHANNEL",
+      "name": "Brush Detail — J-Channels & Under-Sill",
+      "input_group": "siding_surface_input_group",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 150,
+      "rate_range_low": 125,
+      "rate_range_high": 175,
+      "crew_size": 1,
+      "task_classification": "qt_conditional",
+      "appears_in_tiers": ["QT3"],
+      "rate_basis_notes": "Brush-apply finish coat into J-channels, under-sill channels, and starter strip recesses. Spray may not fully penetrate these recessed areas. Estimate at 5-10% of total field SF as detail SF. ~24 sec per SF. QT3 only — primary labor differentiator between tiers.",
+      "applies_when": { "quality_tier": ["QT3"] },
+      "defect_tolerance": {
+        "QT3": "Full coverage in all channel recesses, no bare aluminum visible, clean transitions"
+      }
+    },
+    {
+      "task_id": "TSK_ALRP_DETAIL_CUTIN",
+      "name": "Brush Cut-In at Trim Transitions",
+      "required_input_key": "IN_LF_EXT_TRIM_CORNER",
+      "paintscope_key": "PS_EXT_EDGE_LF.TRIM_CORNER",
+      "unit_of_measure": "LF",
+      "rate_per_hour": 100,
+      "rate_range_low": 80,
+      "rate_range_high": 120,
+      "crew_size": 1,
+      "task_classification": "qt_conditional",
+      "appears_in_tiers": ["QT3"],
+      "rate_basis_notes": "Brush cut-in where siding meets corner trim, window casing, door casing, and soffit junction. Clean color line at siding-to-trim boundary. ~36 sec per LF. QT3 only.",
+      "applies_when": { "quality_tier": ["QT3"] },
+      "defect_tolerance": {
+        "QT3": "Sharp color line at trim boundary, no bleed onto trim surface, consistent line at 6 ft viewing"
+      }
+    },
+
+    {
+      "task_id": "TSK_ALRP_INSPECT",
+      "name": "Final Walkthrough Inspection",
+      "input_group": "siding_surface_input_group",
+      "unit_of_measure": "SF",
+      "task_classification": "binary",
+      "rate_per_hour": 2500,
+      "rate_range_low": 1500,
+      "rate_range_high": 3500,
+      "crew_size": 1,
+      "rate_basis_notes": "Walk all elevations and inspect completed siding finish for defects, holidays, coverage, and appearance. Check DFT readings from primer phase documentation. ~1.4 sec per SF average.",
+      "applies_when": {},
+      "defect_tolerance": {
+        "QT2": "No obvious misses or runs visible from 10 feet",
+        "QT3": "No defects visible from 6 feet, clean transitions at all trim junctions, DFT log reviewed"
+      }
+    },
+    {
+      "task_id": "TSK_ALRP_TOUCHUP",
+      "name": "Final Touch-Up",
+      "input_group": "siding_surface_input_group",
+      "unit_of_measure": "SF",
+      "task_classification": "binary",
+      "rate_per_hour": 3500,
+      "rate_range_low": 2500,
+      "rate_range_high": 4500,
+      "crew_size": 1,
+      "rate_basis_notes": "Brush touch-up of defects found during final walkthrough inspection. ~1 sec per SF equivalent (most area needs no touch-up).",
+      "applies_when": {},
+      "defect_tolerance": {
+        "QT2": "Obvious defects corrected",
+        "QT3": "All noted defects corrected, repairs blended, J-channels uniform"
+      }
+    },
+    {
+      "task_id": "TSK_ALRP_REMOVE_PROTECTION",
+      "name": "Remove All Protection Materials",
+      "required_input_key": "IN_SF_EXT_PROTECT_LANDSCAPE_ADJ",
+      "paintscope_key": "PS_EXT_PROTECT_SF.LANDSCAPE_ADJACENT",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 400,
+      "rate_range_low": 300,
+      "rate_range_high": 500,
+      "crew_size": 1,
+      "task_classification": "binary",
+      "rate_basis_notes": "Remove all tarps, plastic, masking tape, fixture bags, window/door masks. Faster than setup — pull and fold. ~9 sec per SF equivalent.",
+      "applies_when": {},
+      "defect_tolerance": {
+        "QT2": "All protection materials removed from site",
+        "QT3": "All protection materials removed, no tape residue on surfaces, landscape inspected"
+      }
+    },
+    {
+      "task_id": "TSK_ALRP_SCAFFOLD_TEARDOWN",
+      "name": "Scaffold / Lift Teardown",
+      "unit_of_measure": "FIXED",
+      "fixed_time_minutes": 60,
+      "crew_size": 2,
+      "task_classification": "binary",
+      "rate_basis_notes": "Dismantle scaffold, return aerial lift, or stage ladders for removal. ~60 min typical teardown (faster than setup). OSHA-compliant disassembly.",
+      "applies_when": { "access_type": ["scaffold", "lift", "ladder"] },
+      "defect_tolerance": {
+        "QT2": "All access equipment removed",
+        "QT3": "All access equipment removed, no damage to landscaping or hardscape from equipment"
+      }
+    },
+    {
+      "task_id": "TSK_ALRP_CLEAN_EQUIPMENT",
+      "name": "Clean Spray Equipment & Tools",
+      "unit_of_measure": "FIXED",
+      "fixed_time_minutes": 30,
+      "crew_size": 1,
+      "task_classification": "binary",
+      "rate_basis_notes": "Flush airless sprayer, clean spray tips and filters, clean brushes and rollers. CRITICAL: flush thoroughly between self-etching primer and finish coat — primer chemistry is incompatible with acrylic finish if cross-contaminated. ~30 min average (35 min spray, 15 min brush/roll, blended).",
+      "applies_when": {},
+      "defect_tolerance": {
+        "QT2": "Equipment flushed and stored",
+        "QT3": "Equipment flushed, tips cleaned individually and stored separately, no cross-contamination"
+      }
+    },
+    {
+      "task_id": "TSK_ALRP_SITE_CLEANUP",
+      "name": "Final Site Cleanup & Demobilization",
+      "unit_of_measure": "FIXED",
+      "fixed_time_minutes": 20,
+      "crew_size": 1,
+      "task_classification": "binary",
+      "rate_basis_notes": "Collect debris (abrasive pads, masking waste, empty containers), dispose properly, final site walkthrough, rinse hardscape if alkaline cleaner residue remains. ~20 min. No RRP waste — aluminum factory enamel is not lead-based.",
+      "applies_when": {},
+      "defect_tolerance": {
+        "QT2": "Site clear of materials and debris",
+        "QT3": "Site clear of materials and debris, no overspray on adjacent surfaces, client walkthrough"
+      }
+    }
+  ],
+
+  "factor_modifiers": [
+    {
+      "factor_id": "FAC_ALRP_QT",
+      "name": "Quality Tier Rate Modifier",
+      "mechanism": "time_multiplier",
+      "modifier_category": "quality_effort",
+      "description": "Quality tier affects care and rigor on coating and detail tasks. QT2 economy = less care, faster pace. QT3 standard = baseline. Does NOT apply to prep tasks (chalk severity handles prep variation).",
+      "applies_to": [
+        "TSK_ALRP_PRIME_ETCH_SPRAY", "TSK_ALRP_PRIME_ETCH_BRUSH_ROLL",
+        "TSK_ALRP_PRIME_EPOXY_SPRAY", "TSK_ALRP_PRIME_EPOXY_BRUSH_ROLL",
+        "TSK_ALRP_FINISH_SPRAY_1", "TSK_ALRP_FINISH_BRUSH_ROLL_1",
+        "TSK_ALRP_FINISH_SPRAY_2", "TSK_ALRP_FINISH_BRUSH_ROLL_2"
+      ],
+      "values": {
+        "QT2": 0.85,
+        "QT3": 1.00
+      },
+      "formula": "effective_rate = base_rate / modifier",
+      "stacking_pool": "COATING_TASKS",
+      "notes": "QT2 at 0.85x = slightly faster (less care, economy-grade work). QT3 at 1.00x = baseline standard. No QT4/QT5 — aluminum is not a fine-finish substrate."
+    },
+    {
+      "factor_id": "FAC_ALRP_CHALK",
+      "name": "Chalk Severity Rate Modifier",
+      "mechanism": "time_multiplier",
+      "modifier_category": "condition_effort",
+      "description": "Chalk severity affects prep and wash task labor time. PREP TASKS ONLY — does not apply to coating, detail, or cleanup tasks. Note: chalk_severity is now dispatched to separate wash tasks (WASH_PRESSURE, WASH_CHALK_LIGHT, WASH_CHALK_HEAVY) so this modifier applies primarily to scuff and dust cleanup tasks.",
+      "applies_to": [
+        "TSK_ALRP_OXIDE_SCUFF",
+        "TSK_ALRP_DUST_CLEAN"
+      ],
+      "values": {
+        "none": 1.00,
+        "light": 1.25,
+        "heavy": 1.75
+      },
+      "formula": "effective_rate = base_rate / modifier",
+      "stacking_pool": "PREP_TASKS",
+      "notes": "UNIQUE to aluminum siding repaint. Chalk severity drives PREP LABOR TIME. Heavy chalk (1.75x) reflects more aggressive scuffing of chalk-softened oxide, and extended dust cleanup. Wash tasks are now separate by chalk_severity so the modifier applies to scuff/dust tasks that are shared across all chalk levels."
+    },
+    {
+      "factor_id": "FAC_EXT_ACCESS",
+      "name": "Access Type Height Modifier",
+      "mechanism": "time_multiplier",
+      "modifier_category": "access_difficulty",
+      "description": "Access type drives production rate reduction for elevated work. Shared across all exterior specs.",
+      "applies_to": [
+        "TSK_ALRP_WASH_PRESSURE", "TSK_ALRP_WASH_CHALK_LIGHT", "TSK_ALRP_WASH_CHALK_HEAVY",
+        "TSK_ALRP_OXIDE_SCUFF", "TSK_ALRP_DUST_CLEAN",
+        "TSK_ALRP_PRIME_ETCH_SPRAY", "TSK_ALRP_PRIME_ETCH_BRUSH_ROLL",
+        "TSK_ALRP_PRIME_EPOXY_SPRAY", "TSK_ALRP_PRIME_EPOXY_BRUSH_ROLL",
+        "TSK_ALRP_FINISH_SPRAY_1", "TSK_ALRP_FINISH_BRUSH_ROLL_1",
+        "TSK_ALRP_FINISH_SPRAY_2", "TSK_ALRP_FINISH_BRUSH_ROLL_2",
+        "TSK_ALRP_DETAIL_JCHANNEL", "TSK_ALRP_DETAIL_CUTIN",
+        "TSK_ALRP_CAULK_ASSESS", "TSK_ALRP_CAULK_APPLY",
+        "TSK_ALRP_INSPECT", "TSK_ALRP_TOUCHUP"
+      ],
+      "values": {
+        "ground": 1.00,
+        "ladder": 1.35,
+        "scaffold": 1.60,
+        "lift": 1.50
+      },
+      "formula": "effective_rate = base_rate / modifier",
+      "stacking_pool": "ALL_VARIABLE_RATE_TASKS",
+      "notes": "Applied per elevation. Protection setup/teardown, equipment setup/cleanup, chalk verification, DFT verification, and fixed administrative tasks are NOT affected. Scaffold preferred for multi-story aluminum to improve DFT consistency."
+    },
+    {
+      "factor_id": "FAC_EXT_WIND",
+      "name": "Wind Condition Modifier",
+      "mechanism": "time_multiplier",
+      "modifier_category": "environmental",
+      "description": "Wind condition modifier for spray operations. High wind is a STOP condition.",
+      "applies_to": [
+        "TSK_ALRP_PRIME_ETCH_SPRAY",
+        "TSK_ALRP_PRIME_EPOXY_SPRAY",
+        "TSK_ALRP_FINISH_SPRAY_1",
+        "TSK_ALRP_FINISH_SPRAY_2"
+      ],
+      "values": {
+        "calm": 1.00,
+        "light": 1.10,
+        "moderate": 1.25,
+        "high": "STOP"
+      },
+      "formula": "effective_rate = base_rate / modifier",
+      "stacking_pool": "ALL_VARIABLE_RATE_TASKS",
+      "notes": "Applies to spray tasks only. High wind (>15 mph) is a STOP. CRITICAL for self-etching primer: wind during thin-film application can cause uneven DFT."
+    },
+    {
+      "factor_id": "FAC_EXT_SUN_EXPOSURE",
+      "name": "Sun Exposure Modifier",
+      "mechanism": "time_multiplier",
+      "modifier_category": "environmental",
+      "description": "Sun exposure affects scheduling and daily productive hours. Full sun on aluminum is less critical than vinyl but still affects flash-drying of self-etching primer.",
+      "applies_to": [
+        "TSK_ALRP_PRIME_ETCH_SPRAY", "TSK_ALRP_PRIME_ETCH_BRUSH_ROLL",
+        "TSK_ALRP_PRIME_EPOXY_SPRAY", "TSK_ALRP_PRIME_EPOXY_BRUSH_ROLL",
+        "TSK_ALRP_FINISH_SPRAY_1", "TSK_ALRP_FINISH_BRUSH_ROLL_1",
+        "TSK_ALRP_FINISH_SPRAY_2", "TSK_ALRP_FINISH_BRUSH_ROLL_2"
+      ],
+      "values": {
+        "full_shade": 1.00,
+        "partial": 1.00,
+        "full_sun": 1.15
+      },
+      "formula": "effective_rate = base_rate / modifier",
+      "stacking_pool": "ALL_VARIABLE_RATE_TASKS",
+      "notes": "Full sun forces early morning scheduling on south/west facades, reducing daily productive hours by ~15%. Self-etching primer is especially sensitive to flash-drying in full sun."
+    },
+    {
+      "factor_id": "FAC_EXT_SURFACE_TEMP",
+      "name": "Surface Temperature Modifier",
+      "mechanism": "time_multiplier",
+      "modifier_category": "environmental",
+      "description": "Surface temperature extends recoat intervals and affects primer cure. Aluminum conducts heat — surface temperature changes faster than vinyl or wood.",
+      "applies_to": [
+        "TSK_ALRP_PRIME_ETCH_SPRAY", "TSK_ALRP_PRIME_ETCH_BRUSH_ROLL",
+        "TSK_ALRP_PRIME_EPOXY_SPRAY", "TSK_ALRP_PRIME_EPOXY_BRUSH_ROLL",
+        "TSK_ALRP_FINISH_SPRAY_1", "TSK_ALRP_FINISH_BRUSH_ROLL_1",
+        "TSK_ALRP_FINISH_SPRAY_2", "TSK_ALRP_FINISH_BRUSH_ROLL_2"
+      ],
+      "values": {
+        "optimal": 1.00,
+        "cold": 1.30,
+        "hot": 1.20
+      },
+      "formula": "effective_rate = base_rate / modifier",
+      "stacking_pool": "ALL_VARIABLE_RATE_TASKS",
+      "notes": "Cold (<50 deg F surface): slow cure of self-etching primer acid reaction = 30% more time. Hot (>90 deg F surface): flash drying risk = 20% more time."
+    }
+  ],
+
+  "quality_effects": [
+    {
+      "quality_tier": "QT2",
+      "coat_count": { "prime_etch": 1, "prime_epoxy_conditional": 1, "finish": 1 },
+      "interstage_sand": false,
+      "detail_work": false,
+      "caulk_assessment": false,
+      "dft_verification": true,
+      "inspection_level": "cursory",
+      "notes": "Economy aluminum repaint. Self-etching primer (mandatory, DFT-critical) + single finish coat. No J-channel detail. No caulk assessment. DFT verification on primer is still required at all tiers — structural bond requirement."
+    },
+    {
+      "quality_tier": "QT3",
+      "coat_count": { "prime_etch": 1, "prime_epoxy_conditional": 1, "finish": 2 },
+      "interstage_sand": false,
+      "detail_work": true,
+      "caulk_assessment": true,
+      "dft_verification": true,
+      "inspection_level": "scan",
+      "notes": "Standard residential aluminum repaint. Self-etching primer + two finish coats. J-channel brush detail. Caulk assessment at siding-to-trim joints. DFT verification for primer. 7-15 year expected service life."
+    }
+  ],
+
+  "round_configurations": [
+    {
+      "round_id": "ROUND_ALRP_QT2_STANDARD",
+      "description": "Self-etching prime (1 coat, 0.5-1.0 mil) + 1 finish coat — economy aluminum repaint",
+      "prime_coats": 1,
+      "finish_coats": 1,
+      "total_coats": 2,
+      "applies_when": { "quality_tier": ["QT2"], "coastal_environment": false },
+      "multi_coat_distribution": {
+        "coat_1_prime_etch": 0.55,
+        "coat_2_finish": 0.45
+      },
+      "notes": "Minimum viable aluminum repaint. Self-etching primer is mandatory. Single finish coat. Total: 2 coating passes. Prime coat gets higher labor share (DFT control is critical)."
+    },
+    {
+      "round_id": "ROUND_ALRP_QT3_STANDARD",
+      "description": "Self-etching prime (1 coat, 0.5-1.0 mil) + 2 finish coats — standard aluminum repaint",
+      "prime_coats": 1,
+      "finish_coats": 2,
+      "total_coats": 3,
+      "applies_when": { "quality_tier": ["QT3"], "coastal_environment": false },
+      "multi_coat_distribution": {
+        "coat_1_prime_etch": 0.45,
+        "coat_2_finish_1": 0.30,
+        "coat_3_finish_2": 0.25
+      },
+      "notes": "Standard residential repaint. Self-etching primer + two finish coats. J-channel detail included separately. Total: 3 coating passes + detail."
+    },
+    {
+      "round_id": "ROUND_ALRP_QT2_COASTAL",
+      "description": "Self-etching prime (1 coat) + epoxy intermediate (1 coat) + 1 finish coat — coastal economy",
+      "prime_coats": 1,
+      "intermediate_coats": 1,
+      "finish_coats": 1,
+      "total_coats": 3,
+      "applies_when": { "quality_tier": ["QT2"], "coastal_environment": true },
+      "multi_coat_distribution": {
+        "coat_1_prime_etch": 0.40,
+        "coat_2_epoxy": 0.30,
+        "coat_3_finish": 0.30
+      },
+      "notes": "Coastal variant adds epoxy intermediate. Three-layer corrosion barrier. Total: 3 coating passes."
+    },
+    {
+      "round_id": "ROUND_ALRP_QT3_COASTAL",
+      "description": "Self-etching prime (1 coat) + epoxy intermediate (1 coat) + 2 finish coats — coastal standard",
+      "prime_coats": 1,
+      "intermediate_coats": 1,
+      "finish_coats": 2,
+      "total_coats": 4,
+      "applies_when": { "quality_tier": ["QT3"], "coastal_environment": true },
+      "multi_coat_distribution": {
+        "coat_1_prime_etch": 0.35,
+        "coat_2_epoxy": 0.25,
+        "coat_3_finish_1": 0.22,
+        "coat_4_finish_2": 0.18
+      },
+      "notes": "Coastal variant with full coat system. Four coating layers for maximum corrosion protection. Total: 4 coating passes + detail."
+    }
+  ],
+
+  "assumptions": [
+    "Base rates are for lap_horizontal aluminum siding at ground access on sound substrate (SS_EXT_SOUND_PAINT) with chalk_severity=none.",
+    "Wash tasks are now separate per chalk_severity (WASH_PRESSURE for none, WASH_CHALK_LIGHT for light, WASH_CHALK_HEAVY for heavy). Chalk modifier on wash is baked into the separate task rates.",
+    "Chalk severity modifier (FAC_ALRP_CHALK) applies to oxide scuff and dust cleanup tasks. It does NOT inflate coating application rates.",
+    "QT modifier (FAC_ALRP_QT) applies to COATING TASKS ONLY. Prep variation is handled by chalk severity.",
+    "Maximum prep modifier stack: heavy chalk (1.75) x scaffold (1.60) = 2.80x. Well under 4.0x cap.",
+    "Maximum coating modifier stack: QT3 (1.00) x scaffold (1.60) x full_sun (1.15) x cold_temp (1.30) = 2.39x. Well under 4.0x cap.",
+    "Spray is primary application method. No backbrushing on aluminum (non-porous metal). Spray/backbrush coupling rule does NOT apply.",
+    "Environmental modifiers (wind, sun, temp) apply only to coating tasks.",
+    "Self-etching primer is ALWAYS required — no skip-prime option.",
+    "DFT verification for self-etching primer is a mandatory gate at ALL quality tiers.",
+    "Epoxy intermediate coat is CONDITIONAL on coastal environment only.",
+    "No LRV restriction — any color permitted. No LRV verification gate.",
+    "No warranty void gate. No RRP gate.",
+    "Substrate state (SS_EXT_SOUND_PAINT vs SS_EXT_CHALKING) drives chalk_severity assessment but does not change primer chemistry.",
+    "Crew size = 1 for all tasks except scaffold setup/teardown (crew size 2).",
+    "SOP splits detail work into two tasks: TSK_ALRP_DETAIL_JCHANNEL (SF-based, channel recesses) and TSK_ALRP_DETAIL_CUTIN (LF-based, trim transitions).",
+    "SOP consolidates hardscape protection into single task (TSK_ALRP_PROTECT_HARDSCAPE) covering walks, patios, and driveways.",
+    "SOP consolidates equipment cleanup into single task (TSK_ALRP_CLEAN_EQUIPMENT) for both spray and brush/roll.",
+    "Mobilize and scaffold setup/teardown tasks are new in SOP — fixed-time tasks not present in v0.1.0.",
+    "Wash mix task is new in SOP — fixed 10 min for solution preparation."
+  ],
+
+  "risks": [
+    "Cohesive primer failure from over-application of self-etching primer (>1.0 mil DFT). Mitigated by DFT verification gate task, fine-atomization tips, single-pass technique.",
+    "Chalk-induced peeling from residual chalk not fully removed. Mitigated by mandatory chalk verification gate and separate wash tasks by chalk severity.",
+    "Wrong primer substitution — using standard primer, bonding primer, or STIX adhesion primer instead of self-etching primer. Mitigated by locked material specification and QC verification at delivery.",
+    "Oxide reformation between scuff and prime if scheduling delay occurs. Mitigated by SOP same-day sequencing requirement.",
+    "Ferrous contamination from steel wool use during oxide scuff. Mitigated by synthetic-only pad specification.",
+    "Coastal corrosion without epoxy intermediate layer if environment not assessed correctly. Mitigated by site assessment protocol.",
+    "Multi-story projects with scaffold access increase costs by 60%. Ensure access assessment is completed before scope commitment.",
+    "Self-etching primer flash-drying in full sun on aluminum. Mitigated by sun exposure modifier and early-morning scheduling."
+  ],
+
+  "validation_plan": [
+    {
+      "test": "Self-etching primer spray production rate — 400-450 SF/hr claimed vs field actual",
+      "method": "Time spray of self-etching primer with fine-atomization tips on aluminum siding at ground level. Record SF completed per hour AND DFT achieved.",
+      "acceptance": "Within 350-500 SF/hr range AND DFT within 0.5-1.0 mil"
+    },
+    {
+      "test": "Oxide scuff rate — 250 SF/hr claimed vs field actual",
+      "method": "Time oxide scuff with synthetic abrasive pads on aluminum siding at ground level. Record SF completed per hour and pad consumption rate.",
+      "acceptance": "Within 180-320 SF/hr range"
+    },
+    {
+      "test": "Finish spray rate on primed aluminum — 400-500 SF/hr",
+      "method": "Time acrylic finish spray on primed aluminum siding. Note coverage rate (SF/gal) alongside production rate.",
+      "acceptance": "Within 350-550 SF/hr range"
+    },
+    {
+      "test": "Pressure wash rate by chalk severity",
+      "method": "Time pressure wash on aluminum siding at various chalk severity levels. Record effective rate per severity.",
+      "acceptance": "none: 600-1000. light: 450-750. heavy: 300-550 SF/hr"
+    },
+    {
+      "test": "J-channel detail brush rate — 125-175 SF/hr",
+      "method": "Time brush detail work at J-channels and under-sill channels on QT3 aluminum project.",
+      "acceptance": "Within 100-200 SF/hr range"
+    },
+    {
+      "test": "Trim cut-in rate — 80-120 LF/hr",
+      "method": "Time brush cut-in at trim transitions on QT3 aluminum project.",
+      "acceptance": "Within 60-140 LF/hr range"
+    },
+    {
+      "test": "Access modifier calibration — ladder 1.35x on aluminum",
+      "method": "Compare timed spray at ground vs ladder on same surface. Calculate actual ratio.",
+      "acceptance": "Within 1.20-1.50x range"
+    },
+    {
+      "test": "DFT verification task time — 15 min per zone",
+      "method": "Time DFT gauge spot-check procedure on 3-5 elevation sections. Record actual minutes per zone.",
+      "acceptance": "Within 10-20 min per zone"
+    }
+  ],
+
+  "task_count_summary": {
+    "total_tasks": 36,
+    "binary_tasks": 26,
+    "qt_scaled_tasks": 5,
+    "qt_conditional_tasks": 5,
+    "by_uom": { "FIXED": 8, "SF": 19, "LF": 3, "EA": 6 },
+    "by_phase": {
+      "setup_mobilization": 2,
+      "setup_protection": 8,
+      "prep_wash": 4,
+      "prep_chalk_verify": 1,
+      "prep_scuff": 1,
+      "prep_dust_cleanup": 1,
+      "prep_caulk": 2,
+      "prime_etch": 2,
+      "prime_dft_verify": 1,
+      "prime_epoxy_conditional": 2,
+      "finish_coat_1": 2,
+      "finish_coat_2": 2,
+      "detail": 2,
+      "cleanup_inspect": 2,
+      "cleanup_protection": 1,
+      "cleanup_scaffold": 1,
+      "cleanup_equipment": 1,
+      "cleanup_site": 1
+    }
+  }
+}

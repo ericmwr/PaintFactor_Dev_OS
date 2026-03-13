@@ -1,0 +1,701 @@
+{
+  "spec_family": {
+    "id": "SF_SOFFIT_EXT_NC",
+    "name": "Exterior Soffit Prime and Paint",
+    "description": "Combined prime and finish for soffit (eave underside). Overhead work is the defining constraint — all rates reduced ~25-35% from vertical baselines. Spray conditional on non-vented construction (FM-001 attic vent contamination). Three substrate paths (wood T&G/plywood, fiber cement HardieSoffit, vinyl). Flat to satin sheen only.",
+    "domain": "exterior",
+    "version": "0.1.0",
+    "status": "draft",
+    "review_required": true
+  },
+
+  "scope_boundaries": {
+    "includes": [
+      "Soffit field painting — all overhead eave underside surfaces",
+      "Overhead surface preparation (low-pressure wash, substrate-specific sanding, dust cleanup)",
+      "T&G groove work (brush detail for tongue-and-groove board joints)",
+      "End-seal fiber cement cut edges (FM-006 prevention)",
+      "Tannin spot-prime knots on wood soffit (cedar/redwood)",
+      "Caulk soffit panel joints and soffit-to-fascia/frieze junctions",
+      "Full field prime coat (4 substrate-driven primer paths)",
+      "Finish coat application (1-2 coats by quality tier)",
+      "Interstage inspection and intercoat sand (QT4)",
+      "Cut-in at fascia/frieze junctions",
+      "Landscape and hardscape ground protection (critical for overhead drip fallout)",
+      "Soffit-mounted light fixture masking",
+      "Adjacent finished fascia/frieze masking"
+    ],
+    "excludes": [
+      {
+        "item": "Fascia painting",
+        "route_to": "SF_TRIM_EXT_NC — fascia is trim scope, not soffit scope"
+      },
+      {
+        "item": "Porch ceiling painting",
+        "route_to": "Future SF_PORCH_CEILING_EXT_NC — separate scope when porch ceiling is continuous with soffit"
+      },
+      {
+        "item": "Siding painting",
+        "route_to": "SF_WOOD_SIDING_EXT_NC_PAINT / SF_SIDING_FIBERCEMENT_EXT_NC / SF_SIDING_ENGINEERED_EXT_NC"
+      },
+      {
+        "item": "Frieze board painting",
+        "route_to": "SF_TRIM_EXT_NC — frieze is trim scope"
+      },
+      {
+        "item": "Power washing / high-pressure wash",
+        "route_to": "PROHIBITED on soffit — damages thin panel edges, strips factory primer, forces water into attic through vents (COMPAT-SFIT-010)"
+      }
+    ]
+  },
+
+  "configuration_dimensions": [
+    {
+      "dimension_id": "quality_tier",
+      "description": "Quality tier controlling coat count, inspection scrutiny, interstage sanding, and defect tolerance.",
+      "values": ["QT2", "QT3", "QT4"],
+      "default": "QT3",
+      "notes": "QT2=economy (single finish coat on primed surfaces). QT3=standard (2 finish coats). QT4=premium (2 finish coats, interstage sand 220 grit, systematic raking light inspection). QT5 excluded — not applicable to soffit field per Exterior_Substrates_Doctrine §5.4."
+    },
+    {
+      "dimension_id": "application_method",
+      "description": "Primary application technique for prime and finish coats. Spray is CONDITIONAL on vent type.",
+      "values": ["brush_roll", "spray"],
+      "default": "brush_roll",
+      "notes": "brush_roll is PRIMARY default — valid for all soffit types (vented and non-vented). spray is CONDITIONAL on soffit_vent_type = non_vented. Vented soffit: brush_roll ONLY — spray drives paint into attic through perforations (FM-001 critical failure). spray_backroll NOT valid — overhead back-rolling is impractical."
+    },
+    {
+      "dimension_id": "substrate_material",
+      "description": "Soffit substrate material type. Drives primer selection, prep task activation, and material compatibility rules.",
+      "values": ["wood", "fiber_cement", "vinyl"],
+      "default": "wood",
+      "notes": "Wood: T&G boards or plywood panels. Fiber cement: HardieSoffit. Vinyl: PVC panels (often unpainted; when painted, requires bonding primer and LRV restrictions)."
+    },
+    {
+      "dimension_id": "sheen",
+      "description": "Finish sheen level. Restricted to flat and satin for soffit surfaces.",
+      "values": ["flat", "satin"],
+      "default": "flat",
+      "notes": "Per Exterior_Color_Sheen_Configuration_Doctrine §3: soffits use flat or satin. No semi-gloss or gloss — overhead surfaces show imperfections at higher sheen. Flat is the most common soffit sheen."
+    },
+    {
+      "dimension_id": "soffit_vent_type",
+      "description": "Soffit vent construction type. Critical gate for spray eligibility.",
+      "values": ["vented", "non_vented"],
+      "default": "vented",
+      "notes": "Vented: continuous perforated panels or individual strip/circular vents — spray PROHIBITED (FM-001). Non-vented: solid panels/boards — spray eligible. Default assumption: vented (forces brush/roll as safe default)."
+    },
+    {
+      "dimension_id": "soffit_panel_type",
+      "description": "Soffit panel/board construction type. Drives T&G joint complexity modifier.",
+      "values": ["tg_board", "solid_panel"],
+      "default": "solid_panel",
+      "notes": "T&G boards have ~20% higher labor due to joint complexity (FAC_SFIT_TG_JOINTS). Solid panels (plywood, fiber cement, vinyl) have smooth surface — no joint penalty."
+    }
+  ],
+
+  "paintable_items": [
+    {
+      "item_id": "ITM_SOFFIT_FIELD",
+      "name": "Exterior soffit field surface",
+      "unit_of_measure": "SF",
+      "counting_rules": "Net paintable soffit field area in square feet. Eave depth x roofline perimeter length. Measured per elevation. Excludes vent openings on perforated panels.",
+      "notes": "Single paintable item — covers all soffit substrate types (wood T&G/plywood, fiber cement, vinyl). SF-based like siding, not LF-based like trim."
+    }
+  ],
+
+  "substrate_state_rules": {
+    "primary_surface": "soffit_field",
+
+    "valid_input_states": {
+      "states": ["SS_EXT_BARE_WOOD", "SS_EXT_PRIMED_FACTORY", "SS_EXT_PRIMED_FIELD"],
+      "notes": "SS_EXT_BARE_WOOD: bare wood T&G or plywood soffit — also used by convention for vinyl soffit (no dedicated SS_EXT_BARE_VINYL exists) and bare/damaged fiber cement. SS_EXT_PRIMED_FACTORY: fiber cement soffit with factory transit primer — field prime MANDATORY. SS_EXT_PRIMED_FIELD: any substrate already field-primed — skip prime module entirely."
+    },
+
+    "output_state": {
+      "state": "SS_EXT_PAINTED_FLAT",
+      "varies_by": "sheen",
+      "state_map": {
+        "flat": "SS_EXT_PAINTED_FLAT",
+        "satin": "SS_EXT_PAINTED_SATIN"
+      },
+      "notes": "Output state varies by sheen configuration. Flat is the most common soffit sheen."
+    }
+  },
+
+  "material_systems": [
+    {
+      "system_id": "SYS_EXT_SFIT_PRIMER_ACRYLIC",
+      "name": "Exterior Acrylic Primer for Wood/FC Soffit",
+      "product_role": "primer",
+      "quality_tier": ["QT2", "QT3", "QT4"],
+      "applies_when": { "substrate_material": ["wood", "fiber_cement"], "substrate_state": ["SS_EXT_BARE_WOOD", "SS_EXT_PRIMED_FACTORY"] },
+      "allowed_sheens": ["n/a"],
+      "notes": "Standard 100% acrylic exterior primer for (1) bare wood soffit — full field prime, (2) factory-primed fiber cement — field prime MANDATORY per Hardie warranty. Overhead application increases waste ~10%."
+    },
+    {
+      "system_id": "SYS_EXT_SFIT_PRIMER_TANNIN_SPOT",
+      "name": "Alkyd/Shellac Spot Primer for Tannin Knots on Wood Soffit",
+      "product_role": "specialty",
+      "quality_tier": ["QT2", "QT3", "QT4"],
+      "applies_when": { "substrate_material": ["wood"], "substrate_state": ["SS_EXT_BARE_WOOD"] },
+      "allowed_sheens": ["n/a"],
+      "notes": "Spot-applied to visible knots on tannin-rich species (cedar, redwood, Douglas fir) BEFORE full acrylic primer. Not a full-surface system. Prevents tannin bleed-through — brown staining most visible on flat white soffit finish."
+    },
+    {
+      "system_id": "SYS_EXT_SFIT_PRIMER_ALKALI",
+      "name": "Alkali-Resistant Primer for Bare Fiber Cement Soffit",
+      "product_role": "primer",
+      "quality_tier": ["QT2", "QT3", "QT4"],
+      "applies_when": { "substrate_material": ["fiber_cement"], "substrate_state": ["SS_EXT_BARE_WOOD"] },
+      "allowed_sheens": ["n/a"],
+      "notes": "Required for bare/damaged fiber cement soffit (pH 13.0). Prevents saponification. Reference product: SW Loxon Masonry Primer. Bare FC uses SS_EXT_BARE_WOOD by convention when factory primer is absent/damaged."
+    },
+    {
+      "system_id": "SYS_EXT_SFIT_PRIMER_BONDING",
+      "name": "Bonding Primer for Vinyl Soffit",
+      "product_role": "primer",
+      "quality_tier": ["QT2", "QT3", "QT4"],
+      "applies_when": { "substrate_material": ["vinyl"] },
+      "allowed_sheens": ["n/a"],
+      "notes": "Mandatory bonding/adhesion primer for non-porous vinyl soffit (Insl-X STIX, BM Fresh Start). Chemical bond to PVC surface. Recoat within 1 week (RISK-SFIT-008). Only 100% acrylic latex binders compatible."
+    },
+    {
+      "system_id": "SYS_EXT_SFIT_FINISH_STANDARD",
+      "name": "Standard Exterior Acrylic Soffit Paint",
+      "product_role": "finish",
+      "quality_tier": ["QT2", "QT3"],
+      "allowed_sheens": ["flat", "satin"],
+      "notes": "100% acrylic exterior with mildewcide. Flat to satin. QT2: single coat. QT3: 2 coats. Mildew-resistant formulation recommended for sheltered soffit."
+    },
+    {
+      "system_id": "SYS_EXT_SFIT_FINISH_PREMIUM",
+      "name": "Premium Exterior Acrylic Soffit Paint",
+      "product_role": "finish",
+      "quality_tier": ["QT4"],
+      "allowed_sheens": ["flat", "satin"],
+      "notes": "Premium materials (SW Emerald, BM Aura). 2 finish coats. Light sand between coats (220 grit). Mildew-resistant formulation critical for sheltered soffit."
+    },
+    {
+      "system_id": "SYS_EXT_SFIT_FINISH_SOLAR",
+      "name": "Solar-Reflective Paint for Vinyl Soffit",
+      "product_role": "specialty",
+      "quality_tier": ["QT2", "QT3", "QT4"],
+      "applies_when": { "substrate_material": ["vinyl"], "lrv_below": 55 },
+      "allowed_sheens": ["flat", "satin"],
+      "notes": "CONDITIONAL: required when vinyl substrate AND color LRV < 55. VinylSafe/IR-reflective technology prevents thermal distortion (FM-005). HARD STOP — standard dark paint on vinyl causes warping at ~165°F. Only 100% acrylic latex binders."
+    }
+  ],
+
+  "sop_module_summary": {
+    "total_modules": 8,
+    "total_tasks": 37,
+    "task_classification_breakdown": {
+      "binary": 29,
+      "qt_scaled": 6,
+      "qt_conditional": 2
+    },
+    "modules": [
+      {
+        "module_id": "MOD_SFIT_SETUP",
+        "name": "Exterior Soffit Protection & Equipment Setup",
+        "phase": "setup",
+        "task_count": 6,
+        "tasks": [
+          "TSK_SFIT_LANDSCAPE_PROTECT",
+          "TSK_SFIT_HARDSCAPE_PROTECT",
+          "TSK_SFIT_FIXTURE_MASK",
+          "TSK_SFIT_FASCIA_MASK",
+          "TSK_SFIT_EQUIPMENT_SETUP_BRUSH",
+          "TSK_SFIT_EQUIPMENT_SETUP_SPRAY"
+        ]
+      },
+      {
+        "module_id": "MOD_SFIT_PREP",
+        "name": "Exterior Soffit Surface Preparation",
+        "phase": "prep",
+        "task_count": 8,
+        "tasks": [
+          "TSK_SFIT_WASH_LOW_PRESSURE",
+          "TSK_SFIT_SAND_PREP_WOOD",
+          "TSK_SFIT_SAND_PREP_FC",
+          "TSK_SFIT_SAND_PREP_VINYL",
+          "TSK_SFIT_SEAL_CUT_EDGES",
+          "TSK_SFIT_SPOT_PRIME_KNOTS",
+          "TSK_SFIT_CAULK_JOINTS",
+          "TSK_SFIT_DUST_CLEANUP"
+        ]
+      },
+      {
+        "module_id": "MOD_SFIT_PRIME",
+        "name": "Exterior Soffit Prime Coat",
+        "phase": "prime",
+        "task_count": 6,
+        "tasks": [
+          "TSK_SFIT_PRIME_BRUSH_ROLL",
+          "TSK_SFIT_PRIME_SPRAY",
+          "TSK_SFIT_PRIME_VINYL_BRUSH_ROLL",
+          "TSK_SFIT_PRIME_VINYL_SPRAY",
+          "TSK_SFIT_PRIME_ALKALI_BRUSH_ROLL",
+          "TSK_SFIT_PRIME_ALKALI_SPRAY"
+        ]
+      },
+      {
+        "module_id": "MOD_SFIT_FINISH_1",
+        "name": "Exterior Soffit Finish Coat 1",
+        "phase": "finish",
+        "task_count": 4,
+        "tasks": [
+          "TSK_SFIT_CUTIN_FASCIA_1",
+          "TSK_SFIT_FINISH_1_BRUSH_ROLL",
+          "TSK_SFIT_FINISH_1_SPRAY",
+          "TSK_SFIT_TG_BRUSH_BACK_1"
+        ]
+      },
+      {
+        "module_id": "MOD_SFIT_INTERSTAGE",
+        "name": "Exterior Soffit Interstage Inspection",
+        "phase": "interstage",
+        "task_count": 4,
+        "tasks": [
+          "TSK_SFIT_INSPECT_COAT",
+          "TSK_SFIT_SAND_INTERCOAT",
+          "TSK_SFIT_TOUCHUP_REPAIR",
+          "TSK_SFIT_DUST_INTERCOAT"
+        ]
+      },
+      {
+        "module_id": "MOD_SFIT_FINISH_2",
+        "name": "Exterior Soffit Finish Coat 2",
+        "phase": "finish",
+        "task_count": 4,
+        "applies_when": { "quality_tier": ["QT3", "QT4"] },
+        "tasks": [
+          "TSK_SFIT_CUTIN_FASCIA_2",
+          "TSK_SFIT_FINISH_2_BRUSH_ROLL",
+          "TSK_SFIT_FINISH_2_SPRAY",
+          "TSK_SFIT_TG_BRUSH_BACK_2"
+        ]
+      },
+      {
+        "module_id": "MOD_SFIT_FINAL_INSPECT",
+        "name": "Exterior Soffit Final Inspection",
+        "phase": "cleanup",
+        "task_count": 2,
+        "tasks": [
+          "TSK_SFIT_FINAL_INSPECT",
+          "TSK_SFIT_FINAL_TOUCHUP"
+        ]
+      },
+      {
+        "module_id": "MOD_SFIT_CLEANUP",
+        "name": "Exterior Soffit Cleanup & Protection Teardown",
+        "phase": "cleanup",
+        "task_count": 3,
+        "tasks": [
+          "TSK_SFIT_PROTECT_TEARDOWN",
+          "TSK_SFIT_CLEAN_EQUIPMENT",
+          "TSK_SFIT_SITE_CLEANUP"
+        ]
+      }
+    ]
+  },
+
+  "production_summary": {
+    "overhead_rate_design": "BAKED_INTO_BASE_RATES — all rates already include ~25-35% overhead penalty from vertical baselines. FAC_SFIT_OVERHEAD (1.35) is NOT applied as a stacking modifier.",
+    "factor_modifiers": [
+      {
+        "factor_id": "FAC_EXT_ACCESS",
+        "name": "Access Type Modifier",
+        "mechanism": "time_multiplier",
+        "values": { "ground": 1.00, "ladder": 1.35, "scaffold": 1.60, "lift": 1.50 },
+        "formula": "effective_rate = base_rate / modifier",
+        "applies_to": "26 overhead tasks (all except ground-level protection setup, equipment setup, cleanup)",
+        "notes": "Stacks ON TOP of overhead-adjusted base rates."
+      },
+      {
+        "factor_id": "FAC_SFIT_VENT_COMPLEXITY",
+        "name": "Vented Soffit Application Penalty",
+        "mechanism": "time_multiplier",
+        "values": { "non_vented": 1.00, "vented": 1.15 },
+        "formula": "effective_rate = base_rate / modifier",
+        "applies_to": "Brush/roll application tasks (prime and finish)",
+        "notes": "Only brush/roll — spray is PROHIBITED on vented soffit."
+      },
+      {
+        "factor_id": "FAC_SFIT_TG_JOINTS",
+        "name": "Tongue-and-Groove Joint Complexity Modifier",
+        "mechanism": "time_multiplier",
+        "values": { "solid_panel": 1.00, "tg_board": 1.20 },
+        "formula": "effective_rate = base_rate / modifier",
+        "applies_to": "Brush/roll application and wood sand prep tasks",
+        "notes": "T&G brush-back tasks (TSK_SFIT_TG_BRUSH_BACK_1/2) already reflect groove work — do NOT apply this modifier to those."
+      }
+    ],
+    "modifier_stacking": {
+      "stacking_cap": 4.0,
+      "max_theoretical_stack": 2.208,
+      "worst_case_scenario": "Vented T&G board soffit, scaffold access: FAC_SFIT_VENT_COMPLEXITY(1.15) x FAC_SFIT_TG_JOINTS(1.20) x FAC_EXT_ACCESS(1.60) = 2.208x",
+      "worst_case_effective_rate": "54 SF/hr brush/roll finish — slow but expected for overhead vented T&G from scaffold"
+    }
+  },
+
+  "variants": [
+    {
+      "variant_id": "VAR_QT2_BRUSH_ROLL_BARE",
+      "applies_when": { "quality_tier": ["QT2"], "application_method": ["brush_roll"], "substrate_state": ["SS_EXT_BARE_WOOD", "SS_EXT_PRIMED_FACTORY"] },
+      "coats": { "prime": 1, "finish": 1 },
+      "protection_zones": ["ext_landscape_adjacent", "ext_hardscape_walk", "ext_light_fixture"],
+      "notes": "Economy brush/roll on bare/factory-primed soffit. Single finish coat."
+    },
+    {
+      "variant_id": "VAR_QT3_BRUSH_ROLL_BARE",
+      "applies_when": { "quality_tier": ["QT3"], "application_method": ["brush_roll"], "substrate_state": ["SS_EXT_BARE_WOOD", "SS_EXT_PRIMED_FACTORY"] },
+      "coats": { "prime": 1, "finish": 2 },
+      "protection_zones": ["ext_landscape_adjacent", "ext_hardscape_walk", "ext_light_fixture", "ext_fascia_adjacent"],
+      "notes": "Standard brush/roll on bare/factory-primed soffit. Two finish coats."
+    },
+    {
+      "variant_id": "VAR_QT4_BRUSH_ROLL_BARE",
+      "applies_when": { "quality_tier": ["QT4"], "application_method": ["brush_roll"], "substrate_state": ["SS_EXT_BARE_WOOD", "SS_EXT_PRIMED_FACTORY"] },
+      "coats": { "prime": 1, "finish": 2 },
+      "protection_zones": ["ext_landscape_adjacent", "ext_hardscape_walk", "ext_light_fixture", "ext_fascia_adjacent"],
+      "notes": "Premium brush/roll on bare/factory-primed soffit. Interstage sand. Systematic inspection."
+    },
+    {
+      "variant_id": "VAR_QT3_SPRAY_NONVENTED",
+      "applies_when": { "quality_tier": ["QT3"], "application_method": ["spray"], "soffit_vent_type": ["non_vented"], "substrate_state": ["SS_EXT_BARE_WOOD", "SS_EXT_PRIMED_FACTORY"] },
+      "coats": { "prime": 1, "finish": 2 },
+      "protection_zones": ["ext_landscape_adjacent", "ext_hardscape_walk", "ext_light_fixture", "ext_fascia_adjacent", "ext_siding_adjacent"],
+      "notes": "Standard spray on non-vented solid panel soffit. Full protection scope for overspray."
+    },
+    {
+      "variant_id": "VAR_QT4_SPRAY_NONVENTED",
+      "applies_when": { "quality_tier": ["QT4"], "application_method": ["spray"], "soffit_vent_type": ["non_vented"], "substrate_state": ["SS_EXT_BARE_WOOD", "SS_EXT_PRIMED_FACTORY"] },
+      "coats": { "prime": 1, "finish": 2 },
+      "protection_zones": ["ext_landscape_adjacent", "ext_hardscape_walk", "ext_light_fixture", "ext_fascia_adjacent", "ext_siding_adjacent"],
+      "notes": "Premium spray on non-vented soffit. Interstage sand. Systematic inspection."
+    },
+    {
+      "variant_id": "VAR_QT2_FIELD_PRIMED",
+      "applies_when": { "quality_tier": ["QT2"], "substrate_state": ["SS_EXT_PRIMED_FIELD"] },
+      "coats": { "prime": 0, "finish": 1 },
+      "protection_zones": ["ext_landscape_adjacent", "ext_hardscape_walk", "ext_light_fixture"],
+      "notes": "Economy on field-primed surface. Skip prime. Single finish coat. Minimum viable scope."
+    },
+    {
+      "variant_id": "VAR_QT3_FIELD_PRIMED",
+      "applies_when": { "quality_tier": ["QT3"], "substrate_state": ["SS_EXT_PRIMED_FIELD"] },
+      "coats": { "prime": 0, "finish": 2 },
+      "protection_zones": ["ext_landscape_adjacent", "ext_hardscape_walk", "ext_light_fixture", "ext_fascia_adjacent"],
+      "notes": "Standard on field-primed surface. Skip prime. Two finish coats."
+    },
+    {
+      "variant_id": "VAR_QT3_VINYL",
+      "applies_when": { "quality_tier": ["QT3"], "substrate_material": ["vinyl"] },
+      "coats": { "prime": 1, "finish": 2 },
+      "protection_zones": ["ext_landscape_adjacent", "ext_hardscape_walk", "ext_light_fixture", "ext_fascia_adjacent"],
+      "notes": "Vinyl soffit. Bonding primer mandatory. Solar-reflective finish if LRV < 55. Scuff-sand prep required."
+    }
+  ],
+
+  "required_paintscope_inputs": [
+    {
+      "input_name": "IN_SF_SOFFIT_FIELD",
+      "paintscope_key": "PS_EXT_SURFACE_SF.SOFFIT_FIELD",
+      "uom": "SF",
+      "required": true,
+      "description": "Net paintable soffit field area (eave depth x roofline perimeter)"
+    },
+    {
+      "input_name": "IN_EA_ELEVATIONS",
+      "paintscope_key": "PS_EXT_META.EA.ELEVATIONS_TOTAL",
+      "uom": "EA",
+      "required": true,
+      "description": "Number of building elevations in scope"
+    },
+    {
+      "input_name": "IN_ENUM_ACCESS_TYPE",
+      "paintscope_key": "PS_EXT_META.ENUM.ACCESS_TYPE",
+      "uom": "ENUM",
+      "required": true,
+      "description": "Access type per elevation (ground/ladder/scaffold/lift) — drives FAC_EXT_ACCESS height modifier"
+    },
+    {
+      "input_name": "IN_BOOL_NEW_CONSTRUCTION",
+      "paintscope_key": "PS_EXT_META.FLAG.NEW_CONSTRUCTION",
+      "uom": "BOOL",
+      "required": true,
+      "description": "Boolean flag confirming new construction context. Always true for this NC spec."
+    },
+    {
+      "input_name": "IN_ENUM_SOFFIT_VENT_TYPE",
+      "paintscope_key": "PS_EXT_META.ENUM.SOFFIT_VENT_TYPE",
+      "uom": "ENUM",
+      "required": true,
+      "description": "Soffit vent construction type (vented/non_vented). Gates spray eligibility. Default: vented."
+    },
+    {
+      "input_name": "IN_ENUM_SOFFIT_PANEL_TYPE",
+      "paintscope_key": "PS_EXT_META.ENUM.SOFFIT_PANEL_TYPE",
+      "uom": "ENUM",
+      "required": true,
+      "description": "Soffit panel/board construction type (solid_panel/tg_board). Drives FAC_SFIT_TG_JOINTS modifier."
+    },
+    {
+      "input_name": "IN_SF_EXT_PROTECT_LANDSCAPE_ADJ",
+      "paintscope_key": "PS_EXT_PROTECT_SF.LANDSCAPE_ADJACENT",
+      "uom": "SF",
+      "required": false,
+      "required_when": "When landscape is below soffit work zone",
+      "description": "Landscape area directly below soffit requiring ground protection"
+    },
+    {
+      "input_name": "IN_SF_EXT_PROTECT_HARDSCAPE_WALK",
+      "paintscope_key": "PS_EXT_PROTECT_SF.HARDSCAPE_WALK",
+      "uom": "SF",
+      "required": false,
+      "required_when": "When walkways are below soffit work zone",
+      "description": "Walkway/hardscape area below soffit requiring protection"
+    },
+    {
+      "input_name": "IN_EA_EXT_PROTECT_LIGHT_FIXTURE",
+      "paintscope_key": "PS_EXT_PROTECT_EA.LIGHT_FIXTURE",
+      "uom": "EA",
+      "required": false,
+      "required_when": "When soffit-mounted fixtures are present",
+      "description": "Count of soffit-mounted light fixtures to mask (recessed lights, porch fixtures)"
+    }
+  ],
+
+  "protection_zones_required": [
+    {
+      "zone_id": "ext_landscape_adjacent",
+      "condition": "when_adjacent",
+      "protection_level": "edge_only",
+      "upgrade_when": { "application_method": ["spray"] },
+      "upgrade_level": "full_cover",
+      "notes": "SF-based landscape area directly below soffit drip zone. CRITICAL for overhead work — gravity pulls all drips straight down. Brush/roll: drop cloth at base. Spray: full tarp over entire drip zone."
+    },
+    {
+      "zone_id": "ext_hardscape_walk",
+      "condition": "when_adjacent",
+      "protection_level": "light_mask",
+      "upgrade_when": { "application_method": ["spray"] },
+      "upgrade_level": "full_cover",
+      "notes": "Walkway/hardscape below soffit. Canvas drop cloths for non-slip crew traffic."
+    },
+    {
+      "zone_id": "ext_light_fixture",
+      "condition": "when_present",
+      "protection_level": "light_mask",
+      "notes": "Soffit-mounted fixtures — recessed lights, porch fixtures. Bag or tape over. Remove cover plate if accessible."
+    },
+    {
+      "zone_id": "ext_fascia_adjacent",
+      "condition": "when_finished",
+      "protection_level": "light_mask",
+      "notes": "Fascia board above soffit — tape + 12-inch masking film at fascia-soffit junction when fascia is already painted. Skip in top-down NC sequence when fascia is unfinished."
+    },
+    {
+      "zone_id": "ext_siding_adjacent",
+      "condition": "when_finished",
+      "protection_level": "light_mask",
+      "notes": "Siding below soffit at wall junction (frieze area) — protect when siding is already painted. Typically unfinished in top-down NC sequence."
+    }
+  ],
+
+  "adjacency_declarations": {
+    "primary_surface": "soffit_field",
+    "adjacent_surfaces": [
+      {
+        "surface_id": "ext_trim_fascia",
+        "edge_type": "linear",
+        "typical_relationship": "different_finish",
+        "continuity_rate_modifier": 1.0,
+        "notes": "Fascia above soffit. Trim color. Separate scope (SF_TRIM_EXT_NC). Cut-in required at junction."
+      },
+      {
+        "surface_id": "ext_trim_frieze",
+        "edge_type": "linear",
+        "typical_relationship": "different_finish",
+        "continuity_rate_modifier": 1.0,
+        "notes": "Frieze board at soffit-to-wall junction. Trim color. Separate scope."
+      },
+      {
+        "surface_id": "ext_trim_corner",
+        "edge_type": "linear",
+        "typical_relationship": "different_finish",
+        "continuity_rate_modifier": 1.0,
+        "notes": "Corner boards at gable soffit termination. Trim color."
+      },
+      {
+        "surface_id": "siding_field",
+        "edge_type": "linear",
+        "typical_relationship": "different_finish",
+        "continuity_rate_modifier": 1.0,
+        "notes": "Siding below soffit separated by frieze board. No direct soffit-to-siding cut-in needed."
+      },
+      {
+        "surface_id": "porch_ceiling",
+        "edge_type": "linear",
+        "typical_relationship": "same_finish",
+        "continuity_rate_modifier": 1.0,
+        "notes": "Porch ceiling may be continuous with soffit (same color). Future SF_PORCH_CEILING_EXT_NC."
+      }
+    ]
+  },
+
+  "site_condition_rules": [
+    {
+      "condition_id": "access_type",
+      "treatment": "height_modifier",
+      "vocabulary_ref": "Exterior_Modifiers_Doctrine.md FAC_EXT_ACCESS",
+      "affected_tasks": "All 26 overhead tasks (see FAC_EXT_ACCESS applies_to list in production.json)",
+      "effect": "ground=1.00, ladder=1.35, scaffold=1.60, lift=1.50. Applied as time multiplier: effective_rate = base_rate / modifier.",
+      "notes": "Stacks on top of overhead-adjusted base rates. Ground-level tasks (protection setup/teardown, equipment setup, cleanup) excluded."
+    }
+  ],
+
+  "cross_spec_boundaries": {
+    "deduplication_notes": [
+      "Fascia and frieze are separate spec scope (SF_TRIM_EXT_NC). This spec handles soffit side of fascia-soffit junction. Trim spec handles the trim side.",
+      "Porch ceiling is separate scope (future SF_PORCH_CEILING_EXT_NC). Edge work at soffit-porch ceiling transition may need deduplication.",
+      "Window/door protection is NOT this spec's responsibility — siding specs handle that.",
+      "Soffit-to-siding junction: frieze board typically separates them. No direct soffit-to-siding cut-in needed.",
+      "Top-down sequence: soffit is painted before siding body. Adjacent fascia/frieze protection depends on whether they are already finished."
+    ],
+    "xspec_flags_consumed": [],
+    "xspec_flags_set": [],
+    "comp_modifiers_set": [],
+    "comp_modifiers_affected_by": []
+  },
+
+  "round_configurations": [
+    {
+      "round_id": "ROUND_SFIT_PRIME_2FINISH",
+      "name": "Prime + 2 Finish Coats",
+      "description": "Standard NC sequence: 1 field prime + 2 finish coats at QT3/QT4 on bare or factory-primed substrates.",
+      "applies_when": { "quality_tier": ["QT3", "QT4"], "substrate_state": ["SS_EXT_BARE_WOOD", "SS_EXT_PRIMED_FACTORY"] },
+      "phase_sequence": ["prime", "finish", "interstage", "finish"],
+      "total_coats": 3,
+      "interstage_cycles": 1
+    },
+    {
+      "round_id": "ROUND_SFIT_PRIME_1FINISH",
+      "name": "Prime + 1 Finish Coat (Economy)",
+      "description": "Economy QT2: 1 field prime + 1 finish coat on bare or factory-primed substrates.",
+      "applies_when": { "quality_tier": ["QT2"], "substrate_state": ["SS_EXT_BARE_WOOD", "SS_EXT_PRIMED_FACTORY"] },
+      "phase_sequence": ["prime", "finish"],
+      "total_coats": 2,
+      "interstage_cycles": 0
+    },
+    {
+      "round_id": "ROUND_SFIT_2FINISH",
+      "name": "2 Finish Coats Only (Field-Primed)",
+      "description": "Skip prime, 2 finish coats for SS_EXT_PRIMED_FIELD at QT3/QT4.",
+      "applies_when": { "quality_tier": ["QT3", "QT4"], "substrate_state": ["SS_EXT_PRIMED_FIELD"] },
+      "phase_sequence": ["finish", "interstage", "finish"],
+      "total_coats": 2,
+      "interstage_cycles": 1
+    },
+    {
+      "round_id": "ROUND_SFIT_1FINISH",
+      "name": "1 Finish Coat Only (Economy, Field-Primed)",
+      "description": "Economy QT2 single finish coat on field-primed surface. Minimum viable scope.",
+      "applies_when": { "quality_tier": ["QT2"], "substrate_state": ["SS_EXT_PRIMED_FIELD"] },
+      "phase_sequence": ["finish"],
+      "total_coats": 1,
+      "interstage_cycles": 0
+    }
+  ],
+
+  "qa_summary": {
+    "overall_result": "pass",
+    "total_issues": 3,
+    "critical_issues": 0,
+    "major_issues": 0,
+    "minor_issues": 3,
+    "issues": [
+      {
+        "issue_id": "QA-001",
+        "severity": "minor",
+        "status": "resolved",
+        "description": "TSK_SFIT_PRIME_ALKALI_BRUSH_ROLL missing application_method in production.json applies_when — added."
+      },
+      {
+        "issue_id": "QA-002",
+        "severity": "minor",
+        "status": "acknowledged",
+        "description": "Environmental modifiers (wind, sun, temp) included in production factor_modifiers. Inconsistent with sibling exterior pattern but no functional impact."
+      },
+      {
+        "issue_id": "QA-003",
+        "severity": "minor",
+        "status": "acknowledged",
+        "description": "Caulk task in prep module but must execute AFTER prime per COMPAT-SFIT-009. Documented in sequence_notes."
+      }
+    ],
+    "blockers": [],
+    "critical_risks": [
+      "RISK-SFIT-001: Attic vent contamination from spray on vented soffit — mitigated by vent_type gating (FM-001)",
+      "RISK-SFIT-002: Thermal distortion on vinyl from dark paint — mitigated by solar-reflective finish (FM-005)",
+      "RISK-SFIT-003: Edge wicking on FC panels — mitigated by edge sealing task (FM-006)"
+    ]
+  },
+
+  "sequencing_notes": {
+    "production_sequence": "Setup → Prep → Prime → Finish 1 → Interstage → Finish 2 → Final Inspect → Cleanup",
+    "edge_work": "Cut-in at fascia-soffit and frieze-soffit junctions. Required for both brush/roll and spray methods.",
+    "protection_sequence": "Ground protection (landscape/hardscape) → Fixture masking → Fascia masking (when finished) → Equipment setup → Coating work → Protection teardown → Equipment cleanup → Site cleanup",
+    "coat_sequence": "Prep (substrate-specific) → Prime (1 coat, skipped for SS_EXT_PRIMED_FIELD) → Finish coat 1 → Interstage (inspect, sand QT4, touch up) → Finish coat 2 (QT3/QT4) → Final inspect → Touch up",
+    "elevation_strategy": "Work one elevation at a time to minimize protection setup/teardown cycles.",
+    "key_prohibitions": "NO spray on vented soffit. NO power washing. NO semi-gloss or gloss sheen. NO alkyd/oil binders on vinyl."
+  },
+
+  "relationships": {
+    "companion_spec": null,
+    "often_combined_with": [],
+    "sibling_spec": "SF_SIDING_FIBERCEMENT_EXT_NC_v1",
+    "typical_before": ["SF_TRIM_EXT_NC_v1"],
+    "typical_after": [],
+    "cross_spec_protection_note": "Fascia/frieze protection during soffit work is this spec's responsibility when those surfaces are already finished. Window/door protection is siding spec's responsibility.",
+    "notes": "First exterior overhead field-surface spec. Shares protection zones and access modifiers with siding siblings. Key departures: overhead-adjusted base rates, spray vent-type gating, T&G groove brush-back tasks, extension pole as primary tool, 4 primer paths, flat/satin sheen only."
+  },
+
+  "dependencies": {
+    "research": "research.json",
+    "resolution": "resolution.json",
+    "sop_modules": "sop_modules.json",
+    "materials": "materials.json",
+    "production": "production.json",
+    "qa_report": "qa_report.json"
+  },
+
+  "doctrine_references": [
+    { "doctrine": "Exterior_Trim_Systems_Doctrine.md", "sections_used": ["Soffit classification §1", "Sequencing note §7"] },
+    { "doctrine": "Exterior_Substrates_Doctrine.md", "sections_used": ["Substrate types §2", "Quality tier exclusions §5.4"] },
+    { "doctrine": "Exterior_Access_Staging_Systems_Doctrine.md", "sections_used": ["Height modifiers §3", "Overhead work §7"] },
+    { "doctrine": "Exterior_Application_Methods_Doctrine.md", "sections_used": ["No spray on vented soffit Part A §6", "Spray rates Part B §1"] },
+    { "doctrine": "Exterior_Primer_Systems_Doctrine.md", "sections_used": ["Acrylic primer §2", "Tannin spot-prime §2", "Alkali-resistant primer", "Bonding primer"] },
+    { "doctrine": "Exterior_Protection_Doctrine_T3.md", "sections_used": ["Landscape zones", "Fixture zones", "Adjacent trim protection"] },
+    { "doctrine": "Exterior_Color_Sheen_Configuration_Doctrine.md", "sections_used": ["Soffit sheen §3: flat/satin only"] },
+    { "doctrine": "Exterior_Vinyl_Aluminum_Siding_Doctrine.md", "sections_used": ["Vinyl substrate prep §1", "LRV restrictions", "VinylSafe technology"] },
+    { "doctrine": "Exterior_Caulking_Sealants_Doctrine.md", "sections_used": ["Caulk after prime sequencing"] },
+    { "doctrine": "Quality_Tiers_and_Surface_Condition.md", "sections_used": ["QT2-QT4 definitions", "Inspection levels"] },
+    { "doctrine": "Estimation_Modifiers_Doctrine.md", "sections_used": ["Modifier stacking rules", "Division formula", "4.0x cap"] }
+  ],
+
+  "research_corrections": [],
+
+  "user_corrections": [],
+
+  "change_log": [
+    {
+      "version": "0.1.0",
+      "date": "2026-03-09",
+      "author": "SpecFactory",
+      "changes": "Initial draft spec for exterior soffit prime and paint (new construction). First exterior overhead field-surface spec. Combined prime+paint (single mobilization). Key features: overhead-adjusted base rates (~25-35% reduction from vertical baselines), spray eligibility gated by soffit_vent_type (FM-001), 3 substrate paths (wood T&G/plywood, fiber cement HardieSoffit, vinyl), 4 primer systems (acrylic/tannin spot/alkali-resistant/bonding) + 2 finish systems + 1 conditional solar-reflective, 6 configuration dimensions (quality_tier QT2-QT4, application_method, substrate_material, sheen flat/satin, soffit_vent_type, soffit_panel_type), 37 tasks across 8 modules (29 binary + 6 qt_scaled + 2 qt_conditional), 5 protection zones, 3 stacking modifiers (access/vent complexity/T&G joints, max 2.208x). QA result: pass (3 minor issues, 1 resolved, 2 acknowledged)."
+    }
+  ]
+}

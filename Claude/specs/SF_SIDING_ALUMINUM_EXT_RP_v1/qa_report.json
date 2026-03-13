@@ -1,0 +1,363 @@
+{
+  "qa_metadata": {
+    "spec_family_id": "SF_SIDING_ALUMINUM_EXT_RP",
+    "spec_family_version": "v1",
+    "domain": "exterior",
+    "context_prefix": "ALRP",
+    "qa_agent": "System Critic",
+    "qa_date": "2026-03-10",
+    "files_validated": [
+      "research.json",
+      "resolution.json",
+      "materials.json",
+      "sop_modules.json",
+      "production.json"
+    ],
+    "schema_version": "1.1.0"
+  },
+
+  "overall_result": "FAIL",
+
+  "result_rationale": "17 BLOCKER-level cross-file task ID mismatches between sop_modules.json and production.json. The two files use completely different naming conventions for the same logical tasks. Additionally, 2 classification mismatches and 1 UOM mismatch found on the few tasks that DO match by ID. This spec cannot proceed to assembly until SOP and production task IDs are reconciled character-for-character.",
+
+  "checks_performed": [
+    "Cross-file task ID match (SOP <-> Production)",
+    "Cross-file task classification match",
+    "Cross-file UOM match",
+    "Material system ID threading (SOP -> Materials)",
+    "Module ID prefix check (MOD_ALRP_*)",
+    "Factor modifier ID prefix check (FAC_ALRP_* / FAC_EXT_*)",
+    "QT range check (QT2-QT3 only)",
+    "chalk_severity dimension usage",
+    "Substrate state check (2 states only)",
+    "DSD reference check (must be absent)",
+    "RRP/lead reference check (must be absent)",
+    "LRV restriction check (must be absent)",
+    "Self-etching primer mandatory path check",
+    "DFT 0.5-1.0 mil constraint documented",
+    "Coastal epoxy conditional gating",
+    "Stacking partition: chalk on prep only",
+    "Stacking partition: QT on coating only",
+    "Access/environmental on variable-rate tasks",
+    "Max prep stack under 4.0x",
+    "Max coating stack under 4.0x",
+    "Research mandatory sections present",
+    "Key decisions KD-001 through KD-012 present",
+    "Research corrections RC-001 through RC-003 present",
+    "Protection zones ext_* prefixed",
+    "Protection zone utility panel wrong zone_id in SOP"
+  ],
+
+  "blockers": [
+    {
+      "issue_id": "BLK-001",
+      "severity": "critical",
+      "area": "cross_file_threading",
+      "file": "sop_modules.json / production.json",
+      "description": "MASSIVE task ID mismatch between SOP and production. 17 SOP tasks have no character-for-character match in production, and 20 production tasks have no match in SOP. The two files use different naming conventions for equivalent tasks. Examples: SOP has TSK_ALRP_PROTECT_LANDSCAPE but production has TSK_ALRP_LANDSCAPE_PROTECT. SOP has TSK_ALRP_OXIDE_SCUFF but production has TSK_ALRP_SCUFF_OXIDE. SOP has TSK_ALRP_FINISH_SPRAY_1 but production has TSK_ALRP_FINISH_1_SPRAY. SOP has TSK_ALRP_DFT_VERIFY but production has TSK_ALRP_DFT_VERIFY_PRIMER. This violates cross-file threading RULE 1.",
+      "suggested_fix": "One file must be canonical. Recommend production.json task IDs be updated to match sop_modules.json task IDs exactly, OR vice versa. Every task_id must be character-for-character identical across both files. See task_id_cross_check section for full mapping."
+    },
+    {
+      "issue_id": "BLK-002",
+      "severity": "critical",
+      "area": "cross_file_threading",
+      "file": "sop_modules.json / production.json",
+      "description": "SOP has 4 wash tasks by chalk_severity (TSK_ALRP_WASH_MIX, TSK_ALRP_WASH_PRESSURE, TSK_ALRP_WASH_CHALK_LIGHT, TSK_ALRP_WASH_CHALK_HEAVY) but production has only 2 wash tasks (TSK_ALRP_WASH_PRESSURE, TSK_ALRP_WASH_REWASH). The production file consolidated 3 chalk-specific wash tasks into a single task with FAC_ALRP_CHALK modifier scaling, plus a separate re-wash task. Neither approach is wrong architecturally, but the task IDs and task count MUST agree between files.",
+      "suggested_fix": "Align on one approach: either (a) SOP splits by chalk severity (3 wash tasks) and production provides rates for each, or (b) production uses a single wash task with modifier and SOP matches. The wash_mix task from SOP has no production equivalent regardless — add it or remove it."
+    },
+    {
+      "issue_id": "BLK-003",
+      "severity": "critical",
+      "area": "cross_file_threading",
+      "file": "sop_modules.json / production.json",
+      "description": "SOP finish tasks are classified as qt_scaled (TSK_ALRP_FINISH_SPRAY_1, TSK_ALRP_FINISH_BRUSH_ROLL_1, TSK_ALRP_FINISH_SPRAY_2, TSK_ALRP_FINISH_BRUSH_ROLL_2) but production finish tasks TSK_ALRP_FINISH_1_SPRAY, TSK_ALRP_FINISH_1_BRUSH_ROLL, TSK_ALRP_FINISH_2_SPRAY, TSK_ALRP_FINISH_2_BRUSH_ROLL are classified as binary. Classification mismatch on finish coat tasks. This violates cross-file threading RULE 2.",
+      "suggested_fix": "Reconcile classification. Finish coat application on a fixed-rate substrate (non-porous aluminum) with no per-tier rate variation in production suggests binary is correct. SOP should be updated to binary if production rates are identical across tiers, or production should provide qt_rates if SOP's qt_scaled is intentional."
+    },
+    {
+      "issue_id": "BLK-004",
+      "severity": "critical",
+      "area": "cross_file_threading",
+      "file": "sop_modules.json / production.json",
+      "description": "SOP has 2 detail tasks (TSK_ALRP_DETAIL_JCHANNEL, TSK_ALRP_DETAIL_CUTIN) classified as qt_conditional. Production has 1 detail task (TSK_ALRP_DETAIL_BRUSH) classified as qt_conditional. Task count and ID mismatch in detail module. SOP splits J-channel and cut-in; production combines them.",
+      "suggested_fix": "Either split production detail task into two matching SOP, or combine SOP detail tasks into one matching production. Task IDs must match 1:1."
+    },
+    {
+      "issue_id": "BLK-005",
+      "severity": "critical",
+      "area": "cross_file_threading",
+      "file": "sop_modules.json / production.json",
+      "description": "SOP cleanup module has 6 tasks (TSK_ALRP_INSPECT, TSK_ALRP_TOUCHUP, TSK_ALRP_REMOVE_PROTECTION, TSK_ALRP_SCAFFOLD_TEARDOWN, TSK_ALRP_CLEAN_EQUIPMENT, TSK_ALRP_SITE_CLEANUP). Production has 7 cleanup-area tasks with different IDs (TSK_ALRP_FINAL_INSPECT, TSK_ALRP_FINAL_TOUCHUP, TSK_ALRP_PROTECT_TEARDOWN, TSK_ALRP_CLEAN_EQUIPMENT_SPRAY, TSK_ALRP_CLEAN_EQUIPMENT_BRUSH_ROLL, TSK_ALRP_SITE_CLEANUP). Production splits equipment cleanup by method (spray vs brush_roll) while SOP has a single task. SOP uses TSK_ALRP_INSPECT, production uses TSK_ALRP_FINAL_INSPECT. No scaffold teardown in production.",
+      "suggested_fix": "Reconcile: (a) match IDs, (b) decide whether equipment cleanup splits by method in both or neither, (c) add scaffold teardown to production or remove from SOP, (d) TSK_ALRP_INSPECT vs TSK_ALRP_FINAL_INSPECT must be one ID."
+    },
+    {
+      "issue_id": "BLK-006",
+      "severity": "critical",
+      "area": "cross_file_threading",
+      "file": "sop_modules.json / production.json",
+      "description": "SOP has no mobilize or scaffold setup task in production. TSK_ALRP_MOBILIZE and TSK_ALRP_SCAFFOLD_SETUP from SOP's MOD_ALRP_MOBILIZATION have no production rate entries. These are binary fixed-time tasks that need FIXED time entries in production.",
+      "suggested_fix": "Add TSK_ALRP_MOBILIZE and TSK_ALRP_SCAFFOLD_SETUP to production.json with fixed_time_minutes entries."
+    },
+    {
+      "issue_id": "BLK-007",
+      "severity": "critical",
+      "area": "cross_file_threading",
+      "file": "sop_modules.json / production.json",
+      "description": "Production has TSK_ALRP_EQUIPMENT_SETUP_SPRAY and TSK_ALRP_EQUIPMENT_SETUP_BRUSH_ROLL with no corresponding tasks in SOP. Production has TSK_ALRP_INSPECT_COAT and TSK_ALRP_TOUCHUP_REPAIR (interstage inspection/touchup) with no corresponding tasks in SOP. Production has TSK_ALRP_DFT_VERIFY_FINISH with no corresponding task in SOP. These are production-only tasks with no SOP definition.",
+      "suggested_fix": "Add these tasks to sop_modules.json in appropriate modules, OR remove from production.json if they are not needed. Every task must exist in both files."
+    }
+  ],
+
+  "warnings": [
+    {
+      "issue_id": "MAJ-001",
+      "severity": "major",
+      "area": "protection_zone_error",
+      "file": "sop_modules.json",
+      "description": "TSK_ALRP_PROTECT_UTILITY (Utility Panel Masking) has protection_metadata.zones set to ['ext_light_fixture'] instead of a utility-specific zone. This is a copy-paste error — the utility panel task references the light fixture zone instead of its own zone.",
+      "suggested_fix": "Change protection_metadata.zones from ['ext_light_fixture'] to a utility-appropriate zone. Either create 'ext_utility_panel' zone or use an existing appropriate zone. The resolution.json lists no ext_utility_panel zone — this zone may need to be added to the protection_zones list as well."
+    },
+    {
+      "issue_id": "MAJ-002",
+      "severity": "major",
+      "area": "classification_mismatch",
+      "file": "sop_modules.json / production.json",
+      "description": "TSK_ALRP_CHALK_VERIFY: SOP classifies as 'binary', production classifies as 'binary' with FIXED UOM. Match confirmed. However, TSK_ALRP_OXIDE_SCUFF (SOP) is qt_scaled but TSK_ALRP_SCUFF_OXIDE (production) is binary. Classification mismatch on the oxide scuff task — SOP says qt_scaled (rate varies by tier), production says binary (single rate). This is both an ID mismatch (BLK-001) and a classification mismatch.",
+      "suggested_fix": "Oxide scuff on aluminum is the same physical work at both QT2 and QT3 (break the oxide layer). Binary classification with a single rate appears more correct. Update SOP to binary, or provide qt_rates in production."
+    },
+    {
+      "issue_id": "MAJ-003",
+      "severity": "major",
+      "area": "task_count_discrepancy",
+      "file": "sop_modules.json / production.json",
+      "description": "SOP claims 36 total tasks. Production claims 37 total tasks. The actual counted tasks are: SOP = 36 tasks across 10 modules. Production = 37 tasks in task_production_rates array. The discrepancy arises from production splitting equipment cleanup (1 SOP task -> 2 production tasks) and adding interstage inspect/touchup tasks not in SOP, while SOP has tasks not in production (mobilize, scaffold setup, wash_mix, wash_chalk_light, wash_chalk_heavy). The net count is different because different tasks are included/excluded.",
+      "suggested_fix": "After reconciling task IDs per BLK-001 through BLK-007, recount and ensure both files report the same total."
+    },
+    {
+      "issue_id": "MAJ-004",
+      "severity": "major",
+      "area": "materials_sheen_gap",
+      "file": "materials.json",
+      "description": "SYS_EXT_ALRP_FINISH_ACRYLIC has allowed_sheens: ['flat', 'satin'] but resolution.json lists sheen values as ['flat', 'satin', 'semi-gloss']. Semi-gloss is missing from the finish material system's allowed_sheens. Research and resolution both confirm semi-gloss is available for aluminum siding.",
+      "suggested_fix": "Add 'semi-gloss' to SYS_EXT_ALRP_FINISH_ACRYLIC.allowed_sheens in materials.json."
+    },
+    {
+      "issue_id": "MIN-001",
+      "severity": "minor",
+      "area": "caulk_task_id_variation",
+      "file": "sop_modules.json / production.json",
+      "description": "SOP has TSK_ALRP_CAULK_APPLY; production has TSK_ALRP_CAULK_REPLACE. These represent the same logical task (replace failed caulk) but have different IDs. While both are qt_conditional/QT3-only, the IDs must match exactly.",
+      "suggested_fix": "Pick one name and use it in both files. TSK_ALRP_CAULK_REPLACE is more descriptive of the actual work."
+    },
+    {
+      "issue_id": "MIN-002",
+      "severity": "minor",
+      "area": "coverage_profile_id",
+      "file": "materials.json",
+      "description": "Finish coverage profile uses ID 'COV_ALRP_FINISH_ACRYLIC' in materials.json but resolution.json proposed 'COV_ALRP_FINISH'. Minor naming inconsistency — the materials version is more specific which is acceptable, but should be consistent with registry proposal.",
+      "suggested_fix": "Update resolution.json proposed ID to match materials.json, or vice versa. Low impact."
+    },
+    {
+      "issue_id": "MIN-003",
+      "severity": "minor",
+      "area": "epoxy_product_role",
+      "file": "materials.json",
+      "description": "SYS_EXT_ALRP_PRIMER_EPOXY uses product_role: 'intermediate' but resolution.json proposed_systems lists product_role values as 'primer', 'finish', 'specialty'. 'intermediate' is not in the resolution's product_role enum. The epoxy system should use product_role: 'specialty' per resolution.",
+      "suggested_fix": "Change product_role from 'intermediate' to 'specialty' in materials.json for SYS_EXT_ALRP_PRIMER_EPOXY, OR add 'intermediate' to the controlled enum."
+    },
+    {
+      "issue_id": "MIN-004",
+      "severity": "minor",
+      "area": "research_zone_id_inconsistency",
+      "file": "research.json",
+      "description": "Research protection_zones_analysis uses 'ext_hvac_cover' and 'ext_ground_cover' and 'ext_hardscape_protection' but resolution.json and sop_modules.json use 'ext_hvac_unit', 'ext_landscape_adjacent', 'ext_hardscape_walk'/'ext_hardscape_patio'. Research zone IDs do not match downstream canonical zone IDs. This is acceptable since research is upstream, but should be noted.",
+      "suggested_fix": "No action needed — research is draft input. Downstream files use correct canonical zone IDs."
+    },
+    {
+      "issue_id": "MIN-005",
+      "severity": "minor",
+      "area": "production_environmental_modifiers",
+      "file": "production.json",
+      "description": "Production includes FAC_EXT_WIND, FAC_EXT_SUN_EXPOSURE, and FAC_EXT_SURFACE_TEMP as factor modifiers applied to coating tasks. Research explicitly states 'Environmental conditions are NOT estimatable' and 'EXCLUDED from estimation modifiers per established exterior spec convention.' Production contradicts research on this point by including these as active modifiers with values.",
+      "suggested_fix": "Decide: either these are estimation modifiers (update research to reflect) or they are SOP-only constraints (remove from production.json factor_modifiers). The stacking analysis uses them, so production appears to have intentionally included them. Confirm intent."
+    }
+  ],
+
+  "task_id_cross_check": {
+    "sop_only": [
+      "TSK_ALRP_MOBILIZE",
+      "TSK_ALRP_SCAFFOLD_SETUP",
+      "TSK_ALRP_PROTECT_LANDSCAPE",
+      "TSK_ALRP_PROTECT_HARDSCAPE",
+      "TSK_ALRP_PROTECT_WINDOW_MASK",
+      "TSK_ALRP_PROTECT_DOOR_MASK",
+      "TSK_ALRP_PROTECT_TRIM_MASK",
+      "TSK_ALRP_PROTECT_LIGHT_FIXTURE",
+      "TSK_ALRP_PROTECT_HVAC",
+      "TSK_ALRP_PROTECT_UTILITY",
+      "TSK_ALRP_WASH_MIX",
+      "TSK_ALRP_WASH_CHALK_LIGHT",
+      "TSK_ALRP_WASH_CHALK_HEAVY",
+      "TSK_ALRP_OXIDE_SCUFF",
+      "TSK_ALRP_DUST_CLEAN",
+      "TSK_ALRP_CAULK_APPLY",
+      "TSK_ALRP_DFT_VERIFY",
+      "TSK_ALRP_FINISH_SPRAY_1",
+      "TSK_ALRP_FINISH_BRUSH_ROLL_1",
+      "TSK_ALRP_FINISH_SPRAY_2",
+      "TSK_ALRP_FINISH_BRUSH_ROLL_2",
+      "TSK_ALRP_DETAIL_JCHANNEL",
+      "TSK_ALRP_DETAIL_CUTIN",
+      "TSK_ALRP_INSPECT",
+      "TSK_ALRP_TOUCHUP",
+      "TSK_ALRP_REMOVE_PROTECTION",
+      "TSK_ALRP_SCAFFOLD_TEARDOWN",
+      "TSK_ALRP_CLEAN_EQUIPMENT"
+    ],
+    "production_only": [
+      "TSK_ALRP_LANDSCAPE_PROTECT",
+      "TSK_ALRP_HARDSCAPE_WALK_PROTECT",
+      "TSK_ALRP_HARDSCAPE_PATIO_PROTECT",
+      "TSK_ALRP_WINDOW_MASK",
+      "TSK_ALRP_DOOR_MASK",
+      "TSK_ALRP_FIXTURE_MASK",
+      "TSK_ALRP_HVAC_COVER",
+      "TSK_ALRP_UTILITY_MASK",
+      "TSK_ALRP_TRIM_MASK",
+      "TSK_ALRP_EQUIPMENT_SETUP_SPRAY",
+      "TSK_ALRP_EQUIPMENT_SETUP_BRUSH_ROLL",
+      "TSK_ALRP_WASH_REWASH",
+      "TSK_ALRP_SCUFF_OXIDE",
+      "TSK_ALRP_DUST_CLEANUP",
+      "TSK_ALRP_DFT_VERIFY_PRIMER",
+      "TSK_ALRP_FINISH_1_SPRAY",
+      "TSK_ALRP_FINISH_1_BRUSH_ROLL",
+      "TSK_ALRP_INSPECT_COAT",
+      "TSK_ALRP_TOUCHUP_REPAIR",
+      "TSK_ALRP_FINISH_2_SPRAY",
+      "TSK_ALRP_FINISH_2_BRUSH_ROLL",
+      "TSK_ALRP_DETAIL_BRUSH",
+      "TSK_ALRP_CAULK_REPLACE",
+      "TSK_ALRP_DFT_VERIFY_FINISH",
+      "TSK_ALRP_FINAL_INSPECT",
+      "TSK_ALRP_FINAL_TOUCHUP",
+      "TSK_ALRP_PROTECT_TEARDOWN",
+      "TSK_ALRP_CLEAN_EQUIPMENT_SPRAY",
+      "TSK_ALRP_CLEAN_EQUIPMENT_BRUSH_ROLL"
+    ],
+    "matched": [
+      "TSK_ALRP_WASH_PRESSURE",
+      "TSK_ALRP_CHALK_VERIFY",
+      "TSK_ALRP_PRIME_ETCH_SPRAY",
+      "TSK_ALRP_PRIME_ETCH_BRUSH_ROLL",
+      "TSK_ALRP_PRIME_EPOXY_SPRAY",
+      "TSK_ALRP_PRIME_EPOXY_BRUSH_ROLL",
+      "TSK_ALRP_CAULK_ASSESS",
+      "TSK_ALRP_SITE_CLEANUP"
+    ],
+    "classification_mismatches": [
+      {
+        "task_id_sop": "TSK_ALRP_OXIDE_SCUFF",
+        "task_id_production": "TSK_ALRP_SCUFF_OXIDE",
+        "sop_classification": "qt_scaled",
+        "production_classification": "binary",
+        "note": "IDs also differ — this is both an ID mismatch and classification mismatch"
+      },
+      {
+        "task_id_sop": "TSK_ALRP_FINISH_SPRAY_1",
+        "task_id_production": "TSK_ALRP_FINISH_1_SPRAY",
+        "sop_classification": "qt_scaled",
+        "production_classification": "binary",
+        "note": "IDs also differ. SOP says qt_scaled; production provides flat rate (binary). All 4 finish tasks have this mismatch."
+      }
+    ],
+    "uom_mismatches": [
+      {
+        "task_id_sop": "TSK_ALRP_DUST_CLEAN",
+        "task_id_production": "TSK_ALRP_DUST_CLEANUP",
+        "note": "IDs differ so formal UOM cross-check not possible. SOP does not declare UOM explicitly on this task; production uses SF. Likely aligned but cannot confirm due to ID mismatch."
+      }
+    ],
+    "logical_equivalence_map": [
+      { "sop": "TSK_ALRP_PROTECT_LANDSCAPE", "production": "TSK_ALRP_LANDSCAPE_PROTECT", "note": "Same task, different naming convention" },
+      { "sop": "TSK_ALRP_PROTECT_HARDSCAPE", "production": "TSK_ALRP_HARDSCAPE_WALK_PROTECT + TSK_ALRP_HARDSCAPE_PATIO_PROTECT", "note": "SOP has 1 combined hardscape task; production splits by surface type" },
+      { "sop": "TSK_ALRP_PROTECT_WINDOW_MASK", "production": "TSK_ALRP_WINDOW_MASK", "note": "Same task, different ID" },
+      { "sop": "TSK_ALRP_PROTECT_DOOR_MASK", "production": "TSK_ALRP_DOOR_MASK", "note": "Same task, different ID" },
+      { "sop": "TSK_ALRP_PROTECT_TRIM_MASK", "production": "TSK_ALRP_TRIM_MASK", "note": "Same task, different ID" },
+      { "sop": "TSK_ALRP_PROTECT_LIGHT_FIXTURE", "production": "TSK_ALRP_FIXTURE_MASK", "note": "Same task, different ID" },
+      { "sop": "TSK_ALRP_PROTECT_HVAC", "production": "TSK_ALRP_HVAC_COVER", "note": "Same task, different ID" },
+      { "sop": "TSK_ALRP_PROTECT_UTILITY", "production": "TSK_ALRP_UTILITY_MASK", "note": "Same task, different ID" },
+      { "sop": "TSK_ALRP_OXIDE_SCUFF", "production": "TSK_ALRP_SCUFF_OXIDE", "note": "Same task, reversed word order" },
+      { "sop": "TSK_ALRP_DUST_CLEAN", "production": "TSK_ALRP_DUST_CLEANUP", "note": "Same task, slightly different suffix" },
+      { "sop": "TSK_ALRP_DFT_VERIFY", "production": "TSK_ALRP_DFT_VERIFY_PRIMER", "note": "SOP has generic DFT verify; production distinguishes primer vs finish" },
+      { "sop": "TSK_ALRP_FINISH_SPRAY_1", "production": "TSK_ALRP_FINISH_1_SPRAY", "note": "Same task, number placement differs" },
+      { "sop": "TSK_ALRP_FINISH_BRUSH_ROLL_1", "production": "TSK_ALRP_FINISH_1_BRUSH_ROLL", "note": "Same task, number placement differs" },
+      { "sop": "TSK_ALRP_FINISH_SPRAY_2", "production": "TSK_ALRP_FINISH_2_SPRAY", "note": "Same task, number placement differs" },
+      { "sop": "TSK_ALRP_FINISH_BRUSH_ROLL_2", "production": "TSK_ALRP_FINISH_2_BRUSH_ROLL", "note": "Same task, number placement differs" },
+      { "sop": "TSK_ALRP_DETAIL_JCHANNEL + TSK_ALRP_DETAIL_CUTIN", "production": "TSK_ALRP_DETAIL_BRUSH", "note": "SOP splits detail; production combines" },
+      { "sop": "TSK_ALRP_CAULK_APPLY", "production": "TSK_ALRP_CAULK_REPLACE", "note": "Same task, different verb" },
+      { "sop": "TSK_ALRP_INSPECT", "production": "TSK_ALRP_FINAL_INSPECT", "note": "Same task, production adds 'FINAL' prefix" },
+      { "sop": "TSK_ALRP_TOUCHUP", "production": "TSK_ALRP_FINAL_TOUCHUP", "note": "Same task, production adds 'FINAL' prefix" },
+      { "sop": "TSK_ALRP_REMOVE_PROTECTION", "production": "TSK_ALRP_PROTECT_TEARDOWN", "note": "Same task, completely different name" },
+      { "sop": "TSK_ALRP_CLEAN_EQUIPMENT", "production": "TSK_ALRP_CLEAN_EQUIPMENT_SPRAY + TSK_ALRP_CLEAN_EQUIPMENT_BRUSH_ROLL", "note": "SOP has 1 task; production splits by method" },
+      { "sop": "(none)", "production": "TSK_ALRP_EQUIPMENT_SETUP_SPRAY + TSK_ALRP_EQUIPMENT_SETUP_BRUSH_ROLL", "note": "Production only — no SOP equivalent" },
+      { "sop": "(none)", "production": "TSK_ALRP_INSPECT_COAT + TSK_ALRP_TOUCHUP_REPAIR", "note": "Production only — interstage inspection tasks not in SOP" },
+      { "sop": "(none)", "production": "TSK_ALRP_DFT_VERIFY_FINISH", "note": "Production only — finish DFT verification not in SOP" },
+      { "sop": "(none)", "production": "TSK_ALRP_WASH_REWASH", "note": "Production only — heavy chalk re-wash not explicitly in SOP as separate task" },
+      { "sop": "TSK_ALRP_MOBILIZE", "production": "(none)", "note": "SOP only — no production rate for mobilization" },
+      { "sop": "TSK_ALRP_SCAFFOLD_SETUP", "production": "(none)", "note": "SOP only — no production rate for scaffold setup" },
+      { "sop": "TSK_ALRP_SCAFFOLD_TEARDOWN", "production": "(none)", "note": "SOP only — no production rate for scaffold teardown" },
+      { "sop": "TSK_ALRP_WASH_MIX", "production": "(none)", "note": "SOP only — no production rate for wash mix" },
+      { "sop": "TSK_ALRP_WASH_CHALK_LIGHT", "production": "(none)", "note": "SOP only — separate chalk wash tasks have no direct production counterpart" },
+      { "sop": "TSK_ALRP_WASH_CHALK_HEAVY", "production": "(none)", "note": "SOP only — separate chalk wash tasks have no direct production counterpart" }
+    ]
+  },
+
+  "material_system_threading": {
+    "status": "PASS",
+    "details": [
+      {
+        "system_id": "SYS_EXT_ALRP_PRIMER_ETCH",
+        "referenced_in_sop": ["TSK_ALRP_PRIME_ETCH_SPRAY", "TSK_ALRP_PRIME_ETCH_BRUSH_ROLL"],
+        "exists_in_materials": true,
+        "quality_tiers_match": true
+      },
+      {
+        "system_id": "SYS_EXT_ALRP_PRIMER_EPOXY",
+        "referenced_in_sop": ["TSK_ALRP_PRIME_EPOXY_SPRAY", "TSK_ALRP_PRIME_EPOXY_BRUSH_ROLL"],
+        "exists_in_materials": true,
+        "quality_tiers_match": true
+      },
+      {
+        "system_id": "SYS_EXT_ALRP_FINISH_ACRYLIC",
+        "referenced_in_sop": ["TSK_ALRP_FINISH_SPRAY_1", "TSK_ALRP_FINISH_BRUSH_ROLL_1", "TSK_ALRP_FINISH_SPRAY_2", "TSK_ALRP_FINISH_BRUSH_ROLL_2"],
+        "exists_in_materials": true,
+        "quality_tiers_match": true
+      }
+    ]
+  },
+
+  "architectural_checks": [
+    { "check": "Module IDs use MOD_ALRP_* prefix", "result": "PASS", "details": "All 10 modules: MOD_ALRP_MOBILIZATION, MOD_ALRP_PROTECTION, MOD_ALRP_WASH, MOD_ALRP_PREP, MOD_ALRP_PRIME_ETCH, MOD_ALRP_PRIME_EPOXY, MOD_ALRP_FINISH_1, MOD_ALRP_FINISH_2, MOD_ALRP_DETAIL, MOD_ALRP_CLEANUP. All correctly prefixed." },
+    { "check": "Factor modifier IDs use FAC_ALRP_* or FAC_EXT_* prefix", "result": "PASS", "details": "FAC_ALRP_QT, FAC_ALRP_CHALK (ALRP prefix). FAC_EXT_ACCESS, FAC_EXT_WIND, FAC_EXT_SUN_EXPOSURE, FAC_EXT_SURFACE_TEMP (EXT shared prefix). All correctly prefixed." },
+    { "check": "QT2-QT3 only (no QT4/QT5 references)", "result": "PASS", "details": "All files consistently reference QT2 and QT3 only. No QT4 or QT5 values found in any artifact." },
+    { "check": "chalk_severity dimension properly used (none/light/heavy)", "result": "PASS", "details": "Research KD-003, resolution applicable_enums, materials compatibility rules, SOP wash tasks, and production FAC_ALRP_CHALK all use none/light/heavy consistently." },
+    { "check": "Two substrate states only (SS_EXT_SOUND_PAINT, SS_EXT_CHALKING)", "result": "PASS", "details": "All files reference only these two states. No other substrate states declared." },
+    { "check": "No DSD references", "result": "PASS", "details": "Research, resolution, and SOP explicitly exclude DSD. No DSD module, no DSD modifier found." },
+    { "check": "No RRP/lead references", "result": "PASS", "details": "Research KD-009, SOP exclusions, production assumptions all explicitly exclude RRP. No lead-related tasks or gates." },
+    { "check": "No LRV restriction", "result": "PASS", "details": "Research KD-008, resolution explicitly prohibits LRV. Materials COMPAT_ALRP_009 confirms no restriction. No LRV gate in SOP. No IR-reflective material branching." },
+    { "check": "Self-etching primer mandatory (no skip path)", "result": "PASS", "details": "MOD_ALRP_PRIME_ETCH has applies_when: {} (unconditional). Materials COMPAT_ALRP_001 confirms always required. All 4 round configurations include MOD_ALRP_PRIME_ETCH. No conditional skip path exists." },
+    { "check": "DFT 0.5-1.0 mil constraint documented", "result": "PASS", "details": "Documented in: research RF-003 and KD-006, resolution RULE 14, materials COMPAT_ALRP_002, SOP prime module description and quality_notes, production DFT verification tasks. Thoroughly documented across all files." },
+    { "check": "Coastal epoxy conditional properly gated", "result": "PASS", "details": "MOD_ALRP_PRIME_EPOXY has applies_when: {coastal_environment: true}. Materials COMPAT_ALRP_003 gates on coastal. Round configs QT2_COASTAL and QT3_COASTAL include the module; standard rounds exclude it. Properly conditional." },
+    { "check": "chalk_severity modifier applies to prep tasks ONLY", "result": "PASS", "details": "FAC_ALRP_CHALK.applies_to in production lists only: TSK_ALRP_WASH_PRESSURE, TSK_ALRP_SCUFF_OXIDE, TSK_ALRP_DUST_CLEANUP. All prep tasks. Not applied to any coating or detail tasks." },
+    { "check": "QT modifier applies to coating tasks ONLY", "result": "PASS", "details": "FAC_ALRP_QT.applies_to in production lists only prime and finish spray/brush_roll tasks. No prep tasks included." },
+    { "check": "Access modifier applies to all variable-rate tasks", "result": "PASS", "details": "FAC_EXT_ACCESS.applies_to includes prep tasks, coating tasks, detail, caulk, and inspection tasks. Fixed-time tasks correctly excluded." },
+    { "check": "Max prep stack under 4.0x", "result": "PASS", "details": "Worst case prep: heavy chalk (1.75) x scaffold (1.60) = 2.80x. Well under 4.0x." },
+    { "check": "Max coating stack under 4.0x", "result": "PASS", "details": "Worst case coating: QT3 (1.00) x scaffold (1.60) x full_sun (1.15) x cold_temp (1.30) = 2.39x. With wind: 2.99x. Both under 4.0x." },
+    { "check": "All mandatory research sections present", "result": "PASS", "details": "research.json contains: relevant_findings, condition_drivers, quality_differences, failure_modes, research_corrections, key_decisions, notes_for_materials_manager, notes_for_sop_librarian, notes_for_estimation_engineer, protection_zones_analysis, adjacency_analysis, site_condition_analysis, state_analysis, exterior_substrate_states, production_rate_research, required_paintscope_keys, assumptions, uncertainties." },
+    { "check": "Key decisions KD-001 through KD-012 present", "result": "PASS", "details": "All 12 key decisions present: KD-001 (aluminum-only scope), KD-002 (two substrate states), KD-003 (chalk_severity dimension), KD-004 (QT2-QT3 only), KD-005 (self-etching primer mandatory), KD-006 (DFT-critical primer), KD-007 (coastal epoxy), KD-008 (no LRV restriction), KD-009 (no RRP), KD-010 (spray primary), KD-011 (chalk verification gate), KD-012 (oxide reformation timing)." },
+    { "check": "Research corrections RC-001 through RC-003 present", "result": "PASS", "details": "All 3 corrections present: RC-001 (chalk_severity justification), RC-002 (access modifier alignment), RC-003 (oxide timing window)." },
+    { "check": "Protection zones all ext_* prefixed", "result": "PASS", "details": "All 10 zones in sop_modules.json protection_zones use ext_* prefix: ext_landscape_adjacent, ext_hardscape_walk, ext_hardscape_patio, ext_hardscape_driveway, ext_window_mask, ext_door_mask, ext_trim_mask, ext_light_fixture, ext_hvac_unit, ext_roofline_mask." }
+  ],
+
+  "summary": "SF_SIDING_ALUMINUM_EXT_RP_v1 FAILS QA due to systemic cross-file task ID mismatches between sop_modules.json and production.json. Of 36 SOP tasks and 37 production tasks, only 8 task IDs match character-for-character. The remaining ~28-29 tasks in each file use different naming conventions for logically equivalent work. This is a BLOCKING issue — the engine cannot thread SOP task definitions to production rates when IDs do not match. Additionally, there are finish task classification mismatches (qt_scaled in SOP vs binary in production), a protection zone copy-paste error (utility task references light fixture zone), a missing sheen (semi-gloss) in finish material system, and 5+ tasks that exist in production but not SOP (equipment setup, interstage inspect/touchup, DFT finish verify, wash rewash). All architectural checks PASS: QT2-QT3 only, chalk_severity properly partitioned, two substrate states, no DSD/RRP/LRV, self-etching primer mandatory with DFT constraint, coastal epoxy properly gated, modifier stacking under 4.0x cap, all 12 key decisions and 3 research corrections present, all protection zones ext_* prefixed. The domain knowledge is excellent across all files — the issue is purely mechanical ID reconciliation between SOP and production."
+}

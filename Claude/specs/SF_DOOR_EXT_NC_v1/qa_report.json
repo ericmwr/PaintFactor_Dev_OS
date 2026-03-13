@@ -1,0 +1,273 @@
+{
+  "spec_family_id": "SF_DOOR_EXT_NC",
+  "version": "0.1.0",
+  "generated_by": "System Critic",
+  "generated_at": "2026-03-09",
+  "status": "draft",
+  "review_required": true,
+
+  "overall_result": "pass",
+
+  "summary": "SF_DOOR_EXT_NC_v1 draft artifacts pass all critical and major doctrine checks. First exterior door spec — EA-based single-item spec (door assembly) with 3 substrate materials (steel, fiberglass, wood) and 3 complexity tiers (single_slab, panel, grand_entry) as primary configuration dimensions. 46 tasks thread correctly between sop_modules.json and production.json (24 binary, 18 qt_scaled, 4 qt_conditional). All PaintScope keys use PS_EXT_* namespace. All substrate states use SS_EXT_* prefix. All 5 protection zones use ext_* prefix. No interior keys, states, or zones present. Key domain-specific validations pass: EA-based rates throughout (no SF/LF on door tasks), complexity modifier as primary cost driver (single_slab=1.00, panel=1.60, grand_entry=3.50), fiberglass restricted to 100% acrylic only (oil-based prohibited per COMPAT-XDOR-002), steel DTM primer path present (SYS_EXT_DOOR_PRIMER_DTM), wood six-side seal task and verification present (TSK_XDOR_SEAL_SIX_SIDES), IR-reflective system mandatory for LRV<30 (SYS_EXT_DOOR_FINISH_IR_REFLECTIVE with COMPAT-XDOR-004 HARD STOP), hardware removal/reinstall tasks present (TSK_XDOR_HARDWARE_REMOVE, TSK_XDOR_HARDWARE_REINSTALL), glass masking tasks present (TSK_XDOR_GLASS_MASK, TSK_XDOR_GLASS_UNMASK), QT3-QT5 range (QT2 excluded per EX-XDOR-005). 6 material systems (3 primers + 2 finishes + 1 IR-reflective specialty), 3 coverage profiles, 20 consumables, 10 compatibility rules. 8 factor modifiers including environmental conditions. Grand entry + QT5 stacking exceeds 4.0x cap (flagged for hourly pricing review per RISK-PROD-001). 3 minor observations, no blockers.",
+
+  "artifacts_reviewed": [
+    { "file": "research.json", "status": "reviewed", "human_feedback": "none" },
+    { "file": "resolution.json", "status": "reviewed", "human_feedback": "none" },
+    { "file": "materials.json", "status": "reviewed", "human_feedback": "none" },
+    { "file": "sop_modules.json", "status": "reviewed", "human_feedback": "none" },
+    { "file": "production.json", "status": "reviewed", "human_feedback": "none" },
+    { "file": "spec.json", "status": "not_yet_created", "human_feedback": "n/a" }
+  ],
+
+  "issues": [
+    {
+      "issue_id": "QA-001",
+      "severity": "minor",
+      "area": "factor_modifiers",
+      "file": "resolution.json vs production.json",
+      "status": "acknowledged",
+      "description": "Resolution.json proposed FAC_XDOR_COMPLEXITY grand_entry value of 5.00. Production.json calibrated this down to 3.50 (within the research range of 3.00-5.00x). The Estimation Engineer documents this as a middle-ground calibration with field validation needed (VP-003). However, this means resolution's proposed value and production's implemented value differ by 30%.",
+      "resolution": "Acknowledged — the Estimation Engineer has authority to calibrate modifier values within the research-established range. The 3.50x value is documented with rationale (grand_entry adds sidelite/transom scope but does not double every task) and flagged for field validation. Grand entry + QT5 already exceeds 4.0x cap at 3.50x (3.50 x 1.30 = 4.55x), so a higher base modifier would be further absorbed by the cap anyway. No change needed."
+    },
+    {
+      "issue_id": "QA-002",
+      "severity": "minor",
+      "area": "modifier_stacking",
+      "file": "production.json",
+      "status": "acknowledged",
+      "description": "Worst-case modifier stacking (grand_entry 3.50 x QT5 1.30 x wood 1.10 x ladder 1.35 x bare_wood 1.00 x light_breeze 1.10 x full_sun 1.15 x hot_surface 1.25 = ~10.21x) vastly exceeds the 4.0x cap. The production file documents this and recommends hourly/T&M pricing for grand_entry + QT5 scenarios. The 4.0x cap effectively absorbs all environmental modifiers when complexity + QT already exceeds cap.",
+      "resolution": "Acknowledged — the 4.0x cap is a deliberate safety mechanism for fixed-price estimation. Grand_entry + QT5 combinations are correctly flagged for manual review (RISK-PROD-001). The engine caps at 4.0x which may underestimate actual time, but the production file explicitly recommends hourly pricing for these scenarios. This is appropriate risk management, not a defect."
+    },
+    {
+      "issue_id": "QA-003",
+      "severity": "minor",
+      "area": "applies_when_pattern",
+      "file": "sop_modules.json vs production.json",
+      "status": "acknowledged",
+      "description": "Three intercoat tasks (TSK_XDOR_SAND_INTERCOAT, TSK_XDOR_REPAIR_INTERCOAT, TSK_XDOR_DUST_INTERCOAT) use appears_in_tiers [QT4, QT5] in sop_modules.json with empty applies_when, while production.json uses applies_when { quality_tier: [QT4, QT5] }. The SOP field 'appears_in_tiers' and the production field 'applies_when.quality_tier' serve the same gating function but use different structural patterns.",
+      "resolution": "Acknowledged — this is a consistent cross-file pattern difference (SOP uses appears_in_tiers for tier gating, production uses applies_when.quality_tier for rate gating). Same pattern appears in sibling specs. Functionally equivalent. No change needed."
+    }
+  ],
+
+  "blockers": [],
+
+  "doctrine_checks": [
+    {
+      "check": "THREADING-1: Task ID Completeness",
+      "result": "pass",
+      "details": "All 46 task_ids in sop_modules.json have matching entries in production.json. No orphaned tasks in either direction. Count by module: SETUP=7, PREP=10, PRIME=6, FINISH_1=5, INTERSTAGE=4, FINISH_2=5, REINSTALL=3, CLEANUP=6."
+    },
+    {
+      "check": "THREADING-2: task_classification Match",
+      "result": "pass",
+      "details": "All task_classification values match between files. 18 qt_scaled tasks have qt_rates in production.json. 4 qt_conditional tasks: 3 intercoat tasks (QT4/QT5 gated) and 1 dent repair (conditional on damage). 24 binary tasks use flat fixed_time_minutes or rate_per_hour. No mismatches found."
+    },
+    {
+      "check": "THREADING-3: applies_when Consistency",
+      "result": "pass",
+      "details": "Application method gating consistent: spray tasks gate on [spray], brush on [brush]. Substrate material gating consistent: steel tasks on [steel], fiberglass on [fiberglass], wood on [wood]. Complexity gating consistent: panel recess tasks on [panel, grand_entry], mullion tasks on [grand_entry]. 3 intercoat tasks have pattern difference (appears_in_tiers vs applies_when.quality_tier) — acknowledged as QA-003, functionally equivalent."
+    },
+    {
+      "check": "THREADING-4: UOM Match",
+      "result": "pass",
+      "details": "All task UOMs match between sop_modules.json and production.json. EA-based: 41 tasks (all per-door tasks). FIXED: 3 tasks (equipment setup spray, equipment setup brush, tool clean). SF-based: 2 tasks (walkway protect, walkway teardown). No LF or other UOMs — correct for door spec (everything bundled into per-EA rate)."
+    },
+    {
+      "check": "THREADING-5: Task Prefix",
+      "result": "pass",
+      "details": "All 46 task IDs use TSK_XDOR_ prefix. No collisions with existing prefixes (DOOR for interior slab, FRAME for interior frame, etc.). XDOR is unique to exterior door spec."
+    },
+    {
+      "check": "THREADING-6: Module Prefix",
+      "result": "pass",
+      "details": "All 8 module IDs use MOD_XDOR_ prefix: SETUP, PREP, PRIME, FINISH_1, INTERSTAGE, FINISH_2, REINSTALL, CLEANUP."
+    },
+    {
+      "check": "EXT-1: Key Namespace Integrity",
+      "result": "pass",
+      "details": "All paintscope_key references use PS_EXT_* namespace. 8 PS keys declared in resolution.json: PS_EXT_OPENING_EA.DOOR_EXT, PS_EXT_META.ENUM.DOOR_COMPLEXITY, PS_EXT_META.ENUM.SUBSTRATE_TYPE_DOOR, PS_EXT_META.FLAG.NEW_CONSTRUCTION, PS_EXT_PROTECT_EA.GLASS_DOOR, PS_EXT_PROTECT_EA.DOOR_HARDWARE, PS_EXT_PROTECT_SF.HARDSCAPE_WALK, PS_EXT_META.EA.ELEVATIONS_TOTAL, PS_EXT_META.ENUM.ACCESS_TYPE. No interior keys found."
+    },
+    {
+      "check": "EXT-2: Substrate State Validity",
+      "result": "pass",
+      "details": "All substrate states use SS_EXT_* prefix. 4 input states: SS_EXT_BARE_WOOD, SS_EXT_BARE_METAL, SS_EXT_PRIMED_FACTORY, SS_EXT_PRIMED_FIELD. 3 output states: SS_EXT_PAINTED_SATIN, SS_EXT_PAINTED_SEMIGLOSS, SS_EXT_PAINTED_GLOSS. No SS_INT_* or bare SS_ IDs. SS_EXT_BARE_METAL is proposed new state for this spec (bare ferrous metal)."
+    },
+    {
+      "check": "EXT-3: Protection Zone Integrity",
+      "result": "pass",
+      "details": "All 5 protection zones use ext_* prefix: ext_door_glass_mask, ext_door_hardware, ext_door_weatherstrip, ext_door_threshold, ext_hardscape_walk. No interior zone IDs. All zones have setup tasks in MOD_XDOR_SETUP and teardown tasks in MOD_XDOR_CLEANUP/MOD_XDOR_REINSTALL."
+    },
+    {
+      "check": "EXT-4: Mandatory Site Condition Rules",
+      "result": "pass",
+      "details": "Access_type declared as factor modifier (FAC_EXT_ACCESS) with values ground=1.00, ladder=1.35, scaffold=1.60, lift=1.50. Wind, dew_point, and surface_temperature referenced in SOP task-level site_condition_rules (exclude_when blocks on spray and finish tasks). Environmental conditions handled as SOP constraints and factor modifiers, not estimation input dimensions."
+    },
+    {
+      "check": "EXT-5: Exterior Factor Keys",
+      "result": "pass",
+      "details": "8 factor modifiers declared: FAC_XDOR_COMPLEXITY (primary), FAC_QT, FAC_XDOR_SUBSTRATE, FAC_EXT_ACCESS, FAC_EXT_SUBSTRATE_CONDITION, FAC_EXT_WIND, FAC_EXT_SUN_EXPOSURE, FAC_EXT_SURFACE_TEMP. No FAC_HEIGHT (interior only). FAC_EXT_ACCESS reused from sibling exterior specs."
+    },
+    {
+      "check": "EXT-6: Modifier Math",
+      "result": "pass",
+      "details": "All modifiers use multiplicative formula: effective_time = base_time x modifier. 4.0x stacking cap declared. 3 stacking scenarios provided. Maximum practical combination (grand_entry 3.50 x QT5 1.30 = 4.55x) exceeds cap — correctly flagged for hourly pricing. Minimum combination (single_slab x QT3 x factory_primed = 0.80x) produces credible 84 min estimate."
+    },
+    {
+      "check": "EXT-7: Material State Compatibility",
+      "result": "pass",
+      "details": "Three substrate-driven primer paths: DTM (SYS_EXT_DOOR_PRIMER_DTM) for SS_EXT_BARE_METAL steel, acrylic (SYS_EXT_DOOR_PRIMER_ACRYLIC) for SS_EXT_BARE_WOOD fiberglass/wood, tannin spot (SYS_EXT_DOOR_PRIMER_TANNIN_SPOT) for wood knots. SS_EXT_PRIMED_FACTORY and SS_EXT_PRIMED_FIELD skip prime module entirely. 10 compatibility rules (COMPAT-XDOR-001 through COMPAT-XDOR-010) enforce correct routing."
+    },
+    {
+      "check": "DOOR-1: EA-Based Rates",
+      "result": "pass",
+      "details": "41 of 46 tasks use EA UOM (per-door assembly). 3 tasks use FIXED (per-project equipment setup/cleanup). 2 tasks use SF (walkway protection setup/teardown). No SF/LF direct production rates on door painting tasks — all door work is bundled into per-EA fixed_time_minutes or qt_rates. Rates are minutes per door, not SF/hr."
+    },
+    {
+      "check": "DOOR-2: Complexity Modifier as Primary Driver",
+      "result": "pass",
+      "details": "FAC_XDOR_COMPLEXITY is declared as PRIMARY cost driver with values single_slab=1.00, panel=1.60, grand_entry=3.50. All base rates are calibrated to single_slab baseline. Applies to all EA-based tasks (41 tasks). Panel adds recess brush work, glass masking, caulk joints. Grand_entry adds sidelite/transom mullion work. Modifier mechanism is selective_multiplier."
+    },
+    {
+      "check": "DOOR-3: Fiberglass Acrylic-Only Restriction",
+      "result": "pass",
+      "details": "COMPAT-XDOR-002 prohibits oil-based/alkyd primers on fiberglass (SYS_EXT_DOOR_PRIMER_DTM and SYS_EXT_DOOR_PRIMER_TANNIN_SPOT are prohibited). SYS_EXT_DOOR_PRIMER_ACRYLIC notes '100% acrylic MANDATORY for fiberglass'. SOP tasks reference this restriction in quality_notes and description text. RISK-XDOR-001 documents outgassing blister risk as critical severity. COMPAT-XDOR-010 prohibits hydrocarbon solvents on fiberglass."
+    },
+    {
+      "check": "DOOR-4: Steel DTM Primer",
+      "result": "pass",
+      "details": "SYS_EXT_DOOR_PRIMER_DTM present with applies_when steel + SS_EXT_BARE_METAL. DTM primer tasks: TSK_XDOR_PRIME_SPRAY_DTM (spray) and TSK_XDOR_PRIME_BRUSH_DTM (brush). Both gate on substrate_material [steel] and application_method. Same-day prime requirement documented in task descriptions, quality_notes, and RISK-XDOR-003 (critical severity)."
+    },
+    {
+      "check": "DOOR-5: Wood Six-Side Seal",
+      "result": "pass",
+      "details": "TSK_XDOR_SEAL_SIX_SIDES present in MOD_XDOR_PRIME — lead skill level, wood substrate only, SS_EXT_BARE_WOOD required. Verifies all 6 sides (both faces, top/bottom/hinge/latch edges) received primer. Bottom edge identified as critical moisture entry point. Prop door instruction included. RISK-XDOR-004 (critical severity) documents warranty voidance from unsealed end grain. COMPAT-XDOR-007 documents mandatory six-side sealing."
+    },
+    {
+      "check": "DOOR-6: IR-Reflective for Dark Colors",
+      "result": "pass",
+      "details": "SYS_EXT_DOOR_FINISH_IR_REFLECTIVE present with applies_when color_lrv < 30. COMPAT-XDOR-004 is a HARD STOP: prohibits standard and premium finish systems when LRV < 30. RISK-XDOR-002 (critical severity) documents wood warping, steel expansion, fiberglass outgassing from non-IR-reflective dark paint. Coverage profile 325 SF/gal (lower than standard 375 SF/gal due to CICP pigment formulation)."
+    },
+    {
+      "check": "DOOR-7: Hardware Removal/Reinstall",
+      "result": "pass",
+      "details": "TSK_XDOR_HARDWARE_REMOVE in MOD_XDOR_SETUP (18 min/EA, journeyman, zone ext_door_hardware) and TSK_XDOR_HARDWARE_REINSTALL in MOD_XDOR_REINSTALL (18 min/EA, journeyman, zone ext_door_hardware teardown). Both reference photograph-before-removal protocol and labeled bag storage. Grand entry additional hardware handled by complexity modifier."
+    },
+    {
+      "check": "DOOR-8: Glass Masking",
+      "result": "pass",
+      "details": "TSK_XDOR_GLASS_MASK in MOD_XDOR_SETUP (12 min/EA, journeyman, zone ext_door_glass_mask) and TSK_XDOR_GLASS_UNMASK in MOD_XDOR_CLEANUP (8 min/EA, helper, zone ext_door_glass_mask teardown). Both gate on door_complexity [panel, grand_entry]. QT5 notes liquid mask alternative. Ownership boundary documented: door spec masks glass when painting door; trim spec masks glass adjacent to casing."
+    },
+    {
+      "check": "DOOR-9: Quality Tier Range",
+      "result": "pass",
+      "details": "QT3-QT5 declared in resolution.json applicable_enums. QT2 excluded with rationale: exterior entry doors are high-visibility architectural focal points. EX-XDOR-005 documents QT2 exclusion. All tasks have appears_in_tiers including QT3/QT4/QT5. qt_scaled tasks have qt_rates for QT3/QT4/QT5. qt_conditional intercoat tasks correctly appear in QT4/QT5 only."
+    },
+    {
+      "check": "COMPLETENESS-1: Protection Zones",
+      "result": "pass",
+      "details": "5 protection zones declared in resolution.json: ext_door_glass_mask, ext_door_hardware, ext_door_weatherstrip, ext_door_threshold, ext_hardscape_walk. All have setup tasks in SETUP module with protection_metadata.action='setup' and teardown tasks in REINSTALL/CLEANUP modules with action='teardown'. Materials mapped in materials.json protection_materials section."
+    },
+    {
+      "check": "COMPLETENESS-2: Cross-Spec Boundaries",
+      "result": "pass",
+      "details": "5 exclusions documented: door casing (EX-XDOR-001, trim spec), casing-to-wall caulking (EX-XDOR-002, trim spec), roller application (EX-XDOR-003, not valid for doors), stain-grade fiberglass (EX-XDOR-004, different spec family), QT2 (EX-XDOR-005). Glass masking ownership boundary documented between door and trim specs."
+    },
+    {
+      "check": "COMPLETENESS-3: Round Configurations",
+      "result": "pass",
+      "details": "2 round configurations: ROUND_XDOR_PRIME_2FINISH (3 coats for SS_EXT_BARE_WOOD/SS_EXT_BARE_METAL) and ROUND_XDOR_2FINISH (2 coats for SS_EXT_PRIMED_FACTORY/SS_EXT_PRIMED_FIELD). Both have 1 interstage cycle. Module sequences correct: PRIME_2FINISH includes MOD_XDOR_PRIME, 2FINISH excludes it. Covers all quality_tier x substrate_state combinations."
+    },
+    {
+      "check": "COMPLETENESS-4: Module Phase Order",
+      "result": "pass",
+      "details": "Module phase sequence: setup (SETUP) -> prep (PREP) -> prime (PRIME) -> finish (FINISH_1) -> interstage (INTERSTAGE) -> finish (FINISH_2) -> cleanup (REINSTALL, CLEANUP). Correct phase ordering per structural_keys. No 'protect' or 'protection' phase values — setup phase handles protection per convention."
+    },
+    {
+      "check": "COMPLETENESS-5: Input Declarations",
+      "result": "pass",
+      "details": "9 paintscope key declarations in resolution.json: 1 primary quantity (IN_EA_DOOR_EXT), 2 configuration enums (IN_ENUM_DOOR_COMPLEXITY, IN_ENUM_SUBSTRATE_TYPE_DOOR), 1 construction flag (IN_BOOL_NEW_CONSTRUCTION), 3 protection inputs (IN_EA_EXT_PROTECT_GLASS_DOOR, IN_EA_EXT_DOOR_HARDWARE, IN_SF_EXT_PROTECT_HARDSCAPE_WALK), 2 elevation inputs (IN_EA_ELEVATIONS, IN_ENUM_ACCESS_TYPE). All consumed by sop_modules or production required_input_key."
+    },
+    {
+      "check": "ENUM-1: Convention Compliance",
+      "result": "pass",
+      "details": "All enums comply with project conventions: CON_ prefix (not CONS_), task_classification (not task_class), severity uses critical/major/minor, phase values from approved set (no 'protect' or 'protection' phase), all units uppercase (EA, SF, FIXED, ROLL, SHEET, QT, TUBE), consumable_category from approved set (applicator, protection, prep, cleanup, abrasive, fill_material), zones use ext_* prefix, sheen single values only (satin, semi-gloss, gloss — no compounds)."
+    }
+  ],
+
+  "exterior_validation_summary": {
+    "first_exterior_door_spec": true,
+    "sibling_spec": "SF_SIDING_ENGINEERED_EXT_NC_v1 (pattern reference), SF_TRIM_EXT_NC_v1 (adjacent scope)",
+    "domain_dispatch_activated": true,
+    "interior_contamination": "none — no interior keys, states, or zones found",
+    "research_corrections_applied": 0,
+    "user_corrections_applied": 0,
+    "key_differentiators_from_sibling_specs": [
+      "EA-based single-item spec (door assembly) — not SF-based like siding or LF-based like trim",
+      "3 substrate materials (steel, fiberglass, wood) drive primer/prep paths — unique to this spec",
+      "Complexity modifier (single_slab/panel/grand_entry) as PRIMARY cost driver — not siding_profile or surface_texture",
+      "Fiberglass 100% acrylic ONLY restriction (oil-based prohibited) — strongest chemistry restriction in exterior domain",
+      "DTM primer path for bare steel — unique to this spec (interior window spec uses different SYS_PRIMER_STEEL_DTM)",
+      "Wood six-side seal task with verification — not present in siding specs (siding edges cut in field, sealed differently)",
+      "IR-reflective HARD STOP for LRV < 30 — shared concept with trim spec but door-specific system IDs",
+      "Hardware removal/reinstall protocol — unique to door spec (siding/trim have fixture masking not removal)",
+      "Glass masking with door/trim ownership boundary — dual-ownership model for glass protection",
+      "No roller application — doors are spray or brush only (back-rolling prohibited on metal)",
+      "QT2 excluded — exterior doors are architectural focal points requiring minimum QT3"
+    ]
+  },
+
+  "task_cross_reference": {
+    "total_sop_tasks": 46,
+    "total_production_rates": 46,
+    "orphaned_in_sop": 0,
+    "orphaned_in_production": 0,
+    "classification_mismatches": 0,
+    "uom_mismatches": 0,
+    "applies_when_pattern_differences": 3,
+    "applies_when_pattern_differences_note": "3 intercoat tasks use appears_in_tiers in SOP vs applies_when.quality_tier in production — functionally equivalent, acknowledged in QA-003"
+  },
+
+  "modifier_stacking_validation": {
+    "max_theoretical_stack": 10.21,
+    "stacking_cap": 4.0,
+    "within_cap": false,
+    "cap_resolution": "Engine applies 4.0x cap. Grand_entry + QT5 combinations flagged for manual review and hourly pricing per RISK-PROD-001.",
+    "worst_case_scenario": "Grand entry, QT5, wood, ladder, bare wood, light breeze, full sun, hot surface (3.50 x 1.30 x 1.10 x 1.35 x 1.00 x 1.10 x 1.15 x 1.25 = 10.21x, capped to 4.0x)",
+    "common_high_scenario": "Panel, QT5, wood, ground, bare wood, calm, partial shade, optimal = 2.29x (well within cap)",
+    "common_low_scenario": "Single slab, QT3, steel, ground, factory primed, calm, partial shade, optimal = 0.80x (below baseline)"
+  },
+
+  "material_system_validation": {
+    "primer_systems": 3,
+    "finish_systems": 2,
+    "specialty_systems": 1,
+    "total_systems": 6,
+    "coverage_profiles": 3,
+    "consumables": 20,
+    "compatibility_rules": 10,
+    "all_systems_have_quality_tier": true,
+    "all_systems_have_substrate_routing": true,
+    "fiberglass_acrylic_only_enforced": true,
+    "ir_reflective_hard_stop_enforced": true,
+    "dtm_primer_for_bare_steel_enforced": true,
+    "six_side_seal_for_wood_enforced": true
+  },
+
+  "time_estimate_sanity_check": {
+    "single_slab_steel_factory_primed_spray_QT3": {
+      "total_minutes": 105,
+      "total_hours": 1.75,
+      "assessment": "Reasonable — factory-primed steel slab is minimal scope. ~2 hrs per door including all protection and cleanup."
+    },
+    "panel_wood_bare_spray_QT4": {
+      "total_minutes_adjusted": 285,
+      "total_hours": 4.75,
+      "assessment": "Reasonable — includes full prep, prime, 2 finish coats with panel recess work, intercoat sand. ~5 hrs per panel wood door."
+    },
+    "grand_entry_wood_bare_spray_QT5": {
+      "total_minutes_adjusted": 620,
+      "total_hours": 10.3,
+      "assessment": "At upper end of 5-10 hr research range. Grand entry QT5 is maximum scope with sidelite/transom mullion work. Flagged for field validation (VP-003)."
+    }
+  }
+}

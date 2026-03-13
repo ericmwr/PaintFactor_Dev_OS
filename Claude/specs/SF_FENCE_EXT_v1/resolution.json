@@ -1,0 +1,906 @@
+{
+  "_meta": {
+    "spec_family_id": "SF_FENCE_EXT",
+    "generated_by": "registry_resolver",
+    "generated_at": "2026-03-10",
+    "version": "1.0.0",
+    "purpose": "Pre-resolved registry values for downstream agents. Agents consuming this file do NOT need to load raw registry files.",
+    "input_files": ["research.json", "controlled_enums.json", "id_registry.json", "structural_keys.json", "agent_rules.json"]
+  },
+
+  "spec_identity": {
+    "spec_family_id": "SF_FENCE_EXT",
+    "status": "proposed",
+    "domain": "exterior",
+    "phase_scope": "full",
+    "context_prefix": "FNCE",
+    "notes": "New spec family for exterior wood fence staining/painting. Context prefix FNCE — no collision with existing prefixes (CLOSET_SHELF, FRAME, DOOR, CEIL, WALL, TRIM, WIN, STRS, WNSC, WDWL, WDCL, ARCH, BLTN, CABT, SDNG, FCSD, MSRY, DECK). NOT NC-only — covers new construction AND existing fences via wood_condition dimension. STAIN-based spec — coating_type replaces quality_tier as primary dimension. Single primary paintable item (ITM_FENCE_FIELD, SF). PaintScope provides final SF after both-sides calculation and fence_style geometric multiplier. Wood substrates only (cedar, PT pine). Paint option included but flagged as LEAST RECOMMENDED with mandatory risk warning."
+  },
+
+  "paintable_items": [
+    {
+      "item_id": "ITM_FENCE_FIELD",
+      "name": "Fence field surface (panels, boards, rails — both sides combined SF from PaintScope)",
+      "unit_of_measure": "SF",
+      "surface_ref": "fence_field",
+      "status": "proposed",
+      "notes": "New ITM for fence field. SF-based — PaintScope delivers final SF after (LF x Height x 2) and fence_style geometric multiplier. Single item covers all fence components (panels, posts, gates, rails). Posts and gates are stained as part of the field pass, not separate line items. Split rail rails are included via the style multiplier. Simplest item model among exterior wood specs (deck has 4 items)."
+    }
+  ],
+
+  "task_prefix": {
+    "pattern": "TSK_FNCE_",
+    "context": "FNCE",
+    "collision_check": "No collision. Existing prefixes: CLOSET_SHELF/generic, FRAME, DOOR, CEIL, WALL, TRIM, WIN, STRS, WNSC, WDWL, WDCL, ARCH, BLTN, CABT, SDNG, FCSD, MSRY, DECK. FNCE is unique.",
+    "naming_rule": "TSK_FNCE_{ACTION} — action should be verb-based. Examples: TSK_FNCE_MOISTURE_TEST, TSK_FNCE_CHEM_STRIP, TSK_FNCE_BRIGHTEN, TSK_FNCE_STAIN_SPRAY_BACKBRUSH, TSK_FNCE_STAIN_BRUSH, TSK_FNCE_STAIN_ROLL, TSK_FNCE_PRIME_TANNIN_BLOCK, TSK_FNCE_PAINT_SPRAY, TSK_FNCE_GATE_HARDWARE_MASK, TSK_FNCE_EQUIP_MOVE_SIDES"
+  },
+
+  "module_prefix": {
+    "pattern": "MOD_FNCE_",
+    "expected_modules": [
+      { "module_id": "MOD_FNCE_SETUP", "phase": "setup", "notes": "Protection setup — landscape/hardscape protection along fence base (both sides), siding protection at fence-to-house tie, vehicle protection if applicable, neighbor property protection, gate hardware masking." },
+      { "module_id": "MOD_FNCE_PREP", "phase": "prep", "notes": "Surface preparation — moisture testing (mandatory all conditions), seasoning verification (new PT pine — HARD STOP if < 3 months), light sanding (new wood mill glaze or previously coated), power wash (previously coated). Condition-specific task activation via wood_condition dimension." },
+      { "module_id": "MOD_FNCE_CHEMICAL_RESTORE", "phase": "prep", "notes": "CONDITIONAL — wood_condition = weathered ONLY. Three-step chemical restoration: (1) alkaline strip/clean, (2) acid brighten (oxalic for cedar, citric alternative), (3) rinse. 12-24 hr dry time (shorter than deck due to vertical drainage). Effectively a separate mobilization day." },
+      { "module_id": "MOD_FNCE_APPLY", "phase": "apply", "notes": "Stain/paint application — first coat. Method variants: spray_backbrush (penetrating stains, 2-person crew), brush (split rail, detail, small fences), roll (privacy panels). Both sides sequenced: side A → equipment move → side B. Back-brushing MANDATORY when spraying penetrating stains. Post end-grain gets extra stain pass." },
+      { "module_id": "MOD_FNCE_APPLY_COAT2", "phase": "apply", "notes": "CONDITIONAL — coating_type = solid_stain or paint ONLY. Second coat application. Solid stain requires full dry between coats (4-24 hours). Paint requires standard dry between coats. Transparent and semi-transparent are single-coat or wet-on-absorbing (no separate second coat module)." },
+      { "module_id": "MOD_FNCE_FINAL_INSPECT", "phase": "cleanup", "notes": "Final walk inspection — check for holidays, drips, runs, uneven coverage, missed spots at board joints and post tops. Touch up as needed. Document paint option risk warning if coating_type = paint." },
+      { "module_id": "MOD_FNCE_CLEANUP", "phase": "cleanup", "notes": "Protection teardown — remove landscape/hardscape drops, remove siding masking, remove gate hardware masking. Tool cleaning. Dispose of chemical waste (if weathered restoration). Final site cleanup." }
+    ]
+  },
+
+  "paintscope_keys": [
+    {
+      "paintscope_key": "PS_EXT_SURFACE_SF.FENCE_FIELD",
+      "input_name": "IN_SF_FENCE_FIELD",
+      "uom": "SF",
+      "status": "proposed",
+      "description": "Net fence field surface area (square feet). PaintScope delivers FINAL SF after (LF x Height x 2) and fence_style geometric multiplier. Includes both sides, all panels, posts, gates, rails."
+    },
+    {
+      "paintscope_key": "PS_EXT_META.ENUM.COATING_TYPE_FENCE",
+      "input_name": "IN_ENUM_COATING_TYPE_FENCE",
+      "uom": "ENUM",
+      "status": "proposed",
+      "description": "Primary configuration dimension — coating type (transparent, semi_transparent, solid_stain, paint). Replaces quality_tier for this spec. Drives coating chemistry, failure mode, maintenance cycle, and primer requirement. Paint triggers mandatory risk warning."
+    },
+    {
+      "paintscope_key": "PS_EXT_META.ENUM.WOOD_CONDITION_FENCE",
+      "input_name": "IN_ENUM_WOOD_CONDITION_FENCE",
+      "uom": "ENUM",
+      "status": "proposed",
+      "description": "Wood condition (new, weathered, previously_coated). Drives prep module selection and prep material requirements."
+    },
+    {
+      "paintscope_key": "PS_EXT_META.ENUM.FENCE_STYLE",
+      "input_name": "IN_ENUM_FENCE_STYLE",
+      "uom": "ENUM",
+      "status": "proposed",
+      "description": "Fence style (privacy, shadowbox, picket, split_rail). PaintScope uses this to compute geometric multiplier and deliver final SF. Also informs production rate selection and material waste factor. INFORMATIONAL to spec — PaintScope adjusts SF before spec sees it."
+    },
+    {
+      "paintscope_key": "PS_EXT_META.ENUM.SUBSTRATE_TYPE_FENCE",
+      "input_name": "IN_ENUM_SUBSTRATE_TYPE_FENCE",
+      "uom": "ENUM",
+      "status": "proposed",
+      "description": "Fence wood substrate type (cedar, pressure_treated_pine). Drives prep chemistry — tannin management for cedar, seasoning verification for PT pine. Determines primer requirement for solid stain/paint."
+    },
+    {
+      "paintscope_key": "PS_EXT_META.EA.FENCE_GATES",
+      "input_name": "IN_EA_FENCE_GATES",
+      "uom": "EA",
+      "status": "proposed",
+      "description": "Count of gates in fence line. Each gate requires hardware masking (hinges, latches, locks). Gates may need open-position staining for both-face access."
+    },
+    {
+      "paintscope_key": "PS_EXT_PROTECT_LF.LANDSCAPE_FENCE_BASE",
+      "input_name": "IN_LF_EXT_PROTECT_LANDSCAPE_FENCE_BASE",
+      "uom": "LF",
+      "status": "proposed",
+      "description": "Linear feet of fence base with landscaping requiring protection (both sides). Drop cloth/plastic along fence line at ground level."
+    },
+    {
+      "paintscope_key": "PS_EXT_PROTECT_LF.HARDSCAPE_FENCE_ADJACENT",
+      "input_name": "IN_LF_EXT_PROTECT_HARDSCAPE_FENCE_ADJACENT",
+      "uom": "LF",
+      "status": "proposed",
+      "description": "Linear feet of hardscape (walkway, driveway, patio) along fence line requiring protection. Stain on concrete is extremely difficult to remove."
+    },
+    {
+      "paintscope_key": "PS_EXT_PROTECT_SF.SIDING_AT_FENCE_TIE",
+      "input_name": "IN_SF_EXT_PROTECT_SIDING_AT_FENCE_TIE",
+      "uom": "SF",
+      "status": "proposed",
+      "description": "Siding area at fence-to-house junction requiring protection. Tape and plastic at fence-to-house tie point."
+    },
+    {
+      "paintscope_key": "PS_EXT_PROTECT_EA.VEHICLE_ADJACENT",
+      "input_name": "IN_EA_EXT_PROTECT_VEHICLE_ADJACENT",
+      "uom": "EA",
+      "status": "proposed",
+      "description": "Count of vehicles parked near fence requiring full cover protection. Overspray drift onto vehicles is a liability risk.",
+      "notes": "May be shared with deck spec if both propose same key. Verify at registry addition time."
+    },
+    {
+      "paintscope_key": "PS_EXT_PROTECT_LF.NEIGHBOR_PROPERTY_LINE",
+      "input_name": "IN_LF_EXT_PROTECT_NEIGHBOR_PROPERTY_LINE",
+      "uom": "LF",
+      "status": "proposed",
+      "description": "Linear feet of neighbor's property line requiring protection when spraying fence side facing neighbor. Drop cloth along neighbor's fence base."
+    },
+    {
+      "paintscope_key": "PS_EXT_META.FLAG.NEW_CONSTRUCTION",
+      "input_name": "IN_BOOL_NEW_CONSTRUCTION",
+      "uom": "BOOL",
+      "status": "existing",
+      "description": "Boolean flag for new construction context. Used in combination with wood_condition to determine prep requirements and seasoning verification."
+    }
+  ],
+
+  "applicable_enums": {
+    "coating_type": {
+      "values": ["transparent", "semi_transparent", "solid_stain", "paint"],
+      "default": "semi_transparent",
+      "prohibited": [],
+      "notes": "PRIMARY CONFIGURATION DIMENSION — replaces quality_tier for this spec. Drives coating chemistry (penetrating vs film-forming), maintenance cycle, failure mode profile, and primer requirement. Semi-transparent is the professional standard default. Paint is LEAST RECOMMENDED — triggers mandatory risk warning. No semi-solid category for fences (unlike decks) — the jump from semi-transparent to solid is more common on vertical fence surfaces. Proposed new enum type for controlled_enums.json (shared with deck spec's coating_type enum but with fence-specific values: transparent replaces clear_sealer, no semi_solid, paint added)."
+    },
+    "wood_condition": {
+      "values": ["new", "weathered", "previously_coated"],
+      "default": "new",
+      "prohibited": [],
+      "notes": "Drives prep module selection. New: seasoning verification (PT pine) + mill glaze consideration. Weathered: chemical restoration protocol. Previously_coated: assess existing coating, clean/strip, recoat. Proposed new enum type for controlled_enums.json (shared with deck spec)."
+    },
+    "fence_style": {
+      "values": ["privacy", "shadowbox", "picket", "split_rail"],
+      "default": "privacy",
+      "prohibited": [],
+      "notes": "Drives geometric multiplier applied by PaintScope BEFORE spec receives final SF. Also affects material waste factor and production rate selection. Privacy (1.0x, ~70% of residential fences). Shadowbox (1.6x, most labor-intensive). Picket (0.7x surface area but higher per-SF labor). Split rail (component-based, brush-only). INFORMATIONAL to spec — PaintScope adjusts SF before delivery. Proposed new enum type for controlled_enums.json."
+    },
+    "substrate_material": {
+      "values": ["cedar", "pressure_treated_pine"],
+      "default": "pressure_treated_pine",
+      "prohibited": ["composite", "vinyl", "metal"],
+      "notes": "Wood species. PT pine ~65% of residential fences. Cedar ~30%. Drives tannin management (cedar), seasoning requirements (PT pine), and primer requirements. Composite, vinyl, metal explicitly excluded per RC-004. Proposed new enum type for controlled_enums.json (fence-specific — no redwood unlike deck)."
+    },
+    "application_method": {
+      "values": ["spray_backbrush", "brush", "roll"],
+      "prohibited": ["spray"],
+      "notes": "Spray-only PROHIBITED for penetrating stains — back-brushing mandatory (RC-005). spray_backbrush is the production method for privacy and shadowbox fences. Brush is primary for split rail and detail. Roll for privacy fence flat panels (lower waste, slower). spray_backbrush proposed addition to controlled_enums.json application_method (shared with deck spec proposal)."
+    },
+    "phase": {
+      "values": ["setup", "prep", "apply", "cleanup"],
+      "full_sequence": ["setup", "prep", "prime", "apply", "interstage", "finish", "cleanup"],
+      "prohibited": ["protect", "protection"],
+      "notes": "Simplified phase set — no prime (penetrating stains don't use primer; solid/paint primer handled within apply module as conditional task), no interstage (penetrating stains absorb, no intercoat sanding), no finish (stain application uses 'apply' phase). 'apply' is the correct phase per controlled_enums: 'Generic coating application (used when phase is not specifically prime or finish)'."
+    },
+    "task_classification": {
+      "values": ["binary", "ct_conditional", "ct_scaled"],
+      "notes": "binary: same rate all coating types (protection setup, cleanup, moisture testing). ct_conditional: task only appears for certain coating types or wood conditions (e.g., chemical restoration for weathered only, tannin primer for solid/paint on cedar, second coat for solid/paint). ct_scaled: task rate varies by coating type. Note: 'ct_' prefix for coating_type-driven classification (parallel to qt_ for quality_tier-driven specs). Shared convention with deck spec."
+    },
+    "skill_level": {
+      "values": ["helper", "journeyman", "lead"]
+    },
+    "unit_of_measure": {
+      "values": ["SF", "EA", "FIXED"],
+      "prohibited": ["each", "ROOM", "FIXED_TIME"],
+      "notes": "SF for fence field staining and protection. EA for gate hardware masking, vehicle protection. FIXED for moisture testing, equipment move between sides, tool cleaning."
+    },
+    "uom_input": {
+      "values": ["EA", "LF", "SF", "ENUM", "BOOL"]
+    },
+    "substrate_state": {
+      "input_states": ["SS_EXT_BARE_WOOD", "SS_EXT_STAINED_SEMI", "SS_EXT_STAINED_SOLID", "SS_EXT_WEATHERED"],
+      "output_states": {
+        "transparent": "SS_EXT_STAINED_SEMI",
+        "semi_transparent": "SS_EXT_STAINED_SEMI",
+        "solid_stain": "SS_EXT_STAINED_SOLID",
+        "paint": "SS_EXT_PAINTED_SATIN"
+      },
+      "notes": "All input and output states exist in controlled_enums.json substrate_state valid_values. SS_EXT_BARE_WOOD = new wood. SS_EXT_STAINED_SEMI = previously stained with penetrating stain. SS_EXT_STAINED_SOLID = previously stained with solid stain. SS_EXT_WEATHERED = UV-degraded. Research.json uses SS_EXT_STAINED as a generic — resolved here to SS_EXT_STAINED_SEMI (penetrating) and SS_EXT_STAINED_SOLID (film-forming) per controlled_enums valid values. Paint output uses SS_EXT_PAINTED_SATIN as default paint finish state."
+    },
+    "consumable_unit": {
+      "values": ["EA", "ROLL", "SHEET", "GAL"],
+      "prohibited": ["each", "roll", "sheet"]
+    },
+    "consumable_category": {
+      "values": ["applicator", "protection", "prep", "cleanup", "abrasive", "tool"]
+    },
+    "product_role": {
+      "values": ["stain", "sealer", "primer", "finish", "prep_chemical", "specialty"],
+      "notes": "stain: penetrating stain products (semi-transparent, solid). sealer: transparent sealer/water repellent. primer: tannin-blocking primer (cedar + solid stain/paint) or standard exterior primer (paint option). finish: exterior latex topcoat (paint option only). prep_chemical: cleaner/stripper, brightener. specialty: edge cases."
+    },
+    "yield_uom": {
+      "values": ["SF", "LF", "EA", "GAL"]
+    },
+    "protection_level": {
+      "values": ["none", "light_mask", "full_cover"],
+      "notes": "Exterior fence zones. light_mask for brush/roll application. Upgrades to full_cover when spray_backbrush. Simpler protection profile than siding (fewer adjacent surfaces, no trim interfaces)."
+    },
+    "protection_action": {
+      "values": ["setup", "teardown"]
+    },
+    "edge_type": {
+      "values": ["linear", "complex"]
+    },
+    "typical_relationship": {
+      "values": ["same_finish", "different_finish"]
+    },
+    "finish_group": {
+      "values": ["same", "different"]
+    },
+    "task_type": {
+      "values": ["prep", "apply", "protect", "inspect", "cleanup", "detail"],
+      "notes": "No 'prime' or 'finish' task types for penetrating stain paths. Paint option tasks use 'prime' and 'apply'. 'detail' for post end-grain treatment and gate hardware masking."
+    },
+    "severity": {
+      "values": ["critical", "major", "minor"],
+      "prohibited": ["high", "medium", "low", "WARN"]
+    },
+    "modifier_mechanism": {
+      "values": ["baseline", "baseline_reduction", "selective_multiplier", "additional_rounds", "excluded"]
+    },
+    "confidence_level": {
+      "values": ["low", "medium", "high"]
+    }
+  },
+
+  "surface_ids": {
+    "primary_surface": "fence_field",
+    "adjacent_surfaces": [
+      "ext_siding_field",
+      "fence_post",
+      "fence_gate",
+      "ext_hardscape_walk",
+      "ext_landscape_grade"
+    ],
+    "all_status": "contains_proposed",
+    "notes": "fence_field is proposed — new surface ID. fence_post and fence_gate are proposed — component surfaces within fence system (same_finish relationship, stained as part of field pass). ext_siding_field is proposed (from deck/siding specs) — different_finish at fence-to-house tie. ext_hardscape_walk is existing. ext_landscape_grade is proposed — ground/landscaping at fence base (protection-only)."
+  },
+
+  "zone_ids": [
+    { "zone_id": "ext_landscape_fence_base", "status": "proposed", "retired_alias_warning": null, "notes": "Landscaping, mulch beds, ground cover along fence base on both sides. Drop cloth/plastic along fence line. Primary overspray and drip zone. Distinct from ext_landscape_adjacent (wall-specific) — fence-specific because it applies to BOTH sides of fence." },
+    { "zone_id": "ext_hardscape_fence_adjacent", "status": "proposed", "retired_alias_warning": null, "notes": "Walkways, driveways, patios running along fence line. Stain overspray on concrete is difficult to remove. Distinct from ext_hardscape_walk (more generic) — fence-specific due to both-sides application." },
+    { "zone_id": "ext_siding_at_fence_tie", "status": "proposed", "retired_alias_warning": null, "notes": "House siding where fence attaches to structure. Tape and plastic at fence-to-house junction. Fence often ties into house at garage or side yard." },
+    { "zone_id": "ext_vehicle_adjacent", "status": "proposed", "retired_alias_warning": null, "notes": "Vehicles parked near fence being sprayed. Full cover with plastic sheeting. Conditional — only when vehicles are within overspray range of fence spray zone." },
+    { "zone_id": "ext_neighbor_property", "status": "proposed", "retired_alias_warning": null, "notes": "Neighbor's landscaping, structures, and items near fence. Drop cloth along neighbor's side of fence base. Wind drift is primary concern. Coordinate with neighbor." }
+  ],
+
+  "material_system_prefix": {
+    "pattern": "SYS_EXT_FNCE_{DESCRIPTION}",
+    "existing_systems_to_consider": [
+      "No existing SYS_ entries cover fence staining products. Deck spec proposes similar stain systems (SYS_EXT_DECK_*) but fence products are separate entries for proper per-spec material tracking."
+    ],
+    "proposed_systems": [
+      {
+        "system_id": "SYS_EXT_FNCE_TRANSPARENT",
+        "name": "Transparent Sealer/Water Repellent for Fences",
+        "applies_when": { "coating_type": ["transparent"] },
+        "product_role": "sealer",
+        "notes": "Clear sealer with UV filter — no color pigment. Wood grain and natural color fully visible. 1-2 year maintenance cycle. 1 coat standard. Coverage: 200-300 SF/gal on smooth new wood, 150-250 SF/gal on rough/weathered. Best for new cedar where natural look is desired."
+      },
+      {
+        "system_id": "SYS_EXT_FNCE_SEMI_TRANSPARENT",
+        "name": "Semi-Transparent Penetrating Stain for Fences",
+        "applies_when": { "coating_type": ["semi_transparent"] },
+        "product_role": "stain",
+        "notes": "PROFESSIONAL STANDARD for wood fences. Pigmented penetrating stain — wood grain visible through color. 2-4 year cycle. 1 coat standard (penetrating stains — re-stain when color fades). Coverage: 200-300 SF/gal. ~55% of professional fence staining work."
+      },
+      {
+        "system_id": "SYS_EXT_FNCE_SOLID_STAIN",
+        "name": "Solid Stain (Film-Forming) for Fences",
+        "applies_when": { "coating_type": ["solid_stain"] },
+        "product_role": "stain",
+        "notes": "Film-forming coating — opaque color, complete grain masking. 3-7 year cycle on vertical surfaces. 2 coats with dry between. Good for hiding wood defects. Requires tannin-blocking primer on cedar substrate. Coverage: 300-400 SF/gal."
+      },
+      {
+        "system_id": "SYS_EXT_FNCE_PAINT",
+        "name": "Exterior Acrylic Latex Paint for Fences (LEAST RECOMMENDED)",
+        "applies_when": { "coating_type": ["paint"] },
+        "product_role": "finish",
+        "notes": "LEAST RECOMMENDED for wood fences — moisture-driven peeling risk. Full primer + topcoat system. 2 coats. High-permeability (breathable) formulation critical. Coverage: 350-400 SF/gal. Mandatory risk warning documentation. ~10% of fence work."
+      },
+      {
+        "system_id": "SYS_EXT_FNCE_PRIMER_STAIN_BLOCK",
+        "name": "Tannin-Blocking Primer for Cedar Fences",
+        "applies_when": { "substrate_material": ["cedar"], "coating_type": ["solid_stain", "paint"] },
+        "product_role": "primer",
+        "notes": "CONDITIONAL — cedar substrate + solid stain or paint ONLY. Shellac-based or specialty exterior tannin-blocking primer. Prevents cedar tannin bleed-through on film-forming coatings. NOT used with penetrating stains (penetrating stains allow some tannin bleed as aesthetically acceptable). Coverage: 250-350 SF/gal."
+      },
+      {
+        "system_id": "SYS_EXT_FNCE_PRIMER_EXTERIOR",
+        "name": "Standard Exterior Primer for Fence Paint Option",
+        "applies_when": { "substrate_material": ["pressure_treated_pine"], "coating_type": ["paint"] },
+        "product_role": "primer",
+        "notes": "CONDITIONAL — PT pine substrate + paint coating_type ONLY. Standard exterior acrylic primer. Cedar uses tannin-blocking primer instead. Coverage: 300-400 SF/gal."
+      },
+      {
+        "system_id": "SYS_EXT_FNCE_CHEMICAL_STRIPPER",
+        "name": "Alkaline Fence Cleaner/Stripper",
+        "applies_when": { "wood_condition": ["weathered"] },
+        "product_role": "prep_chemical",
+        "notes": "CONDITIONAL — weathered wood_condition ONLY. Sodium percarbonate-based fence cleaner. Step 1 of 3-step chemical restoration. Removes failed coating residue, mildew, dirt, opens wood pores. Same chemistry as deck restoration. Coverage: 100-200 SF/gal."
+      },
+      {
+        "system_id": "SYS_EXT_FNCE_BRIGHTENER",
+        "name": "Oxalic Acid Wood Brightener for Fences",
+        "applies_when": { "wood_condition": ["weathered"] },
+        "product_role": "prep_chemical",
+        "notes": "CONDITIONAL — weathered wood_condition AND/OR cedar substrate for tannin treatment. Oxalic acid (cedar tannin) or citric acid alternative. Step 2 of chemical restoration. Restores natural wood color. Also used standalone on new cedar to dissolve surface tannins before staining. Coverage: 100-200 SF/gal."
+      }
+    ],
+    "notes": "8 material systems total: 4 coating products (one per coating_type) + 2 conditional primers (tannin-blocker for cedar solid/paint, standard exterior for PT pine paint) + 2 prep chemicals (weathered wood restoration). Penetrating stains (transparent, semi-transparent) do NOT use primer — primer seals wood and prevents stain penetration."
+  },
+
+  "consumable_prefix": {
+    "canonical_prefix": "CON_",
+    "prohibited_prefix": "CONS_",
+    "reusable_consumables": [
+      "CON_MASKING_TAPE_BLUE",
+      "CON_DROP_CLOTH_CANVAS",
+      "CON_SANDPAPER_80",
+      "CON_SANDPAPER_100"
+    ],
+    "proposed_consumables": [
+      {
+        "consumable_id": "CON_FNCE_BRUSH_STAIN_4IN",
+        "name": "Stiff Synthetic Bristle Brush 4-6 inch (fence stain back-brushing)",
+        "category": "applicator",
+        "unit": "EA",
+        "notes": "Primary back-brushing tool for spray_backbrush method. Stiff synthetic bristle forces stain into wood grain pores. Replace frequently — stain degrades bristles. Same tool type as deck stain brush."
+      },
+      {
+        "consumable_id": "CON_FNCE_BRUSH_DETAIL_2IN",
+        "name": "Stain Brush 2-3 inch (post/gate detail)",
+        "category": "applicator",
+        "unit": "EA",
+        "notes": "Detail brush for post end-grain, gate hardware edges, board-to-board joints. Smaller size for control."
+      },
+      {
+        "consumable_id": "CON_FNCE_ROLLER_COVER_9IN",
+        "name": "Roller Cover 9 inch 3/4 nap (fence panel roll application)",
+        "category": "applicator",
+        "unit": "EA",
+        "notes": "For roll application method on privacy fence flat panels. 3/4 inch nap for rough-sawn fence boards."
+      },
+      {
+        "consumable_id": "CON_FNCE_SPRAY_TIP_515",
+        "name": "Airless Spray Tip 515 (fence stain)",
+        "category": "applicator",
+        "unit": "EA",
+        "notes": "0.015 orifice for penetrating stain spray. 10-12 inch pattern. Low pressure (800-1200 PSI) to minimize overspray on exposed fence structure."
+      },
+      {
+        "consumable_id": "CON_FNCE_PLASTIC_SHEETING",
+        "name": "Plastic Sheeting 4-6 mil (landscape/hardscape/siding protection)",
+        "category": "protection",
+        "unit": "ROLL",
+        "notes": "Landscape/hardscape/siding protection along fence line. Both sides of fence. 4-6 mil for durability during multi-side spray operations."
+      },
+      {
+        "consumable_id": "CON_FNCE_MOISTURE_METER",
+        "name": "Pin-Type Moisture Meter (field tool, tracked as consumable)",
+        "category": "tool",
+        "unit": "EA",
+        "notes": "Electronic pin-type moisture meter for MC verification. MC < 19% for PT pine, MC < 15% for cedar. Reusable tool tracked as consumable for project assignment."
+      }
+    ]
+  },
+
+  "round_configurations": {
+    "existing_patterns": [
+      "ROUND_SINGLE_COAT",
+      "ROUND_TWO_COAT"
+    ],
+    "naming_pattern": "ROUND_{CONTEXT}_{DESCRIPTION}",
+    "proposed_configurations": [
+      {
+        "round_id": "ROUND_FNCE_SINGLE_COAT",
+        "description": "Single coat — transparent and semi-transparent penetrating stains. Apply once, allow to penetrate and absorb.",
+        "applies_when": { "coating_type": ["transparent", "semi_transparent"] },
+        "notes": "Penetrating stains on fences are typically single-coat. Re-stain when color fades (maintenance cycle). Some transparent sealers may specify 2 coats — product-dependent override. Semi-transparent on fences does not typically need 2 coats (vertical surfaces don't wear like horizontal decks)."
+      },
+      {
+        "round_id": "ROUND_FNCE_TWO_COAT_DRY",
+        "description": "Two coats with full dry between — solid stain and paint (film-forming coatings). Full dry/cure between coats (4-24 hours product-dependent).",
+        "applies_when": { "coating_type": ["solid_stain", "paint"] },
+        "notes": "Film-forming coatings require 2 coats with full dry between. May require separate day for second coat. Both sides must get coat 1 before either side gets coat 2. Solid stain 2-coat = maximum longevity (3-7 years). Paint 2-coat = standard exterior paint protocol."
+      }
+    ]
+  },
+
+  "coverage_profiles": {
+    "existing_profiles": [],
+    "naming_pattern": "COV_{CONTEXT}_{PRODUCT_ROLE}",
+    "proposed_profiles": [
+      {
+        "profile_id": "COV_FNCE_TRANSPARENT",
+        "description": "Transparent sealer coverage on fence wood — 200-300 SF/gal on smooth new wood, 150-250 SF/gal on rough/weathered."
+      },
+      {
+        "profile_id": "COV_FNCE_SEMI_TRANSPARENT",
+        "description": "Semi-transparent penetrating stain coverage — 200-300 SF/gal. Absorption varies by wood porosity and condition."
+      },
+      {
+        "profile_id": "COV_FNCE_SOLID_STAIN",
+        "description": "Solid stain (film-forming) coverage — 300-400 SF/gal. Film-forming, less absorption than penetrating stains."
+      },
+      {
+        "profile_id": "COV_FNCE_PAINT",
+        "description": "Exterior paint coverage — 350-400 SF/gal. Standard exterior latex coverage rates."
+      },
+      {
+        "profile_id": "COV_FNCE_PRIMER_TANNIN_BLOCK",
+        "description": "Tannin-blocking primer coverage on cedar fence — 250-350 SF/gal."
+      },
+      {
+        "profile_id": "COV_FNCE_PRIMER_EXTERIOR",
+        "description": "Standard exterior primer coverage on PT pine fence — 300-400 SF/gal."
+      },
+      {
+        "profile_id": "COV_FNCE_CHEMICAL_STRIPPER",
+        "description": "Alkaline fence cleaner/stripper coverage — 100-200 SF/gal for weathered wood restoration."
+      },
+      {
+        "profile_id": "COV_FNCE_BRIGHTENER",
+        "description": "Oxalic acid brightener coverage — 100-200 SF/gal for tannin treatment and wood color restoration."
+      }
+    ]
+  },
+
+  "factor_modifiers": {
+    "naming_pattern": "FAC_{CONTEXT}_{DESCRIPTION}",
+    "existing_modifiers": [],
+    "proposed_modifiers": [
+      {
+        "modifier_id": "FAC_FNCE_COATING_TYPE",
+        "description": "Production rate modifier by coating type (primary dimension)",
+        "values": { "transparent": 0.85, "semi_transparent": 1.00, "solid_stain": 1.15, "paint": 1.30 },
+        "notes": "Semi-transparent is baseline (1.00). Transparent is fastest (lowest viscosity, no color matching). Solid stain slower (film-forming, more careful application). Paint slowest (full prime-paint pipeline, edge management, risk documentation). Applies to stain/paint application tasks."
+      },
+      {
+        "modifier_id": "FAC_FNCE_WOOD_CONDITION",
+        "description": "Prep time modifier by wood condition",
+        "values": { "new": 1.00, "weathered": 1.40, "previously_coated": 1.60 },
+        "notes": "New wood is baseline. Weathered adds chemical restoration protocol. Previously_coated has highest prep overhead (assess, strip if failing, sand, clean). Modifiers apply to PREP tasks only — stain application rate is not affected by wood condition (wood is prepped to consistent state before staining)."
+      },
+      {
+        "modifier_id": "FAC_FNCE_FENCE_STYLE",
+        "description": "INFORMATIONAL — geometric multiplier applied by PaintScope, NOT by spec engine",
+        "values": { "privacy": 1.00, "shadowbox": 1.60, "picket": 0.70, "split_rail": 1.20 },
+        "notes": "INFORMATIONAL ONLY — PaintScope applies this multiplier to (LF x Height x 2) to produce final SF BEFORE spec receives it. Spec uses final SF directly. Included in resolution for documentation and downstream agent awareness. Spec engine does NOT apply this modifier. Split rail 1.20 is component-based approximation (rails + posts, no full panels)."
+      }
+    ]
+  },
+
+  "cross_spec_coordination": {
+    "xspec_flags_consumed": [],
+    "xspec_flags_set": [],
+    "comp_modifiers_set": [],
+    "comp_modifiers_affected_by": [],
+    "notes": "Siding protection at the fence-to-house tie point IS this spec's responsibility (stain overspray contacts siding). Neighbor property protection IS this spec's responsibility. No cross-spec flags needed — fence is typically an isolated scope item with no dependency on other spec families."
+  },
+
+  "structural_reminders": {
+    "materials_json": {
+      "required_keys": ["spec_family_id", "version", "material_systems", "consumables"],
+      "system_item_keys": ["system_id", "name", "applies_when"],
+      "consumable_item_keys": ["consumable_id", "name", "category", "unit"],
+      "use_consumables_key": "consumables (never consumable_usage_models)",
+      "stain_spec_note": "Material systems branch by coating_type (not quality_tier). Product roles: stain, sealer, primer (conditional), finish (paint only), prep_chemical. Include 15-30% spray waste factor in coverage calculations — privacy 15-20%, shadowbox 20-25%, picket 25-30%."
+    },
+    "sop_modules_json": {
+      "required_keys": ["spec_family_id", "version", "sop_modules"],
+      "module_keys": ["module_id", "name", "phase", "tasks"],
+      "task_required_keys": ["task_id", "name", "task_classification", "skill_level"],
+      "task_prohibited_keys": ["task_class", "rate_per_hour", "coverage_sf_per_gallon"]
+    },
+    "production_json": {
+      "required_keys": ["spec_family_id", "version", "task_production_rates"],
+      "rate_item_keys": ["task_id", "unit_of_measure", "rate_per_hour OR rates_by_coating_type OR fixed_time_minutes"],
+      "prohibited_keys": ["tasks", "sop_modules"],
+      "stain_spec_note": "Production rates vary by coating_type instead of quality_tier. Use rates_by_coating_type instead of rates_by_tier. Per-face rates — PaintScope SF already includes both sides."
+    },
+    "qa_report_json": {
+      "required_keys": ["spec_family_id", "version", "overall_result"],
+      "issue_keys": ["issue_id", "severity", "area", "file", "description", "suggested_fix"],
+      "severity_values": ["critical", "major", "minor"]
+    }
+  },
+
+  "cross_file_threading": [
+    "RULE 1: Every TSK_ in sop_modules.json MUST have a matching rate in production.json",
+    "RULE 2: Every ITM_ in spec.json MUST appear in at least one variant (ITM_FENCE_FIELD is the only item)",
+    "RULE 3: Every SYS_ coating_type MUST match spec.json configuration_dimensions (coating_type replaces quality_tier for this spec)",
+    "RULE 4: Every IN_ input in spec.json SHOULD be consumed by sop_modules or production",
+    "RULE 5: Every PS_ key in production.json MUST match spec.json required_paintscope_inputs",
+    "RULE 6: Every zone_id in spec.json MUST match sop_modules.json protection_metadata.zones",
+    "RULE 7: Module phase order: setup → prep → apply → cleanup (simplified — no prime module for penetrating stains, no interstage, no finish)",
+    "RULE 8: UOM for a task MUST match between sop_modules.json and production.json",
+    "RULE 9: All TSK_ IDs MUST use TSK_FNCE_ prefix (from this resolution)",
+    "RULE 10: ITM_FENCE_FIELD MUST be used exactly as registered (proposed)",
+    "RULE 11: Downstream agents MUST use only enum values from this resolution's applicable_enums",
+    "RULE 12: Paint coating_type MUST trigger mandatory risk warning documentation in SOP and QA"
+  ],
+
+  "migration_warnings": [],
+
+  "registry_additions_proposed": [
+    {
+      "registry": "id_registry.json",
+      "section": "SF_",
+      "proposed_id": "SF_FENCE_EXT",
+      "name": "Exterior Wood Fence Staining/Painting (Cedar, PT Pine — New and Existing)",
+      "justification": "New spec family for exterior wood fence staining/painting. Distinct from deck (vertical vs horizontal, single item vs 4 items, different failure modes). Stain-based spec with paint option. Covers both new construction and existing fences."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "ITM_",
+      "proposed_id": "ITM_FENCE_FIELD",
+      "name": "Fence field surface (panels, boards, rails, posts — both sides combined SF)",
+      "justification": "No existing ITM covers fence surfaces. Single item for all fence components — PaintScope delivers final SF after geometry calculation. Distinct from ITM_DECK_FLOOR (horizontal) and ITM_SIDING_FIELD (one-sided wall)."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "surface_ids",
+      "proposed_id": "fence_field",
+      "name": "Fence field surface (primary surface for fence spec)",
+      "justification": "No existing surface_id covers fence panel/board surfaces. New vocabulary entry."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "surface_ids",
+      "proposed_id": "fence_post",
+      "name": "Fence post surface (adjacent component, same_finish)",
+      "justification": "No existing surface_id covers fence posts. Adjacent to fence_field with same_finish relationship."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "surface_ids",
+      "proposed_id": "fence_gate",
+      "name": "Fence gate surface (adjacent component, same_finish)",
+      "justification": "No existing surface_id covers fence gates. Adjacent to fence_field with same_finish relationship. Gates require hardware masking."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "surface_ids",
+      "proposed_id": "ext_landscape_grade",
+      "name": "Ground/landscaping at fence base (protection-only adjacency)",
+      "justification": "No existing surface_id covers ground-level landscape as an adjacent surface. ext_landscape_adjacent is a zone, not a surface. This is the surface vocabulary entry."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "zone_ids",
+      "proposed_id": "ext_landscape_fence_base",
+      "name": "Landscaping along fence base (both sides) — overspray/drip protection",
+      "justification": "Distinct from ext_landscape_adjacent (wall-specific). Fence-specific because protection needed on BOTH sides of fence. LF-based measurement along fence line."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "zone_ids",
+      "proposed_id": "ext_hardscape_fence_adjacent",
+      "name": "Hardscape along fence line — stain overspray protection",
+      "justification": "Distinct from ext_hardscape_walk (generic). Fence-specific due to both-sides stain application and penetrating stain chemistry (absorbs into concrete pores)."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "zone_ids",
+      "proposed_id": "ext_siding_at_fence_tie",
+      "name": "House siding at fence-to-house junction — overspray protection",
+      "justification": "No existing zone covers siding protection at fence attachment points. Related to deck spec's ext_siding_adjacent but distinct junction type."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "zone_ids",
+      "proposed_id": "ext_vehicle_adjacent",
+      "name": "Vehicles parked near spray zone — full cover protection",
+      "justification": "No existing zone covers vehicle protection. Applicable to fence and potentially other exterior spray specs. Liability risk zone."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "zone_ids",
+      "proposed_id": "ext_neighbor_property",
+      "name": "Neighbor's property adjacent to fence — overspray drift protection",
+      "justification": "No existing zone covers neighbor property protection. Unique to fence spec — only exterior scope where spray directly faces neighbor's property."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "PS_",
+      "proposed_id": "PS_EXT_SURFACE_SF.FENCE_FIELD",
+      "name": "Fence Field Surface Area (SF) — final SF from PaintScope after geometry calculation",
+      "justification": "New PS key for fence field net area. No existing PS key covers fence surfaces."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "PS_",
+      "proposed_id": "PS_EXT_META.ENUM.COATING_TYPE_FENCE",
+      "name": "Fence Coating Type Enum (transparent/semi_transparent/solid_stain/paint)",
+      "justification": "New PS key for primary configuration dimension. Fence-specific coating type selection with paint option (unlike deck which excludes paint)."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "PS_",
+      "proposed_id": "PS_EXT_META.ENUM.WOOD_CONDITION_FENCE",
+      "name": "Fence Wood Condition Enum (new/weathered/previously_coated)",
+      "justification": "New PS key for wood condition. Drives prep module activation. Same concept as deck but separate PS key for fence context."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "PS_",
+      "proposed_id": "PS_EXT_META.ENUM.FENCE_STYLE",
+      "name": "Fence Style Enum (privacy/shadowbox/picket/split_rail)",
+      "justification": "New PS key for fence style. PaintScope uses this to compute geometric multiplier for final SF."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "PS_",
+      "proposed_id": "PS_EXT_META.ENUM.SUBSTRATE_TYPE_FENCE",
+      "name": "Fence Substrate Material Enum (cedar/pressure_treated_pine)",
+      "justification": "New PS key for wood species. Drives tannin management and seasoning requirements."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "PS_",
+      "proposed_id": "PS_EXT_META.EA.FENCE_GATES",
+      "name": "Fence Gate Count (EA)",
+      "justification": "New PS key for gate count. Gates require hardware masking and may need open-position staining."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "PS_",
+      "proposed_id": "PS_EXT_PROTECT_LF.LANDSCAPE_FENCE_BASE",
+      "name": "Fence Base Landscape Protection (LF)",
+      "justification": "New PS key for landscape protection along fence base. Distinct from LANDSCAPE_PERIMETER (deck/building perimeter)."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "PS_",
+      "proposed_id": "PS_EXT_PROTECT_LF.HARDSCAPE_FENCE_ADJACENT",
+      "name": "Fence Adjacent Hardscape Protection (LF)",
+      "justification": "New PS key for hardscape protection along fence line. LF-based (unlike deck's SF-based hardscape protection)."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "PS_",
+      "proposed_id": "PS_EXT_PROTECT_SF.SIDING_AT_FENCE_TIE",
+      "name": "Siding at Fence Tie Protection (SF)",
+      "justification": "New PS key for siding protection at fence-to-house junction. Distinct from deck spec's SIDING_ADJACENT."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "PS_",
+      "proposed_id": "PS_EXT_PROTECT_EA.VEHICLE_ADJACENT",
+      "name": "Vehicle Adjacent Protection Count (EA)",
+      "justification": "New PS key for vehicle protection count. Potentially shareable across exterior spray specs."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "PS_",
+      "proposed_id": "PS_EXT_PROTECT_LF.NEIGHBOR_PROPERTY_LINE",
+      "name": "Neighbor Property Line Protection (LF)",
+      "justification": "New PS key for neighbor property protection along fence line. Unique to fence spec."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "IN_",
+      "proposed_id": "IN_SF_FENCE_FIELD",
+      "name": "Fence Field Area Input (SF)",
+      "justification": "Input mapped to PS_EXT_SURFACE_SF.FENCE_FIELD."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "IN_",
+      "proposed_id": "IN_ENUM_COATING_TYPE_FENCE",
+      "name": "Fence Coating Type Input (ENUM)",
+      "justification": "Input mapped to PS_EXT_META.ENUM.COATING_TYPE_FENCE."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "IN_",
+      "proposed_id": "IN_ENUM_WOOD_CONDITION_FENCE",
+      "name": "Fence Wood Condition Input (ENUM)",
+      "justification": "Input mapped to PS_EXT_META.ENUM.WOOD_CONDITION_FENCE."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "IN_",
+      "proposed_id": "IN_ENUM_FENCE_STYLE",
+      "name": "Fence Style Input (ENUM)",
+      "justification": "Input mapped to PS_EXT_META.ENUM.FENCE_STYLE."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "IN_",
+      "proposed_id": "IN_ENUM_SUBSTRATE_TYPE_FENCE",
+      "name": "Fence Substrate Material Input (ENUM)",
+      "justification": "Input mapped to PS_EXT_META.ENUM.SUBSTRATE_TYPE_FENCE."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "IN_",
+      "proposed_id": "IN_EA_FENCE_GATES",
+      "name": "Fence Gate Count Input (EA)",
+      "justification": "Input mapped to PS_EXT_META.EA.FENCE_GATES."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "IN_",
+      "proposed_id": "IN_LF_EXT_PROTECT_LANDSCAPE_FENCE_BASE",
+      "name": "Fence Base Landscape Protection Input (LF)",
+      "justification": "Input mapped to PS_EXT_PROTECT_LF.LANDSCAPE_FENCE_BASE."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "IN_",
+      "proposed_id": "IN_LF_EXT_PROTECT_HARDSCAPE_FENCE_ADJACENT",
+      "name": "Fence Adjacent Hardscape Protection Input (LF)",
+      "justification": "Input mapped to PS_EXT_PROTECT_LF.HARDSCAPE_FENCE_ADJACENT."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "IN_",
+      "proposed_id": "IN_SF_EXT_PROTECT_SIDING_AT_FENCE_TIE",
+      "name": "Siding at Fence Tie Protection Input (SF)",
+      "justification": "Input mapped to PS_EXT_PROTECT_SF.SIDING_AT_FENCE_TIE."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "IN_",
+      "proposed_id": "IN_EA_EXT_PROTECT_VEHICLE_ADJACENT",
+      "name": "Vehicle Adjacent Protection Input (EA)",
+      "justification": "Input mapped to PS_EXT_PROTECT_EA.VEHICLE_ADJACENT."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "IN_",
+      "proposed_id": "IN_LF_EXT_PROTECT_NEIGHBOR_PROPERTY_LINE",
+      "name": "Neighbor Property Line Protection Input (LF)",
+      "justification": "Input mapped to PS_EXT_PROTECT_LF.NEIGHBOR_PROPERTY_LINE."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "SYS_",
+      "proposed_id": "SYS_EXT_FNCE_TRANSPARENT",
+      "name": "Transparent Sealer/Water Repellent for Fences",
+      "justification": "No existing system covers fence-specific transparent sealers. Distinct from deck clear sealer (different coverage rates on vertical surfaces, different maintenance cycle)."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "SYS_",
+      "proposed_id": "SYS_EXT_FNCE_SEMI_TRANSPARENT",
+      "name": "Semi-Transparent Penetrating Stain for Fences",
+      "justification": "No existing system covers fence-specific semi-transparent stain. Professional standard for wood fences."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "SYS_",
+      "proposed_id": "SYS_EXT_FNCE_SOLID_STAIN",
+      "name": "Solid Stain (Film-Forming) for Fences",
+      "justification": "No existing system covers fence-specific solid stain."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "SYS_",
+      "proposed_id": "SYS_EXT_FNCE_PAINT",
+      "name": "Exterior Acrylic Latex Paint for Fences (LEAST RECOMMENDED)",
+      "justification": "No existing system covers fence-specific paint system. Paint on fences has unique moisture-driven peeling risk requiring mandatory documentation."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "SYS_",
+      "proposed_id": "SYS_EXT_FNCE_PRIMER_STAIN_BLOCK",
+      "name": "Tannin-Blocking Primer for Cedar Fences",
+      "justification": "Conditional primer for cedar substrate with solid stain/paint. Cedar tannin management."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "SYS_",
+      "proposed_id": "SYS_EXT_FNCE_PRIMER_EXTERIOR",
+      "name": "Standard Exterior Primer for Fence Paint Option",
+      "justification": "Conditional primer for PT pine + paint coating_type. Standard exterior primer for non-cedar fence paint."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "SYS_",
+      "proposed_id": "SYS_EXT_FNCE_CHEMICAL_STRIPPER",
+      "name": "Alkaline Fence Cleaner/Stripper (weathered wood prep)",
+      "justification": "No existing system covers fence cleaning chemicals. Weathered wood restoration prep chemical."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "SYS_",
+      "proposed_id": "SYS_EXT_FNCE_BRIGHTENER",
+      "name": "Oxalic Acid Wood Brightener for Fences",
+      "justification": "No existing system covers fence brightener products. Tannin treatment and restoration for cedar and weathered wood."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "COV_",
+      "proposed_id": "COV_FNCE_TRANSPARENT",
+      "name": "Transparent Sealer Coverage Profile for Fences",
+      "justification": "No existing COV_ covers transparent sealer on fence wood. 200-300 SF/gal."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "COV_",
+      "proposed_id": "COV_FNCE_SEMI_TRANSPARENT",
+      "name": "Semi-Transparent Stain Coverage Profile for Fences",
+      "justification": "No existing COV_ covers semi-transparent stain on fence wood. 200-300 SF/gal."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "COV_",
+      "proposed_id": "COV_FNCE_SOLID_STAIN",
+      "name": "Solid Stain Coverage Profile for Fences",
+      "justification": "No existing COV_ covers solid stain on fence wood. 300-400 SF/gal."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "COV_",
+      "proposed_id": "COV_FNCE_PAINT",
+      "name": "Exterior Paint Coverage Profile for Fences",
+      "justification": "No existing COV_ covers exterior paint on fence wood. 350-400 SF/gal."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "COV_",
+      "proposed_id": "COV_FNCE_PRIMER_TANNIN_BLOCK",
+      "name": "Tannin-Blocking Primer Coverage Profile for Cedar Fences",
+      "justification": "No existing COV_ covers tannin-blocking primer on fence wood. 250-350 SF/gal."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "COV_",
+      "proposed_id": "COV_FNCE_PRIMER_EXTERIOR",
+      "name": "Standard Exterior Primer Coverage Profile for Fences",
+      "justification": "No existing COV_ covers standard exterior primer on fence wood. 300-400 SF/gal."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "COV_",
+      "proposed_id": "COV_FNCE_CHEMICAL_STRIPPER",
+      "name": "Fence Cleaner/Stripper Coverage Profile",
+      "justification": "No existing COV_ covers fence cleaning chemicals. 100-200 SF/gal."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "COV_",
+      "proposed_id": "COV_FNCE_BRIGHTENER",
+      "name": "Acid Brightener Coverage Profile for Fences",
+      "justification": "No existing COV_ covers acid brightener on fence wood. 100-200 SF/gal."
+    },
+    {
+      "registry": "controlled_enums.json",
+      "section": "coating_type",
+      "proposed_id": "coating_type (new enum type — fence values)",
+      "name": "Fence Coating Type Enum",
+      "justification": "New enum type for controlled_enums.json. Values: transparent, semi_transparent, solid_stain, paint. Related to deck spec's coating_type but with fence-specific values (transparent replaces clear_sealer, no semi_solid, paint added). May be unified with deck enum at registry integration time."
+    },
+    {
+      "registry": "controlled_enums.json",
+      "section": "wood_condition",
+      "proposed_id": "wood_condition (shared with deck spec)",
+      "name": "Wood Condition Enum",
+      "justification": "Shared enum type proposed by deck spec. Values: new, weathered, previously_coated. Same values apply to fence spec."
+    },
+    {
+      "registry": "controlled_enums.json",
+      "section": "fence_style",
+      "proposed_id": "fence_style (new enum type)",
+      "name": "Fence Style Enum",
+      "justification": "New enum type for controlled_enums.json. Values: privacy, shadowbox, picket, split_rail. Drives PaintScope geometric multiplier. Fence-specific — no analogous enum exists."
+    },
+    {
+      "registry": "controlled_enums.json",
+      "section": "substrate_material",
+      "proposed_id": "substrate_material (new enum type — fence values)",
+      "name": "Fence Substrate Material Enum",
+      "justification": "New enum type. Values: cedar, pressure_treated_pine. Related to deck spec's deck_substrate_type but fence-specific (no redwood). May be unified at registry integration time."
+    },
+    {
+      "registry": "controlled_enums.json",
+      "section": "application_method",
+      "proposed_id": "spray_backbrush",
+      "name": "Spray with mandatory back-brushing (fence/deck stain penetration)",
+      "justification": "New value for existing application_method enum. Shared with deck spec proposal. Spray + brush back-working for penetrating stain — distinct from spray_backroll (roller, different technique)."
+    }
+  ]
+}

@@ -179,15 +179,15 @@ def import_raw(conn, sf_id, version, artifacts, report):
 def import_spec_json(conn, spec, sf_id, report):
     """Decompose spec.json into normalized tables."""
 
-    sf = spec["spec_family"]
+    sf = spec.get("spec_family") or spec.get("spec_metadata")
 
     # --- spec_families ---
     conn.execute(
         """INSERT INTO spec_families
            (id, name, description, context, domain, version, status, review_required, created_by)
            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
-        (sf["id"], sf["name"], sf.get("description"), sf.get("context"),
-         sf["domain"], sf["version"], sf["status"],
+        (sf.get("id") or sf.get("spec_family_id"), sf["name"], sf.get("description"), sf.get("context") or sf.get("context_prefix"),
+         sf["domain"], sf["version"], sf.get("status", "draft"),
          to_int_bool(sf.get("review_required", True)), "SpecFactory"),
     )
     report.add_rows("spec_families", 1)
@@ -214,11 +214,12 @@ def import_spec_json(conn, spec, sf_id, report):
         conn.execute(
             """INSERT INTO spec_paintable_item_types
                (id, spec_family_id, name, unit_of_measure, counting_rules,
-                conditional, conditional_on, notes)
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
+                conditional, conditional_on, surface_ref, notes)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
             (item["item_id"], sf_id, item["name"], item["unit_of_measure"],
              item.get("counting_rules"), to_int_bool(item.get("conditional")),
              json_str(cond_on) if isinstance(cond_on, (dict, list)) else cond_on,
+             item.get("surface_ref"),
              item.get("notes")),
         )
     report.add_rows("spec_paintable_item_types", len(items))
@@ -227,17 +228,27 @@ def import_spec_json(conn, spec, sf_id, report):
     variants = spec.get("variants", [])
     inclusion_count = 0
     for var in variants:
+        # Coat count dual-pattern: flat keys (interior) or nested object (exterior)
+        coats_primer = var.get("coats_primer")
+        coats_finish = var.get("coats_finish")
+        if coats_primer is None and "coats" in var and isinstance(var["coats"], dict):
+            coats_primer = var["coats"].get("prime")
+            coats_finish = var["coats"].get("finish")
+
         conn.execute(
             """INSERT INTO spec_variants
                (id, spec_family_id, applies_when, coats_primer, coats_finish,
                 round_id, protection_zones, notes)
                VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
             (var["variant_id"], sf_id, json_str(var.get("applies_when")),
-             var.get("coats_primer"), var.get("coats_finish"),
+             coats_primer, coats_finish,
              var.get("round_id"), json_str(var.get("protection_zones")),
              var.get("notes")),
         )
-        for item_id in var.get("included_items", []):
+
+        # Item inclusion tri-pattern: included_items (interior), active_items (exterior), excluded_items
+        included = var.get("included_items") or var.get("active_items", [])
+        for item_id in included:
             conn.execute(
                 """INSERT INTO spec_variant_item_inclusions
                    (spec_family_id, variant_id, item_id, is_included) VALUES (?, ?, ?, 1)""",
@@ -303,14 +314,21 @@ def import_spec_json(conn, spec, sf_id, report):
         condition = z.get("condition")
         if isinstance(condition, dict):
             condition = json_str(condition)
+
+        # Protection zone field mapping: interior vs exterior key names
+        upgrades_to_level = z.get("upgrades_to_level") or z.get("upgrade_level")
+        upgrade_condition = z.get("upgrade_condition") or z.get("upgrade_when")
+        if isinstance(upgrade_condition, dict):
+            upgrade_condition = json_str(upgrade_condition)
+
         conn.execute(
             """INSERT INTO spec_protection_zones
                (spec_family_id, zone_id, condition, protection_level,
                 upgrades_to_zone, upgrades_to_level, upgrade_condition, notes)
                VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
             (sf_id, z["zone_id"], condition, z["protection_level"],
-             z.get("upgrades_to_zone"), z.get("upgrades_to_level"),
-             safe_text(z.get("upgrade_condition")), safe_text(z.get("notes"))),
+             z.get("upgrades_to_zone"), upgrades_to_level,
+             safe_text(upgrade_condition), safe_text(z.get("notes"))),
         )
     report.add_rows("spec_protection_zones", len(zones))
 
@@ -336,8 +354,9 @@ def import_spec_json(conn, spec, sf_id, report):
         report.add_rows("spec_adjacency_declarations", adj_count)
 
     # --- spec_state_declarations ---
+    # Dual-key: interior uses "state_declarations", exterior uses "substrate_state_rules"
     # Can be a single object or an array
-    state_raw = spec.get("state_declarations")
+    state_raw = spec.get("state_declarations") or spec.get("substrate_state_rules")
     if state_raw:
         state_list = state_raw if isinstance(state_raw, list) else [state_raw]
         for state in state_list:
@@ -360,14 +379,19 @@ def import_spec_json(conn, spec, sf_id, report):
             else:
                 out_state, out_varies, out_map, out_notes = None, None, None, None
 
+            # Exterior primer_routing (per-substrate primer system routing)
+            primer_routing = state.get("primer_routing")
+
             conn.execute(
                 """INSERT INTO spec_state_declarations
                    (spec_family_id, primary_surface, valid_input_states,
-                    output_state, output_state_varies_by, output_state_map, notes)
-                   VALUES (?, ?, ?, ?, ?, ?, ?)""",
+                    output_state, output_state_varies_by, output_state_map,
+                    primer_routing, notes)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
                 (sf_id, primary,
                  json_str(state.get("valid_input_states")),
                  out_state, out_varies, out_map,
+                 json_str(primer_routing),
                  out_notes or state.get("notes")),
             )
         report.add_rows("spec_state_declarations", len(state_list))
@@ -406,15 +430,17 @@ def import_materials_json(conn, materials, sf_id, report):
 
         conn.execute(
             """INSERT INTO material_systems
-               (id, spec_family_id, name, description, applies_when, allowed_sheens, notes)
-               VALUES (?, ?, ?, ?, ?, ?, ?)""",
+               (id, spec_family_id, name, description, applies_when, allowed_sheens,
+                product_role, notes)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
             (sys_id, sf_id, sys_obj.get("name", ""), sys_obj.get("description"),
              json_str(applies_when),
              json_str(sys_obj.get("allowed_sheens")),
+             sys_obj.get("product_role"),
              sys_obj.get("notes")),
         )
 
-        # Dual-pattern product handling
+        # Tri-pattern product handling
         if "products" in sys_obj and isinstance(sys_obj["products"], list):
             # Drywall pattern: products[] array
             for prod in sys_obj["products"]:
@@ -428,12 +454,12 @@ def import_materials_json(conn, materials, sf_id, report):
                      prod.get("coats_required") or prod.get("default_coats"), prod.get("notes")),
                 )
                 product_count += 1
-        else:
+        elif any(sys_obj.get(k) and isinstance(sys_obj.get(k), dict) for k in ("primer", "finish", "sealer", "stain", "clear")):
             # Cabinet pattern: primer / finish as direct objects
             for role_key in ("primer", "finish", "sealer", "stain", "clear"):
                 role_obj = sys_obj.get(role_key)
                 if role_obj and isinstance(role_obj, dict):
-                    cov_range = role_obj.get("coverage_range", [])
+                    cov_range = role_obj.get("coverage_range") or []
                     conn.execute(
                         """INSERT INTO material_system_products
                            (spec_family_id, system_id, product_role, product_type,
@@ -449,6 +475,24 @@ def import_materials_json(conn, materials, sf_id, report):
                          safe_text(role_obj.get("notes"))),
                     )
                     product_count += 1
+        elif sys_obj.get("product_role") and isinstance(sys_obj.get("product_role"), str):
+            # Exterior flat pattern: system-level product_role, coverage, coats
+            cov_range = sys_obj.get("coverage_range") or []
+            conn.execute(
+                """INSERT INTO material_system_products
+                   (spec_family_id, system_id, product_role, product_type,
+                    example_products, coats_required, coverage_sf_per_gallon,
+                    coverage_range_low, coverage_range_high, notes)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                (sf_id, sys_id, sys_obj.get("product_role"), sys_obj.get("product_type"),
+                 json_str(sys_obj.get("example_products")),
+                 sys_obj.get("coats"),
+                 sys_obj.get("coverage_sf_per_gallon"),
+                 cov_range[0] if len(cov_range) > 0 else None,
+                 cov_range[1] if len(cov_range) > 1 else None,
+                 sys_obj.get("notes")),
+            )
+            product_count += 1
 
     report.add_rows("material_systems", len(systems))
     report.add_rows("material_system_products", product_count)
@@ -457,20 +501,28 @@ def import_materials_json(conn, materials, sf_id, report):
     profiles = materials.get("coverage_profiles", [])
     for p in profiles:
         p_id = p.get("profile_id") or p.get("coverage_id") or p.get("id")
+
+        # Exterior coverage patterns: coverage_by_state / coverage_by_system fold into coverage_by_item
+        coverage_by_item = p.get("coverage_by_item")
+        if not coverage_by_item:
+            coverage_by_item = p.get("coverage_by_state") or p.get("coverage_by_system")
+
         conn.execute(
             """INSERT INTO material_coverage_profiles
                (id, spec_family_id, material_system, product_role, surface_texture,
                 drywall_finish_level, coverage_model, coverage_sf_per_gallon,
                 coverage_range_low, coverage_range_high, coverage_by_item,
-                assumptions, notes)
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                waste_factor, uom_basis, assumptions, notes)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
             (p_id, sf_id, safe_text(p.get("material_system")), p.get("product_role"),
              json_str(p.get("surface_texture")) if isinstance(p.get("surface_texture"), list) else p.get("surface_texture"),
              json_str(p.get("drywall_finish_level")),
              p.get("coverage_model"),
              p.get("coverage_sf_per_gallon"),
              p.get("coverage_range_low"), p.get("coverage_range_high"),
-             json_str(p.get("coverage_by_item")),
+             json_str(coverage_by_item),
+             p.get("waste_factor"),
+             p.get("uom_basis"),
              json_str(p.get("assumptions")) if isinstance(p.get("assumptions"), list) else p.get("assumptions"),
              json_str(p.get("notes")) if isinstance(p.get("notes"), list) else p.get("notes")),
         )
@@ -501,18 +553,24 @@ def import_materials_json(conn, materials, sf_id, report):
 # Import: sop_modules.json
 # ============================================================
 
-def import_sop_json(conn, sop, sf_id, report):
-    """Decompose sop_modules.json into normalized tables."""
+def import_sop_json(conn, sop, sf_id, report, spec=None):
+    """Decompose sop_modules.json into normalized tables.
+    spec parameter is optional — used to check for round_configurations in spec.json as fallback."""
 
     # --- sop_round_configurations ---
+    # Check sop_modules.json first, fall back to spec.json
     round_configs = sop.get("round_configurations", [])
+    if not round_configs and spec:
+        round_configs = spec.get("round_configurations", [])
     for rc in round_configs:
+        # round_id dual-key: "round_id" (standard) or "round_config_id" (caulk/some exterior)
+        r_id = rc.get("round_id") or rc.get("round_config_id")
         conn.execute(
             """INSERT INTO sop_round_configurations
                (spec_family_id, round_id, name, description, applies_when,
                 phase_sequence, total_coats, interstage_cycles, notes)
                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
-            (sf_id, rc["round_id"], rc.get("name", ""),
+            (sf_id, r_id, rc.get("name", ""),
              rc.get("description"),
              json_str(rc.get("applies_when")),
              json_str(rc.get("phase_sequence")),
@@ -544,8 +602,10 @@ def import_sop_json(conn, sop, sf_id, report):
                    (id, spec_family_id, module_id, name, task_classification,
                     task_type, skill_level, qt_behavior, description, tools_required,
                     applies_when, appears_in_tiers, quality_notes,
-                    protection_metadata, adjacency_metadata, notes, sort_order)
-                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                    protection_metadata, adjacency_metadata,
+                    substrate_state_rules, site_condition_rules,
+                    notes, sort_order)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
                 (task["task_id"], sf_id, mod["module_id"], task["name"],
                  task.get("task_classification"), task.get("task_type"),
                  task.get("skill_level"), task.get("qt_behavior"),
@@ -556,6 +616,8 @@ def import_sop_json(conn, sop, sf_id, report):
                  json_str(task.get("quality_notes")),
                  json_str(task.get("protection_metadata")),
                  json_str(task.get("adjacency_metadata")),
+                 json_str(task.get("substrate_state_rules")),
+                 json_str(task.get("site_condition_rules")),
                  task.get("notes"), j),
             )
             task_count += 1
@@ -593,8 +655,8 @@ def import_production_json(conn, production, sf_id, report):
                 paintscope_key, rate_per_hour, rate_range_low, rate_range_high,
                 rates_by_tier, fixed_minutes, fixed_minutes_range_low,
                 fixed_minutes_range_high, fixed_minutes_by_tier,
-                crew_size, applies_when, notes)
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                crew_size, applies_when, defect_tolerance, notes)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
             (sf_id, r["task_id"], r.get("name"),
              r.get("unit_of_measure", ""),
              r.get("required_input_key") or r.get("input_name"),
@@ -609,6 +671,7 @@ def import_production_json(conn, production, sf_id, report):
              json_str(r.get("fixed_time_minutes_by_tier") or r.get("fixed_minutes_by_tier")),
              r.get("crew_size"),
              json_str(r.get("applies_when")),
+             json_str(r.get("defect_tolerance")),
              r.get("notes") or r.get("rate_basis_notes")),
         )
     report.add_rows("task_production_rates", len(rates) - skipped_rates)
@@ -626,7 +689,7 @@ def import_production_json(conn, production, sf_id, report):
     def insert_modifier(mod_id, category, name=None, description=None,
                         modifier_type=None, time_mod=None, value=None,
                         value_min=None, value_max=None, condition=None,
-                        notes=None, applies_to_tasks=None):
+                        values_map=None, notes=None, applies_to_tasks=None):
         """Insert a modifier row and optional task applicability rows."""
         nonlocal modifier_count, applicability_count
         if mod_id in seen_modifier_ids:
@@ -636,11 +699,12 @@ def import_production_json(conn, production, sf_id, report):
             """INSERT INTO factor_modifiers
                (id, spec_family_id, modifier_category, name, description,
                 modifier_type, time_modifier, value, value_min, value_max,
-                condition, notes)
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                condition, values_map, notes)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
             (mod_id, sf_id, category, name, description,
              modifier_type, time_mod, value, value_min, value_max,
              json_str(condition) if isinstance(condition, (dict, list)) else condition,
+             json_str(values_map) if isinstance(values_map, dict) else values_map,
              notes),
         )
         modifier_count += 1
@@ -748,19 +812,39 @@ def import_production_json(conn, production, sf_id, report):
             if not fac_id:
                 continue
             category = fac.get("modifier_category") or fac.get("type", "unknown")
+
+            # Exterior multi-value map: "values" dict → values_map column
+            values_obj = fac.get("values")
+            v_map = None
+            time_mod = fac.get("time_modifier")
+            if isinstance(values_obj, dict):
+                v_map = values_obj
+                # If values is a dict, time_modifier should be NULL (multiple values)
+                if time_mod is None:
+                    time_mod = None
+
+            # applies_to dual-key: interior "applies_to_tasks" vs exterior "applies_to"
+            task_list = fac.get("applies_to_tasks") or fac.get("applies_to")
+            if isinstance(task_list, list):
+                task_list = [t for t in task_list if isinstance(t, str) and t.startswith("TSK_")]
+                task_list = task_list or None
+            else:
+                task_list = None
+
             insert_modifier(
                 mod_id=fac_id,
                 category=category,
                 name=fac.get("name"),
                 description=fac.get("description"),
-                modifier_type=fac.get("modifier_type"),
-                time_mod=fac.get("time_modifier"),
+                modifier_type=fac.get("modifier_type") or fac.get("mechanism"),
+                time_mod=time_mod,
                 value=fac.get("value"),
                 value_min=fac.get("value_min"),
                 value_max=fac.get("value_max"),
                 condition=fac.get("condition"),
+                values_map=v_map,
                 notes=fac.get("notes"),
-                applies_to_tasks=fac.get("applies_to_tasks"),
+                applies_to_tasks=task_list,
             )
 
     report.add_rows("factor_modifiers", modifier_count)
@@ -768,6 +852,8 @@ def import_production_json(conn, production, sf_id, report):
 
     # --- quality_tier_effects ---
     effects = production.get("quality_tier_effects", [])
+    if not isinstance(effects, list):
+        effects = []  # Some specs use a descriptive dict instead of a list
     for eff in effects:
         conn.execute(
             """INSERT INTO quality_tier_effects
@@ -849,8 +935,9 @@ def import_spec_family(spec_path, db_path, reimport=False):
             return False
 
     spec = artifacts["spec.json"]
-    sf_id = spec["spec_family"]["id"]
-    version = spec["spec_family"]["version"]
+    sf_obj = spec.get("spec_family") or spec.get("spec_metadata")
+    sf_id = sf_obj.get("id") or sf_obj.get("spec_family_id")
+    version = sf_obj["version"]
     print(f"  Spec Family: {sf_id} v{version}")
 
     report = ImportReport(sf_id, version)
@@ -891,7 +978,7 @@ def import_spec_family(spec_path, db_path, reimport=False):
 
         # Step 4: Normalize sop_modules.json
         print("  Importing sop_modules.json...")
-        import_sop_json(conn, artifacts["sop_modules.json"], sf_id, report)
+        import_sop_json(conn, artifacts["sop_modules.json"], sf_id, report, spec=spec)
 
         # Step 5: Normalize production.json
         print("  Importing production.json...")

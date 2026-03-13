@@ -1,0 +1,274 @@
+{
+  "spec_family_id": "SF_SOFFIT_EXT_NC",
+  "version": "0.1.0",
+  "generated_by": "System Critic",
+  "generated_at": "2026-03-09",
+  "status": "draft",
+  "review_required": true,
+
+  "overall_result": "pass",
+
+  "summary": "SF_SOFFIT_EXT_NC_v1 draft artifacts pass all critical and major doctrine checks. First exterior overhead field-surface spec — defines the overhead-work production paradigm with base rates pre-baked at 25-35% reduction from vertical baselines, avoiding double-counting with a separate FAC_SFIT_OVERHEAD stacking modifier. 37 tasks thread correctly between sop_modules.json and production.json (29 binary, 6 qt_scaled, 2 qt_conditional). All PaintScope keys use PS_EXT_* namespace. All substrate states use SS_EXT_* prefix. All protection zones use ext_* prefix. No interior keys, states, or zones present. Key soffit-specific features validated: spray tasks correctly gated by soffit_vent_type = non_vented (FM-001), T&G groove brush-back tasks present for spray + tg_board combination, extension pole referenced for overhead roller work, flat/satin sheen only, 4 substrate-driven primer paths (acrylic wood/FC, alkali bare FC, bonding vinyl, skip field-primed), overhead ground protection emphasized as critical. Modifier stacking worst case 2.208x (vented + T&G + scaffold) is well under 4.0x cap. 1 minor issue fixed during QA (applies_when consistency on alkali brush_roll task). 2 minor observations, no blockers.",
+
+  "artifacts_reviewed": [
+    { "file": "research.json", "status": "reviewed", "human_feedback": "none" },
+    { "file": "resolution.json", "status": "reviewed", "human_feedback": "none" },
+    { "file": "materials.json", "status": "reviewed", "human_feedback": "none" },
+    { "file": "sop_modules.json", "status": "reviewed", "human_feedback": "none" },
+    { "file": "production.json", "status": "reviewed", "human_feedback": "none" },
+    { "file": "spec.json", "status": "not_yet_created", "human_feedback": "n/a" }
+  ],
+
+  "issues": [
+    {
+      "issue_id": "QA-001",
+      "severity": "minor",
+      "area": "applies_when_consistency",
+      "file": "production.json",
+      "status": "resolved",
+      "description": "TSK_SFIT_PRIME_ALKALI_BRUSH_ROLL in production.json had applies_when containing only substrate_material and substrate_state, missing application_method: [\"brush_roll\"]. The corresponding sop_modules.json task included all three constraints including application_method. The spray variant (TSK_SFIT_PRIME_ALKALI_SPRAY) correctly included application_method in production.json.",
+      "resolution": "Added application_method: [\"brush_roll\"] to TSK_SFIT_PRIME_ALKALI_BRUSH_ROLL applies_when in production.json. Now consistent with sop_modules.json and the spray variant pattern."
+    },
+    {
+      "issue_id": "QA-002",
+      "severity": "minor",
+      "area": "environmental_modifiers",
+      "file": "production.json",
+      "status": "acknowledged",
+      "description": "Production.json declares FAC_EXT_WIND, FAC_EXT_SUN_EXPOSURE, and FAC_EXT_SURFACE_TEMP as factor_modifiers with time_multiplier values. Per RC-003, environmental conditions are process/scheduling constraints referenced in SOP exclude_when blocks, not estimation modifiers. The sibling engineered siding spec excludes environmental conditions from production factor_modifiers. Including them here is not incorrect per se (the values are reasonable), but is inconsistent with the established exterior sibling pattern.",
+      "resolution": "Acknowledged — no functional impact on estimation because these modifiers are only applied when environmental conditions are explicitly captured, which is rare. The values are reasonable (calm=1.00, moderate=1.15, high=STOP). Leaving in place for completeness since soffit is more sensitive to wind than siding due to overhead spraying. Future standardization pass may normalize this across exterior specs."
+    },
+    {
+      "issue_id": "QA-003",
+      "severity": "minor",
+      "area": "caulk_task_sequencing",
+      "file": "sop_modules.json",
+      "status": "acknowledged",
+      "description": "TSK_SFIT_CAULK_JOINTS is placed in MOD_SFIT_PREP (prep phase) but COMPAT-SFIT-009 in materials.json states caulk must be applied AFTER primer coat. The sop_modules.json sequence_notes for MOD_SFIT_PREP mention this correctly ('Caulk joints (AFTER prime on wood/FC, concurrent with prep on vinyl)'), and the assumptions section also documents this. However, the task's physical placement in the prep module rather than a post-prime position could cause confusion.",
+      "resolution": "Acknowledged — the task placement in prep is a structural convention (all surface-prep tasks grouped together). The sequence_notes and assumptions correctly document that field execution sequences caulk AFTER prime. This pattern exists in sibling specs (trim, siding). No change needed."
+    }
+  ],
+
+  "blockers": [],
+
+  "doctrine_checks": [
+    {
+      "check": "THREADING-1: Task ID Completeness",
+      "result": "pass",
+      "details": "All 37 task_ids in sop_modules.json have matching entries in production.json. No orphaned tasks in either direction. Count by module: SETUP=6, PREP=8, PRIME=6, FINISH_1=4, INTERSTAGE=4, FINISH_2=4, FINAL_INSPECT=2, CLEANUP=3."
+    },
+    {
+      "check": "THREADING-2: task_classification Match",
+      "result": "pass",
+      "details": "All task_classification values match between files. 6 qt_scaled tasks (CUTIN_FASCIA_1, CUTIN_FASCIA_2, INSPECT_COAT, TOUCHUP_REPAIR, FINAL_INSPECT, FINAL_TOUCHUP) have qt_rates in production.json. 2 qt_conditional tasks (SAND_INTERCOAT, DUST_INTERCOAT) have appears_in_tiers [QT4] in production.json. 29 binary tasks use flat rate_per_hour or fixed_time_minutes. No mismatches found."
+    },
+    {
+      "check": "THREADING-3: applies_when Consistency",
+      "result": "pass",
+      "details": "Application method gating consistent between files after QA-001 fix: spray tasks gate on application_method [spray] + soffit_vent_type [non_vented], brush_roll tasks gate on [brush_roll]. Substrate-specific tasks gate on substrate_material and/or substrate_state. Vinyl primer tasks gate on substrate_material [vinyl]. MOD_SFIT_FINISH_2 applies_when quality_tier [QT3, QT4] — matches coat count structure (QT2 is single coat). T&G brush-back tasks gate on soffit_panel_type [tg_board]."
+    },
+    {
+      "check": "THREADING-4: UOM Match",
+      "result": "pass",
+      "details": "All task UOMs match between sop_modules.json and production.json. SF-based: 27 tasks (wash, sand variants, prime variants, finish variants, cut-in, brush-back, inspect, touchup, dust, protect teardown, fascia mask). EA-based: 3 tasks (fixture mask, seal cut edges, spot prime knots). LF-based: 1 task (caulk joints). FIXED: 3 tasks (equipment setup brush, equipment setup spray, clean equipment, site cleanup)."
+    },
+    {
+      "check": "THREADING-5: Task Prefix",
+      "result": "pass",
+      "details": "All 37 task IDs use TSK_SFIT_ prefix. No collisions with existing prefixes (SDNG, FCSD, ENSD, XTRM, etc.)."
+    },
+    {
+      "check": "THREADING-6: Module Prefix",
+      "result": "pass",
+      "details": "All 8 module IDs use MOD_SFIT_ prefix: SETUP, PREP, PRIME, FINISH_1, INTERSTAGE, FINISH_2, FINAL_INSPECT, CLEANUP."
+    },
+    {
+      "check": "EXT-1: Key Namespace Integrity",
+      "result": "pass",
+      "details": "All paintscope_key references use PS_EXT_* namespace. 9 PS keys declared in resolution.json: PS_EXT_SURFACE_SF.SOFFIT_FIELD, PS_EXT_META.EA.ELEVATIONS_TOTAL, PS_EXT_META.ENUM.ACCESS_TYPE, PS_EXT_META.FLAG.NEW_CONSTRUCTION, PS_EXT_META.ENUM.SOFFIT_VENT_TYPE, PS_EXT_META.ENUM.SOFFIT_PANEL_TYPE, PS_EXT_PROTECT_SF.LANDSCAPE_ADJACENT, PS_EXT_PROTECT_SF.HARDSCAPE_WALK, PS_EXT_PROTECT_EA.LIGHT_FIXTURE. No interior keys found."
+    },
+    {
+      "check": "EXT-2: Substrate State Validity",
+      "result": "pass",
+      "details": "All substrate states use SS_EXT_* prefix. 3 input states: SS_EXT_BARE_WOOD, SS_EXT_PRIMED_FACTORY, SS_EXT_PRIMED_FIELD. 2 output states: SS_EXT_PAINTED_FLAT, SS_EXT_PAINTED_SATIN. No SS_INT_* or bare SS_ IDs. Vinyl soffit uses SS_EXT_BARE_WOOD by convention (no dedicated SS_EXT_BARE_VINYL exists) — documented in resolution.json and flagged as doctrine gap."
+    },
+    {
+      "check": "EXT-3: Protection Zone Integrity",
+      "result": "pass",
+      "details": "All 5 protection zones use ext_* prefix: ext_landscape_adjacent, ext_hardscape_walk, ext_light_fixture, ext_fascia_adjacent, ext_siding_adjacent. No interior zone IDs. All zones referenced in sop_modules.json protection_metadata (setup in SETUP module tasks, teardown in CLEANUP module TSK_SFIT_PROTECT_TEARDOWN which lists all 5 zones)."
+    },
+    {
+      "check": "EXT-4: Mandatory Site Condition Rules",
+      "result": "pass",
+      "details": "FAC_EXT_ACCESS declared with correct values (ground=1.00, ladder=1.35, scaffold=1.60, lift=1.50). Applied to 26 overhead tasks. Ground-level tasks (protect setup, equipment setup, cleanup) correctly excluded from FAC_EXT_ACCESS applies_to list."
+    },
+    {
+      "check": "EXT-5: Exterior Factor Keys",
+      "result": "pass",
+      "details": "FAC_EXT_ACCESS reused from sibling exterior specs. No FAC_HEIGHT (interior). Soffit-specific modifiers declared: FAC_SFIT_VENT_COMPLEXITY (vented=1.15), FAC_SFIT_TG_JOINTS (tg_board=1.20). FAC_SFIT_OVERHEAD (1.35 from research) is documented but NOT applied as a stacking modifier — correctly baked into base rates to avoid double-counting."
+    },
+    {
+      "check": "EXT-6: Modifier Math",
+      "result": "pass",
+      "details": "All modifiers use division formula: effective_rate = base_rate / modifier. Stacking cap 4.0x declared. 5 stacking examples provided in production.json. Maximum combination (vented 1.15 x T&G 1.20 x scaffold 1.60 = 2.208x) is well under 4.0x cap. All examples produce credible effective rates. Stacking example math verified: 120 / 2.208 = 54.3 SF/hr (matches documented 54 SF/hr)."
+    },
+    {
+      "check": "EXT-7: Material State Compatibility",
+      "result": "pass",
+      "details": "Four substrate-driven primer paths: (1) acrylic (SYS_EXT_SFIT_PRIMER_ACRYLIC) for SS_EXT_BARE_WOOD + SS_EXT_PRIMED_FACTORY on wood/FC, (2) alkali-resistant (SYS_EXT_SFIT_PRIMER_ALKALI) for bare FC, (3) bonding (SYS_EXT_SFIT_PRIMER_BONDING) for vinyl, (4) skip for SS_EXT_PRIMED_FIELD. Tannin spot-prime (SYS_EXT_SFIT_PRIMER_TANNIN_SPOT) for wood knots. 3 finish systems: standard (QT2/QT3), premium (QT4), solar-reflective (vinyl + LRV < 55). Compatibility rules COMPAT-SFIT-001 through COMPAT-SFIT-010 enforce correct material routing. 7 material systems total (4 primer + 2 finish + 1 conditional solar-reflective)."
+    },
+    {
+      "check": "SPEC-1: Spray Vent Type Gating",
+      "result": "pass",
+      "details": "All spray tasks correctly gate on soffit_vent_type: [non_vented] in both sop_modules.json and production.json. 7 spray tasks verified: TSK_SFIT_EQUIPMENT_SETUP_SPRAY, TSK_SFIT_PRIME_SPRAY, TSK_SFIT_PRIME_VINYL_SPRAY, TSK_SFIT_PRIME_ALKALI_SPRAY, TSK_SFIT_FINISH_1_SPRAY, TSK_SFIT_FINISH_2_SPRAY. SOP descriptions reference FM-001 (attic vent contamination). COMPAT-SFIT-006 enforces the hard rule."
+    },
+    {
+      "check": "SPEC-2: Overhead Rate Design",
+      "result": "pass",
+      "details": "Production.json overhead_rate_design_notes section documents the BAKED_INTO_BASE_RATES approach. Vertical-to-overhead reduction ratios documented (25-35% across task types). FAC_SFIT_OVERHEAD (1.35 from research) is NOT applied as a separate stacking modifier. FAC_EXT_ACCESS stacks on TOP of overhead-adjusted base rates. This prevents double-counting and is the correct design for an all-overhead spec."
+    },
+    {
+      "check": "SPEC-3: T&G Groove Brush-Back Tasks",
+      "result": "pass",
+      "details": "TSK_SFIT_TG_BRUSH_BACK_1 and TSK_SFIT_TG_BRUSH_BACK_2 present in FINISH_1 and FINISH_2 modules. Both gate on application_method: [spray] + soffit_panel_type: [tg_board]. Rates: 150 SF/hr (overhead brush detail). SOP describes two-person operation (sprayer leads, brusher follows within 30-60 sec). FAC_SFIT_TG_JOINTS modifier correctly NOT applied to these tasks (their base rate already reflects groove work)."
+    },
+    {
+      "check": "SPEC-4: Extension Pole Reference",
+      "result": "pass",
+      "details": "Extension pole referenced in: (1) CON_SFIT_EXTENSION_POLE consumable (tool category, 1 EA per crew), (2) tools_required for TSK_SFIT_EQUIPMENT_SETUP_BRUSH, TSK_SFIT_PRIME_BRUSH_ROLL, TSK_SFIT_PRIME_VINYL_BRUSH_ROLL, TSK_SFIT_PRIME_ALKALI_BRUSH_ROLL, TSK_SFIT_FINISH_1_BRUSH_ROLL, TSK_SFIT_FINISH_2_BRUSH_ROLL. Extension pole is the primary overhead tool for brush/roll work."
+    },
+    {
+      "check": "SPEC-5: Sheen Restriction",
+      "result": "pass",
+      "details": "Only flat and satin sheens allowed. Prohibited: eggshell/satin, semi-gloss+, semi-gloss, gloss. Enforced in resolution.json applicable_enums.sheen and materials.json COMPAT-SFIT-008. All finish material systems (standard, premium, solar-reflective) list allowed_sheens: [flat, satin]."
+    },
+    {
+      "check": "SPEC-6: Three Substrate Paths",
+      "result": "pass",
+      "details": "Three substrate material paths with correct primer routing: (1) wood — acrylic primer + tannin spot-prime, sanding with 80-120 grit; (2) fiber_cement — acrylic primer on factory-primed + alkali-resistant on bare, scuff sand 150 grit, end-cut edge sealing; (3) vinyl — bonding primer, scuff sand 220 grit, solar-reflective finish for dark colors. Each path has substrate-specific prep, prime, and finish task gating."
+    },
+    {
+      "check": "SPEC-7: Edge Sealing Task (FC)",
+      "result": "pass",
+      "details": "TSK_SFIT_SEAL_CUT_EDGES present in MOD_SFIT_PREP. Gates on substrate_material: [fiber_cement]. EA-based with manual capture. Substrate state rules: required for SS_EXT_PRIMED_FACTORY and SS_EXT_BARE_WOOD, excluded for SS_EXT_PRIMED_FIELD. Uses CON_SFIT_END_SEALER. Correctly documented as critical for FM-006 prevention."
+    },
+    {
+      "check": "SPEC-8: Geometry Source",
+      "result": "pass",
+      "details": "No internal geometry computation. All area from PaintScope inputs (PS_EXT_SURFACE_SF.SOFFIT_FIELD for soffit area). Manual capture for cut edge count (EA), knot count (EA), and caulk joints (LF) — properly documented with manual_capture_required flag in production.json."
+    },
+    {
+      "check": "COMPLETENESS-1: Protection Zones",
+      "result": "pass",
+      "details": "5 protection zones declared in resolution.json with conditions, protection levels (method-dependent for landscape/hardscape), and PaintScope key mappings. All zones referenced in sop_modules.json (setup in SETUP module, teardown in CLEANUP module). Protection materials properly documented in materials.json protection_materials section."
+    },
+    {
+      "check": "COMPLETENESS-2: Adjacency Declarations",
+      "result": "pass",
+      "details": "Adjacent surfaces declared in resolution.json: ext_trim_frieze, ext_trim_corner, ext_trim_window_casing, ext_trim_door_casing, siding_field, foundation_wall. Cut-in tasks reference ext_trim_fascia adjacency. Fascia masking task correctly protects finished adjacent trim."
+    },
+    {
+      "check": "COMPLETENESS-3: Round Configurations",
+      "result": "pass",
+      "details": "4 round configurations in sop_modules.json: ROUND_SFIT_PRIME_2FINISH (QT3/QT4 bare/factory, 3 coats), ROUND_SFIT_PRIME_1FINISH (QT2, 2 coats), ROUND_SFIT_2FINISH (SS_EXT_PRIMED_FIELD QT3/QT4, 2 coats), ROUND_SFIT_1FINISH (SS_EXT_PRIMED_FIELD QT2, 1 coat). Covers all quality_tier x substrate_state combinations."
+    },
+    {
+      "check": "COMPLETENESS-4: Module Phase Order",
+      "result": "pass",
+      "details": "Module phase sequence: setup (SETUP) -> prep (PREP) -> prime (PRIME) -> finish (FINISH_1) -> interstage (INTERSTAGE) -> finish (FINISH_2) -> cleanup (FINAL_INSPECT, CLEANUP). Correct phase ordering per structural_keys."
+    },
+    {
+      "check": "COMPLETENESS-5: Cross-Spec Boundaries",
+      "result": "pass",
+      "details": "Cross-spec boundaries documented in resolution.json cross_spec_coordination: fascia/frieze owned by SF_TRIM_EXT_NC, porch ceiling is future separate spec, window/door protection excluded (siding spec responsibility), soffit-to-siding junction via frieze (no direct cut-in). Top-down sequence documented — soffit before siding."
+    },
+    {
+      "check": "ENUM-1: Convention Compliance",
+      "result": "pass",
+      "details": "All enums comply with project conventions: CON_ prefix (not CONS_), task_classification (not task_class), severity uses critical/major/minor, phase values from approved set (no 'protect' or 'protection' phase), all units uppercase (EA, SF, LF, FIXED, SHEET, ROLL, QT, TUBE), consumable_category from approved set (abrasive, prep, fill_material, applicator, protection, tool, cleanup), zones use ext_* prefix, sheen single values only (flat, satin)."
+    }
+  ],
+
+  "exterior_validation_summary": {
+    "first_exterior_spec": false,
+    "first_overhead_spec": true,
+    "sibling_spec": "SF_SIDING_ENGINEERED_EXT_NC_v1",
+    "domain_dispatch_activated": true,
+    "interior_contamination": "none — no interior keys, states, or zones found",
+    "research_corrections_applied": 0,
+    "user_corrections_applied": 0,
+    "key_departures_from_siding_siblings": [
+      "ALL base rates pre-baked with overhead penalty (~25-35% reduction from vertical baselines) — unique to soffit spec",
+      "FAC_SFIT_OVERHEAD (1.35) NOT applied as stacking modifier — baked into rates to avoid double-counting",
+      "Spray eligibility gated by soffit_vent_type = non_vented (FM-001 attic contamination risk) — unique spray constraint",
+      "T&G groove brush-back tasks for spray + tg_board — parallels T1-11 back-rolling in engineered siding but for different geometry",
+      "Extension pole is primary application tool (overhead roller work) — not needed in siding specs",
+      "4 primer paths (acrylic, alkali, bonding, skip) — more than most siding specs (2-3 paths)",
+      "Flat/satin sheen only (no semi-gloss) — siding allows semi-gloss",
+      "No power washing — low-pressure wash only (damages thin panels, forces water into attic)",
+      "37 total tasks (most complex exterior spec to date)",
+      "Vinyl substrate with SS_EXT_BARE_WOOD state by convention (no SS_EXT_BARE_VINYL exists)",
+      "Solar-reflective finish system (SYS_EXT_SFIT_FINISH_SOLAR) conditional on vinyl + LRV < 55"
+    ]
+  },
+
+  "task_cross_reference": {
+    "total_sop_tasks": 37,
+    "total_production_rates": 37,
+    "orphaned_in_sop": 0,
+    "orphaned_in_production": 0,
+    "classification_mismatches": 0,
+    "uom_mismatches": 0,
+    "applies_when_mismatches": 0,
+    "classification_breakdown": {
+      "binary": 29,
+      "qt_scaled": 6,
+      "qt_conditional": 2
+    },
+    "by_module": {
+      "MOD_SFIT_SETUP": 6,
+      "MOD_SFIT_PREP": 8,
+      "MOD_SFIT_PRIME": 6,
+      "MOD_SFIT_FINISH_1": 4,
+      "MOD_SFIT_INTERSTAGE": 4,
+      "MOD_SFIT_FINISH_2": 4,
+      "MOD_SFIT_FINAL_INSPECT": 2,
+      "MOD_SFIT_CLEANUP": 3
+    }
+  },
+
+  "modifier_stacking_validation": {
+    "max_theoretical_stack": 2.208,
+    "stacking_cap": 4.0,
+    "within_cap": true,
+    "worst_case_scenario": "Vented T&G board soffit, scaffold access: FAC_SFIT_VENT_COMPLEXITY(1.15) x FAC_SFIT_TG_JOINTS(1.20) x FAC_EXT_ACCESS(1.60) = 2.208x",
+    "worst_case_effective_rate": "54 SF/hr brush/roll finish — slow but expected for overhead vented T&G from scaffold",
+    "stacking_examples_verified": 5,
+    "math_check": "120 / (1.15 * 1.20 * 1.60) = 120 / 2.208 = 54.3 SF/hr — confirmed"
+  },
+
+  "material_system_validation": {
+    "primer_systems": 4,
+    "finish_systems": 2,
+    "conditional_systems": 1,
+    "total_systems": 7,
+    "coverage_profiles": 3,
+    "consumables": 16,
+    "compatibility_rules": 10,
+    "all_systems_have_quality_tier": true,
+    "all_systems_have_substrate_routing": true,
+    "solar_reflective_system_present": true,
+    "vinyl_hard_stop_documented": true
+  },
+
+  "risk_coverage": {
+    "critical_risks": 3,
+    "major_risks": 5,
+    "minor_risks": 1,
+    "critical_risk_summary": [
+      "RISK-SFIT-001: Attic vent contamination from spray — mitigated by vent_type gating (FM-001)",
+      "RISK-SFIT-002: Thermal distortion on vinyl from dark paint — mitigated by solar-reflective finish (FM-005)",
+      "RISK-SFIT-003: Edge wicking on FC panels — mitigated by edge sealing task (FM-006)"
+    ]
+  }
+}

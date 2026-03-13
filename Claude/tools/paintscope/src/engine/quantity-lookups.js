@@ -116,7 +116,7 @@ export function buildRoomQuantityLookups(state) {
     const hasFloorProt = room.floor_type && room.floor_type !== 'subfloor' && floorProt2;
     if (hasFloorProt) {
       addQ('PS_PROTECT_SF.FLOOR_EXPOSED', 'SF', d.ceilingSF);
-      if (floorProt2 === 'heavy_mask' || floorProt2 === 'medium_mask') {
+      if (floorProt2 === 'full_cover' || floorProt2 === 'partial_cover') {
         addQ('PS_PROTECT_SF.FLOOR_PERIMETER', 'SF', d.perimeter * 2);
       }
     }

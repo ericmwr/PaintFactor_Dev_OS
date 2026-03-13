@@ -1,0 +1,729 @@
+{
+  "spec_family": {
+    "id": "SF_TRIM_EXT_RP",
+    "name": "Exterior Trim Repaint",
+    "description": "Condition-dependent repaint of existing exterior trim — all 8 component types (fascia, rake, frieze, corner, band, window casing, door casing, sill). Combined assess+prep+prime+finish in single mobilization. 4 substrate states drive primer selection and prep intensity. MPI Degree of Surface Degradation (DSD 0-4) is the secondary cost driver via FAC_TRRP_CONDITION prep multiplier — DSD-4 is a hard stop. Stacking partition separates prep modifiers (CONDITION, RRP) from coating modifiers (QT) to prevent compound blowout. Lead-safe RRP gate for pre-1978 buildings (trim is HIGH RISK for lead paint). Condition assessment mandatory before prep begins. Uses LF as primary UOM per PCA P10 one-foot rule (trim <12\" wide = 1 SF per 1 LF). 3 substrate materials (wood, PVC, engineered_wood) drive primer selection as a modifier. Height and complexity modifiers are per-component — one building may have ground-level casings and extreme-height fascia. QT3-QT5 range (QT2 excluded — trim is fine-finish substrate). Brush is primary application method; spray is conditional on volume justifying masking overhead. Second repaint spec in the system after SF_SIDING_WOOD_EXT_RP.",
+    "domain": "exterior",
+    "version": "0.1.0",
+    "status": "draft",
+    "review_required": true
+  },
+
+  "scope_boundaries": {
+    "includes": [
+      "Condition assessment (DSD rating per component, ASTM D3359 adhesion test, moisture content, existing coating ID, rot probe)",
+      "Lead paint evaluation for pre-1978 buildings (EPA RRP compliance)",
+      "RRP containment setup and teardown when lead-positive",
+      "Low-pressure power wash all trim (500-1000 PSI, careful at joints)",
+      "Scraping loose/failing paint (DSD-driven intensity: light/moderate/heavy)",
+      "Feather-edge sanding ALL scraped areas (mandatory at all QT)",
+      "Chalk remediation (light or heavy per DSD) for SS_EXT_CHALKING",
+      "Light scuff sand for adhesion on SS_EXT_SOUND_PAINT",
+      "PVC scuff sand (220-grit) before bonding primer",
+      "Engineered wood field-cut edge sealing",
+      "Caulk joint assessment and replacement per 'Think Like a Water Drop' protocol",
+      "Spot prime bare areas (sound paint, mild failing <30% bare)",
+      "Full prime coat (acrylic stain-block, alkyd stain-block/tannin, chalk-binding, bonding/PVC per state and material)",
+      "Second primer coat at QT5",
+      "Finish coat application — 2 coats all tiers (brush primary, spray conditional)",
+      "Interstage inspection, sand (QT4/QT5), and touch-up",
+      "Final walkthrough inspection and touch-up",
+      "Ground/landscape protection from scraping debris and paint drips",
+      "Hardscape/walkway protection",
+      "Window glass masking when painting adjacent casings",
+      "Door face masking when painting adjacent casings",
+      "Light fixture masking",
+      "Roofline edge protection (fascia/rake)",
+      "Siding masking (spray method only)",
+      "Equipment setup and cleanup (brush or spray)",
+      "Site debris cleanup (includes scraping debris collection)",
+      "Customer walkthrough"
+    ],
+    "excludes": [
+      {
+        "item": "Rot repair and wood replacement",
+        "route_to": "Carpentry/contractor — SC_SUBSTRATE_DAMAGE (DSD-4) is a HARD STOP"
+      },
+      {
+        "item": "Soffit painting",
+        "route_to": "Future SF_SOFFIT_EXT_RP"
+      },
+      {
+        "item": "Gutter and downspout painting",
+        "route_to": "Future exterior metal/accessory spec"
+      },
+      {
+        "item": "Siding field repaint",
+        "route_to": "SF_SIDING_WOOD_EXT_RP_v1"
+      },
+      {
+        "item": "Interior window/door trim",
+        "route_to": "SF_TRIM_NC_PRIME_v1 / SF_TRIM_NC_PAINT_v1"
+      },
+      {
+        "item": "Stain-overcoat conversion (solid or semi-transparent stain)",
+        "route_to": "Future exterior stain spec — stain states excluded"
+      }
+    ]
+  },
+
+  "configuration_dimensions": [
+    {
+      "dimension_id": "quality_tier",
+      "description": "Quality tier controlling coat count, inspection scrutiny, interstage sanding, and defect tolerance. Trim is fine-finish substrate — QT2 excluded.",
+      "values": ["QT3", "QT4", "QT5"],
+      "default": "QT3",
+      "notes": "QT3=standard (satin, 2 finish coats, scan inspection). QT4=premium (semi-gloss, interstage sand between finish coats, systematic inspection). QT5=superior (gloss, 2-coat primer, interstage sand between ALL coats, raking light inspection, near-zero defect tolerance)."
+    },
+    {
+      "dimension_id": "substrate_condition",
+      "description": "MPI Degree of Surface Degradation (DSD 0-4). Drives prep labor multiplier (FAC_TRRP_CONDITION). SC_SUBSTRATE_DAMAGE is a hard stop.",
+      "values": ["SC_SOUND", "SC_SLIGHT_DETERIORATION", "SC_MODERATE_DETERIORATION", "SC_SEVERE_DETERIORATION", "SC_SUBSTRATE_DAMAGE"],
+      "default": "SC_SOUND",
+      "notes": "DSD is the dominant cost driver for repaint prep. SC_SUBSTRATE_DAMAGE (DSD-4) = structural damage, HARD STOP — outside painting scope, refer to carpenter. Per-component."
+    },
+    {
+      "dimension_id": "application_method",
+      "description": "Primary application technique for prime and finish coats.",
+      "values": ["brush", "spray"],
+      "default": "brush",
+      "notes": "Brush is primary for trim (40 LF/hr baseline). Spray conditional on sufficient volume to justify masking overhead. brush_roll not applicable — trim is too narrow for roller."
+    },
+    {
+      "dimension_id": "substrate_material",
+      "description": "Trim substrate material. Drives primer selection and material-specific constraints. Modifier, not full workflow dimension.",
+      "values": ["wood", "pvc", "engineered_wood"],
+      "default": "wood",
+      "notes": "Affects primer selection only. PVC triggers bonding primer + LRV >=55 or solar-reflective coating gate. Engineered_wood requires edge sealing. Per-component if mixed."
+    }
+  ],
+
+  "paintable_items": [
+    {
+      "item_id": "ITM_TRIM_FASCIA",
+      "name": "Exterior fascia board",
+      "unit_of_measure": "LF",
+      "counting_rules": "Linear feet of fascia measured at eave/roofline. PCA P10 one-foot rule: <12\" wide = 1 SF per 1 LF.",
+      "notes": "Horizontal board at eave/roofline. Typically at high/extreme height tier. Highest rot-risk at rake junction."
+    },
+    {
+      "item_id": "ITM_TRIM_RAKE",
+      "name": "Exterior rake board",
+      "unit_of_measure": "LF",
+      "counting_rules": "Linear feet of rake trim following roofline at gable end.",
+      "notes": "Diagonal trim spanning multiple height tiers from ground to peak."
+    },
+    {
+      "item_id": "ITM_TRIM_FRIEZE",
+      "name": "Exterior frieze board",
+      "unit_of_measure": "LF",
+      "counting_rules": "Linear feet of frieze board at top of wall below soffit.",
+      "notes": "Horizontal board at siding-to-soffit junction."
+    },
+    {
+      "item_id": "ITM_TRIM_CORNER",
+      "name": "Exterior corner board",
+      "unit_of_measure": "LF",
+      "counting_rules": "Linear feet of corner boards at building corners, measured vertically.",
+      "notes": "Vertical board spanning full wall height — may cross multiple height tiers."
+    },
+    {
+      "item_id": "ITM_TRIM_BAND",
+      "name": "Exterior band board",
+      "unit_of_measure": "LF",
+      "counting_rules": "Linear feet of horizontal band/belt course between floors.",
+      "notes": "Typically at first_8_13ft height tier on 2-story homes."
+    },
+    {
+      "item_id": "ITM_TRIM_WINDOW_CASING_EXT",
+      "name": "Exterior window casing",
+      "unit_of_measure": "LF",
+      "counting_rules": "Linear feet of exterior window casing — sum of all sides of all windows in scope.",
+      "notes": "Distinct from interior ITM_TRIM_CASING_WINDOW. _EXT suffix to avoid collision."
+    },
+    {
+      "item_id": "ITM_TRIM_DOOR_CASING_EXT",
+      "name": "Exterior door casing",
+      "unit_of_measure": "LF",
+      "counting_rules": "Linear feet of exterior door casing — sum of all sides of all doors in scope.",
+      "notes": "Distinct from interior ITM_TRIM_CASING_DOOR. _EXT suffix to avoid collision."
+    },
+    {
+      "item_id": "ITM_TRIM_SILL_EXT",
+      "name": "Exterior window sill",
+      "unit_of_measure": "LF",
+      "counting_rules": "Linear feet of exterior window sill measured at sill nose.",
+      "notes": "Highest rot-risk component (horizontal surface collects water). _EXT suffix for exterior context."
+    }
+  ],
+
+  "variants": [
+    {
+      "variant_id": "VAR_TRRP_SOUND_QT3_BRUSH_WOOD",
+      "applies_when": { "quality_tier": ["QT3"], "substrate_state": ["SS_EXT_SOUND_PAINT"], "substrate_condition": ["SC_SOUND"], "application_method": ["brush"], "substrate_material": ["wood"] },
+      "coats": { "prime": 1, "finish": 2 },
+      "prime_scope": "spot",
+      "protection_zones": ["ext_ground_cover", "ext_hardscape_walk", "ext_window_mask", "ext_door_mask", "ext_light_fixture", "ext_roofline_protection"],
+      "notes": "BASELINE. Standard repaint on sound wood trim. Spot prime bare areas + 2 finish coats satin. Brush application. Minimal prep — wash, scuff sand, spot prime."
+    },
+    {
+      "variant_id": "VAR_TRRP_SLIGHT_QT3_BRUSH_WOOD",
+      "applies_when": { "quality_tier": ["QT3"], "substrate_state": ["SS_EXT_SOUND_PAINT"], "substrate_condition": ["SC_SLIGHT_DETERIORATION"], "application_method": ["brush"], "substrate_material": ["wood"] },
+      "coats": { "prime": 1, "finish": 2 },
+      "prime_scope": "spot",
+      "protection_zones": ["ext_ground_cover", "ext_hardscape_walk", "ext_window_mask", "ext_door_mask", "ext_light_fixture", "ext_roofline_protection"],
+      "notes": "Standard repaint on sound paint with slight surface deterioration. DSD-1 prep multiplier (1.15x on prep tasks)."
+    },
+    {
+      "variant_id": "VAR_TRRP_MODERATE_QT3_BRUSH_WOOD",
+      "applies_when": { "quality_tier": ["QT3"], "substrate_state": ["SS_EXT_FAILING_PAINT"], "substrate_condition": ["SC_MODERATE_DETERIORATION"], "application_method": ["brush"], "substrate_material": ["wood"] },
+      "coats": { "prime": 1, "finish": 2 },
+      "prime_scope": "spot",
+      "protection_zones": ["ext_ground_cover", "ext_hardscape_walk", "ext_window_mask", "ext_door_mask", "ext_light_fixture", "ext_roofline_protection"],
+      "notes": "Standard repaint on failing paint with moderate deterioration. Moderate scraping + feather sand + spot prime bare areas. DSD-2 prep multiplier (1.375x)."
+    },
+    {
+      "variant_id": "VAR_TRRP_SOUND_QT4_BRUSH_WOOD",
+      "applies_when": { "quality_tier": ["QT4"], "substrate_state": ["SS_EXT_SOUND_PAINT"], "substrate_condition": ["SC_SOUND"], "application_method": ["brush"], "substrate_material": ["wood"] },
+      "coats": { "prime": 1, "finish": 2 },
+      "prime_scope": "spot",
+      "protection_zones": ["ext_ground_cover", "ext_hardscape_walk", "ext_window_mask", "ext_door_mask", "ext_light_fixture", "ext_roofline_protection"],
+      "notes": "PREMIUM. Sound trim with interstage sand between finish coats. Semi-gloss. QT4 modifier (1.25x on coating tasks)."
+    },
+    {
+      "variant_id": "VAR_TRRP_MODERATE_QT4_BRUSH_WOOD",
+      "applies_when": { "quality_tier": ["QT4"], "substrate_state": ["SS_EXT_FAILING_PAINT"], "substrate_condition": ["SC_MODERATE_DETERIORATION"], "application_method": ["brush"], "substrate_material": ["wood"] },
+      "coats": { "prime": 1, "finish": 2 },
+      "prime_scope": "full",
+      "protection_zones": ["ext_ground_cover", "ext_hardscape_walk", "ext_window_mask", "ext_door_mask", "ext_light_fixture", "ext_roofline_protection"],
+      "notes": "Premium repaint on moderate failure. Full scrape + feather sand + full prime + interstage sand + 2 finish coats semi-gloss. DSD-2 + QT4 modifiers."
+    },
+    {
+      "variant_id": "VAR_TRRP_SOUND_QT5_BRUSH_WOOD",
+      "applies_when": { "quality_tier": ["QT5"], "substrate_state": ["SS_EXT_SOUND_PAINT"], "substrate_condition": ["SC_SOUND"], "application_method": ["brush"], "substrate_material": ["wood"] },
+      "coats": { "prime": 2, "finish": 2 },
+      "prime_scope": "spot",
+      "protection_zones": ["ext_ground_cover", "ext_hardscape_walk", "ext_window_mask", "ext_door_mask", "ext_light_fixture", "ext_roofline_protection"],
+      "notes": "GALLERY. 2-coat spot primer on bare areas + interstage sand between ALL coats + 2 finish coats gloss. QT5 modifier (1.50x on coating tasks). Near-zero defect tolerance."
+    },
+    {
+      "variant_id": "VAR_TRRP_CHALKING_QT3_BRUSH_WOOD",
+      "applies_when": { "quality_tier": ["QT3"], "substrate_state": ["SS_EXT_CHALKING"], "substrate_condition": ["SC_SLIGHT_DETERIORATION"], "application_method": ["brush"], "substrate_material": ["wood"] },
+      "coats": { "prime": 1, "finish": 2 },
+      "prime_scope": "full",
+      "protection_zones": ["ext_ground_cover", "ext_hardscape_walk", "ext_window_mask", "ext_door_mask", "ext_light_fixture", "ext_roofline_protection"],
+      "notes": "Standard repaint on chalking surface. Chalk remediation + chalk-binding primer (full coverage mandatory) + 2 finish coats satin."
+    },
+    {
+      "variant_id": "VAR_TRRP_FAILING_QT3_BRUSH_WOOD",
+      "applies_when": { "quality_tier": ["QT3"], "substrate_state": ["SS_EXT_FAILING_PAINT"], "substrate_condition": ["SC_SLIGHT_DETERIORATION"], "application_method": ["brush"], "substrate_material": ["wood"] },
+      "coats": { "prime": 1, "finish": 2 },
+      "prime_scope": "spot",
+      "protection_zones": ["ext_ground_cover", "ext_hardscape_walk", "ext_window_mask", "ext_door_mask", "ext_light_fixture", "ext_roofline_protection"],
+      "notes": "Standard repaint on mild failing paint. Light scrape + feather sand + spot prime bare areas + 2 finish coats. DSD-1 prep multiplier."
+    },
+    {
+      "variant_id": "VAR_TRRP_PEELING_QT3_BRUSH_WOOD",
+      "applies_when": { "quality_tier": ["QT3"], "substrate_state": ["SS_EXT_PEELING"], "substrate_condition": ["SC_SEVERE_DETERIORATION"], "application_method": ["brush"], "substrate_material": ["wood"] },
+      "coats": { "prime": 1, "finish": 2 },
+      "prime_scope": "full",
+      "protection_zones": ["ext_ground_cover", "ext_hardscape_walk", "ext_window_mask", "ext_door_mask", "ext_light_fixture", "ext_roofline_protection"],
+      "notes": "Standard repaint on peeling surface, severe deterioration. Heavy scrape + feather sand + full prime + 2 finish coats. DSD-3 prep multiplier (1.75x). Most labor-intensive non-RRP variant."
+    },
+    {
+      "variant_id": "VAR_TRRP_SOUND_QT3_BRUSH_PVC",
+      "applies_when": { "quality_tier": ["QT3"], "substrate_state": ["SS_EXT_SOUND_PAINT"], "substrate_condition": ["SC_SOUND"], "application_method": ["brush"], "substrate_material": ["pvc"] },
+      "coats": { "prime": 1, "finish": 2 },
+      "prime_scope": "spot",
+      "protection_zones": ["ext_ground_cover", "ext_hardscape_walk", "ext_window_mask", "ext_door_mask", "ext_light_fixture", "ext_roofline_protection"],
+      "notes": "PVC trim variant. Bonding primer on bare areas (standard acrylic will NOT adhere). LRV >=55 or solar-reflective coating gate for dark colors. 220-grit scuff sand before bonding primer."
+    },
+    {
+      "variant_id": "VAR_TRRP_SOUND_QT3_BRUSH_ENGINEERED",
+      "applies_when": { "quality_tier": ["QT3"], "substrate_state": ["SS_EXT_SOUND_PAINT"], "substrate_condition": ["SC_SOUND"], "application_method": ["brush"], "substrate_material": ["engineered_wood"] },
+      "coats": { "prime": 1, "finish": 2 },
+      "prime_scope": "spot",
+      "protection_zones": ["ext_ground_cover", "ext_hardscape_walk", "ext_window_mask", "ext_door_mask", "ext_light_fixture", "ext_roofline_protection"],
+      "notes": "Engineered wood trim variant. Edge sealing mandatory on field-cut edges (warranty requirement). Standard acrylic primer on bare areas."
+    },
+    {
+      "variant_id": "VAR_TRRP_SOUND_QT3_SPRAY_WOOD",
+      "applies_when": { "quality_tier": ["QT3"], "substrate_state": ["SS_EXT_SOUND_PAINT"], "substrate_condition": ["SC_SOUND"], "application_method": ["spray"], "substrate_material": ["wood"] },
+      "coats": { "prime": 1, "finish": 2 },
+      "prime_scope": "spot",
+      "protection_zones": ["ext_ground_cover", "ext_hardscape_walk", "ext_window_mask", "ext_door_mask", "ext_light_fixture", "ext_roofline_protection", "ext_siding_mask"],
+      "notes": "Spray application variant. Adds siding masking zone. Full window/door masking. Justified only for full-house trim volume amortizing masking overhead."
+    },
+    {
+      "variant_id": "VAR_TRRP_PEELING_QT3_BRUSH_WOOD_RRP",
+      "applies_when": { "quality_tier": ["QT3"], "substrate_state": ["SS_EXT_PEELING"], "substrate_condition": ["SC_SEVERE_DETERIORATION"], "application_method": ["brush"], "substrate_material": ["wood"], "pre_1978": true, "rrp_required": true },
+      "coats": { "prime": 1, "finish": 2 },
+      "prime_scope": "full",
+      "protection_zones": ["ext_ground_cover", "ext_hardscape_walk", "ext_window_mask", "ext_door_mask", "ext_light_fixture", "ext_roofline_protection", "ext_rrp_containment"],
+      "notes": "RRP variant. Pre-1978 + lead-positive peeling trim. Adds RRP containment zone, wet scraping methods, HEPA vacuum, lead-safe disposal. RRP 2.0x modifier on all prep tasks involving paint disturbance. Most expensive common scenario."
+    },
+    {
+      "variant_id": "VAR_TRRP_FAILING_QT4_SPRAY_WOOD_RRP",
+      "applies_when": { "quality_tier": ["QT4"], "substrate_state": ["SS_EXT_FAILING_PAINT"], "substrate_condition": ["SC_MODERATE_DETERIORATION"], "application_method": ["spray"], "substrate_material": ["wood"], "pre_1978": true, "rrp_required": true },
+      "coats": { "prime": 1, "finish": 2 },
+      "prime_scope": "full",
+      "protection_zones": ["ext_ground_cover", "ext_hardscape_walk", "ext_window_mask", "ext_door_mask", "ext_light_fixture", "ext_roofline_protection", "ext_siding_mask", "ext_rrp_containment"],
+      "notes": "Premium spray + RRP on moderate failure. Maximum protection zones (8). DSD-2 + RRP + QT4 modifiers. Represents near-worst-case common scenario."
+    }
+  ],
+
+  "required_paintscope_inputs": [
+    {
+      "input_name": "IN_LF_EXT_FASCIA",
+      "paintscope_key": "PS_EXT_EDGE_LF.FASCIA",
+      "uom": "LF",
+      "required": false,
+      "required_when": "When fascia is in scope",
+      "description": "Linear feet of exterior fascia board"
+    },
+    {
+      "input_name": "IN_LF_EXT_TRIM_RAKE",
+      "paintscope_key": "PS_EXT_EDGE_LF.TRIM_RAKE",
+      "uom": "LF",
+      "required": false,
+      "required_when": "When rake trim is in scope",
+      "description": "Linear feet of exterior rake board"
+    },
+    {
+      "input_name": "IN_LF_EXT_TRIM_FRIEZE",
+      "paintscope_key": "PS_EXT_EDGE_LF.TRIM_FRIEZE",
+      "uom": "LF",
+      "required": false,
+      "required_when": "When frieze board is in scope",
+      "description": "Linear feet of exterior frieze board"
+    },
+    {
+      "input_name": "IN_LF_EXT_TRIM_CORNER",
+      "paintscope_key": "PS_EXT_EDGE_LF.TRIM_CORNER",
+      "uom": "LF",
+      "required": false,
+      "required_when": "When corner boards are in scope",
+      "description": "Linear feet of exterior corner board"
+    },
+    {
+      "input_name": "IN_LF_EXT_TRIM_BAND",
+      "paintscope_key": "PS_EXT_EDGE_LF.TRIM_BAND",
+      "uom": "LF",
+      "required": false,
+      "required_when": "When band board is in scope",
+      "description": "Linear feet of exterior band board"
+    },
+    {
+      "input_name": "IN_LF_EXT_TRIM_WINDOW_CASING",
+      "paintscope_key": "PS_EXT_EDGE_LF.TRIM_WINDOW_CASING",
+      "uom": "LF",
+      "required": false,
+      "required_when": "When window casings are in scope",
+      "description": "Linear feet of exterior window casing"
+    },
+    {
+      "input_name": "IN_LF_EXT_TRIM_DOOR_CASING",
+      "paintscope_key": "PS_EXT_EDGE_LF.TRIM_DOOR_CASING",
+      "uom": "LF",
+      "required": false,
+      "required_when": "When door casings are in scope",
+      "description": "Linear feet of exterior door casing"
+    },
+    {
+      "input_name": "IN_LF_EXT_SILL",
+      "paintscope_key": "PS_EXT_EDGE_LF.SILL",
+      "uom": "LF",
+      "required": false,
+      "required_when": "When window sills are in scope",
+      "description": "Linear feet of exterior window sill"
+    },
+    {
+      "input_name": "IN_EA_ELEVATIONS",
+      "paintscope_key": "PS_EXT_META.EA.ELEVATIONS_TOTAL",
+      "uom": "EA",
+      "required": true,
+      "description": "Number of building elevations in scope"
+    },
+    {
+      "input_name": "IN_ENUM_SUBSTRATE_STATE",
+      "paintscope_key": "PS_EXT_META.ENUM.SUBSTRATE_STATE",
+      "uom": "ENUM",
+      "required": true,
+      "description": "Existing coating condition state (SS_EXT_SOUND_PAINT / SS_EXT_CHALKING / SS_EXT_FAILING_PAINT / SS_EXT_PEELING) — primary configuration dimension"
+    },
+    {
+      "input_name": "IN_ENUM_SUBSTRATE_CONDITION",
+      "paintscope_key": "PS_EXT_META.ENUM.SUBSTRATE_CONDITION",
+      "uom": "ENUM",
+      "required": true,
+      "description": "MPI Degree of Surface Degradation (SC_SOUND through SC_SUBSTRATE_DAMAGE) — drives FAC_TRRP_CONDITION prep multiplier"
+    },
+    {
+      "input_name": "IN_ENUM_SUBSTRATE_TYPE_TRIM",
+      "paintscope_key": "PS_EXT_META.ENUM.SUBSTRATE_TYPE_TRIM",
+      "uom": "ENUM",
+      "required": true,
+      "description": "Trim substrate material (wood / pvc / engineered_wood) — drives primer selection and material-specific constraints"
+    },
+    {
+      "input_name": "IN_ENUM_TRIM_COMPONENT_HEIGHT",
+      "paintscope_key": "PS_EXT_META.ENUM.TRIM_COMPONENT_HEIGHT",
+      "uom": "ENUM",
+      "required": true,
+      "description": "Per-component height tier (ground_0_8ft / first_8_13ft / second_13_17ft / high_17_19ft / extreme_19plus) — drives FAC_TRRP_HEIGHT"
+    },
+    {
+      "input_name": "IN_ENUM_TRIM_PROFILE_COMPLEXITY",
+      "paintscope_key": "PS_EXT_META.ENUM.TRIM_PROFILE_COMPLEXITY",
+      "uom": "ENUM",
+      "required": true,
+      "description": "Per-component profile complexity (simple_flat / standard_profiled / built_up / elaborate) — drives FAC_TRRP_COMPLEXITY"
+    },
+    {
+      "input_name": "IN_BOOL_PRE_1978",
+      "paintscope_key": "PS_EXT_META.FLAG.PRE_1978",
+      "uom": "BOOL",
+      "required": true,
+      "description": "Boolean flag for pre-1978 building — triggers EPA Lead-Safe RRP requirements"
+    },
+    {
+      "input_name": "IN_SF_EXT_PROTECT_LANDSCAPE_ADJ",
+      "paintscope_key": "PS_EXT_PROTECT_SF.LANDSCAPE_ADJACENT",
+      "uom": "SF",
+      "required": false,
+      "required_when": "When landscape is adjacent to trim work area",
+      "description": "Landscape area adjacent to work requiring protection from scraping debris and paint drips"
+    },
+    {
+      "input_name": "IN_SF_EXT_PROTECT_HARDSCAPE_WALK",
+      "paintscope_key": "PS_EXT_PROTECT_SF.HARDSCAPE_WALK",
+      "uom": "SF",
+      "required": false,
+      "required_when": "When walkways are below trim work areas",
+      "description": "Walkway protection area"
+    },
+    {
+      "input_name": "IN_EA_EXT_PROTECT_GLASS_WINDOW",
+      "paintscope_key": "PS_EXT_PROTECT_EA.GLASS_WINDOW",
+      "uom": "EA",
+      "required": false,
+      "required_when": "When painting window casings",
+      "description": "Count of windows requiring glass masking when painting adjacent casings"
+    },
+    {
+      "input_name": "IN_EA_EXT_PROTECT_GLASS_DOOR",
+      "paintscope_key": "PS_EXT_PROTECT_EA.GLASS_DOOR",
+      "uom": "EA",
+      "required": false,
+      "required_when": "When painting door casings",
+      "description": "Count of doors requiring masking when painting adjacent casings"
+    },
+    {
+      "input_name": "IN_EA_EXT_PROTECT_LIGHT_FIXTURE",
+      "paintscope_key": "PS_EXT_PROTECT_EA.LIGHT_FIXTURE",
+      "uom": "EA",
+      "required": false,
+      "required_when": "When exterior fixtures are present on trim",
+      "description": "Count of light fixtures to mask"
+    },
+    {
+      "input_name": "IN_SF_EXT_PROTECT_SIDING_ADJACENT",
+      "paintscope_key": "PS_EXT_PROTECT_SF.SIDING_ADJACENT",
+      "uom": "SF",
+      "required": false,
+      "required_when": "application_method = spray",
+      "description": "Siding area adjacent to trim requiring masking during spray application"
+    }
+  ],
+
+  "protection_zones_required": [
+    {
+      "zone_id": "ext_ground_cover",
+      "condition": "always",
+      "protection_level": "edge_only",
+      "upgrade_when": { "application_method": ["spray"] },
+      "upgrade_level": "full_cover",
+      "notes": "Landscape and ground surface protection. Scraping generates paint chips requiring containment at all application methods. Spray upgrades to full cover."
+    },
+    {
+      "zone_id": "ext_hardscape_walk",
+      "condition": "when_adjacent",
+      "protection_level": "light_mask",
+      "upgrade_when": { "application_method": ["spray"] },
+      "upgrade_level": "full_cover",
+      "notes": "Walkways and patio surfaces below trim work areas. Drop cloth runners."
+    },
+    {
+      "zone_id": "ext_window_mask",
+      "condition": "when_painting_window_casing",
+      "protection_level": "partial_cover",
+      "upgrade_when": { "application_method": ["spray"] },
+      "upgrade_level": "full_cover",
+      "notes": "Window glass masking. Brush: tape at glass edge. Spray: full glass masking with paper/film."
+    },
+    {
+      "zone_id": "ext_door_mask",
+      "condition": "when_painting_door_casing",
+      "protection_level": "partial_cover",
+      "upgrade_when": { "application_method": ["spray"] },
+      "upgrade_level": "full_cover",
+      "notes": "Door face/glass masking. Brush: tape at junction. Spray: full door cover."
+    },
+    {
+      "zone_id": "ext_light_fixture",
+      "condition": "always",
+      "protection_level": "light_mask",
+      "notes": "Exterior light fixtures on or adjacent to trim. Bag or tape over fixture."
+    },
+    {
+      "zone_id": "ext_roofline_protection",
+      "condition": "when_painting_fascia_or_rake",
+      "protection_level": "edge_only",
+      "notes": "Tape and paper at roofline edge to protect shingles and flashing from drips."
+    },
+    {
+      "zone_id": "ext_siding_mask",
+      "condition": { "application_method": ["spray"] },
+      "protection_level": "partial_cover",
+      "notes": "Mask siding adjacent to trim during spray application. Paper/film 12-24\" from trim edge. Not needed for brush work."
+    },
+    {
+      "zone_id": "ext_rrp_containment",
+      "condition": { "pre_1978": true, "rrp_required": true },
+      "protection_level": "full_containment",
+      "notes": "EPA RRP Rule (40 CFR 745). 6-mil poly ground containment extending 10 ft from structure. Required when disturbing lead paint on pre-1978 structures."
+    }
+  ],
+
+  "adjacency_declarations": {
+    "primary_surface": "exterior_trim",
+    "adjacent_surfaces": [
+      {
+        "surface_id": "siding_field",
+        "edge_type": "linear",
+        "typical_relationship": "different_finish",
+        "continuity_rate_modifier": 1.0,
+        "notes": "Trim terminates at siding field. Typically different color (body vs trim). No wet-edge blending across specs. Protection-only relationship."
+      },
+      {
+        "surface_id": "soffit_field",
+        "edge_type": "linear",
+        "typical_relationship": "same_finish",
+        "continuity_rate_modifier": 1.0,
+        "notes": "Soffit adjacent to fascia and frieze. Often same color as trim. Soffit is a separate spec."
+      },
+      {
+        "surface_id": "foundation_wall",
+        "edge_type": "linear",
+        "typical_relationship": "not_in_scope",
+        "continuity_rate_modifier": 1.0,
+        "notes": "Foundation below corner boards and band board. Not painted in this scope."
+      },
+      {
+        "surface_id": "window_glass_ext",
+        "edge_type": "linear",
+        "typical_relationship": "different_finish",
+        "continuity_rate_modifier": 1.0,
+        "notes": "Window glass adjacent to window casing. Glass is protection target — mask when painting casings."
+      },
+      {
+        "surface_id": "door_slab_ext",
+        "edge_type": "linear",
+        "typical_relationship": "varies",
+        "continuity_rate_modifier": 1.0,
+        "notes": "Door face adjacent to door casing. May be same or different color. Door painting is a separate spec."
+      },
+      {
+        "surface_id": "masonry_wall",
+        "edge_type": "linear",
+        "typical_relationship": "not_in_scope",
+        "continuity_rate_modifier": 1.0,
+        "notes": "Masonry wall adjacent to trim in brick/stone houses. Not painted in trim scope."
+      }
+    ]
+  },
+
+  "state_declarations": {
+    "primary_surface": "exterior_trim",
+
+    "valid_input_states": {
+      "states": ["SS_EXT_SOUND_PAINT", "SS_EXT_CHALKING", "SS_EXT_FAILING_PAINT", "SS_EXT_PEELING"],
+      "notes": "4 repaint-specific exterior substrate states. SS_EXT_WEATHERED excluded — weathered trim with no coating is bare wood (enters via rot repair). SS_EXT_STAINED_* excluded — stained trim is a separate scope. SS_EXT_BARE_WOOD is NC spec domain."
+    },
+
+    "output_state": {
+      "state": "SS_EXT_PAINTED_SEMIGLOSS",
+      "varies_by": "sheen",
+      "state_map": {
+        "satin": "SS_EXT_PAINTED_SATIN",
+        "semi-gloss": "SS_EXT_PAINTED_SEMIGLOSS",
+        "gloss": "SS_EXT_PAINTED_GLOSS"
+      },
+      "notes": "All repaint input states converge to painted output state. Sheen determined by quality tier: QT3=satin, QT4=semi-gloss, QT5=gloss."
+    }
+  },
+
+  "site_condition_rules": [
+    {
+      "condition_id": "trim_component_height",
+      "treatment": "height_modifier",
+      "vocabulary_ref": "Exterior_Trim_Systems_Doctrine.md Production Rates",
+      "affected_tasks": "All tasks performed on the affected component (prep and coating). NOT applied to fixed-time tasks (assessment, equipment setup/cleanup, protection setup/teardown).",
+      "effect": "ground_0_8ft=1.00, first_8_13ft=1.30, second_13_17ft=1.60, high_17_19ft=1.90, extreme_19plus=2.20. Applied as time multiplier: effective_rate = base_rate / modifier.",
+      "notes": "Uses FAC_TRRP_HEIGHT — NOT FAC_EXT_ACCESS. Per-component, not per-project. Trim requires painter AT working height for brush work."
+    },
+    {
+      "condition_id": "trim_profile_complexity",
+      "treatment": "complexity_modifier",
+      "vocabulary_ref": "Exterior_Trim_Systems_Doctrine.md Production Rates",
+      "affected_tasks": "All tasks on the affected component (prep and coating).",
+      "effect": "simple_flat=1.00, standard_profiled=1.15, built_up=1.30, elaborate=1.60. Applied as time multiplier: effective_rate = base_rate / modifier.",
+      "notes": "Per-component type. One building may have simple corner boards (1.0x) and elaborate window surrounds (1.60x)."
+    },
+    {
+      "condition_id": "substrate_condition_dsd",
+      "treatment": "prep_labor_multiplier",
+      "vocabulary_ref": "Exterior_Weathering_Surface_Assessment_Doctrine.md DSD 0-4",
+      "affected_tasks": "Prep tasks only (scrape, sand, chalk remediation, dust cleanup, caulk). NOT coating tasks.",
+      "effect": "SC_SOUND=1.00, SC_SLIGHT=1.15, SC_MODERATE=1.375, SC_SEVERE=1.75. Applied as time multiplier: effective_rate = base_rate / modifier.",
+      "notes": "DSD is the dominant cost driver for repaint prep. Stacking pool: PREP_ONLY."
+    },
+    {
+      "condition_id": "rrp_gate",
+      "treatment": "prep_labor_multiplier",
+      "vocabulary_ref": "EPA RRP Rule 40 CFR 745",
+      "affected_tasks": "Prep tasks involving paint disturbance (scrape, sand, power wash with paint removal).",
+      "effect": "no_rrp=1.00, rrp_required=2.00. Binary gate.",
+      "notes": "Pre-1978 + lead-positive triggers RRP. Doubles prep task duration. RRP containment setup/teardown are separate fixed tasks. Stacking pool: PREP_ONLY."
+    }
+  ],
+
+  "stacking_partition": {
+    "description": "Modifiers split into non-overlapping pools to prevent compound blowout. Prep and coating tasks share HEIGHT and COMPLEXITY but never share CONDITION/RRP with QT.",
+    "prep_tasks": {
+      "modifiers": ["FAC_TRRP_CONDITION", "FAC_TRRP_RRP", "FAC_TRRP_HEIGHT", "FAC_TRRP_COMPLEXITY"],
+      "formula": "effective_rate = base_rate / (FAC_TRRP_CONDITION x FAC_TRRP_RRP x FAC_TRRP_HEIGHT x FAC_TRRP_COMPLEXITY)",
+      "max_stack_no_rrp": "SC_SEVERE (1.75) x Extreme (2.20) x Elaborate (1.60) = 6.16x",
+      "max_stack_with_rrp": "SC_SEVERE (1.75) x RRP (2.00) x Extreme (2.20) x Elaborate (1.60) = 12.32x",
+      "notes": "FAC_TRRP_QT does NOT apply to prep tasks. Extreme stacks represent 19ft+ ornate trim with severe deterioration and lead paint — recommend T&M billing."
+    },
+    "coating_tasks": {
+      "modifiers": ["FAC_TRRP_QT", "FAC_TRRP_HEIGHT", "FAC_TRRP_COMPLEXITY"],
+      "formula": "effective_rate = base_rate / (FAC_TRRP_QT x FAC_TRRP_HEIGHT x FAC_TRRP_COMPLEXITY)",
+      "max_stack": "QT5 (1.50) x Extreme (2.20) x Elaborate (1.60) = 5.28x",
+      "notes": "FAC_TRRP_CONDITION and FAC_TRRP_RRP do NOT apply to coating tasks. Once prepped, surface is at baseline."
+    },
+    "fixed_tasks": {
+      "modifiers": [],
+      "formula": "fixed_time_minutes (no modifiers)",
+      "notes": "Assessment, equipment setup/cleanup, RRP containment setup/teardown are fixed-time tasks. No modifiers applied."
+    }
+  },
+
+  "hard_stops": [
+    {
+      "condition": "SC_SUBSTRATE_DAMAGE",
+      "dsd_level": "DSD-4",
+      "action": "STOP — outside painting scope",
+      "description": "Soft, punky, or structurally compromised wood (rot). Cannot be painted. Requires replacement by carpenter/contractor before painting scope can proceed.",
+      "notes": "Engine must prevent estimation when SC_SUBSTRATE_DAMAGE is selected. Affected component is excluded — not entire project. Remaining components proceed normally."
+    },
+    {
+      "condition": "PVC_LRV_GATE",
+      "action": "GATE — require solar-reflective finish",
+      "description": "PVC trim with selected color LRV <55 without solar-reflective coating technology. Standard dark paint on PVC causes thermal distortion (warping, buckling, joint opening).",
+      "notes": "Material gate — flagged during color approval. When PVC + LRV <55, system must select SYS_EXT_TRRP_FINISH_IR_REFLECTIVE instead of SYS_EXT_TRRP_FINISH_ACRYLIC."
+    }
+  ],
+
+  "sequencing_notes": {
+    "production_sequence": "Assess → Setup/Protect → Wash → Prep (state-dependent) → Caulk → Prime (state/material-dependent) → Interstage (QT4/QT5) → Finish 1 → Interstage (QT4/QT5) → Finish 2 → Final Inspect → Touch-up → Teardown → Cleanup",
+    "edge_work": "No edge work across specs. Trim terminates at adjacent surfaces. Caulking at trim-to-siding junctions is this spec's responsibility.",
+    "protection_sequence": "Ground cover → Hardscape → Window/door masking → Light fixtures → Roofline edge → Siding masking (spray only) → RRP containment (if applicable)",
+    "elevation_strategy": "Work one elevation at a time to minimize protection setup/teardown cycles. Process each trim component per elevation with its own height and complexity modifiers.",
+    "key_prohibitions": "NO spray without full adjacent-surface masking. NO painting over DSD-4 (hard stop). NO RRP shortcuts. NO silicone caulk on PVC. NO skipping feather-edge sanding after scraping."
+  },
+
+  "relationships": {
+    "companion_spec": null,
+    "often_combined_with": ["SF_SIDING_WOOD_EXT_RP_v1", "Future SF_SOFFIT_EXT_RP"],
+    "sibling_spec": "SF_TRIM_NC_PAINT_v1",
+    "typical_before": ["SF_SIDING_WOOD_EXT_RP_v1"],
+    "typical_after": [],
+    "cross_spec_protection_note": "Siding masking during trim spray work is THIS spec's responsibility. Window/door glass masking is THIS spec's responsibility when painting adjacent casings. Siding spec handles its own protection separately.",
+    "notes": "Second repaint spec in the system after SF_SIDING_WOOD_EXT_RP. Introduces trim-specific height modifier (FAC_TRRP_HEIGHT), complexity modifier (FAC_TRRP_COMPLEXITY), 8 paintable items, substrate material dimension, and per-component modifier application."
+  },
+
+  "maintenance_cycles": {
+    "description": "Expected repaint intervals for exterior trim by quality tier, assuming proper prep and application.",
+    "cycles": [
+      { "quality_tier": "QT3", "repaint_interval_years": "7-9", "with_routine_maintenance": "12-14", "notes": "Standard 2-coat repaint satin. Trim is more exposed to weathering than siding — slightly shorter cycle." },
+      { "quality_tier": "QT4", "repaint_interval_years": "9-11", "with_routine_maintenance": "14-16", "notes": "Premium 2-coat repaint semi-gloss with interstage sand. Longer cycle due to superior products and prep." },
+      { "quality_tier": "QT5", "repaint_interval_years": "11-13", "with_routine_maintenance": "16-18", "notes": "Superior 4-coat system gloss. Maximum film build. Longest maintenance cycle." }
+    ],
+    "routine_maintenance_definition": "Annual inspection, caulk repair at trim joints, spot touch-up of minor damage. Adds ~5 years to repaint interval at all tiers."
+  },
+
+  "dependencies": {
+    "research": "research.json",
+    "resolution": "resolution.json",
+    "sop_modules": "sop_modules.json",
+    "materials": "materials.json",
+    "production": "production.json"
+  },
+
+  "artifact_counts": {
+    "sop_modules": 13,
+    "total_tasks": 44,
+    "binary_tasks": 39,
+    "qt_scaled_tasks": 5,
+    "material_systems": 6,
+    "coverage_profiles": 6,
+    "consumables": 22,
+    "compatibility_rules": 18,
+    "factor_modifiers": 5,
+    "round_configurations": 8,
+    "protection_zones": 8,
+    "paintscope_inputs": 21,
+    "variants": 14,
+    "paintable_items": 8,
+    "configuration_dimensions": 4,
+    "hard_stops": 2
+  },
+
+  "doctrine_references": [
+    { "doctrine": "Exterior_Trim_Systems_Doctrine.md", "sections_used": ["Substrate types (wood/PVC/engineered)", "Surface prep by condition", "Primer/coating systems", "Production rates", "Failure modes", "Caulking protocol", "Profile complexity classifications", "Height tiers"] },
+    { "doctrine": "Exterior_Weathering_Surface_Assessment_Doctrine.md", "sections_used": ["DSD 0-4 classification", "ASTM D3359 adhesion test", "Substrate state assessment", "Moisture content thresholds", "Chalking remediation"] },
+    { "doctrine": "Exterior_Primer_Systems_Doctrine.md", "sections_used": ["Spot primer", "Chalk-binding primer", "Acrylic stain-blocking primer", "Alkyd stain-blocking primer (tannin)", "Bonding primer (PVC)"] },
+    { "doctrine": "Exterior_Application_Methods_Doctrine.md", "sections_used": ["Brush rates for trim", "Spray conditional justification", "Masking overhead for spray trim"] },
+    { "doctrine": "Exterior_Protection_Doctrine_T3.md", "sections_used": ["Ground cover zones", "Window/door masking zones", "Fixture zones", "Siding masking for spray", "RRP containment requirements"] },
+    { "doctrine": "Exterior_Access_Staging_Systems_Doctrine.md", "sections_used": ["Referenced for context only — this spec uses FAC_TRRP_HEIGHT, not FAC_EXT_ACCESS"] },
+    { "doctrine": "Exterior_Caulking_Sealants_Doctrine.md", "sections_used": ["'Think Like a Water Drop' protocol", "Caulk removal and replacement", "PVC caulk requirements (never silicone)"] },
+    { "doctrine": "Exterior_Climate_Environmental_Conditions_Doctrine.md", "sections_used": ["NOT used as estimation modifiers (RC-003 from PaintFactor OS)"] },
+    { "doctrine": "Exterior_Color_Sheen_Configuration_Doctrine.md", "sections_used": ["Exterior trim sheen options (satin/semi-gloss/gloss)", "Output state mapping", "PVC LRV restriction"] }
+  ],
+
+  "research_corrections": [
+    {
+      "correction_id": "RC-001",
+      "original_claim": "RRP modifier is 1.40x on prep tasks",
+      "corrected_to": "RRP modifier is 2.00x on prep tasks involving paint disturbance. The 1.40x figure from research was a rough estimate; the production.json engineer calibrated to 2.00x based on actual wet-scraping, HEPA vacuum, and containment maintenance overhead per EPA RRP procedural requirements.",
+      "source": "production.json FAC_TRRP_RRP vs research.json CD-008"
+    },
+    {
+      "correction_id": "RC-002",
+      "original_claim": "Environmental conditions (wind, dew point, sun, surface temp) should be estimation modifiers",
+      "corrected_to": "Environmental conditions are NOT estimatable — unpredictable at bid time. Excluded from spec entirely.",
+      "source": "PaintFactor OS RC-003"
+    }
+  ],
+
+  "change_log": [
+    {
+      "version": "0.1.0",
+      "date": "2026-03-10",
+      "author": "SpecFactory",
+      "changes": "Initial draft spec for exterior trim repaint. SECOND REPAINT SPEC — introduces trim-specific height modifier (FAC_TRRP_HEIGHT with 5 tiers), complexity modifier (FAC_TRRP_COMPLEXITY with 4 levels), 8 paintable items (all LF), substrate material dimension (wood/PVC/engineered), per-component modifier application. Key features: combined assess+prep+prime+finish (single mobilization), 4 substrate states, 4 substrate conditions (DSD 0-3 + DSD-4 hard stop), 3 quality tiers (QT3-QT5, QT2 excluded for trim), 2 application methods (brush primary, spray conditional), 3 substrate materials, 44 tasks across 13 modules (39 binary + 5 qt_scaled), 6 material systems (4 primer + 2 finish), 5 factor modifiers (CONDITION/RRP/QT/HEIGHT/COMPLEXITY) with stacking partition, 8 round configurations, 8 protection zones (including RRP containment), 22 consumables (including 6 RRP-conditional), 18 compatibility rules, 14 variants, 22 PaintScope inputs (8 trim component LF keys + 6 protection + 5 config enums + 3 misc). Modifier stacking: prep max 12.32x with RRP (extreme conditions — recommend T&M), coating max 5.28x (QT5 + extreme height + elaborate). 2 hard stops (DSD-4 substrate damage, PVC LRV <55 gate)."
+    }
+  ]
+}

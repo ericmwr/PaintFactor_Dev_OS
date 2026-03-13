@@ -1,0 +1,635 @@
+{
+  "spec_family": {
+    "id": "SF_GARAGE_DOOR_EXT_NC",
+    "name": "Exterior Garage Door Prime and Paint",
+    "description": "EA-based spec for new construction exterior garage doors. Three substrate materials (steel/wood/carriage) with substrate-driven primer selection. Sectional door articulation requires leapfrog painting technique. Factory-primed steel STILL requires DTM primer (wax contamination). Bottom seal lifecycle management (remove/prop/reinstall). Door size (single/double) is primary EA rate modifier. Panel complexity (flush/raised_panel/carriage/windows) is secondary modifier. Door casing belongs to SF_TRIM_EXT_NC_v1.",
+    "domain": "exterior",
+    "version": "0.1.0",
+    "status": "draft",
+    "review_required": true
+  },
+
+  "scope_boundaries": {
+    "includes": [
+      "Complete exterior face of garage door assembly (all panels, recesses, window frame surrounds)",
+      "Panel edges at articulation joints (leapfrog painting technique)",
+      "Window insert masking (when windows present)",
+      "Weatherstrip protection (low-tack tape in channel)",
+      "Track and hardware masking (tracks, rollers, springs, cables, brackets)",
+      "Bottom seal management (remove or mask, prop during cure, reinstall after cure)",
+      "Driveway/apron protection (canvas drops — NOT poly sheeting)",
+      "Adjacent siding masking (spray method)",
+      "Substrate-driven surface preparation (steel: wax removal + degloss; wood: sand + fill + tannin spot; carriage: mixed-material prep)",
+      "Substrate-driven primer application (DTM for steel, acrylic for wood, alkyd stain-blocker for tannin wood, bonding for carriage composites)",
+      "Two finish coats with leapfrog technique (standard or premium acrylic latex)",
+      "Intercoat inspection (QT3) and sanding (QT4)",
+      "Six-side sealing for wood doors per DASMA TDS #162",
+      "Articulation test (door opens/closes freely after painting)",
+      "Balance check (safety quality gate — spring adjustment is not scope)"
+    ],
+    "excludes": [
+      {
+        "item": "Garage door casing/trim prep, prime, and paint",
+        "route_to": "SF_TRIM_EXT_NC_v1"
+      },
+      {
+        "item": "Interior/garage-side face of door",
+        "route_to": "Not in exterior NC scope"
+      },
+      {
+        "item": "Weatherstripping replacement",
+        "route_to": "Garage door service scope"
+      },
+      {
+        "item": "Spring/cable/track adjustment or repair",
+        "route_to": "Garage door service scope"
+      },
+      {
+        "item": "Opener motor or electronic components",
+        "route_to": "Garage door service scope"
+      },
+      {
+        "item": "Roller application",
+        "route_to": "PROHIBITED — introduces orange peel on metal door faces"
+      },
+      {
+        "item": "QT2 quality tier",
+        "route_to": "EXCLUDED — garage doors are visible from street, not economy-appropriate"
+      },
+      {
+        "item": "QT5 quality tier",
+        "route_to": "EXCLUDED — utility surface, not architectural showcase like entry doors"
+      }
+    ]
+  },
+
+  "configuration_dimensions": [
+    {
+      "dimension_id": "quality_tier",
+      "description": "Quality tier controlling pace, scrutiny level, intercoat sanding, and defect tolerance.",
+      "values": ["QT3", "QT4"],
+      "default": "QT3",
+      "notes": "QT3=standard (production pace, 6-foot visual, no intercoat sand). QT4=premium (slower pace, raking light at 3 feet, intercoat sand 220-grit, premium materials). QT2 excluded — visible from street. QT5 excluded — utility surface. Narrow 2-tier range reflects functional character of garage doors."
+    },
+    {
+      "dimension_id": "door_substrate",
+      "description": "Garage door substrate material — drives primer system, prep protocol, and failure mode profile.",
+      "values": ["steel", "wood", "carriage"],
+      "notes": "Steel: wax removal + degloss + DTM primer (factory-primed steel STILL needs DTM due to wax). Wood: sand + fill + acrylic primer + six-side seal per DASMA TDS #162. Carriage: mixed-material prep (steel base + composite overlays) + DTM on base + bonding primer on overlays. Per-door capture for mixed-substrate projects."
+    },
+    {
+      "dimension_id": "panel_complexity",
+      "description": "Panel complexity classification — secondary cost driver after door size.",
+      "values": ["flush", "raised_panel", "carriage", "windows"],
+      "modifiers": {
+        "flush": 1.00,
+        "raised_panel": 1.10,
+        "carriage": 1.30,
+        "windows": "additive (0.75-1.25 hrs)"
+      },
+      "notes": "Flush = baseline (continuous spray). Raised_panel = +10% (brush work in recesses). Carriage = +30% (meticulous masking, multi-tone cutting, overlay detail). Windows is additive time (independent of panel type). Windows can coexist with any panel type."
+    },
+    {
+      "dimension_id": "sheen",
+      "description": "Finish sheen — project-level selection.",
+      "values": ["satin", "semi-gloss", "gloss"],
+      "notes": "No locked-in default. Semi-gloss is most common for garage doors. Gloss requires higher prep quality. All valid for this spec."
+    },
+    {
+      "dimension_id": "application_method",
+      "description": "Primary application technique for face coating.",
+      "values": ["spray", "brush"],
+      "default": "spray",
+      "notes": "Spray is primary for garage door faces (large flat panels, ideal for airless spray). Brush for panel recesses on raised-panel and carriage doors. Brush-only for small projects where spray setup is not justified. Roller is NOT valid — introduces orange peel on metal doors. Back-rolling AVOIDED on metal doors per Application Methods Doctrine."
+    }
+  ],
+
+  "paintable_items": [
+    {
+      "item_id": "ITM_GARAGE_DOOR",
+      "name": "Exterior garage door assembly",
+      "unit_of_measure": "EA",
+      "counting_rules": "Each garage door assembly is 1 EA regardless of physical size. Door size (single or double) is captured as a modifier within EA. A door assembly includes all panels, recesses, window inserts (if present), and panel edges at articulation joints.",
+      "notes": "Single paintable item. Does NOT include casing (SF_TRIM_EXT_NC_v1 scope), interior/garage-side face, weatherstripping, spring hardware, or tracks. Door size dimension (single/double) drives time per EA. Panel complexity dimension (flush/raised_panel/carriage/windows) drives detail time per EA. Substrate (steel/wood/carriage) drives primer and prep protocol."
+    }
+  ],
+
+  "variants": [
+    {
+      "variant_id": "VAR_QT3_SPRAY_STEEL_FLUSH",
+      "applies_when": { "quality_tier": ["QT3"], "application_method": ["spray"], "door_substrate": ["steel"], "panel_complexity": ["flush"] },
+      "coats": { "prime": 1, "finish": 2 },
+      "protection_zones": ["ext_garage_driveway_apron", "ext_garage_siding_adjacent", "ext_garage_weatherstrip", "ext_garage_track_hardware", "ext_garage_bottom_seal"],
+      "notes": "Baseline scenario — single steel flush QT3 spray. Wax removal + degloss + DTM primer + 2 finish coats. No window masking. No brush recess work."
+    },
+    {
+      "variant_id": "VAR_QT3_SPRAY_STEEL_RAISED",
+      "applies_when": { "quality_tier": ["QT3"], "application_method": ["spray"], "door_substrate": ["steel"], "panel_complexity": ["raised_panel"] },
+      "coats": { "prime": 1, "finish": 2 },
+      "protection_zones": ["ext_garage_driveway_apron", "ext_garage_siding_adjacent", "ext_garage_weatherstrip", "ext_garage_track_hardware", "ext_garage_bottom_seal"],
+      "notes": "Standard spray on raised-panel steel. Adds brush recess work to spray face. 1.10x panel complexity modifier."
+    },
+    {
+      "variant_id": "VAR_QT3_SPRAY_STEEL_CARRIAGE",
+      "applies_when": { "quality_tier": ["QT3"], "application_method": ["spray"], "door_substrate": ["steel", "carriage"], "panel_complexity": ["carriage"] },
+      "coats": { "prime": 1, "finish": 2 },
+      "protection_zones": ["ext_garage_driveway_apron", "ext_garage_siding_adjacent", "ext_garage_weatherstrip", "ext_garage_track_hardware", "ext_garage_bottom_seal"],
+      "notes": "Standard spray on carriage-style. Meticulous overlay detail work. 1.30x panel complexity modifier. Carriage substrate adds bonding primer for composite overlays."
+    },
+    {
+      "variant_id": "VAR_QT3_SPRAY_STEEL_WINDOWS",
+      "applies_when": { "quality_tier": ["QT3"], "application_method": ["spray"], "panel_complexity": ["windows"] },
+      "coats": { "prime": 1, "finish": 2 },
+      "protection_zones": ["ext_garage_driveway_apron", "ext_garage_siding_adjacent", "ext_garage_window_mask", "ext_garage_weatherstrip", "ext_garage_track_hardware", "ext_garage_bottom_seal"],
+      "notes": "Any substrate with window inserts. Adds window masking zone. Additive time for window masking (+0.75-1.25 hrs)."
+    },
+    {
+      "variant_id": "VAR_QT3_SPRAY_WOOD",
+      "applies_when": { "quality_tier": ["QT3"], "application_method": ["spray"], "door_substrate": ["wood"] },
+      "coats": { "prime": 1, "finish": 2 },
+      "protection_zones": ["ext_garage_driveway_apron", "ext_garage_siding_adjacent", "ext_garage_weatherstrip", "ext_garage_track_hardware", "ext_garage_bottom_seal"],
+      "notes": "Wood door QT3 spray. Adds sand + fill + acrylic primer + six-side seal per DASMA TDS #162. 1.15x substrate modifier."
+    },
+    {
+      "variant_id": "VAR_QT4_SPRAY_STEEL_FLUSH",
+      "applies_when": { "quality_tier": ["QT4"], "application_method": ["spray"], "door_substrate": ["steel"], "panel_complexity": ["flush"] },
+      "coats": { "prime": 1, "finish": 2 },
+      "protection_zones": ["ext_garage_driveway_apron", "ext_garage_siding_adjacent", "ext_garage_weatherstrip", "ext_garage_track_hardware", "ext_garage_bottom_seal"],
+      "notes": "Premium spray on steel flush. Intercoat sanding 220-grit. Premium acrylic enamel. 1.15x QT modifier."
+    },
+    {
+      "variant_id": "VAR_QT3_BRUSH_STEEL_FLUSH",
+      "applies_when": { "quality_tier": ["QT3"], "application_method": ["brush"], "door_substrate": ["steel"], "panel_complexity": ["flush"] },
+      "coats": { "prime": 1, "finish": 2 },
+      "protection_zones": ["ext_garage_driveway_apron", "ext_garage_weatherstrip", "ext_garage_track_hardware", "ext_garage_bottom_seal"],
+      "notes": "Brush-only on steel flush. No siding masking needed (no spray overspray). Brush is ~2.5x spray time for face tasks. Used when spray is not feasible."
+    }
+  ],
+
+  "required_paintscope_inputs": [
+    {
+      "input_name": "IN_EA_GARAGE_DOOR",
+      "paintscope_key": "PS_EXT_OPENING_EA.DOOR_GARAGE",
+      "uom": "EA",
+      "required": true,
+      "description": "Count of garage doors in scope. Each door assembly is 1 EA regardless of size."
+    },
+    {
+      "input_name": "IN_ENUM_GARAGE_DOOR_SUBSTRATE",
+      "paintscope_key": "PS_EXT_META.ENUM.GARAGE_DOOR_SUBSTRATE",
+      "uom": "ENUM",
+      "required": true,
+      "description": "Garage door substrate material — steel, wood, or carriage. Drives primer system, prep protocol, and failure mode profile."
+    },
+    {
+      "input_name": "IN_ENUM_GARAGE_DOOR_SIZE",
+      "paintscope_key": "PS_EXT_META.ENUM.GARAGE_DOOR_SIZE",
+      "uom": "ENUM",
+      "required": true,
+      "description": "Garage door size — single (8x7/9x7 ft, 56-63 SF) or double (16x7/18x7 ft, 112-126 SF). Primary rate modifier within EA counting."
+    },
+    {
+      "input_name": "IN_ENUM_GARAGE_DOOR_PANEL_TYPE",
+      "paintscope_key": "PS_EXT_META.ENUM.GARAGE_DOOR_PANEL_TYPE",
+      "uom": "ENUM",
+      "required": true,
+      "description": "Panel complexity — flush, raised_panel, carriage, or windows. Production rate modifier."
+    },
+    {
+      "input_name": "IN_BOOL_NEW_CONSTRUCTION",
+      "paintscope_key": "PS_EXT_META.FLAG.NEW_CONSTRUCTION",
+      "uom": "BOOL",
+      "required": true,
+      "description": "Boolean flag confirming new construction context. Always true for this NC spec."
+    },
+    {
+      "input_name": "IN_SF_EXT_PROTECT_DRIVEWAY",
+      "paintscope_key": "PS_EXT_PROTECT_SF.DRIVEWAY",
+      "uom": "SF",
+      "required": false,
+      "required_when": "When application_method is spray (recommended for all methods)",
+      "description": "SF of driveway/apron surface within overspray/drip zone requiring protection."
+    }
+  ],
+
+  "substrate_state_rules": {
+    "primary_surface": "garage_door_ext",
+    "valid_input_states": {
+      "states": ["SS_EXT_PRIMED_FACTORY", "SS_EXT_BARE_WOOD", "SS_EXT_BARE_METAL"],
+      "notes": "Three NC-relevant substrate states. SS_EXT_PRIMED_FACTORY is dominant for steel (~85%). SS_EXT_BARE_WOOD for wood panel doors. SS_EXT_BARE_METAL is rare in NC (factory primer damaged). Key difference from entry doors: factory-primed steel STILL needs DTM primer (wax contamination — no skip-prime path for garage doors)."
+    },
+    "output_state": {
+      "state": "SS_EXT_PAINTED_SEMIGLOSS",
+      "varies_by": "sheen",
+      "state_map": {
+        "satin": "SS_EXT_PAINTED_SATIN",
+        "semi-gloss": "SS_EXT_PAINTED_SEMIGLOSS",
+        "gloss": "SS_EXT_PAINTED_GLOSS"
+      },
+      "notes": "Output state varies by sheen. Semi-gloss is most common for garage doors."
+    },
+    "primer_routing": {
+      "SS_EXT_PRIMED_FACTORY": {
+        "required_system": "SYS_EXT_GRDR_PRIMER_DTM",
+        "substrate_material": ["steel"],
+        "notes": "Factory-primed steel STILL needs DTM primer. Factory primer is inadequate due to wax contamination. Wax removal + degloss required before DTM application."
+      },
+      "SS_EXT_BARE_METAL": {
+        "required_system": "SYS_EXT_GRDR_PRIMER_DTM",
+        "substrate_material": ["steel"],
+        "notes": "Bare steel requires DTM primer. Rare in NC (factory primer damaged). CRITICAL: prime same day as surface prep."
+      },
+      "SS_EXT_BARE_WOOD": {
+        "required_system": "SYS_EXT_GRDR_PRIMER_ACRYLIC",
+        "substrate_material": ["wood"],
+        "notes": "Acrylic primer for bare wood. For tannin-rich species (cedar, redwood, fir), supplement with SYS_EXT_GRDR_PRIMER_ALKYD_STAINBLOCK spot or full. Six-side seal mandatory per DASMA TDS #162."
+      }
+    }
+  },
+
+  "material_systems": [
+    {
+      "system_id": "SYS_EXT_GRDR_PRIMER_DTM",
+      "name": "DTM Primer for Steel Garage Doors",
+      "quality_tier": ["QT3", "QT4"],
+      "product_role": "primer",
+      "applies_when": { "door_substrate": ["steel"], "substrate_state": ["SS_EXT_PRIMED_FACTORY", "SS_EXT_BARE_METAL"] },
+      "coverage_sf_per_gallon": 375,
+      "coats": 1,
+      "notes": "Rust-inhibitive acrylic DTM primer. MANDATORY for ALL steel garage doors including factory-primed (wax contamination). Flash-rust resistant, flexible for thermal expansion."
+    },
+    {
+      "system_id": "SYS_EXT_GRDR_PRIMER_ACRYLIC",
+      "name": "100% Acrylic Exterior Primer for Wood Garage Doors",
+      "quality_tier": ["QT3", "QT4"],
+      "product_role": "primer",
+      "applies_when": { "door_substrate": ["wood"], "substrate_state": ["SS_EXT_BARE_WOOD"] },
+      "coverage_sf_per_gallon": 425,
+      "coats": 1,
+      "notes": "Standard 100% acrylic latex exterior primer. For non-tannin species (pine, fir, spruce). Supplement with alkyd stain-blocker for tannin-rich species."
+    },
+    {
+      "system_id": "SYS_EXT_GRDR_PRIMER_ALKYD_STAINBLOCK",
+      "name": "Alkyd Stain-Blocking Primer for Tannin-Rich Wood Garage Doors",
+      "quality_tier": ["QT3", "QT4"],
+      "product_role": "primer",
+      "applies_when": { "door_substrate": ["wood"] },
+      "coverage_sf_per_gallon": 375,
+      "coats": 1,
+      "notes": "Required for cedar, redwood, fir garage doors. Deep penetration, superior tannin blocking. May be spot-applied at knots or full-surface for severe tannin species."
+    },
+    {
+      "system_id": "SYS_EXT_GRDR_PRIMER_BONDING",
+      "name": "Bonding Primer for Carriage-Style Composite Overlays",
+      "quality_tier": ["QT3", "QT4"],
+      "product_role": "primer",
+      "applies_when": { "door_substrate": ["carriage"] },
+      "coverage_sf_per_gallon": 375,
+      "coats": 1,
+      "notes": "Conditional — only needed when carriage overlays have glossy/sealed composite surfaces. Grips slick composite while providing tooth for topcoat."
+    },
+    {
+      "system_id": "SYS_EXT_GRDR_FINISH_STANDARD",
+      "name": "Standard Exterior Acrylic Latex for Garage Doors",
+      "quality_tier": ["QT3"],
+      "product_role": "finish",
+      "allowed_sheens": ["satin", "semi-gloss", "gloss"],
+      "coverage_sf_per_gallon": 350,
+      "coats": 2,
+      "notes": "Mid-grade 100% acrylic exterior latex. Works on all three substrates (steel, wood, carriage). LRV restriction: carriage/composite LRV > 55 (HARD STOP). Steel LRV > 30 recommended (IR-reflective below 30)."
+    },
+    {
+      "system_id": "SYS_EXT_GRDR_FINISH_PREMIUM",
+      "name": "Premium Exterior Acrylic Latex for Garage Doors",
+      "quality_tier": ["QT4"],
+      "product_role": "finish",
+      "allowed_sheens": ["satin", "semi-gloss", "gloss"],
+      "coverage_sf_per_gallon": 350,
+      "coats": 2,
+      "notes": "Premium 100% acrylic (SW Emerald, BM Aura). Superior UV resistance, self-cleaning technology, enhanced color retention."
+    }
+  ],
+
+  "sop_module_summary": {
+    "total_modules": 8,
+    "total_tasks": 46,
+    "modules": [
+      {
+        "module_id": "MOD_GRDR_SETUP",
+        "name": "Garage Door Protection & Equipment Setup",
+        "phase": "setup",
+        "task_count": 8,
+        "tasks": ["TSK_GRDR_DRIVEWAY_PROTECT", "TSK_GRDR_SIDING_MASK", "TSK_GRDR_WINDOW_MASK", "TSK_GRDR_WEATHERSTRIP_PROTECT", "TSK_GRDR_TRACK_HARDWARE_MASK", "TSK_GRDR_BOTTOM_SEAL_PREP", "TSK_GRDR_EQUIPMENT_SETUP_SPRAY", "TSK_GRDR_EQUIPMENT_SETUP_BRUSH"]
+      },
+      {
+        "module_id": "MOD_GRDR_PREP",
+        "name": "Garage Door Surface Preparation",
+        "phase": "prep",
+        "task_count": 8,
+        "tasks": ["TSK_GRDR_WAX_REMOVE", "TSK_GRDR_DEGLOSS", "TSK_GRDR_ADHESION_TEST", "TSK_GRDR_SAND_WOOD", "TSK_GRDR_FILL_WOOD", "TSK_GRDR_TANNIN_SPOT_PRIME", "TSK_GRDR_PREP_CARRIAGE", "TSK_GRDR_DUST_REMOVE"]
+      },
+      {
+        "module_id": "MOD_GRDR_PRIME",
+        "name": "Garage Door Primer Application",
+        "phase": "prime",
+        "task_count": 6,
+        "tasks": ["TSK_GRDR_PRIME_DTM_SPRAY", "TSK_GRDR_PRIME_DTM_BRUSH", "TSK_GRDR_PRIME_ACRYLIC_SPRAY", "TSK_GRDR_PRIME_ACRYLIC_BRUSH", "TSK_GRDR_PRIME_BONDING_CARRIAGE", "TSK_GRDR_PRIME_SIX_SIDE"],
+        "applies_when": { "substrate_state": ["SS_EXT_PRIMED_FACTORY", "SS_EXT_BARE_WOOD", "SS_EXT_BARE_METAL"] }
+      },
+      {
+        "module_id": "MOD_GRDR_FINISH_1",
+        "name": "Garage Door First Finish Coat",
+        "phase": "finish",
+        "task_count": 4,
+        "tasks": ["TSK_GRDR_FINISH_SPRAY_1", "TSK_GRDR_FINISH_BRUSH_1", "TSK_GRDR_FINISH_BRUSH_RECESS_1", "TSK_GRDR_LEAPFROG_VERIFY_1"]
+      },
+      {
+        "module_id": "MOD_GRDR_INTERSTAGE",
+        "name": "Garage Door Intercoat Inspection & Sand",
+        "phase": "interstage",
+        "task_count": 4,
+        "tasks": ["TSK_GRDR_INSPECT_INTERCOAT", "TSK_GRDR_SAND_INTERCOAT", "TSK_GRDR_REPAIR_INTERCOAT", "TSK_GRDR_DUST_INTERCOAT"]
+      },
+      {
+        "module_id": "MOD_GRDR_FINISH_2",
+        "name": "Garage Door Second Finish Coat",
+        "phase": "finish",
+        "task_count": 4,
+        "tasks": ["TSK_GRDR_FINISH_SPRAY_2", "TSK_GRDR_FINISH_BRUSH_2", "TSK_GRDR_FINISH_BRUSH_RECESS_2", "TSK_GRDR_LEAPFROG_VERIFY_2"]
+      },
+      {
+        "module_id": "MOD_GRDR_FINAL_INSPECT",
+        "name": "Garage Door Final Inspection & Bottom Seal Prop",
+        "phase": "finish",
+        "task_count": 3,
+        "tasks": ["TSK_GRDR_FINAL_INSPECT", "TSK_GRDR_BALANCE_CHECK", "TSK_GRDR_TOUCHUP"],
+        "notes": "Bottom seal prop (TSK_GRDR_BOTTOM_SEAL_PROP) is in FINISH_2 module (immediately after second coat). Final inspect module handles inspection, balance check, and touch-up."
+      },
+      {
+        "module_id": "MOD_GRDR_CLEANUP",
+        "name": "Garage Door Protection Teardown & Cleanup",
+        "phase": "cleanup",
+        "task_count": 9,
+        "tasks": ["TSK_GRDR_WINDOW_UNMASK", "TSK_GRDR_WEATHERSTRIP_UNMASK", "TSK_GRDR_TRACK_HARDWARE_UNMASK", "TSK_GRDR_SIDING_UNMASK", "TSK_GRDR_BOTTOM_SEAL_REINSTALL", "TSK_GRDR_DRIVEWAY_TEARDOWN", "TSK_GRDR_ARTICULATION_TEST", "TSK_GRDR_TOOL_CLEAN"]
+      }
+    ],
+    "by_classification": {
+      "binary": 26,
+      "qt_scaled": 16,
+      "qt_conditional": 2
+    },
+    "by_skill_level": {
+      "helper": 10,
+      "journeyman": 32,
+      "lead": 4
+    }
+  },
+
+  "production_summary": {
+    "rate_basis": "EA (each garage door assembly) — minutes per door, not SF/hr or LF/hr",
+    "ea_conversion": {
+      "sf_per_door_assembly_single": 60,
+      "sf_range_single": [56, 63],
+      "sf_per_door_assembly_double": 119,
+      "sf_range_double": [112, 126],
+      "notes": "Single door: 8x7 or 9x7 ft (56-63 SF). Double door: 16x7 or 18x7 ft (112-126 SF). Rates are minutes per door, with door_size modifier adjusting for doubles."
+    },
+    "time_estimates_by_scenario": [
+      {
+        "scenario": "Single steel flush, spray, QT3",
+        "round": "ROUND_GRDR_PRIME_2FINISH",
+        "total_minutes": 287,
+        "total_hours": 4.8,
+        "notes": "Baseline — excludes driveway SF protection time. With typical driveway: ~5.3-5.8 hrs. Comprehensive task breakdown including full protection setup/cleanup."
+      },
+      {
+        "scenario": "Double steel flush, spray, QT3",
+        "modifier": "FAC_GRDR_DOOR_SIZE = 1.85",
+        "estimated_total_hours": "9-10",
+        "notes": "1.85x single door time. Setup/cleanup has some fixed overhead."
+      },
+      {
+        "scenario": "Single steel carriage, spray, QT4",
+        "modifier": "FAC_GRDR_PANEL_COMPLEXITY = 1.30 x FAC_QT = 1.15",
+        "estimated_total_hours": "8-9",
+        "notes": "Carriage adds brush detail work. QT4 adds intercoat sand + premium materials."
+      },
+      {
+        "scenario": "Single wood flush, spray, QT3",
+        "modifier": "FAC_GRDR_SUBSTRATE = 1.15",
+        "estimated_total_hours": "6-7",
+        "notes": "Wood adds six-side seal, grain management per DASMA TDS #162."
+      }
+    ],
+    "modifier_stacking_cap": 4.0,
+    "worst_case_stack": "Double (1.85) x carriage (1.30) x QT4 (1.15) x wood (1.15) = ~3.18x multiplicative + window additive. Environmental modifiers can push to ~4.55x, capped to 4.0x."
+  },
+
+  "protection_zones_required": [
+    {
+      "zone_id": "ext_garage_driveway_apron",
+      "condition": "always",
+      "protection_level": "full_cover",
+      "notes": "Driveway/apron below garage door. Canvas drops or absorbent mats — NEVER standard poly (slippery safety hazard on hardscapes). Mandatory for spray and recommended for brush."
+    },
+    {
+      "zone_id": "ext_garage_siding_adjacent",
+      "condition": { "application_method": ["spray"] },
+      "protection_level": "full_mask",
+      "notes": "Siding panels flanking garage door opening. Pre-taped poly or masking film. Spray method only."
+    },
+    {
+      "zone_id": "ext_garage_window_mask",
+      "condition": { "panel_type": ["windows"] },
+      "protection_level": "full_mask",
+      "notes": "Window inserts in garage door panels. HDPE static-cling film. Only when windows present. Divided-lite adds significantly more time."
+    },
+    {
+      "zone_id": "ext_garage_weatherstrip",
+      "condition": "always",
+      "protection_level": "item_mask",
+      "notes": "Weatherstripping contact surfaces along sides and top. Low-tack tape deep in channel. Paint destroys seal flexibility. NEVER paint weatherstripping."
+    },
+    {
+      "zone_id": "ext_garage_track_hardware",
+      "condition": "always",
+      "protection_level": "item_mask",
+      "notes": "Track, roller contact points, spring mechanism, cables, brackets. Must NOT be painted — causes binding. Mask from garage interior side."
+    },
+    {
+      "zone_id": "ext_garage_bottom_seal",
+      "condition": "always",
+      "protection_level": "item_mask",
+      "notes": "Bottom weatherseal (astragal). Either remove before painting or mask. Prop door 2-4 inches during 24-48 hr cure. Dedicated management lifecycle: prep -> prop -> reinstall."
+    }
+  ],
+
+  "adjacency_declarations": {
+    "primary_surface": "garage_door_ext",
+    "adjacent_surfaces": [
+      {
+        "surface_id": "ext_trim_garage_casing",
+        "edge_type": "linear",
+        "typical_relationship": "different_finish",
+        "continuity_rate_modifier": 1.0,
+        "affected_tasks": [],
+        "notes": "Garage door casing frames the opening. Different finish typically. SF_TRIM_EXT_NC_v1 scope. No cut-in tasks from this spec to casing — casing is trim spec's responsibility."
+      },
+      {
+        "surface_id": "siding_field",
+        "edge_type": "linear",
+        "typical_relationship": "different_finish",
+        "continuity_rate_modifier": 1.0,
+        "affected_tasks": [],
+        "notes": "Siding-to-garage door junction: casing intervenes. No direct adjacency edge work. Siding masking (TSK_GRDR_SIDING_MASK) is protection task, not edge work."
+      },
+      {
+        "surface_id": "driveway_hardscape",
+        "edge_type": "linear",
+        "typical_relationship": "different_finish",
+        "continuity_rate_modifier": 1.0,
+        "affected_tasks": [],
+        "notes": "Driveway below garage door. Non-painted protection target. No cut-in — driveway protection is zone-based."
+      }
+    ]
+  },
+
+  "site_condition_rules": [
+    {
+      "condition_id": "wind_condition",
+      "treatment": "spray_modifier",
+      "affected_tasks": "Spray application tasks and siding masking tasks",
+      "effect": "calm=1.00, light_breeze=1.10, moderate=1.20, high=excluded",
+      "notes": "High wind excludes spray tasks entirely — reschedule. Moderate wind adds overspray containment overhead. Especially critical for garage doors (large flat spray target)."
+    },
+    {
+      "condition_id": "sun_exposure",
+      "treatment": "finish_modifier",
+      "affected_tasks": "All finish coat application tasks",
+      "effect": "shade=1.00, partial_sun=1.00, full_sun=1.10",
+      "notes": "Full sun compresses leapfrog working window. South/west-facing doors especially critical. Schedule early morning for sun-exposed doors."
+    },
+    {
+      "condition_id": "surface_temperature",
+      "treatment": "coating_modifier",
+      "affected_tasks": "All prime and finish coat application tasks",
+      "effect": "normal=1.00, cold_surface=1.15, hot_surface=1.10",
+      "notes": "Cold (< 50F) slows cure, risks adhesion. Hot (> 90F) causes flash dry and lap marks. Steel doors heat up faster than wood — surface temp modifier is critical for steel."
+    }
+  ],
+
+  "cross_spec_boundaries": {
+    "companion_spec": null,
+    "sibling_spec": null,
+    "adjacent_specs": [
+      {
+        "spec_id": "SF_TRIM_EXT_NC_v1",
+        "relationship": "Garage door casing/trim painting belongs to trim spec. This spec covers the door panel assembly only."
+      },
+      {
+        "spec_id": "SF_DOOR_EXT_NC_v1",
+        "relationship": "Entry door painting is completely separate. Different context prefix (XDOR vs GRDR), different PS keys. No shared EA count."
+      }
+    ],
+    "cross_spec_protection_note": "Driveway/apron protection is THIS spec's responsibility (overspray source is the garage door). Adjacent siding masking during garage door spray is also this spec's responsibility. Garage door trim/casing protection DURING SIDING SPRAY belongs to the siding spec.",
+    "deduplication_notes": [
+      "Garage door CASING/TRIM painting belongs to SF_TRIM_EXT_NC_v1 — this spec covers door panel assembly only.",
+      "Driveway/apron protection IS this spec's responsibility — not the siding spec or trim spec.",
+      "Adjacent siding masking during garage door spray IS this spec's responsibility (overspray source is the garage door).",
+      "Garage door trim/casing protection DURING SIDING SPRAY is NOT this spec's responsibility — belongs to siding spec.",
+      "Entry door painting (SF_DOOR_EXT_NC_v1) is completely separate — different context prefix, PS keys, and EA counts."
+    ]
+  },
+
+  "round_configurations": [
+    {
+      "round_id": "ROUND_GRDR_PRIME_2FINISH",
+      "description": "1 primer coat + 2 finish coats — standard NC sequence for ALL garage door substrates",
+      "module_sequence": ["MOD_GRDR_SETUP", "MOD_GRDR_PREP", "MOD_GRDR_PRIME", "MOD_GRDR_FINISH_1", "MOD_GRDR_INTERSTAGE", "MOD_GRDR_FINISH_2", "MOD_GRDR_FINAL_INSPECT", "MOD_GRDR_CLEANUP"],
+      "total_coats": 3,
+      "interstage_cycles": 1,
+      "applies_when": { "substrate_state": ["SS_EXT_PRIMED_FACTORY", "SS_EXT_BARE_WOOD", "SS_EXT_BARE_METAL"] },
+      "notes": "Single round configuration — ALL garage doors get primer + 2 finish. Unlike entry doors, factory-primed steel garage doors STILL need DTM primer because wax removal compromises factory primer reliability. No skip-prime path."
+    }
+  ],
+
+  "qa_summary": {
+    "overall_result": "pass",
+    "total_issues": 3,
+    "blockers": 0,
+    "issues": [
+      {
+        "issue_id": "QA-001",
+        "severity": "minor",
+        "description": "Intercoat tasks use appears_in_tiers in SOP vs qt_conditional_tasks in production — different structural patterns, functionally equivalent."
+      },
+      {
+        "issue_id": "QA-002",
+        "severity": "minor",
+        "description": "Baseline ~4.8 hrs for single steel flush QT3 spray is comprehensive (includes 2.3 hrs setup/cleanup). Core painting is ~2.2 hrs, consistent with industry."
+      },
+      {
+        "issue_id": "QA-003",
+        "severity": "minor",
+        "description": "Driveway protection uses SF UOM while other protection tasks use EA — correct because driveway area varies independently of door count."
+      }
+    ],
+    "doctrine_checks_passed": [
+      "THREADING-1 through THREADING-6 (task ID completeness, classification match, applies_when consistency, UOM match, task prefix, module prefix)",
+      "EXT-1 through EXT-7 (key namespace, substrate state, protection zone, site conditions, factor keys, modifier math, material state)",
+      "GRDR-1 through GRDR-8 (EA rates, leapfrog technique, bottom seal lifecycle, wax removal, DTM for all steel, wood six-side seal, QT range, articulation test)",
+      "COMPLETENESS-1 through COMPLETENESS-5 (protection zones, cross-spec boundaries, round configurations, module phase order, input declarations)",
+      "ENUM-1 (convention compliance)"
+    ]
+  },
+
+  "sequencing_notes": {
+    "production_sequence": "Setup -> Prep -> Prime -> Finish 1 -> Interstage -> Finish 2 -> Final Inspect -> Cleanup",
+    "protection_sequence": "Driveway protection -> Siding masking (spray) -> Window masking (if present) -> Weatherstrip protection -> Track/hardware masking -> Bottom seal management -> Equipment setup -> Coating work -> Window unmask -> Weatherstrip unmask -> Track/hardware unmask -> Siding unmask -> Bottom seal reinstall (after 24-48 hr cure) -> Driveway teardown -> Articulation test -> Tool clean",
+    "leapfrog_sequence": "Paint alternating panels (1,3,5 then 2,4,6) -> Open each joint to verify tack-free -> Paint adjacent panels -> Verify no bridged joints at articulation points",
+    "coat_sequence": "Prep (substrate-driven) -> Prime (1 coat, ALL substrates including factory-primed) -> Finish coat 1 (leapfrog) -> Interstage (inspect, sand QT4, repair, dust) -> Finish coat 2 (leapfrog) -> Bottom seal prop -> Final inspect -> Touch up",
+    "key_prohibitions": "NO roller application. NO back-rolling on metal doors. NO standard poly sheeting on driveway. NO painting on track/hardware/springs. NO skipping DTM primer on factory-primed steel. NO closing door on uncured bottom seal."
+  },
+
+  "relationships": {
+    "companion_spec": null,
+    "often_combined_with": ["SF_TRIM_EXT_NC_v1"],
+    "sibling_spec": null,
+    "typical_before": [],
+    "typical_after": ["SF_TRIM_EXT_NC_v1"],
+    "notes": "First exterior garage door spec. Adjacent to trim spec (casing). No direct siding adjacency (casing intervenes). Key departures from exterior entry door spec: no fiberglass substrate, leapfrog technique, bottom seal lifecycle, wax removal, factory-primed steel still needs primer, QT3-QT4 only (2 tiers), door size modifier instead of complexity tiers, single round config."
+  },
+
+  "dependencies": {
+    "research": "research.json",
+    "resolution": "resolution.json",
+    "sop_modules": "sop_modules.json",
+    "materials": "materials.json",
+    "production": "production.json",
+    "qa_report": "qa_report.json"
+  },
+
+  "doctrine_references": [
+    { "doctrine": "Exterior_Garage_Doors_Doctrine.md", "sections_used": ["§1 Substrate materials", "§2 Wax removal protocol", "§3 Leapfrog technique", "§4 Bottom seal management", "§5 Protection zones", "§6 Production rates", "§7 Articulation testing"] },
+    { "doctrine": "Exterior_Color_Sheen_Configuration_Doctrine.md", "sections_used": ["§1-2 LRV restrictions for composite/metal substrates"] },
+    { "doctrine": "Exterior_Primer_Systems_Doctrine.md", "sections_used": ["DTM primers for steel", "Acrylic primers for wood", "Alkyd stain-blockers for tannin", "Bonding primers for composites"] },
+    { "doctrine": "Exterior_Application_Methods_Doctrine.md", "sections_used": ["Spray tip selection", "No roller on metal", "No back-rolling on metal", "Transfer efficiency"] },
+    { "doctrine": "Exterior_Protection_Doctrine_T3.md", "sections_used": ["Driveway/hardscape protection (canvas NOT poly)", "Track/hardware masking", "Weatherstrip protection"] },
+    { "doctrine": "Quality_Tiers_and_Surface_Condition.md", "sections_used": ["QT3-QT4 definitions", "Inspection levels"] },
+    { "doctrine": "Estimation_Modifiers_Doctrine.md", "sections_used": ["Modifier stacking rules", "4.0x cap", "Time modifier formula"] },
+    { "doctrine": "Spec_Completeness_Doctrine.md", "sections_used": ["Protection zone declarations", "Adjacency declarations", "Site condition rules"] }
+  ],
+
+  "research_corrections": [],
+
+  "user_corrections": [],
+
+  "change_log": [
+    {
+      "version": "0.1.0",
+      "date": "2026-03-09",
+      "author": "SpecFactory",
+      "changes": "Initial draft spec for exterior garage door prime and paint. First exterior garage door spec — EA-based single-item spec (ITM_GARAGE_DOOR) with 3 substrate materials (steel/wood/carriage), 4 panel complexities (flush/raised_panel/carriage/windows), 2 door sizes (single/double), 3 sheens (satin/semi-gloss/gloss), 2 application methods (spray/brush), QT3-QT4 quality tiers (QT2 and QT5 excluded). 46 tasks across 8 modules (26 binary, 16 qt_scaled, 2 qt_conditional). 6 material systems (4 primers + 2 finishes). 6 protection zones. 8 factor modifiers (4 spec-specific + 1 QT + 3 environmental). 1 round configuration (all substrates get prime + 2 finish). Context prefix GRDR. Key features: leapfrog technique for sectional doors, bottom seal lifecycle management, wax removal for steel, factory-primed steel still requires DTM primer, wood six-side seal per DASMA TDS #162, articulation test at cleanup, canvas-only driveway protection. QA result: pass (3 minor issues, 0 blockers)."
+    }
+  ]
+}

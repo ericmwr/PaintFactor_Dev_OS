@@ -1,0 +1,388 @@
+{
+  "spec_family_id": "SF_CAULK_EXT",
+  "version": "0.1.0",
+  "generated_by": "Estimation Engineer",
+  "generated_at": "2026-03-11",
+
+  "production_notes": {
+    "domain": "exterior",
+    "no_quality_tier": "This spec has no quality_tier dimension. All tasks are binary. Sealant type selection replaces QT as the cost/quality driver. No qt_rates or quality_tier_effects.",
+    "no_access_modifier": "Per KD-012 — caulking shares access equipment with adjacent painting spec. No separate FAC_EXT_ACCESS modifier. Production rates assume ground-level access already in place.",
+    "joint_complexity_split": "Two production rate tiers based on joint_complexity: simple_bead (100-150 LF/hr apply) and backer_rod (75-100 LF/hr apply). Split is driven by joint width threshold (3/8 inch).",
+    "crew_assumption": "1-person crew for all caulking tasks. Caulking is a sequential one-person operation — gun, tool, move."
+  },
+
+  "caulk_input_group": {
+    "description": "All LF-based tasks consume joint LF from direct estimator capture. Simple bead tasks use (IN_LF_CAULK_JOINT_TOTAL - IN_LF_CAULK_JOINT_BACKER_ROD). Backer rod tasks use IN_LF_CAULK_JOINT_BACKER_ROD. FIXED tasks are per-project allowances.",
+    "inputs": [
+      { "input_name": "IN_LF_CAULK_JOINT_TOTAL", "paintscope_key": "PS_EXT_SURFACE_LF.CAULK_JOINT_TOTAL", "uom": "LF" },
+      { "input_name": "IN_LF_CAULK_JOINT_BACKER_ROD", "paintscope_key": "PS_EXT_SURFACE_LF.CAULK_JOINT_BACKER_ROD", "uom": "LF" },
+      { "input_name": "IN_ENUM_CAULK_SEALANT_TYPE", "paintscope_key": "PS_EXT_META.ENUM.CAULK_SEALANT_TYPE", "uom": "ENUM" }
+    ]
+  },
+
+  "task_production_rates": [
+
+    {
+      "task_id": "TSK_CAULK_PROTECT_GROUND",
+      "name": "Ground Protection Setup",
+      "required_input_key": "IN_LF_CAULK_JOINT_TOTAL",
+      "paintscope_key": "PS_EXT_SURFACE_LF.CAULK_JOINT_TOTAL",
+      "unit_of_measure": "LF",
+      "rate_per_hour": 400,
+      "rate_range_low": 300,
+      "rate_range_high": 500,
+      "crew_size": 1,
+      "rate_basis_notes": "LF/hr for laying drop cloth along base of wall below joint work zone. Caulking produces minimal debris — lightweight edge-only protection. ~9 sec per LF. Faster than full painting drop cloth setup because coverage is narrow (drip zone only, not full wall projection).",
+      "defect_tolerance": {
+        "all": "Drop cloth positioned below entire joint run. Secured against wind. No gaps in coverage under active work zone."
+      },
+      "applies_when": {},
+      "protection_metadata": {
+        "action": "setup",
+        "zones": ["ext_ground_cover"]
+      }
+    },
+
+    {
+      "task_id": "TSK_CAULK_MASK_ADJACENT",
+      "name": "Adjacent Surface Tape Masking",
+      "required_input_key": "IN_LF_CAULK_JOINT_TOTAL",
+      "paintscope_key": "PS_EXT_SURFACE_LF.CAULK_JOINT_TOTAL",
+      "unit_of_measure": "LF",
+      "rate_per_hour": 150,
+      "rate_range_low": 120,
+      "rate_range_high": 200,
+      "crew_size": 1,
+      "rate_basis_notes": "LF/hr for applying painter's tape along both sides of joint on finished surfaces. Rate is per LF of joint (tape runs both sides = 2x tape LF consumed per 1 LF of joint). ~24 sec per LF of joint. UV-resistant exterior-grade tape. Not all joints require taping — conditional on finished adjacent surfaces.",
+      "defect_tolerance": {
+        "all": "Tape firmly pressed to substrate on both sides of joint. Clean, straight lines. No gaps or wrinkles. Tape edge aligned to intended sealant bead width."
+      },
+      "applies_when": { "condition": "caulking_against_finished_surfaces" },
+      "protection_metadata": {
+        "action": "setup",
+        "zones": ["ext_surface_adjacent"]
+      }
+    },
+
+    {
+      "task_id": "TSK_CAULK_STAGE_MATERIALS",
+      "name": "Material Staging",
+      "required_input_key": "IN_LF_CAULK_JOINT_TOTAL",
+      "paintscope_key": "PS_EXT_SURFACE_LF.CAULK_JOINT_TOTAL",
+      "unit_of_measure": "FIXED",
+      "fixed_time_minutes": 10,
+      "fixed_time_range_low": 8,
+      "fixed_time_range_high": 15,
+      "crew_size": 1,
+      "rate_basis_notes": "Fixed time per project for staging sealant tubes, caulk gun, utility knife, and backer rod (if applicable). Includes cutting tube tip at 45-degree angle, loading gun, and test bead on scrap. Verify sealant type matches specification. ~10 minutes for typical residential exterior.",
+      "defect_tolerance": {
+        "all": "Correct sealant type staged per specification. Tube tip cut to match joint width. Gun loaded and tested. Backer rod staged if joint_complexity = backer_rod."
+      },
+      "applies_when": {}
+    },
+
+    {
+      "task_id": "TSK_CAULK_JOINT_CLEAN",
+      "name": "Clean Joint Surfaces",
+      "required_input_key": "IN_LF_CAULK_JOINT_TOTAL",
+      "paintscope_key": "PS_EXT_SURFACE_LF.CAULK_JOINT_TOTAL",
+      "unit_of_measure": "LF",
+      "rate_per_hour": 200,
+      "rate_range_low": 150,
+      "rate_range_high": 250,
+      "crew_size": 1,
+      "rate_basis_notes": "LF/hr for cleaning dust, debris, and construction dirt from joint cavity on new construction joints. NC scope = light prep only (compressed air, dry brush, rag wipe). ~18 sec per LF. No old caulk removal — joints are open and clean. Rate assumes ground-level access in place.",
+      "defect_tolerance": {
+        "all": "Joint sidewalls clean, dry, and free of dust. No standing moisture. No oil, grease, or construction adhesive residue. Both sidewall surfaces ready for sealant adhesion."
+      },
+      "applies_when": {}
+    },
+
+    {
+      "task_id": "TSK_CAULK_BACKER_ROD",
+      "name": "Install Backer Rod",
+      "required_input_key": "IN_LF_CAULK_JOINT_BACKER_ROD",
+      "paintscope_key": "PS_EXT_SURFACE_LF.CAULK_JOINT_BACKER_ROD",
+      "unit_of_measure": "LF",
+      "rate_per_hour": 175,
+      "rate_range_low": 150,
+      "rate_range_high": 200,
+      "crew_size": 1,
+      "rate_basis_notes": "LF/hr for installing closed-cell foam backer rod into joints > 3/8 inch wide. Includes selecting correct rod diameter (joint width x 1.25), cutting to length, and pressing to consistent depth (1/4 inch below joint surface). ~20 sec per LF. Continuous installation — no gaps through corners.",
+      "defect_tolerance": {
+        "all": "Rod 25% larger than joint width for compression fit. Seated 1/4 inch below joint surface — not flush, not recessed > 1/2 inch. Continuous run — no gaps. Rod serves as bond-breaker preventing three-sided adhesion."
+      },
+      "applies_when": { "joint_complexity": "backer_rod" }
+    },
+
+    {
+      "task_id": "TSK_CAULK_APPLY_SIMPLE",
+      "name": "Apply Sealant — Simple Bead Joints",
+      "required_input_key": "IN_LF_CAULK_JOINT_TOTAL",
+      "paintscope_key": "PS_EXT_SURFACE_LF.CAULK_JOINT_TOTAL",
+      "unit_of_measure": "LF",
+      "rate_per_hour": 125,
+      "rate_range_low": 100,
+      "rate_range_high": 150,
+      "crew_size": 1,
+      "rate_basis_notes": "LF/hr for gun-and-tool caulking on simple joints (no backer rod). Rate includes gunning continuous bead at consistent rate and immediately tooling to concave profile. Midpoint 125 LF/hr from research range 100-150. ~29 sec per LF. Tooling is integral — not a separate time adder.",
+      "quantity_note": "Engine uses (IN_LF_CAULK_JOINT_TOTAL - IN_LF_CAULK_JOINT_BACKER_ROD) for simple bead LF when both complexity types coexist on same project.",
+      "defect_tolerance": {
+        "all": "Continuous bead — no voids or skip areas. Concave profile with full substrate contact on both sidewalls. No sealant smear on adjacent face surfaces beyond tape line. Proper width:depth ratio maintained."
+      },
+      "applies_when": { "joint_complexity": "simple_bead" }
+    },
+
+    {
+      "task_id": "TSK_CAULK_APPLY_BACKER",
+      "name": "Apply Sealant — Backer Rod Joints",
+      "required_input_key": "IN_LF_CAULK_JOINT_BACKER_ROD",
+      "paintscope_key": "PS_EXT_SURFACE_LF.CAULK_JOINT_BACKER_ROD",
+      "unit_of_measure": "LF",
+      "rate_per_hour": 87,
+      "rate_range_low": 75,
+      "rate_range_high": 100,
+      "crew_size": 1,
+      "rate_basis_notes": "LF/hr for sealant application over installed backer rod. Slower than simple bead due to wider joints, deeper fill, and precision depth control. Midpoint ~87 LF/hr from research range 75-100. ~41 sec per LF. Rate includes gunning continuous bead filling from rod surface to joint face and immediate tooling to concave profile.",
+      "defect_tolerance": {
+        "all": "Sealant fills from backer rod surface to face of joint. Concave profile. Full sidewall contact on both sides. No sealant forced past backer rod into cavity. Two-sided adhesion only — backer rod prevents bottom bond."
+      },
+      "applies_when": { "joint_complexity": "backer_rod" }
+    },
+
+    {
+      "task_id": "TSK_CAULK_INSPECT",
+      "name": "Visual Joint Inspection",
+      "required_input_key": "IN_LF_CAULK_JOINT_TOTAL",
+      "paintscope_key": "PS_EXT_SURFACE_LF.CAULK_JOINT_TOTAL",
+      "unit_of_measure": "LF",
+      "rate_per_hour": 500,
+      "rate_range_low": 400,
+      "rate_range_high": 600,
+      "crew_size": 1,
+      "rate_basis_notes": "LF/hr for walking all completed joints and visually inspecting for: continuous bead (no voids), proper concave profile, clean lines, correct sealant type. ~7 sec per LF. Fast pass — inspector walks along joint run checking for obvious defects. Flag joints needing touchup before sealant skins.",
+      "defect_tolerance": {
+        "all": "100% visual inspection of all joints. No voids, no skip areas, no adhesive bridges across joint. Concave profile on every joint. Clean adjacent surfaces — no sealant smear."
+      },
+      "applies_when": {}
+    },
+
+    {
+      "task_id": "TSK_CAULK_ADHESION_CHECK",
+      "name": "Spot Adhesion Verification",
+      "required_input_key": "IN_LF_CAULK_JOINT_TOTAL",
+      "paintscope_key": "PS_EXT_SURFACE_LF.CAULK_JOINT_TOTAL",
+      "unit_of_measure": "LF",
+      "rate_per_hour": 600,
+      "rate_range_low": 500,
+      "rate_range_high": 800,
+      "crew_size": 1,
+      "rate_basis_notes": "LF/hr for spot adhesion verification — light thumb-press test on representative joints (every 50-100 LF or one per elevation). Not a destructive pull test. Rate is high because only representative joints are tested, not every LF. ~6 sec per LF amortized. Time is dominated by walking between test points.",
+      "defect_tolerance": {
+        "all": "At least one test per elevation or per 100 LF. Sealant firmly bonded to both sidewalls on thumb press. Any pull-away indicates adhesive failure — flag for rework."
+      },
+      "applies_when": {}
+    },
+
+    {
+      "task_id": "TSK_CAULK_TAPE_REMOVE",
+      "name": "Remove Masking Tape",
+      "required_input_key": "IN_LF_CAULK_JOINT_TOTAL",
+      "paintscope_key": "PS_EXT_SURFACE_LF.CAULK_JOINT_TOTAL",
+      "unit_of_measure": "LF",
+      "rate_per_hour": 200,
+      "rate_range_low": 150,
+      "rate_range_high": 250,
+      "crew_size": 1,
+      "rate_basis_notes": "LF/hr for pulling masking tape at 45-degree angle away from sealant bead while sealant is still wet/tacky. Rate per LF of joint (tape on both sides = 2x tape LF pulled per 1 LF of joint). ~18 sec per LF of joint. TIME-SENSITIVE — must remove before sealant skins over tape edge.",
+      "defect_tolerance": {
+        "all": "Clean sealant line after tape removal. No tearing of sealant bead. No tape residue on substrate. Tape removed before sealant skins."
+      },
+      "applies_when": { "condition": "caulking_against_finished_surfaces" },
+      "protection_metadata": {
+        "action": "teardown",
+        "zones": ["ext_surface_adjacent"]
+      }
+    },
+
+    {
+      "task_id": "TSK_CAULK_CLEANUP",
+      "name": "Site Cleanup & Protection Removal",
+      "required_input_key": "IN_LF_CAULK_JOINT_TOTAL",
+      "paintscope_key": "PS_EXT_SURFACE_LF.CAULK_JOINT_TOTAL",
+      "unit_of_measure": "FIXED",
+      "fixed_time_minutes": 15,
+      "fixed_time_range_low": 10,
+      "fixed_time_range_high": 20,
+      "crew_size": 1,
+      "rate_basis_notes": "Fixed time per project for removing drop cloths, disposing of empty sealant tubes, backer rod offcuts, tape waste, and tube tips. Includes cleaning caulk gun nozzle. ~15 minutes for typical residential exterior. Bag waste for disposal — sealant tubes are not recyclable.",
+      "defect_tolerance": {
+        "all": "All protection materials removed. No sealant waste left on site. Drop cloths folded and stored. Caulk gun cleaned for next use."
+      },
+      "applies_when": {},
+      "protection_metadata": {
+        "action": "teardown",
+        "zones": ["ext_ground_cover"]
+      }
+    }
+  ],
+
+  "factor_modifiers": [
+    {
+      "factor_id": "FAC_CAULK_JOINT_COMPLEXITY",
+      "name": "Joint Complexity Factor",
+      "description": "Drives task activation between simple_bead and backer_rod task variants rather than modifying rates. Simple bead tasks activate for narrow joints; backer rod tasks activate for wide joints (> 3/8 inch). This is a task selection factor, not a rate multiplier — each task variant has its own calibrated base rate.",
+      "mechanism": "task_selection",
+      "dimension": "joint_complexity",
+      "values": {
+        "simple_bead": {
+          "modifier": 1.00,
+          "active_tasks": ["TSK_CAULK_APPLY_SIMPLE"],
+          "excluded_tasks": ["TSK_CAULK_BACKER_ROD", "TSK_CAULK_APPLY_BACKER"],
+          "notes": "Standard joint — gun and tool, no backer rod. 100-150 LF/hr."
+        },
+        "backer_rod": {
+          "modifier": 1.00,
+          "active_tasks": ["TSK_CAULK_BACKER_ROD", "TSK_CAULK_APPLY_BACKER"],
+          "excluded_tasks": ["TSK_CAULK_APPLY_SIMPLE"],
+          "notes": "Wide joint — backer rod install + sealant application. 75-100 LF/hr for apply, 150-200 LF/hr for rod install."
+        }
+      },
+      "applies_to": ["TSK_CAULK_BACKER_ROD", "TSK_CAULK_APPLY_SIMPLE", "TSK_CAULK_APPLY_BACKER"],
+      "stacking_notes": "Not a rate multiplier — controls which tasks are active. No stacking interaction with other modifiers."
+    }
+  ],
+
+  "quality_tier_effects": {
+    "description": "No quality tier dimension for this spec. Caulking quality is driven by sealant_type (material selection) and joint_complexity (labor/technique). Every caulk joint either meets the standard or fails — there is no economy/premium tier progression.",
+    "tiers": "none",
+    "round_configurations": "See sop_modules.json — RC_CAULK_SIMPLE and RC_CAULK_BACKER_ROD control module/task activation based on joint_complexity."
+  },
+
+  "scheduling_effects": {
+    "polyurethane_cure_gate": {
+      "gate_id": "GATE_CAULK_POLY_CURE",
+      "condition": { "sealant_type": "polyurethane" },
+      "wait_time_days_min": 3,
+      "wait_time_days_max": 7,
+      "blocks": "All finish coat tasks in adjacent painting specs",
+      "xspec_flag": "XSPEC_CAULK_POLY_CURE_GATE",
+      "production_impact": "No direct rate impact — this is a scheduling delay between caulk completion and paint finish coats. Affects project duration, not labor hours.",
+      "notes": "Water from paint causes flash cure and surface bubbling on uncured polyurethane. Absolute gate — no exceptions. Schedule caulking early in project to absorb cure time."
+    },
+    "sequencing_rule": {
+      "gate_id": "GATE_CAULK_AFTER_PRIMER",
+      "condition": "always",
+      "prerequisite": "Substrate primer on adjacent surfaces applied before caulking",
+      "xspec_flag": "XSPEC_CAULK_COMPLETE",
+      "notes": "Sealant adheres better to primed surfaces. Sequence: substrate primer -> caulk -> cure -> finish coats."
+    }
+  },
+
+  "assumptions": [
+    {
+      "field": "ground_level_rates",
+      "value": "All production rates assume ground-level work with access already in place",
+      "source": "research.json KD-012",
+      "doctrine_gap": false,
+      "note": "Caulking shares access equipment with adjacent painting spec. No separate access modifier applied. If caulking at height without adjacent painting access, rates would need FAC_EXT_ACCESS adjustment — but this scenario is outside normal workflow."
+    },
+    {
+      "field": "single_person_crew",
+      "value": "All rates based on 1-person crew",
+      "source": "Field practice — caulking is a sequential one-person operation",
+      "doctrine_gap": true,
+      "note": "Doctrine does not specify caulking crew size. One person operates the caulk gun and tools the bead in a single pass. Helper tasks (protection, cleanup) are also single-person. A second person would not meaningfully increase throughput on the same joint."
+    },
+    {
+      "field": "inspection_rate_walk_speed",
+      "value": "500 LF/hr for visual inspection, 600 LF/hr for spot adhesion check",
+      "source": "Researcher analysis — derived from walk-along inspection pace",
+      "doctrine_gap": true,
+      "note": "No doctrine rate for caulk joint inspection. 500 LF/hr (~7 sec/LF) is a brisk walking inspection. 600 LF/hr for adhesion check is faster because only representative joints are tested. Both rates are estimates pending field calibration."
+    },
+    {
+      "field": "tape_masking_rate_includes_both_sides",
+      "value": "150 LF/hr masking rate is per LF of joint — includes taping both sides",
+      "source": "research.json production_rates, sop_modules.json quality_notes",
+      "doctrine_gap": true,
+      "note": "Tape runs both sides of joint (2x tape LF per 1 LF joint). The 150 LF/hr rate accounts for this — it is the joint production rate, not the tape production rate. Same logic applies to tape removal at 200 LF/hr."
+    },
+    {
+      "field": "cleanup_fixed_time",
+      "value": "15 minutes fixed per project",
+      "source": "Estimation based on typical residential exterior scope",
+      "doctrine_gap": true,
+      "note": "Caulking cleanup is minimal — collect empty tubes, backer rod offcuts, tape waste, clean gun. 15 minutes is appropriate for typical residential. Larger projects may need proportionally more time — field calibration recommended."
+    }
+  ],
+
+  "risks": [
+    {
+      "risk_id": "RISK_PROD_CAULK_001",
+      "description": "Tape masking percentage is uncertain — materials.json flags 50% estimate for joints requiring tape. Actual percentage varies by project. If all joints require taping, masking and tape removal time doubles vs. estimate.",
+      "severity": "minor",
+      "mitigation": "Estimator override for tape coverage percentage. Rate per LF is correct — the quantity (how many LF get taped) is the variable."
+    },
+    {
+      "risk_id": "RISK_PROD_CAULK_002",
+      "description": "Backer rod installation rate assumes consistent joint widths. Mixed-width joints requiring rod size changes mid-run will slow installation.",
+      "severity": "minor",
+      "mitigation": "Use rate_range_low (150 LF/hr) for projects with highly variable joint widths. Rate_range_high (200 LF/hr) for uniform joints."
+    },
+    {
+      "risk_id": "RISK_PROD_CAULK_003",
+      "description": "Apply rates assume ground-level access. Caulking on upper elevations (ladder/scaffold) without adjacent painting spec access setup would need FAC_EXT_ACCESS modifier not included in this spec.",
+      "severity": "minor",
+      "mitigation": "Per KD-012, this scenario should not occur — caulking is always scheduled during painting access setup. If it does occur, apply FAC_EXT_ACCESS from the painting spec's factor table."
+    }
+  ],
+
+  "validation_plan": [
+    {
+      "check_id": "VAL_CAULK_001",
+      "description": "Field-time 50 LF of simple bead caulking (gun + tool). Target: 20-30 minutes (100-150 LF/hr). Record joint width and substrate type.",
+      "expected_outcome": "Confirm 125 LF/hr baseline for TSK_CAULK_APPLY_SIMPLE."
+    },
+    {
+      "check_id": "VAL_CAULK_002",
+      "description": "Field-time 50 LF of backer rod installation + sealant application. Target: 26-40 minutes combined (75-100 LF/hr apply + 150-200 LF/hr rod). Record joint width and rod sizing.",
+      "expected_outcome": "Confirm 87 LF/hr baseline for TSK_CAULK_APPLY_BACKER and 175 LF/hr for TSK_CAULK_BACKER_ROD."
+    },
+    {
+      "check_id": "VAL_CAULK_003",
+      "description": "Field-time tape masking and removal on 50 LF of joints. Record both setup and teardown times separately.",
+      "expected_outcome": "Confirm 150 LF/hr for TSK_CAULK_MASK_ADJACENT and 200 LF/hr for TSK_CAULK_TAPE_REMOVE."
+    },
+    {
+      "check_id": "VAL_CAULK_004",
+      "description": "Field-time joint cleaning on NC joints (50 LF). Record substrate type and debris level.",
+      "expected_outcome": "Confirm 200 LF/hr for TSK_CAULK_JOINT_CLEAN on clean NC joints."
+    }
+  ],
+
+  "task_id_manifest": [
+    "TSK_CAULK_PROTECT_GROUND",
+    "TSK_CAULK_MASK_ADJACENT",
+    "TSK_CAULK_STAGE_MATERIALS",
+    "TSK_CAULK_JOINT_CLEAN",
+    "TSK_CAULK_BACKER_ROD",
+    "TSK_CAULK_APPLY_SIMPLE",
+    "TSK_CAULK_APPLY_BACKER",
+    "TSK_CAULK_INSPECT",
+    "TSK_CAULK_ADHESION_CHECK",
+    "TSK_CAULK_TAPE_REMOVE",
+    "TSK_CAULK_CLEANUP"
+  ],
+
+  "cross_file_threading_check": {
+    "sop_modules_task_count": 11,
+    "production_rate_count": 11,
+    "all_tasks_covered": true,
+    "uom_alignment": {
+      "LF_tasks": ["TSK_CAULK_PROTECT_GROUND", "TSK_CAULK_MASK_ADJACENT", "TSK_CAULK_JOINT_CLEAN", "TSK_CAULK_BACKER_ROD", "TSK_CAULK_APPLY_SIMPLE", "TSK_CAULK_APPLY_BACKER", "TSK_CAULK_INSPECT", "TSK_CAULK_ADHESION_CHECK", "TSK_CAULK_TAPE_REMOVE"],
+      "FIXED_tasks": ["TSK_CAULK_STAGE_MATERIALS", "TSK_CAULK_CLEANUP"]
+    }
+  }
+}

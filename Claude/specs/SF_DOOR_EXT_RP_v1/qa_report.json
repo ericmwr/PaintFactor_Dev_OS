@@ -1,0 +1,396 @@
+{
+  "spec_family_id": "SF_DOOR_EXT_RP",
+  "version": "0.1.0",
+  "generated_by": "System Critic (QA)",
+  "generated_at": "2026-03-10",
+  "overall_result": "pass_with_warnings",
+  "phase": "prototype",
+
+  "summary": {
+    "checks_run": 42,
+    "passed": 38,
+    "warnings": 3,
+    "failures": 1,
+    "critical": 0,
+    "major": 3,
+    "minor": 1,
+    "total_sop_tasks": 51,
+    "total_production_tasks": 51,
+    "total_modules": 12,
+    "total_material_systems": 7,
+    "total_factor_modifiers": 4,
+    "total_round_configs": 6,
+    "total_protection_zones": 6
+  },
+
+  "cross_file_threading": {
+    "task_id_match": {
+      "status": "pass",
+      "sop_count": 51,
+      "production_count": 51,
+      "in_sop_not_production": [],
+      "in_production_not_sop": [],
+      "notes": "All 51 task IDs match character-for-character between sop_modules.json and production.json. Sequential generation produced clean threading."
+    },
+    "task_classification_match": {
+      "status": "pass",
+      "mismatches": [],
+      "notes": "All 51 tasks have identical task_classification values between SOP and production."
+    },
+    "uom_match": {
+      "status": "pass",
+      "mismatches": [],
+      "notes": "All 51 tasks have identical unit_of_measure values between SOP and production."
+    },
+    "material_system_threading": {
+      "status": "pass",
+      "material_systems_in_materials_json": [
+        "SYS_EXT_DRRP_PRIMER_DTM",
+        "SYS_EXT_DRRP_PRIMER_ZINC",
+        "SYS_EXT_DRRP_PRIMER_ETCH",
+        "SYS_EXT_DRRP_PRIMER_ACRYLIC",
+        "SYS_EXT_DRRP_PRIMER_STAINBLOCK",
+        "SYS_EXT_DRRP_FINISH_ACRYLIC",
+        "SYS_EXT_DRRP_FINISH_IR_REFLECTIVE"
+      ],
+      "notes": "7 material systems defined. SOP primer tasks reference systems via substrate_material and substrate_state branching. Material systems cover all 3 substrate materials and all 3 substrate states."
+    },
+    "module_prefix_check": {
+      "status": "pass",
+      "all_use_MOD_DRRP": true,
+      "modules": ["MOD_DRRP_ASSESS", "MOD_DRRP_MOBILIZE", "MOD_DRRP_HARDWARE", "MOD_DRRP_PROTECT", "MOD_DRRP_RRP", "MOD_DRRP_PREP", "MOD_DRRP_PRIME", "MOD_DRRP_INTERSTAGE", "MOD_DRRP_FINISH_1", "MOD_DRRP_FINISH_2", "MOD_DRRP_REINSTALL", "MOD_DRRP_CLEANUP"]
+    },
+    "task_prefix_check": {
+      "status": "pass",
+      "all_use_TSK_DRRP": true,
+      "notes": "All 51 tasks use TSK_DRRP_ prefix. No collisions with existing prefixes."
+    },
+    "factor_modifier_prefix_check": {
+      "status": "pass",
+      "all_use_FAC_DRRP": true,
+      "modifiers": ["FAC_DRRP_QT", "FAC_DRRP_COMPLEXITY", "FAC_DRRP_CONDITION", "FAC_DRRP_RRP"]
+    }
+  },
+
+  "architectural_checks": {
+    "qt_range": {
+      "status": "pass",
+      "check": "QT3-QT5 only (no QT2)",
+      "evidence": "resolution.json applicable_enums.quality_tier.values = [QT3, QT4, QT5]. production.json qt_exclusion_notice.qt2_applicable = false. All qt_conditional tasks appear_in_tiers excludes QT2. QT2 excluded with documented rationale (doors are fine-finish substrate)."
+    },
+    "substrate_materials": {
+      "status": "pass",
+      "check": "Three substrate materials (steel/fiberglass/wood) properly routed",
+      "evidence": "SOP tasks branch by substrate_material via applies_when: TSK_DRRP_CLEAN_STEEL (steel), TSK_DRRP_CLEAN_FIBERGLASS (fiberglass), TSK_DRRP_CLEAN_WOOD (wood). Primer tasks branch similarly. Production rates match. Materials.json has substrate-specific primer systems."
+    },
+    "substrate_states": {
+      "status": "pass",
+      "check": "Three substrate states (sound/failing/rust)",
+      "evidence": "resolution.json substrate_state.input_states = [SS_EXT_SOUND_PAINT, SS_EXT_FAILING_PAINT, SS_EXT_SURFACE_RUST]. SOP tasks use substrate_state_rules to activate/skip based on state. SS_EXT_SURFACE_RUST is steel-only per RC-001."
+    },
+    "door_complexity": {
+      "status": "pass",
+      "check": "Door complexity dimension (slab/panel/grand_entry)",
+      "evidence": "resolution.json door_complexity.values = [slab, panel, grand_entry]. FAC_DRRP_COMPLEXITY modifier: slab=1.00, panel=1.30, grand_entry=2.00. Glass masking conditional on panel/grand_entry."
+    },
+    "hardware_removal_mandatory": {
+      "status": "pass",
+      "check": "Hardware removal mandatory (not masking)",
+      "evidence": "TSK_DRRP_HARDWARE_REMOVE applies_when={} (unconditional). Research RF-003: 'Total removal of all locking hardware... masking hardware is discouraged.' Resolution zone hardware_covers method='removal'. SOP module description explicitly states masking discouraged."
+    },
+    "weatherstrip_protection": {
+      "status": "pass",
+      "check": "Weatherstrip protection present",
+      "evidence": "TSK_DRRP_WEATHERSTRIP_PROTECT in MOD_DRRP_PROTECT. TSK_DRRP_WEATHERSTRIP_REINSTALL in MOD_DRRP_REINSTALL. Protection zone ext_weatherstrip_protect declared. Research RF-004 documents pull-out or deep-tape methods."
+    },
+    "fiberglass_oil_prohibition": {
+      "status": "pass",
+      "check": "Fiberglass oil prohibition enforced",
+      "evidence": "materials.json SYS_EXT_DRRP_PRIMER_ACRYLIC applies_when.substrate_material includes fiberglass — 100% acrylic. SYS_EXT_DRRP_PRIMER_STAINBLOCK has compatibility_warning: 'PROHIBITED on fiberglass doors.' SYS_EXT_DRRP_FINISH_ACRYLIC is 100% acrylic. Research RF-005 documents HARD BLOCKER."
+    },
+    "steel_rust_debridement": {
+      "status": "pass",
+      "check": "Steel rust SSPC debridement present",
+      "evidence": "TSK_DRRP_RUST_DEBRIDE in MOD_DRRP_PREP. applies_when substrate_material=steel, substrate_state_rules applies_when_input_state=SS_EXT_SURFACE_RUST. SYS_EXT_DRRP_PRIMER_ZINC system for debrided steel. Research RF-006 documents SSPC-SP3/SP6."
+    },
+    "lrv_ir_reflective_gate": {
+      "status": "pass",
+      "check": "LRV <30 IR-reflective gate present",
+      "evidence": "materials.json SYS_EXT_DRRP_FINISH_IR_REFLECTIVE applies_when.color_lrv='<30'. Research RF-007 documents mandatory IR-reflective for LRV <30 on sun-exposed doors. Material swap (not additional product) is correctly modeled."
+    },
+    "six_side_seal_wood": {
+      "status": "pass",
+      "check": "Six-side seal for wood doors present",
+      "evidence": "TSK_DRRP_SIX_SIDE_SEAL_VERIFY in MOD_DRRP_PREP. applies_when substrate_material=wood. Research RF-008 documents manufacturer warranty requirement. SOP finish tasks quality_notes reference 'All six sides on wood' at QT5."
+    },
+    "rrp_gate": {
+      "status": "pass",
+      "check": "RRP gate for pre-1978",
+      "evidence": "MOD_DRRP_RRP applies_when pre_1978=true. 3 RRP tasks (containment setup, wet method prep, containment teardown). FAC_DRRP_RRP modifier values: none=1.00, tested_positive=2.00. PS_EXT_META.FLAG.PRE_1978 input declared."
+    },
+    "ea_primary_uom": {
+      "status": "pass",
+      "check": "EA as primary UOM",
+      "evidence": "38 of 51 tasks use EA. 12 tasks use FIXED (project-level tasks: mobilize, RRP containment, protection teardown, equipment clean, waste disposal, walkthrough). 1 task uses SF (TSK_DRRP_PROTECT_GROUND). No SF or LF on prep/prime/finish tasks."
+    }
+  },
+
+  "stacking_partition": {
+    "condition_rrp_on_prep_only": {
+      "status": "pass",
+      "check": "Condition + RRP modifiers on prep tasks only",
+      "evidence": "FAC_DRRP_CONDITION.applies_to_task_types=['prep']. FAC_DRRP_RRP.applies_to_task_types=['prep']. Both in PREP stacking pool."
+    },
+    "qt_on_coating_only": {
+      "status": "pass",
+      "check": "QT modifier on coating tasks only",
+      "evidence": "FAC_DRRP_QT.applies_to_task_types=['prime', 'finish']. In COATING stacking pool. QT3=1.00, QT4=1.25, QT5=1.50."
+    },
+    "complexity_on_all": {
+      "status": "pass",
+      "check": "Complexity modifier on all tasks",
+      "evidence": "FAC_DRRP_COMPLEXITY.applies_to_task_types=['all']. applies_to_task_classification=['binary', 'qt_conditional', 'qt_scaled']. In SHARED pool."
+    },
+    "worst_case_stacks": {
+      "status": "pass_with_warnings",
+      "prep_worst": "SS_EXT_SURFACE_RUST (2.00) x RRP (2.00) x grand_entry (2.00) = 8.00x",
+      "prep_typical_worst": "SS_EXT_FAILING_PAINT (1.50) x grand_entry (2.00) = 3.00x",
+      "coating_worst": "QT5 (1.50) x grand_entry (2.00) = 3.00x",
+      "cap_exceeded": true,
+      "notes": "8.0x exceeds 4.0x flag threshold. Documented in both resolution.json and production.json with T&M pricing recommendation. This is an extreme edge case (grand entry + rust + lead paint) that is correctly flagged."
+    },
+    "formula_check": {
+      "status": "pass",
+      "formula": "effective_rate = base_rate / (pool_modifiers * shared_modifiers)",
+      "uses_division": true,
+      "notes": "All factor modifiers use division formula. Consistent across resolution and production."
+    }
+  },
+
+  "completeness_checks": {
+    "research_sections": {
+      "status": "pass",
+      "sections_present": [
+        "research_metadata",
+        "relevant_findings (15)",
+        "condition_drivers (7)",
+        "quality_differences (QT3/QT4/QT5)",
+        "failure_modes (6)",
+        "notes_for_materials_manager (8)",
+        "notes_for_sop_librarian (10)",
+        "notes_for_estimation_engineer (11)",
+        "protection_zones_analysis (6 zones)",
+        "adjacency_analysis (4 adjacent surfaces)",
+        "site_condition_analysis",
+        "state_analysis",
+        "exterior_substrate_states (3)",
+        "production_rate_research",
+        "key_decisions (14)",
+        "required_paintscope_keys",
+        "proposed_new_keys (5)",
+        "research_corrections (3)",
+        "completeness_analysis"
+      ],
+      "notes": "All mandatory research sections present. 15 relevant findings, 14 key decisions, 6 failure modes — comprehensive coverage of a complex 3-substrate spec."
+    },
+    "key_decisions_documented": {
+      "status": "pass",
+      "count": 14,
+      "critical_decisions": [
+        "KD-001: EA-based UOM",
+        "KD-002: Three substrate materials",
+        "KD-003: QT3-QT5 (no QT2)",
+        "KD-005: Hardware removal mandatory",
+        "KD-007: Fiberglass oil prohibition (HARD BLOCKER)",
+        "KD-008: Steel rust debridement (hard stop)",
+        "KD-010: Six-side seal for wood"
+      ]
+    },
+    "protection_zones": {
+      "status": "pass",
+      "zones": [
+        "hardware_covers (always, removal method)",
+        "glass_mask (panel/grand_entry)",
+        "ext_weatherstrip_protect (always)",
+        "ext_threshold_protect (always)",
+        "floor_workzone (always, escalates for spray)",
+        "ext_siding_adjacent (spray only)"
+      ],
+      "count": 6,
+      "notes": "6 protection zones covering all door-specific protection needs. Hardware removal as standard (not masking) is correctly modeled."
+    }
+  },
+
+  "issues": [
+    {
+      "issue_id": "QA-DRRP-001",
+      "severity": "major",
+      "area": "materials",
+      "file": "materials.json",
+      "check": "finish_system_qt_coverage",
+      "description": "SYS_EXT_DRRP_FINISH_ACRYLIC covers quality_tier [QT3, QT4] but is missing QT5. QT5 doors using standard colors (LRV >= 30) have no finish system defined — only SYS_EXT_DRRP_FINISH_IR_REFLECTIVE covers QT5, but that system is conditional on LRV <30.",
+      "evidence": "materials.json line 146: SYS_EXT_DRRP_FINISH_ACRYLIC quality_tier: [\"QT3\", \"QT4\"]. SYS_EXT_DRRP_FINISH_IR_REFLECTIVE quality_tier: [\"QT3\", \"QT4\", \"QT5\"] but is conditional on color_lrv <30. A QT5 door with LRV >= 30 has no finish material system.",
+      "suggested_fix": "Add QT5 to SYS_EXT_DRRP_FINISH_ACRYLIC quality_tier array. Add QT5-specific product tier (e.g., Sherwin-Williams Emerald Exterior, Benjamin Moore Aura Grand Entrance) under products_by_tier.QT5. Also add 'gloss' to allowed_sheens for QT5.",
+      "recommended_agent": "Materials Manager"
+    },
+    {
+      "issue_id": "QA-DRRP-002",
+      "severity": "major",
+      "area": "research_to_resolution_threading",
+      "file": "research.json",
+      "check": "paintscope_key_consistency",
+      "description": "research.json required_paintscope_keys includes 'PS_EXT_ASSET_EA.DOOR_HARDWARE' which does not appear in resolution.json or any downstream file. Resolution uses 'PS_EXT_PROTECT_EA.DOOR_HARDWARE' instead. The asset-namespace key is a phantom reference.",
+      "evidence": "research.json line 615: 'PS_EXT_ASSET_EA.DOOR_HARDWARE'. resolution.json paintscope_keys uses 'PS_EXT_PROTECT_EA.DOOR_HARDWARE'. SOP and production both reference the PROTECT variant. The ASSET key is not consumed anywhere downstream.",
+      "suggested_fix": "Remove 'PS_EXT_ASSET_EA.DOOR_HARDWARE' from research.json required_paintscope_keys. The PS_EXT_PROTECT_EA.DOOR_HARDWARE key in resolution.json is the correct canonical key for hardware removal scope.",
+      "recommended_agent": "Spec Researcher"
+    },
+    {
+      "issue_id": "QA-DRRP-003",
+      "severity": "major",
+      "area": "stacking_partition",
+      "file": "production.json",
+      "check": "modifier_cap_exceeded",
+      "description": "Worst-case modifier stacking reaches 8.0x (rust 2.0 x RRP 2.0 x grand_entry 2.0), which exceeds the 4.0x flag threshold by 2x. While this is correctly documented and flagged for T&M pricing, the estimation engine must implement the T&M gate to prevent this combination from producing unreliable estimates.",
+      "evidence": "production.json stacking_partition.max_theoretical_stacking.prep_worst_case: '8.00x — EXCEEDS 4.0x cap'. Same documented in resolution.json factor_modifiers.stacking_partition.",
+      "suggested_fix": "Ensure the estimation engine implements a hard flag when stacking exceeds 4.0x: output a T&M recommendation warning and mark the estimate as 'advisory only' for the affected tasks. This is an engine implementation concern, not a spec data issue.",
+      "recommended_agent": "Estimation Engineer"
+    },
+    {
+      "issue_id": "QA-DRRP-004",
+      "severity": "minor",
+      "area": "sop_modules",
+      "file": "sop_modules.json",
+      "check": "round_config_resolution_drift",
+      "description": "Resolution.json proposed 4 round configurations (ROUND_DRRP_SOUND_QT3, ROUND_DRRP_SOUND_QT45, ROUND_DRRP_FAILING, ROUND_DRRP_RUST). SOP expanded to 6 by splitting SOUND_QT45 into SOUND_QT4 + SOUND_QT5, and adding ROUND_DRRP_RESTORATION. The expansion is correct (better granularity), but represents deliberate drift from resolution.",
+      "evidence": "resolution.json round_configurations proposes 4 configs. sop_modules.json round_configurations has 6 configs: SOUND_QT3, SOUND_QT4, SOUND_QT5, FAILING, RUST_STEEL, RESTORATION.",
+      "suggested_fix": "No fix needed. SOP expansion from 4 to 6 round configs is a valid refinement. QT4 and QT5 have different interstage cycle counts (2 vs 3) justifying the split. Restoration config (QT5 + grand_entry + failing) is a useful explicit documentation of the extreme case. Document this drift as intentional.",
+      "recommended_agent": "None (informational)"
+    }
+  ],
+
+  "doctrine_checks": {
+    "modifier_multiplicative": "pass",
+    "modifier_uses_division": "pass",
+    "stacking_cap_documented": "pass_with_warnings",
+    "fiberglass_oil_prohibition": "pass",
+    "steel_rust_debridement_mandatory": "pass",
+    "hardware_removal_standard": "pass",
+    "weatherstrip_never_painted": "pass",
+    "six_side_seal_wood": "pass",
+    "ir_reflective_lrv_gate": "pass",
+    "rrp_pre1978_gate": "pass",
+    "ea_based_estimation": "pass",
+    "qt2_excluded": "pass",
+    "three_substrate_materials": "pass",
+    "three_substrate_states": "pass",
+    "complexity_modifier_all_tasks": "pass",
+    "condition_modifier_prep_only": "pass",
+    "qt_modifier_coating_only": "pass",
+    "spray_no_backbrush_doors": "pass",
+    "steel_satin_max_ansi": "pass",
+    "no_sand_textured_fiberglass": "pass"
+  },
+
+  "exterior_domain_checks": {
+    "EXT-1_key_namespace": {
+      "status": "pass",
+      "notes": "All paintscope_key references use PS_EXT_* namespace. No interior keys (PS_SURFACE_*, PS_EDGE_*) appear."
+    },
+    "EXT-2_substrate_state_validity": {
+      "status": "pass",
+      "notes": "All valid_input_states use SS_EXT_* IDs (SS_EXT_SOUND_PAINT, SS_EXT_FAILING_PAINT, SS_EXT_SURFACE_RUST). No SS_INT_* IDs present."
+    },
+    "EXT-3_protection_zone_integrity": {
+      "status": "pass",
+      "notes": "Protection zones use ext_* prefix for new zones (ext_weatherstrip_protect, ext_threshold_protect, ext_siding_adjacent). Reused zones (hardware_covers, glass_mask, floor_workzone) are shared-domain IDs that are valid for exterior use."
+    },
+    "EXT-4_site_condition_rules": {
+      "status": "pass",
+      "notes": "Environmental conditions (wind, surface_temperature, dew_point, sun_exposure) are documented in research.json site_condition_analysis.excluded_conditions with rationale: 'Not estimatable at bid time.' SOP tasks include site_condition_rules (exclude_when wind=high, dew_point_risk=unsafe) for process control. Per established exterior spec convention, these are SOP concerns not estimation modifiers."
+    },
+    "EXT-5_exterior_factor_keys": {
+      "status": "pass",
+      "notes": "This spec uses FAC_DRRP_* modifiers rather than generic FAC_EXT_* because doors are ground-level with spec-specific dimensions. FAC_DRRP_CONDITION serves the role of FAC_EXT_SUBSTRATE_CONDITION. No FAC_EXT_ACCESS needed — doors are ground-level (ladder access is rare, documented in research but not modeled as a modifier)."
+    },
+    "EXT-6_modifier_math": {
+      "status": "pass",
+      "notes": "All modifiers use division formula: effective_rate = base_rate / modifier. Documented in production.json factor_modifiers[].notes and stacking_partition.formula."
+    },
+    "EXT-7_material_state_compatibility": {
+      "status": "pass",
+      "notes": "Each material system declares substrate_states compatibility. SYS_EXT_DRRP_PRIMER_ZINC is SS_EXT_SURFACE_RUST only (steel). SYS_EXT_DRRP_PRIMER_DTM is SS_EXT_SOUND_PAINT + SS_EXT_FAILING_PAINT (steel). SYS_EXT_DRRP_PRIMER_ACRYLIC covers wood + fiberglass for sound/failing. Complete substrate-state-to-primer routing."
+    }
+  },
+
+  "task_inventory": {
+    "total_tasks": 51,
+    "by_classification": {
+      "binary": 30,
+      "qt_conditional": 5,
+      "qt_scaled": 16
+    },
+    "by_uom": {
+      "EA": 38,
+      "FIXED": 12,
+      "SF": 1
+    },
+    "by_phase": {
+      "prep": 18,
+      "setup": 10,
+      "prime": 9,
+      "interstage": 3,
+      "finish": 4,
+      "cleanup": 7
+    },
+    "skill_level_coverage": {
+      "lead": 10,
+      "journeyman": 34,
+      "helper": 7
+    },
+    "notes": "51 tasks across 12 modules. Healthy distribution: 30 binary (fixed or conditional) + 5 qt_conditional (appear at higher tiers) + 16 qt_scaled (rate varies by QT). All tasks have skill_level assigned."
+  },
+
+  "material_system_summary": {
+    "primer_systems": 5,
+    "finish_systems": 2,
+    "total_systems": 7,
+    "primer_routing": {
+      "steel_sound_failing": "SYS_EXT_DRRP_PRIMER_DTM (acrylic DTM)",
+      "steel_rust": "SYS_EXT_DRRP_PRIMER_ZINC (zinc-rich epoxy/alkyd)",
+      "steel_galvanized": "SYS_EXT_DRRP_PRIMER_ETCH (acrylic etching)",
+      "wood_standard": "SYS_EXT_DRRP_PRIMER_ACRYLIC (100% acrylic)",
+      "wood_tannin": "SYS_EXT_DRRP_PRIMER_STAINBLOCK (alkyd stain-block)",
+      "fiberglass": "SYS_EXT_DRRP_PRIMER_ACRYLIC (100% acrylic — ONLY option)"
+    },
+    "finish_routing": {
+      "standard_colors": "SYS_EXT_DRRP_FINISH_ACRYLIC (QT3-QT4 only — QT5 MISSING)",
+      "dark_colors_lrv_below_30": "SYS_EXT_DRRP_FINISH_IR_REFLECTIVE (QT3-QT5)"
+    }
+  },
+
+  "round_configuration_summary": {
+    "total_configs": 6,
+    "configs": [
+      { "round_id": "ROUND_DRRP_SOUND_QT3", "coats": 3, "interstage": 0 },
+      { "round_id": "ROUND_DRRP_SOUND_QT4", "coats": 3, "interstage": 2 },
+      { "round_id": "ROUND_DRRP_SOUND_QT5", "coats": 4, "interstage": 3 },
+      { "round_id": "ROUND_DRRP_FAILING", "coats": 3, "interstage": 0 },
+      { "round_id": "ROUND_DRRP_RUST_STEEL", "coats": 3, "interstage": 0 },
+      { "round_id": "ROUND_DRRP_RESTORATION", "coats": 4, "interstage": 3 }
+    ]
+  },
+
+  "validation_verdict": {
+    "status": "pass_with_warnings",
+    "blocking_issues": 0,
+    "must_fix_before_phase_2": [
+      "QA-DRRP-001: Add QT5 to SYS_EXT_DRRP_FINISH_ACRYLIC quality_tier and add QT5 product tier + gloss sheen",
+      "QA-DRRP-002: Remove phantom PS_EXT_ASSET_EA.DOOR_HARDWARE from research.json required_paintscope_keys",
+      "QA-DRRP-003: Implement T&M gate in estimation engine for 8.0x stacking scenario"
+    ],
+    "fix_when_convenient": [
+      "QA-DRRP-004: Document intentional round_config expansion from resolution (4) to SOP (6)"
+    ],
+    "overall_assessment": "SF_DOOR_EXT_RP_v1 is a well-constructed spec with strong cross-file threading (51/51 task match, 0 classification mismatches, 0 UOM mismatches). The three-substrate-material branching architecture is cleanly implemented across all files. All doctrine constraints (fiberglass oil prohibition, steel rust debridement, hardware removal as standard, weatherstrip protection, six-side seal, LRV/IR gate, RRP gate) are properly enforced. The one substantive issue is the QT5 finish system gap in materials.json — this is a data omission that must be corrected before the spec can be used for QT5 estimation. The 8.0x stacking concern is correctly documented and flagged. No critical issues found."
+  }
+}

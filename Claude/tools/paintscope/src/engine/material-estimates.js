@@ -1,5 +1,55 @@
 import { deriveRoom } from './derive-room.js';
 import { SUBSTRATE_MAP, SUBSTRATE_APPLICATION_METHODS } from '../data/substrate-catalog.js';
+import { EXTERIOR_SPEC_IDS } from '../data/spec-maps.js';
+
+/**
+ * Default exterior coverage profiles (flat model).
+ * Keyed by spec family ID → { primer, finish } each with { sfPerGal, coats }.
+ * Derived from research: substrate-specific primer rates, profile-adjusted finish rates.
+ * Will be replaced by DB-driven profiles when exterior materials are imported.
+ */
+const EXT_COVERAGE_DEFAULTS = {
+  // ── Siding specs ──
+  SF_WOOD_SIDING_EXT_NC_PAINT:    { primer: { sfPerGal: 300, coats: 1 }, finish: { sfPerGal: 350, coats: 2 } },
+  SF_SIDING_ENGINEERED_EXT_NC:    { primer: { sfPerGal: 350, coats: 1 }, finish: { sfPerGal: 375, coats: 2 } },
+  SF_SIDING_FIBERCEMENT_EXT_NC:   { primer: { sfPerGal: 350, coats: 1 }, finish: { sfPerGal: 350, coats: 2 } },
+  SF_SIDING_VINYL_EXT_RP:         { primer: null,                        finish: { sfPerGal: 400, coats: 2 } },
+  SF_SIDING_ALUMINUM_EXT_RP:      { primer: { sfPerGal: 350, coats: 1 }, finish: { sfPerGal: 400, coats: 2 } },
+  SF_SIDING_WOOD_EXT_RP:          { primer: { sfPerGal: 275, coats: 1 }, finish: { sfPerGal: 325, coats: 2 } },
+  // ── Trim / Soffit ──
+  SF_TRIM_EXT_NC:                  { primer: { sfPerGal: 400, coats: 1 }, finish: { sfPerGal: 400, coats: 2 } },
+  SF_TRIM_EXT_RP:                  { primer: { sfPerGal: 350, coats: 1 }, finish: { sfPerGal: 375, coats: 2 } },
+  SF_SOFFIT_EXT_NC:                { primer: { sfPerGal: 375, coats: 1 }, finish: { sfPerGal: 375, coats: 2 } },
+  // ── Masonry / Stucco / Foundation ──
+  SF_STUCCO_EXT_NC:                { primer: { sfPerGal: 200, coats: 1 }, finish: { sfPerGal: 200, coats: 2 } },
+  SF_MASONRY_EXT_NC:               { primer: { sfPerGal: 200, coats: 1 }, finish: { sfPerGal: 250, coats: 2 } },
+  SF_FOUNDATION_EXT_NC:            { primer: { sfPerGal: 250, coats: 1 }, finish: { sfPerGal: 300, coats: 2 } },
+  // ── Doors / Windows / Garage ──
+  SF_DOOR_EXT_NC:                  { primer: { sfPerGal: 400, coats: 1 }, finish: { sfPerGal: 400, coats: 2 } },
+  SF_DOOR_EXT_RP:                  { primer: { sfPerGal: 350, coats: 1 }, finish: { sfPerGal: 375, coats: 2 } },
+  SF_WINDOW_EXT_NC:                { primer: { sfPerGal: 400, coats: 1 }, finish: { sfPerGal: 400, coats: 2 } },
+  SF_GARAGE_DOOR_EXT_NC:           { primer: { sfPerGal: 375, coats: 1 }, finish: { sfPerGal: 375, coats: 2 } },
+  // ── Deck / Fence (stain — no primer typically) ──
+  SF_DECK_EXT:                     { primer: null,                        finish: { sfPerGal: 250, coats: 2 } },
+  SF_FENCE_EXT:                    { primer: null,                        finish: { sfPerGal: 275, coats: 2 } },
+  // ── Porch / Metal ──
+  SF_PORCH_CEILING_EXT_NC:         { primer: { sfPerGal: 375, coats: 1 }, finish: { sfPerGal: 375, coats: 2 } },
+  SF_PORCH_FLOOR_EXT_NC:           { primer: { sfPerGal: 300, coats: 1 }, finish: { sfPerGal: 300, coats: 2 } },
+  SF_METAL_EXT:                    { primer: { sfPerGal: 400, coats: 1 }, finish: { sfPerGal: 400, coats: 2 } },
+  // ── Caulking (tube-based, not gallon — handled as consumable, skip material estimate) ──
+  SF_CAULK_EXT:                    null,
+};
+
+/**
+ * Spray loss factors by application method.
+ */
+const SPRAY_LOSS_BY_METHOD = {
+  spray:            0.12,  // pure airless — 10-15% loss
+  spray_backbrush:  0.06,  // spray + back-roll recovers overspray
+  brush:            0.02,
+  roll:             0.03,
+  brush_roll:       0.03,
+};
 
 /**
  * Compute material estimates from coverage profiles.
@@ -158,6 +208,123 @@ export function computeMaterialEstimates(state, db, roomLookups) {
       psKey: matchedKey
     });
   });
+
+  return estimates;
+}
+
+/**
+ * Compute exterior material estimates using flat default coverage profiles.
+ * Processes elevation lookups + standalone lookups from the exterior engine.
+ *
+ * @param {Object} state — full app state
+ * @param {Object} db — DB_BUNDLE
+ * @param {Map} elevLookups — from buildElevationQuantityLookups
+ * @param {Map} standaloneLookups — from buildStandaloneQuantityLookups
+ * @param {Array} extSpecResults — exterior spec results from runEstimate (for activation check)
+ * @returns {Array} material estimate entries (same shape as interior estimates)
+ */
+export function computeExteriorMaterialEstimates(state, db, elevLookups, standaloneLookups, extSpecResults) {
+  const estimates = [];
+  const exterior = state.exterior;
+  if (!exterior) return estimates;
+
+  const extDefaults = exterior.defaults || {};
+  const extMethod = extDefaults.application_method || 'spray_backbrush';
+  const sprayLoss = SPRAY_LOSS_BY_METHOD[extMethod] || 0.06;
+
+  // Aggregate exterior quantities across all elevations + standalone items by PS key
+  const totalExtQty = new Map();
+  const addToTotal = (qty) => {
+    qty.forEach((val, key) => {
+      const existing = totalExtQty.get(key);
+      if (existing) existing.value += val.value;
+      else totalExtQty.set(key, { ...val });
+    });
+  };
+  if (elevLookups) elevLookups.forEach(addToTotal);
+  if (standaloneLookups) standaloneLookups.forEach(addToTotal);
+
+  // Build set of activated exterior spec IDs (only estimate materials for specs that produced hours)
+  const activatedExtSpecs = new Set(extSpecResults.map(sr => sr.specId));
+
+  // Index spec_required_inputs for PS key lookup
+  const inputsBySpec = {};
+  (db.spec_required_inputs || []).forEach(ri => {
+    if (!inputsBySpec[ri.spec_family_id]) inputsBySpec[ri.spec_family_id] = [];
+    inputsBySpec[ri.spec_family_id].push(ri);
+  });
+
+  // For each exterior spec with default coverage profiles
+  for (const [specId, coverageDefaults] of Object.entries(EXT_COVERAGE_DEFAULTS)) {
+    if (!coverageDefaults) continue; // e.g., caulking — no material estimate
+    if (!activatedExtSpecs.has(specId)) continue; // spec didn't fire — no material needed
+
+    // Find total SF/LF/EA for this spec from PS keys
+    const specInputs = inputsBySpec[specId] || [];
+    const psKeys = specInputs.map(i => i.paintscope_key);
+
+    let specQuantity = 0;
+    let matchedKey = null;
+    let matchedUom = 'SF';
+    psKeys.forEach(k => {
+      const q = totalExtQty.get(k);
+      if (q && q.value > 0) {
+        // Only count surface SF and edge LF keys for material estimation
+        // Skip protection, meta, and opening count keys
+        if (k.startsWith('PS_EXT_SURFACE_') || k.startsWith('PS_EXT_EDGE_')) {
+          specQuantity += q.value;
+          matchedKey = k;
+          matchedUom = q.uom;
+        }
+      }
+    });
+
+    if (specQuantity <= 0) continue;
+
+    // For LF-based specs (trim), convert to effective SF for material calc
+    // LF items are typically ≤12" wide → 1 LF ≈ 1 SF for material purposes
+    const effectiveSF = specQuantity; // LF→SF 1:1 per PCA P10 linear foot rule
+
+    const sprayMultiplier = 1 / (1 - sprayLoss);
+
+    // Emit primer estimate (if spec has primer)
+    if (coverageDefaults.primer) {
+      const rawGal = (effectiveSF * coverageDefaults.primer.coats) / coverageDefaults.primer.sfPerGal;
+      const gallons = rawGal * sprayMultiplier;
+      estimates.push({
+        specFamilyId: specId,
+        systemName: 'Exterior Primer (default)',
+        productRole: 'primer',
+        surfaceTexture: 'smooth',
+        totalSF: Math.round(effectiveSF),
+        coverageRate: coverageDefaults.primer.sfPerGal,
+        coats: coverageDefaults.primer.coats,
+        gallons: Math.round(gallons * 10) / 10,
+        sprayLoss: sprayLoss,
+        psKey: matchedKey,
+        domain: 'exterior',
+      });
+    }
+
+    // Emit finish estimate
+    if (coverageDefaults.finish) {
+      const rawGal = (effectiveSF * coverageDefaults.finish.coats) / coverageDefaults.finish.sfPerGal;
+      const gallons = rawGal * sprayMultiplier;
+      estimates.push({
+        specFamilyId: specId,
+        systemName: 'Exterior Finish (default)',
+        productRole: 'finish',
+        surfaceTexture: 'smooth',
+        totalSF: Math.round(effectiveSF),
+        coverageRate: coverageDefaults.finish.sfPerGal,
+        coats: coverageDefaults.finish.coats,
+        gallons: Math.round(gallons * 10) / 10,
+        sprayLoss: sprayLoss,
+        psKey: matchedKey,
+        domain: 'exterior',
+      });
+    }
+  }
 
   return estimates;
 }

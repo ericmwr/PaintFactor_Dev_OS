@@ -1,0 +1,613 @@
+{
+  "spec_family": {
+    "id": "SF_SIDING_ENGINEERED_EXT_NC",
+    "name": "Exterior Engineered Wood Siding Prime and Paint",
+    "description": "Combined prime and finish coat painting for engineered wood siding (LP SmartSide lap, panel, T1-11). NOT cementitious — no alkali-resistant primer needed. Covers full prep (low-pressure wash only — NO power washing, scuff sand, end-seal ALL cut edges to prevent irreversible OSB core springback, caulk siding-to-trim joints only — NOT butt joints), field prime, and finish coats. Two substrate-driven primer paths: acrylic (factory-primed/bare wood), bonding (factory-finished ExpertFinish). Three application methods: spray (smooth profiles), spray_backroll (MANDATORY for T1-11, recommended for textured profiles — two-person crew), brush_roll (fallback). Uses SF as primary UOM. Siding profile (lap/panel/t1_11) and surface texture (smooth/cedarmill/roughsawn) drive rate and material modifiers. Access type drives height modifier. Window/door protection is NOT this spec's responsibility — belongs in window/door specs.",
+    "domain": "exterior",
+    "version": "0.1.0",
+    "status": "draft",
+    "review_required": true
+  },
+
+  "scope_boundaries": {
+    "includes": [
+      "Siding field surface preparation (low-pressure wash only — NO power washing, scuff sand per substrate state)",
+      "End-sealing ALL field-cut edges (FM-001 prevention — prevents irreversible OSB core springback — non-negotiable)",
+      "Caulking siding-to-trim joints (NOT field butt joints — butt joints create moisture trap against OSB core)",
+      "Moisture content verification (< 15% MC before any coating — engineered wood is more moisture-sensitive than fiber cement)",
+      "Full field prime coat (2 substrate-driven primer paths: acrylic + bonding)",
+      "Finish coat application (1-2 coats by quality tier)",
+      "Interstage inspection, light sand (QT4), and touch-up",
+      "Final walkthrough and touch-up",
+      "Landscape perimeter protection (LF-based along house perimeter)",
+      "Hardscape protection (walkways, patios)",
+      "Fixture and utility masking (light fixtures, HVAC units)",
+      "Spray equipment setup and cleanup (including roller staging for spray_backroll)"
+    ],
+    "excludes": [
+      {
+        "item": "Window masking and glass protection",
+        "route_to": "Window spec (RC-001 from wood siding: window/door protection owned by surface spec)"
+      },
+      {
+        "item": "Door masking, hardware protection, and glass protection",
+        "route_to": "Door spec (RC-001 from wood siding: window/door protection owned by surface spec)"
+      },
+      {
+        "item": "Exterior trim painting (corner boards, frieze, rake, window/door casing)",
+        "route_to": "Future SF_TRIM_EXT_NC_PAINT"
+      },
+      {
+        "item": "Soffit and fascia painting",
+        "route_to": "Future SF_SOFFIT_EXT_NC_PAINT"
+      },
+      {
+        "item": "Foundation wall coating",
+        "route_to": "Future exterior foundation spec"
+      },
+      {
+        "item": "Power washing / high-pressure wash",
+        "route_to": "PROHIBITED on engineered wood — damages factory primer, forces water into OSB core at joints and cut edges, causes irreversible swelling"
+      }
+    ]
+  },
+
+  "configuration_dimensions": [
+    {
+      "dimension_id": "quality_tier",
+      "description": "Quality tier controlling coat count, inspection scrutiny, interstage sanding, and defect tolerance.",
+      "values": ["QT2", "QT3", "QT4"],
+      "default": "QT3",
+      "notes": "QT2=economy (single finish coat — LP warranty requires minimum 2 coats but QT2 accepts the trade-off). QT3=standard (2 finish coats per LP SmartSide warranty). QT4=premium (2 finish coats, interstage sand, systematic inspection, premium LP-approved materials). QT5 excluded for siding field per Exterior_Substrates_Doctrine §5.4."
+    },
+    {
+      "dimension_id": "application_method",
+      "description": "Primary application technique for prime and finish coats.",
+      "values": ["spray", "spray_backroll", "brush_roll"],
+      "default": "spray",
+      "notes": "Spray is primary for smooth LP SmartSide. spray_backroll is MANDATORY for T1-11 profile (deep vertical grooves require roller distribution) and recommended for cedarmill/roughsawn textures — requires two-person crew. Brush_roll is fallback for <750 SF, occupied adjacent areas, or high wind. KEY DIFFERENCE from fiber cement: spray_backroll IS valid for engineered wood."
+    },
+    {
+      "dimension_id": "siding_profile",
+      "description": "Siding profile type. Drives production rate modifier (FAC_ENSD_SIDING_PROFILE).",
+      "values": ["lap", "panel", "t1_11"],
+      "default": "lap",
+      "modifiers": {
+        "lap": 1.00,
+        "panel": 1.10,
+        "t1_11": 1.80
+      },
+      "notes": "Lap is baseline (long horizontal runs, fastest production). Panel slightly slower (large flat areas, fewer joints). T1-11 is dramatically slower — deep vertical grooves require mandatory back-rolling and constant repositioning. T1-11 is unique to this spec (fiber cement has shingle instead)."
+    },
+    {
+      "dimension_id": "surface_texture",
+      "description": "Surface texture. Drives production rate AND material quantity modifier (FAC_ENSD_SURFACE_TEXTURE).",
+      "values": ["smooth", "cedarmill", "roughsawn"],
+      "default": "smooth",
+      "modifiers": {
+        "smooth": 1.00,
+        "cedarmill": 1.20,
+        "roughsawn": 1.30
+      },
+      "notes": "Textured profiles trap more paint in valleys, requiring additional spray passes for correct DFT. Affects both production rate and material consumption. Same factors as fiber cement — texture geometry determines consumption, not substrate material."
+    },
+    {
+      "dimension_id": "substrate_state",
+      "description": "Substrate condition at time of painting. Drives primer selection and prep task activation.",
+      "values": ["SS_EXT_PRIMED_FACTORY", "SS_EXT_BARE_WOOD", "SS_EXT_PRIMED_FIELD", "SS_EXT_FACTORY_FINISHED"],
+      "default": "SS_EXT_PRIMED_FACTORY",
+      "notes": "SS_EXT_PRIMED_FACTORY is the dominant NC state. SS_EXT_BARE_WOOD for cut edges/damaged areas/T1-11 without factory prime — standard acrylic primer (NOT alkali-resistant). SS_EXT_FACTORY_FINISHED for ExpertFinish products damaged during construction — requires bonding primer. SS_EXT_PRIMED_FIELD skips prime entirely. NOTE: SS_EXT_BARE_FIBERCEMENT is NOT valid for this spec — that is fiber cement only."
+    }
+  ],
+
+  "paintable_items": [
+    {
+      "item_id": "ITM_SIDING_FIELD",
+      "name": "Siding Field",
+      "unit_of_measure": "SF",
+      "counting_rules": "Net paintable siding field area in square feet. Excludes window/door openings, trim boards. Measured per elevation.",
+      "notes": "Primary and only paintable item. Reused from SF_WOOD_SIDING_EXT_NC_PAINT and SF_SIDING_FIBERCEMENT_EXT_NC — same physical item, different substrate material (engineered wood vs natural wood vs fiber cement). Profile and texture modifiers adjust effective production rates."
+    }
+  ],
+
+  "variants": [
+    {
+      "variant_id": "VAR_QT2_SPRAY_LAP",
+      "applies_when": { "quality_tier": ["QT2"], "application_method": ["spray"], "siding_profile": ["lap"] },
+      "coats": { "prime": 1, "finish": 1 },
+      "protection_zones": ["ext_landscape_perimeter", "ext_hardscape_walk", "ext_light_fixture", "ext_hvac_unit"],
+      "notes": "Economy spray on lap siding. Single finish coat. Full landscape/hardscape protection for overspray."
+    },
+    {
+      "variant_id": "VAR_QT3_SPRAY_LAP",
+      "applies_when": { "quality_tier": ["QT3"], "application_method": ["spray"], "siding_profile": ["lap"] },
+      "coats": { "prime": 1, "finish": 2 },
+      "protection_zones": ["ext_landscape_perimeter", "ext_hardscape_walk", "ext_hardscape_patio", "ext_light_fixture", "ext_hvac_unit"],
+      "notes": "Standard spray production on lap siding. Two finish coats per LP SmartSide warranty. Full protection."
+    },
+    {
+      "variant_id": "VAR_QT3_SPRAY_BACKROLL_LAP",
+      "applies_when": { "quality_tier": ["QT3"], "application_method": ["spray_backroll"], "siding_profile": ["lap"] },
+      "coats": { "prime": 1, "finish": 2 },
+      "protection_zones": ["ext_landscape_perimeter", "ext_hardscape_walk", "ext_hardscape_patio", "ext_light_fixture", "ext_hvac_unit"],
+      "notes": "Standard spray+backroll on textured lap siding. Two-person crew. Two finish coats."
+    },
+    {
+      "variant_id": "VAR_QT3_BRUSH_ROLL_LAP",
+      "applies_when": { "quality_tier": ["QT3"], "application_method": ["brush_roll"], "siding_profile": ["lap"] },
+      "coats": { "prime": 1, "finish": 2 },
+      "protection_zones": ["ext_landscape_perimeter", "ext_hardscape_walk", "ext_light_fixture"],
+      "notes": "Standard brush/roll on lap siding. Reduced protection scope — no full landscape or patio cover needed."
+    },
+    {
+      "variant_id": "VAR_QT4_SPRAY_LAP",
+      "applies_when": { "quality_tier": ["QT4"], "application_method": ["spray"], "siding_profile": ["lap"] },
+      "coats": { "prime": 1, "finish": 2 },
+      "protection_zones": ["ext_landscape_perimeter", "ext_hardscape_walk", "ext_hardscape_patio", "ext_light_fixture", "ext_hvac_unit"],
+      "notes": "Premium spray on lap siding. Interstage sanding. Systematic inspection at 6 ft. Premium LP-approved materials."
+    },
+    {
+      "variant_id": "VAR_QT3_SPRAY_PANEL",
+      "applies_when": { "quality_tier": ["QT3"], "application_method": ["spray"], "siding_profile": ["panel"] },
+      "coats": { "prime": 1, "finish": 2 },
+      "protection_zones": ["ext_landscape_perimeter", "ext_hardscape_walk", "ext_hardscape_patio", "ext_light_fixture", "ext_hvac_unit"],
+      "notes": "Standard spray on panel siding. 1.10x profile modifier on application tasks."
+    },
+    {
+      "variant_id": "VAR_QT3_SPRAY_BACKROLL_T1_11",
+      "applies_when": { "quality_tier": ["QT3"], "application_method": ["spray_backroll"], "siding_profile": ["t1_11"] },
+      "coats": { "prime": 1, "finish": 2 },
+      "protection_zones": ["ext_landscape_perimeter", "ext_hardscape_walk", "ext_hardscape_patio", "ext_light_fixture", "ext_hvac_unit"],
+      "notes": "Standard spray+backroll on T1-11 siding. MANDATORY backroll for T1-11 profile. Two-person crew. 1.80x profile modifier. Dramatically slower production."
+    },
+    {
+      "variant_id": "VAR_QT2_SPRAY_FIELD_PRIMED",
+      "applies_when": { "quality_tier": ["QT2"], "application_method": ["spray"], "substrate_state": ["SS_EXT_PRIMED_FIELD"] },
+      "coats": { "prime": 0, "finish": 1 },
+      "protection_zones": ["ext_landscape_perimeter", "ext_hardscape_walk", "ext_light_fixture"],
+      "notes": "Economy spray on field-primed surface. Skip prime. Single finish coat. Minimum viable scope."
+    },
+    {
+      "variant_id": "VAR_QT3_SPRAY_FIELD_PRIMED",
+      "applies_when": { "quality_tier": ["QT3"], "application_method": ["spray"], "substrate_state": ["SS_EXT_PRIMED_FIELD"] },
+      "coats": { "prime": 0, "finish": 2 },
+      "protection_zones": ["ext_landscape_perimeter", "ext_hardscape_walk", "ext_hardscape_patio", "ext_light_fixture", "ext_hvac_unit"],
+      "notes": "Standard spray on field-primed surface. Skip prime. Two finish coats."
+    }
+  ],
+
+  "required_paintscope_inputs": [
+    {
+      "input_name": "IN_SF_SIDING_FIELD",
+      "paintscope_key": "PS_EXT_SURFACE_SF.SIDING_FIELD",
+      "uom": "SF",
+      "required": true,
+      "description": "Net paintable siding field area"
+    },
+    {
+      "input_name": "IN_EA_ELEVATIONS",
+      "paintscope_key": "PS_EXT_META.EA.ELEVATIONS_TOTAL",
+      "uom": "EA",
+      "required": true,
+      "description": "Number of elevations in scope"
+    },
+    {
+      "input_name": "IN_ENUM_ACCESS_TYPE",
+      "paintscope_key": "PS_EXT_META.ENUM.ACCESS_TYPE",
+      "uom": "ENUM",
+      "required": true,
+      "description": "Access type per elevation (ground/ladder/scaffold/lift) — drives FAC_EXT_ACCESS height modifier"
+    },
+    {
+      "input_name": "IN_BOOL_NEW_CONSTRUCTION",
+      "paintscope_key": "PS_EXT_META.FLAG.NEW_CONSTRUCTION",
+      "uom": "BOOL",
+      "required": true,
+      "description": "Boolean flag confirming new construction context. Always true for this NC spec."
+    },
+    {
+      "input_name": "IN_LF_EXT_PROTECT_LANDSCAPE_PERIMETER",
+      "paintscope_key": "PS_EXT_PROTECT_LF.LANDSCAPE_PERIMETER",
+      "uom": "LF",
+      "required": false,
+      "required_when": "When landscape is adjacent to siding",
+      "description": "Linear feet of house perimeter where landscape is adjacent and requires protection"
+    },
+    {
+      "input_name": "IN_SF_EXT_PROTECT_HARDSCAPE_WALK",
+      "paintscope_key": "PS_EXT_PROTECT_SF.HARDSCAPE_WALK",
+      "uom": "SF",
+      "required": false,
+      "required_when": "When walkways are adjacent to siding",
+      "description": "Walkway protection area"
+    },
+    {
+      "input_name": "IN_SF_EXT_PROTECT_HARDSCAPE_PATIO",
+      "paintscope_key": "PS_EXT_PROTECT_SF.HARDSCAPE_PATIO",
+      "uom": "SF",
+      "required": false,
+      "required_when": "When patio is adjacent to siding",
+      "description": "Patio protection area"
+    },
+    {
+      "input_name": "IN_EA_EXT_PROTECT_LIGHT_FIXTURE",
+      "paintscope_key": "PS_EXT_PROTECT_EA.LIGHT_FIXTURE",
+      "uom": "EA",
+      "required": false,
+      "required_when": "When exterior fixtures are present on siding elevations",
+      "description": "Count of light fixtures to mask"
+    },
+    {
+      "input_name": "IN_EA_EXT_PROTECT_HVAC_UNIT",
+      "paintscope_key": "PS_EXT_PROTECT_EA.HVAC_UNIT",
+      "uom": "EA",
+      "required": false,
+      "required_when": "When HVAC units are adjacent to siding",
+      "description": "Count of HVAC units to cover"
+    }
+  ],
+
+  "protection_zones_required": [
+    {
+      "zone_id": "ext_landscape_perimeter",
+      "condition": "when_adjacent",
+      "protection_level": "edge_only",
+      "upgrade_when": { "application_method": ["spray", "spray_backroll"] },
+      "upgrade_level": "full_cover",
+      "notes": "LF-based — measured along house perimeter where landscape is adjacent. Brush/roll: drop cloth at base. Spray/spray_backroll: full tarp width over plantings to catch overspray."
+    },
+    {
+      "zone_id": "ext_hardscape_walk",
+      "condition": "when_adjacent",
+      "protection_level": "light_mask",
+      "upgrade_when": { "application_method": ["spray", "spray_backroll"] },
+      "upgrade_level": "full_cover",
+      "notes": "Walkways adjacent to siding. Canvas drop cloths for non-slip crew traffic."
+    },
+    {
+      "zone_id": "ext_hardscape_patio",
+      "condition": "when_adjacent",
+      "protection_level": "light_mask",
+      "upgrade_when": { "application_method": ["spray", "spray_backroll"] },
+      "upgrade_level": "full_cover",
+      "notes": "Patio adjacent to siding. Protection level driven by proximity and application method."
+    },
+    {
+      "zone_id": "ext_light_fixture",
+      "condition": "always",
+      "protection_level": "light_mask",
+      "notes": "All exterior fixtures on working elevations. Bag or tape over fixture."
+    },
+    {
+      "zone_id": "ext_hvac_unit",
+      "condition": "when_adjacent",
+      "protection_level": "full_cover",
+      "notes": "HVAC units adjacent to siding. Full tarp cover during spray/spray_backroll operations."
+    }
+  ],
+
+  "adjacency_declarations": {
+    "primary_surface": "siding_field",
+    "adjacent_surfaces": [
+      {
+        "surface_id": "soffit_field",
+        "edge_type": "linear",
+        "typical_relationship": "different_finish",
+        "continuity_rate_modifier": 1.0,
+        "notes": "Soffit at eave line. Different color typically. Separate scope."
+      },
+      {
+        "surface_id": "ext_trim_frieze",
+        "edge_type": "linear",
+        "typical_relationship": "different_finish",
+        "continuity_rate_modifier": 1.0,
+        "notes": "Frieze board at siding-to-soffit junction. Trim color. Separate scope."
+      },
+      {
+        "surface_id": "ext_trim_corner",
+        "edge_type": "linear",
+        "typical_relationship": "different_finish",
+        "continuity_rate_modifier": 1.0,
+        "notes": "Corner boards frame siding. Trim color. Siding terminates at corner."
+      },
+      {
+        "surface_id": "ext_trim_window_casing",
+        "edge_type": "linear",
+        "typical_relationship": "different_finish",
+        "continuity_rate_modifier": 1.0,
+        "notes": "Window casing. Siding terminates at casing. Window/door protection is window/door spec's responsibility."
+      },
+      {
+        "surface_id": "ext_trim_door_casing",
+        "edge_type": "linear",
+        "typical_relationship": "different_finish",
+        "continuity_rate_modifier": 1.0,
+        "notes": "Door casing. Same as window casing relationship."
+      },
+      {
+        "surface_id": "foundation_wall",
+        "edge_type": "linear",
+        "typical_relationship": "not_in_scope",
+        "continuity_rate_modifier": 1.0,
+        "notes": "Foundation below siding. Not painted in siding scope."
+      }
+    ]
+  },
+
+  "state_declarations": {
+    "primary_surface": "siding_field",
+
+    "valid_input_states": {
+      "states": ["SS_EXT_PRIMED_FACTORY", "SS_EXT_BARE_WOOD", "SS_EXT_PRIMED_FIELD", "SS_EXT_FACTORY_FINISHED"],
+      "primer_routing": {
+        "SS_EXT_PRIMED_FACTORY": "SYS_EXT_EW_PRIMER_ACRYLIC",
+        "SS_EXT_BARE_WOOD": "SYS_EXT_EW_PRIMER_ACRYLIC",
+        "SS_EXT_FACTORY_FINISHED": "SYS_EXT_EW_PRIMER_BONDING",
+        "SS_EXT_PRIMED_FIELD": null
+      },
+      "notes": "Four NC-relevant substrate states. SS_EXT_PRIMED_FACTORY is the dominant state (factory-primed engineered wood as delivered). SS_EXT_BARE_WOOD at cut edges and damaged areas — standard acrylic primer (NOT alkali-resistant, engineered wood is neutral pH). SS_EXT_FACTORY_FINISHED for LP SmartSide ExpertFinish products damaged during construction — requires bonding primer. SS_EXT_PRIMED_FIELD for split-mobilization scenarios where prime was applied separately — skips prime module entirely."
+    },
+
+    "output_state": {
+      "state": "SS_EXT_PAINTED_SATIN",
+      "varies_by": "sheen",
+      "state_map": {
+        "flat": "SS_EXT_PAINTED_FLAT",
+        "satin": "SS_EXT_PAINTED_SATIN",
+        "semi-gloss": "SS_EXT_PAINTED_SEMIGLOSS"
+      },
+      "notes": "Output state varies by sheen configuration. Satin is the most common exterior siding sheen."
+    }
+  },
+
+  "material_systems": [
+    {
+      "system_id": "SYS_EXT_EW_PRIMER_ACRYLIC",
+      "name": "Standard Acrylic Field Primer for Engineered Wood Siding",
+      "product_role": "primer",
+      "quality_tier": ["QT2", "QT3", "QT4"],
+      "applies_when": { "substrate_state": ["SS_EXT_PRIMED_FACTORY", "SS_EXT_BARE_WOOD"] },
+      "notes": "100% acrylic exterior primer. NOT alkali-resistant — engineered wood is wood-based (neutral pH), not cementitious. Field prime is MANDATORY per LP SmartSide warranty even over factory primer. Products must be LP SmartSide-approved."
+    },
+    {
+      "system_id": "SYS_EXT_EW_PRIMER_BONDING",
+      "name": "Bonding Primer for Factory-Finished Engineered Wood (ExpertFinish)",
+      "product_role": "primer",
+      "quality_tier": ["QT2", "QT3", "QT4"],
+      "applies_when": { "substrate_state": ["SS_EXT_FACTORY_FINISHED"] },
+      "notes": "Required for LP SmartSide ExpertFinish factory-finished products damaged during construction. Oven-baked factory finish is a non-standard substrate for field paint adhesion — bonding primer provides mechanical grip on the cured factory topcoat."
+    },
+    {
+      "system_id": "SYS_EXT_EW_FINISH_STANDARD",
+      "name": "Standard Exterior Acrylic Finish for Engineered Wood Siding",
+      "product_role": "finish",
+      "quality_tier": ["QT2", "QT3"],
+      "allowed_sheens": ["flat", "satin"],
+      "notes": "LP SmartSide-approved 100% acrylic exterior latex. Minimum 15-year paint manufacturer warranty. QT2 allows single finish coat. QT3 requires 2 coats standard. Different approved product list than James Hardie."
+    },
+    {
+      "system_id": "SYS_EXT_EW_FINISH_PREMIUM",
+      "name": "Premium Exterior Finish for Engineered Wood Siding",
+      "product_role": "finish",
+      "quality_tier": ["QT4"],
+      "allowed_sheens": ["flat", "satin", "semi-gloss"],
+      "notes": "Premium LP SmartSide-approved materials with 25+ year warranty. Light sand between coats. Raking light inspection. Semi-gloss available at QT4 for high-visibility accent areas."
+    }
+  ],
+
+  "sop_module_summary": [
+    { "module_id": "MOD_ENSD_SETUP", "name": "Protection & Equipment Setup", "phase": "setup", "task_count": 5 },
+    { "module_id": "MOD_ENSD_PREP", "name": "Surface Preparation", "phase": "prep", "task_count": 6 },
+    { "module_id": "MOD_ENSD_PRIME", "name": "Field Prime Coat", "phase": "prime", "task_count": 3 },
+    { "module_id": "MOD_ENSD_FINISH_1", "name": "Finish Coat 1", "phase": "finish", "task_count": 3 },
+    { "module_id": "MOD_ENSD_INTERSTAGE", "name": "Interstage Inspection", "phase": "interstage", "task_count": 4 },
+    { "module_id": "MOD_ENSD_FINISH_2", "name": "Finish Coat 2", "phase": "finish", "task_count": 3 },
+    { "module_id": "MOD_ENSD_FINAL_INSPECT", "name": "Final Inspection", "phase": "cleanup", "task_count": 2 },
+    { "module_id": "MOD_ENSD_CLEANUP", "name": "Cleanup & Protection Teardown", "phase": "cleanup", "task_count": 3 }
+  ],
+
+  "production_summary": {
+    "total_tasks": 29,
+    "binary_tasks": 23,
+    "qt_scaled_tasks": 4,
+    "qt_conditional_tasks": 2,
+    "factor_modifiers": [
+      {
+        "factor_id": "FAC_EXT_ACCESS",
+        "name": "Access Type Height Modifier",
+        "values": { "ground": 1.00, "ladder": 1.35, "scaffold": 1.60, "lift": 1.50 },
+        "applies_to_count": 18
+      },
+      {
+        "factor_id": "FAC_ENSD_SIDING_PROFILE",
+        "name": "Siding Profile Modifier",
+        "values": { "lap": 1.00, "panel": 1.10, "t1_11": 1.80 },
+        "applies_to_count": 11
+      },
+      {
+        "factor_id": "FAC_ENSD_SURFACE_TEXTURE",
+        "name": "Surface Texture Modifier",
+        "values": { "smooth": 1.00, "cedarmill": 1.20, "roughsawn": 1.30 },
+        "applies_to_count": 9
+      }
+    ],
+    "max_modifier_stack": 3.744,
+    "stacking_cap": 4.0,
+    "worst_case_scenario": "T1-11, roughsawn, scaffold access (1.80 x 1.30 x 1.60 = 3.744x)"
+  },
+
+  "round_configurations": [
+    {
+      "round_id": "ROUND_ENSD_PRIME_2FINISH",
+      "name": "Prime + 2 Finish Coats",
+      "description": "Standard NC sequence: 1 field prime + 2 finish coats. Required at QT3/QT4.",
+      "applies_when": { "quality_tier": ["QT3", "QT4"], "substrate_state": ["SS_EXT_PRIMED_FACTORY", "SS_EXT_BARE_WOOD", "SS_EXT_FACTORY_FINISHED"] },
+      "phase_sequence": ["prime", "finish", "interstage", "finish"],
+      "total_coats": 3,
+      "interstage_cycles": 1,
+      "notes": "LP SmartSide warranty requires minimum 2 topcoats. Field prime over factory prime is mandatory per LP warranty."
+    },
+    {
+      "round_id": "ROUND_ENSD_PRIME_1FINISH",
+      "name": "Prime + 1 Finish Coat (Economy)",
+      "description": "Economy QT2 sequence: 1 field prime + 1 finish coat.",
+      "applies_when": { "quality_tier": ["QT2"], "substrate_state": ["SS_EXT_PRIMED_FACTORY", "SS_EXT_BARE_WOOD", "SS_EXT_FACTORY_FINISHED"] },
+      "phase_sequence": ["prime", "finish"],
+      "total_coats": 2,
+      "interstage_cycles": 0,
+      "notes": "QT2 economy tier. Single finish coat. LP warranty requires minimum 2 coats but QT2 accepts the trade-off."
+    },
+    {
+      "round_id": "ROUND_ENSD_2FINISH",
+      "name": "2 Finish Coats Only (Field-Primed)",
+      "description": "Skip prime, direct to 2 finish coats. For SS_EXT_PRIMED_FIELD only.",
+      "applies_when": { "quality_tier": ["QT3", "QT4"], "substrate_state": ["SS_EXT_PRIMED_FIELD"] },
+      "phase_sequence": ["finish", "interstage", "finish"],
+      "total_coats": 2,
+      "interstage_cycles": 1,
+      "notes": "Field prime already applied in prior mobilization."
+    },
+    {
+      "round_id": "ROUND_ENSD_1FINISH",
+      "name": "1 Finish Coat Only (Economy, Field-Primed)",
+      "description": "Economy single finish coat on field-primed surface.",
+      "applies_when": { "quality_tier": ["QT2"], "substrate_state": ["SS_EXT_PRIMED_FIELD"] },
+      "phase_sequence": ["finish"],
+      "total_coats": 1,
+      "interstage_cycles": 0,
+      "notes": "QT2 economy on already-primed surface. Minimum viable scope."
+    }
+  ],
+
+  "site_condition_rules": [
+    {
+      "condition_id": "access_type",
+      "treatment": "height_modifier",
+      "vocabulary_ref": "Exterior_Modifiers_Doctrine.md FAC_EXT_ACCESS",
+      "affected_tasks": "All tasks performed at elevation (see FAC_EXT_ACCESS applies_to list in production.json)",
+      "effect": "ground=1.00, ladder=1.35, scaffold=1.60, lift=1.50. Applied as time multiplier: effective_rate = base_rate / modifier.",
+      "notes": "Access type is a height modifier (like FAC_HEIGHT for interior), NOT a site condition. Applied per elevation. A project may have different access types on different elevations."
+    },
+    {
+      "condition_id": "wind_condition",
+      "treatment": "process_constraint",
+      "effect": "Spray and spray_backroll tasks excluded when wind is high (>10 mph). SOP reference only — not an estimation modifier per RC-003.",
+      "notes": "Wind monitoring is a scheduling/process constraint, not an estimatable modifier."
+    },
+    {
+      "condition_id": "dew_point_risk",
+      "treatment": "process_constraint",
+      "effect": "All coating tasks excluded when dew_point_risk is unsafe. SOP reference only — not an estimation modifier per RC-003.",
+      "notes": "Dew point is a scheduling/process constraint, not an estimatable modifier."
+    },
+    {
+      "condition_id": "sun_exposure",
+      "treatment": "process_constraint",
+      "effect": "Follow shade strategy — work shaded elevations to avoid rapid drying and lap marks. SOP reference only.",
+      "notes": "Sun exposure affects scheduling sequence, not estimation."
+    },
+    {
+      "condition_id": "surface_temperature",
+      "treatment": "process_constraint",
+      "effect": "Surface temperature must be within product TDS range (typically 50-90°F). SOP reference only.",
+      "notes": "Surface temperature is a go/no-go constraint, not an estimation modifier."
+    },
+    {
+      "condition_id": "moisture_condition",
+      "treatment": "process_constraint",
+      "effect": "Engineered wood must be < 15% MC before coating. Moisture check task (TSK_ENSD_MOISTURE_CHECK) catches this. SOP reference only.",
+      "notes": "Engineered wood is more moisture-sensitive than fiber cement. MC check is mandatory at all tiers."
+    }
+  ],
+
+  "cross_spec_boundaries": {
+    "excludes": [
+      "Window and door protection during siding work — owned by window/door specs (RC-001)",
+      "Exterior trim (corner boards, frieze, window/door casing) — separate trim spec",
+      "Soffit and fascia — separate spec",
+      "Foundation coating — separate spec",
+      "Environmental conditions estimation — excluded from modifiers per RC-003 (SOP reference only)"
+    ],
+    "cross_spec_coordination": {
+      "xspec_flags_consumed": [],
+      "xspec_flags_set": [],
+      "comp_modifiers_set": [],
+      "comp_modifiers_affected_by": [],
+      "notes": "No cross-spec flags needed. Window/door protection NOT this spec's responsibility. Trim, soffit, and fascia are separate scopes."
+    }
+  },
+
+  "sequencing_notes": {
+    "production_sequence": "Setup → Prep → Prime → Finish 1 → Interstage → Finish 2 → Final Inspect → Cleanup",
+    "edge_work": "No edge work in this spec. Siding terminates at trim boards — no cut-in or blending across specs.",
+    "protection_sequence": "Landscape/hardscape protection → Fixture masking → Equipment setup → Coating work → Protection teardown → Equipment cleanup → Site cleanup",
+    "coat_sequence": "Prep (substrate-state-driven) → Prime (1 coat, skipped for SS_EXT_PRIMED_FIELD) → Finish coat 1 → Interstage (inspect, sand QT4, touch up) → Finish coat 2 (QT3/QT4) → Final inspect → Touch up",
+    "elevation_strategy": "Work one elevation at a time to minimize protection setup/teardown cycles. Follow shade for optimal conditions.",
+    "key_prohibitions": "spray_backroll is MANDATORY for T1-11 profile. NO high-pressure power washing. NO caulking field butt joints. NO alkali-resistant primer (engineered wood is NOT cementitious)."
+  },
+
+  "relationships": {
+    "companion_spec": null,
+    "often_combined_with": [],
+    "sibling_specs": ["SF_WOOD_SIDING_EXT_NC_PAINT_v1", "SF_SIDING_FIBERCEMENT_EXT_NC_v1"],
+    "typical_before": [],
+    "typical_after": [],
+    "cross_spec_protection_note": "Window/door protection during siding work is owned by window/door specs, not this spec. If windows/doors are in scope, their specs handle glass/hardware masking.",
+    "notes": "Third exterior siding spec. Shares ITM_SIDING_FIELD and many protection zones with wood siding and fiber cement siblings. Key departures from fiber cement: spray_backroll IS valid (mandatory for T1-11), no alkali-resistant primer (neutral pH substrate), SS_EXT_BARE_WOOD instead of SS_EXT_BARE_FIBERCEMENT, T1-11 profile instead of shingle, moisture check task added, LP SmartSide product approvals (different from James Hardie). Key departures from wood siding: OSB core (not solid wood), edge seal prevents springback (not just moisture intrusion), factory primer over MDI resin (not raw wood grain)."
+  },
+
+  "qa_summary": {
+    "overall_result": "pass",
+    "issues_found": 2,
+    "blockers": 0,
+    "critical_issues": 0,
+    "major_issues": 0,
+    "minor_issues": 2,
+    "minor_issue_details": [
+      {
+        "issue_id": "QA-001",
+        "area": "coverage_profiles",
+        "description": "Resolution proposed separate COV_ENSD_PRIMER and COV_ENSD_PRIMER_BARE profiles. Materials.json combined them into a single COV_ENSD_PRIMER with per_substrate_state model — superior approach.",
+        "status": "acknowledged"
+      },
+      {
+        "issue_id": "QA-002",
+        "area": "site_conditions",
+        "description": "Resolution site_condition_rules declares only access_type. Wind/dew_point/temperature referenced in SOP task exclude_when blocks but not enumerated in resolution. Consistent with RC-003 and fiber cement pattern.",
+        "status": "acknowledged"
+      }
+    ]
+  },
+
+  "dependencies": {
+    "research": "research.json",
+    "resolution": "resolution.json",
+    "sop_modules": "sop_modules.json",
+    "materials": "materials.json",
+    "production": "production.json",
+    "qa_report": "qa_report.json"
+  },
+
+  "doctrine_references": [
+    { "doctrine": "Exterior_Substrates_Doctrine.md", "sections_used": ["Engineered wood classification", "Substrate state assessment", "Quality tier exclusions §5.4"] },
+    { "doctrine": "Exterior_Engineered_Wood_Fiber_Cement_Doctrine.md", "sections_used": ["OSB core composition §1", "Prohibited methods §3 (no power washing)", "Factory primer §4", "Edge wicking/springback §6-7", "PaintFactor Integration"] },
+    { "doctrine": "Exterior_Primer_Systems_Doctrine.md", "sections_used": ["Acrylic primer for wood substrates", "Bonding primer for factory-finished", "NO alkali-resistant primer for engineered wood"] },
+    { "doctrine": "Exterior_Application_Methods_Doctrine.md", "sections_used": ["Mandatory back-rolling for T1-11 Part A §6", "spray_backroll two-person crew Part B §8", "Spray rates", "Transfer efficiency"] },
+    { "doctrine": "Exterior_Protection_Doctrine.md", "sections_used": ["Landscape zones", "Hardscape zones", "Fixture zones"] },
+    { "doctrine": "Quality_Tiers_and_Surface_Condition.md", "sections_used": ["QT2-QT4 definitions", "Inspection levels"] },
+    { "doctrine": "Estimation_Modifiers_Doctrine.md", "sections_used": ["Modifier stacking rules", "Division formula", "4.0x cap"] }
+  ],
+
+  "research_corrections": [],
+
+  "user_corrections": [],
+
+  "change_log": [
+    {
+      "version": "0.1.0",
+      "date": "2026-03-09",
+      "author": "SpecFactory",
+      "changes": "Initial draft spec for exterior engineered wood siding prime and paint. Third exterior siding spec — follows SF_SIDING_FIBERCEMENT_EXT_NC_v1 pattern with engineered wood-specific departures. Key features: combined prime+paint (single mobilization), 4 NC substrate states (factory-primed, bare wood, factory-finished, field-primed), 3 siding profiles (lap/panel/t1_11), 3 surface textures (smooth/cedarmill/roughsawn), 3 application methods (spray/spray_backroll/brush_roll — spray_backroll mandatory for T1-11), 3 quality tiers (QT2-QT4, QT5 excluded), 29 tasks across 8 modules (23 binary + 4 qt_scaled + 2 qt_conditional), 2 primer systems (acrylic + bonding — NO alkali-resistant), 2 finish systems (standard + premium), 3 factor modifiers (access/profile/texture), max stacking 3.744x under 4.0x cap. QA result: pass (2 minor issues acknowledged, 0 blockers)."
+    }
+  ]
+}

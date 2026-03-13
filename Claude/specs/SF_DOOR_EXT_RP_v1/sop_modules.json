@@ -1,0 +1,1271 @@
+{
+  "spec_family_id": "SF_DOOR_EXT_RP",
+  "version": "0.1.0",
+  "generated_by": "SOP Librarian",
+  "generated_at": "2026-03-10",
+
+  "sop_modules": [
+    {
+      "module_id": "MOD_DRRP_ASSESS",
+      "name": "Condition Assessment",
+      "description": "On-site condition assessment of each exterior door. Visual inspection, adhesion test (ASTM D3359), rust evaluation (steel), moisture content (wood), existing coating identification (solvent test for latex vs oil/alkyd), lead paint evaluation (pre-1978). Results determine prep scope, primer selection, and complexity level. MANDATORY first module for repaint.",
+      "phase": "prep",
+      "applies_when": {},
+      "required_inputs": [
+        { "input_name": "IN_EA_DOOR_EXT", "paintscope_key": "PS_EXT_OPENING_EA.DOOR_EXT", "uom": "EA" },
+        { "input_name": "IN_ENUM_SUBSTRATE_TYPE_DOOR", "paintscope_key": "PS_EXT_META.ENUM.SUBSTRATE_TYPE_DOOR", "uom": "ENUM" },
+        { "input_name": "IN_ENUM_SUBSTRATE_STATE_DOOR", "paintscope_key": "PS_EXT_META.ENUM.SUBSTRATE_STATE_DOOR", "uom": "ENUM" },
+        { "input_name": "IN_ENUM_DOOR_COMPLEXITY", "paintscope_key": "PS_EXT_META.ENUM.DOOR_COMPLEXITY", "uom": "ENUM" }
+      ],
+      "tasks": [
+        {
+          "task_id": "TSK_DRRP_ASSESS_CONDITION",
+          "name": "Visual Condition Assessment Per Door",
+          "description": "Inspect each door for coating condition: cracking, peeling, alligatoring, checking, rust (steel), blistering (fiberglass), moisture damage (wood). Assign substrate state per door. Photograph defects. Record substrate material and complexity level.",
+          "task_type": "inspect",
+          "task_classification": "binary",
+          "skill_level": "lead",
+          "unit_of_measure": "EA",
+          "tools_required": ["camera", "clipboard", "flashlight"],
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": { "all": "Document condition per door. Assign substrate state. Photograph all defects. Output feeds all downstream module activation decisions." }
+        },
+        {
+          "task_id": "TSK_DRRP_ASSESS_ADHESION",
+          "name": "ASTM D3359 Cross-Hatch Adhesion Test",
+          "description": "Perform cross-hatch adhesion test per ASTM D3359 on existing coating. Test at minimum 2 locations per door (sun-exposed face and protected face). Adhesion failure triggers full prime instead of spot prime.",
+          "task_type": "inspect",
+          "task_classification": "binary",
+          "skill_level": "lead",
+          "unit_of_measure": "EA",
+          "tools_required": ["adhesion_test_kit", "magnifying_glass"],
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": { "all": "Rating below 3B triggers full prime recommendation. Test both sun-exposed and sheltered faces — UV degradation is directional." }
+        },
+        {
+          "task_id": "TSK_DRRP_ASSESS_RUST",
+          "name": "Rust Evaluation (Steel Only)",
+          "description": "Evaluate extent and depth of rust on steel doors. Classify as surface rust (minor spots, SSPC-SP3 adequate) or heavy corrosion (widespread, SSPC-SP6 required). Probe under existing coating at rust spots for underfilm corrosion spread.",
+          "task_type": "inspect",
+          "task_classification": "binary",
+          "skill_level": "lead",
+          "unit_of_measure": "EA",
+          "tools_required": ["awl", "wire_brush", "flashlight"],
+          "applies_when": { "substrate_material": ["steel"] },
+          "substrate_state_rules": {
+            "applies_when_input_state": ["SS_EXT_SURFACE_RUST"],
+            "skip_when_input_state": ["SS_EXT_SOUND_PAINT"]
+          },
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": { "all": "Probe under paint at rust boundaries — rust may extend well beyond visible area. Surface rust vs heavy corrosion determines SSPC level and labor estimate." }
+        },
+        {
+          "task_id": "TSK_DRRP_ASSESS_MOISTURE",
+          "name": "Moisture Content Testing (Wood Only)",
+          "description": "Test moisture content at bottom rail, end grain, and horizontal surfaces. MC >15% = defer coating until dry. MC >19% = rot risk alert. Test after 24-48 hr dry period post-wash.",
+          "task_type": "inspect",
+          "task_classification": "binary",
+          "skill_level": "lead",
+          "unit_of_measure": "EA",
+          "tools_required": ["moisture_meter"],
+          "applies_when": { "substrate_material": ["wood"] },
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": { "all": "Bottom rail is highest risk. MC >15% = wait. MC >19% = investigate for moisture intrusion or rot." }
+        },
+        {
+          "task_id": "TSK_DRRP_ASSESS_COATING_ID",
+          "name": "Existing Coating Identification",
+          "description": "Perform solvent test (denatured alcohol or MEK rub) to identify existing coating as latex or oil/alkyd. Oil/alkyd over-coating with latex requires adhesion primer. On fiberglass, verify existing coating is acrylic (oil on fiberglass = previous failure mode).",
+          "task_type": "inspect",
+          "task_classification": "binary",
+          "skill_level": "lead",
+          "unit_of_measure": "EA",
+          "tools_required": ["denatured_alcohol", "rags"],
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": { "all": "Latex softens under alcohol. Oil/alkyd remains hard. Result drives primer selection. On fiberglass: if existing coat is oil-based, full removal may be needed." }
+        },
+        {
+          "task_id": "TSK_DRRP_ASSESS_LEAD",
+          "name": "Lead Paint Testing (Pre-1978)",
+          "description": "Perform EPA-recognized lead test on existing coating. Doors historically received lead-based oil paint. Positive result activates RRP containment for all paint disturbance tasks.",
+          "task_type": "inspect",
+          "task_classification": "binary",
+          "skill_level": "lead",
+          "unit_of_measure": "FIXED",
+          "tools_required": ["lead_test_kit"],
+          "site_condition_rules": {
+            "include_when": { "lead_status": ["tested_positive", "unknown_pre1978"] }
+          },
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": { "all": "Test each door. Positive result activates MOD_DRRP_RRP for all prep tasks involving paint disturbance." }
+        }
+      ]
+    },
+
+    {
+      "module_id": "MOD_DRRP_MOBILIZE",
+      "name": "Mobilization & Door Removal",
+      "description": "Crew mobilization, equipment staging, and optional door removal from frame. Door removal is optional for brush on slab/panel but required for spray application and for six-side seal on wood doors. Grand entry may require 2-person crew for door removal.",
+      "phase": "setup",
+      "applies_when": {},
+      "required_inputs": [
+        { "input_name": "IN_EA_DOOR_EXT", "paintscope_key": "PS_EXT_OPENING_EA.DOOR_EXT", "uom": "EA" },
+        { "input_name": "IN_ENUM_DOOR_COMPLEXITY", "paintscope_key": "PS_EXT_META.ENUM.DOOR_COMPLEXITY", "uom": "ENUM" }
+      ],
+      "tasks": [
+        {
+          "task_id": "TSK_DRRP_MOBILIZE",
+          "name": "Crew Mobilization & Equipment Staging",
+          "description": "Mobilize crew, transport materials and equipment to site. Stage paint, primer, prep tools, protection materials, and sawhorses (if spraying) at work area.",
+          "task_type": "setup",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "unit_of_measure": "FIXED",
+          "tools_required": ["truck", "staging_area"],
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": { "all": "All materials on-site and verified against scope. Equipment in working order. Primer and finish products matched to assessment results." }
+        },
+        {
+          "task_id": "TSK_DRRP_DOOR_REMOVE",
+          "name": "Remove Door from Frame",
+          "description": "Remove door from hinges for spray application, six-side seal access (wood), or improved access to all edges. Single person for slab/panel. Grand entry may require 2-person crew due to weight. Set on sawhorses in protected work area.",
+          "task_type": "setup",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "unit_of_measure": "EA",
+          "tools_required": ["hinge_pin_punch", "sawhorses"],
+          "applies_when": { "application_method": ["spray"], "substrate_material_wood_override": "also_required_for_wood_six_side_seal" },
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": { "all": "Protect door during transport. Set on padded sawhorses. Verify frame is stable without door. Grand entry: 2-person lift required." }
+        }
+      ]
+    },
+
+    {
+      "module_id": "MOD_DRRP_HARDWARE",
+      "name": "Hardware Removal",
+      "description": "Remove ALL locking hardware, strike plates, hinges (if door not removed), address numbers, and decorative hardware. Hardware removal is MANDATORY for repaint — masking hardware is discouraged because areas beneath hardware must be sealed against moisture. Fixed time per door.",
+      "phase": "setup",
+      "applies_when": {},
+      "required_inputs": [
+        { "input_name": "IN_EA_EXT_DOOR_HARDWARE", "paintscope_key": "PS_EXT_PROTECT_EA.DOOR_HARDWARE", "uom": "EA" }
+      ],
+      "tasks": [
+        {
+          "task_id": "TSK_DRRP_HARDWARE_REMOVE",
+          "name": "Remove All Door Hardware",
+          "description": "Remove lockset, deadbolt, strike plates, hinges (if door not previously removed), address numbers, knocker, peephole, and all decorative hardware. Bag and label all hardware per door. Areas beneath hardware will be cleaned, prepped, and sealed during prep/prime phases.",
+          "task_type": "protect",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "unit_of_measure": "EA",
+          "tools_required": ["screwdriver_set", "hex_wrench_set", "hardware_bags"],
+          "protection_metadata": {
+            "action": "setup",
+            "zones": ["hardware_covers"],
+            "method_dependent": false
+          },
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": { "all": "Bag and label ALL hardware per door. Do NOT mask hardware — removal is the standard. Areas beneath hardware must be accessible for sealing." }
+        }
+      ]
+    },
+
+    {
+      "module_id": "MOD_DRRP_PROTECT",
+      "name": "Protection Setup",
+      "description": "Protection deployment for exterior door work zone. Includes weatherstrip protection, threshold protection, glass masking (panel/grand_entry), ground cover, and siding masking (spray only).",
+      "phase": "setup",
+      "applies_when": {},
+      "required_inputs": [
+        { "input_name": "IN_EA_DOOR_EXT", "paintscope_key": "PS_EXT_OPENING_EA.DOOR_EXT", "uom": "EA" },
+        { "input_name": "IN_EA_EXT_PROTECT_GLASS_DOOR", "paintscope_key": "PS_EXT_PROTECT_EA.GLASS_DOOR", "uom": "EA" },
+        { "input_name": "IN_EA_DOOR_GLASS_LITES", "paintscope_key": "PS_EXT_META.EA.DOOR_GLASS_LITES", "uom": "EA" },
+        { "input_name": "IN_SF_EXT_PROTECT_HARDSCAPE_WALK", "paintscope_key": "PS_EXT_PROTECT_SF.HARDSCAPE_WALK", "uom": "SF" }
+      ],
+      "tasks": [
+        {
+          "task_id": "TSK_DRRP_WEATHERSTRIP_PROTECT",
+          "name": "Weatherstrip Protection",
+          "description": "Pull out friction-fit weatherstripping from door frame groove OR push masking tape deep into gap between jamb and stripping with putty knife. Weatherstrip must NEVER be painted — paint destroys elasticity, causes brittleness and seal tearing. Fixed time per door.",
+          "task_type": "protect",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "unit_of_measure": "EA",
+          "tools_required": ["putty_knife", "masking_tape"],
+          "protection_metadata": {
+            "action": "setup",
+            "zones": ["ext_weatherstrip_protect"],
+            "method_dependent": false
+          },
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": { "all": "NEVER paint weatherstripping. Pull-out preferred over deep-tape. Handle gently to avoid tearing or deforming seal material." }
+        },
+        {
+          "task_id": "TSK_DRRP_THRESHOLD_PROTECT",
+          "name": "Threshold / Sill Plate Protection",
+          "description": "Apply masking tape and paper to door threshold/sill plate to prevent drips and overspray during prep and coating work. Fixed per door.",
+          "task_type": "protect",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "unit_of_measure": "EA",
+          "tools_required": ["masking_tape", "masking_paper"],
+          "protection_metadata": {
+            "action": "setup",
+            "zones": ["ext_threshold_protect"],
+            "method_dependent": false
+          },
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": { "all": "Cover full threshold width. Secure edges to prevent paint seepage. Protect from drips during overhead work on door top edge." }
+        },
+        {
+          "task_id": "TSK_DRRP_GLASS_MASK",
+          "name": "Glass Lite Masking",
+          "description": "Mask each individual glass lite in panel and grand entry door assemblies. Grand entry sidelites and transoms add significant masking scope (4-8 lites per assembly). Masking paper or pre-taped film per lite. Not applicable to slab doors.",
+          "task_type": "protect",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "unit_of_measure": "EA",
+          "tools_required": ["masking_tape", "masking_paper", "masking_film"],
+          "protection_metadata": {
+            "action": "setup",
+            "zones": ["glass_mask"],
+            "method_dependent": false
+          },
+          "applies_when": { "door_complexity": ["panel", "grand_entry"] },
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": { "all": "Count individual lites during assessment. Each lite masked individually. Remove tape within 14 days to prevent adhesive residue on glass." }
+        },
+        {
+          "task_id": "TSK_DRRP_PROTECT_GROUND",
+          "name": "Ground / Hardscape Protection",
+          "description": "Deploy canvas drop cloth under door work zone. Brush: edge-only drop cloth (3-4 ft). Spray on sawhorses: full tarp under sawhorse area. Contain prep debris and paint drips.",
+          "task_type": "protect",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "unit_of_measure": "SF",
+          "tools_required": ["drop_cloth", "tape"],
+          "protection_metadata": {
+            "action": "setup",
+            "zones": ["floor_workzone"],
+            "method_dependent": true
+          },
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": { "all": "Brush: minimum 3 ft from door. Spray: full tarp under sawhorses plus 6 ft perimeter. Secure edges to prevent trip hazard." }
+        },
+        {
+          "task_id": "TSK_DRRP_PROTECT_SIDING",
+          "name": "Siding Masking (Spray Only)",
+          "description": "Mask siding adjacent to door opening with paper/film and tape when using spray application method. Not needed for brush — brush work on doors does not generate siding overspray.",
+          "task_type": "protect",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "unit_of_measure": "EA",
+          "tools_required": ["masking_paper", "masking_film", "masking_tape"],
+          "protection_metadata": {
+            "action": "setup",
+            "zones": ["ext_siding_adjacent"],
+            "method_dependent": true
+          },
+          "applies_when": { "application_method": ["spray"] },
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": { "all": "Paper/film 12-24 inches from door opening edges. Tape at door-siding junction. Ensure no exposed siding within spray fan pattern." }
+        }
+      ]
+    },
+
+    {
+      "module_id": "MOD_DRRP_RRP",
+      "name": "Lead-Safe RRP Containment",
+      "description": "EPA Lead Renovation, Repair, and Painting (RRP) rule compliance. Containment setup, wet scraping methods, HEPA vacuum, lead-safe waste disposal. CONDITIONAL: pre-1978 building with positive or presumed lead paint. Per door where paint disturbance exceeds 2 SF.",
+      "phase": "prep",
+      "applies_when": { "pre_1978": true },
+      "required_inputs": [
+        { "input_name": "IN_BOOL_PRE_1978", "paintscope_key": "PS_EXT_META.FLAG.PRE_1978", "uom": "BOOL" }
+      ],
+      "tasks": [
+        {
+          "task_id": "TSK_DRRP_RRP_CONTAINMENT_SETUP",
+          "name": "RRP Containment Setup",
+          "description": "Deploy 6-mil poly sheeting 10 ft from door work zone per EPA RRP rule. Secure perimeter. Close windows and doors within 20 ft of work area.",
+          "task_type": "protect",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "unit_of_measure": "FIXED",
+          "tools_required": ["poly_sheeting_6mil", "tape", "staple_gun"],
+          "site_condition_rules": {
+            "include_when": { "lead_status": ["tested_positive", "unknown_pre1978"] }
+          },
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": { "all": "EPA RRP requires 10 ft minimum containment perimeter. Seal all seams. No gaps in ground cover. Close or seal all openings within 20 ft of work." }
+        },
+        {
+          "task_id": "TSK_DRRP_RRP_WET_METHOD_PREP",
+          "name": "Wet Method Preparation for Lead Paint",
+          "description": "Set up misting system or hand sprayers for wet scraping. All lead paint disturbance must use wet methods to minimize airborne dust. HEPA vacuum staged at work position.",
+          "task_type": "prep",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "unit_of_measure": "FIXED",
+          "tools_required": ["misting_system", "hepa_vacuum"],
+          "site_condition_rules": {
+            "include_when": { "lead_status": ["tested_positive", "unknown_pre1978"] }
+          },
+          "modifier_when_included": {
+            "lead_status": {
+              "tested_positive": 2.0,
+              "unknown_pre1978": 1.5
+            }
+          },
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": { "all": "Wet methods MANDATORY for lead paint disturbance. Dry scraping is prohibited. HEPA vacuum continuously during scraping." }
+        },
+        {
+          "task_id": "TSK_DRRP_RRP_CONTAINMENT_TEARDOWN",
+          "name": "RRP Containment Teardown & Waste Disposal",
+          "description": "Fold containment inward to capture debris. Bag all waste in labeled 6-mil lead-safe bags. HEPA vacuum entire containment area. Dispose per EPA RRP regulations.",
+          "task_type": "cleanup",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "unit_of_measure": "FIXED",
+          "tools_required": ["hepa_vacuum", "lead_waste_bags"],
+          "site_condition_rules": {
+            "include_when": { "lead_status": ["tested_positive", "unknown_pre1978"] }
+          },
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": { "all": "Fold poly inward — do not shake. HEPA vacuum all horizontal surfaces. Bag, label, and dispose per EPA requirements. Document disposal." }
+        }
+      ]
+    },
+
+    {
+      "module_id": "MOD_DRRP_PREP",
+      "name": "Surface Preparation",
+      "description": "Surface preparation with substrate-material-driven branching. Steel: solvent+TSP clean, sand, rust debridement (if rust state), body filler (dents). Fiberglass: mild soap/alcohol clean ONLY (NO sanding on textured, NO hydrocarbon solvents). Wood: TSP wash, sand, six-side access. All substrates: scrape failing areas, feather-sand edges. Caulk replacement at door-to-frame junction.",
+      "phase": "prep",
+      "applies_when": {},
+      "required_inputs": [
+        { "input_name": "IN_EA_DOOR_EXT", "paintscope_key": "PS_EXT_OPENING_EA.DOOR_EXT", "uom": "EA" },
+        { "input_name": "IN_ENUM_SUBSTRATE_TYPE_DOOR", "paintscope_key": "PS_EXT_META.ENUM.SUBSTRATE_TYPE_DOOR", "uom": "ENUM" },
+        { "input_name": "IN_ENUM_SUBSTRATE_STATE_DOOR", "paintscope_key": "PS_EXT_META.ENUM.SUBSTRATE_STATE_DOOR", "uom": "ENUM" }
+      ],
+      "tasks": [
+        {
+          "task_id": "TSK_DRRP_CLEAN_STEEL",
+          "name": "Clean Steel Door — Solvent + TSP",
+          "description": "Solvent clean (xylene or acetone) to remove grease, oils, and contaminants, followed by TSP detergent wash. Rinse thoroughly. Allow to dry completely before sanding or priming.",
+          "task_type": "prep",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "unit_of_measure": "EA",
+          "tools_required": ["solvent_xylene", "tsp_cleaner", "rags", "bucket"],
+          "applies_when": { "substrate_material": ["steel"] },
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": { "all": "Solvent first to cut grease, then TSP wash to remove all residue. Rinse fully. Dry before next step." }
+        },
+        {
+          "task_id": "TSK_DRRP_CLEAN_FIBERGLASS",
+          "name": "Clean Fiberglass Door — Mild Soap Only",
+          "description": "Clean fiberglass door with mild dish soap or denatured alcohol ONLY. Hydrocarbon-based solvents (xylene, acetone, MEK, lacquer thinner) are STRICTLY PROHIBITED — they damage the fiberglass resin matrix irreversibly.",
+          "task_type": "prep",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "unit_of_measure": "EA",
+          "tools_required": ["mild_soap", "denatured_alcohol", "soft_rags", "bucket"],
+          "applies_when": { "substrate_material": ["fiberglass"] },
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": { "all": "NEVER use hydrocarbon solvents on fiberglass. Mild soap or denatured alcohol only. Wrong solvent = irreversible resin damage." }
+        },
+        {
+          "task_id": "TSK_DRRP_CLEAN_WOOD",
+          "name": "Clean Wood Door — TSP Wash",
+          "description": "Wash wood door with TSP solution to remove dirt, mildew, and contaminants. Light pressure only — do not force water into joints or end grain. Allow 24-48 hr dry time before sanding or coating.",
+          "task_type": "prep",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "unit_of_measure": "EA",
+          "tools_required": ["tsp_cleaner", "scrub_brush", "bucket", "rags"],
+          "applies_when": { "substrate_material": ["wood"] },
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": { "all": "Light pressure only. Avoid forcing water into panel joints and end grain. 24-48 hr dry time before coating." }
+        },
+        {
+          "task_id": "TSK_DRRP_SCRAPE_FEATHER",
+          "name": "Scrape Failing Paint & Feather-Sand Edges",
+          "description": "Remove all loose, flaking, and peeling paint with carbide scrapers. Feather-edge sand ALL scraped areas with 80-120 grit to create smooth transition from existing coating to bare substrate. Feather sanding is MANDATORY at all quality tiers whenever scraping occurs.",
+          "task_type": "prep",
+          "task_classification": "qt_scaled",
+          "skill_level": "journeyman",
+          "unit_of_measure": "EA",
+          "tools_required": ["carbide_scraper", "sandpaper_80", "sandpaper_120", "sanding_block"],
+          "substrate_state_rules": {
+            "applies_when_input_state": ["SS_EXT_FAILING_PAINT"],
+            "skip_when_input_state": ["SS_EXT_SOUND_PAINT"]
+          },
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": {
+            "QT3": "Scrape to solid paint edge. Feather-sand all edges. Smooth transition.",
+            "QT4": "Thorough scrape. Test transition zones. Feather 3-4 inches from paint edge.",
+            "QT5": "Aggressive scrape — remove all questionable adhesion. Feather to imperceptible gradient."
+          }
+        },
+        {
+          "task_id": "TSK_DRRP_SAND_ADHESION",
+          "name": "Adhesion Scuff Sand",
+          "description": "Light scuff sand on intact existing paint to provide adhesion tooth for primer/finish coats. 150-180 grit. Applied to non-scraped areas where existing coating is sound. Do NOT sand textured fiberglass doors — this task skips textured fiberglass.",
+          "task_type": "prep",
+          "task_classification": "qt_scaled",
+          "skill_level": "journeyman",
+          "unit_of_measure": "EA",
+          "tools_required": ["sandpaper_150", "sandpaper_180", "sanding_block"],
+          "applies_when": { "substrate_material": ["steel", "wood"] },
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": {
+            "QT3": "Break gloss on existing finish. Consistent dull appearance.",
+            "QT4": "Full degloss. Uniform scratch pattern. No skipped areas.",
+            "QT5": "Complete degloss. 180-grit for finer scratch pattern compatible with gloss topcoat."
+          }
+        },
+        {
+          "task_id": "TSK_DRRP_RUST_DEBRIDE",
+          "name": "Rust Debridement — SSPC-SP3/SP6",
+          "description": "Remove ALL active rust to bare metal using power tool cleaning (SSPC-SP3) or commercial blast cleaning (SSPC-SP6). Feather rust spot edges with 300-grit until transition is imperceptible. Painting over rust allows continued electrolytic action — debridement is mandatory. Steel doors only.",
+          "task_type": "prep",
+          "task_classification": "qt_scaled",
+          "skill_level": "journeyman",
+          "unit_of_measure": "EA",
+          "tools_required": ["power_sander", "wire_brush_wheel", "sandpaper_80", "sandpaper_300"],
+          "applies_when": { "substrate_material": ["steel"] },
+          "substrate_state_rules": {
+            "applies_when_input_state": ["SS_EXT_SURFACE_RUST"],
+            "skip_when_input_state": ["SS_EXT_SOUND_PAINT", "SS_EXT_FAILING_PAINT"]
+          },
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": {
+            "QT3": "Remove all active rust to bare metal. Feather with 300-grit.",
+            "QT4": "Complete debridement. Probe for underfilm corrosion beyond visible rust. Smooth transition.",
+            "QT5": "Aggressive debridement. No trace of rust. Smooth surface. May require multiple passes with progressive grits."
+          }
+        },
+        {
+          "task_id": "TSK_DRRP_BODY_FILL",
+          "name": "Body Filler — Dent & Imperfection Repair",
+          "description": "Apply 2-component auto-body filler to steel door dents and surface imperfections. Sand with 80-grit to rough shape, then finish-sand with 240/300-grit. Also used at QT5 for surface perfection on any substrate.",
+          "task_type": "prep",
+          "task_classification": "qt_conditional",
+          "skill_level": "journeyman",
+          "unit_of_measure": "EA",
+          "tools_required": ["body_filler_2part", "putty_knife", "sandpaper_80", "sandpaper_240", "sandpaper_300"],
+          "applies_when": { "substrate_material": ["steel"] },
+          "appears_in_tiers": ["QT4", "QT5"],
+          "quality_notes": {
+            "QT4": "Fill visible dents and defects. Finish-sand smooth. Verify with raking light.",
+            "QT5": "Fill ALL imperfections. Mirror-smooth surface. Multiple fill/sand cycles if needed."
+          }
+        },
+        {
+          "task_id": "TSK_DRRP_CAULK_FRAME",
+          "name": "Caulk Door-to-Frame Junction",
+          "description": "Remove failed existing caulk at door-to-frame junction. Clean joint cavity. Apply new paintable exterior-grade caulk (polyurethane or hybrid MS polymer). Tool to concave profile. NEVER use silicone — prevents paint adhesion.",
+          "task_type": "prep",
+          "task_classification": "qt_scaled",
+          "skill_level": "journeyman",
+          "unit_of_measure": "EA",
+          "tools_required": ["caulk_gun", "utility_knife", "caulk_ext_paintable"],
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": {
+            "QT3": "Replace failed caulk. Continuous bead. Tool smooth.",
+            "QT4": "Replace all caulk at junction. Consistent bead width. Clean tool lines.",
+            "QT5": "Complete caulk replacement. Perfect bead. Invisible after painting."
+          }
+        },
+        {
+          "task_id": "TSK_DRRP_SIX_SIDE_SEAL_VERIFY",
+          "name": "Six-Side Seal Verification (Wood Only)",
+          "description": "With door removed from frame, verify all six sides are accessible for coating: front face, back face, hinge edge, latch edge, top edge, bottom edge. Bottom edge end-grain receives extra attention — primary moisture wicking failure point. Manufacturer warranty requires all six sides sealed.",
+          "task_type": "inspect",
+          "task_classification": "binary",
+          "skill_level": "lead",
+          "unit_of_measure": "EA",
+          "tools_required": ["flashlight"],
+          "applies_when": { "substrate_material": ["wood"] },
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": { "all": "All six sides must be accessible. Bottom edge end-grain is highest risk. Document any previously unsealed edges. Door must be off frame for proper access." }
+        },
+        {
+          "task_id": "TSK_DRRP_DUST_REMOVE",
+          "name": "Sanding Dust Removal",
+          "description": "Remove all sanding and prep dust from door surfaces with tack cloth. Critical for adhesion and finish quality. Perform after all sanding and before any coating application.",
+          "task_type": "prep",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "unit_of_measure": "EA",
+          "tools_required": ["tack_cloth"],
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": {
+            "QT3": "Wipe with tack cloth. No visible dust.",
+            "QT4": "Tack cloth all surfaces including edges and panel recesses. No dust nibs.",
+            "QT5": "Multiple tack cloth passes. White-glove clean. Zero dust tolerance."
+          }
+        }
+      ]
+    },
+
+    {
+      "module_id": "MOD_DRRP_PRIME",
+      "name": "Primer Application",
+      "description": "Apply primer per substrate material and substrate state. 5 primer paths: (1) Acrylic DTM for sound/failing factory-primed steel, (2) Zinc-rich epoxy/alkyd for bare/rusted steel, (3) Acrylic etching for galvanized steel, (4) Standard acrylic for wood/fiberglass, (5) Stain-block for tannin-rich wood. Spot prime if sound, full prime if >30% bare or failing. Brush primary; spray conditional.",
+      "phase": "prime",
+      "applies_when": {},
+      "required_inputs": [
+        { "input_name": "IN_EA_DOOR_EXT", "paintscope_key": "PS_EXT_OPENING_EA.DOOR_EXT", "uom": "EA" },
+        { "input_name": "IN_ENUM_SUBSTRATE_TYPE_DOOR", "paintscope_key": "PS_EXT_META.ENUM.SUBSTRATE_TYPE_DOOR", "uom": "ENUM" },
+        { "input_name": "IN_ENUM_SUBSTRATE_STATE_DOOR", "paintscope_key": "PS_EXT_META.ENUM.SUBSTRATE_STATE_DOOR", "uom": "ENUM" }
+      ],
+      "tasks": [
+        {
+          "task_id": "TSK_DRRP_SPOT_PRIME_DTM_BRUSH",
+          "name": "Spot Prime Steel — Acrylic DTM Brush",
+          "description": "Brush-apply acrylic DTM primer to bare/thin areas on factory-primed or sound steel doors. Covers spots where existing coating is thin or scraped. Not for rusted areas — rusted steel requires zinc-rich primer.",
+          "task_type": "prime",
+          "task_classification": "qt_scaled",
+          "skill_level": "journeyman",
+          "unit_of_measure": "EA",
+          "tools_required": ["brush_sash_2in"],
+          "applies_when": { "substrate_material": ["steel"], "application_method": ["brush"] },
+          "substrate_state_rules": {
+            "applies_when_input_state": ["SS_EXT_SOUND_PAINT", "SS_EXT_FAILING_PAINT"],
+            "skip_when_input_state": ["SS_EXT_SURFACE_RUST"]
+          },
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": {
+            "QT3": "Cover all bare areas. Feather into existing coating.",
+            "QT4": "Full coverage of bare areas. Smooth transition at edges.",
+            "QT5": "Full coverage. Even film build. No lap marks."
+          }
+        },
+        {
+          "task_id": "TSK_DRRP_SPOT_PRIME_DTM_SPRAY",
+          "name": "Spot Prime Steel — Acrylic DTM Spray",
+          "description": "Spray-apply acrylic DTM primer to bare/thin areas on factory-primed or sound steel doors. Door must be removed and on sawhorses.",
+          "task_type": "prime",
+          "task_classification": "qt_scaled",
+          "skill_level": "journeyman",
+          "unit_of_measure": "EA",
+          "tools_required": ["airless_sprayer", "spray_tip"],
+          "applies_when": { "substrate_material": ["steel"], "application_method": ["spray"] },
+          "substrate_state_rules": {
+            "applies_when_input_state": ["SS_EXT_SOUND_PAINT", "SS_EXT_FAILING_PAINT"],
+            "skip_when_input_state": ["SS_EXT_SURFACE_RUST"]
+          },
+          "site_condition_rules": {
+            "exclude_when": { "wind_condition": ["high"], "dew_point_risk": ["unsafe"] }
+          },
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": {
+            "QT3": "Even coverage of bare areas.",
+            "QT4": "Uniform mil build. No overspray on intact coating.",
+            "QT5": "Precise spray pattern. Even film build."
+          }
+        },
+        {
+          "task_id": "TSK_DRRP_PRIME_ZINC_BRUSH",
+          "name": "Zinc-Rich Primer on Bare Debrided Steel — Brush",
+          "description": "Brush-apply zinc-rich epoxy or alkyd primer to bare metal areas exposed by rust debridement. Sacrificial barrier primer for corrosion prevention. Apply to bare metal only — do not extend over intact DTM primer. Steel doors with SS_EXT_SURFACE_RUST only.",
+          "task_type": "prime",
+          "task_classification": "qt_scaled",
+          "skill_level": "journeyman",
+          "unit_of_measure": "EA",
+          "tools_required": ["brush_sash_2in"],
+          "applies_when": { "substrate_material": ["steel"], "application_method": ["brush"] },
+          "substrate_state_rules": {
+            "applies_when_input_state": ["SS_EXT_SURFACE_RUST"],
+            "skip_when_input_state": ["SS_EXT_SOUND_PAINT", "SS_EXT_FAILING_PAINT"]
+          },
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": {
+            "QT3": "Full coverage of debrided areas. Even film build on bare metal.",
+            "QT4": "Complete coverage. Uniform film build. Feather into surrounding DTM primer.",
+            "QT5": "Complete coverage. Premium application. Verify no holidays on bare metal."
+          }
+        },
+        {
+          "task_id": "TSK_DRRP_PRIME_ZINC_SPRAY",
+          "name": "Zinc-Rich Primer on Bare Debrided Steel — Spray",
+          "description": "Spray-apply zinc-rich epoxy or alkyd primer to bare metal areas exposed by rust debridement. Door must be removed and on sawhorses.",
+          "task_type": "prime",
+          "task_classification": "qt_scaled",
+          "skill_level": "journeyman",
+          "unit_of_measure": "EA",
+          "tools_required": ["airless_sprayer", "spray_tip"],
+          "applies_when": { "substrate_material": ["steel"], "application_method": ["spray"] },
+          "substrate_state_rules": {
+            "applies_when_input_state": ["SS_EXT_SURFACE_RUST"],
+            "skip_when_input_state": ["SS_EXT_SOUND_PAINT", "SS_EXT_FAILING_PAINT"]
+          },
+          "site_condition_rules": {
+            "exclude_when": { "wind_condition": ["high"], "dew_point_risk": ["unsafe"] }
+          },
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": {
+            "QT3": "Full coverage of debrided areas.",
+            "QT4": "Uniform mil build. Complete coverage.",
+            "QT5": "Premium application. Multiple light passes for even build."
+          }
+        },
+        {
+          "task_id": "TSK_DRRP_PRIME_ACRYLIC_BRUSH",
+          "name": "Prime Wood/Fiberglass — Acrylic Primer Brush",
+          "description": "Brush-apply 100% acrylic exterior primer to bare areas on wood or fiberglass doors. For wood: work primer into grain on bare areas. For fiberglass: 100% acrylic ONLY (oil prohibited). Spot prime if sound, full prime if >30% bare.",
+          "task_type": "prime",
+          "task_classification": "qt_scaled",
+          "skill_level": "journeyman",
+          "unit_of_measure": "EA",
+          "tools_required": ["brush_sash_2in", "brush_sash_3in"],
+          "applies_when": { "substrate_material": ["wood", "fiberglass"], "application_method": ["brush"] },
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": {
+            "QT3": "Cover all bare areas. Work into grain (wood). Even film build.",
+            "QT4": "Full coverage. Uniform mil build. Back-brush grain areas (wood).",
+            "QT5": "Full coverage. Premium application. Back-brush for penetration. Verify no holidays."
+          }
+        },
+        {
+          "task_id": "TSK_DRRP_PRIME_ACRYLIC_SPRAY",
+          "name": "Prime Wood/Fiberglass — Acrylic Primer Spray",
+          "description": "Spray-apply 100% acrylic exterior primer to bare areas on wood or fiberglass doors. Door must be removed and on sawhorses. For fiberglass: 100% acrylic ONLY (oil prohibited).",
+          "task_type": "prime",
+          "task_classification": "qt_scaled",
+          "skill_level": "journeyman",
+          "unit_of_measure": "EA",
+          "tools_required": ["airless_sprayer", "spray_tip"],
+          "applies_when": { "substrate_material": ["wood", "fiberglass"], "application_method": ["spray"] },
+          "site_condition_rules": {
+            "exclude_when": { "wind_condition": ["high"], "dew_point_risk": ["unsafe"] }
+          },
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": {
+            "QT3": "Even coverage. Back-brush bare wood areas.",
+            "QT4": "Uniform mil build. Back-brush all grain areas.",
+            "QT5": "Premium application. Multiple passes. Back-brush for full penetration."
+          }
+        },
+        {
+          "task_id": "TSK_DRRP_PRIME_STAINBLOCK_BRUSH",
+          "name": "Stain-Block Primer — Tannin-Rich Wood Brush",
+          "description": "Brush-apply alkyd or shellac stain-blocking primer on tannin-rich wood doors (cedar, redwood, mahogany). Required when tannin bleed is visible on existing coating or when bare tannin-rich wood is exposed. Overrides standard acrylic primer for these species.",
+          "task_type": "prime",
+          "task_classification": "qt_scaled",
+          "skill_level": "journeyman",
+          "unit_of_measure": "EA",
+          "tools_required": ["brush_sash_3in"],
+          "applies_when": { "substrate_material": ["wood"], "application_method": ["brush"] },
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": {
+            "QT3": "Full coverage of tannin-affected areas. Seal all exposed tannin-rich wood.",
+            "QT4": "Full coverage. Uniform film build. Verify no bleed-through after dry.",
+            "QT5": "Complete coverage. Premium application. Verify seal with test wipe after cure."
+          }
+        },
+        {
+          "task_id": "TSK_DRRP_PRIME_COAT_2",
+          "name": "Second Primer Coat (QT5)",
+          "description": "Apply second coat of primer for QT5 superior quality. Applies to all primer types. Ensures maximum hide and adhesion base for gloss topcoat. Sand lightly between primer coats (180-220 grit).",
+          "task_type": "prime",
+          "task_classification": "qt_conditional",
+          "skill_level": "journeyman",
+          "unit_of_measure": "EA",
+          "tools_required": ["brush_sash_3in", "sandpaper_180", "sandpaper_220"],
+          "appears_in_tiers": ["QT5"],
+          "quality_notes": { "QT5": "Second primer coat. Full coverage. Verify no holidays or thin areas. Sand lightly between primer coats (180-220 grit)." }
+        }
+      ]
+    },
+
+    {
+      "module_id": "MOD_DRRP_INTERSTAGE",
+      "name": "Interstage Sand & Inspect",
+      "description": "Between-coat inspection and light sanding. QT4: sand between finish coats (150-grit). QT5: sand between ALL coats including primer (180-220 grit). Skipped at QT3. Run rule: after each coat EXCEPT the final coat.",
+      "phase": "interstage",
+      "applies_when": { "quality_tier": ["QT4", "QT5"] },
+      "run_rule": "Runs AFTER each coat EXCEPT the final coat",
+      "run_count_formula": "total_coats - 1",
+      "required_inputs": [],
+      "tasks": [
+        {
+          "task_id": "TSK_DRRP_INTERSTAGE_INSPECT",
+          "name": "Between-Coat Inspection",
+          "description": "Inspect previous coat for defects: runs, sags, holidays, dust nibs, brush marks, orange peel. Mark defects for repair before next coat.",
+          "task_type": "inspect",
+          "task_classification": "qt_conditional",
+          "skill_level": "lead",
+          "unit_of_measure": "EA",
+          "appears_in_tiers": ["QT4", "QT5"],
+          "quality_notes": {
+            "QT4": "Visual inspection in natural light. Mark runs, sags, holidays.",
+            "QT5": "Raking light inspection at all angles. Mark ALL defects including dust nibs, brush marks, orange peel. Zero-tolerance at gloss sheen."
+          }
+        },
+        {
+          "task_id": "TSK_DRRP_INTERSTAGE_SAND",
+          "name": "Interstage Light Sand",
+          "description": "Light sand between coats to remove nibs and provide adhesion tooth. 150-grit between finish coats (QT4). 180-220 grit between all coats (QT5). Tack cloth after sanding.",
+          "task_type": "prep",
+          "task_classification": "qt_conditional",
+          "skill_level": "journeyman",
+          "unit_of_measure": "EA",
+          "tools_required": ["sandpaper_150", "sandpaper_180", "sandpaper_220", "tack_cloth"],
+          "appears_in_tiers": ["QT4", "QT5"],
+          "quality_notes": {
+            "QT4": "150-grit between finish coats. Even scratch pattern. Tack cloth after.",
+            "QT5": "180-220 grit between ALL coats. Uniform scratch. Multiple tack cloth passes."
+          }
+        },
+        {
+          "task_id": "TSK_DRRP_INTERSTAGE_SPOT_REPAIR",
+          "name": "Interstage Spot Repair",
+          "description": "Repair defects identified during inspection: sand runs/sags smooth, touch up holidays, re-coat thin areas. Must cure before next full coat.",
+          "task_type": "detail",
+          "task_classification": "qt_conditional",
+          "skill_level": "journeyman",
+          "unit_of_measure": "EA",
+          "tools_required": ["sandpaper_180", "brush_sash_2in"],
+          "appears_in_tiers": ["QT4", "QT5"],
+          "quality_notes": {
+            "QT4": "Sand and touch up marked defects. Feather repairs into surrounding coat.",
+            "QT5": "Repair ALL marked defects. Verify smooth to touch. Re-inspect after repair dries."
+          }
+        }
+      ]
+    },
+
+    {
+      "module_id": "MOD_DRRP_FINISH_1",
+      "name": "First Finish Topcoat",
+      "description": "Apply first finish topcoat to all prepared door surfaces including slab face, frame/jamb, and all edges. 100% acrylic exterior enamel for all substrates. Brush is primary method; spray conditional on door removal. Steel limited to satin or lower per ANSI A250.8.",
+      "phase": "finish",
+      "applies_when": {},
+      "required_inputs": [
+        { "input_name": "IN_EA_DOOR_EXT", "paintscope_key": "PS_EXT_OPENING_EA.DOOR_EXT", "uom": "EA" }
+      ],
+      "tasks": [
+        {
+          "task_id": "TSK_DRRP_FINISH_BRUSH_1",
+          "name": "First Finish Coat — Brush",
+          "description": "Apply first finish topcoat by brush. Work in manageable sections to maintain wet edge. Follow grain direction on wood. Angled sash brush for clean lines at frame junctions. Cover slab face, frame/jamb, and all edges. For wood doors with six-side seal requirement: coat all six sides.",
+          "task_type": "finish",
+          "task_classification": "qt_scaled",
+          "skill_level": "journeyman",
+          "unit_of_measure": "EA",
+          "tools_required": ["brush_sash_2in", "brush_sash_3in"],
+          "applies_when": { "application_method": ["brush"] },
+          "site_condition_rules": {
+            "exclude_when": {
+              "surface_temperature": ["hot_surface"],
+              "dew_point_risk": ["unsafe"]
+            }
+          },
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": {
+            "QT3": "Even coverage. Maintain wet edge. No holidays or thin spots. All edges covered.",
+            "QT4": "Uniform film build. Clean lines at junctions. No lap marks. Semi-gloss reveals all brush technique.",
+            "QT5": "Premium brush technique. Flowed finish — minimal brush marks. Gloss magnifies every imperfection. All six sides on wood."
+          }
+        },
+        {
+          "task_id": "TSK_DRRP_FINISH_SPRAY_1",
+          "name": "First Finish Coat — Spray",
+          "description": "Apply first finish topcoat by airless spray with door removed and on sawhorses. Maintain consistent distance and speed. Spray all faces and edges. No backbrushing needed on doors (unlike wood siding).",
+          "task_type": "finish",
+          "task_classification": "qt_scaled",
+          "skill_level": "journeyman",
+          "unit_of_measure": "EA",
+          "tools_required": ["airless_sprayer", "spray_tip"],
+          "applies_when": { "application_method": ["spray"] },
+          "site_condition_rules": {
+            "exclude_when": {
+              "wind_condition": ["high"],
+              "surface_temperature": ["hot_surface"],
+              "dew_point_risk": ["unsafe"]
+            }
+          },
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": {
+            "QT3": "Even pass. Consistent mil build. All edges and faces covered.",
+            "QT4": "Uniform coverage. No runs or sags. Spray all panel recesses.",
+            "QT5": "Premium spray technique. Multiple light passes for flow. All six sides on wood."
+          }
+        }
+      ]
+    },
+
+    {
+      "module_id": "MOD_DRRP_FINISH_2",
+      "name": "Second Finish Topcoat",
+      "description": "Apply second finish topcoat. All tiers (QT3/QT4/QT5) receive 2 finish coats — doors are fine-finish substrate exposed to weather and daily physical contact. 2 coats mandatory for proper film build and durability.",
+      "phase": "finish",
+      "applies_when": {},
+      "required_inputs": [
+        { "input_name": "IN_EA_DOOR_EXT", "paintscope_key": "PS_EXT_OPENING_EA.DOOR_EXT", "uom": "EA" }
+      ],
+      "tasks": [
+        {
+          "task_id": "TSK_DRRP_FINISH_BRUSH_2",
+          "name": "Second Finish Coat — Brush",
+          "description": "Apply second finish topcoat by brush. Final appearance coat — highest quality attention. Same technique as first coat. Inspect as you go.",
+          "task_type": "finish",
+          "task_classification": "qt_scaled",
+          "skill_level": "journeyman",
+          "unit_of_measure": "EA",
+          "tools_required": ["brush_sash_2in", "brush_sash_3in"],
+          "applies_when": { "application_method": ["brush"] },
+          "site_condition_rules": {
+            "exclude_when": {
+              "surface_temperature": ["hot_surface"],
+              "dew_point_risk": ["unsafe"]
+            }
+          },
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": {
+            "QT3": "Even coverage. Maintain wet edge. Final appearance — inspect as you go.",
+            "QT4": "Uniform film build. Clean lines. Semi-gloss must be flawless.",
+            "QT5": "Premium flowed finish. Near-zero brush marks. Gloss sheen is unforgiving. Fresh brush if needed."
+          }
+        },
+        {
+          "task_id": "TSK_DRRP_FINISH_SPRAY_2",
+          "name": "Second Finish Coat — Spray",
+          "description": "Apply second finish topcoat by airless spray. Final appearance coat. Door on sawhorses. All faces and edges.",
+          "task_type": "finish",
+          "task_classification": "qt_scaled",
+          "skill_level": "journeyman",
+          "unit_of_measure": "EA",
+          "tools_required": ["airless_sprayer", "spray_tip"],
+          "applies_when": { "application_method": ["spray"] },
+          "site_condition_rules": {
+            "exclude_when": {
+              "wind_condition": ["high"],
+              "surface_temperature": ["hot_surface"],
+              "dew_point_risk": ["unsafe"]
+            }
+          },
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": {
+            "QT3": "Even pass. Final appearance coat. All edges.",
+            "QT4": "Uniform coverage. Self-inspect each face.",
+            "QT5": "Premium spray technique. Multiple light passes for flow. Near-zero orange peel."
+          }
+        }
+      ]
+    },
+
+    {
+      "module_id": "MOD_DRRP_REINSTALL",
+      "name": "Hardware Reinstall & Door Rehang",
+      "description": "Reinstall all removed hardware after final coat is dry. Verify alignment and operation. If door was removed: rehang door, adjust hinges, verify proper close. Re-insert weatherstripping. Fixed time per door.",
+      "phase": "cleanup",
+      "applies_when": {},
+      "required_inputs": [
+        { "input_name": "IN_EA_EXT_DOOR_HARDWARE", "paintscope_key": "PS_EXT_PROTECT_EA.DOOR_HARDWARE", "uom": "EA" }
+      ],
+      "tasks": [
+        {
+          "task_id": "TSK_DRRP_DOOR_REHANG",
+          "name": "Rehang Door in Frame",
+          "description": "Rehang door on hinges. Adjust for proper alignment — verify door closes and latches correctly. Check clearances. Grand entry: 2-person lift required. Conditional — only if door was removed.",
+          "task_type": "cleanup",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "unit_of_measure": "EA",
+          "tools_required": ["hinge_pin_punch", "shims"],
+          "applies_when": { "door_removed": true },
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": { "all": "Verify door closes and latches correctly. Check top, bottom, latch-side clearances. No binding or rubbing on fresh paint." }
+        },
+        {
+          "task_id": "TSK_DRRP_HARDWARE_REINSTALL",
+          "name": "Reinstall All Door Hardware",
+          "description": "Reinstall lockset, deadbolt, strike plates, hinges (if not already set during rehang), address numbers, knocker, peephole, and all decorative hardware. Verify operation of all locking mechanisms. Fixed time per door.",
+          "task_type": "cleanup",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "unit_of_measure": "EA",
+          "tools_required": ["screwdriver_set", "hex_wrench_set"],
+          "protection_metadata": {
+            "action": "teardown",
+            "zones": ["hardware_covers"],
+            "method_dependent": false
+          },
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": { "all": "All hardware operational. Lock and latch verified. No scratches on fresh paint during reinstall. Use protective cloth around hardware during insertion." }
+        },
+        {
+          "task_id": "TSK_DRRP_WEATHERSTRIP_REINSTALL",
+          "name": "Weatherstrip Reinstallation",
+          "description": "Re-insert friction-fit weatherstripping into frame groove. Or remove deep-tape masking. Verify seal contact around full door perimeter. Weatherstrip should compress evenly when door is closed.",
+          "task_type": "cleanup",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "unit_of_measure": "EA",
+          "tools_required": ["putty_knife"],
+          "protection_metadata": {
+            "action": "teardown",
+            "zones": ["ext_weatherstrip_protect"],
+            "method_dependent": false
+          },
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": { "all": "Verify full perimeter seal. No gaps. Weatherstrip must compress evenly. Check for paint on weatherstrip — clean if contaminated." }
+        }
+      ]
+    },
+
+    {
+      "module_id": "MOD_DRRP_CLEANUP",
+      "name": "Protection Teardown & Site Cleanup",
+      "description": "Remove all protection, clean equipment, dispose of waste, final inspection and walkthrough. RRP waste handled separately under MOD_DRRP_RRP.",
+      "phase": "cleanup",
+      "applies_when": {},
+      "required_inputs": [],
+      "tasks": [
+        {
+          "task_id": "TSK_DRRP_TEARDOWN_PROTECTION",
+          "name": "Remove Protection — Masking & Ground Cover",
+          "description": "Remove all masking tape, paper, film from glass lites, threshold, and siding. Remove ground cover and drop cloths. Fold and bag debris.",
+          "task_type": "protect",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "unit_of_measure": "FIXED",
+          "tools_required": [],
+          "protection_metadata": {
+            "action": "teardown",
+            "zones": ["glass_mask", "ext_threshold_protect", "floor_workzone", "ext_siding_adjacent"],
+            "method_dependent": false
+          },
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": { "all": "Remove tape carefully — do not pull fresh paint. Remove within 14 days of application. Inspect for adhesive residue on glass." }
+        },
+        {
+          "task_id": "TSK_DRRP_FINAL_INSPECT",
+          "name": "Final Inspection",
+          "description": "Inspect all door surfaces for defects: holidays, runs, sags, lap marks, brush marks, missed areas, inconsistent sheen. Check edges and panel recesses. Verify hardware operation.",
+          "task_type": "inspect",
+          "task_classification": "qt_scaled",
+          "skill_level": "lead",
+          "unit_of_measure": "EA",
+          "tools_required": ["flashlight"],
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": {
+            "QT3": "Visual inspection. Check for holidays, runs, inconsistent coverage. Verify hardware operates.",
+            "QT4": "Close inspection at arm's length. Check lines, transitions, coverage uniformity. Verify all edges coated.",
+            "QT5": "Raking light inspection at all angles. Zero-defect standard for gloss. Every imperfection documented. Verify six-side seal on wood."
+          }
+        },
+        {
+          "task_id": "TSK_DRRP_TOUCHUP",
+          "name": "Touch-Up Defects",
+          "description": "Touch up all defects found during final inspection. Sand runs/sags, re-coat holidays and thin areas. Feather touch-ups into surrounding finish.",
+          "task_type": "detail",
+          "task_classification": "qt_scaled",
+          "skill_level": "journeyman",
+          "unit_of_measure": "EA",
+          "tools_required": ["brush_sash_2in", "sandpaper_180"],
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": {
+            "QT3": "Repair holidays and runs. Blend into surrounding finish.",
+            "QT4": "Repair all marked defects. Invisible repairs required.",
+            "QT5": "Repair all defects. Re-inspect after each repair. May require local re-coat for invisible repair at gloss."
+          }
+        },
+        {
+          "task_id": "TSK_DRRP_CLEAN_EQUIPMENT",
+          "name": "Clean Tools & Equipment",
+          "description": "Clean brushes, spray equipment, scrapers. Store or dispose per material type. Flush sprayer if used.",
+          "task_type": "cleanup",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "unit_of_measure": "FIXED",
+          "tools_required": [],
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": { "all": "Flush sprayer with appropriate cleaner. Clean brushes for reuse or dispose if worn." }
+        },
+        {
+          "task_id": "TSK_DRRP_WASTE_DISPOSAL",
+          "name": "Waste Disposal & Site Cleanup",
+          "description": "Collect and dispose of all waste: used masking, plastic sheeting, paint cans, sandpaper, caulk tubes. Leave site clean. RRP waste handled separately under TSK_DRRP_RRP_CONTAINMENT_TEARDOWN.",
+          "task_type": "cleanup",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "unit_of_measure": "FIXED",
+          "tools_required": [],
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": { "all": "No paint debris on walkways or landscaping. No materials left on site. Customer walkthrough if available." }
+        },
+        {
+          "task_id": "TSK_DRRP_FINAL_WALKTHROUGH",
+          "name": "Final Customer Walkthrough",
+          "description": "Walk completed door work with customer (if available). Demonstrate hardware operation. Point out completed work. Discuss maintenance expectations for exterior door coating.",
+          "task_type": "inspect",
+          "task_classification": "binary",
+          "skill_level": "lead",
+          "unit_of_measure": "FIXED",
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": { "all": "Demonstrate lockset, deadbolt, and weatherstrip function. Document acceptance or punch list items. Provide door maintenance recommendations." }
+        }
+      ]
+    }
+  ],
+
+  "round_configurations": [
+    {
+      "round_id": "ROUND_DRRP_SOUND_QT3",
+      "description": "Sound paint, standard quality: assess, hardware remove, protect, clean, scuff sand, spot prime, 2 finish coats, reinstall, cleanup",
+      "applies_when": { "quality_tier": ["QT3"], "substrate_state": ["SS_EXT_SOUND_PAINT"] },
+      "module_sequence": ["MOD_DRRP_ASSESS", "MOD_DRRP_MOBILIZE", "MOD_DRRP_HARDWARE", "MOD_DRRP_PROTECT", "MOD_DRRP_PREP", "MOD_DRRP_PRIME", "MOD_DRRP_FINISH_1", "MOD_DRRP_FINISH_2", "MOD_DRRP_REINSTALL", "MOD_DRRP_CLEANUP"],
+      "total_coating_passes": 3,
+      "interstage_runs": 0,
+      "notes": "Sound paint at QT3 — minimal prep. Spot prime bare spots only. No interstage. 2 finish coats standard for doors."
+    },
+    {
+      "round_id": "ROUND_DRRP_SOUND_QT4",
+      "description": "Sound paint, premium quality: + interstage sand between finish coats, body filler for dents (steel)",
+      "applies_when": { "quality_tier": ["QT4"], "substrate_state": ["SS_EXT_SOUND_PAINT"] },
+      "module_sequence": ["MOD_DRRP_ASSESS", "MOD_DRRP_MOBILIZE", "MOD_DRRP_HARDWARE", "MOD_DRRP_PROTECT", "MOD_DRRP_PREP", "MOD_DRRP_PRIME", "MOD_DRRP_INTERSTAGE", "MOD_DRRP_FINISH_1", "MOD_DRRP_INTERSTAGE", "MOD_DRRP_FINISH_2", "MOD_DRRP_REINSTALL", "MOD_DRRP_CLEANUP"],
+      "total_coating_passes": 3,
+      "interstage_runs": 2,
+      "notes": "QT4 adds interstage between all coats. Semi-gloss reveals more defects. Body filler for dents on steel."
+    },
+    {
+      "round_id": "ROUND_DRRP_SOUND_QT5",
+      "description": "Sound paint, superior quality: 2-coat primer + interstage between all coats + 2 finish coats",
+      "applies_when": { "quality_tier": ["QT5"], "substrate_state": ["SS_EXT_SOUND_PAINT"] },
+      "module_sequence": ["MOD_DRRP_ASSESS", "MOD_DRRP_MOBILIZE", "MOD_DRRP_HARDWARE", "MOD_DRRP_PROTECT", "MOD_DRRP_PREP", "MOD_DRRP_PRIME", "MOD_DRRP_INTERSTAGE", "MOD_DRRP_PRIME", "MOD_DRRP_INTERSTAGE", "MOD_DRRP_FINISH_1", "MOD_DRRP_INTERSTAGE", "MOD_DRRP_FINISH_2", "MOD_DRRP_REINSTALL", "MOD_DRRP_CLEANUP"],
+      "total_coating_passes": 4,
+      "interstage_runs": 3,
+      "notes": "QT5 adds 2-coat primer + interstage between all coats. Gloss sheen demands flawless surface. Body filler for all imperfections."
+    },
+    {
+      "round_id": "ROUND_DRRP_FAILING",
+      "description": "Failing paint: full scrape + feather sand + spot/full prime + 2 finish coats",
+      "applies_when": { "substrate_state": ["SS_EXT_FAILING_PAINT"] },
+      "module_sequence": ["MOD_DRRP_ASSESS", "MOD_DRRP_MOBILIZE", "MOD_DRRP_HARDWARE", "MOD_DRRP_PROTECT", "MOD_DRRP_PREP", "MOD_DRRP_PRIME", "MOD_DRRP_FINISH_1", "MOD_DRRP_FINISH_2", "MOD_DRRP_REINSTALL", "MOD_DRRP_CLEANUP"],
+      "total_coating_passes": 3,
+      "interstage_runs": 0,
+      "notes": "Failing paint — scrape, feather-sand (MANDATORY), prime bare areas. Full prime if >30% bare. QT4/QT5 add interstage per their standard rules. Interstage runs shown for QT3 base case."
+    },
+    {
+      "round_id": "ROUND_DRRP_RUST_STEEL",
+      "description": "Rusted steel: debridement + body fill + zinc primer on bare metal + DTM on sound areas + 2 finish coats",
+      "applies_when": { "substrate_state": ["SS_EXT_SURFACE_RUST"], "substrate_material": ["steel"] },
+      "module_sequence": ["MOD_DRRP_ASSESS", "MOD_DRRP_MOBILIZE", "MOD_DRRP_HARDWARE", "MOD_DRRP_PROTECT", "MOD_DRRP_PREP", "MOD_DRRP_PRIME", "MOD_DRRP_FINISH_1", "MOD_DRRP_FINISH_2", "MOD_DRRP_REINSTALL", "MOD_DRRP_CLEANUP"],
+      "total_coating_passes": 3,
+      "interstage_runs": 0,
+      "notes": "Steel-only. SSPC debridement to bare metal. Zinc-rich primer on debrided areas. Acrylic DTM on surrounding sound areas. 2 finish coats. QT4/QT5 add interstage. Interstage runs shown for QT3 base case."
+    },
+    {
+      "round_id": "ROUND_DRRP_RESTORATION",
+      "description": "Full restoration: QT5 + grand_entry + failing paint — full strip + body work + multi-coat + six-side seal (wood)",
+      "applies_when": { "quality_tier": ["QT5"], "substrate_state": ["SS_EXT_FAILING_PAINT"], "door_complexity": ["grand_entry"] },
+      "module_sequence": ["MOD_DRRP_ASSESS", "MOD_DRRP_MOBILIZE", "MOD_DRRP_HARDWARE", "MOD_DRRP_PROTECT", "MOD_DRRP_PREP", "MOD_DRRP_PRIME", "MOD_DRRP_INTERSTAGE", "MOD_DRRP_PRIME", "MOD_DRRP_INTERSTAGE", "MOD_DRRP_FINISH_1", "MOD_DRRP_INTERSTAGE", "MOD_DRRP_FINISH_2", "MOD_DRRP_REINSTALL", "MOD_DRRP_CLEANUP"],
+      "total_coating_passes": 4,
+      "interstage_runs": 3,
+      "notes": "Restoration-level work: 12-20 hrs/EA. Grand entry at QT5 with failing paint. Full strip if needed (chemical or heat). Body filler for all imperfections. 2-coat primer + interstage + 2 finish coats. Six-side seal on wood."
+    }
+  ],
+
+  "applicability_rules": [
+    {
+      "rule_id": "AR_DRRP_001",
+      "description": "RRP module conditional on pre-1978 building year",
+      "condition": "IN_BOOL_PRE_1978 == true",
+      "activates": ["MOD_DRRP_RRP"],
+      "notes": "Gate condition for all lead-safe tasks. RRP modifier (2.0x) applies to all prep tasks involving paint disturbance."
+    },
+    {
+      "rule_id": "AR_DRRP_002",
+      "description": "Scrape/feather tasks conditional on failing paint state",
+      "condition": "IN_ENUM_SUBSTRATE_STATE_DOOR == SS_EXT_FAILING_PAINT",
+      "activates": ["TSK_DRRP_SCRAPE_FEATHER"],
+      "notes": "Scraping activated for failing paint. Feather-edge sanding is MANDATORY within this task — non-negotiable."
+    },
+    {
+      "rule_id": "AR_DRRP_003",
+      "description": "Rust debridement conditional on SS_EXT_SURFACE_RUST + steel substrate",
+      "condition": "IN_ENUM_SUBSTRATE_STATE_DOOR == SS_EXT_SURFACE_RUST AND IN_ENUM_SUBSTRATE_TYPE_DOOR == steel",
+      "activates": ["TSK_DRRP_RUST_DEBRIDE", "TSK_DRRP_PRIME_ZINC_BRUSH", "TSK_DRRP_PRIME_ZINC_SPRAY"],
+      "deactivates": ["TSK_DRRP_SPOT_PRIME_DTM_BRUSH", "TSK_DRRP_SPOT_PRIME_DTM_SPRAY"],
+      "notes": "SS_EXT_SURFACE_RUST is steel-only. Zinc-rich primer replaces DTM primer on debrided bare metal areas."
+    },
+    {
+      "rule_id": "AR_DRRP_004",
+      "description": "Interstage module conditional on QT4/QT5",
+      "condition": "quality_tier IN [QT4, QT5]",
+      "activates": ["MOD_DRRP_INTERSTAGE"],
+      "notes": "QT3 has no interstage. QT4 adds between finish coats. QT5 adds between ALL coats."
+    },
+    {
+      "rule_id": "AR_DRRP_005",
+      "description": "Glass masking conditional on panel or grand_entry complexity",
+      "condition": "IN_ENUM_DOOR_COMPLEXITY IN [panel, grand_entry]",
+      "activates": ["TSK_DRRP_GLASS_MASK"],
+      "notes": "Slab doors have no glass lites to mask. Panel doors may have 0-1. Grand entry has 4-8."
+    },
+    {
+      "rule_id": "AR_DRRP_006",
+      "description": "Siding masking conditional on spray application",
+      "condition": "application_method == spray",
+      "activates": ["TSK_DRRP_PROTECT_SIDING"],
+      "notes": "Brush work on doors does not generate overspray onto siding."
+    },
+    {
+      "rule_id": "AR_DRRP_007",
+      "description": "Fiberglass substrate blocks sanding and hydrocarbon solvents",
+      "condition": "IN_ENUM_SUBSTRATE_TYPE_DOOR == fiberglass",
+      "deactivates": ["TSK_DRRP_SAND_ADHESION"],
+      "notes": "Do NOT sand textured fiberglass. Clean with mild soap/denatured alcohol only. Oil-based products prohibited."
+    },
+    {
+      "rule_id": "AR_DRRP_008",
+      "description": "Steel substrate activates steel-specific cleaning and primer tasks",
+      "condition": "IN_ENUM_SUBSTRATE_TYPE_DOOR == steel",
+      "activates": ["TSK_DRRP_CLEAN_STEEL", "TSK_DRRP_SPOT_PRIME_DTM_BRUSH", "TSK_DRRP_SPOT_PRIME_DTM_SPRAY"],
+      "deactivates": ["TSK_DRRP_CLEAN_FIBERGLASS", "TSK_DRRP_CLEAN_WOOD", "TSK_DRRP_PRIME_ACRYLIC_BRUSH", "TSK_DRRP_PRIME_ACRYLIC_SPRAY", "TSK_DRRP_PRIME_STAINBLOCK_BRUSH", "TSK_DRRP_SIX_SIDE_SEAL_VERIFY"],
+      "notes": "Steel cleaning uses solvent+TSP. DTM primer for factory-primed steel. Zinc primer for rusted steel (see AR_DRRP_003)."
+    },
+    {
+      "rule_id": "AR_DRRP_009",
+      "description": "Wood substrate activates wood-specific cleaning, primer, and six-side seal",
+      "condition": "IN_ENUM_SUBSTRATE_TYPE_DOOR == wood",
+      "activates": ["TSK_DRRP_CLEAN_WOOD", "TSK_DRRP_PRIME_ACRYLIC_BRUSH", "TSK_DRRP_PRIME_ACRYLIC_SPRAY", "TSK_DRRP_SIX_SIDE_SEAL_VERIFY"],
+      "deactivates": ["TSK_DRRP_CLEAN_STEEL", "TSK_DRRP_CLEAN_FIBERGLASS", "TSK_DRRP_SPOT_PRIME_DTM_BRUSH", "TSK_DRRP_SPOT_PRIME_DTM_SPRAY", "TSK_DRRP_PRIME_ZINC_BRUSH", "TSK_DRRP_PRIME_ZINC_SPRAY", "TSK_DRRP_RUST_DEBRIDE", "TSK_DRRP_BODY_FILL"],
+      "notes": "Wood uses TSP wash, acrylic primer (or stain-block override for tannin species), and mandatory six-side seal."
+    },
+    {
+      "rule_id": "AR_DRRP_010",
+      "description": "Fiberglass substrate activates fiberglass-specific cleaning and 100% acrylic primer only",
+      "condition": "IN_ENUM_SUBSTRATE_TYPE_DOOR == fiberglass",
+      "activates": ["TSK_DRRP_CLEAN_FIBERGLASS", "TSK_DRRP_PRIME_ACRYLIC_BRUSH", "TSK_DRRP_PRIME_ACRYLIC_SPRAY"],
+      "deactivates": ["TSK_DRRP_CLEAN_STEEL", "TSK_DRRP_CLEAN_WOOD", "TSK_DRRP_SPOT_PRIME_DTM_BRUSH", "TSK_DRRP_SPOT_PRIME_DTM_SPRAY", "TSK_DRRP_PRIME_ZINC_BRUSH", "TSK_DRRP_PRIME_ZINC_SPRAY", "TSK_DRRP_PRIME_STAINBLOCK_BRUSH", "TSK_DRRP_RUST_DEBRIDE", "TSK_DRRP_BODY_FILL", "TSK_DRRP_SIX_SIDE_SEAL_VERIFY"],
+      "notes": "Fiberglass: mild soap/alcohol clean only, 100% acrylic primer only, oil prohibited, no sand on textured, no body filler, no six-side seal."
+    },
+    {
+      "rule_id": "AR_DRRP_011",
+      "description": "Tannin-rich wood overrides standard acrylic primer with stain-block",
+      "condition": "IN_ENUM_SUBSTRATE_TYPE_DOOR == wood AND wood_chemistry == tannin_rich AND bare_wood_exposed == true",
+      "activates": ["TSK_DRRP_PRIME_STAINBLOCK_BRUSH"],
+      "deactivates": ["TSK_DRRP_PRIME_ACRYLIC_BRUSH", "TSK_DRRP_PRIME_ACRYLIC_SPRAY"],
+      "notes": "Alkyd stain-block is non-negotiable on exposed cedar/redwood/mahogany. Latex primer on bare tannin-rich wood WILL bleed."
+    },
+    {
+      "rule_id": "AR_DRRP_012",
+      "description": "Second primer coat conditional on QT5",
+      "condition": "quality_tier == QT5",
+      "activates": ["TSK_DRRP_PRIME_COAT_2"],
+      "notes": "QT5 adds second primer coat for maximum hide and adhesion base under gloss topcoat."
+    },
+    {
+      "rule_id": "AR_DRRP_013",
+      "description": "Spray application blocked in high wind",
+      "condition": "wind_condition == high AND application_method == spray",
+      "action": "BLOCK_SPRAY",
+      "fallback": "brush",
+      "notes": "High wind blocks airless spray. Revert to brush application method."
+    },
+    {
+      "rule_id": "AR_DRRP_014",
+      "description": "Door removal required for spray or wood six-side seal",
+      "condition": "application_method == spray OR (IN_ENUM_SUBSTRATE_TYPE_DOOR == wood AND six_side_seal_required == true)",
+      "activates": ["TSK_DRRP_DOOR_REMOVE", "TSK_DRRP_DOOR_REHANG"],
+      "notes": "Door removal is optional for brush on slab/panel but required for spray (sawhorses) and for wood six-side seal access."
+    }
+  ],
+
+  "assumptions": [
+    {
+      "field": "total_finish_coats",
+      "value": 2,
+      "source": "research.json RF-002, resolution.json MOD_DRRP_FINISH_2 notes",
+      "doctrine_gap": false,
+      "note": "All tiers receive 2 finish coats on exterior doors. Doors are fine-finish substrate requiring full coverage system."
+    },
+    {
+      "field": "hardware_removal_mandatory",
+      "value": true,
+      "source": "research.json RF-003, resolution.json hardware_covers zone notes",
+      "doctrine_gap": false,
+      "note": "Hardware removal is the standard — masking hardware is discouraged. Areas beneath hardware must be sealed."
+    },
+    {
+      "field": "fiberglass_no_sand",
+      "value": true,
+      "source": "research.json RF-009, resolution.json AR notes",
+      "doctrine_gap": false,
+      "note": "Textured fiberglass doors must NOT be sanded. Prep limited to cleaning only."
+    },
+    {
+      "field": "fiberglass_acrylic_only",
+      "value": true,
+      "source": "research.json RF-005, materials.json HARD BLOCKER",
+      "doctrine_gap": false,
+      "note": "Oil-based products (primers AND topcoats) are strictly prohibited on fiberglass doors. 100% acrylic only."
+    },
+    {
+      "field": "six_side_seal_mandatory_wood",
+      "value": true,
+      "source": "research.json RF-008",
+      "doctrine_gap": false,
+      "note": "All six sides of wood doors must be sealed. Door removal required for proper access."
+    },
+    {
+      "field": "ea_based_estimation",
+      "value": true,
+      "source": "resolution.json unit_of_measure notes",
+      "doctrine_gap": false,
+      "note": "All tasks use EA or FIXED UOM. Doors are per-unit work items."
+    },
+    {
+      "field": "qt5_two_coat_primer",
+      "value": true,
+      "source": "resolution.json ROUND_DRRP_SOUND_QT45, research quality_differences",
+      "doctrine_gap": true,
+      "note": "No explicit doctrine coverage — derived from resolution and research. QT5 adds second primer coat for maximum film build under gloss topcoat."
+    }
+  ],
+
+  "exclusions": [
+    {
+      "exclusion_id": "EX_DRRP_001",
+      "description": "Door casing/trim painting",
+      "reason": "Owned by exterior trim spec (SF_TRIM_EXT_RP). This spec covers door slab, frame/jamb, and edges only."
+    },
+    {
+      "exclusion_id": "EX_DRRP_002",
+      "description": "Adjacent siding painting",
+      "reason": "Owned by siding spec. This spec provides siding masking/protection during door spray work only."
+    },
+    {
+      "exclusion_id": "EX_DRRP_003",
+      "description": "Threshold/sill replacement",
+      "reason": "Outside painting scope. Referred to door service or contractor."
+    },
+    {
+      "exclusion_id": "EX_DRRP_004",
+      "description": "Structural door repair (rot, core damage)",
+      "reason": "Outside painting scope. Referred to carpenter/contractor. DSD-4 = HARD STOP."
+    },
+    {
+      "exclusion_id": "EX_DRRP_005",
+      "description": "Weatherstrip replacement",
+      "reason": "Outside painting scope. This spec protects and reinstalls existing weatherstrip only."
+    },
+    {
+      "exclusion_id": "EX_DRRP_006",
+      "description": "Garage doors",
+      "reason": "Separate spec family. Garage doors have different substrate, hardware, and estimation patterns."
+    },
+    {
+      "exclusion_id": "EX_DRRP_007",
+      "description": "Fiberglass stain-grade restaining",
+      "reason": "This is a paint spec. Gel stain + clear topcoat for stain-grade fiberglass doors is a separate scope."
+    }
+  ]
+}

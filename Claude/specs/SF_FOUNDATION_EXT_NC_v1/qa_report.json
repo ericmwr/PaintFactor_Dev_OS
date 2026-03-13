@@ -1,0 +1,265 @@
+{
+  "spec_family_id": "SF_FOUNDATION_EXT_NC",
+  "version": "0.1.0",
+  "generated_by": "System Critic",
+  "generated_at": "2026-03-10",
+  "status": "draft",
+  "review_required": true,
+
+  "overall_result": "pass_with_warnings",
+
+  "summary": "SF_FOUNDATION_EXT_NC_v1 draft artifacts pass all critical doctrine checks with 2 major issues requiring correction. First exterior foundation spec — follows SF_MASONRY_EXT_NC_v1 sibling pattern with foundation-specific departures. 24 tasks thread correctly between sop_modules.json and production.json by task_id (23 binary, 1 qt_scaled per SOP task_summary). All PaintScope keys use PS_EXT_* namespace. Single substrate state SS_EXT_BARE_MASONRY. All protection zones use ext_* prefix. No interior keys, states, or zones present. Key foundation-specific features: block filler module conditional on CMU (PCA P12), alkali-resistant primer mandatory on ALL new foundation (pH 12-14), MC 4% hard stop (stricter than masonry 12%), grade-line gap NEVER caulk rule, oil-based products prohibited, QT2-QT3 only (utilitarian surface), ground-level access only, combined prime+finish single-mobilization spec. 1 factor modifier (FAC_FNDN_FOUNDATION_TYPE poured=1.00, CMU=1.15). Maximum modifier stacking 1.15x — well under 4.0x cap. 4 round configurations covering foundation_type x quality_tier combinations. 2 major issues: task_classification mismatch on TSK_FNDN_PRESSURE_WASH (SOP=binary, production=qt_scaled) and sheen inconsistency between materials.json (acrylic allows satin) and resolution.json (flat only).",
+
+  "artifacts_reviewed": [
+    { "file": "research.json", "status": "reviewed", "human_feedback": "none" },
+    { "file": "resolution.json", "status": "reviewed", "human_feedback": "none" },
+    { "file": "materials.json", "status": "reviewed", "human_feedback": "none" },
+    { "file": "sop_modules.json", "status": "reviewed", "human_feedback": "none" },
+    { "file": "production.json", "status": "reviewed", "human_feedback": "none" },
+    { "file": "spec.json", "status": "not_yet_created", "human_feedback": "n/a" }
+  ],
+
+  "issues": [
+    {
+      "issue_id": "QA-001",
+      "severity": "major",
+      "area": "task_classification",
+      "file": "sop_modules.json vs production.json",
+      "status": "open",
+      "description": "TSK_FNDN_PRESSURE_WASH has task_classification 'binary' in sop_modules.json but is declared 'qt_scaled' with separate qt_rates (QT2: 800 SF/hr, QT3: 600 SF/hr) in production.json. Cross-file threading requires classification to match. The production approach is correct — pressure wash intensity varies by quality tier (QT2 basic rinse vs QT3 thorough wash with TSP) — so sop_modules.json should be updated to qt_scaled.",
+      "suggested_fix": "Change TSK_FNDN_PRESSURE_WASH task_classification from 'binary' to 'qt_scaled' in sop_modules.json. Update the task_summary counts accordingly (22 binary, 2 qt_scaled)."
+    },
+    {
+      "issue_id": "QA-002",
+      "severity": "major",
+      "area": "sheen_consistency",
+      "file": "materials.json vs resolution.json",
+      "status": "open",
+      "description": "SYS_EXT_FNDN_FINISH_ACRYLIC in materials.json declares allowed_sheens as ['flat', 'satin'], but resolution.json applicable_enums.sheen restricts values to ['flat'] only with the note 'Foundation is utilitarian — never decorative sheen.' Research quality_differences also describe flat/matte only. The resolution is the governing authority for enum values.",
+      "suggested_fix": "Either (a) remove 'satin' from SYS_EXT_FNDN_FINISH_ACRYLIC.allowed_sheens in materials.json to align with resolution.json, or (b) add 'satin' to resolution.json applicable_enums.sheen if QT3 showcase elevation warrants satin option. Option (a) is recommended — foundation is utilitarian."
+    },
+    {
+      "issue_id": "QA-003",
+      "severity": "minor",
+      "area": "task_classification",
+      "file": "sop_modules.json vs production.json",
+      "status": "acknowledged",
+      "description": "TSK_FNDN_TOUCHUP is declared 'qt_scaled' in sop_modules.json with QT-varying quality_notes, but production.json uses a flat rate_per_hour (75 SF/hr) without qt_rates differentiation. This means the engine will apply the same rate regardless of quality tier, making the qt_scaled classification effectively unused. The SOP correctly notes different quality expectations by tier but production rates are not differentiated.",
+      "suggested_fix": "Either (a) add qt_rates to TSK_FNDN_TOUCHUP in production.json (e.g., QT2: 100 SF/hr for quick fixes, QT3: 65 SF/hr for thorough touch-up), or (b) change task_classification to 'binary' in sop_modules.json and update task_summary counts. Option (a) is preferred — touch-up effort does vary by quality tier."
+    },
+    {
+      "issue_id": "QA-004",
+      "severity": "minor",
+      "area": "consumable_category",
+      "file": "materials.json",
+      "status": "acknowledged",
+      "description": "CON_FNDN_HYDRAULIC_CEMENT uses consumable_category 'fill_material' which is not listed in resolution.json applicable_enums.consumable_category (which lists: applicator, protection, prep, cleanup, tool). The 'fill_material' category does not appear in the controlled_enums approved set.",
+      "suggested_fix": "Change CON_FNDN_HYDRAULIC_CEMENT consumable_category to 'prep' (hydraulic cement is a prep-phase consumable for patching). Alternatively, propose 'fill_material' as a new consumable_category in controlled_enums.json if the distinction is meaningful."
+    },
+    {
+      "issue_id": "QA-005",
+      "severity": "minor",
+      "area": "task_type",
+      "file": "sop_modules.json",
+      "status": "acknowledged",
+      "description": "TSK_FNDN_TOUCHUP uses task_type 'detail' which is not in the resolution.json applicable_enums.task_type list (prep, prime, finish, apply, protect, inspect, cleanup). The 'detail' task_type is not in the approved set.",
+      "suggested_fix": "Change TSK_FNDN_TOUCHUP task_type to 'finish' (touch-up is a finish-phase activity) or 'inspect' (paired with inspection). 'finish' is recommended."
+    }
+  ],
+
+  "blockers": [],
+
+  "doctrine_checks": [
+    {
+      "check": "THREADING-1: Task ID Completeness",
+      "result": "pass",
+      "details": "All 24 task_ids in sop_modules.json have matching entries in production.json. No orphaned tasks in either direction. Count by module: SETUP=3, PREP=7, BLOCK_FILL=2, PRIME=3, FINISH=5, FINAL_INSPECT=2, CLEANUP=2. Total: 24 in both files."
+    },
+    {
+      "check": "THREADING-2: task_classification Match",
+      "result": "fail_major",
+      "details": "TSK_FNDN_PRESSURE_WASH: sop_modules.json says 'binary', production.json says 'qt_scaled' with QT2/QT3 rate differentiation. TSK_FNDN_TOUCHUP: sop_modules.json says 'qt_scaled' but production.json uses flat rate_per_hour without qt_rates. See QA-001 and QA-003."
+    },
+    {
+      "check": "THREADING-3: applies_when Consistency",
+      "result": "pass",
+      "details": "Application method gating consistent between files: spray tasks gate on [spray], roll on [roll], brush on [brush]. Block filler module gates on foundation_type [CMU]. Form-release removal gates on foundation_type [poured]. Bug hole patch gates on foundation_type [poured]. Efflorescence treatment gates on site_condition. All applies_when conditions match between sop_modules.json and production.json."
+    },
+    {
+      "check": "THREADING-4: UOM Match",
+      "result": "pass",
+      "details": "All 24 task UOMs match between sop_modules.json and production.json. SF-based: 15 tasks (form-release, efflorescence, pressure wash, surface profile, block fill x2, prime x3, finish x5, touchup). LF-based: 2 tasks (landscape protect, crack patch). EA-based: 1 task (bug hole patch). FIXED: 4 tasks (moisture test, final inspect, protect teardown, tool clean). SF-conditional: hardscape walk, hardscape patio."
+    },
+    {
+      "check": "THREADING-5: Task Prefix",
+      "result": "pass",
+      "details": "All 24 task IDs use TSK_FNDN_ prefix consistently. No collisions with existing prefixes (MSRY, SDNG, FCSD, etc.). FNDN is unique per resolution.json collision check."
+    },
+    {
+      "check": "THREADING-6: Module Prefix",
+      "result": "pass",
+      "details": "All 7 module IDs use MOD_FNDN_ prefix: SETUP, PREP, BLOCK_FILL, PRIME, FINISH, FINAL_INSPECT, CLEANUP. No prefix collisions."
+    },
+    {
+      "check": "EXT-1: Key Namespace Integrity",
+      "result": "pass",
+      "details": "All paintscope_key references use PS_EXT_* namespace. 6 PS keys declared in resolution.json: PS_EXT_SURFACE_SF.FOUNDATION_WALL, PS_EXT_META.FLAG.NEW_CONSTRUCTION, PS_EXT_META.ENUM.FOUNDATION_TYPE, PS_EXT_PROTECT_LF.LANDSCAPE_PERIMETER, PS_EXT_PROTECT_SF.HARDSCAPE_WALK, PS_EXT_PROTECT_SF.HARDSCAPE_PATIO. No interior keys found. All PS keys referenced in production.json match resolution declarations."
+    },
+    {
+      "check": "EXT-2: Substrate State Validity",
+      "result": "pass",
+      "details": "All substrate states use SS_EXT_* prefix. 1 input state: SS_EXT_BARE_MASONRY. 1 output state: SS_EXT_PAINTED_FLAT. No SS_INT_* or bare SS_ IDs. No factory-primed state — correctly excluded (no factory-primed foundation exists). SS_EXT_BARE_MASONRY shared with masonry wall spec."
+    },
+    {
+      "check": "EXT-3: Protection Zone Integrity",
+      "result": "pass",
+      "details": "All 3 protection zones use ext_* prefix: ext_landscape_perimeter, ext_hardscape_walk, ext_hardscape_patio. No interior zone IDs. Siding/trim protection correctly excluded per cross-spec boundary (owned by respective specs). Foundation is a LOW protection spec — ground-level, limited overspray risk."
+    },
+    {
+      "check": "EXT-4: Exterior Factor Keys",
+      "result": "pass",
+      "details": "FAC_FNDN_FOUNDATION_TYPE declared with 2 values (poured=1.00, CMU=1.15). No FAC_EXT_ACCESS applied — correctly excluded per research (ground-level access only, no height modifier). No interior modifiers present. Single modifier is the simplest exterior modifier set of any spec."
+    },
+    {
+      "check": "EXT-5: Modifier Math",
+      "result": "pass",
+      "details": "Single modifier FAC_FNDN_FOUNDATION_TYPE uses division formula: effective_rate = base_rate / modifier. Maximum stacking 1.15x (CMU) — well under 4.0x cap. 4 stacking examples provided in production.json, all producing credible effective rates (122-650 SF/hr range). No modifier stacking risk."
+    },
+    {
+      "check": "FNDN-1: MC 4% Hard Stop",
+      "result": "pass",
+      "details": "TSK_FNDN_MOISTURE_TEST in MOD_FNDN_PREP is a mandatory prep task with FIXED time (20 min). Compatibility rule COMPAT-FNDN-002 declares MC > 4% as HARD STOP. Research RF-006 documents the 4% maximum — stricter than masonry wall (12%) due to continuous ground contact and capillary moisture rise. SOP critical_warnings includes MC <= 4% hard stop. Materials.json compatibility_rules includes MC 4% rule as critical severity."
+    },
+    {
+      "check": "FNDN-2: Grade-Line Gap Rule",
+      "result": "pass",
+      "details": "NEVER caulk the siding-to-foundation gap is enforced at multiple levels: research.json RF-007 and FM-002 document the failure mode. Resolution.json CR-001 (critical severity). Materials.json COMPAT-FNDN-003 (critical severity). SOP critical_warnings in MOD_FNDN_PREP. TSK_FNDN_FINISH_BRUSH_DETAIL quality_notes remind to mask, not fill. Multiple reinforcement points across all artifacts."
+    },
+    {
+      "check": "FNDN-3: Oil-Based Prohibition",
+      "result": "pass",
+      "details": "Materials.json COMPAT-FNDN-001 explicitly prohibits oil-based and alkyd products on alkaline concrete/CMU (critical severity). Resolution.json CR-003 documents the rule. Research RF-008 and KD-010 confirm. All material systems are water-based (acrylic latex, cementitious). No oil-based product references in any artifact."
+    },
+    {
+      "check": "FNDN-4: CSP Matching",
+      "result": "pass",
+      "details": "TSK_FNDN_SURFACE_PROFILE task verifies CSP 1-2 for thin cosmetic coating (<10 mils DFT). Materials.json COMPAT-FNDN-004 (major severity) documents CSP-to-coating-thickness matching. Research RF-003 cites 83% failure mode statistic. SOP task description specifies CSP 1-2 target."
+    },
+    {
+      "check": "FNDN-5: Block Filler CMU-Only",
+      "result": "pass",
+      "details": "MOD_FNDN_BLOCK_FILL module gates on foundation_type [CMU] in applies_when. Both block fill tasks (TSK_FNDN_BLOCK_FILL_SPRAY, TSK_FNDN_BLOCK_FILL_ROLL) correctly appear only in this CMU-gated module. Block filler is phase=prep (substrate preparation, not primer). Separate module between PREP and PRIME — correct sequencing. SYS_EXT_FNDN_BLOCK_FILLER in materials.json also gates on foundation_type [CMU]. PCA P12 Level 2 standard referenced consistently."
+    },
+    {
+      "check": "FNDN-6: Alkali-Resistant Primer Mandatory",
+      "result": "pass",
+      "details": "SYS_EXT_FNDN_PRIMER_ALKALI is the ONLY primer system — no standard acrylic primer path exists. All quality tiers (QT2, QT3) use alkali-resistant primer. Research RF-002 documents pH 12-14 alkalinity. Resolution CR-003 + materials COMPAT-FNDN-001 prohibit standard primer substitution. All 3 prime tasks reference SYS_EXT_FNDN_PRIMER_ALKALI in substrate_state_rules."
+    },
+    {
+      "check": "FNDN-7: QT2-QT3 Only (No QT4/QT5)",
+      "result": "pass",
+      "details": "Resolution.json applicable_enums.quality_tier declares QT2 and QT3 only with QT4/QT5 explicitly prohibited. Research KD-002 documents rationale (utilitarian surface). All material systems declare quality_tier [QT2, QT3]. All SOP tasks declare appears_in_tiers [QT2, QT3]. No QT4 or QT5 references found in any artifact. Round configurations cover QT2 and QT3 only."
+    },
+    {
+      "check": "ENUM-1: Convention Compliance",
+      "result": "pass",
+      "details": "All enums comply with project conventions: CON_ prefix (not CONS_) on all consumables, task_classification (not task_class), severity uses critical/major/minor (not high/medium/low/WARN), phase values from approved set (setup/prep/prime/finish/cleanup — no 'protect' or 'protection' phase), all units uppercase (EA, SF, LF, FIXED, ROLL — not each/sheet/tip), zone IDs use ext_* prefix, sheen is single value only (flat — no compound sheens)."
+    },
+    {
+      "check": "COMPLETENESS-1: Material System IDs Consistent",
+      "result": "pass",
+      "details": "4 material systems declared in materials.json: SYS_EXT_FNDN_PRIMER_ALKALI, SYS_EXT_FNDN_BLOCK_FILLER, SYS_EXT_FNDN_FINISH_ACRYLIC, SYS_EXT_FNDN_FINISH_CEMENTITIOUS. All 4 match proposed systems in resolution.json material_system_prefix.proposed_systems. System IDs referenced in SOP tasks match materials.json declarations. Coverage profiles in materials.json reference correct system IDs."
+    },
+    {
+      "check": "COMPLETENESS-2: Protection Zones",
+      "result": "pass",
+      "details": "3 protection zones declared in resolution.json with conditions, protection_levels, and paintscope_key mappings. All zones referenced in sop_modules.json (setup tasks in SETUP module with protection_metadata.zones, teardown in CLEANUP module). Materials.json protection_materials section maps each zone to consumable IDs and PS keys."
+    },
+    {
+      "check": "COMPLETENESS-3: Round Configurations",
+      "result": "pass",
+      "details": "4 round configurations declared in sop_modules.json: ROUND_FNDN_PRIME_1FINISH (poured/QT2, 2 coats), ROUND_FNDN_PRIME_2FINISH (poured/QT3, 3 coats), ROUND_FNDN_BLOCKFILL_PRIME_1FINISH (CMU/QT2, 3 coats), ROUND_FNDN_BLOCKFILL_PRIME_2FINISH (CMU/QT3, 4 coats). Covers all foundation_type x quality_tier combinations. Matches resolution.json proposed configurations exactly."
+    },
+    {
+      "check": "COMPLETENESS-4: Module Phase Order",
+      "result": "pass",
+      "details": "Module phase sequence: setup (SETUP) -> prep (PREP, BLOCK_FILL) -> prime (PRIME) -> finish (FINISH) -> cleanup (FINAL_INSPECT, CLEANUP). Block filler is phase=prep — correct (substrate preparation, not coating). No interstage module — correctly excluded (QT2-QT3 only, no intercoat sanding warranted). Phase ordering follows structural_keys convention."
+    },
+    {
+      "check": "COMPLETENESS-5: Input Declarations",
+      "result": "pass",
+      "details": "6 input declarations in resolution.json with paintscope_key mappings: 1 required surface input (IN_SF_FOUNDATION_WALL), 1 required meta flag (IN_BOOL_NEW_CONSTRUCTION), 1 config enum (IN_ENUM_FOUNDATION_TYPE), 3 protection inputs (landscape LF, hardscape walk SF, hardscape patio SF). All inputs consumed by sop_modules.json required_inputs or production.json required_input_key references."
+    },
+    {
+      "check": "COMPLETENESS-6: Cross-Spec Boundaries",
+      "result": "pass",
+      "details": "Research adjacency_analysis documents 3 adjacent surfaces (ext_siding_field, grade_line_soil, ext_trim_water_table) — all with edge_work_required=false. Foundation has NO edge work within this spec. Siding/trim protection above foundation is NOT this spec's responsibility. Cross_spec_coordination in resolution.json declares no xspec_flags needed. Cleanest cross-spec boundary of any spec."
+    }
+  ],
+
+  "exterior_validation_summary": {
+    "first_exterior_spec": false,
+    "sibling_spec": "SF_MASONRY_EXT_NC_v1",
+    "domain_dispatch_activated": true,
+    "interior_contamination": "none — no interior keys, states, or zones found",
+    "research_corrections_applied": 7,
+    "user_corrections_applied": 0,
+    "key_departures_from_masonry_sibling": [
+      "QT2-QT3 only — masonry allows QT2-QT4 (foundation is utilitarian, not decorative)",
+      "MC 4% hard stop — stricter than masonry 12% due to continuous ground contact and capillary moisture rise",
+      "Single modifier (FAC_FNDN_FOUNDATION_TYPE poured/CMU) vs masonry 3 modifiers (substrate_type 5-value, coating_system, access)",
+      "No FAC_EXT_ACCESS modifier — foundation is always ground-level (masonry walls may require ladder/scaffold/lift)",
+      "Spray-only IS valid on poured concrete — masonry PROHIBITS spray-only (requires spray_backroll)",
+      "No elastomeric coating system — masonry has acrylic/elastomeric dual branch",
+      "No interstage module — masonry has interstage for QT3/QT4",
+      "No environmental modifiers — masonry includes wind/sun/surface_temp as process constraints",
+      "Combined prime+finish spec (single mobilization) — masonry also combined but larger scope",
+      "2 foundation types (poured/CMU) vs masonry 5 substrate types (brick_smooth/brick_rough/CMU/concrete/limestone)",
+      "3 protection zones vs masonry 5 (no light fixture or HVAC unit zones)",
+      "7 modules vs masonry 9 (no interstage or finish_2 module)",
+      "24 tasks vs masonry 31 — smaller, simpler spec reflecting utilitarian scope",
+      "Grade-line gap NEVER caulk rule — unique to foundation (critical failure mode)",
+      "Flat sheen only — masonry allows flat/satin"
+    ]
+  },
+
+  "task_cross_reference": {
+    "total_sop_tasks": 24,
+    "total_production_rates": 24,
+    "orphaned_in_sop": 0,
+    "orphaned_in_production": 0,
+    "classification_mismatches": 2,
+    "classification_mismatch_details": [
+      "TSK_FNDN_PRESSURE_WASH: SOP=binary, production=qt_scaled (QA-001)",
+      "TSK_FNDN_TOUCHUP: SOP=qt_scaled, production=flat rate (QA-003)"
+    ],
+    "uom_mismatches": 0,
+    "applies_when_mismatches": 0
+  },
+
+  "modifier_stacking_validation": {
+    "max_theoretical_stack": 1.15,
+    "stacking_cap": 4.0,
+    "within_cap": true,
+    "worst_case_scenario": "CMU (1.15) — single modifier, no stacking",
+    "worst_case_effective_rate": "122 SF/hr — cementitious roll on CMU at ground level",
+    "notes": "Simplest modifier profile of any exterior spec. Single modifier with max 1.15x. No access, coating, or environmental modifiers. Well under 4.0x cap — no stacking risk."
+  },
+
+  "material_system_validation": {
+    "specialty_systems": 1,
+    "primer_systems": 1,
+    "finish_systems": 2,
+    "total_systems": 4,
+    "coverage_profiles": 4,
+    "consumables": 12,
+    "compatibility_rules": 4,
+    "all_systems_have_quality_tier": true,
+    "all_systems_have_substrate_routing": true,
+    "no_oil_based_products": true,
+    "alkali_resistant_primer_only": true,
+    "block_filler_cmu_gated": true,
+    "cementitious_flat_only": true,
+    "sheen_inconsistency_noted": "QA-002 — acrylic finish allows satin in materials.json but resolution restricts to flat only"
+  }
+}

@@ -1,0 +1,227 @@
+{
+  "spec_family_id": "SF_TRIM_EXT_NC",
+  "version": "0.1.0",
+  "generated_by": "System Critic",
+  "generated_at": "2026-03-09",
+  "status": "draft",
+  "review_required": true,
+
+  "overall_result": "pass_with_warnings",
+
+  "summary": "SF_TRIM_EXT_NC_v1 draft artifacts pass all critical and major doctrine checks. Third exterior spec — follows SF_SIDING_FIBERCEMENT_EXT_NC_v1 and SF_WOOD_SIDING_EXT_NC_PAINT_v1 structural patterns with trim-specific departures. 31 tasks (19 binary, 10 qt_scaled, 2 qt_conditional) across 9 modules thread correctly between sop_modules.json and production.json. All 8 PS_EXT_EDGE_LF keys present and correctly mapped. All substrate states use SS_EXT_* prefix. All 6 protection zones use ext_* prefix. No interior keys, states, or zones present. Key departures from siding siblings: LF-based measurement (not SF) per PCA P10 one-foot rule, 8 paintable items (multi-item spec), brush is PRIMARY method (spray secondary — opposite of siding), caulk module sequenced AFTER prime (RC-003), glass masking owned by this spec (RC-002), 3 substrate materials (wood/PVC/composite) with distinct primer paths, trim-specific height modifiers (1.30/1.60/1.90/2.20) more aggressive than general FAC_EXT_ACCESS. QT3-QT5 range (no QT2). Maximum modifier stacking reaches 5.57x (exceeds 4.0x cap) in extreme scenario — properly flagged for hourly billing. PVC solar-reflective hard stop correctly enforced. 2 warnings, 0 blockers.",
+
+  "artifacts_reviewed": [
+    { "file": "research.json", "status": "reviewed", "human_feedback": "no" },
+    { "file": "resolution.json", "status": "reviewed", "human_feedback": "no" },
+    { "file": "materials.json", "status": "reviewed", "human_feedback": "no" },
+    { "file": "sop_modules.json", "status": "reviewed", "human_feedback": "no" },
+    { "file": "production.json", "status": "reviewed", "human_feedback": "no" },
+    { "file": "spec.json", "status": "not_yet_created", "human_feedback": "n/a" }
+  ],
+
+  "issues": [
+    {
+      "issue_id": "QA-001",
+      "severity": "minor",
+      "area": "modifier_stacking",
+      "file": "production.json",
+      "status": "acknowledged",
+      "description": "Maximum modifier stacking scenario (19ft height + built_up profile + PVC substrate + full sun + moderate wind) produces combined modifier of 5.57x, exceeding the 4.0x stacking cap. At QT5 base rate of 30 LF/hr, effective rate would be 5.4 LF/hr.",
+      "resolution": "Acknowledged — production.json already documents this extreme scenario in modifier_stacking_examples and correctly recommends hourly billing or phase-breaking for this combination. This extreme stack is rare (three-story custom home, cornice detail, PVC, adverse weather). No code fix needed — estimation engine should enforce 4.0x cap with hourly billing flag.",
+      "resolved_date": "2026-03-09"
+    },
+    {
+      "issue_id": "QA-002",
+      "severity": "minor",
+      "area": "cross_spec_deduplication",
+      "file": "sop_modules.json",
+      "status": "acknowledged",
+      "description": "Trim-to-siding joint caulking (TSK_XTRM_CAULK_JOINTS) may overlap with siding spec caulk tasks at trim-siding junctions. Resolution.json cross_spec_coordination notes this deduplication need (RC-008), but no formal xspec_flag or comp_modifier mechanism is declared to enforce it at estimation engine level.",
+      "resolution": "Acknowledged — deduplication is a project assembly concern, not a spec-level concern. The estimation engine must handle cross-spec caulk overlap at project assembly per RC-008. No spec-level fix available. Flagged as doctrine gap in sop_modules.json assumptions.",
+      "resolved_date": "2026-03-09"
+    }
+  ],
+
+  "blockers": [],
+
+  "doctrine_checks": [
+    {
+      "check": "CROSS-FILE: Task ID 1:1 Threading",
+      "result": "pass",
+      "details": "All 31 task IDs in sop_modules.json have matching entries in production.json, and vice versa. No orphaned tasks in either file. All task IDs use TSK_XTRM_ prefix per resolution.json task_prefix."
+    },
+    {
+      "check": "CROSS-FILE: task_classification Match",
+      "result": "pass",
+      "details": "All 10 qt_scaled tasks match between files (CAULK_JOINTS, CAULK_CASINGS, FINISH_BRUSH_1, FINISH_SPRAY_1, INSPECT_COAT, TOUCHUP_INTERCOAT, FINISH_BRUSH_2, FINISH_SPRAY_2, FINAL_INSPECT, FINAL_TOUCHUP). Both qt_conditional tasks match (SAND_INTERCOAT, DUST_INTERCOAT with appears_in_tiers QT4/QT5). 19 binary tasks implicit in production.json by rate_per_hour or fixed_time_minutes — consistent with sibling spec pattern."
+    },
+    {
+      "check": "CROSS-FILE: UOM Match",
+      "result": "pass",
+      "details": "All task UOMs match between files. LF-based production tasks: 21 tasks. EA-based: 5 tasks (glass mask window/door, fixture mask, edge seal composite, spot prime knots). SF-based: 2 tasks (landscape/hardscape protect). FIXED: 3 tasks (equipment setup brush/spray, protect teardown, clean equipment, site cleanup — 5 FIXED total). No SF-rate on trim surface tasks — correctly LF throughout."
+    },
+    {
+      "check": "CROSS-FILE: Module IDs",
+      "result": "pass",
+      "details": "All 9 module IDs use MOD_XTRM_ prefix: MOD_XTRM_SETUP (8 tasks), MOD_XTRM_PREP (6 tasks), MOD_XTRM_PRIME (2 tasks), MOD_XTRM_CAULK (2 tasks), MOD_XTRM_FINISH_1 (2 tasks), MOD_XTRM_INTERSTAGE (4 tasks), MOD_XTRM_FINISH_2 (2 tasks), MOD_XTRM_FINAL_INSPECT (2 tasks), MOD_XTRM_CLEANUP (3 tasks). Total: 31 tasks."
+    },
+    {
+      "check": "CROSS-FILE: applies_when Consistency",
+      "result": "pass",
+      "details": "Substrate material conditions (wood/pvc/composite) consistent between sop_modules.json task applies_when and production.json applies_when. Application method conditions (brush/spray) consistent. Substrate state rules (SS_EXT_BARE_WOOD required/SS_EXT_PRIMED_FIELD excluded) consistent."
+    },
+    {
+      "check": "CROSS-FILE: Phase Sequence",
+      "result": "pass",
+      "details": "Module phase sequence: setup -> prep -> prime -> prep (caulk) -> finish -> interstage -> finish -> cleanup -> cleanup. Caulk module correctly uses phase='prep' but is sequenced AFTER prime module per RC-003. Round configurations document the correct phase_sequence."
+    },
+    {
+      "check": "EXT-1: Key Namespace Integrity",
+      "result": "pass",
+      "details": "All 16 PaintScope key references use PS_EXT_* namespace. 8 trim surface keys (PS_EXT_EDGE_LF.*), 5 protection keys (PS_EXT_PROTECT_SF.* and PS_EXT_PROTECT_EA.*), 3 meta keys (PS_EXT_META.*). No interior PS_INT_* or bare PS_ keys found."
+    },
+    {
+      "check": "EXT-2: Substrate State Validity",
+      "result": "pass",
+      "details": "All substrate states use SS_EXT_* prefix. 2 input states: SS_EXT_BARE_WOOD, SS_EXT_PRIMED_FIELD. 3 output states: SS_EXT_PAINTED_SATIN, SS_EXT_PAINTED_SEMIGLOSS, SS_EXT_PAINTED_GLOSS (proposed new state). No SS_INT_* or bare SS_ IDs."
+    },
+    {
+      "check": "EXT-3: Protection Zone Integrity",
+      "result": "pass",
+      "details": "All 6 protection zones use ext_* prefix: ext_landscape_adjacent, ext_hardscape_walk, ext_window_glass_adjacent, ext_door_glass_adjacent, ext_light_fixture, ext_siding_adjacent. No interior zone IDs. Window/door glass zones correctly OWNED by this trim spec per RC-002."
+    },
+    {
+      "check": "EXT-4: Site Condition Rules",
+      "result": "pass",
+      "details": "Exterior-specific site conditions present: wind_condition (spray tasks blocked in high wind), dew_point_risk (coating tasks excluded when unsafe). Environmental conditions INCLUDED as estimation modifiers (FAC_EXT_WIND, FAC_EXT_SUN_EXPOSURE, FAC_EXT_SURFACE_TEMP) — correctly different from fiber cement siding which excluded them per RC-003. Trim brush work is more sensitive to environmental conditions than spray siding."
+    },
+    {
+      "check": "EXT-5: Exterior Factor Keys",
+      "result": "pass",
+      "details": "8 factor modifiers declared, all with correct exterior namespace: FAC_EXT_ACCESS (general access for protection tasks), FAC_XTRM_HEIGHT_TIER (trim-specific height tiers 1.30/1.60/1.90/2.20), FAC_XTRM_PROFILE_COMPLEXITY (standard/crown/built_up), FAC_QT (quality tier on binary tasks), FAC_XTRM_SUBSTRATE (wood/composite/pvc), FAC_EXT_WIND, FAC_EXT_SUN_EXPOSURE, FAC_EXT_SURFACE_TEMP, FAC_EXT_SUBSTRATE_CONDITION. No interior FAC_HEIGHT or generic naming."
+    },
+    {
+      "check": "EXT-6: Modifier Math",
+      "result": "pass_with_note",
+      "details": "All modifiers use division formula: effective_rate = base_rate / modifier. Stacking cap 4.0x declared. 6 stacking examples provided — 5 within cap, 1 exceeds (5.57x at 19ft + built_up + PVC + full sun + moderate wind). Exceeding scenario correctly flagged for hourly billing. Typical residential scenarios well within cap (1.00x to 2.82x)."
+    },
+    {
+      "check": "EXT-7: Material State Compatibility",
+      "result": "pass",
+      "details": "Three substrate-driven primer paths correctly defined: SYS_EXT_TRIM_PRIMER_ACRYLIC for wood/composite, SYS_EXT_TRIM_PRIMER_BONDING for PVC, SYS_EXT_TRIM_PRIMER_ALKYD_SPOT for tannin knots (wood only). SS_EXT_PRIMED_FIELD skips prime entirely. Compatibility rules COMPAT-XTRM-001 through COMPAT-XTRM-007 enforce correct routing. COMPAT-XTRM-002 enforces solar-reflective HARD STOP for PVC + LRV < 55."
+    },
+    {
+      "check": "SPEC-1: All 8 PS_EXT_EDGE_LF Keys Present",
+      "result": "pass",
+      "details": "All 8 trim surface PS keys present in resolution.json, sop_modules.json required_inputs, and production.json trim_surface_input_group: PS_EXT_EDGE_LF.FASCIA, .TRIM_RAKE, .TRIM_FRIEZE, .TRIM_CORNER, .TRIM_BAND, .TRIM_WINDOW_CASING, .TRIM_DOOR_CASING, .SILL."
+    },
+    {
+      "check": "SPEC-2: LF-Based Rates Throughout",
+      "result": "pass",
+      "details": "All 21 trim surface production tasks use LF as unit_of_measure. No SF rates on trim surface tasks. PCA P10 one-foot rule (1 SF = 1 LF for girth < 12 in) correctly embedded in rate calibration. EA used only for protection counts and manual capture tasks (edge seal, knot spot-prime). FIXED for setup/cleanup tasks."
+    },
+    {
+      "check": "SPEC-3: Caulk Module After Prime (RC-003)",
+      "result": "pass",
+      "details": "MOD_XTRM_CAULK is module index 3 (0-based), sequenced after MOD_XTRM_PRIME (index 2). Round configuration ROUND_XTRM_PRIME_2FINISH documents phase_sequence: prep -> prime -> prep (caulk) -> finish -> interstage -> finish. Caulk module sequence_notes explicitly state 'runs AFTER MOD_XTRM_PRIME (RC-003)'."
+    },
+    {
+      "check": "SPEC-4: Three Substrate Material Paths",
+      "result": "pass",
+      "details": "Wood: sand 80-120 grit -> spot-prime knots -> acrylic primer. PVC: scuff-sand 220 -> acetone wipe -> bonding primer. Composite: edge-seal field cuts -> acrylic primer. All three paths correctly gated by applies_when substrate_material conditions in both sop_modules.json and production.json."
+    },
+    {
+      "check": "SPEC-5: PVC Solar-Reflective Warning",
+      "result": "pass",
+      "details": "SYS_EXT_TRIM_FINISH_SOLAR declared in materials.json with applies_when substrate_material=pvc AND lrv_below=55. COMPAT-XTRM-002 enforces HARD STOP — prohibits standard and premium finish systems on PVC with dark colors. RISK-XTRM-001 documents thermal distortion risk as critical severity."
+    },
+    {
+      "check": "SPEC-6: Height Modifier Tiers",
+      "result": "pass",
+      "details": "FAC_XTRM_HEIGHT_TIER correctly declares 5 tiers: ground=1.00, 8ft=1.30, 13ft=1.60, 17ft=1.90, 19ft=2.20. Applied to 19 production tasks (all non-FIXED, non-protection tasks). More aggressive than FAC_EXT_ACCESS (ground/ladder/scaffold/lift) because trim requires fine brush detail at height."
+    },
+    {
+      "check": "SPEC-7: QT3-QT5 Range (No QT2)",
+      "result": "pass",
+      "details": "Quality tier range correctly limited to QT3, QT4, QT5 throughout. Resolution.json explicitly prohibits QT2 per Application_Methods_Doctrine Part B section 7. All material systems, qt_rates, quality_effects, and round_configurations reference only QT3-QT5."
+    },
+    {
+      "check": "SPEC-8: No Interior Contamination",
+      "result": "pass",
+      "details": "No interior keys (PS_INT_*, SS_INT_*, FAC_HEIGHT, ext_ missing prefix, interior zone names). All IDs use exterior-specific naming. Context prefix XTRM is unique and does not collide with interior TRIM_ prefix."
+    },
+    {
+      "check": "COMPLETENESS: Protection Zones Declared",
+      "result": "pass",
+      "details": "6 protection zones declared in resolution.json zone_ids, materials.json protection_materials, and sop_modules.json protection_metadata. Setup tasks reference correct zones. Teardown task (TSK_XTRM_PROTECT_TEARDOWN) lists all 6 zones."
+    },
+    {
+      "check": "COMPLETENESS: Adjacency Declarations",
+      "result": "pass",
+      "details": "Resolution.json surface_ids.adjacent_surfaces lists siding_field, soffit_field, foundation_wall. Cross-spec boundaries documented in resolution.json cross_spec_coordination with 5 deduplication notes covering siding, soffit, door slab, window sash, and gutter specs."
+    },
+    {
+      "check": "COMPLETENESS: Site Condition Rules",
+      "result": "pass",
+      "details": "Site condition rules present on coating tasks: spray tasks blocked in high wind (wind_condition=[high]) and unsafe dew point (dew_point_risk=[unsafe]). Brush tasks blocked in unsafe dew point only. Caulk tasks do not have site_condition_rules (caulk is not affected by dew point in same way)."
+    },
+    {
+      "check": "COMPLETENESS: Cross-Spec Boundaries",
+      "result": "pass",
+      "details": "5 cross-spec boundaries documented: (1) trim-to-siding caulk deduplication with siding specs, (2) soffit-fascia/frieze junction — soffit spec owns soffit side, (3) exterior door slab is separate spec, (4) exterior window sash is separate spec, (5) gutter/downspout is separate scope."
+    },
+    {
+      "check": "GEOM_NO_INTERNAL_COMPUTE",
+      "result": "pass",
+      "details": "No geometry computation. All geometry from PaintScope inputs. Material quantities from coverage profiles. No internal area/perimeter calculations."
+    },
+    {
+      "check": "GEOM_INPUTS_DECLARED",
+      "result": "pass",
+      "details": "All required inputs declared with paintscope_key mappings. 2 manual_capture_required tasks documented: TSK_XTRM_SEAL_CUT_EDGES_COMPOSITE (composite_cut_edges EA) and TSK_XTRM_SPOT_PRIME_KNOTS (tannin_knots EA). Manual capture items have UOM, description, and estimating guidance."
+    }
+  ],
+
+  "exterior_validation_summary": {
+    "first_exterior_spec": false,
+    "sibling_specs": ["SF_SIDING_FIBERCEMENT_EXT_NC_v1", "SF_WOOD_SIDING_EXT_NC_PAINT_v1"],
+    "domain_dispatch_activated": true,
+    "interior_contamination": "none — no interior keys, states, or zones found",
+    "research_corrections_applied": 0,
+    "user_corrections_applied": 0,
+    "task_count": {
+      "total": 31,
+      "binary": 19,
+      "qt_scaled": 10,
+      "qt_conditional": 2
+    },
+    "module_count": 9,
+    "paintable_items": 8,
+    "protection_zones": 6,
+    "material_systems": 6,
+    "coverage_profiles": 3,
+    "consumables": 16,
+    "factor_modifiers": 9,
+    "round_configurations": 2,
+    "key_departures_from_siding_siblings": [
+      "LF-based measurement (not SF) per PCA P10 one-foot rule — all 8 trim items < 12 in girth",
+      "8 paintable items (multi-item spec) vs single siding field surface",
+      "Brush is PRIMARY method (trim detail), spray is SECONDARY (long runs only) — opposite of siding where spray is primary",
+      "Caulk module is SEPARATE and sequenced AFTER prime (RC-003) — siding specs include caulk in prep module",
+      "Glass masking tasks (windows + doors) OWNED by this spec (RC-002) — siding specs exclude glass zones per RC-001",
+      "Siding masking required when spraying trim (ext_siding_adjacent zone) — not applicable to siding specs",
+      "Three substrate materials (wood/PVC/composite) with different prep and primer paths — siding specs cover one substrate type each",
+      "QT3-QT5 range (no QT2) — trim is visible architectural detail requiring minimum QT3",
+      "Trim-specific height modifiers (FAC_XTRM_HEIGHT_TIER: 8ft=1.30, 13ft=1.60, 17ft=1.90, 19ft=2.20) more aggressive than general FAC_EXT_ACCESS — trim requires fine brush detail at height",
+      "Environmental conditions (wind, sun, temp) INCLUDED as estimation modifiers — siding FC spec excluded them per RC-003",
+      "Profile complexity modifier (FAC_XTRM_PROFILE_COMPLEXITY: crown 1.30, built_up 1.60) — no siding equivalent",
+      "Substrate material modifier (FAC_XTRM_SUBSTRATE: PVC 1.10x) — non-porous PVC requires slower coating pace"
+    ],
+    "max_modifier_stack": {
+      "value": 5.57,
+      "scenario": "19ft + built_up + PVC + full sun + moderate wind at QT5",
+      "exceeds_cap": true,
+      "mitigation": "Hourly billing recommended for extreme combinations per production.json stacking examples"
+    }
+  }
+}

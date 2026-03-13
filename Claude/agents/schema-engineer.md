@@ -143,6 +143,55 @@ When controlled_enums.json is updated:
 
 ---
 
+## Exterior Schema Requirements
+
+The schema must support both interior and exterior spec families. Exterior specs introduced structural patterns not present in the original interior-only schema. When creating or migrating the schema, ensure these columns and seeds exist.
+
+### New Columns (added for exterior support)
+
+| Table | Column | Type | Purpose |
+|-------|--------|------|---------|
+| `spec_paintable_item_types` | `surface_ref` | TEXT | PaintScope surface reference (e.g., "ext_trim_fascia") |
+| `spec_state_declarations` | `primer_routing` | TEXT (JSON) | Per-substrate primer system routing |
+| `material_systems` | `product_role` | TEXT | System-level role: "primer", "finish" |
+| `material_coverage_profiles` | `waste_factor` | REAL | Material waste multiplier (e.g., 1.15) |
+| `material_coverage_profiles` | `uom_basis` | TEXT | Coverage UOM basis ("LF", "SF") |
+| `sop_tasks` | `substrate_state_rules` | TEXT (JSON) | Task-level state routing: activation/exclusion per substrate state |
+| `sop_tasks` | `site_condition_rules` | TEXT (JSON) | Weather/environmental condition gating (wind, dew point, temperature) |
+| `factor_modifiers` | `values_map` | TEXT (JSON) | Multi-value modifier maps (e.g., access type → multiplier per level) |
+| `task_production_rates` | `defect_tolerance` | TEXT (JSON) | Per-tier QC acceptance criteria |
+
+### Exterior Enum Seeds
+
+The following values MUST be seeded for exterior spec support. Source: `specs/_registry/controlled_enums.json`.
+
+**ref_substrate_states** — Add all `SS_EXT_*` values:
+- `SS_EXT_BARE_WOOD`, `SS_EXT_BARE_METAL`, `SS_EXT_BARE_CONCRETE`, `SS_EXT_BARE_MASONRY`
+- `SS_EXT_PRIMED_FACTORY`, `SS_EXT_PRIMED_FIELD`
+- `SS_EXT_PAINTED_FLAT`, `SS_EXT_PAINTED_SATIN`, `SS_EXT_PAINTED_SEMIGLOSS`, `SS_EXT_PAINTED_GLOSS`
+- `SS_EXT_STAINED`, `SS_EXT_SEALED`
+- `SS_EXT_SOUND_PAINT`, `SS_EXT_FAILING_PAINT`, `SS_EXT_PEELING`, `SS_EXT_SURFACE_RUST`
+- `SS_EXT_WEATHERED`, `SS_EXT_CHALKING`, `SS_EXT_OXIDIZED`
+- (Check `controlled_enums.json → substrate_state` for the complete, current list)
+
+**ref_modifier_mechanisms** — Add: `time_multiplier`
+
+**ref_application_methods** — Verify: `spray_backbrush` is seeded (exterior siding pattern)
+
+**ref_modifier_categories** — Expand to include exterior categories: `access`, `profile_complexity`, `coating_type`, `coating_system`, `substrate_type`, `wind`, `temperature`
+
+### Migration Checklist
+
+When running exterior schema migration:
+1. Add new columns (ALTER TABLE for each)
+2. Seed new enum values (INSERT OR IGNORE)
+3. Update `create_tables.sql` to include new columns in CREATE TABLE definitions
+4. Update `seed_enums.sql` to include new enum values
+5. Update `SQLite_Schema_Contract.md` with new column documentation
+6. Verify with: `PRAGMA table_info(sop_tasks);` etc. to confirm columns exist
+
+---
+
 ## Critical Constraints
 
 - Every table MUST have `spec_family_id` as a foreign key to `spec_families.id` (except `spec_families` itself, reference tables, and `import_log`)

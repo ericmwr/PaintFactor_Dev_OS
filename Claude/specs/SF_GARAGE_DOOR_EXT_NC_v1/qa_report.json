@@ -1,0 +1,287 @@
+{
+  "spec_family_id": "SF_GARAGE_DOOR_EXT_NC",
+  "version": "0.1.0",
+  "generated_by": "System Critic",
+  "generated_at": "2026-03-09",
+  "status": "draft",
+  "review_required": true,
+
+  "overall_result": "pass",
+
+  "summary": "SF_GARAGE_DOOR_EXT_NC_v1 draft artifacts pass all critical and major doctrine checks. EA-based single-item spec (garage door assembly) with 3 substrate materials (steel/wood/carriage), 4 panel complexities (flush/raised_panel/carriage/windows), 2 door sizes (single/double) as primary configuration dimensions. 46 tasks thread correctly between sop_modules.json and production.json (26 binary, 16 qt_scaled, 2 qt_conditional, 2 qt_conditional gated to QT4). All PaintScope keys use PS_EXT_* namespace. All substrate states use SS_EXT_* prefix. All 6 protection zones use ext_garage_* prefix. No interior keys, states, or zones present. Key domain-specific validations pass: EA-based rates throughout (no SF/LF on door tasks except driveway protection), leapfrog technique tasks present with verify checkpoints (TSK_GRDR_LEAPFROG_VERIFY_1/2), bottom seal management lifecycle (prep/prop/reinstall), wax removal task for steel doors (TSK_GRDR_WAX_REMOVE), DTM primer path for all steel including factory-primed (SYS_EXT_GRDR_PRIMER_DTM), wood six-side seal task present (TSK_GRDR_PRIME_SIX_SIDE), QT3-QT4 range (QT2 and QT5 excluded), 4 substrate-driven primers + 2 QT-driven finish systems, articulation test at cleanup. 4 factor modifiers (door_size, panel_complexity, windows, substrate). Single round configuration (all doors get prime + 2 finish). 3 minor observations, no blockers.",
+
+  "artifacts_reviewed": [
+    { "file": "research.json", "status": "reviewed", "human_feedback": "none" },
+    { "file": "resolution.json", "status": "reviewed", "human_feedback": "none" },
+    { "file": "materials.json", "status": "reviewed", "human_feedback": "none" },
+    { "file": "sop_modules.json", "status": "reviewed", "human_feedback": "none" },
+    { "file": "production.json", "status": "reviewed", "human_feedback": "none" },
+    { "file": "spec.json", "status": "not_yet_created", "human_feedback": "n/a" }
+  ],
+
+  "issues": [
+    {
+      "issue_id": "QA-001",
+      "severity": "minor",
+      "area": "applies_when_pattern",
+      "file": "sop_modules.json vs production.json",
+      "status": "acknowledged",
+      "description": "Two intercoat tasks (TSK_GRDR_SAND_INTERCOAT, TSK_GRDR_DUST_INTERCOAT) use appears_in_tiers [QT4] in sop_modules.json with task_classification qt_conditional, while production.json lists them in qt_conditional_tasks with appears_in [QT4]. The SOP field 'appears_in_tiers' and the production field 'appears_in' serve the same gating function but use different structural patterns.",
+      "resolution": "Acknowledged — this is a consistent cross-file pattern difference (SOP uses appears_in_tiers for tier gating, production uses quality_effects.qt_conditional_tasks for rate gating). Same pattern appears in sibling exterior door spec (QA-003). Functionally equivalent. No change needed."
+    },
+    {
+      "issue_id": "QA-002",
+      "severity": "minor",
+      "area": "time_estimate",
+      "file": "production.json",
+      "status": "acknowledged",
+      "description": "Baseline scenario total is ~287 min (4.8 hrs) excluding driveway SF protection for a single steel flush QT3 spray door. This is at the high end of typical garage door painting estimates (2-4 hrs for painting only). The difference is accounted for by comprehensive setup/cleanup and inspection tasks that smaller operations may consolidate.",
+      "resolution": "Acknowledged — the 4.8 hr baseline includes full protection setup (siding mask, weatherstrip, track hardware, bottom seal — ~93 min) and full cleanup/reinstall (~43 min), which together account for 2.3 hrs. Core painting tasks (prep + prime + 2 finish + interstage) total ~130 min (~2.2 hrs), consistent with industry expectations. The comprehensive task breakdown is correct for estimating purposes."
+    },
+    {
+      "issue_id": "QA-003",
+      "severity": "minor",
+      "area": "driveway_protection_uom",
+      "file": "production.json",
+      "status": "acknowledged",
+      "description": "TSK_GRDR_DRIVEWAY_PROTECT uses SF UOM (rate_per_hour 200 SF/hr) while TSK_GRDR_DRIVEWAY_TEARDOWN also uses SF UOM (rate_per_hour 300 SF/hr). All other protection/teardown tasks use EA. This is correct because driveway area varies independently of door count, but creates a mixed UOM pattern within the setup and cleanup modules.",
+      "resolution": "Acknowledged — SF-based driveway protection is correct. Driveway area is captured by PS_EXT_PROTECT_SF.DRIVEWAY as a separate input. Using EA would lose the area-based material and time calculation. Mixed UOM within modules is acceptable when driven by different input quantities. Same pattern used in sibling exterior door spec (ext_hardscape_walk uses SF)."
+    }
+  ],
+
+  "blockers": [],
+
+  "doctrine_checks": [
+    {
+      "check": "THREADING-1: Task ID Completeness",
+      "result": "pass",
+      "details": "All 46 task_ids in sop_modules.json have matching entries in production.json. No orphaned tasks in either direction. Count by module: SETUP=8, PREP=8, PRIME=6, FINISH_1=4, INTERSTAGE=4, FINISH_2=4, FINAL_INSPECT=3, CLEANUP=9."
+    },
+    {
+      "check": "THREADING-2: task_classification Match",
+      "result": "pass",
+      "details": "All task_classification values in sop_modules.json are consistent with production.json rate structures. 26 binary tasks have fixed_time_minutes or rate_per_hour. 16 qt_scaled tasks have qt_rates {QT3, QT4}. 2 qt_conditional tasks (TSK_GRDR_SAND_INTERCOAT, TSK_GRDR_DUST_INTERCOAT) gated to QT4 in both files. No mismatches found."
+    },
+    {
+      "check": "THREADING-3: applies_when Consistency",
+      "result": "pass",
+      "details": "Application method gating consistent: spray tasks gate on [spray], brush on [brush]. Substrate material gating consistent: steel tasks on [steel] (wax_remove, degloss, adhesion_test, prime_dtm_*), wood on [wood] (sand_wood, fill_wood, tannin_spot_prime, prime_acrylic_*, prime_six_side), carriage on [carriage] (prep_carriage, prime_bonding_carriage). Panel complexity gating consistent: brush recess tasks on [raised_panel, carriage]. Window tasks conditional on windows present. 2 intercoat tasks have pattern difference (appears_in_tiers vs qt_conditional_tasks) — acknowledged as QA-001, functionally equivalent."
+    },
+    {
+      "check": "THREADING-4: UOM Match",
+      "result": "pass",
+      "details": "All task UOMs in production.json are appropriate for task type. EA-based: 41 tasks (all per-door tasks). FIXED: 3 tasks (equipment_setup_spray, equipment_setup_brush, tool_clean). SF-based: 2 tasks (driveway_protect, driveway_teardown). No LF or other UOMs — correct for EA-based garage door spec."
+    },
+    {
+      "check": "THREADING-5: Task Prefix",
+      "result": "pass",
+      "details": "All 46 task IDs use TSK_GRDR_ prefix. No collisions with existing prefixes. GRDR is unique to exterior garage door spec."
+    },
+    {
+      "check": "THREADING-6: Module Prefix",
+      "result": "pass",
+      "details": "All 8 module IDs use MOD_GRDR_ prefix: SETUP, PREP, PRIME, FINISH_1, INTERSTAGE, FINISH_2, FINAL_INSPECT, CLEANUP."
+    },
+    {
+      "check": "EXT-1: Key Namespace Integrity",
+      "result": "pass",
+      "details": "All paintscope_key references use PS_EXT_* namespace. 6 PS keys declared in resolution.json: PS_EXT_OPENING_EA.DOOR_GARAGE, PS_EXT_META.ENUM.GARAGE_DOOR_SUBSTRATE, PS_EXT_META.ENUM.GARAGE_DOOR_SIZE, PS_EXT_META.ENUM.GARAGE_DOOR_PANEL_TYPE, PS_EXT_META.FLAG.NEW_CONSTRUCTION, PS_EXT_PROTECT_SF.DRIVEWAY. No interior keys found."
+    },
+    {
+      "check": "EXT-2: Substrate State Validity",
+      "result": "pass",
+      "details": "All substrate states use SS_EXT_* prefix. 3 input states: SS_EXT_PRIMED_FACTORY, SS_EXT_BARE_WOOD, SS_EXT_BARE_METAL. 3 output states: SS_EXT_PAINTED_SATIN, SS_EXT_PAINTED_SEMIGLOSS, SS_EXT_PAINTED_GLOSS. No SS_INT_* or bare SS_ IDs."
+    },
+    {
+      "check": "EXT-3: Protection Zone Integrity",
+      "result": "pass",
+      "details": "All 6 protection zones use ext_garage_* prefix: ext_garage_driveway_apron, ext_garage_siding_adjacent, ext_garage_window_mask, ext_garage_weatherstrip, ext_garage_track_hardware, ext_garage_bottom_seal. No interior zone IDs. All zones have setup tasks in MOD_GRDR_SETUP and teardown tasks in MOD_GRDR_CLEANUP."
+    },
+    {
+      "check": "EXT-4: Mandatory Site Condition Rules",
+      "result": "pass",
+      "details": "Wind condition, sun exposure, and surface temperature referenced in production.json factor_modifiers. Wind modifier affects spray tasks (calm=1.00, light_breeze=1.10, moderate=1.20, high=excluded). Sun exposure modifier (shade=1.00, partial_sun=1.00, full_sun=1.10). Surface temperature modifier (normal=1.00, cold=1.15, hot=1.10). Environmental conditions handled as factor modifiers, not estimation input dimensions."
+    },
+    {
+      "check": "EXT-5: Exterior Factor Keys",
+      "result": "pass",
+      "details": "8 factor modifiers declared: FAC_GRDR_DOOR_SIZE (primary), FAC_GRDR_PANEL_COMPLEXITY, FAC_GRDR_WINDOWS, FAC_GRDR_SUBSTRATE, FAC_QT, FAC_EXT_WIND, FAC_EXT_SUN_EXPOSURE, FAC_EXT_SURFACE_TEMP. No interior-only modifiers. FAC_QT reused from standard pattern."
+    },
+    {
+      "check": "EXT-6: Modifier Math",
+      "result": "pass",
+      "details": "All modifiers use multiplicative formula: effective_time = base_time x modifier. 4.0x stacking cap declared. Maximum practical combination (double 1.85 x carriage 1.30 x QT4 1.15 x windows_divided 1.25 x wood 1.15 = ~4.55x) exceeds cap — production file documents this as flagged for hourly pricing. Minimum combination (single x flush x QT3 x no_windows x steel = 1.00x) = baseline."
+    },
+    {
+      "check": "EXT-7: Material State Compatibility",
+      "result": "pass",
+      "details": "Four substrate-driven primer paths: DTM (SYS_EXT_GRDR_PRIMER_DTM) for steel SS_EXT_PRIMED_FACTORY and SS_EXT_BARE_METAL, acrylic (SYS_EXT_GRDR_PRIMER_ACRYLIC) for wood SS_EXT_BARE_WOOD, alkyd stain-block (SYS_EXT_GRDR_PRIMER_ALKYD_STAINBLOCK) for tannin-rich wood, bonding (SYS_EXT_GRDR_PRIMER_BONDING) for carriage composites. Factory-primed steel STILL gets DTM primer (wax contamination). 2 finish systems: standard (QT3) and premium (QT4). All topcoats are 100% acrylic exterior latex."
+    },
+    {
+      "check": "GRDR-1: EA-Based Rates",
+      "result": "pass",
+      "details": "41 of 46 tasks use EA UOM (per-door assembly). 3 tasks use FIXED (equipment setup spray/brush, tool clean). 2 tasks use SF (driveway protect/teardown). No SF/LF direct production rates on door painting tasks — all door work is bundled into per-EA fixed_time_minutes or qt_rates."
+    },
+    {
+      "check": "GRDR-2: Leapfrog Technique",
+      "result": "pass",
+      "details": "Leapfrog verify tasks present in both finish modules: TSK_GRDR_LEAPFROG_VERIFY_1 (MOD_GRDR_FINISH_1) and TSK_GRDR_LEAPFROG_VERIFY_2 (MOD_GRDR_FINISH_2). Both are binary classification, 5 min/EA. SOP descriptions reference alternating panel painting (1,3,5 then 2,4,6), opening joints for tack-free verification. Leapfrog overhead (~30%) is built into finish spray/brush rates."
+    },
+    {
+      "check": "GRDR-3: Bottom Seal Lifecycle",
+      "result": "pass",
+      "details": "Three-stage bottom seal management: TSK_GRDR_BOTTOM_SEAL_PREP (setup, 12 min, remove or mask), TSK_GRDR_BOTTOM_SEAL_PROP (finish_2, 5 min, prop door 2-4 inches during cure), TSK_GRDR_BOTTOM_SEAL_REINSTALL (cleanup, 12 min, reinstall after 24-48 hr cure). Complete lifecycle from prep through cure period to reinstall."
+    },
+    {
+      "check": "GRDR-4: Wax Removal for Steel",
+      "result": "pass",
+      "details": "TSK_GRDR_WAX_REMOVE present in MOD_GRDR_PREP — journeyman skill level, steel substrate only, 25 min/EA. SOP description references 3M gray synthetic steel wool + biodegradable cleaner. Material CON_GRDR_STEEL_WOOL_PAD declared in materials.json. Wax removal is garage-door-specific task not shared with entry doors."
+    },
+    {
+      "check": "GRDR-5: DTM Primer for All Steel Including Factory-Primed",
+      "result": "pass",
+      "details": "SYS_EXT_GRDR_PRIMER_DTM applies_when includes both SS_EXT_PRIMED_FACTORY and SS_EXT_BARE_METAL. This is a key differentiator from entry doors (which may skip prime for factory-primed). Garage door factory primer is inadequate due to wax contamination — DTM overcoat is mandatory."
+    },
+    {
+      "check": "GRDR-6: Wood Six-Side Seal",
+      "result": "pass",
+      "details": "TSK_GRDR_PRIME_SIX_SIDE present in MOD_GRDR_PRIME — journeyman skill level, wood substrate only, 35 min/EA (qt_scaled: QT3=35, QT4=40). References DASMA TDS #162 requirement. Verifies all 6 sides (both faces, top/bottom/left/right edges) received primer. Back face access via propping door."
+    },
+    {
+      "check": "GRDR-7: Quality Tier Range",
+      "result": "pass",
+      "details": "QT3-QT4 declared in resolution.json applicable_enums. QT2 excluded (visible from street, not economy-appropriate). QT5 excluded (utility surface, not architectural showcase). Narrow 2-tier range reflects functional character of garage doors. All qt_scaled tasks have qt_rates for QT3 and QT4. qt_conditional tasks correctly appear in QT4 only."
+    },
+    {
+      "check": "GRDR-8: Articulation Test",
+      "result": "pass",
+      "details": "TSK_GRDR_ARTICULATION_TEST present in MOD_GRDR_CLEANUP — journeyman skill level, 5 min/EA. Verifies door opens and closes freely after painting. Checks for bridged joints, binding at painted articulation points. Critical safety and quality gate for sectional doors."
+    },
+    {
+      "check": "COMPLETENESS-1: Protection Zones",
+      "result": "pass",
+      "details": "6 protection zones declared in resolution.json: ext_garage_driveway_apron, ext_garage_siding_adjacent, ext_garage_window_mask, ext_garage_weatherstrip, ext_garage_track_hardware, ext_garage_bottom_seal. All have setup tasks in SETUP module and teardown tasks in CLEANUP module. Materials mapped in materials.json consumables and protection_materials."
+    },
+    {
+      "check": "COMPLETENESS-2: Cross-Spec Boundaries",
+      "result": "pass",
+      "details": "Clear scope boundary: garage door panel assembly only. Casing/trim belongs to SF_TRIM_EXT_NC_v1. Driveway protection is this spec's responsibility. Adjacent siding masking during spray is this spec's responsibility. Entry door painting (SF_DOOR_EXT_NC_v1) is completely separate — different context prefix (XDOR vs GRDR), different PS keys."
+    },
+    {
+      "check": "COMPLETENESS-3: Round Configurations",
+      "result": "pass",
+      "details": "Single round configuration: ROUND_GRDR_PRIME_2FINISH (1 primer + 2 finish for ALL substrate states including factory-primed). Unlike entry doors which have a 2-coat path for factory-primed, ALL garage doors get DTM/acrylic primer because factory primer is compromised by wax. Simplifies to one round config."
+    },
+    {
+      "check": "COMPLETENESS-4: Module Phase Order",
+      "result": "pass",
+      "details": "Module phase sequence: setup (SETUP) -> prep (PREP) -> prime (PRIME) -> finish (FINISH_1) -> interstage (INTERSTAGE) -> finish (FINISH_2) -> finish (FINAL_INSPECT) -> cleanup (CLEANUP). Correct phase ordering per structural_keys. No 'protect' or 'protection' phase values."
+    },
+    {
+      "check": "COMPLETENESS-5: Input Declarations",
+      "result": "pass",
+      "details": "6 paintscope key declarations in resolution.json: 1 primary quantity (IN_EA_GARAGE_DOOR), 3 configuration enums (IN_ENUM_GARAGE_DOOR_SUBSTRATE, IN_ENUM_GARAGE_DOOR_SIZE, IN_ENUM_GARAGE_DOOR_PANEL_TYPE), 1 construction flag (IN_BOOL_NEW_CONSTRUCTION), 1 protection input (IN_SF_EXT_PROTECT_DRIVEWAY). All consumed by sop_modules or production required_input_key."
+    },
+    {
+      "check": "ENUM-1: Convention Compliance",
+      "result": "pass",
+      "details": "All enums comply with project conventions: CON_ prefix (not CONS_), task_classification (not task_class), severity uses critical/major/minor, phase values from approved set (no 'protect' or 'protection' phase), all units uppercase (EA, SF, FIXED, ROLL, SHEET, QT, GAL), consumable_category from approved set (applicator, protection, prep, cleanup, abrasive), zones use ext_garage_* prefix, sheen single values only (satin, semi-gloss, gloss — no compounds)."
+    }
+  ],
+
+  "exterior_validation_summary": {
+    "first_exterior_garage_door_spec": true,
+    "sibling_spec": "SF_DOOR_EXT_NC_v1 (exterior entry door — EA-based pattern reference)",
+    "domain_dispatch_activated": true,
+    "interior_contamination": "none — no interior keys, states, or zones found",
+    "research_corrections_applied": 0,
+    "user_corrections_applied": 0,
+    "key_differentiators_from_sibling_entry_door_spec": [
+      "Factory-primed steel STILL gets DTM primer (wax contamination) — entry doors may skip prime for factory-primed",
+      "Leapfrog technique for sectional door articulation joints — entry doors are single-panel",
+      "Bottom seal (astragal) management lifecycle — entry doors have threshold protection instead",
+      "Wax removal prep task unique to garage doors — entry doors do solvent clean",
+      "Track/hardware/spring mechanism masking — entry doors have hardware removal",
+      "Driveway/apron protection (canvas NOT poly) — entry doors have walkway protection",
+      "QT3-QT4 only (2 tiers) vs QT3-QT5 (3 tiers) for entry doors",
+      "No fiberglass substrate — garage doors are steel/wood/carriage",
+      "Door size modifier (single/double) — entry doors have complexity modifier (slab/panel/grand_entry)",
+      "Panel complexity modifier (flush/raised/carriage/windows) — different from entry door complexity",
+      "Single round configuration — entry doors have 2 rounds (with/without prime)",
+      "Articulation test at cleanup — not applicable to entry doors",
+      "6 protection zones vs 5 for entry doors — additional zones for track hardware and bottom seal"
+    ]
+  },
+
+  "task_cross_reference": {
+    "total_sop_tasks": 46,
+    "total_production_rates": 46,
+    "orphaned_in_sop": 0,
+    "orphaned_in_production": 0,
+    "classification_mismatches": 0,
+    "uom_mismatches": 0,
+    "applies_when_pattern_differences": 2,
+    "applies_when_pattern_differences_note": "2 intercoat tasks use appears_in_tiers in SOP vs qt_conditional_tasks in production — functionally equivalent, acknowledged in QA-001",
+    "by_classification": {
+      "binary": 26,
+      "qt_scaled": 16,
+      "qt_conditional": 2,
+      "notes": "Counts from sop_modules.json task_classification values. qt_conditional: TSK_GRDR_SAND_INTERCOAT and TSK_GRDR_DUST_INTERCOAT (QT4 only)."
+    },
+    "by_skill_level": {
+      "helper": 10,
+      "journeyman": 32,
+      "lead": 4
+    },
+    "by_uom": {
+      "EA": 41,
+      "FIXED": 3,
+      "SF": 2
+    }
+  },
+
+  "modifier_stacking_validation": {
+    "max_theoretical_stack": 4.55,
+    "stacking_cap": 4.0,
+    "within_cap": false,
+    "cap_resolution": "Engine applies 4.0x cap. Double carriage QT4 with windows and wood substrate combinations flagged for manual review and hourly pricing.",
+    "worst_case_scenario": "Double (1.85) x carriage (1.30) x QT4 (1.15) x divided_lite windows (+1.25 hrs additive) x wood (1.15) — multiplicative portion = 1.85 x 1.30 x 1.15 x 1.15 = 3.18x + additive window time, well within 4.0x cap for multiplicative portion alone. However, all modifiers combined approach 4.55x equivalent.",
+    "common_high_scenario": "Double steel raised_panel QT4 spray = 1.85 x 1.10 x 1.15 = 2.34x (well within cap)",
+    "common_low_scenario": "Single steel flush QT3 spray = 1.00x (baseline)"
+  },
+
+  "material_system_validation": {
+    "primer_systems": 4,
+    "finish_systems": 2,
+    "specialty_systems": 0,
+    "total_systems": 6,
+    "coverage_profiles": 3,
+    "consumables_unique": 3,
+    "consumables_reusable": 9,
+    "compatibility_rules_in_materials": true,
+    "all_systems_have_quality_tier": true,
+    "all_systems_have_substrate_routing": true,
+    "dtm_primer_for_all_steel_enforced": true,
+    "six_side_seal_for_wood_enforced": true,
+    "lrv_restriction_documented": true
+  },
+
+  "time_estimate_sanity_check": {
+    "single_steel_flush_spray_QT3": {
+      "total_minutes": 287,
+      "total_hours": 4.8,
+      "notes": "Excludes driveway SF protection. With typical driveway (~100-200 SF): ~5.3-5.8 hrs. Includes full protection setup/cleanup (~2.3 hrs). Core painting: ~2.2 hrs.",
+      "assessment": "Reasonable — comprehensive task breakdown for full-scope garage door painting."
+    },
+    "double_steel_flush_spray_QT3": {
+      "modifier": "FAC_GRDR_DOOR_SIZE = 1.85",
+      "estimated_total_hours": "~9-10 hrs",
+      "assessment": "Reasonable — double door is ~1.85x single (setup/cleanup has some fixed overhead)."
+    },
+    "single_steel_carriage_QT4_spray": {
+      "modifier": "FAC_GRDR_PANEL_COMPLEXITY = 1.30 x FAC_QT = 1.15",
+      "estimated_total_hours": "~8-9 hrs",
+      "assessment": "Reasonable — carriage adds brush detail work and QT4 adds intercoat sand."
+    }
+  }
+}

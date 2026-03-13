@@ -30,6 +30,40 @@ Material definitions inform the Estimation Engine but do not themselves calculat
 - **[docs/PaintScope/PaintScope_Asset_Catalog.md](../docs/PaintScope/PaintScope_Asset_Catalog.md)** — Asset categories, subtypes, and measurable keys
 - **[docs/PaintScope/PaintScope_Adjacency_Schema.md](../docs/PaintScope/PaintScope_Adjacency_Schema.md)** — Adjacency relationships and edge target definitions
 
+### Domain-Specific Context Loading
+
+After reading the base Required Reading list above, load the following based on `spec_family.domain`:
+
+#### If `domain == "exterior"`:
+
+LOAD — Exterior Doctrine:
+- docs/Doctrine/Exterior_Substrates_Doctrine.md
+- docs/Doctrine/Exterior_Modifiers_Doctrine.md
+- docs/Doctrine/Exterior_Protection_Doctrine.md
+
+LOAD — Exterior Reference Vocabulary:
+- docs/Reference/Substrate_State_Reference.md §4 (Exterior-Specific States)
+- docs/Reference/Surface_Vocabulary_Reference.md §Exterior Surfaces
+- docs/Reference/Site_Condition_Vocabulary_Reference.md §9–13 (Exterior Conditions)
+
+LOAD — Exterior PaintScope Keys:
+- docs/PaintScope/PaintScope_Exterior_Key_Catalog.md
+
+DO NOT APPLY to exterior specs:
+- docs/Doctrine/Interior_Protection_Doctrine.md (interior zones do not apply)
+- docs/Doctrine/Fine_Finish_Doctrine.md (unless scope explicitly includes interior-style trim at QT4+)
+- docs/Doctrine/Interior_Protection_Doctrine_Final.md
+- PS_ keys from PaintScope_Quantity_Key_Catalog.md §Core Interior Keys (use EXT_ keys instead)
+
+EXTERIOR MODIFIER OVERRIDE:
+- Use FAC_EXT_ACCESS (not FAC_HEIGHT) for elevation work
+- Use FAC_EXT_SUBSTRATE_CONDITION for prep rate scaling
+- Use FAC_EXT_WIND, FAC_EXT_SUN_EXPOSURE, FAC_EXT_SURFACE_TEMP for environmental modifiers
+- FAC_PROFILE_COMPLEXITY applies for exterior trim (shared modifier)
+
+#### If `domain == "interior"`:
+[existing behavior — no changes; read all required reading as currently listed]
+
 ### Registry Integration
 
 - **Primary input**: `resolution.json` (from Registry Resolver)
@@ -254,6 +288,26 @@ Reference `Fine_Finish_Doctrine.md § Material Systems` for complete product det
 ## Domain Dispatch: Exterior Scopes
 
 When the spec family ID contains `_EXT_`, use exterior materials conventions:
+
+### Exterior Material System Patterns (domain == "exterior")
+
+Standard exterior SYS_ naming:
+  SYS_EXT_WOOD_STANDARD     — Standard 100% acrylic latex for wood siding
+  SYS_EXT_FIBERCEMENT       — Fiber cement system (bonding primer + acrylic topcoat)
+  SYS_EXT_MASONRY           — Masonry paint system (masonry primer + elastomeric or acrylic)
+  SYS_EXT_METAL             — Metal system (rust-inhibiting primer + direct-to-metal topcoat)
+  SYS_EXT_DECK_SOLID        — Solid body deck stain system
+  SYS_EXT_DECK_SEMI         — Semi-transparent deck stain system
+
+Coverage rates for exterior (approximate; verify per PDS and substrate state):
+  Smooth siding: 250–350 SF/gal
+  Rough/weathered siding: 150–250 SF/gal
+  Masonry: 100–200 SF/gal (highly porous)
+  Fascia/trim: 400–500 SF/gal (smooth; similar to interior trim)
+
+DO NOT use interior SYS_FF_* fine-finish material systems for exterior specs.
+DO NOT apply interior roller specs (9" roller, 3/8" nap) to exterior field siding —
+  exterior uses 9" or 18" roller with 3/4"–1" nap for rough surfaces.
 
 ### Exterior Substrate State Awareness
 

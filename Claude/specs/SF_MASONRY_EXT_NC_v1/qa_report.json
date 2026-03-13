@@ -1,0 +1,239 @@
+{
+  "spec_family_id": "SF_MASONRY_EXT_NC",
+  "version": "0.1.0",
+  "generated_by": "System Critic",
+  "generated_at": "2026-03-10",
+  "status": "draft",
+  "review_required": true,
+
+  "overall_result": "pass",
+
+  "summary": "SF_MASONRY_EXT_NC_v1 draft artifacts pass all critical and major doctrine checks. First exterior masonry spec — follows SF_SIDING_FIBERCEMENT_EXT_NC_v1 and SF_SIDING_ENGINEERED_EXT_NC_v1 exterior pattern with masonry-specific departures. 31 tasks thread correctly between sop_modules.json and production.json (22 binary, 8 qt_scaled, 1 qt_conditional). All PaintScope keys use PS_EXT_* namespace. Single substrate state SS_EXT_BARE_MASONRY (no factory-primed masonry exists). All protection zones use ext_* prefix. No interior keys, states, or zones present. Key masonry-specific features: block filler module conditional on CMU substrate (PCA P12), alkali-resistant primer mandatory on ALL new masonry (pH 12-14), spray_backroll coupling enforced with crew_size=2 on all 4 spray_backroll tasks, oil-based products prohibited (saponification risk), moisture content hard stop at 12%, efflorescence treatment as conditional prep task, dual coating system branches (acrylic/elastomeric with elastomeric QT3+ only). 3 factor modifiers (FAC_MSRY_SUBSTRATE_TYPE with brick_smooth/brick_rough/CMU/concrete/limestone split, FAC_MSRY_COATING_SYSTEM acrylic/elastomeric, FAC_EXT_ACCESS reused). Maximum modifier stacking 3.744x (rough brick + elastomeric + scaffold + QT4) under 4.0x cap. 4 round configurations covering all substrate_type x quality_tier combinations. 2 minor QA observations, no blockers.",
+
+  "artifacts_reviewed": [
+    { "file": "research.json", "status": "reviewed", "human_feedback": "none" },
+    { "file": "resolution.json", "status": "reviewed", "human_feedback": "none" },
+    { "file": "materials.json", "status": "reviewed", "human_feedback": "none" },
+    { "file": "sop_modules.json", "status": "reviewed", "human_feedback": "none" },
+    { "file": "production.json", "status": "reviewed", "human_feedback": "none" },
+    { "file": "spec.json", "status": "not_yet_created", "human_feedback": "n/a" }
+  ],
+
+  "issues": [
+    {
+      "issue_id": "QA-001",
+      "severity": "minor",
+      "area": "factor_modifiers",
+      "file": "resolution.json vs production.json",
+      "status": "acknowledged",
+      "description": "Resolution.json proposed FAC_MSRY_SUBSTRATE_TYPE with 4 values (brick=1.00, CMU=1.15, concrete=0.95, limestone=1.10). Production.json expanded to 5 values by splitting brick into brick_smooth=1.00 and brick_rough=1.30, and adjusted CMU from 1.15 to 1.20 and concrete from 0.95 to 0.90. This is a design improvement — rough/tumbled brick is significantly different from smooth face brick in production characteristics — but the resolution's proposed values are not materialized as-is.",
+      "resolution": "Acknowledged — production.json approach is superior. Brick smooth vs rough distinction is meaningful (30% production rate difference). CMU and concrete adjustments are within reasonable calibration range. No functional issue."
+    },
+    {
+      "issue_id": "QA-002",
+      "severity": "minor",
+      "area": "environmental_modifiers",
+      "file": "production.json",
+      "status": "acknowledged",
+      "description": "Production.json declares 3 environmental factor modifiers (FAC_EXT_WIND, FAC_EXT_SUN_EXPOSURE, FAC_EXT_SURFACE_TEMP) despite research.json explicitly stating environmental conditions are EXCLUDED from estimation (notes_for_estimation_engineer: 'Environmental conditions are EXCLUDED from estimation — they are SOP/process concerns'). The sibling engineered wood QA (QA-002) similarly noted this pattern. These modifiers are referenced in SOP exclude_when blocks (process constraints) but their inclusion as formal factor_modifiers in production.json creates ambiguity about whether they should be used in estimation.",
+      "resolution": "Acknowledged — consistent with sibling spec pattern. Environmental modifiers serve as documentation of process constraints (especially BLOCKED states for high wind and hot surface). They are not estimation modifiers in the traditional sense but capture important scheduling constraints. No change needed — consistent with engineered wood sibling."
+    }
+  ],
+
+  "blockers": [],
+
+  "doctrine_checks": [
+    {
+      "check": "THREADING-1: Task ID Completeness",
+      "result": "pass",
+      "details": "All 31 task_ids in sop_modules.json have matching entries in production.json. No orphaned tasks in either direction. Count by module: SETUP=5, PREP=7, BLOCK_FILL=2, PRIME=3, FINISH_1=3, INTERSTAGE=3, FINISH_2=3, FINAL_INSPECT=2, CLEANUP=3."
+    },
+    {
+      "check": "THREADING-2: task_classification Match",
+      "result": "pass",
+      "details": "All task_classification values match between files. 8 qt_scaled tasks (EFFLORESCENCE_TREAT, POWER_WASH, CAULK_JOINTS, SURFACE_REPAIR, INSPECT_COAT, TOUCHUP_INTERSTAGE, FINAL_INSPECT, FINAL_TOUCHUP) have qt_rates in production.json. 1 qt_conditional task (SAND_BETWEEN) has appears_in_tiers [QT4] in production.json. 22 binary tasks use flat rate_per_hour or fixed_time_minutes. No mismatches found."
+    },
+    {
+      "check": "THREADING-3: applies_when Consistency",
+      "result": "pass",
+      "details": "Application method gating consistent between files: spray_backroll tasks gate on [spray_backroll], roll on [roll], brush on [brush]. Equipment setup tasks correctly gate on their respective methods (spray vs roll/brush). Block filler module gates on substrate_type [CMU]. Interstage and finish_2 modules gate on quality_tier [QT3, QT4]. Form-release removal gates on substrate_type [concrete]. All applies_when conditions match between sop_modules.json and production.json."
+    },
+    {
+      "check": "THREADING-4: UOM Match",
+      "result": "pass",
+      "details": "All task UOMs match between sop_modules.json and production.json. SF-based: 19 tasks (block fill, prime, finish, inspect, touchup, sand, power wash, efflorescence, form release, surface repair, moisture test). EA-based: 1 task (fixture mask). LF-based: 3 tasks (landscape protect, caulk joints, protect teardown). FIXED: 4 tasks (equipment setup spray, equipment setup roll, cure verify, clean equipment). Combined SF: hardscape protect, site cleanup."
+    },
+    {
+      "check": "THREADING-5: Task Prefix",
+      "result": "pass",
+      "details": "All 31 task IDs use TSK_MSRY_ prefix. No collisions with existing prefixes (SDNG, FCSD, ENSD, etc.). MSRY is unique per resolution.json collision check."
+    },
+    {
+      "check": "THREADING-6: Module Prefix",
+      "result": "pass",
+      "details": "All 9 module IDs use MOD_MSRY_ prefix: SETUP, PREP, BLOCK_FILL, PRIME, FINISH_1, INTERSTAGE, FINISH_2, FINAL_INSPECT, CLEANUP."
+    },
+    {
+      "check": "EXT-1: Key Namespace Integrity",
+      "result": "pass",
+      "details": "All paintscope_key references use PS_EXT_* namespace. 11 PS keys declared in resolution.json: PS_EXT_SURFACE_SF.MASONRY_WALL, PS_EXT_META.EA.ELEVATIONS_TOTAL, PS_EXT_META.ENUM.ACCESS_TYPE, PS_EXT_META.FLAG.NEW_CONSTRUCTION, PS_EXT_META.ENUM.SUBSTRATE_TYPE_MASONRY, PS_EXT_META.ENUM.COATING_SYSTEM_MASONRY, PS_EXT_PROTECT_LF.LANDSCAPE_PERIMETER, PS_EXT_PROTECT_SF.HARDSCAPE_WALK, PS_EXT_PROTECT_SF.HARDSCAPE_PATIO, PS_EXT_PROTECT_EA.LIGHT_FIXTURE, PS_EXT_PROTECT_EA.HVAC_UNIT. No interior keys found."
+    },
+    {
+      "check": "EXT-2: Substrate State Validity",
+      "result": "pass",
+      "details": "All substrate states use SS_EXT_* prefix. 1 input state: SS_EXT_BARE_MASONRY. 2 output states: SS_EXT_PAINTED_FLAT, SS_EXT_PAINTED_SATIN. No SS_INT_* or bare SS_ IDs. No factory-primed state — correctly excluded (no factory-primed masonry exists). SS_EXT_BARE_MASONRY is proposed as new controlled_enum addition."
+    },
+    {
+      "check": "EXT-3: Protection Zone Integrity",
+      "result": "pass",
+      "details": "All 5 protection zones use ext_* prefix: ext_landscape_perimeter, ext_hardscape_walk, ext_hardscape_patio, ext_light_fixture, ext_hvac_unit. No interior zone IDs. Window/door zones correctly excluded per cross-spec boundary (window/door protection owned by respective specs)."
+    },
+    {
+      "check": "EXT-4: Mandatory Site Condition Rules",
+      "result": "pass",
+      "details": "Access_type declared as site_condition_rule with height modifier values (ground=1.00, ladder=1.35, scaffold=1.60, lift=1.50). Wind, sun_exposure, and surface_temp referenced as environmental modifiers in production.json with BLOCKED states for extreme conditions."
+    },
+    {
+      "check": "EXT-5: Exterior Factor Keys",
+      "result": "pass",
+      "details": "FAC_EXT_ACCESS reused from siding specs. FAC_MSRY_SUBSTRATE_TYPE declared (brick_smooth=1.00, brick_rough=1.30, CMU=1.20, concrete=0.90, limestone=1.10). FAC_MSRY_COATING_SYSTEM declared (acrylic=1.00, elastomeric=1.50). FAC_QT declared (QT2=0.85, QT3=1.00, QT4=1.20). No FAC_HEIGHT (interior). No siding-specific modifiers incorrectly present."
+    },
+    {
+      "check": "EXT-6: Modifier Math",
+      "result": "pass",
+      "details": "All 6 modifiers use division formula: effective_rate = base_rate / modifier. Stacking cap 4.0x declared. 6 stacking examples provided. Maximum combination (rough brick 1.30 x elastomeric 1.50 x scaffold 1.60 x QT4 1.20 = 3.744x) is under 4.0x cap. All examples produce credible effective rates (60-225 SF/hr range)."
+    },
+    {
+      "check": "MSRY-1: Block Filler CMU-Only",
+      "result": "pass",
+      "details": "MOD_MSRY_BLOCK_FILL module gates on substrate_type [CMU] in applies_when. Both block fill tasks (TSK_MSRY_BLOCK_FILL_SPRAY_BACKROLL, TSK_MSRY_BLOCK_FILL_ROLL) correctly appear only in this CMU-gated module. Block filler is phase=prep (substrate preparation, not primer). Separate module between PREP and PRIME — correct sequencing. SYS_EXT_MSRY_BLOCK_FILLER in materials.json also gates on substrate_type [CMU]. Compatibility rule COMPAT-MSRY-003 enforces mandatory block filler for CMU."
+    },
+    {
+      "check": "MSRY-2: Alkali-Resistant Primer Mandatory",
+      "result": "pass",
+      "details": "SYS_EXT_MSRY_PRIMER_ALKALI is the ONLY primer system in materials.json — no standard acrylic primer path exists. All quality tiers (QT2, QT3, QT4) use alkali-resistant primer. Compatibility rule COMPAT-MSRY-002 enforces mandatory alkali-resistant primer on SS_EXT_BARE_MASONRY and explicitly prohibits standard acrylic primer. Research RF-001 and RF-002 document the pH 12-14 alkalinity requiring specialized primer."
+    },
+    {
+      "check": "MSRY-3: Spray_Backroll Coupling (Crew 2)",
+      "result": "pass",
+      "details": "4 spray_backroll tasks present: TSK_MSRY_BLOCK_FILL_SPRAY_BACKROLL, TSK_MSRY_PRIME_SPRAY_BACKROLL, TSK_MSRY_FINISH_1_SPRAY_BACKROLL, TSK_MSRY_FINISH_2_SPRAY_BACKROLL. All have crew_size=2 in production.json. All gate on application_method [spray_backroll]. SOP describes two-person operation (sprayer leads, roller follows immediately while coating is wet). Compatibility rule COMPAT-MSRY-008 enforces spray_backroll coupling — spray-only is PROHIBITED on porous masonry. Research RF-005 cites Exterior Application Methods Doctrine Part A section 6."
+    },
+    {
+      "check": "MSRY-4: Oil-Based Prohibited",
+      "result": "pass",
+      "details": "Compatibility rule COMPAT-MSRY-001 explicitly prohibits oil-based and alkyd products on alkaline masonry. Severity: critical. All material systems in materials.json are water-based (acrylic latex, elastomeric, acrylic primer). Risk note RISK-MSRY-001 documents saponification hazard. Research RF-006 cites doctrine sources. No oil-based product references in any artifact."
+    },
+    {
+      "check": "MSRY-5: Moisture Hard Stop",
+      "result": "pass",
+      "details": "TSK_MSRY_MOISTURE_TEST in MOD_MSRY_PREP is a mandatory prep task. Compatibility rule COMPAT-MSRY-007 declares MC > 12% as HARD STOP with ASTM D4263 test method. Research RF-008 documents the 12% maximum. SOP task includes quality_notes specifying test documentation requirements by QT level. Production.json rates are qt_scaled (QT2: 800 SF/hr spot check, QT3: 600 SF/hr, QT4: 600 SF/hr systematic grid)."
+    },
+    {
+      "check": "MSRY-6: Efflorescence Treatment",
+      "result": "pass",
+      "details": "TSK_MSRY_EFFLORESCENCE_TREAT in MOD_MSRY_PREP is present with qt_scaled rates (QT2: 200 SF/hr water only, QT3: 150 SF/hr TSP, QT4: 100 SF/hr TSP + verification). Research RF-004 documents cleaning hierarchy (water -> TSP -> phosphoric acid -> muriatic acid). Compatibility rule COMPAT-MSRY-006 prohibits acid cleaning on limestone substrate. Materials.json includes CON_MSRY_TSP and CON_MSRY_STIFF_BRUSH consumables."
+    },
+    {
+      "check": "MSRY-7: Elastomeric Conditional Rules",
+      "result": "pass",
+      "details": "SYS_EXT_MSRY_FINISH_ELASTOMERIC gates on coating_system [elastomeric] and quality_tier [QT3, QT4]. Compatibility rule COMPAT-MSRY-005 blocks elastomeric at QT2. COMPAT-MSRY-004 requires moisture source assessment for elastomeric. FAC_MSRY_COATING_SYSTEM modifier applies 1.50x to finish tasks for elastomeric. Risk notes RISK-MSRY-002 and RISK-MSRY-003 document delamination and spalling hazards. Elastomeric is flat-only sheen per materials.json."
+    },
+    {
+      "check": "COMPLETENESS-1: Protection Zones",
+      "result": "pass",
+      "details": "5 protection zones declared in resolution.json with conditions, protection_levels, upgrade conditions, and paintscope_key mappings. All zones referenced in sop_modules.json (setup tasks in SETUP module, teardown in CLEANUP module). Materials.json protection_materials section maps each zone to consumable IDs."
+    },
+    {
+      "check": "COMPLETENESS-2: Adjacency Declarations",
+      "result": "pass",
+      "details": "5 adjacent surfaces declared in research.json adjacency_analysis: ext_trim_window_casing, ext_trim_door_casing, soffit_field, foundation_wall, ext_trim_frieze. All with edge_type and typical_relationship. No edge work required within this spec — all adjacent surfaces are separate specs."
+    },
+    {
+      "check": "COMPLETENESS-3: Site Condition Rules",
+      "result": "pass",
+      "details": "access_type rule declared with 4 values (ground, ladder, scaffold, lift) and corresponding modifiers. Applied per elevation. Environmental conditions documented as process constraints."
+    },
+    {
+      "check": "COMPLETENESS-4: Cross-Spec Boundaries",
+      "result": "pass",
+      "details": "Cross-spec boundaries documented: window/door protection excluded (owned by window/door specs), trim excluded (separate spec), soffit/fascia excluded (separate spec), foundation excluded (separate spec)."
+    },
+    {
+      "check": "COMPLETENESS-5: Input Declarations",
+      "result": "pass",
+      "details": "11 input declarations in resolution.json with paintscope_key mappings: 1 required surface input (IN_SF_MASONRY_WALL), 3 required meta inputs (IN_EA_ELEVATIONS, IN_ENUM_ACCESS_TYPE, IN_BOOL_NEW_CONSTRUCTION), 2 config enum inputs (IN_ENUM_SUBSTRATE_TYPE_MASONRY, IN_ENUM_COATING_SYSTEM_MASONRY), 5 conditional protection inputs. All inputs consumed by sop_modules.json or production.json."
+    },
+    {
+      "check": "COMPLETENESS-6: Round Configurations",
+      "result": "pass",
+      "details": "4 round configurations declared in sop_modules.json: ROUND_MSRY_BLOCKFILL_PRIME_2FINISH (CMU QT3/QT4, 4 coats), ROUND_MSRY_BLOCKFILL_PRIME_1FINISH (CMU QT2, 3 coats), ROUND_MSRY_PRIME_2FINISH (non-CMU QT3/QT4, 3 coats), ROUND_MSRY_PRIME_1FINISH (non-CMU QT2, 2 coats). Covers all substrate_type x quality_tier combinations."
+    },
+    {
+      "check": "COMPLETENESS-7: Module Phase Order",
+      "result": "pass",
+      "details": "Module phase sequence: setup (SETUP) -> prep (PREP, BLOCK_FILL) -> prime (PRIME) -> finish (FINISH_1) -> interstage (INTERSTAGE) -> finish (FINISH_2) -> cleanup (FINAL_INSPECT, CLEANUP). Block filler is phase=prep — correct (substrate preparation, not coating). Phase ordering follows structural_keys convention."
+    },
+    {
+      "check": "ENUM-1: Convention Compliance",
+      "result": "pass",
+      "details": "All enums comply with project conventions: CON_ prefix (not CONS_), task_classification (not task_class), severity uses critical/major/minor, phase values from approved set (no 'protect' or 'protection' phase), all units uppercase (EA, SF, LF, FIXED, TUBE, ROLL, SHEET), consumable_category from approved set (applicator, protection, prep, cleanup, abrasive, fill_material, tool), zone uses ext_* prefix, sheen single values only (flat, satin — no compound sheens)."
+    }
+  ],
+
+  "exterior_validation_summary": {
+    "first_exterior_spec": false,
+    "sibling_spec": "SF_SIDING_FIBERCEMENT_EXT_NC_v1",
+    "domain_dispatch_activated": true,
+    "interior_contamination": "none — no interior keys, states, or zones found",
+    "research_corrections_applied": 0,
+    "user_corrections_applied": 0,
+    "key_departures_from_siding_siblings": [
+      "spray_backroll is the primary application method — spray-only is PROHIBITED on masonry (opposite of fiber cement where back-rolling is prohibited)",
+      "Single substrate state SS_EXT_BARE_MASONRY — no factory-primed masonry exists (siding specs have 3-4 states)",
+      "Block filler module (MOD_MSRY_BLOCK_FILL) conditional on CMU substrate — unique to masonry, no equivalent in siding specs",
+      "Alkali-resistant primer is the ONLY primer system — no standard acrylic or bonding primer paths (siding has 2-3 primer paths)",
+      "Dual coating system dimension (acrylic/elastomeric) — siding specs have single coating system",
+      "substrate_type configuration dimension (brick/CMU/concrete/limestone) with production modifier — siding uses siding_profile instead",
+      "Oil-based products explicitly PROHIBITED (saponification) — siding specs do not have this blocker",
+      "Moisture content hard stop at 12% — siding specs have moisture check but no numeric threshold",
+      "Efflorescence treatment as conditional masonry-specific prep task",
+      "Form-release removal for cast concrete — unique to masonry",
+      "9 modules vs 8 for siding (extra BLOCK_FILL module)",
+      "31 total tasks vs 25-29 for siding specs"
+    ]
+  },
+
+  "task_cross_reference": {
+    "total_sop_tasks": 31,
+    "total_production_rates": 31,
+    "orphaned_in_sop": 0,
+    "orphaned_in_production": 0,
+    "classification_mismatches": 0,
+    "uom_mismatches": 0,
+    "applies_when_mismatches": 0
+  },
+
+  "modifier_stacking_validation": {
+    "max_theoretical_stack": 3.744,
+    "stacking_cap": 4.0,
+    "within_cap": true,
+    "worst_case_scenario": "Rough brick (1.30) x elastomeric (1.50) x scaffold (1.60) x QT4 (1.20) = 3.744x",
+    "worst_case_effective_rate": "60 SF/hr per 2-person crew on spray_backroll finish — very slow but viable for fixed-price estimation"
+  },
+
+  "material_system_validation": {
+    "specialty_systems": 1,
+    "primer_systems": 1,
+    "finish_systems": 3,
+    "total_systems": 5,
+    "coverage_profiles": 4,
+    "consumables": 14,
+    "compatibility_rules": 8,
+    "all_systems_have_quality_tier": true,
+    "all_systems_have_substrate_routing": true,
+    "no_oil_based_products": true,
+    "alkali_resistant_primer_only": true,
+    "block_filler_cmu_gated": true,
+    "elastomeric_qt3_plus_only": true
+  }
+}

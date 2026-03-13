@@ -1,0 +1,888 @@
+{
+  "_meta": {
+    "spec_family_id": "SF_DECK_EXT",
+    "generated_by": "registry_resolver",
+    "generated_at": "2026-03-10",
+    "version": "1.0.0",
+    "purpose": "Pre-resolved registry values for downstream agents. Agents consuming this file do NOT need to load raw registry files.",
+    "input_files": ["research.json", "controlled_enums.json", "id_registry.json", "structural_keys.json", "agent_rules.json"]
+  },
+
+  "spec_identity": {
+    "spec_family_id": "SF_DECK_EXT",
+    "status": "proposed",
+    "domain": "exterior",
+    "phase_scope": "full",
+    "context_prefix": "DECK",
+    "notes": "New spec family for exterior deck staining/coating. Context prefix DECK — no collision with existing prefixes (CLOSET_SHELF, FRAME, DOOR, CEIL, WALL, TRIM, WIN, STRS, WNSC, WDWL, WDCL, ARCH, BLTN, CABT, SDNG, FCSD, MSRY). NOT an NC-only spec — covers new construction AND existing decks via wood_condition dimension. STAIN-based spec — coating_type replaces quality_tier as primary dimension. No primer module for penetrating stains (clear/semi-transparent/semi-solid). Multi-item component-based scope (4 paintable items across 3 UOM types). Composite decking excluded."
+  },
+
+  "paintable_items": [
+    {
+      "item_id": "ITM_DECK_FLOOR",
+      "name": "Deck floor field surface (main walking surface)",
+      "unit_of_measure": "SF",
+      "surface_ref": "deck_floor_field",
+      "status": "proposed",
+      "notes": "New ITM for deck floor field. SF-based — net deck floor area from PaintScope. Primary item. Highest wear surface (horizontal, foot traffic, UV). Production rates vary by coating_type and application_method."
+    },
+    {
+      "item_id": "ITM_DECK_RAILING",
+      "name": "Deck railing system (top rail, bottom rail, posts)",
+      "unit_of_measure": "LF",
+      "surface_ref": "deck_railing",
+      "status": "proposed",
+      "notes": "New ITM for deck railing system. LF-based — linear feet of railing run. Includes top rail, bottom rail, and posts per linear foot. Activated when scope_components = floor_and_railings or full_deck. Brush application primary method."
+    },
+    {
+      "item_id": "ITM_DECK_SPINDLE",
+      "name": "Deck spindle/baluster (individual vertical member)",
+      "unit_of_measure": "EA",
+      "surface_ref": "deck_spindle",
+      "status": "proposed",
+      "notes": "New ITM for deck spindles/balusters. EA-based — individually counted and stained. 4 sides + top/bottom per spindle. High labor intensity. Turned spindles slower than square. Activated when scope_components = full_deck. Typical ~3 spindles per LF of railing."
+    },
+    {
+      "item_id": "ITM_DECK_STAIR",
+      "name": "Deck stair step (tread + riser per step)",
+      "unit_of_measure": "EA",
+      "surface_ref": "deck_stair_step",
+      "status": "proposed",
+      "notes": "New ITM for deck stair steps. EA-based — each tread+riser is one unit. Includes end-grain sealing and detail brushwork. Alternating step staining pattern for access. Activated when scope_components = full_deck."
+    }
+  ],
+
+  "task_prefix": {
+    "pattern": "TSK_DECK_",
+    "context": "DECK",
+    "collision_check": "No collision. Existing prefixes: CLOSET_SHELF/generic, FRAME, DOOR, CEIL, WALL, TRIM, WIN, STRS, WNSC, WDWL, WDCL, ARCH, BLTN, CABT, SDNG, FCSD, MSRY. DECK is unique.",
+    "naming_rule": "TSK_DECK_{ACTION} — action should be verb-based. Examples: TSK_DECK_MOISTURE_TEST, TSK_DECK_MILL_GLAZE_REMOVE, TSK_DECK_CHEM_STRIP, TSK_DECK_BRIGHTEN, TSK_DECK_STAIN_FLOOR_BRUSH, TSK_DECK_STAIN_FLOOR_SPRAY_BACKBRUSH, TSK_DECK_STAIN_RAILING_BRUSH, TSK_DECK_STAIN_SPINDLE_BRUSH, TSK_DECK_STAIN_STAIR_BRUSH, TSK_DECK_FURNITURE_STAGE"
+  },
+
+  "module_prefix": {
+    "pattern": "MOD_DECK_",
+    "expected_modules": [
+      { "module_id": "MOD_DECK_SETUP", "phase": "setup", "notes": "Protection setup — siding masking, landscape below deck, hardscape adjacent, furniture staging, light fixture masking" },
+      { "module_id": "MOD_DECK_PREP_FLOOR", "phase": "prep", "notes": "Floor prep — moisture testing (mandatory all conditions), mill glaze removal (new wood), sanding (weathered/previously coated), power wash (previously coated). Condition-specific task activation via wood_condition dimension." },
+      { "module_id": "MOD_DECK_PREP_RAILING", "phase": "prep", "notes": "Railing/spindle/stair prep — sanding, cleaning, end-grain prep. Activated when scope_components includes railings or full_deck." },
+      { "module_id": "MOD_DECK_CHEMICAL_RESTORE", "phase": "prep", "notes": "CONDITIONAL — weathered wood only. Three-step chemical restoration: (1) alkaline strip/clean, (2) acid brighten (oxalic for cedar/redwood), (3) neutralize and rinse. 24-48 hr dry time after. Effectively a separate mobilization day." },
+      { "module_id": "MOD_DECK_APPLY_FLOOR", "phase": "apply", "notes": "Floor field stain application — brush, pad, or spray_backbrush by application_method. 1-2 coats by coating_type. Back-brushing mandatory when spraying penetrating stains." },
+      { "module_id": "MOD_DECK_APPLY_RAILING", "phase": "apply", "notes": "Railing system stain application — brush primary, spray_backbrush for long runs. Includes spindle staining (individually brushed). Activated when scope_components includes railings." },
+      { "module_id": "MOD_DECK_APPLY_STAIR", "phase": "apply", "notes": "Stair stain application — brush primary. Alternating step pattern (stain every other step, allow to dry, then remaining steps). Includes end-grain sealing. Activated when scope_components = full_deck." },
+      { "module_id": "MOD_DECK_CLEANUP", "phase": "cleanup", "notes": "Protection teardown, furniture return, tool cleaning, final inspection. Solid stain delamination risk documentation (when coating_type = solid_stain on horizontal)." }
+    ]
+  },
+
+  "paintscope_keys": [
+    {
+      "paintscope_key": "PS_EXT_SURFACE_SF.DECK_FIELD",
+      "input_name": "IN_SF_DECK_FIELD",
+      "uom": "SF",
+      "status": "proposed",
+      "description": "Net deck floor field area (square feet). Main walking surface."
+    },
+    {
+      "paintscope_key": "PS_EXT_EDGE_LF.DECK_RAILING",
+      "input_name": "IN_LF_DECK_RAILING",
+      "uom": "LF",
+      "status": "proposed",
+      "description": "Linear feet of deck railing run (top rail, bottom rail, posts per LF)"
+    },
+    {
+      "paintscope_key": "PS_EXT_META.EA.DECK_SPINDLES",
+      "input_name": "IN_EA_DECK_SPINDLES",
+      "uom": "EA",
+      "status": "proposed",
+      "description": "Count of individual deck spindles/balusters. Can be derived from railing LF (~3 per LF) or counted directly."
+    },
+    {
+      "paintscope_key": "PS_EXT_META.EA.DECK_STAIR_STEPS",
+      "input_name": "IN_EA_DECK_STAIR_STEPS",
+      "uom": "EA",
+      "status": "proposed",
+      "description": "Count of deck stair steps (each tread+riser = 1 unit)"
+    },
+    {
+      "paintscope_key": "PS_EXT_META.ENUM.COATING_TYPE_DECK",
+      "input_name": "IN_ENUM_COATING_TYPE_DECK",
+      "uom": "ENUM",
+      "status": "proposed",
+      "description": "Primary configuration dimension — coating type (clear_sealer, semi_transparent, semi_solid, solid_stain). Replaces quality_tier for this spec. Drives coating chemistry, failure mode, maintenance cycle, and primer requirement."
+    },
+    {
+      "paintscope_key": "PS_EXT_META.ENUM.WOOD_CONDITION_DECK",
+      "input_name": "IN_ENUM_WOOD_CONDITION_DECK",
+      "uom": "ENUM",
+      "status": "proposed",
+      "description": "Wood condition (new, weathered, previously_coated). Drives prep module selection and prep material requirements."
+    },
+    {
+      "paintscope_key": "PS_EXT_META.ENUM.SUBSTRATE_TYPE_DECK",
+      "input_name": "IN_ENUM_SUBSTRATE_TYPE_DECK",
+      "uom": "ENUM",
+      "status": "proposed",
+      "description": "Deck wood substrate type (pressure_treated_pine, cedar, redwood). Drives seasoning requirements, tannin management, and stain compatibility."
+    },
+    {
+      "paintscope_key": "PS_EXT_PROTECT_SF.SIDING_ADJACENT",
+      "input_name": "IN_SF_EXT_PROTECT_SIDING_ADJACENT",
+      "uom": "SF",
+      "status": "proposed",
+      "description": "Siding area at deck-to-house junction requiring protection. Plastic sheeting on siding face from deck level up 4-6 ft when spraying.",
+      "notes": "New PS key — PS_EXT_PROTECT_SF.LANDSCAPE_ADJACENT exists but no SIDING_ADJACENT in current registry. Siding protection at ledger board junction is this spec's responsibility."
+    },
+    {
+      "paintscope_key": "PS_EXT_PROTECT_LF.LANDSCAPE_PERIMETER",
+      "input_name": "IN_LF_EXT_PROTECT_LANDSCAPE_PERIMETER",
+      "uom": "LF",
+      "status": "existing",
+      "description": "Linear feet of deck perimeter where below-deck landscape requires protection (elevated decks)."
+    },
+    {
+      "paintscope_key": "PS_EXT_PROTECT_SF.HARDSCAPE_WALK",
+      "input_name": "IN_SF_EXT_PROTECT_HARDSCAPE_WALK",
+      "uom": "SF",
+      "status": "existing",
+      "description": "Adjacent walkway area requiring protection from stain overspray/drip"
+    },
+    {
+      "paintscope_key": "PS_EXT_PROTECT_EA.DECK_FURNITURE",
+      "input_name": "IN_EA_EXT_PROTECT_DECK_FURNITURE",
+      "uom": "EA",
+      "status": "proposed",
+      "description": "Count of on-deck furniture groups requiring relocation or covering. Unique to deck scope — items on the surface being stained.",
+      "notes": "New PS key. No equivalent in wall/siding specs. Furniture staging is a protection task unique to decks."
+    },
+    {
+      "paintscope_key": "PS_EXT_PROTECT_EA.LIGHT_FIXTURE",
+      "input_name": "IN_EA_EXT_PROTECT_LIGHT_FIXTURE",
+      "uom": "EA",
+      "status": "existing",
+      "description": "Count of deck-mounted or railing-mounted light fixtures to mask"
+    },
+    {
+      "paintscope_key": "PS_EXT_META.FLAG.NEW_CONSTRUCTION",
+      "input_name": "IN_BOOL_NEW_CONSTRUCTION",
+      "uom": "BOOL",
+      "status": "existing",
+      "description": "Boolean flag for new construction context. Used in combination with wood_condition to determine prep requirements."
+    }
+  ],
+
+  "applicable_enums": {
+    "coating_type": {
+      "values": ["clear_sealer", "semi_transparent", "semi_solid", "solid_stain"],
+      "default": "semi_transparent",
+      "prohibited": [],
+      "notes": "PRIMARY CONFIGURATION DIMENSION — replaces quality_tier for this spec. Drives coating chemistry (penetrating vs film-forming), maintenance cycle, failure mode profile, and primer requirement. Semi-transparent is the professional standard default. Proposed new enum type for controlled_enums.json."
+    },
+    "wood_condition": {
+      "values": ["new", "weathered", "previously_coated"],
+      "default": "new",
+      "prohibited": [],
+      "notes": "Drives prep module selection. New: mill glaze removal + seasoning verification. Weathered: chemical restoration protocol. Previously_coated: assess existing coating, strip if failing. Proposed new enum type for controlled_enums.json."
+    },
+    "substrate_type": {
+      "values": ["pressure_treated_pine", "cedar", "redwood"],
+      "default": "pressure_treated_pine",
+      "prohibited": ["composite"],
+      "notes": "Wood species. PT pine is ~80% of residential decks. Cedar/redwood have tannin management requirements. Composite explicitly excluded. Proposed new enum type for controlled_enums.json."
+    },
+    "application_method": {
+      "values": ["spray_backbrush", "brush", "roll", "pad"],
+      "prohibited": ["spray"],
+      "notes": "Spray-only PROHIBITED for penetrating stains — back-brushing mandatory. spray_backbrush is the deck equivalent of masonry spray_backroll (brush forces stain into wood grain). pad is pad/lamb's wool applicator for floor field. spray_backbrush and pad are proposed additions to controlled_enums.json application_method valid_values."
+    },
+    "scope_components": {
+      "values": ["floor_only", "floor_and_railings", "full_deck"],
+      "default": "full_deck",
+      "prohibited": [],
+      "notes": "Controls which paintable items are active. floor_only: ITM_DECK_FLOOR. floor_and_railings: adds ITM_DECK_RAILING + ITM_DECK_SPINDLE. full_deck: adds ITM_DECK_STAIR. Similar to cabinet scope pattern. Proposed new enum type for controlled_enums.json."
+    },
+    "phase": {
+      "values": ["setup", "prep", "apply", "cleanup"],
+      "full_sequence": ["setup", "prep", "prime", "apply", "interstage", "finish", "cleanup"],
+      "prohibited": ["protect", "protection"],
+      "notes": "Simplified phase set — no prime (stains don't use primer), no interstage (penetrating stains absorb, no intercoat sanding), no finish (stain application uses 'apply' phase — it is neither prime nor traditional finish). 'apply' is the correct phase for stain application per controlled_enums: 'Generic coating application (used when phase is not specifically prime or finish)'."
+    },
+    "task_classification": {
+      "values": ["binary", "qt_conditional", "ct_conditional", "ct_scaled"],
+      "notes": "binary: same rate all coating types. ct_conditional: task only appears for certain coating types (e.g., chemical restoration for weathered only, tannin primer for solid on cedar). ct_scaled: task rate varies by coating type. Note: 'ct_' prefix proposed for coating_type-driven classification (parallel to qt_ for quality_tier-driven specs)."
+    },
+    "skill_level": {
+      "values": ["helper", "journeyman", "lead"]
+    },
+    "unit_of_measure": {
+      "values": ["EA", "LF", "SF", "FIXED"],
+      "prohibited": ["each", "ROOM", "FIXED_TIME"],
+      "notes": "SF for floor field. LF for railings. EA for spindles, stairs, protection items. FIXED for moisture testing, tool cleaning."
+    },
+    "uom_input": {
+      "values": ["EA", "LF", "SF", "ENUM", "BOOL"]
+    },
+    "substrate_state": {
+      "input_states": ["SS_EXT_BARE_WOOD", "SS_EXT_STAINED_SOLID", "SS_EXT_STAINED_SEMI", "SS_EXT_WEATHERED"],
+      "output_states": {
+        "clear_sealer": "SS_EXT_STAINED_SEMI",
+        "semi_transparent": "SS_EXT_STAINED_SEMI",
+        "semi_solid": "SS_EXT_STAINED_SEMI",
+        "solid_stain": "SS_EXT_STAINED_SOLID"
+      },
+      "notes": "All input and output states exist in controlled_enums.json substrate_state valid_values. SS_EXT_BARE_WOOD = new wood. SS_EXT_STAINED_SOLID/SS_EXT_STAINED_SEMI = previously coated. SS_EXT_WEATHERED = UV-degraded. Output: clear/semi-transparent/semi-solid are penetrating (SS_EXT_STAINED_SEMI), solid is film-forming (SS_EXT_STAINED_SOLID)."
+    },
+    "consumable_unit": {
+      "values": ["EA", "ROLL", "SHEET", "TUBE", "GAL"],
+      "prohibited": ["each", "roll", "sheet", "tube"]
+    },
+    "consumable_category": {
+      "values": ["applicator", "protection", "prep", "cleanup", "abrasive", "tool"]
+    },
+    "product_role": {
+      "values": ["stain", "sealer", "prep_chemical", "specialty"],
+      "notes": "stain: penetrating stain products (semi-transparent, semi-solid, solid). sealer: clear wood sealer. prep_chemical: deck cleaner, brightener, stripper. specialty: tannin-blocking primer (solid stain on cedar/redwood edge case only). No 'primer' or 'finish' roles — this is a stain spec."
+    },
+    "yield_uom": {
+      "values": ["SF", "LF", "EA", "GAL"]
+    },
+    "protection_level": {
+      "values": ["none", "light_mask", "full_cover"],
+      "notes": "Exterior deck zones. light_mask for brush application. Upgrades to full_cover when spray_backbrush. Simpler protection profile than masonry/siding (fewer adjacent surfaces)."
+    },
+    "protection_action": {
+      "values": ["setup", "maintain", "teardown"]
+    },
+    "edge_type": {
+      "values": ["linear", "complex"]
+    },
+    "typical_relationship": {
+      "values": ["same_finish", "different_finish"]
+    },
+    "finish_group": {
+      "values": ["same", "different"]
+    },
+    "task_type": {
+      "values": ["prep", "apply", "protect", "inspect", "cleanup", "detail"],
+      "notes": "No 'prime' or 'finish' task types — stain application uses 'apply'. 'detail' for spindle and stair detail work."
+    },
+    "severity": {
+      "values": ["critical", "major", "minor"],
+      "prohibited": ["high", "medium", "low", "WARN"]
+    },
+    "modifier_mechanism": {
+      "values": ["baseline", "baseline_reduction", "selective_multiplier", "additional_rounds", "excluded"]
+    },
+    "confidence_level": {
+      "values": ["low", "medium", "high"]
+    }
+  },
+
+  "surface_ids": {
+    "primary_surface": "deck_floor_field",
+    "component_surfaces": ["deck_railing", "deck_spindle", "deck_stair_step"],
+    "adjacent_surfaces": [
+      "ext_siding_field",
+      "ext_door_slab",
+      "foundation_wall"
+    ],
+    "all_status": "contains_proposed",
+    "notes": "deck_floor_field, deck_railing, deck_spindle, deck_stair_step are all proposed — new surface IDs. No existing surface_ids cover deck components. Adjacent surfaces: ext_siding_field is proposed (similar to siding_field but exterior context), ext_door_slab not in registry (door at deck entry — protection owned by door spec), foundation_wall is existing."
+  },
+
+  "zone_ids": [
+    { "zone_id": "ext_siding_adjacent", "status": "proposed", "retired_alias_warning": null, "notes": "Siding at deck-to-house ledger board junction. Protection from stain overspray/drip." },
+    { "zone_id": "ext_below_deck_landscape", "status": "proposed", "retired_alias_warning": null, "notes": "Vegetation/landscape below elevated deck. Conditional on deck_height = elevated." },
+    { "zone_id": "ext_hardscape_patio", "status": "existing", "retired_alias_warning": null, "notes": "Adjacent patio/walkway at grade. Reuse existing zone from masonry spec." },
+    { "zone_id": "ext_deck_furniture_staging", "status": "proposed", "retired_alias_warning": null, "notes": "On-deck furniture groups requiring relocation or covering. Unique to deck scope." },
+    { "zone_id": "ext_light_fixture", "status": "existing", "retired_alias_warning": null, "notes": "Deck-mounted or railing-mounted light fixtures. Reuse existing zone." }
+  ],
+
+  "material_system_prefix": {
+    "pattern": "SYS_EXT_DECK_{DESCRIPTION}",
+    "existing_systems_to_consider": [
+      "No existing SYS_ entries cover deck staining products. Deck stains are a fundamentally different product class from exterior paints (penetrating vs film-forming)."
+    ],
+    "proposed_systems": [
+      {
+        "system_id": "SYS_EXT_DECK_CLEAR_SEALER",
+        "name": "Clear Wood Sealer for Decks",
+        "applies_when": { "coating_type": ["clear_sealer"] },
+        "product_role": "sealer",
+        "notes": "Water repellent sealer with no UV pigment. Wood grain fully visible. 12-18 month maintenance cycle. 1-2 coats. Coverage: 200-350 SF/gal."
+      },
+      {
+        "system_id": "SYS_EXT_DECK_SEMI_TRANSPARENT",
+        "name": "Semi-Transparent Penetrating Stain for Decks",
+        "applies_when": { "coating_type": ["semi_transparent"] },
+        "product_role": "stain",
+        "notes": "Professional standard. Pigmented penetrating stain — wood grain visible through color. 2-3 year cycle. 2 coats standard. Coverage: 200-300 SF/gal."
+      },
+      {
+        "system_id": "SYS_EXT_DECK_SEMI_SOLID",
+        "name": "Semi-Solid Penetrating Stain for Decks",
+        "applies_when": { "coating_type": ["semi_solid"] },
+        "product_role": "stain",
+        "notes": "Heavy-pigment penetrating stain. Partially masks grain. 3-4 year cycle. 2 coats standard. Coverage: 200-300 SF/gal."
+      },
+      {
+        "system_id": "SYS_EXT_DECK_SOLID_STAIN",
+        "name": "Solid Stain (Film-Forming) for Decks",
+        "applies_when": { "coating_type": ["solid_stain"] },
+        "product_role": "stain",
+        "notes": "Film-forming coating — opaque color, complete grain masking. 5-7 year cycle. 2 coats with full dry between. DELAMINATION RISK on horizontal surfaces — mandatory risk documentation. Coverage: 300-400 SF/gal."
+      },
+      {
+        "system_id": "SYS_EXT_DECK_CHEMICAL_STRIPPER",
+        "name": "Alkaline Deck Cleaner/Stripper",
+        "applies_when": { "wood_condition": ["weathered"] },
+        "product_role": "prep_chemical",
+        "notes": "Sodium percarbonate or sodium hydroxide-based deck cleaner. Step 1 of 3-step chemical restoration protocol for weathered wood. Removes failed coating residue, mildew, dirt, opens wood pores."
+      },
+      {
+        "system_id": "SYS_EXT_DECK_BRIGHTENER",
+        "name": "Oxalic Acid Wood Brightener",
+        "applies_when": { "wood_condition": ["weathered"], "substrate_type": ["cedar", "redwood", "pressure_treated_pine"] },
+        "product_role": "prep_chemical",
+        "notes": "Oxalic acid (cedar/redwood tannin) or citric acid (alternative). Step 2 of chemical restoration. Restores natural wood color by dissolving surface tannin deposits and neutralizing alkaline residue. Also used as standalone tannin treatment on new cedar/redwood."
+      }
+    ],
+    "notes": "6 material systems total: 4 coating products (one per coating_type) + 2 prep chemicals (weathered wood restoration). NO primer system — penetrating stains do not use primer. Exception: solid stain on cedar/redwood may require tannin-blocking primer — handle as edge case with specialty consumable, not a full material system."
+  },
+
+  "consumable_prefix": {
+    "canonical_prefix": "CON_",
+    "prohibited_prefix": "CONS_",
+    "reusable_consumables": [
+      "CON_MASKING_TAPE_BLUE",
+      "CON_DROP_CLOTH_CANVAS",
+      "CON_SANDPAPER_80",
+      "CON_SANDPAPER_100"
+    ],
+    "proposed_consumables": [
+      {
+        "consumable_id": "CON_DECK_BRUSH_STAIN_4IN",
+        "name": "Stiff Synthetic Bristle Brush 4-6 inch (deck stain back-brushing)",
+        "category": "applicator",
+        "unit": "EA",
+        "notes": "Primary back-brushing tool for spray_backbrush method. Stiff synthetic bristle forces stain into wood grain pores. Replace frequently — stain degrades bristles faster than paint."
+      },
+      {
+        "consumable_id": "CON_DECK_BRUSH_DETAIL_2IN",
+        "name": "Stain Brush 2-3 inch (railing/spindle detail)",
+        "category": "applicator",
+        "unit": "EA",
+        "notes": "Detail brush for railing, spindle, and stair staining. Smaller size for control on narrow members."
+      },
+      {
+        "consumable_id": "CON_DECK_PAD_APPLICATOR",
+        "name": "Pad/Lamb's Wool Applicator (deck floor stain)",
+        "category": "applicator",
+        "unit": "EA",
+        "notes": "Floor field stain applicator. Smooth, even application of penetrating stains. Alternative to brush for floor field."
+      },
+      {
+        "consumable_id": "CON_DECK_SPRAY_TIP_515",
+        "name": "Airless Spray Tip 515 (deck stain)",
+        "category": "applicator",
+        "unit": "EA",
+        "notes": "0.015 orifice for penetrating stain spray. 10-12 inch pattern. Low pressure (800-1200 PSI) to avoid atomizing stain into overspray."
+      },
+      {
+        "consumable_id": "CON_DECK_PLASTIC_SHEETING",
+        "name": "Plastic Sheeting 4-6 mil (siding/landscape protection)",
+        "category": "protection",
+        "unit": "ROLL",
+        "notes": "Siding protection at ledger board, below-deck vegetation protection. 4-6 mil for durability."
+      },
+      {
+        "consumable_id": "CON_DECK_MOISTURE_METER",
+        "name": "Pin-Type Moisture Meter (field tool, tracked as consumable)",
+        "category": "tool",
+        "unit": "EA",
+        "notes": "Electronic pin-type moisture meter for MC < 15% verification. Reusable tool tracked as consumable for project assignment. Replacement pins are the actual consumable."
+      },
+      {
+        "consumable_id": "CON_DECK_SANDPAPER_60",
+        "name": "Sandpaper 60 Grit (mill glaze removal)",
+        "category": "abrasive",
+        "unit": "SHEET",
+        "notes": "Coarse grit for mechanical mill glaze removal on new wood. 60-80 grit range."
+      }
+    ]
+  },
+
+  "round_configurations": {
+    "existing_patterns": [
+      "ROUND_SINGLE_COAT",
+      "ROUND_TWO_COAT"
+    ],
+    "naming_pattern": "ROUND_{CONTEXT}_{DESCRIPTION}",
+    "proposed_configurations": [
+      {
+        "round_id": "ROUND_DECK_SINGLE_COAT",
+        "description": "Single coat — clear sealer. Apply once, allow to penetrate.",
+        "applies_when": { "coating_type": ["clear_sealer"] },
+        "notes": "Some clear sealers specify 2 coats — default to single coat, product-dependent override."
+      },
+      {
+        "round_id": "ROUND_DECK_TWO_COAT_WET",
+        "description": "Two coats wet-on-absorbing — semi-transparent and semi-solid penetrating stains. Apply first coat, let absorb 30-60 min, apply second coat while first is still workable.",
+        "applies_when": { "coating_type": ["semi_transparent", "semi_solid"] },
+        "notes": "Penetrating stain 2-coat system. NOT wet-on-wet — allow first coat to absorb into wood before second coat. Back-brush any pooling on second coat. Both coats same day in ideal conditions."
+      },
+      {
+        "round_id": "ROUND_DECK_TWO_COAT_DRY",
+        "description": "Two coats with full dry between — solid stain (film-forming). Full dry/cure between coats (4-24 hours product-dependent).",
+        "applies_when": { "coating_type": ["solid_stain"] },
+        "notes": "Film-forming coating requires full dry between coats. Similar to paint 2-coat system. May require separate day for second coat."
+      }
+    ]
+  },
+
+  "coverage_profiles": {
+    "existing_profiles": [],
+    "naming_pattern": "COV_{CONTEXT}_{PRODUCT_ROLE}",
+    "proposed_profiles": [
+      {
+        "profile_id": "COV_DECK_CLEAR_SEALER",
+        "description": "Clear sealer coverage on deck wood — 200-350 SF/gal. Higher on smooth new wood, lower on rough/weathered."
+      },
+      {
+        "profile_id": "COV_DECK_SEMI_TRANSPARENT",
+        "description": "Semi-transparent penetrating stain coverage — 200-300 SF/gal. Absorption varies by wood porosity and condition."
+      },
+      {
+        "profile_id": "COV_DECK_SEMI_SOLID",
+        "description": "Semi-solid penetrating stain coverage — 200-300 SF/gal. Heavier pigment load, similar absorption to semi-transparent."
+      },
+      {
+        "profile_id": "COV_DECK_SOLID_STAIN",
+        "description": "Solid stain (film-forming) coverage — 300-400 SF/gal. Film-forming, less absorption than penetrating stains."
+      },
+      {
+        "profile_id": "COV_DECK_CHEMICAL_STRIPPER",
+        "description": "Alkaline deck cleaner/stripper coverage — 100-200 SF/gal for weathered wood restoration."
+      },
+      {
+        "profile_id": "COV_DECK_BRIGHTENER",
+        "description": "Oxalic acid brightener coverage — 100-200 SF/gal for tannin treatment and wood color restoration."
+      }
+    ]
+  },
+
+  "cross_spec_coordination": {
+    "xspec_flags_consumed": [],
+    "xspec_flags_set": [],
+    "comp_modifiers_set": [],
+    "comp_modifiers_affected_by": [],
+    "notes": "Door protection at deck-to-house entry is NOT this spec's responsibility. Door masking belongs in the door spec. Siding protection at the ledger board junction IS this spec's responsibility (stain overspray/drip contacts siding). No cross-spec flags needed."
+  },
+
+  "factor_modifiers": {
+    "naming_pattern": "FAC_{CONTEXT}_{DESCRIPTION}",
+    "existing_modifiers": [
+      "FAC_EXT_ACCESS — ground=1.00, ladder=1.35, scaffold=1.60, lift=1.50 — applies ONLY to exterior railing face work on elevated decks. Floor staining has NO height modifier."
+    ],
+    "proposed_modifiers": [
+      {
+        "modifier_id": "FAC_DECK_COATING_TYPE",
+        "description": "Production rate modifier by coating type (primary dimension)",
+        "values": { "clear_sealer": 0.80, "semi_transparent": 1.00, "semi_solid": 1.10, "solid_stain": 1.25 },
+        "notes": "Semi-transparent is baseline (1.00). Clear sealer is fastest (lowest viscosity, no color matching). Semi-solid slightly slower (heavier pigment). Solid stain slowest (film-forming, more careful application, edge management)."
+      },
+      {
+        "modifier_id": "FAC_DECK_WOOD_CONDITION",
+        "description": "Prep time modifier by wood condition",
+        "values": { "new": 1.00, "weathered": 1.50, "previously_coated": 1.75 },
+        "notes": "New wood is baseline. Weathered adds chemical restoration protocol (significant prep overhead + separate mobilization day). Previously_coated has highest prep overhead (assess, strip if failing, sand, clean). Modifiers apply to PREP tasks only — stain application rate is not affected by wood condition (wood is prepped to consistent state before staining)."
+      },
+      {
+        "modifier_id": "FAC_DECK_SUBSTRATE_TYPE",
+        "description": "Production rate modifier by wood species",
+        "values": { "pressure_treated_pine": 1.00, "cedar": 1.10, "redwood": 1.10 },
+        "notes": "PT pine is baseline. Cedar/redwood require additional care — tannin management, softer wood (dent risk), end-grain absorption control."
+      }
+    ]
+  },
+
+  "structural_reminders": {
+    "materials_json": {
+      "required_keys": ["spec_family_id", "version", "material_systems", "consumables"],
+      "system_item_keys": ["system_id", "name", "applies_when"],
+      "consumable_item_keys": ["consumable_id", "name", "category", "unit"],
+      "use_consumables_key": "consumables (never consumable_usage_models)",
+      "stain_spec_note": "Material systems branch by coating_type (not quality_tier). Product roles: stain, sealer, prep_chemical (not primer, finish). No oil-based vs water-based distinction at system level — handle as product variant within system."
+    },
+    "sop_modules_json": {
+      "required_keys": ["spec_family_id", "version", "sop_modules"],
+      "module_keys": ["module_id", "name", "phase", "tasks"],
+      "task_required_keys": ["task_id", "name", "task_classification", "skill_level"],
+      "task_prohibited_keys": ["task_class", "rate_per_hour", "coverage_sf_per_gallon"]
+    },
+    "production_json": {
+      "required_keys": ["spec_family_id", "version", "task_production_rates"],
+      "rate_item_keys": ["task_id", "unit_of_measure", "rate_per_hour OR rates_by_coating_type OR fixed_time_minutes"],
+      "prohibited_keys": ["tasks", "sop_modules"],
+      "stain_spec_note": "Production rates vary by coating_type instead of quality_tier. Use rates_by_coating_type instead of rates_by_tier."
+    },
+    "qa_report_json": {
+      "required_keys": ["spec_family_id", "version", "overall_result"],
+      "issue_keys": ["issue_id", "severity", "area", "file", "description", "suggested_fix"],
+      "severity_values": ["critical", "major", "minor"]
+    }
+  },
+
+  "cross_file_threading": [
+    "RULE 1: Every TSK_ in sop_modules.json MUST have a matching rate in production.json",
+    "RULE 2: Every ITM_ in spec.json MUST appear in at least one variant",
+    "RULE 3: Every SYS_ coating_type MUST match spec.json configuration_dimensions (coating_type replaces quality_tier for this spec)",
+    "RULE 4: Every IN_ input in spec.json SHOULD be consumed by sop_modules or production",
+    "RULE 5: Every PS_ key in production.json MUST match spec.json required_paintscope_inputs",
+    "RULE 6: Every zone_id in spec.json MUST match sop_modules.json protection_metadata.zones",
+    "RULE 7: Module phase order: setup → prep → apply → cleanup (simplified — no prime, no interstage, no finish for stain spec)",
+    "RULE 8: UOM for a task MUST match between sop_modules.json and production.json",
+    "RULE 9: All TSK_ IDs MUST use TSK_DECK_ prefix (from this resolution)",
+    "RULE 10: All 4 ITM_ IDs (ITM_DECK_FLOOR, ITM_DECK_RAILING, ITM_DECK_SPINDLE, ITM_DECK_STAIR) MUST be used exactly as registered (all proposed)",
+    "RULE 11: Downstream agents MUST use only enum values from this resolution's applicable_enums"
+  ],
+
+  "migration_warnings": [],
+
+  "registry_additions_proposed": [
+    {
+      "registry": "id_registry.json",
+      "section": "SF_",
+      "proposed_id": "SF_DECK_EXT",
+      "name": "Exterior Deck Staining/Coating (PT Pine, Cedar, Redwood — New and Existing)",
+      "justification": "New spec family for exterior deck staining. Distinct product system (penetrating stains, not paint), unique dimensional model (coating_type replaces quality_tier), component-based multi-item scope (4 items, 3 UOM types), no primer pipeline, covers both new construction and existing decks."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "ITM_",
+      "proposed_id": "ITM_DECK_FLOOR",
+      "name": "Deck floor field surface",
+      "justification": "No existing ITM covers horizontal deck walking surfaces. Distinct from ITM_SIDING_FIELD (vertical) and all interior floor items."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "ITM_",
+      "proposed_id": "ITM_DECK_RAILING",
+      "name": "Deck railing system (top rail, bottom rail, posts per LF)",
+      "justification": "No existing ITM covers deck railing systems. LF-based — distinct from any existing EA or SF item."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "ITM_",
+      "proposed_id": "ITM_DECK_SPINDLE",
+      "name": "Deck spindle/baluster (individual vertical member)",
+      "justification": "No existing ITM covers deck spindles. EA-based individual counting. Distinct from railing LF measurement."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "ITM_",
+      "proposed_id": "ITM_DECK_STAIR",
+      "name": "Deck stair step (tread + riser per step)",
+      "justification": "No existing ITM covers exterior deck stair steps. Distinct from interior stair_riser (EA) and stair_stringer (LF) — deck stairs are combined tread+riser per step."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "surface_ids",
+      "proposed_id": "deck_floor_field",
+      "name": "Deck floor field surface (horizontal walking surface)",
+      "justification": "No existing surface_id covers horizontal deck surfaces. New vocabulary entry."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "surface_ids",
+      "proposed_id": "deck_railing",
+      "name": "Deck railing system surface",
+      "justification": "No existing surface_id covers deck railing components."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "surface_ids",
+      "proposed_id": "deck_spindle",
+      "name": "Deck spindle/baluster surface",
+      "justification": "No existing surface_id covers deck spindles."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "surface_ids",
+      "proposed_id": "deck_stair_step",
+      "name": "Deck stair step surface (tread + riser)",
+      "justification": "No existing surface_id covers exterior deck stair steps. Distinct from interior stair_riser and stair_tread."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "zone_ids",
+      "proposed_id": "ext_siding_adjacent",
+      "name": "Siding adjacent to deck at ledger board junction",
+      "justification": "No existing zone covers siding protection at deck-to-house junction. ext_landscape_adjacent is for landscape, not siding."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "zone_ids",
+      "proposed_id": "ext_below_deck_landscape",
+      "name": "Landscape/vegetation below elevated deck",
+      "justification": "No existing zone covers below-deck landscape protection. ext_landscape_adjacent is for at-grade landscape adjacent to wall. Below-deck is a distinct protection scenario (drip-through from above)."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "zone_ids",
+      "proposed_id": "ext_deck_furniture_staging",
+      "name": "On-deck furniture groups requiring relocation/covering",
+      "justification": "No existing zone covers furniture staging. Unique to deck scope — items on the surface being stained."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "PS_",
+      "proposed_id": "PS_EXT_SURFACE_SF.DECK_FIELD",
+      "name": "Deck Floor Field Surface Area (SF)",
+      "justification": "New PS key for deck floor net area. No existing PS key covers horizontal deck surfaces."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "PS_",
+      "proposed_id": "PS_EXT_EDGE_LF.DECK_RAILING",
+      "name": "Deck Railing Linear Feet (LF)",
+      "justification": "New PS key for deck railing measurement. No existing PS key covers exterior railing."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "PS_",
+      "proposed_id": "PS_EXT_META.EA.DECK_SPINDLES",
+      "name": "Deck Spindle Count (EA)",
+      "justification": "New PS key for spindle count. No existing PS key covers deck spindle counting."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "PS_",
+      "proposed_id": "PS_EXT_META.EA.DECK_STAIR_STEPS",
+      "name": "Deck Stair Step Count (EA)",
+      "justification": "New PS key for deck stair step count. No existing PS key covers exterior deck stairs."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "PS_",
+      "proposed_id": "PS_EXT_META.ENUM.COATING_TYPE_DECK",
+      "name": "Deck Coating Type Enum (clear_sealer/semi_transparent/semi_solid/solid_stain)",
+      "justification": "New PS key for primary configuration dimension. No existing PS key covers deck coating type selection."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "PS_",
+      "proposed_id": "PS_EXT_META.ENUM.WOOD_CONDITION_DECK",
+      "name": "Deck Wood Condition Enum (new/weathered/previously_coated)",
+      "justification": "New PS key for wood condition selection. Drives prep module activation."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "PS_",
+      "proposed_id": "PS_EXT_META.ENUM.SUBSTRATE_TYPE_DECK",
+      "name": "Deck Wood Substrate Type Enum (pressure_treated_pine/cedar/redwood)",
+      "justification": "New PS key for wood species selection. Drives tannin management and seasoning requirements."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "PS_",
+      "proposed_id": "PS_EXT_PROTECT_SF.SIDING_ADJACENT",
+      "name": "Siding Adjacent Protection Area (SF)",
+      "justification": "New PS key for siding protection at deck-to-house junction. No existing PS key covers siding protection area."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "PS_",
+      "proposed_id": "PS_EXT_PROTECT_EA.DECK_FURNITURE",
+      "name": "On-Deck Furniture Group Count (EA)",
+      "justification": "New PS key for deck furniture staging count. Unique to deck scope."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "IN_",
+      "proposed_id": "IN_SF_DECK_FIELD",
+      "name": "Deck Floor Field Area Input (SF)",
+      "justification": "Input mapped to PS_EXT_SURFACE_SF.DECK_FIELD."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "IN_",
+      "proposed_id": "IN_LF_DECK_RAILING",
+      "name": "Deck Railing Linear Feet Input (LF)",
+      "justification": "Input mapped to PS_EXT_EDGE_LF.DECK_RAILING."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "IN_",
+      "proposed_id": "IN_EA_DECK_SPINDLES",
+      "name": "Deck Spindle Count Input (EA)",
+      "justification": "Input mapped to PS_EXT_META.EA.DECK_SPINDLES."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "IN_",
+      "proposed_id": "IN_EA_DECK_STAIR_STEPS",
+      "name": "Deck Stair Step Count Input (EA)",
+      "justification": "Input mapped to PS_EXT_META.EA.DECK_STAIR_STEPS."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "IN_",
+      "proposed_id": "IN_ENUM_COATING_TYPE_DECK",
+      "name": "Deck Coating Type Input (ENUM)",
+      "justification": "Input mapped to PS_EXT_META.ENUM.COATING_TYPE_DECK."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "IN_",
+      "proposed_id": "IN_ENUM_WOOD_CONDITION_DECK",
+      "name": "Deck Wood Condition Input (ENUM)",
+      "justification": "Input mapped to PS_EXT_META.ENUM.WOOD_CONDITION_DECK."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "IN_",
+      "proposed_id": "IN_ENUM_SUBSTRATE_TYPE_DECK",
+      "name": "Deck Wood Substrate Type Input (ENUM)",
+      "justification": "Input mapped to PS_EXT_META.ENUM.SUBSTRATE_TYPE_DECK."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "IN_",
+      "proposed_id": "IN_SF_EXT_PROTECT_SIDING_ADJACENT",
+      "name": "Siding Adjacent Protection Area Input (SF)",
+      "justification": "Input mapped to PS_EXT_PROTECT_SF.SIDING_ADJACENT."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "IN_",
+      "proposed_id": "IN_EA_EXT_PROTECT_DECK_FURNITURE",
+      "name": "Deck Furniture Group Count Input (EA)",
+      "justification": "Input mapped to PS_EXT_PROTECT_EA.DECK_FURNITURE."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "SYS_",
+      "proposed_id": "SYS_EXT_DECK_CLEAR_SEALER",
+      "name": "Clear Wood Sealer for Decks",
+      "justification": "No existing system covers clear wood sealers. Unique product class — water repellent with no UV pigment."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "SYS_",
+      "proposed_id": "SYS_EXT_DECK_SEMI_TRANSPARENT",
+      "name": "Semi-Transparent Penetrating Stain for Decks",
+      "justification": "No existing system covers penetrating deck stains. Professional standard deck coating product."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "SYS_",
+      "proposed_id": "SYS_EXT_DECK_SEMI_SOLID",
+      "name": "Semi-Solid Penetrating Stain for Decks",
+      "justification": "No existing system covers semi-solid penetrating stains. Heavy-pigment variant with distinct coverage profile."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "SYS_",
+      "proposed_id": "SYS_EXT_DECK_SOLID_STAIN",
+      "name": "Solid Stain (Film-Forming) for Decks",
+      "justification": "No existing system covers solid deck stain. Film-forming coating distinct from penetrating stains — different failure mode, coverage rate, and application requirements."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "SYS_",
+      "proposed_id": "SYS_EXT_DECK_CHEMICAL_STRIPPER",
+      "name": "Alkaline Deck Cleaner/Stripper (weathered wood prep)",
+      "justification": "No existing system covers deck cleaning chemicals. Weathered wood restoration is a multi-step chemical process unique to deck/wood specs."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "SYS_",
+      "proposed_id": "SYS_EXT_DECK_BRIGHTENER",
+      "name": "Oxalic Acid Wood Brightener (tannin treatment and restoration)",
+      "justification": "No existing system covers acid brightener products. Step 2 of chemical restoration and standalone tannin treatment for cedar/redwood."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "COV_",
+      "proposed_id": "COV_DECK_CLEAR_SEALER",
+      "name": "Clear Sealer Coverage Profile for Decks",
+      "justification": "No existing COV_ covers clear sealer on wood. 200-350 SF/gal depending on wood porosity."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "COV_",
+      "proposed_id": "COV_DECK_SEMI_TRANSPARENT",
+      "name": "Semi-Transparent Stain Coverage Profile for Decks",
+      "justification": "No existing COV_ covers penetrating stain on wood. 200-300 SF/gal."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "COV_",
+      "proposed_id": "COV_DECK_SEMI_SOLID",
+      "name": "Semi-Solid Stain Coverage Profile for Decks",
+      "justification": "No existing COV_ covers semi-solid stain. 200-300 SF/gal."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "COV_",
+      "proposed_id": "COV_DECK_SOLID_STAIN",
+      "name": "Solid Stain Coverage Profile for Decks",
+      "justification": "No existing COV_ covers solid stain on wood. 300-400 SF/gal (film-forming, less absorption)."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "COV_",
+      "proposed_id": "COV_DECK_CHEMICAL_STRIPPER",
+      "name": "Deck Cleaner/Stripper Coverage Profile",
+      "justification": "No existing COV_ covers deck cleaning chemicals. 100-200 SF/gal."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "COV_",
+      "proposed_id": "COV_DECK_BRIGHTENER",
+      "name": "Acid Brightener Coverage Profile",
+      "justification": "No existing COV_ covers acid brightener products. 100-200 SF/gal."
+    },
+    {
+      "registry": "controlled_enums.json",
+      "section": "coating_type",
+      "proposed_id": "coating_type (new enum type)",
+      "name": "Deck Coating Type Enum",
+      "justification": "New enum type for controlled_enums.json. Values: clear_sealer, semi_transparent, semi_solid, solid_stain. Replaces quality_tier as primary dimension for stain-based specs. No existing enum type covers coating chemistry classification."
+    },
+    {
+      "registry": "controlled_enums.json",
+      "section": "wood_condition",
+      "proposed_id": "wood_condition (new enum type)",
+      "name": "Wood Condition Enum",
+      "justification": "New enum type for controlled_enums.json. Values: new, weathered, previously_coated. Drives prep module selection. substrate_state covers the coating state on the surface; wood_condition covers the physical condition of the wood substrate itself."
+    },
+    {
+      "registry": "controlled_enums.json",
+      "section": "deck_substrate_type",
+      "proposed_id": "deck_substrate_type (new enum type)",
+      "name": "Deck Wood Substrate Type Enum",
+      "justification": "New enum type. Values: pressure_treated_pine, cedar, redwood. Species-specific prep and stain compatibility requirements."
+    },
+    {
+      "registry": "controlled_enums.json",
+      "section": "scope_components",
+      "proposed_id": "scope_components (new enum type)",
+      "name": "Deck Scope Components Enum",
+      "justification": "New enum type. Values: floor_only, floor_and_railings, full_deck. Controls paintable item activation. Similar pattern to cabinet scope dimension."
+    },
+    {
+      "registry": "controlled_enums.json",
+      "section": "application_method",
+      "proposed_id": "spray_backbrush",
+      "name": "Spray with mandatory back-brushing (deck stain penetration)",
+      "justification": "New value for existing application_method enum. Deck stain spray requires brush back-working (not roller). Distinct from spray_backroll (masonry/siding) — different tool and technique for different substrate physics."
+    },
+    {
+      "registry": "controlled_enums.json",
+      "section": "application_method",
+      "proposed_id": "pad",
+      "name": "Pad/lamb's wool applicator (deck floor stain)",
+      "justification": "New value for existing application_method enum. Common deck staining tool for floor field. Provides smooth, even application of penetrating stains."
+    }
+  ]
+}

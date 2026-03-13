@@ -1,0 +1,491 @@
+{
+  "spec_family_id": "SF_METAL_EXT",
+  "version": "0.1.0",
+  "generated_by": "System Critic (QA) Agent",
+  "generated_at": "2026-03-10",
+  "qa_schema_version": "1.0.0",
+
+  "validation_summary": {
+    "overall_result": "fail",
+    "total_checks": 42,
+    "passed": 30,
+    "warnings": 7,
+    "blockers": 5,
+    "notes": "Five blockers prevent acceptance. Three are cross-file inconsistencies (task_classification mismatch, material system ID mismatch, UOM mismatch on assessment tasks). One is an RC-001 research correction violation (environmental modifiers present in production). One is a coat count contradiction within production.json (quality_effects QT3 says 1 finish coat but round_configurations say 2 for all states). All are fixable without restructuring."
+  },
+
+  "cross_file_checks": [
+    {
+      "check_id": "XF-001",
+      "check": "Every task_id in sop_modules.json has matching entry in production.json",
+      "result": "pass",
+      "details": "37 tasks in SOP, 37 tasks in production. All 37 task IDs match exactly: TSK_METL_MOBILIZE through TSK_METL_CLEANUP. No orphans in either direction."
+    },
+    {
+      "check_id": "XF-002",
+      "check": "task_classification consistent between sop_modules.json and production.json",
+      "result": "blocker",
+      "severity": "critical",
+      "details": "SOP uses 7 distinct task_classification values: binary (14), substrate_conditional (8), state_conditional (5), condition_conditional (5), qt_conditional (2), method_conditional (3). Production uses ONLY 'binary' for all 37 tasks. 23 tasks have mismatched classifications. Production must mirror SOP classifications for the engine to route conditional tasks correctly.",
+      "affected_tasks": [
+        "TSK_METL_PROTECT_MASONRY (SOP: condition_conditional, prod: binary)",
+        "TSK_METL_PROTECT_ROOF_EDGE (SOP: condition_conditional, prod: binary)",
+        "TSK_METL_CONDITION_ASSESS (SOP: state_conditional, prod: binary)",
+        "TSK_METL_STRUCTURAL_RUST_CHECK (SOP: state_conditional, prod: binary)",
+        "TSK_METL_SP2_HAND_TOOL (SOP: substrate_conditional, prod: binary)",
+        "TSK_METL_SP3_POWER_TOOL (SOP: qt_conditional, prod: binary)",
+        "TSK_METL_ALUMINUM_ABRADE (SOP: substrate_conditional, prod: binary)",
+        "TSK_METL_GALVANIZED_CLEAN (SOP: substrate_conditional, prod: binary)",
+        "TSK_METL_RUST_CONVERT (SOP: condition_conditional, prod: binary)",
+        "TSK_METL_DEGLOSS_EXISTING (SOP: state_conditional, prod: binary)",
+        "TSK_METL_STRIP_FAILING (SOP: state_conditional, prod: binary)",
+        "TSK_METL_PRIME_DTM_ACRYLIC_BRUSH (SOP: substrate_conditional, prod: binary)",
+        "TSK_METL_PRIME_DTM_ACRYLIC_SPRAY (SOP: substrate_conditional, prod: binary)",
+        "TSK_METL_PRIME_DTM_ALKYD_BRUSH (SOP: substrate_conditional, prod: binary)",
+        "TSK_METL_PRIME_ETCH_BRUSH (SOP: substrate_conditional, prod: binary)",
+        "TSK_METL_PRIME_BONDING_BRUSH (SOP: substrate_conditional, prod: binary)",
+        "TSK_METL_PRIME_ZINC_RICH_BRUSH (SOP: qt_conditional, prod: binary)",
+        "TSK_METL_PRIME_EPOXY_BRUSH (SOP: condition_conditional, prod: binary)",
+        "TSK_METL_PRIME_SPOT (SOP: state_conditional, prod: binary)",
+        "TSK_METL_FINISH_DTM_BRUSH (SOP: method_conditional, prod: binary)",
+        "TSK_METL_FINISH_DTM_SPRAY (SOP: method_conditional, prod: binary)",
+        "TSK_METL_FINISH_DTM_SPRAY_BACKBRUSH (SOP: method_conditional, prod: binary)",
+        "TSK_METL_FINISH_ORNAMENTAL_DETAIL (SOP: condition_conditional, prod: binary)"
+      ],
+      "fix": "Update production.json task_classification values to match SOP. The SOP classifications are authoritative — they encode the conditional logic."
+    },
+    {
+      "check_id": "XF-003",
+      "check": "UOM consistent between sop_modules.json and production.json per task",
+      "result": "blocker",
+      "severity": "major",
+      "details": "2 tasks have UOM mismatches. TSK_METL_CONDITION_ASSESS: SOP says FIXED, production says EA. TSK_METL_STRUCTURAL_RUST_CHECK: SOP says FIXED, production says EA. SOP treats these as fixed-time tasks (one assessment per site visit regardless of component count). Production treats them as per-component tasks (EA). The SOP approach (FIXED) is more appropriate for a site walkthrough assessment, but the production approach (EA at 8/hr per component) may be more accurate for multi-component projects. Resolution needed: pick one UOM and align both files.",
+      "affected_tasks": [
+        "TSK_METL_CONDITION_ASSESS (SOP: FIXED, prod: EA)",
+        "TSK_METL_STRUCTURAL_RUST_CHECK (SOP: FIXED, prod: EA)"
+      ],
+      "fix": "Recommend EA in both files (assessment scales with component count). Update SOP to EA with rate_per_hour or update production to FIXED with fixed_time_minutes. Either way, both files must agree."
+    },
+    {
+      "check_id": "XF-004",
+      "check": "Material system IDs consistent between resolution.json and materials.json",
+      "result": "blocker",
+      "severity": "major",
+      "details": "Resolution proposes 8 systems with generic IDs (e.g., SYS_PRIMER_DTM_ACRYLIC). Materials implements 8 systems with context-prefixed IDs (e.g., SYS_EXT_METL_PRIMER_DTM_ACRYLIC). No ID matches between the two files. Mapping is inferrable but the engine requires exact ID matches. Materials.json naming convention (SYS_EXT_METL_*) is better practice — update resolution.json to match.",
+      "resolution_ids": [
+        "SYS_PRIMER_DTM_ACRYLIC",
+        "SYS_PRIMER_DTM_ALKYD",
+        "SYS_PRIMER_ZINC_RICH",
+        "SYS_PRIMER_EPOXY",
+        "SYS_PRIMER_ETCH_WASH",
+        "SYS_PRIMER_ACRYLIC_BONDING",
+        "SYS_FINISH_DTM_ACRYLIC",
+        "SYS_RUST_CONVERTER"
+      ],
+      "materials_ids": [
+        "SYS_EXT_METL_PRIMER_DTM_ACRYLIC",
+        "SYS_EXT_METL_PRIMER_DTM_ALKYD",
+        "SYS_EXT_METL_PRIMER_ZINC_RICH",
+        "SYS_EXT_METL_PRIMER_EPOXY",
+        "SYS_EXT_METL_PRIMER_ETCH",
+        "SYS_EXT_METL_PRIMER_BONDING",
+        "SYS_EXT_METL_FINISH_DTM_ACRYLIC",
+        "SYS_EXT_METL_RUST_CONVERTER"
+      ],
+      "fix": "Update resolution.json proposed_systems to use the SYS_EXT_METL_* IDs from materials.json. Materials.json is authoritative — its naming includes domain and context prefix per convention."
+    },
+    {
+      "check_id": "XF-005",
+      "check": "PS keys consistent across all files",
+      "result": "warning",
+      "severity": "minor",
+      "details": "Minor PS key inconsistencies between SOP module inputs and production input groups. SOP protection module uses metal-specific PS keys (e.g., PS_EXT_PROTECT_LF.LANDSCAPE_METAL_BASE) while production uses generic exterior PS keys (e.g., PS_EXT_PROTECT_LF.LANDSCAPE_PERIMETER). Resolution.json uses the generic form. Recommend aligning SOP to resolution/production PS keys for consistency. The generic keys are correct — metal-specific protection PS keys are unnecessary if the protection zone already scopes to the metal work area.",
+      "fix": "Update SOP module required_inputs to use generic PS keys matching resolution.json and production.json."
+    },
+    {
+      "check_id": "XF-006",
+      "check": "Task count in SOP task_summary matches actual task count",
+      "result": "pass",
+      "details": "SOP task_summary reports 37 total tasks. Actual count from enumerating all task_id entries across all modules: 37. Module breakdown: SETUP=2, PROTECT=6, ASSESS=2, PREP=10, PRIME=8, FINISH=4, FINAL_INSPECT=2, CLEANUP=3. Matches task_summary.by_module exactly."
+    },
+    {
+      "check_id": "XF-007",
+      "check": "SOP task_summary classification breakdown matches actual classifications",
+      "result": "pass",
+      "details": "SOP reports: binary=14, substrate_conditional=8, state_conditional=5, condition_conditional=5, qt_conditional=2, method_conditional=3. Verified by counting actual task_classification values in SOP. All correct. Total: 14+8+5+5+2+3 = 37."
+    },
+    {
+      "check_id": "XF-008",
+      "check": "Round configurations in SOP match production patterns",
+      "result": "pass",
+      "details": "SOP defines 5 round configurations covering all 5 substrate states. Each has total_coats=2, interstage_cycles=1. Phase sequences are consistent. Production's applies_when conditions on tasks align with round configuration substrate_state triggers."
+    },
+    {
+      "check_id": "XF-009",
+      "check": "Paintable items consistent across resolution, SOP, and production",
+      "result": "pass",
+      "details": "All 3 files reference 4 paintable items: ITM_METAL_RAILING (LF), ITM_METAL_GUTTER (LF), ITM_METAL_ORNAMENTAL (EA), ITM_METAL_MISC (EA). UOMs are consistent for items across files."
+    }
+  ],
+
+  "convention_checks": [
+    {
+      "check_id": "CV-001",
+      "check": "CON_ prefix used for all consumable IDs (never CONS_)",
+      "result": "pass",
+      "details": "All 15 consumable IDs in materials.json use CON_ prefix: CON_METL_BRUSH_ANGULAR_2IN through CON_METL_POLY_SEALANT_TUBE. No CONS_ violations."
+    },
+    {
+      "check_id": "CV-002",
+      "check": "All units uppercase (EA, SF, LF, FIXED, etc.)",
+      "result": "pass",
+      "details": "All UOM values across all 5 files use uppercase: EA, LF, SF, FIXED, ENUM, BOOL, SHEET, ROLL, TUBE, GAL, QT. No lowercase violations."
+    },
+    {
+      "check_id": "CV-003",
+      "check": "task_classification field name correct (not task_class)",
+      "result": "pass",
+      "details": "All files use 'task_classification' consistently. No 'task_class' violations."
+    },
+    {
+      "check_id": "CV-004",
+      "check": "Phase values valid: setup/prep/prime/apply/cleanup",
+      "result": "pass",
+      "details": "SOP module phases: setup, prep, prime, apply, cleanup. All valid. No 'protect' or 'protection' phase violations."
+    },
+    {
+      "check_id": "CV-005",
+      "check": "Severity values correct: critical/major/minor (not high/medium/low/WARN)",
+      "result": "pass",
+      "details": "Research failure_modes use severity values: critical, major. SOP gate_rules.fail_severity: critical. All compliant."
+    },
+    {
+      "check_id": "CV-006",
+      "check": "Consumable categories valid: applicator/protection/abrasive/tool/prep (never generic 'consumable')",
+      "result": "pass",
+      "details": "Materials.json consumable categories: applicator, protection, prep, abrasive, cleanup. All valid. 'cleanup' is used for solvent waste container — acceptable category."
+    },
+    {
+      "check_id": "CV-007",
+      "check": "Sheen values single (not compound like eggshell/satin)",
+      "result": "pass",
+      "details": "Resolution lists allowed sheens: satin, semi-gloss, gloss. All single values. Prohibited: flat, matte, eggshell. Compliant."
+    },
+    {
+      "check_id": "CV-008",
+      "check": "Context prefix METL used consistently for TSK_, MOD_, FAC_ IDs",
+      "result": "pass",
+      "details": "All task IDs use TSK_METL_ prefix. All module IDs use MOD_METL_ prefix. Factor modifiers use FAC_METL_ (profile complexity, QT) or FAC_EXT_ (shared exterior modifiers for access, wind, sun, temp). Consistent."
+    },
+    {
+      "check_id": "CV-009",
+      "check": "Resolution task_classification enum is complete",
+      "result": "warning",
+      "severity": "minor",
+      "details": "Resolution applicable_enums.task_classification lists only ['binary', 'qt_conditional', 'qt_scaled']. But SOP uses 7 classification values including substrate_conditional, state_conditional, condition_conditional, and method_conditional. The resolution enum is incomplete — it should list all classification values used by this spec. Note: qt_scaled is listed but not used by any task in this spec."
+    }
+  ],
+
+  "domain_checks": [
+    {
+      "check_id": "DC-001",
+      "check": "SP 1 solvent clean is mandatory first step (not conditional)",
+      "result": "pass",
+      "details": "TSK_METL_SP1_SOLVENT_CLEAN: SOP classification is 'binary' with no applies_when conditions. Production applies_when is {}. Module description explicitly states 'MANDATORY FIRST on ALL substrates'. SOP critical_sequence_note enforces sequence. Compliant."
+    },
+    {
+      "check_id": "DC-002",
+      "check": "Structural rust = hard stop gate present",
+      "result": "pass",
+      "details": "TSK_METL_STRUCTURAL_RUST_CHECK exists in SOP with task_type='gate', gate_rules.fail_action='HARD_STOP', fail_severity='critical'. Applies to SS_EXT_SURFACE_RUST and SS_EXT_FAILING_PAINT_METAL states. Properly scoped — not triggered on bare metal or factory-primed. Compliant."
+    },
+    {
+      "check_id": "DC-003",
+      "check": "Galvanized + oil/alkyd blocker enforced",
+      "result": "pass",
+      "details": "TSK_METL_PRIME_DTM_ALKYD_BRUSH in SOP has material_rules.blocked_substrates=['galvanized'] with block_reason citing saponification. TSK_METL_GALVANIZED_CLEAN notes NO oil-based solvents. Materials.json SYS_EXT_METL_PRIMER_DTM_ALKYD applies_when restricts to carbon_steel and wrought_iron only. Materials.json has explicit compatibility_rules blocking alkyd on galvanized. Multi-layer enforcement. Compliant."
+    },
+    {
+      "check_id": "DC-004",
+      "check": "Aluminum 15-minute prime window documented",
+      "result": "pass",
+      "details": "TSK_METL_ALUMINUM_ABRADE in SOP has critical_sequence_note: '15-MINUTE PRIME WINDOW'. TSK_METL_PRIME_ETCH_BRUSH critical_sequence_note: 'Aluminum: 15-MINUTE PRIME WINDOW'. Production notes on TSK_METL_ALUMINUM_ABRADE reference the 15-minute constraint. Research RF-005 documents it. SOP assumptions document it. Multi-layer documentation. Compliant."
+    },
+    {
+      "check_id": "DC-005",
+      "check": "Epoxy recoat window documented",
+      "result": "pass",
+      "details": "TSK_METL_PRIME_EPOXY_BRUSH in SOP has recoat_window object: minimum_hours=24, maximum_hours=72, consequence_of_exceeding documented. Production rate_basis_notes reference the window. SOP assumptions document it. Research RF-014 documents it. Compliant."
+    },
+    {
+      "check_id": "DC-006",
+      "check": "No roll method present",
+      "result": "pass",
+      "details": "Resolution applicable_enums.application_method prohibits roll, brush_roll, spray_backroll, spray_rolloff. SOP has no roll-related tasks. Production has no roll-related rates. SOP exclusions explicitly exclude roll. Research RC-005 documents the exclusion. Compliant."
+    },
+    {
+      "check_id": "DC-007",
+      "check": "QT2 not present",
+      "result": "pass",
+      "details": "Resolution applicable_enums.quality_tier prohibits QT2. Production FAC_METL_QT values are QT3/QT4/QT5 only. Quality_effects lists QT3/QT4/QT5. Research RC-006 documents QT2 exclusion with rationale. No QT2 references in any task applies_when. Compliant."
+    },
+    {
+      "check_id": "DC-008",
+      "check": "Profile complexity modifier present",
+      "result": "pass",
+      "details": "FAC_METL_PROFILE_COMPLEXITY in production.json with values standard=1.00, moderate=1.50, ornate=2.50. Applied to 24 tasks (all prep, prime, finish, inspect, touchup tasks). Protection and fixed tasks excluded. Midpoint of research 2.0-3.0 range for ornate. Compliant."
+    },
+    {
+      "check_id": "DC-009",
+      "check": "Access/height modifier present",
+      "result": "pass",
+      "details": "FAC_EXT_ACCESS in production.json with values ground=1.00, ladder=1.35, scaffold=1.60, lift=1.50. Applied to 26 tasks (all non-fixed, non-protection tasks). Matches research values exactly. Compliant."
+    },
+    {
+      "check_id": "DC-010",
+      "check": "Brush as primary method for complex profiles",
+      "result": "pass",
+      "details": "SOP MOD_METL_FINISH description states 'Brush is primary method for complex profiles'. Research KD-009 confirms brush is primary/default. SOP has 8 brush-specific primer tasks vs 1 spray primer task. Finish module lists brush first. Compliant."
+    },
+    {
+      "check_id": "DC-011",
+      "check": "Modifier stacking — ornate+scaffold+QT5 exceeds 4.0x cap",
+      "result": "warning",
+      "severity": "major",
+      "details": "Production modifier_stacking_examples document the worst case: ornate(2.50) x scaffold(1.60) x QT5(1.30) = 5.20x. This EXCEEDS the 4.0x stacking cap. The production file FLAGS this with notes requiring estimator review and potential specialty pricing. Also documented: ornate+scaffold+QT4 = 4.60x (exceeds), ornate+scaffold+QT3 = 4.00x (at cap). The file is transparent about the overages but does not implement a hard cap. Recommend: add a modifier_cap field in production that clamps effective modifier at 4.00x, with override_requires='estimator_approval' for values above cap.",
+      "stacking_scenarios": [
+        { "scenario": "ornate+scaffold+QT3", "combined": 4.00, "status": "at_cap" },
+        { "scenario": "ornate+scaffold+QT4", "combined": 4.60, "status": "exceeds_cap" },
+        { "scenario": "ornate+scaffold+QT5", "combined": 5.20, "status": "exceeds_cap" }
+      ]
+    },
+    {
+      "check_id": "DC-012",
+      "check": "RC-001: Environmental conditions excluded from estimation modifiers",
+      "result": "blocker",
+      "severity": "major",
+      "details": "Research RC-001 explicitly states: 'Environmental conditions EXCLUDED from estimation per established exterior spec convention.' Research notes_for_estimation_engineer item 8: 'Environmental conditions (wind, dew point, surface temp) are EXCLUDED from estimation.' However, production.json includes 3 environmental factor modifiers: FAC_EXT_WIND, FAC_EXT_SUN_EXPOSURE, FAC_EXT_SURFACE_TEMP. These are applied to 11+ tasks each. This directly violates RC-001 and breaks convention with sibling exterior specs. The modifiers should be removed from production.json or moved to SOP field reference only.",
+      "violating_modifiers": [
+        "FAC_EXT_WIND (applies to 3 spray tasks, values: calm=1.00, moderate=1.15, high=BLOCKED)",
+        "FAC_EXT_SUN_EXPOSURE (applies to 11 prime/finish tasks, values: shade=1.00, partial_sun=1.10, full_sun=1.20)",
+        "FAC_EXT_SURFACE_TEMP (applies to 11 prime/finish tasks, values: optimal=1.00, cold_surface=1.10, hot_surface=BLOCKED)"
+      ],
+      "fix": "Remove FAC_EXT_WIND, FAC_EXT_SUN_EXPOSURE, and FAC_EXT_SURFACE_TEMP from production.json factor_modifiers array. These conditions are SOP/field reference only, not estimation inputs. Move to SOP site_condition_rules if needed for field guidance."
+    },
+    {
+      "check_id": "DC-013",
+      "check": "RC-002: Landscape protection = LF",
+      "result": "pass",
+      "details": "TSK_METL_PROTECT_LANDSCAPE uses UOM=LF in both SOP and production. Input key is LF-based (IN_LF_EXT_PROTECT_LANDSCAPE_PERIMETER). Compliant with RC-002."
+    },
+    {
+      "check_id": "DC-014",
+      "check": "RC-004: SSPC condition-driven, not dimension",
+      "result": "pass",
+      "details": "SSPC prep tasks (SP2, SP3) are condition-triggered via applies_when in SOP (substrate_state, substrate_type, quality_tier). No independent SSPC dimension in configuration. Research KD-006 confirms. Compliant with RC-004."
+    },
+    {
+      "check_id": "DC-015",
+      "check": "RC-005: Roll excluded",
+      "result": "pass",
+      "details": "See DC-006. No roll method in any file. RC-005 compliant."
+    },
+    {
+      "check_id": "DC-016",
+      "check": "RC-006: QT2 excluded",
+      "result": "pass",
+      "details": "See DC-007. No QT2 in any file. RC-006 compliant."
+    },
+    {
+      "check_id": "DC-017",
+      "check": "Coat count consistency within production.json",
+      "result": "blocker",
+      "severity": "major",
+      "details": "INTERNAL CONTRADICTION in production.json. quality_effects.QT3 states coat_count = { prime: 1, finish: 1 } (1 finish coat). But ALL 5 round_configurations specify total_coats=2, interstage_cycles=1. SOP MOD_METL_FINISH description says 'Two-coat system standard'. Research states 'two finish coats standard for all exterior metal'. Production assumptions state 'QT3 = 1 prime + 1 finish' which conflicts with rounds saying 2 coats. The round_configurations and SOP are correct (2 finish coats for all tiers). quality_effects.QT3 coat count must be corrected to { prime: 1, finish: 2 }.",
+      "fix": "Update production.json quality_effects.QT3.coat_count to { prime: 1, finish: 2 }. Also update assumptions item 14 from '1 prime + 1 finish' to '1 prime + 2 finish'. Round configurations and SOP are authoritative."
+    }
+  ],
+
+  "blocker_list": [
+    {
+      "blocker_id": "BLK-001",
+      "check_ref": "XF-002",
+      "title": "Task classification mismatch: SOP has 7 types, production has all binary",
+      "severity": "critical",
+      "impact": "Engine cannot route conditional tasks. 23 of 37 tasks will be incorrectly treated as always-active instead of condition-gated. SP3 power tool will activate at QT3 (should be QT4+). Alkyd primer will activate on galvanized (should be steel/iron only). Finish tasks will all activate regardless of method selection.",
+      "fix": "Copy task_classification values from SOP to production for all 23 affected tasks."
+    },
+    {
+      "blocker_id": "BLK-002",
+      "check_ref": "XF-003",
+      "title": "UOM mismatch on assessment tasks (SOP=FIXED, production=EA)",
+      "severity": "major",
+      "impact": "Engine calculation will produce incorrect hours for condition assessment and structural rust check. FIXED expects a fixed_time_minutes value; EA expects a rate_per_hour value. Both files must agree.",
+      "fix": "Recommend standardizing to EA in both files (assessment effort scales with component count). Update SOP TSK_METL_CONDITION_ASSESS and TSK_METL_STRUCTURAL_RUST_CHECK UOM to EA."
+    },
+    {
+      "blocker_id": "BLK-003",
+      "check_ref": "XF-004",
+      "title": "Material system IDs differ between resolution and materials",
+      "severity": "major",
+      "impact": "Engine lookups will fail — resolution references SYS_PRIMER_DTM_ACRYLIC but materials defines SYS_EXT_METL_PRIMER_DTM_ACRYLIC. No ID will match. All 8 systems affected.",
+      "fix": "Update resolution.json proposed_systems to use the SYS_EXT_METL_* IDs from materials.json."
+    },
+    {
+      "blocker_id": "BLK-004",
+      "check_ref": "DC-012",
+      "title": "Environmental modifiers present in production (violates RC-001)",
+      "severity": "major",
+      "impact": "Breaks convention with all sibling exterior specs. Environmental conditions are unpredictable at bid time. Including them creates false precision and inconsistency across the estimation engine.",
+      "fix": "Remove FAC_EXT_WIND, FAC_EXT_SUN_EXPOSURE, and FAC_EXT_SURFACE_TEMP from production.json factor_modifiers."
+    },
+    {
+      "blocker_id": "BLK-005",
+      "check_ref": "DC-017",
+      "title": "QT3 coat count contradiction: quality_effects says 1 finish, rounds say 2",
+      "severity": "major",
+      "impact": "Engine may apply wrong coat multiplier at QT3. If quality_effects is consulted, QT3 estimates will be 50% short on finish labor. SOP and round_configurations are correct (2 coats all tiers).",
+      "fix": "Update quality_effects.QT3.coat_count to { prime: 1, finish: 2 }. Update assumptions accordingly."
+    }
+  ],
+
+  "warning_list": [
+    {
+      "warning_id": "WRN-001",
+      "check_ref": "XF-005",
+      "title": "PS key naming inconsistency between SOP and resolution/production",
+      "severity": "minor",
+      "details": "SOP protection module uses metal-specific PS keys (e.g., PS_EXT_PROTECT_LF.LANDSCAPE_METAL_BASE) while resolution and production use generic exterior PS keys (e.g., PS_EXT_PROTECT_LF.LANDSCAPE_PERIMETER). Not a blocker but creates confusion. Align SOP to generic keys."
+    },
+    {
+      "warning_id": "WRN-002",
+      "check_ref": "CV-009",
+      "title": "Resolution task_classification enum is incomplete",
+      "severity": "minor",
+      "details": "Resolution lists only [binary, qt_conditional, qt_scaled] but SOP uses 7 distinct values. Resolution should list all classification types used in this spec: binary, substrate_conditional, state_conditional, condition_conditional, qt_conditional, method_conditional. qt_scaled is listed but unused."
+    },
+    {
+      "warning_id": "WRN-003",
+      "check_ref": "DC-011",
+      "title": "Modifier stacking exceeds 4.0x cap in 2 of 7 documented scenarios",
+      "severity": "major",
+      "details": "Ornate+scaffold+QT4 = 4.60x, ornate+scaffold+QT5 = 5.20x. Both exceed the 4.0x stacking cap convention. The production file transparently documents and flags these. Recommend implementing a modifier_cap field that clamps at 4.00x with estimator override capability."
+    },
+    {
+      "warning_id": "WRN-004",
+      "title": "Resolution phase enum lists 'finish' but SOP uses 'apply' for finish modules",
+      "severity": "minor",
+      "details": "Resolution applicable_enums.phase lists setup/prep/prime/interstage/finish/cleanup. SOP MOD_METL_FINISH and MOD_METL_FINAL_INSPECT use phase='apply'. The PaintFactor convention is 'apply' for the application phase. Resolution should list 'apply' instead of 'finish' in the enum, or clarify that 'apply' is the canonical phase value for finish coat application."
+    },
+    {
+      "warning_id": "WRN-005",
+      "title": "Production applies_when values use different substrate state names than SOP",
+      "severity": "minor",
+      "details": "Production TSK_METL_CONDITION_ASSESS applies_when lists SS_EXT_PREVIOUSLY_PAINTED and SS_EXT_WEATHERED. SOP uses SS_EXT_SOUND_PAINT_METAL and SS_EXT_FAILING_PAINT_METAL. Resolution defines the canonical states as: SS_EXT_BARE_METAL, SS_EXT_PRIMED_FACTORY, SS_EXT_SURFACE_RUST, SS_EXT_SOUND_PAINT_METAL, SS_EXT_FAILING_PAINT_METAL. Production should use resolution's canonical state IDs. SS_EXT_PREVIOUSLY_PAINTED and SS_EXT_WEATHERED are not defined in this spec's state vocabulary."
+    },
+    {
+      "warning_id": "WRN-006",
+      "title": "SP1 task UOM inconsistency for EA items",
+      "severity": "minor",
+      "details": "TSK_METL_SP1_SOLVENT_CLEAN is defined as LF in both SOP and production. But the spec includes EA items (ITM_METAL_ORNAMENTAL, ITM_METAL_MISC). Production notes state 'For EA items, use 5 min/EA average' but no separate EA rate is provided. Engine needs either a secondary rate for EA items or a LF-to-EA conversion factor."
+    },
+    {
+      "warning_id": "WRN-007",
+      "title": "Protection task PS keys in production differ from SOP input keys",
+      "severity": "minor",
+      "details": "Production TSK_METL_PROTECT_MASONRY uses required_input_key=IN_SF_EXT_PROTECT_MASONRY_ADJACENT and paintscope_key=PS_EXT_PROTECT_SF.MASONRY_ADJACENT. But SOP lists input_name=IN_SF_EXT_PROTECT_MASONRY_METAL_JUNCTION and paintscope_key=PS_EXT_PROTECT_SF.MASONRY_METAL_JUNCTION. These should match. Same pattern for landscape, hardscape, siding protection tasks. Align to resolution's canonical PS key names."
+    }
+  ],
+
+  "recommendations": [
+    {
+      "rec_id": "REC-001",
+      "priority": "critical",
+      "recommendation": "Fix BLK-001 first. Copy all 23 task_classification values from SOP to production. This is the highest-impact fix — without it, conditional task routing is completely broken.",
+      "effort": "low"
+    },
+    {
+      "rec_id": "REC-002",
+      "priority": "critical",
+      "recommendation": "Fix BLK-003 by updating resolution.json material system IDs to match materials.json SYS_EXT_METL_* naming pattern. Materials.json is authoritative.",
+      "effort": "low"
+    },
+    {
+      "rec_id": "REC-003",
+      "priority": "critical",
+      "recommendation": "Fix BLK-004 by removing 3 environmental modifiers from production.json (FAC_EXT_WIND, FAC_EXT_SUN_EXPOSURE, FAC_EXT_SURFACE_TEMP). These violate RC-001 and break sibling spec convention.",
+      "effort": "low"
+    },
+    {
+      "rec_id": "REC-004",
+      "priority": "high",
+      "recommendation": "Fix BLK-005 by updating quality_effects.QT3 coat count to { prime: 1, finish: 2 }. Align production assumptions text accordingly.",
+      "effort": "low"
+    },
+    {
+      "rec_id": "REC-005",
+      "priority": "high",
+      "recommendation": "Fix BLK-002 by standardizing assessment task UOMs to EA across both SOP and production. Assessment scales with component count, not fixed per site.",
+      "effort": "low"
+    },
+    {
+      "rec_id": "REC-006",
+      "priority": "medium",
+      "recommendation": "Align all PS keys across SOP, resolution, and production. Use resolution.json as the canonical source. SOP module inputs should reference the same PS keys and input names as production.",
+      "effort": "medium"
+    },
+    {
+      "rec_id": "REC-007",
+      "priority": "medium",
+      "recommendation": "Fix production applies_when substrate state names to match resolution canonical states. Replace SS_EXT_PREVIOUSLY_PAINTED with SS_EXT_SOUND_PAINT_METAL and SS_EXT_FAILING_PAINT_METAL as appropriate. Remove SS_EXT_WEATHERED (not in this spec's vocabulary).",
+      "effort": "low"
+    },
+    {
+      "rec_id": "REC-008",
+      "priority": "medium",
+      "recommendation": "Update resolution applicable_enums.task_classification to include all 6 classification types actually used: binary, substrate_conditional, state_conditional, condition_conditional, qt_conditional, method_conditional. Remove qt_scaled (unused).",
+      "effort": "low"
+    },
+    {
+      "rec_id": "REC-009",
+      "priority": "low",
+      "recommendation": "Add modifier_cap field to production.json factor_modifiers section to formalize the 4.0x stacking limit with estimator override mechanism for documented exceedances.",
+      "effort": "low"
+    },
+    {
+      "rec_id": "REC-010",
+      "priority": "low",
+      "recommendation": "Add EA rate variant for SP1 solvent clean on ornamental/misc items, or add LF-to-EA conversion note that engine can consume.",
+      "effort": "low"
+    }
+  ],
+
+  "spec_quality_metrics": {
+    "total_tasks": 37,
+    "total_modules": 8,
+    "total_material_systems": 8,
+    "total_round_configurations": 5,
+    "total_consumables": 15,
+    "total_factor_modifiers": 6,
+    "total_coverage_profiles": 8,
+    "total_paintable_items": 4,
+    "total_protection_zones": 6,
+    "total_research_findings": 14,
+    "total_key_decisions": 12,
+    "total_research_corrections": 6,
+    "total_failure_modes": 6,
+    "domain_rules_enforced": [
+      "SP1 mandatory first step",
+      "Structural rust hard stop gate",
+      "Galvanized + alkyd blocker",
+      "Aluminum 15-minute prime window",
+      "Epoxy 24-72 hour recoat window",
+      "No roll method",
+      "No QT2",
+      "Brush primary for complex profiles",
+      "Profile complexity modifier",
+      "Access/height modifier",
+      "Polyurethane sealant at junctions (not silicone/latex)"
+    ]
+  }
+}

@@ -1,0 +1,426 @@
+{
+  "spec_family": {
+    "id": "SF_CAULK_EXT",
+    "name": "Exterior Caulking (New Construction)",
+    "description": "Standalone LF-based exterior caulking for paintable joints on new construction. Covers sealant application across all exterior joint locations — trim-to-siding, window perimeter, corner board, penetration, and expansion joints. Four paintable sealant types (acrylic_latex, siliconized_acrylic, polyurethane, hybrid_ms) as primary configuration dimension replacing quality tier. Two joint complexity tiers (simple_bead, backer_rod) drive production rate bifurcation. Silicone is excluded — never paintable. Caulking must occur AFTER substrate primer and BEFORE finish coats, creating inter-spec sequencing dependencies with all exterior painting specs. No quality tier, no substrate_state, no access modifier (shared with adjacent painting spec).",
+    "domain": "exterior",
+    "version": "0.1.0",
+    "status": "draft",
+    "review_required": true
+  },
+
+  "scope_boundaries": {
+    "includes": [
+      "Joint preparation — dust/debris removal from new construction joint cavities",
+      "Backer rod installation for joints > 3/8 inch wide (closed-cell foam, sized 1.25x joint width)",
+      "Sealant application — gun and tool to concave profile with two-sided adhesion",
+      "Four paintable sealant types: acrylic_latex, siliconized_acrylic, polyurethane, hybrid_ms",
+      "Five joint location categories: trim_to_siding, window_perimeter, corner_board, penetration, expansion",
+      "Ground protection (drop cloth for sealant drips)",
+      "Adjacent surface tape masking (conditional — finished surfaces only)",
+      "Joint inspection — visual continuity check and spot adhesion verification",
+      "Material staging — sealant tubes, caulk gun, backer rod, utility knife",
+      "Cleanup — tape removal, drop cloth removal, waste disposal, tool cleaning"
+    ],
+    "excludes": [
+      {
+        "item": "Silicone sealant application",
+        "route_to": "Non-paint scope — silicone is never paintable. Applied AFTER all painting is complete on non-paintable joints only."
+      },
+      {
+        "item": "Structural adhesive joints, fire-stop sealants, below-grade waterproofing",
+        "route_to": "Specialty contractor — different trade, different materials, different standards"
+      },
+      {
+        "item": "Access/staging equipment (ladder, scaffold, lift)",
+        "route_to": "Adjacent painting spec — caulking shares access setup with painting spec covering same elevation per KD-012. Double-counting prevention."
+      },
+      {
+        "item": "Old caulk removal (repaint scope)",
+        "route_to": "Future SF_CAULK_EXT_RP_v1 — NC joints are open and clean, no existing sealant to remove"
+      },
+      {
+        "item": "Paint/primer application over cured caulk joints",
+        "route_to": "Adjacent painting specs (SF_TRIM_EXT_NC_v1, SF_WOOD_SIDING_EXT_NC_PAINT_v1, SF_SIDING_FIBERCEMENT_EXT_NC_v1, etc.) — finish coats applied by the surface spec, not the caulk spec"
+      }
+    ]
+  },
+
+  "configuration_dimensions": [
+    {
+      "dimension_id": "sealant_type",
+      "description": "Primary sealant type for paintable joints. Drives material cost, cure time (scheduling impact), movement capacity, and lifespan. Replaces quality_tier as the cost/quality driver for this spec.",
+      "values": ["acrylic_latex", "siliconized_acrylic", "polyurethane", "hybrid_ms"],
+      "default": "acrylic_latex",
+      "notes": "Silicone excluded — never paintable. Acrylic_latex = lowest cost, immediate paint, 5-10 yr. Siliconized_acrylic = mid-range, immediate paint, 10-15 yr. Polyurethane = high movement Class 25/50, 3-7 day cure gate, 15-25 yr. Hybrid_ms = premium, 1-2 hr paint wait, 20-30 yr."
+    },
+    {
+      "dimension_id": "joint_complexity",
+      "description": "Joint complexity tier driving production rate bifurcation and backer rod material activation. Determined by joint width — joints > 3/8 inch auto-escalate to backer_rod.",
+      "values": ["simple_bead", "backer_rod"],
+      "default": "simple_bead",
+      "notes": "Simple_bead = gun-and-tool, 100-150 LF/hr. Backer_rod = backer rod install + sealant + tool, 75-100 LF/hr. Backer rod prevents three-sided adhesion and controls sealant depth (2:1 width:depth ratio). Both tiers may coexist on the same project."
+    }
+  ],
+
+  "paintable_items": [
+    {
+      "item_id": "ITM_CAULK_JOINT",
+      "name": "Exterior Caulk Joint",
+      "unit_of_measure": "LF",
+      "counting_rules": "Measured in linear feet of joint. Sum of all exterior caulk joints across all joint locations (trim-to-siding, window perimeter, corner board, penetration, expansion). Each joint measured as continuous run. Not a painted surface — the sealant bead IS the deliverable. Downstream painting specs apply finish coats over cured sealant.",
+      "notes": "Nominal 'paintable' designation — the item represents the caulked joint which is subsequently painted by adjacent surface specs. No single PS_EXT key exists for caulk LF; estimator captures joint quantities directly during takeoff."
+    }
+  ],
+
+  "variants": [
+    {
+      "variant_id": "VAR_CAULK_ACRYLIC_SIMPLE",
+      "applies_when": { "sealant_type": ["acrylic_latex"], "joint_complexity": ["simple_bead"] },
+      "included_items": ["ITM_CAULK_JOINT"],
+      "material_system": "SYS_EXT_CAULK_ACRYLIC",
+      "round_config": "RC_CAULK_SIMPLE",
+      "protection_zones": ["ext_ground_cover"],
+      "notes": "BASELINE ECONOMY. Acrylic latex on simple joints. Lowest cost, immediate paint, 5-10 yr lifespan. Best for low-movement trim-to-siding and window perimeter joints."
+    },
+    {
+      "variant_id": "VAR_CAULK_ACRYLIC_BACKER",
+      "applies_when": { "sealant_type": ["acrylic_latex"], "joint_complexity": ["backer_rod"] },
+      "included_items": ["ITM_CAULK_JOINT"],
+      "material_system": "SYS_EXT_CAULK_ACRYLIC",
+      "round_config": "RC_CAULK_BACKER_ROD",
+      "protection_zones": ["ext_ground_cover"],
+      "notes": "Acrylic latex on wide joints (> 3/8 inch). Backer rod install + sealant. Acrylic has low movement capacity — verify joint is truly low-movement before using on wide joints."
+    },
+    {
+      "variant_id": "VAR_CAULK_SILICONIZED_SIMPLE",
+      "applies_when": { "sealant_type": ["siliconized_acrylic"], "joint_complexity": ["simple_bead"] },
+      "included_items": ["ITM_CAULK_JOINT"],
+      "material_system": "SYS_EXT_CAULK_SILICONIZED",
+      "round_config": "RC_CAULK_SIMPLE",
+      "protection_zones": ["ext_ground_cover"],
+      "notes": "Siliconized acrylic on simple joints. Mid-range cost, improved water resistance, immediate paint, 10-15 yr lifespan."
+    },
+    {
+      "variant_id": "VAR_CAULK_SILICONIZED_BACKER",
+      "applies_when": { "sealant_type": ["siliconized_acrylic"], "joint_complexity": ["backer_rod"] },
+      "included_items": ["ITM_CAULK_JOINT"],
+      "material_system": "SYS_EXT_CAULK_SILICONIZED",
+      "round_config": "RC_CAULK_BACKER_ROD",
+      "protection_zones": ["ext_ground_cover"],
+      "notes": "Siliconized acrylic on wide joints. Still low-movement class — same constraint as acrylic on wide joints."
+    },
+    {
+      "variant_id": "VAR_CAULK_POLYURETHANE_SIMPLE",
+      "applies_when": { "sealant_type": ["polyurethane"], "joint_complexity": ["simple_bead"] },
+      "included_items": ["ITM_CAULK_JOINT"],
+      "material_system": "SYS_EXT_CAULK_POLYURETHANE",
+      "round_config": "RC_CAULK_SIMPLE",
+      "protection_zones": ["ext_ground_cover"],
+      "scheduling_gate": "GATE_CAULK_POLY_CURE",
+      "notes": "PREMIUM MOVEMENT. Polyurethane on simple joints. Class 25/50 movement. SCHEDULING IMPACT: 3-7 day cure gate before finish coats. 15-25 yr lifespan. Best for expansion joints and high-movement applications."
+    },
+    {
+      "variant_id": "VAR_CAULK_POLYURETHANE_BACKER",
+      "applies_when": { "sealant_type": ["polyurethane"], "joint_complexity": ["backer_rod"] },
+      "included_items": ["ITM_CAULK_JOINT"],
+      "material_system": "SYS_EXT_CAULK_POLYURETHANE",
+      "round_config": "RC_CAULK_BACKER_ROD",
+      "protection_zones": ["ext_ground_cover"],
+      "scheduling_gate": "GATE_CAULK_POLY_CURE",
+      "notes": "Polyurethane on wide joints with backer rod. Typical for expansion joints — widest joints with highest movement. 3-7 day cure gate applies."
+    },
+    {
+      "variant_id": "VAR_CAULK_HYBRID_SIMPLE",
+      "applies_when": { "sealant_type": ["hybrid_ms"], "joint_complexity": ["simple_bead"] },
+      "included_items": ["ITM_CAULK_JOINT"],
+      "material_system": "SYS_EXT_CAULK_HYBRID",
+      "round_config": "RC_CAULK_SIMPLE",
+      "protection_zones": ["ext_ground_cover"],
+      "notes": "PREMIUM. Hybrid MS polymer on simple joints. Combines silicone-like durability with paintability. Class 25 movement. 1-2 hr paint wait (no multi-day cure gate). 20-30 yr lifespan. Highest cost among paintable sealants."
+    },
+    {
+      "variant_id": "VAR_CAULK_HYBRID_BACKER",
+      "applies_when": { "sealant_type": ["hybrid_ms"], "joint_complexity": ["backer_rod"] },
+      "included_items": ["ITM_CAULK_JOINT"],
+      "material_system": "SYS_EXT_CAULK_HYBRID",
+      "round_config": "RC_CAULK_BACKER_ROD",
+      "protection_zones": ["ext_ground_cover"],
+      "notes": "Hybrid MS polymer on wide joints with backer rod. Premium option for wide joints needing medium movement capacity without polyurethane cure delay."
+    }
+  ],
+
+  "required_paintscope_inputs": [
+    {
+      "input_name": "IN_LF_CAULK_JOINT_TOTAL",
+      "paintscope_key": "PS_EXT_SURFACE_LF.CAULK_JOINT_TOTAL",
+      "uom": "LF",
+      "required": true,
+      "description": "Total linear feet of all exterior caulk joints in scope. Direct estimator capture during takeoff. Sum of all joint locations (trim-to-siding, window perimeter, corner board, penetration, expansion)."
+    },
+    {
+      "input_name": "IN_LF_CAULK_JOINT_BACKER_ROD",
+      "paintscope_key": "PS_EXT_SURFACE_LF.CAULK_JOINT_BACKER_ROD",
+      "uom": "LF",
+      "required": false,
+      "required_when": "Joint width > 3/8 inch on any subset of total joint LF",
+      "default": 0,
+      "description": "Subset of total joint LF requiring backer rod installation (joints > 3/8 inch wide). Drives joint_complexity split. Simple bead LF = total - backer_rod."
+    },
+    {
+      "input_name": "IN_ENUM_CAULK_SEALANT_TYPE",
+      "paintscope_key": "PS_EXT_META.ENUM.CAULK_SEALANT_TYPE",
+      "uom": "ENUM",
+      "required": true,
+      "description": "Primary sealant type for paintable joints. One of: acrylic_latex, siliconized_acrylic, polyurethane, hybrid_ms. Drives material system selection and scheduling gate (polyurethane)."
+    }
+  ],
+
+  "protection_zones_required": [
+    {
+      "zone_id": "ext_ground_cover",
+      "condition": "always",
+      "protection_level": "edge_only",
+      "notes": "Drop cloth directly below caulking work area. Minimal coverage — caulking produces very little debris. Catches sealant drips and cut-off bead waste. Lightweight canvas or plastic acceptable."
+    },
+    {
+      "zone_id": "ext_surface_adjacent",
+      "condition": { "caulking_against_finished_surfaces": true },
+      "protection_level": "light_mask",
+      "notes": "Painter's tape along both sides of joint on finished/visible surfaces for clean sealant lines. Not all joints require taping — conditional on finished adjacent surfaces. Tape removed before sealant skins (time-sensitive)."
+    }
+  ],
+
+  "adjacency_declarations": {
+    "primary_surface": "caulk_joint_exterior",
+    "adjacent_surfaces": [
+      {
+        "surface_id": "siding_field",
+        "edge_type": "linear",
+        "typical_relationship": "different_finish",
+        "affected_tasks": ["TSK_CAULK_MASK_ADJACENT"],
+        "continuity_rate_modifier": 1.0,
+        "notes": "Siding field surface adjacent to trim-to-siding caulk joints. Caulk joint runs along the boundary between siding and trim. Protection-only relationship — siding is painted by its own spec."
+      },
+      {
+        "surface_id": "ext_trim_corner",
+        "edge_type": "linear",
+        "typical_relationship": "different_finish",
+        "affected_tasks": ["TSK_CAULK_MASK_ADJACENT"],
+        "continuity_rate_modifier": 1.0,
+        "notes": "Vertical corner board joints. Caulk runs both edges of corner boards (2x corner LF)."
+      },
+      {
+        "surface_id": "ext_trim_window_casing",
+        "edge_type": "linear",
+        "typical_relationship": "same_finish",
+        "affected_tasks": ["TSK_CAULK_MASK_ADJACENT"],
+        "continuity_rate_modifier": 1.0,
+        "notes": "Window perimeter caulk joints. Caulk runs along casing-to-wall joint around window openings."
+      },
+      {
+        "surface_id": "ext_trim_door_casing",
+        "edge_type": "linear",
+        "typical_relationship": "same_finish",
+        "affected_tasks": ["TSK_CAULK_MASK_ADJACENT"],
+        "continuity_rate_modifier": 1.0,
+        "notes": "Door perimeter caulk joints. Caulk runs along casing-to-wall joint around door openings."
+      }
+    ]
+  },
+
+  "state_declarations": {
+    "primary_surface": "caulk_joint_exterior",
+
+    "valid_input_states": {
+      "states": ["SS_NC_RAW"],
+      "notes": "New construction scope — joints are open, clean, and unfinished. NC joints have no existing sealant. Single input state for all NC caulking."
+    },
+
+    "output_state": {
+      "state": "SS_EXT_CAULKED",
+      "varies_by": null,
+      "notes": "Output state is a caulked joint ready for paint overcoat by adjacent painting spec. Sealant bead is the deliverable — not a painted surface. Downstream painting specs apply finish coats over the cured sealant to create a continuous weatherproof envelope."
+    }
+  },
+
+  "site_condition_rules": [
+    {
+      "condition_id": "joint_complexity",
+      "treatment": "task_selection",
+      "vocabulary_ref": "Exterior_Caulking_Sealants_Doctrine.md §2, §5",
+      "affected_tasks": "TSK_CAULK_BACKER_ROD, TSK_CAULK_APPLY_SIMPLE, TSK_CAULK_APPLY_BACKER",
+      "effect": "simple_bead activates TSK_CAULK_APPLY_SIMPLE (125 LF/hr), excludes TSK_CAULK_BACKER_ROD and TSK_CAULK_APPLY_BACKER. backer_rod activates TSK_CAULK_BACKER_ROD (175 LF/hr) and TSK_CAULK_APPLY_BACKER (87 LF/hr), excludes TSK_CAULK_APPLY_SIMPLE.",
+      "notes": "Task selection factor — not a rate multiplier. Each task variant has its own calibrated base rate. Auto-escalate to backer_rod when joint width > 3/8 inch."
+    },
+    {
+      "condition_id": "sealant_type",
+      "treatment": "material_selection_and_scheduling",
+      "vocabulary_ref": "Exterior_Caulking_Sealants_Doctrine.md §1, §3",
+      "affected_tasks": "All apply tasks (material selection), all downstream painting tasks (scheduling gate for polyurethane)",
+      "effect": "acrylic_latex=SYS_EXT_CAULK_ACRYLIC (paint immediately). siliconized_acrylic=SYS_EXT_CAULK_SILICONIZED (paint immediately). polyurethane=SYS_EXT_CAULK_POLYURETHANE (3-7 day cure gate). hybrid_ms=SYS_EXT_CAULK_HYBRID (paint after 1-2 hr skin).",
+      "notes": "Primary driver for material cost and scheduling impact. Polyurethane introduces GATE_CAULK_POLY_CURE blocking all finish coats on adjacent painting specs."
+    }
+  ],
+
+  "hard_stops": [
+    {
+      "condition": "SILICONE_ON_PAINTABLE_JOINT",
+      "action": "STOP — material incompatibility",
+      "description": "Silicone sealant must NEVER be used on joints that will be painted. Silicone repels all paint — paint will not adhere to silicone or silicone residue. If silicone was previously applied to a joint that now needs painting, the silicone must be completely removed. No solvent or primer can create adhesion over silicone.",
+      "notes": "Absolute prohibition. Engine must reject silicone as a sealant_type option."
+    },
+    {
+      "condition": "POLYURETHANE_PAINT_BEFORE_CURE",
+      "action": "GATE — enforce 3-7 day cure before painting",
+      "description": "When sealant_type = polyurethane, a mandatory 3-7 day full cure gate must be enforced before ANY paint or primer is applied over caulked joints. Water from paint causes flash cure and surface bubbling. Caulk beads (~40 mils) shrink as they cure — paint film (1-3 mils) cracks if applied too early.",
+      "notes": "Scheduling gate — not a hard stop on caulking work itself. Blocks downstream painting. No exceptions regardless of weather, urgency, or tier."
+    },
+    {
+      "condition": "WIDE_JOINT_WITHOUT_BACKER_ROD",
+      "action": "GATE — auto-escalate to backer_rod",
+      "description": "Joints wider than 3/8 inch must use backer rod. Without backer rod, wide joints have improper width:depth ratio and risk three-sided adhesion (sealant bonded to sidewalls AND joint bottom), causing premature cohesive failure. Backer rod diameter = joint width x 1.25 for compression fit.",
+      "notes": "Auto-escalation rule — system must override simple_bead to backer_rod when joint width > 3/8 inch. Not a work-stop, but a mandatory complexity upgrade."
+    }
+  ],
+
+  "scheduling_gates": [
+    {
+      "gate_id": "GATE_CAULK_POLY_CURE",
+      "condition": { "sealant_type": "polyurethane" },
+      "wait_time_days_min": 3,
+      "wait_time_days_max": 7,
+      "blocks": "All finish coat tasks in adjacent painting specs (SF_TRIM_EXT_NC_v1, SF_WOOD_SIDING_EXT_NC_PAINT_v1, SF_SIDING_FIBERCEMENT_EXT_NC_v1, SF_WINDOW_EXT_NC_v1, SF_DOOR_EXT_NC_v1)",
+      "xspec_flag": "XSPEC_CAULK_POLY_CURE_GATE",
+      "description": "Polyurethane sealant requires 3-7 day full cure before any paint or primer can be applied over caulked joints. No exceptions.",
+      "resolution": "Schedule caulking early in project. Use acrylic, siliconized, or hybrid_ms if polyurethane cure time is unacceptable for the schedule."
+    },
+    {
+      "gate_id": "GATE_CAULK_AFTER_PRIMER",
+      "condition": "always",
+      "prerequisite": "Substrate primer on adjacent surfaces must be applied BEFORE caulking begins",
+      "xspec_flag": "XSPEC_CAULK_COMPLETE",
+      "description": "Caulk adheres better to primed surfaces. Priming first seals the substrate and prevents sealant adhesion failure from substrate outgassing. Sequence: substrate primer -> caulk -> cure -> finish coats."
+    }
+  ],
+
+  "cross_spec_coordination": {
+    "xspec_flags_set": [
+      {
+        "flag_id": "XSPEC_CAULK_COMPLETE",
+        "description": "Set when all caulk joints are applied and skinned/cured. Adjacent painting specs should check this flag before applying finish coats over caulked joints."
+      },
+      {
+        "flag_id": "XSPEC_CAULK_POLY_CURE_GATE",
+        "description": "Set when sealant_type = polyurethane. Signals 3-7 day cure delay before finish coats. Blocks painting spec finish phases."
+      }
+    ],
+    "xspec_flags_consumed": [],
+    "related_specs": ["SF_TRIM_EXT_NC_v1", "SF_WOOD_SIDING_EXT_NC_PAINT_v1", "SF_SIDING_FIBERCEMENT_EXT_NC_v1", "SF_WINDOW_EXT_NC_v1", "SF_DOOR_EXT_NC_v1"],
+    "deduplication_note": "Caulking is a standalone line item — NOT embedded in any adjacent painting spec. All joint locations are captured here. No overlap with painting spec scope.",
+    "shared_session_note": "Caulking is performed during the same access/staging setup as painting. No separate mobilization. Caulking crew works during the same site visit as the painting crew."
+  },
+
+  "sequencing_notes": {
+    "production_sequence": "Protect (ground cover, tape masking if finished surfaces) → Stage Materials (sealant, gun, backer rod) → Joint Prep (clean all joints) → Backer Rod Install (wide joints only) → Apply Sealant (simple_bead joints first, then backer_rod joints) → Inspect (visual + spot adhesion) → Tape Remove (time-sensitive — before sealant skins) → Cleanup (drop cloth, waste disposal, tool cleaning)",
+    "inter_spec_sequence": "Adjacent painting spec substrate primer → THIS SPEC caulk application → Cure period (polyurethane: 3-7 days, hybrid: 1-2 hr, acrylic/siliconized: 30 min) → Adjacent painting spec finish coats",
+    "key_prohibitions": "NO silicone on paintable joints. NO painting over uncured polyurethane. NO wide joints (> 3/8 inch) without backer rod. NO three-sided adhesion (backer rod or bond-breaker tape mandatory). NO caulking wet/frost-covered joints. NO leaving tape overnight (remove before sealant skins)."
+  },
+
+  "movement_class_routing": {
+    "description": "Sealant type selection guidance based on expected joint movement. Decision support for estimators — not an engine rule.",
+    "routing_table": [
+      {
+        "joint_movement": "Low (+-7.5% to +-12.5%)",
+        "eligible_sealants": ["acrylic_latex", "siliconized_acrylic", "polyurethane", "hybrid_ms"],
+        "recommended": "acrylic_latex",
+        "typical_locations": ["trim_to_siding", "window_perimeter", "corner_board"]
+      },
+      {
+        "joint_movement": "Medium (+-12.5% to +-25%)",
+        "eligible_sealants": ["polyurethane", "hybrid_ms"],
+        "recommended": "hybrid_ms",
+        "typical_locations": ["penetration", "material_transitions"]
+      },
+      {
+        "joint_movement": "High (+-25% to +-50%)",
+        "eligible_sealants": ["polyurethane"],
+        "recommended": "polyurethane",
+        "typical_locations": ["expansion"]
+      }
+    ]
+  },
+
+  "relationships": {
+    "companion_spec": null,
+    "often_combined_with": ["SF_TRIM_EXT_NC_v1", "SF_WOOD_SIDING_EXT_NC_PAINT_v1", "SF_SIDING_FIBERCEMENT_EXT_NC_v1"],
+    "sibling_spec": null,
+    "typical_before": ["SF_TRIM_EXT_NC_v1", "SF_WOOD_SIDING_EXT_NC_PAINT_v1", "SF_SIDING_FIBERCEMENT_EXT_NC_v1"],
+    "typical_after": [],
+    "cross_spec_protection_note": "Caulking shares access equipment with adjacent painting spec — no separate access mobilization. Ground protection is caulking-specific (lightweight edge-only). Adjacent surface tape masking is caulking-specific (clean sealant lines). No overlap with painting spec protection zones.",
+    "notes": "First exterior caulking spec. Establishes LF-based joint estimation pattern, sealant_type configuration dimension (replacing quality_tier), joint_complexity task selection, and inter-spec sequencing gates (XSPEC_CAULK_COMPLETE, XSPEC_CAULK_POLY_CURE_GATE). Patterns established here inform future SF_CAULK_EXT_RP_v1 (repaint caulking with old caulk removal)."
+  },
+
+  "research_corrections": [
+    {
+      "correction_id": "RC-001",
+      "agent": "Spec Researcher",
+      "original_claim": "3 sealant types: acrylic_latex, polyurethane, hybrid",
+      "original_source": "Initial prompt",
+      "corrected_to": "4 paintable sealant types: acrylic_latex, siliconized_acrylic, polyurethane, hybrid_ms",
+      "rationale": "Doctrine defines siliconized acrylic as a distinct paintable sealant type with improved water resistance and 10-15 year lifespan. It fills the gap between acrylic_latex and polyurethane in the sealant performance spectrum.",
+      "corrected_by": "research.json RC-001"
+    },
+    {
+      "correction_id": "RC-002",
+      "agent": "Spec Researcher",
+      "original_claim": "No height modifier mentioned",
+      "original_source": "Initial prompt",
+      "corrected_to": "No separate height/access modifier — shared cost assumption with painting spec",
+      "rationale": "Caulking is performed during the same access setup as painting. Adding a separate access modifier would double-count access costs. Production rates assume access already in place.",
+      "corrected_by": "research.json RC-002"
+    }
+  ],
+
+  "doctrine_references": [
+    { "doctrine": "Exterior_Caulking_Sealants_Doctrine.md", "sections_used": ["Sealant types and movement classes (§1)", "Joint design and backer rod (§2)", "Sequencing — caulk after primer, before finish coats (§3)", "Failure modes — adhesive and cohesive failure (§4)", "Production rates by joint complexity (§5)", "PaintFactor integration — standalone line item"] },
+    { "doctrine": "Exterior_Protection_Doctrine_T3.md", "sections_used": ["Ground cover zones", "Adjacent surface masking"] },
+    { "doctrine": "Exterior_Access_Staging_Systems_Doctrine.md", "sections_used": ["Shared access cost assumption (no separate access modifier for caulking)"] }
+  ],
+
+  "dependencies": {
+    "research": "research.json",
+    "resolution": "resolution.json",
+    "materials": "materials.json",
+    "sop_modules": "sop_modules.json",
+    "production": "production.json"
+  },
+
+  "artifact_counts": {
+    "sop_modules": 5,
+    "total_tasks": 11,
+    "binary_tasks": 11,
+    "qt_scaled_tasks": 0,
+    "qt_conditional_tasks": 0,
+    "material_systems": 4,
+    "coverage_profiles": 1,
+    "consumables": 5,
+    "factor_modifiers": 1,
+    "round_configurations": 2,
+    "protection_zones": 2,
+    "paintscope_inputs": 3,
+    "variants": 8,
+    "paintable_items": 1,
+    "configuration_dimensions": 2,
+    "hard_stops": 3
+  },
+
+  "change_log": [
+    {
+      "version": "0.1.0",
+      "date": "2026-03-11",
+      "author": "SpecFactory Assembly Agent",
+      "changes": "Initial draft spec for exterior caulking (new construction). FIRST EXTERIOR CAULKING SPEC — introduces standalone LF-based caulk joint estimation, sealant_type configuration dimension (replacing quality_tier), joint_complexity task selection factor, and inter-spec sequencing gates. Key features: 4 paintable sealant types (acrylic_latex, siliconized_acrylic, polyurethane, hybrid_ms), 2 joint complexity tiers (simple_bead, backer_rod), silicone exclusion (never paintable), polyurethane 3-7 day cure scheduling gate (GATE_CAULK_POLY_CURE), backer rod auto-escalation for joints > 3/8 inch, shared access assumption with adjacent painting spec (no access modifier), 11 tasks across 5 modules (all binary — no QT dimension), 4 material systems (keyed by sealant_type), 1 factor modifier (joint_complexity task selection), 2 round configurations, 2 protection zones, 5 consumables, 8 variants (4 sealant types x 2 joint complexities), 3 PaintScope inputs, 1 paintable item (ITM_CAULK_JOINT LF), 2 cross-spec flags (XSPEC_CAULK_COMPLETE, XSPEC_CAULK_POLY_CURE_GATE), 3 gate conditions (silicone hard stop, polyurethane cure gate, wide joint backer rod gate). No quality tier, no substrate_state, no application_method, no sheen. This is a simple non-coating spec — the sealant bead is the deliverable, not a painted surface."
+    }
+  ]
+}

@@ -1,0 +1,642 @@
+{
+  "_meta": {
+    "spec_family_id": "SF_DOOR_EXT_NC",
+    "generated_by": "registry_resolver",
+    "generated_at": "2026-03-09",
+    "version": "1.0.0",
+    "purpose": "Pre-resolved registry values for downstream agents. Agents consuming this file do NOT need to load raw registry files.",
+    "input_files": ["research.json", "controlled_enums.json", "id_registry.json", "structural_keys.json", "agent_rules.json"]
+  },
+
+  "spec_identity": {
+    "spec_family_id": "SF_DOOR_EXT_NC",
+    "status": "proposed",
+    "domain": "exterior",
+    "phase_scope": "full",
+    "context_prefix": "XDOR",
+    "notes": "New spec family for exterior entry door prime+paint. Context prefix XDOR (eXterior DOoR) — no collision with existing prefixes. Interior door slab uses DOOR_ prefix. Combined prime+finish in single spec (same mobilization). Single paintable item (door assembly EA) with 3 substrate materials and 3 complexity tiers as configuration dimensions. QT3-QT5 (QT2 excluded — entry doors are architectural focal points)."
+  },
+
+  "paintable_items": [
+    {
+      "item_id": "ITM_DOOR_EXT",
+      "name": "Exterior entry door assembly",
+      "unit_of_measure": "EA",
+      "surface_ref": "door_slab_ext",
+      "status": "proposed",
+      "notes": "Single EA item covering the complete door assembly: both faces, all 4 edges, frame/jamb, glass lite painting (mullions), sidelite/transom painting (grand_entry). Does NOT include casing (SF_TRIM_EXT_NC_v1 scope). Complexity dimension (single_slab/panel/grand_entry) drives time per EA. Substrate material (steel/fiberglass/wood) drives primer system and prep protocol."
+    }
+  ],
+
+  "task_prefix": {
+    "pattern": "TSK_XDOR_",
+    "context": "XDOR",
+    "collision_check": "No collision. Existing prefixes: CLOSET_SHELF, FRAME, DOOR (interior slab), CEIL, WALL, TRIM (interior), WIN, STRS, WNSC, WDWL, WDCL, ARCH, BLTN, CABT, SDNG, FCSD, XTRM. XDOR is unique.",
+    "naming_rule": "TSK_XDOR_{ACTION} — action should be verb-based. Examples: TSK_XDOR_REMOVE_HARDWARE, TSK_XDOR_DEGLOSS_STEEL, TSK_XDOR_PRIME_SPRAY, TSK_XDOR_FINISH_SPRAY_1, TSK_XDOR_SAND_INTERCOAT, TSK_XDOR_MASK_GLASS, TSK_XDOR_SEAL_BOTTOM_EDGE"
+  },
+
+  "module_prefix": {
+    "pattern": "MOD_XDOR_",
+    "expected_modules": [
+      { "module_id": "MOD_XDOR_SETUP", "phase": "setup", "notes": "Protection setup — hardware removal, weatherstrip removal/tape, threshold protection, glass masking, entry walkway protection" },
+      { "module_id": "MOD_XDOR_PREP", "phase": "prep", "notes": "Surface prep — substrate-driven: solvent clean + degloss (steel), soap wash (fiberglass), sand + fill + spot-prime knots (wood). Varies by substrate_material and substrate_state." },
+      { "module_id": "MOD_XDOR_PRIME", "phase": "prime", "notes": "Primer application — conditional on substrate_state. DTM primer (bare metal), acrylic latex (bare wood, fiberglass), skip for factory-primed steel/fiberglass. Wood six-side seal included." },
+      { "module_id": "MOD_XDOR_FINISH_1", "phase": "finish", "notes": "First finish coat — spray face + brush panel recesses and edges. Application method per door substrate and complexity." },
+      { "module_id": "MOD_XDOR_INTERSTAGE", "phase": "interstage", "notes": "Intercoat inspection + sand. QT3: visual inspect only. QT4: light sand 220-grit. QT5: hand-sand with raking light inspection." },
+      { "module_id": "MOD_XDOR_FINISH_2", "phase": "finish", "notes": "Second finish coat — same method as first coat." },
+      { "module_id": "MOD_XDOR_REINSTALL", "phase": "cleanup", "notes": "Hardware reinstall, weatherstrip re-insert, glass masking removal. QT5: final coat may be applied with door hanging for gravity leveling." },
+      { "module_id": "MOD_XDOR_CLEANUP", "phase": "cleanup", "notes": "Final inspection, touch-up, protection teardown, tool cleaning." }
+    ]
+  },
+
+  "paintscope_keys": [
+    {
+      "paintscope_key": "PS_EXT_OPENING_EA.DOOR_EXT",
+      "input_name": "IN_EA_DOOR_EXT",
+      "uom": "EA",
+      "status": "proposed",
+      "description": "Count of exterior doors to paint. Each door assembly is 1 EA regardless of size. Grand entry with sidelites/transom is still 1 EA.",
+      "notes": "Primary quantity driver. Complexity and substrate dimensions determine rate per EA."
+    },
+    {
+      "paintscope_key": "PS_EXT_META.ENUM.DOOR_COMPLEXITY",
+      "input_name": "IN_ENUM_DOOR_COMPLEXITY",
+      "uom": "ENUM",
+      "status": "proposed",
+      "description": "Door complexity classification — single_slab, panel, or grand_entry. Per-door capture because a project may have mixed complexity (front=grand_entry, side=single_slab).",
+      "notes": "PRIMARY cost driver. Routes to correct production rate tier. Values: single_slab, panel, grand_entry."
+    },
+    {
+      "paintscope_key": "PS_EXT_META.ENUM.SUBSTRATE_TYPE_DOOR",
+      "input_name": "IN_ENUM_SUBSTRATE_TYPE_DOOR",
+      "uom": "ENUM",
+      "status": "proposed",
+      "description": "Door substrate material — steel, fiberglass, or wood. Per-door capture for mixed-substrate projects.",
+      "notes": "Drives primer system selection, topcoat chemistry restrictions, and prep protocol. Values: steel, fiberglass, wood."
+    },
+    {
+      "paintscope_key": "PS_EXT_META.FLAG.NEW_CONSTRUCTION",
+      "input_name": "IN_BOOL_NEW_CONSTRUCTION",
+      "uom": "BOOL",
+      "status": "existing",
+      "description": "Boolean flag confirming new construction context.",
+      "notes": "Already registered by sibling exterior specs (FC siding, trim)."
+    },
+    {
+      "paintscope_key": "PS_EXT_PROTECT_EA.GLASS_DOOR",
+      "input_name": "IN_EA_EXT_PROTECT_GLASS_DOOR",
+      "uom": "EA",
+      "status": "existing",
+      "description": "Count of exterior doors with glass lites requiring masking. Includes sidelite/transom glass on grand entry assemblies.",
+      "notes": "Already proposed/registered by SF_TRIM_EXT_NC_v1. This spec consumes same key — door spec masks glass when painting the door itself."
+    },
+    {
+      "paintscope_key": "PS_EXT_PROTECT_EA.DOOR_HARDWARE",
+      "input_name": "IN_EA_EXT_DOOR_HARDWARE",
+      "uom": "EA",
+      "status": "proposed",
+      "description": "Count of hardware groups to remove/reinstall per door. Standard door = 1 group (lockset + deadbolt + strike plates + hinges). Grand entry may have additional hardware (knocker, mail slot, doorbell).",
+      "notes": "Typically 1:1 with door count but grand entry may have 2+ hardware groups."
+    },
+    {
+      "paintscope_key": "PS_EXT_PROTECT_SF.HARDSCAPE_WALK",
+      "input_name": "IN_SF_EXT_PROTECT_HARDSCAPE_WALK",
+      "uom": "SF",
+      "status": "existing",
+      "description": "Adjacent entry walkway/porch/stoop area requiring drop cloth protection."
+    },
+    {
+      "paintscope_key": "PS_EXT_META.EA.ELEVATIONS_TOTAL",
+      "input_name": "IN_EA_ELEVATIONS",
+      "uom": "EA",
+      "status": "existing",
+      "description": "Number of building elevations — used for per-elevation access type determination."
+    },
+    {
+      "paintscope_key": "PS_EXT_META.ENUM.ACCESS_TYPE",
+      "input_name": "IN_ENUM_ACCESS_TYPE",
+      "uom": "ENUM",
+      "status": "existing",
+      "description": "Access type per elevation. Doors are typically ground level. Ladder modifier only for elevated entries (deck/raised porch)."
+    }
+  ],
+
+  "applicable_enums": {
+    "quality_tier": {
+      "values": ["QT3", "QT4", "QT5"],
+      "default": "QT3",
+      "prohibited": [],
+      "notes": "QT2 excluded — exterior entry doors are high-visibility architectural focal points. QT5 is applicable because grand entries and showcase homes justify supreme finish (door removed, painted in controlled environment, hand-sand between all coats, DFT verification)."
+    },
+    "application_method": {
+      "values": ["spray", "brush"],
+      "prohibited": [],
+      "notes": "Spray is PRIMARY for door faces (factory-smooth finish quality). Roller is NOT valid — introduces orange peel on door faces. Brush is for: panel recesses, all 4 edges, detail work, and small projects where spray setup is not justified. Back-rolling AVOIDED on metal doors."
+    },
+    "sheen": {
+      "values": ["satin", "semi-gloss", "gloss"],
+      "prohibited": ["eggshell/satin", "semi-gloss+"],
+      "notes": "No locked-in default — project-level selection. Semi-gloss is most common for exterior doors. Steel doors: caution with gloss per ANSI A250.8 (emphasizes welding marks). Gloss requires higher prep quality."
+    },
+    "phase": {
+      "values": ["setup", "prep", "prime", "interstage", "finish", "cleanup"],
+      "full_sequence": ["setup", "prep", "prime", "apply", "interstage", "finish", "cleanup"],
+      "prohibited": ["protect", "protection"],
+      "notes": "Combined prime+finish spec. No 'apply' phase — uses 'prime' and 'finish' directly."
+    },
+    "task_classification": {
+      "values": ["binary", "qt_conditional", "qt_scaled"]
+    },
+    "skill_level": {
+      "values": ["helper", "journeyman", "lead"]
+    },
+    "unit_of_measure": {
+      "values": ["EA", "FIXED"],
+      "prohibited": ["each", "ROOM", "FIXED_TIME"],
+      "notes": "EA is primary UOM for the door assembly. FIXED for per-project fixed tasks (tool cleaning). No SF or LF direct — everything is bundled into the per-EA rate. Rates are hours/EA, not SF/hr."
+    },
+    "uom_input": {
+      "values": ["EA", "SF", "ENUM", "BOOL"]
+    },
+    "substrate_state": {
+      "input_states": ["SS_EXT_BARE_WOOD", "SS_EXT_BARE_METAL", "SS_EXT_PRIMED_FACTORY", "SS_EXT_PRIMED_FIELD"],
+      "output_states": {
+        "satin": "SS_EXT_PAINTED_SATIN",
+        "semi-gloss": "SS_EXT_PAINTED_SEMIGLOSS",
+        "gloss": "SS_EXT_PAINTED_GLOSS"
+      },
+      "notes": "SS_EXT_BARE_METAL is a proposed new state (see registry_additions_proposed). SS_EXT_PRIMED_FACTORY is dominant NC state for steel/fiberglass. SS_EXT_BARE_WOOD is dominant for wood doors. Factory-primed steel/fiberglass may skip field prime (unlike fiber cement siding where field prime is mandatory)."
+    },
+    "consumable_unit": {
+      "values": ["EA", "ROLL", "SHEET", "TUBE", "GAL", "QT"],
+      "prohibited": ["each", "roll", "sheet", "tube"]
+    },
+    "consumable_category": {
+      "values": ["applicator", "protection", "prep", "cleanup", "abrasive", "fill_material", "tool"]
+    },
+    "product_role": {
+      "values": ["primer", "finish", "specialty"],
+      "notes": "Specialty for IR-reflective cool paint technology (dark colors LRV < 30). No sealer/clear/stain needed."
+    },
+    "yield_uom": {
+      "values": ["EA", "GAL"]
+    },
+    "protection_level": {
+      "values": ["none", "light_mask", "full_mask", "item_mask"],
+      "notes": "Full_mask for glass lites. Item_mask for individual hardware pieces. Light_mask for threshold, walkway. Hardware is removed (not masked)."
+    },
+    "protection_action": {
+      "values": ["setup", "maintain", "teardown"]
+    },
+    "edge_type": {
+      "values": ["complex"]
+    },
+    "typical_relationship": {
+      "values": ["same_finish", "different_finish"]
+    },
+    "finish_group": {
+      "values": ["same", "different"]
+    },
+    "task_type": {
+      "values": ["prep", "prime", "finish", "protect", "inspect", "cleanup", "detail"]
+    },
+    "severity": {
+      "values": ["critical", "major", "minor"],
+      "prohibited": ["high", "medium", "low", "WARN"]
+    },
+    "modifier_mechanism": {
+      "values": ["baseline", "selective_multiplier", "additional_rounds", "excluded"]
+    },
+    "confidence_level": {
+      "values": ["low", "medium", "high"]
+    }
+  },
+
+  "surface_ids": {
+    "primary_surface": "door_slab_ext",
+    "adjacent_surfaces": [
+      "ext_trim_door_casing",
+      "door_frame_ext",
+      "siding_field"
+    ],
+    "all_status": "contains_proposed",
+    "notes": "door_slab_ext and door_frame_ext are proposed new surface IDs. ext_trim_door_casing and siding_field exist in registry. door_frame_ext is the exterior door frame/jamb — distinct from interior door_frame. Door slab exterior face and interior face are both in scope (standard NC practice paints both faces)."
+  },
+
+  "zone_ids": [
+    { "zone_id": "ext_door_glass_mask", "status": "proposed", "retired_alias_warning": null },
+    { "zone_id": "ext_door_hardware", "status": "proposed", "retired_alias_warning": null },
+    { "zone_id": "ext_door_weatherstrip", "status": "proposed", "retired_alias_warning": null },
+    { "zone_id": "ext_door_threshold", "status": "proposed", "retired_alias_warning": null },
+    { "zone_id": "ext_hardscape_walk", "status": "existing", "retired_alias_warning": null }
+  ],
+
+  "material_system_prefix": {
+    "pattern": "SYS_EXT_DOOR_{DESCRIPTION}",
+    "existing_systems_to_consider": [
+      "SYS_PRIMER_STEEL_DTM — interior DTM primer for steel windows, similar concept but interior",
+      "SYS_EXT_WOOD_PRIMER_ACRYLIC — exterior acrylic primer for wood siding, same chemistry but siding-specific",
+      "SYS_EXT_WOOD_PRIMER_TANNIN — exterior tannin-blocking primer, same concept for door tannin species",
+      "SYS_EXT_TRIM_PRIMER_BONDING — bonding primer for PVC trim, similar adhesion concept",
+      "SYS_EXT_TRIM_FINISH_STANDARD — standard exterior trim paint, similar tier",
+      "SYS_EXT_TRIM_FINISH_PREMIUM — premium exterior trim paint, similar tier"
+    ],
+    "proposed_systems": [
+      {
+        "system_id": "SYS_EXT_DOOR_PRIMER_DTM",
+        "name": "DTM Primer for Steel Exterior Doors",
+        "quality_tiers": ["QT3", "QT4", "QT5"],
+        "applies_when": { "substrate_material": ["steel"], "substrate_state": ["SS_EXT_BARE_METAL"] },
+        "notes": "Zinc-rich epoxy or alkyd for bare carbon steel. Vinyl wash or acrylic etching for galvanized. Universal DTM for factory-primed steel needing re-prime."
+      },
+      {
+        "system_id": "SYS_EXT_DOOR_PRIMER_ACRYLIC",
+        "name": "100% Acrylic Latex Primer for Fiberglass/Wood Doors",
+        "quality_tiers": ["QT3", "QT4", "QT5"],
+        "applies_when": { "substrate_material": ["fiberglass", "wood"], "substrate_state": ["SS_EXT_BARE_WOOD"] },
+        "notes": "100% acrylic latex exterior primer. MANDATORY for fiberglass (oil-based prohibited due to outgassing). For wood: general primer for non-tannin species. Alkyd spot-prime knots separately on tannin-rich species."
+      },
+      {
+        "system_id": "SYS_EXT_DOOR_PRIMER_TANNIN_SPOT",
+        "name": "Alkyd/Shellac Spot Primer for Tannin Knots on Wood Doors",
+        "quality_tiers": ["QT3", "QT4", "QT5"],
+        "applies_when": { "substrate_material": ["wood"] },
+        "notes": "Spot-applied to visible knots on tannin-rich species (cedar, redwood). Not a full-surface system. Applied before full acrylic primer coat."
+      },
+      {
+        "system_id": "SYS_EXT_DOOR_FINISH_STANDARD",
+        "name": "Standard Exterior Acrylic Door Paint",
+        "quality_tiers": ["QT3"],
+        "notes": "Mid-grade 100% acrylic exterior enamel. Satin/semi-gloss/gloss per project selection. Fiberglass doors: 100% acrylic ONLY — no alkyd or oil-modified."
+      },
+      {
+        "system_id": "SYS_EXT_DOOR_FINISH_PREMIUM",
+        "name": "Premium Exterior Door Paint",
+        "quality_tiers": ["QT4", "QT5"],
+        "notes": "Premium acrylic enamel (SW Emerald, BM Aura). Enhanced durability, UV resistance, color retention. QT5 may specify architect-matched formulation."
+      },
+      {
+        "system_id": "SYS_EXT_DOOR_FINISH_IR_REFLECTIVE",
+        "name": "IR-Reflective Exterior Door Paint for Dark Colors",
+        "quality_tiers": ["QT3", "QT4", "QT5"],
+        "applies_when": { "color_lrv": "< 30" },
+        "notes": "MANDATORY for dark colors (LRV < 30). Complex Inorganic Color Pigments (CICPs) drop surface temperature 20-30 deg F. Without IR-reflective technology: wood joint failure, steel thermal expansion, fiberglass outgassing acceleration. HARD STOP for steel doors below LRV 30."
+      }
+    ],
+    "notes": "3 substrate-driven primers (DTM for steel, acrylic for fiberglass/wood, tannin spot for wood knots) + 2 QT-driven finish systems + 1 conditional IR-reflective system for dark colors. Door finish is standard exterior grade (not fine-finish) but higher quality than siding due to architectural visibility."
+  },
+
+  "consumable_prefix": {
+    "canonical_prefix": "CON_",
+    "prohibited_prefix": "CONS_",
+    "reusable_consumables": [
+      "CON_SANDPAPER_220",
+      "CON_SANDPAPER_320",
+      "CON_TACK_CLOTH",
+      "CON_MASKING_TAPE_BLUE",
+      "CON_MASKING_FILM_PLASTIC",
+      "CON_DROP_CLOTH_CANVAS",
+      "CON_BRUSH_ANGLED_SASH",
+      "CON_DEGREASER",
+      "CON_WOOD_FILLER",
+      "CON_HARDWARE_BAGS"
+    ],
+    "proposed_consumables": [
+      {
+        "consumable_id": "CON_XDOR_SPRAY_TIP_310",
+        "name": "Airless Spray Tip 310 (metal/fiberglass doors)",
+        "category": "applicator",
+        "unit": "EA",
+        "notes": "310 or 412 tip for metal/fiberglass door faces. 0.010-0.014 inch orifice per Application Methods Doctrine."
+      },
+      {
+        "consumable_id": "CON_XDOR_MASKING_FILM_GLASS",
+        "name": "Glass Masking Film (HDPE static-cling or liquid mask)",
+        "category": "protection",
+        "unit": "EA",
+        "notes": "HDPE static-cling film for glass lites. QT5: liquid mask for razor-sharp paint lines. Per door, not per lite."
+      },
+      {
+        "consumable_id": "CON_XDOR_BODY_FILLER",
+        "name": "Two-Component Auto Body Filler (steel door dent repair)",
+        "category": "fill_material",
+        "unit": "EA",
+        "notes": "For dent repair on steel doors. Sand 80-grit, fill, finish-sand 240/300-grit. Only for steel substrate with dent damage."
+      },
+      {
+        "consumable_id": "CON_XDOR_SOLVENT_CLEAN",
+        "name": "Xylene or Acetone for Steel Door Solvent Clean",
+        "category": "prep",
+        "unit": "QT",
+        "notes": "Solvent cleaning for steel door surfaces. Remove manufacturing oils, contaminants."
+      }
+    ]
+  },
+
+  "round_configurations": {
+    "existing_patterns": [
+      "ROUND_SINGLE_COAT",
+      "ROUND_TWO_COAT",
+      "ROUND_DOOR_PRIME_FINISH_2COAT",
+      "ROUND_DOOR_FINISH_2COAT"
+    ],
+    "naming_pattern": "ROUND_{CONTEXT}_{DESCRIPTION}",
+    "proposed_configurations": [
+      {
+        "round_id": "ROUND_XDOR_PRIME_2FINISH",
+        "description": "1 prime + 2 finish coats — standard NC sequence for bare substrates",
+        "applies_when": { "substrate_state": ["SS_EXT_BARE_WOOD", "SS_EXT_BARE_METAL"], "quality_tier": ["QT3", "QT4", "QT5"] }
+      },
+      {
+        "round_id": "ROUND_XDOR_2FINISH",
+        "description": "2 finish coats only — factory-primed steel/fiberglass (adequate factory primer) or field-primed",
+        "applies_when": { "substrate_state": ["SS_EXT_PRIMED_FACTORY", "SS_EXT_PRIMED_FIELD"], "quality_tier": ["QT3", "QT4", "QT5"] }
+      }
+    ],
+    "notes": "Existing ROUND_DOOR_ configurations are for interior door slab. Exterior door rounds need separate XDOR prefix because substrate state routing differs (factory-primed steel/fiberglass can skip field prime unlike NC wood)."
+  },
+
+  "coverage_profiles": {
+    "existing_profiles": [],
+    "naming_pattern": "COV_{CONTEXT}_{PRODUCT_ROLE}",
+    "proposed_profiles": [
+      {
+        "profile_id": "COV_XDOR_PRIMER_DTM",
+        "description": "DTM primer coverage on steel door — 350-400 SF/gal. EA conversion: ~1 door = ~40 SF (both faces + edges) = ~0.10-0.12 gal per door."
+      },
+      {
+        "profile_id": "COV_XDOR_PRIMER_ACRYLIC",
+        "description": "Acrylic primer coverage on wood/fiberglass door — 300-400 SF/gal. ~0.10-0.13 gal per door."
+      },
+      {
+        "profile_id": "COV_XDOR_FINISH",
+        "description": "Finish coat coverage on primed door — 300-400 SF/gal. ~0.10-0.13 gal per door per coat."
+      }
+    ]
+  },
+
+  "cross_spec_coordination": {
+    "xspec_flags_consumed": [],
+    "xspec_flags_set": [],
+    "comp_modifiers_set": [],
+    "comp_modifiers_affected_by": [],
+    "deduplication_notes": [
+      "Door CASING painting belongs to SF_TRIM_EXT_NC_v1 — this spec covers door slab, edges, frame/jamb, and glass lite masking only.",
+      "Glass masking ownership: when painting the DOOR, this spec masks the glass. When painting the CASING, the trim spec masks adjacent glass (ext_door_glass_adjacent zone).",
+      "Door-to-frame weatherseal gap is PROTECTED (not caulked) by this spec. Casing-to-wall caulking is trim spec scope.",
+      "Siding-to-door junction: no direct adjacency — casing intervenes. No deduplication needed."
+    ]
+  },
+
+  "factor_modifiers": {
+    "naming_pattern": "FAC_XDOR_{DESCRIPTION}",
+    "proposed_modifiers": [
+      {
+        "modifier_id": "FAC_XDOR_COMPLEXITY",
+        "description": "Door complexity modifier — PRIMARY cost driver",
+        "values": { "single_slab": 1.00, "panel": 1.75, "grand_entry": 5.00 },
+        "notes": "Applied to base EA rate. Single_slab is baseline (1.0-2.0 hrs/EA). Panel: 1.5-3.0 hrs/EA. Grand_entry: 5.0-10.0 hrs/EA. Grand_entry modifier is very high because it adds sidelite/transom scope. Values are approximate — Estimation Engineer calibrates exact rates."
+      },
+      {
+        "modifier_id": "FAC_XDOR_ACCESS_ELEVATED",
+        "description": "Elevated entry access modifier",
+        "values": { "ground": 1.00, "ladder": 1.15 },
+        "notes": "Rarely applicable — most exterior doors are at grade. Ladder modifier for elevated deck/porch entries. Scaffold/lift not typically needed for door painting."
+      }
+    ]
+  },
+
+  "structural_reminders": {
+    "materials_json": {
+      "required_keys": ["spec_family_id", "version", "material_systems", "consumables"],
+      "system_item_keys": ["system_id", "name", "quality_tier OR applies_when"],
+      "consumable_item_keys": ["consumable_id", "name", "category", "unit"],
+      "use_consumables_key": "consumables (never consumable_usage_models)"
+    },
+    "sop_modules_json": {
+      "required_keys": ["spec_family_id", "version", "sop_modules"],
+      "module_keys": ["module_id", "name", "phase", "tasks"],
+      "task_required_keys": ["task_id", "name", "task_classification", "skill_level"],
+      "task_prohibited_keys": ["task_class", "rate_per_hour", "coverage_sf_per_gallon"]
+    },
+    "production_json": {
+      "required_keys": ["spec_family_id", "version", "task_production_rates"],
+      "rate_item_keys": ["task_id", "unit_of_measure", "rate_per_hour OR rates_by_tier OR fixed_time_minutes"],
+      "prohibited_keys": ["tasks", "sop_modules"],
+      "ea_rate_note": "This spec uses hours/EA rates (not SF/hr or LF/hr). Production rates should use rate_per_hour where the rate is doors/hour (inverse of hours/door) or fixed_time_minutes for per-door tasks."
+    },
+    "qa_report_json": {
+      "required_keys": ["spec_family_id", "version", "overall_result"],
+      "issue_keys": ["issue_id", "severity", "area", "file", "description", "suggested_fix"],
+      "severity_values": ["critical", "major", "minor"]
+    }
+  },
+
+  "cross_file_threading": [
+    "RULE 1: Every TSK_ in sop_modules.json MUST have a matching rate in production.json",
+    "RULE 2: Every ITM_ in spec.json MUST appear in at least one variant",
+    "RULE 3: Every SYS_ quality_tier MUST match spec.json configuration_dimensions",
+    "RULE 4: Every IN_ input in spec.json SHOULD be consumed by sop_modules or production",
+    "RULE 5: Every PS_ key in production.json MUST match spec.json required_paintscope_inputs",
+    "RULE 6: Every zone_id in spec.json MUST match sop_modules.json protection_metadata.zones",
+    "RULE 7: Module phase order: setup → prep → prime → apply → interstage → finish → cleanup",
+    "RULE 8: UOM for a task MUST match between sop_modules.json and production.json",
+    "RULE 9: All TSK_ IDs MUST use TSK_XDOR_ prefix (from this resolution)",
+    "RULE 10: ITM_DOOR_EXT MUST be used exactly as registered (proposed ID)",
+    "RULE 11: Downstream agents MUST use only enum values from this resolution's applicable_enums"
+  ],
+
+  "migration_warnings": [],
+
+  "registry_additions_proposed": [
+    {
+      "registry": "id_registry.json",
+      "section": "SF_",
+      "proposed_id": "SF_DOOR_EXT_NC",
+      "name": "Exterior Entry Door Prime and Paint (New Construction)",
+      "justification": "New spec family for exterior entry doors — distinct from interior door slab spec (SF_DOOR_SLAB_INT_NC). Different domain (exterior), different substrate materials (steel/fiberglass/wood), different primer systems (DTM, acrylic, tannin), IR-reflective coating requirement for dark colors, hardware removal mandate, and six-side sealing for wood."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "ITM_",
+      "proposed_id": "ITM_DOOR_EXT",
+      "name": "Exterior entry door assembly",
+      "justification": "No existing ITM_ covers exterior door. Interior door items (ITM_DOOR_FRAME_SET) cover frame, not slab. The interior door slab is implicit in SF_DOOR_SLAB_INT_NC but uses EA_SIDE UOM. Exterior door uses EA per assembly (both faces + edges + frame/jamb). Different counting model."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "surface_ids",
+      "proposed_id": "door_slab_ext",
+      "name": "Exterior door slab surface",
+      "justification": "New surface ID for exterior door slab. Existing door_leaf_face is interior-specific. Exterior door has different substrate materials, weathering considerations, and coating requirements."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "surface_ids",
+      "proposed_id": "door_frame_ext",
+      "name": "Exterior door frame/jamb surface",
+      "justification": "New surface ID for exterior door frame. Existing door_frame is interior-specific. Exterior frame has weatherstrip interface, threshold junction, and different coating requirements."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "zone_ids",
+      "proposed_id": "ext_door_glass_mask",
+      "name": "Exterior door glass lite masking",
+      "justification": "New protection zone for glass lites in door slab and sidelites/transom. Distinct from ext_door_glass_adjacent (trim spec — glass adjacent to casing). This zone is glass IN the door assembly."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "zone_ids",
+      "proposed_id": "ext_door_hardware",
+      "name": "Exterior door hardware removal/reinstall zone",
+      "justification": "New protection zone for exterior door hardware. Not a masking zone — hardware is REMOVED per doctrine. Distinct from interior hardware_covers which may be masked."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "zone_ids",
+      "proposed_id": "ext_door_weatherstrip",
+      "name": "Exterior door weatherstrip protection zone",
+      "justification": "New protection zone for weatherstripping. Pull out friction-fit stripping or deep-tape non-removable stripping. No existing zone covers weatherstrip protection."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "zone_ids",
+      "proposed_id": "ext_door_threshold",
+      "name": "Exterior door threshold/sill protection zone",
+      "justification": "New protection zone for threshold protection during door painting. Tape and drop cloth to catch drips."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "PS_",
+      "proposed_id": "PS_EXT_OPENING_EA.DOOR_EXT",
+      "name": "Exterior Door Count (EA)",
+      "justification": "New PaintScope key for exterior door count. No existing PS_OPENING_EA covers exterior doors. Interior door keys use different patterns (PS_SURFACE_EA.DOOR_FRAME_SET, PS_SURFACE_EA_SIDE.DOOR_SLAB)."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "PS_",
+      "proposed_id": "PS_EXT_META.ENUM.DOOR_COMPLEXITY",
+      "name": "Door Complexity Enum (single_slab/panel/grand_entry)",
+      "justification": "New per-door enum for complexity classification. PRIMARY cost driver — routes to correct production rate tier. Must be captured per door (project may have mixed complexity)."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "PS_",
+      "proposed_id": "PS_EXT_META.ENUM.SUBSTRATE_TYPE_DOOR",
+      "name": "Door Substrate Material Enum (steel/fiberglass/wood)",
+      "justification": "New per-door enum for substrate material. Drives primer system, topcoat chemistry, and prep protocol. Must be per-door (project may have mixed substrates)."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "PS_",
+      "proposed_id": "PS_EXT_PROTECT_EA.DOOR_HARDWARE",
+      "name": "Door Hardware Group Count for Removal/Reinstall",
+      "justification": "New protection key for hardware removal/reinstall count. Typically 1:1 with door count. Grand entry may have additional hardware groups."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "IN_",
+      "proposed_id": "IN_EA_DOOR_EXT",
+      "name": "Exterior Door Count Input",
+      "justification": "Input mapped to PS_EXT_OPENING_EA.DOOR_EXT."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "IN_",
+      "proposed_id": "IN_ENUM_DOOR_COMPLEXITY",
+      "name": "Door Complexity Enum Input",
+      "justification": "Input mapped to PS_EXT_META.ENUM.DOOR_COMPLEXITY."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "IN_",
+      "proposed_id": "IN_ENUM_SUBSTRATE_TYPE_DOOR",
+      "name": "Door Substrate Material Enum Input",
+      "justification": "Input mapped to PS_EXT_META.ENUM.SUBSTRATE_TYPE_DOOR."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "IN_",
+      "proposed_id": "IN_EA_EXT_DOOR_HARDWARE",
+      "name": "Door Hardware Group Count Input",
+      "justification": "Input mapped to PS_EXT_PROTECT_EA.DOOR_HARDWARE."
+    },
+    {
+      "registry": "controlled_enums.json",
+      "section": "substrate_state",
+      "proposed_id": "SS_EXT_BARE_METAL",
+      "name": "Exterior bare metal (ferrous or non-ferrous, no primer/coating)",
+      "justification": "New exterior substrate state for bare metal doors. Distinct from existing SS_BARE (interior generic bare). Triggers DTM/zinc-rich primer path. Rare in NC (most steel doors arrive factory-primed) but must be handled."
+    },
+    {
+      "registry": "controlled_enums.json",
+      "section": "substrate_state",
+      "proposed_id": "SS_EXT_PAINTED_GLOSS",
+      "name": "Exterior painted finish — gloss sheen",
+      "justification": "New output state for gloss-sheen exterior painting. SS_EXT_PAINTED_SATIN and SS_EXT_PAINTED_SEMIGLOSS already exist/proposed. Gloss is a valid exterior door sheen not yet represented. Also proposed by SF_TRIM_EXT_NC_v1."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "SYS_",
+      "proposed_id": "SYS_EXT_DOOR_PRIMER_DTM",
+      "name": "DTM Primer for Steel Exterior Doors",
+      "justification": "Distinct from interior SYS_PRIMER_STEEL_DTM (steel windows) — exterior door DTM primer has different environmental exposure requirements and may use zinc-rich epoxy for carbon steel."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "SYS_",
+      "proposed_id": "SYS_EXT_DOOR_PRIMER_ACRYLIC",
+      "name": "100% Acrylic Latex Primer for Fiberglass/Wood Doors",
+      "justification": "Exterior door-specific acrylic primer. Fiberglass REQUIRES 100% acrylic (oil prohibited). Distinct from siding primer (SYS_EXT_WOOD_PRIMER_ACRYLIC) — different coverage rates and application method (brush vs spray)."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "SYS_",
+      "proposed_id": "SYS_EXT_DOOR_PRIMER_TANNIN_SPOT",
+      "name": "Alkyd/Shellac Spot Primer for Tannin Knots on Wood Doors",
+      "justification": "Spot primer for tannin-rich wood species (cedar, redwood). Not a full-surface system. Similar to SYS_EXT_TRIM_PRIMER_ALKYD_SPOT but door-specific context."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "SYS_",
+      "proposed_id": "SYS_EXT_DOOR_FINISH_STANDARD",
+      "name": "Standard Exterior Acrylic Door Paint",
+      "justification": "QT3 door finish. Distinct from siding and trim finish systems — different coverage rates on EA door vs SF/LF siding/trim."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "SYS_",
+      "proposed_id": "SYS_EXT_DOOR_FINISH_PREMIUM",
+      "name": "Premium Exterior Door Paint",
+      "justification": "QT4/QT5 door finish with premium materials. High-visibility entry point justifies premium product."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "SYS_",
+      "proposed_id": "SYS_EXT_DOOR_FINISH_IR_REFLECTIVE",
+      "name": "IR-Reflective Exterior Door Paint for Dark Colors",
+      "justification": "MANDATORY for LRV < 30. Complex Inorganic Color Pigments (CICPs). No existing SYS_ covers IR-reflective exterior door coating. HARD STOP requirement — without IR-reflective technology, dark colors cause substrate failure (wood warping, steel expansion, fiberglass outgassing)."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "COV_",
+      "proposed_id": "COV_XDOR_PRIMER_DTM",
+      "name": "DTM Primer Coverage on Steel Door",
+      "justification": "Door-specific DTM primer coverage. EA-based conversion needed (~40 SF per door = ~0.10-0.12 gal/door)."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "COV_",
+      "proposed_id": "COV_XDOR_PRIMER_ACRYLIC",
+      "name": "Acrylic Primer Coverage on Wood/Fiberglass Door",
+      "justification": "Door-specific acrylic primer coverage."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "COV_",
+      "proposed_id": "COV_XDOR_FINISH",
+      "name": "Finish Coat Coverage on Primed Door",
+      "justification": "Door-specific finish coverage."
+    }
+  ]
+}

@@ -1,0 +1,1060 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Markdown Reviewer</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #1a1b1e;
+    --bg-surface: #25262b;
+    --bg-elevated: #2c2e33;
+    --bg-input: #1e1f23;
+    --border: #373a40;
+    --border-focus: #5c7cfa;
+    --text: #c1c2c5;
+    --text-dim: #909296;
+    --text-bright: #e4e5e7;
+    --accent: #5c7cfa;
+    --green: #40c057;
+    --green-dim: #2b8a3e;
+    --orange: #fd7e14;
+    --orange-dim: #e8590c;
+    --red: #fa5252;
+    --font-ui: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    --font-mono: 'Cascadia Code', 'Fira Code', 'JetBrains Mono', 'Consolas', monospace;
+    --radius: 6px;
+    --radius-sm: 4px;
+  }
+
+  html, body { height: 100%; overflow: hidden; }
+
+  body {
+    font-family: var(--font-ui);
+    background: var(--bg);
+    color: var(--text);
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ── Top Bar ── */
+  .top-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 16px;
+    background: var(--bg-surface);
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+    min-height: 48px;
+  }
+
+  .top-bar h1 {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-bright);
+    white-space: nowrap;
+    letter-spacing: 0.5px;
+  }
+
+  .file-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--bg-elevated);
+    color: var(--text);
+    font-family: var(--font-ui);
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+
+  .btn:hover { background: #363840; border-color: #50535a; }
+  .btn:active { transform: scale(0.97); }
+
+  .btn-accent { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .btn-accent:hover { background: #4c6ef5; }
+
+  .btn-green { background: var(--green-dim); border-color: var(--green); color: #fff; }
+  .btn-green:hover { background: #237b32; }
+
+  .btn-orange { background: var(--orange-dim); border-color: var(--orange); color: #fff; }
+  .btn-orange:hover { background: #d9480f; }
+
+  .btn-sm { padding: 4px 10px; font-size: 12px; }
+
+  .file-info {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-left: auto;
+    font-size: 12px;
+    color: var(--text-dim);
+  }
+
+  .file-info .filename {
+    color: var(--text-bright);
+    font-family: var(--font-mono);
+    font-size: 12px;
+  }
+
+  .file-info .stat { white-space: nowrap; }
+
+  #file-input { display: none; }
+
+  /* ── Toolbar ── */
+  .toolbar {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    padding: 6px 16px;
+    background: var(--bg-surface);
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+    flex-wrap: wrap;
+  }
+
+  .toolbar-group {
+    display: flex;
+    gap: 2px;
+    padding-right: 8px;
+    margin-right: 8px;
+    border-right: 1px solid var(--border);
+  }
+
+  .toolbar-group:last-child { border-right: none; margin-right: 0; padding-right: 0; }
+
+  .tool-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 28px;
+    border: none;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--text-dim);
+    font-family: var(--font-mono);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.12s;
+  }
+
+  .tool-btn:hover { background: var(--bg-elevated); color: var(--text-bright); }
+  .tool-btn:active { transform: scale(0.92); }
+  .tool-btn .label { font-family: var(--font-ui); font-size: 11px; font-weight: 600; }
+
+  .approval-group {
+    display: flex;
+    gap: 8px;
+    margin-left: auto;
+  }
+
+  /* ── Main Split Pane ── */
+  .main {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .pane {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    min-width: 0;
+  }
+
+  .pane-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 16px;
+    background: var(--bg-elevated);
+    border-bottom: 1px solid var(--border);
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--text-dim);
+    flex-shrink: 0;
+  }
+
+  .divider {
+    width: 4px;
+    background: var(--border);
+    cursor: col-resize;
+    flex-shrink: 0;
+    transition: background 0.15s;
+  }
+
+  .divider:hover, .divider.dragging { background: var(--accent); }
+
+  /* ── Editor Pane ── */
+  .editor-wrap {
+    flex: 1;
+    display: flex;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .line-numbers {
+    flex-shrink: 0;
+    padding: 12px 0;
+    background: var(--bg-input);
+    color: var(--text-dim);
+    font-family: var(--font-mono);
+    font-size: 13px;
+    line-height: 1.6;
+    text-align: right;
+    user-select: none;
+    overflow: hidden;
+    min-width: 48px;
+    border-right: 1px solid var(--border);
+  }
+
+  .line-numbers .ln {
+    padding: 0 10px 0 8px;
+    display: block;
+  }
+
+  #editor {
+    flex: 1;
+    padding: 12px 16px;
+    background: var(--bg-input);
+    color: var(--text-bright);
+    font-family: var(--font-mono);
+    font-size: 13px;
+    line-height: 1.6;
+    border: none;
+    outline: none;
+    resize: none;
+    overflow: auto;
+    tab-size: 2;
+    white-space: pre;
+    word-wrap: off;
+  }
+
+  #editor::placeholder { color: var(--text-dim); }
+
+  /* ── Preview Pane ── */
+  .preview-wrap {
+    flex: 1;
+    overflow: auto;
+    padding: 24px 32px;
+    background: var(--bg);
+  }
+
+  /* ── Markdown Preview Typography ── */
+  .preview-wrap h1 { font-size: 28px; font-weight: 700; color: var(--text-bright); margin: 0 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+  .preview-wrap h2 { font-size: 22px; font-weight: 600; color: var(--text-bright); margin: 24px 0 12px; padding-bottom: 6px; border-bottom: 1px solid var(--border); }
+  .preview-wrap h3 { font-size: 18px; font-weight: 600; color: var(--text-bright); margin: 20px 0 10px; }
+  .preview-wrap h4 { font-size: 15px; font-weight: 600; color: var(--text-bright); margin: 16px 0 8px; }
+  .preview-wrap h5, .preview-wrap h6 { font-size: 13px; font-weight: 600; color: var(--text); margin: 14px 0 6px; }
+
+  .preview-wrap p { margin: 0 0 12px; line-height: 1.7; }
+  .preview-wrap a { color: var(--accent); text-decoration: none; }
+  .preview-wrap a:hover { text-decoration: underline; }
+
+  .preview-wrap strong { color: var(--text-bright); font-weight: 600; }
+  .preview-wrap em { font-style: italic; }
+
+  .preview-wrap ul, .preview-wrap ol { margin: 0 0 12px; padding-left: 24px; }
+  .preview-wrap li { margin: 4px 0; line-height: 1.6; }
+  .preview-wrap li > ul, .preview-wrap li > ol { margin: 4px 0 4px; }
+
+  .preview-wrap code {
+    font-family: var(--font-mono);
+    font-size: 0.9em;
+    background: var(--bg-elevated);
+    padding: 2px 6px;
+    border-radius: 3px;
+    color: #e599f7;
+  }
+
+  .preview-wrap pre {
+    margin: 0 0 16px;
+    padding: 16px;
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow-x: auto;
+  }
+
+  .preview-wrap pre code {
+    background: none;
+    padding: 0;
+    color: var(--text-bright);
+    font-size: 13px;
+    line-height: 1.5;
+  }
+
+  .preview-wrap blockquote {
+    margin: 0 0 16px;
+    padding: 8px 16px;
+    border-left: 3px solid var(--accent);
+    background: rgba(92, 124, 250, 0.06);
+    color: var(--text);
+  }
+
+  .preview-wrap blockquote p:last-child { margin-bottom: 0; }
+
+  .preview-wrap hr {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 24px 0;
+  }
+
+  .preview-wrap table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0 0 16px;
+    font-size: 13px;
+  }
+
+  .preview-wrap th {
+    background: var(--bg-elevated);
+    font-weight: 600;
+    color: var(--text-bright);
+    text-align: left;
+    padding: 8px 12px;
+    border: 1px solid var(--border);
+  }
+
+  .preview-wrap td {
+    padding: 8px 12px;
+    border: 1px solid var(--border);
+  }
+
+  .preview-wrap img { max-width: 100%; border-radius: var(--radius); }
+
+  .preview-wrap .task-list-item { list-style: none; margin-left: -20px; }
+  .preview-wrap .task-list-item input { margin-right: 6px; }
+
+  /* ── Drop Overlay ── */
+  .drop-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(26, 27, 30, 0.92);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 12px;
+    pointer-events: none;
+  }
+
+  .drop-overlay.visible { display: flex; }
+
+  .drop-overlay .icon { font-size: 48px; opacity: 0.6; }
+
+  .drop-overlay .label {
+    font-size: 18px;
+    color: var(--text-bright);
+    font-weight: 600;
+  }
+
+  /* ── Toast ── */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 10px 20px;
+    font-size: 13px;
+    color: var(--text-bright);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+    z-index: 2000;
+    opacity: 0;
+    transition: all 0.3s ease;
+    pointer-events: none;
+  }
+
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  .toast.success { border-color: var(--green); }
+  .toast.info { border-color: var(--accent); }
+
+  /* ── Revision Modal ── */
+  .modal-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    z-index: 1500;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .modal-backdrop.visible { display: flex; }
+
+  .modal {
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 24px;
+    width: 520px;
+    max-width: 90vw;
+    box-shadow: 0 16px 48px rgba(0,0,0,0.5);
+  }
+
+  .modal h2 {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-bright);
+    margin-bottom: 12px;
+  }
+
+  .modal p {
+    font-size: 13px;
+    color: var(--text-dim);
+    margin-bottom: 16px;
+    line-height: 1.5;
+  }
+
+  .modal textarea {
+    width: 100%;
+    height: 140px;
+    padding: 12px;
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text-bright);
+    font-family: var(--font-ui);
+    font-size: 13px;
+    line-height: 1.5;
+    resize: vertical;
+    outline: none;
+  }
+
+  .modal textarea:focus { border-color: var(--border-focus); }
+
+  .modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 16px;
+  }
+
+  /* ── Empty State ── */
+  .empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    gap: 12px;
+    color: var(--text-dim);
+    text-align: center;
+    padding: 40px;
+  }
+
+  .empty-state .icon { font-size: 40px; opacity: 0.4; }
+  .empty-state .title { font-size: 16px; font-weight: 600; color: var(--text); }
+  .empty-state .hint { font-size: 13px; line-height: 1.6; }
+
+  /* ── Responsive ── */
+  @media (max-width: 800px) {
+    .main { flex-direction: column; }
+    .divider { width: auto; height: 4px; cursor: row-resize; }
+    .file-info { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Top Bar -->
+<div class="top-bar">
+  <h1>MD REVIEWER</h1>
+  <div class="file-controls">
+    <input type="file" id="file-input" accept=".md,.markdown,.txt">
+    <button class="btn" onclick="document.getElementById('file-input').click()">Open File</button>
+  </div>
+  <div class="file-info" id="file-info">
+    <span class="filename" id="filename">No file loaded</span>
+    <span class="stat" id="char-count">0 chars</span>
+    <span class="stat" id="word-count">0 words</span>
+    <span class="stat" id="line-count">0 lines</span>
+  </div>
+</div>
+
+<!-- Toolbar -->
+<div class="toolbar">
+  <div class="toolbar-group">
+    <button class="tool-btn" title="Heading 1" onclick="insertMarkdown('h1')"><span class="label">H1</span></button>
+    <button class="tool-btn" title="Heading 2" onclick="insertMarkdown('h2')"><span class="label">H2</span></button>
+    <button class="tool-btn" title="Heading 3" onclick="insertMarkdown('h3')"><span class="label">H3</span></button>
+  </div>
+  <div class="toolbar-group">
+    <button class="tool-btn" title="Bold (Ctrl+B)" onclick="insertMarkdown('bold')"><b>B</b></button>
+    <button class="tool-btn" title="Italic (Ctrl+I)" onclick="insertMarkdown('italic')"><i>I</i></button>
+    <button class="tool-btn" title="Inline Code" onclick="insertMarkdown('code')"><span style="font-size:12px">&lt;/&gt;</span></button>
+  </div>
+  <div class="toolbar-group">
+    <button class="tool-btn" title="Bullet List" onclick="insertMarkdown('ul')"><span style="font-size:16px">&#8226;</span></button>
+    <button class="tool-btn" title="Numbered List" onclick="insertMarkdown('ol')"><span class="label">1.</span></button>
+    <button class="tool-btn" title="Code Block" onclick="insertMarkdown('codeblock')"><span style="font-size:11px">{&nbsp;}</span></button>
+  </div>
+  <div class="toolbar-group">
+    <button class="tool-btn" title="Link" onclick="insertMarkdown('link')"><span style="font-size:14px">&#128279;</span></button>
+    <button class="tool-btn" title="Horizontal Rule" onclick="insertMarkdown('hr')"><span style="font-size:16px">&#8213;</span></button>
+  </div>
+  <div class="approval-group">
+    <button class="btn btn-green" onclick="handleApprove()">Approve</button>
+    <button class="btn btn-orange" onclick="showRevisionModal()">Request Revision</button>
+  </div>
+</div>
+
+<!-- Main Split -->
+<div class="main">
+  <!-- Editor Pane -->
+  <div class="pane" id="editor-pane">
+    <div class="pane-header">Editor</div>
+    <div class="editor-wrap">
+      <div class="line-numbers" id="line-numbers"></div>
+      <textarea id="editor" placeholder="Open a .md file or start typing markdown here..." spellcheck="false"></textarea>
+    </div>
+  </div>
+
+  <!-- Divider -->
+  <div class="divider" id="divider"></div>
+
+  <!-- Preview Pane -->
+  <div class="pane" id="preview-pane">
+    <div class="pane-header">Preview</div>
+    <div class="preview-wrap" id="preview">
+      <div class="empty-state" id="empty-state">
+        <div class="icon">&#128196;</div>
+        <div class="title">No document loaded</div>
+        <div class="hint">Click <strong>Open File</strong> or drag and drop a .md file<br>to start reviewing.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Drop Overlay -->
+<div class="drop-overlay" id="drop-overlay">
+  <div class="icon">&#128196;</div>
+  <div class="label">Drop markdown file to open</div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- Revision Modal -->
+<div class="modal-backdrop" id="revision-modal">
+  <div class="modal">
+    <h2>Request Revision</h2>
+    <p>Describe the changes you'd like made. The revision notes and document content will be copied to your clipboard.</p>
+    <textarea id="revision-notes" placeholder="e.g. The production rates in section 3 need to be updated to reflect the new PCA standards..."></textarea>
+    <div class="modal-actions">
+      <button class="btn" onclick="hideRevisionModal()">Cancel</button>
+      <button class="btn btn-orange" onclick="handleRevision()">Copy with Notes</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ── Minimal Markdown Parser ──
+  // Self-contained — no CDN dependency
+  const md = (() => {
+    function escapeHtml(s) {
+      return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    function inlineFormat(text) {
+      // Images before links
+      text = text.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1">');
+      // Links
+      text = text.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>');
+      // Bold+Italic
+      text = text.replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>');
+      // Bold
+      text = text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+      text = text.replace(/__(.+?)__/g, '<strong>$1</strong>');
+      // Italic
+      text = text.replace(/\*(.+?)\*/g, '<em>$1</em>');
+      text = text.replace(/_(.+?)_/g, '<em>$1</em>');
+      // Strikethrough
+      text = text.replace(/~~(.+?)~~/g, '<del>$1</del>');
+      // Inline code (after escaping)
+      text = text.replace(/`([^`]+)`/g, (_, code) => `<code>${escapeHtml(code)}</code>`);
+      return text;
+    }
+
+    function parse(src) {
+      const lines = src.split('\n');
+      let html = '';
+      let i = 0;
+      let inCodeBlock = false;
+      let codeContent = '';
+      let codeLang = '';
+
+      while (i < lines.length) {
+        const line = lines[i];
+
+        // Fenced code blocks
+        if (line.trimStart().startsWith('```')) {
+          if (!inCodeBlock) {
+            inCodeBlock = true;
+            codeLang = line.trim().slice(3).trim();
+            codeContent = '';
+            i++;
+            continue;
+          } else {
+            inCodeBlock = false;
+            html += `<pre><code${codeLang ? ` class="language-${codeLang}"` : ''}>${escapeHtml(codeContent.replace(/\n$/, ''))}</code></pre>\n`;
+            i++;
+            continue;
+          }
+        }
+        if (inCodeBlock) {
+          codeContent += line + '\n';
+          i++;
+          continue;
+        }
+
+        // Empty line
+        if (line.trim() === '') { i++; continue; }
+
+        // Headings
+        const hMatch = line.match(/^(#{1,6})\s+(.+)/);
+        if (hMatch) {
+          const level = hMatch[1].length;
+          html += `<h${level}>${inlineFormat(hMatch[2])}</h${level}>\n`;
+          i++;
+          continue;
+        }
+
+        // Horizontal rule
+        if (/^(\*{3,}|-{3,}|_{3,})\s*$/.test(line.trim())) {
+          html += '<hr>\n';
+          i++;
+          continue;
+        }
+
+        // Blockquote
+        if (line.trimStart().startsWith('>')) {
+          let bqLines = [];
+          while (i < lines.length && (lines[i].trimStart().startsWith('>') || (lines[i].trim() !== '' && bqLines.length > 0 && !lines[i].trimStart().startsWith('#')))) {
+            if (lines[i].trimStart().startsWith('>')) {
+              bqLines.push(lines[i].trimStart().replace(/^>\s?/, ''));
+            } else if (lines[i].trim() === '') {
+              break;
+            } else {
+              bqLines.push(lines[i]);
+            }
+            i++;
+          }
+          html += `<blockquote>${parse(bqLines.join('\n'))}</blockquote>\n`;
+          continue;
+        }
+
+        // Table
+        if (line.includes('|') && i + 1 < lines.length && /^\s*\|?[\s\-:|]+\|/.test(lines[i + 1])) {
+          const headerCells = line.split('|').map(c => c.trim()).filter(c => c !== '');
+          i += 2; // skip header + separator
+          let rows = [];
+          while (i < lines.length && lines[i].includes('|') && lines[i].trim() !== '') {
+            rows.push(lines[i].split('|').map(c => c.trim()).filter(c => c !== ''));
+            i++;
+          }
+          html += '<table><thead><tr>';
+          headerCells.forEach(c => { html += `<th>${inlineFormat(c)}</th>`; });
+          html += '</tr></thead><tbody>';
+          rows.forEach(row => {
+            html += '<tr>';
+            row.forEach(c => { html += `<td>${inlineFormat(c)}</td>`; });
+            html += '</tr>';
+          });
+          html += '</tbody></table>\n';
+          continue;
+        }
+
+        // Unordered list
+        if (/^\s*[-*+]\s/.test(line)) {
+          html += parseList(lines, i, 'ul');
+          while (i < lines.length && (/^\s*[-*+]\s/.test(lines[i]) || (lines[i].trim() !== '' && /^\s{2,}/.test(lines[i])))) i++;
+          continue;
+        }
+
+        // Ordered list
+        if (/^\s*\d+\.\s/.test(line)) {
+          html += parseList(lines, i, 'ol');
+          while (i < lines.length && (/^\s*\d+\.\s/.test(lines[i]) || (lines[i].trim() !== '' && /^\s{2,}/.test(lines[i])))) i++;
+          continue;
+        }
+
+        // Paragraph — collect consecutive non-empty, non-special lines
+        let pLines = [];
+        while (i < lines.length && lines[i].trim() !== '' && !lines[i].trimStart().startsWith('#') && !lines[i].trimStart().startsWith('>') && !lines[i].trimStart().startsWith('```') && !/^(\*{3,}|-{3,}|_{3,})\s*$/.test(lines[i].trim()) && !/^\s*[-*+]\s/.test(lines[i]) && !/^\s*\d+\.\s/.test(lines[i])) {
+          pLines.push(lines[i]);
+          i++;
+        }
+        if (pLines.length) {
+          html += `<p>${inlineFormat(pLines.join(' '))}</p>\n`;
+        }
+      }
+
+      // Close unclosed code block
+      if (inCodeBlock) {
+        html += `<pre><code>${escapeHtml(codeContent)}</code></pre>\n`;
+      }
+
+      return html;
+    }
+
+    function parseList(lines, startIdx, tag) {
+      const listPattern = tag === 'ul' ? /^\s*[-*+]\s(.*)/ : /^\s*\d+\.\s(.*)/;
+      let items = [];
+      let i = startIdx;
+      while (i < lines.length) {
+        const m = lines[i].match(listPattern);
+        if (m) {
+          // Check for task list
+          const taskMatch = m[1].match(/^\[([ xX])\]\s*(.*)/);
+          if (taskMatch) {
+            const checked = taskMatch[1] !== ' ' ? ' checked disabled' : ' disabled';
+            items.push(`<li class="task-list-item"><input type="checkbox"${checked}>${inlineFormat(taskMatch[2])}</li>`);
+          } else {
+            items.push(`<li>${inlineFormat(m[1])}</li>`);
+          }
+          i++;
+        } else if (lines[i].trim() === '') {
+          break;
+        } else {
+          // continuation line
+          if (items.length > 0) {
+            items[items.length - 1] = items[items.length - 1].replace('</li>', ' ' + inlineFormat(lines[i].trim()) + '</li>');
+          }
+          i++;
+        }
+      }
+      return `<${tag}>${items.join('')}</${tag}>\n`;
+    }
+
+    return { parse };
+  })();
+
+  // ── State ──
+  const state = {
+    filename: '',
+    content: ''
+  };
+
+  // ── DOM refs ──
+  const editor = document.getElementById('editor');
+  const preview = document.getElementById('preview');
+  const emptyState = document.getElementById('empty-state');
+  const lineNumbers = document.getElementById('line-numbers');
+  const fileInput = document.getElementById('file-input');
+  const filenameEl = document.getElementById('filename');
+  const charCountEl = document.getElementById('char-count');
+  const wordCountEl = document.getElementById('word-count');
+  const lineCountEl = document.getElementById('line-count');
+  const toast = document.getElementById('toast');
+  const dropOverlay = document.getElementById('drop-overlay');
+  const revisionModal = document.getElementById('revision-modal');
+  const revisionNotes = document.getElementById('revision-notes');
+
+  // ── Editor sync ──
+  function updatePreview() {
+    const text = editor.value;
+    state.content = text;
+
+    if (text.trim()) {
+      emptyState.style.display = 'none';
+      preview.innerHTML = md.parse(text);
+    } else {
+      preview.innerHTML = '';
+      emptyState.style.display = '';
+      preview.appendChild(emptyState);
+    }
+
+    updateStats(text);
+    updateLineNumbers();
+  }
+
+  function updateStats(text) {
+    const chars = text.length;
+    const words = text.trim() ? text.trim().split(/\s+/).length : 0;
+    const lines = text.split('\n').length;
+    charCountEl.textContent = `${chars.toLocaleString()} chars`;
+    wordCountEl.textContent = `${words.toLocaleString()} words`;
+    lineCountEl.textContent = `${lines.toLocaleString()} lines`;
+  }
+
+  function updateLineNumbers() {
+    const count = editor.value.split('\n').length;
+    let html = '';
+    for (let i = 1; i <= count; i++) {
+      html += `<span class="ln">${i}</span>`;
+    }
+    lineNumbers.innerHTML = html;
+  }
+
+  editor.addEventListener('input', updatePreview);
+  editor.addEventListener('scroll', () => {
+    lineNumbers.scrollTop = editor.scrollTop;
+  });
+
+  // ── File loading ──
+  function loadFile(file) {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      state.filename = file.name;
+      state.content = e.target.result;
+      editor.value = state.content;
+      filenameEl.textContent = file.name;
+      updatePreview();
+      showToast(`Loaded ${file.name}`, 'info');
+    };
+    reader.readAsText(file);
+  }
+
+  fileInput.addEventListener('change', (e) => {
+    if (e.target.files[0]) loadFile(e.target.files[0]);
+  });
+
+  // ── Drag and Drop ──
+  let dragCounter = 0;
+
+  document.addEventListener('dragenter', (e) => {
+    e.preventDefault();
+    dragCounter++;
+    dropOverlay.classList.add('visible');
+  });
+
+  document.addEventListener('dragleave', (e) => {
+    e.preventDefault();
+    dragCounter--;
+    if (dragCounter <= 0) {
+      dragCounter = 0;
+      dropOverlay.classList.remove('visible');
+    }
+  });
+
+  document.addEventListener('dragover', (e) => {
+    e.preventDefault();
+  });
+
+  document.addEventListener('drop', (e) => {
+    e.preventDefault();
+    dragCounter = 0;
+    dropOverlay.classList.remove('visible');
+    if (e.dataTransfer.files[0]) {
+      loadFile(e.dataTransfer.files[0]);
+    }
+  });
+
+  // ── Keyboard shortcuts ──
+  document.addEventListener('keydown', (e) => {
+    // Ctrl+S prevention
+    if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+      e.preventDefault();
+      showToast('Document is in-browser only — use Approve to copy', 'info');
+    }
+
+    // Only apply editor shortcuts when editor is focused
+    if (document.activeElement !== editor) return;
+
+    // Tab → insert spaces
+    if (e.key === 'Tab') {
+      e.preventDefault();
+      const start = editor.selectionStart;
+      const end = editor.selectionEnd;
+      editor.value = editor.value.substring(0, start) + '  ' + editor.value.substring(end);
+      editor.selectionStart = editor.selectionEnd = start + 2;
+      updatePreview();
+    }
+
+    // Ctrl+B → bold
+    if ((e.ctrlKey || e.metaKey) && e.key === 'b') {
+      e.preventDefault();
+      insertMarkdown('bold');
+    }
+
+    // Ctrl+I → italic
+    if ((e.ctrlKey || e.metaKey) && e.key === 'i') {
+      e.preventDefault();
+      insertMarkdown('italic');
+    }
+  });
+
+  // ── Toolbar Actions ──
+  function insertMarkdown(type) {
+    editor.focus();
+    const start = editor.selectionStart;
+    const end = editor.selectionEnd;
+    const selected = editor.value.substring(start, end);
+    const before = editor.value.substring(0, start);
+    const after = editor.value.substring(end);
+
+    let insert = '';
+    let cursorOffset = 0;
+
+    switch (type) {
+      case 'h1': insert = `# ${selected || 'Heading'}`; cursorOffset = selected ? 0 : -7; break;
+      case 'h2': insert = `## ${selected || 'Heading'}`; cursorOffset = selected ? 0 : -7; break;
+      case 'h3': insert = `### ${selected || 'Heading'}`; cursorOffset = selected ? 0 : -7; break;
+      case 'bold': insert = `**${selected || 'bold text'}**`; cursorOffset = selected ? 0 : -2; break;
+      case 'italic': insert = `*${selected || 'italic text'}*`; cursorOffset = selected ? 0 : -1; break;
+      case 'code': insert = `\`${selected || 'code'}\``; cursorOffset = selected ? 0 : -1; break;
+      case 'codeblock': insert = `\n\`\`\`\n${selected || 'code here'}\n\`\`\`\n`; cursorOffset = selected ? 0 : -5; break;
+      case 'ul': insert = `- ${selected || 'list item'}`; cursorOffset = selected ? 0 : -9; break;
+      case 'ol': insert = `1. ${selected || 'list item'}`; cursorOffset = selected ? 0 : -9; break;
+      case 'link': insert = `[${selected || 'text'}](url)`; cursorOffset = selected ? -1 : -5; break;
+      case 'hr': insert = '\n---\n'; cursorOffset = 0; break;
+    }
+
+    editor.value = before + insert + after;
+    const newPos = start + insert.length + cursorOffset;
+    if (cursorOffset < 0) {
+      editor.selectionStart = newPos;
+      editor.selectionEnd = newPos;
+    } else {
+      editor.selectionStart = start;
+      editor.selectionEnd = start + insert.length;
+    }
+    updatePreview();
+  }
+
+  // ── Approval Workflow ──
+  function handleApprove() {
+    const content = editor.value.trim();
+    if (!content) {
+      showToast('Nothing to approve — editor is empty', 'info');
+      return;
+    }
+    navigator.clipboard.writeText(content).then(() => {
+      showToast('Approved — content copied to clipboard', 'success');
+    }).catch(() => {
+      fallbackCopy(content);
+      showToast('Approved — content copied to clipboard', 'success');
+    });
+  }
+
+  function showRevisionModal() {
+    const content = editor.value.trim();
+    if (!content) {
+      showToast('Nothing to revise — editor is empty', 'info');
+      return;
+    }
+    revisionNotes.value = '';
+    revisionModal.classList.add('visible');
+    revisionNotes.focus();
+  }
+
+  function hideRevisionModal() {
+    revisionModal.classList.remove('visible');
+  }
+
+  function handleRevision() {
+    const notes = revisionNotes.value.trim();
+    if (!notes) {
+      revisionNotes.style.borderColor = 'var(--red)';
+      setTimeout(() => { revisionNotes.style.borderColor = ''; }, 1500);
+      return;
+    }
+    const content = editor.value.trim();
+    const output = `## REVISION REQUESTED\n${notes}\n\n## DOCUMENT CONTENT\n${content}`;
+    navigator.clipboard.writeText(output).then(() => {
+      hideRevisionModal();
+      showToast('Revision request copied to clipboard', 'success');
+    }).catch(() => {
+      fallbackCopy(output);
+      hideRevisionModal();
+      showToast('Revision request copied to clipboard', 'success');
+    });
+  }
+
+  // Close modal on backdrop click
+  revisionModal.addEventListener('click', (e) => {
+    if (e.target === revisionModal) hideRevisionModal();
+  });
+
+  // Close modal on Escape
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && revisionModal.classList.contains('visible')) {
+      hideRevisionModal();
+    }
+  });
+
+  // ── Fallback copy ──
+  function fallbackCopy(text) {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+  }
+
+  // ── Toast ──
+  let toastTimer;
+  function showToast(message, type = 'info') {
+    clearTimeout(toastTimer);
+    toast.textContent = message;
+    toast.className = `toast ${type} show`;
+    toastTimer = setTimeout(() => {
+      toast.classList.remove('show');
+    }, 2500);
+  }
+
+  // ── Resizable Divider ──
+  const divider = document.getElementById('divider');
+  const editorPane = document.getElementById('editor-pane');
+  const previewPane = document.getElementById('preview-pane');
+  let isDragging = false;
+
+  divider.addEventListener('mousedown', (e) => {
+    isDragging = true;
+    divider.classList.add('dragging');
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+  });
+
+  document.addEventListener('mousemove', (e) => {
+    if (!isDragging) return;
+    const container = document.querySelector('.main');
+    const rect = container.getBoundingClientRect();
+    const percent = ((e.clientX - rect.left) / rect.width) * 100;
+    const clamped = Math.min(Math.max(percent, 20), 80);
+    editorPane.style.flex = 'none';
+    editorPane.style.width = clamped + '%';
+    previewPane.style.flex = '1';
+  });
+
+  document.addEventListener('mouseup', () => {
+    if (isDragging) {
+      isDragging = false;
+      divider.classList.remove('dragging');
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+    }
+  });
+
+  // ── Init ──
+  updateLineNumbers();
+</script>
+</body>
+</html>

@@ -107,6 +107,19 @@ export default function EstimateView() {
     });
   }
 
+  // Add fixture protection hours to room totals and phase totals
+  if (estimate.fixtureProtection) {
+    Object.entries(estimate.fixtureProtection).forEach(([ri, fp]) => {
+      if (roomMap[ri]) {
+        roomMap[ri].totalHours += fp.totalHours;
+        fp.tasks.forEach(t => {
+          const p = t.phase || 'setup';
+          roomMap[ri].phaseHours[p] = (roomMap[ri].phaseHours[p] || 0) + t.hours;
+        });
+      }
+    });
+  }
+
   const roomEntries = Object.entries(roomMap).sort((a,b) => parseInt(a[0]) - parseInt(b[0]));
 
   // Project-wide phase hours
@@ -239,6 +252,41 @@ export default function EstimateView() {
                                     {t.hours.toFixed(2)}
                                     {t.coatMultiplier > 1 && <span style={{fontSize:9,color:'var(--text-muted)',marginLeft:3}}>{'\u00d7'}{t.coatMultiplier}</span>}
                                   </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
+
+                {/* Fixture Protection */}
+                {estimate.fixtureProtection && estimate.fixtureProtection[ri] && (() => {
+                  const fp = estimate.fixtureProtection[ri];
+                  const fpKey = ri + '::__FIXTURE_PROTECTION__';
+                  const isFpOpen = expandedItems[fpKey];
+                  return (
+                    <div className="spec-section" style={{marginBottom:8}}>
+                      <div className="spec-header" onClick={() => toggleItem(fpKey)}>
+                        <span className={`chevron${isFpOpen ? ' open' : ''}`}>{'\u25B6'}</span>
+                        <span className="spec-name" style={{marginLeft:8,color:'#b87333'}}>Fixture Protection</span>
+                        <span style={{fontSize:11,color:'var(--text-muted)',marginLeft:8}}>{fp.tasks.length} entries</span>
+                        <span className="spec-hours">{fp.totalHours.toFixed(2)} hrs</span>
+                      </div>
+                      {isFpOpen && (
+                        <div className="task-detail">
+                          <table className="task-table">
+                            <thead><tr><th>Task</th><th>Phase</th><th>Fixture</th><th>Context</th><th style={{textAlign:'right'}}>Hours</th></tr></thead>
+                            <tbody>
+                              {fp.tasks.map((t, i) => (
+                                <tr key={i} style={{background: PHASE_COLORS[t.phase] || 'transparent'}}>
+                                  <td className="task-name-col">{t.taskName}</td>
+                                  <td style={{fontSize:11,color:'var(--text-muted)',textTransform:'capitalize'}}>{t.phase}</td>
+                                  <td style={{fontSize:11}}>{t.fixtureId}</td>
+                                  <td style={{fontSize:11,color:'var(--derived)'}}>{t.paintingContext}</td>
+                                  <td style={{textAlign:'right',color:'var(--accent)',fontWeight:600}}>{t.hours.toFixed(2)}</td>
                                 </tr>
                               ))}
                             </tbody>

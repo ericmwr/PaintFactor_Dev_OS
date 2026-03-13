@@ -1,0 +1,270 @@
+{
+  "spec_family_id": "SF_WINDOW_EXT_NC",
+  "version": "0.1.0",
+  "generated_by": "System Critic",
+  "generated_at": "2026-03-09",
+  "status": "draft",
+  "review_required": true,
+
+  "overall_result": "pass",
+
+  "summary": "SF_WINDOW_EXT_NC_v1 draft artifacts pass all critical and major doctrine checks. First exterior window spec — EA-based with 3 size buckets (S/M/L) and 3 paintable items (ITM_WINDOW_EXT_S/M/L), covering wood, aluminum-clad, and vinyl-clad windows on new construction. 51 tasks thread correctly between sop_modules.json and production.json (28 binary, 21 qt_scaled, 2 qt_conditional). All PaintScope keys use PS_EXT_* namespace. All substrate states use SS_EXT_* prefix. All 6 protection zones use ext_* prefix (plus 1 existing sill_protection zone). No interior keys, states, or zones present. Key window-specific validations pass: EA-based rates with size bucket variants (S/M/L) throughout, 3 cladding paths (wood/aluminum-clad/vinyl-clad) with correct primer routing (acrylic/corrosion-inhibiting/PVC bonding), glass lap 1/16 inch referenced extensively in finish and inspection tasks, Low-E liquid masking prohibition enforced (HARD STOP via applies_when gating and APP-XWIN-002), sash sequence module present for double-hung (MOD_XWIN_SASH_SEQUENCE with 4 tasks), muntin modifier present (FAC_XWIN_MUNTIN: none/gbg=1.00, sdl=1.25, tdl=1.75), window type modifier present as PRIMARY cost driver (FAC_XWIN_WINDOW_TYPE: fixed=0.50 through bow=2.50), QT3-QT5 range (QT2 excluded per EX-XWIN pattern), brush primary with spray conditional. 7 material systems (4 primers + 2 finishes + 1 VinylSafe IR-reflective specialty), 4 coverage profiles, 9 factor modifiers including environmental conditions, 3 round configurations. 3 minor observations, no blockers.",
+
+  "artifacts_reviewed": [
+    { "file": "research.json", "status": "reviewed", "human_feedback": "none" },
+    { "file": "resolution.json", "status": "reviewed", "human_feedback": "none" },
+    { "file": "materials.json", "status": "reviewed", "human_feedback": "none" },
+    { "file": "sop_modules.json", "status": "reviewed", "human_feedback": "none" },
+    { "file": "production.json", "status": "reviewed", "human_feedback": "none" },
+    { "file": "spec.json", "status": "not_yet_created", "human_feedback": "n/a" }
+  ],
+
+  "issues": [
+    {
+      "issue_id": "QA-001",
+      "severity": "minor",
+      "area": "factor_modifiers",
+      "file": "resolution.json vs production.json",
+      "status": "acknowledged",
+      "description": "Resolution.json proposed FAC_XWIN_WINDOW_TYPE with casement=1.00 as calibration baseline (fixed=0.60, awning=0.80, double_hung=1.50, bay=3.00, bow=4.00). Production.json recalibrated to double_hung=1.00 as baseline (fixed=0.50, awning=0.70, casement=0.85, bay=2.00, bow=2.50). The baseline window type changed and all values shifted proportionally. Bay dropped from 3.00 to 2.00 (33% reduction) and bow from 4.00 to 2.50 (38% reduction).",
+      "resolution": "Acknowledged — the Estimation Engineer has authority to calibrate modifier values. The recalibration to double_hung=1.00 baseline makes sense because double-hung is the most common NC residential window type. The reduced bay/bow values produce more practical stacking results (bay+QT5+ladder = 3.51x vs resolution's 5.27x which would have exceeded the 4.0x cap for most bay/bow scenarios). Production documents the rationale and flags bay/bow for field validation."
+    },
+    {
+      "issue_id": "QA-002",
+      "severity": "minor",
+      "area": "applies_when_pattern",
+      "file": "sop_modules.json vs production.json",
+      "status": "acknowledged",
+      "description": "Four sash sequence tasks (TSK_XWIN_SASH_REVERSE, TSK_XWIN_SASH_DRY_POSTURE, TSK_XWIN_SASH_PERIODIC_MOVE, TSK_XWIN_LUBRICATE_CHANNELS) have applies_when={} at the task level in sop_modules.json but applies_when={window_type:[double_hung]} in production.json. The SOP gates these tasks at the MODULE level (MOD_XWIN_SASH_SEQUENCE applies_when: {window_type: [double_hung]}). Additionally, 2 qt_conditional intercoat tasks (TSK_XWIN_SAND_INTERCOAT, TSK_XWIN_DUST_INTERCOAT) use appears_in_tiers [QT4, QT5] in SOP with empty applies_when, while production uses empty applies_when with qt_rates containing only QT4/QT5 entries.",
+      "resolution": "Acknowledged — this is a consistent cross-file pattern difference. SOP uses module-level applies_when and task-level appears_in_tiers for gating. Production uses task-level applies_when for self-contained rate gating. Functionally equivalent. Same pattern as QA-003 in SF_DOOR_EXT_NC_v1. No change needed."
+    },
+    {
+      "issue_id": "QA-003",
+      "severity": "minor",
+      "area": "round_configurations",
+      "file": "sop_modules.json",
+      "status": "acknowledged",
+      "description": "ROUND_XWIN_PRIME_2FINISH declares interstage_runs=2 with interstage_after=[MOD_XWIN_PRIME, MOD_XWIN_FINISH_1], but the module_sequence array only lists MOD_XWIN_INTERSTAGE once (between FINISH_1 and FINISH_2). The interstage_after field is more specific (runs after both prime and finish_1), while the module_sequence is a simplified linear view that only shows the final interstage position.",
+      "resolution": "Acknowledged — the interstage_after array is the authoritative source for when the interstage module runs. The module_sequence is a linearized view showing module ordering, not execution count. The engine should use interstage_after to determine the 2 execution points. This is a documentation clarity issue, not a logic error."
+    }
+  ],
+
+  "blockers": [],
+
+  "doctrine_checks": [
+    {
+      "check": "THREADING-1: Task ID Completeness",
+      "result": "pass",
+      "details": "All 51 task_ids in sop_modules.json have matching entries in production.json. No orphaned tasks in either direction. Count by module: SETUP=10, PREP=9, PRIME=6, FINISH_1=3, INTERSTAGE=4, FINISH_2=3, SASH_SEQUENCE=4, FINAL_INSPECT=3, CLEANUP=9."
+    },
+    {
+      "check": "THREADING-2: task_classification Match",
+      "result": "pass",
+      "details": "All task_classification values match between files. 28 binary, 21 qt_scaled, 2 qt_conditional. qt_scaled tasks have qt_rates in production.json. 2 qt_conditional tasks (TSK_XWIN_SAND_INTERCOAT, TSK_XWIN_DUST_INTERCOAT) have QT4/QT5-only qt_rates. No mismatches found."
+    },
+    {
+      "check": "THREADING-3: applies_when Consistency",
+      "result": "pass",
+      "details": "Application method gating consistent: spray tasks gate on [spray], brush on [brush]. Cladding type gating consistent: wood tasks on [wood], aluminum on [aluminum_clad], vinyl on [vinyl_clad]. Low-E gating consistent: liquid mask on [false], tape+film on [true] for TDL. Muntin gating consistent: TDL/SDL for muntin detail, TDL for liquid mask, none/GBG/SDL for tape+film. 4 sash sequence tasks and 2 intercoat tasks have module-level vs task-level gating pattern differences — acknowledged in QA-002, functionally equivalent."
+    },
+    {
+      "check": "THREADING-4: UOM Match",
+      "result": "pass",
+      "details": "All task UOMs match between sop_modules.json and production.json. EA-based: 48 tasks (all per-window tasks across 3 size buckets). FIXED: 3 tasks (equipment setup brush, equipment setup spray, equipment clean). No SF/LF UOMs — correct for window spec (all work bundled into per-EA rate by size bucket)."
+    },
+    {
+      "check": "THREADING-5: Task Prefix",
+      "result": "pass",
+      "details": "All 51 task IDs use TSK_XWIN_ prefix. No collisions with existing prefixes (WIN for interior window). XWIN is unique to exterior window spec."
+    },
+    {
+      "check": "THREADING-6: Module Prefix",
+      "result": "pass",
+      "details": "All 9 module IDs use MOD_XWIN_ prefix: SETUP, PREP, PRIME, FINISH_1, INTERSTAGE, FINISH_2, SASH_SEQUENCE, FINAL_INSPECT, CLEANUP."
+    },
+    {
+      "check": "EXT-1: Key Namespace Integrity",
+      "result": "pass",
+      "details": "All paintscope_key references use PS_EXT_* namespace. 10 PS keys declared in resolution.json: PS_EXT_OPENING_EA.WINDOW_S, PS_EXT_OPENING_EA.WINDOW_M, PS_EXT_OPENING_EA.WINDOW_L, PS_EXT_META.ENUM.WINDOW_TYPE, PS_EXT_META.ENUM.WINDOW_CLADDING, PS_EXT_META.ENUM.MUNTIN_TYPE, PS_EXT_META.FLAG.LOW_E_GLASS, PS_EXT_META.FLAG.NEW_CONSTRUCTION, PS_EXT_META.ENUM.ACCESS_TYPE, PS_EXT_PROTECT_EA.GLASS_WINDOW. No interior keys found."
+    },
+    {
+      "check": "EXT-2: Substrate State Validity",
+      "result": "pass",
+      "details": "All substrate states use SS_EXT_* prefix. 3 input states: SS_EXT_BARE_WOOD, SS_EXT_PRIMED_FACTORY, SS_EXT_PRIMED_FIELD. 3 output states: SS_EXT_PAINTED_SATIN, SS_EXT_PAINTED_SEMIGLOSS, SS_EXT_PAINTED_GLOSS. No SS_INT_* or bare SS_ IDs. SS_EXT_BARE_METAL correctly excluded — window cladding is never bare metal."
+    },
+    {
+      "check": "EXT-3: Protection Zone Integrity",
+      "result": "pass",
+      "details": "6 protection zones declared in resolution.json plus 1 existing zone: ext_window_glass_mask, ext_window_hardware, ext_window_weatherstrip, sill_protection (existing), ext_window_casing_adjacent, ext_siding_adjacent. All have setup tasks in MOD_XWIN_SETUP and teardown tasks in MOD_XWIN_CLEANUP. Hardware is REMOVED (not masked) per doctrine."
+    },
+    {
+      "check": "EXT-4: Mandatory Site Condition Rules",
+      "result": "pass",
+      "details": "Access_type declared as factor modifier (FAC_EXT_ACCESS) with values ground=1.00, ladder=1.35, scaffold=1.60. Wind, sun_exposure, and surface_temperature included as factor modifiers per agent prompt requirement for exterior specs. Environmental conditions handled as SOP constraints and factor modifiers."
+    },
+    {
+      "check": "EXT-5: Exterior Factor Keys",
+      "result": "pass",
+      "details": "9 factor modifiers declared: FAC_XWIN_WINDOW_TYPE (primary), FAC_XWIN_MUNTIN (secondary), FAC_XWIN_CLADDING_PREP, FAC_EXT_ACCESS, FAC_QT, FAC_EXT_WIND, FAC_EXT_SUN_EXPOSURE, FAC_EXT_SURFACE_TEMP, FAC_EXT_SUBSTRATE_CONDITION. No FAC_HEIGHT (used FAC_EXT_ACCESS per exterior convention). Shared exterior modifiers (FAC_EXT_*) reused from sibling specs."
+    },
+    {
+      "check": "EXT-6: Modifier Math",
+      "result": "pass",
+      "details": "All modifiers use effective_rate = base_rate / modifier formula for window_type and muntin modifiers (lower value = faster), and multiplicative formula for access/environmental. 4.0x stacking cap declared. Worst-case theoretical (bow 2.50 x TDL 1.75 x aluminum 1.15 x scaffold 1.60 x QT5 1.30 x poor 1.35 x moderate_wind 1.10 x full_sun 1.15 x hot 1.10 = 19.66x) vastly exceeds cap — engine caps at 4.0x. Common high scenario (double_hung 1.00 x TDL 1.75 x wood 1.00 x ladder 1.35 x QT5 1.30 = 3.07x) is within cap."
+    },
+    {
+      "check": "EXT-7: Material State Compatibility",
+      "result": "pass",
+      "details": "Four cladding-driven primer paths: acrylic (SYS_EXT_WIN_PRIMER_ACRYLIC) for SS_EXT_BARE_WOOD wood, tannin spot (SYS_EXT_WIN_PRIMER_TANNIN_SPOT) for wood knots, corrosion-inhibiting (SYS_EXT_WIN_PRIMER_CORROSION) for aluminum_clad, PVC bonding (SYS_EXT_WIN_PRIMER_BONDING_PVC) for vinyl_clad. SS_EXT_PRIMED_FIELD skips prime entirely. SS_EXT_PRIMED_FACTORY: wood skips (ROUND_XWIN_PRIME_2FINISH_WOOD_FACTORY), aluminum/vinyl still require field prime (ROUND_XWIN_PRIME_2FINISH). VinylSafe IR-reflective system mandatory for vinyl-clad LRV < 55 (SYS_EXT_WIN_FINISH_VINYLSAFE). Compatibility rules enforce correct routing."
+    },
+    {
+      "check": "WIN-1: EA-Based with Size Buckets",
+      "result": "pass",
+      "details": "48 of 51 tasks use EA UOM with size_bucket_rates (S/M/L) for tasks where time varies by window size. 3 tasks use FIXED (per-project equipment setup/cleanup). All per-window production rates are fixed_time_minutes per EA. 3 PaintScope keys: PS_EXT_OPENING_EA.WINDOW_S (<6 SF), WINDOW_M (6-15 SF), WINDOW_L (>15 SF). No SF/LF direct rates — correct for EA-based window spec."
+    },
+    {
+      "check": "WIN-2: Cladding Type Primer Routing",
+      "result": "pass",
+      "details": "3 cladding types drive 3 distinct primer paths via applies_when gating: wood = SYS_EXT_WIN_PRIMER_ACRYLIC (+ tannin spot for knots), aluminum_clad = SYS_EXT_WIN_PRIMER_CORROSION (corrosion-inhibiting, mandatory even over factory finish), vinyl_clad = SYS_EXT_WIN_PRIMER_BONDING_PVC (PVC bonding, mandatory even over factory finish). 6 prime task variants (3 cladding x 2 application methods). Each gates on correct cladding_type and application_method."
+    },
+    {
+      "check": "WIN-3: Glass Lap 1/16 Inch Reference",
+      "result": "pass",
+      "details": "Glass lap 1/16 inch referenced in: MOD_XWIN_FINISH_1 description, TSK_XWIN_FINISH_BRUSH_1 description, TSK_XWIN_FINISH_SPRAY_1 description, TSK_XWIN_FINISH_BRUSH_2 description, MOD_XWIN_FINAL_INSPECT description, TSK_XWIN_FINAL_INSPECT description, TSK_XWIN_GLASS_CLEANUP description, TSK_XWIN_MASK_GLASS_TAPE_FILM description. Glass lap is described as MANDATORY weather seal throughout. Consistent and thorough coverage."
+    },
+    {
+      "check": "WIN-4: Low-E Liquid Masking Prohibition",
+      "result": "pass",
+      "details": "Low-E prohibition enforced at multiple levels: (1) TSK_XWIN_MASK_GLASS_LIQUID applies_when: {low_e_glass: [false], muntin_type: [tdl]} — only activates for non-Low-E TDL. (2) TSK_XWIN_MASK_GLASS_TDL_TAPE applies_when: {low_e_glass: [true], muntin_type: [tdl]} — fallback for Low-E TDL. (3) APP-XWIN-002 applicability rule explicitly states HARD STOP. (4) TSK_XWIN_MASK_REMOVE_LIQUID applies_when: {low_e_glass: [false]} — removal only for non-Low-E. (5) Materials.json COMPAT-XWIN-001 rule prohibits liquid mask on Low-E. (6) Research.json FM-004 documents permanent Low-E coating damage as critical severity failure mode."
+    },
+    {
+      "check": "WIN-5: Sash Sequence Module for Double-Hung",
+      "result": "pass",
+      "details": "MOD_XWIN_SASH_SEQUENCE present with applies_when: {window_type: [double_hung]}. Contains 4 tasks: TSK_XWIN_SASH_REVERSE (pull upper down, push lower up), TSK_XWIN_SASH_DRY_POSTURE (1-inch gap top/bottom), TSK_XWIN_SASH_PERIODIC_MOVE (movement every 30-60 min for 2 hours), TSK_XWIN_LUBRICATE_CHANNELS (wax in unpainted channels). All include 'NEVER paint sliding channels' prohibition. Module positioned after FINISH_2 in round configuration sequences."
+    },
+    {
+      "check": "WIN-6: Muntin Modifier Present",
+      "result": "pass",
+      "details": "FAC_XWIN_MUNTIN modifier declared with values: none=1.00, gbg=1.00, sdl=1.25, tdl=1.75. Applied to 9 tasks: 3 masking setup, 3 masking removal, 2 muntin detail, 1 glass cleanup. GBG correctly has no painting impact (1.00). SDL adds moderate time for applied bar painting. TDL adds major time for individual pane masking and muntin bar painting. Muntin detail tasks (TSK_XWIN_MUNTIN_DETAIL_1/2) gate on muntin_type: [tdl, sdl]."
+    },
+    {
+      "check": "WIN-7: Window Type Modifier Present",
+      "result": "pass",
+      "details": "FAC_XWIN_WINDOW_TYPE modifier declared as PRIMARY cost driver with values: fixed=0.50 (simplest), awning=0.70, casement=0.85, double_hung=1.00 (baseline), bay=2.00, bow=2.50 (most complex). Applied to 15 tasks (all finish, prime, prep, inspection, touch-up, glass cleanup). Fixed window is fastest (frame only, no sash hardware or blocking prevention). Bay/bow are multi-sash assemblies."
+    },
+    {
+      "check": "WIN-8: Quality Tier Range",
+      "result": "pass",
+      "details": "QT3-QT5 declared in resolution.json applicable_enums. QT2 excluded — exterior windows are visible architectural elements. All qt_scaled tasks have qt_rates for QT3/QT4/QT5. qt_conditional intercoat tasks correctly appear in QT4/QT5 only. QT5 includes DFT verification, precision masking, and hand-sand between all coats."
+    },
+    {
+      "check": "WIN-9: Application Method — Brush Primary, Spray Conditional",
+      "result": "pass",
+      "details": "Brush is PRIMARY. Spray is conditional (whole-house spray context). Roller is NOT a valid option. Brush and spray variants provided for finish coat and prime coat tasks. Spray tasks gate on application_method: [spray]. Equipment setup has separate brush and spray variants. APP-XWIN-003 explicitly lists all spray-gated tasks."
+    },
+    {
+      "check": "COMPLETENESS-1: Protection Zones",
+      "result": "pass",
+      "details": "7 protection zones: ext_window_glass_mask (full_mask, always), ext_window_hardware (remove, operable only), ext_window_weatherstrip (remove/protect, operable only), sill_protection (light_mask, when sill finished), ext_window_casing_adjacent (light_mask, when casing finished), ext_siding_adjacent (light_mask, upgrades to full_mask for spray). All have setup tasks in MOD_XWIN_SETUP and teardown in MOD_XWIN_CLEANUP. Hardware removal in SETUP, reinstall in CLEANUP."
+    },
+    {
+      "check": "COMPLETENESS-2: Cross-Spec Boundaries",
+      "result": "pass",
+      "details": "5 exclusions documented: window casing (EXCL-XWIN-001, trim spec), interior window surfaces (EXCL-XWIN-002, interior window spec), glass masking for whole-house spray (EXCL-XWIN-003, siding/trim spec), structural repairs (EXCL-XWIN-004, carpentry scope), full reglazing (EXCL-XWIN-005, conditional add-on). Glass masking ownership boundary documented between window and trim specs."
+    },
+    {
+      "check": "COMPLETENESS-3: Round Configurations",
+      "result": "pass",
+      "details": "3 round configurations: ROUND_XWIN_PRIME_2FINISH (3 coats for SS_EXT_BARE_WOOD and SS_EXT_PRIMED_FACTORY aluminum/vinyl), ROUND_XWIN_2FINISH (2 coats for SS_EXT_PRIMED_FIELD), ROUND_XWIN_PRIME_2FINISH_WOOD_FACTORY (2 coats for SS_EXT_PRIMED_FACTORY wood). Covers all quality_tier x substrate_state x cladding_type combinations. Interstage cycles correct: 2 for 3-coat round (after prime and finish_1), 1 for 2-coat rounds (after finish_1)."
+    },
+    {
+      "check": "COMPLETENESS-4: Module Phase Order",
+      "result": "pass",
+      "details": "Module phase sequence: setup (SETUP) -> prep (PREP) -> prime (PRIME) -> finish (FINISH_1) -> interstage (INTERSTAGE) -> finish (FINISH_2) -> finish (SASH_SEQUENCE) -> cleanup (FINAL_INSPECT) -> cleanup (CLEANUP). Correct phase ordering per structural_keys. No 'protect' or 'protection' phase values — setup phase handles protection per convention. SASH_SEQUENCE correctly placed after FINISH_2 (drying posture after final coat)."
+    },
+    {
+      "check": "COMPLETENESS-5: Input Declarations",
+      "result": "pass",
+      "details": "10 paintscope key declarations in resolution.json: 3 primary quantities (IN_EA_EXT_WINDOW_S/M/L), 3 configuration enums (IN_ENUM_WINDOW_TYPE, IN_ENUM_WINDOW_CLADDING, IN_ENUM_MUNTIN_TYPE), 1 boolean flag (IN_BOOL_LOW_E_GLASS), 1 construction flag (IN_BOOL_NEW_CONSTRUCTION), 1 access type (IN_ENUM_ACCESS_TYPE), 1 protection input (IN_EA_EXT_PROTECT_GLASS_WINDOW). All consumed by sop_modules or production required_input_key."
+    },
+    {
+      "check": "ENUM-1: Convention Compliance",
+      "result": "pass",
+      "details": "All enums comply with project conventions: CON_ prefix (not CONS_), task_classification (not task_class), severity uses critical/major/minor, phase values from approved set (no 'protect' or 'protection' phase), all units uppercase (EA, FIXED, ROLL, SHEET, TUBE, QT, GAL), consumable_category from approved set (applicator, protection, prep, cleanup, abrasive, fill_material, tool), zones use ext_* prefix (plus existing sill_protection), sheen single values only (satin, semi-gloss, gloss — no compounds)."
+    }
+  ],
+
+  "exterior_validation_summary": {
+    "first_exterior_window_spec": true,
+    "sibling_spec": "SF_DOOR_EXT_NC_v1 (pattern reference), SF_WINDOW_INT_NC_v1 (interior counterpart), SF_TRIM_EXT_NC_v1 (adjacent scope)",
+    "domain_dispatch_activated": true,
+    "interior_contamination": "none — no interior keys, states, or zones found",
+    "research_corrections_applied": 0,
+    "user_corrections_applied": 0,
+    "key_differentiators_from_sibling_specs": [
+      "EA-based with SIZE BUCKETS — 3 PS keys (S/M/L) unlike door spec's single EA key or trim spec's LF key",
+      "3 cladding types (wood/aluminum-clad/vinyl-clad) drive distinct primer paths — unlike door's 3 substrate materials (steel/fiberglass/wood)",
+      "Window type modifier as PRIMARY cost driver (6 types: fixed through bow) — unlike door's complexity modifier",
+      "Muntin modifier as SECONDARY cost driver (none/gbg/sdl/tdl) — unique to window spec",
+      "Sash sequence module for double-hung blocking prevention — unique to this spec (interior window spec has similar but different context)",
+      "Glass lap 1/16 inch as functional weather seal — precision requirement not present in door/trim specs",
+      "Low-E liquid masking HARD STOP — unique to window spec (door glass masking has no Low-E constraint)",
+      "VinylSafe IR-reflective for vinyl-clad dark colors (LRV < 55) — unique to this spec's vinyl cladding path",
+      "Height is MAJOR modifier — windows frequently elevated unlike doors (ground level)",
+      "No roller application — windows are brush or spray only (doors also exclude roller)",
+      "No bare metal substrate state — unlike door spec's SS_EXT_BARE_METAL for steel doors",
+      "QT2 excluded — exterior windows are visible architectural elements requiring minimum QT3"
+    ]
+  },
+
+  "task_cross_reference": {
+    "total_sop_tasks": 51,
+    "total_production_rates": 51,
+    "orphaned_in_sop": 0,
+    "orphaned_in_production": 0,
+    "classification_mismatches": 0,
+    "uom_mismatches": 0,
+    "applies_when_pattern_differences": 6,
+    "applies_when_pattern_differences_note": "4 sash sequence tasks use module-level applies_when in SOP vs task-level in production. 2 intercoat tasks use appears_in_tiers in SOP vs qt_rates tier gating in production — functionally equivalent, acknowledged in QA-002."
+  },
+
+  "modifier_stacking_validation": {
+    "max_theoretical_stack": 19.66,
+    "stacking_cap": 4.0,
+    "within_cap": false,
+    "cap_resolution": "Engine applies 4.0x cap. Bow/bay + TDL + high-access combinations flagged for manual review and hourly pricing.",
+    "worst_case_scenario": "Bow 2.50 x TDL 1.75 x aluminum_clad 1.15 x scaffold 1.60 x QT5 1.30 x poor 1.35 x moderate_wind 1.10 x full_sun 1.15 x hot 1.10 = 19.66x, capped to 4.0x",
+    "common_high_scenario": "Double-hung, TDL, wood, ladder, QT5 = 1.00 x 1.75 x 1.00 x 1.35 x 1.30 = 3.07x (within cap)",
+    "common_low_scenario": "Casement, none, wood, ground, QT3 = 0.85 x 1.00 x 1.00 x 1.00 x 1.00 = 0.85x (below baseline)"
+  },
+
+  "material_system_validation": {
+    "primer_systems": 4,
+    "finish_systems": 2,
+    "specialty_systems": 1,
+    "total_systems": 7,
+    "coverage_profiles": 4,
+    "compatibility_rules_present": true,
+    "all_systems_have_quality_tier": true,
+    "all_systems_have_substrate_routing": true,
+    "cladding_primer_routing_enforced": true,
+    "vinyl_safe_ir_reflective_enforced": true,
+    "low_e_liquid_mask_prohibition_enforced": true,
+    "pvc_bonding_primer_recoat_window_documented": true
+  },
+
+  "time_estimate_sanity_check": {
+    "casement_M_wood_bare_brush_QT3": {
+      "description": "Medium casement, wood, bare, brush, QT3 — common baseline scenario",
+      "assessment": "Reasonable — includes setup/mask, wood prep, prime, 2 finish coats, intercoat inspection, glass cleanup, teardown. Standard NC window at calibration baseline."
+    },
+    "double_hung_M_wood_bare_brush_QT4": {
+      "description": "Medium double-hung, wood, bare, brush, QT4 — common premium scenario",
+      "assessment": "Reasonable — adds sash sequence module (4 tasks), intercoat sanding, higher-quality inspection. Double-hung has higher base rates than casement."
+    },
+    "bay_L_aluminum_clad_spray_QT5": {
+      "description": "Large bay, aluminum-clad, spray, QT5 — near maximum scope",
+      "assessment": "At upper end of practical range. Bay window (2.00x) + QT5 inspection/sanding + aluminum-clad prep (scuff-sand + corrosion-inhibiting primer) + spray masking overhead. Flagged for field validation."
+    }
+  }
+}

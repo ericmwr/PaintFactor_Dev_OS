@@ -1,5 +1,10 @@
 import { createRoom, createDoor, createWindow, createOpening, createCloset, createSubstrateConfig, genId } from './initial-state';
 import { FIXTURE_MAP } from '../data/fixture-catalog';
+import {
+  createElevation, createSidingSection, createTrimConfig, createExtWindow, createExtDoor,
+  createBumpOut, createDormer, createGable, createGarageDoor, createDeck, createFence,
+  createFoundation, createPorch, createMetalSurface, createSiteConditions
+} from './exterior-state';
 
 export function reducer(state, action) {
   const { type, payload } = action;
@@ -214,9 +219,9 @@ export function reducer(state, action) {
         } else {
           const cat = FIXTURE_MAP[fixtureId];
           if (fixtureId === 'cabinets') {
-            fixtures[fixtureId] = { protection: 'heavy_mask', layout: 'lower_upper', linear_ft: 0, upper_height_ft: 2.5, notes: '' };
+            fixtures[fixtureId] = { protection: 'full_cover', layout: 'lower_upper', linear_ft: 0, upper_height_ft: 2.5, notes: '' };
           } else {
-            fixtures[fixtureId] = { protection: cat ? cat.defaultProtection : 'medium_mask', count: 1, size: '', notes: '' };
+            fixtures[fixtureId] = { protection: cat ? cat.defaultProtection : 'partial_cover', count: 1, size: '', notes: '' };
           }
         }
         return { ...r, fixtures };
@@ -232,11 +237,13 @@ export function reducer(state, action) {
       });
     }
 
-    // Photo analysis — apply accepted detections to an existing room
+    // Photo analysis — apply scoped detections to an existing room
     case 'APPLY_PHOTO_ANALYSIS': {
-      const { roomId, patch } = payload;
+      const { roomId, patch, analysisResult } = payload;
       return mapRoom(roomId, r => {
         const updated = { ...r };
+        // Save raw analysis result so the review panel can be re-opened
+        if (analysisResult) updated.photoAnalysis = analysisResult;
         // Merge room-level scalar fields (label, dimensions, complexity, etc.)
         const { substrates: newSubs, openings: newOpenings, fixtures: newFixtures, ...roomFields } = patch;
         Object.assign(updated, roomFields);
@@ -293,8 +300,489 @@ export function reducer(state, action) {
       }
       if (newOpenings) room.openings = newOpenings;
       if (newFixtures) room.fixtures = newFixtures;
+      // Save raw analysis result so the review panel can be re-opened
+      if (payload.analysisResult) room.photoAnalysis = payload.analysisResult;
 
       return { ...state, rooms: [...state.rooms, room], ui: { ...state.ui, activeRoomId: room.id, view: 'editor' } };
+    }
+
+    // ============================================================
+    // EXTERIOR — Elevation CRUD
+    // ============================================================
+    case 'ADD_ELEVATION': {
+      const elev = createElevation(payload || {});
+      return {
+        ...state,
+        exterior: {
+          ...state.exterior,
+          elevations: [...state.exterior.elevations, elev]
+        },
+        ui: { ...state.ui, activeElevationId: elev.id }
+      };
+    }
+    case 'REMOVE_ELEVATION': {
+      const elevs = state.exterior.elevations.filter(e => e.id !== payload);
+      const activeId = state.ui.activeElevationId === payload ? (elevs[0]?.id || null) : state.ui.activeElevationId;
+      return {
+        ...state,
+        exterior: { ...state.exterior, elevations: elevs },
+        ui: { ...state.ui, activeElevationId: activeId }
+      };
+    }
+    case 'DUPLICATE_ELEVATION': {
+      const src = state.exterior.elevations.find(e => e.id === payload);
+      if (!src) return state;
+      const copy = JSON.parse(JSON.stringify(src));
+      copy.id = genId('elev');
+      copy.label = src.label + ' (copy)';
+      // Re-stamp IDs on child objects
+      copy.siding_sections.forEach(s => s.id = genId('sid'));
+      copy.windows.forEach(w => w.id = genId('xwin'));
+      copy.doors.forEach(d => d.id = genId('xdoor'));
+      copy.bump_outs.forEach(b => b.id = genId('bump'));
+      copy.dormers.forEach(d => d.id = genId('dorm'));
+      copy.gables.forEach(g => g.id = genId('gable'));
+      const idx = state.exterior.elevations.findIndex(e => e.id === payload);
+      const elevs = [...state.exterior.elevations];
+      elevs.splice(idx + 1, 0, copy);
+      return {
+        ...state,
+        exterior: { ...state.exterior, elevations: elevs },
+        ui: { ...state.ui, activeElevationId: copy.id }
+      };
+    }
+    case 'SET_ELEVATION': {
+      return {
+        ...state,
+        exterior: {
+          ...state.exterior,
+          elevations: state.exterior.elevations.map(e =>
+            e.id === payload.elevId ? { ...e, [payload.field]: payload.value } : e
+          )
+        }
+      };
+    }
+    case 'SET_ACTIVE_ELEVATION': {
+      return { ...state, ui: { ...state.ui, activeElevationId: payload } };
+    }
+
+    // ── Siding Sections ──
+    case 'ADD_SIDING_SECTION': {
+      return {
+        ...state,
+        exterior: {
+          ...state.exterior,
+          elevations: state.exterior.elevations.map(e =>
+            e.id === payload.elevId
+              ? { ...e, siding_sections: [...e.siding_sections, createSidingSection(payload.overrides || {})] }
+              : e
+          )
+        }
+      };
+    }
+    case 'REMOVE_SIDING_SECTION': {
+      return {
+        ...state,
+        exterior: {
+          ...state.exterior,
+          elevations: state.exterior.elevations.map(e =>
+            e.id === payload.elevId
+              ? { ...e, siding_sections: e.siding_sections.filter(s => s.id !== payload.sectionId) }
+              : e
+          )
+        }
+      };
+    }
+    case 'SET_SIDING_SECTION': {
+      return {
+        ...state,
+        exterior: {
+          ...state.exterior,
+          elevations: state.exterior.elevations.map(e =>
+            e.id === payload.elevId
+              ? {
+                  ...e,
+                  siding_sections: e.siding_sections.map(s =>
+                    s.id === payload.sectionId ? { ...s, [payload.field]: payload.value } : s
+                  )
+                }
+              : e
+          )
+        }
+      };
+    }
+
+    // ── Trim Types ──
+    case 'TOGGLE_TRIM_TYPE': {
+      return {
+        ...state,
+        exterior: {
+          ...state.exterior,
+          elevations: state.exterior.elevations.map(e => {
+            if (e.id !== payload.elevId) return e;
+            const trim = { ...e.trim };
+            if (trim[payload.trimType]) {
+              delete trim[payload.trimType];
+            } else {
+              trim[payload.trimType] = createTrimConfig(payload.trimType);
+            }
+            return { ...e, trim };
+          })
+        }
+      };
+    }
+    case 'SET_TRIM_TYPE': {
+      return {
+        ...state,
+        exterior: {
+          ...state.exterior,
+          elevations: state.exterior.elevations.map(e => {
+            if (e.id !== payload.elevId) return e;
+            if (!e.trim[payload.trimType]) return e;
+            return {
+              ...e,
+              trim: {
+                ...e.trim,
+                [payload.trimType]: { ...e.trim[payload.trimType], [payload.field]: payload.value }
+              }
+            };
+          })
+        }
+      };
+    }
+
+    // ── Exterior Windows ──
+    case 'ADD_EXT_WINDOW': {
+      return {
+        ...state,
+        exterior: {
+          ...state.exterior,
+          elevations: state.exterior.elevations.map(e =>
+            e.id === payload.elevId
+              ? { ...e, windows: [...e.windows, createExtWindow(payload.overrides || {})] }
+              : e
+          )
+        }
+      };
+    }
+    case 'REMOVE_EXT_WINDOW': {
+      return {
+        ...state,
+        exterior: {
+          ...state.exterior,
+          elevations: state.exterior.elevations.map(e =>
+            e.id === payload.elevId
+              ? { ...e, windows: e.windows.filter(w => w.id !== payload.winId) }
+              : e
+          )
+        }
+      };
+    }
+    case 'SET_EXT_WINDOW': {
+      return {
+        ...state,
+        exterior: {
+          ...state.exterior,
+          elevations: state.exterior.elevations.map(e =>
+            e.id === payload.elevId
+              ? { ...e, windows: e.windows.map(w => w.id === payload.winId ? { ...w, [payload.field]: payload.value } : w) }
+              : e
+          )
+        }
+      };
+    }
+
+    // ── Exterior Doors ──
+    case 'ADD_EXT_DOOR': {
+      return {
+        ...state,
+        exterior: {
+          ...state.exterior,
+          elevations: state.exterior.elevations.map(e =>
+            e.id === payload.elevId
+              ? { ...e, doors: [...e.doors, createExtDoor(payload.overrides || {})] }
+              : e
+          )
+        }
+      };
+    }
+    case 'REMOVE_EXT_DOOR': {
+      return {
+        ...state,
+        exterior: {
+          ...state.exterior,
+          elevations: state.exterior.elevations.map(e =>
+            e.id === payload.elevId
+              ? { ...e, doors: e.doors.filter(d => d.id !== payload.doorId) }
+              : e
+          )
+        }
+      };
+    }
+    case 'SET_EXT_DOOR': {
+      return {
+        ...state,
+        exterior: {
+          ...state.exterior,
+          elevations: state.exterior.elevations.map(e =>
+            e.id === payload.elevId
+              ? { ...e, doors: e.doors.map(d => d.id === payload.doorId ? { ...d, [payload.field]: payload.value } : d) }
+              : e
+          )
+        }
+      };
+    }
+
+    // ── Sub-Elements (Bump-Outs, Dormers, Gables) ──
+    case 'ADD_BUMP_OUT': {
+      return {
+        ...state,
+        exterior: {
+          ...state.exterior,
+          elevations: state.exterior.elevations.map(e =>
+            e.id === payload.elevId
+              ? { ...e, bump_outs: [...e.bump_outs, createBumpOut(payload.overrides || {})] }
+              : e
+          )
+        }
+      };
+    }
+    case 'REMOVE_BUMP_OUT': {
+      return {
+        ...state,
+        exterior: {
+          ...state.exterior,
+          elevations: state.exterior.elevations.map(e =>
+            e.id === payload.elevId
+              ? { ...e, bump_outs: e.bump_outs.filter(b => b.id !== payload.bumpId) }
+              : e
+          )
+        }
+      };
+    }
+    case 'SET_BUMP_OUT': {
+      return {
+        ...state,
+        exterior: {
+          ...state.exterior,
+          elevations: state.exterior.elevations.map(e =>
+            e.id === payload.elevId
+              ? { ...e, bump_outs: e.bump_outs.map(b => b.id === payload.bumpId ? { ...b, [payload.field]: payload.value } : b) }
+              : e
+          )
+        }
+      };
+    }
+    case 'ADD_DORMER': {
+      return {
+        ...state,
+        exterior: {
+          ...state.exterior,
+          elevations: state.exterior.elevations.map(e =>
+            e.id === payload.elevId
+              ? { ...e, dormers: [...e.dormers, createDormer(payload.overrides || {})] }
+              : e
+          )
+        }
+      };
+    }
+    case 'REMOVE_DORMER': {
+      return {
+        ...state,
+        exterior: {
+          ...state.exterior,
+          elevations: state.exterior.elevations.map(e =>
+            e.id === payload.elevId
+              ? { ...e, dormers: e.dormers.filter(d => d.id !== payload.dormerId) }
+              : e
+          )
+        }
+      };
+    }
+    case 'SET_DORMER': {
+      return {
+        ...state,
+        exterior: {
+          ...state.exterior,
+          elevations: state.exterior.elevations.map(e =>
+            e.id === payload.elevId
+              ? { ...e, dormers: e.dormers.map(d => d.id === payload.dormerId ? { ...d, [payload.field]: payload.value } : d) }
+              : e
+          )
+        }
+      };
+    }
+    case 'ADD_GABLE': {
+      return {
+        ...state,
+        exterior: {
+          ...state.exterior,
+          elevations: state.exterior.elevations.map(e =>
+            e.id === payload.elevId
+              ? { ...e, gables: [...e.gables, createGable(payload.overrides || {})] }
+              : e
+          )
+        }
+      };
+    }
+    case 'REMOVE_GABLE': {
+      return {
+        ...state,
+        exterior: {
+          ...state.exterior,
+          elevations: state.exterior.elevations.map(e =>
+            e.id === payload.elevId
+              ? { ...e, gables: e.gables.filter(g => g.id !== payload.gableId) }
+              : e
+          )
+        }
+      };
+    }
+    case 'SET_GABLE': {
+      return {
+        ...state,
+        exterior: {
+          ...state.exterior,
+          elevations: state.exterior.elevations.map(e =>
+            e.id === payload.elevId
+              ? { ...e, gables: e.gables.map(g => g.id === payload.gableId ? { ...g, [payload.field]: payload.value } : g) }
+              : e
+          )
+        }
+      };
+    }
+
+    // ============================================================
+    // EXTERIOR — Standalone Items
+    // ============================================================
+    case 'ADD_GARAGE_DOOR': {
+      return {
+        ...state,
+        exterior: {
+          ...state.exterior,
+          standalone: {
+            ...state.exterior.standalone,
+            garage_doors: [...state.exterior.standalone.garage_doors, createGarageDoor(payload || {})]
+          }
+        }
+      };
+    }
+    case 'REMOVE_GARAGE_DOOR': {
+      return {
+        ...state,
+        exterior: {
+          ...state.exterior,
+          standalone: {
+            ...state.exterior.standalone,
+            garage_doors: state.exterior.standalone.garage_doors.filter(g => g.id !== payload)
+          }
+        }
+      };
+    }
+    case 'SET_GARAGE_DOOR': {
+      return {
+        ...state,
+        exterior: {
+          ...state.exterior,
+          standalone: {
+            ...state.exterior.standalone,
+            garage_doors: state.exterior.standalone.garage_doors.map(g =>
+              g.id === payload.itemId ? { ...g, [payload.field]: payload.value } : g
+            )
+          }
+        }
+      };
+    }
+    case 'SET_STANDALONE': {
+      // Generic setter for standalone items: foundation, deck, fence, porch
+      return {
+        ...state,
+        exterior: {
+          ...state.exterior,
+          standalone: {
+            ...state.exterior.standalone,
+            [payload.itemType]: { ...state.exterior.standalone[payload.itemType], [payload.field]: payload.value }
+          }
+        }
+      };
+    }
+    case 'ADD_METAL_SURFACE': {
+      return {
+        ...state,
+        exterior: {
+          ...state.exterior,
+          standalone: {
+            ...state.exterior.standalone,
+            metal_surfaces: [...state.exterior.standalone.metal_surfaces, createMetalSurface(payload || {})]
+          }
+        }
+      };
+    }
+    case 'REMOVE_METAL_SURFACE': {
+      return {
+        ...state,
+        exterior: {
+          ...state.exterior,
+          standalone: {
+            ...state.exterior.standalone,
+            metal_surfaces: state.exterior.standalone.metal_surfaces.filter(m => m.id !== payload)
+          }
+        }
+      };
+    }
+    case 'SET_METAL_SURFACE': {
+      return {
+        ...state,
+        exterior: {
+          ...state.exterior,
+          standalone: {
+            ...state.exterior.standalone,
+            metal_surfaces: state.exterior.standalone.metal_surfaces.map(m =>
+              m.id === payload.itemId ? { ...m, [payload.field]: payload.value } : m
+            )
+          }
+        }
+      };
+    }
+
+    // ── Porch sub-fields (floor/ceiling) ──
+    case 'SET_PORCH': {
+      const { section, field, value } = payload; // section = 'floor' | 'ceiling'
+      return {
+        ...state,
+        exterior: {
+          ...state.exterior,
+          standalone: {
+            ...state.exterior.standalone,
+            porch: {
+              ...state.exterior.standalone.porch,
+              [section]: { ...state.exterior.standalone.porch[section], [field]: value }
+            }
+          }
+        }
+      };
+    }
+
+    // ============================================================
+    // EXTERIOR — Site Conditions & Defaults
+    // ============================================================
+    case 'SET_SITE_CONDITION': {
+      return {
+        ...state,
+        exterior: {
+          ...state.exterior,
+          site_conditions: { ...state.exterior.site_conditions, [payload.field]: payload.value }
+        }
+      };
+    }
+    case 'SET_EXTERIOR_DEFAULT': {
+      return {
+        ...state,
+        exterior: {
+          ...state.exterior,
+          defaults: { ...state.exterior.defaults, [payload.field]: payload.value }
+        }
+      };
     }
 
     case 'IMPORT_PROJECT': {

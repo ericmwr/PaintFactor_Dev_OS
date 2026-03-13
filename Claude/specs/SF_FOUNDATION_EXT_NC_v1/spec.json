@@ -1,0 +1,542 @@
+{
+  "spec_family": {
+    "id": "SF_FOUNDATION_EXT_NC",
+    "name": "Exterior Foundation Wall Coating",
+    "description": "Above-grade exposed foundation wall coating for new construction. Covers moisture testing (MC <= 4% hard stop), form-release agent removal (poured concrete), efflorescence treatment, surface profiling, block filler (CMU), alkali-resistant primer, and finish coating (acrylic or cementitious). Uses SF as primary UOM. Typically a small add-on line item — foundation band is 12-36 inches tall with limited surface area. CRITICAL: Never caulk the 3/8-inch grade-line gap below siding — it is an intentional drainage plane.",
+    "domain": "exterior",
+    "version": "0.1.0",
+    "status": "draft",
+    "review_required": true
+  },
+
+  "scope_boundaries": {
+    "includes": [
+      "Moisture testing (MC <= 4% hard stop — stricter than masonry wall 12%)",
+      "Form-release agent and laitance removal (poured concrete only)",
+      "Efflorescence treatment (dry brush, TSP wash)",
+      "Pressure wash (1,500-2,500 PSI)",
+      "Crack patching (cosmetic cracks < 1/8 inch)",
+      "Bug hole and form-tie patching (poured concrete only)",
+      "Surface profile verification (CSP 1-2 for thin cosmetic coating)",
+      "Block filler application for CMU foundation (PCA P12 Level 2)",
+      "Alkali-resistant primer (mandatory on ALL new foundation — pH 12-14)",
+      "Finish coat application — acrylic (1-2 coats by QT) or cementitious/Drylok-type (1-2 coats by QT)",
+      "Landscape perimeter protection (LF-based along foundation base)",
+      "Hardscape protection (walkways, patios — when adjacent)",
+      "Final inspection and touch-up",
+      "Protection teardown and equipment cleanup"
+    ],
+    "excludes": [
+      {
+        "item": "Below-grade waterproofing (40-60 mils DFT, sheet membrane, bituminous systems)",
+        "route_to": "Specialty waterproofing trade — not painting contractor scope"
+      },
+      {
+        "item": "Siding painting above foundation",
+        "route_to": "Siding spec (SF_SIDING_FIBERCEMENT_EXT_NC, SF_WOOD_SIDING_EXT_NC_PAINT, etc.)"
+      },
+      {
+        "item": "Grade-line flashing installation (Z-flashing)",
+        "route_to": "Framing trade — not painting contractor scope"
+      },
+      {
+        "item": "Structural crack repair (cracks > 1/8 inch)",
+        "route_to": "GC / structural engineer — flag and stop"
+      }
+    ]
+  },
+
+  "configuration_dimensions": [
+    {
+      "dimension_id": "quality_tier",
+      "description": "Quality tier controlling coat count, cleaning intensity, inspection scrutiny, and defect tolerance.",
+      "values": ["QT2", "QT3"],
+      "default": "QT3",
+      "notes": "QT2=economy (light wash, primer, single finish coat — budget-appropriate for utilitarian foundation). QT3=standard (full wash, efflorescence treatment, primer, two finish coats — higher-end residential where foundation appearance matters). No QT4/QT5 — foundation is utilitarian, not decorative. All tiers require alkali-resistant primer (pH hazard is not quality-optional)."
+    },
+    {
+      "dimension_id": "foundation_type",
+      "description": "Foundation substrate type. Drives block filler requirement (CMU only), surface prep branching (form-release removal for poured, void filling for CMU), roller nap selection, and production rate modifier.",
+      "values": ["poured", "CMU"],
+      "default": "poured",
+      "notes": "Poured concrete is smooth with potential form-release agents, laitance, and bug holes. CMU has open-cell voids requiring block filler before coating. Both are cementitious substrates classified under SS_EXT_BARE_MASONRY."
+    },
+    {
+      "dimension_id": "coating_type",
+      "description": "Finish coating material category for above-grade foundation.",
+      "values": ["acrylic", "cementitious"],
+      "default": "acrylic",
+      "notes": "Acrylic: 100% acrylic exterior masonry paint — wider color range, UV-resistant, flat or satin sheen. Cementitious (Drylok-type): fills pores, breathable, matte/flat only, excellent adhesion to concrete, budget-friendly, withstands 15 PSI hydrostatic pressure. Elastomeric is excluded — overkill for above-grade cosmetic foundation coating."
+    },
+    {
+      "dimension_id": "application_method",
+      "description": "Primary application technique for prime and finish coats.",
+      "values": ["spray", "roll", "brush"],
+      "default": "roll",
+      "notes": "Roll is the typical primary method for small foundation bands. Spray for larger continuous runs on smooth poured concrete — spray-only IS valid on foundation (unlike masonry walls where backroll is mandatory). Brush for detail work around pipes/vents. CMU foundation with spray SHOULD include backroll per masonry doctrine (handled as conditional task, not separate method enum)."
+    }
+  ],
+
+  "paintable_items": [
+    {
+      "item_id": "ITM_FOUNDATION_WALL",
+      "name": "Exterior Above-Grade Foundation Wall Surface",
+      "unit_of_measure": "SF",
+      "counting_rules": "Net paintable above-grade foundation wall area in square feet. Typically perimeter LF x band height (12-36 inches). Excludes below-grade surfaces. Measured from PaintScope.",
+      "notes": "Single paintable item. Covers both poured concrete and CMU foundation surfaces. Foundation_type modifier adjusts prep sequence and material requirements per substrate type."
+    }
+  ],
+
+  "substrate_state_rules": {
+    "primary_surface": "foundation_wall",
+
+    "valid_input_states": {
+      "states": ["SS_EXT_BARE_MASONRY"],
+      "notes": "SS_EXT_BARE_MASONRY is the single NC state for both poured concrete and CMU foundation. Both are cementitious substrates with pH 12-14. No factory-primed foundation exists. Alkali-resistant primer mandatory."
+    },
+
+    "output_state": {
+      "state": "SS_EXT_PAINTED_FLAT",
+      "varies_by": "sheen",
+      "state_map": {
+        "flat": "SS_EXT_PAINTED_FLAT"
+      },
+      "notes": "Foundation coating is flat sheen. Cementitious coatings are inherently matte/flat. Acrylic on foundation is also typically flat for utilitarian surface."
+    }
+  },
+
+  "material_systems": [
+    {
+      "system_id": "SYS_EXT_FNDN_PRIMER_ALKALI",
+      "name": "Alkali-Resistant Foundation Primer",
+      "product_role": "primer",
+      "quality_tier": ["QT2", "QT3"],
+      "coverage_profile": "COV_FNDN_PRIMER_ALKALI",
+      "coats": 1,
+      "notes": "MANDATORY on ALL new foundation regardless of quality tier. pH 12-14 requires alkali-resistant primer (e.g., SW Loxon Masonry Primer rated to pH 13). Enables 7-day accelerated coating vs 28-day standard cure. Oil-based primer PROHIBITED — saponification on alkaline concrete is catastrophic."
+    },
+    {
+      "system_id": "SYS_EXT_FNDN_BLOCK_FILLER",
+      "name": "Block Filler for CMU Foundation (PCA P12 Level 2)",
+      "product_role": "specialty",
+      "quality_tier": ["QT2", "QT3"],
+      "applies_when": { "foundation_type": ["CMU"] },
+      "coverage_profile": "COV_FNDN_BLOCK_FILLER",
+      "coats": 1,
+      "notes": "Mandatory for CMU foundation. Fills open-cell voids to PCA P12 Level 2 standard (max 10 voids per SF). Heavy-body product requiring 527-535 spray tip and 30-mesh filter. Applied BEFORE primer. Not quality-optional — required at all tiers."
+    },
+    {
+      "system_id": "SYS_EXT_FNDN_FINISH_ACRYLIC",
+      "name": "Standard Exterior Acrylic Foundation Coating",
+      "product_role": "finish",
+      "quality_tier": ["QT2", "QT3"],
+      "applies_when": { "coating_type": ["acrylic"] },
+      "coverage_profile": "COV_FNDN_FINISH_ACRYLIC",
+      "coats_by_tier": { "QT2": 1, "QT3": 2 },
+      "allowed_sheens": ["flat"],
+      "notes": "100% acrylic exterior masonry paint. UV-resistant. 10-20 perms breathability. QT2 single coat, QT3 two coats on primed surface. Wider color range than cementitious."
+    },
+    {
+      "system_id": "SYS_EXT_FNDN_FINISH_CEMENTITIOUS",
+      "name": "Cementitious Coating for Foundation (Drylok-type)",
+      "product_role": "finish",
+      "quality_tier": ["QT2", "QT3"],
+      "applies_when": { "coating_type": ["cementitious"] },
+      "coverage_profile": "COV_FNDN_FINISH_CEMENTITIOUS",
+      "coats_by_tier": { "QT2": 1, "QT3": 2 },
+      "allowed_sheens": ["flat"],
+      "notes": "Cementitious/crystalline coating (e.g., Drylok, UGL). Fills pores, breathable, matte finish only. Withstands 15 PSI hydrostatic pressure. Thicker application (10-15 mils DFT) than acrylic — lower coverage rate (150-200 SF/gal). Budget-friendly material cost."
+    }
+  ],
+
+  "sop_module_summary": {
+    "total_modules": 7,
+    "total_tasks": 24,
+    "task_breakdown": {
+      "binary": 23,
+      "qt_scaled": 1,
+      "qt_conditional": 0
+    },
+    "modules": [
+      { "module_id": "MOD_FNDN_SETUP", "phase": "setup", "task_count": 3, "notes": "Landscape perimeter + hardscape walk/patio protection" },
+      { "module_id": "MOD_FNDN_PREP", "phase": "prep", "task_count": 7, "notes": "Moisture test (MC <= 4% hard stop), form-release removal (poured only), efflorescence treatment, pressure wash, crack patch, bug hole patch (poured only), surface profile" },
+      { "module_id": "MOD_FNDN_BLOCK_FILL", "phase": "prep", "task_count": 2, "applies_when": { "foundation_type": ["CMU"] }, "notes": "Block filler spray or roll — CMU only (PCA P12)" },
+      { "module_id": "MOD_FNDN_PRIME", "phase": "prime", "task_count": 3, "notes": "Alkali-resistant primer — 3 method variants (spray/roll/brush)" },
+      { "module_id": "MOD_FNDN_FINISH", "phase": "finish", "task_count": 5, "notes": "Finish coats — acrylic (spray/roll) or cementitious (roll/brush) + brush detail" },
+      { "module_id": "MOD_FNDN_FINAL_INSPECT", "phase": "cleanup", "task_count": 2, "notes": "Final walkthrough inspection + touch-up" },
+      { "module_id": "MOD_FNDN_CLEANUP", "phase": "cleanup", "task_count": 2, "notes": "Protection teardown + equipment cleaning" }
+    ]
+  },
+
+  "production_summary": {
+    "total_rates": 24,
+    "crew_size_2_tasks": 0,
+    "crew_size_2_task_ids": [],
+    "factor_modifiers": [
+      {
+        "factor_id": "FAC_FNDN_FOUNDATION_TYPE",
+        "values": { "poured": 1.00, "CMU": 1.15 },
+        "applies_to_count": 10
+      }
+    ],
+    "max_modifier_stack": 1.15,
+    "stacking_cap": 4.0,
+    "within_cap": true,
+    "notes": "Single modifier — FAC_FNDN_FOUNDATION_TYPE only. No access modifier (ground-level), no coating system modifier, no QT modifier (only 2 tiers). Maximum stack is 1.15x — well under 4.0x cap. Simplest modifier profile of any exterior spec."
+  },
+
+  "protection_zones_required": [
+    {
+      "zone_id": "ext_landscape_perimeter",
+      "condition": "always",
+      "protection_level": "edge_only",
+      "upgrade_when": { "application_method": ["spray"] },
+      "upgrade_level": "full_cover",
+      "notes": "LF-based — measured along foundation wall base where landscape is adjacent. Drop cloth at base for roll/brush. Full tarp over plantings for spray (10-15 ft overspray drift at ground level)."
+    },
+    {
+      "zone_id": "ext_hardscape_walk",
+      "condition": "when_adjacent",
+      "protection_level": "light_mask",
+      "upgrade_when": { "application_method": ["spray"] },
+      "upgrade_level": "full_cover",
+      "notes": "Adjacent walkways at foundation base. Canvas drop cloths for non-slip crew traffic. Full tarp for spray overspray."
+    },
+    {
+      "zone_id": "ext_hardscape_patio",
+      "condition": "when_adjacent",
+      "protection_level": "light_mask",
+      "upgrade_when": { "application_method": ["spray"] },
+      "upgrade_level": "full_cover",
+      "notes": "Adjacent patio surfaces. Protection level driven by proximity and application method."
+    }
+  ],
+
+  "required_paintscope_inputs": [
+    {
+      "input_name": "IN_SF_FOUNDATION_WALL",
+      "paintscope_key": "PS_EXT_SURFACE_SF.FOUNDATION_WALL",
+      "uom": "SF",
+      "required": true,
+      "description": "Net paintable above-grade foundation wall area"
+    },
+    {
+      "input_name": "IN_ENUM_FOUNDATION_TYPE",
+      "paintscope_key": "PS_EXT_META.ENUM.FOUNDATION_TYPE",
+      "uom": "ENUM",
+      "required": true,
+      "description": "Foundation substrate type (poured/CMU) — drives block filler, prep sequence, production modifier"
+    },
+    {
+      "input_name": "IN_BOOL_NEW_CONSTRUCTION",
+      "paintscope_key": "PS_EXT_META.FLAG.NEW_CONSTRUCTION",
+      "uom": "BOOL",
+      "required": true,
+      "description": "Boolean flag confirming new construction context. Always true for this NC spec."
+    },
+    {
+      "input_name": "IN_LF_EXT_PROTECT_LANDSCAPE_PERIMETER",
+      "paintscope_key": "PS_EXT_PROTECT_LF.LANDSCAPE_PERIMETER",
+      "uom": "LF",
+      "required": false,
+      "required_when": "When landscape is adjacent to foundation wall",
+      "description": "Linear feet of foundation perimeter where landscape is adjacent and requires protection"
+    },
+    {
+      "input_name": "IN_SF_EXT_PROTECT_HARDSCAPE_WALK",
+      "paintscope_key": "PS_EXT_PROTECT_SF.HARDSCAPE_WALK",
+      "uom": "SF",
+      "required": false,
+      "required_when": "When walkways are adjacent to foundation wall",
+      "description": "Walkway protection area"
+    },
+    {
+      "input_name": "IN_SF_EXT_PROTECT_HARDSCAPE_PATIO",
+      "paintscope_key": "PS_EXT_PROTECT_SF.HARDSCAPE_PATIO",
+      "uom": "SF",
+      "required": false,
+      "required_when": "When patio is adjacent to foundation wall",
+      "description": "Patio protection area"
+    }
+  ],
+
+  "adjacency_declarations": {
+    "primary_surface": "foundation_wall",
+    "adjacent_surfaces": [
+      {
+        "surface_id": "ext_siding_field",
+        "edge_type": "linear",
+        "typical_relationship": "different_finish",
+        "continuity_rate_modifier": 1.0,
+        "notes": "Siding meets foundation at grade line with 3/8-inch gap and Z-flashing. Foundation coating terminates below siding edge. No cut-in required — the gap provides a natural break. NEVER caulk this gap."
+      },
+      {
+        "surface_id": "grade_line_soil",
+        "edge_type": "linear",
+        "typical_relationship": "not_in_scope",
+        "continuity_rate_modifier": 1.0,
+        "notes": "Foundation meets grade (soil/mulch/gravel). Coating extends to grade line or slightly below. No edge precision needed — rough termination at soil line is acceptable."
+      },
+      {
+        "surface_id": "ext_trim_water_table",
+        "edge_type": "linear",
+        "typical_relationship": "different_finish",
+        "continuity_rate_modifier": 1.0,
+        "notes": "Water table trim (if present) sits at siding-to-foundation transition. Foundation coating terminates below water table. Separate trim spec."
+      }
+    ],
+    "key_finding": "Foundation wall has NO edge work requirements within this spec. The grade-line gap at siding provides a natural termination. Soil/grade provides a rough bottom edge. No precision cut-in needed anywhere. Simplest adjacency profile of any exterior spec."
+  },
+
+  "cross_spec_coordination": {
+    "boundaries": [
+      {
+        "boundary": "Siding painting above foundation",
+        "owner": "Siding spec (SF_SIDING_FIBERCEMENT_EXT_NC, SF_WOOD_SIDING_EXT_NC_PAINT)",
+        "notes": "Siding protection above foundation is NOT this spec's responsibility — belongs in siding spec."
+      },
+      {
+        "boundary": "Below-grade waterproofing",
+        "owner": "Specialty waterproofing trade",
+        "notes": "Below-grade waterproofing (40-60 mils DFT) is specialty trade, not painting contractor scope."
+      },
+      {
+        "boundary": "Environmental conditions excluded from estimation",
+        "owner": "SOP process constraints",
+        "notes": "Wind, dew point, surface temperature are scheduling/process concerns. Not estimatable at bid time."
+      }
+    ],
+    "xspec_flags_consumed": [],
+    "xspec_flags_set": [],
+    "comp_modifiers_set": [],
+    "comp_modifiers_affected_by": [],
+    "notes": "Foundation is an isolated low-interaction spec. No cross-spec flags needed. Siding protection above foundation belongs in siding spec, not here."
+  },
+
+  "compatibility_rules": [
+    {
+      "rule_id": "COMPAT-FNDN-001",
+      "description": "Oil-based and alkyd products PROHIBITED on alkaline concrete/CMU foundation",
+      "condition": { "substrate_state": "SS_EXT_BARE_MASONRY" },
+      "prohibited_systems": ["any oil-based primer", "any alkyd primer", "any alkyd finish"],
+      "required_chemistry": "water-based acrylic or cementitious only",
+      "severity": "critical",
+      "notes": "Alkaline hydroxides (pH 12-14) react with alkyd/oil paint esters through saponification — hydrolyzing binder into soft, sticky, water-soluble soap. Complete removal to bare substrate is the only remedy."
+    },
+    {
+      "rule_id": "COMPAT-FNDN-002",
+      "description": "Moisture content must be at or below 4% before any coating",
+      "condition": "always",
+      "required_action": "Moisture test with electronic meter at multiple points. MC > 4% = HARD STOP",
+      "severity": "critical",
+      "notes": "Stricter than masonry wall spec (12%) due to continuous ground contact and capillary moisture rise through foundation."
+    },
+    {
+      "rule_id": "COMPAT-FNDN-003",
+      "description": "NEVER caulk the 3/8-inch grade-line gap below siding",
+      "condition": "always",
+      "prohibited_action": "Caulking the siding-to-foundation gap",
+      "severity": "critical",
+      "notes": "The grade-line gap with Z-flashing is an intentional drainage plane. Caulking seals the drainage path, trapping moisture behind siding — causes catastrophic rot, mold, and structural damage. #1 grade-line failure mode. Mask the gap during painting, do not fill it."
+    },
+    {
+      "rule_id": "COMPAT-FNDN-004",
+      "description": "Concrete Surface Profile (CSP) must match coating thickness",
+      "condition": "always",
+      "required_action": "CSP 1-2 for thin cosmetic coatings (<10 mils DFT). 83% of foundation coating failures originate from insufficient surface roughness.",
+      "severity": "major",
+      "notes": "Above-grade cosmetic coating requires CSP 1-2 (smooth to light profile). For poured concrete, form-release removal achieves adequate CSP."
+    }
+  ],
+
+  "round_configurations": [
+    {
+      "round_id": "ROUND_FNDN_PRIME_1FINISH",
+      "name": "Prime + 1 Finish Coat (Poured Concrete, QT2)",
+      "applies_when": { "foundation_type": ["poured"], "quality_tier": ["QT2"] },
+      "total_coats": 2,
+      "interstage_cycles": 0,
+      "notes": "QT2 economy. Single finish coat on properly primed poured concrete. Acceptable for utilitarian foundation band."
+    },
+    {
+      "round_id": "ROUND_FNDN_PRIME_2FINISH",
+      "name": "Prime + 2 Finish Coats (Poured Concrete, QT3)",
+      "applies_when": { "foundation_type": ["poured"], "quality_tier": ["QT3"] },
+      "total_coats": 3,
+      "interstage_cycles": 0,
+      "notes": "QT3 standard. Two finish coats for higher-end residential. No interstage sanding — utilitarian surface."
+    },
+    {
+      "round_id": "ROUND_FNDN_BLOCKFILL_PRIME_1FINISH",
+      "name": "Block Filler + Prime + 1 Finish Coat (CMU, QT2)",
+      "applies_when": { "foundation_type": ["CMU"], "quality_tier": ["QT2"] },
+      "total_coats": 3,
+      "interstage_cycles": 0,
+      "notes": "QT2 economy CMU. Block filler is phase=prep (substrate preparation, not a coating). 3 total applied layers: filler + primer + 1 finish."
+    },
+    {
+      "round_id": "ROUND_FNDN_BLOCKFILL_PRIME_2FINISH",
+      "name": "Block Filler + Prime + 2 Finish Coats (CMU, QT3)",
+      "applies_when": { "foundation_type": ["CMU"], "quality_tier": ["QT3"] },
+      "total_coats": 4,
+      "interstage_cycles": 0,
+      "notes": "QT3 standard CMU. 4 total applied layers: filler + primer + 2 finish. No interstage sanding."
+    }
+  ],
+
+  "variants": [
+    {
+      "variant_id": "VAR_POURED_ACRYLIC_QT2_ROLL",
+      "applies_when": { "foundation_type": ["poured"], "coating_type": ["acrylic"], "quality_tier": ["QT2"], "application_method": ["roll"] },
+      "coats": { "prime": 1, "finish": 1 },
+      "active_items": ["ITM_FOUNDATION_WALL"],
+      "protection_zones": ["ext_landscape_perimeter", "ext_hardscape_walk"],
+      "notes": "Economy poured concrete, acrylic roll. Most common budget foundation coating. Primer + 1 finish coat."
+    },
+    {
+      "variant_id": "VAR_POURED_ACRYLIC_QT3_ROLL",
+      "applies_when": { "foundation_type": ["poured"], "coating_type": ["acrylic"], "quality_tier": ["QT3"], "application_method": ["roll"] },
+      "coats": { "prime": 1, "finish": 2 },
+      "active_items": ["ITM_FOUNDATION_WALL"],
+      "protection_zones": ["ext_landscape_perimeter", "ext_hardscape_walk", "ext_hardscape_patio"],
+      "notes": "Standard poured concrete, acrylic roll. Primer + 2 finish coats. Showcase foundation."
+    },
+    {
+      "variant_id": "VAR_POURED_ACRYLIC_QT3_SPRAY",
+      "applies_when": { "foundation_type": ["poured"], "coating_type": ["acrylic"], "quality_tier": ["QT3"], "application_method": ["spray"] },
+      "coats": { "prime": 1, "finish": 2 },
+      "active_items": ["ITM_FOUNDATION_WALL"],
+      "protection_zones": ["ext_landscape_perimeter", "ext_hardscape_walk", "ext_hardscape_patio"],
+      "notes": "Standard poured concrete, acrylic spray. Fastest production for long continuous foundation runs. Spray-only IS valid on smooth poured concrete."
+    },
+    {
+      "variant_id": "VAR_POURED_CEMENTITIOUS_QT2_ROLL",
+      "applies_when": { "foundation_type": ["poured"], "coating_type": ["cementitious"], "quality_tier": ["QT2"], "application_method": ["roll"] },
+      "coats": { "prime": 1, "finish": 1 },
+      "active_items": ["ITM_FOUNDATION_WALL"],
+      "protection_zones": ["ext_landscape_perimeter", "ext_hardscape_walk"],
+      "notes": "Economy poured concrete, Drylok-type. Budget-friendly cementitious coating. Single coat."
+    },
+    {
+      "variant_id": "VAR_POURED_CEMENTITIOUS_QT3_ROLL",
+      "applies_when": { "foundation_type": ["poured"], "coating_type": ["cementitious"], "quality_tier": ["QT3"], "application_method": ["roll"] },
+      "coats": { "prime": 1, "finish": 2 },
+      "active_items": ["ITM_FOUNDATION_WALL"],
+      "protection_zones": ["ext_landscape_perimeter", "ext_hardscape_walk", "ext_hardscape_patio"],
+      "notes": "Standard poured concrete, Drylok-type. Two finish coats for moisture-prone foundation areas."
+    },
+    {
+      "variant_id": "VAR_CMU_ACRYLIC_QT2_ROLL",
+      "applies_when": { "foundation_type": ["CMU"], "coating_type": ["acrylic"], "quality_tier": ["QT2"], "application_method": ["roll"] },
+      "coats": { "block_filler": 1, "prime": 1, "finish": 1 },
+      "active_items": ["ITM_FOUNDATION_WALL"],
+      "protection_zones": ["ext_landscape_perimeter", "ext_hardscape_walk"],
+      "notes": "Economy CMU, acrylic roll. Block filler + primer + 1 finish coat. Block filler mandatory on CMU."
+    },
+    {
+      "variant_id": "VAR_CMU_ACRYLIC_QT3_ROLL",
+      "applies_when": { "foundation_type": ["CMU"], "coating_type": ["acrylic"], "quality_tier": ["QT3"], "application_method": ["roll"] },
+      "coats": { "block_filler": 1, "prime": 1, "finish": 2 },
+      "active_items": ["ITM_FOUNDATION_WALL"],
+      "protection_zones": ["ext_landscape_perimeter", "ext_hardscape_walk", "ext_hardscape_patio"],
+      "notes": "Standard CMU, acrylic roll. Block filler + primer + 2 finish coats."
+    },
+    {
+      "variant_id": "VAR_CMU_CEMENTITIOUS_QT3_ROLL",
+      "applies_when": { "foundation_type": ["CMU"], "coating_type": ["cementitious"], "quality_tier": ["QT3"], "application_method": ["roll"] },
+      "coats": { "block_filler": 1, "prime": 1, "finish": 2 },
+      "active_items": ["ITM_FOUNDATION_WALL"],
+      "protection_zones": ["ext_landscape_perimeter", "ext_hardscape_walk", "ext_hardscape_patio"],
+      "notes": "Standard CMU, Drylok-type. Block filler + primer + 2 cementitious finish coats. Highest material consumption variant."
+    }
+  ],
+
+  "risk_flags": [
+    {
+      "risk_id": "RISK-FNDN-001",
+      "topic": "Grade-line gap caulking (catastrophic)",
+      "severity": "critical",
+      "description": "Caulking the 3/8-inch siding-to-foundation gap seals the drainage plane. Moisture trapped behind siding causes rot, mold, and structural damage. This damages the building structure, not just the coating.",
+      "mitigation": "NEVER caulk the siding-to-foundation gap. Mask the gap during painting. Educate homeowner/GC that the gap is intentional drainage. SOP hard stop."
+    },
+    {
+      "risk_id": "RISK-FNDN-002",
+      "topic": "Moisture content failure (MC > 4%)",
+      "severity": "critical",
+      "description": "Foundation MC > 4% at coating surface will cause coating failure — osmotic blistering, delamination, efflorescence migration through film. Foundation walls have continuous ground contact with capillary moisture rise.",
+      "mitigation": "Electronic moisture meter test at multiple points. MC > 4% = HARD STOP. Do not coat. Wait, re-test. Stricter than masonry wall (12%)."
+    },
+    {
+      "risk_id": "RISK-FNDN-003",
+      "topic": "Form-release adhesion failure (poured concrete)",
+      "severity": "major",
+      "description": "Poured concrete retains waxy/oily form-release agents. Coating applied over form-release agents will peel off in sheets within weeks.",
+      "mitigation": "Clean with TSP/degreaser. Wire brush to remove laitance and form-release residue. Water bead test to verify removal. Tape test adhesion check before full application."
+    },
+    {
+      "risk_id": "RISK-FNDN-004",
+      "topic": "Saponification from oil-based products",
+      "severity": "critical",
+      "description": "Oil-based or alkyd paints on alkaline foundation (pH 12-14) undergo saponification — irreversible chemical destruction of the binder. Complete removal to bare concrete is the only remedy.",
+      "mitigation": "Use ONLY water-based acrylic or cementitious products. Alkali-resistant primer (SYS_EXT_FNDN_PRIMER_ALKALI) mandatory. Material system blocker rule COMPAT-FNDN-001."
+    },
+    {
+      "risk_id": "RISK-FNDN-005",
+      "topic": "Osmotic blistering from coated efflorescence",
+      "severity": "critical",
+      "description": "Coating over active efflorescence traps salt migration path. Salts accumulate behind coating film creating osmotic pressure blisters. Foundation is particularly susceptible due to ground contact.",
+      "mitigation": "Remove ALL efflorescence before coating. Verify MC <= 4%. Do not coat foundation with active moisture migration."
+    }
+  ],
+
+  "sequencing_notes": {
+    "production_sequence": "Setup -> Prep -> Block Fill (CMU only) -> Prime -> Finish (1-2 coats by QT) -> Final Inspect -> Cleanup",
+    "edge_work": "No edge work in this spec. Grade-line gap provides natural siding termination. Soil line provides rough bottom edge. No precision cut-in needed anywhere.",
+    "protection_sequence": "Landscape perimeter protection -> Hardscape walk/patio (if adjacent) -> Coating work -> Protection teardown -> Equipment cleanup",
+    "coat_sequence": "Moisture test (HARD STOP if MC >4%) -> Prep (form-release, efflorescence, wash, patch, profile) -> Block filler (CMU only) -> Prime (alkali-resistant) -> Finish 1 -> Finish 2 (QT3 only) -> Final inspect -> Touch up",
+    "key_prohibitions": "NO caulking the grade-line gap. NO oil-based or alkyd products. NO coating at MC >4%. NO QT4/QT5. NO elastomeric (overkill for foundation)."
+  },
+
+  "relationships": {
+    "companion_spec": null,
+    "often_combined_with": [],
+    "sibling_spec": "SF_MASONRY_EXT_NC_v1",
+    "typical_before": [],
+    "typical_after": [],
+    "cross_spec_protection_note": "Siding protection above foundation is NOT this spec's responsibility — belongs in siding spec. Foundation is a LOW protection spec with 3 exterior zones.",
+    "notes": "Smaller sibling of masonry wall spec. Key departures from masonry: QT2-QT3 only (no QT4), no access modifier (ground-level only), MC 4% (not 12%), spray-only IS valid (no mandatory backroll on poured concrete), no elastomeric option, cementitious coating option (not in masonry spec), 2 substrate types (not 4), single modifier (not 4). Combined prime+finish in single mobilization."
+  },
+
+  "dependencies": {
+    "research": "research.json",
+    "resolution": "resolution.json",
+    "sop_modules": "sop_modules.json",
+    "materials": "materials.json",
+    "production": "production.json",
+    "qa_report": "qa_report.json"
+  },
+
+  "doctrine_references": [
+    { "doctrine": "Exterior_Foundation_Coatings_Doctrine.md", "sections_used": ["Scope (above-grade vs below-grade)", "Foundation types (poured/CMU)", "Surface prep (CSP, form-release, laitance)", "MC limits (4% hard stop)", "Grade-line transition (NEVER caulk)", "Material categories (acrylic/cementitious)", "Failure modes"] },
+    { "doctrine": "Exterior_Masonry_Brick_Block_CMU_Doctrine.md", "sections_used": ["Substrate types and alkalinity §1", "Block filler PCA P12 §4", "Efflorescence treatment §3"] },
+    { "doctrine": "Exterior_Primer_Systems_Doctrine.md", "sections_used": ["Alkali-resistant primer §1", "Oil-based prohibition on masonry §1"] },
+    { "doctrine": "Exterior_Application_Methods_Doctrine.md", "sections_used": ["Spray tip selection", "Transfer efficiency", "Foundation spray-only exception"] },
+    { "doctrine": "Exterior_Surface_Assessment_Doctrine.md", "sections_used": ["Masonry substrate assessment", "Moisture testing protocols"] },
+    { "doctrine": "Exterior_Protection_Doctrine_T3.md", "sections_used": ["Landscape zones", "Hardscape zones", "Method-based protection escalation"] },
+    { "doctrine": "Exterior_Climate_Environmental_Conditions_Doctrine.md", "sections_used": ["Environmental conditions excluded from estimation"] },
+    { "doctrine": "Exterior_Access_Staging_Systems_Doctrine.md", "sections_used": ["Ground-level access — no height modifier for foundation"] }
+  ],
+
+  "research_corrections": [],
+
+  "user_corrections": [],
+
+  "change_log": [
+    {
+      "version": "0.1.0",
+      "date": "2026-03-10",
+      "author": "SpecFactory",
+      "changes": "Initial draft spec for exterior above-grade foundation wall coating (poured concrete and CMU). Small add-on scope — foundation band 12-36 inches above grade. Key features: combined prime+paint (single mobilization), single NC substrate state (SS_EXT_BARE_MASONRY), 2 foundation types (poured/CMU), 2 coating systems (acrylic/cementitious), 3 application methods (spray/roll/brush — spray-only valid on foundation unlike masonry walls), flat sheen only, 2 quality tiers (QT2-QT3, QT4/QT5 excluded — utilitarian surface), 24 tasks across 7 modules (incl. block fill module for CMU), 4 material systems (1 specialty + 1 primer + 2 finish), 1 factor modifier (foundation_type only — no access/QT/coating modifiers), 4 round configurations, 8 variants. 4 compatibility rules enforce foundation-specific constraints (oil-based prohibition, MC 4% hard stop, grade-line gap never caulked, CSP match). 5 risk flags (3 critical, 2 major). Ground-level access only — no height modifier. Sibling of SF_MASONRY_EXT_NC with significant simplification."
+    }
+  ]
+}

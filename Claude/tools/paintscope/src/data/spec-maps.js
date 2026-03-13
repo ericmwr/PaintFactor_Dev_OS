@@ -1,5 +1,6 @@
 // Maps spec_family_id to primary substrate ID for application_method resolution
 export const SPEC_SUBSTRATE_MAP = {
+  // ── Interior ──
   'SF_DRYWALL_WALL_NC_PRIME':    'walls',
   'SF_DRYWALL_WALL_NC_FINISH':   'walls',
   'SF_DRYWALL_CEILING_NC_PRIME': 'ceiling',
@@ -18,6 +19,29 @@ export const SPEC_SUBSTRATE_MAP = {
   'SF_STAIR_RISER_NC':           'stair_risers',
   'SF_STAIR_RAILING_NC':         'stair_railing',
   'SF_CABINET_NC_PAINT':         'doors',
+  // ── Exterior — maps to elevation/standalone source, not interior substrate IDs ──
+  'SF_WOOD_SIDING_EXT_NC_PAINT':    'ext_siding',
+  'SF_SIDING_FIBERCEMENT_EXT_NC':   'ext_siding',
+  'SF_SIDING_ENGINEERED_EXT_NC':    'ext_siding',
+  'SF_SIDING_VINYL_EXT_RP':         'ext_siding',
+  'SF_SIDING_ALUMINUM_EXT_RP':      'ext_siding',
+  'SF_SIDING_WOOD_EXT_RP':          'ext_siding',
+  'SF_STUCCO_EXT_NC':               'ext_siding',
+  'SF_MASONRY_EXT_NC':              'ext_siding',
+  'SF_TRIM_EXT_NC':                 'ext_trim',
+  'SF_TRIM_EXT_RP':                 'ext_trim',
+  'SF_SOFFIT_EXT_NC':               'ext_soffit',
+  'SF_WINDOW_EXT_NC':               'ext_window',
+  'SF_DOOR_EXT_NC':                 'ext_door',
+  'SF_DOOR_EXT_RP':                 'ext_door',
+  'SF_GARAGE_DOOR_EXT_NC':          'ext_garage_door',
+  'SF_CAULK_EXT':                   'ext_caulk',
+  'SF_DECK_EXT':                    'ext_deck',
+  'SF_FENCE_EXT':                   'ext_fence',
+  'SF_FOUNDATION_EXT_NC':           'ext_foundation',
+  'SF_PORCH_CEILING_EXT_NC':        'ext_porch_ceiling',
+  'SF_PORCH_FLOOR_EXT_NC':          'ext_porch_floor',
+  'SF_METAL_EXT':                   'ext_metal',
 };
 
 // Maps UI substrate_state values to spec system enum values (SS_* codes)
@@ -57,6 +81,25 @@ export const SPEC_VALID_INPUT_STATES = {
   'SF_CABINET_NC_PAINT':         ['SS_BARE','SS_PRIMED_FACTORY'],
 };
 
+// Exterior UI substrate_state → spec system enum values (SS_EXT_* codes)
+export const EXT_UI_STATE_TO_SPEC_STATE = {
+  'bare_wood':          'SS_EXT_BARE_WOOD',
+  'factory_primed':     'SS_EXT_PRIMED_FACTORY',
+  'field_primed':       'SS_EXT_PRIMED_FIELD',
+  'factory_finished':   'SS_EXT_FACTORY_FINISHED',
+  'bare_fibercement':   'SS_EXT_BARE_FIBERCEMENT',
+  'sound_paint':        'SS_EXT_SOUND_PAINT',
+  'chalking':           'SS_EXT_CHALKING',
+  'failing_paint':      'SS_EXT_FAILING_PAINT',
+  'peeling':            'SS_EXT_PEELING',
+  'weathered':          'SS_EXT_WEATHERED',
+  'stained_solid':      'SS_EXT_STAINED_SOLID',
+  'stained_semi':       'SS_EXT_STAINED_SEMI',
+  'painted_flat':       'SS_EXT_PAINTED_FLAT',
+  'painted_satin':      'SS_EXT_PAINTED_SATIN',
+  'painted_semigloss':  'SS_EXT_PAINTED_SEMIGLOSS',
+};
+
 // Output states for specs that produce intermediate states (for chain activation)
 // Only separate prime specs need this — combined specs handle state internally
 export const SPEC_OUTPUT_STATES = {
@@ -64,3 +107,19 @@ export const SPEC_OUTPUT_STATES = {
   'SF_DRYWALL_CEILING_NC_PRIME': 'SS_PRIMED_FIELD',
   'SF_TRIM_NC_PRIME':            'SS_PRIMED_FIELD',
 };
+
+// Set of all exterior spec family IDs (for domain gating in run-estimate)
+export const EXTERIOR_SPEC_IDS = new Set([
+  'SF_WOOD_SIDING_EXT_NC_PAINT', 'SF_SIDING_FIBERCEMENT_EXT_NC', 'SF_SIDING_ENGINEERED_EXT_NC',
+  'SF_SIDING_VINYL_EXT_RP', 'SF_SIDING_ALUMINUM_EXT_RP', 'SF_SIDING_WOOD_EXT_RP',
+  'SF_STUCCO_EXT_NC', 'SF_MASONRY_EXT_NC',
+  'SF_TRIM_EXT_NC', 'SF_TRIM_EXT_RP',
+  'SF_SOFFIT_EXT_NC',
+  'SF_WINDOW_EXT_NC', 'SF_DOOR_EXT_NC', 'SF_DOOR_EXT_RP',
+  'SF_GARAGE_DOOR_EXT_NC',
+  'SF_CAULK_EXT',
+  'SF_DECK_EXT', 'SF_FENCE_EXT',
+  'SF_FOUNDATION_EXT_NC',
+  'SF_PORCH_CEILING_EXT_NC', 'SF_PORCH_FLOOR_EXT_NC',
+  'SF_METAL_EXT',
+]);

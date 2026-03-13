@@ -131,44 +131,102 @@ Insert 5 rows into `spec_artifacts_raw`:
 |------------|-------------|-------|
 | spec_family | spec_families | 1 row. Include `context` field if present. |
 | configuration_dimensions[] | spec_configuration_dimensions | 1 row per dimension. Include `prohibited` if present. |
-| paintable_items[] | spec_paintable_item_types | 1 row per item. Include `conditional`/`conditional_on` if present. |
-| variants[] | spec_variants | 1 row per variant. Include `coats_primer`/`coats_finish`/`round_id`/`protection_zones` if present. |
-| variants[].included_items[] | spec_variant_item_inclusions | 1 row per item, is_included=1 |
-| variants[].excluded_items[] | spec_variant_item_inclusions | 1 row per item, is_included=0 |
+| paintable_items[] | spec_paintable_item_types | 1 row per item. Include `conditional`/`conditional_on` if present. Include `surface_ref` if present (TEXT). |
+| variants[] | spec_variants | 1 row per variant. See **coat count dual-pattern** and **item inclusion tri-pattern** below. |
+| (variant item inclusions) | spec_variant_item_inclusions | See **item inclusion tri-pattern** below. |
 | scope_boundaries.includes[] | spec_scope_boundaries | boundary_type='include' |
 | scope_boundaries.excludes[] | spec_scope_boundaries | boundary_type='exclude', extract route_to |
 | required_paintscope_inputs[] | spec_required_inputs | 1 row per input. Map `required` → `is_required`. Include `status` if present. |
-| protection_zones_required[] | spec_protection_zones | 1 row per zone |
-| adjacency_declarations | spec_adjacency_declarations | See shape handling below |
-| state_declarations | spec_state_declarations | 1 row per spec family. Store `valid_input_states` as full JSON object. |
+| protection_zones_required[] | spec_protection_zones | 1 row per zone. See **protection zone field mapping** below. |
+| adjacency_declarations | spec_adjacency_declarations | See **adjacency shape handling** below. |
+| state_declarations OR substrate_state_rules | spec_state_declarations | See **state declaration dual-key** below. |
 | change_log[] | spec_change_log | 1 row per change entry |
 
 **Adjacency shape handling:** `adjacency_declarations` can be a single object (one primary_surface) or an array of objects (multiple primary_surfaces). Before iterating, check type: if single object, wrap in `[obj]`. Then for each object, iterate `adjacent_surfaces[]` to produce one row per adjacent surface, carrying `primary_surface` from the parent.
+
+#### Structural Variation Handling (Interior vs Exterior)
+
+Interior and exterior specs use different JSON key names and shapes for several concepts. The importer MUST check for all variants. When updating `import_spec.py`, use fallback chains (try key A, then key B) so both domains work with the same code.
+
+**Coat count dual-pattern (variants):**
+- Interior pattern: `var["coats_primer"]` and `var["coats_finish"]` (flat integers)
+- Exterior pattern: `var["coats"]["prime"]` and `var["coats"]["finish"]` (nested object)
+- Resolution: `coats_primer = var.get("coats_primer") or var.get("coats", {}).get("prime")`
+- Same for `coats_finish`: `var.get("coats_finish") or var.get("coats", {}).get("finish")`
+
+**Item inclusion tri-pattern (variants):**
+- Interior pattern A: `var["included_items"]` (list) → is_included=1; `var["excluded_items"]` (list) → is_included=0
+- Interior pattern B: (no item keys) — skip
+- Exterior pattern: `var["active_items"]` (list) → is_included=1; no excluded list
+- Resolution: Check `included_items` first, then fall back to `active_items`. Check `excluded_items` independently.
+```python
+included = var.get("included_items") or var.get("active_items", [])
+excluded = var.get("excluded_items", [])
+```
+
+**State declaration dual-key:**
+- Interior key: `spec.get("state_declarations")`
+- Exterior key: `spec.get("substrate_state_rules")`
+- Resolution: `state_data = spec.get("state_declarations") or spec.get("substrate_state_rules")`
+- Both produce 1 row in `spec_state_declarations`. Store `valid_input_states` as full JSON object. If `primer_routing` sub-object exists, store as `primer_routing` TEXT (JSON) column.
+
+**Protection zone field mapping:**
+- Interior: `upgrades_to_zone`, `upgrades_to_level`, `upgrade_condition`
+- Exterior: `upgrade_level` (maps to `upgrades_to_level`), `upgrade_when` (maps to `upgrade_condition`)
+- Resolution:
+```python
+upgrades_to_level = z.get("upgrades_to_level") or z.get("upgrade_level")
+upgrade_condition = z.get("upgrade_condition") or z.get("upgrade_when")
+# upgrade_condition may be a JSON object — store as json.dumps() if dict
+```
+
+**Round configurations dual-location:**
+- Interior: `round_configurations` in `sop_modules.json`
+- Exterior: `round_configurations` may be in `spec.json` instead of (or in addition to) `sop_modules.json`
+- Resolution: Check `sop_modules.json` first. If not found, check `spec.json`. If found in both, prefer `sop_modules.json` (canonical source). Deduplicate by `round_id`.
 
 ### Step 5: Normalize materials.json
 
 | Source Path | Target Table | Notes |
 |------------|-------------|-------|
-| material_systems[] | material_systems | 1 row per system. Include `allowed_sheens` if present. |
-| material_systems[].products[] OR .primer/.finish | material_system_products | See dual-pattern note below |
-| coverage_profiles[] | material_coverage_profiles | 1 row per profile. Map `profile_id` → id column. |
+| material_systems[] | material_systems | 1 row per system. Include `allowed_sheens`, `product_role`, `quality_tier` if present. |
+| material_systems[].products[] OR .primer/.finish | material_system_products | See tri-pattern note below |
+| coverage_profiles[] | material_coverage_profiles | 1 row per profile. Map `profile_id` → id column. Include `waste_factor`, `uom_basis` if present. |
 | consumables[] | material_consumables | 1 row per consumable. Map `category` → `consumable_category` column. |
 
-**Material system products dual-pattern:** Two structures exist:
+**Material system products tri-pattern:** Three structures exist:
 - **Drywall pattern:** `material_systems[].products[]` — iterate the array, each entry becomes a row
 - **Cabinet pattern:** `material_systems[].primer` / `.finish` — treat each role-keyed object as a separate row, derive `product_role` from the key name ("primer"/"finish"). Map `.type` → `product_type`, `.products` → `example_products`, `.coats` → `coats_required`, `.coverage_sf_per_gallon` → `coverage_sf_per_gallon`, `.coverage_range[0]` → `coverage_range_low`, `.coverage_range[1]` → `coverage_range_high`.
+- **Exterior flat pattern:** No `products[]` array, no `primer`/`finish` sub-objects. System-level fields contain the product data directly: `product_role` (TEXT), `coverage_sf_per_gallon` (REAL), `coverage_range` (array), `coats` (INTEGER). Create a single `material_system_products` row from the system-level fields. Map `system.product_role` → `product_role`, `system.coats` → `coats_required`, `system.coverage_sf_per_gallon` → `coverage_sf_per_gallon`, `system.coverage_range[0]` → `coverage_range_low`, `system.coverage_range[1]` → `coverage_range_high`.
 
-Check which pattern exists: if `products` key is a list, use Drywall pattern. If `primer` or `finish` keys exist as objects, use Cabinet pattern.
+Check which pattern exists: if `products` key is a list, use Drywall pattern. If `primer` or `finish` keys exist as objects, use Cabinet pattern. If neither exists but `product_role` is a string on the system, use Exterior flat pattern.
 
-**Note:** `consumable_notes` (if present at top level) is NOT imported — preserved in `spec_artifacts_raw` only.
+**Material systems — exterior fields:** Exterior specs may include these additional fields on material_systems entries:
+- `product_role` TEXT — "primer", "finish", etc. Store in `material_systems.product_role` column.
+- `quality_tier` — array or string. Store as JSON in `applies_when` if not already present there.
+- `substrate_states` — array of SS_ values. Store as JSON in `applies_when`.
+
+**Coverage profiles — exterior patterns:** Exterior coverage_profiles may use different nesting:
+- `coverage_by_state` (object keyed by SS_EXT_* values) — store as JSON TEXT in `coverage_by_item` column
+- `coverage_by_system` (object keyed by SYS_EXT_* values) — store as JSON TEXT in `coverage_by_item` column
+- `waste_factor` (REAL) — store in `waste_factor` column
+- `uom_basis` (TEXT, e.g., "LF") — store in `uom_basis` column
+- `surface_condition_modifier` (object) — store as JSON TEXT in `coverage_by_item` or `notes`
+
+**Note:** `consumable_notes`, `protection_materials`, `compatibility_rules`, `risk_notes`, `uncertainty_flags`, `material_quantity_notes`, `assumptions` (if present at top level) are NOT imported — preserved in `spec_artifacts_raw` only.
 
 ### Step 6: Normalize sop_modules.json
 
 | Source Path | Target Table | Notes |
 |------------|-------------|-------|
-| round_configurations[] | sop_round_configurations | 1 row per config (if present). Store `phase_sequence` as JSON array. |
+| round_configurations[] | sop_round_configurations | 1 row per config (if present). Store `phase_sequence` as JSON array. Also check spec.json if not found here. |
 | sop_modules[] | sop_modules | 1 row per module, sort_order from array index |
-| sop_modules[].tasks[] | sop_tasks | 1 row per task, module_id from parent, sort_order from array index. Include `qt_behavior` if present. |
+| sop_modules[].tasks[] | sop_tasks | 1 row per task, module_id from parent, sort_order from array index. Include `qt_behavior` if present. See **exterior task fields** below. |
+
+**Exterior task fields:** Exterior sop_tasks may contain additional fields not present in interior specs:
+- `substrate_state_rules` — array of objects with `state_id`, `action` (required/excluded), `primer_system`. Store as JSON TEXT in `substrate_state_rules` column.
+- `site_condition_rules` — object with `exclude_when` conditions (wind, dew_point, temperature). Store as JSON TEXT in `site_condition_rules` column.
+- `manual_capture_required` — object with capture instructions. Store as JSON TEXT in `notes` or dedicated column if present.
 
 ### Step 7: Normalize production.json
 
@@ -195,10 +253,27 @@ Map `rate_basis_notes` → `notes` column.
 | `texture_effects[]` | "texture" |
 | `drywall_level_effects[]` | "drywall_level" |
 | `factor_modifiers[]` (cabinet-style unified) | Derive from modifier type (e.g., "door_style", "kitchen_complexity", "masking_scope") |
+| `access_effects[]` or access entries in `factor_modifiers[]` | "access" |
+| `profile_effects[]` or profile entries in `factor_modifiers[]` | "profile_complexity" |
+| `coating_type_effects[]` | "coating_type" |
+| `coating_system_effects[]` | "coating_system" |
+| `substrate_type_effects[]` | "substrate_type" |
 
-For each modifier entry, map `modifier_id` or `factor_id` → `id` column. Map `time_modifier` → `time_modifier` column. If the source entry has `applies_to_tasks[]`, explode into `factor_task_applicability` rows. If no explicit task linkage exists (e.g., height_effects), skip the junction table — the Estimation Engine resolves these at runtime.
+For each modifier entry, map `modifier_id` or `factor_id` → `id` column. Map `time_modifier` → `time_modifier` column. If the source entry has `applies_to_tasks[]` OR `applies_to[]`, explode into `factor_task_applicability` rows. If no explicit task linkage exists (e.g., height_effects), skip the junction table — the Estimation Engine resolves these at runtime.
 
-**Note:** `crew_configurations`, `coupling_constraints`, and `critical_constraints` (if present at top level) are NOT imported — preserved in `spec_artifacts_raw` only.
+**Factor modifier — applies_to dual-key:**
+- Interior: `entry["applies_to_tasks"]`
+- Exterior: `entry["applies_to"]`
+- Resolution: `tasks = entry.get("applies_to_tasks") or entry.get("applies_to", [])`
+
+**Factor modifier — values map pattern (exterior):**
+Exterior factor_modifiers may use a `values` object instead of a single `time_modifier`:
+```json
+"values": { "ground": 1.00, "ladder": 1.35, "scaffold": 1.60, "lift": 1.50 }
+```
+When `values` is present as a dict, store it as JSON TEXT in the `values_map` column. The `time_modifier` column should be NULL in this case (multiple values, no single modifier).
+
+**Note:** `crew_configurations`, `coupling_constraints`, `critical_constraints`, `modifier_stacking_examples`, `validation_plan`, `risks`, `assumptions`, and input_group header objects (if present at top level) are NOT imported — preserved in `spec_artifacts_raw` only.
 
 ### Step 8: Normalize qa_report.json
 
@@ -232,6 +307,10 @@ Values extracted from JSON and stored in their own typed columns:
 - `crew_size`, `sort_order`, `coats_primer`, `coats_finish`, `coats_required` → INTEGER
 - `review_required`, `is_required`, `is_included`, `conditional` → INTEGER (0/1)
 - `version`, `date`, `author` → TEXT
+- `surface_ref` → TEXT (exterior paintable items — PaintScope surface reference)
+- `product_role` → TEXT (exterior material_systems — "primer"/"finish")
+- `waste_factor` → REAL (exterior coverage profiles)
+- `uom_basis` → TEXT (exterior coverage profiles — "LF", "SF", etc.)
 
 ### JSON TEXT Storage (complex objects stored as strings)
 
@@ -258,6 +337,12 @@ Values stored as JSON strings in TEXT columns, queryable via `json_extract()`:
 - `phase_sequence` → store as `json.dumps(arr)`
 - `surface_texture` → store as `json.dumps(arr)` if array, else as string
 - `drywall_finish_level` → store as `json.dumps(arr)`
+- `substrate_state_rules` (on sop_tasks) → store as `json.dumps(arr)` — exterior task-level state routing
+- `site_condition_rules` (on sop_tasks) → store as `json.dumps(obj)` — exterior weather/condition gating
+- `primer_routing` (on state_declarations) → store as `json.dumps(obj)` — exterior per-substrate primer routing
+- `values_map` (on factor_modifiers) → store as `json.dumps(obj)` — exterior multi-value modifier maps
+- `defect_tolerance` (on task_production_rates) → store as `json.dumps(obj)` — exterior per-tier QC criteria
+- `coverage_by_state` / `coverage_by_system` (on coverage_profiles) → store as `json.dumps(obj)` in `coverage_by_item`
 
 ### Array Explosion (arrays become junction table rows)
 
@@ -313,6 +398,22 @@ After successful import, generate:
   "duration_seconds": 0.5
 }
 ```
+
+---
+
+## Raw-Only Sections (Not Imported to Normalized Tables)
+
+These sections appear in spec artifacts but are preserved ONLY in `spec_artifacts_raw`. Do not create tables or columns for them:
+
+**spec.json:** `cross_spec_boundaries`, `site_condition_rules` (spec-level — distinct from task-level), `production_summary`, `sop_module_summary`, `qa_summary`, `doctrine_references`, `research_corrections`, `sequencing_notes`, `relationships`, `material_systems` (duplicate of materials.json — use materials.json as canonical source)
+
+**materials.json:** `consumable_notes`, `protection_materials`, `compatibility_rules`, `risk_notes`, `uncertainty_flags`, `material_quantity_notes`, `assumptions`
+
+**production.json:** `crew_configurations`, `coupling_constraints`, `critical_constraints`, `modifier_stacking_examples`, `validation_plan`, `risks`, `assumptions`, input_group header objects (e.g., `trim_surface_input_group`)
+
+**sop_modules.json:** (none — all sections are imported)
+
+**qa_report.json:** `exterior_validation_summary` (captured in `full_report` blob)
 
 ---
 

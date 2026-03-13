@@ -1,0 +1,900 @@
+{
+  "spec_family_id": "SF_SIDING_WOOD_EXT_RP",
+  "version": "0.1.0",
+  "generated_by": "SOP Librarian",
+  "generated_at": "2026-03-10",
+
+  "sop_modules": [
+    {
+      "module_id": "MOD_WSRP_SETUP",
+      "name": "Mobilization & Access Setup",
+      "description": "Crew mobilization, equipment staging, and scaffold/lift setup for exterior wood siding repaint.",
+      "phase": "setup",
+      "applies_when": {},
+      "required_inputs": [],
+      "tasks": [
+        {
+          "task_id": "TSK_WSRP_MOBILIZE",
+          "name": "Crew Mobilization & Equipment Staging",
+          "description": "Mobilize crew, transport materials and equipment to site. Stage paint, primer, prep tools at work area.",
+          "task_type": "setup",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "tools_required": ["truck", "staging_area"],
+          "appears_in_tiers": ["QT2", "QT3", "QT4"],
+          "quality_notes": { "all": "All materials on-site and verified against scope. Equipment in working order." }
+        },
+        {
+          "task_id": "TSK_WSRP_SCAFFOLD_SETUP",
+          "name": "Scaffold / Lift Setup",
+          "description": "Erect scaffold, position aerial lift, or stage extension ladders per access plan. OSHA-compliant setup.",
+          "task_type": "setup",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "tools_required": ["scaffold", "ladder", "aerial_lift"],
+          "appears_in_tiers": ["QT2", "QT3", "QT4"],
+          "applies_when": { "access_type": ["scaffold", "lift", "ladder"] },
+          "quality_notes": { "all": "Level, plumb, tied off. Fall protection in place. Base plates on firm footing." }
+        }
+      ],
+      "sequence_notes": "Mobilize → Scaffold/lift setup before any other work."
+    },
+
+    {
+      "module_id": "MOD_WSRP_ASSESS",
+      "name": "Condition Assessment & Lead Evaluation",
+      "description": "MANDATORY first module for repaint. Visual/tactile DSD rating, adhesion test, moisture content test, existing coating identification, and lead evaluation for pre-1978 buildings. DSD-4 = HARD STOP.",
+      "phase": "prep",
+      "applies_when": {},
+      "required_inputs": [
+        { "input_name": "IN_SF_SIDING_FIELD", "paintscope_key": "PS_EXT_SURFACE_SF.SIDING_FIELD", "uom": "SF" }
+      ],
+      "tasks": [
+        {
+          "task_id": "TSK_WSRP_CONDITION_ASSESS",
+          "name": "Condition Assessment — DSD Rating & Adhesion Test",
+          "description": "Visual and tactile assessment of existing coating condition. Assign DSD rating (0-4). Perform ASTM D3359 cross-hatch adhesion test on representative areas of each elevation. Document findings.",
+          "task_type": "inspect",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "tools_required": ["adhesion_test_kit", "camera", "inspection_form"],
+          "appears_in_tiers": ["QT2", "QT3", "QT4"],
+          "quality_notes": {
+            "QT2": "DSD rating and adhesion test on worst and best areas per elevation.",
+            "QT3": "DSD rating per elevation. Adhesion test at 3+ points per elevation.",
+            "QT4": "Comprehensive DSD map. Adhesion test at 5+ points per elevation. Photo documentation."
+          }
+        },
+        {
+          "task_id": "TSK_WSRP_MC_TEST",
+          "name": "Moisture Content Testing",
+          "description": "Pin-type moisture meter readings on representative boards. Wood MC must be ≤15% for latex, ≤12% for alkyd. Test shaded and sun-exposed areas, near grade, under eaves.",
+          "task_type": "inspect",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "tools_required": ["pin_moisture_meter"],
+          "appears_in_tiers": ["QT2", "QT3", "QT4"],
+          "quality_notes": { "all": "Minimum 3 readings per elevation. Record all readings. Flag any area >15% MC for deferral." }
+        },
+        {
+          "task_id": "TSK_WSRP_COATING_ID",
+          "name": "Existing Coating Identification",
+          "description": "Identify existing coating type — latex vs alkyd. Solvent rub test (MEK or denatured alcohol): latex softens, alkyd does not. Critical for primer and topcoat compatibility.",
+          "task_type": "inspect",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "tools_required": ["rags", "denatured_alcohol"],
+          "appears_in_tiers": ["QT2", "QT3", "QT4"],
+          "quality_notes": { "all": "Test each elevation. Document latex vs alkyd finding. Note any evidence of multiple coating types." }
+        },
+        {
+          "task_id": "TSK_WSRP_LEAD_EVALUATE",
+          "name": "Lead Paint Evaluation (Pre-1978)",
+          "description": "Test for lead paint on pre-1978 buildings before any paint disturbance. EPA RRP-certified tester. XRF or EPA-recognized test kit. If positive, RRP containment and cleanup procedures required.",
+          "task_type": "inspect",
+          "task_classification": "condition_conditional",
+          "skill_level": "journeyman",
+          "tools_required": ["lead_test_kit", "xrf_analyzer"],
+          "appears_in_tiers": ["QT2", "QT3", "QT4"],
+          "applies_when": { "building_year": "pre_1978" },
+          "quality_notes": { "all": "Test every distinct color and substrate. Document all results. Retain test records for 3 years per EPA RRP." }
+        },
+        {
+          "task_id": "TSK_WSRP_DSD4_GATE",
+          "name": "DSD-4 Hard Stop Check",
+          "description": "If DSD-4 (substrate damage — rot, structural failure, insect damage) is found, HALT painting scope. Document damage, report to project manager/owner. Painting cannot proceed until carpentry repair is complete.",
+          "task_type": "inspect",
+          "task_classification": "condition_conditional",
+          "skill_level": "journeyman",
+          "tools_required": ["probe_tool", "camera"],
+          "appears_in_tiers": ["QT2", "QT3", "QT4"],
+          "applies_when": { "substrate_condition": ["SC_SUBSTRATE_DAMAGE"] },
+          "quality_notes": { "all": "Probe all suspect areas. Photo-document all damage. Written report to PM. Do NOT proceed with painting over damaged substrate." }
+        }
+      ],
+      "sequence_notes": "Condition assess → MC test → Coating ID → Lead evaluate (if pre-1978) → DSD-4 gate check. This module MUST complete before any prep or coating work."
+    },
+
+    {
+      "module_id": "MOD_WSRP_PROTECT",
+      "name": "Exterior Protection Setup",
+      "description": "Deploy landscape, hardscape, fixture, and vehicle protection. RRP containment if lead-positive. Scope depends on application method (spray requires more coverage).",
+      "phase": "setup",
+      "applies_when": {},
+      "required_inputs": [
+        { "input_name": "IN_LF_EXT_PROTECT_LANDSCAPE_ADJ", "paintscope_key": "PS_EXT_PROTECT_LF.LANDSCAPE_ADJACENT", "uom": "LF" },
+        { "input_name": "IN_SF_EXT_PROTECT_LANDSCAPE_FULL", "paintscope_key": "PS_EXT_PROTECT_SF.LANDSCAPE_FULL", "uom": "SF" },
+        { "input_name": "IN_SF_EXT_PROTECT_HARDSCAPE", "paintscope_key": "PS_EXT_PROTECT_SF.HARDSCAPE", "uom": "SF" },
+        { "input_name": "IN_EA_EXT_PROTECT_LIGHT_FIXTURE", "paintscope_key": "PS_EXT_PROTECT_EA.LIGHT_FIXTURE", "uom": "EA" },
+        { "input_name": "IN_EA_EXT_PROTECT_HVAC_UNIT", "paintscope_key": "PS_EXT_PROTECT_EA.HVAC_UNIT", "uom": "EA" },
+        { "input_name": "IN_SF_EXT_PROTECT_VEHICLE", "paintscope_key": "PS_EXT_PROTECT_SF.VEHICLE", "uom": "SF" },
+        { "input_name": "IN_SF_EXT_PROTECT_RRP_CONTAINMENT", "paintscope_key": "PS_EXT_PROTECT_SF.RRP_CONTAINMENT", "uom": "SF" }
+      ],
+      "tasks": [
+        {
+          "task_id": "TSK_WSRP_PROTECT_LANDSCAPE",
+          "name": "Landscape Edge Protection",
+          "description": "Deploy drop cloth/tarp at landscape bed edges adjacent to siding work area. Prevents debris and wash water contamination.",
+          "task_type": "protect",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "tools_required": ["drop_cloth_canvas", "landscape_stakes"],
+          "protection_metadata": {
+            "action": "setup",
+            "zones": ["ext_landscape_adjacent"],
+            "method_dependent": false
+          },
+          "appears_in_tiers": ["QT2", "QT3", "QT4"],
+          "quality_notes": { "all": "Secure tarps at grade. Extend 3 ft from foundation minimum." }
+        },
+        {
+          "task_id": "TSK_WSRP_PROTECT_LANDSCAPE_FULL",
+          "name": "Full Landscape Protection (Spray)",
+          "description": "Full tarp over plantings, shrubs, and garden beds within spray drift zone. Required when spray application method is used.",
+          "task_type": "protect",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "tools_required": ["plastic_sheeting", "landscape_stakes", "tape"],
+          "protection_metadata": {
+            "action": "setup",
+            "zones": ["ext_landscape_full"],
+            "method_dependent": true
+          },
+          "appears_in_tiers": ["QT2", "QT3", "QT4"],
+          "applies_when": { "application_method": ["spray_backbrush"] },
+          "quality_notes": { "all": "Complete coverage of all plantings within 10 ft of working elevation. Secure against wind." }
+        },
+        {
+          "task_id": "TSK_WSRP_PROTECT_HARDSCAPE",
+          "name": "Hardscape Protection",
+          "description": "Deploy drop cloths on walkways, patios, and driveways adjacent to siding work area.",
+          "task_type": "protect",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "tools_required": ["drop_cloth_canvas", "plastic_sheeting", "tape"],
+          "protection_metadata": {
+            "action": "setup",
+            "zones": ["ext_hardscape"],
+            "method_dependent": false
+          },
+          "appears_in_tiers": ["QT2", "QT3", "QT4"],
+          "quality_notes": { "all": "Tape plastic to foundation at grade line. Extend to drip/overspray zone." }
+        },
+        {
+          "task_id": "TSK_WSRP_PROTECT_LIGHT_FIXTURE",
+          "name": "Light Fixture Masking",
+          "description": "Bag and tape exterior light fixtures on working elevations.",
+          "task_type": "protect",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "tools_required": ["plastic_bags", "masking_tape"],
+          "protection_metadata": {
+            "action": "setup",
+            "zones": ["ext_light_fixture"],
+            "method_dependent": false
+          },
+          "appears_in_tiers": ["QT2", "QT3", "QT4"],
+          "quality_notes": { "all": "Complete coverage. Secure tape to prevent seepage during wash and spray." }
+        },
+        {
+          "task_id": "TSK_WSRP_PROTECT_HVAC",
+          "name": "HVAC Unit Cover",
+          "description": "Cover HVAC condenser units adjacent to working elevations.",
+          "task_type": "protect",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "tools_required": ["plastic_sheeting", "tape"],
+          "protection_metadata": {
+            "action": "setup",
+            "zones": ["ext_hvac_unit"],
+            "method_dependent": false
+          },
+          "appears_in_tiers": ["QT2", "QT3", "QT4"],
+          "quality_notes": { "all": "Full cover during active work. Remove promptly after — do not leave covered overnight in warm weather." }
+        },
+        {
+          "task_id": "TSK_WSRP_PROTECT_VEHICLE",
+          "name": "Vehicle Protection (Spray)",
+          "description": "Tarp vehicles in driveway when spray application method is used on adjacent elevations.",
+          "task_type": "protect",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "tools_required": ["plastic_sheeting", "tape"],
+          "protection_metadata": {
+            "action": "setup",
+            "zones": ["ext_vehicle"],
+            "method_dependent": true
+          },
+          "appears_in_tiers": ["QT2", "QT3", "QT4"],
+          "applies_when": { "application_method": ["spray_backbrush"] },
+          "quality_notes": { "all": "Full cover. Secure against wind. Confirm with homeowner before covering." }
+        },
+        {
+          "task_id": "TSK_WSRP_RRP_CONTAINMENT",
+          "name": "RRP Lead-Safe Containment Setup",
+          "description": "Deploy 6-mil poly ground containment per EPA RRP rule. Extends 10 ft from building or to property line. Vertical containment at openings. Required when lead paint is confirmed on pre-1978 buildings.",
+          "task_type": "protect",
+          "task_classification": "condition_conditional",
+          "skill_level": "journeyman",
+          "tools_required": ["poly_6mil", "tape", "stakes", "signage"],
+          "protection_metadata": {
+            "action": "setup",
+            "zones": ["ext_rrp_containment"],
+            "method_dependent": false
+          },
+          "appears_in_tiers": ["QT2", "QT3", "QT4"],
+          "applies_when": { "lead_positive": true },
+          "quality_notes": { "all": "10 ft perimeter minimum. Vertical barriers at all openings (doors, windows). Warning signage posted. EPA RRP certified firm and renovator required." }
+        }
+      ],
+      "sequence_notes": "Landscape edge → Full landscape (spray) → Hardscape → Fixtures → HVAC → Vehicle (spray) → RRP containment (if lead-positive). Protection BEFORE any prep disturbance."
+    },
+
+    {
+      "module_id": "MOD_WSRP_PREP",
+      "name": "Substrate-State-Driven Surface Preparation",
+      "description": "Prep tasks activate based on substrate_state. Sound paint: degloss only. Chalking: dedicated chalk remediation sequence. Failing paint: scrape by severity. Peeling: heavy scrape/strip. Weathered: sand to fresh wood. All states get dust cleanup.",
+      "phase": "prep",
+      "applies_when": {},
+      "required_inputs": [
+        { "input_name": "IN_SF_SIDING_FIELD", "paintscope_key": "PS_EXT_SURFACE_SF.SIDING_FIELD", "uom": "SF" }
+      ],
+      "tasks": [
+        {
+          "task_id": "TSK_WSRP_POWER_WASH",
+          "name": "Pressure Wash Siding",
+          "description": "Pressure wash all siding surfaces to remove dirt, mildew, chalk, and loose material. Required for all repaint substrate states.",
+          "task_type": "prep",
+          "task_classification": "state_conditional",
+          "skill_level": "journeyman",
+          "tools_required": ["pressure_washer"],
+          "appears_in_tiers": ["QT2", "QT3", "QT4"],
+          "substrate_state_rules": [
+            { "state_id": "SS_EXT_SOUND_PAINT", "action": "required" },
+            { "state_id": "SS_EXT_CHALKING", "action": "required" },
+            { "state_id": "SS_EXT_FAILING_PAINT", "action": "required" },
+            { "state_id": "SS_EXT_PEELING", "action": "required" },
+            { "state_id": "SS_EXT_WEATHERED", "action": "required" }
+          ],
+          "quality_notes": {
+            "QT2": "2000 PSI. Remove loose material and surface contaminants.",
+            "QT3": "2000-2500 PSI. 15° tip. Clean to sound substrate. Allow 24-48 hr dry.",
+            "QT4": "2000-2500 PSI. Systematic elevation-by-elevation. Inspect under drying for missed areas. Allow 48 hr dry."
+          }
+        },
+        {
+          "task_id": "TSK_WSRP_CHALK_REMEDIATE_LIGHT",
+          "name": "Light Chalk Remediation",
+          "description": "Remove light chalk residue by scrub washing with TSP or chalk-binder solution. For chalking state with light severity where power wash alone is insufficient.",
+          "task_type": "prep",
+          "task_classification": "state_conditional",
+          "skill_level": "journeyman",
+          "tools_required": ["scrub_brush", "tsp_solution", "bucket"],
+          "appears_in_tiers": ["QT2", "QT3", "QT4"],
+          "substrate_state_rules": [
+            { "state_id": "SS_EXT_CHALKING", "action": "required" }
+          ],
+          "applies_when": { "substrate_state": ["SS_EXT_CHALKING"], "chalk_severity": "light" },
+          "quality_notes": { "all": "Scrub until wipe test shows minimal chalk transfer. Rinse thoroughly. Allow full dry." }
+        },
+        {
+          "task_id": "TSK_WSRP_CHALK_REMEDIATE_HEAVY",
+          "name": "Heavy Chalk Remediation with Mechanical Sand",
+          "description": "Heavy chalk removal — scrub wash followed by mechanical sanding to remove embedded chalk layer. For chalking state with heavy severity.",
+          "task_type": "prep",
+          "task_classification": "state_conditional",
+          "skill_level": "journeyman",
+          "tools_required": ["scrub_brush", "tsp_solution", "orbital_sander", "sandpaper_80_120"],
+          "appears_in_tiers": ["QT2", "QT3", "QT4"],
+          "substrate_state_rules": [
+            { "state_id": "SS_EXT_CHALKING", "action": "required" }
+          ],
+          "applies_when": { "substrate_state": ["SS_EXT_CHALKING"], "chalk_severity": "heavy" },
+          "quality_notes": { "all": "Scrub wash first, dry, then sand until wipe test shows clean surface. No chalk residue remaining." }
+        },
+        {
+          "task_id": "TSK_WSRP_SCRAPE_LIGHT",
+          "name": "Light Scraping — DSD-1",
+          "description": "Light hand scraping of loose paint areas. For failing_paint state with DSD-1 (minor peeling/cracking, <10% of surface).",
+          "task_type": "prep",
+          "task_classification": "state_conditional",
+          "skill_level": "journeyman",
+          "tools_required": ["scraper_3in"],
+          "appears_in_tiers": ["QT2", "QT3", "QT4"],
+          "substrate_state_rules": [
+            { "state_id": "SS_EXT_FAILING_PAINT", "action": "required" }
+          ],
+          "applies_when": { "substrate_condition": ["SC_MINOR_DEFECT"] },
+          "quality_notes": { "all": "Remove all loose paint. Feather edges of remaining sound paint." }
+        },
+        {
+          "task_id": "TSK_WSRP_SCRAPE_MODERATE",
+          "name": "Moderate Scraping — DSD-2",
+          "description": "Moderate hand/power scraping. For failing_paint state with DSD-2 (10-30% of surface area affected).",
+          "task_type": "prep",
+          "task_classification": "state_conditional",
+          "skill_level": "journeyman",
+          "tools_required": ["scraper_3in", "scraper_5in", "power_scraper"],
+          "appears_in_tiers": ["QT2", "QT3", "QT4"],
+          "substrate_state_rules": [
+            { "state_id": "SS_EXT_FAILING_PAINT", "action": "required" }
+          ],
+          "applies_when": { "substrate_condition": ["SC_MODERATE_DEFECT"] },
+          "quality_notes": {
+            "QT2": "Remove all loose paint. Feather edges.",
+            "QT3": "Remove all loose paint. Feather edges to smooth transition.",
+            "QT4": "Remove all loose paint. Feather to invisible transition. Power scraper on stubborn areas."
+          }
+        },
+        {
+          "task_id": "TSK_WSRP_SCRAPE_HEAVY",
+          "name": "Heavy Scraping / Stripping — DSD-3",
+          "description": "Heavy scraping and partial stripping. For peeling state with DSD-3 (>30% of surface, intercoat failure, may require heat or chemical stripping).",
+          "task_type": "prep",
+          "task_classification": "state_conditional",
+          "skill_level": "journeyman",
+          "tools_required": ["scraper_3in", "scraper_5in", "heat_gun", "power_scraper"],
+          "appears_in_tiers": ["QT2", "QT3", "QT4"],
+          "substrate_state_rules": [
+            { "state_id": "SS_EXT_PEELING", "action": "required" }
+          ],
+          "applies_when": { "substrate_condition": ["SC_SEVERE_DEFECT"] },
+          "quality_notes": {
+            "QT2": "Remove all loose and peeling paint. Feather edges.",
+            "QT3": "Remove all failing paint. Heat gun for stubborn areas. Feather smooth.",
+            "QT4": "Complete removal of all compromised coating. Heat/chemical strip as needed. Feather to invisible transition."
+          }
+        },
+        {
+          "task_id": "TSK_WSRP_FEATHER_SAND",
+          "name": "Feather Sand Paint Edges",
+          "description": "Sand edges of remaining paint to create smooth transition to bare wood. Required after scraping on failing/peeling states.",
+          "task_type": "prep",
+          "task_classification": "state_conditional",
+          "skill_level": "journeyman",
+          "tools_required": ["orbital_sander", "sandpaper_80_120", "sanding_block"],
+          "appears_in_tiers": ["QT2", "QT3", "QT4"],
+          "substrate_state_rules": [
+            { "state_id": "SS_EXT_FAILING_PAINT", "action": "required" },
+            { "state_id": "SS_EXT_PEELING", "action": "required" }
+          ],
+          "quality_notes": {
+            "QT2": "Sand edges. No sharp transitions.",
+            "QT3": "Smooth feather at all paint edges. No ridges at 3 ft.",
+            "QT4": "Invisible feather transitions. Inspect under raking light."
+          }
+        },
+        {
+          "task_id": "TSK_WSRP_SAND_WEATHERED",
+          "name": "Sand Weathered Wood to Fresh Surface",
+          "description": "Sand weathered, grey, UV-damaged wood to reveal fresh wood fiber. Required for weathered state — surface must accept primer penetration.",
+          "task_type": "prep",
+          "task_classification": "state_conditional",
+          "skill_level": "journeyman",
+          "tools_required": ["orbital_sander", "sandpaper_60_80"],
+          "appears_in_tiers": ["QT2", "QT3", "QT4"],
+          "substrate_state_rules": [
+            { "state_id": "SS_EXT_WEATHERED", "action": "required" }
+          ],
+          "quality_notes": {
+            "QT2": "Sand grey layer off. Fresh wood visible.",
+            "QT3": "Full sand to fresh wood. Uniform scratch pattern.",
+            "QT4": "Complete removal of weathered layer. Inspect for uniform fresh wood surface."
+          }
+        },
+        {
+          "task_id": "TSK_WSRP_DEGLOSS",
+          "name": "Degloss Existing Sound Paint",
+          "description": "Liquid deglosser or light sand for adhesion on sound existing paint. For sound_paint state where coating is intact but glossy.",
+          "task_type": "prep",
+          "task_classification": "state_conditional",
+          "skill_level": "journeyman",
+          "tools_required": ["liquid_deglosser", "sandpaper_150_220", "rags"],
+          "appears_in_tiers": ["QT2", "QT3", "QT4"],
+          "substrate_state_rules": [
+            { "state_id": "SS_EXT_SOUND_PAINT", "action": "required" }
+          ],
+          "quality_notes": { "all": "Degloss entire surface. Wipe residue. Surface should feel uniformly dull/matte to touch." }
+        },
+        {
+          "task_id": "TSK_WSRP_DUST_CLEAN",
+          "name": "Prep Dust Cleanup",
+          "description": "Remove all sanding dust, scraping debris, and wash residue from siding surfaces before coating.",
+          "task_type": "prep",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "tools_required": ["compressed_air", "brush", "rags"],
+          "appears_in_tiers": ["QT2", "QT3", "QT4"],
+          "quality_notes": { "all": "All dust removed. Wipe test on random boards shows clean surface. No residue in lap joints or profiles." }
+        }
+      ],
+      "sequence_notes": "Power wash → Chalk remediate (chalking) OR Scrape (failing/peeling) OR Sand weathered (weathered) OR Degloss (sound_paint) → Feather sand (after scraping) → Dust cleanup. Allow 24-48 hr dry after power wash before further prep."
+    },
+
+    {
+      "module_id": "MOD_WSRP_CAULK",
+      "name": "Caulk Removal & Application",
+      "description": "Remove failed caulk and apply new exterior paintable caulk at joints. Repaint-specific: always inspect and replace failed caulk.",
+      "phase": "prep",
+      "applies_when": {},
+      "required_inputs": [
+        { "input_name": "IN_LF_CAULK", "paintscope_key": "PS_EXT_LF.CAULK_JOINT", "uom": "LF" }
+      ],
+      "tasks": [
+        {
+          "task_id": "TSK_WSRP_CAULK_REMOVE",
+          "name": "Remove Failed Caulk",
+          "description": "Cut out and remove all failed, cracked, or separated caulk at siding-to-trim joints, board joints, and penetrations.",
+          "task_type": "prep",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "tools_required": ["utility_knife", "caulk_removal_tool", "scraper_3in"],
+          "appears_in_tiers": ["QT2", "QT3", "QT4"],
+          "quality_notes": { "all": "Remove all failed caulk. Clean joint to sound substrate. No residue in joint." }
+        },
+        {
+          "task_id": "TSK_WSRP_CAULK_APPLY",
+          "name": "Apply New Caulk at Joints",
+          "description": "Apply exterior paintable sealant caulk at all siding-to-trim joints, board joints, and penetrations. Backer rod for gaps >3/8 inch.",
+          "task_type": "prep",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "tools_required": ["caulk_gun", "caulk_exterior", "backer_rod"],
+          "appears_in_tiers": ["QT2", "QT3", "QT4"],
+          "quality_notes": {
+            "QT2": "All open joints caulked. Tool smooth.",
+            "QT3": "All joints caulked with consistent bead. Tool smooth. No voids.",
+            "QT4": "Precision bead. Uniform profile. Inspect all joints for complete fill."
+          }
+        }
+      ],
+      "sequence_notes": "Remove old caulk → Apply new caulk. Allow cure per manufacturer spec before top-coating."
+    },
+
+    {
+      "module_id": "MOD_WSRP_PRIME",
+      "name": "Substrate-State-Driven Priming",
+      "description": "Primer selection and coverage determined by substrate_state. Sound paint: spot prime bare spots only. Chalking: chalk-binding primer. Failing >30% / Peeling: full acrylic prime. Weathered: penetrating alkyd primer. Tannin-rich exposed wood: alkyd tannin-blocker.",
+      "phase": "prime",
+      "applies_when": {},
+      "required_inputs": [
+        { "input_name": "IN_SF_SIDING_FIELD", "paintscope_key": "PS_EXT_SURFACE_SF.SIDING_FIELD", "uom": "SF" }
+      ],
+      "tasks": [
+        {
+          "task_id": "TSK_WSRP_SPOT_PRIME_BRUSH",
+          "name": "Spot Prime Bare Areas — Brush",
+          "description": "Brush-apply primer to small bare wood spots exposed after scraping. For sound_paint or failing_paint states with <30% bare area.",
+          "task_type": "apply",
+          "task_classification": "state_conditional",
+          "skill_level": "journeyman",
+          "tools_required": ["brush_3in", "brush_4in"],
+          "appears_in_tiers": ["QT2", "QT3", "QT4"],
+          "substrate_state_rules": [
+            { "state_id": "SS_EXT_SOUND_PAINT", "action": "optional" },
+            { "state_id": "SS_EXT_FAILING_PAINT", "action": "required" }
+          ],
+          "applies_when": { "bare_area_pct": "lt_30" },
+          "quality_notes": { "all": "Cover all bare wood. Feather onto sound existing paint. Full hiding on bare spots." }
+        },
+        {
+          "task_id": "TSK_WSRP_CHALK_BIND_PRIME_ROLL",
+          "name": "Chalk-Binding Primer — Roll Application",
+          "description": "Roll-apply chalk-binding primer to lock down residual chalk and provide adhesion surface. Full coverage for chalking state.",
+          "task_type": "apply",
+          "task_classification": "state_conditional",
+          "skill_level": "journeyman",
+          "tools_required": ["roller_9in", "roller_cover_3_4in", "brush_3in"],
+          "appears_in_tiers": ["QT2", "QT3", "QT4"],
+          "substrate_state_rules": [
+            { "state_id": "SS_EXT_CHALKING", "action": "required" }
+          ],
+          "applies_when": { "application_method": ["brush_roll", "brush"] },
+          "quality_notes": { "all": "Full coverage. Work primer into chalky surface. No holidays. Wipe test after dry shows bound surface." }
+        },
+        {
+          "task_id": "TSK_WSRP_CHALK_BIND_PRIME_SPRAY",
+          "name": "Chalk-Binding Primer — Spray Application",
+          "description": "Spray-apply chalk-binding primer for large chalking areas. Back-brush into substrate for penetration.",
+          "task_type": "apply",
+          "task_classification": "state_conditional",
+          "skill_level": "journeyman",
+          "tools_required": ["airless_sprayer", "spray_tip_517", "brush_4in"],
+          "appears_in_tiers": ["QT2", "QT3", "QT4"],
+          "substrate_state_rules": [
+            { "state_id": "SS_EXT_CHALKING", "action": "required" }
+          ],
+          "applies_when": { "application_method": ["spray_backbrush"] },
+          "quality_notes": { "all": "Spray and immediately back-brush for penetration. No holidays. Full coverage." }
+        },
+        {
+          "task_id": "TSK_WSRP_FULL_PRIME_SPRAY_BACKBRUSH",
+          "name": "Full Acrylic Prime — Spray + Backbrush",
+          "description": "Full field prime coat with acrylic bonding primer. Spray application with immediate backbrush for adhesion. For failing >30% bare or peeling states.",
+          "task_type": "apply",
+          "task_classification": "state_conditional",
+          "skill_level": "journeyman",
+          "tools_required": ["airless_sprayer", "spray_tip_517", "brush_4in"],
+          "appears_in_tiers": ["QT2", "QT3", "QT4"],
+          "substrate_state_rules": [
+            { "state_id": "SS_EXT_FAILING_PAINT", "action": "required" },
+            { "state_id": "SS_EXT_PEELING", "action": "required" }
+          ],
+          "applies_when": { "application_method": ["spray_backbrush"], "bare_area_pct": "gte_30" },
+          "quality_notes": { "all": "Full coverage. Even mil build. Back-brush all surfaces for penetration and adhesion." }
+        },
+        {
+          "task_id": "TSK_WSRP_FULL_PRIME_BRUSH",
+          "name": "Full Acrylic Prime — Brush Application",
+          "description": "Full field prime coat with acrylic bonding primer. Brush application for detail areas or when spray is not feasible.",
+          "task_type": "apply",
+          "task_classification": "state_conditional",
+          "skill_level": "journeyman",
+          "tools_required": ["brush_3in", "brush_4in"],
+          "appears_in_tiers": ["QT2", "QT3", "QT4"],
+          "substrate_state_rules": [
+            { "state_id": "SS_EXT_FAILING_PAINT", "action": "required" },
+            { "state_id": "SS_EXT_PEELING", "action": "required" }
+          ],
+          "applies_when": { "application_method": ["brush", "brush_roll"], "bare_area_pct": "gte_30" },
+          "quality_notes": { "all": "Full coverage. Work primer into wood grain. Even film build." }
+        },
+        {
+          "task_id": "TSK_WSRP_TANNIN_PRIME_SPRAY",
+          "name": "Alkyd Tannin-Blocker Prime — Spray",
+          "description": "Spray-apply alkyd tannin-blocking primer on exposed tannin-rich wood (cedar, redwood). Prevents bleed-through discoloration.",
+          "task_type": "apply",
+          "task_classification": "state_conditional",
+          "skill_level": "journeyman",
+          "tools_required": ["airless_sprayer", "spray_tip_515"],
+          "appears_in_tiers": ["QT2", "QT3", "QT4"],
+          "substrate_state_rules": [
+            { "state_id": "SS_EXT_FAILING_PAINT", "action": "optional" },
+            { "state_id": "SS_EXT_PEELING", "action": "optional" },
+            { "state_id": "SS_EXT_WEATHERED", "action": "optional" }
+          ],
+          "applies_when": { "application_method": ["spray_backbrush"], "tannin_risk": true },
+          "quality_notes": { "all": "Full coverage on tannin-rich areas. Even mil build. Allow full cure before topcoat." }
+        },
+        {
+          "task_id": "TSK_WSRP_TANNIN_PRIME_BRUSH",
+          "name": "Alkyd Tannin-Blocker Prime — Brush",
+          "description": "Brush-apply alkyd tannin-blocking primer on exposed tannin-rich wood. For detail or limited areas.",
+          "task_type": "apply",
+          "task_classification": "state_conditional",
+          "skill_level": "journeyman",
+          "tools_required": ["brush_3in", "brush_4in"],
+          "appears_in_tiers": ["QT2", "QT3", "QT4"],
+          "substrate_state_rules": [
+            { "state_id": "SS_EXT_FAILING_PAINT", "action": "optional" },
+            { "state_id": "SS_EXT_PEELING", "action": "optional" },
+            { "state_id": "SS_EXT_WEATHERED", "action": "optional" }
+          ],
+          "applies_when": { "application_method": ["brush", "brush_roll"], "tannin_risk": true },
+          "quality_notes": { "all": "Full coverage. Work into grain. Even film build on all tannin-rich areas." }
+        },
+        {
+          "task_id": "TSK_WSRP_PENETRATING_PRIME_BRUSH",
+          "name": "Penetrating Alkyd Primer — Brush",
+          "description": "Brush-apply penetrating alkyd primer on weathered wood surfaces. Deep penetration consolidates damaged fibers.",
+          "task_type": "apply",
+          "task_classification": "state_conditional",
+          "skill_level": "journeyman",
+          "tools_required": ["brush_3in", "brush_4in"],
+          "appears_in_tiers": ["QT2", "QT3", "QT4"],
+          "substrate_state_rules": [
+            { "state_id": "SS_EXT_WEATHERED", "action": "required" }
+          ],
+          "applies_when": { "application_method": ["brush", "brush_roll"] },
+          "quality_notes": { "all": "Generous application. Allow primer to soak in. Second coat on severely weathered areas." }
+        },
+        {
+          "task_id": "TSK_WSRP_PENETRATING_PRIME_SPRAY",
+          "name": "Penetrating Alkyd Primer — Spray",
+          "description": "Spray-apply penetrating alkyd primer on large weathered wood areas. Back-brush for deep penetration.",
+          "task_type": "apply",
+          "task_classification": "state_conditional",
+          "skill_level": "journeyman",
+          "tools_required": ["airless_sprayer", "spray_tip_517", "brush_4in"],
+          "appears_in_tiers": ["QT2", "QT3", "QT4"],
+          "substrate_state_rules": [
+            { "state_id": "SS_EXT_WEATHERED", "action": "required" }
+          ],
+          "applies_when": { "application_method": ["spray_backbrush"] },
+          "quality_notes": { "all": "Spray heavy wet coat. Immediately back-brush for penetration. Second pass on severely weathered areas." }
+        }
+      ],
+      "sequence_notes": "Primer selection by substrate_state: Sound paint → spot prime only. Chalking → chalk-binding primer. Failing <30% → spot prime. Failing ≥30% / Peeling → full acrylic prime. Weathered → penetrating alkyd. Tannin-rich exposed wood → tannin-blocker (may layer under acrylic prime)."
+    },
+
+    {
+      "module_id": "MOD_WSRP_FINISH_1",
+      "name": "Finish Coat 1",
+      "description": "First finish coat application. Method determined by application_method dimension. QT2 may use this as sole finish coat.",
+      "phase": "apply",
+      "applies_when": {},
+      "required_inputs": [
+        { "input_name": "IN_SF_SIDING_FIELD", "paintscope_key": "PS_EXT_SURFACE_SF.SIDING_FIELD", "uom": "SF" }
+      ],
+      "tasks": [
+        {
+          "task_id": "TSK_WSRP_FINISH_SPRAY_BACKBRUSH",
+          "name": "Finish Coat — Spray + Backbrush",
+          "description": "Spray finish coat and immediately back-brush into wood profile for adhesion and uniform texture. Primary method for lap and board & batten profiles.",
+          "task_type": "apply",
+          "task_classification": "method_conditional",
+          "skill_level": "journeyman",
+          "tools_required": ["airless_sprayer", "spray_tip_515", "brush_4in"],
+          "appears_in_tiers": ["QT2", "QT3", "QT4"],
+          "applies_when": { "application_method": ["spray_backbrush"] },
+          "quality_notes": {
+            "QT2": "Even coverage. No drips or holidays.",
+            "QT3": "Uniform mil build. Back-brush all surfaces. No visible spray pattern at 6 ft.",
+            "QT4": "Perfect uniformity. Back-brush into all profiles. No defects at arm's length."
+          }
+        },
+        {
+          "task_id": "TSK_WSRP_FINISH_BRUSH_ROLL",
+          "name": "Finish Coat — Brush/Roll",
+          "description": "Brush and roll finish coat. Brush at edges, transitions, and profiles. Roller for open field areas.",
+          "task_type": "apply",
+          "task_classification": "method_conditional",
+          "skill_level": "journeyman",
+          "tools_required": ["brush_4in", "roller_9in", "roller_cover_3_8in"],
+          "appears_in_tiers": ["QT2", "QT3", "QT4"],
+          "applies_when": { "application_method": ["brush_roll"] },
+          "quality_notes": {
+            "QT2": "Even coverage. No holidays.",
+            "QT3": "Even coverage. No brush marks in roller field. Maintain wet edge.",
+            "QT4": "Uniform film build. No lap marks. Maintain wet edge to natural break points."
+          }
+        },
+        {
+          "task_id": "TSK_WSRP_FINISH_BRUSH",
+          "name": "Finish Coat — Brush Only",
+          "description": "Brush-only finish coat for shingle profile siding or detail areas where spray/roll is not practical.",
+          "task_type": "apply",
+          "task_classification": "method_conditional",
+          "skill_level": "journeyman",
+          "tools_required": ["brush_3in", "brush_4in"],
+          "appears_in_tiers": ["QT2", "QT3", "QT4"],
+          "applies_when": { "application_method": ["brush"], "siding_profile": ["shingle"] },
+          "quality_notes": {
+            "QT2": "Even coverage on all shingle faces and edges.",
+            "QT3": "Full coverage. Consistent brush texture. No drips in butt joints.",
+            "QT4": "Full coverage. Even film build. Inspect every shingle face."
+          }
+        }
+      ],
+      "sequence_notes": "First finish coat. Method determined by application_method. For QT2, this may be the final coat (1-coat finish). QT3/QT4 proceed to interstage and coat 2."
+    },
+
+    {
+      "module_id": "MOD_WSRP_INTERSTAGE",
+      "name": "Interstage Inspection",
+      "description": "Inspect first finish coat. Touch up defects. Proceed to coat 2 for QT3/QT4. QT2 skips to final inspect if 1-coat scope.",
+      "phase": "interstage",
+      "applies_when": { "quality_tier": ["QT3", "QT4"] },
+      "required_inputs": [
+        { "input_name": "IN_SF_SIDING_FIELD", "paintscope_key": "PS_EXT_SURFACE_SF.SIDING_FIELD", "uom": "SF" }
+      ],
+      "tasks": [
+        {
+          "task_id": "TSK_WSRP_INTERSTAGE_INSPECT",
+          "name": "Interstage Inspection",
+          "description": "Inspect first finish coat for holidays, runs, sags, coverage defects, and missed areas.",
+          "task_type": "inspect",
+          "task_classification": "qt_conditional",
+          "skill_level": "journeyman",
+          "tools_required": [],
+          "appears_in_tiers": ["QT3", "QT4"],
+          "quality_notes": {
+            "QT3": "Ground-level scan for obvious defects — runs, sags, holidays.",
+            "QT4": "Systematic elevation inspection at 6 ft viewing distance. Mark all defects."
+          }
+        },
+        {
+          "task_id": "TSK_WSRP_INTERSTAGE_TOUCHUP",
+          "name": "Interstage Touch-Up",
+          "description": "Repair defects found during interstage inspection before applying coat 2.",
+          "task_type": "apply",
+          "task_classification": "qt_conditional",
+          "skill_level": "journeyman",
+          "tools_required": ["brush_2in"],
+          "appears_in_tiers": ["QT3", "QT4"],
+          "quality_notes": {
+            "QT3": "Fix obvious defects.",
+            "QT4": "Fix all marked defects. Blend repairs into surrounding coating."
+          }
+        }
+      ],
+      "sequence_notes": "Inspect coat 1 → Touch up → Allow recoat time per TDS → Coat 2. QT2 skips this module entirely."
+    },
+
+    {
+      "module_id": "MOD_WSRP_FINISH_2",
+      "name": "Finish Coat 2",
+      "description": "Second (final) finish coat. Required for QT3/QT4. QT2 accepts 1-coat finish.",
+      "phase": "apply",
+      "applies_when": { "quality_tier": ["QT3", "QT4"] },
+      "required_inputs": [
+        { "input_name": "IN_SF_SIDING_FIELD", "paintscope_key": "PS_EXT_SURFACE_SF.SIDING_FIELD", "uom": "SF" }
+      ],
+      "tasks": [
+        {
+          "task_id": "TSK_WSRP_FINISH_2_SPRAY_BACKBRUSH",
+          "name": "Finish Coat 2 — Spray + Backbrush",
+          "description": "Second and final finish coat by spray + backbrush. Critical for appearance and film build durability.",
+          "task_type": "apply",
+          "task_classification": "method_conditional",
+          "skill_level": "journeyman",
+          "tools_required": ["airless_sprayer", "spray_tip_515", "brush_4in"],
+          "appears_in_tiers": ["QT3", "QT4"],
+          "applies_when": { "application_method": ["spray_backbrush"] },
+          "quality_notes": {
+            "QT3": "Even coverage. Consistent appearance across all elevations.",
+            "QT4": "Perfect uniformity. No visible pattern at 6 ft. Consistent mil build."
+          }
+        },
+        {
+          "task_id": "TSK_WSRP_FINISH_2_BRUSH_ROLL",
+          "name": "Finish Coat 2 — Brush/Roll",
+          "description": "Second finish coat by brush and roller. Final coat.",
+          "task_type": "apply",
+          "task_classification": "method_conditional",
+          "skill_level": "journeyman",
+          "tools_required": ["brush_4in", "roller_9in", "roller_cover_3_8in"],
+          "appears_in_tiers": ["QT3", "QT4"],
+          "applies_when": { "application_method": ["brush_roll"] },
+          "quality_notes": {
+            "QT3": "Even coverage. No brush marks in roller field. Maintain wet edge.",
+            "QT4": "Uniform film build. No lap marks. Maintain wet edge to natural break points."
+          }
+        },
+        {
+          "task_id": "TSK_WSRP_FINISH_2_BRUSH",
+          "name": "Finish Coat 2 — Brush Only",
+          "description": "Second finish coat brush-only for shingle profile or detail areas.",
+          "task_type": "apply",
+          "task_classification": "method_conditional",
+          "skill_level": "journeyman",
+          "tools_required": ["brush_3in", "brush_4in"],
+          "appears_in_tiers": ["QT3", "QT4"],
+          "applies_when": { "application_method": ["brush"], "siding_profile": ["shingle"] },
+          "quality_notes": {
+            "QT3": "Full coverage. Consistent texture.",
+            "QT4": "Full coverage. Even film build. Inspect every shingle face."
+          }
+        }
+      ],
+      "sequence_notes": "Second and final finish coat. QT3/QT4 only. QT2 stops after coat 1."
+    },
+
+    {
+      "module_id": "MOD_WSRP_FINAL_INSPECT",
+      "name": "Final Inspection & Touch-Up",
+      "description": "Final walkthrough of completed siding finish. Touch up defects found during inspection.",
+      "phase": "apply",
+      "applies_when": {},
+      "required_inputs": [
+        { "input_name": "IN_SF_SIDING_FIELD", "paintscope_key": "PS_EXT_SURFACE_SF.SIDING_FIELD", "uom": "SF" }
+      ],
+      "tasks": [
+        {
+          "task_id": "TSK_WSRP_INSPECT",
+          "name": "Final Walkthrough Inspection",
+          "description": "Walk all elevations and inspect completed siding finish for defects, holidays, coverage, and appearance.",
+          "task_type": "inspect",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "tools_required": ["camera"],
+          "appears_in_tiers": ["QT2", "QT3", "QT4"],
+          "quality_notes": {
+            "QT2": "Ground-level walkthrough at 10 ft viewing distance.",
+            "QT3": "Ground-level walkthrough at 6 ft viewing distance. Binoculars for upper.",
+            "QT4": "Scaffold/lift inspection of all elevations at arm's length. Photo documentation."
+          }
+        },
+        {
+          "task_id": "TSK_WSRP_TOUCHUP",
+          "name": "Final Touch-Up",
+          "description": "Brush touch-up of defects found during final walkthrough inspection.",
+          "task_type": "apply",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "tools_required": ["brush_2in"],
+          "appears_in_tiers": ["QT2", "QT3", "QT4"],
+          "quality_notes": {
+            "QT2": "Fix obvious defects at ground-level viewing distance.",
+            "QT3": "Fix all noted defects. Blend seamlessly at 6 ft.",
+            "QT4": "Fix every defect. Blend repairs at arm's length standard."
+          }
+        }
+      ],
+      "sequence_notes": "Final inspect all elevations → Touch up → Client sign-off."
+    },
+
+    {
+      "module_id": "MOD_WSRP_CLEANUP",
+      "name": "Cleanup & Demobilization",
+      "description": "Remove all protection materials, clean equipment, RRP cleanup if applicable, scaffold teardown, and site restoration.",
+      "phase": "cleanup",
+      "applies_when": {},
+      "required_inputs": [],
+      "tasks": [
+        {
+          "task_id": "TSK_WSRP_REMOVE_PROTECTION",
+          "name": "Remove All Protection Materials",
+          "description": "Remove all masking tape, drop cloths, plastic sheeting, landscape tarps, fixture bags, and vehicle covers.",
+          "task_type": "cleanup",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "tools_required": [],
+          "protection_metadata": {
+            "action": "teardown",
+            "zones": ["ext_landscape_adjacent", "ext_landscape_full", "ext_hardscape", "ext_light_fixture", "ext_hvac_unit", "ext_vehicle"],
+            "method_dependent": false
+          },
+          "appears_in_tiers": ["QT2", "QT3", "QT4"],
+          "quality_notes": { "all": "All tape, plastic, and tarps removed. Check for adhesive residue on fixtures." }
+        },
+        {
+          "task_id": "TSK_WSRP_RRP_CLEANUP",
+          "name": "RRP Lead-Safe Cleanup",
+          "description": "EPA RRP-compliant cleanup: HEPA vacuum all surfaces, roll up poly containment inward, double-bag waste, visual inspection, cleaning verification test. Required when lead paint was disturbed.",
+          "task_type": "cleanup",
+          "task_classification": "condition_conditional",
+          "skill_level": "journeyman",
+          "tools_required": ["hepa_vacuum", "poly_bags", "cleaning_verification_cards"],
+          "appears_in_tiers": ["QT2", "QT3", "QT4"],
+          "applies_when": { "lead_positive": true },
+          "quality_notes": { "all": "Full RRP protocol. HEPA vacuum all horizontal surfaces within containment. Roll poly inward. Double-bag waste. Pass cleaning verification test. Document all results." }
+        },
+        {
+          "task_id": "TSK_WSRP_SCAFFOLD_TEARDOWN",
+          "name": "Scaffold / Lift Teardown",
+          "description": "Dismantle scaffold, return aerial lift, or stage ladders for removal.",
+          "task_type": "cleanup",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "tools_required": ["scaffold", "ladder"],
+          "appears_in_tiers": ["QT2", "QT3", "QT4"],
+          "applies_when": { "access_type": ["scaffold", "lift", "ladder"] },
+          "quality_notes": { "all": "All access equipment removed. No damage to landscaping or hardscape from equipment." }
+        },
+        {
+          "task_id": "TSK_WSRP_CLEANUP",
+          "name": "Final Site Cleanup & Demobilization",
+          "description": "Clean spray equipment, brushes, rollers. Collect all debris — sandpaper, caulk tubes, tape, containers, rags. Restore site to pre-work condition. Load and demobilize.",
+          "task_type": "cleanup",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "tools_required": ["cleaning_supplies"],
+          "appears_in_tiers": ["QT2", "QT3", "QT4"],
+          "quality_notes": { "all": "Site restored to pre-work condition. All equipment cleaned and loaded. No debris remaining." }
+        }
+      ],
+      "sequence_notes": "Remove protection → RRP cleanup (if lead) → Scaffold teardown → Final site cleanup & demobilization."
+    }
+  ]
+}

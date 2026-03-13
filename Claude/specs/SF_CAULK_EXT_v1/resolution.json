@@ -1,0 +1,394 @@
+{
+  "_meta": {
+    "spec_family_id": "SF_CAULK_EXT",
+    "generated_by": "registry_resolver",
+    "generated_at": "2026-03-11",
+    "version": "1.0.0",
+    "purpose": "Pre-resolved registry values for downstream agents. Agents consuming this file do NOT need to load raw registry files.",
+    "input_files": ["research.json", "controlled_enums.json", "id_registry.json", "structural_keys.json", "agent_rules.json"]
+  },
+
+  "spec_identity": {
+    "spec_family_id": "SF_CAULK_EXT",
+    "status": "proposed",
+    "context_prefix": "CAULK",
+    "notes": "New spec family — exterior caulking as standalone LF-based line item. No existing SF_ entry. Domain: exterior. Phase scope: apply (single product application — not prime/finish). No quality tier dimension."
+  },
+
+  "paintable_items": [
+    {
+      "item_id": "ITM_CAULK_JOINT",
+      "name": "Exterior Caulk Joint",
+      "unit_of_measure": "LF",
+      "surface_ref": "caulk_joint_exterior",
+      "status": "proposed",
+      "notes": "New item — no existing ITM_ covers a caulk joint. LF is the natural UOM for linear sealant application. The surface_ref is also proposed (no existing surface_id for caulk joints)."
+    }
+  ],
+
+  "task_prefix": {
+    "pattern": "TSK_CAULK_",
+    "context": "CAULK",
+    "collision_check": "No collision. TSK_CAULK exists as a generic closet shelf task but TSK_CAULK_* prefix is unused. The CAULK abbreviation is distinct from the existing TSK_CAULK generic pattern.",
+    "naming_rule": "TSK_CAULK_{ACTION} — action should be verb-based (PROTECT_GROUND, JOINT_CLEAN, APPLY_SIMPLE, INSPECT)"
+  },
+
+  "module_prefix": {
+    "pattern": "MOD_CAULK_",
+    "expected_modules": [
+      { "module_id": "MOD_CAULK_SETUP", "phase": "setup" },
+      { "module_id": "MOD_CAULK_PREP", "phase": "prep" },
+      { "module_id": "MOD_CAULK_APPLY", "phase": "apply" },
+      { "module_id": "MOD_CAULK_INSPECT", "phase": "finish" },
+      { "module_id": "MOD_CAULK_CLEANUP", "phase": "cleanup" }
+    ]
+  },
+
+  "paintscope_keys": [
+    {
+      "paintscope_key": "PS_EXT_SURFACE_LF.CAULK_JOINT_TOTAL",
+      "input_name": "IN_LF_CAULK_JOINT_TOTAL",
+      "uom": "LF",
+      "status": "proposed",
+      "description": "Total linear feet of exterior caulk joints in scope",
+      "notes": "Direct capture input — estimator enters joint LF during takeoff. No existing PS_EXT key for caulk LF. Derivation from trim/opening keys is optional and outside the spec's scope."
+    },
+    {
+      "paintscope_key": "PS_EXT_SURFACE_LF.CAULK_JOINT_BACKER_ROD",
+      "input_name": "IN_LF_CAULK_JOINT_BACKER_ROD",
+      "uom": "LF",
+      "status": "proposed",
+      "description": "Subset of total joint LF requiring backer rod installation (joints > 3/8 inch wide)",
+      "notes": "Optional input. Defaults to 0 if not provided (all joints treated as simple_bead). Drives joint_complexity split."
+    },
+    {
+      "paintscope_key": "PS_EXT_META.ENUM.CAULK_SEALANT_TYPE",
+      "input_name": "IN_ENUM_CAULK_SEALANT_TYPE",
+      "uom": "ENUM",
+      "status": "proposed",
+      "description": "Primary sealant type for paintable joints",
+      "notes": "Enum selection — one of: acrylic_latex, siliconized_acrylic, polyurethane, hybrid_ms. Drives material system selection and scheduling gate (polyurethane cure)."
+    }
+  ],
+
+  "applicable_enums": {
+    "_note": "Filtered to SF_CAULK_EXT scope. No quality_tier, no sheen, no substrate_state, no application_method. This is a simple non-coating spec.",
+
+    "phase": {
+      "values": ["setup", "prep", "apply", "finish", "cleanup"],
+      "full_sequence": ["setup", "prep", "prime", "apply", "interstage", "finish", "cleanup"],
+      "prohibited": ["protect", "protection"],
+      "notes": "Uses 'apply' (generic coating phase) because caulking is neither prime nor finish. 'finish' phase used for inspection module only."
+    },
+    "task_classification": {
+      "values": ["binary", "qt_conditional", "qt_scaled"],
+      "notes": "All tasks in this spec are 'binary' — no quality tier dimension means no qt_conditional or qt_scaled tasks. Full list included per resolver convention."
+    },
+    "task_type": {
+      "values": ["prep", "apply", "protect", "inspect", "cleanup"]
+    },
+    "skill_level": {
+      "values": ["helper", "journeyman", "lead"]
+    },
+    "unit_of_measure": {
+      "values": ["LF", "FIXED"],
+      "prohibited": ["each", "ROOM", "FIXED_TIME"],
+      "notes": "LF for all joint-based tasks. FIXED for cleanup allowance."
+    },
+    "uom_input": {
+      "values": ["EA", "LF", "SF", "ENUM", "BOOL"]
+    },
+    "consumable_unit": {
+      "values": ["EA", "ROLL", "TUBE"],
+      "prohibited": ["each", "roll", "tube"]
+    },
+    "consumable_category": {
+      "values": ["fill_material", "protection", "tool"]
+    },
+    "product_role": {
+      "values": ["specialty"],
+      "notes": "Sealant is classified as 'specialty' — it is not primer, finish, sealer, clear, or stain. It is a standalone sealing product."
+    },
+    "yield_uom": {
+      "values": ["LF"]
+    },
+    "protection_level": {
+      "values": ["edge_only", "light_mask"]
+    },
+    "protection_action": {
+      "values": ["setup", "teardown"]
+    },
+    "severity": {
+      "values": ["critical", "major", "minor"],
+      "prohibited": ["high", "medium", "low", "WARN"]
+    },
+    "domain": {
+      "values": ["exterior"]
+    }
+  },
+
+  "surface_ids": {
+    "primary_surface": "caulk_joint_exterior",
+    "adjacent_surfaces": ["siding_field", "ext_trim_corner", "ext_trim_window_casing", "ext_trim_door_casing"],
+    "all_status": "contains_proposed",
+    "notes": "Primary surface 'caulk_joint_exterior' is proposed — no existing surface_id for caulk joints. Adjacent surfaces are all existing entries in the registry."
+  },
+
+  "zone_ids": [
+    {
+      "zone_id": "ext_ground_cover",
+      "status": "proposed",
+      "retired_alias_warning": null,
+      "notes": "Drop cloth below caulking work area. Not the same as ext_landscape_adjacent (which is landscape protection for spray/paint drip). ext_ground_cover is minimal edge-only protection for caulk drips."
+    },
+    {
+      "zone_id": "ext_surface_adjacent",
+      "status": "proposed",
+      "retired_alias_warning": null,
+      "notes": "Tape masking on adjacent finished surfaces for clean sealant lines. Conditional — active when caulking against already-finished surfaces."
+    }
+  ],
+
+  "material_system_prefix": {
+    "pattern": "SYS_CAULK_{SEALANT_TYPE}",
+    "existing_systems_to_consider": [],
+    "notes": "No existing SYS_ entries for caulk/sealant products. All 4 material systems are new. Named by sealant type since that is the primary configuration dimension (replaces quality_tier as the material driver)."
+  },
+
+  "consumable_prefix": {
+    "canonical_prefix": "CON_",
+    "prohibited_prefix": "CONS_",
+    "reusable_consumables": [
+      "CON_DROP_CLOTH_CANVAS",
+      "CON_MASKING_TAPE_BLUE"
+    ],
+    "new_consumables_expected": [
+      "CON_CAULK_TUBE",
+      "CON_CAULK_BACKER_ROD",
+      "CON_CAULK_GUN",
+      "CON_CAULK_TAPE"
+    ],
+    "notes": "CON_DROP_CLOTH_CANVAS reusable for ground protection. CON_MASKING_TAPE_BLUE reusable for adjacent surface masking. CON_CAULK_TUBE is a new consumable (spec-specific sealant tube, distinct from CON_CAULK_PAINTABLE which is interior/generic). CON_CAULK_BACKER_ROD, CON_CAULK_GUN, CON_CAULK_TAPE are new."
+  },
+
+  "round_configurations": {
+    "existing_patterns": [],
+    "naming_pattern": "ROUND_{CONTEXT}_{DESCRIPTION}",
+    "notes": "Caulking is a single-pass operation — no round configurations needed. There are no primer/finish coat sequences. One bead of sealant per joint, one pass."
+  },
+
+  "coverage_profiles": {
+    "existing_profiles": [],
+    "naming_pattern": "COV_{CONTEXT}_{PRODUCT_ROLE}",
+    "notes": "No formal coverage profiles needed. Sealant yield is measured in LF/tube (not SF/gallon like paint). Yield data belongs in materials.json consumable entries, not as COV_ profiles."
+  },
+
+  "cross_spec_coordination": {
+    "xspec_flags_consumed": [],
+    "xspec_flags_set": [
+      {
+        "flag_id": "XSPEC_CAULK_COMPLETE",
+        "description": "Set when all caulk joints are applied and skinned/cured. Adjacent painting specs should check this flag before applying finish coats over caulked joints.",
+        "status": "proposed"
+      },
+      {
+        "flag_id": "XSPEC_CAULK_POLY_CURE_GATE",
+        "description": "Set when sealant_type = polyurethane. Signals 3-7 day cure delay before finish coats. Blocks painting spec finish phases.",
+        "status": "proposed"
+      }
+    ],
+    "comp_modifiers_set": [],
+    "comp_modifiers_affected_by": [],
+    "notes": "Caulking sets flags consumed by exterior painting specs (trim, siding, window). Caulking does not consume flags from other specs. No COMP_ modifiers — caulking rate is independent of adjacent spec complexity."
+  },
+
+  "structural_reminders": {
+    "materials_json": {
+      "required_keys": ["spec_family_id", "version", "material_systems", "consumables"],
+      "system_item_keys": ["system_id", "name", "applies_when"],
+      "consumable_item_keys": ["consumable_id", "name", "category"],
+      "notes": "material_systems keyed by sealant_type (not quality_tier). applies_when uses sealant_type dimension. Use 'consumables' key (never 'consumable_usage_models')."
+    },
+    "sop_modules_json": {
+      "required_keys": ["spec_family_id", "version", "sop_modules"],
+      "module_keys": ["module_id", "name", "phase", "tasks"],
+      "task_required_keys": ["task_id", "name", "task_classification", "skill_level"],
+      "task_prohibited_keys": ["task_class", "rate_per_hour", "coverage_sf_per_gallon"]
+    },
+    "production_json": {
+      "required_keys": ["spec_family_id", "version", "task_production_rates"],
+      "rate_item_keys": ["task_id", "unit_of_measure", "rate_per_hour | fixed_time_minutes"],
+      "notes": "No quality_tier_effects needed (no QT dimension). Factor modifiers for joint_complexity drive rate selection between simple_bead and backer_rod tasks."
+    },
+    "qa_report_json": {
+      "required_keys": ["spec_family_id", "version", "overall_result"],
+      "issue_keys": ["issue_id", "severity", "area", "file", "description", "suggested_fix"]
+    }
+  },
+
+  "cross_file_threading": [
+    "RULE 1: Every TSK_ in sop_modules.json MUST have a matching rate in production.json",
+    "RULE 2: Every ITM_ in spec.json MUST appear in at least one variant",
+    "RULE 3: SYS_ applies_when.sealant_type MUST match spec.json configuration_dimensions (no quality_tier for this spec)",
+    "RULE 4: Every IN_ input in spec.json SHOULD be consumed by sop_modules or production",
+    "RULE 5: Every PS_ key in production.json MUST match spec.json required_paintscope_inputs",
+    "RULE 6: Every zone_id in spec.json MUST match sop_modules.json protection_metadata.zones",
+    "RULE 7: Module phase order: setup > prep > apply > finish > cleanup (no prime or interstage for this spec)",
+    "RULE 8: UOM for a task MUST match between sop_modules.json and production.json",
+    "RULE 9: All TSK_ IDs MUST use TSK_CAULK_ prefix per this resolution",
+    "RULE 10: ITM_CAULK_JOINT must use exact registered ID in spec.json",
+    "RULE 11: Downstream agents MUST use only enum values from this resolution's applicable_enums"
+  ],
+
+  "migration_warnings": [],
+
+  "registry_additions_proposed": [
+    {
+      "registry": "id_registry.json",
+      "section": "SF_",
+      "proposed_id": "SF_CAULK_EXT",
+      "name": "Exterior Caulking (New Construction)",
+      "justification": "New spec family — exterior caulking is a standalone line item not covered by any existing SF_. Crosses all exterior surface boundaries (trim, siding, windows, corners, penetrations)."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "ITM_",
+      "proposed_id": "ITM_CAULK_JOINT",
+      "name": "Exterior Caulk Joint",
+      "justification": "No existing ITM_ covers a caulk joint. The closest items (ITM_TRIM_*, ITM_WINDOW_*) are painted surfaces, not joints between surfaces."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "surface_ids",
+      "proposed_id": "caulk_joint_exterior",
+      "name": "Exterior caulk joint surface",
+      "justification": "No existing surface_id for caulk joints. Needed for adjacency declarations. Caulk joints are a distinct surface type — they are the boundary between other surfaces."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "zone_ids",
+      "proposed_id": "ext_ground_cover",
+      "name": "Exterior ground cover protection",
+      "justification": "Distinct from ext_landscape_adjacent (which is spray overspray protection). ext_ground_cover is minimal drop cloth for caulk drips — edge_only level. Could be reused by other exterior specs needing ground drip protection without full landscape coverage."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "zone_ids",
+      "proposed_id": "ext_surface_adjacent",
+      "name": "Adjacent finished surface tape masking",
+      "justification": "Tape masking along joint edges on finished exterior surfaces. Not covered by existing zones — wall_adjacent is interior, ext_landscape_adjacent is ground-level landscape, not surface-to-surface joint masking."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "PS_",
+      "proposed_id": "PS_EXT_SURFACE_LF.CAULK_JOINT_TOTAL",
+      "name": "Total exterior caulk joint linear feet",
+      "justification": "No existing PS_EXT key for caulk joint LF. Needed as direct capture input for caulk scope takeoff."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "PS_",
+      "proposed_id": "PS_EXT_SURFACE_LF.CAULK_JOINT_BACKER_ROD",
+      "name": "Backer rod joint linear feet subset",
+      "justification": "Subset of total joint LF requiring backer rod. Drives joint_complexity configuration split."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "PS_",
+      "proposed_id": "PS_EXT_META.ENUM.CAULK_SEALANT_TYPE",
+      "name": "Sealant type enum selection",
+      "justification": "Enum input for sealant type selection. Drives material system selection. No existing PS_EXT_META.ENUM key for sealant type."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "IN_",
+      "proposed_id": "IN_LF_CAULK_JOINT_TOTAL",
+      "name": "Total caulk joint linear feet input",
+      "justification": "New input — no existing IN_ for caulk joint LF. Maps to PS_EXT_SURFACE_LF.CAULK_JOINT_TOTAL."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "IN_",
+      "proposed_id": "IN_LF_CAULK_JOINT_BACKER_ROD",
+      "name": "Backer rod joint linear feet input",
+      "justification": "New input — subset of total joint LF requiring backer rod. Maps to PS_EXT_SURFACE_LF.CAULK_JOINT_BACKER_ROD."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "IN_",
+      "proposed_id": "IN_ENUM_CAULK_SEALANT_TYPE",
+      "name": "Sealant type enum input",
+      "justification": "New input — sealant type selection. Maps to PS_EXT_META.ENUM.CAULK_SEALANT_TYPE."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "SYS_",
+      "proposed_id": "SYS_CAULK_ACRYLIC_LATEX",
+      "name": "Acrylic Latex Sealant System",
+      "justification": "No existing SYS_ for sealant products. Acrylic latex is the baseline sealant type for low-movement joints."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "SYS_",
+      "proposed_id": "SYS_CAULK_SILICONIZED_ACRYLIC",
+      "name": "Siliconized Acrylic Sealant System",
+      "justification": "Mid-range sealant with improved water resistance over straight acrylic."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "SYS_",
+      "proposed_id": "SYS_CAULK_POLYURETHANE",
+      "name": "Polyurethane Sealant System",
+      "justification": "High-movement sealant (Class 25/50). Introduces 3-7 day cure scheduling gate."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "SYS_",
+      "proposed_id": "SYS_CAULK_HYBRID_MS",
+      "name": "Hybrid MS Polymer Sealant System",
+      "justification": "Premium paintable sealant combining silicone durability with paintability."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "CON_",
+      "proposed_id": "CON_CAULK_TUBE",
+      "name": "Exterior Sealant Tube (10.1 oz)",
+      "justification": "Distinct from CON_CAULK_PAINTABLE (interior/generic). Exterior sealant tubes are spec-specific consumables tied to sealant_type selection."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "CON_",
+      "proposed_id": "CON_CAULK_BACKER_ROD",
+      "name": "Closed-Cell Backer Rod",
+      "justification": "New consumable — closed-cell foam backer rod for joints > 3/8 inch. No existing CON_ for backer rod."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "CON_",
+      "proposed_id": "CON_CAULK_GUN",
+      "name": "Caulk Gun (smooth-rod)",
+      "justification": "Reusable tool tracked as consumable. No existing CON_ for caulk gun."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "CON_",
+      "proposed_id": "CON_CAULK_TAPE",
+      "name": "Masking Tape for Clean Caulk Lines",
+      "justification": "Could potentially reuse CON_MASKING_TAPE_BLUE, but this is specific to caulk line masking (different usage rate — 60 LF/roll vs standard tape usage). Materials Manager should evaluate whether to reuse CON_MASKING_TAPE_BLUE or keep separate."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "XSPEC_",
+      "proposed_id": "XSPEC_CAULK_COMPLETE",
+      "name": "Caulking complete flag",
+      "justification": "Signals to adjacent painting specs that caulk joints are applied and ready for overcoat. New cross-spec coordination flag."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "XSPEC_",
+      "proposed_id": "XSPEC_CAULK_POLY_CURE_GATE",
+      "name": "Polyurethane cure scheduling gate",
+      "justification": "Signals 3-7 day cure delay when polyurethane sealant is used. Blocks finish coat scheduling on adjacent painting specs."
+    }
+  ]
+}

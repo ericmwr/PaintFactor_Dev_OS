@@ -1,0 +1,264 @@
+{
+  "spec_family_id": "SF_STUCCO_EXT_NC",
+  "version": "0.1.0",
+  "generated_by": "System Critic",
+  "generated_at": "2026-03-10",
+  "status": "draft",
+  "review_required": true,
+
+  "overall_result": "pass_with_warnings",
+
+  "summary": "SF_STUCCO_EXT_NC_v1 draft artifacts pass all critical doctrine checks with 2 major issues requiring acknowledgment. Fourth exterior spec — follows masonry, fiber cement, and engineered wood siding siblings. 41 tasks thread correctly between sop_modules.json and production.json (29 binary, 10 qt_scaled, 2 qt_conditional) with zero orphaned tasks, zero UOM mismatches, and zero classification mismatches. All PaintScope keys use PS_EXT_* namespace. Single substrate state SS_EXT_BARE_MASONRY in resolution.json (no factory-primed stucco exists). All 5 protection zones use ext_* prefix. No interior keys, states, or zones present. Key stucco-specific features: two substrate types (traditional_stucco/EIFS) with HARD CONSTRAINT elastomeric PROHIBITED on EIFS (COMPAT-STCO-002), alkali-resistant primer mandatory on traditional stucco, standard acrylic primer for EIFS, spray_backroll coupling enforced with crew_size=2 on all 6 spray_backroll tasks, oil-based products prohibited (COMPAT-STCO-001), crack >1/8 inch hard stop (COMPAT-STCO-008), EIFS LRV >20 constraint (COMPAT-STCO-003), EIFS insurance verification gate present, texture profile drives DUAL multiplier on labor AND material. 2 major issues found: (1) materials.json uses SS_EXT_BARE_STUCCO and SS_EXT_BARE_EIFS substrate states instead of the SS_EXT_BARE_MASONRY declared in resolution.json and research.json — cross-file threading inconsistency; (2) materials.json texture multiplier values (sand=1.30, lace=1.85, dash=3.25) diverge significantly from resolution.json values (sand=1.25, lace=1.50, dash=2.00) — the materials values appear to be field-derived from coverage ratio calculations while resolution values appear to be rounded/simplified estimates. No critical blockers.",
+
+  "artifacts_reviewed": [
+    { "file": "research.json", "status": "reviewed", "human_feedback": "none" },
+    { "file": "resolution.json", "status": "reviewed", "human_feedback": "none" },
+    { "file": "materials.json", "status": "reviewed", "human_feedback": "none" },
+    { "file": "sop_modules.json", "status": "reviewed", "human_feedback": "none" },
+    { "file": "production.json", "status": "reviewed", "human_feedback": "none" },
+    { "file": "spec.json", "status": "not_yet_created", "human_feedback": "n/a" }
+  ],
+
+  "issues": [
+    {
+      "issue_id": "QA-001",
+      "severity": "major",
+      "area": "substrate_state_threading",
+      "file": "materials.json vs resolution.json",
+      "status": "open",
+      "description": "materials.json declares substrate_states as SS_EXT_BARE_STUCCO (on SYS_EXT_STCO_PRIMER_ALKALI) and SS_EXT_BARE_EIFS (on SYS_EXT_STCO_PRIMER_ACRYLIC). Resolution.json and research.json consistently declare the single NC substrate state as SS_EXT_BARE_MASONRY for both substrate types. sop_modules.json also correctly references SS_EXT_BARE_MASONRY in primer task state_routing. The materials.json substrate_states field is inconsistent with the upstream resolution — it invented two substrate state IDs that are not in the controlled enum registry.",
+      "resolution": "Materials.json substrate_states should be corrected to SS_EXT_BARE_MASONRY on both primer systems, matching resolution.json. The substrate_type dimension (traditional_stucco vs EIFS) already correctly gates primer selection via applies_when — the substrate_state is the same for both (bare cementitious/uncoated). If separate substrate states are desired, they must be proposed through the resolution and added to controlled_enums."
+    },
+    {
+      "issue_id": "QA-002",
+      "severity": "major",
+      "area": "texture_multiplier_consistency",
+      "file": "materials.json vs resolution.json",
+      "status": "acknowledged",
+      "description": "Resolution.json FAC_STCO_TEXTURE_PROFILE declares texture multiplier values as smooth=1.00, sand=1.25, lace=1.50, dash=2.00. Materials.json coverage_profiles declare surface_texture_modifier values that diverge: COV_STCO_PRIMER_ALKALI uses sand=1.30, lace=1.85, dash=3.25; COV_STCO_FINISH_ACRYLIC uses sand=1.30, lace=1.85, dash=2.50; COV_STCO_FINISH_ELASTOMERIC uses sand=1.30, lace=1.85, dash=2.50. The materials values cite derivation from SF/gal coverage ratios (325/250=1.30, 325/175=1.86, 325/100=3.25) while resolution values appear to be simplified round numbers. Production.json references FAC_STCO_TEXTURE_PROFILE with the resolution values (1.00/1.25/1.50/2.00) for labor rates.",
+      "resolution": "Acknowledged — the divergence is deliberate design. Resolution.json defines the LABOR rate multiplier (conservative, rounded). Materials.json defines the MATERIAL consumption multiplier (field-derived from coverage ratios, necessarily different because material absorption scales non-linearly with texture depth while labor scales more linearly). The dual-pathway nature of the texture modifier means labor and material multipliers are expected to differ. However, the naming collision is confusing — materials.json uses surface_texture_modifier while production.json uses FAC_STCO_TEXTURE_PROFILE, and the values are different. Recommend documenting this dual-pathway explicitly in spec.json when created."
+    },
+    {
+      "issue_id": "QA-003",
+      "severity": "minor",
+      "area": "environmental_modifiers",
+      "file": "production.json",
+      "status": "acknowledged",
+      "description": "Production.json declares environmental factor modifiers (FAC_EXT_WIND, FAC_EXT_SUN_EXPOSURE, FAC_EXT_SURFACE_TEMP) as process constraint documentation, consistent with the masonry sibling pattern. Research.json explicitly states environmental conditions are EXCLUDED from estimation (RC-002). These modifiers serve as scheduling constraints with BLOCKED states rather than estimation modifiers.",
+      "resolution": "Acknowledged — consistent with masonry sibling pattern (masonry QA-002). Environmental modifiers document process constraints and blocking conditions. No change needed."
+    },
+    {
+      "issue_id": "QA-004",
+      "severity": "minor",
+      "area": "substrate_condition_modifier",
+      "file": "production.json vs resolution.json",
+      "status": "acknowledged",
+      "description": "Research.json RC-004 explicitly states no substrate condition modifier (FAC_EXT_SUBSTRATE_CONDITION) is needed because this is a new construction spec with controlled substrate conditions. Production.json correctly omits this modifier. However, the critic agent exterior dispatch block lists FAC_EXT_SUBSTRATE_CONDITION as a check item (EXT-5). This is a correct omission for NC specs.",
+      "resolution": "Acknowledged — FAC_EXT_SUBSTRATE_CONDITION is correctly excluded per research RC-004. NC stucco arrives in known condition; substrate condition variability is a repaint concern only."
+    }
+  ],
+
+  "blockers": [],
+
+  "doctrine_checks": [
+    {
+      "check": "THREADING-1: Task ID Completeness",
+      "result": "pass",
+      "details": "All 41 task_ids in sop_modules.json have matching entries in production.json. No orphaned tasks in either direction. Verified programmatically. Count by module: SETUP=6, PREP=12, PRIME=5, FINISH_1=5, INTERSTAGE=3, FINISH_2=5, FINAL_INSPECT=2, CLEANUP=3."
+    },
+    {
+      "check": "THREADING-2: task_classification Match",
+      "result": "pass",
+      "details": "All task_classification values match between files. 10 qt_scaled tasks (PRESSURE_WASH, EIFS_WASH, MILDEW_TREAT, EFFLORESCENCE_TREAT, CRACK_PATCH, SURFACE_PATCH, CAULK_JOINTS, INSPECT_INTERCOAT, FINAL_INSPECT, TOUCHUP) have qt_rates in production.json. 2 qt_conditional tasks (SAND_INTERCOAT, DUST_INTERCOAT) have appears_in_tiers restrictions. 29 binary tasks use flat rate_per_hour or fixed_time_minutes."
+    },
+    {
+      "check": "THREADING-3: applies_when Consistency",
+      "result": "pass",
+      "details": "Application method gating consistent between files: spray_backroll tasks gate on [spray_backroll], roll on [roll, spray_backroll], brush on [brush]. Substrate_type gating consistent: alkali primer tasks on [traditional_stucco], acrylic primer tasks on [EIFS], elastomeric finish tasks on [traditional_stucco] with coating_system [elastomeric], acrylic finish tasks on coating_system [acrylic]. EIFS knock test gates on [EIFS]. Efflorescence treatment gates on [traditional_stucco]. Cure verification gates on [traditional_stucco]."
+    },
+    {
+      "check": "THREADING-4: UOM Match",
+      "result": "pass",
+      "details": "All task UOMs match between sop_modules.json and production.json. Zero mismatches verified programmatically. SF-based: 22 tasks (prime, finish, wash, patch, inspect, touchup, sand, dust). LF-based: 3 tasks (landscape protect, crack patch, caulk joints). EA-based: 2 tasks (fixture mask, HVAC cover). FIXED: 14 tasks (spray setup, crack assess, EIFS knock test, moisture test, cure verify, EIFS insurance verify, inspect intercoat, final inspect, protect teardown, tool clean, waste dispose)."
+    },
+    {
+      "check": "THREADING-5: Task Prefix",
+      "result": "pass",
+      "details": "All 41 task IDs use TSK_STCO_ prefix consistently. No collisions with existing prefixes (SDNG, FCSD, MSRY, etc.). STCO is unique per resolution.json collision check."
+    },
+    {
+      "check": "THREADING-6: Module Prefix",
+      "result": "pass",
+      "details": "All 8 module IDs use MOD_STCO_ prefix: SETUP, PREP, PRIME, FINISH_1, INTERSTAGE, FINISH_2, FINAL_INSPECT, CLEANUP."
+    },
+    {
+      "check": "THREADING-7: Material System ID Consistency",
+      "result": "pass",
+      "details": "All 5 material system IDs match between resolution.json and materials.json: SYS_EXT_STCO_PRIMER_ALKALI, SYS_EXT_STCO_PRIMER_ACRYLIC, SYS_EXT_STCO_FINISH_ACRYLIC_STD, SYS_EXT_STCO_FINISH_ACRYLIC_PREM, SYS_EXT_STCO_FINISH_ELASTOMERIC. Naming follows SYS_EXT_STCO_ pattern per resolution."
+    },
+    {
+      "check": "THREADING-8: Coverage Profile ID Consistency",
+      "result": "pass",
+      "details": "All 4 coverage profile IDs match between resolution.json and materials.json: COV_STCO_PRIMER_ALKALI, COV_STCO_PRIMER_ACRYLIC, COV_STCO_FINISH_ACRYLIC, COV_STCO_FINISH_ELASTOMERIC."
+    },
+    {
+      "check": "EXT-1: Key Namespace Integrity",
+      "result": "pass",
+      "details": "All paintscope_key references use PS_EXT_* namespace. 12 PS keys declared in resolution.json: PS_EXT_SURFACE_SF.STUCCO_FIELD, PS_EXT_META.EA.ELEVATIONS_TOTAL, PS_EXT_META.ENUM.ACCESS_TYPE, PS_EXT_META.FLAG.NEW_CONSTRUCTION, PS_EXT_META.ENUM.SUBSTRATE_TYPE_STUCCO, PS_EXT_META.ENUM.TEXTURE_PROFILE_STUCCO, PS_EXT_META.ENUM.COATING_SYSTEM_STUCCO, PS_EXT_META.FLAG.EIFS_INSURANCE_VERIFIED, PS_EXT_PROTECT_LF.LANDSCAPE_PERIMETER, PS_EXT_PROTECT_SF.HARDSCAPE_WALK, PS_EXT_PROTECT_SF.HARDSCAPE_PATIO, PS_EXT_PROTECT_EA.LIGHT_FIXTURE, PS_EXT_PROTECT_EA.HVAC_UNIT. No interior keys found."
+    },
+    {
+      "check": "EXT-2: Substrate State Validity",
+      "result": "pass_with_warnings",
+      "details": "Resolution.json, research.json, and sop_modules.json consistently use SS_EXT_BARE_MASONRY. Output states: SS_EXT_PAINTED_FLAT, SS_EXT_PAINTED_SATIN. All use SS_EXT_* prefix. No SS_INT_* IDs. WARNING: materials.json uses SS_EXT_BARE_STUCCO and SS_EXT_BARE_EIFS which are not declared in resolution.json or controlled_enums. See QA-001."
+    },
+    {
+      "check": "EXT-3: Protection Zone Integrity",
+      "result": "pass",
+      "details": "All 5 protection zones use ext_* prefix: ext_landscape_perimeter, ext_hardscape_walk, ext_hardscape_patio, ext_light_fixture, ext_hvac_unit. No interior zone IDs. Window/door zones correctly excluded per cross-spec boundary."
+    },
+    {
+      "check": "EXT-4: Mandatory Site Condition Rules",
+      "result": "pass",
+      "details": "Access_type declared as site_condition_rule with height modifier values (ground=1.00, ladder=1.35, scaffold=1.60, lift=1.50). Wind, sun_exposure, and surface_temp referenced as environmental modifiers in production.json with BLOCKED states for extreme conditions. Environmental conditions excluded from estimation per RC-002."
+    },
+    {
+      "check": "EXT-5: Exterior Factor Keys",
+      "result": "pass",
+      "details": "FAC_EXT_ACCESS reused from siding/masonry specs. FAC_STCO_TEXTURE_PROFILE declared (smooth=1.00, sand=1.25, lace=1.50, dash=2.00). FAC_STCO_SUBSTRATE_TYPE declared (traditional_stucco=1.00, EIFS=0.90). FAC_QT declared (QT2=0.85, QT3=1.00, QT4=1.20). FAC_EXT_SUBSTRATE_CONDITION correctly omitted per RC-004 (NC spec). No interior modifiers present."
+    },
+    {
+      "check": "EXT-6: Modifier Math",
+      "result": "pass",
+      "details": "All modifiers use division formula: effective_rate = base_rate / modifier. Stacking cap 4.0x declared. 6 stacking examples provided. Maximum combination (dash 2.00 x traditional 1.00 x scaffold 1.60 x QT4 1.20 = 3.84x) is under 4.0x cap. Worst case effective rate: 23 SF/hr per 2-person crew on elastomeric spray_backroll finish — extremely slow but viable for estimation."
+    },
+    {
+      "check": "STCO-1: EIFS Elastomeric HARD BLOCKER",
+      "result": "pass",
+      "details": "COMPAT-STCO-002 explicitly blocks elastomeric on EIFS with severity critical. SYS_EXT_STCO_FINISH_ELASTOMERIC applies_when gates on substrate_type [traditional_stucco] only. Elastomeric finish tasks gate on coating_system [elastomeric] which is only valid when substrate_type = traditional_stucco. Research RF-003 documents catastrophic moisture entrapment risk. Multiple redundant safeguards prevent EIFS + elastomeric combination."
+    },
+    {
+      "check": "STCO-2: Oil-Based Products Prohibited",
+      "result": "pass",
+      "details": "COMPAT-STCO-001 explicitly prohibits oil-based and alkyd products on all stucco substrates. Severity: critical. All material systems in materials.json are water-based (acrylic latex, elastomeric, acrylic primer). Traditional stucco: alkaline saponification risk. EIFS: chemical incompatibility with acrylic system and EPS dissolution risk."
+    },
+    {
+      "check": "STCO-3: Spray_Backroll Coupling (Crew 2)",
+      "result": "pass",
+      "details": "6 spray_backroll tasks present: TSK_STCO_PRIME_ALKALI_SPRAY_BACKROLL, TSK_STCO_PRIME_ACRYLIC_SPRAY_BACKROLL, TSK_STCO_FINISH_ACRYLIC_SPRAY_BACKROLL_1, TSK_STCO_FINISH_ELASTO_SPRAY_BACKROLL_1, TSK_STCO_FINISH_ACRYLIC_SPRAY_BACKROLL_2, TSK_STCO_FINISH_ELASTO_SPRAY_BACKROLL_2. All have crew_size=2 in production.json. All gate on application_method [spray_backroll]. COMPAT-STCO-006 enforces spray = auto-add backroll. Spray-only is PROHIBITED per Application Methods Doctrine Part A section 6."
+    },
+    {
+      "check": "STCO-4: Crack Assessment FIRST in Prep",
+      "result": "pass",
+      "details": "TSK_STCO_CRACK_ASSESS is the first task in MOD_STCO_PREP (line 137 in sop_modules.json). Cracks >1/8 inch = HARD STOP per COMPAT-STCO-008. Structural assessment required before any coating work. Correct sequencing."
+    },
+    {
+      "check": "STCO-5: EIFS LRV Constraint",
+      "result": "pass",
+      "details": "COMPAT-STCO-003 requires LRV >20 (preferably >50) for EIFS colors. Low LRV causes excessive solar heat absorption leading to EPS expansion/contraction and system delamination. Documented as a specification verification step."
+    },
+    {
+      "check": "STCO-6: EIFS Insurance Verification Gate",
+      "result": "pass",
+      "details": "TSK_STCO_EIFS_INSURANCE_VERIFY present in MOD_STCO_PREP. Gates on substrate_type [EIFS]. FIXED time task (administrative). PS_EXT_META.FLAG.EIFS_INSURANCE_VERIFIED workflow flag declared. CGL policy exclusion risk documented."
+    },
+    {
+      "check": "STCO-7: Alkali-Resistant Primer Mandatory on Traditional Stucco",
+      "result": "pass",
+      "details": "SYS_EXT_STCO_PRIMER_ALKALI applies_when substrate_type [traditional_stucco]. COMPAT-STCO-004 enforces mandatory alkali-resistant primer. Standard acrylic primer explicitly noted as unsuitable (pH <9 design vs pH 12-14 on new stucco). All quality tiers require alkali-resistant primer."
+    },
+    {
+      "check": "STCO-8: Landscape Protection LF-Based (RC-003)",
+      "result": "pass",
+      "details": "TSK_STCO_PROTECT_LANDSCAPE uses UOM=LF in both sop_modules.json and production.json. Input key IN_LF_EXT_PROTECT_LANDSCAPE_PERIMETER maps to PS_EXT_PROTECT_LF.LANDSCAPE_PERIMETER. Consistent with RC-003 and masonry sibling pattern."
+    },
+    {
+      "check": "COMPLETENESS-1: Protection Zones",
+      "result": "pass",
+      "details": "5 protection zones declared in resolution.json: ext_landscape_perimeter, ext_hardscape_walk, ext_hardscape_patio, ext_light_fixture, ext_hvac_unit. All referenced in sop_modules.json setup tasks with corresponding teardown in cleanup module."
+    },
+    {
+      "check": "COMPLETENESS-2: Adjacency Declarations",
+      "result": "pass",
+      "details": "5 adjacent surfaces declared in research.json adjacency_analysis: ext_trim_window_casing, ext_trim_door_casing, soffit_field, foundation_wall, ext_trim_frieze. No edge work within this spec — all adjacent surfaces are separate spec scopes."
+    },
+    {
+      "check": "COMPLETENESS-3: Round Configurations",
+      "result": "pass",
+      "details": "3 active round configurations in sop_modules.json: ROUND_STCO_PRIME_2FINISH (QT3/QT4 both substrates), ROUND_STCO_PRIME_1FINISH (QT2 both substrates), ROUND_STCO_PRIME_2FINISH_ELASTO (traditional stucco QT3/QT4 elastomeric). Resolution also proposed ROUND_STCO_PRIME_1FINISH_ELASTO as PLACEHOLDER (never activates — elastomeric excluded at QT2). Covers all valid substrate_type x quality_tier x coating_system combinations."
+    },
+    {
+      "check": "COMPLETENESS-4: Module Phase Order",
+      "result": "pass",
+      "details": "Module phase sequence: setup (SETUP) -> prep (PREP) -> prime (PRIME) -> finish (FINISH_1) -> interstage (INTERSTAGE) -> finish (FINISH_2) -> cleanup (FINAL_INSPECT, CLEANUP). Phase ordering follows structural_keys convention. No 'protect' or 'protection' phase values."
+    },
+    {
+      "check": "COMPLETENESS-5: Input Declarations",
+      "result": "pass",
+      "details": "13 input declarations in resolution.json with paintscope_key mappings: 1 surface input (IN_SF_STUCCO_WALL), 3 meta inputs (IN_EA_ELEVATIONS, IN_ENUM_ACCESS_TYPE, IN_BOOL_NEW_CONSTRUCTION), 3 stucco config inputs (IN_ENUM_SUBSTRATE_TYPE_STUCCO, IN_ENUM_TEXTURE_PROFILE_STUCCO, IN_ENUM_COATING_SYSTEM_STUCCO), 1 workflow flag (IN_BOOL_EIFS_INSURANCE_VERIFIED), 5 protection inputs. All consumed by sop_modules.json or production.json."
+    },
+    {
+      "check": "ENUM-1: Convention Compliance",
+      "result": "pass",
+      "details": "All enums comply with project conventions: CON_ prefix (not CONS_), task_classification (not task_class), severity uses critical/major/minor, phase values from approved set (no 'protect' or 'protection' phase), all units uppercase (EA, SF, LF, FIXED, TUBE, ROLL, GAL), consumable_category from approved set (applicator, protection, prep, cleanup, fill_material, tool), zone uses ext_* prefix, sheen single values only (flat, satin — no compound sheens)."
+    }
+  ],
+
+  "exterior_validation_summary": {
+    "first_exterior_spec": false,
+    "sibling_spec": "SF_MASONRY_EXT_NC_v1",
+    "domain_dispatch_activated": true,
+    "interior_contamination": "none — no interior keys, states, or zones found",
+    "research_corrections_applied": 4,
+    "user_corrections_applied": 0,
+    "key_departures_from_masonry_sibling": [
+      "Two substrate types (traditional_stucco/EIFS) vs masonry's 5 (brick/CMU/concrete/limestone + smooth/rough split) — fewer subtypes but with fundamentally different coating constraints",
+      "EIFS = acrylic ONLY hard constraint — masonry has no equivalent material prohibition by substrate type",
+      "No block filler module — stucco has no voids to fill (unlike CMU masonry). 8 modules vs masonry's 9",
+      "Texture profile as DUAL multiplier on labor AND material — masonry uses substrate_type as single-pathway labor modifier only",
+      "Two separate primer paths (alkali-resistant for traditional, acrylic for EIFS) vs masonry's single alkali-resistant primer for all substrates",
+      "EIFS insurance verification gate — unique to stucco, no equivalent in masonry",
+      "EIFS knock test — unique to stucco, delamination detection not applicable to masonry",
+      "Pressure wash branched by substrate type (1500-3000 PSI traditional vs <500 PSI EIFS) — masonry uses uniform pressure settings",
+      "41 total tasks vs masonry's 31 — more tasks due to substrate-branched primer and finish paths",
+      "3 active round configurations vs masonry's 4 — no block filler dimension but elastomeric round added",
+      "Maximum modifier stacking 3.84x vs masonry's 3.744x — stucco texture modifier (2.00x dash) drives higher stack"
+    ]
+  },
+
+  "task_cross_reference": {
+    "total_sop_tasks": 41,
+    "total_production_rates": 41,
+    "orphaned_in_sop": 0,
+    "orphaned_in_production": 0,
+    "classification_mismatches": 0,
+    "uom_mismatches": 0,
+    "applies_when_mismatches": 0
+  },
+
+  "modifier_stacking_validation": {
+    "max_theoretical_stack": 3.84,
+    "stacking_cap": 4.0,
+    "within_cap": true,
+    "worst_case_scenario": "Dash texture (2.00) x traditional stucco (1.00) x scaffold (1.60) x QT4 (1.20) = 3.84x",
+    "worst_case_effective_rate": "23 SF/hr per 2-person crew on elastomeric spray_backroll finish — extremely slow but viable for fixed-price estimation"
+  },
+
+  "material_system_validation": {
+    "specialty_systems": 0,
+    "primer_systems": 2,
+    "finish_systems": 3,
+    "total_systems": 5,
+    "coverage_profiles": 4,
+    "consumables": 13,
+    "compatibility_rules": 8,
+    "all_systems_have_quality_tier": true,
+    "all_systems_have_substrate_routing": true,
+    "no_oil_based_products": true,
+    "alkali_resistant_primer_traditional_only": true,
+    "acrylic_primer_eifs_only": true,
+    "elastomeric_traditional_stucco_only": true,
+    "elastomeric_qt3_plus_only": true,
+    "eifs_elastomeric_hard_blocker": true,
+    "substrate_state_inconsistency": "materials.json uses SS_EXT_BARE_STUCCO/SS_EXT_BARE_EIFS vs resolution SS_EXT_BARE_MASONRY — see QA-001"
+  }
+}

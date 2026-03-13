@@ -1,0 +1,752 @@
+{
+  "_meta": {
+    "spec_family_id": "SF_STUCCO_EXT_NC",
+    "generated_by": "registry_resolver",
+    "generated_at": "2026-03-10",
+    "version": "1.0.0",
+    "purpose": "Pre-resolved registry values for downstream agents. Agents consuming this file do NOT need to load raw registry files.",
+    "input_files": ["research.json", "controlled_enums.json", "id_registry.json", "structural_keys.json", "agent_rules.json"]
+  },
+
+  "spec_identity": {
+    "spec_family_id": "SF_STUCCO_EXT_NC",
+    "status": "proposed",
+    "domain": "exterior",
+    "phase_scope": "full",
+    "context_prefix": "STCO",
+    "notes": "New spec family for exterior stucco/EIFS wall coating. Context prefix STCO (STuCcO) — no collision with existing prefixes (CLOSET_SHELF, FRAME, DOOR, CEIL, WALL, TRIM, WIN, STRS, WNSC, WDWL, WDCL, ARCH, BLTN, CABT, SDNG, FCSD, MSRY). Combined prime+finish in single spec (same mobilization). Two substrate types (traditional_stucco, EIFS) with HARD CONSTRAINT: EIFS = acrylic coating only, elastomeric PROHIBITED. No block filler module (unlike masonry CMU)."
+  },
+
+  "paintable_items": [
+    {
+      "item_id": "ITM_STUCCO_WALL",
+      "name": "Exterior stucco wall field surface",
+      "unit_of_measure": "SF",
+      "surface_ref": "stucco_wall_field",
+      "status": "proposed",
+      "notes": "New ITM for exterior stucco/EIFS wall field. Covers traditional 3-coat stucco and EIFS/synthetic stucco wall surfaces. SF-based — net paintable stucco area from PaintScope. Substrate_type dimension (traditional_stucco/EIFS) drives primer selection, coating system constraint, and production rate adjustments. Texture_profile dimension (smooth/sand/lace/dash) drives dual labor+material multiplier."
+    }
+  ],
+
+  "task_prefix": {
+    "pattern": "TSK_STCO_",
+    "context": "STCO",
+    "collision_check": "No collision. Existing prefixes: CLOSET_SHELF, FRAME, DOOR, CEIL, WALL, TRIM, WIN, STRS, WNSC, WDWL, WDCL, ARCH, BLTN, CABT, SDNG, FCSD, MSRY. STCO is unique.",
+    "naming_rule": "TSK_STCO_{ACTION} — action should be verb-based. Examples: TSK_STCO_WATER_WASH, TSK_STCO_CRACK_ASSESS, TSK_STCO_PRIME_SPRAY_BACKROLL, TSK_STCO_FINISH_SPRAY_BACKROLL_1, TSK_STCO_EIFS_KNOCK_TEST, TSK_STCO_MILDEW_TREAT"
+  },
+
+  "module_prefix": {
+    "pattern": "MOD_STCO_",
+    "expected_modules": [
+      { "module_id": "MOD_STCO_SETUP", "phase": "setup", "notes": "Protection setup — landscape, hardscape, HVAC, light fixtures. EIFS insurance verification flag." },
+      { "module_id": "MOD_STCO_PREP", "phase": "prep", "notes": "Crack assessment (FIRST — hard stop at >1/8 inch), substrate identification, cure verification (traditional), EIFS knock test (QT3/QT4), water wash (pressure branched by substrate_type), mildew eradication (conditional), efflorescence treatment (traditional only, conditional), stucco patch + texture match, caulk stucco-to-trim joints." },
+      { "module_id": "MOD_STCO_PRIME", "phase": "prime", "notes": "Alkali-resistant primer on traditional stucco (mandatory — pH 12-14). Standard acrylic primer on EIFS. Spray_backroll, roll, or brush." },
+      { "module_id": "MOD_STCO_FINISH_1", "phase": "finish", "notes": "First finish coat — acrylic or elastomeric per coating_system dimension. HARD CONSTRAINT: EIFS = acrylic ONLY." },
+      { "module_id": "MOD_STCO_INTERSTAGE", "phase": "interstage", "notes": "Intercoat inspection. Light sand at QT4 only. Dust removal. QT2 skips this module (single coat)." },
+      { "module_id": "MOD_STCO_FINISH_2", "phase": "finish", "notes": "Second finish coat. QT2 may skip (single coat acceptable on properly primed surface). QT3/QT4 two coats standard." },
+      { "module_id": "MOD_STCO_FINAL_INSPECT", "phase": "cleanup", "notes": "Final inspection, touch-up, raking light inspection at QT4." },
+      { "module_id": "MOD_STCO_CLEANUP", "phase": "cleanup", "notes": "Protection teardown, cleanup, tool cleaning." }
+    ]
+  },
+
+  "paintscope_keys": [
+    {
+      "paintscope_key": "PS_EXT_SURFACE_SF.STUCCO_FIELD",
+      "input_name": "IN_SF_STUCCO_WALL",
+      "uom": "SF",
+      "status": "proposed",
+      "description": "Net paintable stucco wall field area (square feet)"
+    },
+    {
+      "paintscope_key": "PS_EXT_META.EA.ELEVATIONS_TOTAL",
+      "input_name": "IN_EA_ELEVATIONS",
+      "uom": "EA",
+      "status": "existing",
+      "description": "Number of building elevations"
+    },
+    {
+      "paintscope_key": "PS_EXT_META.ENUM.ACCESS_TYPE",
+      "input_name": "IN_ENUM_ACCESS_TYPE",
+      "uom": "ENUM",
+      "status": "existing",
+      "description": "Access type per elevation (ground/ladder/scaffold/lift)"
+    },
+    {
+      "paintscope_key": "PS_EXT_META.FLAG.NEW_CONSTRUCTION",
+      "input_name": "IN_BOOL_NEW_CONSTRUCTION",
+      "uom": "BOOL",
+      "status": "existing",
+      "description": "Boolean flag confirming new construction context. Always true for this NC spec."
+    },
+    {
+      "paintscope_key": "PS_EXT_META.ENUM.SUBSTRATE_TYPE_STUCCO",
+      "input_name": "IN_ENUM_SUBSTRATE_TYPE_STUCCO",
+      "uom": "ENUM",
+      "status": "proposed",
+      "description": "Stucco substrate type (traditional_stucco, EIFS). Primary branching dimension — drives coating system constraint (elastomeric prohibited on EIFS), primer selection, pressure wash settings, LRV constraints, and insurance requirements.",
+      "notes": "Per-elevation if mixed substrate types on same structure (rare but possible)."
+    },
+    {
+      "paintscope_key": "PS_EXT_META.ENUM.TEXTURE_PROFILE_STUCCO",
+      "input_name": "IN_ENUM_TEXTURE_PROFILE_STUCCO",
+      "uom": "ENUM",
+      "status": "proposed",
+      "description": "Stucco texture profile (smooth, sand, lace, dash). Drives DUAL multiplier on labor rate (SF/hr) and material consumption (SF/gal). Smooth=1.00x, sand=1.25x, lace=1.50x, dash=2.00x.",
+      "notes": "Per-elevation if texture varies. Texture multiplier applies to BOTH labor and material pathways."
+    },
+    {
+      "paintscope_key": "PS_EXT_META.ENUM.COATING_SYSTEM_STUCCO",
+      "input_name": "IN_ENUM_COATING_SYSTEM_STUCCO",
+      "uom": "ENUM",
+      "status": "proposed",
+      "description": "Stucco coating system (elastomeric, acrylic). HARD CONSTRAINT: when substrate_type = EIFS, coating_system MUST be acrylic. Elastomeric on EIFS = catastrophic moisture entrapment.",
+      "notes": "Project-level configuration. Elastomeric selection triggers moisture source assessment documentation requirement."
+    },
+    {
+      "paintscope_key": "PS_EXT_META.FLAG.EIFS_INSURANCE_VERIFIED",
+      "input_name": "IN_BOOL_EIFS_INSURANCE_VERIFIED",
+      "uom": "BOOL",
+      "status": "proposed",
+      "description": "Boolean flag confirming CGL insurance covers EIFS work or EIFS-specific rider obtained. Required before starting EIFS work.",
+      "notes": "Workflow flag only — does not affect estimation. Surfaced in project management workflow."
+    },
+    {
+      "paintscope_key": "PS_EXT_PROTECT_LF.LANDSCAPE_PERIMETER",
+      "input_name": "IN_LF_EXT_PROTECT_LANDSCAPE_PERIMETER",
+      "uom": "LF",
+      "status": "existing",
+      "description": "Linear feet of house perimeter where landscape is adjacent and requires protection."
+    },
+    {
+      "paintscope_key": "PS_EXT_PROTECT_SF.HARDSCAPE_WALK",
+      "input_name": "IN_SF_EXT_PROTECT_HARDSCAPE_WALK",
+      "uom": "SF",
+      "status": "existing",
+      "description": "Adjacent walkway area requiring protection."
+    },
+    {
+      "paintscope_key": "PS_EXT_PROTECT_SF.HARDSCAPE_PATIO",
+      "input_name": "IN_SF_EXT_PROTECT_HARDSCAPE_PATIO",
+      "uom": "SF",
+      "status": "existing",
+      "description": "Adjacent patio area requiring protection."
+    },
+    {
+      "paintscope_key": "PS_EXT_PROTECT_EA.LIGHT_FIXTURE",
+      "input_name": "IN_EA_EXT_PROTECT_LIGHT_FIXTURE",
+      "uom": "EA",
+      "status": "existing",
+      "description": "Count of exterior light fixtures to mask."
+    },
+    {
+      "paintscope_key": "PS_EXT_PROTECT_EA.HVAC_UNIT",
+      "input_name": "IN_EA_EXT_PROTECT_HVAC_UNIT",
+      "uom": "EA",
+      "status": "existing",
+      "description": "Count of HVAC condenser units to cover."
+    }
+  ],
+
+  "applicable_enums": {
+    "quality_tier": {
+      "values": ["QT2", "QT3", "QT4"],
+      "default": "QT3",
+      "prohibited": ["QT5"],
+      "notes": "QT5 excluded — not applicable to stucco wall field. QT2 is economy (single finish coat on primed surface). All tiers require primer on new stucco (alkali-resistant for traditional, acrylic for EIFS)."
+    },
+    "application_method": {
+      "values": ["spray_backroll", "roll", "brush"],
+      "prohibited": ["spray"],
+      "notes": "Spray_backroll is gold standard for stucco — spray auto-adds backroll (mandatory per Exterior Application Methods Doctrine Part A §6). Spray-only is PROHIBITED on textured stucco. Roll is fallback for smaller areas or occupied-adjacent. Brush is detail work only."
+    },
+    "substrate_type": {
+      "values": ["traditional_stucco", "EIFS"],
+      "notes": "Configuration dimension, NOT substrate_state. Traditional stucco: Portland cement/sand/lime, pH up to 13. EIFS: EPS + polymer base + acrylic finish. Drives primer selection, coating system constraint, pressure wash settings, LRV constraints, and insurance requirements."
+    },
+    "texture_profile": {
+      "values": ["smooth", "sand", "lace", "dash"],
+      "notes": "Configuration dimension. Drives DUAL multiplier on labor rate AND material consumption. Smooth=1.00x baseline, sand=1.25x, lace=1.50x, dash=2.00x. Also drives roller nap selection."
+    },
+    "coating_system": {
+      "values": ["elastomeric", "acrylic"],
+      "notes": "Configuration dimension with HARD CONSTRAINT: EIFS = acrylic ONLY. Elastomeric is PROHIBITED on EIFS (catastrophic moisture entrapment). Elastomeric only valid when substrate_type = traditional_stucco."
+    },
+    "sheen": {
+      "values": ["flat", "satin"],
+      "prohibited": ["eggshell/satin", "semi-gloss+"],
+      "notes": "Standard exterior stucco sheens. Flat is most common (hides texture irregularities). Satin for EIFS (easier cleaning). Semi-gloss not typical for stucco wall field."
+    },
+    "phase": {
+      "values": ["setup", "prep", "prime", "interstage", "finish", "cleanup"],
+      "full_sequence": ["setup", "prep", "prime", "apply", "interstage", "finish", "cleanup"],
+      "prohibited": ["protect", "protection"],
+      "notes": "Combined prime+finish spec. No 'apply' phase — uses 'prime' and 'finish' directly. No block filler module (unlike masonry)."
+    },
+    "task_classification": {
+      "values": ["binary", "qt_conditional", "qt_scaled"]
+    },
+    "skill_level": {
+      "values": ["helper", "journeyman", "lead"]
+    },
+    "unit_of_measure": {
+      "values": ["EA", "LF", "SF", "FIXED"],
+      "prohibited": ["each", "ROOM", "FIXED_TIME"],
+      "notes": "SF is primary UOM for stucco wall field. EA for protection items and fixed inspections. LF for caulk joints and landscape perimeter. FIXED for crack assessment, EIFS knock test, moisture testing, cure verification, tool cleaning."
+    },
+    "uom_input": {
+      "values": ["EA", "LF", "SF", "ENUM", "BOOL"]
+    },
+    "substrate_state": {
+      "input_states": ["SS_EXT_BARE_MASONRY"],
+      "output_states": {
+        "flat": "SS_EXT_PAINTED_FLAT",
+        "satin": "SS_EXT_PAINTED_SATIN"
+      },
+      "notes": "SS_EXT_BARE_MASONRY is the single NC state for both traditional stucco and EIFS. All new stucco arrives bare/uncoated. Output varies by sheen. SS_EXT_BARE_MASONRY is proposed — reuses the same state as masonry spec (cementitious substrate family)."
+    },
+    "consumable_unit": {
+      "values": ["EA", "ROLL", "SHEET", "TUBE", "GAL", "QT"],
+      "prohibited": ["each", "roll", "sheet", "tube"]
+    },
+    "consumable_category": {
+      "values": ["applicator", "protection", "prep", "cleanup", "abrasive", "fill_material", "tool"]
+    },
+    "product_role": {
+      "values": ["primer", "finish"],
+      "notes": "No specialty product needed (no block filler unlike masonry). No sealer/clear/stain."
+    },
+    "yield_uom": {
+      "values": ["SF", "LF", "EA", "GAL"]
+    },
+    "protection_level": {
+      "values": ["none", "edge_only", "partial_cover", "full_cover", "light_mask"],
+      "notes": "Exterior zones. Protection level upgrades by application method (roll < spray_backroll)."
+    },
+    "protection_action": {
+      "values": ["setup", "maintain", "teardown"]
+    },
+    "edge_type": {
+      "values": ["linear"]
+    },
+    "typical_relationship": {
+      "values": ["different_finish"]
+    },
+    "finish_group": {
+      "values": ["same", "different"]
+    },
+    "task_type": {
+      "values": ["prep", "prime", "finish", "apply", "protect", "inspect", "cleanup", "detail"]
+    },
+    "severity": {
+      "values": ["critical", "major", "minor"],
+      "prohibited": ["high", "medium", "low", "WARN"]
+    },
+    "modifier_mechanism": {
+      "values": ["baseline", "baseline_reduction", "selective_multiplier", "additional_rounds", "excluded"]
+    },
+    "confidence_level": {
+      "values": ["low", "medium", "high"]
+    }
+  },
+
+  "surface_ids": {
+    "primary_surface": "stucco_wall_field",
+    "adjacent_surfaces": [
+      "ext_trim_window_casing",
+      "ext_trim_door_casing",
+      "soffit_field",
+      "foundation_wall",
+      "ext_trim_frieze"
+    ],
+    "all_status": "contains_proposed",
+    "notes": "stucco_wall_field is proposed — new surface ID for stucco/EIFS wall field. Similar naming pattern to masonry_wall_field. All adjacent surfaces exist in id_registry → surface_ids → entries_in_active_use."
+  },
+
+  "zone_ids": [
+    { "zone_id": "ext_landscape_perimeter", "status": "proposed", "retired_alias_warning": null },
+    { "zone_id": "ext_hardscape_walk", "status": "existing", "retired_alias_warning": null },
+    { "zone_id": "ext_hardscape_patio", "status": "existing", "retired_alias_warning": null },
+    { "zone_id": "ext_light_fixture", "status": "existing", "retired_alias_warning": null },
+    { "zone_id": "ext_hvac_unit", "status": "existing", "retired_alias_warning": null }
+  ],
+
+  "material_system_prefix": {
+    "pattern": "SYS_EXT_STCO_{DESCRIPTION}",
+    "existing_systems_to_consider": [
+      "SYS_EXT_MSRY_PRIMER_ALKALI — masonry alkali-resistant primer. Same primer concept for traditional stucco but stucco has different coverage rates (more/less porous depending on texture). Separate system for accurate coverage tracking.",
+      "SYS_EXT_MSRY_FINISH_ACRYLIC_STD — masonry standard acrylic finish. Same product tier but different substrate context and coverage rates.",
+      "SYS_EXT_MSRY_FINISH_ELASTOMERIC — masonry elastomeric finish. Same product class but stucco has texture-driven coverage variation."
+    ],
+    "proposed_systems": [
+      {
+        "system_id": "SYS_EXT_STCO_PRIMER_ALKALI",
+        "name": "Alkali-Resistant Stucco Primer (Traditional Stucco)",
+        "product_role": "primer",
+        "quality_tiers": ["QT2", "QT3", "QT4"],
+        "applies_when": { "substrate_type": ["traditional_stucco"] },
+        "notes": "Mandatory on ALL new traditional stucco (pH 12-14). Reference product: SW Loxon Masonry Primer (rated to pH 13). Allows 7-day accelerated coating vs 28-day standard cure. Standard acrylic primer NOT suitable for alkaline traditional stucco."
+      },
+      {
+        "system_id": "SYS_EXT_STCO_PRIMER_ACRYLIC",
+        "name": "100% Acrylic Exterior Primer (EIFS)",
+        "product_role": "primer",
+        "quality_tiers": ["QT2", "QT3", "QT4"],
+        "applies_when": { "substrate_type": ["EIFS"] },
+        "notes": "Standard 100% acrylic exterior primer for EIFS. No alkalinity concern on EIFS — standard acrylic is suitable. Vapor-permeable formulation preferred."
+      },
+      {
+        "system_id": "SYS_EXT_STCO_FINISH_ACRYLIC_STD",
+        "name": "Standard Exterior Acrylic Finish for Stucco",
+        "product_role": "finish",
+        "quality_tiers": ["QT2", "QT3"],
+        "applies_when": { "coating_system": ["acrylic"] },
+        "notes": "100% acrylic exterior latex. 10-20 perms breathability. 4-6 mils DFT. QT2 single coat, QT3 two coats. Valid for both traditional stucco and EIFS."
+      },
+      {
+        "system_id": "SYS_EXT_STCO_FINISH_ACRYLIC_PREM",
+        "name": "Premium Exterior Acrylic Finish for Stucco",
+        "product_role": "finish",
+        "quality_tiers": ["QT4"],
+        "applies_when": { "coating_system": ["acrylic"] },
+        "notes": "Premium 100% acrylic (SW Duration, BM Aura Exterior). 10-20 perms. Raking light inspection between coats. Two coats standard. Valid for both traditional stucco and EIFS."
+      },
+      {
+        "system_id": "SYS_EXT_STCO_FINISH_ELASTOMERIC",
+        "name": "Elastomeric Coating for Stucco",
+        "product_role": "finish",
+        "quality_tiers": ["QT3", "QT4"],
+        "applies_when": { "coating_system": ["elastomeric"], "substrate_type": ["traditional_stucco"] },
+        "notes": "Elastomeric coating: 5-15 perms, 12-20 mils DFT, >300% elongation. Bridges hairline cracks. STRICTLY PROHIBITED on EIFS (catastrophic moisture entrapment). Requires moisture source assessment. Not available at QT2 (application complexity exceeds economy scope). Dramatically higher material consumption than acrylic."
+      }
+    ],
+    "notes": "2 primers (alkali-resistant for traditional, acrylic for EIFS) + 2 acrylic finish (QT2-3, QT4) + 1 elastomeric finish (QT3-4, traditional stucco ONLY). Oil-based and alkyd products are PROHIBITED on stucco (both types). No block filler needed (unlike masonry CMU)."
+  },
+
+  "consumable_prefix": {
+    "canonical_prefix": "CON_",
+    "prohibited_prefix": "CONS_",
+    "reusable_consumables": [
+      "CON_MASKING_TAPE_BLUE",
+      "CON_DROP_CLOTH_CANVAS",
+      "CON_TACK_CLOTH",
+      "CON_CAULK_PAINTABLE",
+      "CON_SANDPAPER_150",
+      "CON_SANDPAPER_220"
+    ],
+    "proposed_consumables": [
+      {
+        "consumable_id": "CON_STCO_ROLLER_THICK_NAP",
+        "name": "Roller Cover 1-1/4 to 1-1/2 inch nap (stucco)",
+        "category": "applicator",
+        "unit": "EA",
+        "notes": "Heavy nap roller for textured stucco surfaces. Nylon/polyester blend for water-based products. Nap depth matched to texture profile: 3/4-1 inch smooth, 1-1/4 inch sand/lace, 1-1/4 to 1-1/2 inch dash."
+      },
+      {
+        "consumable_id": "CON_STCO_SPRAY_TIP_517",
+        "name": "Airless Spray Tip 517 (stucco acrylic)",
+        "category": "applicator",
+        "unit": "EA",
+        "notes": "0.017 orifice for standard acrylic latex on stucco. Also 619, 621 for wider patterns on large field areas."
+      },
+      {
+        "consumable_id": "CON_STCO_SPRAY_TIP_ELASTO",
+        "name": "Airless Spray Tip 521-525 (elastomeric)",
+        "category": "applicator",
+        "unit": "EA",
+        "notes": "0.021-0.025 orifice for heavy-body elastomeric coatings. Requires 2,300-3,000 PSI. Traditional stucco only."
+      },
+      {
+        "consumable_id": "CON_STCO_SPRAY_FILTER_60",
+        "name": "60-Mesh Spray Filter (Black) for Acrylic Latex",
+        "category": "applicator",
+        "unit": "EA",
+        "notes": "Standard 60-mesh (black/medium) filter for acrylic latex exterior coatings on stucco."
+      },
+      {
+        "consumable_id": "CON_STCO_SPRAY_FILTER_30",
+        "name": "30-Mesh Spray Filter (Gray/Coarse) for Elastomeric",
+        "category": "applicator",
+        "unit": "EA",
+        "notes": "Coarse 30-mesh (gray) filter for elastomeric coatings — heavy-body materials clog standard 60-mesh filters. Traditional stucco only."
+      },
+      {
+        "consumable_id": "CON_STCO_STUCCO_TAPE",
+        "name": "Red Stucco Poly Tape (7.0 mil, 30-day UV)",
+        "category": "protection",
+        "unit": "ROLL",
+        "notes": "Masking tape for rough/textured stucco surfaces. Standard blue tape will not adhere to textured stucco. 7.0 mil thickness, 30-day UV rating for exterior."
+      },
+      {
+        "consumable_id": "CON_STCO_PLASTIC_SHEETING",
+        "name": "Plastic Sheeting for Exterior Protection",
+        "category": "protection",
+        "unit": "ROLL",
+        "notes": "4 mil minimum. Landscape, hardscape, HVAC overspray protection. UV-resistant for multi-day exterior projects."
+      },
+      {
+        "consumable_id": "CON_STCO_CAULK_POLY",
+        "name": "Polyurethane Exterior Caulk (Class 25/50)",
+        "category": "fill_material",
+        "unit": "TUBE",
+        "notes": "Polyurethane caulk for stucco-to-trim joints. 3-7 day cure before painting. Siliconized acrylic acceptable for low-movement joints."
+      },
+      {
+        "consumable_id": "CON_STCO_CAULK_ELASTOMERIC",
+        "name": "Elastomeric Crack Sealant",
+        "category": "fill_material",
+        "unit": "TUBE",
+        "notes": "For cosmetic crack patching (<1/8 inch). Elastomeric or polyurethane sealant. Must cure before coating (24-48 hours latex-based, 3-7 days polyurethane)."
+      },
+      {
+        "consumable_id": "CON_STCO_TSP",
+        "name": "TSP (Trisodium Phosphate) Cleaner",
+        "category": "prep",
+        "unit": "EA",
+        "notes": "For stucco washing and efflorescence treatment (traditional stucco). Box or container — 1 EA per ~500 SF wash area."
+      },
+      {
+        "consumable_id": "CON_STCO_BLEACH",
+        "name": "Sodium Hypochlorite (Household Bleach)",
+        "category": "prep",
+        "unit": "GAL",
+        "notes": "For mildew eradication. Solution ratio: 1:3 bleach to water. Dwell 15-20 minutes, scrub, rinse thoroughly."
+      },
+      {
+        "consumable_id": "CON_STCO_STIFF_BRUSH",
+        "name": "Stiff Bristle Stucco Brush",
+        "category": "tool",
+        "unit": "EA",
+        "notes": "For efflorescence removal, mildew scrubbing, and stucco prep. Heavy-duty bristle brush."
+      }
+    ]
+  },
+
+  "round_configurations": {
+    "existing_patterns": [
+      "ROUND_SINGLE_COAT",
+      "ROUND_TWO_COAT"
+    ],
+    "naming_pattern": "ROUND_{CONTEXT}_{DESCRIPTION}",
+    "proposed_configurations": [
+      {
+        "round_id": "ROUND_STCO_PRIME_2FINISH",
+        "description": "1 primer + 2 finish coats — standard stucco at QT3/QT4 (both substrate types)",
+        "applies_when": { "quality_tier": ["QT3", "QT4"] }
+      },
+      {
+        "round_id": "ROUND_STCO_PRIME_1FINISH",
+        "description": "1 primer + 1 finish coat — economy stucco at QT2 (both substrate types)",
+        "applies_when": { "quality_tier": ["QT2"] }
+      },
+      {
+        "round_id": "ROUND_STCO_PRIME_2FINISH_ELASTO",
+        "description": "1 alkali-resistant primer + 2 elastomeric finish coats — traditional stucco with elastomeric system, QT3/QT4",
+        "applies_when": { "coating_system": ["elastomeric"], "substrate_type": ["traditional_stucco"], "quality_tier": ["QT3", "QT4"] }
+      },
+      {
+        "round_id": "ROUND_STCO_PRIME_1FINISH_ELASTO",
+        "description": "1 alkali-resistant primer + 1 elastomeric finish coat — traditional stucco with elastomeric system, QT2 not available (elastomeric excluded at QT2)",
+        "applies_when": null,
+        "notes": "PLACEHOLDER — elastomeric is NOT available at QT2 (application complexity exceeds economy scope). Included for completeness; this round should never activate."
+      }
+    ]
+  },
+
+  "coverage_profiles": {
+    "existing_profiles": ["COV_MSRY_PRIMER_ALKALI", "COV_MSRY_FINISH_ACRYLIC", "COV_MSRY_FINISH_ELASTOMERIC"],
+    "naming_pattern": "COV_{CONTEXT}_{PRODUCT_ROLE}",
+    "proposed_profiles": [
+      {
+        "profile_id": "COV_STCO_PRIMER_ALKALI",
+        "description": "Alkali-resistant primer on bare traditional stucco — 250-350 SF/gal baseline (smooth). Texture multiplier applies: sand 1.25x, lace 1.50x, dash 2.00x consumption increase."
+      },
+      {
+        "profile_id": "COV_STCO_PRIMER_ACRYLIC",
+        "description": "Standard acrylic primer on EIFS — 300-400 SF/gal baseline (EIFS is smoother than traditional stucco). Texture multiplier applies if EIFS has textured finish."
+      },
+      {
+        "profile_id": "COV_STCO_FINISH_ACRYLIC",
+        "description": "Acrylic finish on primed stucco — 300-350 SF/gal smooth, 200-250 SF/gal sand, 150-200 SF/gal lace, 75-125 SF/gal dash. Texture multiplier is the primary coverage driver."
+      },
+      {
+        "profile_id": "COV_STCO_FINISH_ELASTOMERIC",
+        "description": "Elastomeric finish on primed traditional stucco — 100-175 SF/gal smooth baseline due to 12-20 mil DFT requirement. Texture multiplier applies: dramatically lower coverage on textured surfaces. Traditional stucco ONLY."
+      }
+    ]
+  },
+
+  "cross_spec_coordination": {
+    "xspec_flags_consumed": [],
+    "xspec_flags_set": [],
+    "comp_modifiers_set": [],
+    "comp_modifiers_affected_by": [],
+    "notes": "Window/door protection is NOT this spec's responsibility. Trim, soffit, and fascia are separate spec scopes. No cross-spec flags needed. EIFS insurance verification is an internal workflow flag, not a cross-spec coordination item."
+  },
+
+  "factor_modifiers": {
+    "naming_pattern": "FAC_{CONTEXT}_{DESCRIPTION}",
+    "existing_modifiers": [
+      "FAC_EXT_ACCESS — ground=1.00, ladder=1.35, scaffold=1.60, lift=1.50"
+    ],
+    "proposed_modifiers": [
+      {
+        "modifier_id": "FAC_STCO_TEXTURE_PROFILE",
+        "description": "DUAL production rate AND material consumption modifier by stucco texture profile",
+        "modifier_category": "texture",
+        "values": { "smooth": 1.00, "sand": 1.25, "lace": 1.50, "dash": 2.00 },
+        "applies_to": ["labor_rate", "material_consumption"],
+        "notes": "Texture is the dominant cost driver for stucco. Rougher textures BOTH slow production AND increase material consumption. This is a DUAL multiplier — must be applied to both SF/hr rates and SF/gal coverage rates. Smooth is baseline (1.00x). Dash/roughcast is the most extreme (2.00x on both pathways)."
+      },
+      {
+        "modifier_id": "FAC_STCO_SUBSTRATE_TYPE",
+        "description": "Production rate modifier by stucco substrate type",
+        "modifier_category": "substrate",
+        "values": { "traditional_stucco": 1.00, "EIFS": 0.90 },
+        "applies_to": ["labor_rate"],
+        "notes": "EIFS is slightly faster to coat than traditional stucco (smoother, less porous, less material absorption). Traditional stucco is baseline. This modifier applies to LABOR rate only — material consumption is driven by texture_profile and coating_system."
+      }
+    ]
+  },
+
+  "structural_reminders": {
+    "materials_json": {
+      "required_keys": ["spec_family_id", "version", "material_systems", "consumables"],
+      "system_item_keys": ["system_id", "name", "quality_tier OR applies_when"],
+      "consumable_item_keys": ["consumable_id", "name", "category", "unit"],
+      "use_consumables_key": "consumables (never consumable_usage_models)",
+      "oil_based_blocker": "Oil-based and alkyd products are PROHIBITED on stucco (both traditional and EIFS). Include as compatibility_rule blocker.",
+      "eifs_elastomeric_blocker": "Elastomeric coatings are PROHIBITED on EIFS. Include as hard constraint rule: substrate_type=EIFS locks coating_system=acrylic."
+    },
+    "sop_modules_json": {
+      "required_keys": ["spec_family_id", "version", "sop_modules"],
+      "module_keys": ["module_id", "name", "phase", "tasks"],
+      "task_required_keys": ["task_id", "name", "task_classification", "skill_level"],
+      "task_prohibited_keys": ["task_class", "rate_per_hour", "coverage_sf_per_gallon"]
+    },
+    "production_json": {
+      "required_keys": ["spec_family_id", "version", "task_production_rates"],
+      "rate_item_keys": ["task_id", "unit_of_measure", "rate_per_hour OR rates_by_tier OR fixed_time_minutes"],
+      "prohibited_keys": ["tasks", "sop_modules"]
+    },
+    "qa_report_json": {
+      "required_keys": ["spec_family_id", "version", "overall_result"],
+      "issue_keys": ["issue_id", "severity", "area", "file", "description", "suggested_fix"],
+      "severity_values": ["critical", "major", "minor"]
+    }
+  },
+
+  "cross_file_threading": [
+    "RULE 1: Every TSK_ in sop_modules.json MUST have a matching rate in production.json",
+    "RULE 2: Every ITM_ in spec.json MUST appear in at least one variant",
+    "RULE 3: Every SYS_ quality_tier MUST match spec.json configuration_dimensions",
+    "RULE 4: Every IN_ input in spec.json SHOULD be consumed by sop_modules or production",
+    "RULE 5: Every PS_ key in production.json MUST match spec.json required_paintscope_inputs",
+    "RULE 6: Every zone_id in spec.json MUST match sop_modules.json protection_metadata.zones",
+    "RULE 7: Module phase order: setup → prep → prime → apply → interstage → finish → cleanup",
+    "RULE 8: UOM for a task MUST match between sop_modules.json and production.json",
+    "RULE 9: All TSK_ IDs MUST use TSK_STCO_ prefix (from this resolution)",
+    "RULE 10: ITM_STUCCO_WALL MUST be used exactly as registered (proposed ID)",
+    "RULE 11: Downstream agents MUST use only enum values from this resolution's applicable_enums"
+  ],
+
+  "migration_warnings": [],
+
+  "registry_additions_proposed": [
+    {
+      "registry": "id_registry.json",
+      "section": "SF_",
+      "proposed_id": "SF_STUCCO_EXT_NC",
+      "name": "Exterior Stucco/EIFS Wall Coating (Traditional Stucco, EIFS)",
+      "justification": "New spec family for exterior stucco wall coating. Two fundamentally different substrates (traditional cementitious stucco vs EIFS synthetic) sharing a visual category but requiring different coating systems. Distinct from masonry (SF_MASONRY_EXT_NC) — stucco has continuous surface (no block voids), texture-driven dual multiplier, and EIFS-specific hard constraints."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "ITM_",
+      "proposed_id": "ITM_STUCCO_WALL",
+      "name": "Exterior stucco wall field surface",
+      "justification": "No existing ITM covers exterior stucco/EIFS wall surfaces. ITM_MASONRY_WALL is for masonry (brick, CMU, concrete, limestone). Stucco is a fundamentally different substrate class with distinct texture profiles, coating system constraints, and production characteristics."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "surface_ids",
+      "proposed_id": "stucco_wall_field",
+      "name": "Exterior stucco/EIFS wall field surface",
+      "justification": "New surface vocabulary entry. No existing surface_id covers stucco wall field. Distinct from masonry_wall_field — different substrate class with different coating requirements."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "PS_",
+      "proposed_id": "PS_EXT_SURFACE_SF.STUCCO_FIELD",
+      "name": "Stucco Wall Field Surface Area (SF)",
+      "justification": "New PS key for stucco wall net paintable area. Distinct from PS_EXT_SURFACE_SF.MASONRY_WALL — stucco is a different measurement context with texture-driven coverage variation."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "IN_",
+      "proposed_id": "IN_SF_STUCCO_WALL",
+      "name": "Stucco Wall Field Area Input (SF)",
+      "justification": "Input mapped to PS_EXT_SURFACE_SF.STUCCO_FIELD."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "PS_",
+      "proposed_id": "PS_EXT_META.ENUM.SUBSTRATE_TYPE_STUCCO",
+      "name": "Stucco Substrate Type Enum (traditional_stucco/EIFS)",
+      "justification": "New PS key for stucco substrate type selection. Drives coating system hard constraint (EIFS = acrylic only), primer selection, pressure wash settings, LRV constraints, and insurance requirements. Distinct from PS_EXT_META.ENUM.SUBSTRATE_TYPE_MASONRY — different substrate taxonomy."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "IN_",
+      "proposed_id": "IN_ENUM_SUBSTRATE_TYPE_STUCCO",
+      "name": "Stucco Substrate Type Input (ENUM)",
+      "justification": "Input mapped to PS_EXT_META.ENUM.SUBSTRATE_TYPE_STUCCO."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "PS_",
+      "proposed_id": "PS_EXT_META.ENUM.TEXTURE_PROFILE_STUCCO",
+      "name": "Stucco Texture Profile Enum (smooth/sand/lace/dash)",
+      "justification": "New PS key for stucco texture profile. Drives dual multiplier on labor rate AND material consumption. No existing PS key captures this dimension."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "IN_",
+      "proposed_id": "IN_ENUM_TEXTURE_PROFILE_STUCCO",
+      "name": "Stucco Texture Profile Input (ENUM)",
+      "justification": "Input mapped to PS_EXT_META.ENUM.TEXTURE_PROFILE_STUCCO."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "PS_",
+      "proposed_id": "PS_EXT_META.ENUM.COATING_SYSTEM_STUCCO",
+      "name": "Stucco Coating System Enum (elastomeric/acrylic)",
+      "justification": "New PS key for stucco coating system selection. Drives DFT, material consumption, production rate, and compatibility constraint with substrate_type. Distinct from PS_EXT_META.ENUM.COATING_SYSTEM_MASONRY — stucco has the additional EIFS hard constraint."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "IN_",
+      "proposed_id": "IN_ENUM_COATING_SYSTEM_STUCCO",
+      "name": "Stucco Coating System Input (ENUM)",
+      "justification": "Input mapped to PS_EXT_META.ENUM.COATING_SYSTEM_STUCCO."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "PS_",
+      "proposed_id": "PS_EXT_META.FLAG.EIFS_INSURANCE_VERIFIED",
+      "name": "EIFS Insurance Verification Flag (BOOL)",
+      "justification": "New PS key for EIFS insurance/liability workflow gate. CGL policies commonly exclude EIFS work. Required before starting EIFS coating work. Workflow flag only — does not affect estimation."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "IN_",
+      "proposed_id": "IN_BOOL_EIFS_INSURANCE_VERIFIED",
+      "name": "EIFS Insurance Verification Input (BOOL)",
+      "justification": "Input mapped to PS_EXT_META.FLAG.EIFS_INSURANCE_VERIFIED."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "SYS_",
+      "proposed_id": "SYS_EXT_STCO_PRIMER_ALKALI",
+      "name": "Alkali-Resistant Stucco Primer (Traditional Stucco)",
+      "justification": "Separate from SYS_EXT_MSRY_PRIMER_ALKALI — stucco has different coverage rates than masonry (texture-driven variation) and different substrate context. Alkali-resistant primer rated to pH 13 for traditional stucco."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "SYS_",
+      "proposed_id": "SYS_EXT_STCO_PRIMER_ACRYLIC",
+      "name": "100% Acrylic Exterior Primer (EIFS)",
+      "justification": "New system for EIFS primer. EIFS is not alkaline — standard 100% acrylic exterior primer is suitable. No existing system covers EIFS-specific primer context."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "SYS_",
+      "proposed_id": "SYS_EXT_STCO_FINISH_ACRYLIC_STD",
+      "name": "Standard Exterior Acrylic Finish for Stucco",
+      "justification": "Stucco-specific finish system. Different coverage rates from masonry (texture-driven variation). QT2/QT3 tier. Valid for both traditional stucco and EIFS."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "SYS_",
+      "proposed_id": "SYS_EXT_STCO_FINISH_ACRYLIC_PREM",
+      "name": "Premium Exterior Acrylic Finish for Stucco",
+      "justification": "QT4 stucco finish. Premium products (SW Duration, BM Aura Exterior). Different coverage context from masonry."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "SYS_",
+      "proposed_id": "SYS_EXT_STCO_FINISH_ELASTOMERIC",
+      "name": "Elastomeric Coating for Stucco (Traditional Only)",
+      "justification": "Stucco-specific elastomeric system. Separate from masonry elastomeric (different texture-driven coverage rates). QT3/QT4, traditional stucco ONLY — PROHIBITED on EIFS."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "COV_",
+      "proposed_id": "COV_STCO_PRIMER_ALKALI",
+      "name": "Alkali-Resistant Primer Coverage Profile for Stucco",
+      "justification": "Stucco primer coverage differs from masonry (texture-driven variation). 250-350 SF/gal baseline smooth, with texture multiplier applied."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "COV_",
+      "proposed_id": "COV_STCO_PRIMER_ACRYLIC",
+      "name": "Acrylic Primer Coverage Profile for EIFS",
+      "justification": "EIFS primer coverage: 300-400 SF/gal baseline. Smoother substrate than traditional stucco. No existing COV_ covers EIFS primer context."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "COV_",
+      "proposed_id": "COV_STCO_FINISH_ACRYLIC",
+      "name": "Acrylic Finish Coverage Profile for Stucco",
+      "justification": "Stucco finish coverage: 300-350 SF/gal smooth, with texture multiplier (sand 1.25x, lace 1.50x, dash 2.00x consumption increase). Different coverage context from masonry."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "COV_",
+      "proposed_id": "COV_STCO_FINISH_ELASTOMERIC",
+      "name": "Elastomeric Finish Coverage Profile for Stucco",
+      "justification": "Elastomeric coverage on stucco: 100-175 SF/gal smooth baseline due to 12-20 mil DFT. Texture multiplier amplifies consumption dramatically. Traditional stucco ONLY."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "FAC_",
+      "proposed_id": "FAC_STCO_TEXTURE_PROFILE",
+      "name": "Stucco Texture Profile DUAL Modifier (labor + material)",
+      "justification": "New modifier for stucco texture-driven dual multiplier. Smooth=1.00x, sand=1.25x, lace=1.50x, dash=2.00x. Applies to BOTH labor rate (SF/hr) and material consumption (SF/gal). No existing modifier covers texture-driven dual-pathway multipliers."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "FAC_",
+      "proposed_id": "FAC_STCO_SUBSTRATE_TYPE",
+      "name": "Stucco Substrate Type Production Modifier",
+      "justification": "New modifier for substrate type production rate adjustment. Traditional stucco=1.00x (baseline), EIFS=0.90x (slightly faster — smoother, less porous). Labor rate only."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "ROUND_",
+      "proposed_id": "ROUND_STCO_PRIME_2FINISH",
+      "name": "Stucco 1 primer + 2 finish coats (QT3/QT4)",
+      "justification": "Standard stucco round configuration for QT3/QT4. Both substrate types."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "ROUND_",
+      "proposed_id": "ROUND_STCO_PRIME_1FINISH",
+      "name": "Stucco 1 primer + 1 finish coat (QT2)",
+      "justification": "Economy stucco round configuration for QT2. Single finish coat acceptable on properly primed surface."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "ROUND_",
+      "proposed_id": "ROUND_STCO_PRIME_2FINISH_ELASTO",
+      "name": "Stucco 1 primer + 2 elastomeric finish coats (traditional stucco QT3/QT4)",
+      "justification": "Elastomeric round configuration. Higher DFT per coat requires same coat count but different production rates and material quantities. Traditional stucco only."
+    },
+    {
+      "registry": "controlled_enums.json",
+      "section": "substrate_state",
+      "proposed_id": "SS_EXT_BARE_MASONRY",
+      "name": "Bare new masonry/stucco (cementitious, alkaline)",
+      "justification": "Reuses the masonry-proposed substrate state. Traditional stucco is cementitious (Portland cement base) — same chemical family as masonry. EIFS arrives uncoated. Single NC state for both stucco substrate types. If already proposed by masonry spec, this is a reuse confirmation."
+    }
+  ]
+}

@@ -1,0 +1,968 @@
+{
+  "spec_family_id": "SF_SIDING_WOOD_EXT_RP",
+  "version": "0.2.0",
+  "generated_by": "Estimation Engineer",
+  "generated_at": "2026-03-12",
+  "regeneration_note": "Task IDs realigned to match sop_modules.json canonical task list. Rate values preserved from v0.1.0 where task intent matches. New SOP tasks given research-based rates. task_classification matched character-for-character to SOP.",
+
+  "MODIFIER_STACKING_WARNING": {
+    "severity": "critical",
+    "description": "Theoretical worst-case modifier stack exceeds 4.0x cap by a wide margin.",
+    "worst_case_all": "DSD-3 (1.75) x scaffold (1.60) x shingle (1.50) x QT4 (1.15) x RRP (2.00) = 9.66x",
+    "worst_case_no_rrp": "DSD-3 (1.75) x scaffold (1.60) x shingle (1.50) x QT4 (1.15) = 4.83x",
+    "resolution": "STACKING PARTITION — modifiers are split into two non-overlapping task pools to prevent compound blowout.",
+    "stacking_rules": {
+      "prep_tasks": {
+        "formula": "effective_rate = base_rate / (FAC_WSRP_DSD x FAC_EXT_ACCESS x FAC_WSRP_SIDING_PROFILE x FAC_WSRP_RRP)",
+        "max_stack": "DSD-3 (1.75) x scaffold (1.60) x shingle (1.50) x RRP (2.00) = 8.40x",
+        "note": "FAC_WSRP_QT does NOT apply to prep tasks. Prep labor is condition-driven, not quality-driven. Max without RRP = 4.20x — flagged but acceptable for severe exterior conditions. RRP doubles time due to containment, wet methods, HEPA cleanup."
+      },
+      "coating_tasks": {
+        "formula": "effective_rate = base_rate / (FAC_WSRP_SIDING_PROFILE x FAC_EXT_ACCESS x FAC_WSRP_QT)",
+        "max_stack": "shingle (1.50) x scaffold (1.60) x QT4 (1.15) = 2.76x",
+        "note": "FAC_WSRP_DSD and FAC_WSRP_RRP do NOT apply to coating tasks. Once prepped, surface is at baseline. Max 2.76x — well within 4.0x cap."
+      },
+      "fixed_tasks": {
+        "formula": "fixed_time_minutes (no modifiers)",
+        "note": "Assessment, equipment setup, and equipment cleaning are fixed-time tasks. No modifiers applied."
+      }
+    }
+  },
+
+  "siding_surface_input_group": {
+    "description": "Rate per SF applies to net siding field area from PaintScope. Engine divides SF by rate to calculate hours.",
+    "inputs": [
+      { "input_name": "IN_SF_SIDING_FIELD", "paintscope_key": "PS_EXT_SURFACE_SF.SIDING_FIELD" }
+    ]
+  },
+
+  "task_production_rates": [
+
+    {
+      "task_id": "TSK_WSRP_MOBILIZE",
+      "name": "Crew Mobilization & Equipment Staging",
+      "unit_of_measure": "FIXED",
+      "fixed_time_minutes": 45,
+      "crew_size": 1,
+      "task_classification": "binary",
+      "rate_basis_notes": "Mobilize crew, transport materials and equipment to site. Stage paint, primer, prep tools at work area. ~45 min per project.",
+      "applies_when": {}
+    },
+    {
+      "task_id": "TSK_WSRP_SCAFFOLD_SETUP",
+      "name": "Scaffold / Lift Setup",
+      "unit_of_measure": "FIXED",
+      "fixed_time_minutes": 90,
+      "crew_size": 1,
+      "task_classification": "binary",
+      "rate_basis_notes": "Erect scaffold, position aerial lift, or stage extension ladders per access plan. OSHA-compliant setup. 60-120 min per project depending on scope. Midpoint 90 min.",
+      "applies_when": { "access_type": ["scaffold", "lift", "ladder"] }
+    },
+
+    {
+      "task_id": "TSK_WSRP_CONDITION_ASSESS",
+      "name": "Condition Assessment — DSD Rating & Adhesion Test",
+      "unit_of_measure": "FIXED",
+      "fixed_time_minutes": 90,
+      "crew_size": 1,
+      "task_classification": "binary",
+      "rate_basis_notes": "Full condition assessment: DSD rating per elevation, ASTM D3359 adhesion test, coating type identification, substrate state classification. 1-2 hours per project. Midpoint 90 min.",
+      "applies_when": {}
+    },
+    {
+      "task_id": "TSK_WSRP_MC_TEST",
+      "name": "Moisture Content Testing",
+      "unit_of_measure": "FIXED",
+      "fixed_time_minutes": 40,
+      "crew_size": 1,
+      "task_classification": "binary",
+      "rate_basis_notes": "Pin-type moisture meter readings at multiple locations per elevation. 0.5-1 hr per project. Midpoint 40 min.",
+      "applies_when": {}
+    },
+    {
+      "task_id": "TSK_WSRP_COATING_ID",
+      "name": "Existing Coating Identification",
+      "unit_of_measure": "FIXED",
+      "fixed_time_minutes": 20,
+      "crew_size": 1,
+      "task_classification": "binary",
+      "rate_basis_notes": "Solvent rub test (MEK or denatured alcohol) to identify latex vs alkyd existing coating. Test each elevation. ~20 min per project.",
+      "applies_when": {}
+    },
+    {
+      "task_id": "TSK_WSRP_LEAD_EVALUATE",
+      "name": "Lead Paint Evaluation (Pre-1978)",
+      "unit_of_measure": "FIXED",
+      "fixed_time_minutes": 40,
+      "crew_size": 1,
+      "task_classification": "condition_conditional",
+      "rate_basis_notes": "EPA-recognized lead test kit testing on each component type. 0.5-1 hr per project. Pre-1978 homes only.",
+      "applies_when": { "building_year": "pre_1978" }
+    },
+    {
+      "task_id": "TSK_WSRP_DSD4_GATE",
+      "name": "DSD-4 Hard Stop Check",
+      "unit_of_measure": "FIXED",
+      "fixed_time_minutes": 15,
+      "crew_size": 1,
+      "task_classification": "condition_conditional",
+      "rate_basis_notes": "Probe suspect areas for structural wood damage. If DSD-4 found, HALT painting scope and document. ~15 min per project.",
+      "applies_when": { "substrate_condition": ["SC_SUBSTRATE_DAMAGE"] }
+    },
+
+    {
+      "task_id": "TSK_WSRP_PROTECT_LANDSCAPE",
+      "name": "Landscape Edge Protection",
+      "required_input_key": "IN_LF_EXT_PROTECT_LANDSCAPE_ADJ",
+      "paintscope_key": "PS_EXT_PROTECT_LF.LANDSCAPE_ADJACENT",
+      "unit_of_measure": "LF",
+      "rate_per_hour": 120,
+      "rate_range_low": 100,
+      "rate_range_high": 150,
+      "crew_size": 1,
+      "task_classification": "binary",
+      "rate_basis_notes": "Deploy tarps and drop cloths along landscape bed edges adjacent to siding. Stake and secure. ~30 sec per LF.",
+      "applies_when": {}
+    },
+    {
+      "task_id": "TSK_WSRP_PROTECT_LANDSCAPE_FULL",
+      "name": "Full Landscape Protection (Spray)",
+      "required_input_key": "IN_SF_EXT_PROTECT_LANDSCAPE_FULL",
+      "paintscope_key": "PS_EXT_PROTECT_SF.LANDSCAPE_FULL",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 200,
+      "rate_range_low": 150,
+      "rate_range_high": 300,
+      "crew_size": 1,
+      "task_classification": "binary",
+      "rate_basis_notes": "Full tarp over plantings within spray drift zone. Extended overspray protection beyond perimeter. ~18 sec per SF.",
+      "applies_when": { "application_method": ["spray_backbrush"] }
+    },
+    {
+      "task_id": "TSK_WSRP_PROTECT_HARDSCAPE",
+      "name": "Hardscape Protection",
+      "required_input_key": "IN_SF_EXT_PROTECT_HARDSCAPE",
+      "paintscope_key": "PS_EXT_PROTECT_SF.HARDSCAPE",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 250,
+      "rate_range_low": 200,
+      "rate_range_high": 350,
+      "crew_size": 1,
+      "task_classification": "binary",
+      "rate_basis_notes": "Deploy drop cloths on walkways, patios, and driveways adjacent to siding. Flat surfaces — faster than landscape. ~14 sec per SF.",
+      "applies_when": {}
+    },
+    {
+      "task_id": "TSK_WSRP_PROTECT_LIGHT_FIXTURE",
+      "name": "Light Fixture Masking",
+      "required_input_key": "IN_EA_EXT_PROTECT_LIGHT_FIXTURE",
+      "paintscope_key": "PS_EXT_PROTECT_EA.LIGHT_FIXTURE",
+      "unit_of_measure": "EA",
+      "rate_per_hour": 15,
+      "rate_range_low": 10,
+      "rate_range_high": 20,
+      "crew_size": 1,
+      "task_classification": "binary",
+      "rate_basis_notes": "Bag and tape exterior light fixtures on working elevations. ~4 min per fixture.",
+      "applies_when": {}
+    },
+    {
+      "task_id": "TSK_WSRP_PROTECT_HVAC",
+      "name": "HVAC Unit Cover",
+      "required_input_key": "IN_EA_EXT_PROTECT_HVAC_UNIT",
+      "paintscope_key": "PS_EXT_PROTECT_EA.HVAC_UNIT",
+      "unit_of_measure": "EA",
+      "rate_per_hour": 6,
+      "rate_range_low": 4,
+      "rate_range_high": 8,
+      "crew_size": 1,
+      "task_classification": "binary",
+      "rate_basis_notes": "Wrap condenser unit in plastic sheeting and tape. ~10 min per unit.",
+      "applies_when": {}
+    },
+    {
+      "task_id": "TSK_WSRP_PROTECT_VEHICLE",
+      "name": "Vehicle Protection (Spray)",
+      "required_input_key": "IN_SF_EXT_PROTECT_VEHICLE",
+      "paintscope_key": "PS_EXT_PROTECT_SF.VEHICLE",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 200,
+      "rate_range_low": 150,
+      "rate_range_high": 300,
+      "crew_size": 1,
+      "task_classification": "binary",
+      "rate_basis_notes": "Plastic sheeting over driveway and vehicles. Repaint-specific — occupied home. ~18 sec per SF.",
+      "applies_when": { "application_method": ["spray_backbrush"] }
+    },
+    {
+      "task_id": "TSK_WSRP_RRP_CONTAINMENT",
+      "name": "RRP Lead-Safe Containment Setup",
+      "required_input_key": "IN_SF_EXT_PROTECT_RRP_CONTAINMENT",
+      "paintscope_key": "PS_EXT_PROTECT_SF.RRP_CONTAINMENT",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 100,
+      "rate_range_low": 80,
+      "rate_range_high": 120,
+      "crew_size": 1,
+      "task_classification": "condition_conditional",
+      "rate_basis_notes": "6-mil poly ground containment extending 10 ft from structure per EPA RRP rule. Rate is SF/hr of containment area. ~36 sec per SF including vertical barriers at openings.",
+      "applies_when": { "lead_positive": true }
+    },
+
+    {
+      "task_id": "TSK_WSRP_POWER_WASH",
+      "name": "Pressure Wash Siding",
+      "input_group": "siding_surface_input_group",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 500,
+      "rate_range_low": 400,
+      "rate_range_high": 600,
+      "crew_size": 1,
+      "task_classification": "state_conditional",
+      "rate_basis_notes": "Pressure washer 1500-2500 PSI on siding. Low pressure to avoid wood damage. ~7 sec per SF. All repaint states require wash.",
+      "applies_when": {}
+    },
+    {
+      "task_id": "TSK_WSRP_CHALK_REMEDIATE_LIGHT",
+      "name": "Light Chalk Remediation",
+      "input_group": "siding_surface_input_group",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 250,
+      "rate_range_low": 200,
+      "rate_range_high": 300,
+      "crew_size": 1,
+      "task_classification": "state_conditional",
+      "rate_basis_notes": "Scrub wash to remove light chalk residue after power wash. ~14 sec per SF.",
+      "applies_when": { "substrate_state": ["SS_EXT_CHALKING"], "chalk_severity": "light" }
+    },
+    {
+      "task_id": "TSK_WSRP_CHALK_REMEDIATE_HEAVY",
+      "name": "Heavy Chalk Remediation with Mechanical Sand",
+      "input_group": "siding_surface_input_group",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 100,
+      "rate_range_low": 80,
+      "rate_range_high": 120,
+      "crew_size": 1,
+      "task_classification": "state_conditional",
+      "rate_basis_notes": "Mechanical sanding to remove heavy embedded chalk layer. Power wash alone insufficient. ~36 sec per SF.",
+      "applies_when": { "substrate_state": ["SS_EXT_CHALKING"], "chalk_severity": "heavy" }
+    },
+    {
+      "task_id": "TSK_WSRP_SCRAPE_LIGHT",
+      "name": "Light Scraping — DSD-1",
+      "input_group": "siding_surface_input_group",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 80,
+      "rate_range_low": 60,
+      "rate_range_high": 100,
+      "crew_size": 1,
+      "task_classification": "state_conditional",
+      "rate_basis_notes": "Hand scraping isolated loose spots. DSD-1 = <10% surface failure. ~45 sec per SF of affected area.",
+      "applies_when": { "substrate_condition": ["SC_MINOR_DEFECT"] }
+    },
+    {
+      "task_id": "TSK_WSRP_SCRAPE_MODERATE",
+      "name": "Moderate Scraping — DSD-2",
+      "input_group": "siding_surface_input_group",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 45,
+      "rate_range_low": 30,
+      "rate_range_high": 60,
+      "crew_size": 1,
+      "task_classification": "state_conditional",
+      "rate_basis_notes": "Systematic scraping of 10-30% surface failure. Carbide scraper + 5-in-1 tool. ~80 sec per SF.",
+      "applies_when": { "substrate_condition": ["SC_MODERATE_DEFECT"] }
+    },
+    {
+      "task_id": "TSK_WSRP_SCRAPE_HEAVY",
+      "name": "Heavy Scraping / Stripping — DSD-3",
+      "input_group": "siding_surface_input_group",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 22,
+      "rate_range_low": 15,
+      "rate_range_high": 30,
+      "crew_size": 1,
+      "task_classification": "state_conditional",
+      "rate_basis_notes": "Aggressive scraping of >30% surface failure. Power scraper may be required. ~164 sec per SF.",
+      "applies_when": { "substrate_condition": ["SC_SEVERE_DEFECT"] }
+    },
+    {
+      "task_id": "TSK_WSRP_FEATHER_SAND",
+      "name": "Feather Sand Paint Edges",
+      "input_group": "siding_surface_input_group",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 65,
+      "rate_range_low": 50,
+      "rate_range_high": 80,
+      "crew_size": 1,
+      "task_classification": "state_conditional",
+      "rate_basis_notes": "80-120 grit sanding to feather paint edges after scraping. Creates smooth transition from bare to existing paint. ~55 sec per SF.",
+      "applies_when": { "substrate_state": ["SS_EXT_FAILING_PAINT", "SS_EXT_PEELING"] }
+    },
+    {
+      "task_id": "TSK_WSRP_SAND_WEATHERED",
+      "name": "Sand Weathered Wood to Fresh Surface",
+      "input_group": "siding_surface_input_group",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 65,
+      "rate_range_low": 50,
+      "rate_range_high": 80,
+      "crew_size": 1,
+      "task_classification": "state_conditional",
+      "rate_basis_notes": "60-80 grit sanding to remove UV-degraded gray fibers on weathered bare wood. Orbital or hand sanding. ~55 sec per SF.",
+      "applies_when": { "substrate_state": ["SS_EXT_WEATHERED"] }
+    },
+    {
+      "task_id": "TSK_WSRP_DEGLOSS",
+      "name": "Degloss Existing Sound Paint",
+      "input_group": "siding_surface_input_group",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 300,
+      "rate_range_low": 250,
+      "rate_range_high": 400,
+      "crew_size": 1,
+      "task_classification": "state_conditional",
+      "rate_basis_notes": "Liquid deglosser or light sand (150-220 grit) for adhesion on sound glossy existing paint. ~12 sec per SF.",
+      "applies_when": { "substrate_state": ["SS_EXT_SOUND_PAINT"] }
+    },
+    {
+      "task_id": "TSK_WSRP_DUST_CLEAN",
+      "name": "Prep Dust Cleanup",
+      "input_group": "siding_surface_input_group",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 600,
+      "rate_range_low": 400,
+      "rate_range_high": 800,
+      "crew_size": 1,
+      "task_classification": "binary",
+      "rate_basis_notes": "Compressed air or brush dust off siding after sanding/scraping. Remove all residue before coating. ~6 sec per SF.",
+      "applies_when": {}
+    },
+
+    {
+      "task_id": "TSK_WSRP_CAULK_REMOVE",
+      "name": "Remove Failed Caulk",
+      "required_input_key": "IN_LF_CAULK",
+      "paintscope_key": "PS_EXT_LF.CAULK_JOINT",
+      "unit_of_measure": "LF",
+      "rate_per_hour": 100,
+      "rate_range_low": 75,
+      "rate_range_high": 125,
+      "crew_size": 1,
+      "task_classification": "binary",
+      "rate_basis_notes": "Cut out and remove all failed, cracked, or separated caulk at joints. ~36 sec per LF.",
+      "applies_when": {}
+    },
+    {
+      "task_id": "TSK_WSRP_CAULK_APPLY",
+      "name": "Apply New Caulk at Joints",
+      "required_input_key": "IN_LF_CAULK",
+      "paintscope_key": "PS_EXT_LF.CAULK_JOINT",
+      "unit_of_measure": "LF",
+      "rate_per_hour": 75,
+      "rate_range_low": 50,
+      "rate_range_high": 100,
+      "crew_size": 1,
+      "task_classification": "binary",
+      "rate_basis_notes": "Apply new exterior paintable sealant caulk, tool smooth. Backer rod for gaps >3/8 inch. ~48 sec per LF.",
+      "applies_when": {}
+    },
+
+    {
+      "task_id": "TSK_WSRP_SPOT_PRIME_BRUSH",
+      "name": "Spot Prime Bare Areas — Brush",
+      "input_group": "siding_surface_input_group",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 200,
+      "rate_range_low": 150,
+      "rate_range_high": 250,
+      "crew_size": 1,
+      "task_classification": "state_conditional",
+      "rate_basis_notes": "Brush primer on bare spots after scraping. Rate is per affected SF (estimator applies bare percentage to total SF). ~18 sec per SF of affected area.",
+      "applies_when": { "bare_area_pct": "lt_30" }
+    },
+    {
+      "task_id": "TSK_WSRP_CHALK_BIND_PRIME_ROLL",
+      "name": "Chalk-Binding Primer — Roll Application",
+      "input_group": "siding_surface_input_group",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 125,
+      "rate_range_low": 100,
+      "rate_range_high": 150,
+      "crew_size": 1,
+      "task_classification": "state_conditional",
+      "rate_basis_notes": "Roll-apply chalk-binding primer to lock down residual chalk. Full coverage. Work primer into chalky surface. ~29 sec per SF.",
+      "applies_when": { "application_method": ["brush_roll", "brush"] }
+    },
+    {
+      "task_id": "TSK_WSRP_CHALK_BIND_PRIME_SPRAY",
+      "name": "Chalk-Binding Primer — Spray Application",
+      "input_group": "siding_surface_input_group",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 375,
+      "rate_range_low": 300,
+      "rate_range_high": 450,
+      "crew_size": 1,
+      "task_classification": "state_conditional",
+      "rate_basis_notes": "Spray-apply chalk-binding primer for large chalking areas. Back-brush into substrate for penetration. ~10 sec per SF.",
+      "applies_when": { "application_method": ["spray_backbrush"] }
+    },
+    {
+      "task_id": "TSK_WSRP_FULL_PRIME_SPRAY_BACKBRUSH",
+      "name": "Full Acrylic Prime — Spray + Backbrush",
+      "input_group": "siding_surface_input_group",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 375,
+      "rate_range_low": 300,
+      "rate_range_high": 450,
+      "crew_size": 1,
+      "task_classification": "state_conditional",
+      "rate_basis_notes": "Airless spray acrylic bonding primer on full siding field + immediate backbrush. Per spray/backbrush coupling rule: combined crew rate. ~10 sec per SF.",
+      "applies_when": { "application_method": ["spray_backbrush"], "bare_area_pct": "gte_30" }
+    },
+    {
+      "task_id": "TSK_WSRP_FULL_PRIME_BRUSH",
+      "name": "Full Acrylic Prime — Brush Application",
+      "input_group": "siding_surface_input_group",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 100,
+      "rate_range_low": 80,
+      "rate_range_high": 120,
+      "crew_size": 1,
+      "task_classification": "state_conditional",
+      "rate_basis_notes": "Brush-only full prime for detail areas or when spray is not feasible. ~36 sec per SF.",
+      "applies_when": { "application_method": ["brush", "brush_roll"], "bare_area_pct": "gte_30" }
+    },
+    {
+      "task_id": "TSK_WSRP_TANNIN_PRIME_SPRAY",
+      "name": "Alkyd Tannin-Blocker Prime — Spray",
+      "input_group": "siding_surface_input_group",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 350,
+      "rate_range_low": 275,
+      "rate_range_high": 425,
+      "crew_size": 1,
+      "task_classification": "state_conditional",
+      "rate_basis_notes": "Spray-apply alkyd tannin-blocking primer on exposed cedar/redwood. Slightly slower than acrylic spray due to alkyd viscosity. ~10 sec per SF.",
+      "applies_when": { "application_method": ["spray_backbrush"], "tannin_risk": true }
+    },
+    {
+      "task_id": "TSK_WSRP_TANNIN_PRIME_BRUSH",
+      "name": "Alkyd Tannin-Blocker Prime — Brush",
+      "input_group": "siding_surface_input_group",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 90,
+      "rate_range_low": 70,
+      "rate_range_high": 110,
+      "crew_size": 1,
+      "task_classification": "state_conditional",
+      "rate_basis_notes": "Brush-apply alkyd tannin-blocking primer. Slightly slower than acrylic brush due to alkyd handling. ~40 sec per SF.",
+      "applies_when": { "application_method": ["brush", "brush_roll"], "tannin_risk": true }
+    },
+    {
+      "task_id": "TSK_WSRP_PENETRATING_PRIME_BRUSH",
+      "name": "Penetrating Alkyd Primer — Brush",
+      "input_group": "siding_surface_input_group",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 90,
+      "rate_range_low": 70,
+      "rate_range_high": 110,
+      "crew_size": 1,
+      "task_classification": "state_conditional",
+      "rate_basis_notes": "Brush-apply penetrating alkyd primer on weathered wood. Generous application needed for deep penetration. ~40 sec per SF.",
+      "applies_when": { "application_method": ["brush", "brush_roll"] }
+    },
+    {
+      "task_id": "TSK_WSRP_PENETRATING_PRIME_SPRAY",
+      "name": "Penetrating Alkyd Primer — Spray",
+      "input_group": "siding_surface_input_group",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 350,
+      "rate_range_low": 275,
+      "rate_range_high": 425,
+      "crew_size": 1,
+      "task_classification": "state_conditional",
+      "rate_basis_notes": "Spray-apply penetrating alkyd primer on large weathered areas. Back-brush for deep penetration. Heavy wet coat required. ~10 sec per SF.",
+      "applies_when": { "application_method": ["spray_backbrush"] }
+    },
+
+    {
+      "task_id": "TSK_WSRP_FINISH_SPRAY_BACKBRUSH",
+      "name": "Finish Coat — Spray + Backbrush",
+      "input_group": "siding_surface_input_group",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 200,
+      "rate_range_low": 150,
+      "rate_range_high": 250,
+      "crew_size": 1,
+      "task_classification": "method_conditional",
+      "rate_basis_notes": "Airless spray finish coat + immediate backbrush into wood profile. Base rate for lap_horizontal. ~18 sec per SF.",
+      "applies_when": { "application_method": ["spray_backbrush"] }
+    },
+    {
+      "task_id": "TSK_WSRP_FINISH_BRUSH_ROLL",
+      "name": "Finish Coat — Brush/Roll",
+      "input_group": "siding_surface_input_group",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 100,
+      "rate_range_low": 80,
+      "rate_range_high": 120,
+      "crew_size": 1,
+      "task_classification": "method_conditional",
+      "rate_basis_notes": "Brush/roll finish coat. Brush edges, roll field. Base rate for lap_horizontal. ~36 sec per SF.",
+      "applies_when": { "application_method": ["brush_roll"] }
+    },
+    {
+      "task_id": "TSK_WSRP_FINISH_BRUSH",
+      "name": "Finish Coat — Brush Only",
+      "input_group": "siding_surface_input_group",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 40,
+      "rate_range_low": 30,
+      "rate_range_high": 50,
+      "crew_size": 1,
+      "task_classification": "method_conditional",
+      "rate_basis_notes": "Brush-only finish for shingle/shake profiles. Extremely labor-intensive — each shingle edge hand-brushed. ~90 sec per SF.",
+      "applies_when": { "application_method": ["brush"], "siding_profile": ["shingle"] }
+    },
+
+    {
+      "task_id": "TSK_WSRP_INTERSTAGE_INSPECT",
+      "name": "Interstage Inspection",
+      "input_group": "siding_surface_input_group",
+      "unit_of_measure": "SF",
+      "task_classification": "qt_conditional",
+      "qt_rates": {
+        "QT3": { "rate_sf_per_hour": 1500, "notes": "Ground-level scan for obvious defects — runs, sags, holidays" },
+        "QT4": { "rate_sf_per_hour": 800, "notes": "Systematic elevation inspection at 6 ft viewing distance. Mark all defects." }
+      },
+      "rate_range_low": 700,
+      "rate_range_high": 1600,
+      "crew_size": 1,
+      "appears_in_tiers": ["QT3", "QT4"],
+      "applies_when": { "quality_tier": ["QT3", "QT4"] }
+    },
+    {
+      "task_id": "TSK_WSRP_INTERSTAGE_TOUCHUP",
+      "name": "Interstage Touch-Up",
+      "input_group": "siding_surface_input_group",
+      "unit_of_measure": "SF",
+      "task_classification": "qt_conditional",
+      "qt_rates": {
+        "QT3": { "rate_sf_per_hour": 2000, "notes": "Fix obvious defects" },
+        "QT4": { "rate_sf_per_hour": 1000, "notes": "Fix all found defects, blend repairs" }
+      },
+      "rate_range_low": 800,
+      "rate_range_high": 2200,
+      "crew_size": 1,
+      "appears_in_tiers": ["QT3", "QT4"],
+      "applies_when": { "quality_tier": ["QT3", "QT4"] }
+    },
+
+    {
+      "task_id": "TSK_WSRP_FINISH_2_SPRAY_BACKBRUSH",
+      "name": "Finish Coat 2 — Spray + Backbrush",
+      "input_group": "siding_surface_input_group",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 200,
+      "rate_range_low": 150,
+      "rate_range_high": 250,
+      "crew_size": 1,
+      "task_classification": "method_conditional",
+      "rate_basis_notes": "Same rate as coat 1 spray+backbrush. Primed/sealed surface is consistent.",
+      "applies_when": { "application_method": ["spray_backbrush"], "quality_tier": ["QT3", "QT4"] }
+    },
+    {
+      "task_id": "TSK_WSRP_FINISH_2_BRUSH_ROLL",
+      "name": "Finish Coat 2 — Brush/Roll",
+      "input_group": "siding_surface_input_group",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 100,
+      "rate_range_low": 80,
+      "rate_range_high": 120,
+      "crew_size": 1,
+      "task_classification": "method_conditional",
+      "rate_basis_notes": "Same rate as coat 1 brush/roll.",
+      "applies_when": { "application_method": ["brush_roll"], "quality_tier": ["QT3", "QT4"] }
+    },
+    {
+      "task_id": "TSK_WSRP_FINISH_2_BRUSH",
+      "name": "Finish Coat 2 — Brush Only",
+      "input_group": "siding_surface_input_group",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 40,
+      "rate_range_low": 30,
+      "rate_range_high": 50,
+      "crew_size": 1,
+      "task_classification": "method_conditional",
+      "rate_basis_notes": "Same rate as coat 1 brush-only.",
+      "applies_when": { "application_method": ["brush"], "quality_tier": ["QT3", "QT4"] }
+    },
+
+    {
+      "task_id": "TSK_WSRP_INSPECT",
+      "name": "Final Walkthrough Inspection",
+      "input_group": "siding_surface_input_group",
+      "unit_of_measure": "SF",
+      "task_classification": "binary",
+      "qt_rates": {
+        "QT2": { "rate_sf_per_hour": 3000, "notes": "Ground-level glance at 10 ft — economy tier" },
+        "QT3": { "rate_sf_per_hour": 2000, "notes": "Ground-level walkthrough at 6 ft all elevations" },
+        "QT4": { "rate_sf_per_hour": 1200, "notes": "Scaffold/lift inspection at arm's length. Photo documentation." }
+      },
+      "rate_per_hour": 2000,
+      "rate_range_low": 1000,
+      "rate_range_high": 3500,
+      "crew_size": 1,
+      "applies_when": {}
+    },
+    {
+      "task_id": "TSK_WSRP_TOUCHUP",
+      "name": "Final Touch-Up",
+      "input_group": "siding_surface_input_group",
+      "unit_of_measure": "SF",
+      "task_classification": "binary",
+      "qt_rates": {
+        "QT2": { "rate_sf_per_hour": 4000, "notes": "Minimal — obvious defects only" },
+        "QT3": { "rate_sf_per_hour": 3000, "notes": "Fix all noted defects" },
+        "QT4": { "rate_sf_per_hour": 1500, "notes": "Fix every defect, verify transitions" }
+      },
+      "rate_per_hour": 3000,
+      "rate_range_low": 1200,
+      "rate_range_high": 4500,
+      "crew_size": 1,
+      "applies_when": {}
+    },
+
+    {
+      "task_id": "TSK_WSRP_REMOVE_PROTECTION",
+      "name": "Remove All Protection Materials",
+      "required_input_key": "IN_LF_EXT_PROTECT_LANDSCAPE_ADJ",
+      "paintscope_key": "PS_EXT_PROTECT_LF.LANDSCAPE_ADJACENT",
+      "unit_of_measure": "LF",
+      "rate_per_hour": 200,
+      "rate_range_low": 150,
+      "rate_range_high": 250,
+      "crew_size": 1,
+      "task_classification": "binary",
+      "rate_basis_notes": "Remove all tarps, plastic, tape, fixture bags, vehicle covers. Faster than setup — ~18 sec per LF.",
+      "applies_when": {}
+    },
+    {
+      "task_id": "TSK_WSRP_RRP_CLEANUP",
+      "name": "RRP Lead-Safe Cleanup",
+      "required_input_key": "IN_SF_EXT_PROTECT_RRP_CONTAINMENT",
+      "paintscope_key": "PS_EXT_PROTECT_SF.RRP_CONTAINMENT",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 80,
+      "rate_range_low": 60,
+      "rate_range_high": 100,
+      "crew_size": 1,
+      "task_classification": "condition_conditional",
+      "rate_basis_notes": "EPA RRP-compliant cleanup: HEPA vacuum all surfaces, roll up poly containment inward, double-bag waste, cleaning verification test. ~45 sec per SF.",
+      "applies_when": { "lead_positive": true }
+    },
+    {
+      "task_id": "TSK_WSRP_SCAFFOLD_TEARDOWN",
+      "name": "Scaffold / Lift Teardown",
+      "unit_of_measure": "FIXED",
+      "fixed_time_minutes": 60,
+      "crew_size": 1,
+      "task_classification": "binary",
+      "rate_basis_notes": "Dismantle scaffold, return aerial lift, or stage ladders for removal. ~60 min (typically faster than setup).",
+      "applies_when": { "access_type": ["scaffold", "lift", "ladder"] }
+    },
+    {
+      "task_id": "TSK_WSRP_CLEANUP",
+      "name": "Final Site Cleanup & Demobilization",
+      "unit_of_measure": "FIXED",
+      "fixed_time_minutes": 45,
+      "crew_size": 1,
+      "task_classification": "binary",
+      "rate_basis_notes": "Clean spray equipment (~30 min) or brush/roll equipment (~15 min) + collect debris, dispose containers, paint chip collection, final site walkthrough (~25 min). Combined cleanup and demobilization. ~45 min total.",
+      "applies_when": {}
+    }
+  ],
+
+  "factor_modifiers": [
+    {
+      "factor_id": "FAC_WSRP_DSD",
+      "name": "DSD Prep Labor Multiplier",
+      "mechanism": "time_multiplier",
+      "modifier_category": "prep_difficulty",
+      "description": "Degree of Surface Degradation (MPI DSD 0-3) drives prep task production slowdown. SC_SUBSTRATE_DAMAGE (DSD-4) is a HARD STOP — not a modifier level.",
+      "applies_to": [
+        "TSK_WSRP_SCRAPE_LIGHT", "TSK_WSRP_SCRAPE_MODERATE", "TSK_WSRP_SCRAPE_HEAVY",
+        "TSK_WSRP_FEATHER_SAND", "TSK_WSRP_SAND_WEATHERED",
+        "TSK_WSRP_CHALK_REMEDIATE_LIGHT", "TSK_WSRP_CHALK_REMEDIATE_HEAVY",
+        "TSK_WSRP_DEGLOSS",
+        "TSK_WSRP_DUST_CLEAN",
+        "TSK_WSRP_CAULK_REMOVE", "TSK_WSRP_CAULK_APPLY"
+      ],
+      "values": {
+        "SC_SOUND": 1.00,
+        "SC_SLIGHT_DETERIORATION": 1.15,
+        "SC_MODERATE_DETERIORATION": 1.40,
+        "SC_SEVERE_DETERIORATION": 1.75
+      },
+      "formula": "effective_rate = base_rate / modifier",
+      "stacking_pool": "PREP_ONLY",
+      "notes": "Does NOT apply to coating tasks (prime, finish). Once prepped, surface is at baseline. Midpoint values from research ranges."
+    },
+    {
+      "factor_id": "FAC_EXT_ACCESS",
+      "name": "Access Type Height Modifier",
+      "mechanism": "time_multiplier",
+      "modifier_category": "access_difficulty",
+      "description": "Access type drives production rate reduction for elevated work.",
+      "applies_to": [
+        "TSK_WSRP_POWER_WASH",
+        "TSK_WSRP_SCRAPE_LIGHT", "TSK_WSRP_SCRAPE_MODERATE", "TSK_WSRP_SCRAPE_HEAVY",
+        "TSK_WSRP_FEATHER_SAND", "TSK_WSRP_SAND_WEATHERED",
+        "TSK_WSRP_CHALK_REMEDIATE_LIGHT", "TSK_WSRP_CHALK_REMEDIATE_HEAVY",
+        "TSK_WSRP_DEGLOSS",
+        "TSK_WSRP_DUST_CLEAN",
+        "TSK_WSRP_CAULK_REMOVE", "TSK_WSRP_CAULK_APPLY",
+        "TSK_WSRP_SPOT_PRIME_BRUSH",
+        "TSK_WSRP_CHALK_BIND_PRIME_ROLL", "TSK_WSRP_CHALK_BIND_PRIME_SPRAY",
+        "TSK_WSRP_FULL_PRIME_SPRAY_BACKBRUSH", "TSK_WSRP_FULL_PRIME_BRUSH",
+        "TSK_WSRP_TANNIN_PRIME_SPRAY", "TSK_WSRP_TANNIN_PRIME_BRUSH",
+        "TSK_WSRP_PENETRATING_PRIME_BRUSH", "TSK_WSRP_PENETRATING_PRIME_SPRAY",
+        "TSK_WSRP_FINISH_SPRAY_BACKBRUSH", "TSK_WSRP_FINISH_BRUSH_ROLL", "TSK_WSRP_FINISH_BRUSH",
+        "TSK_WSRP_FINISH_2_SPRAY_BACKBRUSH", "TSK_WSRP_FINISH_2_BRUSH_ROLL", "TSK_WSRP_FINISH_2_BRUSH",
+        "TSK_WSRP_INTERSTAGE_INSPECT", "TSK_WSRP_INTERSTAGE_TOUCHUP",
+        "TSK_WSRP_INSPECT", "TSK_WSRP_TOUCHUP"
+      ],
+      "values": {
+        "ground": 1.00,
+        "ladder": 1.35,
+        "scaffold": 1.60,
+        "lift": 1.50
+      },
+      "formula": "effective_rate = base_rate / modifier",
+      "stacking_pool": "ALL_TASKS",
+      "notes": "Applied per elevation. Protection setup/teardown, equipment setup/cleanup, and fixed assessment tasks are NOT affected."
+    },
+    {
+      "factor_id": "FAC_WSRP_SIDING_PROFILE",
+      "name": "Siding Profile Complexity Modifier",
+      "mechanism": "time_multiplier",
+      "modifier_category": "surface_complexity",
+      "description": "Siding profile geometry affects both prep and coating production rates.",
+      "applies_to": [
+        "TSK_WSRP_POWER_WASH",
+        "TSK_WSRP_SCRAPE_LIGHT", "TSK_WSRP_SCRAPE_MODERATE", "TSK_WSRP_SCRAPE_HEAVY",
+        "TSK_WSRP_FEATHER_SAND", "TSK_WSRP_SAND_WEATHERED",
+        "TSK_WSRP_CHALK_REMEDIATE_LIGHT", "TSK_WSRP_CHALK_REMEDIATE_HEAVY",
+        "TSK_WSRP_DEGLOSS",
+        "TSK_WSRP_DUST_CLEAN",
+        "TSK_WSRP_SPOT_PRIME_BRUSH",
+        "TSK_WSRP_CHALK_BIND_PRIME_ROLL", "TSK_WSRP_CHALK_BIND_PRIME_SPRAY",
+        "TSK_WSRP_FULL_PRIME_SPRAY_BACKBRUSH", "TSK_WSRP_FULL_PRIME_BRUSH",
+        "TSK_WSRP_TANNIN_PRIME_SPRAY", "TSK_WSRP_TANNIN_PRIME_BRUSH",
+        "TSK_WSRP_PENETRATING_PRIME_BRUSH", "TSK_WSRP_PENETRATING_PRIME_SPRAY",
+        "TSK_WSRP_FINISH_SPRAY_BACKBRUSH", "TSK_WSRP_FINISH_BRUSH_ROLL", "TSK_WSRP_FINISH_BRUSH",
+        "TSK_WSRP_FINISH_2_SPRAY_BACKBRUSH", "TSK_WSRP_FINISH_2_BRUSH_ROLL", "TSK_WSRP_FINISH_2_BRUSH",
+        "TSK_WSRP_INTERSTAGE_INSPECT", "TSK_WSRP_INTERSTAGE_TOUCHUP",
+        "TSK_WSRP_INSPECT", "TSK_WSRP_TOUCHUP"
+      ],
+      "values": {
+        "lap_horizontal": 1.00,
+        "board_and_batten": 1.20,
+        "shingle": 1.50
+      },
+      "formula": "effective_rate = base_rate / modifier",
+      "stacking_pool": "ALL_TASKS",
+      "notes": "Board-and-batten has ~20% more effective surface due to batten profiles. Shingle has ~50% more due to overlapping edges and complex geometry."
+    },
+    {
+      "factor_id": "FAC_WSRP_QT",
+      "name": "Quality Tier Rate Modifier",
+      "mechanism": "time_multiplier",
+      "modifier_category": "quality_effort",
+      "description": "Quality tier affects care and rigor on coating tasks. QT2 economy = less rigor; QT4 premium = greater care.",
+      "applies_to": [
+        "TSK_WSRP_SPOT_PRIME_BRUSH",
+        "TSK_WSRP_CHALK_BIND_PRIME_ROLL", "TSK_WSRP_CHALK_BIND_PRIME_SPRAY",
+        "TSK_WSRP_FULL_PRIME_SPRAY_BACKBRUSH", "TSK_WSRP_FULL_PRIME_BRUSH",
+        "TSK_WSRP_TANNIN_PRIME_SPRAY", "TSK_WSRP_TANNIN_PRIME_BRUSH",
+        "TSK_WSRP_PENETRATING_PRIME_BRUSH", "TSK_WSRP_PENETRATING_PRIME_SPRAY",
+        "TSK_WSRP_FINISH_SPRAY_BACKBRUSH", "TSK_WSRP_FINISH_BRUSH_ROLL", "TSK_WSRP_FINISH_BRUSH",
+        "TSK_WSRP_FINISH_2_SPRAY_BACKBRUSH", "TSK_WSRP_FINISH_2_BRUSH_ROLL", "TSK_WSRP_FINISH_2_BRUSH"
+      ],
+      "values": {
+        "QT2": 0.85,
+        "QT3": 1.00,
+        "QT4": 1.15
+      },
+      "formula": "effective_rate = base_rate / modifier",
+      "stacking_pool": "COATING_ONLY",
+      "notes": "Does NOT apply to prep tasks. Prep labor is condition-driven (DSD), not quality-driven. QT2 at 0.85x = slightly faster (less care). QT4 at 1.15x = slightly slower (more care, tighter tolerances)."
+    },
+    {
+      "factor_id": "FAC_WSRP_RRP",
+      "name": "Lead-Safe RRP Modifier",
+      "mechanism": "time_multiplier",
+      "modifier_category": "regulatory_compliance",
+      "description": "EPA Lead-Safe RRP requirements double prep task duration. Adds wet scraping methods, HEPA vacuum between passes, containment maintenance, and lead-safe disposal overhead.",
+      "applies_to": [
+        "TSK_WSRP_SCRAPE_LIGHT", "TSK_WSRP_SCRAPE_MODERATE", "TSK_WSRP_SCRAPE_HEAVY",
+        "TSK_WSRP_FEATHER_SAND", "TSK_WSRP_SAND_WEATHERED",
+        "TSK_WSRP_POWER_WASH"
+      ],
+      "values": {
+        "no_rrp": 1.00,
+        "rrp_required": 2.00
+      },
+      "formula": "effective_rate = base_rate / modifier",
+      "gate_condition": "IN_BOOL_PRE_1978 = true AND paint disturbance involved",
+      "stacking_pool": "PREP_ONLY",
+      "notes": "Gate condition — not a continuous modifier. Binary: either RRP applies or it does not. The 2.00x accounts for wet scraping, HEPA vacuum passes, containment maintenance, and procedural overhead. RRP material costs (poly, HEPA bags, waste bags) are separate consumable items. RRP containment setup/teardown are separate tasks (TSK_WSRP_RRP_CONTAINMENT, TSK_WSRP_RRP_CLEANUP) — NOT modified by this factor."
+    }
+  ],
+
+  "quality_effects": [
+    {
+      "quality_tier": "QT2",
+      "coat_count": { "prime": 1, "finish": 1 },
+      "interstage_sand": false,
+      "inspection_level": "cursory",
+      "notes": "Economy repaint. Single finish coat on sound/primed surface. Spot prime only. Appropriate for rental/turnover. SS_EXT_SOUND_PAINT or SS_EXT_CHALKING with SC_SOUND/SC_SLIGHT only."
+    },
+    {
+      "quality_tier": "QT3",
+      "coat_count": { "prime": 1, "finish": 2 },
+      "interstage_sand": false,
+      "inspection_level": "scan",
+      "notes": "Standard residential repaint. 2 finish coats for full hide and proper film build."
+    },
+    {
+      "quality_tier": "QT4",
+      "coat_count": { "prime": 1, "finish": 2 },
+      "interstage_sand": true,
+      "inspection_level": "systematic",
+      "notes": "Premium repaint. Interstage light sand between finish coats. Systematic inspection at all transitions."
+    }
+  ],
+
+  "round_configurations": [
+    {
+      "round_id": "ROUND_WSRP_SOUND_QT2",
+      "description": "0 primer + 1 finish coat — economy repaint on sound paint",
+      "prime_coats": 0,
+      "finish_coats": 1,
+      "total_coats": 1,
+      "applies_when": { "quality_tier": ["QT2"], "substrate_state": ["SS_EXT_SOUND_PAINT"] },
+      "notes": "Minimum viable repaint. Sound surface, good adhesion, no primer needed."
+    },
+    {
+      "round_id": "ROUND_WSRP_SOUND_QT3",
+      "description": "Spot prime + 2 finish coats — standard/premium repaint on sound paint",
+      "prime_coats": 1,
+      "finish_coats": 2,
+      "total_coats": 3,
+      "prime_scope": "spot",
+      "applies_when": { "quality_tier": ["QT3", "QT4"], "substrate_state": ["SS_EXT_SOUND_PAINT"] },
+      "notes": "Spot prime bare areas only + 2 finish coats."
+    },
+    {
+      "round_id": "ROUND_WSRP_CHALKING_QT2",
+      "description": "Full chalk-binding prime + 1 finish coat — economy on chalking",
+      "prime_coats": 1,
+      "finish_coats": 1,
+      "total_coats": 2,
+      "prime_scope": "full",
+      "applies_when": { "quality_tier": ["QT2"], "substrate_state": ["SS_EXT_CHALKING"] },
+      "notes": "Chalk-binding primer mandatory even at QT2."
+    },
+    {
+      "round_id": "ROUND_WSRP_CHALKING_QT3",
+      "description": "Full chalk-binding prime + 2 finish coats",
+      "prime_coats": 1,
+      "finish_coats": 2,
+      "total_coats": 3,
+      "prime_scope": "full",
+      "applies_when": { "quality_tier": ["QT3", "QT4"], "substrate_state": ["SS_EXT_CHALKING"] },
+      "notes": "Chalk-binding primer + standard 2-coat finish."
+    },
+    {
+      "round_id": "ROUND_WSRP_FAILING_LIGHT",
+      "description": "Spot prime + 2 finish coats — failing paint <30% bare",
+      "prime_coats": 1,
+      "finish_coats": 2,
+      "total_coats": 3,
+      "prime_scope": "spot",
+      "applies_when": { "substrate_state": ["SS_EXT_FAILING_PAINT"], "bare_percentage": "<30%" },
+      "notes": "Spot prime scraped areas. <30% bare does not require full prime."
+    },
+    {
+      "round_id": "ROUND_WSRP_FAILING_HEAVY",
+      "description": "Full prime + 2 finish coats — failing/peeling >30% bare",
+      "prime_coats": 1,
+      "finish_coats": 2,
+      "total_coats": 3,
+      "prime_scope": "full",
+      "applies_when": { "substrate_state": ["SS_EXT_FAILING_PAINT", "SS_EXT_PEELING"], "bare_percentage": ">=30%" },
+      "notes": "Full prime when >30% bare or active peeling. Acrylic or alkyd depending on wood chemistry."
+    },
+    {
+      "round_id": "ROUND_WSRP_WEATHERED",
+      "description": "Full penetrating prime + 2 finish coats — weathered bare wood",
+      "prime_coats": 1,
+      "finish_coats": 2,
+      "total_coats": 3,
+      "prime_scope": "full",
+      "applies_when": { "substrate_state": ["SS_EXT_WEATHERED"] },
+      "notes": "Deep-penetrating oil-alkyd primer to bind loose fibers + 2 finish coats. Most coating-intensive round config."
+    }
+  ],
+
+  "assumptions": [
+    "Base rates are for lap_horizontal siding at ground access on sound substrate (DSD-0).",
+    "STACKING PARTITION: Prep formula = base_rate / (DSD x access x profile x RRP). Coating formula = base_rate / (profile x access x QT). DSD and RRP do NOT stack with QT.",
+    "Modifier stacking cap: 4.0x maximum for coating tasks (max actual = 2.76x). Prep tasks may exceed 4.0x due to extreme DSD + RRP conditions — this is expected and correct for severe exterior repaint scenarios.",
+    "spray_backbrush ALWAYS requires 2-person crew (sprayer + backbrusher). Crew_size=1 indicates rate is per-person; engine handles 2-person coupling.",
+    "Spray/backbrush coupling rule: backbrush rate >= spray rate (backbrusher paces the sprayer).",
+    "Environmental conditions (wind, dew point, sun, surface temp) are NOT estimation modifiers (RC-003 from PaintFactor OS).",
+    "RRP containment setup/cleanup are separate tasks (TSK_WSRP_RRP_CONTAINMENT, TSK_WSRP_RRP_CLEANUP), not rate-modified. The RRP modifier on prep tasks covers only the procedural slowdown (wet methods, HEPA vacuum).",
+    "QT2 is appropriate only for SS_EXT_SOUND_PAINT or SS_EXT_CHALKING with SC_SOUND or SC_SLIGHT. The engine should flag QT2 on worse conditions.",
+    "SC_SUBSTRATE_DAMAGE (DSD-4) is a HARD STOP — triggers scope exclusion, never reaches estimation.",
+    "Caulk tasks use LF input from PS_EXT_LF.CAULK_JOINT. Estimator captures failed caulk LF during assessment.",
+    "SOP introduces separate primer tasks per substrate state (spot, chalk-binding, acrylic, tannin-blocking, penetrating). Old production lumped these as generic PRIME_FULL_SPRAY/BRUSH. New rates calibrated per primer type.",
+    "Finish coat 1 tasks are reusable for both QT2 (single coat) and QT3/QT4 (first of two coats). Engine selects coat 2 tasks only when quality_tier requires 2 coats.",
+    "SOP combines spray+backbrush into single tasks (TSK_WSRP_FINISH_SPRAY_BACKBRUSH) vs old production's separate spray and backbrush tasks. Rate represents combined operation."
+  ],
+
+  "risks": [
+    "Prep task modifier stacking on severe conditions (DSD-3 x scaffold x shingle x RRP = 8.40x) produces very slow effective rates. This is CORRECT — severe exterior repaint is extremely labor-intensive. Recommend hourly billing for DSD-3 + RRP scenarios.",
+    "Shingle siding + brush-only + ladder = ~20 SF/hr effective before DSD modifier — recommend spray_backbrush method whenever access allows.",
+    "RRP gate condition adds significant cost. Lead test results should be obtained before scoping to avoid change-order risk.",
+    "Weathered wood (SS_EXT_WEATHERED) may have hidden rot (SC_SUBSTRATE_DAMAGE). Condition assessment must probe suspect areas before committing to scope.",
+    "Multi-elevation projects with mixed substrate states should be estimated per-elevation with separate modifier stacks. Do not average DSD across elevations."
+  ],
+
+  "task_count_summary": {
+    "total_tasks": 49,
+    "binary_tasks": 26,
+    "state_conditional_tasks": 14,
+    "method_conditional_tasks": 6,
+    "condition_conditional_tasks": 4,
+    "qt_conditional_tasks": 2,
+    "note": "Task classifications match sop_modules.json exactly. Old production used binary/qt_scaled only; new SOP uses richer classification taxonomy.",
+    "by_uom": { "FIXED": 10, "SF": 29, "LF": 4, "EA": 6 },
+    "by_phase": {
+      "setup": 2,
+      "assess": 5,
+      "protect": 7,
+      "prep": 10,
+      "caulk": 2,
+      "prime": 9,
+      "finish_coat_1": 3,
+      "interstage": 2,
+      "finish_coat_2": 3,
+      "final_inspect": 2,
+      "cleanup": 4
+    }
+  }
+}

@@ -1,0 +1,252 @@
+{
+  "spec_family_id": "SF_TRIM_EXT_RP",
+  "version": "0.1.0",
+  "generated_by": "System Critic (QA)",
+  "generated_at": "2026-03-10",
+  "overall_result": "fail",
+  "phase": "prototype",
+
+  "summary": {
+    "checks_run": 26,
+    "passed": 16,
+    "critical": 3,
+    "major": 5,
+    "minor": 2,
+    "notes": "3 critical issues block approval. The SOP Librarian and Estimation Engineer produced fundamentally different task decompositions — 38 SOP tasks have no character-for-character match in production, and 30 production tasks have no match in SOP. This is the most severe cross-file threading failure seen to date. Additionally, 10 task_classification mismatches and 1 UOM mismatch. QT5 finish material system gap. These must be resolved before spec can proceed."
+  },
+
+  "issues": [
+    {
+      "issue_id": "QA_TRRP_001",
+      "severity": "critical",
+      "area": "cross_file_threading",
+      "file": "sop_modules.json, production.json",
+      "check": "Task ID exact match (SOP <-> Production)",
+      "description": "38 task_ids in sop_modules.json have NO character-for-character match in production.json. 30 task_ids in production.json have NO match in sop_modules.json. The two agents used different naming conventions for equivalent tasks. Examples: SOP has TSK_TRRP_PROTECT_GROUND but production has TSK_TRRP_GROUND_PROTECT; SOP has TSK_TRRP_ASSESS_MOISTURE but production has TSK_TRRP_MC_TESTING; SOP has TSK_TRRP_CHALK_CLEAN but production has TSK_TRRP_CHALK_REMEDIATE_LIGHT/HEAVY; SOP has TSK_TRRP_SCRAPE_LOOSE (single task) but production has TSK_TRRP_SCRAPE_LIGHT/MODERATE/HEAVY (three tasks by condition).",
+      "evidence": "SOP-only (38 tasks): TSK_TRRP_ASSESS_ADHESION, TSK_TRRP_ASSESS_MOISTURE, TSK_TRRP_ASSESS_ROT_PROBE, TSK_TRRP_ASSESS_LEAD_TEST, TSK_TRRP_CAULK_APPLY, TSK_TRRP_CAULK_REMOVE_OLD, TSK_TRRP_CHALKBIND_PRIME_BRUSH, TSK_TRRP_CHALKBIND_PRIME_SPRAY, TSK_TRRP_CHALK_CLEAN, TSK_TRRP_CHALK_VERIFY, TSK_TRRP_CLEAN_EQUIPMENT, TSK_TRRP_DUST_REMOVE, TSK_TRRP_FINAL_WALKTHROUGH, TSK_TRRP_FULL_PRIME_PVC_BRUSH, TSK_TRRP_INTERSTAGE_SPOT_REPAIR, TSK_TRRP_MOBILIZE, TSK_TRRP_PRIME_COAT_2, TSK_TRRP_PROTECT_DOOR, TSK_TRRP_PROTECT_GROUND, TSK_TRRP_PROTECT_HARDSCAPE, TSK_TRRP_PROTECT_LIGHT_FIXTURE, TSK_TRRP_PROTECT_ROOFLINE, TSK_TRRP_PROTECT_SIDING_MASK, TSK_TRRP_PROTECT_WINDOW_GLASS, TSK_TRRP_RRP_CONTAINMENT_SETUP, TSK_TRRP_RRP_CONTAINMENT_TEARDOWN, TSK_TRRP_RRP_WET_METHOD_PREP, TSK_TRRP_SAND_ADHESION, TSK_TRRP_SCAFFOLD_SETUP, TSK_TRRP_SCAFFOLD_TEARDOWN, TSK_TRRP_SCRAPE_LOOSE, TSK_TRRP_SPOT_PRIME_PVC_BRUSH, TSK_TRRP_SPOT_PRIME_SPRAY, TSK_TRRP_TEARDOWN_PROTECTION, TSK_TRRP_TOUCHUP, TSK_TRRP_TOUCHUP_TRANSITIONS, TSK_TRRP_WASH_DRY_TIME, TSK_TRRP_WASTE_DISPOSAL. Production-only (30 tasks): TSK_TRRP_CAULK_REPLACE, TSK_TRRP_CHALK_REMEDIATE_HEAVY, TSK_TRRP_CHALK_REMEDIATE_LIGHT, TSK_TRRP_CLEAN_EQUIPMENT_BRUSH, TSK_TRRP_CLEAN_EQUIPMENT_SPRAY, TSK_TRRP_DOOR_MASK, TSK_TRRP_DUST_CLEANUP, TSK_TRRP_ENGINEERED_EDGE_SEAL, TSK_TRRP_EQUIPMENT_SETUP_BRUSH, TSK_TRRP_EQUIPMENT_SETUP_SPRAY, TSK_TRRP_FINAL_TOUCHUP, TSK_TRRP_FIXTURE_MASK, TSK_TRRP_GROUND_PROTECT, TSK_TRRP_HARDSCAPE_PROTECT, TSK_TRRP_INTERSTAGE_TOUCHUP, TSK_TRRP_LEAD_EVAL, TSK_TRRP_LIGHT_SAND_SOUND, TSK_TRRP_MC_TESTING, TSK_TRRP_PROTECT_TEARDOWN, TSK_TRRP_PVC_SCUFF_SAND, TSK_TRRP_ROOFLINE_PROTECT, TSK_TRRP_RRP_CONTAIN_SETUP, TSK_TRRP_RRP_CONTAIN_TEARDOWN, TSK_TRRP_SCRAPE_HEAVY, TSK_TRRP_SCRAPE_LIGHT, TSK_TRRP_SCRAPE_MODERATE, TSK_TRRP_SIDING_MASK, TSK_TRRP_SITE_CLEANUP, TSK_TRRP_WINDOW_MASK, TSK_TRRP_WINDOW_MASK_SPRAY.",
+      "suggested_fix": "One file must be chosen as canonical and the other reconciled. Recommended: Production task IDs are generally more granular and operationally descriptive (e.g., splitting scrape by severity, splitting equipment setup by method). SOP Librarian should adopt production task IDs. Alternatively, both agents re-sync from resolution.json expected task list.",
+      "recommended_agent": "SOP Librarian + Estimation Engineer (joint reconciliation)"
+    },
+    {
+      "issue_id": "QA_TRRP_002",
+      "severity": "critical",
+      "area": "cross_file_threading",
+      "file": "sop_modules.json, production.json",
+      "check": "task_classification match between SOP and production",
+      "description": "10 tasks that DO match by ID have mismatched task_classification values. Most notably: all finish and prime tasks are qt_scaled in SOP but binary in production. Interstage tasks are qt_conditional in SOP but qt_scaled in production.",
+      "evidence": "TSK_TRRP_FEATHER_SAND: SOP=qt_scaled, PROD=binary. TSK_TRRP_FINISH_BRUSH_1: SOP=qt_scaled, PROD=binary. TSK_TRRP_FINISH_BRUSH_2: SOP=qt_scaled, PROD=binary. TSK_TRRP_FINISH_SPRAY_1: SOP=qt_scaled, PROD=binary. TSK_TRRP_FINISH_SPRAY_2: SOP=qt_scaled, PROD=binary. TSK_TRRP_FULL_PRIME_BRUSH: SOP=qt_scaled, PROD=binary. TSK_TRRP_FULL_PRIME_SPRAY: SOP=qt_scaled, PROD=binary. TSK_TRRP_INTERSTAGE_INSPECT: SOP=qt_conditional, PROD=qt_scaled. TSK_TRRP_INTERSTAGE_SAND: SOP=qt_conditional, PROD=qt_scaled. TSK_TRRP_SPOT_PRIME_BRUSH: SOP=qt_scaled, PROD=binary.",
+      "suggested_fix": "Production approach is correct for finish/prime tasks: base rate is single number with QT modifier applied via FAC_TRRP_QT (binary classification + QT modifier = same result as qt_scaled with per-tier rates). However, this violates RULE 2 cross-file threading. If production uses binary+FAC_TRRP_QT, SOP must also say binary. Interstage tasks SHOULD be qt_conditional (only appear at QT4/QT5) but production provides qt_rates including QT3 — production should mark these qt_conditional or remove QT3 rates.",
+      "recommended_agent": "SOP Librarian + Estimation Engineer (joint reconciliation)"
+    },
+    {
+      "issue_id": "QA_TRRP_003",
+      "severity": "critical",
+      "area": "cross_file_threading",
+      "file": "sop_modules.json, production.json",
+      "check": "UOM match between SOP and production",
+      "description": "TSK_TRRP_FINAL_INSPECT has UOM=FIXED in sop_modules.json but UOM=LF in production.json. These must match character-for-character.",
+      "evidence": "SOP line 963: unit_of_measure: FIXED. Production line 726: unit_of_measure: LF with qt_rates per LF.",
+      "suggested_fix": "Production approach (LF with qt_rates) is more appropriate — final inspection scales with total trim LF and varies by quality tier. SOP should change to UOM=LF to match production.",
+      "recommended_agent": "SOP Librarian"
+    },
+    {
+      "issue_id": "QA_TRRP_004",
+      "severity": "major",
+      "area": "material_systems",
+      "file": "materials.json",
+      "check": "QT5 finish system coverage gap",
+      "description": "SYS_EXT_TRRP_FINISH_ACRYLIC covers quality_tier [QT3, QT4] only. QT5 has no standard acrylic finish system declared. SYS_EXT_TRRP_FINISH_IR_REFLECTIVE covers QT5 but only for PVC with LRV<55. Non-PVC trim at QT5 (gloss) has no declared finish material system.",
+      "evidence": "materials.json line 112: SYS_EXT_TRRP_FINISH_ACRYLIC quality_tier: [QT3, QT4]. No system with quality_tier including QT5 for standard wood/engineered substrates.",
+      "suggested_fix": "Add QT5 to SYS_EXT_TRRP_FINISH_ACRYLIC quality_tier array, or create a separate SYS_EXT_TRRP_FINISH_ACRYLIC_QT5 system with premium products (SW Emerald Urethane, BM Advance) and gloss sheen. The resolution.json proposed SYS_EXT_TRRP_FINISH_ACRYLIC covering all three tiers with tier-specific products.",
+      "recommended_agent": "Materials Manager"
+    },
+    {
+      "issue_id": "QA_TRRP_005",
+      "severity": "major",
+      "area": "stacking_partition",
+      "file": "production.json",
+      "check": "Worst-case stacking exceeds 4.0x flag on BOTH prep and coating pools",
+      "description": "Prep worst-case stack is 12.32x (SC_SEVERE 1.75 x RRP 2.00 x Extreme 2.20 x Elaborate 1.60). Coating worst-case is 5.28x (QT5 1.50 x Extreme 2.20 x Elaborate 1.60). Both exceed the 4.0x flag threshold. Production.json acknowledges this and recommends T&M for extreme combinations, which is the correct mitigation. Documenting as major for estimator visibility.",
+      "evidence": "production.json MODIFIER_STACKING_WARNING section. Prep 12.32x produces effective heavy scrape rate of 1.2 LF/hr. Coating 5.28x produces effective brush finish rate of 7.6 LF/hr.",
+      "suggested_fix": "No code change required. The stacking partition is correctly implemented and documented. Add UI flag in PaintScope to alert estimator when combined stacking exceeds 4.0x. Recommend T&M billing clause for these extreme combinations.",
+      "recommended_agent": "Estimation Engineer (UI flag), Business (T&M clause)"
+    },
+    {
+      "issue_id": "QA_TRRP_006",
+      "severity": "major",
+      "area": "architectural",
+      "file": "production.json",
+      "check": "FAC_TRRP_HEIGHT vs FAC_EXT_ACCESS naming",
+      "description": "Production uses FAC_TRRP_HEIGHT (not FAC_EXT_ACCESS) for height modifiers. This is intentionally different from siding specs per the notes (trim requires painter AT working height for brush work vs siding spray from ground). The values (1.30/1.60/1.90/2.20) also differ from siding FAC_EXT_ACCESS (1.35/1.60/1.50). This is architecturally sound but creates a naming divergence from the exterior modifier override rule in the Prototype Critic which says 'Use FAC_EXT_ACCESS (not FAC_HEIGHT) for elevation work'. The spec explicitly documents why the override does not apply.",
+      "evidence": "production.json FAC_TRRP_HEIGHT notes: 'Uses FAC_TRRP_HEIGHT -- NOT FAC_EXT_ACCESS. Trim height tiers differ from siding access tiers because trim requires painter AT working height for brush work.'",
+      "suggested_fix": "Acceptable deviation with documentation. Update exterior modifier override rule in prototype-critic.md to note that trim specs may use FAC_TRRP_HEIGHT when per-component height tiers differ from access tiers. No production change needed.",
+      "recommended_agent": "System Architect (doctrine documentation)"
+    },
+    {
+      "issue_id": "QA_TRRP_007",
+      "severity": "major",
+      "area": "cross_file_threading",
+      "file": "sop_modules.json, production.json",
+      "check": "Task granularity mismatch - structural decomposition divergence",
+      "description": "The SOP and production files use fundamentally different task decomposition strategies. SOP uses a single TSK_TRRP_SCRAPE_LOOSE with modifier_by_state for peeling vs failing. Production splits into TSK_TRRP_SCRAPE_LIGHT, TSK_TRRP_SCRAPE_MODERATE, TSK_TRRP_SCRAPE_HEAVY with different base rates per condition. SOP uses TSK_TRRP_CAULK_REMOVE_OLD + TSK_TRRP_CAULK_APPLY (2 tasks). Production uses TSK_TRRP_CAULK_REPLACE (1 combined task). SOP has TSK_TRRP_CLEAN_EQUIPMENT (1 task). Production has TSK_TRRP_CLEAN_EQUIPMENT_BRUSH + TSK_TRRP_CLEAN_EQUIPMENT_SPRAY (2 tasks). These structural differences prevent the engine from consuming both files as a unified pipeline.",
+      "evidence": "SOP: TSK_TRRP_SCRAPE_LOOSE with modifier_by_state {SS_EXT_FAILING_PAINT: 1.0, SS_EXT_PEELING: 1.40}. Production: TSK_TRRP_SCRAPE_LIGHT (50 LF/hr), TSK_TRRP_SCRAPE_MODERATE (30 LF/hr), TSK_TRRP_SCRAPE_HEAVY (15 LF/hr) selected by condition.",
+      "suggested_fix": "Production's granular decomposition is operationally superior (different base rates by severity, not modifiers of a single rate). SOP should adopt production's task split. This is the most labor-intensive reconciliation item.",
+      "recommended_agent": "SOP Librarian"
+    },
+    {
+      "issue_id": "QA_TRRP_008",
+      "severity": "major",
+      "area": "material_systems",
+      "file": "sop_modules.json, materials.json",
+      "check": "Material system ID references from SOP tasks",
+      "description": "SOP prime tasks reference material systems implicitly via description text and substrate_state_rules, but do not declare explicit material_system fields. The SOP task descriptions say 'acrylic stain-blocking primer' or 'bonding primer' but do not reference SYS_EXT_TRRP_PRIMER_ACRYLIC or SYS_EXT_TRRP_PRIMER_BONDING by ID. This is a soft threading gap - the engine needs explicit material_system references on SOP tasks to calculate material quantities.",
+      "evidence": "TSK_TRRP_SPOT_PRIME_BRUSH description references 'acrylic stain-blocking primer' but has no material_system field. TSK_TRRP_CHALKBIND_PRIME_BRUSH references 'chalk-binding conditioner primer' without SYS_EXT_TRRP_PRIMER_CHALKBIND ID.",
+      "suggested_fix": "Add material_system field to each SOP prime task referencing the appropriate SYS_ ID from materials.json. This enables the engine to automatically calculate material quantities from the SOP task activation.",
+      "recommended_agent": "SOP Librarian"
+    },
+    {
+      "issue_id": "QA_TRRP_009",
+      "severity": "minor",
+      "area": "architectural",
+      "file": "production.json",
+      "check": "Interstage tasks provide QT3 rates despite being QT4/QT5 only",
+      "description": "TSK_TRRP_INTERSTAGE_INSPECT and TSK_TRRP_INTERSTAGE_TOUCHUP have qt_rates entries for QT3 despite interstage being conditional on QT4/QT5. TSK_TRRP_INTERSTAGE_SAND correctly omits QT3 rate. The QT3 rates on inspect/touchup are harmless (they should never be activated at QT3) but create confusion about whether interstage applies at QT3.",
+      "evidence": "TSK_TRRP_INTERSTAGE_INSPECT qt_rates has QT3: 500 LF/hr. TSK_TRRP_INTERSTAGE_SAND qt_rates has only QT4 and QT5. quality_effects QT3 shows interstage_sand: false and interstage_cycles: 1.",
+      "suggested_fix": "Remove QT3 rate from TSK_TRRP_INTERSTAGE_INSPECT and TSK_TRRP_INTERSTAGE_TOUCHUP. Interstage sanding skipped at QT3 per quality_effects. Note: QT3 quality_effects shows interstage_cycles: 1, which implies 1 inspection cycle between finish coats (no sanding). Clarify whether QT3 gets inspection-only interstage or no interstage at all.",
+      "recommended_agent": "Estimation Engineer"
+    },
+    {
+      "issue_id": "QA_TRRP_010",
+      "severity": "minor",
+      "area": "completeness",
+      "file": "production.json",
+      "check": "Missing site condition rules in production",
+      "description": "Production does not declare site condition rules (wind_condition, surface_temperature, dew_point_risk) on spray tasks or any tasks. SOP correctly declares exclude_when rules for high wind, hot surface, and unsafe dew point on spray tasks. The production file should mirror these or reference the SOP declarations.",
+      "evidence": "SOP TSK_TRRP_FINISH_SPRAY_1 has site_condition_rules.exclude_when for wind, temperature, dew_point. Production TSK_TRRP_FINISH_SPRAY_1 has no site_condition_rules.",
+      "suggested_fix": "Add site_condition_rules to production spray tasks matching SOP declarations. These are SOP/process concerns per RC-003 (not estimation modifiers) but should be declared for completeness.",
+      "recommended_agent": "Estimation Engineer"
+    }
+  ],
+
+  "checks_detail": {
+    "cross_file_threading": {
+      "task_id_match": "FAIL (QA_TRRP_001) — 38 SOP-only, 30 prod-only",
+      "task_classification_match": "FAIL (QA_TRRP_002) — 10 mismatches",
+      "uom_match": "FAIL (QA_TRRP_003) — 1 mismatch (TSK_TRRP_FINAL_INSPECT)",
+      "material_system_ids": "FAIL (QA_TRRP_008) — SOP tasks lack explicit SYS_ references",
+      "module_id_prefix": "PASS — all 13 modules use MOD_TRRP_* prefix",
+      "factor_modifier_id_prefix": "PASS — all 5 factors use FAC_TRRP_* prefix"
+    },
+    "architectural_checks": {
+      "qt_range": "PASS — QT3/QT4/QT5 only, no QT2 references",
+      "substrate_states": "PASS — 4 states correctly declared: SS_EXT_SOUND_PAINT, SS_EXT_CHALKING, SS_EXT_FAILING_PAINT, SS_EXT_PEELING",
+      "substrate_condition": "PASS — DSD 0-3 mapped to SC_ enums, DSD-4 = HARD STOP documented",
+      "rrp_gate": "PASS — MOD_TRRP_RRP conditional on pre_1978, FAC_TRRP_RRP gate documented",
+      "height_modifier_tiers": "PASS — 1.00/1.30/1.60/1.90/2.20 per-component tiers declared",
+      "complexity_modifier": "PASS — simple_flat(1.00)/standard_profiled(1.15)/built_up(1.30)/elaborate(1.60)",
+      "brush_primary": "PASS — brush documented as primary method (40 LF/hr baseline), spray conditional",
+      "feather_sand_mandatory": "PASS — documented as non-negotiable at all QT in SOP, production, and resolution",
+      "caulk_integrated": "PASS — MOD_TRRP_CAULK with Think Like a Water Drop protocol, NEVER silicone on PVC",
+      "pca_p10_one_foot_rule": "PASS — referenced in resolution, materials, and production",
+      "lf_primary_uom": "PASS — all 8 trim components use LF"
+    },
+    "stacking_partition": {
+      "condition_on_prep_only": "PASS — FAC_TRRP_CONDITION applies_to contains only prep tasks, no overlap with FAC_TRRP_QT",
+      "rrp_on_prep_only": "PASS — FAC_TRRP_RRP applies_to all prep tasks involving paint disturbance",
+      "qt_on_coating_only": "PASS — FAC_TRRP_QT applies_to prime and finish tasks only, no overlap with FAC_TRRP_CONDITION",
+      "height_and_complexity_on_all": "PASS — FAC_TRRP_HEIGHT and FAC_TRRP_COMPLEXITY applied to all work tasks (prep + coating)",
+      "worst_case_prep": "12.32x (SC_SEVERE 1.75 x RRP 2.00 x Extreme 2.20 x Elaborate 1.60) — documented, flagged for T&M",
+      "worst_case_coating": "5.28x (QT5 1.50 x Extreme 2.20 x Elaborate 1.60) — documented, flagged for T&M",
+      "formula_correct": "PASS — effective_rate = base_rate / modifier (division, not multiplication)"
+    },
+    "completeness": {
+      "research_sections": "PASS — all mandatory sections present in research.json",
+      "key_decisions_documented": "PASS — 10+ key decisions in research.json relevant_findings",
+      "protection_zones_ext_prefix": "PASS — all 7 zones use ext_* prefix (ext_siding_mask, ext_window_mask, ext_door_mask, ext_ground_cover, ext_roofline_protection, ext_hardscape_walk, ext_light_fixture)",
+      "adjacency_analysis": "PASS — resolution.json surface_ids includes 6 adjacent surfaces"
+    },
+    "exterior_domain_checks": {
+      "ext1_key_namespace": "PASS — all paintscope keys use PS_EXT_* namespace",
+      "ext2_substrate_state_validity": "PASS — all states use SS_EXT_* IDs",
+      "ext3_protection_zone_integrity": "PASS — all zones use ext_* prefix",
+      "ext4_site_condition_rules": "PASS in SOP — wind/temperature/dew_point rules declared on spray tasks. Minor gap in production (QA_TRRP_010).",
+      "ext5_exterior_factor_keys": "PASS with deviation — uses FAC_TRRP_HEIGHT instead of FAC_EXT_ACCESS (documented, justified). FAC_TRRP_CONDITION serves substrate condition role. No FAC_EXT_WIND declared (environmental conditions are SOP/process per RC-003).",
+      "ext6_modifier_math": "PASS — formula is division (effective_rate = base_rate / modifier)",
+      "ext7_material_state_compatibility": "PASS with gap — material systems declare substrate_state compatibility. QT5 finish gap (QA_TRRP_004)."
+    }
+  },
+
+  "task_count_reconciliation": {
+    "sop_modules_task_count": 52,
+    "production_task_count": 44,
+    "matched_by_id": 14,
+    "sop_only": 38,
+    "production_only": 30,
+    "classification_mismatches_in_matched": 10,
+    "uom_mismatches_in_matched": 1,
+    "notes": "Only 14 of 52 SOP tasks (27%) have exact ID matches in production. This is below the 100% requirement. The conceptual task inventory is sound — both files cover the same workflow — but the naming divergence is unacceptable for engine consumption."
+  },
+
+  "material_system_validation": {
+    "primer_systems": {
+      "SYS_EXT_TRRP_PRIMER_ACRYLIC": "PASS — wood/engineered, spot and full prime, SS_EXT_SOUND_PAINT/FAILING/PEELING",
+      "SYS_EXT_TRRP_PRIMER_STAINBLOCK": "PASS — tannin-rich wood (cedar/redwood), alkyd oil-based, SS_EXT_FAILING/PEELING",
+      "SYS_EXT_TRRP_PRIMER_BONDING": "PASS — PVC trim, bonding adhesion promoter, all states",
+      "SYS_EXT_TRRP_PRIMER_CHALKBIND": "PASS — chalking surfaces all materials, low-viscosity penetrating"
+    },
+    "finish_systems": {
+      "SYS_EXT_TRRP_FINISH_ACRYLIC": "FAIL — quality_tier covers QT3/QT4 only, missing QT5 (QA_TRRP_004)",
+      "SYS_EXT_TRRP_FINISH_IR_REFLECTIVE": "PASS — PVC + LRV<55 gate, solar-reflective, QT3/QT4/QT5"
+    },
+    "coverage_profiles": "PASS — 7 coverage profiles covering all primer paths and finish by profile complexity",
+    "consumables": "PASS — 22 consumables with correct CON_ prefix, appropriate categories (applicator/protection/abrasive/prep/fill_material/tool/cleanup)"
+  },
+
+  "round_configuration_validation": {
+    "sop_rounds": 6,
+    "production_rounds": 8,
+    "sop_round_ids": ["ROUND_TRRP_SOUND_QT3", "ROUND_TRRP_SOUND_QT4", "ROUND_TRRP_SOUND_QT5", "ROUND_TRRP_CHALKING", "ROUND_TRRP_FAILING_LIGHT", "ROUND_TRRP_FAILING_HEAVY"],
+    "production_additional_rounds": ["ROUND_TRRP_CHALKING_QT5", "ROUND_TRRP_FAILING_HEAVY_QT5"],
+    "notes": "Production adds QT5-specific rounds for chalking and heavy failing (2-coat primer + 3 interstage cycles). SOP chalking round notes say 'QT4/QT5 add interstage per standard rules' but doesn't split into separate rounds. Production approach is more precise."
+  },
+
+  "doctrine_compliance": {
+    "modifier_multiplicative": "PASS — formula uses division (effective_rate = base_rate / modifier_product)",
+    "stacking_partition": "PASS — PREP pool (CONDITION + RRP) and COATING pool (QT) never overlap",
+    "protection_zone_ext_prefix": "PASS — all 7 zones correctly ext_* prefixed",
+    "quality_tier_filtering": "PASS — QT3-QT5 only, QT2 excluded as documented",
+    "binary_tasks_all_tiers": "PASS — all binary tasks declare appears_in_tiers [QT3, QT4, QT5]",
+    "qt_conditional_tier_filtering": "PASS — interstage tasks and TSK_TRRP_PRIME_COAT_2 correctly restricted to QT4/QT5 or QT5-only",
+    "data_layer_isolation": "PASS — all rates in production data, not hardcoded",
+    "paintscope_key_namespace": "PASS — all PS_EXT_* keys, no interior PS_ keys",
+    "substrate_state_namespace": "PASS — all SS_EXT_* states, no SS_INT_* contamination"
+  },
+
+  "resolution_required": [
+    {
+      "priority": 1,
+      "action": "Reconcile task IDs between SOP and production (QA_TRRP_001). Recommend adopting production task IDs as canonical — they are more granular and operationally sound. SOP Librarian rebuilds module task lists using production IDs.",
+      "blocking": true
+    },
+    {
+      "priority": 2,
+      "action": "Resolve 10 task_classification mismatches (QA_TRRP_002). Decide: are finish/prime tasks binary (with FAC_TRRP_QT modifier) or qt_scaled (with per-tier rates)? Both approaches produce equivalent math but classification must match.",
+      "blocking": true
+    },
+    {
+      "priority": 3,
+      "action": "Fix TSK_TRRP_FINAL_INSPECT UOM mismatch (QA_TRRP_003). SOP should change FIXED to LF.",
+      "blocking": true
+    },
+    {
+      "priority": 4,
+      "action": "Add QT5 to SYS_EXT_TRRP_FINISH_ACRYLIC quality_tier or create QT5-specific finish system (QA_TRRP_004).",
+      "blocking": false
+    },
+    {
+      "priority": 5,
+      "action": "Add explicit material_system field to SOP prime tasks (QA_TRRP_008).",
+      "blocking": false
+    }
+  ]
+}

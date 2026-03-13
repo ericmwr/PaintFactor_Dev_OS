@@ -1,0 +1,416 @@
+{
+  "spec_family_id": "SF_PORCH_FLOOR_EXT_NC",
+  "version": "0.1.0",
+  "generated_by": "System Critic (QA)",
+  "generated_at": "2026-03-10",
+
+  "validation_summary": {
+    "overall_result": "PASS_WITH_WARNINGS",
+    "total_checks": 38,
+    "passed": 24,
+    "warnings": 12,
+    "blockers": 2,
+    "notes": "Spec is structurally sound with correct dual-substrate architecture, comprehensive task coverage, and proper domain enforcement. Two blockers require resolution: (1) 11 task_classification mismatches between SOP and production, and (2) environmental condition modifiers in production contradict research RC-001 exclusion. 12 warnings for PS key inconsistencies, input name drift, material system ID mismatch, and task_summary count discrepancies."
+  },
+
+  "cross_file_checks": [
+    {
+      "id": "XF-001",
+      "check_type": "task_id_coverage",
+      "status": "pass",
+      "details": "All 36 task IDs in sop_modules.json have matching entries in production.json. Task sets are identical: TSK_PRFL_MOBILIZE through TSK_PRFL_CLEANUP. No orphaned or missing tasks in either direction."
+    },
+    {
+      "id": "XF-002",
+      "check_type": "task_count_consistency",
+      "status": "pass",
+      "details": "Both files report 36 total tasks. SOP task_summary.total_tasks = 36. Production production_metadata.total_tasks = 36. Actual counted task IDs = 36 in each file."
+    },
+    {
+      "id": "XF-003",
+      "check_type": "task_classification_consistency",
+      "status": "fail",
+      "severity": "major",
+      "details": "11 tasks have mismatched task_classification between SOP and production. This is a blocker because the engine uses classification to determine task activation logic. Mismatches: (1) TSK_PRFL_MOISTURE_TEST: SOP=binary, production=substrate_conditional. (2) TSK_PRFL_CONCRETE_CRACK_FILL: SOP=binary, production=substrate_conditional. (3) TSK_PRFL_CONCRETE_CLEAN: SOP=binary, production=substrate_conditional. (4) TSK_PRFL_WOOD_MC_TEST: SOP=binary, production=substrate_conditional. (5) TSK_PRFL_WOOD_CLEAN: SOP=binary, production=substrate_conditional. (6) TSK_PRFL_PRIME_WOOD_ROLL: SOP=coating_conditional, production=substrate_conditional. (7) TSK_PRFL_PRIME_WOOD_BRUSH: SOP=coating_conditional, production=substrate_conditional. (8) TSK_PRFL_PRIME_MOISTURE_MITIGATING: SOP=coating_conditional, production=condition_conditional. (9) TSK_PRFL_STEP_DETAIL: SOP=coating_conditional, production=condition_conditional. (10) TSK_PRFL_ANTI_SLIP_BROADCAST_FIELD: SOP=always, production=binary. (11) TSK_PRFL_ANTI_SLIP_BROADCAST_STEPS: SOP=always, production=condition_conditional.",
+      "recommended_fix": "Align classifications. Production values are generally more precise than SOP values. Recommended resolutions: (1-5) Concrete-only tasks should be substrate_conditional (production is correct). (6-7) Wood primer tasks are substrate+coating conditional — use substrate_conditional since substrate is the primary branch. (8) Moisture-mitigating primer is condition_conditional (production is correct). (9) Step detail is condition_conditional on has_steps (production is correct). (10) Anti-slip field broadcast is mandatory/always per KD-005 — SOP value 'always' is correct, production should change from 'binary' to 'always'. (11) Anti-slip steps is condition_conditional on has_steps — production is correct."
+    },
+    {
+      "id": "XF-004",
+      "check_type": "task_classification_summary_accuracy",
+      "status": "warn",
+      "severity": "minor",
+      "details": "SOP task_summary breakdown (16 binary, 16 coating_conditional, 2 substrate_conditional, 2 always) does not match production metadata breakdown (12 binary, 12 coating_conditional, 9 substrate_conditional, 3 condition_conditional). Both sum to 36, but the per-classification counts reflect the classification mismatches in XF-003. After classification alignment, both summaries must be updated."
+    },
+    {
+      "id": "XF-005",
+      "check_type": "uom_consistency",
+      "status": "pass",
+      "details": "All 36 tasks have matching unit_of_measure between SOP and production. FIXED tasks match (MOBILIZE, AREA_PREP, REMOVE_PROTECTION, REPLACE_FURNITURE, FINAL_INSPECTION, CLEANUP). SF tasks match. LF tasks match. EA tasks match."
+    },
+    {
+      "id": "XF-006",
+      "check_type": "material_system_resolution_to_materials",
+      "status": "warn",
+      "severity": "minor",
+      "details": "Resolution.json proposed_systems use short IDs (SYS_PRIMER_ALKALI_MASONRY, SYS_PRIMER_WOOD_EXT, SYS_FINISH_PORCH_ENAMEL, etc.) while materials.json uses fully qualified IDs with context prefix (SYS_EXT_PRFL_PRIMER_ALKALI_MASONRY, SYS_EXT_PRFL_PRIMER_WOOD_EXT, SYS_EXT_PRFL_FINISH_PORCH_ENAMEL, etc.). All 9 systems are present in both files and the mapping is 1:1, but the ID format diverges. Materials Manager correctly applied the SYS_EXT_PRFL_ prefix pattern per the material_system_prefix in resolution.",
+      "recommended_fix": "Acceptable divergence — resolution provides suggested short IDs and materials.json applies the naming convention. No action required unless registry enforcement is strict on exact ID matching."
+    },
+    {
+      "id": "XF-007",
+      "check_type": "paintscope_key_consistency_research_to_resolution",
+      "status": "pass",
+      "details": "All 12 PS keys in resolution.json paintscope_keys array match the research.json required_paintscope_keys list. PS_EXT_SURFACE_SF.PORCH_FLOOR, PS_EXT_META.ENUM.SUBSTRATE_TYPE, PS_EXT_META.ENUM.COATING_SYSTEM_PORCH, PS_EXT_META.FLAG.NEW_CONSTRUCTION, PS_EXT_META.FLAG.HAS_STEPS, PS_EXT_META.EA.STEP_COUNT, PS_EXT_META.ENUM.EXPOSURE_TYPE, PS_EXT_PROTECT_LF.WALL_BASE_PERIMETER, PS_EXT_PROTECT_LF.RAILING_BASE, PS_EXT_PROTECT_EA.DOOR_THRESHOLD, PS_EXT_PROTECT_LF.LANDSCAPE_PERIMETER, PS_EXT_PROTECT_LF.HARDSCAPE_EDGE."
+    },
+    {
+      "id": "XF-008",
+      "check_type": "paintscope_key_consistency_across_downstream",
+      "status": "warn",
+      "severity": "major",
+      "details": "Three PS key / input name inconsistencies across SOP, production, and resolution: (1) Wall base PS key: SOP uses PS_EXT_PROTECT_LF.WALL_BASE, resolution and research use PS_EXT_PROTECT_LF.WALL_BASE_PERIMETER. Production uses PS_EXT_PROTECT_LF.WALL_BASE. Canonical per resolution = WALL_BASE_PERIMETER. (2) Landscape PS key: SOP uses PS_EXT_PROTECT_LF.LANDSCAPE_EDGE with input IN_LF_EXT_PROTECT_LANDSCAPE_EDGE, resolution uses PS_EXT_PROTECT_LF.LANDSCAPE_PERIMETER with input IN_LF_EXT_PROTECT_LANDSCAPE_PERIMETER. Production uses LANDSCAPE_PERIMETER. Canonical per resolution = LANDSCAPE_PERIMETER. (3) Hardscape PS key: production uses PS_EXT_PROTECT_LF.HARDSCAPE_WALK, resolution and research use PS_EXT_PROTECT_LF.HARDSCAPE_EDGE. Canonical per resolution = HARDSCAPE_EDGE.",
+      "recommended_fix": "Align SOP and production PS keys to resolution canonical values: (1) Change SOP and production WALL_BASE to WALL_BASE_PERIMETER. (2) Change SOP LANDSCAPE_EDGE to LANDSCAPE_PERIMETER, update input name to IN_LF_EXT_PROTECT_LANDSCAPE_PERIMETER. (3) Change production HARDSCAPE_WALK to HARDSCAPE_EDGE, update input name to match."
+    },
+    {
+      "id": "XF-009",
+      "check_type": "primary_input_name_consistency",
+      "status": "warn",
+      "severity": "major",
+      "details": "Primary surface input name differs between SOP and production/resolution. SOP uses IN_SF_EXT_SURFACE_PORCH_FLOOR throughout all modules. Resolution and production use IN_SF_PORCH_FLOOR. Canonical per resolution = IN_SF_PORCH_FLOOR.",
+      "recommended_fix": "Change all SOP references from IN_SF_EXT_SURFACE_PORCH_FLOOR to IN_SF_PORCH_FLOOR to match resolution canonical input name."
+    },
+    {
+      "id": "XF-010",
+      "check_type": "step_count_input_consistency",
+      "status": "warn",
+      "severity": "minor",
+      "details": "Step count input name: SOP uses IN_EA_EXT_STEP_COUNT with PS_EXT_DETAIL_EA.STEP_COUNT. Resolution uses IN_EA_STEP_COUNT with PS_EXT_META.EA.STEP_COUNT. Production uses IN_EA_PORCH_STEPS (a third variant). Three different input names for the same measurement.",
+      "recommended_fix": "Align to resolution canonical: IN_EA_STEP_COUNT with PS_EXT_META.EA.STEP_COUNT."
+    },
+    {
+      "id": "XF-011",
+      "check_type": "round_configuration_coverage",
+      "status": "pass",
+      "details": "Resolution proposes 5 round configurations (ROUND_PRFL_CONCRETE_PORCH_ENAMEL, ROUND_PRFL_WOOD_PORCH_ENAMEL, ROUND_PRFL_ACRYLIC_SEALER, ROUND_PRFL_CONCRETE_STAIN, ROUND_PRFL_POLYUREA). Materials.json coverage_profiles cover all 5 coating system paths with matching coat counts. Production quality_effects coat counts are consistent."
+    },
+    {
+      "id": "XF-012",
+      "check_type": "modifier_coverage",
+      "status": "pass",
+      "details": "Production defines 4 factor_modifiers (FAC_PRFL_COATING_SYSTEM, FAC_PRFL_EXPOSURE_TYPE, FAC_EXT_SUN_EXPOSURE, FAC_EXT_SURFACE_TEMP). All use division formula (effective_rate = base_rate / modifier). Max combined modifier = 1.461x, well under 4.0x cap."
+    }
+  ],
+
+  "convention_checks": [
+    {
+      "id": "CC-001",
+      "check_type": "prefix_convention",
+      "status": "pass",
+      "details": "All task IDs use TSK_PRFL_ prefix. All module IDs use MOD_PRFL_ prefix. All consumable IDs use CON_ prefix (never CONS_). All factor IDs use FAC_ prefix. Context prefix PRFL is unique, no collision with existing prefixes."
+    },
+    {
+      "id": "CC-002",
+      "check_type": "unit_case_convention",
+      "status": "pass",
+      "details": "All UOM values are uppercase: SF, LF, EA, FIXED, ROLL, SHEET, QT, GAL. No lowercase unit values found."
+    },
+    {
+      "id": "CC-003",
+      "check_type": "phase_values",
+      "status": "pass",
+      "details": "All module phase values are valid: setup, prep, prime, apply, cleanup. No prohibited values (protect, protection) found."
+    },
+    {
+      "id": "CC-004",
+      "check_type": "severity_values",
+      "status": "pass",
+      "details": "Research failure_modes use correct severity values: critical, major. No prohibited values (high, medium, low, WARN) found."
+    },
+    {
+      "id": "CC-005",
+      "check_type": "consumable_category_values",
+      "status": "pass",
+      "details": "All consumable categories are valid: applicator, protection, prep, abrasive, fill_material, tool. No prohibited categories found."
+    },
+    {
+      "id": "CC-006",
+      "check_type": "task_classification_enum_values",
+      "status": "warn",
+      "severity": "minor",
+      "details": "Resolution.json applicable_enums.task_classification proposes values [binary, cs_conditional, cs_scaled] with cs_ prefix for coating-system-driven classification. However, SOP uses [binary, coating_conditional, substrate_conditional, always] and production uses [binary, coating_conditional, substrate_conditional, condition_conditional]. Neither downstream file adopted the cs_ prefix convention. The actual classification values used are more descriptive and should be formalized.",
+      "recommended_fix": "Update resolution applicable_enums.task_classification to match actual downstream usage: [binary, coating_conditional, substrate_conditional, condition_conditional, always]. Or align downstream to use cs_ prefix consistently."
+    },
+    {
+      "id": "CC-007",
+      "check_type": "sheen_values",
+      "status": "pass",
+      "details": "All sheen values in materials.json are single values: satin, semi-gloss, gloss, n/a. No compound sheens found."
+    }
+  ],
+
+  "domain_checks": [
+    {
+      "id": "DC-001",
+      "check_type": "anti_slip_aggregate_mandatory",
+      "status": "pass",
+      "details": "TSK_PRFL_ANTI_SLIP_BROADCAST_FIELD exists in both SOP and production with empty applies_when (always active). TSK_PRFL_ANTI_SLIP_BROADCAST_STEPS exists with applies_when: has_steps=true. SOP classifies field broadcast as 'always' (correct per KD-005). Anti-slip aggregate is properly enforced as mandatory for all exterior floor coatings."
+    },
+    {
+      "id": "DC-002",
+      "check_type": "moisture_test_concrete",
+      "status": "pass",
+      "details": "TSK_PRFL_MOISTURE_TEST exists with applies_when: substrate_type=concrete. Hard stop condition documented (MVER > 5 lbs OR RH > 85%). Contingency task TSK_PRFL_PRIME_MOISTURE_MITIGATING exists for failed moisture tests. MOD_PRFL_MOISTURE_TEST module is properly conditional on substrate_type=concrete."
+    },
+    {
+      "id": "DC-003",
+      "check_type": "concrete_stain_sealer_topcoat",
+      "status": "pass",
+      "details": "TSK_PRFL_SEALER_TOPCOAT exists with applies_when: coating_system=concrete_stain. SOP correctly marks it as coating_conditional. Material system SYS_EXT_PRFL_FINISH_SEALER_TOPCOAT exists in materials.json. Research KD-009 documents this requirement. Sealer topcoat is properly enforced."
+    },
+    {
+      "id": "DC-004",
+      "check_type": "acrylic_sealer_skips_prime",
+      "status": "pass",
+      "details": "MOD_PRFL_PRIME applies_when is restricted to coating_system: [porch_enamel, polyurea]. Acrylic sealer and concrete stain are not listed, meaning they skip the prime module. SOP module description explicitly states self-priming systems skip this module. Research RF-012 and KD-004 document this correctly."
+    },
+    {
+      "id": "DC-005",
+      "check_type": "polyurea_manufacturer_primer",
+      "status": "pass",
+      "details": "TSK_PRFL_PRIME_POLYUREA exists with applies_when: substrate_type=concrete, coating_system=polyurea. SOP description mandates manufacturer-specific basecoat. Material system SYS_EXT_PRFL_PRIMER_POLYUREA exists in materials.json with product_role=primer and notes about manufacturer pairing. Research documents polyurea system-specific primer requirement."
+    },
+    {
+      "id": "DC-006",
+      "check_type": "epoxy_excluded",
+      "status": "pass",
+      "details": "Epoxy is excluded from coating_system enum values in all files. Resolution applicable_enums.coating_system.prohibited = [epoxy]. No epoxy coating tasks, no epoxy material systems, no epoxy round configurations exist. The word 'epoxy' appears only in: (1) research exclusion documentation, (2) crack filler product descriptions (epoxy crack filler is a prep material, not a coating system), (3) moisture-mitigating primer description (epoxy-based primer is a contingency product, not an epoxy floor coating). All correct contextual usage."
+    },
+    {
+      "id": "DC-007",
+      "check_type": "no_height_modifier",
+      "status": "pass",
+      "details": "No height modifier (FAC_EXT_ACCESS or similar) exists in production.json factor_modifiers. Research KD-007 explicitly states no height modifier — ground-level work. Production metadata confirms no_height_modifier context. Consistent across all files."
+    },
+    {
+      "id": "DC-008",
+      "check_type": "coating_system_substrate_compatibility",
+      "status": "pass",
+      "details": "Coating system compatibility rules properly enforced: concrete_stain, acrylic_sealer, and polyurea are concrete-only (applies_when includes substrate_type=concrete). porch_enamel is available for both substrates. No wood substrate tasks reference concrete-only coating systems. Materials.json substrate_states correctly restrict concrete-only systems to SS_EXT_BARE_MASONRY."
+    },
+    {
+      "id": "DC-009",
+      "check_type": "environmental_modifier_exclusion",
+      "status": "fail",
+      "severity": "major",
+      "details": "Research RC-001 explicitly EXCLUDES environmental conditions from estimation modifiers, stating they are 'site-level, unpredictable at bid time, and belong in SOP procedure notes only.' However, production.json includes two environmental modifiers: FAC_EXT_SUN_EXPOSURE (shade/partial_sun/full_sun) and FAC_EXT_SURFACE_TEMP (optimal/cold_surface/hot_surface). These directly contradict the research correction. FAC_PRFL_EXPOSURE_TYPE (covered_porch/open_patio) may also be considered environmental, though the research notes for estimation engineer mention it as a recommendation modifier only.",
+      "recommended_fix": "Remove FAC_EXT_SUN_EXPOSURE and FAC_EXT_SURFACE_TEMP from production.json factor_modifiers per RC-001. If these are deliberately added by Estimation Engineer as an override of the research position, document the override rationale. FAC_PRFL_EXPOSURE_TYPE is a borderline case — it is a known property at bid time (covered vs open) unlike sun/temp which vary by day. Consider retaining FAC_PRFL_EXPOSURE_TYPE and FAC_PRFL_COATING_SYSTEM only."
+    },
+    {
+      "id": "DC-010",
+      "check_type": "modifier_stacking_cap",
+      "status": "pass",
+      "details": "Maximum combined modifier is 1.461x (concrete_stain 1.10 x open_patio 1.05 x full_sun 1.15 x cold_surface 1.10). Well under 4.0x stacking cap. All modifier stacking examples in production use correct multiplicative formula."
+    },
+    {
+      "id": "DC-011",
+      "check_type": "division_formula",
+      "status": "pass",
+      "details": "All 4 factor modifiers use correct division formula: effective_rate = base_rate / modifier. Verified in modifier definitions and stacking examples. Example: 200 SF/hr base / 1.1025 combined = 181 SF/hr effective (matches documented example)."
+    },
+    {
+      "id": "DC-012",
+      "check_type": "acid_etch_applies_when_consistency",
+      "status": "warn",
+      "severity": "minor",
+      "details": "TSK_PRFL_CONCRETE_ACID_ETCH applies_when differs between SOP and production. SOP: {substrate_type: concrete, coating_system: [concrete_stain, acrylic_sealer]}. Production: {substrate_type: concrete, concrete_prep_method: acid_etch}. The SOP ties acid etch to coating system, while production uses a separate concrete_prep_method dimension. Both are functionally equivalent but use different dimension names for the same routing decision.",
+      "recommended_fix": "Align on one approach. The SOP approach (coating_system drives prep method selection) is cleaner and avoids introducing a new dimension. Alternatively, document concrete_prep_method as a derived dimension in resolution."
+    },
+    {
+      "id": "DC-013",
+      "check_type": "primer_applies_when_acrylic_sealer_concrete_stain",
+      "status": "warn",
+      "severity": "major",
+      "details": "TSK_PRFL_PRIME_ALKALI_MASONRY_ROLL in production.json has applies_when: {substrate_type: concrete, coating_system: [porch_enamel, acrylic_sealer, concrete_stain]}. This means the primer task activates for acrylic_sealer and concrete_stain systems. However, research states: (1) acrylic_sealer is self-priming (RF-012, no primer needed), (2) concrete_stain is penetrating (RF-007/KD-009, no primer). SOP correctly limits this task to coating_system: porch_enamel. Production is incorrect.",
+      "recommended_fix": "Change TSK_PRFL_PRIME_ALKALI_MASONRY_ROLL applies_when in production.json to {substrate_type: concrete, coating_system: porch_enamel} to match SOP and research findings. Same fix for TSK_PRFL_PRIME_ALKALI_MASONRY_SPRAY_BACKROLL."
+    }
+  ],
+
+  "blocker_list": [
+    {
+      "blocker_id": "BLK-001",
+      "related_checks": ["XF-003"],
+      "severity": "critical",
+      "title": "11 task_classification mismatches between SOP and production",
+      "description": "task_classification drives engine task activation logic. When SOP says 'binary' but production says 'substrate_conditional', the engine may activate tasks incorrectly. 11 of 36 tasks (30%) have mismatched classifications. Must align before spec can be consumed by the estimation engine.",
+      "fix_required": "Align all 36 task classifications between SOP and production. Production values are generally more precise — SOP should adopt production classifications for tasks 1-9 and 11. For task 10 (TSK_PRFL_ANTI_SLIP_BROADCAST_FIELD), SOP 'always' is correct per KD-005; production should change from 'binary' to 'always'."
+    },
+    {
+      "blocker_id": "BLK-002",
+      "related_checks": ["DC-013"],
+      "severity": "critical",
+      "title": "Alkali masonry primer incorrectly activates for acrylic_sealer and concrete_stain in production",
+      "description": "Production TSK_PRFL_PRIME_ALKALI_MASONRY_ROLL and TSK_PRFL_PRIME_ALKALI_MASONRY_SPRAY_BACKROLL have applies_when including coating_system: [porch_enamel, acrylic_sealer, concrete_stain]. Research explicitly states acrylic_sealer is self-priming and concrete_stain requires no primer. If deployed, the engine would incorrectly add primer tasks and material costs to self-priming and penetrating systems.",
+      "fix_required": "Change applies_when for both TSK_PRFL_PRIME_ALKALI_MASONRY_ROLL and TSK_PRFL_PRIME_ALKALI_MASONRY_SPRAY_BACKROLL in production.json to {substrate_type: concrete, coating_system: porch_enamel} only."
+    }
+  ],
+
+  "warning_list": [
+    {
+      "warning_id": "WRN-001",
+      "related_checks": ["XF-008"],
+      "severity": "major",
+      "title": "Three PS key inconsistencies across SOP and production vs resolution canonical values",
+      "description": "WALL_BASE vs WALL_BASE_PERIMETER, LANDSCAPE_EDGE vs LANDSCAPE_PERIMETER, HARDSCAPE_WALK vs HARDSCAPE_EDGE. Engine will fail to match inputs if PS keys are not consistent.",
+      "fix_required": "Align SOP and production PS keys to resolution canonical values."
+    },
+    {
+      "warning_id": "WRN-002",
+      "related_checks": ["XF-009"],
+      "severity": "major",
+      "title": "Primary input name drift: SOP uses IN_SF_EXT_SURFACE_PORCH_FLOOR, resolution/production use IN_SF_PORCH_FLOOR",
+      "description": "SOP references a different input name than resolution canonical. Engine input mapping will break if not aligned.",
+      "fix_required": "Change all SOP references to IN_SF_PORCH_FLOOR."
+    },
+    {
+      "warning_id": "WRN-003",
+      "related_checks": ["DC-009"],
+      "severity": "major",
+      "title": "Environmental modifiers in production contradict research RC-001 exclusion",
+      "description": "FAC_EXT_SUN_EXPOSURE and FAC_EXT_SURFACE_TEMP are environmental conditions explicitly excluded by research correction RC-001. If these are intentional overrides, they need documented justification. If unintentional, they should be removed.",
+      "fix_required": "Either remove FAC_EXT_SUN_EXPOSURE and FAC_EXT_SURFACE_TEMP from production, or document explicit override rationale with research team approval."
+    },
+    {
+      "warning_id": "WRN-004",
+      "related_checks": ["XF-010"],
+      "severity": "minor",
+      "title": "Step count input has 3 different names across files",
+      "description": "SOP: IN_EA_EXT_STEP_COUNT / PS_EXT_DETAIL_EA.STEP_COUNT. Resolution: IN_EA_STEP_COUNT / PS_EXT_META.EA.STEP_COUNT. Production: IN_EA_PORCH_STEPS (no PS key documented). Three variants for one measurement.",
+      "fix_required": "Align to resolution canonical: IN_EA_STEP_COUNT with PS_EXT_META.EA.STEP_COUNT."
+    },
+    {
+      "warning_id": "WRN-005",
+      "related_checks": ["XF-004"],
+      "severity": "minor",
+      "title": "Task classification breakdown counts differ between SOP summary and production metadata",
+      "description": "SOP: 16 binary / 16 coating_conditional / 2 substrate_conditional / 2 always. Production: 12 binary / 12 coating_conditional / 9 substrate_conditional / 3 condition_conditional. Will auto-resolve when BLK-001 classification alignment is completed.",
+      "fix_required": "Update both summaries after aligning task classifications."
+    },
+    {
+      "warning_id": "WRN-006",
+      "related_checks": ["CC-006"],
+      "severity": "minor",
+      "title": "Resolution proposed cs_ classification prefix not adopted by downstream",
+      "description": "Resolution suggested cs_conditional and cs_scaled but SOP and production use coating_conditional, substrate_conditional, condition_conditional, always. The descriptive names are clearer.",
+      "fix_required": "Update resolution applicable_enums.task_classification to reflect actual usage."
+    },
+    {
+      "warning_id": "WRN-007",
+      "related_checks": ["DC-012"],
+      "severity": "minor",
+      "title": "Acid etch task uses different dimension names in SOP vs production",
+      "description": "SOP routes acid etch via coating_system dimension. Production routes via concrete_prep_method dimension. Functionally equivalent but dimension name inconsistency could cause confusion.",
+      "fix_required": "Align on one routing approach. Prefer coating_system (SOP approach) to avoid introducing an undeclared dimension."
+    },
+    {
+      "warning_id": "WRN-008",
+      "related_checks": ["XF-006"],
+      "severity": "minor",
+      "title": "Material system IDs in resolution use short form vs materials.json fully qualified form",
+      "description": "Resolution: SYS_PRIMER_ALKALI_MASONRY. Materials: SYS_EXT_PRFL_PRIMER_ALKALI_MASONRY. Pattern is consistent and intentional — materials.json applies the SYS_EXT_PRFL_ prefix convention.",
+      "fix_required": "No action required — this is expected behavior. Resolution provides suggested names; Materials Manager applies naming convention."
+    },
+    {
+      "warning_id": "WRN-009",
+      "related_checks": [],
+      "severity": "minor",
+      "title": "SOP module MOD_PRFL_PROTECT phase is 'setup' — protection tasks have task_type 'protect'",
+      "description": "The protection module phase is correctly 'setup' (not 'protect'), and protection tasks use task_type 'protect'. This is consistent with pipeline conventions where protection deployment happens during setup phase. No issue, but noted for clarity.",
+      "fix_required": "No action required."
+    },
+    {
+      "warning_id": "WRN-010",
+      "related_checks": [],
+      "severity": "minor",
+      "title": "Resolution proposed MOD_PRFL_PREP_STEPS module not implemented in SOP",
+      "description": "Resolution expected_modules includes MOD_PRFL_PREP_STEPS (step prep conditional on has_steps=true). SOP does not have a separate step prep module — step work is handled within MOD_PRFL_APPLY via TSK_PRFL_STEP_DETAIL. This is a reasonable simplification but differs from resolution expectation.",
+      "fix_required": "Acceptable deviation. Step detail as a task within apply module is simpler than a separate prep module. Update resolution expected_modules to remove MOD_PRFL_PREP_STEPS or mark as 'merged into MOD_PRFL_APPLY'."
+    },
+    {
+      "warning_id": "WRN-011",
+      "related_checks": [],
+      "severity": "minor",
+      "title": "Resolution proposed separate finish modules (FINISH_1, INTERSTAGE, FINISH_2, FINISH_SEALER) consolidated in SOP",
+      "description": "Resolution expected 4 finish-phase modules. SOP consolidated into MOD_PRFL_APPLY (single apply module with all coating tasks) + MOD_PRFL_ANTI_SLIP (aggregate broadcast). This is a valid simplification — coat sequencing is managed by the engine's round_configurations, not by separate SOP modules.",
+      "fix_required": "Acceptable deviation. Update resolution expected_modules to match actual SOP structure (9 modules, not 10+)."
+    },
+    {
+      "warning_id": "WRN-012",
+      "related_checks": [],
+      "severity": "minor",
+      "title": "Production acrylic_sealer quality_effects shows prime:1 but acrylic_sealer is self-priming",
+      "description": "Production quality_effects.acrylic_sealer.coat_count shows {prime: 1, sealer: 2}. However, acrylic_sealer is self-priming (no separate primer). The 'prime: 1' could be misinterpreted as requiring a separate primer coat. Should be {sealer: 2} only, or {prime: 0, sealer: 2} to be explicit.",
+      "fix_required": "Change acrylic_sealer coat_count to {prime: 0, sealer: 2} or remove prime key entirely."
+    }
+  ],
+
+  "recommendations": [
+    {
+      "rec_id": "REC-001",
+      "priority": "high",
+      "description": "Fix BLK-001 and BLK-002 before proceeding to spec.json assembly. These are engine-breaking issues that will cause incorrect task activation and material estimation."
+    },
+    {
+      "rec_id": "REC-002",
+      "priority": "high",
+      "description": "Resolve WRN-001, WRN-002, and WRN-004 (PS key and input name alignment) before engine integration. Input name mismatches will cause runtime failures in PaintScope-to-engine mapping."
+    },
+    {
+      "rec_id": "REC-003",
+      "priority": "medium",
+      "description": "Decide on WRN-003 (environmental modifiers). Either remove FAC_EXT_SUN_EXPOSURE and FAC_EXT_SURFACE_TEMP per research RC-001, or document an explicit override with rationale. This is a policy question that affects all future exterior specs."
+    },
+    {
+      "rec_id": "REC-004",
+      "priority": "medium",
+      "description": "After fixing blockers and major warnings, update both task_summary (SOP) and production_metadata (production) to reflect aligned classification counts."
+    },
+    {
+      "rec_id": "REC-005",
+      "priority": "low",
+      "description": "Consider adding 'brush' as an explicit application_method for porch enamel (currently in SOP tasks TSK_PRFL_PORCH_ENAMEL_BRUSH and production TSK_PRFL_PORCH_ENAMEL_BRUSH, but resolution applicable_enums.application_method only lists [roll, brush_roll, spray_backroll]). Production has a brush-only task at 100 SF/hr."
+    },
+    {
+      "rec_id": "REC-006",
+      "priority": "low",
+      "description": "Field-validate polyurea production rates (275 SF/hr) against actual residential project data. This coating system has the shortest pot life and highest complexity — rate may need adjustment after initial deployments."
+    },
+    {
+      "rec_id": "REC-007",
+      "priority": "low",
+      "description": "Consider adding a note to production that TSK_PRFL_SEALER_TOPCOAT applies_when should also include acrylic_sealer if the sealer topcoat is intended as an optional second-system clear coat for sealers. Current production applies_when is [concrete_stain, acrylic_sealer] which may unintentionally add a sealer topcoat to acrylic_sealer projects."
+    }
+  ],
+
+  "qa_metadata": {
+    "files_validated": [
+      "specs/SF_PORCH_FLOOR_EXT_NC_v1/research.json",
+      "specs/SF_PORCH_FLOOR_EXT_NC_v1/resolution.json",
+      "specs/SF_PORCH_FLOOR_EXT_NC_v1/materials.json",
+      "specs/SF_PORCH_FLOOR_EXT_NC_v1/sop_modules.json",
+      "specs/SF_PORCH_FLOOR_EXT_NC_v1/production.json"
+    ],
+    "spec_family_id": "SF_PORCH_FLOOR_EXT_NC",
+    "context_prefix": "PRFL",
+    "domain": "exterior",
+    "total_tasks": 36,
+    "total_modules": 9,
+    "total_material_systems": 9,
+    "total_coverage_profiles": 5,
+    "total_round_configurations": 5,
+    "total_factor_modifiers": 4,
+    "total_consumables": 20,
+    "total_protection_zones": 5,
+    "paintable_items": 1,
+    "substrate_types": ["concrete", "wood"],
+    "coating_systems": ["porch_enamel", "acrylic_sealer", "concrete_stain", "polyurea"],
+    "key_decisions_verified": ["KD-001 (epoxy excluded)", "KD-003 (dual-substrate)", "KD-004 (coating_system primary dimension)", "KD-005 (anti-slip mandatory)", "KD-007 (no height modifier)", "KD-009 (concrete stain requires sealer topcoat)", "KD-010 (combined prime+finish spec)"]
+  }
+}

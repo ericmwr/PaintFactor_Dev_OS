@@ -1,0 +1,858 @@
+{
+  "spec_family_id": "SF_SIDING_VINYL_EXT_RP",
+  "version": "0.1.0",
+  "generated_by": "Estimation Engineer",
+  "generated_at": "2026-03-12",
+
+  "MODIFIER_STACKING_ANALYSIS": {
+    "severity": "minor",
+    "description": "Vinyl siding repaint has dramatically simpler modifier stacking than wood siding repaint. No DSD, no RRP, no siding_profile modifier.",
+    "worst_case": "QT3 (1.15) x scaffold (1.60) x full_sun (1.15) x cold_temp (1.30) = 2.77x",
+    "worst_case_without_env": "QT3 (1.15) x scaffold (1.60) = 1.84x",
+    "resolution": "No stacking partition needed. All modifiers apply to all applicable tasks. Maximum stack well under 4.0x cap.",
+    "stacking_rules": {
+      "all_variable_rate_tasks": {
+        "formula": "effective_rate = base_rate / (FAC_VNRP_QT x FAC_EXT_ACCESS x FAC_EXT_WIND x FAC_EXT_SUN_EXPOSURE x FAC_EXT_SURFACE_TEMP)",
+        "max_stack": "1.15 x 1.60 x 1.25 x 1.15 x 1.30 = 3.44x (theoretical extreme — moderate wind + full sun + cold temp simultaneously is meteorologically improbable)",
+        "realistic_max": "1.15 x 1.60 x 1.15 = 2.12x (QT3 + scaffold + full_sun)",
+        "note": "FAC_VNRP_QT applies to qt_scaled tasks only. Environmental modifiers apply to all non-fixed tasks."
+      },
+      "fixed_tasks": {
+        "formula": "fixed_time_minutes (no modifiers)",
+        "note": "Administrative gates, equipment setup/cleanup are fixed-time tasks. No modifiers applied."
+      }
+    }
+  },
+
+  "siding_surface_input_group": {
+    "description": "Rate per SF applies to net siding field area from PaintScope. Engine divides SF by rate to calculate hours.",
+    "inputs": [
+      { "input_name": "IN_SF_SIDING_FIELD", "paintscope_key": "PS_EXT_SURFACE_SF.SIDING_FIELD" }
+    ]
+  },
+
+  "task_production_rates": [
+
+    {
+      "task_id": "TSK_VNRP_MOBILIZE",
+      "name": "Crew Mobilization & Equipment Staging",
+      "unit_of_measure": "FIXED",
+      "fixed_time_minutes": 45,
+      "crew_size": 1,
+      "task_classification": "binary",
+      "rate_basis_notes": "Mobilize crew, transport materials and equipment to site. Stage primer, finish paint, spray equipment, and protection materials. Verify material against spec. ~45 min per setup session.",
+      "applies_when": {},
+      "defect_tolerance": {
+        "QT2": "All materials on-site and verified against scope",
+        "QT3": "All materials on-site and verified against scope, binder type confirmed on PDS"
+      }
+    },
+    {
+      "task_id": "TSK_VNRP_WARRANTY_GATE",
+      "name": "Warranty Void Acknowledgment Gate",
+      "unit_of_measure": "FIXED",
+      "fixed_time_minutes": 10,
+      "crew_size": 1,
+      "task_classification": "binary",
+      "rate_basis_notes": "Administrative: client signs warranty void acknowledgment before any production begins. Painting vinyl voids manufacturer finish warranty. ~10 min including explanation.",
+      "applies_when": {},
+      "defect_tolerance": {
+        "QT2": "Document signed before work commences",
+        "QT3": "Document signed before work commences"
+      }
+    },
+    {
+      "task_id": "TSK_VNRP_LRV_VERIFY",
+      "name": "LRV Verification Gate",
+      "unit_of_measure": "FIXED",
+      "fixed_time_minutes": 10,
+      "crew_size": 1,
+      "task_classification": "binary",
+      "rate_basis_notes": "Administrative: verify selected color LRV against project spec. Confirm standard (55+) or IR-reflective (35-55) material path. Reject LRV <35. ~10 min.",
+      "applies_when": {},
+      "defect_tolerance": {
+        "QT2": "Color LRV verified against product data sheet",
+        "QT3": "Color LRV verified against product data sheet"
+      }
+    },
+    {
+      "task_id": "TSK_VNRP_SCAFFOLD_SETUP",
+      "name": "Scaffold / Lift Setup",
+      "unit_of_measure": "FIXED",
+      "fixed_time_minutes": 60,
+      "crew_size": 1,
+      "task_classification": "binary",
+      "rate_basis_notes": "Erect scaffold, position aerial lift, or stage extension ladders per access plan. OSHA-compliant setup with fall protection. ~60 min.",
+      "applies_when": { "access_type": ["scaffold", "lift", "ladder"] },
+      "defect_tolerance": {
+        "QT2": "Access equipment set up and stable",
+        "QT3": "Access equipment set up, level, plumb, tied off, fall protection in place"
+      }
+    },
+
+    {
+      "task_id": "TSK_VNRP_PROTECT_LANDSCAPE",
+      "name": "Landscape Protection Setup",
+      "required_input_key": "IN_SF_EXT_PROTECT_LANDSCAPE_ADJ",
+      "paintscope_key": "PS_EXT_PROTECT_SF.LANDSCAPE_ADJACENT",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 200,
+      "rate_range_low": 150,
+      "rate_range_high": 300,
+      "crew_size": 1,
+      "task_classification": "binary",
+      "rate_basis_notes": "Deploy plastic sheeting and tarps over adjacent landscape beds and plantings. Stake and secure. ~18 sec per SF.",
+      "applies_when": {},
+      "defect_tolerance": {
+        "QT2": "Major plantings covered, gaps tolerable at perimeter",
+        "QT3": "Full coverage of all adjacent landscape with secured edges"
+      }
+    },
+    {
+      "task_id": "TSK_VNRP_PROTECT_HARDSCAPE",
+      "name": "Hardscape Protection",
+      "required_input_key": "IN_SF_EXT_PROTECT_HARDSCAPE_WALK",
+      "paintscope_key": "PS_EXT_PROTECT_SF.HARDSCAPE_WALK",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 250,
+      "rate_range_low": 200,
+      "rate_range_high": 350,
+      "crew_size": 1,
+      "task_classification": "binary",
+      "rate_basis_notes": "Deploy drop cloths on walkways, patios, and driveways adjacent to working elevations. ~14 sec per SF.",
+      "applies_when": {},
+      "defect_tolerance": {
+        "QT2": "Drop cloths covering primary traffic paths",
+        "QT3": "Full hardscape coverage with taped edges at foundation"
+      }
+    },
+    {
+      "task_id": "TSK_VNRP_PROTECT_WINDOW_MASK",
+      "name": "Window Spray Masking",
+      "required_input_key": "IN_EA_EXT_PROTECT_GLASS_WINDOW",
+      "paintscope_key": "PS_EXT_PROTECT_EA.GLASS_WINDOW",
+      "unit_of_measure": "EA",
+      "rate_per_hour": 8,
+      "rate_range_low": 6,
+      "rate_range_high": 10,
+      "crew_size": 1,
+      "task_classification": "binary",
+      "rate_basis_notes": "Paper or masking film over window glass + tape around frame. ~7.5 min per window. Spray method requires full glass masking.",
+      "applies_when": { "application_method": ["spray"] },
+      "defect_tolerance": {
+        "QT2": "Glass covered, minor tape gaps at corners tolerable",
+        "QT3": "Full glass coverage with clean tape lines at all edges"
+      }
+    },
+    {
+      "task_id": "TSK_VNRP_PROTECT_DOOR_MASK",
+      "name": "Door Spray Masking",
+      "required_input_key": "IN_EA_EXT_PROTECT_GLASS_DOOR",
+      "paintscope_key": "PS_EXT_PROTECT_EA.GLASS_DOOR",
+      "unit_of_measure": "EA",
+      "rate_per_hour": 5,
+      "rate_range_low": 4,
+      "rate_range_high": 6,
+      "crew_size": 1,
+      "task_classification": "binary",
+      "rate_basis_notes": "Full cover door with masking film or plastic. ~12 min per door. Doors are larger than windows.",
+      "applies_when": { "application_method": ["spray"] },
+      "defect_tolerance": {
+        "QT2": "Door fully covered",
+        "QT3": "Door fully covered with clean sealed edges"
+      }
+    },
+    {
+      "task_id": "TSK_VNRP_PROTECT_TRIM_MASK",
+      "name": "Corner Trim Masking",
+      "required_input_key": "IN_LF_EXT_TRIM_CORNER",
+      "paintscope_key": "PS_EXT_EDGE_LF.TRIM_CORNER",
+      "unit_of_measure": "LF",
+      "rate_per_hour": 60,
+      "rate_range_low": 45,
+      "rate_range_high": 80,
+      "crew_size": 1,
+      "task_classification": "binary",
+      "rate_basis_notes": "Tape line or paper mask at siding-to-trim junction when trim is different color. ~1 min per LF.",
+      "applies_when": { "application_method": ["spray"] },
+      "defect_tolerance": {
+        "QT2": "Tape line applied along trim edge",
+        "QT3": "Clean tape line with paper backing where needed"
+      }
+    },
+    {
+      "task_id": "TSK_VNRP_PROTECT_LIGHT_FIXTURE",
+      "name": "Light Fixture Masking",
+      "required_input_key": "IN_EA_EXT_PROTECT_LIGHT_FIXTURE",
+      "paintscope_key": "PS_EXT_PROTECT_EA.LIGHT_FIXTURE",
+      "unit_of_measure": "EA",
+      "rate_per_hour": 15,
+      "rate_range_low": 10,
+      "rate_range_high": 20,
+      "crew_size": 1,
+      "task_classification": "binary",
+      "rate_basis_notes": "Bag and tape light fixtures. ~4 min per fixture.",
+      "applies_when": {},
+      "defect_tolerance": {
+        "QT2": "Fixture bagged",
+        "QT3": "Fixture bagged with sealed tape edges"
+      }
+    },
+    {
+      "task_id": "TSK_VNRP_PROTECT_HVAC",
+      "name": "HVAC Unit Cover",
+      "required_input_key": "IN_EA_EXT_PROTECT_HVAC_UNIT",
+      "paintscope_key": "PS_EXT_PROTECT_EA.HVAC_UNIT",
+      "unit_of_measure": "EA",
+      "rate_per_hour": 6,
+      "rate_range_low": 4,
+      "rate_range_high": 8,
+      "crew_size": 1,
+      "task_classification": "binary",
+      "rate_basis_notes": "Wrap condenser unit in plastic sheeting and tape. ~10 min per unit.",
+      "applies_when": {},
+      "defect_tolerance": {
+        "QT2": "Unit covered with plastic",
+        "QT3": "Unit fully wrapped with taped seams"
+      }
+    },
+    {
+      "task_id": "TSK_VNRP_PROTECT_UTILITY",
+      "name": "Utility Panel Masking",
+      "required_input_key": "IN_EA_EXT_PROTECT_UTILITY_PANEL",
+      "paintscope_key": "PS_EXT_PROTECT_EA.UTILITY_PANEL",
+      "unit_of_measure": "EA",
+      "rate_per_hour": 12,
+      "rate_range_low": 8,
+      "rate_range_high": 15,
+      "crew_size": 1,
+      "task_classification": "binary",
+      "rate_basis_notes": "Mask electrical panel, gas meter, hose bibs. ~5 min per unit.",
+      "applies_when": {},
+      "defect_tolerance": {
+        "QT2": "Panel covered",
+        "QT3": "Panel fully masked with sealed edges"
+      }
+    },
+
+    {
+      "task_id": "TSK_VNRP_WASH_MIX",
+      "name": "Mix Alkaline Cleaning Solution",
+      "unit_of_measure": "FIXED",
+      "fixed_time_minutes": 10,
+      "crew_size": 1,
+      "task_classification": "binary",
+      "rate_basis_notes": "Mix TSP or dedicated vinyl siding cleaner concentrate with water per manufacturer directions. Load into pressure washer downstream injector or pump sprayer. ~10 min.",
+      "applies_when": {},
+      "defect_tolerance": {
+        "QT2": "Solution mixed per manufacturer ratio",
+        "QT3": "Solution mixed per manufacturer ratio, ready before wash starts"
+      }
+    },
+    {
+      "task_id": "TSK_VNRP_WASH_PRESSURE",
+      "name": "Pressure Wash Vinyl Siding",
+      "required_input_key": "IN_SF_SIDING_FIELD",
+      "paintscope_key": "PS_EXT_SURFACE_SF.SIDING_FIELD",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 750,
+      "rate_range_low": 500,
+      "rate_range_high": 1000,
+      "crew_size": 1,
+      "task_classification": "binary",
+      "rate_basis_notes": "Pressure wash 500-1000 PSI with alkaline cleaner in downward spray pattern. Removes dirt, mildew, chalk residue. Midpoint 750 SF/hr. ~5 sec per SF. Mandatory first production step.",
+      "applies_when": {},
+      "defect_tolerance": {
+        "QT2": "Visible dirt and mildew removed, minor chalk residue acceptable",
+        "QT3": "All dirt, mildew, and chalk fully removed. Hand-rub test confirms no chalk transfer."
+      }
+    },
+    {
+      "task_id": "TSK_VNRP_WASH_CHALK_TEST",
+      "name": "Post-Wash Chalk Residue Test",
+      "required_input_key": "IN_SF_SIDING_FIELD",
+      "paintscope_key": "PS_EXT_SURFACE_SF.SIDING_FIELD",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 2000,
+      "rate_range_low": 1500,
+      "rate_range_high": 2500,
+      "crew_size": 1,
+      "task_classification": "qt_conditional",
+      "appears_in_tiers": ["QT3"],
+      "rate_basis_notes": "After drying, perform hand-rub test on representative areas to verify chalk removal. Test 3+ areas per elevation. ~1.8 sec per SF equivalent. QT3 only.",
+      "applies_when": { "quality_tier": ["QT3"] },
+      "defect_tolerance": {
+        "QT3": "Test 3+ areas per elevation. Document results. Re-wash if chalk transfer detected."
+      }
+    },
+
+    {
+      "task_id": "TSK_VNRP_SCUFF_SAND",
+      "name": "Light Scuff Sand for Adhesion",
+      "required_input_key": "IN_SF_SIDING_FIELD",
+      "paintscope_key": "PS_EXT_SURFACE_SF.SIDING_FIELD",
+      "unit_of_measure": "SF",
+      "task_classification": "qt_scaled",
+      "qt_rates": {
+        "QT2": { "rate_sf_per_hour": 250, "notes": "Spot scuff on high-gloss areas and visible chalk zones only" },
+        "QT3": { "rate_sf_per_hour": 200, "notes": "Full-surface scuff on all elevations. Uniform matte appearance after scuffing." }
+      },
+      "rate_range_low": 150,
+      "rate_range_high": 300,
+      "crew_size": 1,
+      "rate_basis_notes": "220-grit light scuff sand to create adhesion tooth on smooth PVC. Or liquid sander (Krud Kutter) as alternative. MUCH lighter than wood siding prep — no scraping, no feather-sanding.",
+      "applies_when": {},
+      "defect_tolerance": {
+        "QT2": "Scuff marks visible across field, some untouched areas acceptable",
+        "QT3": "Uniform scuff pattern across all surfaces, no glossy untouched areas"
+      }
+    },
+    {
+      "task_id": "TSK_VNRP_DUST_CLEAN",
+      "name": "Post-Scuff Dust Cleanup",
+      "required_input_key": "IN_SF_SIDING_FIELD",
+      "paintscope_key": "PS_EXT_SURFACE_SF.SIDING_FIELD",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 600,
+      "rate_range_low": 400,
+      "rate_range_high": 800,
+      "crew_size": 1,
+      "task_classification": "binary",
+      "rate_basis_notes": "Compressed air or tack cloth to remove sanding dust from vinyl surface before priming. ~6 sec per SF.",
+      "applies_when": {},
+      "defect_tolerance": {
+        "QT2": "Visible dust removed from field surfaces",
+        "QT3": "All dust removed, tack cloth shows clean on final pass"
+      }
+    },
+    {
+      "task_id": "TSK_VNRP_CAULK_ASSESS",
+      "name": "Caulk Joint Assessment",
+      "required_input_key": "IN_LF_EXT_TRIM_CORNER",
+      "paintscope_key": "PS_EXT_EDGE_LF.TRIM_CORNER",
+      "unit_of_measure": "LF",
+      "rate_per_hour": 200,
+      "rate_range_low": 150,
+      "rate_range_high": 250,
+      "crew_size": 1,
+      "task_classification": "qt_conditional",
+      "appears_in_tiers": ["QT3"],
+      "rate_basis_notes": "Inspect siding-to-trim joints for failed caulk. ~18 sec per LF to probe and mark. QT3 only.",
+      "applies_when": { "quality_tier": ["QT3"] },
+      "defect_tolerance": {
+        "QT3": "All joints inspected and failed sections marked for replacement"
+      }
+    },
+    {
+      "task_id": "TSK_VNRP_CAULK_APPLY",
+      "name": "Spot Caulk Replacement",
+      "required_input_key": "IN_LF_EXT_TRIM_CORNER",
+      "paintscope_key": "PS_EXT_EDGE_LF.TRIM_CORNER",
+      "unit_of_measure": "LF",
+      "rate_per_hour": 75,
+      "rate_range_low": 50,
+      "rate_range_high": 100,
+      "crew_size": 1,
+      "task_classification": "qt_conditional",
+      "appears_in_tiers": ["QT3"],
+      "rate_basis_notes": "Remove failed caulk, clean joint, apply siliconized acrylic caulk, tool smooth. ~48 sec per LF. QT3 only.",
+      "applies_when": { "quality_tier": ["QT3"] },
+      "defect_tolerance": {
+        "QT3": "Smooth, continuous caulk bead, no gaps, no smears on adjacent surfaces"
+      }
+    },
+
+    {
+      "task_id": "TSK_VNRP_PRIME_SPRAY",
+      "name": "Adhesion Primer — Spray Application",
+      "required_input_key": "IN_SF_SIDING_FIELD",
+      "paintscope_key": "PS_EXT_SURFACE_SF.SIDING_FIELD",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 400,
+      "rate_range_low": 350,
+      "rate_range_high": 450,
+      "crew_size": 1,
+      "task_classification": "binary",
+      "rate_basis_notes": "Airless spray STIX-class adhesion primer on vinyl PVC. Full coverage single coat. No backbrushing — vinyl is non-porous. Midpoint 400 SF/hr. ~9 sec per SF.",
+      "applies_when": { "application_method": ["spray"] },
+      "defect_tolerance": {
+        "QT2": "Full coverage, no bare PVC visible, minor runs at J-channels acceptable",
+        "QT3": "Full even coverage, no runs, no sags, uniform film build"
+      }
+    },
+    {
+      "task_id": "TSK_VNRP_PRIME_BRUSH_ROLL",
+      "name": "Adhesion Primer — Brush/Roll Application",
+      "required_input_key": "IN_SF_SIDING_FIELD",
+      "paintscope_key": "PS_EXT_SURFACE_SF.SIDING_FIELD",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 125,
+      "rate_range_low": 100,
+      "rate_range_high": 150,
+      "crew_size": 1,
+      "task_classification": "binary",
+      "rate_basis_notes": "Brush edges, roll field with 3/8 nap roller for adhesion primer. STIX-class primer is thick — roller application is slower. ~29 sec per SF.",
+      "applies_when": { "application_method": ["brush_roll"] },
+      "defect_tolerance": {
+        "QT2": "Full coverage, no bare PVC visible",
+        "QT3": "Full even coverage, smooth roller finish, no holidays"
+      }
+    },
+
+    {
+      "task_id": "TSK_VNRP_FINISH_SPRAY_1",
+      "name": "Finish Coat 1 — Spray Application",
+      "required_input_key": "IN_SF_SIDING_FIELD",
+      "paintscope_key": "PS_EXT_SURFACE_SF.SIDING_FIELD",
+      "unit_of_measure": "SF",
+      "task_classification": "qt_scaled",
+      "qt_rates": {
+        "QT2": { "rate_sf_per_hour": 500, "notes": "Economy — single pass, faster pace" },
+        "QT3": { "rate_sf_per_hour": 450, "notes": "Standard — even mil build, consistent appearance across all elevations" }
+      },
+      "rate_range_low": 400,
+      "rate_range_high": 550,
+      "crew_size": 1,
+      "rate_basis_notes": "Airless spray 100% acrylic latex finish on primed vinyl. No backbrush (non-porous PVC). Higher rate than wood siding spray (no backbrush coupling). ~7-8 sec per SF.",
+      "applies_when": { "application_method": ["spray"] },
+      "defect_tolerance": {
+        "QT2": "Uniform color coverage, minor overspray at transitions tolerable",
+        "QT3": "Uniform color, no runs, no sags, clean transitions at J-channels and trim"
+      }
+    },
+    {
+      "task_id": "TSK_VNRP_FINISH_BRUSH_ROLL_1",
+      "name": "Finish Coat 1 — Brush/Roll Application",
+      "required_input_key": "IN_SF_SIDING_FIELD",
+      "paintscope_key": "PS_EXT_SURFACE_SF.SIDING_FIELD",
+      "unit_of_measure": "SF",
+      "task_classification": "qt_scaled",
+      "qt_rates": {
+        "QT2": { "rate_sf_per_hour": 140, "notes": "Economy — adequate coverage, minor stipple tolerable" },
+        "QT3": { "rate_sf_per_hour": 120, "notes": "Standard — smooth lay-off, maintain wet edge" }
+      },
+      "rate_range_low": 100,
+      "rate_range_high": 160,
+      "crew_size": 1,
+      "rate_basis_notes": "Brush edges, roll field with 3/8 nap roller for finish coat. Smooth vinyl surface allows slightly faster roll than wood. ~26-30 sec per SF.",
+      "applies_when": { "application_method": ["brush_roll"] },
+      "defect_tolerance": {
+        "QT2": "Uniform color, minor roller stipple acceptable",
+        "QT3": "Uniform color, smooth lay-off, no roller lines or holidays"
+      }
+    },
+
+    {
+      "task_id": "TSK_VNRP_FINISH_SPRAY_2",
+      "name": "Finish Coat 2 — Spray Application",
+      "required_input_key": "IN_SF_SIDING_FIELD",
+      "paintscope_key": "PS_EXT_SURFACE_SF.SIDING_FIELD",
+      "unit_of_measure": "SF",
+      "task_classification": "qt_scaled",
+      "qt_rates": {
+        "QT3": { "rate_sf_per_hour": 450, "notes": "Same rate as coat 1 spray. Primed/sealed vinyl surface is consistent." }
+      },
+      "rate_range_low": 400,
+      "rate_range_high": 500,
+      "crew_size": 1,
+      "rate_basis_notes": "Second and final spray finish coat. QT3 only. ~8 sec per SF.",
+      "applies_when": { "application_method": ["spray"], "quality_tier": ["QT3"] },
+      "defect_tolerance": {
+        "QT3": "Uniform color with full hide, no runs, no sags, clean transitions"
+      }
+    },
+    {
+      "task_id": "TSK_VNRP_FINISH_BRUSH_ROLL_2",
+      "name": "Finish Coat 2 — Brush/Roll Application",
+      "required_input_key": "IN_SF_SIDING_FIELD",
+      "paintscope_key": "PS_EXT_SURFACE_SF.SIDING_FIELD",
+      "unit_of_measure": "SF",
+      "task_classification": "qt_scaled",
+      "qt_rates": {
+        "QT3": { "rate_sf_per_hour": 120, "notes": "Same rate as coat 1 brush/roll." }
+      },
+      "rate_range_low": 100,
+      "rate_range_high": 150,
+      "crew_size": 1,
+      "rate_basis_notes": "Second and final brush/roll finish coat. QT3 only. ~30 sec per SF.",
+      "applies_when": { "application_method": ["brush_roll"], "quality_tier": ["QT3"] },
+      "defect_tolerance": {
+        "QT3": "Uniform color with full hide, smooth lay-off, no roller lines"
+      }
+    },
+
+    {
+      "task_id": "TSK_VNRP_DETAIL_JCHANNEL",
+      "name": "Brush Detail — J-Channels & Under-Sill",
+      "required_input_key": "IN_SF_SIDING_FIELD",
+      "paintscope_key": "PS_EXT_SURFACE_SF.SIDING_FIELD",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 150,
+      "rate_range_low": 125,
+      "rate_range_high": 175,
+      "crew_size": 1,
+      "task_classification": "qt_conditional",
+      "appears_in_tiers": ["QT3"],
+      "rate_basis_notes": "Brush-apply finish coat into J-channels, under-sill channels, and starter strip recesses. Estimate at 5-10% of total field SF as detail SF. Midpoint 150 SF/hr. ~24 sec per SF. QT3 only.",
+      "applies_when": { "quality_tier": ["QT3"] },
+      "defect_tolerance": {
+        "QT3": "Full coverage in all channel recesses. No bare PVC visible in channels."
+      }
+    },
+    {
+      "task_id": "TSK_VNRP_DETAIL_CUTIN",
+      "name": "Brush Cut-In at Trim Transitions",
+      "required_input_key": "IN_SF_SIDING_FIELD",
+      "paintscope_key": "PS_EXT_SURFACE_SF.SIDING_FIELD",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 125,
+      "rate_range_low": 100,
+      "rate_range_high": 150,
+      "crew_size": 1,
+      "task_classification": "qt_conditional",
+      "appears_in_tiers": ["QT3"],
+      "rate_basis_notes": "Brush cut-in where siding meets corner trim, window casing, door casing, and soffit junction. Clean color line at siding-to-trim boundary. ~29 sec per SF equivalent. QT3 only.",
+      "applies_when": { "quality_tier": ["QT3"] },
+      "defect_tolerance": {
+        "QT3": "Sharp color line at trim boundary. No bleed onto trim surface. Consistent line at 6 ft viewing."
+      }
+    },
+
+    {
+      "task_id": "TSK_VNRP_INSPECT",
+      "name": "Final Walkthrough Inspection",
+      "required_input_key": "IN_SF_SIDING_FIELD",
+      "paintscope_key": "PS_EXT_SURFACE_SF.SIDING_FIELD",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 2500,
+      "rate_range_low": 1500,
+      "rate_range_high": 3500,
+      "crew_size": 1,
+      "task_classification": "binary",
+      "rate_basis_notes": "Walk all elevations and inspect completed siding finish for defects, holidays, coverage, and appearance. ~1.4 sec per SF.",
+      "applies_when": {},
+      "defect_tolerance": {
+        "QT2": "No obvious misses or runs visible from 10 feet",
+        "QT3": "No defects visible from 6 feet, clean transitions at all trim junctions"
+      }
+    },
+    {
+      "task_id": "TSK_VNRP_TOUCHUP",
+      "name": "Final Touch-Up",
+      "required_input_key": "IN_SF_SIDING_FIELD",
+      "paintscope_key": "PS_EXT_SURFACE_SF.SIDING_FIELD",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 3500,
+      "rate_range_low": 2500,
+      "rate_range_high": 4500,
+      "crew_size": 1,
+      "task_classification": "binary",
+      "rate_basis_notes": "Brush touch-up of defects found during final walkthrough inspection. ~1 sec per SF equivalent.",
+      "applies_when": {},
+      "defect_tolerance": {
+        "QT2": "Obvious defects corrected",
+        "QT3": "All defects corrected, repairs blended, J-channels uniform"
+      }
+    },
+    {
+      "task_id": "TSK_VNRP_REMOVE_PROTECTION",
+      "name": "Remove All Protection Materials",
+      "required_input_key": "IN_SF_EXT_PROTECT_LANDSCAPE_ADJ",
+      "paintscope_key": "PS_EXT_PROTECT_SF.LANDSCAPE_ADJACENT",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 400,
+      "rate_range_low": 300,
+      "rate_range_high": 500,
+      "crew_size": 1,
+      "task_classification": "binary",
+      "rate_basis_notes": "Remove all tarps, plastic, masking tape, fixture bags, window/door masks. Faster than setup — pull and fold. ~9 sec per SF equivalent.",
+      "applies_when": {},
+      "defect_tolerance": {
+        "QT2": "All protection materials removed from site",
+        "QT3": "All protection materials removed, no tape residue on surfaces, landscape inspected"
+      }
+    },
+    {
+      "task_id": "TSK_VNRP_SCAFFOLD_TEARDOWN",
+      "name": "Scaffold / Lift Teardown",
+      "unit_of_measure": "FIXED",
+      "fixed_time_minutes": 45,
+      "crew_size": 1,
+      "task_classification": "binary",
+      "rate_basis_notes": "Dismantle scaffold, return aerial lift, or stage ladders for removal. ~45 min.",
+      "applies_when": { "access_type": ["scaffold", "lift", "ladder"] },
+      "defect_tolerance": {
+        "QT2": "All access equipment removed",
+        "QT3": "All access equipment removed. No damage to landscaping or hardscape from equipment."
+      }
+    },
+    {
+      "task_id": "TSK_VNRP_CLEAN_EQUIPMENT",
+      "name": "Clean Spray Equipment & Tools",
+      "unit_of_measure": "FIXED",
+      "fixed_time_minutes": 30,
+      "crew_size": 1,
+      "task_classification": "binary",
+      "rate_basis_notes": "Flush airless sprayer, clean spray tips and filters, clean brushes and rollers. ~30 min per session.",
+      "applies_when": {},
+      "defect_tolerance": {
+        "QT2": "Equipment flushed and stored",
+        "QT3": "Equipment flushed, tips cleaned individually, hoses coiled, filters replaced if needed"
+      }
+    },
+    {
+      "task_id": "TSK_VNRP_SITE_CLEANUP",
+      "name": "Final Site Cleanup & Demobilization",
+      "unit_of_measure": "FIXED",
+      "fixed_time_minutes": 20,
+      "crew_size": 1,
+      "task_classification": "binary",
+      "rate_basis_notes": "Collect debris, dispose containers, final site walkthrough. ~20 min. Shorter than wood siding repaint — no scraping debris, no RRP waste.",
+      "applies_when": {},
+      "defect_tolerance": {
+        "QT2": "Site clear of materials and debris",
+        "QT3": "Site clear of materials and debris, no overspray on adjacent surfaces, client walkthrough"
+      }
+    }
+  ],
+
+  "factor_modifiers": [
+    {
+      "factor_id": "FAC_VNRP_QT",
+      "name": "Quality Tier Rate Modifier",
+      "mechanism": "time_multiplier",
+      "modifier_category": "quality_effort",
+      "description": "Quality tier affects care and rigor on coating and detail tasks. QT2 economy = less care. QT3 standard = baseline.",
+      "applies_to": [
+        "TSK_VNRP_PRIME_SPRAY", "TSK_VNRP_PRIME_BRUSH_ROLL",
+        "TSK_VNRP_FINISH_SPRAY_1", "TSK_VNRP_FINISH_BRUSH_ROLL_1",
+        "TSK_VNRP_FINISH_SPRAY_2", "TSK_VNRP_FINISH_BRUSH_ROLL_2"
+      ],
+      "values": {
+        "QT2": 0.85,
+        "QT3": 1.00
+      },
+      "formula": "effective_rate = base_rate / modifier",
+      "stacking_pool": "ALL_VARIABLE_RATE_TASKS",
+      "notes": "QT2 at 0.85x = slightly faster (less care, economy-grade work). QT3 at 1.00x = baseline standard. No QT4/QT5 — vinyl is not a fine-finish substrate."
+    },
+    {
+      "factor_id": "FAC_EXT_ACCESS",
+      "name": "Access Type Height Modifier",
+      "mechanism": "time_multiplier",
+      "modifier_category": "access_difficulty",
+      "description": "Access type drives production rate reduction for elevated work. Shared across all exterior specs.",
+      "applies_to": [
+        "TSK_VNRP_WASH_PRESSURE",
+        "TSK_VNRP_SCUFF_SAND", "TSK_VNRP_DUST_CLEAN",
+        "TSK_VNRP_PRIME_SPRAY", "TSK_VNRP_PRIME_BRUSH_ROLL",
+        "TSK_VNRP_FINISH_SPRAY_1", "TSK_VNRP_FINISH_BRUSH_ROLL_1",
+        "TSK_VNRP_FINISH_SPRAY_2", "TSK_VNRP_FINISH_BRUSH_ROLL_2",
+        "TSK_VNRP_DETAIL_JCHANNEL", "TSK_VNRP_DETAIL_CUTIN",
+        "TSK_VNRP_CAULK_ASSESS", "TSK_VNRP_CAULK_APPLY",
+        "TSK_VNRP_INSPECT", "TSK_VNRP_TOUCHUP"
+      ],
+      "values": {
+        "ground": 1.00,
+        "ladder": 1.35,
+        "scaffold": 1.60,
+        "lift": 1.50
+      },
+      "formula": "effective_rate = base_rate / modifier",
+      "stacking_pool": "ALL_VARIABLE_RATE_TASKS",
+      "notes": "Applied per elevation. Protection setup/teardown, equipment setup/cleanup, and fixed administrative tasks are NOT affected."
+    },
+    {
+      "factor_id": "FAC_EXT_WIND",
+      "name": "Wind Condition Modifier",
+      "mechanism": "time_multiplier",
+      "modifier_category": "environmental",
+      "description": "Wind condition modifier for spray operations. High wind is a STOP condition — forces method switch to brush_roll or work postponement.",
+      "applies_to": [
+        "TSK_VNRP_PRIME_SPRAY",
+        "TSK_VNRP_FINISH_SPRAY_1",
+        "TSK_VNRP_FINISH_SPRAY_2"
+      ],
+      "values": {
+        "calm": 1.00,
+        "light": 1.10,
+        "moderate": 1.25,
+        "high": "STOP"
+      },
+      "formula": "effective_rate = base_rate / modifier",
+      "stacking_pool": "ALL_VARIABLE_RATE_TASKS",
+      "notes": "Applies to spray tasks only. High wind (>15 mph) is a STOP — spray work halted, switch to brush_roll method or postpone."
+    },
+    {
+      "factor_id": "FAC_EXT_SUN_EXPOSURE",
+      "name": "Sun Exposure Modifier",
+      "mechanism": "time_multiplier",
+      "modifier_category": "environmental",
+      "description": "Sun exposure affects scheduling and daily productive hours. Full sun on vinyl is especially critical — hot PVC affects adhesion primer bond quality.",
+      "applies_to": [
+        "TSK_VNRP_PRIME_SPRAY", "TSK_VNRP_PRIME_BRUSH_ROLL",
+        "TSK_VNRP_FINISH_SPRAY_1", "TSK_VNRP_FINISH_BRUSH_ROLL_1",
+        "TSK_VNRP_FINISH_SPRAY_2", "TSK_VNRP_FINISH_BRUSH_ROLL_2"
+      ],
+      "values": {
+        "full_shade": 1.00,
+        "partial": 1.00,
+        "full_sun": 1.15
+      },
+      "formula": "effective_rate = base_rate / modifier",
+      "stacking_pool": "ALL_VARIABLE_RATE_TASKS",
+      "notes": "Full sun forces early morning scheduling on south/west facades, reducing daily productive hours by ~15%. Applies to coating tasks only."
+    },
+    {
+      "factor_id": "FAC_EXT_SURFACE_TEMP",
+      "name": "Surface Temperature Modifier",
+      "mechanism": "time_multiplier",
+      "modifier_category": "environmental",
+      "description": "Surface temperature extends recoat intervals and affects adhesion primer cure. Vinyl siding has narrower optimal temperature range (50-85 deg F surface).",
+      "applies_to": [
+        "TSK_VNRP_PRIME_SPRAY", "TSK_VNRP_PRIME_BRUSH_ROLL",
+        "TSK_VNRP_FINISH_SPRAY_1", "TSK_VNRP_FINISH_BRUSH_ROLL_1",
+        "TSK_VNRP_FINISH_SPRAY_2", "TSK_VNRP_FINISH_BRUSH_ROLL_2"
+      ],
+      "values": {
+        "optimal": 1.00,
+        "cold": 1.30,
+        "hot": 1.20
+      },
+      "formula": "effective_rate = base_rate / modifier",
+      "stacking_pool": "ALL_VARIABLE_RATE_TASKS",
+      "notes": "Cold (<50 deg F surface): slow cure of adhesion primer, longer recoat intervals = 30% more time. Hot (>85 deg F surface): flash drying risk on PVC = 20% more time."
+    }
+  ],
+
+  "quality_effects": [
+    {
+      "quality_tier": "QT2",
+      "coat_count": { "prime": 1, "finish": 1 },
+      "interstage_sand": false,
+      "detail_work": false,
+      "caulk_assessment": false,
+      "inspection_level": "cursory",
+      "notes": "Economy vinyl repaint. Adhesion primer (mandatory) + single finish coat. No J-channel detail. No caulk assessment. Appropriate for rental/cost-sensitive. Standard-grade 100% acrylic."
+    },
+    {
+      "quality_tier": "QT3",
+      "coat_count": { "prime": 1, "finish": 2 },
+      "interstage_sand": false,
+      "detail_work": true,
+      "caulk_assessment": true,
+      "inspection_level": "scan",
+      "notes": "Standard residential vinyl repaint. Adhesion primer + two finish coats. J-channel brush detail. Caulk assessment at siding-to-trim joints. Mid-grade 100% acrylic. 7-15 year expected service life."
+    }
+  ],
+
+  "round_configurations": [
+    {
+      "round_id": "ROUND_VNRP_QT2",
+      "description": "Adhesion prime (1 coat) + 1 finish coat — economy vinyl repaint",
+      "prime_coats": 1,
+      "finish_coats": 1,
+      "total_coats": 2,
+      "applies_when": { "quality_tier": ["QT2"] },
+      "multi_coat_distribution": {
+        "coat_1_prime": 0.50,
+        "coat_2_finish": 0.50
+      },
+      "notes": "Minimum viable vinyl repaint. Adhesion primer is mandatory (not optional). Single finish coat. Total: 2 coating passes."
+    },
+    {
+      "round_id": "ROUND_VNRP_QT3",
+      "description": "Adhesion prime (1 coat) + 2 finish coats — standard vinyl repaint",
+      "prime_coats": 1,
+      "finish_coats": 2,
+      "total_coats": 3,
+      "applies_when": { "quality_tier": ["QT3"] },
+      "multi_coat_distribution": {
+        "coat_1_prime": 0.50,
+        "coat_2_finish_1": 0.30,
+        "coat_3_finish_2": 0.20
+      },
+      "notes": "Standard residential repaint. Adhesion primer + two finish coats for better DFT and durability. J-channel detail included. Total: 3 coating passes + detail."
+    }
+  ],
+
+  "assumptions": [
+    "Base rates are for lap_horizontal vinyl siding at ground access on sound substrate (SS_EXT_SOUND_PAINT).",
+    "No stacking partition needed — maximum theoretical modifier stack is 3.44x, well under 4.0x cap.",
+    "Spray is primary application method. No backbrushing on vinyl (non-porous PVC). Spray/backbrush coupling rule does NOT apply because backbrushing is not used.",
+    "Environmental modifiers (wind, sun, temp) apply only to coating tasks. Prep and protection tasks are not environmentally sensitive for estimation purposes.",
+    "LRV class drives MATERIAL selection only, NOT labor rates. standard_55+ and ir_reflective_35-55 have identical production rates.",
+    "Adhesion primer is ALWAYS required — no conditional logic, no spot prime option. Every variant includes full prime.",
+    "Single substrate state (SS_EXT_SOUND_PAINT) eliminates DSD modifier entirely. No scraping, no feather-sanding, no condition-driven prep branching.",
+    "No RRP gate — vinyl is never lead-painted. Eliminates RRP modifier, containment tasks, and waste disposal tasks.",
+    "No siding profile modifier — vinyl is effectively always lap profile. Board-and-batten vinyl is rare and minor.",
+    "Crew size = 1 for all tasks. Spray does not require a second person for backbrushing (unlike wood siding).",
+    "J-channel detail labor estimated at 5-10% of total field SF applied at brush detail rate. QT3 only.",
+    "Caulk tasks use LF input from PS_EXT_EDGE_LF.TRIM_CORNER. Estimator captures failed caulk LF during assessment.",
+    "24-48 hour dry time between pressure wash and priming is scheduling overhead, not production rate overhead."
+  ],
+
+  "risks": [
+    "Adhesion primer bond failure on hot PVC surfaces (>85 deg F). Risk mitigated by environmental modifier and SOP gate for surface temperature.",
+    "Color LRV below 35 accepted without IR-reflective product = permanent thermal warping. Risk mitigated by LRV verification gate task.",
+    "Manufacturer warranty void may surprise homeowner. Risk mitigated by warranty acknowledgment gate task.",
+    "Persistent chalk residue after washing may not be detected until primer fails. Risk mitigated by hand-rub test in SOP and chalk scrub task.",
+    "Multi-story projects with scaffold access increase costs by 60%. Ensure access assessment is completed before scope commitment."
+  ],
+
+  "validation_plan": [
+    {
+      "test": "Spray production rate on vinyl — 400-500 SF/hr claimed vs field actual",
+      "method": "Time 3 spray passes on standard lap vinyl siding at ground level. Record SF completed per hour.",
+      "acceptance": "Within 350-550 SF/hr range"
+    },
+    {
+      "test": "Adhesion primer application rate — 350-450 SF/hr",
+      "method": "Time STIX primer spray on vinyl siding. Note coverage rate (SF/gal) alongside production rate.",
+      "acceptance": "Within 300-500 SF/hr range"
+    },
+    {
+      "test": "J-channel detail brush rate — 125-175 SF/hr",
+      "method": "Time brush detail work at J-channels and under-sill channels on QT3 project.",
+      "acceptance": "Within 100-200 SF/hr range"
+    },
+    {
+      "test": "Window masking rate — 8 EA/hr",
+      "method": "Time masking of 10 standard windows with paper and tape.",
+      "acceptance": "Within 6-12 EA/hr range"
+    },
+    {
+      "test": "Pressure wash rate on vinyl — 750 SF/hr",
+      "method": "Time pressure wash of standard vinyl siding elevation. Note PSI used and cleaner type.",
+      "acceptance": "Within 500-1000 SF/hr range"
+    },
+    {
+      "test": "Access modifier calibration — ladder 1.35x",
+      "method": "Compare timed spray at ground vs ladder on same surface profile. Calculate actual ratio.",
+      "acceptance": "Within 1.20-1.50x range"
+    }
+  ],
+
+  "task_count_summary": {
+    "total_tasks": 33,
+    "binary_tasks": 21,
+    "qt_scaled_tasks": 5,
+    "qt_conditional_tasks": 7,
+    "by_uom": { "FIXED": 8, "SF": 19, "LF": 2, "EA": 4 },
+    "by_phase": {
+      "admin_gates": 2,
+      "mobilization": 1,
+      "setup_protection": 8,
+      "setup_access": 1,
+      "prep_wash": 3,
+      "prep_sand_clean": 2,
+      "prep_caulk": 2,
+      "prime": 2,
+      "finish_coat_1": 2,
+      "finish_coat_2": 2,
+      "detail": 2,
+      "final_inspect_touchup": 2,
+      "cleanup": 4
+    }
+  }
+}

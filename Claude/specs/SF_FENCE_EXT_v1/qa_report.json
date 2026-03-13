@@ -1,0 +1,267 @@
+{
+  "spec_family_id": "SF_FENCE_EXT",
+  "version": "0.1.0",
+  "generated_by": "System Critic",
+  "generated_at": "2026-03-10",
+  "status": "draft",
+  "review_required": true,
+
+  "overall_result": "pass_with_warnings",
+
+  "summary": "SF_FENCE_EXT_v1 draft artifacts pass exterior namespace, prefix, and doctrine checks but have 2 major threading defects requiring fixes before assembly. First exterior stain-based spec — coating_type replaces quality_tier as primary configuration dimension. 37 tasks across 7 modules. Single paintable item ITM_FENCE_FIELD (SF). 4 coating types (transparent, semi_transparent, solid_stain, paint) drive round configurations, material systems, and phase sequences. No primer for penetrating stains (transparent, semi_transparent) — compliant with COMPAT-FNCE-008. Primer present only for cedar with solid_stain or paint (tannin-blocking). Phases are setup/prep/apply/cleanup — no prime phase (primer task lives inside MOD_FNCE_APPLY, gated on coating_type + substrate_material). 3 application methods (spray_backbrush, brush, roll) with back-brushing mandatory for spray on penetrating stains (COMPAT-FNCE-009). 4 round configurations covering 1-coat penetrating and 2-coat film-forming paths. 3 factor modifiers (FAC_FNCE_COATING_TYPE, FAC_FNCE_WOOD_CONDITION, FAC_FNCE_SUBSTRATE_TYPE). Maximum modifier stacking 2.288x — well under 4.0x cap. 5 protection zones (all ext_* prefix). 12 PS keys (all PS_EXT_* namespace). 7 material systems including 2 prep chemicals (stripper, brightener). 10 compatibility rules enforcing MC limits, PT seasoning, back-brushing, paint risk warning, cedar tannin primer, and chemical neutralization sequence. MAJOR: 6 coat-2 task IDs use different naming patterns between SOP and production (threading break). MAJOR: Hardscape protection task UOM (SF) conflicts with its input key namespace (LF).",
+
+  "artifacts_reviewed": [
+    { "file": "research.json", "status": "reviewed", "human_feedback": "none" },
+    { "file": "resolution.json", "status": "reviewed", "human_feedback": "none" },
+    { "file": "materials.json", "status": "reviewed", "human_feedback": "none" },
+    { "file": "sop_modules.json", "status": "reviewed", "human_feedback": "none" },
+    { "file": "production.json", "status": "reviewed", "human_feedback": "none" },
+    { "file": "spec.json", "status": "not_yet_created", "human_feedback": "n/a" }
+  ],
+
+  "issues": [
+    {
+      "issue_id": "QA-001",
+      "severity": "major",
+      "area": "cross_file_threading",
+      "file": "sop_modules.json vs production.json",
+      "status": "open",
+      "description": "6 coat-2 task IDs use different naming patterns between SOP and production, creating 6 orphans in each direction. SOP uses pattern TSK_FNCE_{TYPE}_COAT2_{METHOD} (e.g., TSK_FNCE_STAIN_COAT2_SPRAY, TSK_FNCE_PAINT_COAT2_BRUSH). Production uses pattern TSK_FNCE_{TYPE}_{METHOD}_COAT2 (e.g., TSK_FNCE_STAIN_SPRAY_BACKBRUSH_COAT2, TSK_FNCE_PAINT_BRUSH_COAT2). Additionally, SOP stain coat-2 spray task is named TSK_FNCE_STAIN_COAT2_SPRAY but its display name says 'Spray + Back-Brush', while production names it TSK_FNCE_STAIN_SPRAY_BACKBRUSH_COAT2 — the production naming correctly includes BACKBRUSH in the ID. Affected SOP tasks: TSK_FNCE_STAIN_COAT2_SPRAY, TSK_FNCE_STAIN_COAT2_BRUSH, TSK_FNCE_STAIN_COAT2_ROLL, TSK_FNCE_PAINT_COAT2_SPRAY, TSK_FNCE_PAINT_COAT2_BRUSH, TSK_FNCE_PAINT_COAT2_ROLL. Affected production tasks: TSK_FNCE_STAIN_SPRAY_BACKBRUSH_COAT2, TSK_FNCE_STAIN_BRUSH_COAT2, TSK_FNCE_STAIN_ROLL_COAT2, TSK_FNCE_PAINT_SPRAY_COAT2, TSK_FNCE_PAINT_BRUSH_COAT2, TSK_FNCE_PAINT_ROLL_COAT2.",
+      "resolution": "Must align task IDs between files. Recommend adopting production naming pattern (METHOD_COAT2 suffix) as it parallels the coat-1 naming and correctly includes BACKBRUSH in the stain spray task ID. SOP module MOD_FNCE_APPLY_COAT2 task IDs need updating to match."
+    },
+    {
+      "issue_id": "QA-002",
+      "severity": "major",
+      "area": "uom_input_key_conflict",
+      "file": "sop_modules.json + production.json",
+      "status": "open",
+      "description": "TSK_FNCE_PROTECT_HARDSCAPE has unit_of_measure SF in both SOP and production, but its required_input_key is IN_LF_EXT_PROTECT_HARDSCAPE_FENCE_ADJACENT and its paintscope_key is PS_EXT_PROTECT_LF.HARDSCAPE_FENCE_ADJACENT — both indicating LF input. The task rate is expressed in SF (rate_per_hour in SF/hr) but the input quantity will arrive as LF from PaintScope. This creates a UOM dimensional mismatch at runtime: the engine would divide LF input by SF/hr rate, producing an incorrect time estimate.",
+      "resolution": "Either change the task UOM and rate to LF (since PaintScope provides linear feet of hardscape along fence line — more natural for fence-adjacent walkways and driveways), or change the input key to an SF-based key. LF is more appropriate for this protection task — hardscape protection along a fence line is naturally measured in linear feet (run a tarp along the edge). Recommend changing task UOM to LF and recalibrating rate_per_hour to LF/hr."
+    },
+    {
+      "issue_id": "QA-003",
+      "severity": "minor",
+      "area": "applies_when_consistency",
+      "file": "sop_modules.json vs production.json",
+      "status": "acknowledged",
+      "description": "TSK_FNCE_PROTECT_NEIGHBOR has applies_when {application_method: ['spray_backbrush']} in SOP but empty applies_when {} in production. SOP correctly gates this task to spray-only scenarios (brush/roll application does not create overspray requiring neighbor-side protection), but production does not enforce this gate.",
+      "resolution": "Acknowledged — production should add matching applies_when gate. Minor because the task is FIXED-time and condition_conditional, so in practice the estimator would skip it for brush/roll jobs. But the explicit gate should be present for engine automation."
+    },
+    {
+      "issue_id": "QA-004",
+      "severity": "minor",
+      "area": "task_classification_field",
+      "file": "production.json",
+      "status": "acknowledged",
+      "description": "Production.json task_production_rates entries do not include a task_classification field. SOP has task_classification on all 37 tasks (binary, condition_conditional, coating_conditional). While production.json is not strictly required to carry this field (it is primarily an SOP concern), the masonry sibling spec does not include it in production either — so this is consistent with existing pattern. However, classification is useful for engine logic (e.g., which tasks scale with coating_type vs which are fixed binary).",
+      "resolution": "Acknowledged — consistent with sibling spec pattern. No change required. Engine derives classification from SOP."
+    }
+  ],
+
+  "blockers": [
+    {
+      "blocker_id": "BLOCKER-001",
+      "references": "QA-001",
+      "description": "6 coat-2 task IDs are orphaned in both directions due to naming pattern mismatch between SOP and production. Assembly cannot proceed until IDs are aligned.",
+      "recommended_fix": "Update SOP MOD_FNCE_APPLY_COAT2 task IDs to match production naming: TSK_FNCE_STAIN_SPRAY_BACKBRUSH_COAT2, TSK_FNCE_STAIN_BRUSH_COAT2, TSK_FNCE_STAIN_ROLL_COAT2, TSK_FNCE_PAINT_SPRAY_COAT2, TSK_FNCE_PAINT_BRUSH_COAT2, TSK_FNCE_PAINT_ROLL_COAT2."
+    },
+    {
+      "blocker_id": "BLOCKER-002",
+      "references": "QA-002",
+      "description": "TSK_FNCE_PROTECT_HARDSCAPE task UOM (SF) conflicts with its input key (LF). Engine will produce incorrect time estimates.",
+      "recommended_fix": "Change task UOM to LF in both SOP and production. Recalibrate rate_per_hour from SF/hr to LF/hr (fence-adjacent hardscape protection is naturally measured in linear feet along the fence line)."
+    }
+  ],
+
+  "doctrine_checks": [
+    {
+      "check": "THREADING-1: Task ID Completeness",
+      "result": "fail",
+      "details": "31 of 37 task_ids match perfectly between sop_modules.json and production.json. 6 tasks orphaned in each direction due to coat-2 naming pattern mismatch (see QA-001). Count by module for matching tasks: SETUP=5, PREP=6, CHEMICAL_RESTORE=8, APPLY=7 (coat 1), FINAL_INSPECT=3, CLEANUP=2. APPLY_COAT2=0 matched (all 6 orphaned)."
+    },
+    {
+      "check": "THREADING-2: task_classification Match",
+      "result": "pass_with_notes",
+      "details": "Production.json does not carry task_classification field — consistent with sibling spec pattern. SOP classifications: 19 binary, 11 condition_conditional, 7 coating_conditional. Classification logic is sound: binary tasks are always-execute, condition_conditional gate on wood_condition/substrate_material/application_method, coating_conditional gate on coating_type."
+    },
+    {
+      "check": "THREADING-3: applies_when Consistency",
+      "result": "pass_with_notes",
+      "details": "Application method gating consistent for coat-1 tasks: spray_backbrush tasks gate on [spray_backbrush], brush on [brush], roll on [roll]. Coating type gating consistent: paint tasks gate on [paint], primer on [solid_stain, paint] + cedar. Chemical restore module gates on wood_condition [weathered, previously_coated]. One minor discrepancy: TSK_FNCE_PROTECT_NEIGHBOR has spray-only gate in SOP but empty applies_when in production (QA-003). Coat-2 tasks cannot be compared due to ID mismatch (QA-001)."
+    },
+    {
+      "check": "THREADING-4: UOM Match",
+      "result": "pass",
+      "details": "All 31 matching tasks have identical UOMs between SOP and production. SF-based: 19 tasks (all application, prep sanding, mildew, pressure wash, touchup). EA-based: 2 tasks (gate hardware remove/reinstall). LF-based: 2 tasks (landscape protect, siding protect). FIXED-based: 8 tasks (moisture test, seasoning verify, neighbor protect, dwell times, dry verify, final inspect, protect teardown, tool clean). Note: hardscape protect matches (SF=SF) but conflicts with its LF input key (QA-002)."
+    },
+    {
+      "check": "THREADING-5: Task Prefix",
+      "result": "pass",
+      "details": "All 37 task IDs in SOP and all 37 in production use TSK_FNCE_ prefix. No collisions with existing prefixes. FNCE is unique per resolution.json collision check."
+    },
+    {
+      "check": "THREADING-6: Module Prefix",
+      "result": "pass",
+      "details": "All 7 module IDs use MOD_FNCE_ prefix: SETUP, PREP, CHEMICAL_RESTORE, APPLY, APPLY_COAT2, FINAL_INSPECT, CLEANUP."
+    },
+    {
+      "check": "EXT-1: Key Namespace Integrity",
+      "result": "pass",
+      "details": "All 12 paintscope_key references use PS_EXT_* namespace. Surface key: PS_EXT_SURFACE_SF.FENCE_FIELD. Meta keys: PS_EXT_META.ENUM.COATING_TYPE_FENCE, PS_EXT_META.ENUM.WOOD_CONDITION_FENCE, PS_EXT_META.ENUM.FENCE_STYLE, PS_EXT_META.ENUM.SUBSTRATE_TYPE_FENCE, PS_EXT_META.EA.FENCE_GATES, PS_EXT_META.FLAG.NEW_CONSTRUCTION. Protection keys: PS_EXT_PROTECT_LF.LANDSCAPE_FENCE_BASE, PS_EXT_PROTECT_LF.HARDSCAPE_FENCE_ADJACENT, PS_EXT_PROTECT_SF.SIDING_AT_FENCE_TIE, PS_EXT_PROTECT_EA.VEHICLE_ADJACENT, PS_EXT_PROTECT_LF.NEIGHBOR_PROPERTY_LINE. No interior keys found."
+    },
+    {
+      "check": "EXT-2: Substrate State Validity",
+      "result": "pass",
+      "details": "All substrate states in materials.json use SS_EXT_* prefix: SS_EXT_BARE_WOOD, SS_EXT_STAINED, SS_EXT_WEATHERED, SS_EXT_PAINTED. No SS_INT_* or bare SS_ IDs. States align with wood_condition dimension (new->bare_wood, weathered->weathered, previously_coated->stained or painted). No factory-primed state — correctly excluded (no factory-primed fence exists)."
+    },
+    {
+      "check": "EXT-3: Protection Zone Integrity",
+      "result": "pass",
+      "details": "All 5 protection zones use ext_* prefix: ext_landscape_fence_base, ext_hardscape_fence_adjacent, ext_siding_at_fence_tie, ext_vehicle_adjacent, ext_neighbor_property. No interior zone IDs. Vehicle and neighbor zones are condition_conditional (appropriate — not always present)."
+    },
+    {
+      "check": "EXT-4: Exterior Factor Keys",
+      "result": "pass",
+      "details": "3 factor modifiers declared, all fence-specific: FAC_FNCE_COATING_TYPE (transparent=0.85, semi_transparent=1.00, solid_stain=1.15, paint=1.30), FAC_FNCE_WOOD_CONDITION (new=1.00, weathered=1.30, previously_coated=1.60), FAC_FNCE_SUBSTRATE_TYPE (pt_pine=1.00, cedar=1.10). No interior FAC_HEIGHT or siding-specific modifiers incorrectly present. No FAC_QT — correctly replaced by FAC_FNCE_COATING_TYPE."
+    },
+    {
+      "check": "EXT-5: Modifier Math",
+      "result": "pass",
+      "details": "All 3 modifiers use division formula: effective_rate = base_rate / modifier. Stacking cap 4.0x declared. 6 stacking examples provided. Maximum combination (paint 1.30 x previously_coated 1.60 x cedar 1.10 = 2.288x) is well under 4.0x cap. Best case (transparent 0.85 x new 1.00 x PT pine 1.00 = 0.85x) produces faster-than-baseline rate for simple transparent spray application — logical."
+    },
+    {
+      "check": "STAIN-1: No Primer for Penetrating Stains",
+      "result": "pass",
+      "details": "Primer task TSK_FNCE_PRIMER_STAIN_BLOCK gates on applies_when {coating_type: [solid_stain, paint], substrate_material: [cedar]}. Transparent and semi_transparent coating types are excluded from primer — correct for penetrating stains that must absorb into wood. Compatibility rule COMPAT-FNCE-008 explicitly states 'Penetrating stains do NOT use primer — primer blocks stain penetration' with severity critical. Material system SYS_EXT_FNCE_PRIMER_STAIN_BLOCK gates on {substrate_material: cedar, coating_type: [solid_stain, paint]}."
+    },
+    {
+      "check": "STAIN-2: Coating Type Replaces Quality Tier",
+      "result": "pass",
+      "details": "No quality_tier configuration dimension. coating_type is declared as PRIMARY configuration dimension with 4 values (transparent, semi_transparent, solid_stain, paint). FAC_FNCE_COATING_TYPE modifier replaces FAC_QT. No QT references in any artifact. Round configurations gate on coating_type, not quality_tier. Resolution notes explicitly state 'STAIN-based spec — coating_type replaces quality_tier as primary dimension'."
+    },
+    {
+      "check": "STAIN-3: Phase Compliance (setup/prep/apply/cleanup)",
+      "result": "pass",
+      "details": "Module phases: setup (SETUP), prep (PREP, CHEMICAL_RESTORE), apply (APPLY, APPLY_COAT2), cleanup (FINAL_INSPECT, CLEANUP). No prime phase — primer task is inside APPLY module gated by coating_type. No finish phase — stain specs use apply. No interstage phase — coat-2 is a separate APPLY module. All phase values from approved set."
+    },
+    {
+      "check": "STAIN-4: MC Limits Enforced",
+      "result": "pass",
+      "details": "TSK_FNCE_MOISTURE_TEST is mandatory prep task in MOD_FNCE_PREP. Compatibility rule COMPAT-FNCE-001 declares moisture content threshold as critical severity. Research documents MC limits by coating type (transparent/semi-transparent: 12-15%, solid/paint: 12%). SOP task includes moisture meter requirement (CON_FNCE_MOISTURE_METER consumable)."
+    },
+    {
+      "check": "STAIN-5: PT Seasoning Enforced",
+      "result": "pass",
+      "details": "TSK_FNCE_SEASONING_VERIFY is condition_conditional prep task gating on new construction + PT pine. Compatibility rule COMPAT-FNCE-002 declares 3-6 month seasoning requirement with severity critical. Risk note RISK-FNCE-002 documents premature stain failure on unseasoned PT pine."
+    },
+    {
+      "check": "STAIN-6: Back-Brushing Mandatory for Spray",
+      "result": "pass",
+      "details": "Spray application method is spray_backbrush (not spray-only). Task TSK_FNCE_STAIN_SPRAY_BACKBRUSH explicitly names back-brushing. Compatibility rule COMPAT-FNCE-009 declares back-brushing mandatory when spray-applying penetrating stains with severity critical. Crew_size=2 on spray_backbrush tasks (sprayer + back-brusher). CON_FNCE_BRUSH_BACKBRUSH consumable included for dedicated back-brush tool."
+    },
+    {
+      "check": "STAIN-7: Paint Risk Warning",
+      "result": "pass",
+      "details": "Compatibility rule COMPAT-FNCE-003 declares paint on wood fences requires MANDATORY moisture-peeling risk warning with severity critical. Risk note RISK-FNCE-001 provides detailed documentation of moisture-driven peeling on painted fences (both-sides exposure). Paint coating_type is included but flagged as LEAST RECOMMENDED throughout artifacts."
+    },
+    {
+      "check": "STAIN-8: Cedar Tannin Primer",
+      "result": "pass",
+      "details": "Compatibility rule COMPAT-FNCE-004 requires cedar tannin-blocking primer before solid stain or paint with severity major. SYS_EXT_FNCE_PRIMER_STAIN_BLOCK material system gates on cedar substrate + film-forming coatings. TSK_FNCE_PRIMER_STAIN_BLOCK task gates on same conditions. COMPAT-FNCE-005 requires oxalic acid brightener for cedar tannin management. Brightener material system and chemical restore module cover this requirement."
+    },
+    {
+      "check": "COMPLETENESS-1: Protection Zones",
+      "result": "pass",
+      "details": "5 protection zones declared in resolution.json zone_ids with status, notes, and conditions. All zones have corresponding SOP tasks in SETUP module. 4 protection PS keys declared (landscape LF, hardscape LF, siding SF, neighbor LF). Vehicle adjacent is EA-based (count of vehicles). Protection teardown in CLEANUP module. Consumables include CON_FNCE_PLASTIC_SHEETING, CON_DROP_CLOTH_CANVAS, CON_MASKING_TAPE_BLUE, CON_FNCE_GATE_HARDWARE_MASK."
+    },
+    {
+      "check": "COMPLETENESS-2: Cross-Spec Boundaries",
+      "result": "pass",
+      "details": "Cross-spec coordination documented in resolution.json: no xspec_flags consumed or set, no comp_modifiers interactions. Fence is typically an isolated scope item. Siding protection at fence-to-house tie IS this spec's responsibility. Neighbor property protection IS this spec's responsibility. No dependency on other spec families."
+    },
+    {
+      "check": "COMPLETENESS-3: Round Configurations",
+      "result": "pass",
+      "details": "4 round configurations declared: ROUND_FNCE_TRANSPARENT_1COAT (1 coat, prep+apply), ROUND_FNCE_SEMI_TRANS_1COAT (1 coat, prep+apply), ROUND_FNCE_SOLID_2COAT (2 coats, prep+apply+apply), ROUND_FNCE_PAINT_2COAT (2 coats, prep+apply+apply). Covers all 4 coating_type values. Penetrating stains are single-coat. Film-forming coatings (solid_stain, paint) are two-coat."
+    },
+    {
+      "check": "COMPLETENESS-4: Material Systems",
+      "result": "pass",
+      "details": "7 material systems: SYS_EXT_FNCE_TRANSPARENT (sealer, transparent), SYS_EXT_FNCE_SEMI_TRANSPARENT (stain, semi_transparent), SYS_EXT_FNCE_SOLID_STAIN (stain, solid_stain), SYS_EXT_FNCE_PAINT (paint, paint), SYS_EXT_FNCE_PRIMER_STAIN_BLOCK (primer, cedar-only for film-forming), SYS_EXT_FNCE_CHEMICAL_STRIPPER (prep_chemical), SYS_EXT_FNCE_BRIGHTENER (prep_chemical). 7 coverage profiles. 14 consumables. All system IDs use SYS_EXT_FNCE_ prefix."
+    },
+    {
+      "check": "COMPLETENESS-5: Compatibility Rules",
+      "result": "pass",
+      "details": "10 compatibility rules: COMPAT-FNCE-001 (MC limits, critical), COMPAT-FNCE-002 (PT seasoning, critical), COMPAT-FNCE-003 (paint risk warning, critical), COMPAT-FNCE-004 (cedar tannin primer, major), COMPAT-FNCE-005 (cedar brightener, major), COMPAT-FNCE-006 (no stain over gray wood, critical), COMPAT-FNCE-007 (alkaline stripper neutralization, critical), COMPAT-FNCE-008 (no primer on penetrating stains, critical), COMPAT-FNCE-009 (back-brushing mandatory for spray, critical), COMPAT-FNCE-010 (paint on PT pine needs primer, major). 7 risk notes covering moisture peeling, unseasoned PT, cedar tannin, overstaining, wind overspray, chemical cross-contamination, and pressure washer damage."
+    },
+    {
+      "check": "COMPLETENESS-6: Module Phase Order",
+      "result": "pass",
+      "details": "Module phase sequence: setup (SETUP) -> prep (PREP, CHEMICAL_RESTORE) -> apply (APPLY, APPLY_COAT2) -> cleanup (FINAL_INSPECT, CLEANUP). Chemical restore is conditional on weathered/previously_coated wood_condition. APPLY_COAT2 conditional on solid_stain/paint coating_type. Phase ordering follows structural_keys convention."
+    },
+    {
+      "check": "ENUM-1: Convention Compliance",
+      "result": "pass",
+      "details": "All enums comply with project conventions: CON_ prefix (not CONS_), task_classification (not task_class), severity uses critical/major/minor, phase values from approved set (setup, prep, apply, cleanup — no 'protect' or 'protection' or 'prime' or 'finish' phase), all units uppercase (EA, SF, LF, FIXED, ROLL), consumable_category from approved set (applicator, protection, abrasive, tool, prep), zone uses ext_* prefix, sheen not applicable for stain specs (n/a for transparent, n/a for penetrating)."
+    }
+  ],
+
+  "exterior_validation_summary": {
+    "first_exterior_spec": false,
+    "sibling_spec": "SF_DECK_EXT_v1",
+    "domain_dispatch_activated": true,
+    "interior_contamination": "none — no interior keys, states, or zones found",
+    "research_corrections_applied": 0,
+    "user_corrections_applied": 0,
+    "key_departures_from_sibling_specs": [
+      "STAIN-BASED: coating_type (transparent, semi_transparent, solid_stain, paint) replaces quality_tier as primary configuration dimension — first spec to use this pattern",
+      "No prime phase — primer task lives inside apply phase gated on coating_type + substrate_material (cedar only for film-forming coatings)",
+      "Penetrating stains (transparent, semi_transparent) have NO primer — critical COMPAT rule enforces this",
+      "Single paintable item ITM_FENCE_FIELD (SF) vs deck's 4 items — PaintScope delivers pre-calculated both-sides SF",
+      "Chemical restoration module (MOD_FNCE_CHEMICAL_RESTORE) with 8 tasks for weathered/previously_coated wood — strip, brighten, rinse, dry verify cycle",
+      "Back-brushing is MANDATORY for spray application (spray_backbrush, crew_size=2) — not optional like on some siding specs",
+      "Paint coating_type included but LEAST RECOMMENDED with mandatory risk warning (COMPAT-FNCE-003, RISK-FNCE-001)",
+      "PT pine seasoning check as condition_conditional prep task (3-6 month requirement for new construction)",
+      "3 factor modifiers (coating_type, wood_condition, substrate_material) vs masonry's 4 — no access/height modifier (fences are ground-level)",
+      "Fence-specific protection zones: ext_landscape_fence_base (both sides), ext_neighbor_property, ext_vehicle_adjacent",
+      "wood_condition dimension (new, weathered, previously_coated) enables covering both NC and existing fences — not NC-only like masonry/siding specs"
+    ]
+  },
+
+  "task_cross_reference": {
+    "total_sop_tasks": 37,
+    "total_production_rates": 37,
+    "matched_tasks": 31,
+    "orphaned_in_sop": 6,
+    "orphaned_in_production": 6,
+    "orphaned_reason": "Coat-2 task ID naming pattern mismatch (QA-001)",
+    "classification_mismatches": 0,
+    "uom_mismatches": 0,
+    "applies_when_mismatches": 1
+  },
+
+  "modifier_stacking_validation": {
+    "max_theoretical_stack": 2.288,
+    "stacking_cap": 4.0,
+    "within_cap": true,
+    "worst_case_scenario": "Paint (1.30) x previously_coated (1.60) x cedar (1.10) = 2.288x",
+    "worst_case_effective_rate": "131 SF/hr spray — slow but viable for worst-case repaint of cedar fence",
+    "best_case_scenario": "Transparent (0.85) x new (1.00) x PT pine (1.00) = 0.85x — faster than baseline for simple clear sealer spray"
+  },
+
+  "material_system_validation": {
+    "coating_systems": 4,
+    "primer_systems": 1,
+    "prep_chemical_systems": 2,
+    "total_systems": 7,
+    "coverage_profiles": 7,
+    "consumables": 14,
+    "compatibility_rules": 10,
+    "risk_notes": 7,
+    "no_primer_for_penetrating_stains": true,
+    "cedar_tannin_primer_gated": true,
+    "paint_risk_warning_present": true,
+    "all_systems_have_coating_type_routing": true,
+    "all_systems_use_ext_prefix": true
+  }
+}

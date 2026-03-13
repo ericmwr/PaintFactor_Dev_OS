@@ -1,0 +1,887 @@
+{
+  "spec_family": {
+    "id": "SF_METAL_EXT",
+    "name": "Exterior Metal Surfaces",
+    "description": "Paint-based coating system for exterior metal components — railings (LF), gutters/downspouts (LF), ornamental iron (EA), and miscellaneous metal items (EA). Covers BOTH new construction and existing metal across four substrate types (carbon_steel, wrought_iron, aluminum, galvanized) and five substrate states. Combined all-phases spec with single mobilization. Substrate type is the primary material-selection driver — determines primer chemistry (DTM acrylic/alkyd for ferrous, etch/bonding for non-ferrous, zinc-rich/epoxy for premium/critical). Substrate state drives prep intensity (SSPC SP1-SP3 levels). Profile complexity is the dominant labor modifier (ornate ironwork = 2.50x). No roll application method — rollers are ineffective on metal profiles (round, angular, or complex geometry). Quality tier range QT3-QT5 only (no QT2 — exterior metal requires minimum journeyman prep standards). Structural rust is a HARD STOP requiring engineering assessment before painting scope begins. Galvanized + oil/alkyd primer is BLOCKED (saponification risk). Aluminum + rigid coatings is BLOCKED (thermal expansion cracking).",
+    "domain": "exterior",
+    "version": "0.1.0",
+    "status": "draft",
+    "review_required": true
+  },
+
+  "scope_boundaries": {
+    "includes": [
+      "SP1 solvent cleaning (mandatory first step ALL metal substrates)",
+      "SP2 hand tool cleaning — wire brush, scraper, sandpaper (surface rust, sound existing paint)",
+      "SP3 power tool cleaning — grinder, wire wheel, needle gun (failing paint, heavy rust)",
+      "Aluminum scuff abrasion (Scotch-Brite/maroon pad for adhesion profile)",
+      "Galvanized solvent wipe and abrasion prep",
+      "Rust converter application (surface rust treatment, converts Fe2O3 to stable iron phosphate)",
+      "Existing paint deglossing (sound existing coatings)",
+      "Failing paint stripping (loose/flaking/peeling existing coatings)",
+      "Substrate-driven primer application (DTM acrylic, DTM alkyd, zinc-rich, epoxy, etch, bonding)",
+      "Spot priming on sound existing paint at exposed areas",
+      "DTM acrylic finish coat application — brush, spray, or spray_backbrush (2 coats standard)",
+      "Ornamental detail brush finishing (scrollwork, intricate profiles)",
+      "Caulking at metal-to-masonry and metal-to-wood junctions",
+      "Landscape perimeter protection (drop cloths, plastic sheeting)",
+      "Hardscape protection (walkway/patio adjacent to work area)",
+      "Siding protection (adjacent siding during spray operations)",
+      "Masonry protection (adjacent masonry/brick during spray operations)",
+      "Light fixture masking (exterior-mounted fixtures near metal surfaces)",
+      "Roof edge protection (gutter work — prevent debris/paint on roofing)",
+      "Scaffold/lift setup and teardown (when access_type requires elevated platforms)",
+      "Condition assessment (existing metal — rust mapping, adhesion testing, coating thickness)",
+      "Structural rust hard-stop check",
+      "Final inspection, holiday detection, and touch-up",
+      "Protection teardown and cleanup"
+    ],
+    "excludes": [
+      {
+        "item": "Structural rust repair (section replacement, welding, reinforcement)",
+        "route_to": "Structural engineering / metalwork scope — HARD STOP if structural rust detected"
+      },
+      {
+        "item": "Scaffold erection and dismantling labor (separate line item)",
+        "route_to": "Site logistics — scaffold setup/teardown are FIXED tasks in this spec but scaffold rental is separate"
+      },
+      {
+        "item": "Lead paint abatement (pre-1978 structures)",
+        "route_to": "EPA RRP certified contractor scope — separate mobilization, containment, and disposal requirements"
+      },
+      {
+        "item": "Interior metal surfaces (HVAC ducts, pipes, structural steel)",
+        "route_to": "Future interior metal spec or industrial coating scope"
+      },
+      {
+        "item": "Metal roof painting",
+        "route_to": "Roof coating scope — different product chemistry, safety requirements, and access protocols"
+      },
+      {
+        "item": "Powder coating or shop-applied finishes",
+        "route_to": "Factory/shop scope — not field-applied painting"
+      },
+      {
+        "item": "Composite/vinyl railing systems",
+        "route_to": "Not metal — factory-colored product, manufacturer warranty considerations"
+      }
+    ]
+  },
+
+  "configuration_dimensions": [
+    {
+      "dimension_id": "substrate_type",
+      "description": "Metal substrate type — PRIMARY MATERIAL SELECTION DRIVER. Determines primer chemistry, prep protocol, and material compatibility blockers.",
+      "values": ["carbon_steel", "wrought_iron", "aluminum", "galvanized"],
+      "default": "carbon_steel",
+      "notes": "Carbon steel and wrought iron are ferrous metals — DTM acrylic/alkyd primers. Aluminum and galvanized are non-ferrous — require etch or bonding primers. Galvanized + oil/alkyd = BLOCKED (saponification). Aluminum + rigid coatings = BLOCKED (thermal cracking). Carbon steel is most common residential exterior metal."
+    },
+    {
+      "dimension_id": "substrate_state",
+      "description": "Current condition of the metal surface — drives prep intensity (SSPC level) and module activation. This spec covers NC AND existing metal.",
+      "values": ["SS_EXT_BARE_METAL", "SS_EXT_PRIMED_FACTORY", "SS_EXT_SURFACE_RUST", "SS_EXT_SOUND_PAINT_METAL", "SS_EXT_FAILING_PAINT_METAL"],
+      "default": "SS_EXT_BARE_METAL",
+      "notes": "SS_EXT_BARE_METAL: new construction or fully stripped — lightest prep (SP1 + light scuff). SS_EXT_PRIMED_FACTORY: shop-primed from fabricator — skip field primer, 2 finish coats only. SS_EXT_SURFACE_RUST: flash rust or early corrosion — SP2/SP3 + rust converter + primer. SS_EXT_SOUND_PAINT_METAL: intact existing coating — degloss + spot prime + 2 finish. SS_EXT_FAILING_PAINT_METAL: peeling/flaking/blistering — strip + full prep + primer + finish."
+    },
+    {
+      "dimension_id": "quality_tier",
+      "description": "Quality tier — drives inspection thoroughness, documentation level, and application precision. QT3-QT5 only, no QT2 for exterior metal.",
+      "values": ["QT3", "QT4", "QT5"],
+      "default": "QT3",
+      "notes": "QT3: standard residential — visual inspection, standard prep. QT4: enhanced — more thorough inspection, better surface profile, tighter tolerances. QT5: premium/restoration — DFT verification, raking light inspection, documentation, zinc-rich primer eligible. No QT2 because exterior metal requires minimum journeyman-level prep standards."
+    },
+    {
+      "dimension_id": "application_method",
+      "description": "Primary application technique. No roll method — rollers are ineffective on metal profiles.",
+      "values": ["brush", "spray", "spray_backbrush"],
+      "default": "brush",
+      "notes": "Brush is default for residential metal (railings, ornamental). Spray for production runs (gutters, long straight runs). Spray_backbrush for complex profiles where spray deposits coating and brush works it into recesses. NO ROLL — metal profiles (round pipe, angular iron, complex geometry) do not accept roller contact. Spray requires 2-person crew."
+    }
+  ],
+
+  "paintable_items": [
+    {
+      "item_id": "ITM_METAL_RAILING",
+      "name": "Exterior metal railing (porch/stair railings, balusters, handrails)",
+      "unit_of_measure": "LF",
+      "counting_rules": "Linear feet of metal railing run measured along top rail centerline. Includes top rail, bottom rail, balusters/pickets, and posts within the run. Multiple surfaces per LF (top, sides, undersides of rails; all faces of balusters).",
+      "notes": "LF-based. Most common exterior metal painting item in residential. Profile complexity modifier is primary labor driver — ornate balusters significantly slower than simple pickets. All substrate types possible."
+    },
+    {
+      "item_id": "ITM_METAL_GUTTER",
+      "name": "Exterior metal gutter and downspout",
+      "unit_of_measure": "LF",
+      "counting_rules": "Linear feet of gutter run plus downspout run measured separately. Gutter = horizontal run along roofline. Downspout = vertical run from gutter to grade. Both are LF-based but at different access heights.",
+      "notes": "LF-based. Typically aluminum or galvanized steel. Always elevated work (ladder or scaffold access). Roof edge protection required. Standard profile complexity — gutters have simple geometry."
+    },
+    {
+      "item_id": "ITM_METAL_ORNAMENTAL",
+      "name": "Exterior ornamental iron/metal element",
+      "unit_of_measure": "EA",
+      "counting_rules": "Count of discrete ornamental metal elements. Includes decorative brackets, scrollwork panels, finials, rosettes, gate panels, and similar decorative pieces. Size and complexity vary widely — profile_complexity modifier is critical.",
+      "notes": "EA-based. Highest profile complexity variation in the spec. Ornate pieces (scrollwork, historic ironwork) = 2.50x profile modifier. Brush is primary application method (detail work). Typically wrought iron or carbon steel."
+    },
+    {
+      "item_id": "ITM_METAL_MISC",
+      "name": "Exterior miscellaneous metal item",
+      "unit_of_measure": "EA",
+      "counting_rules": "Count of discrete miscellaneous metal items. Includes mailbox posts, light poles, vent covers, access panels, utility box covers, meter enclosures, and similar items. Standard profile complexity assumed unless overridden.",
+      "notes": "EA-based. Catch-all for metal items not covered by railing, gutter, or ornamental categories. Standard profile complexity assumed. Substrate type varies — may be any of the four types."
+    }
+  ],
+
+  "required_paintscope_inputs": [
+    {
+      "input_name": "IN_LF_METAL_RAILING",
+      "paintscope_key": "PS_EXT_EDGE_LF.METAL_RAILING",
+      "uom": "LF",
+      "required": false,
+      "required_when": "When metal railings are present in scope",
+      "description": "Linear feet of exterior metal railing runs"
+    },
+    {
+      "input_name": "IN_LF_METAL_GUTTER",
+      "paintscope_key": "PS_EXT_EDGE_LF.METAL_GUTTER",
+      "uom": "LF",
+      "required": false,
+      "required_when": "When gutters/downspouts are in scope",
+      "description": "Linear feet of exterior gutter and downspout runs"
+    },
+    {
+      "input_name": "IN_EA_METAL_ORNAMENTAL",
+      "paintscope_key": "PS_EXT_META.EA.METAL_ORNAMENTAL",
+      "uom": "EA",
+      "required": false,
+      "required_when": "When ornamental metal elements are present",
+      "description": "Count of exterior ornamental metal elements"
+    },
+    {
+      "input_name": "IN_EA_METAL_MISC",
+      "paintscope_key": "PS_EXT_META.EA.METAL_MISC",
+      "uom": "EA",
+      "required": false,
+      "required_when": "When miscellaneous metal items are present",
+      "description": "Count of miscellaneous exterior metal items"
+    },
+    {
+      "input_name": "IN_ENUM_SUBSTRATE_TYPE_METAL",
+      "paintscope_key": "PS_EXT_META.ENUM.SUBSTRATE_TYPE_METAL",
+      "uom": "ENUM",
+      "required": true,
+      "description": "Metal substrate type (carbon_steel, wrought_iron, aluminum, galvanized) — drives primer selection and material blockers"
+    },
+    {
+      "input_name": "IN_ENUM_METAL_CONDITION",
+      "paintscope_key": "PS_EXT_META.ENUM.METAL_CONDITION",
+      "uom": "ENUM",
+      "required": true,
+      "description": "Metal surface condition — maps to substrate state, drives prep intensity"
+    },
+    {
+      "input_name": "IN_ENUM_PROFILE_COMPLEXITY_METAL",
+      "paintscope_key": "PS_EXT_META.ENUM.PROFILE_COMPLEXITY_METAL",
+      "uom": "ENUM",
+      "required": true,
+      "description": "Profile complexity (standard, moderate, ornate) — primary labor modifier"
+    },
+    {
+      "input_name": "IN_ENUM_ACCESS_TYPE",
+      "paintscope_key": "PS_EXT_META.ENUM.ACCESS_TYPE",
+      "uom": "ENUM",
+      "required": true,
+      "description": "Access type (ground, ladder, scaffold, lift) — drives access modifier and scaffold setup tasks"
+    },
+    {
+      "input_name": "IN_LF_EXT_PROTECT_LANDSCAPE_PERIMETER",
+      "paintscope_key": "PS_EXT_PROTECT_LF.LANDSCAPE_PERIMETER",
+      "uom": "LF",
+      "required": false,
+      "required_when": "Always — landscape below metal surfaces requires protection from prep debris and paint drips",
+      "description": "Linear feet of landscape perimeter requiring protection"
+    },
+    {
+      "input_name": "IN_SF_EXT_PROTECT_HARDSCAPE_WALK",
+      "paintscope_key": "PS_EXT_PROTECT_SF.HARDSCAPE_WALK",
+      "uom": "SF",
+      "required": false,
+      "required_when": "When walkways/patios are adjacent to metal work areas",
+      "description": "Adjacent hardscape area requiring protection from prep debris and paint"
+    },
+    {
+      "input_name": "IN_SF_EXT_PROTECT_SIDING_ADJACENT",
+      "paintscope_key": "PS_EXT_PROTECT_SF.SIDING_ADJACENT",
+      "uom": "SF",
+      "required": false,
+      "required_when": "When siding is adjacent to metal surfaces and spray method is used",
+      "description": "Siding area adjacent to metal requiring protection from overspray"
+    },
+    {
+      "input_name": "IN_SF_EXT_PROTECT_MASONRY_ADJACENT",
+      "paintscope_key": "PS_EXT_PROTECT_SF.MASONRY_ADJACENT",
+      "uom": "SF",
+      "required": false,
+      "required_when": "When masonry/brick is adjacent to metal surfaces",
+      "description": "Masonry area adjacent to metal requiring protection"
+    },
+    {
+      "input_name": "IN_EA_EXT_PROTECT_LIGHT_FIXTURE",
+      "paintscope_key": "PS_EXT_PROTECT_EA.LIGHT_FIXTURE",
+      "uom": "EA",
+      "required": false,
+      "required_when": "When exterior light fixtures are near metal work areas",
+      "description": "Count of exterior light fixtures to mask"
+    },
+    {
+      "input_name": "IN_LF_EXT_PROTECT_ROOF_EDGE",
+      "paintscope_key": "PS_EXT_PROTECT_LF.ROOF_EDGE",
+      "uom": "LF",
+      "required": false,
+      "required_when": "When gutter work is in scope — protect roof edge from debris and paint",
+      "description": "Linear feet of roof edge requiring protection during gutter painting"
+    }
+  ],
+
+  "substrate_state_rules": {
+    "primary_surface": "exterior_metal",
+
+    "valid_input_states": {
+      "states": ["SS_EXT_BARE_METAL", "SS_EXT_PRIMED_FACTORY", "SS_EXT_SURFACE_RUST", "SS_EXT_SOUND_PAINT_METAL", "SS_EXT_FAILING_PAINT_METAL"],
+      "notes": "SS_EXT_BARE_METAL = new construction or fully stripped metal. SS_EXT_PRIMED_FACTORY = shop-primed from fabricator (skip field primer). SS_EXT_SURFACE_RUST = flash rust or early surface corrosion. SS_EXT_SOUND_PAINT_METAL = intact existing coating with good adhesion. SS_EXT_FAILING_PAINT_METAL = peeling, flaking, blistering, or chalking existing coating. Structural rust is NOT a valid input state — it is a HARD STOP requiring engineering assessment before painting scope begins."
+    },
+
+    "output_state": {
+      "state": "SS_EXT_PAINTED_METAL",
+      "notes": "All valid input states resolve to SS_EXT_PAINTED_METAL after this spec completes. Two-coat DTM acrylic finish system provides durable exterior film. Output is uniform regardless of input state — prep and primer normalize the substrate."
+    }
+  },
+
+  "protection_zones_required": [
+    {
+      "zone_id": "ext_landscape_perimeter",
+      "condition": "always",
+      "protection_level": "full_cover",
+      "notes": "Landscape below metal surfaces. Prep debris (wire brush residue, rust flakes, paint chips) and coating drips fall to grade. Drop cloths and plastic sheeting along perimeter. Always required — metal prep generates more debris than any other exterior substrate."
+    },
+    {
+      "zone_id": "ext_hardscape_walk",
+      "condition": "when_adjacent",
+      "protection_level": "light_mask",
+      "upgrade_when": { "application_method": ["spray", "spray_backbrush"] },
+      "upgrade_level": "full_cover",
+      "notes": "Adjacent walkways and patios. Canvas drop cloths for crew traffic areas. Upgrade to full plastic cover when spraying — overspray drift on horizontal hardscape."
+    },
+    {
+      "zone_id": "ext_siding_adjacent",
+      "condition": "when_adjacent",
+      "protection_level": "light_mask",
+      "upgrade_when": { "application_method": ["spray", "spray_backbrush"] },
+      "upgrade_level": "full_cover",
+      "notes": "Siding adjacent to metal surfaces. Light tape for brush work. Full plastic sheeting cover when spraying — protect siding from overspray and prep debris."
+    },
+    {
+      "zone_id": "ext_masonry_adjacent",
+      "condition": "when_adjacent",
+      "protection_level": "light_mask",
+      "notes": "Masonry/brick adjacent to metal surfaces. Tape at metal-to-masonry junction. Masonry is porous — paint overspray absorbs into masonry and is extremely difficult to remove."
+    },
+    {
+      "zone_id": "ext_light_fixture",
+      "condition": "when_present",
+      "protection_level": "light_mask",
+      "notes": "Exterior light fixtures near metal work areas. Bag and tape with plastic. Quick mask — metal painting typically does not involve extensive overspray like siding work."
+    },
+    {
+      "zone_id": "ext_roof_edge",
+      "condition": "when_present",
+      "protection_level": "light_mask",
+      "notes": "Roof edge at gutter line. Protect roofing material from primer/paint drips and prep debris during gutter painting. Tape plastic along drip edge. Only required when gutter work is in scope."
+    }
+  ],
+
+  "material_systems": [
+    {
+      "system_id": "SYS_EXT_METL_PRIMER_DTM_ACRYLIC",
+      "name": "DTM Acrylic Primer for Steel / Iron",
+      "product_role": "primer",
+      "applies_when": { "substrate_type": ["carbon_steel", "wrought_iron"], "substrate_state": ["SS_EXT_BARE_METAL", "SS_EXT_SURFACE_RUST", "SS_EXT_FAILING_PAINT_METAL"] },
+      "coverage_profile": "COV_METL_PRIMER_DTM_ACRYLIC",
+      "coats": 1,
+      "allowed_sheens": ["n/a"],
+      "notes": "Standard primer for ferrous metals. UV stable, flexible, flash-rust resistant. Water-based cleanup. Coverage 400-500 SF/gal depending on surface profile. Single coat standard — two coats on heavily pitted surfaces."
+    },
+    {
+      "system_id": "SYS_EXT_METL_PRIMER_DTM_ALKYD",
+      "name": "DTM Alkyd Primer for Steel / Iron",
+      "product_role": "primer",
+      "applies_when": { "substrate_type": ["carbon_steel", "wrought_iron"], "substrate_state": ["SS_EXT_BARE_METAL", "SS_EXT_SURFACE_RUST"] },
+      "coverage_profile": "COV_METL_PRIMER_DTM_ALKYD",
+      "coats": 1,
+      "allowed_sheens": ["n/a"],
+      "notes": "Superior wetting and penetration on rough/pitted steel. Oil-based — solvent cleanup required. Better corrosion inhibition than acrylic but less flexible. BLOCKED on galvanized (saponification) and aluminum."
+    },
+    {
+      "system_id": "SYS_EXT_METL_PRIMER_ZINC_RICH",
+      "name": "Zinc-Rich Primer for Critical Steel",
+      "product_role": "primer",
+      "applies_when": { "substrate_type": ["carbon_steel"], "quality_tier": ["QT5"] },
+      "coverage_profile": "COV_METL_PRIMER_ZINC_RICH",
+      "coats": 1,
+      "allowed_sheens": ["n/a"],
+      "notes": "Premium cathodic protection primer — zinc particles provide galvanic protection to steel substrate. QT5 ONLY. Requires near-white metal prep (SP10 or equivalent). Highest corrosion resistance. Costly but appropriate for critical structural steel in aggressive environments."
+    },
+    {
+      "system_id": "SYS_EXT_METL_PRIMER_EPOXY",
+      "name": "Epoxy Primer for Marginal Prep Steel",
+      "product_role": "primer",
+      "applies_when": { "substrate_type": ["carbon_steel", "wrought_iron"], "substrate_state": ["SS_EXT_SURFACE_RUST"] },
+      "coverage_profile": "COV_METL_PRIMER_EPOXY",
+      "coats": 1,
+      "allowed_sheens": ["n/a"],
+      "notes": "Excellent adhesion to marginally prepared surfaces — tolerates residual rust better than DTM primers. Two-part mix with limited pot life. CRITICAL: Must topcoat within 24-72 hr recoat window — epoxy chalks and loses intercoat adhesion if exceeded."
+    },
+    {
+      "system_id": "SYS_EXT_METL_PRIMER_ETCH",
+      "name": "Etch / Wash Primer for Non-Ferrous Metal",
+      "product_role": "primer",
+      "applies_when": { "substrate_type": ["aluminum", "galvanized"] },
+      "coverage_profile": "COV_METL_PRIMER_ETCH",
+      "coats": 1,
+      "allowed_sheens": ["n/a"],
+      "notes": "Phosphoric acid-based primer that chemically etches slick non-ferrous surfaces for adhesion. Creates iron phosphate conversion coating on galvanized. Required for bare aluminum and galvanized — DTM primers will not adhere to non-ferrous surfaces without etch profile."
+    },
+    {
+      "system_id": "SYS_EXT_METL_PRIMER_BONDING",
+      "name": "Acrylic Bonding Primer for Factory-Finished Metal",
+      "product_role": "primer",
+      "applies_when": { "substrate_type": ["aluminum", "galvanized"], "substrate_state": ["SS_EXT_SOUND_PAINT_METAL"] },
+      "coverage_profile": "COV_METL_PRIMER_BONDING",
+      "coats": 1,
+      "allowed_sheens": ["n/a"],
+      "notes": "High-adhesion bonding primer for previously painted or factory-finished non-ferrous metal. Provides adhesion bridge between existing factory coating and new topcoat. Used on sound existing paint where etch primer is inappropriate (etch attacks existing coatings)."
+    },
+    {
+      "system_id": "SYS_EXT_METL_FINISH_DTM_ACRYLIC",
+      "name": "DTM Acrylic Exterior Finish",
+      "product_role": "finish",
+      "applies_when": {},
+      "coverage_profile": "COV_METL_FINISH_DTM_ACRYLIC",
+      "coats": 2,
+      "allowed_sheens": ["satin", "semi-gloss", "gloss"],
+      "notes": "Universal exterior metal topcoat — DTM acrylic. Two coats standard across all QT levels. UV stable, flexible, excellent gloss/color retention. Self-priming on sound existing paint. All substrate types after appropriate primer. Gloss is traditional for metal (water shedding, visual contrast), semi-gloss and satin for residential aesthetics."
+    },
+    {
+      "system_id": "SYS_EXT_METL_RUST_CONVERTER",
+      "name": "Rust Converter Treatment",
+      "product_role": "specialty",
+      "applies_when": { "substrate_state": ["SS_EXT_SURFACE_RUST"] },
+      "coverage_profile": "COV_METL_RUST_CONVERTER",
+      "coats": 1,
+      "allowed_sheens": ["n/a"],
+      "notes": "Converts unstable iron oxide (Fe2O3 rust) to stable iron phosphate. Applied after mechanical prep (SP2/SP3) to residual rust that cannot be fully removed by hand/power tools. Creates paintable surface. Not a replacement for mechanical prep — complementary treatment. Single application with 24 hr cure before priming."
+    }
+  ],
+
+  "sop_module_summary": {
+    "total_modules": 8,
+    "total_tasks": 37,
+    "task_breakdown": {
+      "binary": 14,
+      "condition_conditional": 5,
+      "state_conditional": 5,
+      "substrate_conditional": 8,
+      "qt_conditional": 2,
+      "method_conditional": 3
+    },
+    "modules": [
+      { "module_id": "MOD_METL_SETUP", "phase": "setup", "task_count": 2, "notes": "Crew mobilization and equipment staging, scaffold/lift setup (conditional on access_type)" },
+      { "module_id": "MOD_METL_PROTECT", "phase": "setup", "task_count": 6, "notes": "Protection setup: landscape perimeter, hardscape, siding adjacent, masonry adjacent (conditional), light fixtures, roof edge (conditional for gutter work)" },
+      { "module_id": "MOD_METL_ASSESS", "phase": "prep", "task_count": 2, "applies_when": { "substrate_state": ["SS_EXT_SURFACE_RUST", "SS_EXT_SOUND_PAINT_METAL", "SS_EXT_FAILING_PAINT_METAL"] }, "notes": "Condition assessment and structural rust hard-stop check — existing metal only" },
+      { "module_id": "MOD_METL_PREP", "phase": "prep", "task_count": 10, "notes": "Surface preparation: SP1 solvent clean (all), SP2 hand tool (substrate conditional), SP3 power tool (qt conditional), aluminum abrade, galvanized clean, rust convert, degloss existing, strip failing, dust clean, caulk junctions" },
+      { "module_id": "MOD_METL_PRIME", "phase": "prime", "task_count": 8, "notes": "Primer application: DTM acrylic brush/spray (ferrous), DTM alkyd brush (ferrous), etch brush (non-ferrous), bonding brush (factory-finished), zinc-rich brush (QT5), epoxy brush (marginal prep), spot prime (sound existing)" },
+      { "module_id": "MOD_METL_FINISH", "phase": "apply", "task_count": 4, "notes": "Finish coat application: DTM brush, DTM spray, DTM spray_backbrush (method-driven), ornamental detail brush (conditional on profile complexity)" },
+      { "module_id": "MOD_METL_FINAL_INSPECT", "phase": "apply", "task_count": 2, "notes": "Final inspection with holiday detection and touch-up" },
+      { "module_id": "MOD_METL_CLEANUP", "phase": "cleanup", "task_count": 3, "notes": "Protection teardown, scaffold/lift teardown (conditional), tool and debris cleanup" }
+    ]
+  },
+
+  "production_summary": {
+    "total_rates": 37,
+    "crew_size_2_tasks": 4,
+    "crew_size_2_task_ids": [
+      "TSK_METL_SCAFFOLD_SETUP",
+      "TSK_METL_PRIME_DTM_ACRYLIC_SPRAY",
+      "TSK_METL_FINISH_DTM_SPRAY_BACKBRUSH",
+      "TSK_METL_SCAFFOLD_TEARDOWN"
+    ],
+    "rate_ranges": {
+      "railing_brush_finish": "20 LF/hr",
+      "gutter_spray_finish": "32 LF/hr",
+      "ornamental_brush": "1.5-2.0 EA/hr (varies by complexity)",
+      "misc_item_brush": "3 EA/hr",
+      "railing_brush_prime": "25 LF/hr",
+      "sp2_hand_tool": "30 LF/hr",
+      "sp3_power_tool": "15 LF/hr"
+    },
+    "factor_modifiers": [
+      {
+        "factor_id": "FAC_METL_PROFILE_COMPLEXITY",
+        "modifier_category": "geometric",
+        "values": { "standard": 1.00, "moderate": 1.50, "ornate": 2.50 },
+        "applies_to_count": 24,
+        "notes": "PRIMARY LABOR MODIFIER. Affects all prep, prime, and finish tasks. Standard = simple pickets/straight gutters. Moderate = multi-plane profiles, minor decorative elements. Ornate = historic ironwork, scrollwork, intricate patterns (2.50x midpoint of 2.0-3.0 research range)."
+      },
+      {
+        "factor_id": "FAC_EXT_ACCESS",
+        "modifier_category": "access",
+        "values": { "ground": 1.00, "ladder": 1.35, "scaffold": 1.60, "lift": 1.50 },
+        "applies_to_count": 26,
+        "notes": "Access method modifier. Ground is baseline. Ladder adds repositioning time. Scaffold provides stable platform but adds setup overhead. Lift provides good mobility at height."
+      },
+      {
+        "factor_id": "FAC_METL_QT",
+        "modifier_category": "quality",
+        "values": { "QT3": 1.00, "QT4": 1.15, "QT5": 1.30 },
+        "applies_to_count": 30,
+        "notes": "Quality tier modifier. QT3 baseline. QT4 adds inspection detail and thoroughness. QT5 adds DFT verification, raking light inspection, documentation."
+      },
+      {
+        "factor_id": "FAC_EXT_WIND",
+        "modifier_category": "environmental",
+        "values": { "calm": 1.00, "light": 1.00, "moderate": 1.15, "high": "BLOCKED" },
+        "applies_to_count": 3,
+        "notes": "Wind affects spray operations only (3 spray tasks). High wind blocks spray entirely. Moderate wind slows spray work."
+      },
+      {
+        "factor_id": "FAC_EXT_SUN_EXPOSURE",
+        "modifier_category": "environmental",
+        "values": { "shade": 1.00, "partial_sun": 1.10, "full_sun": 1.20 },
+        "applies_to_count": 11,
+        "notes": "Direct sun on metal causes rapid heating — dark metal can exceed 140F. Flash drying, poor film formation. Affects primer and finish application tasks."
+      },
+      {
+        "factor_id": "FAC_EXT_SURFACE_TEMP",
+        "modifier_category": "environmental",
+        "values": { "optimal": 1.00, "cold_surface": 1.10, "hot_surface": "BLOCKED" },
+        "applies_to_count": 11,
+        "notes": "Extreme surface temperatures affect coating application. Cold extends recoat intervals. Hot causes flash drying — BLOCKED on metal because metal heats faster than other substrates."
+      }
+    ],
+    "max_modifier_stack": 5.20,
+    "stacking_cap": 4.0,
+    "within_cap": false,
+    "stacking_notes": "Worst case: ornate (2.50) x scaffold (1.60) x QT5 (1.30) = 5.20x EXCEEDS 4.0x cap. This scenario (ornate historic ironwork on scaffold at QT5) is rare but must be flagged for estimator review. Realistic worst case at QT3: ornate (2.50) x scaffold (1.60) = 4.00x exactly at cap. Standard residential scenario: standard (1.00) x ladder (1.35) x QT3 (1.00) = 1.35x. Environmental modifiers (wind, sun, temp) are scheduling constraints — not typically stacked with geometric/access/quality modifiers in estimation."
+  },
+
+  "compatibility_rules": [
+    {
+      "rule_id": "COMPAT-METL-001",
+      "title": "Galvanized + oil/alkyd primer BLOCKED",
+      "rule": "Oil-based and alkyd primers MUST NOT be applied to galvanized metal. Alkali in galvanized zinc coating reacts with oil/alkyd binder (saponification), destroying adhesion. Results in catastrophic delamination.",
+      "severity": "critical",
+      "enforcement": "Material selection logic blocks SYS_EXT_METL_PRIMER_DTM_ALKYD when substrate_type = galvanized. Only etch, bonding, or acrylic DTM primers permitted on galvanized."
+    },
+    {
+      "rule_id": "COMPAT-METL-002",
+      "title": "Aluminum + rigid coatings BLOCKED",
+      "rule": "Rigid coatings (heavy-build epoxies, rigid alkyds) MUST NOT be used on aluminum. Aluminum has high coefficient of thermal expansion — rigid coatings crack and delaminate with thermal cycling.",
+      "severity": "critical",
+      "enforcement": "Material selection logic blocks SYS_EXT_METL_PRIMER_EPOXY when substrate_type = aluminum. Flexible acrylic systems required."
+    },
+    {
+      "rule_id": "COMPAT-METL-003",
+      "title": "Structural rust is HARD STOP",
+      "rule": "Structural rust (section loss, perforation, structural compromise) is a HARD STOP. Do NOT proceed with painting scope. Structural assessment and metalwork repair must be completed before any coating can be applied.",
+      "severity": "critical",
+      "enforcement": "TSK_METL_STRUCTURAL_RUST_CHECK in MOD_METL_ASSESS. If structural rust detected, STOP WORK and escalate to project manager. Painting proceeds only after structural repair is complete."
+    },
+    {
+      "rule_id": "COMPAT-METL-004",
+      "title": "SP1 solvent clean mandatory on ALL metal",
+      "rule": "SSPC-SP1 solvent cleaning is the mandatory first step for ALL metal substrates regardless of condition. Oil, grease, and contaminants on metal surfaces prevent coating adhesion. Solvent wipe before any mechanical prep.",
+      "severity": "critical",
+      "enforcement": "TSK_METL_SP1_SOLVENT_CLEAN is always-active in MOD_METL_PREP. Cannot be skipped or deferred."
+    },
+    {
+      "rule_id": "COMPAT-METL-005",
+      "title": "Galvanized/aluminum require etch or bonding primer",
+      "rule": "Non-ferrous metals (galvanized, aluminum) have slick oxide surfaces that standard DTM primers cannot grip. Etch primer (phosphoric acid-based) creates chemical adhesion profile. Bonding primer provides adhesion bridge on factory-finished surfaces.",
+      "severity": "critical",
+      "enforcement": "Primer selection logic routes galvanized/aluminum to SYS_EXT_METL_PRIMER_ETCH (bare) or SYS_EXT_METL_PRIMER_BONDING (factory-finished/sound existing). DTM acrylic/alkyd primers blocked on non-ferrous."
+    },
+    {
+      "rule_id": "COMPAT-METL-006",
+      "title": "Steel/iron require DTM or specialty primer",
+      "rule": "Ferrous metals (carbon steel, wrought iron) require corrosion-inhibiting primers — DTM acrylic (standard), DTM alkyd (superior wetting), zinc-rich (QT5 critical), or epoxy (marginal prep). Etch primer is not designed for ferrous substrates.",
+      "severity": "critical",
+      "enforcement": "Primer selection logic routes steel/iron to appropriate ferrous primer system. Etch primer blocked on ferrous substrates."
+    },
+    {
+      "rule_id": "COMPAT-METL-007",
+      "title": "Zinc-rich primer — QT5 only",
+      "rule": "Zinc-rich primer is premium cathodic protection — appropriate only for QT5 premium/restoration quality tier. Requires near-white metal prep (expensive) and specialty application. Not cost-effective at QT3/QT4.",
+      "severity": "major",
+      "enforcement": "SYS_EXT_METL_PRIMER_ZINC_RICH restricted to quality_tier = QT5."
+    },
+    {
+      "rule_id": "COMPAT-METL-008",
+      "title": "Epoxy primer recoat window",
+      "rule": "Epoxy primer MUST be topcoated within 24-72 hour recoat window. Epoxy chalks with UV exposure and loses intercoat adhesion if recoat window is exceeded. Schedule topcoat application before applying epoxy primer.",
+      "severity": "critical",
+      "enforcement": "Production sequencing requires finish coat application within recoat window when SYS_EXT_METL_PRIMER_EPOXY is used. SOP scheduling note in MOD_METL_PRIME."
+    },
+    {
+      "rule_id": "COMPAT-METL-009",
+      "title": "No roll application method",
+      "rule": "Rollers are ineffective on metal profiles — round pipe, angular iron, complex geometry prevent roller contact. Brush, spray, or spray_backbrush only.",
+      "severity": "major",
+      "enforcement": "roll value is PROHIBITED in application_method enum for this spec."
+    },
+    {
+      "rule_id": "COMPAT-METL-010",
+      "title": "Modifier stacking exceeds 4.0x cap warning",
+      "rule": "Ornate (2.50) x scaffold (1.60) x QT4+ = exceeds 4.0x stacking cap. Combinations: ornate+scaffold+QT4 = 4.60x, ornate+scaffold+QT5 = 5.20x. These scenarios require estimator review and potential specialty pricing outside standard rate tables.",
+      "severity": "major",
+      "enforcement": "Estimation engine flags any modifier stack exceeding 4.0x for estimator review. Warning displayed in estimate output."
+    }
+  ],
+
+  "round_configurations": [
+    {
+      "round_id": "ROUND_METL_NC_BARE",
+      "name": "NC Bare Metal — Primer + 2 Finish Coats",
+      "applies_when": { "substrate_state": ["SS_EXT_BARE_METAL"] },
+      "total_coats": 3,
+      "interstage_cycles": 1,
+      "notes": "Standard new construction: 1 primer coat + 2 finish coats = 3 rounds total. Interstage inspection between primer and first finish coat. Second finish coat same day if recoat window permits."
+    },
+    {
+      "round_id": "ROUND_METL_NC_FACTORY_PRIMED",
+      "name": "NC Factory-Primed — 2 Finish Coats Only",
+      "applies_when": { "substrate_state": ["SS_EXT_PRIMED_FACTORY"] },
+      "total_coats": 2,
+      "interstage_cycles": 1,
+      "notes": "Factory-primed metal — skip field primer. 2 finish coats with interstage inspection. Verify factory primer adhesion and condition before finishing. Scuff sand factory primer for adhesion."
+    },
+    {
+      "round_id": "ROUND_METL_QT5_PREMIUM",
+      "name": "QT5 Premium Steel — Zinc-Rich/Epoxy + DTM Finish",
+      "applies_when": { "quality_tier": ["QT5"], "substrate_type": ["carbon_steel"] },
+      "total_coats": 3,
+      "interstage_cycles": 1,
+      "notes": "Premium protection for critical steel: zinc-rich or epoxy primer + 2 DTM acrylic finish coats. Interstage inspection with DFT measurement. Epoxy must be topcoated within 24-72 hr recoat window."
+    },
+    {
+      "round_id": "ROUND_METL_EXIST_RUST",
+      "name": "Existing Surface Rust — Treatment + Primer + 2 Finish",
+      "applies_when": { "substrate_state": ["SS_EXT_SURFACE_RUST"] },
+      "total_coats": 4,
+      "interstage_cycles": 1,
+      "notes": "Surface rust remediation: rust converter treatment (24 hr cure) + primer coat + 2 finish coats = 3-4 rounds. Rust converter is pre-primer treatment, not counted as coating round but adds mobilization time. Most labor-intensive round configuration."
+    },
+    {
+      "round_id": "ROUND_METL_EXIST_SOUND",
+      "name": "Existing Sound Paint — 2 Finish Coats",
+      "applies_when": { "substrate_state": ["SS_EXT_SOUND_PAINT_METAL"] },
+      "total_coats": 2,
+      "interstage_cycles": 1,
+      "notes": "Sound existing paint — degloss + spot prime exposed areas + 2 finish coats. Lightest prep overhead. Spot prime is targeted, not full-coverage primer coat. Interstage inspection between coats."
+    }
+  ],
+
+  "variants": [
+    {
+      "variant_id": "VAR_STEEL_BARE_QT3_BRUSH",
+      "applies_when": { "substrate_type": ["carbon_steel"], "substrate_state": ["SS_EXT_BARE_METAL"], "quality_tier": ["QT3"], "application_method": ["brush"] },
+      "coats": { "primer": 1, "finish": 2 },
+      "protection_zones": ["ext_landscape_perimeter", "ext_hardscape_walk", "ext_light_fixture"],
+      "notes": "Standard NC steel railing at ground level, brush application. Most common residential scenario. DTM acrylic primer + 2 DTM acrylic finish. Minimal protection (no spray overspray)."
+    },
+    {
+      "variant_id": "VAR_STEEL_BARE_QT3_SPRAY",
+      "applies_when": { "substrate_type": ["carbon_steel"], "substrate_state": ["SS_EXT_BARE_METAL"], "quality_tier": ["QT3"], "application_method": ["spray"] },
+      "coats": { "primer": 1, "finish": 2 },
+      "protection_zones": ["ext_landscape_perimeter", "ext_hardscape_walk", "ext_siding_adjacent", "ext_masonry_adjacent", "ext_light_fixture"],
+      "notes": "NC steel with spray application — long gutter runs, production work. Full protection suite required for overspray. Faster production but more protection overhead."
+    },
+    {
+      "variant_id": "VAR_IRON_BARE_QT4_BRUSH",
+      "applies_when": { "substrate_type": ["wrought_iron"], "substrate_state": ["SS_EXT_BARE_METAL"], "quality_tier": ["QT4"], "application_method": ["brush"] },
+      "coats": { "primer": 1, "finish": 2 },
+      "protection_zones": ["ext_landscape_perimeter", "ext_hardscape_walk", "ext_light_fixture"],
+      "notes": "New wrought iron railing, enhanced quality. DTM acrylic primer + 2 finish. Brush application for detail work. Profile complexity modifier likely moderate or ornate."
+    },
+    {
+      "variant_id": "VAR_GALVANIZED_BARE_QT3_BRUSH",
+      "applies_when": { "substrate_type": ["galvanized"], "substrate_state": ["SS_EXT_BARE_METAL"], "quality_tier": ["QT3"], "application_method": ["brush"] },
+      "coats": { "primer": 1, "finish": 2 },
+      "protection_zones": ["ext_landscape_perimeter", "ext_hardscape_walk", "ext_light_fixture"],
+      "notes": "New galvanized metal — etch primer required. NO alkyd/oil primers (saponification). Etch primer creates chemical adhesion profile on zinc surface. Common for new gutters and downspouts."
+    },
+    {
+      "variant_id": "VAR_ALUMINUM_FACTORY_QT3_SPRAY",
+      "applies_when": { "substrate_type": ["aluminum"], "substrate_state": ["SS_EXT_PRIMED_FACTORY"], "quality_tier": ["QT3"], "application_method": ["spray"] },
+      "coats": { "finish": 2 },
+      "protection_zones": ["ext_landscape_perimeter", "ext_hardscape_walk", "ext_siding_adjacent", "ext_light_fixture", "ext_roof_edge"],
+      "notes": "Factory-primed aluminum gutters — skip field primer. 2 finish coats only. Spray for production gutter runs. Roof edge protection required for gutter work."
+    },
+    {
+      "variant_id": "VAR_STEEL_RUST_QT3_BRUSH",
+      "applies_when": { "substrate_type": ["carbon_steel"], "substrate_state": ["SS_EXT_SURFACE_RUST"], "quality_tier": ["QT3"], "application_method": ["brush"] },
+      "coats": { "rust_converter": 1, "primer": 1, "finish": 2 },
+      "protection_zones": ["ext_landscape_perimeter", "ext_hardscape_walk", "ext_light_fixture"],
+      "notes": "Surface rust on existing steel railing. Rust converter treatment (24 hr cure) + DTM acrylic primer + 2 finish. Heaviest prep overhead. SP2/SP3 mechanical prep before rust converter."
+    },
+    {
+      "variant_id": "VAR_IRON_RUST_QT4_SPRAY_BACKBRUSH",
+      "applies_when": { "substrate_type": ["wrought_iron"], "substrate_state": ["SS_EXT_SURFACE_RUST"], "quality_tier": ["QT4"], "application_method": ["spray_backbrush"] },
+      "coats": { "rust_converter": 1, "primer": 1, "finish": 2 },
+      "protection_zones": ["ext_landscape_perimeter", "ext_hardscape_walk", "ext_siding_adjacent", "ext_masonry_adjacent", "ext_light_fixture"],
+      "notes": "Rusted wrought iron with spray_backbrush — spray deposits coating, brush works into ornamental recesses. Enhanced QT4 quality. Full protection for spray operations."
+    },
+    {
+      "variant_id": "VAR_STEEL_SOUND_QT3_BRUSH",
+      "applies_when": { "substrate_type": ["carbon_steel"], "substrate_state": ["SS_EXT_SOUND_PAINT_METAL"], "quality_tier": ["QT3"], "application_method": ["brush"] },
+      "coats": { "spot_prime": 1, "finish": 2 },
+      "protection_zones": ["ext_landscape_perimeter", "ext_hardscape_walk", "ext_light_fixture"],
+      "notes": "Sound existing paint on steel — lightest prep. Degloss, spot prime exposed areas, 2 finish coats. Maintenance repaint scenario."
+    },
+    {
+      "variant_id": "VAR_STEEL_FAILING_QT3_BRUSH",
+      "applies_when": { "substrate_type": ["carbon_steel"], "substrate_state": ["SS_EXT_FAILING_PAINT_METAL"], "quality_tier": ["QT3"], "application_method": ["brush"] },
+      "coats": { "primer": 1, "finish": 2 },
+      "protection_zones": ["ext_landscape_perimeter", "ext_hardscape_walk", "ext_light_fixture"],
+      "notes": "Failing paint on steel — full strip, SP3 power tool cleaning, full primer + 2 finish. High prep overhead. Similar labor profile to surface rust treatment minus rust converter."
+    },
+    {
+      "variant_id": "VAR_STEEL_BARE_QT5_BRUSH",
+      "applies_when": { "substrate_type": ["carbon_steel"], "substrate_state": ["SS_EXT_BARE_METAL"], "quality_tier": ["QT5"], "application_method": ["brush"] },
+      "coats": { "primer": 1, "finish": 2 },
+      "protection_zones": ["ext_landscape_perimeter", "ext_hardscape_walk", "ext_light_fixture"],
+      "notes": "QT5 premium steel — zinc-rich primer eligible. DFT verification, raking light inspection. Premium quality for historic restoration or critical structural steel."
+    },
+    {
+      "variant_id": "VAR_IRON_ORNATE_SCAFFOLD_QT4_SPRAY_BACKBRUSH",
+      "applies_when": { "substrate_type": ["wrought_iron"], "substrate_state": ["SS_EXT_BARE_METAL"], "quality_tier": ["QT4"], "application_method": ["spray_backbrush"], "profile_complexity": ["ornate"], "access_type": ["scaffold"] },
+      "coats": { "primer": 1, "finish": 2 },
+      "protection_zones": ["ext_landscape_perimeter", "ext_hardscape_walk", "ext_siding_adjacent", "ext_masonry_adjacent", "ext_light_fixture"],
+      "notes": "FLAG: EXCEEDS 4.0x CAP (ornate 2.50 x scaffold 1.60 x QT4 1.15 = 4.60x). Historic ornamental ironwork at elevation. Requires estimator review. Spray_backbrush for scrollwork detail. Full protection suite."
+    },
+    {
+      "variant_id": "VAR_GALVANIZED_GUTTER_LADDER_QT3_SPRAY",
+      "applies_when": { "substrate_type": ["galvanized"], "substrate_state": ["SS_EXT_BARE_METAL"], "quality_tier": ["QT3"], "application_method": ["spray"], "access_type": ["ladder"] },
+      "coats": { "primer": 1, "finish": 2 },
+      "protection_zones": ["ext_landscape_perimeter", "ext_hardscape_walk", "ext_siding_adjacent", "ext_light_fixture", "ext_roof_edge"],
+      "notes": "Typical new gutter scenario — galvanized steel at roofline, ladder access. Etch primer + 2 finish. Roof edge protection required. Ladder repositioning modifier 1.35x."
+    }
+  ],
+
+  "adjacency_declarations": {
+    "primary_surface": "exterior_metal",
+    "adjacent_surfaces": [
+      {
+        "surface_id": "ext_siding_field",
+        "edge_type": "linear",
+        "typical_relationship": "different_finish",
+        "continuity_rate_modifier": 1.0,
+        "notes": "Siding adjacent to metal railings, gutters, and ornamental elements. Metal is typically a different color/sheen than siding. Protection is THIS spec's responsibility when spray method is used."
+      },
+      {
+        "surface_id": "ext_masonry_brick",
+        "edge_type": "linear",
+        "typical_relationship": "different_finish",
+        "continuity_rate_modifier": 1.0,
+        "notes": "Masonry/brick adjacent to metal railings and ornamental iron. Metal anchored into masonry — caulk at junctions. Masonry protection is THIS spec's responsibility."
+      },
+      {
+        "surface_id": "ext_wood_trim",
+        "edge_type": "point",
+        "typical_relationship": "different_finish",
+        "continuity_rate_modifier": 1.0,
+        "notes": "Wood trim at metal mounting points. Trim protection owned by trim spec. Metal-to-wood junction caulking is THIS spec's task (TSK_METL_CAULK_JUNCTIONS)."
+      },
+      {
+        "surface_id": "ext_concrete_porch",
+        "edge_type": "point",
+        "typical_relationship": "not_in_scope",
+        "continuity_rate_modifier": 1.0,
+        "notes": "Concrete porch/step at railing base. Railing posts anchored into concrete. Concrete is not painted in this scope — protection at base connection."
+      },
+      {
+        "surface_id": "roofing",
+        "edge_type": "linear",
+        "typical_relationship": "not_in_scope",
+        "continuity_rate_modifier": 1.0,
+        "notes": "Roof surface at gutter line. Gutter attaches to fascia below roof edge. Roof edge protection required during gutter painting."
+      }
+    ]
+  },
+
+  "maintenance_cycles": [
+    {
+      "substrate_type": "carbon_steel",
+      "cycle_years": "5-8",
+      "maintenance_description": "Inspect annually for rust spots. Spot-sand and spot-prime any rust or coating failure. Full repaint at 5-8 year intervals depending on exposure severity. South-facing and coastal exposures require shorter cycles.",
+      "recoat_difficulty": "moderate"
+    },
+    {
+      "substrate_type": "wrought_iron",
+      "cycle_years": "5-8",
+      "maintenance_description": "Similar to carbon steel. Ornate profiles trap moisture in recesses — inspect detail areas carefully. Wire brush accessible rust spots annually. Full repaint includes complete mechanical prep of all profiles.",
+      "recoat_difficulty": "difficult"
+    },
+    {
+      "substrate_type": "aluminum",
+      "cycle_years": "8-12",
+      "maintenance_description": "Longest maintenance cycle — aluminum oxide layer provides inherent corrosion resistance. Chalking and color fade are primary drivers for repaint, not rust. Wash, scuff, and repaint. No primer required if existing coating is sound.",
+      "recoat_difficulty": "easy"
+    },
+    {
+      "substrate_type": "galvanized",
+      "cycle_years": "7-10",
+      "maintenance_description": "Zinc coating provides galvanic protection even under paint. White rust (zinc oxide) is cosmetic, not structural. Clean, abrade, etch prime bare areas, repaint. Avoid oil/alkyd products on repaint.",
+      "recoat_difficulty": "moderate"
+    }
+  ],
+
+  "risk_flags": [
+    {
+      "risk_id": "RISK-METL-001",
+      "title": "Structural rust — HARD STOP",
+      "severity": "critical",
+      "description": "Structural rust indicates section loss and compromised structural integrity. Painting over structural rust masks the problem and creates liability. Section loss on railings = fall hazard. Section loss on gutters = collapse hazard.",
+      "mitigation": "TSK_METL_STRUCTURAL_RUST_CHECK in assessment module. If structural rust detected: STOP WORK, document with photos, notify project manager, do not proceed with painting until structural repair is complete."
+    },
+    {
+      "risk_id": "RISK-METL-002",
+      "title": "Galvanized + oil/alkyd saponification",
+      "severity": "critical",
+      "description": "Oil-based and alkyd coatings react with alkaline zinc coating on galvanized steel. Saponification destroys the binder, resulting in catastrophic adhesion failure — coating peels in sheets within months.",
+      "mitigation": "Material selection logic blocks alkyd primers on galvanized. Estimator and crew training on galvanized identification. When in doubt, test with magnet (galvanized steel is magnetic, aluminum is not) and visual (spangled surface pattern)."
+    },
+    {
+      "risk_id": "RISK-METL-003",
+      "title": "Modifier stacking exceeds 4.0x cap",
+      "severity": "major",
+      "description": "Ornate profile (2.50x) + scaffold access (1.60x) + QT4 (1.15x) = 4.60x. QT5 = 5.20x. These combinations produce effective production rates that may be uneconomical at standard pricing.",
+      "mitigation": "Estimation engine flags any modifier stack exceeding 4.0x. Estimator reviews flagged combinations and applies specialty pricing if needed. Consider breaking ornate elevated work into separate line items."
+    },
+    {
+      "risk_id": "RISK-METL-004",
+      "title": "Epoxy primer recoat window missed",
+      "severity": "major",
+      "description": "Epoxy primer that exceeds its 24-72 hour recoat window chalks and loses intercoat adhesion. Topcoat applied outside the window will delaminate from the primer layer.",
+      "mitigation": "Schedule topcoat application BEFORE applying epoxy primer. If weather or schedule delays threaten the recoat window, sand the epoxy surface to restore adhesion profile before topcoating."
+    },
+    {
+      "risk_id": "RISK-METL-005",
+      "title": "Lead paint on pre-1978 metal surfaces",
+      "severity": "critical",
+      "description": "Exterior metal surfaces on pre-1978 structures may contain lead-based paint. Sanding, scraping, and power tool grinding generate lead dust — EPA RRP Rule (40 CFR 745) compliance required.",
+      "mitigation": "Test for lead before disturbing existing paint on pre-1978 structures. If lead present, scope requires EPA RRP certified contractor with containment, HEPA filtration, and proper disposal. Separate mobilization and pricing."
+    },
+    {
+      "risk_id": "RISK-METL-006",
+      "title": "Metal surface temperature extremes",
+      "severity": "major",
+      "description": "Dark metal in direct sun can exceed 140F — causes flash drying of coatings, poor film formation, and solvent entrapment. Cold metal below 50F causes slow cure and moisture entrapment.",
+      "mitigation": "Schedule application for early morning or late afternoon on south/west-facing metal. Infrared thermometer to verify surface temp 50-120F before application. Hot surface is BLOCKED condition."
+    }
+  ],
+
+  "site_condition_rules": [
+    {
+      "condition_id": "access_type",
+      "treatment": "modifier_plus_fixed_tasks",
+      "notes": "Access type affects both production rates (FAC_EXT_ACCESS modifier on all tasks) AND triggers fixed setup/teardown tasks (TSK_METL_SCAFFOLD_SETUP, TSK_METL_SCAFFOLD_TEARDOWN) for scaffold and lift access. Ground and ladder access have no fixed setup tasks. Scaffold and lift have fixed setup/teardown tasks (2-person crew) PLUS the ongoing access modifier on all rate-based tasks."
+    },
+    {
+      "condition_id": "profile_complexity",
+      "treatment": "modifier",
+      "notes": "Profile complexity is a modifier, NOT a configuration dimension. Applied as FAC_METL_PROFILE_COMPLEXITY to all prep, prime, and finish tasks. Standard profiles need no adjustment. Moderate and ornate profiles significantly increase labor per unit."
+    }
+  ],
+
+  "cross_spec_boundaries": [
+    {
+      "boundary": "Siding protection during metal spray operations",
+      "owner": "SF_METAL_EXT (this spec)",
+      "notes": "Siding protection from metal painting overspray is THIS spec's responsibility. Siding spec does not account for metal painting overspray."
+    },
+    {
+      "boundary": "Masonry protection during metal work",
+      "owner": "SF_METAL_EXT (this spec)",
+      "notes": "Masonry protection at metal-to-masonry junctions is THIS spec's responsibility. Masonry spec does not account for metal painting work."
+    },
+    {
+      "boundary": "Wood trim at metal mounting points",
+      "owner": "SF_TRIM_EXT_NC (trim spec owns trim painting)",
+      "notes": "Wood trim painting is owned by trim spec. Metal-to-wood junction caulking is THIS spec's task. Trim protection during metal painting is minimal (point contact, not continuous edge)."
+    },
+    {
+      "boundary": "Roof edge protection during gutter work",
+      "owner": "SF_METAL_EXT (this spec)",
+      "notes": "Roof edge protection during gutter painting is THIS spec's responsibility. Roofing is not a painting scope."
+    },
+    {
+      "boundary": "Scaffold/lift erection and rental",
+      "owner": "Site logistics (separate line item)",
+      "notes": "Scaffold setup/teardown labor is modeled as fixed tasks in this spec. Scaffold rental cost is a separate site logistics line item, not included in painting estimation."
+    },
+    {
+      "boundary": "Lead paint abatement",
+      "owner": "EPA RRP certified contractor scope",
+      "notes": "Lead paint testing and abatement on pre-1978 metal surfaces is separate scope. If lead detected, this spec cannot proceed without RRP-compliant containment."
+    }
+  ],
+
+  "sequencing_notes": {
+    "production_sequence": "Setup (mobilize, scaffold) -> Protect (landscape, hardscape, siding, masonry, fixtures, roof edge) -> Assess (existing metal only — condition, structural rust check) -> Prep (SP1 solvent clean -> SP2/SP3 mechanical -> substrate-specific prep -> rust convert -> caulk) -> Prime (substrate-driven primer selection) -> Finish (2 coats DTM acrylic) -> Final Inspect & Touch-up -> Cleanup (protection teardown, scaffold teardown)",
+    "protection_sequence": "Landscape perimeter -> Hardscape -> Siding adjacent (spray only) -> Masonry adjacent -> Light fixtures -> Roof edge (gutter work) -> Metal work -> Protection teardown",
+    "coat_sequence": "Rust converter (if applicable, 24 hr cure) -> Primer (substrate-driven) -> Interstage inspection -> Finish coat 1 -> Recoat interval (2-4 hr product-dependent) -> Finish coat 2 -> Final inspection -> Touch-up",
+    "component_order": "Gutters/downspouts FIRST (highest access, most spray production). Railings SECOND (primary residential item). Ornamental THIRD (detail brush work). Misc items LAST. Reason: spray work before detail brush work minimizes overspray contamination on finished brush work.",
+    "key_prohibitions": "NO roll application (metal profiles). NO alkyd/oil on galvanized (saponification). NO rigid coatings on aluminum (thermal cracking). NO painting over structural rust (HARD STOP). NO spray in high wind (BLOCKED). NO application on hot metal >140F (BLOCKED). SP1 solvent clean ALWAYS first step."
+  },
+
+  "relationships": {
+    "companion_spec": null,
+    "often_combined_with": ["SF_TRIM_EXT_NC_v1", "SF_DOOR_EXT_NC_v1", "SF_FENCE_EXT_v1"],
+    "sibling_spec": null,
+    "typical_before": [],
+    "typical_after": [],
+    "cross_spec_protection_note": "Siding and masonry protection during metal spray operations is THIS spec's responsibility. Wood trim protection at mounting points is minimal and not typically a separate protection zone.",
+    "notes": "First exterior metal spec. Combined NC + existing in one spec (unlike interior specs that split prime/paint). Multi-component with 4 paintable items across 2 UOM types (LF, EA). Substrate type is primary material driver (4 types with fundamentally different primer chemistry). Profile complexity is primary labor driver (ornate = 2.50x). Shares exterior protection zone pattern with siding and masonry siblings. Unique features: SSPC prep standards, rust converter treatment, substrate-driven primer routing, galvanized/aluminum compatibility blocks."
+  },
+
+  "dependencies": {
+    "research": "research.json",
+    "resolution": "resolution.json",
+    "sop_modules": "sop_modules.json",
+    "materials": "materials.json",
+    "production": "production.json",
+    "qa_report": "qa_report.json"
+  },
+
+  "doctrine_references": [
+    { "doctrine": "Exterior_Metal_Surfaces_Doctrine.md", "sections_used": ["Substrate Types", "Corrosion Mechanisms", "SSPC Prep Standards", "Primer Selection Matrix", "DTM Systems", "Galvanized Compatibility", "Aluminum Compatibility", "Profile Complexity", "Structural Rust Assessment"] },
+    { "doctrine": "Exterior_Primer_Systems_Doctrine.md", "sections_used": ["DTM Acrylic", "DTM Alkyd", "Zinc-Rich", "Epoxy", "Etch/Wash", "Bonding Primer", "Substrate-Primer Compatibility Matrix"] },
+    { "doctrine": "Exterior_Surface_Assessment_Doctrine.md", "sections_used": ["Metal condition grading", "Rust extent mapping", "Adhesion testing", "Coating thickness measurement"] },
+    { "doctrine": "Exterior_Application_Methods_Doctrine.md", "sections_used": ["Brush on metal profiles", "Spray for production runs", "Spray_backbrush for complex profiles", "Spray tip selection for DTM coatings"] },
+    { "doctrine": "Exterior_Protection_Doctrine_T3.md", "sections_used": ["Landscape zones", "Hardscape zones", "Siding adjacent zones", "Method-based protection escalation", "Roof edge protection"] },
+    { "doctrine": "Exterior_Access_Staging_Systems_Doctrine.md", "sections_used": ["Ladder repositioning overhead", "Scaffold setup/teardown", "Lift operation", "Access modifier values"] },
+    { "doctrine": "Exterior_Climate_Environmental_Conditions_Doctrine.md", "sections_used": ["Metal surface temperature effects", "Wind and spray operations", "UV exposure and coating cure"] },
+    { "doctrine": "Exterior_Caulking_Sealants_Doctrine.md", "sections_used": ["Metal-to-masonry junction caulking", "Metal-to-wood junction caulking", "Sealant compatibility with metal primers"] }
+  ],
+
+  "research_corrections": [],
+
+  "user_corrections": [],
+
+  "change_log": [
+    {
+      "version": "0.1.0",
+      "date": "2026-03-10",
+      "author": "SpecFactory",
+      "changes": "Initial draft spec for exterior metal surfaces. Combined NC + existing metal in single spec. Key features: 4 paintable items (railing LF, gutter LF, ornamental EA, misc EA), 4 substrate types (carbon_steel, wrought_iron, aluminum, galvanized) with fundamentally different primer chemistry, 5 substrate states (bare, factory-primed, surface rust, sound paint, failing paint), 8 material systems (6 primers + 1 finish + 1 rust converter), 37 tasks across 8 modules, 5 round configurations, 6 protection zones, 6 factor modifiers (3 core: profile_complexity/access/QT + 3 environmental: wind/sun/temp), 12 variants. QT3-QT5 only (no QT2). No roll method. Critical compatibility rules: galvanized + alkyd BLOCKED (saponification), aluminum + rigid coatings BLOCKED (thermal cracking), structural rust = HARD STOP. Max modifier stack 5.20x exceeds 4.0x cap (ornate+scaffold+QT5 — rare historic restoration scenario, flagged for estimator review). Phase set: setup/prep/prime/apply/cleanup."
+    }
+  ]
+}

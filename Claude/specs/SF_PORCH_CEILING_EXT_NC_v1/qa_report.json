@@ -1,0 +1,235 @@
+{
+  "spec_family_id": "SF_PORCH_CEILING_EXT_NC",
+  "version": "0.1.0",
+  "generated_by": "System Critic",
+  "generated_at": "2026-03-11",
+  "status": "draft",
+  "review_required": true,
+
+  "overall_result": "pass",
+
+  "summary": "SF_PORCH_CEILING_EXT_NC_v1 draft artifacts pass all critical and major doctrine checks. Second exterior overhead field-surface spec — closely mirrors soffit spec with key simplifications: no vent type constraint (spray always eligible), no vinyl substrate path, beadboard panel type added. 31 tasks thread correctly between sop_modules.json and production.json (23 binary, 6 qt_scaled, 2 qt_conditional). All PaintScope keys use PS_EXT_* namespace. All substrate states use SS_EXT_* prefix. All protection zones use ext_* prefix. No interior keys, states, or zones present. Key porch-ceiling-specific features validated: spray tasks have no vent gating (correct — porches have no attic vents), beadboard correctly grouped with tg_board for joint complexity modifier (1.20x), overhead rates match soffit baselines, furniture protection zone added (porch-specific), ceiling fan masking rate appropriately slower than standard fixtures. Modifier stacking worst case 1.92x (T&G/beadboard + scaffold) is well under 4.0x cap (lower than soffit 2.208x because no vent complexity modifier). 5 material systems (3 primer + 2 finish, no vinyl-specific systems). 0 critical issues, 0 major issues, 2 minor observations.",
+
+  "artifacts_reviewed": [
+    { "file": "research.json", "status": "reviewed", "human_feedback": "none" },
+    { "file": "resolution.json", "status": "reviewed", "human_feedback": "none" },
+    { "file": "materials.json", "status": "reviewed", "human_feedback": "none" },
+    { "file": "sop_modules.json", "status": "reviewed", "human_feedback": "none" },
+    { "file": "production.json", "status": "reviewed", "human_feedback": "none" },
+    { "file": "spec.json", "status": "not_yet_created", "human_feedback": "n/a" }
+  ],
+
+  "issues": [
+    {
+      "issue_id": "QA-001",
+      "severity": "minor",
+      "area": "beadboard_modifier_calibration",
+      "file": "production.json",
+      "status": "acknowledged",
+      "description": "FAC_PRCH_PANEL_JOINTS assigns beadboard the same 1.20x modifier as tg_board. Beadboard may have slightly different groove geometry (narrower, more grooves per linear foot on narrow beadboard profiles). No field calibration data exists for beadboard-specific production rates.",
+      "resolution": "Acknowledged — 1.20x is a reasonable starting assumption since the painting technique (brush into grooves) is identical. Flag for field calibration. Beadboard width (3.5 vs 5.5 inch) may affect actual rate."
+    },
+    {
+      "issue_id": "QA-002",
+      "severity": "minor",
+      "area": "ceiling_fan_masking_rate",
+      "file": "production.json",
+      "status": "acknowledged",
+      "description": "TSK_PRCH_FIXTURE_MASK uses 8 EA/hr average rate for porch ceiling fixtures. This blends ceiling fans (~4-6 EA/hr, complex multi-blade masking) with recessed cans (~12-15 EA/hr, simple tape). If a porch has only ceiling fans or only recessed cans, the blended rate may be inaccurate.",
+      "resolution": "Acknowledged — blended rate is appropriate for estimation. Future enhancement could split into separate ceiling fan and recessed can masking tasks. Flag for field calibration."
+    }
+  ],
+
+  "blockers": [],
+
+  "doctrine_checks": [
+    {
+      "check": "THREADING-1: Task ID Completeness",
+      "result": "pass",
+      "details": "All 31 task_ids in sop_modules.json have matching entries in production.json. No orphaned tasks. Count by module: SETUP=6, PREP=7, PRIME=4, FINISH_1=4, INTERSTAGE=4, FINISH_2=4, FINAL_INSPECT=2, CLEANUP=3. Note: fewer tasks than soffit (31 vs 37) because no vinyl substrate tasks (removed 4 vinyl-specific tasks) and no separate vent-gated spray tasks (spray always eligible, reducing duplicate task variants)."
+    },
+    {
+      "check": "THREADING-2: task_classification Match",
+      "result": "pass",
+      "details": "6 qt_scaled tasks (CUTIN_JUNCTIONS_1, CUTIN_JUNCTIONS_2, INSPECT_COAT, TOUCHUP_REPAIR, FINAL_INSPECT, FINAL_TOUCHUP) have qt_rates in production.json. 2 qt_conditional tasks (SAND_INTERCOAT, DUST_INTERCOAT) have appears_in_tiers [QT4]. 23 binary tasks use flat rate_per_hour or fixed_time_minutes."
+    },
+    {
+      "check": "THREADING-3: applies_when Consistency",
+      "result": "pass",
+      "details": "Application method gating consistent: spray tasks gate on application_method [spray], brush_roll tasks gate on [brush_roll]. NO vent type gating — correct for porch ceiling (key difference from soffit). Substrate-specific tasks gate on substrate_material. Groove brush-back tasks gate on porch_ceiling_panel_type [tg_board, beadboard]."
+    },
+    {
+      "check": "THREADING-4: UOM Match",
+      "result": "pass",
+      "details": "All task UOMs match. SF-based: 22 tasks. EA-based: 4 tasks (fixture mask, furniture protect, seal edges, spot prime knots). LF-based: 1 task (caulk). FIXED: 4 tasks (equipment setup brush/spray, clean equipment, site cleanup)."
+    },
+    {
+      "check": "THREADING-5: Task Prefix",
+      "result": "pass",
+      "details": "All 31 task IDs use TSK_PRCH_ prefix. No collisions with existing prefixes."
+    },
+    {
+      "check": "THREADING-6: Module Prefix",
+      "result": "pass",
+      "details": "All 8 module IDs use MOD_PRCH_ prefix: SETUP, PREP, PRIME, FINISH_1, INTERSTAGE, FINISH_2, FINAL_INSPECT, CLEANUP."
+    },
+    {
+      "check": "EXT-1: Key Namespace Integrity",
+      "result": "pass",
+      "details": "All paintscope_key references use PS_EXT_* namespace. 8 PS keys declared. No interior keys."
+    },
+    {
+      "check": "EXT-2: Substrate State Validity",
+      "result": "pass",
+      "details": "All substrate states use SS_EXT_* prefix. 3 input states: SS_EXT_BARE_WOOD, SS_EXT_PRIMED_FACTORY, SS_EXT_PRIMED_FIELD. 2 output states: SS_EXT_PAINTED_FLAT, SS_EXT_PAINTED_SATIN. No SS_INT_*."
+    },
+    {
+      "check": "EXT-3: Protection Zone Integrity",
+      "result": "pass",
+      "details": "5 protection zones use ext_* prefix: ext_porch_floor, ext_porch_furniture, ext_light_fixture, ext_fascia_adjacent, ext_wall_adjacent. All referenced in sop_modules.json (setup and teardown). No interior zones."
+    },
+    {
+      "check": "EXT-4: Mandatory Site Condition Rules",
+      "result": "pass",
+      "details": "FAC_EXT_ACCESS declared with correct values (ground=1.00, ladder=1.35, scaffold=1.60, lift=1.50). Applied to 23 overhead tasks. Ground-level tasks correctly excluded."
+    },
+    {
+      "check": "EXT-5: Exterior Factor Keys",
+      "result": "pass",
+      "details": "FAC_EXT_ACCESS reused from siblings. FAC_PRCH_PANEL_JOINTS declared (tg_board=1.20, beadboard=1.20, solid_panel=1.00). No FAC_SFIT_VENT_COMPLEXITY — correct removal (no vent concern on porch). FAC_PRCH_OVERHEAD baked into rates."
+    },
+    {
+      "check": "EXT-6: Modifier Math",
+      "result": "pass",
+      "details": "All modifiers use division formula. Stacking cap 4.0x. 5 examples. Max combination: T&G/beadboard + scaffold = 1.20 x 1.60 = 1.92x (well under cap). Lower max than soffit (2.208x) because no vent complexity modifier. Math verified: 120 / 1.92 = 62.5 SF/hr."
+    },
+    {
+      "check": "EXT-7: Material State Compatibility",
+      "result": "pass",
+      "details": "Three substrate-driven primer paths: (1) acrylic for bare wood and factory-primed FC, (2) alkali-resistant for bare FC, (3) skip for field-primed. Tannin spot-prime for wood knots. 2 finish systems: standard (QT2/QT3), premium (QT4). 5 total material systems. No vinyl systems — correct exclusion."
+    },
+    {
+      "check": "SPEC-1: No Vent Type Gating (Porch-Specific)",
+      "result": "pass",
+      "details": "Spray tasks do NOT gate on any vent type dimension. All spray tasks gate only on application_method: [spray]. No soffit_vent_type or porch_vent_type in applies_when. Correct — porch ceilings have no attic ventilation concern."
+    },
+    {
+      "check": "SPEC-2: Overhead Rate Design",
+      "result": "pass",
+      "details": "BAKED_INTO_BASE_RATES approach documented. FAC_PRCH_OVERHEAD NOT applied as stacking modifier. Same design as soffit. Overhead reduction ratios documented."
+    },
+    {
+      "check": "SPEC-3: Groove Brush-Back Tasks",
+      "result": "pass",
+      "details": "TSK_PRCH_GROOVE_BRUSH_BACK_1 and TSK_PRCH_GROOVE_BRUSH_BACK_2 gate on spray + [tg_board, beadboard] (both panel types). Rates: 150 SF/hr. FAC_PRCH_PANEL_JOINTS NOT applied to these tasks (rate already reflects groove work). Beadboard correctly included in gate."
+    },
+    {
+      "check": "SPEC-4: Porch-Specific Protection Zones",
+      "result": "pass",
+      "details": "ext_porch_floor (primary drip zone), ext_porch_furniture (porch-specific — not in soffit), ext_wall_adjacent (house wall at porch attachment — not in soffit). Appropriate porch-specific zones added."
+    },
+    {
+      "check": "SPEC-5: Sheen Restriction",
+      "result": "pass",
+      "details": "Only flat and satin allowed. COMPAT-PRCH-004 enforces restriction. All finish systems list allowed_sheens: [flat, satin]."
+    },
+    {
+      "check": "COMPLETENESS-1: Protection Zones",
+      "result": "pass",
+      "details": "5 zones declared with conditions, levels, and PS key mappings. All referenced in setup/teardown tasks."
+    },
+    {
+      "check": "COMPLETENESS-2: Round Configurations",
+      "result": "pass",
+      "details": "4 round configurations: ROUND_PRCH_PRIME_2FINISH, ROUND_PRCH_PRIME_1FINISH, ROUND_PRCH_2FINISH, ROUND_PRCH_1FINISH. Covers all QT x substrate_state combinations."
+    },
+    {
+      "check": "COMPLETENESS-3: Module Phase Order",
+      "result": "pass",
+      "details": "setup -> prep -> prime -> finish -> interstage -> finish -> cleanup (final_inspect + cleanup). Correct ordering."
+    },
+    {
+      "check": "ENUM-1: Convention Compliance",
+      "result": "pass",
+      "details": "CON_ prefix (not CONS_), task_classification (not task_class), severity uses critical/major/minor, phase values from approved set, all units uppercase, consumable_category from approved set, zones use ext_* prefix."
+    }
+  ],
+
+  "exterior_validation_summary": {
+    "first_exterior_spec": false,
+    "first_overhead_spec": false,
+    "sibling_spec": "SF_SOFFIT_EXT_NC_v1",
+    "domain_dispatch_activated": true,
+    "interior_contamination": "none",
+    "research_corrections_applied": 0,
+    "user_corrections_applied": 0,
+    "key_departures_from_soffit_sibling": [
+      "NO vent type gating — spray always eligible (no attic vent concern)",
+      "NO vinyl substrate — removed bonding primer and solar-reflective finish systems (5 systems vs 7)",
+      "Beadboard panel type added (grouped with tg_board for 1.20x modifier)",
+      "Porch-specific protection zones: ext_porch_floor, ext_porch_furniture, ext_wall_adjacent",
+      "Ceiling fan masking is more complex than standard fixtures (8 EA/hr vs 10 EA/hr soffit)",
+      "Lower max modifier stacking (1.92x vs 2.208x) — no vent complexity modifier",
+      "Fewer tasks (31 vs 37) — no vinyl tasks, no vent-gated duplicate spray tasks",
+      "Spray equipment setup slightly faster (45 min vs 50 min) — no vent verification",
+      "Adjacent surface set includes wall_field and porch_column (not in soffit)"
+    ]
+  },
+
+  "task_cross_reference": {
+    "total_sop_tasks": 31,
+    "total_production_rates": 31,
+    "orphaned_in_sop": 0,
+    "orphaned_in_production": 0,
+    "classification_mismatches": 0,
+    "uom_mismatches": 0,
+    "applies_when_mismatches": 0,
+    "classification_breakdown": {
+      "binary": 23,
+      "qt_scaled": 6,
+      "qt_conditional": 2
+    },
+    "by_module": {
+      "MOD_PRCH_SETUP": 6,
+      "MOD_PRCH_PREP": 7,
+      "MOD_PRCH_PRIME": 4,
+      "MOD_PRCH_FINISH_1": 4,
+      "MOD_PRCH_INTERSTAGE": 4,
+      "MOD_PRCH_FINISH_2": 4,
+      "MOD_PRCH_FINAL_INSPECT": 2,
+      "MOD_PRCH_CLEANUP": 3
+    }
+  },
+
+  "modifier_stacking_validation": {
+    "max_theoretical_stack": 1.92,
+    "stacking_cap": 4.0,
+    "within_cap": true,
+    "worst_case_scenario": "T&G/beadboard board porch ceiling, scaffold access: FAC_PRCH_PANEL_JOINTS(1.20) x FAC_EXT_ACCESS(1.60) = 1.92x",
+    "worst_case_effective_rate": "63 SF/hr brush/roll finish — slow but expected for overhead grooved ceiling from scaffold",
+    "stacking_examples_verified": 5,
+    "math_check": "120 / (1.20 * 1.60) = 120 / 1.92 = 62.5 SF/hr — confirmed"
+  },
+
+  "material_system_validation": {
+    "primer_systems": 3,
+    "finish_systems": 2,
+    "conditional_systems": 0,
+    "total_systems": 5,
+    "coverage_profiles": 3,
+    "consumables": 17,
+    "compatibility_rules": 6,
+    "all_systems_have_quality_tier": true,
+    "all_systems_have_substrate_routing": true,
+    "vinyl_systems_excluded": true
+  },
+
+  "risk_coverage": {
+    "critical_risks": 1,
+    "major_risks": 3,
+    "minor_risks": 2,
+    "critical_risk_summary": [
+      "RISK-PRCH-004: Edge wicking on FC panels — mitigated by edge sealing task"
+    ]
+  }
+}

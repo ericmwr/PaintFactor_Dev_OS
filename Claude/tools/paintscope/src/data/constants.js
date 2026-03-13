@@ -13,6 +13,7 @@ export const PHASE_COLORS = {
 
 // Friendly display names for spec families — paintable item names
 export const SPEC_DISPLAY_NAMES = {
+  // ── Interior ──
   'SF_DRYWALL_WALL_NC_FINISH': 'Walls',
   'SF_DRYWALL_WALL_NC_PRIME': 'Walls (Prime)',
   'SF_DRYWALL_CEILING_NC_FINISH': 'Ceilings',
@@ -31,6 +32,29 @@ export const SPEC_DISPLAY_NAMES = {
   'SF_BUILTIN_NC': 'Built-Ins',
   'SF_STAIR_RAILING_NC': 'Stair Railings',
   'SF_STAIR_RISER_NC': 'Stair Risers',
+  // ── Exterior ──
+  'SF_WOOD_SIDING_EXT_NC_PAINT': 'Wood Siding',
+  'SF_SIDING_FIBERCEMENT_EXT_NC': 'Fiber Cement Siding',
+  'SF_SIDING_ENGINEERED_EXT_NC': 'Engineered Wood Siding',
+  'SF_SIDING_VINYL_EXT_RP': 'Vinyl Siding (Repaint)',
+  'SF_SIDING_ALUMINUM_EXT_RP': 'Aluminum Siding (Repaint)',
+  'SF_SIDING_WOOD_EXT_RP': 'Wood Siding (Repaint)',
+  'SF_STUCCO_EXT_NC': 'Stucco/EIFS',
+  'SF_MASONRY_EXT_NC': 'Masonry/Brick',
+  'SF_TRIM_EXT_NC': 'Exterior Trim',
+  'SF_TRIM_EXT_RP': 'Exterior Trim (Repaint)',
+  'SF_SOFFIT_EXT_NC': 'Soffits',
+  'SF_WINDOW_EXT_NC': 'Exterior Windows',
+  'SF_DOOR_EXT_NC': 'Exterior Doors',
+  'SF_DOOR_EXT_RP': 'Exterior Doors (Repaint)',
+  'SF_GARAGE_DOOR_EXT_NC': 'Garage Doors',
+  'SF_CAULK_EXT': 'Exterior Caulking',
+  'SF_DECK_EXT': 'Deck',
+  'SF_FENCE_EXT': 'Fence',
+  'SF_FOUNDATION_EXT_NC': 'Foundation',
+  'SF_PORCH_CEILING_EXT_NC': 'Porch Ceiling',
+  'SF_PORCH_FLOOR_EXT_NC': 'Porch Floor',
+  'SF_METAL_EXT': 'Metal Surfaces',
 };
 
 export function specDisplayName(specId) {
@@ -128,4 +152,57 @@ export const QUANTITY_KEY_LABELS = {
   'PS_META.SF.FLOOR_VACUUM_AREA': 'Floor Vacuum Area',
   'PS_META.TEXT.HEIGHT_BAND': 'Height Band',
   'PS_META.TEXT.QUALITY_TIER': 'Quality Tier',
+
+  // ── Exterior Surface Keys ──
+  'PS_EXT_SURFACE_SF.SIDING_FIELD': 'Siding Field SF',
+  'PS_EXT_SURFACE_SF.SIDING_BOARD_BATTEN': 'Board & Batten SF',
+  'PS_EXT_SURFACE_SF.STUCCO_FIELD': 'Stucco Field SF',
+  'PS_EXT_SURFACE_SF.MASONRY_WALL': 'Masonry Wall SF',
+  'PS_EXT_SURFACE_SF.FOUNDATION_WALL': 'Foundation Wall SF',
+  'PS_EXT_SURFACE_SF.SOFFIT_FIELD': 'Soffit SF',
+  'PS_EXT_SURFACE_SF.PORCH_CEILING': 'Porch Ceiling SF',
+  'PS_EXT_SURFACE_SF.PORCH_FLOOR': 'Porch Floor SF',
+  'PS_EXT_SURFACE_SF.DECK_FIELD': 'Deck SF',
+  'PS_EXT_SURFACE_SF.FENCE_FIELD': 'Fence SF',
+
+  // ── Exterior Edge (Trim) Keys ──
+  'PS_EXT_EDGE_LF.FASCIA': 'Fascia LF',
+  'PS_EXT_EDGE_LF.TRIM_RAKE': 'Rake Trim LF',
+  'PS_EXT_EDGE_LF.TRIM_FRIEZE': 'Frieze Board LF',
+  'PS_EXT_EDGE_LF.TRIM_CORNER': 'Corner Trim LF',
+  'PS_EXT_EDGE_LF.TRIM_BAND': 'Band Board LF',
+  'PS_EXT_EDGE_LF.TRIM_WINDOW_CASING': 'Ext Window Casing LF',
+  'PS_EXT_EDGE_LF.TRIM_DOOR_CASING': 'Ext Door Casing LF',
+  'PS_EXT_EDGE_LF.SILL': 'Window Sill LF',
+  'PS_EXT_EDGE_LF.DECK_RAILING': 'Deck Railing LF',
+
+  // ── Exterior Opening Keys ──
+  'PS_EXT_OPENING_EA.DOOR_EXT': 'Exterior Doors',
+  'PS_EXT_OPENING_EA.DOOR_GARAGE': 'Garage Doors',
+  'PS_EXT_OPENING_EA.WINDOW_S': 'Ext Windows (S)',
+  'PS_EXT_OPENING_EA.WINDOW_M': 'Ext Windows (M)',
+  'PS_EXT_OPENING_EA.WINDOW_L': 'Ext Windows (L)',
+
+  // ── Exterior Protection Keys ──
+  'PS_EXT_PROTECT_SF.LANDSCAPE_ADJACENT': 'Landscape Protection SF',
+  'PS_EXT_PROTECT_SF.LANDSCAPE_FULL': 'Landscape Full Tarp SF',
+  'PS_EXT_PROTECT_SF.HARDSCAPE_PATIO': 'Patio Protection SF',
+  'PS_EXT_PROTECT_SF.HARDSCAPE_WALK': 'Walkway Protection SF',
+  'PS_EXT_PROTECT_SF.DRIVEWAY': 'Driveway Protection SF',
+  'PS_EXT_PROTECT_EA.GLASS_WINDOW': 'Window Glass Mask',
+  'PS_EXT_PROTECT_EA.GLASS_DOOR': 'Door Glass Mask',
+  'PS_EXT_PROTECT_EA.DOOR_HARDWARE': 'Door Hardware Mask',
+  'PS_EXT_PROTECT_EA.LIGHT_FIXTURE': 'Light Fixture Cover',
+  'PS_EXT_PROTECT_EA.HVAC_UNIT': 'HVAC Unit Cover',
+  'PS_EXT_PROTECT_EA.UTILITY_PANEL': 'Utility Panel Cover',
+
+  // ── Exterior Caulk Keys ──
+  'PS_EXT_SURFACE_LF.CAULK_JOINTS': 'Caulk Joints LF',
+
+  // ── Exterior Meta Keys ──
+  'PS_EXT_META.EA.ELEVATIONS_TOTAL': 'Total Elevations',
+  'PS_EXT_META.ENUM.ACCESS_TYPE': 'Access Type',
+  'PS_EXT_META.ENUM.WIND_CONDITION': 'Wind Condition',
+  'PS_EXT_META.ENUM.SUN_EXPOSURE': 'Sun Exposure',
+  'PS_EXT_META.FLAG.NEW_CONSTRUCTION': 'New Construction',
 };

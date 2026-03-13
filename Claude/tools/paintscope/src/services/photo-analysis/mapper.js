@@ -84,31 +84,48 @@ export function mapDetailToRoom(detail) {
 
   // --- Doors ---
   if (detail.doors && detail.doors.length > 0) {
-    result.doors = detail.doors.map(d => ({
-      door_type: resolveEnum('door_type', d.door_type) || 'panel_6',
-      count: d.count || 1,
-      substrate_state: resolveEnum('substrate_state', d.substrate_state) || 'factory_primed',
-      sides_per_door: d.sides_per_door || 2,
-      confidence: d.confidence || 'medium',
-    }));
+    result.doors = detail.doors.map(d => {
+      const state = resolveEnum('substrate_state', d.substrate_state) || 'factory_primed';
+      return {
+        door_type: resolveEnum('door_type', d.door_type) || 'panel_6',
+        count: d.count || 1,
+        substrate_state: state,
+        sides_per_door: d.sides_per_door || 2,
+        scope: state === 'vinyl_clad' ? 'protect' : undefined,
+        confidence: d.confidence || 'medium',
+      };
+    });
   }
 
   // --- Windows ---
   if (detail.windows && detail.windows.length > 0) {
-    result.windows = detail.windows.map(w => ({
-      window_type: resolveEnum('window_type', w.window_type) || 'double_hung',
-      count: w.count || 1,
-      size_bucket: resolveEnum('size_bucket', w.size_bucket) || 'M',
-      substrate_state: resolveEnum('substrate_state', w.substrate_state) || 'bare_wood',
-      confidence: w.confidence || 'medium',
-    }));
+    result.windows = detail.windows.map(w => {
+      const state = resolveEnum('substrate_state', w.substrate_state) || 'bare_wood';
+      return {
+        window_type: resolveEnum('window_type', w.window_type) || 'double_hung',
+        count: w.count || 1,
+        size_bucket: resolveEnum('size_bucket', w.size_bucket) || 'M',
+        substrate_state: state,
+        scope: state === 'vinyl_clad' ? 'protect' : undefined,
+        confidence: w.confidence || 'medium',
+      };
+    });
   }
 
   // --- Openings ---
+  // Each opening also implies door frames and door casing as paintable trim
   if (detail.openings && detail.openings.length > 0) {
     result.openings = detail.openings.map(o => ({
       opening_type: resolveEnum('opening_type', o.opening_type) || 'single',
       count: o.count || 1,
+      door_frame: {
+        scope: 'paint',
+        substrate_state: 'factory_primed',
+      },
+      door_casing: {
+        scope: 'paint',
+        substrate_state: 'factory_primed',
+      },
       confidence: o.confidence || 'medium',
     }));
   }
@@ -139,9 +156,9 @@ export function mapDetailToRoom(detail) {
 }
 
 /**
- * Build the final room state patch from accepted analysis fields.
- * This is called after the user reviews and accepts/rejects detections.
- * @param {Object} accepted - The accepted fields from the review UI
+ * Build the final room state patch from reviewed analysis fields.
+ * This is called after the user reviews and assigns scopes to detections.
+ * @param {Object} accepted - The scoped fields from the review UI
  * @returns {Object} Room state patch ready for dispatch
  */
 export function buildRoomPatch(accepted) {
@@ -153,7 +170,7 @@ export function buildRoomPatch(accepted) {
   // Surfaces
   if (accepted.surfaces) {
     for (const [id, data] of Object.entries(accepted.surfaces)) {
-      if (!data.accepted) continue;
+      if (data.scope !== 'paint') continue;
       const config = {};
       if (data.substrate_state) config.substrate_state = data.substrate_state;
       if (data.texture) config.texture = data.texture;
@@ -164,7 +181,7 @@ export function buildRoomPatch(accepted) {
   // Trim
   if (accepted.trim) {
     for (const [id, data] of Object.entries(accepted.trim)) {
-      if (!data.accepted) continue;
+      if (data.scope !== 'paint') continue;
       const config = {};
       if (data.substrate_state) config.substrate_state = data.substrate_state;
       if (data.sf_manual) config.sf_manual = data.sf_manual;
@@ -175,7 +192,7 @@ export function buildRoomPatch(accepted) {
   // Doors
   if (accepted.doors && accepted.doors.length > 0) {
     const doorItems = accepted.doors
-      .filter(d => d.accepted)
+      .filter(d => d.scope === 'paint')
       .flatMap(d => {
         // Create `count` door items of this type
         const items = [];
@@ -198,7 +215,7 @@ export function buildRoomPatch(accepted) {
   // Windows
   if (accepted.windows && accepted.windows.length > 0) {
     const winItems = accepted.windows
-      .filter(w => w.accepted)
+      .filter(w => w.scope === 'paint')
       .flatMap(w => {
         const items = [];
         for (let i = 0; i < (w.count || 1); i++) {
@@ -217,26 +234,56 @@ export function buildRoomPatch(accepted) {
     }
   }
 
-  // Openings
+  // Openings — also aggregate door_frame and door_casing from included openings
   if (accepted.openings) {
+    let totalFrameCount = 0;
+    let totalCasingCount = 0;
+    let frameState = 'factory_primed';
+    let casingState = 'factory_primed';
+
     for (const o of accepted.openings) {
-      if (!o.accepted) continue;
+      if (o.scope !== 'include') continue;
       openings.push(createOpening({ opening_type: o.opening_type, count: o.count }));
+
+      // Accumulate frame/casing from this opening
+      if (o.door_frame && o.door_frame.scope === 'paint') {
+        totalFrameCount += (o.count || 1);
+        frameState = o.door_frame.substrate_state || frameState;
+      }
+      if (o.door_casing && o.door_casing.scope === 'paint') {
+        totalCasingCount += (o.count || 1);
+        casingState = o.door_casing.substrate_state || casingState;
+      }
+    }
+
+    // Create door_frames substrate entry if any openings want frames painted
+    if (totalFrameCount > 0 && !substrates.door_frames) {
+      substrates.door_frames = createSubstrateConfig('door_frames', {
+        substrate_state: frameState,
+        painting: true,
+      });
+    }
+    // Create door_casing substrate entry if any openings want casing painted
+    if (totalCasingCount > 0 && !substrates.door_casing) {
+      substrates.door_casing = createSubstrateConfig('door_casing', {
+        substrate_state: casingState,
+        painting: true,
+      });
     }
   }
 
   // Fixtures
   if (accepted.fixtures) {
     for (const f of accepted.fixtures) {
-      if (!f.accepted) continue;
-      fixtures[f.fixture_id] = { protection: 'medium_mask', count: f.count || 1, size: '', notes: f.notes || '' };
+      if (f.scope !== 'protect') continue;
+      fixtures[f.fixture_id] = { protection: 'partial_cover', count: f.count || 1, size: '', notes: f.notes || '' };
     }
   }
 
   // Specialty
   if (accepted.specialty) {
     for (const [id, data] of Object.entries(accepted.specialty)) {
-      if (!data.accepted) continue;
+      if (data.scope !== 'paint') continue;
       const config = { substrate_state: data.substrate_state };
       if (data.count) config.ea_manual = data.count;
       substrates[id] = createSubstrateConfig(id, config);

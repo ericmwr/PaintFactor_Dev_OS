@@ -1,0 +1,459 @@
+{
+  "spec_family_id": "SF_CAULK_EXT",
+  "version": "0.1.0",
+  "generated_by": "SOP Librarian",
+  "generated_at": "2026-03-11",
+
+  "sop_modules": [
+    {
+      "module_id": "MOD_CAULK_SETUP",
+      "name": "Caulking Protection & Material Staging",
+      "description": "Deploy minimal ground protection below work area and apply masking tape to adjacent finished surfaces for clean sealant lines. Stage caulk gun, sealant tubes, and backer rod (if applicable). This is a lightweight setup — caulking produces minimal overspray. Access equipment is shared with the painting spec for the same elevation (per KD-012).",
+      "phase": "setup",
+      "applies_when": {},
+      "required_inputs": [
+        { "input_name": "IN_LF_CAULK_JOINT_TOTAL", "paintscope_key": "PS_EXT_SURFACE_LF.CAULK_JOINT_TOTAL", "uom": "LF" },
+        { "input_name": "IN_LF_CAULK_JOINT_BACKER_ROD", "paintscope_key": "PS_EXT_SURFACE_LF.CAULK_JOINT_BACKER_ROD", "uom": "LF" },
+        { "input_name": "IN_ENUM_CAULK_SEALANT_TYPE", "paintscope_key": "PS_EXT_META.ENUM.CAULK_SEALANT_TYPE", "uom": "ENUM" }
+      ],
+      "tasks": [
+        {
+          "task_id": "TSK_CAULK_PROTECT_GROUND",
+          "name": "Ground Protection Setup",
+          "description": "Lay drop cloth directly below caulking work area to catch sealant drips and cut-off bead waste. Minimal coverage — caulking produces very little debris. Lightweight canvas or plastic acceptable.",
+          "task_type": "protect",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "unit_of_measure": "LF",
+          "tools_required": ["drop_cloth"],
+          "protection_metadata": {
+            "action": "setup",
+            "zones": ["ext_ground_cover"],
+            "method_dependent": false
+          },
+          "quality_notes": { "all": "Position drop cloth at base of wall below joint work zone. Secure against wind." }
+        },
+        {
+          "task_id": "TSK_CAULK_MASK_ADJACENT",
+          "name": "Adjacent Surface Tape Masking",
+          "description": "Apply painter's tape along both sides of joint on finished/visible surfaces to create clean sealant line. UV-resistant exterior-grade tape. Not all joints require taping — only joints against already-painted or factory-finished surfaces where sealant smear would be visible.",
+          "task_type": "protect",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "unit_of_measure": "LF",
+          "tools_required": ["masking_tape_blue"],
+          "protection_metadata": {
+            "action": "setup",
+            "zones": ["ext_surface_adjacent"],
+            "method_dependent": false
+          },
+          "applies_when": { "condition": "caulking_against_finished_surfaces" },
+          "quality_notes": { "all": "Tape both sides of joint — 2x joint LF of tape. Press tape firmly to substrate for clean edge. Remove before sealant skins over tape." }
+        },
+        {
+          "task_id": "TSK_CAULK_STAGE_MATERIALS",
+          "name": "Material Staging",
+          "description": "Stage sealant tubes (correct type per IN_ENUM_CAULK_SEALANT_TYPE), caulk gun (smooth-rod preferred), utility knife, and backer rod (if joint_complexity = backer_rod). Cut tube tip to appropriate bead width. Verify sealant type matches spec — no silicone on paintable joints.",
+          "task_type": "protect",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "unit_of_measure": "FIXED",
+          "tools_required": ["caulk_gun", "utility_knife"],
+          "quality_notes": { "all": "Verify sealant type label matches specification. Cut tube tip at 45-degree angle to match joint width. Load gun and test bead on scrap before starting production." }
+        }
+      ],
+      "sequence_notes": "Ground protection first -> Tape masking (if applicable) -> Material staging last."
+    },
+
+    {
+      "module_id": "MOD_CAULK_PREP",
+      "name": "Joint Preparation",
+      "description": "Clean joint surfaces and install backer rod where required. NC scope — joints are new and open, no old caulk removal. Prep is limited to dust/debris removal and backer rod installation for joints > 3/8 inch wide. Backer rod prevents three-sided adhesion and controls sealant depth to 2:1 width:depth ratio.",
+      "phase": "prep",
+      "applies_when": {},
+      "required_inputs": [
+        { "input_name": "IN_LF_CAULK_JOINT_TOTAL", "paintscope_key": "PS_EXT_SURFACE_LF.CAULK_JOINT_TOTAL", "uom": "LF" },
+        { "input_name": "IN_LF_CAULK_JOINT_BACKER_ROD", "paintscope_key": "PS_EXT_SURFACE_LF.CAULK_JOINT_BACKER_ROD", "uom": "LF" }
+      ],
+      "tasks": [
+        {
+          "task_id": "TSK_CAULK_JOINT_CLEAN",
+          "name": "Clean Joint Surfaces",
+          "description": "Remove dust, debris, loose material, and construction dirt from joint cavity. For NC joints this is light prep — compressed air, dry brush, or rag wipe. Ensure both sidewall surfaces are clean and dry for sealant adhesion. No old caulk removal in NC scope.",
+          "task_type": "prep",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "unit_of_measure": "LF",
+          "tools_required": ["brush_wire_or_nylon", "compressed_air_optional", "rags"],
+          "quality_notes": { "all": "Joint surfaces must be clean, dry, and free of dust. No standing moisture. No oil or grease residue." },
+          "site_condition_rules": {
+            "include_when": { "dew_point_risk": ["safe"] },
+            "exclude_when": { "dew_point_risk": ["unsafe"] }
+          }
+        },
+        {
+          "task_id": "TSK_CAULK_BACKER_ROD",
+          "name": "Install Backer Rod",
+          "description": "Install closed-cell foam backer rod into joints > 3/8 inch wide. Select rod diameter = joint width x 1.25 for compression fit. Press rod to consistent depth — seat 1/4 inch below joint surface to allow proper sealant depth (2:1 width:depth ratio). Backer rod serves as bond-breaker on joint bottom, preventing three-sided adhesion. Continuous installation — no gaps.",
+          "task_type": "prep",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "unit_of_measure": "LF",
+          "tools_required": ["backer_rod", "utility_knife", "blunt_tool_for_seating"],
+          "applies_when": { "joint_complexity": "backer_rod" },
+          "quality_notes": { "all": "Rod must be 25% larger than joint width for compression fit. Seat 1/4 inch below joint surface — not flush, not recessed >1/2 inch. No gaps in rod installation. Continuous run through corners." }
+        }
+      ],
+      "sequence_notes": "Joint cleaning first (all joints) -> Backer rod installation (backer_rod joints only)."
+    },
+
+    {
+      "module_id": "MOD_CAULK_APPLY",
+      "name": "Sealant Application",
+      "description": "Apply sealant bead and tool to proper profile. Two task variants based on joint_complexity: simple_bead (gun-and-tool, 100-150 LF/hr) and backer_rod joints (sealant over installed backer rod, 75-100 LF/hr). Tooling is integral to the apply rate — the joint must be tooled immediately after gunning to create a smooth concave profile with proper substrate contact on both sidewalls.",
+      "phase": "apply",
+      "applies_when": {},
+      "required_inputs": [
+        { "input_name": "IN_LF_CAULK_JOINT_TOTAL", "paintscope_key": "PS_EXT_SURFACE_LF.CAULK_JOINT_TOTAL", "uom": "LF" },
+        { "input_name": "IN_LF_CAULK_JOINT_BACKER_ROD", "paintscope_key": "PS_EXT_SURFACE_LF.CAULK_JOINT_BACKER_ROD", "uom": "LF" },
+        { "input_name": "IN_ENUM_CAULK_SEALANT_TYPE", "paintscope_key": "PS_EXT_META.ENUM.CAULK_SEALANT_TYPE", "uom": "ENUM" }
+      ],
+      "tasks": [
+        {
+          "task_id": "TSK_CAULK_APPLY_SIMPLE",
+          "name": "Apply Sealant — Simple Bead Joints",
+          "description": "Apply sealant bead to simple joints (no backer rod) using caulk gun. Gun continuous bead at consistent rate, then immediately tool (smooth) to concave profile using wet finger or caulk tool. Tooling ensures substrate contact on both sidewalls and proper concave cross-section. Rate includes tooling time.",
+          "task_type": "apply",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "unit_of_measure": "LF",
+          "tools_required": ["caulk_gun", "caulk_tool_or_finger", "damp_rag"],
+          "applies_when": { "joint_complexity": "simple_bead" },
+          "quality_notes": { "all": "Continuous bead — no voids or skip areas. Concave profile with full substrate contact on both sidewalls. No sealant on adjacent face surfaces beyond tape line." },
+          "site_condition_rules": {
+            "include_when": { "dew_point_risk": ["safe"] },
+            "exclude_when": { "dew_point_risk": ["unsafe"] }
+          }
+        },
+        {
+          "task_id": "TSK_CAULK_APPLY_BACKER",
+          "name": "Apply Sealant — Backer Rod Joints",
+          "description": "Apply sealant bead over installed backer rod using caulk gun. Gun continuous bead filling from rod surface to joint face, then immediately tool to concave profile. Sealant bonds to sidewalls only — backer rod prevents bottom bond (two-sided adhesion). Slower rate than simple bead due to wider joints and precision depth control.",
+          "task_type": "apply",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "unit_of_measure": "LF",
+          "tools_required": ["caulk_gun", "caulk_tool_or_finger", "damp_rag"],
+          "applies_when": { "joint_complexity": "backer_rod" },
+          "quality_notes": { "all": "Sealant must fill from backer rod surface to face of joint. Concave profile. Full sidewall contact. No sealant forced past backer rod into cavity." },
+          "site_condition_rules": {
+            "include_when": { "dew_point_risk": ["safe"] },
+            "exclude_when": { "dew_point_risk": ["unsafe"] }
+          }
+        }
+      ],
+      "sequence_notes": "Apply simple_bead joints first (faster rate) -> Apply backer_rod joints second. Within each type, work by elevation to match access setup."
+    },
+
+    {
+      "module_id": "MOD_CAULK_INSPECT",
+      "name": "Joint Inspection & Quality Check",
+      "description": "Visual and tactile inspection of all completed joints. Check for continuity, proper adhesion, correct concave profile, no voids or skip areas, and clean lines. Spot adhesion check on representative joints. This module uses 'finish' phase per resolution.json (inspection is the terminal production task before cleanup).",
+      "phase": "finish",
+      "applies_when": {},
+      "required_inputs": [
+        { "input_name": "IN_LF_CAULK_JOINT_TOTAL", "paintscope_key": "PS_EXT_SURFACE_LF.CAULK_JOINT_TOTAL", "uom": "LF" }
+      ],
+      "tasks": [
+        {
+          "task_id": "TSK_CAULK_INSPECT",
+          "name": "Visual Joint Inspection",
+          "description": "Walk all completed joints and inspect for: continuous bead (no voids, no skip areas), proper concave profile, clean lines (no sealant smear on face surfaces), correct sealant type per specification. Flag any joints requiring touchup before sealant skins.",
+          "task_type": "inspect",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "unit_of_measure": "LF",
+          "tools_required": [],
+          "quality_notes": { "all": "100% visual inspection of all joints. No voids, no skip areas, no adhesive bridges across joint. Concave profile on every joint. Clean adjacent surfaces." }
+        },
+        {
+          "task_id": "TSK_CAULK_ADHESION_CHECK",
+          "name": "Spot Adhesion Verification",
+          "description": "On representative joints (every 50-100 LF or one per elevation), perform light thumb-press test on skinned sealant to verify substrate contact. Check that sealant is bonded to both sidewalls and not pulling away. This is not a destructive pull test — it is a field verification that sealant has wet both substrates.",
+          "task_type": "inspect",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "unit_of_measure": "LF",
+          "tools_required": [],
+          "quality_notes": { "all": "Test at least one joint per elevation or per 100 LF. Sealant should feel firmly bonded to both sidewalls. Any pull-away indicates adhesive failure — flag for rework." }
+        }
+      ],
+      "sequence_notes": "Visual inspection first (all joints) -> Spot adhesion check after sealant has skinned (30+ min for acrylic/siliconized, 1-2 hr for hybrid, do NOT test polyurethane until fully cured)."
+    },
+
+    {
+      "module_id": "MOD_CAULK_CLEANUP",
+      "name": "Cleanup & Protection Teardown",
+      "description": "Remove masking tape (must be removed before sealant skins over tape edge to prevent tearing), remove ground protection, dispose of empty sealant tubes and backer rod offcuts, clean caulk gun. Tape removal is time-sensitive — remove within 15-30 minutes of application.",
+      "phase": "cleanup",
+      "applies_when": {},
+      "required_inputs": [
+        { "input_name": "IN_LF_CAULK_JOINT_TOTAL", "paintscope_key": "PS_EXT_SURFACE_LF.CAULK_JOINT_TOTAL", "uom": "LF" }
+      ],
+      "tasks": [
+        {
+          "task_id": "TSK_CAULK_TAPE_REMOVE",
+          "name": "Remove Masking Tape",
+          "description": "Pull masking tape at 45-degree angle away from sealant bead while sealant is still wet/tacky. Tape left too long bonds to sealant and tears the bead edge on removal. Remove tape in same session as application — do not leave overnight.",
+          "task_type": "cleanup",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "unit_of_measure": "LF",
+          "tools_required": [],
+          "protection_metadata": {
+            "action": "teardown",
+            "zones": ["ext_surface_adjacent"],
+            "method_dependent": false
+          },
+          "applies_when": { "condition": "caulking_against_finished_surfaces" },
+          "quality_notes": { "all": "Pull tape slowly at 45 degrees AWAY from bead. Remove before sealant skins. Clean sealant line should remain." }
+        },
+        {
+          "task_id": "TSK_CAULK_CLEANUP",
+          "name": "Site Cleanup & Protection Removal",
+          "description": "Remove drop cloths, collect and dispose of empty sealant tubes, backer rod offcuts, tape waste, and tube tips. Clean caulk gun nozzle. Leave work area clean. Bag waste for disposal — sealant tubes are not recyclable.",
+          "task_type": "cleanup",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "unit_of_measure": "FIXED",
+          "tools_required": ["trash_bags"],
+          "protection_metadata": {
+            "action": "teardown",
+            "zones": ["ext_ground_cover"],
+            "method_dependent": false
+          },
+          "quality_notes": { "all": "All protection materials removed. No sealant waste left on site. Caulk gun cleaned for next use." }
+        }
+      ],
+      "sequence_notes": "Tape removal first (time-sensitive — must happen before sealant skins) -> Site cleanup and drop cloth removal last."
+    }
+  ],
+
+  "round_configurations": [
+    {
+      "round_config_id": "RC_CAULK_SIMPLE",
+      "name": "Simple Bead Caulking Round",
+      "description": "Standard single-pass caulking for joints that do not require backer rod. Gun-and-tool workflow.",
+      "applies_when": { "joint_complexity": "simple_bead" },
+      "module_sequence": [
+        { "module_id": "MOD_CAULK_SETUP", "phase": "setup" },
+        { "module_id": "MOD_CAULK_PREP", "phase": "prep", "notes": "Joint cleaning only — TSK_CAULK_BACKER_ROD excluded" },
+        { "module_id": "MOD_CAULK_APPLY", "phase": "apply", "notes": "TSK_CAULK_APPLY_SIMPLE active, TSK_CAULK_APPLY_BACKER excluded" },
+        { "module_id": "MOD_CAULK_INSPECT", "phase": "finish" },
+        { "module_id": "MOD_CAULK_CLEANUP", "phase": "cleanup" }
+      ],
+      "active_tasks": [
+        "TSK_CAULK_PROTECT_GROUND",
+        "TSK_CAULK_MASK_ADJACENT",
+        "TSK_CAULK_STAGE_MATERIALS",
+        "TSK_CAULK_JOINT_CLEAN",
+        "TSK_CAULK_APPLY_SIMPLE",
+        "TSK_CAULK_INSPECT",
+        "TSK_CAULK_ADHESION_CHECK",
+        "TSK_CAULK_TAPE_REMOVE",
+        "TSK_CAULK_CLEANUP"
+      ],
+      "excluded_tasks": [
+        "TSK_CAULK_BACKER_ROD",
+        "TSK_CAULK_APPLY_BACKER"
+      ]
+    },
+    {
+      "round_config_id": "RC_CAULK_BACKER_ROD",
+      "name": "Backer Rod Caulking Round",
+      "description": "Extended workflow for joints requiring backer rod installation before sealant application. Joints > 3/8 inch wide.",
+      "applies_when": { "joint_complexity": "backer_rod" },
+      "module_sequence": [
+        { "module_id": "MOD_CAULK_SETUP", "phase": "setup" },
+        { "module_id": "MOD_CAULK_PREP", "phase": "prep", "notes": "Both TSK_CAULK_JOINT_CLEAN and TSK_CAULK_BACKER_ROD active" },
+        { "module_id": "MOD_CAULK_APPLY", "phase": "apply", "notes": "TSK_CAULK_APPLY_BACKER active, TSK_CAULK_APPLY_SIMPLE excluded" },
+        { "module_id": "MOD_CAULK_INSPECT", "phase": "finish" },
+        { "module_id": "MOD_CAULK_CLEANUP", "phase": "cleanup" }
+      ],
+      "active_tasks": [
+        "TSK_CAULK_PROTECT_GROUND",
+        "TSK_CAULK_MASK_ADJACENT",
+        "TSK_CAULK_STAGE_MATERIALS",
+        "TSK_CAULK_JOINT_CLEAN",
+        "TSK_CAULK_BACKER_ROD",
+        "TSK_CAULK_APPLY_BACKER",
+        "TSK_CAULK_INSPECT",
+        "TSK_CAULK_ADHESION_CHECK",
+        "TSK_CAULK_TAPE_REMOVE",
+        "TSK_CAULK_CLEANUP"
+      ],
+      "excluded_tasks": [
+        "TSK_CAULK_APPLY_SIMPLE"
+      ]
+    }
+  ],
+
+  "protection_metadata": {
+    "zones": [
+      {
+        "zone_id": "ext_ground_cover",
+        "name": "Ground Surface Below Work Area",
+        "protection_level": "edge_only",
+        "description": "Drop cloth directly below caulking work to catch sealant drips and cut-off bead waste. Minimal coverage — caulking produces very little debris.",
+        "activation": "always",
+        "setup_task": "TSK_CAULK_PROTECT_GROUND",
+        "teardown_task": "TSK_CAULK_CLEANUP"
+      },
+      {
+        "zone_id": "ext_surface_adjacent",
+        "name": "Adjacent Finished Surfaces",
+        "protection_level": "light_mask",
+        "description": "Tape along joint edges on finished surfaces to create a clean sealant line. Applied to both sides of joint.",
+        "activation": "conditional — active when caulking against finished surfaces",
+        "setup_task": "TSK_CAULK_MASK_ADJACENT",
+        "teardown_task": "TSK_CAULK_TAPE_REMOVE"
+      }
+    ]
+  },
+
+  "scheduling_gates": [
+    {
+      "gate_id": "GATE_CAULK_POLY_CURE",
+      "condition": { "sealant_type": "polyurethane" },
+      "wait_time_days_min": 3,
+      "wait_time_days_max": 7,
+      "blocks": "All finish coat tasks in adjacent painting specs (SF_TRIM_EXT_NC_v1, SF_WOOD_SIDING_EXT_NC_PAINT_v1, SF_SIDING_FIBERCEMENT_EXT_NC_v1, SF_WINDOW_EXT_NC_v1, SF_DOOR_EXT_NC_v1)",
+      "xspec_flag": "XSPEC_CAULK_POLY_CURE_GATE",
+      "description": "Polyurethane sealant requires 3-7 day full cure before ANY paint or primer can be applied over caulked joints. Water from paint causes flash cure and surface bubbling. No exceptions.",
+      "resolution": "Schedule caulking early in project. Use acrylic, siliconized, or hybrid_ms if polyurethane cure time is unacceptable."
+    },
+    {
+      "gate_id": "GATE_CAULK_AFTER_PRIMER",
+      "condition": "always",
+      "prerequisite": "Substrate primer on adjacent surfaces must be applied BEFORE caulking begins",
+      "xspec_flag": "XSPEC_CAULK_COMPLETE",
+      "description": "Caulk adheres better to primed surfaces. Priming first seals the substrate and prevents sealant adhesion failure from substrate outgassing. Sequence: substrate primer -> caulk -> cure -> finish coats."
+    }
+  ],
+
+  "cross_spec_dependencies": [
+    {
+      "dependency_id": "XSPEC_CAULK_SEQUENCE",
+      "related_specs": ["SF_TRIM_EXT_NC_v1", "SF_WOOD_SIDING_EXT_NC_PAINT_v1", "SF_SIDING_FIBERCEMENT_EXT_NC_v1", "SF_WINDOW_EXT_NC_v1", "SF_DOOR_EXT_NC_v1"],
+      "type": "sequencing",
+      "description": "Caulking must occur AFTER substrate primer (from painting spec) and BEFORE finish coats (from painting spec). Sets XSPEC_CAULK_COMPLETE flag when all joints are applied and skinned/cured.",
+      "direction": "bidirectional"
+    }
+  ],
+
+  "task_summary": {
+    "total_tasks": 11,
+    "by_module": {
+      "MOD_CAULK_SETUP": 3,
+      "MOD_CAULK_PREP": 2,
+      "MOD_CAULK_APPLY": 2,
+      "MOD_CAULK_INSPECT": 2,
+      "MOD_CAULK_CLEANUP": 2
+    },
+    "by_classification": {
+      "binary": 11,
+      "qt_conditional": 0,
+      "qt_scaled": 0
+    },
+    "by_skill_level": {
+      "helper": 5,
+      "journeyman": 6
+    },
+    "by_uom": {
+      "LF": 9,
+      "FIXED": 2
+    },
+    "conditional_tasks": [
+      { "task_id": "TSK_CAULK_MASK_ADJACENT", "condition": "caulking against finished surfaces" },
+      { "task_id": "TSK_CAULK_BACKER_ROD", "condition": "joint_complexity = backer_rod" },
+      { "task_id": "TSK_CAULK_APPLY_SIMPLE", "condition": "joint_complexity = simple_bead" },
+      { "task_id": "TSK_CAULK_APPLY_BACKER", "condition": "joint_complexity = backer_rod" },
+      { "task_id": "TSK_CAULK_TAPE_REMOVE", "condition": "caulking against finished surfaces (mirrors TSK_CAULK_MASK_ADJACENT)" }
+    ]
+  },
+
+  "task_id_manifest": [
+    "TSK_CAULK_PROTECT_GROUND",
+    "TSK_CAULK_MASK_ADJACENT",
+    "TSK_CAULK_STAGE_MATERIALS",
+    "TSK_CAULK_JOINT_CLEAN",
+    "TSK_CAULK_BACKER_ROD",
+    "TSK_CAULK_APPLY_SIMPLE",
+    "TSK_CAULK_APPLY_BACKER",
+    "TSK_CAULK_INSPECT",
+    "TSK_CAULK_ADHESION_CHECK",
+    "TSK_CAULK_TAPE_REMOVE",
+    "TSK_CAULK_CLEANUP"
+  ],
+
+  "assumptions": [
+    {
+      "field": "no_old_caulk_removal",
+      "value": "NC scope — no existing sealant to remove. Joint prep is limited to dust/debris removal.",
+      "source": "research.json EXCL_CAULK_OLD_REMOVAL",
+      "doctrine_gap": false,
+      "note": "Old caulk removal would be in a separate SF_CAULK_EXT_RP spec."
+    },
+    {
+      "field": "access_shared_with_painting",
+      "value": "No access/staging tasks in this spec. Access equipment is shared with the painting spec covering the same elevation.",
+      "source": "research.json KD-012, EXCL_CAULK_ACCESS",
+      "doctrine_gap": false,
+      "note": "Caulking is performed during painting access setup. Adding access tasks would double-count."
+    },
+    {
+      "field": "tooling_bundled_into_apply_rate",
+      "value": "Joint tooling (smoothing) is integral to the apply task. Not a separate time adder.",
+      "source": "research.json task_sketch TSK_CAULK_TOOL_JOINT notes",
+      "doctrine_gap": true,
+      "note": "Doctrine does not explicitly state tooling rate — field practice confirms tooling happens immediately after gunning as part of the same pass. Bundled into RATE_CAULK_SIMPLE_BEAD and RATE_CAULK_BACKER_ROD."
+    },
+    {
+      "field": "tape_masking_conditional",
+      "value": "Tape masking is conditional on caulking against already-finished surfaces. Not all NC joints require taping.",
+      "source": "research.json protection_zones ZONE_EXT_SURFACE_ADJACENT, materials.json UF-CAULK-001",
+      "doctrine_gap": true,
+      "note": "Percentage of joints requiring tape is uncertain (materials.json flags 50% estimate). Estimator discretion."
+    },
+    {
+      "field": "adhesion_check_non_destructive",
+      "value": "Spot adhesion check is a light thumb-press on skinned sealant, not a destructive pull test.",
+      "source": "Researcher analysis",
+      "doctrine_gap": true,
+      "note": "Doctrine describes failure modes but does not specify field verification method. Thumb-press is standard field practice for verifying sidewall contact."
+    }
+  ],
+
+  "exclusions": [
+    {
+      "exclusion_id": "EXCL_SOP_SILICONE",
+      "description": "Silicone sealant tasks are excluded. Silicone is never paintable and is outside this spec's scope.",
+      "reason": "Per COMPAT-CAULK-001 — silicone repels all paint."
+    },
+    {
+      "exclusion_id": "EXCL_SOP_OLD_CAULK_REMOVAL",
+      "description": "Old/failed caulk removal tasks are excluded. NC scope has no existing sealant.",
+      "reason": "Per EXCL_CAULK_OLD_REMOVAL — NC joints are open and clean."
+    },
+    {
+      "exclusion_id": "EXCL_SOP_ACCESS_STAGING",
+      "description": "Access equipment setup tasks (ladder, scaffold, lift) are excluded. Access is shared with painting spec.",
+      "reason": "Per KD-012, EXCL_CAULK_ACCESS — double-counting prevention."
+    },
+    {
+      "exclusion_id": "EXCL_SOP_STRUCTURAL_SEALANT",
+      "description": "Structural adhesive joints, fire-stop sealants, and below-grade waterproofing are excluded.",
+      "reason": "Per EXCL_CAULK_STRUCTURAL — different trade, different standards."
+    }
+  ]
+}

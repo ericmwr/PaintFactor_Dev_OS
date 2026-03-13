@@ -33,7 +33,7 @@ EXPORT_SPEC = {
     'sop_tasks': [
         'id', 'spec_family_id', 'module_id', 'name', 'task_classification',
         'skill_level', 'applies_when', 'appears_in_tiers', 'sort_order',
-        'protection_metadata'
+        'protection_metadata', 'substrate_state_rules', 'site_condition_rules'
     ],
     'task_production_rates': [
         'spec_family_id', 'task_id', 'unit_of_measure',
@@ -42,7 +42,7 @@ EXPORT_SPEC = {
     ],
     'factor_modifiers': [
         'id', 'spec_family_id', 'modifier_category', 'name',
-        'modifier_type', 'time_modifier', 'value', 'condition'
+        'modifier_type', 'time_modifier', 'value', 'condition', 'values_map'
     ],
     'quality_tier_effects': [
         'spec_family_id', 'quality_tier', 'time_modifier'
@@ -59,7 +59,8 @@ EXPORT_SPEC = {
     ],
     'material_coverage_profiles': [
         'id', 'spec_family_id', 'material_system', 'product_role', 'surface_texture',
-        'coverage_sf_per_gallon', 'coverage_range_low', 'coverage_range_high'
+        'coverage_sf_per_gallon', 'coverage_range_low', 'coverage_range_high',
+        'waste_factor', 'uom_basis'
     ],
     'spec_protection_zones': [
         'spec_family_id', 'zone_id', 'protection_level',
@@ -70,8 +71,9 @@ EXPORT_SPEC = {
 # JSON columns that should be parsed from strings to objects
 JSON_COLUMNS = {
     'applies_when', 'appears_in_tiers', 'rates_by_tier',
-    'fixed_minutes_by_tier', 'condition', 'allowed_sheens', 'material_system',
-    'protection_metadata'
+    'fixed_minutes_by_tier', 'condition', 'values_map', 'allowed_sheens',
+    'material_system', 'surface_texture', 'protection_metadata',
+    'substrate_state_rules', 'site_condition_rules'
 }
 
 
@@ -140,6 +142,36 @@ def main():
         total_rows += len(data)
         print(f"  Exported {table_name}: {len(data)} rows", file=sys.stderr)
 
+    # Derive coat_counts from sop_round_configurations
+    coat_rows = cursor.execute(
+        'SELECT spec_family_id, round_id, applies_when, total_coats, interstage_cycles '
+        'FROM sop_round_configurations'
+    ).fetchall()
+    coat_counts = []
+    for sf_id, round_id, aw_raw, total_coats, interstage_cycles in coat_rows:
+        total_coats = total_coats or 2
+        interstage_cycles = interstage_cycles or 1
+        finish_coats = max(1, total_coats - 1)
+        aw = {}
+        if aw_raw:
+            try:
+                aw = json.loads(aw_raw)
+            except (json.JSONDecodeError, TypeError):
+                pass
+        qt_list = aw.get('quality_tier', ['QT3'])
+        if not isinstance(qt_list, list):
+            qt_list = [qt_list]
+        for qt in qt_list:
+            coat_counts.append({
+                'spec_family_id': sf_id,
+                'tier_key': qt,
+                'finish_coats': finish_coats,
+                'interstage_cycles': interstage_cycles,
+            })
+    bundle['coat_counts'] = coat_counts
+    total_rows += len(coat_counts)
+    print(f"  Derived coat_counts: {len(coat_counts)} rows", file=sys.stderr)
+
     conn.close()
 
     # Add metadata
@@ -159,7 +191,7 @@ def main():
         print(f'// PaintFactor DB Bundle - Auto-generated {datetime.now().strftime("%Y-%m-%d %H:%M")}')
         print(f'// Total: {total_rows} rows across {len(EXPORT_SPEC)} tables')
         print(f'// Source: {os.path.basename(db_path)}')
-        print(f'const DB_BUNDLE = {json_str};')
+        print(f'export const DB_BUNDLE = {json_str};')
 
     print(f"\nDone: {total_rows} rows exported.", file=sys.stderr)
 

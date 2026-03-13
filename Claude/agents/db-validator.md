@@ -114,7 +114,7 @@ Values in enum-like columns must match controlled vocabulary.
 | ENM-004 | sop_tasks.task_classification | controlled_enums → task_classification | MAJOR |
 | ENM-005 | sop_tasks.skill_level | controlled_enums → skill_level | MINOR |
 | ENM-006 | spec_qa_reports.status | ('pass','pass_with_warnings','fail') | MAJOR |
-| ENM-007 | factor_modifiers.modifier_category | ('height','texture','drywall_level','door_style','kitchen_complexity','masking_scope','quality_tier','height_access') | MAJOR |
+| ENM-007 | factor_modifiers.modifier_category | ('height','texture','drywall_level','door_style','kitchen_complexity','masking_scope','quality_tier','height_access','access','profile_complexity','coating_type','coating_system','substrate_type','wind','temperature') | MAJOR |
 
 ### Category 5: ID Pattern Validation (MINOR)
 
@@ -134,6 +134,20 @@ All IDs should follow established prefix conventions.
 | IDP-010 | sop_round_configurations.round_id | `^ROUND_[A-Z0-9_]+$` | MINOR |
 
 **Note:** IDP-006 uses a broader pattern because factor_modifiers now contains entries from domain-specific arrays (height_effects use IDs like "H2_MODERATE", texture_effects use IDs like "TEXTURE_KNOCKDOWN", etc.) in addition to FAC_-prefixed modifiers.
+
+### Category 5b: Exterior-Specific Validation (MAJOR)
+
+For specs where `spec_families.domain = 'exterior'`, run these additional checks:
+
+| Check ID | Rule | Severity |
+|----------|------|----------|
+| EXT-001 | All `substrate_state` values in `spec_state_declarations.valid_input_states` use `SS_EXT_` prefix | MAJOR |
+| EXT-002 | All protection zone IDs in `spec_protection_zones` use `ext_` prefix | MAJOR |
+| EXT-003 | If `sop_tasks.site_condition_rules` is non-null, it must be valid JSON | MAJOR |
+| EXT-004 | If `sop_tasks.substrate_state_rules` is non-null, it must be valid JSON | MAJOR |
+| EXT-005 | If `factor_modifiers.values_map` is non-null, it must be valid JSON with numeric values | MAJOR |
+| EXT-006 | All `material_systems.id` values use `SYS_EXT_` prefix for exterior specs | MINOR |
+| EXT-007 | Exterior specs should have ≥1 state declaration (substrate routing is mandatory for exterior) | MAJOR |
 
 ### Category 6: Duplicate Detection (CRITICAL)
 
@@ -233,6 +247,9 @@ Run periodically or before major milestones. Validates all imported spec familie
 | XFM-002 | No duplicate module IDs across spec families (if globally unique is required) | MAJOR |
 | XFM-003 | All spec families reference consistent surface_id vocabulary | MINOR |
 | XFM-004 | All spec families reference consistent zone_id vocabulary | MINOR |
+| XFM-005 | Shared protection zone IDs (e.g., `ext_hardscape_walk`) have consistent `protection_level` across all specs that reference them | MINOR |
+| XFM-006 | No interior spec (domain='interior') uses `SS_EXT_*` states; no exterior spec uses bare `SS_*` states | MAJOR |
+| XFM-007 | Material system IDs are globally unique across all spec families | MAJOR |
 
 ---
 

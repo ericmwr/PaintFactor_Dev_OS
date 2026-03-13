@@ -261,9 +261,9 @@ export default function ScopePanel({ room, derived, dispatch, project, focusedSu
             <div className="field-label">Floor Protection</div>
             <select value={room.floor_protection || ''} onChange={e => setRoom('floor_protection', e.target.value)} style={{ width: '100%' }} disabled={!room.floor_type || room.floor_type === 'subfloor'}>
               <option value="">&mdash;</option>
-              <option value="light_mask">Light Mask</option>
-              <option value="medium_mask">Medium Mask</option>
-              <option value="heavy_mask">Heavy Mask</option>
+              <option value="edge_only">Edge Only</option>
+              <option value="partial_cover">Partial Cover</option>
+              <option value="full_cover">Full Cover</option>
             </select>
           </div>
           <div style={{ alignSelf: 'end', fontSize: 11, color: 'var(--text-muted)' }}>
@@ -329,10 +329,10 @@ export default function ScopePanel({ room, derived, dispatch, project, focusedSu
                     </div>
                     <div>
                       <div className="field-label">Protection Level</div>
-                      <select value={cfg.protection || 'heavy_mask'} onChange={e => setFix('protection', e.target.value)} style={{ width: '100%' }}>
-                        <option value="light_mask">Light &mdash; edge mask</option>
-                        <option value="medium_mask">Medium &mdash; pin off</option>
-                        <option value="heavy_mask">Heavy &mdash; full bag</option>
+                      <select value={cfg.protection || 'full_cover'} onChange={e => setFix('protection', e.target.value)} style={{ width: '100%' }}>
+                        <option value="edge_only">Edge Only</option>
+                        <option value="partial_cover">Partial Cover</option>
+                        <option value="full_cover">Full Cover</option>
                       </select>
                     </div>
                   </div>
@@ -366,10 +366,12 @@ export default function ScopePanel({ room, derived, dispatch, project, focusedSu
                     </div>
                     <div>
                       <div className="field-label">Protection Level</div>
-                      <select value={cfg.protection || 'medium_mask'} onChange={e => setFix('protection', e.target.value)} style={{ width: '100%' }}>
-                        <option value="light_mask">Light Mask</option>
-                        <option value="medium_mask">Medium Mask</option>
-                        <option value="heavy_mask">Heavy Mask</option>
+                      <select value={cfg.protection || 'partial_cover'} onChange={e => setFix('protection', e.target.value)} style={{ width: '100%' }}>
+                        <option value="none">None</option>
+                        <option value="edge_only">Edge Only</option>
+                        <option value="partial_cover">Partial Cover</option>
+                        <option value="full_cover">Full Cover</option>
+                        <option value="item_mask">Item Mask</option>
                       </select>
                     </div>
                   </div>
@@ -385,7 +387,8 @@ export default function ScopePanel({ room, derived, dispatch, project, focusedSu
             <div style={{ borderTop: focusedFixture && room.fixtures && room.fixtures[focusedFixture] ? '1px solid var(--border)' : 'none', paddingTop: 8 }}>
               <div className="field-label" style={{ marginBottom: 4 }}>Protection Summary</div>
               {protectionSummary.map(item => {
-                const badgeLabel = item.protection === 'light_mask' ? 'LIGHT' : item.protection === 'medium_mask' ? 'MEDIUM' : 'HEAVY';
+                const PROTECTION_LABELS = { none: 'NONE', edge_only: 'EDGE', light_mask: 'LIGHT', partial_cover: 'PARTIAL', item_mask: 'ITEM', full_cover: 'FULL', full_mask: 'FULL MASK' };
+                const badgeLabel = PROTECTION_LABELS[item.protection] || item.protection?.toUpperCase() || '?';
                 return (
                   <div key={item.zone} className="protection-row">
                     <span className={'protection-badge ' + item.protection}>{badgeLabel}</span>

@@ -99,8 +99,9 @@ export default function RoomEditor({ room, project, dispatch }) {
       {photoAnalysis.showModal && (
         <PhotoAnalysisModal
           roomId={photoAnalysis.targetRoomId}
-          onApply={(roomId, patch) => dispatch({ type: 'APPLY_PHOTO_ANALYSIS', payload: { roomId, patch } })}
-          onCreateRoom={(patch) => dispatch({ type: 'CREATE_ROOM_FROM_PHOTO', payload: { patch } })}
+          savedResult={room.photoAnalysis || null}
+          onApply={(roomId, patch, analysisResult) => dispatch({ type: 'APPLY_PHOTO_ANALYSIS', payload: { roomId, patch, analysisResult } })}
+          onCreateRoom={(patch, analysisResult) => dispatch({ type: 'CREATE_ROOM_FROM_PHOTO', payload: { patch, analysisResult } })}
           onClose={photoAnalysis.close}
         />
       )}

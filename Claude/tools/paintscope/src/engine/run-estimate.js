@@ -1,12 +1,16 @@
 import { buildRoomQuantityLookups, OPENING_SUBSTRATES } from './quantity-lookups.js';
+import { buildElevationQuantityLookups, buildStandaloneQuantityLookups } from './quantity-lookups-exterior.js';
 import { resolveQualityTier, resolveApplicationMethod, resolveTextureForSpec } from './spec-resolution.js';
 import { resolveSubstrateStateForSpec, specAcceptsState, isSpecStateCompatible, evaluateAppliesWhen } from './spec-compatibility.js';
 import { computeModifierStack } from './modifier-stack.js';
-import { computeWindowPerItemResults, computeDoorPerItemResults } from './per-item-compute.js';
+import { computeWindowPerItemResults, computeDoorPerItemResults, computeExtWindowPerItemResults, computeExtDoorPerItemResults, computeGarageDoorPerItemResults } from './per-item-compute.js';
 import { deriveRoom, deriveHeightBand } from './derive-room.js';
-import { computeMaterialEstimates } from './material-estimates.js';
+import { deriveElevation, deriveAccessBand } from './derive-elevation.js';
+import { computeMaterialEstimates, computeExteriorMaterialEstimates } from './material-estimates.js';
 import { resolveRoomFloorProtection } from './floor-protection.js';
-import { SPEC_SUBSTRATE_MAP, SPEC_OUTPUT_STATES, UI_STATE_TO_SPEC_STATE, SPEC_VALID_INPUT_STATES } from '../data/spec-maps.js';
+import { resolveRoomFixtureProtection } from './fixture-protection.js';
+import { resolveExteriorProtection } from './exterior-protection.js';
+import { SPEC_SUBSTRATE_MAP, SPEC_OUTPUT_STATES, UI_STATE_TO_SPEC_STATE, SPEC_VALID_INPUT_STATES, EXT_UI_STATE_TO_SPEC_STATE, EXTERIOR_SPEC_IDS } from '../data/spec-maps.js';
 import { SPEC_DISPLAY_NAMES, specDisplayName, PHASE_ORDER, ARCH_ELEMENT_PS_GROUPS } from '../data/constants.js';
 import { FIXTURE_CATALOG } from '../data/fixture-catalog.js';
 import { WINDOW_TYPE_LABELS, WINDOW_SIZE_LABELS, DOOR_TYPE_LABELS } from '../data/modifiers.js';
@@ -96,8 +100,13 @@ export function runEstimate(state, db) {
   // Prevents duplicate masking when multiple specs (wall + ceiling) fire in same room
   const roomProtectionClaimed = {};  // roomIndex -> Set of claimed zone IDs
 
-  // For each spec family
+  // Collector for fixture protection: (roomIndex, specId, method) tuples
+  const roomSpecMethods = [];
+
+  // For each INTERIOR spec family (exterior specs handled separately below)
   db.spec_families.forEach(spec => {
+    if (EXTERIOR_SPEC_IDS.has(spec.id)) return; // Skip exterior — processed in exterior loop
+
     const inputs = requiredInputsBySpec[spec.id] || [];
     const modules = (modulesBySpec[spec.id] || []).sort((a,b) => (a.sort_order||0)-(b.sort_order||0));
 
@@ -179,6 +188,9 @@ export function runEstimate(state, db) {
           if (mapped) ctx.substrate_state = mapped;
         }
       }
+
+      // Track active spec + method per room for fixture protection resolution
+      roomSpecMethods.push({ roomIndex: ri, specId: spec.id, method: ctx.application_method });
 
       const modStack = computeModifierStack(spec.id, ctx, db, warnings);
 
@@ -336,7 +348,10 @@ export function runEstimate(state, db) {
   });
 
   // Split door/window specs into per-type sub-entries for grouped display
-  const SPECS_WITH_ITEM_GROUPS = ['SF_DOOR_SLAB_INT_NC', 'SF_WINDOW_INT_NC', 'SF_ARCH_ELEMENT_NC'];
+  const SPECS_WITH_ITEM_GROUPS = [
+    'SF_DOOR_SLAB_INT_NC', 'SF_WINDOW_INT_NC', 'SF_ARCH_ELEMENT_NC',
+    'SF_WINDOW_EXT_NC', 'SF_DOOR_EXT_NC', 'SF_DOOR_EXT_RP', 'SF_GARAGE_DOOR_EXT_NC',
+  ];
   const expandedSpecResults = [];
   specResults.forEach(sr => {
     // Check if this spec has per-item grouped tasks
@@ -385,6 +400,10 @@ export function runEstimate(state, db) {
         specName: sr.specId === 'SF_DOOR_SLAB_INT_NC' ? `${group} Door`
                 : sr.specId === 'SF_WINDOW_INT_NC' ? `${group} Window`
                 : sr.specId === 'SF_ARCH_ELEMENT_NC' ? group
+                : sr.specId === 'SF_WINDOW_EXT_NC' ? `Ext ${group} Window`
+                : sr.specId === 'SF_DOOR_EXT_NC' ? `Ext ${group} Door`
+                : sr.specId === 'SF_DOOR_EXT_RP' ? `Ext ${group} Door (RP)`
+                : sr.specId === 'SF_GARAGE_DOOR_EXT_NC' ? `Garage Door — ${group}`
                 : `${SPEC_DISPLAY_NAMES[sr.specId] || sr.specName} — ${group}`,
         specId: sr.specId,
         itemGroup: group,
@@ -396,24 +415,233 @@ export function runEstimate(state, db) {
   });
   specResults = expandedSpecResults;
 
+  // ============================================================
+  // EXTERIOR ESTIMATION LOOP
+  // ============================================================
+  const exterior = state.exterior;
+  if (exterior && exterior.elevations && exterior.elevations.length > 0) {
+    const elevLookups = buildElevationQuantityLookups(state);
+    const standaloneLookups = buildStandaloneQuantityLookups(state);
+    const extDefaults = exterior.defaults || {};
+    const siteConditions = exterior.site_conditions || {};
+
+    db.spec_families.forEach(spec => {
+      if (!EXTERIOR_SPEC_IDS.has(spec.id)) return; // Only exterior specs
+
+      const inputs = requiredInputsBySpec[spec.id] || [];
+      const modules = (modulesBySpec[spec.id] || []).sort((a,b) => (a.sort_order||0)-(b.sort_order||0));
+      if (modules.length === 0) return;
+
+      const allPsKeys = inputs.map(i => i.paintscope_key);
+      // Activation: check PS_EXT_ surface and opening keys
+      const psKeys = allPsKeys.filter(k => k.startsWith('PS_EXT_SURFACE_') || k.startsWith('PS_EXT_EDGE_') || k.startsWith('PS_EXT_OPENING_'));
+
+      let specTotalHours = 0;
+      const phaseHours = {};
+      const taskResults = [];
+
+      // Determine which lookups to check: elevation-bound or standalone
+      const isStandaloneSpec = isStandaloneSpecId(spec.id);
+      const lookupsToProcess = [];
+
+      if (isStandaloneSpec) {
+        // Standalone specs process standalone item lookups
+        standaloneLookups.forEach((qty, itemType) => {
+          if (psKeys.some(k => qty.has(k) && qty.get(k).value > 0)) {
+            lookupsToProcess.push({ qty, label: itemType, index: itemType, isStandalone: true });
+          }
+        });
+      } else {
+        // Elevation-bound specs process per-elevation
+        elevLookups.forEach((qty, ei) => {
+          if (psKeys.some(k => qty.has(k) && qty.get(k).value > 0)) {
+            const elev = exterior.elevations[ei];
+            lookupsToProcess.push({ qty, label: elev.label, index: ei, elev, isStandalone: false });
+          }
+        });
+      }
+
+      if (lookupsToProcess.length === 0) return;
+
+      lookupsToProcess.forEach(({ qty: lookupQty, label, index, elev, isStandalone }) => {
+        // Build exterior context
+        const ctx = buildExteriorContext(spec.id, elev, extDefaults, siteConditions, isStandalone ? exterior.standalone : null, index);
+
+        // Coat count lookup
+        let finishCoats = 1, interstageCycles = 1;
+        if (db.coat_counts) {
+          const qt = ctx.quality_tier || 'QT3';
+          const method = ctx.application_method || 'spray';
+          const tierKey = qt === 'QT5' ? ('QT5_' + (method.startsWith('spray') ? 'spray' : 'brush')) : qt;
+          const ccRow = db.coat_counts.find(r => r.spec_family_id === spec.id && r.tier_key === tierKey);
+          if (ccRow) {
+            finishCoats = ccRow.finish_coats || 1;
+            interstageCycles = ccRow.interstage_cycles || 1;
+          }
+        }
+
+        const modStack = computeModifierStack(spec.id, ctx, db, warnings);
+
+        modules.forEach(mod => {
+          if (!evaluateAppliesWhen(mod.applies_when, ctx)) return;
+
+          let coatMultiplier = 1;
+          if (mod.phase === 'interstage') coatMultiplier = interstageCycles;
+          else if (mod.phase === 'finish' && !mod.id.includes('FINAL') && !/_COAT_\d/.test(mod.id)) coatMultiplier = finishCoats;
+
+          const tasks = (tasksByModule[`${spec.id}::${mod.id}`] || []).sort((a,b) => (a.sort_order||0)-(b.sort_order||0));
+
+          tasks.forEach(task => {
+            if (task.appears_in_tiers && Array.isArray(task.appears_in_tiers)) {
+              if (!task.appears_in_tiers.includes(ctx.quality_tier)) return;
+            }
+            if (!evaluateAppliesWhen(task.applies_when, ctx)) return;
+
+            const rates = ratesByTask[`${spec.id}::${task.id}`] || [];
+            if (rates.length === 0) return;
+
+            rates.forEach(rateRow => {
+              if (!evaluateAppliesWhen(rateRow.applies_when, ctx)) return;
+
+              const resolved = resolveTaskRate(rateRow, ctx);
+              if (!resolved) return;
+
+              const phase = mod.phase || 'apply';
+              const psKey = rateRow.paintscope_key;
+
+              const pushResult = (hrs, qty, itemModStack, itemGroup) => {
+                if (hrs <= 0) return;
+                const singleCoatHrs = Math.round(hrs * 1000) / 1000;
+                const totalHrs = Math.round(singleCoatHrs * coatMultiplier * 1000) / 1000;
+                phaseHours[phase] = (phaseHours[phase] || 0) + totalHrs;
+                specTotalHours += totalHrs;
+                taskResults.push({
+                  taskId: task.id,
+                  taskName: task.name,
+                  phase,
+                  moduleName: mod.name,
+                  roomIndex: isStandalone ? index : index,
+                  roomLabel: label,
+                  psKey: psKey || '(fixed)',
+                  uom: resolved.uom,
+                  quantity: Math.round(qty * 100) / 100,
+                  baseRate: resolved.isFixed ? `${resolved.fixedMinutes}m` : resolved.effectiveRate,
+                  modStack: itemModStack || { ...modStack },
+                  hours: totalHrs,
+                  coatMultiplier,
+                  skillLevel: task.skill_level,
+                  crewSize: rateRow.crew_size || 1,
+                  isFixed: resolved.isFixed,
+                  domain: 'exterior',
+                  elevationLabel: isStandalone ? null : label,
+                  standaloneType: isStandalone ? index : null,
+                  itemGroup: itemGroup || null,
+                });
+              };
+
+              if (resolved.isFixed) {
+                pushResult(resolved.fixedMinutes / 60, 1);
+              } else if (psKey && psKey.startsWith('PS_EXT_OPENING_EA.WINDOW_') && spec.id === 'SF_WINDOW_EXT_NC' && elev) {
+                // Per-item exterior window splitting
+                const itemResults = computeExtWindowPerItemResults(resolved.effectiveRate, modStack.total, elev);
+                if (itemResults) {
+                  itemResults.forEach(ir => {
+                    pushResult(ir.hours, ir.quantity,
+                      { ...modStack, sizeMod: ir.sizeMod, typeMod: ir.typeMod, total: Math.round(modStack.total * ir.itemMod * 1000) / 1000 },
+                      ir.label);
+                  });
+                } else if (lookupQty.has(psKey)) {
+                  const quantity = lookupQty.get(psKey).value;
+                  pushResult(quantity / (resolved.effectiveRate / modStack.total), quantity);
+                }
+              } else if (psKey === 'PS_EXT_OPENING_EA.DOOR_EXT' && (spec.id === 'SF_DOOR_EXT_NC' || spec.id === 'SF_DOOR_EXT_RP') && elev) {
+                // Per-item exterior door splitting
+                const itemResults = computeExtDoorPerItemResults(resolved.effectiveRate, modStack.total, elev);
+                if (itemResults) {
+                  itemResults.forEach(ir => {
+                    pushResult(ir.hours, ir.quantity,
+                      { ...modStack, typeMod: ir.typeMod, substrateMod: ir.substrateMod, total: Math.round(modStack.total * ir.itemMod * 1000) / 1000 },
+                      ir.label);
+                  });
+                } else if (lookupQty.has(psKey)) {
+                  const quantity = lookupQty.get(psKey).value;
+                  pushResult(quantity / (resolved.effectiveRate / modStack.total), quantity);
+                }
+              } else if (psKey === 'PS_EXT_OPENING_EA.DOOR_GARAGE' && spec.id === 'SF_GARAGE_DOOR_EXT_NC' && isStandalone) {
+                // Per-item garage door splitting
+                const garageDoors = exterior.standalone?.garage_doors || [];
+                const itemResults = computeGarageDoorPerItemResults(resolved.effectiveRate, modStack.total, garageDoors);
+                if (itemResults) {
+                  itemResults.forEach(ir => {
+                    pushResult(ir.hours, ir.quantity,
+                      { ...modStack, sizeMod: ir.sizeMod, panelMod: ir.panelMod, total: Math.round(modStack.total * ir.itemMod * 1000) / 1000 },
+                      ir.label);
+                  });
+                } else if (lookupQty.has(psKey)) {
+                  const quantity = lookupQty.get(psKey).value;
+                  pushResult(quantity / (resolved.effectiveRate / modStack.total), quantity);
+                }
+              } else if (psKey && lookupQty.has(psKey)) {
+                const quantity = lookupQty.get(psKey).value;
+                const effRate = resolved.effectiveRate / modStack.total;
+                pushResult(quantity / effRate, quantity);
+              }
+            });
+          });
+        });
+      });
+
+      if (specTotalHours > 0 || taskResults.length > 0) {
+        specResults.push({
+          specId: spec.id,
+          specName: spec.name,
+          domain: 'exterior',
+          totalHours: Math.round(specTotalHours * 100) / 100,
+          phaseHours: Object.fromEntries(Object.entries(phaseHours).map(([k,v]) => [k, Math.round(v*100)/100])),
+          tasks: taskResults
+        });
+        grandTotalHours += specTotalHours;
+      }
+    });
+  }
+
   // Sort specs by total hours descending
   specResults.sort((a,b) => b.totalHours - a.totalHours);
 
   // Room-level floor protection deduplication
   const roomProtection = resolveRoomFloorProtection(specResults, db, rooms);
 
-  // Recalculate grand total (some hours moved from specs to room protection)
+  // Room-level fixture protection (bathroom fixtures × active painting contexts)
+  const fixtureProtection = resolveRoomFixtureProtection(rooms, roomSpecMethods);
+
+  // Exterior protection dedup — per-elevation and per-standalone-item
+  let exteriorProtection = { elevationProtection: {}, standaloneProtection: {} };
+  if (exterior && exterior.elevations && exterior.elevations.length > 0) {
+    exteriorProtection = resolveExteriorProtection(specResults, db, exterior);
+  }
+
+  // Recalculate grand total (some hours moved from specs to protection categories)
   grandTotalHours = specResults.reduce((s, sr) => s + sr.totalHours, 0);
   Object.values(roomProtection).forEach(rp => { grandTotalHours += rp.totalHours; });
+  Object.values(fixtureProtection).forEach(fp => { grandTotalHours += fp.totalHours; });
+  Object.values(exteriorProtection.elevationProtection).forEach(ep => { grandTotalHours += ep.totalHours; });
+  Object.values(exteriorProtection.standaloneProtection).forEach(sp => { grandTotalHours += sp.totalHours; });
 
-  // Material estimates
-  const materialEstimates = computeMaterialEstimates(state, db, roomLookups);
+  // Material estimates — interior (DB-driven) + exterior (default profiles)
+  const interiorMaterialEstimates = computeMaterialEstimates(state, db, roomLookups);
+  const extSpecResults = specResults.filter(sr => sr.domain === 'exterior');
+  const exteriorMaterialEstimates = (exterior && exterior.elevations && exterior.elevations.length > 0)
+    ? computeExteriorMaterialEstimates(state, db, buildElevationQuantityLookups(state), buildStandaloneQuantityLookups(state), extSpecResults)
+    : [];
+  const materialEstimates = [...interiorMaterialEstimates, ...exteriorMaterialEstimates];
 
   const crewDays = grandTotalHours / 8 / 2; // 8hr day, 2-person crew
 
   return {
     specResults,
     roomProtection,
+    fixtureProtection,
+    exteriorProtection,
     totalHours: Math.round(grandTotalHours * 100) / 100,
     totalCrewDays: Math.round(crewDays * 10) / 10,
     warnings,
@@ -421,4 +649,106 @@ export function runEstimate(state, db) {
     activatedSpecs: specResults.length,
     totalSpecs: db.spec_families.length
   };
+}
+
+// ============================================================
+// EXTERIOR HELPERS
+// ============================================================
+
+/**
+ * Specs that are standalone (not elevation-bound).
+ */
+function isStandaloneSpecId(specId) {
+  const STANDALONE_SPECS = new Set([
+    'SF_DECK_EXT', 'SF_FENCE_EXT', 'SF_FOUNDATION_EXT_NC',
+    'SF_PORCH_CEILING_EXT_NC', 'SF_PORCH_FLOOR_EXT_NC',
+    'SF_GARAGE_DOOR_EXT_NC', 'SF_METAL_EXT',
+  ]);
+  return STANDALONE_SPECS.has(specId);
+}
+
+/**
+ * Build exterior context for a spec running on an elevation or standalone item.
+ * Implements three-level override cascade: project defaults → elevation → substrate-level.
+ */
+function buildExteriorContext(specId, elevation, extDefaults, siteConditions, standalone, index) {
+  // Start with project exterior defaults
+  const ctx = {
+    quality_tier: extDefaults.quality_tier || 'QT3',
+    application_method: extDefaults.application_method || 'spray_backbrush',
+    surface_texture: 'smooth',
+    // Site conditions (project-level)
+    wind_exposure: siteConditions.wind_exposure || 'moderate',
+    sun_exposure: siteConditions.sun_exposure || 'mixed',
+    temperature_zone: siteConditions.temperature_zone || 'standard',
+    // Access defaults to ground
+    access_type: 'ground',
+    height_band: 'GROUND',
+  };
+
+  // Elevation overrides (second level)
+  if (elevation) {
+    if (elevation.quality_tier) ctx.quality_tier = elevation.quality_tier;
+    if (elevation.application_method) ctx.application_method = elevation.application_method;
+    ctx.access_type = elevation.access_type || 'ground';
+    ctx.height_band = deriveAccessBand(ctx.access_type);
+
+    // Resolve substrate state from the relevant siding section or trim config
+    const substrateSource = SPEC_SUBSTRATE_MAP[specId];
+    if (substrateSource === 'ext_siding' && elevation.siding_sections?.length > 0) {
+      const sec = elevation.siding_sections[0];
+      const uiState = sec.substrate_state;
+      if (uiState && EXT_UI_STATE_TO_SPEC_STATE[uiState]) {
+        ctx.substrate_state = EXT_UI_STATE_TO_SPEC_STATE[uiState];
+      }
+      ctx.surface_texture = sec.texture_profile || 'smooth';
+      ctx.siding_type = sec.siding_type;
+      ctx.substrate_material = sec.substrate_material;
+    } else if (substrateSource === 'ext_trim') {
+      // Use first enabled trim type's substrate state
+      for (const config of Object.values(elevation.trim || {})) {
+        if (config && config.enabled && config.substrate_state) {
+          const uiState = config.substrate_state;
+          if (EXT_UI_STATE_TO_SPEC_STATE[uiState]) {
+            ctx.substrate_state = EXT_UI_STATE_TO_SPEC_STATE[uiState];
+          }
+          ctx.substrate_material = config.substrate_material;
+          ctx.profile_complexity = config.profile_complexity || 'standard';
+          break;
+        }
+      }
+    }
+
+    // Caulk scope
+    if (elevation.caulk_scope) ctx.caulk_scope = elevation.caulk_scope;
+  }
+
+  // Standalone context overrides
+  if (standalone && typeof index === 'string') {
+    const items = standalone;
+    if (index === 'deck' && items.deck) {
+      ctx.coating_type = items.deck.coating_type || 'stain';
+      const uiState = items.deck.substrate_state;
+      if (uiState && EXT_UI_STATE_TO_SPEC_STATE[uiState]) ctx.substrate_state = EXT_UI_STATE_TO_SPEC_STATE[uiState];
+    } else if (index === 'fence' && items.fence) {
+      ctx.coating_type = items.fence.coating_type || 'stain';
+      const uiState = items.fence.substrate_state;
+      if (uiState && EXT_UI_STATE_TO_SPEC_STATE[uiState]) ctx.substrate_state = EXT_UI_STATE_TO_SPEC_STATE[uiState];
+    } else if (index === 'foundation' && items.foundation) {
+      const uiState = items.foundation.substrate_state;
+      if (uiState && EXT_UI_STATE_TO_SPEC_STATE[uiState]) ctx.substrate_state = EXT_UI_STATE_TO_SPEC_STATE[uiState];
+    } else if (index === 'porch' && items.porch) {
+      const floor = items.porch.floor;
+      const ceil = items.porch.ceiling;
+      if (floor?.enabled && floor.substrate_state) {
+        const uiState = floor.substrate_state;
+        if (EXT_UI_STATE_TO_SPEC_STATE[uiState]) ctx.substrate_state = EXT_UI_STATE_TO_SPEC_STATE[uiState];
+      } else if (ceil?.enabled && ceil.substrate_state) {
+        const uiState = ceil.substrate_state;
+        if (EXT_UI_STATE_TO_SPEC_STATE[uiState]) ctx.substrate_state = EXT_UI_STATE_TO_SPEC_STATE[uiState];
+      }
+    }
+  }
+
+  return ctx;
 }

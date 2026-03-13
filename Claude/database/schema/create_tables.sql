@@ -56,6 +56,7 @@ CREATE TABLE IF NOT EXISTS spec_paintable_item_types (
     counting_rules    TEXT,
     conditional       INTEGER,
     conditional_on    TEXT,               -- JSON object
+    surface_ref       TEXT,               -- PaintScope surface reference (exterior)
     notes             TEXT,
     PRIMARY KEY (id, spec_family_id),
     FOREIGN KEY (spec_family_id) REFERENCES spec_families(id) ON DELETE CASCADE
@@ -148,6 +149,7 @@ CREATE TABLE IF NOT EXISTS spec_state_declarations (
     output_state            TEXT,
     output_state_varies_by  TEXT,
     output_state_map        TEXT,               -- JSON map
+    primer_routing          TEXT,               -- JSON object (exterior per-substrate primer routing)
     notes                   TEXT,
     FOREIGN KEY (spec_family_id) REFERENCES spec_families(id) ON DELETE CASCADE
 );
@@ -175,6 +177,7 @@ CREATE TABLE IF NOT EXISTS material_systems (
     description       TEXT,
     applies_when      TEXT,               -- JSON object
     allowed_sheens    TEXT,               -- JSON array
+    product_role      TEXT,               -- System-level role: primer/finish (exterior)
     notes             TEXT,
     PRIMARY KEY (id, spec_family_id),
     FOREIGN KEY (spec_family_id) REFERENCES spec_families(id) ON DELETE CASCADE
@@ -212,6 +215,8 @@ CREATE TABLE IF NOT EXISTS material_coverage_profiles (
     coverage_range_low      REAL,
     coverage_range_high     REAL,
     coverage_by_item        TEXT,          -- JSON object
+    waste_factor            REAL,          -- Material waste multiplier (exterior)
+    uom_basis               TEXT,          -- Coverage UOM basis: LF, SF (exterior)
     assumptions             TEXT,
     notes                   TEXT,
     PRIMARY KEY (id, spec_family_id),
@@ -286,6 +291,8 @@ CREATE TABLE IF NOT EXISTS sop_tasks (
     quality_notes         TEXT,            -- JSON object
     protection_metadata   TEXT,            -- JSON object
     adjacency_metadata    TEXT,            -- JSON object
+    substrate_state_rules TEXT,            -- JSON array (exterior task-level state routing)
+    site_condition_rules  TEXT,            -- JSON object (exterior weather/condition gating)
     notes                 TEXT,
     sort_order            INTEGER,
     PRIMARY KEY (id, spec_family_id),
@@ -317,6 +324,7 @@ CREATE TABLE IF NOT EXISTS task_production_rates (
     fixed_minutes_by_tier   TEXT,          -- JSON object: {"QT3": 10, "QT4": 15}
     crew_size               INTEGER,
     applies_when            TEXT,          -- JSON object
+    defect_tolerance        TEXT,          -- JSON object (exterior per-tier QC criteria)
     notes                   TEXT,
     FOREIGN KEY (spec_family_id) REFERENCES spec_families(id) ON DELETE CASCADE,
     FOREIGN KEY (task_id, spec_family_id) REFERENCES sop_tasks(id, spec_family_id) ON DELETE CASCADE
@@ -336,6 +344,7 @@ CREATE TABLE IF NOT EXISTS factor_modifiers (
     value_min         REAL,
     value_max         REAL,
     condition         TEXT,               -- JSON object or string
+    values_map        TEXT,               -- JSON object (exterior multi-value modifier maps)
     notes             TEXT,
     PRIMARY KEY (id, spec_family_id),
     FOREIGN KEY (spec_family_id) REFERENCES spec_families(id) ON DELETE CASCADE

@@ -34,9 +34,61 @@ This agent defines production RATES and FACTORS. The Estimation Engine multiplie
 - **[docs/PaintScope/PaintScope_Asset_Catalog.md](../docs/PaintScope/PaintScope_Asset_Catalog.md)** — Asset categories, subtypes, and measurable keys
 - **[docs/PaintScope/PaintScope_Adjacency_Schema.md](../docs/PaintScope/PaintScope_Adjacency_Schema.md)** — Adjacency relationships and edge target definitions
 
+### Domain-Specific Context Loading
+
+After reading the base Required Reading list above, load the following based on `spec_family.domain`:
+
+#### If `domain == "exterior"`:
+
+LOAD — Exterior Doctrine:
+- docs/Doctrine/Exterior_Substrates_Doctrine.md
+- docs/Doctrine/Exterior_Modifiers_Doctrine.md
+- docs/Doctrine/Exterior_Protection_Doctrine.md
+
+LOAD — Exterior Reference Vocabulary:
+- docs/Reference/Substrate_State_Reference.md §4 (Exterior-Specific States)
+- docs/Reference/Surface_Vocabulary_Reference.md §Exterior Surfaces
+- docs/Reference/Site_Condition_Vocabulary_Reference.md §9–13 (Exterior Conditions)
+
+LOAD — Exterior PaintScope Keys:
+- docs/PaintScope/PaintScope_Exterior_Key_Catalog.md
+
+DO NOT APPLY to exterior specs:
+- docs/Doctrine/Interior_Protection_Doctrine.md (interior zones do not apply)
+- docs/Doctrine/Fine_Finish_Doctrine.md (unless scope explicitly includes interior-style trim at QT4+)
+- docs/Doctrine/Interior_Protection_Doctrine_Final.md
+- PS_ keys from PaintScope_Quantity_Key_Catalog.md §Core Interior Keys (use EXT_ keys instead)
+
+EXTERIOR MODIFIER OVERRIDE:
+- Use FAC_EXT_ACCESS (not FAC_HEIGHT) for elevation work
+- Use FAC_EXT_SUBSTRATE_CONDITION for prep rate scaling
+- Use FAC_EXT_WIND, FAC_EXT_SUN_EXPOSURE, FAC_EXT_SURFACE_TEMP for environmental modifiers
+- FAC_PROFILE_COMPLEXITY applies for exterior trim (shared modifier)
+
+#### If `domain == "interior"`:
+[existing behavior — no changes; read all required reading as currently listed]
+
+### Pipeline Sequencing — Production MUST Match SOP Task IDs
+
+> **CRITICAL: The Estimation Engineer runs AFTER the SOP Librarian.**
+> `sop_modules.json` defines the canonical task ID list. You MUST:
+>
+> 1. **Read `sop_modules.json` FIRST** before writing any production rates
+> 2. **Extract every task_id** from the SOP file
+> 3. **Create a production rate entry for EVERY task_id** — no omissions
+> 4. **Match task IDs character-for-character** — do NOT rename, reorder words, or abbreviate
+> 5. **Match task_classification exactly** — binary, qt_scaled, qt_conditional, etc.
+> 6. **Match UOM exactly** — if SOP says LF, production must say LF
+> 7. **Do NOT invent new task IDs** — if a task is missing from SOP, it does not get a rate
+>
+> **Why:** When SOP and Production are generated independently, 60-80% of task IDs mismatch
+> due to word order reversals (FINISH_SPRAY_1 vs FINISH_1_SPRAY), naming divergence
+> (PROTECT_LANDSCAPE vs LANDSCAPE_PROTECT), and granularity splits. This causes QA failures
+> and blocks database seeding. The fix is simple: SOP goes first, Production matches exactly.
+
 ### Registry Integration
 
-- **Primary input**: `resolution.json` (from Registry Resolver)
+- **Primary input**: `resolution.json` (from Registry Resolver) + `sop_modules.json` (from SOP Librarian)
 - `task_id` MUST exactly match sop_modules.json (character-for-character)
 - `unit_of_measure` from `resolution.json → applicable_enums → unit_of_measure`
 - `required_input_key` and `paintscope_key` MUST match spec.json
@@ -375,6 +427,31 @@ Tasks with `adjacency_metadata` carry finish relationship information. At projec
 ## Domain Dispatch: Exterior Scopes
 
 When the spec family ID contains `_EXT_`, use exterior production rate and modifier conventions:
+
+### Exterior Rate Baseline Differences (domain == "exterior")
+
+Interior height-band modifier (FAC_HEIGHT) does NOT apply to exterior elevation work.
+Use FAC_EXT_ACCESS instead:
+  ground:   1.00 (baseline)
+  ladder:   1.35
+  scaffold: 1.60
+  lift:     1.50
+
+Exterior siding spray rates are lower than interior wall spray rates due to:
+  - Masking complexity (landscape, glass, fixtures)
+  - Environmental setup/teardown
+  - Less controlled environment
+  Typical exterior spray application: 800–1500 SF/hr (vs. 1500–2500 SF/hr interior)
+
+Exterior brush/roll rates:
+  Smooth siding (roll): 200–350 SF/hr
+  Rough siding (roll): 100–200 SF/hr
+  Fascia/trim (brush): 80–120 LF/hr (similar to interior trim)
+
+Closet shelving modifier (PS_ROOM_FLAG.CLOSET_SHELVING_PRESENT) does NOT apply
+  to exterior specs.
+
+Spray/backroll coupling rule still applies: exterior spray_rate MUST be ≤ backroll_rate.
 
 ### Exterior Factor Keys
 

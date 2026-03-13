@@ -1,0 +1,87 @@
+{
+  "spec_family_id": "SF_SIDING_FIBERCEMENT_EXT_NC",
+  "version": "0.1.0",
+  "generated_by": "System Critic",
+  "generated_at": "2026-03-09",
+  "status": "draft",
+  "review_required": true,
+
+  "overall_result": "pass_with_warnings",
+
+  "summary": "SF_SIDING_FIBERCEMENT_EXT_NC_v1 draft artifacts pass all critical doctrine checks. Second exterior siding spec — follows SF_WOOD_SIDING_EXT_NC_PAINT_v1 pattern with fiber cement-specific departures. 25 tasks thread correctly between sop_modules.json and production.json. All PaintScope keys use PS_EXT_* namespace. All substrate states use SS_EXT_* prefix. All protection zones use ext_* prefix. No interior keys, states, or zones present. Key departures from wood siding sibling: no back-rolling (spray-only finish), no power washing (low-pressure only), no knot sealer or mill glaze sanding, end-cut edge sealer added, alkali-resistant primer path for bare FC (pH 13.0), bonding primer path for factory-finished (ColorPlus). Environmental conditions correctly excluded from estimation per RC-003. Landscape protection uses LF-based perimeter measurement per user correction. FAC_EXT_SUBSTRATE_CONDITION removed per user correction (substrate state routing handled by substrate_state_rules, not estimation modifiers). 2 QA issues: 1 resolved, 1 acknowledged.",
+
+  "artifacts_reviewed": [
+    { "file": "research.json", "status": "reviewed", "human_feedback": "yes — landscape LF correction, substrate state vs condition correction applied" },
+    { "file": "resolution.json", "status": "reviewed", "human_feedback": "yes — landscape LF keys updated" },
+    { "file": "materials.json", "status": "reviewed", "human_feedback": "yes — landscape protection updated to LF" },
+    { "file": "sop_modules.json", "status": "reviewed", "human_feedback": "yes — QA-001 fix applied (task_classification corrected)" },
+    { "file": "production.json", "status": "reviewed", "human_feedback": "yes — landscape LF, substrate condition modifier removed" },
+    { "file": "spec.json", "status": "not_yet_created", "human_feedback": "n/a" }
+  ],
+
+  "issues": [
+    {
+      "issue_id": "QA-001",
+      "severity": "minor",
+      "area": "cross_file_threading",
+      "file": "sop_modules.json",
+      "status": "resolved",
+      "description": "TSK_FCSD_DUST_INTERCOAT task_classification was 'binary' in sop_modules.json but 'qt_conditional' in production.json with appears_in_tiers ['QT4']. Cross-file mismatch violates threading rule 8.",
+      "resolution": "Changed task_classification in sop_modules.json from 'binary' to 'qt_conditional' to match production.json. Task correctly appears only at QT4 (paired with TSK_FCSD_SAND_BETWEEN).",
+      "resolved_date": "2026-03-09"
+    },
+    {
+      "issue_id": "QA-002",
+      "severity": "minor",
+      "area": "coverage_profiles",
+      "file": "materials.json",
+      "status": "acknowledged",
+      "description": "No coverage profile exists for SYS_EXT_FC_PRIMER_BONDING on SS_EXT_FACTORY_FINISHED. COV_FCSD_PRIMER covers SS_EXT_PRIMED_FACTORY only, COV_FCSD_PRIMER_ALKALI covers SS_EXT_BARE_FIBERCEMENT only. Bonding primer on factory-finished substrate has no explicit coverage profile.",
+      "resolution": "Acknowledged — bonding primer coverage is declared in the material_system (350 SF/gal, range 325-400). A dedicated coverage profile (COV_FCSD_PRIMER_BONDING) can be added in a future pass if the engine requires explicit profile-level routing for all primer paths. Current material_system declaration is sufficient for estimation.",
+      "resolved_date": "2026-03-09"
+    }
+  ],
+
+  "blockers": [],
+
+  "doctrine_checks": [
+    { "check": "EXT-1: Key Namespace Integrity", "result": "pass", "details": "All paintscope_key references use PS_EXT_* namespace. No interior keys found. 10 PS keys declared in resolution.json, all PS_EXT_*." },
+    { "check": "EXT-2: Substrate State Validity", "result": "pass", "details": "All substrate states use SS_EXT_* prefix. 4 input states (SS_EXT_PRIMED_FACTORY, SS_EXT_BARE_FIBERCEMENT, SS_EXT_FACTORY_FINISHED, SS_EXT_PRIMED_FIELD). 3 output states (SS_EXT_PAINTED_FLAT, SS_EXT_PAINTED_SATIN, SS_EXT_PAINTED_SEMIGLOSS). No SS_INT_* or bare SS_ IDs." },
+    { "check": "EXT-3: Protection Zone Integrity", "result": "pass", "details": "All protection zones use ext_* prefix. 5 zones declared: ext_landscape_perimeter, ext_hardscape_walk, ext_hardscape_patio, ext_light_fixture, ext_hvac_unit. No interior zone IDs. Window/door zones correctly excluded per wood siding RC-001." },
+    { "check": "EXT-4: Mandatory Site Condition Rules", "result": "pass_with_note", "details": "Environmental conditions (wind, dew point, sun, surface temp) intentionally excluded from estimation per RC-003 from wood siding sibling spec. These are process/scheduling concerns, not estimatable modifiers. Access type treated as height modifier (FAC_EXT_ACCESS)." },
+    { "check": "EXT-5: Exterior Factor Keys", "result": "pass", "details": "FAC_EXT_ACCESS declared (reused from wood siding). FAC_FCSD_SIDING_PROFILE declared. FAC_FCSD_SURFACE_TEXTURE declared. FAC_EXT_SUBSTRATE_CONDITION correctly removed — substrate state routing handled by substrate_state_rules in sop_modules.json, not estimation modifiers. Environmental FAC_EXT_WIND/SUN/TEMP correctly excluded per RC-003." },
+    { "check": "EXT-6: Modifier Math", "result": "pass", "details": "All modifiers use division formula: effective_rate = base_rate ÷ modifier. Stacking cap 4.0× declared. Maximum combination (shingle 2.0 × roughsawn 1.3 × scaffold 1.6 = 4.16×) documented with hourly billing recommendation. 3 of 4 stacking examples are within cap." },
+    { "check": "EXT-7: Material State Compatibility", "result": "pass", "details": "Three substrate-driven primer paths: acrylic for SS_EXT_PRIMED_FACTORY, alkali-resistant (Loxon) for SS_EXT_BARE_FIBERCEMENT, bonding for SS_EXT_FACTORY_FINISHED. SS_EXT_PRIMED_FIELD skips prime entirely. Compatibility rules COMPAT-001 through COMPAT-005 enforce correct routing." },
+    { "check": "GEOM_NO_INTERNAL_COMPUTE", "result": "pass", "details": "No geometry computation. All geometry from PaintScope inputs." },
+    { "check": "GEOM_INPUTS_DECLARED", "result": "pass", "details": "All required inputs declared with paintscope_key mappings. 2 manual_capture_required tasks (end-seal EA, caulk LF) properly documented." },
+    { "check": "UOM_TASKS_DECLARED", "result": "pass", "details": "All 25 tasks have unit_of_measure declared (SF, EA, LF, FIXED). UOMs match between sop_modules.json and production.json." },
+    { "check": "UOM_RATE_MATCH", "result": "pass", "details": "All production rates match task UOM. SF-based tasks use rate_per_hour in SF/hr. LF-based tasks use LF/hr. EA-based tasks use EA/hr. FIXED tasks use fixed_time_minutes." },
+    { "check": "SPRAY_BACKROLL_COUPLING", "result": "pass_with_note", "details": "Spray/backroll coupling rule DOES NOT APPLY to this spec. Fiber cement is spray-only (no back-rolling) per Exterior_Application_Methods_Doctrine Part A §6. This is a key departure from wood siding." },
+    { "check": "FLOW_PAINTSCOPE_TO_SPEC_TO_ESTIMATION", "result": "pass", "details": "All inputs flow PaintScope → spec → tasks → rates. 5 protection inputs, 1 surface input, 2 manual capture inputs." },
+    { "check": "CROSS_SPEC_PROTECTION", "result": "pass", "details": "Window/door protection correctly excluded from siding spec per wood siding RC-001. No ext_glass_window or ext_glass_door zones." }
+  ],
+
+  "exterior_validation_summary": {
+    "first_exterior_spec": false,
+    "sibling_spec": "SF_WOOD_SIDING_EXT_NC_PAINT_v1",
+    "domain_dispatch_activated": true,
+    "interior_contamination": "none — no interior keys, states, or zones found",
+    "research_corrections_applied": 0,
+    "user_corrections_applied": 2,
+    "key_departures_from_sibling": [
+      "No back-rolling — spray-only finish (higher spray rates: 300 SF/hr vs 225 SF/hr wood)",
+      "No power washing — low-pressure wash only (garden hose + soft brush)",
+      "End-cut edge sealer task added (no wood siding equivalent)",
+      "Alkali-resistant primer path for bare FC (pH 13.0) — no wood equivalent",
+      "Bonding primer path for factory-finished (ColorPlus) — new NC scenario",
+      "No knot sealer, no mill glaze sanding, no back-priming — wood-specific tasks excluded",
+      "Landscape protection LF-based (perimeter measurement, not area)",
+      "No substrate condition modifier — NC spec has no condition variation",
+      "Surface texture modifier added (cedarmill 1.20, roughsawn 1.30) — fiber cement-specific"
+    ],
+    "key_user_corrections": [
+      "Landscape protection changed from SF (area) to LF (perimeter) — you measure the run along the house, not the area of landscape beds",
+      "FAC_EXT_SUBSTRATE_CONDITION removed — substrate STATES (what it is) are not the same as substrate CONDITIONS (good/poor/failing). NC has no condition variation. State routing handled by substrate_state_rules."
+    ]
+  }
+}

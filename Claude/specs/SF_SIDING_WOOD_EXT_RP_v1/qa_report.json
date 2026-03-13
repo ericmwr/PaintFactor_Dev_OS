@@ -1,0 +1,547 @@
+{
+  "spec_family_id": "SF_SIDING_WOOD_EXT_RP",
+  "version": "0.1.0",
+  "generated_by": "System Critic (QA)",
+  "generated_at": "2026-03-10",
+  "context_prefix": "WSRP",
+  "domain": "exterior",
+  "spec_type": "repaint",
+  "spec_number": 19,
+
+  "overall_result": "pass_with_warnings",
+  "summary": "First repaint spec in the system. Repaint-specific architecture is well-designed: condition assessment module is mandatory first, DSD-4 hard stop gate is present, RRP gate exists as conditional, DSD prep multiplier correctly limited to prep tasks only, QT2 single finish coat implemented. Stacking partition cleanly separates prep modifiers from coating modifiers. 2 major issues found (SOP-production task ID misalignment and SOP uses non-standard substrate_condition values). 5 minor issues found. No critical issues.",
+
+  "artifacts_reviewed": [
+    { "file": "research.json", "status": "reviewed", "version": "draft" },
+    { "file": "resolution.json", "status": "reviewed", "version": "1.0.0" },
+    { "file": "materials.json", "status": "reviewed", "version": "0.1.0" },
+    { "file": "sop_modules.json", "status": "reviewed", "version": "0.1.0" },
+    { "file": "production.json", "status": "reviewed", "version": "0.1.0" }
+  ],
+
+  "repaint_architecture_validation": {
+    "condition_assessment_module": {
+      "status": "PASS",
+      "detail": "MOD_WSRP_ASSESS exists in sop_modules.json as mandatory first operational module (after setup). Contains DSD rating, adhesion test, MC testing, coating ID, and lead evaluation. Sequence notes explicitly state this module MUST complete before any prep or coating work."
+    },
+    "dsd4_hard_stop": {
+      "status": "PASS",
+      "detail": "TSK_WSRP_DSD4_GATE exists in MOD_WSRP_ASSESS with applies_when: SC_SUBSTRATE_DAMAGE. Production.json excludes DSD-4 from FAC_WSRP_DSD values (stops at SC_SEVERE_DETERIORATION=1.75). COMPAT_WSRP_010 in materials.json specifies HARD_STOP action for SC_SUBSTRATE_DAMAGE. Research KD-007 and RC-004 document the scope exclusion."
+    },
+    "rrp_gate": {
+      "status": "PASS",
+      "detail": "Lead evaluation task (TSK_WSRP_LEAD_EVALUATE) in MOD_WSRP_ASSESS. RRP containment (TSK_WSRP_RRP_CONTAINMENT) in MOD_WSRP_PROTECT. FAC_WSRP_RRP modifier in production.json with gate_condition: IN_BOOL_PRE_1978. RRP cleanup (TSK_WSRP_RRP_CLEANUP) in MOD_WSRP_CLEANUP. Conditional consumables (CON_WSRP_RRP_*) in materials.json."
+    },
+    "dsd_prep_only": {
+      "status": "PASS",
+      "detail": "FAC_WSRP_DSD applies_to list in production.json contains ONLY prep tasks (scrape, sand, chalk remediate, dust cleanup, caulk). Prime and finish tasks are NOT in the applies_to list. stacking_pool = PREP_ONLY."
+    },
+    "rrp_prep_only": {
+      "status": "PASS",
+      "detail": "FAC_WSRP_RRP applies_to list in production.json contains only prep tasks involving paint disturbance (scrape_light/moderate/heavy, feather_sand, sand_weathered, power_wash). stacking_pool = PREP_ONLY. Coating tasks excluded."
+    },
+    "substrate_state_pathways": {
+      "status": "PASS",
+      "detail": "5 substrate states drive distinct prep pathways in sop_modules.json: SS_EXT_SOUND_PAINT (degloss), SS_EXT_CHALKING (chalk remediation), SS_EXT_FAILING_PAINT (scrape by severity), SS_EXT_PEELING (heavy scrape), SS_EXT_WEATHERED (sand to fresh wood). Materials.json has distinct primer for each state. Production.json has conditional applies_when for each."
+    },
+    "no_back_prime_end_seal": {
+      "status": "PASS",
+      "detail": "No back-prime or end-seal tasks exist in sop_modules.json or production.json. Research KD-004 and RC-006 explicitly document this exclusion. Correct for repaint scope."
+    },
+    "qt2_single_coat": {
+      "status": "PASS",
+      "detail": "quality_effects in production.json: QT2 coat_count = {prime: 1, finish: 1}. ROUND_WSRP_SOUND_QT2 = 0 prime + 1 finish. MOD_WSRP_FINISH_2 applies_when QT3/QT4 only. MOD_WSRP_INTERSTAGE applies_when QT3/QT4 only. Finish coat 2 tasks in production.json have applies_when quality_tier [QT3, QT4]."
+    },
+    "stacking_partition": {
+      "status": "PASS",
+      "detail": "Production.json MODIFIER_STACKING_WARNING documents partition. Prep formula: base_rate / (DSD x access x profile x RRP). Coating formula: base_rate / (profile x access x QT). DSD and RRP do NOT cross into coating pool. QT does NOT cross into prep pool. Max coating stack = 2.76x (well under 4.0x). Prep tasks may exceed 4.0x (max 8.40x with RRP) — documented as expected for severe exterior conditions."
+    },
+    "max_modifier_stack": {
+      "status": "PASS",
+      "detail": "Coating max = shingle(1.50) x scaffold(1.60) x QT4(1.15) = 2.76x — well under 4.0x cap. Prep max without RRP = DSD-3(1.75) x scaffold(1.60) x shingle(1.50) = 4.20x — slightly over 4.0x but documented and justified for severe exterior conditions. Prep max with RRP = 8.40x — extreme but correct for lead-safe work on severely deteriorated shingle siding at height."
+    }
+  },
+
+  "cross_file_validation": {
+    "sop_to_production_task_alignment": {
+      "status": "MAJOR_MISMATCH",
+      "detail": "SOP and production use different task IDs for the same logical tasks. This is the primary major issue.",
+      "mismatches": [
+        {
+          "sop_task_id": "TSK_WSRP_CONDITION_ASSESS",
+          "production_task_id": "TSK_WSRP_ASSESS_CONDITION",
+          "issue": "Name swap — assess/condition word order reversed"
+        },
+        {
+          "sop_task_id": "TSK_WSRP_MC_TEST",
+          "production_task_id": "TSK_WSRP_MC_TESTING",
+          "issue": "Suffix mismatch — TEST vs TESTING"
+        },
+        {
+          "sop_task_id": "TSK_WSRP_LEAD_EVALUATE",
+          "production_task_id": "TSK_WSRP_LEAD_EVAL",
+          "issue": "Truncation mismatch — EVALUATE vs EVAL"
+        },
+        {
+          "sop_task_id": "TSK_WSRP_PROTECT_LANDSCAPE",
+          "production_task_id": "TSK_WSRP_LANDSCAPE_PROTECT",
+          "issue": "Word order reversed — PROTECT_LANDSCAPE vs LANDSCAPE_PROTECT"
+        },
+        {
+          "sop_task_id": "TSK_WSRP_PROTECT_LANDSCAPE_FULL",
+          "production_task_id": "TSK_WSRP_LANDSCAPE_OVERSPRAY_PROTECT",
+          "issue": "Different naming — PROTECT_LANDSCAPE_FULL vs LANDSCAPE_OVERSPRAY_PROTECT"
+        },
+        {
+          "sop_task_id": "TSK_WSRP_PROTECT_HARDSCAPE",
+          "production_task_id": "TSK_WSRP_HARDSCAPE_WALK_PROTECT / TSK_WSRP_HARDSCAPE_PATIO_PROTECT",
+          "issue": "SOP has single hardscape task; production splits into walk and patio"
+        },
+        {
+          "sop_task_id": "TSK_WSRP_PROTECT_LIGHT_FIXTURE",
+          "production_task_id": "TSK_WSRP_FIXTURE_MASK",
+          "issue": "Different naming — PROTECT_LIGHT_FIXTURE vs FIXTURE_MASK"
+        },
+        {
+          "sop_task_id": "TSK_WSRP_PROTECT_HVAC",
+          "production_task_id": "TSK_WSRP_HVAC_COVER",
+          "issue": "Different naming — PROTECT_HVAC vs HVAC_COVER"
+        },
+        {
+          "sop_task_id": "TSK_WSRP_PROTECT_VEHICLE",
+          "production_task_id": "TSK_WSRP_VEHICLE_PROTECT",
+          "issue": "Word order reversed — PROTECT_VEHICLE vs VEHICLE_PROTECT"
+        },
+        {
+          "sop_task_id": "TSK_WSRP_RRP_CONTAINMENT",
+          "production_task_id": "TSK_WSRP_RRP_CONTAIN_SETUP / TSK_WSRP_RRP_CONTAIN_TEARDOWN",
+          "issue": "SOP has single RRP containment task; production splits into setup and teardown"
+        },
+        {
+          "sop_task_id": "TSK_WSRP_DUST_CLEAN",
+          "production_task_id": "TSK_WSRP_DUST_CLEANUP",
+          "issue": "Suffix mismatch — CLEAN vs CLEANUP"
+        },
+        {
+          "sop_task_id": "TSK_WSRP_CAULK_REMOVE",
+          "production_task_id": "TSK_WSRP_CAULK_ASSESS",
+          "issue": "SOP splits into CAULK_REMOVE and CAULK_APPLY; production splits into CAULK_ASSESS and CAULK_REPLACE. Different granularity."
+        },
+        {
+          "sop_task_id": "TSK_WSRP_SPOT_PRIME_BRUSH",
+          "production_task_id": "TSK_WSRP_PRIME_SPOT_BRUSH",
+          "issue": "Word order — SPOT_PRIME vs PRIME_SPOT"
+        },
+        {
+          "sop_task_id": "TSK_WSRP_CHALK_BIND_PRIME_ROLL / TSK_WSRP_CHALK_BIND_PRIME_SPRAY",
+          "production_task_id": null,
+          "issue": "SOP has chalk-binding primer tasks not separately represented in production. Production may fold into PRIME_FULL_* tasks."
+        },
+        {
+          "sop_task_id": "TSK_WSRP_FULL_PRIME_SPRAY_BACKBRUSH / TSK_WSRP_FULL_PRIME_BRUSH",
+          "production_task_id": "TSK_WSRP_PRIME_FULL_SPRAY / TSK_WSRP_PRIME_FULL_BACKBRUSH / TSK_WSRP_PRIME_FULL_BRUSH_ROLL / TSK_WSRP_PRIME_FULL_BRUSH",
+          "issue": "Different granularity — SOP has spray_backbrush combined; production separates spray and backbrush steps"
+        },
+        {
+          "sop_task_id": "TSK_WSRP_TANNIN_PRIME_SPRAY / TSK_WSRP_TANNIN_PRIME_BRUSH",
+          "production_task_id": null,
+          "issue": "SOP has tannin primer tasks; production has no dedicated tannin prime rate (would share full prime rates)"
+        },
+        {
+          "sop_task_id": "TSK_WSRP_PENETRATING_PRIME_BRUSH / TSK_WSRP_PENETRATING_PRIME_SPRAY",
+          "production_task_id": null,
+          "issue": "SOP has penetrating primer tasks; production has no dedicated penetrating prime rate (would share full prime rates)"
+        },
+        {
+          "sop_task_id": "TSK_WSRP_FINISH_SPRAY_BACKBRUSH / TSK_WSRP_FINISH_BRUSH_ROLL / TSK_WSRP_FINISH_BRUSH",
+          "production_task_id": "TSK_WSRP_FINISH_1_SPRAY / TSK_WSRP_FINISH_1_BACKBRUSH / TSK_WSRP_FINISH_1_BRUSH_ROLL / TSK_WSRP_FINISH_1_BRUSH",
+          "issue": "SOP uses method-named tasks; production uses coat-numbered tasks with spray/backbrush separated"
+        },
+        {
+          "sop_task_id": "TSK_WSRP_INTERSTAGE_INSPECT / TSK_WSRP_INTERSTAGE_TOUCHUP",
+          "production_task_id": "TSK_WSRP_INSPECT_COAT / TSK_WSRP_TOUCHUP_REPAIR / TSK_WSRP_SAND_BETWEEN",
+          "issue": "SOP has 2 interstage tasks; production has 3 (adds sand between). Names differ."
+        },
+        {
+          "sop_task_id": "TSK_WSRP_FINISH_2_SPRAY_BACKBRUSH / TSK_WSRP_FINISH_2_BRUSH_ROLL / TSK_WSRP_FINISH_2_BRUSH",
+          "production_task_id": "TSK_WSRP_FINISH_2_SPRAY / TSK_WSRP_FINISH_2_BACKBRUSH / TSK_WSRP_FINISH_2_BRUSH_ROLL / TSK_WSRP_FINISH_2_BRUSH",
+          "issue": "SOP combines spray+backbrush into one task; production separates"
+        },
+        {
+          "sop_task_id": "TSK_WSRP_INSPECT / TSK_WSRP_TOUCHUP",
+          "production_task_id": "TSK_WSRP_FINAL_INSPECT / TSK_WSRP_FINAL_TOUCHUP",
+          "issue": "SOP uses INSPECT/TOUCHUP; production uses FINAL_INSPECT/FINAL_TOUCHUP"
+        },
+        {
+          "sop_task_id": "TSK_WSRP_REMOVE_PROTECTION",
+          "production_task_id": "TSK_WSRP_PROTECT_TEARDOWN",
+          "issue": "Different naming — REMOVE_PROTECTION vs PROTECT_TEARDOWN"
+        },
+        {
+          "sop_task_id": "TSK_WSRP_RRP_CLEANUP",
+          "production_task_id": null,
+          "issue": "SOP has RRP_CLEANUP task with no matching production rate. RRP teardown is covered by TSK_WSRP_RRP_CONTAIN_TEARDOWN."
+        },
+        {
+          "sop_task_id": "TSK_WSRP_SCAFFOLD_TEARDOWN",
+          "production_task_id": null,
+          "issue": "SOP has scaffold teardown but production only has scaffold setup (as part of setup module — also missing). Scaffold setup IS in production (via TSK_WSRP_SCAFFOLD_SETUP? No, only fixed equipment setup tasks exist)."
+        },
+        {
+          "sop_task_id": "TSK_WSRP_CLEANUP",
+          "production_task_id": "TSK_WSRP_SITE_CLEANUP / TSK_WSRP_CLEAN_EQUIPMENT_SPRAY / TSK_WSRP_CLEAN_EQUIPMENT_BRUSH",
+          "issue": "SOP has single cleanup task; production splits into site cleanup + equipment cleaning by method"
+        }
+      ],
+      "suggested_fix": "Reconcile task IDs between sop_modules.json and production.json. One file must be the authority — recommend standardizing on production.json naming (which uses more descriptive, action-first names) and updating sop_modules.json to match exactly."
+    },
+    "sop_substrate_condition_values": {
+      "status": "MAJOR_MISMATCH",
+      "detail": "SOP uses non-standard substrate_condition values in scraping task applies_when fields that do not match the controlled enum.",
+      "mismatches": [
+        {
+          "sop_value": "SC_MINOR_DEFECT (TSK_WSRP_SCRAPE_LIGHT)",
+          "controlled_enum": "SC_SLIGHT_DETERIORATION",
+          "issue": "SC_MINOR_DEFECT is not a valid substrate_condition enum value"
+        },
+        {
+          "sop_value": "SC_MODERATE_DEFECT (TSK_WSRP_SCRAPE_MODERATE)",
+          "controlled_enum": "SC_MODERATE_DETERIORATION",
+          "issue": "SC_MODERATE_DEFECT is not a valid substrate_condition enum value"
+        },
+        {
+          "sop_value": "SC_SEVERE_DEFECT (TSK_WSRP_SCRAPE_HEAVY)",
+          "controlled_enum": "SC_SEVERE_DETERIORATION",
+          "issue": "SC_SEVERE_DEFECT is not a valid substrate_condition enum value"
+        }
+      ],
+      "production_uses": "SC_SLIGHT_DETERIORATION, SC_MODERATE_DETERIORATION, SC_SEVERE_DETERIORATION (CORRECT)",
+      "suggested_fix": "Update sop_modules.json scraping tasks to use controlled enum values: SC_SLIGHT_DETERIORATION, SC_MODERATE_DETERIORATION, SC_SEVERE_DETERIORATION."
+    },
+    "material_system_id_alignment": {
+      "status": "MINOR_MISMATCH",
+      "detail": "Resolution proposed system IDs differ from materials.json actual IDs.",
+      "mismatches": [
+        {
+          "resolution_id": "SYS_PRIMER_SPOT",
+          "materials_id": "SYS_EXT_WSRP_PRIMER_SPOT",
+          "issue": "Resolution used short form; materials used fully-qualified form with EXT_WSRP prefix"
+        },
+        {
+          "resolution_id": "SYS_PRIMER_CHALK_BINDING",
+          "materials_id": "SYS_EXT_WSRP_PRIMER_CHALK_BINDING"
+        },
+        {
+          "resolution_id": "SYS_PRIMER_STAIN_BLOCK_ACRYLIC",
+          "materials_id": "SYS_EXT_WSRP_PRIMER_STAIN_BLOCK_ACRYLIC"
+        },
+        {
+          "resolution_id": "SYS_PRIMER_STAIN_BLOCK_ALKYD",
+          "materials_id": "SYS_EXT_WSRP_PRIMER_STAIN_BLOCK_ALKYD"
+        },
+        {
+          "resolution_id": "SYS_PRIMER_PENETRATING_ALKYD",
+          "materials_id": "SYS_EXT_WSRP_PRIMER_PENETRATING"
+        },
+        {
+          "resolution_id": "SYS_FINISH_ACRYLIC_EXTERIOR",
+          "materials_id": "SYS_EXT_WSRP_FINISH_ACRYLIC / SYS_EXT_WSRP_FINISH_STANDARD"
+        },
+        {
+          "resolution_id": "SYS_FINISH_ACRYLIC_EXTERIOR_PREMIUM",
+          "materials_id": "SYS_EXT_WSRP_FINISH_PREMIUM"
+        }
+      ],
+      "assessment": "Materials agent correctly used more specific SYS_EXT_WSRP_ prefix which is better for disambiguation. Resolution proposed shorter names. Materials.json version is preferable — no action required on materials side.",
+      "suggested_fix": "Informational only. Materials.json naming is superior. Update resolution.json proposed_systems to match if desired, but not blocking."
+    },
+    "paintscope_key_consistency": {
+      "status": "PASS_WITH_NOTES",
+      "detail": "Research, resolution, and production all reference consistent PS key set. Minor discrepancy in protection zone input naming between SOP and production.",
+      "notes": [
+        "SOP MOD_WSRP_PROTECT uses IN_LF_EXT_PROTECT_LANDSCAPE_ADJ; production uses IN_LF_EXT_PROTECT_LANDSCAPE_PERIMETER and PS_EXT_PROTECT_LF.LANDSCAPE_PERIMETER. SOP input name differs.",
+        "SOP MOD_WSRP_PROTECT uses IN_SF_EXT_PROTECT_HARDSCAPE (single); production splits to HARDSCAPE_WALK and HARDSCAPE_PATIO.",
+        "SOP MOD_WSRP_PROTECT uses IN_SF_EXT_PROTECT_VEHICLE; production uses IN_SF_EXT_PROTECT_VEHICLE_DRIVEWAY."
+      ]
+    },
+    "uom_consistency": {
+      "status": "PASS",
+      "detail": "All UOMs use uppercase (SF, LF, EA, FIXED). No prohibited lowercase values found. FIXED used for assessment and equipment tasks. SF for siding field tasks. LF for caulk and perimeter protection. EA for fixture counts and elevation counts."
+    },
+    "convention_compliance": {
+      "status": "PASS",
+      "detail": "CON_ prefix used (never CONS_). task_classification used (never task_class). severity values: critical/major/minor. Phase values: setup/prep/prime/interstage/apply/cleanup (never protect/protection). Uppercase units throughout. consumable_category values match conventions."
+    },
+    "task_classification_matching": {
+      "status": "MINOR_MISMATCH",
+      "detail": "SOP uses additional task_classification values not present in production or resolution controlled enums.",
+      "mismatches": [
+        {
+          "sop_value": "state_conditional",
+          "resolution_allowed": ["binary", "qt_conditional", "qt_scaled"],
+          "issue": "state_conditional not in controlled enum list (used for prep and prime tasks that activate by substrate state)"
+        },
+        {
+          "sop_value": "condition_conditional",
+          "resolution_allowed": ["binary", "qt_conditional", "qt_scaled"],
+          "issue": "condition_conditional not in controlled enum list (used for lead eval, DSD-4 gate, RRP tasks)"
+        },
+        {
+          "sop_value": "method_conditional",
+          "resolution_allowed": ["binary", "qt_conditional", "qt_scaled"],
+          "issue": "method_conditional not in controlled enum list (used for finish coat tasks by application method)"
+        }
+      ],
+      "assessment": "SOP introduced granular task_classification values that provide useful operational context. Production uses binary/qt_scaled only. Recommend either adding the new values to controlled_enums or mapping them to binary for engine purposes.",
+      "suggested_fix": "Add state_conditional, condition_conditional, method_conditional to controlled_enums.json task_classification values. These are operationally useful for SOP display — the engine can treat them as binary for rate calculation."
+    }
+  },
+
+  "issues": [
+    {
+      "issue_id": "QA-WSRP-001",
+      "severity": "major",
+      "area": "cross_file_threading",
+      "file": "sop_modules.json, production.json",
+      "description": "SOP and production files use different task IDs for the same logical tasks. Over 20 task ID mismatches found including word order reversals (PROTECT_LANDSCAPE vs LANDSCAPE_PROTECT), suffix variations (TEST vs TESTING), granularity splits (SOP single tasks vs production split tasks), and naming pattern differences (SOP method-named vs production coat-numbered). Violates cross_file_threading RULE 1: Every TSK_ in sop_modules.json MUST have a matching rate in production.json.",
+      "suggested_fix": "Reconcile all task IDs between sop_modules.json and production.json. Recommend standardizing on production.json naming pattern (action-first: LANDSCAPE_PROTECT, FIXTURE_MASK, PRIME_SPOT_BRUSH) and updating sop_modules.json to match. For granularity splits (SOP single hardscape vs production walk+patio), update SOP to match production's split.",
+      "blocking": true
+    },
+    {
+      "issue_id": "QA-WSRP-002",
+      "severity": "major",
+      "area": "enum_compliance",
+      "file": "sop_modules.json",
+      "description": "SOP scraping tasks use non-standard substrate_condition values: SC_MINOR_DEFECT, SC_MODERATE_DEFECT, SC_SEVERE_DEFECT. These are not in controlled_enums.json or resolution.json. Production.json correctly uses SC_SLIGHT_DETERIORATION, SC_MODERATE_DETERIORATION, SC_SEVERE_DETERIORATION.",
+      "suggested_fix": "Replace SC_MINOR_DEFECT with SC_SLIGHT_DETERIORATION, SC_MODERATE_DEFECT with SC_MODERATE_DETERIORATION, SC_SEVERE_DEFECT with SC_SEVERE_DETERIORATION in sop_modules.json.",
+      "blocking": true
+    },
+    {
+      "issue_id": "QA-WSRP-003",
+      "severity": "minor",
+      "area": "task_classification",
+      "file": "sop_modules.json",
+      "description": "SOP introduces 3 new task_classification values (state_conditional, condition_conditional, method_conditional) not present in resolution.json controlled enums which allows only binary, qt_conditional, qt_scaled.",
+      "suggested_fix": "Either add new values to controlled_enums.json or map SOP values to binary for engine consumption. The new values provide useful operational context and are recommended for inclusion.",
+      "blocking": false
+    },
+    {
+      "issue_id": "QA-WSRP-004",
+      "severity": "minor",
+      "area": "sop_missing_task",
+      "file": "sop_modules.json",
+      "description": "SOP MOD_WSRP_SETUP has TSK_WSRP_MOBILIZE and TSK_WSRP_SCAFFOLD_SETUP but no equipment setup tasks (spray setup, brush/roll setup). Production.json has TSK_WSRP_EQUIPMENT_SETUP_SPRAY (45 min FIXED) and TSK_WSRP_EQUIPMENT_SETUP_BRUSH (20 min FIXED). These appear in production but have no SOP counterpart.",
+      "suggested_fix": "Add TSK_WSRP_EQUIPMENT_SETUP_SPRAY and TSK_WSRP_EQUIPMENT_SETUP_BRUSH to MOD_WSRP_SETUP in sop_modules.json with appropriate SOP descriptions.",
+      "blocking": false
+    },
+    {
+      "issue_id": "QA-WSRP-005",
+      "severity": "minor",
+      "area": "sop_missing_task",
+      "file": "sop_modules.json",
+      "description": "SOP MOD_WSRP_PREP has a TSK_WSRP_DEGLOSS task for sound paint state. Production.json has no corresponding degloss rate. Degloss is a valid prep step for repaint on sound glossy surfaces but has no production rate.",
+      "suggested_fix": "Add a TSK_WSRP_DEGLOSS production rate to production.json (estimated 200-300 SF/hr for liquid deglosser, 150-200 SF/hr for light sanding degloss).",
+      "blocking": false
+    },
+    {
+      "issue_id": "QA-WSRP-006",
+      "severity": "minor",
+      "area": "sop_missing_task",
+      "file": "sop_modules.json",
+      "description": "SOP MOD_WSRP_ASSESS has a TSK_WSRP_COATING_ID task (existing coating identification via solvent test). Production.json has no matching fixed-time rate for this assessment task. It may be folded into the TSK_WSRP_ASSESS_CONDITION 90-minute fixed time, but is not explicit.",
+      "suggested_fix": "Either add a TSK_WSRP_COATING_ID fixed-time rate to production.json (est. 15-20 min) or document that it is included in the TSK_WSRP_ASSESS_CONDITION 90-minute allocation.",
+      "blocking": false
+    },
+    {
+      "issue_id": "QA-WSRP-007",
+      "severity": "minor",
+      "area": "production_phase_label",
+      "file": "production.json",
+      "description": "Production.json task_count_summary uses informal phase labels (setup_protection, setup_equipment, assess, caulk, finish_coat_1, finish_coat_2, final_inspect) that do not match the canonical phase values (setup, prep, prime, interstage, finish, cleanup). These are descriptive labels for documentation, not enum values used in logic.",
+      "suggested_fix": "Informational only. Production summary phase labels are for human readability and do not affect engine logic. No change needed unless engine parses these labels.",
+      "blocking": false
+    }
+  ],
+
+  "task_count_summary": {
+    "production_tasks": 47,
+    "production_binary": 43,
+    "production_qt_scaled": 4,
+    "sop_total_tasks": 40,
+    "sop_modules": 10,
+    "note": "Production has more tasks than SOP due to production splitting compound SOP tasks (e.g., spray+backbrush into separate spray and backbrush rates, hardscape into walk+patio). SOP has tasks without production rates (degloss, coating ID, RRP cleanup, scaffold teardown). After reconciliation, expect ~45-50 tasks."
+  },
+
+  "material_system_validation": {
+    "primer_systems": {
+      "count": 5,
+      "state_coverage": {
+        "SS_EXT_SOUND_PAINT": "SYS_EXT_WSRP_PRIMER_SPOT (spot prime bare areas)",
+        "SS_EXT_CHALKING": "SYS_EXT_WSRP_PRIMER_CHALK_BINDING (chalk-binding)",
+        "SS_EXT_FAILING_PAINT_lt30": "SYS_EXT_WSRP_PRIMER_SPOT (spot prime)",
+        "SS_EXT_FAILING_PAINT_gte30_standard": "SYS_EXT_WSRP_PRIMER_STAIN_BLOCK_ACRYLIC (full acrylic)",
+        "SS_EXT_FAILING_PAINT_gte30_tannin": "SYS_EXT_WSRP_PRIMER_STAIN_BLOCK_ALKYD (alkyd tannin-blocker)",
+        "SS_EXT_PEELING_standard": "SYS_EXT_WSRP_PRIMER_STAIN_BLOCK_ACRYLIC (full acrylic)",
+        "SS_EXT_PEELING_tannin": "SYS_EXT_WSRP_PRIMER_STAIN_BLOCK_ALKYD (alkyd tannin-blocker)",
+        "SS_EXT_WEATHERED": "SYS_EXT_WSRP_PRIMER_PENETRATING (deep-penetrating alkyd)",
+        "SS_EXT_WEATHERED_tannin": "SYS_EXT_WSRP_PRIMER_PENETRATING + SYS_EXT_WSRP_PRIMER_STAIN_BLOCK_ALKYD (dual coat)"
+      },
+      "status": "PASS — all 5 substrate states covered with appropriate primer selection. Tannin-rich wood override documented. Dual primer for weathered+tannin is correct."
+    },
+    "finish_systems": {
+      "count": 3,
+      "qt_coverage": {
+        "QT2": "SYS_EXT_WSRP_FINISH_ACRYLIC (1 coat)",
+        "QT3": "SYS_EXT_WSRP_FINISH_STANDARD (2 coats)",
+        "QT4": "SYS_EXT_WSRP_FINISH_PREMIUM (2 coats)"
+      },
+      "status": "PASS — each QT has dedicated finish system with correct coat count"
+    },
+    "consumable_count": 20,
+    "consumable_conventions": "PASS — all use CON_ prefix, uppercase units (EA, SHEET, ROLL, TUBE), valid consumable_category values",
+    "coverage_profiles": {
+      "count": 5,
+      "profiles": ["COV_WSRP_PRIMER_SPOT", "COV_WSRP_PRIMER_CHALK", "COV_WSRP_PRIMER_FULL", "COV_WSRP_PRIMER_PENETRATING", "COV_WSRP_FINISH"],
+      "status": "PASS — coverage profiles exist for all primer types and finish. Coverage rates are realistic and differentiated by substrate state."
+    },
+    "compatibility_rules": {
+      "count": 14,
+      "status": "PASS — comprehensive rules covering all substrate_state x quality_tier x wood_chemistry combinations. COMPAT_WSRP_010 is the DSD-4 HARD STOP. COMPAT_WSRP_014 handles RRP supply triggering."
+    }
+  },
+
+  "modifier_validation": {
+    "modifiers": [
+      {
+        "factor_id": "FAC_WSRP_DSD",
+        "stacking_pool": "PREP_ONLY",
+        "values_count": 4,
+        "range": "1.00-1.75",
+        "applies_to_count": 10,
+        "status": "PASS — correctly limited to prep tasks. No prime or finish tasks in applies_to."
+      },
+      {
+        "factor_id": "FAC_EXT_ACCESS",
+        "stacking_pool": "ALL_TASKS",
+        "values_count": 4,
+        "range": "1.00-1.60",
+        "applies_to_count": 27,
+        "status": "PASS — applies to all rated tasks except fixed-time tasks. Correctly excludes assessment, equipment setup/cleanup."
+      },
+      {
+        "factor_id": "FAC_WSRP_SIDING_PROFILE",
+        "stacking_pool": "ALL_TASKS",
+        "values_count": 3,
+        "range": "1.00-1.50",
+        "applies_to_count": 27,
+        "status": "PASS — applies to same task set as access modifier. Correctly includes both prep and coating tasks."
+      },
+      {
+        "factor_id": "FAC_WSRP_QT",
+        "stacking_pool": "COATING_ONLY",
+        "values_count": 3,
+        "range": "0.85-1.15",
+        "applies_to_count": 12,
+        "status": "PASS — correctly limited to prime and finish tasks. No prep tasks in applies_to."
+      },
+      {
+        "factor_id": "FAC_WSRP_RRP",
+        "stacking_pool": "PREP_ONLY",
+        "values_count": 2,
+        "range": "1.00-2.00",
+        "applies_to_count": 6,
+        "status": "PASS — correctly limited to prep tasks involving paint disturbance only (scrape, sand, power wash). Caulk and protection tasks correctly excluded."
+      }
+    ],
+    "stacking_check": {
+      "prep_max_no_rrp": "DSD-3(1.75) x scaffold(1.60) x shingle(1.50) = 4.20x",
+      "prep_max_with_rrp": "DSD-3(1.75) x scaffold(1.60) x shingle(1.50) x RRP(2.00) = 8.40x",
+      "coating_max": "shingle(1.50) x scaffold(1.60) x QT4(1.15) = 2.76x",
+      "coating_cap_check": "2.76x < 4.0x = PASS",
+      "prep_cap_note": "Prep exceeds 4.0x cap but is documented, justified, and expected for severe exterior conditions. RRP scenarios should be flagged for T&M consideration."
+    }
+  },
+
+  "round_configuration_validation": {
+    "round_count": 7,
+    "rounds": [
+      { "round_id": "ROUND_WSRP_SOUND_QT2", "prime": 0, "finish": 1, "total": 1, "status": "PASS" },
+      { "round_id": "ROUND_WSRP_SOUND_QT3", "prime": 1, "finish": 2, "total": 3, "status": "PASS — prime_scope=spot" },
+      { "round_id": "ROUND_WSRP_CHALKING_QT2", "prime": 1, "finish": 1, "total": 2, "status": "PASS — chalk-binding prime mandatory even at QT2" },
+      { "round_id": "ROUND_WSRP_CHALKING_QT3", "prime": 1, "finish": 2, "total": 3, "status": "PASS" },
+      { "round_id": "ROUND_WSRP_FAILING_LIGHT", "prime": 1, "finish": 2, "total": 3, "status": "PASS — spot prime <30% bare" },
+      { "round_id": "ROUND_WSRP_FAILING_HEAVY", "prime": 1, "finish": 2, "total": 3, "status": "PASS — full prime >=30% or peeling" },
+      { "round_id": "ROUND_WSRP_WEATHERED", "prime": 1, "finish": 2, "total": 3, "status": "PASS — penetrating prime" }
+    ],
+    "coverage_check": "All 5 substrate states have round configs. QT2 single-coat explicitly supported for sound_paint and chalking. QT2 on failing/peeling/weathered not explicitly configured — engine should default to 2 finish coats or flag QT2 as inappropriate for these states.",
+    "note": "ROUND_WSRP_FAILING_LIGHT does not specify QT — applies across all tiers. At QT2, this gives 1 prime + 2 finish = 3 coats, but QT2 quality_effects says finish=1. Potential conflict — QT2 on failing_paint should be flagged as inappropriate per production.json assumptions."
+  },
+
+  "research_validation": {
+    "findings_count": 16,
+    "key_decisions_count": 14,
+    "corrections_count": 6,
+    "uncertainties_count": 5,
+    "doctrine_sources_count": 17,
+    "sibling_specs_reviewed": 3,
+    "status": "PASS — comprehensive research with well-documented decisions, corrections, and uncertainties. All repaint-specific concerns addressed."
+  },
+
+  "resolution_validation": {
+    "context_prefix": "WSRP",
+    "collision_check": "PASS — no collision with existing prefixes",
+    "paintable_items": 1,
+    "paintscope_keys": 15,
+    "proposed_new_keys": 5,
+    "zone_ids": 7,
+    "cross_file_threading_rules": 15,
+    "repaint_specific_rules": 4,
+    "status": "PASS — thorough resolution with repaint-specific rules (DSD prep-only, multiplicative stacking, DSD-4 hard stop, RRP gate). Registry additions properly scoped."
+  },
+
+  "strengths": [
+    "First repaint spec introduces well-architected condition-driven estimation framework",
+    "Stacking partition cleanly separates prep modifiers (DSD, RRP) from coating modifiers (QT) — prevents compound blowout",
+    "DSD-4 hard stop properly gates scope exclusion at multiple levels (research, resolution, materials, SOP, production)",
+    "RRP integration as gate condition modifier (not separate spec) keeps estimation flow unified",
+    "5 substrate states with distinct prep pathways and primer selections are well-documented across all artifacts",
+    "Quality tier differentiation is appropriate — QT2 economy repaint on sound surfaces is valid scope",
+    "Condition assessment as mandatory first module is correct for repaint — cannot estimate without inspecting",
+    "14 compatibility rules in materials.json cover all substrate_state x quality_tier x wood_chemistry combinations",
+    "Production rates include realistic ranges with clear rate_basis_notes explaining derivation",
+    "Research documents 6 failure modes specific to repaint — valuable for SOP and QA validation"
+  ],
+
+  "recommendations": [
+    {
+      "priority": "high",
+      "recommendation": "Reconcile all task IDs between sop_modules.json and production.json (QA-WSRP-001). This is the primary blocking issue. Recommend production.json naming as authority.",
+      "effort": "medium"
+    },
+    {
+      "priority": "high",
+      "recommendation": "Fix substrate_condition enum values in sop_modules.json scraping tasks (QA-WSRP-002). Replace SC_MINOR_DEFECT/SC_MODERATE_DEFECT/SC_SEVERE_DEFECT with SC_SLIGHT_DETERIORATION/SC_MODERATE_DETERIORATION/SC_SEVERE_DETERIORATION.",
+      "effort": "low"
+    },
+    {
+      "priority": "medium",
+      "recommendation": "Add missing production rates for SOP tasks: degloss, coating ID, scaffold teardown, RRP cleanup (QA-WSRP-005, QA-WSRP-006).",
+      "effort": "low"
+    },
+    {
+      "priority": "medium",
+      "recommendation": "Add equipment setup tasks to SOP MOD_WSRP_SETUP (QA-WSRP-004). These are in production but missing from SOP.",
+      "effort": "low"
+    },
+    {
+      "priority": "low",
+      "recommendation": "Consider adding state_conditional, condition_conditional, method_conditional to controlled_enums.json task_classification. These provide useful SOP operational context.",
+      "effort": "low"
+    },
+    {
+      "priority": "low",
+      "recommendation": "Add explicit QT2 restriction note for failing_paint, peeling, and weathered states. QT2 quality_effects says 1 finish coat, but ROUND_WSRP_FAILING_LIGHT says 2 finish coats without QT qualification. Engine should flag QT2 on states worse than sound_paint/chalking.",
+      "effort": "low"
+    }
+  ]
+}

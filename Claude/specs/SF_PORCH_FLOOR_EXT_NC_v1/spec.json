@@ -1,0 +1,856 @@
+{
+  "spec_family": {
+    "id": "SF_PORCH_FLOOR_EXT_NC",
+    "name": "Exterior Porch & Patio Floor Coating",
+    "description": "Combined prime and finish coat painting/coating for exterior porch floor and patio surfaces. Dual-substrate spec covering concrete and wood porch floors. Concrete substrates support four coating systems (porch enamel, acrylic sealer, concrete stain, polyurea); wood substrates support porch enamel only. Coating system replaces quality tier as primary configuration dimension. Covers full prep (moisture testing, acid etch or diamond grind for concrete, sanding for wood, crack fill, cleaning), substrate-appropriate primer (alkali-resistant masonry for concrete, exterior wood primer, polyurea manufacturer primer, moisture-mitigating contingency), finish coat application (roll/brush_roll/spray_backroll), mandatory anti-slip aggregate broadcast, and sealer topcoat for concrete stain system. Uses SF as primary UOM. Epoxy excluded from v1. No height modifier — ground-level work. Anti-slip aggregate is mandatory for ALL coating systems on exterior horizontal surfaces.",
+    "domain": "exterior",
+    "version": "0.1.0",
+    "status": "draft",
+    "review_required": true
+  },
+
+  "scope_boundaries": {
+    "includes": [
+      "Moisture testing — ASTM D4263 for concrete (mandatory scheduling item), pin-type MC meter for wood",
+      "Concrete surface profiling — acid etch (muriatic acid + neutralizer) or diamond grind (polyurea requires CSP 3-5)",
+      "Concrete crack fill and patching (hairline to 1/4 inch cracks)",
+      "Concrete cleaning and degreasing",
+      "Wood mill glaze removal and sanding (60-80 grit)",
+      "Wood moisture content verification (< 15%)",
+      "Substrate-appropriate primer application (alkali-resistant masonry, exterior wood, polyurea manufacturer, or moisture-mitigating)",
+      "Finish coat application — porch enamel, acrylic sealer, concrete stain, or polyurea topcoat per coating_system dimension",
+      "Sealer topcoat for concrete stain system (clear acrylic over stain)",
+      "Anti-slip aggregate broadcast — mandatory for all coating systems (silica sand standard, aluminum oxide premium)",
+      "Step detail work when has_steps = true (tread/riser coating, nosing detail)",
+      "Interstage inspection between finish coats",
+      "Wall base perimeter protection (LF-based, always)",
+      "Railing base protection (LF-based, when_present)",
+      "Door threshold masking (EA-based, always)",
+      "Landscape perimeter protection (LF-based, when_adjacent)",
+      "Hardscape edge protection (LF-based, when_adjacent)",
+      "Furniture and obstacle clearing/replacement",
+      "Final inspection and anti-slip verification"
+    ],
+    "excludes": [
+      {
+        "item": "Epoxy floor coating systems",
+        "route_to": "Excluded from v1 per KD-001 — specialist scope, not standard residential painting"
+      },
+      {
+        "item": "Porch railing and baluster painting",
+        "route_to": "Future SF_RAILING_EXT_NC spec (separate surface type)"
+      },
+      {
+        "item": "Porch column and post painting",
+        "route_to": "Future exterior column/post spec"
+      },
+      {
+        "item": "Porch ceiling/soffit painting",
+        "route_to": "Future SF_SOFFIT_EXT_NC_PAINT"
+      },
+      {
+        "item": "Structural concrete repair (cracks > 1/4 inch or actively moving)",
+        "route_to": "Structural contractor — not painting scope"
+      },
+      {
+        "item": "Wood deck staining (horizontal wood with transparent/semi-transparent stain)",
+        "route_to": "SF_DECK_EXT_v1 — deck staining is a separate spec family"
+      },
+      {
+        "item": "Interior porch floor (screened-in porch treated as interior)",
+        "route_to": "Interior floor spec if applicable"
+      }
+    ]
+  },
+
+  "configuration_dimensions": [
+    {
+      "dimension_id": "substrate_type",
+      "description": "Porch floor substrate type. Primary branch point driving prep module activation, primer selection, and coating system compatibility.",
+      "values": ["concrete", "wood"],
+      "default": "concrete",
+      "notes": "Concrete is ~80% of residential porches. Wood porches use tongue-and-groove or decking boards with porch enamel only. concrete_stain, acrylic_sealer, and polyurea are concrete-only systems. substrate_type drives completely different prep modules, primer systems, and failure mode profiles."
+    },
+    {
+      "dimension_id": "coating_system",
+      "description": "Primary configuration dimension — replaces quality_tier. Determines material selection, round configuration, production rates, and maintenance cycle.",
+      "values": ["porch_enamel", "concrete_stain", "acrylic_sealer", "polyurea"],
+      "default": "porch_enamel",
+      "prohibited": ["epoxy"],
+      "notes": "porch_enamel: both substrates, traditional acrylic floor paint, 2 finish coats. concrete_stain: concrete only, penetrating decorative + sealer topcoat. acrylic_sealer: concrete only, self-priming breathable film, 2 coats. polyurea: concrete only, highest durability, manufacturer-specific primer, fast cure. Epoxy excluded per KD-001."
+    },
+    {
+      "dimension_id": "exposure_type",
+      "description": "Covered porch vs open patio. Drives environmental exposure modifier, drying time considerations, and maintenance cycle expectations.",
+      "values": ["covered_porch", "open_patio"],
+      "default": "covered_porch",
+      "notes": "Covered porch has partial protection from UV, rain, and direct sun — baseline condition. Open patio has full environmental exposure — 5% production modifier, shorter maintenance cycles."
+    },
+    {
+      "dimension_id": "has_steps",
+      "description": "Boolean indicating porch has steps. Activates step prep and step detail tasks.",
+      "values": [true, false],
+      "default": false,
+      "notes": "Step area is included in total porch floor SF. When true, activates MOD_PRFL_PREP_STEPS tasks and step-specific anti-slip aggregate broadcast. Step nosing detail requires brush work regardless of field application method."
+    },
+    {
+      "dimension_id": "application_method",
+      "description": "Primary application technique for primer and finish coats.",
+      "values": ["roll", "brush_roll", "spray_backroll"],
+      "default": "roll",
+      "prohibited": ["spray"],
+      "notes": "Roll is primary for floor coatings (3/8-3/4 nap, extension pole). brush_roll for detail areas, steps, edges, and wood plank porches. spray_backroll for large open patios (>400 SF). Spray-only is PROHIBITED — backroll mandatory on floor surfaces to ensure film integrity and anti-slip aggregate adhesion."
+    }
+  ],
+
+  "paintable_items": [
+    {
+      "item_id": "ITM_PORCH_FLOOR",
+      "name": "Exterior Porch Floor / Patio Floor Surface",
+      "unit_of_measure": "SF",
+      "counting_rules": "Net paintable porch or patio floor area in square feet. Includes step treads and risers when has_steps = true. Measured from PaintScope exterior survey.",
+      "notes": "Single paintable item. Covers both concrete and wood substrates via substrate_type dimension. Horizontal surface with foot traffic abrasion, water pooling, UV exposure, and mandatory slip resistance requirements."
+    }
+  ],
+
+  "substrate_state_rules": {
+    "primary_surface": "porch_floor_field",
+
+    "valid_input_states": {
+      "states": ["SS_EXT_BARE_MASONRY", "SS_EXT_BARE_WOOD"],
+      "notes": "SS_EXT_BARE_MASONRY for new concrete porch floors (pH 12-14 alkaline). SS_EXT_BARE_WOOD for new wood porch floors. Both are NC input states. Dual-substrate spec — substrate_type dimension determines which state applies."
+    },
+
+    "output_state": {
+      "state": "SS_EXT_PAINTED_SATIN",
+      "varies_by": "coating_system",
+      "state_map": {
+        "porch_enamel": "SS_EXT_PAINTED_SATIN",
+        "acrylic_sealer": "SS_EXT_PAINTED_SATIN",
+        "concrete_stain": "SS_EXT_STAINED_SEMI",
+        "polyurea": "SS_EXT_PAINTED_SEMIGLOSS"
+      },
+      "notes": "Output state varies by coating system. Porch enamel and acrylic sealer produce satin finish. Concrete stain produces semi-transparent stained surface. Polyurea produces semi-gloss film."
+    }
+  },
+
+  "material_systems": [
+    {
+      "system_id": "SYS_EXT_PRFL_PRIMER_ALKALI_MASONRY",
+      "name": "Alkali-Resistant Masonry Primer for Concrete Porch Floor",
+      "product_role": "primer",
+      "applies_when": { "substrate_type": ["concrete"], "coating_system": ["porch_enamel"] },
+      "coverage_profile": "COV_PRFL_PRIMER_ALKALI_MASONRY",
+      "coats": 1,
+      "notes": "Mandatory on bare concrete when coating_system = porch_enamel. pH 12-14 alkaline surface requires alkali-resistant primer. Coverage 200-300 SF/gal (lower on broom-finish concrete)."
+    },
+    {
+      "system_id": "SYS_EXT_PRFL_PRIMER_WOOD_EXT",
+      "name": "Exterior Wood Primer for Wood Porch Floor",
+      "product_role": "primer",
+      "applies_when": { "substrate_type": ["wood"], "coating_system": ["porch_enamel"] },
+      "coverage_profile": "COV_PRFL_PRIMER_WOOD_EXT",
+      "coats": 1,
+      "notes": "Required on bare wood porch floor when coating_system = porch_enamel. Seals grain, promotes adhesion. Coverage 350-400 SF/gal."
+    },
+    {
+      "system_id": "SYS_EXT_PRFL_PRIMER_POLYUREA",
+      "name": "Polyurea Manufacturer-Specific Basecoat/Primer",
+      "product_role": "primer",
+      "applies_when": { "substrate_type": ["concrete"], "coating_system": ["polyurea"] },
+      "coverage_profile": "COV_PRFL_PRIMER_POLYUREA",
+      "coats": 1,
+      "notes": "Must match topcoat manufacturer for adhesion warranty. Coverage 200-350 SF/gal. Requires diamond grind surface profile (CSP 3-5)."
+    },
+    {
+      "system_id": "SYS_EXT_PRFL_PRIMER_MOISTURE_MITIGATING",
+      "name": "Moisture-Mitigating Primer (Contingency)",
+      "product_role": "primer",
+      "applies_when": { "substrate_type": ["concrete"], "coating_system": ["porch_enamel", "polyurea"] },
+      "coverage_profile": "COV_PRFL_PRIMER_MOISTURE_MITIGATING",
+      "coats": 1,
+      "notes": "Contingency product — used only when concrete fails ASTM D4263 moisture test. Scheduling item per KD-006. Coverage 200-300 SF/gal."
+    },
+    {
+      "system_id": "SYS_EXT_PRFL_FINISH_PORCH_ENAMEL",
+      "name": "Acrylic Porch & Floor Enamel",
+      "product_role": "finish",
+      "applies_when": { "coating_system": ["porch_enamel"] },
+      "coverage_profile": "COV_PRFL_FINISH_PORCH_ENAMEL",
+      "coats": 2,
+      "allowed_sheens": ["satin"],
+      "notes": "Heavy-duty acrylic floor enamel for foot traffic. Both substrates (concrete + wood). 2 finish coats standard. Coverage 350-450 SF/gal."
+    },
+    {
+      "system_id": "SYS_EXT_PRFL_FINISH_ACRYLIC_SEALER",
+      "name": "Breathable Acrylic Sealer (Concrete Only)",
+      "product_role": "finish",
+      "applies_when": { "substrate_type": ["concrete"], "coating_system": ["acrylic_sealer"] },
+      "coverage_profile": "COV_PRFL_FINISH_ACRYLIC_SEALER",
+      "coats": 2,
+      "notes": "Self-priming — no separate primer needed. Breathable film allows moisture vapor transmission. 2 coats standard. Coverage 200-350 SF/gal."
+    },
+    {
+      "system_id": "SYS_EXT_PRFL_FINISH_CONCRETE_STAIN",
+      "name": "Penetrating Concrete Stain (Concrete Only)",
+      "product_role": "stain",
+      "applies_when": { "substrate_type": ["concrete"], "coating_system": ["concrete_stain"] },
+      "coverage_profile": "COV_PRFL_FINISH_CONCRETE_STAIN",
+      "coats_range": [1, 2],
+      "notes": "Penetrating decorative stain — acid-based (1 coat) or water-based (2 coats). Requires separate sealer topcoat. Coverage 200-400 SF/gal depending on porosity."
+    },
+    {
+      "system_id": "SYS_EXT_PRFL_FINISH_SEALER_TOPCOAT",
+      "name": "Clear Acrylic Topcoat Sealer (For Concrete Stain)",
+      "product_role": "sealer",
+      "applies_when": { "coating_system": ["concrete_stain"] },
+      "coverage_profile": "COV_PRFL_FINISH_SEALER_TOPCOAT",
+      "coats_range": [1, 2],
+      "notes": "Mandatory over concrete stain per KD-009. Clear acrylic topcoat provides wear protection and UV resistance. Anti-slip aggregate broadcast into this layer. Coverage 300-500 SF/gal."
+    },
+    {
+      "system_id": "SYS_EXT_PRFL_FINISH_POLYUREA",
+      "name": "Polyurea/Polyaspartic Floor Coating (Concrete Only)",
+      "product_role": "finish",
+      "applies_when": { "substrate_type": ["concrete"], "coating_system": ["polyurea"] },
+      "coverage_profile": "COV_PRFL_FINISH_POLYUREA",
+      "coats_range": [1, 2],
+      "notes": "Highest durability, chemical resistance, UV stability. Fast cure (4-8 hr walk-on). Two-component system with pot life constraints (~20-30 min). Coverage 200-300 SF/gal."
+    }
+  ],
+
+  "sop_module_summary": {
+    "total_modules": 9,
+    "total_tasks": 36,
+    "task_breakdown": {
+      "binary": 12,
+      "substrate_conditional": 8,
+      "coating_conditional": 12,
+      "condition_conditional": 3,
+      "always": 1
+    },
+    "modules": [
+      { "module_id": "MOD_PRFL_SETUP", "phase": "setup", "task_count": 2, "notes": "Crew mobilization + clear porch/patio surface" },
+      { "module_id": "MOD_PRFL_PROTECT", "phase": "setup", "task_count": 5, "notes": "Wall base, railing base, door threshold, landscape, hardscape protection" },
+      { "module_id": "MOD_PRFL_MOISTURE_TEST", "phase": "prep", "task_count": 1, "applies_when": { "substrate_type": ["concrete"] }, "notes": "ASTM D4263 moisture test — mandatory scheduling item for concrete" },
+      { "module_id": "MOD_PRFL_PREP_CONCRETE", "phase": "prep", "task_count": 4, "applies_when": { "substrate_type": ["concrete"] }, "notes": "Acid etch or diamond grind, crack fill, clean" },
+      { "module_id": "MOD_PRFL_PREP_WOOD", "phase": "prep", "task_count": 4, "applies_when": { "substrate_type": ["wood"] }, "notes": "Mill glaze removal, MC test, sand, clean" },
+      { "module_id": "MOD_PRFL_PRIME", "phase": "prime", "task_count": 6, "notes": "Alkali masonry primer (roll/spray_backroll), wood primer (roll/brush), polyurea primer, moisture-mitigating primer — conditional by substrate_type and coating_system" },
+      { "module_id": "MOD_PRFL_APPLY", "phase": "finish", "task_count": 8, "notes": "Porch enamel (roll/brush/spray_backroll), acrylic sealer (roll), concrete stain, polyurea (roll), step detail, sealer topcoat — conditional by coating_system and has_steps" },
+      { "module_id": "MOD_PRFL_ANTI_SLIP", "phase": "interstage", "task_count": 2, "notes": "Anti-slip aggregate broadcast — field and steps. Mandatory for all coating systems." },
+      { "module_id": "MOD_PRFL_CLEANUP", "phase": "cleanup", "task_count": 4, "notes": "Remove protection, replace furniture, final inspection, cleanup" }
+    ]
+  },
+
+  "production_summary": {
+    "total_rates": 36,
+    "crew_size_2_tasks": 3,
+    "crew_size_2_task_ids": [
+      "TSK_PRFL_PORCH_ENAMEL_SPRAY_BACKROLL",
+      "TSK_PRFL_PRIME_ALKALI_MASONRY_SPRAY_BACKROLL",
+      "TSK_PRFL_PRIME_MOISTURE_MITIGATING"
+    ],
+    "factor_modifiers": [
+      {
+        "factor_id": "FAC_PRFL_COATING_SYSTEM",
+        "values": { "porch_enamel": 1.00, "acrylic_sealer": 0.90, "concrete_stain": 1.10, "polyurea": 1.15 },
+        "applies_to_count": 7
+      },
+      {
+        "factor_id": "FAC_PRFL_EXPOSURE_TYPE",
+        "values": { "covered_porch": 1.00, "open_patio": 1.05 },
+        "applies_to_count": 15
+      },
+      {
+        "factor_id": "FAC_EXT_SUN_EXPOSURE",
+        "values": { "shade": 1.00, "partial_sun": 1.05, "full_sun": 1.15 },
+        "applies_to_count": 11
+      },
+      {
+        "factor_id": "FAC_EXT_SURFACE_TEMP",
+        "values": { "optimal": 1.00, "cold_surface": 1.10, "hot_surface": "BLOCKED" },
+        "applies_to_count": 13
+      }
+    ],
+    "max_modifier_stack": 1.461,
+    "stacking_cap": 4.0,
+    "within_cap": true
+  },
+
+  "protection_zones_required": [
+    {
+      "zone_id": "ext_porch_wall_base",
+      "condition": "always",
+      "protection_level": "edge_only",
+      "uom": "LF",
+      "upgrade_when": { "application_method": ["spray_backroll"] },
+      "upgrade_level": "light_mask",
+      "notes": "LF-based — wall base perimeter where house wall meets porch floor. Tape and mask to prevent coating splash/overspray on siding or foundation wall."
+    },
+    {
+      "zone_id": "ext_porch_railing_base",
+      "condition": "when_present",
+      "protection_level": "edge_only",
+      "uom": "LF",
+      "upgrade_when": { "application_method": ["spray_backroll"] },
+      "upgrade_level": "light_mask",
+      "notes": "LF-based — railing post bases where railing meets floor. Tape around post bases. Not all porches have railings."
+    },
+    {
+      "zone_id": "ext_door_threshold",
+      "condition": "always",
+      "protection_level": "light_mask",
+      "uom": "EA",
+      "notes": "EA-based — door threshold at porch entry point. Mask threshold to prevent coating encroachment. At least 1 entry door threshold always present."
+    },
+    {
+      "zone_id": "ext_landscape_adjacent",
+      "condition": "when_adjacent",
+      "protection_level": "edge_only",
+      "uom": "LF",
+      "upgrade_when": { "application_method": ["spray_backroll"] },
+      "upgrade_level": "full_cover",
+      "notes": "LF-based — landscape beds adjacent to porch/patio edge. Drop cloth or tarp over plantings when spraying."
+    },
+    {
+      "zone_id": "ext_hardscape_adjacent",
+      "condition": "when_adjacent",
+      "protection_level": "edge_only",
+      "uom": "LF",
+      "upgrade_when": { "application_method": ["spray_backroll"] },
+      "upgrade_level": "full_cover",
+      "notes": "LF-based — adjacent walkway, driveway, or patio edge. Canvas drop cloth for non-slip crew traffic and overspray containment."
+    }
+  ],
+
+  "required_paintscope_inputs": [
+    {
+      "input_name": "IN_SF_PORCH_FLOOR",
+      "paintscope_key": "PS_EXT_SURFACE_SF.PORCH_FLOOR",
+      "uom": "SF",
+      "required": true,
+      "description": "Net porch/patio floor area (square feet). Primary measurement for all coating and material calculations."
+    },
+    {
+      "input_name": "IN_ENUM_SUBSTRATE_TYPE_PORCH",
+      "paintscope_key": "PS_EXT_META.ENUM.SUBSTRATE_TYPE",
+      "uom": "ENUM",
+      "required": true,
+      "description": "Porch floor substrate type (concrete/wood). Drives primer selection, prep module activation, and coating system compatibility."
+    },
+    {
+      "input_name": "IN_ENUM_COATING_SYSTEM_PORCH",
+      "paintscope_key": "PS_EXT_META.ENUM.COATING_SYSTEM_PORCH",
+      "uom": "ENUM",
+      "required": true,
+      "description": "Porch floor coating system (porch_enamel/concrete_stain/acrylic_sealer/polyurea). Primary configuration dimension."
+    },
+    {
+      "input_name": "IN_ENUM_EXPOSURE_TYPE",
+      "paintscope_key": "PS_EXT_META.ENUM.EXPOSURE_TYPE",
+      "uom": "ENUM",
+      "required": true,
+      "description": "Porch exposure type (covered_porch/open_patio). Drives environmental exposure modifier."
+    },
+    {
+      "input_name": "IN_BOOL_HAS_STEPS",
+      "paintscope_key": "PS_EXT_META.FLAG.HAS_STEPS",
+      "uom": "BOOL",
+      "required": true,
+      "description": "Boolean flag indicating porch has steps. Activates step prep and step detail tasks."
+    },
+    {
+      "input_name": "IN_EA_STEP_COUNT",
+      "paintscope_key": "PS_EXT_META.EA.STEP_COUNT",
+      "uom": "EA",
+      "required": false,
+      "required_when": "When has_steps = true",
+      "description": "Count of porch steps (tread + riser = 1 step). Step area included in total porch floor SF."
+    },
+    {
+      "input_name": "IN_BOOL_NEW_CONSTRUCTION",
+      "paintscope_key": "PS_EXT_META.FLAG.NEW_CONSTRUCTION",
+      "uom": "BOOL",
+      "required": true,
+      "description": "Boolean flag confirming new construction context. Always true for this NC spec."
+    },
+    {
+      "input_name": "IN_LF_EXT_PROTECT_WALL_BASE",
+      "paintscope_key": "PS_EXT_PROTECT_LF.WALL_BASE_PERIMETER",
+      "uom": "LF",
+      "required": true,
+      "description": "Linear feet of wall base perimeter adjacent to porch floor requiring masking protection."
+    },
+    {
+      "input_name": "IN_LF_EXT_PROTECT_RAILING_BASE",
+      "paintscope_key": "PS_EXT_PROTECT_LF.RAILING_BASE",
+      "uom": "LF",
+      "required": false,
+      "required_when": "When porch has railings",
+      "description": "Linear feet of railing base requiring masking protection."
+    },
+    {
+      "input_name": "IN_EA_EXT_PROTECT_DOOR_THRESHOLD",
+      "paintscope_key": "PS_EXT_PROTECT_EA.DOOR_THRESHOLD",
+      "uom": "EA",
+      "required": true,
+      "description": "Count of door thresholds requiring masking. At least 1 entry door always present."
+    },
+    {
+      "input_name": "IN_LF_EXT_PROTECT_LANDSCAPE_PERIMETER",
+      "paintscope_key": "PS_EXT_PROTECT_LF.LANDSCAPE_PERIMETER",
+      "uom": "LF",
+      "required": false,
+      "required_when": "When landscape is adjacent to porch/patio edge",
+      "description": "Linear feet of landscape perimeter adjacent to porch requiring protection."
+    },
+    {
+      "input_name": "IN_LF_EXT_PROTECT_HARDSCAPE_EDGE",
+      "paintscope_key": "PS_EXT_PROTECT_LF.HARDSCAPE_EDGE",
+      "uom": "LF",
+      "required": false,
+      "required_when": "When hardscape (walkway/driveway) is adjacent to porch edge",
+      "description": "Linear feet of adjacent hardscape edge requiring protection."
+    }
+  ],
+
+  "compatibility_rules": [
+    {
+      "rule_id": "COMPAT-PRFL-001",
+      "type": "BLOCKED",
+      "description": "Polyurea coating system is concrete-only",
+      "condition": { "substrate_type": "wood", "coating_system": "polyurea" },
+      "action": "BLOCK — polyurea requires concrete substrate with diamond grind profile (CSP 3-5). Not compatible with wood.",
+      "severity": "critical"
+    },
+    {
+      "rule_id": "COMPAT-PRFL-002",
+      "type": "BLOCKED",
+      "description": "Concrete stain is concrete-only",
+      "condition": { "substrate_type": "wood", "coating_system": "concrete_stain" },
+      "action": "BLOCK — concrete stain is a penetrating product formulated for concrete chemistry. Not compatible with wood.",
+      "severity": "critical"
+    },
+    {
+      "rule_id": "COMPAT-PRFL-003",
+      "type": "BLOCKED",
+      "description": "Acrylic sealer is concrete-only",
+      "condition": { "substrate_type": "wood", "coating_system": "acrylic_sealer" },
+      "action": "BLOCK — acrylic sealer is formulated for concrete moisture vapor transmission. Not compatible with wood.",
+      "severity": "critical"
+    },
+    {
+      "rule_id": "COMPAT-PRFL-004",
+      "type": "REQUIRES",
+      "description": "Porch enamel on concrete requires alkali-resistant masonry primer",
+      "condition": { "substrate_type": "concrete", "coating_system": "porch_enamel" },
+      "action": "REQUIRE SYS_EXT_PRFL_PRIMER_ALKALI_MASONRY — new concrete pH 12-14 causes saponification with standard primers.",
+      "severity": "critical"
+    },
+    {
+      "rule_id": "COMPAT-PRFL-005",
+      "type": "REQUIRES",
+      "description": "Porch enamel on wood requires exterior wood primer",
+      "condition": { "substrate_type": "wood", "coating_system": "porch_enamel" },
+      "action": "REQUIRE SYS_EXT_PRFL_PRIMER_WOOD_EXT — seals grain and promotes adhesion for film-forming floor paint.",
+      "severity": "critical"
+    },
+    {
+      "rule_id": "COMPAT-PRFL-006",
+      "type": "REQUIRES",
+      "description": "Concrete stain requires sealer topcoat",
+      "condition": { "coating_system": "concrete_stain" },
+      "action": "REQUIRE SYS_EXT_PRFL_FINISH_SEALER_TOPCOAT — penetrating stain has no film build, sealer provides wear protection and locks in anti-slip aggregate.",
+      "severity": "critical"
+    },
+    {
+      "rule_id": "COMPAT-PRFL-007",
+      "type": "REQUIRES",
+      "description": "Polyurea requires manufacturer-specific primer",
+      "condition": { "coating_system": "polyurea" },
+      "action": "REQUIRE SYS_EXT_PRFL_PRIMER_POLYUREA — must match topcoat manufacturer for adhesion warranty.",
+      "severity": "critical"
+    },
+    {
+      "rule_id": "COMPAT-PRFL-008",
+      "type": "REQUIRES",
+      "description": "Anti-slip aggregate mandatory for all coating systems",
+      "condition": { "coating_system": ["porch_enamel", "concrete_stain", "acrylic_sealer", "polyurea"] },
+      "action": "REQUIRE anti-slip aggregate broadcast (silica sand or aluminum oxide). Safety requirement for all exterior horizontal surfaces subject to foot traffic and wet conditions.",
+      "severity": "critical"
+    },
+    {
+      "rule_id": "COMPAT-PRFL-009",
+      "type": "REQUIRES",
+      "description": "Polyurea requires diamond grind surface profile",
+      "condition": { "coating_system": "polyurea" },
+      "action": "REQUIRE diamond grind prep (CSP 3-5). Acid etch is insufficient for polyurea adhesion.",
+      "severity": "critical"
+    },
+    {
+      "rule_id": "COMPAT-PRFL-010",
+      "type": "BLOCKED",
+      "description": "Spray-only application prohibited on floor surfaces",
+      "condition": { "application_method": "spray" },
+      "action": "BLOCK — spray-only prohibited. Backroll mandatory on floor surfaces to ensure film integrity, even coverage in texture valleys, and anti-slip aggregate adhesion. Use spray_backroll instead.",
+      "severity": "critical"
+    },
+    {
+      "rule_id": "COMPAT-PRFL-011",
+      "type": "BLOCKED",
+      "description": "Hot surface temperature blocks all coating operations",
+      "condition": { "surface_temp": ">90F" },
+      "action": "BLOCK — floor coatings fail immediately on overheated surfaces (flash drying, bubbling, delamination). Concrete retains and radiates heat — surface temp can exceed air temp by 20-40F in direct sun. Schedule early morning or late afternoon work windows.",
+      "severity": "critical"
+    },
+    {
+      "rule_id": "COMPAT-PRFL-012",
+      "type": "BLOCKED",
+      "description": "Epoxy coating systems excluded from v1",
+      "condition": { "coating_system": "epoxy" },
+      "action": "BLOCK — epoxy excluded per KD-001. Specialist scope requiring specific humidity/temperature control, multiple component mixing, and extended cure management beyond standard residential painting.",
+      "severity": "critical"
+    }
+  ],
+
+  "round_configurations": [
+    {
+      "round_id": "ROUND_PRFL_CONCRETE_PORCH_ENAMEL",
+      "name": "Concrete + Porch Enamel: Primer + 2 Finish Coats",
+      "applies_when": { "substrate_type": ["concrete"], "coating_system": ["porch_enamel"] },
+      "total_coats": 3,
+      "interstage_cycles": 1,
+      "sequence": ["alkali_masonry_primer", "porch_enamel_1", "porch_enamel_2"],
+      "notes": "Standard concrete porch enamel sequence. Alkali-resistant primer mandatory. Two finish coats with interstage inspection. Anti-slip broadcast into final coat."
+    },
+    {
+      "round_id": "ROUND_PRFL_CONCRETE_ACRYLIC_SEALER",
+      "name": "Concrete + Acrylic Sealer: 2 Sealer Coats (Self-Priming)",
+      "applies_when": { "substrate_type": ["concrete"], "coating_system": ["acrylic_sealer"] },
+      "total_coats": 2,
+      "interstage_cycles": 0,
+      "sequence": ["acrylic_sealer_1", "acrylic_sealer_2"],
+      "notes": "Self-priming system — no separate primer coat. Two sealer coats. Fast dry, thin film. Anti-slip broadcast into final coat."
+    },
+    {
+      "round_id": "ROUND_PRFL_CONCRETE_STAIN",
+      "name": "Concrete + Concrete Stain: 1-2 Stain + 1-2 Sealer Topcoat",
+      "applies_when": { "substrate_type": ["concrete"], "coating_system": ["concrete_stain"] },
+      "total_coats_range": [2, 4],
+      "interstage_cycles": 1,
+      "sequence": ["concrete_stain_1", "concrete_stain_2_optional", "sealer_topcoat_1", "sealer_topcoat_2_optional"],
+      "notes": "Penetrating stain (1-2 coats) + mandatory sealer topcoat (1-2 coats). Acid stain typically 1 coat, water-based 2 coats. Interstage inspection after stain to verify color uniformity before sealing. Anti-slip broadcast into sealer topcoat."
+    },
+    {
+      "round_id": "ROUND_PRFL_CONCRETE_POLYUREA",
+      "name": "Concrete + Polyurea: Primer + 1-2 Topcoats",
+      "applies_when": { "substrate_type": ["concrete"], "coating_system": ["polyurea"] },
+      "total_coats_range": [2, 3],
+      "interstage_cycles": 0,
+      "sequence": ["polyurea_primer", "polyurea_basecoat", "polyurea_topcoat_optional"],
+      "notes": "Manufacturer-specific primer + basecoat (with anti-slip) + optional topcoat. Fast cure — full system can be applied in single day. No interstage inspection — fast cure windows require continuous application. Anti-slip broadcast into basecoat."
+    },
+    {
+      "round_id": "ROUND_PRFL_WOOD_PORCH_ENAMEL",
+      "name": "Wood + Porch Enamel: Primer + 2 Finish Coats",
+      "applies_when": { "substrate_type": ["wood"], "coating_system": ["porch_enamel"] },
+      "total_coats": 3,
+      "interstage_cycles": 1,
+      "sequence": ["wood_ext_primer", "porch_enamel_1", "porch_enamel_2"],
+      "notes": "Exterior wood primer + two coats porch enamel. Standard for wood plank porch floors. Interstage inspection between finish coats. Anti-slip broadcast into final coat."
+    }
+  ],
+
+  "variants": [
+    {
+      "variant_id": "VAR_PRFL_CONCRETE_PORCH_ENAMEL_COVERED",
+      "applies_when": { "substrate_type": ["concrete"], "coating_system": ["porch_enamel"], "exposure_type": ["covered_porch"] },
+      "coats": { "prime": 1, "finish": 2 },
+      "round_config": "ROUND_PRFL_CONCRETE_PORCH_ENAMEL",
+      "protection_zones": ["ext_porch_wall_base", "ext_door_threshold", "ext_porch_railing_base", "ext_landscape_adjacent", "ext_hardscape_adjacent"],
+      "notes": "Most common residential combination. Covered porch, concrete, porch enamel. Baseline conditions."
+    },
+    {
+      "variant_id": "VAR_PRFL_CONCRETE_PORCH_ENAMEL_OPEN",
+      "applies_when": { "substrate_type": ["concrete"], "coating_system": ["porch_enamel"], "exposure_type": ["open_patio"] },
+      "coats": { "prime": 1, "finish": 2 },
+      "round_config": "ROUND_PRFL_CONCRETE_PORCH_ENAMEL",
+      "protection_zones": ["ext_porch_wall_base", "ext_door_threshold", "ext_porch_railing_base", "ext_landscape_adjacent", "ext_hardscape_adjacent"],
+      "notes": "Open patio, concrete, porch enamel. 1.05x exposure modifier. Shorter maintenance cycle (3-5 yr vs 5-7 yr)."
+    },
+    {
+      "variant_id": "VAR_PRFL_CONCRETE_ACRYLIC_SEALER_COVERED",
+      "applies_when": { "substrate_type": ["concrete"], "coating_system": ["acrylic_sealer"], "exposure_type": ["covered_porch"] },
+      "coats": { "sealer": 2 },
+      "round_config": "ROUND_PRFL_CONCRETE_ACRYLIC_SEALER",
+      "protection_zones": ["ext_porch_wall_base", "ext_door_threshold", "ext_porch_railing_base", "ext_landscape_adjacent", "ext_hardscape_adjacent"],
+      "notes": "Covered porch, concrete, acrylic sealer. Self-priming, no primer coat. Natural concrete appearance."
+    },
+    {
+      "variant_id": "VAR_PRFL_CONCRETE_ACRYLIC_SEALER_OPEN",
+      "applies_when": { "substrate_type": ["concrete"], "coating_system": ["acrylic_sealer"], "exposure_type": ["open_patio"] },
+      "coats": { "sealer": 2 },
+      "round_config": "ROUND_PRFL_CONCRETE_ACRYLIC_SEALER",
+      "protection_zones": ["ext_porch_wall_base", "ext_door_threshold", "ext_porch_railing_base", "ext_landscape_adjacent", "ext_hardscape_adjacent"],
+      "notes": "Open patio, concrete, acrylic sealer. Shortest maintenance cycle (2-4 yr). Good for budget-conscious customers."
+    },
+    {
+      "variant_id": "VAR_PRFL_CONCRETE_STAIN_COVERED",
+      "applies_when": { "substrate_type": ["concrete"], "coating_system": ["concrete_stain"], "exposure_type": ["covered_porch"] },
+      "coats": { "stain": "1-2", "sealer_topcoat": "1-2" },
+      "round_config": "ROUND_PRFL_CONCRETE_STAIN",
+      "protection_zones": ["ext_porch_wall_base", "ext_door_threshold", "ext_porch_railing_base", "ext_landscape_adjacent", "ext_hardscape_adjacent"],
+      "notes": "Covered porch, concrete, decorative stain + sealer. Requires sealer topcoat per COMPAT-PRFL-006."
+    },
+    {
+      "variant_id": "VAR_PRFL_CONCRETE_STAIN_OPEN",
+      "applies_when": { "substrate_type": ["concrete"], "coating_system": ["concrete_stain"], "exposure_type": ["open_patio"] },
+      "coats": { "stain": "1-2", "sealer_topcoat": "1-2" },
+      "round_config": "ROUND_PRFL_CONCRETE_STAIN",
+      "protection_zones": ["ext_porch_wall_base", "ext_door_threshold", "ext_porch_railing_base", "ext_landscape_adjacent", "ext_hardscape_adjacent"],
+      "notes": "Open patio, concrete stain. Full UV exposure on stain — sealer topcoat provides UV protection. Maintenance cycle 3-5 yr."
+    },
+    {
+      "variant_id": "VAR_PRFL_CONCRETE_POLYUREA_COVERED",
+      "applies_when": { "substrate_type": ["concrete"], "coating_system": ["polyurea"], "exposure_type": ["covered_porch"] },
+      "coats": { "prime": 1, "topcoat": "1-2" },
+      "round_config": "ROUND_PRFL_CONCRETE_POLYUREA",
+      "protection_zones": ["ext_porch_wall_base", "ext_door_threshold", "ext_porch_railing_base", "ext_landscape_adjacent", "ext_hardscape_adjacent"],
+      "notes": "Covered porch, concrete, polyurea. Highest durability, longest maintenance cycle (7-10+ yr). Diamond grind prep required."
+    },
+    {
+      "variant_id": "VAR_PRFL_CONCRETE_POLYUREA_OPEN",
+      "applies_when": { "substrate_type": ["concrete"], "coating_system": ["polyurea"], "exposure_type": ["open_patio"] },
+      "coats": { "prime": 1, "topcoat": "1-2" },
+      "round_config": "ROUND_PRFL_CONCRETE_POLYUREA",
+      "protection_zones": ["ext_porch_wall_base", "ext_door_threshold", "ext_porch_railing_base", "ext_landscape_adjacent", "ext_hardscape_adjacent"],
+      "notes": "Open patio, concrete, polyurea. Full environmental exposure but highest chemical/UV resistance. Wind containment needed for spray operations."
+    },
+    {
+      "variant_id": "VAR_PRFL_WOOD_PORCH_ENAMEL_COVERED",
+      "applies_when": { "substrate_type": ["wood"], "coating_system": ["porch_enamel"], "exposure_type": ["covered_porch"] },
+      "coats": { "prime": 1, "finish": 2 },
+      "round_config": "ROUND_PRFL_WOOD_PORCH_ENAMEL",
+      "protection_zones": ["ext_porch_wall_base", "ext_door_threshold", "ext_porch_railing_base", "ext_landscape_adjacent", "ext_hardscape_adjacent"],
+      "notes": "Classic covered wood porch with porch enamel. Traditional residential combination. Exterior wood primer + 2 coats enamel."
+    },
+    {
+      "variant_id": "VAR_PRFL_WOOD_PORCH_ENAMEL_OPEN",
+      "applies_when": { "substrate_type": ["wood"], "coating_system": ["porch_enamel"], "exposure_type": ["open_patio"] },
+      "coats": { "prime": 1, "finish": 2 },
+      "round_config": "ROUND_PRFL_WOOD_PORCH_ENAMEL",
+      "protection_zones": ["ext_porch_wall_base", "ext_door_threshold", "ext_porch_railing_base", "ext_landscape_adjacent", "ext_hardscape_adjacent"],
+      "notes": "Open wood patio (less common). Full UV/rain exposure on wood — shorter maintenance cycle (3-5 yr). Risk of gas bubbling if coating applied in direct sun on heated wood."
+    }
+  ],
+
+  "maintenance_cycles": [
+    {
+      "coating_system": "porch_enamel",
+      "exposure_type": "covered_porch",
+      "cycle_years": "5-7",
+      "notes": "Standard porch enamel on covered porch. Protected from full UV and rain. Failure mode: wear pattern from foot traffic in high-use paths."
+    },
+    {
+      "coating_system": "porch_enamel",
+      "exposure_type": "open_patio",
+      "cycle_years": "3-5",
+      "notes": "Porch enamel on open patio. Full UV and rain exposure accelerates wear. More frequent recoating needed."
+    },
+    {
+      "coating_system": "acrylic_sealer",
+      "exposure_type": "covered_porch",
+      "cycle_years": "2-4",
+      "notes": "Acrylic sealer on covered porch. Thin film wears faster than porch enamel. Budget option with shorter life."
+    },
+    {
+      "coating_system": "acrylic_sealer",
+      "exposure_type": "open_patio",
+      "cycle_years": "2-3",
+      "notes": "Acrylic sealer on open patio. Shortest maintenance cycle. UV accelerates film degradation."
+    },
+    {
+      "coating_system": "concrete_stain",
+      "exposure_type": "covered_porch",
+      "cycle_years": "3-5",
+      "notes": "Concrete stain + sealer on covered porch. Sealer topcoat determines maintenance cycle — stain itself is permanent (penetrating)."
+    },
+    {
+      "coating_system": "concrete_stain",
+      "exposure_type": "open_patio",
+      "cycle_years": "3-5",
+      "notes": "Concrete stain + sealer on open patio. Sealer topcoat may need reapplication more frequently in full sun."
+    },
+    {
+      "coating_system": "polyurea",
+      "exposure_type": "covered_porch",
+      "cycle_years": "7-10+",
+      "notes": "Polyurea on covered porch. Highest durability — chemical resistant, UV stable. Premium cost justified by extended life."
+    },
+    {
+      "coating_system": "polyurea",
+      "exposure_type": "open_patio",
+      "cycle_years": "7-10+",
+      "notes": "Polyurea on open patio. Even with full exposure, polyurea maintains 7-10+ year life. Most cost-effective long-term for high-traffic areas."
+    }
+  ],
+
+  "adjacency_declarations": {
+    "primary_surface": "porch_floor_field",
+    "adjacent_surfaces": [
+      {
+        "surface_id": "ext_wall_base",
+        "edge_type": "linear",
+        "typical_relationship": "different_finish",
+        "continuity_rate_modifier": 1.0,
+        "notes": "House wall at porch-to-wall junction. Different coating system. Protection zone ext_porch_wall_base covers this edge."
+      },
+      {
+        "surface_id": "ext_railing_base",
+        "edge_type": "linear",
+        "typical_relationship": "different_finish",
+        "continuity_rate_modifier": 1.0,
+        "notes": "Railing post bases. Different surface type and finish. When_present conditional."
+      },
+      {
+        "surface_id": "ext_door_threshold",
+        "edge_type": "linear",
+        "typical_relationship": "different_finish",
+        "continuity_rate_modifier": 1.0,
+        "notes": "Door threshold at porch entry. Metal or wood threshold — not painted, requires masking."
+      }
+    ]
+  },
+
+  "cross_spec_boundaries": [
+    {
+      "boundary": "Porch railing and baluster painting",
+      "owner": "Future SF_RAILING_EXT_NC",
+      "notes": "Railing painting is a separate surface type with different application method and coating system."
+    },
+    {
+      "boundary": "Porch column and post painting",
+      "owner": "Future exterior column/post spec",
+      "notes": "Vertical structural elements — separate from horizontal floor surface."
+    },
+    {
+      "boundary": "Porch ceiling/soffit painting",
+      "owner": "Future SF_SOFFIT_EXT_NC_PAINT",
+      "notes": "Overhead horizontal surface — different application method and conditions than floor."
+    },
+    {
+      "boundary": "Door threshold masking and door protection",
+      "owner": "Door spec",
+      "notes": "Door itself is not in porch floor scope. Threshold masking IS this spec's responsibility."
+    },
+    {
+      "boundary": "Deck staining (horizontal wood with transparent/semi-transparent stain)",
+      "owner": "SF_DECK_EXT_v1",
+      "notes": "Wood deck staining uses different coating chemistry than porch enamel. Clear boundary: porch enamel = this spec, deck stain = deck spec."
+    },
+    {
+      "boundary": "Structural concrete repair",
+      "owner": "Structural contractor",
+      "notes": "Cracks > 1/4 inch or actively moving require structural repair before coating. Not painting scope."
+    },
+    {
+      "boundary": "Environmental conditions excluded from estimation",
+      "owner": "SOP process constraints",
+      "notes": "Wind, dew point, surface temperature extremes are scheduling/process concerns. Not estimatable at bid time (captured as FAC_EXT_SURFACE_TEMP BLOCKED condition, not a rate modifier)."
+    }
+  ],
+
+  "sequencing_notes": {
+    "production_sequence": "Setup -> Protect -> Moisture Test (concrete) -> Prep (concrete or wood) -> Prime (conditional by coating_system) -> Finish 1 -> Anti-Slip Broadcast -> Finish 2 (if applicable) -> Cleanup",
+    "protection_sequence": "Wall base masking -> Railing base masking (when_present) -> Door threshold masking -> Landscape protection (when_adjacent) -> Hardscape protection (when_adjacent)",
+    "coat_sequence_porch_enamel": "Alkali masonry primer (concrete) OR wood primer (wood) -> Porch enamel coat 1 -> Interstage inspect -> Anti-slip broadcast into coat 2 -> Porch enamel coat 2",
+    "coat_sequence_acrylic_sealer": "Acrylic sealer coat 1 -> Anti-slip broadcast into coat 2 -> Acrylic sealer coat 2 (self-priming, no primer)",
+    "coat_sequence_concrete_stain": "Concrete stain 1-2 coats -> Interstage inspect (verify color) -> Anti-slip broadcast into sealer -> Sealer topcoat 1-2 coats",
+    "coat_sequence_polyurea": "Polyurea primer -> Anti-slip broadcast into basecoat -> Polyurea basecoat -> Optional topcoat (continuous application, no interstage)",
+    "key_prohibitions": "NO spray-only on floor surfaces (backroll mandatory). NO epoxy (excluded from v1). NO polyurea/concrete_stain/acrylic_sealer on wood substrate. NO coating at surface temp > 90F. NO coating at MC > 12% (concrete) or > 15% (wood)."
+  },
+
+  "relationships": {
+    "companion_spec": null,
+    "often_combined_with": [],
+    "sibling_spec": "SF_DECK_EXT_v1",
+    "typical_before": [],
+    "typical_after": [],
+    "cross_spec_protection_note": "Door protection is owned by door spec. Porch floor spec owns threshold masking only.",
+    "notes": "First exterior porch floor spec. Dual-substrate (concrete + wood) with coating_system as primary dimension. Shares anti-slip requirement pattern with deck spec. Key departures from masonry wall spec: horizontal surface (no height modifier), foot traffic abrasion focus, anti-slip mandatory, coating_system replaces quality_tier, dual substrate in single spec."
+  },
+
+  "site_condition_rules": [
+    {
+      "condition_id": "sun_exposure",
+      "treatment": "production_modifier",
+      "vocabulary_ref": "FAC_EXT_SUN_EXPOSURE",
+      "affected_tasks": "Primer and application tasks on concrete (11 tasks)",
+      "effect": "shade=1.00, partial_sun=1.05, full_sun=1.15. Applied as time multiplier.",
+      "notes": "Horizontal surfaces absorb maximum solar radiation. Concrete can exceed 130F in direct sun. Full sun may force early morning or late afternoon work windows."
+    },
+    {
+      "condition_id": "surface_temperature",
+      "treatment": "production_modifier_with_block",
+      "vocabulary_ref": "FAC_EXT_SURFACE_TEMP",
+      "affected_tasks": "All coating tasks (13 tasks)",
+      "effect": "optimal=1.00, cold_surface=1.10, hot_surface=BLOCKED. Applied as time multiplier except BLOCKED.",
+      "notes": "Hot surface (>90F) is a hard stop — floor coatings fail immediately. Cold surface (<50F) extends cure and recoat windows."
+    }
+  ],
+
+  "dependencies": {
+    "research": "research.json",
+    "resolution": "resolution.json",
+    "sop_modules": "sop_modules.json",
+    "materials": "materials.json",
+    "production": "production.json",
+    "qa_report": "qa_report.json"
+  },
+
+  "doctrine_references": [
+    { "doctrine": "Exterior_Concrete_Masonry_Floors_Doctrine.md", "sections_used": ["Concrete substrate chemistry and pH", "Coating system options", "Surface profiling (acid etch vs diamond grind)", "Anti-slip requirements", "Moisture testing", "Failure modes"] },
+    { "doctrine": "Exterior_Decks_Horizontal_Wood_Doctrine.md", "sections_used": ["Wood porch floor prep", "Porch enamel application", "Mill glaze removal", "Moisture content verification"] },
+    { "doctrine": "Exterior_Primer_Systems_Doctrine.md", "sections_used": ["Alkali-resistant primer for concrete", "Exterior wood primer", "Moisture-mitigating primer contingency"] },
+    { "doctrine": "Exterior_Application_Methods_Doctrine.md", "sections_used": ["Roll application for floor coatings", "Spray_backroll coupling rule", "Spray-only prohibition on porous/horizontal surfaces"] },
+    { "doctrine": "Exterior_Protection_Doctrine_T3.md", "sections_used": ["Perimeter protection zones", "Application method-based protection escalation"] },
+    { "doctrine": "Exterior_Climate_Environmental_Conditions_Doctrine.md", "sections_used": ["Surface temperature limits", "Sun exposure effects on horizontal surfaces", "Dew point monitoring for open patios"] },
+    { "doctrine": "Exterior_Surface_Assessment_Doctrine.md", "sections_used": ["Concrete surface assessment", "Wood substrate assessment", "Moisture testing protocols"] }
+  ],
+
+  "research_corrections": [],
+
+  "user_corrections": [],
+
+  "assembly_metadata": {
+    "assembled_by": "Assembly Agent",
+    "assembled_at": "2026-03-10",
+    "spec_version": "0.1.0",
+    "pipeline_version": "1.0",
+    "input_artifacts": ["research.json", "resolution.json", "materials.json", "sop_modules.json", "production.json"],
+    "validation_checks": [
+      "36/36 tasks thread between sop_modules.json and production.json",
+      "9 modules match between SOP and spec summary",
+      "9 material systems match between materials.json and spec listing",
+      "5 round configurations cover all 10 substrate_type x coating_system x exposure_type variants",
+      "5 protection zones match resolution.json zone_ids",
+      "12 compatibility rules enforce all blocking/requiring constraints",
+      "10 variants cover full combinatorial space (2 substrate x 4 coating on concrete + 1 coating on wood) x 2 exposure",
+      "Maximum modifier stack 1.461x — well under 4.0x stacking cap",
+      "All PS keys use PS_EXT_* namespace — no interior contamination",
+      "Anti-slip aggregate mandatory enforcement via COMPAT-PRFL-008",
+      "Wood substrate correctly blocked from concrete-only coating systems (COMPAT-PRFL-001 through COMPAT-PRFL-003)",
+      "Epoxy excluded via COMPAT-PRFL-012",
+      "No height modifier — ground-level work confirmed"
+    ]
+  },
+
+  "change_log": [
+    {
+      "version": "0.1.0",
+      "date": "2026-03-10",
+      "author": "SpecFactory",
+      "changes": "Initial draft spec for exterior porch floor and patio coating. Dual-substrate (concrete + wood) single spec. coating_system replaces quality_tier as primary dimension (porch_enamel/concrete_stain/acrylic_sealer/polyurea). Epoxy excluded from v1. Key features: combined prime+finish (single mobilization), 2 substrate states (SS_EXT_BARE_MASONRY, SS_EXT_BARE_WOOD), 5 config dimensions (substrate_type, coating_system, exposure_type, has_steps, application_method), 9 material systems (4 primers incl. moisture-mitigating contingency + 5 finish/sealer), 36 tasks across 9 modules, 5 round configurations, 4 factor modifiers (coating_system, exposure_type, sun_exposure, surface_temp), 5 protection zones, 12 compatibility rules, 10 variants, 8 maintenance cycle entries. Anti-slip aggregate mandatory for all systems. No height modifier (ground-level). Maximum modifier stack 1.461x under 4.0x cap."
+    }
+  ]
+}

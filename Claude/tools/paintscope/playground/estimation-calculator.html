@@ -1,0 +1,1152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🖌️ PaintScope — Estimation Calculator</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg-left: #1e1f23;
+    --bg-right: #25262b;
+    --bg-card: #2c2d33;
+    --bg-hover: #33343b;
+    --border: #3a3b42;
+    --amber: #f59e0b;
+    --amber-dim: rgba(245,158,11,0.15);
+    --amber-border: rgba(245,158,11,0.35);
+    --text: #e8e9ed;
+    --text-muted: #9091a0;
+    --text-dim: #6b6c7a;
+    --purple: #a78bfa;
+    --purple-dim: rgba(167,139,250,0.15);
+    --green: #34d399;
+    --green-dim: rgba(52,211,153,0.13);
+    --blue: #60a5fa;
+    --blue-dim: rgba(96,165,250,0.13);
+    --red: #f87171;
+    --red-dim: rgba(248,113,113,0.13);
+    --radius: 6px;
+    --font: system-ui, -apple-system, sans-serif;
+    --mono: ui-monospace, 'Cascadia Code', monospace;
+  }
+
+  body {
+    font-family: var(--font);
+    background: #16171b;
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  header {
+    background: var(--bg-left);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  header h1 {
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--amber);
+    letter-spacing: -0.3px;
+  }
+  header span.sub {
+    font-size: 13px;
+    color: var(--text-muted);
+    font-weight: 400;
+  }
+
+  .layout {
+    display: grid;
+    grid-template-columns: 380px 1fr;
+    flex: 1;
+    min-height: 0;
+  }
+
+  /* ── LEFT PANEL ── */
+  .controls {
+    background: var(--bg-left);
+    border-right: 1px solid var(--border);
+    overflow-y: auto;
+    padding: 20px 18px 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .section-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 10px;
+  }
+
+  /* Presets */
+  .preset-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .preset-btn {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    border-radius: var(--radius);
+    padding: 5px 10px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: background 0.12s, color 0.12s, border-color 0.12s;
+  }
+  .preset-btn:hover { background: var(--bg-hover); color: var(--text); }
+  .preset-btn.active { background: var(--amber-dim); border-color: var(--amber-border); color: var(--amber); }
+
+  /* Form rows */
+  .field-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+  }
+  .field-row label {
+    font-size: 12px;
+    color: var(--text-muted);
+    min-width: 110px;
+    flex-shrink: 0;
+  }
+  .field-row label.wide { min-width: 140px; }
+
+  .dim-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+  .dim-group { display: flex; flex-direction: column; gap: 4px; }
+  .dim-group label { font-size: 11px; color: var(--text-dim); }
+  .dim-group input {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: var(--radius);
+    padding: 6px 8px;
+    font-size: 13px;
+    width: 100%;
+    font-family: var(--mono);
+  }
+  .dim-group input:focus { outline: none; border-color: var(--amber); }
+
+  select, input[type="number"] {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: var(--radius);
+    padding: 6px 8px;
+    font-size: 12px;
+    flex: 1;
+  }
+  select:focus, input[type="number"]:focus { outline: none; border-color: var(--amber); }
+
+  /* Checkboxes */
+  .check-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 6px;
+  }
+  .check-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 6px 8px;
+    cursor: pointer;
+    transition: background 0.1s;
+    user-select: none;
+  }
+  .check-item:hover { background: var(--bg-hover); }
+  .check-item.active { background: var(--amber-dim); border-color: var(--amber-border); }
+  .check-item input[type="checkbox"] { display: none; }
+  .check-dot {
+    width: 14px; height: 14px;
+    border-radius: 3px;
+    border: 1.5px solid var(--border);
+    flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .check-item.active .check-dot {
+    background: var(--amber);
+    border-color: var(--amber);
+  }
+  .check-dot svg { display: none; }
+  .check-item.active .check-dot svg { display: block; }
+  .check-item span { font-size: 11px; color: var(--text-muted); }
+  .check-item.active span { color: var(--text); }
+
+  /* Door/Window sub-row */
+  .item-row {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 10px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .item-title {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--amber);
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+  .inline-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .inline-row label { font-size: 11px; color: var(--text-dim); white-space: nowrap; }
+  .inline-row select, .inline-row input[type="number"] {
+    padding: 4px 6px;
+    font-size: 12px;
+  }
+  .inline-row input[type="number"] { width: 54px; flex: none; }
+
+  /* Toggle */
+  .toggle-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .toggle {
+    position: relative;
+    width: 32px; height: 18px;
+    flex-shrink: 0;
+  }
+  .toggle input { display: none; }
+  .toggle-track {
+    width: 100%; height: 100%;
+    background: var(--border);
+    border-radius: 9px;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .toggle input:checked + .toggle-track { background: var(--amber); }
+  .toggle-thumb {
+    position: absolute;
+    top: 2px; left: 2px;
+    width: 14px; height: 14px;
+    background: white;
+    border-radius: 50%;
+    transition: transform 0.15s;
+    pointer-events: none;
+  }
+  .toggle input:checked ~ .toggle-thumb { transform: translateX(14px); }
+  .toggle-label { font-size: 11px; color: var(--text-muted); }
+
+  /* Divider */
+  .divider { border: none; border-top: 1px solid var(--border); }
+
+  /* ── RIGHT PANEL ── */
+  .results {
+    background: var(--bg-right);
+    overflow-y: auto;
+    padding: 20px 22px 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  /* Quantity chips */
+  .qty-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+  }
+  .qty-chip {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 10px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+  .qty-chip .val {
+    font-size: 18px;
+    font-weight: 700;
+    font-family: var(--mono);
+    color: var(--text);
+    transition: color 0.2s;
+  }
+  .qty-chip .lbl { font-size: 10px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.5px; }
+  .qty-chip.band { border-color: var(--amber-border); background: var(--amber-dim); }
+  .qty-chip.band .val { color: var(--amber); font-size: 15px; }
+
+  /* Spec table */
+  .spec-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+  }
+  .spec-table th {
+    text-align: left;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.7px;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    padding: 6px 8px;
+    border-bottom: 1px solid var(--border);
+  }
+  .spec-table th.right { text-align: right; }
+  .spec-table td {
+    padding: 7px 8px;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    vertical-align: middle;
+  }
+  .spec-table td.right { text-align: right; font-family: var(--mono); }
+  .spec-table tr:nth-child(even) td { background: rgba(255,255,255,0.015); }
+  .spec-table tr.total-row td {
+    background: var(--amber-dim) !important;
+    border-top: 1px solid var(--amber-border);
+    font-weight: 700;
+    color: var(--amber);
+  }
+
+  .phase-badge {
+    display: inline-block;
+    border-radius: 3px;
+    padding: 1px 5px;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    margin-right: 4px;
+  }
+  .phase-prime { background: var(--purple-dim); color: var(--purple); }
+  .phase-finish { background: var(--green-dim); color: var(--green); }
+  .phase-trim { background: var(--blue-dim); color: var(--blue); }
+  .phase-opening { background: var(--red-dim); color: var(--red); }
+
+  .pct-bar {
+    display: inline-block;
+    height: 4px;
+    background: var(--amber);
+    border-radius: 2px;
+    vertical-align: middle;
+    opacity: 0.6;
+    transition: width 0.2s;
+  }
+
+  /* Warnings */
+  .warnings {
+    border: 1px solid var(--amber-border);
+    background: rgba(245,158,11,0.07);
+    border-radius: var(--radius);
+    padding: 10px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .warnings .warn-title {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--amber);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 2px;
+  }
+  .warn-item { font-size: 12px; color: #fcd34d; display: flex; gap: 6px; align-items: flex-start; }
+  .warn-item::before { content: '⚠'; font-size: 11px; flex-shrink: 0; margin-top: 1px; }
+
+  /* Modifier stack */
+  .mod-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .mod-chip {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 5px 10px;
+    font-size: 11px;
+    font-family: var(--mono);
+    color: var(--text-muted);
+    display: flex;
+    gap: 6px;
+    align-items: center;
+  }
+  .mod-chip .mod-val { color: var(--text); font-weight: 600; }
+
+  /* Collapsible */
+  .collapsible { border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+  .collapsible-header {
+    background: var(--bg-card);
+    padding: 9px 12px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-muted);
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    user-select: none;
+  }
+  .collapsible-header:hover { color: var(--text); }
+  .collapsible-header .chevron { transition: transform 0.2s; }
+  .collapsible-header.open .chevron { transform: rotate(90deg); }
+  .collapsible-body {
+    display: none;
+    padding: 12px;
+    background: var(--bg-left);
+    font-size: 11px;
+    font-family: var(--mono);
+    color: var(--text-muted);
+    white-space: pre-wrap;
+    line-height: 1.5;
+    max-height: 280px;
+    overflow-y: auto;
+  }
+  .collapsible-body.open { display: block; }
+
+  /* Prompt output */
+  .prompt-box {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px;
+  }
+  .prompt-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 8px;
+  }
+  #prompt-text {
+    font-size: 13px;
+    line-height: 1.6;
+    color: var(--text);
+    min-height: 60px;
+  }
+  .copy-btn {
+    margin-top: 12px;
+    background: var(--amber);
+    color: #1a1a1a;
+    border: none;
+    border-radius: var(--radius);
+    padding: 7px 16px;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: opacity 0.15s;
+    letter-spacing: 0.3px;
+  }
+  .copy-btn:hover { opacity: 0.85; }
+  .copy-btn.copied { background: var(--green); }
+
+  /* No specs */
+  .empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text-dim);
+    font-size: 13px;
+  }
+  .empty-state .icon { font-size: 32px; margin-bottom: 8px; }
+
+  @media (max-width: 800px) {
+    .layout { grid-template-columns: 1fr; }
+    .controls { border-right: none; border-bottom: 1px solid var(--border); }
+    .qty-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🖌️ PaintScope</h1>
+  <span class="sub">— Estimation Calculator Playground</span>
+</header>
+
+<div class="layout">
+
+  <!-- ═══════════════════════════════════════════
+       LEFT: CONTROLS
+  ══════════════════════════════════════════════ -->
+  <div class="controls">
+
+    <!-- Presets -->
+    <div>
+      <div class="section-label">Room Preset</div>
+      <div class="preset-row" id="preset-row"></div>
+    </div>
+
+    <!-- Dimensions -->
+    <div>
+      <div class="section-label">Room Dimensions</div>
+      <div class="dim-row">
+        <div class="dim-group"><label>Length (ft)</label><input type="number" id="dim-l" min="4" max="100" value="12"></div>
+        <div class="dim-group"><label>Width (ft)</label><input type="number" id="dim-w" min="4" max="100" value="12"></div>
+        <div class="dim-group"><label>Height (ft)</label><input type="number" id="dim-h" min="6" max="50" value="8"></div>
+      </div>
+    </div>
+
+    <hr class="divider">
+
+    <!-- Quality + Method -->
+    <div>
+      <div class="section-label">Project Settings</div>
+      <div class="field-row">
+        <label>Quality Tier</label>
+        <select id="quality-tier">
+          <option value="QT2">QT2 — Economy</option>
+          <option value="QT3" selected>QT3 — Standard</option>
+          <option value="QT4">QT4 — Premium</option>
+          <option value="QT5">QT5 — Fine Finish</option>
+        </select>
+      </div>
+      <div class="field-row">
+        <label>Application Method</label>
+        <select id="app-method">
+          <option value="spray_backroll" selected>Spray + Backroll</option>
+          <option value="roll">Roll</option>
+          <option value="spray">Spray Only</option>
+          <option value="brush">Brush</option>
+        </select>
+      </div>
+    </div>
+
+    <hr class="divider">
+
+    <!-- Substrate States -->
+    <div>
+      <div class="section-label">Substrate States</div>
+      <div class="field-row">
+        <label class="wide">Walls &amp; Ceiling</label>
+        <select id="wall-state">
+          <option value="bare_drywall" selected>Bare Drywall</option>
+          <option value="field_primed">Field Primed</option>
+          <option value="previously_painted">Previously Painted</option>
+        </select>
+      </div>
+      <div class="field-row">
+        <label class="wide">Trim &amp; Door Frames</label>
+        <select id="trim-state">
+          <option value="factory_primed" selected>Factory Primed</option>
+          <option value="field_primed">Field Primed</option>
+          <option value="bare_wood">Bare Wood</option>
+          <option value="previously_painted">Previously Painted</option>
+        </select>
+      </div>
+      <div class="field-row">
+        <label class="wide">Door Slabs</label>
+        <select id="door-state">
+          <option value="factory_primed" selected>Factory Primed</option>
+          <option value="bare_wood">Bare Wood</option>
+          <option value="previously_painted">Previously Painted</option>
+        </select>
+      </div>
+      <div class="field-row">
+        <label class="wide">Windows</label>
+        <select id="window-state">
+          <option value="bare_wood" selected>Bare Wood</option>
+          <option value="factory_primed">Factory Primed</option>
+          <option value="vinyl_clad">Vinyl Clad (not paintable)</option>
+          <option value="previously_painted">Previously Painted</option>
+        </select>
+      </div>
+    </div>
+
+    <hr class="divider">
+
+    <!-- Substrates -->
+    <div>
+      <div class="section-label">Surfaces to Paint</div>
+      <div class="check-grid" id="substrate-checks"></div>
+    </div>
+
+    <hr class="divider">
+
+    <!-- Doors -->
+    <div>
+      <div class="section-label">Doors</div>
+      <div class="item-row">
+        <div class="item-title">Door Slabs</div>
+        <div class="inline-row">
+          <label>Count</label>
+          <input type="number" id="door-count" min="0" max="20" value="1">
+          <label>Type</label>
+          <select id="door-type">
+            <option value="flush">Flush / Slab (×0.74)</option>
+            <option value="panel_4">4-Panel (×0.93)</option>
+            <option value="panel_6" selected>6-Panel (×1.00)</option>
+            <option value="french">French (×1.48)</option>
+            <option value="bifold">Bifold (×0.52)</option>
+            <option value="louvered">Louvered (×1.85)</option>
+          </select>
+        </div>
+        <div class="inline-row">
+          <label>Sides / door</label>
+          <input type="number" id="door-sides" min="1" max="2" value="2">
+        </div>
+      </div>
+    </div>
+
+    <hr class="divider">
+
+    <!-- Windows -->
+    <div>
+      <div class="section-label">Windows</div>
+      <div class="item-row">
+        <div class="item-title">Window Units</div>
+        <div class="inline-row">
+          <label>Count</label>
+          <input type="number" id="win-count" min="0" max="30" value="2">
+          <label>Type</label>
+          <select id="win-type">
+            <option value="double_hung" selected>Double Hung (×1.00)</option>
+            <option value="casement">Casement (×0.96)</option>
+            <option value="fixed">Fixed (×0.78)</option>
+            <option value="slider">Slider (×0.96)</option>
+          </select>
+        </div>
+        <div class="inline-row">
+          <label>Size</label>
+          <select id="win-size">
+            <option value="S">S — Small (×0.75)</option>
+            <option value="M" selected>M — Standard (×1.00)</option>
+            <option value="L">L — Large (×1.40)</option>
+            <option value="XL">XL — Oversized (×2.00)</option>
+          </select>
+        </div>
+        <div class="toggle-row">
+          <label class="toggle">
+            <input type="checkbox" id="win-muntins">
+            <div class="toggle-track"></div>
+            <div class="toggle-thumb"></div>
+          </label>
+          <span class="toggle-label">True Divided Lights / Muntins (+20% time)</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ═══════════════════════════════════════════
+       RIGHT: RESULTS
+  ══════════════════════════════════════════════ -->
+  <div class="results">
+
+    <!-- Derived quantities -->
+    <div>
+      <div class="section-label">Derived Quantities</div>
+      <div class="qty-grid" id="qty-grid"></div>
+    </div>
+
+    <!-- Warnings -->
+    <div id="warnings-section" style="display:none">
+      <div class="warnings">
+        <div class="warn-title">Warnings</div>
+        <div id="warnings-list"></div>
+      </div>
+    </div>
+
+    <!-- Spec table -->
+    <div>
+      <div class="section-label">Activated Specs</div>
+      <div id="spec-table-wrap"></div>
+    </div>
+
+    <!-- Modifier stack -->
+    <div>
+      <div class="section-label">Modifier Stack</div>
+      <div class="mod-grid" id="mod-grid"></div>
+    </div>
+
+    <!-- Collapsibles -->
+    <div class="collapsible" id="state-collapse">
+      <div class="collapsible-header" onclick="toggleCollapse('state-collapse')">
+        Raw State (JSON) <span class="chevron">▶</span>
+      </div>
+      <div class="collapsible-body" id="state-body"></div>
+    </div>
+
+    <!-- Prompt output -->
+    <div class="prompt-box">
+      <div class="prompt-label">Generated Prompt</div>
+      <div id="prompt-text"></div>
+      <button class="copy-btn" id="copy-btn" onclick="copyPrompt()">Copy Prompt</button>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+// DATA
+// ═══════════════════════════════════════════════════════════
+
+const PRESETS = {
+  bedroom:  { label: 'Bedroom',     l: 12, w: 12, h: 8,  wall_state: 'bare_drywall',   doors: 1, door_type: 'panel_6',   wins: 2, win_type: 'double_hung', win_size: 'M', subs: ['walls','ceiling','baseboard'] },
+  kitchen:  { label: 'Kitchen',     l: 14, w: 16, h: 9,  wall_state: 'bare_drywall',   doors: 2, door_type: 'panel_6',   wins: 3, win_type: 'double_hung', win_size: 'M', subs: ['walls','ceiling','baseboard','crown'] },
+  living:   { label: 'Living Room', l: 16, w: 20, h: 9,  wall_state: 'bare_drywall',   doors: 1, door_type: 'panel_6',   wins: 4, win_type: 'double_hung', win_size: 'L', subs: ['walls','ceiling','baseboard','crown'] },
+  bathroom: { label: 'Bathroom',    l: 8,  w: 10, h: 8,  wall_state: 'bare_drywall',   doors: 1, door_type: 'panel_6',   wins: 1, win_type: 'double_hung', win_size: 'S', subs: ['walls','ceiling','baseboard'] },
+  hallway:  { label: 'Hallway',     l: 4,  w: 20, h: 8,  wall_state: 'bare_drywall',   doors: 0, door_type: 'panel_6',   wins: 0, win_type: 'double_hung', win_size: 'M', subs: ['walls','ceiling','baseboard'] },
+};
+
+const SUBSTRATES = [
+  { id: 'walls',       label: 'Walls' },
+  { id: 'ceiling',     label: 'Ceiling' },
+  { id: 'baseboard',   label: 'Baseboard' },
+  { id: 'crown',       label: 'Crown' },
+  { id: 'door_casing', label: 'Dr Casing' },
+  { id: 'win_casing',  label: 'Win Casing' },
+];
+
+const QT_MOD = { QT2: 0.75, QT3: 1.00, QT4: 1.35, QT5: 1.75 };
+const APP_MOD = { spray_backroll: 1.00, roll: 1.15, spray: 0.85, brush: 1.40 };
+const HEIGHT_BAND = (h) => h >= 25 ? { band:'LIFT', mod:1.6 } : h >= 18 ? { band:'SCAFFOLD', mod:1.4 } : h >= 13 ? { band:'EXT', mod:1.2 } : h >= 10 ? { band:'STEP', mod:1.1 } : { band:'STD', mod:1.0 };
+
+const BASE_RATES = {
+  wall_prime:    220, // SF/hr
+  wall_finish:   350,
+  ceil_prime:    200,
+  ceil_finish:   320,
+  trim_prime:     90, // LF/hr
+  trim_paint:    110,
+  door_casing:    12, // EA/hr
+  door_slab:     3.5, // EA_SIDE/hr at panel_6 baseline
+  window:        2.8, // EA/hr at double_hung M baseline
+};
+
+const DOOR_TYPE_MOD = { flush: 0.74, panel_4: 0.93, panel_6: 1.0, french: 1.48, bifold: 0.52, louvered: 1.85 };
+const WIN_TYPE_MOD  = { double_hung: 1.0, casement: 0.96, fixed: 0.78, slider: 0.96 };
+const WIN_SIZE_MOD  = { S: 0.75, M: 1.0, L: 1.40, XL: 2.0 };
+
+// ═══════════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════════
+
+const state = {
+  l: 12, w: 12, h: 8,
+  quality_tier: 'QT3',
+  app_method: 'spray_backroll',
+  wall_state: 'bare_drywall',
+  trim_state: 'factory_primed',
+  door_state: 'factory_primed',
+  window_state: 'bare_wood',
+  subs: new Set(['walls','ceiling','baseboard']),
+  door_count: 1,
+  door_type: 'panel_6',
+  door_sides: 2,
+  win_count: 2,
+  win_type: 'double_hung',
+  win_size: 'M',
+  win_muntins: false,
+  activePreset: 'bedroom',
+};
+
+// ═══════════════════════════════════════════════════════════
+// BUILD SUBSTRATE CHECKBOXES
+// ═══════════════════════════════════════════════════════════
+function buildSubstrateChecks() {
+  const el = document.getElementById('substrate-checks');
+  el.innerHTML = SUBSTRATES.map(s => `
+    <label class="check-item ${state.subs.has(s.id) ? 'active' : ''}" id="chk-${s.id}" onclick="toggleSub('${s.id}')">
+      <input type="checkbox" ${state.subs.has(s.id) ? 'checked' : ''}>
+      <div class="check-dot">
+        <svg width="10" height="8" viewBox="0 0 10 8" fill="none">
+          <path d="M1 4L4 7L9 1" stroke="#1a1a1a" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <span>${s.label}</span>
+    </label>
+  `).join('');
+}
+
+function buildPresets() {
+  const el = document.getElementById('preset-row');
+  el.innerHTML = Object.entries(PRESETS).map(([k,p]) => `
+    <button class="preset-btn ${state.activePreset === k ? 'active' : ''}" id="preset-${k}" onclick="applyPreset('${k}')">${p.label}</button>
+  `).join('');
+}
+
+// ═══════════════════════════════════════════════════════════
+// COMPUTE
+// ═══════════════════════════════════════════════════════════
+function compute() {
+  const { l, w, h, quality_tier, app_method, wall_state, trim_state, door_state, window_state, subs } = state;
+  const { door_count, door_type, door_sides, win_count, win_type, win_size, win_muntins } = state;
+
+  const perimeter = 2 * (l + w);
+  const wallGross = perimeter * h;
+  const openingDeduction = door_count * 21 + win_count * 15;
+  const wallNet = Math.max(0, wallGross - openingDeduction);
+  const ceilingSF = l * w;
+  const baseboardLF = perimeter;
+  const crownLF = perimeter;
+  const doorCasingLF = door_count * 17;
+  const winCasingLF = win_count * 12;
+
+  const hb = HEIGHT_BAND(h);
+  const qtMod = QT_MOD[quality_tier] || 1.0;
+  const appMod = APP_MOD[app_method] || 1.0;
+  const hMod = hb.mod;
+
+  const warnings = [];
+  const specs = [];
+
+  // Helper: surface hours
+  const surfHrs = (qty, baseRate) => (qty / (baseRate * appMod)) * qtMod * hMod;
+
+  // ── Wall specs ──
+  if (subs.has('walls') && wallNet > 0) {
+    if (wall_state === 'bare_drywall') {
+      specs.push({ id:'SF_DRYWALL_WALL_NC_PRIME', name:'Walls (Prime)', phase:'prime', qty: wallNet, unit:'SF', hrs: surfHrs(wallNet, BASE_RATES.wall_prime) });
+    } else if (['field_primed','previously_painted','factory_primed'].includes(wall_state)) {
+      specs.push({ id:'SF_DRYWALL_WALL_NC_FINISH', name:'Walls (Finish)', phase:'finish', qty: wallNet, unit:'SF', hrs: surfHrs(wallNet, BASE_RATES.wall_finish) });
+    }
+  } else if (subs.has('walls') && wallNet <= 0) {
+    warnings.push('Wall net SF is zero — opening deductions exceed gross wall area.');
+  }
+
+  // ── Ceiling specs ──
+  if (subs.has('ceiling') && ceilingSF > 0) {
+    if (wall_state === 'bare_drywall') {
+      specs.push({ id:'SF_DRYWALL_CEILING_NC_PRIME', name:'Ceiling (Prime)', phase:'prime', qty: ceilingSF, unit:'SF', hrs: surfHrs(ceilingSF, BASE_RATES.ceil_prime) });
+    } else if (['field_primed','previously_painted','factory_primed'].includes(wall_state)) {
+      specs.push({ id:'SF_DRYWALL_CEILING_NC_FINISH', name:'Ceiling (Finish)', phase:'finish', qty: ceilingSF, unit:'SF', hrs: surfHrs(ceilingSF, BASE_RATES.ceil_finish) });
+    }
+  }
+
+  // ── Trim: baseboard / crown ──
+  const hasTrim = subs.has('baseboard') || subs.has('crown');
+  if (hasTrim) {
+    const trimQty = (subs.has('baseboard') ? baseboardLF : 0) + (subs.has('crown') ? crownLF : 0);
+    if (trim_state === 'factory_primed') {
+      specs.push({ id:'SF_TRIM_NC_PRIME', name:'Trim (Prime)', phase:'prime', qty: trimQty, unit:'LF', hrs: (trimQty / BASE_RATES.trim_prime) * qtMod * hMod });
+    } else if (['field_primed','bare_wood'].includes(trim_state)) {
+      specs.push({ id:'SF_TRIM_NC_PAINT', name:'Trim (Paint)', phase:'trim', qty: trimQty, unit:'LF', hrs: (trimQty / BASE_RATES.trim_paint) * qtMod * hMod });
+    } else if (trim_state === 'previously_painted') {
+      specs.push({ id:'SF_TRIM_NC_PAINT', name:'Trim (Repaint)', phase:'trim', qty: trimQty, unit:'LF', hrs: (trimQty / BASE_RATES.trim_paint) * qtMod * hMod });
+    }
+  }
+
+  // ── Door casing ──
+  if (subs.has('door_casing') && door_count > 0) {
+    if (['factory_primed','field_primed','bare_wood'].includes(trim_state)) {
+      specs.push({ id:'SF_DOOR_FRAME_NC_FINISH', name:'Door Frames', phase:'trim', qty: door_count, unit:'EA', hrs: (door_count / BASE_RATES.door_casing) * qtMod * hMod });
+    }
+  }
+
+  // ── Window casing ──
+  if (subs.has('win_casing') && win_count > 0) {
+    const wcLF = winCasingLF;
+    if (['factory_primed','field_primed','bare_wood'].includes(trim_state)) {
+      specs.push({ id:'SF_WIN_CASING', name:'Window Casings', phase:'trim', qty: wcLF, unit:'LF', hrs: (wcLF / BASE_RATES.trim_paint) * qtMod * hMod });
+    }
+  }
+
+  // ── Door slabs ──
+  if (door_count > 0) {
+    if (['factory_primed','bare_wood'].includes(door_state)) {
+      const dtMod = DOOR_TYPE_MOD[door_type] || 1.0;
+      const dHrs = (door_count * door_sides) / (BASE_RATES.door_slab * dtMod) * qtMod * hMod;
+      specs.push({ id:'SF_DOOR_SLAB_INT_NC', name:`Door Slabs (${door_type.replace(/_/g,' ')})`, phase:'opening', qty: door_count * door_sides, unit:'EA_SIDE', hrs: dHrs });
+    } else if (door_state === 'previously_painted') {
+      warnings.push('Door slabs are previously painted — no NC spec available. Add a repaint spec manually.');
+    }
+  }
+
+  // ── Windows ──
+  if (win_count > 0) {
+    if (window_state === 'vinyl_clad') {
+      warnings.push('Vinyl clad windows are NOT paintable — 0 window hours calculated. Remove windows from scope or change substrate.');
+    } else if (['bare_wood','factory_primed'].includes(window_state)) {
+      const wtMod = WIN_TYPE_MOD[win_type] || 1.0;
+      const wsMod = WIN_SIZE_MOD[win_size] || 1.0;
+      const muntinMod = win_muntins ? 1.20 : 1.0;
+      const wHrs = (win_count / (BASE_RATES.window * wtMod * wsMod)) * qtMod * hMod * muntinMod;
+      specs.push({ id:'SF_WINDOW_INT_NC', name:`Windows (${win_type.replace(/_/g,' ')}, ${win_size})${win_muntins ? ' +TDL' : ''}`, phase:'opening', qty: win_count, unit:'EA', hrs: wHrs });
+    } else if (window_state === 'previously_painted') {
+      warnings.push('Previously painted windows — no NC spec available. Repaint spec not yet modeled in this playground.');
+    }
+  }
+
+  if (specs.length === 0) {
+    warnings.push('No specs activated — check that substrates are selected and substrate states are compatible.');
+  }
+
+  const totalHours = specs.reduce((s, sp) => s + sp.hrs, 0);
+  const crewDays = totalHours / 8 / 2;
+
+  return {
+    geometry: { perimeter, wallNet, wallGross, ceilingSF, baseboardLF, crownLF, doorCasingLF, winCasingLF, openingDeduction },
+    heightBand: hb,
+    qtMod, appMod,
+    specs,
+    totalHours,
+    crewDays,
+    warnings,
+  };
+}
+
+// ═══════════════════════════════════════════════════════════
+// RENDER
+// ═══════════════════════════════════════════════════════════
+function renderPreview() {
+  const r = compute();
+
+  // Quantity chips
+  const qg = document.getElementById('qty-grid');
+  const chips = [
+    { val: Math.round(r.geometry.wallNet), lbl: 'Wall SF (net)' },
+    { val: Math.round(r.geometry.ceilingSF), lbl: 'Ceiling SF' },
+    { val: Math.round(r.geometry.perimeter), lbl: 'Perimeter (LF)' },
+    { val: r.heightBand.band, lbl: `Height Band (×${r.heightBand.mod})`, isBand: true },
+  ];
+  qg.innerHTML = chips.map(c => `
+    <div class="qty-chip ${c.isBand ? 'band' : ''}">
+      <div class="val">${c.val}</div>
+      <div class="lbl">${c.lbl}</div>
+    </div>
+  `).join('');
+
+  // Warnings
+  const ws = document.getElementById('warnings-section');
+  const wl = document.getElementById('warnings-list');
+  if (r.warnings.length > 0) {
+    ws.style.display = '';
+    wl.innerHTML = r.warnings.map(w => `<div class="warn-item">${w}</div>`).join('');
+  } else {
+    ws.style.display = 'none';
+  }
+
+  // Spec table
+  const stw = document.getElementById('spec-table-wrap');
+  if (r.specs.length === 0) {
+    stw.innerHTML = `<div class="empty-state"><div class="icon">🪣</div>No specs activated — select substrates and check substrate states.</div>`;
+  } else {
+    const total = r.totalHours;
+    const rows = r.specs.map(sp => {
+      const pct = total > 0 ? (sp.hrs / total * 100) : 0;
+      const phaseCls = sp.phase === 'prime' ? 'phase-prime' : sp.phase === 'finish' ? 'phase-finish' : sp.phase === 'trim' ? 'phase-trim' : 'phase-opening';
+      return `<tr>
+        <td>
+          <span class="phase-badge ${phaseCls}">${sp.phase}</span>${sp.name}
+        </td>
+        <td class="right">${sp.qty % 1 === 0 ? sp.qty : sp.qty.toFixed(1)}</td>
+        <td class="right" style="color:var(--text-muted)">${sp.unit}</td>
+        <td class="right">${sp.hrs.toFixed(2)}h</td>
+        <td class="right"><span class="pct-bar" style="width:${Math.round(pct * 0.7)}px"></span> ${pct.toFixed(0)}%</td>
+      </tr>`;
+    }).join('');
+    stw.innerHTML = `
+      <table class="spec-table">
+        <thead>
+          <tr>
+            <th>Spec</th>
+            <th class="right">Qty</th>
+            <th class="right">Unit</th>
+            <th class="right">Hours</th>
+            <th class="right">% Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rows}
+          <tr class="total-row">
+            <td colspan="3"><strong>TOTAL</strong></td>
+            <td class="right"><strong>${r.totalHours.toFixed(2)}h</strong></td>
+            <td class="right"><strong>${r.crewDays.toFixed(1)} crew-days</strong></td>
+          </tr>
+        </tbody>
+      </table>
+    `;
+  }
+
+  // Modifier stack
+  const mg = document.getElementById('mod-grid');
+  mg.innerHTML = [
+    { lbl: 'Height Band', val: `${r.heightBand.band} × ${r.heightBand.mod}` },
+    { lbl: 'Quality Tier', val: `${state.quality_tier} × ${r.qtMod}` },
+    { lbl: 'App Method', val: `${state.app_method.replace('_',' ')} × ${r.appMod}` },
+    { lbl: 'Combined (surface)', val: `×${(r.heightBand.mod * r.qtMod * r.appMod).toFixed(3)}` },
+    { lbl: 'Combined (doors/wins)', val: `×${(r.heightBand.mod * r.qtMod).toFixed(3)}` },
+  ].map(m => `<div class="mod-chip">${m.lbl}: <span class="mod-val">${m.val}</span></div>`).join('');
+
+  // Raw state
+  document.getElementById('state-body').textContent = JSON.stringify({
+    dimensions: { l: state.l, w: state.w, h: state.h },
+    quality_tier: state.quality_tier,
+    app_method: state.app_method,
+    wall_state: state.wall_state,
+    trim_state: state.trim_state,
+    door_state: state.door_state,
+    window_state: state.window_state,
+    substrates: [...state.subs],
+    doors: { count: state.door_count, type: state.door_type, sides: state.door_sides },
+    windows: { count: state.win_count, type: state.win_type, size: state.win_size, muntins: state.win_muntins },
+    computed: {
+      wall_net_sf: Math.round(r.geometry.wallNet),
+      ceiling_sf: Math.round(r.geometry.ceilingSF),
+      perimeter_lf: Math.round(r.geometry.perimeter),
+      height_band: r.heightBand.band,
+      total_hours: r.totalHours.toFixed(2),
+      crew_days: r.crewDays.toFixed(1),
+    }
+  }, null, 2);
+}
+
+function updatePrompt() {
+  const r = compute();
+  const parts = [];
+
+  // Room description
+  parts.push(`a ${state.l}×${state.w}×${state.h}ft room`);
+
+  // What's being painted
+  const subLabels = [...state.subs].map(s => SUBSTRATES.find(x => x.id === s)?.label || s);
+  if (subLabels.length) parts.push(`painting ${subLabels.join(', ').toLowerCase()}`);
+
+  // Substrate states (only non-default)
+  if (state.wall_state !== 'bare_drywall') parts.push(`walls/ceiling in ${state.wall_state.replace(/_/g,' ')} condition`);
+  if (state.trim_state !== 'factory_primed') parts.push(`trim in ${state.trim_state.replace(/_/g,' ')} condition`);
+
+  // QT (only non-default)
+  if (state.quality_tier !== 'QT3') parts.push(`${state.quality_tier} quality tier`);
+
+  // App method (only non-default)
+  if (state.app_method !== 'spray_backroll') parts.push(`${state.app_method.replace(/_/g,' ')} application`);
+
+  // Doors
+  if (state.door_count > 0) {
+    const dtLabel = { flush:'flush', panel_4:'4-panel', panel_6:'6-panel', french:'French', bifold:'bifold', louvered:'louvered' }[state.door_type];
+    parts.push(`${state.door_count} ${dtLabel} door${state.door_count > 1 ? 's' : ''} (${state.door_sides} side${state.door_sides > 1 ? 's' : ''} each)`);
+  }
+
+  // Windows
+  if (state.win_count > 0) {
+    const wtLabel = state.win_type.replace(/_/g,' ');
+    const wsLabel = { S:'small', M:'standard', L:'large', XL:'oversized' }[state.win_size];
+    const muntinNote = state.win_muntins ? ' with true divided lights' : '';
+    parts.push(`${state.win_count} ${wsLabel} ${wtLabel} window${state.win_count > 1 ? 's' : ''}${muntinNote}`);
+    if (state.window_state === 'vinyl_clad') parts.push('NOTE: vinyl clad windows cannot be painted');
+  }
+
+  // Result summary
+  const resultNote = r.totalHours > 0
+    ? `Estimated ${r.totalHours.toFixed(1)} total hours (${r.crewDays.toFixed(1)} crew-days at 2 painters × 8hr). Activated specs: ${r.specs.map(s => s.name).join(', ')}.`
+    : 'No specs activated with current settings.';
+
+  const text = `Estimate a new construction interior paint job for ${parts.join(', ')}. ${resultNote}`;
+  document.getElementById('prompt-text').textContent = text;
+}
+
+function updateAll() {
+  renderPreview();
+  updatePrompt();
+}
+
+// ═══════════════════════════════════════════════════════════
+// INTERACTIONS
+// ═══════════════════════════════════════════════════════════
+function bindInputs() {
+  document.getElementById('dim-l').addEventListener('input', e => { state.l = +e.target.value || 12; state.activePreset = null; refreshPresetBtns(); updateAll(); });
+  document.getElementById('dim-w').addEventListener('input', e => { state.w = +e.target.value || 12; state.activePreset = null; refreshPresetBtns(); updateAll(); });
+  document.getElementById('dim-h').addEventListener('input', e => { state.h = +e.target.value || 8; state.activePreset = null; refreshPresetBtns(); updateAll(); });
+  document.getElementById('quality-tier').addEventListener('change', e => { state.quality_tier = e.target.value; updateAll(); });
+  document.getElementById('app-method').addEventListener('change', e => { state.app_method = e.target.value; updateAll(); });
+  document.getElementById('wall-state').addEventListener('change', e => { state.wall_state = e.target.value; updateAll(); });
+  document.getElementById('trim-state').addEventListener('change', e => { state.trim_state = e.target.value; updateAll(); });
+  document.getElementById('door-state').addEventListener('change', e => { state.door_state = e.target.value; updateAll(); });
+  document.getElementById('window-state').addEventListener('change', e => { state.window_state = e.target.value; updateAll(); });
+  document.getElementById('door-count').addEventListener('input', e => { state.door_count = Math.max(0, +e.target.value || 0); updateAll(); });
+  document.getElementById('door-type').addEventListener('change', e => { state.door_type = e.target.value; updateAll(); });
+  document.getElementById('door-sides').addEventListener('input', e => { state.door_sides = Math.max(1, Math.min(2, +e.target.value || 2)); updateAll(); });
+  document.getElementById('win-count').addEventListener('input', e => { state.win_count = Math.max(0, +e.target.value || 0); updateAll(); });
+  document.getElementById('win-type').addEventListener('change', e => { state.win_type = e.target.value; updateAll(); });
+  document.getElementById('win-size').addEventListener('change', e => { state.win_size = e.target.value; updateAll(); });
+  document.getElementById('win-muntins').addEventListener('change', e => { state.win_muntins = e.target.checked; updateAll(); });
+}
+
+function toggleSub(id) {
+  if (state.subs.has(id)) state.subs.delete(id);
+  else state.subs.add(id);
+  buildSubstrateChecks();
+  updateAll();
+}
+
+function applyPreset(key) {
+  const p = PRESETS[key];
+  if (!p) return;
+  state.l = p.l; state.w = p.w; state.h = p.h;
+  state.wall_state = p.wall_state;
+  state.subs = new Set(p.subs);
+  state.door_count = p.doors;
+  state.door_type = p.door_type;
+  state.win_count = p.wins;
+  state.win_type = p.win_type;
+  state.win_size = p.win_size;
+  state.win_muntins = false;
+  state.activePreset = key;
+
+  // Sync DOM
+  document.getElementById('dim-l').value = p.l;
+  document.getElementById('dim-w').value = p.w;
+  document.getElementById('dim-h').value = p.h;
+  document.getElementById('wall-state').value = p.wall_state;
+  document.getElementById('door-count').value = p.doors;
+  document.getElementById('door-type').value = p.door_type;
+  document.getElementById('win-count').value = p.wins;
+  document.getElementById('win-type').value = p.win_type;
+  document.getElementById('win-size').value = p.win_size;
+  document.getElementById('win-muntins').checked = false;
+  buildSubstrateChecks();
+  refreshPresetBtns();
+  updateAll();
+}
+
+function refreshPresetBtns() {
+  document.querySelectorAll('.preset-btn').forEach(btn => {
+    const key = btn.id.replace('preset-', '');
+    btn.classList.toggle('active', state.activePreset === key);
+  });
+}
+
+function toggleCollapse(id) {
+  const header = document.querySelector(`#${id} .collapsible-header`);
+  const body = document.querySelector(`#${id} .collapsible-body`);
+  header.classList.toggle('open');
+  body.classList.toggle('open');
+}
+
+function copyPrompt() {
+  const text = document.getElementById('prompt-text').textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.getElementById('copy-btn');
+    btn.textContent = 'Copied!';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'Copy Prompt'; btn.classList.remove('copied'); }, 1800);
+  });
+}
+
+// ═══════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════
+buildPresets();
+buildSubstrateChecks();
+bindInputs();
+updateAll();
+</script>
+</body>
+</html>

@@ -1,0 +1,770 @@
+{
+  "spec_family": {
+    "id": "SF_WINDOW_EXT_NC",
+    "name": "Exterior Window Prime and Paint",
+    "description": "EA-based spec with size bucket method (S/M/L). Three cladding types (wood/aluminum-clad/vinyl-clad) with cladding-driven primer selection. Window type (awning through bow) is primary production rate driver. Brush is primary application method. 1/16\" glass lap for weather seal. Low-E glass liquid masking prohibited. Sash sequence module prevents double-hung blocking. Window casing belongs to SF_TRIM_EXT_NC_v1.",
+    "domain": "exterior",
+    "version": "0.1.0",
+    "status": "draft",
+    "review_required": true
+  },
+
+  "scope_boundaries": {
+    "includes": [
+      "Window frame painting (all cladding types)",
+      "Window sash painting (all operable and fixed types)",
+      "Muntin bar painting (TDL and SDL types)",
+      "Jamb extension painting",
+      "Stool and apron painting",
+      "Glass masking (tape-and-film or liquid mask per Low-E status and muntin type)",
+      "Hardware removal and reinstallation (locks, lifts, sash pulls, crank handles)",
+      "Weatherstrip protection (removal or deep-taping)",
+      "Sill protection (when already finished)",
+      "Adjacent casing protection (when already finished)",
+      "Adjacent siding masking (spray only)",
+      "Cladding-driven surface preparation (wood sand/fill, aluminum scuff-sand/wash, vinyl clean)",
+      "Cladding-driven primer application (acrylic for wood, corrosion-inhibiting for aluminum, PVC bonding for vinyl, tannin spot for wood knots)",
+      "Two finish coats (standard or premium acrylic trim enamel, or VinylSafe IR-reflective for vinyl-clad LRV < 55)",
+      "Intercoat inspection, sanding (QT4/QT5), and touch-up",
+      "Sash sequence for double-hung blocking prevention (reversal, dry posture, periodic movement, channel lubrication)",
+      "Glass cleanup — razor scrape excess paint beyond 1/16\" glass lap line"
+    ],
+    "excludes": [
+      {
+        "item": "Window casing prep, prime, and paint",
+        "route_to": "SF_TRIM_EXT_NC_v1"
+      },
+      {
+        "item": "Interior window surfaces (stool interior face, interior jamb)",
+        "route_to": "SF_WINDOW_INT_NC_v1"
+      },
+      {
+        "item": "Glass masking during whole-house spray operations (siding/trim context)",
+        "route_to": "SF_SIDING_* or SF_TRIM_EXT_NC_v1 protection responsibility"
+      },
+      {
+        "item": "Structural wood repairs (rot, frame damage)",
+        "route_to": "Carpentry scope"
+      },
+      {
+        "item": "Full reglazing (traditional putty replacement)",
+        "route_to": "Conditional add-on — separate scope"
+      },
+      {
+        "item": "Glass replacement",
+        "route_to": "Glazier scope"
+      },
+      {
+        "item": "Screen painting",
+        "route_to": "Not a painting scope item"
+      },
+      {
+        "item": "Hardware replacement",
+        "route_to": "Hardware/locksmith scope"
+      },
+      {
+        "item": "Roller application",
+        "route_to": "PROHIBITED — not valid for window components"
+      },
+      {
+        "item": "QT2 quality tier",
+        "route_to": "EXCLUDED — exterior windows are visible architectural elements requiring minimum QT3"
+      }
+    ]
+  },
+
+  "configuration_dimensions": [
+    {
+      "dimension_id": "quality_tier",
+      "description": "Quality tier controlling pace, scrutiny level, intercoat sanding, and defect tolerance.",
+      "values": ["QT3", "QT4", "QT5"],
+      "default": "QT3",
+      "notes": "QT3=standard (production pace, 6-foot visual, no intercoat sand). QT4=premium (slower pace, raking light at 3 feet, intercoat sand 220-grit). QT5=supreme (meticulous pace, arm's length lighted inspection, hand-sand 220/320, DFT verification). QT2 excluded — exterior windows are visible architectural elements."
+    },
+    {
+      "dimension_id": "cladding_type",
+      "description": "Window cladding material — drives primer system, prep protocol, and topcoat restrictions.",
+      "values": ["wood", "aluminum_clad", "vinyl_clad"],
+      "notes": "Wood: acrylic primer, sand mill glaze, tannin spot prime knots. Aluminum-clad: corrosion-inhibiting primer, scuff-sand, TSP wash. Vinyl-clad: PVC bonding primer, clean only (no sanding), VinylSafe IR-reflective mandatory for LRV < 55. Per-project capture with per-window override possible."
+    },
+    {
+      "dimension_id": "window_type",
+      "description": "Window type classification — PRIMARY cost driver alongside size bucket.",
+      "values": ["awning", "casement", "double_hung", "fixed", "bay", "bow"],
+      "modifiers": {
+        "fixed": 0.50,
+        "awning": 0.70,
+        "casement": 0.85,
+        "double_hung": 1.00,
+        "bay": 2.00,
+        "bow": 2.50
+      },
+      "notes": "Fixed is simplest (frame only, no sash hardware or blocking prevention). Double-hung is calibration baseline. Bay/bow are multi-sash assemblies. Double-hung triggers sash sequence module."
+    },
+    {
+      "dimension_id": "muntin_type",
+      "description": "Muntin/grille type — SECONDARY cost driver affecting masking and painting labor.",
+      "values": ["none", "gbg", "sdl", "tdl"],
+      "modifiers": {
+        "none": 1.00,
+        "gbg": 1.00,
+        "sdl": 1.25,
+        "tdl": 1.75
+      },
+      "notes": "GBG (grilles between glass) has no painting impact. SDL (simulated divided lite) adds moderate time for applied bar painting. TDL (true divided lite) adds major time for individual pane masking + muntin bar painting. Liquid mask permitted for TDL on non-Low-E glass only."
+    },
+    {
+      "dimension_id": "sheen",
+      "description": "Finish sheen — project-level selection.",
+      "values": ["satin", "semi-gloss", "gloss"],
+      "notes": "No locked-in default. Windows follow trim-class sheen. Higher sheen = more durable but reveals surface imperfections. Gloss requires higher prep quality."
+    },
+    {
+      "dimension_id": "application_method",
+      "description": "Primary application technique.",
+      "values": ["brush", "spray"],
+      "default": "brush",
+      "notes": "Brush is PRIMARY — precision required for 1/16\" glass lap, sash sequence, cutting in around glass. Spray is CONDITIONAL (whole-house spray context only — adds masking overhead). Roller is NOT valid. Spray savings limited (~25-30% faster) due to mandatory back-brushing on detailed profiles."
+    }
+  ],
+
+  "paintable_items": [
+    {
+      "item_id": "ITM_WINDOW_EXT_S",
+      "name": "Exterior window — small (glass area < 6 SF)",
+      "unit_of_measure": "EA",
+      "counting_rules": "Each small window assembly is 1 EA. Covers awning, casement, fixed window types that fall in the small size bucket. Frame, sash, muntins (if TDL/SDL) included.",
+      "notes": "Size bucket S. Visual categorization during exterior walkthrough based on glass area < 6 SF."
+    },
+    {
+      "item_id": "ITM_WINDOW_EXT_M",
+      "name": "Exterior window — medium (glass area 6-15 SF)",
+      "unit_of_measure": "EA",
+      "counting_rules": "Each medium window assembly is 1 EA. Most common size bucket for standard double-hung and casement windows. Calibration baseline for production rates.",
+      "notes": "Size bucket M. Glass area 6-15 SF."
+    },
+    {
+      "item_id": "ITM_WINDOW_EXT_L",
+      "name": "Exterior window — large (glass area > 15 SF)",
+      "unit_of_measure": "EA",
+      "counting_rules": "Each large window assembly is 1 EA. Bay and bow windows are always forced into L bucket regardless of glass area. Bay/bow counted as 1 EA each despite multi-sash geometry — window_type modifier drives the elevated per-EA rate.",
+      "notes": "Size bucket L. Glass area > 15 SF. Includes bay/bow windows."
+    }
+  ],
+
+  "variants": [
+    {
+      "variant_id": "VAR_QT3_BRUSH_WOOD_BARE_DH_M",
+      "applies_when": { "quality_tier": ["QT3"], "application_method": ["brush"], "cladding_type": ["wood"], "window_type": ["double_hung"] },
+      "coats": { "prime": 1, "finish": 2 },
+      "protection_zones": ["ext_window_glass_mask", "ext_window_hardware", "ext_window_weatherstrip", "sill_protection", "ext_window_casing_adjacent"],
+      "notes": "Common baseline: standard brush on medium double-hung wood window. Full prime+2finish round. Sash sequence module active."
+    },
+    {
+      "variant_id": "VAR_QT4_BRUSH_WOOD_BARE_DH_TDL",
+      "applies_when": { "quality_tier": ["QT4"], "application_method": ["brush"], "cladding_type": ["wood"], "muntin_type": ["tdl"], "window_type": ["double_hung"] },
+      "coats": { "prime": 1, "finish": 2 },
+      "protection_zones": ["ext_window_glass_mask", "ext_window_hardware", "ext_window_weatherstrip", "sill_protection", "ext_window_casing_adjacent"],
+      "notes": "Premium brush on double-hung TDL wood window. High masking labor. Intercoat sand 220-grit. Muntin detail work."
+    },
+    {
+      "variant_id": "VAR_QT3_BRUSH_ALUM_CASEMENT",
+      "applies_when": { "quality_tier": ["QT3"], "application_method": ["brush"], "cladding_type": ["aluminum_clad"], "window_type": ["casement"] },
+      "coats": { "prime": 1, "finish": 2 },
+      "protection_zones": ["ext_window_glass_mask", "ext_window_hardware", "ext_window_weatherstrip", "sill_protection", "ext_window_casing_adjacent"],
+      "notes": "Standard brush on aluminum-clad casement. Corrosion-inhibiting primer mandatory even over factory finish."
+    },
+    {
+      "variant_id": "VAR_QT3_BRUSH_VINYL_FIXED",
+      "applies_when": { "quality_tier": ["QT3"], "application_method": ["brush"], "cladding_type": ["vinyl_clad"], "window_type": ["fixed"] },
+      "coats": { "prime": 1, "finish": 2 },
+      "protection_zones": ["ext_window_glass_mask", "sill_protection"],
+      "notes": "Standard brush on vinyl-clad fixed window. PVC bonding primer mandatory. No hardware removal (fixed). No weatherstrip protection (fixed). Simplest configuration."
+    },
+    {
+      "variant_id": "VAR_QT5_SPRAY_WOOD_BAY",
+      "applies_when": { "quality_tier": ["QT5"], "application_method": ["spray"], "cladding_type": ["wood"], "window_type": ["bay"] },
+      "coats": { "prime": 1, "finish": 2 },
+      "protection_zones": ["ext_window_glass_mask", "ext_window_hardware", "ext_window_weatherstrip", "sill_protection", "ext_window_casing_adjacent", "ext_siding_adjacent"],
+      "notes": "Supreme spray on bay window. Near maximum scope. Bay (2.00x) + QT5 inspection/sanding + spray masking overhead. Siding masking required for spray."
+    },
+    {
+      "variant_id": "VAR_QT3_BRUSH_WOOD_FACTORY_PRIMED",
+      "applies_when": { "quality_tier": ["QT3"], "application_method": ["brush"], "cladding_type": ["wood"], "substrate_state": ["SS_EXT_PRIMED_FACTORY"] },
+      "coats": { "prime": 0, "finish": 2 },
+      "protection_zones": ["ext_window_glass_mask", "ext_window_hardware", "ext_window_weatherstrip", "sill_protection", "ext_window_casing_adjacent"],
+      "notes": "Standard brush on factory-primed wood window. Skip prime module — factory primer is adequate base for wood. Two finish coats only."
+    },
+    {
+      "variant_id": "VAR_QT3_BRUSH_ALUM_FACTORY_PRIMED",
+      "applies_when": { "quality_tier": ["QT3"], "application_method": ["brush"], "cladding_type": ["aluminum_clad"], "substrate_state": ["SS_EXT_PRIMED_FACTORY"] },
+      "coats": { "prime": 1, "finish": 2 },
+      "protection_zones": ["ext_window_glass_mask", "ext_window_hardware", "ext_window_weatherstrip", "sill_protection", "ext_window_casing_adjacent"],
+      "notes": "Standard brush on factory-primed aluminum-clad. STILL requires field prime (corrosion-inhibiting) even over factory finish. Full 3-coat round."
+    },
+    {
+      "variant_id": "VAR_QT3_BRUSH_FIELD_PRIMED",
+      "applies_when": { "quality_tier": ["QT3"], "application_method": ["brush"], "substrate_state": ["SS_EXT_PRIMED_FIELD"] },
+      "coats": { "prime": 0, "finish": 2 },
+      "protection_zones": ["ext_window_glass_mask", "ext_window_hardware", "ext_window_weatherstrip", "sill_protection", "ext_window_casing_adjacent"],
+      "notes": "Standard brush on field-primed window (any cladding). Skip prime module entirely. Two finish coats."
+    }
+  ],
+
+  "required_paintscope_inputs": [
+    {
+      "input_name": "IN_EA_EXT_WINDOW_S",
+      "paintscope_key": "PS_EXT_OPENING_EA.WINDOW_S",
+      "uom": "EA",
+      "required": false,
+      "required_when": "When project has small exterior windows (glass area < 6 SF)",
+      "description": "Count of small exterior windows to paint."
+    },
+    {
+      "input_name": "IN_EA_EXT_WINDOW_M",
+      "paintscope_key": "PS_EXT_OPENING_EA.WINDOW_M",
+      "uom": "EA",
+      "required": false,
+      "required_when": "When project has medium exterior windows (glass area 6-15 SF)",
+      "description": "Count of medium exterior windows to paint. Calibration baseline for production rates."
+    },
+    {
+      "input_name": "IN_EA_EXT_WINDOW_L",
+      "paintscope_key": "PS_EXT_OPENING_EA.WINDOW_L",
+      "uom": "EA",
+      "required": false,
+      "required_when": "When project has large exterior windows (glass area > 15 SF) or bay/bow windows",
+      "description": "Count of large exterior windows to paint. Bay/bow always forced into L bucket."
+    },
+    {
+      "input_name": "IN_EA_EXT_PROTECT_GLASS_WINDOW",
+      "paintscope_key": "PS_EXT_PROTECT_EA.GLASS_WINDOW",
+      "uom": "EA",
+      "required": true,
+      "description": "Count of windows requiring glass masking. Typically 1:1 with total window count. Masking time varies by muntin_type."
+    },
+    {
+      "input_name": "IN_ENUM_WINDOW_TYPE",
+      "paintscope_key": "PS_EXT_META.ENUM.WINDOW_TYPE",
+      "uom": "ENUM",
+      "required": true,
+      "description": "Window type classification — PRIMARY production rate driver. Values: awning, casement, double_hung, fixed, bay, bow."
+    },
+    {
+      "input_name": "IN_ENUM_WINDOW_CLADDING",
+      "paintscope_key": "PS_EXT_META.ENUM.WINDOW_CLADDING",
+      "uom": "ENUM",
+      "required": true,
+      "description": "Window cladding material — drives primer system, prep protocol, and topcoat restrictions. Values: wood, aluminum_clad, vinyl_clad."
+    },
+    {
+      "input_name": "IN_ENUM_MUNTIN_TYPE",
+      "paintscope_key": "PS_EXT_META.ENUM.MUNTIN_TYPE",
+      "uom": "ENUM",
+      "required": true,
+      "description": "Muntin/grille type — affects masking labor and painting time. Values: none, gbg, sdl, tdl."
+    },
+    {
+      "input_name": "IN_BOOL_LOW_E_GLASS",
+      "paintscope_key": "PS_EXT_META.FLAG.LOW_E_GLASS",
+      "uom": "BOOL",
+      "required": true,
+      "description": "Low-E glass status. HARD STOP: Low-E = true prohibits liquid masking (scoring damages Low-E coating permanently)."
+    },
+    {
+      "input_name": "IN_BOOL_NEW_CONSTRUCTION",
+      "paintscope_key": "PS_EXT_META.FLAG.NEW_CONSTRUCTION",
+      "uom": "BOOL",
+      "required": true,
+      "description": "Boolean flag confirming new construction context. Always true for this NC spec."
+    },
+    {
+      "input_name": "IN_ENUM_ACCESS_TYPE",
+      "paintscope_key": "PS_EXT_META.ENUM.ACCESS_TYPE",
+      "uom": "ENUM",
+      "required": true,
+      "description": "Access type per elevation. HEIGHT IS A MAJOR MODIFIER for windows. Ground=1.00, ladder=1.35, scaffold=1.60."
+    }
+  ],
+
+  "substrate_state_rules": {
+    "primary_surface": "window_frame_sash_ext",
+    "valid_input_states": {
+      "states": ["SS_EXT_BARE_WOOD", "SS_EXT_PRIMED_FACTORY", "SS_EXT_PRIMED_FIELD"],
+      "notes": "Three NC-relevant substrate states. SS_EXT_BARE_WOOD is dominant for wood windows. SS_EXT_PRIMED_FACTORY is dominant for aluminum-clad and vinyl-clad. SS_EXT_BARE_METAL is NOT applicable — window cladding is never bare metal. SS_EXT_PRIMED_FIELD for split-mobilization scenarios."
+    },
+    "output_state": {
+      "state": "SS_EXT_PAINTED_SEMIGLOSS",
+      "varies_by": "sheen",
+      "state_map": {
+        "satin": "SS_EXT_PAINTED_SATIN",
+        "semi-gloss": "SS_EXT_PAINTED_SEMIGLOSS",
+        "gloss": "SS_EXT_PAINTED_GLOSS"
+      },
+      "notes": "Output state varies by sheen selection."
+    },
+    "primer_routing": {
+      "SS_EXT_BARE_WOOD": {
+        "required_system": "SYS_EXT_WIN_PRIMER_ACRYLIC",
+        "cladding_type": ["wood"],
+        "notes": "Acrylic exterior primer for bare wood. Tannin spot-prime knots with SYS_EXT_WIN_PRIMER_TANNIN_SPOT before full coat on tannin-rich species (cedar, redwood, fir). Seal all end-grain on sash edges."
+      },
+      "SS_EXT_PRIMED_FACTORY": {
+        "wood": {
+          "required_system": null,
+          "round": "ROUND_XWIN_PRIME_2FINISH_WOOD_FACTORY",
+          "notes": "Factory-primed wood skips field prime. Direct to 2 finish coats."
+        },
+        "aluminum_clad": {
+          "required_system": "SYS_EXT_WIN_PRIMER_CORROSION",
+          "round": "ROUND_XWIN_PRIME_2FINISH",
+          "notes": "Aluminum-clad STILL requires field prime (corrosion-inhibiting) even over factory finish. Mandatory for adhesion."
+        },
+        "vinyl_clad": {
+          "required_system": "SYS_EXT_WIN_PRIMER_BONDING_PVC",
+          "round": "ROUND_XWIN_PRIME_2FINISH",
+          "notes": "Vinyl-clad STILL requires field prime (PVC bonding) even over factory finish. Standard primers will NOT bond to vinyl. Recoat within 1 week."
+        }
+      },
+      "SS_EXT_PRIMED_FIELD": {
+        "required_system": null,
+        "notes": "Field-primed surfaces skip prime module entirely. Direct to 2 finish coats."
+      }
+    }
+  },
+
+  "material_systems": [
+    {
+      "system_id": "SYS_EXT_WIN_PRIMER_ACRYLIC",
+      "name": "100% Acrylic Latex Exterior Primer for Wood Windows",
+      "quality_tier": ["QT3", "QT4", "QT5"],
+      "product_role": "primer",
+      "applies_when": { "cladding_type": ["wood"], "substrate_state": ["SS_EXT_BARE_WOOD"] },
+      "coverage_sf_per_gallon": 425,
+      "coats": 1,
+      "notes": "Standard exterior acrylic primer for bare wood window frames, sashes, and muntins. Seal all end-grain on sash edges. For tannin-rich species, supplement with alkyd spot-prime at knots BEFORE this full coat."
+    },
+    {
+      "system_id": "SYS_EXT_WIN_PRIMER_TANNIN_SPOT",
+      "name": "Alkyd/Shellac Spot Primer for Tannin Knots on Wood Windows",
+      "quality_tier": ["QT3", "QT4", "QT5"],
+      "product_role": "specialty",
+      "applies_when": { "cladding_type": ["wood"] },
+      "coverage_sf_per_gallon": null,
+      "coats": 1,
+      "notes": "Spot-applied to visible knots on tannin-rich species (cedar, redwood, fir). Not a full-surface system. Applied by brush to individual knots before full acrylic primer coat."
+    },
+    {
+      "system_id": "SYS_EXT_WIN_PRIMER_CORROSION",
+      "name": "Corrosion-Inhibiting Primer for Aluminum-Clad Windows",
+      "quality_tier": ["QT3", "QT4", "QT5"],
+      "product_role": "primer",
+      "applies_when": { "cladding_type": ["aluminum_clad"] },
+      "coverage_sf_per_gallon": 375,
+      "coats": 1,
+      "notes": "Industrial-grade corrosion-inhibiting primer (e.g., SW Pro-Cryl). MANDATORY even over factory finish. Must be applied over mechanical bonding profile (180-220 grit scuff-sand)."
+    },
+    {
+      "system_id": "SYS_EXT_WIN_PRIMER_BONDING_PVC",
+      "name": "PVC Bonding Primer for Vinyl-Clad Windows",
+      "quality_tier": ["QT3", "QT4", "QT5"],
+      "product_role": "primer",
+      "applies_when": { "cladding_type": ["vinyl_clad"] },
+      "coverage_sf_per_gallon": 375,
+      "coats": 1,
+      "notes": "Specialized PVC bonding primer (e.g., INSL-X STIX). MANDATORY for vinyl-clad even over factory finish. Recoat within 1 week or primer loses flexibility and becomes brittle. Standard primers will NOT bond to vinyl."
+    },
+    {
+      "system_id": "SYS_EXT_WIN_FINISH_STANDARD",
+      "name": "Standard Exterior Acrylic Trim Enamel for Windows",
+      "quality_tier": ["QT3"],
+      "product_role": "finish",
+      "allowed_sheens": ["satin", "semi-gloss", "gloss"],
+      "coverage_sf_per_gallon": 375,
+      "coats": 2,
+      "notes": "Mid-grade 100% acrylic exterior trim enamel. Hard enamel for UV resistance. Flexible for thermal expansion. Replaced by SYS_EXT_WIN_FINISH_VINYLSAFE when vinyl-clad and LRV < 55."
+    },
+    {
+      "system_id": "SYS_EXT_WIN_FINISH_PREMIUM",
+      "name": "Premium Urethane-Modified Acrylic Trim Enamel for Windows",
+      "quality_tier": ["QT4", "QT5"],
+      "product_role": "finish",
+      "allowed_sheens": ["satin", "semi-gloss", "gloss"],
+      "coverage_sf_per_gallon": 350,
+      "coats": 2,
+      "notes": "Premium exterior trim enamel (SW Emerald Urethane Trim Enamel, BM Aura). QT5: self-leveling for brush-mark-free finish on detailed muntin work. Maximum hardness, gloss retention, UV resistance."
+    },
+    {
+      "system_id": "SYS_EXT_WIN_FINISH_VINYLSAFE",
+      "name": "VinylSafe IR-Reflective Exterior Enamel for Vinyl-Clad Windows",
+      "quality_tier": ["QT3", "QT4", "QT5"],
+      "product_role": "specialty",
+      "allowed_sheens": ["satin", "semi-gloss", "gloss"],
+      "applies_when": { "cladding_type": ["vinyl_clad"], "color_lrv": "< 55" },
+      "coverage_sf_per_gallon": 325,
+      "coats": 2,
+      "notes": "MANDATORY for vinyl-clad windows when color LRV < 55. IR-reflective Complex Inorganic Color Pigments (CICPs) drop surface temperature 20-30 deg F. SW VinylSafe Color Technology palette. Without VinylSafe: standard paint LRV must be 55+ to avoid vinyl warping/buckling."
+    }
+  ],
+
+  "sop_module_summary": {
+    "total_modules": 9,
+    "total_tasks": 51,
+    "modules": [
+      {
+        "module_id": "MOD_XWIN_SETUP",
+        "name": "Exterior Window Protection & Equipment Setup",
+        "phase": "setup",
+        "task_count": 10,
+        "tasks": ["TSK_XWIN_MASK_GLASS_TAPE_FILM", "TSK_XWIN_MASK_GLASS_LIQUID", "TSK_XWIN_MASK_GLASS_TDL_TAPE", "TSK_XWIN_HARDWARE_REMOVE", "TSK_XWIN_WEATHERSTRIP_PROTECT", "TSK_XWIN_SILL_PROTECT", "TSK_XWIN_CASING_PROTECT", "TSK_XWIN_SIDING_MASK_SPRAY", "TSK_XWIN_EQUIPMENT_SETUP_BRUSH", "TSK_XWIN_EQUIPMENT_SETUP_SPRAY"]
+      },
+      {
+        "module_id": "MOD_XWIN_PREP",
+        "name": "Exterior Window Surface Preparation",
+        "phase": "prep",
+        "task_count": 9,
+        "tasks": ["TSK_XWIN_SAND_PREP_WOOD", "TSK_XWIN_SCUFF_FACTORY_WOOD", "TSK_XWIN_FILL_DEFECTS_WOOD", "TSK_XWIN_TANNIN_SPOT_PRIME", "TSK_XWIN_DUST_AFTER_SAND_WOOD", "TSK_XWIN_WASH_ALUM", "TSK_XWIN_SCUFF_SAND_ALUM", "TSK_XWIN_DUST_AFTER_SAND_ALUM", "TSK_XWIN_CLEAN_VINYL"]
+      },
+      {
+        "module_id": "MOD_XWIN_PRIME",
+        "name": "Exterior Window Primer Application",
+        "phase": "prime",
+        "task_count": 6,
+        "tasks": ["TSK_XWIN_PRIME_BRUSH_WOOD", "TSK_XWIN_PRIME_SPRAY_WOOD", "TSK_XWIN_PRIME_BRUSH_ALUM", "TSK_XWIN_PRIME_SPRAY_ALUM", "TSK_XWIN_PRIME_BRUSH_VINYL", "TSK_XWIN_PRIME_SPRAY_VINYL"],
+        "applies_when": { "substrate_state": ["SS_EXT_BARE_WOOD", "SS_EXT_PRIMED_FACTORY"] }
+      },
+      {
+        "module_id": "MOD_XWIN_FINISH_1",
+        "name": "Exterior Window First Finish Coat",
+        "phase": "finish",
+        "task_count": 3,
+        "tasks": ["TSK_XWIN_FINISH_BRUSH_1", "TSK_XWIN_FINISH_SPRAY_1", "TSK_XWIN_MUNTIN_DETAIL_1"]
+      },
+      {
+        "module_id": "MOD_XWIN_INTERSTAGE",
+        "name": "Exterior Window Intercoat Inspection & Sand",
+        "phase": "interstage",
+        "task_count": 4,
+        "tasks": ["TSK_XWIN_INSPECT_INTERCOAT", "TSK_XWIN_SAND_INTERCOAT", "TSK_XWIN_DUST_INTERCOAT", "TSK_XWIN_SPOT_REPAIR_INTERCOAT"]
+      },
+      {
+        "module_id": "MOD_XWIN_FINISH_2",
+        "name": "Exterior Window Second Finish Coat",
+        "phase": "finish",
+        "task_count": 3,
+        "tasks": ["TSK_XWIN_FINISH_BRUSH_2", "TSK_XWIN_FINISH_SPRAY_2", "TSK_XWIN_MUNTIN_DETAIL_2"]
+      },
+      {
+        "module_id": "MOD_XWIN_SASH_SEQUENCE",
+        "name": "Double-Hung Sash Blocking Prevention",
+        "phase": "finish",
+        "task_count": 4,
+        "tasks": ["TSK_XWIN_SASH_REVERSE", "TSK_XWIN_SASH_DRY_POSTURE", "TSK_XWIN_SASH_PERIODIC_MOVE", "TSK_XWIN_LUBRICATE_CHANNELS"],
+        "applies_when": { "window_type": ["double_hung"] }
+      },
+      {
+        "module_id": "MOD_XWIN_FINAL_INSPECT",
+        "name": "Exterior Window Final Inspection & Touch-Up",
+        "phase": "cleanup",
+        "task_count": 3,
+        "tasks": ["TSK_XWIN_FINAL_INSPECT", "TSK_XWIN_TOUCHUP", "TSK_XWIN_GLASS_CLEANUP"]
+      },
+      {
+        "module_id": "MOD_XWIN_CLEANUP",
+        "name": "Exterior Window Protection Teardown & Equipment Clean",
+        "phase": "cleanup",
+        "task_count": 9,
+        "tasks": ["TSK_XWIN_MASK_REMOVE_TAPE_FILM", "TSK_XWIN_MASK_REMOVE_LIQUID", "TSK_XWIN_MASK_REMOVE_TDL_TAPE", "TSK_XWIN_HARDWARE_REINSTALL", "TSK_XWIN_WEATHERSTRIP_REINSTALL", "TSK_XWIN_SILL_PROTECT_REMOVE", "TSK_XWIN_CASING_PROTECT_REMOVE", "TSK_XWIN_SIDING_MASK_REMOVE", "TSK_XWIN_EQUIPMENT_CLEAN"]
+      }
+    ],
+    "by_classification": {
+      "binary": 28,
+      "qt_scaled": 21,
+      "qt_conditional": 2
+    },
+    "by_skill_level": {
+      "helper": 8,
+      "journeyman": 37,
+      "lead": 6
+    }
+  },
+
+  "production_summary": {
+    "rate_basis": "EA (each window assembly) — fixed_time_minutes per EA with size bucket variants (S/M/L)",
+    "size_bucket_conversion": {
+      "S": { "glass_area": "< 6 SF", "typical_frame_sf": "8-12 SF" },
+      "M": { "glass_area": "6-15 SF", "typical_frame_sf": "12-20 SF" },
+      "L": { "glass_area": "> 15 SF", "typical_frame_sf": "20-35 SF" }
+    },
+    "time_estimates_by_scenario": [
+      {
+        "scenario": "Medium casement, wood, bare, brush, QT3 — common baseline",
+        "round": "ROUND_XWIN_PRIME_2FINISH",
+        "notes": "Standard NC window. Includes setup/mask, wood prep, prime, 2 finish coats, intercoat inspection, glass cleanup, teardown."
+      },
+      {
+        "scenario": "Medium double-hung, wood, bare, brush, QT4 — common premium",
+        "round": "ROUND_XWIN_PRIME_2FINISH",
+        "notes": "Adds sash sequence module (4 tasks), intercoat sanding, higher-quality inspection."
+      },
+      {
+        "scenario": "Large bay, aluminum-clad, spray, QT5 — near maximum scope",
+        "round": "ROUND_XWIN_PRIME_2FINISH",
+        "notes": "Bay (2.00x) + QT5 + aluminum-clad prep + spray masking overhead. Flagged for field validation."
+      }
+    ],
+    "modifier_stacking_cap": 4.0,
+    "worst_case_stack": "Bow (2.50) x TDL (1.75) x aluminum_clad (1.15) x scaffold (1.60) x QT5 (1.30) x poor (1.35) x moderate_wind (1.10) x full_sun (1.15) x hot (1.10) = 19.66x, capped to 4.0x",
+    "common_high_scenario": "Double-hung (1.00) x TDL (1.75) x wood (1.00) x ladder (1.35) x QT5 (1.30) = 3.07x (within cap)",
+    "common_low_scenario": "Casement (0.85) x none (1.00) x wood (1.00) x ground (1.00) x QT3 (1.00) = 0.85x (below baseline)"
+  },
+
+  "protection_zones_required": [
+    {
+      "zone_id": "ext_window_glass_mask",
+      "condition": "always",
+      "protection_level": "full_mask",
+      "notes": "Glass pane masking. Method varies: HDPE static-cling film for standard single-lite/SDL/GBG. Liquid mask for TDL non-Low-E. Tape-and-film per pane for TDL Low-E (highest labor). Low-E liquid masking PROHIBITED."
+    },
+    {
+      "zone_id": "ext_window_hardware",
+      "condition": "operable_windows_only",
+      "protection_level": "item_mask",
+      "notes": "Window hardware (locks, lifts, sash pulls, crank handles) is REMOVED — not masked. Labeled bags per window. Reinstall after final coat dry. Fixed windows have no operable hardware — skip."
+    },
+    {
+      "zone_id": "ext_window_weatherstrip",
+      "condition": "operable_windows_only",
+      "protection_level": "item_mask",
+      "notes": "Weatherstripping on operable sashes. NEVER PAINT weatherstripping — destroys elasticity. Remove friction-fit or deep-tape non-removable. Fixed windows: skip."
+    },
+    {
+      "zone_id": "sill_protection",
+      "condition": "when_sill_finished",
+      "protection_level": "light_mask",
+      "notes": "Tape and paper/film over finished exterior sill. Conditional on sill being already painted. Reusing existing sill_protection zone."
+    },
+    {
+      "zone_id": "ext_window_casing_adjacent",
+      "condition": "when_casing_finished",
+      "protection_level": "light_mask",
+      "notes": "Light tape at casing-to-frame junction when casing is already finished. Only at junction line — minimal masking."
+    },
+    {
+      "zone_id": "ext_siding_adjacent",
+      "condition": "when_adjacent",
+      "protection_level": "light_mask",
+      "upgrade_when": { "application_method": ["spray"] },
+      "upgrade_level": "full_mask",
+      "notes": "Protect finished siding around window perimeter. Upgrades to full_mask (paper and tape) for spray application. Minimal concern for brush work."
+    }
+  ],
+
+  "adjacency_declarations": {
+    "primary_surface": "window_frame_sash_ext",
+    "adjacent_surfaces": [
+      {
+        "surface_id": "ext_trim_window_casing",
+        "edge_type": "complex",
+        "typical_relationship": "different_finish",
+        "continuity_rate_modifier": 1.0,
+        "notes": "Window casing frames the window opening. SF_TRIM_EXT_NC_v1 scope. May be same or different color/sheen."
+      },
+      {
+        "surface_id": "window_glass",
+        "edge_type": "linear",
+        "typical_relationship": "different_finish",
+        "continuity_rate_modifier": 1.0,
+        "notes": "Glass-to-frame edge is the 1/16\" glass lap line. MANDATORY weather seal — paint intentionally overlaps onto glass."
+      },
+      {
+        "surface_id": "ext_sill",
+        "edge_type": "linear",
+        "typical_relationship": "same_finish",
+        "continuity_rate_modifier": 1.0,
+        "notes": "Exterior sill — may be shared scope with SF_TRIM_EXT_NC_v1. This spec covers sill painting when accessible during window work."
+      },
+      {
+        "surface_id": "siding_field",
+        "edge_type": "complex",
+        "typical_relationship": "different_finish",
+        "continuity_rate_modifier": 1.0,
+        "notes": "Siding-to-window junction: casing typically intervenes. No direct adjacency deduplication needed."
+      },
+      {
+        "surface_id": "window_interior",
+        "edge_type": "complex",
+        "typical_relationship": "different_finish",
+        "continuity_rate_modifier": 1.0,
+        "notes": "Interior window surfaces belong to SF_WINDOW_INT_NC_v1. Scope boundary at window frame-to-jamb junction."
+      }
+    ]
+  },
+
+  "site_condition_rules": [
+    {
+      "condition_id": "access_type",
+      "treatment": "height_modifier",
+      "vocabulary_ref": "Exterior_Modifiers_Doctrine.md FAC_EXT_ACCESS",
+      "affected_tasks": "All labor tasks at elevation",
+      "effect": "ground=1.00, ladder=1.35, scaffold=1.60",
+      "notes": "HEIGHT IS A MAJOR MODIFIER for windows. Windows are frequently on upper stories unlike doors (ground level). Applied to all per-window tasks."
+    },
+    {
+      "condition_id": "wind_condition",
+      "treatment": "spray_modifier",
+      "affected_tasks": "Spray application tasks",
+      "effect": "calm=1.00, moderate=1.10, high=BLOCK_SPRAY",
+      "notes": "High wind blocks spray operations entirely — brush fallback. Moderate wind adds 10% overhead. Brush operations unaffected."
+    },
+    {
+      "condition_id": "sun_exposure",
+      "treatment": "finish_modifier",
+      "affected_tasks": "All finish and prime coat application tasks",
+      "effect": "shade=1.00, partial_sun=1.05, full_sun=1.15",
+      "notes": "Full sun on south/west elevation = 15% time increase. Per doctrine: 'follow the sun' — paint in shade to prevent temperature blisters."
+    },
+    {
+      "condition_id": "surface_temperature",
+      "treatment": "coating_modifier",
+      "affected_tasks": "All prime and finish coat application tasks",
+      "effect": "optimal_50_85F=1.00, cold_40_50F=1.10, hot_85_95F=1.10, extreme=BLOCK",
+      "notes": "Cold/hot extend recoat intervals (+10% time). Extreme temperatures (below 40F or above 95F surface temp) block application entirely."
+    }
+  ],
+
+  "cross_spec_boundaries": {
+    "companion_spec": null,
+    "sibling_spec": null,
+    "adjacent_specs": [
+      {
+        "spec_id": "SF_TRIM_EXT_NC_v1",
+        "relationship": "Window casing painting belongs to trim spec. Glass masking ownership: window spec masks glass when painting the WINDOW; trim spec masks glass adjacent to CASING. Exterior sill may be shared scope."
+      },
+      {
+        "spec_id": "SF_WINDOW_INT_NC_v1",
+        "relationship": "Interior window surfaces (stool interior face, interior jamb) belong to interior window spec. Scope boundary at window frame-to-jamb junction."
+      }
+    ],
+    "cross_spec_protection_note": "Glass masking during whole-house spray operations (siding/trim context) is the SIDING or TRIM spec's protection responsibility, not this spec's.",
+    "deduplication_notes": [
+      "Window CASING painting belongs to SF_TRIM_EXT_NC_v1 — this spec covers the window unit itself: frame, sash, muntin bars, jamb extension, stool, apron.",
+      "Glass masking ownership: when painting the WINDOW, this spec masks glass. When painting the CASING, the trim spec protects adjacent glass via its own zone.",
+      "Interior window surfaces (stool interior face, interior jamb) belong to SF_WINDOW_INT_NC_v1. Scope boundary at window frame-to-jamb junction.",
+      "Window glass masking during whole-house spray operations is the SIDING or TRIM spec's protection responsibility.",
+      "Exterior sill may be shared scope with SF_TRIM_EXT_NC_v1. This spec covers sill painting when accessible during window work."
+    ]
+  },
+
+  "round_configurations": [
+    {
+      "round_id": "ROUND_XWIN_PRIME_2FINISH",
+      "description": "1 prime coat + 2 finish coats — standard NC for bare wood and aluminum/vinyl clad (mandatory field prime)",
+      "module_sequence": ["MOD_XWIN_SETUP", "MOD_XWIN_PREP", "MOD_XWIN_PRIME", "MOD_XWIN_FINISH_1", "MOD_XWIN_INTERSTAGE", "MOD_XWIN_FINISH_2", "MOD_XWIN_SASH_SEQUENCE", "MOD_XWIN_FINAL_INSPECT", "MOD_XWIN_CLEANUP"],
+      "total_coats": 3,
+      "interstage_cycles": 2,
+      "interstage_after": ["MOD_XWIN_PRIME", "MOD_XWIN_FINISH_1"],
+      "applies_when": { "substrate_state": ["SS_EXT_BARE_WOOD", "SS_EXT_PRIMED_FACTORY"] },
+      "notes": "SS_EXT_PRIMED_FACTORY on aluminum/vinyl clad STILL requires field prime (adhesion promotion). Only SS_EXT_PRIMED_FACTORY on WOOD uses ROUND_XWIN_PRIME_2FINISH_WOOD_FACTORY instead."
+    },
+    {
+      "round_id": "ROUND_XWIN_2FINISH",
+      "description": "2 finish coats only — field-primed any cladding type",
+      "module_sequence": ["MOD_XWIN_SETUP", "MOD_XWIN_PREP", "MOD_XWIN_FINISH_1", "MOD_XWIN_INTERSTAGE", "MOD_XWIN_FINISH_2", "MOD_XWIN_SASH_SEQUENCE", "MOD_XWIN_FINAL_INSPECT", "MOD_XWIN_CLEANUP"],
+      "total_coats": 2,
+      "interstage_cycles": 1,
+      "interstage_after": ["MOD_XWIN_FINISH_1"],
+      "applies_when": { "substrate_state": ["SS_EXT_PRIMED_FIELD"] }
+    },
+    {
+      "round_id": "ROUND_XWIN_PRIME_2FINISH_WOOD_FACTORY",
+      "description": "Factory-primed wood — skip field prime, direct to 2 finish coats",
+      "module_sequence": ["MOD_XWIN_SETUP", "MOD_XWIN_PREP", "MOD_XWIN_FINISH_1", "MOD_XWIN_INTERSTAGE", "MOD_XWIN_FINISH_2", "MOD_XWIN_SASH_SEQUENCE", "MOD_XWIN_FINAL_INSPECT", "MOD_XWIN_CLEANUP"],
+      "total_coats": 2,
+      "interstage_cycles": 1,
+      "interstage_after": ["MOD_XWIN_FINISH_1"],
+      "applies_when": { "substrate_state": ["SS_EXT_PRIMED_FACTORY"], "cladding_type": ["wood"] },
+      "notes": "Wood factory primer is adequate base for topcoat (unlike aluminum/vinyl clad which always need field prime)."
+    }
+  ],
+
+  "qa_summary": {
+    "overall_result": "pass",
+    "total_issues": 3,
+    "blockers": 0,
+    "issues": [
+      {
+        "issue_id": "QA-001",
+        "severity": "minor",
+        "description": "Resolution proposed FAC_XWIN_WINDOW_TYPE with casement=1.00 baseline; Estimation Engineer recalibrated to double_hung=1.00 baseline with proportionally shifted values. Acknowledged — Estimation Engineer has authority to calibrate."
+      },
+      {
+        "issue_id": "QA-002",
+        "severity": "minor",
+        "description": "Sash sequence and intercoat tasks use module-level vs task-level applies_when pattern differences between sop_modules.json and production.json — functionally equivalent."
+      },
+      {
+        "issue_id": "QA-003",
+        "severity": "minor",
+        "description": "Round configuration interstage_after array is authoritative for execution count; module_sequence is linearized view. Documentation clarity issue, not logic error."
+      }
+    ],
+    "doctrine_checks_passed": [
+      "THREADING-1 through THREADING-6 (task ID completeness, classification match, applies_when consistency, UOM match, task prefix TSK_XWIN_, module prefix MOD_XWIN_)",
+      "EXT-1 through EXT-7 (key namespace PS_EXT_*, substrate state SS_EXT_*, protection zones ext_*, site conditions, factor keys, modifier math, material state compatibility)",
+      "WIN-1 through WIN-9 (EA size buckets, cladding primer routing, glass lap 1/16\", Low-E prohibition, sash sequence, muntin modifier, window type modifier, QT range, brush primary)",
+      "COMPLETENESS-1 through COMPLETENESS-5 (protection zones, cross-spec boundaries, round configurations, module phase order, input declarations)",
+      "ENUM-1 (convention compliance: CON_ prefix, task_classification, severity, phase values, uppercase units, consumable_category)"
+    ]
+  },
+
+  "sequencing_notes": {
+    "production_sequence": "Setup -> Prep -> Prime (conditional) -> Finish 1 -> Interstage -> Finish 2 -> Sash Sequence (double-hung only) -> Final Inspect -> Cleanup",
+    "protection_sequence": "Glass masking -> Hardware removal -> Weatherstrip protection -> Sill protection -> Casing protection -> Siding masking (spray) -> Equipment setup -> Coating work -> Glass cleanup -> Masking removal -> Hardware reinstall -> Weatherstrip reinstall -> Sill/casing teardown -> Siding mask removal -> Equipment clean",
+    "coat_sequence": "Prep (cladding-driven) -> Prime (1 coat, conditional on substrate state and cladding) -> Finish coat 1 -> Interstage (inspect, sand QT4/QT5, repair, dust) -> Finish coat 2 -> Sash sequence (double-hung) -> Final inspect -> Touch up -> Glass cleanup",
+    "brush_stroke_sequence": "Horizontal rails first, then vertical stiles (with the grain). Muntins (TDL/SDL): 1.5-inch angular sash brush, each bar face and edges, glass lap at each junction.",
+    "key_prohibitions": "NO roller application. NO liquid mask on Low-E glass. NO painting of sliding channels (pulley stiles). NO painting of weatherstripping. NEVER fully close double-hung sashes during drying."
+  },
+
+  "relationships": {
+    "companion_spec": null,
+    "often_combined_with": ["SF_TRIM_EXT_NC_v1", "SF_DOOR_EXT_NC_v1"],
+    "sibling_spec": null,
+    "typical_before": [],
+    "typical_after": ["SF_TRIM_EXT_NC_v1"],
+    "notes": "First exterior window spec. Adjacent to trim spec (casing). Interior counterpart: SF_WINDOW_INT_NC_v1. Key departures from interior: 3 cladding types (vs wood/aluminum/steel), corrosion-inhibiting and PVC bonding primers, VinylSafe IR-reflective, height as MAJOR modifier, weather seal glass lap, environmental condition modifiers, Low-E liquid masking prohibition."
+  },
+
+  "dependencies": {
+    "research": "research.json",
+    "resolution": "resolution.json",
+    "sop_modules": "sop_modules.json",
+    "materials": "materials.json",
+    "production": "production.json",
+    "qa_report": "qa_report.json"
+  },
+
+  "doctrine_references": [
+    { "doctrine": "Exterior_Windows_Painting_Doctrine.md", "sections_used": ["§1 Cladding types", "§2 Glass lap 1/16\"", "§3 Low-E prohibition", "§4 Sash sequence", "§5 Muntin types", "§6 Hardware/weatherstrip protocol", "§7 Size bucket method"] },
+    { "doctrine": "Exterior_Color_Sheen_Configuration_Doctrine.md", "sections_used": ["§1-2 VinylSafe IR-reflective for vinyl-clad LRV < 55"] },
+    { "doctrine": "Exterior_Primer_Systems_Doctrine.md", "sections_used": ["Acrylic primers", "Tannin spot prime protocol", "Corrosion-inhibiting for aluminum", "PVC bonding for vinyl"] },
+    { "doctrine": "Exterior_Application_Methods_Doctrine.md", "sections_used": ["Brush primary for windows", "Spray tip 211 selection", "Back-brush requirement on profiles", "Spray/back-brush coupling rule"] },
+    { "doctrine": "Exterior_Protection_Doctrine_T3.md", "sections_used": ["Hardware removal", "Glass masking methods", "Weatherstrip protection", "Sill/casing protection"] },
+    { "doctrine": "Exterior_Access_Staging_Systems_Doctrine.md", "sections_used": ["Ground/ladder/scaffold access factors"] },
+    { "doctrine": "Quality_Tiers_and_Surface_Condition.md", "sections_used": ["QT3-QT5 definitions", "Inspection levels", "DFT verification (QT5)"] },
+    { "doctrine": "Estimation_Modifiers_Doctrine.md", "sections_used": ["Modifier stacking rules", "4.0x cap", "Division formula", "Environmental modifiers"] }
+  ],
+
+  "research_corrections": [],
+
+  "user_corrections": [],
+
+  "change_log": [
+    {
+      "version": "0.1.0",
+      "date": "2026-03-09",
+      "author": "SpecFactory",
+      "changes": "Initial draft spec for exterior window prime and paint. First exterior window spec — EA-based with 3 size buckets (S/M/L) and 3 paintable items (ITM_WINDOW_EXT_S/M/L). 3 cladding types (wood/aluminum-clad/vinyl-clad) with distinct primer paths. 6 window types (awning/casement/double_hung/fixed/bay/bow) as primary cost driver. 4 muntin types (none/gbg/sdl/tdl) as secondary cost driver. 51 tasks across 9 modules (28 binary, 21 qt_scaled, 2 qt_conditional). 7 material systems (4 primers + 2 finishes + 1 VinylSafe IR-reflective specialty). 6 protection zones. 9 factor modifiers. 3 round configurations. Context prefix XWIN. Key features: brush primary application, 1/16\" glass lap weather seal, Low-E liquid masking HARD STOP, sash sequence module for double-hung blocking prevention, cladding-driven primer selection, VinylSafe IR-reflective for vinyl-clad dark colors, height as MAJOR modifier. QA result: pass (3 minor issues, 0 blockers)."
+    }
+  ]
+}

@@ -1,0 +1,638 @@
+{
+  "_meta": {
+    "spec_family_id": "SF_MASONRY_EXT_NC",
+    "generated_by": "registry_resolver",
+    "generated_at": "2026-03-10",
+    "version": "1.0.0",
+    "purpose": "Pre-resolved registry values for downstream agents. Agents consuming this file do NOT need to load raw registry files.",
+    "input_files": ["research.json", "controlled_enums.json", "id_registry.json", "structural_keys.json", "agent_rules.json"]
+  },
+
+  "spec_identity": {
+    "spec_family_id": "SF_MASONRY_EXT_NC",
+    "status": "proposed",
+    "domain": "exterior",
+    "phase_scope": "full",
+    "context_prefix": "MSRY",
+    "notes": "New spec family for exterior masonry wall coating (brick, CMU, cast concrete, limestone). Context prefix MSRY (MaSonRY) — no collision with existing prefixes (CLOSET_SHELF, FRAME, DOOR, CEIL, WALL, TRIM, WIN, STRS, WNSC, WDWL, WDCL, ARCH, BLTN, CABT, SDNG, FCSD). Combined prime+finish in single spec (same mobilization). Block filler module conditional on CMU substrate."
+  },
+
+  "paintable_items": [
+    {
+      "item_id": "ITM_MASONRY_WALL",
+      "name": "Exterior masonry wall field surface",
+      "unit_of_measure": "SF",
+      "surface_ref": "masonry_wall_field",
+      "status": "proposed",
+      "notes": "New ITM for exterior masonry wall field. Covers brick, CMU, cast concrete, and limestone wall surfaces. SF-based — net paintable masonry area from PaintScope. Substrate_type modifier (brick/CMU/concrete/limestone) adjusts production rate and material requirements."
+    }
+  ],
+
+  "task_prefix": {
+    "pattern": "TSK_MSRY_",
+    "context": "MSRY",
+    "collision_check": "No collision. Existing prefixes: CLOSET_SHELF, FRAME, DOOR, CEIL, WALL, TRIM, WIN, STRS, WNSC, WDWL, WDCL, ARCH, BLTN, CABT, SDNG, FCSD. MSRY is unique.",
+    "naming_rule": "TSK_MSRY_{ACTION} — action should be verb-based. Examples: TSK_MSRY_WATER_WASH, TSK_MSRY_EFFLORESCENCE_TREAT, TSK_MSRY_BLOCK_FILL_SPRAY, TSK_MSRY_PRIME_SPRAY_BACKROLL, TSK_MSRY_FINISH_SPRAY_BACKROLL_1, TSK_MSRY_MOISTURE_TEST"
+  },
+
+  "module_prefix": {
+    "pattern": "MOD_MSRY_",
+    "expected_modules": [
+      { "module_id": "MOD_MSRY_SETUP", "phase": "setup", "notes": "Protection setup — landscape, hardscape, HVAC, light fixtures" },
+      { "module_id": "MOD_MSRY_PREP", "phase": "prep", "notes": "Cure verification, moisture testing, water wash, efflorescence treatment (conditional), form-release removal (concrete only), caulk masonry-to-trim joints" },
+      { "module_id": "MOD_MSRY_BLOCK_FILL", "phase": "prep", "notes": "Block filler application — CMU only (PCA P12). Separate module from prep because it is a distinct material/application step. Spray or heavy roller." },
+      { "module_id": "MOD_MSRY_PRIME", "phase": "prime", "notes": "Alkali-resistant primer (mandatory on all new masonry). Spray_backroll, roll, or brush." },
+      { "module_id": "MOD_MSRY_FINISH_1", "phase": "finish", "notes": "First finish coat — acrylic or elastomeric per coating_system dimension." },
+      { "module_id": "MOD_MSRY_INTERSTAGE", "phase": "interstage", "notes": "Intercoat inspection. Light sand at QT4 only. Dust removal." },
+      { "module_id": "MOD_MSRY_FINISH_2", "phase": "finish", "notes": "Second finish coat. QT2 may skip (single coat acceptable on properly primed surface)." },
+      { "module_id": "MOD_MSRY_FINAL_INSPECT", "phase": "cleanup", "notes": "Final inspection, touch-up" },
+      { "module_id": "MOD_MSRY_CLEANUP", "phase": "cleanup", "notes": "Protection teardown, cleanup, tool cleaning" }
+    ]
+  },
+
+  "paintscope_keys": [
+    {
+      "paintscope_key": "PS_EXT_SURFACE_SF.MASONRY_WALL",
+      "input_name": "IN_SF_MASONRY_WALL",
+      "uom": "SF",
+      "status": "proposed",
+      "description": "Net paintable masonry wall field area (square feet)"
+    },
+    {
+      "paintscope_key": "PS_EXT_META.EA.ELEVATIONS_TOTAL",
+      "input_name": "IN_EA_ELEVATIONS",
+      "uom": "EA",
+      "status": "existing",
+      "description": "Number of building elevations"
+    },
+    {
+      "paintscope_key": "PS_EXT_META.ENUM.ACCESS_TYPE",
+      "input_name": "IN_ENUM_ACCESS_TYPE",
+      "uom": "ENUM",
+      "status": "existing",
+      "description": "Access type per elevation (ground/ladder/scaffold/lift)"
+    },
+    {
+      "paintscope_key": "PS_EXT_META.FLAG.NEW_CONSTRUCTION",
+      "input_name": "IN_BOOL_NEW_CONSTRUCTION",
+      "uom": "BOOL",
+      "status": "existing",
+      "description": "Boolean flag confirming new construction context. Always true for this NC spec."
+    },
+    {
+      "paintscope_key": "PS_EXT_META.ENUM.SUBSTRATE_TYPE_MASONRY",
+      "input_name": "IN_ENUM_SUBSTRATE_TYPE_MASONRY",
+      "uom": "ENUM",
+      "status": "proposed",
+      "description": "Masonry substrate type (brick, CMU, concrete, limestone). Drives block filler requirement (CMU only), cleaning restrictions (no acid on limestone), breathability requirements.",
+      "notes": "Per-elevation or per-wall section if mixed masonry types on same structure."
+    },
+    {
+      "paintscope_key": "PS_EXT_META.ENUM.COATING_SYSTEM_MASONRY",
+      "input_name": "IN_ENUM_COATING_SYSTEM_MASONRY",
+      "uom": "ENUM",
+      "status": "proposed",
+      "description": "Masonry coating system (acrylic, elastomeric). Drives DFT, material consumption, production rate, and moisture risk assessment.",
+      "notes": "Project-level configuration. Elastomeric selection triggers moisture source assessment documentation requirement."
+    },
+    {
+      "paintscope_key": "PS_EXT_PROTECT_LF.LANDSCAPE_PERIMETER",
+      "input_name": "IN_LF_EXT_PROTECT_LANDSCAPE_PERIMETER",
+      "uom": "LF",
+      "status": "existing",
+      "description": "Linear feet of house perimeter where landscape is adjacent and requires protection."
+    },
+    {
+      "paintscope_key": "PS_EXT_PROTECT_SF.HARDSCAPE_WALK",
+      "input_name": "IN_SF_EXT_PROTECT_HARDSCAPE_WALK",
+      "uom": "SF",
+      "status": "existing",
+      "description": "Adjacent walkway area requiring protection"
+    },
+    {
+      "paintscope_key": "PS_EXT_PROTECT_SF.HARDSCAPE_PATIO",
+      "input_name": "IN_SF_EXT_PROTECT_HARDSCAPE_PATIO",
+      "uom": "SF",
+      "status": "existing",
+      "description": "Adjacent patio area requiring protection"
+    },
+    {
+      "paintscope_key": "PS_EXT_PROTECT_EA.LIGHT_FIXTURE",
+      "input_name": "IN_EA_EXT_PROTECT_LIGHT_FIXTURE",
+      "uom": "EA",
+      "status": "existing",
+      "description": "Count of exterior light fixtures to mask"
+    },
+    {
+      "paintscope_key": "PS_EXT_PROTECT_EA.HVAC_UNIT",
+      "input_name": "IN_EA_EXT_PROTECT_HVAC_UNIT",
+      "uom": "EA",
+      "status": "existing",
+      "description": "Count of HVAC condenser units to cover"
+    }
+  ],
+
+  "applicable_enums": {
+    "quality_tier": {
+      "values": ["QT2", "QT3", "QT4"],
+      "default": "QT3",
+      "prohibited": [],
+      "notes": "QT5 excluded — not applicable to masonry wall field. QT2 is economy (single finish coat on primed surface). All tiers require alkali-resistant primer on new masonry."
+    },
+    "application_method": {
+      "values": ["spray_backroll", "roll", "brush"],
+      "prohibited": ["spray"],
+      "notes": "Spray_backroll is gold standard for masonry — spray auto-adds backroll (mandatory per Exterior Application Methods Doctrine Part A §6). Spray-only is PROHIBITED on porous masonry. Roll is fallback for smaller areas or occupied-adjacent. Brush is detail work only."
+    },
+    "sheen": {
+      "values": ["flat", "satin"],
+      "prohibited": ["eggshell/satin", "semi-gloss+"],
+      "notes": "Standard exterior masonry sheens. Satin is most common (hides surface irregularities while providing durability). Flat for budget. Semi-gloss not typical for masonry wall field."
+    },
+    "phase": {
+      "values": ["setup", "prep", "prime", "interstage", "finish", "cleanup"],
+      "full_sequence": ["setup", "prep", "prime", "apply", "interstage", "finish", "cleanup"],
+      "prohibited": ["protect", "protection"],
+      "notes": "Combined prime+finish spec. Block filler module uses 'prep' phase (substrate preparation, not primer). No 'apply' phase — uses 'prime' and 'finish' directly."
+    },
+    "task_classification": {
+      "values": ["binary", "qt_conditional", "qt_scaled"]
+    },
+    "skill_level": {
+      "values": ["helper", "journeyman", "lead"]
+    },
+    "unit_of_measure": {
+      "values": ["EA", "LF", "SF", "FIXED"],
+      "prohibited": ["each", "ROOM", "FIXED_TIME"],
+      "notes": "SF is primary UOM for masonry wall field. EA for protection items. LF for caulk joints and landscape perimeter. FIXED for cure verification, moisture testing, tool cleaning."
+    },
+    "uom_input": {
+      "values": ["EA", "LF", "SF", "ENUM", "BOOL"]
+    },
+    "substrate_state": {
+      "input_states": ["SS_EXT_BARE_MASONRY"],
+      "output_states": {
+        "flat": "SS_EXT_PAINTED_FLAT",
+        "satin": "SS_EXT_PAINTED_SATIN"
+      },
+      "notes": "SS_EXT_BARE_MASONRY is the single NC state. All new masonry arrives bare — no factory-primed masonry exists. Output varies by sheen. SS_EXT_BARE_MASONRY is a proposed addition to controlled_enums.json."
+    },
+    "consumable_unit": {
+      "values": ["EA", "ROLL", "SHEET", "TUBE", "GAL", "QT"],
+      "prohibited": ["each", "roll", "sheet", "tube"]
+    },
+    "consumable_category": {
+      "values": ["applicator", "protection", "prep", "cleanup", "abrasive", "fill_material", "tool"]
+    },
+    "product_role": {
+      "values": ["primer", "finish", "specialty"],
+      "notes": "Specialty for block filler (not a primer — fills voids). No sealer/clear/stain needed."
+    },
+    "yield_uom": {
+      "values": ["SF", "LF", "EA", "GAL"]
+    },
+    "protection_level": {
+      "values": ["none", "edge_only", "partial_cover", "full_cover", "light_mask"],
+      "notes": "Exterior zones. Protection level upgrades by application method (roll < spray_backroll)."
+    },
+    "protection_action": {
+      "values": ["setup", "maintain", "teardown"]
+    },
+    "edge_type": {
+      "values": ["linear"]
+    },
+    "typical_relationship": {
+      "values": ["different_finish"]
+    },
+    "finish_group": {
+      "values": ["same", "different"]
+    },
+    "task_type": {
+      "values": ["prep", "prime", "finish", "apply", "protect", "inspect", "cleanup", "detail"]
+    },
+    "severity": {
+      "values": ["critical", "major", "minor"],
+      "prohibited": ["high", "medium", "low", "WARN"]
+    },
+    "modifier_mechanism": {
+      "values": ["baseline", "baseline_reduction", "selective_multiplier", "additional_rounds", "excluded"]
+    },
+    "confidence_level": {
+      "values": ["low", "medium", "high"]
+    }
+  },
+
+  "surface_ids": {
+    "primary_surface": "masonry_wall_field",
+    "adjacent_surfaces": [
+      "ext_trim_window_casing",
+      "ext_trim_door_casing",
+      "soffit_field",
+      "foundation_wall",
+      "ext_trim_frieze"
+    ],
+    "all_status": "contains_proposed",
+    "notes": "masonry_wall_field is proposed — new surface ID for masonry wall. All adjacent surfaces exist in id_registry → surface_ids → entries_in_active_use."
+  },
+
+  "zone_ids": [
+    { "zone_id": "ext_landscape_perimeter", "status": "proposed", "retired_alias_warning": null },
+    { "zone_id": "ext_hardscape_walk", "status": "existing", "retired_alias_warning": null },
+    { "zone_id": "ext_hardscape_patio", "status": "existing", "retired_alias_warning": null },
+    { "zone_id": "ext_light_fixture", "status": "existing", "retired_alias_warning": null },
+    { "zone_id": "ext_hvac_unit", "status": "existing", "retired_alias_warning": null }
+  ],
+
+  "material_system_prefix": {
+    "pattern": "SYS_EXT_MSRY_{DESCRIPTION}",
+    "existing_systems_to_consider": [
+      "SYS_EXT_FC_PRIMER_ALKALI — same alkali-resistant primer concept for fiber cement. Could potentially share but masonry has different coverage rates and substrate context.",
+      "SYS_EXT_WOOD_FINISH_STANDARD — same acrylic exterior finish product tier but different substrate context.",
+      "SYS_EXT_WOOD_FINISH_PREMIUM — same premium product tier but different substrate context."
+    ],
+    "proposed_systems": [
+      {
+        "system_id": "SYS_EXT_MSRY_BLOCK_FILLER",
+        "name": "Block Filler for CMU (PCA P12)",
+        "quality_tiers": ["QT2", "QT3", "QT4"],
+        "applies_when": { "substrate_type": ["CMU"] },
+        "notes": "Mandatory for CMU substrate. High-build block filler to fill voids (PCA P12 Level 2 Standard Fill). Not a primer — substrate preparation product. Heavy-body material requiring 527-535 tip and 30-mesh filter."
+      },
+      {
+        "system_id": "SYS_EXT_MSRY_PRIMER_ALKALI",
+        "name": "Alkali-Resistant Masonry Primer",
+        "quality_tiers": ["QT2", "QT3", "QT4"],
+        "applies_when": { "substrate_state": ["SS_EXT_BARE_MASONRY"] },
+        "notes": "Mandatory on ALL new masonry (pH 12-14). Reference product: SW Loxon Masonry Primer (rated to pH 13). Allows 7-day accelerated coating vs 28-day standard cure. Standard acrylic primer NOT suitable."
+      },
+      {
+        "system_id": "SYS_EXT_MSRY_FINISH_ACRYLIC_STD",
+        "name": "Standard Exterior Acrylic Finish for Masonry",
+        "quality_tiers": ["QT2", "QT3"],
+        "applies_when": { "coating_system": ["acrylic"] },
+        "notes": "100% acrylic exterior latex. 10-20 perms breathability. 6-8 mils DFT. QT2 single coat, QT3 two coats."
+      },
+      {
+        "system_id": "SYS_EXT_MSRY_FINISH_ACRYLIC_PREM",
+        "name": "Premium Exterior Acrylic Finish for Masonry",
+        "quality_tiers": ["QT4"],
+        "applies_when": { "coating_system": ["acrylic"] },
+        "notes": "Premium 100% acrylic (SW Duration, BM Aura). 10-20 perms. Raking light inspection between coats. Two coats standard."
+      },
+      {
+        "system_id": "SYS_EXT_MSRY_FINISH_ELASTOMERIC",
+        "name": "Elastomeric Coating for Masonry",
+        "quality_tiers": ["QT3", "QT4"],
+        "applies_when": { "coating_system": ["elastomeric"] },
+        "notes": "Elastomeric coating: 5-15 perms, 20-30 mils DFT, 300-500% elongation. Bridges hairline cracks. WARNING: high risk of catastrophic delamination if moisture enters from alternate sources. Requires moisture source assessment. Not available at QT2 (application complexity exceeds economy scope). Dramatically higher material consumption than acrylic."
+      }
+    ],
+    "notes": "1 block filler (CMU only) + 1 alkali-resistant primer (all masonry) + 2 acrylic finish (QT2-3, QT4) + 1 elastomeric finish (QT3-4 conditional). Oil-based and alkyd products are PROHIBITED on alkaline masonry."
+  },
+
+  "consumable_prefix": {
+    "canonical_prefix": "CON_",
+    "prohibited_prefix": "CONS_",
+    "reusable_consumables": [
+      "CON_MASKING_TAPE_BLUE",
+      "CON_DROP_CLOTH_CANVAS",
+      "CON_TACK_CLOTH",
+      "CON_CAULK_PAINTABLE",
+      "CON_SANDPAPER_150",
+      "CON_SANDPAPER_220"
+    ],
+    "proposed_consumables": [
+      {
+        "consumable_id": "CON_MSRY_ROLLER_THICK_NAP",
+        "name": "Roller Cover 1-1/4 to 1-1/2 inch nap (masonry)",
+        "category": "applicator",
+        "unit": "EA",
+        "notes": "Heavy nap roller for porous/rough masonry surfaces. Nylon/polyester blend for water-based products. Much thicker nap than interior or siding rollers."
+      },
+      {
+        "consumable_id": "CON_MSRY_SPRAY_TIP_517",
+        "name": "Airless Spray Tip 517 (masonry acrylic)",
+        "category": "applicator",
+        "unit": "EA",
+        "notes": "0.017 orifice for standard acrylic latex on masonry. Also 619, 621 for wider patterns."
+      },
+      {
+        "consumable_id": "CON_MSRY_SPRAY_TIP_531",
+        "name": "Airless Spray Tip 531 (block filler/elastomeric)",
+        "category": "applicator",
+        "unit": "EA",
+        "notes": "0.025-0.035 orifice for heavy-body block fillers and elastomeric coatings. 527, 531, 535 range. Requires 2,300-3,000 PSI."
+      },
+      {
+        "consumable_id": "CON_MSRY_SPRAY_FILTER_60",
+        "name": "60-Mesh Spray Filter (Black) for Latex",
+        "category": "applicator",
+        "unit": "EA",
+        "notes": "Standard 60-mesh (black/medium) filter for acrylic latex exterior coatings."
+      },
+      {
+        "consumable_id": "CON_MSRY_SPRAY_FILTER_30",
+        "name": "30-Mesh Spray Filter (Gray/Coarse) for Block Filler",
+        "category": "applicator",
+        "unit": "EA",
+        "notes": "Coarse 30-mesh (gray) filter for block fillers and elastomeric coatings — heavy-body materials clog standard 60-mesh filters."
+      },
+      {
+        "consumable_id": "CON_MSRY_STUCCO_TAPE",
+        "name": "Red Stucco Poly Tape (7.0 mil, 30-day UV)",
+        "category": "protection",
+        "unit": "ROLL",
+        "notes": "Masking tape for rough masonry/stucco surfaces. Standard blue tape will not adhere to textured masonry. 7.0 mil thickness, 30-day UV rating for exterior."
+      },
+      {
+        "consumable_id": "CON_MSRY_PLASTIC_SHEETING",
+        "name": "Plastic Sheeting for Exterior Protection",
+        "category": "protection",
+        "unit": "ROLL",
+        "notes": "4 mil minimum. Landscape, hardscape, HVAC overspray protection. UV-resistant for multi-day exterior projects."
+      },
+      {
+        "consumable_id": "CON_MSRY_CAULK_POLY",
+        "name": "Polyurethane Exterior Caulk (Class 25/50)",
+        "category": "fill_material",
+        "unit": "TUBE",
+        "notes": "Polyurethane caulk for masonry-to-trim joints. 3-7 day cure before painting. Siliconized acrylic acceptable for low-movement joints."
+      },
+      {
+        "consumable_id": "CON_MSRY_TSP",
+        "name": "TSP (Trisodium Phosphate) Cleaner",
+        "category": "prep",
+        "unit": "EA",
+        "notes": "For masonry washing (moderate efflorescence, general cleaning). Box or container — 1 EA per ~500 SF wash area."
+      },
+      {
+        "consumable_id": "CON_MSRY_STIFF_BRUSH",
+        "name": "Stiff Bristle Masonry Brush",
+        "category": "tool",
+        "unit": "EA",
+        "notes": "For efflorescence removal, masonry scrubbing, and prep. Heavy-duty bristle brush."
+      }
+    ]
+  },
+
+  "round_configurations": {
+    "existing_patterns": [
+      "ROUND_SINGLE_COAT",
+      "ROUND_TWO_COAT"
+    ],
+    "naming_pattern": "ROUND_{CONTEXT}_{DESCRIPTION}",
+    "proposed_configurations": [
+      {
+        "round_id": "ROUND_MSRY_BLOCKFILL_PRIME_2FINISH",
+        "description": "Block filler + 1 alkali-resistant primer + 2 finish coats — CMU at QT3/QT4",
+        "applies_when": { "substrate_type": ["CMU"], "quality_tier": ["QT3", "QT4"] }
+      },
+      {
+        "round_id": "ROUND_MSRY_BLOCKFILL_PRIME_1FINISH",
+        "description": "Block filler + 1 primer + 1 finish coat — CMU at QT2",
+        "applies_when": { "substrate_type": ["CMU"], "quality_tier": ["QT2"] }
+      },
+      {
+        "round_id": "ROUND_MSRY_PRIME_2FINISH",
+        "description": "1 alkali-resistant primer + 2 finish coats — brick/concrete/limestone at QT3/QT4",
+        "applies_when": { "substrate_type": ["brick", "concrete", "limestone"], "quality_tier": ["QT3", "QT4"] }
+      },
+      {
+        "round_id": "ROUND_MSRY_PRIME_1FINISH",
+        "description": "1 primer + 1 finish coat — brick/concrete/limestone at QT2",
+        "applies_when": { "substrate_type": ["brick", "concrete", "limestone"], "quality_tier": ["QT2"] }
+      }
+    ]
+  },
+
+  "coverage_profiles": {
+    "existing_profiles": ["COV_FCSD_PRIMER", "COV_FCSD_PRIMER_ALKALI", "COV_FCSD_FINISH"],
+    "naming_pattern": "COV_{CONTEXT}_{PRODUCT_ROLE}",
+    "proposed_profiles": [
+      {
+        "profile_id": "COV_MSRY_BLOCK_FILLER",
+        "description": "Block filler coverage on CMU — 75-125 SF/gal depending on void density"
+      },
+      {
+        "profile_id": "COV_MSRY_PRIMER_ALKALI",
+        "description": "Alkali-resistant primer on bare masonry — 250-350 SF/gal. Smooth brick higher, textured CMU lower."
+      },
+      {
+        "profile_id": "COV_MSRY_FINISH_ACRYLIC",
+        "description": "Acrylic finish on primed masonry — 300-350 SF/gal smooth, 150-250 SF/gal textured/porous"
+      },
+      {
+        "profile_id": "COV_MSRY_FINISH_ELASTOMERIC",
+        "description": "Elastomeric finish on primed masonry — dramatically lower coverage due to 20-30 mil DFT requirement. Estimated 75-150 SF/gal."
+      }
+    ]
+  },
+
+  "cross_spec_coordination": {
+    "xspec_flags_consumed": [],
+    "xspec_flags_set": [],
+    "comp_modifiers_set": [],
+    "comp_modifiers_affected_by": [],
+    "notes": "Window/door protection is NOT this spec's responsibility. Trim, soffit, and fascia are separate spec scopes. No cross-spec flags needed at this time."
+  },
+
+  "factor_modifiers": {
+    "naming_pattern": "FAC_EXT_{DESCRIPTION}",
+    "existing_modifiers": [
+      "FAC_EXT_ACCESS — ground=1.00, ladder=1.35, scaffold=1.60, lift=1.50"
+    ],
+    "proposed_modifiers": [
+      {
+        "modifier_id": "FAC_MSRY_SUBSTRATE_TYPE",
+        "description": "Production rate modifier by masonry substrate type",
+        "values": { "brick": 1.00, "CMU": 1.15, "concrete": 0.95, "limestone": 1.10 },
+        "notes": "Brick is baseline (dense, relatively smooth). CMU slower due to porous surface and voids. Concrete slightly faster (smooth formed surface). Limestone slower (porous, acid-sensitivity requires care)."
+      }
+    ]
+  },
+
+  "structural_reminders": {
+    "materials_json": {
+      "required_keys": ["spec_family_id", "version", "material_systems", "consumables"],
+      "system_item_keys": ["system_id", "name", "quality_tier OR applies_when"],
+      "consumable_item_keys": ["consumable_id", "name", "category", "unit"],
+      "use_consumables_key": "consumables (never consumable_usage_models)",
+      "oil_based_blocker": "Oil-based and alkyd products are PROHIBITED on alkaline masonry. Include as compatibility_rule blocker."
+    },
+    "sop_modules_json": {
+      "required_keys": ["spec_family_id", "version", "sop_modules"],
+      "module_keys": ["module_id", "name", "phase", "tasks"],
+      "task_required_keys": ["task_id", "name", "task_classification", "skill_level"],
+      "task_prohibited_keys": ["task_class", "rate_per_hour", "coverage_sf_per_gallon"]
+    },
+    "production_json": {
+      "required_keys": ["spec_family_id", "version", "task_production_rates"],
+      "rate_item_keys": ["task_id", "unit_of_measure", "rate_per_hour OR rates_by_tier OR fixed_time_minutes"],
+      "prohibited_keys": ["tasks", "sop_modules"]
+    },
+    "qa_report_json": {
+      "required_keys": ["spec_family_id", "version", "overall_result"],
+      "issue_keys": ["issue_id", "severity", "area", "file", "description", "suggested_fix"],
+      "severity_values": ["critical", "major", "minor"]
+    }
+  },
+
+  "cross_file_threading": [
+    "RULE 1: Every TSK_ in sop_modules.json MUST have a matching rate in production.json",
+    "RULE 2: Every ITM_ in spec.json MUST appear in at least one variant",
+    "RULE 3: Every SYS_ quality_tier MUST match spec.json configuration_dimensions",
+    "RULE 4: Every IN_ input in spec.json SHOULD be consumed by sop_modules or production",
+    "RULE 5: Every PS_ key in production.json MUST match spec.json required_paintscope_inputs",
+    "RULE 6: Every zone_id in spec.json MUST match sop_modules.json protection_metadata.zones",
+    "RULE 7: Module phase order: setup → prep → prime → apply → interstage → finish → cleanup",
+    "RULE 8: UOM for a task MUST match between sop_modules.json and production.json",
+    "RULE 9: All TSK_ IDs MUST use TSK_MSRY_ prefix (from this resolution)",
+    "RULE 10: ITM_MASONRY_WALL MUST be used exactly as registered (proposed ID)",
+    "RULE 11: Downstream agents MUST use only enum values from this resolution's applicable_enums"
+  ],
+
+  "migration_warnings": [],
+
+  "registry_additions_proposed": [
+    {
+      "registry": "id_registry.json",
+      "section": "SF_",
+      "proposed_id": "SF_MASONRY_EXT_NC",
+      "name": "Exterior Masonry Wall Coating (Brick, CMU, Concrete, Limestone)",
+      "justification": "New spec family for exterior masonry wall coating. Distinct substrate chemistry (cementitious, pH 12-14), unique prep requirements (block filler, efflorescence treatment, cure verification), specialized primer (alkali-resistant), and dual coating system branches (acrylic, elastomeric)."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "ITM_",
+      "proposed_id": "ITM_MASONRY_WALL",
+      "name": "Exterior masonry wall field surface",
+      "justification": "No existing ITM covers exterior masonry wall surfaces. ITM_SIDING_FIELD is for siding (wood, fiber cement). Masonry is a fundamentally different substrate class with distinct UOM patterns and production characteristics."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "surface_ids",
+      "proposed_id": "masonry_wall_field",
+      "name": "Exterior masonry wall field surface",
+      "justification": "New surface vocabulary entry. No existing surface_id covers masonry wall field. Similar naming pattern to siding_field."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "zone_ids",
+      "proposed_id": "ext_landscape_perimeter",
+      "name": "Landscape perimeter protection zone (LF-based)",
+      "justification": "EXISTING in fiber cement spec — confirm registry addition. LF-based landscape protection measured along house perimeter."
+    },
+    {
+      "registry": "controlled_enums.json",
+      "section": "substrate_state",
+      "proposed_id": "SS_EXT_BARE_MASONRY",
+      "name": "Bare new masonry (pH 12-14, alkaline)",
+      "justification": "New masonry-specific bare state. Distinct from SS_EXT_BARE_WOOD and SS_EXT_BARE_FIBERCEMENT — masonry has unique alkalinity, porosity, and cure requirements. Required for primer routing (alkali-resistant primer mandatory)."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "PS_",
+      "proposed_id": "PS_EXT_SURFACE_SF.MASONRY_WALL",
+      "name": "Masonry Wall Field Surface Area (SF)",
+      "justification": "New PS key for masonry wall net paintable area. Distinct from PS_EXT_SURFACE_SF.SIDING_FIELD — masonry is a different measurement context."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "IN_",
+      "proposed_id": "IN_SF_MASONRY_WALL",
+      "name": "Masonry Wall Field Area Input (SF)",
+      "justification": "Input mapped to PS_EXT_SURFACE_SF.MASONRY_WALL."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "PS_",
+      "proposed_id": "PS_EXT_META.ENUM.SUBSTRATE_TYPE_MASONRY",
+      "name": "Masonry Substrate Type Enum (brick/CMU/concrete/limestone)",
+      "justification": "New PS key for masonry substrate type selection. Drives block filler requirement, cleaning restrictions, and breathability requirements."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "IN_",
+      "proposed_id": "IN_ENUM_SUBSTRATE_TYPE_MASONRY",
+      "name": "Masonry Substrate Type Input (ENUM)",
+      "justification": "Input mapped to PS_EXT_META.ENUM.SUBSTRATE_TYPE_MASONRY."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "PS_",
+      "proposed_id": "PS_EXT_META.ENUM.COATING_SYSTEM_MASONRY",
+      "name": "Masonry Coating System Enum (acrylic/elastomeric)",
+      "justification": "New PS key for masonry coating system selection. Drives DFT, material consumption, production rate, and moisture risk."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "IN_",
+      "proposed_id": "IN_ENUM_COATING_SYSTEM_MASONRY",
+      "name": "Masonry Coating System Input (ENUM)",
+      "justification": "Input mapped to PS_EXT_META.ENUM.COATING_SYSTEM_MASONRY."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "SYS_",
+      "proposed_id": "SYS_EXT_MSRY_BLOCK_FILLER",
+      "name": "Block Filler for CMU (PCA P12)",
+      "justification": "No existing system covers CMU block filler. Unique material — fills voids, not a primer. Heavy-body product with distinct application requirements."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "SYS_",
+      "proposed_id": "SYS_EXT_MSRY_PRIMER_ALKALI",
+      "name": "Alkali-Resistant Masonry Primer",
+      "justification": "SYS_EXT_FC_PRIMER_ALKALI covers fiber cement alkali primer. Masonry has different coverage rates (more porous), different substrate chemistry, and different application context. Separate system for accurate coverage tracking."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "SYS_",
+      "proposed_id": "SYS_EXT_MSRY_FINISH_ACRYLIC_STD",
+      "name": "Standard Exterior Acrylic Finish for Masonry",
+      "justification": "Masonry-specific finish system. Different coverage rates from wood siding (masonry is more porous). QT2/QT3 tier."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "SYS_",
+      "proposed_id": "SYS_EXT_MSRY_FINISH_ACRYLIC_PREM",
+      "name": "Premium Exterior Acrylic Finish for Masonry",
+      "justification": "QT4 masonry finish. Premium products (SW Duration, BM Aura). Different coverage context from siding."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "SYS_",
+      "proposed_id": "SYS_EXT_MSRY_FINISH_ELASTOMERIC",
+      "name": "Elastomeric Coating for Masonry",
+      "justification": "No existing system covers elastomeric coatings. Unique product class: 20-30 mil DFT, 300-500% elongation, dramatically different coverage and production rates. Conditional on coating_system dimension."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "COV_",
+      "proposed_id": "COV_MSRY_BLOCK_FILLER",
+      "name": "Block Filler Coverage Profile for CMU",
+      "justification": "Block filler coverage is unique — 75-125 SF/gal depending on void density. No existing COV_ covers this."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "COV_",
+      "proposed_id": "COV_MSRY_PRIMER_ALKALI",
+      "name": "Alkali-Resistant Primer Coverage Profile for Masonry",
+      "justification": "Masonry primer coverage differs from fiber cement (more porous substrate). 250-350 SF/gal."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "COV_",
+      "proposed_id": "COV_MSRY_FINISH_ACRYLIC",
+      "name": "Acrylic Finish Coverage Profile for Masonry",
+      "justification": "Masonry finish coverage: 300-350 SF/gal smooth, 150-250 SF/gal textured/porous. Significantly different from siding."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "COV_",
+      "proposed_id": "COV_MSRY_FINISH_ELASTOMERIC",
+      "name": "Elastomeric Finish Coverage Profile for Masonry",
+      "justification": "Elastomeric coverage dramatically lower due to 20-30 mil DFT. Estimated 75-150 SF/gal. No existing COV_ covers this product class."
+    }
+  ]
+}

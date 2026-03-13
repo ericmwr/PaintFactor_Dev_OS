@@ -190,7 +190,7 @@ export function exportProject(state) {
     const hasFloorProtection = room.floor_type && room.floor_type !== 'subfloor' && floorProt;
     if (hasFloorProtection) {
       addQty('PS_PROTECT_SF.FLOOR_EXPOSED', 'SF', d.ceilingSF);
-      if (floorProt === 'heavy_mask' || floorProt === 'medium_mask') {
+      if (floorProt === 'full_cover' || floorProt === 'partial_cover') {
         addQty('PS_PROTECT_SF.FLOOR_PERIMETER', 'SF', d.perimeter * 2);
       }
     }

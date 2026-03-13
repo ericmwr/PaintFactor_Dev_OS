@@ -1,0 +1,556 @@
+{
+  "spec_family": {
+    "id": "SF_DOOR_EXT_RP",
+    "name": "Exterior Door Repaint",
+    "description": "Condition-dependent repaint of existing exterior entry doors — 3 substrate materials (steel, fiberglass, wood) as primary branching dimension. Combined assess+prep+prime+finish in single mobilization. Substrate material drives cleaning protocol, sanding constraints, primer chemistry, and topcoat chemistry. 3 substrate conditions (sound, failing, rust) drive prep intensity via FAC_DRRP_CONDITION prep multiplier. 3 door complexity levels (slab, panel, grand_entry) drive production rate via FAC_DRRP_COMPLEXITY universal multiplier — grand entry includes sidelites + transom + complex geometry. Hardware removal is MANDATORY (masking discouraged — areas beneath hardware must be sealed). EA-based estimation — each door is a self-contained work unit including slab face, frame/jamb, and all edges. QT3-QT5 range (QT2 excluded — doors are fine-finish substrate requiring hardware removal, proper substrate-specific prep, and two finish coats). Brush is primary application method; spray conditional on door removal. Steel limited to satin sheen per ANSI A250.8. Fiberglass: 100% acrylic products only (oil prohibited). Wood: six-side seal mandatory (manufacturer warranty requirement). Lead-safe RRP gate for pre-1978 buildings. IR-reflective coating gate for LRV <30 dark colors on high-sun-exposure doors. First exterior door repaint spec in the system.",
+    "domain": "exterior",
+    "version": "0.1.0",
+    "status": "draft",
+    "review_required": true
+  },
+
+  "scope_boundaries": {
+    "includes": [
+      "Condition assessment (visual inspection, ASTM D3359 adhesion test, rust evaluation (steel), moisture content (wood), existing coating ID, lead test (pre-1978))",
+      "Lead paint evaluation for pre-1978 buildings (EPA RRP compliance)",
+      "RRP containment setup, wet scraping methods, HEPA vacuum, and teardown when lead-positive",
+      "Hardware removal — ALL locking hardware, strike plates, hinges, address numbers, decorative hardware (mandatory, not masking)",
+      "Weatherstrip protection (pull-out or deep-tape)",
+      "Threshold / sill plate protection",
+      "Glass lite masking (panel and grand entry doors)",
+      "Ground / hardscape protection (drop cloth for brush, full tarp for spray)",
+      "Siding masking (spray application only)",
+      "Substrate-specific cleaning (steel: solvent+TSP, fiberglass: mild soap only, wood: TSP wash)",
+      "Scraping failing paint and feather-edge sanding (mandatory when scraping)",
+      "Rust debridement SSPC-SP3/SP6 (steel doors with surface rust)",
+      "Body filler for dents and imperfections (steel, QT4/QT5)",
+      "Adhesion scuff sand on intact paint (steel and wood only, NOT textured fiberglass)",
+      "Door-to-frame junction caulk replacement (exterior-grade paintable, NEVER silicone)",
+      "Six-side seal verification and coating (wood doors, door removed from frame)",
+      "Sanding dust removal (tack cloth all surfaces before coating)",
+      "Substrate-specific primer application (DTM for sound steel, zinc-rich for rusted steel, acrylic for wood/fiberglass, stain-block for tannin-rich wood)",
+      "Second primer coat at QT5",
+      "Interstage inspection, sand, and spot repair (QT4: between finish coats, QT5: between ALL coats)",
+      "2 finish coats — 100% acrylic exterior enamel (brush primary, spray conditional)",
+      "Door rehang and alignment verification (if removed)",
+      "Hardware reinstallation and operation verification",
+      "Weatherstrip reinstallation and seal verification",
+      "Protection teardown and site cleanup",
+      "Final inspection and touch-up",
+      "Customer walkthrough"
+    ],
+    "excludes": [
+      {
+        "item": "Structural damage / rot repair (wood doors)",
+        "route_to": "Carpentry/contractor — HARD STOP gate condition"
+      },
+      {
+        "item": "Structural rust (steel doors beyond surface corrosion)",
+        "route_to": "Door replacement — HARD STOP gate condition"
+      },
+      {
+        "item": "Exterior door casing / trim painting",
+        "route_to": "SF_TRIM_EXT_RP_v1 — clean junction at casing-to-jamb boundary"
+      },
+      {
+        "item": "Adjacent siding painting",
+        "route_to": "SF_SIDING_WOOD_EXT_RP_v1 or future siding spec"
+      },
+      {
+        "item": "Screen door or storm door painting",
+        "route_to": "Future exterior accessory spec"
+      },
+      {
+        "item": "Interior side of exterior door",
+        "route_to": "SF_DOOR_SLAB_INT_NC_v1 or future interior door repaint spec"
+      },
+      {
+        "item": "Stain-overcoat conversion",
+        "route_to": "Future exterior stain spec — stain states excluded"
+      },
+      {
+        "item": "Garage door painting",
+        "route_to": "Future SF_GARAGE_DOOR_EXT_RP"
+      }
+    ]
+  },
+
+  "configuration_dimensions": [
+    {
+      "dimension_id": "quality_tier",
+      "description": "Quality tier controlling coat count, inspection scrutiny, interstage sanding, and defect tolerance. Doors are fine-finish substrate — QT2 excluded.",
+      "values": ["QT3", "QT4", "QT5"],
+      "default": "QT3",
+      "notes": "QT3=standard (satin, spot prime, 2 finish coats, scan inspection). QT4=premium (semi-gloss, interstage sand between finish coats, body filler for dents on steel, systematic inspection). QT5=superior (gloss, 2-coat primer, interstage sand between ALL coats, raking light inspection, near-zero defect tolerance). Grand entry at QT5 with failing paint = full restoration (12-20 hrs/EA)."
+    },
+    {
+      "dimension_id": "substrate_material",
+      "description": "Door substrate material. Primary branching dimension driving cleaning protocol, sanding constraints, primer chemistry, topcoat chemistry, and failure mode risk.",
+      "values": ["steel", "fiberglass", "wood"],
+      "default": "steel",
+      "notes": "Steel: solvent+TSP clean, DTM or zinc-rich primer, satin sheen limit per ANSI A250.8. Fiberglass: mild soap/alcohol ONLY (NO hydrocarbon solvents, NO sanding on textured), 100% acrylic products only (oil prohibited), outgassing risk at dark colors. Wood: TSP wash, six-side seal mandatory, acrylic or stain-block primer, moisture content testing."
+    },
+    {
+      "dimension_id": "door_complexity",
+      "description": "Door complexity level. Drives production rate via FAC_DRRP_COMPLEXITY universal multiplier and glass masking scope.",
+      "values": ["slab", "panel", "grand_entry"],
+      "default": "panel",
+      "notes": "Slab=1.00x (flat face, minimal detail, single lockset). Panel=1.30x (recesses, raised profiles, multiple edges, 0-1 glass lites). Grand_entry=2.00x (sidelites + transom + complex geometry + 4-8 glass lites + 2-person crew for removal). Restoration is the extreme end of grand_entry at QT5."
+    },
+    {
+      "dimension_id": "substrate_condition",
+      "description": "Existing coating condition. Drives prep labor multiplier via FAC_DRRP_CONDITION on prep tasks.",
+      "values": ["SS_EXT_SOUND_PAINT", "SS_EXT_FAILING_PAINT", "SS_EXT_SURFACE_RUST"],
+      "default": "SS_EXT_SOUND_PAINT",
+      "notes": "SS_EXT_SOUND_PAINT=1.00x (scuff sand, spot prime). SS_EXT_FAILING_PAINT=1.50x (scrape, feather-sand, spot/full prime). SS_EXT_SURFACE_RUST=2.00x (SSPC debridement, body fill, zinc-rich primer). Rust is steel-only. Chalking and peeling excluded — uncommon on doors (siding phenomenon)."
+    }
+  ],
+
+  "paintable_items": [
+    {
+      "item_id": "ITM_DOOR_EXT",
+      "name": "Exterior door unit (slab + frame/jamb + edges)",
+      "unit_of_measure": "EA",
+      "counting_rules": "Each door counted individually as a complete unit. Includes slab face(s), frame/jamb, hinge edge, latch edge, top edge, bottom edge. Grand entry includes sidelite and transom assemblies as part of the door unit.",
+      "notes": "EA-based estimation. Each door is a self-contained work unit with hardware removal, substrate-specific prep, primer, 2 finish coats, and hardware reinstall. Interior face is a separate spec. Six-side coating on wood doors."
+    }
+  ],
+
+  "variants": [
+    {
+      "variant_id": "VAR_DRRP_QT3_STEEL_PANEL_SOUND",
+      "applies_when": { "quality_tier": ["QT3"], "substrate_material": ["steel"], "door_complexity": ["panel"], "substrate_condition": ["SS_EXT_SOUND_PAINT"] },
+      "coats": { "prime": 1, "finish": 2 },
+      "prime_scope": "spot",
+      "protection_zones": ["hardware_covers", "ext_weatherstrip_protect", "ext_threshold_protect", "floor_workzone"],
+      "notes": "BASELINE. Standard steel panel door repaint. Spot prime bare/thin areas with acrylic DTM. 2 finish coats satin. Brush application. Hardware removal mandatory. Satin sheen per ANSI A250.8."
+    },
+    {
+      "variant_id": "VAR_DRRP_QT3_FIBERGLASS_PANEL_SOUND",
+      "applies_when": { "quality_tier": ["QT3"], "substrate_material": ["fiberglass"], "door_complexity": ["panel"], "substrate_condition": ["SS_EXT_SOUND_PAINT"] },
+      "coats": { "prime": 1, "finish": 2 },
+      "prime_scope": "spot",
+      "protection_zones": ["hardware_covers", "ext_weatherstrip_protect", "ext_threshold_protect", "glass_mask", "floor_workzone"],
+      "notes": "Fiberglass panel door. Mild soap/alcohol clean ONLY. 100% acrylic primer and finish — oil PROHIBITED. No sanding on textured fiberglass. Glass masking for panel lite."
+    },
+    {
+      "variant_id": "VAR_DRRP_QT3_WOOD_PANEL_SOUND",
+      "applies_when": { "quality_tier": ["QT3"], "substrate_material": ["wood"], "door_complexity": ["panel"], "substrate_condition": ["SS_EXT_SOUND_PAINT"] },
+      "coats": { "prime": 1, "finish": 2 },
+      "prime_scope": "spot",
+      "protection_zones": ["hardware_covers", "ext_weatherstrip_protect", "ext_threshold_protect", "glass_mask", "floor_workzone"],
+      "notes": "Wood panel door. TSP wash. Six-side seal access requires door removal. Acrylic primer on bare areas (stain-block override for tannin species). MC testing at bottom rail."
+    },
+    {
+      "variant_id": "VAR_DRRP_QT3_STEEL_PANEL_FAILING",
+      "applies_when": { "quality_tier": ["QT3"], "substrate_material": ["steel"], "door_complexity": ["panel"], "substrate_condition": ["SS_EXT_FAILING_PAINT"] },
+      "coats": { "prime": 1, "finish": 2 },
+      "prime_scope": "spot",
+      "protection_zones": ["hardware_covers", "ext_weatherstrip_protect", "ext_threshold_protect", "floor_workzone"],
+      "notes": "Failing paint on steel. Scrape all loose paint. Feather-sand edges (MANDATORY). Spot or full prime depending on bare area percentage. FAC_DRRP_CONDITION = 1.50x on prep tasks."
+    },
+    {
+      "variant_id": "VAR_DRRP_QT3_STEEL_PANEL_RUST",
+      "applies_when": { "quality_tier": ["QT3"], "substrate_material": ["steel"], "door_complexity": ["panel"], "substrate_condition": ["SS_EXT_SURFACE_RUST"] },
+      "coats": { "prime": 1, "finish": 2 },
+      "prime_scope": "full",
+      "protection_zones": ["hardware_covers", "ext_weatherstrip_protect", "ext_threshold_protect", "floor_workzone"],
+      "notes": "Surface rust on steel. SSPC-SP3/SP6 debridement to bare metal. Zinc-rich primer on debrided areas. Acrylic DTM on surrounding sound areas. FAC_DRRP_CONDITION = 2.00x on prep tasks. Steel-only state."
+    },
+    {
+      "variant_id": "VAR_DRRP_QT4_STEEL_PANEL_SOUND",
+      "applies_when": { "quality_tier": ["QT4"], "substrate_material": ["steel"], "door_complexity": ["panel"], "substrate_condition": ["SS_EXT_SOUND_PAINT"] },
+      "coats": { "prime": 1, "finish": 2 },
+      "prime_scope": "spot",
+      "protection_zones": ["hardware_covers", "ext_weatherstrip_protect", "ext_threshold_protect", "floor_workzone"],
+      "notes": "PREMIUM. Sound steel panel door. Interstage sand between all coats. Body filler for dents. Semi-gloss (or satin per ANSI A250.8 on steel). FAC_DRRP_QT = 1.25x on coating tasks."
+    },
+    {
+      "variant_id": "VAR_DRRP_QT4_WOOD_PANEL_SOUND",
+      "applies_when": { "quality_tier": ["QT4"], "substrate_material": ["wood"], "door_complexity": ["panel"], "substrate_condition": ["SS_EXT_SOUND_PAINT"] },
+      "coats": { "prime": 1, "finish": 2 },
+      "prime_scope": "spot",
+      "protection_zones": ["hardware_covers", "ext_weatherstrip_protect", "ext_threshold_protect", "glass_mask", "floor_workzone"],
+      "notes": "Premium wood panel door. Door removal for six-side seal. Interstage sand between all coats. Semi-gloss finish. MC testing. FAC_DRRP_QT = 1.25x on coating tasks."
+    },
+    {
+      "variant_id": "VAR_DRRP_QT5_STEEL_PANEL_SOUND",
+      "applies_when": { "quality_tier": ["QT5"], "substrate_material": ["steel"], "door_complexity": ["panel"], "substrate_condition": ["SS_EXT_SOUND_PAINT"] },
+      "coats": { "prime": 2, "finish": 2 },
+      "prime_scope": "spot",
+      "protection_zones": ["hardware_covers", "ext_weatherstrip_protect", "ext_threshold_protect", "floor_workzone"],
+      "notes": "GALLERY. 2-coat primer + interstage sand between ALL coats + 2 finish coats. Body filler for ALL imperfections. Satin sheen (steel limited per ANSI A250.8). FAC_DRRP_QT = 1.50x on coating tasks. Near-zero defect tolerance."
+    },
+    {
+      "variant_id": "VAR_DRRP_QT3_STEEL_SLAB_SOUND",
+      "applies_when": { "quality_tier": ["QT3"], "substrate_material": ["steel"], "door_complexity": ["slab"], "substrate_condition": ["SS_EXT_SOUND_PAINT"] },
+      "coats": { "prime": 1, "finish": 2 },
+      "prime_scope": "spot",
+      "protection_zones": ["hardware_covers", "ext_weatherstrip_protect", "ext_threshold_protect", "floor_workzone"],
+      "notes": "ECONOMY. Slab door — flat face, minimal detail. No glass masking. FAC_DRRP_COMPLEXITY = 1.00x (baseline). Fastest door repaint variant."
+    },
+    {
+      "variant_id": "VAR_DRRP_QT3_STEEL_GRAND_SOUND",
+      "applies_when": { "quality_tier": ["QT3"], "substrate_material": ["steel"], "door_complexity": ["grand_entry"], "substrate_condition": ["SS_EXT_SOUND_PAINT"] },
+      "coats": { "prime": 1, "finish": 2 },
+      "prime_scope": "spot",
+      "protection_zones": ["hardware_covers", "ext_weatherstrip_protect", "ext_threshold_protect", "glass_mask", "floor_workzone"],
+      "notes": "COMPLEX. Grand entry — sidelites + transom + 4-8 glass lites. FAC_DRRP_COMPLEXITY = 2.00x on all tasks. 2-person crew for removal. Significant glass masking scope."
+    },
+    {
+      "variant_id": "VAR_DRRP_QT3_WOOD_PANEL_FAILING_RRP",
+      "applies_when": { "quality_tier": ["QT3"], "substrate_material": ["wood"], "door_complexity": ["panel"], "substrate_condition": ["SS_EXT_FAILING_PAINT"], "pre_1978": true, "rrp_required": true },
+      "coats": { "prime": 1, "finish": 2 },
+      "prime_scope": "full",
+      "protection_zones": ["hardware_covers", "ext_weatherstrip_protect", "ext_threshold_protect", "glass_mask", "floor_workzone"],
+      "notes": "RRP variant. Pre-1978 wood door with failing paint and positive lead test. RRP containment + wet scraping + HEPA vacuum + lead-safe disposal. FAC_DRRP_CONDITION = 1.50x AND FAC_DRRP_RRP = 2.00x on prep tasks. Stacked: 3.00x on prep."
+    },
+    {
+      "variant_id": "VAR_DRRP_QT5_WOOD_GRAND_SOUND",
+      "applies_when": { "quality_tier": ["QT5"], "substrate_material": ["wood"], "door_complexity": ["grand_entry"], "substrate_condition": ["SS_EXT_SOUND_PAINT"] },
+      "coats": { "prime": 2, "finish": 2 },
+      "prime_scope": "spot",
+      "protection_zones": ["hardware_covers", "ext_weatherstrip_protect", "ext_threshold_protect", "glass_mask", "floor_workzone"],
+      "notes": "MAX NON-RESTORATION. QT5 wood grand entry. Door removal for six-side seal + 2-person crew. 2-coat primer + interstage between ALL coats. 4-8 glass lites masked. FAC_DRRP_QT = 1.50x AND FAC_DRRP_COMPLEXITY = 2.00x. Coating stack: 3.00x."
+    }
+  ],
+
+  "required_paintscope_inputs": [
+    {
+      "input_name": "IN_EA_DOOR_EXT",
+      "paintscope_key": "PS_EXT_OPENING_EA.DOOR_EXT",
+      "uom": "EA",
+      "required": true,
+      "description": "Count of exterior doors to repaint. Primary quantity input. Each door counted individually as complete unit."
+    },
+    {
+      "input_name": "IN_EA_EXT_DOOR_HARDWARE",
+      "paintscope_key": "PS_EXT_PROTECT_EA.DOOR_HARDWARE",
+      "uom": "EA",
+      "required": true,
+      "description": "Count of hardware sets to remove/reinstall. Typically equals door count. Each set includes lockset, deadbolt, hinges, strike plates, address numbers."
+    },
+    {
+      "input_name": "IN_EA_DOOR_GLASS_LITES",
+      "paintscope_key": "PS_EXT_META.EA.DOOR_GLASS_LITES",
+      "uom": "EA",
+      "required": false,
+      "required_when": "door_complexity IN [panel, grand_entry] AND glass lites present",
+      "description": "Total count of individual glass lites across all doors. Drives glass masking task quantity. Slab=0, panel=0-1, grand entry=4-8."
+    },
+    {
+      "input_name": "IN_ENUM_SUBSTRATE_TYPE_DOOR",
+      "paintscope_key": "PS_EXT_META.ENUM.SUBSTRATE_TYPE_DOOR",
+      "uom": "ENUM",
+      "required": true,
+      "description": "Door substrate material: steel, fiberglass, wood. Primary branching dimension. Per-door attribute."
+    },
+    {
+      "input_name": "IN_ENUM_DOOR_COMPLEXITY",
+      "paintscope_key": "PS_EXT_META.ENUM.DOOR_COMPLEXITY",
+      "uom": "ENUM",
+      "required": true,
+      "description": "Door complexity: slab, panel, grand_entry. Drives FAC_DRRP_COMPLEXITY multiplier and glass masking scope."
+    },
+    {
+      "input_name": "IN_ENUM_SUBSTRATE_STATE_DOOR",
+      "paintscope_key": "PS_EXT_META.ENUM.SUBSTRATE_STATE_DOOR",
+      "uom": "ENUM",
+      "required": true,
+      "description": "Existing coating condition: SS_EXT_SOUND_PAINT, SS_EXT_FAILING_PAINT, SS_EXT_SURFACE_RUST. Drives prep scope and primer selection."
+    },
+    {
+      "input_name": "IN_SF_EXT_PROTECT_HARDSCAPE_WALK",
+      "paintscope_key": "PS_EXT_PROTECT_SF.HARDSCAPE_WALK",
+      "uom": "SF",
+      "required": false,
+      "required_when": "When hardscape/walkway is under door work zone",
+      "description": "Ground surface area under door work zone requiring protection. Drop cloth for brush, full tarp for spray."
+    },
+    {
+      "input_name": "IN_BOOL_PRE_1978",
+      "paintscope_key": "PS_EXT_META.FLAG.PRE_1978",
+      "uom": "BOOL",
+      "required": true,
+      "description": "Boolean flag for pre-1978 building. Triggers EPA Lead-Safe RRP requirements. Shared with exterior trim and siding repaint specs."
+    }
+  ],
+
+  "protection_zones_required": [
+    {
+      "zone_id": "hardware_covers",
+      "condition": "always",
+      "protection_level": "full_cover",
+      "notes": "Hardware REMOVAL is the standard (not masking). All locking hardware, strike plates, hinges, address numbers removed. Areas beneath hardware must be accessible for sealing. Existing zone_id reused from interior door spec."
+    },
+    {
+      "zone_id": "glass_mask",
+      "condition": { "door_complexity": ["panel", "grand_entry"] },
+      "protection_level": "full_cover",
+      "notes": "Glass lites in panel and grand entry doors. Masking paper or pre-taped film per lite. Slab doors = no glass. Grand entry = 4-8 lites. Remove tape within 14 days."
+    },
+    {
+      "zone_id": "ext_weatherstrip_protect",
+      "condition": "always",
+      "protection_level": "full_cover",
+      "notes": "Weatherstrip pull-out or deep-tape protection. NEVER paint weatherstripping. Fixed per door. Pull-out preferred over deep-tape."
+    },
+    {
+      "zone_id": "ext_threshold_protect",
+      "condition": "always",
+      "protection_level": "light_mask",
+      "notes": "Door threshold/sill plate protection. Tape and paper to prevent drips. Full width coverage."
+    },
+    {
+      "zone_id": "floor_workzone",
+      "condition": "always",
+      "protection_level": "edge_only",
+      "upgrade_when": { "application_method": ["spray"] },
+      "upgrade_level": "full_cover",
+      "notes": "Ground surface under door work zone. Brush: edge-only drop cloth (3-4 ft). Spray on sawhorses: full tarp under sawhorse area plus 6 ft perimeter."
+    },
+    {
+      "zone_id": "ext_siding_adjacent",
+      "condition": { "application_method": ["spray"] },
+      "protection_level": "light_mask",
+      "notes": "Siding adjacent to door opening. Masking paper/film 12-24 inches from door opening. Spray only — brush work on doors does not generate overspray."
+    }
+  ],
+
+  "adjacency_declarations": {
+    "primary_surface": "door_slab_ext",
+    "adjacent_surfaces": [
+      {
+        "surface_id": "door_frame_ext",
+        "edge_type": "linear",
+        "typical_relationship": "same_finish",
+        "continuity_rate_modifier": 1.0,
+        "notes": "Exterior door frame/jamb. Same-scope — painted as part of the door unit. Same color and sheen."
+      },
+      {
+        "surface_id": "ext_trim_door_casing",
+        "edge_type": "linear",
+        "typical_relationship": "same_finish",
+        "continuity_rate_modifier": 1.0,
+        "notes": "Exterior door casing. Separate spec (SF_TRIM_EXT_RP). Typically same color as door trim. Clean junction at casing-to-jamb boundary."
+      },
+      {
+        "surface_id": "siding_field",
+        "edge_type": "linear",
+        "typical_relationship": "different_finish",
+        "continuity_rate_modifier": 1.0,
+        "notes": "Siding field adjacent to door opening. Separate spec. Typically different color (body vs door). Protection-only relationship. Masking when spray."
+      },
+      {
+        "surface_id": "ext_threshold",
+        "edge_type": "linear",
+        "typical_relationship": "not_in_scope",
+        "continuity_rate_modifier": 1.0,
+        "notes": "Door threshold/sill plate. Protection target only — not painted in this scope."
+      }
+    ]
+  },
+
+  "state_declarations": {
+    "primary_surface": "door_slab_ext",
+
+    "valid_input_states": {
+      "states": ["SS_EXT_SOUND_PAINT", "SS_EXT_FAILING_PAINT", "SS_EXT_SURFACE_RUST"],
+      "notes": "3 repaint input states. SS_EXT_SOUND_PAINT and SS_EXT_FAILING_PAINT apply to all substrates. SS_EXT_SURFACE_RUST is steel-only (RC-001). Chalking and peeling excluded — uncommon on doors (siding phenomenon)."
+    },
+
+    "output_state": {
+      "state": "SS_EXT_PAINTED_SATIN",
+      "varies_by": "sheen",
+      "state_map": {
+        "satin": "SS_EXT_PAINTED_SATIN",
+        "semi-gloss": "SS_EXT_PAINTED_SEMIGLOSS",
+        "gloss": "SS_EXT_PAINTED_GLOSS"
+      },
+      "notes": "All repaint input states converge to painted output state. Sheen determined by quality tier and substrate constraints: Steel always satin per ANSI A250.8. Wood/fiberglass: QT3=satin, QT4=semi-gloss, QT5=gloss."
+    }
+  },
+
+  "site_condition_rules": [
+    {
+      "condition_id": "door_complexity",
+      "treatment": "complexity_modifier",
+      "vocabulary_ref": "Exterior_Doors_Doctrine.md Production Rates",
+      "affected_tasks": "ALL tasks — prep and coating. Applied universally.",
+      "effect": "slab=1.00, panel=1.30, grand_entry=2.00. Applied as time multiplier: effective_rate = base_rate / modifier.",
+      "notes": "Uses FAC_DRRP_COMPLEXITY. Per-door attribute. Grand entry includes sidelites, transom, and complex geometry."
+    },
+    {
+      "condition_id": "substrate_condition",
+      "treatment": "prep_labor_multiplier",
+      "vocabulary_ref": "Exterior_Doors_Doctrine.md, Exterior_Surface_Assessment_Doctrine.md",
+      "affected_tasks": "Prep tasks only (cleaning, scraping, sanding, debridement, caulking, dust removal). NOT coating tasks — once prepped, surface is at baseline.",
+      "effect": "SS_EXT_SOUND_PAINT=1.00, SS_EXT_FAILING_PAINT=1.50, SS_EXT_SURFACE_RUST=2.00. Applied as time multiplier: effective_rate = base_rate / modifier.",
+      "notes": "Uses FAC_DRRP_CONDITION. Stacking pool: PREP. Rust is steel-only."
+    },
+    {
+      "condition_id": "rrp_gate",
+      "treatment": "prep_labor_multiplier",
+      "vocabulary_ref": "EPA RRP Rule 40 CFR 745",
+      "affected_tasks": "Prep tasks involving paint disturbance (scraping, sanding, power tool cleaning).",
+      "effect": "no_rrp=1.00, rrp_required=2.00. Binary gate.",
+      "notes": "Uses FAC_DRRP_RRP. Pre-1978 + lead-positive triggers RRP. Stacking pool: PREP. RRP containment setup/teardown are separate fixed tasks."
+    },
+    {
+      "condition_id": "quality_tier",
+      "treatment": "coating_labor_multiplier",
+      "vocabulary_ref": "Exterior_Doors_Doctrine.md Production Rates",
+      "affected_tasks": "Coating tasks only (prime, finish). NOT prep tasks.",
+      "effect": "QT3=1.00, QT4=1.25, QT5=1.50. Applied as time multiplier: effective_rate = base_rate / modifier.",
+      "notes": "Uses FAC_DRRP_QT. Stacking pool: COATING. Higher QT = slower pace due to tighter defect tolerance, premium product handling, and interstage sanding."
+    }
+  ],
+
+  "stacking_partition": {
+    "description": "Modifiers split into non-overlapping pools to prevent compound blowout. Prep and coating tasks share COMPLEXITY but never share CONDITION/RRP with QT.",
+    "prep_tasks": {
+      "modifiers": ["FAC_DRRP_CONDITION", "FAC_DRRP_RRP", "FAC_DRRP_COMPLEXITY"],
+      "formula": "effective_rate = base_rate / (FAC_DRRP_CONDITION x FAC_DRRP_RRP x FAC_DRRP_COMPLEXITY)",
+      "max_stack_no_rrp": "SS_EXT_SURFACE_RUST (2.00) x Grand Entry (2.00) = 4.00x",
+      "max_stack_with_rrp": "SS_EXT_SURFACE_RUST (2.00) x RRP (2.00) x Grand Entry (2.00) = 8.00x — EXCEEDS 4.0x cap. Recommend T&M pricing.",
+      "notes": "FAC_DRRP_QT does NOT apply to prep tasks. Extreme stacks (rust + RRP + grand entry) are rare edge cases."
+    },
+    "coating_tasks": {
+      "modifiers": ["FAC_DRRP_QT", "FAC_DRRP_COMPLEXITY"],
+      "formula": "effective_rate = base_rate / (FAC_DRRP_QT x FAC_DRRP_COMPLEXITY)",
+      "max_stack": "QT5 (1.50) x Grand Entry (2.00) = 3.00x",
+      "notes": "FAC_DRRP_CONDITION and FAC_DRRP_RRP do NOT apply to coating tasks. Once prepped, surface is at baseline."
+    },
+    "fixed_tasks": {
+      "modifiers": [],
+      "formula": "fixed_time_minutes (no modifiers)",
+      "notes": "Mobilization, lead test, RRP containment setup/teardown, protection teardown, equipment cleanup, waste disposal, and walkthrough are fixed-time tasks. No modifiers applied."
+    }
+  },
+
+  "hard_stops": [
+    {
+      "condition": "STRUCTURAL_DAMAGE_ROT",
+      "action": "STOP — outside painting scope",
+      "description": "Structural damage or rot on wood doors. Soft, punky, or structurally compromised wood. Cannot be painted. Requires door replacement or carpentry repair before painting scope can proceed.",
+      "substrate_material": ["wood"],
+      "notes": "Engine must prevent estimation when structural rot is identified during condition assessment."
+    },
+    {
+      "condition": "STRUCTURAL_RUST",
+      "action": "STOP — outside painting scope",
+      "description": "Structural rust on steel doors (beyond surface corrosion). Perforated or structurally compromised steel. Requires door replacement.",
+      "substrate_material": ["steel"],
+      "notes": "Surface rust (SS_EXT_SURFACE_RUST) is paintable. Structural rust is not. Determined during condition assessment rust evaluation."
+    },
+    {
+      "condition": "FIBERGLASS_OIL_PAINT",
+      "action": "STOP — material incompatibility",
+      "description": "Fiberglass door with existing oil-based paint identified during coating ID test. Oil on fiberglass is a previous failure mode. Full removal may be required before repaint can proceed.",
+      "substrate_material": ["fiberglass"],
+      "notes": "Coating ID test (solvent rub) reveals oil/alkyd existing coating on fiberglass = hard stop. Oil over fiberglass = adhesion failure risk."
+    },
+    {
+      "condition": "LRV_UNDER_30_NO_IR_REFLECTIVE",
+      "action": "GATE — require IR-reflective coating",
+      "description": "Selected color LRV <30 without IR-reflective coating technology. Standard dark paint causes thermal stress: wood joint failure, steel thermal warping, fiberglass outgassing/blistering.",
+      "substrate_material": ["steel", "fiberglass", "wood"],
+      "notes": "Material gate — flagged during color approval. When LRV <30, system must select SYS_EXT_DRRP_FINISH_IR_REFLECTIVE instead of SYS_EXT_DRRP_FINISH_ACRYLIC."
+    },
+    {
+      "condition": "RRP_GATE",
+      "action": "GATE — add RRP protocol (not hard stop)",
+      "description": "Pre-1978 building with positive or presumed lead paint. Activates MOD_DRRP_RRP module and FAC_DRRP_RRP modifier. Does NOT stop work — adds EPA RRP containment and wet scraping requirements.",
+      "notes": "Soft gate — activates additional scope rather than stopping work. Per door where paint disturbance exceeds 2 SF on exterior component."
+    }
+  ],
+
+  "sequencing_notes": {
+    "production_sequence": "Assess (condition, adhesion, rust/moisture, coating ID, lead) → Mobilize (equipment staging, door removal if spray/wood) → Hardware Remove → Protect (weatherstrip, threshold, glass mask, ground cover, siding mask if spray) → RRP Containment (if pre-1978 + lead) → Prep (substrate-specific clean, scrape/feather if failing, rust debride if steel+rust, body fill if QT4+, adhesion scuff sand, caulk frame, six-side verify if wood, dust remove) → Prime (substrate-specific: DTM/zinc/acrylic/stain-block) → Interstage (QT4/QT5: inspect, sand, spot repair) → Finish 1 (brush or spray) → Interstage (QT4/QT5) → Finish 2 (brush or spray) → Reinstall (door rehang, hardware reinstall, weatherstrip reinstall) → Cleanup (protection teardown, final inspect, touch-up, clean equipment, waste disposal, walkthrough)",
+    "edge_work": "No edge work across specs. Door-to-casing junction caulking is THIS spec's responsibility (door side). Casing surface is trim spec's responsibility.",
+    "protection_sequence": "Hardware remove → Weatherstrip protect → Threshold protect → Glass mask (panel/grand_entry) → Ground cover → Siding mask (spray only) → RRP containment (if applicable)",
+    "key_prohibitions": "NO masking hardware (removal is mandatory). NO hydrocarbon solvents on fiberglass. NO sanding on textured fiberglass. NO silicone caulk at door-to-frame junction. NO oil-based products on fiberglass. NO spray without siding masking. NO painting over structural rust or rot (hard stop). NO skipping feather-edge sanding after scraping. NO painting weatherstripping."
+  },
+
+  "relationships": {
+    "companion_spec": null,
+    "often_combined_with": ["SF_TRIM_EXT_RP_v1"],
+    "sibling_spec": "SF_DOOR_SLAB_INT_NC_v1",
+    "typical_before": [],
+    "typical_after": ["SF_TRIM_EXT_RP_v1"],
+    "cross_spec_protection_note": "Door-to-casing junction caulking: caulk application owned by THIS spec, casing surface prep owned by SF_TRIM_EXT_RP. Siding masking during spray is THIS spec's responsibility. Grand entry sidelite glass masking owned by this spec if sidelites are part of door assembly.",
+    "notes": "First exterior door repaint spec. Introduces substrate-material-driven branching (steel/fiberglass/wood), hardware removal as mandatory standard, door complexity modifier (slab/panel/grand_entry), and EA-based exterior estimation. Patterns established here inform future door-related specs."
+  },
+
+  "maintenance_cycles": {
+    "description": "Expected repaint intervals for exterior doors by quality tier, assuming proper prep and application.",
+    "cycles": [
+      { "quality_tier": "QT3", "repaint_interval_years": "5-7", "with_routine_maintenance": "8-10", "notes": "Standard 2-coat repaint satin. Doors take more physical abuse than siding/trim — shorter base cycle. South/west facing doors may be shorter." },
+      { "quality_tier": "QT4", "repaint_interval_years": "7-9", "with_routine_maintenance": "10-12", "notes": "Premium 2-coat repaint with interstage sand. Better products and prep extend cycle." },
+      { "quality_tier": "QT5", "repaint_interval_years": "9-12", "with_routine_maintenance": "12-15", "notes": "Superior 4-coat system. Maximum film build. Longest cycle. Restoration-quality doors at grand entry may achieve 15+ years with routine maintenance." }
+    ],
+    "routine_maintenance_definition": "Annual inspection, touch-up minor nicks and scuffs, re-caulk frame junction as needed, verify weatherstrip condition, clean door surface with mild soap. Adds 3-5 years to repaint interval."
+  },
+
+  "dependencies": {
+    "research": "research.json",
+    "resolution": "resolution.json",
+    "sop_modules": "sop_modules.json",
+    "materials": "materials.json",
+    "production": "production.json"
+  },
+
+  "artifact_counts": {
+    "sop_modules": 12,
+    "total_tasks": 50,
+    "binary_tasks": 28,
+    "qt_scaled_tasks": 16,
+    "qt_conditional_tasks": 6,
+    "material_systems": 7,
+    "coverage_profiles": 3,
+    "consumables": 21,
+    "factor_modifiers": 4,
+    "round_configurations": 6,
+    "protection_zones": 6,
+    "paintscope_inputs": 8,
+    "variants": 12,
+    "paintable_items": 1,
+    "configuration_dimensions": 4,
+    "hard_stops": 5
+  },
+
+  "doctrine_references": [
+    { "doctrine": "Exterior_Doors_Doctrine.md", "sections_used": ["Substrate materials (steel/fiberglass/wood)", "Substrate-specific prep protocols", "Primer/coating system selection", "Production rates by application method", "Failure modes by substrate", "Hardware removal standard", "Six-side seal requirement (wood)", "Complexity levels (slab/panel/grand_entry)", "ANSI A250.8 steel door sheen limitation", "Fiberglass oil prohibition", "IR-reflective coating requirement for LRV <30"] },
+    { "doctrine": "Exterior_Primer_Systems_Doctrine.md", "sections_used": ["Acrylic DTM primer", "Zinc-rich epoxy/alkyd primer", "Acrylic etching primer (galvanized)", "100% acrylic primer (wood/fiberglass)", "Stain-blocking primer (tannin-rich wood)"] },
+    { "doctrine": "Exterior_Application_Methods_Doctrine.md", "sections_used": ["Brush rates for doors", "Spray conditional on door removal", "No backbrushing on doors (unlike siding)"] },
+    { "doctrine": "Exterior_Protection_Doctrine_T3.md", "sections_used": ["Hardware removal zones", "Glass masking zones", "Weatherstrip protection", "Threshold protection", "Ground cover zones", "Siding masking for spray", "RRP containment requirements"] },
+    { "doctrine": "Exterior_Surface_Assessment_Doctrine.md", "sections_used": ["ASTM D3359 adhesion test", "Substrate state assessment", "Moisture content thresholds (wood)", "Existing coating identification (solvent test)", "Rust classification (surface vs structural)"] },
+    { "doctrine": "Exterior_Climate_Environmental_Conditions_Doctrine.md", "sections_used": ["NOT used as estimation modifiers (RC-003 from PaintFactor OS)"] },
+    { "doctrine": "Exterior_Color_Sheen_Configuration_Doctrine.md", "sections_used": ["Exterior door sheen options (satin/semi-gloss/gloss)", "Steel sheen limitation per ANSI A250.8", "Output state mapping", "LRV restriction for dark colors", "IR-reflective coating trigger"] },
+    { "doctrine": "Exterior_Caulking_Sealants_Doctrine.md", "sections_used": ["Door-to-frame junction caulking", "Exterior-grade paintable caulk (polyurethane/hybrid MS)", "Never silicone prohibition"] }
+  ],
+
+  "research_corrections": [
+    {
+      "correction_id": "RC-001",
+      "original_claim": "SS_EXT_SURFACE_RUST applies to all substrates",
+      "corrected_to": "SS_EXT_SURFACE_RUST is steel-only. Fiberglass does not rust. Wood deterioration is rot/moisture, not rust. Enforced as constraint in resolution.json and sop_modules.json applies_when rules.",
+      "source": "resolution.json substrate_state notes"
+    },
+    {
+      "correction_id": "RC-002",
+      "original_claim": "Environmental conditions should be estimation modifiers",
+      "corrected_to": "Environmental conditions are NOT estimatable — unpredictable at bid time. Excluded from spec entirely per PaintFactor OS RC-003.",
+      "source": "PaintFactor OS RC-003"
+    }
+  ],
+
+  "change_log": [
+    {
+      "version": "0.1.0",
+      "date": "2026-03-10",
+      "author": "SpecFactory",
+      "changes": "Initial draft spec for exterior door repaint. FIRST EXTERIOR DOOR REPAINT SPEC — introduces substrate-material-driven branching (steel/fiberglass/wood), hardware removal as mandatory standard, door complexity modifier (slab/panel/grand_entry), and EA-based exterior estimation. Key features: combined assess+prep+prime+finish (single mobilization), 3 substrate materials, 3 substrate conditions (sound/failing/rust), 3 complexity levels, 3 quality tiers (QT3-QT5, QT2 excluded), 2 application methods (brush primary, spray conditional on door removal), 50 tasks across 12 modules (28 binary + 16 qt_scaled + 6 qt_conditional), 7 material systems (5 primer + 2 finish), 4 factor modifiers (CONDITION/RRP/QT/COMPLEXITY) with stacking partition, 6 round configurations, 6 protection zones, 21 consumables (including 2 RRP-conditional), 12 variants, 8 PaintScope inputs, 1 paintable item (ITM_DOOR_EXT EA). Modifier stacking: prep max 8.00x with RRP + rust + grand entry (extreme edge — recommend T&M), coating max 3.00x (QT5 + grand entry). 5 gate conditions (2 hard stops + 1 material gate + 1 soft gate + 1 material incompatibility stop). Steel limited to satin per ANSI A250.8. Fiberglass: 100% acrylic only, oil prohibited, no sanding on textured. Wood: six-side seal mandatory, MC testing, stain-block for tannin species."
+    }
+  ]
+}

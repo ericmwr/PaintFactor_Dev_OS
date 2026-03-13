@@ -1,0 +1,576 @@
+{
+  "spec_family_id": "SF_WOOD_SIDING_EXT_NC_PAINT",
+  "version": "0.1.0",
+  "generated_by": "SOP Librarian",
+  "generated_at": "2026-03-08",
+
+  "sop_modules": [
+    {
+      "module_id": "MOD_SDNG_SETUP",
+      "name": "Exterior Siding Protection & Equipment Setup",
+      "description": "Deploy landscape/hardscape protection, mask fixtures, set up access equipment and spray rigs. Window/door protection is NOT this spec's responsibility — belongs in window/door specs (RC-001).",
+      "phase": "setup",
+      "applies_when": {},
+      "required_inputs": [
+        { "input_name": "IN_SF_EXT_PROTECT_LANDSCAPE_ADJ", "paintscope_key": "PS_EXT_PROTECT_SF.LANDSCAPE_ADJACENT", "uom": "SF" },
+        { "input_name": "IN_SF_EXT_PROTECT_LANDSCAPE_FULL", "paintscope_key": "PS_EXT_PROTECT_SF.LANDSCAPE_FULL", "uom": "SF" },
+        { "input_name": "IN_SF_EXT_PROTECT_HARDSCAPE_WALK", "paintscope_key": "PS_EXT_PROTECT_SF.HARDSCAPE_WALK", "uom": "SF" },
+        { "input_name": "IN_SF_EXT_PROTECT_HARDSCAPE_PATIO", "paintscope_key": "PS_EXT_PROTECT_SF.HARDSCAPE_PATIO", "uom": "SF" },
+        { "input_name": "IN_EA_EXT_PROTECT_LIGHT_FIXTURE", "paintscope_key": "PS_EXT_PROTECT_EA.LIGHT_FIXTURE", "uom": "EA" },
+        { "input_name": "IN_EA_EXT_PROTECT_HVAC_UNIT", "paintscope_key": "PS_EXT_PROTECT_EA.HVAC_UNIT", "uom": "EA" }
+      ],
+      "tasks": [
+        {
+          "task_id": "TSK_SDNG_LANDSCAPE_PROTECT",
+          "name": "Landscape Protection Setup",
+          "description": "Deploy tarps and drop cloths over landscape beds, shrubs, and plants adjacent to siding work area. Full cover for spray, edge tarps for brush/roll.",
+          "task_type": "protect",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "tools_required": ["drop_cloth_canvas", "plastic_sheeting", "landscape_stakes"],
+          "protection_metadata": {
+            "action": "setup",
+            "zones": ["ext_landscape_adjacent", "ext_landscape_full"],
+            "method_dependent": true
+          },
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": { "all": "Complete coverage of plantings within spray drift zone. Secure tarps against wind." }
+        },
+        {
+          "task_id": "TSK_SDNG_HARDSCAPE_PROTECT",
+          "name": "Hardscape Protection Setup",
+          "description": "Deploy drop cloths and plastic over walkways, patios, and driveways adjacent to siding.",
+          "task_type": "protect",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "tools_required": ["drop_cloth_canvas", "plastic_sheeting", "tape"],
+          "protection_metadata": {
+            "action": "setup",
+            "zones": ["ext_hardscape_walk", "ext_hardscape_patio"],
+            "method_dependent": true
+          },
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": { "all": "Tape plastic to foundation at grade line. Extend coverage to drip/overspray zone." }
+        },
+        {
+          "task_id": "TSK_SDNG_FIXTURE_MASK",
+          "name": "Fixture and Utility Masking",
+          "description": "Mask exterior light fixtures, house numbers, utility panels, hose bibs. Bag and tape HVAC units if adjacent.",
+          "task_type": "protect",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "tools_required": ["masking_tape", "plastic_bags", "plastic_sheeting"],
+          "protection_metadata": {
+            "action": "setup",
+            "zones": ["ext_light_fixture", "ext_hvac_unit"],
+            "method_dependent": false
+          },
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": { "all": "Complete coverage of all fixtures and utility connections on working elevation." }
+        },
+        {
+          "task_id": "TSK_SDNG_EQUIPMENT_SETUP_SPRAY",
+          "name": "Spray Equipment Setup",
+          "description": "Set up ladders, scaffold, or lift per access_type. Configure airless sprayer, hoses, tips for siding application. Stage materials.",
+          "task_type": "setup",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "tools_required": ["airless_sprayer", "ladder", "spray_tips", "hoses"],
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "applies_when": { "application_method": ["spray", "spray_backroll"] },
+          "quality_notes": { "all": "Verify tip size for primer vs finish. Stage enough material for full elevation run." }
+        },
+        {
+          "task_id": "TSK_SDNG_EQUIPMENT_SETUP_BRUSH",
+          "name": "Brush/Roll Equipment Setup",
+          "description": "Set up ladders, scaffold, or lift per access_type. Stage brushes, rollers, trays, and materials.",
+          "task_type": "setup",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "tools_required": ["ladder", "brush_4in", "roller_9in", "roller_cover_3_4in"],
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "applies_when": { "application_method": ["brush_roll"] },
+          "quality_notes": { "all": "Stage enough material for full elevation run." }
+        }
+      ],
+      "sequence_notes": "Landscape/hardscape protection first → Fixture masking → Equipment setup last."
+    },
+
+    {
+      "module_id": "MOD_SDNG_PREP",
+      "name": "Exterior Siding Surface Preparation",
+      "description": "Substrate-state-driven prep sequence. NC bare wood: sand mill glaze, back-prime, end-seal, knot-prime, caulk. Repaint: power wash, scrape, sand. Tasks activate/deactivate based on substrate_state.",
+      "phase": "prep",
+      "applies_when": {},
+      "required_inputs": [
+        { "input_name": "IN_SF_SIDING_FIELD", "paintscope_key": "PS_EXT_SURFACE_SF.SIDING_FIELD", "uom": "SF" }
+      ],
+      "tasks": [
+        {
+          "task_id": "TSK_SDNG_POWER_WASH",
+          "name": "Power Wash Siding",
+          "description": "Pressure wash siding to remove dirt, chalk, mildew, and loose paint. Required for all repaint substrate states. Not typically needed for NC bare wood.",
+          "task_type": "prep",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "tools_required": ["pressure_washer"],
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "substrate_state_rules": [
+            { "state_id": "SS_EXT_SOUND_PAINT", "action": "required" },
+            { "state_id": "SS_EXT_CHALKING", "action": "required" },
+            { "state_id": "SS_EXT_FAILING_PAINT", "action": "required" },
+            { "state_id": "SS_EXT_PEELING", "action": "required" },
+            { "state_id": "SS_EXT_WEATHERED", "action": "required" },
+            { "state_id": "SS_EXT_STAINED_SOLID", "action": "required" },
+            { "state_id": "SS_EXT_STAINED_SEMI", "action": "required" },
+            { "state_id": "SS_EXT_BARE_WOOD", "action": "excluded" },
+            { "state_id": "SS_EXT_PRIMED_FACTORY", "action": "excluded" }
+          ],
+          "quality_notes": { "all": "2000-2500 PSI. 15° tip. Maintain 12-18 inch distance. Allow 24-48 hr dry time before coating." }
+        },
+        {
+          "task_id": "TSK_SDNG_SCRAPE",
+          "name": "Scrape Loose Paint",
+          "description": "Hand-scrape all loose, cracking, and peeling paint. Feather edges of remaining sound paint for smooth transition.",
+          "task_type": "prep",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "tools_required": ["scraper_3in", "scraper_5in", "heat_gun"],
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "substrate_state_rules": [
+            { "state_id": "SS_EXT_FAILING_PAINT", "action": "required" },
+            { "state_id": "SS_EXT_PEELING", "action": "required" }
+          ],
+          "quality_notes": {
+            "QT3": "Remove all loose paint. Feather edges.",
+            "QT4": "Remove all loose paint. Feather edges to smooth profile.",
+            "QT5": "Remove all loose paint. Feather to invisible transition. May require heat gun for stubborn areas."
+          }
+        },
+        {
+          "task_id": "TSK_SDNG_SAND_MILL_GLAZE",
+          "name": "Sand Mill Glaze Removal",
+          "description": "Sand all exposed siding faces with 80-120 grit to remove mill glaze. Mill glaze on new lumber prevents primer adhesion. 100% coverage required.",
+          "task_type": "prep",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "tools_required": ["orbital_sander", "sandpaper_80_120"],
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "substrate_state_rules": [
+            { "state_id": "SS_EXT_BARE_WOOD", "action": "required" }
+          ],
+          "quality_notes": {
+            "QT3": "Full coverage sand. Check for missed glaze zones.",
+            "QT4": "Full coverage. Inspect at 3 ft for uniform scratch pattern.",
+            "QT5": "Full coverage. Inspect under raking light for missed areas."
+          }
+        },
+        {
+          "task_id": "TSK_SDNG_SAND_ADHESION",
+          "name": "Sand for Adhesion",
+          "description": "Light sand existing coating for mechanical adhesion. 120-150 grit. For repaint and factory-primed substrates.",
+          "task_type": "prep",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "tools_required": ["orbital_sander", "sandpaper_120_150"],
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "substrate_state_rules": [
+            { "state_id": "SS_EXT_PRIMED_FACTORY", "action": "required" },
+            { "state_id": "SS_EXT_SOUND_PAINT", "action": "required" },
+            { "state_id": "SS_EXT_STAINED_SOLID", "action": "required" }
+          ],
+          "quality_notes": { "all": "Light scuff. Not removing material — creating tooth for adhesion." }
+        },
+        {
+          "task_id": "TSK_SDNG_BACK_PRIME",
+          "name": "Back-Prime Rear Faces",
+          "description": "Apply primer to rear/hidden face of siding boards. Prevents moisture absorption from behind. Done on ground before installation or from behind if accessible.",
+          "task_type": "prep",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "tools_required": ["brush_4in", "roller_9in"],
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "substrate_state_rules": [
+            { "state_id": "SS_EXT_BARE_WOOD", "action": "required" }
+          ],
+          "quality_notes": { "all": "100% coverage on rear face. Single coat sufficient. Prevents cupping and moisture-driven failure." }
+        },
+        {
+          "task_id": "TSK_SDNG_END_SEAL",
+          "name": "End-Seal Cut Edges",
+          "description": "Brush sealant/primer on all cut end grain. End grain absorbs moisture 10-20x faster than face grain.",
+          "task_type": "prep",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "tools_required": ["brush_2in"],
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "substrate_state_rules": [
+            { "state_id": "SS_EXT_BARE_WOOD", "action": "required" }
+          ],
+          "quality_notes": { "all": "Every cut edge sealed. Joints, miters, butt joints, and field cuts." }
+        },
+        {
+          "task_id": "TSK_SDNG_KNOT_PRIME",
+          "name": "Spot-Prime Knots",
+          "description": "Apply shellac-based or oil-based knot sealer to all visible knots. Prevents tannin and resin bleed-through.",
+          "task_type": "prep",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "tools_required": ["brush_2in", "knot_sealer"],
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "substrate_state_rules": [
+            { "state_id": "SS_EXT_BARE_WOOD", "action": "required" }
+          ],
+          "quality_notes": {
+            "QT3": "All visible knots sealed. One coat.",
+            "QT4": "All knots sealed. Two coats on large/pitch knots.",
+            "QT5": "All knots sealed. Two coats all knots."
+          }
+        },
+        {
+          "task_id": "TSK_SDNG_CAULK",
+          "name": "Caulk Gaps and Joints",
+          "description": "Apply exterior paintable caulk to siding-to-trim joints, board joints, and gaps.",
+          "task_type": "prep",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "tools_required": ["caulk_gun", "caulk_exterior"],
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": {
+            "QT3": "All open joints and gaps caulked. Smooth tool.",
+            "QT4": "All joints caulked with consistent bead. Tool smooth.",
+            "QT5": "All joints caulked. Precision bead. Inspect for uniformity."
+          }
+        },
+        {
+          "task_id": "TSK_SDNG_DUST_CLEANUP",
+          "name": "Prep Dust Cleanup",
+          "description": "Remove sanding dust from all surfaces before coating.",
+          "task_type": "prep",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "tools_required": ["compressed_air", "brush"],
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": { "all": "All dust removed. Wipe test on random boards shows clean surface." }
+        }
+      ],
+      "sequence_notes": "Power wash (repaint) → Scrape (failing/peeling) → Sand (mill glaze or adhesion) → Back-prime (bare wood) → End-seal (bare wood) → Knot-prime (bare wood) → Caulk → Dust cleanup."
+    },
+
+    {
+      "module_id": "MOD_SDNG_PRIME",
+      "name": "Exterior Siding Field Prime Coat",
+      "description": "Full field prime coat. Required for bare wood, factory-primed, chalking, failing, peeling, weathered, and semi-stain states. Spot prime only for sound paint. Not required for solid stain (if compatible topcoat).",
+      "phase": "prime",
+      "applies_when": {},
+      "required_inputs": [
+        { "input_name": "IN_SF_SIDING_FIELD", "paintscope_key": "PS_EXT_SURFACE_SF.SIDING_FIELD", "uom": "SF" }
+      ],
+      "tasks": [
+        {
+          "task_id": "TSK_SDNG_PRIME_SPRAY",
+          "name": "Prime Coat — Spray Application",
+          "description": "Apply full prime coat by airless spray. Even, consistent mil thickness across all siding field.",
+          "task_type": "apply",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "tools_required": ["airless_sprayer", "spray_tip_517"],
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "applies_when": { "application_method": ["spray", "spray_backroll"] },
+          "quality_notes": {
+            "QT3": "Even coverage. No holidays or thin spots.",
+            "QT4": "Uniform mil build. Inspect for coverage at 3 ft.",
+            "QT5": "Perfect uniformity. Inspect under raking light."
+          }
+        },
+        {
+          "task_id": "TSK_SDNG_PRIME_BACKROLL",
+          "name": "Prime Coat — Backroll After Spray",
+          "description": "Immediately backroll sprayed primer into substrate for better penetration and film adhesion. Required on porous wood substrates.",
+          "task_type": "apply",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "tools_required": ["roller_9in", "roller_cover_3_4in"],
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "applies_when": { "application_method": ["spray_backroll"] },
+          "quality_notes": { "all": "Work primer into grain. No drips or sags. Keep wet edge." }
+        },
+        {
+          "task_id": "TSK_SDNG_PRIME_BRUSH_ROLL",
+          "name": "Prime Coat — Brush/Roll Application",
+          "description": "Apply full prime coat by brush and roller. Brush for edges, transitions. Roller for open field.",
+          "task_type": "apply",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "tools_required": ["brush_4in", "roller_9in", "roller_cover_3_4in"],
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "applies_when": { "application_method": ["brush_roll"] },
+          "quality_notes": { "all": "Work primer into grain. Even coverage. No holidays." }
+        }
+      ],
+      "sequence_notes": "Single prime coat. Method determined by application_method dimension. Substrate state determines whether full prime, spot prime, or skip (sound paint with compatible existing coating)."
+    },
+
+    {
+      "module_id": "MOD_SDNG_FINISH_1",
+      "name": "Exterior Siding Finish Coat 1",
+      "description": "First finish coat application on primed siding.",
+      "phase": "apply",
+      "applies_when": {},
+      "required_inputs": [
+        { "input_name": "IN_SF_SIDING_FIELD", "paintscope_key": "PS_EXT_SURFACE_SF.SIDING_FIELD", "uom": "SF" }
+      ],
+      "tasks": [
+        {
+          "task_id": "TSK_SDNG_FINISH_1_SPRAY",
+          "name": "Finish Coat 1 — Spray Application",
+          "description": "Apply first finish coat by airless spray. Consistent mil build, uniform coverage.",
+          "task_type": "apply",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "tools_required": ["airless_sprayer", "spray_tip_515"],
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "applies_when": { "application_method": ["spray", "spray_backroll"] },
+          "quality_notes": {
+            "QT3": "Even coverage. No drips or holidays.",
+            "QT4": "Uniform mil build. No visible spray pattern at 3 ft.",
+            "QT5": "Perfect uniformity. No defects at arm's length."
+          }
+        },
+        {
+          "task_id": "TSK_SDNG_FINISH_1_BACKROLL",
+          "name": "Finish Coat 1 — Backroll After Spray",
+          "description": "Backroll sprayed finish coat for uniform texture and enhanced adhesion.",
+          "task_type": "apply",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "tools_required": ["roller_9in", "roller_cover_3_8in"],
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "applies_when": { "application_method": ["spray_backroll"] },
+          "quality_notes": { "all": "Even roller texture. No drips. Maintain wet edge." }
+        },
+        {
+          "task_id": "TSK_SDNG_FINISH_1_BRUSH_ROLL",
+          "name": "Finish Coat 1 — Brush/Roll Application",
+          "description": "Apply first finish coat by brush and roller.",
+          "task_type": "apply",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "tools_required": ["brush_4in", "roller_9in", "roller_cover_3_8in"],
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "applies_when": { "application_method": ["brush_roll"] },
+          "quality_notes": { "all": "Even coverage. No brush marks in roller field. Maintain wet edge." }
+        }
+      ],
+      "sequence_notes": "First finish coat. Allow recoat time per product TDS before interstage/coat 2."
+    },
+
+    {
+      "module_id": "MOD_SDNG_INTERSTAGE",
+      "name": "Exterior Siding Interstage Inspection",
+      "description": "Inspect first finish coat, touch up defects. Light sand at QT4+ only.",
+      "phase": "interstage",
+      "applies_when": {},
+      "required_inputs": [
+        { "input_name": "IN_SF_SIDING_FIELD", "paintscope_key": "PS_EXT_SURFACE_SF.SIDING_FIELD", "uom": "SF" }
+      ],
+      "tasks": [
+        {
+          "task_id": "TSK_SDNG_INSPECT_COAT",
+          "name": "Interstage Inspection",
+          "description": "Inspect first finish coat for holidays, runs, sags, and coverage defects.",
+          "task_type": "inspect",
+          "task_classification": "qt_scaled",
+          "skill_level": "journeyman",
+          "tools_required": [],
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": {
+            "QT3": "Quick scan for obvious defects — runs, sags, holidays.",
+            "QT4": "Systematic inspection at 6 ft viewing distance. Mark all visible defects.",
+            "QT5": "Thorough inspection at arm's length. Mark every imperfection."
+          }
+        },
+        {
+          "task_id": "TSK_SDNG_SAND_BETWEEN",
+          "name": "Interstage Light Sand",
+          "description": "Light sand between finish coats for mechanical adhesion. 150-220 grit. QT4+ only.",
+          "task_type": "prep",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "tools_required": ["sandpaper_150_220", "sanding_block"],
+          "appears_in_tiers": ["QT4", "QT5"],
+          "quality_notes": {
+            "QT4": "Light scuff sand. Remove nibs and defects.",
+            "QT5": "Full light sand. Uniform scratch pattern."
+          }
+        },
+        {
+          "task_id": "TSK_SDNG_TOUCHUP_REPAIR",
+          "name": "Interstage Touch-Up",
+          "description": "Repair defects found during inspection.",
+          "task_type": "apply",
+          "task_classification": "qt_scaled",
+          "skill_level": "journeyman",
+          "tools_required": ["brush_2in"],
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": {
+            "QT3": "Fix obvious defects only.",
+            "QT4": "Fix all defects found during inspection.",
+            "QT5": "Fix every marked defect. Blend repairs."
+          }
+        }
+      ],
+      "sequence_notes": "Inspect → Sand (QT4+ only) → Touch up → Coat 2."
+    },
+
+    {
+      "module_id": "MOD_SDNG_FINISH_2",
+      "name": "Exterior Siding Finish Coat 2",
+      "description": "Second (final) finish coat.",
+      "phase": "apply",
+      "applies_when": {},
+      "required_inputs": [
+        { "input_name": "IN_SF_SIDING_FIELD", "paintscope_key": "PS_EXT_SURFACE_SF.SIDING_FIELD", "uom": "SF" }
+      ],
+      "tasks": [
+        {
+          "task_id": "TSK_SDNG_FINISH_2_SPRAY",
+          "name": "Finish Coat 2 — Spray Application",
+          "description": "Apply second finish coat by airless spray. Final coat — critical for appearance and film build.",
+          "task_type": "apply",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "tools_required": ["airless_sprayer", "spray_tip_515"],
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "applies_when": { "application_method": ["spray", "spray_backroll"] },
+          "quality_notes": {
+            "QT3": "Even coverage. Consistent appearance.",
+            "QT4": "Uniform mil build. No visible pattern at 6 ft.",
+            "QT5": "Perfect uniformity. No defects at arm's length."
+          }
+        },
+        {
+          "task_id": "TSK_SDNG_FINISH_2_BACKROLL",
+          "name": "Finish Coat 2 — Backroll After Spray",
+          "description": "Backroll final sprayed finish coat for uniform texture.",
+          "task_type": "apply",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "tools_required": ["roller_9in", "roller_cover_3_8in"],
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "applies_when": { "application_method": ["spray_backroll"] },
+          "quality_notes": { "all": "Even texture. No drips. Final appearance coat." }
+        },
+        {
+          "task_id": "TSK_SDNG_FINISH_2_BRUSH_ROLL",
+          "name": "Finish Coat 2 — Brush/Roll Application",
+          "description": "Apply second finish coat by brush and roller. Final coat.",
+          "task_type": "apply",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "tools_required": ["brush_4in", "roller_9in", "roller_cover_3_8in"],
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "applies_when": { "application_method": ["brush_roll"] },
+          "quality_notes": { "all": "Even coverage. No brush marks. Maintain wet edge to lap line." }
+        }
+      ],
+      "sequence_notes": "Second and final finish coat."
+    },
+
+    {
+      "module_id": "MOD_SDNG_FINAL_INSPECT",
+      "name": "Exterior Siding Final Inspection",
+      "description": "Final walkthrough of completed siding finish. Touch up defects.",
+      "phase": "finish",
+      "applies_when": {},
+      "required_inputs": [
+        { "input_name": "IN_SF_SIDING_FIELD", "paintscope_key": "PS_EXT_SURFACE_SF.SIDING_FIELD", "uom": "SF" }
+      ],
+      "tasks": [
+        {
+          "task_id": "TSK_SDNG_FINAL_INSPECT",
+          "name": "Final Walkthrough Inspection",
+          "description": "Walk all elevations and inspect finished siding.",
+          "task_type": "inspect",
+          "task_classification": "qt_scaled",
+          "skill_level": "journeyman",
+          "tools_required": [],
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": {
+            "QT3": "Ground-level walkthrough at 6-10 ft viewing distance.",
+            "QT4": "Ground-level with binoculars for upper elevations. 6 ft standard.",
+            "QT5": "Scaffold/lift inspection of all elevations at arm's length."
+          }
+        },
+        {
+          "task_id": "TSK_SDNG_FINAL_TOUCHUP",
+          "name": "Final Touch-Up",
+          "description": "Brush touch-up of defects found during final inspection.",
+          "task_type": "apply",
+          "task_classification": "qt_scaled",
+          "skill_level": "journeyman",
+          "tools_required": ["brush_2in"],
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": {
+            "QT3": "Fix obvious defects.",
+            "QT4": "Fix all noted defects. Blend seamlessly.",
+            "QT5": "Fix every defect. Blend at arm's length standard."
+          }
+        }
+      ],
+      "sequence_notes": "Inspect all elevations → Touch up → Sign off."
+    },
+
+    {
+      "module_id": "MOD_SDNG_CLEANUP",
+      "name": "Exterior Siding Cleanup & Protection Teardown",
+      "description": "Remove all protection materials, clean spray equipment, restore site.",
+      "phase": "cleanup",
+      "applies_when": {},
+      "required_inputs": [
+        { "input_name": "IN_SF_EXT_PROTECT_LANDSCAPE_ADJ", "paintscope_key": "PS_EXT_PROTECT_SF.LANDSCAPE_ADJACENT", "uom": "SF" }
+      ],
+      "tasks": [
+        {
+          "task_id": "TSK_SDNG_PROTECT_TEARDOWN",
+          "name": "Protection Material Removal",
+          "description": "Remove all masking tape, landscape tarps, hardscape covers, fixture bags.",
+          "task_type": "cleanup",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "protection_metadata": {
+            "action": "teardown",
+            "zones": ["ext_landscape_adjacent", "ext_landscape_full", "ext_hardscape_walk", "ext_hardscape_patio", "ext_light_fixture", "ext_hvac_unit"],
+            "method_dependent": false
+          },
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": { "all": "Check for residue. Remove all tape and plastic completely." }
+        },
+        {
+          "task_id": "TSK_SDNG_CLEAN_EQUIPMENT",
+          "name": "Clean Spray Equipment",
+          "description": "Flush airless sprayer, clean tips, coil hoses. Clean brushes and rollers.",
+          "task_type": "cleanup",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "tools_required": ["cleaning_supplies"],
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "applies_when": { "application_method": ["spray", "spray_backroll"] },
+          "quality_notes": { "all": "Full flush cycle. Tips cleaned and stored." }
+        },
+        {
+          "task_id": "TSK_SDNG_SITE_CLEANUP",
+          "name": "Site Debris Cleanup",
+          "description": "Collect all debris — sandpaper, caulk tubes, tape, containers. Leave site clean.",
+          "task_type": "cleanup",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "tools_required": [],
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": { "all": "Site restored to pre-work condition." }
+        }
+      ],
+      "sequence_notes": "Protection teardown → Equipment cleaning → Site cleanup."
+    }
+  ]
+}

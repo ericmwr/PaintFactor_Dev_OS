@@ -45,6 +45,40 @@ The Prototype Critic is the AppFactory equivalent of the System Critic (SpecFact
 #### UI Specification
 - **[devos/paint_scope_advanced_bid_sheet_interface_spec_v_1.md](../devos/paint_scope_advanced_bid_sheet_interface_spec_v_1.md)** — Bid sheet UI spec
 
+### Domain-Specific Context Loading
+
+After reading the base Required Reading list above, load the following based on `spec_family.domain`:
+
+#### If `domain == "exterior"`:
+
+LOAD — Exterior Doctrine:
+- docs/Doctrine/Exterior_Substrates_Doctrine.md
+- docs/Doctrine/Exterior_Modifiers_Doctrine.md
+- docs/Doctrine/Exterior_Protection_Doctrine.md
+
+LOAD — Exterior Reference Vocabulary:
+- docs/Reference/Substrate_State_Reference.md §4 (Exterior-Specific States)
+- docs/Reference/Surface_Vocabulary_Reference.md §Exterior Surfaces
+- docs/Reference/Site_Condition_Vocabulary_Reference.md §9–13 (Exterior Conditions)
+
+LOAD — Exterior PaintScope Keys:
+- docs/PaintScope/PaintScope_Exterior_Key_Catalog.md
+
+DO NOT APPLY to exterior specs:
+- docs/Doctrine/Interior_Protection_Doctrine.md (interior zones do not apply)
+- docs/Doctrine/Fine_Finish_Doctrine.md (unless scope explicitly includes interior-style trim at QT4+)
+- docs/Doctrine/Interior_Protection_Doctrine_Final.md
+- PS_ keys from PaintScope_Quantity_Key_Catalog.md §Core Interior Keys (use EXT_ keys instead)
+
+EXTERIOR MODIFIER OVERRIDE:
+- Use FAC_EXT_ACCESS (not FAC_HEIGHT) for elevation work
+- Use FAC_EXT_SUBSTRATE_CONDITION for prep rate scaling
+- Use FAC_EXT_WIND, FAC_EXT_SUN_EXPOSURE, FAC_EXT_SURFACE_TEMP for environmental modifiers
+- FAC_PROFILE_COMPLEXITY applies for exterior trim (shared modifier)
+
+#### If `domain == "interior"`:
+[existing behavior — no changes; read all required reading as currently listed]
+
 ### Geometry Constraint (Non-Negotiable)
 
 - Prototype code MUST NOT invent, infer, or compute geometry (SF/LF/EA) outside of PaintScope's derivation rules
@@ -330,3 +364,4 @@ In addition to standard smoke tests, run:
 2. **Wind block test** — Set `wind_condition: high`, verify airless spray tasks are blocked and brush/roll path activates
 3. **Bare substrate test** — Set input state to `SS_EXT_BARE_WOOD`, verify primer round is present before finish round
 4. **Factory prime test** — Set input state to `SS_EXT_PRIMED_FACTORY`, verify field prime round is still required (factory prime is not a field prime substitute)
+5. **EXT_SMOKE_01: Combined modifier stacking** — siding_field, ladder access, SS_EXT_CHALKING, QT3, spray. Expected: FAC_EXT_ACCESS=1.35 applied, FAC_EXT_SUBSTRATE_CONDITION=1.4 applied to prep, ext_landscape_adjacent protection zone triggered, ext_glass_window masking required

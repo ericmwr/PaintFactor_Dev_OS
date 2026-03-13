@@ -1,0 +1,906 @@
+{
+  "_meta": {
+    "spec_family_id": "SF_SIDING_WOOD_EXT_RP",
+    "generated_by": "registry_resolver",
+    "generated_at": "2026-03-10",
+    "version": "1.0.0",
+    "purpose": "Pre-resolved registry values for downstream agents. Agents consuming this file do NOT need to load raw registry files.",
+    "input_files": ["research.json", "controlled_enums.json", "id_registry.json", "structural_keys.json", "agent_rules.json"]
+  },
+
+  "spec_identity": {
+    "spec_family_id": "SF_SIDING_WOOD_EXT_RP",
+    "status": "proposed",
+    "domain": "exterior",
+    "phase_scope": "full",
+    "context_prefix": "WSRP",
+    "notes": "New spec family for exterior wood siding repaint. Context prefix WSRP (Wood Siding RePaint) — no collision with existing prefixes. SDNG_ is taken by SF_WOOD_SIDING_EXT_NC_PAINT. Combined assess+prep+prime+finish in single spec (same mobilization). First repaint spec in the system — introduces substrate_state and substrate_condition as primary configuration dimensions, DSD prep multiplier, RRP gate condition, and condition assessment module."
+  },
+
+  "paintable_items": [
+    {
+      "item_id": "ITM_SIDING_FIELD",
+      "name": "Exterior siding field surface",
+      "unit_of_measure": "SF",
+      "surface_ref": "siding_field",
+      "status": "existing",
+      "notes": "REUSED from SF_WOOD_SIDING_EXT_NC_PAINT. Same physical item (siding field), repaint context. Siding profile modifier (lap/board_batten/shingle) adjusts effective surface area and production rate. Add SF_SIDING_WOOD_EXT_RP to used_in array."
+    }
+  ],
+
+  "task_prefix": {
+    "pattern": "TSK_WSRP_",
+    "context": "WSRP",
+    "collision_check": "No collision. Existing prefixes: CLOSET_SHELF, FRAME, DOOR, CEIL, WALL, TRIM, WIN, STRS, WNSC, WDWL, WDCL, ARCH, BLTN, CABT, SDNG, FCSD. WSRP is unique.",
+    "naming_rule": "TSK_WSRP_{ACTION} — action should be verb-based. Examples: TSK_WSRP_ASSESS_CONDITION, TSK_WSRP_WASH_LOW_PRESSURE, TSK_WSRP_SCRAPE_LOOSE, TSK_WSRP_FEATHER_SAND, TSK_WSRP_PRIME_SPOT, TSK_WSRP_PRIME_FULL_SPRAY, TSK_WSRP_FINISH_SPRAY_1, TSK_WSRP_CAULK_REPLACE"
+  },
+
+  "module_prefix": {
+    "pattern": "MOD_WSRP_",
+    "expected_modules": [
+      { "module_id": "MOD_WSRP_SETUP", "phase": "setup", "notes": "Protection setup — landscape, hardscape, HVAC, light fixtures, vehicle/driveway" },
+      { "module_id": "MOD_WSRP_ASSESS", "phase": "prep", "notes": "Condition assessment — DSD rating, ASTM D3359 adhesion test, MC testing, coating ID, lead evaluation. UNIQUE to repaint. Fixed-time per project. Results determine which prep tasks activate." },
+      { "module_id": "MOD_WSRP_PREP", "phase": "prep", "notes": "Surface preparation — power wash, scrape, feather-sand, chalk remediation, wood brightener. Conditional on substrate_state. DSD multiplier applies to all prep tasks." },
+      { "module_id": "MOD_WSRP_CAULK", "phase": "prep", "notes": "Caulk assessment and replacement — inspect siding-to-trim joints, remove failed caulk, re-caulk. LF-based. Unique to repaint (NC caulk is always new)." },
+      { "module_id": "MOD_WSRP_PRIME", "phase": "prime", "notes": "Primer application — spot prime or full prime depending on substrate state and bare area percentage. 5 primer paths: spot acrylic, chalk-binding, acrylic stain-block full, alkyd stain-block (tannin), penetrating alkyd (weathered)." },
+      { "module_id": "MOD_WSRP_FINISH_1", "phase": "finish", "notes": "First finish coat — spray_backbrush, brush_roll, or brush depending on method and profile." },
+      { "module_id": "MOD_WSRP_INTERSTAGE", "phase": "interstage", "notes": "Intercoat inspection, light sand (QT4), dust removal. Skipped at QT2 (single finish coat)." },
+      { "module_id": "MOD_WSRP_FINISH_2", "phase": "finish", "notes": "Second finish coat. QT3/QT4 only — QT2 uses single finish coat on sound/primed surface." },
+      { "module_id": "MOD_WSRP_FINAL_INSPECT", "phase": "cleanup", "notes": "Final inspection, touch-up, transition verification at trim interfaces." },
+      { "module_id": "MOD_WSRP_CLEANUP", "phase": "cleanup", "notes": "Protection teardown, site cleanup, tool cleaning, waste disposal (lead-safe if RRP)." }
+    ]
+  },
+
+  "paintscope_keys": [
+    {
+      "paintscope_key": "PS_EXT_SURFACE_SF.SIDING_FIELD",
+      "input_name": "IN_SF_SIDING_FIELD",
+      "uom": "SF",
+      "status": "existing",
+      "description": "Net paintable siding field area (square feet)"
+    },
+    {
+      "paintscope_key": "PS_EXT_META.EA.ELEVATIONS_TOTAL",
+      "input_name": "IN_EA_ELEVATIONS",
+      "uom": "EA",
+      "status": "existing",
+      "description": "Number of building elevations"
+    },
+    {
+      "paintscope_key": "PS_EXT_META.ENUM.ACCESS_TYPE",
+      "input_name": "IN_ENUM_ACCESS_TYPE",
+      "uom": "ENUM",
+      "status": "existing",
+      "description": "Access type per elevation (ground/ladder/scaffold/lift)"
+    },
+    {
+      "paintscope_key": "PS_EXT_META.ENUM.SUBSTRATE_STATE",
+      "input_name": "IN_ENUM_SUBSTRATE_STATE",
+      "uom": "ENUM",
+      "status": "proposed",
+      "description": "Existing coating condition state (SS_EXT_SOUND_PAINT / SS_EXT_CHALKING / SS_EXT_FAILING_PAINT / SS_EXT_PEELING / SS_EXT_WEATHERED). Primary configuration dimension for repaint. Per-elevation if conditions differ across building.",
+      "notes": "NEW — first repaint-specific PS key. NC specs do not need this (single state: bare wood)."
+    },
+    {
+      "paintscope_key": "PS_EXT_META.ENUM.SUBSTRATE_CONDITION",
+      "input_name": "IN_ENUM_SUBSTRATE_CONDITION",
+      "uom": "ENUM",
+      "status": "proposed",
+      "description": "MPI Degree of Surface Degradation (DSD 0-4): SC_SOUND / SC_SLIGHT_DETERIORATION / SC_MODERATE_DETERIORATION / SC_SEVERE_DETERIORATION / SC_SUBSTRATE_DAMAGE. Drives prep labor multiplier. SC_SUBSTRATE_DAMAGE = hard stop.",
+      "notes": "NEW — DSD rating is the dominant cost driver for repaint estimation. Per-elevation."
+    },
+    {
+      "paintscope_key": "PS_EXT_META.ENUM.SIDING_PROFILE",
+      "input_name": "IN_ENUM_SIDING_PROFILE",
+      "uom": "ENUM",
+      "status": "proposed",
+      "description": "Siding profile type (lap_horizontal / board_and_batten / shingle). Drives production rate selection and effective area multiplier.",
+      "notes": "Board and batten = 1.20x effective area. Shingle = highest complexity."
+    },
+    {
+      "paintscope_key": "PS_EXT_META.FLAG.PRE_1978",
+      "input_name": "IN_BOOL_PRE_1978",
+      "uom": "BOOL",
+      "status": "proposed",
+      "description": "Boolean flag for pre-1978 building. Triggers EPA Lead-Safe RRP requirements for all prep tasks involving paint disturbance.",
+      "notes": "Project-level flag. Gate condition — not a rate modifier by itself but triggers RRP modifier on all prep tasks."
+    },
+    {
+      "paintscope_key": "PS_EXT_PROTECT_LF.LANDSCAPE_PERIMETER",
+      "input_name": "IN_LF_EXT_PROTECT_LANDSCAPE_PERIMETER",
+      "uom": "LF",
+      "status": "existing",
+      "description": "Linear feet of house perimeter where landscape is adjacent and requires protection"
+    },
+    {
+      "paintscope_key": "PS_EXT_PROTECT_SF.LANDSCAPE_FULL",
+      "input_name": "IN_SF_EXT_PROTECT_LANDSCAPE_FULL",
+      "uom": "SF",
+      "status": "existing",
+      "description": "Extended landscape overspray protection area (spray method only)"
+    },
+    {
+      "paintscope_key": "PS_EXT_PROTECT_SF.HARDSCAPE_WALK",
+      "input_name": "IN_SF_EXT_PROTECT_HARDSCAPE_WALK",
+      "uom": "SF",
+      "status": "existing",
+      "description": "Adjacent walkway area requiring protection"
+    },
+    {
+      "paintscope_key": "PS_EXT_PROTECT_SF.HARDSCAPE_PATIO",
+      "input_name": "IN_SF_EXT_PROTECT_HARDSCAPE_PATIO",
+      "uom": "SF",
+      "status": "existing",
+      "description": "Adjacent patio area requiring protection"
+    },
+    {
+      "paintscope_key": "PS_EXT_PROTECT_EA.LIGHT_FIXTURE",
+      "input_name": "IN_EA_EXT_PROTECT_LIGHT_FIXTURE",
+      "uom": "EA",
+      "status": "existing",
+      "description": "Count of exterior light fixtures to mask"
+    },
+    {
+      "paintscope_key": "PS_EXT_PROTECT_EA.HVAC_UNIT",
+      "input_name": "IN_EA_EXT_PROTECT_HVAC_UNIT",
+      "uom": "EA",
+      "status": "existing",
+      "description": "Count of HVAC condenser units to cover"
+    },
+    {
+      "paintscope_key": "PS_EXT_PROTECT_SF.VEHICLE_DRIVEWAY",
+      "input_name": "IN_SF_EXT_PROTECT_VEHICLE_DRIVEWAY",
+      "uom": "SF",
+      "status": "proposed",
+      "description": "Adjacent driveway/vehicle area requiring protection from spray overspray. Repaint on occupied homes — vehicles may be present.",
+      "notes": "NEW — repaint-specific. Not typically needed for NC (unoccupied construction site)."
+    },
+    {
+      "paintscope_key": "PS_EXT_META.LF.CAULK_JOINTS",
+      "input_name": "IN_LF_CAULK_JOINTS",
+      "uom": "LF",
+      "status": "proposed",
+      "description": "Linear feet of caulk joints to assess and replace (siding-to-trim, siding-to-window, siding-to-door junctions).",
+      "notes": "NEW — repaint-specific. NC caulk is always new and scoped differently. Estimated from perimeter and opening count."
+    }
+  ],
+
+  "applicable_enums": {
+    "quality_tier": {
+      "values": ["QT2", "QT3", "QT4"],
+      "default": "QT3",
+      "prohibited": [],
+      "notes": "QT5 excluded — not applicable to siding field per KD-013. QT2 is economy repaint (minimal prep on sound surfaces, single finish coat acceptable). QT2 only appropriate on SS_EXT_SOUND_PAINT or SS_EXT_CHALKING with SC_SOUND/SC_SLIGHT."
+    },
+    "application_method": {
+      "values": ["spray_backbrush", "brush_roll", "brush"],
+      "prohibited": ["spray", "spray_backroll", "spray_rolloff"],
+      "notes": "Spray on wood siding ALWAYS requires backbrushing for fiber penetration — no spray-only option. spray_backbrush is primary for lap/board_and_batten. Brush_roll for smaller areas or occupied-adjacent. Brush only for shingle/shake and detail areas. spray_backbrush requires 2-person crew."
+    },
+    "sheen": {
+      "values": ["flat", "satin", "semi-gloss"],
+      "default": "satin",
+      "prohibited": ["eggshell/satin", "semi-gloss+"],
+      "notes": "Standard exterior siding sheens. Satin is most common default. Flat for budget/rental. Semi-gloss for high-visibility accent."
+    },
+    "phase": {
+      "values": ["setup", "prep", "prime", "interstage", "finish", "cleanup"],
+      "full_sequence": ["setup", "prep", "prime", "apply", "interstage", "finish", "cleanup"],
+      "prohibited": ["protect", "protection"],
+      "notes": "Combined spec. Assess module uses 'prep' phase (assessment is part of preparation). No 'apply' phase — uses 'prime' and 'finish' directly."
+    },
+    "task_classification": {
+      "values": ["binary", "qt_conditional", "qt_scaled"]
+    },
+    "skill_level": {
+      "values": ["helper", "journeyman", "lead"]
+    },
+    "unit_of_measure": {
+      "values": ["EA", "LF", "SF", "FIXED"],
+      "prohibited": ["each", "ROOM", "FIXED_TIME"],
+      "notes": "SF is primary UOM for siding field tasks. LF for caulk replacement. EA for protection items and per-project assessment. FIXED for tool cleaning and condition assessment."
+    },
+    "uom_input": {
+      "values": ["EA", "LF", "SF", "ENUM", "BOOL"]
+    },
+    "substrate_state": {
+      "input_states": ["SS_EXT_SOUND_PAINT", "SS_EXT_CHALKING", "SS_EXT_FAILING_PAINT", "SS_EXT_PEELING", "SS_EXT_WEATHERED"],
+      "output_states": {
+        "flat": "SS_EXT_PAINTED_FLAT",
+        "satin": "SS_EXT_PAINTED_SATIN",
+        "semi-gloss": "SS_EXT_PAINTED_SEMIGLOSS"
+      },
+      "notes": "5 repaint input states from controlled_enums.json (all existing). Output states are existing. Stain states (SS_EXT_STAINED_SOLID, SS_EXT_STAINED_SEMI) explicitly excluded per KD-014. SS_EXT_BARE_WOOD excluded (NC domain)."
+    },
+    "substrate_condition": {
+      "values": ["SC_SOUND", "SC_SLIGHT_DETERIORATION", "SC_MODERATE_DETERIORATION", "SC_SEVERE_DETERIORATION", "SC_SUBSTRATE_DAMAGE"],
+      "notes": "DSD 0-4 mapped to SC_ enum values. SC_SUBSTRATE_DAMAGE (DSD-4) = HARD STOP, outside painting scope. NEW enum type — proposed for controlled_enums.json. See registry_additions_proposed."
+    },
+    "siding_profile": {
+      "values": ["lap_horizontal", "board_and_batten", "shingle"],
+      "default": "lap_horizontal",
+      "notes": "Configuration dimension. Drives production rate and effective area multiplier. Board and batten = 1.20x net SF. Shingle = highest complexity for both prep and coating."
+    },
+    "consumable_unit": {
+      "values": ["EA", "ROLL", "SHEET", "TUBE", "GAL", "QT"],
+      "prohibited": ["each", "roll", "sheet", "tube"]
+    },
+    "consumable_category": {
+      "values": ["applicator", "protection", "prep", "cleanup", "abrasive", "fill_material", "tool"]
+    },
+    "product_role": {
+      "values": ["primer", "finish"],
+      "notes": "Primer and finish only. No sealer/clear/stain/specialty needed for wood siding repaint."
+    },
+    "yield_uom": {
+      "values": ["SF", "LF", "EA", "GAL"]
+    },
+    "protection_level": {
+      "values": ["none", "edge_only", "partial_cover", "full_cover", "item_mask", "light_mask", "full_mask"],
+      "notes": "Full range needed — repaint on occupied homes may require full_mask on adjacent freshly-painted trim."
+    },
+    "protection_action": {
+      "values": ["setup", "maintain", "teardown"]
+    },
+    "edge_type": {
+      "values": ["linear"]
+    },
+    "typical_relationship": {
+      "values": ["different_finish", "not_in_scope"]
+    },
+    "finish_group": {
+      "values": ["same", "different"]
+    },
+    "task_type": {
+      "values": ["prep", "prime", "finish", "protect", "inspect", "cleanup", "detail"]
+    },
+    "severity": {
+      "values": ["critical", "major", "minor"],
+      "prohibited": ["high", "medium", "low", "WARN"]
+    },
+    "modifier_mechanism": {
+      "values": ["baseline", "baseline_reduction", "selective_multiplier", "additional_rounds", "excluded"]
+    },
+    "confidence_level": {
+      "values": ["low", "medium", "high"]
+    }
+  },
+
+  "surface_ids": {
+    "primary_surface": "siding_field",
+    "adjacent_surfaces": [
+      "soffit_field",
+      "ext_trim_frieze",
+      "ext_trim_corner",
+      "ext_trim_window_casing",
+      "ext_trim_door_casing",
+      "foundation_wall"
+    ],
+    "all_status": "existing",
+    "notes": "All surface IDs exist in id_registry. Identical adjacency pattern to NC sibling (SF_WOOD_SIDING_EXT_NC_PAINT). No edge work — all adjacent surfaces are separate scope. Siding terminates at trim boards."
+  },
+
+  "zone_ids": [
+    { "zone_id": "ext_landscape_perimeter", "status": "existing", "retired_alias_warning": null },
+    { "zone_id": "ext_landscape_full", "status": "existing", "retired_alias_warning": null },
+    { "zone_id": "ext_hardscape_walk", "status": "existing", "retired_alias_warning": null },
+    { "zone_id": "ext_hardscape_patio", "status": "existing", "retired_alias_warning": null },
+    { "zone_id": "ext_light_fixture", "status": "existing", "retired_alias_warning": null },
+    { "zone_id": "ext_hvac_unit", "status": "existing", "retired_alias_warning": null },
+    { "zone_id": "ext_vehicle_driveway", "status": "proposed", "retired_alias_warning": null }
+  ],
+
+  "material_system_prefix": {
+    "pattern": "SYS_EXT_WSRP_{DESCRIPTION} or SYS_PRIMER_{DESCRIPTION} for reusable primer IDs",
+    "existing_systems_to_consider": [
+      "SYS_EXT_WOOD_PRIMER_ACRYLIC — NC acrylic primer, different application context (bare wood vs spot/full on existing paint)",
+      "SYS_EXT_WOOD_PRIMER_TANNIN — NC tannin-blocker, may be reusable for repaint tannin scenarios",
+      "SYS_EXT_WOOD_PRIMER_BONDING — NC bonding primer for factory-primed surfaces, not applicable to repaint",
+      "SYS_EXT_WOOD_FINISH_STANDARD — NC standard finish, same product may apply to repaint QT2/QT3",
+      "SYS_EXT_WOOD_FINISH_PREMIUM — NC premium finish, same product may apply to repaint QT4"
+    ],
+    "proposed_systems": [
+      {
+        "system_id": "SYS_PRIMER_SPOT",
+        "name": "Acrylic Stain-Blocking Spot Primer",
+        "quality_tiers": ["QT2", "QT3", "QT4"],
+        "applies_when": { "substrate_state": ["SS_EXT_SOUND_PAINT", "SS_EXT_FAILING_PAINT"] },
+        "notes": "Spot prime bare areas only. Sound paint with isolated bare spots, or failing paint with <30% bare area. Acrylic stain-blocking primer applied by brush to exposed wood. Coverage based on affected SF, not total wall SF."
+      },
+      {
+        "system_id": "SYS_PRIMER_CHALK_BINDING",
+        "name": "Chalk-Binding Penetrating Primer",
+        "quality_tiers": ["QT2", "QT3", "QT4"],
+        "applies_when": { "substrate_state": ["SS_EXT_CHALKING"] },
+        "notes": "Low-viscosity, high-penetration resin that soaks through chalk residue and locks it to stable substrate. Reference product: SW Loxon Acrylic Conditioner. Applied full coverage over chalking surface after cleaning and drying. Mandatory when complete chalk removal is not achievable without substrate damage."
+      },
+      {
+        "system_id": "SYS_PRIMER_STAIN_BLOCK_ACRYLIC",
+        "name": "Acrylic Stain-Blocking Full Primer",
+        "quality_tiers": ["QT2", "QT3", "QT4"],
+        "applies_when": { "substrate_state": ["SS_EXT_FAILING_PAINT", "SS_EXT_PEELING"] },
+        "notes": "Full coverage acrylic stain-blocking primer. Used when >30% of surface is bare (failing heavy) or after heavy scrape (peeling). Full prime by spray_backbrush or brush_roll."
+      },
+      {
+        "system_id": "SYS_PRIMER_STAIN_BLOCK_ALKYD",
+        "name": "Alkyd Stain-Blocking Primer (Tannin-Rich Wood)",
+        "quality_tiers": ["QT2", "QT3", "QT4"],
+        "applies_when": { "substrate_state": ["SS_EXT_FAILING_PAINT", "SS_EXT_PEELING", "SS_EXT_WEATHERED"] },
+        "notes": "HARD OVERRIDE when tannin-rich wood (cedar/redwood) is exposed. Alkyd stain-blocker is both tannin-blocking and adhesion-promoting. Overrides acrylic primer selection regardless of other conditions. Applied to all exposed tannin-rich wood areas."
+      },
+      {
+        "system_id": "SYS_PRIMER_PENETRATING_ALKYD",
+        "name": "Deep-Penetrating Oil-Alkyd Primer",
+        "quality_tiers": ["QT2", "QT3", "QT4"],
+        "applies_when": { "substrate_state": ["SS_EXT_WEATHERED"] },
+        "notes": "For weathered bare wood with degraded surface fibers. Oil-alkyd penetrates and binds loose wood fibers. Applied full coverage after sanding to remove UV-degraded gray layer. On tannin-rich species, SYS_PRIMER_STAIN_BLOCK_ALKYD may serve dual purpose (fiber-binding + tannin-blocking)."
+      },
+      {
+        "system_id": "SYS_FINISH_ACRYLIC_EXTERIOR",
+        "name": "100% Acrylic Latex Exterior Siding Paint",
+        "quality_tiers": ["QT2", "QT3"],
+        "notes": "Standard 100% acrylic latex exterior paint. Superior flexibility for wood expansion/contraction, resists cracking. QT2 = economy grade, single coat acceptable on sound primed surface. QT3 = mid-grade (SW SuperPaint, BM Regal Select), 2 coats standard."
+      },
+      {
+        "system_id": "SYS_FINISH_ACRYLIC_EXTERIOR_PREMIUM",
+        "name": "Premium 100% Acrylic Latex Exterior Siding Paint",
+        "quality_tiers": ["QT4"],
+        "notes": "Premium exterior paint (SW Duration, BM Aura Exterior). Superior adhesion, hide, and durability. 2 coats with raking light inspection between coats. Light sand between coats at QT4."
+      }
+    ],
+    "notes": "5 substrate-state-driven primers + 2 QT-driven finish systems. Primer selection is primarily driven by substrate_state, with tannin-rich wood as a hard override. Finish product is the same class across all states — the coating on top is always 100% acrylic latex. QT drives finish product grade, not primer selection."
+  },
+
+  "consumable_prefix": {
+    "canonical_prefix": "CON_",
+    "prohibited_prefix": "CONS_",
+    "reusable_consumables": [
+      "CON_SANDPAPER_150",
+      "CON_SANDPAPER_220",
+      "CON_TACK_CLOTH",
+      "CON_MASKING_TAPE_BLUE",
+      "CON_MASKING_FILM_PLASTIC",
+      "CON_DROP_CLOTH_CANVAS",
+      "CON_CAULK_PAINTABLE"
+    ],
+    "proposed_consumables": [
+      {
+        "consumable_id": "CON_WSRP_SANDPAPER_80",
+        "name": "80-Grit Sandpaper (Weathered Wood Prep)",
+        "category": "abrasive",
+        "unit": "SHEET",
+        "notes": "Coarse grit for removing UV-degraded gray fibers on weathered wood. Orbital or hand sanding."
+      },
+      {
+        "consumable_id": "CON_WSRP_SANDPAPER_120",
+        "name": "120-Grit Sandpaper (Feather Sanding)",
+        "category": "abrasive",
+        "unit": "SHEET",
+        "notes": "Medium grit for feather-sanding paint edges after scraping."
+      },
+      {
+        "consumable_id": "CON_WSRP_CARBIDE_SCRAPER",
+        "name": "Carbide Hand Scraper",
+        "category": "tool",
+        "unit": "EA",
+        "notes": "Primary hand scraping tool for loose/peeling paint removal. Replaceable carbide blade."
+      },
+      {
+        "consumable_id": "CON_WSRP_SPRAY_TIP_517",
+        "name": "Airless Spray Tip 517 (Siding Field)",
+        "category": "applicator",
+        "unit": "EA",
+        "notes": "Standard tip for spray_backbrush on lap/board_and_batten siding."
+      },
+      {
+        "consumable_id": "CON_WSRP_SPRAY_TIP_413",
+        "name": "Airless Spray Tip 413 (Shingle Profile)",
+        "category": "applicator",
+        "unit": "EA",
+        "notes": "Smaller pattern for complex shingle geometry."
+      },
+      {
+        "consumable_id": "CON_WSRP_ROLLER_COVER",
+        "name": "Roller Cover 3/4\" Nap (Brush_Roll Method)",
+        "category": "applicator",
+        "unit": "EA",
+        "notes": "For brush_roll application method on siding field."
+      },
+      {
+        "consumable_id": "CON_WSRP_CAULK_EXT",
+        "name": "Exterior Flexible Paintable Caulk (Polyurethane/Hybrid MS)",
+        "category": "fill_material",
+        "unit": "TUBE",
+        "notes": "For joint replacement. Polyurethane (Class 25/50) or hybrid MS polymer for wood-to-trim joints. Must be paintable. 3-7 day cure before painting for polyurethane."
+      },
+      {
+        "consumable_id": "CON_WSRP_PLASTIC_SHEETING",
+        "name": "Plastic Sheeting for Exterior Protection",
+        "category": "protection",
+        "unit": "ROLL",
+        "notes": "Landscape/hardscape/HVAC/vehicle overspray protection."
+      },
+      {
+        "consumable_id": "CON_WSRP_WOOD_BRIGHTENER",
+        "name": "Wood Brightener / Oxalic Acid Wash",
+        "category": "prep",
+        "unit": "GAL",
+        "notes": "For weathered wood prep. Removes gray/oxidized surface layer. Applied before sanding."
+      },
+      {
+        "consumable_id": "CON_WSRP_RRP_POLY_SHEETING",
+        "name": "6-Mil Poly Sheeting (RRP Containment)",
+        "category": "protection",
+        "unit": "ROLL",
+        "notes": "Lead-safe containment. Min 10 ft from building perimeter. Conditional — only when PRE_1978 = true."
+      },
+      {
+        "consumable_id": "CON_WSRP_RRP_WASTE_BAG",
+        "name": "Lead-Safe Waste Disposal Bag",
+        "category": "cleanup",
+        "unit": "EA",
+        "notes": "Lead-safe waste collection and disposal. Conditional — only when PRE_1978 = true."
+      },
+      {
+        "consumable_id": "CON_WSRP_SPRAY_FILTER_60",
+        "name": "60-Mesh Spray Filter (Black) for Latex",
+        "category": "applicator",
+        "unit": "EA",
+        "notes": "Standard 60-mesh filter for latex exterior coatings through airless equipment."
+      },
+      {
+        "consumable_id": "CON_WSRP_MASKING_TAPE_RED",
+        "name": "Red Stucco Poly Tape (7 mil, 30-day UV)",
+        "category": "protection",
+        "unit": "ROLL",
+        "notes": "For rough-profile or extended spray masking on exterior. Higher adhesion than blue tape on textured surfaces."
+      }
+    ]
+  },
+
+  "round_configurations": {
+    "existing_patterns": [
+      "ROUND_SINGLE_COAT",
+      "ROUND_TWO_COAT"
+    ],
+    "naming_pattern": "ROUND_{CONTEXT}_{DESCRIPTION}",
+    "proposed_configurations": [
+      {
+        "round_id": "ROUND_WSRP_SOUND_QT2",
+        "description": "0 primer + 1 finish coat — economy repaint on sound paint",
+        "applies_when": { "quality_tier": ["QT2"], "substrate_state": ["SS_EXT_SOUND_PAINT"] },
+        "notes": "Minimum viable repaint. Sound surface, good adhesion, no primer needed. Single finish coat."
+      },
+      {
+        "round_id": "ROUND_WSRP_SOUND_QT3",
+        "description": "Spot prime + 2 finish coats — standard repaint on sound paint",
+        "applies_when": { "quality_tier": ["QT3", "QT4"], "substrate_state": ["SS_EXT_SOUND_PAINT"] },
+        "notes": "Spot prime bare areas only + 2 finish coats. Full prime not needed if adhesion test passes."
+      },
+      {
+        "round_id": "ROUND_WSRP_CHALKING",
+        "description": "Chalk-binding prime + 2 finish coats",
+        "applies_when": { "substrate_state": ["SS_EXT_CHALKING"] },
+        "notes": "Chalk-binding primer is mandatory. 2 finish coats at QT3/QT4, 1 finish at QT2."
+      },
+      {
+        "round_id": "ROUND_WSRP_FAILING_LIGHT",
+        "description": "Spot prime + 2 finish coats — failing paint <30% bare",
+        "applies_when": { "substrate_state": ["SS_EXT_FAILING_PAINT"] },
+        "notes": "Spot prime bare areas after scrape. <30% bare does not require full prime. 2 finish coats."
+      },
+      {
+        "round_id": "ROUND_WSRP_FAILING_HEAVY",
+        "description": "Full prime + 2 finish coats — failing/peeling >30% bare",
+        "applies_when": { "substrate_state": ["SS_EXT_FAILING_PAINT", "SS_EXT_PEELING"] },
+        "notes": "Full prime when >30% bare or active peeling. SOP determines threshold at assessment. 2 finish coats standard."
+      },
+      {
+        "round_id": "ROUND_WSRP_WEATHERED",
+        "description": "Full penetrating prime + 2 finish coats — weathered bare wood",
+        "applies_when": { "substrate_state": ["SS_EXT_WEATHERED"] },
+        "notes": "Deep-penetrating oil-alkyd primer to bind loose fibers + 2 finish coats. Most coating-intensive round config."
+      }
+    ]
+  },
+
+  "coverage_profiles": {
+    "existing_profiles": ["COV_SDNG_PRIMER", "COV_SDNG_FINISH"],
+    "naming_pattern": "COV_{CONTEXT}_{PRODUCT_ROLE}",
+    "proposed_profiles": [
+      {
+        "profile_id": "COV_WSRP_PRIMER_SPOT",
+        "description": "Spot primer coverage on bare areas — 300-400 SF/gal. Coverage based on affected SF, not total wall SF."
+      },
+      {
+        "profile_id": "COV_WSRP_PRIMER_CHALK_BINDING",
+        "description": "Chalk-binding primer coverage — 250-350 SF/gal. Low viscosity, high penetration absorbs more product."
+      },
+      {
+        "profile_id": "COV_WSRP_PRIMER_FULL",
+        "description": "Full coverage primer (acrylic stain-block or alkyd stain-block) — 300-400 SF/gal on scraped/prepared surface."
+      },
+      {
+        "profile_id": "COV_WSRP_PRIMER_PENETRATING",
+        "description": "Penetrating alkyd primer on weathered wood — 200-300 SF/gal. High absorption into degraded wood fibers."
+      },
+      {
+        "profile_id": "COV_WSRP_FINISH",
+        "description": "Finish coat coverage on primed/repaint surface — 300-350 SF/gal smooth lap. Lower than NC due to surface irregularity from previous coating. Adjusted by siding_profile modifier."
+      }
+    ]
+  },
+
+  "cross_spec_coordination": {
+    "xspec_flags_consumed": [],
+    "xspec_flags_set": [],
+    "comp_modifiers_set": [],
+    "comp_modifiers_affected_by": [],
+    "notes": "Window/door protection is NOT this spec's responsibility (per established exterior convention). Trim, soffit, and fascia are separate spec scopes. No cross-spec flags needed. RRP gate condition is project-level (would affect all repaint specs on the same project) but is handled within each spec's prep module."
+  },
+
+  "factor_modifiers": {
+    "naming_pattern": "FAC_{CONTEXT}_{DESCRIPTION}",
+    "existing_modifiers": [
+      "FAC_EXT_ACCESS — ground=1.00, ladder=1.35, scaffold=1.60, lift=1.50 (existing, shared across exterior specs)"
+    ],
+    "proposed_modifiers": [
+      {
+        "modifier_id": "FAC_WSRP_DSD",
+        "description": "DSD prep labor multiplier by substrate condition",
+        "modifier_category": "prep_difficulty",
+        "values": {
+          "SC_SOUND": 1.00,
+          "SC_SLIGHT_DETERIORATION": 1.15,
+          "SC_MODERATE_DETERIORATION": 1.40,
+          "SC_SEVERE_DETERIORATION": 1.75
+        },
+        "applies_to": "ALL prep tasks (scrape, sand, chalk remediation, caulk). Does NOT apply to coating (prime, finish) tasks — once prepped, surface is at baseline.",
+        "stacking": "Multiplicative with FAC_EXT_ACCESS. Effective Rate = Baseline Rate / (FAC_WSRP_DSD x FAC_EXT_ACCESS).",
+        "notes": "SC_SUBSTRATE_DAMAGE (DSD-4) is a HARD STOP, not a multiplier level. DSD-4 triggers scope exclusion. Midpoint values used from research ranges: DSD-1 use 1.15 (range 1.0-1.25), DSD-2 use 1.40 (range 1.25-1.5, rounded up), DSD-3 use 1.75 (range 1.5-2.0)."
+      },
+      {
+        "modifier_id": "FAC_WSRP_SIDING_PROFILE",
+        "description": "Production rate modifier by siding profile geometry",
+        "modifier_category": "surface_complexity",
+        "values": {
+          "lap_horizontal": 1.00,
+          "board_and_batten": 1.20,
+          "shingle": 1.50
+        },
+        "applies_to": "ALL tasks (prep and coating). Profile affects both scraping difficulty and coating production. Board and batten = 1.20x effective area. Shingle has highest geometric complexity.",
+        "notes": "Same concept as NC sibling FAC_SDNG_SIDING_PROFILE (if it exists). Values from research RF-010."
+      },
+      {
+        "modifier_id": "FAC_WSRP_QT",
+        "description": "Quality tier rate modifier",
+        "modifier_category": "quality_effort",
+        "values": {
+          "QT2": 0.85,
+          "QT3": 1.00,
+          "QT4": 1.15
+        },
+        "applies_to": "qt_scaled tasks only. QT2 = less care/rigor (economy). QT3 = baseline. QT4 = greater care, tighter tolerances.",
+        "notes": "Standard QT modifier pattern. QT2 for repaint is appropriate — economy prep on sound surfaces is a valid scope."
+      },
+      {
+        "modifier_id": "FAC_WSRP_RRP",
+        "description": "Lead-safe RRP modifier on prep tasks",
+        "modifier_category": "regulatory_compliance",
+        "values": {
+          "no_rrp": 1.00,
+          "rrp_required": 2.00
+        },
+        "applies_to": "ALL prep tasks involving paint disturbance (scraping, sanding, power washing with paint removal). Adds containment setup/teardown, wet scraping methods, HEPA vacuum, lead-safe disposal overhead.",
+        "notes": "Gate condition triggered by IN_BOOL_PRE_1978 = true. The 2.00x modifier accounts for containment setup/teardown amortized across prep work plus wet method production slowdown. RRP material costs (poly sheeting, HEPA bags, waste bags) are separate consumable items."
+      }
+    ]
+  },
+
+  "structural_reminders": {
+    "materials_json": {
+      "required_keys": ["spec_family_id", "version", "material_systems", "consumables"],
+      "system_item_keys": ["system_id", "name", "quality_tier OR applies_when"],
+      "consumable_item_keys": ["consumable_id", "name", "category", "unit"],
+      "use_consumables_key": "consumables (never consumable_usage_models)"
+    },
+    "sop_modules_json": {
+      "required_keys": ["spec_family_id", "version", "sop_modules"],
+      "module_keys": ["module_id", "name", "phase", "tasks"],
+      "task_required_keys": ["task_id", "name", "task_classification", "skill_level"],
+      "task_prohibited_keys": ["task_class", "rate_per_hour", "coverage_sf_per_gallon"]
+    },
+    "production_json": {
+      "required_keys": ["spec_family_id", "version", "task_production_rates"],
+      "rate_item_keys": ["task_id", "unit_of_measure", "rate_per_hour OR rates_by_tier OR fixed_time_minutes"],
+      "prohibited_keys": ["tasks", "sop_modules"]
+    },
+    "qa_report_json": {
+      "required_keys": ["spec_family_id", "version", "overall_result"],
+      "issue_keys": ["issue_id", "severity", "area", "file", "description", "suggested_fix"],
+      "severity_values": ["critical", "major", "minor"]
+    }
+  },
+
+  "cross_file_threading": [
+    "RULE 1: Every TSK_ in sop_modules.json MUST have a matching rate in production.json",
+    "RULE 2: Every ITM_ in spec.json MUST appear in at least one variant",
+    "RULE 3: Every SYS_ quality_tier MUST match spec.json configuration_dimensions",
+    "RULE 4: Every IN_ input in spec.json SHOULD be consumed by sop_modules or production",
+    "RULE 5: Every PS_ key in production.json MUST match spec.json required_paintscope_inputs",
+    "RULE 6: Every zone_id in spec.json MUST match sop_modules.json protection_metadata.zones",
+    "RULE 7: Module phase order: setup → prep → prime → apply → interstage → finish → cleanup",
+    "RULE 8: UOM for a task MUST match between sop_modules.json and production.json",
+    "RULE 9: All TSK_ IDs MUST use TSK_WSRP_ prefix (from this resolution)",
+    "RULE 10: ITM_SIDING_FIELD MUST be used exactly as registered (existing ID)",
+    "RULE 11: Downstream agents MUST use only enum values from this resolution's applicable_enums",
+    "RULE 12 (REPAINT-SPECIFIC): FAC_WSRP_DSD applies to prep tasks ONLY, NOT to prime/finish tasks. Coating rates are independent of previous condition.",
+    "RULE 13 (REPAINT-SPECIFIC): FAC_WSRP_DSD and FAC_EXT_ACCESS stack MULTIPLICATIVELY on prep tasks. Effective Rate = Baseline / (DSD x Access).",
+    "RULE 14 (REPAINT-SPECIFIC): SC_SUBSTRATE_DAMAGE (DSD-4) is a HARD STOP. Do NOT include in production rate tables. Triggers scope exclusion.",
+    "RULE 15 (REPAINT-SPECIFIC): FAC_WSRP_RRP is a gate condition modifier. Applies when IN_BOOL_PRE_1978 = true. Affects ALL prep tasks involving paint disturbance."
+  ],
+
+  "migration_warnings": [],
+
+  "registry_additions_proposed": [
+    {
+      "registry": "id_registry.json",
+      "section": "SF_",
+      "proposed_id": "SF_SIDING_WOOD_EXT_RP",
+      "name": "Exterior Wood Siding Repaint",
+      "justification": "New spec family for wood siding repaint. Distinct from SF_WOOD_SIDING_EXT_NC_PAINT — different substrate states (existing paint conditions vs bare wood), different prep pathway (condition assessment + state-driven prep vs NC prep), different primer logic (5 state-driven primers vs 3 substrate-driven), DSD prep multiplier, RRP gate condition. First repaint spec in the system."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "ITM_",
+      "proposed_id": "ITM_SIDING_FIELD",
+      "name": "Exterior siding field surface",
+      "justification": "EXISTING — update used_in to include SF_SIDING_WOOD_EXT_RP. No new ID needed."
+    },
+    {
+      "registry": "controlled_enums.json",
+      "section": "substrate_condition",
+      "proposed_id": "SC_SOUND",
+      "name": "Sound substrate condition (DSD-0)",
+      "justification": "NEW ENUM TYPE — substrate_condition. MPI Degree of Surface Degradation mapped to SC_ prefix enum values. Required for repaint estimation. 5 values: SC_SOUND, SC_SLIGHT_DETERIORATION, SC_MODERATE_DETERIORATION, SC_SEVERE_DETERIORATION, SC_SUBSTRATE_DAMAGE."
+    },
+    {
+      "registry": "controlled_enums.json",
+      "section": "substrate_condition",
+      "proposed_id": "SC_SLIGHT_DETERIORATION",
+      "name": "Slight deterioration (DSD-1)",
+      "justification": "Part of substrate_condition enum. DSD-1 = minor wear, isolated defects."
+    },
+    {
+      "registry": "controlled_enums.json",
+      "section": "substrate_condition",
+      "proposed_id": "SC_MODERATE_DETERIORATION",
+      "name": "Moderate deterioration (DSD-2)",
+      "justification": "Part of substrate_condition enum. DSD-2 = widespread minor to localized moderate failure."
+    },
+    {
+      "registry": "controlled_enums.json",
+      "section": "substrate_condition",
+      "proposed_id": "SC_SEVERE_DETERIORATION",
+      "name": "Severe deterioration (DSD-3)",
+      "justification": "Part of substrate_condition enum. DSD-3 = widespread failure, PCA P14 Level R restoration."
+    },
+    {
+      "registry": "controlled_enums.json",
+      "section": "substrate_condition",
+      "proposed_id": "SC_SUBSTRATE_DAMAGE",
+      "name": "Substrate damage (DSD-4) — HARD STOP",
+      "justification": "Part of substrate_condition enum. DSD-4 = structural damage (rot, compromise). Outside painting scope. Triggers scope exclusion."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "PS_",
+      "proposed_id": "PS_EXT_META.ENUM.SUBSTRATE_STATE",
+      "name": "Existing Coating State Enum Input",
+      "justification": "NEW — repaint-specific input. Primary configuration dimension for repaint estimation. NC specs do not need this (single state)."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "IN_",
+      "proposed_id": "IN_ENUM_SUBSTRATE_STATE",
+      "name": "Substrate State Input (ENUM)",
+      "justification": "Input mapped to PS_EXT_META.ENUM.SUBSTRATE_STATE."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "PS_",
+      "proposed_id": "PS_EXT_META.ENUM.SUBSTRATE_CONDITION",
+      "name": "Substrate Condition (DSD) Enum Input",
+      "justification": "NEW — repaint-specific input. DSD rating drives prep labor multiplier."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "IN_",
+      "proposed_id": "IN_ENUM_SUBSTRATE_CONDITION",
+      "name": "Substrate Condition Input (ENUM)",
+      "justification": "Input mapped to PS_EXT_META.ENUM.SUBSTRATE_CONDITION."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "PS_",
+      "proposed_id": "PS_EXT_META.ENUM.SIDING_PROFILE",
+      "name": "Siding Profile Enum Input",
+      "justification": "Siding profile drives production rate and effective area multiplier. May be shared with NC sibling if not already registered."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "IN_",
+      "proposed_id": "IN_ENUM_SIDING_PROFILE",
+      "name": "Siding Profile Input (ENUM)",
+      "justification": "Input mapped to PS_EXT_META.ENUM.SIDING_PROFILE."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "PS_",
+      "proposed_id": "PS_EXT_META.FLAG.PRE_1978",
+      "name": "Pre-1978 Building Flag",
+      "justification": "NEW — gate condition for EPA Lead-Safe RRP requirements. Project-level flag."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "IN_",
+      "proposed_id": "IN_BOOL_PRE_1978",
+      "name": "Pre-1978 Building Flag Input (BOOL)",
+      "justification": "Input mapped to PS_EXT_META.FLAG.PRE_1978."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "PS_",
+      "proposed_id": "PS_EXT_PROTECT_SF.VEHICLE_DRIVEWAY",
+      "name": "Vehicle/Driveway Protection Area (SF)",
+      "justification": "NEW — repaint-specific protection zone for occupied homes. Vehicles in driveways during spray operations."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "IN_",
+      "proposed_id": "IN_SF_EXT_PROTECT_VEHICLE_DRIVEWAY",
+      "name": "Vehicle/Driveway Protection Area Input (SF)",
+      "justification": "Input mapped to PS_EXT_PROTECT_SF.VEHICLE_DRIVEWAY."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "PS_",
+      "proposed_id": "PS_EXT_META.LF.CAULK_JOINTS",
+      "name": "Caulk Joint Linear Footage",
+      "justification": "NEW — repaint-specific. LF of caulk joints requiring assessment and replacement."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "IN_",
+      "proposed_id": "IN_LF_CAULK_JOINTS",
+      "name": "Caulk Joint LF Input",
+      "justification": "Input mapped to PS_EXT_META.LF.CAULK_JOINTS."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "zone_ids",
+      "proposed_id": "ext_vehicle_driveway",
+      "name": "Vehicle/Driveway Protection Zone",
+      "justification": "NEW exterior protection zone for occupied repaint. Vehicles and driveway surfaces adjacent to work area. Spray overspray on vehicles is a costly liability."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "zone_ids",
+      "proposed_id": "ext_landscape_full",
+      "name": "Full Landscape Overspray Protection Zone",
+      "justification": "EXISTING in research context but may need formal registration. Extended overspray reach beyond perimeter protection when spray method is used."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "SYS_",
+      "proposed_id": "SYS_PRIMER_SPOT",
+      "name": "Acrylic Stain-Blocking Spot Primer",
+      "justification": "NEW — spot prime for bare areas on sound/lightly-failing surfaces. Distinct from full-coverage primers."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "SYS_",
+      "proposed_id": "SYS_PRIMER_CHALK_BINDING",
+      "name": "Chalk-Binding Penetrating Primer",
+      "justification": "NEW — specialized primer for chalking surfaces. Low-viscosity resin that penetrates and locks chalk residue. No existing system covers this."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "SYS_",
+      "proposed_id": "SYS_PRIMER_STAIN_BLOCK_ACRYLIC",
+      "name": "Acrylic Stain-Blocking Full Primer",
+      "justification": "NEW — full coverage acrylic stain-blocker for failing/peeling surfaces with >30% bare. Distinct from spot primer."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "SYS_",
+      "proposed_id": "SYS_PRIMER_STAIN_BLOCK_ALKYD",
+      "name": "Alkyd Stain-Blocking Primer (Tannin Override)",
+      "justification": "NEW — hard override primer for tannin-rich wood (cedar/redwood). Acrylic alone insufficient for severe tannin staining. May overlap with SYS_EXT_WOOD_PRIMER_TANNIN from NC but different application context."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "SYS_",
+      "proposed_id": "SYS_PRIMER_PENETRATING_ALKYD",
+      "name": "Deep-Penetrating Oil-Alkyd Primer",
+      "justification": "NEW — for weathered bare wood with degraded fibers. Oil-alkyd penetrates and binds loose wood fibers. Different from standard acrylic or alkyd stain-block."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "SYS_",
+      "proposed_id": "SYS_FINISH_ACRYLIC_EXTERIOR",
+      "name": "Standard 100% Acrylic Latex Exterior Siding Paint",
+      "justification": "NEW — standard finish for QT2/QT3 exterior repaint. May overlap conceptually with SYS_EXT_WOOD_FINISH_STANDARD but needs separate ID for repaint coverage rates and context."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "SYS_",
+      "proposed_id": "SYS_FINISH_ACRYLIC_EXTERIOR_PREMIUM",
+      "name": "Premium 100% Acrylic Latex Exterior Siding Paint",
+      "justification": "NEW — premium finish for QT4 exterior repaint. SW Duration, BM Aura tier. Separate from NC premium for coverage rate tracking."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "COV_",
+      "proposed_id": "COV_WSRP_PRIMER_SPOT",
+      "name": "Spot Primer Coverage Profile",
+      "justification": "Repaint spot primer coverage on bare areas — 300-400 SF/gal."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "COV_",
+      "proposed_id": "COV_WSRP_PRIMER_CHALK_BINDING",
+      "name": "Chalk-Binding Primer Coverage Profile",
+      "justification": "Chalk-binding primer coverage — 250-350 SF/gal. Higher absorption than standard."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "COV_",
+      "proposed_id": "COV_WSRP_PRIMER_FULL",
+      "name": "Full Primer Coverage Profile",
+      "justification": "Full coverage primer on scraped surface — 300-400 SF/gal."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "COV_",
+      "proposed_id": "COV_WSRP_PRIMER_PENETRATING",
+      "name": "Penetrating Alkyd Primer Coverage Profile",
+      "justification": "Penetrating primer on weathered wood — 200-300 SF/gal. High absorption."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "COV_",
+      "proposed_id": "COV_WSRP_FINISH",
+      "name": "Repaint Finish Coat Coverage Profile",
+      "justification": "Finish coat on repaint surface — 300-350 SF/gal smooth lap. Lower than NC due to surface irregularity."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "FAC_",
+      "proposed_id": "FAC_WSRP_DSD",
+      "name": "DSD Prep Labor Multiplier",
+      "justification": "NEW — core repaint modifier. Drives prep task rate reduction by substrate condition severity. SC_SOUND=1.00, SC_SLIGHT=1.15, SC_MODERATE=1.40, SC_SEVERE=1.75."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "FAC_",
+      "proposed_id": "FAC_WSRP_SIDING_PROFILE",
+      "name": "Siding Profile Production Modifier",
+      "justification": "NEW — rate modifier by siding profile geometry. lap=1.00, board_and_batten=1.20, shingle=1.50."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "FAC_",
+      "proposed_id": "FAC_WSRP_QT",
+      "name": "Quality Tier Rate Modifier",
+      "justification": "NEW — standard QT modifier for repaint. QT2=0.85, QT3=1.00, QT4=1.15."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "FAC_",
+      "proposed_id": "FAC_WSRP_RRP",
+      "name": "Lead-Safe RRP Prep Modifier",
+      "justification": "NEW — gate condition modifier for pre-1978 buildings. no_rrp=1.00, rrp_required=2.00. Containment, wet methods, HEPA, disposal overhead."
+    }
+  ]
+}

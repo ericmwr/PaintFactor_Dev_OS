@@ -76,6 +76,42 @@ Before ANY research or brief creation task, load relevant documents from this ma
 
 ---
 
+## Domain-Specific Context Loading
+
+After reading the base Required Reading list above, load the following based on `spec_family.domain`:
+
+### If `domain == "exterior"`:
+
+LOAD — Exterior Doctrine:
+- docs/Doctrine/Exterior_Substrates_Doctrine.md
+- docs/Doctrine/Exterior_Modifiers_Doctrine.md
+- docs/Doctrine/Exterior_Protection_Doctrine.md
+
+LOAD — Exterior Reference Vocabulary:
+- docs/Reference/Substrate_State_Reference.md §4 (Exterior-Specific States)
+- docs/Reference/Surface_Vocabulary_Reference.md §Exterior Surfaces
+- docs/Reference/Site_Condition_Vocabulary_Reference.md §9–13 (Exterior Conditions)
+
+LOAD — Exterior PaintScope Keys:
+- docs/PaintScope/PaintScope_Exterior_Key_Catalog.md
+
+DO NOT APPLY to exterior specs:
+- docs/Doctrine/Interior_Protection_Doctrine.md (interior zones do not apply)
+- docs/Doctrine/Fine_Finish_Doctrine.md (unless scope explicitly includes interior-style trim at QT4+)
+- docs/Doctrine/Interior_Protection_Doctrine_Final.md
+- PS_ keys from PaintScope_Quantity_Key_Catalog.md §Core Interior Keys (use EXT_ keys instead)
+
+EXTERIOR MODIFIER OVERRIDE:
+- Use FAC_EXT_ACCESS (not FAC_HEIGHT) for elevation work
+- Use FAC_EXT_SUBSTRATE_CONDITION for prep rate scaling
+- Use FAC_EXT_WIND, FAC_EXT_SUN_EXPOSURE, FAC_EXT_SURFACE_TEMP for environmental modifiers
+- FAC_PROFILE_COMPLEXITY applies for exterior trim (shared modifier)
+
+### If `domain == "interior"`:
+[existing behavior — no changes; read all required reading as currently listed]
+
+---
+
 ## Brief Creation Mode
 
 When dispatched by Dev Orchestrator with `task_type: brief_creation`, the Spec Researcher creates a doctrine-aligned brief for a new spec family.

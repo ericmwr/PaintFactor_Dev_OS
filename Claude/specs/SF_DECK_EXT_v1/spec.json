@@ -1,0 +1,726 @@
+{
+  "spec_family": {
+    "id": "SF_DECK_EXT",
+    "name": "Exterior Deck Staining",
+    "description": "Stain-based coating system for exterior wood deck components — floor field (SF), railing system (LF), spindles/balusters (EA), and stair steps (EA). Covers penetrating stains (clear sealer, semi-transparent, semi-solid) and film-forming solid stain across new construction, weathered, and previously coated wood conditions. Coating_type replaces quality_tier as the primary configuration dimension — drives coating chemistry (penetrating vs film-forming), maintenance cycle, failure mode profile, and material selection. No primer module for penetrating stains (stain penetrates directly into wood fibers; primer would seal the surface and prevent absorption). Chemical restoration protocol (alkaline strip, acid brighten, neutralize) for weathered wood is a conditional prep module requiring separate mobilization day. Component-based estimation with 4 paintable items across 3 UOM types. Composite decking explicitly excluded (factory-colored, warranty-voiding if coated). Spray_backbrush is the primary production method for floor field — back-brushing with stiff bristle brush is mandatory when spraying penetrating stains to force stain into wood grain pores (spray-only prohibited).",
+    "domain": "exterior",
+    "version": "0.1.0",
+    "status": "draft",
+    "review_required": true
+  },
+
+  "scope_boundaries": {
+    "includes": [
+      "Moisture content verification (MC <=15% hard stop, pin-type moisture meter)",
+      "PT pine seasoning verification (3-6 month minimum from install date)",
+      "Mill glaze removal sanding (60-grit, new milled wood only)",
+      "Refinishing sand (80-100 grit, previously coated wood)",
+      "Pressure wash deck floor (1,500-2,000 PSI, fan tip, 24-48 hr dry time)",
+      "Mildew eradication treatment (conditional on visible mildew)",
+      "Chemical restoration protocol for weathered wood (strip, brighten, rinse — separate mobilization day)",
+      "Railing and spindle hand sanding and cleaning",
+      "Stain application — floor field (spray_backbrush, brush, pad, or roll)",
+      "Stain application — railing system (spray_backbrush or brush)",
+      "Stain application — spindles/balusters (spray or brush, individually coated)",
+      "Stain application — stair steps (brush only, alternating step pattern for access)",
+      "Second coat application (conditional on coating_type: semi_solid and solid_stain)",
+      "End-grain sealing on stair treads and board ends",
+      "Siding protection at deck-to-house ledger board junction",
+      "Below-deck landscape protection (elevated decks)",
+      "Adjacent hardscape protection (walkways, patios)",
+      "Deck furniture staging and return",
+      "Deck-mounted light fixture masking",
+      "Final walkthrough inspection and touch-up",
+      "Tool and equipment cleanup"
+    ],
+    "excludes": [
+      {
+        "item": "Composite decking (Trex, TimberTech, Fiberon, etc.)",
+        "route_to": "Not in scope — factory-colored, manufacturer warranty voided if coated. Rare edge case requiring separate adhesion protocol."
+      },
+      {
+        "item": "Window and door masking at deck entry",
+        "route_to": "Door spec — window/door protection owned by respective surface spec"
+      },
+      {
+        "item": "Exterior siding painting adjacent to deck",
+        "route_to": "Siding spec (SF_WOOD_SIDING_EXT_NC_PAINT or SF_SIDING_FIBERCEMENT_EXT_NC)"
+      },
+      {
+        "item": "Deck structural repair (board replacement, joist repair, railing reinforcement)",
+        "route_to": "Carpentry scope — not painting scope"
+      },
+      {
+        "item": "Deck underside staining (bottom face of deck boards)",
+        "route_to": "Edge case — rarely specified in residential. Separate scope if needed."
+      },
+      {
+        "item": "Scaffold erection and dismantling",
+        "route_to": "Site logistics — separate line item from staining scope"
+      },
+      {
+        "item": "Pergola or overhead structure staining",
+        "route_to": "Future exterior overhead wood spec"
+      }
+    ]
+  },
+
+  "configuration_dimensions": [
+    {
+      "dimension_id": "coating_type",
+      "description": "PRIMARY CONFIGURATION DIMENSION — replaces quality_tier for this spec. Drives coating chemistry (penetrating vs film-forming), maintenance cycle, failure mode profile, primer requirement, coat count, and material coverage rates.",
+      "values": ["clear_sealer", "semi_transparent", "semi_solid", "solid_stain"],
+      "default": "semi_transparent",
+      "notes": "Semi-transparent is the professional standard for residential decks (~60% of professional deck staining work). Clear sealer: penetrating, no UV pigment, 12-18 month cycle. Semi-transparent: penetrating, pigmented, 2-3 year cycle. Semi-solid: penetrating with thin film, 3-4 year cycle. Solid stain: film-forming, opaque, 5-7 year cycle but DELAMINATION RISK on horizontal surfaces."
+    },
+    {
+      "dimension_id": "wood_condition",
+      "description": "Wood condition drives prep module selection and prep intensity. This spec covers new construction AND existing decks.",
+      "values": ["new", "weathered", "previously_coated"],
+      "default": "new",
+      "notes": "New: mill glaze removal + seasoning verification (PT pine). Weathered: chemical restoration protocol (strip, brighten, neutralize — separate mobilization day). Previously_coated: assess existing coating integrity, strip if failing, sand if sound. NOT an NC-only spec — wood_condition dimension enables full lifecycle coverage."
+    },
+    {
+      "dimension_id": "substrate_type",
+      "description": "Deck wood species. Drives seasoning requirements, tannin management, stain compatibility, and production rate modifiers.",
+      "values": ["pressure_treated_pine", "cedar", "redwood"],
+      "default": "pressure_treated_pine",
+      "notes": "PT pine is ~80% of residential decks. Cedar and redwood are premium substrates with tannin management requirements (oxalic acid brightener for tannin bleed). Composite decking explicitly EXCLUDED (factory-colored product, warranty voided if coated)."
+    },
+    {
+      "dimension_id": "application_method",
+      "description": "Primary application technique for stain application. Spray-only is PROHIBITED for penetrating stains — back-brushing mandatory.",
+      "values": ["spray_backbrush", "brush", "roll", "pad"],
+      "default": "spray_backbrush",
+      "notes": "Spray_backbrush is the deck equivalent of masonry spray_backroll — stiff bristle brush forces stain into wood grain pores after spray deposit. Brush is primary for railings, spindles, stairs, and small decks. Pad (lamb's wool) for smooth floor application. Roll is alternative for floor field. Spray-only PROHIBITED on penetrating stains."
+    }
+  ],
+
+  "paintable_items": [
+    {
+      "item_id": "ITM_DECK_FLOOR",
+      "name": "Deck floor field surface (main walking surface)",
+      "unit_of_measure": "SF",
+      "counting_rules": "Net deck floor field area in square feet. Measured from PaintScope plan view. Excludes railing footprint. Primary item — highest wear surface (horizontal, foot traffic, UV exposure). Largest area component.",
+      "notes": "SF-based. Production rates vary by coating_type and application_method. Activated for all scope_components values."
+    },
+    {
+      "item_id": "ITM_DECK_RAILING",
+      "name": "Deck railing system (top rail, bottom rail, posts)",
+      "unit_of_measure": "LF",
+      "counting_rules": "Linear feet of deck railing run. Includes top rail, bottom rail, and posts per linear foot. Measured along railing centerline from PaintScope.",
+      "notes": "LF-based. Activated when scope_components = floor_and_railings or full_deck. Brush is primary application method. Multiple surfaces per LF (top, sides, undersides)."
+    },
+    {
+      "item_id": "ITM_DECK_SPINDLE",
+      "name": "Deck spindle/baluster (individual vertical member)",
+      "unit_of_measure": "EA",
+      "counting_rules": "Count of individual spindles/balusters. Can be derived from railing LF (~3 per LF) or counted directly from PaintScope. 4 sides + top/bottom per spindle.",
+      "notes": "EA-based. Activated when scope_components = floor_and_railings or full_deck. High labor intensity — turned spindles significantly slower than square. Primary bottleneck in railing scope."
+    },
+    {
+      "item_id": "ITM_DECK_STAIR",
+      "name": "Deck stair step (tread + riser per step)",
+      "unit_of_measure": "EA",
+      "counting_rules": "Count of deck stair steps. Each tread + riser = 1 unit. Includes end-grain on exposed stringer cuts. Alternating step staining pattern for access.",
+      "notes": "EA-based. Activated when scope_components = full_deck. Brush application only (no spray on stairs). End-grain exposure requires extra material and care."
+    }
+  ],
+
+  "required_paintscope_inputs": [
+    {
+      "input_name": "IN_SF_DECK_FIELD",
+      "paintscope_key": "PS_EXT_SURFACE_SF.DECK_FIELD",
+      "uom": "SF",
+      "required": true,
+      "description": "Net deck floor field area"
+    },
+    {
+      "input_name": "IN_LF_DECK_RAILING",
+      "paintscope_key": "PS_EXT_EDGE_LF.DECK_RAILING",
+      "uom": "LF",
+      "required": false,
+      "required_when": "scope_components = floor_and_railings or full_deck",
+      "description": "Linear feet of deck railing run"
+    },
+    {
+      "input_name": "IN_EA_DECK_SPINDLES",
+      "paintscope_key": "PS_EXT_META.EA.DECK_SPINDLES",
+      "uom": "EA",
+      "required": false,
+      "required_when": "scope_components = floor_and_railings or full_deck",
+      "description": "Count of individual deck spindles/balusters"
+    },
+    {
+      "input_name": "IN_EA_DECK_STAIR_STEPS",
+      "paintscope_key": "PS_EXT_META.EA.DECK_STAIR_STEPS",
+      "uom": "EA",
+      "required": false,
+      "required_when": "scope_components = full_deck",
+      "description": "Count of deck stair steps (each tread+riser = 1 unit)"
+    },
+    {
+      "input_name": "IN_ENUM_COATING_TYPE_DECK",
+      "paintscope_key": "PS_EXT_META.ENUM.COATING_TYPE_DECK",
+      "uom": "ENUM",
+      "required": true,
+      "description": "Coating type (clear_sealer, semi_transparent, semi_solid, solid_stain) — primary configuration dimension"
+    },
+    {
+      "input_name": "IN_ENUM_WOOD_CONDITION_DECK",
+      "paintscope_key": "PS_EXT_META.ENUM.WOOD_CONDITION_DECK",
+      "uom": "ENUM",
+      "required": true,
+      "description": "Wood condition (new, weathered, previously_coated) — drives prep module selection"
+    },
+    {
+      "input_name": "IN_ENUM_SUBSTRATE_TYPE_DECK",
+      "paintscope_key": "PS_EXT_META.ENUM.SUBSTRATE_TYPE_DECK",
+      "uom": "ENUM",
+      "required": true,
+      "description": "Wood substrate type (pressure_treated_pine, cedar, redwood) — drives tannin management and stain compatibility"
+    },
+    {
+      "input_name": "IN_SF_EXT_PROTECT_SIDING_ADJACENT",
+      "paintscope_key": "PS_EXT_PROTECT_SF.SIDING_ADJACENT",
+      "uom": "SF",
+      "required": false,
+      "required_when": "When deck abuts house siding at ledger board",
+      "description": "Siding area at deck-to-house junction requiring protection from stain overspray/drip"
+    },
+    {
+      "input_name": "IN_LF_EXT_PROTECT_LANDSCAPE_PERIMETER",
+      "paintscope_key": "PS_EXT_PROTECT_LF.LANDSCAPE_PERIMETER",
+      "uom": "LF",
+      "required": false,
+      "required_when": "When landscape is below elevated deck",
+      "description": "Linear feet of deck perimeter where below-deck landscape requires protection"
+    },
+    {
+      "input_name": "IN_SF_EXT_PROTECT_HARDSCAPE_WALK",
+      "paintscope_key": "PS_EXT_PROTECT_SF.HARDSCAPE_WALK",
+      "uom": "SF",
+      "required": false,
+      "required_when": "When walkways/patios are adjacent to deck at grade",
+      "description": "Adjacent walkway/patio area requiring protection from stain overspray/drip"
+    },
+    {
+      "input_name": "IN_EA_EXT_PROTECT_DECK_FURNITURE",
+      "paintscope_key": "PS_EXT_PROTECT_EA.DECK_FURNITURE",
+      "uom": "EA",
+      "required": false,
+      "required_when": "When furniture is present on deck surface",
+      "description": "Count of on-deck furniture groups requiring relocation or covering"
+    },
+    {
+      "input_name": "IN_EA_EXT_PROTECT_LIGHT_FIXTURE",
+      "paintscope_key": "PS_EXT_PROTECT_EA.LIGHT_FIXTURE",
+      "uom": "EA",
+      "required": false,
+      "required_when": "When deck-mounted or railing-mounted light fixtures are present",
+      "description": "Count of deck light fixtures to mask"
+    },
+    {
+      "input_name": "IN_BOOL_NEW_CONSTRUCTION",
+      "paintscope_key": "PS_EXT_META.FLAG.NEW_CONSTRUCTION",
+      "uom": "BOOL",
+      "required": false,
+      "description": "Boolean flag for new construction context. Used with wood_condition to determine prep requirements."
+    }
+  ],
+
+  "substrate_state_rules": {
+    "primary_surface": "deck_floor_field",
+
+    "valid_input_states": {
+      "states": ["SS_EXT_BARE_WOOD", "SS_EXT_STAINED_SOLID", "SS_EXT_STAINED_SEMI", "SS_EXT_WEATHERED"],
+      "notes": "SS_EXT_BARE_WOOD = new wood (new construction or freshly stripped). SS_EXT_STAINED_SOLID = previously coated with film-forming solid stain. SS_EXT_STAINED_SEMI = previously coated with penetrating stain. SS_EXT_WEATHERED = UV-degraded, grayed, loose fiber. Three functional conditions via wood_condition dimension: new maps to SS_EXT_BARE_WOOD, previously_coated maps to SS_EXT_STAINED_SOLID or SS_EXT_STAINED_SEMI, weathered maps to SS_EXT_WEATHERED."
+    },
+
+    "output_state": {
+      "state": "SS_EXT_STAINED_SEMI",
+      "varies_by": "coating_type",
+      "state_map": {
+        "clear_sealer": "SS_EXT_STAINED_SEMI",
+        "semi_transparent": "SS_EXT_STAINED_SEMI",
+        "semi_solid": "SS_EXT_STAINED_SEMI",
+        "solid_stain": "SS_EXT_STAINED_SOLID"
+      },
+      "notes": "Penetrating stains (clear, semi-transparent, semi-solid) output SS_EXT_STAINED_SEMI — wood pores are penetrated but no continuous surface film. Solid stain outputs SS_EXT_STAINED_SOLID — film-forming coating creates a painted-like surface state."
+    }
+  },
+
+  "protection_zones_required": [
+    {
+      "zone_id": "ext_siding_adjacent",
+      "condition": "when_adjacent",
+      "protection_level": "light_mask",
+      "upgrade_when": { "application_method": ["spray_backbrush"] },
+      "upgrade_level": "full_cover",
+      "notes": "Siding at deck-to-house ledger board junction. Tape at siding-to-deck transition, hang plastic 4-6 ft up siding face for spray_backbrush. Light tape for brush-only application."
+    },
+    {
+      "zone_id": "ext_below_deck_landscape",
+      "condition": "when_adjacent",
+      "protection_level": "full_cover",
+      "notes": "Vegetation/landscape below elevated deck. Stain drips through deck board gaps regardless of application method. Full plastic sheeting coverage mandatory for elevated decks."
+    },
+    {
+      "zone_id": "ext_hardscape_patio",
+      "condition": "when_adjacent",
+      "protection_level": "light_mask",
+      "upgrade_when": { "application_method": ["spray_backbrush"] },
+      "upgrade_level": "full_cover",
+      "notes": "Adjacent patio, walkway, or driveway at grade level. Canvas drop cloths for crew traffic areas."
+    },
+    {
+      "zone_id": "ext_deck_furniture_staging",
+      "condition": "when_present",
+      "protection_level": "relocate",
+      "notes": "On-deck furniture groups moved to staging area off deck surface. Unique to deck scope — items ON the surface being stained. Count as furniture groups (table+chairs = 1 group)."
+    },
+    {
+      "zone_id": "ext_light_fixture",
+      "condition": "when_present",
+      "protection_level": "light_mask",
+      "notes": "Deck-mounted and railing-mounted light fixtures. Bag and tape with plastic."
+    }
+  ],
+
+  "material_systems": [
+    {
+      "system_id": "SYS_EXT_DECK_CLEAR_SEALER",
+      "name": "Clear Wood Sealer / Water Repellent",
+      "product_role": "sealer",
+      "applies_when": { "coating_type": ["clear_sealer"] },
+      "coverage_profile": "COV_DECK_CLEAR_SEALER",
+      "coats": 1,
+      "allowed_sheens": ["n/a"],
+      "notes": "Penetrating clear water repellent — no UV pigment. Wood grain fully visible. 12-18 month maintenance cycle. No primer required."
+    },
+    {
+      "system_id": "SYS_EXT_DECK_SEMI_TRANSPARENT",
+      "name": "Semi-Transparent Penetrating Stain",
+      "product_role": "stain",
+      "applies_when": { "coating_type": ["semi_transparent"] },
+      "coverage_profile": "COV_DECK_SEMI_TRANSPARENT",
+      "coats_by_condition": { "new_wood": 1, "weathered": 2 },
+      "allowed_sheens": ["n/a"],
+      "notes": "PROFESSIONAL STANDARD (~60% of deck staining). Iron oxide UV pigments, penetrating chemistry. 2-3 year maintenance cycle. No primer required."
+    },
+    {
+      "system_id": "SYS_EXT_DECK_SEMI_SOLID",
+      "name": "Semi-Solid Stain",
+      "product_role": "stain",
+      "applies_when": { "coating_type": ["semi_solid"] },
+      "coverage_profile": "COV_DECK_SEMI_SOLID",
+      "coats": 2,
+      "allowed_sheens": ["n/a"],
+      "notes": "Heavy-pigment penetrating stain with thin film build. 3-4 year maintenance cycle. Partially masks grain. No primer required."
+    },
+    {
+      "system_id": "SYS_EXT_DECK_SOLID_STAIN",
+      "name": "Solid Color Deck Stain",
+      "product_role": "stain",
+      "applies_when": { "coating_type": ["solid_stain"] },
+      "coverage_profile": "COV_DECK_SOLID_STAIN",
+      "coats": 2,
+      "allowed_sheens": ["flat", "satin"],
+      "notes": "Film-forming coating — opaque color, complete grain masking. 5-7 year cycle on vertical surfaces. WARNING: HIGHEST DELAMINATION RISK on horizontal walking surfaces. Tannin-blocking primer may be required on cedar/redwood."
+    },
+    {
+      "system_id": "SYS_EXT_DECK_CHEMICAL_STRIPPER",
+      "name": "Deck Cleaner / Stripper (Alkaline)",
+      "product_role": "prep_chemical",
+      "applies_when": { "wood_condition": ["weathered", "previously_coated"] },
+      "coverage_profile": "COV_DECK_STRIPPER",
+      "coats": 1,
+      "allowed_sheens": ["n/a"],
+      "notes": "Sodium percarbonate or sodium hydroxide-based. Step 1 of 3-step chemical restoration. Must be neutralized with acid brightener before staining."
+    },
+    {
+      "system_id": "SYS_EXT_DECK_BRIGHTENER",
+      "name": "Wood Brightener (Oxalic / Citric Acid)",
+      "product_role": "prep_chemical",
+      "applies_when": { "wood_condition": ["weathered", "previously_coated"], "substrate_type_override": ["cedar", "redwood"] },
+      "coverage_profile": "COV_DECK_BRIGHTENER",
+      "coats": 1,
+      "allowed_sheens": ["n/a"],
+      "notes": "Oxalic acid (cedar/redwood tannin) or citric acid. Step 2 of chemical restoration. Neutralizes alkaline residue, restores natural wood color. Also used standalone on cedar/redwood even on new wood for tannin management."
+    }
+  ],
+
+  "sop_module_summary": {
+    "total_modules": 8,
+    "total_tasks": 40,
+    "task_breakdown": {
+      "binary": 32,
+      "condition_conditional": 4,
+      "coating_conditional": 4
+    },
+    "modules": [
+      { "module_id": "MOD_DECK_SETUP", "phase": "setup", "task_count": 5, "notes": "Siding protection, landscape protection, hardscape protection, furniture staging, fixture masking" },
+      { "module_id": "MOD_DECK_PREP_FLOOR", "phase": "prep", "task_count": 6, "notes": "Moisture test, seasoning verify (new PT), mill glaze sand (new), refinishing sand (previously coated), pressure wash, mildew treatment (conditional)" },
+      { "module_id": "MOD_DECK_PREP_RAILING", "phase": "prep", "task_count": 3, "applies_when": { "scope_components": ["floor_and_railings", "full_deck"] }, "notes": "Railing hand sand, spindle hand sand, railing/spindle wash" },
+      { "module_id": "MOD_DECK_CHEMICAL_RESTORE", "phase": "prep", "task_count": 8, "applies_when": { "wood_condition": ["weathered"] }, "notes": "3-step chemical restoration: strip apply, dwell, scrub, rinse -> brighten apply, dwell, rinse -> dry verify. Separate mobilization day (24-48 hr dry time)." },
+      { "module_id": "MOD_DECK_APPLY_FLOOR", "phase": "apply", "task_count": 5, "notes": "Floor stain — 4 method variants (spray_backbrush/brush/pad/roll) + conditional coat 2 (semi_solid/solid_stain)" },
+      { "module_id": "MOD_DECK_APPLY_RAILING", "phase": "apply", "task_count": 6, "applies_when": { "scope_components": ["floor_and_railings", "full_deck"] }, "notes": "Railing stain (spray_backbrush/brush) + spindle stain (spray/brush) + conditional coat 2 for each" },
+      { "module_id": "MOD_DECK_APPLY_STAIR", "phase": "apply", "task_count": 2, "applies_when": { "scope_components": ["full_deck"] }, "notes": "Stair stain brush + conditional coat 2. Brush only — no spray on stairs. Alternating step pattern." },
+      { "module_id": "MOD_DECK_CLEANUP", "phase": "cleanup", "task_count": 5, "notes": "Final inspection, touch-up, furniture return, protection teardown, tool cleanup" }
+    ]
+  },
+
+  "production_summary": {
+    "total_rates": 33,
+    "crew_size_2_tasks": 3,
+    "crew_size_2_task_ids": [
+      "TSK_DECK_STAIN_FLOOR_SPRAY_BACKBRUSH",
+      "TSK_DECK_STAIN_RAILING_SPRAY_BACKBRUSH",
+      "TSK_DECK_STAIN_FLOOR_COAT2"
+    ],
+    "rate_ranges": {
+      "floor_spray_backbrush": "275 SF/hr (2-person crew)",
+      "floor_brush": "125 SF/hr",
+      "floor_pad": "250 SF/hr",
+      "floor_roll": "200 SF/hr",
+      "railing_brush": "10 LF/hr",
+      "spindle_brush": "10 EA/hr",
+      "stair_brush": "3 EA/hr"
+    },
+    "factor_modifiers": [
+      {
+        "factor_id": "FAC_DECK_COATING_TYPE",
+        "values": { "clear_sealer": 0.80, "semi_transparent": 1.00, "semi_solid": 1.10, "solid_stain": 1.25 },
+        "applies_to_count": 13,
+        "notes": "APPLICATION tasks only. Semi-transparent is baseline."
+      },
+      {
+        "factor_id": "FAC_DECK_WOOD_CONDITION",
+        "values": { "new_milled": 1.00, "new_pt_seasoned": 1.05, "weathered": 1.50, "previously_coated": 1.75 },
+        "applies_to_count": 12,
+        "notes": "PREP tasks primarily. New milled is baseline."
+      },
+      {
+        "factor_id": "FAC_DECK_SUBSTRATE_TYPE",
+        "values": { "pt_pine": 1.00, "cedar": 1.10, "redwood": 1.15 },
+        "applies_to_count": 25,
+        "notes": "Both prep and application tasks. PT pine is baseline."
+      }
+    ],
+    "max_modifier_stack": 2.52,
+    "stacking_cap": 4.0,
+    "within_cap": true,
+    "stacking_notes": "Worst case: solid_stain (1.25) x previously_coated (1.75) x redwood (1.15) = 2.52x. Well under 4.0x cap. In practice, wood_condition primarily affects prep tasks while coating_type primarily affects application tasks, so real-world stacking on any single task is typically coating_type x substrate_type (max 1.44x)."
+  },
+
+  "compatibility_rules": [
+    {
+      "rule_id": "COMPAT-DECK-001",
+      "title": "Moisture content hard stop",
+      "rule": "MC must read <=15% before any stain application. MC >15% is a HARD STOP — do not stain. Retest after 24 hr dry period.",
+      "severity": "critical",
+      "enforcement": "Mandatory moisture test (TSK_DECK_MOISTURE_TEST) before any application module."
+    },
+    {
+      "rule_id": "COMPAT-DECK-002",
+      "title": "PT pine seasoning requirement",
+      "rule": "New pressure-treated pine must season minimum 3 months from install date before staining. Less than 3 months = HARD STOP.",
+      "severity": "critical",
+      "enforcement": "Seasoning verification task (TSK_DECK_SEASONING_VERIFY) when wood_condition=new AND substrate_type=pressure_treated_pine."
+    },
+    {
+      "rule_id": "COMPAT-DECK-003",
+      "title": "Spray-only prohibited for penetrating stains",
+      "rule": "Spray application of penetrating stains (clear, semi-transparent, semi-solid) REQUIRES back-brushing. Spray deposits stain on surface but does not force it into wood pores. Back-brush with stiff bristle brush within 2-3 minutes of spray.",
+      "severity": "critical",
+      "enforcement": "spray_backbrush application method auto-includes back-brush step. spray_only value is PROHIBITED in application_method enum."
+    },
+    {
+      "rule_id": "COMPAT-DECK-004",
+      "title": "Solid stain delamination risk warning on horizontal surfaces",
+      "rule": "Solid stain (film-forming) on horizontal walking surfaces is a documented high-risk application. Horizontal surfaces collect standing water, which becomes trapped under the film and causes blistering and sheet delamination. MANDATORY customer risk disclosure when coating_type=solid_stain on floor and stair components.",
+      "severity": "major",
+      "enforcement": "Estimator flag and customer acknowledgment documentation. Noted in TSK_DECK_FINAL_INSPECT."
+    },
+    {
+      "rule_id": "COMPAT-DECK-005",
+      "title": "Chemical restoration requires separate mobilization",
+      "rule": "Chemical restoration protocol (strip, brighten, rinse) requires 24-48 hr dry time before staining can begin. Effectively requires a separate mobilization day. Estimator must account for return visit.",
+      "severity": "major",
+      "enforcement": "MOD_DECK_CHEMICAL_RESTORE activates when wood_condition=weathered. TSK_DECK_DRY_VERIFY enforces dry time before application."
+    },
+    {
+      "rule_id": "COMPAT-DECK-006",
+      "title": "Cedar/redwood tannin management",
+      "rule": "Cedar and redwood contain water-soluble extractive tannins that bleed through coatings. Oxalic acid brightener treatment before staining dissolves surface tannins. For solid stain on cedar/redwood, tannin-blocking primer may be required.",
+      "severity": "minor",
+      "enforcement": "SYS_EXT_DECK_BRIGHTENER applies_when includes substrate_type_override for cedar/redwood even on new wood."
+    },
+    {
+      "rule_id": "COMPAT-DECK-007",
+      "title": "Composite decking excluded",
+      "rule": "Composite decking (Trex, TimberTech, Fiberon, etc.) is explicitly excluded from this spec. Manufacturer warranties are voided if coated. Painting composite is a rare edge case requiring separate adhesion protocol.",
+      "severity": "critical",
+      "enforcement": "composite value is PROHIBITED in substrate_type enum."
+    },
+    {
+      "rule_id": "COMPAT-DECK-008",
+      "title": "Mill glaze removal mandatory on new milled wood",
+      "rule": "New lumber with mill glaze (burnished planer surface) must have glaze removed before staining. Mill glaze seals wood surface and prevents stain penetration. Sand with 60-grit or apply chemical mill glaze remover.",
+      "severity": "major",
+      "enforcement": "TSK_DECK_MILL_GLAZE_SAND activates when wood_condition=new."
+    }
+  ],
+
+  "round_configurations": [
+    {
+      "round_id": "ROUND_DECK_SINGLE_COAT",
+      "name": "Single Coat — Clear Sealer",
+      "applies_when": { "coating_type": ["clear_sealer"] },
+      "total_coats": 1,
+      "interstage_cycles": 0,
+      "notes": "Single coat of clear penetrating sealer. Apply once, allow to penetrate. Reapply at 12-18 month intervals. Some products specify 2 coats — product-dependent override."
+    },
+    {
+      "round_id": "ROUND_DECK_TWO_COAT_WET",
+      "name": "Two Coats Wet-on-Absorbing — Semi-Transparent / Semi-Solid",
+      "applies_when": { "coating_type": ["semi_transparent", "semi_solid"] },
+      "total_coats": 2,
+      "interstage_cycles": 0,
+      "notes": "Penetrating stain 2-coat system. Apply first coat, let absorb 30-60 min, apply second coat while first is still workable. NOT wet-on-wet — allow absorption before second coat. No interstage inspection — penetrating product. Both coats same day in ideal conditions. Semi-transparent on new wood may require only 1 coat (product-dependent)."
+    },
+    {
+      "round_id": "ROUND_DECK_TWO_COAT_DRY",
+      "name": "Two Coats with Full Dry — Solid Stain",
+      "applies_when": { "coating_type": ["solid_stain"] },
+      "total_coats": 2,
+      "interstage_cycles": 1,
+      "notes": "Film-forming coating requires full dry between coats (4-24 hours product-dependent). Similar to paint 2-coat system. Interstage inspection for holidays, runs, sags. May require separate day for second coat."
+    }
+  ],
+
+  "variants": [
+    {
+      "variant_id": "VAR_NEW_PT_SEMI_TRANS_SPRAY",
+      "applies_when": { "coating_type": ["semi_transparent"], "wood_condition": ["new"], "substrate_type": ["pressure_treated_pine"], "application_method": ["spray_backbrush"], "scope_components": ["full_deck"] },
+      "coats": { "stain": 1 },
+      "protection_zones": ["ext_siding_adjacent", "ext_below_deck_landscape", "ext_hardscape_patio", "ext_deck_furniture_staging", "ext_light_fixture"],
+      "notes": "Most common new construction scenario — semi-transparent on new PT pine with spray_backbrush. Full deck scope. Single coat on new wood. Full protection suite."
+    },
+    {
+      "variant_id": "VAR_NEW_PT_SEMI_TRANS_BRUSH",
+      "applies_when": { "coating_type": ["semi_transparent"], "wood_condition": ["new"], "substrate_type": ["pressure_treated_pine"], "application_method": ["brush"], "scope_components": ["full_deck"] },
+      "coats": { "stain": 1 },
+      "protection_zones": ["ext_siding_adjacent", "ext_deck_furniture_staging", "ext_light_fixture"],
+      "notes": "Brush-only on new PT pine. Reduced protection (no overspray). Slower but maximum penetration control."
+    },
+    {
+      "variant_id": "VAR_NEW_CEDAR_SEMI_TRANS_SPRAY",
+      "applies_when": { "coating_type": ["semi_transparent"], "wood_condition": ["new"], "substrate_type": ["cedar"], "application_method": ["spray_backbrush"], "scope_components": ["full_deck"] },
+      "coats": { "stain": 1 },
+      "protection_zones": ["ext_siding_adjacent", "ext_below_deck_landscape", "ext_hardscape_patio", "ext_deck_furniture_staging", "ext_light_fixture"],
+      "notes": "New cedar deck — adds tannin management (brightener step even on new wood). Premium substrate, substrate_type modifier 1.10x."
+    },
+    {
+      "variant_id": "VAR_WEATHERED_PT_SEMI_TRANS_SPRAY",
+      "applies_when": { "coating_type": ["semi_transparent"], "wood_condition": ["weathered"], "substrate_type": ["pressure_treated_pine"], "application_method": ["spray_backbrush"], "scope_components": ["floor_only"] },
+      "coats": { "stain": 2 },
+      "protection_zones": ["ext_siding_adjacent", "ext_below_deck_landscape", "ext_hardscape_patio", "ext_deck_furniture_staging", "ext_light_fixture"],
+      "notes": "Common maintenance refinish — weathered PT pine floor only. Chemical restoration module activated. Two coats for color build on porous weathered wood. Separate mobilization for chemical prep."
+    },
+    {
+      "variant_id": "VAR_NEW_PT_SOLID_SPRAY",
+      "applies_when": { "coating_type": ["solid_stain"], "wood_condition": ["new"], "substrate_type": ["pressure_treated_pine"], "application_method": ["spray_backbrush"], "scope_components": ["full_deck"] },
+      "coats": { "stain": 2 },
+      "protection_zones": ["ext_siding_adjacent", "ext_below_deck_landscape", "ext_hardscape_patio", "ext_deck_furniture_staging", "ext_light_fixture"],
+      "notes": "Solid stain on new PT pine. Film-forming — 2 coats mandatory with full dry between. DELAMINATION RISK WARNING on horizontal surfaces. Interstage inspection."
+    },
+    {
+      "variant_id": "VAR_NEW_PT_CLEAR_SPRAY",
+      "applies_when": { "coating_type": ["clear_sealer"], "wood_condition": ["new"], "substrate_type": ["pressure_treated_pine"], "application_method": ["spray_backbrush"], "scope_components": ["full_deck"] },
+      "coats": { "sealer": 1 },
+      "protection_zones": ["ext_siding_adjacent", "ext_below_deck_landscape", "ext_hardscape_patio", "ext_deck_furniture_staging", "ext_light_fixture"],
+      "notes": "Clear sealer on new PT pine. Fastest application (0.80x coating_type modifier). Single coat. 12-18 month recoat cycle."
+    },
+    {
+      "variant_id": "VAR_WEATHERED_CEDAR_SEMI_SOLID_BRUSH",
+      "applies_when": { "coating_type": ["semi_solid"], "wood_condition": ["weathered"], "substrate_type": ["cedar"], "application_method": ["brush"], "scope_components": ["floor_and_railings"] },
+      "coats": { "stain": 2 },
+      "protection_zones": ["ext_siding_adjacent", "ext_deck_furniture_staging", "ext_light_fixture"],
+      "notes": "Weathered cedar refinish with semi-solid to hide imperfections. Chemical restoration + tannin management. Two coats. Brush-only reduced protection. Floor and railings scope."
+    },
+    {
+      "variant_id": "VAR_PREV_COATED_PT_SEMI_TRANS_SPRAY",
+      "applies_when": { "coating_type": ["semi_transparent"], "wood_condition": ["previously_coated"], "substrate_type": ["pressure_treated_pine"], "application_method": ["spray_backbrush"], "scope_components": ["full_deck"] },
+      "coats": { "stain": 2 },
+      "protection_zones": ["ext_siding_adjacent", "ext_below_deck_landscape", "ext_hardscape_patio", "ext_deck_furniture_staging", "ext_light_fixture"],
+      "notes": "Previously coated PT pine — highest prep overhead (1.75x wood_condition modifier). Full chemical strip if existing coating is failing. Adhesion testing required."
+    }
+  ],
+
+  "adjacency_declarations": {
+    "primary_surface": "deck_floor_field",
+    "adjacent_surfaces": [
+      {
+        "surface_id": "ext_siding_field",
+        "edge_type": "linear",
+        "typical_relationship": "different_finish",
+        "continuity_rate_modifier": 1.0,
+        "notes": "Siding at deck-to-house ledger board junction. Protection is THIS spec's responsibility (stain overspray/drip on siding). Different coating system — siding is paint, deck is stain."
+      },
+      {
+        "surface_id": "ext_door_slab",
+        "edge_type": "linear",
+        "typical_relationship": "different_finish",
+        "continuity_rate_modifier": 1.0,
+        "notes": "Entry door from house to deck. Door protection owned by door spec. Deck stain terminates at threshold."
+      },
+      {
+        "surface_id": "foundation_wall",
+        "edge_type": "linear",
+        "typical_relationship": "not_in_scope",
+        "continuity_rate_modifier": 1.0,
+        "notes": "Foundation below deck (if deck is attached to foundation wall). Not painted in this scope."
+      }
+    ]
+  },
+
+  "maintenance_cycles": [
+    {
+      "coating_type": "clear_sealer",
+      "cycle_years": "1-1.5",
+      "maintenance_description": "Annual recoat. Clean surface, verify MC, reapply single coat. No stripping required — sealer erodes gradually. Shortest cycle due to no UV pigment on horizontal surface.",
+      "recoat_difficulty": "easy"
+    },
+    {
+      "coating_type": "semi_transparent",
+      "cycle_years": "2-3",
+      "maintenance_description": "Clean surface, brighten if needed, verify MC, reapply 1-2 coats. No stripping required — penetrating stain erodes gradually. Easy maintenance recoat. Professional standard.",
+      "recoat_difficulty": "easy"
+    },
+    {
+      "coating_type": "semi_solid",
+      "cycle_years": "3-4",
+      "maintenance_description": "Clean surface, light sand if surface film is present, brighten, verify MC, reapply 2 coats. Thin film build may require light sanding before recoat.",
+      "recoat_difficulty": "moderate"
+    },
+    {
+      "coating_type": "solid_stain",
+      "cycle_years": "5-7",
+      "maintenance_description": "Longest cycle but hardest recoat. Requires assessment for peeling/delamination. Failing areas must be stripped and sanded. May require full chemical strip if adhesion has failed. Sand, prime (if needed), reapply 2 coats. On horizontal surfaces, cycle may be shorter due to moisture-driven delamination.",
+      "recoat_difficulty": "difficult"
+    }
+  ],
+
+  "risk_flags": [
+    {
+      "risk_id": "RISK-DECK-001",
+      "title": "Solid stain delamination on horizontal surfaces",
+      "severity": "major",
+      "description": "Film-forming solid stain on horizontal walking surfaces (floor, stair treads) traps moisture from above and below, causing blistering and sheet delamination. Foot traffic abrades the film further. Professional recommendation: semi-transparent or semi-solid preferred for horizontal deck surfaces.",
+      "mitigation": "Document delamination risk warning for customer. Recommend penetrating stain alternatives. If solid stain is specified, note shorter maintenance cycle on horizontal surfaces and disclose risk."
+    },
+    {
+      "risk_id": "RISK-DECK-002",
+      "title": "PT pine seasoning failure",
+      "severity": "critical",
+      "description": "Staining unseasoned pressure-treated pine (less than 3 months from install) results in poor stain penetration, blotchy appearance, and premature coating failure. PT preservatives (ACQ, CA-B, MCA) block stain absorption.",
+      "mitigation": "HARD STOP if wood age < 3 months. Verify install date from construction schedule. Water bead test: if water beads on surface, wood needs more seasoning."
+    },
+    {
+      "risk_id": "RISK-DECK-003",
+      "title": "Cedar/redwood tannin bleed-through",
+      "severity": "minor",
+      "description": "Water-soluble extractive tannins in cedar and redwood bleed through coatings, causing dark brown/red discoloration. Most severe with water-based coatings and on end-grain. For clear/semi-transparent, some bleed is aesthetically acceptable (natural wood look). For solid stain, bleed is a visible defect.",
+      "mitigation": "Oxalic acid brightener before staining dissolves surface tannins. Oil-based stains resist bleed better. For solid stain on cedar/redwood, tannin-blocking primer may be required. Set customer expectations on natural tannin behavior."
+    },
+    {
+      "risk_id": "RISK-DECK-004",
+      "title": "Unknown existing coating compatibility",
+      "severity": "major",
+      "description": "Previously coated decks with unknown coating type risk adhesion failure if incompatible products are layered (oil over latex or vice versa). May require full strip regardless of visible condition.",
+      "mitigation": "Adhesion testing on existing coating before committing to coating strategy. If existing coating type is unknown, perform solvent wipe test (denatured alcohol dissolves latex, not oil) to identify base product."
+    }
+  ],
+
+  "site_condition_rules": [
+    {
+      "condition_id": "access_type",
+      "treatment": "not_applicable",
+      "notes": "No FAC_EXT_ACCESS height modifier for deck staining — crew works from deck surface (ground-level). Elevated deck railings viewed from exterior may require ladder for exterior-face staining — this is an edge case not modeled as standard. Deck staining is fundamentally ground-level work."
+    }
+  ],
+
+  "cross_spec_boundaries": [
+    {
+      "boundary": "Window and door masking at deck entry",
+      "owner": "Door spec / Window spec",
+      "notes": "Door and window protection during deck staining is owned by respective surface specs. Prevents double-counting."
+    },
+    {
+      "boundary": "Exterior siding painting",
+      "owner": "SF_WOOD_SIDING_EXT_NC_PAINT / SF_SIDING_FIBERCEMENT_EXT_NC",
+      "notes": "Siding painting adjacent to deck is separate scope. Siding PROTECTION at ledger board is THIS spec's responsibility."
+    },
+    {
+      "boundary": "Deck structural repair",
+      "owner": "Carpentry scope",
+      "notes": "Board replacement, joist repair, railing reinforcement — not painting scope."
+    },
+    {
+      "boundary": "Environmental conditions excluded from estimation",
+      "owner": "SOP process constraints",
+      "notes": "Wind, dew point, surface temperature are scheduling/process concerns per RC-003 pattern. Not estimatable at bid time. Deck staining is especially sensitive to direct sun (flash-drying) — managed by SOP scheduling (early morning/late afternoon)."
+    }
+  ],
+
+  "sequencing_notes": {
+    "production_sequence": "Setup -> Prep (moisture test, sand, wash) -> Chemical Restore (weathered only, separate day) -> Apply Floor -> Apply Railing/Spindles -> Apply Stairs -> Cleanup",
+    "protection_sequence": "Siding protection -> Landscape/hardscape protection -> Furniture staging -> Fixture masking -> Staining work -> Protection teardown -> Furniture return -> Tool cleanup",
+    "coat_sequence": "Coat 1 (all components) -> Absorption time (30-60 min penetrating, 4-24 hr solid) -> Coat 2 (semi_solid/solid_stain only) -> Final inspect -> Touch-up",
+    "component_order": "Floor FIRST (largest area, spray_backbrush production method). Railings SECOND (spray if used, brush detail). Stairs LAST (exit path — alternating step pattern for access). Stain railings after floor to avoid drips on finished floor — OR mask floor at railing base.",
+    "chemical_restoration_sequence": "Strip apply -> Dwell (15-20 min) -> Scrub -> Rinse -> Brighten apply -> Dwell (10-15 min) -> Rinse -> 24-48 hr dry -> MC verify -> RETURN VISIT for stain application",
+    "key_prohibitions": "NO spray-only on penetrating stains (back-brush mandatory). NO staining at MC >15%. NO staining unseasoned PT pine (<3 months). NO high-pressure wash on railing spindles (loosens joints). Composite decking EXCLUDED."
+  },
+
+  "relationships": {
+    "companion_spec": null,
+    "often_combined_with": [],
+    "sibling_spec": null,
+    "typical_before": [],
+    "typical_after": [],
+    "cross_spec_protection_note": "Siding protection at ledger board junction is THIS spec's responsibility. Door/window protection during deck work is owned by door/window specs.",
+    "notes": "First exterior deck spec. Unique in the spec family: stain-based (not paint), coating_type replaces quality_tier as primary dimension, no primer module for penetrating stains, multi-item component scope (4 items, 3 UOMs), maintenance cycle expectations, chemical restoration conditional module. Shares exterior protection zone pattern with siding and masonry siblings."
+  },
+
+  "dependencies": {
+    "research": "research.json",
+    "resolution": "resolution.json",
+    "sop_modules": "sop_modules.json",
+    "materials": "materials.json",
+    "production": "production.json",
+    "qa_report": "qa_report.json"
+  },
+
+  "doctrine_references": [
+    { "doctrine": "Exterior_Decks_Horizontal_Wood_Doctrine.md", "sections_used": ["Coating Types", "Substrate Types", "Failure Modes", "Critical Rules", "Prep Requirements", "Application Methods", "Production Rates", "Maintenance Cycles", "Cedar/Redwood", "Weathered Wood", "UV Degradation"] },
+    { "doctrine": "Exterior_Application_Methods_Doctrine.md", "sections_used": ["Spray_backbrush mandatory for penetrating stains", "Back-brush vs backroll distinction", "Spray tip selection", "Two-person crew for spray operations"] },
+    { "doctrine": "Exterior_Surface_Assessment_Doctrine.md", "sections_used": ["Wood moisture content testing", "Seasoning verification for PT lumber", "Mill glaze identification"] },
+    { "doctrine": "Exterior_Protection_Doctrine_T3.md", "sections_used": ["Landscape zones", "Hardscape zones", "Furniture staging", "Method-based protection escalation"] },
+    { "doctrine": "Exterior_Climate_Environmental_Conditions_Doctrine.md", "sections_used": ["Surface temperature effects on stain flash-drying", "Morning/evening application scheduling"] },
+    { "doctrine": "Exterior_Weathering_Surface_Assessment_Doctrine.md", "sections_used": ["UV photodegradation of lignin", "Gray fiber assessment", "Chemical restoration protocol"] }
+  ],
+
+  "research_corrections": [],
+
+  "user_corrections": [],
+
+  "change_log": [
+    {
+      "version": "0.1.0",
+      "date": "2026-03-10",
+      "author": "SpecFactory",
+      "changes": "Initial draft spec for exterior deck staining. First stain-based spec in the system — coating_type replaces quality_tier as primary configuration dimension. Key features: 4 coating types (clear_sealer, semi_transparent, semi_solid, solid_stain), 3 wood conditions (new, weathered, previously_coated — NOT NC-only), 3 substrate types (PT pine, cedar, redwood — composite excluded), 4 application methods (spray_backbrush, brush, roll, pad — spray-only prohibited), 4 paintable items across 3 UOM types (floor SF, railing LF, spindle EA, stair EA), 40 tasks across 8 modules, 6 material systems (4 coating + 2 prep chemical), 3 factor modifiers (coating_type, wood_condition, substrate_type), 3 round configurations (single coat, two coat wet-on-absorbing, two coat with full dry), 5 protection zones. No primer module — penetrating stains do not use primer. Chemical restoration conditional module for weathered wood (separate mobilization day). Solid stain delamination risk documented. Max modifier stack 2.52x under 4.0x cap. Phase set: setup/prep/apply/cleanup (no prime/interstage/finish)."
+    }
+  ]
+}

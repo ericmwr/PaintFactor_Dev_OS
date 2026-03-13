@@ -27,10 +27,24 @@ export function aggregateConfidence(confidences) {
 }
 
 /**
- * Tag each detection result with an accept flag based on confidence.
- * High + medium are pre-accepted; low is not.
+ * Default scope per category when confidence is high/medium.
+ * Low-confidence items default to 'skip'.
+ */
+const DEFAULT_SCOPE = {
+  surfaces: 'paint',
+  trim: 'paint',
+  doors: 'paint',
+  windows: 'paint',
+  openings: 'include',
+  fixtures: 'protect',
+  specialty: 'paint',
+};
+
+/**
+ * Tag each detection result with a scope based on confidence and category.
+ * High + medium get the category default scope; low gets 'skip'.
  * @param {Object} analysisResult - The mapped analysis result with confidence fields
- * @returns {Object} Same structure with `accepted` boolean added to each field
+ * @returns {Object} Same structure with `scope` string added to each detection
  */
 // Categories that contain detection data (arrays of objects with confidence)
 const DETECTION_ARRAYS = new Set(['doors', 'windows', 'openings', 'fixtures']);
@@ -41,24 +55,26 @@ export function tagAcceptance(analysisResult) {
   const tagged = {};
 
   for (const [category, data] of Object.entries(analysisResult)) {
+    const defaultScope = DEFAULT_SCOPE[category] || 'paint';
+
     if (DETECTION_ARRAYS.has(category) && Array.isArray(data)) {
-      // Arrays of detection items — each has a confidence field
       tagged[category] = data.map(item => ({
         ...item,
-        accepted: shouldPreAccept(item.confidence),
+        scope: shouldPreAccept(item.confidence) ? defaultScope : 'skip',
       }));
     } else if (DETECTION_OBJECTS.has(category) && data && typeof data === 'object') {
-      // Nested detection objects (surfaces.walls, trim.baseboard, etc.)
       tagged[category] = {};
       for (const [key, val] of Object.entries(data)) {
         if (val && typeof val === 'object' && 'confidence' in val) {
-          tagged[category][key] = { ...val, accepted: shouldPreAccept(val.confidence) };
+          tagged[category][key] = {
+            ...val,
+            scope: shouldPreAccept(val.confidence) ? defaultScope : 'skip',
+          };
         } else {
           tagged[category][key] = val;
         }
       }
     } else {
-      // Pass through non-detection data as-is (roomPatch, notable_features, overviewConfidence, etc.)
       tagged[category] = data;
     }
   }

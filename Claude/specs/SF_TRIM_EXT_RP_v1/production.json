@@ -1,0 +1,1294 @@
+{
+  "spec_family_id": "SF_TRIM_EXT_RP",
+  "version": "0.1.0",
+  "generated_by": "Estimation Engineer",
+  "generated_at": "2026-03-12",
+
+  "MODIFIER_STACKING_WARNING": {
+    "severity": "critical",
+    "description": "Theoretical worst-case modifier stack exceeds 4.0x cap on prep tasks by a wide margin. Expected for exterior trim repaint at extreme conditions.",
+    "worst_case_prep": "SC_SEVERE (1.75) x RRP (2.00) x Extreme Height (2.20) x Elaborate (1.60) = 12.32x",
+    "worst_case_prep_no_rrp": "SC_SEVERE (1.75) x Extreme Height (2.20) x Elaborate (1.60) = 6.16x",
+    "worst_case_coating": "QT5 (1.50) x Extreme Height (2.20) x Elaborate (1.60) = 5.28x",
+    "resolution": "STACKING PARTITION — modifiers split into non-overlapping task pools. Extreme combinations flagged for estimator review and T&M recommendation.",
+    "stacking_rules": {
+      "prep_tasks": {
+        "formula": "effective_rate = base_rate / (FAC_TRRP_CONDITION x FAC_TRRP_RRP x FAC_TRRP_HEIGHT x FAC_TRRP_COMPLEXITY)",
+        "pool_modifiers": "CONDITION + RRP (PREP pool)",
+        "shared_modifiers": "HEIGHT + COMPLEXITY",
+        "max_stack": "SC_SEVERE (1.75) x RRP (2.00) x Extreme (2.20) x Elaborate (1.60) = 12.32x",
+        "max_stack_no_rrp": "SC_SEVERE (1.75) x Extreme (2.20) x Elaborate (1.60) = 6.16x",
+        "note": "FAC_TRRP_QT does NOT apply to prep tasks. Prep labor is condition-driven, not quality-driven. Extreme stacks represent 19ft+ ornate trim with severe deterioration and lead paint — recommend T&M billing."
+      },
+      "coating_tasks": {
+        "formula": "effective_rate = base_rate / (FAC_TRRP_QT x FAC_TRRP_HEIGHT x FAC_TRRP_COMPLEXITY)",
+        "pool_modifiers": "QT (COATING pool)",
+        "shared_modifiers": "HEIGHT + COMPLEXITY",
+        "max_stack": "QT5 (1.50) x Extreme (2.20) x Elaborate (1.60) = 5.28x",
+        "note": "FAC_TRRP_CONDITION and FAC_TRRP_RRP do NOT apply to coating tasks. Once prepped, surface is at baseline. 5.28x exceeds 4.0x flag — this is extreme height + ornate + QT5 gloss. Flag for estimator review."
+      },
+      "fixed_tasks": {
+        "formula": "fixed_time_minutes (no modifiers)",
+        "note": "Assessment, equipment setup, and equipment cleaning are fixed-time tasks. No modifiers applied."
+      }
+    }
+  },
+
+  "trim_component_input_group": {
+    "description": "Trim tasks consume LF from individual component PS keys. Engine processes each component independently with its own height and complexity modifiers, then sums results. The input_group reference on tasks means the task applies to ALL trim components — the engine iterates over each component's LF.",
+    "inputs": [
+      { "input_name": "IN_LF_EXT_FASCIA", "paintscope_key": "PS_EXT_EDGE_LF.FASCIA", "item_id": "ITM_TRIM_FASCIA" },
+      { "input_name": "IN_LF_EXT_TRIM_RAKE", "paintscope_key": "PS_EXT_EDGE_LF.TRIM_RAKE", "item_id": "ITM_TRIM_RAKE" },
+      { "input_name": "IN_LF_EXT_TRIM_FRIEZE", "paintscope_key": "PS_EXT_EDGE_LF.TRIM_FRIEZE", "item_id": "ITM_TRIM_FRIEZE" },
+      { "input_name": "IN_LF_EXT_TRIM_CORNER", "paintscope_key": "PS_EXT_EDGE_LF.TRIM_CORNER", "item_id": "ITM_TRIM_CORNER" },
+      { "input_name": "IN_LF_EXT_TRIM_BAND", "paintscope_key": "PS_EXT_EDGE_LF.TRIM_BAND", "item_id": "ITM_TRIM_BAND" },
+      { "input_name": "IN_LF_EXT_TRIM_WINDOW_CASING", "paintscope_key": "PS_EXT_EDGE_LF.TRIM_WINDOW_CASING", "item_id": "ITM_TRIM_WINDOW_CASING_EXT" },
+      { "input_name": "IN_LF_EXT_TRIM_DOOR_CASING", "paintscope_key": "PS_EXT_EDGE_LF.TRIM_DOOR_CASING", "item_id": "ITM_TRIM_DOOR_CASING_EXT" },
+      { "input_name": "IN_LF_EXT_SILL", "paintscope_key": "PS_EXT_EDGE_LF.SILL", "item_id": "ITM_TRIM_SILL_EXT" }
+    ]
+  },
+
+  "task_production_rates": [
+
+    {
+      "task_id": "TSK_TRRP_ASSESS_CONDITION",
+      "name": "Condition Assessment — DSD Rating Per Component",
+      "unit_of_measure": "FIXED",
+      "fixed_time_minutes": 90,
+      "crew_size": 1,
+      "task_classification": "binary",
+      "rate_basis_notes": "Full condition assessment: DSD rating per component type, ASTM D3359 adhesion test, coating type identification (solvent test), moisture content testing (pin-type meter), rot probe at vulnerable joints (sills, corners, joints). 1.0-2.0 hours per project. Midpoint 90 min. MANDATORY — determines which subsequent modules activate.",
+      "applies_when": {},
+      "defect_tolerance": {}
+    },
+    {
+      "task_id": "TSK_TRRP_ASSESS_ADHESION",
+      "name": "ASTM D3359 Cross-Hatch Adhesion Test",
+      "unit_of_measure": "FIXED",
+      "fixed_time_minutes": 30,
+      "crew_size": 1,
+      "task_classification": "binary",
+      "rate_basis_notes": "Cross-hatch adhesion test per ASTM D3359 on existing coating. Minimum 3 test locations per elevation. ~30 min per project. Adhesion failure triggers full prime instead of spot prime.",
+      "applies_when": {},
+      "defect_tolerance": {}
+    },
+    {
+      "task_id": "TSK_TRRP_ASSESS_MOISTURE",
+      "name": "Moisture Content Testing",
+      "unit_of_measure": "FIXED",
+      "fixed_time_minutes": 40,
+      "crew_size": 1,
+      "task_classification": "binary",
+      "rate_basis_notes": "Pin-type moisture meter readings at multiple locations per component type. 0.5-1.0 hr per project. Midpoint 40 min. Wood MC must be <15% before priming.",
+      "applies_when": {},
+      "defect_tolerance": {}
+    },
+    {
+      "task_id": "TSK_TRRP_ASSESS_ROT_PROBE",
+      "name": "Rot Probe at Vulnerable Joints",
+      "unit_of_measure": "FIXED",
+      "fixed_time_minutes": 30,
+      "crew_size": 1,
+      "task_classification": "binary",
+      "rate_basis_notes": "Probe sills, horizontal surfaces, and butt joints with awl for soft rot. ~30 min per project. DSD-4 findings trigger HARD STOP for affected component.",
+      "applies_when": {},
+      "defect_tolerance": {}
+    },
+    {
+      "task_id": "TSK_TRRP_ASSESS_LEAD_TEST",
+      "name": "Lead Paint Testing (Pre-1978)",
+      "unit_of_measure": "FIXED",
+      "fixed_time_minutes": 40,
+      "crew_size": 1,
+      "task_classification": "binary",
+      "rate_basis_notes": "EPA-recognized lead test kit testing on each component type. Trim is HIGH RISK — historically received oil-based lead paint more frequently than field surfaces. 0.5-1.0 hr per project. Pre-1978 homes only.",
+      "applies_when": { "pre_1978": true },
+      "defect_tolerance": {}
+    },
+
+    {
+      "task_id": "TSK_TRRP_MOBILIZE",
+      "name": "Crew Mobilization & Equipment Staging",
+      "unit_of_measure": "FIXED",
+      "fixed_time_minutes": 30,
+      "crew_size": 1,
+      "task_classification": "binary",
+      "rate_basis_notes": "Mobilize crew, transport materials and equipment to site. Stage paint, primer, prep tools, and protection materials. ~30 min per session.",
+      "applies_when": {},
+      "defect_tolerance": {}
+    },
+    {
+      "task_id": "TSK_TRRP_SCAFFOLD_SETUP",
+      "name": "Scaffold / Lift / Ladder Setup",
+      "unit_of_measure": "FIXED",
+      "fixed_time_minutes": 60,
+      "crew_size": 1,
+      "task_classification": "binary",
+      "rate_basis_notes": "Erect scaffold, position aerial lift, or stage extension ladders per access plan. OSHA-compliant setup. ~60 min per session.",
+      "applies_when": { "access_type": ["scaffold", "lift", "ladder"] },
+      "defect_tolerance": {}
+    },
+
+    {
+      "task_id": "TSK_TRRP_PROTECT_GROUND",
+      "name": "Ground & Landscape Protection",
+      "required_input_key": "IN_SF_EXT_PROTECT_LANDSCAPE_ADJ",
+      "paintscope_key": "PS_EXT_PROTECT_SF.LANDSCAPE_ADJACENT",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 200,
+      "rate_range_low": 150,
+      "rate_range_high": 250,
+      "crew_size": 1,
+      "task_classification": "binary",
+      "rate_basis_notes": "Deploy plastic sheeting and drop cloths at base of work area. Scraping debris containment during prep phase. ~18 sec per SF.",
+      "applies_when": {},
+      "defect_tolerance": {
+        "QT3": "Minor gaps at edges acceptable if debris is contained",
+        "QT4": "Full coverage with overlap at seams",
+        "QT5": "Full coverage with taped seams, no gaps"
+      }
+    },
+    {
+      "task_id": "TSK_TRRP_PROTECT_HARDSCAPE",
+      "name": "Hardscape / Walkway Protection",
+      "required_input_key": "IN_SF_EXT_PROTECT_HARDSCAPE_WALK",
+      "paintscope_key": "PS_EXT_PROTECT_SF.HARDSCAPE_WALK",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 250,
+      "rate_range_low": 200,
+      "rate_range_high": 350,
+      "crew_size": 1,
+      "task_classification": "binary",
+      "rate_basis_notes": "Lay drop cloths on flat walkway/patio surfaces below work area. ~14 sec per SF.",
+      "applies_when": {},
+      "defect_tolerance": {
+        "QT3": "Drop cloths covering main walkway path, edges tucked",
+        "QT4": "Full coverage with overlap at seams",
+        "QT5": "Full coverage, taped seams, no gaps"
+      }
+    },
+    {
+      "task_id": "TSK_TRRP_PROTECT_WINDOW_GLASS",
+      "name": "Window Glass Masking",
+      "required_input_key": "IN_EA_EXT_PROTECT_GLASS_WINDOW",
+      "paintscope_key": "PS_EXT_PROTECT_EA.GLASS_WINDOW",
+      "unit_of_measure": "EA",
+      "rate_per_hour": 10,
+      "rate_range_low": 8,
+      "rate_range_high": 15,
+      "crew_size": 1,
+      "task_classification": "binary",
+      "rate_basis_notes": "Tape at glass edge for brush method (~6 min per window). Full glass masking with paper/film for spray method. Rate is midpoint for brush. Spray masking rate is slower — use spray-specific time factor when application_method=spray.",
+      "applies_when": {},
+      "defect_tolerance": {
+        "QT3": "Tape within 1/16\" of glass edge, no gaps",
+        "QT4": "Tape tight to glass edge, continuous line, no lifting",
+        "QT5": "Perfect tape line, burnished edges, zero bleed-through"
+      }
+    },
+    {
+      "task_id": "TSK_TRRP_PROTECT_DOOR",
+      "name": "Door Face / Glass Masking",
+      "required_input_key": "IN_EA_EXT_PROTECT_GLASS_DOOR",
+      "paintscope_key": "PS_EXT_PROTECT_EA.GLASS_DOOR",
+      "unit_of_measure": "EA",
+      "rate_per_hour": 8,
+      "rate_range_low": 6,
+      "rate_range_high": 12,
+      "crew_size": 1,
+      "task_classification": "binary",
+      "rate_basis_notes": "Tape at casing-door junction for brush method. Full door cover for spray. ~7.5 min per door.",
+      "applies_when": {},
+      "defect_tolerance": {
+        "QT3": "Tape at junction, door face protected from drips",
+        "QT4": "Clean tape line at junction, full door protected",
+        "QT5": "Perfect tape line, zero paint transfer to door face"
+      }
+    },
+    {
+      "task_id": "TSK_TRRP_PROTECT_LIGHT_FIXTURE",
+      "name": "Light Fixture Masking",
+      "required_input_key": "IN_EA_EXT_PROTECT_LIGHT_FIXTURE",
+      "paintscope_key": "PS_EXT_PROTECT_EA.LIGHT_FIXTURE",
+      "unit_of_measure": "EA",
+      "rate_per_hour": 15,
+      "rate_range_low": 10,
+      "rate_range_high": 20,
+      "crew_size": 1,
+      "task_classification": "binary",
+      "rate_basis_notes": "Bag and tape exterior light fixtures on or adjacent to trim. ~4 min per fixture.",
+      "applies_when": {},
+      "defect_tolerance": {
+        "QT3": "Fixture covered, no paint drips on fixture",
+        "QT4": "Fixture fully bagged, taped at base, no paint contact",
+        "QT5": "Fixture fully bagged with sealed tape, zero paint contact"
+      }
+    },
+    {
+      "task_id": "TSK_TRRP_PROTECT_ROOFLINE",
+      "name": "Roofline Edge Protection",
+      "required_input_key": "IN_LF_EXT_FASCIA",
+      "paintscope_key": "PS_EXT_EDGE_LF.FASCIA",
+      "unit_of_measure": "LF",
+      "rate_per_hour": 120,
+      "rate_range_low": 100,
+      "rate_range_high": 150,
+      "crew_size": 1,
+      "task_classification": "binary",
+      "rate_basis_notes": "Tape and paper at roofline edge to protect roofing material when painting fascia and rake boards. ~30 sec per LF.",
+      "applies_when": {},
+      "defect_tolerance": {
+        "QT3": "Roofline edge taped, shingles protected from paint drips",
+        "QT4": "Roofline edge taped with paper shield, full protection",
+        "QT5": "Roofline edge taped with paper shield, perfect seal"
+      }
+    },
+    {
+      "task_id": "TSK_TRRP_PROTECT_SIDING_MASK",
+      "name": "Siding Masking (Spray Only)",
+      "required_input_key": "IN_SF_EXT_PROTECT_SIDING_ADJACENT",
+      "paintscope_key": "PS_EXT_PROTECT_SF.SIDING_ADJACENT",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 100,
+      "rate_range_low": 75,
+      "rate_range_high": 130,
+      "crew_size": 1,
+      "task_classification": "binary",
+      "rate_basis_notes": "Paper and tape along trim-siding junctions to protect siding from overspray. ~36 sec per SF of masked area. Only needed for spray method.",
+      "applies_when": { "application_method": ["spray"] },
+      "defect_tolerance": {
+        "QT3": "Siding masked 12\" from trim edge, tape sealed",
+        "QT4": "Siding masked 18\" from trim edge, tape burnished",
+        "QT5": "Siding masked 24\" from trim edge, perfect seal, zero overspray"
+      }
+    },
+
+    {
+      "task_id": "TSK_TRRP_WASH_LOW_PRESSURE",
+      "name": "Low-Pressure Power Wash Trim",
+      "input_group": "trim_component_input_group",
+      "unit_of_measure": "LF",
+      "rate_per_hour": 150,
+      "rate_range_low": 100,
+      "rate_range_high": 200,
+      "crew_size": 1,
+      "task_classification": "binary",
+      "rate_basis_notes": "Pressure wash trim at 500-1000 PSI (low pressure — careful at joints to prevent water intrusion). All substrate states require wash. ~24 sec per LF. Doctrine: 100-150 LF/hr baseline.",
+      "applies_when": {},
+      "defect_tolerance": {
+        "QT3": "Surface clean, loose debris removed, no standing water at joints",
+        "QT4": "Surface clean, no residue, joints inspected for water intrusion",
+        "QT5": "Pristine surface, no residue, all joints verified dry"
+      }
+    },
+    {
+      "task_id": "TSK_TRRP_WASH_DRY_TIME",
+      "name": "Post-Wash Dry Time Verification",
+      "unit_of_measure": "FIXED",
+      "fixed_time_minutes": 20,
+      "crew_size": 1,
+      "task_classification": "binary",
+      "rate_basis_notes": "Verify MC <15% before proceeding to prep. Test sills and horizontal surfaces where water pools. ~20 min inspection. Actual dry time (24-48 hr) is calendar delay, not labor.",
+      "applies_when": {},
+      "defect_tolerance": {}
+    },
+
+    {
+      "task_id": "TSK_TRRP_RRP_CONTAINMENT_SETUP",
+      "name": "RRP Containment Setup",
+      "required_input_key": "IN_EA_ELEVATIONS",
+      "paintscope_key": "PS_EXT_META.EA.ELEVATIONS_TOTAL",
+      "unit_of_measure": "FIXED",
+      "fixed_time_minutes": 90,
+      "crew_size": 1,
+      "task_classification": "binary",
+      "rate_basis_notes": "6-mil poly ground containment extending 10 ft from structure per EPA RRP rule. 1.0-2.0 hours per project depending on elevation count. Midpoint 90 min.",
+      "applies_when": { "pre_1978": true, "rrp_required": true },
+      "defect_tolerance": {}
+    },
+    {
+      "task_id": "TSK_TRRP_RRP_WET_METHOD_PREP",
+      "name": "Wet Method Preparation for Lead Paint",
+      "unit_of_measure": "FIXED",
+      "fixed_time_minutes": 30,
+      "crew_size": 1,
+      "task_classification": "binary",
+      "rate_basis_notes": "Set up misting system or hand sprayers for wet scraping. Stage HEPA vacuum at work position. ~30 min per session. The 2.0x RRP modifier on prep tasks covers the procedural slowdown during actual scraping.",
+      "applies_when": { "pre_1978": true, "rrp_required": true },
+      "defect_tolerance": {}
+    },
+    {
+      "task_id": "TSK_TRRP_RRP_CONTAINMENT_TEARDOWN",
+      "name": "RRP Containment Teardown & Waste Disposal",
+      "required_input_key": "IN_EA_ELEVATIONS",
+      "paintscope_key": "PS_EXT_META.EA.ELEVATIONS_TOTAL",
+      "unit_of_measure": "FIXED",
+      "fixed_time_minutes": 60,
+      "crew_size": 1,
+      "task_classification": "binary",
+      "rate_basis_notes": "Remove containment poly (fold inward), HEPA vacuum perimeter, bag and label lead-safe waste. ~60 min per project.",
+      "applies_when": { "pre_1978": true, "rrp_required": true },
+      "defect_tolerance": {}
+    },
+
+    {
+      "task_id": "TSK_TRRP_CHALK_CLEAN",
+      "name": "Chalk Removal — Mechanical Cleaning",
+      "input_group": "trim_component_input_group",
+      "unit_of_measure": "LF",
+      "task_classification": "qt_scaled",
+      "qt_rates": {
+        "QT3": { "rate_lf_per_hour": 100, "notes": "Remove loose chalk to firm base. Hand-rub test: minimal transfer." },
+        "QT4": { "rate_lf_per_hour": 70, "notes": "Remove all chalk to clean substrate. Hand-rub test: no transfer." },
+        "QT5": { "rate_lf_per_hour": 50, "notes": "Multiple cleaning passes. Verify each section before proceeding." }
+      },
+      "rate_range_low": 40,
+      "rate_range_high": 120,
+      "crew_size": 1,
+      "applies_when": { "substrate_state": ["SS_EXT_CHALKING"] },
+      "defect_tolerance": {
+        "QT3": "Hand-rub test shows minimal chalk transfer",
+        "QT4": "Hand-rub test shows no visible chalk transfer",
+        "QT5": "Hand-rub test shows zero chalk transfer, surface clean"
+      }
+    },
+    {
+      "task_id": "TSK_TRRP_CHALK_VERIFY",
+      "name": "Chalk Removal Verification",
+      "unit_of_measure": "FIXED",
+      "fixed_time_minutes": 20,
+      "crew_size": 1,
+      "task_classification": "binary",
+      "rate_basis_notes": "Hand-rub test across all cleaned surfaces with dark cloth. ~20 min per project. Chalk transfer = re-clean that section.",
+      "applies_when": { "substrate_state": ["SS_EXT_CHALKING"] },
+      "defect_tolerance": {}
+    },
+
+    {
+      "task_id": "TSK_TRRP_SCRAPE_LOOSE",
+      "name": "Scrape Loose & Peeling Paint",
+      "input_group": "trim_component_input_group",
+      "unit_of_measure": "LF",
+      "task_classification": "qt_scaled",
+      "qt_rates": {
+        "QT3": { "rate_lf_per_hour": 35, "notes": "Scrape to solid paint edge. Remove all flaking material." },
+        "QT4": { "rate_lf_per_hour": 25, "notes": "Scrape to solid edge. Test transition zones. Remove suspect adhesion areas." },
+        "QT5": { "rate_lf_per_hour": 15, "notes": "Aggressive scrape. Remove all questionable adhesion. Prefer more bare area over hidden loose paint." }
+      },
+      "rate_range_low": 10,
+      "rate_range_high": 60,
+      "crew_size": 1,
+      "applies_when": { "substrate_state": ["SS_EXT_FAILING_PAINT", "SS_EXT_PEELING"] },
+      "defect_tolerance": {
+        "QT3": "All loose/flaking paint removed, sound paint retained",
+        "QT4": "All loose paint removed, edges clean, no lifting detected",
+        "QT5": "All suspect paint removed, aggressive testing of bond, zero flakes"
+      }
+    },
+    {
+      "task_id": "TSK_TRRP_FEATHER_SAND",
+      "name": "Feather-Edge Sand All Scraped Areas",
+      "input_group": "trim_component_input_group",
+      "unit_of_measure": "LF",
+      "task_classification": "qt_scaled",
+      "qt_rates": {
+        "QT3": { "rate_lf_per_hour": 40, "notes": "80-120 grit. Smooth transition from bare to existing paint." },
+        "QT4": { "rate_lf_per_hour": 30, "notes": "80-120 grit. No perceptible ridge at paint edges by touch." },
+        "QT5": { "rate_lf_per_hour": 20, "notes": "80-120 grit then 150 follow-up. Invisible transition — zero mapping under topcoat." }
+      },
+      "rate_range_low": 15,
+      "rate_range_high": 50,
+      "crew_size": 1,
+      "applies_when": { "substrate_state": ["SS_EXT_FAILING_PAINT", "SS_EXT_PEELING"] },
+      "defect_tolerance": {
+        "QT3": "No ridges >1/32\" at paint edges, smooth transition",
+        "QT4": "No perceptible ridge at paint edges by touch",
+        "QT5": "Invisible transition from bare to painted — zero mapping under topcoat"
+      }
+    },
+    {
+      "task_id": "TSK_TRRP_SAND_ADHESION",
+      "name": "Adhesion Scuff Sand (Sound Paint Areas)",
+      "input_group": "trim_component_input_group",
+      "unit_of_measure": "LF",
+      "task_classification": "qt_scaled",
+      "qt_rates": {
+        "QT3": { "rate_lf_per_hour": 70, "notes": "150-grit scuff sand. Break gloss on existing finish." },
+        "QT4": { "rate_lf_per_hour": 55, "notes": "Full degloss. Uniform scratch pattern. No skipped areas." },
+        "QT5": { "rate_lf_per_hour": 40, "notes": "Complete degloss. 180-grit for finer scratch pattern compatible with gloss topcoat." }
+      },
+      "rate_range_low": 30,
+      "rate_range_high": 80,
+      "crew_size": 1,
+      "applies_when": {},
+      "defect_tolerance": {
+        "QT3": "Visible scuff marks on surface, profiles addressed",
+        "QT4": "Uniform scuff, all surfaces including profile detail",
+        "QT5": "Thorough scuff with 220 grit follow-up, tack cloth wipe"
+      }
+    },
+    {
+      "task_id": "TSK_TRRP_DUST_REMOVE",
+      "name": "Sanding Dust Removal",
+      "input_group": "trim_component_input_group",
+      "unit_of_measure": "LF",
+      "rate_per_hour": 200,
+      "rate_range_low": 150,
+      "rate_range_high": 250,
+      "crew_size": 1,
+      "task_classification": "binary",
+      "rate_basis_notes": "Compressed air or brush dust off trim after sanding/scraping. Tack cloth wipe before priming. ~18 sec per LF.",
+      "applies_when": {},
+      "defect_tolerance": {
+        "QT3": "No visible dust or debris on surfaces to be coated",
+        "QT4": "Tack cloth wipe shows clean surface",
+        "QT5": "Tack cloth wipe shows zero residue, surface pristine"
+      }
+    },
+
+    {
+      "task_id": "TSK_TRRP_CAULK_ASSESS",
+      "name": "Caulk Joint Assessment",
+      "input_group": "trim_component_input_group",
+      "unit_of_measure": "LF",
+      "rate_per_hour": 200,
+      "rate_range_low": 150,
+      "rate_range_high": 250,
+      "crew_size": 1,
+      "task_classification": "binary",
+      "rate_basis_notes": "Inspect trim-to-siding, trim-to-window, trim-to-door, and trim-to-trim joints per 'Think Like a Water Drop' protocol. Probe and mark failed caulk. ~18 sec per LF.",
+      "applies_when": {},
+      "defect_tolerance": {
+        "QT3": "All joints inspected, failed joints marked",
+        "QT4": "All joints inspected and probed, suspect joints marked",
+        "QT5": "All joints inspected, probed, and documented"
+      }
+    },
+    {
+      "task_id": "TSK_TRRP_CAULK_REMOVE_OLD",
+      "name": "Remove Failed Caulk",
+      "input_group": "trim_component_input_group",
+      "unit_of_measure": "LF",
+      "task_classification": "qt_scaled",
+      "qt_rates": {
+        "QT3": { "rate_lf_per_hour": 50, "notes": "Remove loose and failed material. Clean surfaces." },
+        "QT4": { "rate_lf_per_hour": 35, "notes": "Remove ALL old caulk to clean substrate. No residue." },
+        "QT5": { "rate_lf_per_hour": 25, "notes": "Complete removal. Clean with solvent if needed. Verify dry, clean bonding surfaces." }
+      },
+      "rate_range_low": 20,
+      "rate_range_high": 60,
+      "crew_size": 1,
+      "applies_when": {},
+      "defect_tolerance": {
+        "QT3": "Failed caulk removed, clean joint",
+        "QT4": "All old caulk removed to bare substrate, no residue",
+        "QT5": "Complete removal, solvent-cleaned, verified dry bonding surfaces"
+      }
+    },
+    {
+      "task_id": "TSK_TRRP_CAULK_APPLY",
+      "name": "Apply Exterior Caulk",
+      "input_group": "trim_component_input_group",
+      "unit_of_measure": "LF",
+      "task_classification": "qt_scaled",
+      "qt_rates": {
+        "QT3": { "rate_lf_per_hour": 75, "notes": "Continuous bead. Tool smooth. No gaps." },
+        "QT4": { "rate_lf_per_hour": 55, "notes": "Consistent bead width. Clean tool lines. No excess." },
+        "QT5": { "rate_lf_per_hour": 40, "notes": "Perfect bead. Invisible after painting. Tool to concave profile." }
+      },
+      "rate_range_low": 30,
+      "rate_range_high": 100,
+      "crew_size": 1,
+      "applies_when": {},
+      "defect_tolerance": {
+        "QT3": "Clean bead, filled joint, paintable surface",
+        "QT4": "Uniform bead width, smooth tooling, no gaps",
+        "QT5": "Perfect bead, invisible tooling, no excess, no gaps"
+      }
+    },
+
+    {
+      "task_id": "TSK_TRRP_SPOT_PRIME_BRUSH",
+      "name": "Spot Prime Bare Areas — Brush",
+      "input_group": "trim_component_input_group",
+      "unit_of_measure": "LF",
+      "task_classification": "qt_scaled",
+      "qt_rates": {
+        "QT3": { "rate_lf_per_hour": 80, "notes": "Cover all bare areas. Feather into existing paint." },
+        "QT4": { "rate_lf_per_hour": 65, "notes": "Full coverage of bare areas. Smooth transition at edges. No lap marks." },
+        "QT5": { "rate_lf_per_hour": 50, "notes": "Full coverage. Back-brush for penetration. Smooth, even film build." }
+      },
+      "rate_range_low": 40,
+      "rate_range_high": 100,
+      "crew_size": 1,
+      "applies_when": { "prime_scope": "spot", "application_method": ["brush"], "substrate_material": ["wood", "engineered_wood"] },
+      "defect_tolerance": {
+        "QT3": "All bare areas covered, primer extending 1\" past bare edge",
+        "QT4": "All bare areas covered, smooth brush strokes, 1\" overlap",
+        "QT5": "All bare areas covered, feathered edges, uniform film"
+      }
+    },
+    {
+      "task_id": "TSK_TRRP_SPOT_PRIME_SPRAY",
+      "name": "Spot Prime Bare Areas — Spray",
+      "input_group": "trim_component_input_group",
+      "unit_of_measure": "LF",
+      "task_classification": "qt_scaled",
+      "qt_rates": {
+        "QT3": { "rate_lf_per_hour": 125, "notes": "Even coverage of bare areas. Back-brush edges." },
+        "QT4": { "rate_lf_per_hour": 100, "notes": "Uniform mil build. Back-brush all edges and profile detail." },
+        "QT5": { "rate_lf_per_hour": 80, "notes": "Precise spray pattern. Back-brush for full penetration." }
+      },
+      "rate_range_low": 60,
+      "rate_range_high": 150,
+      "crew_size": 1,
+      "applies_when": { "prime_scope": "spot", "application_method": ["spray"], "substrate_material": ["wood", "engineered_wood"] },
+      "defect_tolerance": {
+        "QT3": "All bare areas covered with even spray pass",
+        "QT4": "Uniform mil build, back-brushed edges",
+        "QT5": "Precise coverage, back-brushed for penetration, no overspray on intact coating"
+      }
+    },
+    {
+      "task_id": "TSK_TRRP_SPOT_PRIME_PVC_BRUSH",
+      "name": "Spot Prime PVC — Bonding Primer Brush",
+      "input_group": "trim_component_input_group",
+      "unit_of_measure": "LF",
+      "task_classification": "qt_scaled",
+      "qt_rates": {
+        "QT3": { "rate_lf_per_hour": 70, "notes": "Bonding primer on bare PVC after 220-grit scuff. Thin, even coat." },
+        "QT4": { "rate_lf_per_hour": 55, "notes": "Even bonding primer coat. Verify scuff is complete." },
+        "QT5": { "rate_lf_per_hour": 45, "notes": "Precise bonding primer. Thin film, full coverage. Do not over-build." }
+      },
+      "rate_range_low": 35,
+      "rate_range_high": 80,
+      "crew_size": 1,
+      "applies_when": { "application_method": ["brush"], "substrate_material": ["pvc"] },
+      "defect_tolerance": {
+        "QT3": "Bare PVC areas covered with bonding primer",
+        "QT4": "Uniform thin coat, all surfaces including profiles",
+        "QT5": "Perfect thin coat, zero holidays, verified scuff complete"
+      }
+    },
+    {
+      "task_id": "TSK_TRRP_CHALKBIND_PRIME_BRUSH",
+      "name": "Chalk-Binding Primer — Full Surface Brush",
+      "input_group": "trim_component_input_group",
+      "unit_of_measure": "LF",
+      "task_classification": "qt_scaled",
+      "qt_rates": {
+        "QT3": { "rate_lf_per_hour": 60, "notes": "Full surface. Wet-on-wet for maximum penetration." },
+        "QT4": { "rate_lf_per_hour": 50, "notes": "Full surface. Liberal application. No dry spots." },
+        "QT5": { "rate_lf_per_hour": 40, "notes": "Full surface. Heavy application. Back-brush into all profile detail." }
+      },
+      "rate_range_low": 30,
+      "rate_range_high": 70,
+      "crew_size": 1,
+      "applies_when": { "substrate_state": ["SS_EXT_CHALKING"], "application_method": ["brush"] },
+      "defect_tolerance": {
+        "QT3": "Full surface covered, wet-on-wet application",
+        "QT4": "Full coverage, liberal application, no dry spots",
+        "QT5": "Full coverage, heavy application, back-brushed into all profile detail"
+      }
+    },
+    {
+      "task_id": "TSK_TRRP_CHALKBIND_PRIME_SPRAY",
+      "name": "Chalk-Binding Primer — Full Surface Spray",
+      "input_group": "trim_component_input_group",
+      "unit_of_measure": "LF",
+      "task_classification": "qt_scaled",
+      "qt_rates": {
+        "QT3": { "rate_lf_per_hour": 120, "notes": "Full coverage. Heavy wet mil build." },
+        "QT4": { "rate_lf_per_hour": 100, "notes": "Uniform coverage. Back-brush profile detail." },
+        "QT5": { "rate_lf_per_hour": 80, "notes": "Premium application. Back-brush all detail for penetration." }
+      },
+      "rate_range_low": 60,
+      "rate_range_high": 140,
+      "crew_size": 1,
+      "applies_when": { "substrate_state": ["SS_EXT_CHALKING"], "application_method": ["spray"] },
+      "defect_tolerance": {
+        "QT3": "Full coverage, heavy wet mil build",
+        "QT4": "Uniform coverage, back-brushed profile detail",
+        "QT5": "Full coverage, back-brushed all detail, maximum penetration"
+      }
+    },
+    {
+      "task_id": "TSK_TRRP_FULL_PRIME_BRUSH",
+      "name": "Full Prime — Brush Application",
+      "input_group": "trim_component_input_group",
+      "unit_of_measure": "LF",
+      "task_classification": "qt_scaled",
+      "qt_rates": {
+        "QT3": { "rate_lf_per_hour": 65, "notes": "Full coverage. Even film build. Work primer into grain on bare areas." },
+        "QT4": { "rate_lf_per_hour": 50, "notes": "Full coverage. Uniform mil build. Back-brush all grain and profile areas." },
+        "QT5": { "rate_lf_per_hour": 40, "notes": "Premium application. Back-brush for maximum penetration. Verify no holidays." }
+      },
+      "rate_range_low": 30,
+      "rate_range_high": 80,
+      "crew_size": 1,
+      "applies_when": { "prime_scope": "full", "application_method": ["brush"], "substrate_material": ["wood", "engineered_wood"] },
+      "defect_tolerance": {
+        "QT3": "Full coverage, no holidays, uniform film build",
+        "QT4": "Full coverage, smooth brush strokes, uniform film, edges feathered",
+        "QT5": "Full coverage, flawless brush work, zero holidays, uniform sheen"
+      }
+    },
+    {
+      "task_id": "TSK_TRRP_FULL_PRIME_SPRAY",
+      "name": "Full Prime — Spray Application",
+      "input_group": "trim_component_input_group",
+      "unit_of_measure": "LF",
+      "task_classification": "qt_scaled",
+      "qt_rates": {
+        "QT3": { "rate_lf_per_hour": 125, "notes": "Full coverage. Even pass. Back-brush bare areas." },
+        "QT4": { "rate_lf_per_hour": 100, "notes": "Uniform mil build. Back-brush all grain areas and profile detail." },
+        "QT5": { "rate_lf_per_hour": 80, "notes": "Premium application. Multi-pass if needed. Back-brush for full penetration." }
+      },
+      "rate_range_low": 60,
+      "rate_range_high": 150,
+      "crew_size": 1,
+      "applies_when": { "prime_scope": "full", "application_method": ["spray"], "substrate_material": ["wood", "engineered_wood"] },
+      "defect_tolerance": {
+        "QT3": "Full coverage, no holidays, uniform mil build",
+        "QT4": "Full coverage, uniform film, no runs or sags",
+        "QT5": "Full coverage, perfect mil build, zero defects"
+      }
+    },
+    {
+      "task_id": "TSK_TRRP_FULL_PRIME_PVC_BRUSH",
+      "name": "Full Prime PVC — Bonding Primer Brush",
+      "input_group": "trim_component_input_group",
+      "unit_of_measure": "LF",
+      "task_classification": "qt_scaled",
+      "qt_rates": {
+        "QT3": { "rate_lf_per_hour": 60, "notes": "Full-surface bonding primer after 220-grit scuff." },
+        "QT4": { "rate_lf_per_hour": 50, "notes": "Uniform thin coat. Full coverage." },
+        "QT5": { "rate_lf_per_hour": 40, "notes": "Precise thin coat, full coverage, verified complete." }
+      },
+      "rate_range_low": 30,
+      "rate_range_high": 70,
+      "crew_size": 1,
+      "applies_when": { "application_method": ["brush"], "substrate_material": ["pvc"] },
+      "defect_tolerance": {
+        "QT3": "Full PVC surface covered with bonding primer",
+        "QT4": "Uniform thin coat, all surfaces including profiles",
+        "QT5": "Perfect thin coat, zero holidays, full surface coverage"
+      }
+    },
+    {
+      "task_id": "TSK_TRRP_PRIME_COAT_2",
+      "name": "Second Primer Coat (QT5)",
+      "input_group": "trim_component_input_group",
+      "unit_of_measure": "LF",
+      "task_classification": "qt_conditional",
+      "qt_rates": {
+        "QT5": { "rate_lf_per_hour": 50, "notes": "Second primer coat. Full coverage. Sand lightly between primer coats (180-220 grit)." }
+      },
+      "rate_range_low": 35,
+      "rate_range_high": 65,
+      "crew_size": 1,
+      "applies_when": { "quality_tier": ["QT5"] },
+      "defect_tolerance": {
+        "QT5": "Full coverage, no holidays or thin areas, lightly sanded before application"
+      }
+    },
+
+    {
+      "task_id": "TSK_TRRP_INTERSTAGE_INSPECT",
+      "name": "Between-Coat Inspection",
+      "input_group": "trim_component_input_group",
+      "unit_of_measure": "LF",
+      "task_classification": "qt_conditional",
+      "qt_rates": {
+        "QT4": { "rate_lf_per_hour": 300, "notes": "Visual inspection in natural light. Mark runs, sags, holidays." },
+        "QT5": { "rate_lf_per_hour": 150, "notes": "Raking light inspection. Mark ALL defects including dust nibs, brush marks, orange peel." }
+      },
+      "rate_range_low": 120,
+      "rate_range_high": 400,
+      "crew_size": 1,
+      "applies_when": { "quality_tier": ["QT4", "QT5"] },
+      "defect_tolerance": {
+        "QT4": "Note all visible defects at 3 ft. Light brush texture acceptable.",
+        "QT5": "Note ALL defects at arm's length with raking light. Zero defect tolerance."
+      }
+    },
+    {
+      "task_id": "TSK_TRRP_INTERSTAGE_SAND",
+      "name": "Interstage Light Sand",
+      "input_group": "trim_component_input_group",
+      "unit_of_measure": "LF",
+      "task_classification": "qt_conditional",
+      "qt_rates": {
+        "QT4": { "rate_lf_per_hour": 60, "notes": "150-grit scuff between finish coats. ~60 sec per LF." },
+        "QT5": { "rate_lf_per_hour": 40, "notes": "180-220 grit between ALL coats including primer. ~90 sec per LF. Tack cloth wipe after." }
+      },
+      "rate_range_low": 30,
+      "rate_range_high": 80,
+      "crew_size": 1,
+      "applies_when": { "quality_tier": ["QT4", "QT5"] },
+      "defect_tolerance": {
+        "QT4": "Uniform scuff, all surfaces including profile detail",
+        "QT5": "Thorough sand with 220, tack cloth shows zero residue, surface smooth to touch"
+      }
+    },
+    {
+      "task_id": "TSK_TRRP_INTERSTAGE_SPOT_REPAIR",
+      "name": "Interstage Spot Repair",
+      "input_group": "trim_component_input_group",
+      "unit_of_measure": "LF",
+      "task_classification": "qt_conditional",
+      "qt_rates": {
+        "QT4": { "rate_lf_per_hour": 200, "notes": "Sand and touch up marked defects. Feather repairs into surrounding coat." },
+        "QT5": { "rate_lf_per_hour": 100, "notes": "Repair ALL marked defects. Verify smooth to touch. Re-inspect after repair dries." }
+      },
+      "rate_range_low": 80,
+      "rate_range_high": 250,
+      "crew_size": 1,
+      "applies_when": { "quality_tier": ["QT4", "QT5"] },
+      "defect_tolerance": {
+        "QT4": "All visible defects corrected, repairs blended",
+        "QT5": "All defects corrected, repairs sanded and blended, invisible"
+      }
+    },
+
+    {
+      "task_id": "TSK_TRRP_FINISH_BRUSH_1",
+      "name": "First Finish Coat — Brush",
+      "input_group": "trim_component_input_group",
+      "unit_of_measure": "LF",
+      "task_classification": "qt_scaled",
+      "qt_rates": {
+        "QT3": { "rate_lf_per_hour": 40, "notes": "Even coverage. Maintain wet edge. No holidays or thin spots." },
+        "QT4": { "rate_lf_per_hour": 35, "notes": "Uniform film build. Clean lines at junctions. Semi-gloss reveals all brush technique." },
+        "QT5": { "rate_lf_per_hour": 28, "notes": "Premium brush technique. Flowed finish — minimal brush marks. Gloss magnifies every imperfection." }
+      },
+      "rate_range_low": 25,
+      "rate_range_high": 50,
+      "crew_size": 1,
+      "applies_when": { "application_method": ["brush"] },
+      "defect_tolerance": {
+        "QT3": "Uniform coverage, no holidays, minor brush marks acceptable at 6 ft",
+        "QT4": "Uniform coverage, smooth brush strokes, no marks visible at 3 ft",
+        "QT5": "Flawless coverage, zero brush marks, uniform sheen at arm's length"
+      }
+    },
+    {
+      "task_id": "TSK_TRRP_FINISH_SPRAY_1",
+      "name": "First Finish Coat — Spray",
+      "input_group": "trim_component_input_group",
+      "unit_of_measure": "LF",
+      "task_classification": "qt_scaled",
+      "qt_rates": {
+        "QT3": { "rate_lf_per_hour": 125, "notes": "Even pass. Consistent mil build. Back-brush profiles." },
+        "QT4": { "rate_lf_per_hour": 100, "notes": "Uniform coverage. No runs or sags. Back-brush all detail areas." },
+        "QT5": { "rate_lf_per_hour": 80, "notes": "Premium spray technique. Multiple light passes. Back-brush all detail for smooth finish." }
+      },
+      "rate_range_low": 60,
+      "rate_range_high": 150,
+      "crew_size": 1,
+      "applies_when": { "application_method": ["spray"] },
+      "defect_tolerance": {
+        "QT3": "Uniform mil build, no holidays, no runs",
+        "QT4": "Uniform mil build, no defects visible at 3 ft",
+        "QT5": "Perfect mil build, zero defects, uniform sheen at arm's length"
+      }
+    },
+
+    {
+      "task_id": "TSK_TRRP_FINISH_BRUSH_2",
+      "name": "Second Finish Coat — Brush",
+      "input_group": "trim_component_input_group",
+      "unit_of_measure": "LF",
+      "task_classification": "qt_scaled",
+      "qt_rates": {
+        "QT3": { "rate_lf_per_hour": 40, "notes": "Even coverage. Maintain wet edge. Final appearance coat." },
+        "QT4": { "rate_lf_per_hour": 35, "notes": "Uniform film build. Clean lines. Semi-gloss must be flawless." },
+        "QT5": { "rate_lf_per_hour": 28, "notes": "Premium flowed finish. Near-zero brush marks. Gloss sheen is unforgiving." }
+      },
+      "rate_range_low": 25,
+      "rate_range_high": 50,
+      "crew_size": 1,
+      "applies_when": { "application_method": ["brush"] },
+      "defect_tolerance": {
+        "QT3": "Uniform coverage, full hide, minor texture acceptable at 6 ft",
+        "QT4": "Uniform coverage, full hide, smooth finish visible at 3 ft",
+        "QT5": "Flawless coverage, full hide, zero defects at arm's length"
+      }
+    },
+    {
+      "task_id": "TSK_TRRP_FINISH_SPRAY_2",
+      "name": "Second Finish Coat — Spray",
+      "input_group": "trim_component_input_group",
+      "unit_of_measure": "LF",
+      "task_classification": "qt_scaled",
+      "qt_rates": {
+        "QT3": { "rate_lf_per_hour": 125, "notes": "Even pass. Final appearance coat." },
+        "QT4": { "rate_lf_per_hour": 100, "notes": "Uniform coverage. Back-brush all detail. Self-inspect." },
+        "QT5": { "rate_lf_per_hour": 80, "notes": "Premium spray technique. Multiple light passes for flow. Back-brush all detail." }
+      },
+      "rate_range_low": 60,
+      "rate_range_high": 150,
+      "crew_size": 1,
+      "applies_when": { "application_method": ["spray"] },
+      "defect_tolerance": {
+        "QT3": "Uniform mil build, full hide, no holidays or runs",
+        "QT4": "Uniform mil build, full hide, zero defects at 3 ft",
+        "QT5": "Perfect mil build, full hide, zero defects at arm's length"
+      }
+    },
+
+    {
+      "task_id": "TSK_TRRP_FINAL_INSPECT",
+      "name": "Final Inspection",
+      "unit_of_measure": "FIXED",
+      "task_classification": "qt_scaled",
+      "qt_rates": {
+        "QT3": { "fixed_time_minutes": 30, "notes": "Ground-level walkthrough, check all components from normal viewing distance" },
+        "QT4": { "fixed_time_minutes": 45, "notes": "Ground-level with close inspection at transitions and joints" },
+        "QT5": { "fixed_time_minutes": 75, "notes": "Full inspection at working height with raking light, every component verified" }
+      },
+      "crew_size": 1,
+      "applies_when": {},
+      "defect_tolerance": {
+        "QT3": "No obvious defects from ground — uniform color, no holidays, no runs",
+        "QT4": "No defects at 3 ft — uniform finish, clean transitions, no marks",
+        "QT5": "Zero defects at arm's length — flawless finish, perfect sheen uniformity"
+      }
+    },
+    {
+      "task_id": "TSK_TRRP_TOUCHUP",
+      "name": "Touch-Up Defects",
+      "input_group": "trim_component_input_group",
+      "unit_of_measure": "LF",
+      "task_classification": "qt_scaled",
+      "qt_rates": {
+        "QT3": { "rate_lf_per_hour": 500, "notes": "Repair holidays and runs. Blend into surrounding finish." },
+        "QT4": { "rate_lf_per_hour": 250, "notes": "Repair all marked defects. Invisible repairs required." },
+        "QT5": { "rate_lf_per_hour": 120, "notes": "Repair all defects. Re-inspect after each repair. May require local re-coat for invisible repair at gloss." }
+      },
+      "rate_range_low": 100,
+      "rate_range_high": 600,
+      "crew_size": 1,
+      "applies_when": {},
+      "defect_tolerance": {
+        "QT3": "All marked defects corrected, trim-siding junction clean",
+        "QT4": "All defects corrected, transitions clean, caulk lines perfect",
+        "QT5": "Zero defects remaining, all transitions flawless, raking light verified"
+      }
+    },
+    {
+      "task_id": "TSK_TRRP_TOUCHUP_TRANSITIONS",
+      "name": "Touch-Up Trim-to-Siding Transition Lines",
+      "input_group": "trim_component_input_group",
+      "unit_of_measure": "LF",
+      "task_classification": "qt_scaled",
+      "qt_rates": {
+        "QT3": { "rate_lf_per_hour": 400, "notes": "Clean lines. No visible overlap onto siding." },
+        "QT4": { "rate_lf_per_hour": 200, "notes": "Crisp lines. Razor-sharp transitions." },
+        "QT5": { "rate_lf_per_hour": 100, "notes": "Perfect lines. No visible transition. May require final tape-and-cut." }
+      },
+      "rate_range_low": 80,
+      "rate_range_high": 500,
+      "crew_size": 1,
+      "applies_when": {},
+      "defect_tolerance": {
+        "QT3": "Clean lines, no visible overlap onto siding",
+        "QT4": "Crisp lines, razor-sharp transitions",
+        "QT5": "Perfect lines, no visible transition, verified at arm's length"
+      }
+    },
+
+    {
+      "task_id": "TSK_TRRP_TEARDOWN_PROTECTION",
+      "name": "Remove Protection — Masking & Ground Cover",
+      "unit_of_measure": "FIXED",
+      "fixed_time_minutes": 45,
+      "crew_size": 1,
+      "task_classification": "binary",
+      "rate_basis_notes": "Remove all masking tape, paper, film from windows, doors, siding. Remove ground cover and drop cloths. ~45 min per project. Faster than setup.",
+      "applies_when": {},
+      "defect_tolerance": {
+        "QT3": "All protection materials removed, surfaces clean",
+        "QT4": "All materials removed, no tape residue, surfaces clean",
+        "QT5": "All materials removed, zero residue, surfaces pristine"
+      }
+    },
+    {
+      "task_id": "TSK_TRRP_SCAFFOLD_TEARDOWN",
+      "name": "Scaffold / Lift Teardown",
+      "unit_of_measure": "FIXED",
+      "fixed_time_minutes": 45,
+      "crew_size": 1,
+      "task_classification": "binary",
+      "rate_basis_notes": "Disassemble scaffold, return aerial lift, collect extension ladders. ~45 min per session.",
+      "applies_when": { "access_type": ["scaffold", "lift", "ladder"] },
+      "defect_tolerance": {}
+    },
+    {
+      "task_id": "TSK_TRRP_CLEAN_EQUIPMENT",
+      "name": "Clean Tools & Equipment",
+      "unit_of_measure": "FIXED",
+      "fixed_time_minutes": 20,
+      "crew_size": 1,
+      "task_classification": "binary",
+      "rate_basis_notes": "Clean brushes, scrapers, spray equipment (if used). Store or dispose per material type. ~20 min per session.",
+      "applies_when": {},
+      "defect_tolerance": {}
+    },
+    {
+      "task_id": "TSK_TRRP_WASTE_DISPOSAL",
+      "name": "Waste Disposal & Site Cleanup",
+      "unit_of_measure": "FIXED",
+      "fixed_time_minutes": 25,
+      "crew_size": 1,
+      "task_classification": "binary",
+      "rate_basis_notes": "Collect paint chip debris, dispose containers, plastic sheeting, masking, caulk tubes. ~25 min. Longer than NC due to scraping debris from prep phase.",
+      "applies_when": {},
+      "defect_tolerance": {
+        "QT3": "All debris collected, paint chips swept/vacuumed",
+        "QT4": "All debris collected, paint chips collected per local disposal rules",
+        "QT5": "All debris collected, paint chips collected, HEPA if RRP, site pristine"
+      }
+    },
+    {
+      "task_id": "TSK_TRRP_FINAL_WALKTHROUGH",
+      "name": "Final Customer Walkthrough",
+      "unit_of_measure": "FIXED",
+      "fixed_time_minutes": 20,
+      "crew_size": 1,
+      "task_classification": "binary",
+      "rate_basis_notes": "Walk all elevations with customer (if available). Point out completed work, discuss maintenance expectations. ~20 min.",
+      "applies_when": {},
+      "defect_tolerance": {}
+    }
+  ],
+
+  "factor_modifiers": [
+    {
+      "factor_id": "FAC_TRRP_CONDITION",
+      "name": "DSD Substrate Condition Prep Labor Multiplier",
+      "mechanism": "time_multiplier",
+      "modifier_category": "prep_difficulty",
+      "description": "Degree of Surface Degradation (MPI DSD 0-3) drives prep task production slowdown. SC_SUBSTRATE_DAMAGE (DSD-4) is a HARD STOP — not a modifier level.",
+      "applies_to": [
+        "TSK_TRRP_SCRAPE_LOOSE",
+        "TSK_TRRP_FEATHER_SAND",
+        "TSK_TRRP_SAND_ADHESION",
+        "TSK_TRRP_CHALK_CLEAN",
+        "TSK_TRRP_DUST_REMOVE",
+        "TSK_TRRP_CAULK_ASSESS", "TSK_TRRP_CAULK_REMOVE_OLD", "TSK_TRRP_CAULK_APPLY"
+      ],
+      "values": {
+        "SC_SOUND": 1.00,
+        "SC_SLIGHT_DETERIORATION": 1.15,
+        "SC_MODERATE_DETERIORATION": 1.375,
+        "SC_SEVERE_DETERIORATION": 1.75
+      },
+      "formula": "effective_rate = base_rate / modifier",
+      "stacking_pool": "PREP_ONLY",
+      "notes": "Does NOT apply to coating tasks (prime, finish). Once prepped, surface is at baseline. SC_SUBSTRATE_DAMAGE (DSD-4) triggers scope exclusion — never reaches estimation. Midpoint values from resolution.json."
+    },
+    {
+      "factor_id": "FAC_TRRP_RRP",
+      "name": "Lead-Safe RRP Prep Modifier",
+      "mechanism": "time_multiplier",
+      "modifier_category": "regulatory_compliance",
+      "description": "EPA Lead-Safe RRP requirements double prep task duration. Adds wet scraping methods, HEPA vacuum between passes, containment maintenance, and lead-safe disposal overhead. Trim is HIGH RISK for lead paint — historically received oil-based lead paint more frequently than field surfaces.",
+      "applies_to": [
+        "TSK_TRRP_SCRAPE_LOOSE",
+        "TSK_TRRP_FEATHER_SAND",
+        "TSK_TRRP_WASH_LOW_PRESSURE"
+      ],
+      "values": {
+        "none": 1.00,
+        "tested_positive": 2.00
+      },
+      "formula": "effective_rate = base_rate / modifier",
+      "gate_condition": "IN_BOOL_PRE_1978 = true AND paint disturbance involved",
+      "stacking_pool": "PREP_ONLY",
+      "notes": "Gate condition — binary: either RRP applies or not. 2.00x accounts for wet scraping, HEPA vacuum passes, containment maintenance, and procedural overhead. RRP material costs (poly, HEPA bags, waste bags) are separate consumable items. RRP containment setup/teardown are separate fixed tasks (TSK_TRRP_RRP_CONTAINMENT_SETUP, TSK_TRRP_RRP_CONTAINMENT_TEARDOWN) — NOT modified by this factor."
+    },
+    {
+      "factor_id": "FAC_TRRP_QT",
+      "name": "Quality Tier Rate Modifier",
+      "mechanism": "time_multiplier",
+      "modifier_category": "quality_effort",
+      "description": "Quality tier affects care and rigor on coating tasks. QT3 = baseline (satin). QT4 = greater care (semi-gloss). QT5 = maximum effort (gloss, near-zero defect tolerance).",
+      "applies_to": [
+        "TSK_TRRP_SPOT_PRIME_BRUSH", "TSK_TRRP_SPOT_PRIME_SPRAY", "TSK_TRRP_SPOT_PRIME_PVC_BRUSH",
+        "TSK_TRRP_CHALKBIND_PRIME_BRUSH", "TSK_TRRP_CHALKBIND_PRIME_SPRAY",
+        "TSK_TRRP_FULL_PRIME_BRUSH", "TSK_TRRP_FULL_PRIME_SPRAY", "TSK_TRRP_FULL_PRIME_PVC_BRUSH",
+        "TSK_TRRP_PRIME_COAT_2",
+        "TSK_TRRP_FINISH_BRUSH_1", "TSK_TRRP_FINISH_SPRAY_1",
+        "TSK_TRRP_FINISH_BRUSH_2", "TSK_TRRP_FINISH_SPRAY_2"
+      ],
+      "values": {
+        "QT3": 1.00,
+        "QT4": 1.25,
+        "QT5": 1.50
+      },
+      "formula": "effective_rate = base_rate / modifier",
+      "stacking_pool": "COATING_ONLY",
+      "notes": "Does NOT apply to prep tasks — prep labor is condition-driven (DSD), not quality-driven. QT3=1.00 baseline, QT4=1.25 (25% slower, tighter tolerances), QT5=1.50 (50% slower, near-zero defect tolerance). Per doctrine key production data."
+    },
+    {
+      "factor_id": "FAC_TRRP_HEIGHT",
+      "name": "Trim-Specific Height Modifier (Per-Component)",
+      "mechanism": "time_multiplier",
+      "modifier_category": "access_difficulty",
+      "description": "Per-component height tier drives production rate reduction. Trim requires painter AT working height for brush work — no ground-level spray with extension like siding.",
+      "applies_to": [
+        "TSK_TRRP_WASH_LOW_PRESSURE",
+        "TSK_TRRP_SAND_ADHESION",
+        "TSK_TRRP_SCRAPE_LOOSE",
+        "TSK_TRRP_FEATHER_SAND",
+        "TSK_TRRP_CHALK_CLEAN",
+        "TSK_TRRP_DUST_REMOVE",
+        "TSK_TRRP_CAULK_ASSESS", "TSK_TRRP_CAULK_REMOVE_OLD", "TSK_TRRP_CAULK_APPLY",
+        "TSK_TRRP_SPOT_PRIME_BRUSH", "TSK_TRRP_SPOT_PRIME_SPRAY", "TSK_TRRP_SPOT_PRIME_PVC_BRUSH",
+        "TSK_TRRP_CHALKBIND_PRIME_BRUSH", "TSK_TRRP_CHALKBIND_PRIME_SPRAY",
+        "TSK_TRRP_FULL_PRIME_BRUSH", "TSK_TRRP_FULL_PRIME_SPRAY", "TSK_TRRP_FULL_PRIME_PVC_BRUSH",
+        "TSK_TRRP_PRIME_COAT_2",
+        "TSK_TRRP_FINISH_BRUSH_1", "TSK_TRRP_FINISH_SPRAY_1",
+        "TSK_TRRP_FINISH_BRUSH_2", "TSK_TRRP_FINISH_SPRAY_2",
+        "TSK_TRRP_INTERSTAGE_INSPECT", "TSK_TRRP_INTERSTAGE_SAND", "TSK_TRRP_INTERSTAGE_SPOT_REPAIR",
+        "TSK_TRRP_TOUCHUP", "TSK_TRRP_TOUCHUP_TRANSITIONS"
+      ],
+      "values": {
+        "ground_0_8ft": 1.00,
+        "first_8_13ft": 1.30,
+        "second_13_17ft": 1.60,
+        "high_17_19ft": 1.90,
+        "extreme_19plus": 2.20
+      },
+      "formula": "effective_rate = base_rate / modifier",
+      "stacking_pool": "ALL_TASKS",
+      "notes": "Uses FAC_TRRP_HEIGHT — NOT FAC_EXT_ACCESS. Trim height tiers (1.30/1.60/1.90/2.20) differ from siding access tiers (1.35/1.60/1.50) because trim requires painter AT working height for brush work. Protection setup/teardown, equipment setup/cleanup, assessment, and RRP containment tasks are NOT height-modified. Per-component assignment: fascia = high/extreme, ground-level casings = baseline."
+    },
+    {
+      "factor_id": "FAC_TRRP_COMPLEXITY",
+      "name": "Trim Profile Complexity Modifier (Per-Component)",
+      "mechanism": "time_multiplier",
+      "modifier_category": "surface_complexity",
+      "description": "Profile complexity affects both prep and coating production rates. Per-component — one building may have simple corner boards (1.0x) and elaborate window surrounds (1.60x).",
+      "applies_to": [
+        "TSK_TRRP_WASH_LOW_PRESSURE",
+        "TSK_TRRP_SAND_ADHESION",
+        "TSK_TRRP_SCRAPE_LOOSE",
+        "TSK_TRRP_FEATHER_SAND",
+        "TSK_TRRP_CHALK_CLEAN",
+        "TSK_TRRP_DUST_REMOVE",
+        "TSK_TRRP_CAULK_ASSESS", "TSK_TRRP_CAULK_REMOVE_OLD", "TSK_TRRP_CAULK_APPLY",
+        "TSK_TRRP_SPOT_PRIME_BRUSH", "TSK_TRRP_SPOT_PRIME_SPRAY", "TSK_TRRP_SPOT_PRIME_PVC_BRUSH",
+        "TSK_TRRP_CHALKBIND_PRIME_BRUSH", "TSK_TRRP_CHALKBIND_PRIME_SPRAY",
+        "TSK_TRRP_FULL_PRIME_BRUSH", "TSK_TRRP_FULL_PRIME_SPRAY", "TSK_TRRP_FULL_PRIME_PVC_BRUSH",
+        "TSK_TRRP_PRIME_COAT_2",
+        "TSK_TRRP_FINISH_BRUSH_1", "TSK_TRRP_FINISH_SPRAY_1",
+        "TSK_TRRP_FINISH_BRUSH_2", "TSK_TRRP_FINISH_SPRAY_2",
+        "TSK_TRRP_INTERSTAGE_INSPECT", "TSK_TRRP_INTERSTAGE_SAND", "TSK_TRRP_INTERSTAGE_SPOT_REPAIR",
+        "TSK_TRRP_TOUCHUP", "TSK_TRRP_TOUCHUP_TRANSITIONS"
+      ],
+      "values": {
+        "simple_flat": 1.00,
+        "standard_profiled": 1.15,
+        "built_up": 1.30,
+        "elaborate": 1.60
+      },
+      "formula": "effective_rate = base_rate / modifier",
+      "stacking_pool": "ALL_TASKS",
+      "notes": "Simple flat board (1x4 corner) = baseline. Standard profiled (clamshell casing) = 1.15x. Built-up (2-piece crown with cap) = 1.30x. Elaborate (3-piece crown with dentil, pilaster surrounds) = 1.60x. Applied per-component type."
+    }
+  ],
+
+  "quality_effects": [
+    {
+      "quality_tier": "QT3",
+      "coat_count": { "prime": 1, "finish": 2 },
+      "interstage_sand": false,
+      "interstage_cycles": 1,
+      "inspection_level": "scan",
+      "sheen": "satin",
+      "notes": "Standard residential trim repaint. Spot or full prime (state-dependent) + 2 finish coats satin. Interstage inspection between finish coats but no sanding. 1 interstage cycle (between finish coat 1 and finish coat 2)."
+    },
+    {
+      "quality_tier": "QT4",
+      "coat_count": { "prime": 1, "finish": 2 },
+      "interstage_sand": true,
+      "interstage_sand_grit": "150",
+      "interstage_cycles": 1,
+      "inspection_level": "systematic",
+      "sheen": "semi-gloss",
+      "notes": "Premium trim repaint. Spot or full prime + interstage sand between finish coats (150-grit) + 2 finish coats semi-gloss. 1 interstage cycle. Systematic inspection at 3 ft."
+    },
+    {
+      "quality_tier": "QT5",
+      "coat_count": { "prime": 2, "finish": 2 },
+      "interstage_sand": true,
+      "interstage_sand_grit": "180-220",
+      "interstage_cycles": 3,
+      "inspection_level": "critical",
+      "sheen": "gloss",
+      "notes": "Superior trim repaint. 2-coat primer + interstage sand between ALL coats (180-220 grit) + 2 finish coats gloss. 3 interstage cycles (primer 1->2, primer 2->finish 1, finish 1->finish 2). Raking light inspection at arm's length. Near-zero defect tolerance."
+    }
+  ],
+
+  "round_configurations": [
+    {
+      "round_id": "ROUND_TRRP_SOUND_QT3",
+      "description": "Spot prime (bare areas) + 2 finish coats — standard repaint on sound paint",
+      "prime_coats": 1,
+      "finish_coats": 2,
+      "total_coats": 3,
+      "prime_scope": "spot",
+      "interstage_cycles": 1,
+      "applies_when": { "quality_tier": ["QT3"], "substrate_state": ["SS_EXT_SOUND_PAINT"] },
+      "notes": "Standard repaint on sound paint. Spot prime bare/thin areas only. Full prime not needed if ASTM D3359 adhesion passes."
+    },
+    {
+      "round_id": "ROUND_TRRP_SOUND_QT4",
+      "description": "Spot prime + interstage sand + 2 finish coats — premium on sound paint",
+      "prime_coats": 1,
+      "finish_coats": 2,
+      "total_coats": 3,
+      "prime_scope": "spot",
+      "interstage_cycles": 1,
+      "applies_when": { "quality_tier": ["QT4"], "substrate_state": ["SS_EXT_SOUND_PAINT"] },
+      "notes": "Premium trim repaint. Interstage sanding (150-grit) between finish coats. Semi-gloss."
+    },
+    {
+      "round_id": "ROUND_TRRP_SOUND_QT5",
+      "description": "2-coat spot prime + interstage sand between all coats + 2 finish coats — superior",
+      "prime_coats": 2,
+      "finish_coats": 2,
+      "total_coats": 4,
+      "prime_scope": "spot",
+      "interstage_cycles": 3,
+      "applies_when": { "quality_tier": ["QT5"], "substrate_state": ["SS_EXT_SOUND_PAINT"] },
+      "notes": "Superior trim repaint. 2-coat primer on bare areas + interstage sand between ALL coats + 2 finish coats gloss. 4 coating passes. Maximum film build and finish quality."
+    },
+    {
+      "round_id": "ROUND_TRRP_CHALKING",
+      "description": "Chalk-binding full prime + 2 finish coats",
+      "prime_coats": 1,
+      "finish_coats": 2,
+      "total_coats": 3,
+      "prime_scope": "full",
+      "interstage_cycles": 1,
+      "applies_when": { "quality_tier": ["QT3", "QT4"], "substrate_state": ["SS_EXT_CHALKING"] },
+      "notes": "Chalk-binding primer mandatory full coverage. QT4 adds interstage sand between finish coats."
+    },
+    {
+      "round_id": "ROUND_TRRP_CHALKING_QT5",
+      "description": "2-coat chalk-binding prime + interstage sand between all + 2 finish coats",
+      "prime_coats": 2,
+      "finish_coats": 2,
+      "total_coats": 4,
+      "prime_scope": "full",
+      "interstage_cycles": 3,
+      "applies_when": { "quality_tier": ["QT5"], "substrate_state": ["SS_EXT_CHALKING"] },
+      "notes": "Superior on chalking. 2-coat chalk-binding primer + interstage sand between ALL coats + 2 finish coats gloss."
+    },
+    {
+      "round_id": "ROUND_TRRP_FAILING_LIGHT",
+      "description": "Spot prime (bare areas) + 2 finish coats — failing paint <30% bare",
+      "prime_coats": 1,
+      "finish_coats": 2,
+      "total_coats": 3,
+      "prime_scope": "spot",
+      "interstage_cycles": 1,
+      "applies_when": { "substrate_state": ["SS_EXT_FAILING_PAINT"], "bare_percentage": "<30%" },
+      "notes": "Spot prime scraped bare areas. <30% bare does not require full prime. QT4 adds interstage sand. QT5 adds 2-coat spot prime."
+    },
+    {
+      "round_id": "ROUND_TRRP_FAILING_HEAVY",
+      "description": "Full prime + 2 finish coats — failing/peeling >30% bare",
+      "prime_coats": 1,
+      "finish_coats": 2,
+      "total_coats": 3,
+      "prime_scope": "full",
+      "interstage_cycles": 1,
+      "applies_when": { "substrate_state": ["SS_EXT_FAILING_PAINT", "SS_EXT_PEELING"], "bare_percentage": ">=30%" },
+      "notes": "Full prime when >30% bare or active peeling. Acrylic stain-block for standard softwood. Alkyd stain-block for tannin-rich (cedar/redwood). QT5 adds 2-coat primer."
+    },
+    {
+      "round_id": "ROUND_TRRP_FAILING_HEAVY_QT5",
+      "description": "2-coat full prime + interstage sand between all + 2 finish coats — severe conditions at QT5",
+      "prime_coats": 2,
+      "finish_coats": 2,
+      "total_coats": 4,
+      "prime_scope": "full",
+      "interstage_cycles": 3,
+      "applies_when": { "quality_tier": ["QT5"], "substrate_state": ["SS_EXT_FAILING_PAINT", "SS_EXT_PEELING"] },
+      "notes": "Superior finish on heavily failed trim. 2-coat full primer + interstage sand between ALL coats + 2 finish coats gloss. Maximum coating system."
+    }
+  ],
+
+  "assumptions": [
+    "Base rates are for simple flat trim profile at ground access (0-8 ft) on QT3 baseline.",
+    "STACKING PARTITION: Prep formula = base_rate / (CONDITION x RRP x HEIGHT x COMPLEXITY). Coating formula = base_rate / (QT x HEIGHT x COMPLEXITY). CONDITION and RRP do NOT stack with QT.",
+    "Modifier stacking cap: 4.0x flag threshold. Prep tasks can exceed 4.0x (max theoretical = 12.32x for SC_SEVERE x RRP x extreme height x elaborate). Coating tasks max = 5.28x (QT5 x extreme x elaborate). Both exceed 4.0x flag — recommend T&M for extreme combinations.",
+    "All trim components measured in LF. PCA P10 one-foot rule: trim <12\" wide = 1 SF per 1 LF. All production rates expressed as LF/hr.",
+    "Brush is primary application method (40 LF/hr baseline). Spray is conditional — justified only for full-house trim volume that amortizes masking overhead.",
+    "Spray masking (siding, windows, doors) is a SEPARATE task with its own rate — not combined into spray application rate.",
+    "Each trim component processed independently via its own PS key with per-component height and complexity modifiers. Engine sums results across components.",
+    "Environmental conditions (wind, dew point, sun exposure, surface temp) are NOT estimation modifiers per RC-003 from PaintFactor OS. They are SOP/process concerns.",
+    "RRP containment setup/teardown are separate fixed tasks, not rate-modified. The RRP modifier on prep tasks covers only the procedural slowdown (wet methods, HEPA vacuum).",
+    "SC_SUBSTRATE_DAMAGE (DSD-4) is a HARD STOP — triggers scope exclusion, never reaches estimation. Affected components excluded and flagged for carpentry.",
+    "QT5 receives 2-coat primer on all substrate states requiring prime, plus interstage sand between ALL coats. This adds significant labor but achieves maximum film build and finish quality.",
+    "Caulk tasks use the trim_component_input_group LF inputs. Estimator captures failed caulk LF during condition assessment — not all trim LF has caulk joints.",
+    "PVC trim requires bonding primer (not standard acrylic/alkyd). LRV >= 55 or solar-reflective coating gate for dark colors — flagged during color approval, not in estimation.",
+    "Crew size = 1 for all tasks. Brush trim work is inherently single-person. Spray may use helper for masking but rate is per painter.",
+    "SOP defines several tasks as qt_scaled that were binary in original production.json (scrape, feather_sand, sand_adhesion, caulk_remove_old, caulk_apply, all prime tasks, all finish tasks, chalk_clean). Rates now use qt_rates structure to match SOP task_classification.",
+    "TSK_TRRP_FINAL_INSPECT uses FIXED UOM per SOP (not LF as in original production). Qt_scaled via fixed_time_minutes per tier.",
+    "Existing production had separate TSK_TRRP_WINDOW_MASK and TSK_TRRP_WINDOW_MASK_SPRAY; SOP consolidates to single TSK_TRRP_PROTECT_WINDOW_GLASS with method-dependent protection_metadata.",
+    "Existing production had separate TSK_TRRP_CLEAN_EQUIPMENT_BRUSH and TSK_TRRP_CLEAN_EQUIPMENT_SPRAY; SOP consolidates to single TSK_TRRP_CLEAN_EQUIPMENT."
+  ],
+
+  "risks": [
+    "Prep task modifier stacking on extreme conditions (SC_SEVERE x RRP x extreme height x elaborate = 12.32x) produces very slow effective rates. Example: heavy scrape at 15 LF/hr base / 12.32 = 1.2 LF/hr effective. CORRECT for 19ft+ ornate trim with severe peeling and lead paint — recommend T&M billing.",
+    "Coating task modifier stacking at worst case (QT5 x extreme height x elaborate = 5.28x) produces: brush finish 28 / 5.28 = 5.3 LF/hr effective. This is extreme but correct for gloss finish on elaborate trim at 19ft+.",
+    "RRP gate condition adds significant cost beyond the 2.0x prep modifier — containment setup/teardown adds 2-3 hrs per project. Lead test results should be obtained before scoping.",
+    "Mixed substrate states on a single building require per-component assessment. One elevation may have sound fascia but peeling casings. Do not average condition across components.",
+    "Spray method for trim is SLOWER system rate than brush when including masking time for small-to-medium trim volumes. Only justified for whole-house trim repaint with sufficient LF to amortize masking setup.",
+    "PVC trim with LRV <55 paint creates thermal distortion risk. This is a material gate, not an estimation issue — flag and defer to color approval process.",
+    "Rot at sills and joints (SC_SUBSTRATE_DAMAGE) may not be visible until prep begins. Budget for scope change risk on pre-1978 homes with failing paint.",
+    "QT5 gloss finish on exterior trim is extremely sensitive to brush marks, dust, and environmental contamination. Production rates at QT5 are significantly slower (1.50x QT modifier) and may require multiple touch-up cycles."
+  ],
+
+  "validation_plan": [
+    "Field-calibrate brush finish rate (40 LF/hr baseline at QT3) on simple flat trim at ground level. Adjust if actual rate differs by >15%.",
+    "Validate scraping rates by quality tier — QT3 (35), QT4 (25), QT5 (15) LF/hr. These are the most variable rates in the spec.",
+    "Time feather-edge sanding at QT3 (40 LF/hr) on scraped trim profiles. This is a bottleneck task — validate on standard profiled and elaborate profiles separately.",
+    "Validate height modifier values by timing identical tasks at ground vs ladder vs scaffold. Target: ground=1.0x, ladder=1.30x, scaffold=1.60x.",
+    "Validate complexity modifier by timing brush finish coat on simple flat vs standard profiled vs built-up trim. Target: 1.0x, 1.15x, 1.30x.",
+    "Time spray method system rate (spray pass + masking) vs brush method on 200 LF trim section to verify break-even volume for spray justification.",
+    "Validate caulk replacement rate (QT3: 50 LF/hr remove, 75 LF/hr apply) on trim joints — includes remove old + clean + apply new. Rate varies significantly by existing caulk type and joint width.",
+    "Validate RRP procedural overhead (2.0x on prep) by timing wet scrape vs dry scrape on comparable sections.",
+    "Track QT4 vs QT5 interstage sand rates to confirm 60 LF/hr (QT4) and 40 LF/hr (QT5) are realistic for trim profiles.",
+    "Field-test condition assessment fixed time (90 min) on projects with 4+ elevations and 6+ component types. Adjust if consistently over/under."
+  ],
+
+  "task_count_summary": {
+    "total_tasks": 52,
+    "binary_tasks": 24,
+    "qt_scaled_tasks": 25,
+    "qt_conditional_tasks": 3,
+    "by_uom": { "FIXED": 16, "LF": 28, "SF": 4, "EA": 4 },
+    "by_phase": {
+      "assess": 5,
+      "setup_mobilize": 2,
+      "setup_protection": 7,
+      "prep_wash": 2,
+      "rrp_containment": 3,
+      "prep_chalk": 2,
+      "prep_scrape_sand": 4,
+      "prep_dust": 1,
+      "caulk": 3,
+      "prime": 10,
+      "interstage": 3,
+      "finish": 4,
+      "detail_inspect": 3,
+      "cleanup": 3
+    }
+  }
+}

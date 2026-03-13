@@ -1,0 +1,238 @@
+{
+  "spec_family_id": "SF_DECK_EXT",
+  "version": "0.1.0",
+  "generated_by": "System Critic",
+  "generated_at": "2026-03-10",
+  "status": "draft",
+  "review_required": true,
+
+  "overall_result": "pass_with_warnings",
+
+  "summary": "SF_DECK_EXT_v1 draft artifacts pass all critical doctrine checks with 2 major and 2 minor issues identified. First exterior deck staining spec — follows masonry and siding exterior patterns but with significant stain-specific departures: coating_type replaces quality_tier as primary dimension, no primer module (penetrating stains applied directly to prepared wood), 4 paintable items across 3 UOM types (SF floor, LF railing, EA spindles, EA stairs), and 4 application method variants for floor (spray_backbrush, brush, pad, roll). 40 tasks thread correctly between sop_modules.json and production.json across 8 modules. All PaintScope keys use PS_EXT_* namespace. 4 substrate states (SS_EXT_BARE_WOOD, SS_EXT_STAINED_SOLID, SS_EXT_STAINED_SEMI, SS_EXT_WEATHERED). All 5 protection zones use ext_* prefix. No interior keys, states, or zones present. Key doctrine enforcement: MC 15% hard stop on moisture test, PT pine seasoning 3-month minimum hard stop, spray_backbrush mandatory (spray-only prohibited for penetrating stains), chemical restore sequence correct (strip -> dwell -> scrub -> rinse -> brighten -> dwell -> rinse -> dry verify), solid stain delamination warning present with risk documentation requirement. 6 material systems (4 stain tiers, 1 chemical stripper, 1 brightener) — no primer systems, correctly excluded for penetrating stains. 3 factor modifiers (FAC_DECK_COATING_TYPE, FAC_DECK_WOOD_CONDITION, FAC_DECK_SUBSTRATE_TYPE) with max stacking 2.52x, well under 4.0x cap. 4 round configurations covering all coating_type combinations. 2 major issues: (1) SOP task_summary reports 39 tasks but actual module task count is 40, and (2) production quality_effects declares semi_transparent coat_count: 2 which contradicts ROUND_DECK_SEMI_TRANS_1COAT total_coats: 1 and coat2 task applies_when (semi_solid/solid_stain only). 2 minor issues: (1) siding protection input ID uses SF prefix (IN_SF_EXT_PROTECT_SIDING_ADJACENT) but task UOM is LF, and (2) production.json omits task_classification field present in sop_modules.json.",
+
+  "artifacts_reviewed": [
+    { "file": "research.json", "status": "reviewed", "human_feedback": "none" },
+    { "file": "resolution.json", "status": "reviewed", "human_feedback": "none" },
+    { "file": "materials.json", "status": "reviewed", "human_feedback": "none" },
+    { "file": "sop_modules.json", "status": "reviewed", "human_feedback": "none" },
+    { "file": "production.json", "status": "reviewed", "human_feedback": "none" },
+    { "file": "spec.json", "status": "not_yet_created", "human_feedback": "n/a" }
+  ],
+
+  "issues": [
+    {
+      "issue_id": "QA-001",
+      "severity": "major",
+      "area": "task_count",
+      "file": "sop_modules.json",
+      "status": "open",
+      "description": "SOP task_summary reports total_tasks: 39 (31 binary + 4 condition_conditional + 4 coating_conditional) but the actual task count across all 8 modules is 40 (MOD_DECK_SETUP=5, MOD_DECK_PREP_FLOOR=6, MOD_DECK_PREP_RAILING=3, MOD_DECK_CHEMICAL_RESTORE=8, MOD_DECK_APPLY_FLOOR=5, MOD_DECK_APPLY_RAILING=6, MOD_DECK_APPLY_STAIR=2, MOD_DECK_CLEANUP=5 = 40). The module-level by_module sum also adds to 40 but the top-line total_tasks says 39. One task is unaccounted in the summary classification breakdown.",
+      "resolution": "Update task_summary.total_tasks from 39 to 40 and correct the classification breakdown to account for the missing task. Verify which classification category (binary, condition_conditional, or coating_conditional) is undercounted by 1."
+    },
+    {
+      "issue_id": "QA-002",
+      "severity": "major",
+      "area": "coat_count_conflict",
+      "file": "production.json vs sop_modules.json",
+      "status": "open",
+      "description": "Production quality_effects declares semi_transparent coat_count: 2, but three other sources contradict this: (1) ROUND_DECK_SEMI_TRANS_1COAT in sop_modules.json has total_coats: 1, (2) all coat2 tasks (TSK_DECK_STAIN_FLOOR_COAT2, TSK_DECK_STAIN_RAILING_COAT2, TSK_DECK_STAIN_SPINDLE_COAT2, TSK_DECK_STAIN_STAIR_COAT2) have applies_when: { coating_type: [semi_solid, solid_stain] } — explicitly excluding semi_transparent, and (3) the round configuration name itself says '1COAT'. The coat2 tasks will never activate for semi_transparent, making the quality_effects coat_count: 2 unreachable.",
+      "resolution": "Correct production.json quality_effects.semi_transparent.coat_count from 2 to 1. The round configuration, task applies_when gating, and round config name all consistently say 1 coat for semi-transparent. Semi-transparent is a penetrating stain where a single coat is the professional standard default."
+    },
+    {
+      "issue_id": "QA-003",
+      "severity": "minor",
+      "area": "input_id_uom_mismatch",
+      "file": "sop_modules.json vs production.json",
+      "status": "acknowledged",
+      "description": "Siding protection input IN_SF_EXT_PROTECT_SIDING_ADJACENT uses SF prefix in its ID and the PaintScope key is PS_EXT_PROTECT_SF.SIDING_ADJACENT (SF namespace), but the task TSK_DECK_PROTECT_SIDING has unit_of_measure: LF in both sop_modules.json and production.json. Siding protection at the ledger board junction is measured linearly (LF along house wall), so LF is the correct UOM. The input ID and PS key SF designation is misleading — implies square footage measurement when the actual measurement is linear footage along the deck-to-house transition.",
+      "resolution": "Acknowledged — the input naming convention uses the PS key namespace (PS_EXT_PROTECT_SF.*) which groups all protection inputs under the SF protect namespace regardless of individual task UOM. The task-level UOM (LF) is correct for ledger board junction protection. Input ID prefix convention follows PS key hierarchy, not task UOM. No functional issue but could cause confusion during engine wiring."
+    },
+    {
+      "issue_id": "QA-004",
+      "severity": "minor",
+      "area": "task_classification_missing",
+      "file": "production.json",
+      "status": "acknowledged",
+      "description": "Production.json does not include task_classification field on any of its 40 task_production_rates entries. SOP modules.json declares task_classification on all 40 tasks (31 binary, 4 condition_conditional, 4 coating_conditional, 1 site_condition_gated). The masonry sibling production.json does not include task_classification either, so this appears to be the established pattern — task_classification lives in sop_modules.json only.",
+      "resolution": "Acknowledged — consistent with masonry sibling pattern. task_classification is owned by sop_modules.json. Production.json expresses classification behavior through applies_when gating and rate structure (coating_conditional tasks have applies_when with coating_type arrays). No change needed."
+    }
+  ],
+
+  "blockers": [],
+
+  "doctrine_checks": [
+    {
+      "check": "THREADING-1: Task ID Completeness",
+      "result": "pass",
+      "details": "All 40 task_ids in sop_modules.json have matching entries in production.json. No orphaned tasks in either direction. Both files contain exactly 40 task entries. Count by module: SETUP=5, PREP_FLOOR=6, PREP_RAILING=3, CHEMICAL_RESTORE=8, APPLY_FLOOR=5, APPLY_RAILING=6, APPLY_STAIR=2, CLEANUP=5."
+    },
+    {
+      "check": "THREADING-2: UOM Match",
+      "result": "pass",
+      "details": "All 40 task UOMs match between sop_modules.json and production.json. SF-based: 14 tasks (floor stain, floor wash, floor sand, hardscape protect, siding protect area, mildew treat, strip apply/scrub/rinse, brighten apply/rinse, touchup). LF-based: 5 tasks (siding protect, landscape protect, railing sand, railing wash, railing stain variants). EA-based: 6 tasks (furniture stage, fixture protect, spindle sand, spindle stain variants, stair stain). FIXED: 15 tasks (moisture test, seasoning verify, mill glaze sand, strip dwell, brighten dwell, dry verify, coat2 tasks, inspect, furniture return, protect teardown, tool clean)."
+    },
+    {
+      "check": "THREADING-3: Task Prefix",
+      "result": "pass",
+      "details": "All 40 task IDs use TSK_DECK_ prefix. No collisions with existing prefixes (MSRY, SDNG, FCSD, etc.). DECK is unique per resolution.json collision check."
+    },
+    {
+      "check": "THREADING-4: Module Prefix",
+      "result": "pass",
+      "details": "All 8 module IDs use MOD_DECK_ prefix: SETUP, PREP_FLOOR, PREP_RAILING, CHEMICAL_RESTORE, APPLY_FLOOR, APPLY_RAILING, APPLY_STAIR, CLEANUP."
+    },
+    {
+      "check": "THREADING-5: applies_when Consistency",
+      "result": "pass",
+      "details": "Application method gating consistent between files: spray_backbrush tasks gate on [spray_backbrush], brush on [brush], pad on [pad], roll on [roll]. Stair application is brush-only (no spray variant — correct per doctrine). Coat2 tasks gate on coating_type [semi_solid, solid_stain]. Chemical restore module gates on wood_condition [weathered, previously_coated]. Seasoning verify gates on substrate_type [pt_pine] + wood_condition [new_milled, new_pt_seasoned]. Mill glaze sand gates on wood_condition [new_milled]. Floor sand gates on wood_condition [previously_coated]. Mildew treat gates on site_condition [mildew_present]. All applies_when conditions are consistent between sop_modules.json and production.json."
+    },
+    {
+      "check": "EXT-1: Key Namespace Integrity",
+      "result": "pass",
+      "details": "All paintscope_key references use PS_EXT_* namespace. 12 PS keys declared in resolution.json: PS_EXT_SURFACE_SF.DECK_FIELD, PS_EXT_EDGE_LF.DECK_RAILING, PS_EXT_META.EA.DECK_SPINDLES, PS_EXT_META.EA.DECK_STAIR_STEPS, PS_EXT_META.ENUM.COATING_TYPE_DECK, PS_EXT_META.ENUM.WOOD_CONDITION_DECK, PS_EXT_META.ENUM.SUBSTRATE_TYPE_DECK, PS_EXT_PROTECT_SF.SIDING_ADJACENT, PS_EXT_PROTECT_LF.LANDSCAPE_PERIMETER, PS_EXT_PROTECT_SF.HARDSCAPE_WALK, PS_EXT_PROTECT_EA.DECK_FURNITURE, PS_EXT_PROTECT_EA.LIGHT_FIXTURE, PS_EXT_META.FLAG.NEW_CONSTRUCTION. No interior keys found."
+    },
+    {
+      "check": "EXT-2: Substrate State Validity",
+      "result": "pass",
+      "details": "All substrate states use SS_EXT_* prefix. 4 input states: SS_EXT_BARE_WOOD, SS_EXT_STAINED_SOLID, SS_EXT_STAINED_SEMI, SS_EXT_WEATHERED. 2 output states: SS_EXT_STAINED_SOLID (solid_stain), SS_EXT_STAINED_SEMI (clear/semi-transparent/semi-solid). No SS_INT_* or bare SS_ IDs. No factory-primed state — correctly excluded (no factory-primed deck wood exists)."
+    },
+    {
+      "check": "EXT-3: Protection Zone Integrity",
+      "result": "pass",
+      "details": "All 5 protection zones use ext_* prefix: ext_siding_adjacent, ext_below_deck_landscape, ext_hardscape_patio (reuse existing), ext_deck_furniture_staging, ext_light_fixture (reuse existing). No interior zone IDs. 3 proposed new zones, 2 reused from masonry/siding siblings."
+    },
+    {
+      "check": "DECK-1: Moisture Content Hard Stop (15%)",
+      "result": "pass",
+      "details": "TSK_DECK_MOISTURE_TEST in MOD_DECK_PREP_FLOOR is a mandatory prep task. MC <=15% hard stop explicitly stated in task description, quality_notes, and assumptions. Multiple test locations required. Pin-type moisture meter specified as required tool. Retest after 24 hr if initial test fails. 15% threshold correctly used (wood substrate, not masonry 12%). Also verified after chemical restoration in TSK_DECK_DRY_VERIFY."
+    },
+    {
+      "check": "DECK-2: PT Pine Seasoning (3-6 Months)",
+      "result": "pass",
+      "details": "TSK_DECK_SEASONING_VERIFY in MOD_DECK_PREP_FLOOR gates on substrate_type [pt_pine] + wood_condition [new_milled, new_pt_seasoned]. Minimum 3 months from install date specified as hard stop. Water drop absorption test documented as field verification method. Install date documentation required from construction schedule/GC. Correctly conditional — only activates for new PT pine."
+    },
+    {
+      "check": "DECK-3: Back-Brushing Mandatory When Spraying",
+      "result": "pass",
+      "details": "All spray application tasks use spray_backbrush designation (not spray-only). TSK_DECK_STAIN_FLOOR_SPRAY_BACKBRUSH explicitly states 'Back-brushing is MANDATORY — spray-only is prohibited for penetrating stains.' crew_size=2 on spray_backbrush tasks (one sprays, one follows with brush). Stair application is brush-only (no spray variant). Assumption block reiterates: 'Spray on deck stain = auto-add back-brush. Spray-only is PROHIBITED for penetrating stains.' Consistent with Exterior_Application_Methods_Doctrine.md Part A section 6."
+    },
+    {
+      "check": "DECK-4: Chemical Restore Sequence",
+      "result": "pass",
+      "details": "MOD_DECK_CHEMICAL_RESTORE contains 8 tasks in strict sequence: TSK_DECK_STRIP_APPLY -> TSK_DECK_STRIP_DWELL (15-20 min FIXED) -> TSK_DECK_STRIP_SCRUB -> TSK_DECK_STRIP_RINSE -> TSK_DECK_BRIGHTEN_APPLY -> TSK_DECK_BRIGHTEN_DWELL (10-15 min FIXED) -> TSK_DECK_BRIGHTEN_RINSE -> TSK_DECK_DRY_VERIFY (24-48 hr). Sequence documented in sequence_notes. Cedar/redwood brightener auto-add noted (tannin management). Module gates on wood_condition [weathered, previously_coated]."
+    },
+    {
+      "check": "DECK-5: Solid Stain Delamination Warning",
+      "result": "pass",
+      "details": "Solid stain delamination risk documented across all artifacts: materials.json compatibility_rules (required_action: document risk, recommend alternatives), materials.json risk_notes (RISK-DECK-001: horizontal surface moisture entrapment), production.json risks section, sop_modules.json round_configuration ROUND_DECK_SOLID_2COAT description, production.json final_inspect task rate_basis_notes. Warning is NOT a hard stop (solid stain is allowed) but requires customer acknowledgment and risk documentation."
+    },
+    {
+      "check": "DECK-6: No Primer References (Penetrating Stain Spec)",
+      "result": "pass",
+      "details": "No SYS_*_PRIMER material systems in materials.json. No MOD_*_PRIME module in sop_modules.json. No TSK_*_PRIME tasks in either file. Materials.json explicitly declares compatibility rule: 'Penetrating stains do NOT use primer' with prohibited_systems: ['any primer']. Notes explain: 'Primer seals the wood surface and PREVENTS stain penetration — the opposite of the desired effect.' Exception noted for solid stain on cedar/redwood where tannin-blocking primer MAY be required — correctly documented as edge case, not general rule."
+    },
+    {
+      "check": "DECK-7: Phase Values (Stain Spec)",
+      "result": "pass",
+      "details": "Module phases: setup (1), prep (3), apply (3), cleanup (1). No prime, interstage, or finish phases used — correctly excluded for stain spec. Stain application uses 'apply' phase (not 'finish'). Phase values comply with convention: setup/prep/apply/cleanup are all from the approved set."
+    },
+    {
+      "check": "DECK-8: Coating Type Replaces Quality Tier",
+      "result": "pass",
+      "details": "No quality_tier references in any artifact. coating_type is the primary configuration dimension with 4 values: clear_sealer, semi_transparent, semi_solid, solid_stain. FAC_DECK_COATING_TYPE replaces FAC_QT. product_role uses stain/sealer/prep_chemical (not paint/primer). Resolution.json spec_identity confirms: 'STAIN-based spec — coating_type replaces quality_tier as primary dimension.' Production assumptions reiterate: 'No QT-based rate scaling.'"
+    },
+    {
+      "check": "ENUM-1: Convention Compliance",
+      "result": "pass",
+      "details": "All enums comply with project conventions: CON_ prefix (not CONS_), task_classification (not task_class), severity uses critical/major/minor in compatibility rules, phase values from approved set (no 'protect' or 'protection' phase), all units uppercase (EA, SF, LF, FIXED), zone uses ext_* prefix. No compound sheens — sheen is not applicable to penetrating stains (allowed_sheens: ['n/a'] for clear/semi-transparent/semi-solid). Solid stain has sheen values."
+    },
+    {
+      "check": "COMPLETENESS-1: Paintable Items",
+      "result": "pass",
+      "details": "4 paintable items declared in resolution.json: ITM_DECK_FLOOR (SF), ITM_DECK_RAILING (LF), ITM_DECK_SPINDLE (EA), ITM_DECK_STAIR (EA). All items have matching surface inputs, application tasks, and coat2 tasks. Multi-UOM design correctly implemented — floor uses SF, railings use LF, spindles and stairs use EA."
+    },
+    {
+      "check": "COMPLETENESS-2: Round Configurations",
+      "result": "pass",
+      "details": "4 round configurations declared in sop_modules.json: ROUND_DECK_CLEAR_1COAT (clear_sealer, 1 coat), ROUND_DECK_SEMI_TRANS_1COAT (semi_transparent, 1 coat), ROUND_DECK_SEMI_SOLID_2COAT (semi_solid, 2 coats), ROUND_DECK_SOLID_2COAT (solid_stain, 2 coats). Covers all 4 coating_type values. No interstage_cycles on any round — correct for penetrating stains (no intercoat sanding)."
+    },
+    {
+      "check": "COMPLETENESS-3: Material Systems",
+      "result": "pass",
+      "details": "6 material systems in materials.json: SYS_EXT_DECK_CLEAR_SEALER (sealer), SYS_EXT_DECK_SEMI_TRANSPARENT (stain), SYS_EXT_DECK_SEMI_SOLID (stain), SYS_EXT_DECK_SOLID_STAIN (stain), SYS_EXT_DECK_CHEMICAL_STRIPPER (prep_chemical), SYS_EXT_DECK_BRIGHTENER (prep_chemical). All system_ids match between materials.json and resolution.json. product_role uses stain/sealer/prep_chemical — no paint/primer roles. All SYS_ IDs use SYS_EXT_DECK_ prefix."
+    },
+    {
+      "check": "COMPLETENESS-4: Factor Modifiers",
+      "result": "pass",
+      "details": "3 factor modifiers declared in production.json: FAC_DECK_COATING_TYPE (clear_sealer=0.80, semi_transparent=1.00, semi_solid=1.10, solid_stain=1.25), FAC_DECK_WOOD_CONDITION (new_milled=1.00, new_pt_seasoned=1.05, weathered=1.50, previously_coated=1.75), FAC_DECK_SUBSTRATE_TYPE (pt_pine=1.00, cedar=1.10, redwood=1.15). All use division formula. No FAC_EXT_ACCESS — correctly excluded (ground-level work). Max stacking 2.52x under 4.0x cap."
+    },
+    {
+      "check": "COMPLETENESS-5: Input Declarations",
+      "result": "pass",
+      "details": "13 input declarations in resolution.json: 4 surface inputs (IN_SF_DECK_FIELD, IN_LF_DECK_RAILING, IN_EA_DECK_SPINDLES, IN_EA_DECK_STAIR_STEPS), 3 config enum inputs (IN_ENUM_COATING_TYPE_DECK, IN_ENUM_WOOD_CONDITION_DECK, IN_ENUM_SUBSTRATE_TYPE_DECK), 1 meta flag (IN_BOOL_NEW_CONSTRUCTION), 5 protection inputs. All inputs consumed by sop_modules.json or production.json."
+    },
+    {
+      "check": "COMPLETENESS-6: Cross-Spec Boundaries",
+      "result": "pass",
+      "details": "Adjacent surfaces documented in research.json: ext_siding_field (house wall at ledger), foundation_wall (below deck), landscaping (below/around deck). Cross-spec boundaries: siding protection owned by THIS spec (ledger board junction), door at deck entry owned by door spec, railing lighting fixtures masked by this spec. No interior surface overlap."
+    }
+  ],
+
+  "exterior_validation_summary": {
+    "first_exterior_spec": false,
+    "sibling_spec": "SF_MASONRY_EXT_NC_v1",
+    "domain_dispatch_activated": true,
+    "interior_contamination": "none — no interior keys, states, or zones found",
+    "research_corrections_applied": 0,
+    "user_corrections_applied": 0,
+    "key_departures_from_exterior_siblings": [
+      "STAIN-based spec — coating_type replaces quality_tier as primary configuration dimension. No QT2/QT3/QT4 anywhere.",
+      "No primer module — penetrating stains are applied directly to prepared wood. Primer is PROHIBITED (seals surface, prevents stain penetration). Masonry/siding specs have mandatory primer.",
+      "4 paintable items across 3 UOM types (SF + LF + EA) — most complex multi-item multi-UOM spec. Masonry has 1 item (SF), siding has 1 item (SF).",
+      "4 application method variants for floor (spray_backbrush, brush, pad, roll) vs masonry 3 (spray_backroll, roll, brush). Pad applicator is unique to deck.",
+      "spray_backbrush coupling (not spray_backroll) — brush follows sprayer for grain penetration, not roller for texture uniformity.",
+      "Chemical restoration module (strip + brighten) is unique to deck — 8-task conditional prep sequence for weathered/previously coated wood. No equivalent in masonry/siding.",
+      "No FAC_EXT_ACCESS modifier — ground-level work. Masonry/siding specs include scaffold/ladder modifiers.",
+      "Moisture threshold 15% (vs masonry 12%) — wood tolerates higher MC than masonry.",
+      "Stair component with alternating step pattern — unique access logistics not present in any wall/siding spec.",
+      "Solid stain delamination warning is a risk documentation requirement (not hard stop) — unique to horizontal film-forming coatings on decks.",
+      "Phase values use setup/prep/apply/cleanup only — no prime/interstage/finish phases (stain spec, not paint spec)."
+    ]
+  },
+
+  "task_cross_reference": {
+    "total_sop_tasks": 40,
+    "total_production_rates": 40,
+    "orphaned_in_sop": 0,
+    "orphaned_in_production": 0,
+    "classification_mismatches": 0,
+    "uom_mismatches": 0,
+    "applies_when_mismatches": 0,
+    "note": "SOP task_summary incorrectly reports 39 tasks — actual count across modules is 40 (see QA-001). Production does not include task_classification field (see QA-004) — consistent with masonry sibling pattern."
+  },
+
+  "modifier_stacking_validation": {
+    "max_theoretical_stack": 2.516,
+    "stacking_cap": 4.0,
+    "within_cap": true,
+    "worst_case_scenario": "Solid stain (1.25) x previously_coated (1.75) x redwood (1.15) = 2.516x — if all 3 applied to same task",
+    "worst_case_effective_rate": "109 SF/hr per 2-person crew on spray_backbrush application — slow but viable",
+    "practical_worst_case": "Application tasks: coating_type x substrate_type only (max 1.44x). Prep tasks: wood_condition x substrate_type only (max 2.01x). Modifiers are scoped to appropriate task categories.",
+    "notes": "FAC_DECK_COATING_TYPE applies to APPLICATION tasks only. FAC_DECK_WOOD_CONDITION applies to PREP tasks primarily. FAC_DECK_SUBSTRATE_TYPE applies to both. No FAC_EXT_ACCESS — ground-level work."
+  },
+
+  "material_system_validation": {
+    "stain_systems": 4,
+    "prep_chemical_systems": 2,
+    "primer_systems": 0,
+    "finish_systems": 0,
+    "total_systems": 6,
+    "all_systems_have_coating_type_routing": true,
+    "all_systems_have_substrate_routing": true,
+    "no_primer_products": true,
+    "no_oil_based_prohibition": false,
+    "solid_stain_delamination_warning": true,
+    "penetrating_stain_grain_absorption": true,
+    "notes": "Oil-based stains are NOT prohibited for deck (unlike masonry where alkalinity causes saponification). Oil-based deck stains are valid products. Tannin-blocking primer exception noted for solid stain on cedar/redwood only."
+  }
+}

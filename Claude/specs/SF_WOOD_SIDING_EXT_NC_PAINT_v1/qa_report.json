@@ -1,0 +1,86 @@
+{
+  "spec_family_id": "SF_WOOD_SIDING_EXT_NC_PAINT",
+  "version": "0.1.0",
+  "generated_by": "System Critic",
+  "generated_at": "2026-03-09",
+  "status": "draft",
+  "review_required": true,
+
+  "overall_result": "pass_with_warnings",
+
+  "summary": "SF_WOOD_SIDING_EXT_NC_PAINT_v1 draft artifacts pass all critical doctrine checks. First exterior spec — validates the exterior domain dispatch pipeline. 31 tasks thread correctly between sop_modules.json and production.json (originally 30, split TSK_SDNG_EQUIPMENT_SETUP into SPRAY/BRUSH variants per QA-001). All PaintScope keys use PS_EXT_* namespace. All substrate states use SS_EXT_* prefix. All protection zones use ext_* prefix. No interior keys, states, or zones present. Environmental conditions correctly excluded from estimation per RC-003. Window/door protection correctly excluded per RC-001. 5 research corrections applied. 3 QA issues resolved/acknowledged.",
+
+  "artifacts_reviewed": [
+    { "file": "research.json", "status": "reviewed", "human_feedback": "yes — 5 corrections applied (RC-001 through RC-005)" },
+    { "file": "sop_modules.json", "status": "reviewed", "human_feedback": "pending" },
+    { "file": "materials.json", "status": "reviewed", "human_feedback": "pending" },
+    { "file": "production.json", "status": "reviewed", "human_feedback": "pending" },
+    { "file": "spec.json", "status": "not_yet_created", "human_feedback": "n/a" }
+  ],
+
+  "issues": [
+    {
+      "issue_id": "QA-001",
+      "severity": "minor",
+      "area": "production_logic",
+      "file": "production.json",
+      "status": "resolved",
+      "description": "TSK_SDNG_EQUIPMENT_SETUP used per-method fixed_time_minutes object instead of a single value.",
+      "resolution": "Split into TSK_SDNG_EQUIPMENT_SETUP_SPRAY (45 min, spray/spray_backroll) and TSK_SDNG_EQUIPMENT_SETUP_BRUSH (20 min, brush_roll). Task count now 31 (was 30).",
+      "resolved_date": "2026-03-09"
+    },
+    {
+      "issue_id": "QA-002",
+      "severity": "minor",
+      "area": "schema_alignment",
+      "file": "production.json",
+      "status": "resolved",
+      "description": "TSK_SDNG_END_SEAL and TSK_SDNG_KNOT_PRIME use EA unit but lacked PaintScope keys.",
+      "resolution": "Added manual_capture_required: true with manual_capture_item, manual_capture_uom, and manual_capture_notes to both tasks. These are estimator-entered counts not sourced from PaintScope.",
+      "resolved_date": "2026-03-09"
+    },
+    {
+      "issue_id": "QA-003",
+      "severity": "minor",
+      "area": "coverage_profiles",
+      "file": "materials.json",
+      "status": "acknowledged",
+      "description": "COV_SDNG_PRIMER uses coverage_by_state (per substrate) and COV_SDNG_FINISH uses coverage_by_profile (per siding type). These are new coverage model patterns not used in interior specs.",
+      "resolution": "Patterns documented. Coverage models: (1) per_substrate_state — coverage varies by SS_EXT_* input state, (2) per_siding_profile — coverage varies by siding_profile config dimension. Engine support deferred to engine implementation phase.",
+      "resolved_date": "2026-03-09"
+    }
+  ],
+
+  "blockers": [],
+
+  "doctrine_checks": [
+    { "check": "EXT-1: Key Namespace Integrity", "result": "pass", "details": "All paintscope_key references use PS_EXT_* namespace. No interior keys found." },
+    { "check": "EXT-2: Substrate State Validity", "result": "pass", "details": "All substrate states use SS_EXT_* prefix. 9 states declared. No SS_INT_* or bare SS_ IDs." },
+    { "check": "EXT-3: Protection Zone Integrity", "result": "pass", "details": "All protection zones use ext_* prefix. No interior zone IDs (floor_perimeter, wall_adjacent, fixture_covers). Window/door zones correctly excluded per RC-001." },
+    { "check": "EXT-4: Mandatory Site Condition Rules", "result": "pass_with_note", "details": "Environmental conditions (wind, dew point, sun, surface temp) intentionally excluded from estimation per RC-003. These are process/scheduling concerns, not estimatable modifiers. Access type treated as height modifier (RC-004)." },
+    { "check": "EXT-5: Exterior Factor Keys", "result": "pass", "details": "FAC_EXT_ACCESS declared. FAC_EXT_SUBSTRATE_CONDITION declared. FAC_SIDING_PROFILE declared. Environmental FAC_EXT_WIND/SUN/TEMP correctly excluded per RC-003." },
+    { "check": "EXT-6: Modifier Math", "result": "pass", "details": "All modifiers use division formula: effective_rate = base_rate ÷ modifier. Stacking cap 4.0× declared." },
+    { "check": "EXT-7: Material State Compatibility", "result": "pass", "details": "Each primer system declares substrate_states compatibility. Tannin primer for bare cedar/redwood. Bonding primer for chalking/stain. Factory prime requires field prime (SYS_EXT_WOOD_PRIMER_ACRYLIC covers SS_EXT_PRIMED_FACTORY)." },
+    { "check": "GEOM_NO_INTERNAL_COMPUTE", "result": "pass", "details": "No geometry computation. All geometry from PaintScope inputs." },
+    { "check": "GEOM_INPUTS_DECLARED", "result": "pass", "details": "All required inputs declared with paintscope_key mappings." },
+    { "check": "UOM_TASKS_DECLARED", "result": "pass", "details": "All 30 tasks have unit_of_measure declared (SF, EA, LF, FIXED)." },
+    { "check": "UOM_RATE_MATCH", "result": "pass", "details": "All production rates match task UOM." },
+    { "check": "SPRAY_BACKROLL_COUPLING", "result": "pass", "details": "Backroll rates equal spray rates (200 SF/hr prime, 225 SF/hr finish). Coupling rule satisfied." },
+    { "check": "FLOW_PAINTSCOPE_TO_SPEC_TO_ESTIMATION", "result": "pass", "details": "All inputs flow PaintScope → spec → tasks → rates." },
+    { "check": "CROSS_SPEC_PROTECTION", "result": "pass", "details": "Window/door protection correctly excluded from siding spec per RC-001. No ext_glass_window or ext_glass_door zones." }
+  ],
+
+  "exterior_validation_summary": {
+    "first_exterior_spec": true,
+    "domain_dispatch_activated": true,
+    "interior_contamination": "none — no interior keys, states, or zones found",
+    "research_corrections_applied": 5,
+    "key_architectural_decisions": [
+      "RC-001: Window/door protection belongs in window/door specs, not siding",
+      "RC-002: Fascia is part of soffit system; frieze board is correct lower adjacency",
+      "RC-003: Environmental conditions excluded from estimation — not predictable",
+      "RC-004: Access type is a height modifier, not a site condition",
+      "RC-005: All exterior wood substrate states included (not just NC bare wood)"
+    ]
+  }
+}

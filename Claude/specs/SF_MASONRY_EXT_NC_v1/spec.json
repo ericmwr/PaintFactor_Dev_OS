@@ -1,0 +1,617 @@
+{
+  "spec_family": {
+    "id": "SF_MASONRY_EXT_NC",
+    "name": "Exterior Masonry Wall Coating",
+    "description": "Combined prime and finish coat painting for exterior masonry wall surfaces (clay brick, CMU, cast concrete, limestone). Covers full prep (cure verification, moisture testing, efflorescence treatment, form-release removal for concrete, power wash, caulk masonry-to-trim joints, surface repair), block filler for CMU (PCA P12 Level 2), alkali-resistant primer (mandatory on ALL new masonry pH 12-14), and finish coats (acrylic or elastomeric coating system). Spray_backroll is the primary application method — spray-only is PROHIBITED on porous masonry (backroll forces coating into pores for continuous DFT). Uses SF as primary UOM. Substrate type (brick/CMU/concrete/limestone) and coating system (acrylic/elastomeric) are key configuration dimensions driving material selection, production rates, and risk assessment. Window/door protection is NOT this spec's responsibility — belongs in window/door specs.",
+    "domain": "exterior",
+    "version": "0.1.0",
+    "status": "draft",
+    "review_required": true
+  },
+
+  "scope_boundaries": {
+    "includes": [
+      "Cure verification (28-day standard, 7-day with alkali-resistant primer)",
+      "Moisture testing (MC < 12% hard stop per ASTM D4263)",
+      "Efflorescence treatment (water/TSP/acid cleaning hierarchy)",
+      "Form-release agent removal (cast concrete only — mechanical abrasion or chemical detergent)",
+      "Power wash (1,500-2,500 PSI — allowed on masonry unlike fiber cement)",
+      "Surface repair (mortar joint repoint, crack fill at QT3/QT4)",
+      "Caulking masonry-to-trim joints (polyurethane Class 25/50)",
+      "Block filler application for CMU substrate (PCA P12 Level 2 Standard Fill)",
+      "Full field alkali-resistant primer coat (mandatory on ALL new masonry)",
+      "Finish coat application — acrylic (1-2 coats by QT) or elastomeric (2 coats mandatory, QT3+ only)",
+      "Interstage inspection, light sand at QT4, and touch-up",
+      "Final walkthrough and touch-up",
+      "Landscape perimeter protection (LF-based along house perimeter)",
+      "Hardscape protection (walkways, patios)",
+      "Fixture and utility masking (light fixtures, HVAC units)",
+      "Spray equipment setup and cleanup"
+    ],
+    "excludes": [
+      {
+        "item": "Window masking and glass protection",
+        "route_to": "Window spec (window/door protection owned by respective surface spec)"
+      },
+      {
+        "item": "Door masking, hardware protection, and glass protection",
+        "route_to": "Door spec (window/door protection owned by respective surface spec)"
+      },
+      {
+        "item": "Exterior trim painting (corner boards, frieze, rake, window/door casing)",
+        "route_to": "Future SF_TRIM_EXT_NC_PAINT"
+      },
+      {
+        "item": "Soffit and fascia painting",
+        "route_to": "Future SF_SOFFIT_EXT_NC_PAINT"
+      },
+      {
+        "item": "Foundation wall coating (below-grade or earth-contact)",
+        "route_to": "Future exterior foundation spec"
+      },
+      {
+        "item": "Mineral silicate (Keim-type) coatings",
+        "route_to": "Specialty historic preservation — outside standard residential scope"
+      },
+      {
+        "item": "Scaffold erection and dismantling",
+        "route_to": "Site logistics — separate line item from painting scope"
+      }
+    ]
+  },
+
+  "configuration_dimensions": [
+    {
+      "dimension_id": "quality_tier",
+      "description": "Quality tier controlling coat count, inspection scrutiny, interstage sanding, cleaning intensity, and defect tolerance.",
+      "values": ["QT2", "QT3", "QT4"],
+      "default": "QT3",
+      "notes": "QT2=economy (single acrylic finish coat, light wash, acrylic only). QT3=standard (2 finish coats, full wash, acrylic or elastomeric). QT4=premium (2 finish coats, TSP wash, interstage sand, premium materials, raking light inspection). QT5 excluded — not applicable to masonry wall field. All tiers require alkali-resistant primer (pH hazard is not quality-optional)."
+    },
+    {
+      "dimension_id": "substrate_type",
+      "description": "Masonry substrate type. Drives block filler requirement (CMU only), cleaning restrictions (no acid on limestone), production rate modifier, and material coverage rates.",
+      "values": ["brick", "CMU", "concrete", "limestone"],
+      "default": "brick",
+      "notes": "Brick is baseline (dense, relatively smooth). CMU requires mandatory block filler (PCA P12). Concrete may need form-release removal. Limestone prohibits acid cleaning and requires breathable coatings. Per-elevation or per-wall section if mixed masonry types on same structure."
+    },
+    {
+      "dimension_id": "coating_system",
+      "description": "Coating system for finish coats. Acrylic is standard; elastomeric is for crack-bridging applications.",
+      "values": ["acrylic", "elastomeric"],
+      "default": "acrylic",
+      "notes": "Acrylic: 10-20 perms breathability, 6-8 mils DFT, 300-350 SF/gal smooth. Elastomeric: 5-15 perms, 20-30 mils DFT, 300-500% elongation, 75-150 SF/gal. Elastomeric requires moisture source assessment and is QT3+ only. Elastomeric is flat-only sheen. Material cost 5-8x higher than acrylic per SF."
+    },
+    {
+      "dimension_id": "application_method",
+      "description": "Primary application technique for prime and finish coats.",
+      "values": ["spray_backroll", "roll", "brush"],
+      "default": "spray_backroll",
+      "notes": "Spray_backroll is gold standard for masonry — spray auto-adds backroll (MANDATORY per Exterior Application Methods Doctrine Part A section 6). Spray-only is PROHIBITED on porous masonry. Roll is fallback for smaller areas or occupied-adjacent. Brush is detail work only. spray_backroll requires 2-person crew."
+    },
+    {
+      "dimension_id": "sheen",
+      "description": "Finish coat sheen selection.",
+      "values": ["flat", "satin"],
+      "default": "satin",
+      "notes": "Satin is most common residential masonry sheen (hides surface irregularities while providing durability). Flat for budget. Semi-gloss not typical for masonry wall field — magnifies surface texture irregularities. Elastomeric coating system is flat-only."
+    }
+  ],
+
+  "paintable_items": [
+    {
+      "item_id": "ITM_MASONRY_WALL",
+      "name": "Exterior Masonry Wall Field Surface",
+      "unit_of_measure": "SF",
+      "counting_rules": "Net paintable masonry wall field area in square feet. Excludes window/door openings, trim elements. Measured per elevation from PaintScope.",
+      "notes": "Single paintable item. Covers brick, CMU, cast concrete, and limestone wall surfaces. Substrate_type modifier adjusts effective production rates and material requirements per surface type."
+    }
+  ],
+
+  "substrate_state_rules": {
+    "primary_surface": "masonry_wall_field",
+
+    "valid_input_states": {
+      "states": ["SS_EXT_BARE_MASONRY"],
+      "notes": "SS_EXT_BARE_MASONRY is the single NC state. All new masonry arrives bare — no factory-primed masonry exists. pH 12-14 alkaline surface requiring alkali-resistant primer. Repaint states would require a separate spec."
+    },
+
+    "output_state": {
+      "state": "SS_EXT_PAINTED_SATIN",
+      "varies_by": "sheen",
+      "state_map": {
+        "flat": "SS_EXT_PAINTED_FLAT",
+        "satin": "SS_EXT_PAINTED_SATIN"
+      },
+      "notes": "Output state varies by sheen configuration. Satin is the most common exterior masonry sheen."
+    }
+  },
+
+  "material_systems": [
+    {
+      "system_id": "SYS_EXT_MSRY_BLOCK_FILLER",
+      "name": "Block Filler for CMU (PCA P12 Level 2 Standard Fill)",
+      "product_role": "specialty",
+      "quality_tier": ["QT2", "QT3", "QT4"],
+      "applies_when": { "substrate_type": ["CMU"] },
+      "coverage_profile": "COV_MSRY_BLOCK_FILLER",
+      "coats": 1,
+      "notes": "Mandatory for CMU substrate. Fills voids to PCA P12 Level 2 standard (max 10 voids per SF). Heavy-body product requiring 527-535 spray tip and 30-mesh filter. Applied BEFORE primer. Not quality-optional — required at all tiers."
+    },
+    {
+      "system_id": "SYS_EXT_MSRY_PRIMER_ALKALI",
+      "name": "Alkali-Resistant Masonry Primer",
+      "product_role": "primer",
+      "quality_tier": ["QT2", "QT3", "QT4"],
+      "coverage_profile": "COV_MSRY_PRIMER_ALKALI",
+      "coats": 1,
+      "notes": "MANDATORY on ALL new masonry regardless of quality tier. pH 12-14 requires alkali-resistant primer (e.g., SW Loxon Masonry Primer rated to pH 13). Standard acrylic primer NOT suitable. Enables 7-day accelerated coating vs 28-day standard cure."
+    },
+    {
+      "system_id": "SYS_EXT_MSRY_FINISH_ACRYLIC_STD",
+      "name": "Standard Exterior Acrylic Finish for Masonry",
+      "product_role": "finish",
+      "quality_tier": ["QT2", "QT3"],
+      "applies_when": { "coating_system": ["acrylic"] },
+      "coverage_profile": "COV_MSRY_FINISH_ACRYLIC",
+      "coats_by_tier": { "QT2": 1, "QT3": 2 },
+      "allowed_sheens": ["flat", "satin"],
+      "notes": "100% acrylic exterior latex. 10-20 perms breathability. 6-8 mils DFT. QT2 single coat, QT3 two coats."
+    },
+    {
+      "system_id": "SYS_EXT_MSRY_FINISH_ACRYLIC_PREM",
+      "name": "Premium Exterior Acrylic Finish for Masonry",
+      "product_role": "finish",
+      "quality_tier": ["QT4"],
+      "applies_when": { "coating_system": ["acrylic"] },
+      "coverage_profile": "COV_MSRY_FINISH_ACRYLIC",
+      "coats": 2,
+      "allowed_sheens": ["flat", "satin"],
+      "notes": "Premium 100% acrylic (SW Emerald, BM Aura). 10-20 perms. Raking light inspection between coats. Two coats standard."
+    },
+    {
+      "system_id": "SYS_EXT_MSRY_FINISH_ELASTOMERIC",
+      "name": "Elastomeric Coating for Masonry",
+      "product_role": "finish",
+      "quality_tier": ["QT3", "QT4"],
+      "applies_when": { "coating_system": ["elastomeric"] },
+      "coverage_profile": "COV_MSRY_FINISH_ELASTOMERIC",
+      "coats": 2,
+      "allowed_sheens": ["flat"],
+      "notes": "Elastomeric: 20-30 mils DFT, 300-500% elongation, 5-15 perms. Bridges hairline cracks. Two coats mandatory. Not available at QT2. WARNING: high risk of catastrophic delamination if moisture enters from alternate sources. Requires moisture source assessment. Material cost 5-8x higher per SF than acrylic."
+    }
+  ],
+
+  "sop_module_summary": {
+    "total_modules": 9,
+    "total_tasks": 31,
+    "task_breakdown": {
+      "binary": 22,
+      "qt_scaled": 8,
+      "qt_conditional": 1
+    },
+    "modules": [
+      { "module_id": "MOD_MSRY_SETUP", "phase": "setup", "task_count": 5, "notes": "Protection setup + equipment setup" },
+      { "module_id": "MOD_MSRY_PREP", "phase": "prep", "task_count": 7, "notes": "Cure verify, moisture test, efflorescence, power wash, form-release, caulk, surface repair" },
+      { "module_id": "MOD_MSRY_BLOCK_FILL", "phase": "prep", "task_count": 2, "applies_when": { "substrate_type": ["CMU"] }, "notes": "Block filler spray_backroll or roll — CMU only" },
+      { "module_id": "MOD_MSRY_PRIME", "phase": "prime", "task_count": 3, "notes": "Alkali-resistant primer — 3 method variants (spray_backroll/roll/brush)" },
+      { "module_id": "MOD_MSRY_FINISH_1", "phase": "finish", "task_count": 3, "notes": "First finish coat — 3 method variants" },
+      { "module_id": "MOD_MSRY_INTERSTAGE", "phase": "interstage", "task_count": 3, "applies_when": { "quality_tier": ["QT3", "QT4"] }, "notes": "Intercoat inspection, sand (QT4), touch-up" },
+      { "module_id": "MOD_MSRY_FINISH_2", "phase": "finish", "task_count": 3, "applies_when": { "quality_tier": ["QT3", "QT4"] }, "notes": "Second finish coat — 3 method variants" },
+      { "module_id": "MOD_MSRY_FINAL_INSPECT", "phase": "cleanup", "task_count": 2, "notes": "Final inspection + final touch-up" },
+      { "module_id": "MOD_MSRY_CLEANUP", "phase": "cleanup", "task_count": 3, "notes": "Protection teardown, equipment cleaning, site cleanup" }
+    ]
+  },
+
+  "production_summary": {
+    "total_rates": 31,
+    "crew_size_2_tasks": 4,
+    "crew_size_2_task_ids": [
+      "TSK_MSRY_BLOCK_FILL_SPRAY_BACKROLL",
+      "TSK_MSRY_PRIME_SPRAY_BACKROLL",
+      "TSK_MSRY_FINISH_1_SPRAY_BACKROLL",
+      "TSK_MSRY_FINISH_2_SPRAY_BACKROLL"
+    ],
+    "factor_modifiers": [
+      {
+        "factor_id": "FAC_EXT_ACCESS",
+        "values": { "ground": 1.00, "ladder": 1.35, "scaffold": 1.60, "lift": 1.50 },
+        "applies_to_count": 22
+      },
+      {
+        "factor_id": "FAC_MSRY_SUBSTRATE_TYPE",
+        "values": { "brick_smooth": 1.00, "brick_rough": 1.30, "CMU": 1.20, "concrete": 0.90, "limestone": 1.10 },
+        "applies_to_count": 13
+      },
+      {
+        "factor_id": "FAC_MSRY_COATING_SYSTEM",
+        "values": { "acrylic": 1.00, "elastomeric": 1.50 },
+        "applies_to_count": 6
+      },
+      {
+        "factor_id": "FAC_QT",
+        "values": { "QT2": 0.85, "QT3": 1.00, "QT4": 1.20 },
+        "applies_to_count": 14
+      }
+    ],
+    "max_modifier_stack": 3.744,
+    "stacking_cap": 4.0,
+    "within_cap": true
+  },
+
+  "protection_zones_required": [
+    {
+      "zone_id": "ext_landscape_perimeter",
+      "condition": "when_adjacent",
+      "protection_level": "edge_only",
+      "upgrade_when": { "application_method": ["spray_backroll"] },
+      "upgrade_level": "full_cover",
+      "notes": "LF-based — measured along house perimeter where landscape is adjacent. Roll: drop cloth at base. Spray_backroll: full tarp width over plantings (10-15 ft overspray drift)."
+    },
+    {
+      "zone_id": "ext_hardscape_walk",
+      "condition": "when_adjacent",
+      "protection_level": "light_mask",
+      "upgrade_when": { "application_method": ["spray_backroll"] },
+      "upgrade_level": "full_cover",
+      "notes": "Walkways adjacent to masonry wall. Canvas drop cloths for non-slip crew traffic."
+    },
+    {
+      "zone_id": "ext_hardscape_patio",
+      "condition": "when_adjacent",
+      "protection_level": "light_mask",
+      "upgrade_when": { "application_method": ["spray_backroll"] },
+      "upgrade_level": "full_cover",
+      "notes": "Patio adjacent to masonry wall. Protection level driven by proximity and application method."
+    },
+    {
+      "zone_id": "ext_light_fixture",
+      "condition": "always",
+      "protection_level": "light_mask",
+      "notes": "All exterior fixtures on working elevations. Bag or tape over fixture. Use blue tape on fixture (smooth surface) — stucco tape for masking ON masonry."
+    },
+    {
+      "zone_id": "ext_hvac_unit",
+      "condition": "when_adjacent",
+      "protection_level": "full_cover",
+      "notes": "HVAC condenser units adjacent to masonry wall. Full tarp cover during spray operations. Do not block intake/exhaust if running."
+    }
+  ],
+
+  "required_paintscope_inputs": [
+    {
+      "input_name": "IN_SF_MASONRY_WALL",
+      "paintscope_key": "PS_EXT_SURFACE_SF.MASONRY_WALL",
+      "uom": "SF",
+      "required": true,
+      "description": "Net paintable masonry wall field area"
+    },
+    {
+      "input_name": "IN_ENUM_SUBSTRATE_TYPE_MASONRY",
+      "paintscope_key": "PS_EXT_META.ENUM.SUBSTRATE_TYPE_MASONRY",
+      "uom": "ENUM",
+      "required": true,
+      "description": "Masonry substrate type (brick/CMU/concrete/limestone) — drives block filler, cleaning restrictions, production modifier"
+    },
+    {
+      "input_name": "IN_ENUM_COATING_SYSTEM_MASONRY",
+      "paintscope_key": "PS_EXT_META.ENUM.COATING_SYSTEM_MASONRY",
+      "uom": "ENUM",
+      "required": true,
+      "description": "Masonry coating system (acrylic/elastomeric) — drives DFT, material consumption, production rate, moisture risk"
+    },
+    {
+      "input_name": "IN_EA_ELEVATIONS",
+      "paintscope_key": "PS_EXT_META.EA.ELEVATIONS_TOTAL",
+      "uom": "EA",
+      "required": true,
+      "description": "Number of building elevations in scope"
+    },
+    {
+      "input_name": "IN_ENUM_ACCESS_TYPE",
+      "paintscope_key": "PS_EXT_META.ENUM.ACCESS_TYPE",
+      "uom": "ENUM",
+      "required": true,
+      "description": "Access type per elevation (ground/ladder/scaffold/lift) — drives FAC_EXT_ACCESS height modifier"
+    },
+    {
+      "input_name": "IN_BOOL_NEW_CONSTRUCTION",
+      "paintscope_key": "PS_EXT_META.FLAG.NEW_CONSTRUCTION",
+      "uom": "BOOL",
+      "required": true,
+      "description": "Boolean flag confirming new construction context. Always true for this NC spec."
+    },
+    {
+      "input_name": "IN_LF_EXT_PROTECT_LANDSCAPE_PERIMETER",
+      "paintscope_key": "PS_EXT_PROTECT_LF.LANDSCAPE_PERIMETER",
+      "uom": "LF",
+      "required": false,
+      "required_when": "When landscape is adjacent to masonry wall",
+      "description": "Linear feet of house perimeter where landscape is adjacent and requires protection"
+    },
+    {
+      "input_name": "IN_SF_EXT_PROTECT_HARDSCAPE_WALK",
+      "paintscope_key": "PS_EXT_PROTECT_SF.HARDSCAPE_WALK",
+      "uom": "SF",
+      "required": false,
+      "required_when": "When walkways are adjacent to masonry wall",
+      "description": "Walkway protection area"
+    },
+    {
+      "input_name": "IN_SF_EXT_PROTECT_HARDSCAPE_PATIO",
+      "paintscope_key": "PS_EXT_PROTECT_SF.HARDSCAPE_PATIO",
+      "uom": "SF",
+      "required": false,
+      "required_when": "When patio is adjacent to masonry wall",
+      "description": "Patio protection area"
+    },
+    {
+      "input_name": "IN_EA_EXT_PROTECT_LIGHT_FIXTURE",
+      "paintscope_key": "PS_EXT_PROTECT_EA.LIGHT_FIXTURE",
+      "uom": "EA",
+      "required": false,
+      "required_when": "When exterior fixtures are present on masonry elevations",
+      "description": "Count of light fixtures to mask"
+    },
+    {
+      "input_name": "IN_EA_EXT_PROTECT_HVAC_UNIT",
+      "paintscope_key": "PS_EXT_PROTECT_EA.HVAC_UNIT",
+      "uom": "EA",
+      "required": false,
+      "required_when": "When HVAC units are adjacent to masonry wall",
+      "description": "Count of HVAC units to cover"
+    }
+  ],
+
+  "adjacency_declarations": {
+    "primary_surface": "masonry_wall_field",
+    "adjacent_surfaces": [
+      {
+        "surface_id": "ext_trim_window_casing",
+        "edge_type": "linear",
+        "typical_relationship": "different_finish",
+        "continuity_rate_modifier": 1.0,
+        "notes": "Window casing or masonry opening trim. Masonry terminates at opening. Separate spec."
+      },
+      {
+        "surface_id": "ext_trim_door_casing",
+        "edge_type": "linear",
+        "typical_relationship": "different_finish",
+        "continuity_rate_modifier": 1.0,
+        "notes": "Door casing trim. Same as window casing relationship. Separate spec."
+      },
+      {
+        "surface_id": "soffit_field",
+        "edge_type": "linear",
+        "typical_relationship": "different_finish",
+        "continuity_rate_modifier": 1.0,
+        "notes": "Soffit underside at eave/parapet junction. Different color typically. Separate scope."
+      },
+      {
+        "surface_id": "foundation_wall",
+        "edge_type": "linear",
+        "typical_relationship": "not_in_scope",
+        "continuity_rate_modifier": 1.0,
+        "notes": "Foundation below masonry wall. Not painted in this scope."
+      },
+      {
+        "surface_id": "ext_trim_frieze",
+        "edge_type": "linear",
+        "typical_relationship": "different_finish",
+        "continuity_rate_modifier": 1.0,
+        "notes": "Frieze or band board at masonry-to-soffit junction (if present). Trim scope."
+      }
+    ]
+  },
+
+  "site_condition_rules": [
+    {
+      "condition_id": "access_type",
+      "treatment": "height_modifier",
+      "vocabulary_ref": "Exterior_Modifiers_Doctrine.md FAC_EXT_ACCESS",
+      "affected_tasks": "All tasks performed at elevation (see FAC_EXT_ACCESS applies_to list in production.json)",
+      "effect": "ground=1.00, ladder=1.35, scaffold=1.60, lift=1.50. Applied as time multiplier: effective_rate = base_rate / modifier.",
+      "notes": "Access type is a height modifier, NOT a site condition. Applied per elevation. Scaffold is particularly common for masonry (heavy staging for long-duration work at height)."
+    }
+  ],
+
+  "cross_spec_boundaries": [
+    {
+      "boundary": "Window masking and glass protection",
+      "owner": "Window spec",
+      "notes": "Window/door protection during masonry wall work is NOT this spec's responsibility. Prevents double-counting."
+    },
+    {
+      "boundary": "Door masking and hardware protection",
+      "owner": "Door spec",
+      "notes": "Same principle as window protection."
+    },
+    {
+      "boundary": "Exterior trim painting",
+      "owner": "Future SF_TRIM_EXT_NC_PAINT",
+      "notes": "Corner boards, frieze, rake, window/door casing — all separate from masonry wall field."
+    },
+    {
+      "boundary": "Soffit and fascia painting",
+      "owner": "Future SF_SOFFIT_EXT_NC_PAINT",
+      "notes": "Soffit underside at masonry-to-eave junction — separate scope."
+    },
+    {
+      "boundary": "Foundation wall coating",
+      "owner": "Future exterior foundation spec",
+      "notes": "Below-grade and earth-contact surfaces require different coating systems and prep."
+    },
+    {
+      "boundary": "Environmental conditions excluded from estimation",
+      "owner": "SOP process constraints",
+      "notes": "Wind, dew point, surface temperature are scheduling/process concerns per RC-003 pattern. Not estimatable at bid time."
+    }
+  ],
+
+  "round_configurations": [
+    {
+      "round_id": "ROUND_MSRY_BLOCKFILL_PRIME_2FINISH",
+      "name": "Block Filler + Prime + 2 Finish Coats (CMU, QT3/QT4)",
+      "applies_when": { "substrate_type": ["CMU"], "quality_tier": ["QT3", "QT4"] },
+      "total_coats": 4,
+      "interstage_cycles": 1,
+      "notes": "Full CMU sequence. Block filler is phase=prep (substrate preparation). 4 applied layers: filler + primer + 2 finish. Elastomeric always requires 2 finish coats."
+    },
+    {
+      "round_id": "ROUND_MSRY_BLOCKFILL_PRIME_1FINISH",
+      "name": "Block Filler + Prime + 1 Finish Coat (CMU, QT2)",
+      "applies_when": { "substrate_type": ["CMU"], "quality_tier": ["QT2"] },
+      "total_coats": 3,
+      "interstage_cycles": 0,
+      "notes": "Economy CMU. Single acrylic finish coat on primed CMU. Elastomeric not available at QT2."
+    },
+    {
+      "round_id": "ROUND_MSRY_PRIME_2FINISH",
+      "name": "Prime + 2 Finish Coats (Brick/Concrete/Limestone, QT3/QT4)",
+      "applies_when": { "substrate_type": ["brick", "concrete", "limestone"], "quality_tier": ["QT3", "QT4"] },
+      "total_coats": 3,
+      "interstage_cycles": 1,
+      "notes": "Standard non-CMU. No block filler needed. Elastomeric always requires 2 finish coats."
+    },
+    {
+      "round_id": "ROUND_MSRY_PRIME_1FINISH",
+      "name": "Prime + 1 Finish Coat (Brick/Concrete/Limestone, QT2)",
+      "applies_when": { "substrate_type": ["brick", "concrete", "limestone"], "quality_tier": ["QT2"] },
+      "total_coats": 2,
+      "interstage_cycles": 0,
+      "notes": "Economy non-CMU. Single acrylic finish coat on primed masonry. Elastomeric not available at QT2."
+    }
+  ],
+
+  "variants": [
+    {
+      "variant_id": "VAR_QT2_SPRAY_BACKROLL_BRICK",
+      "applies_when": { "quality_tier": ["QT2"], "application_method": ["spray_backroll"], "substrate_type": ["brick", "concrete", "limestone"] },
+      "coats": { "prime": 1, "finish": 1 },
+      "protection_zones": ["ext_landscape_perimeter", "ext_hardscape_walk", "ext_light_fixture", "ext_hvac_unit"],
+      "notes": "Economy spray_backroll on non-CMU masonry. Single acrylic finish coat. Full landscape/hardscape protection for overspray."
+    },
+    {
+      "variant_id": "VAR_QT2_SPRAY_BACKROLL_CMU",
+      "applies_when": { "quality_tier": ["QT2"], "application_method": ["spray_backroll"], "substrate_type": ["CMU"] },
+      "coats": { "block_filler": 1, "prime": 1, "finish": 1 },
+      "protection_zones": ["ext_landscape_perimeter", "ext_hardscape_walk", "ext_light_fixture", "ext_hvac_unit"],
+      "notes": "Economy spray_backroll on CMU. Block filler + primer + single acrylic finish coat."
+    },
+    {
+      "variant_id": "VAR_QT3_SPRAY_BACKROLL_BRICK_ACRYLIC",
+      "applies_when": { "quality_tier": ["QT3"], "application_method": ["spray_backroll"], "substrate_type": ["brick", "concrete", "limestone"], "coating_system": ["acrylic"] },
+      "coats": { "prime": 1, "finish": 2 },
+      "protection_zones": ["ext_landscape_perimeter", "ext_hardscape_walk", "ext_hardscape_patio", "ext_light_fixture", "ext_hvac_unit"],
+      "notes": "Standard spray_backroll acrylic on non-CMU. Two finish coats. Full protection."
+    },
+    {
+      "variant_id": "VAR_QT3_SPRAY_BACKROLL_CMU_ACRYLIC",
+      "applies_when": { "quality_tier": ["QT3"], "application_method": ["spray_backroll"], "substrate_type": ["CMU"], "coating_system": ["acrylic"] },
+      "coats": { "block_filler": 1, "prime": 1, "finish": 2 },
+      "protection_zones": ["ext_landscape_perimeter", "ext_hardscape_walk", "ext_hardscape_patio", "ext_light_fixture", "ext_hvac_unit"],
+      "notes": "Standard spray_backroll acrylic on CMU. Block filler + primer + 2 acrylic finish coats."
+    },
+    {
+      "variant_id": "VAR_QT3_SPRAY_BACKROLL_ELASTOMERIC",
+      "applies_when": { "quality_tier": ["QT3"], "application_method": ["spray_backroll"], "coating_system": ["elastomeric"] },
+      "coats": { "prime": 1, "finish": 2 },
+      "protection_zones": ["ext_landscape_perimeter", "ext_hardscape_walk", "ext_hardscape_patio", "ext_light_fixture", "ext_hvac_unit"],
+      "notes": "Elastomeric spray_backroll at QT3. Two elastomeric finish coats mandatory. 1.50x production modifier. Flat sheen only."
+    },
+    {
+      "variant_id": "VAR_QT4_SPRAY_BACKROLL_ACRYLIC",
+      "applies_when": { "quality_tier": ["QT4"], "application_method": ["spray_backroll"], "coating_system": ["acrylic"] },
+      "coats": { "prime": 1, "finish": 2 },
+      "protection_zones": ["ext_landscape_perimeter", "ext_hardscape_walk", "ext_hardscape_patio", "ext_light_fixture", "ext_hvac_unit"],
+      "notes": "Premium spray_backroll acrylic. Interstage sanding. Raking light inspection. Premium materials."
+    },
+    {
+      "variant_id": "VAR_QT4_SPRAY_BACKROLL_ELASTOMERIC",
+      "applies_when": { "quality_tier": ["QT4"], "application_method": ["spray_backroll"], "coating_system": ["elastomeric"] },
+      "coats": { "prime": 1, "finish": 2 },
+      "protection_zones": ["ext_landscape_perimeter", "ext_hardscape_walk", "ext_hardscape_patio", "ext_light_fixture", "ext_hvac_unit"],
+      "notes": "Premium elastomeric spray_backroll. Worst-case modifier stacking scenario. Flat sheen only."
+    },
+    {
+      "variant_id": "VAR_QT3_ROLL_BRICK_ACRYLIC",
+      "applies_when": { "quality_tier": ["QT3"], "application_method": ["roll"], "substrate_type": ["brick", "concrete", "limestone"], "coating_system": ["acrylic"] },
+      "coats": { "prime": 1, "finish": 2 },
+      "protection_zones": ["ext_landscape_perimeter", "ext_hardscape_walk", "ext_light_fixture"],
+      "notes": "Standard roll-only acrylic on non-CMU. Reduced protection scope — no patio cover needed (no overspray). Slower production, 1-person crew."
+    }
+  ],
+
+  "qa_summary": {
+    "overall_result": "pass",
+    "issues_found": 2,
+    "critical": 0,
+    "major": 0,
+    "minor": 2,
+    "blockers": 0,
+    "key_validations": [
+      "31/31 tasks thread correctly between sop_modules.json and production.json",
+      "All PS keys use PS_EXT_* namespace — no interior contamination",
+      "Block filler CMU-only gating enforced in materials, SOP, and production",
+      "Alkali-resistant primer is the ONLY primer system — no standard primer path",
+      "All 4 spray_backroll tasks have crew_size=2",
+      "Oil-based products explicitly prohibited (COMPAT-MSRY-001)",
+      "Moisture hard stop at 12% enforced (COMPAT-MSRY-007)",
+      "Elastomeric restricted to QT3+ (COMPAT-MSRY-005)",
+      "Maximum modifier stack 3.744x under 4.0x cap"
+    ]
+  },
+
+  "sequencing_notes": {
+    "production_sequence": "Setup -> Prep -> Block Fill (CMU only) -> Prime -> Finish 1 -> Interstage (QT3/QT4) -> Finish 2 (QT3/QT4) -> Final Inspect -> Cleanup",
+    "edge_work": "No edge work in this spec. Masonry terminates at openings and trim elements — no cut-in or blending across specs.",
+    "protection_sequence": "Landscape/hardscape protection -> Fixture masking -> Equipment setup -> Coating work -> Protection teardown -> Equipment cleanup -> Site cleanup",
+    "coat_sequence": "Cure verify -> Moisture test -> Prep (efflorescence, wash, form-release, caulk, repair) -> Block filler (CMU) -> Prime (alkali-resistant) -> Finish 1 -> Interstage (QT3/QT4) -> Finish 2 (QT3/QT4) -> Final inspect -> Touch up",
+    "elevation_strategy": "Work one elevation at a time to minimize protection setup/teardown cycles. Follow shade for optimal conditions. Scaffold moves per elevation.",
+    "key_prohibitions": "NO spray-only on masonry (backroll mandatory). NO oil-based or alkyd products. NO acid cleaning on limestone. NO coating at MC > 12%. NO elastomeric at QT2."
+  },
+
+  "relationships": {
+    "companion_spec": null,
+    "often_combined_with": [],
+    "sibling_spec": "SF_SIDING_FIBERCEMENT_EXT_NC_v1",
+    "typical_before": [],
+    "typical_after": [],
+    "cross_spec_protection_note": "Window/door protection during masonry work is owned by window/door specs, not this spec.",
+    "notes": "First exterior masonry spec. Shares protection zone pattern with siding siblings. Key departures: spray_backroll mandatory (opposite of fiber cement), single substrate state, block filler module, alkali-resistant primer only, dual coating system (acrylic/elastomeric), substrate_type configuration dimension."
+  },
+
+  "dependencies": {
+    "research": "research.json",
+    "resolution": "resolution.json",
+    "sop_modules": "sop_modules.json",
+    "materials": "materials.json",
+    "production": "production.json",
+    "qa_report": "qa_report.json"
+  },
+
+  "doctrine_references": [
+    { "doctrine": "Exterior_Masonry_Brick_Block_CMU_Doctrine.md", "sections_used": ["Substrate types and alkalinity §1", "28-day cure and accelerated coating §2", "Efflorescence treatment §3", "Block filler PCA P12 §4", "Acrylic vs elastomeric §5", "Failure modes §7", "PaintFactor Integration Notes"] },
+    { "doctrine": "Exterior_Primer_Systems_Doctrine.md", "sections_used": ["Alkali-resistant primer §1", "Oil-based prohibition on masonry §1", "Coverage rates §4"] },
+    { "doctrine": "Exterior_Application_Methods_Doctrine.md", "sections_used": ["Spray_backroll mandatory on masonry Part A §6", "Spray tip selection Part A §1", "Transfer efficiency Part B §5", "Two-person crew Part B §8"] },
+    { "doctrine": "Exterior_Surface_Assessment_Doctrine.md", "sections_used": ["Masonry substrate assessment", "Moisture testing protocols"] },
+    { "doctrine": "Exterior_Protection_Doctrine_T3.md", "sections_used": ["Landscape zones", "Hardscape zones", "Fixture zones", "Method-based protection escalation"] },
+    { "doctrine": "Exterior_Climate_Environmental_Conditions_Doctrine.md", "sections_used": ["Substrate pre-wetting §5", "Wind/temperature exclusion from estimation"] },
+    { "doctrine": "Exterior_Access_Staging_Systems_Doctrine.md", "sections_used": ["Scaffold for masonry", "Access type modifier values"] },
+    { "doctrine": "Exterior_Caulking_Sealants_Doctrine.md", "sections_used": ["Polyurethane caulk for masonry-to-trim joints", "Cure time before painting"] },
+    { "doctrine": "Exterior_Color_Sheen_Configuration_Doctrine.md", "sections_used": ["Masonry sheen selection (flat/satin)", "Elastomeric flat-only"] }
+  ],
+
+  "research_corrections": [],
+
+  "user_corrections": [],
+
+  "change_log": [
+    {
+      "version": "0.1.0",
+      "date": "2026-03-10",
+      "author": "SpecFactory",
+      "changes": "Initial draft spec for exterior masonry wall coating (brick, CMU, cast concrete, limestone). First exterior masonry spec — follows siding exterior pattern with masonry-specific departures. Key features: combined prime+paint (single mobilization), single NC substrate state (SS_EXT_BARE_MASONRY), 4 substrate types (brick/CMU/concrete/limestone), 2 coating systems (acrylic/elastomeric), 3 application methods (spray_backroll/roll/brush — spray-only prohibited), 2 sheens (flat/satin), 3 quality tiers (QT2-QT4, QT5 excluded), 31 tasks across 9 modules (incl. block fill module for CMU), 5 material systems (1 specialty + 1 primer + 3 finish), 4 factor modifiers (access/substrate_type/coating_system/QT), 4 round configurations. 8 compatibility rules enforce masonry-specific constraints (oil-based prohibition, alkali-resistant primer mandatory, block filler on CMU, moisture hard stop, spray_backroll coupling, no acid on limestone, elastomeric QT3+ only). QA result: pass (2 minor issues acknowledged)."
+    }
+  ]
+}

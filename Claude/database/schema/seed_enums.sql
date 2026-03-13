@@ -130,7 +130,8 @@ INSERT OR REPLACE INTO ref_application_methods (value, description) VALUES
     ('roll', 'Roller-only application (walls, ceilings without spray)'),
     ('spray', 'Airless spray without backroll (economy ceiling, pre-install surfaces)'),
     ('spray_backroll', 'Spray followed by immediate backroll with 18" roller (standard NC production)'),
-    ('spray_rolloff', 'Spray with light rolloff to work product into substrate grain (bare wood primer)');
+    ('spray_rolloff', 'Spray with light rolloff to work product into substrate grain (bare wood primer)'),
+    ('spray_backbrush', 'Spray followed by immediate backbrushing to work product into substrate grain (exterior siding/fence)');
 
 -- Sheens
 INSERT OR REPLACE INTO ref_sheens (value, description, sort_order) VALUES
@@ -240,7 +241,7 @@ INSERT OR REPLACE INTO ref_protection_levels (value, description) VALUES
     ('light_mask', 'Light tape application at junctions/edges'),
     ('full_mask', 'Full tape line with draped plastic');
 
--- Substrate States
+-- Substrate States (Interior)
 INSERT OR REPLACE INTO ref_substrate_states (value, description) VALUES
     ('SS_BARE', 'Raw/uncoated substrate (bare wood, MDF, new drywall)'),
     ('SS_PRIMED', 'Generic primed state'),
@@ -252,6 +253,24 @@ INSERT OR REPLACE INTO ref_substrate_states (value, description) VALUES
     ('SS_PAINTED_SATIN', 'Finish-coated with satin sheen'),
     ('SS_PAINTED_SEMIGLOSS', 'Finish-coated with semi-gloss sheen'),
     ('SS_PAINTED_GLOSS', 'Finish-coated with gloss sheen');
+
+-- Substrate States (Exterior)
+INSERT OR REPLACE INTO ref_substrate_states (value, description) VALUES
+    ('SS_EXT_PRIMED_FACTORY', 'Exterior factory-primed substrate (transit protection only — field prime mandatory)'),
+    ('SS_EXT_BARE_FIBERCEMENT', 'Bare fiber cement (pH 13.0, no factory primer — requires alkali-resistant primer)'),
+    ('SS_EXT_PRIMED_FIELD', 'Exterior field-primed substrate (ready for topcoat)'),
+    ('SS_EXT_FACTORY_FINISHED', 'Factory-finished exterior substrate (ColorPlus/ExpertFinish — requires bonding primer)'),
+    ('SS_EXT_PAINTED_FLAT', 'Exterior painted finish — flat sheen'),
+    ('SS_EXT_PAINTED_SATIN', 'Exterior painted finish — satin sheen'),
+    ('SS_EXT_PAINTED_SEMIGLOSS', 'Exterior painted finish — semi-gloss sheen'),
+    ('SS_EXT_BARE_WOOD', 'Exterior bare wood (new construction or stripped)'),
+    ('SS_EXT_SOUND_PAINT', 'Exterior sound existing paint (adhered, minimal chalk)'),
+    ('SS_EXT_CHALKING', 'Exterior chalking paint (surface chalk present)'),
+    ('SS_EXT_FAILING_PAINT', 'Exterior failing paint (cracking, alligatoring)'),
+    ('SS_EXT_PEELING', 'Exterior peeling paint (active coating lifting)'),
+    ('SS_EXT_WEATHERED', 'Exterior weathered wood (grayed, UV-damaged)'),
+    ('SS_EXT_STAINED_SOLID', 'Exterior solid stain (treat as painted — compatible with paint topcoat)'),
+    ('SS_EXT_STAINED_SEMI', 'Exterior semi-transparent stain (cannot paint over — re-stain only)');
 
 -- Surface Textures
 INSERT OR REPLACE INTO ref_surface_textures (value, description) VALUES
@@ -279,4 +298,5 @@ INSERT OR REPLACE INTO ref_modifier_mechanisms (value, description) VALUES
     ('baseline_reduction', 'Rate is reduced from baseline (QT2 = 0.80, less effort)'),
     ('selective_multiplier', 'Rate is multiplied for specific task types'),
     ('additional_rounds', 'Additional interstage rounds are added'),
-    ('excluded', 'This tier is excluded from the spec entirely');
+    ('excluded', 'This tier is excluded from the spec entirely'),
+    ('time_multiplier', 'Rate is multiplied by a factor (e.g., access type, profile complexity)');

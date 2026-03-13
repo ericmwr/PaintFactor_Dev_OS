@@ -1,0 +1,708 @@
+{
+  "spec_family": {
+    "id": "SF_FENCE_EXT",
+    "name": "Exterior Fence Staining & Painting",
+    "description": "Stain and paint application for exterior wood fences (cedar, pressure-treated pine). Covers new construction AND existing fences via wood_condition dimension. Coating_type is the primary configuration dimension (transparent, semi_transparent, solid_stain, paint) — replaces quality_tier. Includes full prep (moisture verification, seasoning check for PT pine, pressure wash, mill glaze removal for cedar, chemical restoration for weathered wood), stain-blocking primer (cedar + solid/paint only), stain or paint application (spray_backbrush, brush, roll), second coat (solid_stain and paint only), final inspection, and cleanup. PaintScope delivers final SF after (LF x Height x 2) and fence_style geometric multiplier — spec does NOT compute geometry. Single paintable item (ITM_FENCE_FIELD, SF). Back-brushing is MANDATORY when spraying penetrating stains. Paint is LEAST RECOMMENDED for wood fences — moisture-driven peeling risk requires mandatory risk warning documentation.",
+    "domain": "exterior",
+    "version": "0.1.0",
+    "status": "draft",
+    "review_required": true
+  },
+
+  "scope_boundaries": {
+    "includes": [
+      "Moisture content verification (MC <=19% untreated wood, <=25% PT pine — HARD STOP)",
+      "PT pine seasoning verification (3-6 month minimum — HARD STOP if <3 months)",
+      "Mill glaze removal sanding (new milled cedar only — 80-grit)",
+      "Pressure wash (1,000-1,500 PSI — lower than deck for vertical surfaces)",
+      "Mildew eradication treatment (conditional — when visible mildew present)",
+      "Previously coated surface sanding (80-100 grit for refinishing)",
+      "Chemical wood restoration for weathered fences (3-step: alkaline strip, acid brighten, rinse — 12-24 hr dry)",
+      "Stain-blocking primer (cedar + solid_stain/paint only — tannin bleed prevention)",
+      "Standard exterior primer (PT pine + paint only)",
+      "Stain application — transparent, semi-transparent, or solid (spray_backbrush, brush, roll)",
+      "Paint application — exterior acrylic latex (spray, brush, roll) — LEAST RECOMMENDED",
+      "Second coat application (solid_stain and paint only — penetrating stains are single-coat)",
+      "Both-sides application sequencing (side A -> equipment move -> side B)",
+      "Post and cap end-grain treatment (absorbs 2-3x face rate)",
+      "Gate hardware removal and reinstallation",
+      "Landscape protection along fence base (both sides, LF-based)",
+      "Hardscape protection for adjacent driveways/patios/walkways",
+      "Siding protection at fence-to-house tie-in",
+      "Neighbor-side overspray protection (spray method only)",
+      "Final walkthrough inspection and touch-up",
+      "Paint risk warning documentation (when coating_type = paint)"
+    ],
+    "excludes": [
+      {
+        "item": "Metal fences (wrought iron, aluminum, chain link)",
+        "route_to": "Future SF_METAL_EXT_v1 — different substrate, primer, and coating chemistry"
+      },
+      {
+        "item": "Composite fences",
+        "route_to": "Out of scope — maintenance-free by design"
+      },
+      {
+        "item": "Vinyl fences",
+        "route_to": "Out of scope — rarely painted"
+      },
+      {
+        "item": "Fence construction, post setting, board replacement",
+        "route_to": "Carpentry scope — not painting scope"
+      },
+      {
+        "item": "Fence_style geometric multiplier calculation",
+        "route_to": "PaintScope — applies multiplier before delivering final SF to spec"
+      },
+      {
+        "item": "Environmental condition scheduling (wind, dew point, surface temp)",
+        "route_to": "SOP process constraints — not estimatable at bid time"
+      }
+    ]
+  },
+
+  "configuration_dimensions": [
+    {
+      "dimension_id": "coating_type",
+      "description": "PRIMARY configuration dimension — replaces quality_tier for this spec. Drives coating chemistry (penetrating vs film-forming), maintenance cycle, failure mode profile, primer requirement, and coat count.",
+      "values": ["transparent", "semi_transparent", "solid_stain", "paint"],
+      "default": "semi_transparent",
+      "notes": "Semi-transparent is the professional standard for residential wood fences (~55% of work). Transparent = economy/minimal (1-2 yr cycle). Solid_stain = enhanced durability (3-7 yr). Paint = longest theoretical cycle (5-10 yr) but LEAST RECOMMENDED — moisture-driven peeling risk. Paint triggers mandatory risk warning. No quality_tier dimension — coating_type drives everything."
+    },
+    {
+      "dimension_id": "wood_condition",
+      "description": "Drives prep module selection and prep material requirements. This spec covers both new construction AND existing fences.",
+      "values": ["new", "weathered", "previously_coated"],
+      "default": "new",
+      "notes": "New: seasoning verification (PT pine) + mill glaze sanding (cedar). Weathered: chemical restoration protocol (strip, brighten, rinse — 12-24 hr dry). Previously_coated: assess existing coating, sand/strip, recoat. Each condition has fundamentally different prep time and materials."
+    },
+    {
+      "dimension_id": "substrate_material",
+      "description": "Fence wood species. Drives prep chemistry, tannin management, primer requirements, and production rate modifier.",
+      "values": ["cedar", "pressure_treated_pine"],
+      "default": "pressure_treated_pine",
+      "notes": "PT pine ~65% of residential fences (cost-driven). Cedar ~30% (premium aesthetic). Cedar requires tannin management (oxalic acid brightener) and tannin-blocking primer for solid stain/paint. PT pine requires 3-6 month seasoning verification. Composite, vinyl, metal explicitly excluded."
+    },
+    {
+      "dimension_id": "application_method",
+      "description": "Primary application technique for stain/paint coats.",
+      "values": ["spray_backbrush", "brush", "roll"],
+      "default": "spray_backbrush",
+      "notes": "Spray_backbrush is production method for privacy and shadowbox fences (2-person crew: one sprays, one back-brushes). Back-brushing MANDATORY for penetrating stains — spray-only PROHIBITED. Brush is primary for split rail and detail. Roll for privacy fence flat panels. Paint spray does not require mandatory back-brush (film-forming)."
+    }
+  ],
+
+  "paintable_items": [
+    {
+      "item_id": "ITM_FENCE_FIELD",
+      "name": "Fence Field Surface (panels, boards, posts, rails, gates — both sides)",
+      "unit_of_measure": "SF",
+      "counting_rules": "Net fence field surface area in square feet. PaintScope delivers FINAL SF after (LF x Height x 2) and fence_style geometric multiplier (privacy 1.0x, shadowbox 1.6x, picket 0.7x). Includes both sides, all panels, posts, gates, and rails. Spec receives and uses final SF as-is — does NOT compute geometry.",
+      "notes": "Single paintable item. Simplest item model among exterior wood specs. Posts and gates are stained as part of the field pass, not separate line items. Post end-grain (tops) absorbs 2-3x face rate — accounted in material coverage profiles, not as separate item."
+    }
+  ],
+
+  "required_paintscope_inputs": [
+    {
+      "input_name": "IN_SF_FENCE_FIELD",
+      "paintscope_key": "PS_EXT_SURFACE_SF.FENCE_FIELD",
+      "uom": "SF",
+      "required": true,
+      "description": "Net fence field surface area (both sides, after style multiplier)"
+    },
+    {
+      "input_name": "IN_ENUM_COATING_TYPE_FENCE",
+      "paintscope_key": "PS_EXT_META.ENUM.COATING_TYPE_FENCE",
+      "uom": "ENUM",
+      "required": true,
+      "description": "Primary dimension — coating type (transparent, semi_transparent, solid_stain, paint)"
+    },
+    {
+      "input_name": "IN_ENUM_WOOD_CONDITION_FENCE",
+      "paintscope_key": "PS_EXT_META.ENUM.WOOD_CONDITION_FENCE",
+      "uom": "ENUM",
+      "required": true,
+      "description": "Wood condition (new, weathered, previously_coated) — drives prep module selection"
+    },
+    {
+      "input_name": "IN_ENUM_FENCE_STYLE",
+      "paintscope_key": "PS_EXT_META.ENUM.FENCE_STYLE",
+      "uom": "ENUM",
+      "required": true,
+      "description": "Fence style (privacy, shadowbox, picket, split_rail) — INFORMATIONAL to spec, PaintScope uses for geometric multiplier"
+    },
+    {
+      "input_name": "IN_ENUM_SUBSTRATE_TYPE_FENCE",
+      "paintscope_key": "PS_EXT_META.ENUM.SUBSTRATE_TYPE_FENCE",
+      "uom": "ENUM",
+      "required": true,
+      "description": "Wood substrate (cedar, pressure_treated_pine) — drives tannin management and primer requirement"
+    },
+    {
+      "input_name": "IN_EA_FENCE_GATES",
+      "paintscope_key": "PS_EXT_META.EA.FENCE_GATES",
+      "uom": "EA",
+      "required": false,
+      "required_when": "When gates are present in fence line",
+      "description": "Count of gates — drives hardware masking/removal tasks"
+    },
+    {
+      "input_name": "IN_LF_EXT_PROTECT_LANDSCAPE_FENCE_BASE",
+      "paintscope_key": "PS_EXT_PROTECT_LF.LANDSCAPE_FENCE_BASE",
+      "uom": "LF",
+      "required": false,
+      "required_when": "When landscaping is adjacent to fence base",
+      "description": "Linear feet of fence base with landscaping requiring protection (both sides)"
+    },
+    {
+      "input_name": "IN_LF_EXT_PROTECT_HARDSCAPE_FENCE_ADJACENT",
+      "paintscope_key": "PS_EXT_PROTECT_LF.HARDSCAPE_FENCE_ADJACENT",
+      "uom": "LF",
+      "required": false,
+      "required_when": "When hardscape is adjacent to fence line",
+      "description": "Linear feet of hardscape (walkway, driveway, patio) along fence line"
+    },
+    {
+      "input_name": "IN_SF_EXT_PROTECT_SIDING_AT_FENCE_TIE",
+      "paintscope_key": "PS_EXT_PROTECT_SF.SIDING_AT_FENCE_TIE",
+      "uom": "SF",
+      "required": false,
+      "required_when": "When fence ties into house siding",
+      "description": "Siding area at fence-to-house junction requiring protection"
+    },
+    {
+      "input_name": "IN_EA_EXT_PROTECT_VEHICLE_ADJACENT",
+      "paintscope_key": "PS_EXT_PROTECT_EA.VEHICLE_ADJACENT",
+      "uom": "EA",
+      "required": false,
+      "required_when": "When vehicles are parked near fence spray zone",
+      "description": "Count of vehicles requiring full cover protection from overspray"
+    },
+    {
+      "input_name": "IN_LF_EXT_PROTECT_NEIGHBOR_PROPERTY_LINE",
+      "paintscope_key": "PS_EXT_PROTECT_LF.NEIGHBOR_PROPERTY_LINE",
+      "uom": "LF",
+      "required": false,
+      "required_when": "When spraying fence side facing neighbor property",
+      "description": "Linear feet of neighbor property line requiring protection"
+    },
+    {
+      "input_name": "IN_BOOL_NEW_CONSTRUCTION",
+      "paintscope_key": "PS_EXT_META.FLAG.NEW_CONSTRUCTION",
+      "uom": "BOOL",
+      "required": false,
+      "description": "Boolean flag for new construction context — used with wood_condition"
+    }
+  ],
+
+  "substrate_state_rules": {
+    "primary_surface": "fence_field",
+
+    "valid_input_states": {
+      "states": ["SS_EXT_BARE_WOOD", "SS_EXT_STAINED_SEMI", "SS_EXT_STAINED_SOLID", "SS_EXT_WEATHERED"],
+      "notes": "SS_EXT_BARE_WOOD = new wood (cedar or PT pine). SS_EXT_STAINED_SEMI = previously stained with penetrating stain. SS_EXT_STAINED_SOLID = previously stained with solid stain. SS_EXT_WEATHERED = UV-degraded grayed wood. Wood_condition dimension maps: new -> SS_EXT_BARE_WOOD, previously_coated -> SS_EXT_STAINED_SEMI or SS_EXT_STAINED_SOLID, weathered -> SS_EXT_WEATHERED."
+    },
+
+    "output_state": {
+      "state": "SS_EXT_STAINED_SEMI",
+      "varies_by": "coating_type",
+      "state_map": {
+        "transparent": "SS_EXT_STAINED_SEMI",
+        "semi_transparent": "SS_EXT_STAINED_SEMI",
+        "solid_stain": "SS_EXT_STAINED_SOLID",
+        "paint": "SS_EXT_PAINTED_SATIN"
+      },
+      "notes": "Output state varies by coating_type. Transparent and semi-transparent both output SS_EXT_STAINED_SEMI (penetrating finishes). Solid stain outputs SS_EXT_STAINED_SOLID (film-forming). Paint outputs SS_EXT_PAINTED_SATIN."
+    }
+  },
+
+  "protection_zones_required": [
+    {
+      "zone_id": "ext_landscape_fence_base",
+      "condition": "when_adjacent",
+      "protection_level": "full_cover",
+      "notes": "Landscaping, mulch beds, ground cover along fence base on BOTH sides. Drop cloth/plastic along fence line at ground level. Primary overspray and drip zone. Extends 2-3 ft from fence base (4-6 ft for spray_backbrush). Stain drips onto vegetation are difficult to remediate."
+    },
+    {
+      "zone_id": "ext_hardscape_fence_adjacent",
+      "condition": "when_adjacent",
+      "protection_level": "full_cover",
+      "notes": "Walkways, driveways, patios running along fence line. Stain on concrete is extremely difficult to remove — critical protection zone. Canvas for crew traffic areas (non-slip), plastic for non-traffic areas."
+    },
+    {
+      "zone_id": "ext_siding_at_fence_tie",
+      "condition": "when_adjacent",
+      "protection_level": "light_mask",
+      "upgrade_when": { "application_method": ["spray_backbrush"] },
+      "upgrade_level": "full_cover",
+      "notes": "House siding where fence attaches to structure. Tape and plastic at fence-to-house junction. Upgrade to full plastic coverage (4-6 ft up siding face) when spraying."
+    },
+    {
+      "zone_id": "ext_vehicle_adjacent",
+      "condition": "when_present",
+      "protection_level": "full_cover",
+      "notes": "Vehicles parked near fence being sprayed. Full cover with plastic sheeting. Overspray drift onto vehicles is a liability risk. Conditional — only when vehicles are within spray range."
+    },
+    {
+      "zone_id": "ext_neighbor_property",
+      "condition": "when_spraying",
+      "protection_level": "full_cover",
+      "notes": "Neighbor's landscaping, structures, and items near fence. Drop cloth along neighbor's side of fence base. Wind drift is primary concern. Coordinate with neighbor before deploying protection. Only activated for spray_backbrush method."
+    }
+  ],
+
+  "material_systems_summary": [
+    {
+      "system_id": "SYS_EXT_FNCE_TRANSPARENT",
+      "name": "Clear / Transparent Wood Sealer",
+      "product_role": "sealer",
+      "applies_when": { "coating_type": ["transparent"] },
+      "coats": 1,
+      "coverage_sf_per_gallon": 250,
+      "allowed_sheens": ["n/a"],
+      "notes": "Penetrating clear water repellent with UV filter. No color pigment. Wood grain fully visible. 1-2 year maintenance cycle. No primer required."
+    },
+    {
+      "system_id": "SYS_EXT_FNCE_SEMI_TRANSPARENT",
+      "name": "Semi-Transparent Penetrating Stain",
+      "product_role": "stain",
+      "applies_when": { "coating_type": ["semi_transparent"] },
+      "coats": 1,
+      "coverage_sf_per_gallon": 250,
+      "allowed_sheens": ["n/a"],
+      "notes": "PROFESSIONAL STANDARD for wood fences. Pigmented penetrating stain — wood grain visible through color. 2-4 year cycle. No primer required."
+    },
+    {
+      "system_id": "SYS_EXT_FNCE_SOLID_STAIN",
+      "name": "Solid Color Fence Stain",
+      "product_role": "stain",
+      "applies_when": { "coating_type": ["solid_stain"] },
+      "coats": 2,
+      "coverage_sf_per_gallon": 300,
+      "allowed_sheens": ["flat", "satin"],
+      "notes": "Film-forming solid body stain. Complete grain masking. 3-7 year cycle. Tannin-blocking primer required on cedar."
+    },
+    {
+      "system_id": "SYS_EXT_FNCE_PAINT",
+      "name": "Exterior Latex Paint (LEAST RECOMMENDED)",
+      "product_role": "paint",
+      "applies_when": { "coating_type": ["paint"] },
+      "coats": 2,
+      "coverage_sf_per_gallon": 350,
+      "allowed_sheens": ["flat", "satin", "semi_gloss"],
+      "notes": "LEAST RECOMMENDED for wood fences. Moisture-driven peeling risk. High-permeability formulation critical. Mandatory risk warning. Primer required on all substrates."
+    },
+    {
+      "system_id": "SYS_EXT_FNCE_PRIMER_STAIN_BLOCK",
+      "name": "Alkyd Stain-Blocking Primer",
+      "product_role": "primer",
+      "applies_when": { "substrate_material": ["cedar"], "coating_type": ["solid_stain", "paint"] },
+      "coats": 1,
+      "coverage_sf_per_gallon": 350,
+      "allowed_sheens": ["n/a"],
+      "notes": "MANDATORY on cedar + solid_stain/paint. Prevents tannin bleed through film-forming coatings. Also serves as standard exterior primer for paint on PT pine."
+    },
+    {
+      "system_id": "SYS_EXT_FNCE_CHEMICAL_STRIPPER",
+      "name": "Fence Cleaner / Stripper (Alkaline)",
+      "product_role": "prep_chemical",
+      "applies_when": { "wood_condition": ["weathered", "previously_coated"] },
+      "coats": 1,
+      "coverage_sf_per_gallon": 200,
+      "allowed_sheens": ["n/a"],
+      "notes": "First step in chemical restoration. Alkaline wood cleaner/stripper. MUST be neutralized with brightener before staining."
+    },
+    {
+      "system_id": "SYS_EXT_FNCE_BRIGHTENER",
+      "name": "Wood Brightener (Oxalic / Citric Acid)",
+      "product_role": "prep_chemical",
+      "applies_when": { "wood_condition": ["weathered", "previously_coated"] },
+      "coats": 1,
+      "coverage_sf_per_gallon": 200,
+      "allowed_sheens": ["n/a"],
+      "notes": "Second step in chemical restoration. Neutralizes alkaline stripper, restores natural wood color. Oxalic acid preferred for cedar tannin management. Also used standalone on cedar for tannin treatment."
+    }
+  ],
+
+  "sop_module_summary": {
+    "total_modules": 7,
+    "total_tasks": 35,
+    "task_breakdown": {
+      "binary": 18,
+      "condition_conditional": 7,
+      "coating_conditional": 10
+    },
+    "modules": [
+      { "module_id": "MOD_FNCE_SETUP", "phase": "setup", "task_count": 5, "notes": "Landscape/hardscape/siding/neighbor protection + gate hardware removal" },
+      { "module_id": "MOD_FNCE_PREP", "phase": "prep", "task_count": 6, "notes": "Moisture test, seasoning verify, mill glaze sand, pressure wash, mildew treat, refinish sand" },
+      { "module_id": "MOD_FNCE_CHEMICAL_RESTORE", "phase": "prep", "task_count": 8, "applies_when": { "wood_condition": ["weathered"] }, "notes": "3-step chemical restoration: strip, brighten, rinse + dwell times + dry verify" },
+      { "module_id": "MOD_FNCE_APPLY", "phase": "apply", "task_count": 7, "notes": "Coat 1 — primer (conditional) + 3 stain method variants + 3 paint method variants" },
+      { "module_id": "MOD_FNCE_APPLY_COAT2", "phase": "apply", "task_count": 6, "applies_when": { "coating_type": ["solid_stain", "paint"] }, "notes": "Coat 2 — 3 stain method variants + 3 paint method variants" },
+      { "module_id": "MOD_FNCE_FINAL_INSPECT", "phase": "cleanup", "task_count": 3, "notes": "Final walkthrough + touch-up + gate hardware reinstall" },
+      { "module_id": "MOD_FNCE_CLEANUP", "phase": "cleanup", "task_count": 2, "notes": "Protection teardown + tool cleaning" }
+    ]
+  },
+
+  "production_summary": {
+    "total_rates": 35,
+    "crew_size_2_tasks": 2,
+    "crew_size_2_task_ids": [
+      "TSK_FNCE_STAIN_SPRAY_BACKBRUSH",
+      "TSK_FNCE_STAIN_SPRAY_BACKBRUSH_COAT2"
+    ],
+    "factor_modifiers": [
+      {
+        "factor_id": "FAC_FNCE_COATING_TYPE",
+        "values": { "transparent": 0.85, "semi_transparent": 1.00, "solid_stain": 1.15, "paint": 1.30 },
+        "applies_to_count": 12,
+        "notes": "Applies to APPLICATION tasks only. Semi-transparent is baseline."
+      },
+      {
+        "factor_id": "FAC_FNCE_WOOD_CONDITION",
+        "values": { "new_milled": 1.00, "new_pt_seasoned": 1.05, "weathered": 1.40, "previously_coated": 1.60 },
+        "applies_to_count": 9,
+        "notes": "Applies to PREP tasks only. Application rates not affected — prep normalizes surface."
+      },
+      {
+        "factor_id": "FAC_FNCE_SUBSTRATE_TYPE",
+        "values": { "pt_pine": 1.00, "cedar": 1.10 },
+        "applies_to_count": 21,
+        "notes": "Applies to both prep and application tasks. Cedar is softer, absorbs more stain."
+      }
+    ],
+    "max_modifier_stack": 2.288,
+    "stacking_cap": 4.0,
+    "within_cap": true,
+    "rate_ranges": {
+      "fastest_application": "300 SF/hr (paint spray, 1-person crew)",
+      "standard_application": "215 SF/hr (stain spray_backbrush, 2-person crew)",
+      "slowest_application": "120 SF/hr (stain brush, 1-person crew)",
+      "prep_range": "50-400 SF/hr depending on task"
+    },
+    "no_height_modifier": true,
+    "notes": "No FAC_EXT_ACCESS — all fence work is ground-level. Fence_style geometric multiplier handled by PaintScope before SF reaches spec. Max combined modifier 2.29x (paint 1.30 x previously_coated 1.60 x cedar 1.10) — well under 4.0x cap."
+  },
+
+  "compatibility_rules": [
+    {
+      "rule_id": "COMPAT-FNCE-001",
+      "name": "Paint risk warning mandatory",
+      "condition": "coating_type = paint",
+      "action": "Document moisture-driven peeling risk warning in project record with customer acknowledgment. Paint is LEAST RECOMMENDED for wood fences — moisture migrates through fence from both sides and lifts film.",
+      "severity": "critical"
+    },
+    {
+      "rule_id": "COMPAT-FNCE-002",
+      "name": "MC hard stop",
+      "condition": "Wood MC > 19% (untreated) or > 25% (PT pine)",
+      "action": "HARD STOP — do not apply stain or paint. Retest after 24 hr dry period. Wet wood prevents proper stain penetration and causes coating failure.",
+      "severity": "critical"
+    },
+    {
+      "rule_id": "COMPAT-FNCE-003",
+      "name": "PT pine seasoning hard stop",
+      "condition": "wood_condition = new AND substrate_material = pressure_treated_pine AND age < 3 months",
+      "action": "HARD STOP — do not stain. PT pine requires 3-6 month seasoning for preservative cure and MC reduction. Water bead test: if water beads on surface, wood is not ready.",
+      "severity": "critical"
+    },
+    {
+      "rule_id": "COMPAT-FNCE-004",
+      "name": "Cedar tannin-blocking primer required for solid/paint",
+      "condition": "substrate_material = cedar AND coating_type IN (solid_stain, paint)",
+      "action": "Activate SYS_EXT_FNCE_PRIMER_STAIN_BLOCK. Cedar tannins bleed through film-forming coatings — primer is NOT optional on cedar with solid stain or paint.",
+      "severity": "major"
+    },
+    {
+      "rule_id": "COMPAT-FNCE-005",
+      "name": "Back-brushing mandatory for spray penetrating stains",
+      "condition": "application_method = spray_backbrush AND coating_type IN (transparent, semi_transparent, solid_stain)",
+      "action": "Spray-only is PROHIBITED for penetrating stains. Spray must be followed immediately by back-brushing to force stain into wood grain pores. 2-person crew required.",
+      "severity": "critical"
+    },
+    {
+      "rule_id": "COMPAT-FNCE-006",
+      "name": "Chemical restoration requires separate mobilization",
+      "condition": "wood_condition = weathered",
+      "action": "Chemical restoration (strip + brighten + rinse) requires 12-24 hr dry time before staining. Plan for separate mobilization day. Shorter than deck (24-48 hr) due to vertical drainage.",
+      "severity": "major"
+    },
+    {
+      "rule_id": "COMPAT-FNCE-007",
+      "name": "Penetrating stains skip primer entirely",
+      "condition": "coating_type IN (transparent, semi_transparent)",
+      "action": "Do NOT apply primer. Primer seals wood surface and prevents stain penetration. Penetrating stains must absorb directly into wood fibers.",
+      "severity": "major"
+    },
+    {
+      "rule_id": "COMPAT-FNCE-008",
+      "name": "Transparent not recommended for PT pine",
+      "condition": "coating_type = transparent AND substrate_material = pressure_treated_pine",
+      "action": "Warn customer — greenish PT chemical color shows through clear sealer. Semi-transparent recommended instead for PT pine to add color over green tint.",
+      "severity": "minor"
+    }
+  ],
+
+  "round_configurations": [
+    {
+      "round_id": "ROUND_FNCE_TRANSPARENT_1COAT",
+      "name": "Transparent Stain — 1 Coat",
+      "applies_when": { "coating_type": ["transparent"] },
+      "total_coats": 1,
+      "interstage_cycles": 0,
+      "notes": "Single coat penetrating transparent sealer. No primer. No second coat. Simplest configuration."
+    },
+    {
+      "round_id": "ROUND_FNCE_SEMI_TRANS_1COAT",
+      "name": "Semi-Transparent Stain — 1 Coat",
+      "applies_when": { "coating_type": ["semi_transparent"] },
+      "total_coats": 1,
+      "interstage_cycles": 0,
+      "notes": "Single coat semi-transparent penetrating stain. Professional standard default. No primer. No interstage."
+    },
+    {
+      "round_id": "ROUND_FNCE_SOLID_2COAT",
+      "name": "Solid Stain — 2 Coats (+ Optional Primer on Cedar)",
+      "applies_when": { "coating_type": ["solid_stain"] },
+      "total_coats": 2,
+      "interstage_cycles": 0,
+      "notes": "Two-coat solid stain. Cedar adds tannin-blocking primer (3 applied layers total). No formal interstage — allow full dry between coats per TDS (4-24 hr)."
+    },
+    {
+      "round_id": "ROUND_FNCE_PAINT_2COAT",
+      "name": "Paint — Primer + 2 Coats",
+      "applies_when": { "coating_type": ["paint"] },
+      "total_coats": 2,
+      "interstage_cycles": 0,
+      "notes": "LEAST RECOMMENDED. Primer mandatory (tannin-blocking on cedar, standard exterior on PT pine). 2 finish coats. 3 applied layers total. Full dry between coats. Document risk warning."
+    }
+  ],
+
+  "variants": [
+    {
+      "variant_id": "VAR_SEMI_TRANS_SPRAY_PT_NEW",
+      "applies_when": { "coating_type": ["semi_transparent"], "application_method": ["spray_backbrush"], "substrate_material": ["pressure_treated_pine"], "wood_condition": ["new"] },
+      "coats": { "stain": 1 },
+      "protection_zones": ["ext_landscape_fence_base", "ext_hardscape_fence_adjacent", "ext_neighbor_property"],
+      "notes": "Most common residential job. New PT pine, semi-transparent spray_backbrush. Single coat. Full neighbor-side protection for spray."
+    },
+    {
+      "variant_id": "VAR_SEMI_TRANS_SPRAY_CEDAR_NEW",
+      "applies_when": { "coating_type": ["semi_transparent"], "application_method": ["spray_backbrush"], "substrate_material": ["cedar"], "wood_condition": ["new"] },
+      "coats": { "stain": 1 },
+      "protection_zones": ["ext_landscape_fence_base", "ext_hardscape_fence_adjacent", "ext_neighbor_property"],
+      "notes": "Premium new cedar fence. Semi-transparent spray_backbrush. Single coat. No primer (penetrating stain)."
+    },
+    {
+      "variant_id": "VAR_SEMI_TRANS_BRUSH_PT_NEW",
+      "applies_when": { "coating_type": ["semi_transparent"], "application_method": ["brush"], "substrate_material": ["pressure_treated_pine"], "wood_condition": ["new"] },
+      "coats": { "stain": 1 },
+      "protection_zones": ["ext_landscape_fence_base"],
+      "notes": "Small fence or split rail. Brush application. Minimal protection (no spray overspray)."
+    },
+    {
+      "variant_id": "VAR_SOLID_SPRAY_CEDAR_NEW",
+      "applies_when": { "coating_type": ["solid_stain"], "application_method": ["spray_backbrush"], "substrate_material": ["cedar"], "wood_condition": ["new"] },
+      "coats": { "primer": 1, "stain": 2 },
+      "protection_zones": ["ext_landscape_fence_base", "ext_hardscape_fence_adjacent", "ext_siding_at_fence_tie", "ext_neighbor_property"],
+      "notes": "Solid stain on cedar — tannin-blocking primer + 2 coats. Full protection suite."
+    },
+    {
+      "variant_id": "VAR_SOLID_SPRAY_PT_NEW",
+      "applies_when": { "coating_type": ["solid_stain"], "application_method": ["spray_backbrush"], "substrate_material": ["pressure_treated_pine"], "wood_condition": ["new"] },
+      "coats": { "stain": 2 },
+      "protection_zones": ["ext_landscape_fence_base", "ext_hardscape_fence_adjacent", "ext_neighbor_property"],
+      "notes": "Solid stain on PT pine — no primer needed. 2 coats."
+    },
+    {
+      "variant_id": "VAR_PAINT_SPRAY_CEDAR_NEW",
+      "applies_when": { "coating_type": ["paint"], "application_method": ["spray_backbrush"], "substrate_material": ["cedar"], "wood_condition": ["new"] },
+      "coats": { "primer": 1, "paint": 2 },
+      "protection_zones": ["ext_landscape_fence_base", "ext_hardscape_fence_adjacent", "ext_siding_at_fence_tie", "ext_vehicle_adjacent", "ext_neighbor_property"],
+      "notes": "LEAST RECOMMENDED. Paint on cedar — tannin-blocking primer + 2 paint coats. Full protection. Mandatory risk warning."
+    },
+    {
+      "variant_id": "VAR_PAINT_SPRAY_PT_NEW",
+      "applies_when": { "coating_type": ["paint"], "application_method": ["spray_backbrush"], "substrate_material": ["pressure_treated_pine"], "wood_condition": ["new"] },
+      "coats": { "primer": 1, "paint": 2 },
+      "protection_zones": ["ext_landscape_fence_base", "ext_hardscape_fence_adjacent", "ext_siding_at_fence_tie", "ext_vehicle_adjacent", "ext_neighbor_property"],
+      "notes": "LEAST RECOMMENDED. Paint on PT pine — standard exterior primer + 2 paint coats. Mandatory risk warning."
+    },
+    {
+      "variant_id": "VAR_SEMI_TRANS_SPRAY_CEDAR_WEATHERED",
+      "applies_when": { "coating_type": ["semi_transparent"], "application_method": ["spray_backbrush"], "substrate_material": ["cedar"], "wood_condition": ["weathered"] },
+      "coats": { "stain": 1 },
+      "protection_zones": ["ext_landscape_fence_base", "ext_hardscape_fence_adjacent", "ext_neighbor_property"],
+      "notes": "Common maintenance refinish. Weathered cedar — chemical restoration required (separate mobilization). Single coat semi-transparent after restoration."
+    },
+    {
+      "variant_id": "VAR_TRANSPARENT_SPRAY_CEDAR_NEW",
+      "applies_when": { "coating_type": ["transparent"], "application_method": ["spray_backbrush"], "substrate_material": ["cedar"], "wood_condition": ["new"] },
+      "coats": { "sealer": 1 },
+      "protection_zones": ["ext_landscape_fence_base", "ext_hardscape_fence_adjacent", "ext_neighbor_property"],
+      "notes": "Economy option — clear sealer on new cedar. Natural wood appearance. 1-2 year maintenance cycle. Fastest application."
+    }
+  ],
+
+  "maintenance_cycles": [
+    {
+      "coating_type": "transparent",
+      "cycle_years": "1-2",
+      "notes": "Shortest cycle. Annual recoat typical. Minimal UV protection — wood will gray if cycle is missed. Simple re-apply without stripping (penetrating product)."
+    },
+    {
+      "coating_type": "semi_transparent",
+      "cycle_years": "2-3",
+      "notes": "Professional standard cycle. Clean and recoat — no stripping needed. Penetrating stain erodes gradually. Sun-exposed faces (south/west) need maintenance sooner."
+    },
+    {
+      "coating_type": "solid_stain",
+      "cycle_years": "3-7",
+      "notes": "Longer cycle on vertical surfaces (no foot traffic wear). May need sanding or partial strip if peeling at recoat time. Film-forming product — more prep for maintenance than penetrating stain."
+    },
+    {
+      "coating_type": "paint",
+      "cycle_years": "5-10",
+      "notes": "Longest theoretical cycle but HIGHEST FAILURE RISK on fences. Moisture-driven peeling often starts within 2-3 years on weather-exposed face. Maintenance recoat requires scraping, sanding, priming bare spots, and repainting. Most expensive maintenance cycle."
+    }
+  ],
+
+  "risk_flags": [
+    {
+      "risk_id": "RISK-FNCE-001",
+      "name": "Paint on wood fence — moisture-driven peeling",
+      "severity": "critical",
+      "description": "Paint forms a film that traps moisture migrating through fence wood from both sides. Fences are fully exposed to weather on BOTH faces — unlike walls where one side is protected. Moisture trapped under paint film causes blistering, peeling, and premature failure within 2-3 years on weather side.",
+      "mitigation": "Use penetrating stains instead (transparent, semi-transparent). If paint is specified: use HIGH PERMEABILITY formulation, document risk warning with customer acknowledgment, use 100% acrylic for maximum flexibility."
+    },
+    {
+      "risk_id": "RISK-FNCE-002",
+      "name": "PT pine seasoning — premature stain failure",
+      "severity": "critical",
+      "description": "New PT pine saturated with waterborne preservatives (ACQ, CA-B, MCA). Stain applied before 3-month seasoning fails to penetrate — blotchy appearance, complete failure within first season. Most common fence staining callback.",
+      "mitigation": "HARD STOP: verify PT pine age >= 3 months. Water bead test. MC < 19%. Schedule later if wood is too new."
+    },
+    {
+      "risk_id": "RISK-FNCE-003",
+      "name": "Cedar tannin bleed through film-forming coatings",
+      "severity": "major",
+      "description": "Cedar contains water-soluble extractive tannins that bleed through solid stain and paint, causing dark brown/red discoloration. Most severe with water-based coatings and at end-grain (board tops).",
+      "mitigation": "Tannin-blocking primer (alkyd/shellac-based) is MANDATORY for solid stain and paint on cedar. For penetrating stains, some tannin bleed is acceptable. Oxalic acid brightener pre-treatment dissolves surface tannins."
+    },
+    {
+      "risk_id": "RISK-FNCE-004",
+      "name": "Overstaining — excess product buildup",
+      "severity": "major",
+      "description": "Too much penetrating stain creates a tacky surface film that does not cure properly, attracts dirt, and peels. Common when back-brushing is skipped (spray pooling in board joints).",
+      "mitigation": "Back-brush thoroughly. Thin coats. No pooling at board joints or bottom edges. Wipe excess from non-absorbing surfaces."
+    },
+    {
+      "risk_id": "RISK-FNCE-005",
+      "name": "Shadowbox fence spray access difficulty",
+      "severity": "minor",
+      "description": "Shadowbox fences (alternating boards on opposite sides) create corrugated profile requiring spray from both sides with angle adjustments. May reduce effective production rate below baseline 215 SF/hr.",
+      "mitigation": "PaintScope geometric multiplier (1.6x) accounts for surface area. Estimator should note potential rate reduction for complex shadowbox profiles."
+    }
+  ],
+
+  "adjacency_declarations": {
+    "primary_surface": "fence_field",
+    "adjacent_surfaces": [
+      {
+        "surface_id": "ext_siding_field",
+        "edge_type": "linear",
+        "typical_relationship": "different_finish",
+        "continuity_rate_modifier": 1.0,
+        "notes": "House siding at fence-to-house tie-in point. Different coating system. Protection required at junction."
+      },
+      {
+        "surface_id": "fence_post",
+        "edge_type": "linear",
+        "typical_relationship": "same_finish",
+        "continuity_rate_modifier": 1.0,
+        "notes": "Posts are integral to fence system — stained as part of field pass, same coating."
+      },
+      {
+        "surface_id": "fence_gate",
+        "edge_type": "linear",
+        "typical_relationship": "same_finish",
+        "continuity_rate_modifier": 1.0,
+        "notes": "Gates stained with fence field — same coating. Hardware removal/reinstall is separate task."
+      },
+      {
+        "surface_id": "ext_landscape_grade",
+        "edge_type": "linear",
+        "typical_relationship": "not_in_scope",
+        "continuity_rate_modifier": 1.0,
+        "notes": "Ground/landscaping at fence base. Protection-only — not a painted surface."
+      }
+    ]
+  },
+
+  "sequencing_notes": {
+    "production_sequence": "Setup -> Prep -> Chemical Restore (weathered only) -> Apply Coat 1 (primer if applicable, then stain/paint) -> Apply Coat 2 (solid/paint only) -> Final Inspect -> Cleanup",
+    "both_sides_workflow": "Side A protection -> Side A application -> Equipment move (~30-60 min) -> Side B protection -> Side B application. Both sides must complete coat 1 before either side gets coat 2.",
+    "protection_sequence": "Landscape (both sides) -> Hardscape -> Siding tie -> Neighbor property (spray only) -> Gate hardware -> Coating work -> Protection teardown -> Equipment cleanup",
+    "coat_sequence_penetrating": "Prep -> Apply stain coat 1 (both sides) -> Final inspect -> Touch-up -> Cleanup",
+    "coat_sequence_film_forming": "Prep -> Primer (cedar+solid/paint or any+paint) -> Apply coat 1 (both sides) -> Dry 4-24 hr -> Apply coat 2 (both sides) -> Final inspect -> Touch-up -> Cleanup",
+    "chemical_restoration_sequence": "Strip apply -> 15-20 min dwell -> Scrub -> Rinse -> Brighten apply -> 10-15 min dwell -> Rinse -> 12-24 hr dry -> MC verify -> Proceed to staining",
+    "key_prohibitions": "NO spray-only for penetrating stains (back-brush mandatory). NO staining at MC > 19% (25% PT). NO staining PT pine < 3 months old. NO penetrating stain over primer. NO solid/paint on cedar without tannin-blocking primer."
+  },
+
+  "cross_spec_boundaries": [
+    {
+      "boundary": "Metal fences (wrought iron, aluminum, chain link)",
+      "owner": "Future SF_METAL_EXT_v1",
+      "notes": "Different substrate, primer, and coating chemistry entirely. Not wood fence scope."
+    },
+    {
+      "boundary": "Fence construction and carpentry",
+      "owner": "Carpentry scope",
+      "notes": "Post setting, board replacement, structural repair. Painting spec covers coating only."
+    },
+    {
+      "boundary": "Environmental conditions excluded from estimation",
+      "owner": "SOP process constraints",
+      "notes": "Wind, dew point, surface temperature are scheduling/process concerns. Not estimatable at bid time."
+    }
+  ],
+
+  "relationships": {
+    "companion_spec": null,
+    "often_combined_with": [],
+    "sibling_spec": "SF_DECK_EXT_v1",
+    "typical_before": [],
+    "typical_after": [],
+    "notes": "Shares stain-based architecture with deck spec (coating_type replaces quality_tier). Key departures from deck: vertical surface (faster drainage, different spray technique), both-sides application, no foot traffic, ground-level access only (no height modifier), shorter dry times after chemical restoration."
+  },
+
+  "dependencies": {
+    "research": "research.json",
+    "resolution": "resolution.json",
+    "sop_modules": "sop_modules.json",
+    "materials": "materials.json",
+    "production": "production.json",
+    "qa_report": "qa_report.json"
+  },
+
+  "doctrine_references": [
+    { "doctrine": "Exterior_Fences_Doctrine.md", "sections_used": ["Coating types", "Geometry and style multipliers", "Substrate types (cedar, PT pine)", "Seasoning requirements", "Application methods", "Failure modes", "Maintenance cycles", "Protection requirements"] },
+    { "doctrine": "Exterior_Application_Methods_Doctrine.md", "sections_used": ["Back-brushing mandatory Part A section 6", "Spray_backbrush coupling", "Spray tip selection", "Two-person crew"] },
+    { "doctrine": "Exterior_Surface_Assessment_Doctrine.md", "sections_used": ["Wood moisture testing", "Weathered wood assessment", "Mill glaze identification"] },
+    { "doctrine": "Exterior_Protection_Doctrine_T3.md", "sections_used": ["Landscape zones", "Hardscape zones", "Neighbor property protection", "Vehicle protection", "Method-based protection escalation"] },
+    { "doctrine": "Exterior_Climate_Environmental_Conditions_Doctrine.md", "sections_used": ["Surface temperature limits", "Wind exclusion for spray", "Dew point management"] },
+    { "doctrine": "Exterior_Weathering_Surface_Assessment_Doctrine.md", "sections_used": ["UV degradation assessment", "Chemical restoration protocol", "Tannin management for cedar"] }
+  ],
+
+  "research_corrections": [],
+
+  "user_corrections": [],
+
+  "change_log": [
+    {
+      "version": "0.1.0",
+      "date": "2026-03-10",
+      "author": "SpecFactory",
+      "changes": "Initial draft spec for exterior wood fence staining & painting. First stain-based exterior spec — coating_type replaces quality_tier as primary dimension. Key features: 4 coating types (transparent/semi_transparent/solid_stain/paint), 3 wood conditions (new/weathered/previously_coated), 2 substrates (cedar/PT pine), 3 application methods (spray_backbrush/brush/roll — spray-only prohibited), single paintable item (ITM_FENCE_FIELD SF), 35 tasks across 7 modules (incl. chemical restoration for weathered and coat 2 for film-forming), 7 material systems (2 stains + 1 sealer + 1 paint + 1 primer + 2 prep chemicals), 3 factor modifiers (coating_type/wood_condition/substrate_material), max stack 2.29x, 4 round configurations, 5 protection zones. Paint on fence is LEAST RECOMMENDED with mandatory risk warning. PT pine seasoning (3 months) and MC (19%) are hard stops. Cedar requires tannin-blocking primer for solid/paint. Fence_style multiplier handled by PaintScope. No height modifier — ground-level work."
+    }
+  ]
+}

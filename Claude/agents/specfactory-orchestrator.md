@@ -49,6 +49,57 @@ SpecFactory generates spec definitions that will later be consumed by the Estima
 
 ---
 
+## Domain-Specific Context Loading
+
+After reading the base Required Reading list above, load the following based on `spec_family.domain`:
+
+### If `domain == "exterior"`:
+
+LOAD — Exterior Doctrine:
+- docs/Doctrine/Exterior_Substrates_Doctrine.md
+- docs/Doctrine/Exterior_Modifiers_Doctrine.md
+- docs/Doctrine/Exterior_Protection_Doctrine.md
+
+LOAD — Exterior Reference Vocabulary:
+- docs/Reference/Substrate_State_Reference.md §4 (Exterior-Specific States)
+- docs/Reference/Surface_Vocabulary_Reference.md §Exterior Surfaces
+- docs/Reference/Site_Condition_Vocabulary_Reference.md §9–13 (Exterior Conditions)
+
+LOAD — Exterior PaintScope Keys:
+- docs/PaintScope/PaintScope_Exterior_Key_Catalog.md
+
+DO NOT APPLY to exterior specs:
+- docs/Doctrine/Interior_Protection_Doctrine.md (interior zones do not apply)
+- docs/Doctrine/Fine_Finish_Doctrine.md (unless scope explicitly includes interior-style trim at QT4+)
+- docs/Doctrine/Interior_Protection_Doctrine_Final.md
+- PS_ keys from PaintScope_Quantity_Key_Catalog.md §Core Interior Keys (use EXT_ keys instead)
+
+EXTERIOR MODIFIER OVERRIDE:
+- Use FAC_EXT_ACCESS (not FAC_HEIGHT) for elevation work
+- Use FAC_EXT_SUBSTRATE_CONDITION for prep rate scaling
+- Use FAC_EXT_WIND, FAC_EXT_SUN_EXPOSURE, FAC_EXT_SURFACE_TEMP for environmental modifiers
+- FAC_PROFILE_COMPLEXITY applies for exterior trim (shared modifier)
+
+### If `domain == "interior"`:
+[existing behavior — no changes; read all required reading as currently listed]
+
+### Exterior Gate 0 Override (PaintScope Readiness):
+
+When spec_family.domain == "exterior", Gate 0 validation MUST check:
+- All required PS_ keys are present in docs/PaintScope/PaintScope_Exterior_Key_Catalog.md
+- No interior PS_ keys (non-EXT_ prefixed) are used in exterior specs
+- docs/PaintScope/Spec_Input_to_PaintScope_Key_Mapping.md must be updated to include exterior key mappings BEFORE proceeding
+
+### Exterior Gate 0.5 Override (Completeness):
+
+When spec_family.domain == "exterior", mandatory declarations MUST reference:
+- protection_zones_required: only ext_* zone IDs from Exterior_Protection_Doctrine.md
+- adjacency_declarations: only exterior surface IDs from Surface_Vocabulary_Reference.md §Exterior Surfaces
+- state_declarations: only SS_EXT_* states from Substrate_State_Reference.md §4
+- site_condition_rules: must reference exterior conditions (access_type, wind_condition, etc.) not interior-only conditions
+
+---
+
 ## Step 0 — PaintScope Readiness Gate (Required)
 
 Before dispatching downstream agents (SOP Librarian, Materials Manager, Estimation Engineer), the Orchestrator MUST verify PaintScope readiness.
@@ -377,10 +428,24 @@ The brief does NOT replace agent expertise — agents still research, validate, 
 2) registry-resolver → `resolution.json` (pre-resolved IDs, enums, structural patterns)
    - **Resolver Gate:** Resolver must produce valid `resolution.json` before downstream agents run. If `registry_additions_proposed` is non-empty, orchestrator flags for human review.
 3) materials-manager → `materials.json` (systems, coverage, consumables, compatibility) — consumes `resolution.json`
+   - **May run in parallel with step 4** (no dependency between materials and SOP)
 4) sop-librarian → `sop_modules.json` (LEGO SOP modules/tasks/rounds using material systems) — consumes `resolution.json`
-5) estimation-engineer → `production.json` (production logic, factors, quality behavior) — consumes `resolution.json`
+   - **MUST complete before step 5** — SOP defines the canonical task ID list
+5) estimation-engineer → `production.json` (production logic, factors, quality behavior) — consumes `resolution.json` + `sop_modules.json`
+   - **MUST run after step 4** — reads `sop_modules.json` and matches every task_id character-for-character
+   - **MUST NOT invent new task IDs** — only use IDs defined by the SOP Librarian
 6) critic → `qa_report.json` (pass/fail + required fixes) — consumes `resolution.json` + raw registries
 7) assembly → `spec.json` + `CHANGELOG.md`
+
+### Pipeline Sequencing Rules
+
+**Parallelizable stages:**
+- Steps 3 + 4 (Materials + SOP) — independent, no cross-dependency
+- Steps 6 + 7 (QA + Assembly) — both read-only consumers
+
+**Sequential dependencies (MANDATORY):**
+- Step 4 (SOP) MUST complete before Step 5 (Production)
+- Reason: When SOP and Production run in parallel, they independently generate task IDs with different naming conventions (word order, granularity, suffix variations), causing 60-80% mismatch rates. Running SOP first establishes the canonical task ID list that Production must match exactly.
 
 ### Assembly Completeness Checklist
 

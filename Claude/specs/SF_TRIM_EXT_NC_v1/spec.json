@@ -1,0 +1,852 @@
+{
+  "spec_family": {
+    "id": "SF_TRIM_EXT_NC",
+    "name": "Exterior Trim Prime and Paint",
+    "description": "Combined prime and finish coat painting for all exterior trim components on new construction: fascia, rake, frieze, corner boards, band boards, window casings, door casings, and sills. Covers full prep (sand wood/scuff-sand PVC/edge-seal composite), knot spot-prime (tannin species), substrate-driven full prime coat, post-prime caulking (RC-003), two finish coats, interstage inspection and sanding (QT4/QT5), final inspection and touch-up. Three substrate materials (wood, PVC, composite) with distinct primer paths. Brush is PRIMARY method (trim detail); spray is secondary for long continuous runs. All measurements in LF per PCA P10 one-foot rule. Glass masking at casing-to-glass edge owned by this spec (RC-002). PVC with dark colors (LRV < 55) requires solar-reflective coating — HARD STOP.",
+    "domain": "exterior",
+    "version": "0.1.0",
+    "status": "draft",
+    "review_required": true
+  },
+
+  "scope_boundaries": {
+    "includes": [
+      "Surface preparation: sand wood (80-120 grit), scuff-sand PVC (220 grit + acetone wipe), edge-seal composite field cuts",
+      "Spot-prime tannin knots on cedar/redwood/fir (alkyd/shellac)",
+      "Full prime coat (3 substrate-driven primer paths: acrylic for wood/composite, bonding for PVC, alkyd spot for knots)",
+      "Post-prime joint caulking (trim-to-trim, trim-to-siding, casing joints) — sequenced AFTER primer per RC-003",
+      "Two finish coats at all quality tiers (QT3-QT5)",
+      "Interstage inspection, intercoat sanding (QT4/QT5), and touch-up",
+      "Final walkthrough inspection and touch-up",
+      "Landscape and hardscape protection below trim work zones",
+      "Window and door glass masking at casing-to-glass edge (RC-002 — this spec owns casing glass masking)",
+      "Light fixture masking",
+      "Siding masking when application_method = spray",
+      "Access equipment setup (ladders, scaffold, lift per elevation)"
+    ],
+    "excludes": [
+      {
+        "item": "Siding field painting",
+        "route_to": "SF_WOOD_SIDING_EXT_NC_PAINT_v1 or SF_SIDING_FIBERCEMENT_EXT_NC_v1"
+      },
+      {
+        "item": "Soffit and fascia underside painting",
+        "route_to": "Future SF_SOFFIT_EXT_NC_v1 (soffit spec handles soffit side of fascia/frieze junction)"
+      },
+      {
+        "item": "Exterior window sash and frame painting",
+        "route_to": "Future SF_WINDOW_EXT_NC_v1"
+      },
+      {
+        "item": "Exterior door slab painting",
+        "route_to": "Future SF_DOOR_EXT_NC_v1"
+      },
+      {
+        "item": "Foundation wall coating",
+        "route_to": "Future exterior foundation spec"
+      },
+      {
+        "item": "Gutter and downspout painting",
+        "route_to": "Future SF_GUTTER_EXT_NC_v1 (gutters mount to fascia but separate scope)"
+      },
+      {
+        "item": "Standalone expansion joint and specialty sealant work",
+        "route_to": "Future SF_CAULK_EXT_v1"
+      }
+    ]
+  },
+
+  "configuration_dimensions": [
+    {
+      "dimension_id": "quality_tier",
+      "description": "Quality tier controlling interstage sanding, inspection scrutiny, and defect tolerance. Coat count is constant (1 prime + 2 finish) across all tiers.",
+      "values": ["QT3", "QT4", "QT5"],
+      "default": "QT3",
+      "notes": "QT2 excluded — exterior trim is visible architectural detail requiring minimum QT3 per Application_Methods_Doctrine Part B §7. QT3=standard (inspect, no intercoat sand). QT4=premium (light sand 150 grit, systematic inspection at 6 ft, premium acrylic-urethane finish). QT5=superior (hand-sand 220 grit, raking light inspection at 3 ft, premium finish)."
+    },
+    {
+      "dimension_id": "application_method",
+      "description": "Primary application technique. Brush is PRIMARY for trim detail; spray is SECONDARY for long continuous runs.",
+      "values": ["brush", "spray"],
+      "default": "brush",
+      "notes": "Brush is the precision tool for trim work — penetrates grain, works into detail profiles, maintains clean edges at glass line. Spray is only for long continuous runs (fascia, frieze, band board) where masking overhead is justified. Opposite of siding where spray is primary."
+    },
+    {
+      "dimension_id": "substrate_material",
+      "description": "Substrate material of trim boards. Drives prep tasks and primer selection.",
+      "values": ["wood", "pvc", "composite"],
+      "default": "wood",
+      "notes": "Wood: sand 80-120 grit, spot-prime knots (tannin species), acrylic primer. PVC (AZEK, Versatex): scuff-sand 220, acetone wipe cut edges, bonding primer. Composite (LP SmartSide): edge-seal ALL field cuts (warranty requirement), acrylic primer."
+    },
+    {
+      "dimension_id": "sheen",
+      "description": "Finish coat sheen. Project-level selection — no locked-in default (RC-004).",
+      "values": ["satin", "semi-gloss", "gloss"],
+      "default": null,
+      "notes": "Sheen is always a project-level user selection. Satin is most common in practice. Gloss highlights surface defects — requires better prep. No locked-in default per RC-004."
+    },
+    {
+      "dimension_id": "trim_profile_complexity",
+      "description": "Trim profile type. Drives production rate modifier (FAC_XTRM_PROFILE_COMPLEXITY).",
+      "values": ["standard", "crown", "built_up"],
+      "default": "standard",
+      "modifiers": {
+        "standard": 1.00,
+        "crown": 1.30,
+        "built_up": 1.60
+      },
+      "notes": "Standard = flat stock, single-piece trim (most NC). Crown = single-piece crown molding profile with curved face. Built_up = multi-piece cornice assemblies (stacked crown + flat + bed mold). Typically affects fascia/frieze area."
+    }
+  ],
+
+  "paintable_items": [
+    {
+      "item_id": "ITM_TRIM_EXT_FASCIA",
+      "name": "Exterior fascia board",
+      "unit_of_measure": "LF",
+      "surface_ref": "ext_trim_fascia",
+      "counting_rules": "Linear feet of fascia board at roofline. Always elevated. Measured along roofline perimeter.",
+      "notes": "Fascia board at roofline. Always elevated work — subject to height modifiers."
+    },
+    {
+      "item_id": "ITM_TRIM_EXT_RAKE",
+      "name": "Exterior rake board",
+      "unit_of_measure": "LF",
+      "surface_ref": "ext_trim_rake",
+      "counting_rules": "Linear feet of rake board along gable edge. Measured along gable slope.",
+      "notes": "Rake board along gable edge. Inclined and elevated. Slower production due to angle."
+    },
+    {
+      "item_id": "ITM_TRIM_EXT_FRIEZE",
+      "name": "Exterior frieze board",
+      "unit_of_measure": "LF",
+      "surface_ref": "ext_trim_frieze",
+      "counting_rules": "Linear feet of frieze board at eave junction.",
+      "notes": "Frieze board at eave junction between siding top and soffit."
+    },
+    {
+      "item_id": "ITM_TRIM_EXT_CORNER",
+      "name": "Exterior corner boards",
+      "unit_of_measure": "LF",
+      "surface_ref": "ext_trim_corner",
+      "counting_rules": "Linear feet of corner boards. Vertical measurement, two faces per board (inside/outside corner).",
+      "notes": "Corner boards — vertical. Two faces per board but measured as single LF."
+    },
+    {
+      "item_id": "ITM_TRIM_EXT_BAND",
+      "name": "Exterior band board",
+      "unit_of_measure": "LF",
+      "surface_ref": "ext_trim_band",
+      "counting_rules": "Linear feet of band board between floors. Horizontal run.",
+      "notes": "Band board between floors. Horizontal run similar to frieze."
+    },
+    {
+      "item_id": "ITM_TRIM_EXT_WINDOW_CASING",
+      "name": "Exterior window casing",
+      "unit_of_measure": "LF",
+      "surface_ref": "ext_trim_window_casing",
+      "counting_rules": "Linear feet of exterior window casing perimeter. Per window: typically (2 x height + width) for three-sided casing or full perimeter for four-sided.",
+      "notes": "Window casing perimeter. Distinct from interior ITM_TRIM_CASING_WINDOW. This spec owns glass masking at casing-to-glass edge (RC-002)."
+    },
+    {
+      "item_id": "ITM_TRIM_EXT_DOOR_CASING",
+      "name": "Exterior door casing",
+      "unit_of_measure": "LF",
+      "surface_ref": "ext_trim_door_casing",
+      "counting_rules": "Linear feet of exterior door casing perimeter.",
+      "notes": "Door casing perimeter. Distinct from interior ITM_TRIM_CASING_DOOR."
+    },
+    {
+      "item_id": "ITM_TRIM_EXT_SILL",
+      "name": "Exterior window sill",
+      "unit_of_measure": "LF",
+      "surface_ref": "ext_sill",
+      "counting_rules": "Linear feet of exterior window sills.",
+      "notes": "Window sill — horizontal, direct weather exposure. Most vulnerable trim component. May receive additional coat or high-durability coating."
+    }
+  ],
+
+  "variants": [
+    {
+      "variant_id": "VAR_QT3_BRUSH_BARE_WOOD",
+      "applies_when": { "quality_tier": ["QT3"], "application_method": ["brush"], "substrate_state": ["SS_EXT_BARE_WOOD"], "substrate_material": ["wood"] },
+      "coats": { "prime": 1, "finish": 2 },
+      "active_items": ["ITM_TRIM_EXT_FASCIA", "ITM_TRIM_EXT_RAKE", "ITM_TRIM_EXT_FRIEZE", "ITM_TRIM_EXT_CORNER", "ITM_TRIM_EXT_BAND", "ITM_TRIM_EXT_WINDOW_CASING", "ITM_TRIM_EXT_DOOR_CASING", "ITM_TRIM_EXT_SILL"],
+      "protection_zones": ["ext_landscape_adjacent", "ext_hardscape_walk", "ext_window_glass_adjacent", "ext_door_glass_adjacent", "ext_light_fixture"],
+      "notes": "Most common residential scenario. Brush on bare wood trim. Full prep, prime, caulk, 2 finish coats."
+    },
+    {
+      "variant_id": "VAR_QT3_BRUSH_BARE_PVC",
+      "applies_when": { "quality_tier": ["QT3"], "application_method": ["brush"], "substrate_state": ["SS_EXT_BARE_WOOD"], "substrate_material": ["pvc"] },
+      "coats": { "prime": 1, "finish": 2 },
+      "active_items": ["ITM_TRIM_EXT_FASCIA", "ITM_TRIM_EXT_RAKE", "ITM_TRIM_EXT_FRIEZE", "ITM_TRIM_EXT_CORNER", "ITM_TRIM_EXT_BAND", "ITM_TRIM_EXT_WINDOW_CASING", "ITM_TRIM_EXT_DOOR_CASING", "ITM_TRIM_EXT_SILL"],
+      "protection_zones": ["ext_landscape_adjacent", "ext_hardscape_walk", "ext_window_glass_adjacent", "ext_door_glass_adjacent", "ext_light_fixture"],
+      "notes": "PVC trim. Scuff-sand + acetone wipe + bonding primer path. Solar-reflective finish required if LRV < 55."
+    },
+    {
+      "variant_id": "VAR_QT3_BRUSH_BARE_COMPOSITE",
+      "applies_when": { "quality_tier": ["QT3"], "application_method": ["brush"], "substrate_state": ["SS_EXT_BARE_WOOD"], "substrate_material": ["composite"] },
+      "coats": { "prime": 1, "finish": 2 },
+      "active_items": ["ITM_TRIM_EXT_FASCIA", "ITM_TRIM_EXT_RAKE", "ITM_TRIM_EXT_FRIEZE", "ITM_TRIM_EXT_CORNER", "ITM_TRIM_EXT_BAND", "ITM_TRIM_EXT_WINDOW_CASING", "ITM_TRIM_EXT_DOOR_CASING", "ITM_TRIM_EXT_SILL"],
+      "protection_zones": ["ext_landscape_adjacent", "ext_hardscape_walk", "ext_window_glass_adjacent", "ext_door_glass_adjacent", "ext_light_fixture"],
+      "notes": "Composite trim. Edge-seal all field cuts (warranty). Acrylic primer path."
+    },
+    {
+      "variant_id": "VAR_QT4_BRUSH_BARE_WOOD",
+      "applies_when": { "quality_tier": ["QT4"], "application_method": ["brush"], "substrate_state": ["SS_EXT_BARE_WOOD"], "substrate_material": ["wood"] },
+      "coats": { "prime": 1, "finish": 2 },
+      "active_items": ["ITM_TRIM_EXT_FASCIA", "ITM_TRIM_EXT_RAKE", "ITM_TRIM_EXT_FRIEZE", "ITM_TRIM_EXT_CORNER", "ITM_TRIM_EXT_BAND", "ITM_TRIM_EXT_WINDOW_CASING", "ITM_TRIM_EXT_DOOR_CASING", "ITM_TRIM_EXT_SILL"],
+      "protection_zones": ["ext_landscape_adjacent", "ext_hardscape_walk", "ext_window_glass_adjacent", "ext_door_glass_adjacent", "ext_light_fixture"],
+      "notes": "Premium brush on bare wood. Intercoat sanding (150 grit). Premium acrylic-urethane finish."
+    },
+    {
+      "variant_id": "VAR_QT5_BRUSH_BARE_WOOD",
+      "applies_when": { "quality_tier": ["QT5"], "application_method": ["brush"], "substrate_state": ["SS_EXT_BARE_WOOD"], "substrate_material": ["wood"] },
+      "coats": { "prime": 1, "finish": 2 },
+      "active_items": ["ITM_TRIM_EXT_FASCIA", "ITM_TRIM_EXT_RAKE", "ITM_TRIM_EXT_FRIEZE", "ITM_TRIM_EXT_CORNER", "ITM_TRIM_EXT_BAND", "ITM_TRIM_EXT_WINDOW_CASING", "ITM_TRIM_EXT_DOOR_CASING", "ITM_TRIM_EXT_SILL"],
+      "protection_zones": ["ext_landscape_adjacent", "ext_hardscape_walk", "ext_window_glass_adjacent", "ext_door_glass_adjacent", "ext_light_fixture"],
+      "notes": "Superior brush on bare wood. Hand-sand 220 grit between coats. Raking light inspection at 3 ft."
+    },
+    {
+      "variant_id": "VAR_QT3_SPRAY_BARE_WOOD",
+      "applies_when": { "quality_tier": ["QT3"], "application_method": ["spray"], "substrate_state": ["SS_EXT_BARE_WOOD"], "substrate_material": ["wood"] },
+      "coats": { "prime": 1, "finish": 2 },
+      "active_items": ["ITM_TRIM_EXT_FASCIA", "ITM_TRIM_EXT_RAKE", "ITM_TRIM_EXT_FRIEZE", "ITM_TRIM_EXT_CORNER", "ITM_TRIM_EXT_BAND", "ITM_TRIM_EXT_WINDOW_CASING", "ITM_TRIM_EXT_DOOR_CASING", "ITM_TRIM_EXT_SILL"],
+      "protection_zones": ["ext_landscape_adjacent", "ext_hardscape_walk", "ext_window_glass_adjacent", "ext_door_glass_adjacent", "ext_light_fixture", "ext_siding_adjacent"],
+      "notes": "Spray on bare wood for long runs. Includes siding masking zone. Spray blocked in high wind."
+    },
+    {
+      "variant_id": "VAR_QT3_BRUSH_FIELD_PRIMED",
+      "applies_when": { "quality_tier": ["QT3"], "application_method": ["brush"], "substrate_state": ["SS_EXT_PRIMED_FIELD"] },
+      "coats": { "prime": 0, "finish": 2 },
+      "active_items": ["ITM_TRIM_EXT_FASCIA", "ITM_TRIM_EXT_RAKE", "ITM_TRIM_EXT_FRIEZE", "ITM_TRIM_EXT_CORNER", "ITM_TRIM_EXT_BAND", "ITM_TRIM_EXT_WINDOW_CASING", "ITM_TRIM_EXT_DOOR_CASING", "ITM_TRIM_EXT_SILL"],
+      "protection_zones": ["ext_landscape_adjacent", "ext_hardscape_walk", "ext_window_glass_adjacent", "ext_door_glass_adjacent", "ext_light_fixture"],
+      "notes": "Field-primed trim. Skip prime module. 2 finish coats only. Caulk module still runs."
+    },
+    {
+      "variant_id": "VAR_QT4_BRUSH_FIELD_PRIMED",
+      "applies_when": { "quality_tier": ["QT4"], "application_method": ["brush"], "substrate_state": ["SS_EXT_PRIMED_FIELD"] },
+      "coats": { "prime": 0, "finish": 2 },
+      "active_items": ["ITM_TRIM_EXT_FASCIA", "ITM_TRIM_EXT_RAKE", "ITM_TRIM_EXT_FRIEZE", "ITM_TRIM_EXT_CORNER", "ITM_TRIM_EXT_BAND", "ITM_TRIM_EXT_WINDOW_CASING", "ITM_TRIM_EXT_DOOR_CASING", "ITM_TRIM_EXT_SILL"],
+      "protection_zones": ["ext_landscape_adjacent", "ext_hardscape_walk", "ext_window_glass_adjacent", "ext_door_glass_adjacent", "ext_light_fixture"],
+      "notes": "Premium on field-primed. Skip prime. Intercoat sand. 2 finish coats."
+    },
+    {
+      "variant_id": "VAR_QT3_SPRAY_FIELD_PRIMED",
+      "applies_when": { "quality_tier": ["QT3"], "application_method": ["spray"], "substrate_state": ["SS_EXT_PRIMED_FIELD"] },
+      "coats": { "prime": 0, "finish": 2 },
+      "active_items": ["ITM_TRIM_EXT_FASCIA", "ITM_TRIM_EXT_RAKE", "ITM_TRIM_EXT_FRIEZE", "ITM_TRIM_EXT_CORNER", "ITM_TRIM_EXT_BAND", "ITM_TRIM_EXT_WINDOW_CASING", "ITM_TRIM_EXT_DOOR_CASING", "ITM_TRIM_EXT_SILL"],
+      "protection_zones": ["ext_landscape_adjacent", "ext_hardscape_walk", "ext_window_glass_adjacent", "ext_door_glass_adjacent", "ext_light_fixture", "ext_siding_adjacent"],
+      "notes": "Spray on field-primed. Skip prime. 2 finish coats. Includes siding masking."
+    }
+  ],
+
+  "required_paintscope_inputs": [
+    {
+      "input_name": "IN_LF_EXT_FASCIA",
+      "paintscope_key": "PS_EXT_EDGE_LF.FASCIA",
+      "uom": "LF",
+      "required": true,
+      "description": "Linear feet of fascia board"
+    },
+    {
+      "input_name": "IN_LF_EXT_TRIM_RAKE",
+      "paintscope_key": "PS_EXT_EDGE_LF.TRIM_RAKE",
+      "uom": "LF",
+      "required": true,
+      "description": "Linear feet of rake board along gable"
+    },
+    {
+      "input_name": "IN_LF_EXT_TRIM_FRIEZE",
+      "paintscope_key": "PS_EXT_EDGE_LF.TRIM_FRIEZE",
+      "uom": "LF",
+      "required": true,
+      "description": "Linear feet of frieze board"
+    },
+    {
+      "input_name": "IN_LF_EXT_TRIM_CORNER",
+      "paintscope_key": "PS_EXT_EDGE_LF.TRIM_CORNER",
+      "uom": "LF",
+      "required": true,
+      "description": "Linear feet of corner boards"
+    },
+    {
+      "input_name": "IN_LF_EXT_TRIM_BAND",
+      "paintscope_key": "PS_EXT_EDGE_LF.TRIM_BAND",
+      "uom": "LF",
+      "required": true,
+      "description": "Linear feet of band boards"
+    },
+    {
+      "input_name": "IN_LF_EXT_TRIM_WINDOW_CASING",
+      "paintscope_key": "PS_EXT_EDGE_LF.TRIM_WINDOW_CASING",
+      "uom": "LF",
+      "required": true,
+      "description": "Linear feet of exterior window casing perimeter"
+    },
+    {
+      "input_name": "IN_LF_EXT_TRIM_DOOR_CASING",
+      "paintscope_key": "PS_EXT_EDGE_LF.TRIM_DOOR_CASING",
+      "uom": "LF",
+      "required": true,
+      "description": "Linear feet of exterior door casing perimeter"
+    },
+    {
+      "input_name": "IN_LF_EXT_SILL",
+      "paintscope_key": "PS_EXT_EDGE_LF.SILL",
+      "uom": "LF",
+      "required": true,
+      "description": "Linear feet of exterior window sills"
+    },
+    {
+      "input_name": "IN_EA_ELEVATIONS",
+      "paintscope_key": "PS_EXT_META.EA.ELEVATIONS_TOTAL",
+      "uom": "EA",
+      "required": true,
+      "description": "Number of building elevations in scope"
+    },
+    {
+      "input_name": "IN_ENUM_ACCESS_TYPE",
+      "paintscope_key": "PS_EXT_META.ENUM.ACCESS_TYPE",
+      "uom": "ENUM",
+      "required": true,
+      "description": "Access type per elevation (ground/ladder/scaffold/lift). This spec uses trim-specific height modifiers (FAC_XTRM_HEIGHT_TIER) rather than general access modifiers."
+    },
+    {
+      "input_name": "IN_BOOL_NEW_CONSTRUCTION",
+      "paintscope_key": "PS_EXT_META.FLAG.NEW_CONSTRUCTION",
+      "uom": "BOOL",
+      "required": true,
+      "description": "Boolean flag confirming new construction context. Always true for this NC spec."
+    },
+    {
+      "input_name": "IN_SF_EXT_PROTECT_LANDSCAPE_ADJ",
+      "paintscope_key": "PS_EXT_PROTECT_SF.LANDSCAPE_ADJACENT",
+      "uom": "SF",
+      "required": false,
+      "required_when": "When landscape is adjacent to building below trim work zones",
+      "description": "Landscape area adjacent to building requiring drop cloth protection"
+    },
+    {
+      "input_name": "IN_SF_EXT_PROTECT_HARDSCAPE_WALK",
+      "paintscope_key": "PS_EXT_PROTECT_SF.HARDSCAPE_WALK",
+      "uom": "SF",
+      "required": false,
+      "required_when": "When walkways are adjacent to trim work area",
+      "description": "Adjacent walkway area requiring protection"
+    },
+    {
+      "input_name": "IN_EA_EXT_PROTECT_GLASS_WINDOW",
+      "paintscope_key": "PS_EXT_PROTECT_EA.GLASS_WINDOW",
+      "uom": "EA",
+      "required": false,
+      "required_when": "When painting window casings (ITM_TRIM_EXT_WINDOW_CASING is in scope)",
+      "description": "Count of exterior windows requiring glass masking when painting adjacent casings"
+    },
+    {
+      "input_name": "IN_EA_EXT_PROTECT_GLASS_DOOR",
+      "paintscope_key": "PS_EXT_PROTECT_EA.GLASS_DOOR",
+      "uom": "EA",
+      "required": false,
+      "required_when": "When painting door casings (ITM_TRIM_EXT_DOOR_CASING is in scope)",
+      "description": "Count of exterior doors with glass requiring masking when painting adjacent casings"
+    },
+    {
+      "input_name": "IN_EA_EXT_PROTECT_LIGHT_FIXTURE",
+      "paintscope_key": "PS_EXT_PROTECT_EA.LIGHT_FIXTURE",
+      "uom": "EA",
+      "required": false,
+      "required_when": "When exterior light fixtures are mounted on or near trim",
+      "description": "Count of exterior light fixtures to mask"
+    }
+  ],
+
+  "substrate_state_rules": {
+    "primary_surface": "all exterior trim components",
+    "valid_input_states": {
+      "states": ["SS_EXT_BARE_WOOD", "SS_EXT_PRIMED_FIELD"],
+      "notes": "SS_EXT_BARE_WOOD is the dominant NC state for all 3 substrate materials (wood, PVC, composite — PVC and composite are 'bare' in the sense of no field coating). SS_EXT_PRIMED_FIELD for split-mobilization scenarios where primer was applied in a prior visit."
+    },
+    "output_state": {
+      "state": "varies_by_sheen",
+      "state_map": {
+        "satin": "SS_EXT_PAINTED_SATIN",
+        "semi-gloss": "SS_EXT_PAINTED_SEMIGLOSS",
+        "gloss": "SS_EXT_PAINTED_GLOSS"
+      },
+      "notes": "Output state varies by sheen selection. SS_EXT_PAINTED_GLOSS is a proposed new output state."
+    },
+    "primer_routing": {
+      "wood": {
+        "primer_system": "SYS_EXT_TRIM_PRIMER_ACRYLIC",
+        "conditional": "Spot-prime tannin knots (cedar/redwood/fir) with SYS_EXT_TRIM_PRIMER_ALKYD_SPOT before full acrylic primer"
+      },
+      "pvc": {
+        "primer_system": "SYS_EXT_TRIM_PRIMER_BONDING",
+        "conditional": "Scuff-sand 220 grit + acetone wipe before primer. NEVER silicone caulk on PVC."
+      },
+      "composite": {
+        "primer_system": "SYS_EXT_TRIM_PRIMER_ACRYLIC",
+        "conditional": "Edge-seal ALL field-cut edges before primer (warranty requirement)"
+      }
+    }
+  },
+
+  "material_systems": [
+    {
+      "system_id": "SYS_EXT_TRIM_PRIMER_ACRYLIC",
+      "name": "Exterior Acrylic Latex Primer for Wood/Composite Trim",
+      "quality_tier": ["QT3", "QT4", "QT5"],
+      "product_role": "primer",
+      "applies_when": { "substrate_material": ["wood", "composite"] },
+      "coverage_sf_per_gallon": 425,
+      "coverage_range": [400, 450],
+      "coats": 1,
+      "allowed_sheens": ["n/a"],
+      "notes": "100% acrylic exterior primer for wood and composite trim. Composite field-cut edges must be sealed separately before full prime coat."
+    },
+    {
+      "system_id": "SYS_EXT_TRIM_PRIMER_BONDING",
+      "name": "Bonding Primer for PVC Trim",
+      "quality_tier": ["QT3", "QT4", "QT5"],
+      "product_role": "primer",
+      "applies_when": { "substrate_material": ["pvc"] },
+      "coverage_sf_per_gallon": 375,
+      "coverage_range": [350, 400],
+      "coats": 1,
+      "allowed_sheens": ["n/a"],
+      "notes": "Mandatory for PVC (AZEK, Versatex). Grips dense non-porous surface. Recoat within 1 week — bonding primer over-exposed dries like 'peanut brittle'."
+    },
+    {
+      "system_id": "SYS_EXT_TRIM_PRIMER_ALKYD_SPOT",
+      "name": "Alkyd/Shellac Spot Primer for Tannin Knots",
+      "quality_tier": ["QT3", "QT4", "QT5"],
+      "product_role": "specialty",
+      "applies_when": { "substrate_material": ["wood"] },
+      "coverage_sf_per_gallon": null,
+      "coats": 1,
+      "allowed_sheens": ["n/a"],
+      "notes": "Spot-applied to visible knots on tannin-rich species (cedar, redwood, fir) BEFORE full acrylic primer. Not a full-surface system."
+    },
+    {
+      "system_id": "SYS_EXT_TRIM_FINISH_STANDARD",
+      "name": "Standard Exterior Acrylic Trim Paint",
+      "quality_tier": ["QT3"],
+      "product_role": "finish",
+      "coverage_sf_per_gallon": 375,
+      "coverage_range": [350, 400],
+      "coats": 2,
+      "allowed_sheens": ["satin", "semi-gloss", "gloss"],
+      "notes": "Mid-grade 100% acrylic exterior trim paint. Two coats standard. Sheen per project selection."
+    },
+    {
+      "system_id": "SYS_EXT_TRIM_FINISH_PREMIUM",
+      "name": "Premium Exterior Acrylic-Urethane Trim Paint",
+      "quality_tier": ["QT4", "QT5"],
+      "product_role": "finish",
+      "coverage_sf_per_gallon": 350,
+      "coverage_range": [300, 400],
+      "coats": 2,
+      "allowed_sheens": ["satin", "semi-gloss", "gloss"],
+      "notes": "Acrylic-urethane blend (SW Emerald Urethane Trim Enamel, BM Aura Grand Entrance). Enhanced hardness and scratch resistance."
+    },
+    {
+      "system_id": "SYS_EXT_TRIM_FINISH_SOLAR",
+      "name": "Solar-Reflective Trim Paint for PVC",
+      "quality_tier": ["QT3", "QT4", "QT5"],
+      "product_role": "specialty",
+      "applies_when": { "substrate_material": ["pvc"], "lrv_below": 55 },
+      "coverage_sf_per_gallon": 325,
+      "coverage_range": [300, 350],
+      "coats": 2,
+      "allowed_sheens": ["satin", "semi-gloss", "gloss"],
+      "notes": "REQUIRED when PVC substrate AND color LRV < 55. VinylSafe/Colors for Vinyl technology. HARD STOP — standard dark paint on PVC voids warranty and causes thermal distortion."
+    }
+  ],
+
+  "sop_module_summary": {
+    "total_modules": 9,
+    "total_tasks": 31,
+    "task_breakdown": {
+      "binary": 19,
+      "qt_scaled": 10,
+      "qt_conditional": 2
+    },
+    "modules": [
+      { "module_id": "MOD_XTRM_SETUP", "name": "Exterior Trim Protection & Equipment Setup", "phase": "setup", "task_count": 8 },
+      { "module_id": "MOD_XTRM_PREP", "name": "Exterior Trim Surface Preparation", "phase": "prep", "task_count": 6 },
+      { "module_id": "MOD_XTRM_PRIME", "name": "Exterior Trim Full Prime Coat", "phase": "prime", "task_count": 2 },
+      { "module_id": "MOD_XTRM_CAULK", "name": "Exterior Trim Joint Caulking", "phase": "prep", "task_count": 2, "sequence_note": "Runs AFTER MOD_XTRM_PRIME per RC-003" },
+      { "module_id": "MOD_XTRM_FINISH_1", "name": "Exterior Trim Finish Coat 1", "phase": "finish", "task_count": 2 },
+      { "module_id": "MOD_XTRM_INTERSTAGE", "name": "Exterior Trim Interstage Inspection & Prep", "phase": "interstage", "task_count": 4 },
+      { "module_id": "MOD_XTRM_FINISH_2", "name": "Exterior Trim Finish Coat 2", "phase": "finish", "task_count": 2 },
+      { "module_id": "MOD_XTRM_FINAL_INSPECT", "name": "Exterior Trim Final Inspection & Touch-Up", "phase": "cleanup", "task_count": 2 },
+      { "module_id": "MOD_XTRM_CLEANUP", "name": "Exterior Trim Cleanup & Protection Teardown", "phase": "cleanup", "task_count": 3 }
+    ]
+  },
+
+  "production_summary": {
+    "total_tasks": 31,
+    "uom_breakdown": {
+      "LF": 21,
+      "EA": 5,
+      "SF": 2,
+      "FIXED": 5
+    },
+    "modifier_catalog": [
+      {
+        "factor_id": "FAC_EXT_ACCESS",
+        "name": "Access Type Modifier",
+        "values": { "ground": 1.00, "ladder": 1.35, "scaffold": 1.60, "lift": 1.50 },
+        "applies_to_count": 7,
+        "notes": "Applied to protection/setup/teardown tasks. Production tasks use FAC_XTRM_HEIGHT_TIER instead."
+      },
+      {
+        "factor_id": "FAC_XTRM_HEIGHT_TIER",
+        "name": "Exterior Trim Height Tier Modifier",
+        "values": { "ground": 1.00, "8ft": 1.30, "13ft": 1.60, "17ft": 1.90, "19ft": 2.20 },
+        "applies_to_count": 19,
+        "notes": "More aggressive than general FAC_EXT_ACCESS — trim requires fine brush detail at height."
+      },
+      {
+        "factor_id": "FAC_XTRM_PROFILE_COMPLEXITY",
+        "name": "Profile Complexity Modifier",
+        "values": { "standard": 1.00, "crown": 1.30, "built_up": 1.60 },
+        "applies_to_count": 9,
+        "notes": "Multi-piece cornice and crown profiles."
+      },
+      {
+        "factor_id": "FAC_QT",
+        "name": "Quality Tier Base Modifier",
+        "values": { "QT3": 1.00, "QT4": 1.15, "QT5": 1.30 },
+        "applies_to_count": 8,
+        "notes": "Applied to binary tasks. Qt_scaled tasks have per-tier rates — NOT double-counted."
+      },
+      {
+        "factor_id": "FAC_XTRM_SUBSTRATE",
+        "name": "Substrate Material Modifier",
+        "values": { "wood": 1.00, "composite": 1.00, "pvc": 1.10 },
+        "applies_to_count": 6,
+        "notes": "PVC is non-porous — more prone to runs, requires slower pace."
+      },
+      {
+        "factor_id": "FAC_EXT_WIND",
+        "name": "Wind Condition Modifier",
+        "values": { "calm": 1.00, "moderate": 1.15, "high": 1.35 },
+        "applies_to_count": 5,
+        "notes": "Spray tasks blocked in high wind per site_condition_rules. Brush/caulk tasks slowed."
+      },
+      {
+        "factor_id": "FAC_EXT_SUN_EXPOSURE",
+        "name": "Sun Exposure Modifier",
+        "values": { "shade": 1.00, "partial": 1.10, "full_sun": 1.25 },
+        "applies_to_count": 6,
+        "notes": "Full sun accelerates drying — shorter wet edge window."
+      },
+      {
+        "factor_id": "FAC_EXT_SURFACE_TEMP",
+        "name": "Surface Temperature Modifier",
+        "values": { "normal": 1.00, "cold": 1.15, "hot": 1.20 },
+        "applies_to_count": 6,
+        "notes": "Normal = 50-90F. Cold below 50F. Hot above 90F."
+      },
+      {
+        "factor_id": "FAC_EXT_SUBSTRATE_CONDITION",
+        "name": "Substrate Condition Modifier",
+        "values": { "clean_new": 1.00, "dusty": 1.10, "minor_damage": 1.25 },
+        "applies_to_count": 3,
+        "notes": "NC trim is typically clean_new (baseline)."
+      }
+    ],
+    "max_modifier_stack": {
+      "value": 5.57,
+      "scenario": "19ft + built_up + PVC + full sun + moderate wind at QT5",
+      "exceeds_cap": true,
+      "mitigation": "Hourly billing recommended for extreme combinations. 4.0x cap applies."
+    }
+  },
+
+  "protection_zones_required": [
+    {
+      "zone_id": "ext_landscape_adjacent",
+      "condition": "when_adjacent",
+      "protection_level": "edge_only",
+      "upgrade_when": { "application_method": ["spray"] },
+      "upgrade_level": "full_cover",
+      "notes": "Landscape area adjacent to building below trim work zones. Tarps along perimeter."
+    },
+    {
+      "zone_id": "ext_hardscape_walk",
+      "condition": "when_adjacent",
+      "protection_level": "light_mask",
+      "upgrade_when": { "application_method": ["spray"] },
+      "upgrade_level": "full_cover",
+      "notes": "Walkways below trim work area. Canvas for crew traffic, plastic for overspray."
+    },
+    {
+      "zone_id": "ext_window_glass_adjacent",
+      "condition": "when_painting_window_casings",
+      "protection_level": "light_mask",
+      "notes": "Window glass adjacent to casings being painted. This spec OWNS casing-to-glass edge masking (RC-002). Tape + film."
+    },
+    {
+      "zone_id": "ext_door_glass_adjacent",
+      "condition": "when_painting_door_casings",
+      "protection_level": "light_mask",
+      "notes": "Door glass adjacent to casings being painted. Same masking as windows."
+    },
+    {
+      "zone_id": "ext_light_fixture",
+      "condition": "when_adjacent",
+      "protection_level": "light_mask",
+      "notes": "Exterior light fixtures on or near trim. Bag and tape."
+    },
+    {
+      "zone_id": "ext_siding_adjacent",
+      "condition": { "application_method": ["spray"] },
+      "protection_level": "full_mask",
+      "notes": "Siding adjacent to trim — masking required ONLY when application_method = spray. Brush has minimal overspray."
+    }
+  ],
+
+  "adjacency_declarations": {
+    "primary_surface": "all exterior trim components",
+    "adjacent_surfaces": [
+      {
+        "surface_id": "siding_field",
+        "edge_type": "linear",
+        "typical_relationship": "different_finish",
+        "notes": "Siding terminates at trim boards. Trim is typically a different color from siding. Caulk joint at trim-to-siding junction (may overlap with siding spec — engine deduplicates per RC-008)."
+      },
+      {
+        "surface_id": "soffit_field",
+        "edge_type": "linear",
+        "typical_relationship": "varies",
+        "notes": "Soffit meets fascia/frieze. Soffit spec handles soffit side of junction; this spec handles trim side."
+      },
+      {
+        "surface_id": "ext_trim_window_casing",
+        "edge_type": "linear",
+        "typical_relationship": "different_finish",
+        "notes": "Window casing borders window sash/frame (separate spec). This spec paints casing only."
+      },
+      {
+        "surface_id": "ext_trim_door_casing",
+        "edge_type": "linear",
+        "typical_relationship": "different_finish",
+        "notes": "Door casing borders door slab (separate spec). This spec paints casing only."
+      },
+      {
+        "surface_id": "foundation_wall",
+        "edge_type": "linear",
+        "typical_relationship": "different_finish",
+        "notes": "Foundation below siding/trim. Not in scope for this spec."
+      }
+    ]
+  },
+
+  "site_condition_rules": [
+    {
+      "condition_id": "access_type",
+      "treatment": "height_modifier",
+      "vocabulary_ref": "FAC_XTRM_HEIGHT_TIER for production tasks, FAC_EXT_ACCESS for protection tasks",
+      "affected_tasks": "All non-FIXED tasks performed at elevation",
+      "effect": "FAC_XTRM_HEIGHT_TIER: ground=1.00, 8ft=1.30, 13ft=1.60, 17ft=1.90, 19ft=2.20. FAC_EXT_ACCESS: ground=1.00, ladder=1.35, scaffold=1.60, lift=1.50.",
+      "notes": "Trim uses more aggressive height modifiers than general access because brush detail at height is slower than spray field work at height."
+    },
+    {
+      "condition_id": "wind_condition",
+      "treatment": "hard_block_spray_and_modifier_brush",
+      "affected_tasks": "Spray tasks: BLOCKED in high wind. Brush/caulk tasks: FAC_EXT_WIND modifier (calm=1.00, moderate=1.15, high=1.35).",
+      "notes": "Spray operations blocked in high wind — fall back to brush. Brush slowed by debris contamination and accelerated dry time."
+    },
+    {
+      "condition_id": "dew_point_risk",
+      "treatment": "hard_block",
+      "affected_tasks": "All coating tasks (prime and finish) excluded when dew_point_risk = unsafe.",
+      "notes": "Moisture on surface prevents proper adhesion. All coating operations blocked when dew point risk is unsafe."
+    },
+    {
+      "condition_id": "sun_exposure",
+      "treatment": "modifier",
+      "affected_tasks": "All coating tasks. FAC_EXT_SUN_EXPOSURE: shade=1.00, partial=1.10, full_sun=1.25.",
+      "notes": "Full sun accelerates drying — shorter wet edge window. Forces earlier scheduling and smaller sections."
+    },
+    {
+      "condition_id": "surface_temperature",
+      "treatment": "modifier",
+      "affected_tasks": "All coating tasks. FAC_EXT_SURFACE_TEMP: normal=1.00, cold=1.15, hot=1.20.",
+      "notes": "Normal = 50-90F. Cold below 50F slows drying. Hot above 90F increases lap mark risk."
+    },
+    {
+      "condition_id": "substrate_condition",
+      "treatment": "modifier",
+      "affected_tasks": "Prep tasks. FAC_EXT_SUBSTRATE_CONDITION: clean_new=1.00, dusty=1.10, minor_damage=1.25.",
+      "notes": "NC trim is typically clean_new. Dusty or minor_damage from construction activity."
+    }
+  ],
+
+  "cross_spec_boundaries": [
+    {
+      "boundary": "Trim-to-siding caulk deduplication",
+      "this_spec_handles": "TSK_XTRM_CAULK_JOINTS at trim-to-siding junction",
+      "other_spec_handles": "SF_WOOD_SIDING_EXT_NC_PAINT_v1 / SF_SIDING_FIBERCEMENT_EXT_NC_v1 may also scope caulk at siding-to-trim junction",
+      "resolution": "Estimation engine deduplicates at project assembly per RC-008. No double-counting caulk labor."
+    },
+    {
+      "boundary": "Soffit-fascia/frieze junction",
+      "this_spec_handles": "Fascia and frieze trim painting (face and bottom edge visible from ground)",
+      "other_spec_handles": "Future SF_SOFFIT_EXT_NC_v1 handles soffit side of junction",
+      "resolution": "Each spec paints its own side of the junction."
+    },
+    {
+      "boundary": "Exterior door slab",
+      "this_spec_handles": "Door casing painting (ITM_TRIM_EXT_DOOR_CASING) and glass masking at casing-to-glass edge",
+      "other_spec_handles": "Future SF_DOOR_EXT_NC_v1 handles door slab painting",
+      "resolution": "Separate scope — this spec handles casings, door spec handles slab."
+    },
+    {
+      "boundary": "Exterior window sash/frame",
+      "this_spec_handles": "Window casing painting (ITM_TRIM_EXT_WINDOW_CASING), sill painting (ITM_TRIM_EXT_SILL), and glass masking at casing-to-glass edge",
+      "other_spec_handles": "Future SF_WINDOW_EXT_NC_v1 handles window sash and frame painting",
+      "resolution": "Separate scope — this spec handles casings and sills, window spec handles sash/frame."
+    },
+    {
+      "boundary": "Gutter/downspout",
+      "this_spec_handles": "Fascia painting where gutters mount",
+      "other_spec_handles": "Future SF_GUTTER_EXT_NC_v1 handles gutter and downspout painting",
+      "resolution": "Gutters mount to fascia but are separate scope."
+    }
+  ],
+
+  "round_configurations": [
+    {
+      "round_id": "ROUND_XTRM_PRIME_2FINISH",
+      "name": "Prime + 2 Finish Coats",
+      "description": "Standard NC sequence: 1 prime + 2 finish coats. For bare substrate (SS_EXT_BARE_WOOD) at all QTs.",
+      "applies_when": { "quality_tier": ["QT3", "QT4", "QT5"], "substrate_state": ["SS_EXT_BARE_WOOD"] },
+      "phase_sequence": ["prep", "prime", "prep", "finish", "interstage", "finish"],
+      "total_coats": 3,
+      "interstage_cycles": 1,
+      "notes": "Full sequence: prep -> prime -> caulk (prep phase) -> finish 1 -> interstage -> finish 2. Caulk module uses 'prep' phase but is sequenced between prime and finish per RC-003."
+    },
+    {
+      "round_id": "ROUND_XTRM_2FINISH",
+      "name": "2 Finish Coats Only (Field-Primed)",
+      "description": "Skip prime, direct to 2 finish coats. For SS_EXT_PRIMED_FIELD only.",
+      "applies_when": { "quality_tier": ["QT3", "QT4", "QT5"], "substrate_state": ["SS_EXT_PRIMED_FIELD"] },
+      "phase_sequence": ["prep", "finish", "interstage", "finish"],
+      "total_coats": 2,
+      "interstage_cycles": 1,
+      "notes": "Field prime already applied in prior mobilization. Caulk module still runs (prep phase). Prep module still runs for light surface prep."
+    }
+  ],
+
+  "sequencing_notes": {
+    "production_sequence": "Setup -> Prep -> Prime -> Caulk -> Finish 1 -> Interstage -> Finish 2 -> Final Inspect -> Cleanup",
+    "edge_work": "No edge blending across specs. Trim terminates at casing-to-glass edge (masked), siding edge (caulked), and soffit junction.",
+    "protection_sequence": "Landscape/hardscape -> Glass masking -> Fixture masking -> Siding masking (spray only) -> Equipment setup -> Coating work -> Protection teardown -> Equipment cleanup -> Site cleanup",
+    "coat_sequence": "Prep (substrate-material-driven) -> Prime (1 coat, skipped for SS_EXT_PRIMED_FIELD) -> Caulk (after prime per RC-003) -> Finish coat 1 -> Interstage (inspect, sand QT4/QT5, touch up) -> Finish coat 2 -> Final inspect -> Touch up",
+    "elevation_strategy": "Work one elevation at a time to minimize protection setup/teardown cycles. Follow shade for optimal coating conditions.",
+    "key_prohibitions": "NEVER silicone caulk on PVC. NEVER standard dark paint on PVC without solar-reflective coating. NEVER caulk window weep holes. NEVER skip composite edge sealing."
+  },
+
+  "qa_summary": {
+    "overall_result": "pass_with_warnings",
+    "issues": [
+      {
+        "issue_id": "QA-001",
+        "severity": "minor",
+        "area": "modifier_stacking",
+        "status": "acknowledged",
+        "description": "Maximum modifier stacking (19ft + built_up + PVC + full sun + moderate wind) produces 5.57x — exceeds 4.0x cap.",
+        "resolution": "Extreme scenario correctly flagged for hourly billing. Rare combination (3-story custom, cornice, PVC, adverse weather). Engine enforces 4.0x cap with hourly billing flag."
+      },
+      {
+        "issue_id": "QA-002",
+        "severity": "minor",
+        "area": "cross_spec_deduplication",
+        "status": "acknowledged",
+        "description": "Trim-to-siding joint caulking (TSK_XTRM_CAULK_JOINTS) may overlap with siding spec caulk tasks.",
+        "resolution": "Deduplication is a project assembly concern per RC-008. No spec-level fix available."
+      }
+    ],
+    "blockers": [],
+    "task_count_verified": {
+      "total": 31,
+      "binary": 19,
+      "qt_scaled": 10,
+      "qt_conditional": 2
+    },
+    "cross_file_threading": "pass — all 31 task IDs match 1:1 between sop_modules.json and production.json"
+  },
+
+  "relationships": {
+    "companion_spec": null,
+    "often_combined_with": ["SF_WOOD_SIDING_EXT_NC_PAINT_v1", "SF_SIDING_FIBERCEMENT_EXT_NC_v1"],
+    "sibling_specs": ["SF_SIDING_FIBERCEMENT_EXT_NC_v1", "SF_WOOD_SIDING_EXT_NC_PAINT_v1"],
+    "typical_before": [],
+    "typical_after": [],
+    "cross_spec_protection_note": "This spec OWNS window/door glass masking at casing-to-glass edge (RC-002). Siding specs do NOT mask glass — that responsibility belongs to either this trim spec or future window/door slab specs.",
+    "notes": "Third exterior spec. Multi-item spec (8 items) — most of any exterior spec. Shares protection zones with siding siblings. Key distinction: brush primary (not spray), LF-based (not SF), post-prime caulk module, glass masking ownership, 3 substrate materials."
+  },
+
+  "dependencies": {
+    "research": "research.json",
+    "resolution": "resolution.json",
+    "sop_modules": "sop_modules.json",
+    "materials": "materials.json",
+    "production": "production.json",
+    "qa_report": "qa_report.json"
+  },
+
+  "doctrine_references": [
+    { "doctrine": "Exterior_Trim_Systems_Doctrine.md", "sections_used": ["§1 Substrate materials", "§2 Prep methods", "§3 PVC constraints", "§4 Height modifiers", "§6 Caulking", "§7 Coverage rates"] },
+    { "doctrine": "Exterior_Caulking_Sealants_Doctrine.md", "sections_used": ["§1 Sealant types by substrate", "§3 Caulk-after-prime sequence"] },
+    { "doctrine": "Exterior_Color_Sheen_Configuration_Doctrine.md", "sections_used": ["§1-2 LRV constraint for PVC", "§3 Sheen recommendations"] },
+    { "doctrine": "Exterior_Primer_Systems_Doctrine.md", "sections_used": ["§1 Primer selection by substrate", "§2 Knot spot-prime", "§4 Coverage rates", "§5 Bonding primer recoat window"] },
+    { "doctrine": "Exterior_Application_Methods_Doctrine.md", "sections_used": ["Part B §1 Brush as precision tool", "Part B §4 Spray for production runs", "Part B §7 QT2 exclusion for trim"] },
+    { "doctrine": "Exterior_Access_Staging_Systems_Doctrine.md", "sections_used": ["§3 Access modifiers"] },
+    { "doctrine": "Exterior_Protection_Doctrine_T3.md", "sections_used": ["Landscape zones", "Hardscape zones", "Fixture zones", "Glass masking"] },
+    { "doctrine": "Quality_Tiers_and_Surface_Condition.md", "sections_used": ["QT3-QT5 definitions", "Inspection levels", "Intercoat sanding"] },
+    { "doctrine": "Materials_and_Consumables_Doctrine.md", "sections_used": ["Caulk rates", "Brush lifespan", "Tape yields"] },
+    { "doctrine": "Estimation_Modifiers_Doctrine.md", "sections_used": ["Modifier stacking rules", "Division formula", "4.0x cap"] }
+  ],
+
+  "research_corrections": [
+    {
+      "correction_id": "RC-002",
+      "description": "Glass masking at casing-to-glass edge is OWNED by this trim spec — not the window/door slab spec.",
+      "source": "resolution.json"
+    },
+    {
+      "correction_id": "RC-003",
+      "description": "Caulk module sequenced AFTER prime — caulk adheres better to primed surfaces.",
+      "source": "Exterior_Caulking_Sealants_Doctrine.md §3"
+    },
+    {
+      "correction_id": "RC-004",
+      "description": "No locked-in default sheen — sheen is always a project-level user selection.",
+      "source": "Exterior_Color_Sheen_Configuration_Doctrine.md"
+    },
+    {
+      "correction_id": "RC-007",
+      "description": "Exterior trim is NOT fine-finish (no SYS_FF_ prefix) — standard exterior grade.",
+      "source": "resolution.json"
+    },
+    {
+      "correction_id": "RC-008",
+      "description": "Trim-to-siding joint caulking deduplication must be handled at project assembly level.",
+      "source": "resolution.json cross_spec_coordination"
+    }
+  ],
+
+  "change_log": [
+    {
+      "version": "0.1.0",
+      "date": "2026-03-09",
+      "author": "SpecFactory",
+      "changes": "Initial draft spec for exterior trim prime and paint. Third exterior spec. Key features: combined prime+paint (single mobilization), 8 paintable items (all LF), 3 substrate materials (wood/PVC/composite) with 3 primer paths, 2 application methods (brush primary/spray secondary), 3 quality tiers (QT3-QT5, no QT2), 6 material systems (3 primer + 2 finish + 1 solar-reflective conditional), 9 modules with 31 tasks (19 binary + 10 qt_scaled + 2 qt_conditional), 6 protection zones, 2 round configurations, 9 factor modifiers. QA: pass_with_warnings (2 minor — modifier stacking exceeds cap in extreme scenario, cross-spec caulk dedup needed at project assembly)."
+    }
+  ]
+}

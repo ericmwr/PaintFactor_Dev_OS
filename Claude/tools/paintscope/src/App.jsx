@@ -102,6 +102,18 @@ function AppShell() {
                 <span className="room-item-label">{r.label || 'Untitled'}</span>
                 <span className="room-item-meta">{r.length_ft}x{r.width_ft}</span>
               </div>
+              {r.photoAnalysis && (
+                <button
+                  className="room-action-btn room-action-scan"
+                  title="Review scan results"
+                  onClick={(e) => { e.stopPropagation(); photoAnalysis.openForRoom(r.id); }}
+                >
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/>
+                    <circle cx="12" cy="13" r="4"/>
+                  </svg>
+                </button>
+              )}
               <div className="room-item-actions">
                 <button
                   className="room-action-btn"
@@ -186,8 +198,9 @@ function AppShell() {
       {photoAnalysis.showModal && (
         <PhotoAnalysisModal
           roomId={photoAnalysis.targetRoomId}
-          onApply={(roomId, patch) => dispatch({ type: 'APPLY_PHOTO_ANALYSIS', payload: { roomId, patch } })}
-          onCreateRoom={(patch) => dispatch({ type: 'CREATE_ROOM_FROM_PHOTO', payload: { patch } })}
+          savedResult={state.rooms.find(r => r.id === photoAnalysis.targetRoomId)?.photoAnalysis || null}
+          onApply={(roomId, patch, analysisResult) => dispatch({ type: 'APPLY_PHOTO_ANALYSIS', payload: { roomId, patch, analysisResult } })}
+          onCreateRoom={(patch, analysisResult) => dispatch({ type: 'CREATE_ROOM_FROM_PHOTO', payload: { patch, analysisResult } })}
           onClose={photoAnalysis.close}
         />
       )}

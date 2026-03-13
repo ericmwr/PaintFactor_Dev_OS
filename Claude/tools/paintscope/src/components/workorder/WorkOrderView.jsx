@@ -43,6 +43,15 @@ export default function WorkOrderView() {
     });
   }
 
+  // Merge fixture protection tasks into allTasks for phase-based views
+  if (estimate.fixtureProtection) {
+    Object.entries(estimate.fixtureProtection).forEach(([ri, fp]) => {
+      fp.tasks.forEach(t => {
+        allTasks.push({...t, specId: '__FIXTURE_PROTECTION__', specName: 'Fixture Protection'});
+      });
+    });
+  }
+
   // Phase-grouped view: phase -> room -> tasks
   const byPhaseRoom = {};
   PHASE_ORDER.forEach(p => { byPhaseRoom[p] = {}; });
@@ -71,6 +80,13 @@ export default function WorkOrderView() {
   if (estimate.roomProtection) {
     Object.entries(estimate.roomProtection).forEach(([ri, rp]) => {
       if (roomMap[ri]) roomMap[ri].totalHours += rp.totalHours;
+    });
+  }
+
+  // Add fixture protection hours to room totals
+  if (estimate.fixtureProtection) {
+    Object.entries(estimate.fixtureProtection).forEach(([ri, fp]) => {
+      if (roomMap[ri]) roomMap[ri].totalHours += fp.totalHours;
     });
   }
 
@@ -221,6 +237,30 @@ export default function WorkOrderView() {
                         <div style={{padding:'0 8px 8px'}}>
                           <TaskHeader secondCol="Phase" />
                           {rp.tasks.map((t,i) => <TaskRow key={'rp'+i} t={{...t, specId: '__RP__', specName: 'Room Protection'}} showRoom={false} accentBorder />)}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
+
+                {isRoomOpen && estimate.fixtureProtection && estimate.fixtureProtection[ri] && (() => {
+                  const fp = estimate.fixtureProtection[ri];
+                  const fpKey = 'wo::' + ri + '::__FP__';
+                  const isFpOpen = expandedItems[fpKey] !== false;
+                  return (
+                    <div className="spec-section" style={{marginLeft:16,borderLeft:'3px solid #b87333',marginBottom:8}}>
+                      <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'4px 8px',cursor:'pointer'}} onClick={() => toggleItem(fpKey)}>
+                        <div>
+                          <span style={{marginRight:6,display:'inline-block',transform:isFpOpen?'rotate(90deg)':'rotate(0)',transition:'transform 0.15s',fontSize:10}}>{'\u25B6'}</span>
+                          <span style={{fontWeight:700,fontSize:13,color:'#b87333'}}>Fixture Protection</span>
+                          <span style={{color:'var(--text-muted)',fontSize:11,marginLeft:8}}>{fp.tasks.length} entries</span>
+                        </div>
+                        <span style={{fontFamily:'var(--font-mono)',fontWeight:700,color:'var(--accent)'}}>{fp.totalHours.toFixed(2)} hrs</span>
+                      </div>
+                      {isFpOpen && (
+                        <div style={{padding:'0 8px 8px'}}>
+                          <TaskHeader secondCol="Phase" />
+                          {fp.tasks.map((t,i) => <TaskRow key={'fp'+i} t={{...t, specId: '__FP__', specName: 'Fixture Protection'}} showRoom={false} accentBorder />)}
                         </div>
                       )}
                     </div>
