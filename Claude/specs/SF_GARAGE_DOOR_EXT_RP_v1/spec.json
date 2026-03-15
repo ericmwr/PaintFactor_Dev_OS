@@ -1,0 +1,784 @@
+{
+  "spec_family": {
+    "id": "SF_GARAGE_DOOR_EXT_RP",
+    "name": "Exterior Garage Door Repaint",
+    "description": "EA-based spec for repaint of existing exterior garage doors. Adapts NC spec (SF_GARAGE_DOOR_EXT_NC_v1) to repaint context with condition assessment, condition-driven prep intensity, and 4 substrate states (sound/chalking/failing/rust). Three substrate materials (steel/wood/composite) with condition-driven primer selection — sound-paint steel uses spot-prime only (wax sealed by existing film, unlike NC which requires full DTM). Sectional door articulation requires leapfrog painting technique. Bottom seal lifecycle management (remove/prop/reinstall). Door size (single/double) is primary EA rate modifier. Panel complexity (flush/raised_panel/carriage/windows) is secondary modifier. Condition modifier in PREP stacking pool. Gloss sheen excluded for RP. Pre-1978 RRP lead-safe gate. Door casing belongs to SF_TRIM_EXT_RP_v1.",
+    "domain": "exterior",
+    "version": "0.1.0",
+    "status": "draft",
+    "review_required": true
+  },
+
+  "scope_boundaries": {
+    "includes": [
+      "On-site condition assessment of existing coating (visual inspection, ASTM D3359 adhesion test, rust evaluation, moisture test, coating ID)",
+      "Lead paint testing for pre-1978 structures (EPA RRP Rule 40 CFR 745)",
+      "Complete exterior face of garage door assembly (all panels, recesses, window frame surrounds)",
+      "Panel edges at articulation joints (leapfrog painting technique)",
+      "Condition-driven surface preparation (sound: degloss scuff; chalking: remediation wash; failing: scrape + feather-edge; rust: SSPC-SP3 debridement)",
+      "Surface cleaning (TSP/degreaser wash for all conditions)",
+      "Panel joint caulk assessment and repair",
+      "Window insert masking (when windows present)",
+      "Weatherstrip protection (low-tack tape in channel)",
+      "Track and hardware masking (tracks, rollers, springs, cables, brackets)",
+      "Bottom seal management (remove or mask, prop during cure, reinstall after cure)",
+      "Driveway/apron protection (canvas drops — NOT poly sheeting)",
+      "Adjacent siding masking (spray method)",
+      "Condition-driven primer application (DTM spot/full for steel, chalk-binding for chalking, acrylic for wood, alkyd stain-blocker for tannin wood, bonding for composite)",
+      "Two finish coats with leapfrog technique (standard or premium acrylic latex, satin or semi-gloss)",
+      "Intercoat inspection (QT3) and sanding (QT4)",
+      "Articulation test (door opens/closes freely after painting)",
+      "Balance check (safety quality gate — spring adjustment is not scope)"
+    ],
+    "excludes": [
+      {
+        "item": "Garage door casing/trim prep, prime, and paint",
+        "route_to": "SF_TRIM_EXT_RP_v1"
+      },
+      {
+        "item": "Interior/garage-side face of door",
+        "route_to": "Not in exterior RP scope"
+      },
+      {
+        "item": "Weatherstripping replacement",
+        "route_to": "Garage door service scope (flag if degraded)"
+      },
+      {
+        "item": "Spring/cable/track adjustment or repair",
+        "route_to": "Garage door service scope"
+      },
+      {
+        "item": "Opener motor or electronic components",
+        "route_to": "Garage door service scope"
+      },
+      {
+        "item": "Roller application",
+        "route_to": "PROHIBITED — introduces orange peel on metal door faces"
+      },
+      {
+        "item": "Gloss sheen",
+        "route_to": "EXCLUDED — requires substrate perfection not achievable over existing paint"
+      },
+      {
+        "item": "QT2 quality tier",
+        "route_to": "EXCLUDED — garage doors are visible from street, not economy-appropriate"
+      },
+      {
+        "item": "QT5 quality tier",
+        "route_to": "EXCLUDED — utility surface, not architectural showcase like entry doors"
+      },
+      {
+        "item": "RRP containment and lead-safe work practices",
+        "route_to": "Lead-safe certified contractor scope — triggered by positive lead test on pre-1978 structures"
+      }
+    ]
+  },
+
+  "configuration_dimensions": [
+    {
+      "dimension_id": "quality_tier",
+      "description": "Quality tier controlling pace, scrutiny level, intercoat sanding, and defect tolerance.",
+      "values": ["QT3", "QT4"],
+      "default": "QT3",
+      "notes": "QT3=standard (production pace, 6-foot visual, no intercoat sand). QT4=premium (slower pace, raking light at 3 feet, intercoat sand 220-grit, premium materials). QT2 excluded — visible from street. QT5 excluded — utility surface. Same 2-tier range as NC."
+    },
+    {
+      "dimension_id": "door_substrate",
+      "description": "Garage door substrate material — drives primer system, prep protocol, and failure mode profile.",
+      "values": ["steel", "wood", "composite"],
+      "notes": "Steel: degloss/scuff (sound) or scrape/feather (failing) or SSPC-SP3 debride (rust) + DTM spot/full prime. Wood: sand + fill + acrylic primer. Composite: mixed-material prep + bonding primer on delaminated overlays. Per-door capture for mixed-substrate projects."
+    },
+    {
+      "dimension_id": "substrate_state",
+      "description": "Existing coating condition — drives prep intensity, primer scope, and round configuration. Assessed on-site.",
+      "values": ["SS_EXT_SOUND_PAINT", "SS_EXT_CHALKING", "SS_EXT_FAILING_PAINT", "SS_EXT_SURFACE_RUST"],
+      "notes": "Sound: adhesion test passes, minimal prep. Chalking: chalk remediation + chalk-binding primer. Failing: scrape + feather + spot/full prime. Rust: SSPC-SP3 + DTM (steel-only). SS_EXT_SURFACE_RUST is steel-only (COMPAT-006). Condition is primary driver of RP cost variance."
+    },
+    {
+      "dimension_id": "panel_complexity",
+      "description": "Panel complexity classification — secondary cost driver after door size.",
+      "values": ["flush", "raised_panel", "carriage", "windows"],
+      "modifiers": {
+        "flush": 1.00,
+        "raised_panel": 1.10,
+        "carriage": 1.30,
+        "windows": "additive (0.75-1.25 hrs)"
+      },
+      "notes": "Flush = baseline (continuous spray). Raised_panel = +10% (brush work in recesses). Carriage = +30% (meticulous overlay detail). Windows is additive time (independent of panel type). Same as NC."
+    },
+    {
+      "dimension_id": "sheen",
+      "description": "Finish sheen — project-level selection.",
+      "values": ["satin", "semi-gloss"],
+      "notes": "Gloss excluded for RP — requires substrate perfection not achievable over existing paint. Satin is most common for garage door repaint. Key difference from NC which allows satin/semi-gloss/gloss."
+    },
+    {
+      "dimension_id": "application_method",
+      "description": "Primary application technique for face coating.",
+      "values": ["spray", "brush"],
+      "default": "spray",
+      "notes": "Spray is primary for garage door faces (large flat panels). Brush for panel recesses on raised-panel and carriage doors. Brush-only for small projects where spray setup is not justified. Roller is NOT valid — introduces orange peel on metal doors. Same as NC."
+    }
+  ],
+
+  "paintable_items": [
+    {
+      "item_id": "ITM_GARAGE_DOOR",
+      "name": "Exterior garage door assembly",
+      "unit_of_measure": "EA",
+      "counting_rules": "Each garage door assembly is 1 EA regardless of physical size. Door size (single or double) is captured as a modifier within EA. A door assembly includes all panels, recesses, window inserts (if present), and panel edges at articulation joints.",
+      "notes": "Single paintable item — reused from NC spec. Does NOT include casing (SF_TRIM_EXT_RP_v1 scope), interior/garage-side face, weatherstripping, spring hardware, or tracks. Substrate state assessed per door during condition assessment module."
+    }
+  ],
+
+  "variants": [
+    {
+      "variant_id": "VAR_RP_SOUND_SPRAY_STEEL_FLUSH",
+      "applies_when": { "quality_tier": ["QT3"], "application_method": ["spray"], "door_substrate": ["steel"], "substrate_state": ["SS_EXT_SOUND_PAINT"], "panel_complexity": ["flush"] },
+      "coats": { "prime": "spot", "finish": 2 },
+      "round": "ROUND_GDRP_SOUND",
+      "protection_zones": ["ext_garage_driveway_apron", "ext_garage_siding_adjacent", "ext_garage_weatherstrip", "ext_garage_track_hardware", "ext_garage_bottom_seal"],
+      "notes": "Baseline RP scenario — sound paint on steel, spray. Degloss scuff + spot DTM prime bare areas + 2 finish coats."
+    },
+    {
+      "variant_id": "VAR_RP_CHALKING_SPRAY_STEEL",
+      "applies_when": { "quality_tier": ["QT3", "QT4"], "application_method": ["spray"], "door_substrate": ["steel"], "substrate_state": ["SS_EXT_CHALKING"] },
+      "coats": { "prime": 1, "finish": 2 },
+      "round": "ROUND_GDRP_CHALKING",
+      "protection_zones": ["ext_garage_driveway_apron", "ext_garage_siding_adjacent", "ext_garage_weatherstrip", "ext_garage_track_hardware", "ext_garage_bottom_seal"],
+      "notes": "Chalking steel door. Chalk remediation wash + chalk-binding full prime + 2 finish coats."
+    },
+    {
+      "variant_id": "VAR_RP_FAILING_SPRAY_STEEL",
+      "applies_when": { "quality_tier": ["QT3", "QT4"], "application_method": ["spray"], "door_substrate": ["steel"], "substrate_state": ["SS_EXT_FAILING_PAINT"] },
+      "coats": { "prime": "spot_or_full", "finish": 2 },
+      "round": "ROUND_GDRP_FAILING",
+      "protection_zones": ["ext_garage_driveway_apron", "ext_garage_siding_adjacent", "ext_garage_weatherstrip", "ext_garage_track_hardware", "ext_garage_bottom_seal"],
+      "notes": "Failing paint on steel. Scrape + feather-edge + DTM spot/full prime + 2 finish coats."
+    },
+    {
+      "variant_id": "VAR_RP_RUST_SPRAY_STEEL",
+      "applies_when": { "quality_tier": ["QT3", "QT4"], "application_method": ["spray"], "door_substrate": ["steel"], "substrate_state": ["SS_EXT_SURFACE_RUST"] },
+      "coats": { "prime": 1, "finish": 2 },
+      "round": "ROUND_GDRP_RUST",
+      "protection_zones": ["ext_garage_driveway_apron", "ext_garage_siding_adjacent", "ext_garage_weatherstrip", "ext_garage_track_hardware", "ext_garage_bottom_seal"],
+      "notes": "Surface rust on steel. SSPC-SP3 debridement + DTM primer on bare metal + 2 finish coats. Steel-only condition."
+    },
+    {
+      "variant_id": "VAR_RP_SOUND_SPRAY_WOOD",
+      "applies_when": { "quality_tier": ["QT3", "QT4"], "application_method": ["spray"], "door_substrate": ["wood"], "substrate_state": ["SS_EXT_SOUND_PAINT"] },
+      "coats": { "prime": "spot", "finish": 2 },
+      "round": "ROUND_GDRP_SOUND",
+      "protection_zones": ["ext_garage_driveway_apron", "ext_garage_siding_adjacent", "ext_garage_weatherstrip", "ext_garage_track_hardware", "ext_garage_bottom_seal"],
+      "notes": "Sound paint on wood. Minimal prep + spot acrylic prime bare areas + 2 finish coats. 1.15x substrate modifier."
+    },
+    {
+      "variant_id": "VAR_RP_FAILING_SPRAY_WOOD",
+      "applies_when": { "quality_tier": ["QT3", "QT4"], "application_method": ["spray"], "door_substrate": ["wood"], "substrate_state": ["SS_EXT_FAILING_PAINT"] },
+      "coats": { "prime": "spot_or_full", "finish": 2 },
+      "round": "ROUND_GDRP_FAILING",
+      "protection_zones": ["ext_garage_driveway_apron", "ext_garage_siding_adjacent", "ext_garage_weatherstrip", "ext_garage_track_hardware", "ext_garage_bottom_seal"],
+      "notes": "Failing paint on wood. Sand + fill + scrape/feather + acrylic prime + 2 finish coats."
+    },
+    {
+      "variant_id": "VAR_RP_SOUND_SPRAY_COMPOSITE",
+      "applies_when": { "quality_tier": ["QT3", "QT4"], "application_method": ["spray"], "door_substrate": ["composite"], "substrate_state": ["SS_EXT_SOUND_PAINT"] },
+      "coats": { "prime": "conditional", "finish": 2 },
+      "round": "ROUND_GDRP_SOUND",
+      "protection_zones": ["ext_garage_driveway_apron", "ext_garage_siding_adjacent", "ext_garage_weatherstrip", "ext_garage_track_hardware", "ext_garage_bottom_seal"],
+      "notes": "Sound paint on composite/carriage overlay. Bonding primer only if slick surface exposed. 1.20x substrate modifier."
+    },
+    {
+      "variant_id": "VAR_RP_WINDOWS",
+      "applies_when": { "panel_complexity": ["windows"] },
+      "coats": { "prime": "varies", "finish": 2 },
+      "round": "varies_by_condition",
+      "protection_zones": ["ext_garage_driveway_apron", "ext_garage_siding_adjacent", "ext_garage_window_mask", "ext_garage_weatherstrip", "ext_garage_track_hardware", "ext_garage_bottom_seal"],
+      "notes": "Any substrate/condition with window inserts. Adds window masking zone. Additive time (+0.75-1.25 hrs). Combines with any condition variant."
+    },
+    {
+      "variant_id": "VAR_RP_BRUSH_STEEL",
+      "applies_when": { "application_method": ["brush"], "door_substrate": ["steel"] },
+      "coats": { "prime": "varies", "finish": 2 },
+      "round": "varies_by_condition",
+      "protection_zones": ["ext_garage_driveway_apron", "ext_garage_weatherstrip", "ext_garage_track_hardware", "ext_garage_bottom_seal"],
+      "notes": "Brush-only on steel. No siding masking needed (no spray overspray). Brush is ~2.5x spray time for face tasks."
+    }
+  ],
+
+  "required_paintscope_inputs": [
+    {
+      "input_name": "IN_EA_GARAGE_DOOR",
+      "paintscope_key": "PS_EXT_OPENING_EA.DOOR_GARAGE",
+      "uom": "EA",
+      "required": true,
+      "description": "Count of garage doors in scope. Each door assembly is 1 EA regardless of size."
+    },
+    {
+      "input_name": "IN_ENUM_GARAGE_DOOR_SUBSTRATE",
+      "paintscope_key": "PS_EXT_META.ENUM.GARAGE_DOOR_SUBSTRATE",
+      "uom": "ENUM",
+      "required": true,
+      "description": "Garage door substrate material — steel, wood, or composite."
+    },
+    {
+      "input_name": "IN_ENUM_GARAGE_DOOR_SIZE",
+      "paintscope_key": "PS_EXT_META.ENUM.GARAGE_DOOR_SIZE",
+      "uom": "ENUM",
+      "required": true,
+      "description": "Garage door size — single (8x7/9x7 ft, 56-63 SF) or double (16x7/18x7 ft, 112-126 SF). Primary rate modifier within EA counting."
+    },
+    {
+      "input_name": "IN_ENUM_GARAGE_DOOR_PANEL_TYPE",
+      "paintscope_key": "PS_EXT_META.ENUM.GARAGE_DOOR_PANEL_TYPE",
+      "uom": "ENUM",
+      "required": true,
+      "description": "Panel complexity — flush, raised_panel, carriage, or windows. Production rate modifier."
+    },
+    {
+      "input_name": "IN_ENUM_SUBSTRATE_STATE_GARAGE_DOOR",
+      "paintscope_key": "PS_EXT_META.ENUM.SUBSTRATE_STATE_GARAGE_DOOR",
+      "uom": "ENUM",
+      "required": true,
+      "description": "Existing coating condition per door — SS_EXT_SOUND_PAINT, SS_EXT_CHALKING, SS_EXT_FAILING_PAINT, or SS_EXT_SURFACE_RUST. Assessed on-site. Drives prep scope, primer selection, and round configuration."
+    },
+    {
+      "input_name": "IN_SF_EXT_PROTECT_DRIVEWAY",
+      "paintscope_key": "PS_EXT_PROTECT_SF.DRIVEWAY",
+      "uom": "SF",
+      "required": false,
+      "required_when": "When application_method is spray (recommended for all methods)",
+      "description": "SF of driveway/apron surface within overspray/drip zone requiring protection."
+    },
+    {
+      "input_name": "IN_BOOL_PRE_1978",
+      "paintscope_key": "PS_EXT_META.FLAG.PRE_1978",
+      "uom": "BOOL",
+      "required": true,
+      "description": "Boolean flag for pre-1978 building. Triggers EPA Lead-Safe RRP requirements including lead paint testing."
+    }
+  ],
+
+  "substrate_state_rules": {
+    "primary_surface": "garage_door_ext",
+    "valid_input_states": {
+      "states": ["SS_EXT_SOUND_PAINT", "SS_EXT_CHALKING", "SS_EXT_FAILING_PAINT", "SS_EXT_SURFACE_RUST"],
+      "notes": "4 RP substrate states. SS_EXT_SOUND_PAINT: adhesion test passes, existing coating is sound. SS_EXT_CHALKING: chalking degradation (common on south/west-facing doors). SS_EXT_FAILING_PAINT: peeling, cracking, or delaminated coating. SS_EXT_SURFACE_RUST: steel-only, active rust at surface. State is assessed on-site by condition assessment module."
+    },
+    "output_state": {
+      "state": "SS_EXT_PAINTED_SATIN",
+      "varies_by": "sheen",
+      "state_map": {
+        "satin": "SS_EXT_PAINTED_SATIN",
+        "semi-gloss": "SS_EXT_PAINTED_SEMIGLOSS"
+      },
+      "notes": "Output state varies by sheen. Satin is most common for RP. Gloss excluded."
+    },
+    "primer_routing": {
+      "SS_EXT_SOUND_PAINT": {
+        "steel": {
+          "required_system": "SYS_EXT_GDRP_PRIMER_DTM",
+          "scope": "spot_prime",
+          "notes": "Spot prime bare/thin areas only. Existing film seals wax — no full DTM requirement unlike NC."
+        },
+        "wood": {
+          "required_system": "SYS_EXT_GDRP_PRIMER_ACRYLIC",
+          "scope": "spot_prime",
+          "notes": "Spot prime bare areas. Tannin-rich species may need SYS_EXT_GDRP_PRIMER_ALKYD_STAINBLOCK."
+        },
+        "composite": {
+          "required_system": "SYS_EXT_GDRP_PRIMER_BONDING",
+          "scope": "conditional",
+          "notes": "Bonding primer only if slick surface exposed during prep."
+        }
+      },
+      "SS_EXT_CHALKING": {
+        "all_substrates": {
+          "required_system": "SYS_EXT_GDRP_PRIMER_CHALKBIND",
+          "scope": "full_prime",
+          "notes": "FULL COVERAGE mandatory. Cannot spot prime over chalk residue."
+        }
+      },
+      "SS_EXT_FAILING_PAINT": {
+        "steel": {
+          "required_system": "SYS_EXT_GDRP_PRIMER_DTM",
+          "scope": "spot_or_full",
+          "notes": "Spot prime if <30% bare. Full prime if >30% bare area."
+        },
+        "wood": {
+          "required_system": "SYS_EXT_GDRP_PRIMER_ACRYLIC",
+          "scope": "spot_or_full",
+          "notes": "Spot or full depending on bare area. Tannin species may need stain-blocker."
+        },
+        "composite": {
+          "required_system": "SYS_EXT_GDRP_PRIMER_BONDING",
+          "scope": "spot_or_full",
+          "notes": "Bonding primer on exposed composite surfaces."
+        }
+      },
+      "SS_EXT_SURFACE_RUST": {
+        "steel": {
+          "required_system": "SYS_EXT_GDRP_PRIMER_DTM",
+          "scope": "full_prime",
+          "notes": "DTM primer on all debrided areas. CRITICAL: prime same day as rust removal. Steel-only state."
+        }
+      }
+    }
+  },
+
+  "material_systems": [
+    {
+      "system_id": "SYS_EXT_GDRP_PRIMER_DTM",
+      "name": "DTM Primer for Steel Garage Door Repaint",
+      "quality_tier": ["QT3", "QT4"],
+      "product_role": "primer",
+      "applies_when": { "door_substrate": ["steel"], "substrate_state": ["SS_EXT_SOUND_PAINT", "SS_EXT_FAILING_PAINT", "SS_EXT_SURFACE_RUST"] },
+      "coverage_sf_per_gallon": 375,
+      "coats": 1,
+      "notes": "Spot prime on sound paint (bare areas only). Full prime on failing paint or after rust debridement. Unlike NC, sound-paint steel does NOT require full DTM — existing film seals wax contamination."
+    },
+    {
+      "system_id": "SYS_EXT_GDRP_PRIMER_CHALKBIND",
+      "name": "Chalk-Binding Primer for Chalking Garage Doors",
+      "quality_tier": ["QT3", "QT4"],
+      "product_role": "primer",
+      "applies_when": { "substrate_state": ["SS_EXT_CHALKING"] },
+      "coverage_sf_per_gallon": 350,
+      "coats": 1,
+      "notes": "FULL COVERAGE mandatory. Penetrates degraded chalk layer. NEW — not in NC spec."
+    },
+    {
+      "system_id": "SYS_EXT_GDRP_PRIMER_ACRYLIC",
+      "name": "100% Acrylic Exterior Primer for Wood Garage Door Repaint",
+      "quality_tier": ["QT3", "QT4"],
+      "product_role": "primer",
+      "applies_when": { "door_substrate": ["wood"], "substrate_state": ["SS_EXT_SOUND_PAINT", "SS_EXT_FAILING_PAINT"] },
+      "coverage_sf_per_gallon": 425,
+      "coats": 1,
+      "notes": "Standard acrylic primer for wood bare areas. Supplement with alkyd stain-blocker for tannin-rich species."
+    },
+    {
+      "system_id": "SYS_EXT_GDRP_PRIMER_ALKYD_STAINBLOCK",
+      "name": "Alkyd Stain-Blocking Primer for Tannin-Rich Wood Repaint",
+      "quality_tier": ["QT3", "QT4"],
+      "product_role": "primer",
+      "applies_when": { "door_substrate": ["wood"] },
+      "coverage_sf_per_gallon": 375,
+      "coats": 1,
+      "notes": "Required for cedar, redwood, fir doors showing tannin bleed. May be spot or full surface."
+    },
+    {
+      "system_id": "SYS_EXT_GDRP_PRIMER_BONDING",
+      "name": "Bonding Primer for Delaminated Composite Overlays",
+      "quality_tier": ["QT3", "QT4"],
+      "product_role": "primer",
+      "applies_when": { "door_substrate": ["composite"] },
+      "coverage_sf_per_gallon": 375,
+      "coats": 1,
+      "notes": "Conditional — needed when composite overlays have adhesion failure or slick surface exposed during prep."
+    },
+    {
+      "system_id": "SYS_EXT_GDRP_FINISH_STANDARD",
+      "name": "Standard Exterior Acrylic Latex for Garage Door Repaint",
+      "quality_tier": ["QT3"],
+      "product_role": "finish",
+      "allowed_sheens": ["satin", "semi-gloss"],
+      "coverage_sf_per_gallon": 350,
+      "coats": 2,
+      "notes": "Mid-grade 100% acrylic exterior latex. 2 coats with leapfrog technique. LRV restrictions apply."
+    },
+    {
+      "system_id": "SYS_EXT_GDRP_FINISH_PREMIUM",
+      "name": "Premium Exterior Acrylic Latex for Garage Door Repaint",
+      "quality_tier": ["QT4"],
+      "product_role": "finish",
+      "allowed_sheens": ["satin", "semi-gloss"],
+      "coverage_sf_per_gallon": 350,
+      "coats": 2,
+      "notes": "Premium 100% acrylic with superior UV resistance, self-cleaning, enhanced color retention. Intercoat sand 220-grit."
+    }
+  ],
+
+  "sop_module_summary": {
+    "total_modules": 9,
+    "total_tasks": 56,
+    "modules": [
+      {
+        "module_id": "MOD_GDRP_ASSESS",
+        "name": "Condition Assessment",
+        "phase": "prep",
+        "task_count": 6,
+        "tasks": ["TSK_GDRP_ASSESS_CONDITION", "TSK_GDRP_ASSESS_ADHESION", "TSK_GDRP_ASSESS_RUST", "TSK_GDRP_ASSESS_MOISTURE", "TSK_GDRP_ASSESS_COATING_ID", "TSK_GDRP_ASSESS_LEAD"],
+        "notes": "MANDATORY first module for RP. Drives substrate state assignment, prep scope, primer selection, and round configuration. NEW — not in NC."
+      },
+      {
+        "module_id": "MOD_GDRP_SETUP",
+        "name": "Garage Door Protection & Equipment Setup",
+        "phase": "setup",
+        "task_count": 8,
+        "tasks": ["TSK_GDRP_DRIVEWAY_PROTECT", "TSK_GDRP_SIDING_MASK", "TSK_GDRP_WINDOW_MASK", "TSK_GDRP_WEATHERSTRIP_PROTECT", "TSK_GDRP_TRACK_HARDWARE_MASK", "TSK_GDRP_BOTTOM_SEAL_PREP", "TSK_GDRP_EQUIPMENT_SETUP_SPRAY", "TSK_GDRP_EQUIPMENT_SETUP_BRUSH"]
+      },
+      {
+        "module_id": "MOD_GDRP_PREP",
+        "name": "Condition-Driven Surface Preparation",
+        "phase": "prep",
+        "task_count": 10,
+        "tasks": ["TSK_GDRP_CLEAN_SURFACE", "TSK_GDRP_CHALK_REMEDIATE", "TSK_GDRP_DEGLOSS_SCUFF", "TSK_GDRP_SCRAPE_FEATHER", "TSK_GDRP_RUST_DEBRIDE", "TSK_GDRP_SAND_WOOD", "TSK_GDRP_FILL_WOOD", "TSK_GDRP_PREP_COMPOSITE", "TSK_GDRP_CAULK_JOINTS", "TSK_GDRP_DUST_REMOVE"],
+        "notes": "Tasks activate based on substrate_state and door_substrate. Condition modifier (FAC_GDRP_CONDITION) applies to this module's tasks in PREP stacking pool."
+      },
+      {
+        "module_id": "MOD_GDRP_PRIME",
+        "name": "Condition-Driven Primer Application",
+        "phase": "prime",
+        "task_count": 8,
+        "tasks": ["TSK_GDRP_PRIME_DTM_SPRAY", "TSK_GDRP_PRIME_DTM_BRUSH", "TSK_GDRP_PRIME_CHALKBIND_SPRAY", "TSK_GDRP_PRIME_CHALKBIND_BRUSH", "TSK_GDRP_PRIME_ACRYLIC_SPRAY", "TSK_GDRP_PRIME_ACRYLIC_BRUSH", "TSK_GDRP_PRIME_BONDING_COMPOSITE", "TSK_GDRP_TANNIN_SPOT_PRIME"],
+        "notes": "Primer path driven by substrate_state + door_substrate. Spot or full scope varies by condition."
+      },
+      {
+        "module_id": "MOD_GDRP_FINISH_1",
+        "name": "First Finish Coat (Leapfrog)",
+        "phase": "finish",
+        "task_count": 4,
+        "tasks": ["TSK_GDRP_FINISH_SPRAY_1", "TSK_GDRP_FINISH_BRUSH_1", "TSK_GDRP_FINISH_BRUSH_RECESS_1", "TSK_GDRP_LEAPFROG_VERIFY_1"]
+      },
+      {
+        "module_id": "MOD_GDRP_INTERSTAGE",
+        "name": "Intercoat Inspection & Sand",
+        "phase": "interstage",
+        "task_count": 4,
+        "tasks": ["TSK_GDRP_INSPECT_INTERCOAT", "TSK_GDRP_SAND_INTERCOAT", "TSK_GDRP_REPAIR_INTERCOAT", "TSK_GDRP_DUST_INTERCOAT"]
+      },
+      {
+        "module_id": "MOD_GDRP_FINISH_2",
+        "name": "Second Finish Coat (Leapfrog) + Bottom Seal Prop",
+        "phase": "finish",
+        "task_count": 5,
+        "tasks": ["TSK_GDRP_FINISH_SPRAY_2", "TSK_GDRP_FINISH_BRUSH_2", "TSK_GDRP_FINISH_BRUSH_RECESS_2", "TSK_GDRP_LEAPFROG_VERIFY_2", "TSK_GDRP_BOTTOM_SEAL_PROP"]
+      },
+      {
+        "module_id": "MOD_GDRP_FINAL_INSPECT",
+        "name": "Final Inspection & Touch-Up",
+        "phase": "finish",
+        "task_count": 3,
+        "tasks": ["TSK_GDRP_FINAL_INSPECT", "TSK_GDRP_BALANCE_CHECK", "TSK_GDRP_TOUCHUP"]
+      },
+      {
+        "module_id": "MOD_GDRP_CLEANUP",
+        "name": "Protection Teardown & Cleanup",
+        "phase": "cleanup",
+        "task_count": 8,
+        "tasks": ["TSK_GDRP_WINDOW_UNMASK", "TSK_GDRP_WEATHERSTRIP_UNMASK", "TSK_GDRP_TRACK_HARDWARE_UNMASK", "TSK_GDRP_SIDING_UNMASK", "TSK_GDRP_BOTTOM_SEAL_REINSTALL", "TSK_GDRP_DRIVEWAY_TEARDOWN", "TSK_GDRP_ARTICULATION_TEST", "TSK_GDRP_TOOL_CLEAN"]
+      }
+    ],
+    "by_classification": {
+      "binary": 34,
+      "qt_scaled": 20,
+      "qt_conditional": 2
+    },
+    "by_skill_level": {
+      "helper": 14,
+      "journeyman": 35,
+      "lead": 7
+    }
+  },
+
+  "production_summary": {
+    "rate_basis": "EA (each garage door assembly) — minutes per door, not SF/hr or LF/hr",
+    "ea_conversion": {
+      "sf_per_door_assembly_single": 60,
+      "sf_range_single": [56, 63],
+      "sf_per_door_assembly_double": 119,
+      "sf_range_double": [112, 126],
+      "notes": "Same door sizes as NC. Rates are minutes per door, with door_size modifier adjusting for doubles."
+    },
+    "time_estimates_by_scenario": [
+      {
+        "scenario": "Single steel flush, sound paint, spray, QT3",
+        "round": "ROUND_GDRP_SOUND",
+        "total_minutes": 336,
+        "total_hours": 5.6,
+        "notes": "Baseline RP scenario — excludes driveway SF protection. ~17% premium over NC baseline (287 min). Premium from assessment module (30 min) and surface cleaning/caulk tasks."
+      },
+      {
+        "scenario": "Single steel flush, failing paint, spray, QT3",
+        "round": "ROUND_GDRP_FAILING",
+        "modifier": "FAC_GDRP_CONDITION = 1.50 on prep",
+        "estimated_total_hours": "7.0-7.5",
+        "notes": "Scrape + feather adds significant prep time."
+      },
+      {
+        "scenario": "Single steel flush, surface rust, spray, QT3",
+        "round": "ROUND_GDRP_RUST",
+        "modifier": "FAC_GDRP_CONDITION = 2.00 on prep",
+        "estimated_total_hours": "8.0-9.0",
+        "notes": "SSPC-SP3 debridement is highly labor-intensive. Steel-only condition."
+      },
+      {
+        "scenario": "Double steel flush, sound, spray, QT3",
+        "modifier": "FAC_GDRP_DOOR_SIZE = 1.85",
+        "estimated_total_hours": "10-11",
+        "notes": "1.85x single door time."
+      },
+      {
+        "scenario": "Single steel carriage, sound, spray, QT4",
+        "modifier": "FAC_GDRP_PANEL_COMPLEXITY = 1.30 x FAC_GDRP_QT = 1.15",
+        "estimated_total_hours": "8.5-9.5",
+        "notes": "Carriage adds brush detail work. QT4 adds intercoat sand + premium materials."
+      }
+    ],
+    "modifier_stacking_cap": 4.0,
+    "worst_case_stack": "Double (1.85) x raised_panel (1.10) x steel (1.00) x rust (2.00) = ~4.07x on prep tasks. Theoretical max with impossible substrate combo: 5.53x. Capped to 4.0x by engine."
+  },
+
+  "protection_zones_required": [
+    {
+      "zone_id": "ext_garage_driveway_apron",
+      "condition": "always",
+      "protection_level": "full_cover",
+      "notes": "Driveway/apron below garage door. Canvas drops or absorbent mats — NEVER standard poly (slippery safety hazard). Mandatory for spray and recommended for brush."
+    },
+    {
+      "zone_id": "ext_garage_siding_adjacent",
+      "condition": { "application_method": ["spray"] },
+      "protection_level": "full_mask",
+      "notes": "Siding panels flanking garage door opening. Pre-taped poly or masking film. Spray method only."
+    },
+    {
+      "zone_id": "ext_garage_window_mask",
+      "condition": { "panel_type": ["windows"] },
+      "protection_level": "full_mask",
+      "notes": "Window inserts in garage door panels. HDPE static-cling film. Only when windows present."
+    },
+    {
+      "zone_id": "ext_garage_weatherstrip",
+      "condition": "always",
+      "protection_level": "item_mask",
+      "notes": "Weatherstripping contact surfaces along sides and top. Low-tack tape deep in channel. NEVER paint weatherstripping."
+    },
+    {
+      "zone_id": "ext_garage_track_hardware",
+      "condition": "always",
+      "protection_level": "item_mask",
+      "notes": "Track, roller contact points, spring mechanism, cables, brackets. Must NOT be painted."
+    },
+    {
+      "zone_id": "ext_garage_bottom_seal",
+      "condition": "always",
+      "protection_level": "item_mask",
+      "notes": "Bottom weatherseal (astragal). Remove or mask. Prop door 2-4 inches during cure. For RP: assess seal condition — recommend replacement if degraded (not painting scope)."
+    }
+  ],
+
+  "adjacency_declarations": {
+    "primary_surface": "garage_door_ext",
+    "adjacent_surfaces": [
+      {
+        "surface_id": "ext_trim_garage_casing",
+        "edge_type": "linear",
+        "typical_relationship": "different_finish",
+        "continuity_rate_modifier": 1.0,
+        "affected_tasks": [],
+        "notes": "Garage door casing frames the opening. Different finish typically. SF_TRIM_EXT_RP_v1 scope."
+      },
+      {
+        "surface_id": "siding_field",
+        "edge_type": "linear",
+        "typical_relationship": "different_finish",
+        "continuity_rate_modifier": 1.0,
+        "affected_tasks": [],
+        "notes": "Siding-to-garage door junction: casing intervenes. Siding masking is protection task, not edge work."
+      },
+      {
+        "surface_id": "driveway_hardscape",
+        "edge_type": "linear",
+        "typical_relationship": "different_finish",
+        "continuity_rate_modifier": 1.0,
+        "affected_tasks": [],
+        "notes": "Driveway below garage door. Non-painted protection target."
+      }
+    ]
+  },
+
+  "site_condition_rules": [
+    {
+      "condition_id": "existing_coating_condition",
+      "treatment": "condition_assessment",
+      "affected_tasks": "All prep and primer tasks",
+      "effect": "Substrate state assignment drives prep intensity, primer scope, round configuration, and condition modifier",
+      "notes": "PRIMARY RP site condition. On-site assessment determines SS_EXT_SOUND_PAINT, SS_EXT_CHALKING, SS_EXT_FAILING_PAINT, or SS_EXT_SURFACE_RUST. Cannot be determined at bid time — requires field assessment."
+    },
+    {
+      "condition_id": "pre_1978_lead_paint",
+      "treatment": "safety_gate",
+      "affected_tasks": "TSK_GDRP_ASSESS_LEAD",
+      "effect": "Pre-1978 triggers lead paint testing. Positive result activates RRP containment requirements (not this spec's scope).",
+      "notes": "EPA RRP Rule 40 CFR 745. Safety gate — not common scenario for garage doors."
+    },
+    {
+      "condition_id": "bottom_seal_condition",
+      "treatment": "advisory",
+      "affected_tasks": "TSK_GDRP_BOTTOM_SEAL_PREP",
+      "effect": "Degraded seal flagged for replacement recommendation (not painting scope)",
+      "notes": "RP-specific — existing seal may be cracked or hardened. Assess during bottom seal prep."
+    }
+  ],
+
+  "cross_spec_boundaries": {
+    "companion_spec": null,
+    "sibling_spec": {
+      "spec_id": "SF_GARAGE_DOOR_EXT_NC_v1",
+      "relationship": "NC sibling. Same surface (garage_door_ext), same ITM_GARAGE_DOOR. RP adds condition assessment, condition-driven prep/primer, 4 substrate states, chalk-binding primer, RRP gate. RP removes full DTM requirement for sound-paint steel, gloss sheen, environmental modifiers."
+    },
+    "adjacent_specs": [
+      {
+        "spec_id": "SF_TRIM_EXT_RP_v1",
+        "relationship": "Garage door casing/trim painting belongs to trim RP spec. This spec covers the door panel assembly only."
+      },
+      {
+        "spec_id": "SF_DOOR_EXT_RP_v1",
+        "relationship": "Entry door repaint is completely separate. Different context prefix (DRRP vs GDRP), different PS keys."
+      }
+    ],
+    "cross_spec_protection_note": "Driveway/apron protection is THIS spec's responsibility. Adjacent siding masking during spray is also this spec's responsibility. Garage door trim/casing protection DURING SIDING SPRAY belongs to the siding spec.",
+    "deduplication_notes": [
+      "Garage door CASING/TRIM painting belongs to SF_TRIM_EXT_RP_v1 — this spec covers door panel assembly only.",
+      "Driveway/apron protection IS this spec's responsibility.",
+      "Adjacent siding masking during garage door spray IS this spec's responsibility.",
+      "Entry door repaint (SF_DOOR_EXT_RP_v1) is completely separate — different context prefix, PS keys, and EA counts."
+    ]
+  },
+
+  "round_configurations": [
+    {
+      "round_id": "ROUND_GDRP_SOUND",
+      "description": "Spot prime bare areas + 2 finish coats — for sound existing paint",
+      "module_sequence": ["MOD_GDRP_ASSESS", "MOD_GDRP_SETUP", "MOD_GDRP_PREP", "MOD_GDRP_PRIME", "MOD_GDRP_FINISH_1", "MOD_GDRP_INTERSTAGE", "MOD_GDRP_FINISH_2", "MOD_GDRP_FINAL_INSPECT", "MOD_GDRP_CLEANUP"],
+      "total_coats": 3,
+      "interstage_cycles": 1,
+      "applies_when": { "substrate_state": ["SS_EXT_SOUND_PAINT"] },
+      "notes": "Sound paint — adhesion passes. Spot prime thin/bare areas. May skip prime entirely if no bare areas found during assessment."
+    },
+    {
+      "round_id": "ROUND_GDRP_CHALKING",
+      "description": "Chalk-binding full prime + 2 finish coats — for chalking surfaces",
+      "module_sequence": ["MOD_GDRP_ASSESS", "MOD_GDRP_SETUP", "MOD_GDRP_PREP", "MOD_GDRP_PRIME", "MOD_GDRP_FINISH_1", "MOD_GDRP_INTERSTAGE", "MOD_GDRP_FINISH_2", "MOD_GDRP_FINAL_INSPECT", "MOD_GDRP_CLEANUP"],
+      "total_coats": 3,
+      "interstage_cycles": 1,
+      "applies_when": { "substrate_state": ["SS_EXT_CHALKING"] },
+      "notes": "Chalking requires FULL COVERAGE chalk-binding primer. Cannot spot prime over chalk residue. Common on south/west-facing garage doors."
+    },
+    {
+      "round_id": "ROUND_GDRP_FAILING",
+      "description": "Spot or full prime + 2 finish coats — for failing/peeling paint",
+      "module_sequence": ["MOD_GDRP_ASSESS", "MOD_GDRP_SETUP", "MOD_GDRP_PREP", "MOD_GDRP_PRIME", "MOD_GDRP_FINISH_1", "MOD_GDRP_INTERSTAGE", "MOD_GDRP_FINISH_2", "MOD_GDRP_FINAL_INSPECT", "MOD_GDRP_CLEANUP"],
+      "total_coats": 3,
+      "interstage_cycles": 1,
+      "applies_when": { "substrate_state": ["SS_EXT_FAILING_PAINT"] },
+      "notes": "Failing paint — scrape + feather-edge + prime. Primer scope depends on percentage of bare area exposed after scraping."
+    },
+    {
+      "round_id": "ROUND_GDRP_RUST",
+      "description": "DTM primer on bare steel + 2 finish coats — for surface rust (steel-only)",
+      "module_sequence": ["MOD_GDRP_ASSESS", "MOD_GDRP_SETUP", "MOD_GDRP_PREP", "MOD_GDRP_PRIME", "MOD_GDRP_FINISH_1", "MOD_GDRP_INTERSTAGE", "MOD_GDRP_FINISH_2", "MOD_GDRP_FINAL_INSPECT", "MOD_GDRP_CLEANUP"],
+      "total_coats": 3,
+      "interstage_cycles": 1,
+      "applies_when": { "substrate_state": ["SS_EXT_SURFACE_RUST"], "door_substrate": ["steel"] },
+      "notes": "Steel-only. SSPC-SP3 debridement to bare metal + DTM primer. CRITICAL: prime same day as rust removal to prevent flash rust. Most labor-intensive round."
+    }
+  ],
+
+  "qa_summary": {
+    "overall_result": "pass",
+    "total_issues": 3,
+    "blockers": 0,
+    "issues": [
+      {
+        "issue_id": "QA-001",
+        "severity": "minor",
+        "description": "Intercoat tasks use appears_in_tiers in SOP vs qt_conditional_tasks in production — different structural patterns, functionally equivalent."
+      },
+      {
+        "issue_id": "QA-002",
+        "severity": "minor",
+        "description": "Baseline RP 5.6 hrs vs NC 4.8 hrs (~17% premium). Lower than expected 30% because sound-paint has minimal extra prep. Assessment module (30 min) accounts for most of the delta."
+      },
+      {
+        "issue_id": "QA-003",
+        "severity": "minor",
+        "description": "Theoretical max stacking 5.53x exceeds 4.0x cap but involves impossible material combination (wood + rust). Realistic worst case is ~4.07x."
+      }
+    ],
+    "doctrine_checks_passed": [
+      "THREADING-1 through THREADING-6 (task ID completeness, classification match, applies_when consistency, UOM match, task prefix, module prefix)",
+      "EXT-1 through EXT-7 (key namespace, substrate state, protection zone, site conditions, factor keys, modifier math, material state)",
+      "GDRP-1 through GDRP-10 (EA rates, condition assessment, substrate state routing, leapfrog technique, bottom seal lifecycle, skip-prime for sound steel, QT range, sheen restriction, articulation test, RRP lead-safe gate)",
+      "COMPLETENESS-1 through COMPLETENESS-5 (protection zones, cross-spec boundaries, round configurations, module phase order, input declarations)",
+      "ENUM-1 (convention compliance)"
+    ]
+  },
+
+  "sequencing_notes": {
+    "production_sequence": "Assess -> Setup -> Prep -> Prime -> Finish 1 -> Interstage -> Finish 2 -> Final Inspect -> Cleanup",
+    "assessment_sequence": "Visual condition assessment -> Adhesion test ASTM D3359 -> Rust evaluation (steel) -> Moisture test (wood) -> Coating ID (solvent rub) -> Lead test (pre-1978) -> Assign substrate state -> Select round configuration",
+    "protection_sequence": "Driveway protection -> Siding masking (spray) -> Window masking (if present) -> Weatherstrip protection -> Track/hardware masking -> Bottom seal management -> Equipment setup -> Coating work -> Window unmask -> Weatherstrip unmask -> Track/hardware unmask -> Siding unmask -> Bottom seal reinstall (after 24-48 hr cure) -> Driveway teardown -> Articulation test -> Tool clean",
+    "leapfrog_sequence": "Paint alternating panels (1,3,5 then 2,4,6) -> Open each joint to verify tack-free -> Paint adjacent panels -> Verify no bridged joints. RP NOTE: existing film thickness increases bridging risk — score bridged joints with utility knife before next coat.",
+    "coat_sequence": "Assess (condition-driven) -> Prep (condition-driven) -> Prime (spot or full per condition) -> Finish coat 1 (leapfrog) -> Interstage (inspect, sand QT4, repair, dust) -> Finish coat 2 (leapfrog) -> Bottom seal prop -> Final inspect -> Touch up",
+    "key_prohibitions": "NO roller application. NO back-rolling on metal doors. NO standard poly sheeting on driveway. NO painting on track/hardware/springs. NO spot-priming over chalk residue (must be full coverage). NO closing door on uncured bottom seal. NO skipping assessment for repaint. NO gloss sheen on repaint."
+  },
+
+  "relationships": {
+    "companion_spec": null,
+    "often_combined_with": ["SF_TRIM_EXT_RP_v1"],
+    "sibling_spec": "SF_GARAGE_DOOR_EXT_NC_v1",
+    "typical_before": [],
+    "typical_after": ["SF_TRIM_EXT_RP_v1"],
+    "notes": "RP sibling to NC garage door spec. Adjacent to trim RP spec (casing). Key RP differences: condition assessment module, 4 substrate states, condition-driven prep/primer, spot-prime for sound steel, chalk-binding primer, gloss excluded, RRP gate, 4 round configs, 56 tasks (vs NC 46), 9 modules (vs NC 8)."
+  },
+
+  "dependencies": {
+    "research": "research.json",
+    "resolution": "resolution.json",
+    "sop_modules": "sop_modules.json",
+    "materials": "materials.json",
+    "production": "production.json",
+    "qa_report": "qa_report.json"
+  },
+
+  "doctrine_references": [
+    { "doctrine": "Exterior_Garage_Doors_Doctrine.md", "sections_used": ["§1 Substrate materials", "§2 Wax removal protocol (RP: sealed by existing film)", "§3 Leapfrog technique (RP: increased bridging risk)", "§4 Bottom seal management", "§5 Protection zones", "§6 Production rates (RP premiums)", "§7 Articulation testing"] },
+    { "doctrine": "Exterior_Surface_Assessment_Doctrine.md", "sections_used": ["Condition assessment protocol", "Substrate state classification", "Adhesion testing ASTM D3359", "Chalk evaluation", "Rust classification"] },
+    { "doctrine": "Exterior_Color_Sheen_Configuration_Doctrine.md", "sections_used": ["§1-2 LRV restrictions", "Gloss exclusion for RP"] },
+    { "doctrine": "Exterior_Primer_Systems_Doctrine.md", "sections_used": ["DTM primers for steel (RP: spot vs full)", "Chalk-binding primers", "Acrylic primers for wood", "Alkyd stain-blockers for tannin", "Bonding primers for composites"] },
+    { "doctrine": "Exterior_Application_Methods_Doctrine.md", "sections_used": ["Spray tip selection", "No roller on metal", "No back-rolling on metal", "Transfer efficiency"] },
+    { "doctrine": "Exterior_Protection_Doctrine_T3.md", "sections_used": ["Driveway/hardscape protection (canvas NOT poly)", "Track/hardware masking", "Weatherstrip protection"] },
+    { "doctrine": "Quality_Tiers_and_Surface_Condition.md", "sections_used": ["QT3-QT4 definitions", "Inspection levels"] },
+    { "doctrine": "Estimation_Modifiers_Doctrine.md", "sections_used": ["Modifier stacking rules", "4.0x cap", "Stacking partition (PREP/COATING pools)"] },
+    { "doctrine": "Spec_Completeness_Doctrine.md", "sections_used": ["Protection zone declarations", "Adjacency declarations", "Site condition rules"] }
+  ],
+
+  "research_corrections": [
+    {
+      "correction_id": "RC-001",
+      "original_claim": "Steel RP always requires full DTM primer like NC",
+      "corrected_to": "Repaint of steel with SS_EXT_SOUND_PAINT and passing adhesion test can use spot-prime-only. Wax contamination concern from NC is mitigated by existing sealed paint film. Bare/scraped areas still require DTM.",
+      "source": "Exterior_Garage_Doors_Doctrine.md Sections 2, 5"
+    },
+    {
+      "correction_id": "RC-002",
+      "original_claim": "Environmental conditions should be estimation modifiers",
+      "corrected_to": "Environmental conditions are NOT estimatable — unpredictable at bid time. Excluded from spec per PaintFactor OS RC-003.",
+      "source": "PaintFactor OS RC-003"
+    }
+  ],
+
+  "user_corrections": [],
+
+  "change_log": [
+    {
+      "version": "0.1.0",
+      "date": "2026-03-15",
+      "author": "SpecFactory",
+      "changes": "Initial draft spec for exterior garage door repaint. Adapts NC spec (SF_GARAGE_DOOR_EXT_NC_v1) to repaint context. EA-based single-item spec (ITM_GARAGE_DOOR reused from NC) with 3 substrate materials (steel/wood/composite), 4 substrate states (SS_EXT_SOUND_PAINT/SS_EXT_CHALKING/SS_EXT_FAILING_PAINT/SS_EXT_SURFACE_RUST), 4 panel complexities (flush/raised_panel/carriage/windows), 2 door sizes (single/double), 2 sheens (satin/semi-gloss — gloss excluded for RP), 2 application methods (spray/brush), QT3-QT4 quality tiers. 56 tasks across 9 modules (34 binary, 20 qt_scaled, 2 qt_conditional). 7 material systems (5 primers + 2 finishes — adds chalk-binding primer). 6 protection zones (reused from NC). 6 factor modifiers with stacking partition (PREP/COATING/SHARED/ADDITIVE). 4 round configurations tied to substrate state. Context prefix GDRP. Key RP features: mandatory condition assessment module, condition-driven prep intensity, spot-prime for sound-paint steel (wax sealed by existing film), chalk-binding primer for SS_EXT_CHALKING, gloss excluded, pre-1978 RRP lead-safe gate, environmental modifiers excluded. Maintains NC features: leapfrog technique, bottom seal lifecycle, articulation test, canvas-only driveway protection. QA result: pass (3 minor issues, 0 blockers)."
+    }
+  ]
+}

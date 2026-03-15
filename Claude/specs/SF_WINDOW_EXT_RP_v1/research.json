@@ -1,0 +1,967 @@
+{
+  "research_metadata": {
+    "spec_family_id": "SF_WINDOW_EXT_RP",
+    "spec_family_version": "v1",
+    "domain": "exterior",
+    "scope_type": "repaint",
+    "research_mode": "doctrine_driven",
+    "doctrine_loaded": [
+      "docs/System/PaintFactor_OS.md",
+      "docs/System/Conventions.md",
+      "docs/Doctrine/Quality_Tiers_and_Surface_Condition.md",
+      "docs/Doctrine/Fine_Finish_Doctrine.md",
+      "docs/Doctrine/Window_Systems_Doctrine.md",
+      "docs/Doctrine/Exterior_Windows_Painting_Doctrine.md",
+      "docs/Doctrine/Exterior_Weathering_Surface_Assessment_Doctrine.md",
+      "docs/Doctrine/Exterior_Primer_Systems_Doctrine.md",
+      "docs/Doctrine/Exterior_Application_Methods_Doctrine.md",
+      "docs/Doctrine/Exterior_Protection_Doctrine_T3.md",
+      "docs/Doctrine/Exterior_Access_Staging_Systems_Doctrine.md",
+      "docs/Doctrine/Exterior_Caulking_Sealants_Doctrine.md",
+      "docs/Doctrine/Exterior_Climate_Environmental_Conditions_Doctrine.md",
+      "docs/Doctrine/Exterior_Color_Sheen_Configuration_Doctrine.md",
+      "docs/Doctrine/Spec_Completeness_Doctrine.md",
+      "docs/Doctrine/Estimation_Modifiers_Doctrine.md",
+      "docs/Doctrine/Modifier_Registry.md",
+      "docs/Reference/Protection_Zones_Reference.md",
+      "docs/Reference/Surface_Vocabulary_Reference.md",
+      "docs/Reference/Site_Condition_Vocabulary_Reference.md",
+      "docs/Reference/Substrate_State_Reference.md",
+      "docs/PaintScope/PaintScope_Quantity_Key_Catalog.md",
+      "docs/PaintScope/Spec_Input_to_PaintScope_Key_Mapping.md",
+      "devos/Interior_RP_Gap_Analysis.md"
+    ],
+    "sibling_specs_reviewed": [
+      "specs/SF_WINDOW_EXT_NC_v1/spec.json",
+      "specs/SF_WINDOW_EXT_NC_v1/production.json",
+      "specs/SF_WINDOW_EXT_NC_v1/materials.json",
+      "specs/SF_WINDOW_EXT_NC_v1/sop_modules.json",
+      "specs/SF_TRIM_EXT_RP_v1/spec.json",
+      "specs/SF_TRIM_EXT_RP_v1/production.json",
+      "specs/SF_DOOR_EXT_RP_v1/spec.json",
+      "specs/SF_WINDOW_INT_RP_v1/research.json"
+    ],
+    "researcher": "Spec Researcher Agent",
+    "date": "2026-03-15",
+    "status": "draft",
+    "review_required": true,
+    "context_prefix": "XWRP"
+  },
+
+  "spec_family_id": "SF_WINDOW_EXT_RP",
+  "version": "1.0.0",
+
+  "context_prefix_rationale": "TSK_WIN_* is consumed by SF_WINDOW_INT_NC_v1 (29 tasks). TSK_WNRP_* is consumed by SF_WINDOW_INT_RP_v1 (~42 tasks). TSK_XWIN_* is consumed by SF_WINDOW_EXT_NC_v1 (51 tasks). Using XWRP_ (eXterior Window RePaint) eliminates all ID collisions. Verified: TSK_XWRP_* has zero existing usage in the codebase. Pattern follows established convention: X = exterior, W = window, RP = repaint.",
+
+  "scope_summary": "Combined condition assessment + prep + prime + finish repaint spec for previously painted exterior window units on residential homes. Covers 3 cladding types (wood, aluminum-clad, vinyl-clad) as primary material branching dimension — inherited from NC spec. Windows are the highest-exposure exterior component due to direct weather impact on horizontal sills, UV degradation of finish coats, and moisture intrusion at frame-to-glass and frame-to-casing junctions. Includes condition assessment (visual inspect, adhesion test per ASTM D3359, coating ID, chalking test, glazing compound assessment, moisture probe on wood sills), exterior-specific prep (low-pressure wash 500-1000 PSI, scrape/feather failing paint, chalk remediation, cladding-specific primer), state-driven primer selection (spot or full prime based on condition), finish coat application (brush primary, spray conditional), full interstage protocol, glass masking (mandatory — largest single protection task), sash blocking prevention for double-hung, and glass scraping after cure. EA-based with Size Bucket Method (S/M/L). Lead-safe RRP is MORE common for exterior windows (pre-1978 exterior paint is almost always lead) — windows are friction surfaces generating lead dust. Does NOT cover window casing (SF_TRIM_EXT_RP_v1), interior window surfaces (SF_WINDOW_INT_RP_v1), glass replacement, full reglazing, screen painting, structural rot/wood replacement, or vinyl window replacement. QT3-QT5 (QT2 excluded — exterior windows are visible architectural elements requiring minimum QT3). Single mobilization: assess + prep + prime + finish.",
+
+  "relevant_findings": [
+    {
+      "finding_id": "RF-001",
+      "topic": "Exterior windows face the most severe weathering of any window component",
+      "finding": "Exterior window surfaces endure direct UV radiation, rain, wind-driven moisture, freeze-thaw cycling, and thermal expansion/contraction — a far more aggressive environment than interior windows. The horizontal sill is the highest-risk component: water pools on the sill nose, wicks into end grain, and drives paint failure from the bottom up. South and west elevations receive the most UV exposure and show accelerated chalking and finish degradation. Aluminum-clad windows develop chalking and oxidation at the factory finish surface. Vinyl-clad windows experience thermal cycling that stresses paint adhesion (vinyl CTE is 3x wood). Wood windows exposed to weather develop the full spectrum of exterior failure modes: chalking, cracking, alligatoring, peeling, and rot at end grain. The 1/16-inch glass lap weather seal is critical — failed glass lap allows water behind the paint film at the glass-to-frame junction, the #1 moisture intrusion pathway for painted exterior windows.",
+      "source": "Exterior_Windows_Painting_Doctrine; Exterior_Weathering_Surface_Assessment_Doctrine",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-002",
+      "topic": "RP prep is condition-driven (not cladding-driven) unlike NC",
+      "finding": "NC exterior window prep is cladding-driven: wood gets sand + fill + acrylic primer, aluminum-clad gets TSP wash + scuff-sand + corrosion-inhibiting primer, vinyl-clad gets clean + PVC bonding primer. RP exterior window prep is condition-driven: sound paint requires wash + scuff only, chalking requires chalk remediation + chalk-binding primer, failing paint requires scrape + feather + spot/full prime, peeling requires heavy scrape + feather + full prime. However, cladding type still matters for RP: aluminum-clad with exposed bare aluminum (where paint has failed) still needs corrosion-inhibiting primer on those spots; vinyl-clad with exposed bare vinyl still needs PVC bonding primer on exposed areas. This creates a two-dimensional decision: condition drives prep intensity, cladding drives primer chemistry on exposed substrate areas. NC tasks that are NOT_APPLICABLE in RP: TSK_XWIN_FILL_DEFECTS_WOOD (bare wood fill — already done on NC), TSK_XWIN_TANNIN_SPOT_PRIME (bare wood tannin — already sealed on NC), TSK_XWIN_SCUFF_FACTORY_WOOD (factory primer scuff — no longer factory-primed).",
+      "source": "Exterior_Weathering_Surface_Assessment_Doctrine; SF_WINDOW_EXT_NC_v1/spec.json substrate_state_rules; SF_TRIM_EXT_RP_v1/spec.json (RP condition pattern)",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-003",
+      "topic": "Four exterior RP substrate states apply to windows",
+      "finding": "Exterior RP uses 4 substrate states from controlled_enums.json: SS_EXT_SOUND_PAINT (adhered, minimal chalk — degloss/scuff only, most common RP state), SS_EXT_CHALKING (surface chalk present — chalk remediation + chalk-binding primer, common on south/west elevations after 7-10 years), SS_EXT_FAILING_PAINT (cracking/alligatoring — scrape/feather + spot/full prime, common at sill/sash bottom rail), SS_EXT_PEELING (active coating lifting — heavy scrape/feather + full prime, often at end grain and moisture intrusion points). SS_EXT_WEATHERED is excluded for windows — weathered wood with no coating is bare wood territory requiring NC-level prep or replacement. SS_EXT_STAINED_* states are excluded — stained windows are not a standard residential scope. SS_EXT_SURFACE_RUST is NOT applicable — window cladding is never bare exposed metal in the way steel doors are (aluminum-clad corrosion is addressed via the cladding primer path, not a separate rust state). Different parts of the same window may have different states — sill may be SS_EXT_PEELING while upper frame is SS_EXT_SOUND_PAINT.",
+      "source": "controlled_enums.json substrate_state; SF_TRIM_EXT_RP_v1/spec.json state_declarations (4-state exterior RP pattern); SF_DOOR_EXT_RP_v1/spec.json (exterior RP state pattern)",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-004",
+      "topic": "Condition assessment is mandatory before exterior window RP work",
+      "finding": "Exterior window repaint requires multi-point assessment before prep or coating. Assessment tasks: (1) Visual condition inspection — scan all exterior window surfaces (frame, sash, muntins, sill, jamb extensions, stool/apron exterior face) for chalking, cracking, alligatoring, peeling, adhesion failure, mildew/algae, rot; photograph defects; assign substrate state per MPI DSD scale (research parameter) and map to GOOD/FAIR/POOR estimation condition. (2) Adhesion test — ASTM D3359 cross-hatch tape test on representative section; critical on chalking surfaces where adhesion may appear sound but chalk layer prevents bonding. (3) Chalking test — rub white cloth across surface; moderate chalk = chalk-binding primer required; heavy chalk = TSP wash + chalk-binding primer. (4) Moisture probe — moisture meter on wood sills, sash bottom rails, and jamb bottoms where water collects; MC > 15% triggers remediation gate (dry before painting). (5) Glazing compound assessment — inspect putty condition on older wood windows; intact/cracked/failed determines repair scope. (6) Rot probe — press test on sill nose, bottom rail, and end grain areas; soft/punky wood = HARD STOP (carpentry scope). Total assessment: ~15-22 min per window depending on size and condition.",
+      "source": "Exterior_Weathering_Surface_Assessment_Doctrine; Exterior_Windows_Painting_Doctrine; SF_DOOR_EXT_RP_v1/spec.json (exterior assessment pattern); SF_WINDOW_INT_RP_v1/research.json RF-004 (interior assessment pattern)",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-005",
+      "topic": "Low-pressure power wash replaces TSP hand-wash for exterior window RP",
+      "finding": "Exterior window RP prep begins with low-pressure power wash (500-1000 PSI) to remove dirt, mildew, chalk residue, and loose paint. This is an exterior-specific step that replaces the interior TSP hand-wash. Key constraints for windows: (1) pressure must be LOW (500-1000 PSI) — high pressure can force water behind glass putty, damage weatherstripping, and break glass on older windows; (2) fan tip only (never zero-degree tip on windows); (3) wash direction is top-down to prevent water intrusion at sash joints; (4) allow 24-48 hour dry time after wash before coating (exterior humidity extends dry time vs interior). Power wash is performed per elevation, not per window — one wash pass covers all windows on an elevation plus adjacent siding/trim. Power wash removes surface chalk but does NOT eliminate chalk-binding primer need if chalk test is positive after wash. This is a FIXED task per elevation, not per window EA.",
+      "source": "Exterior_Weathering_Surface_Assessment_Doctrine; Exterior_Trim_Systems_Doctrine (power wash pattern from SF_TRIM_EXT_RP)",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-006",
+      "topic": "Glass masking is the largest single protection task — identical in NC and RP",
+      "finding": "Glass masking transfers DIRECT from NC — masking technique, materials, and rates are identical regardless of NC or RP context. Glass masking is the single largest protection task for window painting, consuming 30-40% of total window painting time on multi-lite TDL windows. Three masking methods based on muntin type and Low-E status: (1) tape-and-film for standard single-lite/SDL/GBG windows (NC rates: S=6min, M=10min, L=18min); (2) liquid mask for TDL non-Low-E (NC rates: S=12min, M=20min, L=30min); (3) individual pane tape-and-film for TDL Low-E (NC rates: S=18min, M=30min, L=45min — highest labor). Low-E liquid masking PROHIBITION transfers unchanged — scoring damages Low-E coating permanently. All 10 NC setup/protection tasks transfer DIRECT to RP: TSK_XWIN_MASK_GLASS_TAPE_FILM, TSK_XWIN_MASK_GLASS_LIQUID, TSK_XWIN_MASK_GLASS_TDL_TAPE, TSK_XWIN_HARDWARE_REMOVE, TSK_XWIN_WEATHERSTRIP_PROTECT, TSK_XWIN_SILL_PROTECT, TSK_XWIN_CASING_PROTECT, TSK_XWIN_SIDING_MASK_SPRAY, TSK_XWIN_EQUIPMENT_SETUP_BRUSH, TSK_XWIN_EQUIPMENT_SETUP_SPRAY.",
+      "source": "SF_WINDOW_EXT_NC_v1/production.json (NC setup task rates); SF_WINDOW_INT_RP_v1/research.json RF-005 (glass masking transfer pattern)",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-007",
+      "topic": "Chalking is exterior-specific and requires chalk-binding primer",
+      "finding": "Chalking is the gradual degradation of exterior paint binder by UV radiation, leaving a loose powdery layer on the surface. Chalking is extremely common on exterior windows — especially south and west elevations receiving the most UV exposure. The chalk layer prevents new paint from bonding to the substrate. Treatment: (1) low-pressure wash to remove loose chalk; (2) chalk test after wash — rub white cloth; moderate to heavy residue = chalk-binding primer required; (3) apply chalk-binding primer before topcoat. Chalk-binding primer penetrates and binds the residual chalk layer, creating a sound surface for topcoat. This is NOT a sound-paint scenario despite appearing intact — chalking surfaces will cause topcoat delamination without chalk-binding primer. SS_EXT_CHALKING is a distinct substrate state requiring its own primer path. Chalking does NOT occur on interior surfaces — this is a purely exterior phenomenon.",
+      "source": "Exterior_Weathering_Surface_Assessment_Doctrine; Exterior_Primer_Systems_Doctrine; SF_TRIM_EXT_RP_v1/spec.json (chalking state pattern)",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-008",
+      "topic": "Exterior glazing compound assessment is more critical than interior",
+      "finding": "Exterior glazing compound (putty) on older wood windows serves as both glass retention and weather seal. Exterior exposure accelerates glazing failure: UV hardens linseed oil putty until it cracks and falls out, rain drives water through cracks into the sash rabbet, and freeze-thaw cycles mechanically fracture the compound. Assessment determines scope: (1) intact and paintable — prime exposed putty face before finish coat; (2) cracked but adhered — spot repair with exterior-grade glazing compound (DAP 33), allow 3-7 day cure, prime, paint; (3) failed and falling out — remove failed sections, re-glaze, allow full cure, prime, paint. Modern IG (insulated glass) units have no exposed glazing compound — assessment not needed. Glazing compound assessment applies only to single-pane wood windows and older TDL windows. This is more critical for exterior than interior because failed glazing = water infiltration = structural damage progression.",
+      "source": "Exterior_Windows_Painting_Doctrine; SF_WINDOW_INT_RP_v1/research.json RF-009 (interior glazing pattern, scaled up for exterior severity)",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-009",
+      "topic": "Caulk assessment replaces NC fresh caulking — 'Think Like a Water Drop' protocol",
+      "finding": "NC windows receive fresh caulk at all installation joints. RP exterior windows require caulk assessment per the 'Think Like a Water Drop' protocol (Exterior_Caulking_Sealants_Doctrine): trace every joint where water could enter — frame-to-casing, sill-to-casing, frame-to-sash where visible, glass-to-frame lap line. Assessment determines scope: (1) intact and flexible — clean and paint over; (2) cracked or separated — remove failed sections, clean substrate, re-caulk with exterior-grade paintable caulk (polyurethane or hybrid MS polymer, NEVER silicone), allow 2-4 hr cure before painting; (3) fully failed — remove all old caulk, clean joint, re-caulk. Exterior caulk failures are more common and more critical than interior because they allow water infiltration behind window assemblies. Rate varies by condition: GOOD = near-zero additional time; FAIR = 5-8 min/window; POOR = 10-15 min/window. Exterior caulk assessment is a higher-effort task than interior due to more joints and weather exposure.",
+      "source": "Exterior_Caulking_Sealants_Doctrine ('Think Like a Water Drop'); SF_TRIM_EXT_RP_v1/spec.json (caulk assessment pattern); SF_WINDOW_INT_RP_v1/research.json RF-010 (interior caulk pattern)",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-010",
+      "topic": "RRP (lead-safe) is MORE common and MORE critical for exterior windows",
+      "finding": "Lead-based paint was used extensively on exterior surfaces before 1978 — virtually all pre-1978 exterior painted wood windows have lead paint. Windows are HIGH-RISK for lead exposure because operable sashes are friction surfaces: wood-on-wood contact generates fine lead-containing dust. This is the #1 residential lead dust exposure pathway per EPA. Exterior RRP is more common than interior RRP because: (1) exterior paint typically has higher lead concentration than interior; (2) exterior prep generates more paint disturbance (power wash, full scrape for peeling paint, feather sanding); (3) containment is more complex outdoors (wind, site access). RRP protocol adds: 6-mil poly ground containment extending 10 ft from structure, wet scraping methods, HEPA vacuum for all sanding, lead-safe disposal. RRP modifier: 2.0x on all prep tasks involving paint disturbance. RRP containment setup/teardown are separate fixed tasks per elevation. Pre-1978 flag is a project-level input shared with exterior trim and door RP specs.",
+      "source": "Exterior_Windows_Painting_Doctrine; EPA RRP Rule 40 CFR 745; SF_TRIM_EXT_RP_v1/spec.json (RRP pattern with FAC_TRRP_RRP = 2.0x); SF_WINDOW_INT_RP_v1/research.json RF-017 (interior lead pattern)",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-011",
+      "topic": "Height/access is a MAJOR modifier for exterior windows — windows are frequently on upper stories",
+      "finding": "Unlike exterior doors (almost always at ground level), windows appear on all stories of a building. Height is a MAJOR production rate modifier for exterior windows. NC spec uses FAC_EXT_ACCESS with 3 tiers: ground=1.00, ladder=1.35, scaffold=1.60. For RP, height affects ALL per-window tasks — not just coating but also assessment, prep (scraping at height is significantly slower and more dangerous), and protection setup. Exterior trim RP uses a more granular 5-tier FAC_TRRP_HEIGHT: ground_0_8ft=1.00, first_8_13ft=1.30, second_13_17ft=1.60, high_17_19ft=1.90, extreme_19plus=2.20. For exterior window RP, recommend using the NC 3-tier access model (ground/ladder/scaffold) because window access is per-window, not per-component-type like trim. Per-window height is captured via PS_EXT_META.ENUM.ACCESS_TYPE. The NC height modifiers transfer directly but now apply to RP-specific tasks (assessment, scraping, caulking) in addition to NC tasks.",
+      "source": "SF_WINDOW_EXT_NC_v1/spec.json site_condition_rules (FAC_EXT_ACCESS); SF_TRIM_EXT_RP_v1/spec.json (FAC_TRRP_HEIGHT 5-tier model); Exterior_Access_Staging_Systems_Doctrine",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-012",
+      "topic": "Cladding type still matters for RP — drives primer chemistry on exposed areas",
+      "finding": "Although RP prep is condition-driven (not cladding-driven like NC), cladding type remains relevant because exposed substrate areas from paint failure require cladding-appropriate primer: (1) Wood exposed by scraping/peeling: acrylic exterior primer on bare wood areas (same as NC SYS_EXT_WIN_PRIMER_ACRYLIC). (2) Aluminum-clad exposed by scraping/peeling: corrosion-inhibiting primer on bare aluminum areas (same as NC SYS_EXT_WIN_PRIMER_CORROSION) — mandatory for adhesion even on small spots. (3) Vinyl-clad exposed by scraping/peeling: PVC bonding primer on bare vinyl areas (same as NC SYS_EXT_WIN_PRIMER_BONDING_PVC) — standard primers will NOT bond to vinyl. For sound-paint surfaces, RP uses spot or full chalk-binding/adhesion primer regardless of cladding. VinylSafe IR-reflective coating requirement transfers unchanged from NC: vinyl-clad windows with color LRV < 55 MUST use SYS_EXT_WIN_FINISH_VINYLSAFE to prevent thermal warping.",
+      "source": "SF_WINDOW_EXT_NC_v1/spec.json material_systems (NC primer routing by cladding); SF_WINDOW_EXT_NC_v1/materials.json; Exterior_Primer_Systems_Doctrine",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-013",
+      "topic": "Scrape and feather on exterior windows is condition-gated and more intensive than interior",
+      "finding": "Exterior window scraping for failing/peeling paint is significantly more intensive than interior scraping because: (1) exterior paint film is thicker (multiple maintenance cycles build up layers); (2) exterior failure is often broader in area (UV + moisture = widespread failure vs interior localized failure); (3) exterior scraping generates debris requiring ground containment; (4) exterior scraping at height requires stable ladder/scaffold platform. Characteristic exterior failure points: sill nose (horizontal water collection), sash bottom rail (condensation + end grain), meeting rail on double-hung (friction wear), frame-to-glass junction (failed glass lap seal), frame-to-casing junction (joint movement). Rate varies by condition: SS_EXT_FAILING_PAINT = moderate scraping (localized, 15-30% of surface); SS_EXT_PEELING = heavy scraping (widespread, 40-70%+ of surface). SS_EXT_SOUND_PAINT and SS_EXT_CHALKING do not require scraping (wash + scuff or chalk remediation). Feather-edge sanding is MANDATORY after all scraping — no exceptions.",
+      "source": "Exterior_Weathering_Surface_Assessment_Doctrine; SF_TRIM_EXT_RP_v1/spec.json (scrape/feather pattern); SF_WINDOW_INT_RP_v1/research.json RF-012 (interior scrape pattern)",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-014",
+      "topic": "Blocking prevention is equally critical for RP exterior windows as NC",
+      "finding": "Sash blocking prevention transfers unchanged from NC to RP. The sash sequence module (MOD_XWIN_SASH_SEQUENCE) applies to double-hung windows only: sash reversal, dry posture (ajar position), periodic movement during cure, and channel lubrication. RP compounds blocking risk in two ways identical to interior RP: (1) existing paint buildup narrows sash-to-frame clearance — additional coat adds thickness; (2) fresh paint on old paint creates a soft-on-hard interface prone to blocking. All 4 NC sash sequence tasks transfer DIRECT: TSK_XWIN_SASH_REVERSE, TSK_XWIN_SASH_DRY_POSTURE, TSK_XWIN_SASH_PERIODIC_MOVE, TSK_XWIN_LUBRICATE_CHANNELS. Cure time is longer for exterior (weather-dependent) — advise 7-14 days before fully closing sashes in cold weather.",
+      "source": "SF_WINDOW_EXT_NC_v1/spec.json sash_sequence; Exterior_Windows_Painting_Doctrine; SF_WINDOW_INT_RP_v1/research.json RF-014 (blocking prevention pattern)",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-015",
+      "topic": "Size bucket, window type, and muntin modifiers transfer unchanged from NC",
+      "finding": "All rate modifiers from NC transfer DIRECT to RP — they describe physical characteristics of the window that are identical regardless of coating history. Size bucket: S (glass <6 SF), M (glass 6-15 SF), L (glass >15 SF) — same 3-bucket system as NC (interior uses 4 buckets S/M/L/O; exterior uses 3). Window type modifiers: fixed=0.50, awning=0.70, casement=0.85, double_hung=1.00 (baseline), bay=2.00, bow=2.50. Muntin modifiers: none/gbg=1.00, sdl=1.25, tdl=1.75. Access modifiers: ground=1.00, ladder=1.35, scaffold=1.60. These all transfer unchanged. RP adds condition modifiers on prep tasks: GOOD=1.0x, FAIR=1.5x, POOR=2.0x (per condition_scale in controlled_enums.json). Condition modifiers apply to prep tasks ONLY, not finish/setup/cleanup.",
+      "source": "SF_WINDOW_EXT_NC_v1/spec.json configuration_dimensions (window_type, muntin_type modifiers); SF_WINDOW_EXT_NC_v1/production.json; controlled_enums.json condition_scale",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-016",
+      "topic": "Landscape/hardscape protection replaces interior furniture protection",
+      "finding": "Exterior window RP has no furniture protection concern but requires landscape and hardscape protection. Ground protection below windows catches: (1) scraping debris (paint chips, potentially lead-containing); (2) power wash runoff; (3) paint drips and overspray. Protection zones: ext_ground_cover (landscape adjacent to windows — drop cloth or poly), ext_hardscape_walk (walkways/patios below window work areas — drop cloth runners). For RRP (lead paint), ground containment is elevated to 6-mil poly extending 10 ft from structure per EPA requirements. Spray application adds ext_siding_adjacent masking (paper and tape on finished siding around window perimeter). These zones follow the exterior trim RP pattern from SF_TRIM_EXT_RP_v1.",
+      "source": "Exterior_Protection_Doctrine_T3; SF_TRIM_EXT_RP_v1/spec.json protection_zones_required (exterior protection pattern); SF_DOOR_EXT_RP_v1/spec.json (exterior door protection pattern)",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-017",
+      "topic": "Environmental conditions are NOT estimation modifiers for exterior window RP",
+      "finding": "Per PaintFactor OS RC-003 (confirmed in SF_TRIM_EXT_RP_v1 RC-002 and SF_DOOR_EXT_RP_v1 RC-002), environmental conditions (wind, sun exposure, surface temperature, dew point) are NOT estimatable at bid time — they are unpredictable scheduling factors. The NC spec included site_condition_rules for wind, sun, and temperature as modifiers; these are EXCLUDED from the RP spec per the established RP correction pattern. Environmental conditions affect execution scheduling (don't paint in rain, avoid full sun on south elevation during afternoon application) but are NOT factored into production rate estimation.",
+      "source": "PaintFactor OS RC-003; SF_TRIM_EXT_RP_v1/spec.json RC-002; SF_DOOR_EXT_RP_v1/spec.json RC-002",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-018",
+      "topic": "Maintenance cycle context informs repaint timing and condition expectations",
+      "finding": "Exterior window repaint intervals depend on original quality, sun exposure, and maintenance. Expected intervals: QT3 = 7-10 years (satin, standard products), QT4 = 9-12 years (semi-gloss, premium products), QT5 = 11-15 years (gloss, superior products). South/west elevations degrade faster (5-7 years for QT3). Routine maintenance (annual caulk inspection, touch-up at sill/rail, glazing check) extends intervals by 3-5 years. Most residential window RP occurs at 8-12 years — the sweet spot where sound paint begins chalking and sill areas begin showing failure. This informs the expected condition distribution: most projects will have SS_EXT_SOUND_PAINT or SS_EXT_CHALKING overall, with SS_EXT_FAILING_PAINT or SS_EXT_PEELING at sill/bottom rail failure points.",
+      "source": "Exterior_Windows_Painting_Doctrine; SF_TRIM_EXT_RP_v1/spec.json maintenance_cycles (exterior maintenance cycle pattern)",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-019",
+      "topic": "Brush is primary application method for RP exterior windows; spray is conditional",
+      "finding": "Brush is the primary application method for exterior window RP — same as NC. Windows require precision at the 1/16-inch glass lap line, sash sequence coordination, and detail work on muntin profiles that cannot be achieved with spray alone. Spray is conditional on whole-house exterior repaint context where masking overhead is amortized across siding + trim + windows + doors. Even with spray, back-brushing is required on window profiles per Exterior_Application_Methods_Doctrine. Wind conditions affect exterior spray viability — high wind blocks spray entirely (brush fallback). Spray savings on windows are limited (~25-30% faster application offset by additional masking overhead). All NC application rates transfer DIRECT: brush coat at per-EA fixed-time rates, spray coat at per-EA rates with siding masking overhead. RP does not change application rates — once surface is properly prepped and primed, coating application is identical to NC.",
+      "source": "SF_WINDOW_EXT_NC_v1/spec.json (brush primary, spray conditional); Exterior_Application_Methods_Doctrine; SF_WINDOW_INT_RP_v1/research.json RF-016 (application method transfer pattern)",
+      "confidence": "high"
+    }
+  ],
+
+  "condition_drivers": [
+    {
+      "driver_id": "CD-001",
+      "condition": "Overall coating condition (GOOD/FAIR/POOR)",
+      "effect": "Primary prep intensity driver. GOOD (SS_EXT_SOUND_PAINT): wash + scuff only, minimal prep. FAIR (SS_EXT_CHALKING, SS_EXT_FAILING_PAINT with localized damage): chalk remediation and/or moderate scraping + spot prime. POOR (SS_EXT_PEELING, SS_EXT_FAILING_PAINT with widespread damage): heavy scraping + full feather sand + full prime. Maps to condition_scale: GOOD=1.0x, FAIR=1.5x, POOR=2.0x on prep tasks.",
+      "assessment_method": "Visual inspection + ASTM D3359 adhesion test + chalk rub test. Assign DSD rating (research parameter) and map to GOOD/FAIR/POOR estimation condition.",
+      "source": "controlled_enums.json condition_scale; Exterior_Weathering_Surface_Assessment_Doctrine"
+    },
+    {
+      "driver_id": "CD-002",
+      "condition": "Chalking severity",
+      "effect": "Chalking surfaces appear intact but the chalk layer prevents topcoat adhesion. Light chalk: power wash may remove adequately — test after wash. Moderate/heavy chalk: chalk-binding primer MANDATORY even after wash. This is a distinct primer path that does NOT apply to non-chalking states. Chalking is elevation-dependent: south/west elevations chalk faster.",
+      "assessment_method": "White cloth rub test after power wash. Moderate residue = chalk-binding primer required.",
+      "source": "Exterior_Weathering_Surface_Assessment_Doctrine; Exterior_Primer_Systems_Doctrine"
+    },
+    {
+      "driver_id": "CD-003",
+      "condition": "Moisture/rot at sill and bottom rail",
+      "effect": "Wood sills and sash bottom rails are the #1 rot location on exterior windows. MC > 15% triggers remediation gate — STOP painting until wood dries. Soft/punky wood (rot) = HARD STOP for that component (carpentry scope). Surface mildew/algae on damp areas requires biocide treatment before painting.",
+      "assessment_method": "Moisture meter probe at sill nose, sash bottom rail, end grain areas. Thumb/awl press test for rot detection.",
+      "source": "Exterior_Windows_Painting_Doctrine; Exterior_Weathering_Surface_Assessment_Doctrine"
+    },
+    {
+      "driver_id": "CD-004",
+      "condition": "Glazing compound condition (older wood windows)",
+      "effect": "Failed exterior glazing = water infiltration pathway. Intact = paint over. Cracked = spot repair + cure (3-7 days linseed oil putty, 24-48 hrs modern acrylic) + prime + paint. Failed = remove + re-glaze + cure + prime + paint. Modern IG units: not applicable. More critical for exterior than interior because failed glazing allows rain penetration.",
+      "assessment_method": "Visual inspection + probe test of glazing compound firmness/adhesion. Check for gaps, cracks, missing sections.",
+      "source": "Exterior_Windows_Painting_Doctrine; SF_WINDOW_INT_RP_v1/research.json CD-004 (interior glazing pattern)"
+    },
+    {
+      "driver_id": "CD-005",
+      "condition": "Caulk/sealant condition at joints",
+      "effect": "Failed exterior caulk = water intrusion behind window assembly. 'Think Like a Water Drop' assessment: trace every joint. Intact = clean and paint over. Failed = remove + re-caulk with exterior-grade paintable (polyurethane/hybrid MS polymer). NEVER silicone (not paintable). Exterior caulk failures are more common and more critical than interior.",
+      "assessment_method": "'Think Like a Water Drop' protocol per Exterior_Caulking_Sealants_Doctrine. Visual inspection of frame-to-casing, sill-to-casing, and all accessible joints.",
+      "source": "Exterior_Caulking_Sealants_Doctrine"
+    },
+    {
+      "driver_id": "CD-006",
+      "condition": "Lead paint status (pre-1978)",
+      "effect": "Pre-1978 exterior windows almost always have lead paint. Windows are friction surfaces generating lead dust during sash operation. RRP protocol: 6-mil poly containment 10 ft from structure, wet scraping, HEPA vacuum, lead-safe disposal. RRP modifier: 2.0x on all prep tasks involving paint disturbance. Binary gate: pre_1978 + lead-positive or presumed = activate RRP.",
+      "assessment_method": "XRF testing or EPA-approved lead test kits. Pre-1978 flag is project-level input.",
+      "source": "EPA RRP Rule 40 CFR 745; SF_TRIM_EXT_RP_v1/spec.json (RRP gate pattern)"
+    },
+    {
+      "driver_id": "CD-007",
+      "condition": "Access height per window",
+      "effect": "Windows appear on all stories. Height affects all per-window tasks: assessment, prep (scraping at height is slower and more dangerous), protection setup, and coating application. ground=1.00, ladder=1.35, scaffold=1.60. Height is the second-largest cost modifier after window type for exterior windows.",
+      "assessment_method": "Per-window access assessment during exterior walkthrough. Captured via PS_EXT_META.ENUM.ACCESS_TYPE.",
+      "source": "SF_WINDOW_EXT_NC_v1/spec.json site_condition_rules; Exterior_Access_Staging_Systems_Doctrine"
+    },
+    {
+      "driver_id": "CD-008",
+      "condition": "Cladding type on exposed substrate areas",
+      "effect": "When scraping or peeling exposes bare substrate, cladding type drives primer chemistry: wood = acrylic primer, aluminum-clad = corrosion-inhibiting primer (mandatory even on small spots), vinyl-clad = PVC bonding primer (standard primers will NOT bond to vinyl). VinylSafe IR-reflective finish mandatory for vinyl-clad when color LRV < 55.",
+      "assessment_method": "Visual identification of cladding type during assessment. Per-project with per-window override possible (mixed cladding rare on residential).",
+      "source": "SF_WINDOW_EXT_NC_v1/spec.json substrate_state_rules; Exterior_Primer_Systems_Doctrine"
+    }
+  ],
+
+  "quality_differences": [
+    {
+      "tier": "QT3",
+      "description": "Standard exterior window repaint — MINIMUM TIER for exterior windows. Wash, scuff/degloss, condition-driven prep, spot or full prime, 2 finish coats satin.",
+      "modifier": 1.0,
+      "inspection": "Quick visual at 6 ft. Note obvious defects (drips, misses, runs, peeling, bare spots). Check glass lap line integrity.",
+      "sanding_between_coats": "Spot sand only — 220 grit on defects found during interstage inspection.",
+      "coat_count": "2 finish coats standard",
+      "edge_quality": "Professional — acceptable if neat at glass-to-frame transition and frame-to-casing junction.",
+      "source": "Quality_Tiers_and_Surface_Condition.md; SF_WINDOW_EXT_NC_v1/spec.json"
+    },
+    {
+      "tier": "QT4",
+      "description": "Premium exterior window repaint — thorough prep, full intercoat sand, semi-gloss. Systematic inspection at 3 ft (from ground — arm's length when on ladder).",
+      "modifier": 1.3,
+      "inspection": "Systematic scan at 3 ft viewing distance. Mark defects for repair. Check muntin edges, sash profiles, glass lap uniformity.",
+      "sanding_between_coats": "Full surface sand — 220 grit between all coats.",
+      "coat_count": "2 finish coats standard",
+      "edge_quality": "Crisp — no visible wobble at 3 ft. Clean glass lap line. Uniform coverage on all profiles.",
+      "notes": "Exterior window QT modifiers use GLOBAL values (1.3x/1.5x), not surface-specific overrides. Windows are fine-finish but not door-level scrutiny. Semi-gloss minimum at QT4.",
+      "source": "Quality_Tiers_and_Surface_Condition.md; SF_WINDOW_EXT_NC_v1/spec.json"
+    },
+    {
+      "tier": "QT5",
+      "description": "Superior exterior window repaint — maximum care, near-zero tolerance. 220-320 grit between coats. Lighted critical inspection at arm's length.",
+      "modifier": 1.5,
+      "inspection": "Lighted critical inspection at arm's length. Every surface including muntin edges, sash corners, and extension jamb recesses.",
+      "sanding_between_coats": "Thorough sand — 220-320 grit between all coats. Rigid block on flat surfaces.",
+      "coat_count": "2-3 finish coats (3 coats for brush per Fine_Finish_Doctrine 15.10.3)",
+      "edge_quality": "Straight-line — no visible wobble at arm's length. Precision glass lap line.",
+      "notes": "QT5 is rare for exterior windows. Applies primarily to architecturally significant homes. Gloss sheen available only at QT5. QT5 condition gate: QT5 only at GOOD condition; FAIR/POOR should go hourly (T&M).",
+      "source": "Quality_Tiers_and_Surface_Condition.md; Fine_Finish_Doctrine"
+    }
+  ],
+
+  "failure_modes": [
+    {
+      "mode_id": "FM-001",
+      "failure": "Chalking-induced topcoat delamination",
+      "cause": "Applying topcoat over chalking surface without chalk-binding primer. Chalk layer prevents bonding — new paint peels within 1-3 years even with proper application technique.",
+      "frequency": "Very common on south/west elevations after 7-10 years",
+      "prevention": "Chalk rub test on every window. Power wash + chalk-binding primer when chalk is present. Do NOT skip chalk-binding step even if chalk appears light after wash.",
+      "remediation": "Full scrape delaminated areas, feather sand, chalk-binding primer, 2 finish coats",
+      "source": "Exterior_Weathering_Surface_Assessment_Doctrine; Exterior_Primer_Systems_Doctrine"
+    },
+    {
+      "mode_id": "FM-002",
+      "failure": "Sill rot from failed glass lap or glazing",
+      "cause": "Water intrusion at glass-to-frame junction when 1/16-inch glass lap seal fails or glazing compound deteriorates. Water wicks into end grain of sill, causing rot progression.",
+      "frequency": "Very common on wood windows, especially north-facing (slow drying) and west-facing (rain exposure)",
+      "prevention": "Assess glazing compound and glass lap seal during condition assessment. Repair glazing before painting. Maintain 1/16-inch glass lap on all exterior wood windows. Seal all end grain with primer.",
+      "remediation": "HARD STOP if rot is structural. Minor surface softening: wood hardener/consolidant + acrylic primer + topcoat.",
+      "source": "Exterior_Windows_Painting_Doctrine; Window_Systems_Doctrine Section 4"
+    },
+    {
+      "mode_id": "FM-003",
+      "failure": "Peeling at sash bottom rail due to moisture intrusion",
+      "cause": "Sash bottom rail is horizontal — collects condensation from glass interior and rain from glass exterior. Water enters end grain at rail-to-stile joints. Paint bubbles and peels from substrate swelling.",
+      "frequency": "Very common on wood double-hung windows — the most frequent failure point",
+      "prevention": "MC probe at bottom rail during assessment. Seal all end grain during prime coat. Apply extra primer pass at end-grain junctions. Use moisture-resistant primer at bottom rail.",
+      "remediation": "Scrape to sound substrate, feather sand, seal end grain, prime with moisture-resistant primer, 2 finish coats",
+      "source": "Exterior_Windows_Painting_Doctrine; Exterior_Weathering_Surface_Assessment_Doctrine"
+    },
+    {
+      "mode_id": "FM-004",
+      "failure": "Blocking — exterior window painted shut",
+      "cause": "Freshly painted sashes stuck in frame. Exterior cure is weather-dependent — cold/damp conditions extend cure. RP paint buildup narrows clearance.",
+      "frequency": "Common with standard latex; less common with urethane-modified products",
+      "prevention": "Sash sequence module: dry posture (ajar), periodic movement during cure, channel lubrication. Allow 7-14 day cure before fully closing in cold weather. Use urethane-enriched enamels for blocking resistance.",
+      "remediation": "Score paint film at contact points, break free gently, apply wax to contact surfaces",
+      "source": "Exterior_Windows_Painting_Doctrine; SF_WINDOW_INT_RP_v1/research.json FM-003 (blocking pattern)"
+    },
+    {
+      "mode_id": "FM-005",
+      "failure": "Vinyl-clad thermal warping from dark color",
+      "cause": "Standard dark paint (LRV < 55) absorbs solar radiation, raising vinyl surface temperature above softening point. Vinyl warps, buckles, and joints open.",
+      "frequency": "Guaranteed if dark paint is used on vinyl-clad windows without IR-reflective technology",
+      "prevention": "VinylSafe IR-reflective coating MANDATORY for vinyl-clad when color LRV < 55. Color gate during specification. VinylSafe CICPs drop surface temp 20-30 deg F.",
+      "remediation": "Remove warped vinyl components and replace — warping is permanent deformation",
+      "source": "SF_WINDOW_EXT_NC_v1/spec.json (VinylSafe gate); Exterior_Color_Sheen_Configuration_Doctrine"
+    },
+    {
+      "mode_id": "FM-006",
+      "failure": "Aluminum-clad corrosion under failed paint",
+      "cause": "When paint fails on aluminum-clad windows, exposed aluminum oxidizes. If repainted without corrosion-inhibiting primer, new paint bonds poorly to oxide layer.",
+      "frequency": "Common on aluminum-clad windows with 10+ year paint age",
+      "prevention": "Corrosion-inhibiting primer MANDATORY on all exposed aluminum areas, regardless of how small. Scuff-sand oxidized areas before priming.",
+      "remediation": "Scrape failed paint, scuff-sand oxidized aluminum, apply corrosion-inhibiting primer, 2 finish coats",
+      "source": "Exterior_Primer_Systems_Doctrine; SF_WINDOW_EXT_NC_v1/spec.json (aluminum-clad primer routing)"
+    },
+    {
+      "mode_id": "FM-007",
+      "failure": "Glazing compound failure during/after RP painting",
+      "cause": "Older exterior glazing compound has dried, cracked, and become brittle from UV exposure. Painting over failed glazing does not restore seal. Solvent in paint may further deteriorate marginal glazing.",
+      "frequency": "Very common on pre-1990 single-pane exterior wood windows",
+      "prevention": "Assess glazing condition before painting. Replace failed glazing compound and allow full cure before painting. Note: re-glazing may delay painting schedule by 3-7 days.",
+      "remediation": "Remove failed glazing, re-glaze with exterior-grade compound (DAP 33), allow cure, prime, paint",
+      "source": "Exterior_Windows_Painting_Doctrine; SF_WINDOW_INT_RP_v1/research.json FM-007 (interior glazing failure pattern)"
+    }
+  ],
+
+  "notes_for_materials_manager": [
+    {
+      "note_id": "NM-001",
+      "topic": "State-driven primer systems for RP exterior windows — dual-axis selection",
+      "note": "RP exterior windows use a two-dimensional primer selection: condition state drives primer need, cladding type drives primer chemistry on exposed substrate. (1) SS_EXT_SOUND_PAINT: spot prime bare/thin areas only — primer chemistry follows cladding type at exposed spots: wood = SYS_EXT_WIN_PRIMER_ACRYLIC, aluminum-clad = SYS_EXT_WIN_PRIMER_CORROSION, vinyl-clad = SYS_EXT_WIN_PRIMER_BONDING_PVC. (2) SS_EXT_CHALKING: chalk-binding primer full surface (NEW RP system, SYS_EXT_XWRP_PRIMER_CHALK_BIND) — applies regardless of cladding type over chalking surface. (3) SS_EXT_FAILING_PAINT: spot or full prime depending on bare area percentage — cladding-specific primer on exposed substrate, plus acrylic stain-blocking primer on remaining surface if needed. (4) SS_EXT_PEELING: full prime — cladding-specific primer on bare areas + acrylic stain-blocking over full surface. NC material systems transfer for use on exposed substrate areas. NEW RP-specific system: chalk-binding primer."
+    },
+    {
+      "note_id": "NM-002",
+      "topic": "Finish coat systems transfer unchanged from NC",
+      "note": "NC finish systems transfer directly: SYS_EXT_WIN_FINISH_STANDARD (QT3), SYS_EXT_WIN_FINISH_PREMIUM (QT4/QT5), SYS_EXT_WIN_FINISH_VINYLSAFE (vinyl-clad LRV < 55). Blocking resistance is important for operable windows — urethane-modified products preferred for double-hung sashes. Products: SW Emerald Urethane Trim Enamel, BM Aura (QT4+), standard acrylic trim enamel (QT3). Same products, same QT-driven selection as NC."
+    },
+    {
+      "note_id": "NM-003",
+      "topic": "Sheen recommendations for RP exterior windows",
+      "note": "Per NC spec: satin (QT3), semi-gloss (QT4+), gloss (QT5 only). For RP, existing sheen should be noted during assessment — changing from higher to lower sheen may show surface imperfections masked by previous higher sheen. Sheen/QT gate transfers unchanged from NC."
+    },
+    {
+      "note_id": "NM-004",
+      "topic": "RP-specific consumables beyond NC list",
+      "note": "Add to NC consumable list: (1) chalk-binding primer for SS_EXT_CHALKING; (2) exterior-grade paintable caulk (polyurethane/hybrid MS polymer) for caulk repair; (3) wood hardener/consolidant for surface-softened sill wood; (4) biocide/mildewcide for exterior mildew/algae on damp areas; (5) exterior-grade glazing compound (DAP 33) for glazing repairs; (6) liquid deglosser or scuff-sand supplies for existing paint surface preparation; (7) RRP containment supplies (6-mil poly, HEPA vacuum, lead-safe disposal bags) when pre_1978 + lead."
+    },
+    {
+      "note_id": "NM-005",
+      "topic": "Glass masking materials identical to NC",
+      "note": "All NC masking materials transfer unchanged: UV-resistant tape, fine-line tape for glass lap, HDPE static-cling film, masking paper, liquid mask (Jasco Mask & Peel for TDL non-Low-E). No RP-specific masking material changes."
+    }
+  ],
+
+  "notes_for_sop_librarian": [
+    {
+      "note_id": "NS-001",
+      "topic": "RP exterior window SOP adds assessment and power wash modules before NC workflow",
+      "note": "Recommended module structure: (1) MOD_XWRP_ASSESS — assessment module (condition inspect, adhesion test, chalk test, moisture probe, glazing assess, rot probe, sash operation test); (2) MOD_XWRP_WASH — power wash per elevation (500-1000 PSI, fan tip, top-down, 24-48 hr dry); (3) MOD_XWRP_SETUP — protection setup (transfers DIRECT from NC MOD_XWIN_SETUP + landscape/hardscape protection + RRP containment if applicable); (4) MOD_XWRP_PREP — RP-specific prep (chalk remediation, scrape/feather, caulk assess/repair, glazing repair, degloss/scuff sound areas, clean dust); (5) MOD_XWRP_PRIME — state/cladding-driven primer (chalk-binding, spot/full acrylic, corrosion-inhibiting, PVC bonding, or skip); (6) MOD_XWRP_FINISH_1 — finish coat 1 (transfers DIRECT from NC); (7) MOD_XWRP_INTERSTAGE — interstage process (transfers DIRECT from NC); (8) MOD_XWRP_FINISH_2 — finish coat 2 (transfers DIRECT from NC); (9) MOD_XWRP_SASH_SEQUENCE — sash blocking prevention (transfers DIRECT from NC, double-hung only); (10) MOD_XWRP_FINAL_INSPECT — final inspection and touchup (transfers DIRECT from NC); (11) MOD_XWRP_CLEANUP — cleanup (transfers DIRECT from NC + customer walkthrough + RRP teardown if applicable)."
+    },
+    {
+      "note_id": "NS-002",
+      "topic": "Assessment SOP must include chalk test and moisture probe",
+      "note": "The chalk rub test is unique to exterior RP and MUST be performed on every exterior window repaint. Moisture probe on sills and bottom rails is critical — MC > 15% stops the workflow. Rot probe (thumb/awl test) determines if component is paintable or requires carpentry. These assessments add approximately 15-22 minutes per window but prevent the most common failure modes (FM-001 through FM-003)."
+    },
+    {
+      "note_id": "NS-003",
+      "topic": "Power wash is per-elevation, not per-window",
+      "note": "Power wash is a fixed-time task per elevation — one pass covers all windows plus surrounding trim/siding on that elevation. Must allow 24-48 hr dry before coating (weather-dependent). SOP should sequence: assess all windows on elevation -> power wash elevation -> dry time -> prep individual windows. Power wash and dry time create a natural work-day boundary."
+    },
+    {
+      "note_id": "NS-004",
+      "topic": "Glazing assessment and repair sequencing",
+      "note": "If glazing compound needs replacement, it must be done BEFORE painting and allowed to cure. Linseed oil putty: 3-7 day cure. Modern acrylic glazing: 24-48 hr cure. This creates a schedule dependency. SOP should flag glazing repair during assessment and adjust painting schedule. Glazing repair on exterior windows is more common than interior due to UV degradation of putty."
+    },
+    {
+      "note_id": "NS-005",
+      "topic": "RRP containment sequencing for exterior windows",
+      "note": "When RRP is triggered: containment setup happens AFTER assessment but BEFORE any paint disturbance (wash, scrape, sand). 6-mil poly on ground extending 10 ft from structure below window work zone. Containment must be maintained throughout all prep and coating phases. Teardown after final cleanup. RRP tasks are per-elevation (containment), not per-window."
+    }
+  ],
+
+  "notes_for_estimation_engineer": [
+    {
+      "note_id": "NE-001",
+      "topic": "EA-based production with size bucket modifiers — identical to NC",
+      "note": "This spec uses EA (per window) with Size Bucket Method: S (<6 SF glass), M (6-15 SF glass, baseline), L (>15 SF glass). Bay/bow always forced to L bucket. All per-window rates are calibrated to medium double-hung baseline. Same PaintScope inputs as NC: IN_EA_EXT_WINDOW_S, IN_EA_EXT_WINDOW_M, IN_EA_EXT_WINDOW_L. Size bucket, window type, muntin, and access modifiers transfer unchanged from NC production.json."
+    },
+    {
+      "note_id": "NE-002",
+      "topic": "Exterior window QT modifiers use GLOBAL values",
+      "note": "Exterior windows use standard global QT modifiers: QT3=1.00, QT4=1.30, QT5=1.50. No surface-specific overrides (unlike doors). NC production.json confirms these values. These apply to qt_scaled tasks in the coating pool."
+    },
+    {
+      "note_id": "NE-003",
+      "topic": "Condition modifiers apply to prep tasks ONLY — stacking partition",
+      "note": "Per condition_scale: GOOD=1.0x, FAIR=1.5x, POOR=2.0x. Condition modifier applies to prep tasks only (scrape, feather, sand, chalk remediation, caulk repair). NOT applied to setup, coating, inspection, or cleanup tasks. Stacking partition follows SF_TRIM_EXT_RP and SF_DOOR_EXT_RP patterns: prep pool = CONDITION x RRP x ACCESS; coating pool = QT x ACCESS. ACCESS (height) is shared across both pools. CONDITION and RRP never apply to coating tasks. QT never applies to prep tasks."
+    },
+    {
+      "note_id": "NE-004",
+      "topic": "RRP modifier: 2.0x on prep tasks involving paint disturbance",
+      "note": "Pre-1978 + lead-positive triggers RRP. FAC_XWRP_RRP = 2.00x on all prep tasks involving paint disturbance (scrape, feather-sand, power wash with paint removal). RRP containment setup/teardown are separate fixed-time tasks per elevation (not per window). Binary gate: rrp_required=true or false. Stacking pool: PREP. RRP modifier was calibrated to 2.0x per SF_TRIM_EXT_RP production.json (refined from initial 1.4x research estimate)."
+    },
+    {
+      "note_id": "NE-005",
+      "topic": "Projected task count: ~55-62 tasks",
+      "note": "NC has 51 tasks across 9 modules. RP projection: ~35 DIRECT transfers (setup/protection tasks, finish application, interstage, sash sequence, final inspection, glass cleanup, most teardown tasks) + ~8 MODIFIED (wood sand becomes degloss, primer tasks become state-driven, siding masking becomes landscape protection) - 3 NOT_APPLICABLE (wood fill, tannin spot prime, factory primer scuff) + ~15-22 RP_NEW (assessment tasks: condition inspect, adhesion test, chalk test, moisture probe, glazing assess, rot probe, sash operation test; prep tasks: power wash per elevation, chalk remediation, scrape/feather, degloss/scuff, caulk assess/repair, glazing repair, mildew/algae treatment, RRP containment setup/teardown; completion tasks: customer walkthrough, cure time advisory). Total: approximately 55-62 tasks across 11 modules."
+    },
+    {
+      "note_id": "NE-006",
+      "topic": "Finish coat application rates transfer DIRECT from NC",
+      "note": "All finish coat application tasks transfer unchanged from NC production.json. Brush and spray rates at per-EA fixed-time with size-bucket variants (S/M/L). Interstage tasks (inspect, sand between, spot repair, dust cleanup) also transfer at NC rates. These are binary or qt_scaled tasks that apply identically once the surface is properly prepped and primed."
+    },
+    {
+      "note_id": "NE-007",
+      "topic": "Assessment tasks are RP_NEW — rates derived from exterior door RP pattern",
+      "note": "Exterior window assessment tasks need rate development. Reference rates: SF_DOOR_EXT_RP condition assess ~5-8 min/EA, adhesion test ~2-3 min/EA, coating ID (not needed for exterior RP per RC-002), chalk test ~2-3 min/EA, moisture probe ~2-3 min/EA, glazing assess ~2-3 min/EA (older windows only), rot probe ~2-3 min/EA, sash operation test ~2-3 min/EA. Total assessment: ~15-22 min per window depending on size, age, and condition."
+    },
+    {
+      "note_id": "NE-008",
+      "topic": "Modifier stacking partition — prep pool vs coating pool",
+      "note": "Prep pool: CONDITION x RRP x ACCESS x WINDOW_TYPE x MUNTIN. Coating pool: QT x ACCESS x WINDOW_TYPE x MUNTIN. Worst-case prep: POOR (2.0) x RRP (2.0) x scaffold (1.60) x bow (2.50) x TDL (1.75) = 28.0x — far exceeds 4.0x cap, represents extreme edge case (recommend T&M). Common high prep: FAIR (1.5) x no_rrp (1.0) x ladder (1.35) x double_hung (1.0) x none (1.0) = 2.03x (well within cap). Worst-case coating: QT5 (1.5) x scaffold (1.60) x bow (2.50) x TDL (1.75) = 10.5x — exceeds cap, extreme scenario (recommend T&M). Common high coating: QT4 (1.3) x ladder (1.35) x double_hung (1.0) x TDL (1.75) = 3.07x (within cap)."
+    },
+    {
+      "note_id": "NE-009",
+      "topic": "Power wash is per-elevation fixed time, not per-window EA",
+      "note": "Power wash is a FIXED task per elevation, not per-window. It covers all windows on an elevation in one pass along with adjacent surfaces. Rate: ~20-30 min per elevation for residential scale. This follows the exterior trim RP pattern where some tasks are per-elevation rather than per-component."
+    },
+    {
+      "note_id": "NE-010",
+      "topic": "Coating ID test (latex vs alkyd) is NOT needed for exterior RP",
+      "note": "Unlike interior RP where latex-over-oil is a common failure mode (windows historically received alkyd enamel indoors), exterior paint has been predominantly 100% acrylic latex since the 1980s. The adhesion test (ASTM D3359) provides sufficient information — if adhesion fails, adhesion primer is used regardless of existing coating chemistry. Coating ID is excluded from exterior window RP assessment per this research correction."
+    }
+  ],
+
+  "confidence_level": "high",
+
+  "assumptions": [
+    {
+      "assumption_id": "A-001",
+      "field": "context_prefix",
+      "value": "XWRP_ (eXterior Window RePaint)",
+      "source": "Collision analysis against all NC and RP specs",
+      "doctrine_gap": false,
+      "note": "TSK_XWIN_* is consumed by NC (51 tasks). XWRP_ avoids all collisions. Pattern: X = exterior, W = window, RP = repaint."
+    },
+    {
+      "assumption_id": "A-002",
+      "field": "qt_modifiers_global",
+      "value": "QT3=1.0, QT4=1.3, QT5=1.5 (global modifiers, not surface-specific overrides)",
+      "source": "SF_WINDOW_EXT_NC_v1/production.json; Modifier_Registry.md",
+      "doctrine_gap": false,
+      "note": "NC production.json confirms global QT modifiers for exterior windows. No doctrine defines surface-specific window overrides."
+    },
+    {
+      "assumption_id": "A-003",
+      "field": "condition_scale_mapping",
+      "value": "GOOD=SS_EXT_SOUND_PAINT, FAIR=SS_EXT_CHALKING or SS_EXT_FAILING_PAINT (localized), POOR=SS_EXT_PEELING or SS_EXT_FAILING_PAINT (widespread)",
+      "source": "controlled_enums.json condition_scale; SF_TRIM_EXT_RP_v1 (exterior RP state-to-condition pattern)",
+      "doctrine_gap": false,
+      "note": "Follows exterior RP pattern. SS_EXT_CHALKING maps to FAIR because chalking is moderate degradation — surface appears intact but needs chalk-binding primer. Widespread failing paint may escalate to POOR."
+    },
+    {
+      "assumption_id": "A-004",
+      "field": "assessment_rates",
+      "value": "15-22 min per window total assessment time (condition + adhesion + chalk + moisture + glazing + rot + sash)",
+      "source": "Derived from SF_DOOR_EXT_RP assessment rates adjusted for window-specific factors",
+      "doctrine_gap": true,
+      "note": "No doctrine defines exterior-window-specific assessment rates. Rates derived from exterior door RP assessment pattern scaled for window complexity (more assessment points due to glazing, sash operation, and sill moisture)."
+    },
+    {
+      "assumption_id": "A-005",
+      "field": "power_wash_rate",
+      "value": "20-30 min per elevation for residential window power wash",
+      "source": "Derived from SF_TRIM_EXT_RP power wash pattern",
+      "doctrine_gap": true,
+      "note": "Power wash is a per-elevation task covering all windows plus adjacent surfaces. Rate accounts for equipment setup, 500-1000 PSI wash with fan tip, and equipment teardown."
+    },
+    {
+      "assumption_id": "A-006",
+      "field": "nc_rate_transfer",
+      "value": "All NC finish application, interstage, sash sequence, protection, and cleanup rates transfer unchanged to RP",
+      "source": "SF_WINDOW_EXT_NC_v1/production.json; SF_WINDOW_INT_RP_v1/research.json A-006 (interior rate transfer pattern)",
+      "doctrine_gap": false,
+      "note": "Once surface is properly prepped and primed, coating application is identical regardless of NC vs RP. Confirmed by interior RP gap analysis."
+    },
+    {
+      "assumption_id": "A-007",
+      "field": "access_model",
+      "value": "3-tier access model (ground/ladder/scaffold) from NC, NOT 5-tier from trim RP",
+      "source": "SF_WINDOW_EXT_NC_v1/spec.json site_condition_rules (FAC_EXT_ACCESS)",
+      "doctrine_gap": false,
+      "note": "NC uses 3-tier access per window. Trim RP uses 5-tier per component. Windows are per-EA with one access level per window — the simpler 3-tier model is appropriate. Modifier values: ground=1.00, ladder=1.35, scaffold=1.60."
+    },
+    {
+      "assumption_id": "A-008",
+      "field": "rrp_modifier",
+      "value": "FAC_XWRP_RRP = 2.00x on prep tasks involving paint disturbance",
+      "source": "SF_TRIM_EXT_RP_v1/production.json FAC_TRRP_RRP = 2.00x; SF_DOOR_EXT_RP_v1/spec.json FAC_DRRP_RRP = 2.00x",
+      "doctrine_gap": false,
+      "note": "RRP modifier calibrated to 2.0x per established exterior RP pattern. Research initially estimated 1.4x; production calibrated to 2.0x (RC from trim RP). Consistent across all exterior RP specs."
+    }
+  ],
+
+  "uncertainties": [
+    {
+      "uncertainty_id": "U-001",
+      "topic": "Mixed substrate states within a single window",
+      "description": "A single exterior window may have different substrate states: sill = SS_EXT_PEELING (highest moisture exposure), upper frame = SS_EXT_SOUND_PAINT, bottom rail = SS_EXT_FAILING_PAINT. Should the spec support per-component state assignment, or use worst-state-wins for the entire window? Worst-state-wins is simpler but over-estimates prep for sound portions. Per-component is more accurate but complex.",
+      "impact": "Estimation accuracy vs spec complexity",
+      "resolution": "Recommend worst-state-wins for v1. Single substrate_state input per window. Interior window RP made the same decision (SF_WINDOW_INT_RP U-001). Per-component assessment in v2 if field validation shows significant over-estimation."
+    },
+    {
+      "uncertainty_id": "U-002",
+      "topic": "Glazing repair scope boundary for exterior windows",
+      "description": "Exterior glazing repair is more common and more critical than interior. Where is the painting scope boundary? Proposed: spot repair of isolated failed sections (< 25% of total glazing perimeter) is in painting scope; widespread failure (> 25%) is flagged as separate glazing scope. Exterior threshold is slightly higher than interior (20% proposed for interior) because exterior painters encounter glazing repair more routinely.",
+      "impact": "Task inclusion and rate accuracy for glazing repair",
+      "resolution": "Estimation Engineer to decide scope boundary percentage. Recommend 25% threshold for v1 exterior."
+    },
+    {
+      "uncertainty_id": "U-003",
+      "topic": "Power wash ownership — window spec or trim spec or shared",
+      "description": "Power wash covers an entire elevation in one pass — windows, trim, siding are all washed simultaneously. Which spec 'owns' the power wash task? If multiple exterior RP specs are active on the same elevation (trim + windows + siding), power wash should not be double-counted.",
+      "impact": "Task ownership and double-counting prevention",
+      "resolution": "Recommend power wash owned by the spec that initiates the exterior RP sequence on each elevation. Cross-spec deduplication rule: if power wash is already performed by another spec on the same elevation, skip. Flag for Estimation Engineer."
+    },
+    {
+      "uncertainty_id": "U-004",
+      "topic": "Landscape protection overlap with trim and siding RP specs",
+      "description": "Ground/landscape protection below windows overlaps with exterior trim RP and siding RP protection zones. When multiple exterior specs are active, protection should be set up once and shared — not counted per-spec.",
+      "impact": "Protection task counting accuracy",
+      "resolution": "Cross-spec protection deduplication — protection setup owned by first spec in elevation sequence. Subsequent specs benefit from existing protection. Standard exterior RP deduplication pattern."
+    }
+  ],
+
+  "protection_zones_analysis": {
+    "spec_category": "exterior_window",
+    "zones": [
+      {
+        "zone_id": "ext_window_glass_mask",
+        "condition": "ALWAYS — mandatory regardless of application method",
+        "protection_level": "full_mask",
+        "upgrade_scenario": null,
+        "notes": "Glass pane masking. Method varies by muntin type and Low-E status. Largest single protection task (30-40% of total time on TDL windows). Transfers DIRECT from NC. 1/16-inch glass lap line for weather seal."
+      },
+      {
+        "zone_id": "ext_window_hardware",
+        "condition": "operable_windows_only",
+        "protection_level": "item_mask",
+        "upgrade_scenario": null,
+        "notes": "Window hardware REMOVED — not masked. Labeled bags per window. Reinstall after final coat dry. Fixed windows: skip. Transfers DIRECT from NC. RP consideration: hardware may have paint buildup requiring careful scoring before removal."
+      },
+      {
+        "zone_id": "ext_window_weatherstrip",
+        "condition": "operable_windows_only",
+        "protection_level": "item_mask",
+        "upgrade_scenario": null,
+        "notes": "Weatherstripping removal or deep-tape. NEVER paint weatherstripping. Transfers DIRECT from NC."
+      },
+      {
+        "zone_id": "sill_protection",
+        "condition": "when_sill_already_finished",
+        "protection_level": "light_mask",
+        "upgrade_scenario": null,
+        "notes": "Tape and paper over finished exterior sill. Conditional on sill being already painted. In RP, sill is almost always already finished. Transfers DIRECT from NC."
+      },
+      {
+        "zone_id": "ext_window_casing_adjacent",
+        "condition": "when_casing_already_finished",
+        "protection_level": "light_mask",
+        "upgrade_scenario": null,
+        "notes": "Light tape at casing-to-frame junction when casing is already finished. In RP, casing is almost always already finished. Transfers DIRECT from NC."
+      },
+      {
+        "zone_id": "ext_siding_adjacent",
+        "condition": { "application_method": ["spray"] },
+        "protection_level": "full_mask",
+        "upgrade_scenario": null,
+        "notes": "Protect finished siding around window perimeter. Paper and tape. Spray only — brush work has minimal overspray. Transfers DIRECT from NC."
+      },
+      {
+        "zone_id": "ext_ground_cover",
+        "condition": "always",
+        "protection_level": "edge_only",
+        "upgrade_scenario": "Upgrades to full_cover for spray application or when scraping generates debris",
+        "notes": "RP-SPECIFIC: landscape and ground protection below windows. Catches scraping debris, power wash runoff, and paint drips. Drop cloth or poly. Upgrades to full_cover for spray. RRP: 6-mil poly extending 10 ft from structure."
+      },
+      {
+        "zone_id": "ext_hardscape_walk",
+        "condition": "when_adjacent",
+        "protection_level": "light_mask",
+        "upgrade_scenario": "Upgrades to full_cover for spray or RRP",
+        "notes": "RP-SPECIFIC: walkway/patio surfaces below window work areas. Drop cloth runners. Follows SF_TRIM_EXT_RP pattern."
+      },
+      {
+        "zone_id": "ext_rrp_containment",
+        "condition": { "pre_1978": true, "rrp_required": true },
+        "protection_level": "full_containment",
+        "notes": "RP-SPECIFIC: EPA RRP Rule containment. 6-mil poly ground containment extending 10 ft from structure. Required when disturbing lead paint on pre-1978 structures. Per-elevation setup. Follows SF_TRIM_EXT_RP and SF_DOOR_EXT_RP pattern."
+      }
+    ],
+    "zone_reference": "Protection_Zones_Reference.md; Exterior_Protection_Doctrine_T3"
+  },
+
+  "adjacency_analysis": {
+    "primary_surface": "window_frame_sash_ext",
+    "additional_primary_surfaces": ["window_sash_ext", "window_muntin_ext", "window_jamb_extension_ext", "window_stool_apron_ext"],
+    "adjacent_surfaces": [
+      {
+        "surface_id": "ext_trim_window_casing",
+        "edge_type": "complex",
+        "typical_relationship": "different_finish",
+        "edge_work_required": false,
+        "notes": "Window casing frames the window opening. SF_TRIM_EXT_RP_v1 scope. May be same or different color/sheen. Protection-only relationship in both NC and RP. Caulk at frame-to-casing junction is THIS spec's responsibility."
+      },
+      {
+        "surface_id": "window_glass",
+        "edge_type": "linear",
+        "typical_relationship": "different_finish",
+        "edge_work_required": false,
+        "notes": "Glass-to-frame edge is the 1/16-inch glass lap line. MANDATORY weather seal — paint intentionally overlaps onto glass. Glass masking mandatory. Glass scraping after cure."
+      },
+      {
+        "surface_id": "ext_sill",
+        "edge_type": "linear",
+        "typical_relationship": "same_finish",
+        "edge_work_required": false,
+        "notes": "Exterior sill — may be shared scope with SF_TRIM_EXT_RP_v1. This spec covers sill painting when accessible during window work."
+      },
+      {
+        "surface_id": "siding_field",
+        "edge_type": "complex",
+        "typical_relationship": "different_finish",
+        "edge_work_required": false,
+        "notes": "Siding-to-window junction: casing typically intervenes. No direct adjacency deduplication needed. Protection-only for spray."
+      },
+      {
+        "surface_id": "window_interior",
+        "edge_type": "complex",
+        "typical_relationship": "different_finish",
+        "edge_work_required": false,
+        "notes": "Interior window surfaces belong to SF_WINDOW_INT_RP_v1 (or NC). Scope boundary at window frame-to-jamb junction."
+      }
+    ],
+    "surface_reference": "Surface_Vocabulary_Reference.md"
+  },
+
+  "site_condition_analysis": {
+    "affected_conditions": [
+      {
+        "condition_id": "access_type",
+        "affected_task_types": ["assess", "prep", "prime", "finish", "inspect", "protect"],
+        "include_values": ["ground", "ladder", "scaffold"],
+        "modifier_notes": "ground=1.00, ladder=1.35, scaffold=1.60",
+        "notes": "HEIGHT IS A MAJOR MODIFIER for exterior windows. Applied to ALL per-window tasks. Per-window attribute via PS_EXT_META.ENUM.ACCESS_TYPE. Follows NC 3-tier model."
+      },
+      {
+        "condition_id": "substrate_condition",
+        "affected_task_types": ["prep"],
+        "include_values": ["GOOD", "FAIR", "POOR"],
+        "modifier_notes": "GOOD=1.0x, FAIR=1.5x, POOR=2.0x",
+        "notes": "Condition modifier applies to prep tasks ONLY. Maps from substrate state: GOOD=SS_EXT_SOUND_PAINT, FAIR=SS_EXT_CHALKING or localized SS_EXT_FAILING_PAINT, POOR=SS_EXT_PEELING or widespread SS_EXT_FAILING_PAINT."
+      },
+      {
+        "condition_id": "rrp_gate",
+        "affected_task_types": ["prep"],
+        "include_values": ["rrp_required"],
+        "modifier_notes": "no_rrp=1.00, rrp_required=2.00",
+        "notes": "Pre-1978 + lead-positive triggers RRP. 2.0x on prep tasks involving paint disturbance. Binary gate. RRP containment setup/teardown are separate fixed tasks per elevation."
+      },
+      {
+        "condition_id": "pre_1978",
+        "affected_task_types": ["assess"],
+        "include_values": [true],
+        "modifier_notes": "Triggers lead assessment and potential RRP activation",
+        "notes": "Project-level flag. Pre-1978 exterior paint is almost always lead. Shared with trim and door RP specs."
+      }
+    ],
+    "excluded_conditions": [
+      {
+        "condition_id": "wind_condition",
+        "reason": "Environmental conditions are NOT estimation modifiers per PaintFactor OS RC-003. Wind affects scheduling, not production rate estimation.",
+        "source": "SF_TRIM_EXT_RP_v1 RC-002; SF_DOOR_EXT_RP_v1 RC-002"
+      },
+      {
+        "condition_id": "sun_exposure",
+        "reason": "Environmental conditions are NOT estimation modifiers per PaintFactor OS RC-003.",
+        "source": "SF_TRIM_EXT_RP_v1 RC-002"
+      },
+      {
+        "condition_id": "surface_temperature",
+        "reason": "Environmental conditions are NOT estimation modifiers per PaintFactor OS RC-003.",
+        "source": "SF_TRIM_EXT_RP_v1 RC-002"
+      }
+    ],
+    "condition_reference": "Site_Condition_Vocabulary_Reference.md; Modifier_Registry.md"
+  },
+
+  "state_analysis": {
+    "primary_surface": "window_frame_sash_ext",
+    "additional_primary_surfaces": ["window_sash_ext", "window_muntin_ext", "window_jamb_extension_ext", "window_stool_apron_ext"],
+    "valid_input_states": {
+      "states": ["SS_EXT_SOUND_PAINT", "SS_EXT_CHALKING", "SS_EXT_FAILING_PAINT", "SS_EXT_PEELING"],
+      "rationale": "4 exterior RP substrate states — same as SF_TRIM_EXT_RP_v1. SS_EXT_SOUND_PAINT is the most common (cosmetic refresh, recent repaint still sound). SS_EXT_CHALKING is the most common degradation state for exterior windows (UV-driven). SS_EXT_FAILING_PAINT = cracking/alligatoring at stress points. SS_EXT_PEELING = active delamination, often at sill/bottom rail moisture points. SS_EXT_WEATHERED excluded (bare wood territory). SS_EXT_STAINED_* excluded (not standard window scope). SS_EXT_SURFACE_RUST excluded (not applicable to window cladding types). SS_EXT_BARE_WOOD excluded (NC scope)."
+    },
+    "output_state": {
+      "state": "SS_EXT_PAINTED_SEMIGLOSS",
+      "varies_by": "sheen",
+      "state_map": {
+        "satin": "SS_EXT_PAINTED_SATIN",
+        "semi-gloss": "SS_EXT_PAINTED_SEMIGLOSS",
+        "gloss": "SS_EXT_PAINTED_GLOSS"
+      },
+      "rationale": "All repaint input states converge to painted output state. Sheen determined by quality tier: QT3=satin, QT4=semi-gloss, QT5=gloss."
+    },
+    "adjacent_state_protection_analysis": [
+      {
+        "adjacent_surface": "ext_trim_window_casing",
+        "finished_states": ["SS_EXT_PAINTED_SATIN", "SS_EXT_PAINTED_SEMIGLOSS", "SS_EXT_PAINTED_GLOSS", "SS_EXT_SOUND_PAINT"],
+        "unfinished_states": [],
+        "protection_when_finished": "light_mask",
+        "protection_when_unfinished": "none",
+        "rationale": "In RP, casing is almost always already painted. Light tape at casing-to-frame junction."
+      },
+      {
+        "adjacent_surface": "siding_field",
+        "finished_states": ["SS_EXT_PAINTED_FLAT", "SS_EXT_PAINTED_SATIN"],
+        "unfinished_states": [],
+        "protection_when_finished": "full_mask (spray), none (brush)",
+        "protection_when_unfinished": "none",
+        "rationale": "Siding masking required for spray only. In RP, siding is almost always already finished."
+      }
+    ],
+    "state_reference": "Substrate_State_Reference.md; controlled_enums.json"
+  },
+
+  "required_paintscope_keys": [
+    "PS_EXT_OPENING_EA.WINDOW_S",
+    "PS_EXT_OPENING_EA.WINDOW_M",
+    "PS_EXT_OPENING_EA.WINDOW_L",
+    "PS_EXT_PROTECT_EA.GLASS_WINDOW",
+    "PS_EXT_META.ENUM.WINDOW_TYPE",
+    "PS_EXT_META.ENUM.WINDOW_CLADDING",
+    "PS_EXT_META.ENUM.MUNTIN_TYPE",
+    "PS_EXT_META.FLAG.LOW_E_GLASS",
+    "PS_EXT_META.ENUM.ACCESS_TYPE",
+    "PS_EXT_META.ENUM.SUBSTRATE_STATE",
+    "PS_EXT_META.FLAG.PRE_1978",
+    "PS_EXT_PROTECT_SF.LANDSCAPE_ADJACENT",
+    "PS_EXT_PROTECT_SF.HARDSCAPE_WALK",
+    "PS_EXT_META.EA.ELEVATIONS_TOTAL"
+  ],
+
+  "proposed_new_keys": [
+    {
+      "key": "PS_EXT_META.ENUM.SUBSTRATE_STATE_WINDOW",
+      "rationale": "Per-window substrate state (SS_EXT_SOUND_PAINT / SS_EXT_CHALKING / SS_EXT_FAILING_PAINT / SS_EXT_PEELING). May use worst-state-wins per v1 simplification. Could share PS_EXT_META.ENUM.SUBSTRATE_STATE with trim RP if project-level state is sufficient."
+    }
+  ],
+
+  "adjacency_notes": [
+    "Window frame meets casing at perimeter — protection relationship. Caulk at frame-to-casing junction is THIS spec's responsibility.",
+    "Window glass — masking mandatory, 1/16-inch glass lap weather seal, glass scraping after cure.",
+    "Exterior sill may be shared scope with SF_TRIM_EXT_RP_v1.",
+    "Siding field — protection only (spray masking). No direct adjacency deduplication.",
+    "Interior window surfaces belong to SF_WINDOW_INT_RP_v1. Scope boundary at frame-to-jamb junction.",
+    "In RP, all adjacent surfaces are almost always already finished — protection is mandatory for both spray and brush methods (unlike NC where adjacent surfaces may be unfinished)."
+  ],
+
+  "nc_task_transfer_summary": {
+    "source_spec": "SF_WINDOW_EXT_NC_v1",
+    "source_task_count": 51,
+    "direct_transfers": [
+      "TSK_XWIN_MASK_GLASS_TAPE_FILM",
+      "TSK_XWIN_MASK_GLASS_LIQUID",
+      "TSK_XWIN_MASK_GLASS_TDL_TAPE",
+      "TSK_XWIN_HARDWARE_REMOVE",
+      "TSK_XWIN_WEATHERSTRIP_PROTECT",
+      "TSK_XWIN_SILL_PROTECT",
+      "TSK_XWIN_CASING_PROTECT",
+      "TSK_XWIN_SIDING_MASK_SPRAY",
+      "TSK_XWIN_EQUIPMENT_SETUP_BRUSH",
+      "TSK_XWIN_EQUIPMENT_SETUP_SPRAY",
+      "TSK_XWIN_DUST_AFTER_SAND_WOOD",
+      "TSK_XWIN_DUST_AFTER_SAND_ALUM",
+      "TSK_XWIN_FINISH_BRUSH_1",
+      "TSK_XWIN_FINISH_SPRAY_1",
+      "TSK_XWIN_MUNTIN_DETAIL_1",
+      "TSK_XWIN_INSPECT_INTERCOAT",
+      "TSK_XWIN_SAND_INTERCOAT",
+      "TSK_XWIN_DUST_INTERCOAT",
+      "TSK_XWIN_SPOT_REPAIR_INTERCOAT",
+      "TSK_XWIN_FINISH_BRUSH_2",
+      "TSK_XWIN_FINISH_SPRAY_2",
+      "TSK_XWIN_MUNTIN_DETAIL_2",
+      "TSK_XWIN_SASH_REVERSE",
+      "TSK_XWIN_SASH_DRY_POSTURE",
+      "TSK_XWIN_SASH_PERIODIC_MOVE",
+      "TSK_XWIN_LUBRICATE_CHANNELS",
+      "TSK_XWIN_FINAL_INSPECT",
+      "TSK_XWIN_TOUCHUP",
+      "TSK_XWIN_GLASS_CLEANUP",
+      "TSK_XWIN_MASK_REMOVE_TAPE_FILM",
+      "TSK_XWIN_MASK_REMOVE_LIQUID",
+      "TSK_XWIN_MASK_REMOVE_TDL_TAPE",
+      "TSK_XWIN_HARDWARE_REINSTALL",
+      "TSK_XWIN_WEATHERSTRIP_REINSTALL",
+      "TSK_XWIN_SILL_PROTECT_REMOVE",
+      "TSK_XWIN_CASING_PROTECT_REMOVE",
+      "TSK_XWIN_SIDING_MASK_REMOVE",
+      "TSK_XWIN_EQUIPMENT_CLEAN"
+    ],
+    "direct_count": 38,
+    "modified_transfers": [
+      {
+        "nc_task": "TSK_XWIN_SAND_PREP_WOOD",
+        "rp_task": "TSK_XWRP_DEGLOSS_SCUFF",
+        "rationale": "NC sands bare wood for primer adhesion; RP degloss/scuffs existing paint for topcoat adhesion"
+      },
+      {
+        "nc_task": "TSK_XWIN_WASH_ALUM",
+        "rp_task": "TSK_XWRP_POWER_WASH",
+        "rationale": "NC TSP washes aluminum cladding specifically; RP power washes all cladding types per elevation"
+      },
+      {
+        "nc_task": "TSK_XWIN_SCUFF_SAND_ALUM",
+        "rp_task": "TSK_XWRP_SCUFF_EXPOSED_ALUM",
+        "rationale": "NC scuff-sands factory finish on aluminum; RP scuff-sands exposed aluminum where paint has failed"
+      },
+      {
+        "nc_task": "TSK_XWIN_CLEAN_VINYL",
+        "rp_task": "TSK_XWRP_CLEAN_EXPOSED_VINYL",
+        "rationale": "NC cleans factory vinyl surface; RP cleans exposed vinyl where paint has failed"
+      },
+      {
+        "nc_task": "TSK_XWIN_PRIME_BRUSH_WOOD",
+        "rp_task": "TSK_XWRP_PRIME_BRUSH",
+        "rationale": "NC uses cladding-specific primer on bare wood; RP uses state-driven primer (chalk-binding, spot acrylic, or full acrylic) on exposed areas"
+      },
+      {
+        "nc_task": "TSK_XWIN_PRIME_SPRAY_WOOD",
+        "rp_task": "TSK_XWRP_PRIME_SPRAY",
+        "rationale": "NC uses cladding-specific primer via spray; RP uses state-driven primer via spray"
+      },
+      {
+        "nc_task": "TSK_XWIN_PRIME_BRUSH_ALUM",
+        "rp_task": "TSK_XWRP_PRIME_BRUSH_SPOT_ALUM",
+        "rationale": "NC primes full aluminum surface; RP spot primes exposed aluminum areas with corrosion-inhibiting primer"
+      },
+      {
+        "nc_task": "TSK_XWIN_PRIME_BRUSH_VINYL",
+        "rp_task": "TSK_XWRP_PRIME_BRUSH_SPOT_VINYL",
+        "rationale": "NC primes full vinyl surface; RP spot primes exposed vinyl areas with PVC bonding primer"
+      }
+    ],
+    "modified_count": 8,
+    "not_applicable": [
+      {
+        "nc_task": "TSK_XWIN_FILL_DEFECTS_WOOD",
+        "rationale": "Bare wood defect fill — already done during original NC installation. RP windows have existing fill."
+      },
+      {
+        "nc_task": "TSK_XWIN_TANNIN_SPOT_PRIME",
+        "rationale": "Bare wood tannin spot prime — knots were sealed during original NC. Tannin is not an RP concern on already-painted windows."
+      },
+      {
+        "nc_task": "TSK_XWIN_SCUFF_FACTORY_WOOD",
+        "rationale": "Factory primer scuff — RP windows are not factory-primed, they have existing field paint."
+      },
+      {
+        "nc_task": "TSK_XWIN_PRIME_SPRAY_ALUM",
+        "rationale": "Full spray prime on aluminum — RP spot primes exposed areas only, spray prime full surface is NC-only."
+      },
+      {
+        "nc_task": "TSK_XWIN_PRIME_SPRAY_VINYL",
+        "rationale": "Full spray prime on vinyl — RP spot primes exposed areas only, spray prime full surface is NC-only."
+      }
+    ],
+    "not_applicable_count": 5,
+    "rp_new_tasks": [
+      "TSK_XWRP_ASSESS_CONDITION — visual condition inspection of all exterior window surfaces, DSD rating, photograph defects",
+      "TSK_XWRP_ASSESS_ADHESION — ASTM D3359 cross-hatch tape test on representative sections",
+      "TSK_XWRP_ASSESS_CHALK — white cloth chalk rub test (exterior-specific)",
+      "TSK_XWRP_ASSESS_MOISTURE — moisture meter probe on sill, bottom rail, end grain areas",
+      "TSK_XWRP_ASSESS_GLAZING — glazing compound condition assessment (older wood windows only)",
+      "TSK_XWRP_ASSESS_ROT — press/probe test for soft/punky wood at sill, bottom rail, end grain",
+      "TSK_XWRP_ASSESS_SASH_OPERATION — pre-paint sash open/close test for binding (operable windows only)",
+      "TSK_XWRP_POWER_WASH — low-pressure power wash per elevation (500-1000 PSI, fan tip, top-down)",
+      "TSK_XWRP_CHALK_REMEDIATION — chalk-binding primer application for SS_EXT_CHALKING",
+      "TSK_XWRP_SCRAPE_FEATHER — scrape failing/peeling paint, feather-edge sand all scraped areas",
+      "TSK_XWRP_DEGLOSS_SCUFF — degloss/scuff sound existing paint for topcoat adhesion",
+      "TSK_XWRP_CAULK_ASSESS_REPAIR — assess and repair failed caulk per 'Think Like a Water Drop' protocol",
+      "TSK_XWRP_GLAZING_REPAIR — spot repair failed glazing compound (scope-limited <25% of perimeter)",
+      "TSK_XWRP_MILDEW_TREAT — biocide/mildewcide treatment for mildew/algae on damp areas",
+      "TSK_XWRP_WOOD_HARDEN — wood hardener/consolidant on surface-softened sill/bottom rail (scope-limited)",
+      "TSK_XWRP_RRP_CONTAINMENT_SETUP — EPA RRP containment setup per elevation (pre-1978 + lead)",
+      "TSK_XWRP_RRP_CONTAINMENT_TEARDOWN — EPA RRP containment teardown and lead-safe disposal",
+      "TSK_XWRP_LANDSCAPE_PROTECT — landscape/ground protection setup below window work zone",
+      "TSK_XWRP_HARDSCAPE_PROTECT — walkway/patio protection setup below window work zone",
+      "TSK_XWRP_CUSTOMER_WALKTHROUGH — post-completion review with homeowner (verify sash operation, sheen, glass cleanliness)",
+      "TSK_XWRP_CURE_ADVISORY — communicate cure time advisory (7-14 days before fully closing sashes)",
+      "TSK_XWRP_SASH_BREAK — break sash free at 24/48 hrs post-cure to prevent adhesion bond formation"
+    ],
+    "rp_new_count": 22,
+    "projected_total_tasks": "38 DIRECT + 8 MODIFIED + 22 RP_NEW - 5 NOT_APPLICABLE = 63 tasks (within 55-62 projection range, slightly above due to comprehensive RP_NEW list)"
+  },
+
+  "inherited_research_corrections": [
+    {
+      "correction_id": "RC-001",
+      "original_claim": "RRP modifier is 1.40x on prep tasks",
+      "corrected_to": "RRP modifier is 2.00x on prep tasks involving paint disturbance. The 1.40x figure from research was a rough estimate; the production.json engineer calibrated to 2.00x based on actual wet-scraping, HEPA vacuum, and containment maintenance overhead per EPA RRP procedural requirements.",
+      "corrected_by": "Estimation Engineer",
+      "source": "SF_TRIM_EXT_RP_v1/spec.json RC-001"
+    },
+    {
+      "correction_id": "RC-002",
+      "original_claim": "Environmental conditions (wind, sun, surface temp) should be estimation modifiers",
+      "corrected_to": "Environmental conditions are NOT estimatable — unpredictable at bid time. Excluded from spec entirely.",
+      "corrected_by": "PaintFactor OS",
+      "source": "PaintFactor OS RC-003; SF_TRIM_EXT_RP_v1/spec.json RC-002; SF_DOOR_EXT_RP_v1/spec.json RC-002"
+    },
+    {
+      "correction_id": "RC-003",
+      "original_claim": "Coating ID test (latex vs alkyd) is needed for exterior window RP",
+      "corrected_to": "Coating ID test is NOT needed for exterior RP windows. Exterior paint has been predominantly 100% acrylic latex since the 1980s (unlike interior windows which commonly received alkyd enamel). The ASTM D3359 adhesion test provides sufficient information — if adhesion fails, adhesion primer is used regardless of existing coating chemistry. This correction differentiates exterior window RP from interior window RP (where coating ID IS needed due to alkyd prevalence).",
+      "corrected_by": "Spec Researcher Agent",
+      "source": "Research analysis — exterior vs interior coating history; SF_WINDOW_INT_RP_v1/research.json RF-007 (interior alkyd prevalence)"
+    }
+  ],
+
+  "change_log": [
+    {
+      "version": "1.0.0",
+      "date": "2026-03-15",
+      "author": "Spec Researcher Agent",
+      "changes": "Initial research.json for SF_WINDOW_EXT_RP_v1. Derived from SF_WINDOW_EXT_NC_v1 (51 tasks) as primary template, with exterior RP patterns from SF_TRIM_EXT_RP_v1 and SF_DOOR_EXT_RP_v1, and window RP patterns from SF_WINDOW_INT_RP_v1. Context prefix XWRP_ avoids collision with TSK_XWIN_* NC tasks. 4 exterior RP substrate states (SS_EXT_SOUND_PAINT, SS_EXT_CHALKING, SS_EXT_FAILING_PAINT, SS_EXT_PEELING). Key exterior-specific findings: chalking is the dominant degradation mode (RF-007), power wash replaces TSP hand-wash (RF-005), RRP is MORE common for exterior (RF-010), height is a MAJOR modifier (RF-011), environmental conditions excluded from estimation (RF-017, RC-002), coating ID test NOT needed for exterior (RC-003). Projected 63 tasks: 38 DIRECT transfers + 8 MODIFIED - 5 NOT_APPLICABLE + 22 RP_NEW (7 assessment, power wash, chalk remediation, scrape/feather, degloss, caulk/glazing repair, mildew treatment, wood hardener, RRP containment, landscape/hardscape protection, customer walkthrough, cure advisory, sash break). NC modifiers (size bucket S/M/L, window type 6 values, muntin 4 values, access 3 tiers) transfer unchanged. RP adds condition modifiers (GOOD/FAIR/POOR) on prep tasks and RRP modifier (2.0x) on prep tasks involving paint disturbance. Stacking partition: prep pool = CONDITION x RRP x ACCESS x WINDOW_TYPE x MUNTIN; coating pool = QT x ACCESS x WINDOW_TYPE x MUNTIN. QT3-QT5 with global modifiers (1.0/1.3/1.5). 3 cladding types (wood/aluminum-clad/vinyl-clad) retained for primer chemistry on exposed substrate. 9 protection zones (6 from NC + 3 RP-new). 7 failure modes. 8 condition drivers."
+    }
+  ]
+}

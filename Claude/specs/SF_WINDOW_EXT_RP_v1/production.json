@@ -1,0 +1,1451 @@
+{
+  "spec_family_id": "SF_WINDOW_EXT_RP",
+  "version": "1.0.0",
+  "generated_by": "Estimation Engineer",
+  "generated_at": "2026-03-15",
+
+  "MODIFIER_STACKING_WARNING": {
+    "severity": "critical",
+    "description": "Modifier stacking uses TWO separate pools that never cross-apply. Prep tasks use condition x RRP x access x window_type x muntin x size. Coating tasks use QT x access x window_type x muntin x size. Condition and RRP NEVER apply to coating tasks. QT NEVER applies to prep tasks.",
+    "worst_case_prep": "POOR(2.0) x RRP(2.0) x scaffold(1.60) x bow(2.50) x TDL(1.75) x L(1.50) = 42.0x — extreme theoretical, unrealistic combination",
+    "realistic_worst_prep": "POOR(2.0) x RRP(2.0) x ground(1.00) x DH(1.00) x none(1.00) x M(1.00) = 4.0x",
+    "worst_case_coating": "QT5(1.5) x scaffold(1.60) x bow(2.50) x TDL(1.75) x L(1.50) = 15.75x — extreme theoretical",
+    "realistic_worst_coating": "QT5(1.5) x ladder(1.35) x DH(1.00) x TDL(1.75) x M(1.00) = 3.54x — under 4.0x flag",
+    "stacking_rules": {
+      "prep_tasks": {
+        "formula": "effective_rate = base_rate / (condition x rrp x access x window_type x muntin x size)",
+        "pool_modifiers": "FAC_CONDITION_SCALE + FAC_XWRP_RRP (PREP pool)",
+        "shared_modifiers": "FAC_EXT_ACCESS + FAC_XWIN_WINDOW_TYPE + FAC_XWIN_MUNTIN + FAC_XWIN_SIZE_BUCKET",
+        "never_includes": "quality_tier"
+      },
+      "coating_tasks": {
+        "formula": "effective_rate = base_rate / (qt x access x window_type x muntin x size)",
+        "pool_modifiers": "quality_tier (COATING pool)",
+        "shared_modifiers": "FAC_EXT_ACCESS + FAC_XWIN_WINDOW_TYPE + FAC_XWIN_MUNTIN + FAC_XWIN_SIZE_BUCKET",
+        "never_includes": "FAC_CONDITION_SCALE, FAC_XWRP_RRP"
+      },
+      "fixed_tasks": {
+        "formula": "fixed_time_minutes (no modifiers)",
+        "note": "Assessment fixed tasks, equipment setup/cleanup, RRP containment, customer walkthrough, cure advisory — no modifiers applied."
+      }
+    }
+  },
+
+  "window_input_group": {
+    "description": "All per-window rates use EA as UOM. Rates provided as fixed_time_minutes per EA with size-bucket variants (S/M/L) where time varies significantly by window size. Window type modifier is PRIMARY cost driver. Muntin type is SECONDARY. Base rates calibrated to medium double-hung window, no muntins, brush application, ground access, GOOD condition.",
+    "inputs": [
+      { "input_name": "IN_EA_WINDOW_EXT_S", "paintscope_key": "PS_EXT_OPENING_EA.WINDOW_S" },
+      { "input_name": "IN_EA_WINDOW_EXT_M", "paintscope_key": "PS_EXT_OPENING_EA.WINDOW_M" },
+      { "input_name": "IN_EA_WINDOW_EXT_L", "paintscope_key": "PS_EXT_OPENING_EA.WINDOW_L" },
+      { "input_name": "IN_EA_GLASS_MASK_EXT", "paintscope_key": "PS_EXT_PROTECT_EA.GLASS_WINDOW" },
+      { "input_name": "IN_SF_LANDSCAPE_ADJACENT", "paintscope_key": "PS_EXT_PROTECT_SF.LANDSCAPE_ADJACENT" },
+      { "input_name": "IN_SF_HARDSCAPE_WALK", "paintscope_key": "PS_EXT_PROTECT_SF.HARDSCAPE_WALK" },
+      { "input_name": "IN_EA_ELEVATIONS_TOTAL", "paintscope_key": "PS_EXT_META.EA.ELEVATIONS_TOTAL" },
+      { "input_name": "IN_ENUM_WINDOW_TYPE_EXT", "paintscope_key": "PS_EXT_META.ENUM.WINDOW_TYPE" },
+      { "input_name": "IN_ENUM_WINDOW_CLADDING", "paintscope_key": "PS_EXT_META.ENUM.WINDOW_CLADDING" },
+      { "input_name": "IN_ENUM_MUNTIN_TYPE_EXT", "paintscope_key": "PS_EXT_META.ENUM.MUNTIN_TYPE" },
+      { "input_name": "IN_BOOL_LOW_E_GLASS_EXT", "paintscope_key": "PS_EXT_META.FLAG.LOW_E_GLASS" },
+      { "input_name": "IN_ENUM_ACCESS_TYPE_EXT", "paintscope_key": "PS_EXT_META.ENUM.ACCESS_TYPE" },
+      { "input_name": "IN_ENUM_SUBSTRATE_STATE_EXT", "paintscope_key": "PS_EXT_META.ENUM.SUBSTRATE_STATE" },
+      { "input_name": "IN_BOOL_PRE_1978_EXT", "paintscope_key": "PS_EXT_META.FLAG.PRE_1978" }
+    ]
+  },
+
+  "task_production_rates": [
+
+    {
+      "task_id": "TSK_XWRP_MASK_GLASS_TAPE_FILM",
+      "name": "Glass Masking — Tape and Static-Cling Film",
+      "unit_of_measure": "EA",
+      "task_classification": "binary",
+      "size_bucket_rates": {
+        "S": { "fixed_time_minutes": 6, "notes": "Small single-lite window. Tape edge + HDPE film." },
+        "M": { "fixed_time_minutes": 10, "notes": "Medium window. More glass perimeter to tape." },
+        "L": { "fixed_time_minutes": 18, "notes": "Large window. Extended perimeter. Secure against wind." }
+      },
+      "fixed_time_range_low": 5,
+      "fixed_time_range_high": 20,
+      "crew_size": 1,
+      "modifier_pool": "none",
+      "applicable_modifiers": ["FAC_XWIN_MUNTIN", "FAC_XWIN_SIZE_BUCKET"],
+      "rate_basis_notes": "DIRECT transfer from TSK_XWIN_MASK_GLASS_TAPE_FILM. Masking technique identical in NC and RP. UV-resistant tape at glass-to-frame edge, fine-line tape at 1/16-inch glass lap line, HDPE static-cling film over pane.",
+      "applies_when": { "muntin_type": ["none", "gbg", "sdl"] }
+    },
+    {
+      "task_id": "TSK_XWRP_MASK_GLASS_LIQUID",
+      "name": "Glass Masking — Liquid Mask (TDL Non-Low-E)",
+      "unit_of_measure": "EA",
+      "task_classification": "binary",
+      "size_bucket_rates": {
+        "S": { "fixed_time_minutes": 12, "notes": "Small TDL. Brush-apply liquid mask per pane." },
+        "M": { "fixed_time_minutes": 20, "notes": "Medium TDL. More panes." },
+        "L": { "fixed_time_minutes": 30, "notes": "Large TDL (many lites)." }
+      },
+      "fixed_time_range_low": 10,
+      "fixed_time_range_high": 35,
+      "crew_size": 1,
+      "modifier_pool": "none",
+      "applicable_modifiers": ["FAC_XWIN_MUNTIN", "FAC_XWIN_SIZE_BUCKET"],
+      "rate_basis_notes": "DIRECT transfer from TSK_XWIN_MASK_GLASS_LIQUID. PROHIBITED on Low-E glass.",
+      "applies_when": { "muntin_type": ["tdl"], "low_e_glass": false }
+    },
+    {
+      "task_id": "TSK_XWRP_MASK_GLASS_TDL_TAPE",
+      "name": "Glass Masking — Individual Pane Tape (TDL + Low-E)",
+      "unit_of_measure": "EA",
+      "task_classification": "binary",
+      "size_bucket_rates": {
+        "S": { "fixed_time_minutes": 18, "notes": "Small TDL Low-E. Per-pane tape+film." },
+        "M": { "fixed_time_minutes": 30, "notes": "Medium TDL Low-E. Highest masking labor." },
+        "L": { "fixed_time_minutes": 45, "notes": "Large TDL Low-E. Many individual pane masks." }
+      },
+      "fixed_time_range_low": 15,
+      "fixed_time_range_high": 50,
+      "crew_size": 1,
+      "modifier_pool": "none",
+      "applicable_modifiers": ["FAC_XWIN_MUNTIN", "FAC_XWIN_SIZE_BUCKET"],
+      "rate_basis_notes": "DIRECT transfer from TSK_XWIN_MASK_GLASS_TDL_TAPE. Highest masking labor configuration.",
+      "applies_when": { "muntin_type": ["tdl"], "low_e_glass": true }
+    },
+    {
+      "task_id": "TSK_XWRP_HARDWARE_REMOVE",
+      "name": "Remove Window Hardware",
+      "unit_of_measure": "EA",
+      "task_classification": "binary",
+      "fixed_time_minutes": 10,
+      "fixed_time_range_low": 7,
+      "fixed_time_range_high": 15,
+      "crew_size": 1,
+      "modifier_pool": "none",
+      "applicable_modifiers": ["FAC_EXT_ACCESS"],
+      "rate_basis_notes": "MODIFIED from NC (8 min). RP adds 2 min for scoring paint buildup at hardware edges before removal. NC windows have no paint buildup. Access modifier applies (hardware at elevation).",
+      "applies_when": { "window_type": ["awning", "casement", "double_hung", "bay", "bow"] }
+    },
+    {
+      "task_id": "TSK_XWRP_WEATHERSTRIP_PROTECT",
+      "name": "Protect Weatherstripping",
+      "unit_of_measure": "EA",
+      "task_classification": "binary",
+      "fixed_time_minutes": 8,
+      "fixed_time_range_low": 6,
+      "fixed_time_range_high": 10,
+      "crew_size": 1,
+      "modifier_pool": "none",
+      "applicable_modifiers": ["FAC_EXT_ACCESS"],
+      "rate_basis_notes": "DIRECT transfer from TSK_XWIN_WEATHERSTRIP_PROTECT. 8 min per operable window. NEVER paint weatherstripping.",
+      "applies_when": { "window_type": ["awning", "casement", "double_hung", "bay", "bow"] }
+    },
+    {
+      "task_id": "TSK_XWRP_SILL_PROTECT",
+      "name": "Protect Exterior Sill",
+      "unit_of_measure": "EA",
+      "task_classification": "binary",
+      "fixed_time_minutes": 4,
+      "fixed_time_range_low": 3,
+      "fixed_time_range_high": 6,
+      "crew_size": 1,
+      "modifier_pool": "none",
+      "applicable_modifiers": ["FAC_EXT_ACCESS"],
+      "rate_basis_notes": "DIRECT transfer from TSK_XWIN_SILL_PROTECT. RP: sill almost always already finished — protection mandatory.",
+      "applies_when": {}
+    },
+    {
+      "task_id": "TSK_XWRP_CASING_PROTECT",
+      "name": "Protect Adjacent Window Casing",
+      "unit_of_measure": "EA",
+      "task_classification": "binary",
+      "fixed_time_minutes": 3,
+      "fixed_time_range_low": 2,
+      "fixed_time_range_high": 5,
+      "crew_size": 1,
+      "modifier_pool": "none",
+      "applicable_modifiers": ["FAC_EXT_ACCESS"],
+      "rate_basis_notes": "DIRECT transfer from TSK_XWIN_CASING_PROTECT. Light tape at junction line only.",
+      "applies_when": {}
+    },
+    {
+      "task_id": "TSK_XWRP_SIDING_MASK_SPRAY",
+      "name": "Mask Adjacent Siding (Spray Only)",
+      "unit_of_measure": "EA",
+      "task_classification": "binary",
+      "size_bucket_rates": {
+        "S": { "fixed_time_minutes": 8, "notes": "Small window perimeter masking." },
+        "M": { "fixed_time_minutes": 12, "notes": "Medium window perimeter masking." },
+        "L": { "fixed_time_minutes": 18, "notes": "Large window — extended perimeter." }
+      },
+      "fixed_time_range_low": 6,
+      "fixed_time_range_high": 20,
+      "crew_size": 1,
+      "modifier_pool": "none",
+      "applicable_modifiers": ["FAC_EXT_ACCESS", "FAC_XWIN_SIZE_BUCKET"],
+      "rate_basis_notes": "DIRECT transfer from TSK_XWIN_SIDING_MASK_SPRAY. Paper and tape on siding around window. Spray only.",
+      "applies_when": { "application_method": ["spray"] }
+    },
+    {
+      "task_id": "TSK_XWRP_EQUIPMENT_SETUP_BRUSH",
+      "name": "Equipment Setup — Brush",
+      "unit_of_measure": "FIXED",
+      "task_classification": "binary",
+      "fixed_time_minutes": 15,
+      "fixed_time_range_low": 10,
+      "fixed_time_range_high": 20,
+      "crew_size": 1,
+      "modifier_pool": "none",
+      "applicable_modifiers": [],
+      "rate_basis_notes": "DIRECT transfer from TSK_XWIN_EQUIPMENT_SETUP_BRUSH. Per-session FIXED time. No modifiers.",
+      "applies_when": { "application_method": ["brush"] }
+    },
+    {
+      "task_id": "TSK_XWRP_EQUIPMENT_SETUP_SPRAY",
+      "name": "Equipment Setup — Spray",
+      "unit_of_measure": "FIXED",
+      "task_classification": "binary",
+      "fixed_time_minutes": 30,
+      "fixed_time_range_low": 20,
+      "fixed_time_range_high": 40,
+      "crew_size": 1,
+      "modifier_pool": "none",
+      "applicable_modifiers": [],
+      "rate_basis_notes": "DIRECT transfer from TSK_XWIN_EQUIPMENT_SETUP_SPRAY. Per-session FIXED time. No modifiers.",
+      "applies_when": { "application_method": ["spray"] }
+    },
+    {
+      "task_id": "TSK_XWRP_LANDSCAPE_PROTECT",
+      "name": "Landscape Ground Protection Setup",
+      "unit_of_measure": "SF",
+      "task_classification": "binary",
+      "rate_per_hour": 200,
+      "rate_range_low": 150,
+      "rate_range_high": 250,
+      "crew_size": 1,
+      "modifier_pool": "none",
+      "applicable_modifiers": [],
+      "rate_basis_notes": "RP_NEW. Drop cloth or poly over landscape below window work zones. 200 SF/hr (~3 min per 10 SF). Upgrades to full_cover for spray or RRP. Shared zone with SF_TRIM_EXT_RP. Cross-spec deduplication rule U-004.",
+      "applies_when": {}
+    },
+    {
+      "task_id": "TSK_XWRP_HARDSCAPE_PROTECT",
+      "name": "Hardscape/Walkway Protection Setup",
+      "unit_of_measure": "SF",
+      "task_classification": "binary",
+      "rate_per_hour": 250,
+      "rate_range_low": 200,
+      "rate_range_high": 300,
+      "crew_size": 1,
+      "modifier_pool": "none",
+      "applicable_modifiers": [],
+      "rate_basis_notes": "RP_NEW. Drop cloth runners over walkways/patios. 250 SF/hr (~2.5 min per 10 SF). Flat hard surfaces are faster to cover than landscape. Shared zone with SF_TRIM_EXT_RP.",
+      "applies_when": {}
+    },
+
+    {
+      "task_id": "TSK_XWRP_ASSESS_CONDITION",
+      "name": "Visual Condition Inspection — All Exterior Window Surfaces",
+      "unit_of_measure": "EA",
+      "task_classification": "qt_scaled",
+      "qt_rates": {
+        "QT3": { "fixed_time_minutes": 5, "notes": "Standard visual with work light, document visible defects." },
+        "QT4": { "fixed_time_minutes": 8, "notes": "Systematic scan with raking light, photograph all defect areas." },
+        "QT5": { "fixed_time_minutes": 12, "notes": "Critical assessment, multiple passes, full photographic documentation." }
+      },
+      "fixed_time_range_low": 4,
+      "fixed_time_range_high": 15,
+      "crew_size": 1,
+      "modifier_pool": "none",
+      "applicable_modifiers": ["FAC_EXT_ACCESS", "FAC_XWIN_WINDOW_TYPE", "FAC_XWIN_SIZE_BUCKET"],
+      "rate_basis_notes": "RP_NEW. Per-window condition inspection. QT drives inspection rigor. Access modifier applies (inspection at height is slower). Window type affects surface count to inspect. Size drives area to inspect.",
+      "applies_when": {}
+    },
+    {
+      "task_id": "TSK_XWRP_ASSESS_ADHESION",
+      "name": "Adhesion Test (ASTM D3359 Cross-Hatch Tape Test)",
+      "unit_of_measure": "EA",
+      "task_classification": "binary",
+      "fixed_time_minutes": 5,
+      "fixed_time_range_low": 3,
+      "fixed_time_range_high": 8,
+      "crew_size": 1,
+      "modifier_pool": "none",
+      "applicable_modifiers": ["FAC_EXT_ACCESS"],
+      "rate_basis_notes": "RP_NEW. Cross-hatch tape test at 2 locations per window (frame + sash). ~5 min per window. Pass + SS_EXT_SOUND_PAINT = skip full prime. Calibrated from interior RP adhesion test (5 min/EA) — same ASTM protocol.",
+      "applies_when": {}
+    },
+    {
+      "task_id": "TSK_XWRP_ASSESS_CHALK",
+      "name": "Chalk Test (White Cloth Rub)",
+      "unit_of_measure": "EA",
+      "task_classification": "binary",
+      "fixed_time_minutes": 3,
+      "fixed_time_range_low": 2,
+      "fixed_time_range_high": 5,
+      "crew_size": 1,
+      "modifier_pool": "none",
+      "applicable_modifiers": ["FAC_EXT_ACCESS"],
+      "rate_basis_notes": "RP_NEW. Exterior-only test. White cloth rub on painted surfaces to detect chalking. Quick test — grade none/light/heavy. ~3 min per window.",
+      "applies_when": {}
+    },
+    {
+      "task_id": "TSK_XWRP_ASSESS_MOISTURE",
+      "name": "Moisture Check — Sill, Bottom Rail, End Grain",
+      "unit_of_measure": "EA",
+      "task_classification": "binary",
+      "fixed_time_minutes": 4,
+      "fixed_time_range_low": 3,
+      "fixed_time_range_high": 6,
+      "crew_size": 1,
+      "modifier_pool": "none",
+      "applicable_modifiers": ["FAC_EXT_ACCESS"],
+      "rate_basis_notes": "RP_NEW. Moisture meter at sill, bottom rail, end-grain. ~4 min per window. MC >15% = STOP WORK for coating on that surface.",
+      "applies_when": {}
+    },
+    {
+      "task_id": "TSK_XWRP_ASSESS_GLAZING",
+      "name": "Glazing Compound Assessment (Older Wood Windows)",
+      "unit_of_measure": "EA",
+      "task_classification": "binary",
+      "fixed_time_minutes": 4,
+      "fixed_time_range_low": 3,
+      "fixed_time_range_high": 6,
+      "crew_size": 1,
+      "modifier_pool": "none",
+      "applicable_modifiers": ["FAC_EXT_ACCESS"],
+      "rate_basis_notes": "RP_NEW. Probe test glazing compound on older wood windows. ~4 min per window. Modern IG units: skip. Exterior glazing deteriorates faster than interior.",
+      "applies_when": { "window_cladding": ["wood"] }
+    },
+    {
+      "task_id": "TSK_XWRP_ASSESS_ROT",
+      "name": "Rot Probe — Press/Probe for Soft Wood",
+      "unit_of_measure": "EA",
+      "task_classification": "binary",
+      "fixed_time_minutes": 4,
+      "fixed_time_range_low": 3,
+      "fixed_time_range_high": 6,
+      "crew_size": 1,
+      "modifier_pool": "none",
+      "applicable_modifiers": ["FAC_EXT_ACCESS"],
+      "rate_basis_notes": "RP_NEW. Awl/screwdriver press test at sill, bottom rail, end-grain. ~4 min per window. Structural rot = HARD STOP (carpentry referral). Surface-soft = wood hardener in prep.",
+      "applies_when": { "window_cladding": ["wood"] }
+    },
+    {
+      "task_id": "TSK_XWRP_ASSESS_SASH_OPERATION",
+      "name": "Sash Operation Test (Pre-Paint)",
+      "unit_of_measure": "EA",
+      "task_classification": "binary",
+      "fixed_time_minutes": 3,
+      "fixed_time_range_low": 2,
+      "fixed_time_range_high": 5,
+      "crew_size": 1,
+      "modifier_pool": "none",
+      "applicable_modifiers": ["FAC_EXT_ACCESS"],
+      "rate_basis_notes": "RP_NEW. Open and close all operable sashes before painting. ~3 min per window. Establishes baseline. Skip for fixed windows.",
+      "applies_when": { "window_type": ["awning", "casement", "double_hung", "bay", "bow"] }
+    },
+
+    {
+      "task_id": "TSK_XWRP_POWER_WASH",
+      "name": "Power Wash Exterior Windows (Per Elevation)",
+      "unit_of_measure": "FIXED",
+      "task_classification": "binary",
+      "fixed_time_minutes": 25,
+      "fixed_time_range_low": 15,
+      "fixed_time_range_high": 40,
+      "crew_size": 1,
+      "modifier_pool": "none",
+      "applicable_modifiers": [],
+      "rate_basis_notes": "MODIFIED — replaces interior TSP wash. Per-elevation FIXED time (25 min midpoint). Low-pressure 500-1000 PSI. Covers all windows on elevation. Cross-spec deduplication: if power wash already performed by another spec on same elevation, skip (U-003). No modifiers on FIXED per-elevation tasks.",
+      "applies_when": {}
+    },
+    {
+      "task_id": "TSK_XWRP_DEGLOSS_SCUFF",
+      "name": "Degloss/Scuff Existing Paint",
+      "unit_of_measure": "EA",
+      "task_classification": "qt_scaled",
+      "size_bucket_rates": {
+        "S": {
+          "QT3": { "fixed_time_minutes": 10, "notes": "Small window chemical degloss or 150-180 grit scuff." },
+          "QT4": { "fixed_time_minutes": 14, "notes": "Full degloss with adhesion verification on profiles." },
+          "QT5": { "fixed_time_minutes": 18, "notes": "Complete degloss with verification and spot re-test." }
+        },
+        "M": {
+          "QT3": { "fixed_time_minutes": 15, "notes": "Medium window degloss/scuff. ~0.25 hrs." },
+          "QT4": { "fixed_time_minutes": 20, "notes": "Full degloss with profile verification. ~0.33 hrs." },
+          "QT5": { "fixed_time_minutes": 26, "notes": "Complete degloss with spot adhesion re-test. ~0.43 hrs." }
+        },
+        "L": {
+          "QT3": { "fixed_time_minutes": 22, "notes": "Large window degloss/scuff. ~0.37 hrs." },
+          "QT4": { "fixed_time_minutes": 30, "notes": "Full degloss. Extended profiles. ~0.50 hrs." },
+          "QT5": { "fixed_time_minutes": 40, "notes": "Complete degloss. Verification. ~0.67 hrs." }
+        }
+      },
+      "fixed_time_range_low": 8,
+      "fixed_time_range_high": 45,
+      "crew_size": 1,
+      "modifier_pool": "prep",
+      "applicable_modifiers": ["FAC_CONDITION_SCALE", "FAC_XWRP_RRP", "FAC_EXT_ACCESS", "FAC_XWIN_WINDOW_TYPE", "FAC_XWIN_MUNTIN", "FAC_XWIN_SIZE_BUCKET"],
+      "rate_basis_notes": "MODIFIED from NC bare wood sanding. RP degloss/scuff on existing paint — chemical degloss (liquid sander) or mechanical scuff (150-180 grit). ~75% of NC wood sanding time (existing paint provides uniform surface vs. NC bare wood mill glaze). Condition modifier applies (FAIR/POOR surfaces may have uneven paint requiring more effort). Skip for SS_EXT_PEELING (full scrape) and SS_EXT_CHALKING (chalk remediation path).",
+      "applies_when": { "substrate_state": ["SS_EXT_SOUND_PAINT", "SS_EXT_FAILING_PAINT"] }
+    },
+    {
+      "task_id": "TSK_XWRP_SCRAPE_FEATHER",
+      "name": "Scrape Failing Paint and Feather Edges",
+      "unit_of_measure": "EA",
+      "task_classification": "qt_scaled",
+      "size_bucket_rates": {
+        "S": {
+          "QT3": { "fixed_time_minutes": 15, "notes": "Small window scrape + feather. Moderate area." },
+          "QT4": { "fixed_time_minutes": 20, "notes": "Comprehensive scrape. Near-invisible feathering." },
+          "QT5": { "fixed_time_minutes": 28, "notes": "Critical scrape. Perfect feathering at arm's length." }
+        },
+        "M": {
+          "QT3": { "fixed_time_minutes": 25, "notes": "Medium window scrape + feather. ~0.42 hrs." },
+          "QT4": { "fixed_time_minutes": 35, "notes": "Comprehensive scrape + feather. ~0.58 hrs." },
+          "QT5": { "fixed_time_minutes": 45, "notes": "Critical scrape. Perfect feathering. ~0.75 hrs." }
+        },
+        "L": {
+          "QT3": { "fixed_time_minutes": 40, "notes": "Large window scrape + feather. ~0.67 hrs." },
+          "QT4": { "fixed_time_minutes": 55, "notes": "Extended profiles. Near-invisible feathering. ~0.92 hrs." },
+          "QT5": { "fixed_time_minutes": 70, "notes": "Full critical scrape + perfect feathering. ~1.17 hrs." }
+        }
+      },
+      "fixed_time_range_low": 12,
+      "fixed_time_range_high": 75,
+      "crew_size": 1,
+      "modifier_pool": "prep",
+      "applicable_modifiers": ["FAC_CONDITION_SCALE", "FAC_XWRP_RRP", "FAC_EXT_ACCESS", "FAC_XWIN_WINDOW_TYPE", "FAC_XWIN_MUNTIN", "FAC_XWIN_SIZE_BUCKET"],
+      "rate_basis_notes": "RP_NEW. Exterior window scraping is more intensive than interior: thicker paint buildup, broader failure areas, debris collection. Rates at FAIR baseline; POOR (2.0x condition modifier) doubles time. RRP (2.0x) requires wet scraping methods. Feather-edge sanding is MANDATORY at all tiers.",
+      "applies_when": { "substrate_state": ["SS_EXT_FAILING_PAINT", "SS_EXT_PEELING"] }
+    },
+    {
+      "task_id": "TSK_XWRP_CHALK_REMEDIATION",
+      "name": "Chalk Remediation (Chalk-Binding Primer Prep)",
+      "unit_of_measure": "EA",
+      "task_classification": "binary",
+      "size_bucket_rates": {
+        "S": { "fixed_time_minutes": 8, "notes": "Small window chalk remediation." },
+        "M": { "fixed_time_minutes": 12, "notes": "Medium window chalk treatment + verify. ~0.20 hrs." },
+        "L": { "fixed_time_minutes": 18, "notes": "Large window chalk treatment. ~0.30 hrs." }
+      },
+      "fixed_time_range_low": 6,
+      "fixed_time_range_high": 20,
+      "crew_size": 1,
+      "modifier_pool": "prep",
+      "applicable_modifiers": ["FAC_CONDITION_SCALE", "FAC_EXT_ACCESS", "FAC_XWIN_WINDOW_TYPE", "FAC_XWIN_SIZE_BUCKET"],
+      "rate_basis_notes": "RP_NEW. Pre-treat chalking surfaces before chalk-binding primer. Chemical chalk remover on stubborn areas after power wash. White cloth verification. No RRP modifier — chalk remediation is cleaning, not paint disturbance.",
+      "applies_when": { "substrate_state": ["SS_EXT_CHALKING"] }
+    },
+    {
+      "task_id": "TSK_XWRP_MILDEW_TREAT",
+      "name": "Mildew/Algae Biocide Treatment",
+      "unit_of_measure": "EA",
+      "task_classification": "binary",
+      "size_bucket_rates": {
+        "S": { "fixed_time_minutes": 6, "notes": "Small window biocide treatment." },
+        "M": { "fixed_time_minutes": 10, "notes": "Medium window biocide + contact time. ~0.17 hrs." },
+        "L": { "fixed_time_minutes": 15, "notes": "Large window biocide treatment. ~0.25 hrs." }
+      },
+      "fixed_time_range_low": 5,
+      "fixed_time_range_high": 18,
+      "crew_size": 1,
+      "modifier_pool": "prep",
+      "applicable_modifiers": ["FAC_EXT_ACCESS", "FAC_XWIN_SIZE_BUCKET"],
+      "rate_basis_notes": "RP_NEW. Biocide solution on mildew/algae-affected areas. Common on north-facing, shaded, near-ground windows. Allow full contact time before rinse. Conditional on assessment finding mildew.",
+      "applies_when": { "condition_assessment": "mildew_present" }
+    },
+    {
+      "task_id": "TSK_XWRP_CAULK_ASSESS_REPAIR",
+      "name": "Assess and Repair Failed Caulk — Frame-to-Casing Joints",
+      "unit_of_measure": "EA",
+      "task_classification": "qt_scaled",
+      "qt_rates": {
+        "QT3": { "fixed_time_minutes": 8, "notes": "Replace visibly failed sections. ~0.13 hrs." },
+        "QT4": { "fixed_time_minutes": 12, "notes": "Comprehensive assessment, replace all suspect joints. ~0.20 hrs." },
+        "QT5": { "fixed_time_minutes": 18, "notes": "Critical assessment, replace all imperfect joints, perfect bead. ~0.30 hrs." }
+      },
+      "fixed_time_range_low": 5,
+      "fixed_time_range_high": 20,
+      "crew_size": 1,
+      "modifier_pool": "prep",
+      "applicable_modifiers": ["FAC_CONDITION_SCALE", "FAC_EXT_ACCESS", "FAC_XWIN_WINDOW_TYPE", "FAC_XWIN_SIZE_BUCKET"],
+      "rate_basis_notes": "RP_NEW. Per 'Think Like a Water Drop' protocol. Rates for medium window at GOOD condition. FAIR/POOR conditions have more failed joints (condition modifier). Frame-to-casing junction is THIS spec's responsibility. Exterior caulk failure more common than interior due to thermal cycling.",
+      "applies_when": {}
+    },
+    {
+      "task_id": "TSK_XWRP_GLAZING_REPAIR",
+      "name": "Spot Repair Failed Glazing Compound",
+      "unit_of_measure": "EA",
+      "task_classification": "qt_scaled",
+      "qt_rates": {
+        "QT3": { "fixed_time_minutes": 12, "notes": "Replace obviously failed sections. Smooth tool." },
+        "QT4": { "fixed_time_minutes": 18, "notes": "Replace all cracked sections. Clean tool lines." },
+        "QT5": { "fixed_time_minutes": 25, "notes": "Replace all imperfect sections. Crisp clean lines." }
+      },
+      "fixed_time_range_low": 8,
+      "fixed_time_range_high": 30,
+      "crew_size": 1,
+      "modifier_pool": "prep",
+      "applicable_modifiers": ["FAC_CONDITION_SCALE", "FAC_EXT_ACCESS", "FAC_XWIN_WINDOW_TYPE", "FAC_XWIN_MUNTIN", "FAC_XWIN_SIZE_BUCKET"],
+      "rate_basis_notes": "RP_NEW. Scope-limited to <25% of total perimeter. Beyond 25% = re-glaze scope (separate trade). Exterior glazing deteriorates faster than interior. TDL windows have more glazing perimeter (muntin modifier applies). Modern IG units: skip.",
+      "applies_when": { "window_cladding": ["wood"] }
+    },
+    {
+      "task_id": "TSK_XWRP_WOOD_HARDEN",
+      "name": "Apply Wood Hardener to Surface-Softened Areas",
+      "unit_of_measure": "EA",
+      "task_classification": "binary",
+      "fixed_time_minutes": 10,
+      "fixed_time_range_low": 6,
+      "fixed_time_range_high": 15,
+      "crew_size": 1,
+      "modifier_pool": "prep",
+      "applicable_modifiers": ["FAC_EXT_ACCESS"],
+      "rate_basis_notes": "RP_NEW. Brush-apply liquid wood hardener/consolidant to surface-softened areas at sill, bottom rail, end-grain. ~10 min per window (targeted areas only). Structural rot = HARD STOP. Allow 2-4 hr cure before sanding/priming.",
+      "applies_when": { "window_cladding": ["wood"], "rot_assessment": "surface_soft" }
+    },
+    {
+      "task_id": "TSK_XWRP_SCUFF_EXPOSED_ALUM",
+      "name": "Scuff-Sand Exposed Aluminum Cladding",
+      "unit_of_measure": "EA",
+      "task_classification": "binary",
+      "size_bucket_rates": {
+        "S": { "fixed_time_minutes": 6, "notes": "Small window — limited exposed aluminum areas." },
+        "M": { "fixed_time_minutes": 10, "notes": "Medium window exposed aluminum scuff. ~0.17 hrs." },
+        "L": { "fixed_time_minutes": 15, "notes": "Large window exposed aluminum scuff. ~0.25 hrs." }
+      },
+      "fixed_time_range_low": 4,
+      "fixed_time_range_high": 18,
+      "crew_size": 1,
+      "modifier_pool": "prep",
+      "applicable_modifiers": ["FAC_CONDITION_SCALE", "FAC_XWRP_RRP", "FAC_EXT_ACCESS", "FAC_XWIN_SIZE_BUCKET"],
+      "rate_basis_notes": "MODIFIED from NC full-surface scuff (NC M=22 min QT3). RP targets only exposed/damaged aluminum areas (~45% of NC time for moderate damage). Creates mechanical bonding profile for DTM spot primer.",
+      "applies_when": { "window_cladding": ["aluminum_clad"] }
+    },
+    {
+      "task_id": "TSK_XWRP_CLEAN_EXPOSED_VINYL",
+      "name": "Clean Exposed Vinyl Cladding",
+      "unit_of_measure": "EA",
+      "task_classification": "binary",
+      "size_bucket_rates": {
+        "S": { "fixed_time_minutes": 4, "notes": "Small window — limited exposed vinyl." },
+        "M": { "fixed_time_minutes": 6, "notes": "Medium window exposed vinyl clean. ~0.10 hrs." },
+        "L": { "fixed_time_minutes": 10, "notes": "Large window exposed vinyl clean. ~0.17 hrs." }
+      },
+      "fixed_time_range_low": 3,
+      "fixed_time_range_high": 12,
+      "crew_size": 1,
+      "modifier_pool": "prep",
+      "applicable_modifiers": ["FAC_CONDITION_SCALE", "FAC_EXT_ACCESS", "FAC_XWIN_SIZE_BUCKET"],
+      "rate_basis_notes": "MODIFIED from NC full-surface clean (NC M=10 min). RP targets only exposed/damaged vinyl areas (~60% of NC time). NEVER sand vinyl. Clean only with TSP or vinyl-safe cleaner.",
+      "applies_when": { "window_cladding": ["vinyl_clad"] }
+    },
+    {
+      "task_id": "TSK_XWRP_DUST_AFTER_SAND_WOOD",
+      "name": "Clean Dust After Wood Sanding/Scraping",
+      "unit_of_measure": "EA",
+      "task_classification": "binary",
+      "fixed_time_minutes": 4,
+      "fixed_time_range_low": 3,
+      "fixed_time_range_high": 6,
+      "crew_size": 1,
+      "modifier_pool": "none",
+      "applicable_modifiers": ["FAC_EXT_ACCESS", "FAC_XWIN_SIZE_BUCKET"],
+      "rate_basis_notes": "DIRECT transfer from TSK_XWIN_DUST_AFTER_SAND_WOOD. Tack cloth all surfaces after sanding. ~4 min per medium window. RRP: use HEPA vacuum instead of blowing.",
+      "applies_when": { "window_cladding": ["wood"] }
+    },
+    {
+      "task_id": "TSK_XWRP_DUST_AFTER_SAND_ALUM",
+      "name": "Clean Dust After Aluminum Scuff-Sand",
+      "unit_of_measure": "EA",
+      "task_classification": "binary",
+      "fixed_time_minutes": 4,
+      "fixed_time_range_low": 3,
+      "fixed_time_range_high": 6,
+      "crew_size": 1,
+      "modifier_pool": "none",
+      "applicable_modifiers": ["FAC_EXT_ACCESS", "FAC_XWIN_SIZE_BUCKET"],
+      "rate_basis_notes": "DIRECT transfer from TSK_XWIN_DUST_AFTER_SAND_ALUM. Tack cloth exposed aluminum areas after scuff-sand. ~4 min per medium window.",
+      "applies_when": { "window_cladding": ["aluminum_clad"] }
+    },
+
+    {
+      "task_id": "TSK_XWRP_PRIME_BRUSH",
+      "name": "Brush Primer on Exterior Window (State-Driven)",
+      "unit_of_measure": "EA",
+      "task_classification": "binary",
+      "size_bucket_rates": {
+        "S": { "fixed_time_minutes": 18, "notes": "Small window brush prime. ~0.30 hrs." },
+        "M": { "fixed_time_minutes": 30, "notes": "Medium window brush prime. ~0.50 hrs." },
+        "L": { "fixed_time_minutes": 50, "notes": "Large window brush prime. ~0.83 hrs." }
+      },
+      "fixed_time_range_low": 15,
+      "fixed_time_range_high": 55,
+      "crew_size": 1,
+      "modifier_pool": "coating",
+      "applicable_modifiers": ["FAC_EXT_ACCESS", "FAC_XWIN_WINDOW_TYPE", "FAC_XWIN_MUNTIN", "FAC_XWIN_SIZE_BUCKET"],
+      "rate_basis_notes": "MODIFIED from NC cladding-specific primers. RP consolidates to single state-driven primer task (brush). Rates transfer from NC TSK_XWIN_PRIME_BRUSH_WOOD QT3 — once prepped, application rate is identical regardless of primer chemistry. Primer product varies by substrate state (acrylic stain-block / chalk-binding). No condition or RRP modifier — priming is a coating task.",
+      "applies_when": { "application_method": ["brush"], "substrate_state": ["SS_EXT_CHALKING", "SS_EXT_FAILING_PAINT", "SS_EXT_PEELING"] }
+    },
+    {
+      "task_id": "TSK_XWRP_PRIME_SPRAY",
+      "name": "Spray Primer on Exterior Window (State-Driven)",
+      "unit_of_measure": "EA",
+      "task_classification": "binary",
+      "size_bucket_rates": {
+        "S": { "fixed_time_minutes": 15, "notes": "Small window spray prime. ~0.25 hrs." },
+        "M": { "fixed_time_minutes": 22, "notes": "Medium window spray prime. ~0.37 hrs." },
+        "L": { "fixed_time_minutes": 35, "notes": "Large window spray prime. ~0.58 hrs." }
+      },
+      "fixed_time_range_low": 12,
+      "fixed_time_range_high": 40,
+      "crew_size": 1,
+      "modifier_pool": "coating",
+      "applicable_modifiers": ["FAC_EXT_ACCESS", "FAC_XWIN_WINDOW_TYPE", "FAC_XWIN_MUNTIN", "FAC_XWIN_SIZE_BUCKET"],
+      "rate_basis_notes": "MODIFIED from NC cladding-specific spray primers. RP consolidates to single state-driven primer task (spray). Rates transfer from NC TSK_XWIN_PRIME_SPRAY_WOOD QT3. Spray + back-brush on profiles.",
+      "applies_when": { "application_method": ["spray"], "substrate_state": ["SS_EXT_CHALKING", "SS_EXT_FAILING_PAINT", "SS_EXT_PEELING"] }
+    },
+    {
+      "task_id": "TSK_XWRP_PRIME_BRUSH_SPOT_ALUM",
+      "name": "Spot Prime Exposed Aluminum with DTM Primer",
+      "unit_of_measure": "EA",
+      "task_classification": "binary",
+      "fixed_time_minutes": 8,
+      "fixed_time_range_low": 5,
+      "fixed_time_range_high": 12,
+      "crew_size": 1,
+      "modifier_pool": "coating",
+      "applicable_modifiers": ["FAC_EXT_ACCESS", "FAC_XWIN_SIZE_BUCKET"],
+      "rate_basis_notes": "MODIFIED — RP spot prime on exposed aluminum vs NC full-surface prime (NC M=30 min QT3). Spot priming targets only areas where factory finish has failed (~27% of NC full prime time). Brush only — spots too small for spray. Applied in addition to general state-driven prime.",
+      "applies_when": { "window_cladding": ["aluminum_clad"] }
+    },
+    {
+      "task_id": "TSK_XWRP_PRIME_BRUSH_SPOT_VINYL",
+      "name": "Spot Prime Exposed Vinyl with PVC Bonding Primer",
+      "unit_of_measure": "EA",
+      "task_classification": "binary",
+      "fixed_time_minutes": 8,
+      "fixed_time_range_low": 5,
+      "fixed_time_range_high": 12,
+      "crew_size": 1,
+      "modifier_pool": "coating",
+      "applicable_modifiers": ["FAC_EXT_ACCESS", "FAC_XWIN_SIZE_BUCKET"],
+      "rate_basis_notes": "MODIFIED — RP spot prime on exposed vinyl vs NC full-surface prime (NC M=30 min QT3). Standard primers will NOT bond to vinyl. Recoat within 1 week. Brush only. Applied in addition to general state-driven prime.",
+      "applies_when": { "window_cladding": ["vinyl_clad"] }
+    },
+
+    {
+      "task_id": "TSK_XWRP_INSPECT_INTERCOAT",
+      "name": "Intercoat Inspection",
+      "unit_of_measure": "EA",
+      "task_classification": "qt_scaled",
+      "qt_rates": {
+        "QT3": { "fixed_time_minutes": 3, "notes": "Quick glance at 6 feet — obvious defects only." },
+        "QT4": { "fixed_time_minutes": 6, "notes": "Systematic scan at 3 feet — mark all visible defects." },
+        "QT5": { "fixed_time_minutes": 10, "notes": "Lighted critical inspection at arm's length — zero tolerance." }
+      },
+      "fixed_time_range_low": 2,
+      "fixed_time_range_high": 12,
+      "crew_size": 1,
+      "modifier_pool": "coating",
+      "applicable_modifiers": ["FAC_EXT_ACCESS", "FAC_XWIN_WINDOW_TYPE", "FAC_XWIN_SIZE_BUCKET"],
+      "rate_basis_notes": "DIRECT transfer from TSK_XWIN_INSPECT_INTERCOAT. Identical process once surface is prepped and primed. Runs after each coat except final coat (total_coats - 1 cycles).",
+      "applies_when": {}
+    },
+    {
+      "task_id": "TSK_XWRP_SAND_INTERCOAT",
+      "name": "Sand Between Coats",
+      "unit_of_measure": "EA",
+      "task_classification": "qt_scaled",
+      "qt_rates": {
+        "QT3": { "fixed_time_minutes": 0, "notes": "QT3: none or spot sand nibs only — included in spot repair." },
+        "QT4": { "fixed_time_minutes": 12, "notes": "Light full sand 220-grit all surfaces." },
+        "QT5": { "fixed_time_minutes": 20, "notes": "Thorough hand-sand 220/320 every surface and edge." }
+      },
+      "fixed_time_range_low": 0,
+      "fixed_time_range_high": 25,
+      "crew_size": 1,
+      "modifier_pool": "coating",
+      "applicable_modifiers": ["FAC_EXT_ACCESS", "FAC_XWIN_WINDOW_TYPE", "FAC_XWIN_MUNTIN", "FAC_XWIN_SIZE_BUCKET"],
+      "rate_basis_notes": "DIRECT transfer from TSK_XWIN_SAND_INTERCOAT. QT3: no intercoat sanding. QT4: 220-grit. QT5: 220/320 two-pass. Rates for medium window.",
+      "applies_when": {}
+    },
+    {
+      "task_id": "TSK_XWRP_DUST_INTERCOAT",
+      "name": "Clean Sanding Dust (Interstage)",
+      "unit_of_measure": "EA",
+      "task_classification": "binary",
+      "fixed_time_minutes": 3,
+      "fixed_time_range_low": 2,
+      "fixed_time_range_high": 5,
+      "crew_size": 1,
+      "modifier_pool": "coating",
+      "applicable_modifiers": ["FAC_EXT_ACCESS"],
+      "rate_basis_notes": "DIRECT transfer from TSK_XWIN_DUST_INTERCOAT. Tack cloth or compressed air after intercoat sanding. RRP: HEPA vacuum only. Midpoint of NC QT4 (3 min) and QT5 (4 min).",
+      "applies_when": {}
+    },
+    {
+      "task_id": "TSK_XWRP_SPOT_REPAIR_INTERCOAT",
+      "name": "Spot Repair Intercoat Defects",
+      "unit_of_measure": "EA",
+      "task_classification": "qt_scaled",
+      "qt_rates": {
+        "QT3": { "fixed_time_minutes": 3, "notes": "Fix visible defects — runs, sags, holidays." },
+        "QT4": { "fixed_time_minutes": 6, "notes": "Fix all defects visible at 3 feet." },
+        "QT5": { "fixed_time_minutes": 10, "notes": "Fix all defects regardless of size." }
+      },
+      "fixed_time_range_low": 2,
+      "fixed_time_range_high": 12,
+      "crew_size": 1,
+      "modifier_pool": "coating",
+      "applicable_modifiers": ["FAC_EXT_ACCESS", "FAC_XWIN_WINDOW_TYPE", "FAC_XWIN_SIZE_BUCKET"],
+      "rate_basis_notes": "DIRECT transfer from TSK_XWIN_SPOT_REPAIR_INTERCOAT. RP surfaces may have slightly more defects than NC (uneven substrate from old paint layers). Rates match NC — embedded QT margin is adequate.",
+      "applies_when": {}
+    },
+
+    {
+      "task_id": "TSK_XWRP_FINISH_BRUSH_1",
+      "name": "Brush Finish Coat 1",
+      "unit_of_measure": "EA",
+      "task_classification": "binary",
+      "size_bucket_rates": {
+        "S": { "fixed_time_minutes": 20, "notes": "Small window brush finish coat 1. ~0.33 hrs." },
+        "M": { "fixed_time_minutes": 35, "notes": "Medium window brush finish coat 1. ~0.58 hrs." },
+        "L": { "fixed_time_minutes": 60, "notes": "Large window brush finish coat 1. ~1.0 hrs." }
+      },
+      "fixed_time_range_low": 18,
+      "fixed_time_range_high": 65,
+      "crew_size": 1,
+      "modifier_pool": "coating",
+      "applicable_modifiers": ["FAC_EXT_ACCESS", "FAC_XWIN_WINDOW_TYPE", "FAC_XWIN_MUNTIN", "FAC_XWIN_SIZE_BUCKET"],
+      "rate_basis_notes": "DIRECT transfer from TSK_XWIN_FINISH_BRUSH_1 QT3 rates. Once prepped and primed, finish application is identical to NC. 1/16-inch glass lap MANDATORY. Horizontal rails first, then vertical stiles. Binary classification — application rate is consistent across QT; inspection rigor varies in separate task.",
+      "applies_when": { "application_method": ["brush"] }
+    },
+    {
+      "task_id": "TSK_XWRP_FINISH_SPRAY_1",
+      "name": "Spray Finish Coat 1",
+      "unit_of_measure": "EA",
+      "task_classification": "binary",
+      "size_bucket_rates": {
+        "S": { "fixed_time_minutes": 15, "notes": "Small window spray finish coat 1. ~0.25 hrs." },
+        "M": { "fixed_time_minutes": 25, "notes": "Medium window spray finish coat 1. ~0.42 hrs." },
+        "L": { "fixed_time_minutes": 42, "notes": "Large window spray finish coat 1. ~0.70 hrs." }
+      },
+      "fixed_time_range_low": 12,
+      "fixed_time_range_high": 48,
+      "crew_size": 1,
+      "modifier_pool": "coating",
+      "applicable_modifiers": ["FAC_EXT_ACCESS", "FAC_XWIN_WINDOW_TYPE", "FAC_XWIN_MUNTIN", "FAC_XWIN_SIZE_BUCKET"],
+      "rate_basis_notes": "DIRECT transfer from TSK_XWIN_FINISH_SPRAY_1 QT3 rates. Spray + back-brush on detailed profiles. ~70% of brush time.",
+      "applies_when": { "application_method": ["spray"] }
+    },
+    {
+      "task_id": "TSK_XWRP_MUNTIN_DETAIL_1",
+      "name": "Muntin Bar Detail — Coat 1",
+      "unit_of_measure": "EA",
+      "task_classification": "binary",
+      "size_bucket_rates": {
+        "S": { "fixed_time_minutes": 10, "notes": "Small window muntin detail — fewer bars." },
+        "M": { "fixed_time_minutes": 18, "notes": "Medium window muntin detail. ~0.30 hrs." },
+        "L": { "fixed_time_minutes": 30, "notes": "Large window many muntin bars. ~0.50 hrs." }
+      },
+      "fixed_time_range_low": 8,
+      "fixed_time_range_high": 35,
+      "crew_size": 1,
+      "modifier_pool": "coating",
+      "applicable_modifiers": ["FAC_EXT_ACCESS", "FAC_XWIN_MUNTIN", "FAC_XWIN_SIZE_BUCKET"],
+      "rate_basis_notes": "DIRECT transfer from TSK_XWIN_MUNTIN_DETAIL_1 QT3 rates. TDL/SDL muntin bar detail painting with 1.5-inch angular sash brush. Glass lap at each bar-to-glass junction.",
+      "applies_when": { "muntin_type": ["sdl", "tdl"] }
+    },
+    {
+      "task_id": "TSK_XWRP_FINISH_BRUSH_2",
+      "name": "Brush Finish Coat 2",
+      "unit_of_measure": "EA",
+      "task_classification": "binary",
+      "size_bucket_rates": {
+        "S": { "fixed_time_minutes": 20, "notes": "Small window brush finish coat 2. Same rate as coat 1." },
+        "M": { "fixed_time_minutes": 35, "notes": "Medium window brush finish coat 2. ~0.58 hrs." },
+        "L": { "fixed_time_minutes": 60, "notes": "Large window brush finish coat 2. ~1.0 hrs." }
+      },
+      "fixed_time_range_low": 18,
+      "fixed_time_range_high": 65,
+      "crew_size": 1,
+      "modifier_pool": "coating",
+      "applicable_modifiers": ["FAC_EXT_ACCESS", "FAC_XWIN_WINDOW_TYPE", "FAC_XWIN_MUNTIN", "FAC_XWIN_SIZE_BUCKET"],
+      "rate_basis_notes": "DIRECT transfer from TSK_XWIN_FINISH_BRUSH_2 QT3 rates. Final coat — same rate as coat 1. No interstage after this coat.",
+      "applies_when": { "application_method": ["brush"] }
+    },
+    {
+      "task_id": "TSK_XWRP_FINISH_SPRAY_2",
+      "name": "Spray Finish Coat 2",
+      "unit_of_measure": "EA",
+      "task_classification": "binary",
+      "size_bucket_rates": {
+        "S": { "fixed_time_minutes": 15, "notes": "Small window spray finish coat 2." },
+        "M": { "fixed_time_minutes": 25, "notes": "Medium window spray finish coat 2. ~0.42 hrs." },
+        "L": { "fixed_time_minutes": 42, "notes": "Large window spray finish coat 2. ~0.70 hrs." }
+      },
+      "fixed_time_range_low": 12,
+      "fixed_time_range_high": 48,
+      "crew_size": 1,
+      "modifier_pool": "coating",
+      "applicable_modifiers": ["FAC_EXT_ACCESS", "FAC_XWIN_WINDOW_TYPE", "FAC_XWIN_MUNTIN", "FAC_XWIN_SIZE_BUCKET"],
+      "rate_basis_notes": "DIRECT transfer from TSK_XWIN_FINISH_SPRAY_2 QT3 rates. Final spray coat. Same rate as coat 1.",
+      "applies_when": { "application_method": ["spray"] }
+    },
+    {
+      "task_id": "TSK_XWRP_MUNTIN_DETAIL_2",
+      "name": "Muntin Bar Detail — Coat 2",
+      "unit_of_measure": "EA",
+      "task_classification": "binary",
+      "size_bucket_rates": {
+        "S": { "fixed_time_minutes": 10, "notes": "Small window muntin detail — second coat." },
+        "M": { "fixed_time_minutes": 18, "notes": "Medium window muntin detail coat 2. ~0.30 hrs." },
+        "L": { "fixed_time_minutes": 30, "notes": "Large window many bars. ~0.50 hrs." }
+      },
+      "fixed_time_range_low": 8,
+      "fixed_time_range_high": 35,
+      "crew_size": 1,
+      "modifier_pool": "coating",
+      "applicable_modifiers": ["FAC_EXT_ACCESS", "FAC_XWIN_MUNTIN", "FAC_XWIN_SIZE_BUCKET"],
+      "rate_basis_notes": "DIRECT transfer from TSK_XWIN_MUNTIN_DETAIL_2 QT3 rates. Same rate as coat 1. Final muntin coat.",
+      "applies_when": { "muntin_type": ["sdl", "tdl"] }
+    },
+    {
+      "task_id": "TSK_XWRP_SASH_REVERSE",
+      "name": "Sash Reversal (Double-Hung)",
+      "unit_of_measure": "EA",
+      "task_classification": "binary",
+      "fixed_time_minutes": 6,
+      "fixed_time_range_low": 4,
+      "fixed_time_range_high": 10,
+      "crew_size": 1,
+      "modifier_pool": "coating",
+      "applicable_modifiers": ["FAC_EXT_ACCESS"],
+      "rate_basis_notes": "MODIFIED from NC (5 min). RP adds 1 min for scoring paint bridge at meeting rail before reversing — existing paint buildup may resist initial sash movement. Access modifier applies.",
+      "applies_when": { "window_type": ["double_hung"] }
+    },
+    {
+      "task_id": "TSK_XWRP_SASH_DRY_POSTURE",
+      "name": "Position Sash for Drying (Double-Hung)",
+      "unit_of_measure": "EA",
+      "task_classification": "binary",
+      "fixed_time_minutes": 2,
+      "fixed_time_range_low": 1,
+      "fixed_time_range_high": 3,
+      "crew_size": 1,
+      "modifier_pool": "none",
+      "applicable_modifiers": ["FAC_EXT_ACCESS"],
+      "rate_basis_notes": "DIRECT transfer from TSK_XWIN_SASH_DRY_POSTURE. 2 min per window. Set 1-inch gap. NEVER fully close during drying.",
+      "applies_when": { "window_type": ["double_hung"] }
+    },
+    {
+      "task_id": "TSK_XWRP_SASH_PERIODIC_MOVE",
+      "name": "Periodic Sash Movement During Dry (Double-Hung)",
+      "unit_of_measure": "EA",
+      "task_classification": "binary",
+      "fixed_time_minutes": 10,
+      "fixed_time_range_low": 6,
+      "fixed_time_range_high": 15,
+      "crew_size": 1,
+      "modifier_pool": "none",
+      "applicable_modifiers": ["FAC_EXT_ACCESS"],
+      "rate_basis_notes": "MODIFIED from NC (8 min). RP adds 2 min — increased blocking risk from existing paint buildup requires additional movement cycles. 30-60 minute intervals during first 2-4 hours.",
+      "applies_when": { "window_type": ["double_hung"] }
+    },
+    {
+      "task_id": "TSK_XWRP_LUBRICATE_CHANNELS",
+      "name": "Lubricate Sash Channels (Double-Hung)",
+      "unit_of_measure": "EA",
+      "task_classification": "binary",
+      "fixed_time_minutes": 4,
+      "fixed_time_range_low": 3,
+      "fixed_time_range_high": 6,
+      "crew_size": 1,
+      "modifier_pool": "none",
+      "applicable_modifiers": ["FAC_EXT_ACCESS"],
+      "rate_basis_notes": "DIRECT transfer from TSK_XWIN_LUBRICATE_CHANNELS. Dry lubricant only — no silicone. 4 min per double-hung.",
+      "applies_when": { "window_type": ["double_hung"] }
+    },
+
+    {
+      "task_id": "TSK_XWRP_FINAL_INSPECT",
+      "name": "Final Window Inspection",
+      "unit_of_measure": "EA",
+      "task_classification": "qt_scaled",
+      "qt_rates": {
+        "QT3": { "fixed_time_minutes": 4, "notes": "Quick glance at 6 feet — no obvious defects." },
+        "QT4": { "fixed_time_minutes": 8, "notes": "Systematic scan at 3 feet — all surfaces." },
+        "QT5": { "fixed_time_minutes": 15, "notes": "Critical inspection under natural light — zero tolerance." }
+      },
+      "fixed_time_range_low": 3,
+      "fixed_time_range_high": 18,
+      "crew_size": 1,
+      "modifier_pool": "coating",
+      "applicable_modifiers": ["FAC_EXT_ACCESS", "FAC_XWIN_WINDOW_TYPE", "FAC_XWIN_SIZE_BUCKET"],
+      "rate_basis_notes": "DIRECT transfer from TSK_XWIN_FINAL_INSPECT. QT5 includes DFT verification. Identical once surface is finished.",
+      "applies_when": {}
+    },
+    {
+      "task_id": "TSK_XWRP_TOUCHUP",
+      "name": "Touch-Up Defects",
+      "unit_of_measure": "EA",
+      "task_classification": "qt_scaled",
+      "qt_rates": {
+        "QT3": { "fixed_time_minutes": 4, "notes": "Address obvious defects only." },
+        "QT4": { "fixed_time_minutes": 8, "notes": "Address all visible defects — blend touch-up." },
+        "QT5": { "fixed_time_minutes": 12, "notes": "Address every imperfection — full coat over spots if needed." }
+      },
+      "fixed_time_range_low": 3,
+      "fixed_time_range_high": 15,
+      "crew_size": 1,
+      "modifier_pool": "coating",
+      "applicable_modifiers": ["FAC_EXT_ACCESS", "FAC_XWIN_WINDOW_TYPE", "FAC_XWIN_SIZE_BUCKET"],
+      "rate_basis_notes": "MODIFIED from NC (QT3=3, QT4=6, QT5=10 min). RP adds ~25% — RP surfaces have more potential defects from uneven substrate and old paint buildup under fresh coats.",
+      "applies_when": {}
+    },
+    {
+      "task_id": "TSK_XWRP_GLASS_CLEANUP",
+      "name": "Glass Scraping / Cleanup",
+      "unit_of_measure": "EA",
+      "task_classification": "binary",
+      "size_bucket_rates": {
+        "S": { "fixed_time_minutes": 8, "notes": "Small window glass scrape." },
+        "M": { "fixed_time_minutes": 12, "notes": "Medium window glass scrape. ~0.20 hrs." },
+        "L": { "fixed_time_minutes": 18, "notes": "Large window glass scrape. ~0.30 hrs." }
+      },
+      "fixed_time_range_low": 6,
+      "fixed_time_range_high": 22,
+      "crew_size": 1,
+      "modifier_pool": "none",
+      "applicable_modifiers": ["FAC_EXT_ACCESS", "FAC_XWIN_MUNTIN", "FAC_XWIN_SIZE_BUCKET"],
+      "rate_basis_notes": "MODIFIED from NC qt_scaled rates (taking NC QT3+QT4 midpoint as binary baseline). RP has slightly more glass cleanup due to overshoot from working at height and existing paint buildup at glass-to-frame junction. Score paint edge precisely at 1/16-inch from frame edge. Replace razor blades frequently.",
+      "applies_when": {}
+    },
+    {
+      "task_id": "TSK_XWRP_MASK_REMOVE_TAPE_FILM",
+      "name": "Remove Glass Masking — Tape and Film",
+      "unit_of_measure": "EA",
+      "task_classification": "binary",
+      "size_bucket_rates": {
+        "S": { "fixed_time_minutes": 4, "notes": "Small window masking removal." },
+        "M": { "fixed_time_minutes": 7, "notes": "Medium window masking removal. ~0.12 hrs." },
+        "L": { "fixed_time_minutes": 12, "notes": "Large window masking removal. ~0.20 hrs." }
+      },
+      "fixed_time_range_low": 3,
+      "fixed_time_range_high": 14,
+      "crew_size": 1,
+      "modifier_pool": "none",
+      "applicable_modifiers": ["FAC_XWIN_MUNTIN", "FAC_XWIN_SIZE_BUCKET"],
+      "rate_basis_notes": "DIRECT transfer from TSK_XWIN_MASK_REMOVE_TAPE_FILM. Teardown is ~60-70% of setup time.",
+      "applies_when": { "muntin_type": ["none", "gbg", "sdl"] }
+    },
+    {
+      "task_id": "TSK_XWRP_MASK_REMOVE_LIQUID",
+      "name": "Remove Glass Masking — Liquid Mask Peel",
+      "unit_of_measure": "EA",
+      "task_classification": "binary",
+      "size_bucket_rates": {
+        "S": { "fixed_time_minutes": 8, "notes": "Small TDL liquid mask removal." },
+        "M": { "fixed_time_minutes": 14, "notes": "Medium TDL liquid mask removal. ~0.23 hrs." },
+        "L": { "fixed_time_minutes": 22, "notes": "Large TDL liquid mask removal. ~0.37 hrs." }
+      },
+      "fixed_time_range_low": 6,
+      "fixed_time_range_high": 25,
+      "crew_size": 1,
+      "modifier_pool": "none",
+      "applicable_modifiers": ["FAC_XWIN_MUNTIN", "FAC_XWIN_SIZE_BUCKET"],
+      "rate_basis_notes": "DIRECT transfer from TSK_XWIN_MASK_REMOVE_LIQUID. Score and peel. ~70% of application time.",
+      "applies_when": { "muntin_type": ["tdl"], "low_e_glass": false }
+    },
+    {
+      "task_id": "TSK_XWRP_MASK_REMOVE_TDL_TAPE",
+      "name": "Remove Glass Masking — TDL Individual Pane Tape",
+      "unit_of_measure": "EA",
+      "task_classification": "binary",
+      "size_bucket_rates": {
+        "S": { "fixed_time_minutes": 12, "notes": "Small TDL Low-E tape removal." },
+        "M": { "fixed_time_minutes": 20, "notes": "Medium TDL Low-E tape removal. ~0.33 hrs." },
+        "L": { "fixed_time_minutes": 30, "notes": "Large TDL Low-E tape removal. ~0.50 hrs." }
+      },
+      "fixed_time_range_low": 10,
+      "fixed_time_range_high": 35,
+      "crew_size": 1,
+      "modifier_pool": "none",
+      "applicable_modifiers": ["FAC_XWIN_MUNTIN", "FAC_XWIN_SIZE_BUCKET"],
+      "rate_basis_notes": "DIRECT transfer from TSK_XWIN_MASK_REMOVE_TDL_TAPE. ~65% of setup time.",
+      "applies_when": { "muntin_type": ["tdl"], "low_e_glass": true }
+    },
+    {
+      "task_id": "TSK_XWRP_HARDWARE_REINSTALL",
+      "name": "Reinstall Window Hardware",
+      "unit_of_measure": "EA",
+      "task_classification": "binary",
+      "fixed_time_minutes": 10,
+      "fixed_time_range_low": 8,
+      "fixed_time_range_high": 15,
+      "crew_size": 1,
+      "modifier_pool": "none",
+      "applicable_modifiers": ["FAC_EXT_ACCESS"],
+      "rate_basis_notes": "DIRECT transfer from TSK_XWIN_HARDWARE_REINSTALL. 10 min per window. Verify lock/mechanism operation.",
+      "applies_when": { "window_type": ["awning", "casement", "double_hung", "bay", "bow"] }
+    },
+    {
+      "task_id": "TSK_XWRP_WEATHERSTRIP_REINSTALL",
+      "name": "Reinstall Weatherstripping",
+      "unit_of_measure": "EA",
+      "task_classification": "binary",
+      "fixed_time_minutes": 6,
+      "fixed_time_range_low": 4,
+      "fixed_time_range_high": 10,
+      "crew_size": 1,
+      "modifier_pool": "none",
+      "applicable_modifiers": ["FAC_EXT_ACCESS"],
+      "rate_basis_notes": "DIRECT transfer from TSK_XWIN_WEATHERSTRIP_REINSTALL. 6 min per operable window. Verify seal integrity.",
+      "applies_when": { "window_type": ["awning", "casement", "double_hung", "bay", "bow"] }
+    },
+    {
+      "task_id": "TSK_XWRP_SILL_PROTECT_REMOVE",
+      "name": "Remove Sill Protection",
+      "unit_of_measure": "EA",
+      "task_classification": "binary",
+      "fixed_time_minutes": 2,
+      "fixed_time_range_low": 1,
+      "fixed_time_range_high": 3,
+      "crew_size": 1,
+      "modifier_pool": "none",
+      "applicable_modifiers": ["FAC_EXT_ACCESS"],
+      "rate_basis_notes": "DIRECT transfer from TSK_XWIN_SILL_PROTECT_REMOVE. Quick teardown. 2 min per window.",
+      "applies_when": {}
+    },
+    {
+      "task_id": "TSK_XWRP_CASING_PROTECT_REMOVE",
+      "name": "Remove Casing Protection",
+      "unit_of_measure": "EA",
+      "task_classification": "binary",
+      "fixed_time_minutes": 2,
+      "fixed_time_range_low": 1,
+      "fixed_time_range_high": 3,
+      "crew_size": 1,
+      "modifier_pool": "none",
+      "applicable_modifiers": ["FAC_EXT_ACCESS"],
+      "rate_basis_notes": "DIRECT transfer from TSK_XWIN_CASING_PROTECT_REMOVE. Quick teardown. 2 min per window.",
+      "applies_when": {}
+    },
+    {
+      "task_id": "TSK_XWRP_SIDING_MASK_REMOVE",
+      "name": "Remove Siding Masking (Spray Only)",
+      "unit_of_measure": "EA",
+      "task_classification": "binary",
+      "size_bucket_rates": {
+        "S": { "fixed_time_minutes": 4, "notes": "Small window siding mask removal." },
+        "M": { "fixed_time_minutes": 6, "notes": "Medium window siding mask removal." },
+        "L": { "fixed_time_minutes": 10, "notes": "Large window siding mask removal." }
+      },
+      "fixed_time_range_low": 3,
+      "fixed_time_range_high": 12,
+      "crew_size": 1,
+      "modifier_pool": "none",
+      "applicable_modifiers": ["FAC_EXT_ACCESS", "FAC_XWIN_SIZE_BUCKET"],
+      "rate_basis_notes": "DIRECT transfer from TSK_XWIN_SIDING_MASK_REMOVE. ~50% of setup time. Spray only.",
+      "applies_when": { "application_method": ["spray"] }
+    },
+    {
+      "task_id": "TSK_XWRP_EQUIPMENT_CLEAN",
+      "name": "Equipment Cleanup",
+      "unit_of_measure": "FIXED",
+      "task_classification": "binary",
+      "fixed_time_minutes": 20,
+      "fixed_time_range_low": 15,
+      "fixed_time_range_high": 30,
+      "crew_size": 1,
+      "modifier_pool": "none",
+      "applicable_modifiers": [],
+      "rate_basis_notes": "DIRECT transfer from TSK_XWIN_EQUIPMENT_CLEAN. Per-session FIXED time. Brush ~15 min; spray adds ~10 min for line flushing.",
+      "applies_when": {}
+    },
+    {
+      "task_id": "TSK_XWRP_CUSTOMER_WALKTHROUGH",
+      "name": "Customer Walkthrough",
+      "unit_of_measure": "FIXED",
+      "task_classification": "binary",
+      "fixed_time_minutes": 20,
+      "fixed_time_range_low": 15,
+      "fixed_time_range_high": 30,
+      "crew_size": 1,
+      "modifier_pool": "none",
+      "applicable_modifiers": [],
+      "rate_basis_notes": "RP_NEW. Per-project FIXED time. Lead painter walks exterior window areas with homeowner. Inspect finish, verify sash operation, confirm glass cleanliness, address touch-up requests. Calibrated from interior RP walkthrough (20 min) — exterior has fewer windows but requires walking around building.",
+      "applies_when": {}
+    },
+    {
+      "task_id": "TSK_XWRP_CURE_ADVISORY",
+      "name": "Cure Advisory Communication",
+      "unit_of_measure": "FIXED",
+      "task_classification": "binary",
+      "fixed_time_minutes": 5,
+      "fixed_time_range_low": 3,
+      "fixed_time_range_high": 8,
+      "crew_size": 1,
+      "modifier_pool": "none",
+      "applicable_modifiers": [],
+      "rate_basis_notes": "RP_NEW. Per-project FIXED time. Advise homeowner on 7-14 day cure time before fully closing sashes. Written advisory for liability protection. Combined with customer walkthrough visit.",
+      "applies_when": {}
+    },
+    {
+      "task_id": "TSK_XWRP_SASH_BREAK",
+      "name": "Break Sash Free (24/48 Hr Post-Cure Return)",
+      "unit_of_measure": "EA",
+      "task_classification": "binary",
+      "fixed_time_minutes": 5,
+      "fixed_time_range_low": 3,
+      "fixed_time_range_high": 8,
+      "crew_size": 1,
+      "modifier_pool": "none",
+      "applicable_modifiers": ["FAC_EXT_ACCESS"],
+      "rate_basis_notes": "RP_NEW. Return visit at 24-48 hrs. Score paint bridge with putty knife, open and close each operable sash. ~5 min per window. RP has higher blocking risk due to paint buildup. May combine with glass cleanup visit. Skip for fixed windows.",
+      "applies_when": { "window_type": ["awning", "casement", "double_hung", "bay", "bow"] }
+    },
+
+    {
+      "task_id": "TSK_RRP_EXT_LEAD_SCREEN",
+      "name": "Lead Screening Test (XRF or Swab)",
+      "unit_of_measure": "FIXED",
+      "task_classification": "binary",
+      "fixed_time_minutes": 20,
+      "fixed_time_range_low": 15,
+      "fixed_time_range_high": 30,
+      "crew_size": 1,
+      "modifier_pool": "none",
+      "applicable_modifiers": [],
+      "rate_basis_notes": "Shared RRP module. Per-project FIXED time. XRF preferred; swab acceptable. Test at minimum 2 locations per elevation (frame + sash). Results gate all RRP tasks and 2.0x prep modifier. Calibrated from SF_TRIM_EXT_RP (lead test = 30 min per project for full house trim; windows = 20 min, fewer test points).",
+      "applies_when": { "pre_1978": true }
+    },
+    {
+      "task_id": "TSK_RRP_EXT_CONTAINMENT_SETUP",
+      "name": "RRP Exterior Containment Setup (Per Elevation)",
+      "unit_of_measure": "FIXED",
+      "task_classification": "binary",
+      "fixed_time_minutes": 60,
+      "fixed_time_range_low": 45,
+      "fixed_time_range_high": 90,
+      "crew_size": 1,
+      "modifier_pool": "none",
+      "applicable_modifiers": [],
+      "rate_basis_notes": "Shared RRP module. Per-elevation FIXED time. 6-mil poly ground containment extending 10 ft from structure. Secure edges, warning signage, restrict access. Calibrated from SF_TRIM_EXT_RP containment setup (90 min for full trim; windows = 60 min, smaller containment footprint per elevation). Cross-spec deduplication: if containment already set for trim/siding on same elevation, skip.",
+      "applies_when": { "pre_1978": true }
+    },
+    {
+      "task_id": "TSK_RRP_EXT_WET_SCRAPE",
+      "name": "RRP Wet Scraping Method",
+      "unit_of_measure": "EA",
+      "task_classification": "binary",
+      "fixed_time_minutes": 5,
+      "fixed_time_range_low": 3,
+      "fixed_time_range_high": 8,
+      "crew_size": 1,
+      "modifier_pool": "prep",
+      "applicable_modifiers": ["FAC_EXT_ACCESS", "FAC_XWIN_WINDOW_TYPE", "FAC_XWIN_SIZE_BUCKET"],
+      "rate_basis_notes": "Shared RRP module. Mist surface with water before scraping to minimize lead dust. Per-window overhead on top of standard scraping task. ~5 min per window for misting and wet method setup. The 2.0x RRP modifier on FAC_XWRP_RRP already captures most RRP overhead — this task covers the additional wet method setup per window.",
+      "applies_when": { "pre_1978": true }
+    },
+    {
+      "task_id": "TSK_RRP_EXT_HEPA_VACUUM",
+      "name": "HEPA Vacuum After Paint Disturbance",
+      "unit_of_measure": "EA",
+      "task_classification": "binary",
+      "fixed_time_minutes": 8,
+      "fixed_time_range_low": 5,
+      "fixed_time_range_high": 12,
+      "crew_size": 1,
+      "modifier_pool": "none",
+      "applicable_modifiers": ["FAC_EXT_ACCESS", "FAC_XWIN_SIZE_BUCKET"],
+      "rate_basis_notes": "Shared RRP module. HEPA vacuum all surfaces after each sanding/scraping disturbance. ~8 min per window. Required after EVERY disturbance — not just once. Windows generate high dust from sash channel scraping.",
+      "applies_when": { "pre_1978": true }
+    },
+    {
+      "task_id": "TSK_RRP_EXT_CONTAINMENT_TEARDOWN",
+      "name": "RRP Exterior Containment Teardown (Per Elevation)",
+      "unit_of_measure": "FIXED",
+      "task_classification": "binary",
+      "fixed_time_minutes": 40,
+      "fixed_time_range_low": 30,
+      "fixed_time_range_high": 60,
+      "crew_size": 1,
+      "modifier_pool": "none",
+      "applicable_modifiers": [],
+      "rate_basis_notes": "Shared RRP module. Per-elevation FIXED time. Fold poly inward, bag for lead-safe disposal, EPA cleaning verification (visual + wet wipe + HEPA vacuum). Calibrated from SF_TRIM_EXT_RP containment teardown (60 min for full trim; windows = 40 min, smaller footprint).",
+      "applies_when": { "pre_1978": true }
+    }
+  ],
+
+  "quality_tier_effects": {
+    "QT3": {
+      "modifier": 1.0,
+      "mechanism": "baseline",
+      "description": "Standard production pace. 6-foot visual inspection. No intercoat sanding. Satin sheen."
+    },
+    "QT4": {
+      "modifier": 1.3,
+      "mechanism": "selective_multiplier",
+      "applies_to": "qt_scaled tasks",
+      "description": "Premium pace. 3-foot raking light. 220-grit intercoat sand. Semi-gloss. 1.3x time on qt_scaled tasks."
+    },
+    "QT5": {
+      "modifier": 1.5,
+      "mechanism": "selective_multiplier",
+      "applies_to": "qt_scaled tasks",
+      "description": "Supreme pace. Arm's length lighted inspection. 220/320 intercoat sand. DFT verification. Gloss. 1.5x time on qt_scaled tasks."
+    }
+  },
+
+  "modifier_definitions": {
+    "FAC_CONDITION_SCALE": {
+      "description": "Condition scale modifier for prep tasks. Maps substrate state to prep intensity.",
+      "mechanism": "time_multiplier",
+      "values": {
+        "GOOD": { "value": 1.0, "maps_to": ["SS_EXT_SOUND_PAINT"] },
+        "FAIR": { "value": 1.5, "maps_to": ["SS_EXT_CHALKING", "SS_EXT_FAILING_PAINT"] },
+        "POOR": { "value": 2.0, "maps_to": ["SS_EXT_PEELING"] }
+      },
+      "pool": "prep",
+      "never_applies_to": "coating tasks"
+    },
+    "FAC_XWRP_RRP": {
+      "description": "RRP modifier for prep tasks involving paint disturbance. Binary gate: pre-1978 + lead-positive = 2.0x.",
+      "mechanism": "time_multiplier",
+      "values": {
+        "no_rrp": 1.0,
+        "rrp_required": 2.0
+      },
+      "pool": "prep",
+      "never_applies_to": "coating tasks, fixed tasks, assessment tasks",
+      "notes": "Calibrated to 2.0x per established exterior RP pattern (RC-001 from SF_TRIM_EXT_RP). Accounts for wet scraping, HEPA vacuum passes, containment maintenance, and procedural overhead. RRP containment setup/teardown are separate FIXED tasks — NOT modified by this factor."
+    },
+    "FAC_EXT_ACCESS": {
+      "description": "Exterior access/height modifier. MAJOR modifier for windows — frequently at elevated positions.",
+      "mechanism": "time_multiplier",
+      "values": {
+        "ground": 1.0,
+        "ladder": 1.35,
+        "scaffold": 1.60
+      },
+      "pool": "shared",
+      "applies_to": "all per-window labor tasks (prep and coating)",
+      "notes": "Per-window attribute. Does NOT apply to FIXED per-project/per-elevation tasks (equipment setup, RRP containment, customer walkthrough)."
+    },
+    "FAC_XWIN_WINDOW_TYPE": {
+      "description": "Window type production rate modifier — PRIMARY cost driver alongside size bucket.",
+      "mechanism": "time_multiplier",
+      "values": {
+        "fixed": 0.50,
+        "awning": 0.70,
+        "casement": 0.85,
+        "double_hung": 1.00,
+        "bay": 2.00,
+        "bow": 2.50
+      },
+      "pool": "shared",
+      "application_rule": "effective_rate = base_rate / modifier. Double_hung (1.00) is calibration baseline.",
+      "notes": "Transferred DIRECT from NC FAC_XWIN_WINDOW_TYPE. Values unchanged — physical window characteristics are identical in NC and RP."
+    },
+    "FAC_XWIN_MUNTIN": {
+      "description": "Muntin/grille type modifier for masking, painting, and cleanup labor.",
+      "mechanism": "time_multiplier",
+      "values": {
+        "none": 1.00,
+        "gbg": 1.00,
+        "sdl": 1.25,
+        "tdl": 1.75
+      },
+      "pool": "shared",
+      "application_rule": "effective_rate = base_rate / modifier. GBG has zero painting impact. TDL adds 75% on masking/detail/cleanup tasks.",
+      "notes": "Transferred DIRECT from NC FAC_XWIN_MUNTIN."
+    },
+    "FAC_XWIN_SIZE_BUCKET": {
+      "description": "Window size bucket modifier. Encoded in size_bucket_rates where provided; this factor applies when a single rate is given.",
+      "mechanism": "time_multiplier",
+      "values": {
+        "S": 0.60,
+        "M": 1.00,
+        "L": 1.50
+      },
+      "pool": "shared",
+      "application_rule": "For tasks with size_bucket_rates, rates are already scaled per bucket. For tasks with single fixed_time_minutes, apply this factor: effective_time = base_time x size_factor.",
+      "notes": "Transferred DIRECT from NC. M is calibration baseline."
+    }
+  },
+
+  "round_configurations": [
+    {
+      "round_id": "ROUND_XWRP_2FINISH",
+      "description": "2 finish coats only — GOOD condition, adhesion verified, no prime needed",
+      "module_sequence": ["MOD_XWRP_SETUP", "MOD_XWRP_ASSESSMENT", "MOD_XWRP_PREP", "MOD_XWRP_FINISH", "MOD_XWRP_INTERSTAGE", "MOD_XWRP_FINISH", "MOD_XWRP_CLEANUP"],
+      "total_coats": 2,
+      "interstage_cycles": 1,
+      "applies_when": { "condition_scale": ["GOOD"] },
+      "notes": "Most common exterior RP scenario — cosmetic refresh or color change on sound paint. Skip prime when adhesion test passes. Interstage runs after finish coat 1 only."
+    },
+    {
+      "round_id": "ROUND_XWRP_PRIME_2FINISH",
+      "description": "State-driven prime + 2 finish coats — FAIR/POOR condition",
+      "module_sequence": ["MOD_XWRP_SETUP", "MOD_XWRP_ASSESSMENT", "MOD_XWRP_PREP", "MOD_XWRP_PRIME", "MOD_XWRP_INTERSTAGE", "MOD_XWRP_FINISH", "MOD_XWRP_INTERSTAGE", "MOD_XWRP_FINISH", "MOD_XWRP_CLEANUP"],
+      "total_coats": 3,
+      "interstage_cycles": 2,
+      "applies_when": { "condition_scale": ["FAIR", "POOR"], "quality_tier": ["QT3", "QT4"] },
+      "notes": "Standard RP round for windows with chalking, failing paint, or peeling. Primer is state-driven (chalk-binding, acrylic stain-block, or cladding-specific spot primer). Interstage runs after prime and after finish coat 1."
+    },
+    {
+      "round_id": "ROUND_XWRP_2PRIME_2FINISH",
+      "description": "2-coat prime + 2 finish coats — QT5 GOOD condition",
+      "module_sequence": ["MOD_XWRP_SETUP", "MOD_XWRP_ASSESSMENT", "MOD_XWRP_PREP", "MOD_XWRP_PRIME", "MOD_XWRP_INTERSTAGE", "MOD_XWRP_PRIME", "MOD_XWRP_INTERSTAGE", "MOD_XWRP_FINISH", "MOD_XWRP_INTERSTAGE", "MOD_XWRP_FINISH", "MOD_XWRP_CLEANUP"],
+      "total_coats": 4,
+      "interstage_cycles": 3,
+      "applies_when": { "quality_tier": ["QT5"], "condition_scale": ["GOOD"] },
+      "notes": "QT5 adds second primer even on sound paint for maximum system build. Per exterior trim RP QT5 pattern."
+    },
+    {
+      "round_id": "ROUND_XWRP_PRIME_2PRIME_2FINISH",
+      "description": "2-coat prime + 2 finish coats — QT5 FAIR/POOR condition",
+      "module_sequence": ["MOD_XWRP_SETUP", "MOD_XWRP_ASSESSMENT", "MOD_XWRP_PREP", "MOD_XWRP_PRIME", "MOD_XWRP_INTERSTAGE", "MOD_XWRP_PRIME", "MOD_XWRP_INTERSTAGE", "MOD_XWRP_FINISH", "MOD_XWRP_INTERSTAGE", "MOD_XWRP_FINISH", "MOD_XWRP_CLEANUP"],
+      "total_coats": 4,
+      "interstage_cycles": 3,
+      "applies_when": { "quality_tier": ["QT5"], "condition_scale": ["FAIR", "POOR"] },
+      "notes": "QT5 + degraded condition: maximum primer coverage + maximum finish system. Most expensive round configuration."
+    }
+  ],
+
+  "assumptions": [
+    {
+      "field": "direct_transfer_rates_unchanged",
+      "value": "38 DIRECT transfer tasks use identical rates from NC production.json — re-keyed TSK_XWIN_ to TSK_XWRP_ with no rate change",
+      "source": "SF_WINDOW_EXT_NC_v1/production.json",
+      "note": "Masking, hardware, weatherstrip, sill/casing protection, finish coats, interstage, sash sequence, cleanup — all identical once surface is prepped and primed."
+    },
+    {
+      "field": "modified_transfer_rates",
+      "value": "8 MODIFIED tasks adjusted from NC rates for RP context: hardware removal (+2 min for paint scoring), degloss/scuff (75% of NC sanding), exposed aluminum scuff (45% of NC full surface), exposed vinyl clean (60% of NC), prime brush/spray (consolidated from 6 cladding-specific to 2 state-driven), sash reversal (+1 min), periodic move (+2 min)",
+      "source": "NC production.json with RP adjustments per research findings",
+      "note": "Modification rationale documented in each task's rate_basis_notes."
+    },
+    {
+      "field": "rp_new_assessment_rates",
+      "value": "7 assessment tasks calibrated at 3-5 min per window average. Total assessment: ~25-30 min per medium window at QT3",
+      "source": "Interior RP assessment rates (SF_WINDOW_INT_RP_v1), exterior trim RP assessment pattern (SF_TRIM_EXT_RP_v1), research RF-004",
+      "note": "Exterior assessment includes chalk test and rot probe (exterior-only); excludes coating ID test (RC-003)."
+    },
+    {
+      "field": "condition_modifier_calibration",
+      "value": "GOOD=1.0x, FAIR=1.5x, POOR=2.0x — universal 3-level condition scale matching SF_TRIM_EXT_RP and SF_WINDOW_INT_RP patterns",
+      "source": "controlled_enums.json condition_scale; resolution.json",
+      "note": "Applied to prep pool only. FAIR maps to both chalking and localized failing paint. POOR maps to active delamination."
+    },
+    {
+      "field": "rrp_modifier_calibration",
+      "value": "2.0x on prep tasks involving paint disturbance — per SF_TRIM_EXT_RP RC-001",
+      "source": "SF_TRIM_EXT_RP_v1/spec.json research_corrections RC-001",
+      "note": "Research originally proposed 1.40x; calibrated to 2.0x based on actual wet-scraping, HEPA vacuum, and containment overhead per EPA RRP Rule."
+    },
+    {
+      "field": "finish_tasks_binary_classification",
+      "value": "Finish coat tasks classified as binary in RP (not qt_scaled as in NC) — application rate is consistent across QT; inspection rigor varies in separate interstage/final inspect tasks",
+      "source": "SOP Librarian classification in sop_modules.json",
+      "note": "NC used qt_scaled finish tasks to embed QT-driven application pace directly. RP separates application (binary) from inspection (qt_scaled) for cleaner modifier partitioning."
+    },
+    {
+      "field": "shared_rrp_module_rates",
+      "value": "5 shared RRP tasks calibrated from SF_TRIM_EXT_RP RRP tasks, adjusted for window-specific scope (smaller containment footprint, per-window HEPA vacuum, window-focused lead screening)",
+      "source": "SF_TRIM_EXT_RP_v1/production.json RRP tasks",
+      "note": "Cross-spec deduplication applies — if containment already set by another spec on same elevation, skip setup/teardown."
+    }
+  ],
+
+  "risks": [
+    {
+      "risk_id": "RSK-XWRP-001",
+      "description": "Condition modifier FAIR maps to both SS_EXT_CHALKING and SS_EXT_FAILING_PAINT, which have different prep profiles (chalk remediation vs scraping). Single modifier value may under- or over-estimate.",
+      "mitigation": "Task activation (applies_when) handles routing — chalk remediation activates for CHALKING, scraping activates for FAILING. Condition modifier affects pace within each activated task path. Functionally equivalent to two separate paths.",
+      "severity": "minor"
+    },
+    {
+      "risk_id": "RSK-XWRP-002",
+      "description": "RRP 2.0x + POOR 2.0x compound to 4.0x on prep tasks before access/type/muntin/size modifiers. Projects hitting this scenario should be bid T&M.",
+      "mitigation": "MODIFIER_STACKING_WARNING at file level. Engine should flag when effective stack exceeds 4.0x and recommend T&M billing.",
+      "severity": "major"
+    },
+    {
+      "risk_id": "RSK-XWRP-003",
+      "description": "Glazing repair rate highly variable — depends on number of failed sections and whether traditional linseed oil putty (3-7 day cure) or modern acrylic compound (24-48 hr cure) is used.",
+      "mitigation": "Rates calibrated to modern acrylic compound. Linseed oil putty cure adds scheduling delay but not direct labor. Scope-limited to <25% perimeter.",
+      "severity": "minor"
+    },
+    {
+      "risk_id": "RSK-XWRP-004",
+      "description": "Sash break requires return visit at 24-48 hours. If combined with glass cleanup, additional mobilization cost is minimal. If separate visit required, mobilization overhead not captured.",
+      "mitigation": "Rate includes labor only. Mobilization overhead is project-level cost, not spec-level. SOP notes recommend combining with glass cleanup visit.",
+      "severity": "minor"
+    }
+  ],
+
+  "validation_plan": [
+    {
+      "test_id": "VAL-XWRP-001",
+      "description": "Time complete medium double-hung RP (GOOD condition, brush, QT3, 2-finish round). Compare to task sum.",
+      "expected_range": "2.5-3.5 hours total (less than NC 3.5-5.0 hrs due to no prime coat)",
+      "priority": "high"
+    },
+    {
+      "test_id": "VAL-XWRP-002",
+      "description": "Time assessment module on medium double-hung. Compare to 25-30 min total.",
+      "expected_range": "20-35 min (all 7 assessment tasks on one window)",
+      "priority": "high"
+    },
+    {
+      "test_id": "VAL-XWRP-003",
+      "description": "Time scrape+feather on medium window (POOR condition) vs FAIR. Validate 2.0x ratio.",
+      "expected_range": "POOR at ~50 min vs FAIR at ~25 min for QT3",
+      "priority": "high"
+    },
+    {
+      "test_id": "VAL-XWRP-004",
+      "description": "Time RRP wet scrape + HEPA vacuum overhead on medium window. Validate 2.0x prep modifier accounts for overhead.",
+      "expected_range": "RRP prep ~2x non-RRP prep time",
+      "priority": "medium"
+    },
+    {
+      "test_id": "VAL-XWRP-005",
+      "description": "Compare RP finish coat time to NC finish coat time on same medium casement. Should be identical.",
+      "expected_range": "Within 5% of NC rates (35 min brush QT3)",
+      "priority": "medium"
+    },
+    {
+      "test_id": "VAL-XWRP-006",
+      "description": "Time complete POOR condition + RRP + QT4 medium double-hung. Maximum common scenario.",
+      "expected_range": "6.0-9.0 hours total",
+      "priority": "medium"
+    }
+  ],
+
+  "task_count_summary": {
+    "total": 69,
+    "by_classification": {
+      "binary": 59,
+      "qt_scaled": 10,
+      "qt_conditional": 0
+    },
+    "by_module": {
+      "MOD_XWRP_SETUP": 12,
+      "MOD_XWRP_ASSESSMENT": 7,
+      "MOD_XWRP_PREP": 12,
+      "MOD_XWRP_PRIME": 4,
+      "MOD_XWRP_INTERSTAGE": 4,
+      "MOD_XWRP_FINISH": 10,
+      "MOD_XWRP_CLEANUP": 15,
+      "MOD_RRP_EXT_CONTAINMENT": 5
+    },
+    "by_transfer_type": {
+      "DIRECT": 38,
+      "MODIFIED": 8,
+      "RP_NEW": 18,
+      "SHARED_RRP": 5
+    },
+    "cross_file_threading_check": "All 69 task IDs from sop_modules.json (64 TSK_XWRP_* + 5 TSK_RRP_EXT_*) have matching production rate entries in this file. UOM matches verified for all 69 tasks."
+  }
+}

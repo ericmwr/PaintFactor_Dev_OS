@@ -1,0 +1,678 @@
+{
+  "spec_family": {
+    "id": "SF_METAL_EXT_RP",
+    "name": "Exterior Metal Repaint",
+    "description": "Condition-driven repaint of existing exterior metal components — railings (LF), gutters/downspouts (LF), ornamental iron (EA), and miscellaneous metal items (EA). Adapts NC spec (SF_METAL_EXT_v1) to repaint context with mandatory condition assessment, rust-grade-driven prep intensity, and 5 substrate states. Rust is the PRIMARY repaint driver. Three rust grades (flash/moderate/heavy) map to escalating prep paths: SP2 hand tool, SP3 power tool, and needle gun + SP3. Structural rust is a HARD STOP. Four substrate types (carbon_steel, wrought_iron, aluminum, galvanized) drive primer chemistry — unchanged from NC. Profile complexity remains the primary labor modifier (ornate = 2.25x). Condition modifier (FAC_MTRP_CONDITION) is the RP-specific addition — applied to prep tasks only. QT2-QT4 range (QT2 for utility items, QT5 excluded for RP — premium restoration should be quoted as NC strip-to-bare). Gloss excluded for RP. spray_backbrush dropped — brush and spray only. Environmental modifiers excluded per PaintFactor OS RC-003. RRP gate present but low-probability trigger for metal. No roll application.",
+    "domain": "exterior",
+    "version": "0.1.0",
+    "status": "draft",
+    "review_required": true
+  },
+
+  "scope_boundaries": {
+    "includes": [
+      "On-site condition assessment (rust grade, coating adhesion, substrate type identification, profile complexity)",
+      "Structural rust gate check — HARD STOP if section loss or perforation detected",
+      "Lead paint testing for pre-1978 structures (EPA RRP Rule 40 CFR 745)",
+      "Power wash all metal surfaces (1000-1500 PSI) to remove loose rust, chalk, dirt",
+      "SP1 solvent cleaning (mandatory first step ALL metal substrates)",
+      "SP2 hand tool cleaning — wire brush, scraper, sandpaper (flash rust, sound existing paint)",
+      "SP3 power tool cleaning — grinder, wire wheel, flap disc (moderate/heavy rust, failing paint)",
+      "Needle gun / power scraper for heavy rust scale deposits",
+      "Aluminum scuff abrasion (Scotch-Brite/maroon pad for adhesion profile)",
+      "Galvanized solvent wipe and vinegar/ammonia wash prep",
+      "Rust converter application on residual rust after mechanical prep (24 hr cure)",
+      "Degloss existing sound coating (scuff sand or liquid degloss)",
+      "Strip failing existing coating (scraping, chemical stripper, aggressive mechanical)",
+      "Metal-to-building junction caulking (polyurethane sealant — NOT silicone)",
+      "Substrate-driven primer application (DTM acrylic/alkyd for ferrous, etch for bare non-ferrous, bonding for sound existing non-ferrous)",
+      "Spot prime bare areas on sound existing (ferrous DTM or non-ferrous bonding)",
+      "Two finish coats DTM acrylic (satin or semi-gloss)",
+      "Intercoat inspection (all tiers) and scuff sand (QT4)",
+      "Final inspection and touch-up",
+      "Landscape/hardscape/siding/fixture/roof edge protection",
+      "Scaffold/lift setup and teardown (conditional on access_type)"
+    ],
+    "excludes": [
+      {
+        "item": "Structural rust repair (welding, section replacement, metalwork fabrication)",
+        "route_to": "Structural metalwork contractor — HARD STOP if detected"
+      },
+      {
+        "item": "Interior metal surfaces",
+        "route_to": "Not in exterior scope"
+      },
+      {
+        "item": "Roller application",
+        "route_to": "PROHIBITED — rollers ineffective on metal profiles"
+      },
+      {
+        "item": "Gloss sheen",
+        "route_to": "EXCLUDED — requires substrate perfection not achievable over existing paint"
+      },
+      {
+        "item": "QT5 quality tier",
+        "route_to": "EXCLUDED — premium restoration requires NC strip-to-bare (zinc-rich primer, DFT verification, near-white blast)"
+      },
+      {
+        "item": "RRP containment and lead-safe work practices",
+        "route_to": "EPA RRP certified contractor scope — triggered by positive lead test on pre-1978 structures"
+      },
+      {
+        "item": "Scaffold/lift rental cost",
+        "route_to": "Site logistics — separate line item"
+      },
+      {
+        "item": "Gutter replacement or repair",
+        "route_to": "Gutter contractor scope"
+      },
+      {
+        "item": "Railing structural repair",
+        "route_to": "Welding/fabrication contractor scope"
+      }
+    ]
+  },
+
+  "configuration_dimensions": [
+    {
+      "dimension_id": "quality_tier",
+      "description": "Quality tier controlling prep rigor, inspection scrutiny, intercoat sanding, and defect tolerance.",
+      "values": ["QT2", "QT3", "QT4"],
+      "default": "QT3",
+      "notes": "QT2=economy (utility metal — downspouts, vent covers, reduced inspection). QT3=standard (residential railings, gutters). QT4=premium (decorative ironwork, intercoat sand, close-range inspection). QT5 excluded — premium restoration requires NC strip-to-bare approach."
+    },
+    {
+      "dimension_id": "substrate_type",
+      "description": "Metal substrate material — drives primer chemistry selection and compatibility rules.",
+      "values": ["carbon_steel", "wrought_iron", "aluminum", "galvanized"],
+      "notes": "Retained from NC unchanged. Per-item capture for mixed-substrate projects. Magnet test distinguishes ferrous from non-ferrous."
+    },
+    {
+      "dimension_id": "substrate_state",
+      "description": "Existing coating / rust condition — drives prep intensity, primer scope, condition modifier, and round configuration. Assessed on-site.",
+      "values": ["SS_EXT_SOUND_PAINT_METAL", "SS_EXT_FLASH_RUST", "SS_EXT_MODERATE_RUST", "SS_EXT_HEAVY_RUST", "SS_EXT_FAILING_PAINT_METAL"],
+      "notes": "5 RP-specific states. Sound paint = lightest prep. Flash rust = SP2. Moderate rust = SP3. Heavy rust = needle gun + SP3. Failing paint = strip + SP3. Structural rust is NOT a valid input state — HARD STOP."
+    },
+    {
+      "dimension_id": "application_method",
+      "description": "Primary application technique for prime and finish coats.",
+      "values": ["brush", "spray"],
+      "default": "brush",
+      "notes": "Brush is primary for metal RP detail work. Spray for production gutter runs. spray_backbrush dropped for RP — brush provides better control on inconsistent RP substrates. Roll PROHIBITED."
+    },
+    {
+      "dimension_id": "sheen",
+      "description": "Finish sheen — project-level selection.",
+      "values": ["satin", "semi-gloss"],
+      "default": "satin",
+      "notes": "Gloss excluded for RP — substrate imperfections magnified at gloss level."
+    }
+  ],
+
+  "paintable_items": [
+    {
+      "item_id": "ITM_METAL_RAILING",
+      "name": "Exterior metal railing",
+      "unit_of_measure": "LF",
+      "counting_rules": "Linear feet of railing measured along top rail. Includes pickets, balusters, post caps, and all components within the railing assembly.",
+      "notes": "Reused from NC spec. Porch railings, balcony railings, stair railings. Profile complexity modifier applied per railing type."
+    },
+    {
+      "item_id": "ITM_METAL_GUTTER",
+      "name": "Exterior gutter and downspout",
+      "unit_of_measure": "LF",
+      "counting_rules": "Linear feet of gutter run plus linear feet of downspout run, measured separately. One gutter section at each roof edge.",
+      "notes": "Reused from NC spec. Gutters typically galvanized or aluminum. Downspouts are separate LF measurement."
+    },
+    {
+      "item_id": "ITM_METAL_ORNAMENTAL",
+      "name": "Ornamental iron / decorative metalwork",
+      "unit_of_measure": "EA",
+      "counting_rules": "Each discrete ornamental piece. Finials, scrollwork panels, gate hardware, decorative brackets, lamp posts.",
+      "notes": "Reused from NC spec. Profile complexity modifier is critical for ornamental items (ornate = 2.25x)."
+    },
+    {
+      "item_id": "ITM_METAL_MISC",
+      "name": "Miscellaneous metal items",
+      "unit_of_measure": "EA",
+      "counting_rules": "Each discrete utility metal item. Vent covers, HVAC line covers, window wells, mailbox posts, meter covers.",
+      "notes": "Reused from NC spec. Typically QT2 utility items. Simple profiles."
+    }
+  ],
+
+  "variants": [
+    {
+      "variant_id": "VAR_MTRP_STEEL_SOUND_QT3_BRUSH",
+      "applies_when": { "substrate_type": ["carbon_steel"], "substrate_state": ["SS_EXT_SOUND_PAINT_METAL"], "quality_tier": ["QT3"], "application_method": ["brush"] },
+      "coats": { "prime": "spot", "finish": 2 },
+      "round": "ROUND_MTRP_SOUND",
+      "protection_zones": ["ext_landscape_perimeter", "ext_hardscape_walk", "ext_light_fixture"],
+      "notes": "BASELINE RP. Sound existing paint on steel railing, brush. Degloss + spot prime + 2 finish. Lightest RP prep."
+    },
+    {
+      "variant_id": "VAR_MTRP_STEEL_FLASH_RUST_QT3_BRUSH",
+      "applies_when": { "substrate_type": ["carbon_steel"], "substrate_state": ["SS_EXT_FLASH_RUST"], "quality_tier": ["QT3"], "application_method": ["brush"] },
+      "coats": { "prime": 1, "finish": 2 },
+      "round": "ROUND_MTRP_FLASH_RUST",
+      "protection_zones": ["ext_landscape_perimeter", "ext_hardscape_walk", "ext_light_fixture"],
+      "notes": "Flash rust on steel. SP2 hand tool + optional rust converter + full DTM prime + 2 finish."
+    },
+    {
+      "variant_id": "VAR_MTRP_STEEL_MOD_RUST_QT3_BRUSH",
+      "applies_when": { "substrate_type": ["carbon_steel"], "substrate_state": ["SS_EXT_MODERATE_RUST"], "quality_tier": ["QT3"], "application_method": ["brush"] },
+      "coats": { "rust_converter": 1, "prime": 1, "finish": 2 },
+      "round": "ROUND_MTRP_MODERATE_RUST",
+      "protection_zones": ["ext_landscape_perimeter", "ext_hardscape_walk", "ext_light_fixture"],
+      "notes": "Moderate rust on steel. SP3 power tool + rust converter (24 hr cure) + DTM prime + 2 finish."
+    },
+    {
+      "variant_id": "VAR_MTRP_IRON_HEAVY_RUST_QT4_BRUSH",
+      "applies_when": { "substrate_type": ["wrought_iron"], "substrate_state": ["SS_EXT_HEAVY_RUST"], "quality_tier": ["QT4"], "application_method": ["brush"] },
+      "coats": { "rust_converter": 1, "prime": 1, "finish": 2 },
+      "round": "ROUND_MTRP_HEAVY_RUST",
+      "protection_zones": ["ext_landscape_perimeter", "ext_hardscape_walk", "ext_light_fixture"],
+      "notes": "Heavy rust on wrought iron. Needle gun + SP3 + rust converter + DTM prime + 2 finish. Most labor-intensive."
+    },
+    {
+      "variant_id": "VAR_MTRP_STEEL_FAILING_QT3_BRUSH",
+      "applies_when": { "substrate_type": ["carbon_steel"], "substrate_state": ["SS_EXT_FAILING_PAINT_METAL"], "quality_tier": ["QT3"], "application_method": ["brush"] },
+      "coats": { "prime": 1, "finish": 2 },
+      "round": "ROUND_MTRP_FAILING",
+      "protection_zones": ["ext_landscape_perimeter", "ext_hardscape_walk", "ext_light_fixture"],
+      "notes": "Failing paint on steel. Strip + SP3 + full DTM prime + 2 finish."
+    },
+    {
+      "variant_id": "VAR_MTRP_GALV_SOUND_QT2_SPRAY",
+      "applies_when": { "substrate_type": ["galvanized"], "substrate_state": ["SS_EXT_SOUND_PAINT_METAL"], "quality_tier": ["QT2"], "application_method": ["spray"] },
+      "coats": { "prime": "spot", "finish": 2 },
+      "round": "ROUND_MTRP_SOUND",
+      "protection_zones": ["ext_landscape_perimeter", "ext_hardscape_walk", "ext_siding_adjacent", "ext_light_fixture", "ext_roof_edge"],
+      "notes": "Economy galvanized gutter repaint. Spray production. Bonding primer spot on bare areas. Full protection for spray."
+    },
+    {
+      "variant_id": "VAR_MTRP_ALUM_FLASH_RUST_QT3_SPRAY",
+      "applies_when": { "substrate_type": ["aluminum"], "substrate_state": ["SS_EXT_FLASH_RUST"], "quality_tier": ["QT3"], "application_method": ["spray"] },
+      "coats": { "prime": 1, "finish": 2 },
+      "round": "ROUND_MTRP_FLASH_RUST",
+      "protection_zones": ["ext_landscape_perimeter", "ext_hardscape_walk", "ext_siding_adjacent", "ext_light_fixture", "ext_roof_edge"],
+      "notes": "Aluminum gutter/downspout with surface oxidation. Etch primer on exposed areas + 2 finish. Spray for production."
+    },
+    {
+      "variant_id": "VAR_MTRP_MISC_QT2_BRUSH",
+      "applies_when": { "substrate_state": ["SS_EXT_SOUND_PAINT_METAL"], "quality_tier": ["QT2"], "application_method": ["brush"] },
+      "coats": { "prime": "spot", "finish": 2 },
+      "round": "ROUND_MTRP_SOUND",
+      "protection_zones": ["ext_landscape_perimeter"],
+      "notes": "Economy repaint of misc utility metal items (vent covers, HVAC covers). Minimal protection. QT2."
+    },
+    {
+      "variant_id": "VAR_MTRP_IRON_ORNATE_SCAFFOLD_QT4_BRUSH",
+      "applies_when": { "substrate_type": ["wrought_iron"], "substrate_state": ["SS_EXT_MODERATE_RUST"], "quality_tier": ["QT4"], "application_method": ["brush"], "profile_complexity": ["ornate"], "access_type": ["scaffold"] },
+      "coats": { "rust_converter": 1, "prime": 1, "finish": 2 },
+      "round": "ROUND_MTRP_MODERATE_RUST",
+      "protection_zones": ["ext_landscape_perimeter", "ext_hardscape_walk", "ext_siding_adjacent", "ext_light_fixture"],
+      "notes": "FLAG: EXCEEDS 4.0x CAP on prep (moderate 1.60 x scaffold 1.60 x ornate 2.25 x QT4 1.15 = 6.62x). Coating stack: scaffold 1.60 x ornate 2.25 x QT4 1.15 = 4.14x. Estimator review required."
+    }
+  ],
+
+  "required_paintscope_inputs": [
+    {
+      "input_name": "IN_LF_METAL_RAILING",
+      "paintscope_key": "PS_EXT_SURFACE_LF.METAL_RAILING",
+      "uom": "LF",
+      "required": false,
+      "required_when": "When metal railings are in scope",
+      "description": "Linear feet of metal railing in scope"
+    },
+    {
+      "input_name": "IN_LF_METAL_GUTTER",
+      "paintscope_key": "PS_EXT_SURFACE_LF.METAL_GUTTER",
+      "uom": "LF",
+      "required": false,
+      "required_when": "When gutters/downspouts are in scope",
+      "description": "Linear feet of gutter and downspout in scope"
+    },
+    {
+      "input_name": "IN_EA_METAL_ORNAMENTAL",
+      "paintscope_key": "PS_EXT_SURFACE_EA.METAL_ORNAMENTAL",
+      "uom": "EA",
+      "required": false,
+      "required_when": "When ornamental iron items are in scope",
+      "description": "Count of ornamental iron pieces"
+    },
+    {
+      "input_name": "IN_EA_METAL_MISC",
+      "paintscope_key": "PS_EXT_SURFACE_EA.METAL_MISC",
+      "uom": "EA",
+      "required": false,
+      "required_when": "When miscellaneous metal items are in scope",
+      "description": "Count of misc metal items (vent covers, HVAC covers, etc.)"
+    },
+    {
+      "input_name": "IN_ENUM_METAL_SUBSTRATE_TYPE",
+      "paintscope_key": "PS_EXT_META.ENUM.METAL_SUBSTRATE_TYPE",
+      "uom": "ENUM",
+      "required": true,
+      "description": "Metal substrate type — carbon_steel, wrought_iron, aluminum, or galvanized. Per-item capture for mixed-substrate projects."
+    },
+    {
+      "input_name": "IN_ENUM_SUBSTRATE_STATE_METAL",
+      "paintscope_key": "PS_EXT_META.ENUM.SUBSTRATE_STATE_METAL",
+      "uom": "ENUM",
+      "required": true,
+      "description": "Existing coating/rust condition — SS_EXT_SOUND_PAINT_METAL, SS_EXT_FLASH_RUST, SS_EXT_MODERATE_RUST, SS_EXT_HEAVY_RUST, or SS_EXT_FAILING_PAINT_METAL. Assessed on-site."
+    },
+    {
+      "input_name": "IN_ENUM_ACCESS_TYPE",
+      "paintscope_key": "PS_EXT_META.ENUM.ACCESS_TYPE",
+      "uom": "ENUM",
+      "required": true,
+      "description": "Access method — ground, ladder, scaffold, or lift."
+    },
+    {
+      "input_name": "IN_BOOL_PRE_1978",
+      "paintscope_key": "PS_EXT_META.FLAG.PRE_1978",
+      "uom": "BOOL",
+      "required": true,
+      "description": "Pre-1978 building flag. Triggers lead paint testing."
+    },
+    {
+      "input_name": "IN_LF_EXT_PROTECT_LANDSCAPE_METAL_BASE",
+      "paintscope_key": "PS_EXT_PROTECT_LF.LANDSCAPE_METAL_BASE",
+      "uom": "LF",
+      "required": false,
+      "required_when": "When landscape is adjacent to metal work areas",
+      "description": "Linear feet of landscape perimeter requiring protection"
+    },
+    {
+      "input_name": "IN_SF_EXT_PROTECT_HARDSCAPE_WALK",
+      "paintscope_key": "PS_EXT_PROTECT_SF.HARDSCAPE_WALK",
+      "uom": "SF",
+      "required": false,
+      "required_when": "When walkways/patios are adjacent to metal work areas",
+      "description": "Adjacent hardscape area requiring protection"
+    },
+    {
+      "input_name": "IN_SF_EXT_PROTECT_SIDING_ADJACENT",
+      "paintscope_key": "PS_EXT_PROTECT_SF.SIDING_ADJACENT",
+      "uom": "SF",
+      "required": false,
+      "required_when": "When spray method is used and siding is adjacent",
+      "description": "Siding area requiring protection from overspray"
+    },
+    {
+      "input_name": "IN_EA_EXT_PROTECT_LIGHT_FIXTURE",
+      "paintscope_key": "PS_EXT_PROTECT_EA.LIGHT_FIXTURE",
+      "uom": "EA",
+      "required": false,
+      "required_when": "When fixtures are near metal work areas",
+      "description": "Count of light fixtures to mask"
+    },
+    {
+      "input_name": "IN_LF_EXT_PROTECT_ROOF_EDGE",
+      "paintscope_key": "PS_EXT_PROTECT_LF.ROOF_EDGE",
+      "uom": "LF",
+      "required": false,
+      "required_when": "When gutter work is in scope",
+      "description": "LF of roof edge protection during gutter painting"
+    }
+  ],
+
+  "substrate_state_rules": {
+    "primary_surface": "exterior_metal",
+
+    "valid_input_states": {
+      "states": ["SS_EXT_SOUND_PAINT_METAL", "SS_EXT_FLASH_RUST", "SS_EXT_MODERATE_RUST", "SS_EXT_HEAVY_RUST", "SS_EXT_FAILING_PAINT_METAL"],
+      "notes": "5 RP substrate states. Sound paint = intact coating, good adhesion. Flash rust = surface oxidation, no pitting. Moderate rust = visible pitting, scale beginning. Heavy rust = deep pitting, thick scale (not structural). Failing paint = peeling, flaking, blistering. Structural rust is NOT a valid input — HARD STOP requiring structural repair."
+    },
+
+    "output_state": {
+      "state": "SS_EXT_PAINTED_METAL",
+      "notes": "All valid input states resolve to SS_EXT_PAINTED_METAL after this spec completes. Prep and primer normalize the substrate."
+    },
+
+    "primer_routing": {
+      "SS_EXT_SOUND_PAINT_METAL": {
+        "ferrous": { "system": "SYS_EXT_MTRP_PRIMER_DTM_ACRYLIC", "scope": "spot_prime", "notes": "Spot prime bare areas only. Existing coating provides base." },
+        "non_ferrous": { "system": "SYS_EXT_MTRP_PRIMER_BONDING", "scope": "spot_prime", "notes": "Bonding primer on deglosed non-ferrous bare areas." }
+      },
+      "SS_EXT_FLASH_RUST": {
+        "ferrous": { "system": "SYS_EXT_MTRP_PRIMER_DTM_ACRYLIC", "scope": "full_prime", "notes": "Full DTM prime after SP2 + optional rust converter." },
+        "non_ferrous": { "system": "SYS_EXT_MTRP_PRIMER_ETCH", "scope": "full_prime", "notes": "Etch primer on exposed non-ferrous after cleaning." }
+      },
+      "SS_EXT_MODERATE_RUST": {
+        "ferrous": { "system": "SYS_EXT_MTRP_PRIMER_DTM_ACRYLIC", "scope": "full_prime", "notes": "Full DTM prime after SP3 + rust converter. Alkyd option for pitted surfaces." },
+        "non_ferrous": { "system": "SYS_EXT_MTRP_PRIMER_ETCH", "scope": "full_prime", "notes": "Etch primer on exposed non-ferrous." }
+      },
+      "SS_EXT_HEAVY_RUST": {
+        "ferrous": { "system": "SYS_EXT_MTRP_PRIMER_DTM_ACRYLIC", "scope": "full_prime", "notes": "Full DTM prime after needle gun + SP3 + rust converter. Alkyd for heavy pitting." }
+      },
+      "SS_EXT_FAILING_PAINT_METAL": {
+        "ferrous": { "system": "SYS_EXT_MTRP_PRIMER_DTM_ACRYLIC", "scope": "full_prime", "notes": "Full DTM prime after strip + SP3." },
+        "non_ferrous": { "system": "SYS_EXT_MTRP_PRIMER_ETCH", "scope": "full_prime", "notes": "Etch primer on exposed non-ferrous after strip." }
+      }
+    }
+  },
+
+  "protection_zones_required": [
+    {
+      "zone_id": "ext_landscape_perimeter",
+      "condition": "always",
+      "protection_level": "full_cover",
+      "notes": "Metal prep generates heavier debris than standard painting. 4-6 mil plastic minimum. Always required."
+    },
+    {
+      "zone_id": "ext_hardscape_walk",
+      "condition": "when_adjacent",
+      "protection_level": "light_mask",
+      "upgrade_when": { "application_method": ["spray"] },
+      "upgrade_level": "full_cover",
+      "notes": "Adjacent walkways/patios. Canvas for crew traffic. Upgrade for spray."
+    },
+    {
+      "zone_id": "ext_siding_adjacent",
+      "condition": "when_adjacent",
+      "protection_level": "light_mask",
+      "upgrade_when": { "application_method": ["spray"] },
+      "upgrade_level": "full_cover",
+      "notes": "Siding behind metal components. Light tape for brush. Full plastic for spray."
+    },
+    {
+      "zone_id": "ext_light_fixture",
+      "condition": "when_present",
+      "protection_level": "light_mask",
+      "notes": "Bag and tape light fixtures near metal work areas."
+    },
+    {
+      "zone_id": "ext_roof_edge",
+      "condition": "when_present",
+      "protection_level": "light_mask",
+      "notes": "Roof edge at gutter line. Only when gutter work is in scope."
+    }
+  ],
+
+  "material_systems": [
+    {
+      "system_id": "SYS_EXT_MTRP_PRIMER_DTM_ACRYLIC",
+      "name": "DTM Acrylic Primer for Ferrous Metal Repaint",
+      "product_role": "primer",
+      "applies_when": { "substrate_type": ["carbon_steel", "wrought_iron"] },
+      "coats": 1,
+      "notes": "Standard primer for ferrous metal RP. Spot or full depending on condition."
+    },
+    {
+      "system_id": "SYS_EXT_MTRP_PRIMER_DTM_ALKYD",
+      "name": "DTM Alkyd Primer for Pitted Ferrous",
+      "product_role": "primer",
+      "applies_when": { "substrate_type": ["carbon_steel", "wrought_iron"], "substrate_state": ["SS_EXT_MODERATE_RUST", "SS_EXT_HEAVY_RUST"] },
+      "coats": 1,
+      "notes": "Alkyd for pitted surfaces. BLOCKED on galvanized/aluminum."
+    },
+    {
+      "system_id": "SYS_EXT_MTRP_PRIMER_ETCH",
+      "name": "Etch Primer for Non-Ferrous",
+      "product_role": "primer",
+      "applies_when": { "substrate_type": ["aluminum", "galvanized"] },
+      "coats": 1,
+      "notes": "Required for bare/exposed non-ferrous."
+    },
+    {
+      "system_id": "SYS_EXT_MTRP_PRIMER_BONDING",
+      "name": "Bonding Primer for Sound Existing Non-Ferrous",
+      "product_role": "primer",
+      "applies_when": { "substrate_type": ["aluminum", "galvanized"], "substrate_state": ["SS_EXT_SOUND_PAINT_METAL"] },
+      "coats": 1,
+      "notes": "Adhesion bridge on sound existing non-ferrous."
+    },
+    {
+      "system_id": "SYS_EXT_MTRP_FINISH_DTM_ACRYLIC",
+      "name": "DTM Acrylic Exterior Finish",
+      "product_role": "finish",
+      "applies_when": {},
+      "coats": 2,
+      "allowed_sheens": ["satin", "semi-gloss"],
+      "notes": "Universal DTM acrylic topcoat. 2 coats standard. Gloss excluded."
+    },
+    {
+      "system_id": "SYS_EXT_MTRP_RUST_CONVERTER",
+      "name": "Rust Converter Treatment",
+      "product_role": "specialty",
+      "applies_when": { "substrate_state": ["SS_EXT_FLASH_RUST", "SS_EXT_MODERATE_RUST", "SS_EXT_HEAVY_RUST"] },
+      "coats": 1,
+      "notes": "Converts rust to stable iron phosphate. 24 hr cure. Ferrous metals only."
+    }
+  ],
+
+  "sop_module_summary": {
+    "total_modules": 9,
+    "total_tasks": 41,
+    "modules": [
+      { "module_id": "MOD_MTRP_SETUP", "phase": "setup", "task_count": 2 },
+      { "module_id": "MOD_MTRP_PROTECT", "phase": "setup", "task_count": 5 },
+      { "module_id": "MOD_MTRP_ASSESS", "phase": "prep", "task_count": 4 },
+      { "module_id": "MOD_MTRP_PREP", "phase": "prep", "task_count": 12 },
+      { "module_id": "MOD_MTRP_PRIME", "phase": "prime", "task_count": 6 },
+      { "module_id": "MOD_MTRP_FINISH", "phase": "finish", "task_count": 3 },
+      { "module_id": "MOD_MTRP_INTERSTAGE", "phase": "interstage", "task_count": 4 },
+      { "module_id": "MOD_MTRP_FINAL_INSPECT", "phase": "finish", "task_count": 2 },
+      { "module_id": "MOD_MTRP_CLEANUP", "phase": "cleanup", "task_count": 3 }
+    ],
+    "by_classification": {
+      "binary": 40,
+      "qt_conditional": 1
+    },
+    "by_skill_level": {
+      "helper": 9,
+      "journeyman": 32
+    }
+  },
+
+  "round_configurations": [
+    {
+      "round_id": "ROUND_MTRP_SOUND",
+      "description": "Sound existing paint — degloss + spot prime + 2 finish coats",
+      "module_sequence": ["MOD_MTRP_SETUP", "MOD_MTRP_PROTECT", "MOD_MTRP_ASSESS", "MOD_MTRP_PREP", "MOD_MTRP_PRIME", "MOD_MTRP_FINISH", "MOD_MTRP_INTERSTAGE", "MOD_MTRP_FINISH", "MOD_MTRP_FINAL_INSPECT", "MOD_MTRP_CLEANUP"],
+      "total_coats": 3,
+      "interstage_cycles": 1,
+      "applies_when": { "substrate_state": ["SS_EXT_SOUND_PAINT_METAL"] },
+      "notes": "Lightest RP round. Degloss + spot prime bare areas + 2 finish. Single mobilization."
+    },
+    {
+      "round_id": "ROUND_MTRP_FLASH_RUST",
+      "description": "Flash rust — SP2 + optional rust converter + full prime + 2 finish",
+      "module_sequence": ["MOD_MTRP_SETUP", "MOD_MTRP_PROTECT", "MOD_MTRP_ASSESS", "MOD_MTRP_PREP", "MOD_MTRP_PRIME", "MOD_MTRP_FINISH", "MOD_MTRP_INTERSTAGE", "MOD_MTRP_FINISH", "MOD_MTRP_FINAL_INSPECT", "MOD_MTRP_CLEANUP"],
+      "total_coats": 3,
+      "interstage_cycles": 1,
+      "applies_when": { "substrate_state": ["SS_EXT_FLASH_RUST"] },
+      "notes": "Surface oxidation. SP2 hand tool prep + rust converter (optional, adds 24 hr cure if used) + full prime + 2 finish."
+    },
+    {
+      "round_id": "ROUND_MTRP_MODERATE_RUST",
+      "description": "Moderate rust — SP3 + rust converter (24 hr cure) + full prime + 2 finish",
+      "module_sequence": ["MOD_MTRP_SETUP", "MOD_MTRP_PROTECT", "MOD_MTRP_ASSESS", "MOD_MTRP_PREP", "MOD_MTRP_PRIME", "MOD_MTRP_FINISH", "MOD_MTRP_INTERSTAGE", "MOD_MTRP_FINISH", "MOD_MTRP_FINAL_INSPECT", "MOD_MTRP_CLEANUP"],
+      "total_coats": 4,
+      "interstage_cycles": 1,
+      "applies_when": { "substrate_state": ["SS_EXT_MODERATE_RUST"] },
+      "notes": "SP3 power tool + rust converter (24 hr cure = 2 mobilizations) + DTM prime + 2 finish. Rust converter adds a mobilization."
+    },
+    {
+      "round_id": "ROUND_MTRP_HEAVY_RUST",
+      "description": "Heavy rust — needle gun + SP3 + rust converter (24 hr cure) + full prime + 2 finish",
+      "module_sequence": ["MOD_MTRP_SETUP", "MOD_MTRP_PROTECT", "MOD_MTRP_ASSESS", "MOD_MTRP_PREP", "MOD_MTRP_PRIME", "MOD_MTRP_FINISH", "MOD_MTRP_INTERSTAGE", "MOD_MTRP_FINISH", "MOD_MTRP_FINAL_INSPECT", "MOD_MTRP_CLEANUP"],
+      "total_coats": 4,
+      "interstage_cycles": 1,
+      "applies_when": { "substrate_state": ["SS_EXT_HEAVY_RUST"] },
+      "notes": "Most labor-intensive round. Needle gun for heavy scale + SP3 for final profile + rust converter (24 hr cure) + DTM prime + 2 finish."
+    },
+    {
+      "round_id": "ROUND_MTRP_FAILING",
+      "description": "Failing paint — strip + SP3 + full prime + 2 finish",
+      "module_sequence": ["MOD_MTRP_SETUP", "MOD_MTRP_PROTECT", "MOD_MTRP_ASSESS", "MOD_MTRP_PREP", "MOD_MTRP_PRIME", "MOD_MTRP_FINISH", "MOD_MTRP_INTERSTAGE", "MOD_MTRP_FINISH", "MOD_MTRP_FINAL_INSPECT", "MOD_MTRP_CLEANUP"],
+      "total_coats": 3,
+      "interstage_cycles": 1,
+      "applies_when": { "substrate_state": ["SS_EXT_FAILING_PAINT_METAL"] },
+      "notes": "Strip failing coating + SP3 to bright metal + full DTM prime + 2 finish. High prep labor similar to moderate rust minus rust converter."
+    }
+  ],
+
+  "adjacency_declarations": {
+    "primary_surface": "exterior_metal",
+    "adjacent_surfaces": [
+      {
+        "surface_id": "ext_siding_field",
+        "edge_type": "linear",
+        "typical_relationship": "different_finish",
+        "continuity_rate_modifier": 1.0,
+        "notes": "Siding adjacent to metal. Protection is THIS spec's responsibility during spray."
+      },
+      {
+        "surface_id": "ext_masonry_brick",
+        "edge_type": "linear",
+        "typical_relationship": "different_finish",
+        "continuity_rate_modifier": 1.0,
+        "notes": "Masonry at metal mounting points. Junction caulking is THIS spec's task."
+      },
+      {
+        "surface_id": "ext_wood_trim",
+        "edge_type": "point",
+        "typical_relationship": "different_finish",
+        "continuity_rate_modifier": 1.0,
+        "notes": "Trim at metal mounting points. Junction caulking is THIS spec's task."
+      },
+      {
+        "surface_id": "ext_concrete_porch",
+        "edge_type": "point",
+        "typical_relationship": "not_in_scope",
+        "continuity_rate_modifier": 1.0,
+        "notes": "Concrete at railing base. Not painted — protection at base connection."
+      },
+      {
+        "surface_id": "roofing",
+        "edge_type": "linear",
+        "typical_relationship": "not_in_scope",
+        "continuity_rate_modifier": 1.0,
+        "notes": "Roof at gutter line. Roof edge protection required during gutter painting."
+      }
+    ]
+  },
+
+  "site_condition_rules": [
+    {
+      "condition_id": "access_type",
+      "treatment": "modifier_plus_fixed_tasks",
+      "notes": "FAC_EXT_ACCESS modifier on all tasks + fixed scaffold/lift setup/teardown tasks."
+    },
+    {
+      "condition_id": "profile_complexity",
+      "treatment": "modifier",
+      "notes": "FAC_MTRP_PROFILE_COMPLEXITY on prep and coating tasks. Per-component."
+    },
+    {
+      "condition_id": "rust_grade",
+      "treatment": "condition_modifier",
+      "notes": "FAC_MTRP_CONDITION on prep tasks only. Driven by substrate_state assessment."
+    },
+    {
+      "condition_id": "pre_1978_lead_paint",
+      "treatment": "safety_gate",
+      "notes": "TSK_MTRP_ASSESS_LEAD. Positive result escalates to RRP scope."
+    }
+  ],
+
+  "hard_stops": [
+    {
+      "condition": "STRUCTURAL_RUST",
+      "action": "STOP — outside painting scope",
+      "description": "Section loss >25%, perforation, or load-bearing joint failure. Requires structural repair by welder/fabricator before painting.",
+      "notes": "TSK_MTRP_STRUCTURAL_RUST_CHECK is the gate task."
+    }
+  ],
+
+  "compatibility_rules": [
+    { "rule_id": "COMPAT-MTRP-001", "title": "Galvanized + alkyd BLOCKED", "severity": "critical" },
+    { "rule_id": "COMPAT-MTRP-002", "title": "Structural rust HARD STOP", "severity": "critical" },
+    { "rule_id": "COMPAT-MTRP-003", "title": "SP1 mandatory ALL metal", "severity": "critical" },
+    { "rule_id": "COMPAT-MTRP-004", "title": "Non-ferrous require etch/bonding primer", "severity": "critical" },
+    { "rule_id": "COMPAT-MTRP-005", "title": "No roll application", "severity": "major" },
+    { "rule_id": "COMPAT-MTRP-006", "title": "Rust converter ferrous only", "severity": "major" },
+    { "rule_id": "COMPAT-MTRP-007", "title": "Gloss excluded for RP", "severity": "major" },
+    { "rule_id": "COMPAT-MTRP-008", "title": "Stacking cap 4.0x flagged", "severity": "major" }
+  ],
+
+  "cross_spec_boundaries": {
+    "sibling_spec": {
+      "spec_id": "SF_METAL_EXT_v1",
+      "relationship": "NC sibling. Same 4 paintable items, same substrate types, same primer chemistry. RP adds condition assessment, rust-grade-driven prep, condition modifier, QT2-QT4 range (NC was QT3-QT5), gloss excluded, spray_backbrush dropped, environmental modifiers excluded."
+    },
+    "adjacent_specs": [
+      { "spec_id": "SF_TRIM_EXT_RP_v1", "relationship": "Wood trim at metal mounting points. Trim painting belongs to trim spec." },
+      { "spec_id": "SF_GARAGE_DOOR_EXT_RP_v1", "relationship": "Steel garage door RP is separate spec. Different context prefix (GDRP vs MTRP)." }
+    ],
+    "deduplication_notes": [
+      "Siding/masonry protection during metal spray is THIS spec's responsibility.",
+      "Metal-to-building junction caulking is THIS spec's task.",
+      "Scaffold setup/teardown labor modeled as fixed tasks — rental cost is separate line item."
+    ]
+  },
+
+  "sequencing_notes": {
+    "production_sequence": "Setup (mobilize, scaffold) -> Protect -> Assess (condition, adhesion, structural rust gate, lead test) -> Prep (power wash -> SP1 -> mechanical prep per condition -> substrate-specific prep -> rust convert -> dust clean -> caulk) -> Prime (substrate/condition-driven) -> Finish 1 -> Interstage (inspect, sand QT4, repair, dust) -> Finish 2 -> Final Inspect & Touch-up -> Cleanup",
+    "component_order": "Gutters/downspouts FIRST (highest access, spray production). Railings SECOND. Ornamental THIRD (detail brush). Misc items LAST.",
+    "key_prohibitions": "NO roll application. NO alkyd on galvanized. NO painting over structural rust. NO gloss sheen. NO QT5. SP1 solvent clean ALWAYS first prep step. Rust converter on ferrous metals only."
+  },
+
+  "relationships": {
+    "companion_spec": null,
+    "often_combined_with": ["SF_TRIM_EXT_RP_v1"],
+    "sibling_spec": "SF_METAL_EXT_v1",
+    "typical_before": [],
+    "typical_after": [],
+    "notes": "RP sibling of NC metal spec. 41 tasks across 9 modules (NC had 37 across 8). Key RP additions: condition assessment module, 5 RP substrate states, condition modifier, needle gun task, power wash task. Key RP removals: zinc-rich primer (QT5), epoxy primer (specialty), spray_backbrush, environmental modifiers."
+  },
+
+  "dependencies": {
+    "research": "research.json",
+    "resolution": "resolution.json",
+    "sop_modules": "sop_modules.json",
+    "materials": "materials.json",
+    "production": "production.json",
+    "qa_report": "qa_report.json"
+  },
+
+  "doctrine_references": [
+    { "doctrine": "Exterior_Metal_Surfaces_Doctrine.md", "sections_used": ["Substrate Types", "Corrosion Mechanisms", "SSPC Prep Standards", "Rust Conversion Treatment", "Primer Selection Matrix", "Maintenance Cycles", "Profile Complexity"] },
+    { "doctrine": "Exterior_Surface_Assessment_Doctrine.md", "sections_used": ["Metal condition grading", "Rust grade classification", "Adhesion testing", "Structural integrity assessment"] },
+    { "doctrine": "Exterior_Primer_Systems_Doctrine.md", "sections_used": ["DTM Acrylic", "DTM Alkyd", "Etch/Wash", "Bonding Primer", "Galvanized compatibility"] },
+    { "doctrine": "Exterior_Application_Methods_Doctrine.md", "sections_used": ["Brush on metal profiles", "Spray for production runs", "No roller on metal"] },
+    { "doctrine": "Exterior_Protection_Doctrine_T3.md", "sections_used": ["Landscape zones", "Hardscape zones", "Siding adjacent", "Roof edge protection"] },
+    { "doctrine": "Exterior_Access_Staging_Systems_Doctrine.md", "sections_used": ["Ladder repositioning", "Scaffold setup/teardown", "Access modifier values"] },
+    { "doctrine": "Exterior_Caulking_Sealants_Doctrine.md", "sections_used": ["Metal-to-masonry junction caulking", "Polyurethane sealant — NOT silicone"] },
+    { "doctrine": "Exterior_Color_Sheen_Configuration_Doctrine.md", "sections_used": ["Gloss exclusion for RP", "Satin/semi-gloss for metal RP"] }
+  ],
+
+  "research_corrections": [
+    {
+      "correction_id": "RC-001",
+      "original_claim": "spray_backbrush should be retained from NC",
+      "corrected_to": "Brush-only provides better film control on inconsistent RP substrates. Spray retained for production runs. spray_backbrush dropped.",
+      "source": "Exterior_Application_Methods_Doctrine.md"
+    },
+    {
+      "correction_id": "RC-002",
+      "original_claim": "Environmental conditions should be estimation modifiers",
+      "corrected_to": "Excluded per PaintFactor OS RC-003 — unpredictable at bid time.",
+      "source": "PaintFactor OS RC-003"
+    }
+  ],
+
+  "user_corrections": [],
+
+  "change_log": [
+    {
+      "version": "0.1.0",
+      "date": "2026-03-15",
+      "author": "SpecFactory",
+      "changes": "Initial draft spec for exterior metal repaint. RP sibling of SF_METAL_EXT_v1. Key features: mandatory condition assessment (4 tasks), 5 RP substrate states (sound paint, flash/moderate/heavy rust, failing paint), condition modifier FAC_MTRP_CONDITION on prep tasks only (1.0-2.25x), rust-grade-driven prep (SP2/SP3/needle gun), rust converter treatment, 4 substrate types (carbon_steel/wrought_iron/aluminum/galvanized) with unchanged primer chemistry, 4 paintable items (railing LF, gutter LF, ornamental EA, misc EA), 6 material systems (4 primer + 1 finish + 1 rust converter), 41 tasks across 9 modules (40 binary + 1 qt_conditional), 4 factor modifiers (profile_complexity/access/QT/condition), 5 round configurations, 5 protection zones, 9 variants, 13 PaintScope inputs. QT2-QT4 range (QT2 for utility, QT5 excluded for RP). Satin/semi-gloss sheens (gloss excluded). Brush/spray only (spray_backbrush dropped, roll prohibited). Environmental modifiers excluded per RC-003. HARD STOP on structural rust. RRP gate for pre-1978 (low probability). Context prefix MTRP. Stacking: prep worst 9.32x (extreme, recommend T&M), coating worst 4.14x (slightly over cap), realistic worst 3.24x. QA: pass_with_warnings (4 issues, 0 blockers)."
+    }
+  ]
+}

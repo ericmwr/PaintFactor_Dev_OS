@@ -1,0 +1,421 @@
+{
+  "spec_family_id": "SF_FOUNDATION_EXT_RP",
+  "version": "1.0.0",
+  "generated_by": "SOP Librarian",
+  "generated_at": "2026-03-15",
+
+  "sop_modules": [
+    {
+      "module_id": "MOD_FNRP_SETUP",
+      "name": "Setup — Protection",
+      "description": "Protection setup for foundation repaint. Landscape perimeter protection (LF-based), hardscape walk/patio protection. Ground-level work — no equipment staging needed beyond basic rollers/brushes.",
+      "phase": "setup",
+      "applies_when": {},
+      "required_inputs": [
+        { "input_name": "IN_LF_EXT_PROTECT_LANDSCAPE_PERIMETER", "paintscope_key": "PS_EXT_PROTECT_LF.LANDSCAPE_PERIMETER", "uom": "LF" },
+        { "input_name": "IN_SF_EXT_PROTECT_HARDSCAPE_WALK", "paintscope_key": "PS_EXT_PROTECT_SF.HARDSCAPE_WALK", "uom": "SF" },
+        { "input_name": "IN_SF_EXT_PROTECT_HARDSCAPE_PATIO", "paintscope_key": "PS_EXT_PROTECT_SF.HARDSCAPE_PATIO", "uom": "SF" }
+      ],
+      "tasks": [
+        {
+          "task_id": "TSK_FNRP_LANDSCAPE_PROTECT",
+          "name": "Landscape Perimeter Protection Setup",
+          "description": "Deploy tarps and plastic sheeting along foundation perimeter where landscape is adjacent. RP scope includes scraping debris containment.",
+          "task_type": "protect",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "unit_of_measure": "LF",
+          "appears_in_tiers": ["QT2", "QT3"],
+          "protection_metadata": { "action": "setup", "zones": ["ext_landscape_perimeter"] },
+          "transfer_source": "DIRECT from TSK_FNDN_PROTECT_LANDSCAPE"
+        },
+        {
+          "task_id": "TSK_FNRP_HARDSCAPE_PROTECT",
+          "name": "Hardscape Protection Setup",
+          "description": "Deploy drop cloths on walkways and patios adjacent to foundation wall.",
+          "task_type": "protect",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "unit_of_measure": "SF",
+          "appears_in_tiers": ["QT2", "QT3"],
+          "protection_metadata": { "action": "setup", "zones": ["ext_hardscape_walk", "ext_hardscape_patio"] },
+          "transfer_source": "DIRECT from TSK_FNDN_PROTECT_HARDSCAPE_WALK"
+        },
+        {
+          "task_id": "TSK_FNRP_EQUIPMENT_SETUP",
+          "name": "Equipment and Material Staging",
+          "description": "Stage brushes, rollers, trays, materials at foundation. If spray_backroll: configure airless sprayer + stage 18-inch backroll frame. Ground-level — no ladder/scaffold needed.",
+          "task_type": "protect",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "unit_of_measure": "FIXED",
+          "appears_in_tiers": ["QT2", "QT3"],
+          "transfer_source": "MODIFIED from TSK_FNDN_TOOL_CLEAN (setup counterpart)"
+        }
+      ],
+      "sequence_notes": "Landscape protection -> Hardscape protection -> Equipment staging."
+    },
+
+    {
+      "module_id": "MOD_FNRP_ASSESS",
+      "name": "Condition Assessment — Visual, Chalk/Adhesion, Moisture, Grade-Line Gap",
+      "description": "RP-specific 4-point assessment module for foundation. Results drive substrate state assignment, primer selection, and prep intensity. All FIXED time tasks. Includes RP-specific grade-line gap check for incorrect caulking.",
+      "phase": "prep",
+      "applies_when": {},
+      "required_inputs": [
+        { "input_name": "IN_SF_FOUNDATION_WALL", "paintscope_key": "PS_EXT_SURFACE_SF.FOUNDATION_WALL", "uom": "SF" }
+      ],
+      "tasks": [
+        {
+          "task_id": "TSK_FNRP_ASSESS_CONDITION",
+          "name": "Visual Condition Inspection",
+          "description": "Walk foundation perimeter. Map cracking, peeling, efflorescence, adhesion failure. Assign substrate state per worst-state-wins. Photograph defects. Foundation is small scope — single pass.",
+          "task_type": "inspect",
+          "task_classification": "qt_scaled",
+          "skill_level": "journeyman",
+          "unit_of_measure": "FIXED",
+          "appears_in_tiers": ["QT2", "QT3"],
+          "quality_notes": {
+            "QT2": "Quick scan. Note obvious defects.",
+            "QT3": "Full perimeter scan with work light. Document defects. Assign condition scale."
+          },
+          "transfer_source": "RP_NEW"
+        },
+        {
+          "task_id": "TSK_FNRP_ASSESS_CHALK_ADHESION",
+          "name": "Chalk and Adhesion Test",
+          "description": "White cloth chalk rub test on painted foundation surfaces. ASTM D3359 cross-hatch adhesion test on representative areas. Grade chalk severity. Verify coating adhesion.",
+          "task_type": "inspect",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "unit_of_measure": "FIXED",
+          "appears_in_tiers": ["QT2", "QT3"],
+          "transfer_source": "RP_NEW"
+        },
+        {
+          "task_id": "TSK_FNRP_ASSESS_MOISTURE",
+          "name": "Moisture Content Testing (MC <= 4% Hard Stop)",
+          "description": "Electronic moisture meter checks at multiple points along foundation band. MC > 4% = HARD STOP. Foundation is stricter than masonry wall (12%) due to continuous ground contact. 3-5 readings per elevation. Document all readings.",
+          "task_type": "inspect",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "unit_of_measure": "FIXED",
+          "appears_in_tiers": ["QT2", "QT3"],
+          "transfer_source": "MODIFIED from TSK_FNDN_MOISTURE_TEST"
+        },
+        {
+          "task_id": "TSK_FNRP_ASSESS_GRADE_GAP",
+          "name": "Grade-Line Gap Assessment (RP-Specific)",
+          "description": "Inspect the siding-to-foundation gap (3/8 inch with Z-flashing). Check if previous painter incorrectly caulked the drainage gap. If caulked: flag for caulk removal before painting. NEVER caulk this gap. RP-specific — not present in NC because new construction has clean gap.",
+          "task_type": "inspect",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "unit_of_measure": "FIXED",
+          "appears_in_tiers": ["QT2", "QT3"],
+          "transfer_source": "RP_NEW"
+        }
+      ],
+      "sequence_notes": "Visual condition -> Chalk/adhesion -> Moisture -> Grade-line gap. All FIXED time per project."
+    },
+
+    {
+      "module_id": "MOD_FNRP_PREP",
+      "name": "Surface Preparation — Efflorescence, Wash, Scrape, Patch",
+      "description": "Surface preparation for foundation repaint. Efflorescence treatment, pressure wash, scraping/feathering failing paint, crack patching. Condition-driven intensity via FAC_FNRP_CONDITION modifier on prep tasks.",
+      "phase": "prep",
+      "applies_when": {},
+      "required_inputs": [
+        { "input_name": "IN_SF_FOUNDATION_WALL", "paintscope_key": "PS_EXT_SURFACE_SF.FOUNDATION_WALL", "uom": "SF" }
+      ],
+      "tasks": [
+        {
+          "task_id": "TSK_FNRP_EFFLORESCENCE_TREAT",
+          "name": "Efflorescence Treatment",
+          "description": "Stiff brush removal of efflorescence deposits, TSP wash if moderate. Must remove ALL efflorescence before coating. Foundation is highly susceptible due to ground contact. Conditional — include when efflorescence is present.",
+          "task_type": "prep",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "unit_of_measure": "SF",
+          "appears_in_tiers": ["QT2", "QT3"],
+          "applies_when": { "site_condition": { "efflorescence_present": true } },
+          "transfer_source": "DIRECT from TSK_FNDN_EFFLORESCENCE_TREAT"
+        },
+        {
+          "task_id": "TSK_FNRP_PRESSURE_WASH",
+          "name": "Pressure Wash Foundation Surface",
+          "description": "Pressure wash (1,500-2,500 PSI) existing painted foundation. Dual purpose: cleaning and paint removal on failing areas. 24-hr dry time before coating. RP allows higher pressure for paint removal on non-sound areas.",
+          "task_type": "prep",
+          "task_classification": "qt_scaled",
+          "skill_level": "journeyman",
+          "unit_of_measure": "SF",
+          "appears_in_tiers": ["QT2", "QT3"],
+          "quality_notes": {
+            "QT2": "Basic wash to remove dirt. Light pressure on sound areas.",
+            "QT3": "Thorough wash. Higher pressure on failing areas. TSP for stains."
+          },
+          "transfer_source": "MODIFIED from TSK_FNDN_PRESSURE_WASH (added RP paint removal)"
+        },
+        {
+          "task_id": "TSK_FNRP_SCRAPE_FEATHER",
+          "name": "Scrape and Feather Failing Paint",
+          "description": "Carbide scraper to remove failing/peeling paint. 80-grit feather-edge sanding at transitions. RP-SPECIFIC task — not present in NC. Condition-driven intensity.",
+          "task_type": "prep",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "unit_of_measure": "SF",
+          "appears_in_tiers": ["QT2", "QT3"],
+          "applies_when": { "substrate_state": ["SS_EXT_FAILING_PAINT", "SS_EXT_PEELING"] },
+          "transfer_source": "RP_NEW"
+        },
+        {
+          "task_id": "TSK_FNRP_CRACK_PATCH",
+          "name": "Foundation Crack Patching",
+          "description": "Patch hairline and minor cracks in foundation wall with hydraulic cement. Cracks wider than 1/4 inch = structural — flag for GC. Same process as NC but may encounter more cracks in RP due to age/settlement.",
+          "task_type": "prep",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "unit_of_measure": "LF",
+          "appears_in_tiers": ["QT2", "QT3"],
+          "transfer_source": "DIRECT from TSK_FNDN_CRACK_PATCH"
+        },
+        {
+          "task_id": "TSK_FNRP_DUST_CLEANUP",
+          "name": "Prep Dust and Debris Cleanup",
+          "description": "Remove sanding dust, scraping debris, and TSP residue from foundation surface before priming. RP-specific — more debris than NC from scraping.",
+          "task_type": "cleanup",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "unit_of_measure": "FIXED",
+          "appears_in_tiers": ["QT2", "QT3"],
+          "transfer_source": "RP_NEW"
+        }
+      ],
+      "sequence_notes": "Efflorescence treatment -> Pressure wash (24-hr dry) -> Scrape/feather -> Crack patch -> Dust cleanup. THEN moisture retest before priming."
+    },
+
+    {
+      "module_id": "MOD_FNRP_PRIME",
+      "name": "State-Driven Primer Application",
+      "description": "State-driven primer application for foundation repaint. Chalk-binding for SS_EXT_CHALKING, alkali-resistant spot prime on exposed bare masonry, acrylic stain-block for general RP adhesion. SS_EXT_SOUND_PAINT may skip prime with verified adhesion.",
+      "phase": "prime",
+      "applies_when": {},
+      "required_inputs": [
+        { "input_name": "IN_SF_FOUNDATION_WALL", "paintscope_key": "PS_EXT_SURFACE_SF.FOUNDATION_WALL", "uom": "SF" }
+      ],
+      "tasks": [
+        {
+          "task_id": "TSK_FNRP_PRIME_CHALK_BIND",
+          "name": "Chalk-Binding Primer Application",
+          "description": "Full surface chalk-binding primer on foundation with SS_EXT_CHALKING state. Roll or brush application. MANDATORY — not quality-optional.",
+          "task_type": "prime",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "unit_of_measure": "SF",
+          "appears_in_tiers": ["QT2", "QT3"],
+          "applies_when": { "substrate_state": ["SS_EXT_CHALKING"] },
+          "transfer_source": "RP_NEW"
+        },
+        {
+          "task_id": "TSK_FNRP_PRIME_ALKALI_SPOT",
+          "name": "Alkali-Resistant Primer — Spot Application on Bare Masonry",
+          "description": "Spot prime exposed bare foundation areas where coating has been removed by scraping/washing. pH 12-14 substrate requires alkali-resistant primer. Roll or brush application at failure points.",
+          "task_type": "prime",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "unit_of_measure": "SF",
+          "appears_in_tiers": ["QT2", "QT3"],
+          "applies_when": { "substrate_state": ["SS_EXT_FAILING_PAINT", "SS_EXT_PEELING"], "exposed_substrate": "bare_masonry" },
+          "transfer_source": "RP_NEW"
+        },
+        {
+          "task_id": "TSK_FNRP_PRIME_ACRYLIC_RP_ROLL",
+          "name": "Acrylic Stain-Block Primer — Roll Application",
+          "description": "Roll application of acrylic stain-block primer on previously painted foundation. Spot prime for localized failure, full prime for SS_EXT_PEELING.",
+          "task_type": "prime",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "unit_of_measure": "SF",
+          "appears_in_tiers": ["QT2", "QT3"],
+          "applies_when": { "substrate_state": ["SS_EXT_FAILING_PAINT", "SS_EXT_PEELING"], "application_method": ["brush_roll", "spray_backroll"] },
+          "transfer_source": "RP_NEW"
+        },
+        {
+          "task_id": "TSK_FNRP_PRIME_ACRYLIC_RP_SPRAY",
+          "name": "Acrylic Stain-Block Primer — Spray Application",
+          "description": "Spray application of acrylic stain-block primer on foundation. For larger scope requiring spray_backroll method.",
+          "task_type": "prime",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "unit_of_measure": "SF",
+          "appears_in_tiers": ["QT2", "QT3"],
+          "applies_when": { "substrate_state": ["SS_EXT_FAILING_PAINT", "SS_EXT_PEELING"], "application_method": ["spray_backroll"] },
+          "transfer_source": "RP_NEW"
+        }
+      ],
+      "sequence_notes": "Alkali-resistant spot prime on bare areas FIRST -> Then full surface prime (chalk-binding OR acrylic stain-block). SS_EXT_SOUND_PAINT skips prime."
+    },
+
+    {
+      "module_id": "MOD_FNRP_FINISH",
+      "name": "Finish Coat Application",
+      "description": "Finish coat application for foundation repaint. Acrylic or cementitious coating. brush_roll or spray_backroll method. QT2 = 1 coat, QT3 = 2 coats. Flat sheen only.",
+      "phase": "finish",
+      "applies_when": {},
+      "required_inputs": [
+        { "input_name": "IN_SF_FOUNDATION_WALL", "paintscope_key": "PS_EXT_SURFACE_SF.FOUNDATION_WALL", "uom": "SF" }
+      ],
+      "tasks": [
+        {
+          "task_id": "TSK_FNRP_FINISH_ACRYLIC_ROLL",
+          "name": "Acrylic Finish — Roll Application",
+          "description": "Roller application of acrylic masonry finish on primed foundation. 3/4-inch nap for poured, 1-1/4-inch nap for CMU. Per-coat rate.",
+          "task_type": "finish",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "unit_of_measure": "SF",
+          "appears_in_tiers": ["QT2", "QT3"],
+          "applies_when": { "coating_type": ["acrylic"], "application_method": ["brush_roll"] },
+          "transfer_source": "DIRECT from TSK_FNDN_FINISH_ACRYLIC_ROLL"
+        },
+        {
+          "task_id": "TSK_FNRP_FINISH_ACRYLIC_SPRAY",
+          "name": "Acrylic Finish — Spray Application",
+          "description": "Airless spray of acrylic masonry finish on primed foundation. spray_backroll method — backroll on CMU. Per-coat rate.",
+          "task_type": "finish",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "unit_of_measure": "SF",
+          "appears_in_tiers": ["QT2", "QT3"],
+          "applies_when": { "coating_type": ["acrylic"], "application_method": ["spray_backroll"] },
+          "transfer_source": "MODIFIED from TSK_FNDN_FINISH_ACRYLIC_SPRAY"
+        },
+        {
+          "task_id": "TSK_FNRP_FINISH_CEMENTITIOUS_ROLL",
+          "name": "Cementitious Coating (Drylok-type) — Roll Application",
+          "description": "Roller application of cementitious coating on primed foundation. Heavier body, thicker application, lower coverage. Per-coat rate.",
+          "task_type": "finish",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "unit_of_measure": "SF",
+          "appears_in_tiers": ["QT2", "QT3"],
+          "applies_when": { "coating_type": ["cementitious"], "application_method": ["brush_roll"] },
+          "transfer_source": "DIRECT from TSK_FNDN_FINISH_CEMENTITIOUS_ROLL"
+        },
+        {
+          "task_id": "TSK_FNRP_FINISH_CEMENTITIOUS_BRUSH",
+          "name": "Cementitious Coating (Drylok-type) — Brush Application",
+          "description": "Brush application of cementitious coating on foundation. Detail work and small areas. Per-coat rate.",
+          "task_type": "finish",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "unit_of_measure": "SF",
+          "appears_in_tiers": ["QT2", "QT3"],
+          "applies_when": { "coating_type": ["cementitious"], "application_method": ["brush_roll"] },
+          "transfer_source": "DIRECT from TSK_FNDN_FINISH_CEMENTITIOUS_BRUSH"
+        },
+        {
+          "task_id": "TSK_FNRP_FINISH_BRUSH_DETAIL",
+          "name": "Detail Brush Work (Pipes, Vents, Transitions)",
+          "description": "Detail brush work around foundation penetrations and at siding-to-foundation transition. MASK the grade-line gap — NEVER caulk. Per-coat rate.",
+          "task_type": "finish",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "unit_of_measure": "SF",
+          "appears_in_tiers": ["QT2", "QT3"],
+          "transfer_source": "DIRECT from TSK_FNDN_FINISH_BRUSH_DETAIL"
+        },
+        {
+          "task_id": "TSK_FNRP_FINISH_BACKROLL",
+          "name": "Backroll After Spray (CMU Foundation)",
+          "description": "Immediate backroll with 18-inch roller after spray application on CMU foundation. Forces coating into porous block surface. spray_backroll method only. CMU only per masonry doctrine.",
+          "task_type": "finish",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "unit_of_measure": "SF",
+          "appears_in_tiers": ["QT2", "QT3"],
+          "applies_when": { "foundation_type": ["CMU"], "application_method": ["spray_backroll"] },
+          "transfer_source": "RP_NEW"
+        }
+      ],
+      "sequence_notes": "Spray/roll field -> Backroll CMU (if spray) -> Detail brush. QT3: repeat for second coat."
+    },
+
+    {
+      "module_id": "MOD_FNRP_CLEANUP",
+      "name": "Cleanup — Inspect, Touch-Up, Teardown, Equipment",
+      "description": "Final inspection, touch-up, protection teardown, equipment cleaning, and site cleanup for foundation repaint.",
+      "phase": "cleanup",
+      "applies_when": {},
+      "required_inputs": [],
+      "tasks": [
+        {
+          "task_id": "TSK_FNRP_FINAL_INSPECT",
+          "name": "Final Walkthrough Inspection",
+          "description": "Ground-level walkthrough of all foundation elevations. Check for holidays, missed spots, coating uniformity. Verify grade-line gap still clear. Check protection zones for overspray.",
+          "task_type": "inspect",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "unit_of_measure": "FIXED",
+          "appears_in_tiers": ["QT2", "QT3"],
+          "transfer_source": "DIRECT from TSK_FNDN_FINAL_INSPECT"
+        },
+        {
+          "task_id": "TSK_FNRP_TOUCHUP",
+          "name": "Touch-Up",
+          "description": "Brush touch-up of defects found during final inspection. Foundation typically needs minimal touch-up — simple geometry.",
+          "task_type": "detail",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "unit_of_measure": "SF",
+          "appears_in_tiers": ["QT2", "QT3"],
+          "transfer_source": "DIRECT from TSK_FNDN_TOUCHUP"
+        },
+        {
+          "task_id": "TSK_FNRP_PROTECT_TEARDOWN",
+          "name": "Protection Material Removal",
+          "description": "Remove all landscape tarps, hardscape covers, tape, plastic sheeting. Check for tape adhesive residue. Verify no paint on protected surfaces.",
+          "task_type": "cleanup",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "unit_of_measure": "FIXED",
+          "appears_in_tiers": ["QT2", "QT3"],
+          "transfer_source": "DIRECT from TSK_FNDN_PROTECT_TEARDOWN"
+        },
+        {
+          "task_id": "TSK_FNRP_TOOL_CLEAN",
+          "name": "Tool and Equipment Cleaning",
+          "description": "Clean brushes, rollers, trays, sprayer (if used). Dispose of saturated roller covers.",
+          "task_type": "cleanup",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "unit_of_measure": "FIXED",
+          "appears_in_tiers": ["QT2", "QT3"],
+          "transfer_source": "DIRECT from TSK_FNDN_TOOL_CLEAN"
+        },
+        {
+          "task_id": "TSK_FNRP_SITE_DEBRIS",
+          "name": "Site Debris Cleanup",
+          "description": "Collect and bag scraping debris, paint chips, empty containers. RP-specific — more debris than NC from scraping and old paint removal.",
+          "task_type": "cleanup",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "unit_of_measure": "FIXED",
+          "appears_in_tiers": ["QT2", "QT3"],
+          "transfer_source": "RP_NEW"
+        },
+        {
+          "task_id": "TSK_FNRP_CUSTOMER_WALKTHROUGH",
+          "name": "Customer Walkthrough",
+          "description": "Walk foundation perimeter with homeowner/GC. Point out completed work, discuss maintenance. RP-specific — occupied home context.",
+          "task_type": "inspect",
+          "task_classification": "binary",
+          "skill_level": "lead",
+          "unit_of_measure": "FIXED",
+          "appears_in_tiers": ["QT2", "QT3"],
+          "transfer_source": "RP_NEW"
+        }
+      ],
+      "sequence_notes": "Final inspect -> Touch-up -> Protection teardown -> Tool clean -> Site debris -> Customer walkthrough."
+    }
+  ]
+}

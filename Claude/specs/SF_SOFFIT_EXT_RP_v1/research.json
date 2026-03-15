@@ -1,0 +1,942 @@
+{
+  "research_metadata": {
+    "spec_family_id": "SF_SOFFIT_EXT_RP",
+    "spec_family_version": "v1",
+    "domain": "exterior",
+    "scope_type": "repaint",
+    "research_mode": "doctrine_driven",
+    "doctrine_loaded": [
+      "docs/System/PaintFactor_OS.md",
+      "docs/System/Conventions.md",
+      "docs/Doctrine/Exterior_Trim_Systems_Doctrine.md",
+      "docs/Doctrine/Exterior_Substrates_Doctrine.md",
+      "docs/Doctrine/Exterior_Access_Staging_Systems_Doctrine.md",
+      "docs/Doctrine/Exterior_Application_Methods_Doctrine.md",
+      "docs/Doctrine/Exterior_Primer_Systems_Doctrine.md",
+      "docs/Doctrine/Exterior_Protection_Doctrine_T3.md",
+      "docs/Doctrine/Exterior_Color_Sheen_Configuration_Doctrine.md",
+      "docs/Doctrine/Exterior_Vinyl_Aluminum_Siding_Doctrine.md",
+      "docs/Doctrine/Exterior_Weathering_Surface_Assessment_Doctrine.md",
+      "docs/Doctrine/Exterior_Caulking_Sealants_Doctrine.md",
+      "docs/Doctrine/Quality_Tiers_and_Surface_Condition.md",
+      "docs/Doctrine/Estimation_Modifiers_Doctrine.md",
+      "docs/Doctrine/Modifier_Registry.md",
+      "docs/Doctrine/Spec_Completeness_Doctrine.md",
+      "docs/Reference/Protection_Zones_Reference.md",
+      "docs/Reference/Surface_Vocabulary_Reference.md",
+      "docs/Reference/Site_Condition_Vocabulary_Reference.md",
+      "docs/Reference/Substrate_State_Reference.md",
+      "docs/PaintScope/PaintScope_Exterior_Key_Catalog.md",
+      "docs/PaintScope/Spec_Input_to_PaintScope_Key_Mapping.md",
+      "devos/Interior_RP_Gap_Analysis.md"
+    ],
+    "sibling_specs_reviewed": [
+      "specs/SF_SOFFIT_EXT_NC_v1/spec.json",
+      "specs/SF_SOFFIT_EXT_NC_v1/production.json",
+      "specs/SF_SOFFIT_EXT_NC_v1/research.json",
+      "specs/SF_TRIM_EXT_RP_v1/spec.json",
+      "specs/SF_WINDOW_EXT_RP_v1/research.json"
+    ],
+    "researcher": "Spec Researcher Agent",
+    "date": "2026-03-15",
+    "status": "draft",
+    "review_required": true,
+    "context_prefix": "SFRP"
+  },
+
+  "spec_family_id": "SF_SOFFIT_EXT_RP",
+  "version": "1.0.0",
+
+  "context_prefix_rationale": "TSK_SFIT_* is consumed by SF_SOFFIT_EXT_NC_v1 (37 tasks). Using SFRP_ (SoFfit RePaint) eliminates all ID collisions. Verified: TSK_SFRP_* has zero existing usage in the codebase. MOD_SFRP_* also has zero existing usage. Pattern follows established convention: SF = soffit, RP = repaint.",
+
+  "scope_summary": "Combined condition assessment + prep + prime + finish repaint spec for previously painted exterior soffit surfaces on residential homes. Covers 3 substrate material types (wood T&G/plywood, fiber cement HardieSoffit, vinyl) inherited from NC spec. Soffit is the horizontal underside surface beneath roof eaves and overhangs — ALL work is overhead, making it the defining production constraint. Includes condition assessment (visual inspect, adhesion test per ASTM D3359, chalk test on exposed edges, moisture probe on wood panels, mildew/algae assessment — soffit is highly prone to mildew in sheltered damp conditions), exterior-specific prep (low-pressure wash 500-800 PSI — lower than siding due to panel edge sensitivity, scrape/feather failing paint, chalk remediation, degloss/scuff sound areas, caulk assessment at panel joints and soffit-to-fascia/frieze junctions, mildew/algae biocide treatment), state-driven primer selection (spot or full prime based on condition, with substrate-material-specific primer chemistry on exposed areas), finish coat application (brush_roll primary — spray conditional on non-vented construction, unchanged from NC), full interstage protocol, and landscape/hardscape ground protection (critical for overhead drip fallout). SF-based with net paintable soffit field area. Lead-safe RRP applies to pre-1978 buildings — soffit paint disturbance during scraping can generate lead dust/debris that falls directly onto ground below (gravity amplifies exposure). Does NOT cover fascia painting (SF_TRIM_EXT_RP_v1), porch ceiling repaint (future SF_PORCH_CEILING_EXT_RP), siding repaint, or frieze board repaint (SF_TRIM_EXT_RP_v1). QT2-QT4 (QT5 excluded — soffit is a utilitarian overhead field surface, not fine-finish millwork). Single mobilization: assess + prep + prime + finish.",
+
+  "relevant_findings": [
+    {
+      "finding_id": "RF-001",
+      "topic": "Soffit RP is condition-driven (not substrate-driven) unlike NC",
+      "finding": "NC soffit prep is substrate-driven: wood gets sand + tannin spot prime + acrylic primer, fiber cement gets field prime over factory primer, vinyl gets bonding primer. RP soffit prep is condition-driven: sound paint requires wash + scuff only, chalking requires chalk remediation + primer, failing paint requires scrape + feather + spot/full prime, peeling requires heavy scrape + feather + full prime. However, substrate material still matters for RP: exposed bare wood (where paint has failed) still needs acrylic primer; exposed bare fiber cement still needs alkali-resistant primer; exposed bare vinyl still needs bonding primer. This creates a two-dimensional decision: condition drives prep intensity, substrate material drives primer chemistry on exposed areas. NC tasks that are NOT_APPLICABLE in RP: TSK_SFIT_SEAL_CUT_EDGES (fiber cement cut edge sealing — already done on NC installation), TSK_SFIT_SPOT_PRIME_KNOTS (bare wood tannin — knots were sealed during original NC).",
+      "source": "Exterior_Weathering_Surface_Assessment_Doctrine; SF_SOFFIT_EXT_NC_v1/spec.json substrate_state_rules; SF_TRIM_EXT_RP_v1/spec.json (RP condition pattern); SF_WINDOW_EXT_RP_v1/research.json RF-002",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-002",
+      "topic": "Four exterior RP substrate states apply to soffit",
+      "finding": "Exterior RP uses 4 substrate states from controlled_enums.json: SS_EXT_SOUND_PAINT (adhered, no chalk — degloss/scuff only, most common RP state for soffit due to sheltered location), SS_EXT_CHALKING (surface chalk present — less common on soffit than siding/trim because soffit is sheltered from direct UV, but occurs on south-facing exposed soffits and at eave edges), SS_EXT_FAILING_PAINT (cracking, alligatoring — common at soffit panel joints and soffit-to-fascia junctions where movement stresses the film), SS_EXT_PEELING (active coating lifting — often at moisture intrusion points where roof leaks or condensation affects the soffit from above). SS_EXT_WEATHERED is excluded — weathered wood with no coating is bare wood territory requiring NC-level work. SS_EXT_STAINED_* excluded — stained soffit is not a standard residential scope. SS_EXT_BARE_WOOD is NC spec domain.",
+      "source": "controlled_enums.json substrate_state; SF_TRIM_EXT_RP_v1/spec.json state_declarations (4-state exterior RP pattern); SF_WINDOW_EXT_RP_v1/research.json RF-003",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-003",
+      "topic": "ALL soffit work is overhead — constant productivity penalty on every task",
+      "finding": "Soffit painting is 100% overhead work. Every task — assessment, prep, prime, finish — is performed with arms extended above the head. NC spec baked overhead penalty into base rates (~25-35% reduction from vertical baselines). RP must follow the same pattern: all RP-NEW task rates (assessment, scraping, chalk remediation, etc.) must be calibrated for overhead execution. The overhead penalty is NOT a separate stacking modifier — it is baked into the base rate for every soffit task. Height modifier (FAC_EXT_ACCESS) stacks ON TOP of overhead-adjusted base rates, creating a double penalty for elevated soffit. A 2-story soffit on scaffold has both overhead penalty (in base rate) AND 1.60x height modifier.",
+      "source": "SF_SOFFIT_EXT_NC_v1/spec.json production_summary; Exterior_Access_Staging_Systems_Doctrine §3, §7",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-004",
+      "topic": "Condition assessment is mandatory before soffit RP work",
+      "finding": "Soffit repaint requires multi-point assessment before prep or coating. Assessment tasks: (1) Visual condition inspection — scan all soffit surfaces for chalking, cracking, peeling, adhesion failure, mildew/algae, moisture staining; photograph defects; assign substrate state and map to GOOD/FAIR/POOR estimation condition. (2) Adhesion test — ASTM D3359 cross-hatch tape test on representative section. (3) Mildew/algae assessment — soffit is highly prone to biological growth due to sheltered, shaded, damp conditions under eaves; identify extent (spot vs widespread) and severity. (4) Moisture probe — moisture meter on wood soffit panels at joints and near roof penetrations; MC > 15% triggers remediation gate (dry before painting). (5) Caulk assessment — inspect panel joint caulk and soffit-to-fascia/frieze junction caulk per 'Think Like a Water Drop' protocol. (6) Vent condition check — inspect soffit vents for paint clogging or damage from prior coating. Total assessment: ~10-15 min per 100 SF of soffit depending on condition and access height.",
+      "source": "Exterior_Weathering_Surface_Assessment_Doctrine; SF_WINDOW_EXT_RP_v1/research.json RF-004 (exterior assessment pattern); SF_TRIM_EXT_RP_v1/spec.json (assessment pattern)",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-005",
+      "topic": "Mildew and algae are the PRIMARY degradation mechanism for soffit — more so than UV",
+      "finding": "Soffit is sheltered from direct UV and rain by the roof above, so UV-driven chalking and weathering are LESS common on soffit than on exposed siding, trim, or windows. Instead, mildew and algae are the dominant degradation mechanisms because: (1) soffit is shaded — ideal for biological growth; (2) eave cavities trap moisture and restrict airflow (especially on vented soffits with limited ventilation); (3) condensation from the attic above can migrate through vent openings and create persistent dampness on soffit surfaces; (4) north-facing soffits receive minimal solar drying. Mildew appears as dark spots/patches and must be treated with biocide/mildewcide (sodium hypochlorite solution or commercial mildew remover) BEFORE painting — painting over mildew causes adhesion failure. Algae appears as green/yellow growth on damp surfaces. Both require biocide treatment + allow to dry + low-pressure wash to remove residue. Mildew-resistant paint formulation is recommended for all soffit RP (mildewcide additive in finish coat).",
+      "source": "Exterior_Weathering_Surface_Assessment_Doctrine; Exterior_Substrates_Doctrine §5 (sheltered surfaces); field experience",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-006",
+      "topic": "Low-pressure wash replaces TSP hand-wash for soffit RP — NEVER power wash soffit",
+      "finding": "NC spec PROHIBITS power washing on soffit (COMPAT-SFIT-010) — high pressure damages thin panel edges, strips factory primer, and forces water into attic through vents. RP follows the same prohibition but needs cleaning capability for mildew removal and paint failure debris. RP treatment: low-pressure garden hose rinse (500-800 PSI maximum, fan tip) combined with soft brush and mildew-removal detergent. This is lower pressure than even trim wash (500-1000 PSI) because soffit panels are thinner and more vulnerable to edge damage. Allow 24-48 hr dry time after wash (soffit dries slower than vertical surfaces because no gravity drainage and limited airflow). Wash is performed per elevation, not per SF — one wash pass covers all soffit on an elevation.",
+      "source": "SF_SOFFIT_EXT_NC_v1/spec.json scope_boundaries.excludes (power wash PROHIBITED); Exterior_Substrates_Doctrine §4.1; SF_WINDOW_EXT_RP_v1/research.json RF-005 (wash pattern)",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-007",
+      "topic": "Spray eligibility is STILL gated by soffit_vent_type in RP — unchanged from NC",
+      "finding": "The spray-on-vented-soffit prohibition carries directly from NC to RP. Spraying drives paint into attic through vent perforations regardless of whether the surface is new or previously painted. This is a permanent physical constraint — not a prep-dependent decision. RP on vented soffit: brush_roll ONLY. RP on non-vented soffit: spray OR brush_roll. The NC vent_type dimension (vented/non_vented) transfers unchanged to RP. spray_backroll is NOT valid for soffit (overhead back-rolling is impractical) — same exclusion as NC.",
+      "source": "SF_SOFFIT_EXT_NC_v1/spec.json configuration_dimensions (soffit_vent_type gating); Exterior_Application_Methods_Doctrine Part A §6",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-008",
+      "topic": "Chalking is LESS common on soffit than other exterior surfaces but still occurs",
+      "finding": "Chalking is UV-driven resin binder degradation. Soffit is sheltered from direct UV by the roof above, making chalking significantly less common than on exposed siding, trim, or windows. However, chalking CAN occur on soffit in two situations: (1) south-facing soffits on wide overhangs that receive reflected UV from ground surfaces (light-colored concrete, snow); (2) eave-edge soffit that transitions to open rake soffit with direct sun exposure. When chalking is present on soffit, the same remediation applies: chalk-binding primer (full surface, mandatory). SS_EXT_CHALKING is valid but expected to be rare — SS_EXT_SOUND_PAINT is the most common soffit RP state due to sheltered location and long coating life.",
+      "source": "Exterior_Weathering_Surface_Assessment_Doctrine; SF_SOFFIT_EXT_NC_v1/research.json RF-007 (soffit sheltered from UV); SF_WINDOW_EXT_RP_v1/research.json RF-007 (chalking remediation pattern)",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-009",
+      "topic": "RRP applies to pre-1978 soffit — overhead scraping sends debris straight down",
+      "finding": "Lead-based paint on pre-1978 exterior soffit presents a specific exposure risk: scraping overhead sends paint chips and dust directly downward via gravity onto the crew and ground below. This is MORE hazardous than scraping vertical surfaces where debris falls mostly at the base of the wall. RRP containment for soffit must account for the full drip fallout zone — 6-mil poly extending at least 10 ft from structure below the soffit work zone (wider than standard wall containment). Wet scraping methods are especially important for overhead lead paint — dry scraping overhead creates a shower of lead dust. HEPA vacuum for all sanding. RRP modifier: 2.0x on all prep tasks involving paint disturbance. RRP containment setup/teardown are separate fixed tasks per elevation.",
+      "source": "EPA RRP Rule 40 CFR 745; SF_TRIM_EXT_RP_v1/spec.json (RRP pattern with FAC_TRRP_RRP = 2.0x); SF_WINDOW_EXT_RP_v1/research.json RF-010 (RRP pattern)",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-010",
+      "topic": "Caulk assessment at panel joints and soffit-to-trim junctions",
+      "finding": "NC soffit receives fresh caulk at all panel joints and soffit-to-fascia/frieze junctions. RP soffit requires caulk assessment per the 'Think Like a Water Drop' protocol: trace every joint where water could enter — panel-to-panel joints, soffit-to-fascia junction, soffit-to-frieze junction, soffit-to-corner board junction. Assessment determines scope: (1) intact and flexible — clean and paint over; (2) cracked or separated — remove failed sections, clean substrate, re-caulk with exterior-grade paintable caulk (polyurethane or hybrid MS polymer, NEVER silicone), allow 2-4 hr cure before painting; (3) fully failed — remove all old caulk, clean joint, re-caulk. Soffit caulk failures are common at panel joints due to thermal expansion/contraction cycling and at soffit-to-fascia junctions due to differential movement. Rate varies by condition: GOOD = near-zero additional time; FAIR = 3-5 min per 100 SF; POOR = 8-12 min per 100 SF.",
+      "source": "Exterior_Caulking_Sealants_Doctrine ('Think Like a Water Drop'); SF_SOFFIT_EXT_NC_v1/spec.json (caulk tasks); SF_WINDOW_EXT_RP_v1/research.json RF-009 (caulk assessment pattern)",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-011",
+      "topic": "Height/access is ALWAYS a factor for soffit — soffit is never at ground level work height",
+      "finding": "Unlike siding which may start at ground level on a single-story building, soffit is ALWAYS at eave height. Even single-story ranch homes have soffit at 8-10 ft minimum. Two-story soffit is at 16-20+ ft. Height modifier from NC spec (FAC_EXT_ACCESS) transfers unchanged to RP: ground=1.00 (very low eaves reachable by extension pole), ladder=1.35, scaffold=1.60. For RP, height affects ALL per-SF tasks — not just coating but also assessment (inspecting overhead at height), prep (scraping overhead at height is significantly slower and more fatiguing), and protection setup. The height modifier stacks ON TOP of the overhead-adjusted base rates — this is the double penalty that makes soffit the most expensive per-SF exterior surface to repaint.",
+      "source": "SF_SOFFIT_EXT_NC_v1/spec.json site_condition_rules (FAC_EXT_ACCESS); Exterior_Access_Staging_Systems_Doctrine §3",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-012",
+      "topic": "Substrate material still matters for RP — drives primer chemistry on exposed areas",
+      "finding": "Although RP prep is condition-driven (not substrate-driven like NC), substrate material remains relevant because exposed areas from paint failure require material-appropriate primer: (1) Wood exposed by scraping/peeling: acrylic exterior primer on bare wood areas (same as NC SYS_EXT_SFIT_PRIMER_ACRYLIC). (2) Fiber cement exposed by scraping/peeling: alkali-resistant primer on bare fiber cement areas (same as NC SYS_EXT_SFIT_PRIMER_ALKALI, required for pH 13.0 substrate). (3) Vinyl exposed by scraping/peeling: PVC bonding primer on bare vinyl areas (same as NC SYS_EXT_SFIT_PRIMER_BONDING). For sound-paint surfaces, RP uses spot or full chalk-binding/adhesion primer regardless of substrate material. VinylSafe IR-reflective coating requirement transfers unchanged from NC: vinyl soffit with color LRV < 55 MUST use solar-reflective finish to prevent thermal warping.",
+      "source": "SF_SOFFIT_EXT_NC_v1/spec.json material_systems; Exterior_Primer_Systems_Doctrine; SF_WINDOW_EXT_RP_v1/research.json RF-012 (substrate material transfer pattern)",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-013",
+      "topic": "Scrape and feather on soffit is condition-gated — overhead scraping is extremely slow",
+      "finding": "Soffit scraping for failing/peeling paint is among the slowest prep tasks in the system because: (1) all scraping is overhead — gravity works against the tool stroke and debris falls onto the painter; (2) panel edges are fragile — aggressive scraping can damage T&G joints, fiber cement edges, or vinyl panel locking mechanisms; (3) scaffolding/ladder repositioning for large soffit areas is frequent due to limited overhead reach. Rate varies by condition: SS_EXT_FAILING_PAINT = moderate scraping (localized at panel joints and trim junctions, 15-30% of surface); SS_EXT_PEELING = heavy scraping (widespread, 40-60%+ of surface, often moisture-driven from above). SS_EXT_SOUND_PAINT and SS_EXT_CHALKING do not require scraping. Feather-edge sanding is MANDATORY after all scraping — no exceptions. Overhead sanding generates dust that falls directly onto the painter — dust mask and eye protection critical.",
+      "source": "Exterior_Weathering_Surface_Assessment_Doctrine; SF_TRIM_EXT_RP_v1/spec.json (scrape/feather pattern); SF_SOFFIT_EXT_NC_v1/spec.json production_summary (overhead penalty)",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-014",
+      "topic": "Soffit vent masking is a unique RP concern — paint-clogged vents from prior coats",
+      "finding": "RP soffit on vented panels may encounter vents partially or fully clogged with paint from prior brush_roll applications. Assessment must check vent opening condition: (1) clear vents — no action needed beyond careful painting; (2) partially clogged — clean with wire brush or pick to restore airflow before painting; (3) heavily clogged — note on assessment, recommend vent replacement to homeowner (outside painting scope). During RP brush_roll application, mask individual vent openings with tape or foam plugs to prevent further paint accumulation. This is unique to RP — NC vents start clean. Vent masking adds ~5% labor to brush_roll application on vented soffit.",
+      "source": "SF_SOFFIT_EXT_NC_v1/spec.json (soffit_vent_type dimension); field experience",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-015",
+      "topic": "Environmental conditions are NOT estimation modifiers for soffit RP",
+      "finding": "Per PaintFactor OS RC-003 (confirmed in SF_TRIM_EXT_RP_v1 RC-002 and SF_WINDOW_EXT_RP_v1 RC-002), environmental conditions (wind, sun exposure, surface temperature, dew point) are NOT estimatable at bid time — they are unpredictable scheduling factors. The NC spec included site_condition_rules for environmental modifiers (QA-002 acknowledged inconsistency); these are EXCLUDED from the RP spec per the established RP correction pattern.",
+      "source": "PaintFactor OS RC-003; SF_TRIM_EXT_RP_v1/spec.json RC-002; SF_WINDOW_EXT_RP_v1/research.json RF-017",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-016",
+      "topic": "T&G panel type modifier transfers unchanged from NC — physical characteristic",
+      "finding": "The NC T&G joint complexity modifier (FAC_SFIT_TG_JOINTS: solid_panel=1.00, tg_board=1.20) transfers directly to RP. T&G groove work increases labor for brush_roll application regardless of NC or RP context — the physical joints are the same. The soffit_panel_type dimension (tg_board/solid_panel) transfers unchanged. T&G brush-back tasks (TSK_SFIT_TG_BRUSH_BACK_1/2) exist in NC and transfer DIRECT — they apply to RP finish coats identically.",
+      "source": "SF_SOFFIT_EXT_NC_v1/spec.json configuration_dimensions (soffit_panel_type); SF_SOFFIT_EXT_NC_v1/production.json FAC_SFIT_TG_JOINTS",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-017",
+      "topic": "Landscape and hardscape protection is CRITICAL for overhead RP — scraping debris falls straight down",
+      "finding": "Overhead soffit RP generates both paint drips (from coating application) and scraping debris (from prep). Gravity pulls all material directly downward. Ground protection below soffit is more extensive than for vertical surfaces: (1) full drip fallout zone coverage required (not just at base of wall); (2) scraping debris includes paint chips that may be lead-containing (pre-1978); (3) power wash runoff flows directly down. Protection zones: ext_landscape_adjacent (drop cloth or poly over landscape below soffit work zone), ext_hardscape_walk (walkways/patios below soffit work areas — canvas drop cloths for non-slip crew traffic). For RRP, ground containment is elevated to 6-mil poly extending 10 ft from structure. Spray application adds ext_siding_adjacent masking at wall junction below soffit.",
+      "source": "Exterior_Protection_Doctrine_T3; SF_SOFFIT_EXT_NC_v1/spec.json protection_zones_required; SF_WINDOW_EXT_RP_v1/research.json RF-016 (protection pattern)",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-018",
+      "topic": "Maintenance cycle context — soffit repaints are less frequent than siding or trim",
+      "finding": "Soffit is sheltered from direct UV and rain, resulting in longer coating life than exposed surfaces. Expected repaint intervals: QT2 = 10-14 years, QT3 = 12-16 years, QT4 = 15-20 years. This is significantly longer than siding (7-12 years) or trim (7-13 years). Most soffit RP occurs when the rest of the exterior is being repainted — soffit is rarely the primary driver of an exterior repaint project. This means soffit condition is typically GOOD or FAIR when repaint occurs, with POOR condition concentrated at moisture intrusion points (near roof penetrations, at ice dam damage areas, at soffit-to-fascia junction failures). Mildew is the most common reason for premature soffit repaint in humid climates.",
+      "source": "Exterior_Weathering_Surface_Assessment_Doctrine; SF_SOFFIT_EXT_NC_v1/research.json RF-007 (sheltered surface longevity)",
+      "confidence": "high"
+    }
+  ],
+
+  "condition_drivers": [
+    {
+      "driver_id": "CD-001",
+      "condition": "Overall coating condition (GOOD/FAIR/POOR)",
+      "effect": "Primary prep intensity driver. GOOD (SS_EXT_SOUND_PAINT): wash + scuff only, minimal prep — the most common soffit state due to sheltered location. FAIR (SS_EXT_CHALKING, SS_EXT_FAILING_PAINT with localized damage): chalk remediation and/or moderate scraping + spot prime. POOR (SS_EXT_PEELING, SS_EXT_FAILING_PAINT with widespread damage): heavy scraping + full feather sand + full prime. Maps to condition_scale: GOOD=1.0x, FAIR=1.5x, POOR=2.0x on prep tasks.",
+      "assessment_method": "Visual inspection + ASTM D3359 adhesion test + mildew assessment. Assign DSD rating (research parameter) and map to GOOD/FAIR/POOR estimation condition.",
+      "source": "controlled_enums.json condition_scale; Exterior_Weathering_Surface_Assessment_Doctrine"
+    },
+    {
+      "driver_id": "CD-002",
+      "condition": "Mildew/algae severity",
+      "effect": "Mildew is the dominant degradation mechanism for soffit (sheltered, shaded, damp). Spot mildew: biocide treatment on affected areas only. Widespread mildew: full-surface biocide treatment + wash + allow to dry. Heavy mildew/algae: full biocide, aggressive scrub, power rinse, 48-hr dry time. Mildew must be killed BEFORE painting — painting over mildew = guaranteed adhesion failure.",
+      "assessment_method": "Visual inspection for dark spots (mildew) and green/yellow growth (algae). Note extent: spot (<25% of surface), moderate (25-50%), widespread (>50%).",
+      "source": "Exterior_Weathering_Surface_Assessment_Doctrine; Exterior_Substrates_Doctrine (sheltered surfaces)"
+    },
+    {
+      "driver_id": "CD-003",
+      "condition": "Moisture from above (attic condensation, roof leaks)",
+      "effect": "Soffit is uniquely vulnerable to moisture from ABOVE — attic condensation migrating through vents, ice dam damage, and roof leak migration along sheathing. MC > 15% on wood soffit triggers remediation gate — STOP painting until wood dries and moisture source is resolved. Persistent moisture = structural concern outside painting scope. Moisture staining on soffit may indicate roof issues — flag to homeowner.",
+      "assessment_method": "Moisture meter probe at panel joints, near roof penetrations, at any visible water staining. Check for soft/punky wood at moisture stain locations.",
+      "source": "Exterior_Weathering_Surface_Assessment_Doctrine; field experience"
+    },
+    {
+      "driver_id": "CD-004",
+      "condition": "Caulk/sealant condition at joints",
+      "effect": "Failed soffit caulk at panel joints allows water intrusion between panels and behind the soffit. 'Think Like a Water Drop' assessment: trace every joint. Intact = clean and paint over. Failed = remove + re-caulk with exterior-grade paintable (polyurethane/hybrid MS polymer). NEVER silicone (not paintable). Soffit-to-fascia junction caulk is particularly important — this joint is a primary water pathway.",
+      "assessment_method": "'Think Like a Water Drop' protocol per Exterior_Caulking_Sealants_Doctrine. Visual inspection of panel joints, soffit-to-fascia junction, soffit-to-frieze junction.",
+      "source": "Exterior_Caulking_Sealants_Doctrine"
+    },
+    {
+      "driver_id": "CD-005",
+      "condition": "Lead paint status (pre-1978)",
+      "effect": "Pre-1978 exterior soffit may have lead paint. Overhead scraping is a HIGH-RISK exposure pathway — debris falls directly onto crew and ground. RRP protocol: 6-mil poly containment extending 10 ft from structure (wider than wall work due to overhead drip pattern), wet scraping, HEPA vacuum, lead-safe disposal. RRP modifier: 2.0x on all prep tasks involving paint disturbance. Binary gate: pre_1978 + lead-positive or presumed = activate RRP.",
+      "assessment_method": "XRF testing or EPA-approved lead test kits. Pre-1978 flag is project-level input.",
+      "source": "EPA RRP Rule 40 CFR 745; SF_TRIM_EXT_RP_v1/spec.json (RRP gate pattern)"
+    },
+    {
+      "driver_id": "CD-006",
+      "condition": "Access height",
+      "effect": "Soffit is ALWAYS elevated. Height affects all per-SF tasks: assessment, prep, coating. ground=1.00 (very low eaves only), ladder=1.35, scaffold=1.60. Height modifier stacks ON TOP of overhead-adjusted base rates — double penalty unique to soffit.",
+      "assessment_method": "Per-elevation access assessment during exterior walkthrough. Captured via PS_EXT_META.ENUM.ACCESS_TYPE.",
+      "source": "SF_SOFFIT_EXT_NC_v1/spec.json site_condition_rules; Exterior_Access_Staging_Systems_Doctrine"
+    },
+    {
+      "driver_id": "CD-007",
+      "condition": "Substrate material on exposed areas",
+      "effect": "When scraping or peeling exposes bare substrate, material drives primer chemistry: wood = acrylic primer, fiber cement = alkali-resistant primer (pH 13.0), vinyl = PVC bonding primer. VinylSafe IR-reflective finish mandatory for vinyl soffit when color LRV < 55.",
+      "assessment_method": "Visual identification of substrate material. Per-project — mixed substrate types on soffit are uncommon.",
+      "source": "SF_SOFFIT_EXT_NC_v1/spec.json material_systems; Exterior_Primer_Systems_Doctrine"
+    },
+    {
+      "driver_id": "CD-008",
+      "condition": "Vent condition (paint clogging from prior coats)",
+      "effect": "Vented soffit panels may have partially or fully paint-clogged vents from prior brush_roll applications. Clear vents = no action. Partially clogged = clean with wire brush/pick. Heavily clogged = recommend vent replacement (outside painting scope). During RP application, mask vents to prevent further clogging.",
+      "assessment_method": "Visual inspection of soffit vent openings during assessment.",
+      "source": "Field experience; SF_SOFFIT_EXT_NC_v1/spec.json (soffit_vent_type)"
+    }
+  ],
+
+  "quality_differences": [
+    {
+      "tier": "QT2",
+      "description": "Economy soffit repaint — minimum tier. Wash, degloss/scuff, condition-driven prep, spot prime bare areas, single finish coat flat.",
+      "modifier": 1.0,
+      "inspection": "Quick visual scan from ground. Note obvious misses, peeling bare spots.",
+      "sanding_between_coats": "None — single coat.",
+      "coat_count": "1 finish coat",
+      "edge_quality": "Functional — acceptably neat at fascia/frieze junctions.",
+      "source": "Quality_Tiers_and_Surface_Condition.md; SF_SOFFIT_EXT_NC_v1/spec.json"
+    },
+    {
+      "tier": "QT3",
+      "description": "Standard soffit repaint. Wash, degloss/scuff, condition-driven prep, spot or full prime, 2 finish coats flat or satin.",
+      "modifier": 1.0,
+      "inspection": "Visual scan from ladder height. Note drips, misses, bare spots.",
+      "sanding_between_coats": "Spot sand only — 220 grit on defects found during interstage inspection.",
+      "coat_count": "2 finish coats standard",
+      "edge_quality": "Professional — clean edges at fascia and frieze junctions.",
+      "source": "Quality_Tiers_and_Surface_Condition.md; SF_SOFFIT_EXT_NC_v1/spec.json"
+    },
+    {
+      "tier": "QT4",
+      "description": "Premium soffit repaint — thorough prep, full intercoat sand, premium materials, satin. Systematic inspection.",
+      "modifier": 1.3,
+      "inspection": "Systematic scan at working distance. Mark defects for repair.",
+      "sanding_between_coats": "Full surface sand — 220 grit between finish coats.",
+      "coat_count": "2 finish coats standard",
+      "edge_quality": "Crisp — no visible defects at trim junctions.",
+      "notes": "QT4 is uncommon for soffit. Applies primarily to visible soffits on wide overhangs and deep covered porches where soffit is a prominent visual element.",
+      "source": "Quality_Tiers_and_Surface_Condition.md; SF_SOFFIT_EXT_NC_v1/spec.json"
+    }
+  ],
+
+  "failure_modes": [
+    {
+      "mode_id": "FM-001",
+      "failure": "Mildew regrowth under new paint film",
+      "cause": "Painting over live mildew without biocide treatment. Mildew spores survive under paint and regrow, breaking through the film within 6-18 months. Extremely common on soffit due to sheltered, damp conditions.",
+      "frequency": "Very common — the #1 soffit repaint failure mode",
+      "prevention": "Biocide treatment on ALL mildew-affected areas before painting. Use mildew-resistant paint formulation with mildewcide additive for all soffit repaint. Allow biocide to dwell per product instructions before washing.",
+      "remediation": "Scrape and wash affected areas, apply biocide, allow to dry fully, prime, repaint with mildew-resistant finish",
+      "source": "Exterior_Weathering_Surface_Assessment_Doctrine; Exterior_Substrates_Doctrine (sheltered surfaces)"
+    },
+    {
+      "mode_id": "FM-002",
+      "failure": "Peeling from moisture intrusion above the soffit plane",
+      "cause": "Attic condensation, ice dam damage, or roof leak migration along sheathing delivers moisture to the back side of the soffit. Paint blisters and peels from the inside out. Painting cannot resolve — the moisture source must be addressed.",
+      "frequency": "Common in cold climates (ice dams) and poorly ventilated attics",
+      "prevention": "Moisture probe during assessment. MC > 15% = STOP painting, flag moisture source to homeowner. Check for water staining patterns that indicate roof/attic issues.",
+      "remediation": "Resolve moisture source (attic ventilation, roof repair, ice dam prevention). Dry soffit to <15% MC. Scrape, prime, repaint.",
+      "source": "Exterior_Weathering_Surface_Assessment_Doctrine; field experience"
+    },
+    {
+      "mode_id": "FM-003",
+      "failure": "Attic vent contamination from spray on vented soffit",
+      "cause": "Spraying vented soffit drives paint through perforations into attic cavity. Contaminates attic insulation, blocks airflow, and voids soffit vent function. Identical to NC FM-001.",
+      "frequency": "Guaranteed if spray is used on vented soffit",
+      "prevention": "soffit_vent_type GATE: spray PROHIBITED on vented soffit. brush_roll ONLY for vented construction. Engine must enforce this gate.",
+      "remediation": "Cannot remediate paint contamination inside attic. Professional attic cleaning may be needed. Vent replacement.",
+      "source": "SF_SOFFIT_EXT_NC_v1/spec.json (FM-001); Exterior_Application_Methods_Doctrine Part A §6"
+    },
+    {
+      "mode_id": "FM-004",
+      "failure": "Vinyl soffit thermal warping from dark color",
+      "cause": "Standard dark paint (LRV < 55) absorbs solar radiation, raising vinyl surface temperature above softening point. Vinyl warps, buckles, and joints open. Identical to NC FM-005.",
+      "frequency": "Guaranteed if dark paint is used on vinyl soffit without IR-reflective technology",
+      "prevention": "VinylSafe IR-reflective coating MANDATORY for vinyl soffit when color LRV < 55. Color gate during specification.",
+      "remediation": "Remove warped vinyl components and replace — warping is permanent deformation",
+      "source": "SF_SOFFIT_EXT_NC_v1/spec.json (SYS_EXT_SFIT_FINISH_SOLAR); Exterior_Color_Sheen_Configuration_Doctrine"
+    },
+    {
+      "mode_id": "FM-005",
+      "failure": "Chalking-induced topcoat delamination at exposed soffit edges",
+      "cause": "Applying topcoat over chalking surface at eave edges or south-facing soffits without chalk-binding primer. Chalk layer prevents bonding — new paint peels within 1-3 years.",
+      "frequency": "Uncommon on most soffit (sheltered), but occurs at eave edges and south-facing exposures",
+      "prevention": "Chalk rub test on all soffit. Power wash + chalk-binding primer when chalk is present, even if chalk appears light.",
+      "remediation": "Scrape delaminated areas, feather sand, chalk-binding primer, 2 finish coats",
+      "source": "Exterior_Weathering_Surface_Assessment_Doctrine; Exterior_Primer_Systems_Doctrine"
+    },
+    {
+      "mode_id": "FM-006",
+      "failure": "Paint-clogged soffit vents reducing attic ventilation",
+      "cause": "Repeated brush_roll applications without vent masking progressively clog soffit vent perforations. Reduced attic ventilation causes moisture buildup, ice dams, and accelerated roof deck deterioration.",
+      "frequency": "Common on older homes with multiple repaint cycles",
+      "prevention": "Mask vent openings with tape or foam plugs during RP application. Assess vent condition during pre-paint inspection. Recommend vent replacement when heavily clogged.",
+      "remediation": "Clean vent openings with wire brush/pick or replace vent panels. Outside painting scope if damage is extensive.",
+      "source": "Field experience; SF_SOFFIT_EXT_NC_v1/spec.json (soffit_vent_type)"
+    }
+  ],
+
+  "notes_for_materials_manager": [
+    {
+      "note_id": "NM-001",
+      "topic": "State-driven primer systems for RP soffit — dual-axis selection",
+      "note": "RP soffit uses a two-dimensional primer selection: condition state drives primer need, substrate material drives primer chemistry on exposed areas. (1) SS_EXT_SOUND_PAINT: spot prime bare/thin areas only — primer chemistry follows substrate material at exposed spots: wood = SYS_EXT_SFIT_PRIMER_ACRYLIC, fiber cement = SYS_EXT_SFIT_PRIMER_ALKALI, vinyl = SYS_EXT_SFIT_PRIMER_BONDING. (2) SS_EXT_CHALKING: chalk-binding primer full surface (NEW RP system, SYS_EXT_SFRP_PRIMER_CHALK_BIND) — applies regardless of substrate material over chalking surface. (3) SS_EXT_FAILING_PAINT: spot or full prime depending on bare area percentage — material-specific primer on exposed substrate. (4) SS_EXT_PEELING: full prime — material-specific primer on bare areas + acrylic primer over full surface. NC material systems transfer for use on exposed substrate areas. NEW RP-specific system: chalk-binding primer."
+    },
+    {
+      "note_id": "NM-002",
+      "topic": "Finish coat systems transfer unchanged from NC",
+      "note": "NC finish systems transfer directly: SYS_EXT_SFIT_FINISH_STANDARD (QT2/QT3), SYS_EXT_SFIT_FINISH_PREMIUM (QT4), SYS_EXT_SFIT_FINISH_SOLAR (vinyl LRV < 55). Mildew-resistant paint formulation is strongly recommended for all soffit RP — mildewcide additive in finish coat. Same products, same QT-driven selection as NC."
+    },
+    {
+      "note_id": "NM-003",
+      "topic": "Sheen recommendations for RP soffit",
+      "note": "Per NC spec: flat (default, most common) or satin. No semi-gloss or gloss — overhead surfaces show imperfections at higher sheen. For RP, existing sheen should be noted during assessment. Flat is the standard soffit sheen. Sheen gate transfers unchanged from NC."
+    },
+    {
+      "note_id": "NM-004",
+      "topic": "RP-specific consumables beyond NC list",
+      "note": "Add to NC consumable list: (1) chalk-binding primer for SS_EXT_CHALKING; (2) exterior-grade paintable caulk (polyurethane/hybrid MS polymer) for caulk repair; (3) biocide/mildewcide treatment (sodium hypochlorite solution or commercial mildew remover — more important for soffit than any other exterior surface); (4) liquid deglosser or scuff-sand supplies for existing paint surface preparation; (5) RRP containment supplies (6-mil poly, HEPA vacuum, lead-safe disposal bags) when pre_1978 + lead; (6) vent masking tape/foam plugs for protecting vent openings during RP application."
+    },
+    {
+      "note_id": "NM-005",
+      "topic": "NC protection materials transfer with additions",
+      "note": "NC protection materials (landscape tarps, hardscape drop cloths, fascia masking film/tape, light fixture bags/tape, siding masking for spray) transfer unchanged. RP adds: RRP containment poly (6-mil) when applicable."
+    }
+  ],
+
+  "notes_for_sop_librarian": [
+    {
+      "note_id": "NS-001",
+      "topic": "RP soffit SOP adds assessment and mildew treatment modules before NC workflow",
+      "note": "Recommended module structure: (1) MOD_SFRP_ASSESS — assessment module (condition inspect, adhesion test, mildew/algae assess, moisture probe, caulk assess, vent condition check); (2) MOD_SFRP_WASH — low-pressure wash per elevation (500-800 PSI, fan tip, mildew detergent, 24-48 hr dry); (3) MOD_SFRP_SETUP — protection setup (transfers from NC MOD_SFIT_SETUP + landscape/hardscape protection + RRP containment if applicable); (4) MOD_SFRP_PREP — RP-specific prep (mildew/algae biocide treatment, chalk remediation, scrape/feather, degloss/scuff, caulk repair, vent cleaning/masking, clean dust); (5) MOD_SFRP_PRIME — state/material-driven primer (chalk-binding, spot/full acrylic, spot alkali-resistant, spot bonding, or skip); (6) MOD_SFRP_FINISH_1 — finish coat 1 (transfers from NC MOD_SFIT_FINISH_1); (7) MOD_SFRP_INTERSTAGE — interstage process (transfers from NC MOD_SFIT_INTERSTAGE); (8) MOD_SFRP_FINISH_2 — finish coat 2 (transfers from NC MOD_SFIT_FINISH_2); (9) MOD_SFRP_FINAL_INSPECT — final inspection and touchup (transfers from NC MOD_SFIT_FINAL_INSPECT); (10) MOD_SFRP_CLEANUP — cleanup (transfers from NC MOD_SFIT_CLEANUP + customer walkthrough + RRP teardown if applicable)."
+    },
+    {
+      "note_id": "NS-002",
+      "topic": "Mildew assessment and treatment must be FIRST priority in soffit RP SOP",
+      "note": "Mildew/algae assessment is the most critical soffit-specific check. Treatment must happen BEFORE any other prep or coating — painting over live mildew is the #1 soffit repaint failure mode (FM-001). Biocide dwell time per product instructions (typically 10-15 min), then low-pressure wash to remove dead growth and residue. Allow 24-48 hr dry time. Mildew treatment adds approximately 5-10 min per 100 SF for moderate coverage."
+    },
+    {
+      "note_id": "NS-003",
+      "topic": "Wash is per-elevation, low-pressure ONLY",
+      "note": "Low-pressure wash (500-800 PSI max, fan tip) is a per-elevation task. NEVER power wash soffit — damages panel edges and forces water into attic through vents. Mildew-removal detergent during wash pass. Must allow 24-48 hr dry before coating (soffit dries slower than vertical — no gravity drainage, limited airflow). SOP should sequence: assess all soffit on elevation -> mildew treat -> wash elevation -> dry time -> prep individual areas."
+    },
+    {
+      "note_id": "NS-004",
+      "topic": "Vent masking during application is RP-specific SOP requirement",
+      "note": "For vented soffit RP with brush_roll method, mask individual vent openings with tape or foam plugs before application. This prevents further paint accumulation in vents (FM-006). Unmask after final coat is applied. Add vent mask/unmask steps to finish coat SOP."
+    },
+    {
+      "note_id": "NS-005",
+      "topic": "RRP containment sequencing for overhead soffit",
+      "note": "When RRP is triggered: containment setup happens AFTER assessment but BEFORE any paint disturbance (wash, scrape, sand). 6-mil poly on ground extending 10 ft from structure below soffit work zone — wider than standard wall containment because overhead scraping spreads debris over a larger area. Containment must be maintained throughout all prep and coating phases. Teardown after final cleanup. RRP tasks are per-elevation."
+    }
+  ],
+
+  "notes_for_estimation_engineer": [
+    {
+      "note_id": "NE-001",
+      "topic": "SF-based production — identical UOM to NC",
+      "note": "This spec uses SF (per square foot) of net paintable soffit field area. Same PaintScope input as NC: IN_SF_SOFFIT_FIELD via PS_EXT_SURFACE_SF.SOFFIT_FIELD. All per-SF rates already include overhead work penalty (~25-35% reduction from vertical baselines) — do NOT apply FAC_SFIT_OVERHEAD as a separate modifier."
+    },
+    {
+      "note_id": "NE-002",
+      "topic": "NC modifiers transfer unchanged — physical characteristics",
+      "note": "NC modifiers transfer directly to RP: FAC_EXT_ACCESS (ground=1.00, ladder=1.35, scaffold=1.60), FAC_SFIT_VENT_COMPLEXITY (non_vented=1.00, vented=1.15 — brush_roll only), FAC_SFIT_TG_JOINTS (solid_panel=1.00, tg_board=1.20). These describe physical characteristics unchanged between NC and RP."
+    },
+    {
+      "note_id": "NE-003",
+      "topic": "Condition modifiers apply to prep tasks ONLY — stacking partition",
+      "note": "Per condition_scale: GOOD=1.0x, FAIR=1.5x, POOR=2.0x. Condition modifier applies to prep tasks only (scrape, feather, sand, chalk remediation, caulk repair, mildew treatment). NOT applied to setup, coating, inspection, or cleanup tasks. Stacking partition follows SF_TRIM_EXT_RP and SF_WINDOW_EXT_RP patterns: prep pool = CONDITION x RRP x ACCESS; coating pool = QT x ACCESS. ACCESS (height) is shared across both pools. CONDITION and RRP never apply to coating tasks. QT never applies to prep tasks."
+    },
+    {
+      "note_id": "NE-004",
+      "topic": "RRP modifier: 2.0x on prep tasks involving paint disturbance",
+      "note": "Pre-1978 + lead-positive triggers RRP. FAC_SFRP_RRP = 2.00x on all prep tasks involving paint disturbance (scrape, feather-sand, wash with paint removal). RRP containment setup/teardown are separate fixed-time tasks per elevation. Binary gate: rrp_required=true or false. Stacking pool: PREP. RRP modifier calibrated to 2.0x per established exterior RP pattern."
+    },
+    {
+      "note_id": "NE-005",
+      "topic": "Projected task count: ~42-48 tasks",
+      "note": "NC has 37 tasks across 8 modules. RP projection: ~24 DIRECT transfers (setup/protection tasks, finish coat application, T&G brush-back, interstage, final inspection, cleanup tasks) + ~5 MODIFIED (wood sand prep becomes degloss, primer tasks become state-driven, wash becomes RP wash with mildew) - 2 NOT_APPLICABLE (cut edge sealing, tannin spot prime) + ~15-18 RP_NEW (assessment tasks: condition inspect, adhesion test, mildew assess, moisture probe, caulk assess, vent condition check; prep tasks: mildew biocide treatment, chalk remediation, scrape/feather, degloss/scuff, caulk repair, vent clean/mask; RRP containment setup/teardown; landscape/hardscape protection setup; customer walkthrough). Total: approximately 42-48 tasks across 10 modules."
+    },
+    {
+      "note_id": "NE-006",
+      "topic": "Finish coat application rates transfer DIRECT from NC",
+      "note": "All finish coat application tasks transfer unchanged from NC production.json. Brush_roll and spray rates at per-SF with overhead-adjusted base rates. Interstage tasks (inspect, sand between, spot repair, dust cleanup) also transfer at NC rates. T&G brush-back tasks transfer at NC rates. Once surface is properly prepped and primed, coating application is identical to NC."
+    },
+    {
+      "note_id": "NE-007",
+      "topic": "Assessment tasks are RP_NEW — rates derived from exterior RP patterns",
+      "note": "Soffit assessment tasks need rate development. Reference rates per 100 SF: condition inspect ~5-8 min, adhesion test ~2-3 min (representative sections), mildew assess ~3-5 min (visual scan, soffit-specific emphasis), moisture probe ~3-5 min (at joints and staining areas), caulk assess ~3-5 min (panel joints, trim junctions), vent condition check ~2-3 min. Total assessment: ~10-15 min per 100 SF depending on condition and access height. All assessment rates must be overhead-adjusted."
+    },
+    {
+      "note_id": "NE-008",
+      "topic": "Modifier stacking partition — prep pool vs coating pool",
+      "note": "Prep pool: CONDITION x RRP x ACCESS x VENT_COMPLEXITY x TG_JOINTS. Coating pool: QT x ACCESS x VENT_COMPLEXITY x TG_JOINTS. Worst-case prep: POOR (2.0) x RRP (2.0) x scaffold (1.60) x vented (1.15) x tg_board (1.20) = 8.83x — exceeds 4.0x cap, extreme scenario (recommend T&M). Common high prep: FAIR (1.5) x no_rrp (1.0) x ladder (1.35) x non_vented (1.0) x solid_panel (1.0) = 2.03x (well within cap). Worst-case coating: QT4 (1.3) x scaffold (1.60) x vented (1.15) x tg_board (1.20) = 2.87x (within cap). Common high coating: QT3 (1.0) x ladder (1.35) x vented (1.15) x solid_panel (1.0) = 1.55x (comfortable)."
+    },
+    {
+      "note_id": "NE-009",
+      "topic": "Wash is per-elevation fixed time, not per-SF",
+      "note": "Low-pressure wash is a FIXED task per elevation, not per-SF. It covers all soffit on an elevation in one pass. Rate: ~15-25 min per elevation for residential scale (includes mildew detergent application). This follows the exterior RP pattern where some tasks are per-elevation rather than per-surface-area."
+    },
+    {
+      "note_id": "NE-010",
+      "topic": "QT modifiers for soffit use GLOBAL values",
+      "note": "Soffit QT modifiers: QT2=1.00 (baseline economy), QT3=1.00 (standard baseline), QT4=1.30 (premium). No QT5 for soffit. QT modifier applies to qt_scaled tasks in the coating pool only."
+    }
+  ],
+
+  "confidence_level": "high",
+
+  "assumptions": [
+    {
+      "assumption_id": "A-001",
+      "field": "context_prefix",
+      "value": "SFRP_ (SoFfit RePaint)",
+      "source": "Collision analysis against all NC and RP specs",
+      "doctrine_gap": false,
+      "note": "TSK_SFIT_* is consumed by NC (37 tasks). SFRP_ avoids all collisions. Pattern: SF = soffit, RP = repaint. Verified zero existing usage of TSK_SFRP_* and MOD_SFRP_* in the codebase."
+    },
+    {
+      "assumption_id": "A-002",
+      "field": "qt_modifiers_global",
+      "value": "QT2=1.0, QT3=1.0, QT4=1.3 (global modifiers, no QT5 for soffit)",
+      "source": "SF_SOFFIT_EXT_NC_v1/spec.json; Modifier_Registry.md",
+      "doctrine_gap": false,
+      "note": "NC spec confirms QT2-QT4 range. QT5 excluded per Exterior_Substrates_Doctrine §5.4 — soffit is not fine-finish millwork."
+    },
+    {
+      "assumption_id": "A-003",
+      "field": "condition_scale_mapping",
+      "value": "GOOD=SS_EXT_SOUND_PAINT, FAIR=SS_EXT_CHALKING or SS_EXT_FAILING_PAINT (localized), POOR=SS_EXT_PEELING or SS_EXT_FAILING_PAINT (widespread)",
+      "source": "controlled_enums.json condition_scale; SF_TRIM_EXT_RP_v1 (exterior RP state-to-condition pattern); SF_WINDOW_EXT_RP_v1/research.json A-003",
+      "doctrine_gap": false,
+      "note": "Follows exterior RP pattern. GOOD is the expected dominant state for soffit RP due to sheltered location."
+    },
+    {
+      "assumption_id": "A-004",
+      "field": "assessment_rates",
+      "value": "10-15 min per 100 SF total assessment time (condition + adhesion + mildew + moisture + caulk + vent)",
+      "source": "Derived from SF_WINDOW_EXT_RP_v1 assessment rates adapted for SF-based area measurement",
+      "doctrine_gap": true,
+      "note": "No doctrine defines soffit-specific assessment rates. Rates derived from exterior RP assessment patterns adapted for SF-based area coverage instead of EA-based per-unit. Overhead execution slows assessment compared to vertical surfaces."
+    },
+    {
+      "assumption_id": "A-005",
+      "field": "wash_rate",
+      "value": "15-25 min per elevation for residential soffit low-pressure wash with mildew detergent",
+      "source": "Derived from SF_WINDOW_EXT_RP_v1 power wash pattern adapted for soffit constraints",
+      "doctrine_gap": true,
+      "note": "Low-pressure wash is a per-elevation task. Lower pressure than trim/window wash (500-800 PSI vs 500-1000 PSI) due to panel edge sensitivity. Includes mildew detergent application."
+    },
+    {
+      "assumption_id": "A-006",
+      "field": "nc_rate_transfer",
+      "value": "All NC finish application, interstage, T&G brush-back, protection, and cleanup rates transfer unchanged to RP",
+      "source": "SF_SOFFIT_EXT_NC_v1/production.json; SF_WINDOW_EXT_RP_v1/research.json A-006 (rate transfer pattern)",
+      "doctrine_gap": false,
+      "note": "Once surface is properly prepped and primed, coating application is identical regardless of NC vs RP. Confirmed by window RP and trim RP research."
+    },
+    {
+      "assumption_id": "A-007",
+      "field": "access_model",
+      "value": "4-tier access model (ground/ladder/scaffold/lift) from NC FAC_EXT_ACCESS",
+      "source": "SF_SOFFIT_EXT_NC_v1/spec.json site_condition_rules",
+      "doctrine_gap": false,
+      "note": "NC uses 4-tier access per elevation. Per-elevation, not per-SF-area. Ground tier rarely applies to soffit (very low eaves only)."
+    },
+    {
+      "assumption_id": "A-008",
+      "field": "rrp_modifier",
+      "value": "FAC_SFRP_RRP = 2.00x on prep tasks involving paint disturbance",
+      "source": "SF_TRIM_EXT_RP_v1/spec.json FAC_TRRP_RRP = 2.00x; SF_WINDOW_EXT_RP_v1/research.json A-008",
+      "doctrine_gap": false,
+      "note": "RRP modifier calibrated to 2.0x per established exterior RP pattern. Consistent across all exterior RP specs."
+    },
+    {
+      "assumption_id": "A-009",
+      "field": "mildew_treatment_rate",
+      "value": "5-10 min per 100 SF for biocide treatment on moderate mildew coverage",
+      "source": "Derived from field experience and exterior RP patterns",
+      "doctrine_gap": true,
+      "note": "No doctrine defines mildew treatment rates. Soffit is the most mildew-prone exterior surface — this rate accounts for overhead application of biocide, dwell time, and scrub/rinse. Heavy mildew may be significantly slower."
+    }
+  ],
+
+  "uncertainties": [
+    {
+      "uncertainty_id": "U-001",
+      "topic": "Mildew treatment rate calibration for overhead work",
+      "description": "Mildew/algae biocide treatment on overhead soffit has no established production rate in the system. Overhead application of liquid biocide is slow (drips onto painter, requires sprayer or brush), and dwell time varies by product. Should the mildew treatment rate be a separate fixed task per 100 SF, or integrated into the wash task?",
+      "impact": "Estimation accuracy for the most common soffit-specific prep task",
+      "resolution": "Recommend separate task (TSK_SFRP_MILDEW_TREAT) distinct from wash. Mildew treatment requires biocide dwell time before washing. Estimation Engineer to calibrate rate."
+    },
+    {
+      "uncertainty_id": "U-002",
+      "topic": "Vent masking labor during RP application",
+      "description": "Masking individual vent openings on vented soffit panels during RP brush_roll application is a unique RP concern (NC vents are clean). How much labor does vent masking add? NC spec notes vented=1.15x modifier on brush_roll, but RP vent masking is a distinct task from the vent complexity modifier.",
+      "impact": "Whether vent masking is a separate task or absorbed into the vent complexity modifier",
+      "resolution": "Recommend absorbing vent masking into the existing FAC_SFIT_VENT_COMPLEXITY modifier, increasing from 1.15 to ~1.20 for RP on vented soffit. Alternatively, add as a separate RP_NEW task (TSK_SFRP_VENT_MASK). Estimation Engineer to decide."
+    },
+    {
+      "uncertainty_id": "U-003",
+      "topic": "Wash ownership — soffit spec or trim spec or shared",
+      "description": "Low-pressure wash covers an entire elevation in one pass. If multiple exterior RP specs are active on the same elevation (soffit + trim + siding), wash should not be double-counted.",
+      "impact": "Task ownership and double-counting prevention",
+      "resolution": "Recommend wash owned by the spec that initiates the exterior RP sequence on each elevation. Cross-spec deduplication rule: if wash is already performed by another spec on the same elevation, skip. Flag for Estimation Engineer. Follows SF_WINDOW_EXT_RP_v1 U-003 pattern."
+    },
+    {
+      "uncertainty_id": "U-004",
+      "topic": "Landscape protection overlap with trim and siding RP specs",
+      "description": "Ground/landscape protection below soffit overlaps with exterior trim RP and siding RP protection zones. When multiple exterior specs are active, protection should be set up once and shared — not counted per-spec.",
+      "impact": "Protection task counting accuracy",
+      "resolution": "Cross-spec protection deduplication — protection setup owned by first spec in elevation sequence. Subsequent specs benefit from existing protection. Standard exterior RP deduplication pattern per SF_WINDOW_EXT_RP_v1 U-004."
+    },
+    {
+      "uncertainty_id": "U-005",
+      "topic": "Substrate material identification on previously painted soffit",
+      "description": "Identifying substrate material (wood vs fiber cement vs vinyl) on a previously painted soffit may not be obvious during assessment. Paint obscures material characteristics. Incorrect material identification leads to wrong primer selection on exposed areas.",
+      "impact": "Primer chemistry accuracy on exposed substrate areas",
+      "resolution": "Assessment SOP should include material identification step: tap test (hollow = vinyl), edge inspection at panel joints (fiber cement is thick/heavy, vinyl is thin/flexible, wood shows grain), and homeowner interview about original construction. Document material type in assessment notes."
+    }
+  ],
+
+  "protection_zones_analysis": {
+    "spec_category": "exterior_soffit",
+    "zones": [
+      {
+        "zone_id": "ext_landscape_adjacent",
+        "condition": "when_adjacent",
+        "protection_level": "edge_only",
+        "upgrade_scenario": "Upgrades to full_cover for spray application or when scraping generates debris (most RP scenarios)",
+        "notes": "SF-based landscape area directly below soffit drip zone. CRITICAL for overhead RP — gravity pulls all drips and scraping debris straight down. Brush_roll: drop cloth at drip zone. Spray: full tarp over entire drip zone. Transferred from NC with RP emphasis on scraping debris containment."
+      },
+      {
+        "zone_id": "ext_hardscape_walk",
+        "condition": "when_adjacent",
+        "protection_level": "light_mask",
+        "upgrade_scenario": "Upgrades to full_cover for spray or RRP",
+        "notes": "Walkway/hardscape below soffit. Canvas drop cloths for non-slip crew traffic. Transferred from NC."
+      },
+      {
+        "zone_id": "ext_light_fixture",
+        "condition": "when_present",
+        "protection_level": "light_mask",
+        "upgrade_scenario": null,
+        "notes": "Soffit-mounted fixtures — recessed lights, porch fixtures. Bag or tape over. Remove cover plate if accessible. Transferred DIRECT from NC."
+      },
+      {
+        "zone_id": "ext_fascia_adjacent",
+        "condition": "when_finished",
+        "protection_level": "light_mask",
+        "upgrade_scenario": null,
+        "notes": "Fascia board above soffit — tape + 12-inch masking film at fascia-soffit junction when fascia is already painted. In RP, fascia is almost always already finished — protection is mandatory in most RP scenarios (unlike NC where fascia may be unfinished in top-down sequence)."
+      },
+      {
+        "zone_id": "ext_siding_adjacent",
+        "condition": "when_finished",
+        "protection_level": "light_mask",
+        "upgrade_scenario": { "application_method": ["spray"] },
+        "notes": "Siding below soffit at wall junction (frieze area) — protect when siding is already painted. In RP, siding is almost always already finished. Spray upgrades to full masking. Transferred from NC."
+      },
+      {
+        "zone_id": "ext_ground_cover",
+        "condition": "always",
+        "protection_level": "edge_only",
+        "upgrade_scenario": "Upgrades to full_cover for spray or RRP or when scraping generates debris",
+        "notes": "RP-SPECIFIC: General ground protection below soffit work zone. Catches scraping debris, wash runoff, and paint drips. In RRP scenarios: 6-mil poly extending 10 ft from structure. Wider coverage than wall-adjacent containment because overhead debris spreads further."
+      },
+      {
+        "zone_id": "ext_rrp_containment",
+        "condition": { "pre_1978": true, "rrp_required": true },
+        "protection_level": "full_containment",
+        "notes": "RP-SPECIFIC: EPA RRP Rule containment. 6-mil poly ground containment extending 10 ft from structure. WIDER than standard wall containment because overhead scraping spreads lead-containing debris over a larger area. Required when disturbing lead paint on pre-1978 structures. Per-elevation setup."
+      }
+    ],
+    "zone_reference": "Protection_Zones_Reference.md; Exterior_Protection_Doctrine_T3"
+  },
+
+  "adjacency_analysis": {
+    "primary_surface": "soffit_field",
+    "adjacent_surfaces": [
+      {
+        "surface_id": "ext_trim_fascia",
+        "edge_type": "linear",
+        "typical_relationship": "different_finish",
+        "edge_work_required": true,
+        "notes": "Fascia above soffit. Trim color (typically different from soffit). SF_TRIM_EXT_RP_v1 scope. Cut-in required at fascia-soffit junction. In RP, fascia is almost always already finished — protection mandatory."
+      },
+      {
+        "surface_id": "ext_trim_frieze",
+        "edge_type": "linear",
+        "typical_relationship": "different_finish",
+        "edge_work_required": true,
+        "notes": "Frieze board at soffit-to-wall junction. Trim color. SF_TRIM_EXT_RP_v1 scope. Cut-in at junction. In RP, frieze is almost always already finished."
+      },
+      {
+        "surface_id": "ext_trim_corner",
+        "edge_type": "linear",
+        "typical_relationship": "different_finish",
+        "edge_work_required": false,
+        "notes": "Corner boards at gable soffit termination. Trim color."
+      },
+      {
+        "surface_id": "siding_field",
+        "edge_type": "linear",
+        "typical_relationship": "different_finish",
+        "edge_work_required": false,
+        "notes": "Siding below soffit separated by frieze board. No direct soffit-to-siding cut-in needed. Protection-only for spray."
+      },
+      {
+        "surface_id": "porch_ceiling",
+        "edge_type": "linear",
+        "typical_relationship": "same_finish",
+        "edge_work_required": false,
+        "notes": "Porch ceiling may be continuous with soffit (same color). Future SF_PORCH_CEILING_EXT_RP. Color coordination important."
+      }
+    ],
+    "surface_reference": "Surface_Vocabulary_Reference.md"
+  },
+
+  "site_condition_analysis": {
+    "affected_conditions": [
+      {
+        "condition_id": "access_type",
+        "affected_task_types": ["assess", "prep", "prime", "finish", "inspect", "protect"],
+        "include_values": ["ground", "ladder", "scaffold", "lift"],
+        "modifier_notes": "ground=1.00, ladder=1.35, scaffold=1.60, lift=1.50",
+        "notes": "Soffit is ALWAYS elevated. Height modifier applies to ALL per-SF tasks. Per-elevation attribute. Stacks ON TOP of overhead-adjusted base rates. 4-tier model from NC."
+      },
+      {
+        "condition_id": "substrate_condition",
+        "affected_task_types": ["prep"],
+        "include_values": ["GOOD", "FAIR", "POOR"],
+        "modifier_notes": "GOOD=1.0x, FAIR=1.5x, POOR=2.0x",
+        "notes": "Condition modifier applies to prep tasks ONLY. Maps from substrate state: GOOD=SS_EXT_SOUND_PAINT, FAIR=SS_EXT_CHALKING or localized SS_EXT_FAILING_PAINT, POOR=SS_EXT_PEELING or widespread SS_EXT_FAILING_PAINT."
+      },
+      {
+        "condition_id": "rrp_gate",
+        "affected_task_types": ["prep"],
+        "include_values": ["rrp_required"],
+        "modifier_notes": "no_rrp=1.00, rrp_required=2.00",
+        "notes": "Pre-1978 + lead-positive triggers RRP. 2.0x on prep tasks involving paint disturbance. Binary gate. RRP containment setup/teardown are separate fixed tasks per elevation."
+      },
+      {
+        "condition_id": "vent_complexity",
+        "affected_task_types": ["prime", "finish"],
+        "include_values": ["non_vented", "vented"],
+        "modifier_notes": "non_vented=1.00, vented=1.15 (brush_roll only; spray prohibited on vented)",
+        "notes": "Transferred from NC. Applies to brush_roll application tasks only. Spray is prohibited on vented soffit. RP may increase vent complexity modifier to ~1.20 to account for vent masking labor (see U-002)."
+      },
+      {
+        "condition_id": "panel_type",
+        "affected_task_types": ["prep", "prime", "finish"],
+        "include_values": ["solid_panel", "tg_board"],
+        "modifier_notes": "solid_panel=1.00, tg_board=1.20",
+        "notes": "Transferred from NC. T&G groove work increases labor. T&G brush-back tasks already reflect groove work — do NOT apply this modifier to those."
+      },
+      {
+        "condition_id": "pre_1978",
+        "affected_task_types": ["assess"],
+        "include_values": [true],
+        "modifier_notes": "Triggers lead assessment and potential RRP activation",
+        "notes": "Project-level flag. Shared with trim, siding, window, and door RP specs."
+      }
+    ],
+    "excluded_conditions": [
+      {
+        "condition_id": "wind_condition",
+        "reason": "Environmental conditions are NOT estimation modifiers per PaintFactor OS RC-003.",
+        "source": "SF_TRIM_EXT_RP_v1 RC-002; SF_WINDOW_EXT_RP_v1 RC-002"
+      },
+      {
+        "condition_id": "sun_exposure",
+        "reason": "Environmental conditions are NOT estimation modifiers per PaintFactor OS RC-003.",
+        "source": "SF_TRIM_EXT_RP_v1 RC-002"
+      },
+      {
+        "condition_id": "surface_temperature",
+        "reason": "Environmental conditions are NOT estimation modifiers per PaintFactor OS RC-003.",
+        "source": "SF_TRIM_EXT_RP_v1 RC-002"
+      }
+    ],
+    "condition_reference": "Site_Condition_Vocabulary_Reference.md; Modifier_Registry.md"
+  },
+
+  "state_analysis": {
+    "primary_surface": "soffit_field",
+    "valid_input_states": {
+      "states": ["SS_EXT_SOUND_PAINT", "SS_EXT_CHALKING", "SS_EXT_FAILING_PAINT", "SS_EXT_PEELING"],
+      "rationale": "4 exterior RP substrate states — same as SF_TRIM_EXT_RP_v1 and SF_WINDOW_EXT_RP_v1. SS_EXT_SOUND_PAINT is the MOST common soffit RP state (sheltered surface, long coating life). SS_EXT_CHALKING is less common on soffit than exposed surfaces but valid at eave edges and south exposures. SS_EXT_FAILING_PAINT = cracking at panel joints and trim junctions. SS_EXT_PEELING = active delamination at moisture intrusion points. SS_EXT_WEATHERED excluded (bare wood territory). SS_EXT_STAINED_* excluded (not standard scope). SS_EXT_BARE_WOOD excluded (NC scope)."
+    },
+    "output_state": {
+      "state": "SS_EXT_PAINTED_FLAT",
+      "varies_by": "sheen",
+      "state_map": {
+        "flat": "SS_EXT_PAINTED_FLAT",
+        "satin": "SS_EXT_PAINTED_SATIN"
+      },
+      "rationale": "All repaint input states converge to painted output state. Sheen determined by selection: flat (default, most common for soffit) or satin. No semi-gloss or gloss for soffit."
+    },
+    "adjacent_state_protection_analysis": [
+      {
+        "adjacent_surface": "ext_trim_fascia",
+        "finished_states": ["SS_EXT_PAINTED_SATIN", "SS_EXT_PAINTED_SEMIGLOSS", "SS_EXT_PAINTED_GLOSS", "SS_EXT_SOUND_PAINT"],
+        "unfinished_states": [],
+        "protection_when_finished": "light_mask",
+        "protection_when_unfinished": "none",
+        "rationale": "In RP, fascia is almost always already painted. Light tape at fascia-soffit junction."
+      },
+      {
+        "adjacent_surface": "ext_trim_frieze",
+        "finished_states": ["SS_EXT_PAINTED_SATIN", "SS_EXT_PAINTED_SEMIGLOSS", "SS_EXT_PAINTED_GLOSS", "SS_EXT_SOUND_PAINT"],
+        "unfinished_states": [],
+        "protection_when_finished": "light_mask",
+        "protection_when_unfinished": "none",
+        "rationale": "In RP, frieze is almost always already painted. Light tape at soffit-frieze junction."
+      },
+      {
+        "adjacent_surface": "siding_field",
+        "finished_states": ["SS_EXT_PAINTED_FLAT", "SS_EXT_PAINTED_SATIN"],
+        "unfinished_states": [],
+        "protection_when_finished": "full_mask (spray), none (brush_roll)",
+        "protection_when_unfinished": "none",
+        "rationale": "Siding masking required for spray only. In RP, siding is almost always already finished."
+      }
+    ],
+    "state_reference": "Substrate_State_Reference.md; controlled_enums.json"
+  },
+
+  "required_paintscope_keys": [
+    "PS_EXT_SURFACE_SF.SOFFIT_FIELD",
+    "PS_EXT_META.EA.ELEVATIONS_TOTAL",
+    "PS_EXT_META.ENUM.ACCESS_TYPE",
+    "PS_EXT_META.ENUM.SUBSTRATE_STATE",
+    "PS_EXT_META.ENUM.SOFFIT_VENT_TYPE",
+    "PS_EXT_META.ENUM.SOFFIT_PANEL_TYPE",
+    "PS_EXT_META.ENUM.SUBSTRATE_TYPE_SOFFIT",
+    "PS_EXT_META.FLAG.PRE_1978",
+    "PS_EXT_PROTECT_SF.LANDSCAPE_ADJACENT",
+    "PS_EXT_PROTECT_SF.HARDSCAPE_WALK",
+    "PS_EXT_PROTECT_EA.LIGHT_FIXTURE"
+  ],
+
+  "proposed_new_keys": [
+    {
+      "key": "PS_EXT_META.ENUM.SUBSTRATE_STATE_SOFFIT",
+      "rationale": "Per-elevation or per-project substrate state for soffit (SS_EXT_SOUND_PAINT / SS_EXT_CHALKING / SS_EXT_FAILING_PAINT / SS_EXT_PEELING). Could share PS_EXT_META.ENUM.SUBSTRATE_STATE if project-level state is sufficient."
+    },
+    {
+      "key": "PS_EXT_META.ENUM.SUBSTRATE_TYPE_SOFFIT",
+      "rationale": "Soffit substrate material type (wood / fiber_cement / vinyl). Drives primer chemistry on exposed areas. Per-project — mixed soffit substrate types are uncommon."
+    }
+  ],
+
+  "adjacency_notes": [
+    "Soffit meets fascia at upper edge — protection and cut-in relationship. Caulk at soffit-to-fascia junction is THIS spec's responsibility.",
+    "Soffit meets frieze at lower edge (wall side) — protection and cut-in relationship. Caulk at soffit-to-frieze junction is THIS spec's responsibility.",
+    "Soffit-to-siding junction is typically separated by frieze board — no direct cut-in needed.",
+    "Porch ceiling may be continuous with soffit (same color/sheen). Future SF_PORCH_CEILING_EXT_RP handles porch ceiling scope.",
+    "In RP, all adjacent surfaces (fascia, frieze, siding) are almost always already finished — protection is mandatory in most RP scenarios (unlike NC where adjacent surfaces may be unfinished in top-down sequence)."
+  ],
+
+  "nc_task_transfer_summary": {
+    "source_spec": "SF_SOFFIT_EXT_NC_v1",
+    "source_task_count": 37,
+    "direct_transfers": [
+      "TSK_SFIT_LANDSCAPE_PROTECT",
+      "TSK_SFIT_HARDSCAPE_PROTECT",
+      "TSK_SFIT_FIXTURE_MASK",
+      "TSK_SFIT_FASCIA_MASK",
+      "TSK_SFIT_EQUIPMENT_SETUP_BRUSH",
+      "TSK_SFIT_EQUIPMENT_SETUP_SPRAY",
+      "TSK_SFIT_CUTIN_FASCIA_1",
+      "TSK_SFIT_FINISH_1_BRUSH_ROLL",
+      "TSK_SFIT_FINISH_1_SPRAY",
+      "TSK_SFIT_TG_BRUSH_BACK_1",
+      "TSK_SFIT_INSPECT_COAT",
+      "TSK_SFIT_SAND_INTERCOAT",
+      "TSK_SFIT_TOUCHUP_REPAIR",
+      "TSK_SFIT_DUST_INTERCOAT",
+      "TSK_SFIT_CUTIN_FASCIA_2",
+      "TSK_SFIT_FINISH_2_BRUSH_ROLL",
+      "TSK_SFIT_FINISH_2_SPRAY",
+      "TSK_SFIT_TG_BRUSH_BACK_2",
+      "TSK_SFIT_FINAL_INSPECT",
+      "TSK_SFIT_FINAL_TOUCHUP",
+      "TSK_SFIT_PROTECT_TEARDOWN",
+      "TSK_SFIT_CLEAN_EQUIPMENT",
+      "TSK_SFIT_SITE_CLEANUP",
+      "TSK_SFIT_DUST_CLEANUP"
+    ],
+    "direct_count": 24,
+    "modified_transfers": [
+      {
+        "nc_task": "TSK_SFIT_WASH_LOW_PRESSURE",
+        "rp_task": "TSK_SFRP_WASH_LOW_PRESSURE",
+        "rationale": "NC washes new/factory-primed substrate; RP washes existing painted surface with mildew detergent, per-elevation instead of per-SF, includes mildew wash component"
+      },
+      {
+        "nc_task": "TSK_SFIT_SAND_PREP_WOOD",
+        "rp_task": "TSK_SFRP_DEGLOSS_SCUFF",
+        "rationale": "NC sands bare wood for primer adhesion; RP degloss/scuffs existing paint for topcoat adhesion"
+      },
+      {
+        "nc_task": "TSK_SFIT_SAND_PREP_FC",
+        "rp_task": "TSK_SFRP_SCUFF_EXPOSED_FC",
+        "rationale": "NC scuff-sands factory fiber cement surface; RP scuff-sands exposed fiber cement where paint has failed"
+      },
+      {
+        "nc_task": "TSK_SFIT_SAND_PREP_VINYL",
+        "rp_task": "TSK_SFRP_SCUFF_EXPOSED_VINYL",
+        "rationale": "NC scuff-sands factory vinyl surface; RP scuff-sands exposed vinyl where paint has failed"
+      },
+      {
+        "nc_task": "TSK_SFIT_PRIME_BRUSH_ROLL",
+        "rp_task": "TSK_SFRP_PRIME_BRUSH_ROLL",
+        "rationale": "NC uses substrate-specific primer on full bare surface; RP uses state-driven primer (chalk-binding, spot/full acrylic) with material-specific chemistry on exposed areas"
+      },
+      {
+        "nc_task": "TSK_SFIT_PRIME_SPRAY",
+        "rp_task": "TSK_SFRP_PRIME_SPRAY",
+        "rationale": "NC uses substrate-specific primer via spray; RP uses state-driven primer via spray (non-vented only)"
+      },
+      {
+        "nc_task": "TSK_SFIT_PRIME_VINYL_BRUSH_ROLL",
+        "rp_task": "TSK_SFRP_PRIME_SPOT_VINYL_BRUSH_ROLL",
+        "rationale": "NC primes full vinyl surface; RP spot primes exposed vinyl areas with bonding primer"
+      },
+      {
+        "nc_task": "TSK_SFIT_PRIME_ALKALI_BRUSH_ROLL",
+        "rp_task": "TSK_SFRP_PRIME_SPOT_ALKALI_BRUSH_ROLL",
+        "rationale": "NC primes full bare fiber cement; RP spot primes exposed fiber cement areas with alkali-resistant primer"
+      }
+    ],
+    "modified_count": 8,
+    "not_applicable": [
+      {
+        "nc_task": "TSK_SFIT_SEAL_CUT_EDGES",
+        "rationale": "Fiber cement cut edge sealing — already done during original NC installation. RP fiber cement soffit has existing edge seals."
+      },
+      {
+        "nc_task": "TSK_SFIT_SPOT_PRIME_KNOTS",
+        "rationale": "Bare wood tannin spot prime — knots were sealed during original NC. Tannin bleed is not an RP concern on already-painted wood soffit."
+      },
+      {
+        "nc_task": "TSK_SFIT_PRIME_VINYL_SPRAY",
+        "rationale": "Full spray prime on vinyl — RP spot primes exposed areas only. Full spray prime is NC-only."
+      },
+      {
+        "nc_task": "TSK_SFIT_PRIME_ALKALI_SPRAY",
+        "rationale": "Full spray prime on bare fiber cement — RP spot primes exposed areas only. Full spray prime is NC-only."
+      },
+      {
+        "nc_task": "TSK_SFIT_CAULK_JOINTS",
+        "rationale": "NC fresh caulk at all joints. RP replaces with condition-driven caulk ASSESSMENT and REPAIR — fundamentally different task (TSK_SFRP_CAULK_ASSESS_REPAIR is RP_NEW)."
+      }
+    ],
+    "not_applicable_count": 5,
+    "rp_new_tasks": [
+      "TSK_SFRP_ASSESS_CONDITION — visual condition inspection of all soffit surfaces, DSD rating, photograph defects, assign substrate state",
+      "TSK_SFRP_ASSESS_ADHESION — ASTM D3359 cross-hatch tape test on representative soffit sections",
+      "TSK_SFRP_ASSESS_MILDEW — mildew/algae extent and severity assessment (spot/moderate/widespread) — soffit-specific priority check",
+      "TSK_SFRP_ASSESS_MOISTURE — moisture meter probe at panel joints, near roof penetrations, at water staining locations",
+      "TSK_SFRP_ASSESS_CAULK — caulk condition assessment at panel joints and soffit-to-trim junctions per 'Think Like a Water Drop'",
+      "TSK_SFRP_ASSESS_VENT — vent opening condition check for paint clogging from prior coats (vented soffit only)",
+      "TSK_SFRP_MILDEW_TREAT — biocide/mildewcide application for mildew/algae treatment (dwell + scrub + rinse) — soffit-specific critical task",
+      "TSK_SFRP_CHALK_REMEDIATION — chalk-binding primer application for SS_EXT_CHALKING surfaces",
+      "TSK_SFRP_SCRAPE_FEATHER — scrape failing/peeling paint, feather-edge sand all scraped areas (overhead execution)",
+      "TSK_SFRP_DEGLOSS_SCUFF — degloss/scuff sound existing paint for topcoat adhesion (overhead execution)",
+      "TSK_SFRP_CAULK_ASSESS_REPAIR — assess and repair failed caulk at panel joints and trim junctions",
+      "TSK_SFRP_VENT_CLEAN — clean paint-clogged vent openings with wire brush/pick (vented soffit only)",
+      "TSK_SFRP_VENT_MASK — mask vent openings before brush_roll application to prevent further paint clogging (vented soffit only)",
+      "TSK_SFRP_VENT_UNMASK — remove vent masking after final coat application (vented soffit only)",
+      "TSK_SFRP_RRP_CONTAINMENT_SETUP — EPA RRP containment setup per elevation (pre-1978 + lead, wider coverage for overhead work)",
+      "TSK_SFRP_RRP_CONTAINMENT_TEARDOWN — EPA RRP containment teardown and lead-safe disposal per elevation",
+      "TSK_SFRP_LANDSCAPE_PROTECT — landscape/ground protection setup below soffit work zone (RP emphasis on scraping debris)",
+      "TSK_SFRP_HARDSCAPE_PROTECT — walkway/patio protection setup below soffit work zone",
+      "TSK_SFRP_CUSTOMER_WALKTHROUGH — post-completion review with homeowner (verify coverage, sheen, vent function)"
+    ],
+    "rp_new_count": 19,
+    "projected_total_tasks": "24 DIRECT + 8 MODIFIED + 19 RP_NEW - 5 NOT_APPLICABLE = 46 tasks (within 42-48 projection range)"
+  },
+
+  "inherited_research_corrections": [
+    {
+      "correction_id": "RC-001",
+      "original_claim": "RRP modifier is 1.40x on prep tasks",
+      "corrected_to": "RRP modifier is 2.00x on prep tasks involving paint disturbance. The 1.40x figure from research was a rough estimate; the production.json engineer calibrated to 2.00x based on actual wet-scraping, HEPA vacuum, and containment maintenance overhead per EPA RRP procedural requirements.",
+      "corrected_by": "Estimation Engineer",
+      "source": "SF_TRIM_EXT_RP_v1/spec.json RC-001; SF_WINDOW_EXT_RP_v1/research.json RC-001"
+    },
+    {
+      "correction_id": "RC-002",
+      "original_claim": "Environmental conditions (wind, sun, surface temp) should be estimation modifiers",
+      "corrected_to": "Environmental conditions are NOT estimatable — unpredictable at bid time. Excluded from spec entirely. NC spec included environmental modifiers (QA-002 acknowledged inconsistency); these are excluded per established RP correction pattern.",
+      "corrected_by": "PaintFactor OS",
+      "source": "PaintFactor OS RC-003; SF_TRIM_EXT_RP_v1/spec.json RC-002; SF_WINDOW_EXT_RP_v1/research.json RC-002"
+    }
+  ],
+
+  "change_log": [
+    {
+      "version": "1.0.0",
+      "date": "2026-03-15",
+      "author": "Spec Researcher Agent",
+      "changes": "Initial research.json for SF_SOFFIT_EXT_RP_v1. Derived from SF_SOFFIT_EXT_NC_v1 (37 tasks) as primary template, with exterior RP patterns from SF_TRIM_EXT_RP_v1 and SF_WINDOW_EXT_RP_v1. Context prefix SFRP_ avoids collision with TSK_SFIT_* NC tasks (verified zero existing usage). 4 exterior RP substrate states (SS_EXT_SOUND_PAINT, SS_EXT_CHALKING, SS_EXT_FAILING_PAINT, SS_EXT_PEELING). Key soffit-specific findings: mildew/algae is the #1 degradation mechanism (RF-005, sheltered damp conditions), chalking is LESS common than other exterior surfaces (RF-008, sheltered from UV), ALL work is overhead with constant productivity penalty (RF-003), spray-on-vented prohibition carries from NC (RF-007), overhead scraping sends debris straight down via gravity amplifying RRP exposure (RF-009), vent paint clogging is a unique RP concern (RF-014), environmental conditions excluded from estimation (RF-015, RC-002). Projected 46 tasks: 24 DIRECT transfers + 8 MODIFIED - 5 NOT_APPLICABLE + 19 RP_NEW (6 assessment tasks including mildew-specific check, mildew biocide treatment, chalk remediation, scrape/feather, degloss, caulk assess/repair, 3 vent tasks for clean/mask/unmask, RRP containment setup/teardown, landscape/hardscape protection, customer walkthrough). NC modifiers (access 4-tier, vent complexity, T&G joints) transfer unchanged. RP adds condition modifiers (GOOD/FAIR/POOR) on prep tasks and RRP modifier (2.0x) on prep tasks involving paint disturbance. Stacking partition: prep pool = CONDITION x RRP x ACCESS x VENT x TG; coating pool = QT x ACCESS x VENT x TG. QT2-QT4 (QT5 excluded). Flat/satin sheen only. 7 protection zones (5 from NC + 2 RP-new). 6 failure modes (mildew regrowth is #1). 8 condition drivers (mildew and vent condition are soffit-specific). 5 uncertainties. 10 modules projected."
+    }
+  ]
+}

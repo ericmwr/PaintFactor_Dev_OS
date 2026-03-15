@@ -1,0 +1,126 @@
+{
+  "spec_family_id": "SF_MASONRY_EXT_RP",
+  "version": "1.0.0",
+  "generated_by": "QA Critic Agent",
+  "generated_at": "2026-03-15",
+
+  "overall_result": "pass",
+
+  "validation_summary": {
+    "total_checks": 28,
+    "passed": 26,
+    "issues_found": 2,
+    "critical": 0,
+    "major": 0,
+    "minor": 2,
+    "blockers": 0
+  },
+
+  "key_validations": [
+    "48/48 tasks in sop_modules.json have matching rates in production.json (RULE 1 satisfied)",
+    "All TSK_MSRP_* task IDs use correct MSRP context prefix — no collisions with NC TSK_MSRY_*",
+    "ITM_MASONRY_WALL reused from NC spec — no duplicate item creation",
+    "All PS_ keys in production.json match spec.json required_paintscope_inputs (RULE 5 satisfied)",
+    "All 8 zone_ids in spec match sop_modules protection_metadata.zones (RULE 6 satisfied)",
+    "Module phase ordering correct: setup -> prep -> prime -> interstage -> finish -> cleanup (RULE 7 satisfied)",
+    "UOM consistency between sop_modules and production verified for all 48 tasks (RULE 8 satisfied)",
+    "4 spray_backroll tasks have crew_size=2 (TSK_MSRP_PRIME_CHALK_BIND_SPRAY_BACKROLL, TSK_MSRP_PRIME_ACRYLIC_SPRAY_BACKROLL, TSK_MSRP_FINISH_1_SPRAY_BACKROLL, TSK_MSRP_FINISH_2_SPRAY_BACKROLL)",
+    "2 RRP containment tasks have crew_size=2 (TSK_RRP_EXT_CONTAINMENT_SETUP, TSK_RRP_EXT_CONTAINMENT_TEARDOWN)",
+    "Spray-only PROHIBITED enforced — no spray-without-backroll paths exist (COMPAT-MSRP-008)",
+    "Elastomeric restricted to CMU/concrete/split_face_cmu + QT3+ + flat sheen (COMPAT-MSRP-004, -005)",
+    "No acid on limestone enforced in materials.json and sop_modules (COMPAT-MSRP-006)",
+    "Moisture hard stop at 12% enforced (COMPAT-MSRP-007)",
+    "Alkali-resistant primer mandatory on exposed bare masonry (COMPAT-MSRP-002)",
+    "Chalk-binding primer mandatory for SS_EXT_CHALKING (COMPAT-MSRP-003)",
+    "Oil-based products prohibited (COMPAT-MSRP-001)",
+    "Active efflorescence = STOP WORK gate enforced (COMPAT-MSRP-010)",
+    "Do not apply elastomeric over failing elastomeric enforced (COMPAT-MSRP-009)",
+    "Modifier stacking partition correct: prep pool (condition+RRP) never crosses coating pool (QT+coating_system)",
+    "All 7 factor modifiers have pool assignments and task lists",
+    "Worst-case coating stack 5.62x exceeds 4.0x cap — T&M recommendation documented (split_face_cmu + rough + scaffold + QT4 + elastomeric)",
+    "NC block filler correctly excluded from RP (RF-010: already applied during NC)",
+    "NC cure verify and form-release removal correctly excluded from RP (NC-only tasks)",
+    "7 assessment tasks are all FIXED per elevation — no SF-based assessment rates",
+    "RRP module higher activation probability noted for masonry vs FC siding (RF-012)"
+  ],
+
+  "issues": [
+    {
+      "issue_id": "ISS-MSRP-001",
+      "severity": "minor",
+      "area": "production.json",
+      "file": "production.json",
+      "description": "Worst-case coating modifier stack (QT4 + scaffold + split_face_cmu + rough + elastomeric = 5.62x) exceeds 4.0x cap. This represents an extreme theoretical scenario: QT4 elastomeric on rough split-face CMU at scaffold height.",
+      "suggested_fix": "Document T&M billing recommendation for this specific combination. The scenario is rare (elastomeric on split-face CMU at scaffold is uncommon in residential) but theoretically possible. Flag in spec.json variants.",
+      "status": "acknowledged",
+      "notes": "Same pattern as NC spec where max stack was 3.744x. RP adds condition dimension to prep pool and coating_system to coating pool, increasing theoretical maximums."
+    },
+    {
+      "issue_id": "ISS-MSRP-002",
+      "severity": "minor",
+      "area": "resolution.json",
+      "file": "resolution.json",
+      "description": "PS_EXT_META.ENUM.CONDITION_SCALE and PS_EXT_META.ENUM.MASONRY_TEXTURE are proposed new PaintScope keys. These should be standardized across all exterior RP specs using condition scale and masonry texture.",
+      "suggested_fix": "Add to id_registry.json as shared exterior RP keys. Condition scale is already used implicitly in SF_SIDING_FIBERCEMENT_EXT_RP and SF_TRIM_EXT_RP (as condition_scale dimension). Masonry texture is masonry-specific but follows the same pattern.",
+      "status": "acknowledged",
+      "notes": "Registry additions are documented in resolution.json registry_additions_proposed. Will be formalized during registry update."
+    }
+  ],
+
+  "cross_file_threading_verification": {
+    "rule_1_task_matching": "PASS — 48/48 sop_modules tasks found in production.json",
+    "rule_2_item_variants": "PASS — ITM_MASONRY_WALL appears in all variants",
+    "rule_3_sys_quality_tier": "PASS — All SYS_ quality_tier ranges within spec QT2-QT4",
+    "rule_4_input_consumption": "PASS — All IN_ inputs consumed by at least one task or rate",
+    "rule_5_ps_key_match": "PASS — All PS_ keys in production match spec",
+    "rule_6_zone_match": "PASS — All 8 zone_ids match between spec and sop_modules",
+    "rule_7_phase_order": "PASS — Module ordering follows canonical sequence",
+    "rule_8_uom_consistency": "PASS — UOM matches between sop_modules and production for all tasks"
+  },
+
+  "task_count_verification": {
+    "sop_modules_total": 48,
+    "production_total": 48,
+    "by_module": {
+      "MOD_MSRP_SETUP": 7,
+      "MOD_MSRP_ASSESS": 7,
+      "MOD_MSRP_PREP": 8,
+      "MOD_MSRP_CAULK": 3,
+      "MOD_MSRP_PRIME": 5,
+      "MOD_MSRP_FINISH_1": 2,
+      "MOD_MSRP_INTERSTAGE": 3,
+      "MOD_MSRP_FINISH_2": 2,
+      "MOD_MSRP_CLEANUP": 6,
+      "MOD_RRP_EXT_CONTAINMENT": 5
+    },
+    "by_classification": {
+      "binary": 36,
+      "qt_scaled": 6,
+      "qt_conditional": 6
+    },
+    "by_transfer_type": {
+      "DIRECT": 10,
+      "MODIFIED": 8,
+      "RP_NEW": 19,
+      "NOT_APPLICABLE": 6,
+      "SHARED_RRP": 5
+    }
+  },
+
+  "modifier_stacking_verification": {
+    "prep_pool_modifiers": ["FAC_MSRP_CONDITION", "FAC_MSRP_RRP", "FAC_EXT_ACCESS", "FAC_MSRP_MASONRY_TYPE", "FAC_MSRP_TEXTURE"],
+    "coating_pool_modifiers": ["FAC_QT", "FAC_EXT_ACCESS", "FAC_MSRP_MASONRY_TYPE", "FAC_MSRP_TEXTURE", "FAC_MSRP_COATING_SYSTEM"],
+    "no_crossover_verified": true,
+    "worst_case_prep": "12.48x (POOR x RRP x scaffold x split_face_cmu x rough) — extreme theoretical, T&M recommended",
+    "worst_case_coating": "5.62x (QT4 x scaffold x split_face_cmu x rough x elastomeric) — exceeds 4.0x, T&M recommended",
+    "realistic_worst_prep": "2.43x (FAIR x no_RRP x ladder x brick x medium) — within cap",
+    "realistic_worst_coating": "1.62x (QT3 x ladder x brick x medium x acrylic) — comfortable"
+  },
+
+  "compatibility_rules_verification": {
+    "total_rules": 10,
+    "all_enforced": true,
+    "hard_stops": ["COMPAT-MSRP-007 (moisture >12%)", "COMPAT-MSRP-010 (active efflorescence)"],
+    "gates": ["COMPAT-MSRP-004 (elastomeric not on brick/limestone)", "COMPAT-MSRP-005 (elastomeric QT3+ only)"]
+  }
+}

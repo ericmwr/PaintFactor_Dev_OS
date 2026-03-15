@@ -1,0 +1,1631 @@
+{
+  "spec_family_id": "SF_STUCCO_EXT_RP",
+  "version": "1.0.0",
+  "generated_by": "Estimation Engineer",
+  "generated_at": "2026-03-15",
+
+  "MODIFIER_STACKING_WARNING": {
+    "severity": "critical",
+    "description": "Modifier stacking uses TWO separate pools that never cross-apply. Prep tasks use condition x RRP x access x texture. Coating tasks use QT x access x texture x substrate_type. Condition and RRP NEVER apply to coating tasks. QT NEVER applies to prep tasks.",
+    "worst_case_prep": "POOR(2.0) x RRP(2.0) x scaffold(1.60) x dash(2.00) = 12.80x — extreme theoretical, unrealistic combination",
+    "realistic_worst_prep": "FAIR(1.5) x no_RRP(1.0) x ladder(1.35) x sand(1.25) = 2.53x — within cap",
+    "worst_case_coating": "QT4(1.20) x scaffold(1.60) x dash(2.00) x traditional(1.00) = 3.84x — within 4.0x cap",
+    "realistic_worst_coating": "QT3(1.0) x ladder(1.35) x sand(1.25) x traditional(1.00) = 1.69x — comfortable",
+    "stacking_rules": {
+      "prep_tasks": {
+        "formula": "effective_rate = base_rate / (condition x rrp x access x texture)",
+        "pool_modifiers": "FAC_SCRP_CONDITION + FAC_SCRP_RRP (PREP pool)",
+        "shared_modifiers": "FAC_EXT_ACCESS + FAC_SCRP_TEXTURE_PROFILE",
+        "never_includes": "quality_tier, substrate_type"
+      },
+      "coating_tasks": {
+        "formula": "effective_rate = base_rate / (qt x access x texture x substrate_type)",
+        "pool_modifiers": "FAC_QT + FAC_SCRP_SUBSTRATE_TYPE (COATING pool)",
+        "shared_modifiers": "FAC_EXT_ACCESS + FAC_SCRP_TEXTURE_PROFILE",
+        "never_includes": "FAC_SCRP_CONDITION, FAC_SCRP_RRP"
+      },
+      "fixed_tasks": {
+        "formula": "fixed_time_minutes (no modifiers unless noted)",
+        "note": "Assessment, equipment setup/cleanup, RRP containment, customer walkthrough — no modifiers applied."
+      }
+    }
+  },
+
+  "stucco_surface_input_group": {
+    "description": "Rate per SF applies to net stucco wall field area from PaintScope. Engine divides SF by rate to calculate hours. Texture profile modifier (FAC_SCRP_TEXTURE_PROFILE) is a DUAL multiplier — applies to BOTH labor rates (SF/hr) and material coverage (SF/gal). RP rates calibrated from NC sibling (SF_STUCCO_EXT_NC_v1) with RP-specific adjustments: spray_backroll is PRIMARY method, condition-driven prep tasks are RP_NEW.",
+    "inputs": [
+      { "input_name": "IN_SF_STUCCO_WALL", "paintscope_key": "PS_EXT_SURFACE_SF.STUCCO_FIELD" },
+      { "input_name": "IN_EA_ELEVATIONS", "paintscope_key": "PS_EXT_META.EA.ELEVATIONS_TOTAL" },
+      { "input_name": "IN_ENUM_ACCESS_TYPE", "paintscope_key": "PS_EXT_META.ENUM.ACCESS_TYPE" },
+      { "input_name": "IN_ENUM_SUBSTRATE_STATE_EXT", "paintscope_key": "PS_EXT_META.ENUM.SUBSTRATE_STATE" },
+      { "input_name": "IN_ENUM_SUBSTRATE_TYPE_STUCCO", "paintscope_key": "PS_EXT_META.ENUM.SUBSTRATE_TYPE_STUCCO" },
+      { "input_name": "IN_ENUM_TEXTURE_PROFILE_STUCCO", "paintscope_key": "PS_EXT_META.ENUM.TEXTURE_PROFILE_STUCCO" },
+      { "input_name": "IN_ENUM_COATING_SYSTEM_STUCCO", "paintscope_key": "PS_EXT_META.ENUM.COATING_SYSTEM_STUCCO" },
+      { "input_name": "IN_BOOL_PRE_1978", "paintscope_key": "PS_EXT_META.FLAG.PRE_1978" },
+      { "input_name": "IN_LF_EXT_PROTECT_LANDSCAPE_PERIMETER", "paintscope_key": "PS_EXT_PROTECT_LF.LANDSCAPE_PERIMETER" },
+      { "input_name": "IN_SF_EXT_PROTECT_HARDSCAPE_WALK", "paintscope_key": "PS_EXT_PROTECT_SF.HARDSCAPE_WALK" },
+      { "input_name": "IN_SF_EXT_PROTECT_HARDSCAPE_PATIO", "paintscope_key": "PS_EXT_PROTECT_SF.HARDSCAPE_PATIO" },
+      { "input_name": "IN_EA_EXT_PROTECT_LIGHT_FIXTURE", "paintscope_key": "PS_EXT_PROTECT_EA.LIGHT_FIXTURE" },
+      { "input_name": "IN_EA_EXT_PROTECT_HVAC_UNIT", "paintscope_key": "PS_EXT_PROTECT_EA.HVAC_UNIT" },
+      { "input_name": "IN_SF_EXT_PROTECT_VEHICLE_DRIVEWAY", "paintscope_key": "PS_EXT_PROTECT_SF.VEHICLE_DRIVEWAY" },
+      { "input_name": "IN_LF_CAULK_JOINTS", "paintscope_key": "PS_EXT_META.EA.CAULK_JOINTS" }
+    ]
+  },
+
+  "task_production_rates": [
+
+    {
+      "_section": "=== MOD_SCRP_SETUP — 8 tasks ===",
+      "_note": "Protection setup, fixture masking, vehicle/driveway protection (RP-specific), ground cover for scraping debris (RP-specific), spray equipment setup"
+    },
+
+    {
+      "task_id": "TSK_SCRP_PROTECT_LANDSCAPE",
+      "name": "Landscape Perimeter Protection",
+      "required_input_key": "IN_LF_EXT_PROTECT_LANDSCAPE_PERIMETER",
+      "paintscope_key": "PS_EXT_PROTECT_LF.LANDSCAPE_PERIMETER",
+      "unit_of_measure": "LF",
+      "task_classification": "binary",
+      "rate_per_hour": 120,
+      "rate_range_low": 100,
+      "rate_range_high": 150,
+      "crew_size": 1,
+      "modifier_pool": "none",
+      "applicable_modifiers": [],
+      "rate_basis_notes": "DIRECT transfer from NC TSK_STCO_PROTECT_LANDSCAPE (120 LF/hr). Ground-level task. Deploy tarps and plastic sheeting along house perimeter. ~30 sec per LF. RP emphasis: catches scraping debris and rinse water runoff in addition to overspray.",
+      "defect_tolerance": {
+        "QT2": "Coverage adequate along working elevation. Minor gaps acceptable if no spray overspray risk.",
+        "QT3": "Full perimeter coverage of plantings within spray drift zone (10-15 ft). Secure against wind.",
+        "QT4": "Complete perimeter coverage secured at all edges. No gaps in protection."
+      },
+      "applies_when": {}
+    },
+    {
+      "task_id": "TSK_SCRP_PROTECT_HARDSCAPE_WALK",
+      "name": "Walkway Protection Setup",
+      "required_input_key": "IN_SF_EXT_PROTECT_HARDSCAPE_WALK",
+      "paintscope_key": "PS_EXT_PROTECT_SF.HARDSCAPE_WALK",
+      "unit_of_measure": "SF",
+      "task_classification": "binary",
+      "rate_per_hour": 250,
+      "rate_range_low": 200,
+      "rate_range_high": 300,
+      "crew_size": 1,
+      "modifier_pool": "none",
+      "applicable_modifiers": [],
+      "rate_basis_notes": "DIRECT transfer from NC TSK_STCO_PROTECT_HARDSCAPE_WALK (250 SF/hr). Ground-level task. Lay drop cloths and plastic on flat walkway surfaces. ~14 sec per SF.",
+      "defect_tolerance": {
+        "QT2": "Key areas covered. Minor gaps acceptable away from spray zone.",
+        "QT3": "Full coverage of walkways within overspray zone.",
+        "QT4": "Complete coverage taped at edges. Non-slip canvas on crew traffic areas."
+      },
+      "applies_when": {}
+    },
+    {
+      "task_id": "TSK_SCRP_PROTECT_HARDSCAPE_PATIO",
+      "name": "Patio Protection Setup",
+      "required_input_key": "IN_SF_EXT_PROTECT_HARDSCAPE_PATIO",
+      "paintscope_key": "PS_EXT_PROTECT_SF.HARDSCAPE_PATIO",
+      "unit_of_measure": "SF",
+      "task_classification": "binary",
+      "rate_per_hour": 250,
+      "rate_range_low": 200,
+      "rate_range_high": 300,
+      "crew_size": 1,
+      "modifier_pool": "none",
+      "applicable_modifiers": [],
+      "rate_basis_notes": "DIRECT transfer from NC TSK_STCO_PROTECT_HARDSCAPE_PATIO (250 SF/hr). Ground-level task. Lay drop cloths and plastic on flat patio surfaces. ~14 sec per SF.",
+      "defect_tolerance": {
+        "QT2": "Key areas covered. Minor gaps acceptable away from spray zone.",
+        "QT3": "Full coverage of patios within overspray zone.",
+        "QT4": "Complete coverage taped at edges. Non-slip canvas on crew traffic areas."
+      },
+      "applies_when": {}
+    },
+    {
+      "task_id": "TSK_SCRP_PROTECT_FIXTURE",
+      "name": "Light Fixture Masking",
+      "required_input_key": "IN_EA_EXT_PROTECT_LIGHT_FIXTURE",
+      "paintscope_key": "PS_EXT_PROTECT_EA.LIGHT_FIXTURE",
+      "unit_of_measure": "EA",
+      "task_classification": "binary",
+      "rate_per_hour": 7,
+      "rate_range_low": 6,
+      "rate_range_high": 8,
+      "crew_size": 1,
+      "modifier_pool": "none",
+      "applicable_modifiers": [],
+      "rate_basis_notes": "DIRECT transfer from NC TSK_STCO_PROTECT_FIXTURE (7 EA/hr). Ground-level task. Mask exterior light fixtures with plastic and stucco tape. ~8.5 min per fixture. Stucco tape required — standard blue tape does not adhere to textured stucco surfaces.",
+      "defect_tolerance": {
+        "QT2": "Fixtures covered. Plastic secure.",
+        "QT3": "Full coverage with stucco tape sealed at edges. No exposed lens or fixture body.",
+        "QT4": "Complete coverage sealed at all edges. Stucco tape firmly adhered to textured surface. Double-check seal."
+      },
+      "applies_when": {}
+    },
+    {
+      "task_id": "TSK_SCRP_PROTECT_HVAC",
+      "name": "HVAC Unit Cover",
+      "required_input_key": "IN_EA_EXT_PROTECT_HVAC_UNIT",
+      "paintscope_key": "PS_EXT_PROTECT_EA.HVAC_UNIT",
+      "unit_of_measure": "EA",
+      "task_classification": "binary",
+      "rate_per_hour": 2.5,
+      "rate_range_low": 2,
+      "rate_range_high": 3,
+      "crew_size": 1,
+      "modifier_pool": "none",
+      "applicable_modifiers": [],
+      "rate_basis_notes": "DIRECT transfer from NC TSK_STCO_PROTECT_HVAC (2.5 EA/hr). Ground-level task. Cover HVAC condenser units with plastic sheeting and secure. ~24 min per unit.",
+      "defect_tolerance": {
+        "QT2": "Units covered. Plastic secure.",
+        "QT3": "Full coverage secured. Air intake not blocked during non-spray periods.",
+        "QT4": "Complete coverage. Secure against wind. Verified no air intake obstruction."
+      },
+      "applies_when": {}
+    },
+    {
+      "task_id": "TSK_SCRP_PROTECT_VEHICLE_DRIVEWAY",
+      "name": "Vehicle/Driveway Overspray Protection",
+      "required_input_key": "IN_SF_EXT_PROTECT_VEHICLE_DRIVEWAY",
+      "paintscope_key": "PS_EXT_PROTECT_SF.VEHICLE_DRIVEWAY",
+      "unit_of_measure": "SF",
+      "task_classification": "binary",
+      "rate_per_hour": 200,
+      "rate_range_low": 150,
+      "rate_range_high": 250,
+      "crew_size": 1,
+      "modifier_pool": "none",
+      "applicable_modifiers": [],
+      "rate_basis_notes": "RP_NEW task. Deploy heavy plastic or canvas over driveway and vehicles near spray zone. ~18 sec per SF. RP-specific — occupied home during repaint has vehicles present. Slower than walkway protection (200 vs 250 SF/hr) due to vehicle contour draping and securing against wind. Canvas preferred on driveway (non-slip).",
+      "defect_tolerance": {
+        "QT2": "Driveway and vehicles within drift zone covered.",
+        "QT3": "Full coverage of driveway and all vehicles. Canvas on foot traffic areas. Secure against wind.",
+        "QT4": "Complete coverage. Canvas on all foot traffic. Vehicles fully draped and taped. Wind-secured at all edges."
+      },
+      "applies_when": { "application_method": ["spray_backroll"] }
+    },
+    {
+      "task_id": "TSK_SCRP_PROTECT_GROUND_SCRAPING",
+      "name": "Ground Cover for Scraping Debris",
+      "required_input_key": "IN_SF_STUCCO_WALL",
+      "paintscope_key": "PS_EXT_SURFACE_SF.STUCCO_FIELD",
+      "unit_of_measure": "SF",
+      "task_classification": "binary",
+      "rate_per_hour": 300,
+      "rate_range_low": 250,
+      "rate_range_high": 400,
+      "crew_size": 1,
+      "modifier_pool": "none",
+      "applicable_modifiers": [],
+      "rate_basis_notes": "RP_NEW task. Deploy ground cover at base of walls to catch scraping debris. FAIR/POOR condition only. ~12 sec per SF of wall area (ground coverage proportional to wall SF). Faster than standard protection because simple ground lay without taping. Facilitates cleanup and RRP compliance if pre-1978.",
+      "defect_tolerance": {
+        "QT2": "Ground cover at base of scraping areas. Catches bulk of debris.",
+        "QT3": "Full ground cover extending 6 ft from wall base. Edges lapped or taped.",
+        "QT4": "Complete ground cover extending 10 ft from wall. Edges sealed. RRP-compliant if applicable."
+      },
+      "applies_when": { "condition_scale": ["FAIR", "POOR"] }
+    },
+    {
+      "task_id": "TSK_SCRP_SPRAY_SETUP",
+      "name": "Spray Equipment Setup",
+      "unit_of_measure": "FIXED",
+      "task_classification": "binary",
+      "fixed_time_minutes": 35,
+      "crew_size": 1,
+      "modifier_pool": "none",
+      "applicable_modifiers": [],
+      "rate_basis_notes": "DIRECT transfer from NC TSK_STCO_SPRAY_SETUP (35 min). Set up airless sprayer, prime pump, install tip (517 for acrylic, 521-525 for elastomeric), install filter (60-mesh for acrylic, 30-mesh for elastomeric), test pattern on cardboard. RP note: verify tip wear from previous use — RP jobs run on existing equipment.",
+      "defect_tolerance": {
+        "QT2": "Equipment operational. Pattern adequate.",
+        "QT3": "Clean pattern test. Correct tip for material. Pressure verified.",
+        "QT4": "Clean pattern test on cardboard. Correct tip and filter for material type. Pressure set per TDS. Pattern verified for texture profile."
+      },
+      "applies_when": { "application_method": ["spray_backroll"] }
+    },
+
+    {
+      "_section": "=== MOD_SCRP_ASSESS — 2 tasks ===",
+      "_note": "RP-specific condition assessment and caulk assessment"
+    },
+
+    {
+      "task_id": "TSK_SCRP_CONDITION_ASSESS",
+      "name": "Condition Assessment per Elevation",
+      "required_input_key": "IN_EA_ELEVATIONS",
+      "paintscope_key": "PS_EXT_META.EA.ELEVATIONS_TOTAL",
+      "unit_of_measure": "FIXED",
+      "task_classification": "qt_scaled",
+      "qt_rates": {
+        "QT2": { "fixed_time_minutes": 30, "notes": "Visual inspection. Classify coating condition. Spot adhesion test." },
+        "QT3": { "fixed_time_minutes": 45, "notes": "Full visual. ASTM D3359 adhesion test per elevation. Chalk rub test. Moisture probe at joints." },
+        "QT4": { "fixed_time_minutes": 60, "notes": "Comprehensive assessment. ASTM D3359 at multiple points per elevation. Chalk rub, moisture probe, photo documentation. Written substrate state per elevation." }
+      },
+      "crew_size": 1,
+      "modifier_pool": "none",
+      "applicable_modifiers": [],
+      "rate_basis_notes": "RP_NEW task. Fixed time PER ELEVATION — multiply by elevation count at runtime. QT2 quick visual, QT3 instrument-aided (adhesion + chalk + moisture), QT4 systematic with documentation. Determines substrate state classification that drives primer selection.",
+      "defect_tolerance": {
+        "QT2": "Condition classified per elevation. Major issues identified.",
+        "QT3": "Full assessment with test results documented. Substrate state assigned per elevation.",
+        "QT4": "Comprehensive assessment with photo documentation. Written substrate state classification with supporting test data."
+      },
+      "applies_when": {}
+    },
+    {
+      "task_id": "TSK_SCRP_CAULK_ASSESS",
+      "name": "Caulk Joint Assessment per Elevation",
+      "required_input_key": "IN_LF_CAULK_JOINTS",
+      "paintscope_key": "PS_EXT_META.EA.CAULK_JOINTS",
+      "unit_of_measure": "LF",
+      "task_classification": "binary",
+      "rate_per_hour": 200,
+      "rate_range_low": 150,
+      "rate_range_high": 250,
+      "crew_size": 1,
+      "modifier_pool": "none",
+      "applicable_modifiers": [],
+      "rate_basis_notes": "RP_NEW task. Walk and inspect all stucco-to-trim joints, expansion joints, and penetration perimeters. ~18 sec per LF. 'Think Like a Water Drop' protocol — trace water path at each joint. Classify as intact/cracked/failed. Determines caulk removal/replacement scope.",
+      "defect_tolerance": {
+        "QT2": "Major failed joints identified. Scope for replacement documented.",
+        "QT3": "All joints classified. Failed and cracked joints documented for replacement.",
+        "QT4": "Complete joint inventory. Classification with photo documentation. Written scope for removal and replacement."
+      },
+      "applies_when": {}
+    },
+
+    {
+      "_section": "=== MOD_SCRP_PREP — 17 tasks ===",
+      "_note": "Crack assess FIRST, EIFS knock test, moisture test, wash (branched), mildew, efflorescence, scraping, degloss, chalk remediation, crack patch, surface patch, caulk remove/apply, EIFS insurance"
+    },
+
+    {
+      "task_id": "TSK_SCRP_CRACK_ASSESS",
+      "name": "Crack Assessment",
+      "required_input_key": "IN_EA_ELEVATIONS",
+      "paintscope_key": "PS_EXT_META.EA.ELEVATIONS_TOTAL",
+      "unit_of_measure": "FIXED",
+      "task_classification": "binary",
+      "fixed_time_minutes": 45,
+      "crew_size": 1,
+      "modifier_pool": "none",
+      "applicable_modifiers": [],
+      "rate_basis_notes": "DIRECT transfer from NC TSK_STCO_CRACK_ASSESS (45 min/elevation). FIRST task — assess all cracks BEFORE any other prep. >1/8 inch = HARD STOP requiring structural evaluation. Fixed time per elevation — multiply by elevation count at runtime.",
+      "defect_tolerance": {
+        "QT2": "Major cracks identified and documented. Structural referral if >1/8 inch.",
+        "QT3": "All cracks mapped. Width measured. Pattern assessed (structural vs shrinkage). Photo documentation.",
+        "QT4": "Comprehensive crack map with measurements. Pattern analysis. Photo documentation. Written referral for any structural concerns."
+      },
+      "applies_when": {}
+    },
+    {
+      "task_id": "TSK_SCRP_EIFS_KNOCK_TEST",
+      "name": "EIFS Knock Test",
+      "required_input_key": "IN_EA_ELEVATIONS",
+      "paintscope_key": "PS_EXT_META.EA.ELEVATIONS_TOTAL",
+      "unit_of_measure": "FIXED",
+      "task_classification": "binary",
+      "fixed_time_minutes": 45,
+      "crew_size": 1,
+      "modifier_pool": "none",
+      "applicable_modifiers": [],
+      "rate_basis_notes": "DIRECT transfer from NC TSK_STCO_EIFS_KNOCK_TEST (45 min/elevation). Systematically knock-test EIFS surfaces per elevation. Hollow sound = EPS delamination = HARD STOP. Fixed time per elevation. EIFS only.",
+      "defect_tolerance": {
+        "QT2": "Spot-check knock test on key areas. Delamination flagged.",
+        "QT3": "Full elevation knock-test. All delamination areas marked. Refer delamination >1 SF for repair.",
+        "QT4": "Systematic grid knock-test at 2 ft intervals. All delamination documented with photos. Written repair referral."
+      },
+      "applies_when": { "substrate_type": ["EIFS"] }
+    },
+    {
+      "task_id": "TSK_SCRP_MOISTURE_TEST",
+      "name": "Moisture Content Testing",
+      "unit_of_measure": "FIXED",
+      "task_classification": "binary",
+      "fixed_time_minutes": 45,
+      "crew_size": 1,
+      "modifier_pool": "none",
+      "applicable_modifiers": [],
+      "rate_basis_notes": "DIRECT transfer from NC TSK_STCO_MOISTURE_TEST (45 min). Moisture meter testing at joints, failure areas, grade line. MC <12% required. RP adds testing at visible coating failure areas (blistering, peeling zones indicate possible moisture source).",
+      "defect_tolerance": {
+        "QT2": "Spot-check at obvious risk areas (grade, penetrations, failure zones).",
+        "QT3": "Test at all penetrations, window sills, grade line, and coating failure areas. Document readings.",
+        "QT4": "Systematic testing grid. All penetrations, window sills, grade line, failure areas, and discoloration. Written documentation."
+      },
+      "applies_when": {}
+    },
+    {
+      "task_id": "TSK_SCRP_PRESSURE_WASH_TRAD",
+      "name": "Pressure Wash — Traditional Stucco",
+      "input_group": "stucco_surface_input_group",
+      "unit_of_measure": "SF",
+      "task_classification": "binary",
+      "rate_per_hour": 450,
+      "rate_range_low": 350,
+      "rate_range_high": 550,
+      "crew_size": 1,
+      "modifier_pool": "prep",
+      "applicable_modifiers": ["FAC_SCRP_CONDITION", "FAC_EXT_ACCESS", "FAC_SCRP_TEXTURE_PROFILE"],
+      "rate_basis_notes": "MODIFIED from NC TSK_STCO_PRESSURE_WASH (NC 500 SF/hr -> RP 450 SF/hr). RP is ~10% slower because existing coating debris requires more careful rinsing and additional passes. Pressure wash at 1500-3000 PSI. Remove dirt, loose paint, efflorescence. 24-48 hr dry time. Traditional stucco only.",
+      "defect_tolerance": {
+        "QT2": "Loose material and dust removed. Surface ready for next prep step.",
+        "QT3": "Clean surface free of dust, efflorescence, and loose material. Uniform appearance.",
+        "QT4": "Thoroughly clean surface. No residual efflorescence. No loose material. Consistent surface profile."
+      },
+      "applies_when": { "substrate_type": ["traditional_stucco"] }
+    },
+    {
+      "task_id": "TSK_SCRP_EIFS_WASH",
+      "name": "Low-Pressure Wash — EIFS",
+      "input_group": "stucco_surface_input_group",
+      "unit_of_measure": "SF",
+      "task_classification": "binary",
+      "rate_per_hour": 275,
+      "rate_range_low": 200,
+      "rate_range_high": 350,
+      "crew_size": 1,
+      "modifier_pool": "prep",
+      "applicable_modifiers": ["FAC_SCRP_CONDITION", "FAC_EXT_ACCESS"],
+      "rate_basis_notes": "DIRECT transfer from NC TSK_STCO_EIFS_WASH (275 SF/hr). Low-pressure wash <500 PSI. CRITICAL: high pressure damages EIFS acrylic finish coat. ~13 sec per SF. Slower than traditional wash. EIFS only. Texture modifier NOT applied — EIFS wash is pressure-limited not texture-limited.",
+      "defect_tolerance": {
+        "QT2": "Surface clean. No pressure damage to EIFS finish coat.",
+        "QT3": "Clean surface. No pressure damage. Uniform appearance. Mildew areas retreated.",
+        "QT4": "Thoroughly clean. No pressure damage. Verified no water intrusion at penetrations during wash."
+      },
+      "applies_when": { "substrate_type": ["EIFS"] }
+    },
+    {
+      "task_id": "TSK_SCRP_MILDEW_TREAT",
+      "name": "Mildew Eradication Treatment",
+      "input_group": "stucco_surface_input_group",
+      "unit_of_measure": "SF",
+      "task_classification": "binary",
+      "rate_per_hour": 150,
+      "rate_range_low": 100,
+      "rate_range_high": 200,
+      "crew_size": 1,
+      "modifier_pool": "prep",
+      "applicable_modifiers": ["FAC_SCRP_CONDITION", "FAC_EXT_ACCESS"],
+      "rate_basis_notes": "DIRECT transfer from NC TSK_STCO_MILDEW_TREAT (150 SF/hr). Apply bleach solution (1:3), dwell 15-20 min, scrub with stiff bristle brush, rinse. ~24 sec per SF of affected area. Rate applies to AFFECTED AREA only. Texture modifier NOT applied — mildew treatment is chemical dwell + scrub, not texture-dependent.",
+      "defect_tolerance": {
+        "QT2": "Visible mildew killed. Surface cleaned.",
+        "QT3": "All mildew eradicated. No live growth remaining. Surface cleaned and rinsed.",
+        "QT4": "Complete eradication verified. Surrounding area treated preventively. Documentation of treatment areas."
+      },
+      "applies_when": {}
+    },
+    {
+      "task_id": "TSK_SCRP_EFFLORESCENCE_TREAT",
+      "name": "Efflorescence Treatment",
+      "input_group": "stucco_surface_input_group",
+      "unit_of_measure": "SF",
+      "task_classification": "qt_scaled",
+      "qt_rates": {
+        "QT2": { "rate_sf_per_hour": 200, "notes": "Light dry-brush removal only. No acid treatment." },
+        "QT3": { "rate_sf_per_hour": 200, "notes": "TSP wash and brush scrub. Light efflorescence." },
+        "QT4": { "rate_sf_per_hour": 100, "notes": "Acid wash (muriatic dilute) for moderate-to-heavy efflorescence. Neutralize, rinse thoroughly." }
+      },
+      "rate_range_low": 80,
+      "rate_range_high": 250,
+      "crew_size": 1,
+      "modifier_pool": "prep",
+      "applicable_modifiers": ["FAC_EXT_ACCESS"],
+      "rate_basis_notes": "DIRECT transfer from NC TSK_STCO_EFFLORESCENCE_TREAT. Qt_scaled — already has tier-specific rates. Rate applies to AFFECTED AREA only. Traditional stucco only — EIFS does not produce efflorescence. Condition modifier NOT applied — efflorescence treatment intensity is already QT-driven.",
+      "defect_tolerance": {
+        "QT2": "Loose efflorescence removed. Surface paintable.",
+        "QT3": "Efflorescence removed. Surface clean and dry. No white residue remaining.",
+        "QT4": "Complete removal. Acid-treated areas neutralized and rinsed. pH verified before priming."
+      },
+      "applies_when": { "substrate_type": ["traditional_stucco"] }
+    },
+    {
+      "task_id": "TSK_SCRP_SCRAPE_LIGHT",
+      "name": "Light Scraping and Feather Sanding",
+      "input_group": "stucco_surface_input_group",
+      "unit_of_measure": "SF",
+      "task_classification": "binary",
+      "rate_per_hour": 100,
+      "rate_range_low": 75,
+      "rate_range_high": 125,
+      "crew_size": 1,
+      "modifier_pool": "prep",
+      "applicable_modifiers": ["FAC_EXT_ACCESS", "FAC_SCRP_TEXTURE_PROFILE"],
+      "rate_basis_notes": "RP_NEW task. Scrape localized failing areas with carbide scraper. Feather-edge sand with 80-100 grit. ~36 sec per SF of affected area. FAIR condition only. Rate applies to affected area — typically 10-20% of total wall SF at FAIR condition. Texture modifier applies — deeper textures slow scraping.",
+      "defect_tolerance": {
+        "QT2": "Loose paint removed. Edges feathered.",
+        "QT3": "All failing paint scraped. Edges feather-sanded smooth. No raised edges.",
+        "QT4": "Complete scraping. Feathered transitions invisible at 3 ft. No loose or bridged paint remaining."
+      },
+      "applies_when": { "condition_scale": ["FAIR"] }
+    },
+    {
+      "task_id": "TSK_SCRP_SCRAPE_HEAVY",
+      "name": "Heavy Scraping and Feather Sanding",
+      "input_group": "stucco_surface_input_group",
+      "unit_of_measure": "SF",
+      "task_classification": "binary",
+      "rate_per_hour": 50,
+      "rate_range_low": 35,
+      "rate_range_high": 65,
+      "crew_size": 1,
+      "modifier_pool": "prep",
+      "applicable_modifiers": ["FAC_EXT_ACCESS", "FAC_SCRP_TEXTURE_PROFILE"],
+      "rate_basis_notes": "RP_NEW task. Extensive scrape with carbide scraper on widespread failing/peeling paint. Feather-edge sand. ~72 sec per SF. POOR condition only. Rate applies to affected area — typically 30-60% of total wall SF at POOR condition. Texture modifier applies — dash texture scraping is extremely labor-intensive. Heavy scraping is 2x slower than light scraping.",
+      "defect_tolerance": {
+        "QT2": "Majority of loose paint removed. Major edges feathered.",
+        "QT3": "All failing/peeling paint removed to firm substrate. Edges feather-sanded. Surface profile uniform.",
+        "QT4": "100% removal of failing paint. Feathered transitions seamless. No loose paint anywhere. Surface ready for primer."
+      },
+      "applies_when": { "condition_scale": ["POOR"] }
+    },
+    {
+      "task_id": "TSK_SCRP_DEGLOSS_SCUFF",
+      "name": "Degloss/Scuff Sand",
+      "input_group": "stucco_surface_input_group",
+      "unit_of_measure": "SF",
+      "task_classification": "binary",
+      "rate_per_hour": 200,
+      "rate_range_low": 150,
+      "rate_range_high": 250,
+      "crew_size": 1,
+      "modifier_pool": "prep",
+      "applicable_modifiers": ["FAC_EXT_ACCESS", "FAC_SCRP_TEXTURE_PROFILE"],
+      "rate_basis_notes": "RP_NEW task. 150-180 grit scuff or chemical deglosser on sound paint for adhesion. GOOD condition only — paint is sound but needs mechanical/chemical profile for new coating adhesion. ~18 sec per SF. Texture modifier applies — deeper textures slow sanding. GOOD condition = SS_EXT_SOUND_PAINT.",
+      "defect_tolerance": {
+        "QT2": "Glossy surfaces scuffed. Adhesion adequate.",
+        "QT3": "All glossy surfaces deglossed. Uniform dull finish across treated areas.",
+        "QT4": "Complete deglossing. Uniform profile. Cross-hatch adhesion test on representative areas."
+      },
+      "applies_when": { "condition_scale": ["GOOD"] }
+    },
+    {
+      "task_id": "TSK_SCRP_CHALK_REMEDIATION",
+      "name": "Chalk Remediation Pre-Treatment",
+      "input_group": "stucco_surface_input_group",
+      "unit_of_measure": "SF",
+      "task_classification": "binary",
+      "rate_per_hour": 175,
+      "rate_range_low": 125,
+      "rate_range_high": 225,
+      "crew_size": 1,
+      "modifier_pool": "prep",
+      "applicable_modifiers": ["FAC_EXT_ACCESS", "FAC_SCRP_TEXTURE_PROFILE"],
+      "rate_basis_notes": "RP_NEW task. Chemical chalk remover on moderate-to-heavy residual chalk after wash. SS_EXT_CHALKING surfaces. ~20 sec per SF. Applied after pressure wash — treats chalk that washing alone did not remove. Followed by chalk-binding primer (MOD_SCRP_PRIME). Texture modifier applies — deeper texture traps chalk.",
+      "defect_tolerance": {
+        "QT2": "Moderate chalk residue removed. Surface significantly cleaner.",
+        "QT3": "Chalk residue removed to light level. White cloth test shows minimal transfer.",
+        "QT4": "Chalk fully remediated. White cloth test shows no transfer. Surface ready for chalk-binding primer."
+      },
+      "applies_when": { "substrate_state": ["SS_EXT_CHALKING"] }
+    },
+    {
+      "task_id": "TSK_SCRP_CRACK_PATCH",
+      "name": "Cosmetic Crack Patching",
+      "unit_of_measure": "LF",
+      "task_classification": "binary",
+      "rate_per_hour": 75,
+      "rate_range_low": 50,
+      "rate_range_high": 100,
+      "crew_size": 1,
+      "modifier_pool": "prep",
+      "applicable_modifiers": ["FAC_EXT_ACCESS"],
+      "rate_basis_notes": "DIRECT transfer from NC TSK_STCO_CRACK_PATCH (75 LF/hr). Fill cosmetic cracks <1/8 inch with elastomeric crack sealant. ~48 sec per LF. Texture modifier NOT applied — crack filling is linear work not texture-dependent. Manual capture LF from field measure.",
+      "defect_tolerance": {
+        "QT2": "Visible cracks filled. Sealant flush with surface.",
+        "QT3": "All cosmetic cracks filled. Sealant tooled smooth. Flush with surrounding surface.",
+        "QT4": "All cracks filled and tooled. Sealant blended with surrounding texture. No raised or sunken fill lines."
+      },
+      "applies_when": {}
+    },
+    {
+      "task_id": "TSK_SCRP_SURFACE_PATCH",
+      "name": "Surface Patching and Texture Match",
+      "input_group": "stucco_surface_input_group",
+      "unit_of_measure": "SF",
+      "task_classification": "binary",
+      "rate_per_hour": 75,
+      "rate_range_low": 50,
+      "rate_range_high": 100,
+      "crew_size": 1,
+      "modifier_pool": "prep",
+      "applicable_modifiers": ["FAC_EXT_ACCESS", "FAC_SCRP_TEXTURE_PROFILE"],
+      "rate_basis_notes": "DIRECT transfer from NC TSK_STCO_SURFACE_PATCH (75 SF/hr). Patch spalled or damaged stucco areas and match surrounding texture profile. ~48 sec per SF. Texture modifier applies — dash and lace texture matching is skill-intensive. Rate applies to affected area only.",
+      "defect_tolerance": {
+        "QT2": "Patches secure and flush. Texture approximation acceptable.",
+        "QT3": "Patches blended with surrounding texture. Good match.",
+        "QT4": "Patches indistinguishable from surrounding texture at 3 ft. Exact texture match."
+      },
+      "applies_when": {}
+    },
+    {
+      "task_id": "TSK_SCRP_CAULK_REMOVE",
+      "name": "Remove Failed Caulk",
+      "unit_of_measure": "LF",
+      "task_classification": "binary",
+      "rate_per_hour": 60,
+      "rate_range_low": 40,
+      "rate_range_high": 80,
+      "crew_size": 1,
+      "modifier_pool": "prep",
+      "applicable_modifiers": ["FAC_EXT_ACCESS"],
+      "rate_basis_notes": "RP_NEW task. Cut and remove failed caulk from stucco-to-trim joints. Clean joint faces. ~60 sec per LF. Slower than new caulk application because removal requires cutting/scraping old material from textured stucco joint without damaging stucco. Manual capture LF from field measure (subset of caulk assessment LF).",
+      "defect_tolerance": {
+        "QT2": "Failed caulk removed. Joint faces reasonably clean.",
+        "QT3": "All failed caulk removed. Joint faces cleaned. No old caulk residue in joint.",
+        "QT4": "Complete removal. Joint faces clean and dry. Ready for new caulk application. No stucco damage from removal."
+      },
+      "applies_when": {}
+    },
+    {
+      "task_id": "TSK_SCRP_CAULK_APPLY",
+      "name": "Apply New Caulk",
+      "required_input_key": "IN_LF_CAULK_JOINTS",
+      "paintscope_key": "PS_EXT_META.EA.CAULK_JOINTS",
+      "unit_of_measure": "LF",
+      "task_classification": "binary",
+      "rate_per_hour": 100,
+      "rate_range_low": 75,
+      "rate_range_high": 150,
+      "crew_size": 1,
+      "modifier_pool": "prep",
+      "applicable_modifiers": ["FAC_EXT_ACCESS"],
+      "rate_basis_notes": "DIRECT transfer from NC TSK_STCO_CAULK_JOINTS (100 LF/hr). Polyurethane caulk at stucco-to-trim joints. ~36 sec per LF. 3-7 day cure before painting. In RP context, applies to joints classified as cracked/failed during caulk assessment.",
+      "defect_tolerance": {
+        "QT2": "Joints sealed. Caulk bead continuous.",
+        "QT3": "Clean caulk bead. Tooled smooth. No gaps or voids.",
+        "QT4": "Perfect caulk bead. Tooled smooth with consistent profile. No excess or deficiency."
+      },
+      "applies_when": {}
+    },
+    {
+      "task_id": "TSK_SCRP_EIFS_INSURANCE_VERIFY",
+      "name": "EIFS Insurance Verification",
+      "unit_of_measure": "FIXED",
+      "task_classification": "binary",
+      "fixed_time_minutes": 20,
+      "crew_size": 1,
+      "modifier_pool": "none",
+      "applicable_modifiers": [],
+      "rate_basis_notes": "DIRECT transfer from NC TSK_STCO_EIFS_INSURANCE_VERIFY (20 min). Verify CGL covers EIFS work or confirm EIFS-specific rider. Administrative gate. EIFS only.",
+      "defect_tolerance": {
+        "QT2": "Insurance verified. Written confirmation on file.",
+        "QT3": "Insurance verified. Written confirmation on file. Policy rider documented.",
+        "QT4": "Insurance verified. Written confirmation on file. Policy rider documented. Copy retained in project file."
+      },
+      "applies_when": { "substrate_type": ["EIFS"] }
+    },
+
+    {
+      "_section": "=== MOD_SCRP_PRIME — 6 tasks ===",
+      "_note": "State-driven primer: chalk-binding for CHALKING, alkali spot on bare traditional, stain-block for FAILING/PEELING, brush detail"
+    },
+
+    {
+      "task_id": "TSK_SCRP_PRIME_CHALK_BIND_SPRAY_BACKROLL",
+      "name": "Chalk-Binding Primer Spray+Backroll",
+      "input_group": "stucco_surface_input_group",
+      "unit_of_measure": "SF",
+      "task_classification": "binary",
+      "rate_per_hour": 325,
+      "rate_range_low": 260,
+      "rate_range_high": 390,
+      "crew_size": 2,
+      "modifier_pool": "coating",
+      "applicable_modifiers": ["FAC_QT", "FAC_EXT_ACCESS", "FAC_SCRP_TEXTURE_PROFILE", "FAC_SCRP_SUBSTRATE_TYPE"],
+      "rate_basis_notes": "RP_NEW task. Full-surface chalk-binding primer via spray+backroll. 325 SF/hr BASE on smooth (slightly slower than NC alkali primer 350 SF/hr because chalk-binding primer has heavier body for chalk penetration). Two-person crew. SS_EXT_CHALKING only. Texture DUAL modifier applies to both labor and material coverage.",
+      "defect_tolerance": {
+        "QT2": "Full coverage. Chalk sealed. No holidays.",
+        "QT3": "Uniform coverage. Back-roll ensures penetration into chalk residue and texture. No bare spots.",
+        "QT4": "Uniform coverage with consistent mil build. Back-roll verified for complete chalk penetration. No holidays or thin spots."
+      },
+      "applies_when": { "substrate_state": ["SS_EXT_CHALKING"], "application_method": ["spray_backroll"] }
+    },
+    {
+      "task_id": "TSK_SCRP_PRIME_CHALK_BIND_ROLL",
+      "name": "Chalk-Binding Primer Roll",
+      "input_group": "stucco_surface_input_group",
+      "unit_of_measure": "SF",
+      "task_classification": "binary",
+      "rate_per_hour": 185,
+      "rate_range_low": 150,
+      "rate_range_high": 220,
+      "crew_size": 1,
+      "modifier_pool": "coating",
+      "applicable_modifiers": ["FAC_QT", "FAC_EXT_ACCESS", "FAC_SCRP_TEXTURE_PROFILE", "FAC_SCRP_SUBSTRATE_TYPE"],
+      "rate_basis_notes": "RP_NEW task. Full-surface chalk-binding primer via roll. 185 SF/hr BASE on smooth (slightly slower than NC alkali roll 200 SF/hr — heavier body primer). Single worker. Heavy-nap roller (1-1/4 to 1-1/2 inch). SS_EXT_CHALKING only. Texture DUAL modifier applies.",
+      "defect_tolerance": {
+        "QT2": "Full coverage. Chalk sealed.",
+        "QT3": "Uniform coverage. Thick nap ensures texture and chalk penetration. No bare spots.",
+        "QT4": "Uniform coverage with consistent mil build. Every texture valley primed. Chalk fully sealed."
+      },
+      "applies_when": { "substrate_state": ["SS_EXT_CHALKING"], "application_method": ["roll"] }
+    },
+    {
+      "task_id": "TSK_SCRP_PRIME_ALKALI_SPOT",
+      "name": "Alkali-Resistant Spot Primer on Bare Stucco",
+      "input_group": "stucco_surface_input_group",
+      "unit_of_measure": "SF",
+      "task_classification": "binary",
+      "rate_per_hour": 80,
+      "rate_range_low": 60,
+      "rate_range_high": 100,
+      "crew_size": 1,
+      "modifier_pool": "coating",
+      "applicable_modifiers": ["FAC_QT", "FAC_EXT_ACCESS", "FAC_SCRP_TEXTURE_PROFILE"],
+      "rate_basis_notes": "MODIFIED from NC alkali primer tasks. Spot prime only — brush application on exposed bare traditional stucco areas revealed after scraping. 80 SF/hr (slower than field prime because spot work requires cutting around existing coating edges). Rate applies to AFFECTED AREA only. SS_EXT_FAILING_PAINT/PEELING + traditional_stucco. Texture modifier applies — deep texture slows brush detail.",
+      "defect_tolerance": {
+        "QT2": "Bare areas primed. No exposed stucco remaining.",
+        "QT3": "All bare areas primed. Feathered overlap onto existing coating. No holidays.",
+        "QT4": "Complete spot prime. Feathered 2 inches beyond bare area onto existing coating. No visible transition lines."
+      },
+      "applies_when": { "substrate_state": ["SS_EXT_FAILING_PAINT", "SS_EXT_PEELING"], "substrate_type": ["traditional_stucco"] }
+    },
+    {
+      "task_id": "TSK_SCRP_PRIME_ACRYLIC_STAINBLOCK_SPRAY_BACKROLL",
+      "name": "Acrylic Stain-Block Primer Spray+Backroll",
+      "input_group": "stucco_surface_input_group",
+      "unit_of_measure": "SF",
+      "task_classification": "binary",
+      "rate_per_hour": 350,
+      "rate_range_low": 280,
+      "rate_range_high": 420,
+      "crew_size": 2,
+      "modifier_pool": "coating",
+      "applicable_modifiers": ["FAC_QT", "FAC_EXT_ACCESS", "FAC_SCRP_TEXTURE_PROFILE", "FAC_SCRP_SUBSTRATE_TYPE"],
+      "rate_basis_notes": "RP_NEW task. Full or spot acrylic stain-block primer for adhesion on failing/peeling substrates. 350 SF/hr BASE on smooth — same rate as NC alkali primer spray_backroll. Two-person crew. SS_EXT_FAILING_PAINT/SS_EXT_PEELING. Locks down remaining coating and provides adhesion bridge. Texture DUAL modifier applies.",
+      "defect_tolerance": {
+        "QT2": "Full coverage over failing areas. No holidays.",
+        "QT3": "Uniform coverage. Back-roll ensures penetration. Stain-block verified on test patch.",
+        "QT4": "Uniform coverage with consistent mil build. Complete stain block. No bleed-through at 24 hrs. Back-roll verified."
+      },
+      "applies_when": { "substrate_state": ["SS_EXT_FAILING_PAINT", "SS_EXT_PEELING"], "application_method": ["spray_backroll"] }
+    },
+    {
+      "task_id": "TSK_SCRP_PRIME_ACRYLIC_STAINBLOCK_ROLL",
+      "name": "Acrylic Stain-Block Primer Roll",
+      "input_group": "stucco_surface_input_group",
+      "unit_of_measure": "SF",
+      "task_classification": "binary",
+      "rate_per_hour": 200,
+      "rate_range_low": 160,
+      "rate_range_high": 240,
+      "crew_size": 1,
+      "modifier_pool": "coating",
+      "applicable_modifiers": ["FAC_QT", "FAC_EXT_ACCESS", "FAC_SCRP_TEXTURE_PROFILE", "FAC_SCRP_SUBSTRATE_TYPE"],
+      "rate_basis_notes": "RP_NEW task. Full or spot acrylic stain-block primer via roll. 200 SF/hr BASE on smooth — same rate as NC alkali roll. Single worker. Heavy-nap roller. SS_EXT_FAILING_PAINT/SS_EXT_PEELING. Texture DUAL modifier applies.",
+      "defect_tolerance": {
+        "QT2": "Full coverage over failing areas.",
+        "QT3": "Uniform coverage. No bare spots in texture valleys. Stain-block verified.",
+        "QT4": "Uniform coverage. Consistent mil build. Complete stain block. No bleed-through."
+      },
+      "applies_when": { "substrate_state": ["SS_EXT_FAILING_PAINT", "SS_EXT_PEELING"], "application_method": ["roll"] }
+    },
+    {
+      "task_id": "TSK_SCRP_PRIME_BRUSH_DETAIL",
+      "name": "RP Primer Brush Detail Work",
+      "input_group": "stucco_surface_input_group",
+      "unit_of_measure": "SF",
+      "task_classification": "binary",
+      "rate_per_hour": 65,
+      "rate_range_low": 50,
+      "rate_range_high": 80,
+      "crew_size": 1,
+      "modifier_pool": "coating",
+      "applicable_modifiers": ["FAC_QT", "FAC_EXT_ACCESS", "FAC_SCRP_TEXTURE_PROFILE"],
+      "rate_basis_notes": "DIRECT transfer from NC TSK_STCO_PRIME_BRUSH_DETAIL (65 SF/hr). Brush primer into detail areas — around penetrations, at trim transitions, in tight corners, at grade line. All primer types. Texture DUAL modifier applies.",
+      "defect_tolerance": {
+        "QT2": "Primer in all detail areas. No bare spots at transitions.",
+        "QT3": "Complete coverage in all detail areas. Clean cut lines at trim transitions.",
+        "QT4": "Complete coverage. Precise cut lines. No bleed onto adjacent trim."
+      },
+      "applies_when": {}
+    },
+
+    {
+      "_section": "=== MOD_SCRP_FINISH_1 — 5 tasks ===",
+      "_note": "First finish coat: acrylic spray_backroll/roll, elastomeric spray_backroll/roll (traditional stucco only), brush detail"
+    },
+
+    {
+      "task_id": "TSK_SCRP_FINISH_ACRYLIC_SPRAY_BACKROLL_1",
+      "name": "Acrylic Finish Coat 1 Spray+Backroll",
+      "input_group": "stucco_surface_input_group",
+      "unit_of_measure": "SF",
+      "task_classification": "binary",
+      "rate_per_hour": 137,
+      "rate_range_low": 125,
+      "rate_range_high": 150,
+      "crew_size": 2,
+      "modifier_pool": "coating",
+      "applicable_modifiers": ["FAC_QT", "FAC_EXT_ACCESS", "FAC_SCRP_TEXTURE_PROFILE", "FAC_SCRP_SUBSTRATE_TYPE"],
+      "rate_basis_notes": "DIRECT transfer from NC TSK_STCO_FINISH_ACRYLIC_SPRAY_BACKROLL_1 (137 SF/hr). Spray acrylic finish then immediately back-roll. BASE rate on smooth texture. Two-person crew. Spray/backroll coupling compliant. Texture DUAL modifier applies to both labor and material coverage.",
+      "defect_tolerance": {
+        "QT2": "Even coverage. Consistent color. Maintain wet edge.",
+        "QT3": "Uniform coverage and color. Consistent roller texture. No lap marks. No sags or runs.",
+        "QT4": "Uniform mil build. Consistent color and texture. No visible pattern variation. No lap marks, sags, or runs."
+      },
+      "applies_when": { "coating_system": ["acrylic"], "application_method": ["spray_backroll"] }
+    },
+    {
+      "task_id": "TSK_SCRP_FINISH_ACRYLIC_ROLL_1",
+      "name": "Acrylic Finish Coat 1 Roll",
+      "input_group": "stucco_surface_input_group",
+      "unit_of_measure": "SF",
+      "task_classification": "binary",
+      "rate_per_hour": 112,
+      "rate_range_low": 100,
+      "rate_range_high": 125,
+      "crew_size": 1,
+      "modifier_pool": "coating",
+      "applicable_modifiers": ["FAC_QT", "FAC_EXT_ACCESS", "FAC_SCRP_TEXTURE_PROFILE", "FAC_SCRP_SUBSTRATE_TYPE"],
+      "rate_basis_notes": "DIRECT transfer from NC TSK_STCO_FINISH_ACRYLIC_ROLL_1 (112 SF/hr). Roll acrylic finish with heavy-nap roller. BASE rate on smooth texture. Single worker. Texture DUAL modifier applies.",
+      "defect_tolerance": {
+        "QT2": "Even coverage. Consistent color.",
+        "QT3": "Uniform coverage. No lap marks. Consistent roller texture.",
+        "QT4": "Uniform coverage and mil build. No lap marks. Consistent appearance."
+      },
+      "applies_when": { "coating_system": ["acrylic"], "application_method": ["roll"] }
+    },
+    {
+      "task_id": "TSK_SCRP_FINISH_ELASTO_SPRAY_BACKROLL_1",
+      "name": "Elastomeric Finish Coat 1 Spray+Backroll",
+      "input_group": "stucco_surface_input_group",
+      "unit_of_measure": "SF",
+      "task_classification": "binary",
+      "rate_per_hour": 90,
+      "rate_range_low": 75,
+      "rate_range_high": 110,
+      "crew_size": 2,
+      "modifier_pool": "coating",
+      "applicable_modifiers": ["FAC_QT", "FAC_EXT_ACCESS", "FAC_SCRP_TEXTURE_PROFILE"],
+      "rate_basis_notes": "DIRECT transfer from NC TSK_STCO_FINISH_ELASTO_SPRAY_BACKROLL_1 (90 SF/hr). Spray elastomeric then back-roll. ~65% of acrylic rate. Larger tips (521-525), coarser filters (30-mesh), higher pressure. Traditional stucco ONLY — PROHIBITED on EIFS. QT3+ only. Texture DUAL modifier applies. Substrate_type modifier NOT applied — task already gated to traditional stucco.",
+      "defect_tolerance": {
+        "QT3": "Even coverage. Consistent mil build (10-12 mils DFT per coat). No pinholes. Maintain wet edge.",
+        "QT4": "Uniform mil build verified with wet film gauge. No pinholes, sags, or curtaining. Consistent appearance. 10-12 mils DFT per coat."
+      },
+      "applies_when": { "coating_system": ["elastomeric"], "substrate_type": ["traditional_stucco"], "application_method": ["spray_backroll"] }
+    },
+    {
+      "task_id": "TSK_SCRP_FINISH_ELASTO_ROLL_1",
+      "name": "Elastomeric Finish Coat 1 Roll",
+      "input_group": "stucco_surface_input_group",
+      "unit_of_measure": "SF",
+      "task_classification": "binary",
+      "rate_per_hour": 75,
+      "rate_range_low": 60,
+      "rate_range_high": 90,
+      "crew_size": 1,
+      "modifier_pool": "coating",
+      "applicable_modifiers": ["FAC_QT", "FAC_EXT_ACCESS", "FAC_SCRP_TEXTURE_PROFILE"],
+      "rate_basis_notes": "DIRECT transfer from NC TSK_STCO_FINISH_ELASTO_ROLL_1 (75 SF/hr). Roll elastomeric with heavy-nap roller. ~65% of acrylic roll rate. Traditional stucco ONLY. QT3+ only. Texture DUAL modifier applies.",
+      "defect_tolerance": {
+        "QT3": "Even coverage. Consistent thickness. No pinholes.",
+        "QT4": "Uniform mil build. No pinholes or thin spots. Wet film gauge verification."
+      },
+      "applies_when": { "coating_system": ["elastomeric"], "substrate_type": ["traditional_stucco"], "application_method": ["roll"] }
+    },
+    {
+      "task_id": "TSK_SCRP_FINISH_BRUSH_DETAIL_1",
+      "name": "Finish Coat 1 Brush Detail",
+      "input_group": "stucco_surface_input_group",
+      "unit_of_measure": "SF",
+      "task_classification": "binary",
+      "rate_per_hour": 45,
+      "rate_range_low": 35,
+      "rate_range_high": 55,
+      "crew_size": 1,
+      "modifier_pool": "coating",
+      "applicable_modifiers": ["FAC_QT", "FAC_EXT_ACCESS", "FAC_SCRP_TEXTURE_PROFILE"],
+      "rate_basis_notes": "DIRECT transfer from NC TSK_STCO_FINISH_BRUSH_DETAIL_1 (45 SF/hr). Brush finish into detail areas. Both acrylic and elastomeric. Slowest application method — detail work only. Texture DUAL modifier applies.",
+      "defect_tolerance": {
+        "QT2": "Coverage in all detail areas.",
+        "QT3": "Complete coverage. Clean cut lines. Blended with field application.",
+        "QT4": "Complete coverage. Precise cut lines. Seamless blend with field coat. No brush marks visible at 3 ft."
+      },
+      "applies_when": {}
+    },
+
+    {
+      "_section": "=== MOD_SCRP_INTERSTAGE — 3 tasks ===",
+      "_note": "Intercoat inspection, QT4-only sand and dust removal"
+    },
+
+    {
+      "task_id": "TSK_SCRP_INSPECT_INTERCOAT",
+      "name": "Interstage Inspection",
+      "unit_of_measure": "FIXED",
+      "task_classification": "binary",
+      "fixed_time_minutes": 25,
+      "crew_size": 1,
+      "modifier_pool": "none",
+      "applicable_modifiers": [],
+      "rate_basis_notes": "DIRECT transfer from NC TSK_STCO_INSPECT_INTERCOAT (25 min). Walk all elevations after first finish coat. Check for holidays, thin spots, lap marks, sags. QT3 visual scan; QT4 systematic with raking light. RP adds comparison to pre-existing condition photos from assessment.",
+      "defect_tolerance": {
+        "QT3": "Visual scan of all elevations. Major defects noted.",
+        "QT4": "Systematic inspection with raking light. All defects documented. Photo documentation of areas requiring touch-up."
+      },
+      "applies_when": {}
+    },
+    {
+      "task_id": "TSK_SCRP_SAND_INTERCOAT",
+      "name": "Interstage Light Sand (QT4)",
+      "input_group": "stucco_surface_input_group",
+      "unit_of_measure": "SF",
+      "task_classification": "qt_conditional",
+      "rate_per_hour": 250,
+      "rate_range_low": 200,
+      "rate_range_high": 300,
+      "crew_size": 1,
+      "modifier_pool": "coating",
+      "applicable_modifiers": ["FAC_EXT_ACCESS"],
+      "rate_basis_notes": "DIRECT transfer from NC TSK_STCO_SAND_INTERCOAT (250 SF/hr). 220 grit light sand on anomalies only — do NOT sand entire textured surface. QT4 only. Texture modifier NOT applied — sanding is spot work on anomalies, not texture-dependent.",
+      "defect_tolerance": {
+        "QT4": "Anomalies sanded smooth. No deep scratches. Dust removed. Surface ready for coat 2."
+      },
+      "applies_when": {}
+    },
+    {
+      "task_id": "TSK_SCRP_DUST_INTERCOAT",
+      "name": "Interstage Dust Removal (QT4)",
+      "input_group": "stucco_surface_input_group",
+      "unit_of_measure": "SF",
+      "task_classification": "qt_conditional",
+      "rate_per_hour": 500,
+      "rate_range_low": 400,
+      "rate_range_high": 600,
+      "crew_size": 1,
+      "modifier_pool": "coating",
+      "applicable_modifiers": ["FAC_EXT_ACCESS"],
+      "rate_basis_notes": "DIRECT transfer from NC TSK_STCO_DUST_INTERCOAT (500 SF/hr). Tack cloth or vacuum dust removal after interstage sanding. QT4 only. Texture modifier NOT applied — dust removal is surface sweep not texture-dependent.",
+      "defect_tolerance": {
+        "QT4": "All sanding dust removed. Surface clean and dry. Ready for coat 2."
+      },
+      "applies_when": {}
+    },
+
+    {
+      "_section": "=== MOD_SCRP_FINISH_2 — 5 tasks ===",
+      "_note": "Second finish coat (QT3/QT4). Same structure as coat 1."
+    },
+
+    {
+      "task_id": "TSK_SCRP_FINISH_ACRYLIC_SPRAY_BACKROLL_2",
+      "name": "Acrylic Finish Coat 2 Spray+Backroll",
+      "input_group": "stucco_surface_input_group",
+      "unit_of_measure": "SF",
+      "task_classification": "binary",
+      "rate_per_hour": 137,
+      "rate_range_low": 125,
+      "rate_range_high": 150,
+      "crew_size": 2,
+      "modifier_pool": "coating",
+      "applicable_modifiers": ["FAC_QT", "FAC_EXT_ACCESS", "FAC_SCRP_TEXTURE_PROFILE", "FAC_SCRP_SUBSTRATE_TYPE"],
+      "rate_basis_notes": "DIRECT transfer from NC TSK_STCO_FINISH_ACRYLIC_SPRAY_BACKROLL_2 (137 SF/hr). Same rate as coat 1 — sealed surface provides consistent absorption. Two-person crew. Final appearance coat. Texture DUAL modifier applies.",
+      "defect_tolerance": {
+        "QT3": "Uniform coverage and color. No visible pattern at 6 ft. Final coat.",
+        "QT4": "Uniform mil build. No visible pattern at 3 ft. Final appearance coat. Consistent sheen."
+      },
+      "applies_when": { "coating_system": ["acrylic"], "application_method": ["spray_backroll"] }
+    },
+    {
+      "task_id": "TSK_SCRP_FINISH_ACRYLIC_ROLL_2",
+      "name": "Acrylic Finish Coat 2 Roll",
+      "input_group": "stucco_surface_input_group",
+      "unit_of_measure": "SF",
+      "task_classification": "binary",
+      "rate_per_hour": 112,
+      "rate_range_low": 100,
+      "rate_range_high": 125,
+      "crew_size": 1,
+      "modifier_pool": "coating",
+      "applicable_modifiers": ["FAC_QT", "FAC_EXT_ACCESS", "FAC_SCRP_TEXTURE_PROFILE", "FAC_SCRP_SUBSTRATE_TYPE"],
+      "rate_basis_notes": "DIRECT transfer from NC TSK_STCO_FINISH_ACRYLIC_ROLL_2 (112 SF/hr). Same rate as coat 1 roll. Sealed surface. Final coat. Texture DUAL modifier applies.",
+      "defect_tolerance": {
+        "QT3": "Uniform coverage. Consistent roller texture. Final coat.",
+        "QT4": "Uniform coverage and mil build. No lap marks. Final coat."
+      },
+      "applies_when": { "coating_system": ["acrylic"], "application_method": ["roll"] }
+    },
+    {
+      "task_id": "TSK_SCRP_FINISH_ELASTO_SPRAY_BACKROLL_2",
+      "name": "Elastomeric Finish Coat 2 Spray+Backroll",
+      "input_group": "stucco_surface_input_group",
+      "unit_of_measure": "SF",
+      "task_classification": "binary",
+      "rate_per_hour": 90,
+      "rate_range_low": 75,
+      "rate_range_high": 110,
+      "crew_size": 2,
+      "modifier_pool": "coating",
+      "applicable_modifiers": ["FAC_QT", "FAC_EXT_ACCESS", "FAC_SCRP_TEXTURE_PROFILE"],
+      "rate_basis_notes": "DIRECT transfer from NC TSK_STCO_FINISH_ELASTO_SPRAY_BACKROLL_2 (90 SF/hr). Same rate as coat 1. First coat provides sealed surface. Final coat — verify cumulative DFT (20-30 mils). Traditional stucco ONLY. Texture DUAL modifier applies.",
+      "defect_tolerance": {
+        "QT3": "Even coverage. Cumulative DFT target 20-24 mils. No pinholes. Final coat.",
+        "QT4": "Uniform mil build. Cumulative DFT 24-30 mils verified with wet film gauge. No defects. Final coat."
+      },
+      "applies_when": { "coating_system": ["elastomeric"], "substrate_type": ["traditional_stucco"], "application_method": ["spray_backroll"] }
+    },
+    {
+      "task_id": "TSK_SCRP_FINISH_ELASTO_ROLL_2",
+      "name": "Elastomeric Finish Coat 2 Roll",
+      "input_group": "stucco_surface_input_group",
+      "unit_of_measure": "SF",
+      "task_classification": "binary",
+      "rate_per_hour": 75,
+      "rate_range_low": 60,
+      "rate_range_high": 90,
+      "crew_size": 1,
+      "modifier_pool": "coating",
+      "applicable_modifiers": ["FAC_QT", "FAC_EXT_ACCESS", "FAC_SCRP_TEXTURE_PROFILE"],
+      "rate_basis_notes": "DIRECT transfer from NC TSK_STCO_FINISH_ELASTO_ROLL_2 (75 SF/hr). Same rate as coat 1 roll. Traditional stucco ONLY. Final coat. Texture DUAL modifier applies.",
+      "defect_tolerance": {
+        "QT3": "Even coverage. Cumulative DFT on target. No pinholes. Final coat.",
+        "QT4": "Uniform mil build verified. Cumulative DFT 24-30 mils. Final coat."
+      },
+      "applies_when": { "coating_system": ["elastomeric"], "substrate_type": ["traditional_stucco"], "application_method": ["roll"] }
+    },
+    {
+      "task_id": "TSK_SCRP_FINISH_BRUSH_DETAIL_2",
+      "name": "Finish Coat 2 Brush Detail",
+      "input_group": "stucco_surface_input_group",
+      "unit_of_measure": "SF",
+      "task_classification": "binary",
+      "rate_per_hour": 45,
+      "rate_range_low": 35,
+      "rate_range_high": 55,
+      "crew_size": 1,
+      "modifier_pool": "coating",
+      "applicable_modifiers": ["FAC_QT", "FAC_EXT_ACCESS", "FAC_SCRP_TEXTURE_PROFILE"],
+      "rate_basis_notes": "DIRECT transfer from NC TSK_STCO_FINISH_BRUSH_DETAIL_2 (45 SF/hr). Same rate as coat 1 brush detail. Final coat detail work. Texture DUAL modifier applies.",
+      "defect_tolerance": {
+        "QT3": "Complete coverage. Clean cut lines. Blended with field coat. Final coat.",
+        "QT4": "Complete coverage. Precise cut lines. Seamless blend. No brush marks at 3 ft. Final coat."
+      },
+      "applies_when": {}
+    },
+
+    {
+      "_section": "=== MOD_SCRP_FINAL_INSPECT — 2 tasks ===",
+      "_note": "Final walkthrough and touch-up"
+    },
+
+    {
+      "task_id": "TSK_SCRP_FINAL_INSPECT",
+      "name": "Final Walkthrough Inspection",
+      "unit_of_measure": "FIXED",
+      "task_classification": "qt_scaled",
+      "qt_rates": {
+        "QT2": { "fixed_time_minutes": 30, "notes": "Ground-level walkthrough. Quick scan for obvious misses." },
+        "QT3": { "fixed_time_minutes": 45, "notes": "Ground-level walkthrough at 6-10 ft viewing distance. Backlight check. Compare to pre-existing condition photos." },
+        "QT4": { "fixed_time_minutes": 60, "notes": "Ground-level with binoculars for upper elevations. Raking light and backlight. For elastomeric: verify DFT documentation. Compare to pre-existing photos." }
+      },
+      "crew_size": 1,
+      "modifier_pool": "none",
+      "applicable_modifiers": [],
+      "rate_basis_notes": "MODIFIED from NC TSK_STCO_FINAL_INSPECT. Same time ranges but RP adds comparison to pre-existing condition photos from assessment module. Stucco-specific: check texture consistency, coverage uniformity, crack patch blending.",
+      "defect_tolerance": {
+        "QT2": "No obvious misses or holidays visible from ground.",
+        "QT3": "No defects visible at 6-10 ft from ground level. Backlight passes. Improvement vs pre-existing photos confirmed.",
+        "QT4": "No defects visible at 6 ft with binoculars. Coverage uniform across all elevations. DFT verified for elastomeric. Documented improvement."
+      },
+      "applies_when": {}
+    },
+    {
+      "task_id": "TSK_SCRP_TOUCHUP",
+      "name": "Final Touch-Up",
+      "input_group": "stucco_surface_input_group",
+      "unit_of_measure": "SF",
+      "task_classification": "qt_scaled",
+      "qt_rates": {
+        "QT2": { "rate_sf_per_hour": 100, "notes": "Minimal touch-up. Fix obvious misses only." },
+        "QT3": { "rate_sf_per_hour": 75, "notes": "Fix all noted defects. Focus on holidays and crack patch areas." },
+        "QT4": { "rate_sf_per_hour": 50, "notes": "Fix every defect. Blend seamlessly. Focus on texture consistency, coverage uniformity, and feathered transition zones." }
+      },
+      "rate_range_low": 50,
+      "rate_range_high": 100,
+      "crew_size": 1,
+      "modifier_pool": "coating",
+      "applicable_modifiers": ["FAC_EXT_ACCESS", "FAC_SCRP_TEXTURE_PROFILE"],
+      "rate_basis_notes": "MODIFIED from NC TSK_STCO_TOUCHUP. Same rates. RP adds focus on feathered transition zones where scraping was performed (FAIR/POOR condition areas). Texture DUAL modifier applies. Rate per affected area SF — most total wall area passes without touch-up.",
+      "defect_tolerance": {
+        "QT2": "Obvious misses touched up.",
+        "QT3": "All noted defects repaired. Crack patches blended. Feathered transitions invisible.",
+        "QT4": "All defects repaired. Touch-ups blended seamlessly with surrounding texture and color. No visible transitions."
+      },
+      "applies_when": {}
+    },
+
+    {
+      "_section": "=== MOD_SCRP_CLEANUP — 4 tasks ===",
+      "_note": "Protection teardown, equipment cleanup, waste disposal, customer walkthrough"
+    },
+
+    {
+      "task_id": "TSK_SCRP_PROTECT_TEARDOWN",
+      "name": "Protection Material Removal",
+      "unit_of_measure": "FIXED",
+      "task_classification": "binary",
+      "fixed_time_minutes": 35,
+      "crew_size": 1,
+      "modifier_pool": "none",
+      "applicable_modifiers": [],
+      "rate_basis_notes": "MODIFIED from NC TSK_STCO_PROTECT_TEARDOWN (NC 30 min -> RP 35 min). RP adds 5 min for vehicle/driveway protection removal and ground cover for scraping debris collection. Includes: stucco tape, landscape tarps, hardscape covers, fixture bags, HVAC covers, vehicle draping, ground cover. Check for stucco tape adhesive residue.",
+      "defect_tolerance": {
+        "QT2": "All protection materials removed.",
+        "QT3": "All materials removed. No tape residue. Check landscape and vehicles for overspray. Ground cover debris collected.",
+        "QT4": "All materials removed. Tape residue checked and cleaned. All protected surfaces inspected. Vehicles verified clean."
+      },
+      "applies_when": {}
+    },
+    {
+      "task_id": "TSK_SCRP_TOOL_CLEAN",
+      "name": "Equipment Cleanup",
+      "unit_of_measure": "FIXED",
+      "task_classification": "binary",
+      "fixed_time_minutes": 30,
+      "crew_size": 1,
+      "modifier_pool": "none",
+      "applicable_modifiers": [],
+      "rate_basis_notes": "MODIFIED from NC TSK_STCO_TOOL_CLEAN (NC 25 min -> RP 30 min). RP adds time for cleaning scraping tools (carbide scrapers, wire brushes) in addition to spray equipment. Flush airless sprayer, clean tips and filters, clean roller frames, dispose saturated thick-nap covers. Elastomeric projects: add 10 min for heavy-body flush.",
+      "defect_tolerance": {
+        "QT2": "Equipment flushed and stored.",
+        "QT3": "Full flush. Tips and filters cleaned. Tip wear inspected. Roller covers disposed. Scraping tools cleaned.",
+        "QT4": "Full flush cycle. Tips and filters cleaned and inspected. All tools ready for next use."
+      },
+      "applies_when": {}
+    },
+    {
+      "task_id": "TSK_SCRP_WASTE_DISPOSE",
+      "name": "Waste Disposal and Site Cleanup",
+      "unit_of_measure": "FIXED",
+      "task_classification": "binary",
+      "fixed_time_minutes": 25,
+      "crew_size": 1,
+      "modifier_pool": "none",
+      "applicable_modifiers": [],
+      "rate_basis_notes": "MODIFIED from NC TSK_STCO_WASTE_DISPOSE (NC 20 min -> RP 25 min). RP adds scraping debris collection and disposal. Paint chips, caulk tubes, stucco tape, plastic, paint cans, roller covers. If pre-1978: RRP-compliant waste handling (separate from MOD_RRP_EXT_CONTAINMENT HEPA task). Final site walkthrough.",
+      "defect_tolerance": {
+        "QT2": "All debris collected and disposed.",
+        "QT3": "Site restored to pre-work condition. All materials removed. Scraping debris properly disposed.",
+        "QT4": "Site restored. All waste properly disposed including RRP-compliant if applicable. No evidence of work activity."
+      },
+      "applies_when": {}
+    },
+    {
+      "task_id": "TSK_SCRP_CUSTOMER_WALKTHROUGH",
+      "name": "Customer Walkthrough",
+      "unit_of_measure": "FIXED",
+      "task_classification": "binary",
+      "fixed_time_minutes": 30,
+      "crew_size": 1,
+      "modifier_pool": "none",
+      "applicable_modifiers": [],
+      "rate_basis_notes": "RP_NEW task. Walk project with customer upon completion. Review each elevation. Show before/after comparison photos. Confirm satisfaction. Sign completion. RP-specific — NC new construction does not have customer on-site for comparison. ~30 min (midpoint of 20-40 min range).",
+      "defect_tolerance": {
+        "QT2": "Walk key elevations with customer. Confirm acceptance.",
+        "QT3": "Walk all elevations. Show before/after photos. Confirm acceptance. Address any concerns.",
+        "QT4": "Comprehensive walkthrough all elevations. Before/after documentation. Written acceptance. Warranty documentation provided."
+      },
+      "applies_when": {}
+    },
+
+    {
+      "_section": "=== MOD_RRP_EXT_CONTAINMENT — 5 tasks ===",
+      "_note": "Shared EPA RRP module for pre-1978 buildings"
+    },
+
+    {
+      "task_id": "TSK_RRP_EXT_LEAD_SCREEN",
+      "name": "Lead Paint Screening",
+      "unit_of_measure": "FIXED",
+      "task_classification": "binary",
+      "fixed_time_minutes": 45,
+      "crew_size": 1,
+      "modifier_pool": "none",
+      "applicable_modifiers": [],
+      "rate_basis_notes": "Shared RRP task. XRF or EPA-certified test kit screening of all surfaces to be disturbed. ~45 min per project (midpoint of 30-60 min). Lead-certified renovator required. Pre-1978 only.",
+      "defect_tolerance": {
+        "QT2": "Testing completed. Results documented. Positive surfaces identified.",
+        "QT3": "All surfaces tested and documented. Test results on file. Containment plan confirmed.",
+        "QT4": "Comprehensive testing with photo documentation. Written containment plan. Results on file."
+      },
+      "applies_when": { "pre_1978": true }
+    },
+    {
+      "task_id": "TSK_RRP_EXT_CONTAINMENT_SETUP",
+      "name": "RRP Containment Setup",
+      "unit_of_measure": "FIXED",
+      "task_classification": "binary",
+      "fixed_time_minutes": 60,
+      "crew_size": 2,
+      "modifier_pool": "none",
+      "applicable_modifiers": [],
+      "rate_basis_notes": "Shared RRP task. Deploy 6-mil poly containment extending 10 ft from building. Secure at edges. Close windows/doors within 20 ft. Warning signs posted. ~60 min per setup (midpoint of 45-90 min). Two-person crew for poly handling. Pre-1978 only.",
+      "defect_tolerance": {
+        "QT2": "Containment in place. Poly secured. Signs posted.",
+        "QT3": "Complete containment per EPA RRP Rule. Poly lapped and taped. Windows closed. Signs posted.",
+        "QT4": "Complete containment per EPA RRP Rule. Documented with photos. All edges sealed. Windows verified closed. Signs posted."
+      },
+      "applies_when": { "pre_1978": true }
+    },
+    {
+      "task_id": "TSK_RRP_EXT_WET_SCRAPE",
+      "name": "RRP Wet Scraping",
+      "input_group": "stucco_surface_input_group",
+      "unit_of_measure": "SF",
+      "task_classification": "binary",
+      "rate_per_hour": 40,
+      "rate_range_low": 30,
+      "rate_range_high": 50,
+      "crew_size": 1,
+      "modifier_pool": "prep",
+      "applicable_modifiers": ["FAC_SCRP_RRP", "FAC_EXT_ACCESS"],
+      "rate_basis_notes": "Shared RRP task. Wet scraping of lead-containing paint. Mist surfaces to minimize dust. Collect all debris on containment poly. ~90 sec per SF. Much slower than standard scraping (50-100 SF/hr) due to wet method and careful debris containment. Pre-1978 only. Rate applies to area being disturbed.",
+      "defect_tolerance": {
+        "QT2": "Wet scraping completed. Debris contained on poly.",
+        "QT3": "Wet scraping per RRP. All debris on containment. No visible dust generation.",
+        "QT4": "Wet scraping per RRP with documentation. Zero visible dust. All debris contained and collected."
+      },
+      "applies_when": { "pre_1978": true }
+    },
+    {
+      "task_id": "TSK_RRP_EXT_HEPA_VACUUM",
+      "name": "RRP HEPA Vacuum",
+      "input_group": "stucco_surface_input_group",
+      "unit_of_measure": "SF",
+      "task_classification": "binary",
+      "rate_per_hour": 150,
+      "rate_range_low": 100,
+      "rate_range_high": 200,
+      "crew_size": 1,
+      "modifier_pool": "prep",
+      "applicable_modifiers": ["FAC_EXT_ACCESS"],
+      "rate_basis_notes": "Shared RRP task. HEPA vacuum all surfaces within containment zone after wet scraping. ~24 sec per SF. Include window sills, ledges, and horizontal surfaces. Pre-1978 only.",
+      "defect_tolerance": {
+        "QT2": "Surfaces vacuumed. Visible debris removed.",
+        "QT3": "All surfaces HEPA vacuumed per RRP. No visible debris or dust.",
+        "QT4": "Complete HEPA vacuum with EPA cleaning verification check. Documented."
+      },
+      "applies_when": { "pre_1978": true }
+    },
+    {
+      "task_id": "TSK_RRP_EXT_CONTAINMENT_TEARDOWN",
+      "name": "RRP Containment Teardown",
+      "unit_of_measure": "FIXED",
+      "task_classification": "binary",
+      "fixed_time_minutes": 45,
+      "crew_size": 2,
+      "modifier_pool": "none",
+      "applicable_modifiers": [],
+      "rate_basis_notes": "Shared RRP task. Carefully fold containment poly inward (mist first). Seal in heavy-duty bags. Dispose per EPA hazardous waste requirements. ~45 min (midpoint of 30-60 min). Two-person crew. Pre-1978 only.",
+      "defect_tolerance": {
+        "QT2": "Containment removed. Waste bagged.",
+        "QT3": "Containment folded inward per RRP. Waste double-bagged and labeled. Disposal documented.",
+        "QT4": "Containment removal per EPA RRP. Waste properly sealed, labeled, disposed. Documentation complete with photos."
+      },
+      "applies_when": { "pre_1978": true }
+    }
+  ],
+
+  "factor_modifiers": [
+    {
+      "factor_id": "FAC_SCRP_TEXTURE_PROFILE",
+      "name": "Stucco Texture Profile DUAL Modifier (Labor + Material)",
+      "mechanism": "time_multiplier",
+      "description": "DUAL modifier — applies to BOTH labor production rates (SF/hr) AND material coverage rates (SF/gal). Rougher textures slow production AND increase material consumption. This is the DOMINANT cost driver for stucco work. Identical values to NC sibling FAC_STCO_TEXTURE_PROFILE.",
+      "modifier_category": "texture",
+      "pool": "shared",
+      "applies_to": [
+        "TSK_SCRP_PRESSURE_WASH_TRAD",
+        "TSK_SCRP_SCRAPE_LIGHT",
+        "TSK_SCRP_SCRAPE_HEAVY",
+        "TSK_SCRP_DEGLOSS_SCUFF",
+        "TSK_SCRP_CHALK_REMEDIATION",
+        "TSK_SCRP_SURFACE_PATCH",
+        "TSK_SCRP_PRIME_CHALK_BIND_SPRAY_BACKROLL",
+        "TSK_SCRP_PRIME_CHALK_BIND_ROLL",
+        "TSK_SCRP_PRIME_ALKALI_SPOT",
+        "TSK_SCRP_PRIME_ACRYLIC_STAINBLOCK_SPRAY_BACKROLL",
+        "TSK_SCRP_PRIME_ACRYLIC_STAINBLOCK_ROLL",
+        "TSK_SCRP_PRIME_BRUSH_DETAIL",
+        "TSK_SCRP_FINISH_ACRYLIC_SPRAY_BACKROLL_1",
+        "TSK_SCRP_FINISH_ACRYLIC_ROLL_1",
+        "TSK_SCRP_FINISH_BRUSH_DETAIL_1",
+        "TSK_SCRP_FINISH_ELASTO_SPRAY_BACKROLL_1",
+        "TSK_SCRP_FINISH_ELASTO_ROLL_1",
+        "TSK_SCRP_FINISH_ACRYLIC_SPRAY_BACKROLL_2",
+        "TSK_SCRP_FINISH_ACRYLIC_ROLL_2",
+        "TSK_SCRP_FINISH_BRUSH_DETAIL_2",
+        "TSK_SCRP_FINISH_ELASTO_SPRAY_BACKROLL_2",
+        "TSK_SCRP_FINISH_ELASTO_ROLL_2",
+        "TSK_SCRP_TOUCHUP"
+      ],
+      "values": {
+        "smooth": 1.00,
+        "sand": 1.25,
+        "lace": 1.50,
+        "dash": 2.00
+      },
+      "formula": "effective_rate = base_rate / modifier",
+      "dual_application": {
+        "labor": "effective_sf_per_hour = base_sf_per_hour / texture_modifier",
+        "material": "effective_sf_per_gallon = base_sf_per_gallon / texture_modifier"
+      },
+      "notes": "Smooth is baseline (1.00x). Sand adds 25%. Lace adds 50%. Dash doubles both time and material. PRIMARY cost driver. Stacks with FAC_SCRP_SUBSTRATE_TYPE and FAC_EXT_ACCESS in coating pool, or with FAC_SCRP_CONDITION and FAC_EXT_ACCESS in prep pool. RP extends texture modifier to prep tasks (scraping, deglossing, chalk remediation, surface patch) — NC applied texture to coating tasks only."
+    },
+    {
+      "factor_id": "FAC_SCRP_SUBSTRATE_TYPE",
+      "name": "Stucco Substrate Type Modifier",
+      "mechanism": "time_multiplier",
+      "description": "EIFS is smoother and less porous than traditional stucco — slightly faster coating application. Labor rate modifier ONLY — does not affect material coverage. Coating pool only.",
+      "modifier_category": "substrate",
+      "pool": "coating",
+      "applies_to": [
+        "TSK_SCRP_PRIME_CHALK_BIND_SPRAY_BACKROLL",
+        "TSK_SCRP_PRIME_CHALK_BIND_ROLL",
+        "TSK_SCRP_PRIME_ACRYLIC_STAINBLOCK_SPRAY_BACKROLL",
+        "TSK_SCRP_PRIME_ACRYLIC_STAINBLOCK_ROLL",
+        "TSK_SCRP_FINISH_ACRYLIC_SPRAY_BACKROLL_1",
+        "TSK_SCRP_FINISH_ACRYLIC_ROLL_1",
+        "TSK_SCRP_FINISH_ACRYLIC_SPRAY_BACKROLL_2",
+        "TSK_SCRP_FINISH_ACRYLIC_ROLL_2"
+      ],
+      "values": {
+        "traditional_stucco": 1.00,
+        "EIFS": 0.90
+      },
+      "formula": "effective_rate = base_rate / modifier",
+      "notes": "Traditional stucco is baseline. EIFS 10% faster (0.90 modifier). Labor ONLY. NOT applied to elastomeric tasks (already gated to traditional stucco). NOT applied to brush detail (too small area to matter). NOT applied to prep tasks."
+    },
+    {
+      "factor_id": "FAC_SCRP_CONDITION",
+      "name": "RP Condition Scale Modifier (Prep Pool Only)",
+      "mechanism": "time_multiplier",
+      "description": "Condition scale drives prep task intensity. GOOD = minimal prep. FAIR = moderate scraping/patching. POOR = extensive scraping/patching. PREP POOL ONLY — NEVER applies to coating tasks.",
+      "modifier_category": "condition",
+      "pool": "prep",
+      "applies_to": [
+        "TSK_SCRP_PRESSURE_WASH_TRAD",
+        "TSK_SCRP_EIFS_WASH",
+        "TSK_SCRP_MILDEW_TREAT"
+      ],
+      "values": {
+        "GOOD": 1.00,
+        "FAIR": 1.50,
+        "POOR": 2.00
+      },
+      "formula": "effective_rate = base_rate / modifier",
+      "notes": "GOOD is baseline. FAIR adds 50% prep time. POOR doubles prep time. Applied ONLY to variable-rate prep tasks where condition directly affects scope. NOT applied to scraping tasks (already gated by condition_scale in applies_when). NOT applied to condition-gated tasks like degloss (GOOD only), chalk remediation (CHALKING only). NOT applied to crack/surface patch (fixed rate regardless of condition). NOT applied to caulk tasks (LF-based, condition-independent). NOT applied to assessment or coating tasks."
+    },
+    {
+      "factor_id": "FAC_SCRP_RRP",
+      "name": "RRP Lead-Safe Protocol Modifier (Prep Pool Only)",
+      "mechanism": "time_multiplier",
+      "description": "Pre-1978 RRP protocols add time to prep tasks. Wet methods, containment management, and documentation overhead. PREP POOL ONLY.",
+      "modifier_category": "compliance",
+      "pool": "prep",
+      "applies_to": [
+        "TSK_SCRP_PRESSURE_WASH_TRAD",
+        "TSK_SCRP_EIFS_WASH",
+        "TSK_SCRP_SCRAPE_LIGHT",
+        "TSK_SCRP_SCRAPE_HEAVY"
+      ],
+      "values": {
+        "non_rrp": 1.00,
+        "rrp_active": 2.00
+      },
+      "formula": "effective_rate = base_rate / modifier",
+      "notes": "RRP doubles prep task time due to wet methods, containment checks, and documentation. Applied to wash and scrape tasks only — these are the tasks where RRP protocol adds significant time. Separate from MOD_RRP_EXT_CONTAINMENT tasks (which have their own standalone rates). NOT applied to coating tasks."
+    },
+    {
+      "factor_id": "FAC_EXT_ACCESS",
+      "name": "Access Type Height Modifier",
+      "mechanism": "time_multiplier",
+      "description": "Access type drives production rate reduction for elevated work. Applied per elevation. Shared across prep and coating pools.",
+      "modifier_category": "access",
+      "pool": "shared",
+      "applies_to": [
+        "TSK_SCRP_PRESSURE_WASH_TRAD",
+        "TSK_SCRP_EIFS_WASH",
+        "TSK_SCRP_MILDEW_TREAT",
+        "TSK_SCRP_EFFLORESCENCE_TREAT",
+        "TSK_SCRP_SCRAPE_LIGHT",
+        "TSK_SCRP_SCRAPE_HEAVY",
+        "TSK_SCRP_DEGLOSS_SCUFF",
+        "TSK_SCRP_CHALK_REMEDIATION",
+        "TSK_SCRP_CRACK_PATCH",
+        "TSK_SCRP_SURFACE_PATCH",
+        "TSK_SCRP_CAULK_REMOVE",
+        "TSK_SCRP_CAULK_APPLY",
+        "TSK_SCRP_PRIME_CHALK_BIND_SPRAY_BACKROLL",
+        "TSK_SCRP_PRIME_CHALK_BIND_ROLL",
+        "TSK_SCRP_PRIME_ALKALI_SPOT",
+        "TSK_SCRP_PRIME_ACRYLIC_STAINBLOCK_SPRAY_BACKROLL",
+        "TSK_SCRP_PRIME_ACRYLIC_STAINBLOCK_ROLL",
+        "TSK_SCRP_PRIME_BRUSH_DETAIL",
+        "TSK_SCRP_FINISH_ACRYLIC_SPRAY_BACKROLL_1",
+        "TSK_SCRP_FINISH_ACRYLIC_ROLL_1",
+        "TSK_SCRP_FINISH_BRUSH_DETAIL_1",
+        "TSK_SCRP_FINISH_ELASTO_SPRAY_BACKROLL_1",
+        "TSK_SCRP_FINISH_ELASTO_ROLL_1",
+        "TSK_SCRP_INSPECT_INTERCOAT",
+        "TSK_SCRP_SAND_INTERCOAT",
+        "TSK_SCRP_DUST_INTERCOAT",
+        "TSK_SCRP_FINISH_ACRYLIC_SPRAY_BACKROLL_2",
+        "TSK_SCRP_FINISH_ACRYLIC_ROLL_2",
+        "TSK_SCRP_FINISH_BRUSH_DETAIL_2",
+        "TSK_SCRP_FINISH_ELASTO_SPRAY_BACKROLL_2",
+        "TSK_SCRP_FINISH_ELASTO_ROLL_2",
+        "TSK_SCRP_TOUCHUP"
+      ],
+      "values": {
+        "ground": 1.00,
+        "ladder": 1.35,
+        "scaffold": 1.60,
+        "lift": 1.50
+      },
+      "formula": "effective_rate = base_rate / modifier",
+      "notes": "Applied per elevation. Protection setup/teardown, spray setup, assessment fixed tasks, tool cleaning, waste disposal, customer walkthrough, RRP containment setup/teardown are ground-level or administrative — not affected."
+    },
+    {
+      "factor_id": "FAC_QT",
+      "name": "Quality Tier Modifier (Coating Pool Only)",
+      "mechanism": "time_multiplier",
+      "description": "QT affects coating pace. QT2 faster, QT4 slower. COATING POOL ONLY — applied to binary coating tasks only (qt_scaled/qt_conditional already have tier-specific rates).",
+      "modifier_category": "quality",
+      "pool": "coating",
+      "applies_to": [
+        "TSK_SCRP_PRIME_CHALK_BIND_SPRAY_BACKROLL",
+        "TSK_SCRP_PRIME_CHALK_BIND_ROLL",
+        "TSK_SCRP_PRIME_ALKALI_SPOT",
+        "TSK_SCRP_PRIME_ACRYLIC_STAINBLOCK_SPRAY_BACKROLL",
+        "TSK_SCRP_PRIME_ACRYLIC_STAINBLOCK_ROLL",
+        "TSK_SCRP_PRIME_BRUSH_DETAIL",
+        "TSK_SCRP_FINISH_ACRYLIC_SPRAY_BACKROLL_1",
+        "TSK_SCRP_FINISH_ACRYLIC_ROLL_1",
+        "TSK_SCRP_FINISH_BRUSH_DETAIL_1",
+        "TSK_SCRP_FINISH_ELASTO_SPRAY_BACKROLL_1",
+        "TSK_SCRP_FINISH_ELASTO_ROLL_1",
+        "TSK_SCRP_FINISH_ACRYLIC_SPRAY_BACKROLL_2",
+        "TSK_SCRP_FINISH_ACRYLIC_ROLL_2",
+        "TSK_SCRP_FINISH_BRUSH_DETAIL_2",
+        "TSK_SCRP_FINISH_ELASTO_SPRAY_BACKROLL_2",
+        "TSK_SCRP_FINISH_ELASTO_ROLL_2"
+      ],
+      "values": {
+        "QT2": 0.85,
+        "QT3": 1.00,
+        "QT4": 1.20
+      },
+      "formula": "effective_rate = base_rate / modifier",
+      "notes": "QT2 15% faster (economy). QT3 baseline. QT4 20% slower (premium scrutiny). Binary coating tasks only — qt_scaled tasks already encode tier differences. NEVER applied to prep tasks."
+    },
+    {
+      "factor_id": "FAC_EXT_WIND",
+      "name": "Wind Condition Modifier",
+      "mechanism": "time_multiplier",
+      "description": "Wind affects spray operations. High wind blocks spray entirely. Moderate wind slows spray work.",
+      "modifier_category": "environmental",
+      "pool": "coating",
+      "applies_to": [
+        "TSK_SCRP_PRIME_CHALK_BIND_SPRAY_BACKROLL",
+        "TSK_SCRP_PRIME_ACRYLIC_STAINBLOCK_SPRAY_BACKROLL",
+        "TSK_SCRP_FINISH_ACRYLIC_SPRAY_BACKROLL_1",
+        "TSK_SCRP_FINISH_ELASTO_SPRAY_BACKROLL_1",
+        "TSK_SCRP_FINISH_ACRYLIC_SPRAY_BACKROLL_2",
+        "TSK_SCRP_FINISH_ELASTO_SPRAY_BACKROLL_2"
+      ],
+      "values": {
+        "calm": 1.00,
+        "light": 1.00,
+        "moderate": 1.15,
+        "high": "BLOCKED"
+      },
+      "formula": "effective_rate = base_rate / modifier",
+      "notes": "High wind BLOCKS spray operations per SOP. Moderate wind 15% slower. Roll and brush not significantly affected. Spray tasks only."
+    },
+    {
+      "factor_id": "FAC_EXT_SUN_EXPOSURE",
+      "name": "Sun Exposure Modifier",
+      "mechanism": "time_multiplier",
+      "description": "Full sun exposure causes flash drying. Stucco retains heat — surface temp can exceed air temp significantly.",
+      "modifier_category": "environmental",
+      "pool": "coating",
+      "applies_to": [
+        "TSK_SCRP_PRIME_CHALK_BIND_SPRAY_BACKROLL",
+        "TSK_SCRP_PRIME_CHALK_BIND_ROLL",
+        "TSK_SCRP_PRIME_ACRYLIC_STAINBLOCK_SPRAY_BACKROLL",
+        "TSK_SCRP_PRIME_ACRYLIC_STAINBLOCK_ROLL",
+        "TSK_SCRP_PRIME_ALKALI_SPOT",
+        "TSK_SCRP_PRIME_BRUSH_DETAIL",
+        "TSK_SCRP_FINISH_ACRYLIC_SPRAY_BACKROLL_1",
+        "TSK_SCRP_FINISH_ACRYLIC_ROLL_1",
+        "TSK_SCRP_FINISH_BRUSH_DETAIL_1",
+        "TSK_SCRP_FINISH_ELASTO_SPRAY_BACKROLL_1",
+        "TSK_SCRP_FINISH_ELASTO_ROLL_1",
+        "TSK_SCRP_FINISH_ACRYLIC_SPRAY_BACKROLL_2",
+        "TSK_SCRP_FINISH_ACRYLIC_ROLL_2",
+        "TSK_SCRP_FINISH_BRUSH_DETAIL_2",
+        "TSK_SCRP_FINISH_ELASTO_SPRAY_BACKROLL_2",
+        "TSK_SCRP_FINISH_ELASTO_ROLL_2"
+      ],
+      "values": {
+        "shade": 1.00,
+        "partial_sun": 1.05,
+        "full_sun": 1.15
+      },
+      "formula": "effective_rate = base_rate / modifier",
+      "notes": "Full sun on stucco causes rapid surface heating and flash drying. Especially critical for elastomeric. Forces slower pace to maintain wet edge."
+    },
+    {
+      "factor_id": "FAC_EXT_SURFACE_TEMP",
+      "name": "Surface Temperature Modifier",
+      "mechanism": "time_multiplier",
+      "description": "Extreme surface temperatures affect coating application.",
+      "modifier_category": "environmental",
+      "pool": "coating",
+      "applies_to": [
+        "TSK_SCRP_PRIME_CHALK_BIND_SPRAY_BACKROLL",
+        "TSK_SCRP_PRIME_CHALK_BIND_ROLL",
+        "TSK_SCRP_PRIME_ACRYLIC_STAINBLOCK_SPRAY_BACKROLL",
+        "TSK_SCRP_PRIME_ACRYLIC_STAINBLOCK_ROLL",
+        "TSK_SCRP_PRIME_ALKALI_SPOT",
+        "TSK_SCRP_PRIME_BRUSH_DETAIL",
+        "TSK_SCRP_FINISH_ACRYLIC_SPRAY_BACKROLL_1",
+        "TSK_SCRP_FINISH_ACRYLIC_ROLL_1",
+        "TSK_SCRP_FINISH_BRUSH_DETAIL_1",
+        "TSK_SCRP_FINISH_ELASTO_SPRAY_BACKROLL_1",
+        "TSK_SCRP_FINISH_ELASTO_ROLL_1",
+        "TSK_SCRP_FINISH_ACRYLIC_SPRAY_BACKROLL_2",
+        "TSK_SCRP_FINISH_ACRYLIC_ROLL_2",
+        "TSK_SCRP_FINISH_BRUSH_DETAIL_2",
+        "TSK_SCRP_FINISH_ELASTO_SPRAY_BACKROLL_2",
+        "TSK_SCRP_FINISH_ELASTO_ROLL_2"
+      ],
+      "values": {
+        "optimal": 1.00,
+        "cold_surface": 1.10,
+        "hot_surface": "BLOCKED"
+      },
+      "formula": "effective_rate = base_rate / modifier",
+      "notes": "Optimal: 50-90F surface temp. Cold (<50F): 10% slower. Hot (>90F): BLOCKED. Stucco retains heat longer than wood."
+    }
+  ],
+
+  "quality_effects": [
+    {
+      "quality_tier": "QT2",
+      "coat_count": { "prime": "state_dependent", "finish": 1 },
+      "interstage_sand": false,
+      "interstage_inspect": false,
+      "inspection_level": "quick_scan",
+      "notes": "Economy tier. Single finish coat acrylic. Prime if substrate state is not SOUND_PAINT (state-driven). No interstage module. Elastomeric NOT available at QT2."
+    },
+    {
+      "quality_tier": "QT3",
+      "coat_count": { "prime": "state_dependent", "finish": 2 },
+      "interstage_sand": false,
+      "interstage_inspect": true,
+      "inspection_level": "scan",
+      "notes": "Standard tier. Two finish coats (acrylic or elastomeric). Interstage inspection. Prime is state-driven. All coating systems available."
+    },
+    {
+      "quality_tier": "QT4",
+      "coat_count": { "prime": "state_dependent", "finish": 2 },
+      "interstage_sand": true,
+      "interstage_inspect": true,
+      "inspection_level": "systematic",
+      "notes": "Premium tier. Two finish coats. Interstage sand on anomalies. State-driven primer. Systematic inspection with raking light."
+    }
+  ],
+
+  "modifier_stacking_examples": [
+    {
+      "scenario": "BEST CASE — Smooth traditional stucco, acrylic, ground, QT3, GOOD condition (spray_backroll)",
+      "task_affected": "TSK_SCRP_FINISH_ACRYLIC_SPRAY_BACKROLL_1",
+      "base_rate": 137,
+      "pool": "coating",
+      "modifiers": { "FAC_QT": 1.00, "FAC_EXT_ACCESS": 1.00, "FAC_SCRP_TEXTURE_PROFILE": 1.00, "FAC_SCRP_SUBSTRATE_TYPE": 1.00 },
+      "combined_modifier": 1.00,
+      "effective_rate": 137,
+      "notes": "Best case coating rate on traditional stucco."
+    },
+    {
+      "scenario": "Smooth EIFS, acrylic, ground, QT3 (spray_backroll)",
+      "task_affected": "TSK_SCRP_FINISH_ACRYLIC_SPRAY_BACKROLL_1",
+      "base_rate": 137,
+      "pool": "coating",
+      "modifiers": { "FAC_QT": 1.00, "FAC_EXT_ACCESS": 1.00, "FAC_SCRP_TEXTURE_PROFILE": 1.00, "FAC_SCRP_SUBSTRATE_TYPE": 0.90 },
+      "combined_modifier": 0.90,
+      "effective_rate": 152,
+      "notes": "EIFS 10% faster. 137 / 0.90 = 152 SF/hr."
+    },
+    {
+      "scenario": "Sand texture, traditional stucco, acrylic, ladder, QT3 (spray_backroll)",
+      "task_affected": "TSK_SCRP_FINISH_ACRYLIC_SPRAY_BACKROLL_1",
+      "base_rate": 137,
+      "pool": "coating",
+      "modifiers": { "FAC_QT": 1.00, "FAC_EXT_ACCESS": 1.35, "FAC_SCRP_TEXTURE_PROFILE": 1.25, "FAC_SCRP_SUBSTRATE_TYPE": 1.00 },
+      "combined_modifier": 1.69,
+      "effective_rate": 81,
+      "notes": "Realistic common scenario. 137 / 1.69 = 81 SF/hr."
+    },
+    {
+      "scenario": "WORST CASE COATING — Dash texture, traditional, elastomeric, scaffold, QT4 (spray_backroll)",
+      "task_affected": "TSK_SCRP_FINISH_ELASTO_SPRAY_BACKROLL_1",
+      "base_rate": 90,
+      "pool": "coating",
+      "modifiers": { "FAC_QT": 1.20, "FAC_EXT_ACCESS": 1.60, "FAC_SCRP_TEXTURE_PROFILE": 2.00 },
+      "combined_modifier": 3.84,
+      "effective_rate": 23,
+      "notes": "Near 4.0x cap (3.84x). 90 / 3.84 = 23 SF/hr per 2-person crew. Extremely slow — flag for estimator review."
+    },
+    {
+      "scenario": "WORST CASE PREP — Heavy scrape, POOR condition, RRP, scaffold, dash texture",
+      "task_affected": "TSK_SCRP_SCRAPE_HEAVY",
+      "base_rate": 50,
+      "pool": "prep",
+      "modifiers": { "FAC_EXT_ACCESS": 1.60, "FAC_SCRP_TEXTURE_PROFILE": 2.00 },
+      "combined_modifier": 3.20,
+      "effective_rate": 16,
+      "notes": "Heavy scraping at worst conditions. 50 / 3.20 = 16 SF/hr. Note: condition and RRP modifiers NOT applied to scraping tasks (already gated by condition_scale). Extreme but realistic for damaged dash stucco on upper stories."
+    },
+    {
+      "scenario": "Pressure wash, POOR condition, RRP, ladder, sand texture (traditional stucco)",
+      "task_affected": "TSK_SCRP_PRESSURE_WASH_TRAD",
+      "base_rate": 450,
+      "pool": "prep",
+      "modifiers": { "FAC_SCRP_CONDITION": 2.00, "FAC_SCRP_RRP": 2.00, "FAC_EXT_ACCESS": 1.35, "FAC_SCRP_TEXTURE_PROFILE": 1.25 },
+      "combined_modifier": 6.75,
+      "effective_rate": 67,
+      "notes": "Extreme prep scenario. 450 / 6.75 = 67 SF/hr. RRP + POOR condition + ladder + sand. Prep pool can exceed 4.0x cap — flag for estimator review on extreme combinations."
+    }
+  ],
+
+  "assumptions": [
+    "Base rates for spray_backroll are per crew-hour with 2 workers (sprayer + roller). crew_size = 2.",
+    "Base rates for roll and brush are per single worker. crew_size = 1.",
+    "Spray/backroll coupling rule satisfied on all spray_backroll tasks.",
+    "FAC_SCRP_TEXTURE_PROFILE is a DUAL modifier — applied to BOTH labor rates (SF/hr) and material coverage (SF/gal). Unique to stucco.",
+    "FAC_SCRP_SUBSTRATE_TYPE applies to LABOR rate only — NOT material coverage.",
+    "Elastomeric base rates (~65% of acrylic) already account for heavier body — no separate coating_system modifier needed.",
+    "Modifier stacking is multiplicative within each pool. Prep pool and coating pool NEVER cross.",
+    "Maximum combined COATING modifier: 3.84x (dash 2.00 x scaffold 1.60 x QT4 1.20). Under 4.0x cap.",
+    "PREP pool can exceed 4.0x in extreme combinations (condition x RRP x access x texture). Flag for estimator review.",
+    "RP primer selection is STATE-DRIVEN (not substrate-driven as in NC): chalk-binding for CHALKING, stain-block for FAILING/PEELING, alkali spot on bare traditional stucco.",
+    "SOUND_PAINT (GOOD condition) skips prime module entirely — verified adhesion means direct-to-finish.",
+    "Finish coat rates transfer DIRECTLY from NC — same products, same application technique.",
+    "RP-specific prep tasks (scraping, deglossing, chalk remediation, condition assessment) are RP_NEW with calibrated rates.",
+    "RRP module tasks have standalone rates — not affected by stacking modifiers.",
+    "Environmental modifiers (wind, sun, surface temp) apply to coating tasks only, consistent with NC sibling."
+  ],
+
+  "risks": [
+    "Dash texture + elastomeric + scaffold + QT4 is near 4.0x coating cap (3.84x) — flag for estimator review.",
+    "DUAL texture modifier on material coverage is critical — dash uses 2x material vs smooth. Under-estimation risk.",
+    "Prep pool extreme combinations (POOR + RRP + scaffold + dash) can reach 6-8x — these are RARE but must be handled.",
+    "EIFS knock test may reveal delamination requiring repair — blocks project. Scheduling risk.",
+    "Moisture behind EIFS is catastrophic — coating over moisture leads to blistering and structural damage.",
+    "Crack width >1/8 inch is HARD STOP — structural evaluation required.",
+    "Stucco tape adhesive residue on multi-day exterior projects.",
+    "RP chalk remediation efficacy varies — some chalk cannot be fully removed and requires chalk-binding primer.",
+    "Heavy scraping on POOR condition stucco may reveal more bare area than estimated — primer quantity may increase.",
+    "Customer walkthrough (RP-specific) may identify additional touch-up scope.",
+    "RRP wet scraping at 40 SF/hr on large POOR condition walls creates significant labor cost — flag projects with >1000 SF POOR + pre-1978."
+  ],
+
+  "validation_plan": [
+    "Time 3 RP acrylic spray_backroll finish projects on smooth traditional stucco at ground to validate 137 SF/hr baseline transfers from NC.",
+    "Time 2 RP elastomeric spray_backroll projects to validate 90 SF/hr baseline transfers.",
+    "Compare RP pressure wash rates to NC rates to validate 10% slower (450 vs 500 SF/hr).",
+    "Time light scraping on FAIR condition stucco to calibrate 100 SF/hr baseline.",
+    "Time heavy scraping on POOR condition stucco to calibrate 50 SF/hr baseline.",
+    "Track chalk-binding primer application rate to validate 325 SF/hr spray_backroll.",
+    "Track stain-block primer application rate to validate 350 SF/hr spray_backroll.",
+    "Time condition assessment across 3 projects to validate QT3 45 min/elevation.",
+    "Track caulk removal rates to validate 60 LF/hr (slower than new application 100 LF/hr).",
+    "Time customer walkthrough across 5 projects to validate 30 min baseline.",
+    "Compare RP protection teardown time to NC to validate +5 min adjustment (35 vs 30 min).",
+    "Track material consumption on dash texture RP projects to validate 2.0x DUAL texture modifier on coverage."
+  ]
+}

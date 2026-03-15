@@ -1,0 +1,624 @@
+{
+  "spec_family": {
+    "id": "SF_PORCH_FLOOR_EXT_RP",
+    "name": "Exterior Porch Floor Repaint",
+    "description": "Condition-dependent repaint of existing exterior porch, portico, and covered patio floor surfaces. Dual-substrate spec covering previously-painted concrete and wood tongue-and-groove porch floors. Assessment-first workflow: existing coating condition rating, coating type identification, substrate-specific moisture checks. Existing coating condition (sound/worn/failing/peeling) is the primary RP dimension driving prep intensity — foot traffic wear is the dominant repaint driver on walking surfaces. Porch enamel (acrylic porch & floor paint) is the universal RP finish product regardless of original coating system (coating_system is NOT a dimension — RP converges on single product). Concrete RP prep uses chemical degloss or mechanical abrasion (NO acid etch on RP). Wood RP prep uses scuff sand or scrape/feather. Spot prime for failing (bare patches), full prime for peeling (>30% bare), bonding primer for incompatible existing coatings. Anti-slip aggregate broadcast mandatory on all coats. Steps are conditional scope component (brush only, alternating-step pattern). QT2 (economy single coat refresh) and QT3 (standard 2-coat full repaint). Cure time communication critical — 48-72hr before foot traffic. Uses SF as primary UOM. No height modifier — ground-level work. 35 tasks across 8 modules.",
+    "domain": "exterior",
+    "version": "0.1.0",
+    "status": "draft",
+    "review_required": true
+  },
+
+  "scope_boundaries": {
+    "includes": [
+      "Existing coating condition assessment (sound/worn/failing/peeling) with tape-pull adhesion test",
+      "Existing coating type identification (porch enamel, concrete stain, acrylic sealer, unknown)",
+      "Concrete moisture assessment via plastic sheet test (ASTM D4263) — conditional on peeling pattern",
+      "Wood moisture content verification (MC <15%) via pin-type meter",
+      "Chemical degloss for sound/worn concrete (liquid sander/deglosser)",
+      "Scuff sand for sound/worn wood (120-150 grit)",
+      "Scrape loose/failing paint — concrete and wood",
+      "Feather-edge sand at scrape boundaries (80-grit)",
+      "Concrete crack fill (hairline to 1/4\")",
+      "Wood T&G gap fill with exterior wood filler",
+      "Spot prime bare areas (failing condition)",
+      "Full prime coat (peeling condition — >30% bare substrate)",
+      "Bonding primer for incompatible/unknown existing coatings",
+      "Porch & floor enamel application — 2 coats QT3, 1 coat QT2 (brush_roll or spray_backroll)",
+      "Anti-slip silica sand broadcast into wet coat 1 (field)",
+      "Anti-slip aluminum oxide broadcast on steps",
+      "Step/riser painting — brush, alternating-step pattern (conditional on steps present)",
+      "Edge cut-in at wall base, railing bases, thresholds, expansion joints",
+      "Wall base, railing base, door threshold, landscape, hardscape protection",
+      "Furniture removal, staging, and return (return may be separate visit after 48-72hr cure)",
+      "Final inspection and touch-up",
+      "Customer cure-time communication (written schedule)",
+      "Tool and equipment cleanup"
+    ],
+    "excludes": [
+      {
+        "item": "Original polyurea/epoxy coating systems",
+        "route_to": "Specialty flooring contractor — proprietary products require manufacturer-authorized application"
+      },
+      {
+        "item": "Concrete structural repair (spalling >1/4\", heaving, settling, crumbling)",
+        "route_to": "Concrete contractor — not painting scope"
+      },
+      {
+        "item": "Wood structural repair (rot, joist damage, board replacement)",
+        "route_to": "Carpentry scope — assessment IDENTIFIES but does not repair"
+      },
+      {
+        "item": "Porch railing painting",
+        "route_to": "Future SF_RAILING_EXT_RP or included in elevation trim scope"
+      },
+      {
+        "item": "Porch ceiling/soffit painting",
+        "route_to": "Future SF_SOFFIT_EXT_RP or SF_CEILING_EXT_RP"
+      },
+      {
+        "item": "Interior floor at threshold",
+        "route_to": "Interior floor spec — protection at threshold is THIS spec's responsibility"
+      },
+      {
+        "item": "Scaffold or staging",
+        "route_to": "Not applicable — ground-level work"
+      },
+      {
+        "item": "Color change requiring full strip and bare substrate prep",
+        "route_to": "Use NC spec (SF_PORCH_FLOOR_EXT_NC) for complete recoat from bare substrate"
+      }
+    ]
+  },
+
+  "configuration_dimensions": [
+    {
+      "dimension_id": "quality_tier",
+      "description": "QT2 = economy single-coat refresh on sound existing. QT3 = standard 2-coat full repaint. Porch floor is utilitarian — QT4/QT5 not applicable.",
+      "values": ["QT2", "QT3"],
+      "default": "QT3",
+      "notes": "QT2 valid only for sound existing coating in good condition — touch-up refresh. QT3 is standard full repaint with proper prep."
+    },
+    {
+      "dimension_id": "existing_coating_condition",
+      "description": "RP-SPECIFIC PRIMARY DIMENSION — drives prep intensity, primer strategy, and labor multiplier. Foot traffic wear is the dominant repaint driver.",
+      "values": ["sound", "worn", "failing", "peeling"],
+      "default": "worn",
+      "notes": "Sound = intact, light degloss/scuff. Worn = traffic wear-through in paths, moderate prep. Failing = adhesion loss in patches, scrape + spot prime. Peeling = sheet delamination (often moisture-driven), heavy scrape + full prime."
+    },
+    {
+      "dimension_id": "substrate_type",
+      "description": "Porch floor substrate material. Drives completely different prep modules.",
+      "values": ["concrete", "wood"],
+      "default": "concrete",
+      "notes": "Concrete = previously-painted concrete slab. Wood = tongue-and-groove porch floor (fir, pine, PT pine). Each substrate has its own prep module."
+    },
+    {
+      "dimension_id": "application_method",
+      "description": "Primary application technique for finish coats.",
+      "values": ["brush_roll", "spray_backroll"],
+      "default": "brush_roll",
+      "notes": "brush_roll = roller for field + brush for edges (primary, <400 SF). spray_backroll = airless spray + immediate backroll (2-person crew, >400 SF). Spray-only PROHIBITED on horizontal surfaces."
+    }
+  ],
+
+  "paintable_items": [
+    {
+      "item_id": "ITM_PORCH_FLOOR",
+      "name": "Porch/patio floor field surface",
+      "unit_of_measure": "SF",
+      "counting_rules": "Net porch floor field area in square feet. Measured from PaintScope plan view. Excludes railing footprint and step area.",
+      "notes": "SF-based. Primary walking surface. Always active. Both concrete and wood substrates."
+    },
+    {
+      "item_id": "ITM_PORCH_STEP",
+      "name": "Porch step (tread + riser per step)",
+      "unit_of_measure": "EA",
+      "counting_rules": "Count of porch steps. Each tread + riser = 1 unit. Count from PaintScope step metadata.",
+      "notes": "EA-based. Conditional on steps present. Brush only — roller cannot reach riser face. Alternating-step pattern for access during cure."
+    }
+  ],
+
+  "required_paintscope_inputs": [
+    { "input_name": "IN_SF_PORCH_FLOOR", "paintscope_key": "PS_EXT_SURFACE_SF.PORCH_FLOOR", "uom": "SF", "required": true, "description": "Net porch floor field area" },
+    { "input_name": "IN_EA_PORCH_STEPS", "paintscope_key": "PS_EXT_META.EA.PORCH_STEPS", "uom": "EA", "required": false, "required_when": "When porch has steps", "description": "Count of porch steps" },
+    { "input_name": "IN_ENUM_EXISTING_COATING_CONDITION_PORCH", "paintscope_key": "PS_EXT_META.ENUM.EXISTING_COATING_CONDITION_PORCH", "uom": "ENUM", "required": true, "description": "Existing coating condition (sound/worn/failing/peeling)" },
+    { "input_name": "IN_ENUM_SUBSTRATE_TYPE_PORCH", "paintscope_key": "PS_EXT_META.ENUM.SUBSTRATE_TYPE_PORCH", "uom": "ENUM", "required": true, "description": "Porch substrate type (concrete/wood)" },
+    { "input_name": "IN_LF_EXT_PROTECT_WALL_BASE", "paintscope_key": "PS_EXT_PROTECT_LF.WALL_BASE", "uom": "LF", "required": false, "required_when": "When porch abuts house wall", "description": "Wall base perimeter masking length" },
+    { "input_name": "IN_LF_EXT_PROTECT_RAILING_BASE", "paintscope_key": "PS_EXT_PROTECT_LF.RAILING_BASE", "uom": "LF", "required": false, "required_when": "When railings are present", "description": "Railing base masking length" },
+    { "input_name": "IN_EA_EXT_PROTECT_DOOR_THRESHOLD", "paintscope_key": "PS_EXT_PROTECT_EA.DOOR_THRESHOLD", "uom": "EA", "required": false, "required_when": "When porch has door entry", "description": "Door threshold count" },
+    { "input_name": "IN_LF_EXT_PROTECT_LANDSCAPE_EDGE", "paintscope_key": "PS_EXT_PROTECT_LF.LANDSCAPE_EDGE", "uom": "LF", "required": false, "required_when": "When landscape is adjacent", "description": "Landscape edge protection length" },
+    { "input_name": "IN_LF_EXT_PROTECT_HARDSCAPE_EDGE", "paintscope_key": "PS_EXT_PROTECT_LF.HARDSCAPE_EDGE", "uom": "LF", "required": false, "required_when": "When hardscape is adjacent", "description": "Hardscape edge protection length" }
+  ],
+
+  "substrate_state_rules": {
+    "primary_surface": "porch_floor_field",
+
+    "valid_input_states": {
+      "states": ["SS_EXT_PAINTED_SATIN", "SS_EXT_PAINTED_SEMIGLOSS", "SS_EXT_PAINTED_FLAT", "SS_EXT_FAILING_PAINT", "SS_EXT_PEELING"],
+      "notes": "5 repaint input states. SS_EXT_PAINTED_SATIN/SEMIGLOSS/FLAT = sound/worn existing porch enamel. SS_EXT_FAILING_PAINT = adhesion loss in patches. SS_EXT_PEELING = sheet delamination. SS_EXT_BARE_WOOD/BARE_MASONRY excluded — bare substrate enters via NC spec."
+    },
+
+    "output_state": {
+      "state": "SS_EXT_PAINTED_SATIN",
+      "varies_by": null,
+      "notes": "All RP converges to satin porch enamel output. Single sheen — no variation."
+    }
+  },
+
+  "protection_zones_required": [
+    {
+      "zone_id": "ext_wall_floor_junction",
+      "condition": "always",
+      "protection_level": "partial_cover",
+      "notes": "Tape + 6\" paper at wall-to-floor junction. Always required — porch always abuts house wall on at least one side."
+    },
+    {
+      "zone_id": "ext_railing_base",
+      "condition": "when_present",
+      "protection_level": "light_mask",
+      "notes": "Tape and paper collar at railing post bases. Conditional on railing presence."
+    },
+    {
+      "zone_id": "ext_door_threshold",
+      "condition": "when_present",
+      "protection_level": "partial_cover",
+      "notes": "Tape + paper/plastic over threshold surface. High-visibility detail."
+    },
+    {
+      "zone_id": "ext_landscape_edge",
+      "condition": "when_adjacent",
+      "protection_level": "full_cover",
+      "notes": "Drop cloth along porch perimeter where landscape beds are adjacent."
+    },
+    {
+      "zone_id": "ext_hardscape_edge",
+      "condition": "when_adjacent",
+      "protection_level": "light_mask",
+      "upgrade_when": { "application_method": ["spray_backroll"] },
+      "upgrade_level": "full_cover",
+      "notes": "Tape + canvas at hardscape transition. Upgraded to full cover for spray."
+    },
+    {
+      "zone_id": "ext_furniture_staging",
+      "condition": "when_present",
+      "protection_level": "relocate",
+      "notes": "Porch furniture staged to off-porch location. Return after 48-72hr cure."
+    }
+  ],
+
+  "material_systems": [
+    {
+      "system_id": "SYS_EXT_PFRP_PRIMER_SPOT_ACRYLIC",
+      "name": "Acrylic Exterior Primer — Spot/Full",
+      "product_role": "primer",
+      "applies_when": { "existing_coating_condition": ["failing", "peeling"] },
+      "coverage_profile": "COV_PFRP_PRIMER",
+      "coats": 1,
+      "allowed_sheens": ["n/a"],
+      "notes": "Spot prime on failing (bare patches), full prime on peeling (>30% bare). Both concrete and wood."
+    },
+    {
+      "system_id": "SYS_EXT_PFRP_PRIMER_BONDING",
+      "name": "Bonding Primer for Incompatible Existing",
+      "product_role": "specialty",
+      "applies_when": { "existing_coating_type": ["unknown", "incompatible"] },
+      "coverage_profile": "COV_PFRP_BONDING",
+      "coats": 1,
+      "allowed_sheens": ["n/a"],
+      "notes": "RP-SPECIFIC. Adhesion bridge for unknown/incompatible existing coatings."
+    },
+    {
+      "system_id": "SYS_EXT_PFRP_FINISH_PORCH_ENAMEL",
+      "name": "Acrylic Porch & Floor Enamel",
+      "product_role": "finish",
+      "applies_when": {},
+      "coverage_profile": "COV_PFRP_PORCH_ENAMEL",
+      "coats": 2,
+      "allowed_sheens": ["satin"],
+      "notes": "Universal RP finish. 2 coats at QT3, 1 coat at QT2. Anti-slip aggregate broadcast into wet coat 1."
+    }
+  ],
+
+  "sop_module_summary": {
+    "total_modules": 8,
+    "total_tasks": 35,
+    "task_breakdown": {
+      "binary": 35,
+      "qt_conditional": 0,
+      "qt_scaled": 0
+    },
+    "modules": [
+      { "module_id": "MOD_PFRP_SETUP", "phase": "setup", "task_count": 2, "notes": "Mobilization and furniture removal" },
+      { "module_id": "MOD_PFRP_PROTECT", "phase": "setup", "task_count": 5, "notes": "Wall base, railing, threshold, landscape, hardscape masking" },
+      { "module_id": "MOD_PFRP_ASSESS", "phase": "prep", "task_count": 4, "notes": "RP-SPECIFIC: condition assessment, coating ID, moisture test (concrete), MC test (wood)" },
+      { "module_id": "MOD_PFRP_PREP_CONCRETE", "phase": "prep", "task_count": 5, "applies_when": { "substrate_type": "concrete" }, "notes": "Degloss, scrape, feather sand, crack fill, clean" },
+      { "module_id": "MOD_PFRP_PREP_WOOD", "phase": "prep", "task_count": 5, "applies_when": { "substrate_type": "wood" }, "notes": "Scuff sand, scrape, feather sand, wood fill, clean" },
+      { "module_id": "MOD_PFRP_PRIME", "phase": "prime", "task_count": 4, "applies_when": { "existing_coating_condition": ["failing", "peeling"] }, "notes": "Spot, full, bonding, steps" },
+      { "module_id": "MOD_PFRP_APPLY", "phase": "apply", "task_count": 9, "notes": "Cut-in + field (roll or spray) + anti-slip + steps, x2 coats for QT3" },
+      { "module_id": "MOD_PFRP_CLEANUP", "phase": "cleanup", "task_count": 5, "notes": "Inspect, teardown, furniture return, customer comm, tool cleanup" }
+    ]
+  },
+
+  "production_summary": {
+    "total_rates": 35,
+    "crew_size_2_tasks": 2,
+    "crew_size_2_task_ids": [
+      "TSK_PFRP_ENAMEL_FIELD_SPRAY_BACKROLL",
+      "TSK_PFRP_ENAMEL_FIELD_SPRAY_BACKROLL_COAT2"
+    ],
+    "rate_ranges": {
+      "field_roll": "250 SF/hr",
+      "field_spray_backroll": "450 SF/hr (2-person crew)",
+      "scuff_sand_wood": "100 SF/hr",
+      "degloss_concrete": "200 SF/hr",
+      "scrape_concrete": "60 SF/hr",
+      "scrape_wood": "50 SF/hr",
+      "step_brush": "4 EA/hr"
+    },
+    "factor_modifiers": [
+      {
+        "factor_id": "FAC_PFRP_CONDITION",
+        "values": { "sound": 1.00, "worn": 1.20, "failing": 1.50, "peeling": 2.00 },
+        "applies_to_count": 4,
+        "notes": "PREP tasks only (scrape + feather sand). RP-SPECIFIC."
+      },
+      {
+        "factor_id": "FAC_PFRP_SUBSTRATE",
+        "values": { "concrete": 1.00, "wood": 1.10 },
+        "applies_to_count": 6,
+        "notes": "Prime and apply tasks. Wood T&G joint detail slows effective rate."
+      }
+    ],
+    "max_modifier_stack": 2.20,
+    "stacking_cap": 4.0,
+    "within_cap": true,
+    "stacking_notes": "Worst case: peeling (2.00) x wood (1.10) = 2.20x. Well under cap. Modifiers do not actually compound on the same tasks — condition affects scrape, substrate affects apply."
+  },
+
+  "compatibility_rules": [
+    {
+      "rule_id": "COMPAT-PFRP-001",
+      "title": "Wood moisture content hard stop",
+      "rule": "MC must be <15% before porch enamel application. MC >=15% is HARD STOP.",
+      "severity": "critical",
+      "enforcement": "TSK_PFRP_MC_TEST_WOOD mandatory for wood substrate."
+    },
+    {
+      "rule_id": "COMPAT-PFRP-002",
+      "title": "Concrete moisture migration hard stop",
+      "rule": "Active moisture migration through concrete slab causes coating delamination regardless of prep quality. Peeling pattern consistent with upward moisture = HARD STOP.",
+      "severity": "critical",
+      "enforcement": "TSK_PFRP_MOISTURE_TEST_CONCRETE mandatory when peeling on concrete."
+    },
+    {
+      "rule_id": "COMPAT-PFRP-003",
+      "title": "Polyurea/epoxy existing coating excluded",
+      "rule": "Existing polyurea or epoxy coatings are outside standard RP scope. Proprietary products require specialty contractor.",
+      "severity": "critical",
+      "enforcement": "TSK_PFRP_ASSESS_COATING_ID identifies coating type. Polyurea/epoxy = STOP."
+    },
+    {
+      "rule_id": "COMPAT-PFRP-004",
+      "title": "Unknown existing coating requires bonding primer",
+      "rule": "When existing coating type cannot be identified, treat as incompatible. Bonding primer (SYS_EXT_PFRP_PRIMER_BONDING) mandatory before porch enamel.",
+      "severity": "major",
+      "enforcement": "TSK_PFRP_ASSESS_COATING_ID determines type. Unknown = bonding primer."
+    },
+    {
+      "rule_id": "COMPAT-PFRP-005",
+      "title": "Anti-slip aggregate mandatory on all horizontal walking surfaces",
+      "rule": "Anti-slip aggregate broadcast into wet coat is mandatory for all porch floor RP. Safety requirement — ANSI DCOF >=0.55.",
+      "severity": "critical",
+      "enforcement": "TSK_PFRP_ANTI_SLIP_FIELD always active. Aluminum oxide on steps."
+    },
+    {
+      "rule_id": "COMPAT-PFRP-006",
+      "title": "Spray-only prohibited on horizontal surfaces",
+      "rule": "Spray-only application without backroll is PROHIBITED on porch floors. Backroll required for proper film build and aggregate embedment.",
+      "severity": "critical",
+      "enforcement": "application_method allows only brush_roll and spray_backroll. No spray-only."
+    },
+    {
+      "rule_id": "COMPAT-PFRP-007",
+      "title": "NO acid etch on repaint",
+      "rule": "Acid etching is NC prep for bare concrete. RP uses chemical degloss or mechanical abrasion. Acid etch would damage intact existing coating areas.",
+      "severity": "major",
+      "enforcement": "No acid etch tasks in RP prep modules."
+    },
+    {
+      "rule_id": "COMPAT-PFRP-008",
+      "title": "QT2 restricted to sound existing coating only",
+      "rule": "QT2 (single-coat refresh) is only valid on sound existing coating in good condition. Worn, failing, or peeling conditions require QT3 minimum.",
+      "severity": "major",
+      "enforcement": "QT2 variants only have applies_when existing_coating_condition = sound."
+    },
+    {
+      "rule_id": "COMPAT-PFRP-009",
+      "title": "Concrete cracks >1/4\" outside painting scope",
+      "rule": "Cracks exceeding 1/4\" width indicate structural movement — outside painting scope. Flag for concrete contractor.",
+      "severity": "major",
+      "enforcement": "TSK_PFRP_CRACK_FILL_CONCRETE limited to hairline-1/4\". Larger cracks documented and excluded."
+    },
+    {
+      "rule_id": "COMPAT-PFRP-010",
+      "title": "Cure time communication mandatory",
+      "rule": "Customer must be informed of 48-72hr foot traffic restriction and 7-day heavy furniture restriction. Written schedule provided.",
+      "severity": "major",
+      "enforcement": "TSK_PFRP_CUSTOMER_COMM always active."
+    }
+  ],
+
+  "round_configurations": [
+    {
+      "round_id": "ROUND_PFRP_QT2_SINGLE_COAT",
+      "name": "QT2 Economy Single Coat — Refresh Only",
+      "applies_when": { "quality_tier": ["QT2"] },
+      "total_coats": 1,
+      "interstage_cycles": 0,
+      "notes": "Single coat porch enamel on sound existing. Anti-slip aggregate in single coat. Economy refresh — customer accepts limitations."
+    },
+    {
+      "round_id": "ROUND_PFRP_QT3_TWO_COAT",
+      "name": "QT3 Standard Two Coat — Full Repaint",
+      "applies_when": { "quality_tier": ["QT3"] },
+      "total_coats": 2,
+      "interstage_cycles": 0,
+      "notes": "2 finish coats. Coat 1 + anti-slip broadcast. Coat 2 encapsulates aggregate. 4-24hr dry between coats. No formal interstage — utilitarian surface."
+    }
+  ],
+
+  "variants": [
+    {
+      "variant_id": "VAR_PFRP_SOUND_CONCRETE_QT3_BRUSH_ROLL",
+      "applies_when": { "quality_tier": ["QT3"], "existing_coating_condition": ["sound"], "substrate_type": ["concrete"], "application_method": ["brush_roll"] },
+      "coats": { "finish": 2 },
+      "prime_scope": "none",
+      "protection_zones": ["ext_wall_floor_junction", "ext_door_threshold", "ext_furniture_staging"],
+      "notes": "BASELINE RP. Sound porch enamel on concrete. Chemical degloss + 2 coats enamel. No primer needed. Minimal prep. Most common maintenance repaint."
+    },
+    {
+      "variant_id": "VAR_PFRP_SOUND_CONCRETE_QT2_BRUSH_ROLL",
+      "applies_when": { "quality_tier": ["QT2"], "existing_coating_condition": ["sound"], "substrate_type": ["concrete"], "application_method": ["brush_roll"] },
+      "coats": { "finish": 1 },
+      "prime_scope": "none",
+      "protection_zones": ["ext_wall_floor_junction", "ext_door_threshold", "ext_furniture_staging"],
+      "notes": "ECONOMY. Single-coat refresh on sound concrete. Anti-slip in single coat. Touch-up level."
+    },
+    {
+      "variant_id": "VAR_PFRP_WORN_CONCRETE_QT3_BRUSH_ROLL",
+      "applies_when": { "quality_tier": ["QT3"], "existing_coating_condition": ["worn"], "substrate_type": ["concrete"], "application_method": ["brush_roll"] },
+      "coats": { "finish": 2 },
+      "prime_scope": "none",
+      "protection_zones": ["ext_wall_floor_junction", "ext_railing_base", "ext_door_threshold", "ext_landscape_edge", "ext_hardscape_edge", "ext_furniture_staging"],
+      "notes": "Common residential RP. Worn traffic paths on concrete. Chemical degloss + 2 coats. No primer — existing coating intact at edges/low-traffic areas."
+    },
+    {
+      "variant_id": "VAR_PFRP_FAILING_CONCRETE_QT3_BRUSH_ROLL",
+      "applies_when": { "quality_tier": ["QT3"], "existing_coating_condition": ["failing"], "substrate_type": ["concrete"], "application_method": ["brush_roll"] },
+      "coats": { "prime": 1, "finish": 2 },
+      "prime_scope": "spot",
+      "protection_zones": ["ext_wall_floor_junction", "ext_railing_base", "ext_door_threshold", "ext_landscape_edge", "ext_hardscape_edge", "ext_furniture_staging"],
+      "notes": "Moderate prep. Scrape failing areas + feather sand + spot prime bare patches + 2 coats enamel."
+    },
+    {
+      "variant_id": "VAR_PFRP_PEELING_CONCRETE_QT3_BRUSH_ROLL",
+      "applies_when": { "quality_tier": ["QT3"], "existing_coating_condition": ["peeling"], "substrate_type": ["concrete"], "application_method": ["brush_roll"] },
+      "coats": { "prime": 1, "finish": 2 },
+      "prime_scope": "full",
+      "protection_zones": ["ext_wall_floor_junction", "ext_railing_base", "ext_door_threshold", "ext_landscape_edge", "ext_hardscape_edge", "ext_furniture_staging"],
+      "notes": "HIGHEST PREP. Heavy scrape + feather sand + moisture test + full prime + 2 coats. Moisture assessment mandatory — peeling often moisture-driven."
+    },
+    {
+      "variant_id": "VAR_PFRP_SOUND_WOOD_QT3_BRUSH_ROLL",
+      "applies_when": { "quality_tier": ["QT3"], "existing_coating_condition": ["sound"], "substrate_type": ["wood"], "application_method": ["brush_roll"] },
+      "coats": { "finish": 2 },
+      "prime_scope": "none",
+      "protection_zones": ["ext_wall_floor_junction", "ext_railing_base", "ext_door_threshold", "ext_furniture_staging"],
+      "notes": "Sound T&G wood porch. Scuff sand + MC verify + 2 coats enamel. No primer. T&G back-brush during rolling."
+    },
+    {
+      "variant_id": "VAR_PFRP_WORN_WOOD_QT3_BRUSH_ROLL",
+      "applies_when": { "quality_tier": ["QT3"], "existing_coating_condition": ["worn"], "substrate_type": ["wood"], "application_method": ["brush_roll"] },
+      "coats": { "finish": 2 },
+      "prime_scope": "none",
+      "protection_zones": ["ext_wall_floor_junction", "ext_railing_base", "ext_door_threshold", "ext_landscape_edge", "ext_furniture_staging"],
+      "notes": "Worn wood porch — traffic wear at doorway approach. Scuff sand + MC verify + 2 coats. No primer unless bare wood exposed at wear paths."
+    },
+    {
+      "variant_id": "VAR_PFRP_FAILING_WOOD_QT3_BRUSH_ROLL",
+      "applies_when": { "quality_tier": ["QT3"], "existing_coating_condition": ["failing"], "substrate_type": ["wood"], "application_method": ["brush_roll"] },
+      "coats": { "prime": 1, "finish": 2 },
+      "prime_scope": "spot",
+      "protection_zones": ["ext_wall_floor_junction", "ext_railing_base", "ext_door_threshold", "ext_landscape_edge", "ext_hardscape_edge", "ext_furniture_staging"],
+      "notes": "Failing wood porch. Scrape + feather sand + MC verify + spot prime bare areas + 2 coats enamel."
+    },
+    {
+      "variant_id": "VAR_PFRP_PEELING_WOOD_QT3_BRUSH_ROLL",
+      "applies_when": { "quality_tier": ["QT3"], "existing_coating_condition": ["peeling"], "substrate_type": ["wood"], "application_method": ["brush_roll"] },
+      "coats": { "prime": 1, "finish": 2 },
+      "prime_scope": "full",
+      "protection_zones": ["ext_wall_floor_junction", "ext_railing_base", "ext_door_threshold", "ext_landscape_edge", "ext_hardscape_edge", "ext_furniture_staging"],
+      "notes": "HIGHEST PREP WOOD. Heavy scrape + feather sand + MC verify + full prime + 2 coats. Peeling on wood often indicates moisture from below."
+    },
+    {
+      "variant_id": "VAR_PFRP_WORN_CONCRETE_QT3_SPRAY_BACKROLL",
+      "applies_when": { "quality_tier": ["QT3"], "existing_coating_condition": ["worn"], "substrate_type": ["concrete"], "application_method": ["spray_backroll"] },
+      "coats": { "finish": 2 },
+      "prime_scope": "none",
+      "protection_zones": ["ext_wall_floor_junction", "ext_railing_base", "ext_door_threshold", "ext_landscape_edge", "ext_hardscape_edge", "ext_furniture_staging"],
+      "notes": "Large porch spray variant. Chemical degloss + spray + backroll. 2-person crew. Justified for >400 SF porches."
+    },
+    {
+      "variant_id": "VAR_PFRP_UNKNOWN_COATING_CONCRETE_QT3_BRUSH_ROLL",
+      "applies_when": { "quality_tier": ["QT3"], "existing_coating_condition": ["worn"], "substrate_type": ["concrete"], "application_method": ["brush_roll"], "existing_coating_type": ["unknown"] },
+      "coats": { "prime": 1, "finish": 2 },
+      "prime_scope": "full",
+      "protection_zones": ["ext_wall_floor_junction", "ext_railing_base", "ext_door_threshold", "ext_landscape_edge", "ext_hardscape_edge", "ext_furniture_staging"],
+      "notes": "Unknown existing coating triggers bonding primer. Full coat bonding primer + 2 coats enamel regardless of condition."
+    }
+  ],
+
+  "adjacency_declarations": {
+    "primary_surface": "porch_floor_field",
+    "adjacent_surfaces": [
+      {
+        "surface_id": "ext_wall_base",
+        "edge_type": "linear",
+        "typical_relationship": "different_finish",
+        "continuity_rate_modifier": 1.0,
+        "notes": "House wall at porch floor junction. Protection is THIS spec's responsibility."
+      },
+      {
+        "surface_id": "ext_railing_system",
+        "edge_type": "linear",
+        "typical_relationship": "different_finish",
+        "continuity_rate_modifier": 1.0,
+        "notes": "Railing post bases at porch floor. Protection (masking) is THIS spec's responsibility. Railing painting is separate spec."
+      },
+      {
+        "surface_id": "ext_door_threshold",
+        "edge_type": "linear",
+        "typical_relationship": "different_finish",
+        "continuity_rate_modifier": 1.0,
+        "notes": "Door threshold at porch-to-interior transition. Critical tape line. Protection is THIS spec's responsibility."
+      },
+      {
+        "surface_id": "foundation_wall",
+        "edge_type": "linear",
+        "typical_relationship": "not_in_scope",
+        "continuity_rate_modifier": 1.0,
+        "notes": "Foundation below porch deck. Not painted in this scope."
+      }
+    ]
+  },
+
+  "risk_flags": [
+    {
+      "risk_id": "RISK-PFRP-001",
+      "title": "Moisture migration through concrete slab",
+      "severity": "critical",
+      "description": "Porch floors over crawl spaces or slab-on-grade without vapor barrier experience upward moisture migration. This is the #1 cause of porch floor paint peeling. Repainting over active moisture will fail again.",
+      "mitigation": "Moisture assessment module (TSK_PFRP_MOISTURE_TEST_CONCRETE) triggered on peeling concrete. If positive, HARD STOP — address moisture source before repainting."
+    },
+    {
+      "risk_id": "RISK-PFRP-002",
+      "title": "Unknown existing coating adhesion failure",
+      "severity": "major",
+      "description": "Porch floors with unknown coatings (concrete stain, acrylic sealer) may not accept porch enamel directly. Adhesion failure after RP is expensive callback.",
+      "mitigation": "Assessment identifies coating type. Unknown = bonding primer mandatory."
+    },
+    {
+      "risk_id": "RISK-PFRP-003",
+      "title": "Customer damage during cure period",
+      "severity": "major",
+      "description": "48-72hr foot traffic restriction and 7-day furniture restriction create significant customer inconvenience. Premature foot traffic damages coating and ruins anti-slip texture.",
+      "mitigation": "TSK_PFRP_CUSTOMER_COMM with written schedule. Alternate entry path planning."
+    },
+    {
+      "risk_id": "RISK-PFRP-004",
+      "title": "T&G joint moisture entry on wood porches",
+      "severity": "major",
+      "description": "Tongue-and-groove joints on wood porches allow water entry between boards. Standing water on porch floor wicks into joints and causes rot and paint peeling from within the joint.",
+      "mitigation": "T&G gap fill in prep. Brush primer and finish into joint grooves. MC test verifies current moisture level."
+    }
+  ],
+
+  "site_condition_rules": [
+    {
+      "condition_id": "access_type",
+      "treatment": "not_applicable",
+      "notes": "No height modifier — porch floor is ground-level work."
+    }
+  ],
+
+  "cross_spec_boundaries": [
+    {
+      "boundary": "Porch railing painting",
+      "owner": "Future SF_RAILING_EXT_RP or elevation trim scope",
+      "notes": "Railing PROTECTION at post bases is THIS spec. Railing painting is separate."
+    },
+    {
+      "boundary": "Porch ceiling/soffit painting",
+      "owner": "Future SF_SOFFIT_EXT_RP or SF_CEILING_EXT_RP",
+      "notes": "Ceiling above porch is separate scope entirely."
+    },
+    {
+      "boundary": "Interior floor at threshold",
+      "owner": "Interior floor spec",
+      "notes": "Threshold masking protecting interior floor is THIS spec's responsibility."
+    },
+    {
+      "boundary": "Concrete structural repair",
+      "owner": "Concrete contractor",
+      "notes": "Cracks >1/4\", spalling, heaving — not painting scope. Assessment IDENTIFIES, does not repair."
+    },
+    {
+      "boundary": "Wood structural repair",
+      "owner": "Carpentry scope",
+      "notes": "Rot, joist damage — not painting scope. Assessment IDENTIFIES, does not repair."
+    }
+  ],
+
+  "sequencing_notes": {
+    "production_sequence": "Setup (mobilize, furniture) -> Protect (wall base, railing, threshold, landscape, hardscape) -> Assess (condition, coating ID, moisture/MC) -> Prep Concrete OR Prep Wood (substrate-dependent) -> Prime (condition-dependent) -> Apply Coat 1 + Anti-Slip -> Dry 4-24hr -> Apply Coat 2 -> Inspect/Touch-Up -> Teardown -> Customer Comm -> Tool Cleanup",
+    "protection_sequence": "Wall base -> Railing bases -> Thresholds -> Landscape edge -> Hardscape edge -> Furniture staging (done first in setup)",
+    "coat_sequence": "Cut-in coat 1 -> Field roll/spray coat 1 -> Anti-slip broadcast -> Steps coat 1 -> Dry 4-24hr -> Cut-in coat 2 -> Field coat 2 -> Steps coat 2 -> Final inspect",
+    "component_order": "Field FIRST -> Steps LAST (exit path)",
+    "key_prohibitions": "NO acid etch on RP. NO spray-only (backroll required). NO coating at MC >15%. NO painting over active moisture migration. NO recoating polyurea/epoxy without specialty contractor."
+  },
+
+  "relationships": {
+    "companion_spec": null,
+    "often_combined_with": [],
+    "sibling_spec": "SF_PORCH_FLOOR_EXT_NC",
+    "typical_before": [],
+    "typical_after": [],
+    "cross_spec_protection_note": "Wall base, railing base, and threshold masking is THIS spec's responsibility.",
+    "notes": "First RP spec for porch floor surfaces. Sibling to SF_PORCH_FLOOR_EXT_NC. Key RP additions: assessment module, existing_coating_condition dimension, condition-driven prep modifiers, bonding primer for incompatible coatings, chemical degloss (replaces NC acid etch), moisture assessment on peeling concrete, cure-time communication. Application rates similar to NC — prep is the RP cost driver."
+  },
+
+  "dependencies": {
+    "research": "research.json",
+    "resolution": "resolution.json",
+    "sop_modules": "sop_modules.json",
+    "materials": "materials.json",
+    "production": "production.json",
+    "qa_report": "qa_report.json"
+  },
+
+  "doctrine_references": [
+    { "doctrine": "Exterior_Concrete_Masonry_Floors_Doctrine.md", "sections_used": ["Repaint prep (degloss vs etch)", "Moisture testing", "Porch enamel as universal RP product", "Anti-slip requirements", "Crack fill scope"] },
+    { "doctrine": "Exterior_Decks_Horizontal_Wood_Doctrine.md", "sections_used": ["Wood porch enamel convention", "MC thresholds", "T&G joint handling", "Walking surface wear patterns"] },
+    { "doctrine": "Exterior_Weathering_Surface_Assessment_Doctrine.md", "sections_used": ["Condition rating (sound/worn/failing/peeling)", "Adhesion testing", "Coating identification"] },
+    { "doctrine": "Exterior_Application_Methods_Doctrine.md", "sections_used": ["brush_roll for horizontal", "spray_backroll 2-person crew", "spray-only prohibited on horizontal"] },
+    { "doctrine": "Exterior_Protection_Doctrine_T3.md", "sections_used": ["Wall base masking", "Railing base masking", "Threshold masking", "Landscape/hardscape zones"] },
+    { "doctrine": "Exterior_Primer_Systems_Doctrine.md", "sections_used": ["Spot vs full prime", "Bonding primer for incompatible coatings"] }
+  ],
+
+  "research_corrections": [
+    {
+      "correction_id": "RC-001",
+      "original_claim": "Coating system should be a configuration dimension for RP",
+      "corrected_to": "Coating system is NOT a dimension for RP. All RP uses porch enamel regardless of original coating. Original polyurea/epoxy excluded from RP scope entirely.",
+      "source": "Field convention — RP converges on single product"
+    },
+    {
+      "correction_id": "RC-002",
+      "original_claim": "Environmental conditions should affect estimation",
+      "corrected_to": "Environmental conditions are NOT estimatable — excluded per PaintFactor OS RC-003.",
+      "source": "PaintFactor OS RC-003"
+    }
+  ],
+
+  "user_corrections": [],
+
+  "change_log": [
+    {
+      "version": "0.1.0",
+      "date": "2026-03-15",
+      "author": "SpecFactory",
+      "changes": "Initial draft spec for exterior porch floor repaint. FIRST RP SPEC for porch floor surfaces — sibling to SF_PORCH_FLOOR_EXT_NC. Key features: assessment-first workflow (condition rating, coating ID, substrate-specific moisture checks), existing_coating_condition as primary RP dimension (sound/worn/failing/peeling), single RP finish product (porch enamel satin — coating_system NOT a dimension), dual-substrate (concrete/wood) with substrate-specific prep modules, condition-driven primer strategy (none/spot/full/bonding), chemical degloss for concrete RP (NO acid etch), anti-slip aggregate mandatory, QT2/QT3 range (utilitarian surface), 2 paintable items (floor SF + step EA conditional), 35 tasks across 8 modules (all binary), 3 material systems (acrylic primer + bonding primer + porch enamel), 2 factor modifiers (condition + substrate), 2 round configurations, 6 protection zones, 11 variants, 9 PaintScope inputs. Max modifier stack 2.20x under 4.0x cap. Cure-time communication task for customer impact management."
+    }
+  ]
+}

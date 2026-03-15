@@ -1,0 +1,821 @@
+{
+  "spec_family": {
+    "id": "SF_FENCE_EXT_RP",
+    "name": "Exterior Fence Repaint (Stain & Paint)",
+    "description": "Condition-assessment-driven repaint specification for previously stained or painted exterior wood fences (cedar, pressure-treated pine). Covers 4 substrate states (SS_EXT_STAINED_SEMI, SS_EXT_STAINED_SOLID, SS_EXT_WEATHERED, SS_EXT_PEELING) with 3-level condition scale (GOOD/FAIR/POOR) driving prep intensity. Recoat compatibility matrix is the critical RP constraint — penetrating stains can only recoat over penetrating stains; solid stain/paint can recoat over solid stain or paint. Coating_type (transparent/semi_transparent/solid_stain/paint) constrained by substrate_state. QT2-QT3 only (utilitarian surface). Spray_backbrush is production standard with mandatory back-brushing for penetrating stains. Two-sided painting (both sides of fence) — PaintScope delivers final SF after (LF x Height x 2) and fence_style multiplier. Chemical restoration module for weathered fences (3-step: strip, brighten, rinse — 12-24 hr dry, separate mobilization). Post base rot assessment is RP-specific HARD STOP. RRP conditional for pre-1978 properties. Paint recoat carries LEAST RECOMMENDED warning (moisture-driven peeling risk). Single paintable item (ITM_FENCE_FIELD, SF). No height modifier — all ground-level work.",
+    "domain": "exterior",
+    "scope_type": "repaint",
+    "version": "0.1.0",
+    "status": "draft",
+    "review_required": true
+  },
+
+  "scope_boundaries": {
+    "includes": [
+      "Condition assessment — identify existing coating type (penetrating stain, solid stain, paint)",
+      "Coating adhesion test (film-forming coatings only)",
+      "Wood moisture content testing (MC <=19% untreated, <=25% PT pine — HARD STOP)",
+      "Post base rot assessment at grade line (rot = HARD STOP)",
+      "Mildew and algae assessment",
+      "Pressure wash (1,000-1,500 PSI — lower pressure for cedar)",
+      "Mildew eradication treatment (conditional)",
+      "Scrape loose/failing coating (peeling condition)",
+      "Feather-edge sanding of scraped areas (mandatory after scraping)",
+      "Light scuff sand for adhesion on sound solid stain/paint",
+      "Chemical wood restoration for weathered fences (3-step: alkaline strip, acid brighten, rinse — 12-24 hr dry)",
+      "Condition-driven primer — stain-blocking (cedar bare wood), standard exterior (PT pine bare wood)",
+      "Stain recoat — penetrating (transparent, semi-transparent) or solid body",
+      "Paint recoat — exterior acrylic latex (LEAST RECOMMENDED)",
+      "Second coat application (QT3 solid stain and paint only)",
+      "Both-sides application sequencing (Side A -> equipment move -> Side B)",
+      "Gate hardware removal and reinstallation",
+      "Landscape protection along fence base (both sides, LF-based)",
+      "Hardscape protection for adjacent driveways/patios/walkways",
+      "Siding protection at fence-to-house tie-in",
+      "Neighbor-side overspray protection (spray method only)",
+      "Vehicle overspray protection (spray method only)",
+      "EPA RRP lead-safe containment (pre_1978 conditional)",
+      "Final walkthrough inspection and touch-up",
+      "Paint risk warning documentation (when coating_type = paint)"
+    ],
+    "excludes": [
+      {
+        "item": "Metal fences (wrought iron, aluminum, chain link)",
+        "route_to": "Future SF_METAL_EXT_v1 — different substrate, primer, and coating chemistry"
+      },
+      {
+        "item": "Composite and vinyl fences",
+        "route_to": "Out of scope — maintenance-free by design"
+      },
+      {
+        "item": "Fence construction, post replacement, board replacement",
+        "route_to": "Carpentry/fence contractor scope"
+      },
+      {
+        "item": "Rotted post repair",
+        "route_to": "Fence contractor — rot is HARD STOP for painting scope"
+      },
+      {
+        "item": "Fence_style geometric multiplier calculation",
+        "route_to": "PaintScope — applies multiplier before delivering final SF to spec"
+      },
+      {
+        "item": "New construction fence staining",
+        "route_to": "SF_FENCE_EXT_v1 (NC sibling spec)"
+      }
+    ]
+  },
+
+  "configuration_dimensions": [
+    {
+      "dimension_id": "substrate_state",
+      "description": "PRIMARY dimension — existing coating condition drives prep module selection and recoat compatibility.",
+      "values": ["SS_EXT_STAINED_SEMI", "SS_EXT_STAINED_SOLID", "SS_EXT_WEATHERED", "SS_EXT_PEELING"],
+      "default": "SS_EXT_STAINED_SEMI",
+      "notes": "SS_EXT_STAINED_SEMI = serviceable penetrating stain. SS_EXT_STAINED_SOLID = serviceable solid stain or paint film. SS_EXT_WEATHERED = UV-degraded, coating largely eroded. SS_EXT_PEELING = film-forming coating actively lifting."
+    },
+    {
+      "dimension_id": "condition_scale",
+      "description": "SECONDARY dimension — drives prep intensity modifier (FAC_FERP_CONDITION).",
+      "values": ["GOOD", "FAIR", "POOR"],
+      "default": "GOOD",
+      "notes": "GOOD = serviceable coating, minimal prep. FAIR = moderate wear/weathering, standard prep. POOR = significant failure, heavy prep. Maps to 1.0x / 1.5x / 2.0x prep modifier."
+    },
+    {
+      "dimension_id": "coating_type",
+      "description": "TERTIARY dimension — constrained by substrate_state recoat compatibility matrix.",
+      "values": ["transparent", "semi_transparent", "solid_stain", "paint"],
+      "default": "semi_transparent",
+      "notes": "Semi-transparent is default recoat for penetrating stain substrates. Recoat compatibility: penetrating -> penetrating only. Solid stain -> solid stain or paint. Paint -> paint only."
+    },
+    {
+      "dimension_id": "quality_tier",
+      "description": "Coat count driver. Fence is utilitarian — QT2 and QT3 only.",
+      "values": ["QT2", "QT3"],
+      "default": "QT3",
+      "notes": "QT2 = economy single coat (appropriate for penetrating stain recoat). QT3 = standard (2 coats for solid stain/paint recoat). QT4/QT5 excluded."
+    },
+    {
+      "dimension_id": "application_method",
+      "description": "Primary application technique for stain/paint coats.",
+      "values": ["spray_backbrush", "brush"],
+      "default": "spray_backbrush",
+      "notes": "Spray_backbrush is production standard (2-person crew). Back-brushing MANDATORY for penetrating stains. Brush for detail, small jobs, split rail. Roll excluded for RP."
+    },
+    {
+      "dimension_id": "substrate_material",
+      "description": "Wood species. Drives tannin management and rate modifier.",
+      "values": ["cedar", "pressure_treated_pine"],
+      "default": "pressure_treated_pine",
+      "notes": "PT pine ~65% of fences. Cedar ~30%. Cedar requires tannin-blocking primer when bare wood is exposed under peeling coating."
+    },
+    {
+      "dimension_id": "pre_1978",
+      "description": "Boolean flag for pre-1978 property. Triggers EPA RRP lead-safe requirements.",
+      "values": [true, false],
+      "default": false,
+      "notes": "Lead paint on fences is uncommon but possible. RRP containment and wet scraping methods when positive."
+    }
+  ],
+
+  "paintable_items": [
+    {
+      "item_id": "ITM_FENCE_FIELD",
+      "name": "Fence Field Surface (panels, boards, posts, rails, gates — both sides)",
+      "unit_of_measure": "SF",
+      "counting_rules": "Net fence field surface area in square feet. PaintScope delivers FINAL SF after (LF x Height x 2) and fence_style geometric multiplier. Includes both sides, all panels, posts, gates, and rails. Spec receives and uses final SF as-is.",
+      "notes": "Reused from NC spec. Single paintable item. Simplest item model among exterior wood specs."
+    }
+  ],
+
+  "required_paintscope_inputs": [
+    {
+      "input_name": "IN_SF_FENCE_FIELD",
+      "paintscope_key": "PS_EXT_SURFACE_SF.FENCE_FIELD",
+      "uom": "SF",
+      "required": true,
+      "description": "Net fence field surface area (both sides, after style multiplier)"
+    },
+    {
+      "input_name": "IN_ENUM_SUBSTRATE_STATE_FENCE",
+      "paintscope_key": "PS_EXT_META.ENUM.SUBSTRATE_STATE_FENCE",
+      "uom": "ENUM",
+      "required": true,
+      "description": "RP substrate state (SS_EXT_STAINED_SEMI / SS_EXT_STAINED_SOLID / SS_EXT_WEATHERED / SS_EXT_PEELING)"
+    },
+    {
+      "input_name": "IN_ENUM_CONDITION_SCALE_FENCE",
+      "paintscope_key": "PS_EXT_META.ENUM.CONDITION_SCALE_FENCE",
+      "uom": "ENUM",
+      "required": true,
+      "description": "Condition scale (GOOD / FAIR / POOR) — drives prep intensity modifier"
+    },
+    {
+      "input_name": "IN_ENUM_COATING_TYPE_FENCE",
+      "paintscope_key": "PS_EXT_META.ENUM.COATING_TYPE_FENCE",
+      "uom": "ENUM",
+      "required": true,
+      "description": "Coating type selection — constrained by substrate_state recoat compatibility"
+    },
+    {
+      "input_name": "IN_ENUM_FENCE_STYLE",
+      "paintscope_key": "PS_EXT_META.ENUM.FENCE_STYLE",
+      "uom": "ENUM",
+      "required": true,
+      "description": "Fence style (INFORMATIONAL — PaintScope uses for geometric multiplier)"
+    },
+    {
+      "input_name": "IN_ENUM_SUBSTRATE_TYPE_FENCE",
+      "paintscope_key": "PS_EXT_META.ENUM.SUBSTRATE_TYPE_FENCE",
+      "uom": "ENUM",
+      "required": true,
+      "description": "Wood substrate (cedar / pressure_treated_pine)"
+    },
+    {
+      "input_name": "IN_EA_FENCE_GATES",
+      "paintscope_key": "PS_EXT_META.EA.FENCE_GATES",
+      "uom": "EA",
+      "required": false,
+      "required_when": "When gates are present in fence line",
+      "description": "Count of gates — drives hardware masking/removal tasks"
+    },
+    {
+      "input_name": "IN_LF_EXT_PROTECT_LANDSCAPE_FENCE_BASE",
+      "paintscope_key": "PS_EXT_PROTECT_LF.LANDSCAPE_FENCE_BASE",
+      "uom": "LF",
+      "required": false,
+      "required_when": "When landscaping is adjacent to fence base",
+      "description": "Linear feet of fence base with landscaping requiring protection (both sides)"
+    },
+    {
+      "input_name": "IN_LF_EXT_PROTECT_HARDSCAPE_FENCE_ADJACENT",
+      "paintscope_key": "PS_EXT_PROTECT_LF.HARDSCAPE_FENCE_ADJACENT",
+      "uom": "LF",
+      "required": false,
+      "required_when": "When hardscape is adjacent to fence line",
+      "description": "Linear feet of hardscape along fence line"
+    },
+    {
+      "input_name": "IN_SF_EXT_PROTECT_SIDING_AT_FENCE_TIE",
+      "paintscope_key": "PS_EXT_PROTECT_SF.SIDING_AT_FENCE_TIE",
+      "uom": "SF",
+      "required": false,
+      "required_when": "When fence ties into house siding",
+      "description": "Siding area at fence-to-house junction"
+    },
+    {
+      "input_name": "IN_EA_EXT_PROTECT_VEHICLE_ADJACENT",
+      "paintscope_key": "PS_EXT_PROTECT_EA.VEHICLE_ADJACENT",
+      "uom": "EA",
+      "required": false,
+      "required_when": "When vehicles are parked near fence spray zone",
+      "description": "Count of vehicles requiring protection"
+    },
+    {
+      "input_name": "IN_LF_EXT_PROTECT_NEIGHBOR_PROPERTY_LINE",
+      "paintscope_key": "PS_EXT_PROTECT_LF.NEIGHBOR_PROPERTY_LINE",
+      "uom": "LF",
+      "required": false,
+      "required_when": "When spraying fence side facing neighbor property",
+      "description": "Linear feet of neighbor property line requiring protection"
+    },
+    {
+      "input_name": "IN_BOOL_PRE_1978",
+      "paintscope_key": "PS_EXT_META.FLAG.PRE_1978",
+      "uom": "BOOL",
+      "required": false,
+      "description": "Pre-1978 property flag — triggers EPA RRP lead-safe requirements"
+    }
+  ],
+
+  "substrate_state_rules": {
+    "primary_surface": "fence_field",
+
+    "valid_input_states": {
+      "states": ["SS_EXT_STAINED_SEMI", "SS_EXT_STAINED_SOLID", "SS_EXT_WEATHERED", "SS_EXT_PEELING"],
+      "notes": "SS_EXT_STAINED_SEMI = serviceable penetrating stain (transparent or semi-transparent). SS_EXT_STAINED_SOLID = serviceable solid stain or paint (film-forming). SS_EXT_WEATHERED = UV-degraded, coating largely eroded, wood grayed. SS_EXT_PEELING = film-forming coating actively lifting from substrate."
+    },
+
+    "output_state": {
+      "state": "SS_EXT_STAINED_SEMI",
+      "varies_by": "coating_type",
+      "state_map": {
+        "transparent": "SS_EXT_STAINED_SEMI",
+        "semi_transparent": "SS_EXT_STAINED_SEMI",
+        "solid_stain": "SS_EXT_STAINED_SOLID",
+        "paint": "SS_EXT_PAINTED_SATIN"
+      },
+      "notes": "Output state varies by coating_type. Penetrating stains -> SS_EXT_STAINED_SEMI. Solid stain -> SS_EXT_STAINED_SOLID. Paint -> SS_EXT_PAINTED_SATIN."
+    },
+
+    "recoat_compatibility_matrix": {
+      "description": "CRITICAL RP CONSTRAINT — which coating types can be applied over which existing substrate states.",
+      "matrix": {
+        "SS_EXT_STAINED_SEMI": {
+          "allowed_coating_types": ["transparent", "semi_transparent"],
+          "prohibited_coating_types": ["solid_stain", "paint"],
+          "notes": "Penetrating stain can only be recoated with penetrating stain. Cannot apply film-forming over penetrating stain without full stripping."
+        },
+        "SS_EXT_STAINED_SOLID": {
+          "allowed_coating_types": ["solid_stain", "paint"],
+          "prohibited_coating_types": ["transparent", "semi_transparent"],
+          "notes": "Film-forming coating can be recoated with film-forming. Cannot apply penetrating stain over film — film prevents absorption."
+        },
+        "SS_EXT_WEATHERED": {
+          "allowed_coating_types": ["transparent", "semi_transparent", "solid_stain", "paint"],
+          "prohibited_coating_types": [],
+          "notes": "Weathered wood (coating eroded) — essentially bare wood after chemical restoration. All coating types allowed."
+        },
+        "SS_EXT_PEELING": {
+          "allowed_coating_types": ["solid_stain", "paint"],
+          "prohibited_coating_types": ["transparent", "semi_transparent"],
+          "notes": "Peeling film-forming coating — after scraping, may have mix of bare wood and adhered coating. Only film-forming recoats allowed (need film to bridge transitions)."
+        }
+      }
+    }
+  },
+
+  "protection_zones_required": [
+    {
+      "zone_id": "ext_landscape_fence_base",
+      "condition": "when_adjacent",
+      "protection_level": "full_cover",
+      "notes": "Landscaping along fence base on BOTH sides. Drop cloth/plastic. Extends 2-3 ft from fence base (4-6 ft for spray)."
+    },
+    {
+      "zone_id": "ext_hardscape_fence_adjacent",
+      "condition": "when_adjacent",
+      "protection_level": "full_cover",
+      "notes": "Walkways, driveways, patios along fence line. Stain on concrete is extremely difficult to remove."
+    },
+    {
+      "zone_id": "ext_siding_at_fence_tie",
+      "condition": "when_adjacent",
+      "protection_level": "light_mask",
+      "upgrade_when": { "application_method": ["spray_backbrush"] },
+      "upgrade_level": "full_cover",
+      "notes": "House siding where fence attaches. Upgrade to full cover for spray."
+    },
+    {
+      "zone_id": "ext_vehicle_adjacent",
+      "condition": "when_present",
+      "protection_level": "full_cover",
+      "notes": "Vehicles within spray range. Full plastic cover. Spray method only."
+    },
+    {
+      "zone_id": "ext_neighbor_property",
+      "condition": "when_spraying",
+      "protection_level": "full_cover",
+      "notes": "Neighbor's side of fence. Drop cloth along neighbor side fence base. Spray method only."
+    }
+  ],
+
+  "material_systems_summary": [
+    {
+      "system_id": "SYS_EXT_FERP_STAIN_PENETRATING",
+      "name": "Penetrating Stain Recoat",
+      "product_role": "stain",
+      "applies_when": { "coating_type": ["transparent", "semi_transparent"] },
+      "coats": 1,
+      "coverage_sf_per_gallon": 250,
+      "allowed_sheens": ["n/a"],
+      "notes": "Direct recoat over serviceable penetrating stain. No primer."
+    },
+    {
+      "system_id": "SYS_EXT_FERP_STAIN_SOLID",
+      "name": "Solid Body Stain Recoat",
+      "product_role": "stain",
+      "applies_when": { "coating_type": ["solid_stain"] },
+      "coats_by_qt": { "QT2": 1, "QT3": 2 },
+      "coverage_sf_per_gallon": 300,
+      "allowed_sheens": ["flat", "satin"],
+      "notes": "Film-forming solid stain recoat. Primer if bare wood exposed."
+    },
+    {
+      "system_id": "SYS_EXT_FERP_PAINT",
+      "name": "Exterior Latex Paint Recoat (LEAST RECOMMENDED)",
+      "product_role": "paint",
+      "applies_when": { "coating_type": ["paint"] },
+      "coats_by_qt": { "QT2": 1, "QT3": 2 },
+      "coverage_sf_per_gallon": 350,
+      "allowed_sheens": ["flat", "satin"],
+      "notes": "LEAST RECOMMENDED. Mandatory risk warning."
+    },
+    {
+      "system_id": "SYS_EXT_FERP_PRIMER_STAIN_BLOCK",
+      "name": "Alkyd Stain-Blocking Primer",
+      "product_role": "primer",
+      "applies_when": { "substrate_material": ["cedar"], "condition": "bare_wood_exposed" },
+      "coats": 1,
+      "coverage_sf_per_gallon": 350,
+      "allowed_sheens": ["n/a"],
+      "notes": "MANDATORY on bare cedar exposed under peeling coating + film-forming topcoat."
+    },
+    {
+      "system_id": "SYS_EXT_FERP_PRIMER_EXTERIOR",
+      "name": "Standard Exterior Acrylic Primer",
+      "product_role": "primer",
+      "applies_when": { "substrate_material": ["pressure_treated_pine"], "condition": "bare_wood_exposed" },
+      "coats": 1,
+      "coverage_sf_per_gallon": 350,
+      "allowed_sheens": ["n/a"],
+      "notes": "Standard exterior primer for bare PT pine + paint recoat."
+    },
+    {
+      "system_id": "SYS_EXT_FNCE_CHEMICAL_STRIPPER",
+      "name": "Fence Cleaner / Stripper (Alkaline)",
+      "product_role": "prep_chemical",
+      "applies_when": { "substrate_state": ["SS_EXT_WEATHERED"] },
+      "coats": 1,
+      "coverage_sf_per_gallon": 200,
+      "allowed_sheens": ["n/a"],
+      "notes": "Reused from NC. Chemical restoration step 1."
+    },
+    {
+      "system_id": "SYS_EXT_FNCE_BRIGHTENER",
+      "name": "Wood Brightener (Oxalic / Citric Acid)",
+      "product_role": "prep_chemical",
+      "applies_when": { "substrate_state": ["SS_EXT_WEATHERED"] },
+      "coats": 1,
+      "coverage_sf_per_gallon": 200,
+      "allowed_sheens": ["n/a"],
+      "notes": "Reused from NC. Chemical restoration step 2."
+    }
+  ],
+
+  "sop_module_summary": {
+    "total_modules": 8,
+    "total_tasks": 35,
+    "task_breakdown": {
+      "binary": 31,
+      "qt_conditional": 4,
+      "qt_scaled": 0
+    },
+    "modules": [
+      { "module_id": "MOD_FERP_SETUP", "phase": "setup", "task_count": 6, "notes": "Protection setup (5 zones) + gate hardware removal" },
+      { "module_id": "MOD_FERP_ASSESS", "phase": "prep", "task_count": 5, "notes": "RP-specific condition assessment: coating ID, adhesion, MC, rot probe, mildew" },
+      { "module_id": "MOD_FERP_PREP", "phase": "prep", "task_count": 6, "notes": "Power wash, mildew treat, scrape, feather sand, scuff sand, dust cleanup" },
+      { "module_id": "MOD_FERP_CHEMICAL_RESTORE", "phase": "prep", "task_count": 8, "applies_when": { "substrate_state": ["SS_EXT_WEATHERED"] }, "notes": "3-step chemical restoration (carried from NC)" },
+      { "module_id": "MOD_FERP_PRIME", "phase": "prime", "task_count": 2, "applies_when": { "condition": "bare_wood_exposed_or_paint_recoat" }, "notes": "Condition-driven primer by method" },
+      { "module_id": "MOD_FERP_APPLY", "phase": "apply", "task_count": 4, "notes": "Coat 1 — stain (3 types) or paint, by method (spray_backbrush or brush)" },
+      { "module_id": "MOD_FERP_APPLY_COAT2", "phase": "apply", "task_count": 4, "applies_when": { "quality_tier": ["QT3"], "coating_type": ["solid_stain", "paint"] }, "notes": "Coat 2 — QT3 solid stain or paint only" },
+      { "module_id": "MOD_FERP_CLEANUP", "phase": "cleanup", "task_count": 5, "notes": "Final inspect, touch-up, gate hardware reinstall, protection teardown, tool cleanup" }
+    ]
+  },
+
+  "production_summary": {
+    "total_rates": 35,
+    "crew_size_2_tasks": 5,
+    "crew_size_2_task_ids": [
+      "TSK_FERP_STAIN_SPRAY_BACKBRUSH",
+      "TSK_FERP_PAINT_SPRAY_BACKBRUSH",
+      "TSK_FERP_PRIME_SPRAY_BACKBRUSH",
+      "TSK_FERP_STAIN_SPRAY_BACKBRUSH_COAT2",
+      "TSK_FERP_PAINT_SPRAY_BACKBRUSH_COAT2"
+    ],
+    "factor_modifiers": [
+      {
+        "factor_id": "FAC_FERP_CONDITION",
+        "values": { "GOOD": 1.00, "FAIR": 1.50, "POOR": 2.00 },
+        "stacking_pool": "PREP",
+        "applies_to_count": 4,
+        "notes": "Prep tasks only. GOOD=baseline, FAIR=moderate wear, POOR=significant failure."
+      },
+      {
+        "factor_id": "FAC_FERP_RRP",
+        "values": { "no_rrp": 1.00, "rrp_required": 2.00 },
+        "stacking_pool": "PREP",
+        "applies_to_count": 2,
+        "notes": "Prep tasks involving paint disturbance. Binary gate."
+      },
+      {
+        "factor_id": "FAC_FERP_COATING_TYPE",
+        "values": { "transparent": 0.85, "semi_transparent": 1.00, "solid_stain": 1.15, "paint": 1.30 },
+        "stacking_pool": "COATING",
+        "applies_to_count": 8,
+        "notes": "Application tasks only. Semi-transparent is baseline."
+      },
+      {
+        "factor_id": "FAC_FERP_SUBSTRATE_TYPE",
+        "values": { "pt_pine": 1.00, "cedar": 1.10 },
+        "stacking_pool": "SHARED",
+        "applies_to_count": 15,
+        "notes": "Both prep and application tasks. Cedar is softer, absorbs more."
+      }
+    ],
+    "max_modifier_stack_prep": 4.40,
+    "max_modifier_stack_coating": 1.43,
+    "stacking_cap": 4.0,
+    "prep_stack_note": "4.40x in extreme RRP scenario (POOR x RRP x cedar) — recommend T&M billing",
+    "within_cap_coating": true,
+    "rate_ranges": {
+      "fastest_application": "320 SF/hr (paint spray coat 2, 2-person crew)",
+      "standard_application": "215 SF/hr (stain spray_backbrush, 2-person crew)",
+      "slowest_application": "120 SF/hr (stain brush, 1-person crew)",
+      "prep_range": "50-600 SF/hr depending on task"
+    },
+    "no_height_modifier": true,
+    "notes": "No FAC_EXT_ACCESS — all fence work is ground-level. Rates reused from NC with RP adjustments for assessment and condition-driven prep tasks."
+  },
+
+  "compatibility_rules": [
+    {
+      "rule_id": "COMPAT-FERP-001",
+      "name": "Recoat compatibility — penetrating over penetrating only",
+      "condition": "substrate_state = SS_EXT_STAINED_SEMI AND coating_type IN (solid_stain, paint)",
+      "action": "BLOCK — cannot apply film-forming coating over penetrating stain without full stripping. Select transparent or semi_transparent for recoat.",
+      "severity": "critical"
+    },
+    {
+      "rule_id": "COMPAT-FERP-002",
+      "name": "Recoat compatibility — no penetrating over film-forming",
+      "condition": "substrate_state = SS_EXT_STAINED_SOLID AND coating_type IN (transparent, semi_transparent)",
+      "action": "BLOCK — cannot apply penetrating stain over solid stain or paint. Film prevents absorption. Select solid_stain or paint for recoat.",
+      "severity": "critical"
+    },
+    {
+      "rule_id": "COMPAT-FERP-003",
+      "name": "Recoat compatibility — peeling requires film-forming",
+      "condition": "substrate_state = SS_EXT_PEELING AND coating_type IN (transparent, semi_transparent)",
+      "action": "BLOCK — peeling surface has mix of bare wood and adhered coating. Penetrating stain will not perform on patched/mixed surface. Select solid_stain or paint.",
+      "severity": "critical"
+    },
+    {
+      "rule_id": "COMPAT-FERP-004",
+      "name": "MC hard stop",
+      "condition": "Wood MC > 19% (untreated) or > 25% (PT pine)",
+      "action": "HARD STOP — do not apply stain or paint. Retest after 24 hr dry period.",
+      "severity": "critical"
+    },
+    {
+      "rule_id": "COMPAT-FERP-005",
+      "name": "Post rot hard stop",
+      "condition": "Post base rot detected during assessment",
+      "action": "HARD STOP for affected posts — refer to fence contractor. Remaining fence may proceed. Document rotted posts in project record.",
+      "severity": "critical"
+    },
+    {
+      "rule_id": "COMPAT-FERP-006",
+      "name": "Paint risk warning mandatory",
+      "condition": "coating_type = paint",
+      "action": "Document moisture-driven peeling risk warning with customer acknowledgment. Paint is LEAST RECOMMENDED for wood fences.",
+      "severity": "critical"
+    },
+    {
+      "rule_id": "COMPAT-FERP-007",
+      "name": "Back-brushing mandatory for spray penetrating stains",
+      "condition": "application_method = spray_backbrush AND coating_type IN (transparent, semi_transparent, solid_stain)",
+      "action": "Spray-only is PROHIBITED for penetrating stains. Spray must be followed immediately by back-brushing.",
+      "severity": "critical"
+    },
+    {
+      "rule_id": "COMPAT-FERP-008",
+      "name": "Cedar tannin-blocking primer when bare wood exposed",
+      "condition": "substrate_material = cedar AND substrate_state = SS_EXT_PEELING AND coating_type IN (solid_stain, paint)",
+      "action": "Activate SYS_EXT_FERP_PRIMER_STAIN_BLOCK. Cedar tannins bleed through film-forming coatings.",
+      "severity": "major"
+    },
+    {
+      "rule_id": "COMPAT-FERP-009",
+      "name": "Chemical restoration requires separate mobilization",
+      "condition": "substrate_state = SS_EXT_WEATHERED",
+      "action": "Chemical restoration requires 12-24 hr dry time before staining. Plan separate mobilization day.",
+      "severity": "major"
+    },
+    {
+      "rule_id": "COMPAT-FERP-010",
+      "name": "Penetrating stains skip primer entirely",
+      "condition": "coating_type IN (transparent, semi_transparent)",
+      "action": "Do NOT apply primer. Primer seals wood and prevents stain penetration.",
+      "severity": "major"
+    },
+    {
+      "rule_id": "COMPAT-FERP-011",
+      "name": "QT2 single coat — penetrating stains only",
+      "condition": "quality_tier = QT2 AND coating_type IN (solid_stain, paint)",
+      "action": "Warn — single coat solid stain or paint may not provide adequate coverage. QT3 (2 coats) recommended for film-forming coatings.",
+      "severity": "minor"
+    },
+    {
+      "rule_id": "COMPAT-FERP-012",
+      "name": "Transparent not recommended for PT pine",
+      "condition": "coating_type = transparent AND substrate_material = pressure_treated_pine",
+      "action": "Warn — greenish PT chemical color shows through clear sealer. Semi-transparent recommended.",
+      "severity": "minor"
+    }
+  ],
+
+  "round_configurations": [
+    {
+      "round_id": "ROUND_FERP_PENETRATING_1COAT",
+      "name": "Penetrating Stain Recoat — 1 Coat",
+      "applies_when": { "coating_type": ["transparent", "semi_transparent"] },
+      "total_coats": 1,
+      "interstage_cycles": 0,
+      "notes": "Single coat penetrating recoat. No primer. No second coat. Simplest RP configuration."
+    },
+    {
+      "round_id": "ROUND_FERP_SOLID_1COAT",
+      "name": "Solid Stain Recoat — 1 Coat (QT2 Economy)",
+      "applies_when": { "coating_type": ["solid_stain"], "quality_tier": ["QT2"] },
+      "total_coats": 1,
+      "interstage_cycles": 0,
+      "notes": "Single coat solid stain economy recoat. Primer conditional on exposed bare wood."
+    },
+    {
+      "round_id": "ROUND_FERP_SOLID_2COAT",
+      "name": "Solid Stain Recoat — 2 Coats (QT3 Standard)",
+      "applies_when": { "coating_type": ["solid_stain"], "quality_tier": ["QT3"] },
+      "total_coats": 2,
+      "interstage_cycles": 0,
+      "notes": "Two-coat solid stain recoat. Standard configuration. Primer conditional on bare wood."
+    },
+    {
+      "round_id": "ROUND_FERP_PAINT_2COAT",
+      "name": "Paint Recoat — Primer + 1-2 Finish Coats",
+      "applies_when": { "coating_type": ["paint"] },
+      "total_coats_by_qt": { "QT2": 1, "QT3": 2 },
+      "interstage_cycles": 0,
+      "notes": "LEAST RECOMMENDED. Primer conditional on exposed bare wood. QT2=1 coat, QT3=2 coats."
+    }
+  ],
+
+  "variants": [
+    {
+      "variant_id": "VAR_FERP_SEMI_TRANS_SPRAY_PT_GOOD",
+      "applies_when": { "substrate_state": ["SS_EXT_STAINED_SEMI"], "coating_type": ["semi_transparent"], "application_method": ["spray_backbrush"], "substrate_material": ["pressure_treated_pine"], "condition_scale": ["GOOD"] },
+      "coats": { "stain": 1 },
+      "protection_zones": ["ext_landscape_fence_base", "ext_hardscape_fence_adjacent", "ext_neighbor_property"],
+      "notes": "MOST COMMON RP scenario. Serviceable PT pine fence, semi-transparent spray recoat. Minimal prep — wash and recoat."
+    },
+    {
+      "variant_id": "VAR_FERP_SEMI_TRANS_SPRAY_CEDAR_GOOD",
+      "applies_when": { "substrate_state": ["SS_EXT_STAINED_SEMI"], "coating_type": ["semi_transparent"], "application_method": ["spray_backbrush"], "substrate_material": ["cedar"], "condition_scale": ["GOOD"] },
+      "coats": { "stain": 1 },
+      "protection_zones": ["ext_landscape_fence_base", "ext_hardscape_fence_adjacent", "ext_neighbor_property"],
+      "notes": "Cedar fence semi-transparent recoat. Good condition. Wash and recoat."
+    },
+    {
+      "variant_id": "VAR_FERP_SEMI_TRANS_SPRAY_WEATHERED",
+      "applies_when": { "substrate_state": ["SS_EXT_WEATHERED"], "coating_type": ["semi_transparent"], "application_method": ["spray_backbrush"] },
+      "coats": { "stain": 1 },
+      "protection_zones": ["ext_landscape_fence_base", "ext_hardscape_fence_adjacent", "ext_neighbor_property"],
+      "notes": "Weathered fence restoration + recoat. Chemical restoration module activated. Separate mobilization day."
+    },
+    {
+      "variant_id": "VAR_FERP_SOLID_SPRAY_PEELING_CEDAR",
+      "applies_when": { "substrate_state": ["SS_EXT_PEELING"], "coating_type": ["solid_stain"], "application_method": ["spray_backbrush"], "substrate_material": ["cedar"], "condition_scale": ["POOR"] },
+      "coats": { "primer": 1, "stain": 2 },
+      "protection_zones": ["ext_landscape_fence_base", "ext_hardscape_fence_adjacent", "ext_siding_at_fence_tie", "ext_neighbor_property"],
+      "notes": "Worst-case stain RP. Peeling cedar — scrape + feather sand + tannin-blocking primer + 2 coat solid stain."
+    },
+    {
+      "variant_id": "VAR_FERP_PAINT_SPRAY_PEELING_PT",
+      "applies_when": { "substrate_state": ["SS_EXT_PEELING"], "coating_type": ["paint"], "application_method": ["spray_backbrush"], "substrate_material": ["pressure_treated_pine"], "condition_scale": ["POOR"] },
+      "coats": { "primer": 1, "paint": 2 },
+      "protection_zones": ["ext_landscape_fence_base", "ext_hardscape_fence_adjacent", "ext_siding_at_fence_tie", "ext_vehicle_adjacent", "ext_neighbor_property"],
+      "notes": "LEAST RECOMMENDED. Peeling paint on PT pine. Full scrape + primer + 2 paint coats. Maximum protection. Mandatory risk warning."
+    },
+    {
+      "variant_id": "VAR_FERP_SEMI_TRANS_BRUSH_PT_GOOD",
+      "applies_when": { "substrate_state": ["SS_EXT_STAINED_SEMI"], "coating_type": ["semi_transparent"], "application_method": ["brush"], "substrate_material": ["pressure_treated_pine"], "condition_scale": ["GOOD"] },
+      "coats": { "stain": 1 },
+      "protection_zones": ["ext_landscape_fence_base"],
+      "notes": "Small fence or split rail. Brush recoat. Minimal protection (no spray overspray)."
+    },
+    {
+      "variant_id": "VAR_FERP_SOLID_SPRAY_SOLID_FAIR_PT",
+      "applies_when": { "substrate_state": ["SS_EXT_STAINED_SOLID"], "coating_type": ["solid_stain"], "application_method": ["spray_backbrush"], "substrate_material": ["pressure_treated_pine"], "condition_scale": ["FAIR"] },
+      "coats": { "stain": 2 },
+      "protection_zones": ["ext_landscape_fence_base", "ext_hardscape_fence_adjacent", "ext_neighbor_property"],
+      "notes": "Solid stain recoat on fair-condition PT pine. Scuff sand + 2 coat solid stain. No primer (no bare wood)."
+    },
+    {
+      "variant_id": "VAR_FERP_TRANSPARENT_SPRAY_CEDAR_GOOD",
+      "applies_when": { "substrate_state": ["SS_EXT_STAINED_SEMI"], "coating_type": ["transparent"], "application_method": ["spray_backbrush"], "substrate_material": ["cedar"], "condition_scale": ["GOOD"] },
+      "coats": { "sealer": 1 },
+      "protection_zones": ["ext_landscape_fence_base", "ext_hardscape_fence_adjacent", "ext_neighbor_property"],
+      "notes": "Economy cedar maintenance recoat — clear sealer over existing penetrating stain."
+    }
+  ],
+
+  "hard_stops": [
+    {
+      "condition": "Wood MC exceeds threshold",
+      "threshold": "MC > 19% (untreated) or > 25% (PT pine)",
+      "action": "STOP — do not apply coating. Retest after 24 hr dry period.",
+      "scope": "Entire fence"
+    },
+    {
+      "condition": "Post base rot detected",
+      "action": "STOP — refer rotted posts to fence contractor. Remaining fence may proceed.",
+      "scope": "Per-post"
+    }
+  ],
+
+  "risk_flags": [
+    {
+      "risk_id": "RISK-FERP-001",
+      "name": "Recoat incompatibility — penetrating over film-forming",
+      "severity": "critical",
+      "description": "Cannot apply penetrating stain over solid stain or paint. Film prevents absorption. Most common RP specification error.",
+      "mitigation": "Engine must enforce recoat compatibility matrix. UI must disable incompatible selections."
+    },
+    {
+      "risk_id": "RISK-FERP-002",
+      "name": "Paint on wood fence — moisture-driven peeling",
+      "severity": "critical",
+      "description": "Paint recoat carries same moisture-driven peeling risk as NC. Fences are fully exposed to weather on BOTH faces.",
+      "mitigation": "Use penetrating stains when possible. If paint: high permeability formulation, document risk warning."
+    },
+    {
+      "risk_id": "RISK-FERP-003",
+      "name": "Post base rot — structural failure risk",
+      "severity": "critical",
+      "description": "Rotted posts at grade line are structural — painting over rot masks the damage and accelerates failure.",
+      "mitigation": "HARD STOP. Rot probe assessment mandatory. Document and refer to fence contractor."
+    },
+    {
+      "risk_id": "RISK-FERP-004",
+      "name": "Cedar tannin bleed through exposed bare wood",
+      "severity": "major",
+      "description": "Peeling coating on cedar exposes bare wood — tannins will bleed through film-forming topcoat without proper primer.",
+      "mitigation": "Tannin-blocking primer (alkyd/shellac) mandatory on bare cedar + solid stain or paint topcoat."
+    }
+  ],
+
+  "adjacency_declarations": {
+    "primary_surface": "fence_field",
+    "adjacent_surfaces": [
+      {
+        "surface_id": "ext_siding_field",
+        "edge_type": "linear",
+        "typical_relationship": "different_finish",
+        "continuity_rate_modifier": 1.0,
+        "notes": "House siding at fence-to-house tie-in. Protection required at junction."
+      },
+      {
+        "surface_id": "fence_post",
+        "edge_type": "linear",
+        "typical_relationship": "same_finish",
+        "continuity_rate_modifier": 1.0,
+        "notes": "Posts integral to fence — stained as part of field pass."
+      },
+      {
+        "surface_id": "fence_gate",
+        "edge_type": "linear",
+        "typical_relationship": "same_finish",
+        "continuity_rate_modifier": 1.0,
+        "notes": "Gates stained with fence field. Hardware removal/reinstall is separate task."
+      },
+      {
+        "surface_id": "ext_landscape_grade",
+        "edge_type": "linear",
+        "typical_relationship": "not_in_scope",
+        "continuity_rate_modifier": 1.0,
+        "notes": "Ground/landscaping at fence base. Protection-only."
+      }
+    ]
+  },
+
+  "sequencing_notes": {
+    "production_sequence": "Assess -> Setup/Protect -> Power Wash -> Prep (condition-driven) -> Chemical Restore (weathered only, separate mobilization) -> Prime (conditional) -> Apply Coat 1 -> Apply Coat 2 (QT3 solid/paint only) -> Final Inspect -> Touch-Up -> Cleanup",
+    "both_sides_workflow": "Side A protection -> Side A application -> Equipment move -> Side B protection -> Side B application. Both sides complete coat 1 before either side gets coat 2.",
+    "protection_sequence": "Landscape (both sides) -> Hardscape -> Siding tie -> Neighbor property (spray only) -> Vehicle (spray only) -> Gate hardware -> Coating work -> Protection teardown -> Equipment cleanup",
+    "key_prohibitions": "NO penetrating stain over film-forming (recoat compatibility). NO film-forming over penetrating without stripping. NO spray-only for penetrating stains (back-brush mandatory). NO staining at MC > threshold. NO painting over rotted posts."
+  },
+
+  "maintenance_cycles": [
+    {
+      "coating_type": "transparent",
+      "cycle_years": "1-2",
+      "notes": "Shortest cycle. Annual recoat typical. Clean and recoat."
+    },
+    {
+      "coating_type": "semi_transparent",
+      "cycle_years": "2-3",
+      "notes": "Professional standard. Clean and recoat. Sun-exposed faces sooner."
+    },
+    {
+      "coating_type": "solid_stain",
+      "cycle_years": "3-7",
+      "notes": "Longer cycle on vertical surfaces. May need sanding at recoat time."
+    },
+    {
+      "coating_type": "paint",
+      "cycle_years": "5-10",
+      "notes": "Longest theoretical but HIGHEST FAILURE RISK. Peeling often within 2-3 years."
+    }
+  ],
+
+  "cross_spec_boundaries": [
+    {
+      "boundary": "New construction fence staining",
+      "owner": "SF_FENCE_EXT_v1",
+      "notes": "NC sibling spec. Different prep (no condition assessment, no scraping), different substrate states."
+    },
+    {
+      "boundary": "Metal fences",
+      "owner": "Future SF_METAL_EXT_v1",
+      "notes": "Different substrate, primer, and coating chemistry."
+    },
+    {
+      "boundary": "Fence construction and carpentry",
+      "owner": "Carpentry/fence contractor scope",
+      "notes": "Post replacement, board replacement, structural repair."
+    }
+  ],
+
+  "relationships": {
+    "companion_spec": null,
+    "often_combined_with": [],
+    "sibling_spec": "SF_FENCE_EXT_v1",
+    "typical_before": [],
+    "typical_after": [],
+    "notes": "RP sibling to SF_FENCE_EXT_v1 (NC). Shares stain-based architecture, coating_type dimension, single paintable item, and fence-specific protection zones. Key departures: condition assessment module, recoat compatibility matrix, condition_scale modifier, substrate_state replaces wood_condition as primary dimension."
+  },
+
+  "dependencies": {
+    "research": "research.json",
+    "resolution": "resolution.json",
+    "sop_modules": "sop_modules.json",
+    "materials": "materials.json",
+    "production": "production.json",
+    "qa_report": "qa_report.json"
+  },
+
+  "doctrine_references": [
+    { "doctrine": "Exterior_Fences_Doctrine.md", "sections_used": ["Coating types", "Recoat compatibility", "Substrate types", "Application methods", "Failure modes", "Maintenance cycles", "Protection requirements"] },
+    { "doctrine": "Exterior_Application_Methods_Doctrine.md", "sections_used": ["Back-brushing mandatory", "Spray_backbrush coupling", "Two-person crew"] },
+    { "doctrine": "Exterior_Surface_Assessment_Doctrine.md", "sections_used": ["Wood moisture testing", "Condition assessment protocol", "Rot assessment"] },
+    { "doctrine": "Exterior_Weathering_Surface_Assessment_Doctrine.md", "sections_used": ["UV degradation assessment", "Chemical restoration protocol", "Tannin management"] },
+    { "doctrine": "Exterior_Protection_Doctrine_T3.md", "sections_used": ["Landscape zones", "Hardscape zones", "Neighbor property protection", "Vehicle protection"] },
+    { "doctrine": "Exterior_Climate_Environmental_Conditions_Doctrine.md", "sections_used": ["NOT used as estimation modifiers"] }
+  ],
+
+  "research_corrections": [
+    {
+      "correction_id": "RC-FERP-001",
+      "original_claim": "Metal fences (wrought iron) could be included via fence_material dimension",
+      "corrected_to": "Metal fences EXCLUDED — different substrate, primer, and coating chemistry.",
+      "source": "SF_FENCE_EXT_v1/spec.json — scope_boundaries.excludes"
+    },
+    {
+      "correction_id": "RC-FERP-002",
+      "original_claim": "Roll application method for RP",
+      "corrected_to": "Roll EXCLUDED for RP — not practical for weathered/previously coated vertical fence surfaces.",
+      "source": "Field practice analysis"
+    }
+  ],
+
+  "user_corrections": [],
+
+  "change_log": [
+    {
+      "version": "0.1.0",
+      "date": "2026-03-15",
+      "author": "SpecFactory",
+      "changes": "Initial draft spec for exterior fence repaint. RP sibling to SF_FENCE_EXT_v1 (NC). Context prefix: FERP. Key features: 4 substrate states (stained_semi/stained_solid/weathered/peeling), 3-level condition scale (GOOD/FAIR/POOR), recoat compatibility matrix (critical RP constraint), 4 coating types (transparent/semi_transparent/solid_stain/paint), QT2-QT3 only, 2 application methods (spray_backbrush/brush — roll excluded for RP), 2 substrate materials (cedar/PT pine), single paintable item (ITM_FENCE_FIELD SF), 35 tasks across 8 modules (31 binary + 4 qt_conditional), 7 material systems (2 stain + 1 paint + 2 primer + 2 prep chemical), 4 factor modifiers (condition/RRP/coating_type/substrate_type) with stacking partition, 4 round configurations, 5 protection zones (reused from NC), 14 consumables, 12 compatibility rules, 8 variants, 14 PaintScope inputs, 2 hard stops (MC threshold, post rot). Assessment module is RP-NEW (5 tasks). Chemical restoration module carried from NC (8 tasks). Max prep stack 4.40x (extreme RRP scenario — T&M recommended). Max coating stack 1.43x. No height modifier — ground-level work."
+    }
+  ]
+}

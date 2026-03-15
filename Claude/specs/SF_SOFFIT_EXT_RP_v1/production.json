@@ -1,0 +1,1014 @@
+{
+  "spec_family_id": "SF_SOFFIT_EXT_RP",
+  "version": "1.0.0",
+  "generated_by": "Estimation Engineer",
+  "generated_at": "2026-03-15",
+
+  "MODIFIER_STACKING_WARNING": {
+    "severity": "critical",
+    "description": "Modifier stacking uses TWO separate pools that never cross-apply. Prep tasks use condition x RRP x access x vent x tg. Coating tasks use QT x access x vent x tg. Condition and RRP NEVER apply to coating tasks. QT NEVER applies to prep tasks.",
+    "worst_case_prep": "POOR(2.0) x RRP(2.0) x scaffold(1.60) x vented(1.15) x tg_board(1.20) = 8.83x — extreme theoretical, unrealistic combination",
+    "realistic_worst_prep": "FAIR(1.5) x no_RRP(1.0) x ladder(1.35) x vented(1.15) x solid_panel(1.0) = 2.33x — within cap",
+    "worst_case_coating": "QT4(1.30) x scaffold(1.60) x vented(1.15) x tg_board(1.20) = 2.87x — within 4.0x cap",
+    "realistic_worst_coating": "QT3(1.0) x ladder(1.35) x vented(1.15) x solid_panel(1.0) = 1.55x — comfortable",
+    "stacking_rules": {
+      "prep_tasks": {
+        "formula": "effective_rate = base_rate / (condition x rrp x access x vent x tg)",
+        "pool_modifiers": "FAC_CONDITION_SCALE + FAC_SFRP_RRP (PREP pool)",
+        "shared_modifiers": "FAC_EXT_ACCESS + FAC_SFIT_VENT_COMPLEXITY + FAC_SFIT_TG_JOINTS",
+        "never_includes": "quality_tier"
+      },
+      "coating_tasks": {
+        "formula": "effective_rate = base_rate / (qt x access x vent x tg)",
+        "pool_modifiers": "quality_tier (COATING pool)",
+        "shared_modifiers": "FAC_EXT_ACCESS + FAC_SFIT_VENT_COMPLEXITY + FAC_SFIT_TG_JOINTS",
+        "never_includes": "FAC_CONDITION_SCALE, FAC_SFRP_RRP"
+      },
+      "fixed_tasks": {
+        "formula": "fixed_time_minutes (no modifiers unless noted)",
+        "note": "Assessment fixed tasks, equipment setup/cleanup, RRP containment, customer walkthrough — no modifiers applied."
+      }
+    }
+  },
+
+  "soffit_surface_input_group": {
+    "description": "Rate per SF applies to net soffit field area from PaintScope. Engine divides SF by rate to calculate hours. ALL base rates in this spec already include overhead work penalty (~25-35% reduction from vertical baselines). Do NOT apply FAC_SFRP_OVERHEAD as a separate stacking modifier. RP rates calibrated from NC sibling (SF_SOFFIT_EXT_NC_v1) with RP-specific adjustments.",
+    "inputs": [
+      { "input_name": "IN_SF_SOFFIT_FIELD", "paintscope_key": "PS_EXT_SURFACE_SF.SOFFIT_FIELD" },
+      { "input_name": "IN_EA_ELEVATIONS_TOTAL", "paintscope_key": "PS_EXT_META.EA.ELEVATIONS_TOTAL" },
+      { "input_name": "IN_ENUM_ACCESS_TYPE", "paintscope_key": "PS_EXT_META.ENUM.ACCESS_TYPE" },
+      { "input_name": "IN_ENUM_SUBSTRATE_STATE_EXT", "paintscope_key": "PS_EXT_META.ENUM.SUBSTRATE_STATE" },
+      { "input_name": "IN_ENUM_SOFFIT_VENT_TYPE", "paintscope_key": "PS_EXT_META.ENUM.SOFFIT_VENT_TYPE" },
+      { "input_name": "IN_ENUM_SOFFIT_PANEL_TYPE", "paintscope_key": "PS_EXT_META.ENUM.SOFFIT_PANEL_TYPE" },
+      { "input_name": "IN_ENUM_SUBSTRATE_TYPE_SOFFIT", "paintscope_key": "PS_EXT_META.ENUM.SUBSTRATE_TYPE_SOFFIT" },
+      { "input_name": "IN_BOOL_PRE_1978_EXT", "paintscope_key": "PS_EXT_META.FLAG.PRE_1978" },
+      { "input_name": "IN_SF_LANDSCAPE_ADJACENT", "paintscope_key": "PS_EXT_PROTECT_SF.LANDSCAPE_ADJACENT" },
+      { "input_name": "IN_SF_HARDSCAPE_WALK", "paintscope_key": "PS_EXT_PROTECT_SF.HARDSCAPE_WALK" },
+      { "input_name": "IN_EA_EXT_PROTECT_LIGHT_FIXTURE", "paintscope_key": "PS_EXT_PROTECT_EA.LIGHT_FIXTURE" }
+    ]
+  },
+
+  "task_production_rates": [
+
+    {
+      "_section": "=== MOD_SFRP_SETUP — 7 tasks ===",
+      "_note": "Protection setup, fixture masking, vent masking, equipment staging"
+    },
+
+    {
+      "task_id": "TSK_SFRP_LANDSCAPE_PROTECT",
+      "name": "Landscape Ground Protection Below Soffit",
+      "unit_of_measure": "SF",
+      "task_classification": "binary",
+      "rate_per_hour": 200,
+      "rate_range_low": 150,
+      "rate_range_high": 250,
+      "crew_size": 1,
+      "modifier_pool": "none",
+      "applicable_modifiers": [],
+      "rate_basis_notes": "DIRECT transfer from TSK_SFIT_LANDSCAPE_PROTECT (NC 200 SF/hr). Ground-level task — no overhead penalty. Deploy plastic sheeting and tarps over landscape below soffit work zone. ~18 sec per SF. RP emphasis: catches scraping debris in addition to drips. Upgrades to full_cover for spray or RRP.",
+      "applies_when": {}
+    },
+    {
+      "task_id": "TSK_SFRP_HARDSCAPE_PROTECT",
+      "name": "Hardscape Walkway Protection Below Soffit",
+      "unit_of_measure": "SF",
+      "task_classification": "binary",
+      "rate_per_hour": 250,
+      "rate_range_low": 200,
+      "rate_range_high": 350,
+      "crew_size": 1,
+      "modifier_pool": "none",
+      "applicable_modifiers": [],
+      "rate_basis_notes": "DIRECT transfer from TSK_SFIT_HARDSCAPE_PROTECT (NC 250 SF/hr). Ground-level task. Lay drop cloths and plastic on flat walkway/patio surfaces. ~14 sec per SF. Upgrades to full_cover for spray or RRP.",
+      "applies_when": {}
+    },
+    {
+      "task_id": "TSK_SFRP_FIXTURE_MASK",
+      "name": "Soffit Light Fixture Masking",
+      "unit_of_measure": "EA",
+      "task_classification": "binary",
+      "rate_per_hour": 10,
+      "rate_range_low": 8,
+      "rate_range_high": 15,
+      "crew_size": 1,
+      "modifier_pool": "none",
+      "applicable_modifiers": ["FAC_EXT_ACCESS"],
+      "rate_basis_notes": "DIRECT transfer from TSK_SFIT_FIXTURE_MASK (NC 10 EA/hr). Bag and tape soffit-mounted fixtures overhead — recessed lights, porch fixtures. ~6 min per fixture. Overhead access adds time for taping and bagging above head.",
+      "applies_when": {}
+    },
+    {
+      "task_id": "TSK_SFRP_FASCIA_MASK",
+      "name": "Fascia Edge Masking",
+      "unit_of_measure": "LF",
+      "task_classification": "binary",
+      "rate_per_hour": 120,
+      "rate_range_low": 100,
+      "rate_range_high": 150,
+      "crew_size": 1,
+      "modifier_pool": "none",
+      "applicable_modifiers": ["FAC_EXT_ACCESS"],
+      "rate_basis_notes": "MODIFIED from TSK_SFIT_FASCIA_MASK. NC used SF proxy (500 SF/hr); RP uses LF for direct measurement of fascia-soffit junction tape line. ~30 sec per LF overhead. Tape + 12-inch masking film. In RP, fascia is almost always already finished — masking is MANDATORY regardless of application method.",
+      "applies_when": {}
+    },
+    {
+      "task_id": "TSK_SFRP_VENT_MASK",
+      "name": "Mask Soffit Vent Openings (Vented Soffit Only)",
+      "unit_of_measure": "SF",
+      "task_classification": "binary",
+      "rate_per_hour": 300,
+      "rate_range_low": 250,
+      "rate_range_high": 350,
+      "crew_size": 1,
+      "modifier_pool": "none",
+      "applicable_modifiers": ["FAC_EXT_ACCESS"],
+      "rate_basis_notes": "RP_NEW. Apply tape or foam plugs to individual soffit vent openings before brush_roll application. Rate per SF of soffit field (proxy for vent count). ~12 sec per SF equivalent. Prevents further paint accumulation in vents from RP coating (FM-006). Vented soffit + brush_roll only.",
+      "applies_when": { "soffit_vent_type": ["vented"], "application_method": ["brush_roll"] }
+    },
+    {
+      "task_id": "TSK_SFRP_EQUIPMENT_SETUP_BRUSH",
+      "name": "Brush/Roll Equipment Setup for Overhead Work",
+      "unit_of_measure": "FIXED",
+      "task_classification": "binary",
+      "fixed_time_minutes": 25,
+      "fixed_time_range_low": 20,
+      "fixed_time_range_high": 35,
+      "crew_size": 1,
+      "modifier_pool": "none",
+      "applicable_modifiers": [],
+      "rate_basis_notes": "DIRECT transfer from TSK_SFIT_EQUIPMENT_SETUP_BRUSH (NC 25 min). Per-session FIXED time. Stage brushes, rollers, trays, extension poles, ladders/scaffold per access_type. No modifiers on FIXED setup tasks.",
+      "applies_when": { "application_method": ["brush_roll"] }
+    },
+    {
+      "task_id": "TSK_SFRP_EQUIPMENT_SETUP_SPRAY",
+      "name": "Spray Equipment Setup for Overhead Work",
+      "unit_of_measure": "FIXED",
+      "task_classification": "binary",
+      "fixed_time_minutes": 50,
+      "fixed_time_range_low": 40,
+      "fixed_time_range_high": 60,
+      "crew_size": 1,
+      "modifier_pool": "none",
+      "applicable_modifiers": [],
+      "rate_basis_notes": "DIRECT transfer from TSK_SFIT_EQUIPMENT_SETUP_SPRAY (NC 50 min). Per-session FIXED time. Configure airless sprayer with 413-515 tip for overhead. NON-VENTED SOFFIT ONLY. No modifiers on FIXED setup tasks.",
+      "applies_when": { "application_method": ["spray"], "soffit_vent_type": ["non_vented"] }
+    },
+
+    {
+      "_section": "=== MOD_SFRP_ASSESSMENT — 6 tasks ===",
+      "_note": "RP-specific condition assessment. All RP_NEW. FIXED or SF-based."
+    },
+
+    {
+      "task_id": "TSK_SFRP_ASSESS_CONDITION",
+      "name": "Visual Condition Inspection — All Soffit Surfaces",
+      "unit_of_measure": "SF",
+      "task_classification": "qt_scaled",
+      "qt_rates": {
+        "QT2": { "rate_sf_per_hour": 600, "notes": "Standard visual scan overhead, document visible defects." },
+        "QT3": { "rate_sf_per_hour": 400, "notes": "Thorough scan with work light overhead, document all defect areas, per-elevation assessment." },
+        "QT4": { "rate_sf_per_hour": 250, "notes": "Systematic scan with raking light overhead, photograph all defects, per-panel assessment." }
+      },
+      "rate_range_low": 200,
+      "rate_range_high": 700,
+      "crew_size": 1,
+      "modifier_pool": "none",
+      "applicable_modifiers": ["FAC_EXT_ACCESS"],
+      "rate_basis_notes": "RP_NEW. Overhead visual condition assessment. Calibrated from exterior window RP TSK_XWRP_ASSESS_CONDITION pattern, scaled for overhead field surface (SF-based vs EA). QT2: ~6 sec/SF quick scan. QT3: ~9 sec/SF thorough scan. QT4: ~14 sec/SF systematic scan. Access modifier applies (inspection at height is slower). No condition or RRP modifiers — assessment precedes condition classification.",
+      "applies_when": {}
+    },
+    {
+      "task_id": "TSK_SFRP_ASSESS_ADHESION",
+      "name": "Adhesion Test (ASTM D3359 Cross-Hatch Tape Test)",
+      "unit_of_measure": "FIXED",
+      "task_classification": "binary",
+      "fixed_time_minutes": 10,
+      "fixed_time_range_low": 8,
+      "fixed_time_range_high": 15,
+      "crew_size": 1,
+      "modifier_pool": "none",
+      "applicable_modifiers": [],
+      "rate_basis_notes": "RP_NEW. Per-elevation FIXED time. Cross-hatch tape test per ASTM D3359 at minimum 2 locations per elevation from ladder/scaffold. ~10 min per elevation. Calibrated from TSK_XWRP_ASSESS_ADHESION (5 min/EA window); soffit requires 2 test locations per elevation = ~10 min. Results gate prime module: pass + SS_EXT_SOUND_PAINT = skip full prime.",
+      "applies_when": {}
+    },
+    {
+      "task_id": "TSK_SFRP_ASSESS_MILDEW",
+      "name": "Mildew/Algae Assessment — Soffit-Specific Priority Check",
+      "unit_of_measure": "SF",
+      "task_classification": "binary",
+      "rate_per_hour": 800,
+      "rate_range_low": 600,
+      "rate_range_high": 1000,
+      "crew_size": 1,
+      "modifier_pool": "none",
+      "applicable_modifiers": ["FAC_EXT_ACCESS"],
+      "rate_basis_notes": "RP_NEW. Visual scan for mildew/algae from working height overhead. ~4.5 sec per SF. Faster than condition assessment because looking for specific pattern (dark spots/patches, green/yellow growth). Classify extent: spot (<25%), moderate (25-50%), widespread (>50%). Soffit is #1 exterior surface for mildew growth. Access modifier applies.",
+      "applies_when": {}
+    },
+    {
+      "task_id": "TSK_SFRP_ASSESS_MOISTURE",
+      "name": "Moisture Check — Panel Joints, Roof Penetrations",
+      "unit_of_measure": "FIXED",
+      "task_classification": "binary",
+      "fixed_time_minutes": 10,
+      "fixed_time_range_low": 8,
+      "fixed_time_range_high": 15,
+      "crew_size": 1,
+      "modifier_pool": "none",
+      "applicable_modifiers": [],
+      "rate_basis_notes": "RP_NEW. Per-elevation FIXED time. Moisture meter readings at panel joints, near roof penetrations, and at water staining locations from ladder. ~10 min per elevation. Calibrated from TSK_XWRP_ASSESS_MOISTURE (4 min/EA window); soffit has 4-6 test points per elevation. Wood soffit only. MC >15% = STOP WORK for coating.",
+      "applies_when": { "substrate_type_soffit": ["wood"] }
+    },
+    {
+      "task_id": "TSK_SFRP_ASSESS_CAULK",
+      "name": "Caulk Condition Assessment — Panel Joints and Trim Junctions",
+      "unit_of_measure": "SF",
+      "task_classification": "binary",
+      "rate_per_hour": 600,
+      "rate_range_low": 450,
+      "rate_range_high": 750,
+      "crew_size": 1,
+      "modifier_pool": "none",
+      "applicable_modifiers": ["FAC_EXT_ACCESS"],
+      "rate_basis_notes": "RP_NEW. Inspect existing caulk at soffit panel-to-panel joints, soffit-to-fascia, soffit-to-frieze junctions overhead. ~6 sec per SF equivalent. Classify: intact (paint over), cracked (repair), fully failed (full re-caulk). Results drive caulk repair scope in prep module. Access modifier applies.",
+      "applies_when": {}
+    },
+    {
+      "task_id": "TSK_SFRP_ASSESS_VENT",
+      "name": "Vent Opening Condition Check (Vented Soffit Only)",
+      "unit_of_measure": "SF",
+      "task_classification": "binary",
+      "rate_per_hour": 800,
+      "rate_range_low": 600,
+      "rate_range_high": 1000,
+      "crew_size": 1,
+      "modifier_pool": "none",
+      "applicable_modifiers": ["FAC_EXT_ACCESS"],
+      "rate_basis_notes": "RP_NEW. Inspect vent openings for paint clogging from prior brush_roll applications. ~4.5 sec per SF equivalent. Fast visual assessment from working height. Classify: clear, partially clogged, heavily clogged. Vented soffit only. Access modifier applies.",
+      "applies_when": { "soffit_vent_type": ["vented"] }
+    },
+
+    {
+      "_section": "=== MOD_SFRP_PREP — 10 tasks ===",
+      "_note": "Condition-driven prep. Prep pool modifiers: condition x RRP x access x vent x tg."
+    },
+
+    {
+      "task_id": "TSK_SFRP_WASH_LOW_PRESSURE",
+      "name": "Low-Pressure Wash Soffit Surface (Per Elevation)",
+      "unit_of_measure": "FIXED",
+      "task_classification": "binary",
+      "fixed_time_minutes": 30,
+      "fixed_time_range_low": 20,
+      "fixed_time_range_high": 45,
+      "crew_size": 1,
+      "modifier_pool": "none",
+      "applicable_modifiers": [],
+      "rate_basis_notes": "MODIFIED from TSK_SFIT_WASH_LOW_PRESSURE. NC used SF-based rate (350 SF/hr); RP uses per-elevation FIXED time (30 min midpoint). Low-pressure wash 500-800 PSI max, fan tip, mildew-removal detergent. HIGH-PRESSURE POWER WASHING IS PROHIBITED on soffit. Per-elevation FIXED — covers all soffit on that elevation. Cross-spec deduplication rule U-003: skip if wash already performed by another spec on same elevation. No modifiers on FIXED per-elevation tasks.",
+      "applies_when": {}
+    },
+    {
+      "task_id": "TSK_SFRP_MILDEW_TREAT",
+      "name": "Mildew/Algae Biocide Treatment",
+      "unit_of_measure": "SF",
+      "task_classification": "binary",
+      "rate_per_hour": 200,
+      "rate_range_low": 150,
+      "rate_range_high": 250,
+      "crew_size": 1,
+      "modifier_pool": "prep",
+      "applicable_modifiers": ["FAC_CONDITION_SCALE", "FAC_EXT_ACCESS"],
+      "rate_basis_notes": "RP_NEW. Apply biocide/mildewcide solution to mildew/algae-affected soffit areas overhead. ~18 sec per SF. Scrub with soft brush to loosen dead growth. Rinse. Allow dry. Calibrated from TSK_XWRP_MILDEW_TREAT (10 min/EA window ~ 100-120 SF/hr of affected area); soffit field is larger contiguous surface = faster per-SF than window detail work. Soffit is #1 exterior surface for mildew growth. Condition modifier applies (FAIR/POOR have more extensive growth). No RRP modifier — biocide is cleaning, not paint disturbance.",
+      "applies_when": { "condition_assessment": "mildew_present" }
+    },
+    {
+      "task_id": "TSK_SFRP_CHALK_REMEDIATION",
+      "name": "Chalk Remediation (Pre-Treatment for Chalk-Binding Primer)",
+      "unit_of_measure": "SF",
+      "task_classification": "binary",
+      "rate_per_hour": 250,
+      "rate_range_low": 200,
+      "rate_range_high": 300,
+      "crew_size": 1,
+      "modifier_pool": "prep",
+      "applicable_modifiers": ["FAC_CONDITION_SCALE", "FAC_EXT_ACCESS"],
+      "rate_basis_notes": "RP_NEW. Chemical chalk remover on stubborn chalking areas after wash, verify with white cloth test. ~14 sec per SF. Calibrated from TSK_XWRP_CHALK_REMEDIATION (12 min/EA medium window ~ 200-250 SF/hr scaled to field surface). No RRP modifier — chalk remediation is cleaning, not paint disturbance. SS_EXT_CHALKING only.",
+      "applies_when": { "substrate_state": ["SS_EXT_CHALKING"] }
+    },
+    {
+      "task_id": "TSK_SFRP_SCRAPE_FEATHER",
+      "name": "Scrape Failing Paint and Feather Edges — Overhead",
+      "unit_of_measure": "SF",
+      "task_classification": "qt_scaled",
+      "qt_rates": {
+        "QT2": { "rate_sf_per_hour": 80, "notes": "Remove all failing paint, feather edges — no visible ridge at 10 ft. ~45 sec/SF." },
+        "QT3": { "rate_sf_per_hour": 65, "notes": "Comprehensive scrape + feathering — no visible ridge at 6 ft. ~55 sec/SF." },
+        "QT4": { "rate_sf_per_hour": 50, "notes": "Thorough scrape + near-invisible feathering — smooth to touch at arm's length. ~72 sec/SF." }
+      },
+      "rate_range_low": 40,
+      "rate_range_high": 100,
+      "crew_size": 1,
+      "modifier_pool": "prep",
+      "applicable_modifiers": ["FAC_CONDITION_SCALE", "FAC_SFRP_RRP", "FAC_EXT_ACCESS", "FAC_SFIT_TG_JOINTS"],
+      "rate_basis_notes": "RP_NEW. Overhead scraping is the SLOWEST exterior prep task per SF — gravity works against tool stroke and debris falls on painter. Rates calibrated from exterior window RP TSK_XWRP_SCRAPE_FEATHER (25 min/EA medium window ~= 60-70 SF/hr for field surface at QT3). Overhead penalty already baked into base rates (vertical scraping baseline: 100-120 SF/hr). Condition modifier: FAIR = moderate scraping (15-30% of surface), POOR = heavy scraping (40-60%+). RRP 2.0x for wet scraping methods. T&G joints add complexity (T&G modifier 1.20x).",
+      "applies_when": { "substrate_state": ["SS_EXT_FAILING_PAINT", "SS_EXT_PEELING"] }
+    },
+    {
+      "task_id": "TSK_SFRP_DEGLOSS_SCUFF",
+      "name": "Degloss/Scuff Existing Paint — Overhead",
+      "unit_of_measure": "SF",
+      "task_classification": "qt_scaled",
+      "qt_rates": {
+        "QT2": { "rate_sf_per_hour": 130, "notes": "Key areas deglossed for adhesion. ~28 sec/SF." },
+        "QT3": { "rate_sf_per_hour": 110, "notes": "Full surface degloss — chemical or mechanical on all accessible surfaces overhead. ~33 sec/SF." },
+        "QT4": { "rate_sf_per_hour": 85, "notes": "Complete degloss with adhesion verification. T&G grooves hand-deglossed. ~42 sec/SF." }
+      },
+      "rate_range_low": 70,
+      "rate_range_high": 150,
+      "crew_size": 1,
+      "modifier_pool": "prep",
+      "applicable_modifiers": ["FAC_CONDITION_SCALE", "FAC_SFRP_RRP", "FAC_EXT_ACCESS", "FAC_SFIT_VENT_COMPLEXITY", "FAC_SFIT_TG_JOINTS"],
+      "rate_basis_notes": "MODIFIED from TSK_SFIT_SAND_PREP_WOOD (NC 150 SF/hr). RP degloss/scuff on existing paint is ~75% of NC bare wood sanding time — existing paint provides uniform surface vs NC bare wood mill glaze. QT3 baseline: 110 SF/hr (NC wood sand was 150 SF/hr; RP ~73%). Chemical degloss preferred for T&G grooves. Vent and T&G modifiers apply. Skip for SS_EXT_PEELING (full scrape) and SS_EXT_CHALKING (chalk remediation path).",
+      "applies_when": { "substrate_state": ["SS_EXT_SOUND_PAINT", "SS_EXT_FAILING_PAINT"] }
+    },
+    {
+      "task_id": "TSK_SFRP_CAULK_ASSESS_REPAIR",
+      "name": "Assess and Repair Failed Caulk — Panel Joints and Trim Junctions",
+      "unit_of_measure": "SF",
+      "task_classification": "qt_scaled",
+      "qt_rates": {
+        "QT2": { "rate_sf_per_hour": 200, "notes": "Replace visibly failed sections — cracked or separated joints. ~18 sec/SF." },
+        "QT3": { "rate_sf_per_hour": 150, "notes": "Comprehensive assessment, replace all suspect and failed joints, smooth tool. ~24 sec/SF." },
+        "QT4": { "rate_sf_per_hour": 100, "notes": "Replace all joints not in perfect condition, precision tooled bead overhead. ~36 sec/SF." }
+      },
+      "rate_range_low": 80,
+      "rate_range_high": 250,
+      "crew_size": 1,
+      "modifier_pool": "prep",
+      "applicable_modifiers": ["FAC_CONDITION_SCALE", "FAC_EXT_ACCESS"],
+      "rate_basis_notes": "RP_NEW. Rate per SF of soffit field (proxy for joint density). Calibrated from NC TSK_SFIT_CAULK_JOINTS (55 LF/hr) and TSK_XWRP_CAULK_ASSESS_REPAIR (8 min/EA at QT3). RP rates lower than NC because only failed joints are replaced (not all joints). GOOD condition ≈ near-zero repair scope. FAIR/POOR = increasing joint failure. Caulk AFTER primer in field execution (COMPAT-SFIT-009).",
+      "applies_when": {}
+    },
+    {
+      "task_id": "TSK_SFRP_VENT_CLEAN",
+      "name": "Clean Paint-Clogged Vent Openings (Vented Soffit Only)",
+      "unit_of_measure": "SF",
+      "task_classification": "binary",
+      "rate_per_hour": 250,
+      "rate_range_low": 200,
+      "rate_range_high": 300,
+      "crew_size": 1,
+      "modifier_pool": "prep",
+      "applicable_modifiers": ["FAC_EXT_ACCESS"],
+      "rate_basis_notes": "RP_NEW. Wire brush or pick to clean partially clogged soffit vent openings overhead. Rate per SF of soffit field (proxy for vent density). ~14 sec per SF equivalent. Triggered by assessment finding partial clogging. Vented soffit only. No condition or RRP modifiers — vent cleaning is mechanical, not paint-surface work.",
+      "applies_when": { "soffit_vent_type": ["vented"] }
+    },
+    {
+      "task_id": "TSK_SFRP_SCUFF_EXPOSED_FC",
+      "name": "Scuff-Sand Exposed Fiber Cement Areas",
+      "unit_of_measure": "SF",
+      "task_classification": "binary",
+      "rate_per_hour": 175,
+      "rate_range_low": 140,
+      "rate_range_high": 200,
+      "crew_size": 1,
+      "modifier_pool": "prep",
+      "applicable_modifiers": ["FAC_CONDITION_SCALE", "FAC_SFRP_RRP", "FAC_EXT_ACCESS"],
+      "rate_basis_notes": "MODIFIED from TSK_SFIT_SAND_PREP_FC (NC 175 SF/hr). Same rate — exposed bare FC scuff-sand is identical physical action. RP targets exposed areas only (spot task, not full surface), but per-SF rate is unchanged. 150 grit scuff for mechanical adhesion profile before alkali-resistant spot primer. Overhead penalty baked in.",
+      "applies_when": { "substrate_type_soffit": ["fiber_cement"], "substrate_state": ["SS_EXT_FAILING_PAINT", "SS_EXT_PEELING"] }
+    },
+    {
+      "task_id": "TSK_SFRP_SCUFF_EXPOSED_VINYL",
+      "name": "Scuff-Sand Exposed Vinyl Areas",
+      "unit_of_measure": "SF",
+      "task_classification": "binary",
+      "rate_per_hour": 175,
+      "rate_range_low": 140,
+      "rate_range_high": 200,
+      "crew_size": 1,
+      "modifier_pool": "prep",
+      "applicable_modifiers": ["FAC_CONDITION_SCALE", "FAC_SFRP_RRP", "FAC_EXT_ACCESS"],
+      "rate_basis_notes": "MODIFIED from TSK_SFIT_SAND_PREP_VINYL (NC 175 SF/hr). Same rate — exposed bare vinyl scuff-sand is identical physical action. RP targets exposed areas only (spot task). 220 grit scuff for bonding primer adhesion. Without scuff-sanding, bonding primer alone is insufficient — coating peels in sheets (RISK-SFIT-007). Overhead penalty baked in.",
+      "applies_when": { "substrate_type_soffit": ["vinyl"], "substrate_state": ["SS_EXT_FAILING_PAINT", "SS_EXT_PEELING"] }
+    },
+    {
+      "task_id": "TSK_SFRP_DUST_CLEANUP",
+      "name": "Prep Dust Cleanup — Overhead",
+      "unit_of_measure": "SF",
+      "task_classification": "binary",
+      "rate_per_hour": 400,
+      "rate_range_low": 300,
+      "rate_range_high": 500,
+      "crew_size": 1,
+      "modifier_pool": "none",
+      "applicable_modifiers": ["FAC_EXT_ACCESS"],
+      "rate_basis_notes": "DIRECT transfer from TSK_SFIT_DUST_CLEANUP (NC 400 SF/hr). Tack cloth dust removal from soffit surface overhead. ~9 sec per SF. Overhead penalty baked in. Much dust falls away due to gravity, but residual particles must be removed for adhesion. Access modifier applies. No condition or RRP modifiers — dust cleanup is the same regardless of condition.",
+      "applies_when": {}
+    },
+
+    {
+      "_section": "=== MOD_SFRP_PRIME — 4 tasks ===",
+      "_note": "State-driven primer + substrate-specific spot primer. Coating pool modifiers."
+    },
+
+    {
+      "task_id": "TSK_SFRP_PRIME_BRUSH_ROLL",
+      "name": "State-Driven Primer — Brush/Roll Overhead Application",
+      "unit_of_measure": "SF",
+      "task_classification": "binary",
+      "rate_per_hour": 120,
+      "rate_range_low": 100,
+      "rate_range_high": 150,
+      "crew_size": 1,
+      "modifier_pool": "coating",
+      "applicable_modifiers": ["FAC_EXT_ACCESS", "FAC_SFIT_VENT_COMPLEXITY", "FAC_SFIT_TG_JOINTS"],
+      "rate_basis_notes": "MODIFIED from TSK_SFIT_PRIME_BRUSH_ROLL (NC 120 SF/hr). Same rate — brush/roll primer application overhead is identical physical action regardless of primer product. NC uses acrylic primer; RP uses state-driven primer (chalk-binding for SS_EXT_CHALKING, acrylic stain-block for SS_EXT_FAILING_PAINT/PEELING). ~30 sec per SF. Default for all vented soffits. Vent complexity and T&G modifiers apply. Skip for SS_EXT_SOUND_PAINT when adhesion verified.",
+      "applies_when": { "application_method": ["brush_roll"], "substrate_state": ["SS_EXT_CHALKING", "SS_EXT_FAILING_PAINT", "SS_EXT_PEELING"] }
+    },
+    {
+      "task_id": "TSK_SFRP_PRIME_SPRAY",
+      "name": "State-Driven Primer — Spray Overhead Application (Non-Vented Only)",
+      "unit_of_measure": "SF",
+      "task_classification": "binary",
+      "rate_per_hour": 250,
+      "rate_range_low": 200,
+      "rate_range_high": 300,
+      "crew_size": 1,
+      "modifier_pool": "coating",
+      "applicable_modifiers": ["FAC_EXT_ACCESS"],
+      "rate_basis_notes": "MODIFIED from TSK_SFIT_PRIME_SPRAY (NC 250 SF/hr). Same rate — spray primer application overhead is identical physical action. ~14 sec per SF. NON-VENTED SOFFIT ONLY — spray on vented drives paint into attic (FM-001). No vent or T&G modifiers — spray is only on non-vented soffit. Skip for SS_EXT_SOUND_PAINT when adhesion verified.",
+      "applies_when": { "application_method": ["spray"], "soffit_vent_type": ["non_vented"], "substrate_state": ["SS_EXT_CHALKING", "SS_EXT_FAILING_PAINT", "SS_EXT_PEELING"] }
+    },
+    {
+      "task_id": "TSK_SFRP_PRIME_SPOT_ALKALI_BRUSH_ROLL",
+      "name": "Spot Prime Exposed Fiber Cement with Alkali-Resistant Primer",
+      "unit_of_measure": "SF",
+      "task_classification": "binary",
+      "rate_per_hour": 100,
+      "rate_range_low": 80,
+      "rate_range_high": 120,
+      "crew_size": 1,
+      "modifier_pool": "coating",
+      "applicable_modifiers": ["FAC_EXT_ACCESS"],
+      "rate_basis_notes": "MODIFIED from TSK_SFIT_PRIME_ALKALI_BRUSH_ROLL (NC 100 SF/hr). Same per-SF rate — alkali-resistant primer on exposed bare FC is identical physical action. RP targets exposed areas only (spot priming), but rate per SF of area treated is unchanged. ~36 sec per SF. Brush only — spot application too small for spray. Applied IN ADDITION to general state-driven prime.",
+      "applies_when": { "substrate_type_soffit": ["fiber_cement"], "substrate_state": ["SS_EXT_FAILING_PAINT", "SS_EXT_PEELING"] }
+    },
+    {
+      "task_id": "TSK_SFRP_PRIME_SPOT_VINYL_BRUSH_ROLL",
+      "name": "Spot Prime Exposed Vinyl with Bonding Primer",
+      "unit_of_measure": "SF",
+      "task_classification": "binary",
+      "rate_per_hour": 110,
+      "rate_range_low": 90,
+      "rate_range_high": 130,
+      "crew_size": 1,
+      "modifier_pool": "coating",
+      "applicable_modifiers": ["FAC_EXT_ACCESS"],
+      "rate_basis_notes": "MODIFIED from TSK_SFIT_PRIME_VINYL_BRUSH_ROLL (NC 110 SF/hr). Same per-SF rate — bonding primer on exposed bare vinyl is identical physical action. RP targets exposed areas only (spot priming). ~33 sec per SF. Brush only — spot application too small for spray. Recoat within 1 week (RISK-SFIT-008).",
+      "applies_when": { "substrate_type_soffit": ["vinyl"], "substrate_state": ["SS_EXT_FAILING_PAINT", "SS_EXT_PEELING"] }
+    },
+
+    {
+      "_section": "=== MOD_SFRP_INTERSTAGE — 4 tasks ===",
+      "_note": "Between-coat inspection and maintenance. DIRECT transfer from NC. Coating pool modifiers."
+    },
+
+    {
+      "task_id": "TSK_SFRP_INSPECT_COAT",
+      "name": "Interstage Inspection — Overhead",
+      "unit_of_measure": "SF",
+      "task_classification": "qt_scaled",
+      "qt_rates": {
+        "QT3": { "rate_sf_per_hour": 1000, "notes": "Quick scan from ladder for obvious defects — runs, sags, holidays, drips. ~3.6 sec/SF." },
+        "QT4": { "rate_sf_per_hour": 500, "notes": "Systematic inspection with raking light overhead. Mark all visible defects. Check T&G grooves. ~7.2 sec/SF." }
+      },
+      "rate_range_low": 400,
+      "rate_range_high": 1200,
+      "crew_size": 1,
+      "modifier_pool": "coating",
+      "applicable_modifiers": ["FAC_EXT_ACCESS"],
+      "rate_basis_notes": "DIRECT transfer from TSK_SFIT_INSPECT_COAT (NC QT3: 1000, QT4: 500 SF/hr). Identical process once surface is primed and first-coated. Overhead penalty baked in. QT3/QT4 only — QT2 is single coat.",
+      "applies_when": {}
+    },
+    {
+      "task_id": "TSK_SFRP_SAND_INTERCOAT",
+      "name": "Intercoat Light Sand — QT4 Only",
+      "unit_of_measure": "SF",
+      "task_classification": "qt_conditional",
+      "rate_per_hour": 175,
+      "rate_range_low": 150,
+      "rate_range_high": 200,
+      "crew_size": 1,
+      "modifier_pool": "coating",
+      "applicable_modifiers": ["FAC_EXT_ACCESS", "FAC_SFIT_TG_JOINTS"],
+      "rate_basis_notes": "DIRECT transfer from TSK_SFIT_SAND_INTERCOAT (NC 175 SF/hr). 220 grit light scuff between finish coats overhead. ~20 sec per SF. QT4 only. T&G joints add complexity (1.20x modifier). Overhead penalty baked in.",
+      "applies_when": {}
+    },
+    {
+      "task_id": "TSK_SFRP_TOUCHUP_REPAIR",
+      "name": "Interstage Touch-Up",
+      "unit_of_measure": "SF",
+      "task_classification": "qt_scaled",
+      "qt_rates": {
+        "QT3": { "rate_sf_per_hour": 1500, "notes": "Fix obvious defects only overhead. ~2.4 sec/SF." },
+        "QT4": { "rate_sf_per_hour": 700, "notes": "Fix all found defects overhead. Blend repairs. ~5.1 sec/SF." }
+      },
+      "rate_range_low": 600,
+      "rate_range_high": 1600,
+      "crew_size": 1,
+      "modifier_pool": "coating",
+      "applicable_modifiers": ["FAC_EXT_ACCESS"],
+      "rate_basis_notes": "DIRECT transfer from TSK_SFIT_TOUCHUP_REPAIR (NC QT3: 1500, QT4: 700 SF/hr). Identical brush touch-up process overhead. Overhead penalty baked in. QT3/QT4 only.",
+      "applies_when": {}
+    },
+    {
+      "task_id": "TSK_SFRP_DUST_INTERCOAT",
+      "name": "Intercoat Dust Removal",
+      "unit_of_measure": "SF",
+      "task_classification": "qt_conditional",
+      "rate_per_hour": 400,
+      "rate_range_low": 300,
+      "rate_range_high": 500,
+      "crew_size": 1,
+      "modifier_pool": "coating",
+      "applicable_modifiers": ["FAC_EXT_ACCESS"],
+      "rate_basis_notes": "DIRECT transfer from TSK_SFIT_DUST_INTERCOAT (NC 400 SF/hr). Tack cloth dust removal after intercoat sanding overhead. ~9 sec per SF. QT4 only (paired with TSK_SFRP_SAND_INTERCOAT). Overhead penalty baked in.",
+      "applies_when": {}
+    },
+
+    {
+      "_section": "=== MOD_SFRP_FINISH — 8 tasks ===",
+      "_note": "Coat 1 and Coat 2 application. DIRECT transfers from NC. Coating pool modifiers."
+    },
+
+    {
+      "task_id": "TSK_SFRP_CUTIN_FASCIA_1",
+      "name": "Cut-In at Fascia/Frieze Junctions — Coat 1",
+      "unit_of_measure": "LF",
+      "task_classification": "qt_scaled",
+      "qt_rates": {
+        "QT2": { "rate_lf_per_hour": 120, "notes": "Clean enough line at junctions overhead. Quick brush work. ~30 sec/LF." },
+        "QT3": { "rate_lf_per_hour": 90, "notes": "Straight, consistent cut-in line overhead. Careful brush control. ~40 sec/LF." },
+        "QT4": { "rate_lf_per_hour": 60, "notes": "Crisp, precise cut-in at 3 ft viewing standard overhead. Deliberate strokes. ~60 sec/LF." }
+      },
+      "rate_range_low": 50,
+      "rate_range_high": 140,
+      "crew_size": 1,
+      "modifier_pool": "coating",
+      "applicable_modifiers": ["FAC_EXT_ACCESS"],
+      "rate_basis_notes": "DIRECT transfer from TSK_SFIT_CUTIN_FASCIA_1. NC used SF proxy (QT2: 400, QT3: 300, QT4: 200 SF/hr); RP converts to LF per SOP module UOM. Conversion: NC ~3.3 LF junction per SF (typical soffit geometry). QT3: 300 SF/hr x 0.3 LF/SF ≈ 90 LF/hr. Overhead penalty baked in. Required for both brush_roll and spray methods.",
+      "applies_when": {}
+    },
+    {
+      "task_id": "TSK_SFRP_FINISH_BRUSH_ROLL_1",
+      "name": "Finish Coat 1 — Brush/Roll Overhead Application",
+      "unit_of_measure": "SF",
+      "task_classification": "binary",
+      "rate_per_hour": 120,
+      "rate_range_low": 100,
+      "rate_range_high": 150,
+      "crew_size": 1,
+      "modifier_pool": "coating",
+      "applicable_modifiers": ["FAC_EXT_ACCESS", "FAC_SFIT_VENT_COMPLEXITY", "FAC_SFIT_TG_JOINTS"],
+      "rate_basis_notes": "DIRECT transfer from TSK_SFIT_FINISH_1_BRUSH_ROLL (NC 120 SF/hr). Roller with extension pole for open field, brush for T&G grooves overhead. ~30 sec per SF. Overhead penalty baked in. Thin coats required to prevent sag. Default method for ALL vented soffits. Vent and T&G modifiers apply.",
+      "applies_when": { "application_method": ["brush_roll"] }
+    },
+    {
+      "task_id": "TSK_SFRP_FINISH_SPRAY_1",
+      "name": "Finish Coat 1 — Spray Overhead Application (Non-Vented Only)",
+      "unit_of_measure": "SF",
+      "task_classification": "binary",
+      "rate_per_hour": 250,
+      "rate_range_low": 200,
+      "rate_range_high": 300,
+      "crew_size": 1,
+      "modifier_pool": "coating",
+      "applicable_modifiers": ["FAC_EXT_ACCESS"],
+      "rate_basis_notes": "DIRECT transfer from TSK_SFIT_FINISH_1_SPRAY (NC 250 SF/hr). Airless spray finish overhead on non-vented solid panel soffit. ~14 sec per SF. NON-VENTED ONLY (FM-001). Lower pressure and tight fan pattern (413-515 tip). Overhead penalty baked in.",
+      "applies_when": { "application_method": ["spray"], "soffit_vent_type": ["non_vented"] }
+    },
+    {
+      "task_id": "TSK_SFRP_TG_BRUSH_BACK_1",
+      "name": "T&G Groove Brush-Back After Spray — Coat 1",
+      "unit_of_measure": "SF",
+      "task_classification": "binary",
+      "rate_per_hour": 150,
+      "rate_range_low": 120,
+      "rate_range_high": 180,
+      "crew_size": 1,
+      "modifier_pool": "coating",
+      "applicable_modifiers": ["FAC_EXT_ACCESS"],
+      "rate_basis_notes": "DIRECT transfer from TSK_SFIT_TG_BRUSH_BACK_1 (NC 150 SF/hr). Brush paint into T&G groove joints overhead while spray coat is wet. ~24 sec per SF. Two-person operation: sprayer leads, brusher follows within 30-60 sec. Rate is for brusher only. Do NOT apply FAC_SFIT_TG_JOINTS — groove work is already the task's entire purpose.",
+      "applies_when": { "application_method": ["spray"], "soffit_panel_type": ["tg_board"] }
+    },
+    {
+      "task_id": "TSK_SFRP_CUTIN_FASCIA_2",
+      "name": "Cut-In at Fascia/Frieze Junctions — Coat 2",
+      "unit_of_measure": "LF",
+      "task_classification": "qt_scaled",
+      "qt_rates": {
+        "QT3": { "rate_lf_per_hour": 90, "notes": "Straight, consistent cut-in line overhead. Final coat. ~40 sec/LF." },
+        "QT4": { "rate_lf_per_hour": 60, "notes": "Crisp, precise cut-in at 3 ft viewing standard overhead. Final appearance coat. ~60 sec/LF." }
+      },
+      "rate_range_low": 50,
+      "rate_range_high": 110,
+      "crew_size": 1,
+      "modifier_pool": "coating",
+      "applicable_modifiers": ["FAC_EXT_ACCESS"],
+      "rate_basis_notes": "DIRECT transfer from TSK_SFIT_CUTIN_FASCIA_2. Same rates as coat 1 per tier. NC used SF proxy; RP converts to LF per SOP module UOM. QT3/QT4 only — QT2 is single coat. Final appearance coat — precision matters.",
+      "applies_when": {}
+    },
+    {
+      "task_id": "TSK_SFRP_FINISH_BRUSH_ROLL_2",
+      "name": "Finish Coat 2 — Brush/Roll Overhead Application",
+      "unit_of_measure": "SF",
+      "task_classification": "binary",
+      "rate_per_hour": 120,
+      "rate_range_low": 100,
+      "rate_range_high": 150,
+      "crew_size": 1,
+      "modifier_pool": "coating",
+      "applicable_modifiers": ["FAC_EXT_ACCESS", "FAC_SFIT_VENT_COMPLEXITY", "FAC_SFIT_TG_JOINTS"],
+      "rate_basis_notes": "DIRECT transfer from TSK_SFIT_FINISH_2_BRUSH_ROLL (NC 120 SF/hr). Same rate as coat 1. Primed and first-coated surface provides consistent absorption. QT3/QT4 only — QT2 is single coat. Final appearance coat.",
+      "applies_when": { "application_method": ["brush_roll"] }
+    },
+    {
+      "task_id": "TSK_SFRP_FINISH_SPRAY_2",
+      "name": "Finish Coat 2 — Spray Overhead Application (Non-Vented Only)",
+      "unit_of_measure": "SF",
+      "task_classification": "binary",
+      "rate_per_hour": 250,
+      "rate_range_low": 200,
+      "rate_range_high": 300,
+      "crew_size": 1,
+      "modifier_pool": "coating",
+      "applicable_modifiers": ["FAC_EXT_ACCESS"],
+      "rate_basis_notes": "DIRECT transfer from TSK_SFIT_FINISH_2_SPRAY (NC 250 SF/hr). Same rate as coat 1. NON-VENTED ONLY. QT3/QT4 only. Final appearance coat.",
+      "applies_when": { "application_method": ["spray"], "soffit_vent_type": ["non_vented"] }
+    },
+    {
+      "task_id": "TSK_SFRP_TG_BRUSH_BACK_2",
+      "name": "T&G Groove Brush-Back After Spray — Coat 2",
+      "unit_of_measure": "SF",
+      "task_classification": "binary",
+      "rate_per_hour": 150,
+      "rate_range_low": 120,
+      "rate_range_high": 180,
+      "crew_size": 1,
+      "modifier_pool": "coating",
+      "applicable_modifiers": ["FAC_EXT_ACCESS"],
+      "rate_basis_notes": "DIRECT transfer from TSK_SFIT_TG_BRUSH_BACK_2 (NC 150 SF/hr). Same rate as coat 1. Final coat — all grooves must have full coverage. Do NOT apply FAC_SFIT_TG_JOINTS.",
+      "applies_when": { "application_method": ["spray"], "soffit_panel_type": ["tg_board"] }
+    },
+
+    {
+      "_section": "=== MOD_SFRP_CLEANUP — 7 tasks ===",
+      "_note": "Final inspection, protection teardown, equipment cleanup, customer walkthrough."
+    },
+
+    {
+      "task_id": "TSK_SFRP_FINAL_INSPECT",
+      "name": "Final Walkthrough Inspection — Overhead",
+      "unit_of_measure": "SF",
+      "task_classification": "qt_scaled",
+      "qt_rates": {
+        "QT2": { "rate_sf_per_hour": 1500, "notes": "Ground-level walkthrough. Quick scan for misses and drip marks." },
+        "QT3": { "rate_sf_per_hour": 800, "notes": "Ground-level walkthrough at 6-10 ft. Check all elevations. Verify T&G groove coverage." },
+        "QT4": { "rate_sf_per_hour": 350, "notes": "Ground-level + ladder. Binoculars for upper soffits. 6 ft viewing standard. Raking light on primary elevations." }
+      },
+      "rate_range_low": 300,
+      "rate_range_high": 1600,
+      "crew_size": 1,
+      "modifier_pool": "none",
+      "applicable_modifiers": ["FAC_EXT_ACCESS"],
+      "rate_basis_notes": "DIRECT transfer from TSK_SFIT_FINAL_INSPECT (NC QT2: 1500, QT3: 800, QT4: 350 SF/hr). Identical final inspection process. Drip marks and sag are primary defect patterns to check. Overhead penalty baked in.",
+      "applies_when": {}
+    },
+    {
+      "task_id": "TSK_SFRP_FINAL_TOUCHUP",
+      "name": "Final Touch-Up — Overhead",
+      "unit_of_measure": "SF",
+      "task_classification": "qt_scaled",
+      "qt_rates": {
+        "QT2": { "rate_sf_per_hour": 2000, "notes": "Fix obvious misses and drip marks overhead." },
+        "QT3": { "rate_sf_per_hour": 1000, "notes": "Fix all noted defects overhead." },
+        "QT4": { "rate_sf_per_hour": 400, "notes": "Fix every defect overhead. Blend seamlessly at 3 ft." }
+      },
+      "rate_range_low": 350,
+      "rate_range_high": 2200,
+      "crew_size": 1,
+      "modifier_pool": "none",
+      "applicable_modifiers": ["FAC_EXT_ACCESS"],
+      "rate_basis_notes": "DIRECT transfer from TSK_SFIT_FINAL_TOUCHUP (NC QT2: 2000, QT3: 1000, QT4: 400 SF/hr). Identical brush touch-up process. Overhead penalty baked in.",
+      "applies_when": {}
+    },
+    {
+      "task_id": "TSK_SFRP_VENT_UNMASK",
+      "name": "Remove Vent Opening Masking (Vented Soffit Only)",
+      "unit_of_measure": "SF",
+      "task_classification": "binary",
+      "rate_per_hour": 500,
+      "rate_range_low": 400,
+      "rate_range_high": 600,
+      "crew_size": 1,
+      "modifier_pool": "none",
+      "applicable_modifiers": ["FAC_EXT_ACCESS"],
+      "rate_basis_notes": "RP_NEW. Remove tape or foam plugs from soffit vent openings. Rate per SF of soffit field. ~7 sec per SF equivalent. Faster than setup (pull vs apply). Verify openings clear and not paint-sealed. Confirm airflow restored. Vented soffit + brush_roll only.",
+      "applies_when": { "soffit_vent_type": ["vented"], "application_method": ["brush_roll"] }
+    },
+    {
+      "task_id": "TSK_SFRP_PROTECT_TEARDOWN",
+      "name": "Protection Material Removal",
+      "unit_of_measure": "FIXED",
+      "task_classification": "binary",
+      "fixed_time_minutes": 25,
+      "fixed_time_range_low": 15,
+      "fixed_time_range_high": 35,
+      "crew_size": 1,
+      "modifier_pool": "none",
+      "applicable_modifiers": [],
+      "rate_basis_notes": "MODIFIED from TSK_SFIT_PROTECT_TEARDOWN. NC used SF-based rate (350 SF/hr); RP uses per-project FIXED time (25 min) because protection scope is consistent per project. Remove all landscape tarps, hardscape drop cloths, fascia masking tape/film, fixture bags. Check for tape residue on finished fascia. Ground-level task. No modifiers.",
+      "applies_when": {}
+    },
+    {
+      "task_id": "TSK_SFRP_CLEAN_EQUIPMENT",
+      "name": "Clean Equipment",
+      "unit_of_measure": "FIXED",
+      "task_classification": "binary",
+      "fixed_time_minutes": 30,
+      "fixed_time_range_low": 20,
+      "fixed_time_range_high": 40,
+      "crew_size": 1,
+      "modifier_pool": "none",
+      "applicable_modifiers": [],
+      "rate_basis_notes": "DIRECT transfer from TSK_SFIT_CLEAN_EQUIPMENT (NC 30 min). Clean rollers, brushes, extension poles. Flush airless sprayer if used. Clean tips and filters. Ground-level task. No modifiers.",
+      "applies_when": {}
+    },
+    {
+      "task_id": "TSK_SFRP_SITE_CLEANUP",
+      "name": "Site Debris Cleanup",
+      "unit_of_measure": "FIXED",
+      "task_classification": "binary",
+      "fixed_time_minutes": 25,
+      "fixed_time_range_low": 15,
+      "fixed_time_range_high": 35,
+      "crew_size": 1,
+      "modifier_pool": "none",
+      "applicable_modifiers": [],
+      "rate_basis_notes": "MODIFIED from TSK_SFIT_SITE_CLEANUP (NC 20 min). RP adds 5 min (25 min total) because overhead RP generates more debris than NC — scraping waste, caulk removal waste, biocide containers, masking materials, foam plugs. No modifiers.",
+      "applies_when": {}
+    },
+    {
+      "task_id": "TSK_SFRP_CUSTOMER_WALKTHROUGH",
+      "name": "Customer Walkthrough",
+      "unit_of_measure": "FIXED",
+      "task_classification": "binary",
+      "fixed_time_minutes": 15,
+      "fixed_time_range_low": 10,
+      "fixed_time_range_high": 20,
+      "crew_size": 1,
+      "modifier_pool": "none",
+      "applicable_modifiers": [],
+      "rate_basis_notes": "RP_NEW. Per-project FIXED time. Walk soffit areas with homeowner at ground level. Inspect finish quality, verify vent function (vented soffit), confirm coverage and sheen consistency. Provide maintenance recommendations: mildew-resistant paint extends coating life on sheltered soffit surfaces. RP-specific — repaint work requires client sign-off.",
+      "applies_when": {}
+    },
+
+    {
+      "_section": "=== MOD_RRP_EXT_CONTAINMENT — 5 shared tasks ===",
+      "_note": "Lead-safe RRP module. Shared across all exterior RP specs. Conditional on pre_1978 + lead."
+    },
+
+    {
+      "task_id": "TSK_RRP_EXT_LEAD_SCREEN",
+      "name": "Lead Screening Test (XRF or Swab)",
+      "unit_of_measure": "FIXED",
+      "task_classification": "binary",
+      "fixed_time_minutes": 15,
+      "fixed_time_range_low": 10,
+      "fixed_time_range_high": 20,
+      "crew_size": 1,
+      "modifier_pool": "none",
+      "applicable_modifiers": [],
+      "rate_basis_notes": "Shared RRP task. Per-elevation FIXED time. XRF preferred; lead swab test acceptable. Test minimum 2 locations per elevation. Results gate all subsequent RRP tasks and 2.0x prep modifier (FAC_SFRP_RRP). Calibrated from window RP pattern (same protocol).",
+      "applies_when": { "pre_1978": true }
+    },
+    {
+      "task_id": "TSK_RRP_EXT_CONTAINMENT_SETUP",
+      "name": "RRP Exterior Containment Setup (Per Elevation)",
+      "unit_of_measure": "FIXED",
+      "task_classification": "binary",
+      "fixed_time_minutes": 45,
+      "fixed_time_range_low": 30,
+      "fixed_time_range_high": 60,
+      "crew_size": 1,
+      "modifier_pool": "none",
+      "applicable_modifiers": [],
+      "rate_basis_notes": "Shared RRP task. Per-elevation FIXED time. Install 6-mil poly ground containment extending 10 ft from structure per EPA RRP Rule 40 CFR 745. WIDER than standard wall containment for overhead soffit work — scraping debris spreads further when falling from eave height. Secure edges with weights/stakes. Install warning signage. No modifiers on per-elevation FIXED tasks.",
+      "applies_when": { "pre_1978": true }
+    },
+    {
+      "task_id": "TSK_RRP_EXT_WET_SCRAPE",
+      "name": "RRP Wet Scraping Method",
+      "unit_of_measure": "SF",
+      "task_classification": "binary",
+      "rate_per_hour": 50,
+      "rate_range_low": 35,
+      "rate_range_high": 65,
+      "crew_size": 1,
+      "modifier_pool": "prep",
+      "applicable_modifiers": ["FAC_CONDITION_SCALE", "FAC_EXT_ACCESS"],
+      "rate_basis_notes": "Shared RRP task. Wet-mist surface before scraping to minimize lead dust generation overhead. All scraping debris falls into containment. ~72 sec per SF. Overhead wet scraping is the slowest RRP prep task — gravity + water management + lead-safe protocols. Condition modifier applies (more area to scrape at FAIR/POOR). This task's time is ALREADY captured in the 2.0x RRP modifier on TSK_SFRP_SCRAPE_FEATHER — do NOT double-count. Task exists for explicit RRP documentation and lead-safe work practice tracking.",
+      "applies_when": { "pre_1978": true }
+    },
+    {
+      "task_id": "TSK_RRP_EXT_HEPA_VACUUM",
+      "name": "HEPA Vacuum After Paint Disturbance",
+      "unit_of_measure": "SF",
+      "task_classification": "binary",
+      "rate_per_hour": 300,
+      "rate_range_low": 250,
+      "rate_range_high": 400,
+      "crew_size": 1,
+      "modifier_pool": "none",
+      "applicable_modifiers": ["FAC_EXT_ACCESS"],
+      "rate_basis_notes": "Shared RRP task. HEPA vacuum all soffit surfaces after each sanding/scraping disturbance to capture lead-contaminated dust. ~12 sec per SF. Required by EPA RRP Rule after EVERY paint disturbance — not just once. Overhead HEPA vacuuming is awkward. Access modifier applies.",
+      "applies_when": { "pre_1978": true }
+    },
+    {
+      "task_id": "TSK_RRP_EXT_CONTAINMENT_TEARDOWN",
+      "name": "RRP Exterior Containment Teardown (Per Elevation)",
+      "unit_of_measure": "FIXED",
+      "task_classification": "binary",
+      "fixed_time_minutes": 35,
+      "fixed_time_range_low": 25,
+      "fixed_time_range_high": 45,
+      "crew_size": 1,
+      "modifier_pool": "none",
+      "applicable_modifiers": [],
+      "rate_basis_notes": "Shared RRP task. Per-elevation FIXED time. Remove containment poly — fold inward to capture debris, bag for lead-safe disposal. Verify cleaning standard per EPA (visual + wet wipe test on hard surfaces, HEPA vacuum on soil). No modifiers on per-elevation FIXED tasks.",
+      "applies_when": { "pre_1978": true }
+    }
+  ],
+
+  "quality_tier_effects": {
+    "QT2": {
+      "modifier": 0.85,
+      "mechanism": "baseline_reduction",
+      "description": "Economy tier. Single finish coat. Reduced prep scope. Skip interstage module.",
+      "applies_to": "qt_scaled tasks use QT2-specific rates directly. Binary tasks unaffected."
+    },
+    "QT3": {
+      "modifier": 1.0,
+      "mechanism": "baseline",
+      "description": "Standard tier. 2 finish coats. Full prep. Standard interstage inspection. Baseline for all rate calibration.",
+      "applies_to": "All qt_scaled tasks use QT3 as baseline rate."
+    },
+    "QT4": {
+      "modifier": 1.30,
+      "mechanism": "selective_multiplier",
+      "description": "Premium tier. 2 finish coats + full intercoat sand 220 grit + systematic raking light inspection + premium materials.",
+      "applies_to": "qt_scaled tasks use QT4-specific rates directly. Binary tasks use 1.30x global pace modifier."
+    }
+  },
+
+  "modifier_definitions": {
+    "FAC_CONDITION_SCALE": {
+      "name": "Condition Scale Modifier",
+      "mechanism": "time_multiplier",
+      "pool": "prep",
+      "values": { "GOOD": 1.0, "FAIR": 1.5, "POOR": 2.0 },
+      "formula": "effective_rate = base_rate / modifier",
+      "state_mapping": {
+        "GOOD": ["SS_EXT_SOUND_PAINT"],
+        "FAIR": ["SS_EXT_CHALKING", "SS_EXT_FAILING_PAINT"],
+        "POOR": ["SS_EXT_PEELING"]
+      },
+      "applies_to": "Prep tasks only: TSK_SFRP_MILDEW_TREAT, TSK_SFRP_CHALK_REMEDIATION, TSK_SFRP_SCRAPE_FEATHER, TSK_SFRP_DEGLOSS_SCUFF, TSK_SFRP_CAULK_ASSESS_REPAIR, TSK_SFRP_SCUFF_EXPOSED_FC, TSK_SFRP_SCUFF_EXPOSED_VINYL, TSK_RRP_EXT_WET_SCRAPE",
+      "never_applies_to": "Coating tasks (prime, finish, interstage), assessment tasks, setup/cleanup tasks"
+    },
+    "FAC_SFRP_RRP": {
+      "name": "RRP Lead-Safe Prep Modifier",
+      "mechanism": "time_multiplier",
+      "pool": "prep",
+      "values": { "no_rrp": 1.0, "rrp_required": 2.0 },
+      "formula": "effective_rate = base_rate / modifier",
+      "gate": "IN_BOOL_PRE_1978_EXT = true AND positive lead test",
+      "applies_to": "Prep tasks involving paint disturbance: TSK_SFRP_SCRAPE_FEATHER, TSK_SFRP_DEGLOSS_SCUFF, TSK_SFRP_SCUFF_EXPOSED_FC, TSK_SFRP_SCUFF_EXPOSED_VINYL",
+      "never_applies_to": "Assessment, coating, inspection, cleanup, biocide, chalk remediation, wash, caulk, vent clean"
+    },
+    "FAC_EXT_ACCESS": {
+      "name": "Access Type Modifier",
+      "mechanism": "time_multiplier",
+      "pool": "shared",
+      "values": { "ground": 1.00, "ladder": 1.35, "scaffold": 1.60, "lift": 1.50 },
+      "formula": "effective_rate = base_rate / modifier",
+      "note": "Soffit baseline rates already include overhead penalty — ladder (1.35x) is the EFFECTIVE baseline for most soffit work (always elevated). Ground applies only to very low eaves. Scaffold and lift stack further for high eaves. Per-elevation attribute.",
+      "applies_to": "All per-SF overhead tasks in both prep and coating pools. Also assessment tasks. NOT applied to FIXED per-elevation/per-project tasks (wash, containment, equipment setup, customer walkthrough) or ground-level protection tasks (landscape/hardscape protect).",
+      "never_applies_to": "FIXED tasks, ground-level protection setup tasks"
+    },
+    "FAC_SFIT_VENT_COMPLEXITY": {
+      "name": "Vented Soffit Application Penalty",
+      "mechanism": "time_multiplier",
+      "pool": "shared",
+      "values": { "non_vented": 1.00, "vented": 1.15 },
+      "formula": "effective_rate = base_rate / modifier",
+      "applies_to": "Brush/roll application tasks: TSK_SFRP_PRIME_BRUSH_ROLL, TSK_SFRP_FINISH_BRUSH_ROLL_1, TSK_SFRP_FINISH_BRUSH_ROLL_2, TSK_SFRP_DEGLOSS_SCUFF",
+      "never_applies_to": "Spray tasks (spray PROHIBITED on vented — not applicable), T&G brush-back tasks, assessment tasks, FIXED tasks"
+    },
+    "FAC_SFIT_TG_JOINTS": {
+      "name": "Tongue-and-Groove Joint Complexity Modifier",
+      "mechanism": "time_multiplier",
+      "pool": "shared",
+      "values": { "solid_panel": 1.00, "tg_board": 1.20 },
+      "formula": "effective_rate = base_rate / modifier",
+      "applies_to": "Brush/roll application and sand tasks: TSK_SFRP_PRIME_BRUSH_ROLL, TSK_SFRP_FINISH_BRUSH_ROLL_1, TSK_SFRP_FINISH_BRUSH_ROLL_2, TSK_SFRP_SAND_INTERCOAT, TSK_SFRP_DEGLOSS_SCUFF, TSK_SFRP_SCRAPE_FEATHER",
+      "never_applies_to": "T&G brush-back tasks (groove work IS the task — already reflected in base rate), spray tasks, FIXED tasks"
+    },
+    "FAC_SFRP_OVERHEAD": {
+      "name": "Overhead Work Penalty (BAKED INTO BASE RATES — NOT A STACKING MODIFIER)",
+      "mechanism": "baked_into_base_rates",
+      "reference_value": 1.35,
+      "description": "All soffit task base rates already include ~25-35% overhead penalty from vertical baselines. This is NOT applied as a separate stacking modifier. Documented for transparency and rate calibration traceability.",
+      "example": "Vertical finish brush_roll: 150-200 SF/hr → Overhead finish brush_roll: 100-150 SF/hr (NC baseline 120 SF/hr)"
+    }
+  },
+
+  "round_configurations": [
+    {
+      "round_id": "ROUND_SFRP_2FINISH",
+      "name": "2 Finish Coats (No Prime, GOOD Condition)",
+      "description": "Sound paint with verified adhesion. Skip prime. Cosmetic refresh or color change.",
+      "applies_when": { "condition_scale": ["GOOD"], "quality_tier": ["QT3", "QT4"] },
+      "phase_sequence": ["finish", "interstage", "finish"],
+      "total_coats": 2,
+      "interstage_cycles": 1,
+      "notes": "Most common RP round for soffit (GOOD is the dominant condition due to sheltered location)."
+    },
+    {
+      "round_id": "ROUND_SFRP_1FINISH",
+      "name": "1 Finish Coat (Economy QT2, GOOD Condition)",
+      "description": "Economy single-coat on sound paint. Minimum viable scope.",
+      "applies_when": { "condition_scale": ["GOOD"], "quality_tier": ["QT2"] },
+      "phase_sequence": ["finish"],
+      "total_coats": 1,
+      "interstage_cycles": 0,
+      "notes": "Economy soffit RP. Single coat on verified-sound surface."
+    },
+    {
+      "round_id": "ROUND_SFRP_PRIME_2FINISH",
+      "name": "State-Driven Prime + 2 Finish Coats (FAIR/POOR Condition)",
+      "description": "Condition-driven prime + 2 finish coats for chalking, failing paint, or peeling.",
+      "applies_when": { "condition_scale": ["FAIR", "POOR"], "quality_tier": ["QT3", "QT4"] },
+      "phase_sequence": ["prime", "finish", "interstage", "finish"],
+      "total_coats": 3,
+      "interstage_cycles": 1,
+      "notes": "Standard RP round for soffit with condition-driven prime. Primer is state-driven: chalk-binding for SS_EXT_CHALKING, acrylic stain-block for SS_EXT_FAILING_PAINT/PEELING."
+    },
+    {
+      "round_id": "ROUND_SFRP_PRIME_1FINISH",
+      "name": "State-Driven Prime + 1 Finish Coat (Economy QT2, FAIR/POOR)",
+      "description": "Economy RP with condition-driven prime. Single finish coat on primed surface.",
+      "applies_when": { "condition_scale": ["FAIR", "POOR"], "quality_tier": ["QT2"] },
+      "phase_sequence": ["prime", "finish"],
+      "total_coats": 2,
+      "interstage_cycles": 0,
+      "notes": "Economy RP with prime needed. QT2 single finish coat."
+    }
+  ],
+
+  "task_count_summary": {
+    "total": 51,
+    "by_module": {
+      "MOD_SFRP_SETUP": 7,
+      "MOD_SFRP_ASSESSMENT": 6,
+      "MOD_SFRP_PREP": 10,
+      "MOD_SFRP_PRIME": 4,
+      "MOD_SFRP_INTERSTAGE": 4,
+      "MOD_SFRP_FINISH": 8,
+      "MOD_SFRP_CLEANUP": 7,
+      "MOD_RRP_EXT_CONTAINMENT": 5
+    },
+    "by_classification": {
+      "binary": 39,
+      "qt_scaled": 10,
+      "qt_conditional": 2
+    },
+    "by_prefix": {
+      "TSK_SFRP_": 46,
+      "TSK_RRP_EXT_": 5
+    },
+    "by_uom": {
+      "SF": 35,
+      "FIXED": 12,
+      "EA": 1,
+      "LF": 3
+    },
+    "by_transfer_type": {
+      "DIRECT_from_NC": 19,
+      "MODIFIED_from_NC": 9,
+      "RP_NEW": 18,
+      "SHARED_RRP": 5
+    },
+    "verification": "51 tasks in sop_modules.json = 51 rates in production.json. All task_ids match. All UOMs match between files."
+  }
+}

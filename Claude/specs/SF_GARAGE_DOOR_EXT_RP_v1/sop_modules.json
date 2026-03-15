@@ -1,0 +1,856 @@
+{
+  "spec_family_id": "SF_GARAGE_DOOR_EXT_RP",
+  "version": "0.1.0",
+  "generated_by": "SOP Librarian",
+  "generated_at": "2026-03-15",
+
+  "sop_modules": [
+    {
+      "module_id": "MOD_GDRP_ASSESS",
+      "name": "Condition Assessment",
+      "description": "On-site condition assessment of each garage door. Visual inspection of existing coating, ASTM D3359 adhesion test, rust evaluation (steel), moisture content (wood), existing coating ID (solvent test for latex vs oil), lead paint testing (pre-1978). Results determine substrate state, prep scope, primer selection, and round configuration.",
+      "phase": "prep",
+      "applies_when": {},
+      "required_inputs": [
+        { "input_name": "IN_EA_GARAGE_DOOR", "paintscope_key": "PS_EXT_OPENING_EA.DOOR_GARAGE", "uom": "EA" },
+        { "input_name": "IN_ENUM_GARAGE_DOOR_SUBSTRATE", "paintscope_key": "PS_EXT_META.ENUM.GARAGE_DOOR_SUBSTRATE", "uom": "ENUM" },
+        { "input_name": "IN_ENUM_SUBSTRATE_STATE_GARAGE_DOOR", "paintscope_key": "PS_EXT_META.ENUM.SUBSTRATE_STATE_GARAGE_DOOR", "uom": "ENUM" }
+      ],
+      "tasks": [
+        {
+          "task_id": "TSK_GDRP_ASSESS_CONDITION",
+          "name": "Visual Condition Assessment Per Door",
+          "description": "Inspect each garage door for coating condition: chalking, cracking, peeling, rust spots (steel), wood rot/moisture damage, delamination (composite). Assign substrate state per door. Photograph defects. Note panel complexity and window presence.",
+          "task_type": "inspect",
+          "task_classification": "binary",
+          "skill_level": "lead",
+          "unit_of_measure": "EA",
+          "tools_required": ["camera", "clipboard", "flashlight"],
+          "appears_in_tiers": ["QT3", "QT4"],
+          "quality_notes": { "all": "Document condition per door. Assign substrate state. Photograph all defects. Note bottom seal condition — recommend replacement if degraded." }
+        },
+        {
+          "task_id": "TSK_GDRP_ASSESS_ADHESION",
+          "name": "ASTM D3359 Cross-Hatch Adhesion Test",
+          "description": "Perform cross-hatch adhesion test per ASTM D3359 on existing coating. Test at minimum 2 locations per door (sun-exposed panel and sheltered panel). Below 3B rating triggers full prime recommendation instead of spot prime.",
+          "task_type": "inspect",
+          "task_classification": "binary",
+          "skill_level": "lead",
+          "unit_of_measure": "EA",
+          "tools_required": ["adhesion_test_kit"],
+          "appears_in_tiers": ["QT3", "QT4"],
+          "quality_notes": { "all": "Test both sun-exposed and sheltered panels. Rating below 3B = full prime. Rating 3B-5B = spot prime adequate." }
+        },
+        {
+          "task_id": "TSK_GDRP_ASSESS_RUST",
+          "name": "Rust Evaluation (Steel Only)",
+          "description": "Evaluate extent and depth of rust on steel doors. Classify as surface rust (SSPC-SP3 adequate) or structural rust (HARD STOP — door replacement). Probe under existing coating at rust spots for underfilm corrosion spread.",
+          "task_type": "inspect",
+          "task_classification": "binary",
+          "skill_level": "lead",
+          "unit_of_measure": "EA",
+          "tools_required": ["awl", "wire_brush", "flashlight"],
+          "applies_when": { "door_substrate": ["steel"] },
+          "appears_in_tiers": ["QT3", "QT4"],
+          "quality_notes": { "all": "Probe under paint at rust boundaries. Structural rust = HARD STOP, refer to garage door service." }
+        },
+        {
+          "task_id": "TSK_GDRP_ASSESS_MOISTURE",
+          "name": "Moisture Content Testing (Wood Only)",
+          "description": "Test moisture content at bottom panels, bottom rail, and horizontal surfaces. MC > 15% = defer coating until dry. MC > 19% = rot risk investigation. Check bottom seal area for moisture intrusion.",
+          "task_type": "inspect",
+          "task_classification": "binary",
+          "skill_level": "lead",
+          "unit_of_measure": "EA",
+          "tools_required": ["moisture_meter"],
+          "applies_when": { "door_substrate": ["wood"] },
+          "appears_in_tiers": ["QT3", "QT4"],
+          "quality_notes": { "all": "Bottom panels are highest risk. MC > 15% = wait. MC > 19% = investigate for rot." }
+        },
+        {
+          "task_id": "TSK_GDRP_ASSESS_COATING_ID",
+          "name": "Existing Coating Identification",
+          "description": "Perform solvent test (denatured alcohol or MEK rub) to identify existing coating as latex or oil/alkyd. Oil-based existing coating over latex = adhesion risk, may need full prime.",
+          "task_type": "inspect",
+          "task_classification": "binary",
+          "skill_level": "lead",
+          "unit_of_measure": "EA",
+          "tools_required": ["denatured_alcohol", "rags"],
+          "appears_in_tiers": ["QT3", "QT4"],
+          "quality_notes": { "all": "Latex softens under alcohol. Oil remains hard. Result drives primer selection." }
+        },
+        {
+          "task_id": "TSK_GDRP_ASSESS_LEAD",
+          "name": "Lead Paint Testing (Pre-1978)",
+          "description": "Perform EPA-recognized lead test on existing coating for pre-1978 structures. Positive result activates RRP containment for all paint disturbance tasks.",
+          "task_type": "inspect",
+          "task_classification": "binary",
+          "skill_level": "lead",
+          "unit_of_measure": "FIXED",
+          "tools_required": ["lead_test_kit"],
+          "applies_when": { "pre_1978": true },
+          "appears_in_tiers": ["QT3", "QT4"],
+          "quality_notes": { "all": "Test each door. Positive activates RRP containment for prep tasks." }
+        }
+      ]
+    },
+
+    {
+      "module_id": "MOD_GDRP_SETUP",
+      "name": "Garage Door Protection & Equipment Setup",
+      "description": "Deploy driveway/apron protection (canvas drops — NOT poly sheeting), mask adjacent siding (spray method), mask window inserts (if present), protect weatherstripping, mask track/hardware/spring mechanism, manage bottom seal (remove or mask), set up spray equipment.",
+      "phase": "setup",
+      "applies_when": {},
+      "required_inputs": [
+        { "input_name": "IN_EA_GARAGE_DOOR", "paintscope_key": "PS_EXT_OPENING_EA.DOOR_GARAGE", "uom": "EA" },
+        { "input_name": "IN_SF_EXT_PROTECT_DRIVEWAY", "paintscope_key": "PS_EXT_PROTECT_SF.DRIVEWAY", "uom": "SF" },
+        { "input_name": "IN_ENUM_GARAGE_DOOR_PANEL_TYPE", "paintscope_key": "PS_EXT_META.ENUM.GARAGE_DOOR_PANEL_TYPE", "uom": "ENUM" }
+      ],
+      "tasks": [
+        {
+          "task_id": "TSK_GDRP_DRIVEWAY_PROTECT",
+          "name": "Driveway/Apron Protection",
+          "description": "Deploy canvas drop cloths or absorbent mats on driveway/apron below garage door. NEVER standard poly sheeting — slippery safety hazard on hardscapes. Mandatory for spray, recommended for brush.",
+          "task_type": "protect",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "unit_of_measure": "SF",
+          "applies_when": {},
+          "appears_in_tiers": ["QT3", "QT4"],
+          "quality_notes": { "all": "Canvas only. Secure edges with tape or weights. Overlap seams 6 inches." }
+        },
+        {
+          "task_id": "TSK_GDRP_SIDING_MASK",
+          "name": "Adjacent Siding Masking (Spray Method)",
+          "description": "Mask siding panels flanking garage door opening with pre-taped poly or masking film. 12-24 inches beyond door opening. Spray method only.",
+          "task_type": "protect",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "unit_of_measure": "EA",
+          "applies_when": { "application_method": ["spray"] },
+          "appears_in_tiers": ["QT3", "QT4"],
+          "quality_notes": { "all": "Seal tape edge to prevent overspray bleed. Extend film above door header." }
+        },
+        {
+          "task_id": "TSK_GDRP_WINDOW_MASK",
+          "name": "Window Insert Masking",
+          "description": "Mask window inserts in garage door panels with HDPE static-cling film. Eliminates adhesive residue. Conditional — only when windows present.",
+          "task_type": "protect",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "unit_of_measure": "EA",
+          "applies_when": { "panel_type": ["windows"] },
+          "appears_in_tiers": ["QT3", "QT4"],
+          "quality_notes": { "all": "Static-cling film preferred. If using tape, low-tack only — remove within 14 days." }
+        },
+        {
+          "task_id": "TSK_GDRP_WEATHERSTRIP_PROTECT",
+          "name": "Weatherstrip Protection",
+          "description": "Protect weatherstripping contact surfaces along sides and top of door with low-tack tape pushed deep into channel. Paint destroys seal flexibility. NEVER paint weatherstripping.",
+          "task_type": "protect",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "unit_of_measure": "EA",
+          "applies_when": {},
+          "appears_in_tiers": ["QT3", "QT4"],
+          "quality_notes": { "all": "Push tape deep with putty knife. Verify no paint contact with seals." }
+        },
+        {
+          "task_id": "TSK_GDRP_TRACK_HARDWARE_MASK",
+          "name": "Track & Hardware Masking",
+          "description": "Mask track, roller contact points, spring mechanism, cables, and brackets from garage interior side. Must NOT be painted — causes binding. Cover all metal moving parts.",
+          "task_type": "protect",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "unit_of_measure": "EA",
+          "applies_when": {},
+          "appears_in_tiers": ["QT3", "QT4"],
+          "quality_notes": { "all": "Cover springs, cables, brackets. Paint on tracks causes binding and safety risk." }
+        },
+        {
+          "task_id": "TSK_GDRP_BOTTOM_SEAL_PREP",
+          "name": "Bottom Seal Management (Remove/Mask)",
+          "description": "Remove bottom weatherseal (astragal) before prep work begins, or mask if removal is not feasible. Inspect seal condition — recommend replacement if cracked, hardened, or compressed flat.",
+          "task_type": "protect",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "unit_of_measure": "EA",
+          "applies_when": {},
+          "appears_in_tiers": ["QT3", "QT4"],
+          "quality_notes": { "all": "Note seal condition. Recommend replacement if degraded. Flag in assessment notes." }
+        },
+        {
+          "task_id": "TSK_GDRP_EQUIPMENT_SETUP_SPRAY",
+          "name": "Spray Equipment Setup",
+          "description": "Set up airless sprayer with appropriate tip (310 or 412 for metal doors). Install 100-mesh blue filter. Connect hoses. Calibrate pressure. Test spray pattern on cardboard.",
+          "task_type": "setup",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "unit_of_measure": "FIXED",
+          "applies_when": { "application_method": ["spray"] },
+          "appears_in_tiers": ["QT3", "QT4"],
+          "quality_notes": { "all": "Verify tip size, filter, pressure. Test pattern before starting." }
+        },
+        {
+          "task_id": "TSK_GDRP_EQUIPMENT_SETUP_BRUSH",
+          "name": "Brush Equipment Setup",
+          "description": "Stage brushes, paint, prep tools at work area. No spray equipment needed.",
+          "task_type": "setup",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "unit_of_measure": "FIXED",
+          "applies_when": { "application_method": ["brush"] },
+          "appears_in_tiers": ["QT3", "QT4"],
+          "quality_notes": { "all": "Materials staged and verified." }
+        }
+      ]
+    },
+
+    {
+      "module_id": "MOD_GDRP_PREP",
+      "name": "Garage Door Surface Preparation",
+      "description": "Condition-driven and substrate-driven surface preparation. Steel: degloss + scuff (sound) or scrape + feather (failing) or SSPC-SP3 debride (rust). Wood: sand + fill + tannin spot. Composite: mixed-material prep. All states: dust removal before coating.",
+      "phase": "prep",
+      "applies_when": {},
+      "required_inputs": [
+        { "input_name": "IN_EA_GARAGE_DOOR", "paintscope_key": "PS_EXT_OPENING_EA.DOOR_GARAGE", "uom": "EA" },
+        { "input_name": "IN_ENUM_GARAGE_DOOR_SUBSTRATE", "paintscope_key": "PS_EXT_META.ENUM.GARAGE_DOOR_SUBSTRATE", "uom": "ENUM" },
+        { "input_name": "IN_ENUM_SUBSTRATE_STATE_GARAGE_DOOR", "paintscope_key": "PS_EXT_META.ENUM.SUBSTRATE_STATE_GARAGE_DOOR", "uom": "ENUM" }
+      ],
+      "tasks": [
+        {
+          "task_id": "TSK_GDRP_CLEAN_SURFACE",
+          "name": "Surface Cleaning (All Substrates)",
+          "description": "Clean existing coating: TSP wash for wood, solvent-based degreaser for steel, mild soap for composite. Remove dirt, cobwebs, oxidation residue. Rinse thoroughly. Allow 24-48 hr dry time.",
+          "task_type": "prep",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "unit_of_measure": "EA",
+          "applies_when": {},
+          "appears_in_tiers": ["QT3", "QT4"],
+          "quality_notes": { "all": "Surface must be clean and dry before any mechanical prep." }
+        },
+        {
+          "task_id": "TSK_GDRP_CHALK_REMEDIATE",
+          "name": "Chalk Remediation Wash",
+          "description": "Additional chalk remediation for chalking surfaces. Power wash at 500-1000 PSI to remove chalk residue. May require TSP pre-treatment for heavy chalk. Surface must pass wipe test (no chalk transfer to dark cloth).",
+          "task_type": "prep",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "unit_of_measure": "EA",
+          "applies_when": { "substrate_state": ["SS_EXT_CHALKING"] },
+          "appears_in_tiers": ["QT3", "QT4"],
+          "quality_notes": { "all": "Wipe test mandatory — dark cloth rubbed on surface must show no chalk transfer." }
+        },
+        {
+          "task_id": "TSK_GDRP_DEGLOSS_SCUFF",
+          "name": "Degloss Scuff Sand (Sound Paint)",
+          "description": "Light scuff sand entire door face with 150-grit for adhesion profile. For steel and wood with sound existing paint. Provides tooth for new coating. Do NOT sand through to bare substrate unless intending to prime.",
+          "task_type": "prep",
+          "task_classification": "qt_scaled",
+          "skill_level": "journeyman",
+          "unit_of_measure": "EA",
+          "applies_when": { "substrate_state": ["SS_EXT_SOUND_PAINT"] },
+          "appears_in_tiers": ["QT3", "QT4"],
+          "quality_notes": {
+            "QT3": "Production pace. Uniform scratch pattern. No deep gouges.",
+            "QT4": "Systematic coverage. Check under raking light. No missed areas."
+          }
+        },
+        {
+          "task_id": "TSK_GDRP_SCRAPE_FEATHER",
+          "name": "Scrape Failing Paint + Feather-Edge Sand",
+          "description": "Scrape all loose and failing paint to sound substrate. Feather-edge sand ALL scraped transitions with 150-grit — MANDATORY, creates smooth gradient. Collect scraping debris (canvas drops below). For failing paint on any substrate.",
+          "task_type": "prep",
+          "task_classification": "qt_scaled",
+          "skill_level": "journeyman",
+          "unit_of_measure": "EA",
+          "applies_when": { "substrate_state": ["SS_EXT_FAILING_PAINT"] },
+          "appears_in_tiers": ["QT3", "QT4"],
+          "quality_notes": {
+            "QT3": "Scrape loose paint. Feather-edge mandatory. Check adhesion at boundaries.",
+            "QT4": "Thorough scrape. Precision feathering. Raking light check at transitions."
+          }
+        },
+        {
+          "task_id": "TSK_GDRP_RUST_DEBRIDE",
+          "name": "Rust Debridement SSPC-SP3 (Steel Only)",
+          "description": "Remove rust to bare metal using power tool cleaning per SSPC-SP3. Hand tool where power tools cannot access (articulation joints, panel edges). Remove all loose rust, mill scale, and failed coating. Feather-edge surrounding sound paint.",
+          "task_type": "prep",
+          "task_classification": "qt_scaled",
+          "skill_level": "journeyman",
+          "unit_of_measure": "EA",
+          "applies_when": { "door_substrate": ["steel"], "substrate_state": ["SS_EXT_SURFACE_RUST"] },
+          "appears_in_tiers": ["QT3", "QT4"],
+          "quality_notes": {
+            "QT3": "Remove all loose rust. Power tool + hand tool. Feather edges.",
+            "QT4": "Thorough debridement. Inspect with magnification. No rust underfilm."
+          }
+        },
+        {
+          "task_id": "TSK_GDRP_SAND_WOOD",
+          "name": "Sand Wood Surface (Wood Only)",
+          "description": "Sand exposed bare wood areas with 120-150 grit. For wood doors with failing paint showing bare substrate. Smooth any raised grain. Fill cracks and imperfections before priming.",
+          "task_type": "prep",
+          "task_classification": "qt_scaled",
+          "skill_level": "journeyman",
+          "unit_of_measure": "EA",
+          "applies_when": { "door_substrate": ["wood"], "substrate_state": ["SS_EXT_FAILING_PAINT"] },
+          "appears_in_tiers": ["QT3", "QT4"],
+          "quality_notes": {
+            "QT3": "Smooth raised grain. Fill major cracks.",
+            "QT4": "Thorough sanding. Fill all imperfections. Smooth to touch."
+          }
+        },
+        {
+          "task_id": "TSK_GDRP_FILL_WOOD",
+          "name": "Fill Wood Cracks and Damage (Wood Only)",
+          "description": "Apply exterior wood filler to cracks, nail holes, and minor damage. Allow cure per manufacturer spec. Sand smooth after cure.",
+          "task_type": "prep",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "unit_of_measure": "EA",
+          "applies_when": { "door_substrate": ["wood"] },
+          "appears_in_tiers": ["QT3", "QT4"],
+          "quality_notes": { "all": "Exterior-rated filler only. Allow full cure before sanding." }
+        },
+        {
+          "task_id": "TSK_GDRP_PREP_COMPOSITE",
+          "name": "Composite Overlay Prep (Carriage Only)",
+          "description": "Assess adhesion on composite overlays. Light scuff sand (220-grit) delaminated areas. Clean exposed composite with mild soap. Mixed-material prep — steel base may need different treatment than overlay panels.",
+          "task_type": "prep",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "unit_of_measure": "EA",
+          "applies_when": { "door_substrate": ["composite"] },
+          "appears_in_tiers": ["QT3", "QT4"],
+          "quality_notes": { "all": "Test adhesion on overlay separately from steel base. Different primer may be needed for each material." }
+        },
+        {
+          "task_id": "TSK_GDRP_CAULK_JOINTS",
+          "name": "Panel Joint Caulk Assessment and Repair",
+          "description": "Inspect panel joints, articulation joint seams, and perimeter seals. Replace failed or missing caulk with exterior-grade paintable polyurethane. NEVER silicone.",
+          "task_type": "prep",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "unit_of_measure": "EA",
+          "applies_when": {},
+          "appears_in_tiers": ["QT3", "QT4"],
+          "quality_notes": { "all": "Paintable caulk only — never silicone. Tool smooth." }
+        },
+        {
+          "task_id": "TSK_GDRP_DUST_REMOVE",
+          "name": "Dust Removal",
+          "description": "Remove all sanding dust, scraping debris, and surface contamination. Tack cloth entire surface. Blow out panel recesses and articulation joints with compressed air or brush.",
+          "task_type": "prep",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "unit_of_measure": "EA",
+          "applies_when": {},
+          "appears_in_tiers": ["QT3", "QT4"],
+          "quality_notes": { "all": "No dust in joints or recesses. Tack cloth all surfaces." }
+        }
+      ]
+    },
+
+    {
+      "module_id": "MOD_GDRP_PRIME",
+      "name": "Garage Door Primer Application",
+      "description": "Condition-driven primer application. Sound paint: spot prime bare/thin areas with DTM (steel) or acrylic (wood). Chalking: full chalk-binding primer. Failing: spot or full prime. Rust: DTM on debrided areas. Composite: bonding primer on exposed overlays. Wood six-side seal verification.",
+      "phase": "prime",
+      "applies_when": {},
+      "required_inputs": [
+        { "input_name": "IN_EA_GARAGE_DOOR", "paintscope_key": "PS_EXT_OPENING_EA.DOOR_GARAGE", "uom": "EA" },
+        { "input_name": "IN_ENUM_GARAGE_DOOR_SUBSTRATE", "paintscope_key": "PS_EXT_META.ENUM.GARAGE_DOOR_SUBSTRATE", "uom": "ENUM" },
+        { "input_name": "IN_ENUM_SUBSTRATE_STATE_GARAGE_DOOR", "paintscope_key": "PS_EXT_META.ENUM.SUBSTRATE_STATE_GARAGE_DOOR", "uom": "ENUM" }
+      ],
+      "tasks": [
+        {
+          "task_id": "TSK_GDRP_PRIME_DTM_SPRAY",
+          "name": "DTM Primer Application (Spray — Steel)",
+          "description": "Apply DTM primer by airless spray to steel garage door. Spot prime on sound paint (bare areas only). Full prime on failing or rust-debrided surfaces. Leapfrog technique on sectional doors.",
+          "task_type": "prime",
+          "task_classification": "qt_scaled",
+          "skill_level": "journeyman",
+          "unit_of_measure": "EA",
+          "applies_when": { "door_substrate": ["steel"], "application_method": ["spray"] },
+          "appears_in_tiers": ["QT3", "QT4"],
+          "quality_notes": {
+            "QT3": "Even coverage. No runs, sags, or holidays. Check joints for bridging.",
+            "QT4": "Premium product. Systematic coverage check. Raking light inspection."
+          }
+        },
+        {
+          "task_id": "TSK_GDRP_PRIME_DTM_BRUSH",
+          "name": "DTM Primer Application (Brush — Steel)",
+          "description": "Apply DTM primer by brush to steel garage door. Spot prime on sound paint. Full prime on failing or rust-debrided. Brush for detail areas and recesses.",
+          "task_type": "prime",
+          "task_classification": "qt_scaled",
+          "skill_level": "journeyman",
+          "unit_of_measure": "EA",
+          "applies_when": { "door_substrate": ["steel"], "application_method": ["brush"] },
+          "appears_in_tiers": ["QT3", "QT4"],
+          "quality_notes": {
+            "QT3": "Even brush marks minimized. No drips at edges.",
+            "QT4": "Premium product. Tip-off brush strokes. No visible brush marks."
+          }
+        },
+        {
+          "task_id": "TSK_GDRP_PRIME_CHALKBIND_SPRAY",
+          "name": "Chalk-Binding Primer (Spray)",
+          "description": "Apply chalk-binding primer by airless spray. FULL COVERAGE mandatory — cannot spot prime over chalk. Penetrates degraded chalk layer to bond with sound substrate.",
+          "task_type": "prime",
+          "task_classification": "qt_scaled",
+          "skill_level": "journeyman",
+          "unit_of_measure": "EA",
+          "applies_when": { "substrate_state": ["SS_EXT_CHALKING"], "application_method": ["spray"] },
+          "appears_in_tiers": ["QT3", "QT4"],
+          "quality_notes": {
+            "QT3": "Full coverage mandatory. No holidays. Verify penetration.",
+            "QT4": "Full coverage. Raking light check for holidays."
+          }
+        },
+        {
+          "task_id": "TSK_GDRP_PRIME_CHALKBIND_BRUSH",
+          "name": "Chalk-Binding Primer (Brush)",
+          "description": "Apply chalk-binding primer by brush. Full coverage mandatory. Work primer into surface for chalk penetration.",
+          "task_type": "prime",
+          "task_classification": "qt_scaled",
+          "skill_level": "journeyman",
+          "unit_of_measure": "EA",
+          "applies_when": { "substrate_state": ["SS_EXT_CHALKING"], "application_method": ["brush"] },
+          "appears_in_tiers": ["QT3", "QT4"],
+          "quality_notes": {
+            "QT3": "Full coverage. Work into surface.",
+            "QT4": "Full coverage. Systematic application."
+          }
+        },
+        {
+          "task_id": "TSK_GDRP_PRIME_ACRYLIC_SPRAY",
+          "name": "Acrylic Primer (Spray — Wood)",
+          "description": "Apply acrylic primer by airless spray to wood garage door bare areas. Spot or full prime based on bare area percentage.",
+          "task_type": "prime",
+          "task_classification": "qt_scaled",
+          "skill_level": "journeyman",
+          "unit_of_measure": "EA",
+          "applies_when": { "door_substrate": ["wood"], "application_method": ["spray"] },
+          "appears_in_tiers": ["QT3", "QT4"],
+          "quality_notes": {
+            "QT3": "Coverage on all bare areas.",
+            "QT4": "Premium product. Full coverage check."
+          }
+        },
+        {
+          "task_id": "TSK_GDRP_PRIME_ACRYLIC_BRUSH",
+          "name": "Acrylic Primer (Brush — Wood)",
+          "description": "Apply acrylic primer by brush to wood garage door bare areas.",
+          "task_type": "prime",
+          "task_classification": "qt_scaled",
+          "skill_level": "journeyman",
+          "unit_of_measure": "EA",
+          "applies_when": { "door_substrate": ["wood"], "application_method": ["brush"] },
+          "appears_in_tiers": ["QT3", "QT4"],
+          "quality_notes": {
+            "QT3": "Brush work on bare areas.",
+            "QT4": "Premium product. Systematic coverage."
+          }
+        },
+        {
+          "task_id": "TSK_GDRP_PRIME_BONDING_COMPOSITE",
+          "name": "Bonding Primer for Composite Overlays",
+          "description": "Apply bonding primer to composite overlay panels that have adhesion failure or exposed slick surface. Spray or brush per project method.",
+          "task_type": "prime",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "unit_of_measure": "EA",
+          "applies_when": { "door_substrate": ["composite"] },
+          "appears_in_tiers": ["QT3", "QT4"],
+          "quality_notes": { "all": "Bonding primer on all exposed composite. Overlap onto steel base 1 inch." }
+        },
+        {
+          "task_id": "TSK_GDRP_TANNIN_SPOT_PRIME",
+          "name": "Tannin Spot Prime (Wood Only)",
+          "description": "Apply alkyd stain-blocking primer to knots and areas showing tannin bleed through existing coating. For cedar, redwood, fir garage doors.",
+          "task_type": "prime",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "unit_of_measure": "EA",
+          "applies_when": { "door_substrate": ["wood"] },
+          "appears_in_tiers": ["QT3", "QT4"],
+          "quality_notes": { "all": "Spot at tannin bleed locations. Full surface for severe bleed species." }
+        }
+      ]
+    },
+
+    {
+      "module_id": "MOD_GDRP_FINISH_1",
+      "name": "First Finish Coat",
+      "description": "First finish coat application with leapfrog technique on sectional doors. Spray primary method. Brush for panel recesses (raised panel, carriage). Leapfrog: paint alternating panels (1,3,5 then 2,4,6), opening joints to verify tack-free before adjacent panels.",
+      "phase": "finish",
+      "applies_when": {},
+      "required_inputs": [
+        { "input_name": "IN_EA_GARAGE_DOOR", "paintscope_key": "PS_EXT_OPENING_EA.DOOR_GARAGE", "uom": "EA" }
+      ],
+      "tasks": [
+        {
+          "task_id": "TSK_GDRP_FINISH_SPRAY_1",
+          "name": "First Finish Coat (Spray)",
+          "description": "Apply first finish coat by airless spray using leapfrog technique. Paint alternating panels (1,3,5), open joints to verify tack-free, then paint adjacent panels (2,4,6). Verify no bridged joints.",
+          "task_type": "finish",
+          "task_classification": "qt_scaled",
+          "skill_level": "journeyman",
+          "unit_of_measure": "EA",
+          "applies_when": { "application_method": ["spray"] },
+          "appears_in_tiers": ["QT3", "QT4"],
+          "quality_notes": {
+            "QT3": "Even coverage. No runs/sags. Leapfrog verify. 6-foot visual.",
+            "QT4": "Even coverage. No defects. Leapfrog verify. Raking light at 3 feet."
+          }
+        },
+        {
+          "task_id": "TSK_GDRP_FINISH_BRUSH_1",
+          "name": "First Finish Coat (Brush)",
+          "description": "Apply first finish coat by brush. Full face coverage with leapfrog technique on sectional doors.",
+          "task_type": "finish",
+          "task_classification": "qt_scaled",
+          "skill_level": "journeyman",
+          "unit_of_measure": "EA",
+          "applies_when": { "application_method": ["brush"] },
+          "appears_in_tiers": ["QT3", "QT4"],
+          "quality_notes": {
+            "QT3": "Minimize brush marks. Leapfrog sequence.",
+            "QT4": "Tip-off all strokes. Premium product handling."
+          }
+        },
+        {
+          "task_id": "TSK_GDRP_FINISH_BRUSH_RECESS_1",
+          "name": "First Coat Brush Recess Detail",
+          "description": "Brush panel recesses and carriage overlay detail that spray cannot fully cover. For raised_panel and carriage doors.",
+          "task_type": "finish",
+          "task_classification": "qt_scaled",
+          "skill_level": "journeyman",
+          "unit_of_measure": "EA",
+          "applies_when": { "panel_complexity": ["raised_panel", "carriage"] },
+          "appears_in_tiers": ["QT3", "QT4"],
+          "quality_notes": {
+            "QT3": "Coverage in all recesses. No pooling.",
+            "QT4": "Full coverage. Clean lines. No pooling or drips."
+          }
+        },
+        {
+          "task_id": "TSK_GDRP_LEAPFROG_VERIFY_1",
+          "name": "Leapfrog Joint Verification (Coat 1)",
+          "description": "After first coat, open each articulation joint to verify paint is tack-free and no bridging has occurred. Score any bridged joints with utility knife before they fully cure.",
+          "task_type": "inspect",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "unit_of_measure": "EA",
+          "applies_when": {},
+          "appears_in_tiers": ["QT3", "QT4"],
+          "quality_notes": { "all": "CRITICAL — bridged joints cause cracking on first door operation. Score immediately if found." }
+        }
+      ]
+    },
+
+    {
+      "module_id": "MOD_GDRP_INTERSTAGE",
+      "name": "Intercoat Inspection & Sand",
+      "description": "Between finish coats: inspect for defects, sand (QT4), repair, dust removal. QT3: visual inspect and touch up only. QT4: 220-grit intercoat sand, raking light inspection, repair, dust removal.",
+      "phase": "interstage",
+      "applies_when": {},
+      "tasks": [
+        {
+          "task_id": "TSK_GDRP_INSPECT_INTERCOAT",
+          "name": "Intercoat Inspection",
+          "description": "Inspect first finish coat for runs, sags, holidays, drips, and bridged joints. Mark defects for repair.",
+          "task_type": "inspect",
+          "task_classification": "qt_scaled",
+          "skill_level": "journeyman",
+          "unit_of_measure": "EA",
+          "applies_when": {},
+          "appears_in_tiers": ["QT3", "QT4"],
+          "quality_notes": {
+            "QT3": "6-foot visual scan. Mark obvious defects.",
+            "QT4": "Raking light at 3 feet. Mark all defects including subtle ones."
+          }
+        },
+        {
+          "task_id": "TSK_GDRP_SAND_INTERCOAT",
+          "name": "Intercoat Sand 220-Grit (QT4 Only)",
+          "description": "Light 220-grit sand between finish coats for mechanical tooth. QT4 only. Provides superior intercoat adhesion.",
+          "task_type": "prep",
+          "task_classification": "qt_conditional",
+          "skill_level": "journeyman",
+          "unit_of_measure": "EA",
+          "applies_when": { "quality_tier": ["QT4"] },
+          "appears_in_tiers": ["QT4"],
+          "quality_notes": { "QT4": "Light sand — do not cut through first coat. Uniform scratch pattern." }
+        },
+        {
+          "task_id": "TSK_GDRP_REPAIR_INTERCOAT",
+          "name": "Intercoat Defect Repair",
+          "description": "Repair marked defects: sand out runs/sags, touch up holidays, spot-prime any areas sanded through to substrate.",
+          "task_type": "detail",
+          "task_classification": "qt_scaled",
+          "skill_level": "journeyman",
+          "unit_of_measure": "EA",
+          "applies_when": {},
+          "appears_in_tiers": ["QT3", "QT4"],
+          "quality_notes": {
+            "QT3": "Fix obvious defects.",
+            "QT4": "Repair all marked defects. Blend repairs."
+          }
+        },
+        {
+          "task_id": "TSK_GDRP_DUST_INTERCOAT",
+          "name": "Intercoat Dust Removal (QT4 Only)",
+          "description": "Remove sanding dust after intercoat sand. Tack cloth entire surface. QT4 only (follows intercoat sand).",
+          "task_type": "prep",
+          "task_classification": "qt_conditional",
+          "skill_level": "helper",
+          "unit_of_measure": "EA",
+          "applies_when": { "quality_tier": ["QT4"] },
+          "appears_in_tiers": ["QT4"],
+          "quality_notes": { "QT4": "Full tack cloth. No dust in joints or recesses." }
+        }
+      ]
+    },
+
+    {
+      "module_id": "MOD_GDRP_FINISH_2",
+      "name": "Second Finish Coat",
+      "description": "Second finish coat with leapfrog technique. Same method and material as coat 1. Bottom seal prop immediately after second coat.",
+      "phase": "finish",
+      "applies_when": {},
+      "tasks": [
+        {
+          "task_id": "TSK_GDRP_FINISH_SPRAY_2",
+          "name": "Second Finish Coat (Spray)",
+          "description": "Apply second finish coat by airless spray with leapfrog technique. Same parameters as first coat.",
+          "task_type": "finish",
+          "task_classification": "qt_scaled",
+          "skill_level": "journeyman",
+          "unit_of_measure": "EA",
+          "applies_when": { "application_method": ["spray"] },
+          "appears_in_tiers": ["QT3", "QT4"],
+          "quality_notes": {
+            "QT3": "Even coverage. No runs/sags. Leapfrog verify.",
+            "QT4": "Premium product. Full coverage. Raking light verify."
+          }
+        },
+        {
+          "task_id": "TSK_GDRP_FINISH_BRUSH_2",
+          "name": "Second Finish Coat (Brush)",
+          "description": "Apply second finish coat by brush with leapfrog technique.",
+          "task_type": "finish",
+          "task_classification": "qt_scaled",
+          "skill_level": "journeyman",
+          "unit_of_measure": "EA",
+          "applies_when": { "application_method": ["brush"] },
+          "appears_in_tiers": ["QT3", "QT4"],
+          "quality_notes": {
+            "QT3": "Minimize brush marks. Leapfrog sequence.",
+            "QT4": "Tip-off all strokes. Premium product."
+          }
+        },
+        {
+          "task_id": "TSK_GDRP_FINISH_BRUSH_RECESS_2",
+          "name": "Second Coat Brush Recess Detail",
+          "description": "Brush panel recesses for second coat. Raised_panel and carriage doors.",
+          "task_type": "finish",
+          "task_classification": "qt_scaled",
+          "skill_level": "journeyman",
+          "unit_of_measure": "EA",
+          "applies_when": { "panel_complexity": ["raised_panel", "carriage"] },
+          "appears_in_tiers": ["QT3", "QT4"],
+          "quality_notes": {
+            "QT3": "Full coverage in recesses.",
+            "QT4": "Full coverage. No pooling. Clean lines."
+          }
+        },
+        {
+          "task_id": "TSK_GDRP_LEAPFROG_VERIFY_2",
+          "name": "Leapfrog Joint Verification (Coat 2)",
+          "description": "After second coat, verify all articulation joints are clear. Score any bridged joints immediately.",
+          "task_type": "inspect",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "unit_of_measure": "EA",
+          "applies_when": {},
+          "appears_in_tiers": ["QT3", "QT4"],
+          "quality_notes": { "all": "CRITICAL check. Bridging at coat 2 is harder to fix." }
+        },
+        {
+          "task_id": "TSK_GDRP_BOTTOM_SEAL_PROP",
+          "name": "Bottom Seal Prop During Cure",
+          "description": "Prop door 2-4 inches open to prevent bottom seal contact with uncured paint. Allow 24-48 hours cure time before reinstalling bottom seal and closing door.",
+          "task_type": "detail",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "unit_of_measure": "EA",
+          "applies_when": {},
+          "appears_in_tiers": ["QT3", "QT4"],
+          "quality_notes": { "all": "Prop securely. Verify door cannot close on uncured bottom edge." }
+        }
+      ]
+    },
+
+    {
+      "module_id": "MOD_GDRP_FINAL_INSPECT",
+      "name": "Final Inspection & Touch-Up",
+      "description": "Final visual inspection, balance check safety gate, and touch-up of any remaining defects.",
+      "phase": "finish",
+      "applies_when": {},
+      "tasks": [
+        {
+          "task_id": "TSK_GDRP_FINAL_INSPECT",
+          "name": "Final Visual Inspection",
+          "description": "Comprehensive visual inspection of completed garage door. Check for complete coverage, no bridged joints, clean masking lines, no drips on hardware zones. QT3: 6-foot visual. QT4: 3-foot raking light.",
+          "task_type": "inspect",
+          "task_classification": "qt_scaled",
+          "skill_level": "lead",
+          "unit_of_measure": "EA",
+          "applies_when": {},
+          "appears_in_tiers": ["QT3", "QT4"],
+          "quality_notes": {
+            "QT3": "6-foot visual scan. No obvious defects.",
+            "QT4": "3-foot raking light. Near-zero visible defects."
+          }
+        },
+        {
+          "task_id": "TSK_GDRP_BALANCE_CHECK",
+          "name": "Balance Check (Safety Quality Gate)",
+          "description": "Verify door spring balance is adequate — door should hold position at any point when partially open. NOTE: Spring adjustment is NOT in painting scope. If balance is off, flag for garage door service.",
+          "task_type": "inspect",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "unit_of_measure": "EA",
+          "applies_when": {},
+          "appears_in_tiers": ["QT3", "QT4"],
+          "quality_notes": { "all": "Safety gate only. Flag balance issues. Do NOT adjust springs." }
+        },
+        {
+          "task_id": "TSK_GDRP_TOUCHUP",
+          "name": "Touch-Up Defects",
+          "description": "Touch up any defects identified during final inspection. Minor brush work on missed spots, drips, or thin areas.",
+          "task_type": "detail",
+          "task_classification": "qt_scaled",
+          "skill_level": "journeyman",
+          "unit_of_measure": "EA",
+          "applies_when": {},
+          "appears_in_tiers": ["QT3", "QT4"],
+          "quality_notes": {
+            "QT3": "Fix obvious issues.",
+            "QT4": "Meticulous touch-up. Blend into surrounding finish."
+          }
+        }
+      ]
+    },
+
+    {
+      "module_id": "MOD_GDRP_CLEANUP",
+      "name": "Protection Teardown & Cleanup",
+      "description": "Remove all protection (driveway drops, siding masking, window masking, weatherstrip tape, track/hardware masking). Reinstall bottom seal after 24-48 hr cure. Articulation test. Tool cleaning.",
+      "phase": "cleanup",
+      "applies_when": {},
+      "tasks": [
+        {
+          "task_id": "TSK_GDRP_WINDOW_UNMASK",
+          "name": "Window Insert Unmask",
+          "description": "Remove window masking film/tape. Verify no paint on glass. Clean any overspray from window frames.",
+          "task_type": "cleanup",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "unit_of_measure": "EA",
+          "applies_when": { "panel_type": ["windows"] },
+          "appears_in_tiers": ["QT3", "QT4"],
+          "quality_notes": { "all": "Clean glass. No adhesive residue." }
+        },
+        {
+          "task_id": "TSK_GDRP_WEATHERSTRIP_UNMASK",
+          "name": "Weatherstrip Unmask",
+          "description": "Remove weatherstrip protection tape carefully. Verify no paint on weatherstripping seals.",
+          "task_type": "cleanup",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "unit_of_measure": "EA",
+          "applies_when": {},
+          "appears_in_tiers": ["QT3", "QT4"],
+          "quality_notes": { "all": "No paint on seals. No adhesive residue in channel." }
+        },
+        {
+          "task_id": "TSK_GDRP_TRACK_HARDWARE_UNMASK",
+          "name": "Track & Hardware Unmask",
+          "description": "Remove track/hardware masking from interior side. Verify no paint on tracks, rollers, springs, cables, or brackets.",
+          "task_type": "cleanup",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "unit_of_measure": "EA",
+          "applies_when": {},
+          "appears_in_tiers": ["QT3", "QT4"],
+          "quality_notes": { "all": "No paint on moving parts. Verify free movement." }
+        },
+        {
+          "task_id": "TSK_GDRP_SIDING_UNMASK",
+          "name": "Siding Unmask (Spray Method)",
+          "description": "Remove siding masking film. Verify no overspray on adjacent siding.",
+          "task_type": "cleanup",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "unit_of_measure": "EA",
+          "applies_when": { "application_method": ["spray"] },
+          "appears_in_tiers": ["QT3", "QT4"],
+          "quality_notes": { "all": "No overspray on siding. Clean tape lines." }
+        },
+        {
+          "task_id": "TSK_GDRP_BOTTOM_SEAL_REINSTALL",
+          "name": "Bottom Seal Reinstall",
+          "description": "Reinstall bottom weatherseal (astragal) after 24-48 hr cure. Verify proper seal contact with threshold. Lower door to fully closed position.",
+          "task_type": "cleanup",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "unit_of_measure": "EA",
+          "applies_when": {},
+          "appears_in_tiers": ["QT3", "QT4"],
+          "quality_notes": { "all": "Proper seal contact. No gaps. Door closes flush." }
+        },
+        {
+          "task_id": "TSK_GDRP_DRIVEWAY_TEARDOWN",
+          "name": "Driveway Protection Teardown",
+          "description": "Remove canvas drops from driveway. Collect scraping debris. Clean any paint drips from driveway surface.",
+          "task_type": "cleanup",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "unit_of_measure": "SF",
+          "applies_when": {},
+          "appears_in_tiers": ["QT3", "QT4"],
+          "quality_notes": { "all": "Driveway clean. All debris collected. No paint stains." }
+        },
+        {
+          "task_id": "TSK_GDRP_ARTICULATION_TEST",
+          "name": "Articulation Test",
+          "description": "Operate garage door through full open/close cycle. Verify door moves freely without binding, sticking, or paint cracking at articulation joints. Check spring balance.",
+          "task_type": "inspect",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "unit_of_measure": "EA",
+          "applies_when": {},
+          "appears_in_tiers": ["QT3", "QT4"],
+          "quality_notes": { "all": "CRITICAL safety check. No binding. No cracking. Free movement through full cycle." }
+        },
+        {
+          "task_id": "TSK_GDRP_TOOL_CLEAN",
+          "name": "Tool & Equipment Cleanup",
+          "description": "Clean brushes, spray equipment, staging area. Properly store or dispose of paint, rags, and consumables.",
+          "task_type": "cleanup",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "unit_of_measure": "FIXED",
+          "applies_when": {},
+          "appears_in_tiers": ["QT3", "QT4"],
+          "quality_notes": { "all": "All tools cleaned. Work area left clean." }
+        }
+      ]
+    }
+  ]
+}

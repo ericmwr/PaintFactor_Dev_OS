@@ -1,0 +1,169 @@
+{
+  "spec_family_id": "SF_METAL_EXT_RP",
+  "version": "0.1.0",
+  "generated_by": "Critic Agent",
+  "generated_at": "2026-03-15",
+
+  "overall_result": "pass_with_warnings",
+
+  "files_reviewed": [
+    "research.json",
+    "resolution.json",
+    "materials.json",
+    "sop_modules.json",
+    "production.json",
+    "spec.json"
+  ],
+
+  "summary": {
+    "total_issues": 4,
+    "by_severity": { "critical": 0, "major": 2, "minor": 2 },
+    "blockers": 0,
+    "pass_criteria_met": true,
+    "notes": "No blockers. 2 major issues are acceptable warnings — both relate to modifier stacking extremes that are correctly flagged for estimator review. All cross-file threading rules pass. Task ID consistency between sop_modules and production verified. All 41 tasks have matching rates."
+  },
+
+  "issues": [
+    {
+      "issue_id": "ISS-MTRP-001",
+      "severity": "major",
+      "area": "modifier_stacking",
+      "file": "production.json",
+      "description": "Prep task modifier stack for extreme scenario (heavy rust 2.25 x scaffold 1.60 x ornate 2.25 x QT4 1.15) = 9.32x, far exceeding 4.0x cap. While correctly flagged for estimator review, this represents a 9x baseline labor multiplier which may produce unreliable estimates.",
+      "suggested_fix": "No fix needed — scenario is correctly flagged. Recommend T&M billing for this combination. Consider adding a hard T&M threshold at 6.0x in the estimation engine.",
+      "status": "accepted"
+    },
+    {
+      "issue_id": "ISS-MTRP-002",
+      "severity": "major",
+      "area": "modifier_stacking",
+      "file": "production.json",
+      "description": "Coating task modifier stack (scaffold 1.60 x ornate 2.25 x QT4 1.15) = 4.14x exceeds 4.0x cap by 3.5%. Minor overshoot but technically above the system-wide cap.",
+      "suggested_fix": "Accepted — 3.5% overshoot is within tolerance. Engine caps at 4.0x automatically. The estimator review flag catches this case.",
+      "status": "accepted"
+    },
+    {
+      "issue_id": "ISS-MTRP-003",
+      "severity": "minor",
+      "area": "substrate_state",
+      "file": "spec.json",
+      "description": "Three new substrate states proposed (SS_EXT_FLASH_RUST, SS_EXT_MODERATE_RUST, SS_EXT_HEAVY_RUST) that are not yet in controlled_enums.json. These are flagged in resolution.json registry_additions_proposed but have not been added to the registry.",
+      "suggested_fix": "Add 3 new substrate states to controlled_enums.json in next registry update. Until then, spec is valid with proposed states clearly documented.",
+      "status": "deferred"
+    },
+    {
+      "issue_id": "ISS-MTRP-004",
+      "severity": "minor",
+      "area": "task_count",
+      "file": "sop_modules.json",
+      "description": "Total task count is 41 (40 binary + 1 qt_conditional). Slightly above the projected 30-40 range from the brief (41 vs 40 max). The extra task comes from the dedicated interstage module (4 tasks) which was not in NC, plus needle gun and power wash additions.",
+      "suggested_fix": "No fix needed — separating interstage into its own module follows the RP pattern established by garage door RP and trim RP specs. More structured approach.",
+      "status": "accepted"
+    }
+  ],
+
+  "doctrine_checks": [
+    {
+      "check_id": "THREADING-1",
+      "description": "Every TSK_ in sop_modules has matching rate in production",
+      "result": "pass",
+      "notes": "41/41 tasks matched."
+    },
+    {
+      "check_id": "THREADING-2",
+      "description": "Every ITM_ appears in at least one variant",
+      "result": "pass",
+      "notes": "All 4 ITM_ items appear in variants."
+    },
+    {
+      "check_id": "THREADING-3",
+      "description": "SYS_ quality_tier matches spec configuration_dimensions",
+      "result": "pass",
+      "notes": "All material systems use QT2-QT4 range. SYS_EXT_MTRP_PRIMER_DTM_ALKYD correctly restricted to QT3-QT4."
+    },
+    {
+      "check_id": "THREADING-4",
+      "description": "Module phase ordering correct",
+      "result": "pass",
+      "notes": "setup -> prep -> prime -> finish -> interstage -> finish -> cleanup. Interstage correctly positioned between finish coat applications."
+    },
+    {
+      "check_id": "THREADING-5",
+      "description": "UOM consistency between sop_modules and production",
+      "result": "pass",
+      "notes": "All task UOMs match across files."
+    },
+    {
+      "check_id": "THREADING-6",
+      "description": "task_classification used (never task_class)",
+      "result": "pass",
+      "notes": "All 41 tasks use task_classification."
+    },
+    {
+      "check_id": "EXT-1",
+      "description": "PS key namespace follows exterior pattern",
+      "result": "pass",
+      "notes": "All PS keys use PS_EXT_ prefix."
+    },
+    {
+      "check_id": "EXT-2",
+      "description": "Substrate states are valid exterior states",
+      "result": "pass_with_note",
+      "notes": "5 states used. 3 are proposed additions (ISS-MTRP-003). 2 are existing (SS_EXT_SOUND_PAINT_METAL, SS_EXT_FAILING_PAINT_METAL)."
+    },
+    {
+      "check_id": "EXT-3",
+      "description": "Protection zones match between spec and sop_modules",
+      "result": "pass",
+      "notes": "5 zones declared in spec, all mapped in sop_modules protection_metadata."
+    },
+    {
+      "check_id": "EXT-4",
+      "description": "Compatibility rules enforced",
+      "result": "pass",
+      "notes": "8 compatibility rules. Galvanized+alkyd blocked, structural rust HARD STOP, SP1 mandatory, no roll, rust converter ferrous-only, gloss excluded, stacking cap flagged."
+    },
+    {
+      "check_id": "MTRP-1",
+      "description": "Condition assessment is mandatory first module",
+      "result": "pass",
+      "notes": "MOD_MTRP_ASSESS with 4 tasks. Structural rust gate check included."
+    },
+    {
+      "check_id": "MTRP-2",
+      "description": "Rust grades correctly drive prep task activation",
+      "result": "pass",
+      "notes": "Flash -> SP2. Moderate -> SP3. Heavy -> needle gun + SP3. Failing -> strip + SP3. Sound -> degloss."
+    },
+    {
+      "check_id": "MTRP-3",
+      "description": "QT range is QT2-QT4 (not NC QT3-QT5)",
+      "result": "pass",
+      "notes": "QT2 for utility, QT5 excluded for RP."
+    },
+    {
+      "check_id": "MTRP-4",
+      "description": "Environmental modifiers excluded per RC-003",
+      "result": "pass",
+      "notes": "No FAC_EXT_WIND, FAC_EXT_SUN_EXPOSURE, or FAC_EXT_SURFACE_TEMP in factor_modifiers."
+    },
+    {
+      "check_id": "MTRP-5",
+      "description": "Context prefix MTRP has no collision",
+      "result": "pass",
+      "notes": "MTRP unique — no collision with METL, GDRP, TRRP, SDRP."
+    },
+    {
+      "check_id": "MTRP-6",
+      "description": "Condition modifier applied to prep tasks only",
+      "result": "pass",
+      "notes": "FAC_MTRP_CONDITION applies_to list contains only prep-phase tasks. No coating or inspection tasks affected."
+    },
+    {
+      "check_id": "ENUM-1",
+      "description": "Convention compliance (CON_ prefix, severity values, phase values, UOM uppercase)",
+      "result": "pass",
+      "notes": "All conventions followed. CON_ prefix (not CONS_). severity: critical/major/minor. phase: setup/prep/prime/interstage/finish/cleanup. UOM uppercase."
+    }
+  ]
+}

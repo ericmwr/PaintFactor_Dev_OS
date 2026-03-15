@@ -1,0 +1,859 @@
+{
+  "spec_family_id": "SF_GARAGE_DOOR_EXT_RP",
+  "version": "0.1.0",
+  "generated_by": "Estimation Engineer",
+  "generated_at": "2026-03-15",
+
+  "garage_door_input_group": {
+    "description": "All rates are per EA (each garage door assembly). Baseline = single-width steel flush door (~60 SF) with sound existing paint. RP rates include condition assessment, condition-driven prep, primer (spot or full), and 2 finish coats with leapfrog technique. Modifiers: door_size, panel_complexity, substrate, condition, windows, QT.",
+    "inputs": [
+      { "input_name": "IN_EA_GARAGE_DOOR", "paintscope_key": "PS_EXT_OPENING_EA.DOOR_GARAGE" },
+      { "input_name": "IN_ENUM_GARAGE_DOOR_SUBSTRATE", "paintscope_key": "PS_EXT_META.ENUM.GARAGE_DOOR_SUBSTRATE" },
+      { "input_name": "IN_ENUM_GARAGE_DOOR_SIZE", "paintscope_key": "PS_EXT_META.ENUM.GARAGE_DOOR_SIZE" },
+      { "input_name": "IN_ENUM_GARAGE_DOOR_PANEL_TYPE", "paintscope_key": "PS_EXT_META.ENUM.GARAGE_DOOR_PANEL_TYPE" },
+      { "input_name": "IN_ENUM_SUBSTRATE_STATE_GARAGE_DOOR", "paintscope_key": "PS_EXT_META.ENUM.SUBSTRATE_STATE_GARAGE_DOOR" },
+      { "input_name": "IN_SF_EXT_PROTECT_DRIVEWAY", "paintscope_key": "PS_EXT_PROTECT_SF.DRIVEWAY" },
+      { "input_name": "IN_BOOL_PRE_1978", "paintscope_key": "PS_EXT_META.FLAG.PRE_1978" }
+    ]
+  },
+
+  "task_production_rates": [
+
+    {
+      "task_id": "TSK_GDRP_ASSESS_CONDITION",
+      "name": "Visual Condition Assessment Per Door",
+      "required_input_key": "IN_EA_GARAGE_DOOR",
+      "paintscope_key": "PS_EXT_OPENING_EA.DOOR_GARAGE",
+      "unit_of_measure": "EA",
+      "fixed_time_minutes": 15,
+      "task_classification": "binary",
+      "skill_level": "lead",
+      "notes": "Fixed per door — includes visual scan, defect documentation, state assignment."
+    },
+    {
+      "task_id": "TSK_GDRP_ASSESS_ADHESION",
+      "name": "ASTM D3359 Cross-Hatch Adhesion Test",
+      "required_input_key": "IN_EA_GARAGE_DOOR",
+      "paintscope_key": "PS_EXT_OPENING_EA.DOOR_GARAGE",
+      "unit_of_measure": "EA",
+      "fixed_time_minutes": 10,
+      "task_classification": "binary",
+      "skill_level": "lead",
+      "notes": "2 test locations per door."
+    },
+    {
+      "task_id": "TSK_GDRP_ASSESS_RUST",
+      "name": "Rust Evaluation (Steel Only)",
+      "required_input_key": "IN_EA_GARAGE_DOOR",
+      "paintscope_key": "PS_EXT_OPENING_EA.DOOR_GARAGE",
+      "unit_of_measure": "EA",
+      "fixed_time_minutes": 10,
+      "task_classification": "binary",
+      "skill_level": "lead",
+      "applies_when": { "door_substrate": ["steel"] },
+      "notes": "Steel-only. Probe underfilm at rust locations."
+    },
+    {
+      "task_id": "TSK_GDRP_ASSESS_MOISTURE",
+      "name": "Moisture Content Testing (Wood Only)",
+      "required_input_key": "IN_EA_GARAGE_DOOR",
+      "paintscope_key": "PS_EXT_OPENING_EA.DOOR_GARAGE",
+      "unit_of_measure": "EA",
+      "fixed_time_minutes": 8,
+      "task_classification": "binary",
+      "skill_level": "lead",
+      "applies_when": { "door_substrate": ["wood"] },
+      "notes": "Wood-only. Test bottom panels and bottom rail."
+    },
+    {
+      "task_id": "TSK_GDRP_ASSESS_COATING_ID",
+      "name": "Existing Coating Identification",
+      "required_input_key": "IN_EA_GARAGE_DOOR",
+      "paintscope_key": "PS_EXT_OPENING_EA.DOOR_GARAGE",
+      "unit_of_measure": "EA",
+      "fixed_time_minutes": 5,
+      "task_classification": "binary",
+      "skill_level": "lead",
+      "notes": "Solvent rub test."
+    },
+    {
+      "task_id": "TSK_GDRP_ASSESS_LEAD",
+      "name": "Lead Paint Testing (Pre-1978)",
+      "unit_of_measure": "FIXED",
+      "fixed_time_minutes": 20,
+      "task_classification": "binary",
+      "skill_level": "lead",
+      "applies_when": { "pre_1978": true },
+      "notes": "Per project, not per door. Pre-1978 only."
+    },
+
+    {
+      "task_id": "TSK_GDRP_DRIVEWAY_PROTECT",
+      "name": "Driveway/Apron Protection",
+      "required_input_key": "IN_SF_EXT_PROTECT_DRIVEWAY",
+      "paintscope_key": "PS_EXT_PROTECT_SF.DRIVEWAY",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 200,
+      "rate_range_low": 150,
+      "rate_range_high": 300,
+      "task_classification": "binary",
+      "skill_level": "helper",
+      "notes": "Canvas drops on driveway. ~200 SF/hr."
+    },
+    {
+      "task_id": "TSK_GDRP_SIDING_MASK",
+      "name": "Adjacent Siding Masking",
+      "required_input_key": "IN_EA_GARAGE_DOOR",
+      "paintscope_key": "PS_EXT_OPENING_EA.DOOR_GARAGE",
+      "unit_of_measure": "EA",
+      "fixed_time_minutes": 20,
+      "task_classification": "binary",
+      "skill_level": "helper",
+      "applies_when": { "application_method": ["spray"] },
+      "notes": "Per door. Spray method only."
+    },
+    {
+      "task_id": "TSK_GDRP_WINDOW_MASK",
+      "name": "Window Insert Masking",
+      "required_input_key": "IN_EA_GARAGE_DOOR",
+      "paintscope_key": "PS_EXT_OPENING_EA.DOOR_GARAGE",
+      "unit_of_measure": "EA",
+      "fixed_time_minutes": 15,
+      "task_classification": "binary",
+      "skill_level": "helper",
+      "applies_when": { "panel_type": ["windows"] },
+      "notes": "Conditional on windows present."
+    },
+    {
+      "task_id": "TSK_GDRP_WEATHERSTRIP_PROTECT",
+      "name": "Weatherstrip Protection",
+      "required_input_key": "IN_EA_GARAGE_DOOR",
+      "paintscope_key": "PS_EXT_OPENING_EA.DOOR_GARAGE",
+      "unit_of_measure": "EA",
+      "fixed_time_minutes": 10,
+      "task_classification": "binary",
+      "skill_level": "helper",
+      "notes": "Per door. Low-tack tape into channel."
+    },
+    {
+      "task_id": "TSK_GDRP_TRACK_HARDWARE_MASK",
+      "name": "Track & Hardware Masking",
+      "required_input_key": "IN_EA_GARAGE_DOOR",
+      "paintscope_key": "PS_EXT_OPENING_EA.DOOR_GARAGE",
+      "unit_of_measure": "EA",
+      "fixed_time_minutes": 18,
+      "task_classification": "binary",
+      "skill_level": "journeyman",
+      "notes": "Per door. Tracks, rollers, springs, cables, brackets."
+    },
+    {
+      "task_id": "TSK_GDRP_BOTTOM_SEAL_PREP",
+      "name": "Bottom Seal Management",
+      "required_input_key": "IN_EA_GARAGE_DOOR",
+      "paintscope_key": "PS_EXT_OPENING_EA.DOOR_GARAGE",
+      "unit_of_measure": "EA",
+      "fixed_time_minutes": 12,
+      "task_classification": "binary",
+      "skill_level": "journeyman",
+      "notes": "Remove or mask bottom seal."
+    },
+    {
+      "task_id": "TSK_GDRP_EQUIPMENT_SETUP_SPRAY",
+      "name": "Spray Equipment Setup",
+      "unit_of_measure": "FIXED",
+      "fixed_time_minutes": 25,
+      "task_classification": "binary",
+      "skill_level": "journeyman",
+      "applies_when": { "application_method": ["spray"] },
+      "notes": "Per project. Sprayer setup, tip, filter, pressure check."
+    },
+    {
+      "task_id": "TSK_GDRP_EQUIPMENT_SETUP_BRUSH",
+      "name": "Brush Equipment Setup",
+      "unit_of_measure": "FIXED",
+      "fixed_time_minutes": 10,
+      "task_classification": "binary",
+      "skill_level": "helper",
+      "applies_when": { "application_method": ["brush"] },
+      "notes": "Per project. Material staging."
+    },
+
+    {
+      "task_id": "TSK_GDRP_CLEAN_SURFACE",
+      "name": "Surface Cleaning",
+      "required_input_key": "IN_EA_GARAGE_DOOR",
+      "paintscope_key": "PS_EXT_OPENING_EA.DOOR_GARAGE",
+      "unit_of_measure": "EA",
+      "fixed_time_minutes": 20,
+      "task_classification": "binary",
+      "skill_level": "helper",
+      "notes": "Per door. TSP/degreaser wash + rinse."
+    },
+    {
+      "task_id": "TSK_GDRP_CHALK_REMEDIATE",
+      "name": "Chalk Remediation Wash",
+      "required_input_key": "IN_EA_GARAGE_DOOR",
+      "paintscope_key": "PS_EXT_OPENING_EA.DOOR_GARAGE",
+      "unit_of_measure": "EA",
+      "fixed_time_minutes": 25,
+      "task_classification": "binary",
+      "skill_level": "journeyman",
+      "applies_when": { "substrate_state": ["SS_EXT_CHALKING"] },
+      "notes": "Additional chalk remediation. Power wash 500-1000 PSI. Wipe test mandatory."
+    },
+    {
+      "task_id": "TSK_GDRP_DEGLOSS_SCUFF",
+      "name": "Degloss Scuff Sand",
+      "required_input_key": "IN_EA_GARAGE_DOOR",
+      "paintscope_key": "PS_EXT_OPENING_EA.DOOR_GARAGE",
+      "unit_of_measure": "EA",
+      "task_classification": "qt_scaled",
+      "skill_level": "journeyman",
+      "applies_when": { "substrate_state": ["SS_EXT_SOUND_PAINT"] },
+      "qt_rates": {
+        "QT3": { "fixed_time_minutes": 25 },
+        "QT4": { "fixed_time_minutes": 35 }
+      },
+      "notes": "Sound paint only. Full face scuff sand 150-grit."
+    },
+    {
+      "task_id": "TSK_GDRP_SCRAPE_FEATHER",
+      "name": "Scrape Failing Paint + Feather-Edge Sand",
+      "required_input_key": "IN_EA_GARAGE_DOOR",
+      "paintscope_key": "PS_EXT_OPENING_EA.DOOR_GARAGE",
+      "unit_of_measure": "EA",
+      "task_classification": "qt_scaled",
+      "skill_level": "journeyman",
+      "applies_when": { "substrate_state": ["SS_EXT_FAILING_PAINT"] },
+      "qt_rates": {
+        "QT3": { "fixed_time_minutes": 45 },
+        "QT4": { "fixed_time_minutes": 55 }
+      },
+      "notes": "Scrape + mandatory feather-edge sand. Significant labor."
+    },
+    {
+      "task_id": "TSK_GDRP_RUST_DEBRIDE",
+      "name": "Rust Debridement SSPC-SP3",
+      "required_input_key": "IN_EA_GARAGE_DOOR",
+      "paintscope_key": "PS_EXT_OPENING_EA.DOOR_GARAGE",
+      "unit_of_measure": "EA",
+      "task_classification": "qt_scaled",
+      "skill_level": "journeyman",
+      "applies_when": { "door_substrate": ["steel"], "substrate_state": ["SS_EXT_SURFACE_RUST"] },
+      "qt_rates": {
+        "QT3": { "fixed_time_minutes": 60 },
+        "QT4": { "fixed_time_minutes": 75 }
+      },
+      "notes": "Steel-only. Power tool + hand tool rust removal. Highly labor-intensive."
+    },
+    {
+      "task_id": "TSK_GDRP_SAND_WOOD",
+      "name": "Sand Wood Surface",
+      "required_input_key": "IN_EA_GARAGE_DOOR",
+      "paintscope_key": "PS_EXT_OPENING_EA.DOOR_GARAGE",
+      "unit_of_measure": "EA",
+      "task_classification": "qt_scaled",
+      "skill_level": "journeyman",
+      "applies_when": { "door_substrate": ["wood"], "substrate_state": ["SS_EXT_FAILING_PAINT"] },
+      "qt_rates": {
+        "QT3": { "fixed_time_minutes": 30 },
+        "QT4": { "fixed_time_minutes": 40 }
+      },
+      "notes": "Wood-only. Sand bare areas and raised grain."
+    },
+    {
+      "task_id": "TSK_GDRP_FILL_WOOD",
+      "name": "Fill Wood Cracks and Damage",
+      "required_input_key": "IN_EA_GARAGE_DOOR",
+      "paintscope_key": "PS_EXT_OPENING_EA.DOOR_GARAGE",
+      "unit_of_measure": "EA",
+      "fixed_time_minutes": 15,
+      "task_classification": "binary",
+      "skill_level": "journeyman",
+      "applies_when": { "door_substrate": ["wood"] },
+      "notes": "Wood-only. Fill + cure + sand smooth."
+    },
+    {
+      "task_id": "TSK_GDRP_PREP_COMPOSITE",
+      "name": "Composite Overlay Prep",
+      "required_input_key": "IN_EA_GARAGE_DOOR",
+      "paintscope_key": "PS_EXT_OPENING_EA.DOOR_GARAGE",
+      "unit_of_measure": "EA",
+      "fixed_time_minutes": 20,
+      "task_classification": "binary",
+      "skill_level": "journeyman",
+      "applies_when": { "door_substrate": ["composite"] },
+      "notes": "Composite-only. Mixed-material assessment + scuff sand."
+    },
+    {
+      "task_id": "TSK_GDRP_CAULK_JOINTS",
+      "name": "Panel Joint Caulk Assessment and Repair",
+      "required_input_key": "IN_EA_GARAGE_DOOR",
+      "paintscope_key": "PS_EXT_OPENING_EA.DOOR_GARAGE",
+      "unit_of_measure": "EA",
+      "fixed_time_minutes": 15,
+      "task_classification": "binary",
+      "skill_level": "journeyman",
+      "notes": "Inspect + repair panel joint caulk."
+    },
+    {
+      "task_id": "TSK_GDRP_DUST_REMOVE",
+      "name": "Dust Removal",
+      "required_input_key": "IN_EA_GARAGE_DOOR",
+      "paintscope_key": "PS_EXT_OPENING_EA.DOOR_GARAGE",
+      "unit_of_measure": "EA",
+      "fixed_time_minutes": 8,
+      "task_classification": "binary",
+      "skill_level": "helper",
+      "notes": "Tack cloth all surfaces. Blow out joints."
+    },
+
+    {
+      "task_id": "TSK_GDRP_PRIME_DTM_SPRAY",
+      "name": "DTM Primer (Spray — Steel)",
+      "required_input_key": "IN_EA_GARAGE_DOOR",
+      "paintscope_key": "PS_EXT_OPENING_EA.DOOR_GARAGE",
+      "unit_of_measure": "EA",
+      "task_classification": "qt_scaled",
+      "skill_level": "journeyman",
+      "applies_when": { "door_substrate": ["steel"], "application_method": ["spray"] },
+      "qt_rates": {
+        "QT3": { "fixed_time_minutes": 18 },
+        "QT4": { "fixed_time_minutes": 22 }
+      },
+      "notes": "Spot or full prime per condition. Leapfrog on sectional doors."
+    },
+    {
+      "task_id": "TSK_GDRP_PRIME_DTM_BRUSH",
+      "name": "DTM Primer (Brush — Steel)",
+      "required_input_key": "IN_EA_GARAGE_DOOR",
+      "paintscope_key": "PS_EXT_OPENING_EA.DOOR_GARAGE",
+      "unit_of_measure": "EA",
+      "task_classification": "qt_scaled",
+      "skill_level": "journeyman",
+      "applies_when": { "door_substrate": ["steel"], "application_method": ["brush"] },
+      "qt_rates": {
+        "QT3": { "fixed_time_minutes": 45 },
+        "QT4": { "fixed_time_minutes": 55 }
+      },
+      "notes": "Brush is ~2.5x spray time for face coverage."
+    },
+    {
+      "task_id": "TSK_GDRP_PRIME_CHALKBIND_SPRAY",
+      "name": "Chalk-Binding Primer (Spray)",
+      "required_input_key": "IN_EA_GARAGE_DOOR",
+      "paintscope_key": "PS_EXT_OPENING_EA.DOOR_GARAGE",
+      "unit_of_measure": "EA",
+      "task_classification": "qt_scaled",
+      "skill_level": "journeyman",
+      "applies_when": { "substrate_state": ["SS_EXT_CHALKING"], "application_method": ["spray"] },
+      "qt_rates": {
+        "QT3": { "fixed_time_minutes": 20 },
+        "QT4": { "fixed_time_minutes": 25 }
+      },
+      "notes": "Full coverage mandatory. Cannot spot prime over chalk."
+    },
+    {
+      "task_id": "TSK_GDRP_PRIME_CHALKBIND_BRUSH",
+      "name": "Chalk-Binding Primer (Brush)",
+      "required_input_key": "IN_EA_GARAGE_DOOR",
+      "paintscope_key": "PS_EXT_OPENING_EA.DOOR_GARAGE",
+      "unit_of_measure": "EA",
+      "task_classification": "qt_scaled",
+      "skill_level": "journeyman",
+      "applies_when": { "substrate_state": ["SS_EXT_CHALKING"], "application_method": ["brush"] },
+      "qt_rates": {
+        "QT3": { "fixed_time_minutes": 50 },
+        "QT4": { "fixed_time_minutes": 60 }
+      },
+      "notes": "Full coverage brush. ~2.5x spray time."
+    },
+    {
+      "task_id": "TSK_GDRP_PRIME_ACRYLIC_SPRAY",
+      "name": "Acrylic Primer (Spray — Wood)",
+      "required_input_key": "IN_EA_GARAGE_DOOR",
+      "paintscope_key": "PS_EXT_OPENING_EA.DOOR_GARAGE",
+      "unit_of_measure": "EA",
+      "task_classification": "qt_scaled",
+      "skill_level": "journeyman",
+      "applies_when": { "door_substrate": ["wood"], "application_method": ["spray"] },
+      "qt_rates": {
+        "QT3": { "fixed_time_minutes": 20 },
+        "QT4": { "fixed_time_minutes": 25 }
+      },
+      "notes": "Spot or full prime on wood."
+    },
+    {
+      "task_id": "TSK_GDRP_PRIME_ACRYLIC_BRUSH",
+      "name": "Acrylic Primer (Brush — Wood)",
+      "required_input_key": "IN_EA_GARAGE_DOOR",
+      "paintscope_key": "PS_EXT_OPENING_EA.DOOR_GARAGE",
+      "unit_of_measure": "EA",
+      "task_classification": "qt_scaled",
+      "skill_level": "journeyman",
+      "applies_when": { "door_substrate": ["wood"], "application_method": ["brush"] },
+      "qt_rates": {
+        "QT3": { "fixed_time_minutes": 50 },
+        "QT4": { "fixed_time_minutes": 60 }
+      },
+      "notes": "Brush on wood. ~2.5x spray."
+    },
+    {
+      "task_id": "TSK_GDRP_PRIME_BONDING_COMPOSITE",
+      "name": "Bonding Primer for Composite Overlays",
+      "required_input_key": "IN_EA_GARAGE_DOOR",
+      "paintscope_key": "PS_EXT_OPENING_EA.DOOR_GARAGE",
+      "unit_of_measure": "EA",
+      "fixed_time_minutes": 15,
+      "task_classification": "binary",
+      "skill_level": "journeyman",
+      "applies_when": { "door_substrate": ["composite"] },
+      "notes": "Bonding primer on exposed composite overlays."
+    },
+    {
+      "task_id": "TSK_GDRP_TANNIN_SPOT_PRIME",
+      "name": "Tannin Spot Prime (Wood Only)",
+      "required_input_key": "IN_EA_GARAGE_DOOR",
+      "paintscope_key": "PS_EXT_OPENING_EA.DOOR_GARAGE",
+      "unit_of_measure": "EA",
+      "fixed_time_minutes": 12,
+      "task_classification": "binary",
+      "skill_level": "journeyman",
+      "applies_when": { "door_substrate": ["wood"] },
+      "notes": "Spot at tannin bleed locations."
+    },
+
+    {
+      "task_id": "TSK_GDRP_FINISH_SPRAY_1",
+      "name": "First Finish Coat (Spray)",
+      "required_input_key": "IN_EA_GARAGE_DOOR",
+      "paintscope_key": "PS_EXT_OPENING_EA.DOOR_GARAGE",
+      "unit_of_measure": "EA",
+      "task_classification": "qt_scaled",
+      "skill_level": "journeyman",
+      "applies_when": { "application_method": ["spray"] },
+      "qt_rates": {
+        "QT3": { "fixed_time_minutes": 22 },
+        "QT4": { "fixed_time_minutes": 28 }
+      },
+      "notes": "Leapfrog technique. Includes ~30% leapfrog overhead."
+    },
+    {
+      "task_id": "TSK_GDRP_FINISH_BRUSH_1",
+      "name": "First Finish Coat (Brush)",
+      "required_input_key": "IN_EA_GARAGE_DOOR",
+      "paintscope_key": "PS_EXT_OPENING_EA.DOOR_GARAGE",
+      "unit_of_measure": "EA",
+      "task_classification": "qt_scaled",
+      "skill_level": "journeyman",
+      "applies_when": { "application_method": ["brush"] },
+      "qt_rates": {
+        "QT3": { "fixed_time_minutes": 55 },
+        "QT4": { "fixed_time_minutes": 65 }
+      },
+      "notes": "Brush full face with leapfrog. ~2.5x spray."
+    },
+    {
+      "task_id": "TSK_GDRP_FINISH_BRUSH_RECESS_1",
+      "name": "First Coat Brush Recess Detail",
+      "required_input_key": "IN_EA_GARAGE_DOOR",
+      "paintscope_key": "PS_EXT_OPENING_EA.DOOR_GARAGE",
+      "unit_of_measure": "EA",
+      "task_classification": "qt_scaled",
+      "skill_level": "journeyman",
+      "applies_when": { "panel_complexity": ["raised_panel", "carriage"] },
+      "qt_rates": {
+        "QT3": { "fixed_time_minutes": 12 },
+        "QT4": { "fixed_time_minutes": 15 }
+      },
+      "notes": "Brush recesses after spray face coat."
+    },
+    {
+      "task_id": "TSK_GDRP_LEAPFROG_VERIFY_1",
+      "name": "Leapfrog Joint Verification (Coat 1)",
+      "required_input_key": "IN_EA_GARAGE_DOOR",
+      "paintscope_key": "PS_EXT_OPENING_EA.DOOR_GARAGE",
+      "unit_of_measure": "EA",
+      "fixed_time_minutes": 5,
+      "task_classification": "binary",
+      "skill_level": "journeyman",
+      "notes": "Verify joints clear after coat 1."
+    },
+
+    {
+      "task_id": "TSK_GDRP_INSPECT_INTERCOAT",
+      "name": "Intercoat Inspection",
+      "required_input_key": "IN_EA_GARAGE_DOOR",
+      "paintscope_key": "PS_EXT_OPENING_EA.DOOR_GARAGE",
+      "unit_of_measure": "EA",
+      "task_classification": "qt_scaled",
+      "skill_level": "journeyman",
+      "qt_rates": {
+        "QT3": { "fixed_time_minutes": 5 },
+        "QT4": { "fixed_time_minutes": 10 }
+      },
+      "notes": "QT3: 6-foot visual. QT4: raking light at 3 feet."
+    },
+    {
+      "task_id": "TSK_GDRP_SAND_INTERCOAT",
+      "name": "Intercoat Sand 220-Grit (QT4 Only)",
+      "required_input_key": "IN_EA_GARAGE_DOOR",
+      "paintscope_key": "PS_EXT_OPENING_EA.DOOR_GARAGE",
+      "unit_of_measure": "EA",
+      "fixed_time_minutes": 20,
+      "task_classification": "qt_conditional",
+      "skill_level": "journeyman",
+      "applies_when": { "quality_tier": ["QT4"] },
+      "notes": "QT4 only. Light 220-grit intercoat sand."
+    },
+    {
+      "task_id": "TSK_GDRP_REPAIR_INTERCOAT",
+      "name": "Intercoat Defect Repair",
+      "required_input_key": "IN_EA_GARAGE_DOOR",
+      "paintscope_key": "PS_EXT_OPENING_EA.DOOR_GARAGE",
+      "unit_of_measure": "EA",
+      "task_classification": "qt_scaled",
+      "skill_level": "journeyman",
+      "qt_rates": {
+        "QT3": { "fixed_time_minutes": 5 },
+        "QT4": { "fixed_time_minutes": 10 }
+      },
+      "notes": "Repair defects found during intercoat inspection."
+    },
+    {
+      "task_id": "TSK_GDRP_DUST_INTERCOAT",
+      "name": "Intercoat Dust Removal (QT4 Only)",
+      "required_input_key": "IN_EA_GARAGE_DOOR",
+      "paintscope_key": "PS_EXT_OPENING_EA.DOOR_GARAGE",
+      "unit_of_measure": "EA",
+      "fixed_time_minutes": 5,
+      "task_classification": "qt_conditional",
+      "skill_level": "helper",
+      "applies_when": { "quality_tier": ["QT4"] },
+      "notes": "QT4 only. Follows intercoat sand."
+    },
+
+    {
+      "task_id": "TSK_GDRP_FINISH_SPRAY_2",
+      "name": "Second Finish Coat (Spray)",
+      "required_input_key": "IN_EA_GARAGE_DOOR",
+      "paintscope_key": "PS_EXT_OPENING_EA.DOOR_GARAGE",
+      "unit_of_measure": "EA",
+      "task_classification": "qt_scaled",
+      "skill_level": "journeyman",
+      "applies_when": { "application_method": ["spray"] },
+      "qt_rates": {
+        "QT3": { "fixed_time_minutes": 22 },
+        "QT4": { "fixed_time_minutes": 28 }
+      },
+      "notes": "Same as coat 1."
+    },
+    {
+      "task_id": "TSK_GDRP_FINISH_BRUSH_2",
+      "name": "Second Finish Coat (Brush)",
+      "required_input_key": "IN_EA_GARAGE_DOOR",
+      "paintscope_key": "PS_EXT_OPENING_EA.DOOR_GARAGE",
+      "unit_of_measure": "EA",
+      "task_classification": "qt_scaled",
+      "skill_level": "journeyman",
+      "applies_when": { "application_method": ["brush"] },
+      "qt_rates": {
+        "QT3": { "fixed_time_minutes": 55 },
+        "QT4": { "fixed_time_minutes": 65 }
+      },
+      "notes": "Same as coat 1."
+    },
+    {
+      "task_id": "TSK_GDRP_FINISH_BRUSH_RECESS_2",
+      "name": "Second Coat Brush Recess Detail",
+      "required_input_key": "IN_EA_GARAGE_DOOR",
+      "paintscope_key": "PS_EXT_OPENING_EA.DOOR_GARAGE",
+      "unit_of_measure": "EA",
+      "task_classification": "qt_scaled",
+      "skill_level": "journeyman",
+      "applies_when": { "panel_complexity": ["raised_panel", "carriage"] },
+      "qt_rates": {
+        "QT3": { "fixed_time_minutes": 12 },
+        "QT4": { "fixed_time_minutes": 15 }
+      },
+      "notes": "Same as coat 1."
+    },
+    {
+      "task_id": "TSK_GDRP_LEAPFROG_VERIFY_2",
+      "name": "Leapfrog Joint Verification (Coat 2)",
+      "required_input_key": "IN_EA_GARAGE_DOOR",
+      "paintscope_key": "PS_EXT_OPENING_EA.DOOR_GARAGE",
+      "unit_of_measure": "EA",
+      "fixed_time_minutes": 5,
+      "task_classification": "binary",
+      "skill_level": "journeyman",
+      "notes": "Verify joints clear after coat 2."
+    },
+    {
+      "task_id": "TSK_GDRP_BOTTOM_SEAL_PROP",
+      "name": "Bottom Seal Prop During Cure",
+      "required_input_key": "IN_EA_GARAGE_DOOR",
+      "paintscope_key": "PS_EXT_OPENING_EA.DOOR_GARAGE",
+      "unit_of_measure": "EA",
+      "fixed_time_minutes": 5,
+      "task_classification": "binary",
+      "skill_level": "journeyman",
+      "notes": "Prop door 2-4 inches. Secure."
+    },
+
+    {
+      "task_id": "TSK_GDRP_FINAL_INSPECT",
+      "name": "Final Visual Inspection",
+      "required_input_key": "IN_EA_GARAGE_DOOR",
+      "paintscope_key": "PS_EXT_OPENING_EA.DOOR_GARAGE",
+      "unit_of_measure": "EA",
+      "task_classification": "qt_scaled",
+      "skill_level": "lead",
+      "qt_rates": {
+        "QT3": { "fixed_time_minutes": 8 },
+        "QT4": { "fixed_time_minutes": 15 }
+      },
+      "notes": "QT3: 6-foot visual. QT4: 3-foot raking light."
+    },
+    {
+      "task_id": "TSK_GDRP_BALANCE_CHECK",
+      "name": "Balance Check",
+      "required_input_key": "IN_EA_GARAGE_DOOR",
+      "paintscope_key": "PS_EXT_OPENING_EA.DOOR_GARAGE",
+      "unit_of_measure": "EA",
+      "fixed_time_minutes": 3,
+      "task_classification": "binary",
+      "skill_level": "journeyman",
+      "notes": "Safety gate. Flag issues — do NOT adjust springs."
+    },
+    {
+      "task_id": "TSK_GDRP_TOUCHUP",
+      "name": "Touch-Up Defects",
+      "required_input_key": "IN_EA_GARAGE_DOOR",
+      "paintscope_key": "PS_EXT_OPENING_EA.DOOR_GARAGE",
+      "unit_of_measure": "EA",
+      "task_classification": "qt_scaled",
+      "skill_level": "journeyman",
+      "qt_rates": {
+        "QT3": { "fixed_time_minutes": 5 },
+        "QT4": { "fixed_time_minutes": 10 }
+      },
+      "notes": "Per door. Brush touch-up on inspection findings."
+    },
+
+    {
+      "task_id": "TSK_GDRP_WINDOW_UNMASK",
+      "name": "Window Insert Unmask",
+      "required_input_key": "IN_EA_GARAGE_DOOR",
+      "paintscope_key": "PS_EXT_OPENING_EA.DOOR_GARAGE",
+      "unit_of_measure": "EA",
+      "fixed_time_minutes": 8,
+      "task_classification": "binary",
+      "skill_level": "helper",
+      "applies_when": { "panel_type": ["windows"] },
+      "notes": "Conditional on windows."
+    },
+    {
+      "task_id": "TSK_GDRP_WEATHERSTRIP_UNMASK",
+      "name": "Weatherstrip Unmask",
+      "required_input_key": "IN_EA_GARAGE_DOOR",
+      "paintscope_key": "PS_EXT_OPENING_EA.DOOR_GARAGE",
+      "unit_of_measure": "EA",
+      "fixed_time_minutes": 5,
+      "task_classification": "binary",
+      "skill_level": "helper",
+      "notes": "Remove protection tape."
+    },
+    {
+      "task_id": "TSK_GDRP_TRACK_HARDWARE_UNMASK",
+      "name": "Track & Hardware Unmask",
+      "required_input_key": "IN_EA_GARAGE_DOOR",
+      "paintscope_key": "PS_EXT_OPENING_EA.DOOR_GARAGE",
+      "unit_of_measure": "EA",
+      "fixed_time_minutes": 10,
+      "task_classification": "binary",
+      "skill_level": "helper",
+      "notes": "Remove track/hardware masking."
+    },
+    {
+      "task_id": "TSK_GDRP_SIDING_UNMASK",
+      "name": "Siding Unmask",
+      "required_input_key": "IN_EA_GARAGE_DOOR",
+      "paintscope_key": "PS_EXT_OPENING_EA.DOOR_GARAGE",
+      "unit_of_measure": "EA",
+      "fixed_time_minutes": 8,
+      "task_classification": "binary",
+      "skill_level": "helper",
+      "applies_when": { "application_method": ["spray"] },
+      "notes": "Spray method only."
+    },
+    {
+      "task_id": "TSK_GDRP_BOTTOM_SEAL_REINSTALL",
+      "name": "Bottom Seal Reinstall",
+      "required_input_key": "IN_EA_GARAGE_DOOR",
+      "paintscope_key": "PS_EXT_OPENING_EA.DOOR_GARAGE",
+      "unit_of_measure": "EA",
+      "fixed_time_minutes": 12,
+      "task_classification": "binary",
+      "skill_level": "journeyman",
+      "notes": "Reinstall after 24-48 hr cure."
+    },
+    {
+      "task_id": "TSK_GDRP_DRIVEWAY_TEARDOWN",
+      "name": "Driveway Protection Teardown",
+      "required_input_key": "IN_SF_EXT_PROTECT_DRIVEWAY",
+      "paintscope_key": "PS_EXT_PROTECT_SF.DRIVEWAY",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 300,
+      "rate_range_low": 250,
+      "rate_range_high": 400,
+      "task_classification": "binary",
+      "skill_level": "helper",
+      "notes": "Remove canvas drops. Clean driveway."
+    },
+    {
+      "task_id": "TSK_GDRP_ARTICULATION_TEST",
+      "name": "Articulation Test",
+      "required_input_key": "IN_EA_GARAGE_DOOR",
+      "paintscope_key": "PS_EXT_OPENING_EA.DOOR_GARAGE",
+      "unit_of_measure": "EA",
+      "fixed_time_minutes": 5,
+      "task_classification": "binary",
+      "skill_level": "journeyman",
+      "notes": "Full open/close cycle test. CRITICAL safety check."
+    },
+    {
+      "task_id": "TSK_GDRP_TOOL_CLEAN",
+      "name": "Tool & Equipment Cleanup",
+      "unit_of_measure": "FIXED",
+      "fixed_time_minutes": 20,
+      "task_classification": "binary",
+      "skill_level": "helper",
+      "notes": "Per project."
+    }
+  ],
+
+  "factor_modifiers": [
+    {
+      "modifier_id": "FAC_GDRP_DOOR_SIZE",
+      "description": "Door size modifier — primary EA-to-time scaling",
+      "modifier_category": "surface_area",
+      "values": { "single": 1.00, "double": 1.85 },
+      "applies_to": "ALL per-door tasks (EA UOM). Not applied to FIXED or SF tasks.",
+      "notes": "Single door (~60 SF) = baseline. Double door (~119 SF) = 1.85x."
+    },
+    {
+      "modifier_id": "FAC_GDRP_PANEL_COMPLEXITY",
+      "description": "Panel complexity modifier",
+      "modifier_category": "surface_complexity",
+      "values": { "flush": 1.00, "raised_panel": 1.10, "carriage": 1.30 },
+      "applies_to": "ALL per-door tasks.",
+      "notes": "Flush = baseline. Raised_panel = +10% (recesses). Carriage = +30% (overlay detail)."
+    },
+    {
+      "modifier_id": "FAC_GDRP_WINDOWS",
+      "description": "Window masking additive time",
+      "modifier_category": "additive_scope",
+      "values": { "none": 0, "standard": 0.75, "divided_lite": 1.25 },
+      "applies_to": "ADDITIVE hours per door. Added on top of multiplicative modifiers.",
+      "notes": "Additive in hours. Standard = 45 min. Divided lite = 75 min."
+    },
+    {
+      "modifier_id": "FAC_GDRP_SUBSTRATE",
+      "description": "Substrate material modifier",
+      "modifier_category": "material_difficulty",
+      "values": { "steel": 1.00, "wood": 1.15, "composite": 1.20 },
+      "applies_to": "ALL per-door tasks.",
+      "notes": "Steel = baseline. Wood = +15% (grain management). Composite = +20% (mixed-material)."
+    },
+    {
+      "modifier_id": "FAC_GDRP_CONDITION",
+      "description": "Substrate condition modifier — prep tasks only",
+      "modifier_category": "prep_difficulty",
+      "values": {
+        "SS_EXT_SOUND_PAINT": 1.00,
+        "SS_EXT_CHALKING": 1.20,
+        "SS_EXT_FAILING_PAINT": 1.50,
+        "SS_EXT_SURFACE_RUST": 2.00
+      },
+      "applies_to": "PREP tasks only (MOD_GDRP_PREP). Does NOT apply to coating tasks — once prepped, surface is at baseline.",
+      "stacking_pool": "PREP",
+      "notes": "SS_EXT_SURFACE_RUST is steel-only."
+    },
+    {
+      "modifier_id": "FAC_GDRP_QT",
+      "description": "Quality tier modifier — coating tasks only",
+      "modifier_category": "quality_effort",
+      "values": { "QT3": 1.00, "QT4": 1.15 },
+      "applies_to": "COATING tasks only (prime, finish). NOT prep tasks.",
+      "stacking_pool": "COATING",
+      "notes": "QT4 adds intercoat sand, raking light, premium materials."
+    }
+  ],
+
+  "quality_effects": {
+    "qt_conditional_tasks": [
+      {
+        "task_id": "TSK_GDRP_SAND_INTERCOAT",
+        "appears_in": ["QT4"],
+        "notes": "220-grit intercoat sand between finish coats."
+      },
+      {
+        "task_id": "TSK_GDRP_DUST_INTERCOAT",
+        "appears_in": ["QT4"],
+        "notes": "Dust removal after intercoat sand."
+      }
+    ]
+  },
+
+  "time_estimate_summary": {
+    "baseline_scenario": {
+      "description": "Single steel flush door, sound paint, spray, QT3",
+      "assessment_minutes": 30,
+      "setup_minutes": 95,
+      "prep_minutes": 48,
+      "prime_minutes": 18,
+      "finish_1_minutes": 27,
+      "interstage_minutes": 10,
+      "finish_2_minutes": 32,
+      "final_inspect_minutes": 16,
+      "cleanup_minutes": 60,
+      "total_minutes": 336,
+      "total_hours": 5.6,
+      "notes": "Excludes driveway SF protection. RP is ~17% more than NC baseline (287 min) due to condition assessment and condition-driven prep tasks. With typical driveway: ~6.1-6.6 hrs."
+    },
+    "scenarios": [
+      {
+        "scenario": "Single steel flush, FAILING paint, spray, QT3",
+        "modifier": "FAC_GDRP_CONDITION = 1.50 on prep",
+        "estimated_hours": "7.0-7.5",
+        "notes": "Scrape + feather adds significant prep time."
+      },
+      {
+        "scenario": "Single steel flush, RUST, spray, QT3",
+        "modifier": "FAC_GDRP_CONDITION = 2.00 on prep",
+        "estimated_hours": "8.0-9.0",
+        "notes": "SSPC-SP3 debridement is highly labor-intensive."
+      },
+      {
+        "scenario": "Double steel flush, sound, spray, QT3",
+        "modifier": "FAC_GDRP_DOOR_SIZE = 1.85",
+        "estimated_hours": "10-11",
+        "notes": "1.85x single door time."
+      },
+      {
+        "scenario": "Single steel carriage, sound, spray, QT4",
+        "modifier": "FAC_GDRP_PANEL_COMPLEXITY = 1.30 x FAC_GDRP_QT = 1.15",
+        "estimated_hours": "8.5-9.5",
+        "notes": "Carriage detail + premium quality."
+      }
+    ]
+  },
+
+  "modifier_stacking": {
+    "stacking_cap": 4.0,
+    "worst_case_multiplicative": "Double (1.85) x carriage (1.30) x wood (1.15) x rust_prep (2.00) = ~5.53x on prep tasks — exceeds cap. Recommend T&M for extreme combinations.",
+    "common_high": "Double (1.85) x raised_panel (1.10) x QT4 (1.15) = 2.34x (well within cap)",
+    "common_low": "Single steel flush QT3 sound = 1.00x (baseline)"
+  }
+}

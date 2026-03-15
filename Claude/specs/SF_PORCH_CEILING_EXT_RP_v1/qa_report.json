@@ -1,0 +1,143 @@
+{
+  "spec_family_id": "SF_PORCH_CEILING_EXT_RP",
+  "version": "1.0.0",
+  "generated_by": "QA Critic",
+  "generated_at": "2026-03-15",
+  "overall_result": "pass",
+
+  "summary": {
+    "total_checks": 12,
+    "passed": 11,
+    "warnings": 1,
+    "failures": 0,
+    "total_tasks_sop": 41,
+    "total_tasks_production": 41,
+    "task_threading_match": true,
+    "uom_match": true,
+    "material_systems": 5,
+    "coverage_profiles": 4,
+    "consumables": 16,
+    "round_configurations": 4,
+    "modules": 9,
+    "protection_zones": 7
+  },
+
+  "issues": [
+    {
+      "issue_id": "QA-PCRP-001",
+      "severity": "minor",
+      "area": "theoretical_stacking",
+      "file": "production.json",
+      "description": "Theoretical prep pool maximum stacking is 7.68x (POOR 2.0 x RRP 2.0 x scaffold 1.60 x beadboard 1.20), which exceeds the 4.0x stacking cap. This represents an extreme edge case: 2-story porch with lead paint, peeling beadboard ceiling on scaffold. Both resolution.json and production.json correctly flag this as extreme theoretical and recommend T&M billing for this scenario.",
+      "suggested_fix": "Acknowledged. Realistic worst case is 2.03x (FAIR x ladder x solid_panel, no RRP) — well within cap. T&M recommendation for extreme cases is the correct approach."
+    }
+  ],
+
+  "observations": [
+    {
+      "observation_id": "OBS-PCRP-001",
+      "area": "nc_to_rp_task_transfer",
+      "description": "18 of 41 tasks are DIRECT transfers from NC (re-keyed TSK_PRCH_ to TSK_PCRP_). 4 tasks are MODIFIED (adjusted scope/rates for RP context). 14 tasks are RP-NEW (assessment, condition-driven prep, state-driven primer, customer walkthrough). 5 tasks are SHARED_RRP (EPA lead-safe containment). This transfer ratio (44% direct, 10% modified, 34% new, 12% shared) is consistent with the soffit RP transfer pattern.",
+      "severity": "minor"
+    },
+    {
+      "observation_id": "OBS-PCRP-002",
+      "area": "no_vent_simplification",
+      "description": "Porch ceiling RP is simpler than soffit RP in one key dimension: no vent type constraint. Spray is always eligible. This eliminates 2 soffit-specific dimensions (soffit_vent_type, vent_complexity modifier) and related vent masking/cleaning tasks. Total tasks: 41 (vs soffit RP 51).",
+      "severity": "minor"
+    },
+    {
+      "observation_id": "OBS-PCRP-003",
+      "area": "condition_scale_modifier",
+      "description": "Condition scale modifier (GOOD 1.0x, FAIR 1.5x, POOR 2.0x) follows the established soffit RP and trim RP pattern. This modifier applies only to prep tasks in the PREP stacking pool, never to coating tasks.",
+      "severity": "minor"
+    },
+    {
+      "observation_id": "OBS-PCRP-004",
+      "area": "qt4_modifier_consistency",
+      "description": "QT4 modifier is consistently 1.30 across research.json, resolution.json, and production.json quality_tier_effects. No discrepancy (unlike soffit RP QA-SFRP-001 where production.json had 1.20 vs resolution 1.30).",
+      "severity": "minor"
+    }
+  ],
+
+  "validation_checks": [
+    {
+      "check_id": "CHK-01",
+      "name": "Task threading — SOP to production",
+      "result": "PASS",
+      "details": "All 41 task_ids in sop_modules.json have matching entries in production.json. No orphans. Breakdown: 7 setup + 5 RRP + 5 assessment + 7 prep + 2 prime + 4 finish_1 + 4 interstage + 4 finish_2 + 6 cleanup = 44 task slots, but setup+cleanup share some, net 41 unique tasks."
+    },
+    {
+      "check_id": "CHK-02",
+      "name": "UOM consistency between SOP and production",
+      "result": "PASS",
+      "details": "All task UOMs match between sop_modules.json and production.json. SF, EA, LF, FIXED used consistently."
+    },
+    {
+      "check_id": "CHK-03",
+      "name": "Module phase ordering",
+      "result": "PASS",
+      "details": "Modules follow canonical sequence: setup -> prep (RRP, assessment, prep) -> prime -> finish -> interstage -> finish -> cleanup."
+    },
+    {
+      "check_id": "CHK-04",
+      "name": "Material system quality tier alignment",
+      "result": "PASS",
+      "details": "All 5 material systems have quality_tier arrays matching spec configuration_dimensions (QT2-QT4). Primer systems cover all 3 tiers. Finish systems split QT2/QT3 (standard) and QT4 (premium)."
+    },
+    {
+      "check_id": "CHK-05",
+      "name": "PaintScope key consistency",
+      "result": "PASS",
+      "details": "All 10 PaintScope keys in production.json input_group match spec required_paintscope_inputs. No orphan keys."
+    },
+    {
+      "check_id": "CHK-06",
+      "name": "Protection zone threading",
+      "result": "PASS",
+      "details": "All 7 protection zones in spec are covered by sop_modules.json protection_metadata: ext_porch_floor, ext_porch_furniture, ext_light_fixture, ext_fascia_adjacent, ext_wall_adjacent, ext_siding_adjacent, ext_rrp_containment."
+    },
+    {
+      "check_id": "CHK-07",
+      "name": "Paintable item in variants",
+      "result": "PASS",
+      "details": "ITM_PORCH_CEILING_FIELD appears in all 10 variants. Single paintable item — consistent."
+    },
+    {
+      "check_id": "CHK-08",
+      "name": "Round configuration coverage",
+      "result": "PASS",
+      "details": "4 round configurations cover all quality_tier x condition_scale combinations: GOOD+QT3/QT4 (2 finish), GOOD+QT2 (1 finish), FAIR/POOR+QT3/QT4 (prime+2 finish), FAIR/POOR+QT2 (prime+1 finish)."
+    },
+    {
+      "check_id": "CHK-09",
+      "name": "Prohibited enum values",
+      "result": "PASS",
+      "details": "No prohibited values found: task_class (absent — task_classification used), CONS_ prefix (absent — CON_ used), protect/protection phase (absent — setup/cleanup used), lowercase UOM (absent)."
+    },
+    {
+      "check_id": "CHK-10",
+      "name": "Context prefix collision",
+      "result": "PASS",
+      "details": "PCRP prefix has zero collisions with any existing TSK_ or MOD_ prefix in the system."
+    },
+    {
+      "check_id": "CHK-11",
+      "name": "Stacking partition integrity",
+      "result": "PASS",
+      "details": "Prep modifiers (condition_scale, RRP) never appear in coating task applicable_modifiers. QT never appears in prep task applicable_modifiers. Shared modifiers (access, panel_joints) correctly applied to both pools where applicable."
+    },
+    {
+      "check_id": "CHK-12",
+      "name": "QT4 modifier consistency",
+      "result": "PASS",
+      "details": "QT4 modifier is 1.30 in production.json quality_tier_effects, consistent with research.json and resolution.json. No discrepancy."
+    }
+  ],
+
+  "blockers": [],
+
+  "critical_risks": [
+    "Extreme prep stacking (7.68x) exceeds 4.0x cap in theoretical worst case — T&M billing recommended for pre-1978 peeling beadboard porch ceiling on scaffold"
+  ]
+}

@@ -1,0 +1,1049 @@
+{
+  "spec_family_id": "SF_SIDING_ENGINEERED_EXT_RP",
+  "version": "1.0.0",
+  "generated_by": "Estimation Engineer",
+  "generated_at": "2026-03-15",
+
+  "MODIFIER_STACKING_WARNING": {
+    "severity": "critical",
+    "description": "Modifier stacking uses TWO separate pools that never cross-apply. Prep tasks use condition x RRP x access x profile x texture. Coating tasks use QT x access x profile x texture. Condition and RRP NEVER apply to coating tasks. QT NEVER applies to prep tasks.",
+    "worst_case_prep": "POOR(2.0) x RRP(2.0) x scaffold(1.60) x lap(1.00) x textured(1.15) = 7.36x — extreme theoretical for pre-1978 peeling EW at scaffold height",
+    "realistic_worst_prep": "FAIR(1.5) x no_RRP(1.0) x ladder(1.35) x lap(1.00) x textured(1.15) = 2.33x — within cap",
+    "worst_case_coating": "QT4(1.30) x scaffold(1.60) x lap(1.00) x textured(1.15) = 2.39x — within 4.0x cap",
+    "realistic_worst_coating": "QT3(1.0) x ladder(1.35) x lap(1.00) x textured(1.15) = 1.55x — comfortable",
+    "stacking_rules": {
+      "prep_tasks": {
+        "formula": "effective_rate = base_rate / (condition x rrp x access x profile x texture)",
+        "pool_modifiers": "FAC_EWRP_CONDITION + FAC_EWRP_RRP (PREP pool)",
+        "shared_modifiers": "FAC_EXT_ACCESS + FAC_EWRP_SIDING_PROFILE + FAC_EWRP_SURFACE_TEXTURE",
+        "never_includes": "quality_tier"
+      },
+      "coating_tasks": {
+        "formula": "effective_rate = base_rate / (qt x access x profile x texture)",
+        "pool_modifiers": "FAC_EWRP_QT (COATING pool)",
+        "shared_modifiers": "FAC_EXT_ACCESS + FAC_EWRP_SIDING_PROFILE + FAC_EWRP_SURFACE_TEXTURE",
+        "never_includes": "FAC_EWRP_CONDITION, FAC_EWRP_RRP"
+      },
+      "fixed_tasks": {
+        "formula": "fixed_time_minutes (no modifiers unless noted)",
+        "note": "Assessment fixed tasks, equipment setup/cleanup, RRP containment, customer walkthrough — no modifiers applied."
+      }
+    }
+  },
+
+  "siding_surface_input_group": {
+    "description": "Rate per SF applies to net siding field area from PaintScope. Engine divides SF by rate to calculate hours. RP rates calibrated from NC sibling (SF_SIDING_ENGINEERED_EXT_NC_v1) with RP-specific adjustments. Base rates are for lap profile, smooth texture, ground access. spray_backroll is PRIMARY RP method. Low-pressure power wash (500-1000 PSI) is allowed for engineered wood RP.",
+    "inputs": [
+      { "input_name": "IN_SF_SIDING_FIELD", "paintscope_key": "PS_EXT_SURFACE_SF.SIDING_FIELD" },
+      { "input_name": "IN_EA_ELEVATIONS_TOTAL", "paintscope_key": "PS_EXT_META.EA.ELEVATIONS_TOTAL" },
+      { "input_name": "IN_ENUM_ACCESS_TYPE", "paintscope_key": "PS_EXT_META.ENUM.ACCESS_TYPE" },
+      { "input_name": "IN_ENUM_SUBSTRATE_STATE_EXT", "paintscope_key": "PS_EXT_META.ENUM.SUBSTRATE_STATE" },
+      { "input_name": "IN_ENUM_SIDING_PROFILE", "paintscope_key": "PS_EXT_META.ENUM.SIDING_PROFILE" },
+      { "input_name": "IN_ENUM_SURFACE_TEXTURE", "paintscope_key": "PS_EXT_META.ENUM.SURFACE_TEXTURE" },
+      { "input_name": "IN_BOOL_PRE_1978_EXT", "paintscope_key": "PS_EXT_META.FLAG.PRE_1978" },
+      { "input_name": "IN_LF_EXT_PROTECT_LANDSCAPE_PERIMETER", "paintscope_key": "PS_EXT_PROTECT_LF.LANDSCAPE_PERIMETER" },
+      { "input_name": "IN_SF_EXT_PROTECT_HARDSCAPE_WALK", "paintscope_key": "PS_EXT_PROTECT_SF.HARDSCAPE_WALK" },
+      { "input_name": "IN_SF_EXT_PROTECT_HARDSCAPE_PATIO", "paintscope_key": "PS_EXT_PROTECT_SF.HARDSCAPE_PATIO" },
+      { "input_name": "IN_EA_EXT_PROTECT_LIGHT_FIXTURE", "paintscope_key": "PS_EXT_PROTECT_EA.LIGHT_FIXTURE" },
+      { "input_name": "IN_EA_EXT_PROTECT_HVAC_UNIT", "paintscope_key": "PS_EXT_PROTECT_EA.HVAC_UNIT" },
+      { "input_name": "IN_SF_EXT_PROTECT_VEHICLE_DRIVEWAY", "paintscope_key": "PS_EXT_PROTECT_SF.VEHICLE_DRIVEWAY" }
+    ]
+  },
+
+  "task_production_rates": [
+
+    {
+      "_section": "=== MOD_EWRP_SETUP — 7 tasks ===",
+      "_note": "Protection setup, fixture masking, vehicle protection, equipment staging"
+    },
+
+    {
+      "task_id": "TSK_EWRP_LANDSCAPE_PROTECT",
+      "name": "Landscape Perimeter Protection Setup",
+      "required_input_key": "IN_LF_EXT_PROTECT_LANDSCAPE_PERIMETER",
+      "paintscope_key": "PS_EXT_PROTECT_LF.LANDSCAPE_PERIMETER",
+      "unit_of_measure": "LF",
+      "task_classification": "binary",
+      "rate_per_hour": 120,
+      "rate_range_low": 80,
+      "rate_range_high": 150,
+      "crew_size": 1,
+      "modifier_pool": "none",
+      "applicable_modifiers": [],
+      "rate_basis_notes": "DIRECT transfer from TSK_ENSD_LANDSCAPE_PROTECT (NC 120 LF/hr). Ground-level task. Deploy tarps along house perimeter where landscape is adjacent. ~30 sec per LF. RP adds scraping debris and wash water runoff containment.",
+      "applies_when": {}
+    },
+    {
+      "task_id": "TSK_EWRP_HARDSCAPE_PROTECT",
+      "name": "Hardscape Protection Setup",
+      "required_input_key": "IN_SF_EXT_PROTECT_HARDSCAPE_WALK",
+      "paintscope_key": "PS_EXT_PROTECT_SF.HARDSCAPE_WALK",
+      "unit_of_measure": "SF",
+      "task_classification": "binary",
+      "rate_per_hour": 250,
+      "rate_range_low": 200,
+      "rate_range_high": 350,
+      "crew_size": 1,
+      "modifier_pool": "none",
+      "applicable_modifiers": [],
+      "rate_basis_notes": "DIRECT transfer from TSK_ENSD_HARDSCAPE_PROTECT (NC 250 SF/hr). Ground-level task. Lay drop cloths and plastic on flat walkway/patio surfaces. ~14 sec per SF.",
+      "applies_when": {}
+    },
+    {
+      "task_id": "TSK_EWRP_FIXTURE_MASK",
+      "name": "Fixture and Utility Masking",
+      "required_input_key": "IN_EA_EXT_PROTECT_LIGHT_FIXTURE",
+      "paintscope_key": "PS_EXT_PROTECT_EA.LIGHT_FIXTURE",
+      "unit_of_measure": "EA",
+      "task_classification": "binary",
+      "rate_per_hour": 15,
+      "rate_range_low": 10,
+      "rate_range_high": 20,
+      "crew_size": 1,
+      "modifier_pool": "none",
+      "applicable_modifiers": [],
+      "rate_basis_notes": "DIRECT transfer from TSK_ENSD_FIXTURE_MASK (NC 15 EA/hr). Bag and tape light fixtures, utility panels, hose bibs. ~4 min per fixture. HVAC units take longer (~10 min). RP: all fixtures installed and operational — masking mandatory.",
+      "applies_when": {}
+    },
+    {
+      "task_id": "TSK_EWRP_LANDSCAPE_FULL_PROTECT",
+      "name": "Extended Landscape Overspray Protection (Spray Only)",
+      "required_input_key": "IN_SF_EXT_PROTECT_HARDSCAPE_PATIO",
+      "paintscope_key": "PS_EXT_PROTECT_SF.HARDSCAPE_PATIO",
+      "unit_of_measure": "SF",
+      "task_classification": "binary",
+      "rate_per_hour": 200,
+      "rate_range_low": 150,
+      "rate_range_high": 250,
+      "crew_size": 1,
+      "modifier_pool": "none",
+      "applicable_modifiers": [],
+      "rate_basis_notes": "RP_NEW. Extended overspray protection for landscape areas beyond perimeter edge tarps. ~18 sec per SF. Ground-level task. spray_backroll only. Calibrated from FC RP TSK_FCRP_LANDSCAPE_FULL_PROTECT (200 SF/hr).",
+      "applies_when": { "application_method": ["spray_backroll"] }
+    },
+    {
+      "task_id": "TSK_EWRP_VEHICLE_PROTECT",
+      "name": "Vehicle/Driveway Overspray Protection",
+      "required_input_key": "IN_SF_EXT_PROTECT_VEHICLE_DRIVEWAY",
+      "paintscope_key": "PS_EXT_PROTECT_SF.VEHICLE_DRIVEWAY",
+      "unit_of_measure": "SF",
+      "task_classification": "binary",
+      "rate_per_hour": 200,
+      "rate_range_low": 150,
+      "rate_range_high": 250,
+      "crew_size": 1,
+      "modifier_pool": "none",
+      "applicable_modifiers": [],
+      "rate_basis_notes": "RP_NEW. Deploy poly sheeting and drop cloths over vehicles, driveway surfaces. RP-specific — occupied home context. ~18 sec per SF. Ground-level task. spray_backroll only. Calibrated from FC RP TSK_FCRP_VEHICLE_PROTECT (200 SF/hr).",
+      "applies_when": { "application_method": ["spray_backroll"] }
+    },
+    {
+      "task_id": "TSK_EWRP_EQUIPMENT_SETUP_SPRAY_BACKROLL",
+      "name": "Spray/Backroll Equipment Setup",
+      "unit_of_measure": "FIXED",
+      "task_classification": "binary",
+      "fixed_time_minutes": 50,
+      "fixed_time_range_low": 40,
+      "fixed_time_range_high": 60,
+      "crew_size": 1,
+      "modifier_pool": "none",
+      "applicable_modifiers": [],
+      "rate_basis_notes": "MODIFIED from TSK_ENSD_EQUIPMENT_SETUP_SPRAY (NC 50 min includes spray_backroll staging). RP uses same 50 min — airless sprayer config + backroll equipment staging (18-inch frame, roller covers). Per-session FIXED time. Matches FC RP TSK_FCRP_EQUIPMENT_SETUP_SPRAY_BACKROLL (50 min).",
+      "applies_when": { "application_method": ["spray_backroll"] }
+    },
+    {
+      "task_id": "TSK_EWRP_EQUIPMENT_SETUP_BRUSH_ROLL",
+      "name": "Brush/Roll Equipment Setup",
+      "unit_of_measure": "FIXED",
+      "task_classification": "binary",
+      "fixed_time_minutes": 20,
+      "fixed_time_range_low": 15,
+      "fixed_time_range_high": 30,
+      "crew_size": 1,
+      "modifier_pool": "none",
+      "applicable_modifiers": [],
+      "rate_basis_notes": "DIRECT transfer from TSK_ENSD_EQUIPMENT_SETUP_BRUSH (NC 20 min). Per-session FIXED time. Stage brushes, rollers, trays, extension poles. Matches FC RP TSK_FCRP_EQUIPMENT_SETUP_BRUSH_ROLL (20 min).",
+      "applies_when": { "application_method": ["brush_roll"] }
+    },
+
+    {
+      "_section": "=== MOD_EWRP_ASSESS — 6 tasks ===",
+      "_note": "RP-specific condition assessment. All RP_NEW. FIXED per-elevation."
+    },
+
+    {
+      "task_id": "TSK_EWRP_ASSESS_CONDITION",
+      "name": "Visual Condition Inspection Per Elevation",
+      "unit_of_measure": "FIXED",
+      "task_classification": "qt_scaled",
+      "qt_rates": {
+        "QT2": { "fixed_time_minutes": 10, "notes": "Quick ground-level scan. Note obvious defects. ~10 min per elevation." },
+        "QT3": { "fixed_time_minutes": 15, "notes": "Standard visual with work light, document visible defects per elevation. ~15 min." },
+        "QT4": { "fixed_time_minutes": 20, "notes": "Systematic scan with raking light, photograph all defect areas, per-elevation assessment. ~20 min." }
+      },
+      "fixed_time_range_low": 8,
+      "fixed_time_range_high": 25,
+      "crew_size": 1,
+      "modifier_pool": "none",
+      "applicable_modifiers": [],
+      "rate_basis_notes": "RP_NEW. Per-elevation FIXED time. Maps cracking, peeling, chalking, fading, edge swelling. Assigns substrate state. Calibrated from FC RP TSK_FCRP_ASSESS_CONDITION (same QT rates). EW adds edge seal assessment scope vs FC.",
+      "applies_when": {}
+    },
+    {
+      "task_id": "TSK_EWRP_ASSESS_ADHESION",
+      "name": "Adhesion Test (ASTM D3359 Cross-Hatch Tape Test)",
+      "unit_of_measure": "FIXED",
+      "task_classification": "binary",
+      "fixed_time_minutes": 10,
+      "fixed_time_range_low": 8,
+      "fixed_time_range_high": 15,
+      "crew_size": 1,
+      "modifier_pool": "none",
+      "applicable_modifiers": [],
+      "rate_basis_notes": "RP_NEW. Per-elevation FIXED time. Cross-hatch tape test at minimum 2 locations per elevation. ~10 min. Pass + SS_EXT_SOUND_PAINT = skip full prime. Fail = full prime required. Calibrated from FC RP TSK_FCRP_ASSESS_ADHESION (10 min).",
+      "applies_when": {}
+    },
+    {
+      "task_id": "TSK_EWRP_ASSESS_CHALK",
+      "name": "Chalk Test (White Cloth Rub)",
+      "unit_of_measure": "FIXED",
+      "task_classification": "binary",
+      "fixed_time_minutes": 5,
+      "fixed_time_range_low": 3,
+      "fixed_time_range_high": 8,
+      "crew_size": 1,
+      "modifier_pool": "none",
+      "applicable_modifiers": [],
+      "rate_basis_notes": "RP_NEW. Per-elevation FIXED time. Rub clean white cloth across painted siding at 2-3 representative locations per elevation. ~5 min. Moderate/heavy chalk triggers SS_EXT_CHALKING and chalk-binding primer path. Calibrated from FC RP TSK_FCRP_ASSESS_CHALK (5 min).",
+      "applies_when": {}
+    },
+    {
+      "task_id": "TSK_EWRP_ASSESS_MOISTURE",
+      "name": "Moisture Probe at Joints and Edges",
+      "unit_of_measure": "FIXED",
+      "task_classification": "binary",
+      "fixed_time_minutes": 10,
+      "fixed_time_range_low": 8,
+      "fixed_time_range_high": 15,
+      "crew_size": 1,
+      "modifier_pool": "none",
+      "applicable_modifiers": [],
+      "rate_basis_notes": "RP_NEW. Per-elevation FIXED time. Pin-type moisture meter at siding-to-trim junctions, butt joints, cut edges, and water damage areas. ~10 min per elevation. MC >15% = STOP WORK for coating. EW is more moisture-sensitive than FC. Calibrated from FC RP TSK_FCRP_ASSESS_MOISTURE (10 min).",
+      "applies_when": {}
+    },
+    {
+      "task_id": "TSK_EWRP_ASSESS_EDGE_SEAL",
+      "name": "Edge Seal Integrity Check",
+      "unit_of_measure": "FIXED",
+      "task_classification": "binary",
+      "fixed_time_minutes": 10,
+      "fixed_time_range_low": 8,
+      "fixed_time_range_high": 15,
+      "crew_size": 1,
+      "modifier_pool": "none",
+      "applicable_modifiers": [],
+      "rate_basis_notes": "RP_NEW. Per-elevation FIXED time. EW-specific assessment — no FC or wood siding equivalent. Inspect all visible cut edges at butt joints, miters, and field cuts for swelling, springback, soft spots. Probe with utility knife at suspect areas. ~10 min per elevation. Replaces NC TSK_ENSD_SEAL_CUT_EDGES (application → assessment).",
+      "applies_when": {}
+    },
+    {
+      "task_id": "TSK_EWRP_ASSESS_CAULK",
+      "name": "Caulk Assessment per 'Think Like a Water Drop' Protocol",
+      "unit_of_measure": "FIXED",
+      "task_classification": "qt_scaled",
+      "qt_rates": {
+        "QT2": { "fixed_time_minutes": 10, "notes": "Quick scan of major joints — note obvious failures. ~10 min per elevation." },
+        "QT3": { "fixed_time_minutes": 15, "notes": "Comprehensive assessment of all joint types. Document LF requiring replacement. ~15 min." },
+        "QT4": { "fixed_time_minutes": 20, "notes": "Critical assessment of every joint. Full LF documentation with defect photographs. ~20 min." }
+      },
+      "fixed_time_range_low": 8,
+      "fixed_time_range_high": 25,
+      "crew_size": 1,
+      "modifier_pool": "none",
+      "applicable_modifiers": [],
+      "rate_basis_notes": "RP_NEW. Per-elevation FIXED time. Assess all joint types: siding-to-trim, butt joints, foundation transitions. Butt joints assessed but NOT re-caulked per NC moisture trap prohibition. Calibrated from FC RP TSK_FCRP_ASSESS_CAULK (same QT rates). EW has fewer caulk joints than FC overall but butt joint assessment is EW-specific concern.",
+      "applies_when": {}
+    },
+
+    {
+      "_section": "=== MOD_EWRP_PREP — 9 tasks ===",
+      "_note": "Condition-driven prep. Prep pool modifiers: condition x RRP x access x profile x texture."
+    },
+
+    {
+      "task_id": "TSK_EWRP_POWER_WASH_LOW",
+      "name": "Low-Pressure Power Wash (500-1000 PSI)",
+      "input_group": "siding_surface_input_group",
+      "unit_of_measure": "SF",
+      "task_classification": "binary",
+      "rate_per_hour": 800,
+      "rate_range_low": 600,
+      "rate_range_high": 1000,
+      "crew_size": 1,
+      "modifier_pool": "prep",
+      "applicable_modifiers": ["FAC_EWRP_CONDITION", "FAC_EXT_ACCESS"],
+      "rate_basis_notes": "MODIFIED from TSK_ENSD_WASH_LOW_PRESSURE (NC 600 SF/hr garden hose). RP upgrades to low-pressure power wash (500-1000 PSI) — ~33% faster than garden hose = 800 SF/hr (~4.5 sec per SF). KEY DEPARTURE: EW allows power wash at 500-1000 PSI (NC prohibits power washing, FC RP prohibits power washing). CRITICAL: never exceed 1000 PSI — damages OSB core at joints/cut edges. 24-48 hr dry time before coating. TSP at QT4. Condition modifier applies (POOR has more stubborn contamination). No profile/texture modifiers — wash rate is constant. No RRP modifier — washing is cleaning, not paint disturbance.",
+      "applies_when": {}
+    },
+    {
+      "task_id": "TSK_EWRP_MILDEW_TREAT",
+      "name": "Mildew/Algae Biocide Treatment",
+      "unit_of_measure": "SF",
+      "task_classification": "binary",
+      "rate_per_hour": 200,
+      "rate_range_low": 150,
+      "rate_range_high": 250,
+      "crew_size": 1,
+      "modifier_pool": "prep",
+      "applicable_modifiers": ["FAC_EWRP_CONDITION", "FAC_EXT_ACCESS"],
+      "rate_basis_notes": "RP_NEW. Apply biocide solution to mildew/algae areas. 10-15 min dwell. Rinse with low-pressure water. ~18 sec per SF. Common on north-facing/shaded elevations. Calibrated from FC RP TSK_FCRP_MILDEW_TREAT (200 SF/hr). Condition modifier applies (FAIR/POOR have more extensive growth). No RRP modifier — biocide is cleaning, not paint disturbance. No profile/texture modifiers — biocide application rate is constant.",
+      "applies_when": { "condition_assessment": "mildew_present" }
+    },
+    {
+      "task_id": "TSK_EWRP_SCRAPE_FEATHER",
+      "name": "Scrape Failing/Peeling Paint + Feather Sand Edges",
+      "input_group": "siding_surface_input_group",
+      "unit_of_measure": "SF",
+      "task_classification": "binary",
+      "rate_per_hour": 55,
+      "rate_range_low": 35,
+      "rate_range_high": 80,
+      "crew_size": 1,
+      "modifier_pool": "prep",
+      "applicable_modifiers": ["FAC_EWRP_CONDITION", "FAC_EWRP_RRP", "FAC_EXT_ACCESS", "FAC_EWRP_SIDING_PROFILE"],
+      "rate_basis_notes": "RP_NEW. Carbide scraper to remove failing/peeling paint to sound substrate. 80-100 grit feather-edge sanding mandatory on ALL scraped transitions. QT3 baseline: 55 SF/hr (~65 sec/SF). Calibrated from FC RP TSK_FCRP_SCRAPE_FEATHER (QT3: 50 SF/hr); EW is slightly faster — no cementitious hardness, softer substrate, but same feathering requirement. Condition modifier: FAIR=1.5x (light scraping), POOR=2.0x (heavy scraping). RRP 2.0x for wet scraping method. Profile modifier applies (panel 0.90x — large flat areas faster to scrape).",
+      "applies_when": { "substrate_state": ["SS_EXT_FAILING_PAINT", "SS_EXT_PEELING"] }
+    },
+    {
+      "task_id": "TSK_EWRP_DEGLOSS_SCUFF",
+      "name": "Degloss/Scuff Existing Sound Paint",
+      "input_group": "siding_surface_input_group",
+      "unit_of_measure": "SF",
+      "task_classification": "binary",
+      "rate_per_hour": 200,
+      "rate_range_low": 150,
+      "rate_range_high": 250,
+      "crew_size": 1,
+      "modifier_pool": "prep",
+      "applicable_modifiers": ["FAC_EWRP_CONDITION", "FAC_EWRP_RRP", "FAC_EXT_ACCESS", "FAC_EWRP_SIDING_PROFILE"],
+      "rate_basis_notes": "MODIFIED from TSK_ENSD_SCUFF_SAND (NC 200 SF/hr). Same rate — 150-180 grit scuff sand for adhesion profile. ~18 sec per SF. RP targets existing paint film adhesion (not factory primer). Chemical deglosser alternative for complex areas. Calibrated from FC RP TSK_FCRP_DEGLOSS_SCUFF (QT3: 200 SF/hr). Skip for SS_EXT_PEELING (full scrape renders degloss redundant). Skip for SS_EXT_CHALKING (chalk remediation path). Profile modifier applies (panel 0.90x).",
+      "applies_when": {}
+    },
+    {
+      "task_id": "TSK_EWRP_CHALK_REMEDIATE",
+      "name": "Chalk Remediation Pre-Treatment",
+      "input_group": "siding_surface_input_group",
+      "unit_of_measure": "SF",
+      "task_classification": "binary",
+      "rate_per_hour": 200,
+      "rate_range_low": 150,
+      "rate_range_high": 250,
+      "crew_size": 1,
+      "modifier_pool": "prep",
+      "applicable_modifiers": ["FAC_EWRP_CONDITION", "FAC_EXT_ACCESS"],
+      "rate_basis_notes": "RP_NEW. Chemical chalk remover on stubborn chalking areas after power wash. Wipe and verify with white cloth test. ~18 sec per SF. Calibrated from FC RP TSK_FCRP_CHALK_REMEDIATION (200 SF/hr). SS_EXT_CHALKING only. No RRP modifier — chalk remediation is cleaning, not paint disturbance. No profile/texture modifiers — chemical application rate is constant.",
+      "applies_when": { "substrate_state": ["SS_EXT_CHALKING"] }
+    },
+    {
+      "task_id": "TSK_EWRP_CAULK_REMOVE_FAILED",
+      "name": "Remove Failed Caulk at Joints",
+      "unit_of_measure": "LF",
+      "task_classification": "binary",
+      "rate_per_hour": 30,
+      "rate_range_low": 20,
+      "rate_range_high": 40,
+      "crew_size": 1,
+      "modifier_pool": "prep",
+      "applicable_modifiers": ["FAC_EWRP_CONDITION", "FAC_EXT_ACCESS"],
+      "rate_basis_notes": "RP_NEW. Cut out failed caulk with utility knife, clean joint to bare substrate. ~2 min per LF. Calibrated from FC RP TSK_FCRP_CAULK_REMOVE_FAILED (30 LF/hr). Butt joint caulk REMOVED but NOT re-caulked (moisture trap prohibition from NC). No RRP modifier — caulk removal does not disturb paint. No profile/texture modifiers — joint geometry is consistent.",
+      "applies_when": {}
+    },
+    {
+      "task_id": "TSK_EWRP_CAULK_APPLY_NEW",
+      "name": "Apply New Caulk at Siding-to-Trim Joints",
+      "unit_of_measure": "LF",
+      "task_classification": "binary",
+      "rate_per_hour": 60,
+      "rate_range_low": 40,
+      "rate_range_high": 80,
+      "crew_size": 1,
+      "modifier_pool": "prep",
+      "applicable_modifiers": ["FAC_EXT_ACCESS"],
+      "rate_basis_notes": "MODIFIED from TSK_ENSD_CAULK_JOINTS (NC 90 LF/hr). RP caulk goes into variable-width cleaned joints vs NC fresh uniform joints — slower at 60 LF/hr (~60 sec per LF). Calibrated from FC RP TSK_FCRP_CAULK_APPLY_NEW (QT3: 60 LF/hr). Tool smooth. Do NOT re-caulk butt joints. Allow 2-4 hr cure before overcoating. No condition modifier — caulk application rate is constant. No profile/texture modifiers — joint geometry is consistent.",
+      "applies_when": {}
+    },
+    {
+      "task_id": "TSK_EWRP_MOISTURE_CHECK",
+      "name": "Moisture Content Verification",
+      "input_group": "siding_surface_input_group",
+      "unit_of_measure": "SF",
+      "task_classification": "binary",
+      "rate_per_hour": 1200,
+      "rate_range_low": 800,
+      "rate_range_high": 1500,
+      "crew_size": 1,
+      "modifier_pool": "prep",
+      "applicable_modifiers": ["FAC_EXT_ACCESS"],
+      "rate_basis_notes": "MODIFIED from TSK_ENSD_MOISTURE_CHECK (NC 1200 SF/hr). Same rate and threshold (<15% MC). RP checks existing paint film + edge seal areas after wash dry time. Pin-type moisture meter at cut edges, joints, and flagged areas. ~3 sec per SF average. Mandatory at ALL tiers. EW is more moisture-sensitive than FC. No condition/RRP modifiers — MC check rate is constant.",
+      "applies_when": {}
+    },
+    {
+      "task_id": "TSK_EWRP_DUST_CLEANUP",
+      "name": "Prep Dust and Debris Cleanup",
+      "input_group": "siding_surface_input_group",
+      "unit_of_measure": "SF",
+      "task_classification": "binary",
+      "rate_per_hour": 500,
+      "rate_range_low": 400,
+      "rate_range_high": 600,
+      "crew_size": 1,
+      "modifier_pool": "none",
+      "applicable_modifiers": ["FAC_EXT_ACCESS"],
+      "rate_basis_notes": "MODIFIED from TSK_ENSD_DUST_CLEANUP (NC 600 SF/hr). RP generates more debris (sanding dust + scraping debris + chalk residue + caulk debris) — reduced to 500 SF/hr (~7 sec per SF). Compressed air or tack cloth. Calibrated from FC RP TSK_FCRP_PREP_DUST_DEBRIS (500 SF/hr). Access modifier applies. No condition or RRP modifiers.",
+      "applies_when": {}
+    },
+
+    {
+      "_section": "=== MOD_EWRP_PRIME — 2 tasks ===",
+      "_note": "State-driven primer. Coating pool modifiers. NO alkali-resistant primer (neutral pH)."
+    },
+
+    {
+      "task_id": "TSK_EWRP_PRIME_SPRAY_BACKROLL",
+      "name": "Prime Coat — Spray + Back-Roll Application",
+      "input_group": "siding_surface_input_group",
+      "unit_of_measure": "SF",
+      "task_classification": "binary",
+      "rate_per_hour": 225,
+      "rate_range_low": 175,
+      "rate_range_high": 275,
+      "crew_size": 2,
+      "modifier_pool": "coating",
+      "applicable_modifiers": ["FAC_EXT_ACCESS", "FAC_EWRP_SIDING_PROFILE", "FAC_EWRP_SURFACE_TEXTURE"],
+      "rate_basis_notes": "MODIFIED from TSK_ENSD_PRIME_SPRAY_BACKROLL (NC 175 SF/hr for 2-person crew). RP rate is FASTER at 225 SF/hr because previously painted EW surface is less porous than NC factory-primed — primer doesn't absorb as deeply. Calibrated from FC RP TSK_FCRP_PRIME_SPRAY_BACKROLL (265 SF/hr); EW slightly slower than FC due to lap/panel profile complexity = 225 SF/hr. Two-person operation: sprayer leads, roller follows within wet edge. Primary RP prime method. Profile modifier applies (panel 0.90x — faster). Texture modifier applies (textured 1.15x).",
+      "applies_when": { "application_method": ["spray_backroll"] }
+    },
+    {
+      "task_id": "TSK_EWRP_PRIME_BRUSH_ROLL",
+      "name": "Prime Coat — Brush/Roll Application",
+      "input_group": "siding_surface_input_group",
+      "unit_of_measure": "SF",
+      "task_classification": "binary",
+      "rate_per_hour": 100,
+      "rate_range_low": 80,
+      "rate_range_high": 120,
+      "crew_size": 1,
+      "modifier_pool": "coating",
+      "applicable_modifiers": ["FAC_EXT_ACCESS", "FAC_EWRP_SIDING_PROFILE", "FAC_EWRP_SURFACE_TEXTURE"],
+      "rate_basis_notes": "DIRECT transfer from TSK_ENSD_PRIME_BRUSH_ROLL (NC 100 SF/hr). Same physical action — brush for edges, roller for field. ~36 sec per SF. Fallback method for <750 SF, occupied-adjacent, or high wind. Matches FC RP TSK_FCRP_PRIME_BRUSH_ROLL (100 SF/hr). Profile modifier applies. Texture modifier applies.",
+      "applies_when": { "application_method": ["brush_roll"] }
+    },
+
+    {
+      "_section": "=== MOD_EWRP_FINISH — 4 tasks ===",
+      "_note": "Coat 1 and Coat 2 application. Coating pool modifiers."
+    },
+
+    {
+      "task_id": "TSK_EWRP_FINISH_1_SPRAY_BACKROLL",
+      "name": "Finish Coat 1 — Spray + Back-Roll Application",
+      "input_group": "siding_surface_input_group",
+      "unit_of_measure": "SF",
+      "task_classification": "binary",
+      "rate_per_hour": 225,
+      "rate_range_low": 180,
+      "rate_range_high": 280,
+      "crew_size": 2,
+      "modifier_pool": "coating",
+      "applicable_modifiers": ["FAC_EXT_ACCESS", "FAC_EWRP_SIDING_PROFILE", "FAC_EWRP_SURFACE_TEXTURE"],
+      "rate_basis_notes": "MODIFIED from TSK_ENSD_FINISH_1_SPRAY_BACKROLL (NC 175 SF/hr for 2-person crew). RP rate is FASTER at 225 SF/hr because primed/previously painted surface provides more consistent absorption than NC factory-primed. Calibrated from FC RP TSK_FCRP_FINISH_1_SPRAY_BACKROLL (225 SF/hr). Two-person operation: sprayer leads, roller follows. Primary RP finish method. ~16 sec per SF combined. Profile modifier applies (panel 0.90x). Texture modifier applies (textured 1.15x).",
+      "applies_when": { "application_method": ["spray_backroll"] }
+    },
+    {
+      "task_id": "TSK_EWRP_FINISH_1_BRUSH_ROLL",
+      "name": "Finish Coat 1 — Brush/Roll Application",
+      "input_group": "siding_surface_input_group",
+      "unit_of_measure": "SF",
+      "task_classification": "binary",
+      "rate_per_hour": 100,
+      "rate_range_low": 80,
+      "rate_range_high": 120,
+      "crew_size": 1,
+      "modifier_pool": "coating",
+      "applicable_modifiers": ["FAC_EXT_ACCESS", "FAC_EWRP_SIDING_PROFILE", "FAC_EWRP_SURFACE_TEXTURE"],
+      "rate_basis_notes": "DIRECT transfer from TSK_ENSD_FINISH_1_BRUSH_ROLL (NC 100 SF/hr). Same physical action — brush for edges, roller for field. ~36 sec per SF. Fallback method. Matches FC RP TSK_FCRP_FINISH_1_BRUSH_ROLL (100 SF/hr). Profile modifier applies. Texture modifier applies.",
+      "applies_when": { "application_method": ["brush_roll"] }
+    },
+    {
+      "task_id": "TSK_EWRP_FINISH_2_SPRAY_BACKROLL",
+      "name": "Finish Coat 2 — Spray + Back-Roll Application",
+      "input_group": "siding_surface_input_group",
+      "unit_of_measure": "SF",
+      "task_classification": "binary",
+      "rate_per_hour": 225,
+      "rate_range_low": 180,
+      "rate_range_high": 280,
+      "crew_size": 2,
+      "modifier_pool": "coating",
+      "applicable_modifiers": ["FAC_EXT_ACCESS", "FAC_EWRP_SIDING_PROFILE", "FAC_EWRP_SURFACE_TEXTURE"],
+      "rate_basis_notes": "MODIFIED from TSK_ENSD_FINISH_2_SPRAY_BACKROLL (NC 175 SF/hr). Same rate as coat 1 spray_backroll (225 SF/hr). Consistent absorption on primed/first-coated surface. QT3/QT4 only — QT2 receives single finish coat. Final appearance coat. Matches FC RP TSK_FCRP_FINISH_2_SPRAY_BACKROLL (225 SF/hr).",
+      "applies_when": { "application_method": ["spray_backroll"] }
+    },
+    {
+      "task_id": "TSK_EWRP_FINISH_2_BRUSH_ROLL",
+      "name": "Finish Coat 2 — Brush/Roll Application",
+      "input_group": "siding_surface_input_group",
+      "unit_of_measure": "SF",
+      "task_classification": "binary",
+      "rate_per_hour": 100,
+      "rate_range_low": 80,
+      "rate_range_high": 120,
+      "crew_size": 1,
+      "modifier_pool": "coating",
+      "applicable_modifiers": ["FAC_EXT_ACCESS", "FAC_EWRP_SIDING_PROFILE", "FAC_EWRP_SURFACE_TEXTURE"],
+      "rate_basis_notes": "DIRECT transfer from TSK_ENSD_FINISH_2_BRUSH_ROLL (NC 100 SF/hr). Same rate as coat 1. QT3/QT4 only. Final appearance coat. Matches FC RP TSK_FCRP_FINISH_2_BRUSH_ROLL (100 SF/hr).",
+      "applies_when": { "application_method": ["brush_roll"] }
+    },
+
+    {
+      "_section": "=== MOD_EWRP_INTERSTAGE — 4 tasks ===",
+      "_note": "Between-coat inspection and maintenance. Coating pool modifiers."
+    },
+
+    {
+      "task_id": "TSK_EWRP_INSPECT_COAT",
+      "name": "Interstage Inspection",
+      "input_group": "siding_surface_input_group",
+      "unit_of_measure": "SF",
+      "task_classification": "qt_scaled",
+      "qt_rates": {
+        "QT3": { "rate_sf_per_hour": 1500, "notes": "Quick scan for obvious defects — runs, sags, holidays. ~2.4 sec/SF." },
+        "QT4": { "rate_sf_per_hour": 800, "notes": "Systematic inspection at 6 ft viewing distance. Mark all visible defects. ~4.5 sec/SF." }
+      },
+      "rate_range_low": 700,
+      "rate_range_high": 1600,
+      "crew_size": 1,
+      "modifier_pool": "coating",
+      "applicable_modifiers": ["FAC_EXT_ACCESS"],
+      "rate_basis_notes": "DIRECT transfer from TSK_ENSD_INSPECT_COAT (NC QT3: 1500, QT4: 800 SF/hr). Identical inspection process once first coat applied. QT3/QT4 only — QT2 is single coat. Matches FC RP TSK_FCRP_INSPECT_COAT. No profile/texture modifiers — inspection rate is visual scanning, constant across profiles.",
+      "applies_when": {}
+    },
+    {
+      "task_id": "TSK_EWRP_SAND_BETWEEN",
+      "name": "Interstage Light Sand (QT4 Only)",
+      "input_group": "siding_surface_input_group",
+      "unit_of_measure": "SF",
+      "task_classification": "qt_conditional",
+      "rate_per_hour": 300,
+      "rate_range_low": 250,
+      "rate_range_high": 400,
+      "crew_size": 1,
+      "modifier_pool": "coating",
+      "applicable_modifiers": ["FAC_EXT_ACCESS", "FAC_EWRP_SIDING_PROFILE"],
+      "rate_basis_notes": "DIRECT transfer from TSK_ENSD_SAND_BETWEEN (NC 300 SF/hr). 220 grit light scuff between finish coats. ~12 sec per SF. QT4 only. Matches FC RP TSK_FCRP_SAND_BETWEEN (300 SF/hr). Profile modifier applies (panel 0.90x). No texture modifier — sanding rate on cured finish coat is constant.",
+      "appears_in_tiers": ["QT4"],
+      "applies_when": {}
+    },
+    {
+      "task_id": "TSK_EWRP_TOUCHUP_REPAIR",
+      "name": "Interstage Touch-Up",
+      "input_group": "siding_surface_input_group",
+      "unit_of_measure": "SF",
+      "task_classification": "qt_scaled",
+      "qt_rates": {
+        "QT3": { "rate_sf_per_hour": 2000, "notes": "Fix obvious defects — minimal touch-up. ~1.8 sec/SF." },
+        "QT4": { "rate_sf_per_hour": 1000, "notes": "Fix all found defects. Blend repairs. ~3.6 sec/SF." }
+      },
+      "rate_range_low": 800,
+      "rate_range_high": 2200,
+      "crew_size": 1,
+      "modifier_pool": "coating",
+      "applicable_modifiers": ["FAC_EXT_ACCESS"],
+      "rate_basis_notes": "DIRECT transfer from TSK_ENSD_TOUCHUP_REPAIR (NC QT3: 2000, QT4: 1000 SF/hr). Identical brush touch-up process. QT3/QT4 only. Matches FC RP TSK_FCRP_TOUCHUP_REPAIR. No profile/texture modifiers — touch-up is spot brush work at constant rate.",
+      "applies_when": {}
+    },
+    {
+      "task_id": "TSK_EWRP_DUST_INTERCOAT",
+      "name": "Intercoat Dust Removal (QT4 Only)",
+      "input_group": "siding_surface_input_group",
+      "unit_of_measure": "SF",
+      "task_classification": "qt_conditional",
+      "rate_per_hour": 600,
+      "rate_range_low": 400,
+      "rate_range_high": 800,
+      "crew_size": 1,
+      "modifier_pool": "coating",
+      "applicable_modifiers": ["FAC_EXT_ACCESS"],
+      "rate_basis_notes": "DIRECT transfer from TSK_ENSD_DUST_INTERCOAT (NC 600 SF/hr). Tack cloth or compressed air after interstage sanding. ~6 sec per SF. QT4 only (paired with TSK_EWRP_SAND_BETWEEN). Matches FC RP TSK_FCRP_DUST_INTERCOAT (600 SF/hr). No profile/texture modifiers.",
+      "appears_in_tiers": ["QT4"],
+      "applies_when": {}
+    },
+
+    {
+      "_section": "=== MOD_EWRP_CLEANUP — 6 tasks ===",
+      "_note": "Final inspection, protection teardown, equipment cleanup, customer walkthrough."
+    },
+
+    {
+      "task_id": "TSK_EWRP_FINAL_INSPECT",
+      "name": "Final Walkthrough Inspection",
+      "input_group": "siding_surface_input_group",
+      "unit_of_measure": "SF",
+      "task_classification": "qt_scaled",
+      "qt_rates": {
+        "QT2": { "rate_sf_per_hour": 2000, "notes": "Ground-level walkthrough. Quick scan for misses. ~1.8 sec/SF." },
+        "QT3": { "rate_sf_per_hour": 1200, "notes": "Ground-level walkthrough at 6-10 ft. Check all elevations. Verify caulk joints covered. ~3 sec/SF." },
+        "QT4": { "rate_sf_per_hour": 500, "notes": "Ground-level with binoculars for upper elevations. 6 ft viewing standard. ~7.2 sec/SF." }
+      },
+      "rate_range_low": 400,
+      "rate_range_high": 2200,
+      "crew_size": 1,
+      "modifier_pool": "none",
+      "applicable_modifiers": ["FAC_EXT_ACCESS"],
+      "rate_basis_notes": "DIRECT transfer from TSK_ENSD_FINAL_INSPECT (NC QT2: 2000, QT3: 1200, QT4: 500 SF/hr). Identical inspection process. RP addition: verify caulk joints covered and consistent. Matches FC RP TSK_FCRP_FINAL_INSPECT. No profile/texture modifiers — visual scanning from ground.",
+      "applies_when": {}
+    },
+    {
+      "task_id": "TSK_EWRP_FINAL_TOUCHUP",
+      "name": "Final Touch-Up",
+      "input_group": "siding_surface_input_group",
+      "unit_of_measure": "SF",
+      "task_classification": "qt_scaled",
+      "qt_rates": {
+        "QT2": { "rate_sf_per_hour": 3000, "notes": "Minimal touch-up. Fix obvious misses only. ~1.2 sec/SF." },
+        "QT3": { "rate_sf_per_hour": 1500, "notes": "Fix all noted defects. ~2.4 sec/SF." },
+        "QT4": { "rate_sf_per_hour": 600, "notes": "Fix every defect. Blend seamlessly at 3 ft standard. ~6 sec/SF." }
+      },
+      "rate_range_low": 500,
+      "rate_range_high": 3500,
+      "crew_size": 1,
+      "modifier_pool": "none",
+      "applicable_modifiers": ["FAC_EXT_ACCESS"],
+      "rate_basis_notes": "DIRECT transfer from TSK_ENSD_FINAL_TOUCHUP (NC QT2: 3000, QT3: 1500, QT4: 600 SF/hr). Identical brush touch-up. Matches FC RP TSK_FCRP_FINAL_TOUCHUP. No profile/texture modifiers.",
+      "applies_when": {}
+    },
+    {
+      "task_id": "TSK_EWRP_PROTECT_TEARDOWN",
+      "name": "Protection Material Removal",
+      "required_input_key": "IN_LF_EXT_PROTECT_LANDSCAPE_PERIMETER",
+      "paintscope_key": "PS_EXT_PROTECT_LF.LANDSCAPE_PERIMETER",
+      "unit_of_measure": "LF",
+      "task_classification": "binary",
+      "rate_per_hour": 200,
+      "rate_range_low": 150,
+      "rate_range_high": 250,
+      "crew_size": 1,
+      "modifier_pool": "none",
+      "applicable_modifiers": [],
+      "rate_basis_notes": "DIRECT transfer from TSK_ENSD_PROTECT_TEARDOWN (NC 200 LF/hr). Remove all tarps, plastic, tape, fixture bags, HVAC covers along perimeter. ~18 sec per LF. Faster than setup — pull and fold vs stake and secure. Ground-level task. No modifiers.",
+      "applies_when": {}
+    },
+    {
+      "task_id": "TSK_EWRP_CLEAN_EQUIPMENT",
+      "name": "Clean Equipment",
+      "unit_of_measure": "FIXED",
+      "task_classification": "binary",
+      "fixed_time_minutes": 35,
+      "fixed_time_range_low": 25,
+      "fixed_time_range_high": 45,
+      "crew_size": 1,
+      "modifier_pool": "none",
+      "applicable_modifiers": [],
+      "rate_basis_notes": "MODIFIED from TSK_ENSD_CLEAN_EQUIPMENT (NC 35 min). Same time — NC already includes backroll cleanup. RP confirmed 35 min: full flush cycle for sprayer + clean 18-inch roller frames and dispose saturated covers. Matches FC RP TSK_FCRP_CLEAN_EQUIPMENT (35 min). No modifiers on FIXED tasks.",
+      "applies_when": {}
+    },
+    {
+      "task_id": "TSK_EWRP_SITE_CLEANUP",
+      "name": "Site Debris Cleanup",
+      "unit_of_measure": "FIXED",
+      "task_classification": "binary",
+      "fixed_time_minutes": 25,
+      "fixed_time_range_low": 15,
+      "fixed_time_range_high": 35,
+      "crew_size": 1,
+      "modifier_pool": "none",
+      "applicable_modifiers": [],
+      "rate_basis_notes": "MODIFIED from TSK_ENSD_SITE_CLEANUP (NC 20 min). RP adds 5 min (25 min total) — scraping debris, caulk tubes, biocide containers, chalk remover, extra masking tape, poly sheeting. Matches FC RP TSK_FCRP_SITE_CLEANUP (25 min). No modifiers on FIXED tasks.",
+      "applies_when": {}
+    },
+    {
+      "task_id": "TSK_EWRP_CUSTOMER_WALKTHROUGH",
+      "name": "Customer Walkthrough (RP-Specific)",
+      "unit_of_measure": "FIXED",
+      "task_classification": "binary",
+      "fixed_time_minutes": 15,
+      "fixed_time_range_low": 10,
+      "fixed_time_range_high": 20,
+      "crew_size": 1,
+      "modifier_pool": "none",
+      "applicable_modifiers": [],
+      "rate_basis_notes": "RP_NEW. Per-project FIXED time. Walk each elevation with homeowner, verify color/sheen satisfaction, point out areas of concern, document completion sign-off. RP-specific — occupied home context. Calibrated from FC RP TSK_FCRP_CUSTOMER_WALKTHROUGH (15 min). No modifiers on FIXED tasks.",
+      "applies_when": {}
+    },
+
+    {
+      "_section": "=== MOD_RRP_EXT_CONTAINMENT — 5 shared tasks ===",
+      "_note": "Lead-safe RRP module. Shared across all exterior RP specs. Conditional on pre_1978 + lead."
+    },
+
+    {
+      "task_id": "TSK_RRP_EXT_LEAD_SCREEN",
+      "name": "Lead Screening Test (XRF or Swab)",
+      "unit_of_measure": "FIXED",
+      "task_classification": "binary",
+      "fixed_time_minutes": 15,
+      "fixed_time_range_low": 10,
+      "fixed_time_range_high": 20,
+      "crew_size": 1,
+      "modifier_pool": "none",
+      "applicable_modifiers": [],
+      "rate_basis_notes": "Shared RRP task. Per-elevation FIXED time. XRF preferred; lead swab test acceptable. Test minimum 2 locations per elevation. Results gate subsequent RRP tasks and 2.0x prep modifier (FAC_EWRP_RRP). LP SmartSide entered market late 1990s — material is post-1978, but building structure may be pre-1978. Calibrated from FC RP (15 min).",
+      "applies_when": { "pre_1978": true }
+    },
+    {
+      "task_id": "TSK_RRP_EXT_CONTAINMENT_SETUP",
+      "name": "RRP Exterior Containment Setup (Per Elevation)",
+      "unit_of_measure": "FIXED",
+      "task_classification": "binary",
+      "fixed_time_minutes": 45,
+      "fixed_time_range_low": 30,
+      "fixed_time_range_high": 60,
+      "crew_size": 1,
+      "modifier_pool": "none",
+      "applicable_modifiers": [],
+      "rate_basis_notes": "Shared RRP task. Per-elevation FIXED time. Install 6-mil poly ground containment extending 10 ft from structure per EPA RRP Rule 40 CFR 745. Secure edges with weights/stakes. Install warning signage. Calibrated from FC RP (45 min). No modifiers on per-elevation FIXED tasks.",
+      "applies_when": { "pre_1978": true }
+    },
+    {
+      "task_id": "TSK_RRP_EXT_WET_SCRAPE",
+      "name": "RRP Wet Scraping Method",
+      "unit_of_measure": "SF",
+      "task_classification": "binary",
+      "rate_per_hour": 50,
+      "rate_range_low": 35,
+      "rate_range_high": 65,
+      "crew_size": 1,
+      "modifier_pool": "prep",
+      "applicable_modifiers": ["FAC_EWRP_CONDITION", "FAC_EXT_ACCESS"],
+      "rate_basis_notes": "Shared RRP task. Wet-mist surface before scraping to minimize lead dust. All scraping debris into containment. ~72 sec per SF. Condition modifier applies. This task's time is ALREADY captured in the 2.0x RRP modifier on TSK_EWRP_SCRAPE_FEATHER — do NOT double-count. Task exists for RRP documentation and lead-safe work practice tracking. Calibrated from FC RP (50 SF/hr).",
+      "applies_when": { "pre_1978": true }
+    },
+    {
+      "task_id": "TSK_RRP_EXT_HEPA_VACUUM",
+      "name": "HEPA Vacuum After Paint Disturbance",
+      "unit_of_measure": "SF",
+      "task_classification": "binary",
+      "rate_per_hour": 300,
+      "rate_range_low": 250,
+      "rate_range_high": 400,
+      "crew_size": 1,
+      "modifier_pool": "none",
+      "applicable_modifiers": ["FAC_EXT_ACCESS"],
+      "rate_basis_notes": "Shared RRP task. HEPA vacuum all siding surfaces after sanding/scraping. ~12 sec per SF. Required by EPA RRP Rule after EVERY paint disturbance. Access modifier applies. Calibrated from FC RP (300 SF/hr).",
+      "applies_when": { "pre_1978": true }
+    },
+    {
+      "task_id": "TSK_RRP_EXT_CONTAINMENT_TEARDOWN",
+      "name": "RRP Exterior Containment Teardown (Per Elevation)",
+      "unit_of_measure": "FIXED",
+      "task_classification": "binary",
+      "fixed_time_minutes": 35,
+      "fixed_time_range_low": 25,
+      "fixed_time_range_high": 45,
+      "crew_size": 1,
+      "modifier_pool": "none",
+      "applicable_modifiers": [],
+      "rate_basis_notes": "Shared RRP task. Per-elevation FIXED time. Remove containment poly — fold inward to capture debris, bag for lead-safe disposal. Verify cleaning standard per EPA. Calibrated from FC RP (35 min). No modifiers on per-elevation FIXED tasks.",
+      "applies_when": { "pre_1978": true }
+    }
+  ],
+
+  "factor_modifiers": [
+    {
+      "factor_id": "FAC_EWRP_CONDITION",
+      "name": "Condition Scale Prep Modifier",
+      "mechanism": "time_multiplier",
+      "description": "Overall coating condition drives prep intensity. GOOD = minimal prep, FAIR = moderate (15-30% failing), POOR = extensive (40-60%+ failing). Applies to prep tasks ONLY — never coating tasks.",
+      "applies_to": [
+        "TSK_EWRP_POWER_WASH_LOW",
+        "TSK_EWRP_MILDEW_TREAT",
+        "TSK_EWRP_SCRAPE_FEATHER",
+        "TSK_EWRP_DEGLOSS_SCUFF",
+        "TSK_EWRP_CHALK_REMEDIATE",
+        "TSK_EWRP_CAULK_REMOVE_FAILED",
+        "TSK_RRP_EXT_WET_SCRAPE"
+      ],
+      "values": {
+        "GOOD": 1.00,
+        "FAIR": 1.50,
+        "POOR": 2.00
+      },
+      "formula": "effective_rate = base_rate / modifier",
+      "stacking_pool": "PREP",
+      "notes": "Same pattern as FC RP FAC_CONDITION_SCALE. GOOD maps to SS_EXT_SOUND_PAINT, FAIR maps to SS_EXT_CHALKING or localized SS_EXT_FAILING_PAINT, POOR maps to SS_EXT_PEELING or widespread SS_EXT_FAILING_PAINT."
+    },
+    {
+      "factor_id": "FAC_EWRP_RRP",
+      "name": "EPA Lead-Safe RRP Modifier",
+      "mechanism": "time_multiplier",
+      "description": "Binary gate for pre-1978 + lead-positive. Doubles prep time for EPA-compliant wet scraping, HEPA vacuum, containment procedures.",
+      "applies_to": [
+        "TSK_EWRP_SCRAPE_FEATHER",
+        "TSK_EWRP_DEGLOSS_SCUFF"
+      ],
+      "values": {
+        "no_rrp": 1.00,
+        "rrp_required": 2.00
+      },
+      "formula": "effective_rate = base_rate / modifier",
+      "stacking_pool": "PREP",
+      "notes": "Only applies to tasks that disturb existing paint. Washing, chalk remediation, mildew treatment, caulk removal are cleaning — not paint disturbance — and NOT subject to RRP modifier."
+    },
+    {
+      "factor_id": "FAC_EXT_ACCESS",
+      "name": "Access Type Height Modifier",
+      "mechanism": "time_multiplier",
+      "description": "Access type drives production rate reduction for elevated work. Per-elevation attribute. Same as NC FAC_EXT_ACCESS.",
+      "applies_to": [
+        "TSK_EWRP_POWER_WASH_LOW",
+        "TSK_EWRP_MILDEW_TREAT",
+        "TSK_EWRP_SCRAPE_FEATHER",
+        "TSK_EWRP_DEGLOSS_SCUFF",
+        "TSK_EWRP_CHALK_REMEDIATE",
+        "TSK_EWRP_CAULK_REMOVE_FAILED",
+        "TSK_EWRP_CAULK_APPLY_NEW",
+        "TSK_EWRP_MOISTURE_CHECK",
+        "TSK_EWRP_DUST_CLEANUP",
+        "TSK_EWRP_PRIME_SPRAY_BACKROLL",
+        "TSK_EWRP_PRIME_BRUSH_ROLL",
+        "TSK_EWRP_FINISH_1_SPRAY_BACKROLL",
+        "TSK_EWRP_FINISH_1_BRUSH_ROLL",
+        "TSK_EWRP_FINISH_2_SPRAY_BACKROLL",
+        "TSK_EWRP_FINISH_2_BRUSH_ROLL",
+        "TSK_EWRP_INSPECT_COAT",
+        "TSK_EWRP_SAND_BETWEEN",
+        "TSK_EWRP_TOUCHUP_REPAIR",
+        "TSK_EWRP_DUST_INTERCOAT",
+        "TSK_EWRP_FINAL_INSPECT",
+        "TSK_EWRP_FINAL_TOUCHUP",
+        "TSK_RRP_EXT_WET_SCRAPE",
+        "TSK_RRP_EXT_HEPA_VACUUM"
+      ],
+      "values": {
+        "ground": 1.00,
+        "ladder": 1.35,
+        "scaffold": 1.60,
+        "lift": 1.50
+      },
+      "formula": "effective_rate = base_rate / modifier",
+      "stacking_pool": "SHARED",
+      "status": "existing",
+      "notes": "Ground-level tasks (protection setup/teardown, equipment setup/cleanup, site cleanup, customer walkthrough, assessment FIXED tasks) are NOT affected."
+    },
+    {
+      "factor_id": "FAC_EWRP_SIDING_PROFILE",
+      "name": "Siding Profile Modifier",
+      "mechanism": "time_multiplier",
+      "description": "Siding profile affects application and prep rates. Panel is slightly FASTER than lap in RP (large flat areas efficient for spray_backroll). NO T1-11 in RP.",
+      "applies_to": [
+        "TSK_EWRP_SCRAPE_FEATHER",
+        "TSK_EWRP_DEGLOSS_SCUFF",
+        "TSK_EWRP_PRIME_SPRAY_BACKROLL",
+        "TSK_EWRP_PRIME_BRUSH_ROLL",
+        "TSK_EWRP_FINISH_1_SPRAY_BACKROLL",
+        "TSK_EWRP_FINISH_1_BRUSH_ROLL",
+        "TSK_EWRP_FINISH_2_SPRAY_BACKROLL",
+        "TSK_EWRP_FINISH_2_BRUSH_ROLL",
+        "TSK_EWRP_SAND_BETWEEN"
+      ],
+      "values": {
+        "lap": 1.00,
+        "panel": 0.90
+      },
+      "formula": "effective_rate = base_rate / modifier",
+      "stacking_pool": "SHARED",
+      "notes": "Panel is 0.90x (FASTER) in RP — spray_backroll on large flat areas is efficient. NC panel was 1.10x (slower) because spray-only on large flats requires overlap management. RP panel follows FC RP pattern."
+    },
+    {
+      "factor_id": "FAC_EWRP_SURFACE_TEXTURE",
+      "name": "Surface Texture Modifier",
+      "mechanism": "time_multiplier",
+      "description": "Surface texture affects coating application rates and material consumption. 2 textures: smooth/textured. Existing paint film moderates original texture differences.",
+      "applies_to": [
+        "TSK_EWRP_PRIME_SPRAY_BACKROLL",
+        "TSK_EWRP_PRIME_BRUSH_ROLL",
+        "TSK_EWRP_FINISH_1_SPRAY_BACKROLL",
+        "TSK_EWRP_FINISH_1_BRUSH_ROLL",
+        "TSK_EWRP_FINISH_2_SPRAY_BACKROLL",
+        "TSK_EWRP_FINISH_2_BRUSH_ROLL"
+      ],
+      "values": {
+        "smooth": 1.00,
+        "textured": 1.15
+      },
+      "formula": "effective_rate = base_rate / modifier",
+      "stacking_pool": "SHARED",
+      "notes": "Applies to BOTH production rate and material quantity (see coverage_profiles in materials.json). 'Textured' combines NC cedarmill (1.20x) and roughsawn (1.30x) into single 1.15x — existing paint film moderates the difference."
+    },
+    {
+      "factor_id": "FAC_EWRP_QT",
+      "name": "Quality Tier Coating Modifier",
+      "mechanism": "time_multiplier",
+      "description": "Quality tier drives coating task production rate. QT2 is slightly faster (economy standard), QT4 is slower (premium detail). Applies to coating tasks ONLY — never prep tasks.",
+      "applies_to": [
+        "TSK_EWRP_PRIME_SPRAY_BACKROLL",
+        "TSK_EWRP_PRIME_BRUSH_ROLL",
+        "TSK_EWRP_FINISH_1_SPRAY_BACKROLL",
+        "TSK_EWRP_FINISH_1_BRUSH_ROLL",
+        "TSK_EWRP_FINISH_2_SPRAY_BACKROLL",
+        "TSK_EWRP_FINISH_2_BRUSH_ROLL"
+      ],
+      "values": {
+        "QT2": 0.85,
+        "QT3": 1.00,
+        "QT4": 1.30
+      },
+      "formula": "effective_rate = base_rate / modifier",
+      "stacking_pool": "COATING",
+      "notes": "Same pattern as FC RP. QT2 = economy (faster application, lower standard). QT3 = standard baseline. QT4 = premium (slower, more care). Never applies to prep tasks."
+    }
+  ],
+
+  "quality_effects": [
+    {
+      "quality_tier": "QT2",
+      "coat_count": { "prime": "0 or 1 (state-driven)", "finish": 1 },
+      "interstage_sand": false,
+      "inspection_level": "quick_scan",
+      "round_id": "ROUND_EWRP_1FINISH or ROUND_EWRP_PRIME_1FINISH",
+      "notes": "Economy tier. Single finish coat. Skip interstage module. Minimal inspection. LP warranty requires 2 coats — QT2 accepts the trade-off. Prime only if substrate state requires it."
+    },
+    {
+      "quality_tier": "QT3",
+      "coat_count": { "prime": "0 or 1 (state-driven)", "finish": 2 },
+      "interstage_sand": false,
+      "inspection_level": "scan",
+      "round_id": "ROUND_EWRP_2FINISH or ROUND_EWRP_PRIME_2FINISH",
+      "notes": "Standard tier. Two finish coats per LP SmartSide warranty. Interstage inspection but no sanding. Full assessment scope. Prime only if substrate state requires it."
+    },
+    {
+      "quality_tier": "QT4",
+      "coat_count": { "prime": "0 or 1 (state-driven)", "finish": 2 },
+      "interstage_sand": true,
+      "inspection_level": "systematic",
+      "round_id": "ROUND_EWRP_2FINISH or ROUND_EWRP_PRIME_2FINISH",
+      "notes": "Premium tier. Two finish coats. Light 220 grit sand between coats. Systematic inspection at 6 ft. TSP wash. Full assessment with photography."
+    }
+  ],
+
+  "stacking_partition": {
+    "prep_pool": {
+      "formula": "effective_rate = base_rate / (condition x rrp x access x profile x texture)",
+      "pool_modifiers": ["FAC_EWRP_CONDITION", "FAC_EWRP_RRP"],
+      "shared_modifiers": ["FAC_EXT_ACCESS", "FAC_EWRP_SIDING_PROFILE", "FAC_EWRP_SURFACE_TEXTURE"],
+      "never_includes": ["FAC_EWRP_QT"]
+    },
+    "coating_pool": {
+      "formula": "effective_rate = base_rate / (qt x access x profile x texture)",
+      "pool_modifiers": ["FAC_EWRP_QT"],
+      "shared_modifiers": ["FAC_EXT_ACCESS", "FAC_EWRP_SIDING_PROFILE", "FAC_EWRP_SURFACE_TEXTURE"],
+      "never_includes": ["FAC_EWRP_CONDITION", "FAC_EWRP_RRP"]
+    },
+    "fixed_tasks": {
+      "note": "Assessment, equipment setup/cleanup, RRP containment, customer walkthrough — no modifiers."
+    }
+  },
+
+  "modifier_stacking_examples": [
+    {
+      "scenario": "Lap siding, smooth, ground access — baseline (spray_backroll finish)",
+      "task": "TSK_EWRP_FINISH_1_SPRAY_BACKROLL",
+      "base_rate": 225,
+      "modifiers": { "FAC_EWRP_QT": "QT3=1.00", "FAC_EXT_ACCESS": "ground=1.00", "FAC_EWRP_SIDING_PROFILE": "lap=1.00", "FAC_EWRP_SURFACE_TEXTURE": "smooth=1.00" },
+      "combined_modifier": 1.00,
+      "effective_rate": 225,
+      "notes": "Best case — 225 SF/hr per 2-person crew."
+    },
+    {
+      "scenario": "Lap siding, textured, ladder access — common residential (spray_backroll finish QT3)",
+      "task": "TSK_EWRP_FINISH_1_SPRAY_BACKROLL",
+      "base_rate": 225,
+      "modifiers": { "FAC_EWRP_QT": "QT3=1.00", "FAC_EXT_ACCESS": "ladder=1.35", "FAC_EWRP_SIDING_PROFILE": "lap=1.00", "FAC_EWRP_SURFACE_TEXTURE": "textured=1.15" },
+      "combined_modifier": 1.55,
+      "effective_rate": 145,
+      "notes": "Typical residential scenario. ~145 SF/hr per 2-person crew."
+    },
+    {
+      "scenario": "Panel siding, smooth, ground access — fastest (spray_backroll finish QT2)",
+      "task": "TSK_EWRP_FINISH_1_SPRAY_BACKROLL",
+      "base_rate": 225,
+      "modifiers": { "FAC_EWRP_QT": "QT2=0.85", "FAC_EXT_ACCESS": "ground=1.00", "FAC_EWRP_SIDING_PROFILE": "panel=0.90", "FAC_EWRP_SURFACE_TEXTURE": "smooth=1.00" },
+      "combined_modifier": 0.765,
+      "effective_rate": 294,
+      "notes": "Fastest combination. ~294 SF/hr per 2-person crew."
+    },
+    {
+      "scenario": "Lap siding, textured, scaffold — worst case coating (spray_backroll finish QT4)",
+      "task": "TSK_EWRP_FINISH_1_SPRAY_BACKROLL",
+      "base_rate": 225,
+      "modifiers": { "FAC_EWRP_QT": "QT4=1.30", "FAC_EXT_ACCESS": "scaffold=1.60", "FAC_EWRP_SIDING_PROFILE": "lap=1.00", "FAC_EWRP_SURFACE_TEXTURE": "textured=1.15" },
+      "combined_modifier": 2.39,
+      "effective_rate": 94,
+      "notes": "Worst case coating. ~94 SF/hr per 2-person crew. Well within 4.0x cap."
+    },
+    {
+      "scenario": "Lap siding, textured, scaffold, POOR, RRP — worst case prep (scrape/feather)",
+      "task": "TSK_EWRP_SCRAPE_FEATHER",
+      "base_rate": 55,
+      "modifiers": { "FAC_EWRP_CONDITION": "POOR=2.00", "FAC_EWRP_RRP": "rrp=2.00", "FAC_EXT_ACCESS": "scaffold=1.60", "FAC_EWRP_SIDING_PROFILE": "lap=1.00" },
+      "combined_modifier": 6.40,
+      "effective_rate": 9,
+      "notes": "Extreme worst case prep. ~9 SF/hr. Exceeds 4.0x cap but prep pool worst-case is acknowledged. This scenario is pre-1978 peeling EW at scaffold height — legitimately very slow and rare."
+    },
+    {
+      "scenario": "Lap siding, smooth, ladder, FAIR, no RRP — realistic worst prep (scrape/feather)",
+      "task": "TSK_EWRP_SCRAPE_FEATHER",
+      "base_rate": 55,
+      "modifiers": { "FAC_EWRP_CONDITION": "FAIR=1.50", "FAC_EWRP_RRP": "no_rrp=1.00", "FAC_EXT_ACCESS": "ladder=1.35", "FAC_EWRP_SIDING_PROFILE": "lap=1.00" },
+      "combined_modifier": 2.03,
+      "effective_rate": 27,
+      "notes": "Realistic worst prep. ~27 SF/hr. Within cap."
+    }
+  ],
+
+  "assumptions": [
+    "Base rates are for lap siding profile at ground access on smooth surface.",
+    "Profile, texture, access, and pool-specific modifiers stack multiplicatively: effective_rate = base_rate / (combined_modifier).",
+    "Prep pool worst case can exceed 4.0x cap — acknowledged for pre-1978 RRP on POOR condition siding at scaffold height.",
+    "Coating pool worst case is 2.39x — well within 4.0x cap.",
+    "spray_backroll tasks are single combined tasks (2-person crew: sprayer leads, backroller follows).",
+    "RP spray_backroll rates (225 SF/hr) are FASTER than NC spray_backroll rates (175 SF/hr) because previously painted surface provides more consistent absorption.",
+    "RP brush_roll rates (100 SF/hr) are identical to NC — same physical action.",
+    "Assessment FIXED tasks are per-elevation — multiply by elevation count.",
+    "Equipment setup/cleanup are per-session FIXED tasks.",
+    "Customer walkthrough is per-project FIXED task.",
+    "Power wash 500-1000 PSI is EW-specific — FC RP uses garden hose rinse only.",
+    "Environmental conditions (wind, dew point, sun, surface temp) are NOT estimation modifiers per RC-002.",
+    "RRP modifier applies to paint disturbance tasks ONLY (scraping, sanding), not cleaning tasks."
+  ],
+
+  "risks": [
+    "Pre-1978 RRP + POOR condition + scaffold = 6.40x stacking on scrape/feather — flag for estimator review.",
+    "spray_backroll 2-person crew requirement doubles labor cost on prime and finish tasks.",
+    "Power wash PSI must be carefully controlled — exceeding 1000 PSI damages OSB core irreversibly.",
+    "Edge seal assessment is qualitative — estimator must judge repair scope from assessment results.",
+    "Condition scale mapping (GOOD/FAIR/POOR) is subjective — visual assessment + adhesion test + chalk test reduce subjectivity but cannot eliminate it.",
+    "RP rates calibrated from NC and FC RP siblings — no field calibration data specific to engineered wood RP yet.",
+    "Butt joint caulk removal without replacement may confuse field crews — requires clear SOP documentation."
+  ],
+
+  "validation_plan": [
+    "Time 3 spray_backroll finish projects on smooth lap engineered wood siding RP to calibrate 225 SF/hr baseline.",
+    "Compare EW RP spray_backroll rates vs FC RP spray_backroll rates — expect similar production (225 SF/hr).",
+    "Time low-pressure power wash (500-1000 PSI) on EW siding to calibrate 800 SF/hr rate.",
+    "Track condition assessment time per elevation to validate FIXED time allocations (10/15/20 min).",
+    "Track edge seal assessment time per elevation to validate 10 min FIXED allocation.",
+    "Compare scrape/feather rates for FAIR vs POOR condition to validate 1.5x/2.0x condition modifiers.",
+    "Track caulk removal + re-application rates to validate 30 LF/hr (remove) and 60 LF/hr (apply).",
+    "Time equipment cleanup: spray_backroll vs NC spray-only to validate 35 min."
+  ]
+}

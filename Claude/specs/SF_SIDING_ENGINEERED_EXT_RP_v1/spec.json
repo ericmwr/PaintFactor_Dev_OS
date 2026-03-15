@@ -1,0 +1,487 @@
+{
+  "spec_family_id": "SF_SIDING_ENGINEERED_EXT_RP",
+  "version": "1.0.0",
+  "name": "Exterior Engineered Wood Siding Repaint",
+  "description": "Combined condition assessment + prep + prime + finish repaint specification for previously painted exterior engineered wood siding (LP SmartSide lap and panel profiles). Covers multi-point condition assessment, low-pressure power wash (500-1000 PSI — EW-specific allowance), condition-driven prep, state-driven primer selection, finish coat application (spray_backroll primary, brush_roll fallback), interstage protocol, final inspection, and EPA RRP lead-safe containment for pre-1978 structures.",
+  "domain": "exterior",
+  "scope_type": "repaint",
+  "status": "draft",
+  "generated_by": "SpecFactory Pipeline",
+  "generated_at": "2026-03-15",
+
+  "scope_boundaries": {
+    "in_scope": [
+      "Engineered wood siding field surface repaint (LP SmartSide lap and panel profiles)",
+      "Multi-point condition assessment (visual, adhesion, chalk, moisture, edge seal, caulk)",
+      "Low-pressure power wash (500-1000 PSI) — EW-specific departure from FC RP (rinse only) and NC (garden hose only)",
+      "Condition-driven surface preparation (scrape/feather, degloss/scuff, chalk remediation, mildew treatment)",
+      "Caulk assessment and replacement at siding-to-trim joints (butt joints assessed, removed if failed, NOT re-caulked)",
+      "Edge seal integrity assessment (replaces NC edge seal application)",
+      "State-driven primer application (chalk-binding, acrylic stain-block, bonding for exposed ExpertFinish)",
+      "Finish coat application — spray_backroll primary (2-person crew), brush_roll fallback",
+      "Interstage inspection, QT4 intercoat sand, touch-up",
+      "Landscape, hardscape, fixture, vehicle/driveway protection",
+      "EPA RRP lead-safe containment (pre_1978 conditional)",
+      "Customer walkthrough (RP-specific, occupied home)"
+    ],
+    "out_of_scope": [
+      "Siding replacement or structural repair (refer to siding contractor)",
+      "T1-11 profile repaint (rare RP scenario — T&M consideration)",
+      "Trim repaint (covered by SF_TRIM_EXT_RP_v1)",
+      "Soffit repaint (covered by SF_SOFFIT_EXT_RP_v1)",
+      "Window repaint (covered by SF_WINDOW_EXT_RP_v1)",
+      "Door repaint (covered by SF_DOOR_EXT_RP_v1)",
+      "Foundation repaint (covered by SF_FOUNDATION_EXT_RP_v1)",
+      "Color consulting or design services",
+      "Structural moisture remediation (stop work if MC >15%)",
+      "Spring adjustment or mechanical systems"
+    ]
+  },
+
+  "configuration_dimensions": [
+    {
+      "dimension": "quality_tier",
+      "values": ["QT2", "QT3", "QT4"],
+      "default": "QT3",
+      "description": "QT2 economy (1 finish coat), QT3 standard (2 finish coats per LP warranty), QT4 premium (2 finish coats + interstage sand). QT5 excluded per Exterior_Substrates_Doctrine §5.4."
+    },
+    {
+      "dimension": "application_method",
+      "values": ["spray_backroll", "brush_roll"],
+      "default": "spray_backroll",
+      "description": "spray_backroll is PRIMARY RP method for all profiles (departure from NC spray-only on smooth). brush_roll is fallback for <750 SF, occupied-adjacent, or high wind. spray-only is NOT valid for RP."
+    },
+    {
+      "dimension": "sheen",
+      "values": ["flat", "satin"],
+      "default": "flat",
+      "description": "Exterior siding sheens. Flat is standard for siding field. Satin for accent or customer preference."
+    },
+    {
+      "dimension": "substrate_state",
+      "values": ["SS_EXT_SOUND_PAINT", "SS_EXT_CHALKING", "SS_EXT_FAILING_PAINT", "SS_EXT_PEELING"],
+      "default": "SS_EXT_SOUND_PAINT",
+      "description": "4 exterior RP substrate states. Per-elevation assignment. Drives primer selection and prep intensity."
+    },
+    {
+      "dimension": "condition_scale",
+      "values": ["GOOD", "FAIR", "POOR"],
+      "default": "GOOD",
+      "description": "Overall coating condition drives prep modifier. GOOD=1.0x, FAIR=1.5x, POOR=2.0x on prep tasks."
+    },
+    {
+      "dimension": "siding_profile",
+      "values": ["lap", "panel"],
+      "default": "lap",
+      "description": "LP SmartSide profiles. Lap=1.00x baseline, panel=0.90x (faster in RP). NO T1-11 in RP. NO shingle (EW doesn't come in shingle)."
+    },
+    {
+      "dimension": "surface_texture",
+      "values": ["smooth", "textured"],
+      "default": "smooth",
+      "description": "2 textures. Smooth=1.00x, textured=1.15x. 'Textured' combines NC cedarmill/roughsawn — existing paint film moderates original texture."
+    },
+    {
+      "dimension": "access_type",
+      "values": ["ground", "ladder", "scaffold", "lift"],
+      "default": "ground",
+      "description": "Per-elevation access. Drives FAC_EXT_ACCESS height modifier."
+    },
+    {
+      "dimension": "pre_1978",
+      "values": [true, false],
+      "default": false,
+      "description": "Pre-1978 building flag. Gates MOD_RRP_EXT_CONTAINMENT and FAC_EWRP_RRP (2.0x prep modifier)."
+    }
+  ],
+
+  "paintable_items": [
+    {
+      "item_id": "ITM_SIDING_FIELD",
+      "name": "Exterior siding field surface — net paintable area",
+      "unit_of_measure": "SF",
+      "surface_ref": "siding_field",
+      "status": "existing",
+      "notes": "Shared across wood siding, fiber cement siding, and engineered wood siding specs (NC and RP)."
+    }
+  ],
+
+  "variants": [
+    {
+      "variant_id": "VAR_EWRP_SPRAY_BACKROLL_GOOD",
+      "name": "Spray/Backroll — Good Condition (No Prime)",
+      "items_active": ["ITM_SIDING_FIELD"],
+      "applies_when": {
+        "application_method": "spray_backroll",
+        "condition_scale": "GOOD",
+        "substrate_state": "SS_EXT_SOUND_PAINT"
+      },
+      "round_id": "ROUND_EWRP_2FINISH",
+      "coat_count": { "QT2": { "finish": 1 }, "QT3": { "finish": 2 }, "QT4": { "finish": 2 } },
+      "notes": "Sound paint, verified adhesion. Degloss/scuff + direct to finish. No prime needed."
+    },
+    {
+      "variant_id": "VAR_EWRP_SPRAY_BACKROLL_FAIR_CHALK",
+      "name": "Spray/Backroll — Fair/Chalking (Chalk-Binding Prime)",
+      "items_active": ["ITM_SIDING_FIELD"],
+      "applies_when": {
+        "application_method": "spray_backroll",
+        "condition_scale": "FAIR",
+        "substrate_state": "SS_EXT_CHALKING"
+      },
+      "round_id": "ROUND_EWRP_PRIME_2FINISH",
+      "coat_count": { "QT2": { "prime": 1, "finish": 1 }, "QT3": { "prime": 1, "finish": 2 }, "QT4": { "prime": 1, "finish": 2 } },
+      "notes": "Chalk-binding primer mandatory on full surface. Power wash + chalk remediation + chalk-binding primer + finish."
+    },
+    {
+      "variant_id": "VAR_EWRP_SPRAY_BACKROLL_FAIR_FAILING",
+      "name": "Spray/Backroll — Fair/Failing Paint (Acrylic Stain-Block Prime)",
+      "items_active": ["ITM_SIDING_FIELD"],
+      "applies_when": {
+        "application_method": "spray_backroll",
+        "condition_scale": "FAIR",
+        "substrate_state": "SS_EXT_FAILING_PAINT"
+      },
+      "round_id": "ROUND_EWRP_PRIME_2FINISH",
+      "coat_count": { "QT2": { "prime": 1, "finish": 1 }, "QT3": { "prime": 1, "finish": 2 }, "QT4": { "prime": 1, "finish": 2 } },
+      "notes": "Localized failing paint. Scrape/feather + spot or full acrylic stain-block primer + finish."
+    },
+    {
+      "variant_id": "VAR_EWRP_SPRAY_BACKROLL_POOR",
+      "name": "Spray/Backroll — Poor/Peeling (Full Acrylic Stain-Block Prime)",
+      "items_active": ["ITM_SIDING_FIELD"],
+      "applies_when": {
+        "application_method": "spray_backroll",
+        "condition_scale": "POOR",
+        "substrate_state": "SS_EXT_PEELING"
+      },
+      "round_id": "ROUND_EWRP_PRIME_2FINISH",
+      "coat_count": { "QT2": { "prime": 1, "finish": 1 }, "QT3": { "prime": 1, "finish": 2 }, "QT4": { "prime": 1, "finish": 2 } },
+      "notes": "Extensive peeling. Heavy scrape/feather + full acrylic stain-block primer + finish. Bonding primer if ExpertFinish substrate exposed."
+    },
+    {
+      "variant_id": "VAR_EWRP_BRUSH_ROLL_GOOD",
+      "name": "Brush/Roll — Good Condition (No Prime)",
+      "items_active": ["ITM_SIDING_FIELD"],
+      "applies_when": {
+        "application_method": "brush_roll",
+        "condition_scale": "GOOD",
+        "substrate_state": "SS_EXT_SOUND_PAINT"
+      },
+      "round_id": "ROUND_EWRP_2FINISH",
+      "coat_count": { "QT2": { "finish": 1 }, "QT3": { "finish": 2 }, "QT4": { "finish": 2 } },
+      "notes": "Brush/roll fallback. Sound paint, no prime."
+    },
+    {
+      "variant_id": "VAR_EWRP_BRUSH_ROLL_PRIME",
+      "name": "Brush/Roll — Condition Requires Prime",
+      "items_active": ["ITM_SIDING_FIELD"],
+      "applies_when": {
+        "application_method": "brush_roll",
+        "condition_scale": ["FAIR", "POOR"],
+        "substrate_state": ["SS_EXT_CHALKING", "SS_EXT_FAILING_PAINT", "SS_EXT_PEELING"]
+      },
+      "round_id": "ROUND_EWRP_PRIME_2FINISH",
+      "coat_count": { "QT2": { "prime": 1, "finish": 1 }, "QT3": { "prime": 1, "finish": 2 }, "QT4": { "prime": 1, "finish": 2 } },
+      "notes": "Brush/roll fallback with state-driven primer."
+    }
+  ],
+
+  "required_paintscope_inputs": [
+    { "input_name": "IN_SF_SIDING_FIELD", "paintscope_key": "PS_EXT_SURFACE_SF.SIDING_FIELD", "uom": "SF", "description": "Net paintable siding field area per elevation" },
+    { "input_name": "IN_EA_ELEVATIONS_TOTAL", "paintscope_key": "PS_EXT_META.EA.ELEVATIONS_TOTAL", "uom": "EA", "description": "Total elevation count" },
+    { "input_name": "IN_ENUM_ACCESS_TYPE", "paintscope_key": "PS_EXT_META.ENUM.ACCESS_TYPE", "uom": "ENUM", "description": "Per-elevation access type" },
+    { "input_name": "IN_ENUM_SUBSTRATE_STATE_EXT", "paintscope_key": "PS_EXT_META.ENUM.SUBSTRATE_STATE", "uom": "ENUM", "description": "Exterior substrate state (4 RP states)" },
+    { "input_name": "IN_ENUM_SIDING_PROFILE", "paintscope_key": "PS_EXT_META.ENUM.SIDING_PROFILE", "uom": "ENUM", "description": "Siding profile: lap, panel" },
+    { "input_name": "IN_ENUM_SURFACE_TEXTURE", "paintscope_key": "PS_EXT_META.ENUM.SURFACE_TEXTURE", "uom": "ENUM", "description": "Surface texture: smooth, textured" },
+    { "input_name": "IN_BOOL_PRE_1978_EXT", "paintscope_key": "PS_EXT_META.FLAG.PRE_1978", "uom": "BOOL", "description": "Pre-1978 building flag for RRP" },
+    { "input_name": "IN_LF_CAULK_JOINTS", "paintscope_key": "PS_EXT_META.EA.CAULK_JOINTS", "uom": "LF", "description": "LF of caulk joints requiring assessment/replacement" },
+    { "input_name": "IN_LF_EXT_PROTECT_LANDSCAPE_PERIMETER", "paintscope_key": "PS_EXT_PROTECT_LF.LANDSCAPE_PERIMETER", "uom": "LF", "description": "Landscape perimeter protection LF" },
+    { "input_name": "IN_SF_EXT_PROTECT_HARDSCAPE_WALK", "paintscope_key": "PS_EXT_PROTECT_SF.HARDSCAPE_WALK", "uom": "SF", "description": "Walkway protection SF" },
+    { "input_name": "IN_SF_EXT_PROTECT_HARDSCAPE_PATIO", "paintscope_key": "PS_EXT_PROTECT_SF.HARDSCAPE_PATIO", "uom": "SF", "description": "Patio protection SF" },
+    { "input_name": "IN_EA_EXT_PROTECT_LIGHT_FIXTURE", "paintscope_key": "PS_EXT_PROTECT_EA.LIGHT_FIXTURE", "uom": "EA", "description": "Light fixture masking count" },
+    { "input_name": "IN_EA_EXT_PROTECT_HVAC_UNIT", "paintscope_key": "PS_EXT_PROTECT_EA.HVAC_UNIT", "uom": "EA", "description": "HVAC unit cover count" },
+    { "input_name": "IN_SF_EXT_PROTECT_VEHICLE_DRIVEWAY", "paintscope_key": "PS_EXT_PROTECT_SF.VEHICLE_DRIVEWAY", "uom": "SF", "description": "Vehicle/driveway overspray protection (RP-specific)" }
+  ],
+
+  "protection_zones": [
+    { "zone_id": "ext_landscape_perimeter", "protection_level": "full_cover", "method_dependent": true, "description": "Perimeter tarps along house foundation. LF-based. Catches scraping debris + overspray." },
+    { "zone_id": "ext_hardscape_walk", "protection_level": "full_cover", "method_dependent": true, "description": "Walkway drop cloths and plastic." },
+    { "zone_id": "ext_hardscape_patio", "protection_level": "full_cover", "method_dependent": true, "description": "Patio drop cloths and plastic." },
+    { "zone_id": "ext_light_fixture", "protection_level": "light_mask", "method_dependent": false, "description": "Bag and tape light fixtures, utility panels, hose bibs." },
+    { "zone_id": "ext_hvac_unit", "protection_level": "full_cover", "method_dependent": false, "description": "Full cover on HVAC condenser units." },
+    { "zone_id": "ext_vehicle_driveway", "protection_level": "full_cover", "method_dependent": true, "description": "Poly sheeting over vehicles and driveway. spray_backroll only. RP-specific." },
+    { "zone_id": "ext_ground_cover", "protection_level": "full_cover", "method_dependent": true, "description": "Ground cover under working elevation." },
+    { "zone_id": "ext_rrp_containment", "protection_level": "full_containment", "method_dependent": false, "description": "EPA 6-mil poly extending 10 ft from structure. Pre-1978 only." }
+  ],
+
+  "adjacency_declarations": [
+    { "surface": "soffit_field", "relationship": "above", "protection": "Mask soffit-to-siding junction. Lap siding courses end below soffit line.", "spec_ref": "SF_SOFFIT_EXT_RP_v1" },
+    { "surface": "ext_trim_frieze", "relationship": "above", "protection": "Mask frieze board. Siding field terminates at frieze.", "spec_ref": "SF_TRIM_EXT_RP_v1" },
+    { "surface": "ext_trim_corner", "relationship": "adjacent", "protection": "Mask corner boards. Siding butts to corner boards.", "spec_ref": "SF_TRIM_EXT_RP_v1" },
+    { "surface": "ext_trim_window_casing", "relationship": "adjacent", "protection": "Mask window casing. Siding cuts around windows.", "spec_ref": "SF_WINDOW_EXT_RP_v1" },
+    { "surface": "ext_trim_door_casing", "relationship": "adjacent", "protection": "Mask door casing. Siding cuts around doors.", "spec_ref": "SF_DOOR_EXT_RP_v1" },
+    { "surface": "foundation_wall", "relationship": "below", "protection": "Siding terminates above foundation. Mask foundation if present.", "spec_ref": "SF_FOUNDATION_EXT_RP_v1" }
+  ],
+
+  "state_declarations": {
+    "input_states": [
+      { "state_id": "SS_EXT_SOUND_PAINT", "description": "Existing paint is well-adhered, minimal chalk, passes adhesion test. Degloss/scuff only — skip prime." },
+      { "state_id": "SS_EXT_CHALKING", "description": "Surface chalking present. Chalk-binding primer mandatory. May be combined with sound underlying paint." },
+      { "state_id": "SS_EXT_FAILING_PAINT", "description": "Cracking, alligatoring, flaking in localized areas. Scrape/feather + spot or full prime." },
+      { "state_id": "SS_EXT_PEELING", "description": "Active coating lifting from substrate. Heavy scrape + full prime. May expose ExpertFinish requiring bonding primer." }
+    ],
+    "output_states": [
+      { "state_id": "SS_EXT_PAINTED_FLAT", "condition": "sheen = flat" },
+      { "state_id": "SS_EXT_PAINTED_SATIN", "condition": "sheen = satin" }
+    ]
+  },
+
+  "material_systems_summary": [
+    {
+      "system_id": "SYS_EXT_EWRP_PRIMER_ACRYLIC_RP",
+      "product_role": "primer",
+      "description": "Acrylic stain-block primer for SS_EXT_FAILING_PAINT and SS_EXT_PEELING. NOT alkali-resistant — EW is neutral pH.",
+      "applies_when": { "substrate_state": ["SS_EXT_FAILING_PAINT", "SS_EXT_PEELING"] }
+    },
+    {
+      "system_id": "SYS_EXT_EWRP_PRIMER_CHALK_BIND",
+      "product_role": "primer",
+      "description": "Chalk-binding primer for SS_EXT_CHALKING. Full surface application.",
+      "applies_when": { "substrate_state": ["SS_EXT_CHALKING"] }
+    },
+    {
+      "system_id": "SYS_EXT_EW_PRIMER_BONDING",
+      "product_role": "primer",
+      "description": "Bonding primer for exposed ExpertFinish factory-finished substrate. Reused from NC.",
+      "applies_when": { "substrate_state": ["SS_EXT_PEELING"], "condition": "ExpertFinish exposed" }
+    },
+    {
+      "system_id": "SYS_EXT_EW_FINISH_STANDARD",
+      "product_role": "finish",
+      "description": "100% acrylic exterior latex finish. QT2/QT3. LP SmartSide-approved. Reused from NC.",
+      "applies_when": { "quality_tier": ["QT2", "QT3"] }
+    },
+    {
+      "system_id": "SYS_EXT_EW_FINISH_PREMIUM",
+      "product_role": "finish",
+      "description": "Premium 100% acrylic exterior latex finish. QT4. LP SmartSide-approved. Reused from NC.",
+      "applies_when": { "quality_tier": ["QT4"] }
+    }
+  ],
+
+  "module_summary": [
+    { "module_id": "MOD_EWRP_SETUP", "phase": "setup", "task_count": 7, "description": "Landscape/hardscape protection, fixture masking, vehicle/driveway, equipment setup" },
+    { "module_id": "MOD_EWRP_ASSESS", "phase": "prep", "task_count": 6, "description": "Visual condition, adhesion test, chalk test, moisture probe, edge seal check, caulk assessment" },
+    { "module_id": "MOD_EWRP_PREP", "phase": "prep", "task_count": 9, "description": "Power wash, mildew treat, scrape/feather, degloss/scuff, chalk remediation, caulk remove/apply, moisture check, dust cleanup" },
+    { "module_id": "MOD_RRP_EXT_CONTAINMENT", "phase": "prep", "task_count": 5, "description": "Shared exterior lead-safe RRP module (pre_1978 conditional)" },
+    { "module_id": "MOD_EWRP_PRIME", "phase": "prime", "task_count": 2, "description": "State-driven primer by spray_backroll or brush_roll" },
+    { "module_id": "MOD_EWRP_FINISH", "phase": "finish", "task_count": 4, "description": "Finish coats 1 and 2 by spray_backroll or brush_roll" },
+    { "module_id": "MOD_EWRP_INTERSTAGE", "phase": "interstage", "task_count": 4, "description": "Interstage inspection, QT4 sand, touch-up, dust removal" },
+    { "module_id": "MOD_EWRP_CLEANUP", "phase": "cleanup", "task_count": 6, "description": "Final inspect, final touch-up, protection teardown, equipment cleanup, site cleanup, customer walkthrough" }
+  ],
+
+  "round_configurations": [
+    {
+      "round_id": "ROUND_EWRP_2FINISH",
+      "description": "2 finish coats only — GOOD condition, no prime needed",
+      "total_coats": 2,
+      "interstage_cycles": 1,
+      "coats": [
+        { "coat_number": 1, "coat_type": "finish", "task_spray_backroll": "TSK_EWRP_FINISH_1_SPRAY_BACKROLL", "task_brush_roll": "TSK_EWRP_FINISH_1_BRUSH_ROLL" },
+        { "coat_number": 2, "coat_type": "finish", "task_spray_backroll": "TSK_EWRP_FINISH_2_SPRAY_BACKROLL", "task_brush_roll": "TSK_EWRP_FINISH_2_BRUSH_ROLL" }
+      ],
+      "applies_when": { "condition_scale": "GOOD", "quality_tier": ["QT3", "QT4"] }
+    },
+    {
+      "round_id": "ROUND_EWRP_1FINISH",
+      "description": "1 finish coat only — QT2 economy, GOOD condition",
+      "total_coats": 1,
+      "interstage_cycles": 0,
+      "coats": [
+        { "coat_number": 1, "coat_type": "finish", "task_spray_backroll": "TSK_EWRP_FINISH_1_SPRAY_BACKROLL", "task_brush_roll": "TSK_EWRP_FINISH_1_BRUSH_ROLL" }
+      ],
+      "applies_when": { "condition_scale": "GOOD", "quality_tier": ["QT2"] }
+    },
+    {
+      "round_id": "ROUND_EWRP_PRIME_2FINISH",
+      "description": "State-driven prime + 2 finish coats — FAIR/POOR condition",
+      "total_coats": 3,
+      "interstage_cycles": 1,
+      "coats": [
+        { "coat_number": 1, "coat_type": "prime", "task_spray_backroll": "TSK_EWRP_PRIME_SPRAY_BACKROLL", "task_brush_roll": "TSK_EWRP_PRIME_BRUSH_ROLL" },
+        { "coat_number": 2, "coat_type": "finish", "task_spray_backroll": "TSK_EWRP_FINISH_1_SPRAY_BACKROLL", "task_brush_roll": "TSK_EWRP_FINISH_1_BRUSH_ROLL" },
+        { "coat_number": 3, "coat_type": "finish", "task_spray_backroll": "TSK_EWRP_FINISH_2_SPRAY_BACKROLL", "task_brush_roll": "TSK_EWRP_FINISH_2_BRUSH_ROLL" }
+      ],
+      "applies_when": { "condition_scale": ["FAIR", "POOR"], "quality_tier": ["QT3", "QT4"] }
+    },
+    {
+      "round_id": "ROUND_EWRP_PRIME_1FINISH",
+      "description": "State-driven prime + 1 finish coat — QT2 economy, FAIR/POOR condition",
+      "total_coats": 2,
+      "interstage_cycles": 0,
+      "coats": [
+        { "coat_number": 1, "coat_type": "prime", "task_spray_backroll": "TSK_EWRP_PRIME_SPRAY_BACKROLL", "task_brush_roll": "TSK_EWRP_PRIME_BRUSH_ROLL" },
+        { "coat_number": 2, "coat_type": "finish", "task_spray_backroll": "TSK_EWRP_FINISH_1_SPRAY_BACKROLL", "task_brush_roll": "TSK_EWRP_FINISH_1_BRUSH_ROLL" }
+      ],
+      "applies_when": { "condition_scale": ["FAIR", "POOR"], "quality_tier": ["QT2"] }
+    }
+  ],
+
+  "factor_modifiers": [
+    {
+      "factor_id": "FAC_EWRP_CONDITION",
+      "name": "Condition Scale Prep Modifier",
+      "mechanism": "time_multiplier",
+      "stacking_pool": "PREP",
+      "values": { "GOOD": 1.00, "FAIR": 1.50, "POOR": 2.00 }
+    },
+    {
+      "factor_id": "FAC_EWRP_RRP",
+      "name": "EPA Lead-Safe RRP Modifier",
+      "mechanism": "time_multiplier",
+      "stacking_pool": "PREP",
+      "values": { "no_rrp": 1.00, "rrp_required": 2.00 }
+    },
+    {
+      "factor_id": "FAC_EXT_ACCESS",
+      "name": "Access Type Height Modifier",
+      "mechanism": "time_multiplier",
+      "stacking_pool": "SHARED",
+      "values": { "ground": 1.00, "ladder": 1.35, "scaffold": 1.60, "lift": 1.50 },
+      "status": "existing"
+    },
+    {
+      "factor_id": "FAC_EWRP_SIDING_PROFILE",
+      "name": "Siding Profile Modifier",
+      "mechanism": "time_multiplier",
+      "stacking_pool": "SHARED",
+      "values": { "lap": 1.00, "panel": 0.90 }
+    },
+    {
+      "factor_id": "FAC_EWRP_SURFACE_TEXTURE",
+      "name": "Surface Texture Modifier",
+      "mechanism": "time_multiplier",
+      "stacking_pool": "SHARED",
+      "values": { "smooth": 1.00, "textured": 1.15 }
+    },
+    {
+      "factor_id": "FAC_EWRP_QT",
+      "name": "Quality Tier Coating Modifier",
+      "mechanism": "time_multiplier",
+      "stacking_pool": "COATING",
+      "values": { "QT2": 0.85, "QT3": 1.00, "QT4": 1.30 }
+    }
+  ],
+
+  "stacking_partition": {
+    "prep_pool": "condition x rrp x access x profile x texture",
+    "coating_pool": "qt x access x profile x texture",
+    "never_cross": "Prep pool NEVER includes QT. Coating pool NEVER includes condition or RRP.",
+    "worst_case_coating": "QT4(1.30) x scaffold(1.60) x lap(1.00) x textured(1.15) = 2.39x — within 4.0x cap",
+    "worst_case_prep": "POOR(2.0) x RRP(2.0) x scaffold(1.60) x lap(1.00) x textured(1.15) = 7.36x — extreme pre-1978 scenario"
+  },
+
+  "site_condition_rules": [
+    {
+      "rule_id": "SCR-001",
+      "condition": "Wind speed >15 mph",
+      "action": "Switch from spray_backroll to brush_roll. Or delay.",
+      "scope": "SOP reference only — NOT an estimation modifier."
+    },
+    {
+      "rule_id": "SCR-002",
+      "condition": "Surface temperature <50°F or >90°F",
+      "action": "Delay coating. Consult TDS for product-specific temperature range.",
+      "scope": "SOP reference only — NOT an estimation modifier."
+    },
+    {
+      "rule_id": "SCR-003",
+      "condition": "Dew point within 5°F of surface temperature",
+      "action": "Delay coating until conditions improve. Risk of condensation on surface.",
+      "scope": "SOP reference only — NOT an estimation modifier."
+    },
+    {
+      "rule_id": "SCR-004",
+      "condition": "Rain forecast within 4 hours",
+      "action": "Delay finish coat application. Primer and prep may continue if surfaces are protected.",
+      "scope": "SOP reference only — NOT an estimation modifier."
+    },
+    {
+      "rule_id": "SCR-005",
+      "condition": "Moisture content >15%",
+      "action": "STOP WORK for coating. Allow additional dry time. Re-check with moisture meter.",
+      "scope": "HARD STOP — stop work gate, not estimation modifier."
+    }
+  ],
+
+  "compatibility_rules": [
+    {
+      "rule_id": "COMPAT-EWRP-001",
+      "description": "SS_EXT_CHALKING requires chalk-binding primer (SYS_EXT_EWRP_PRIMER_CHALK_BIND). Standard acrylic primer NOT acceptable.",
+      "severity": "critical"
+    },
+    {
+      "rule_id": "COMPAT-EWRP-002",
+      "description": "SS_EXT_SOUND_PAINT with verified adhesion = skip prime module entirely. Degloss/scuff → direct to finish.",
+      "severity": "critical"
+    },
+    {
+      "rule_id": "COMPAT-EWRP-003",
+      "description": "NO alkali-resistant primer on engineered wood. EW is neutral pH. This is a KEY departure from FC RP.",
+      "severity": "critical"
+    },
+    {
+      "rule_id": "COMPAT-EWRP-004",
+      "description": "Butt joint caulk: REMOVE failed caulk but do NOT re-caulk. Butt joint caulk creates moisture trap against OSB core.",
+      "severity": "critical"
+    },
+    {
+      "rule_id": "COMPAT-EWRP-005",
+      "description": "Power wash NEVER exceed 1000 PSI on engineered wood. >1000 PSI forces water into OSB core at joints/cut edges.",
+      "severity": "critical"
+    },
+    {
+      "rule_id": "COMPAT-EWRP-006",
+      "description": "spray-only is NOT valid for RP. All coating tasks require spray_backroll or brush_roll.",
+      "severity": "critical"
+    },
+    {
+      "rule_id": "COMPAT-EWRP-007",
+      "description": "Exposed ExpertFinish substrate (from scraping) requires bonding primer (SYS_EXT_EW_PRIMER_BONDING), not standard acrylic.",
+      "severity": "major"
+    },
+    {
+      "rule_id": "COMPAT-EWRP-008",
+      "description": "QT2 single coat is outside LP SmartSide warranty coverage. Customer acknowledgment recommended.",
+      "severity": "major"
+    }
+  ],
+
+  "cross_spec_notes": {
+    "nc_sibling": "SF_SIDING_ENGINEERED_EXT_NC_v1 — 29 tasks, ENSD prefix. NC provides baseline rates for DIRECT/MODIFIED transfers.",
+    "fc_rp_sibling": "SF_SIDING_FIBERCEMENT_EXT_RP_v1 — 45 tasks, FCRP prefix. FC RP provides pattern for RP_NEW tasks.",
+    "key_departures_from_nc": [
+      "spray_backroll replaces spray as primary (all profiles)",
+      "Power wash 500-1000 PSI allowed (NC: garden hose only)",
+      "Edge seal: assessment, not application",
+      "4 RP substrate states replace 4 NC substrate states",
+      "Profiles: lap/panel only (T1-11 dropped)",
+      "Textures: smooth/textured (2) replace smooth/cedarmill/roughsawn (3)",
+      "Assessment module: 6 RP_NEW tasks for condition evaluation",
+      "Condition scale: GOOD/FAIR/POOR drives prep intensity",
+      "Caulk: 2-step remove+apply (NC: 1-step apply only)",
+      "RRP module, customer walkthrough (NC: neither)"
+    ],
+    "key_departures_from_fc_rp": [
+      "Power wash OK at 500-1000 PSI (FC RP: garden hose rinse only)",
+      "NO alkali-resistant primer (EW neutral pH vs FC pH 13.0)",
+      "NO efflorescence treatment (EW is not cementitious)",
+      "Edge seal integrity check (EW-specific assessment)",
+      "Profiles: lap/panel only (no shingle)",
+      "Textures: 2 (smooth/textured) vs FC RP's 3",
+      "Butt joint caulk removed but NOT replaced (FC may re-caulk)"
+    ],
+    "deduplication": "RRP containment (MOD_RRP_EXT_CONTAINMENT) is shared — do NOT duplicate when running alongside other exterior RP specs on same elevation."
+  }
+}

@@ -1,0 +1,308 @@
+{
+  "spec_family_id": "SF_GARAGE_DOOR_EXT_RP",
+  "version": "0.1.0",
+  "generated_by": "System Critic",
+  "generated_at": "2026-03-15",
+  "status": "draft",
+  "review_required": true,
+
+  "overall_result": "pass",
+
+  "summary": "SF_GARAGE_DOOR_EXT_RP_v1 draft artifacts pass all critical and major doctrine checks. EA-based single-item repaint spec (garage door assembly) adapting NC spec (SF_GARAGE_DOOR_EXT_NC_v1) to repaint context with 4 substrate states (sound/chalking/failing/rust), condition assessment module, condition-driven prep intensity, and stacking partition separating PREP and COATING modifier pools. 56 tasks thread correctly between sop_modules.json and production.json (34 binary, 20 qt_scaled, 2 qt_conditional gated to QT4). 9 modules including mandatory ASSESS module as first stage. 7 material systems (5 primers + 2 finishes) — adds chalk-binding primer not in NC. 4 round configurations tied to substrate state. All PaintScope keys use PS_EXT_* namespace. All substrate states use SS_EXT_* prefix. All 6 protection zones reuse ext_garage_* prefix from NC. Key RP differentiators from NC validated: sound-paint steel uses spot-prime-only (wax sealed by existing film), chalk-binding primer for SS_EXT_CHALKING, 4 condition-driven round configs (vs NC single round), gloss sheen excluded (satin/semi-gloss only), pre-1978 RRP lead-safe gate present, condition modifier in PREP stacking pool. Leapfrog technique, bottom seal lifecycle, articulation test, driveway canvas-only protection all carried forward from NC. 3 minor observations, no blockers.",
+
+  "artifacts_reviewed": [
+    { "file": "research.json", "status": "reviewed", "human_feedback": "none" },
+    { "file": "resolution.json", "status": "reviewed", "human_feedback": "none" },
+    { "file": "materials.json", "status": "reviewed", "human_feedback": "none" },
+    { "file": "sop_modules.json", "status": "reviewed", "human_feedback": "none" },
+    { "file": "production.json", "status": "reviewed", "human_feedback": "none" },
+    { "file": "spec.json", "status": "not_yet_created", "human_feedback": "n/a" }
+  ],
+
+  "issues": [
+    {
+      "issue_id": "QA-001",
+      "severity": "minor",
+      "area": "applies_when_pattern",
+      "file": "sop_modules.json vs production.json",
+      "status": "acknowledged",
+      "description": "Two intercoat tasks (TSK_GDRP_SAND_INTERCOAT, TSK_GDRP_DUST_INTERCOAT) use appears_in_tiers [QT4] in sop_modules.json with task_classification qt_conditional, while production.json lists them in qt_conditional_tasks with appears_in [QT4]. The SOP field 'appears_in_tiers' and the production field 'appears_in' serve the same gating function but use different structural patterns.",
+      "resolution": "Acknowledged — consistent cross-file pattern difference (SOP uses appears_in_tiers for tier gating, production uses quality_effects.qt_conditional_tasks for rate gating). Same pattern present in NC spec (QA-001) and sibling exterior door RP spec. Functionally equivalent. No change needed."
+    },
+    {
+      "issue_id": "QA-002",
+      "severity": "minor",
+      "area": "time_estimate",
+      "file": "production.json",
+      "status": "acknowledged",
+      "description": "Baseline scenario total is 336 min (5.6 hrs) for single steel flush sound-paint QT3 spray door, excluding driveway SF protection. This is ~17% higher than NC baseline (287 min / 4.8 hrs). The premium is driven by the condition assessment module (30 min) and additional RP prep tasks (surface cleaning, caulk assessment).",
+      "resolution": "Acknowledged — the 5.6 hr RP baseline includes condition assessment (30 min), surface cleaning (20 min), and caulk joint assessment (15 min) that NC does not have. Core painting tasks remain similar to NC. The ~17% RP premium on sound-paint is within the 30% low-end RP premium range documented in research.json (RF-011). Full protection setup/cleanup (~95+60=155 min / 2.6 hrs) and core painting (~151 min / 2.5 hrs) are reasonable."
+    },
+    {
+      "issue_id": "QA-003",
+      "severity": "minor",
+      "area": "stacking_cap_exceeded",
+      "file": "production.json",
+      "status": "acknowledged",
+      "description": "Worst-case multiplicative stacking on PREP tasks: double (1.85) x carriage (1.30) x wood (1.15) x rust (2.00) = ~5.53x, exceeding 4.0x cap. However, this combination is materially impossible (wood + composite + rust is contradictory — rust is steel-only). The realistic worst case is double (1.85) x raised_panel (1.10) x steel (1.00) x rust (2.00) = ~4.07x, barely exceeding cap.",
+      "resolution": "Acknowledged — production.json correctly documents the theoretical maximum and recommends T&M pricing for extreme combinations. The impossible combination (wood x rust) is gated by compatibility rule COMPAT-006 (SS_EXT_SURFACE_RUST is steel-only). Realistic worst case is ~4.07x (double raised-panel steel with surface rust), which is within tolerance of the 4.0x cap given field estimation variance."
+    }
+  ],
+
+  "blockers": [],
+
+  "doctrine_checks": [
+    {
+      "check": "THREADING-1: Task ID Completeness",
+      "result": "pass",
+      "details": "All 56 task_ids in sop_modules.json have matching entries in production.json. No orphaned tasks in either direction. Count by module: ASSESS=6, SETUP=8, PREP=10, PRIME=8, FINISH_1=4, INTERSTAGE=4, FINISH_2=5, FINAL_INSPECT=3, CLEANUP=8."
+    },
+    {
+      "check": "THREADING-2: task_classification Match",
+      "result": "pass",
+      "details": "All task_classification values in sop_modules.json are consistent with production.json rate structures. 34 binary tasks have fixed_time_minutes or rate_per_hour. 20 qt_scaled tasks have qt_rates {QT3, QT4}. 2 qt_conditional tasks (TSK_GDRP_SAND_INTERCOAT, TSK_GDRP_DUST_INTERCOAT) gated to QT4 in both files. No mismatches found."
+    },
+    {
+      "check": "THREADING-3: applies_when Consistency",
+      "result": "pass",
+      "details": "Application method gating consistent: spray tasks gate on [spray], brush on [brush]. Substrate material gating consistent: steel tasks on [steel] (degloss_scuff, rust_debride, prime_dtm_*), wood on [wood] (sand_wood, fill_wood, tannin_spot_prime, prime_acrylic_*), composite on [composite] (prep_composite, prime_bonding_composite). Substrate state gating consistent: chalking tasks on [SS_EXT_CHALKING], failing on [SS_EXT_FAILING_PAINT], rust on [SS_EXT_SURFACE_RUST], sound on [SS_EXT_SOUND_PAINT]. Panel complexity gating: brush recess tasks on [raised_panel, carriage]. Window tasks conditional on windows present. Pre-1978 lead test gated on pre_1978 flag."
+    },
+    {
+      "check": "THREADING-4: UOM Match",
+      "result": "pass",
+      "details": "All task UOMs in production.json match sop_modules.json. EA-based: 50 tasks (all per-door tasks). FIXED: 4 tasks (equipment_setup_spray, equipment_setup_brush, assess_lead, tool_clean). SF-based: 2 tasks (driveway_protect, driveway_teardown). No LF or other UOMs."
+    },
+    {
+      "check": "THREADING-5: Task Prefix",
+      "result": "pass",
+      "details": "All 56 task IDs use TSK_GDRP_ prefix. No collisions with existing prefixes (GRDR=NC, DRRP=entry door RP, TRRP=trim RP). GDRP is unique."
+    },
+    {
+      "check": "THREADING-6: Module Prefix",
+      "result": "pass",
+      "details": "All 9 module IDs use MOD_GDRP_ prefix: ASSESS, SETUP, PREP, PRIME, FINISH_1, INTERSTAGE, FINISH_2, FINAL_INSPECT, CLEANUP."
+    },
+    {
+      "check": "EXT-1: Key Namespace Integrity",
+      "result": "pass",
+      "details": "All paintscope_key references use PS_EXT_* namespace. 7 PS keys declared in resolution.json: PS_EXT_OPENING_EA.DOOR_GARAGE, PS_EXT_META.ENUM.GARAGE_DOOR_SUBSTRATE, PS_EXT_META.ENUM.GARAGE_DOOR_SIZE, PS_EXT_META.ENUM.GARAGE_DOOR_PANEL_TYPE, PS_EXT_META.ENUM.SUBSTRATE_STATE_GARAGE_DOOR, PS_EXT_PROTECT_SF.DRIVEWAY, PS_EXT_META.FLAG.PRE_1978. No interior keys found."
+    },
+    {
+      "check": "EXT-2: Substrate State Validity",
+      "result": "pass",
+      "details": "All substrate states use SS_EXT_* prefix. 4 input states: SS_EXT_SOUND_PAINT, SS_EXT_CHALKING, SS_EXT_FAILING_PAINT, SS_EXT_SURFACE_RUST. 2 output states: SS_EXT_PAINTED_SATIN, SS_EXT_PAINTED_SEMIGLOSS. No SS_INT_* or bare SS_ IDs. Gloss output state excluded (gloss sheen not supported for RP)."
+    },
+    {
+      "check": "EXT-3: Protection Zone Integrity",
+      "result": "pass",
+      "details": "All 6 protection zones reuse ext_garage_* prefix from NC: ext_garage_driveway_apron, ext_garage_siding_adjacent, ext_garage_window_mask, ext_garage_weatherstrip, ext_garage_track_hardware, ext_garage_bottom_seal. No interior zone IDs. All zones have setup tasks in MOD_GDRP_SETUP and teardown tasks in MOD_GDRP_CLEANUP."
+    },
+    {
+      "check": "EXT-4: Mandatory Site Condition Rules",
+      "result": "pass",
+      "details": "Site conditions documented in research.json (RF-009 driveway protection, RF-004 leapfrog technique for sectional doors). Environmental conditions excluded from estimation per PaintFactor OS RC-003 (research correction RC-002). No environmental factor modifiers — correct for RP spec per doctrine."
+    },
+    {
+      "check": "EXT-5: Exterior Factor Keys",
+      "result": "pass",
+      "details": "6 factor modifiers declared: FAC_GDRP_DOOR_SIZE (primary), FAC_GDRP_PANEL_COMPLEXITY, FAC_GDRP_WINDOWS (additive), FAC_GDRP_SUBSTRATE, FAC_GDRP_CONDITION (PREP pool), FAC_GDRP_QT (COATING pool). Stacking partition correctly separates PREP and COATING pools. No environmental modifiers (excluded per RC-002). Compared to NC: adds FAC_GDRP_CONDITION, removes 3 environmental modifiers (wind, sun, surface temp)."
+    },
+    {
+      "check": "EXT-6: Modifier Math",
+      "result": "pass",
+      "details": "Stacking partition enforced: PREP pool (condition) applies only to prep tasks. COATING pool (QT) applies only to coating tasks. SHARED pool (size, complexity, substrate) applies to all per-door tasks. ADDITIVE pool (windows) adds flat hours. Maximum realistic multiplicative: double (1.85) x raised_panel (1.10) x steel (1.00) x rust (2.00) = 4.07x (prep tasks). Common high scenario: double (1.85) x raised_panel (1.10) x QT4 (1.15) = 2.34x. 4.0x cap documented with T&M recommendation for extreme combinations."
+    },
+    {
+      "check": "EXT-7: Material State Compatibility",
+      "result": "pass",
+      "details": "Five condition-driven primer paths: DTM (SYS_EXT_GDRP_PRIMER_DTM) for steel with sound/failing/rust states. Chalk-binding (SYS_EXT_GDRP_PRIMER_CHALKBIND) for SS_EXT_CHALKING on any substrate. Acrylic (SYS_EXT_GDRP_PRIMER_ACRYLIC) for wood with sound/failing states. Alkyd stain-blocker (SYS_EXT_GDRP_PRIMER_ALKYD_STAINBLOCK) for tannin-rich wood. Bonding (SYS_EXT_GDRP_PRIMER_BONDING) for composite with adhesion failure. 2 finish systems: standard QT3 and premium QT4. Key RP difference: sound-paint steel uses spot-prime only (existing film seals wax — no full DTM requirement unlike NC)."
+    },
+    {
+      "check": "GDRP-1: EA-Based Rates",
+      "result": "pass",
+      "details": "50 of 56 tasks use EA UOM (per-door assembly). 4 tasks use FIXED (equipment setup spray/brush, lead test, tool clean). 2 tasks use SF (driveway protect/teardown). No SF/LF direct production rates on door painting tasks — all door work is bundled into per-EA fixed_time_minutes or qt_rates."
+    },
+    {
+      "check": "GDRP-2: Condition Assessment Module",
+      "result": "pass",
+      "details": "MOD_GDRP_ASSESS is first module with 6 tasks: visual condition assessment (lead), adhesion test ASTM D3359 (lead), rust evaluation steel-only (lead), moisture content wood-only (lead), existing coating ID (lead), lead paint test pre-1978 (lead/FIXED). All assessment tasks are binary classification, lead skill level. Assessment drives substrate state assignment, prep scope, primer selection, and round configuration."
+    },
+    {
+      "check": "GDRP-3: Substrate State Routing",
+      "result": "pass",
+      "details": "4 substrate states correctly route to different prep and primer paths. SS_EXT_SOUND_PAINT: degloss scuff + spot DTM (steel) or minimal prep. SS_EXT_CHALKING: chalk remediation wash + chalk-binding full prime. SS_EXT_FAILING_PAINT: scrape + feather-edge + spot/full prime. SS_EXT_SURFACE_RUST: SSPC-SP3 debridement + DTM full prime (steel-only). Each state has corresponding round configuration."
+    },
+    {
+      "check": "GDRP-4: Leapfrog Technique",
+      "result": "pass",
+      "details": "Leapfrog verify tasks present in both finish modules: TSK_GDRP_LEAPFROG_VERIFY_1 (MOD_GDRP_FINISH_1) and TSK_GDRP_LEAPFROG_VERIFY_2 (MOD_GDRP_FINISH_2). Both are binary classification, 5 min/EA. Research finding RF-004 notes increased bridging risk in RP due to additional film thickness. Leapfrog overhead (~30%) built into finish spray/brush rates."
+    },
+    {
+      "check": "GDRP-5: Bottom Seal Lifecycle",
+      "result": "pass",
+      "details": "Three-stage bottom seal management: TSK_GDRP_BOTTOM_SEAL_PREP (setup, 12 min, remove or mask), TSK_GDRP_BOTTOM_SEAL_PROP (finish_2, 5 min, prop door 2-4 inches during cure), TSK_GDRP_BOTTOM_SEAL_REINSTALL (cleanup, 12 min, reinstall after 24-48 hr cure). Complete lifecycle from prep through cure period to reinstall. Research notes existing seal may be degraded — recommend replacement if cracked/hardened (not painting scope)."
+    },
+    {
+      "check": "GDRP-6: Skip-Prime for Sound Steel",
+      "result": "pass",
+      "details": "Key RP differentiator from NC validated. Sound-paint steel (SS_EXT_SOUND_PAINT) uses spot-prime-only approach per research finding RF-008. Wax contamination concern from NC is mitigated by existing sealed paint film. DTM primer applies to bare/scraped areas only. This is correctly reflected in materials.json (SYS_EXT_GDRP_PRIMER_DTM notes: 'Spot prime on sound paint — bare/thin areas only') and production.json (TSK_GDRP_PRIME_DTM_SPRAY notes: 'Spot or full prime per condition')."
+    },
+    {
+      "check": "GDRP-7: Quality Tier Range",
+      "result": "pass",
+      "details": "QT3-QT4 declared in resolution.json applicable_enums. QT2 excluded (visible from street). QT5 excluded (utility surface). Same 2-tier range as NC. All qt_scaled tasks have qt_rates for QT3 and QT4. qt_conditional tasks correctly appear in QT4 only."
+    },
+    {
+      "check": "GDRP-8: Sheen Restriction",
+      "result": "pass",
+      "details": "Satin and semi-gloss only — gloss excluded per research finding RF-013. Gloss requires substrate perfection not achievable over existing paint. Finish systems correctly list allowed_sheens [satin, semi-gloss]. Output substrate states only include SS_EXT_PAINTED_SATIN and SS_EXT_PAINTED_SEMIGLOSS."
+    },
+    {
+      "check": "GDRP-9: Articulation Test",
+      "result": "pass",
+      "details": "TSK_GDRP_ARTICULATION_TEST present in MOD_GDRP_CLEANUP — journeyman skill level, 5 min/EA. Verifies door opens and closes freely after painting. Critical safety gate for sectional doors. Same as NC."
+    },
+    {
+      "check": "GDRP-10: RRP Lead-Safe Gate",
+      "result": "pass",
+      "details": "TSK_GDRP_ASSESS_LEAD in MOD_GDRP_ASSESS — lead skill level, 20 min FIXED, gated on pre_1978 flag. Pre-1978 structures may contain lead-based paint per EPA RRP Rule (40 CFR 745). Per-project test, not per-door. Research finding RF-012 notes this is a safety gate, not common scenario."
+    },
+    {
+      "check": "COMPLETENESS-1: Protection Zones",
+      "result": "pass",
+      "details": "6 protection zones declared in resolution.json — all reused from NC: ext_garage_driveway_apron, ext_garage_siding_adjacent, ext_garage_window_mask, ext_garage_weatherstrip, ext_garage_track_hardware, ext_garage_bottom_seal. All have setup tasks in SETUP module and teardown tasks in CLEANUP module."
+    },
+    {
+      "check": "COMPLETENESS-2: Cross-Spec Boundaries",
+      "result": "pass",
+      "details": "Clear scope boundary: garage door panel assembly only (repaint). Casing/trim belongs to SF_TRIM_EXT_RP_v1. Entry door repaint (SF_DOOR_EXT_RP_v1) is completely separate — different context prefix (DRRP vs GDRP). Driveway protection and adjacent siding masking are this spec's responsibility."
+    },
+    {
+      "check": "COMPLETENESS-3: Round Configurations",
+      "result": "pass",
+      "details": "4 round configurations tied to substrate state: ROUND_GDRP_SOUND (spot prime + 2 finish), ROUND_GDRP_CHALKING (chalk-binding full prime + 2 finish), ROUND_GDRP_FAILING (spot/full prime + 2 finish), ROUND_GDRP_RUST (DTM full prime + 2 finish, steel-only). Correct RP approach — condition drives primer scope. NC has 1 round (all substrates get full prime)."
+    },
+    {
+      "check": "COMPLETENESS-4: Module Phase Order",
+      "result": "pass",
+      "details": "Module phase sequence: prep (ASSESS) -> setup (SETUP) -> prep (PREP) -> prime (PRIME) -> finish (FINISH_1) -> interstage (INTERSTAGE) -> finish (FINISH_2) -> finish (FINAL_INSPECT) -> cleanup (CLEANUP). Assessment runs first to determine condition-driven downstream decisions. No 'protect' or 'protection' phase values."
+    },
+    {
+      "check": "COMPLETENESS-5: Input Declarations",
+      "result": "pass",
+      "details": "7 paintscope key declarations in resolution.json: 1 primary quantity (IN_EA_GARAGE_DOOR), 3 configuration enums (IN_ENUM_GARAGE_DOOR_SUBSTRATE, IN_ENUM_GARAGE_DOOR_SIZE, IN_ENUM_GARAGE_DOOR_PANEL_TYPE), 1 substrate state enum (IN_ENUM_SUBSTRATE_STATE_GARAGE_DOOR — NEW for RP), 1 protection input (IN_SF_EXT_PROTECT_DRIVEWAY), 1 RRP flag (IN_BOOL_PRE_1978 — NEW for RP). All consumed by sop_modules or production."
+    },
+    {
+      "check": "ENUM-1: Convention Compliance",
+      "result": "pass",
+      "details": "All enums comply with project conventions: CON_ prefix (not CONS_), task_classification (not task_class), severity uses critical/major/minor, phase values from approved set (no 'protect' or 'protection'), all units uppercase (EA, SF, FIXED, ROLL, SHEET, QT, GAL, TUBE), consumable_category from approved set (applicator, protection, prep, cleanup, abrasive, fill_material, tool), zones use ext_garage_* prefix, sheen single values only (satin, semi-gloss — no compounds)."
+    }
+  ],
+
+  "exterior_validation_summary": {
+    "repaint_spec": true,
+    "nc_sibling": "SF_GARAGE_DOOR_EXT_NC_v1 (NC garage door — GRDR prefix)",
+    "pattern_references": ["SF_DOOR_EXT_RP_v1 (entry door RP — condition assessment, stacking partition)", "SF_TRIM_EXT_RP_v1 (trim RP — DSD assessment)"],
+    "domain_dispatch_activated": true,
+    "interior_contamination": "none — no interior keys, states, or zones found",
+    "research_corrections_applied": 2,
+    "research_corrections": [
+      "RC-001: Sound-paint steel spot-prime-only (wax sealed by existing film)",
+      "RC-002: Environmental conditions excluded from estimation per PaintFactor OS"
+    ],
+    "user_corrections_applied": 0,
+    "key_differentiators_from_nc": [
+      "Sound-paint steel uses spot-prime-only (NC: full DTM prime for all steel due to wax)",
+      "4 substrate states drive prep/primer selection (NC: 3 NC-relevant states drive primer only)",
+      "Condition assessment module (MOD_GDRP_ASSESS) is mandatory first stage (NC: no assessment)",
+      "4 round configurations tied to condition (NC: 1 round for all substrates)",
+      "Chalk-binding primer (SYS_EXT_GDRP_PRIMER_CHALKBIND) added for SS_EXT_CHALKING (NC: not applicable)",
+      "Gloss sheen excluded — satin/semi-gloss only (NC: satin/semi-gloss/gloss)",
+      "Pre-1978 RRP lead-safe gate added (NC: not applicable — new construction)",
+      "Condition modifier (FAC_GDRP_CONDITION) in PREP stacking pool (NC: no condition modifier)",
+      "Environmental modifiers excluded (NC: included wind, sun, surface temp)",
+      "56 tasks across 9 modules (NC: 46 tasks across 8 modules — adds ASSESS module)",
+      "Baseline 5.6 hrs vs NC 4.8 hrs (~17% RP premium on sound-paint baseline)"
+    ]
+  },
+
+  "task_cross_reference": {
+    "total_sop_tasks": 56,
+    "total_production_rates": 56,
+    "orphaned_in_sop": 0,
+    "orphaned_in_production": 0,
+    "classification_mismatches": 0,
+    "uom_mismatches": 0,
+    "applies_when_pattern_differences": 2,
+    "applies_when_pattern_differences_note": "2 intercoat tasks use appears_in_tiers in SOP vs qt_conditional_tasks in production — functionally equivalent, acknowledged in QA-001",
+    "by_classification": {
+      "binary": 34,
+      "qt_scaled": 20,
+      "qt_conditional": 2,
+      "notes": "Counts from sop_modules.json task_classification values. qt_conditional: TSK_GDRP_SAND_INTERCOAT and TSK_GDRP_DUST_INTERCOAT (QT4 only)."
+    },
+    "by_skill_level": {
+      "helper": 14,
+      "journeyman": 35,
+      "lead": 7
+    },
+    "by_uom": {
+      "EA": 50,
+      "FIXED": 4,
+      "SF": 2
+    }
+  },
+
+  "modifier_stacking_validation": {
+    "max_theoretical_stack": 5.53,
+    "stacking_cap": 4.0,
+    "within_cap": false,
+    "cap_resolution": "Theoretical maximum (5.53x) involves materially impossible combination (wood + rust). Realistic worst case is ~4.07x (double raised-panel steel with surface rust on prep tasks). Engine applies 4.0x cap. Extreme combinations flagged for T&M pricing.",
+    "worst_case_scenario": "Double (1.85) x carriage (1.30) x wood (1.15) x rust (2.00) = ~5.53x — IMPOSSIBLE: rust is steel-only. Realistic worst: Double (1.85) x raised_panel (1.10) x steel (1.00) x rust (2.00) = 4.07x on prep tasks.",
+    "common_high_scenario": "Double steel raised_panel sound QT4 spray = 1.85 x 1.10 x 1.15 = 2.34x (well within cap)",
+    "common_low_scenario": "Single steel flush sound QT3 spray = 1.00x (baseline)"
+  },
+
+  "material_system_validation": {
+    "primer_systems": 5,
+    "finish_systems": 2,
+    "specialty_systems": 0,
+    "total_systems": 7,
+    "coverage_profiles": 4,
+    "consumables_unique": 4,
+    "consumables_reusable": 11,
+    "compatibility_rules_in_materials": true,
+    "compatibility_rules_count": 6,
+    "all_systems_have_quality_tier": true,
+    "all_systems_have_substrate_routing": true,
+    "chalk_binding_primer_enforced": true,
+    "spot_prime_for_sound_steel_documented": true,
+    "lrv_restriction_documented": true,
+    "roller_prohibition_documented": true,
+    "rust_steel_only_gate_documented": true
+  },
+
+  "time_estimate_sanity_check": {
+    "single_steel_flush_sound_spray_QT3": {
+      "total_minutes": 336,
+      "total_hours": 5.6,
+      "notes": "Excludes driveway SF protection. With typical driveway (~100-200 SF): ~6.1-6.6 hrs. RP premium over NC: ~17% (vs expected 30% low-end). Premium is lower because sound-paint has minimal extra prep. Core painting tasks are similar to NC. Assessment adds 30 min.",
+      "assessment": "Reasonable — sound-paint repaint has low prep overhead. The 17% premium reflects mostly the assessment module and surface cleaning."
+    },
+    "single_steel_flush_failing_spray_QT3": {
+      "modifier": "FAC_GDRP_CONDITION = 1.50 on prep tasks",
+      "estimated_total_hours": "7.0-7.5",
+      "assessment": "Reasonable — failing paint adds significant scraping and feathering. Within expected 50% premium range (RF-011)."
+    },
+    "single_steel_flush_rust_spray_QT3": {
+      "modifier": "FAC_GDRP_CONDITION = 2.00 on prep tasks",
+      "estimated_total_hours": "8.0-9.0",
+      "assessment": "Reasonable — SSPC-SP3 debridement is highly labor-intensive. Within expected 80-100% premium range (RF-011)."
+    },
+    "double_steel_flush_sound_spray_QT3": {
+      "modifier": "FAC_GDRP_DOOR_SIZE = 1.85",
+      "estimated_total_hours": "10-11",
+      "assessment": "Reasonable — 1.85x single door time. Setup/cleanup has some fixed overhead."
+    }
+  }
+}

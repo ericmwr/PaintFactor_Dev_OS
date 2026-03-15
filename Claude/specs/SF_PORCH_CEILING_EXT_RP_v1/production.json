@@ -1,0 +1,794 @@
+{
+  "spec_family_id": "SF_PORCH_CEILING_EXT_RP",
+  "version": "1.0.0",
+  "generated_by": "Estimation Engineer",
+  "generated_at": "2026-03-15",
+
+  "MODIFIER_STACKING_WARNING": {
+    "severity": "critical",
+    "description": "Modifier stacking uses TWO separate pools that never cross-apply. Prep tasks use condition x RRP x access x panel_joints. Coating tasks use QT x access x panel_joints. Condition and RRP NEVER apply to coating tasks. QT NEVER applies to prep tasks.",
+    "worst_case_prep": "POOR(2.0) x RRP(2.0) x scaffold(1.60) x beadboard(1.20) = 7.68x — extreme theoretical",
+    "realistic_worst_prep": "FAIR(1.5) x no_RRP(1.0) x ladder(1.35) x solid_panel(1.0) = 2.03x — within cap",
+    "worst_case_coating": "QT4(1.30) x scaffold(1.60) x beadboard(1.20) = 2.50x — within 4.0x cap",
+    "realistic_worst_coating": "QT3(1.0) x ladder(1.35) x solid_panel(1.0) = 1.35x — comfortable",
+    "stacking_rules": {
+      "prep_tasks": {
+        "formula": "effective_rate = base_rate / (condition x rrp x access x panel_joints)",
+        "pool_modifiers": "FAC_CONDITION_SCALE + FAC_PCRP_RRP (PREP pool)",
+        "shared_modifiers": "FAC_EXT_ACCESS + FAC_PRCH_PANEL_JOINTS",
+        "never_includes": "quality_tier"
+      },
+      "coating_tasks": {
+        "formula": "effective_rate = base_rate / (qt x access x panel_joints)",
+        "pool_modifiers": "quality_tier (COATING pool)",
+        "shared_modifiers": "FAC_EXT_ACCESS + FAC_PRCH_PANEL_JOINTS",
+        "never_includes": "FAC_CONDITION_SCALE, FAC_PCRP_RRP"
+      },
+      "fixed_tasks": {
+        "formula": "fixed_time_minutes (no modifiers)",
+        "note": "Assessment, equipment setup/cleanup, RRP containment, customer walkthrough — no modifiers."
+      }
+    }
+  },
+
+  "porch_ceiling_surface_input_group": {
+    "description": "Rate per SF applies to net porch ceiling field area. ALL base rates include overhead work penalty (~25-35% reduction from vertical baselines). Do NOT apply FAC_PRCH_OVERHEAD as a stacking modifier. RP rates calibrated from NC sibling with RP-specific adjustments.",
+    "inputs": [
+      { "input_name": "IN_SF_PORCH_CEILING", "paintscope_key": "PS_EXT_SURFACE_SF.PORCH_CEILING" },
+      { "input_name": "IN_EA_ELEVATIONS", "paintscope_key": "PS_EXT_META.EA.ELEVATIONS_TOTAL" },
+      { "input_name": "IN_ENUM_ACCESS_TYPE", "paintscope_key": "PS_EXT_META.ENUM.ACCESS_TYPE" },
+      { "input_name": "IN_ENUM_SUBSTRATE_STATE_EXT", "paintscope_key": "PS_EXT_META.ENUM.SUBSTRATE_STATE" },
+      { "input_name": "IN_ENUM_SUBSTRATE_TYPE_PORCH_CEILING", "paintscope_key": "PS_EXT_META.ENUM.SUBSTRATE_TYPE_PORCH_CEILING" },
+      { "input_name": "IN_ENUM_PORCH_CEILING_PANEL_TYPE", "paintscope_key": "PS_EXT_META.ENUM.PORCH_CEILING_PANEL_TYPE" },
+      { "input_name": "IN_BOOL_PRE_1978_EXT", "paintscope_key": "PS_EXT_META.FLAG.PRE_1978" },
+      { "input_name": "IN_SF_EXT_PROTECT_PORCH_FLOOR", "paintscope_key": "PS_EXT_PROTECT_SF.PORCH_FLOOR" },
+      { "input_name": "IN_EA_EXT_PROTECT_PORCH_FURNITURE", "paintscope_key": "PS_EXT_PROTECT_EA.PORCH_FURNITURE" },
+      { "input_name": "IN_EA_EXT_PROTECT_LIGHT_FIXTURE", "paintscope_key": "PS_EXT_PROTECT_EA.LIGHT_FIXTURE" }
+    ]
+  },
+
+  "task_production_rates": [
+
+    { "_section": "=== MOD_PCRP_SETUP — 7 tasks ===" },
+
+    {
+      "task_id": "TSK_PCRP_FLOOR_PROTECT",
+      "name": "Porch Floor Protection",
+      "unit_of_measure": "SF",
+      "task_classification": "binary",
+      "rate_per_hour": 250,
+      "rate_range_low": 200,
+      "rate_range_high": 350,
+      "crew_size": 1,
+      "modifier_pool": "none",
+      "applicable_modifiers": [],
+      "rate_basis_notes": "DIRECT from NC TSK_PRCH_FLOOR_PROTECT (250 SF/hr). Ground-level task. Canvas drop cloths on porch floor. RP: also catches scraping debris.",
+      "applies_when": {}
+    },
+    {
+      "task_id": "TSK_PCRP_FURNITURE_PROTECT",
+      "name": "Porch Furniture Cover/Removal",
+      "unit_of_measure": "EA",
+      "task_classification": "binary",
+      "rate_per_hour": 8,
+      "rate_range_low": 6,
+      "rate_range_high": 12,
+      "crew_size": 1,
+      "modifier_pool": "none",
+      "applicable_modifiers": [],
+      "rate_basis_notes": "DIRECT from NC TSK_PRCH_FURNITURE_PROTECT (8 EA/hr). ~7.5 min per item. Ground-level.",
+      "applies_when": {}
+    },
+    {
+      "task_id": "TSK_PCRP_FIXTURE_MASK",
+      "name": "Porch Ceiling Fixture Masking",
+      "unit_of_measure": "EA",
+      "task_classification": "binary",
+      "rate_per_hour": 8,
+      "rate_range_low": 5,
+      "rate_range_high": 12,
+      "crew_size": 1,
+      "modifier_pool": "none",
+      "applicable_modifiers": ["FAC_EXT_ACCESS"],
+      "rate_basis_notes": "DIRECT from NC TSK_PRCH_FIXTURE_MASK (8 EA/hr). Ceiling fans ~10-15 min with blade removal, pendant lights ~5-8 min, recessed cans ~3-5 min. Average ~7.5 min. RP: all fixtures installed and operational.",
+      "applies_when": {}
+    },
+    {
+      "task_id": "TSK_PCRP_FASCIA_MASK",
+      "name": "Fascia/Wall Junction Masking",
+      "unit_of_measure": "SF",
+      "task_classification": "binary",
+      "rate_per_hour": 500,
+      "rate_range_low": 400,
+      "rate_range_high": 600,
+      "crew_size": 1,
+      "modifier_pool": "none",
+      "applicable_modifiers": ["FAC_EXT_ACCESS"],
+      "rate_basis_notes": "DIRECT from NC TSK_PRCH_FASCIA_MASK (500 SF/hr). Tape + film at junctions. RP: MANDATORY (fascia/wall almost always already finished).",
+      "applies_when": {}
+    },
+    {
+      "task_id": "TSK_PCRP_SIDING_MASK",
+      "name": "Adjacent Siding Masking (Spray Only)",
+      "unit_of_measure": "SF",
+      "task_classification": "binary",
+      "rate_per_hour": 400,
+      "rate_range_low": 300,
+      "rate_range_high": 500,
+      "crew_size": 1,
+      "modifier_pool": "none",
+      "applicable_modifiers": ["FAC_EXT_ACCESS"],
+      "rate_basis_notes": "RP-NEW. Film + tape on siding at porch wall junction. ~9 sec per SF. Spray only. Rate from soffit RP siding masking pattern.",
+      "applies_when": { "application_method": ["spray"] }
+    },
+    {
+      "task_id": "TSK_PCRP_EQUIPMENT_SETUP_BRUSH",
+      "name": "Brush/Roll Equipment Setup",
+      "unit_of_measure": "FIXED",
+      "task_classification": "binary",
+      "fixed_time_minutes": 25,
+      "crew_size": 1,
+      "modifier_pool": "none",
+      "applicable_modifiers": [],
+      "rate_basis_notes": "DIRECT from NC (25 min). Stage brushes, rollers, trays, extension poles, ladders.",
+      "applies_when": { "application_method": ["brush_roll"] }
+    },
+    {
+      "task_id": "TSK_PCRP_EQUIPMENT_SETUP_SPRAY",
+      "name": "Spray Equipment Setup",
+      "unit_of_measure": "FIXED",
+      "task_classification": "binary",
+      "fixed_time_minutes": 45,
+      "crew_size": 1,
+      "modifier_pool": "none",
+      "applicable_modifiers": [],
+      "rate_basis_notes": "DIRECT from NC (45 min). Configure airless sprayer. No vent verification needed.",
+      "applies_when": { "application_method": ["spray"] }
+    },
+
+    { "_section": "=== MOD_RRP_EXT_CONTAINMENT — 5 tasks ===" },
+
+    {
+      "task_id": "TSK_RRP_EXT_LEAD_SCREEN",
+      "name": "Lead Paint Screening",
+      "unit_of_measure": "FIXED",
+      "task_classification": "binary",
+      "fixed_time_minutes": 15,
+      "crew_size": 1,
+      "modifier_pool": "none",
+      "applicable_modifiers": [],
+      "rate_basis_notes": "Shared RRP task. XRF or swab test. ~15 min per elevation.",
+      "applies_when": { "pre_1978": true }
+    },
+    {
+      "task_id": "TSK_RRP_EXT_CONTAINMENT_SETUP",
+      "name": "RRP Containment Setup",
+      "unit_of_measure": "FIXED",
+      "task_classification": "binary",
+      "fixed_time_minutes": 45,
+      "crew_size": 1,
+      "modifier_pool": "none",
+      "applicable_modifiers": [],
+      "rate_basis_notes": "Shared RRP task. 6-mil poly 10 ft from structure. ~45 min per elevation.",
+      "applies_when": { "pre_1978": true }
+    },
+    {
+      "task_id": "TSK_RRP_EXT_WET_SCRAPE",
+      "name": "RRP Wet Scraping",
+      "unit_of_measure": "SF",
+      "task_classification": "binary",
+      "rate_per_hour": 50,
+      "rate_range_low": 35,
+      "rate_range_high": 70,
+      "crew_size": 1,
+      "modifier_pool": "prep",
+      "applicable_modifiers": ["FAC_EXT_ACCESS"],
+      "rate_basis_notes": "Shared RRP task. Overhead wet scraping is very slow. ~72 sec per SF. Mist + scrape + collect.",
+      "applies_when": { "pre_1978": true }
+    },
+    {
+      "task_id": "TSK_RRP_EXT_HEPA_VACUUM",
+      "name": "RRP HEPA Vacuum",
+      "unit_of_measure": "SF",
+      "task_classification": "binary",
+      "rate_per_hour": 200,
+      "rate_range_low": 150,
+      "rate_range_high": 250,
+      "crew_size": 1,
+      "modifier_pool": "none",
+      "applicable_modifiers": [],
+      "rate_basis_notes": "Shared RRP task. HEPA vacuum surfaces and containment. ~18 sec per SF.",
+      "applies_when": { "pre_1978": true }
+    },
+    {
+      "task_id": "TSK_RRP_EXT_CONTAINMENT_TEARDOWN",
+      "name": "RRP Containment Teardown",
+      "unit_of_measure": "FIXED",
+      "task_classification": "binary",
+      "fixed_time_minutes": 30,
+      "crew_size": 1,
+      "modifier_pool": "none",
+      "applicable_modifiers": [],
+      "rate_basis_notes": "Shared RRP task. Remove poly, bag waste. ~30 min per elevation.",
+      "applies_when": { "pre_1978": true }
+    },
+
+    { "_section": "=== MOD_PCRP_ASSESSMENT — 5 tasks ===" },
+
+    {
+      "task_id": "TSK_PCRP_VISUAL_INSPECT",
+      "name": "Visual Condition Inspection",
+      "unit_of_measure": "FIXED",
+      "task_classification": "binary",
+      "fixed_time_minutes": 20,
+      "crew_size": 1,
+      "modifier_pool": "none",
+      "applicable_modifiers": [],
+      "rate_basis_notes": "RP-NEW. Full visual scan overhead. ~20 min per porch section. Photograph defects, assign substrate state.",
+      "applies_when": {}
+    },
+    {
+      "task_id": "TSK_PCRP_ADHESION_TEST",
+      "name": "Adhesion Test — ASTM D3359",
+      "unit_of_measure": "FIXED",
+      "task_classification": "binary",
+      "fixed_time_minutes": 10,
+      "crew_size": 1,
+      "modifier_pool": "none",
+      "applicable_modifiers": [],
+      "rate_basis_notes": "RP-NEW. Cross-hatch tape test. 2-3 locations per section. ~10 min per section.",
+      "applies_when": {}
+    },
+    {
+      "task_id": "TSK_PCRP_MILDEW_ASSESS",
+      "name": "Mildew/Algae Assessment",
+      "unit_of_measure": "FIXED",
+      "task_classification": "binary",
+      "fixed_time_minutes": 10,
+      "crew_size": 1,
+      "modifier_pool": "none",
+      "applicable_modifiers": [],
+      "rate_basis_notes": "RP-NEW. Priority check for porch ceiling. Identify extent and severity. ~10 min per section.",
+      "applies_when": {}
+    },
+    {
+      "task_id": "TSK_PCRP_MOISTURE_CHECK",
+      "name": "Moisture Probe — Wood Panels",
+      "unit_of_measure": "FIXED",
+      "task_classification": "binary",
+      "fixed_time_minutes": 10,
+      "crew_size": 1,
+      "modifier_pool": "none",
+      "applicable_modifiers": [],
+      "rate_basis_notes": "RP-NEW. Moisture meter at joints and roof penetrations. ~10 min per section. MC > 15% = stop work.",
+      "applies_when": { "substrate_material": ["wood"] }
+    },
+    {
+      "task_id": "TSK_PCRP_CAULK_ASSESS",
+      "name": "Caulk Condition Assessment",
+      "unit_of_measure": "FIXED",
+      "task_classification": "binary",
+      "fixed_time_minutes": 10,
+      "crew_size": 1,
+      "modifier_pool": "none",
+      "applicable_modifiers": [],
+      "rate_basis_notes": "RP-NEW. 'Think Like a Water Drop' protocol. Check panel joints and junctions. ~10 min per section.",
+      "applies_when": {}
+    },
+
+    { "_section": "=== MOD_PCRP_PREP — 7 tasks ===" },
+
+    {
+      "task_id": "TSK_PCRP_WASH_LOW_PRESSURE",
+      "name": "Low-Pressure Wash Porch Ceiling",
+      "unit_of_measure": "SF",
+      "task_classification": "binary",
+      "rate_per_hour": 350,
+      "rate_range_low": 300,
+      "rate_range_high": 400,
+      "crew_size": 1,
+      "modifier_pool": "prep",
+      "applicable_modifiers": ["FAC_EXT_ACCESS"],
+      "rate_basis_notes": "Same as NC TSK_PRCH_WASH_LOW_PRESSURE (350 SF/hr). Garden hose + soft brush + mildew detergent overhead. ~10 sec per SF. NEVER power wash.",
+      "applies_when": {}
+    },
+    {
+      "task_id": "TSK_PCRP_MILDEW_TREAT",
+      "name": "Mildew/Algae Biocide Treatment",
+      "unit_of_measure": "SF",
+      "task_classification": "binary",
+      "rate_per_hour": 200,
+      "rate_range_low": 150,
+      "rate_range_high": 250,
+      "crew_size": 1,
+      "modifier_pool": "prep",
+      "applicable_modifiers": ["FAC_EXT_ACCESS"],
+      "rate_basis_notes": "RP-NEW. Apply biocide solution overhead. ~18 sec per SF. Dwell time, then rinse. Overhead penalty baked in (vertical ~300 SF/hr). Same as soffit RP mildew treatment rate.",
+      "applies_when": { "mildew_present": true }
+    },
+    {
+      "task_id": "TSK_PCRP_CHALK_REMEDIATION",
+      "name": "Chalk Residue Remediation",
+      "unit_of_measure": "SF",
+      "task_classification": "binary",
+      "rate_per_hour": 150,
+      "rate_range_low": 120,
+      "rate_range_high": 180,
+      "crew_size": 1,
+      "modifier_pool": "prep",
+      "applicable_modifiers": ["FAC_CONDITION_SCALE", "FAC_EXT_ACCESS"],
+      "rate_basis_notes": "RP-NEW. Stiff brush removal + detergent wash overhead. ~24 sec per SF. Required before chalk-binding primer. Same rate as soffit RP chalk remediation.",
+      "applies_when": { "substrate_state": ["SS_EXT_CHALKING"] }
+    },
+    {
+      "task_id": "TSK_PCRP_SCRAPE_FEATHER",
+      "name": "Scrape and Feather Failing/Peeling Paint",
+      "unit_of_measure": "SF",
+      "task_classification": "binary",
+      "rate_per_hour": 60,
+      "rate_range_low": 40,
+      "rate_range_high": 80,
+      "crew_size": 1,
+      "modifier_pool": "prep",
+      "applicable_modifiers": ["FAC_CONDITION_SCALE", "FAC_PCRP_RRP", "FAC_EXT_ACCESS"],
+      "rate_basis_notes": "RP-NEW. Overhead scraping + feather sanding. ~60 sec per SF at GOOD baseline. SLOWEST exterior prep task — gravity works against tool stroke. Condition scale drives intensity: FAIR 1.5x, POOR 2.0x. RRP 2.0x stacks. Calibrated from soffit RP overhead scrape rate.",
+      "applies_when": { "substrate_state": ["SS_EXT_FAILING_PAINT", "SS_EXT_PEELING"] }
+    },
+    {
+      "task_id": "TSK_PCRP_DEGLOSS_SCUFF",
+      "name": "Degloss/Scuff Existing Sound Paint",
+      "unit_of_measure": "SF",
+      "task_classification": "binary",
+      "rate_per_hour": 175,
+      "rate_range_low": 140,
+      "rate_range_high": 200,
+      "crew_size": 1,
+      "modifier_pool": "prep",
+      "applicable_modifiers": ["FAC_EXT_ACCESS", "FAC_PRCH_PANEL_JOINTS"],
+      "rate_basis_notes": "RP-NEW. 150-grit scuff or chemical deglosser overhead. ~20 sec per SF. Same rate as NC TSK_PRCH_SAND_PREP_FC (175 SF/hr) — both are light scuff overhead. Panel joints modifier applies for T&G/beadboard groove scuffing.",
+      "applies_when": {}
+    },
+    {
+      "task_id": "TSK_PCRP_CAULK_REPAIR",
+      "name": "Caulk Replacement at Panel Joints",
+      "unit_of_measure": "LF",
+      "task_classification": "binary",
+      "rate_per_hour": 55,
+      "rate_range_low": 45,
+      "rate_range_high": 70,
+      "crew_size": 1,
+      "modifier_pool": "prep",
+      "applicable_modifiers": ["FAC_EXT_ACCESS"],
+      "rate_basis_notes": "RP-NEW. Same rate as NC TSK_PRCH_CAULK_JOINTS (55 LF/hr). Remove old caulk + apply + tool overhead. ~65 sec per LF. Apply after prime (COMPAT rule).",
+      "applies_when": {}
+    },
+    {
+      "task_id": "TSK_PCRP_DUST_CLEANUP",
+      "name": "Prep Dust Cleanup",
+      "unit_of_measure": "SF",
+      "task_classification": "binary",
+      "rate_per_hour": 400,
+      "rate_range_low": 300,
+      "rate_range_high": 500,
+      "crew_size": 1,
+      "modifier_pool": "prep",
+      "applicable_modifiers": ["FAC_EXT_ACCESS"],
+      "rate_basis_notes": "DIRECT from NC TSK_PRCH_DUST_CLEANUP (400 SF/hr). Tack cloth overhead. ~9 sec per SF.",
+      "applies_when": {}
+    },
+
+    { "_section": "=== MOD_PCRP_PRIME — 2 tasks ===" },
+
+    {
+      "task_id": "TSK_PCRP_PRIME_STATE_BRUSH_ROLL",
+      "name": "State-Driven Primer — Brush/Roll Overhead",
+      "unit_of_measure": "SF",
+      "task_classification": "binary",
+      "rate_per_hour": 120,
+      "rate_range_low": 100,
+      "rate_range_high": 150,
+      "crew_size": 1,
+      "modifier_pool": "coating",
+      "applicable_modifiers": ["FAC_EXT_ACCESS", "FAC_PRCH_PANEL_JOINTS"],
+      "rate_basis_notes": "Same base rate as NC TSK_PRCH_PRIME_BRUSH_ROLL (120 SF/hr). State-driven product selection: chalk-binding for chalking, acrylic stain-block for failing/peeling wood, alkali-resistant for failing/peeling FC. Spot or full prime based on condition.",
+      "applies_when": { "application_method": ["brush_roll"], "condition_scale": ["FAIR", "POOR"] }
+    },
+    {
+      "task_id": "TSK_PCRP_PRIME_STATE_SPRAY",
+      "name": "State-Driven Primer — Spray Overhead",
+      "unit_of_measure": "SF",
+      "task_classification": "binary",
+      "rate_per_hour": 250,
+      "rate_range_low": 200,
+      "rate_range_high": 300,
+      "crew_size": 1,
+      "modifier_pool": "coating",
+      "applicable_modifiers": ["FAC_EXT_ACCESS"],
+      "rate_basis_notes": "Same base rate as NC TSK_PRCH_PRIME_SPRAY (250 SF/hr). Always eligible (no vent constraint). Spot or full prime based on condition.",
+      "applies_when": { "application_method": ["spray"], "condition_scale": ["FAIR", "POOR"] }
+    },
+
+    { "_section": "=== MOD_PCRP_FINISH_1 — 4 tasks ===" },
+
+    {
+      "task_id": "TSK_PCRP_CUTIN_JUNCTIONS_1",
+      "name": "Cut-In at Junctions — Coat 1",
+      "unit_of_measure": "SF",
+      "task_classification": "qt_scaled",
+      "qt_rates": {
+        "QT2": { "rate_sf_per_hour": 400, "notes": "Clean enough line." },
+        "QT3": { "rate_sf_per_hour": 300, "notes": "Straight, consistent." },
+        "QT4": { "rate_sf_per_hour": 200, "notes": "Crisp, precise at 3 ft." }
+      },
+      "rate_range_low": 180,
+      "rate_range_high": 450,
+      "crew_size": 1,
+      "modifier_pool": "coating",
+      "applicable_modifiers": ["FAC_EXT_ACCESS"],
+      "rate_basis_notes": "DIRECT from NC rates. Brush cut-in at fascia, wall, column junctions overhead.",
+      "applies_when": {}
+    },
+    {
+      "task_id": "TSK_PCRP_FINISH_1_BRUSH_ROLL",
+      "name": "Finish Coat 1 — Brush/Roll Overhead",
+      "unit_of_measure": "SF",
+      "task_classification": "binary",
+      "rate_per_hour": 120,
+      "rate_range_low": 100,
+      "rate_range_high": 150,
+      "crew_size": 1,
+      "modifier_pool": "coating",
+      "applicable_modifiers": ["FAC_EXT_ACCESS", "FAC_PRCH_PANEL_JOINTS"],
+      "rate_basis_notes": "DIRECT from NC (120 SF/hr). Roller + extension pole for field, brush for grooves. Overhead penalty baked in.",
+      "applies_when": { "application_method": ["brush_roll"] }
+    },
+    {
+      "task_id": "TSK_PCRP_FINISH_1_SPRAY",
+      "name": "Finish Coat 1 — Spray Overhead",
+      "unit_of_measure": "SF",
+      "task_classification": "binary",
+      "rate_per_hour": 250,
+      "rate_range_low": 200,
+      "rate_range_high": 300,
+      "crew_size": 1,
+      "modifier_pool": "coating",
+      "applicable_modifiers": ["FAC_EXT_ACCESS"],
+      "rate_basis_notes": "DIRECT from NC (250 SF/hr). Airless spray overhead. Always eligible.",
+      "applies_when": { "application_method": ["spray"] }
+    },
+    {
+      "task_id": "TSK_PCRP_GROOVE_BRUSH_BACK_1",
+      "name": "Groove Brush-Back After Spray — Coat 1",
+      "unit_of_measure": "SF",
+      "task_classification": "binary",
+      "rate_per_hour": 150,
+      "rate_range_low": 120,
+      "rate_range_high": 180,
+      "crew_size": 1,
+      "modifier_pool": "coating",
+      "applicable_modifiers": ["FAC_EXT_ACCESS"],
+      "rate_basis_notes": "DIRECT from NC (150 SF/hr). Brush into grooves while spray coat is wet. FAC_PRCH_PANEL_JOINTS does NOT apply (rate already reflects groove work).",
+      "applies_when": { "application_method": ["spray"], "porch_ceiling_panel_type": ["tg_board", "beadboard"] }
+    },
+
+    { "_section": "=== MOD_PCRP_INTERSTAGE — 4 tasks ===" },
+
+    {
+      "task_id": "TSK_PCRP_INSPECT_COAT",
+      "name": "Interstage Inspection",
+      "unit_of_measure": "SF",
+      "task_classification": "qt_scaled",
+      "qt_rates": {
+        "QT3": { "rate_sf_per_hour": 1000, "notes": "Quick scan." },
+        "QT4": { "rate_sf_per_hour": 500, "notes": "Systematic with raking light." }
+      },
+      "rate_range_low": 400,
+      "rate_range_high": 1200,
+      "crew_size": 1,
+      "modifier_pool": "coating",
+      "applicable_modifiers": ["FAC_EXT_ACCESS"],
+      "rate_basis_notes": "DIRECT from NC rates. Overhead penalty baked in.",
+      "applies_when": {}
+    },
+    {
+      "task_id": "TSK_PCRP_SAND_INTERCOAT",
+      "name": "Intercoat Light Sand — QT4 Only",
+      "unit_of_measure": "SF",
+      "task_classification": "qt_conditional",
+      "rate_per_hour": 175,
+      "rate_range_low": 150,
+      "rate_range_high": 200,
+      "crew_size": 1,
+      "modifier_pool": "coating",
+      "applicable_modifiers": ["FAC_EXT_ACCESS"],
+      "appears_in_tiers": ["QT4"],
+      "rate_basis_notes": "DIRECT from NC (175 SF/hr). 220-grit intercoat scuff overhead.",
+      "applies_when": {}
+    },
+    {
+      "task_id": "TSK_PCRP_TOUCHUP_REPAIR",
+      "name": "Interstage Touch-Up",
+      "unit_of_measure": "SF",
+      "task_classification": "qt_scaled",
+      "qt_rates": {
+        "QT3": { "rate_sf_per_hour": 1500, "notes": "Fix obvious defects." },
+        "QT4": { "rate_sf_per_hour": 700, "notes": "Fix all defects. Blend." }
+      },
+      "rate_range_low": 600,
+      "rate_range_high": 1600,
+      "crew_size": 1,
+      "modifier_pool": "coating",
+      "applicable_modifiers": ["FAC_EXT_ACCESS"],
+      "rate_basis_notes": "DIRECT from NC rates. Brush touch-up overhead.",
+      "applies_when": {}
+    },
+    {
+      "task_id": "TSK_PCRP_DUST_INTERCOAT",
+      "name": "Intercoat Dust Removal — QT4 Only",
+      "unit_of_measure": "SF",
+      "task_classification": "qt_conditional",
+      "rate_per_hour": 400,
+      "rate_range_low": 300,
+      "rate_range_high": 500,
+      "crew_size": 1,
+      "modifier_pool": "coating",
+      "applicable_modifiers": ["FAC_EXT_ACCESS"],
+      "appears_in_tiers": ["QT4"],
+      "rate_basis_notes": "DIRECT from NC (400 SF/hr). Tack cloth after intercoat sanding.",
+      "applies_when": {}
+    },
+
+    { "_section": "=== MOD_PCRP_FINISH_2 — 4 tasks ===" },
+
+    {
+      "task_id": "TSK_PCRP_CUTIN_JUNCTIONS_2",
+      "name": "Cut-In at Junctions — Coat 2",
+      "unit_of_measure": "SF",
+      "task_classification": "qt_scaled",
+      "qt_rates": {
+        "QT3": { "rate_sf_per_hour": 300, "notes": "Straight, consistent. Final coat." },
+        "QT4": { "rate_sf_per_hour": 200, "notes": "Crisp, precise at 3 ft." }
+      },
+      "rate_range_low": 180,
+      "rate_range_high": 350,
+      "crew_size": 1,
+      "modifier_pool": "coating",
+      "applicable_modifiers": ["FAC_EXT_ACCESS"],
+      "rate_basis_notes": "DIRECT from NC rates. Second coat cut-in overhead.",
+      "applies_when": {}
+    },
+    {
+      "task_id": "TSK_PCRP_FINISH_2_BRUSH_ROLL",
+      "name": "Finish Coat 2 — Brush/Roll Overhead",
+      "unit_of_measure": "SF",
+      "task_classification": "binary",
+      "rate_per_hour": 120,
+      "rate_range_low": 100,
+      "rate_range_high": 150,
+      "crew_size": 1,
+      "modifier_pool": "coating",
+      "applicable_modifiers": ["FAC_EXT_ACCESS", "FAC_PRCH_PANEL_JOINTS"],
+      "rate_basis_notes": "DIRECT from NC (120 SF/hr). Final appearance coat.",
+      "applies_when": { "application_method": ["brush_roll"] }
+    },
+    {
+      "task_id": "TSK_PCRP_FINISH_2_SPRAY",
+      "name": "Finish Coat 2 — Spray Overhead",
+      "unit_of_measure": "SF",
+      "task_classification": "binary",
+      "rate_per_hour": 250,
+      "rate_range_low": 200,
+      "rate_range_high": 300,
+      "crew_size": 1,
+      "modifier_pool": "coating",
+      "applicable_modifiers": ["FAC_EXT_ACCESS"],
+      "rate_basis_notes": "DIRECT from NC (250 SF/hr). Final appearance coat.",
+      "applies_when": { "application_method": ["spray"] }
+    },
+    {
+      "task_id": "TSK_PCRP_GROOVE_BRUSH_BACK_2",
+      "name": "Groove Brush-Back After Spray — Coat 2",
+      "unit_of_measure": "SF",
+      "task_classification": "binary",
+      "rate_per_hour": 150,
+      "rate_range_low": 120,
+      "rate_range_high": 180,
+      "crew_size": 1,
+      "modifier_pool": "coating",
+      "applicable_modifiers": ["FAC_EXT_ACCESS"],
+      "rate_basis_notes": "DIRECT from NC (150 SF/hr). Final coat — all grooves fully coated. FAC_PRCH_PANEL_JOINTS NOT applied.",
+      "applies_when": { "application_method": ["spray"], "porch_ceiling_panel_type": ["tg_board", "beadboard"] }
+    },
+
+    { "_section": "=== MOD_PCRP_CLEANUP — 6 tasks ===" },
+
+    {
+      "task_id": "TSK_PCRP_FINAL_INSPECT",
+      "name": "Final Walkthrough Inspection",
+      "unit_of_measure": "SF",
+      "task_classification": "qt_scaled",
+      "qt_rates": {
+        "QT2": { "rate_sf_per_hour": 1500, "notes": "Ground-level scan." },
+        "QT3": { "rate_sf_per_hour": 800, "notes": "Ground-level walkthrough. Check all sections." },
+        "QT4": { "rate_sf_per_hour": 350, "notes": "Ground + ladder. 6 ft viewing standard." }
+      },
+      "rate_range_low": 300,
+      "rate_range_high": 1600,
+      "crew_size": 1,
+      "modifier_pool": "coating",
+      "applicable_modifiers": ["FAC_EXT_ACCESS"],
+      "rate_basis_notes": "Same QT rates as NC. RP includes condition verification.",
+      "applies_when": {}
+    },
+    {
+      "task_id": "TSK_PCRP_FINAL_TOUCHUP",
+      "name": "Final Touch-Up",
+      "unit_of_measure": "SF",
+      "task_classification": "qt_scaled",
+      "qt_rates": {
+        "QT2": { "rate_sf_per_hour": 2000, "notes": "Fix obvious misses." },
+        "QT3": { "rate_sf_per_hour": 1000, "notes": "Fix all noted defects." },
+        "QT4": { "rate_sf_per_hour": 400, "notes": "Fix every defect. Blend seamlessly." }
+      },
+      "rate_range_low": 350,
+      "rate_range_high": 2200,
+      "crew_size": 1,
+      "modifier_pool": "coating",
+      "applicable_modifiers": ["FAC_EXT_ACCESS"],
+      "rate_basis_notes": "Same QT rates as NC. RP emphasis on blend quality at repair areas.",
+      "applies_when": {}
+    },
+    {
+      "task_id": "TSK_PCRP_PROTECT_TEARDOWN",
+      "name": "Protection Material Removal",
+      "unit_of_measure": "SF",
+      "task_classification": "binary",
+      "rate_per_hour": 300,
+      "rate_range_low": 220,
+      "rate_range_high": 400,
+      "crew_size": 1,
+      "modifier_pool": "none",
+      "applicable_modifiers": [],
+      "rate_basis_notes": "MODIFIED from NC (NC 350 SF/hr, RP 300 SF/hr — ~15% slower due to more protection to remove). Remove floor cloths, furniture covers, fixture masks, fascia/wall/siding masking. Restore furniture.",
+      "applies_when": {}
+    },
+    {
+      "task_id": "TSK_PCRP_CLEAN_EQUIPMENT",
+      "name": "Clean Equipment",
+      "unit_of_measure": "FIXED",
+      "task_classification": "binary",
+      "fixed_time_minutes": 30,
+      "crew_size": 1,
+      "modifier_pool": "none",
+      "applicable_modifiers": [],
+      "rate_basis_notes": "DIRECT from NC (30 min). Clean rollers, brushes, extension poles. Flush sprayer if used.",
+      "applies_when": {}
+    },
+    {
+      "task_id": "TSK_PCRP_SITE_CLEANUP",
+      "name": "Site Debris Cleanup",
+      "unit_of_measure": "FIXED",
+      "task_classification": "binary",
+      "fixed_time_minutes": 25,
+      "crew_size": 1,
+      "modifier_pool": "none",
+      "applicable_modifiers": [],
+      "rate_basis_notes": "MODIFIED from NC (NC 20 min, RP 25 min). RP generates more debris from scraping. Collect debris, final porch walkthrough.",
+      "applies_when": {}
+    },
+    {
+      "task_id": "TSK_PCRP_CUSTOMER_WALKTHROUGH",
+      "name": "Customer Walkthrough",
+      "unit_of_measure": "FIXED",
+      "task_classification": "binary",
+      "fixed_time_minutes": 15,
+      "crew_size": 1,
+      "modifier_pool": "none",
+      "applicable_modifiers": [],
+      "rate_basis_notes": "RP-NEW. Walk completed porch ceiling with customer. Maintenance recommendations: annual mildew check, caulk inspection, mildew-resistant formulation.",
+      "applies_when": {}
+    }
+  ],
+
+  "factor_modifiers": [
+    {
+      "factor_id": "FAC_EXT_ACCESS",
+      "name": "Access Type Modifier",
+      "mechanism": "time_multiplier",
+      "description": "Access type drives production rate reduction for elevated work. Stacks on overhead-adjusted base rates.",
+      "applies_to": "All overhead per-SF tasks (23 tasks). NOT applied to ground-level tasks (floor protect, furniture protect, equipment setup, cleanup) or FIXED assessment tasks.",
+      "values": { "ground": 1.00, "ladder": 1.35, "scaffold": 1.60, "lift": 1.50 },
+      "formula": "effective_rate = base_rate / modifier",
+      "notes": "Porch ceilings are typically at 8-10 ft (ground or step ladder). Lower access than soffit."
+    },
+    {
+      "factor_id": "FAC_PRCH_PANEL_JOINTS",
+      "name": "T&G / Beadboard Joint Complexity Modifier",
+      "mechanism": "time_multiplier",
+      "description": "T&G and beadboard groove joints add time for brush work.",
+      "applies_to": ["TSK_PCRP_FINISH_1_BRUSH_ROLL", "TSK_PCRP_FINISH_2_BRUSH_ROLL", "TSK_PCRP_PRIME_STATE_BRUSH_ROLL", "TSK_PCRP_DEGLOSS_SCUFF"],
+      "values": { "solid_panel": 1.00, "tg_board": 1.20, "beadboard": 1.20 },
+      "formula": "effective_rate = base_rate / modifier",
+      "notes": "Groove brush-back tasks NOT included (rate already reflects groove work). Reused from NC."
+    },
+    {
+      "factor_id": "FAC_CONDITION_SCALE",
+      "name": "Condition Scale Prep Intensity Modifier",
+      "mechanism": "time_multiplier",
+      "description": "Maps from substrate state to 3-level condition scale driving prep task intensity.",
+      "applies_to": ["TSK_PCRP_SCRAPE_FEATHER", "TSK_PCRP_CHALK_REMEDIATION"],
+      "values": { "GOOD": 1.00, "FAIR": 1.50, "POOR": 2.00 },
+      "state_mapping": {
+        "SS_EXT_SOUND_PAINT": "GOOD",
+        "SS_EXT_CHALKING": "FAIR",
+        "SS_EXT_FAILING_PAINT": "FAIR",
+        "SS_EXT_PEELING": "POOR"
+      },
+      "formula": "effective_rate = base_rate / modifier",
+      "notes": "PREP pool only. Never applies to coating tasks."
+    },
+    {
+      "factor_id": "FAC_PCRP_RRP",
+      "name": "RRP Lead-Safe Modifier",
+      "mechanism": "time_multiplier",
+      "description": "Doubles prep task duration when RRP is required (pre-1978 + lead-positive).",
+      "applies_to": ["TSK_PCRP_SCRAPE_FEATHER"],
+      "values": { "no_rrp": 1.00, "rrp_required": 2.00 },
+      "formula": "effective_rate = base_rate / modifier",
+      "notes": "PREP pool only. Binary gate. Never applies to coating tasks."
+    },
+    {
+      "factor_id": "FAC_QT",
+      "name": "Quality Tier Production Modifier",
+      "mechanism": "baseline",
+      "description": "Quality tier affects pace on qt_scaled tasks.",
+      "applies_to": "qt_scaled tasks only",
+      "values": { "QT2": 0.85, "QT3": 1.00, "QT4": 1.30 },
+      "formula": "qt_scaled tasks use qt_rates directly.",
+      "notes": "COATING pool only. Never applies to prep tasks."
+    }
+  ],
+
+  "quality_tier_effects": {
+    "QT2": {
+      "coat_count": { "prime": "0 or 1 (condition-dependent)", "finish": 1 },
+      "interstage_sand": false,
+      "inspection_level": "quick_scan",
+      "modifier": 1.00,
+      "notes": "Economy RP. Single finish. Minimal inspection."
+    },
+    "QT3": {
+      "coat_count": { "prime": "0 or 1 (condition-dependent)", "finish": 2 },
+      "interstage_sand": false,
+      "inspection_level": "scan",
+      "modifier": 1.00,
+      "notes": "Standard RP. Two finish coats. Interstage inspection."
+    },
+    "QT4": {
+      "coat_count": { "prime": "0 or 1 (condition-dependent)", "finish": 2 },
+      "interstage_sand": true,
+      "inspection_level": "systematic",
+      "modifier": 1.30,
+      "notes": "Premium RP. Two coats. Intercoat sand 220-grit. Systematic inspection."
+    }
+  },
+
+  "assumptions": [
+    "Base rates include overhead penalty. Do NOT apply FAC_PRCH_OVERHEAD as stacking modifier.",
+    "FAC_EXT_ACCESS and FAC_PRCH_PANEL_JOINTS stack multiplicatively on coating tasks.",
+    "FAC_CONDITION_SCALE and FAC_PCRP_RRP stack multiplicatively on prep tasks (separate pool from coating).",
+    "Spray always eligible — no vent constraint (key difference from soffit).",
+    "Groove brush-back tasks already reflect groove work — FAC_PRCH_PANEL_JOINTS NOT applied.",
+    "Assessment tasks are FIXED time — no modifiers.",
+    "RP protection teardown is ~15% slower than NC (more masking to remove).",
+    "Mildew biocide treatment rate calibrated from soffit RP (200 SF/hr overhead).",
+    "Scrape/feather is the highest-cost RP prep task — condition scale and RRP modifiers drive cost."
+  ],
+
+  "risks": [
+    "Beadboard modifier (1.20x) assumed equal to T&G — may need field calibration.",
+    "Ceiling fan masking time varies significantly by fan complexity.",
+    "Overhead spray rates may need field calibration — limited data for porch ceiling spray RP.",
+    "Theoretical prep pool max (7.68x with RRP) exceeds 4.0x cap — recommend T&M for extreme cases."
+  ]
+}

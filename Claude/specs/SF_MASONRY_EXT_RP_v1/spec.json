@@ -1,0 +1,488 @@
+{
+  "spec_family": {
+    "id": "SF_MASONRY_EXT_RP",
+    "name": "Exterior Masonry Wall Repaint (Combined Assessment + Prep + Prime + Finish)",
+    "description": "Combined condition assessment + prep + prime + finish repaint spec for previously painted exterior masonry wall surfaces (clay brick, CMU block, cast concrete, limestone, split-face CMU). Covers 7-point condition assessment (visual inspection, chalk test, adhesion test ASTM D3359, efflorescence scan, moisture test ASTM D4263, mortar joint assessment, crack mapping), surface prep (power wash 1500-3000 PSI — allowed on masonry unlike fiber cement, efflorescence neutralization with acid/TSP, chalk remediation, scrape/feather failing paint, crack filling, spall patching), state-driven primer selection (chalk-binding for SS_EXT_CHALKING, alkali-resistant spot prime on exposed bare masonry pH 12-13, acrylic stain-block for general RP adhesion), finish coat application (spray_backroll primary — spray-only PROHIBITED on porous masonry, brush_roll fallback), optional elastomeric coating system for CMU/concrete (NOT on brick — moisture trap risk, NOT on limestone). SF-based with ITM_MASONRY_WALL. 5 masonry types (brick/CMU/concrete/limestone/split_face_cmu). QT2-QT4 (QT5 excluded). Flat/satin sheen. EPA lead-safe RRP for pre-1978 buildings (high activation probability — masonry structures commonly pre-1978). Single mobilization. NC sibling: SF_MASONRY_EXT_NC_v1.",
+    "domain": "exterior",
+    "scope_type": "repaint",
+    "version": "1.0.0",
+    "status": "draft",
+    "review_required": true
+  },
+
+  "scope_boundaries": {
+    "includes": [
+      "7-point condition assessment per elevation (visual, chalk, adhesion, efflorescence, moisture, mortar, crack)",
+      "EPA Lead-Safe RRP evaluation and containment for pre-1978 buildings (HIGH probability on masonry — structures commonly pre-1978)",
+      "Power wash 1500-3000 PSI (dual purpose: cleaning + paint removal — allowed on masonry)",
+      "Efflorescence treatment (dry brush + acid neutralization on brick/CMU/concrete, phosphoric acid/TSP on limestone — NO muriatic acid on limestone)",
+      "Chalk remediation (chemical chalk removal on stubborn areas after power wash)",
+      "Scrape and feather failing/peeling paint with carbide scraper + 80-grit feather-edge sanding",
+      "Crack filling with elastomeric masonry filler (hairline cracks <1/4 inch, QT3+)",
+      "Spall/chip patching with cementitious compound (QT3+)",
+      "General surface repair (void fill, previous patch blending, QT3+)",
+      "Caulk assessment and replacement at masonry-to-trim junctions (polyurethane Class 25/50)",
+      "State-driven primer: chalk-binding (SS_EXT_CHALKING), alkali-resistant spot prime on bare masonry (SS_EXT_FAILING/PEELING), acrylic stain-block (SS_EXT_FAILING/PEELING)",
+      "Finish coat application — acrylic (1-2 coats by QT) or elastomeric (2 coats, CMU/concrete only, QT3+, flat only)",
+      "Interstage inspection, QT4 intercoat sand (220 grit), touch-up",
+      "Final walkthrough and touch-up",
+      "Landscape perimeter protection (LF-based, catches scraping debris + overspray)",
+      "Hardscape protection (walkways, patios)",
+      "Ground cover below work zone (scraping debris containment, RP-specific)",
+      "Fixture and HVAC masking",
+      "Vehicle/driveway protection (spray only, RP-specific occupied home)",
+      "Spray equipment setup and cleanup",
+      "Site debris cleanup (scraping debris, paint chips, acid containers)",
+      "Customer walkthrough (RP-specific, occupied home context)"
+    ],
+    "excludes": [
+      { "item": "Bare/new masonry (new construction)", "route_to": "SF_MASONRY_EXT_NC_v1" },
+      { "item": "Window masking and glass protection", "route_to": "Window spec (protection owned by window/door specs)" },
+      { "item": "Door masking and hardware protection", "route_to": "Door spec" },
+      { "item": "Exterior trim repaint", "route_to": "SF_TRIM_EXT_RP_v1" },
+      { "item": "Soffit repaint", "route_to": "SF_SOFFIT_EXT_RP_v1" },
+      { "item": "Foundation wall coating (below-grade)", "route_to": "Future exterior foundation spec" },
+      { "item": "Tuck-pointing / mortar joint repair", "route_to": "Masonry trade — outside painting scope (assessment IS in scope)" },
+      { "item": "Structural crack repair (>1/4 inch)", "route_to": "Structural engineer — outside painting scope" },
+      { "item": "Active/recurring efflorescence remediation", "route_to": "Moisture source resolution required first — STOP WORK gate" },
+      { "item": "Scaffold erection and dismantling", "route_to": "Site logistics — separate line item" },
+      { "item": "Mineral silicate (Keim-type) coatings", "route_to": "Specialty historic preservation — outside standard residential scope" }
+    ]
+  },
+
+  "configuration_dimensions": [
+    {
+      "dimension_id": "quality_tier",
+      "values": ["QT2", "QT3", "QT4"],
+      "default": "QT3",
+      "notes": "QT5 excluded — masonry wall field is utilitarian surface. QT2=economy (single acrylic finish coat, light wash, acrylic only). QT3=standard (2 finish coats, full wash, acrylic or elastomeric). QT4=premium (2 finish coats, interstage sand, premium materials, systematic inspection)."
+    },
+    {
+      "dimension_id": "substrate_state",
+      "values": ["SS_EXT_SOUND_PAINT", "SS_EXT_CHALKING", "SS_EXT_FAILING_PAINT", "SS_EXT_PEELING"],
+      "default": "SS_EXT_SOUND_PAINT",
+      "notes": "4 exterior RP states. Each drives distinct prep pathway and primer selection. Worst-state-wins per v1. Per-elevation if conditions differ."
+    },
+    {
+      "dimension_id": "condition_scale",
+      "values": ["GOOD", "FAIR", "POOR"],
+      "default": "GOOD",
+      "notes": "GOOD=SS_EXT_SOUND_PAINT (1.0x prep). FAIR=SS_EXT_CHALKING or SS_EXT_FAILING_PAINT (1.5x). POOR=SS_EXT_PEELING (2.0x). Prep tasks only."
+    },
+    {
+      "dimension_id": "masonry_type",
+      "values": ["brick", "CMU", "concrete", "limestone", "split_face_cmu"],
+      "default": "brick",
+      "notes": "Drives texture modifier, cleaning restrictions, production rate. split_face_cmu is rough texture variant. Per-elevation if mixed masonry types."
+    },
+    {
+      "dimension_id": "coating_system",
+      "values": ["acrylic", "elastomeric"],
+      "default": "acrylic",
+      "notes": "Acrylic standard. Elastomeric for CMU/concrete crack-bridging (QT3+, flat-only). NOT on brick (moisture trap) or limestone."
+    },
+    {
+      "dimension_id": "application_method",
+      "values": ["spray_backroll", "brush_roll"],
+      "default": "spray_backroll",
+      "notes": "spray_backroll primary — spray-only PROHIBITED on porous masonry. brush_roll fallback for small areas."
+    },
+    {
+      "dimension_id": "sheen",
+      "values": ["flat", "satin"],
+      "default": "satin",
+      "notes": "Flat or satin. Elastomeric is flat-only."
+    }
+  ],
+
+  "paintable_items": [
+    {
+      "item_id": "ITM_MASONRY_WALL",
+      "name": "Exterior Masonry Wall Field Surface",
+      "unit_of_measure": "SF",
+      "counting_rules": "Net paintable masonry wall field area in square feet. Excludes window/door openings, trim elements. Measured per elevation from PaintScope.",
+      "notes": "Reuse from NC spec. Single paintable item covering all masonry types. masonry_type and texture modifiers adjust effective rates."
+    }
+  ],
+
+  "state_declarations": {
+    "primary_surface": "masonry_wall_field",
+
+    "valid_input_states": {
+      "states": ["SS_EXT_SOUND_PAINT", "SS_EXT_CHALKING", "SS_EXT_FAILING_PAINT", "SS_EXT_PEELING"],
+      "notes": "4 exterior RP substrate states. SOUND_PAINT may skip prime with verified adhesion. CHALKING requires chalk-binding primer. FAILING/PEELING require alkali-resistant on bare + acrylic stain-block."
+    },
+
+    "output_state": {
+      "state": "SS_EXT_PAINTED_SATIN",
+      "varies_by": "sheen",
+      "state_map": {
+        "flat": "SS_EXT_PAINTED_FLAT",
+        "satin": "SS_EXT_PAINTED_SATIN"
+      },
+      "notes": "All input states normalize to SS_EXT_PAINTED_* after proper prep and coating."
+    }
+  },
+
+  "material_systems_summary": [
+    {
+      "system_id": "SYS_EXT_MSRP_PRIMER_CHALK_BIND",
+      "name": "Chalk-Binding Primer for Chalking Masonry",
+      "product_role": "primer",
+      "applies_when": { "substrate_state": ["SS_EXT_CHALKING"] },
+      "notes": "RP-SPECIFIC. MANDATORY for chalking masonry. Full surface application."
+    },
+    {
+      "system_id": "SYS_EXT_MSRP_PRIMER_ACRYLIC_RP",
+      "name": "Acrylic Stain-Block Primer for Masonry RP",
+      "product_role": "primer",
+      "applies_when": { "substrate_state": ["SS_EXT_FAILING_PAINT", "SS_EXT_PEELING"] },
+      "notes": "RP-SPECIFIC. For previously painted areas with adhesion concerns."
+    },
+    {
+      "system_id": "SYS_EXT_MSRY_PRIMER_ALKALI",
+      "name": "Alkali-Resistant Primer for Bare Masonry (Reuse NC)",
+      "product_role": "primer",
+      "applies_when": { "substrate_state": ["SS_EXT_FAILING_PAINT", "SS_EXT_PEELING"], "exposed_substrate": "bare_masonry" },
+      "notes": "Reuse NC. MANDATORY on exposed bare masonry (pH 12-13). Spot prime in RP."
+    },
+    {
+      "system_id": "SYS_EXT_MSRY_FINISH_ACRYLIC_STD",
+      "name": "Standard Acrylic Finish (Reuse NC, QT2/QT3)",
+      "product_role": "finish",
+      "applies_when": { "coating_system": ["acrylic"] },
+      "notes": "Reuse NC."
+    },
+    {
+      "system_id": "SYS_EXT_MSRY_FINISH_ACRYLIC_PREM",
+      "name": "Premium Acrylic Finish (Reuse NC, QT4)",
+      "product_role": "finish",
+      "applies_when": { "coating_system": ["acrylic"] },
+      "notes": "Reuse NC."
+    },
+    {
+      "system_id": "SYS_EXT_MSRY_FINISH_ELASTOMERIC",
+      "name": "Elastomeric Coating (Reuse NC, QT3/QT4)",
+      "product_role": "finish",
+      "applies_when": { "coating_system": ["elastomeric"], "masonry_type": ["CMU", "concrete", "split_face_cmu"] },
+      "notes": "Reuse NC. NOT on brick or limestone. RP: do not apply over failing previous elastomeric."
+    }
+  ],
+
+  "module_summary": [
+    { "module_id": "MOD_MSRP_SETUP", "phase": "setup", "task_count": 7, "description": "Protection (landscape LF, hardscape, fixture/HVAC, vehicle/driveway, ground cover) + equipment setup" },
+    { "module_id": "MOD_MSRP_ASSESS", "phase": "prep", "task_count": 7, "description": "7-point assessment: visual, chalk, adhesion, efflorescence, moisture, mortar, crack" },
+    { "module_id": "MOD_MSRP_PREP", "phase": "prep", "task_count": 8, "description": "Power wash, efflorescence treatment, chalk remediation, scrape/feather, crack fill, spall patch, surface repair, dust cleanup" },
+    { "module_id": "MOD_MSRP_CAULK", "phase": "prep", "task_count": 3, "description": "Caulk assessment, removal, replacement at masonry-to-trim junctions" },
+    { "module_id": "MOD_MSRP_PRIME", "phase": "prime", "task_count": 5, "description": "State-driven primer: chalk-binding (spray_backroll/brush_roll), alkali-resistant spot, acrylic stain-block (spray_backroll/brush_roll)" },
+    { "module_id": "MOD_MSRP_FINISH_1", "phase": "finish", "task_count": 2, "description": "First finish coat (spray_backroll/brush_roll)" },
+    { "module_id": "MOD_MSRP_INTERSTAGE", "phase": "interstage", "task_count": 3, "description": "Interstage inspection, QT4 sand, touch-up" },
+    { "module_id": "MOD_MSRP_FINISH_2", "phase": "finish", "task_count": 2, "description": "Second finish coat (QT3/QT4 only)" },
+    { "module_id": "MOD_MSRP_CLEANUP", "phase": "cleanup", "task_count": 6, "description": "Final inspection, touch-up, protection teardown, equipment cleanup, site debris, customer walkthrough" },
+    { "module_id": "MOD_RRP_EXT_CONTAINMENT", "phase": "prep", "task_count": 5, "description": "Shared RRP module — conditional on pre_1978" }
+  ],
+
+  "round_configurations_summary": [
+    {
+      "round_id": "ROUND_MSRP_2FINISH",
+      "name": "Masonry RP — 2 Finish Coats (No Prime)",
+      "applies_when": { "condition_scale": ["GOOD"], "quality_tier": ["QT3", "QT4"] },
+      "total_coats": 2,
+      "interstage_cycles": 1,
+      "notes": "BASELINE. Sound paint with verified adhesion. Skip prime. 2 finish coats."
+    },
+    {
+      "round_id": "ROUND_MSRP_1FINISH",
+      "name": "Masonry RP — 1 Finish Coat (Economy QT2)",
+      "applies_when": { "condition_scale": ["GOOD"], "quality_tier": ["QT2"] },
+      "total_coats": 1,
+      "interstage_cycles": 0,
+      "notes": "Economy single coat on sound paint."
+    },
+    {
+      "round_id": "ROUND_MSRP_PRIME_2FINISH",
+      "name": "Masonry RP — State-Driven Prime + 2 Finish Coats",
+      "applies_when": { "condition_scale": ["FAIR", "POOR"], "quality_tier": ["QT3", "QT4"] },
+      "total_coats": 3,
+      "interstage_cycles": 1,
+      "notes": "Standard/premium RP on chalking/failing/peeling. State-driven prime + 2 finish coats."
+    },
+    {
+      "round_id": "ROUND_MSRP_PRIME_1FINISH",
+      "name": "Masonry RP — State-Driven Prime + 1 Finish Coat (Economy QT2)",
+      "applies_when": { "condition_scale": ["FAIR", "POOR"], "quality_tier": ["QT2"] },
+      "total_coats": 2,
+      "interstage_cycles": 0,
+      "notes": "Economy RP with primer + single finish coat."
+    }
+  ],
+
+  "factor_modifiers_summary": {
+    "condition_scale": { "FAC_MSRP_CONDITION_GOOD": 1.00, "FAC_MSRP_CONDITION_FAIR": 1.50, "FAC_MSRP_CONDITION_POOR": 2.00 },
+    "quality_tier": { "FAC_QT2": 0.85, "FAC_QT3": 1.00, "FAC_QT4": 1.20 },
+    "masonry_type": { "FAC_MSRP_BRICK": 1.00, "FAC_MSRP_CMU": 1.10, "FAC_MSRP_CONCRETE": 0.90, "FAC_MSRP_LIMESTONE": 1.10, "FAC_MSRP_SPLIT_FACE_CMU": 1.30 },
+    "texture": { "FAC_MSRP_SMOOTH": 1.00, "FAC_MSRP_MEDIUM": 1.20, "FAC_MSRP_ROUGH": 1.50 },
+    "access": { "FAC_ACCESS_GROUND": 1.00, "FAC_ACCESS_LADDER": 1.35, "FAC_ACCESS_SCAFFOLD": 1.60, "FAC_ACCESS_LIFT": 1.50 },
+    "rrp": { "FAC_RRP_NONE": 1.00, "FAC_RRP_REQUIRED": 2.00 },
+    "coating_system": { "FAC_MSRP_ACRYLIC": 1.00, "FAC_MSRP_ELASTOMERIC": 1.50 },
+    "stacking_partition": {
+      "prep_pool": "condition x rrp x access x masonry_type x texture",
+      "coating_pool": "qt x access x masonry_type x texture x coating_system",
+      "never_cross": "Prep pool never includes QT or coating_system. Coating pool never includes condition or RRP."
+    }
+  },
+
+  "variants": [
+    {
+      "variant_id": "VAR_MSRP_GOOD_QT3_SPRAY_BACKROLL_BRICK_ACRYLIC",
+      "applies_when": { "quality_tier": ["QT3"], "condition_scale": ["GOOD"], "application_method": ["spray_backroll"], "masonry_type": ["brick"], "coating_system": ["acrylic"] },
+      "included_items": ["ITM_MASONRY_WALL"],
+      "round_config": "ROUND_MSRP_2FINISH",
+      "notes": "BASELINE. Standard RP on sound brick. 2 acrylic finish coats spray_backroll, no prime."
+    },
+    {
+      "variant_id": "VAR_MSRP_GOOD_QT2_SPRAY_BACKROLL_BRICK_ACRYLIC",
+      "applies_when": { "quality_tier": ["QT2"], "condition_scale": ["GOOD"], "application_method": ["spray_backroll"], "masonry_type": ["brick"], "coating_system": ["acrylic"] },
+      "included_items": ["ITM_MASONRY_WALL"],
+      "round_config": "ROUND_MSRP_1FINISH",
+      "notes": "Economy refresh on sound brick. Single acrylic coat."
+    },
+    {
+      "variant_id": "VAR_MSRP_FAIR_QT3_SPRAY_BACKROLL_BRICK_ACRYLIC",
+      "applies_when": { "quality_tier": ["QT3"], "condition_scale": ["FAIR"], "application_method": ["spray_backroll"], "masonry_type": ["brick"], "coating_system": ["acrylic"] },
+      "included_items": ["ITM_MASONRY_WALL"],
+      "round_config": "ROUND_MSRP_PRIME_2FINISH",
+      "notes": "Standard RP on chalking/failing brick. State-driven prime + 2 finish coats."
+    },
+    {
+      "variant_id": "VAR_MSRP_POOR_QT3_SPRAY_BACKROLL_BRICK_ACRYLIC",
+      "applies_when": { "quality_tier": ["QT3"], "condition_scale": ["POOR"], "application_method": ["spray_backroll"], "masonry_type": ["brick"], "coating_system": ["acrylic"] },
+      "included_items": ["ITM_MASONRY_WALL"],
+      "round_config": "ROUND_MSRP_PRIME_2FINISH",
+      "notes": "Full remediation on peeling brick. Heavy prep + alkali-resistant spot prime + acrylic prime + 2 finish coats."
+    },
+    {
+      "variant_id": "VAR_MSRP_GOOD_QT4_SPRAY_BACKROLL_BRICK_ACRYLIC",
+      "applies_when": { "quality_tier": ["QT4"], "condition_scale": ["GOOD"], "application_method": ["spray_backroll"], "masonry_type": ["brick"], "coating_system": ["acrylic"] },
+      "included_items": ["ITM_MASONRY_WALL"],
+      "round_config": "ROUND_MSRP_2FINISH",
+      "notes": "Premium refresh on sound brick. Interstage sand + premium materials."
+    },
+    {
+      "variant_id": "VAR_MSRP_FAIR_QT3_SPRAY_BACKROLL_CMU_ACRYLIC",
+      "applies_when": { "quality_tier": ["QT3"], "condition_scale": ["FAIR"], "application_method": ["spray_backroll"], "masonry_type": ["CMU"], "coating_system": ["acrylic"] },
+      "included_items": ["ITM_MASONRY_WALL"],
+      "round_config": "ROUND_MSRP_PRIME_2FINISH",
+      "notes": "Standard RP on chalking/failing CMU block. No block filler needed (already applied in NC)."
+    },
+    {
+      "variant_id": "VAR_MSRP_FAIR_QT3_SPRAY_BACKROLL_CMU_ELASTOMERIC",
+      "applies_when": { "quality_tier": ["QT3"], "condition_scale": ["FAIR"], "application_method": ["spray_backroll"], "masonry_type": ["CMU"], "coating_system": ["elastomeric"] },
+      "included_items": ["ITM_MASONRY_WALL"],
+      "round_config": "ROUND_MSRP_PRIME_2FINISH",
+      "notes": "Elastomeric RP on CMU. Crack-bridging system. Flat sheen only. 1.50x coating modifier."
+    },
+    {
+      "variant_id": "VAR_MSRP_GOOD_QT3_BRUSH_ROLL_BRICK_ACRYLIC",
+      "applies_when": { "quality_tier": ["QT3"], "condition_scale": ["GOOD"], "application_method": ["brush_roll"], "masonry_type": ["brick"], "coating_system": ["acrylic"] },
+      "included_items": ["ITM_MASONRY_WALL"],
+      "round_config": "ROUND_MSRP_2FINISH",
+      "notes": "Fallback brush/roll method on sound brick. Smaller areas or occupied-adjacent."
+    },
+    {
+      "variant_id": "VAR_MSRP_FAIR_QT3_SPRAY_BACKROLL_LIMESTONE_ACRYLIC",
+      "applies_when": { "quality_tier": ["QT3"], "condition_scale": ["FAIR"], "application_method": ["spray_backroll"], "masonry_type": ["limestone"], "coating_system": ["acrylic"] },
+      "included_items": ["ITM_MASONRY_WALL"],
+      "round_config": "ROUND_MSRP_PRIME_2FINISH",
+      "notes": "Limestone RP. No muriatic acid — phosphoric acid or TSP for efflorescence. Lower wash pressure (1500-2000 PSI). Acrylic only (no elastomeric on limestone)."
+    },
+    {
+      "variant_id": "VAR_MSRP_POOR_QT3_SPRAY_BACKROLL_BRICK_ACRYLIC_RRP",
+      "applies_when": { "quality_tier": ["QT3"], "condition_scale": ["POOR"], "application_method": ["spray_backroll"], "masonry_type": ["brick"], "coating_system": ["acrylic"], "pre_1978": true },
+      "included_items": ["ITM_MASONRY_WALL"],
+      "round_config": "ROUND_MSRP_PRIME_2FINISH",
+      "notes": "Lead-safe RP on pre-1978 brick. RRP containment + 2.0x prep modifier + wet scraping. Most expensive common scenario."
+    }
+  ],
+
+  "required_paintscope_inputs": [
+    { "input_name": "IN_SF_MASONRY_WALL", "paintscope_key": "PS_EXT_SURFACE_SF.MASONRY_WALL", "uom": "SF", "required": true, "description": "Net paintable masonry wall field area" },
+    { "input_name": "IN_EA_ELEVATIONS_TOTAL", "paintscope_key": "PS_EXT_META.EA.ELEVATIONS_TOTAL", "uom": "EA", "required": true, "description": "Number of building elevations in scope" },
+    { "input_name": "IN_ENUM_ACCESS_TYPE", "paintscope_key": "PS_EXT_META.ENUM.ACCESS_TYPE", "uom": "ENUM", "required": true, "description": "Per-elevation access type" },
+    { "input_name": "IN_ENUM_SUBSTRATE_STATE_EXT", "paintscope_key": "PS_EXT_META.ENUM.SUBSTRATE_STATE", "uom": "ENUM", "required": true, "description": "Exterior substrate state (SS_EXT_SOUND_PAINT / SS_EXT_CHALKING / SS_EXT_FAILING_PAINT / SS_EXT_PEELING)" },
+    { "input_name": "IN_ENUM_SUBSTRATE_TYPE_MASONRY", "paintscope_key": "PS_EXT_META.ENUM.SUBSTRATE_TYPE_MASONRY", "uom": "ENUM", "required": true, "description": "Masonry substrate type (brick/CMU/concrete/limestone/split_face_cmu)" },
+    { "input_name": "IN_ENUM_COATING_SYSTEM_MASONRY", "paintscope_key": "PS_EXT_META.ENUM.COATING_SYSTEM_MASONRY", "uom": "ENUM", "required": true, "description": "Coating system (acrylic/elastomeric)" },
+    { "input_name": "IN_ENUM_CONDITION_SCALE", "paintscope_key": "PS_EXT_META.ENUM.CONDITION_SCALE", "uom": "ENUM", "required": true, "description": "Condition scale (GOOD/FAIR/POOR)" },
+    { "input_name": "IN_ENUM_MASONRY_TEXTURE", "paintscope_key": "PS_EXT_META.ENUM.MASONRY_TEXTURE", "uom": "ENUM", "required": true, "description": "Surface texture (smooth/medium/rough)" },
+    { "input_name": "IN_BOOL_PRE_1978_EXT", "paintscope_key": "PS_EXT_META.FLAG.PRE_1978", "uom": "BOOL", "required": true, "description": "Pre-1978 building flag — triggers RRP" },
+    { "input_name": "IN_LF_CAULK_JOINTS_MASONRY", "paintscope_key": "PS_EXT_META.EA.CAULK_JOINTS_MASONRY", "uom": "LF", "required": true, "description": "LF of masonry-to-trim caulk joints" },
+    { "input_name": "IN_LF_EXT_PROTECT_LANDSCAPE_PERIMETER", "paintscope_key": "PS_EXT_PROTECT_LF.LANDSCAPE_PERIMETER", "uom": "LF", "required": false, "description": "Landscape perimeter protection" },
+    { "input_name": "IN_SF_EXT_PROTECT_HARDSCAPE_WALK", "paintscope_key": "PS_EXT_PROTECT_SF.HARDSCAPE_WALK", "uom": "SF", "required": false, "description": "Walkway protection area" },
+    { "input_name": "IN_SF_EXT_PROTECT_HARDSCAPE_PATIO", "paintscope_key": "PS_EXT_PROTECT_SF.HARDSCAPE_PATIO", "uom": "SF", "required": false, "description": "Patio protection area" },
+    { "input_name": "IN_EA_EXT_PROTECT_LIGHT_FIXTURE", "paintscope_key": "PS_EXT_PROTECT_EA.LIGHT_FIXTURE", "uom": "EA", "required": false, "description": "Light fixture count" },
+    { "input_name": "IN_EA_EXT_PROTECT_HVAC_UNIT", "paintscope_key": "PS_EXT_PROTECT_EA.HVAC_UNIT", "uom": "EA", "required": false, "description": "HVAC unit count" },
+    { "input_name": "IN_SF_EXT_PROTECT_VEHICLE_DRIVEWAY", "paintscope_key": "PS_EXT_PROTECT_SF.VEHICLE_DRIVEWAY", "uom": "SF", "required": false, "description": "Vehicle/driveway protection (spray only)" }
+  ],
+
+  "protection_zones_required": [
+    { "zone_id": "ext_landscape_perimeter", "condition": "when_adjacent", "protection_level": "edge_only", "upgrade_when": { "application_method": ["spray_backroll"] }, "upgrade_level": "full_cover", "notes": "RP covers scraping debris + overspray. RRP upgrades to 6-mil poly." },
+    { "zone_id": "ext_hardscape_walk", "condition": "when_adjacent", "protection_level": "light_mask", "upgrade_when": { "application_method": ["spray_backroll"] }, "upgrade_level": "full_cover" },
+    { "zone_id": "ext_hardscape_patio", "condition": "when_adjacent", "protection_level": "light_mask", "upgrade_when": { "application_method": ["spray_backroll"] }, "upgrade_level": "full_cover" },
+    { "zone_id": "ext_light_fixture", "condition": "always", "protection_level": "light_mask", "notes": "All fixtures installed and operational in RP." },
+    { "zone_id": "ext_hvac_unit", "condition": "when_adjacent", "protection_level": "full_cover" },
+    { "zone_id": "ext_vehicle_driveway", "condition": { "application_method": ["spray_backroll"] }, "protection_level": "full_cover", "notes": "RP-SPECIFIC. Occupied home context." },
+    { "zone_id": "ext_ground_cover", "condition": "when_scraping", "protection_level": "full_cover", "notes": "RP-SPECIFIC. Scraping debris containment below work zone." },
+    { "zone_id": "ext_rrp_containment", "condition": { "pre_1978": true }, "protection_level": "full_containment", "notes": "EPA RRP Rule. 6-mil poly 10 ft from structure." }
+  ],
+
+  "adjacency_declarations": {
+    "primary_surface": "masonry_wall_field",
+    "adjacent_surfaces": [
+      { "surface_id": "ext_trim_window_casing", "edge_type": "linear", "typical_relationship": "different_finish", "notes": "Window casing at masonry opening. Caulk at junction is this spec's responsibility." },
+      { "surface_id": "ext_trim_door_casing", "edge_type": "linear", "typical_relationship": "different_finish", "notes": "Door casing. Same as window casing." },
+      { "surface_id": "soffit_field", "edge_type": "linear", "typical_relationship": "different_finish", "notes": "Soffit at eave/parapet junction." },
+      { "surface_id": "foundation_wall", "edge_type": "linear", "typical_relationship": "not_in_scope", "notes": "Foundation below masonry wall. Not painted." },
+      { "surface_id": "ext_trim_frieze", "edge_type": "linear", "typical_relationship": "different_finish", "notes": "Frieze at masonry-to-soffit junction. Caulk at junction is this spec's responsibility." }
+    ]
+  },
+
+  "site_condition_rules": [
+    {
+      "condition_id": "access_type",
+      "treatment": "height_modifier",
+      "affected_tasks": "All tasks performed at elevation",
+      "effect": "ground=1.00, ladder=1.35, scaffold=1.60, lift=1.50",
+      "notes": "Per-elevation. Scaffold common for masonry (heavy work at height)."
+    },
+    {
+      "condition_id": "lead_status",
+      "include_when": ["tested_positive", "unknown_pre1978"],
+      "affects": "prep tasks involving paint disturbance",
+      "notes": "Pre-1978 masonry buildings are HIGH PROBABILITY for lead paint."
+    },
+    {
+      "condition_id": "moisture_condition",
+      "include_when": ["recently_wet"],
+      "exclude_when": ["active_moisture"],
+      "affects": "coating application timing",
+      "notes": "MC >12% = STOP WORK. Active moisture (efflorescence, rising damp) = resolve source first."
+    },
+    {
+      "condition_id": "efflorescence_status",
+      "include_when": ["dormant"],
+      "exclude_when": ["active_recurring"],
+      "affects": "efflorescence treatment activation",
+      "notes": "Active/recurring efflorescence = STOP WORK until moisture source resolved."
+    }
+  ],
+
+  "cross_spec_coordination": {
+    "deduplication_note": "MOD_RRP_EXT_CONTAINMENT is shared across all exterior RP specs — do not duplicate when running alongside SF_TRIM_EXT_RP.",
+    "shared_session_note": "Masonry RP typically runs alongside SF_TRIM_EXT_RP (window/door casings). Power wash DOES NOT share pass with trim wash (different pressure requirements). Landscape/hardscape protection shared (U-004): first spec in elevation sequence owns setup.",
+    "coordination_notes": [
+      "Caulk at masonry-to-trim junctions is THIS spec's responsibility (not trim spec).",
+      "Window/door protection during masonry work is owned by window/door RP specs.",
+      "Power wash containment is masonry-specific — heavy water volume requires proper drainage management.",
+      "Vehicle/driveway protection is shared RP zone with other exterior RP specs using spray."
+    ]
+  },
+
+  "sequencing_notes": {
+    "production_sequence": "Setup (protection + equipment) -> RRP containment (if pre-1978) -> Assess (7-point per elevation) -> Prep (power wash + 24-48 hr dry -> efflorescence treatment -> chalk remediation -> scrape/feather -> crack fill -> spall patch -> surface repair -> dust cleanup) -> Caulk (assess -> remove -> apply) -> Prime (state-driven: chalk-binding OR alkali-resistant spot + acrylic stain-block) -> Finish 1 -> Interstage (QT3/QT4: inspect + QT4 sand + touch-up) -> Finish 2 (QT3/QT4) -> Final inspect -> Touch-up -> Protection teardown -> Equipment cleanup -> Site debris -> Customer walkthrough",
+    "key_prohibitions": "NO spray-only on masonry (backroll mandatory). NO oil-based products. NO acid on limestone (use phosphoric acid/TSP). NO coating at MC >12%. NO elastomeric on brick or limestone. NO elastomeric at QT2. NO painting over active/recurring efflorescence. NO RRP without containment. NO elastomeric over failing previous elastomeric.",
+    "elevation_strategy": "Work one elevation at a time. Follow shade for optimal conditions. Assessment drives all downstream decisions per elevation."
+  },
+
+  "relationships": {
+    "companion_spec": null,
+    "sibling_specs": ["SF_MASONRY_EXT_NC_v1"],
+    "often_combined_with": ["SF_TRIM_EXT_RP_v1", "SF_WINDOW_EXT_RP_v1", "SF_DOOR_EXT_RP_v1"],
+    "notes": "First exterior masonry RP spec. NC sibling: SF_MASONRY_EXT_NC_v1 (31 tasks, MSRY prefix). Key RP departures: power washing IS allowed (dual cleaning + paint removal), block filler NOT applicable, 7-point assessment module, state-driven primer selection, condition scale modifier, RRP high probability."
+  },
+
+  "hard_stops": [
+    {
+      "condition": "MOISTURE_EXCEEDS_12_PERCENT",
+      "action": "STOP — do not coat until masonry dries to MC <12%",
+      "description": "ASTM D4263 moisture test. Masonry holds moisture longer than other substrates.",
+      "notes": "Test at multiple locations per elevation. 24-48 hr retest after initial failure."
+    },
+    {
+      "condition": "ACTIVE_RECURRING_EFFLORESCENCE",
+      "action": "STOP — resolve moisture source before painting",
+      "description": "Active/recurring efflorescence indicates ongoing moisture migration through masonry. Painting over active efflorescence will fail.",
+      "notes": "Dormant efflorescence (past events, no active wetting) CAN be treated and painted."
+    },
+    {
+      "condition": "STRUCTURAL_CRACKS",
+      "action": "STOP — refer to structural engineer",
+      "description": "Cracks >1/4 inch with visible displacement indicate structural movement. Outside painting scope.",
+      "notes": "Cosmetic hairline cracks (<1/4 inch) are paintable with crack filler at QT3+."
+    },
+    {
+      "condition": "SEVERE_MORTAR_DETERIORATION",
+      "action": "FLAG — tuck-pointing required before painting",
+      "description": "Missing or deeply eroded mortar joints require masonry trade repair before painting.",
+      "notes": "Minor hairline mortar cracking (<1/16 inch) is paintable."
+    }
+  ],
+
+  "dependencies": {
+    "research": "research.json",
+    "resolution": "resolution.json",
+    "materials": "materials.json",
+    "sop_modules": "sop_modules.json",
+    "production": "production.json",
+    "qa_report": "qa_report.json"
+  },
+
+  "artifact_counts": {
+    "total_tasks": 48,
+    "binary_tasks": 36,
+    "qt_scaled_tasks": 6,
+    "qt_conditional_tasks": 6,
+    "sop_modules": 10,
+    "material_systems": 6,
+    "coverage_profiles": 5,
+    "consumables": 20,
+    "round_configurations": 4,
+    "protection_zones": 8,
+    "adjacent_surfaces": 5,
+    "paintscope_inputs": 16,
+    "variants": 10,
+    "paintable_items": 1,
+    "configuration_dimensions": 7,
+    "factor_modifiers": 7,
+    "compatibility_rules": 10,
+    "hard_stops": 4,
+    "registry_additions_proposed": 6
+  },
+
+  "doctrine_references": [
+    { "doctrine": "Exterior_Masonry_Brick_Block_CMU_Doctrine.md", "sections_used": ["Substrate types and alkalinity", "Moisture testing and efflorescence", "Power wash pressures by substrate", "Acrylic vs elastomeric coating", "Failure modes", "Tuck-point assessment"] },
+    { "doctrine": "Exterior_Weathering_Surface_Assessment_Doctrine.md", "sections_used": ["Condition inspection protocol", "ASTM D3359 adhesion test", "Chalk test procedure", "Crack classification"] },
+    { "doctrine": "Exterior_Primer_Systems_Doctrine.md", "sections_used": ["Alkali-resistant primer for bare masonry", "Chalk-binding primer", "Acrylic stain-block primer"] },
+    { "doctrine": "Exterior_Application_Methods_Doctrine.md", "sections_used": ["Spray_backroll mandatory on masonry", "Spray-only prohibited"] },
+    { "doctrine": "Exterior_Protection_Doctrine_T3.md", "sections_used": ["Landscape zones", "Hardscape zones", "Vehicle/driveway RP-specific", "RRP containment"] },
+    { "doctrine": "Exterior_Access_Staging_Systems_Doctrine.md", "sections_used": ["Scaffold for masonry", "Access modifier values"] },
+    { "doctrine": "Exterior_Caulking_Sealants_Doctrine.md", "sections_used": ["Polyurethane caulk for masonry-to-trim", "Joint assessment"] },
+    { "doctrine": "Exterior_Color_Sheen_Configuration_Doctrine.md", "sections_used": ["Masonry sheen (flat/satin)", "Elastomeric flat-only"] },
+    { "doctrine": "Quality_Tiers_and_Surface_Condition.md", "sections_used": ["QT2-QT4 definitions", "Condition scale GOOD/FAIR/POOR"] },
+    { "doctrine": "Estimation_Modifiers_Doctrine.md", "sections_used": ["Stacking partition prep vs coating", "4.0x cap with T&M"] }
+  ],
+
+  "research_corrections": [
+    { "correction_id": "RC-001", "original_claim": "RRP modifier is 1.40x", "corrected_to": "RRP modifier is 2.00x on prep tasks involving paint disturbance", "source": "SF_TRIM_EXT_RP_v1/spec.json RC-001" },
+    { "correction_id": "RC-002", "original_claim": "Environmental conditions should be estimation modifiers", "corrected_to": "Environmental conditions are NOT estimatable — excluded from spec", "source": "PaintFactor OS RC-003" },
+    { "correction_id": "RC-003", "original_claim": "NC substrate_type modifier transfers directly to RP", "corrected_to": "RP uses masonry_type + texture as separate dimensions (previous paint changes effective texture)", "source": "SF_MASONRY_EXT_NC_v1/production.json" }
+  ],
+
+  "change_log": [
+    {
+      "version": "1.0.0",
+      "date": "2026-03-15",
+      "author": "SpecFactory Assembly Agent",
+      "changes": "Initial spec.json assembly from 6 pipeline artifacts. QA Critic: PASS with 2 minor issues (worst-case stacking exceeds 4.0x on extreme combination, new PS keys need registry formalization). 48 tasks across 10 modules (7 owned MOD_MSRP_* + 1 shared MOD_RRP_EXT_CONTAINMENT + 2 finish modules), 6 material systems (2 RP-specific primers + 1 reused NC primer + 3 reused NC finishes), 5 coverage profiles, 20 consumables, 10 compatibility rules, 7 factor modifiers with stacking partition, 4 round configurations, 8 protection zones, 5 adjacent surfaces, 16 PaintScope inputs, 10 variants, 1 paintable item (ITM_MASONRY_WALL SF-based reuse), 7 configuration dimensions, 4 hard stops, 6 proposed registry additions. First exterior masonry RP spec. Context prefix MSRP. Combined assessment + prep + prime + finish. spray_backroll primary (spray-only PROHIBITED). Power washing allowed (1500-3000 PSI — departure from FC siding RP). Block filler NC-only (not applicable RP). 7-point assessment module. State-driven primer selection. Condition scale GOOD/FAIR/POOR. 5 masonry types. Elastomeric on CMU/concrete only. RRP high probability on pre-1978 masonry. Caulk limited to masonry-to-trim junctions."
+    }
+  ]
+}

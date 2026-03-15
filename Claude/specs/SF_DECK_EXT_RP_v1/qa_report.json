@@ -1,0 +1,147 @@
+{
+  "spec_family_id": "SF_DECK_EXT_RP",
+  "version": "0.1.0",
+  "generated_by": "QA Critic",
+  "generated_at": "2026-03-15",
+  "overall_result": "pass_with_warnings",
+
+  "summary": {
+    "total_issues": 4,
+    "critical": 0,
+    "major": 2,
+    "minor": 2,
+    "files_validated": ["spec.json", "research.json", "resolution.json", "materials.json", "sop_modules.json", "production.json"],
+    "cross_file_threading_status": "pass",
+    "notes": "First RP spec for exterior deck surfaces. Assessment-first workflow properly integrated. Coating compatibility rules correctly enforced. All cross-file threading validated. 2 major warnings relate to compounding delamination risk documentation and multi-layer stripping rate uncertainty."
+  },
+
+  "cross_file_threading_validation": {
+    "rule_1_tsk_sop_to_production": {
+      "status": "pass",
+      "count_sop": 43,
+      "count_production": 43,
+      "mismatches": [],
+      "notes": "All 43 TSK_DKRP_ IDs in sop_modules.json have matching rates in production.json."
+    },
+    "rule_2_itm_in_variants": {
+      "status": "pass",
+      "items_checked": ["ITM_DECK_FLOOR", "ITM_DECK_RAILING", "ITM_DECK_SPINDLE", "ITM_DECK_STAIR"],
+      "notes": "All 4 paintable items appear in at least one variant. ITM_DECK_FLOOR appears in all 8 variants (always active). ITM_DECK_RAILING/SPINDLE in 4 variants. ITM_DECK_STAIR in 3 variants."
+    },
+    "rule_3_sys_coating_type_match": {
+      "status": "pass",
+      "notes": "Material systems cover all 3 coating_type values (semi_transparent, semi_solid, solid_stain). Bonding primer correctly conditional on existing_coating_type. Prep chemicals conditional on existing_coating_condition."
+    },
+    "rule_4_in_consumed": {
+      "status": "pass",
+      "notes": "All 13 IN_ inputs consumed by sop_modules or production tasks."
+    },
+    "rule_5_ps_key_match": {
+      "status": "pass",
+      "notes": "All PS_ keys in production.json match spec.json required_paintscope_inputs."
+    },
+    "rule_6_zone_id_match": {
+      "status": "pass",
+      "zones_spec": ["ext_siding_adjacent", "ext_below_deck_landscape", "ext_hardscape_patio", "ext_deck_furniture_staging", "ext_light_fixture"],
+      "zones_sop": ["ext_siding_adjacent", "ext_below_deck_landscape", "ext_hardscape_patio", "ext_deck_furniture_staging", "ext_light_fixture"],
+      "notes": "All 5 zone_ids match between spec.json and sop_modules.json protection_metadata."
+    },
+    "rule_7_module_phase_order": {
+      "status": "pass",
+      "order": ["setup", "prep", "prep", "prep", "prep", "apply", "apply", "apply", "cleanup"],
+      "notes": "Phase order correct: setup -> prep (assess, floor, railing, chemical_restore) -> apply (floor, railing, stair) -> cleanup."
+    },
+    "rule_8_uom_consistency": {
+      "status": "pass",
+      "notes": "UOM matches between sop_modules.json and production.json for all 43 tasks."
+    }
+  },
+
+  "issues": [
+    {
+      "issue_id": "ISS_DKRP_001",
+      "severity": "major",
+      "area": "risk_documentation",
+      "file": "spec.json",
+      "description": "Solid stain delamination risk on RP is documented as compounding (each coat adds film thickness) but no quantitative threshold is enforced by the engine. COMPAT-DKRP-004 mentions >10 mil DFT as strip trigger, but no task measures DFT. Assessment module checks adhesion (ASTM D3359) and condition, but DFT measurement is not a separate task.",
+      "suggested_fix": "Accept as documentation-only warning for v0.1.0. DFT measurement could be added as optional assessment task in future version. Estimator must flag solid-over-solid manually based on customer interview about previous coating history.",
+      "resolution": "Accepted as warning. Documented in RISK-DKRP-001."
+    },
+    {
+      "issue_id": "ISS_DKRP_002",
+      "severity": "major",
+      "area": "production_rates",
+      "file": "production.json",
+      "description": "FAC_DKRP_EXISTING_CONDITION peeling modifier (2.00x) assumes standard multi-layer stripping difficulty. Decks with 3+ previous solid stain coats or epoxy-fortified coatings may require multiple strip cycles, exceeding the 2.00x modifier. Rate validation not yet performed for extreme stripping scenarios.",
+      "suggested_fix": "Flag for estimator review when existing_coating_condition=peeling AND existing_coating_type=solid_stain AND customer reports 3+ previous coats. Consider T&M recommendation for extreme stripping. Add validation plan item for multi-layer stripping rate calibration.",
+      "resolution": "Accepted as warning. Documented in risks. Validation plan includes multi-layer strip timing."
+    },
+    {
+      "issue_id": "ISS_DKRP_003",
+      "severity": "minor",
+      "area": "naming_convention",
+      "file": "resolution.json",
+      "description": "Context prefix DKRP uses 4 characters while most existing prefixes use 4-5 (DECK, TRRP, CEIL, WALL). DKRP is unambiguous and collision-free but is a compressed abbreviation pattern not established by other RP specs (TRRP uses full context letters).",
+      "suggested_fix": "Accept DKRP — it is clear (DeckRePaint), collision-free, and 4 characters is within conventions. Alternative DKRP vs DECKRP — DKRP is preferred for task_id readability (TSK_DKRP_ vs TSK_DECKRP_).",
+      "resolution": "Accepted. DKRP is unambiguous."
+    },
+    {
+      "issue_id": "ISS_DKRP_004",
+      "severity": "minor",
+      "area": "scope_coverage",
+      "file": "spec.json",
+      "description": "Clear_sealer is excluded from RP scope (RC-001) because it is classified as maintenance-only reapplication. However, a homeowner with an existing clear sealer that has failed (turned milky, peeled, or degraded) would need a restain workflow that starts with assessment and potentially stripping the failed sealer. This edge case falls into a gap between NC spec (no assessment) and RP spec (no clear_sealer).",
+      "suggested_fix": "Document as an edge case in spec notes. In practice, failed clear sealer is treated by the RP spec with existing_coating_condition=failing and target coating_type=semi_transparent (upgrade from clear to semi-transparent is standard professional recommendation for failed sealers). The exclusion is specifically for simple maintenance re-application of the same clear product.",
+      "resolution": "Accepted as documentation note. Failed sealer enters RP pathway via semi_transparent target coating."
+    }
+  ],
+
+  "convention_checks": {
+    "task_classification_key": {
+      "status": "pass",
+      "notes": "All tasks use 'task_classification' (never 'task_class')."
+    },
+    "phase_values": {
+      "status": "pass",
+      "values_used": ["setup", "prep", "apply", "cleanup"],
+      "prohibited_values_absent": true,
+      "notes": "No 'protect' or 'protection' phase values."
+    },
+    "severity_values": {
+      "status": "pass",
+      "values_used": ["critical", "major", "minor"],
+      "prohibited_values_absent": true,
+      "notes": "No 'high', 'medium', 'low', or 'WARN' values."
+    },
+    "con_prefix": {
+      "status": "pass",
+      "notes": "All consumables use CON_ prefix (never CONS_)."
+    },
+    "uom_uppercase": {
+      "status": "pass",
+      "notes": "All UOM values uppercase (SF, LF, EA, FIXED)."
+    },
+    "skill_level_present": {
+      "status": "pass",
+      "notes": "All 43 tasks have skill_level defined."
+    }
+  },
+
+  "artifact_counts": {
+    "sop_modules": 9,
+    "total_tasks": 43,
+    "binary_tasks": 43,
+    "qt_scaled_tasks": 0,
+    "material_systems": 6,
+    "coverage_profiles": 6,
+    "consumables": 15,
+    "compatibility_rules": 9,
+    "factor_modifiers": 3,
+    "round_configurations": 2,
+    "protection_zones": 5,
+    "paintscope_inputs": 13,
+    "variants": 8,
+    "paintable_items": 4,
+    "configuration_dimensions": 6
+  }
+}

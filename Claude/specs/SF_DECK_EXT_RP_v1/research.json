@@ -1,0 +1,186 @@
+{
+  "research_metadata": {
+    "spec_family_id": "SF_DECK_EXT_RP",
+    "spec_family_version": "v1",
+    "domain": "exterior",
+    "research_mode": "doctrine_driven",
+    "doctrine_loaded": [
+      "docs/System/PaintFactor_OS.md",
+      "docs/System/Conventions.md",
+      "docs/Doctrine/Exterior_Decks_Horizontal_Wood_Doctrine.md",
+      "docs/Doctrine/Exterior_Surface_Assessment_Doctrine.md",
+      "docs/Doctrine/Exterior_Application_Methods_Doctrine.md",
+      "docs/Doctrine/Exterior_Protection_Doctrine_T3.md",
+      "docs/Doctrine/Exterior_Climate_Environmental_Conditions_Doctrine.md",
+      "docs/Doctrine/Exterior_Weathering_Surface_Assessment_Doctrine.md",
+      "docs/Doctrine/Exterior_Caulking_Sealants_Doctrine.md"
+    ],
+    "sibling_specs_reviewed": [
+      "specs/SF_DECK_EXT_v1/spec.json",
+      "specs/SF_DECK_EXT_v1/production.json",
+      "specs/SF_DECK_EXT_v1/research.json",
+      "specs/SF_TRIM_EXT_RP_v1/spec.json",
+      "specs/SF_PORCH_FLOOR_EXT_NC_v1/spec.json"
+    ],
+    "researcher": "Spec Researcher Agent",
+    "date": "2026-03-15",
+    "status": "draft",
+    "review_required": true
+  },
+
+  "relevant_findings": [
+    {
+      "finding_id": "RF-001",
+      "topic": "Deck RP inherits NC coating_type as primary dimension — NOT quality_tier",
+      "content": "The NC deck spec (SF_DECK_EXT_v1) established coating_type as the primary configuration dimension replacing quality_tier. The RP spec inherits this structure. Coating_type drives: coating chemistry (penetrating vs film-forming), maintenance cycle, failure mode profile, primer requirement for solid stain re-coating, coat count, and material coverage rates. The RP spec adds an existing coating assessment dimension that the NC spec does not need.",
+      "source": "SF_DECK_EXT_v1/spec.json configuration_dimensions",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-002",
+      "topic": "Deck RP adds condition assessment as mandatory first step — mirrors trim RP pattern",
+      "content": "Unlike NC deck work, repaint/restain requires condition assessment before committing to prep strategy. Following the SF_TRIM_EXT_RP_v1 pattern: ASTM D3359 adhesion test on existing coating, existing coating type identification (solvent wipe test: denatured alcohol dissolves latex, not oil), DSD-equivalent assessment for existing stain condition, and rot probe at vulnerable locations (stair treads, end grain, posts at grade contact). Assessment is a FIXED time module — not area-dependent. Assessment determines: (a) whether to strip or sand-and-recoat, (b) coating compatibility, (c) structural repair referrals.",
+      "source": "SF_TRIM_EXT_RP_v1 assess module pattern; Exterior_Weathering_Surface_Assessment_Doctrine.md",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-003",
+      "topic": "Existing coating stripping is the dominant RP prep task — dwarfs NC prep",
+      "content": "Previously coated decks with failing stain/paint require full chemical strip + brightener + rinse cycle. This is the same chemical restoration protocol from the NC spec (MOD_DECK_CHEMICAL_RESTORE) but activated by existing coating failure rather than weathering. Key difference from NC: RP stripping must contend with unknown existing coating chemistry. Oil-based stains require different strippers than water-based. Epoxy-fortified coatings may resist standard strippers. When existing coating is sound, RP can skip stripping entirely and apply over existing (compatibility permitting). This creates a wide prep labor variance — from light scuff sand (sound existing, same product) to full chemical strip + 24-48 hr dry (failing existing, unknown product).",
+      "source": "Exterior_Decks_Horizontal_Wood_Doctrine.md maintenance cycles; SF_DECK_EXT_v1 chemical restoration module",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-004",
+      "topic": "Substrate state inputs for deck RP are stain-specific — different from paint RP",
+      "content": "The NC deck spec outputs SS_EXT_STAINED_SEMI (penetrating stains) or SS_EXT_STAINED_SOLID (film-forming solid stain). Deck RP must accept BOTH as input states, plus SS_EXT_WEATHERED for decks that have lost their previous coating through UV degradation. SS_EXT_PAINTED_FLAT and SS_EXT_PAINTED_SATIN are also valid inputs — some decks were previously painted with porch floor enamel (not stained). This gives 5 valid input states: SS_EXT_STAINED_SEMI, SS_EXT_STAINED_SOLID, SS_EXT_WEATHERED, SS_EXT_PAINTED_FLAT, SS_EXT_PAINTED_SATIN.",
+      "source": "SF_DECK_EXT_v1 substrate_state_rules output_state; controlled_enums.json substrate_state",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-005",
+      "topic": "Coating compatibility matrix is critical — wrong combination causes delamination",
+      "content": "Deck RP coating compatibility is more complex than paint RP because stains and paints have fundamentally different adhesion mechanisms. Key rules: (1) Penetrating stain over penetrating stain = safe, stain absorbs into wood through existing. (2) Solid stain over penetrating stain = safe, film-forming over penetrating substrate. (3) Penetrating stain over solid stain = FAIL, cannot penetrate through film. (4) Oil-based over water-based = generally safe. (5) Water-based over oil-based = RISKY, adhesion testing mandatory. (6) Paint over stain = requires bonding primer. (7) Stain over paint = FAIL unless fully stripped. Assessment module determines existing coating type to select compatible re-coating strategy.",
+      "source": "Exterior_Decks_Horizontal_Wood_Doctrine.md; paint industry compatibility rules",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-006",
+      "topic": "RP deck uses QT2-QT3 range — utilitarian surface with functional finish",
+      "content": "Deck staining is utilitarian — foot traffic surface with limited aesthetic expectation compared to trim or siding. QT2 = maintenance recoat (single coat, minimal prep, no inspection). QT3 = standard refinish (full prep, 2 coats, final inspection). QT4/QT5 excluded — deck staining does not warrant premium/gallery quality treatment. Coating_type remains the primary dimension; quality_tier is secondary, controlling coat count and inspection rigor.",
+      "source": "SF_DECK_EXT_v1 spec context; PaintFactor OS quality tier definitions",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-007",
+      "topic": "Deck RP adds existing coating condition dimension — drives prep module selection",
+      "content": "The NC spec uses wood_condition (new, weathered, previously_coated). The RP spec replaces this with existing_coating_condition: sound, worn, failing, peeling. Sound = existing stain/paint is intact, good adhesion, no peeling — light prep and recoat. Worn = high-traffic areas show wear-through to bare wood but coating is still generally adhered — moderate prep, spot-strip worn areas. Failing = widespread adhesion loss, flaking, blistering — chemical strip required. Peeling = sheet delamination (solid stain/paint) — full strip mandatory, separate mobilization day. This maps roughly to the trim RP DSD 0-3 pattern but with deck-specific failure modes.",
+      "source": "Exterior_Weathering_Surface_Assessment_Doctrine.md DSD framework adapted for stain",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-008",
+      "topic": "Same 4 paintable items as NC spec — floor SF, railing LF, spindle EA, stair EA",
+      "content": "Deck RP works on the same physical components as NC: deck floor field (ITM_DECK_FLOOR, SF), railing system (ITM_DECK_RAILING, LF), spindles/balusters (ITM_DECK_SPINDLE, EA), and stair steps (ITM_DECK_STAIR, EA). No new items needed. The RP-specific difference is that each component has its own condition assessment and may have different existing coating states (e.g., floor peeling but railings sound).",
+      "source": "SF_DECK_EXT_v1 paintable_items",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-009",
+      "topic": "Production rates for RP application are same as NC — stain application rate is product-dependent not surface-history-dependent",
+      "content": "Once prep normalizes the surface, stain application rates are the same for RP and NC. The base rates from SF_DECK_EXT_v1/production.json apply: spray_backbrush 275 SF/hr (2-person), brush 125 SF/hr, pad 250 SF/hr, roll 200 SF/hr, railing brush 10 LF/hr, spindle brush 10 EA/hr, stair brush 3 EA/hr. RP prep tasks are slower due to stripping and existing coating removal, but once prepped, application is rate-equivalent to NC. Factor modifiers FAC_DECK_COATING_TYPE and FAC_DECK_SUBSTRATE_TYPE apply unchanged. FAC_DECK_WOOD_CONDITION is replaced by FAC_DKRP_EXISTING_CONDITION for RP-specific prep scaling.",
+      "source": "SF_DECK_EXT_v1/production.json task_production_rates and factor_modifiers",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-010",
+      "topic": "Chemical restoration module reused from NC with RP-specific activation conditions",
+      "content": "The NC spec's MOD_DECK_CHEMICAL_RESTORE (8 tasks: strip apply, dwell, scrub, rinse, brighten apply, dwell, rinse, dry verify) transfers directly to the RP spec. Activation changes from wood_condition=weathered to existing_coating_condition in [failing, peeling]. Same rates, same chemicals, same 24-48 hr dry time between chemical prep and stain application. For RP, stripping may require stronger formulations for multi-layer existing coatings — this is handled by the FAC_DKRP_EXISTING_CONDITION modifier on strip tasks rather than a separate product.",
+      "source": "SF_DECK_EXT_v1 MOD_DECK_CHEMICAL_RESTORE; sop_modules.json",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-011",
+      "topic": "Scope_components dimension retained — floor_only, floor_and_railings, full_deck",
+      "content": "Same scope_components dimension as NC. RP commonly targets floor_only (floor wears first from foot traffic) while railings and stairs may not need recoating. The scope_components dimension activates/deactivates railing, spindle, and stair modules independently.",
+      "source": "SF_DECK_EXT_v1 scope_components in variants",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-012",
+      "topic": "Protection zones identical to NC — reuse all 5 zones",
+      "content": "Same protection requirements: ext_siding_adjacent (ledger board), ext_below_deck_landscape (elevated decks), ext_hardscape_patio (walkways), ext_deck_furniture_staging (on-deck items), ext_light_fixture (deck-mounted fixtures). No new zones for RP.",
+      "source": "SF_DECK_EXT_v1 protection_zones_required",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-013",
+      "topic": "Solid stain delamination risk is HIGHER for RP than NC",
+      "content": "Solid stain over existing solid stain on horizontal surfaces has compounding delamination risk — each coat adds film thickness, increasing moisture entrapment. RP with solid stain on a deck floor that already has 2-3 previous coats of solid stain is at extreme risk. Assessment must include total existing film build measurement. If existing film is thick (>10 mil DFT), full strip is mandatory regardless of visible condition. This is an RP-specific risk not present in NC.",
+      "source": "Exterior_Decks_Horizontal_Wood_Doctrine.md solid stain failure modes",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-014",
+      "topic": "Environmental conditions remain non-estimatable for deck RP — same as NC",
+      "content": "Wind, dew point, surface temperature, direct sun — all managed by SOP scheduling, not estimation modifiers. Deck staining is especially sensitive to direct sun causing flash-drying (stain dries on surface before penetrating). This is a process constraint (schedule for early AM or late PM), not an estimatable variable. Per RC-003 from PaintFactor OS.",
+      "source": "PaintFactor OS RC-003; SF_DECK_EXT_v1 site_condition_rules",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-015",
+      "topic": "Projected task count: ~38-42 tasks across 9 modules",
+      "content": "NC spec has 40 tasks across 8 modules. RP adds an assessment module (~5 tasks: condition assessment, adhesion test, coating ID, moisture test, rot probe) and modifies the prep module for existing coating removal. Some NC-only tasks drop (mill glaze sand, seasoning verify). Net projection: 38-42 tasks across 9 modules (setup, assess, prep_floor, prep_railing, chemical_restore, apply_floor, apply_railing, apply_stair, cleanup).",
+      "source": "SF_DECK_EXT_v1 sop_module_summary; SF_TRIM_EXT_RP_v1 assessment module pattern",
+      "confidence": "medium"
+    }
+  ],
+
+  "configuration_dimensions_proposed": [
+    {
+      "dimension_id": "coating_type",
+      "values": ["semi_transparent", "semi_solid", "solid_stain"],
+      "default": "semi_transparent",
+      "notes": "PRIMARY DIMENSION — inherited from NC spec. Clear_sealer EXCLUDED from RP — clear sealer is maintenance-only (reapply same product), not a repaint/restain scenario requiring this spec's assessment and prep pipeline. Semi-transparent remains the professional standard (~60% of deck restaining work)."
+    },
+    {
+      "dimension_id": "existing_coating_condition",
+      "values": ["sound", "worn", "failing", "peeling"],
+      "default": "worn",
+      "notes": "RP-SPECIFIC DIMENSION — replaces NC's wood_condition. Drives prep intensity and chemical restoration activation. Sound = intact existing coating, light prep. Worn = traffic wear, moderate prep. Failing = adhesion loss, chemical strip required. Peeling = sheet delamination, full strip + separate mobilization day."
+    },
+    {
+      "dimension_id": "substrate_type",
+      "values": ["pressure_treated_pine", "cedar", "redwood"],
+      "default": "pressure_treated_pine",
+      "notes": "Inherited from NC spec unchanged. PT pine ~80% of residential decks."
+    },
+    {
+      "dimension_id": "application_method",
+      "values": ["spray_backbrush", "brush", "roll", "pad"],
+      "default": "spray_backbrush",
+      "notes": "Inherited from NC spec unchanged. Spray-only PROHIBITED for penetrating stains."
+    },
+    {
+      "dimension_id": "scope_components",
+      "values": ["floor_only", "floor_and_railings", "full_deck"],
+      "default": "floor_only",
+      "notes": "Default to floor_only for RP — floor wears first from foot traffic. NC defaults to full_deck for new construction."
+    }
+  ],
+
+  "research_corrections": [
+    {
+      "correction_id": "RC-001",
+      "original_claim": "Quality_tier QT2-QT3 for deck RP",
+      "corrected_to": "Quality_tier is NOT a configuration dimension for deck specs. Coating_type is the primary dimension. QT is implicit: maintenance recoat behavior (minimal prep, single coat) is captured by existing_coating_condition=sound + coating_type=semi_transparent. No separate QT dimension needed — it would create redundant configuration axes.",
+      "source": "SF_DECK_EXT_v1 established pattern — no quality_tier dimension in deck specs"
+    },
+    {
+      "correction_id": "RC-002",
+      "original_claim": "Environmental conditions should be estimation modifiers",
+      "corrected_to": "Environmental conditions are NOT estimatable — unpredictable at bid time. Excluded per PaintFactor OS RC-003.",
+      "source": "PaintFactor OS RC-003"
+    }
+  ]
+}

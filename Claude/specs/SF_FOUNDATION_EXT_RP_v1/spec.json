@@ -1,0 +1,484 @@
+{
+  "spec_family": {
+    "id": "SF_FOUNDATION_EXT_RP",
+    "name": "Exterior Foundation Wall Repaint (Combined Assessment + Prep + Prime + Finish)",
+    "description": "Combined condition assessment + prep + prime + finish repaint spec for previously painted above-grade foundation walls (poured concrete and CMU). Covers 4-point condition assessment (visual, chalk/adhesion, moisture MC <= 4% HARD STOP, grade-line gap check for incorrect caulking), efflorescence treatment, pressure wash (1,500-2,500 PSI), scraping/feathering failing paint, crack patching, state-driven primer (chalk-binding for SS_EXT_CHALKING, alkali-resistant spot prime on exposed bare masonry pH 12-14, acrylic stain-block for general RP adhesion), finish coat application (acrylic or cementitious — brush_roll primary, spray_backroll for larger runs). SF-based with ITM_FOUNDATION_WALL. 2 foundation types (poured/CMU). QT2-QT3 only (utilitarian — QT4/QT5 excluded). Flat sheen only. Ground-level access only — no height modifier. CRITICAL: NEVER caulk the 3/8-inch siding-to-foundation grade-line gap — it is an intentional drainage plane. Simplest exterior RP spec — 28 tasks, 6 modules, 2 modifiers, max stack 1.84x. No RRP (foundation coating is modern practice). No block filler (NC-only). NC sibling: SF_FOUNDATION_EXT_NC_v1.",
+    "domain": "exterior",
+    "scope_type": "repaint",
+    "version": "1.0.0",
+    "status": "draft",
+    "review_required": true
+  },
+
+  "scope_boundaries": {
+    "includes": [
+      "4-point condition assessment (visual, chalk/adhesion, moisture, grade-line gap)",
+      "Moisture testing (MC <= 4% HARD STOP — stricter than masonry wall 12%)",
+      "Grade-line gap assessment for incorrect previous caulking (RP-specific)",
+      "Efflorescence treatment (dry brush, TSP wash)",
+      "Pressure wash (1,500-2,500 PSI — dual purpose: cleaning + paint removal)",
+      "Scraping and feather-edge sanding of failing/peeling paint",
+      "Crack patching (cosmetic cracks < 1/8 inch)",
+      "State-driven primer: chalk-binding (SS_EXT_CHALKING), alkali-resistant spot (exposed bare), acrylic stain-block (failing/peeling)",
+      "Finish coat application — acrylic (1-2 coats by QT) or cementitious/Drylok-type (1-2 coats by QT)",
+      "Landscape perimeter protection",
+      "Hardscape protection (walkways, patios — when adjacent)",
+      "Final inspection, touch-up, and site cleanup",
+      "Protection teardown and equipment cleanup",
+      "Customer walkthrough (RP occupied home context)"
+    ],
+    "excludes": [
+      { "item": "Below-grade waterproofing", "route_to": "Specialty waterproofing trade" },
+      { "item": "Siding painting above foundation", "route_to": "Siding spec" },
+      { "item": "Structural crack repair (cracks > 1/4 inch)", "route_to": "GC / structural engineer" },
+      { "item": "Block filler application", "route_to": "NC scope only — already applied at new construction" },
+      { "item": "Lead paint abatement / RRP containment", "route_to": "Lead specialist — foundation coating is modern practice, pre-1978 painted foundations extremely rare" },
+      { "item": "Grade-line caulk removal", "route_to": "Separate scope — flag for removal if found, but removal work is not in this spec's estimation" },
+      { "item": "New construction foundation coating (bare masonry)", "route_to": "SF_FOUNDATION_EXT_NC_v1" }
+    ]
+  },
+
+  "configuration_dimensions": [
+    {
+      "dimension_id": "quality_tier",
+      "values": ["QT2", "QT3"],
+      "default": "QT3",
+      "notes": "QT2=economy (single finish coat, light wash). QT3=standard (full wash, 2 finish coats). QT4/QT5 excluded — utilitarian surface."
+    },
+    {
+      "dimension_id": "substrate_state",
+      "values": ["SS_EXT_SOUND_PAINT", "SS_EXT_CHALKING", "SS_EXT_FAILING_PAINT", "SS_EXT_PEELING"],
+      "default": "SS_EXT_SOUND_PAINT",
+      "notes": "4 standard exterior RP substrate states. Each drives distinct prep pathway and primer selection."
+    },
+    {
+      "dimension_id": "condition_scale",
+      "values": ["GOOD", "FAIR", "POOR"],
+      "default": "GOOD",
+      "notes": "GOOD=SS_EXT_SOUND_PAINT (1.0x prep). FAIR=SS_EXT_CHALKING or localized failing (1.3x). POOR=SS_EXT_PEELING or widespread failure (1.6x)."
+    },
+    {
+      "dimension_id": "foundation_type",
+      "values": ["poured", "CMU"],
+      "default": "poured",
+      "notes": "Same as NC. Drives production modifier (CMU 1.15x slower). Block filler excluded in RP."
+    },
+    {
+      "dimension_id": "coating_type",
+      "values": ["acrylic", "cementitious"],
+      "default": "acrylic",
+      "notes": "Same as NC. Acrylic standard. Cementitious (Drylok-type) for moisture-prone areas."
+    },
+    {
+      "dimension_id": "application_method",
+      "values": ["brush_roll", "spray_backroll"],
+      "default": "brush_roll",
+      "notes": "brush_roll primary (small foundation areas). spray_backroll for larger continuous runs."
+    }
+  ],
+
+  "paintable_items": [
+    {
+      "item_id": "ITM_FOUNDATION_WALL",
+      "name": "Exterior Above-Grade Foundation Wall Surface",
+      "unit_of_measure": "SF",
+      "counting_rules": "Net paintable above-grade foundation wall area in square feet. Perimeter LF x band height (12-36 inches). Excludes below-grade surfaces. Measured from PaintScope.",
+      "notes": "Reuse from NC spec. Single paintable item. foundation_type modifier adjusts rates per substrate."
+    }
+  ],
+
+  "state_declarations": {
+    "primary_surface": "foundation_wall",
+
+    "valid_input_states": {
+      "states": ["SS_EXT_SOUND_PAINT", "SS_EXT_CHALKING", "SS_EXT_FAILING_PAINT", "SS_EXT_PEELING"],
+      "notes": "4 exterior RP substrate states. SS_EXT_SOUND_PAINT may skip prime with verified adhesion. SS_EXT_CHALKING requires chalk-binding primer. SS_EXT_FAILING_PAINT/SS_EXT_PEELING require alkali-resistant on bare + acrylic stain-block."
+    },
+
+    "output_state": {
+      "state": "SS_EXT_PAINTED_FLAT",
+      "varies_by": "sheen",
+      "state_map": {
+        "flat": "SS_EXT_PAINTED_FLAT"
+      },
+      "notes": "All input states normalize to SS_EXT_PAINTED_FLAT after proper prep and coating. Foundation is flat sheen only."
+    }
+  },
+
+  "material_systems_summary": [
+    {
+      "system_id": "SYS_EXT_FNRP_PRIMER_CHALK_BIND",
+      "name": "Chalk-Binding Primer for Chalking Foundation",
+      "product_role": "primer",
+      "applies_when": { "substrate_state": ["SS_EXT_CHALKING"] },
+      "notes": "RP-SPECIFIC. MANDATORY for chalking foundation. Full surface application."
+    },
+    {
+      "system_id": "SYS_EXT_FNRP_PRIMER_ACRYLIC_RP",
+      "name": "Acrylic Stain-Block Primer for Foundation RP",
+      "product_role": "primer",
+      "applies_when": { "substrate_state": ["SS_EXT_FAILING_PAINT", "SS_EXT_PEELING"] },
+      "notes": "RP-SPECIFIC. For previously painted areas with adhesion concerns."
+    },
+    {
+      "system_id": "SYS_EXT_FNDN_PRIMER_ALKALI",
+      "name": "Alkali-Resistant Foundation Primer (Reuse NC)",
+      "product_role": "primer",
+      "applies_when": { "substrate_state": ["SS_EXT_FAILING_PAINT", "SS_EXT_PEELING"], "exposed_substrate": "bare_masonry" },
+      "notes": "Reuse NC. MANDATORY on exposed bare foundation (pH 12-14). Spot prime in RP."
+    },
+    {
+      "system_id": "SYS_EXT_FNDN_FINISH_ACRYLIC",
+      "name": "Standard Acrylic Foundation Coating (Reuse NC)",
+      "product_role": "finish",
+      "applies_when": { "coating_type": ["acrylic"] },
+      "notes": "Reuse NC. QT2=1 coat, QT3=2 coats."
+    },
+    {
+      "system_id": "SYS_EXT_FNDN_FINISH_CEMENTITIOUS",
+      "name": "Cementitious Coating (Drylok-type) (Reuse NC)",
+      "product_role": "finish",
+      "applies_when": { "coating_type": ["cementitious"] },
+      "notes": "Reuse NC. QT2=1 coat, QT3=2 coats."
+    }
+  ],
+
+  "module_summary": [
+    { "module_id": "MOD_FNRP_SETUP", "phase": "setup", "task_count": 3, "description": "Protection (landscape LF, hardscape) + equipment staging" },
+    { "module_id": "MOD_FNRP_ASSESS", "phase": "prep", "task_count": 4, "description": "4-point assessment: visual, chalk/adhesion, moisture, grade-line gap" },
+    { "module_id": "MOD_FNRP_PREP", "phase": "prep", "task_count": 5, "description": "Efflorescence treatment, pressure wash, scrape/feather, crack patch, dust cleanup" },
+    { "module_id": "MOD_FNRP_PRIME", "phase": "prime", "task_count": 4, "description": "State-driven: chalk-binding, alkali-resistant spot, acrylic stain-block (roll/spray)" },
+    { "module_id": "MOD_FNRP_FINISH", "phase": "finish", "task_count": 6, "description": "Finish coats — acrylic (roll/spray) or cementitious (roll/brush) + detail brush + backroll" },
+    { "module_id": "MOD_FNRP_CLEANUP", "phase": "cleanup", "task_count": 6, "description": "Final inspection, touch-up, protection teardown, tool clean, site debris, customer walkthrough" }
+  ],
+
+  "round_configurations": [
+    {
+      "round_id": "ROUND_FNRP_SKIP_PRIME_1FINISH",
+      "name": "Skip Prime + 1 Finish Coat (Sound Paint, QT2)",
+      "applies_when": { "substrate_state": ["SS_EXT_SOUND_PAINT"], "quality_tier": ["QT2"] },
+      "total_coats": 1,
+      "interstage_cycles": 0,
+      "notes": "Economy refresh on sound paint. Skip prime (verified adhesion). Single finish coat."
+    },
+    {
+      "round_id": "ROUND_FNRP_SKIP_PRIME_2FINISH",
+      "name": "Skip Prime + 2 Finish Coats (Sound Paint, QT3)",
+      "applies_when": { "substrate_state": ["SS_EXT_SOUND_PAINT"], "quality_tier": ["QT3"] },
+      "total_coats": 2,
+      "interstage_cycles": 0,
+      "notes": "Standard refresh on sound paint. Skip prime. 2 finish coats."
+    },
+    {
+      "round_id": "ROUND_FNRP_PRIME_1FINISH",
+      "name": "State-Driven Prime + 1 Finish Coat (QT2)",
+      "applies_when": { "substrate_state": ["SS_EXT_CHALKING", "SS_EXT_FAILING_PAINT", "SS_EXT_PEELING"], "quality_tier": ["QT2"] },
+      "total_coats": 2,
+      "interstage_cycles": 0,
+      "notes": "Economy RP with state-driven primer + single finish coat."
+    },
+    {
+      "round_id": "ROUND_FNRP_PRIME_2FINISH",
+      "name": "State-Driven Prime + 2 Finish Coats (QT3)",
+      "applies_when": { "substrate_state": ["SS_EXT_CHALKING", "SS_EXT_FAILING_PAINT", "SS_EXT_PEELING"], "quality_tier": ["QT3"] },
+      "total_coats": 3,
+      "interstage_cycles": 0,
+      "notes": "Standard RP with state-driven primer + 2 finish coats. No interstage sanding (utilitarian surface)."
+    }
+  ],
+
+  "variants": [
+    {
+      "variant_id": "VAR_FNRP_SOUND_QT3_BRUSH_ROLL_POURED_ACRYLIC",
+      "applies_when": { "substrate_state": ["SS_EXT_SOUND_PAINT"], "quality_tier": ["QT3"], "foundation_type": ["poured"], "coating_type": ["acrylic"], "application_method": ["brush_roll"] },
+      "included_items": ["ITM_FOUNDATION_WALL"],
+      "round_config": "ROUND_FNRP_SKIP_PRIME_2FINISH",
+      "notes": "BASELINE. Standard refresh on sound poured concrete foundation. Skip prime, 2 acrylic finish coats brush_roll."
+    },
+    {
+      "variant_id": "VAR_FNRP_SOUND_QT2_BRUSH_ROLL_POURED_ACRYLIC",
+      "applies_when": { "substrate_state": ["SS_EXT_SOUND_PAINT"], "quality_tier": ["QT2"], "foundation_type": ["poured"], "coating_type": ["acrylic"], "application_method": ["brush_roll"] },
+      "included_items": ["ITM_FOUNDATION_WALL"],
+      "round_config": "ROUND_FNRP_SKIP_PRIME_1FINISH",
+      "notes": "Economy refresh on sound poured concrete. Single acrylic coat."
+    },
+    {
+      "variant_id": "VAR_FNRP_CHALKING_QT3_BRUSH_ROLL_POURED_ACRYLIC",
+      "applies_when": { "substrate_state": ["SS_EXT_CHALKING"], "quality_tier": ["QT3"], "foundation_type": ["poured"], "coating_type": ["acrylic"], "application_method": ["brush_roll"] },
+      "included_items": ["ITM_FOUNDATION_WALL"],
+      "round_config": "ROUND_FNRP_PRIME_2FINISH",
+      "notes": "Standard RP on chalking poured concrete. Chalk-binding primer (full surface) + 2 acrylic finish coats."
+    },
+    {
+      "variant_id": "VAR_FNRP_FAILING_QT3_BRUSH_ROLL_POURED_ACRYLIC",
+      "applies_when": { "substrate_state": ["SS_EXT_FAILING_PAINT"], "quality_tier": ["QT3"], "foundation_type": ["poured"], "coating_type": ["acrylic"], "application_method": ["brush_roll"] },
+      "included_items": ["ITM_FOUNDATION_WALL"],
+      "round_config": "ROUND_FNRP_PRIME_2FINISH",
+      "notes": "Standard RP on failing poured concrete. Scrape/feather + alkali-resistant spot prime + acrylic stain-block prime + 2 finish coats."
+    },
+    {
+      "variant_id": "VAR_FNRP_PEELING_QT3_BRUSH_ROLL_POURED_ACRYLIC",
+      "applies_when": { "substrate_state": ["SS_EXT_PEELING"], "quality_tier": ["QT3"], "foundation_type": ["poured"], "coating_type": ["acrylic"], "application_method": ["brush_roll"] },
+      "included_items": ["ITM_FOUNDATION_WALL"],
+      "round_config": "ROUND_FNRP_PRIME_2FINISH",
+      "notes": "Standard RP on peeling poured concrete. Heavy scrape + full prime + 2 finish coats. Most labor-intensive poured variant."
+    },
+    {
+      "variant_id": "VAR_FNRP_SOUND_QT3_BRUSH_ROLL_CMU_ACRYLIC",
+      "applies_when": { "substrate_state": ["SS_EXT_SOUND_PAINT"], "quality_tier": ["QT3"], "foundation_type": ["CMU"], "coating_type": ["acrylic"], "application_method": ["brush_roll"] },
+      "included_items": ["ITM_FOUNDATION_WALL"],
+      "round_config": "ROUND_FNRP_SKIP_PRIME_2FINISH",
+      "notes": "Standard refresh on sound CMU foundation. Skip prime, 2 finish coats. CMU 1.15x modifier on coating tasks."
+    },
+    {
+      "variant_id": "VAR_FNRP_FAILING_QT3_BRUSH_ROLL_CMU_CEMENTITIOUS",
+      "applies_when": { "substrate_state": ["SS_EXT_FAILING_PAINT"], "quality_tier": ["QT3"], "foundation_type": ["CMU"], "coating_type": ["cementitious"], "application_method": ["brush_roll"] },
+      "included_items": ["ITM_FOUNDATION_WALL"],
+      "round_config": "ROUND_FNRP_PRIME_2FINISH",
+      "notes": "Standard RP on failing CMU with cementitious coating. Highest material consumption variant."
+    },
+    {
+      "variant_id": "VAR_FNRP_SOUND_QT3_SPRAY_BACKROLL_POURED_ACRYLIC",
+      "applies_when": { "substrate_state": ["SS_EXT_SOUND_PAINT"], "quality_tier": ["QT3"], "foundation_type": ["poured"], "coating_type": ["acrylic"], "application_method": ["spray_backroll"] },
+      "included_items": ["ITM_FOUNDATION_WALL"],
+      "round_config": "ROUND_FNRP_SKIP_PRIME_2FINISH",
+      "notes": "Spray variant for larger foundation scope. Sound poured concrete. Fastest production."
+    },
+    {
+      "variant_id": "VAR_FNRP_FAILING_QT3_SPRAY_BACKROLL_CMU_ACRYLIC",
+      "applies_when": { "substrate_state": ["SS_EXT_FAILING_PAINT"], "quality_tier": ["QT3"], "foundation_type": ["CMU"], "coating_type": ["acrylic"], "application_method": ["spray_backroll"] },
+      "included_items": ["ITM_FOUNDATION_WALL"],
+      "round_config": "ROUND_FNRP_PRIME_2FINISH",
+      "notes": "Spray on failing CMU. Backroll required per masonry doctrine. TSK_FNRP_FINISH_BACKROLL activates."
+    }
+  ],
+
+  "required_paintscope_inputs": [
+    { "input_name": "IN_SF_FOUNDATION_WALL", "paintscope_key": "PS_EXT_SURFACE_SF.FOUNDATION_WALL", "uom": "SF", "required": true, "description": "Net paintable above-grade foundation wall area" },
+    { "input_name": "IN_ENUM_FOUNDATION_TYPE", "paintscope_key": "PS_EXT_META.ENUM.FOUNDATION_TYPE", "uom": "ENUM", "required": true, "description": "Foundation substrate type (poured/CMU)" },
+    { "input_name": "IN_ENUM_SUBSTRATE_STATE_EXT", "paintscope_key": "PS_EXT_META.ENUM.SUBSTRATE_STATE", "uom": "ENUM", "required": true, "description": "Exterior substrate state" },
+    { "input_name": "IN_ENUM_CONDITION_SCALE", "paintscope_key": "PS_EXT_META.ENUM.CONDITION_SCALE", "uom": "ENUM", "required": true, "description": "Condition scale GOOD/FAIR/POOR" },
+    { "input_name": "IN_LF_EXT_PROTECT_LANDSCAPE_PERIMETER", "paintscope_key": "PS_EXT_PROTECT_LF.LANDSCAPE_PERIMETER", "uom": "LF", "required": false, "required_when": "When landscape is adjacent to foundation wall", "description": "Linear feet of foundation perimeter where landscape requires protection" },
+    { "input_name": "IN_SF_EXT_PROTECT_HARDSCAPE_WALK", "paintscope_key": "PS_EXT_PROTECT_SF.HARDSCAPE_WALK", "uom": "SF", "required": false, "required_when": "When walkways are adjacent to foundation wall", "description": "Walkway protection area" },
+    { "input_name": "IN_SF_EXT_PROTECT_HARDSCAPE_PATIO", "paintscope_key": "PS_EXT_PROTECT_SF.HARDSCAPE_PATIO", "uom": "SF", "required": false, "required_when": "When patio is adjacent to foundation wall", "description": "Patio protection area" }
+  ],
+
+  "protection_zones_required": [
+    {
+      "zone_id": "ext_landscape_perimeter",
+      "condition": "when_adjacent",
+      "protection_level": "edge_only",
+      "upgrade_when": { "application_method": ["spray_backroll"] },
+      "upgrade_level": "full_cover",
+      "notes": "RP includes scraping debris containment. Spray upgrades to full tarp over plantings."
+    },
+    {
+      "zone_id": "ext_hardscape_walk",
+      "condition": "when_adjacent",
+      "protection_level": "light_mask",
+      "upgrade_when": { "application_method": ["spray_backroll"] },
+      "upgrade_level": "full_cover"
+    },
+    {
+      "zone_id": "ext_hardscape_patio",
+      "condition": "when_adjacent",
+      "protection_level": "light_mask",
+      "upgrade_when": { "application_method": ["spray_backroll"] },
+      "upgrade_level": "full_cover"
+    }
+  ],
+
+  "adjacency_declarations": {
+    "primary_surface": "foundation_wall",
+    "adjacent_surfaces": [
+      {
+        "surface_id": "ext_siding_field",
+        "edge_type": "linear",
+        "typical_relationship": "different_finish",
+        "continuity_rate_modifier": 1.0,
+        "notes": "Siding meets foundation at grade line with 3/8-inch gap. NEVER caulk this gap. Foundation coating terminates below siding edge."
+      },
+      {
+        "surface_id": "grade_line_soil",
+        "edge_type": "linear",
+        "typical_relationship": "not_in_scope",
+        "continuity_rate_modifier": 1.0,
+        "notes": "Foundation meets grade. Rough termination at soil line is acceptable."
+      },
+      {
+        "surface_id": "ext_trim_water_table",
+        "edge_type": "linear",
+        "typical_relationship": "different_finish",
+        "continuity_rate_modifier": 1.0,
+        "notes": "Water table trim (if present) at siding-to-foundation transition."
+      }
+    ],
+    "key_finding": "Foundation wall has NO edge work requirements within this spec. Same as NC."
+  },
+
+  "factor_modifiers_summary": {
+    "foundation_type": { "FAC_FNRP_FOUNDATION_TYPE_POURED": 1.00, "FAC_FNRP_FOUNDATION_TYPE_CMU": 1.15 },
+    "condition_scale": { "FAC_FNRP_CONDITION_GOOD": 1.00, "FAC_FNRP_CONDITION_FAIR": 1.30, "FAC_FNRP_CONDITION_POOR": 1.60 },
+    "stacking_partition": {
+      "prep_pool": "condition x foundation_type",
+      "coating_pool": "foundation_type only",
+      "never_cross": "Condition NEVER applies to coating tasks."
+    },
+    "max_stack": "1.84x (POOR condition x CMU foundation_type on prep tasks). Well under 4.0x cap.",
+    "notes": "Simplest modifier profile of any exterior RP spec. 2 modifiers only. No access, no RRP, no QT modifier (only 2 tiers)."
+  },
+
+  "compatibility_rules": [
+    {
+      "rule_id": "COMPAT-FNRP-001",
+      "description": "Oil-based and alkyd products PROHIBITED on alkaline concrete/CMU foundation",
+      "condition": { "exposed_substrate": "bare_masonry" },
+      "prohibited_systems": ["any oil-based primer", "any alkyd primer"],
+      "required_chemistry": "water-based acrylic or cementitious only",
+      "severity": "critical",
+      "notes": "Inherited from NC COMPAT-FNDN-001. Saponification risk on pH 12-14 substrate."
+    },
+    {
+      "rule_id": "COMPAT-FNRP-002",
+      "description": "Moisture content must be at or below 4% before any coating",
+      "condition": "always",
+      "required_action": "Moisture test. MC > 4% = HARD STOP",
+      "severity": "critical",
+      "notes": "Inherited from NC COMPAT-FNDN-002. Stricter than masonry wall (12%)."
+    },
+    {
+      "rule_id": "COMPAT-FNRP-003",
+      "description": "NEVER caulk the 3/8-inch grade-line gap below siding",
+      "condition": "always",
+      "prohibited_action": "Caulking the siding-to-foundation gap",
+      "severity": "critical",
+      "notes": "Inherited from NC COMPAT-FNDN-003. RP adds: if previously caulked, flag for removal."
+    },
+    {
+      "rule_id": "COMPAT-FNRP-004",
+      "description": "Chalk-binding primer MANDATORY for SS_EXT_CHALKING",
+      "condition": { "substrate_state": "SS_EXT_CHALKING" },
+      "required_system": "SYS_EXT_FNRP_PRIMER_CHALK_BIND",
+      "severity": "major",
+      "notes": "Full surface application. Not quality-optional."
+    },
+    {
+      "rule_id": "COMPAT-FNRP-005",
+      "description": "Alkali-resistant primer MANDATORY on exposed bare masonry",
+      "condition": { "substrate_state": ["SS_EXT_FAILING_PAINT", "SS_EXT_PEELING"], "exposed_substrate": "bare_masonry" },
+      "required_system": "SYS_EXT_FNDN_PRIMER_ALKALI",
+      "severity": "critical",
+      "notes": "pH 12-14 substrate. Spot prime in RP context."
+    },
+    {
+      "rule_id": "COMPAT-FNRP-006",
+      "description": "Active/recurring efflorescence = STOP WORK",
+      "condition": { "site_condition": { "efflorescence_active": true } },
+      "required_action": "Resolve moisture source before painting",
+      "severity": "critical",
+      "notes": "Foundation is highly susceptible to efflorescence due to ground contact."
+    }
+  ],
+
+  "hard_stops": [
+    {
+      "condition": "MOISTURE_EXCEEDS_4_PERCENT",
+      "action": "STOP — do not coat until foundation dries to MC < 4%",
+      "description": "Foundation MC > 4% at coating surface will cause coating failure.",
+      "notes": "Stricter than masonry wall (12%). Foundation has continuous ground contact."
+    },
+    {
+      "condition": "ACTIVE_RECURRING_EFFLORESCENCE",
+      "action": "STOP — resolve moisture source before painting",
+      "description": "Active efflorescence indicates ongoing moisture migration. Coating will fail.",
+      "notes": "Dormant efflorescence can be treated and painted."
+    },
+    {
+      "condition": "STRUCTURAL_CRACKS",
+      "action": "STOP — refer to structural engineer",
+      "description": "Cracks > 1/4 inch with displacement indicate structural movement.",
+      "notes": "Cosmetic hairline cracks (< 1/8 inch) are patchable."
+    }
+  ],
+
+  "cross_spec_coordination": {
+    "boundaries": [
+      { "boundary": "Siding painting above foundation", "owner": "Siding spec", "notes": "Siding protection above foundation is siding spec responsibility." },
+      { "boundary": "Below-grade waterproofing", "owner": "Specialty trade", "notes": "Not painting scope." }
+    ],
+    "xspec_flags_consumed": [],
+    "xspec_flags_set": [],
+    "comp_modifiers_set": [],
+    "comp_modifiers_affected_by": [],
+    "notes": "Foundation is an isolated low-interaction spec. No cross-spec flags needed."
+  },
+
+  "sequencing_notes": {
+    "production_sequence": "Setup -> Assess (4-point) -> Prep (efflorescence -> wash -> 24 hr dry -> scrape/feather -> patch -> dust cleanup) -> Prime (state-driven) -> Finish (1-2 coats by QT) -> Final Inspect -> Touch-up -> Teardown -> Tool clean -> Site debris -> Customer walkthrough",
+    "edge_work": "No edge work in this spec. Grade-line gap provides natural siding termination. Soil line provides rough bottom edge.",
+    "key_prohibitions": "NO caulking the grade-line gap. NO oil-based/alkyd products. NO coating at MC >4%. NO QT4/QT5. NO block filler in RP."
+  },
+
+  "relationships": {
+    "companion_spec": null,
+    "sibling_specs": ["SF_FOUNDATION_EXT_NC_v1"],
+    "often_combined_with": [],
+    "notes": "Simplest exterior RP spec. NC sibling: SF_FOUNDATION_EXT_NC_v1. Key RP departures from NC: 4 substrate states (vs 1 NC state), condition scale modifier, state-driven primers, scraping/feathering, no block filler, no form-release removal, RP assessment module, customer walkthrough."
+  },
+
+  "dependencies": {
+    "research": "research.json",
+    "resolution": "resolution.json",
+    "materials": "materials.json",
+    "sop_modules": "sop_modules.json",
+    "production": "production.json",
+    "qa_report": "qa_report.json"
+  },
+
+  "artifact_counts": {
+    "total_tasks": 28,
+    "binary_tasks": 26,
+    "qt_scaled_tasks": 2,
+    "qt_conditional_tasks": 0,
+    "sop_modules": 6,
+    "material_systems": 5,
+    "coverage_profiles": 5,
+    "consumables": 14,
+    "round_configurations": 4,
+    "protection_zones": 3,
+    "adjacent_surfaces": 3,
+    "paintscope_inputs": 7,
+    "variants": 9,
+    "paintable_items": 1,
+    "configuration_dimensions": 6,
+    "factor_modifiers": 2,
+    "compatibility_rules": 6,
+    "hard_stops": 3,
+    "registry_additions_proposed": 1
+  },
+
+  "doctrine_references": [
+    { "doctrine": "Exterior_Foundation_Coatings_Doctrine.md", "sections_used": ["Scope (above-grade vs below-grade)", "Foundation types (poured/CMU)", "MC limits (4% hard stop)", "Grade-line transition (NEVER caulk)", "Material categories (acrylic/cementitious)", "Failure modes"] },
+    { "doctrine": "Exterior_Masonry_Brick_Block_CMU_Doctrine.md", "sections_used": ["Efflorescence treatment", "Alkali-resistant primer for bare masonry"] },
+    { "doctrine": "Exterior_Primer_Systems_Doctrine.md", "sections_used": ["Chalk-binding primer", "Alkali-resistant primer", "Acrylic stain-block primer", "Oil-based prohibition"] },
+    { "doctrine": "Exterior_Weathering_Surface_Assessment_Doctrine.md", "sections_used": ["Condition assessment", "ASTM D3359 adhesion test", "Chalk test", "Substrate state assignment"] },
+    { "doctrine": "Exterior_Application_Methods_Doctrine.md", "sections_used": ["brush_roll for small areas", "spray_backroll for larger runs", "CMU backroll requirement"] },
+    { "doctrine": "Exterior_Protection_Doctrine_T3.md", "sections_used": ["Landscape zones", "Hardscape zones", "Method-based protection escalation"] },
+    { "doctrine": "Exterior_Access_Staging_Systems_Doctrine.md", "sections_used": ["Ground-level access — no height modifier"] },
+    { "doctrine": "Quality_Tiers_and_Surface_Condition.md", "sections_used": ["QT2-QT3 definitions", "Condition scale GOOD/FAIR/POOR"] }
+  ],
+
+  "research_corrections": [
+    { "correction_id": "RC-001", "original_claim": "Environmental conditions should be estimation modifiers", "corrected_to": "Environmental conditions are NOT estimatable — excluded from spec", "source": "PaintFactor OS RC-003" },
+    { "correction_id": "RC-002", "original_claim": "Foundation RP needs RRP module", "corrected_to": "RRP excluded — foundation coating is modern practice", "source": "Research KD-002" }
+  ],
+
+  "change_log": [
+    {
+      "version": "1.0.0",
+      "date": "2026-03-15",
+      "author": "SpecFactory Assembly Agent",
+      "changes": "Initial spec.json assembly from 6 pipeline artifacts. QA Critic: PASS with 1 minor issue (condition scale modifiers need field calibration). 28 tasks across 6 modules, 5 material systems (2 RP-specific primers + 3 NC reuse), 5 coverage profiles, 14 consumables, 6 compatibility rules (3 critical + 2 major + 1 critical RP-specific), 2 factor modifiers (foundation_type + condition), max stack 1.84x (well under 4.0x cap), 4 round configurations, 3 protection zones, 3 adjacent surfaces, 7 PaintScope inputs, 9 variants, 1 paintable item (ITM_FOUNDATION_WALL SF-based reuse), 6 configuration dimensions, 3 hard stops. Simplest exterior RP spec. Context prefix FNRP. Combined assessment + prep + prime + finish. No RRP (modern practice). No block filler (NC-only). No access modifier (ground-level). Grade-line gap assessment is RP-specific. NC sibling: SF_FOUNDATION_EXT_NC_v1."
+    }
+  ]
+}

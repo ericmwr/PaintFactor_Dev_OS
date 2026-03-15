@@ -1,0 +1,316 @@
+{
+  "research_metadata": {
+    "spec_family_id": "SF_FENCE_EXT_RP",
+    "spec_family_version": "v1",
+    "domain": "exterior",
+    "scope_type": "repaint",
+    "research_mode": "doctrine_driven",
+    "doctrine_loaded": [
+      "docs/System/PaintFactor_OS.md",
+      "docs/System/Conventions.md",
+      "docs/Doctrine/Exterior_Fences_Doctrine.md",
+      "docs/Doctrine/Exterior_Surface_Assessment_Doctrine.md",
+      "docs/Doctrine/Exterior_Application_Methods_Doctrine.md",
+      "docs/Doctrine/Exterior_Protection_Doctrine_T3.md",
+      "docs/Doctrine/Exterior_Climate_Environmental_Conditions_Doctrine.md",
+      "docs/Doctrine/Exterior_Access_Staging_Systems_Doctrine.md",
+      "docs/Doctrine/Exterior_Weathering_Surface_Assessment_Doctrine.md",
+      "docs/Reference/Protection_Zones_Reference.md",
+      "docs/Reference/Surface_Vocabulary_Reference.md",
+      "docs/Reference/Site_Condition_Vocabulary_Reference.md",
+      "docs/Reference/Substrate_State_Reference.md",
+      "docs/PaintScope/PaintScope_Exterior_Key_Catalog.md",
+      "docs/PaintScope/Spec_Input_to_PaintScope_Key_Mapping.md"
+    ],
+    "sibling_specs_reviewed": [
+      "specs/SF_FENCE_EXT_v1/spec.json",
+      "specs/SF_FENCE_EXT_v1/production.json",
+      "specs/SF_FENCE_EXT_v1/research.json",
+      "specs/SF_TRIM_EXT_RP_v1/spec.json",
+      "specs/SF_SIDING_ENGINEERED_EXT_RP_v1/spec.json"
+    ],
+    "researcher": "Spec Researcher Agent",
+    "date": "2026-03-15",
+    "status": "draft",
+    "review_required": true
+  },
+
+  "relevant_findings": [
+    {
+      "finding_id": "RF-001",
+      "topic": "Fence RP is condition-assessment-driven, not coating-type-driven",
+      "detail": "NC spec uses coating_type as primary dimension (transparent/semi_transparent/solid_stain/paint). RP spec SHIFTS to substrate_state + condition_scale as primary drivers because the existing coating dictates what can be reapplied. Coating_type remains but is constrained by existing finish — you cannot apply transparent stain over solid stain.",
+      "source": "Exterior_Fences_Doctrine.md — Maintenance Cycles section; SF_TRIM_EXT_RP_v1 pattern",
+      "impact": "Configuration dimensions restructured: substrate_state and condition_scale become primary; coating_type is secondary (constrained by existing finish)."
+    },
+    {
+      "finding_id": "RF-002",
+      "topic": "4 RP substrate states for fences — stain states differ from paint states",
+      "detail": "Fence RP uses stain-aware substrate states: SS_EXT_STAINED_SEMI (penetrating stain in serviceable condition), SS_EXT_STAINED_SOLID (solid stain/paint in serviceable condition), SS_EXT_WEATHERED (UV-degraded, any previous coating largely eroded), SS_EXT_PEELING (film-forming coating with active lifting/failure). SS_EXT_SOUND_PAINT is NOT used for fences — sound paint on fence is SS_EXT_STAINED_SOLID. SS_EXT_CHALKING is rare on fences (stains don't chalk; paint on fence usually peels before chalking).",
+      "source": "Exterior_Fences_Doctrine.md — Substrate States; Substrate_State_Reference.md",
+      "impact": "4 input states: SS_EXT_STAINED_SEMI, SS_EXT_STAINED_SOLID, SS_EXT_WEATHERED, SS_EXT_PEELING"
+    },
+    {
+      "finding_id": "RF-003",
+      "topic": "Condition scale drives prep intensity — GOOD/FAIR/POOR",
+      "detail": "Following RP pattern from SF_SIDING_ENGINEERED_EXT_RP_v1: GOOD = existing coating serviceable, minimal prep (clean + recoat). FAIR = moderate weathering/wear, standard prep (wash + light sand/scuff + recoat). POOR = significant failure, heavy prep (wash + strip/sand + prime + recoat). Condition scale maps to FAC_FERP_CONDITION modifier on prep tasks.",
+      "source": "SF_SIDING_ENGINEERED_EXT_RP_v1/spec.json — condition_scale pattern",
+      "impact": "3-level condition scale with 1.0x / 1.5x / 2.0x prep modifier"
+    },
+    {
+      "finding_id": "RF-004",
+      "topic": "Two-sided painting carries over from NC — doubles labor and material",
+      "detail": "Privacy fences must be painted on BOTH sides. This is identical to NC spec — PaintScope delivers final SF after (LF x Height x 2) and fence_style multiplier. RP does NOT change the two-sided requirement. Both-sides workflow: Side A → equipment move → Side B.",
+      "source": "SF_FENCE_EXT_v1/spec.json — both_sides_workflow",
+      "impact": "Single paintable item (ITM_FENCE_FIELD, SF) with both-sides SF pre-computed by PaintScope"
+    },
+    {
+      "finding_id": "RF-005",
+      "topic": "Recoat compatibility matrix — critical RP constraint",
+      "detail": "Penetrating stains (transparent/semi-transparent) can only be recoated with penetrating stains. Solid stain can be recoated with solid stain or paint. Paint can be recoated with paint only. You CANNOT apply penetrating stain over solid stain or paint — the film prevents penetration. This is the most critical compatibility constraint for fence RP.",
+      "source": "Exterior_Fences_Doctrine.md — Recoat Compatibility",
+      "impact": "Compatibility rules must enforce recoat matrix. coating_type selection constrained by substrate_state."
+    },
+    {
+      "finding_id": "RF-006",
+      "topic": "Chemical restoration for weathered fences — same as NC but more common in RP",
+      "detail": "Weathered wood fences (SS_EXT_WEATHERED) require 3-step chemical restoration: alkaline strip → acid brighten → rinse. 12-24 hr dry time before staining. Separate mobilization day. More common in RP than NC because fences age faster than other exterior surfaces.",
+      "source": "SF_FENCE_EXT_v1/spec.json — MOD_FNCE_CHEMICAL_RESTORE; Exterior_Weathering_Surface_Assessment_Doctrine.md",
+      "impact": "Chemical restoration module carried over from NC with same tasks and rates"
+    },
+    {
+      "finding_id": "RF-007",
+      "topic": "Peeling paint on fence requires full prep cycle",
+      "detail": "SS_EXT_PEELING on fence means film-forming coating (solid stain or paint) is actively lifting. Requires: power wash → scrape loose paint → feather-edge sand → spot or full prime → recoat. This is the most labor-intensive RP scenario. Cedar fences may also need tannin-blocking primer where bare wood is exposed.",
+      "source": "Exterior_Weathering_Surface_Assessment_Doctrine.md — DSD assessment; SF_TRIM_EXT_RP_v1 pattern",
+      "impact": "Peeling variant has highest prep modifier (2.0x) and mandatory primer"
+    },
+    {
+      "finding_id": "RF-008",
+      "topic": "QT2-QT3 only — fences are utilitarian",
+      "detail": "Fence is the most utilitarian exterior surface. QT2 = economy single coat (acceptable for transparent/semi-transparent recoat). QT3 = standard two-coat (solid stain or paint recoat). QT4/QT5 excluded — no interstage sanding or gallery-grade finish on a fence.",
+      "source": "User specification; Exterior_Fences_Doctrine.md",
+      "impact": "quality_tier limited to QT2, QT3"
+    },
+    {
+      "finding_id": "RF-009",
+      "topic": "Application methods — spray_backbrush primary, brush secondary",
+      "detail": "Same as NC: spray_backbrush is production method for privacy/shadowbox fences (2-person crew). Back-brushing MANDATORY for penetrating stains — spray-only PROHIBITED. Brush for detail, small jobs, split rail. Roll excluded for RP (not practical for weathered/previously coated surfaces).",
+      "source": "SF_FENCE_EXT_v1/spec.json — application_method; Exterior_Application_Methods_Doctrine.md",
+      "impact": "2 application methods: spray_backbrush, brush. Roll dropped for RP."
+    },
+    {
+      "finding_id": "RF-010",
+      "topic": "Sheens — flat, satin for solid stain/paint recoat; n/a for penetrating stains",
+      "detail": "Penetrating stains (transparent, semi-transparent) have no meaningful sheen — sheen is n/a. Solid stain and paint support flat and satin. Semi-gloss excluded for fence (utilitarian surface).",
+      "source": "SF_FENCE_EXT_v1/spec.json — material_systems_summary; User specification",
+      "impact": "Sheen dimension: flat, satin (film-forming only), n/a (penetrating)"
+    },
+    {
+      "finding_id": "RF-011",
+      "topic": "No height modifier — all fence work is ground-level",
+      "detail": "Carried over from NC spec. All fence work is performed at ground level. No FAC_EXT_ACCESS modifier. No ladder, scaffold, or lift required. Fence_style geometric multiplier handled by PaintScope.",
+      "source": "SF_FENCE_EXT_v1/spec.json — production_summary.no_height_modifier",
+      "impact": "No height modifier in factor_modifiers"
+    },
+    {
+      "finding_id": "RF-012",
+      "topic": "Protection zones — same 5 zones as NC",
+      "detail": "Same protection zones as NC spec: landscape_fence_base, hardscape_fence_adjacent, siding_at_fence_tie, vehicle_adjacent, neighbor_property. No additional zones needed for RP — RP does not generate different overspray than NC.",
+      "source": "SF_FENCE_EXT_v1/spec.json — protection_zones_required",
+      "impact": "5 protection zones reused from NC"
+    },
+    {
+      "finding_id": "RF-013",
+      "topic": "RP prep tasks — power wash, scrape, sand, assess existing coating",
+      "detail": "RP adds condition assessment (identify existing coating type, test adhesion, check for rot at post bases) and condition-driven prep (scraping, feather-edge sanding for peeling; light scuff for sound coatings). Power wash is OK for fences (1000-1500 PSI). Cedar-specific tannin management when bare wood exposed under peeling coating.",
+      "source": "Exterior_Weathering_Surface_Assessment_Doctrine.md; SF_TRIM_EXT_RP_v1 pattern",
+      "impact": "Assessment module (RP-NEW) + condition-driven prep module replace NC's simpler prep"
+    },
+    {
+      "finding_id": "RF-014",
+      "topic": "Post base rot assessment — RP-specific gate",
+      "detail": "Fence posts set in ground have moisture exposure at grade line. RP must assess post bases for rot/decay before painting. Rot is a HARD STOP for painting scope — refer to fence contractor for post replacement. This is an RP-only concern (NC = new wood, no rot).",
+      "source": "Exterior_Fences_Doctrine.md — Post Assessment; User specification",
+      "impact": "Post rot assessment task in assessment module. Rot = hard stop (same pattern as DSD-4 in trim RP)."
+    },
+    {
+      "finding_id": "RF-015",
+      "topic": "RRP is rare for fences — conditional but included",
+      "detail": "Lead paint on fences is uncommon (fences are usually newer, and fence paint is rarely tested for lead). However, pre-1978 properties may have lead-painted fences. RRP inclusion is conditional on pre_1978 flag, same as other RP specs. RRP modifier is 2.0x on prep tasks per EPA requirements.",
+      "source": "User specification; EPA RRP Rule 40 CFR 745",
+      "impact": "RRP module conditional, same 2.0x modifier pattern as SF_TRIM_EXT_RP_v1"
+    },
+    {
+      "finding_id": "RF-016",
+      "topic": "Projected task count: ~35 tasks across 8 modules",
+      "detail": "Estimated breakdown: Setup (5), Assessment (5), Prep (6), Chemical Restore (8, conditional), Prime (2, conditional), Apply (4), Cleanup (5). Total ~35 tasks. Assessment module is RP-NEW. Chemical Restore carried from NC. Apply module simplified vs NC (no coat 2 module — coat count handled by round_configurations).",
+      "source": "Analysis of NC spec + RP patterns from trim and siding RP",
+      "impact": "8 modules, ~35 tasks"
+    },
+    {
+      "finding_id": "RF-017",
+      "topic": "Factor modifiers — 4 modifiers for RP",
+      "detail": "FAC_FERP_CONDITION (GOOD 1.0x, FAIR 1.5x, POOR 2.0x — prep only), FAC_FERP_RRP (no_rrp 1.0x, rrp_required 2.0x — prep only), FAC_FERP_COATING_TYPE (transparent 0.85x, semi_transparent 1.0x, solid_stain 1.15x, paint 1.30x — apply only), FAC_FERP_SUBSTRATE_TYPE (pt_pine 1.0x, cedar 1.10x — prep and apply). No height modifier. No QT modifier (QT2/QT3 only — handled by coat count, not rate multiplier).",
+      "source": "SF_FENCE_EXT_v1/spec.json — production_summary; SF_SIDING_ENGINEERED_EXT_RP_v1 — condition pattern",
+      "impact": "4 factor modifiers with stacking partition (prep pool vs coating pool)"
+    },
+    {
+      "finding_id": "RF-018",
+      "topic": "Round configurations — 4 rounds (same as NC but with condition-driven primer)",
+      "detail": "ROUND_FERP_PENETRATING_1COAT (transparent/semi-transparent — single recoat, no primer), ROUND_FERP_SOLID_RECOAT (solid stain — 1-2 coats per condition, primer if bare wood exposed), ROUND_FERP_PAINT_RECOAT (paint — 1-2 coats per QT, primer mandatory), ROUND_FERP_FULL_STRIP_RECOAT (weathered — chemical restore + fresh coat system).",
+      "source": "SF_FENCE_EXT_v1/spec.json — round_configurations; RP pattern analysis",
+      "impact": "4 round configurations"
+    }
+  ],
+
+  "configuration_dimensions_proposed": [
+    {
+      "dimension": "substrate_state",
+      "values": ["SS_EXT_STAINED_SEMI", "SS_EXT_STAINED_SOLID", "SS_EXT_WEATHERED", "SS_EXT_PEELING"],
+      "default": "SS_EXT_STAINED_SEMI",
+      "role": "PRIMARY — drives prep module selection and recoat compatibility"
+    },
+    {
+      "dimension": "condition_scale",
+      "values": ["GOOD", "FAIR", "POOR"],
+      "default": "GOOD",
+      "role": "SECONDARY — drives prep intensity modifier (FAC_FERP_CONDITION)"
+    },
+    {
+      "dimension": "coating_type",
+      "values": ["transparent", "semi_transparent", "solid_stain", "paint"],
+      "default": "semi_transparent",
+      "role": "TERTIARY — constrained by substrate_state recoat compatibility matrix"
+    },
+    {
+      "dimension": "quality_tier",
+      "values": ["QT2", "QT3"],
+      "default": "QT3",
+      "role": "Coat count driver. QT2=economy single coat, QT3=standard two-coat"
+    },
+    {
+      "dimension": "application_method",
+      "values": ["spray_backbrush", "brush"],
+      "default": "spray_backbrush",
+      "role": "Application technique. spray_backbrush is production standard. brush for detail/small jobs."
+    },
+    {
+      "dimension": "substrate_material",
+      "values": ["cedar", "pressure_treated_pine"],
+      "default": "pressure_treated_pine",
+      "role": "Wood species. Drives tannin management and rate modifier."
+    },
+    {
+      "dimension": "pre_1978",
+      "values": [true, false],
+      "default": false,
+      "role": "RRP gate. Conditional RRP containment module."
+    }
+  ],
+
+  "paintable_items_proposed": [
+    {
+      "item_id": "ITM_FENCE_FIELD",
+      "name": "Fence Field Surface (panels, boards, posts, rails, gates — both sides)",
+      "unit_of_measure": "SF",
+      "status": "existing",
+      "notes": "Reused from NC spec. Same single-item model. PaintScope delivers final SF."
+    }
+  ],
+
+  "material_systems_proposed": [
+    {
+      "system_id": "SYS_EXT_FERP_STAIN_PENETRATING",
+      "product_role": "stain",
+      "description": "Penetrating stain recoat (transparent or semi-transparent). Direct recoat over serviceable penetrating stain.",
+      "applies_when": { "coating_type": ["transparent", "semi_transparent"] }
+    },
+    {
+      "system_id": "SYS_EXT_FERP_STAIN_SOLID",
+      "product_role": "stain",
+      "description": "Solid body stain recoat. Film-forming.",
+      "applies_when": { "coating_type": ["solid_stain"] }
+    },
+    {
+      "system_id": "SYS_EXT_FERP_PAINT",
+      "product_role": "paint",
+      "description": "Exterior latex paint recoat. LEAST RECOMMENDED for wood fences.",
+      "applies_when": { "coating_type": ["paint"] }
+    },
+    {
+      "system_id": "SYS_EXT_FERP_PRIMER_STAIN_BLOCK",
+      "product_role": "primer",
+      "description": "Alkyd stain-blocking primer for bare cedar exposed under peeling coating + all paint recoats.",
+      "applies_when": { "substrate_state": ["SS_EXT_PEELING"], "substrate_material": ["cedar"] }
+    },
+    {
+      "system_id": "SYS_EXT_FERP_PRIMER_EXTERIOR",
+      "product_role": "primer",
+      "description": "Standard exterior acrylic primer for bare wood exposed under peeling coatings on PT pine.",
+      "applies_when": { "substrate_state": ["SS_EXT_PEELING"], "substrate_material": ["pressure_treated_pine"] }
+    },
+    {
+      "system_id": "SYS_EXT_FNCE_CHEMICAL_STRIPPER",
+      "product_role": "prep_chemical",
+      "description": "Alkaline wood cleaner/stripper for weathered fences. Reused from NC.",
+      "status": "existing"
+    },
+    {
+      "system_id": "SYS_EXT_FNCE_BRIGHTENER",
+      "product_role": "prep_chemical",
+      "description": "Oxalic/citric acid wood brightener. Reused from NC.",
+      "status": "existing"
+    }
+  ],
+
+  "protection_zones_proposed": [
+    { "zone_id": "ext_landscape_fence_base", "status": "existing", "notes": "Reused from NC" },
+    { "zone_id": "ext_hardscape_fence_adjacent", "status": "existing", "notes": "Reused from NC" },
+    { "zone_id": "ext_siding_at_fence_tie", "status": "existing", "notes": "Reused from NC" },
+    { "zone_id": "ext_vehicle_adjacent", "status": "existing", "notes": "Reused from NC" },
+    { "zone_id": "ext_neighbor_property", "status": "existing", "notes": "Reused from NC" }
+  ],
+
+  "risk_flags_proposed": [
+    {
+      "risk_id": "RISK-FERP-001",
+      "name": "Recoat incompatibility — penetrating over film-forming",
+      "severity": "critical",
+      "description": "Cannot apply penetrating stain over solid stain or paint. Film prevents absorption."
+    },
+    {
+      "risk_id": "RISK-FERP-002",
+      "name": "Paint on wood fence — moisture-driven peeling (carried from NC)",
+      "severity": "critical",
+      "description": "Paint recoat on fence carries same moisture-driven peeling risk as NC."
+    },
+    {
+      "risk_id": "RISK-FERP-003",
+      "name": "Post base rot — structural damage hard stop",
+      "severity": "critical",
+      "description": "Rotted post bases cannot be painted. Refer to fence contractor."
+    },
+    {
+      "risk_id": "RISK-FERP-004",
+      "name": "Cedar tannin bleed through exposed bare wood",
+      "severity": "major",
+      "description": "Peeling coating exposes bare cedar — tannin-blocking primer required before film-forming recoat."
+    }
+  ],
+
+  "research_corrections": [
+    {
+      "correction_id": "RC-FERP-001",
+      "original_claim": "Metal fences (wrought iron, aluminum) could be included as a fence_material dimension",
+      "corrected_to": "Metal fences are explicitly EXCLUDED — different substrate, primer, and coating chemistry. Routed to future SF_METAL_EXT_v1.",
+      "source": "SF_FENCE_EXT_v1/spec.json — scope_boundaries.excludes"
+    },
+    {
+      "correction_id": "RC-FERP-002",
+      "original_claim": "Roll application method should be included for RP",
+      "corrected_to": "Roll EXCLUDED for RP. Not practical for weathered/previously coated vertical fence surfaces. Only spray_backbrush and brush retained.",
+      "source": "Field practice analysis"
+    }
+  ]
+}

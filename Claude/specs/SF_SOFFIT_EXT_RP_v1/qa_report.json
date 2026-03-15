@@ -1,0 +1,163 @@
+{
+  "spec_family_id": "SF_SOFFIT_EXT_RP",
+  "version": "1.0.0",
+  "generated_by": "QA Critic",
+  "generated_at": "2026-03-15",
+  "overall_result": "pass_with_warnings",
+
+  "summary": {
+    "total_checks": 12,
+    "passed": 10,
+    "warnings": 2,
+    "failures": 0,
+    "total_tasks_sop": 51,
+    "total_tasks_production": 51,
+    "task_threading_match": true,
+    "uom_match": true,
+    "material_systems": 7,
+    "coverage_profiles": 5,
+    "consumables": 20,
+    "round_configurations": 4,
+    "modules": 8,
+    "protection_zones": 8
+  },
+
+  "issues": [
+    {
+      "issue_id": "QA-SFRP-001",
+      "severity": "major",
+      "area": "quality_tier_modifier",
+      "file": "production.json",
+      "description": "QT4 modifier value in production.json quality_tier_effects is 1.20, but resolution.json and research.json both specify QT4=1.30. The MODIFIER_STACKING_WARNING section also uses QT4(1.20) for worst_case_coating calculation (yielding 2.65x), whereas resolution.json computes QT4(1.3) x scaffold(1.60) x vented(1.15) x tg_board(1.20) = 2.87x. The binary task pace modifier is stated as 1.20x instead of 1.30x.",
+      "suggested_fix": "Update production.json quality_tier_effects.QT4.modifier from 1.20 to 1.30, and update MODIFIER_STACKING_WARNING.worst_case_coating from 'QT4(1.20)' to 'QT4(1.30)' with corrected product 2.87x. Update binary task pace modifier from 1.20x to 1.30x. This is a rate-impacting discrepancy that affects all QT4 binary task estimates.",
+      "cross_ref": "resolution.json applicable_enums.quality_tier.notes; research.json quality_tier_modifiers"
+    },
+    {
+      "issue_id": "QA-SFRP-002",
+      "severity": "minor",
+      "area": "protection_zone_registry",
+      "file": "sop_modules.json",
+      "description": "Protection zone 'ext_soffit_vent' is referenced in sop_modules.json protection_metadata (TSK_SFRP_VENT_MASK setup and TSK_SFRP_VENT_UNMASK teardown) but was not pre-resolved in resolution.json zone_ids. Resolution.json lists 7 zones; sop_modules.json protection_metadata defines 8 zones (adding ext_soffit_vent). This is a valid RP_NEW zone addition by the SOP Librarian for vent masking, but it was not flagged in resolution.json registry_additions_proposed.",
+      "suggested_fix": "Add ext_soffit_vent to resolution.json zone_ids and registry_additions_proposed for completeness. No functional impact — the zone is correctly wired in sop_modules.json with proper setup/teardown tasks.",
+      "cross_ref": "resolution.json zone_ids; sop_modules.json protection_metadata.zones[5]"
+    }
+  ],
+
+  "observations": [
+    {
+      "observation_id": "OBS-SFRP-001",
+      "area": "transfer_type_counts",
+      "description": "SOP and production task_count_summary show slightly different transfer type breakdowns. SOP: 24 DIRECT_REKEYED + 8 MODIFIED + 14 RP_NEW + 5 SHARED_RRP. Production: 19 DIRECT_from_NC + 9 MODIFIED_from_NC + 18 RP_NEW + 5 SHARED_RRP. Total is 51 in both files. The discrepancy is classification methodology — some tasks classified as DIRECT in SOP are reclassified as MODIFIED or RP_NEW in production due to rate adjustment. No functional impact — task_id and UOM threading is correct.",
+      "severity": "minor"
+    },
+    {
+      "observation_id": "OBS-SFRP-002",
+      "area": "module_count_vs_resolution",
+      "description": "Resolution.json expected_modules lists 10 modules (including separate MOD_SFRP_WASH and MOD_SFRP_FINAL_INSPECT). SOP Librarian consolidated: wash tasks merged into MOD_SFRP_PREP, final inspect merged into MOD_SFRP_CLEANUP, producing 8 modules (7 owned + 1 shared RRP). This is a valid structural optimization — all tasks are present, just reorganized into fewer modules. No tasks lost.",
+      "severity": "minor"
+    },
+    {
+      "observation_id": "OBS-SFRP-003",
+      "area": "coverage_profile_additions",
+      "description": "Materials Manager added two coverage profiles not in resolution.json proposed list: COV_SFRP_PRIMER_ALKALI_SPOT and COV_SFRP_PRIMER_BONDING_SPOT. Resolution proposed COV_SFRP_PRIMER_CHALK_BIND, COV_SFRP_PRIMER_ACRYLIC_RP, and COV_SFRP_FINISH (3 profiles). Materials.json delivers 5 profiles total. The additions correctly cover spot-priming scenarios for alkali-resistant and bonding primers on exposed substrate areas. Valid enrichment.",
+      "severity": "minor"
+    },
+    {
+      "observation_id": "OBS-SFRP-004",
+      "area": "modifier_stacking_theoretical_max",
+      "description": "Prep pool worst-case theoretical stacking is 8.83x (POOR 2.0 x RRP 2.0 x scaffold 1.60 x vented 1.15 x tg_board 1.20), which exceeds the 4.0x cap. Both resolution.json and production.json flag this as an extreme unrealistic scenario and recommend T&M for this edge case. Realistic worst case is 2.33x (within cap). This is correctly documented and acknowledged.",
+      "severity": "minor"
+    }
+  ],
+
+  "validation_checks": [
+    {
+      "check_id": "CHK-01",
+      "name": "Task threading — SOP to production",
+      "result": "PASS",
+      "details": "All 51 task_ids in sop_modules.json have matching entries in production.json task_production_rates. No orphans in either direction. Verified: 7 setup + 6 assessment + 10 prep + 4 prime + 4 interstage + 8 finish + 7 cleanup + 5 RRP = 51."
+    },
+    {
+      "check_id": "CHK-02",
+      "name": "UOM consistency — SOP to production",
+      "result": "PASS",
+      "details": "All 51 tasks have matching unit_of_measure between sop_modules.json and production.json. Breakdown: SF=35, FIXED=12, EA=1, LF=3. No mismatches."
+    },
+    {
+      "check_id": "CHK-03",
+      "name": "Task count match",
+      "result": "PASS",
+      "details": "SOP task_count_summary.total = 51. Production task_count_summary.total = 51. Classification breakdown matches: binary=39, qt_scaled=10, qt_conditional=2."
+    },
+    {
+      "check_id": "CHK-04",
+      "name": "Material system coverage",
+      "result": "PASS",
+      "details": "7 material systems defined in materials.json: SYS_EXT_SFRP_PRIMER_ACRYLIC_RP, SYS_EXT_SFRP_PRIMER_CHALK_BIND, SYS_EXT_SFIT_PRIMER_ALKALI, SYS_EXT_SFIT_PRIMER_BONDING, SYS_EXT_SFIT_FINISH_STANDARD, SYS_EXT_SFIT_FINISH_PREMIUM, SYS_EXT_SFIT_FINISH_SOLAR. All referenced systems in SOP module descriptions (prime and finish tasks) have corresponding definitions. Resolution proposed 6 reused + 2 new = 8 systems; Materials Manager delivered 7 (consolidated solar-reflective as conditional specialty, dropped tannin spot-prime per resolution guidance)."
+    },
+    {
+      "check_id": "CHK-05",
+      "name": "Coverage profile completeness",
+      "result": "PASS",
+      "details": "5 coverage profiles defined: COV_SFRP_PRIMER_ACRYLIC_RP, COV_SFRP_PRIMER_CHALK_BIND, COV_SFRP_PRIMER_ALKALI_SPOT, COV_SFRP_PRIMER_BONDING_SPOT, COV_SFRP_FINISH. All primer and finish material systems have coverage data. Each profile correctly links to its material_system."
+    },
+    {
+      "check_id": "CHK-06",
+      "name": "Consumable completeness",
+      "result": "PASS",
+      "details": "20 consumables defined in materials.json. All use CON_ prefix (no CONS_). Categories: tool(4), prep(3), abrasive(3), protection(5), applicator(3), fill_material(1), cleanup(0 — cleanup handled by reusable tools). All consumables referenced in SOP tasks have matching entries. RP-specific additions: CON_SFRP_VENT_MASK_TAPE, CON_SFRP_WIRE_BRUSH, CON_SFIT_EXTENSION_POLE."
+    },
+    {
+      "check_id": "CHK-07",
+      "name": "Enum compliance",
+      "result": "PASS",
+      "details": "All enum values verified against resolution.json applicable_enums. Phases: setup, prep, prime, interstage, finish, cleanup (no 'protect' or 'protection'). task_classification used throughout (no 'task_class'). severity: critical/major (no high/medium/low/WARN). UOM all uppercase (SF, LF, EA, FIXED, ROLL, SHEET, TUBE, QT, GAL). Sheens: flat, satin only. QT: QT2, QT3, QT4 only (no QT5). Substrate states: 4 SS_EXT_* values."
+    },
+    {
+      "check_id": "CHK-08",
+      "name": "Prohibited values",
+      "result": "PASS",
+      "details": "No 'task_class' found (uses 'task_classification'). No 'rate_per_hour' in SOP tasks (only in production.json). No 'CONS_' prefix (all use 'CON_'). No 'protect' or 'protection' phase values. No 'high'/'medium'/'low'/'WARN' severity. No 'each'/'sheet'/'tip' lowercase units."
+    },
+    {
+      "check_id": "CHK-09",
+      "name": "Module phase ordering",
+      "result": "PASS",
+      "details": "Module production order: MOD_SFRP_SETUP (setup) -> MOD_RRP_EXT_CONTAINMENT (prep) -> MOD_SFRP_ASSESSMENT (prep) -> MOD_SFRP_PREP (prep) -> MOD_SFRP_PRIME (prime) -> MOD_SFRP_INTERSTAGE (interstage) -> MOD_SFRP_FINISH (finish) -> MOD_SFRP_CLEANUP (cleanup). Follows setup -> prep -> prime -> interstage -> finish -> cleanup sequence. RRP containment correctly placed after general setup but before assessment."
+    },
+    {
+      "check_id": "CHK-10",
+      "name": "Modifier stacking partition",
+      "result": "PASS",
+      "details": "Prep pool modifiers: FAC_CONDITION_SCALE, FAC_SFRP_RRP, FAC_EXT_ACCESS, FAC_SFIT_VENT_COMPLEXITY, FAC_SFIT_TG_JOINTS. Never includes quality_tier. Coating pool modifiers: quality_tier, FAC_EXT_ACCESS, FAC_SFIT_VENT_COMPLEXITY, FAC_SFIT_TG_JOINTS. Never includes FAC_CONDITION_SCALE or FAC_SFRP_RRP. No cross-contamination verified in all 51 task applicable_modifiers lists."
+    },
+    {
+      "check_id": "CHK-11",
+      "name": "Round configurations",
+      "result": "PASS",
+      "details": "4 rounds in sop_modules.json and production.json match resolution.json exactly: ROUND_SFRP_2FINISH (GOOD QT3/QT4), ROUND_SFRP_1FINISH (GOOD QT2), ROUND_SFRP_PRIME_2FINISH (FAIR/POOR QT3/QT4), ROUND_SFRP_PRIME_1FINISH (FAIR/POOR QT2). Phase sequences, total_coats, and interstage_cycles all match."
+    },
+    {
+      "check_id": "CHK-12",
+      "name": "Registry additions flagged",
+      "result": "PASS",
+      "details": "Resolution.json registry_additions_proposed lists 17 additions across SF_, TSK_, MOD_, PS_, IN_, SYS_, ROUND_, COV_, FAC_, CON_ sections. All proposed IDs are used in downstream artifacts. Materials Manager added 2 coverage profiles (COV_SFRP_PRIMER_ALKALI_SPOT, COV_SFRP_PRIMER_BONDING_SPOT) not in resolution — flagged in OBS-SFRP-003."
+    }
+  ],
+
+  "cross_file_threading_audit": {
+    "rule_1_tsk_sop_to_production": "PASS — 51/51 tasks threaded",
+    "rule_2_itm_in_variants": "PASS — ITM_SOFFIT_FIELD appears in all variants (spec.json assembly)",
+    "rule_3_sys_quality_tier_match": "PASS — all SYS_ quality_tiers within QT2/QT3/QT4 range",
+    "rule_4_inputs_consumed": "PASS — all 11 PS_ keys consumed by SOP modules",
+    "rule_5_ps_keys_match": "PASS — all PS_ keys in production match resolution",
+    "rule_6_zone_coverage": "PASS_WITH_NOTE — 7/7 resolution zones covered. 1 additional zone (ext_soffit_vent) added by SOP. See QA-SFRP-002.",
+    "rule_7_phase_order": "PASS — setup -> prep -> prime -> interstage -> finish -> cleanup",
+    "rule_8_uom_match": "PASS — 51/51 tasks UOM match between SOP and production",
+    "rule_9_rp_new_prefix": "PASS — all RP-NEW tasks use TSK_SFRP_ prefix. Shared RRP tasks use TSK_RRP_EXT_ prefix.",
+    "rule_10_itm_soffit_field": "PASS — ITM_SOFFIT_FIELD used exactly as listed in resolution",
+    "rule_11_enum_compliance": "PASS — all enum values from resolution applicable_enums"
+  },
+
+  "recommendation": "PASS WITH WARNINGS. One major issue (QA-SFRP-001: QT4 modifier 1.20 vs 1.30 discrepancy in production.json) requires correction before final production use. One minor issue (QA-SFRP-002: ext_soffit_vent zone not in resolution registry additions). Assembly may proceed — spec.json should use the resolution-authoritative QT4=1.30 value. Production.json should be corrected in a follow-up edit."
+}
