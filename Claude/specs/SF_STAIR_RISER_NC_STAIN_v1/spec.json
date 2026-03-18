@@ -1,0 +1,436 @@
+{
+  "spec_family": {
+    "id": "SF_STAIR_RISER_NC_STAIN",
+    "name": "New Construction Stair Riser & Tread Stain/Clear Coat",
+    "description": "Covers stain application, sanding sealer, and clear topcoat for stair risers and treads in new construction. Combined spec with coating_type dimension (stain_clear, stain_only, clear_only). Both risers and treads use EA as primary UOM. Anti-slip additive option for clear coat on treads. Material systems are product-role-based recommendations shared across all interior stain specs. Context prefix SRST avoids collision with STRS (paint counterpart SF_STAIR_RISER_NC).",
+    "domain": "interior",
+    "version": "0.1.0",
+    "status": "draft",
+    "review_required": true
+  },
+
+  "scope_boundaries": {
+    "includes": [
+      "Stain application on bare wood stair risers (brush+wipe, roll+wipe, spray+wipe)",
+      "Stain application on bare wood stair treads (brush+wipe, roll+wipe, spray+wipe)",
+      "Second stain coat application (optional, user-selectable)",
+      "Sanding sealer application (0-2 coats, QT-driven defaults)",
+      "Clear topcoat application (1-3 coats, QT-driven defaults)",
+      "Anti-slip additive in clear coat for treads (optional, recommended)",
+      "Bare wood preparation (inspect, sand 120-150 grit, fill defects with wood filler, grain raise for waterborne, tack clean)",
+      "Wood conditioner application (softwood + stain, unless gel stain)",
+      "Tread nosing detail work (sanding and stain application on bullnose edge)",
+      "Interstage sanding between sealer coats (220-320 grit)",
+      "Interstage sanding between clear coats (320-400 grit)",
+      "Stain dry verification before sealer/clear application",
+      "Tread protection during riser work (tape treads during clear cure phases)",
+      "Landing/floor protection at top and bottom of flight",
+      "Wall masking along stringer edge (spray method)",
+      "Final inspection and touch-up"
+    ],
+    "excludes": [
+      {
+        "item": "Stair riser painting (prime + finish coat)",
+        "route_to": "SF_STAIR_RISER_NC"
+      },
+      {
+        "item": "Stringer/skirtboard staining",
+        "route_to": "SF_TRIM_NC_STAIN (stringers are linear trim)"
+      },
+      {
+        "item": "Railing system staining (balusters, newels, handrails)",
+        "route_to": "Future SF_STAIR_RAILING_NC_STAIN"
+      },
+      {
+        "item": "Stairwell walls",
+        "route_to": "SF_DRYWALL_WALL_NC_PRIME / SF_DRYWALL_WALL_NC_FINISH"
+      },
+      {
+        "item": "Interior repaint stain (stripping existing finish)",
+        "route_to": "Future RP stain spec"
+      },
+      {
+        "item": "Exterior stair staining",
+        "route_to": "Future exterior spec"
+      }
+    ]
+  },
+
+  "configuration_dimensions": [
+    {
+      "dimension_id": "coating_type",
+      "description": "Primary configuration dimension — drives layer stack, material systems, and module activation.",
+      "values": ["stain_clear", "stain_only", "clear_only"],
+      "default": "stain_clear",
+      "notes": "stain_clear is the professional standard for stair stain work. clear_only for natural wood look or pre-stained surfaces."
+    },
+    {
+      "dimension_id": "quality_tier",
+      "description": "Quality tier controlling inspection scrutiny, sanding discipline, and coat count defaults.",
+      "values": ["QT3", "QT4", "QT5"],
+      "default": "QT4",
+      "notes": "QT4 default for stairs (high-visibility, high-wear surface). QT3=budget. QT5=premium. Coat counts: QT3=2 total, QT4=4 total, QT5=6 total."
+    },
+    {
+      "dimension_id": "application_method_stain",
+      "description": "Stain application technique. All methods include wipe step.",
+      "values": ["brush", "roll", "spray"],
+      "default": "brush",
+      "visible_when": "coating_type includes stain (stain_clear or stain_only)",
+      "notes": "Brush is default for stair detail work (nosing edges, riser-to-tread junction). Roll works for tread flats. Spray for production. All include wipe."
+    },
+    {
+      "dimension_id": "application_method_clear",
+      "description": "Clear coat application technique. No roll option.",
+      "values": ["brush", "spray"],
+      "default": "brush",
+      "visible_when": "coating_type includes clear (stain_clear or clear_only)",
+      "notes": "Brush is default. Spray for production. Roll PROHIBITED for clear coat. Lacquer requires spray."
+    },
+    {
+      "dimension_id": "clear_sheen",
+      "description": "Clear coat sheen.",
+      "values": ["satin", "semi-gloss", "gloss"],
+      "default": "satin",
+      "visible_when": "coating_type includes clear (stain_clear or clear_only)",
+      "notes": "Satin is most popular for stair treads (hides wear patterns). No sheen/QT gate for stain specs."
+    },
+    {
+      "dimension_id": "stain_coats",
+      "description": "Number of stain coats.",
+      "values": [1, 2],
+      "default": 1,
+      "visible_when": "coating_type includes stain",
+      "notes": "1 coat standard. 2 for deeper color."
+    },
+    {
+      "dimension_id": "sealer_coats",
+      "description": "Number of sanding sealer coats.",
+      "values": [0, 1, 2],
+      "default_by_qt": { "QT3": 0, "QT4": 1, "QT5": 2 },
+      "visible_when": "coating_type includes clear",
+      "notes": "QT3 skips sealer. QT4 uses 1 coat. QT5 uses 2 coats."
+    },
+    {
+      "dimension_id": "clear_coats",
+      "description": "Number of clear topcoats.",
+      "values": [1, 2, 3],
+      "default_by_qt": { "QT3": 1, "QT4": 2, "QT5": 3 },
+      "visible_when": "coating_type includes clear",
+      "notes": "Treads benefit from extra clear coats (high-wear surface). QT4 default of 2 coats is minimum recommended for treads."
+    },
+    {
+      "dimension_id": "anti_slip_additive",
+      "description": "Anti-slip additive mixed into final clear coat for tread safety.",
+      "values": [true, false],
+      "default": true,
+      "visible_when": "coating_type includes clear",
+      "notes": "Recommended for treads. Polymer grit additive mixed into final clear coat. Does not affect sheen significantly but adds micro-texture for grip."
+    },
+    {
+      "dimension_id": "wood_species_group",
+      "description": "Wood species grouping. Drives wood conditioner activation for softwood.",
+      "values": ["softwood", "hardwood"],
+      "default": "hardwood",
+      "notes": "Hardwood is most common for stair treads (oak, maple, hickory). Softwood (pine) may be used for risers or budget treads."
+    }
+  ],
+
+  "paintable_items": [
+    {
+      "item_id": "ITM_STAIR_RISER",
+      "name": "Stair riser face",
+      "unit_of_measure": "EA",
+      "counting_rules": "Count each individual riser as one EA. Riser count from PaintScope Stairwell Geometry System. Standard flight = 12-16 risers.",
+      "notes": "Vertical surface between treads. Small surface area (~2.2 SF per riser). Quick stain/clear application per unit."
+    },
+    {
+      "item_id": "ITM_STAIR_TREAD",
+      "name": "Stair tread (including nosing)",
+      "unit_of_measure": "EA",
+      "counting_rules": "Count each individual tread as one EA. Tread count = risers - 1 (top landing may not have a tread). Includes nosing edge.",
+      "notes": "Horizontal walking surface. Larger than riser (~3.5 SF per tread). Nosing edge requires detail work. High-wear surface — extra clear coats and anti-slip additive recommended."
+    }
+  ],
+
+  "variants": [
+    {
+      "variant_id": "VAR_SRST_QT3_STAIN_CLEAR_BRUSH",
+      "applies_when": {
+        "coating_type": ["stain_clear"],
+        "quality_tier": ["QT3"],
+        "application_method_stain": ["brush"],
+        "application_method_clear": ["brush"]
+      },
+      "coats": { "stain": 1, "sealer": 0, "clear": 1 },
+      "notes": "Budget stain+clear. 2 total coats."
+    },
+    {
+      "variant_id": "VAR_SRST_QT4_STAIN_CLEAR_BRUSH",
+      "applies_when": {
+        "coating_type": ["stain_clear"],
+        "quality_tier": ["QT4"],
+        "application_method_stain": ["brush"],
+        "application_method_clear": ["brush"]
+      },
+      "coats": { "stain": 1, "sealer": 1, "clear": 2 },
+      "notes": "Standard stain+clear. 4 total coats. Professional residential standard for stairs."
+    },
+    {
+      "variant_id": "VAR_SRST_QT5_STAIN_CLEAR_BRUSH",
+      "applies_when": {
+        "coating_type": ["stain_clear"],
+        "quality_tier": ["QT5"],
+        "application_method_stain": ["brush"],
+        "application_method_clear": ["brush"]
+      },
+      "coats": { "stain": 1, "sealer": 2, "clear": 3 },
+      "notes": "Premium stain+clear. 6 total coats. Maximum durability for high-traffic stairs."
+    },
+    {
+      "variant_id": "VAR_SRST_QT4_STAIN_CLEAR_BRUSH_SPRAY",
+      "applies_when": {
+        "coating_type": ["stain_clear"],
+        "quality_tier": ["QT4"],
+        "application_method_stain": ["brush"],
+        "application_method_clear": ["spray"]
+      },
+      "coats": { "stain": 1, "sealer": 1, "clear": 2 },
+      "protection_zones": ["tread_protection", "landing_floor", "wall_adjacent"],
+      "notes": "Production variant. Brush stain + spray clear."
+    },
+    {
+      "variant_id": "VAR_SRST_QT3_STAIN_ONLY_BRUSH",
+      "applies_when": {
+        "coating_type": ["stain_only"],
+        "quality_tier": ["QT3"],
+        "application_method_stain": ["brush"]
+      },
+      "coats": { "stain": 1 },
+      "notes": "Stain-only, no clear. Rare for treads (unprotected = fast wear)."
+    },
+    {
+      "variant_id": "VAR_SRST_QT4_CLEAR_ONLY_BRUSH",
+      "applies_when": {
+        "coating_type": ["clear_only"],
+        "quality_tier": ["QT4"],
+        "application_method_clear": ["brush"]
+      },
+      "coats": { "sealer": 1, "clear": 2 },
+      "notes": "Clear-only on natural or pre-stained wood. Common for hardwood treads showing natural grain."
+    },
+    {
+      "variant_id": "VAR_SRST_QT5_STAIN_CLEAR_SPRAY_SPRAY",
+      "applies_when": {
+        "coating_type": ["stain_clear"],
+        "quality_tier": ["QT5"],
+        "application_method_stain": ["spray"],
+        "application_method_clear": ["spray"]
+      },
+      "coats": { "stain": 1, "sealer": 2, "clear": 3 },
+      "protection_zones": ["tread_protection", "landing_floor", "wall_adjacent"],
+      "notes": "Premium all-spray. Full protection required."
+    },
+    {
+      "variant_id": "VAR_SRST_QT5_CLEAR_ONLY_SPRAY",
+      "applies_when": {
+        "coating_type": ["clear_only"],
+        "quality_tier": ["QT5"],
+        "application_method_clear": ["spray"]
+      },
+      "coats": { "sealer": 2, "clear": 3 },
+      "protection_zones": ["tread_protection", "landing_floor", "wall_adjacent"],
+      "notes": "Premium clear-only spray. Lacquer-compatible."
+    }
+  ],
+
+  "required_paintscope_inputs": [
+    {
+      "input_name": "IN_EA_STAIR_RISER",
+      "paintscope_key": "PS_SURFACE_EA.STAIR_RISER",
+      "uom": "EA",
+      "required": true,
+      "description": "Count of individual stair risers to stain/clear coat"
+    },
+    {
+      "input_name": "IN_EA_STAIR_TREAD",
+      "paintscope_key": "PS_SURFACE_EA.STAIR_TREAD",
+      "uom": "EA",
+      "required": true,
+      "description": "Count of individual stair treads to stain/clear coat (typically risers - 1)"
+    },
+    {
+      "input_name": "IN_SF_PROTECT_FLOOR_PERIMETER",
+      "paintscope_key": "PS_PROTECT_SF.FLOOR_PERIMETER",
+      "uom": "SF",
+      "required": false,
+      "required_when": "floor_type = finished or partial",
+      "description": "Landing floor protection area"
+    },
+    {
+      "input_name": "IN_LF_WALL_ADJACENT",
+      "paintscope_key": "PS_PROTECT_LF.WALL_ADJACENT",
+      "uom": "LF",
+      "required": false,
+      "required_when": "application_method_stain = spray OR application_method_clear = spray",
+      "description": "Wall masking LF along stair for spray method"
+    }
+  ],
+
+  "protection_zones_required": [
+    {
+      "zone_id": "tread_protection",
+      "condition": "During riser work and between clear coats on treads",
+      "protection_level": "light_mask",
+      "notes": "Tape tread nosing edge during riser stain/clear to prevent drips. Between tread clear coats, protect cured coats from foot traffic with paper or light cover. NOT Ram Board — that is for the paint counterpart's heavy-duty protection."
+    },
+    {
+      "zone_id": "landing_floor",
+      "condition": { "floor_type": ["finished", "partial"] },
+      "protection_level": "edge_only",
+      "notes": "Canvas drop cloths at landing areas. Stain drips are hard to clean."
+    },
+    {
+      "zone_id": "wall_adjacent",
+      "condition": { "application_method_stain": ["spray"], "application_method_clear": ["spray"] },
+      "protection_level": "light_mask",
+      "notes": "Wall masking along stair run for spray method. Also when walls SS_PAINTED_*."
+    }
+  ],
+
+  "adjacency_declarations": {
+    "primary_surface": "stair_riser",
+    "additional_primary_surfaces": ["stair_tread"],
+    "adjacent_surfaces": [
+      {
+        "surface_id": "stair_stringer",
+        "edge_type": "linear",
+        "typical_relationship": "same_finish",
+        "continuity_rate_modifier": 1.0,
+        "affected_tasks": [],
+        "notes": "Stringer may be stained with same stain/clear. Routed to SF_TRIM_NC_STAIN."
+      },
+      {
+        "surface_id": "wall_field",
+        "edge_type": "linear",
+        "typical_relationship": "different_finish",
+        "continuity_rate_modifier": 1.0,
+        "affected_tasks": [],
+        "notes": "Stairwell walls. Protection only."
+      }
+    ]
+  },
+
+  "state_declarations": {
+    "primary_surface": "stair_riser",
+    "additional_primary_surfaces": ["stair_tread"],
+
+    "valid_input_states": {
+      "states_by_coating_type": {
+        "stain_clear": ["SS_BARE"],
+        "stain_only": ["SS_BARE"],
+        "clear_only": ["SS_BARE", "SS_STAINED"]
+      },
+      "notes": "Bare wood is primary input. clear_only also accepts SS_STAINED."
+    },
+
+    "output_state": {
+      "varies_by": "coating_type",
+      "state_map": {
+        "stain_clear": "SS_CLEAR_COATED",
+        "stain_only": "SS_STAINED",
+        "clear_only": "SS_CLEAR_COATED"
+      }
+    },
+
+    "adjacent_state_protection_rules": [
+      {
+        "adjacent_surface": "wall_field",
+        "when_state": ["SS_PAINTED_FLAT", "SS_PAINTED_EGGSHELL", "SS_PAINTED_SATIN", "SS_PAINTED_SEMIGLOSS"],
+        "protection_zone": "wall_adjacent",
+        "protection_level": "light_mask",
+        "applies_when": { "application_method_stain": ["spray", "brush", "roll"], "application_method_clear": ["spray", "brush"] },
+        "notes": "Finished walls require masking for all methods."
+      },
+      {
+        "adjacent_surface": "wall_field",
+        "when_state": ["SS_BARE", "SS_PRIMED_FIELD"],
+        "protection_zone": "wall_adjacent",
+        "protection_level": "light_mask",
+        "applies_when": { "application_method_stain": ["spray"], "application_method_clear": ["spray"] },
+        "notes": "Unfinished walls need masking for spray only."
+      }
+    ]
+  },
+
+  "site_condition_rules": [
+    {
+      "condition_id": "floor_type",
+      "vocabulary_ref": "Site_Condition_Vocabulary_Reference.md",
+      "include_when": ["finished", "partial"],
+      "exclude_when": ["subfloor"],
+      "affected_tasks": ["TSK_SRST_FLOOR_PROTECT", "TSK_SRST_REMOVE_MASK"],
+      "effect": "Landing floor protection excluded when floor is subfloor."
+    }
+  ],
+
+  "sequencing_notes": {
+    "production_sequence": "Stair staining is typically one of the LAST interior NC tasks. Treads are the final stair component — stain treads after all other stair and stairwell work is complete to minimize traffic damage.",
+    "coat_sequence": "Setup → Prep (sand, fill, grain raise, condition) → Stain risers → Stain treads → [Stain coat 2] → Stain dry → Sealer → Sealer interstage → Clear coat 1 → [Clear interstage → Clear coat 2] → [Clear coat 3] → Final inspect → Cleanup",
+    "internal_sequence": "Risers before treads in each phase (work from top of flight down). This prevents stepping on freshly stained/coated surfaces.",
+    "protection_sequence": "Tread protection tape during riser work → Landing floor protection → Wall masking (spray) → Apply coats → Teardown",
+    "dry_times": "Stain: 4-8 hrs (oil), 2 hrs (WB). Sealer: 2-4 hrs. Clear: 4-6 hrs (oil poly), 2 hrs (WB poly).",
+    "anti_slip_note": "Anti-slip additive mixed into FINAL clear coat only on treads. Do not add to intermediate clear coats (creates rough surface for next coat adhesion issues).",
+    "companion_spec": null,
+    "notes": "Stain spec is self-contained — no companion prime spec."
+  },
+
+  "relationships": {
+    "companion_spec": null,
+    "paint_counterpart": "SF_STAIR_RISER_NC",
+    "often_combined_with": ["SF_TRIM_NC_STAIN", "SF_STAIR_RAILING_NC_STAIN"],
+    "typical_before": [],
+    "typical_after": ["SF_DRYWALL_WALL_NC_FINISH"],
+    "shares_finish_group_with": ["SF_TRIM_NC_STAIN"],
+    "notes": "Stain counterpart to SF_STAIR_RISER_NC. Treads are commonly stained while risers may be painted — this spec covers the stain scenario for both."
+  },
+
+  "dependencies": {
+    "research": "research.json",
+    "resolution": "resolution.json",
+    "materials": "materials.json",
+    "sop_modules": "sop_modules.json",
+    "production": "production.json",
+    "qa_report": "qa_report.json"
+  },
+
+  "doctrine_references": [
+    {
+      "doctrine": "Stairway_Systems_Doctrine.md",
+      "sections_used": ["Section 3.2 — Canonical Painting Sequence", "Section 6.2 — Tread Protection", "Section 9.2 — Production Rate Benchmarks", "Section 10.1 — QT2 Not Applicable"]
+    },
+    {
+      "doctrine": "Quality_Tiers_and_Surface_Condition.md",
+      "sections_used": ["QT3-QT5 Definitions"]
+    },
+    {
+      "doctrine": "Modifier_Registry.md",
+      "sections_used": ["Quality Tier Modifiers"]
+    },
+    {
+      "doctrine": "Interior Stain/Clear Coat Design Document",
+      "sections_used": ["Section 4 — Configuration Dimensions", "Section 5 — SOP Module Architecture", "Section 6 — Material Systems"]
+    }
+  ],
+
+  "research_corrections": [],
+
+  "change_log": [
+    {
+      "version": "0.1.0",
+      "date": "2026-03-18",
+      "author": "SpecFactory",
+      "changes": "Initial draft spec for NC stair riser and tread stain/clear coat (Tier 3 in interior stain spec rollout). Key features: coating_type dimension, 2 paintable items (riser EA, tread EA), anti-slip additive option for tread clear coat, tread nosing detail work, risers-before-treads internal sequence, shared 9 material systems, 14 SOP modules, context prefix SRST."
+    }
+  ]
+}

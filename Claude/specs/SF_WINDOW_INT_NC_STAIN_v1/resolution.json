@@ -1,0 +1,234 @@
+{
+  "_meta": {
+    "spec_family_id": "SF_WINDOW_INT_NC_STAIN",
+    "generated_by": "registry_resolver",
+    "generated_at": "2026-03-18",
+    "version": "1.0.0",
+    "purpose": "Pre-resolved registry values for downstream agents. Agents consuming this file do NOT need to load raw registry files.",
+    "input_files": ["research.json", "controlled_enums.json", "id_registry.json", "structural_keys.json", "agent_rules.json"]
+  },
+
+  "spec_identity": {
+    "spec_family_id": "SF_WINDOW_INT_NC_STAIN",
+    "status": "new",
+    "context_prefix": "WIST",
+    "notes": "New spec. Context prefix WIST is unique — no collision with WIN (SF_WINDOW_INT_NC). Stain counterpart to SF_WINDOW_INT_NC."
+  },
+
+  "paintable_items": [
+    { "item_id": "ITM_WINDOW_SASH", "name": "Window sash", "unit_of_measure": "EA", "surface_ref": "window_sash", "status": "existing" },
+    { "item_id": "ITM_WINDOW_JAMB", "name": "Extension jamb / reveal", "unit_of_measure": "EA", "surface_ref": "window_jamb", "status": "existing" }
+  ],
+
+  "task_prefix": {
+    "pattern": "TSK_WIST_",
+    "context": "WIST",
+    "collision_check": "No collision. WIST not in context_prefixes_in_use. Distinct from WIN (paint counterpart).",
+    "naming_rule": "TSK_WIST_{ACTION} — action should be verb-based (STAIN_SASH_BRUSH, CLEAR_SASH_BRUSH, GLASS_MASK, etc.)"
+  },
+
+  "module_prefix": {
+    "pattern": "MOD_WIST_",
+    "expected_modules": [
+      { "module_id": "MOD_WIST_SETUP", "phase": "setup", "description": "Glass masking, floor protection, hardware protection, wall masking" },
+      { "module_id": "MOD_WIST_PREP", "phase": "prep", "description": "Bare wood prep — inspect, sand (120→150), fill defects, grain raise, tack clean" },
+      { "module_id": "MOD_WIST_CONDITION", "phase": "prep", "description": "Wood conditioner (softwood + stain, not gel)" },
+      { "module_id": "MOD_WIST_STAIN_APPLY", "phase": "apply", "description": "Stain coat 1 (brush/roll/spray + wipe) for sash and jamb" },
+      { "module_id": "MOD_WIST_STAIN_COAT_2", "phase": "apply", "description": "Stain coat 2 (conditional: stain_coats=2)" },
+      { "module_id": "MOD_WIST_STAIN_DRY", "phase": "interstage", "description": "Stain dry verification before sealer/clear" },
+      { "module_id": "MOD_WIST_SEALER_APPLY", "phase": "apply", "description": "Sanding sealer coat 1 (conditional: sealer_coats>=1)" },
+      { "module_id": "MOD_WIST_SEALER_INTERSTAGE", "phase": "interstage", "description": "Sealer interstage: sand 220 + coat 2 (conditional: sealer_coats=2)" },
+      { "module_id": "MOD_WIST_SEALER_SAND", "phase": "interstage", "description": "Final sealer sand 320 before clear (conditional: sealer_coats>=1)" },
+      { "module_id": "MOD_WIST_CLEAR_APPLY", "phase": "finish", "description": "Clear coat 1 (brush or spray) for sash and jamb" },
+      { "module_id": "MOD_WIST_CLEAR_INTERSTAGE", "phase": "interstage", "description": "Clear interstage: sand 320/400 + inspect (conditional: clear_coats>=2)" },
+      { "module_id": "MOD_WIST_CLEAR_COAT_2", "phase": "finish", "description": "Clear coat 2 (conditional: clear_coats>=2)" },
+      { "module_id": "MOD_WIST_CLEAR_COAT_3", "phase": "finish", "description": "Clear coat 3 (conditional: clear_coats=3)" },
+      { "module_id": "MOD_WIST_CLEANUP", "phase": "cleanup", "description": "Teardown, glass cleanup, final inspect, touch-up" }
+    ]
+  },
+
+  "paintscope_keys": [
+    { "paintscope_key": "PS_OPENING_EA.WINDOW_STAIN", "input_name": "IN_EA_WINDOW_SASH", "uom": "EA", "status": "proposed" },
+    { "paintscope_key": "PS_OPENING_EA.WINDOW_JAMB_STAIN", "input_name": "IN_EA_WINDOW_JAMB", "uom": "EA", "status": "proposed" },
+    { "paintscope_key": "PS_PROTECT_SF.ASSET.GLASS_AREA", "input_name": "IN_SF_PROTECT_GLASS", "uom": "SF", "status": "existing" },
+    { "paintscope_key": "PS_PROTECT_SF.FLOOR_BELOW_WINDOW", "input_name": "IN_SF_PROTECT_FLOOR_BELOW", "uom": "SF", "status": "proposed" },
+    { "paintscope_key": "PS_PROTECT_LF.WALL_ADJACENT_WINDOW", "input_name": "IN_LF_PROTECT_WALL_ADJACENT_WINDOW", "uom": "LF", "status": "existing" },
+    { "paintscope_key": "PS_PROTECT_EA.ASSET.HARDWARE_GROUPS", "input_name": "IN_EA_PROTECT_HARDWARE", "uom": "EA", "status": "existing" },
+    { "paintscope_key": "PS_PROTECT_LF.SILL", "input_name": "IN_LF_PROTECT_SILL", "uom": "LF", "status": "existing" }
+  ],
+
+  "applicable_enums": {
+    "coating_type": {
+      "values": ["stain_clear", "stain_only", "clear_only"],
+      "default": "stain_clear"
+    },
+    "quality_tier": {
+      "values": ["QT3", "QT4", "QT5"],
+      "default": "QT3"
+    },
+    "application_method_stain": {
+      "values": ["brush", "roll", "spray"],
+      "default": "brush",
+      "visible_when": "coating_type includes stain"
+    },
+    "application_method_clear": {
+      "values": ["brush", "spray"],
+      "default": "brush",
+      "visible_when": "coating_type includes clear",
+      "notes": "Roll PROHIBITED for clear coat (air bubble defects)."
+    },
+    "clear_sheen": {
+      "values": ["satin", "semi-gloss", "gloss"],
+      "default": "satin",
+      "notes": "No sheen/QT gate — all sheens available at all tiers."
+    },
+    "phase": {
+      "values": ["setup", "prep", "apply", "interstage", "finish", "cleanup"],
+      "prohibited": ["protect", "protection", "prime"]
+    },
+    "task_classification": {
+      "values": ["binary", "qt_scaled"],
+      "prohibited_key_names": ["task_class"]
+    },
+    "skill_level": {
+      "values": ["helper", "journeyman", "lead"]
+    },
+    "unit_of_measure": {
+      "values": ["EA", "SF", "LF", "FIXED"],
+      "prohibited": ["each", "ROOM", "FIXED_TIME"]
+    },
+    "substrate_state": {
+      "input_states": {
+        "stain_clear": ["SS_BARE"],
+        "stain_only": ["SS_BARE"],
+        "clear_only": ["SS_BARE", "SS_STAINED"]
+      },
+      "output_states": {
+        "stain_clear": "SS_CLEAR_COATED",
+        "stain_only": "SS_STAINED",
+        "clear_only": "SS_CLEAR_COATED"
+      }
+    },
+    "severity": {
+      "values": ["critical", "major", "minor"],
+      "prohibited": ["high", "medium", "low", "WARN"]
+    },
+    "window_type": {
+      "values": ["double_hung", "casement", "fixed", "awning"],
+      "default": "double_hung"
+    },
+    "size_bucket": {
+      "values": ["S", "M", "L", "XL"],
+      "default": "M"
+    },
+    "wood_species_group": {
+      "values": ["softwood", "hardwood"],
+      "default": "hardwood"
+    }
+  },
+
+  "surface_ids": {
+    "primary_surface": "window_sash",
+    "additional_primary_surfaces": ["window_jamb"],
+    "adjacent_surfaces": ["wall_field", "window_casing", "window_stool", "window_glass"],
+    "all_status": "existing",
+    "notes": "Surface refs reused from paint counterpart SF_WINDOW_INT_NC."
+  },
+
+  "zone_ids": [
+    { "zone_id": "glass_mask", "status": "existing" },
+    { "zone_id": "floor_below", "status": "proposed" },
+    { "zone_id": "hardware_covers", "status": "existing" },
+    { "zone_id": "wall_adjacent_window", "status": "existing" },
+    { "zone_id": "sill_protection", "status": "existing" }
+  ],
+
+  "material_system_prefix": {
+    "pattern": "SYS_{ROLE}_{DESCRIPTION}",
+    "systems": [
+      { "system_id": "SYS_STAIN_OIL", "product_role": "stain", "status": "existing_shared" },
+      { "system_id": "SYS_STAIN_OIL_MOD", "product_role": "stain", "status": "existing_shared" },
+      { "system_id": "SYS_STAIN_WB", "product_role": "stain", "status": "existing_shared" },
+      { "system_id": "SYS_STAIN_GEL", "product_role": "stain", "status": "existing_shared", "qt_gate": ["QT4", "QT5"] },
+      { "system_id": "SYS_SEALER_OIL", "product_role": "sealer", "status": "existing_shared" },
+      { "system_id": "SYS_SEALER_WB", "product_role": "sealer", "status": "existing_shared" },
+      { "system_id": "SYS_CLEAR_POLY_OIL", "product_role": "clear", "status": "existing_shared" },
+      { "system_id": "SYS_CLEAR_POLY_WB", "product_role": "clear", "status": "existing_shared" },
+      { "system_id": "SYS_CLEAR_LACQUER", "product_role": "clear", "status": "existing_shared", "application_constraint": "spray" }
+    ],
+    "notes": "Material system IDs are shared across all interior stain specs. Defined in canonical SF_TRIM_NC_STAIN."
+  },
+
+  "round_configurations": {
+    "proposed_for_this_spec": [
+      { "round_id": "ROUND_WIST_STAIN_CLEAR_QT3", "description": "QT3: 1 stain + 0 sealer + 1 clear = 2 coats", "status": "proposed" },
+      { "round_id": "ROUND_WIST_STAIN_CLEAR_QT4", "description": "QT4: 1 stain + 1 sealer + 2 clear = 4 coats", "status": "proposed" },
+      { "round_id": "ROUND_WIST_STAIN_CLEAR_QT5", "description": "QT5: 1 stain + 2 sealer + 3 clear = 6 coats", "status": "proposed" },
+      { "round_id": "ROUND_WIST_STAIN_ONLY", "description": "Stain only: 1-2 stain coats", "status": "proposed" }
+    ]
+  },
+
+  "coverage_profiles": {
+    "proposed_for_this_spec": [
+      { "profile_id": "COV_WIST_STAIN_BRUSH", "description": "Stain brush on window: ~150 SF/QT (more absorption on profiles)", "status": "proposed" },
+      { "profile_id": "COV_WIST_STAIN_SPRAY", "description": "Stain spray on window: ~300 SF/QT", "status": "proposed" },
+      { "profile_id": "COV_WIST_SEALER", "description": "Sealer on window: ~450 SF/QT", "status": "proposed" },
+      { "profile_id": "COV_WIST_CLEAR_BRUSH", "description": "Clear brush on window: ~350 SF/QT", "status": "proposed" },
+      { "profile_id": "COV_WIST_CLEAR_SPRAY", "description": "Clear spray on window: ~450 SF/QT", "status": "proposed" }
+    ]
+  },
+
+  "cross_spec_coordination": {
+    "xspec_flags_consumed": [],
+    "xspec_flags_set": [],
+    "comp_modifiers_set": [],
+    "comp_modifiers_affected_by": [],
+    "notes": "No cross-spec flags. Stain spec is self-contained. Often paired with SF_TRIM_NC_STAIN for shared material and protection setup."
+  },
+
+  "structural_reminders": {
+    "materials_json": {
+      "required_keys": ["spec_family_id", "version", "material_systems", "consumables"],
+      "system_item_keys": ["system_id", "name", "product_role", "applies_when"],
+      "consumable_item_keys": ["consumable_id", "name", "category"]
+    },
+    "sop_modules_json": {
+      "required_keys": ["spec_family_id", "version", "sop_modules"],
+      "module_keys": ["module_id", "name", "phase", "tasks"],
+      "task_required_keys": ["task_id", "name", "task_classification", "skill_level"],
+      "task_prohibited_keys": ["task_class", "rate_per_hour", "coverage_sf_per_gallon"]
+    },
+    "production_json": {
+      "required_keys": ["spec_family_id", "version", "task_production_rates"],
+      "rate_item_keys": ["task_id", "unit_of_measure", "rate_per_hour or rates_by_tier or fixed_time_minutes"]
+    },
+    "qa_report_json": {
+      "required_keys": ["spec_family_id", "version", "overall_result"],
+      "issue_keys": ["issue_id", "severity", "area", "file", "description", "suggested_fix"]
+    }
+  },
+
+  "cross_file_threading": [
+    "RULE 1: Every TSK_ in sop_modules.json MUST have a matching rate in production.json",
+    "RULE 2: Every ITM_ in spec.json MUST appear in at least one variant",
+    "RULE 3: Every SYS_ applies_when MUST match spec.json configuration_dimensions",
+    "RULE 4: Every IN_ input in spec.json SHOULD be consumed by sop_modules or production",
+    "RULE 5: Every PS_ key in production.json MUST match spec.json required_paintscope_inputs",
+    "RULE 6: Every zone_id in spec.json MUST match sop_modules.json protection_metadata.zones",
+    "RULE 7: Module phase order: setup > prep > apply > interstage > finish > cleanup",
+    "RULE 8: UOM for a task MUST match between sop_modules.json and production.json",
+    "RULE 9: TSK_ prefix WIST from resolution.json MUST be used in sop_modules and production",
+    "RULE 10: ITM_ IDs marked existing in resolution.json MUST use exact registered ID in spec.json",
+    "RULE 11: Downstream agents MUST use only enum values in resolution.json applicable_enums"
+  ],
+
+  "registry_additions_proposed": [
+    {
+      "registry": "id_registry.json",
+      "section": "SF_",
+      "proposed_id": "SF_WINDOW_INT_NC_STAIN",
+      "name": "New Construction Interior Window Stain/Clear Coat",
+      "justification": "Stain counterpart to SF_WINDOW_INT_NC."
+    }
+  ]
+}

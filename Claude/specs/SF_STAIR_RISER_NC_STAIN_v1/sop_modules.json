@@ -1,0 +1,654 @@
+{
+  "spec_family_id": "SF_STAIR_RISER_NC_STAIN",
+  "version": "0.1.0",
+  "generated_by": "SOP Librarian",
+  "generated_at": "2026-03-18",
+
+  "sop_modules": [
+    {
+      "module_id": "MOD_SRST_SETUP",
+      "name": "Stair Stain/Clear Setup",
+      "description": "Tread protection tape, landing floor protection, wall masking for spray.",
+      "phase": "setup",
+      "applies_when": {},
+      "required_inputs": [
+        { "input_name": "IN_SF_PROTECT_FLOOR_PERIMETER", "paintscope_key": "PS_PROTECT_SF.FLOOR_PERIMETER", "uom": "SF" },
+        { "input_name": "IN_LF_WALL_ADJACENT", "paintscope_key": "PS_PROTECT_LF.WALL_ADJACENT", "uom": "LF" }
+      ],
+      "tasks": [
+        {
+          "task_id": "TSK_SRST_TREAD_PROTECT",
+          "name": "Tread Protection Tape",
+          "description": "Apply tape along tread nosing edge to protect treads during riser stain/clear work. Light protection only.",
+          "task_type": "protect",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "tools_required": ["masking_tape"],
+          "protection_metadata": { "action": "setup", "zones": ["tread_protection"], "method_dependent": false },
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": { "all": "Tape nosing edge of each tread. Prevent stain drips from riser work onto tread face." }
+        },
+        {
+          "task_id": "TSK_SRST_FLOOR_PROTECT",
+          "name": "Landing Floor Protection",
+          "description": "Canvas drop cloths at landing areas.",
+          "task_type": "protect",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "tools_required": ["drop_cloth_canvas"],
+          "protection_metadata": { "action": "setup", "zones": ["landing_floor"], "method_dependent": false },
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "site_condition_rules": [{ "condition_id": "floor_type", "include_when": ["finished", "partial"], "exclude_when": ["subfloor"] }],
+          "quality_notes": { "all": "Canvas drops at top and bottom landings." }
+        },
+        {
+          "task_id": "TSK_SRST_WALL_MASK",
+          "name": "Wall Masking",
+          "description": "Tape at wall-to-stair edge for spray method.",
+          "task_type": "protect",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "tools_required": ["masking_tape"],
+          "protection_metadata": { "action": "setup", "zones": ["wall_adjacent"], "method_dependent": true },
+          "applies_when": { "application_method_stain": ["spray"], "application_method_clear": ["spray"] },
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": { "all": "Complete tape line along wall edge." }
+        }
+      ],
+      "sequence_notes": "Tread tape first → Landing drops → Wall mask (if spray)."
+    },
+
+    {
+      "module_id": "MOD_SRST_PREP",
+      "name": "Bare Wood Preparation",
+      "description": "Sand, fill, grain raise, tack clean on risers and treads.",
+      "phase": "prep",
+      "applies_when": {},
+      "required_inputs": [
+        { "input_name": "IN_EA_STAIR_RISER", "paintscope_key": "PS_SURFACE_EA.STAIR_RISER", "uom": "EA" },
+        { "input_name": "IN_EA_STAIR_TREAD", "paintscope_key": "PS_SURFACE_EA.STAIR_TREAD", "uom": "EA" }
+      ],
+      "tasks": [
+        {
+          "task_id": "TSK_SRST_INSPECT_BARE",
+          "name": "Inspect Bare Wood",
+          "description": "Inspect risers and treads for defects, mill marks, grain consistency.",
+          "task_type": "inspect",
+          "task_classification": "qt_scaled",
+          "skill_level": "journeyman",
+          "tools_required": ["work_light"],
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": {
+            "QT3": "Quick scan — obvious defects",
+            "QT4": "Systematic — all defects, tread nosing condition",
+            "QT5": "Thorough — every imperfection under raking light"
+          }
+        },
+        {
+          "task_id": "TSK_SRST_SAND_RISER_120",
+          "name": "Sand Riser (120 Grit)",
+          "description": "Initial sanding of riser faces with 120-grit.",
+          "task_type": "prep",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "tools_required": ["sanding_block", "sandpaper_120"],
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": { "all": "Sand with grain. Remove mill marks. Flat surface — straightforward." }
+        },
+        {
+          "task_id": "TSK_SRST_SAND_TREAD_120",
+          "name": "Sand Tread (120 Grit)",
+          "description": "Initial sanding of tread surfaces and nosing edge with 120-grit.",
+          "task_type": "prep",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "tools_required": ["sanding_block", "sandpaper_120"],
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": { "all": "Sand flat tread with grain. Hand sand nosing bullnose — follow curve." }
+        },
+        {
+          "task_id": "TSK_SRST_SAND_150",
+          "name": "Sand Riser + Tread (150 Grit)",
+          "description": "Final prep sanding with 150-grit on all surfaces.",
+          "task_type": "prep",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "tools_required": ["sanding_block", "sandpaper_150"],
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": { "all": "Smooth, uniform 150-grit pattern. Pay attention to nosing." }
+        },
+        {
+          "task_id": "TSK_SRST_FILL_DEFECTS",
+          "name": "Fill Defects (Stainable Wood Filler)",
+          "description": "Fill nail holes and defects with stainable wood filler.",
+          "task_type": "prep",
+          "task_classification": "qt_scaled",
+          "skill_level": "journeyman",
+          "tools_required": ["putty_knife", "wood_filler"],
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": {
+            "QT3": "Fill open nail holes",
+            "QT4": "Fill all visible defects",
+            "QT5": "Fill every defect, color-match"
+          }
+        },
+        {
+          "task_id": "TSK_SRST_GRAIN_RAISE",
+          "name": "Grain Raise Treatment (Waterborne)",
+          "description": "Wet-wipe to raise grain, dry, re-sand 220. Conditional on waterborne products.",
+          "task_type": "prep",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "tools_required": ["sponge", "water", "sandpaper_220"],
+          "applies_when": { "_note": "Activated when waterborne product selected" },
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": { "all": "Wet wipe all surfaces including nosing. Dry completely. Re-sand 220." }
+        },
+        {
+          "task_id": "TSK_SRST_TACK_CLEAN",
+          "name": "Tack Clean (Prep Complete)",
+          "description": "Remove all sanding dust before stain or conditioner.",
+          "task_type": "cleanup",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "tools_required": ["tack_cloth"],
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": { "all": "All dust removed from risers, treads, and nosing edges." }
+        }
+      ],
+      "sequence_notes": "Inspect → Sand risers 120 → Sand treads 120 → Sand all 150 → Fill → Grain raise (conditional) → Tack."
+    },
+
+    {
+      "module_id": "MOD_SRST_CONDITION",
+      "name": "Wood Conditioner Application",
+      "description": "Pre-stain conditioner for softwood. Conditional: softwood + stain + NOT gel.",
+      "phase": "prep",
+      "applies_when": { "wood_species_group": ["softwood"], "coating_type": ["stain_clear", "stain_only"] },
+      "tasks": [
+        {
+          "task_id": "TSK_SRST_APPLY_CONDITIONER",
+          "name": "Apply Wood Conditioner",
+          "description": "Brush conditioner on risers and treads. Dwell 15 min.",
+          "task_type": "prep",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "tools_required": ["brush_2in", "wood_conditioner"],
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": { "all": "Liberal application. Full coverage including nosing." }
+        },
+        {
+          "task_id": "TSK_SRST_WIPE_CONDITIONER",
+          "name": "Wipe Excess Conditioner",
+          "description": "Wipe off excess. Stain within 2 hours.",
+          "task_type": "prep",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "tools_required": ["wipe_cloth"],
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": { "all": "Wipe all excess." }
+        }
+      ],
+      "sequence_notes": "Apply → Wait 15 min → Wipe → Stain within 2 hours."
+    },
+
+    {
+      "module_id": "MOD_SRST_STAIN_APPLY",
+      "name": "Stain Application (Coat 1)",
+      "description": "Stain risers and treads. Risers first, then treads (work top-down).",
+      "phase": "apply",
+      "applies_when": { "coating_type": ["stain_clear", "stain_only"] },
+      "tasks": [
+        {
+          "task_id": "TSK_SRST_STAIN_RISER_BRUSH",
+          "name": "Stain Riser Coat 1 — Brush + Wipe",
+          "description": "Apply stain to riser face with brush. Wipe excess.",
+          "task_type": "finish",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "tools_required": ["brush_2in", "wipe_cloth"],
+          "applies_when": { "application_method_stain": ["brush"] },
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": { "all": "Brush with grain. Wipe evenly. Small surface — quick per unit." }
+        },
+        {
+          "task_id": "TSK_SRST_STAIN_RISER_SPRAY",
+          "name": "Stain Riser Coat 1 — Spray + Wipe",
+          "description": "Spray stain on riser face. Wipe excess.",
+          "task_type": "finish",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "tools_required": ["hvlp_sprayer", "wipe_cloth"],
+          "applies_when": { "application_method_stain": ["spray"] },
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": { "all": "Spray even coat. Wipe promptly." }
+        },
+        {
+          "task_id": "TSK_SRST_STAIN_TREAD_BRUSH",
+          "name": "Stain Tread Coat 1 — Brush + Wipe",
+          "description": "Apply stain to tread surface and nosing edge. Wipe for uniform color.",
+          "task_type": "finish",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "tools_required": ["brush_2in", "wipe_cloth"],
+          "applies_when": { "application_method_stain": ["brush", "roll"] },
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": { "all": "Stain flat tread, then work into nosing edge. Wipe evenly. Nosing absorbs more — wipe quickly to prevent dark buildup." }
+        },
+        {
+          "task_id": "TSK_SRST_STAIN_TREAD_SPRAY",
+          "name": "Stain Tread Coat 1 — Spray + Wipe",
+          "description": "Spray stain on tread. Back-brush nosing. Wipe excess.",
+          "task_type": "finish",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "tools_required": ["hvlp_sprayer", "wipe_cloth"],
+          "applies_when": { "application_method_stain": ["spray"] },
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": { "all": "Spray tread flat. Back-brush nosing to work stain into curve. Wipe evenly." }
+        }
+      ],
+      "sequence_notes": "Risers first (top-down), then treads (top-down). Prevents stepping on wet stain."
+    },
+
+    {
+      "module_id": "MOD_SRST_STAIN_COAT_2",
+      "name": "Stain Application (Coat 2)",
+      "description": "Second stain coat. Conditional: stain_coats = 2.",
+      "phase": "apply",
+      "applies_when": { "stain_coats": [2], "coating_type": ["stain_clear", "stain_only"] },
+      "tasks": [
+        {
+          "task_id": "TSK_SRST_STAIN_COAT_2_APPLY",
+          "name": "Stain Coat 2 — Apply + Wipe (Risers + Treads)",
+          "description": "Second stain coat on all surfaces.",
+          "task_type": "finish",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "tools_required": ["applicator", "wipe_cloth"],
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": { "all": "Same method as coat 1. Verify color uniformity between risers and treads." }
+        }
+      ],
+      "sequence_notes": "Risers first, then treads."
+    },
+
+    {
+      "module_id": "MOD_SRST_STAIN_DRY",
+      "name": "Stain Dry Verification",
+      "description": "Verify stain is dry before sealer/clear.",
+      "phase": "interstage",
+      "applies_when": { "coating_type": ["stain_clear"] },
+      "tasks": [
+        {
+          "task_id": "TSK_SRST_STAIN_DRY_VERIFY",
+          "name": "Verify Stain Dry",
+          "description": "Touch-test dryness on risers and treads.",
+          "task_type": "inspect",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "tools_required": [],
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": { "all": "No tackiness. No color transfer." }
+        }
+      ]
+    },
+
+    {
+      "module_id": "MOD_SRST_SEALER_APPLY",
+      "name": "Sanding Sealer Application (Coat 1)",
+      "description": "Sealer coat 1. Conditional: sealer_coats >= 1.",
+      "phase": "apply",
+      "applies_when": { "sealer_coats": [1, 2], "coating_type": ["stain_clear", "clear_only"] },
+      "tasks": [
+        {
+          "task_id": "TSK_SRST_SEALER_COAT_1",
+          "name": "Apply Sanding Sealer (Coat 1)",
+          "description": "Thin sealer coat on risers and treads.",
+          "task_type": "finish",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "tools_required": ["brush_or_sprayer", "sealer"],
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": { "all": "Thin coat. Do not pool on tread surface." }
+        }
+      ]
+    },
+
+    {
+      "module_id": "MOD_SRST_SEALER_INTERSTAGE",
+      "name": "Sealer Interstage + Coat 2",
+      "description": "Sand sealer + coat 2. Conditional: sealer_coats = 2.",
+      "phase": "interstage",
+      "applies_when": { "sealer_coats": [2] },
+      "tasks": [
+        {
+          "task_id": "TSK_SRST_SAND_SEALER_220",
+          "name": "Sand Sealer (220 Grit)",
+          "description": "Sand first sealer coat with 220-grit.",
+          "task_type": "prep",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "tools_required": ["sanding_block", "sandpaper_220"],
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": { "all": "Level surface. Do NOT sand through to stain." }
+        },
+        {
+          "task_id": "TSK_SRST_TACK_SEALER",
+          "name": "Tack Clean Between Sealer Coats",
+          "description": "Remove sanding dust.",
+          "task_type": "cleanup",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "tools_required": ["tack_cloth"],
+          "appears_in_tiers": ["QT3", "QT4", "QT5"]
+        },
+        {
+          "task_id": "TSK_SRST_SEALER_COAT_2",
+          "name": "Apply Sanding Sealer (Coat 2)",
+          "description": "Second sealer coat.",
+          "task_type": "finish",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "tools_required": ["brush_or_sprayer", "sealer"],
+          "appears_in_tiers": ["QT3", "QT4", "QT5"]
+        }
+      ]
+    },
+
+    {
+      "module_id": "MOD_SRST_SEALER_SAND",
+      "name": "Final Sealer Sand Before Clear",
+      "description": "Sand final sealer before clear. Conditional: sealer_coats >= 1.",
+      "phase": "interstage",
+      "applies_when": { "sealer_coats": [1, 2], "coating_type": ["stain_clear", "clear_only"] },
+      "tasks": [
+        {
+          "task_id": "TSK_SRST_SAND_SEALER_FINAL_320",
+          "name": "Final Sealer Sand (320 Grit)",
+          "description": "Final sand with 320-grit for smooth clear base.",
+          "task_type": "prep",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "tools_required": ["sanding_block", "sandpaper_320"],
+          "appears_in_tiers": ["QT3", "QT4", "QT5"]
+        },
+        {
+          "task_id": "TSK_SRST_TACK_BEFORE_CLEAR",
+          "name": "Tack Clean Before Clear Coat",
+          "description": "Remove all dust before clear.",
+          "task_type": "cleanup",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "tools_required": ["tack_cloth"],
+          "appears_in_tiers": ["QT3", "QT4", "QT5"]
+        }
+      ]
+    },
+
+    {
+      "module_id": "MOD_SRST_CLEAR_APPLY",
+      "name": "Clear Topcoat Application (Coat 1)",
+      "description": "First clear coat on risers and treads.",
+      "phase": "finish",
+      "applies_when": { "coating_type": ["stain_clear", "clear_only"] },
+      "tasks": [
+        {
+          "task_id": "TSK_SRST_CLEAR_RISER_BRUSH",
+          "name": "Clear Coat Riser 1 — Brush",
+          "description": "Brush clear on riser face.",
+          "task_type": "finish",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "tools_required": ["brush_natural_or_synthetic", "straining_cone"],
+          "applies_when": { "application_method_clear": ["brush"] },
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": { "all": "Thin, even coat. No drips. Strain clear." }
+        },
+        {
+          "task_id": "TSK_SRST_CLEAR_RISER_SPRAY",
+          "name": "Clear Coat Riser 1 — Spray",
+          "description": "Spray clear on riser face.",
+          "task_type": "finish",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "tools_required": ["hvlp_sprayer"],
+          "applies_when": { "application_method_clear": ["spray"] },
+          "appears_in_tiers": ["QT3", "QT4", "QT5"]
+        },
+        {
+          "task_id": "TSK_SRST_CLEAR_TREAD_BRUSH",
+          "name": "Clear Coat Tread 1 — Brush",
+          "description": "Brush clear on tread and nosing. Work into nosing curve.",
+          "task_type": "finish",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "tools_required": ["brush_natural_or_synthetic", "straining_cone"],
+          "applies_when": { "application_method_clear": ["brush"] },
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": { "all": "Even coat on flat tread. Extra pass on nosing to prevent drips. Tip once with grain." }
+        },
+        {
+          "task_id": "TSK_SRST_CLEAR_TREAD_SPRAY",
+          "name": "Clear Coat Tread 1 — Spray",
+          "description": "Spray clear on tread. Back-brush nosing.",
+          "task_type": "finish",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "tools_required": ["hvlp_sprayer"],
+          "applies_when": { "application_method_clear": ["spray"] },
+          "appears_in_tiers": ["QT3", "QT4", "QT5"]
+        }
+      ],
+      "sequence_notes": "Risers first, then treads (top-down)."
+    },
+
+    {
+      "module_id": "MOD_SRST_CLEAR_INTERSTAGE",
+      "name": "Clear Coat Interstage",
+      "description": "Sand between clear coats. Conditional: clear_coats >= 2.",
+      "phase": "interstage",
+      "applies_when": { "clear_coats": [2, 3], "coating_type": ["stain_clear", "clear_only"] },
+      "tasks": [
+        {
+          "task_id": "TSK_SRST_SAND_CLEAR_320",
+          "name": "Sand Clear Coat (320-400 Grit)",
+          "description": "Sand cured clear coat.",
+          "task_type": "prep",
+          "task_classification": "qt_scaled",
+          "skill_level": "journeyman",
+          "tools_required": ["sanding_block", "sandpaper_320_or_400"],
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": {
+            "QT3": "Spot sand nibs. 320 grit.",
+            "QT4": "Full surface sand. 320 grit.",
+            "QT5": "Thorough full sand. 400 grit."
+          }
+        },
+        {
+          "task_id": "TSK_SRST_TACK_CLEAR",
+          "name": "Tack Clean Between Clear Coats",
+          "description": "Remove dust before next coat.",
+          "task_type": "cleanup",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "tools_required": ["tack_cloth"],
+          "appears_in_tiers": ["QT3", "QT4", "QT5"]
+        },
+        {
+          "task_id": "TSK_SRST_INSPECT_CLEAR",
+          "name": "Inspect Clear Coat",
+          "description": "Visual inspection between coats.",
+          "task_type": "inspect",
+          "task_classification": "qt_scaled",
+          "skill_level": "journeyman",
+          "tools_required": ["work_light"],
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": {
+            "QT3": "Quick glance",
+            "QT4": "Systematic scan",
+            "QT5": "Critical inspection"
+          }
+        }
+      ]
+    },
+
+    {
+      "module_id": "MOD_SRST_CLEAR_COAT_2",
+      "name": "Clear Topcoat Application (Coat 2)",
+      "description": "Second clear coat. Conditional: clear_coats >= 2.",
+      "phase": "finish",
+      "applies_when": { "clear_coats": [2, 3], "coating_type": ["stain_clear", "clear_only"] },
+      "tasks": [
+        {
+          "task_id": "TSK_SRST_CLEAR_COAT_2",
+          "name": "Clear Coat 2 (Risers + Treads)",
+          "description": "Second clear coat using same method as coat 1.",
+          "task_type": "finish",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "tools_required": ["applicator"],
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": { "all": "Same technique as coat 1. Faster — consistent substrate." }
+        }
+      ]
+    },
+
+    {
+      "module_id": "MOD_SRST_CLEAR_COAT_3",
+      "name": "Clear Topcoat Application (Coat 3 — with Anti-Slip)",
+      "description": "Third clear coat with optional anti-slip additive for treads. Conditional: clear_coats = 3.",
+      "phase": "finish",
+      "applies_when": { "clear_coats": [3], "coating_type": ["stain_clear", "clear_only"] },
+      "tasks": [
+        {
+          "task_id": "TSK_SRST_CLEAR_COAT_3",
+          "name": "Clear Coat 3 (Risers + Treads, Anti-Slip on Treads)",
+          "description": "Third and final clear coat. Anti-slip additive mixed into tread clear only (if enabled). Risers get standard clear.",
+          "task_type": "finish",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "tools_required": ["applicator", "anti_slip_additive"],
+          "appears_in_tiers": ["QT5"],
+          "quality_notes": { "QT5": "Final surface. Mix anti-slip into tread batch only. Standard clear on risers. Zero defects." }
+        }
+      ],
+      "sequence_notes": "Risers first (standard clear), then treads (anti-slip clear). IMPORTANT: anti-slip in final coat only."
+    },
+
+    {
+      "module_id": "MOD_SRST_CLEANUP",
+      "name": "Stair Stain/Clear Cleanup",
+      "description": "Protection teardown, vacuum, final inspection, touch-up.",
+      "phase": "cleanup",
+      "applies_when": {},
+      "tasks": [
+        {
+          "task_id": "TSK_SRST_REMOVE_MASK",
+          "name": "Protection Teardown",
+          "description": "Remove tread tape, floor drops, wall masking.",
+          "task_type": "protect",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "tools_required": [],
+          "protection_metadata": { "action": "teardown", "zones": ["tread_protection", "landing_floor", "wall_adjacent"], "method_dependent": true },
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": { "all": "Remove tape carefully from tread edges." }
+        },
+        {
+          "task_id": "TSK_SRST_VACUUM",
+          "name": "Vacuum Sanding Dust",
+          "description": "Vacuum all sanding dust from stair area.",
+          "task_type": "cleanup",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "tools_required": ["vacuum"],
+          "appears_in_tiers": ["QT3", "QT4", "QT5"]
+        },
+        {
+          "task_id": "TSK_SRST_FINAL_INSPECT",
+          "name": "Final Inspection",
+          "description": "Final quality check of all risers and treads.",
+          "task_type": "inspect",
+          "task_classification": "qt_scaled",
+          "skill_level": "journeyman",
+          "tools_required": ["work_light"],
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": {
+            "QT3": "Quick glance — uniform color, no obvious defects",
+            "QT4": "Systematic — uniform color/sheen, nosing coverage",
+            "QT5": "Critical — zero tolerance, check anti-slip texture on treads"
+          }
+        },
+        {
+          "task_id": "TSK_SRST_TOUCHUP",
+          "name": "Touch-Up",
+          "description": "Address defects from inspection.",
+          "task_type": "detail",
+          "task_classification": "qt_scaled",
+          "skill_level": "journeyman",
+          "tools_required": ["brush_small", "clear_coat", "sanding_block"],
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": {
+            "QT3": "Obvious defects only",
+            "QT4": "All visible defects",
+            "QT5": "Every imperfection"
+          }
+        }
+      ],
+      "sequence_notes": "Remove masking → Vacuum → Final inspect → Touch-up."
+    }
+  ],
+
+  "round_configurations": [
+    {
+      "round_id": "ROUND_SRST_STAIN_CLEAR_QT3",
+      "name": "QT3 Stain + Clear (2 Coats)",
+      "applies_when": { "coating_type": ["stain_clear"], "quality_tier": ["QT3"] },
+      "total_coats": 2,
+      "interstage_cycles": 1,
+      "phase_sequence": ["setup", "prep", "apply", "interstage", "finish", "cleanup"]
+    },
+    {
+      "round_id": "ROUND_SRST_STAIN_CLEAR_QT4",
+      "name": "QT4 Stain + Sealer + Clear (4 Coats)",
+      "applies_when": { "coating_type": ["stain_clear"], "quality_tier": ["QT4"] },
+      "total_coats": 4,
+      "interstage_cycles": 3,
+      "phase_sequence": ["setup", "prep", "apply", "interstage", "apply", "interstage", "finish", "interstage", "finish", "cleanup"]
+    },
+    {
+      "round_id": "ROUND_SRST_STAIN_CLEAR_QT5",
+      "name": "QT5 Stain + 2 Sealer + 3 Clear (6 Coats)",
+      "applies_when": { "coating_type": ["stain_clear"], "quality_tier": ["QT5"] },
+      "total_coats": 6,
+      "interstage_cycles": 5,
+      "phase_sequence": ["setup", "prep", "apply", "interstage", "apply", "interstage", "apply", "interstage", "finish", "interstage", "finish", "interstage", "finish", "cleanup"]
+    },
+    {
+      "round_id": "ROUND_SRST_STAIN_ONLY",
+      "name": "Stain Only",
+      "applies_when": { "coating_type": ["stain_only"] },
+      "total_coats": 1,
+      "interstage_cycles": 0,
+      "phase_sequence": ["setup", "prep", "apply", "cleanup"]
+    }
+  ],
+
+  "assumptions": [
+    {
+      "assumption_id": "A-SRST-001",
+      "field": "wipe_step",
+      "value": "Wipe time built into stain application rate",
+      "source": "Industry practice",
+      "doctrine_gap": true
+    },
+    {
+      "assumption_id": "A-SRST-002",
+      "field": "anti_slip_final_only",
+      "value": "Anti-slip additive in final clear coat only — not intermediate coats",
+      "source": "Manufacturer instructions",
+      "doctrine_gap": true
+    }
+  ]
+}

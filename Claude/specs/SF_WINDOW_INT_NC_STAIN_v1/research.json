@@ -1,0 +1,204 @@
+{
+  "research_metadata": {
+    "spec_family_id": "SF_WINDOW_INT_NC_STAIN",
+    "research_mode": "lightweight",
+    "design_spec_source": "docs/superpowers/specs/2026-03-18-interior-stain-clear-coat-specs-design.md",
+    "paint_counterpart_source": "specs/SF_WINDOW_INT_NC_v1/",
+    "canonical_stain_source": "specs/SF_TRIM_NC_STAIN_v1/",
+    "sibling_specs_reviewed": [
+      "specs/SF_WINDOW_INT_NC_v1/spec.json",
+      "specs/SF_TRIM_NC_STAIN_v1/spec.json",
+      "specs/SF_TRIM_NC_STAIN_v1/research.json"
+    ],
+    "researcher": "Spec Researcher Agent",
+    "date": "2026-03-18",
+    "status": "draft",
+    "review_required": true
+  },
+
+  "domain_analysis": {
+    "scope": "Interior new construction window sash and jamb stain and clear coat workflows",
+    "workflow_overview": "Three-layer coating system adapted for window assemblies: stain (color) → sanding sealer (adhesion bridge + smooth base) → clear topcoat (protection + depth). Window-specific concerns include mandatory glass masking, hardware protection, blocking prevention for operable sashes, and window_type/size_bucket rate modifiers.",
+    "key_differences_from_trim_stain": [
+      "EA-based UOM (per window) instead of LF aggregate",
+      "Window_type modifier (double_hung/casement/fixed/awning) replaces profile_complexity modifier",
+      "Size_bucket modifier (S/M/L/XL) for rate scaling by window size",
+      "Mandatory glass masking (critical for stain — harder to remove than paint)",
+      "Hardware protection mandatory (locks, latches, operators)",
+      "Blocking prevention critical — operable sashes must remain ajar during clear cure",
+      "Sill/stool protection when already finished by trim spec",
+      "Jamb as separate paintable item (may not be present on all windows)"
+    ],
+    "key_differences_from_paint_counterpart": [
+      "Bare wood input (SS_BARE) instead of primed surface",
+      "No companion prime spec — all coating layers in one spec",
+      "Three product roles (stain, sealer, clear) instead of one (finish)",
+      "Independent application method selection for stain vs clear phases",
+      "Wipe step mandatory for all stain application methods",
+      "Wood conditioner activation for softwood species",
+      "No sheen/QT gate — all clear sheens available at all tiers"
+    ]
+  },
+
+  "required_paintscope_keys": [
+    { "paintscope_key": "PS_OPENING_EA.WINDOW_STAIN", "input_name": "IN_EA_WINDOW_SASH", "uom": "EA", "status": "proposed", "description": "Window sash count for stain" },
+    { "paintscope_key": "PS_OPENING_EA.WINDOW_JAMB_STAIN", "input_name": "IN_EA_WINDOW_JAMB", "uom": "EA", "status": "proposed", "description": "Extension jamb count for stain" },
+    { "paintscope_key": "PS_PROTECT_SF.ASSET.GLASS_AREA", "input_name": "IN_SF_PROTECT_GLASS", "uom": "SF", "status": "existing", "description": "Glass area for masking" },
+    { "paintscope_key": "PS_PROTECT_SF.FLOOR_BELOW_WINDOW", "input_name": "IN_SF_PROTECT_FLOOR_BELOW", "uom": "SF", "status": "proposed", "description": "Floor protection below window" },
+    { "paintscope_key": "PS_PROTECT_LF.WALL_ADJACENT_WINDOW", "input_name": "IN_LF_PROTECT_WALL_ADJACENT_WINDOW", "uom": "LF", "status": "existing", "description": "Wall masking around window" },
+    { "paintscope_key": "PS_PROTECT_EA.ASSET.HARDWARE_GROUPS", "input_name": "IN_EA_PROTECT_HARDWARE", "uom": "EA", "status": "existing", "description": "Hardware groups to protect" },
+    { "paintscope_key": "PS_PROTECT_LF.SILL", "input_name": "IN_LF_PROTECT_SILL", "uom": "LF", "status": "existing", "description": "Sill masking for spray" }
+  ],
+
+  "protection_zones_analysis": {
+    "spec_category": "window",
+    "application_method_sensitivity": true,
+    "zones": [
+      {
+        "zone_id": "glass_mask",
+        "condition": "ALWAYS — mandatory",
+        "protection_level": "full_cover",
+        "method_dependent": false,
+        "notes": "Mandatory glass masking. Stain on glass is harder to remove than paint — careful masking critical."
+      },
+      {
+        "zone_id": "floor_below",
+        "condition": "floor_type = finished or partial",
+        "protection_level": "edge_only",
+        "method_dependent": false,
+        "notes": "Drop cloths below window. Stain drips are especially hard to clean."
+      },
+      {
+        "zone_id": "hardware_covers",
+        "condition": "ALWAYS — mandatory",
+        "protection_level": "partial_cover",
+        "method_dependent": false,
+        "notes": "Remove or mask hardware. Stain penetrates hardware finishes."
+      },
+      {
+        "zone_id": "wall_adjacent_window",
+        "condition": "spray method or walls SS_PAINTED_*",
+        "protection_level": "light_mask",
+        "method_dependent": true,
+        "notes": "Wall masking around window. Stain on painted walls is very hard to remove."
+      },
+      {
+        "zone_id": "sill_protection",
+        "condition": "spray method, stool finished",
+        "protection_level": "light_mask",
+        "method_dependent": true,
+        "notes": "Sill protection from overspray when stool already finished by trim spec."
+      }
+    ]
+  },
+
+  "adjacency_analysis": {
+    "primary_adjacency": "window_to_glass",
+    "analysis": [
+      {
+        "adjacent_surface": "window_glass",
+        "edge_type": "complex",
+        "interface_concern": "Glass masking is the defining protection requirement. Stain penetrates glass edges more than paint.",
+        "protection_approach": "Full glass masking with paper/film. No 1/16-inch seal technique for stain (that is paint-specific)."
+      },
+      {
+        "adjacent_surface": "wall_field",
+        "edge_type": "linear",
+        "interface_concern": "Window-to-wall interface. Stain on painted walls is extremely difficult to remove.",
+        "protection_approach": "Wall masking for spray or when walls finished. Extra caution with stain."
+      },
+      {
+        "adjacent_surface": "window_casing",
+        "edge_type": "linear",
+        "interface_concern": "Casing often stained with same stain/clear. Routed to SF_TRIM_NC_STAIN.",
+        "protection_approach": "No protection when same finish group."
+      }
+    ]
+  },
+
+  "state_analysis": {
+    "input_states": {
+      "stain_clear": ["SS_BARE"],
+      "stain_only": ["SS_BARE"],
+      "clear_only": ["SS_BARE", "SS_STAINED"]
+    },
+    "output_states": {
+      "stain_clear": "SS_CLEAR_COATED",
+      "stain_only": "SS_STAINED",
+      "clear_only": "SS_CLEAR_COATED"
+    },
+    "notes": "Same state model as canonical trim stain spec. Inherited from design spec Section 7."
+  },
+
+  "production_rate_analysis": {
+    "key_rates": {
+      "sash_stain_brush_wipe": "2.5-3.0 EA/hr (M size, double-hung) — ~20-24 min per window including wipe",
+      "sash_stain_spray_wipe": "3.5-4.0 EA/hr (M size, double-hung) — ~15-17 min per window",
+      "sash_clear_brush": "3.0-4.0 EA/hr (M size) — ~15-20 min per window",
+      "sash_clear_spray": "4.5-5.0 EA/hr (M size) — ~12-13 min per window",
+      "jamb_stain_brush_wipe": "5.0-6.0 EA/hr — ~10-12 min per jamb",
+      "jamb_clear_brush": "6.0-7.0 EA/hr — ~8-10 min per jamb",
+      "glass_masking": "4.0 EA/hr (M size) — ~15 min per window",
+      "hardware_protect": "12.0 EA/hr — ~5 min per hardware group"
+    },
+    "comparison_to_paint": "Window stain rates are comparable to paint counterpart rates. Stain includes wipe step (adds time) but no primer needed (saves a layer). Clear coat rates similar to paint finish coat rates."
+  },
+
+  "risk_notes": [
+    {
+      "risk_id": "RISK_WIST_001",
+      "topic": "Stain on glass",
+      "risk": "Stain bleeds onto glass through masking gaps — much harder to remove than paint",
+      "mitigation": "Meticulous glass masking with fresh tape. No 1/16-inch seal for stain. Excess cleaned immediately.",
+      "severity": "major"
+    },
+    {
+      "risk_id": "RISK_WIST_002",
+      "topic": "Blocking of operable sashes",
+      "risk": "Clear coat bonds sash to frame if closed before full cure (3-7 days)",
+      "mitigation": "All operable sashes remain ajar during cure. Label with 'DO NOT CLOSE' tags.",
+      "severity": "critical"
+    },
+    {
+      "risk_id": "RISK_WIST_003",
+      "topic": "Blotchy stain on softwood windows",
+      "risk": "Pine or poplar window wood absorbs stain unevenly",
+      "mitigation": "Wood conditioner mandatory for softwood. Gel stain alternative.",
+      "severity": "major"
+    },
+    {
+      "risk_id": "RISK_WIST_004",
+      "topic": "Color inconsistency between sash and jamb",
+      "risk": "Different grain exposure or wood species between sash and jamb creates color mismatch",
+      "mitigation": "Same stain lot, consistent application technique. Test on scrap from each component.",
+      "severity": "minor"
+    }
+  ],
+
+  "assumptions": [
+    {
+      "assumption_id": "A-WIST-001",
+      "field": "window_substrate",
+      "value": "All stain-grade windows are wood (pine, poplar, oak, cherry, walnut, mahogany). Metal and vinyl windows are not stainable.",
+      "source": "Material science",
+      "doctrine_gap": false,
+      "note": "Only wood substrates in this stain spec. Paint counterpart handles wood, aluminum, steel."
+    },
+    {
+      "assumption_id": "A-WIST-002",
+      "field": "glass_masking_stain",
+      "value": "No 1/16-inch seal technique for stain work (that technique creates a paint-to-glass seal for water infiltration prevention). For stain, full masking to tape edge.",
+      "source": "Industry practice",
+      "doctrine_gap": true,
+      "note": "Paint counterpart uses 1/16-inch seal per Window_Systems_Doctrine Section 4.1. Stain does not seal to glass."
+    },
+    {
+      "assumption_id": "A-WIST-003",
+      "field": "size_bucket_stain_modifiers",
+      "value": "Size bucket modifiers for stain work: S=0.75, M=1.00, L=1.40, XL=1.80. Same as paint counterpart.",
+      "source": "Extrapolated from paint counterpart SF_WINDOW_INT_NC",
+      "doctrine_gap": true,
+      "note": "No doctrine defines stain-specific size modifiers. Using paint counterpart modifiers."
+    }
+  ]
+}
