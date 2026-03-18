@@ -1,0 +1,144 @@
+{
+  "spec_family": {
+    "id": "SF_ARCH_ELEMENT_NC_STAIN",
+    "name": "New Construction Architectural Element Stain/Clear Coat",
+    "description": "Covers stain application, sanding sealer, and clear topcoat for standalone decorative architectural elements: exposed beams (LF), decorative columns (EA), and fireplace mantels (EA). Combined spec with coating_type dimension (stain_clear, stain_only, clear_only). Three paintable items with distinct UOMs unified under a single spec. QT3-QT5 range (mantels are focal-point surfaces). Element-type-specific complexity modifiers. Context prefix AEST.",
+    "domain": "interior",
+    "version": "0.1.0",
+    "status": "draft",
+    "review_required": true
+  },
+
+  "scope_boundaries": {
+    "includes": [
+      "Standalone decorative beam staining (exposed 3-sided box beams, faux timber wraps)",
+      "Decorative column wrap staining (square, round, fluted, paneled)",
+      "Fireplace mantel/surround staining (shelf, surround, full assembly)",
+      "Bare wood preparation per element type",
+      "Wood conditioner (softwood + stain, unless gel stain)",
+      "Sanding sealer and clear topcoat application",
+      "Interstage sanding between coats",
+      "Floor protection (perimeter for brush, localized workzone for spray)",
+      "Wall adjacent masking near spray targets",
+      "Fireplace surround masking (mantel work)"
+    ],
+    "excludes": [
+      { "item": "Coffered ceiling beams (integrated into ceiling grid)", "route_to": "SF_WOOD_CEILING_NC_STAIN" },
+      { "item": "Crown molding", "route_to": "SF_TRIM_NC_STAIN" },
+      { "item": "Stone/brick/tile fireplace surround", "route_to": "Not painting scope" },
+      { "item": "Paint workflows", "route_to": "SF_ARCH_ELEMENT_NC" },
+      { "item": "Stair newel posts", "route_to": "Future SF_STAIR_RAILING_NC_STAIN" }
+    ]
+  },
+
+  "configuration_dimensions": [
+    { "dimension_id": "coating_type", "values": ["stain_clear", "stain_only", "clear_only"], "default": "stain_clear" },
+    {
+      "dimension_id": "quality_tier",
+      "values": ["QT3", "QT4", "QT5"],
+      "default": "QT4",
+      "notes": "QT3-QT5. Mantels are focal-point surfaces that benefit from QT5. QT4 is default for architectural elements."
+    },
+    { "dimension_id": "application_method_stain", "values": ["brush", "roll", "spray"], "default": "brush", "visible_when": "coating_type includes stain", "notes": "Brush default for detail work on discrete elements." },
+    { "dimension_id": "application_method_clear", "values": ["brush", "spray"], "default": "brush", "visible_when": "coating_type includes clear" },
+    { "dimension_id": "clear_sheen", "values": ["satin", "semi-gloss", "gloss"], "default": "satin", "visible_when": "coating_type includes clear" },
+    { "dimension_id": "stain_coats", "values": [1, 2], "default": 1 },
+    { "dimension_id": "sealer_coats", "values": [0, 1, 2], "default_by_qt": { "QT3": 0, "QT4": 1, "QT5": 2 } },
+    { "dimension_id": "clear_coats", "values": [1, 2, 3], "default_by_qt": { "QT3": 1, "QT4": 2, "QT5": 3 } },
+    {
+      "dimension_id": "beam_profile",
+      "values": ["small_box", "standard_box", "large_timber", "ornate"],
+      "default": "standard_box",
+      "modifiers": { "small_box": 1.0, "standard_box": 1.10, "large_timber": 1.20, "ornate": 1.40 },
+      "applies_to": "ITM_BEAM tasks only"
+    },
+    {
+      "dimension_id": "column_type",
+      "values": ["square_smooth", "square_detailed", "round_smooth", "round_fluted"],
+      "default": "square_smooth",
+      "modifiers": { "square_smooth": 1.0, "square_detailed": 1.15, "round_smooth": 1.10, "round_fluted": 1.30 },
+      "applies_to": "ITM_COLUMN tasks only"
+    },
+    {
+      "dimension_id": "mantel_type",
+      "values": ["shelf_only", "standard_surround", "full_assembly"],
+      "default": "standard_surround",
+      "modifiers": { "shelf_only": 1.0, "standard_surround": 1.25, "full_assembly": 1.50 },
+      "applies_to": "ITM_MANTEL tasks only"
+    },
+    { "dimension_id": "wood_species_group", "values": ["softwood", "hardwood"], "default": "hardwood" }
+  ],
+
+  "paintable_items": [
+    {
+      "item_id": "ITM_BEAM",
+      "name": "Decorative beam",
+      "unit_of_measure": "LF",
+      "counting_rules": "Running LF of exposed beam. Profile complexity handled by beam_profile modifier.",
+      "conditional": true,
+      "condition": "When beams are in scope",
+      "notes": "Overhead work. Height modifier applies. Beam staining ~50 LF/hr (wider than trim)."
+    },
+    {
+      "item_id": "ITM_COLUMN",
+      "name": "Decorative column wrap",
+      "unit_of_measure": "EA",
+      "counting_rules": "Each column counted individually.",
+      "conditional": true,
+      "condition": "When columns are in scope",
+      "notes": "Full height work. Height modifier applies. Column staining ~30-40 min/EA."
+    },
+    {
+      "item_id": "ITM_MANTEL",
+      "name": "Fireplace mantel/surround",
+      "unit_of_measure": "EA",
+      "counting_rules": "Each mantel counted individually.",
+      "conditional": true,
+      "condition": "When mantels are in scope",
+      "notes": "Wall height (H1 typical). Focal-point surface — benefits from QT5. Mantel staining ~45-60 min/EA."
+    }
+  ],
+
+  "variants": [
+    { "variant_id": "VAR_AEST_QT3_STAIN_CLEAR_BRUSH", "applies_when": { "coating_type": ["stain_clear"], "quality_tier": ["QT3"], "application_method_stain": ["brush"], "application_method_clear": ["brush"] }, "coats": { "stain": 1, "sealer": 0, "clear": 1 }, "notes": "Budget brush. 2 total coats." },
+    { "variant_id": "VAR_AEST_QT4_STAIN_CLEAR_BRUSH", "applies_when": { "coating_type": ["stain_clear"], "quality_tier": ["QT4"], "application_method_stain": ["brush"], "application_method_clear": ["brush"] }, "coats": { "stain": 1, "sealer": 1, "clear": 2 }, "notes": "Standard brush. 4 total coats." },
+    { "variant_id": "VAR_AEST_QT5_STAIN_CLEAR_BRUSH", "applies_when": { "coating_type": ["stain_clear"], "quality_tier": ["QT5"], "application_method_stain": ["brush"], "application_method_clear": ["brush"] }, "coats": { "stain": 1, "sealer": 2, "clear": 3 }, "notes": "Premium brush. 6 total coats. Maximum film build for focal-point mantels." },
+    { "variant_id": "VAR_AEST_QT4_STAIN_CLEAR_SPRAY", "applies_when": { "coating_type": ["stain_clear"], "quality_tier": ["QT4"], "application_method_stain": ["spray"], "application_method_clear": ["spray"] }, "coats": { "stain": 1, "sealer": 1, "clear": 2 }, "protection_zones": ["floor_workzone", "wall_adjacent", "fireplace_surround"], "notes": "Standard spray production." },
+    { "variant_id": "VAR_AEST_QT5_STAIN_CLEAR_SPRAY", "applies_when": { "coating_type": ["stain_clear"], "quality_tier": ["QT5"], "application_method_stain": ["spray"], "application_method_clear": ["spray"] }, "coats": { "stain": 1, "sealer": 2, "clear": 3 }, "protection_zones": ["floor_workzone", "wall_adjacent", "fireplace_surround"], "notes": "Premium spray. 6 total coats." },
+    { "variant_id": "VAR_AEST_QT3_STAIN_ONLY_BRUSH", "applies_when": { "coating_type": ["stain_only"], "quality_tier": ["QT3"], "application_method_stain": ["brush"] }, "coats": { "stain": 1 }, "notes": "Stain-only brush." },
+    { "variant_id": "VAR_AEST_QT5_CLEAR_ONLY_SPRAY", "applies_when": { "coating_type": ["clear_only"], "quality_tier": ["QT5"], "application_method_clear": ["spray"] }, "coats": { "sealer": 2, "clear": 3 }, "notes": "Premium clear-only. Lacquer-compatible." }
+  ],
+
+  "required_paintscope_inputs": [
+    { "input_name": "IN_LF_ARCH_BEAM", "paintscope_key": "PS_SURFACE_LF.ARCH_BEAM", "uom": "LF", "required": false, "required_when": "beams in scope" },
+    { "input_name": "IN_EA_ARCH_COLUMN", "paintscope_key": "PS_SURFACE_EA.ARCH_COLUMN", "uom": "EA", "required": false, "required_when": "columns in scope" },
+    { "input_name": "IN_EA_ARCH_MANTEL", "paintscope_key": "PS_SURFACE_EA.ARCH_MANTEL", "uom": "EA", "required": false, "required_when": "mantels in scope" },
+    { "input_name": "IN_SF_PROTECT_FLOOR_PERIMETER", "paintscope_key": "PS_PROTECT_SF.FLOOR_PERIMETER", "uom": "SF", "required": false, "required_when": "brush method" },
+    { "input_name": "IN_SF_PROTECT_FLOOR_WORKZONE", "paintscope_key": "PS_PROTECT_SF.FLOOR_WORKZONE", "uom": "SF", "required": false, "required_when": "spray method" },
+    { "input_name": "IN_LF_WALL_ADJACENT", "paintscope_key": "PS_PROTECT_LF.WALL_ADJACENT", "uom": "LF", "required": false, "required_when": "spray method" },
+    { "input_name": "IN_ENUM_HEIGHT_BAND", "paintscope_key": "PS_META.HEIGHT_BAND", "uom": "ENUM", "required": true }
+  ],
+
+  "protection_zones_required": [
+    { "zone_id": "floor_workzone", "condition": { "application_method_stain": ["spray"], "application_method_clear": ["spray"] }, "protection_level": "full_cover" },
+    { "zone_id": "floor_perimeter", "condition": { "application_method_stain": ["brush", "roll"], "application_method_clear": ["brush"] }, "protection_level": "edge_only" },
+    { "zone_id": "wall_adjacent", "condition": { "application_method_stain": ["spray"], "application_method_clear": ["spray"] }, "protection_level": "partial_cover" },
+    { "zone_id": "fireplace_surround", "condition": "when mantels in scope and spray", "protection_level": "partial_cover", "notes": "Mask stone/brick/tile surround during mantel spray." }
+  ],
+
+  "state_declarations": {
+    "primary_surfaces": ["beam_wrap", "column_wrap", "mantel"],
+    "valid_input_states": { "states_by_coating_type": { "stain_clear": ["SS_BARE"], "stain_only": ["SS_BARE"], "clear_only": ["SS_BARE", "SS_STAINED"] } },
+    "output_state": { "varies_by": "coating_type", "state_map": { "stain_clear": "SS_CLEAR_COATED", "stain_only": "SS_STAINED", "clear_only": "SS_CLEAR_COATED" } }
+  },
+
+  "relationships": {
+    "paint_counterpart": "SF_ARCH_ELEMENT_NC",
+    "often_combined_with": ["SF_TRIM_NC_STAIN", "SF_WOOD_WALL_NC_STAIN"],
+    "shares_finish_group_with": ["SF_TRIM_NC_STAIN", "SF_WOOD_WALL_NC_STAIN", "SF_WOOD_CEILING_NC_STAIN"]
+  },
+
+  "dependencies": { "research": "research.json", "resolution": "resolution.json", "materials": "materials.json", "sop_modules": "sop_modules.json", "production": "production.json", "qa_report": "qa_report.json" },
+
+  "change_log": [{ "version": "0.1.0", "date": "2026-03-18", "author": "SpecFactory", "changes": "Initial draft. 3 items (beam LF, column EA, mantel EA). QT3-QT5 (mantels focal-point). Element-specific modifiers (beam_profile, column_type, mantel_type). Height modifier for beams/columns. fireplace_surround protection zone. Context prefix AEST." }]
+}

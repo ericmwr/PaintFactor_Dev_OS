@@ -1,0 +1,420 @@
+{
+  "spec_family": {
+    "id": "SF_WOOD_WALL_NC_STAIN",
+    "name": "New Construction Wood Wall Stain/Clear Coat",
+    "description": "Covers stain application, sanding sealer, and clear topcoat for wood wall panel/board surfaces in new construction. Combined spec with coating_type dimension (stain_clear, stain_only, clear_only). Stain phase includes wipe step for all methods. Sealer and clear phases use independent application method selection. Uses SF as primary UOM. Wall_style (shiplap, tongue_groove, panel) drives production rate modifier. Spray is common production method for large field surfaces. Material systems are product-role-based recommendations — contractor retains discretion. Context prefix WWST avoids collision with paint counterpart SF_WOOD_WALL_NC (prefix WDWL).",
+    "domain": "interior",
+    "version": "0.1.0",
+    "status": "draft",
+    "review_required": true
+  },
+
+  "scope_boundaries": {
+    "includes": [
+      "Stain application on bare wood wall panels/boards (brush+wipe, roll+wipe, spray+wipe)",
+      "Second stain coat application (optional, user-selectable)",
+      "Sanding sealer application (0-2 coats, QT-driven defaults)",
+      "Clear topcoat application (1-3 coats, QT-driven defaults)",
+      "Bare wood preparation (inspect, sand 120-150 grit, fill defects with wood filler, grain raise for waterborne, tack clean)",
+      "Wood conditioner application (softwood + stain, unless gel stain)",
+      "Interstage sanding between sealer coats (220-320 grit)",
+      "Interstage sanding between clear coats (320-400 grit)",
+      "Stain dry verification before sealer/clear application",
+      "Floor protection (full for spray, perimeter for brush)",
+      "Ceiling edge masking (spray or when ceiling is SS_PAINTED_*)",
+      "Adjacent trim masking (when spraying near finished trim)",
+      "Final inspection and touch-up",
+      "Shiplap wood wall stain/clear coat",
+      "Tongue and groove wood wall stain/clear coat",
+      "Flat/raised panel wood wall stain/clear coat"
+    ],
+    "excludes": [
+      {
+        "item": "Crown molding stain/clear coat",
+        "route_to": "SF_TRIM_NC_STAIN"
+      },
+      {
+        "item": "Baseboard stain/clear coat",
+        "route_to": "SF_TRIM_NC_STAIN"
+      },
+      {
+        "item": "Door/window casing stain/clear coat",
+        "route_to": "SF_DOOR_FRAME_NC_STAIN / SF_WINDOW_INT_NC_STAIN"
+      },
+      {
+        "item": "Paint workflows (prime + finish coat)",
+        "route_to": "SF_WOOD_WALL_NC"
+      },
+      {
+        "item": "Wainscot panel stain (partial-height)",
+        "route_to": "SF_WAINSCOT_PANEL_NC_STAIN"
+      },
+      {
+        "item": "Interior repaint stain (stripping existing finish)",
+        "route_to": "Future RP stain spec"
+      },
+      {
+        "item": "Exterior wood staining",
+        "route_to": "Exterior spec"
+      }
+    ]
+  },
+
+  "configuration_dimensions": [
+    {
+      "dimension_id": "coating_type",
+      "description": "Primary configuration dimension — drives layer stack, material systems, and module activation.",
+      "values": ["stain_clear", "stain_only", "clear_only"],
+      "default": "stain_clear",
+      "notes": "stain_clear is the professional standard. stain_only is rare (unprotected). clear_only for natural wood or pre-stained."
+    },
+    {
+      "dimension_id": "quality_tier",
+      "description": "Quality tier controlling inspection scrutiny, sanding discipline, and coat count defaults.",
+      "values": ["QT3", "QT4"],
+      "default": "QT3",
+      "notes": "QT3=budget (1 stain + 0 sealer + 1 clear = 2 coats). QT4=standard (1 stain + 1 sealer + 2 clear = 4 coats). QT5 not applicable — wood walls are field surfaces, not focal-point millwork."
+    },
+    {
+      "dimension_id": "application_method_stain",
+      "description": "Stain application technique. All stain methods include a wipe step.",
+      "values": ["brush", "roll", "spray"],
+      "default": "spray",
+      "visible_when": "coating_type includes stain (stain_clear or stain_only)",
+      "notes": "Spray is default for large field surfaces — most efficient. Roll is fast for flat areas. Brush for detail. All methods include wipe-back step."
+    },
+    {
+      "dimension_id": "application_method_clear",
+      "description": "Clear coat application technique. No roll option — causes air bubbles in clear coat.",
+      "values": ["brush", "spray"],
+      "default": "spray",
+      "visible_when": "coating_type includes clear (stain_clear or clear_only)",
+      "notes": "Spray is default for large wall surfaces. Brush for occupied/small areas. Roll PROHIBITED for clear coat."
+    },
+    {
+      "dimension_id": "clear_sheen",
+      "description": "Clear coat sheen. Drives product selection.",
+      "values": ["satin", "semi-gloss", "gloss"],
+      "default": "satin",
+      "visible_when": "coating_type includes clear (stain_clear or clear_only)",
+      "notes": "Satin is most popular for residential wood walls. No sheen/QT gate."
+    },
+    {
+      "dimension_id": "stain_coats",
+      "description": "Number of stain coats.",
+      "values": [1, 2],
+      "default": 1,
+      "visible_when": "coating_type includes stain",
+      "notes": "1 coat is standard. 2 coats for deeper color."
+    },
+    {
+      "dimension_id": "sealer_coats",
+      "description": "Number of sanding sealer coats.",
+      "values": [0, 1, 2],
+      "default_by_qt": { "QT3": 0, "QT4": 1 },
+      "visible_when": "coating_type includes clear",
+      "notes": "QT3 skips sealer (budget). QT4 uses 1 coat."
+    },
+    {
+      "dimension_id": "clear_coats",
+      "description": "Number of clear topcoats.",
+      "values": [1, 2, 3],
+      "default_by_qt": { "QT3": 1, "QT4": 2 },
+      "visible_when": "coating_type includes clear",
+      "notes": "QT3 uses 1 coat. QT4 uses 2 coats."
+    },
+    {
+      "dimension_id": "wall_style",
+      "description": "Wood wall construction type. Drives production rate modifier.",
+      "values": ["shiplap", "tongue_groove", "panel"],
+      "default": "shiplap",
+      "modifiers": {
+        "shiplap": 1.15,
+        "tongue_groove": 1.10,
+        "panel": 1.00
+      },
+      "notes": "shiplap=1.15x (V-groove detail at each joint, stain pools in grooves). tongue_groove=1.10x (tight joints, less groove detail). panel=1.00x baseline (flat panel surfaces). Wood wall staining typically more complex than painting due to grain attention."
+    },
+    {
+      "dimension_id": "wood_species_group",
+      "description": "Wood species grouping. Drives wood conditioner activation for softwood.",
+      "values": ["softwood", "hardwood"],
+      "default": "hardwood",
+      "notes": "Softwood requires pre-stain wood conditioner unless gel stain."
+    }
+  ],
+
+  "paintable_items": [
+    {
+      "item_id": "ITM_WOOD_WALL",
+      "name": "Wood wall panel/board surface",
+      "unit_of_measure": "SF",
+      "counting_rules": "Total SF of wood wall surface from floor to ceiling. Includes board faces and joint detail (shiplap, T&G) or panel faces. Sourced from PaintScope input PS_SURFACE_SF.WOOD_WALL.",
+      "notes": "Single SF item. Height varies per room — estimation engine applies height modifier via PS_META.HEIGHT_BAND. Wall_style modifier captures groove/joint complexity."
+    }
+  ],
+
+  "variants": [
+    {
+      "variant_id": "VAR_WWST_QT3_STAIN_CLEAR_SPRAY",
+      "applies_when": {
+        "coating_type": ["stain_clear"],
+        "quality_tier": ["QT3"],
+        "application_method_stain": ["spray"],
+        "application_method_clear": ["spray"]
+      },
+      "coats": { "stain": 1, "sealer": 0, "clear": 1 },
+      "protection_zones": ["floor_full", "ceiling_edge", "adjacent_trim_mask"],
+      "notes": "Budget spray — most common NC production scenario for wood walls. 2 total coats."
+    },
+    {
+      "variant_id": "VAR_WWST_QT4_STAIN_CLEAR_SPRAY",
+      "applies_when": {
+        "coating_type": ["stain_clear"],
+        "quality_tier": ["QT4"],
+        "application_method_stain": ["spray"],
+        "application_method_clear": ["spray"]
+      },
+      "coats": { "stain": 1, "sealer": 1, "clear": 2 },
+      "protection_zones": ["floor_full", "ceiling_edge", "adjacent_trim_mask"],
+      "notes": "Standard spray. 4 total coats. Professional residential standard."
+    },
+    {
+      "variant_id": "VAR_WWST_QT3_STAIN_CLEAR_BRUSH",
+      "applies_when": {
+        "coating_type": ["stain_clear"],
+        "quality_tier": ["QT3"],
+        "application_method_stain": ["brush"],
+        "application_method_clear": ["brush"]
+      },
+      "coats": { "stain": 1, "sealer": 0, "clear": 1 },
+      "notes": "Budget brush. 2 total coats."
+    },
+    {
+      "variant_id": "VAR_WWST_QT4_STAIN_CLEAR_BRUSH",
+      "applies_when": {
+        "coating_type": ["stain_clear"],
+        "quality_tier": ["QT4"],
+        "application_method_stain": ["brush"],
+        "application_method_clear": ["brush"]
+      },
+      "coats": { "stain": 1, "sealer": 1, "clear": 2 },
+      "notes": "Standard brush. 4 total coats."
+    },
+    {
+      "variant_id": "VAR_WWST_QT4_STAIN_CLEAR_ROLL_SPRAY",
+      "applies_when": {
+        "coating_type": ["stain_clear"],
+        "quality_tier": ["QT4"],
+        "application_method_stain": ["roll"],
+        "application_method_clear": ["spray"]
+      },
+      "coats": { "stain": 1, "sealer": 1, "clear": 2 },
+      "protection_zones": ["floor_full", "ceiling_edge", "adjacent_trim_mask"],
+      "notes": "Production variant. Roll stain (speed on large field) + spray clear (finish quality)."
+    },
+    {
+      "variant_id": "VAR_WWST_QT3_STAIN_ONLY_SPRAY",
+      "applies_when": {
+        "coating_type": ["stain_only"],
+        "quality_tier": ["QT3"],
+        "application_method_stain": ["spray"]
+      },
+      "coats": { "stain": 1 },
+      "notes": "Stain-only spray. Minimal workflow."
+    },
+    {
+      "variant_id": "VAR_WWST_QT4_CLEAR_ONLY_SPRAY",
+      "applies_when": {
+        "coating_type": ["clear_only"],
+        "quality_tier": ["QT4"],
+        "application_method_clear": ["spray"]
+      },
+      "coats": { "sealer": 1, "clear": 2 },
+      "protection_zones": ["floor_full", "ceiling_edge", "adjacent_trim_mask"],
+      "notes": "Clear-only spray on natural or pre-stained wood. 3 coats."
+    }
+  ],
+
+  "required_paintscope_inputs": [
+    {
+      "input_name": "IN_SF_WOOD_WALL",
+      "paintscope_key": "PS_SURFACE_SF.WOOD_WALL",
+      "uom": "SF",
+      "required": true,
+      "description": "Total SF of wood wall surface"
+    },
+    {
+      "input_name": "IN_SF_PROTECT_FLOOR_EXPOSED",
+      "paintscope_key": "PS_PROTECT_SF.FLOOR_EXPOSED",
+      "uom": "SF",
+      "required": false,
+      "required_when": "application_method_stain = spray OR application_method_clear = spray",
+      "description": "Full floor protection area for spray method"
+    },
+    {
+      "input_name": "IN_SF_PROTECT_FLOOR_PERIMETER",
+      "paintscope_key": "PS_PROTECT_SF.FLOOR_PERIMETER",
+      "uom": "SF",
+      "required": false,
+      "required_when": "application_method_stain = brush AND application_method_clear = brush",
+      "description": "Perimeter floor protection for brush method"
+    },
+    {
+      "input_name": "IN_LF_PROTECT_CEILING_EDGE",
+      "paintscope_key": "PS_PROTECT_LF.CEILING_EDGE",
+      "uom": "LF",
+      "required": false,
+      "required_when": "spray method or ceiling is SS_PAINTED_*",
+      "description": "Ceiling edge masking LF at wall-ceiling junction"
+    },
+    {
+      "input_name": "IN_LF_PROTECT_TRIM_ADJACENT",
+      "paintscope_key": "PS_PROTECT_LF.TRIM_ADJACENT",
+      "uom": "LF",
+      "required": false,
+      "required_when": "spray method and trim is finished",
+      "description": "Trim masking LF near spray zone"
+    },
+    {
+      "input_name": "IN_ENUM_HEIGHT_BAND",
+      "paintscope_key": "PS_META.HEIGHT_BAND",
+      "uom": "ENUM",
+      "required": true,
+      "description": "Height classification for modifier selection"
+    }
+  ],
+
+  "protection_zones_required": [
+    {
+      "zone_id": "floor_full",
+      "condition": { "application_method_stain": ["spray"], "application_method_clear": ["spray"] },
+      "protection_level": "full_cover",
+      "notes": "Full floor coverage for spray. Stain drips and overspray from large wall surfaces."
+    },
+    {
+      "zone_id": "floor_perimeter",
+      "condition": { "application_method_stain": ["brush", "roll"], "application_method_clear": ["brush"] },
+      "protection_level": "edge_only",
+      "notes": "Perimeter drop cloths for brush/roll method."
+    },
+    {
+      "zone_id": "ceiling_edge",
+      "condition": { "application_method_stain": ["spray"], "application_method_clear": ["spray"] },
+      "protection_level": "light_mask",
+      "notes": "Tape + paper at ceiling-wall junction for spray. Also required when ceiling is SS_PAINTED_*."
+    },
+    {
+      "zone_id": "adjacent_trim_mask",
+      "condition": { "application_method_stain": ["spray"], "application_method_clear": ["spray"] },
+      "protection_level": "light_mask",
+      "notes": "Mask adjacent finished trim during spray. Stain penetrates and cannot be wiped off finished trim."
+    }
+  ],
+
+  "adjacency_declarations": {
+    "primary_surface": "wood_wall",
+    "adjacent_surfaces": [
+      {
+        "surface_id": "ceiling_field",
+        "edge_type": "linear",
+        "typical_relationship": "different_finish",
+        "continuity_rate_modifier": 1.0,
+        "affected_tasks": ["TSK_WWST_CEILING_MASK"],
+        "notes": "Wood wall meets ceiling directly. Different finish — stained wall vs painted ceiling."
+      },
+      {
+        "surface_id": "trim_baseboard",
+        "edge_type": "linear",
+        "typical_relationship": "same_finish",
+        "continuity_rate_modifier": 1.15,
+        "affected_tasks": [],
+        "notes": "Baseboard often stained with same stain/clear. Handled by SF_TRIM_NC_STAIN."
+      },
+      {
+        "surface_id": "wall_field",
+        "edge_type": "linear",
+        "typical_relationship": "different_finish",
+        "continuity_rate_modifier": 1.0,
+        "affected_tasks": [],
+        "notes": "Adjacent drywall at inside corner transitions."
+      }
+    ]
+  },
+
+  "state_declarations": {
+    "primary_surface": "wood_wall",
+
+    "valid_input_states": {
+      "states_by_coating_type": {
+        "stain_clear": ["SS_BARE"],
+        "stain_only": ["SS_BARE"],
+        "clear_only": ["SS_BARE", "SS_STAINED"]
+      },
+      "notes": "Bare wood is primary input. clear_only also accepts SS_STAINED."
+    },
+
+    "output_state": {
+      "varies_by": "coating_type",
+      "state_map": {
+        "stain_clear": "SS_CLEAR_COATED",
+        "stain_only": "SS_STAINED",
+        "clear_only": "SS_CLEAR_COATED"
+      }
+    }
+  },
+
+  "site_condition_rules": [
+    {
+      "condition_id": "floor_type",
+      "include_when": ["finished", "partial"],
+      "exclude_when": ["subfloor"],
+      "affected_tasks": ["TSK_WWST_FLOOR_PROTECT", "TSK_WWST_REMOVE_MASK"],
+      "effect": "Floor protection excluded when floor is subfloor."
+    },
+    {
+      "condition_id": "access_constraint",
+      "include_when": ["step_ladder", "extension_ladder"],
+      "affected_tasks": ["TSK_WWST_STAIN_COAT_1_BRUSH", "TSK_WWST_STAIN_COAT_1_ROLL", "TSK_WWST_STAIN_COAT_1_SPRAY", "TSK_WWST_CLEAR_COAT_1_BRUSH", "TSK_WWST_CLEAR_COAT_1_SPRAY"],
+      "effect": "Height modifier: H2=1.30 for 9-12ft, H3=1.50 for 13ft+."
+    }
+  ],
+
+  "sequencing_notes": {
+    "production_sequence": "Wood wall staining typically occurs BEFORE wall finishing in NC. Staining requires bare wood.",
+    "coat_sequence": "Setup > Prep (sand, fill, grain raise, condition) > Stain coat 1 (+wipe) > [Stain coat 2] > Stain dry > Sealer > Sealer sand > Clear coat 1 > [Clear interstage > Clear coat 2] > Final inspect > Cleanup",
+    "companion_spec": null
+  },
+
+  "relationships": {
+    "companion_spec": null,
+    "paint_counterpart": "SF_WOOD_WALL_NC",
+    "often_combined_with": ["SF_TRIM_NC_STAIN"],
+    "shares_finish_group_with": ["SF_TRIM_NC_STAIN", "SF_WAINSCOT_PANEL_NC_STAIN"]
+  },
+
+  "dependencies": {
+    "research": "research.json",
+    "resolution": "resolution.json",
+    "materials": "materials.json",
+    "sop_modules": "sop_modules.json",
+    "production": "production.json",
+    "qa_report": "qa_report.json"
+  },
+
+  "doctrine_references": [
+    { "doctrine": "Millwork_NC_Paint_Doctrine.md", "sections_used": ["Section 7.2 — Wall Style Complexity Modifiers"] },
+    { "doctrine": "Quality_Tiers_and_Surface_Condition.md", "sections_used": ["QT3-QT4 Definitions"] },
+    { "doctrine": "Modifier_Registry.md", "sections_used": ["Height Modifiers"] },
+    { "doctrine": "Interior Stain/Clear Coat Design Document", "sections_used": ["Section 4-7, Section 11"] }
+  ],
+
+  "change_log": [
+    {
+      "version": "0.1.0",
+      "date": "2026-03-18",
+      "author": "SpecFactory",
+      "changes": "Initial draft. Wood wall stain/clear coat with coating_type dimension, wall_style modifier (shiplap/tongue_groove/panel), QT3-QT4, spray-default for large field surfaces, 14-module SOP architecture inherited from trim stain canonical. Context prefix WWST."
+    }
+  ]
+}
