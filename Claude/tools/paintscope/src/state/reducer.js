@@ -22,7 +22,8 @@ export function reducer(state, action) {
     }
     case 'SET_VIEW': return { ...state, ui: { ...state.ui, view: payload } };
     case 'SET_TAB': return { ...state, ui: { ...state.ui, activeTab: payload } };
-    case 'SET_ACTIVE_ROOM': return { ...state, ui: { ...state.ui, activeRoomId: payload } };
+    case 'SET_SCOPE_MODE': return { ...state, ui: { ...state.ui, scopeMode: payload } };
+    case 'SET_ACTIVE_ROOM': return { ...state, ui: { ...state.ui, activeRoomId: payload, scopeMode: 'interior' } };
     case 'ADD_ROOM': {
       const room = createRoom(payload || {});
       const projSubs = state.project.default_substrates || [];
@@ -40,7 +41,7 @@ export function reducer(state, action) {
           room.substrates[subId] = createSubstrateConfig(subId);
         }
       });
-      return { ...state, rooms:[...state.rooms, room], ui:{...state.ui, activeRoomId:room.id, activeTab:'scope', view:'editor'} };
+      return { ...state, rooms:[...state.rooms, room], ui:{...state.ui, activeRoomId:room.id, activeTab:'scope', view:'scope', scopeMode:'interior'} };
     }
     case 'REMOVE_ROOM': {
       const rooms = state.rooms.filter(r => r.id !== payload);
@@ -91,12 +92,32 @@ export function reducer(state, action) {
       const { roomId, substrateId, field, value } = payload;
       return mapRoom(roomId, r => {
         if (!r.substrates[substrateId]) return r;
+        // Apply the primary field change
+        let updated = { ...r.substrates[substrateId], [field]: value };
+
+        // QT-driven coat count defaults helper
+        const COAT_DEFAULTS = {
+          QT3: { stain_coats: 1, sealer_coats: 0, clear_coats: 1 },
+          QT4: { stain_coats: 1, sealer_coats: 1, clear_coats: 2 },
+          QT5: { stain_coats: 1, sealer_coats: 2, clear_coats: 3 },
+        };
+
+        // When coating_type changes to stain/clear, set coat count defaults from current QT
+        if (field === 'coating_type' && value !== 'paint') {
+          const qt = updated.quality_tier || state.project.default_quality_tier || 'QT3';
+          const d = COAT_DEFAULTS[qt] || COAT_DEFAULTS.QT3;
+          updated = { ...updated, ...d };
+        }
+
+        // When QT changes and coating_type is stain/clear, reset coat defaults
+        if (field === 'quality_tier' && updated.coating_type && updated.coating_type !== 'paint') {
+          const d = COAT_DEFAULTS[value] || COAT_DEFAULTS.QT3;
+          updated = { ...updated, ...d };
+        }
+
         return {
           ...r,
-          substrates: {
-            ...r.substrates,
-            [substrateId]: { ...r.substrates[substrateId], [field]: value }
-          }
+          substrates: { ...r.substrates, [substrateId]: updated }
         };
       });
     }
@@ -317,7 +338,7 @@ export function reducer(state, action) {
           ...state.exterior,
           elevations: [...state.exterior.elevations, elev]
         },
-        ui: { ...state.ui, activeElevationId: elev.id }
+        ui: { ...state.ui, activeElevationId: elev.id, scopeMode: 'exterior', view: 'scope' }
       };
     }
     case 'REMOVE_ELEVATION': {
@@ -326,7 +347,7 @@ export function reducer(state, action) {
       return {
         ...state,
         exterior: { ...state.exterior, elevations: elevs },
-        ui: { ...state.ui, activeElevationId: activeId }
+        ui: { ...state.ui, activeElevationId: activeId, scopeMode: elevs.length > 0 ? 'exterior' : state.ui.scopeMode }
       };
     }
     case 'DUPLICATE_ELEVATION': {
@@ -363,7 +384,7 @@ export function reducer(state, action) {
       };
     }
     case 'SET_ACTIVE_ELEVATION': {
-      return { ...state, ui: { ...state.ui, activeElevationId: payload } };
+      return { ...state, ui: { ...state.ui, activeElevationId: payload, scopeMode: 'exterior' } };
     }
 
     // ── Siding Sections ──
@@ -781,6 +802,25 @@ export function reducer(state, action) {
         exterior: {
           ...state.exterior,
           defaults: { ...state.exterior.defaults, [payload.field]: payload.value }
+        }
+      };
+    }
+    case 'SET_EXTERIOR_PROJECT_TYPE': {
+      const newType = payload; // 'NC' | 'RP'
+      const defaultState = newType === 'RP' ? 'sound_paint' : 'factory_primed';
+      const defaultTrimState = newType === 'RP' ? 'sound_paint' : 'bare_wood';
+      const defaultCondition = newType === 'RP' ? 'GOOD' : null;
+      return {
+        ...state,
+        exterior: {
+          ...state.exterior,
+          project_type: newType,
+          defaults: {
+            ...state.exterior.defaults,
+            siding_substrate_state: defaultState,
+            trim_substrate_state: defaultTrimState,
+            condition_scale: defaultCondition,
+          }
         }
       };
     }
