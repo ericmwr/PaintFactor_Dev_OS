@@ -48,3 +48,44 @@ export function resolveTextureForSpec(specId, room, project) {
   // Fallback: walls texture -> ceiling texture -> project default
   return (room.substrates?.walls?.texture) || (room.substrates?.ceiling?.texture) || project.default_texture;
 }
+
+export function resolveCoatingType(specId, room, project) {
+  const primarySub = SPEC_SUBSTRATE_MAP[specId];
+  if (!primarySub) return 'paint';
+  const config = room.substrates?.[primarySub];
+  return config?.coating_type || 'paint';
+}
+
+export function resolveStainMethod(specId, room, project) {
+  const primarySub = SPEC_SUBSTRATE_MAP[specId];
+  const config = room.substrates?.[primarySub];
+  return config?.application_method_stain || 'brush';
+}
+
+export function resolveClearMethod(specId, room, project) {
+  const primarySub = SPEC_SUBSTRATE_MAP[specId];
+  const config = room.substrates?.[primarySub];
+  return config?.application_method_clear || 'brush';
+}
+
+export function resolveCoatCounts(specId, room, project) {
+  const primarySub = SPEC_SUBSTRATE_MAP[specId];
+  const config = room.substrates?.[primarySub];
+  return {
+    stain_coats: config?.stain_coats ?? 1,
+    sealer_coats: config?.sealer_coats ?? 0,
+    clear_coats: config?.clear_coats ?? 1,
+  };
+}
+
+export function resolveClearSheen(specId, room, project) {
+  const primarySub = SPEC_SUBSTRATE_MAP[specId];
+  const config = room.substrates?.[primarySub];
+  return config?.clear_sheen || 'satin';
+}
+
+export function resolveWoodSpecies(specId, room, project) {
+  const primarySub = SPEC_SUBSTRATE_MAP[specId];
+  const config = room.substrates?.[primarySub];
+  return config?.wood_species_group || 'hardwood';
+}
