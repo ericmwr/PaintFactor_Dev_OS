@@ -1,0 +1,163 @@
+{
+  "research_metadata": {
+    "spec_family_id": "SF_DOOR_SLAB_INT_NC_STAIN",
+    "research_mode": "lightweight",
+    "design_spec_source": "docs/superpowers/specs/2026-03-18-interior-stain-clear-coat-specs-design.md",
+    "paint_counterpart_source": "specs/SF_DOOR_SLAB_INT_NC_v1/",
+    "canonical_stain_source": "specs/SF_TRIM_NC_STAIN_v1/",
+    "sibling_specs_reviewed": [
+      "specs/SF_DOOR_SLAB_INT_NC_v1/spec.json",
+      "specs/SF_TRIM_NC_STAIN_v1/spec.json",
+      "specs/SF_TRIM_NC_STAIN_v1/research.json"
+    ],
+    "researcher": "Spec Researcher Agent",
+    "date": "2026-03-18",
+    "status": "draft",
+    "review_required": true
+  },
+
+  "domain_analysis": {
+    "scope": "Interior new construction door slab stain and clear coat workflows",
+    "workflow_overview": "Three-layer coating system: stain (color) > sanding sealer (adhesion bridge + smooth base) > clear topcoat (protection + depth). EA-based per door slab. Door style modifiers drive significant rate variation. Sides dimension controls 1 or 2 face coverage.",
+    "key_differences_from_paint": [
+      "Bare wood input (SS_BARE) instead of primed surface",
+      "No companion prime spec — stain spec handles all prep and coating layers",
+      "Three product roles (stain, sealer, clear) instead of one (finish)",
+      "Independent application method selection for stain vs clear phases",
+      "Wipe step mandatory for all stain application methods",
+      "Wood conditioner activation for softwood species",
+      "Grain raise management for waterborne products on bare wood",
+      "Door style modifiers adapted from paint spec complexity modifiers",
+      "No sheen/QT gate — all clear sheens available at all tiers"
+    ],
+    "key_differences_from_trim_stain": [
+      "EA-based (per door) instead of LF-based (per linear foot)",
+      "Door style modifiers instead of profile complexity modifiers",
+      "Sides dimension (1 or 2 faces) — unique to door spec",
+      "Fewer protection zones (floor_full + wall_adjacent vs floor_perimeter + wall_adjacent + fixture_covers)",
+      "Single paintable item (ITM_DOOR_SLAB) vs 7 trim types",
+      "Production rates expressed in minutes per EA instead of LF per hour"
+    ]
+  },
+
+  "required_paintscope_keys": [
+    { "paintscope_key": "PS_SURFACE_EA.DOOR_SLAB_STAIN", "input_name": "IN_EA_DOOR_SLAB_STAIN", "uom": "EA", "status": "proposed", "description": "Count of door slabs to stain" },
+    { "paintscope_key": "PS_PROTECT_SF.FLOOR_FULL", "input_name": "IN_SF_PROTECT_FLOOR_FULL", "uom": "SF", "status": "existing", "description": "Floor protection area under door work zone" },
+    { "paintscope_key": "PS_PROTECT_LF.WALL_ADJACENT", "input_name": "IN_LF_WALL_ADJACENT", "uom": "LF", "status": "proposed", "description": "Wall masking LF adjacent to door opening" }
+  ],
+
+  "protection_zones_analysis": {
+    "spec_category": "door_slab",
+    "application_method_sensitivity": true,
+    "zones": [
+      {
+        "zone_id": "floor_full",
+        "condition": "floor_type = finished or partial",
+        "protection_level": "full_cover",
+        "method_dependent": false,
+        "notes": "Full drop cloths under door work area. Stain drips critical to catch."
+      },
+      {
+        "zone_id": "wall_adjacent",
+        "condition": "spray method or walls SS_PAINTED_*",
+        "protection_level": "light_mask",
+        "method_dependent": true,
+        "notes": "Wall masking adjacent to door opening. Stain is difficult to remove from painted surfaces."
+      }
+    ]
+  },
+
+  "adjacency_analysis": {
+    "primary_adjacency": "door_to_frame",
+    "analysis": [
+      {
+        "adjacent_surface": "door_frame",
+        "edge_type": "complex",
+        "interface_concern": "Door slab meets frame at reveal. Often same stain/clear finish.",
+        "protection_approach": "No protection when same finish. Different finish requires masking at reveal line."
+      },
+      {
+        "adjacent_surface": "wall_field",
+        "edge_type": "linear",
+        "interface_concern": "Door at opening. Stain harder to clean from painted walls.",
+        "protection_approach": "Wall masking for spray or when walls finished."
+      }
+    ]
+  },
+
+  "state_analysis": {
+    "input_states": {
+      "stain_clear": ["SS_BARE"],
+      "stain_only": ["SS_BARE"],
+      "clear_only": ["SS_BARE", "SS_STAINED"]
+    },
+    "output_states": {
+      "stain_clear": "SS_CLEAR_COATED",
+      "stain_only": "SS_STAINED",
+      "clear_only": "SS_CLEAR_COATED"
+    },
+    "new_states_required": [],
+    "notes": "SS_STAINED and SS_CLEAR_COATED already registered by SF_TRIM_NC_STAIN (Tier 1 canonical spec)."
+  },
+
+  "production_rate_analysis": {
+    "key_rates": {
+      "stain_brush_wipe_per_door": "30-45 min/EA — brush stain + wipe on one door slab (2 sides). Includes dwell + wipe time.",
+      "stain_spray_wipe_per_door": "20-30 min/EA — spray stain + wipe. Faster application offset by wipe.",
+      "clear_brush_per_door": "20-30 min/EA per coat — brush clear coat on one door slab.",
+      "clear_spray_per_door": "15-20 min/EA per coat — spray clear coat.",
+      "sealer_per_door": "15-20 min/EA per coat — thin sealer application.",
+      "bare_wood_sand_per_door": "20-30 min/EA — sand both sides 120 then 150 grit.",
+      "interstage_sand_per_door": "10-15 min/EA — light sand between coats."
+    },
+    "door_style_modifiers": {
+      "slab": "1.00 — flat flush door, fastest",
+      "shaker": "1.25 — recessed panel, stain pooling in panel detail",
+      "raised_panel": "1.35 — profiled faces, more wipe attention in detail",
+      "glass_frame": "1.80 — glass masking adds significant time"
+    }
+  },
+
+  "risk_notes": [
+    {
+      "risk_id": "RISK_DSST_001",
+      "topic": "Stain pooling in panel detail",
+      "risk": "Stain collects in recesses of panel and shaker style doors, creating uneven color",
+      "mitigation": "Thorough wipe-out of panel details. Extra attention to inside corners. Apply thin coats.",
+      "severity": "major"
+    },
+    {
+      "risk_id": "RISK_DSST_002",
+      "topic": "Edge staining visibility",
+      "risk": "Door edges are visible when door is open. Uneven stain on edges is noticeable.",
+      "mitigation": "Stain edges first, then faces. Consistent wipe technique on narrow edge surface.",
+      "severity": "minor"
+    },
+    {
+      "risk_id": "RISK_DSST_003",
+      "topic": "Clear coat runs on vertical door face",
+      "risk": "Clear coat applied too heavily on vertical door face creates runs/sags",
+      "mitigation": "Thin, even coats. Tip off with grain. Watch for runs at panel detail transitions.",
+      "severity": "major"
+    }
+  ],
+
+  "assumptions": [
+    {
+      "assumption_id": "A-DSST-001",
+      "field": "door_orientation",
+      "value": "Doors may be stained on or off hinges. On-hinge is standard NC production (doors already hung). Off-hinge (on sawhorses) gives better access but requires more handling.",
+      "source": "Industry practice",
+      "doctrine_gap": true,
+      "note": "Production rates assume on-hinge staining for brush method, either for spray."
+    },
+    {
+      "assumption_id": "A-DSST-002",
+      "field": "sides_independence",
+      "value": "When sides=2, both faces receive same stain/clear treatment. Different stain colors per side is not supported in this spec.",
+      "source": "Design simplification",
+      "doctrine_gap": false,
+      "note": "Two-tone stain doors are extremely rare in NC."
+    }
+  ]
+}

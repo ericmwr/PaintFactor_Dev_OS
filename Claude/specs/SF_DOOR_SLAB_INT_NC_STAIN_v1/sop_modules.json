@@ -1,0 +1,594 @@
+{
+  "spec_family_id": "SF_DOOR_SLAB_INT_NC_STAIN",
+  "version": "0.1.0",
+  "generated_by": "SOP Librarian",
+  "generated_at": "2026-03-18",
+
+  "sop_modules": [
+    {
+      "module_id": "MOD_DSST_SETUP",
+      "name": "Door Slab Stain/Clear Setup",
+      "description": "Floor protection and wall masking for door slab stain and clear coat work.",
+      "phase": "setup",
+      "applies_when": {},
+      "required_inputs": [
+        { "input_name": "IN_SF_PROTECT_FLOOR_FULL", "paintscope_key": "PS_PROTECT_SF.FLOOR_FULL", "uom": "SF" },
+        { "input_name": "IN_LF_WALL_ADJACENT", "paintscope_key": "PS_PROTECT_LF.WALL_ADJACENT", "uom": "LF" }
+      ],
+      "tasks": [
+        {
+          "task_id": "TSK_DSST_FLOOR_PROTECT",
+          "name": "Floor Protection Setup",
+          "description": "Set up drop cloths under door work area. Stain drips are especially difficult to clean.",
+          "task_type": "protect",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "tools_required": ["drop_cloth_canvas"],
+          "protection_metadata": { "action": "setup", "zones": ["floor_full"], "method_dependent": false },
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "site_condition_rules": [{ "condition_id": "floor_type", "include_when": ["finished", "partial"], "exclude_when": ["subfloor"] }],
+          "quality_notes": { "all": "Full coverage under door swing area. Canvas drops preferred for stain work." }
+        },
+        {
+          "task_id": "TSK_DSST_WALL_MASK",
+          "name": "Wall Masking Adjacent to Door",
+          "description": "Apply masking at wall adjacent to door opening. Required for spray. Also required when walls are SS_PAINTED_*.",
+          "task_type": "protect",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "tools_required": ["masking_tape"],
+          "protection_metadata": { "action": "setup", "zones": ["wall_adjacent"], "method_dependent": true },
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": { "all": "Complete tape line at wall-door junction." }
+        }
+      ],
+      "sequence_notes": "Floor protection first, then wall masking (if applicable)."
+    },
+
+    {
+      "module_id": "MOD_DSST_PREP",
+      "name": "Bare Wood Door Slab Preparation",
+      "description": "Prepare bare wood door slab for staining. Sand to profile (120 then 150 grit), fill defects, grain raise treatment, tack clean.",
+      "phase": "prep",
+      "applies_when": {},
+      "required_inputs": [
+        { "input_name": "IN_EA_DOOR_SLAB_STAIN", "paintscope_key": "PS_SURFACE_EA.DOOR_SLAB_STAIN", "uom": "EA" }
+      ],
+      "tasks": [
+        {
+          "task_id": "TSK_DSST_INSPECT_BARE",
+          "name": "Inspect Bare Wood Door",
+          "description": "Visual inspection of bare wood door surfaces. Check for mill marks, dents, defects, grain consistency.",
+          "task_type": "inspect",
+          "task_classification": "qt_scaled",
+          "skill_level": "journeyman",
+          "tools_required": ["work_light"],
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": {
+            "QT3": "Quick scan — obvious defects",
+            "QT4": "Systematic inspection — mark all visible defects",
+            "QT5": "Thorough inspection under raking light — every imperfection"
+          }
+        },
+        {
+          "task_id": "TSK_DSST_SAND_BARE_120",
+          "name": "Sand Bare Wood (120 Grit)",
+          "description": "Initial sanding with 120-grit to remove mill marks. Sand WITH grain direction.",
+          "task_type": "prep",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "tools_required": ["sanding_block", "sandpaper_120"],
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": { "all": "Sand with grain only. Remove all mill marks. Pay attention to panel detail areas." }
+        },
+        {
+          "task_id": "TSK_DSST_SAND_BARE_150",
+          "name": "Sand Bare Wood (150 Grit)",
+          "description": "Final prep sanding with 150-grit for smooth stain-ready surface.",
+          "task_type": "prep",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "tools_required": ["sanding_block", "sandpaper_150"],
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": { "all": "Uniform scratch pattern. Surface smooth to touch." }
+        },
+        {
+          "task_id": "TSK_DSST_FILL_DEFECTS",
+          "name": "Fill Defects (Stainable Wood Filler)",
+          "description": "Fill nail holes, dents, and defects with stainable wood filler.",
+          "task_type": "prep",
+          "task_classification": "qt_scaled",
+          "skill_level": "journeyman",
+          "tools_required": ["putty_knife", "wood_filler"],
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": {
+            "QT3": "Fill open nail holes and obvious dents",
+            "QT4": "Fill all visible defects",
+            "QT5": "Fill every defect. Color-match filler to expected stain color."
+          }
+        },
+        {
+          "task_id": "TSK_DSST_GRAIN_RAISE",
+          "name": "Grain Raise Treatment (Waterborne)",
+          "description": "Wet-wipe bare wood to raise grain, let dry, re-sand with 220 grit.",
+          "task_type": "prep",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "tools_required": ["sponge", "water", "sandpaper_220"],
+          "applies_when": { "_note": "Activated when waterborne product selected" },
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": { "all": "Wet wipe entire surface. Let dry 1-2 hrs. Re-sand with 220 grit." }
+        },
+        {
+          "task_id": "TSK_DSST_TACK_CLEAN",
+          "name": "Tack Clean (Prep Complete)",
+          "description": "Remove all sanding dust from door surfaces with tack cloth.",
+          "task_type": "cleanup",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "tools_required": ["tack_cloth"],
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": { "all": "All dust removed. Dust in stain creates visible defects." }
+        }
+      ],
+      "sequence_notes": "Inspect > Sand 120 > Sand 150 > Fill > Grain Raise (conditional) > Tack Clean."
+    },
+
+    {
+      "module_id": "MOD_DSST_CONDITION",
+      "name": "Wood Conditioner Application",
+      "description": "Apply pre-stain wood conditioner to softwood door slabs.",
+      "phase": "prep",
+      "applies_when": {
+        "wood_species_group": ["softwood"],
+        "coating_type": ["stain_clear", "stain_only"],
+        "_note": "NOT activated for gel stain"
+      },
+      "tasks": [
+        {
+          "task_id": "TSK_DSST_APPLY_CONDITIONER",
+          "name": "Apply Wood Conditioner",
+          "description": "Brush on pre-stain wood conditioner liberally. Let penetrate ~15 min.",
+          "task_type": "prep",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "tools_required": ["brush_2in", "wood_conditioner"],
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": { "all": "Full coverage including panel detail. Let dwell 15 minutes." }
+        },
+        {
+          "task_id": "TSK_DSST_WIPE_CONDITIONER",
+          "name": "Wipe Excess Conditioner",
+          "description": "Wipe off excess conditioner. Stain must be applied within 2 hours.",
+          "task_type": "prep",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "tools_required": ["wipe_cloth"],
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": { "all": "Wipe all excess. Surface slightly tacky, not wet." }
+        }
+      ],
+      "sequence_notes": "Apply conditioner > Wait 15 min > Wipe excess > Apply stain within 2 hours."
+    },
+
+    {
+      "module_id": "MOD_DSST_STAIN_APPLY",
+      "name": "Stain Application (Coat 1)",
+      "description": "Apply first stain coat with wipe step.",
+      "phase": "apply",
+      "applies_when": { "coating_type": ["stain_clear", "stain_only"] },
+      "required_inputs": [
+        { "input_name": "IN_EA_DOOR_SLAB_STAIN", "paintscope_key": "PS_SURFACE_EA.DOOR_SLAB_STAIN", "uom": "EA" }
+      ],
+      "tasks": [
+        {
+          "task_id": "TSK_DSST_STAIN_COAT_1_BRUSH",
+          "name": "Stain Coat 1 — Brush + Wipe",
+          "description": "Apply stain with brush, working with grain. Maintain wet edge. Wipe excess with lint-free cloth.",
+          "task_type": "finish",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "tools_required": ["brush_2in", "wipe_cloth"],
+          "applies_when": { "application_method_stain": ["brush"] },
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": { "all": "Stain edges first, then faces. Wipe panel detail thoroughly to prevent pooling." }
+        },
+        {
+          "task_id": "TSK_DSST_STAIN_COAT_1_SPRAY",
+          "name": "Stain Coat 1 — Spray + Wipe",
+          "description": "Spray stain onto door surfaces. Wipe excess after dwell time.",
+          "task_type": "finish",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "tools_required": ["hvlp_sprayer", "wipe_cloth"],
+          "applies_when": { "application_method_stain": ["spray"] },
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": { "all": "Spray even coat. Back-brush into panel detail. Wipe evenly." }
+        }
+      ],
+      "sequence_notes": "Apply stain > Dwell > Wipe excess."
+    },
+
+    {
+      "module_id": "MOD_DSST_STAIN_COAT_2",
+      "name": "Stain Application (Coat 2)",
+      "description": "Apply second stain coat for deeper color. Conditional: stain_coats = 2.",
+      "phase": "apply",
+      "applies_when": { "stain_coats": [2], "coating_type": ["stain_clear", "stain_only"] },
+      "tasks": [
+        {
+          "task_id": "TSK_DSST_STAIN_COAT_2_APPLY",
+          "name": "Stain Coat 2 — Apply + Wipe",
+          "description": "Apply second stain coat using same method as coat 1. Wipe for color depth control.",
+          "task_type": "finish",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "tools_required": ["applicator", "wipe_cloth"],
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": { "all": "Same method as coat 1. Verify color uniformity." }
+        }
+      ],
+      "sequence_notes": "Second coat for deeper, more uniform color."
+    },
+
+    {
+      "module_id": "MOD_DSST_STAIN_DRY",
+      "name": "Stain Dry Verification",
+      "description": "Verify stain is fully dry before sealer or clear coat.",
+      "phase": "interstage",
+      "applies_when": { "coating_type": ["stain_clear"] },
+      "tasks": [
+        {
+          "task_id": "TSK_DSST_STAIN_DRY_VERIFY",
+          "name": "Verify Stain Dry",
+          "description": "Touch-test stain dryness. Oil: 4-8 hrs. Waterborne: 2 hrs.",
+          "task_type": "inspect",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "tools_required": [],
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": { "all": "Touch test in inconspicuous area. No tackiness. No color transfer." }
+        }
+      ],
+      "sequence_notes": "Wait for full dry time, then verify."
+    },
+
+    {
+      "module_id": "MOD_DSST_SEALER_APPLY",
+      "name": "Sanding Sealer Application (Coat 1)",
+      "description": "Apply first coat of sanding sealer. Conditional: sealer_coats >= 1.",
+      "phase": "apply",
+      "applies_when": { "sealer_coats": [1, 2], "coating_type": ["stain_clear", "clear_only"] },
+      "tasks": [
+        {
+          "task_id": "TSK_DSST_SEALER_COAT_1",
+          "name": "Apply Sanding Sealer (Coat 1)",
+          "description": "Apply thin, even coat of sanding sealer.",
+          "task_type": "finish",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "tools_required": ["brush_or_sprayer", "sealer"],
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": { "all": "Thin, even coat. Do not pool in panel detail." }
+        }
+      ],
+      "sequence_notes": "Apply sealer > Dry > Sand."
+    },
+
+    {
+      "module_id": "MOD_DSST_SEALER_INTERSTAGE",
+      "name": "Sealer Interstage + Coat 2",
+      "description": "Sand first sealer coat and apply second. Conditional: sealer_coats = 2.",
+      "phase": "interstage",
+      "applies_when": { "sealer_coats": [2] },
+      "tasks": [
+        {
+          "task_id": "TSK_DSST_SAND_SEALER_220",
+          "name": "Sand Sealer (220 Grit)",
+          "description": "Sand first sealer coat with 220-grit.",
+          "task_type": "prep",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "tools_required": ["sanding_block", "sandpaper_220"],
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": { "all": "Sand entire surface. Do NOT sand through to stain." }
+        },
+        {
+          "task_id": "TSK_DSST_TACK_SEALER",
+          "name": "Tack Clean Between Sealer Coats",
+          "description": "Remove sanding dust before second sealer coat.",
+          "task_type": "cleanup",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "tools_required": ["tack_cloth"],
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": { "all": "Complete dust removal." }
+        },
+        {
+          "task_id": "TSK_DSST_SEALER_COAT_2",
+          "name": "Apply Sanding Sealer (Coat 2)",
+          "description": "Apply second coat of sanding sealer.",
+          "task_type": "finish",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "tools_required": ["brush_or_sprayer", "sealer"],
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": { "all": "Thin, even coat. Same technique as coat 1." }
+        }
+      ],
+      "sequence_notes": "Sand sealer > Tack > Apply sealer coat 2."
+    },
+
+    {
+      "module_id": "MOD_DSST_SEALER_SAND",
+      "name": "Final Sealer Sand Before Clear",
+      "description": "Sand final sealer coat to smooth surface before clear topcoat. Conditional: sealer_coats >= 1.",
+      "phase": "interstage",
+      "applies_when": { "sealer_coats": [1, 2], "coating_type": ["stain_clear", "clear_only"] },
+      "tasks": [
+        {
+          "task_id": "TSK_DSST_SAND_SEALER_FINAL_320",
+          "name": "Final Sealer Sand (320 Grit)",
+          "description": "Final sand of sealer with 320-grit before clear topcoat.",
+          "task_type": "prep",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "tools_required": ["sanding_block", "sandpaper_320"],
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": { "all": "Glass-smooth surface. Do NOT sand through to stain." }
+        },
+        {
+          "task_id": "TSK_DSST_TACK_BEFORE_CLEAR",
+          "name": "Tack Clean Before Clear Coat",
+          "description": "Remove all sanding dust before first clear topcoat.",
+          "task_type": "cleanup",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "tools_required": ["tack_cloth"],
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": { "all": "Meticulous dust removal. Every particle trapped in clear coat is visible." }
+        }
+      ],
+      "sequence_notes": "Sand 320 > Tack > Ready for clear coat 1."
+    },
+
+    {
+      "module_id": "MOD_DSST_CLEAR_APPLY",
+      "name": "Clear Topcoat Application (Coat 1)",
+      "description": "Apply first clear topcoat.",
+      "phase": "finish",
+      "applies_when": { "coating_type": ["stain_clear", "clear_only"] },
+      "required_inputs": [
+        { "input_name": "IN_EA_DOOR_SLAB_STAIN", "paintscope_key": "PS_SURFACE_EA.DOOR_SLAB_STAIN", "uom": "EA" }
+      ],
+      "tasks": [
+        {
+          "task_id": "TSK_DSST_CLEAR_COAT_1_BRUSH",
+          "name": "Clear Coat 1 — Brush",
+          "description": "Apply first clear topcoat with brush. Thin, even coat with grain. Tip once to level.",
+          "task_type": "finish",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "tools_required": ["brush_natural_or_synthetic", "straining_cone"],
+          "applies_when": { "application_method_clear": ["brush"] },
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": { "all": "No drips, sags, holidays, or brush marks. Watch for runs at panel transitions." }
+        },
+        {
+          "task_id": "TSK_DSST_CLEAR_COAT_1_SPRAY",
+          "name": "Clear Coat 1 — Spray",
+          "description": "Spray first clear topcoat. Consistent distance and speed.",
+          "task_type": "finish",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "tools_required": ["hvlp_sprayer", "respirator"],
+          "applies_when": { "application_method_clear": ["spray"] },
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": { "all": "No drips, sags, holidays, or orange peel." }
+        }
+      ],
+      "sequence_notes": "Coat 1 followed by interstage (if clear_coats >= 2)."
+    },
+
+    {
+      "module_id": "MOD_DSST_CLEAR_INTERSTAGE",
+      "name": "Clear Coat Interstage",
+      "description": "Sand between clear coats and inspect. Conditional: clear_coats >= 2.",
+      "phase": "interstage",
+      "applies_when": { "clear_coats": [2, 3], "coating_type": ["stain_clear", "clear_only"] },
+      "tasks": [
+        {
+          "task_id": "TSK_DSST_SAND_CLEAR_320",
+          "name": "Sand Clear Coat (320-400 Grit)",
+          "description": "Sand cured clear coat with 320 grit (QT3-QT4) or 400 grit (QT5).",
+          "task_type": "prep",
+          "task_classification": "qt_scaled",
+          "skill_level": "journeyman",
+          "tools_required": ["sanding_block", "sandpaper_320_or_400"],
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": {
+            "QT3": "Spot sand nibs. 320 grit.",
+            "QT4": "Full surface sand. 320 grit.",
+            "QT5": "Thorough sand. 400 grit. Glass-smooth."
+          }
+        },
+        {
+          "task_id": "TSK_DSST_TACK_CLEAR",
+          "name": "Tack Clean Between Clear Coats",
+          "description": "Remove sanding dust before next clear coat.",
+          "task_type": "cleanup",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "tools_required": ["tack_cloth"],
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": { "all": "Meticulous dust removal." }
+        },
+        {
+          "task_id": "TSK_DSST_INSPECT_CLEAR",
+          "name": "Inspect Clear Coat",
+          "description": "Visual inspection of sanded clear coat before next coat.",
+          "task_type": "inspect",
+          "task_classification": "qt_scaled",
+          "skill_level": "journeyman",
+          "tools_required": ["work_light"],
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": {
+            "QT3": "Quick glance — obvious defects",
+            "QT4": "Systematic scan at 3 feet",
+            "QT5": "Critical inspection under raking light"
+          }
+        }
+      ],
+      "sequence_notes": "Sand clear > Tack > Inspect > Apply next clear coat."
+    },
+
+    {
+      "module_id": "MOD_DSST_CLEAR_COAT_2",
+      "name": "Clear Topcoat Application (Coat 2)",
+      "description": "Apply second clear topcoat. Conditional: clear_coats >= 2.",
+      "phase": "finish",
+      "applies_when": { "clear_coats": [2, 3], "coating_type": ["stain_clear", "clear_only"] },
+      "tasks": [
+        {
+          "task_id": "TSK_DSST_CLEAR_COAT_2",
+          "name": "Clear Coat 2",
+          "description": "Apply second clear topcoat.",
+          "task_type": "finish",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "tools_required": ["applicator"],
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": { "all": "Same technique as coat 1. Faster — consistent substrate." }
+        }
+      ],
+      "sequence_notes": "After clear interstage. If clear_coats = 3, followed by another interstage + coat 3."
+    },
+
+    {
+      "module_id": "MOD_DSST_CLEAR_COAT_3",
+      "name": "Clear Topcoat Application (Coat 3)",
+      "description": "Apply third clear topcoat. Conditional: clear_coats = 3.",
+      "phase": "finish",
+      "applies_when": { "clear_coats": [3], "coating_type": ["stain_clear", "clear_only"] },
+      "tasks": [
+        {
+          "task_id": "TSK_DSST_CLEAR_COAT_3",
+          "name": "Clear Coat 3",
+          "description": "Apply third and final clear topcoat. Maximum film build.",
+          "task_type": "finish",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "tools_required": ["applicator"],
+          "appears_in_tiers": ["QT5"],
+          "quality_notes": { "QT5": "Final surface — zero tolerance for defects." }
+        }
+      ],
+      "sequence_notes": "Final clear coat."
+    },
+
+    {
+      "module_id": "MOD_DSST_CLEANUP",
+      "name": "Door Slab Stain/Clear Cleanup",
+      "description": "Protection teardown, final inspection, touch-up.",
+      "phase": "cleanup",
+      "applies_when": {},
+      "tasks": [
+        {
+          "task_id": "TSK_DSST_REMOVE_MASK",
+          "name": "Protection Teardown",
+          "description": "Remove floor drops and wall masking. Remove tape carefully near fresh clear coat.",
+          "task_type": "protect",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "tools_required": [],
+          "protection_metadata": { "action": "teardown", "zones": ["floor_full", "wall_adjacent"], "method_dependent": true },
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": { "all": "Pull tape at 45 degrees away from fresh clear coat." }
+        },
+        {
+          "task_id": "TSK_DSST_FINAL_INSPECT",
+          "name": "Final Inspection",
+          "description": "Final quality check of all stained/clear-coated door surfaces.",
+          "task_type": "inspect",
+          "task_classification": "qt_scaled",
+          "skill_level": "journeyman",
+          "tools_required": ["work_light"],
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": {
+            "QT3": "Quick glance — uniform color, no obvious defects",
+            "QT4": "Systematic scan — uniform color and sheen, no visible defects",
+            "QT5": "Critical inspection — zero tolerance, uniform across all surfaces"
+          }
+        },
+        {
+          "task_id": "TSK_DSST_TOUCHUP",
+          "name": "Touch-Up",
+          "description": "Address defects found during final inspection. Spot sand and recoat as needed.",
+          "task_type": "detail",
+          "task_classification": "qt_scaled",
+          "skill_level": "journeyman",
+          "tools_required": ["brush_small", "clear_coat", "sanding_block"],
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": {
+            "QT3": "Address obvious defects only",
+            "QT4": "Address all visible defects",
+            "QT5": "Address every imperfection"
+          }
+        }
+      ],
+      "sequence_notes": "Remove masking > Final inspect > Touch-up."
+    }
+  ],
+
+  "round_configurations": [
+    {
+      "round_id": "ROUND_DSST_STAIN_CLEAR_QT3",
+      "name": "QT3 Stain + Clear (2 Coats Total)",
+      "applies_when": { "coating_type": ["stain_clear"], "quality_tier": ["QT3"] },
+      "total_coats": 2,
+      "interstage_cycles": 1,
+      "phase_sequence": ["setup", "prep", "apply", "interstage", "finish", "cleanup"]
+    },
+    {
+      "round_id": "ROUND_DSST_STAIN_CLEAR_QT4",
+      "name": "QT4 Stain + Sealer + Clear (4 Coats Total)",
+      "applies_when": { "coating_type": ["stain_clear"], "quality_tier": ["QT4"] },
+      "total_coats": 4,
+      "interstage_cycles": 3,
+      "phase_sequence": ["setup", "prep", "apply", "interstage", "apply", "interstage", "finish", "interstage", "finish", "cleanup"]
+    },
+    {
+      "round_id": "ROUND_DSST_STAIN_CLEAR_QT5",
+      "name": "QT5 Stain + 2 Sealer + 3 Clear (6 Coats Total)",
+      "applies_when": { "coating_type": ["stain_clear"], "quality_tier": ["QT5"] },
+      "total_coats": 6,
+      "interstage_cycles": 5,
+      "phase_sequence": ["setup", "prep", "apply", "interstage", "apply", "interstage", "apply", "interstage", "finish", "interstage", "finish", "interstage", "finish", "cleanup"]
+    },
+    {
+      "round_id": "ROUND_DSST_STAIN_ONLY",
+      "name": "Stain Only (1-2 Coats)",
+      "applies_when": { "coating_type": ["stain_only"] },
+      "total_coats": 1,
+      "interstage_cycles": 0,
+      "phase_sequence": ["setup", "prep", "apply", "cleanup"]
+    }
+  ],
+
+  "assumptions": [
+    {
+      "assumption_id": "A-DSST-001",
+      "field": "wipe_step",
+      "value": "All stain application methods include a wipe step — wipe time is built into the stain application rate",
+      "source": "Industry practice",
+      "doctrine_gap": true
+    },
+    {
+      "assumption_id": "A-DSST-002",
+      "field": "sealer_method",
+      "value": "Sealer uses same application method as clear coat (application_method_clear drives both)",
+      "source": "Design spec",
+      "doctrine_gap": false
+    }
+  ]
+}
