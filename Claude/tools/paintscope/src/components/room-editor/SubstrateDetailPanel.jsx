@@ -13,6 +13,19 @@ export default function SubstrateDetailPanel({ room, derived, dispatch, substrat
 
   const setSub = (f, v) => dispatch({ type: 'SET_SUBSTRATE', payload: { roomId: rid, substrateId, field: f, value: v } });
 
+  // Stain/clear coat helpers
+  const WOOD_SUBSTRATES = new Set([
+    'doors', 'door_frames', 'door_casing', 'window_casing', 'windows', 'window_jamb',
+    'baseboard', 'crown', 'chair_rail', 'shoe_mold', 'wainscoting',
+    'wood_feature_wall', 'wood_ceiling', 'beams', 'columns', 'mantels',
+    'builtins', 'stair_risers', 'stair_railing',
+  ]);
+  const isWood = WOOD_SUBSTRATES.has(substrateId);
+  const isBareWood = isWood && config.substrate_state === 'bare_wood';
+  const coatingType = config.coating_type || 'paint';
+  const includesStain = coatingType === 'stain_clear' || coatingType === 'stain_only';
+  const includesClear = coatingType === 'stain_clear' || coatingType === 'clear_only';
+
   // Determine derived value and UOM
   const uom = cat.uom;
   const hasAuto = !!cat.autoDerive;
@@ -87,6 +100,68 @@ export default function SubstrateDetailPanel({ room, derived, dispatch, substrat
           )}
         </div>
       </div>
+
+      {/* Stain / Clear Coat controls (bare wood on wood substrates only) */}
+      {isBareWood && (
+        <div className="panel-section">
+          <div className="section-title">Coating</div>
+          <div className="form-grid" style={{ gridTemplateColumns: '1fr 1fr' }}>
+            <div>
+              <div className="field-label">Coating Type</div>
+              <Select options={ENUMS.intCoatingTypes} value={coatingType}
+                onChange={v => setSub('coating_type', v)} />
+            </div>
+
+            {coatingType !== 'paint' && (
+              <div>
+                <div className="field-label">Wood Species</div>
+                <Select options={ENUMS.woodSpeciesGroup} value={config.wood_species_group || 'hardwood'}
+                  onChange={v => setSub('wood_species_group', v)} />
+              </div>
+            )}
+
+            {includesStain && (
+              <>
+                <div>
+                  <div className="field-label">Stain Method</div>
+                  <Select options={ENUMS.stainApplicationMethods} value={config.application_method_stain || 'brush'}
+                    onChange={v => setSub('application_method_stain', v)} />
+                </div>
+                <div>
+                  <div className="field-label">Stain Coats</div>
+                  <Select options={ENUMS.stainCoatCounts} value={config.stain_coats ?? 1}
+                    onChange={v => setSub('stain_coats', Number(v))} />
+                </div>
+              </>
+            )}
+
+            {includesClear && (
+              <>
+                <div>
+                  <div className="field-label">Clear Method</div>
+                  <Select options={ENUMS.clearApplicationMethods} value={config.application_method_clear || 'brush'}
+                    onChange={v => setSub('application_method_clear', v)} />
+                </div>
+                <div>
+                  <div className="field-label">Clear Sheen</div>
+                  <Select options={ENUMS.clearSheen} value={config.clear_sheen || 'satin'}
+                    onChange={v => setSub('clear_sheen', v)} />
+                </div>
+                <div>
+                  <div className="field-label">Sealer Coats</div>
+                  <Select options={ENUMS.sealerCoatCounts} value={config.sealer_coats ?? 0}
+                    onChange={v => setSub('sealer_coats', Number(v))} />
+                </div>
+                <div>
+                  <div className="field-label">Clear Coats</div>
+                  <Select options={ENUMS.clearCoatCounts} value={config.clear_coats ?? 1}
+                    onChange={v => setSub('clear_coats', Number(v))} />
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Quantity section */}
       <div className="panel-section">
