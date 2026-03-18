@@ -1,0 +1,197 @@
+{
+  "spec_family_id": "SF_TRIM_NC_STAIN",
+  "version": "0.1.0",
+  "generated_by": "System Critic",
+  "generated_at": "2026-03-18",
+  "status": "draft",
+  "review_required": true,
+
+  "overall_result": "pass",
+
+  "summary": "SF_TRIM_NC_STAIN_v1 draft artifacts (spec.json, research.json, resolution.json, materials.json, sop_modules.json, production.json) pass all critical validation checks. 33 tasks thread correctly between sop_modules.json and production.json. All IDs use TRST prefix. coating_type dimension correctly gates module activation. Design spec Section 11 validation criteria verified. No blockers. 3 minor notes for future consideration.",
+
+  "artifacts_reviewed": [
+    { "file": "spec.json", "status": "reviewed" },
+    { "file": "research.json", "status": "reviewed" },
+    { "file": "resolution.json", "status": "reviewed" },
+    { "file": "materials.json", "status": "reviewed" },
+    { "file": "sop_modules.json", "status": "reviewed" },
+    { "file": "production.json", "status": "reviewed" },
+    { "file": "qa_report.json", "status": "self" }
+  ],
+
+  "issues": [
+    {
+      "issue_id": "QA-TRST-001",
+      "severity": "minor",
+      "area": "production_logic",
+      "file": "production.json",
+      "description": "TSK_TRST_STAIN_COAT_2_APPLY uses a blended rate (100 LF/hr) rather than method-specific rates. In practice, coat 2 rate should vary by method (brush vs roll vs spray) like coat 1.",
+      "suggested_fix": "Consider splitting into method-specific coat 2 tasks in future iteration if rate differentiation is needed."
+    },
+    {
+      "issue_id": "QA-TRST-002",
+      "severity": "minor",
+      "area": "schema_alignment",
+      "file": "production.json",
+      "description": "Sealer and clear coat rates shown are for brush method. Spray rates noted in rate_basis_notes but not as separate task entries. Engine may need method-aware rate lookup for sealer tasks.",
+      "suggested_fix": "Acceptable for initial draft. If engine needs explicit spray rates for sealer, add separate sealer spray task entries."
+    },
+    {
+      "issue_id": "QA-TRST-003",
+      "severity": "minor",
+      "area": "registry",
+      "file": "resolution.json",
+      "description": "5 registry additions proposed (1 SF_, 2 substrate states, 2 enum dimensions). These must be added to controlled_enums.json and id_registry.json before spec can be imported to database.",
+      "suggested_fix": "Add proposed IDs during database import phase."
+    }
+  ],
+
+  "blockers": [],
+
+  "design_spec_validation": {
+    "source": "docs/superpowers/specs/2026-03-18-interior-stain-clear-coat-specs-design.md Section 11",
+    "checks": [
+      {
+        "check": "coating_type gates module activation correctly",
+        "result": "pass",
+        "details": "MOD_TRST_STAIN_APPLY and MOD_TRST_STAIN_COAT_2 have applies_when coating_type=[stain_clear, stain_only]. MOD_TRST_CLEAR_APPLY has applies_when coating_type=[stain_clear, clear_only]. MOD_TRST_CONDITION requires coating_type includes stain. MOD_TRST_STAIN_DRY requires stain_clear only."
+      },
+      {
+        "check": "stain_clear variant has independent stain/clear application methods",
+        "result": "pass",
+        "details": "spec.json has separate application_method_stain (brush/roll/spray) and application_method_clear (brush/spray) dimensions. Variants show independent combos (e.g., VAR_TRST_QT4_STAIN_CLEAR_ROLL_SPRAY)."
+      },
+      {
+        "check": "clear_only excludes stain modules and blocks roll",
+        "result": "pass",
+        "details": "clear_only does NOT appear in stain module applies_when. application_method_clear has values [brush, spray] — no roll. Roll explicitly prohibited in design spec and clear_sheen dimension notes."
+      },
+      {
+        "check": "stain_only excludes sealer and clear modules",
+        "result": "pass",
+        "details": "stain_only does NOT appear in sealer or clear module applies_when. MOD_TRST_SEALER_APPLY requires coating_type=[stain_clear, clear_only]. MOD_TRST_CLEAR_APPLY same."
+      },
+      {
+        "check": "Gel stain blocked below QT4",
+        "result": "pass",
+        "details": "SYS_STAIN_GEL has qt_gate: [QT4, QT5] in materials.json. COMPAT_TRST_002 rule explicitly blocks gel + QT3."
+      },
+      {
+        "check": "Lacquer clear blocked for non-spray",
+        "result": "pass",
+        "details": "SYS_CLEAR_LACQUER has application_constraint: spray in materials.json. COMPAT_TRST_003 rule explicitly blocks lacquer + brush."
+      },
+      {
+        "check": "All IDs use TRST prefix",
+        "result": "pass",
+        "details": "All 14 MOD_ IDs use MOD_TRST_* prefix. All 33 TSK_ IDs use TSK_TRST_* prefix. Material system IDs (SYS_STAIN_*, SYS_SEALER_*, SYS_CLEAR_*) are correctly shared (no TRST prefix per design spec Section 9)."
+      },
+      {
+        "check": "Substrate state declarations match Section 7.2",
+        "result": "pass",
+        "details": "stain_clear: SS_BARE input → SS_CLEAR_COATED output. stain_only: SS_BARE → SS_STAINED. clear_only: [SS_BARE, SS_STAINED] → SS_CLEAR_COATED. Matches design spec exactly."
+      },
+      {
+        "check": "Softwood + stain activates conditioner (unless gel)",
+        "result": "pass",
+        "details": "MOD_TRST_CONDITION applies_when: wood_species_group=softwood, coating_type includes stain. Module description notes NOT activated for gel stain."
+      },
+      {
+        "check": "Grain-raise prep task conditionally activated for waterborne",
+        "result": "pass",
+        "details": "TSK_TRST_GRAIN_RAISE in MOD_TRST_PREP has applies_when note for waterborne products."
+      },
+      {
+        "check": "User-selectable coat counts with QT defaults",
+        "result": "pass",
+        "details": "spec.json stain_coats default=1, sealer_coats default_by_qt QT3:0/QT4:1/QT5:2, clear_coats default_by_qt QT3:1/QT4:2/QT5:3. All user-overridable per design spec Section 4.6."
+      },
+      {
+        "check": "Production rates calibrated against paint spec counterparts",
+        "result": "pass",
+        "details": "Stain brush (80 LF/hr) matches paint brush coat 1 (80 LF/hr). Clear brush (100 LF/hr) slightly faster than paint brush (due to no wipe). Inspection rates reuse paint tier rates. Sanding rates consistent with paint interstage."
+      }
+    ]
+  },
+
+  "doctrine_checks": [
+    { "check": "GEOM_NO_INTERNAL_COMPUTE", "result": "pass", "details": "No geometry computation. All geometry from PaintScope inputs." },
+    { "check": "GEOM_INPUTS_DECLARED", "result": "pass", "details": "All required inputs declared with paintscope_key mappings." },
+    { "check": "UOM_TASKS_DECLARED", "result": "pass", "details": "All 33 tasks have unit_of_measure declared (LF, SF, EA, FIXED)." },
+    { "check": "UOM_RATE_MATCH", "result": "pass", "details": "All production rates match task UOM." },
+    { "check": "TASK_CLASS_PRESENT", "result": "pass", "details": "All 33 tasks have task_classification defined (25 binary, 8 qt_scaled)." },
+    { "check": "TASK_CLASS_CONSISTENT", "result": "pass", "details": "task_classification matches between sop_modules.json and production.json." },
+    { "check": "BINARY_SINGLE_RATE", "result": "pass", "details": "All 25 binary tasks have single rate_per_hour or fixed_time_minutes." },
+    { "check": "SCALED_QT_RATES_DEFINED", "result": "pass", "details": "All 8 qt_scaled tasks have qt_rates with QT3, QT4, QT5 entries." },
+    { "check": "PZ_PROTECT_TASKS_HAVE_METADATA", "result": "pass", "details": "3 setup tasks + 1 teardown task have protection_metadata." },
+    { "check": "PZ_ZONES_IN_VOCABULARY", "result": "pass", "details": "Zone IDs floor_perimeter, wall_adjacent, fixture_covers all exist." },
+    { "check": "PZ_SETUP_TEARDOWN_PAIRED", "result": "pass", "details": "TSK_TRST_REMOVE_MASK covers all 3 zones." },
+    { "check": "PROD_MODIFIERS_INCREASE_TIME", "result": "pass", "details": "rate_notes states effective_rate = base_rate / modifier." }
+  ],
+
+  "registry_compliance": {
+    "prohibited_patterns_checked": [
+      { "pattern": "CONS_ prefix", "result": "clean", "details": "CON_ prefix used consistently" },
+      { "pattern": "task_class key name", "result": "clean", "details": "task_classification used throughout" },
+      { "pattern": "phase 'protect' or 'protection'", "result": "clean", "details": "Valid phases only: setup, prep, apply, interstage, finish, cleanup" },
+      { "pattern": "compound sheens", "result": "clean", "details": "Single sheen values: satin, semi-gloss, gloss" },
+      { "pattern": "lowercase units", "result": "clean", "details": "All uppercase: LF, SF, EA, ROLL, SHEET, TUBE, QT, FIXED" },
+      { "pattern": "severity high/medium/low/WARN", "result": "clean", "details": "severity values: critical, major, minor" },
+      { "pattern": "consumable category 'consumable'", "result": "clean", "details": "Categories: applicator, protection, prep, abrasive, fill_material, tool" }
+    ],
+    "overall": "clean"
+  },
+
+  "cross_file_threading": {
+    "sop_to_production_task_match": {
+      "sop_task_count": 33,
+      "production_task_count": 33,
+      "orphaned_sop_tasks": [],
+      "orphaned_production_tasks": [],
+      "task_classification_mismatches": [],
+      "status": "pass"
+    },
+    "resolution_to_downstream": {
+      "context_prefix_TRST": "used consistently in all TSK_, MOD_ IDs",
+      "applicable_enums_honored": "All enum values in downstream files are within resolution.json applicable_enums",
+      "proposed_registry_additions": "5 additions proposed — need registry update before database import",
+      "status": "pass"
+    }
+  },
+
+  "task_inventory": {
+    "total_tasks": 33,
+    "by_classification": {
+      "binary": 25,
+      "qt_scaled": 8
+    },
+    "by_module": {
+      "MOD_TRST_SETUP": 3,
+      "MOD_TRST_PREP": 6,
+      "MOD_TRST_CONDITION": 2,
+      "MOD_TRST_STAIN_APPLY": 3,
+      "MOD_TRST_STAIN_COAT_2": 1,
+      "MOD_TRST_STAIN_DRY": 1,
+      "MOD_TRST_SEALER_APPLY": 1,
+      "MOD_TRST_SEALER_INTERSTAGE": 3,
+      "MOD_TRST_SEALER_SAND": 2,
+      "MOD_TRST_CLEAR_APPLY": 2,
+      "MOD_TRST_CLEAR_INTERSTAGE": 3,
+      "MOD_TRST_CLEAR_COAT_2": 1,
+      "MOD_TRST_CLEAR_COAT_3": 1,
+      "MOD_TRST_CLEANUP": 4
+    }
+  },
+
+  "review_notes": [
+    "All 33 TSK_ IDs thread correctly between sop_modules.json and production.json",
+    "coating_type dimension correctly gates all conditional modules",
+    "Material system IDs use shared naming (SYS_STAIN_*, SYS_SEALER_*, SYS_CLEAR_*) — no TRST prefix per design spec",
+    "7 paintable items (door casing and window casing excluded — routed to their own stain specs per design spec Section 3)",
+    "Profile complexity modifiers (0.85-1.40) consistent with paint counterpart",
+    "Height modifiers (1.00/1.30/1.50) consistent with Modifier_Registry.md",
+    "5 registry additions proposed for controlled_enums.json and id_registry.json",
+    "This spec establishes the canonical stain/clear module architecture for all 10 interior stain specs per design spec Section 10"
+  ]
+}

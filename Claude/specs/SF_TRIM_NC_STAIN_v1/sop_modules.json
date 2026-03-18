@@ -1,0 +1,796 @@
+{
+  "spec_family_id": "SF_TRIM_NC_STAIN",
+  "version": "0.1.0",
+  "generated_by": "SOP Librarian",
+  "generated_at": "2026-03-18",
+
+  "sop_modules": [
+    {
+      "module_id": "MOD_TRST_SETUP",
+      "name": "Trim Stain/Clear Setup",
+      "description": "Floor protection and wall/fixture masking for trim stain and clear coat work. Protection scope varies by application method and adjacent wall state.",
+      "phase": "setup",
+      "applies_when": {},
+      "required_inputs": [
+        { "input_name": "IN_SF_PROTECT_FLOOR_PERIMETER", "paintscope_key": "PS_PROTECT_SF.FLOOR_PERIMETER", "uom": "SF" },
+        { "input_name": "IN_LF_WALL_ADJACENT", "paintscope_key": "PS_PROTECT_LF.WALL_ADJACENT", "uom": "LF" },
+        { "input_name": "IN_EA_ASSET_FIXTURES", "paintscope_key": "PS_PROTECT_EA.ASSET.FIXTURES", "uom": "EA" }
+      ],
+      "tasks": [
+        {
+          "task_id": "TSK_TRST_FLOOR_PROTECT",
+          "name": "Floor Protection Setup (Perimeter Drops)",
+          "description": "Set up drop cloth runners along trim work area perimeter. Stain drips are especially difficult to clean — protection is critical.",
+          "task_type": "protect",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "tools_required": ["drop_cloth_canvas"],
+          "protection_metadata": {
+            "action": "setup",
+            "zones": ["floor_perimeter"],
+            "method_dependent": false
+          },
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "site_condition_rules": [
+            {
+              "condition_id": "floor_type",
+              "include_when": ["finished", "partial"],
+              "exclude_when": ["subfloor"]
+            }
+          ],
+          "quality_notes": {
+            "all": "Runner-style drops along baseboard and trim run areas. Stain drips penetrate — canvas drops preferred over plastic."
+          }
+        },
+        {
+          "task_id": "TSK_TRST_WALL_MASK",
+          "name": "Wall Masking at Trim Edge",
+          "description": "Apply tape line and masking paper at trim-to-wall edge. Required for spray. Also required for any method when walls are SS_PAINTED_* — stain penetrates and cannot be wiped off painted surfaces.",
+          "task_type": "protect",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "tools_required": ["masking_tape", "masking_paper_12in"],
+          "protection_metadata": {
+            "action": "setup",
+            "zones": ["wall_adjacent"],
+            "method_dependent": true
+          },
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": {
+            "all": "Complete tape line along trim-to-wall edge. Paper drape for spray."
+          }
+        },
+        {
+          "task_id": "TSK_TRST_FIXTURE_COVER",
+          "name": "Cover Fixtures Near Spray Zone",
+          "description": "Tape over outlets and switches near spray work area.",
+          "task_type": "protect",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "tools_required": ["masking_tape"],
+          "protection_metadata": {
+            "action": "setup",
+            "zones": ["fixture_covers"],
+            "method_dependent": true
+          },
+          "applies_when": {
+            "application_method_stain": ["spray"],
+            "application_method_clear": ["spray"]
+          },
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": {
+            "all": "Complete coverage of outlet/switch plates near spray zone."
+          }
+        }
+      ],
+      "sequence_notes": "Floor protection first, then wall masking (if applicable), then fixture covers (if spray)."
+    },
+
+    {
+      "module_id": "MOD_TRST_PREP",
+      "name": "Bare Wood Preparation",
+      "description": "Prepare bare wood trim for staining. Sand to profile (120 then 150 grit), fill defects with stainable wood filler, grain raise treatment (conditional for waterborne products), tack clean.",
+      "phase": "prep",
+      "applies_when": {},
+      "required_inputs": [
+        { "input_name": "IN_LF_BASEBOARD", "paintscope_key": "PS_SURFACE_LF.TRIM_BASEBOARD", "uom": "LF" },
+        { "input_name": "IN_LF_CROWN", "paintscope_key": "PS_SURFACE_LF.TRIM_CROWN", "uom": "LF" },
+        { "input_name": "IN_LF_CHAIR_RAIL", "paintscope_key": "PS_SURFACE_LF.TRIM_CHAIR_RAIL", "uom": "LF" },
+        { "input_name": "IN_LF_WAINSCOT_RAIL", "paintscope_key": "PS_SURFACE_LF.TRIM_WAINSCOT_RAIL", "uom": "LF" },
+        { "input_name": "IN_LF_SHADOW_BOX", "paintscope_key": "PS_SURFACE_LF.TRIM_SHADOW_BOX", "uom": "LF" },
+        { "input_name": "IN_LF_PANEL_MOLD", "paintscope_key": "PS_SURFACE_LF.TRIM_PANEL_MOLD", "uom": "LF" },
+        { "input_name": "IN_LF_PICTURE_RAIL", "paintscope_key": "PS_SURFACE_LF.TRIM_PICTURE_RAIL", "uom": "LF" }
+      ],
+      "tasks": [
+        {
+          "task_id": "TSK_TRST_INSPECT_BARE",
+          "name": "Inspect Bare Wood",
+          "description": "Visual inspection of bare wood trim surfaces. Check for mill marks, dents, nail holes, wood defects, and grain pattern consistency.",
+          "task_type": "inspect",
+          "task_classification": "qt_scaled",
+          "skill_level": "journeyman",
+          "tools_required": ["work_light"],
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": {
+            "QT3": "Quick scan — note obvious defects, deep mill marks, open nail holes",
+            "QT4": "Systematic inspection — mark all visible defects, check grain consistency",
+            "QT5": "Thorough inspection under raking light — mark every imperfection that could show through stain"
+          }
+        },
+        {
+          "task_id": "TSK_TRST_SAND_BARE_120",
+          "name": "Sand Bare Wood (120 Grit)",
+          "description": "Initial sanding with 120-grit to remove mill marks, raised grain, and surface imperfections. Sand WITH the grain direction.",
+          "task_type": "prep",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "tools_required": ["sanding_block", "sandpaper_120"],
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": {
+            "all": "Sand with grain direction only. Remove all mill marks. Uniform scratch pattern. Do NOT cross-grain sand — scratches will show through stain."
+          }
+        },
+        {
+          "task_id": "TSK_TRST_SAND_BARE_150",
+          "name": "Sand Bare Wood (150 Grit)",
+          "description": "Final prep sanding with 150-grit for smooth stain-ready surface. Removes 120-grit scratch pattern.",
+          "task_type": "prep",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "tools_required": ["sanding_block", "sandpaper_150"],
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": {
+            "all": "Uniform 150-grit scratch pattern with grain. Surface should feel smooth to touch. No visible 120-grit scratches remaining."
+          }
+        },
+        {
+          "task_id": "TSK_TRST_FILL_DEFECTS",
+          "name": "Fill Defects (Stainable Wood Filler)",
+          "description": "Fill nail holes, dents, and defects with stainable wood filler. NOT regular spackle — spackle does not accept stain.",
+          "task_type": "prep",
+          "task_classification": "qt_scaled",
+          "skill_level": "journeyman",
+          "tools_required": ["putty_knife", "wood_filler"],
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": {
+            "QT3": "Fill open nail holes and obvious dents",
+            "QT4": "Fill all visible defects — nail holes, dents, small cracks",
+            "QT5": "Fill every defect that could show through stain. Color-match filler to expected stain color."
+          }
+        },
+        {
+          "task_id": "TSK_TRST_GRAIN_RAISE",
+          "name": "Grain Raise Treatment (Waterborne)",
+          "description": "Wet-wipe bare wood to intentionally raise grain, let dry, re-sand with 220 grit. Prevents grain raise from first waterborne product application.",
+          "task_type": "prep",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "tools_required": ["sponge", "water", "sandpaper_220"],
+          "applies_when": {
+            "_note": "Activated when ANY waterborne product is selected (WB stain, WB sealer, or WB clear) and no oil-based product precedes it in the stack"
+          },
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": {
+            "all": "Wet wipe entire surface with damp sponge. Let dry completely (1-2 hrs). Re-sand with 220 grit to knock down raised fibers. Tack clean after."
+          }
+        },
+        {
+          "task_id": "TSK_TRST_TACK_CLEAN",
+          "name": "Tack Clean (Prep Complete)",
+          "description": "Remove all sanding dust from trim surfaces with tack cloth. Surface must be perfectly clean before stain or conditioner application.",
+          "task_type": "cleanup",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "tools_required": ["tack_cloth"],
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": {
+            "all": "All dust removed — surface clean to touch. Dust in stain creates visible defects that cannot be sanded out."
+          }
+        }
+      ],
+      "sequence_notes": "Inspect → Sand 120 → Sand 150 → Fill Defects → Grain Raise (conditional) → Tack Clean. All prep complete before conditioner or stain."
+    },
+
+    {
+      "module_id": "MOD_TRST_CONDITION",
+      "name": "Wood Conditioner Application",
+      "description": "Apply pre-stain wood conditioner to softwood trim to prevent blotchy stain absorption. Conditional: softwood + stain coating_type + NOT gel stain.",
+      "phase": "prep",
+      "applies_when": {
+        "wood_species_group": ["softwood"],
+        "coating_type": ["stain_clear", "stain_only"],
+        "_note": "NOT activated when gel stain selected — gel controls blotch inherently"
+      },
+      "required_inputs": [
+        { "input_name": "IN_LF_BASEBOARD", "paintscope_key": "PS_SURFACE_LF.TRIM_BASEBOARD", "uom": "LF" },
+        { "input_name": "IN_LF_CROWN", "paintscope_key": "PS_SURFACE_LF.TRIM_CROWN", "uom": "LF" },
+        { "input_name": "IN_LF_CHAIR_RAIL", "paintscope_key": "PS_SURFACE_LF.TRIM_CHAIR_RAIL", "uom": "LF" },
+        { "input_name": "IN_LF_WAINSCOT_RAIL", "paintscope_key": "PS_SURFACE_LF.TRIM_WAINSCOT_RAIL", "uom": "LF" },
+        { "input_name": "IN_LF_SHADOW_BOX", "paintscope_key": "PS_SURFACE_LF.TRIM_SHADOW_BOX", "uom": "LF" },
+        { "input_name": "IN_LF_PANEL_MOLD", "paintscope_key": "PS_SURFACE_LF.TRIM_PANEL_MOLD", "uom": "LF" },
+        { "input_name": "IN_LF_PICTURE_RAIL", "paintscope_key": "PS_SURFACE_LF.TRIM_PICTURE_RAIL", "uom": "LF" }
+      ],
+      "tasks": [
+        {
+          "task_id": "TSK_TRST_APPLY_CONDITIONER",
+          "name": "Apply Wood Conditioner",
+          "description": "Brush on pre-stain wood conditioner liberally. Let penetrate per manufacturer instructions (~15 min).",
+          "task_type": "prep",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "tools_required": ["brush_2in", "wood_conditioner"],
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": {
+            "all": "Apply liberally, ensure full coverage. Let dwell 15 minutes per manufacturer instructions."
+          }
+        },
+        {
+          "task_id": "TSK_TRST_WIPE_CONDITIONER",
+          "name": "Wipe Excess Conditioner",
+          "description": "Wipe off excess conditioner with clean lint-free cloth. Stain must be applied within 2 hours of conditioner.",
+          "task_type": "prep",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "tools_required": ["wipe_cloth"],
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": {
+            "all": "Wipe off all excess. Surface should feel slightly tacky, not wet. Apply stain within 2 hours."
+          }
+        }
+      ],
+      "sequence_notes": "Apply conditioner → Wait 15 min → Wipe excess → Apply stain within 2 hours."
+    },
+
+    {
+      "module_id": "MOD_TRST_STAIN_APPLY",
+      "name": "Stain Application (Coat 1)",
+      "description": "Apply first stain coat. All methods include a wipe step to control color depth and uniformity. Brush+wipe, roll+wipe, or spray+wipe.",
+      "phase": "apply",
+      "applies_when": {
+        "coating_type": ["stain_clear", "stain_only"]
+      },
+      "required_inputs": [
+        { "input_name": "IN_LF_BASEBOARD", "paintscope_key": "PS_SURFACE_LF.TRIM_BASEBOARD", "uom": "LF" },
+        { "input_name": "IN_LF_CROWN", "paintscope_key": "PS_SURFACE_LF.TRIM_CROWN", "uom": "LF" },
+        { "input_name": "IN_LF_CHAIR_RAIL", "paintscope_key": "PS_SURFACE_LF.TRIM_CHAIR_RAIL", "uom": "LF" },
+        { "input_name": "IN_LF_WAINSCOT_RAIL", "paintscope_key": "PS_SURFACE_LF.TRIM_WAINSCOT_RAIL", "uom": "LF" },
+        { "input_name": "IN_LF_SHADOW_BOX", "paintscope_key": "PS_SURFACE_LF.TRIM_SHADOW_BOX", "uom": "LF" },
+        { "input_name": "IN_LF_PANEL_MOLD", "paintscope_key": "PS_SURFACE_LF.TRIM_PANEL_MOLD", "uom": "LF" },
+        { "input_name": "IN_LF_PICTURE_RAIL", "paintscope_key": "PS_SURFACE_LF.TRIM_PICTURE_RAIL", "uom": "LF" }
+      ],
+      "tasks": [
+        {
+          "task_id": "TSK_TRST_STAIN_COAT_1_BRUSH",
+          "name": "Stain Coat 1 — Brush + Wipe",
+          "description": "Apply stain with brush, working with the grain. Maintain wet edge. After appropriate dwell time, wipe excess with lint-free cloth to control color depth.",
+          "task_type": "finish",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "tools_required": ["brush_2in", "wipe_cloth"],
+          "applies_when": {
+            "application_method_stain": ["brush"]
+          },
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": {
+            "all": "Apply with grain. Maintain wet edge — lap marks in stain are permanent. Wipe evenly for uniform color. Application quality is NOT tiered."
+          }
+        },
+        {
+          "task_id": "TSK_TRST_STAIN_COAT_1_ROLL",
+          "name": "Stain Coat 1 — Roll + Wipe",
+          "description": "Apply stain with foam mini roller, working with the grain. After dwell time, wipe excess with lint-free cloth.",
+          "task_type": "finish",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "tools_required": ["foam_roller", "wipe_cloth"],
+          "applies_when": {
+            "application_method_stain": ["roll"]
+          },
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": {
+            "all": "Use foam roller (lint-free). Roll with grain. Wipe promptly for even color. Application quality is NOT tiered."
+          }
+        },
+        {
+          "task_id": "TSK_TRST_STAIN_COAT_1_SPRAY",
+          "name": "Stain Coat 1 — Spray + Wipe",
+          "description": "Spray stain onto trim surfaces. After dwell time, wipe excess with lint-free cloth. Back-brushing into profile details recommended.",
+          "task_type": "finish",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "tools_required": ["hvlp_sprayer", "wipe_cloth"],
+          "applies_when": {
+            "application_method_stain": ["spray"]
+          },
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": {
+            "all": "Spray even coat. Back-brush into crevices/profiles. Wipe evenly. Application quality is NOT tiered."
+          }
+        }
+      ],
+      "sequence_notes": "Apply stain → Dwell per product instructions → Wipe excess. One method per variant."
+    },
+
+    {
+      "module_id": "MOD_TRST_STAIN_COAT_2",
+      "name": "Stain Application (Coat 2)",
+      "description": "Apply second stain coat for deeper color saturation. Conditional: stain_coats = 2.",
+      "phase": "apply",
+      "applies_when": {
+        "stain_coats": [2],
+        "coating_type": ["stain_clear", "stain_only"]
+      },
+      "tasks": [
+        {
+          "task_id": "TSK_TRST_STAIN_COAT_2_APPLY",
+          "name": "Stain Coat 2 — Apply + Wipe",
+          "description": "Apply second stain coat using same method as coat 1. Wipe for color depth control. Coat 2 builds deeper color on areas that absorbed less on first coat.",
+          "task_type": "finish",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "tools_required": ["applicator", "wipe_cloth"],
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": {
+            "all": "Same method as coat 1. Second coat builds color where first was light. Wipe evenly. Verify color uniformity across all trim types."
+          }
+        }
+      ],
+      "sequence_notes": "Same method as coat 1. Second coat for deeper, more uniform color."
+    },
+
+    {
+      "module_id": "MOD_TRST_STAIN_DRY",
+      "name": "Stain Dry Verification",
+      "description": "Verify stain is fully dry before applying sealer or clear coat. Conditional: stain applied AND clear coat follows.",
+      "phase": "interstage",
+      "applies_when": {
+        "coating_type": ["stain_clear"]
+      },
+      "tasks": [
+        {
+          "task_id": "TSK_TRST_STAIN_DRY_VERIFY",
+          "name": "Verify Stain Dry",
+          "description": "Touch-test stain dryness. Oil stain: 4-8 hours dry time. Waterborne stain: 2 hours. Surface must be completely dry and non-tacky before sealer/clear.",
+          "task_type": "inspect",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "tools_required": [],
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": {
+            "all": "Touch test in inconspicuous area. No tackiness. No color transfer to cloth. If tacky, wait longer — do NOT apply sealer/clear over tacky stain."
+          }
+        }
+      ],
+      "sequence_notes": "Wait for full dry time per product instructions, then verify."
+    },
+
+    {
+      "module_id": "MOD_TRST_SEALER_APPLY",
+      "name": "Sanding Sealer Application (Coat 1)",
+      "description": "Apply first coat of sanding sealer. Builds smooth base for clear topcoat. Conditional: sealer_coats >= 1.",
+      "phase": "apply",
+      "applies_when": {
+        "sealer_coats": [1, 2],
+        "coating_type": ["stain_clear", "clear_only"]
+      },
+      "tasks": [
+        {
+          "task_id": "TSK_TRST_SEALER_COAT_1",
+          "name": "Apply Sanding Sealer (Coat 1)",
+          "description": "Apply thin, even coat of sanding sealer. Brush or spray per application_method_clear. Sealer builds adhesion bridge and creates sandable base.",
+          "task_type": "finish",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "tools_required": ["brush_or_sprayer", "sealer"],
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": {
+            "all": "Thin, even coat. Do not over-apply — sealer should not pool in profiles. Let dry per product instructions before sanding."
+          }
+        }
+      ],
+      "sequence_notes": "Apply sealer → Dry → Sand (in MOD_TRST_SEALER_INTERSTAGE or MOD_TRST_SEALER_SAND)."
+    },
+
+    {
+      "module_id": "MOD_TRST_SEALER_INTERSTAGE",
+      "name": "Sealer Interstage + Coat 2",
+      "description": "Sand first sealer coat and apply second sealer coat. Conditional: sealer_coats = 2.",
+      "phase": "interstage",
+      "applies_when": {
+        "sealer_coats": [2]
+      },
+      "tasks": [
+        {
+          "task_id": "TSK_TRST_SAND_SEALER_220",
+          "name": "Sand Sealer (220 Grit)",
+          "description": "Sand first sealer coat with 220-grit. Level surface, remove nibs and dust inclusions. Rigid sanding block for flat areas.",
+          "task_type": "prep",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "tools_required": ["sanding_block", "sandpaper_220"],
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": {
+            "all": "Sand entire surface with 220 grit. Level sealer coat. Do NOT sand through to stain — light pressure only."
+          }
+        },
+        {
+          "task_id": "TSK_TRST_TACK_SEALER",
+          "name": "Tack Clean Between Sealer Coats",
+          "description": "Remove sanding dust with tack cloth before second sealer coat.",
+          "task_type": "cleanup",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "tools_required": ["tack_cloth"],
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": {
+            "all": "Complete dust removal before next coat."
+          }
+        },
+        {
+          "task_id": "TSK_TRST_SEALER_COAT_2",
+          "name": "Apply Sanding Sealer (Coat 2)",
+          "description": "Apply second coat of sanding sealer over sanded first coat.",
+          "task_type": "finish",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "tools_required": ["brush_or_sprayer", "sealer"],
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": {
+            "all": "Thin, even coat. Same technique as coat 1."
+          }
+        }
+      ],
+      "sequence_notes": "Sand sealer → Tack → Apply sealer coat 2 → Dry → Final sealer sand (in MOD_TRST_SEALER_SAND)."
+    },
+
+    {
+      "module_id": "MOD_TRST_SEALER_SAND",
+      "name": "Final Sealer Sand Before Clear",
+      "description": "Sand final sealer coat to glass-smooth surface before first clear topcoat. Conditional: sealer_coats >= 1.",
+      "phase": "interstage",
+      "applies_when": {
+        "sealer_coats": [1, 2],
+        "coating_type": ["stain_clear", "clear_only"]
+      },
+      "tasks": [
+        {
+          "task_id": "TSK_TRST_SAND_SEALER_FINAL_320",
+          "name": "Final Sealer Sand (320 Grit)",
+          "description": "Final sand of sealer coat(s) with 320-grit before clear topcoat. Creates glass-smooth surface for clear application.",
+          "task_type": "prep",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "tools_required": ["sanding_block", "sandpaper_320"],
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": {
+            "all": "Sand entire surface with 320 grit. Surface should feel glass-smooth. Do NOT sand through to stain."
+          }
+        },
+        {
+          "task_id": "TSK_TRST_TACK_BEFORE_CLEAR",
+          "name": "Tack Clean Before Clear Coat",
+          "description": "Remove all sanding dust before first clear topcoat application. Any dust will be trapped in clear and visible.",
+          "task_type": "cleanup",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "tools_required": ["tack_cloth"],
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": {
+            "all": "Meticulous dust removal. Every particle trapped in clear coat is a visible defect."
+          }
+        }
+      ],
+      "sequence_notes": "Sand 320 → Tack → Ready for clear coat 1."
+    },
+
+    {
+      "module_id": "MOD_TRST_CLEAR_APPLY",
+      "name": "Clear Topcoat Application (Coat 1)",
+      "description": "Apply first clear topcoat. Brush or spray per application_method_clear. Conditional: coating_type includes clear.",
+      "phase": "finish",
+      "applies_when": {
+        "coating_type": ["stain_clear", "clear_only"]
+      },
+      "required_inputs": [
+        { "input_name": "IN_LF_BASEBOARD", "paintscope_key": "PS_SURFACE_LF.TRIM_BASEBOARD", "uom": "LF" },
+        { "input_name": "IN_LF_CROWN", "paintscope_key": "PS_SURFACE_LF.TRIM_CROWN", "uom": "LF" },
+        { "input_name": "IN_LF_CHAIR_RAIL", "paintscope_key": "PS_SURFACE_LF.TRIM_CHAIR_RAIL", "uom": "LF" },
+        { "input_name": "IN_LF_WAINSCOT_RAIL", "paintscope_key": "PS_SURFACE_LF.TRIM_WAINSCOT_RAIL", "uom": "LF" },
+        { "input_name": "IN_LF_SHADOW_BOX", "paintscope_key": "PS_SURFACE_LF.TRIM_SHADOW_BOX", "uom": "LF" },
+        { "input_name": "IN_LF_PANEL_MOLD", "paintscope_key": "PS_SURFACE_LF.TRIM_PANEL_MOLD", "uom": "LF" },
+        { "input_name": "IN_LF_PICTURE_RAIL", "paintscope_key": "PS_SURFACE_LF.TRIM_PICTURE_RAIL", "uom": "LF" }
+      ],
+      "tasks": [
+        {
+          "task_id": "TSK_TRST_CLEAR_COAT_1_BRUSH",
+          "name": "Clear Coat 1 — Brush",
+          "description": "Apply first clear topcoat with brush. Thin, even coat with the grain. Tip once to level — do NOT overwork. Strain clear before pouring.",
+          "task_type": "finish",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "tools_required": ["brush_natural_or_synthetic", "straining_cone"],
+          "applies_when": {
+            "application_method_clear": ["brush"]
+          },
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": {
+            "all": "No drips, sags, holidays, or brush marks. Tip once with grain. Do NOT re-brush — marks will not level. Strain clear before pour."
+          }
+        },
+        {
+          "task_id": "TSK_TRST_CLEAR_COAT_1_SPRAY",
+          "name": "Clear Coat 1 — Spray",
+          "description": "Spray first clear topcoat. Consistent distance and speed for uniform mil thickness. HVLP preferred for clear coat.",
+          "task_type": "finish",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "tools_required": ["hvlp_sprayer", "respirator"],
+          "applies_when": {
+            "application_method_clear": ["spray"]
+          },
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": {
+            "all": "No drips, sags, holidays, or orange peel. Uniform coverage. Proper mil thickness."
+          }
+        }
+      ],
+      "sequence_notes": "Coat 1 followed by MOD_TRST_CLEAR_INTERSTAGE (if clear_coats >= 2)."
+    },
+
+    {
+      "module_id": "MOD_TRST_CLEAR_INTERSTAGE",
+      "name": "Clear Coat Interstage",
+      "description": "Sand between clear coats and inspect. Conditional: clear_coats >= 2.",
+      "phase": "interstage",
+      "applies_when": {
+        "clear_coats": [2, 3],
+        "coating_type": ["stain_clear", "clear_only"]
+      },
+      "tasks": [
+        {
+          "task_id": "TSK_TRST_SAND_CLEAR_320",
+          "name": "Sand Clear Coat (320-400 Grit)",
+          "description": "Sand cured clear coat with 320 grit (QT3-QT4) or 400 grit (QT5). Level surface, remove dust nibs and imperfections.",
+          "task_type": "prep",
+          "task_classification": "qt_scaled",
+          "skill_level": "journeyman",
+          "tools_required": ["sanding_block", "sandpaper_320_or_400"],
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": {
+            "QT3": "Spot sand nibs and rough spots. 320 grit.",
+            "QT4": "Full surface sand. 320 grit. Uniform scratch pattern.",
+            "QT5": "Thorough full sand. 400 grit. Glass-smooth between coats."
+          }
+        },
+        {
+          "task_id": "TSK_TRST_TACK_CLEAR",
+          "name": "Tack Clean Between Clear Coats",
+          "description": "Remove all sanding dust with tack cloth before next clear coat.",
+          "task_type": "cleanup",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "tools_required": ["tack_cloth"],
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": {
+            "all": "Meticulous dust removal. Dust in clear coat = visible trapped particles."
+          }
+        },
+        {
+          "task_id": "TSK_TRST_INSPECT_CLEAR",
+          "name": "Inspect Clear Coat",
+          "description": "Visual inspection of sanded clear coat before next coat. Check for dust nibs, runs, holidays, adhesion issues.",
+          "task_type": "inspect",
+          "task_classification": "qt_scaled",
+          "skill_level": "journeyman",
+          "tools_required": ["work_light"],
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": {
+            "QT3": "Quick glance — obvious defects only",
+            "QT4": "Systematic scan at 3 feet — mark all visible defects",
+            "QT5": "Critical inspection under raking light — zero tolerance"
+          }
+        }
+      ],
+      "sequence_notes": "Sand clear → Tack → Inspect → Apply next clear coat. Runs between each clear coat except the final one."
+    },
+
+    {
+      "module_id": "MOD_TRST_CLEAR_COAT_2",
+      "name": "Clear Topcoat Application (Coat 2)",
+      "description": "Apply second clear topcoat. Conditional: clear_coats >= 2.",
+      "phase": "finish",
+      "applies_when": {
+        "clear_coats": [2, 3],
+        "coating_type": ["stain_clear", "clear_only"]
+      },
+      "tasks": [
+        {
+          "task_id": "TSK_TRST_CLEAR_COAT_2",
+          "name": "Clear Coat 2",
+          "description": "Apply second clear topcoat using same method as coat 1. Builds film thickness and depth.",
+          "task_type": "finish",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "tools_required": ["applicator"],
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": {
+            "all": "Same technique as coat 1. Faster than coat 1 — consistent substrate. No application defects."
+          }
+        }
+      ],
+      "sequence_notes": "Applied after clear interstage. If clear_coats = 3, followed by another interstage + coat 3."
+    },
+
+    {
+      "module_id": "MOD_TRST_CLEAR_COAT_3",
+      "name": "Clear Topcoat Application (Coat 3)",
+      "description": "Apply third clear topcoat for maximum film build and depth. Conditional: clear_coats = 3.",
+      "phase": "finish",
+      "applies_when": {
+        "clear_coats": [3],
+        "coating_type": ["stain_clear", "clear_only"]
+      },
+      "tasks": [
+        {
+          "task_id": "TSK_TRST_CLEAR_COAT_3",
+          "name": "Clear Coat 3",
+          "description": "Apply third and final clear topcoat. Maximum film build. This is the finish surface — extra care for defect-free application.",
+          "task_type": "finish",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "tools_required": ["applicator"],
+          "appears_in_tiers": ["QT5"],
+          "quality_notes": {
+            "QT5": "Final surface coat — zero tolerance for defects. Perfect uniform sheen. No brush marks, no orange peel, no dust inclusions."
+          }
+        }
+      ],
+      "sequence_notes": "Final clear coat. Followed by MOD_TRST_CLEANUP."
+    },
+
+    {
+      "module_id": "MOD_TRST_CLEANUP",
+      "name": "Trim Stain/Clear Cleanup",
+      "description": "Protection teardown, final inspection, touch-up, and tool cleanup.",
+      "phase": "cleanup",
+      "applies_when": {},
+      "tasks": [
+        {
+          "task_id": "TSK_TRST_REMOVE_MASK",
+          "name": "Protection Teardown",
+          "description": "Remove all protection materials — floor drops, wall masking, fixture covers. Remove tape carefully to avoid damaging fresh clear coat.",
+          "task_type": "protect",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "tools_required": [],
+          "protection_metadata": {
+            "action": "teardown",
+            "zones": ["floor_perimeter", "wall_adjacent", "fixture_covers"],
+            "method_dependent": true
+          },
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": {
+            "all": "Remove tape carefully — pull at 45 degrees away from fresh clear coat to avoid lifting."
+          }
+        },
+        {
+          "task_id": "TSK_TRST_VACUUM",
+          "name": "Vacuum Sanding Dust",
+          "description": "Vacuum all sanding dust from floor, surfaces, and surrounding area. Stain/clear work generates significant dust from multiple sanding stages.",
+          "task_type": "cleanup",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "tools_required": ["vacuum"],
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": {
+            "all": "Thorough vacuum of entire work area. Sanding dust from 5+ grit levels accumulates."
+          }
+        },
+        {
+          "task_id": "TSK_TRST_FINAL_INSPECT",
+          "name": "Final Inspection",
+          "description": "Final quality check of all stained/clear-coated trim surfaces. Verify color uniformity, sheen consistency, and defect-free finish.",
+          "task_type": "inspect",
+          "task_classification": "qt_scaled",
+          "skill_level": "journeyman",
+          "tools_required": ["work_light"],
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": {
+            "QT3": "Quick glance at 6 feet — no obvious defects, uniform stain color",
+            "QT4": "Systematic scan at 3 feet — uniform color, consistent sheen, no visible defects",
+            "QT5": "Critical inspection at arm's length under raking light — zero tolerance, uniform color and sheen across all surfaces"
+          }
+        },
+        {
+          "task_id": "TSK_TRST_TOUCHUP",
+          "name": "Touch-Up",
+          "description": "Address remaining defects found during final inspection. Touch up with same clear product. Spot sand and recoat as needed.",
+          "task_type": "detail",
+          "task_classification": "qt_scaled",
+          "skill_level": "journeyman",
+          "tools_required": ["brush_small", "clear_coat", "sanding_block"],
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": {
+            "QT3": "Address obvious defects only",
+            "QT4": "Address all visible defects — blend touch-up into surrounding finish",
+            "QT5": "Address every imperfection — may need full coat over repair areas to equalize sheen"
+          }
+        }
+      ],
+      "sequence_notes": "Remove masking → Vacuum → Final inspect → Touch-up → Clean tools."
+    }
+  ],
+
+  "round_configurations": [
+    {
+      "round_id": "ROUND_TRST_STAIN_CLEAR_QT3",
+      "name": "QT3 Stain + Clear (2 Coats Total)",
+      "description": "Budget: 1 stain + 0 sealer + 1 clear = 2 total coats.",
+      "applies_when": {
+        "coating_type": ["stain_clear"],
+        "quality_tier": ["QT3"]
+      },
+      "total_coats": 2,
+      "interstage_cycles": 1,
+      "phase_sequence": ["setup", "prep", "apply", "interstage", "finish", "cleanup"],
+      "notes": "Minimal coat stack. Stain + dry verify + clear. No sealer. No clear interstage."
+    },
+    {
+      "round_id": "ROUND_TRST_STAIN_CLEAR_QT4",
+      "name": "QT4 Stain + Sealer + Clear (4 Coats Total)",
+      "description": "Standard: 1 stain + 1 sealer + 2 clear = 4 total coats.",
+      "applies_when": {
+        "coating_type": ["stain_clear"],
+        "quality_tier": ["QT4"]
+      },
+      "total_coats": 4,
+      "interstage_cycles": 3,
+      "phase_sequence": ["setup", "prep", "apply", "interstage", "apply", "interstage", "finish", "interstage", "finish", "cleanup"],
+      "notes": "Professional standard. Stain + dry + sealer + sealer sand + clear 1 + interstage + clear 2."
+    },
+    {
+      "round_id": "ROUND_TRST_STAIN_CLEAR_QT5",
+      "name": "QT5 Stain + 2 Sealer + 3 Clear (6 Coats Total)",
+      "description": "Premium: 1 stain + 2 sealer + 3 clear = 6 total coats.",
+      "applies_when": {
+        "coating_type": ["stain_clear"],
+        "quality_tier": ["QT5"]
+      },
+      "total_coats": 6,
+      "interstage_cycles": 5,
+      "phase_sequence": ["setup", "prep", "apply", "interstage", "apply", "interstage", "apply", "interstage", "finish", "interstage", "finish", "interstage", "finish", "cleanup"],
+      "notes": "Maximum film build. 6 total coats with interstage sanding between each."
+    },
+    {
+      "round_id": "ROUND_TRST_STAIN_ONLY",
+      "name": "Stain Only (1-2 Coats)",
+      "description": "Stain only — no sealer or clear coat.",
+      "applies_when": {
+        "coating_type": ["stain_only"]
+      },
+      "total_coats": 1,
+      "interstage_cycles": 0,
+      "phase_sequence": ["setup", "prep", "apply", "cleanup"],
+      "notes": "Minimal workflow. Stain + wipe only. No interstage."
+    }
+  ],
+
+  "assumptions": [
+    {
+      "assumption_id": "A-TRST-001",
+      "field": "wipe_step",
+      "value": "All stain application methods include a wipe step — wipe time is built into the stain application rate, not a separate task",
+      "source": "Industry practice",
+      "doctrine_gap": true,
+      "note": "Wipe is integral to stain application — not separable. Rate includes apply + dwell + wipe."
+    },
+    {
+      "assumption_id": "A-TRST-002",
+      "field": "sealer_method",
+      "value": "Sealer uses same application method as clear coat (application_method_clear drives both sealer and clear)",
+      "source": "Design spec Section 4.1",
+      "doctrine_gap": false,
+      "note": "Sealer and clear are same coating type (film-forming). Same method makes sense."
+    }
+  ]
+}

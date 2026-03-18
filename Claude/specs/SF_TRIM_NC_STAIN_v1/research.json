@@ -1,0 +1,206 @@
+{
+  "research_metadata": {
+    "spec_family_id": "SF_TRIM_NC_STAIN",
+    "research_mode": "lightweight",
+    "design_spec_source": "docs/superpowers/specs/2026-03-18-interior-stain-clear-coat-specs-design.md",
+    "paint_counterpart_source": "specs/SF_TRIM_NC_PAINT_v1/",
+    "stain_workflow_precedent": "specs/SF_DECK_EXT_RP_v1/spec.json",
+    "sibling_specs_reviewed": [
+      "specs/SF_TRIM_NC_PAINT_v1/spec.json",
+      "specs/SF_TRIM_NC_PAINT_v1/research.json",
+      "specs/SF_DECK_EXT_RP_v1/spec.json"
+    ],
+    "researcher": "Spec Researcher Agent",
+    "date": "2026-03-18",
+    "status": "draft",
+    "review_required": true
+  },
+
+  "domain_analysis": {
+    "scope": "Interior new construction trim stain and clear coat workflows for 7 trim profile types",
+    "workflow_overview": "Three-layer coating system: stain (color) → sanding sealer (adhesion bridge + smooth base) → clear topcoat (protection + depth). Each layer has distinct material systems and application techniques. coating_type dimension gates which layers are active.",
+    "key_differences_from_paint": [
+      "Bare wood input (SS_BARE) instead of primed surface (SS_PRIMED_FIELD/SS_PRIMED_FACTORY)",
+      "No companion prime spec — stain spec handles all prep and all coating layers",
+      "Three product roles (stain, sealer, clear) instead of one (finish)",
+      "Independent application method selection for stain vs clear phases",
+      "Wipe step mandatory for all stain application methods",
+      "Wood conditioner activation for softwood species",
+      "Grain raise management for waterborne products on bare wood",
+      "Wider grit progression (120 → 150 → 220 → 320 → 400) vs paint (220 → 320)",
+      "User-selectable coat counts for all three layers with QT-driven defaults",
+      "No sheen/QT gate — all clear sheens available at all tiers",
+      "Stainable wood filler instead of paintable spackle for defect filling"
+    ],
+    "workflow_phases": {
+      "prep": "Sand bare wood (120 → 150), fill defects with stainable wood filler, grain raise (conditional for WB), apply wood conditioner (conditional for softwood), tack clean",
+      "apply": "Stain coat(s) with wipe step, sanding sealer coat(s) with interstage sanding",
+      "finish": "Clear topcoat(s) with interstage sanding between",
+      "interstage": "Stain dry verification, sealer interstage sand (220-320), clear interstage sand (320-400)"
+    }
+  },
+
+  "required_paintscope_keys": [
+    { "paintscope_key": "PS_SURFACE_LF.TRIM_BASEBOARD", "input_name": "IN_LF_BASEBOARD", "uom": "LF", "status": "existing", "description": "Baseboard linear footage" },
+    { "paintscope_key": "PS_SURFACE_LF.TRIM_CROWN", "input_name": "IN_LF_CROWN", "uom": "LF", "status": "existing", "description": "Crown molding linear footage" },
+    { "paintscope_key": "PS_SURFACE_LF.TRIM_CHAIR_RAIL", "input_name": "IN_LF_CHAIR_RAIL", "uom": "LF", "status": "existing", "description": "Chair rail linear footage" },
+    { "paintscope_key": "PS_SURFACE_LF.TRIM_WAINSCOT_RAIL", "input_name": "IN_LF_WAINSCOT_RAIL", "uom": "LF", "status": "existing", "description": "Wainscot cap/rail linear footage" },
+    { "paintscope_key": "PS_SURFACE_LF.TRIM_SHADOW_BOX", "input_name": "IN_LF_SHADOW_BOX", "uom": "LF", "status": "existing", "description": "Shadow box / picture frame molding linear footage" },
+    { "paintscope_key": "PS_SURFACE_LF.TRIM_PANEL_MOLD", "input_name": "IN_LF_PANEL_MOLD", "uom": "LF", "status": "existing", "description": "Panel molding linear footage" },
+    { "paintscope_key": "PS_SURFACE_LF.TRIM_PICTURE_RAIL", "input_name": "IN_LF_PICTURE_RAIL", "uom": "LF", "status": "existing", "description": "Picture rail linear footage" },
+    { "paintscope_key": "PS_PROTECT_SF.FLOOR_PERIMETER", "input_name": "IN_SF_PROTECT_FLOOR_PERIMETER", "uom": "SF", "status": "existing", "description": "Perimeter floor protection area" },
+    { "paintscope_key": "PS_PROTECT_LF.WALL_ADJACENT", "input_name": "IN_LF_WALL_ADJACENT", "uom": "LF", "status": "proposed", "description": "Wall masking LF at trim-to-wall edge" },
+    { "paintscope_key": "PS_PROTECT_EA.ASSET.FIXTURES", "input_name": "IN_EA_ASSET_FIXTURES", "uom": "EA", "status": "proposed", "description": "Fixture count near spray zone" }
+  ],
+
+  "protection_zones_analysis": {
+    "spec_category": "trim",
+    "application_method_sensitivity": true,
+    "zones": [
+      {
+        "zone_id": "floor_perimeter",
+        "condition": "floor_type = finished or partial",
+        "protection_level": "edge_only",
+        "method_dependent": false,
+        "notes": "Drop cloth runners along trim perimeter. Stain drips harder to clean than paint — protection especially important."
+      },
+      {
+        "zone_id": "wall_adjacent",
+        "condition": "spray method or walls SS_PAINTED_*",
+        "protection_level": "light_mask",
+        "method_dependent": true,
+        "notes": "Tape + paper masking at trim-to-wall edge. For stain work, also needed with brush when walls are finished — stain is difficult to remove from painted surfaces."
+      },
+      {
+        "zone_id": "fixture_covers",
+        "condition": "spray method",
+        "protection_level": "partial_cover",
+        "method_dependent": true,
+        "notes": "Spray only. Cover outlets/switches near spray zone."
+      }
+    ]
+  },
+
+  "adjacency_analysis": {
+    "primary_adjacency": "trim_to_wall",
+    "analysis": [
+      {
+        "adjacent_surface": "wall_field",
+        "edge_type": "linear",
+        "interface_concern": "Stain-to-paint wall interface. Stain is harder to clean from painted walls than paint is. Wall protection is critical when walls are finished.",
+        "protection_approach": "Same masking as paint counterpart. Additional caution with stain — stain penetrates and cannot be wiped clean from painted surfaces."
+      },
+      {
+        "adjacent_surface": "door_frame",
+        "edge_type": "linear",
+        "interface_concern": "Door casing often stained with same stain/clear as trim. May share session.",
+        "protection_approach": "No protection needed when same finish. Routed to SF_DOOR_FRAME_NC_STAIN."
+      },
+      {
+        "adjacent_surface": "ceiling_field",
+        "edge_type": "linear",
+        "interface_concern": "Crown molding meets ceiling. Clear coat drips on painted ceiling are difficult to remedy.",
+        "protection_approach": "Light masking at crown-ceiling junction for spray. Brush method low risk."
+      }
+    ]
+  },
+
+  "state_analysis": {
+    "input_states": {
+      "stain_clear": ["SS_BARE"],
+      "stain_only": ["SS_BARE"],
+      "clear_only": ["SS_BARE", "SS_STAINED"]
+    },
+    "output_states": {
+      "stain_clear": "SS_CLEAR_COATED",
+      "stain_only": "SS_STAINED",
+      "clear_only": "SS_CLEAR_COATED"
+    },
+    "new_states_required": ["SS_STAINED", "SS_CLEAR_COATED"],
+    "notes": "SS_BARE already exists. SS_STAINED and SS_CLEAR_COATED are new states per design spec Section 7.1. SS_CLEAR_COATED as input (recoating) is RP scope — excluded from this NC spec."
+  },
+
+  "production_rate_analysis": {
+    "key_rates": {
+      "stain_brush_wipe": "80 LF/hr — brush application with wipe. Slower than paint brush (also 80 LF/hr for coat 1) due to wipe step.",
+      "stain_roll_wipe": "120 LF/hr — roll application with wipe. Faster application but includes wipe.",
+      "stain_spray_wipe": "100 LF/hr — spray application with wipe. Faster spray offset by wipe step.",
+      "clear_brush": "100 LF/hr — brush clear coat. Faster than stain brush (no wipe step).",
+      "clear_spray": "150 LF/hr — spray clear coat. Production method.",
+      "sealer_brush": "120 LF/hr — thin coat, fast application.",
+      "sealer_spray": "160 LF/hr — thin coat spray.",
+      "bare_wood_sand_120": "100 LF/hr — initial stock removal.",
+      "bare_wood_sand_150": "120 LF/hr — final prep sand (finer, faster).",
+      "interstage_sand_220": "150 LF/hr — sealer sand.",
+      "interstage_sand_320": "180 LF/hr — clear interstage sand.",
+      "interstage_sand_400": "200 LF/hr — QT5 fine clear interstage sand.",
+      "wood_conditioner": "200 LF/hr — apply + wipe."
+    },
+    "comparison_to_paint": "Stain rates are generally comparable to paint rates for similar operations. Key difference: stain application includes wipe step (adds time), but stain requires no primer coat (saves a full layer). Net: stain_clear QT4 has more total coats (4 vs 2) but individual coat application is comparable speed."
+  },
+
+  "risk_notes": [
+    {
+      "risk_id": "RISK_TRST_001",
+      "topic": "Blotchy stain on softwood",
+      "risk": "Softwood (pine, poplar, alder) absorbs stain unevenly, creating blotchy appearance",
+      "mitigation": "Wood conditioner mandatory for softwood. Gel stain alternative (controls blotch without conditioner). Careful wipe technique.",
+      "severity": "major"
+    },
+    {
+      "risk_id": "RISK_TRST_002",
+      "topic": "Grain raise from waterborne products",
+      "risk": "Water-based stain, sealer, or clear raises wood grain on bare wood, creating rough texture",
+      "mitigation": "Grain-raise prep task: wet wipe bare wood, let dry, re-sand with 220 grit before first waterborne coat. Removes most grain raise issue.",
+      "severity": "major"
+    },
+    {
+      "risk_id": "RISK_TRST_003",
+      "topic": "Clear coat bubbles from rolling",
+      "risk": "Rolling clear coat traps air bubbles that cure into visible defects",
+      "mitigation": "Roll is PROHIBITED for clear coat application. Brush or spray only.",
+      "severity": "critical"
+    },
+    {
+      "risk_id": "RISK_TRST_004",
+      "topic": "Stain color inconsistency between trim types",
+      "risk": "Different wood species, grain patterns, or application consistency across trim types creates color variation",
+      "mitigation": "Use same stain lot. Consistent application technique (timing, pressure, wipe). Test on scrap first.",
+      "severity": "major"
+    },
+    {
+      "risk_id": "RISK_TRST_005",
+      "topic": "Spackle does not accept stain",
+      "risk": "Regular paintable spackle used for defect fill does not absorb stain — creates visible white spots",
+      "mitigation": "STAINABLE wood filler only. Color-matched to final stain color when possible.",
+      "severity": "critical"
+    }
+  ],
+
+  "assumptions": [
+    {
+      "assumption_id": "A-TRST-001",
+      "field": "bare_wood_condition",
+      "value": "New construction trim is bare, unfinished wood in good condition — no existing coatings, no damage beyond minor mill marks and nail holes",
+      "source": "NC context",
+      "doctrine_gap": false,
+      "note": "RP stain specs (stripping existing finish) are out of scope for this NC spec."
+    },
+    {
+      "assumption_id": "A-TRST-002",
+      "field": "coat_count_defaults",
+      "value": "QT3: 1 stain + 0 sealer + 1 clear = 2 total. QT4: 1 stain + 1 sealer + 2 clear = 4 total. QT5: 1 stain + 2 sealer + 3 clear = 6 total. All user-overridable.",
+      "source": "Design spec Section 4.6",
+      "doctrine_gap": true,
+      "note": "No existing doctrine defines stain/sealer/clear coat count recommendations by QT. Derived from industry practice and design spec."
+    },
+    {
+      "assumption_id": "A-TRST-003",
+      "field": "chemistry_compatibility",
+      "value": "No chemistry-pairing constraints between stain, sealer, and clear layers. Oil stain under WB clear is standard practice.",
+      "source": "Design spec Section 6.1, industry practice",
+      "doctrine_gap": true,
+      "note": "Unlike paint specs where primer and finish should match chemistry, stain workflow has no such constraint."
+    }
+  ]
+}
