@@ -1,4 +1,4 @@
-import { SUBSTRATE_MAP } from '../data/substrate-catalog';
+import { SUBSTRATE_MAP, WOOD_SUBSTRATES } from '../data/substrate-catalog';
 import { ROOM_PRESETS } from '../data/room-presets';
 import { createExteriorState } from './exterior-state';
 
@@ -57,7 +57,18 @@ export function createSubstrateConfig(substrateId, overrides={}) {
     if (substrateId === 'doors') overrides.items = overrides.items.map(d => createDoor(d));
     else if (substrateId === 'windows') overrides.items = overrides.items.map(w => createWindow(w));
   }
-  return { ...base, ...overrides };
+  const config = { ...base, ...overrides };
+  if (WOOD_SUBSTRATES.has(substrateId)) {
+    config.coating_type = config.coating_type || 'paint';
+    config.wood_species_group = config.wood_species_group || 'hardwood';
+    config.application_method_stain = config.application_method_stain || 'brush';
+    config.application_method_clear = config.application_method_clear || 'brush';
+    config.stain_coats = config.stain_coats ?? 1;
+    config.sealer_coats = config.sealer_coats ?? 0;
+    config.clear_coats = config.clear_coats ?? 1;
+    config.clear_sheen = config.clear_sheen || 'satin';
+  }
+  return config;
 }
 
 export function createRoom(overrides={}) {
@@ -139,5 +150,5 @@ export const initialState = {
   },
   rooms: [createRoom()],
   exterior: createExteriorState(),
-  ui: { activeRoomId: null, activeTab:'scope', view:'setup' }
+  ui: { activeRoomId: null, activeElevationId: null, activeTab:'scope', view:'setup', scopeMode: 'interior' }
 };

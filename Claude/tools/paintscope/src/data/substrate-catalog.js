@@ -123,6 +123,14 @@ export const SUBSTRATE_CATALOG = [
   },
 ];
 
+// Substrates that support stain/clear coating_type when set to bare_wood
+export const WOOD_SUBSTRATES = new Set([
+  'doors', 'door_frames', 'door_casing', 'window_casing', 'windows', 'window_jamb',
+  'baseboard', 'crown', 'chair_rail', 'shoe_mold', 'wainscoting',
+  'wood_feature_wall', 'wood_ceiling', 'beams', 'columns', 'mantels',
+  'builtins', 'stair_risers', 'stair_railing',
+]);
+
 // Quick lookup by substrate id
 export const SUBSTRATE_MAP = Object.fromEntries(SUBSTRATE_CATALOG.map(s => [s.id, s]));
 
