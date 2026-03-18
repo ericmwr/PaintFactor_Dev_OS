@@ -1,0 +1,844 @@
+{
+  "research_metadata": {
+    "spec_family_id": "SF_WINDOW_INT_RP",
+    "spec_family_version": "v1",
+    "domain": "interior",
+    "scope_type": "repaint",
+    "research_mode": "doctrine_driven",
+    "doctrine_loaded": [
+      "docs/System/PaintFactor_OS.md",
+      "docs/System/Conventions.md",
+      "docs/Doctrine/Quality_Tiers_and_Surface_Condition.md",
+      "docs/Doctrine/Fine_Finish_Doctrine.md",
+      "docs/Doctrine/Window_Systems_Doctrine.md",
+      "docs/Doctrine/Protection_and_Masking_Doctrine.md",
+      "docs/Doctrine/Spec_Completeness_Doctrine.md",
+      "docs/Doctrine/Estimation_Modifiers_Doctrine.md",
+      "docs/Doctrine/Modifier_Registry.md",
+      "docs/Doctrine/Interior_Protection_Doctrine.md",
+      "docs/Reference/Protection_Zones_Reference.md",
+      "docs/Reference/Surface_Vocabulary_Reference.md",
+      "docs/Reference/Site_Condition_Vocabulary_Reference.md",
+      "docs/Reference/Substrate_State_Reference.md",
+      "docs/PaintScope/PaintScope_Quantity_Key_Catalog.md",
+      "docs/PaintScope/Spec_Input_to_PaintScope_Key_Mapping.md",
+      "docs/PaintScope/PaintScope_Window_Counting_System.md",
+      "devos/Interior_RP_Gap_Analysis.md"
+    ],
+    "sibling_specs_reviewed": [
+      "specs/SF_WINDOW_INT_NC_v1/spec.json",
+      "specs/SF_WINDOW_INT_NC_v1/production.json",
+      "specs/SF_WINDOW_INT_NC_v1/materials.json",
+      "specs/SF_WINDOW_INT_NC_v1/sop_modules.json",
+      "specs/SF_DOOR_INT_RP_v1/research.json",
+      "specs/SF_DRYWALL_WALL_INT_RP_v1/research.json"
+    ],
+    "researcher": "Spec Researcher Agent",
+    "date": "2026-03-14",
+    "status": "draft",
+    "review_required": true,
+    "context_prefix": "WNRP"
+  },
+
+  "spec_family_id": "SF_WINDOW_INT_RP",
+  "version": "1.0.0",
+
+  "context_prefix_rationale": "TSK_WIN_* is fully consumed by SF_WINDOW_INT_NC_v1 (29 tasks). TSK_WLRP_* is used by SF_DRYWALL_WALL_INT_RP. TSK_DIRP_* is used by SF_DOOR_INT_RP. TSK_CLRP_* is reserved for SF_DRYWALL_CEILING_INT_RP. TSK_TMRP_* is reserved for SF_TRIM_INT_RP. Using WNRP_ (WiNdow RePaint) eliminates all ID collisions. Verified: zero TSK_WNRP_* IDs exist in the codebase.",
+
+  "scope_summary": "Combined assessment + prep + prime + finish repaint spec for previously painted interior window units in residential homes. Covers 3 substrates (wood, aluminum, steel — vinyl NOT painted). Windows are the #1 interior moisture damage location due to condensation on sills, jambs, and sash bottoms. Includes condition assessment (visual inspect, adhesion test, coating ID, moisture check), RP-specific prep (degloss, TSP wash, scrape/feather for failing paint, condensation damage remediation), state-driven primer selection (adhesion primer, stain-block, mildew-resistant), finish coat application (brush primary, spray rare), full interstage protocol, glass masking (mandatory, 30-40% of total time for TDL windows), blocking prevention, and glass scraping after cure. EA-based with Size Bucket Method (S/M/L/O). Does NOT cover exterior windows (separate NC specs), vinyl windows (specialty spec), window casing/stool (SF_TRIM_INT_RP), sidelites/transoms (separate), or window replacement. Window painting is a fine-finish scope — QT3 minimum, interstage protocol at all tiers.",
+
+  "relevant_findings": [
+    {
+      "finding_id": "RF-001",
+      "topic": "Windows are the #1 interior condensation/moisture damage site",
+      "finding": "Interior windows experience the highest moisture exposure of any interior surface due to thermal bridging and condensation. Cold exterior glass cools interior air below dew point, causing condensation that runs down glass onto sash, sill, and jamb. Bathroom and kitchen windows compound this with humidity from showers and cooking. Wood window sills and sash bottoms are especially vulnerable: water wicks into end grain, causing swelling, paint bubbling, and mildew. Frame bottoms in bathrooms may have MC > 15% — the moisture source must be controlled before repainting. This is the dominant RP failure mode for windows, analogous to bathroom door frame moisture (SF_DOOR_INT_RP RF-013) but more severe due to glass condensation mechanism.",
+      "source": "Window_Systems_Doctrine Section 10; Interior_RP_Gap_Analysis.md Section A",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-002",
+      "topic": "RP window prep is condition-driven, not substrate-driven",
+      "finding": "NC window prep is substrate-driven: bare wood gets sand + fill + primer, factory-primed gets scuff sand, aluminum gets degrease + etch + DTM primer, steel gets degrease + rust treatment + DTM primer. RP window prep is condition-driven: sound paint requires degloss + scuff only, failing paint requires scrape + feather + adhesion primer, moisture damage requires remediation + biocide + stain-block, smoke damage requires shellac seal. Two NC tasks are NOT_APPLICABLE in RP: TSK_WIN_PREP_WOOD_FILL (bare wood fill — already done on NC) and TSK_WIN_PREP_ALUMINUM_ETCH (bare aluminum etch — already etched and primed on NC). Five NC tasks are MODIFIED: TSK_WIN_PREP_WOOD_SAND (becomes degloss/scuff), TSK_WIN_PREP_STEEL_RUST (RP: rust may form through existing coating at condensation points), TSK_WIN_PRIME_BRUSH (RP: adhesion/stain-block primer, not substrate primer), TSK_WIN_PRIME_SPRAY (same), and TSK_WIN_PREP_SCUFF (RP: applies to all previously painted substrates, not just factory-primed wood).",
+      "source": "Interior_RP_Gap_Analysis.md Section B (SF_WINDOW_INT_NC classification); Substrate_State_Reference.md",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-003",
+      "topic": "Five interior RP substrate states apply to windows",
+      "finding": "Interior RP defines 5 substrate states: SS_INT_SOUND_PAINT (severity 0: adhesion intact, degloss/scuff only, most common RP state), SS_INT_FAILING_PAINT (severity 1: localized cracking/crazing, typically at sash meeting rails or sill/frame joints — scrape/feather/adhesion prime), SS_INT_PEELING (severity 2: active delamination, often latex-over-oil failure or condensation-driven on sill/jamb bottoms — full scrape/sand/adhesion prime), SS_INT_MOISTURE_DAMAGE (severity 3: water staining/mildew/bubbling from condensation or plumbing leak — source resolution gate + biocide + stain-block), SS_INT_SMOKE_DAMAGE (severity 4: nicotine/soot staining — shellac BIN full surface seal). These map to condition scale: GOOD = sound paint, FAIR = failing, POOR = peeling/moisture/smoke. Different window components may have different states — sill/jamb bottom may be SS_INT_MOISTURE_DAMAGE while upper frame is SS_INT_SOUND_PAINT.",
+      "source": "Interior_RP_Gap_Analysis.md Section A; controlled_enums.json substrate_state",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-004",
+      "topic": "Condition assessment is mandatory before window RP work",
+      "finding": "Repaint windows require multi-point assessment before prep or coating. Assessment tasks: (1) Visual condition inspection — scan all window surfaces (frame, sash, muntins, jamb, sill area) for cracking, peeling, adhesion failure, moisture damage, mildew; photograph defects; assign substrate state. (2) Adhesion test — ASTM D3359 cross-hatch tape test on representative section of each substrate type; critical because windows have both wood and potentially metal components with different adhesion profiles. (3) Coating identification — solvent test to determine latex vs oil; many pre-2010 windows received oil-based enamel for hardness/blocking resistance; latex over oil without adhesion primer is a common failure mode. (4) Moisture/condensation check — moisture meter on sill, jamb bottoms, and sash bottom rail where condensation collects; MC > 15% indicates active moisture source requiring resolution before painting. Interior window RP needs 4 assessment tasks (no separate lead assessment — handled via site condition; no rust assessment as separate task — incorporated into condition inspection for steel).",
+      "source": "Window_Systems_Doctrine Section 3, 6, 10; Doors_Doctrine Section 3.2 (coating ID pattern); Interior_RP_Gap_Analysis.md Section D",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-005",
+      "topic": "Glass masking dominates protection labor — identical in NC and RP",
+      "finding": "Glass masking is the single largest protection task for window painting, consuming 30-40% of total window painting time on multi-lite TDL windows. This task transfers DIRECT from NC — masking technique, materials, and rates are identical regardless of whether the window is NC or RP. Glass masking rate: 60 SF/hr of glass area (NC production.json). Multi-pane TDL Colonial windows are significantly slower (more tape edges per SF of glass). Single large pane is faster per SF. All 5 NC setup/protection tasks transfer DIRECT to RP: TSK_WIN_FLOOR_PROTECT, TSK_WIN_GLASS_MASK, TSK_WIN_HARDWARE_PROTECT, TSK_WIN_WALL_MASK, TSK_WIN_SILL_PROTECT.",
+      "source": "SF_WINDOW_INT_NC_v1/production.json (TSK_WIN_GLASS_MASK at 60 SF/hr); Interior_RP_Gap_Analysis.md Section B",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-006",
+      "topic": "Degloss is an RP-specific prep step replacing NC bare-wood sanding",
+      "finding": "Previously painted windows typically have satin or semi-gloss enamel finish — high-sheen surfaces that resist adhesion of new coatings. Deglossing is required for most RP window work. Two methods: (1) chemical degloss — liquid deglosser applied with rag/pad, no sanding dust, faster but chemical dependent; appropriate for complex window profiles where sanding is difficult (muntins, sash corners). (2) mechanical degloss — scuff sand with 150-180 grit, creates profile for adhesion, generates dust requiring cleanup. Window profiles (muntins, sash rabbets, frame moldings) are more complex than flat trim, making chemical degloss more practical for detail areas. Rate per EA varies by existing sheen: flat/eggshell needs light scuff only (~4 min/EA), satin needs moderate degloss (~6 min/EA), semi-gloss/gloss requires thorough degloss (~8-10 min/EA).",
+      "source": "Substrate_State_Reference.md Section 3.3; Window_Systems_Doctrine Section 3",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-007",
+      "topic": "Latex over oil-based enamel is a common window failure mode",
+      "finding": "Interior windows historically received oil-based (alkyd) enamel more frequently than walls due to its superior hardness, leveling, and blocking resistance — properties critical for operable windows. Many homes built before 2010 have alkyd paint on windows. When repainted with latex without proper adhesion primer, the latex film delaminates because it cannot bond to the hard, glossy alkyd surface. This failure often presents first at friction points: sash meeting rails, sash-to-frame contact areas where the mechanical stress is highest. Coating identification (latex vs oil via solvent test) is therefore a critical assessment task. If existing coating is alkyd: adhesion primer is REQUIRED. If existing coating is latex: adhesion primer is optional based on adhesion test results.",
+      "source": "Window_Systems_Doctrine Section 3; Substrate_State_Reference.md Section 3.3 (SS_PAINTED_ALKYD); SF_DOOR_INT_RP_v1/research.json RF-012",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-008",
+      "topic": "Sill/sash bottom condensation damage requires remediation gate",
+      "finding": "Condensation damage on window sills and sash bottom rails follows a predictable pattern: (1) condensation runs down glass and pools on sill/sash bottom, (2) water wicks into end grain of wood components, (3) paint film bubbles and lifts as substrate swells, (4) mildew colonizes damp wood under paint film, (5) eventually substrate softens and paint peels. Remediation before painting: (a) resolve source — improve ventilation, install condensation channels, or address seal failures; (b) allow substrate to dry to MC < 12%; (c) treat mildew with biocide (bleach solution or commercial mildewcide), allow 24 hr dry; (d) apply wood hardener/consolidant if substrate is softened; (e) prime with mildew-resistant stain-blocking primer. This creates a remediation gate: if MC > 15%, STOP — do not proceed to prime until moisture source is resolved and substrate dried.",
+      "source": "Window_Systems_Doctrine Section 10; Interior_RP_Gap_Analysis.md Section A (SS_INT_MOISTURE_DAMAGE)",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-009",
+      "topic": "Glazing compound assessment is window-specific RP task",
+      "finding": "Older wood windows use glazing compound (putty) to seal glass panes into the sash. Over time, glazing compound dries, cracks, and falls out — allowing air/water infiltration and compromising glass seal. During window RP, the painter must assess glazing compound condition: (1) intact and paintable — paint over with finish system; (2) cracked but adhered — spot repair with fresh glazing compound, allow cure, then paint; (3) failed and falling out — remove failed sections, re-glaze, allow full cure (3-7 days for linseed oil putty), then prime and paint. Re-glazing is a distinct task from painting but affects the painting schedule and must be assessed. This is RP-specific — NC windows arrive with factory-installed glazing (or are sealed IG units with no exposed compound). Note: modern insulated glass (IG) units do not use exposed glazing compound — this task applies only to single-pane and older TDL windows.",
+      "source": "Window_Systems_Doctrine Section 4; Professional practice",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-010",
+      "topic": "Window sealant/caulk assessment replaces NC caulking task",
+      "finding": "NC windows receive fresh caulk at installation joints (frame-to-wall, extension jamb-to-frame). In RP, existing caulk must be assessed: (1) intact and adhered — clean and paint over; (2) cracked or separated — remove failed sections, clean substrate, re-caulk with paintable acrylic latex caulk, allow 2-4 hr cure before painting; (3) fully failed — remove all old caulk, clean joint, re-caulk. Unlike NC (which caulks all joints), RP caulks only failed sections. This is a MODIFIED task from NC, not RP_NEW. Assessment determines scope: sound caulk = skip, failed caulk = repair. Rate varies by condition: GOOD condition (sound caulk) adds near-zero time; FAIR (localized failure) adds 3-5 min/window; POOR (widespread failure) adds 8-12 min/window.",
+      "source": "Window_Systems_Doctrine Section 3; SF_TRIM_INT_RP pattern (caulk assess vs full caulk)",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-011",
+      "topic": "TSP wash is standard RP prep for window contamination removal",
+      "finding": "Windows accumulate contaminants that interfere with coating adhesion: kitchen grease film on kitchen windows, bathroom humidity residue, hand oils on sash handles, and general airborne pollutants that settle on horizontal sill surfaces. TSP (trisodium phosphate) wash is the standard decontamination method: (1) wash with TSP solution or specialized degreaser, (2) rinse with clean water, (3) allow complete drying. TSP residue interferes with acrylic curing if not fully rinsed. This is a binary task (done or not done) that applies to all RP window work regardless of substrate state. Rate: ~3-4 min per medium window (faster than doors because windows are in-place — no door removal overhead). Kitchen and bathroom windows may require enhanced cleaning due to grease/humidity exposure.",
+      "source": "Window_Systems_Doctrine Section 3; SF_DOOR_INT_RP_v1/research.json RF-010 (TSP wash pattern)",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-012",
+      "topic": "Scrape and feather is condition-gated for failing/peeling states on windows",
+      "finding": "When windows are in SS_INT_FAILING_PAINT or SS_INT_PEELING state, loose and failing paint must be scraped to sound substrate and edges feathered smooth. Windows have characteristic failure points: sash bottom rail (condensation), meeting rail (friction), sill (pooling water), and sash-to-frame contact areas (mechanical stress). Scrape/feather on windows is more complex per EA than flat surfaces due to 3D profiles — sash rabbets, muntin intersections, frame molding profiles all have recessed areas where failing paint accumulates. Rate per EA varies by condition: failing paint (localized, 10-20% of surface at specific failure points) = moderate; peeling (widespread, 30-50%+, often full sill + sash bottom) = heavy. Scrape/feather is NOT needed for SS_INT_SOUND_PAINT.",
+      "source": "Interior_RP_Gap_Analysis.md Section D; Window_Systems_Doctrine Section 3",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-013",
+      "topic": "State-driven primer variants replace substrate-driven NC primers for RP",
+      "finding": "NC window primers are substrate-driven: bare wood gets acrylic primer, knots get shellac spot primer, aluminum gets DTM etching primer, steel gets rust-inhibitive DTM primer. RP window primers are state-driven: (1) SYS_PRIMER_ADHESION — for SS_INT_SOUND_PAINT when existing coating is alkyd or when adhesion test indicates marginal bond; provides bonding bridge for latex topcoat over hard enamel. (2) SYS_PRIMER_STAIN_BLOCK — for SS_INT_MOISTURE_DAMAGE with water staining; blocks stain bleed-through; acrylic for water stains. (3) SYS_PRIMER_STAIN_BLOCK_SHELLAC — for SS_INT_SMOKE_DAMAGE; shellac-based (BIN) full-surface seal; only reliable stain blocker for nicotine. (4) SYS_PRIMER_MILDEW_RESISTANT — for SS_INT_MOISTURE_DAMAGE with active mildew history; contains biocide. (5) No primer — for SS_INT_SOUND_PAINT with good adhesion test results and compatible coating (latex over latex). Metal substrates (aluminum, steel) in RP may need DTM adhesion primer if existing coating has failed — reuse NC SYS_PRIMER_ALUMINUM_DTM and SYS_PRIMER_STEEL_DTM for these cases.",
+      "source": "Substrate_State_Reference.md Section 7.3; Interior_RP_Gap_Analysis.md Section C; SF_DOOR_INT_RP_v1/research.json RF-011",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-014",
+      "topic": "Blocking prevention is equally critical for RP windows as NC",
+      "finding": "Per Window_Systems_Doctrine Section 10.1, all operable sashes must be painted in AJAR position and not closed before full cure (3-7 days for enamels). This is identical for NC and RP. RP compounds blocking risk in two ways: (1) existing paint buildup narrows clearance between sash and frame — additional coat adds thickness; (2) latex topcoat over alkyd existing coat creates a soft-on-hard interface prone to blocking. Recommended finish coatings for RP windows: waterborne alkyd (QT3-QT4 standard, excellent hardness), urethane-modified acrylic (QT4+), premium urethane (QT5). Standard latex should be avoided for operable window sashes due to blocking risk — same concern as doors (SF_DOOR_INT_RP RF-014).",
+      "source": "Window_Systems_Doctrine Section 10.1; Doors_Doctrine Section 5.4; Fine_Finish_Doctrine material systems",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-015",
+      "topic": "Size bucket modifiers, window type modifiers, and muntin modifiers transfer unchanged from NC",
+      "finding": "All rate modifiers from NC transfer DIRECT to RP — they describe physical characteristics of the window that are identical regardless of coating history. Size bucket modifiers: S=0.75x, M=1.00x, L=1.40x, O=measured (NC production.json). Window type modifiers: DH=1.00x, casement=0.96x, slider=0.96x, fixed=0.78x, awning=1.00x. Muntin modifier: TDL +20% on application and sanding tasks. Height modifiers: H1=1.00x, H2=1.30x, H3=1.50x, H4=2.00x, H5=2.50x. These all transfer unchanged. RP adds condition modifiers on prep tasks: GOOD=1.0x, FAIR=1.5x, POOR=2.0x (per Quality_Tiers_and_Surface_Condition.md). Condition modifiers apply to prep tasks ONLY, not finish/setup/cleanup.",
+      "source": "SF_WINDOW_INT_NC_v1/production.json; Quality_Tiers_and_Surface_Condition.md; Modifier_Registry.md",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-016",
+      "topic": "Brush is default application method for RP windows; spray is rare",
+      "finding": "Interior window RP supports two application methods: brush (dominant — windows repainted in occupied homes where spray setup is prohibitive for small quantities) and spray (production work — many windows, full interior repaint where spray containment is already established). Brush is default for RP; 1.5-inch angled sash brush for detail work (sash, muntins), 2-2.5 inch for frame faces and extension jamb per Window_Systems_Doctrine Section 8.2.1. Spray requires extensive masking (glass, wall, sill, floor) already addressed in NC setup module. Breakeven for spray vs brush on windows: approximately 8-12 windows per project due to extensive masking overhead. NC production.json rates transfer unchanged for finish application: brush coat 1 at 3.5 EA/hr, brush coat 2 at 4 EA/hr, spray coat 1 at 8 EA/hr, spray coat 2 at 10 EA/hr.",
+      "source": "Window_Systems_Doctrine Section 8.2; SF_WINDOW_INT_NC_v1/production.json",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-017",
+      "topic": "Lead safety is critical for pre-1978 window RP — friction surfaces generate lead dust",
+      "finding": "Windows are HIGH-RISK for lead exposure per Window_Systems_Doctrine Section 11. Operable window sashes are friction surfaces — wood-on-wood contact as sashes slide generates fine lead-containing dust from pre-1978 paint. This is the #1 lead dust exposure pathway in residential buildings. RRP (Renovation, Repair, and Painting) protocol is triggered when lead is present or presumed (pre-1978 homes). Lead safety affects sanding tasks: tested_positive = 2.0x modifier, unknown_pre1978 = 1.5x modifier. Lead containment requires additional protection setup (6-mil poly containment, HEPA vacuum, wet methods). This is handled as a site condition modifier, not separate tasks — consistent with NC approach.",
+      "source": "Window_Systems_Doctrine Section 11; Site_Condition_Vocabulary_Reference.md lead_status; Modifier_Registry.md",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-018",
+      "topic": "Customer walkthrough is RP-specific completion task",
+      "finding": "RP projects in occupied homes include a post-completion customer walkthrough where the painter reviews finished work with the homeowner. For windows, the walkthrough includes: verify sash operation (smooth open/close without binding), check for paint on glass (scraped clean), verify sheen consistency across all window surfaces, check that hardware is reinstalled and operational, confirm sashes are positioned ajar for cure. This is a fixed-time task per project (not per window) — approximately 3-5 minutes per window included in scope, with diminishing time per additional window.",
+      "source": "Interior_RP_Gap_Analysis.md Section C (RP_NEW additions); SF_DOOR_INT_RP_v1/research.json RF-017",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-019",
+      "topic": "Metal window RP differs from NC — existing coating over metal changes prep",
+      "finding": "NC metal window prep addresses bare metal: degrease + etch (aluminum) or degrease + rust treatment (steel) + DTM primer. RP metal windows already have an existing coating system over the metal substrate. Prep focuses on coating condition, not bare metal chemistry: (1) Aluminum RP: degloss existing paint, assess adhesion — if sound, scuff sand and topcoat; if failing, scrape to sound paint and spot prime with DTM adhesion primer. Aluminum etch is NOT applicable in RP (oxide layer was addressed on original NC). (2) Steel RP: same degloss/assess workflow, plus rust assessment at condensation points — rust may penetrate through existing coating at scratches, cracks, or condensation damage sites. Steel rust treatment task is MODIFIED for RP: rate is condition-dependent (surface rust at isolated points vs widespread rust breakthrough).",
+      "source": "Window_Systems_Doctrine Section 6; Interior_RP_Gap_Analysis.md Section B",
+      "confidence": "high"
+    }
+  ],
+
+  "condition_drivers": [
+    {
+      "driver_id": "CD-001",
+      "condition": "Existing coating type (latex vs alkyd)",
+      "effect": "Alkyd coatings REQUIRE adhesion primer before latex topcoat. Latex over latex may proceed without primer if adhesion test passes. Windows historically received alkyd more frequently than walls — coating ID is critical.",
+      "assessment_method": "Solvent test: rub with denatured alcohol or lacquer thinner. Latex softens/dissolves; alkyd remains hard.",
+      "source": "Window_Systems_Doctrine Section 3; Substrate_State_Reference.md Section 3.3"
+    },
+    {
+      "driver_id": "CD-002",
+      "condition": "Condensation/moisture damage severity",
+      "effect": "Sills and sash bottoms are the #1 moisture failure point. MC > 15% triggers remediation gate — STOP painting until moisture source resolved and wood dried. Visible mildew requires biocide treatment (24 hr dry) before any coating. Softened wood may need consolidant (hardener) before prime.",
+      "assessment_method": "Moisture meter reading at sill, jamb bottoms, sash bottom rail. Visual mildew check. Thumb test for wood softness.",
+      "source": "Window_Systems_Doctrine Section 10; Interior_RP_Gap_Analysis.md Section A"
+    },
+    {
+      "driver_id": "CD-003",
+      "condition": "Existing sheen level",
+      "effect": "Higher sheen = more degloss effort. Windows typically have semi-gloss enamel. Flat/eggshell needs light scuff only (~4 min/EA). Satin needs moderate degloss (~6 min/EA). Semi-gloss/gloss requires thorough degloss (~8-10 min/EA). Gloss may require bonding primer even with good adhesion test.",
+      "assessment_method": "Visual assessment of existing sheen; correlate with substrate state.",
+      "source": "Substrate_State_Reference.md Section 5.1 modifier values"
+    },
+    {
+      "driver_id": "CD-004",
+      "condition": "Glazing compound condition (older wood windows)",
+      "effect": "Dried/cracked glazing allows air/water infiltration. Assessment determines scope: intact = paint over; cracked but adhered = spot repair + cure + paint; failed = re-glaze + cure (3-7 days) + prime + paint. Modern IG units have no exposed compound — this task applies only to single-pane and older TDL windows.",
+      "assessment_method": "Visual inspection and probe test of glazing compound firmness and adhesion.",
+      "source": "Window_Systems_Doctrine Section 4"
+    },
+    {
+      "driver_id": "CD-005",
+      "condition": "Paint film buildup (number of existing coats)",
+      "effect": "Multiple coats of paint on operable windows affect sash operation. Heavy buildup at meeting rails and sash-to-frame contact points causes sticking/binding. Assessment may indicate: scrape high spots, clean contact surfaces, or accept and note potential post-cure binding. Pre-RP sash operation test is critical — if sash binds before painting, it will bind worse after.",
+      "assessment_method": "Sash operation test — open and close all operable sashes. Note binding, sticking, or rubbing points.",
+      "source": "Window_Systems_Doctrine Section 10; Professional practice"
+    },
+    {
+      "driver_id": "CD-006",
+      "condition": "Smoke/nicotine contamination",
+      "effect": "Nicotine and soot contamination on windows requires full-surface shellac sealer (BIN or equivalent). Without sealer, staining bleeds through multiple latex topcoats. Shellac is the only reliable stain blocker for smoke damage. Binary gate: if SS_INT_SMOKE_DAMAGE, include shellac seal task for full surface; if not, skip.",
+      "assessment_method": "White rag test: wipe surface with damp white cloth. Yellow/brown transfer = nicotine present.",
+      "source": "Interior_RP_Gap_Analysis.md Section A (SS_INT_SMOKE_DAMAGE)"
+    },
+    {
+      "driver_id": "CD-007",
+      "condition": "Steel window rust breakthrough at condensation points",
+      "effect": "Steel windows in RP may show rust penetrating through existing coating at scratches, cracks, or condensation damage areas. Unlike NC (which treats bare steel), RP rust treatment targets localized breakthrough: sand/wire brush affected areas, apply rust converter, spot prime with DTM rust-inhibitive primer. This is MODIFIED from NC TSK_WIN_PREP_STEEL_RUST — RP rate varies by condition severity.",
+      "assessment_method": "Visual inspection for rust staining, bubbling, or coating failure at typical condensation points (sill, sash bottom).",
+      "source": "Window_Systems_Doctrine Section 6.3; Interior_RP_Gap_Analysis.md Section B"
+    }
+  ],
+
+  "quality_differences": [
+    {
+      "tier": "QT3",
+      "description": "Standard interior window repaint — MINIMUM TIER for windows. Degloss/scuff prep, 2 finish coats, spot sand between coats.",
+      "modifier": 1.0,
+      "inspection": "Quick visual at 6 ft. Note obvious defects (drips, misses, adhesion failures, missed spots on muntins).",
+      "sanding_between_coats": "Spot sand only — 220 grit on defects found during interstage inspection.",
+      "coat_count": "2 finish coats standard",
+      "edge_quality": "Professional — acceptable if neat at glass-to-frame and frame-to-wall transitions",
+      "source": "Quality_Tiers_and_Surface_Condition.md; Window_Systems_Doctrine Section 8"
+    },
+    {
+      "tier": "QT4",
+      "description": "Premium interior window repaint — thorough prep, full sand between coats. Systematic inspection at 3 ft.",
+      "modifier": 1.3,
+      "inspection": "Systematic scan at 3 ft. Mark defects for repair. Check muntin edges, sash profiles, extension jamb.",
+      "sanding_between_coats": "Full surface sand — 220 grit between all coats. Rigid sanding block on flat surfaces (FFD 15.4.1).",
+      "coat_count": "2 finish coats standard",
+      "edge_quality": "Crisp — no visible wobble at 3 ft. Clean paint-to-glass line.",
+      "notes": "Window QT modifiers use GLOBAL values (1.3x/1.5x), not door-specific overrides. Windows are fine-finish but not as heavily scrutinized as doors. Semi-gloss minimum sheen at QT4.",
+      "source": "Quality_Tiers_and_Surface_Condition.md; Window_Systems_Doctrine Section 8"
+    },
+    {
+      "tier": "QT5",
+      "description": "Superior interior window repaint — maximum care, zero tolerance, 220-320 grit between coats. Lighted critical inspection at arm's length.",
+      "modifier": 1.5,
+      "inspection": "Lighted critical inspection at arm's length. Every surface including muntin edges and extension jamb recesses.",
+      "sanding_between_coats": "Thorough sand — 220-320 grit between all coats.",
+      "coat_count": "2-3 finish coats (3 coats for brush per Fine_Finish_Doctrine 15.10.3)",
+      "edge_quality": "Straight-line — no visible wobble at arm's length. Precision paint-to-glass line.",
+      "notes": "QT5 condition gate applies: QT5 only at GOOD condition; FAIR/POOR goes hourly (QT6). Gloss sheen available only at QT5.",
+      "source": "Quality_Tiers_and_Surface_Condition.md; Window_Systems_Doctrine Section 8; Fine_Finish_Doctrine"
+    }
+  ],
+
+  "failure_modes": [
+    {
+      "mode_id": "FM-001",
+      "failure": "Latex over alkyd delamination on window sash",
+      "cause": "Applying latex topcoat directly over existing alkyd (oil-based) enamel without adhesion primer. Windows received alkyd more frequently than other surfaces due to blocking resistance requirements.",
+      "frequency": "Very common — windows have highest alkyd coating prevalence of any interior surface",
+      "prevention": "Coating ID assessment (solvent test) on EVERY window repaint. If alkyd: apply bonding/adhesion primer before latex topcoat.",
+      "remediation": "Scrape delaminated areas, sand, apply adhesion primer, recoat",
+      "source": "Window_Systems_Doctrine Section 3; Substrate_State_Reference.md SS_PAINTED_ALKYD"
+    },
+    {
+      "mode_id": "FM-002",
+      "failure": "Condensation-driven paint failure on sill and sash bottom",
+      "cause": "Thermal bridging at glass surface causes condensation. Water pools on sill, wicks into end grain of wood components, causing swelling, bubbling, and peeling.",
+      "frequency": "Very common — especially on north-facing windows and in bathrooms/kitchens",
+      "prevention": "Assess moisture before painting. Require MC < 12% before coating. Use moisture-resistant primer on sills. Address condensation source (improve ventilation, install condensation channels).",
+      "remediation": "Resolve moisture source, dry to MC < 12%, treat mildew with biocide, apply stain-block primer, recoat",
+      "source": "Window_Systems_Doctrine Section 10"
+    },
+    {
+      "mode_id": "FM-003",
+      "failure": "Blocking — window painted shut",
+      "cause": "Freshly painted windows stuck closed due to insufficient cure time. RP compounds risk: additional coat narrows clearance at sash-to-frame contact.",
+      "frequency": "Common with standard latex; uncommon with waterborne alkyd or urethane enamel",
+      "prevention": "Paint sashes in ajar position. Allow 3-7 day cure before closing. Use urethane-enriched enamels for blocking resistance. Break sash free gently after 24 hr to prevent adhesion bond formation.",
+      "remediation": "Score paint film at contact points with razor/utility knife, gently break free. Apply wax or talcum to contact surfaces.",
+      "source": "Window_Systems_Doctrine Section 10.1"
+    },
+    {
+      "mode_id": "FM-004",
+      "failure": "Mildew regrowth under new paint on sill/jamb",
+      "cause": "Painting over mildew without killing spores first. Mildew grows under paint film and eventually surfaces. Common on bathroom/kitchen window sills and jamb bottoms.",
+      "frequency": "Common on bathroom windows if not treated",
+      "prevention": "Biocide treatment (bleach solution or commercial mildewcide) before any coating. Allow 24 hr dry. Use mildew-resistant primer.",
+      "remediation": "Strip to substrate, treat with biocide, reprime with mildew-resistant primer, recoat",
+      "source": "Interior_RP_Gap_Analysis.md Section A (SS_INT_MOISTURE_DAMAGE)"
+    },
+    {
+      "mode_id": "FM-005",
+      "failure": "Smoke stain bleed-through on window surfaces",
+      "cause": "Nicotine/soot migrates through latex primer and topcoat. Standard acrylic primers do not block nicotine.",
+      "frequency": "Guaranteed if smoke damage present and standard primer used",
+      "prevention": "Shellac-based stain blocker (BIN) on full surface before topcoat. Two coats BIN for heavy contamination.",
+      "remediation": "Apply shellac stain blocker over failed topcoat, then recoat finish",
+      "source": "Interior_RP_Gap_Analysis.md Section A (SS_INT_SMOKE_DAMAGE)"
+    },
+    {
+      "mode_id": "FM-006",
+      "failure": "Short working time — waterborne products on window detail",
+      "cause": "Overworking waterborne enamels on complex window profiles (muntins, sash corners) causes roping, brush marks.",
+      "frequency": "Common at QT3 brush application on multi-lite windows; uncommon with proper technique",
+      "prevention": "Apply, tip once, walk away (FFD 15.3.1). Sand marks out between coats with rigid block. Use 1.5-inch angled sash brush for detail work.",
+      "remediation": "Sand flat after cure, recoat affected area",
+      "source": "Fine_Finish_Doctrine Section 15.3.1; Window_Systems_Doctrine Section 8.2"
+    },
+    {
+      "mode_id": "FM-007",
+      "failure": "Glazing compound failure during/after RP painting",
+      "cause": "Older glazing compound has dried and cracked. Painting over failed glazing does not restore seal. Solvent in paint may further deteriorate marginal glazing.",
+      "frequency": "Common on pre-1990 single-pane wood windows",
+      "prevention": "Assess glazing condition before painting. Replace failed glazing compound and allow cure before painting. Note: re-glazing may delay painting schedule by 3-7 days.",
+      "remediation": "Remove failed glazing, re-glaze, allow cure, prime, paint",
+      "source": "Window_Systems_Doctrine Section 4"
+    }
+  ],
+
+  "notes_for_materials_manager": [
+    {
+      "note_id": "NM-001",
+      "topic": "State-driven primer systems for RP windows",
+      "note": "RP windows need 4-5 primer systems based on substrate state, not substrate material. (1) SYS_PRIMER_ADHESION — bonding primer for SS_INT_SOUND_PAINT when existing coating is alkyd or adhesion test marginal. (2) SYS_PRIMER_STAIN_BLOCK — acrylic stain blocker for SS_INT_MOISTURE_DAMAGE with water stains. (3) SYS_PRIMER_STAIN_BLOCK_SHELLAC (BIN) — for SS_INT_SMOKE_DAMAGE full-surface seal. (4) SYS_PRIMER_MILDEW_RESISTANT — for SS_INT_MOISTURE_DAMAGE with mildew history. (5) SYS_PRIMER_ALUMINUM_DTM and SYS_PRIMER_STEEL_DTM from NC — reuse for metal windows with coating failure exposing bare metal. Most RP window work (SS_INT_SOUND_PAINT, latex existing, good adhesion) needs NO primer — topcoat directly over deglossed surface."
+    },
+    {
+      "note_id": "NM-002",
+      "topic": "Finish coat systems must prioritize hardness and blocking resistance for windows",
+      "note": "Per Window_Systems_Doctrine Section 10.1, blocking prevention is critical for operable windows. Recommend: QT3 = waterborne alkyd or standard acrylic enamel (SYS_FF_STANDARD_ACRYLIC acceptable, but urethane-alkyd preferred for sash blocking resistance); QT4 = urethane-modified acrylic or waterborne alkyd (SYS_FF_MODIFIED_URETHANE); QT5 = premium urethane (SYS_FF_PREMIUM). Standard latex should be discouraged for operable window sashes. NC material systems transfer directly — same products, same QT-driven selection."
+    },
+    {
+      "note_id": "NM-003",
+      "topic": "Sheen recommendations for RP windows",
+      "note": "Per Window_Systems_Doctrine: satin (QT3 standard), semi-gloss (QT4+ standard, traditional window sheen), gloss (QT5 only). For RP, existing sheen should be noted during assessment — changing from higher to lower sheen may show imperfections. Sheen/QT gate: satin requires QT3+, semi-gloss requires QT4+, gloss requires QT5 only. NC sheen gate transfers unchanged."
+    },
+    {
+      "note_id": "NM-004",
+      "topic": "Degloss chemicals and wood hardener for RP prep",
+      "note": "Include in consumables: (1) liquid deglosser (solvent-based or water-based) for chemical degloss — useful for complex window profiles where sanding is impractical; (2) TSP or TSP substitute for contamination wash; (3) wood hardener/consolidant for moisture-softened sills and sash bottoms; (4) biocide/mildewcide solution for mildew treatment on moisture-damaged areas; (5) glazing compound for re-glazing assessment findings."
+    },
+    {
+      "note_id": "NM-005",
+      "topic": "Glass masking materials identical to NC",
+      "note": "All NC masking materials transfer unchanged: masking tape (1.5-inch blue), glass masking film/paper, masking paper (12-inch for wall masking during spray). These are the largest material cost for window painting. No RP-specific masking material changes."
+    }
+  ],
+
+  "notes_for_sop_librarian": [
+    {
+      "note_id": "NS-001",
+      "topic": "RP window SOP adds assessment module before NC workflow",
+      "note": "Recommended module structure: (1) MOD_WNRP_ASSESS — assessment module (condition inspect, adhesion test, coating ID, moisture check, glazing assess, sash operation test); (2) MOD_WNRP_SETUP — protection setup (transfers DIRECT from NC MOD_WIN_SETUP); (3) MOD_WNRP_PREP — RP-specific prep (TSP wash, degloss, scrape/feather, mildew treatment, caulk assess/repair, glazing repair, clean dust); (4) MOD_WNRP_PRIME — state-driven primer (adhesion, stain-block, mildew-resistant, or skip); (5) MOD_WNRP_FINISH — finish coat 1 (transfers DIRECT from NC); (6) MOD_WNRP_INTERSTAGE — interstage process (transfers DIRECT from NC); (7) MOD_WNRP_FINISH_2 — finish coat 2 (transfers DIRECT from NC); (8) MOD_WNRP_FINAL — final inspection and touchup (transfers DIRECT from NC); (9) MOD_WNRP_CLEANUP — cleanup (transfers DIRECT from NC + customer walkthrough)."
+    },
+    {
+      "note_id": "NS-002",
+      "topic": "Assessment SOP must include coating identification and moisture check",
+      "note": "The coating ID step (latex vs oil via solvent test) is a critical branch point for primer selection. The moisture check on sill/jamb bottoms is a critical gate — MC > 15% stops the workflow. SOP should mandate solvent test + moisture meter on EVERY window repaint job. These add approximately 5-8 minutes per window but prevent the two most common failure modes (FM-001, FM-002)."
+    },
+    {
+      "note_id": "NS-003",
+      "topic": "Sash operation test before and after painting",
+      "note": "SOP should include: (1) Pre-paint sash operation test during assessment — open/close all operable sashes, note binding/sticking. This determines if film buildup remediation is needed. (2) Post-paint sash break — gently open and close sashes at 24 hr after final coat to prevent paint from forming an adhesion bond at contact points. (3) Final sash operation verification during customer walkthrough."
+    },
+    {
+      "note_id": "NS-004",
+      "topic": "Glazing assessment and remediation sequencing",
+      "note": "If glazing compound needs replacement, it must be done BEFORE painting and allowed to cure (3-7 days for linseed oil putty, 24-48 hours for modern acrylic glazing). This creates a schedule dependency that must be communicated during assessment. SOP should flag glazing repair during assessment and adjust painting schedule accordingly."
+    },
+    {
+      "note_id": "NS-005",
+      "topic": "Cure time advisory for window RP",
+      "note": "SOP cleanup module should include cure time advisory: operable sashes must NOT be closed tightly for 7-14 days after final coat. Break sashes free at 24 hrs and 48 hrs to prevent adhesion bond formation. This is a customer communication task. Include in cleanup module documentation."
+    }
+  ],
+
+  "notes_for_estimation_engineer": [
+    {
+      "note_id": "NE-001",
+      "topic": "EA-based production with size bucket modifiers — identical to NC",
+      "note": "This spec uses EA (per window) with Size Bucket Method: S=0.75x, M=1.00x (baseline), L=1.40x, O=measured. All per-window rates are calibrated to medium double-hung baseline. Same PaintScope inputs as NC: IN_EA_WINDOW_S through IN_EA_WINDOW_O plus IN_EA_WINDOW_TOTAL. Height distribution: IN_EA_WINDOW_H1 through H5. Size bucket and height modifiers transfer unchanged from NC production.json."
+    },
+    {
+      "note_id": "NE-002",
+      "topic": "Window QT modifiers use GLOBAL values, not surface-specific overrides",
+      "note": "Unlike doors (which have surface-specific QT modifiers of 1.4x/1.8x per Doors_Doctrine), windows use the standard global QT modifiers: QT3 = 1.0, QT4 = 1.3, QT5 = 1.5 per Modifier_Registry. Windows are fine-finish surfaces but not as heavily scrutinized as doors (doors are touched daily, viewed at close range constantly). Window QT modifiers from NC production.json confirm: QT3=1.00, QT4=1.30, QT5=1.50."
+    },
+    {
+      "note_id": "NE-003",
+      "topic": "Condition modifiers apply to prep tasks ONLY",
+      "note": "Per Quality_Tiers_and_Surface_Condition.md, condition modifiers apply to prep tasks only, not finish/setup/cleanup. GOOD=1.0x, FAIR=1.5x, POOR=2.0x. For windows, condition is driven by substrate state: SS_INT_SOUND_PAINT maps to GOOD, SS_INT_FAILING_PAINT maps to FAIR, SS_INT_PEELING/SS_INT_MOISTURE_DAMAGE/SS_INT_SMOKE_DAMAGE map to POOR. Condition modifier stacks multiplicatively with size, type, muntin, and height modifiers on prep tasks."
+    },
+    {
+      "note_id": "NE-004",
+      "topic": "Substrate state gates task inclusion",
+      "note": "Tasks must declare substrate_state_rules for conditional inclusion. Key gate patterns: (1) TSK_WNRP_DEGLOSS — include for ALL states (always needed for RP); (2) TSK_WNRP_SCRAPE_FEATHER — include only for SS_INT_FAILING_PAINT, SS_INT_PEELING; (3) TSK_WNRP_PRIME_ADHESION_* — include for SS_INT_FAILING_PAINT, SS_INT_PEELING, or when coating_id = alkyd; (4) TSK_WNRP_TREAT_MILDEW — include only for SS_INT_MOISTURE_DAMAGE; (5) TSK_WNRP_SEAL_SHELLAC — include only for SS_INT_SMOKE_DAMAGE; (6) TSK_WNRP_RUST_TREAT — include only for steel substrate when rust breakthrough detected."
+    },
+    {
+      "note_id": "NE-005",
+      "topic": "Projected task count: ~37 tasks",
+      "note": "Per Interior_RP_Gap_Analysis Section C: 22 DIRECT + 5 MODIFIED (rewritten with RP conditions) - 2 NOT_APPLICABLE + ~10 RP_NEW = approximately 35-42 tasks. RP_NEW includes: 4 assessment tasks, TSP wash, degloss, scrape/feather, glazing assess, mildew treatment, caulk assess, customer walkthrough. Direct transfers constitute 60% of total tasks — protection, finish application, interstage, and cleanup are identical to NC."
+    },
+    {
+      "note_id": "NE-006",
+      "topic": "Finish coat application rates transfer DIRECT from NC",
+      "note": "All finish coat application tasks transfer unchanged from NC production.json. Brush coat 1: 3.5 EA/hr, brush coat 2: 4 EA/hr, spray coat 1: 8 EA/hr, spray coat 2: 10 EA/hr. Interstage tasks (inspect, sand between, patch, spot coat, clean) also transfer at NC rates. These are binary or qt_scaled tasks that apply identically once the surface is properly prepped and primed — coating application is the same regardless of NC vs RP."
+    },
+    {
+      "note_id": "NE-007",
+      "topic": "Assessment tasks are RP_NEW — no NC analog",
+      "note": "Window assessment tasks are new to RP and need rate development. Reference rates from SF_DOOR_INT_RP: condition inspect ~4-6 min/EA, adhesion test ~2-3 min/EA, coating ID ~2-3 min/EA, moisture check ~2-3 min/EA. Window assessment is slightly faster per EA than doors because windows are assessed in-place (no sash removal) but slower than walls (3D assembly, multiple surfaces to check per unit). Glazing assessment adds ~2 min/EA for older windows (skip for modern IG units). Total assessment: ~12-18 min per window depending on complexity."
+    },
+    {
+      "note_id": "NE-008",
+      "topic": "Modifier stacking partition — prep pool vs coating pool",
+      "note": "Per Interior_RP_Gap_Analysis Section D: prep pool uses condition_level x contamination_type x surface_access modifiers. Coating pool uses quality_tier x surface_access modifiers. Condition modifier NEVER applies to coating tasks. QT modifier applies to qt_scaled tasks in both pools via explicit qt_rates. This partition prevents runaway stacking. Max reasonable stack: size L (1.40) x DH (1.00) x TDL (1.20) x H2 (1.30) x condition POOR (2.00) = 4.37x on prep tasks. This is at the 4.0x flag threshold — acceptable because it represents the extreme worst case."
+    }
+  ],
+
+  "confidence_level": "high",
+
+  "assumptions": [
+    {
+      "assumption_id": "A-001",
+      "field": "context_prefix",
+      "value": "WNRP_ (WiNdow RePaint)",
+      "source": "Collision analysis against NC and existing RP specs",
+      "doctrine_gap": false,
+      "note": "TSK_WIN_* is fully consumed by NC (29 tasks). WNRP_ avoids all collisions. Both prefixes remain unambiguous."
+    },
+    {
+      "assumption_id": "A-002",
+      "field": "qt_modifiers_global",
+      "value": "QT3 = 1.0, QT4 = 1.3, QT5 = 1.5 (global modifiers, not surface-specific overrides)",
+      "source": "Modifier_Registry.md; SF_WINDOW_INT_NC_v1/production.json quality_tier_effects",
+      "doctrine_gap": false,
+      "note": "NC production.json confirms global QT modifiers for windows. No doctrine defines surface-specific window overrides (unlike Doors_Doctrine which defines 1.4x/1.8x for doors)."
+    },
+    {
+      "assumption_id": "A-003",
+      "field": "assessment_rates",
+      "value": "12-18 min per window total assessment time (condition + adhesion + coating ID + moisture + glazing)",
+      "source": "Derived from SF_DOOR_INT_RP assessment rates scaled for window geometry",
+      "doctrine_gap": true,
+      "note": "No doctrine defines window-specific assessment rates. Rates derived from door RP assessment pattern adjusted for window-specific factors (in-place assessment, no removal, but 3D assembly complexity)."
+    },
+    {
+      "assumption_id": "A-004",
+      "field": "degloss_rate",
+      "value": "6-10 min per medium window depending on existing sheen (semi-gloss typical for windows)",
+      "source": "Derived from Substrate_State_Reference.md sheen-to-degloss mapping",
+      "doctrine_gap": true,
+      "note": "No doctrine defines per-EA degloss rates for windows. Rates estimated from sheen-based degloss time adjusted for 3D window geometry."
+    },
+    {
+      "assumption_id": "A-005",
+      "field": "glazing_assessment",
+      "value": "Glazing assessment adds ~2 min/EA for older single-pane or TDL windows; skip for modern IG units",
+      "source": "Professional practice",
+      "doctrine_gap": true,
+      "note": "No doctrine covers glazing assessment as a painting task. This is window-RP specific and does not appear in any NC spec."
+    },
+    {
+      "assumption_id": "A-006",
+      "field": "nc_rate_transfer",
+      "value": "All NC finish application, interstage, protection, and cleanup rates transfer unchanged to RP",
+      "source": "Interior_RP_Gap_Analysis.md Section D; SF_WINDOW_INT_NC_v1/production.json",
+      "doctrine_gap": false,
+      "note": "Once surface is properly prepped and primed, coating application is identical regardless of NC vs RP. Confirmed by gap analysis: finish phase is 95% DIRECT transfer."
+    }
+  ],
+
+  "uncertainties": [
+    {
+      "uncertainty_id": "U-001",
+      "topic": "Mixed substrate states within a single window",
+      "description": "A window may have different substrate states: sill = SS_INT_MOISTURE_DAMAGE, upper frame = SS_INT_SOUND_PAINT, sash bottom = SS_INT_PEELING. Should the spec support per-component state assignment, or use worst-state-wins for the entire window? Worst-state-wins is simpler but over-estimates prep for sound portions. Per-component is more accurate but requires multiple state inputs per window.",
+      "impact": "Spec configuration complexity; estimation accuracy",
+      "resolution": "Recommend worst-state-wins for v1. Single substrate_state input per window. Per-component assessment in v2 if field validation shows significant over-estimation."
+    },
+    {
+      "uncertainty_id": "U-002",
+      "topic": "Glazing repair scope boundary",
+      "description": "Re-glazing is a distinct trade skill that falls between painting and glazier work. Some painters do minor re-glazing; major re-glazing may require a glazier. Where is the scope boundary? Proposed: spot repair of isolated failed sections (< 20% of total glazing perimeter) is in painting scope; widespread failure (> 20%) is flagged as exception requiring glazier or separate scope item.",
+      "impact": "Task inclusion and rate accuracy for glazing repair",
+      "resolution": "Estimation Engineer to decide scope boundary percentage. Recommend 20% threshold for v1."
+    },
+    {
+      "uncertainty_id": "U-003",
+      "topic": "Sash removal for RP painting",
+      "description": "Some window types (particularly double-hung) allow sash removal for easier painting. Is sash removal a supported handling method in v1? Sash removal provides better access to all surfaces (especially jamb) and eliminates blocking risk during cure. However, it adds setup time and requires familiarity with tilt-in sash release mechanisms. NC does not model sash removal (windows are painted in-place at installation).",
+      "impact": "Task count and workflow complexity",
+      "resolution": "Recommend in-frame painting as default for v1. Sash removal as an optional handling method in v2 if field validation shows significant benefit."
+    },
+    {
+      "uncertainty_id": "U-004",
+      "topic": "RP degloss method as configuration dimension vs contractor choice",
+      "description": "Should degloss method (chemical vs mechanical) be a formal configuration dimension or left as contractor preference? Chemical degloss is faster on complex window profiles (muntins, sash corners) but generates chemical waste. Mechanical degloss (sanding) generates dust but requires no chemicals. Most RP specs treat this as contractor preference, not a dimension.",
+      "impact": "Task structure (single task vs split by method)",
+      "resolution": "Recommend single degloss task with rate range covering both methods. Not a configuration dimension — contractor preference per SF_DOOR_INT_RP pattern."
+    }
+  ],
+
+  "protection_zones_analysis": {
+    "spec_category": "window",
+    "zones": [
+      {
+        "zone_id": "floor_perimeter",
+        "condition": "application_method = brush AND floor_type in [finished, partial]",
+        "protection_level": "edge_only",
+        "upgrade_scenario": "Upgrades to floor_full_8ft_radius when application_method = spray",
+        "notes": "Runner-style drop cloth along window work perimeter. Brush method only. Excluded when floor_type = subfloor (rare in RP — floors are typically finished in occupied homes). Transfers DIRECT from NC."
+      },
+      {
+        "zone_id": "floor_full_8ft_radius",
+        "condition": "application_method = spray AND floor_type in [finished, partial]",
+        "protection_level": "full_cover",
+        "upgrade_scenario": null,
+        "notes": "Full radial floor coverage around window spray zone. 8 ft radius from each window. Replaces perimeter drops when spraying. Transfers DIRECT from NC."
+      },
+      {
+        "zone_id": "glass_mask",
+        "condition": "ALWAYS — mandatory regardless of application method",
+        "protection_level": "full_cover",
+        "upgrade_scenario": null,
+        "notes": "Paper/film masking on all window glass panes. MANDATORY. Largest single protection task (30-40% of total time on TDL windows). 1/16-inch seal technique may apply for wood windows. Transfers DIRECT from NC."
+      },
+      {
+        "zone_id": "hardware_covers",
+        "condition": "ALWAYS — mandatory",
+        "protection_level": "partial_cover",
+        "upgrade_scenario": null,
+        "notes": "Tape/bag or remove window hardware (locks, latches, crank operators). Removal preferred for clean paint lines. Transfers DIRECT from NC. RP consideration: existing hardware may have paint buildup requiring careful scoring before removal."
+      },
+      {
+        "zone_id": "wall_adjacent_window",
+        "condition": "application_method = spray, OR walls are SS_PAINTED_* (always in RP since walls are finished in occupied homes)",
+        "protection_level": "light_mask",
+        "upgrade_scenario": null,
+        "notes": "Wall masking around window perimeter. In RP, walls are typically finished (occupied home) so wall masking is needed for BOTH spray and brush methods — unlike NC where brush method with unfinished walls needs no wall masking. Transfers from NC but MODIFIED condition: RP always masks walls."
+      },
+      {
+        "zone_id": "sill_protection",
+        "condition": "application_method = spray AND stool is finished",
+        "protection_level": "light_mask",
+        "upgrade_scenario": null,
+        "notes": "Protect stool/sill from overspray during spray application. In RP, stool is typically already finished. Transfers DIRECT from NC."
+      },
+      {
+        "zone_id": "furniture_adjacent",
+        "condition": "occupancy_state in [occupied_crew_handles, occupied_sensitive]",
+        "protection_level": "partial_cover",
+        "upgrade_scenario": null,
+        "notes": "RP-specific: cover or move furniture near windows in occupied homes. Window treatments (curtains, blinds) should be removed or pinned up and covered. Not present in NC."
+      }
+    ],
+    "zone_reference": "Protection_Zones_Reference.md"
+  },
+
+  "adjacency_analysis": {
+    "primary_surface": "window_frame",
+    "additional_primary_surfaces": ["window_sash", "window_muntin", "window_jamb"],
+    "adjacent_surfaces": [
+      {
+        "surface_id": "wall_field",
+        "edge_type": "linear",
+        "typical_relationship": "different_finish",
+        "edge_work_required": false,
+        "notes": "Window frame meets wall at perimeter. In RP, walls are typically finished (SS_PAINTED_*). Wall masking required for both spray and brush methods in RP. No edge work — protection only."
+      },
+      {
+        "surface_id": "window_casing",
+        "edge_type": "linear",
+        "typical_relationship": "same_finish",
+        "edge_work_required": false,
+        "notes": "Window casing handled by SF_TRIM_INT_RP. Often same finish color/sheen. Casing-to-frame edge requires careful brush work but no separate edge task. Often painted in same session."
+      },
+      {
+        "surface_id": "window_stool",
+        "edge_type": "linear",
+        "typical_relationship": "same_finish",
+        "edge_work_required": false,
+        "notes": "Stool handled by SF_TRIM_INT_RP. In RP, stool is typically already finished. When already finished, protect from overspray during spray window painting."
+      },
+      {
+        "surface_id": "window_glass",
+        "edge_type": "complex",
+        "typical_relationship": "not_in_scope",
+        "edge_work_required": false,
+        "notes": "Glass is NOT painted. Glass masking is mandatory (protection zone). 1/16-inch seal technique creates intentional paint-to-glass seal for wood windows. Glass scraping/cleanup after cure."
+      }
+    ],
+    "surface_reference": "Surface_Vocabulary_Reference.md"
+  },
+
+  "site_condition_analysis": {
+    "affected_conditions": [
+      {
+        "condition_id": "occupancy_state",
+        "affected_task_types": ["protect"],
+        "include_values": ["occupied_crew_handles", "occupied_sensitive"],
+        "exclude_values": ["vacant"],
+        "notes": "RP is in occupied homes. Furniture near windows must be moved/covered. Window treatments (curtains, blinds) must be managed. Adds furniture_adjacent protection zone."
+      },
+      {
+        "condition_id": "lead_status",
+        "affected_task_types": ["prep"],
+        "include_values": ["tested_positive", "unknown_pre1978"],
+        "modifier_notes": "tested_positive = 2.0x, unknown_pre1978 = 1.5x per Modifier_Registry",
+        "notes": "Windows are HIGH-RISK for lead exposure — friction surfaces (operable sashes) are the #1 residential lead dust generator. RRP protocol required. Applies to sanding/scraping tasks. Per Window_Systems_Doctrine Section 11."
+      },
+      {
+        "condition_id": "moisture_condition",
+        "affected_task_types": ["prep"],
+        "include_values": ["condensation_active", "plumbing_leak_resolved"],
+        "notes": "Windows are the #1 interior condensation site. Active condensation = remediation gate (MC must be < 12% before painting). Resolved moisture source must be confirmed before proceeding."
+      },
+      {
+        "condition_id": "temperature_condition",
+        "affected_task_types": ["prime", "finish"],
+        "include_values": ["cold_below_50f", "hot_above_90f"],
+        "modifier_notes": "cold_below_50f = 1.30x, hot_above_90f = 1.15x",
+        "notes": "Temperature affects dry times, open time, and blocking prevention. Critical for windows: cold extends cure time, delays sash closure. RP homes may lack controlled HVAC during painting."
+      },
+      {
+        "condition_id": "access_constraint",
+        "affected_task_types": ["prep", "prime", "finish", "inspect"],
+        "include_values": ["step_ladder", "extension_ladder", "scaffold"],
+        "modifier_notes": "H1=1.00, H2=1.30, H3=1.50, H4=2.00, H5=2.50",
+        "notes": "Height modifiers apply per-window using PaintScope height distribution (IN_EA_WINDOW_H1 through H5). Interior windows rarely exceed H3 in residential RP."
+      }
+    ],
+    "condition_reference": "Site_Condition_Vocabulary_Reference.md",
+    "modifier_reference": "Modifier_Registry.md"
+  },
+
+  "state_analysis": {
+    "primary_surface": "window_frame",
+    "additional_primary_surfaces": ["window_sash", "window_muntin", "window_jamb"],
+    "valid_input_states": {
+      "states": ["SS_INT_SOUND_PAINT", "SS_INT_FAILING_PAINT", "SS_INT_PEELING", "SS_INT_MOISTURE_DAMAGE", "SS_INT_SMOKE_DAMAGE"],
+      "rationale": "Interior RP substrate states. SS_INT_SOUND_PAINT is the most common (cosmetic refresh). SS_INT_MOISTURE_DAMAGE is the most common damage state for windows due to condensation. SS_INT_SMOKE_DAMAGE requires shellac full-surface seal. States map to condition scale: GOOD (sound), FAIR (failing), POOR (peeling/moisture/smoke)."
+    },
+    "output_state": {
+      "state": "SS_PAINTED_SEMIGLOSS",
+      "varies_by": "sheen",
+      "state_map": {
+        "satin": "SS_PAINTED_SATIN",
+        "semi-gloss": "SS_PAINTED_SEMIGLOSS",
+        "gloss": "SS_PAINTED_GLOSS"
+      },
+      "rationale": "Output state varies by sheen dimension. Semi-gloss is the traditional window sheen (requires QT4+). Satin is QT3 default."
+    },
+    "adjacent_state_protection_analysis": [
+      {
+        "adjacent_surface": "wall_field",
+        "finished_states": ["SS_PAINTED_FLAT", "SS_PAINTED_EGGSHELL", "SS_PAINTED_SATIN", "SS_PAINTED_SEMIGLOSS"],
+        "unfinished_states": ["SS_BARE", "SS_PRIMED_FIELD"],
+        "protection_when_finished": "light_mask",
+        "protection_when_unfinished": "none",
+        "rationale": "In RP, walls are nearly always finished (occupied home). Wall masking is required for both spray and brush methods. Spray: tape + paper. Brush: tape only."
+      },
+      {
+        "adjacent_surface": "window_stool",
+        "finished_states": ["SS_PAINTED_SATIN", "SS_PAINTED_SEMIGLOSS", "SS_PAINTED_GLOSS"],
+        "unfinished_states": ["SS_BARE", "SS_PRIMED_FACTORY"],
+        "protection_when_finished": "light_mask",
+        "protection_when_unfinished": "none",
+        "rationale": "In RP, stool is typically already finished. Protect from overspray during spray application."
+      }
+    ],
+    "state_reference": "Substrate_State_Reference.md"
+  },
+
+  "required_paintscope_keys": [
+    "PS_OPENING_EA.WINDOW_S",
+    "PS_OPENING_EA.WINDOW_M",
+    "PS_OPENING_EA.WINDOW_L",
+    "PS_OPENING_EA.WINDOW_O",
+    "PS_OPENING_EA.WINDOW_TOTAL",
+    "PS_OPENING_EA.WINDOW_H1",
+    "PS_OPENING_EA.WINDOW_H2",
+    "PS_OPENING_EA.WINDOW_H3",
+    "PS_OPENING_EA.WINDOW_H4",
+    "PS_OPENING_EA.WINDOW_H5",
+    "PS_OPENING_EA.WINDOW_EXCEPTION",
+    "PS_PROTECT_SF.ASSET.GLASS_AREA",
+    "PS_PROTECT_SF.FLOOR_PERIMETER",
+    "PS_PROTECT_SF.FLOOR_8FT_RADIUS",
+    "PS_PROTECT_LF.WALL_ADJACENT_WINDOW",
+    "PS_PROTECT_EA.ASSET.HARDWARE_GROUPS",
+    "PS_PROTECT_LF.SILL"
+  ],
+
+  "proposed_new_keys": [],
+
+  "adjacency_notes": [
+    "Window frame meets wall at perimeter — protection relationship only (masking), not edge work.",
+    "Window casing (handled by SF_TRIM_INT_RP) often shares same finish. No separate edge task.",
+    "Window stool (handled by SF_TRIM_INT_RP) — protection only when already finished.",
+    "Window glass — masking mandatory, glass scraping after cure. Not a painting surface.",
+    "In RP (occupied homes), walls are almost always finished — wall masking is needed for BOTH spray and brush methods, unlike NC where brush method with unfinished walls needs no wall masking."
+  ],
+
+  "nc_task_transfer_summary": {
+    "source_spec": "SF_WINDOW_INT_NC_v1",
+    "source_task_count": 29,
+    "direct_transfers": [
+      "TSK_WIN_FLOOR_PROTECT",
+      "TSK_WIN_GLASS_MASK",
+      "TSK_WIN_HARDWARE_PROTECT",
+      "TSK_WIN_WALL_MASK",
+      "TSK_WIN_SILL_PROTECT",
+      "TSK_WIN_PREP_SCUFF",
+      "TSK_WIN_PREP_METAL_DEGREASE",
+      "TSK_WIN_PREP_CLEAN",
+      "TSK_WIN_BRUSH_FINISH_1",
+      "TSK_WIN_SPRAY_FINISH_1",
+      "TSK_WIN_INSPECT_COAT",
+      "TSK_WIN_SAND_BETWEEN",
+      "TSK_WIN_PATCH_DEFECTS",
+      "TSK_WIN_SPOT_COAT",
+      "TSK_WIN_CLEAN_INTERSTAGE",
+      "TSK_WIN_BRUSH_FINISH_2",
+      "TSK_WIN_SPRAY_FINISH_2",
+      "TSK_WIN_FINAL_INSPECT",
+      "TSK_WIN_TOUCHUP",
+      "TSK_WIN_GLASS_SCRAPE",
+      "TSK_WIN_HARDWARE_REINSTALL",
+      "TSK_WIN_PROTECT_TEARDOWN",
+      "TSK_WIN_CLEAN_TOOLS"
+    ],
+    "direct_count": 22,
+    "modified_transfers": [
+      {
+        "nc_task": "TSK_WIN_PREP_WOOD_SAND",
+        "rp_task": "TSK_WNRP_DEGLOSS",
+        "rationale": "NC sands bare wood; RP degloss existing paint"
+      },
+      {
+        "nc_task": "TSK_WIN_PREP_STEEL_RUST",
+        "rp_task": "TSK_WNRP_RUST_TREAT",
+        "rationale": "NC treats bare steel rust; RP treats rust breakthrough through existing coating"
+      },
+      {
+        "nc_task": "TSK_WIN_PRIME_BRUSH",
+        "rp_task": "TSK_WNRP_PRIME_BRUSH",
+        "rationale": "NC uses substrate-driven primer; RP uses state-driven primer (adhesion/stain-block)"
+      },
+      {
+        "nc_task": "TSK_WIN_PRIME_SPRAY",
+        "rp_task": "TSK_WNRP_PRIME_SPRAY",
+        "rationale": "NC uses substrate-driven primer; RP uses state-driven primer"
+      },
+      {
+        "nc_task": "TSK_WIN_PREP_SCUFF",
+        "rp_task": "TSK_WNRP_SCUFF_SAND",
+        "rationale": "NC scuffs factory primer only; RP scuff may apply to all previously painted substrates after degloss"
+      }
+    ],
+    "modified_count": 5,
+    "not_applicable": [
+      {
+        "nc_task": "TSK_WIN_PREP_WOOD_FILL",
+        "rationale": "Bare wood fill — already filled during original NC"
+      },
+      {
+        "nc_task": "TSK_WIN_PREP_ALUMINUM_ETCH",
+        "rationale": "Bare aluminum etch — already etched and primed during original NC"
+      }
+    ],
+    "not_applicable_count": 2,
+    "rp_new_tasks": [
+      "TSK_WNRP_ASSESS_CONDITION — visual condition inspection of all window surfaces",
+      "TSK_WNRP_ASSESS_ADHESION — ASTM D3359 cross-hatch tape test",
+      "TSK_WNRP_ASSESS_COATING_ID — solvent test for latex vs alkyd identification",
+      "TSK_WNRP_ASSESS_MOISTURE — moisture meter on sill, jamb bottoms, sash bottom rail",
+      "TSK_WNRP_ASSESS_GLAZING — glazing compound condition assessment (older windows)",
+      "TSK_WNRP_ASSESS_SASH_OPERATION — pre-paint sash open/close test for binding",
+      "TSK_WNRP_WASH_TSP — TSP decontamination wash",
+      "TSK_WNRP_DEGLOSS — degloss existing paint (chemical or mechanical)",
+      "TSK_WNRP_SCRAPE_FEATHER — scrape failing paint, feather edges (condition-gated)",
+      "TSK_WNRP_TREAT_MILDEW — biocide treatment for mildew on moisture-damaged areas",
+      "TSK_WNRP_CAULK_ASSESS_REPAIR — assess and repair failed caulk/sealant",
+      "TSK_WNRP_GLAZING_REPAIR — spot repair failed glazing compound (scope-limited)",
+      "TSK_WNRP_FURNITURE_MANAGE — move/cover furniture and window treatments near windows",
+      "TSK_WNRP_CUSTOMER_WALKTHROUGH — post-completion review with homeowner",
+      "TSK_WNRP_SASH_BREAK — break sash free at 24/48 hrs post-cure to prevent adhesion bond"
+    ],
+    "rp_new_count": 15,
+    "projected_total_tasks": "22 DIRECT + 5 MODIFIED + 15 RP_NEW = 42 tasks (within 35-42 projection range)"
+  },
+
+  "inherited_research_corrections": [
+    {
+      "correction_id": "RC-004",
+      "original_claim": "Dry times should be specified in specs",
+      "corrected_to": "No dry times in specs — refer to product PDS. Dry times vary by product, temperature, humidity.",
+      "corrected_by": "Eric",
+      "source": "SF_DRYWALL_WALL_NC_PRIME research"
+    },
+    {
+      "correction_id": "RC-005",
+      "original_claim": "Material system selection is mandatory doctrine — QT drives material system",
+      "corrected_to": "Material systems are suggestions per QT — contractor has discretion on product selection.",
+      "corrected_by": "Eric",
+      "source": "SF_TRIM_NC_PAINT research"
+    },
+    {
+      "correction_id": "RC-006",
+      "original_claim": "Waterborne alkyds have longer open time",
+      "corrected_to": "Both Advance (waterborne alkyd) and Emerald Urethane (acrylic-urethane enamel, NOT waterborne alkyd) have SHORT working times. Fast dry demands proper first-pass technique.",
+      "corrected_by": "Eric",
+      "source": "SF_TRIM_NC_PAINT research"
+    }
+  ],
+
+  "change_log": [
+    {
+      "version": "1.0.0",
+      "date": "2026-03-14",
+      "author": "Spec Researcher Agent",
+      "changes": "Initial research.json for SF_WINDOW_INT_RP_v1. Derived from SF_WINDOW_INT_NC_v1 (29 tasks) as primary template. Key research findings: windows are #1 interior condensation/moisture damage site (RF-001), RP prep is condition-driven not substrate-driven (RF-002), latex-over-oil is common failure mode (RF-007), glazing compound assessment is window-specific RP task (RF-009). Context prefix WNRP_ avoids collision with TSK_WIN_* NC tasks. 5 interior RP substrate states (SS_INT_SOUND_PAINT through SS_INT_SMOKE_DAMAGE). Projected 42 tasks: 22 DIRECT transfers + 5 MODIFIED + 15 RP_NEW (assessment, degloss, scrape/feather, contamination treatment, glazing, customer walkthrough). All NC modifiers (size bucket, window type, muntin, height) transfer unchanged. Condition modifiers (GOOD/FAIR/POOR) added for prep tasks."
+    }
+  ]
+}

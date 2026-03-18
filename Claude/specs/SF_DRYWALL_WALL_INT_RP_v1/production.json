@@ -1,0 +1,1725 @@
+{
+  "spec_family_id": "SF_DRYWALL_WALL_INT_RP",
+  "version": "1.0.0",
+  "generated_by": "Estimation Engineer",
+  "generated_at": "2026-03-13",
+
+  "MODIFIER_STACKING_WARNING": {
+    "severity": "critical",
+    "description": "Modifier stacking uses TWO separate pools that never cross-apply. Prep tasks use condition+contamination+access. Coating tasks use QT+access. Height and texture are shared across both pools.",
+    "worst_case_prep": "POOR(2.00) x smoke(1.50) x obstructed_heavy(1.30) x H4(2.00) x heavy_texture(1.25) = 9.75x",
+    "worst_case_coating": "QT5(1.50) x obstructed_heavy(1.30) x H4(2.00) x heavy_texture(1.25) = 4.88x",
+    "resolution": "STACKING PARTITION — prep pool and coating pool never overlap. Extreme combos flagged for estimator review.",
+    "stacking_rules": {
+      "prep_tasks": {
+        "formula": "effective_rate = base_rate / (condition x contamination x access x height x texture)",
+        "pool_modifiers": "CONDITION + CONTAMINATION (PREP pool)",
+        "shared_modifiers": "HEIGHT + TEXTURE + ACCESS",
+        "applies_to_phases": ["setup", "prep", "prime"]
+      },
+      "coating_tasks": {
+        "formula": "effective_rate = base_rate / (qt x access x height x texture)",
+        "pool_modifiers": "QT (COATING pool)",
+        "shared_modifiers": "HEIGHT + TEXTURE + ACCESS",
+        "applies_to_phases": ["finish", "interstage", "cleanup"]
+      }
+    }
+  },
+
+  "task_production_rates": [
+    {
+      "task_id": "TSK_WLRP_FURNITURE_MOVE",
+      "name": "Move and Center-Pile Furniture",
+      "task_classification": "binary",
+      "required_input_key": "IN_EA_ROOMS_TOTAL",
+      "paintscope_key": "PS_META.EA.ROOMS_TOTAL",
+      "unit_of_measure": "EA_ROOM",
+      "fixed_minutes": 12,
+      "fixed_minutes_range_low": 8,
+      "fixed_minutes_range_high": 15,
+      "crew_size": 1,
+      "applies_when": {
+        "occupancy_state": ["occupied_crew_handles", "occupied_sensitive"]
+      },
+      "factor_modifiers": [
+        { "modifier_id": "FAC_WLRP_ACCESS_OPEN", "value": 1.00 },
+        { "modifier_id": "FAC_WLRP_ACCESS_OBSTRUCTED_LIGHT", "value": 1.15 },
+        { "modifier_id": "FAC_WLRP_ACCESS_OBSTRUCTED_HEAVY", "value": 1.30 }
+      ],
+      "rate_basis_notes": "Per-room fixed time. Move furniture to center, clear walls of hanging items. RP-new task — no NC equivalent. Rate derived from industry standard 8-15 min per room depending on furnishing density."
+    },
+    {
+      "task_id": "TSK_WLRP_FURNITURE_COVER",
+      "name": "Cover Center-Piled Furniture with Poly Sheeting",
+      "task_classification": "binary",
+      "required_input_key": "IN_EA_ROOMS_TOTAL",
+      "paintscope_key": "PS_META.EA.ROOMS_TOTAL",
+      "unit_of_measure": "EA_ROOM",
+      "fixed_minutes": 8,
+      "fixed_minutes_range_low": 5,
+      "fixed_minutes_range_high": 10,
+      "crew_size": 1,
+      "applies_when": {
+        "occupancy_state": ["occupied_crew_handles", "occupied_sensitive"]
+      },
+      "factor_modifiers": [],
+      "rate_basis_notes": "Cover center-piled furniture with 2-4 mil poly sheeting, tape edges to floor. RP-new task. Faster than furniture move — just draping and taping."
+    },
+    {
+      "task_id": "TSK_WLRP_FLOOR_PROTECT_PERIMETER_SETUP",
+      "name": "Floor Protection Setup (Perimeter — Roll Method)",
+      "task_classification": "binary",
+      "required_input_key": "IN_SF_PROTECT_FLOOR_PERIMETER",
+      "paintscope_key": "PS_PROTECT_SF.FLOOR_PERIMETER",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 600,
+      "rate_range_low": 500,
+      "rate_range_high": 750,
+      "crew_size": 1,
+      "applies_when": {
+        "application_method": ["roll"]
+      },
+      "factor_modifiers": [],
+      "rate_basis_notes": "DIRECT transfer from NC prime TSK_WALL_FLOOR_PROTECT_PERIMETER_SETUP (600 SF/hr). Canvas drop cloths along wall perimeter."
+    },
+    {
+      "task_id": "TSK_WLRP_FLOOR_PROTECT_FULL_SETUP",
+      "name": "Floor Protection Setup (Full Room — Spray Methods)",
+      "task_classification": "binary",
+      "required_input_key": "IN_SF_PROTECT_FLOOR_EXPOSED",
+      "paintscope_key": "PS_PROTECT_SF.FLOOR_EXPOSED",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 400,
+      "rate_range_low": 300,
+      "rate_range_high": 500,
+      "crew_size": 1,
+      "applies_when": {
+        "application_method": ["spray_backroll", "spray"]
+      },
+      "factor_modifiers": [],
+      "rate_basis_notes": "DIRECT transfer from NC prime TSK_WALL_FLOOR_PROTECT_SETUP (400 SF/hr). Full room coverage with rosin paper or plastic, taped seams."
+    },
+    {
+      "task_id": "TSK_WLRP_MASK_TRIM_BASEBOARD",
+      "name": "Mask Baseboard Top Edge",
+      "task_classification": "binary",
+      "required_input_key": "IN_LF_PROTECT_TRIM_EDGES",
+      "paintscope_key": "PS_PROTECT_LF.TRIM_EDGES",
+      "unit_of_measure": "LF",
+      "rate_per_hour": 200,
+      "rate_range_low": 170,
+      "rate_range_high": 250,
+      "crew_size": 1,
+      "applies_when": {},
+      "factor_modifiers": [],
+      "rate_basis_notes": "DIRECT transfer from NC finish TSK_MASK_TRIM_BASEBOARD (200 LF/hr). RP always has trim in place — mandatory task. Standard blue tape QT2-QT3, green edge-seal QT4+."
+    },
+    {
+      "task_id": "TSK_WLRP_MASK_TRIM_DOOR_CASING",
+      "name": "Mask Door Casing Edges",
+      "task_classification": "binary",
+      "required_input_key": "IN_LF_PROTECT_TRIM_EDGES",
+      "paintscope_key": "PS_PROTECT_LF.TRIM_EDGES",
+      "unit_of_measure": "LF",
+      "rate_per_hour": 180,
+      "rate_range_low": 150,
+      "rate_range_high": 220,
+      "crew_size": 1,
+      "applies_when": {},
+      "factor_modifiers": [],
+      "rate_basis_notes": "DIRECT transfer from NC finish TSK_MASK_TRIM_DOOR_CASING (180 LF/hr). Slightly slower than baseboard due to vertical orientation and corners."
+    },
+    {
+      "task_id": "TSK_WLRP_MASK_TRIM_WINDOW_CASING",
+      "name": "Mask Window Casing Edges",
+      "task_classification": "binary",
+      "required_input_key": "IN_LF_PROTECT_TRIM_EDGES",
+      "paintscope_key": "PS_PROTECT_LF.TRIM_EDGES",
+      "unit_of_measure": "LF",
+      "rate_per_hour": 180,
+      "rate_range_low": 150,
+      "rate_range_high": 220,
+      "crew_size": 1,
+      "applies_when": {},
+      "factor_modifiers": [],
+      "rate_basis_notes": "DIRECT transfer from NC finish TSK_MASK_TRIM_WINDOW_CASING (180 LF/hr). Same rate as door casing masking."
+    },
+    {
+      "task_id": "TSK_WLRP_FIXTURE_COVERS_SETUP",
+      "name": "Cover Fixtures for Spray / Premium Roll",
+      "task_classification": "binary",
+      "required_input_key": "IN_EA_ROOMS_TOTAL",
+      "paintscope_key": "PS_META.EA.ROOMS_TOTAL",
+      "unit_of_measure": "EA",
+      "rate_per_hour": 15,
+      "rate_range_low": 12,
+      "rate_range_high": 20,
+      "crew_size": 1,
+      "applies_when": {
+        "application_method": ["spray_backroll", "spray"]
+      },
+      "factor_modifiers": [],
+      "rate_basis_notes": "DIRECT transfer from NC prime TSK_WALL_FIXTURE_COVERS_SETUP (15 EA/hr). ~4 min per room, ~6 fixtures/room."
+    },
+
+    {
+      "task_id": "TSK_WLRP_ASSESS_CONDITION",
+      "name": "Visual Condition Scan — All Walls",
+      "task_classification": "qt_scaled",
+      "required_input_key": "IN_EA_ROOMS_TOTAL",
+      "paintscope_key": "PS_META.EA.ROOMS_TOTAL",
+      "unit_of_measure": "EA_ROOM",
+      "fixed_minutes": 15,
+      "fixed_minutes_range_low": 8,
+      "fixed_minutes_range_high": 25,
+      "crew_size": 1,
+      "applies_when": {},
+      "qt_rates": {
+        "QT2": { "fixed_minutes": 8, "notes": "Quick visual scan, major issues only" },
+        "QT3": { "fixed_minutes": 15, "notes": "Standard visual with work light, document all defects" },
+        "QT4": { "fixed_minutes": 20, "notes": "Systematic scan with raking light, photograph defect areas" },
+        "QT5": { "fixed_minutes": 25, "notes": "Critical assessment, multiple passes, full photo documentation" }
+      },
+      "factor_modifiers": [
+        { "modifier_id": "FAC_HEIGHT_H1", "value": 1.00 },
+        { "modifier_id": "FAC_HEIGHT_H2", "value": 1.30 },
+        { "modifier_id": "FAC_HEIGHT_H3", "value": 1.50 },
+        { "modifier_id": "FAC_HEIGHT_H4", "value": 2.00 }
+      ],
+      "rate_basis_notes": "RP-new task. Per-room fixed time varying by QT. Exterior RP analog TSK_TRRP_ASSESS_CONDITION at 6-10 min for trim; walls are larger surface = longer assessment. Industry standard 10-25 min per room depending on tier."
+    },
+    {
+      "task_id": "TSK_WLRP_ASSESS_ADHESION",
+      "name": "Adhesion Test (ASTM D3359 Cross-Hatch Tape Test)",
+      "task_classification": "binary",
+      "required_input_key": "IN_EA_ROOMS_TOTAL",
+      "paintscope_key": "PS_META.EA.ROOMS_TOTAL",
+      "unit_of_measure": "EA_ROOM",
+      "fixed_minutes": 8,
+      "fixed_minutes_range_low": 5,
+      "fixed_minutes_range_high": 12,
+      "crew_size": 1,
+      "applies_when": {},
+      "factor_modifiers": [],
+      "rate_basis_notes": "RP-new task. ASTM D3359 cross-hatch tape test at 2+ locations per room. ~4 min per test site. Determines adhesion primer need."
+    },
+    {
+      "task_id": "TSK_WLRP_ASSESS_MOISTURE",
+      "name": "Moisture Meter Evaluation",
+      "task_classification": "binary",
+      "required_input_key": "IN_EA_ROOMS_TOTAL",
+      "paintscope_key": "PS_META.EA.ROOMS_TOTAL",
+      "unit_of_measure": "EA_ROOM",
+      "fixed_minutes": 5,
+      "fixed_minutes_range_low": 3,
+      "fixed_minutes_range_high": 10,
+      "crew_size": 1,
+      "applies_when": {},
+      "factor_modifiers": [],
+      "rate_basis_notes": "RP-new task. Pin-type or pinless moisture meter at suspect areas. Quick pass unless active moisture found (stop-work condition). 3-10 min per room."
+    },
+    {
+      "task_id": "TSK_WLRP_ASSESS_COATING_ID",
+      "name": "Coating Identification — Latex vs Oil",
+      "task_classification": "binary",
+      "required_input_key": "IN_EA_ROOMS_TOTAL",
+      "paintscope_key": "PS_META.EA.ROOMS_TOTAL",
+      "unit_of_measure": "EA_ROOM",
+      "fixed_minutes": 5,
+      "fixed_minutes_range_low": 3,
+      "fixed_minutes_range_high": 8,
+      "crew_size": 1,
+      "applies_when": {},
+      "factor_modifiers": [],
+      "rate_basis_notes": "RP-new task. Solvent test with mineral spirits to determine latex vs oil. 1-2 test areas per room. Quick test — results drive primer compatibility."
+    },
+
+    {
+      "task_id": "TSK_RRP_LEAD_TEST",
+      "name": "Lead Test (XRF or Swab)",
+      "task_classification": "binary",
+      "required_input_key": "IN_EA_ROOMS_TOTAL",
+      "paintscope_key": "PS_META.EA.ROOMS_TOTAL",
+      "unit_of_measure": "EA_ROOM",
+      "fixed_minutes": 10,
+      "fixed_minutes_range_low": 5,
+      "fixed_minutes_range_high": 15,
+      "crew_size": 1,
+      "applies_when": {
+        "home_pre_1978": true
+      },
+      "factor_modifiers": [],
+      "rate_basis_notes": "Shared RRP module task. XRF preferred (instant result), swab test acceptable (30 sec develop). 2+ locations per room. 5-15 min per room including documentation."
+    },
+    {
+      "task_id": "TSK_RRP_CONTAINMENT_SETUP",
+      "name": "RRP Containment Setup",
+      "task_classification": "binary",
+      "required_input_key": "IN_EA_ROOMS_TOTAL",
+      "paintscope_key": "PS_META.EA.ROOMS_TOTAL",
+      "unit_of_measure": "EA_ROOM",
+      "fixed_minutes": 30,
+      "fixed_minutes_range_low": 20,
+      "fixed_minutes_range_high": 45,
+      "crew_size": 1,
+      "applies_when": {
+        "home_pre_1978": true,
+        "lead_status": ["tested_positive", "unknown_pre1978"]
+      },
+      "factor_modifiers": [
+        { "modifier_id": "FAC_HEIGHT_H1", "value": 1.00 },
+        { "modifier_id": "FAC_HEIGHT_H2", "value": 1.30 },
+        { "modifier_id": "FAC_HEIGHT_H3", "value": 1.50 },
+        { "modifier_id": "FAC_HEIGHT_H4", "value": 2.00 }
+      ],
+      "rate_basis_notes": "Shared RRP module task. Poly sheeting on floors and openings, warning signs, restrict access. EPA RRP Rule 40 CFR 745. 20-45 min per room depending on room size and openings."
+    },
+    {
+      "task_id": "TSK_RRP_HEPA_VACUUM",
+      "name": "HEPA Vacuum After Paint Disturbance",
+      "task_classification": "binary",
+      "required_input_key": "IN_EA_ROOMS_TOTAL",
+      "paintscope_key": "PS_META.EA.ROOMS_TOTAL",
+      "unit_of_measure": "EA_ROOM",
+      "fixed_minutes": 20,
+      "fixed_minutes_range_low": 15,
+      "fixed_minutes_range_high": 30,
+      "crew_size": 1,
+      "applies_when": {
+        "home_pre_1978": true,
+        "lead_status": ["tested_positive", "unknown_pre1978"]
+      },
+      "factor_modifiers": [],
+      "rate_basis_notes": "Shared RRP module task. HEPA vacuum all surfaces after each sanding/scraping disturbance. Required by EPA RRP Rule. Runs after each disturbance event."
+    },
+    {
+      "task_id": "TSK_RRP_CONTAINMENT_REMOVAL",
+      "name": "RRP Containment Removal and Visual Clearance",
+      "task_classification": "binary",
+      "required_input_key": "IN_EA_ROOMS_TOTAL",
+      "paintscope_key": "PS_META.EA.ROOMS_TOTAL",
+      "unit_of_measure": "EA_ROOM",
+      "fixed_minutes": 20,
+      "fixed_minutes_range_low": 15,
+      "fixed_minutes_range_high": 30,
+      "crew_size": 1,
+      "applies_when": {
+        "home_pre_1978": true,
+        "lead_status": ["tested_positive", "unknown_pre1978"]
+      },
+      "factor_modifiers": [],
+      "rate_basis_notes": "Shared RRP module task. Remove containment poly, visual clearance inspection, no visible dust or debris. Faster than setup."
+    },
+    {
+      "task_id": "TSK_RRP_WASTE_DISPOSAL",
+      "name": "Lead-Contaminated Waste Disposal",
+      "task_classification": "binary",
+      "required_input_key": null,
+      "paintscope_key": null,
+      "unit_of_measure": "FIXED",
+      "fixed_minutes": 30,
+      "fixed_minutes_range_low": 20,
+      "fixed_minutes_range_high": 45,
+      "crew_size": 1,
+      "applies_when": {
+        "home_pre_1978": true,
+        "lead_status": ["tested_positive", "unknown_pre1978"]
+      },
+      "factor_modifiers": [],
+      "rate_basis_notes": "Shared RRP module task. Package and dispose lead-contaminated debris per EPA RRP Rule. Per-job fixed time. Transport to approved facility."
+    },
+
+    {
+      "task_id": "TSK_WLRP_WASH_TSP",
+      "name": "TSP Wash for Surface Contamination",
+      "task_classification": "qt_scaled",
+      "required_input_key": "IN_SF_WALL_FIELD",
+      "paintscope_key": "PS_SURFACE_SF.WALL_FIELD",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 250,
+      "rate_range_low": 200,
+      "rate_range_high": 300,
+      "crew_size": 1,
+      "applies_when": {
+        "contamination_type": ["mildew", "smoke", "water_stain", "grease"]
+      },
+      "qt_rates": {
+        "QT2": { "rate_sf_per_hour": 300, "notes": "Single pass with TSP solution, rinse" },
+        "QT3": { "rate_sf_per_hour": 250, "notes": "Thorough wash, rinse, verify clean" },
+        "QT4": { "rate_sf_per_hour": 200, "notes": "Systematic wash with rinse verification, work light check" },
+        "QT5": { "rate_sf_per_hour": 175, "notes": "Multiple passes as needed until clean, full verification" }
+      },
+      "factor_modifiers": [
+        { "modifier_id": "FAC_WLRP_CONDITION_GOOD", "value": 1.00 },
+        { "modifier_id": "FAC_WLRP_CONDITION_FAIR", "value": 1.50 },
+        { "modifier_id": "FAC_WLRP_CONDITION_POOR", "value": 2.00 },
+        { "modifier_id": "FAC_WLRP_CONTAM_MILDEW", "value": 1.20 },
+        { "modifier_id": "FAC_WLRP_CONTAM_SMOKE", "value": 1.50 },
+        { "modifier_id": "FAC_WLRP_CONTAM_WATER_STAIN", "value": 1.15 },
+        { "modifier_id": "FAC_WLRP_CONTAM_GREASE", "value": 1.10 },
+        { "modifier_id": "FAC_HEIGHT_H1", "value": 1.00 },
+        { "modifier_id": "FAC_HEIGHT_H2", "value": 1.30 },
+        { "modifier_id": "FAC_HEIGHT_H3", "value": 1.50 },
+        { "modifier_id": "FAC_HEIGHT_H4", "value": 2.00 }
+      ],
+      "rate_basis_notes": "RP-new task. 200-300 SF/hr depending on contamination severity. Prep pool modifiers apply. Smoke is slowest (requires stronger solution, more scrubbing). Grease is fastest (TSP cuts grease quickly)."
+    },
+    {
+      "task_id": "TSK_WLRP_TREAT_MILDEW",
+      "name": "Mildew/Biocide Treatment",
+      "task_classification": "binary",
+      "required_input_key": "IN_SF_WALL_FIELD",
+      "paintscope_key": "PS_SURFACE_SF.WALL_FIELD",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 200,
+      "rate_range_low": 150,
+      "rate_range_high": 250,
+      "crew_size": 1,
+      "applies_when": {
+        "contamination_type": ["mildew"],
+        "substrate_state": ["SS_INT_MOISTURE_DAMAGE"]
+      },
+      "factor_modifiers": [
+        { "modifier_id": "FAC_WLRP_CONDITION_FAIR", "value": 1.50 },
+        { "modifier_id": "FAC_WLRP_CONDITION_POOR", "value": 2.00 },
+        { "modifier_id": "FAC_HEIGHT_H1", "value": 1.00 },
+        { "modifier_id": "FAC_HEIGHT_H2", "value": 1.30 },
+        { "modifier_id": "FAC_HEIGHT_H3", "value": 1.50 },
+        { "modifier_id": "FAC_HEIGHT_H4", "value": 2.00 }
+      ],
+      "rate_basis_notes": "RP-new task. Apply bleach/mildewcide solution, allow contact/kill time, rinse. 150-250 SF/hr includes dwell time. Source moisture must already be resolved."
+    },
+    {
+      "task_id": "TSK_WLRP_SCRAPE_LOOSE",
+      "name": "Scrape Loose and Failing Paint",
+      "task_classification": "qt_scaled",
+      "required_input_key": "IN_SF_WALL_FIELD",
+      "paintscope_key": "PS_SURFACE_SF.WALL_FIELD",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 80,
+      "rate_range_low": 50,
+      "rate_range_high": 120,
+      "crew_size": 1,
+      "applies_when": {
+        "condition_scale": ["FAIR", "POOR"]
+      },
+      "qt_rates": {
+        "QT2": { "rate_sf_per_hour": 120, "notes": "Remove obviously loose material only" },
+        "QT3": { "rate_sf_per_hour": 80, "notes": "Remove all failing paint, thorough scrape" },
+        "QT4": { "rate_sf_per_hour": 65, "notes": "Comprehensive scrape with careful edge work" },
+        "QT5": { "rate_sf_per_hour": 50, "notes": "Critical scrape — near-zero tolerance for remaining loose material" }
+      },
+      "factor_modifiers": [
+        { "modifier_id": "FAC_WLRP_CONDITION_FAIR", "value": 1.50 },
+        { "modifier_id": "FAC_WLRP_CONDITION_POOR", "value": 2.00 },
+        { "modifier_id": "FAC_WLRP_ACCESS_OPEN", "value": 1.00 },
+        { "modifier_id": "FAC_WLRP_ACCESS_OBSTRUCTED_LIGHT", "value": 1.15 },
+        { "modifier_id": "FAC_WLRP_ACCESS_OBSTRUCTED_HEAVY", "value": 1.30 },
+        { "modifier_id": "FAC_HEIGHT_H1", "value": 1.00 },
+        { "modifier_id": "FAC_HEIGHT_H2", "value": 1.30 },
+        { "modifier_id": "FAC_HEIGHT_H3", "value": 1.50 },
+        { "modifier_id": "FAC_HEIGHT_H4", "value": 2.00 }
+      ],
+      "rate_basis_notes": "RP-new task. Wide rate range: 50-120 SF/hr heavily condition-dependent. POOR condition with multiple layers of failing paint at 50 SF/hr. FAIR with localized peeling at 100+ SF/hr. Exterior RP analog SF_SIDING_WOOD scrape at 40-80 SF/hr — interior drywall is faster (less adhesion, thinner coatings)."
+    },
+    {
+      "task_id": "TSK_WLRP_FEATHER_EDGES",
+      "name": "Feather-Sand Scrape Edges",
+      "task_classification": "qt_scaled",
+      "required_input_key": "IN_SF_WALL_FIELD",
+      "paintscope_key": "PS_SURFACE_SF.WALL_FIELD",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 120,
+      "rate_range_low": 80,
+      "rate_range_high": 160,
+      "crew_size": 1,
+      "applies_when": {
+        "condition_scale": ["FAIR", "POOR"]
+      },
+      "qt_rates": {
+        "QT2": { "rate_sf_per_hour": 160, "notes": "Sand visible ridges, reasonable transition" },
+        "QT3": { "rate_sf_per_hour": 120, "notes": "Smooth transition, no visible ridge at 6 ft" },
+        "QT4": { "rate_sf_per_hour": 100, "notes": "Near-invisible transition, no ridge at 3 ft" },
+        "QT5": { "rate_sf_per_hour": 80, "notes": "Perfect transition, no ridge at arm's length" }
+      },
+      "factor_modifiers": [
+        { "modifier_id": "FAC_WLRP_CONDITION_FAIR", "value": 1.50 },
+        { "modifier_id": "FAC_WLRP_CONDITION_POOR", "value": 2.00 },
+        { "modifier_id": "FAC_WLRP_ACCESS_OPEN", "value": 1.00 },
+        { "modifier_id": "FAC_WLRP_ACCESS_OBSTRUCTED_LIGHT", "value": 1.15 },
+        { "modifier_id": "FAC_WLRP_ACCESS_OBSTRUCTED_HEAVY", "value": 1.30 },
+        { "modifier_id": "FAC_HEIGHT_H1", "value": 1.00 },
+        { "modifier_id": "FAC_HEIGHT_H2", "value": 1.30 },
+        { "modifier_id": "FAC_HEIGHT_H3", "value": 1.50 },
+        { "modifier_id": "FAC_HEIGHT_H4", "value": 2.00 }
+      ],
+      "rate_basis_notes": "RP-new task. Feather-sand all scrape edges with 120-150 grit. Rate about 50% faster than scrape — working only edges, not full surface. 80-160 SF/hr. Non-negotiable at all tiers."
+    },
+    {
+      "task_id": "TSK_WLRP_DEGLOSS",
+      "name": "Degloss Existing Paint Surface",
+      "task_classification": "qt_scaled",
+      "required_input_key": "IN_SF_WALL_FIELD",
+      "paintscope_key": "PS_SURFACE_SF.WALL_FIELD",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 280,
+      "rate_range_low": 200,
+      "rate_range_high": 350,
+      "crew_size": 1,
+      "applies_when": {
+        "substrate_state": ["SS_INT_SOUND_PAINT", "SS_INT_FAILING_PAINT"]
+      },
+      "qt_rates": {
+        "QT2": { "rate_sf_per_hour": 350, "notes": "Quick scuff, chemical degloss acceptable" },
+        "QT3": { "rate_sf_per_hour": 280, "notes": "Thorough degloss, all surfaces addressed" },
+        "QT4": { "rate_sf_per_hour": 225, "notes": "Full degloss with adhesion verification" },
+        "QT5": { "rate_sf_per_hour": 200, "notes": "Complete degloss with bonding verification and spot re-test" }
+      },
+      "factor_modifiers": [
+        { "modifier_id": "FAC_WLRP_CONDITION_GOOD", "value": 1.00 },
+        { "modifier_id": "FAC_WLRP_CONDITION_FAIR", "value": 1.50 },
+        { "modifier_id": "FAC_WLRP_ACCESS_OPEN", "value": 1.00 },
+        { "modifier_id": "FAC_WLRP_ACCESS_OBSTRUCTED_LIGHT", "value": 1.15 },
+        { "modifier_id": "FAC_WLRP_ACCESS_OBSTRUCTED_HEAVY", "value": 1.30 },
+        { "modifier_id": "FAC_HEIGHT_H1", "value": 1.00 },
+        { "modifier_id": "FAC_HEIGHT_H2", "value": 1.30 },
+        { "modifier_id": "FAC_HEIGHT_H3", "value": 1.50 },
+        { "modifier_id": "FAC_HEIGHT_H4", "value": 2.00 },
+        { "modifier_id": "FAC_TEXTURE_SMOOTH", "value": 1.00 },
+        { "modifier_id": "FAC_TEXTURE_ORANGE_PEEL", "value": 1.10 },
+        { "modifier_id": "FAC_TEXTURE_KNOCKDOWN", "value": 1.15 },
+        { "modifier_id": "FAC_TEXTURE_HEAVY", "value": 1.25 }
+      ],
+      "rate_basis_notes": "RP-new task. Chemical degloss (liquid sander wipe-on) or mechanical scuff (120-150 grit). ~80% of NC bare-wood sand rate (NC TSK_WALL_VACUUM_DUST at 800 SF/hr is different task; degloss is more intensive). Texture affects rate — more surface area to address."
+    },
+    {
+      "task_id": "TSK_WLRP_SPACKLE_DEFECTS",
+      "name": "Fill Wall Defects — Spackle",
+      "task_classification": "qt_scaled",
+      "required_input_key": "IN_SF_WALL_FIELD",
+      "paintscope_key": "PS_SURFACE_SF.WALL_FIELD",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 800,
+      "rate_range_low": 500,
+      "rate_range_high": 1000,
+      "crew_size": 1,
+      "applies_when": {
+        "quality_tier": ["QT3", "QT4", "QT5"]
+      },
+      "qt_rates": {
+        "QT3": { "rate_sf_per_hour": 800, "notes": "Fill all visible defects, reasonable feathering" },
+        "QT4": { "rate_sf_per_hour": 600, "notes": "Fill all defects with careful feathering, invisible repairs" },
+        "QT5": { "rate_sf_per_hour": 500, "notes": "Near-zero defect tolerance, wide feathering, multiple thin coats" }
+      },
+      "factor_modifiers": [
+        { "modifier_id": "FAC_WLRP_CONDITION_GOOD", "value": 1.00 },
+        { "modifier_id": "FAC_WLRP_CONDITION_FAIR", "value": 1.50 },
+        { "modifier_id": "FAC_WLRP_CONDITION_POOR", "value": 2.00 },
+        { "modifier_id": "FAC_HEIGHT_H1", "value": 1.00 },
+        { "modifier_id": "FAC_HEIGHT_H2", "value": 1.30 },
+        { "modifier_id": "FAC_HEIGHT_H3", "value": 1.50 },
+        { "modifier_id": "FAC_HEIGHT_H4", "value": 2.00 }
+      ],
+      "rate_basis_notes": "MODIFIED from NC finish TSK_SPACKLE_WALL_DEFECTS (1000 SF/hr at QT3). RP has higher defect density from scraping/condition damage — base rate reduced ~20%. POOR condition doubles effective time via condition modifier."
+    },
+    {
+      "task_id": "TSK_WLRP_SAND_SPACKLE",
+      "name": "Sand Spackled Areas",
+      "task_classification": "qt_scaled",
+      "required_input_key": "IN_SF_WALL_FIELD",
+      "paintscope_key": "PS_SURFACE_SF.WALL_FIELD",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 1000,
+      "rate_range_low": 600,
+      "rate_range_high": 1200,
+      "crew_size": 1,
+      "applies_when": {
+        "quality_tier": ["QT3", "QT4", "QT5"]
+      },
+      "qt_rates": {
+        "QT3": { "rate_sf_per_hour": 1000, "notes": "Sand and blend, repair should not telegraph" },
+        "QT4": { "rate_sf_per_hour": 800, "notes": "Sand perfectly smooth, repair invisible" },
+        "QT5": { "rate_sf_per_hour": 600, "notes": "Sand to perfection, wet sponge test" }
+      },
+      "factor_modifiers": [
+        { "modifier_id": "FAC_WLRP_CONDITION_GOOD", "value": 1.00 },
+        { "modifier_id": "FAC_WLRP_CONDITION_FAIR", "value": 1.50 },
+        { "modifier_id": "FAC_WLRP_CONDITION_POOR", "value": 2.00 },
+        { "modifier_id": "FAC_HEIGHT_H1", "value": 1.00 },
+        { "modifier_id": "FAC_HEIGHT_H2", "value": 1.30 },
+        { "modifier_id": "FAC_HEIGHT_H3", "value": 1.50 },
+        { "modifier_id": "FAC_HEIGHT_H4", "value": 2.00 }
+      ],
+      "rate_basis_notes": "MODIFIED from NC finish TSK_SAND_SPACKLE_WALL (1200 SF/hr at QT3). RP has more spackled areas (scrape transitions, condition-driven damage) — base rate reduced ~17%. Condition modifier drives time variation."
+    },
+    {
+      "task_id": "TSK_WLRP_CAULK_ASSESS_REPLACE",
+      "name": "Assess and Replace Failed Caulk",
+      "task_classification": "qt_scaled",
+      "required_input_key": "IN_LF_EDGE_TO_TRIM",
+      "paintscope_key": "PS_EDGE_LF.TO_TRIM",
+      "unit_of_measure": "LF",
+      "rate_per_hour": 60,
+      "rate_range_low": 40,
+      "rate_range_high": 80,
+      "crew_size": 1,
+      "applies_when": {
+        "quality_tier": ["QT3", "QT4", "QT5"]
+      },
+      "qt_rates": {
+        "QT3": { "rate_lf_per_hour": 60, "notes": "Replace visibly failed sections" },
+        "QT4": { "rate_lf_per_hour": 50, "notes": "Comprehensive assessment, replace all suspect joints" },
+        "QT5": { "rate_lf_per_hour": 40, "notes": "Critical assessment, replace all imperfect joints" }
+      },
+      "factor_modifiers": [
+        { "modifier_id": "FAC_WLRP_CONDITION_GOOD", "value": 1.00 },
+        { "modifier_id": "FAC_WLRP_CONDITION_FAIR", "value": 1.50 },
+        { "modifier_id": "FAC_WLRP_CONDITION_POOR", "value": 2.00 },
+        { "modifier_id": "FAC_HEIGHT_H1", "value": 1.00 },
+        { "modifier_id": "FAC_HEIGHT_H2", "value": 1.30 },
+        { "modifier_id": "FAC_HEIGHT_H3", "value": 1.50 },
+        { "modifier_id": "FAC_HEIGHT_H4", "value": 2.00 }
+      ],
+      "rate_basis_notes": "MODIFIED — ~60% of NC full-caulk rate (~100 LF/hr for new caulk). RP is selective assess-and-replace: inspect joint, cut out failed sections, re-caulk. Slower per LF but fewer LF addressed. Condition modifier captures how much caulk is failed."
+    },
+    {
+      "task_id": "TSK_WLRP_DUST_WIPE",
+      "name": "Dust Wipe Wall Surfaces",
+      "task_classification": "binary",
+      "required_input_key": "IN_SF_WALL_FIELD",
+      "paintscope_key": "PS_SURFACE_SF.WALL_FIELD",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 1000,
+      "rate_range_low": 800,
+      "rate_range_high": 1200,
+      "crew_size": 1,
+      "applies_when": {},
+      "factor_modifiers": [
+        { "modifier_id": "FAC_HEIGHT_H1", "value": 1.00 },
+        { "modifier_id": "FAC_HEIGHT_H2", "value": 1.30 },
+        { "modifier_id": "FAC_HEIGHT_H3", "value": 1.50 },
+        { "modifier_id": "FAC_HEIGHT_H4", "value": 2.00 }
+      ],
+      "rate_basis_notes": "DIRECT transfer from NC finish TSK_DUST_WIPE_WALL (1000 SF/hr). Damp cloth or tack cloth wipe to remove prep dust. Same task regardless of NC or RP context."
+    },
+    {
+      "task_id": "TSK_WLRP_VACUUM_DUST",
+      "name": "Vacuum Wall and Floor Dust After Prep",
+      "task_classification": "binary",
+      "required_input_key": "IN_SF_WALL_FIELD",
+      "paintscope_key": "PS_SURFACE_SF.WALL_FIELD",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 800,
+      "rate_range_low": 650,
+      "rate_range_high": 950,
+      "crew_size": 1,
+      "applies_when": {},
+      "factor_modifiers": [
+        { "modifier_id": "FAC_HEIGHT_H1", "value": 1.00 },
+        { "modifier_id": "FAC_HEIGHT_H2", "value": 1.30 },
+        { "modifier_id": "FAC_HEIGHT_H3", "value": 1.50 },
+        { "modifier_id": "FAC_HEIGHT_H4", "value": 2.00 }
+      ],
+      "rate_basis_notes": "DIRECT transfer from NC prime TSK_WALL_VACUUM_DUST (800 SF/hr). HEPA vacuum wall surfaces and floor to remove all prep dust before coating."
+    },
+
+    {
+      "task_id": "TSK_WLRP_CUTIN_PRIMER_CEILING",
+      "name": "Cut-In Primer at Ceiling Line",
+      "task_classification": "qt_scaled",
+      "required_input_key": "IN_LF_EDGE_TO_CEILING",
+      "paintscope_key": "PS_EDGE_LF.TO_CEILING",
+      "unit_of_measure": "LF",
+      "rate_per_hour": 100,
+      "rate_range_low": 60,
+      "rate_range_high": 130,
+      "crew_size": 1,
+      "applies_when": {
+        "application_method": ["roll"],
+        "substrate_state": ["SS_INT_FAILING_PAINT", "SS_INT_PEELING", "SS_INT_MOISTURE_DAMAGE", "SS_INT_SMOKE_DAMAGE"]
+      },
+      "qt_rates": {
+        "QT2": { "rate_lf_per_hour": 130, "notes": "Acceptable edge, minor wavering tolerated" },
+        "QT3": { "rate_lf_per_hour": 100, "notes": "Clean, consistent edge" },
+        "QT4": { "rate_lf_per_hour": 80, "notes": "Crisp edge with minimal brush marks" },
+        "QT5": { "rate_lf_per_hour": 60, "notes": "Perfect edge, straight line" }
+      },
+      "factor_modifiers": [
+        { "modifier_id": "FAC_WLRP_CONDITION_FAIR", "value": 1.50 },
+        { "modifier_id": "FAC_WLRP_CONDITION_POOR", "value": 2.00 },
+        { "modifier_id": "FAC_HEIGHT_H1", "value": 1.00 },
+        { "modifier_id": "FAC_HEIGHT_H2", "value": 1.30 },
+        { "modifier_id": "FAC_HEIGHT_H3", "value": 1.50 },
+        { "modifier_id": "FAC_HEIGHT_H4", "value": 2.00 }
+      ],
+      "rate_basis_notes": "DIRECT transfer from NC prime TSK_WALL_CUT_IN_CEILING (100 LF/hr QT3). Skip for SS_INT_SOUND_PAINT. Freehand cut-in — do NOT mask drywall ceilings."
+    },
+    {
+      "task_id": "TSK_WLRP_ROLL_PRIMER",
+      "name": "Roll Primer on Wall",
+      "task_classification": "qt_scaled",
+      "required_input_key": "IN_SF_WALL_FIELD",
+      "paintscope_key": "PS_SURFACE_SF.WALL_FIELD",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 325,
+      "rate_range_low": 250,
+      "rate_range_high": 400,
+      "crew_size": 1,
+      "applies_when": {
+        "application_method": ["roll"],
+        "substrate_state": ["SS_INT_FAILING_PAINT", "SS_INT_PEELING", "SS_INT_MOISTURE_DAMAGE", "SS_INT_SMOKE_DAMAGE"]
+      },
+      "qt_rates": {
+        "QT2": { "rate_sf_per_hour": 375, "notes": "Standard roll primer, coverage priority" },
+        "QT3": { "rate_sf_per_hour": 325, "notes": "Thorough roll primer, uniform coverage" },
+        "QT4": { "rate_sf_per_hour": 275, "notes": "Premium roll primer, uniform mil thickness" },
+        "QT5": { "rate_sf_per_hour": 250, "notes": "Critical primer application, perfect coverage" }
+      },
+      "factor_modifiers": [
+        { "modifier_id": "FAC_WLRP_CONDITION_FAIR", "value": 1.50 },
+        { "modifier_id": "FAC_WLRP_CONDITION_POOR", "value": 2.00 },
+        { "modifier_id": "FAC_WLRP_ACCESS_OPEN", "value": 1.00 },
+        { "modifier_id": "FAC_WLRP_ACCESS_OBSTRUCTED_LIGHT", "value": 1.15 },
+        { "modifier_id": "FAC_WLRP_ACCESS_OBSTRUCTED_HEAVY", "value": 1.30 },
+        { "modifier_id": "FAC_HEIGHT_H1", "value": 1.00 },
+        { "modifier_id": "FAC_HEIGHT_H2", "value": 1.30 },
+        { "modifier_id": "FAC_HEIGHT_H3", "value": 1.50 },
+        { "modifier_id": "FAC_HEIGHT_H4", "value": 2.00 },
+        { "modifier_id": "FAC_TEXTURE_SMOOTH", "value": 1.00 },
+        { "modifier_id": "FAC_TEXTURE_ORANGE_PEEL", "value": 1.10 },
+        { "modifier_id": "FAC_TEXTURE_KNOCKDOWN", "value": 1.15 },
+        { "modifier_id": "FAC_TEXTURE_HEAVY", "value": 1.25 }
+      ],
+      "rate_basis_notes": "MODIFIED from NC prime TSK_WALL_ROLL_PRIMER (350 SF/hr). RP adhesion primer is slightly slower — higher viscosity, more careful application over mixed substrates. ~93% of NC rate. Skip for SS_INT_SOUND_PAINT."
+    },
+    {
+      "task_id": "TSK_WLRP_SPRAY_PRIMER",
+      "name": "Spray Primer on Wall",
+      "task_classification": "qt_scaled",
+      "required_input_key": "IN_SF_WALL_FIELD",
+      "paintscope_key": "PS_SURFACE_SF.WALL_FIELD",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 380,
+      "rate_range_low": 300,
+      "rate_range_high": 400,
+      "crew_size": 1,
+      "applies_when": {
+        "application_method": ["spray_backroll", "spray"],
+        "substrate_state": ["SS_INT_FAILING_PAINT", "SS_INT_PEELING", "SS_INT_MOISTURE_DAMAGE", "SS_INT_SMOKE_DAMAGE"]
+      },
+      "qt_rates": {
+        "QT2": { "rate_sf_per_hour": 400, "notes": "Standard spray primer — capped at backroll rate" },
+        "QT3": { "rate_sf_per_hour": 380, "notes": "Thorough spray primer — capped at backroll rate" },
+        "QT4": { "rate_sf_per_hour": 350, "notes": "Premium spray primer, consistent mil thickness" },
+        "QT5": { "rate_sf_per_hour": 300, "notes": "Critical spray application" }
+      },
+      "factor_modifiers": [
+        { "modifier_id": "FAC_WLRP_CONDITION_FAIR", "value": 1.50 },
+        { "modifier_id": "FAC_WLRP_CONDITION_POOR", "value": 2.00 },
+        { "modifier_id": "FAC_WLRP_ACCESS_OPEN", "value": 1.00 },
+        { "modifier_id": "FAC_WLRP_ACCESS_OBSTRUCTED_LIGHT", "value": 1.15 },
+        { "modifier_id": "FAC_WLRP_ACCESS_OBSTRUCTED_HEAVY", "value": 1.30 },
+        { "modifier_id": "FAC_HEIGHT_H1", "value": 1.00 },
+        { "modifier_id": "FAC_HEIGHT_H2", "value": 1.30 },
+        { "modifier_id": "FAC_HEIGHT_H3", "value": 1.50 },
+        { "modifier_id": "FAC_HEIGHT_H4", "value": 2.00 }
+      ],
+      "rate_basis_notes": "MODIFIED from NC prime TSK_WALL_SPRAY_PRIMER (600 SF/hr). Reduced to 380 SF/hr to comply with spray/backroll coupling constraint: spray rate MUST BE <= backroll rate (400 SF/hr). QA-002 fix. Spray directly into wall-to-ceiling corner (no cut-in needed). Skip for SS_INT_SOUND_PAINT."
+    },
+    {
+      "task_id": "TSK_WLRP_BACKROLL_PRIMER",
+      "name": "Backroll Sprayed Primer",
+      "task_classification": "binary",
+      "required_input_key": "IN_SF_WALL_FIELD",
+      "paintscope_key": "PS_SURFACE_SF.WALL_FIELD",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 400,
+      "rate_range_low": 350,
+      "rate_range_high": 500,
+      "crew_size": 1,
+      "applies_when": {
+        "application_method": ["spray_backroll"],
+        "substrate_state": ["SS_INT_FAILING_PAINT", "SS_INT_PEELING", "SS_INT_MOISTURE_DAMAGE", "SS_INT_SMOKE_DAMAGE"]
+      },
+      "factor_modifiers": [
+        { "modifier_id": "FAC_HEIGHT_H1", "value": 1.00 },
+        { "modifier_id": "FAC_HEIGHT_H2", "value": 1.30 },
+        { "modifier_id": "FAC_HEIGHT_H3", "value": 1.50 },
+        { "modifier_id": "FAC_HEIGHT_H4", "value": 2.00 },
+        { "modifier_id": "FAC_TEXTURE_SMOOTH", "value": 1.00 },
+        { "modifier_id": "FAC_TEXTURE_ORANGE_PEEL", "value": 1.10 },
+        { "modifier_id": "FAC_TEXTURE_KNOCKDOWN", "value": 1.15 },
+        { "modifier_id": "FAC_TEXTURE_HEAVY", "value": 1.25 }
+      ],
+      "rate_basis_notes": "DIRECT transfer from NC prime TSK_WALL_BACKROLL_PRIMER (400 SF/hr). Binary task — backroll technique is identical regardless of primer type. MANDATORY for primer on previously painted surfaces. Skip for SS_INT_SOUND_PAINT."
+    },
+    {
+      "task_id": "TSK_WLRP_SPOT_PRIME",
+      "name": "Spot Prime Scraped/Repaired Areas",
+      "task_classification": "qt_scaled",
+      "required_input_key": "IN_SF_WALL_FIELD",
+      "paintscope_key": "PS_SURFACE_SF.WALL_FIELD",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 1500,
+      "rate_range_low": 1000,
+      "rate_range_high": 1800,
+      "crew_size": 1,
+      "applies_when": {},
+      "qt_rates": {
+        "QT2": { "rate_sf_per_hour": 1800, "notes": "Spot prime major repair areas" },
+        "QT3": { "rate_sf_per_hour": 1500, "notes": "Spot prime all spackled and scraped areas" },
+        "QT4": { "rate_sf_per_hour": 1200, "notes": "Spot prime all repairs with feathered edges" },
+        "QT5": { "rate_sf_per_hour": 1000, "notes": "Spot prime all repairs with wide feather" }
+      },
+      "factor_modifiers": [
+        { "modifier_id": "FAC_WLRP_CONDITION_GOOD", "value": 1.00 },
+        { "modifier_id": "FAC_WLRP_CONDITION_FAIR", "value": 1.50 },
+        { "modifier_id": "FAC_WLRP_CONDITION_POOR", "value": 2.00 },
+        { "modifier_id": "FAC_HEIGHT_H1", "value": 1.00 },
+        { "modifier_id": "FAC_HEIGHT_H2", "value": 1.30 },
+        { "modifier_id": "FAC_HEIGHT_H3", "value": 1.50 },
+        { "modifier_id": "FAC_HEIGHT_H4", "value": 2.00 }
+      ],
+      "rate_basis_notes": "MODIFIED from NC finish TSK_SPOT_PRIME_WALL (1800 SF/hr). Rate is per total wall SF (fast — only touching localized areas). RP has more spots to prime (scrape transitions, condition damage) so base rate reduced ~17%. Condition modifier captures spot density."
+    },
+
+    {
+      "task_id": "TSK_WLRP_LIGHT_SAND_BETWEEN_COATS",
+      "name": "Light Sand Between Coats",
+      "task_classification": "qt_conditional",
+      "required_input_key": "IN_SF_WALL_FIELD",
+      "paintscope_key": "PS_SURFACE_SF.WALL_FIELD",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 600,
+      "rate_range_low": 500,
+      "rate_range_high": 750,
+      "crew_size": 1,
+      "applies_when": {
+        "quality_tier": ["QT4"]
+      },
+      "factor_modifiers": [
+        { "modifier_id": "FAC_HEIGHT_H1", "value": 1.00 },
+        { "modifier_id": "FAC_HEIGHT_H2", "value": 1.30 },
+        { "modifier_id": "FAC_HEIGHT_H3", "value": 1.50 },
+        { "modifier_id": "FAC_HEIGHT_H4", "value": 2.00 }
+      ],
+      "rate_basis_notes": "DIRECT transfer from NC finish TSK_LIGHT_SAND_BETWEEN_COATS_WALL (600 SF/hr QT4). 220 grit pole sander to smooth nibs. Coating pool — QT drives activation, not rate."
+    },
+    {
+      "task_id": "TSK_WLRP_LIGHT_SAND_BETWEEN_COATS_QT5",
+      "name": "Light Sand Between Coats (Critical)",
+      "task_classification": "qt_conditional",
+      "required_input_key": "IN_SF_WALL_FIELD",
+      "paintscope_key": "PS_SURFACE_SF.WALL_FIELD",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 420,
+      "rate_range_low": 350,
+      "rate_range_high": 500,
+      "crew_size": 1,
+      "applies_when": {
+        "quality_tier": ["QT5"]
+      },
+      "factor_modifiers": [
+        { "modifier_id": "FAC_HEIGHT_H1", "value": 1.00 },
+        { "modifier_id": "FAC_HEIGHT_H2", "value": 1.30 },
+        { "modifier_id": "FAC_HEIGHT_H3", "value": 1.50 },
+        { "modifier_id": "FAC_HEIGHT_H4", "value": 2.00 }
+      ],
+      "rate_basis_notes": "DIRECT transfer from NC finish TSK_LIGHT_SAND_BETWEEN_COATS_WALL_QT5 (420 SF/hr). Careful sanding with raking light inspection. Critical for satin/semi-gloss."
+    },
+    {
+      "task_id": "TSK_WLRP_VACUUM_INTERCOAT_DUST",
+      "name": "Vacuum Intercoat Sanding Dust",
+      "task_classification": "qt_conditional",
+      "required_input_key": "IN_SF_WALL_FIELD",
+      "paintscope_key": "PS_SURFACE_SF.WALL_FIELD",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 750,
+      "rate_range_low": 600,
+      "rate_range_high": 900,
+      "crew_size": 1,
+      "applies_when": {
+        "quality_tier": ["QT4", "QT5"]
+      },
+      "factor_modifiers": [
+        { "modifier_id": "FAC_HEIGHT_H1", "value": 1.00 },
+        { "modifier_id": "FAC_HEIGHT_H2", "value": 1.30 },
+        { "modifier_id": "FAC_HEIGHT_H3", "value": 1.50 },
+        { "modifier_id": "FAC_HEIGHT_H4", "value": 2.00 }
+      ],
+      "rate_basis_notes": "DIRECT transfer from NC finish TSK_VACUUM_INTERCOAT_DUST_WALL (750 SF/hr). HEPA vacuum with brush attachment."
+    },
+    {
+      "task_id": "TSK_WLRP_INSPECT_BETWEEN_COATS",
+      "name": "Inspect Between Coats",
+      "task_classification": "qt_scaled",
+      "required_input_key": "IN_SF_WALL_FIELD",
+      "paintscope_key": "PS_SURFACE_SF.WALL_FIELD",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 1500,
+      "rate_range_low": 600,
+      "rate_range_high": 1800,
+      "crew_size": 1,
+      "applies_when": {
+        "quality_tier": ["QT3", "QT4", "QT5"]
+      },
+      "qt_rates": {
+        "QT3": { "rate_sf_per_hour": 1500, "notes": "Standard visual inspection, note obvious defects" },
+        "QT4": { "rate_sf_per_hour": 1000, "notes": "Systematic inspection with work light" },
+        "QT5": { "rate_sf_per_hour": 600, "notes": "Critical inspection with raking light, multiple passes" }
+      },
+      "factor_modifiers": [
+        { "modifier_id": "FAC_HEIGHT_H1", "value": 1.00 },
+        { "modifier_id": "FAC_HEIGHT_H2", "value": 1.30 },
+        { "modifier_id": "FAC_HEIGHT_H3", "value": 1.50 },
+        { "modifier_id": "FAC_HEIGHT_H4", "value": 2.00 }
+      ],
+      "rate_basis_notes": "DIRECT transfer from NC finish inspection rates. QT3=1500 (NC TSK_INSPECT_PRIMED_WALL), QT4=1000 (NC QT4 variant), QT5=600 (NC QT5 variant). Coating pool — QT drives thoroughness."
+    },
+    {
+      "task_id": "TSK_WLRP_PATCH_DEFECTS_INTERSTAGE",
+      "name": "Patch Interstage Defects",
+      "task_classification": "qt_scaled",
+      "required_input_key": "IN_SF_WALL_FIELD",
+      "paintscope_key": "PS_SURFACE_SF.WALL_FIELD",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 1200,
+      "rate_range_low": 600,
+      "rate_range_high": 1500,
+      "crew_size": 1,
+      "applies_when": {
+        "quality_tier": ["QT3", "QT4", "QT5"]
+      },
+      "qt_rates": {
+        "QT3": { "rate_sf_per_hour": 1200, "notes": "Repair obvious defects" },
+        "QT4": { "rate_sf_per_hour": 900, "notes": "Repair all identified defects" },
+        "QT5": { "rate_sf_per_hour": 600, "notes": "Repair all defects with wide feathering, near-zero tolerance" }
+      },
+      "factor_modifiers": [
+        { "modifier_id": "FAC_HEIGHT_H1", "value": 1.00 },
+        { "modifier_id": "FAC_HEIGHT_H2", "value": 1.30 },
+        { "modifier_id": "FAC_HEIGHT_H3", "value": 1.50 },
+        { "modifier_id": "FAC_HEIGHT_H4", "value": 2.00 }
+      ],
+      "rate_basis_notes": "Rate per total wall SF (fast — only patching localized defects found during inspection). Higher rate than initial spackle because defect density is much lower after prime/first coat. Coating pool."
+    },
+    {
+      "task_id": "TSK_WLRP_SPOT_COAT_INTERSTAGE",
+      "name": "Spot Coat Patched Areas",
+      "task_classification": "qt_scaled",
+      "required_input_key": "IN_SF_WALL_FIELD",
+      "paintscope_key": "PS_SURFACE_SF.WALL_FIELD",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 1800,
+      "rate_range_low": 1200,
+      "rate_range_high": 2200,
+      "crew_size": 1,
+      "applies_when": {
+        "quality_tier": ["QT3", "QT4", "QT5"]
+      },
+      "qt_rates": {
+        "QT3": { "rate_sf_per_hour": 1800, "notes": "Spot coat major patches" },
+        "QT4": { "rate_sf_per_hour": 1500, "notes": "Spot coat all patches with feathered edges" },
+        "QT5": { "rate_sf_per_hour": 1200, "notes": "Spot coat all repairs with wide blend zone" }
+      },
+      "factor_modifiers": [
+        { "modifier_id": "FAC_HEIGHT_H1", "value": 1.00 },
+        { "modifier_id": "FAC_HEIGHT_H2", "value": 1.30 },
+        { "modifier_id": "FAC_HEIGHT_H3", "value": 1.50 },
+        { "modifier_id": "FAC_HEIGHT_H4", "value": 2.00 }
+      ],
+      "rate_basis_notes": "Rate per total wall SF. Very fast — touching only patched areas to equalize absorption. Similar to spot prime rate pattern. Coating pool."
+    },
+
+    {
+      "task_id": "TSK_WLRP_CUTIN_CEILING_R1",
+      "name": "Cut-In Wall at Ceiling Line (Finish Coat 1)",
+      "task_classification": "qt_scaled",
+      "required_input_key": "IN_LF_EDGE_TO_CEILING",
+      "paintscope_key": "PS_EDGE_LF.TO_CEILING",
+      "unit_of_measure": "LF",
+      "rate_per_hour": 130,
+      "rate_range_low": 60,
+      "rate_range_high": 150,
+      "crew_size": 1,
+      "applies_when": {},
+      "qt_rates": {
+        "QT2": { "rate_lf_per_hour": 130, "notes": "Acceptable if neat, minor wobble tolerated" },
+        "QT3": { "rate_lf_per_hour": 100, "notes": "Reasonably straight line at 6 ft" },
+        "QT4": { "rate_lf_per_hour": 80, "notes": "Clean line, no visible wobble at 3 ft" },
+        "QT5": { "rate_lf_per_hour": 60, "notes": "Crisp line, no visible wobble at arm's length" }
+      },
+      "factor_modifiers": [
+        { "modifier_id": "FAC_QT2", "value": 0.80 },
+        { "modifier_id": "FAC_QT3", "value": 1.00 },
+        { "modifier_id": "FAC_QT4", "value": 1.30 },
+        { "modifier_id": "FAC_QT5", "value": 1.50 },
+        { "modifier_id": "FAC_HEIGHT_H1", "value": 1.00 },
+        { "modifier_id": "FAC_HEIGHT_H2", "value": 1.30 },
+        { "modifier_id": "FAC_HEIGHT_H3", "value": 1.50 },
+        { "modifier_id": "FAC_HEIGHT_H4", "value": 2.00 }
+      ],
+      "rate_basis_notes": "DIRECT transfer from NC finish TSK_CUTIN_WALL_TO_CEILING (130 LF/hr QT2, 100 QT3, 80 QT4, 60 QT5). Coating pool. Freehand cut-in identical once surface is prepped."
+    },
+    {
+      "task_id": "TSK_WLRP_CUTIN_CEILING_R2",
+      "name": "Cut-In Wall at Ceiling Line (Finish Coat 2)",
+      "task_classification": "qt_scaled",
+      "required_input_key": "IN_LF_EDGE_TO_CEILING",
+      "paintscope_key": "PS_EDGE_LF.TO_CEILING",
+      "unit_of_measure": "LF",
+      "rate_per_hour": 100,
+      "rate_range_low": 60,
+      "rate_range_high": 120,
+      "crew_size": 1,
+      "applies_when": {
+        "quality_tier": ["QT3", "QT4", "QT5"]
+      },
+      "qt_rates": {
+        "QT3": { "rate_lf_per_hour": 100, "notes": "Match first coat line" },
+        "QT4": { "rate_lf_per_hour": 80, "notes": "Clean line, no visible wobble at 3 ft" },
+        "QT5": { "rate_lf_per_hour": 60, "notes": "Crisp line, perfect match to first coat" }
+      },
+      "factor_modifiers": [
+        { "modifier_id": "FAC_QT3", "value": 1.00 },
+        { "modifier_id": "FAC_QT4", "value": 1.30 },
+        { "modifier_id": "FAC_QT5", "value": 1.50 },
+        { "modifier_id": "FAC_HEIGHT_H1", "value": 1.00 },
+        { "modifier_id": "FAC_HEIGHT_H2", "value": 1.30 },
+        { "modifier_id": "FAC_HEIGHT_H3", "value": 1.50 },
+        { "modifier_id": "FAC_HEIGHT_H4", "value": 2.00 }
+      ],
+      "rate_basis_notes": "DIRECT transfer from NC finish TSK_CUTIN_WALL_TO_CEILING_R2 (100 QT3, 80 QT4, 60 QT5). Coating pool."
+    },
+    {
+      "task_id": "TSK_WLRP_CUTIN_TRIM_R1",
+      "name": "Cut-In Wall at Trim Tape Lines (Coat 1)",
+      "task_classification": "qt_scaled",
+      "required_input_key": "IN_LF_EDGE_TO_TRIM",
+      "paintscope_key": "PS_EDGE_LF.TO_TRIM",
+      "unit_of_measure": "LF",
+      "rate_per_hour": 120,
+      "rate_range_low": 80,
+      "rate_range_high": 150,
+      "crew_size": 1,
+      "applies_when": {},
+      "qt_rates": {
+        "QT2": { "rate_lf_per_hour": 150, "notes": "Economy pace, cut to tape" },
+        "QT3": { "rate_lf_per_hour": 120, "notes": "Cut cleanly to tape line" },
+        "QT4": { "rate_lf_per_hour": 100, "notes": "Precise cut to tape line" },
+        "QT5": { "rate_lf_per_hour": 80, "notes": "Perfect cut to tape line" }
+      },
+      "factor_modifiers": [
+        { "modifier_id": "FAC_QT2", "value": 0.80 },
+        { "modifier_id": "FAC_QT3", "value": 1.00 },
+        { "modifier_id": "FAC_QT4", "value": 1.30 },
+        { "modifier_id": "FAC_QT5", "value": 1.50 },
+        { "modifier_id": "FAC_HEIGHT_H1", "value": 1.00 },
+        { "modifier_id": "FAC_HEIGHT_H2", "value": 1.30 },
+        { "modifier_id": "FAC_HEIGHT_H3", "value": 1.50 },
+        { "modifier_id": "FAC_HEIGHT_H4", "value": 2.00 }
+      ],
+      "rate_basis_notes": "DIRECT transfer from NC finish TSK_CUTIN_WALL_TO_TRIM_R1 (150 QT2, 120 QT3, 100 QT4, 80 QT5). Coating pool. Cut into tape edge for clean reveal."
+    },
+    {
+      "task_id": "TSK_WLRP_CUTIN_TRIM_R2",
+      "name": "Cut-In Wall at Trim Tape Lines (Coat 2)",
+      "task_classification": "qt_scaled",
+      "required_input_key": "IN_LF_EDGE_TO_TRIM",
+      "paintscope_key": "PS_EDGE_LF.TO_TRIM",
+      "unit_of_measure": "LF",
+      "rate_per_hour": 120,
+      "rate_range_low": 80,
+      "rate_range_high": 150,
+      "crew_size": 1,
+      "applies_when": {
+        "quality_tier": ["QT3", "QT4", "QT5"]
+      },
+      "qt_rates": {
+        "QT3": { "rate_lf_per_hour": 120, "notes": "Cut cleanly to tape line" },
+        "QT4": { "rate_lf_per_hour": 100, "notes": "Precise cut to tape line" },
+        "QT5": { "rate_lf_per_hour": 80, "notes": "Perfect cut to tape line" }
+      },
+      "factor_modifiers": [
+        { "modifier_id": "FAC_QT3", "value": 1.00 },
+        { "modifier_id": "FAC_QT4", "value": 1.30 },
+        { "modifier_id": "FAC_QT5", "value": 1.50 },
+        { "modifier_id": "FAC_HEIGHT_H1", "value": 1.00 },
+        { "modifier_id": "FAC_HEIGHT_H2", "value": 1.30 },
+        { "modifier_id": "FAC_HEIGHT_H3", "value": 1.50 },
+        { "modifier_id": "FAC_HEIGHT_H4", "value": 2.00 }
+      ],
+      "rate_basis_notes": "DIRECT transfer from NC finish TSK_CUTIN_WALL_TO_TRIM_R2 (120 QT3, 100 QT4, 80 QT5). Coating pool."
+    },
+    {
+      "task_id": "TSK_WLRP_ROLL_FINISH_R1",
+      "name": "Roll Wall Finish Coat 1",
+      "task_classification": "binary",
+      "required_input_key": "IN_SF_WALL_FIELD",
+      "paintscope_key": "PS_SURFACE_SF.WALL_FIELD",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 340,
+      "rate_range_low": 280,
+      "rate_range_high": 400,
+      "crew_size": 1,
+      "applies_when": {
+        "application_method": ["roll"]
+      },
+      "factor_modifiers": [
+        { "modifier_id": "FAC_WLRP_ACCESS_OPEN", "value": 1.00 },
+        { "modifier_id": "FAC_WLRP_ACCESS_OBSTRUCTED_LIGHT", "value": 1.15 },
+        { "modifier_id": "FAC_WLRP_ACCESS_OBSTRUCTED_HEAVY", "value": 1.30 },
+        { "modifier_id": "FAC_HEIGHT_H1", "value": 1.00 },
+        { "modifier_id": "FAC_HEIGHT_H2", "value": 1.30 },
+        { "modifier_id": "FAC_HEIGHT_H3", "value": 1.50 },
+        { "modifier_id": "FAC_HEIGHT_H4", "value": 2.00 },
+        { "modifier_id": "FAC_TEXTURE_SMOOTH", "value": 1.00 },
+        { "modifier_id": "FAC_TEXTURE_ORANGE_PEEL", "value": 1.10 },
+        { "modifier_id": "FAC_TEXTURE_KNOCKDOWN", "value": 1.15 },
+        { "modifier_id": "FAC_TEXTURE_HEAVY", "value": 1.25 }
+      ],
+      "rate_basis_notes": "DIRECT transfer from NC finish TSK_ROLL_WALL_FINISH_R1 (340 SF/hr smooth). Binary task — application rate is constant across QT. Texture modifier handles surface variation. Coating pool."
+    },
+    {
+      "task_id": "TSK_WLRP_ROLL_FINISH_R2",
+      "name": "Roll Wall Finish Coat 2",
+      "task_classification": "binary",
+      "required_input_key": "IN_SF_WALL_FIELD",
+      "paintscope_key": "PS_SURFACE_SF.WALL_FIELD",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 380,
+      "rate_range_low": 320,
+      "rate_range_high": 450,
+      "crew_size": 1,
+      "applies_when": {
+        "quality_tier": ["QT3", "QT4", "QT5"],
+        "application_method": ["roll"]
+      },
+      "factor_modifiers": [
+        { "modifier_id": "FAC_WLRP_ACCESS_OPEN", "value": 1.00 },
+        { "modifier_id": "FAC_WLRP_ACCESS_OBSTRUCTED_LIGHT", "value": 1.15 },
+        { "modifier_id": "FAC_WLRP_ACCESS_OBSTRUCTED_HEAVY", "value": 1.30 },
+        { "modifier_id": "FAC_HEIGHT_H1", "value": 1.00 },
+        { "modifier_id": "FAC_HEIGHT_H2", "value": 1.30 },
+        { "modifier_id": "FAC_HEIGHT_H3", "value": 1.50 },
+        { "modifier_id": "FAC_HEIGHT_H4", "value": 2.00 },
+        { "modifier_id": "FAC_TEXTURE_SMOOTH", "value": 1.00 },
+        { "modifier_id": "FAC_TEXTURE_ORANGE_PEEL", "value": 1.10 },
+        { "modifier_id": "FAC_TEXTURE_KNOCKDOWN", "value": 1.15 },
+        { "modifier_id": "FAC_TEXTURE_HEAVY", "value": 1.25 }
+      ],
+      "rate_basis_notes": "DIRECT transfer from NC finish TSK_ROLL_WALL_FINISH_R2 (380 SF/hr). Second coat ~12% faster than first. Coating pool."
+    },
+    {
+      "task_id": "TSK_WLRP_SPRAY_FINISH_R1",
+      "name": "Spray Wall Finish Coat 1",
+      "task_classification": "binary",
+      "required_input_key": "IN_SF_WALL_FIELD",
+      "paintscope_key": "PS_SURFACE_SF.WALL_FIELD",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 390,
+      "rate_range_low": 340,
+      "rate_range_high": 460,
+      "crew_size": 1,
+      "applies_when": {
+        "application_method": ["spray_backroll", "spray"]
+      },
+      "factor_modifiers": [
+        { "modifier_id": "FAC_WLRP_ACCESS_OPEN", "value": 1.00 },
+        { "modifier_id": "FAC_WLRP_ACCESS_OBSTRUCTED_LIGHT", "value": 1.15 },
+        { "modifier_id": "FAC_WLRP_ACCESS_OBSTRUCTED_HEAVY", "value": 1.30 },
+        { "modifier_id": "FAC_HEIGHT_H1", "value": 1.00 },
+        { "modifier_id": "FAC_HEIGHT_H2", "value": 1.30 },
+        { "modifier_id": "FAC_HEIGHT_H3", "value": 1.50 },
+        { "modifier_id": "FAC_HEIGHT_H4", "value": 2.00 }
+      ],
+      "rate_basis_notes": "DIRECT transfer from NC finish TSK_SPRAY_WALL_FINISH_R1 (390 SF/hr). Coupled to backroll rate per doctrine — spray rate <= backroll rate. Coating pool."
+    },
+    {
+      "task_id": "TSK_WLRP_BACKROLL_FINISH_R1",
+      "name": "Backroll Wall Finish Coat 1",
+      "task_classification": "binary",
+      "required_input_key": "IN_SF_WALL_FIELD",
+      "paintscope_key": "PS_SURFACE_SF.WALL_FIELD",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 390,
+      "rate_range_low": 340,
+      "rate_range_high": 460,
+      "crew_size": 1,
+      "applies_when": {
+        "application_method": ["spray_backroll"]
+      },
+      "factor_modifiers": [
+        { "modifier_id": "FAC_WLRP_ACCESS_OPEN", "value": 1.00 },
+        { "modifier_id": "FAC_WLRP_ACCESS_OBSTRUCTED_LIGHT", "value": 1.15 },
+        { "modifier_id": "FAC_WLRP_ACCESS_OBSTRUCTED_HEAVY", "value": 1.30 },
+        { "modifier_id": "FAC_HEIGHT_H1", "value": 1.00 },
+        { "modifier_id": "FAC_HEIGHT_H2", "value": 1.30 },
+        { "modifier_id": "FAC_HEIGHT_H3", "value": 1.50 },
+        { "modifier_id": "FAC_HEIGHT_H4", "value": 2.00 },
+        { "modifier_id": "FAC_TEXTURE_SMOOTH", "value": 1.00 },
+        { "modifier_id": "FAC_TEXTURE_ORANGE_PEEL", "value": 1.10 },
+        { "modifier_id": "FAC_TEXTURE_KNOCKDOWN", "value": 1.15 },
+        { "modifier_id": "FAC_TEXTURE_HEAVY", "value": 1.25 }
+      ],
+      "rate_basis_notes": "DIRECT transfer from NC finish TSK_BACKROLL_WALL_FINISH_R1 (390 SF/hr). THIS IS THE BOTTLENECK — backroller sets pace. 18-inch roller. Coating pool."
+    },
+    {
+      "task_id": "TSK_WLRP_SPRAY_FINISH_R2",
+      "name": "Spray Wall Finish Coat 2",
+      "task_classification": "binary",
+      "required_input_key": "IN_SF_WALL_FIELD",
+      "paintscope_key": "PS_SURFACE_SF.WALL_FIELD",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 420,
+      "rate_range_low": 360,
+      "rate_range_high": 500,
+      "crew_size": 1,
+      "applies_when": {
+        "quality_tier": ["QT3", "QT4", "QT5"],
+        "application_method": ["spray_backroll", "spray"]
+      },
+      "factor_modifiers": [
+        { "modifier_id": "FAC_WLRP_ACCESS_OPEN", "value": 1.00 },
+        { "modifier_id": "FAC_WLRP_ACCESS_OBSTRUCTED_LIGHT", "value": 1.15 },
+        { "modifier_id": "FAC_WLRP_ACCESS_OBSTRUCTED_HEAVY", "value": 1.30 },
+        { "modifier_id": "FAC_HEIGHT_H1", "value": 1.00 },
+        { "modifier_id": "FAC_HEIGHT_H2", "value": 1.30 },
+        { "modifier_id": "FAC_HEIGHT_H3", "value": 1.50 },
+        { "modifier_id": "FAC_HEIGHT_H4", "value": 2.00 }
+      ],
+      "rate_basis_notes": "DIRECT transfer from NC finish TSK_SPRAY_WALL_FINISH_R2 (420 SF/hr). Second coat faster per COAT_FINISH_2 modifier. Coating pool."
+    },
+    {
+      "task_id": "TSK_WLRP_BACKROLL_FINISH_R2",
+      "name": "Backroll Wall Finish Coat 2",
+      "task_classification": "binary",
+      "required_input_key": "IN_SF_WALL_FIELD",
+      "paintscope_key": "PS_SURFACE_SF.WALL_FIELD",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 420,
+      "rate_range_low": 360,
+      "rate_range_high": 500,
+      "crew_size": 1,
+      "applies_when": {
+        "quality_tier": ["QT3", "QT4", "QT5"],
+        "application_method": ["spray_backroll"]
+      },
+      "factor_modifiers": [
+        { "modifier_id": "FAC_WLRP_ACCESS_OPEN", "value": 1.00 },
+        { "modifier_id": "FAC_WLRP_ACCESS_OBSTRUCTED_LIGHT", "value": 1.15 },
+        { "modifier_id": "FAC_WLRP_ACCESS_OBSTRUCTED_HEAVY", "value": 1.30 },
+        { "modifier_id": "FAC_HEIGHT_H1", "value": 1.00 },
+        { "modifier_id": "FAC_HEIGHT_H2", "value": 1.30 },
+        { "modifier_id": "FAC_HEIGHT_H3", "value": 1.50 },
+        { "modifier_id": "FAC_HEIGHT_H4", "value": 2.00 },
+        { "modifier_id": "FAC_TEXTURE_SMOOTH", "value": 1.00 },
+        { "modifier_id": "FAC_TEXTURE_ORANGE_PEEL", "value": 1.10 },
+        { "modifier_id": "FAC_TEXTURE_KNOCKDOWN", "value": 1.15 },
+        { "modifier_id": "FAC_TEXTURE_HEAVY", "value": 1.25 }
+      ],
+      "rate_basis_notes": "DIRECT transfer from NC finish TSK_BACKROLL_WALL_FINISH_R2 (420 SF/hr). Second backroll coat faster per COAT_FINISH_2 modifier (0.90). Coating pool."
+    },
+
+    {
+      "task_id": "TSK_WLRP_REMOVE_TRIM_MASKING",
+      "name": "Remove Trim Masking Tape",
+      "task_classification": "binary",
+      "required_input_key": "IN_LF_PROTECT_TRIM_EDGES",
+      "paintscope_key": "PS_PROTECT_LF.TRIM_EDGES",
+      "unit_of_measure": "LF",
+      "rate_per_hour": 400,
+      "rate_range_low": 350,
+      "rate_range_high": 500,
+      "crew_size": 1,
+      "applies_when": {},
+      "factor_modifiers": [],
+      "rate_basis_notes": "DIRECT transfer from NC finish TSK_REMOVE_TRIM_MASKING (400 LF/hr). Pull at angle for clean release. This spec installed the tape, this spec removes it."
+    },
+    {
+      "task_id": "TSK_WLRP_REMOVE_FIXTURE_COVERS",
+      "name": "Remove Fixture Covers",
+      "task_classification": "binary",
+      "required_input_key": "IN_EA_ROOMS_TOTAL",
+      "paintscope_key": "PS_META.EA.ROOMS_TOTAL",
+      "unit_of_measure": "EA",
+      "rate_per_hour": 25,
+      "rate_range_low": 20,
+      "rate_range_high": 35,
+      "crew_size": 1,
+      "applies_when": {
+        "application_method": ["spray_backroll", "spray"]
+      },
+      "factor_modifiers": [],
+      "rate_basis_notes": "DIRECT transfer from NC prime TSK_WALL_FIXTURE_COVERS_TEARDOWN (25 EA/hr). Faster than setup."
+    },
+    {
+      "task_id": "TSK_WLRP_FLOOR_PROTECT_TEARDOWN",
+      "name": "Floor Protection Teardown",
+      "task_classification": "binary",
+      "required_input_key": "IN_SF_PROTECT_FLOOR_EXPOSED",
+      "paintscope_key": "PS_PROTECT_SF.FLOOR_EXPOSED",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 700,
+      "rate_range_low": 550,
+      "rate_range_high": 900,
+      "crew_size": 1,
+      "applies_when": {},
+      "factor_modifiers": [],
+      "rate_basis_notes": "Blended rate from NC prime teardown rates. Perimeter teardown NC=900 SF/hr, full teardown NC=600 SF/hr. Blended at 700 SF/hr since RP teardown covers both floor types (method-dependent setup, unified teardown). Fold toward center to contain debris."
+    },
+    {
+      "task_id": "TSK_WLRP_FURNITURE_REPLACE",
+      "name": "Replace Furniture to Original Positions",
+      "task_classification": "binary",
+      "required_input_key": "IN_EA_ROOMS_TOTAL",
+      "paintscope_key": "PS_META.EA.ROOMS_TOTAL",
+      "unit_of_measure": "EA_ROOM",
+      "fixed_minutes": 15,
+      "fixed_minutes_range_low": 10,
+      "fixed_minutes_range_high": 20,
+      "crew_size": 1,
+      "applies_when": {
+        "occupancy_state": ["occupied_crew_handles", "occupied_sensitive"]
+      },
+      "factor_modifiers": [
+        { "modifier_id": "FAC_WLRP_ACCESS_OPEN", "value": 1.00 },
+        { "modifier_id": "FAC_WLRP_ACCESS_OBSTRUCTED_LIGHT", "value": 1.15 },
+        { "modifier_id": "FAC_WLRP_ACCESS_OBSTRUCTED_HEAVY", "value": 1.30 }
+      ],
+      "rate_basis_notes": "RP-new task. Slightly slower than furniture move — includes removing poly covers, checking for paint damage, verifying original positions. 10-20 min per room."
+    },
+    {
+      "task_id": "TSK_WLRP_VACUUM_FLOORS",
+      "name": "Vacuum Floors",
+      "task_classification": "binary",
+      "required_input_key": "IN_SF_FLOOR_VACUUM_AREA",
+      "paintscope_key": "PS_META.SF.FLOOR_VACUUM_AREA",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 1500,
+      "rate_range_low": 1200,
+      "rate_range_high": 1800,
+      "crew_size": 1,
+      "applies_when": {},
+      "factor_modifiers": [],
+      "rate_basis_notes": "DIRECT transfer from NC finish TSK_VACUUM_SUBFLOOR_POST_WALL (1500 SF/hr). Shop vacuum to remove paint drips, overspray debris, sanding dust."
+    },
+    {
+      "task_id": "TSK_WLRP_CLEAN_TOOLS",
+      "name": "Clean Tools",
+      "task_classification": "binary",
+      "required_input_key": null,
+      "paintscope_key": null,
+      "unit_of_measure": "FIXED",
+      "fixed_minutes": 25,
+      "fixed_minutes_range_low": 15,
+      "fixed_minutes_range_high": 35,
+      "crew_size": 1,
+      "applies_when": {},
+      "factor_modifiers": [],
+      "rate_basis_notes": "MODIFIED from NC prime TSK_WALL_CLEAN_TOOLS (20 min). RP adds 5 min for shellac stain-blocker cleanup (denatured alcohol) when smoke damage primer used. Base 25 min covers worst case."
+    },
+    {
+      "task_id": "TSK_WLRP_FINAL_INSPECT",
+      "name": "Final Wall Inspection",
+      "task_classification": "qt_scaled",
+      "required_input_key": "IN_SF_WALL_FIELD",
+      "paintscope_key": "PS_SURFACE_SF.WALL_FIELD",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 2000,
+      "rate_range_low": 1500,
+      "rate_range_high": 2000,
+      "crew_size": 1,
+      "applies_when": {
+        "quality_tier": ["QT2", "QT3"]
+      },
+      "qt_rates": {
+        "QT2": { "rate_sf_per_hour": 2000, "notes": "Quick visual for major misses, ambient light — capped at 2000 SF/hr guideline (QA-003 fix)" },
+        "QT3": { "rate_sf_per_hour": 2000, "notes": "Thorough visual with work light" }
+      },
+      "factor_modifiers": [
+        { "modifier_id": "FAC_HEIGHT_H1", "value": 1.00 },
+        { "modifier_id": "FAC_HEIGHT_H2", "value": 1.30 },
+        { "modifier_id": "FAC_HEIGHT_H3", "value": 1.50 },
+        { "modifier_id": "FAC_HEIGHT_H4", "value": 2.00 }
+      ],
+      "rate_basis_notes": "DIRECT transfer from NC prime TSK_WALL_FINAL_INSPECT (2000 SF/hr). Walking inspection of completed walls. QT2/QT3 variant."
+    },
+    {
+      "task_id": "TSK_WLRP_FINAL_INSPECT_QT4",
+      "name": "Final Wall Inspection (Premium)",
+      "task_classification": "qt_scaled",
+      "required_input_key": "IN_SF_WALL_FIELD",
+      "paintscope_key": "PS_SURFACE_SF.WALL_FIELD",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 1000,
+      "rate_range_low": 800,
+      "rate_range_high": 1200,
+      "crew_size": 1,
+      "applies_when": {
+        "quality_tier": ["QT4"]
+      },
+      "factor_modifiers": [
+        { "modifier_id": "FAC_HEIGHT_H1", "value": 1.00 },
+        { "modifier_id": "FAC_HEIGHT_H2", "value": 1.30 },
+        { "modifier_id": "FAC_HEIGHT_H3", "value": 1.50 },
+        { "modifier_id": "FAC_HEIGHT_H4", "value": 2.00 }
+      ],
+      "rate_basis_notes": "Transfer from NC finish inspection QT4 pattern (1000 SF/hr). Detailed inspection with work light at 3 ft distance."
+    },
+    {
+      "task_id": "TSK_WLRP_FINAL_INSPECT_QT5",
+      "name": "Final Wall Inspection (Critical)",
+      "task_classification": "qt_scaled",
+      "required_input_key": "IN_SF_WALL_FIELD",
+      "paintscope_key": "PS_SURFACE_SF.WALL_FIELD",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 600,
+      "rate_range_low": 500,
+      "rate_range_high": 750,
+      "crew_size": 1,
+      "applies_when": {
+        "quality_tier": ["QT5"]
+      },
+      "factor_modifiers": [
+        { "modifier_id": "FAC_HEIGHT_H1", "value": 1.00 },
+        { "modifier_id": "FAC_HEIGHT_H2", "value": 1.30 },
+        { "modifier_id": "FAC_HEIGHT_H3", "value": 1.50 },
+        { "modifier_id": "FAC_HEIGHT_H4", "value": 2.00 }
+      ],
+      "rate_basis_notes": "Transfer from NC finish inspection QT5 pattern (600 SF/hr). Critical inspection under raking light at arm's length. Any imperfection must be addressed."
+    },
+    {
+      "task_id": "TSK_WLRP_TOUCHUP",
+      "name": "Touch-Up Defects Found During Inspection",
+      "task_classification": "qt_scaled",
+      "required_input_key": "IN_SF_WALL_FIELD",
+      "paintscope_key": "PS_SURFACE_SF.WALL_FIELD",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 1800,
+      "rate_range_low": 800,
+      "rate_range_high": 2000,
+      "crew_size": 1,
+      "applies_when": {},
+      "qt_rates": {
+        "QT2": { "rate_sf_per_hour": 2000, "notes": "Address major misses only — capped at 2000 SF/hr guideline (QA-004 fix)" },
+        "QT3": { "rate_sf_per_hour": 1800, "notes": "Address all identified defects" },
+        "QT4": { "rate_sf_per_hour": 1200, "notes": "Meticulous touch-up, blend into surrounding finish" },
+        "QT5": { "rate_sf_per_hour": 800, "notes": "Critical touch-up, perfect blend, no visible repair" }
+      },
+      "factor_modifiers": [
+        { "modifier_id": "FAC_QT2", "value": 0.80 },
+        { "modifier_id": "FAC_QT3", "value": 1.00 },
+        { "modifier_id": "FAC_QT4", "value": 1.30 },
+        { "modifier_id": "FAC_QT5", "value": 1.50 },
+        { "modifier_id": "FAC_HEIGHT_H1", "value": 1.00 },
+        { "modifier_id": "FAC_HEIGHT_H2", "value": 1.30 },
+        { "modifier_id": "FAC_HEIGHT_H3", "value": 1.50 },
+        { "modifier_id": "FAC_HEIGHT_H4", "value": 2.00 }
+      ],
+      "rate_basis_notes": "Rate per total wall SF (fast — touching only localized defects). QT5 is slowest — perfect blend required, no visible repair allowed. Coating pool."
+    },
+    {
+      "task_id": "TSK_WLRP_CUSTOMER_WALKTHROUGH",
+      "name": "Customer Walkthrough",
+      "task_classification": "binary",
+      "required_input_key": "IN_EA_ROOMS_TOTAL",
+      "paintscope_key": "PS_META.EA.ROOMS_TOTAL",
+      "unit_of_measure": "EA_ROOM",
+      "fixed_minutes": 5,
+      "fixed_minutes_range_low": 3,
+      "fixed_minutes_range_high": 8,
+      "crew_size": 1,
+      "applies_when": {
+        "occupancy_state": ["occupied_crew_handles", "occupied_sensitive"]
+      },
+      "factor_modifiers": [],
+      "rate_basis_notes": "RP-new task. Post-completion room-by-room review with homeowner. 3-8 min per room. Identify touch-up needs, confirm satisfaction. Lead painter skill level."
+    }
+  ],
+
+  "factor_modifier_definitions": [
+    {
+      "modifier_id": "FAC_WLRP_CONDITION_GOOD",
+      "modifier_category": "condition_scale",
+      "value": 1.00,
+      "applies_to": "prep_pool",
+      "description": "GOOD condition — sound paint, minimal prep needed",
+      "condition_value": "GOOD"
+    },
+    {
+      "modifier_id": "FAC_WLRP_CONDITION_FAIR",
+      "modifier_category": "condition_scale",
+      "value": 1.50,
+      "applies_to": "prep_pool",
+      "description": "FAIR condition — localized peeling, scattered damage, moderate prep",
+      "condition_value": "FAIR"
+    },
+    {
+      "modifier_id": "FAC_WLRP_CONDITION_POOR",
+      "modifier_category": "condition_scale",
+      "value": 2.00,
+      "applies_to": "prep_pool",
+      "description": "POOR condition — extensive peeling, heavy damage, full prep needed",
+      "condition_value": "POOR"
+    },
+    {
+      "modifier_id": "FAC_WLRP_CONTAM_NONE",
+      "modifier_category": "contamination_type",
+      "value": 1.00,
+      "applies_to": "prep_pool",
+      "description": "No contamination — baseline"
+    },
+    {
+      "modifier_id": "FAC_WLRP_CONTAM_MILDEW",
+      "modifier_category": "contamination_type",
+      "value": 1.20,
+      "applies_to": "prep_pool",
+      "description": "Mildew contamination — biocide treatment adds time"
+    },
+    {
+      "modifier_id": "FAC_WLRP_CONTAM_SMOKE",
+      "modifier_category": "contamination_type",
+      "value": 1.50,
+      "applies_to": "prep_pool",
+      "description": "Smoke damage — extensive TSP wash, shellac stain-blocker adds significant time"
+    },
+    {
+      "modifier_id": "FAC_WLRP_CONTAM_WATER_STAIN",
+      "modifier_category": "contamination_type",
+      "value": 1.15,
+      "applies_to": "prep_pool",
+      "description": "Water stain — moderate additional prep and stain-blocking primer"
+    },
+    {
+      "modifier_id": "FAC_WLRP_CONTAM_GREASE",
+      "modifier_category": "contamination_type",
+      "value": 1.10,
+      "applies_to": "prep_pool",
+      "description": "Grease contamination — TSP cuts grease quickly, minimal additional time"
+    },
+    {
+      "modifier_id": "FAC_WLRP_ACCESS_OPEN",
+      "modifier_category": "wall_access",
+      "value": 1.00,
+      "applies_to": "both_pools",
+      "description": "Open wall access — no obstructions, baseline"
+    },
+    {
+      "modifier_id": "FAC_WLRP_ACCESS_OBSTRUCTED_LIGHT",
+      "modifier_category": "wall_access",
+      "value": 1.15,
+      "applies_to": "both_pools",
+      "description": "Light obstruction — some furniture remaining near walls, minor maneuvering"
+    },
+    {
+      "modifier_id": "FAC_WLRP_ACCESS_OBSTRUCTED_HEAVY",
+      "modifier_category": "wall_access",
+      "value": 1.30,
+      "applies_to": "both_pools",
+      "description": "Heavy obstruction — significant furniture, built-ins, or fixtures limiting access"
+    },
+    {
+      "modifier_id": "FAC_QT2",
+      "modifier_category": "quality_tier",
+      "value": 0.80,
+      "applies_to": "coating_pool",
+      "description": "QT2 economy — reduced prep intensity, basic coverage. Per Modifier_Registry."
+    },
+    {
+      "modifier_id": "FAC_QT3",
+      "modifier_category": "quality_tier",
+      "value": 1.00,
+      "applies_to": "coating_pool",
+      "description": "QT3 standard — baseline for all rates"
+    },
+    {
+      "modifier_id": "FAC_QT4",
+      "modifier_category": "quality_tier",
+      "value": 1.30,
+      "applies_to": "coating_pool",
+      "description": "QT4 premium — thorough prep, careful application, crisp edges"
+    },
+    {
+      "modifier_id": "FAC_QT5",
+      "modifier_category": "quality_tier",
+      "value": 1.50,
+      "applies_to": "coating_pool",
+      "description": "QT5 fine finish — multiple light coats, thorough inspection"
+    },
+    {
+      "modifier_id": "FAC_HEIGHT_H1",
+      "modifier_category": "height_factor",
+      "value": 1.00,
+      "applies_to": "both_pools",
+      "description": "Standard height 7-8ft — work from floor"
+    },
+    {
+      "modifier_id": "FAC_HEIGHT_H2",
+      "modifier_category": "height_factor",
+      "value": 1.30,
+      "applies_to": "both_pools",
+      "description": "Tall 9-12ft — step ladder needed"
+    },
+    {
+      "modifier_id": "FAC_HEIGHT_H3",
+      "modifier_category": "height_factor",
+      "value": 1.50,
+      "applies_to": "both_pools",
+      "description": "High 13-17ft — extension ladder or scaffold required"
+    },
+    {
+      "modifier_id": "FAC_HEIGHT_H4",
+      "modifier_category": "height_factor",
+      "value": 2.00,
+      "applies_to": "both_pools",
+      "description": "Extreme 18ft+ — scaffold or lift required, significant productivity loss"
+    },
+    {
+      "modifier_id": "FAC_TEXTURE_SMOOTH",
+      "modifier_category": "texture_type",
+      "value": 1.00,
+      "applies_to": "both_pools",
+      "description": "Smooth Level 4 drywall — baseline"
+    },
+    {
+      "modifier_id": "FAC_TEXTURE_ORANGE_PEEL",
+      "modifier_category": "texture_type",
+      "value": 1.10,
+      "applies_to": "both_pools",
+      "description": "Orange peel texture — +10% surface area, 10% slower application"
+    },
+    {
+      "modifier_id": "FAC_TEXTURE_KNOCKDOWN",
+      "modifier_category": "texture_type",
+      "value": 1.15,
+      "applies_to": "both_pools",
+      "description": "Knockdown texture — +15% surface area, 15% slower. Use 1/2\" nap, NOT 3/4\"."
+    },
+    {
+      "modifier_id": "FAC_TEXTURE_HEAVY",
+      "modifier_category": "texture_type",
+      "value": 1.25,
+      "applies_to": "both_pools",
+      "description": "Heavy texture (stomp, skip trowel) — +25% surface area, 25% slower"
+    }
+  ],
+
+  "stacking_partition": {
+    "prep_pool": {
+      "formula": "effective_rate = base_rate / (condition x contamination x access x height x texture)",
+      "pool_modifiers": ["FAC_WLRP_CONDITION_*", "FAC_WLRP_CONTAM_*"],
+      "shared_modifiers": ["FAC_WLRP_ACCESS_*", "FAC_HEIGHT_*", "FAC_TEXTURE_*"],
+      "never_includes": ["FAC_QT*"],
+      "max_theoretical": "POOR(2.0) x smoke(1.5) x heavy_obstructed(1.3) x H4(2.0) x heavy_texture(1.25) = 9.75x",
+      "applies_to_tasks": "Assessment, prep, prime tasks"
+    },
+    "coating_pool": {
+      "formula": "effective_rate = base_rate / (qt x access x height x texture)",
+      "pool_modifiers": ["FAC_QT*"],
+      "shared_modifiers": ["FAC_WLRP_ACCESS_*", "FAC_HEIGHT_*", "FAC_TEXTURE_*"],
+      "never_includes": ["FAC_WLRP_CONDITION_*", "FAC_WLRP_CONTAM_*"],
+      "max_theoretical": "QT5(1.5) x heavy_obstructed(1.3) x H4(2.0) x heavy_texture(1.25) = 4.88x",
+      "applies_to_tasks": "Finish, interstage, cleanup tasks"
+    }
+  },
+
+  "round_configurations": [
+    {
+      "round_id": "ROUND_WLRP_PRIME_2FINISH",
+      "name": "Full Repaint — Prime + 2 Finish Coats",
+      "applies_when": {
+        "quality_tier": ["QT3", "QT4", "QT5"],
+        "condition_scale": ["FAIR", "POOR"]
+      },
+      "total_coats": 3,
+      "coat_sequence": ["primer", "finish_1", "finish_2"],
+      "interstage_cycles": 2,
+      "notes": "Standard full repaint for FAIR/POOR condition. Interstage after primer and after finish coat 1."
+    },
+    {
+      "round_id": "ROUND_WLRP_PRIME_1FINISH",
+      "name": "Economy Repaint — Prime + 1 Finish Coat",
+      "applies_when": {
+        "quality_tier": ["QT2"],
+        "condition_scale": ["FAIR", "POOR"]
+      },
+      "total_coats": 2,
+      "coat_sequence": ["primer", "finish_1"],
+      "interstage_cycles": 0,
+      "notes": "QT2 economy. No interstage sanding."
+    },
+    {
+      "round_id": "ROUND_WLRP_NOPRIME_2FINISH",
+      "name": "Cosmetic Refresh — No Prime + 2 Finish Coats",
+      "applies_when": {
+        "quality_tier": ["QT3", "QT4", "QT5"],
+        "condition_scale": ["GOOD"]
+      },
+      "total_coats": 2,
+      "coat_sequence": ["finish_1", "finish_2"],
+      "interstage_cycles": 1,
+      "notes": "Most common residential repaint. Sound paint, degloss + 2 finish coats. Primer skipped when adhesion test passes."
+    },
+    {
+      "round_id": "ROUND_WLRP_NOPRIME_1FINISH",
+      "name": "Economy Refresh — No Prime + 1 Finish Coat",
+      "applies_when": {
+        "quality_tier": ["QT2"],
+        "condition_scale": ["GOOD"]
+      },
+      "total_coats": 1,
+      "coat_sequence": ["finish_1"],
+      "interstage_cycles": 0,
+      "notes": "Fastest execution path. QT2, GOOD condition, single coat. Rental turnover scenario."
+    }
+  ],
+
+  "coupling_constraints": [
+    {
+      "constraint_id": "COUPLE_SPRAY_BACKROLL_WALL_RP",
+      "description": "When using spray+backroll, spray rate must not exceed backroll rate. Backroller sets the pace.",
+      "rule": "spray_rate <= backroll_rate",
+      "applies_when": {
+        "application_method": ["spray_backroll"]
+      },
+      "practical_implication": "Wall spray finish at 390 SF/hr, wall backroll at 390 SF/hr — matched per NC doctrine.",
+      "notes": "Identical constraint as NC wall. Spray and backroll by 2-person crew. 18-inch roller."
+    }
+  ],
+
+  "crew_configurations": [
+    {
+      "config_id": "CREW_WLRP_ROLL_SINGLE",
+      "name": "Single Wall Roller",
+      "crew_size": 1,
+      "roles": ["journeyman_roller"],
+      "applies_when": { "application_method": ["roll"] },
+      "notes": "One person does wall cut-in and rolling. Most common for RP (occupied home, room-by-room)."
+    },
+    {
+      "config_id": "CREW_WLRP_ROLL_PAIR",
+      "name": "Wall Roller Pair",
+      "crew_size": 2,
+      "roles": ["journeyman_cutter", "journeyman_roller"],
+      "applies_when": { "application_method": ["roll"] },
+      "notes": "Cutter stays ahead of roller for larger wall areas."
+    },
+    {
+      "config_id": "CREW_WLRP_SPRAY_BACKROLL",
+      "name": "Wall Spray + Backroll Crew",
+      "crew_size": 2,
+      "roles": ["journeyman_sprayer", "journeyman_backroller"],
+      "applies_when": { "application_method": ["spray_backroll"] },
+      "notes": "Sprayer and backroller work in tandem. Backroller sets pace."
+    }
+  ],
+
+  "critical_constraints": {
+    "spray_only_primer_prohibited": "Spray-only (no backroll) is NEVER valid for primer on previously painted surfaces. Backroll is MANDATORY for adhesion.",
+    "roller_nap_warning": "Use 1/2\" nap for orange peel and knockdown. Do NOT use 3/4\" nap.",
+    "no_ceiling_masking": "Do NOT mask drywall ceilings when working on walls. Cut in freehand (roll) or spray into corner (spray_backroll).",
+    "shellac_cleanup_warning": "SYS_PRIMER_STAINBLOCK_INT (shellac) requires denatured alcohol for tool cleanup. Water does not work.",
+    "spot_prime_always": "Spot prime all spackled/scraped areas regardless of whether full primer coat is applied. Prevents flashing."
+  }
+}

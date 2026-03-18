@@ -1,0 +1,1422 @@
+{
+  "spec_family_id": "SF_DRYWALL_WALL_INT_RP",
+  "version": "0.1.0",
+  "generated_by": "SOP Librarian",
+  "generated_at": "2026-03-13",
+
+  "sop_modules": [
+    {
+      "module_id": "MOD_WLRP_SETUP",
+      "name": "Setup — Floor, Trim Masking, Fixture Covers, Furniture Protection",
+      "description": "Full setup module for interior wall repaint. Includes floor protection (method-dependent), trim edge masking (always — trim is in place for RP), fixture covers (spray methods or QT4+ roll), and furniture protection (occupied homes). RP adds furniture protection and always-on trim masking vs NC.",
+      "phase": "setup",
+      "applies_when": {},
+      "required_inputs": [
+        { "input_name": "IN_SF_PROTECT_FLOOR_PERIMETER", "paintscope_key": "PS_PROTECT_SF.FLOOR_PERIMETER", "uom": "SF" },
+        { "input_name": "IN_SF_PROTECT_FLOOR_EXPOSED", "paintscope_key": "PS_PROTECT_SF.FLOOR_EXPOSED", "uom": "SF" },
+        { "input_name": "IN_LF_PROTECT_TRIM_EDGES", "paintscope_key": "PS_PROTECT_LF.TRIM_EDGES", "uom": "LF" },
+        { "input_name": "IN_EA_ROOMS_TOTAL", "paintscope_key": "PS_META.EA.ROOMS_TOTAL", "uom": "EA" },
+        { "input_name": "IN_SF_PROTECT_FURNITURE_ROOM", "paintscope_key": "PS_PROTECT_SF.FURNITURE_ROOM", "uom": "SF" }
+      ],
+      "tasks": [
+        {
+          "task_id": "TSK_WLRP_FURNITURE_MOVE",
+          "name": "Move and Center-Pile Furniture",
+          "description": "Move furniture to center of room, at least 4 ft from all walls. Protect electronics and valuables. Clear wall surfaces of hanging items.",
+          "task_type": "protect",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "unit_of_measure": "EA_ROOM",
+          "appears_in_tiers": ["QT2", "QT3", "QT4", "QT5"],
+          "protection_metadata": {
+            "action": "setup",
+            "zones": ["furniture_room"],
+            "method_dependent": false
+          },
+          "site_condition_rules": {
+            "include_when": {
+              "occupancy_state": ["occupied_crew_handles", "occupied_sensitive"]
+            },
+            "exclude_when": {
+              "occupancy_state": ["vacant", "vacant_with_fixtures"]
+            }
+          }
+        },
+        {
+          "task_id": "TSK_WLRP_FURNITURE_COVER",
+          "name": "Cover Center-Piled Furniture with Poly Sheeting",
+          "description": "Cover center-piled furniture and contents with 2-4 mil poly sheeting. Tape edges to floor to prevent paint dust and overspray from reaching contents.",
+          "task_type": "protect",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "unit_of_measure": "EA_ROOM",
+          "appears_in_tiers": ["QT2", "QT3", "QT4", "QT5"],
+          "protection_metadata": {
+            "action": "setup",
+            "zones": ["furniture_room"],
+            "method_dependent": false
+          },
+          "site_condition_rules": {
+            "include_when": {
+              "occupancy_state": ["occupied_crew_handles", "occupied_sensitive"]
+            },
+            "exclude_when": {
+              "occupancy_state": ["vacant", "vacant_with_fixtures"]
+            }
+          }
+        },
+        {
+          "task_id": "TSK_WLRP_FLOOR_PROTECT_PERIMETER_SETUP",
+          "name": "Floor Protection Setup (Perimeter — Roll Method)",
+          "description": "Install perimeter floor protection using canvas drop cloths. Position drops under work areas to catch drips from cut-in and roller work. RP always has finished floors.",
+          "task_type": "protect",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "unit_of_measure": "SF",
+          "appears_in_tiers": ["QT2", "QT3", "QT4", "QT5"],
+          "applies_when": { "application_method": ["roll"] },
+          "protection_metadata": {
+            "action": "setup",
+            "zones": ["floor_perimeter"],
+            "method_dependent": true
+          }
+        },
+        {
+          "task_id": "TSK_WLRP_FLOOR_PROTECT_FULL_SETUP",
+          "name": "Floor Protection Setup (Full Room — Spray Methods)",
+          "description": "Install full-room floor protection. Hard floors: rosin paper with taped seams. Carpet: plastic sheeting with taped edges. Required for spray/spray_backroll overspray containment.",
+          "task_type": "protect",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "unit_of_measure": "SF",
+          "appears_in_tiers": ["QT2", "QT3", "QT4", "QT5"],
+          "applies_when": { "application_method": ["spray_backroll", "spray"] },
+          "protection_metadata": {
+            "action": "setup",
+            "zones": ["floor_full"],
+            "method_dependent": true
+          }
+        },
+        {
+          "task_id": "TSK_WLRP_MASK_TRIM_BASEBOARD",
+          "name": "Mask Baseboard Top Edge",
+          "description": "Apply masking tape along top edge of baseboard to protect finished trim from wall paint. Press edge firmly for clean seal. RP always has trim in place — this task is mandatory.",
+          "task_type": "protect",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "unit_of_measure": "LF",
+          "appears_in_tiers": ["QT2", "QT3", "QT4", "QT5"],
+          "protection_metadata": {
+            "action": "setup",
+            "zones": ["trim_edges"],
+            "method_dependent": false
+          },
+          "substrate_state_rules": {
+            "adjacent_surface": "trim_baseboard",
+            "protect_when_state": ["SS_PAINTED_SATIN", "SS_PAINTED_SEMIGLOSS", "SS_PAINTED_GLOSS"],
+            "skip_when_state": [],
+            "protection_level_by_state": {
+              "SS_PAINTED_SATIN": "light_mask",
+              "SS_PAINTED_SEMIGLOSS": "light_mask",
+              "SS_PAINTED_GLOSS": "light_mask"
+            }
+          }
+        },
+        {
+          "task_id": "TSK_WLRP_MASK_TRIM_DOOR_CASING",
+          "name": "Mask Door Casing Edges",
+          "description": "Apply masking tape along door casing edges adjacent to walls. Protect finished trim from wall paint.",
+          "task_type": "protect",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "unit_of_measure": "LF",
+          "appears_in_tiers": ["QT2", "QT3", "QT4", "QT5"],
+          "protection_metadata": {
+            "action": "setup",
+            "zones": ["trim_edges"],
+            "method_dependent": false
+          },
+          "substrate_state_rules": {
+            "adjacent_surface": "trim_casing_door",
+            "protect_when_state": ["SS_PAINTED_SATIN", "SS_PAINTED_SEMIGLOSS", "SS_PAINTED_GLOSS"],
+            "skip_when_state": [],
+            "protection_level_by_state": {
+              "SS_PAINTED_SATIN": "light_mask",
+              "SS_PAINTED_SEMIGLOSS": "light_mask",
+              "SS_PAINTED_GLOSS": "light_mask"
+            }
+          }
+        },
+        {
+          "task_id": "TSK_WLRP_MASK_TRIM_WINDOW_CASING",
+          "name": "Mask Window Casing Edges",
+          "description": "Apply masking tape along window casing edges adjacent to walls. Protect finished trim from wall paint.",
+          "task_type": "protect",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "unit_of_measure": "LF",
+          "appears_in_tiers": ["QT2", "QT3", "QT4", "QT5"],
+          "protection_metadata": {
+            "action": "setup",
+            "zones": ["trim_edges"],
+            "method_dependent": false
+          },
+          "substrate_state_rules": {
+            "adjacent_surface": "trim_casing_window",
+            "protect_when_state": ["SS_PAINTED_SATIN", "SS_PAINTED_SEMIGLOSS", "SS_PAINTED_GLOSS"],
+            "skip_when_state": [],
+            "protection_level_by_state": {
+              "SS_PAINTED_SATIN": "light_mask",
+              "SS_PAINTED_SEMIGLOSS": "light_mask",
+              "SS_PAINTED_GLOSS": "light_mask"
+            }
+          }
+        },
+        {
+          "task_id": "TSK_WLRP_FIXTURE_COVERS_SETUP",
+          "name": "Cover Fixtures for Spray / Premium Roll",
+          "description": "Apply covers to electrical outlets, switches, and wall-mounted fixtures. Required for spray methods. Recommended for roll at QT4+ to prevent drip risk. ~6 outlets/switches per room average.",
+          "task_type": "protect",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "unit_of_measure": "EA",
+          "appears_in_tiers": ["QT2", "QT3", "QT4", "QT5"],
+          "applies_when": { "application_method": ["spray_backroll", "spray"] },
+          "protection_metadata": {
+            "action": "setup",
+            "zones": ["fixture_covers"],
+            "method_dependent": true
+          },
+          "quantity_heuristic": {
+            "outlets_switches_per_room": { "average": 6, "range": "4-8" }
+          }
+        }
+      ],
+      "sequence_notes": "Furniture move → Furniture cover → Floor protection → Trim masking (baseboard → door casing → window casing) → Fixture covers. All setup complete before assessment begins."
+    },
+
+    {
+      "module_id": "MOD_WLRP_ASSESSMENT",
+      "name": "Condition Assessment",
+      "description": "RP-specific assessment phase. Visual condition scan, ASTM D3359 adhesion test, moisture evaluation, and coating identification. Results drive downstream task activation (primer selection, prep intensity, contamination treatment). No NC equivalent — 100% RP_NEW tasks.",
+      "phase": "prep",
+      "applies_when": {},
+      "required_inputs": [
+        { "input_name": "IN_EA_ROOMS_TOTAL", "paintscope_key": "PS_META.EA.ROOMS_TOTAL", "uom": "EA" },
+        { "input_name": "IN_SF_WALL_FIELD", "paintscope_key": "PS_SURFACE_SF.WALL_FIELD", "uom": "SF" },
+        { "input_name": "IN_ENUM_SURFACE_CONDITION", "paintscope_key": "PS_META.SURFACE_CONDITION", "uom": "ENUM" },
+        { "input_name": "IN_ENUM_SUBSTRATE_STATE_INT", "paintscope_key": "PS_META.ENUM.SUBSTRATE_STATE_INT", "uom": "ENUM" },
+        { "input_name": "IN_ENUM_CONTAMINATION_TYPE", "paintscope_key": "PS_META.ENUM.CONTAMINATION_TYPE", "uom": "ENUM" },
+        { "input_name": "IN_BOOL_HOME_PRE_1978", "paintscope_key": "PS_META.BOOL.HOME_PRE_1978", "uom": "BOOL" }
+      ],
+      "tasks": [
+        {
+          "task_id": "TSK_WLRP_ASSESS_CONDITION",
+          "name": "Visual Condition Scan — All Walls",
+          "description": "Walk all wall surfaces with work light. Photograph defects, map damage areas, assign severity per wall. Identify worst-condition wall to determine room-level condition_scale (GOOD/FAIR/POOR). Document scope of scraping, peeling, staining.",
+          "task_classification": "qt_scaled",
+          "qt_behavior": "rate_varies_by_tier",
+          "skill_level": "journeyman",
+          "unit_of_measure": "EA_ROOM",
+          "appears_in_tiers": ["QT2", "QT3", "QT4", "QT5"],
+          "quality_notes": {
+            "QT2": "Quick visual scan, note major issues only",
+            "QT3": "Standard visual with work light, document all visible defects",
+            "QT4": "Systematic scan with raking light, photograph all defect areas",
+            "QT5": "Critical assessment, multiple passes, raking light, full photographic documentation"
+          }
+        },
+        {
+          "task_id": "TSK_WLRP_ASSESS_ADHESION",
+          "name": "Adhesion Test (ASTM D3359 Cross-Hatch Tape Test)",
+          "description": "Perform cross-hatch tape test per ASTM D3359 at representative areas and any suspect zones. Test at minimum 2 locations per room. Results determine if adhesion primer is required.",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "unit_of_measure": "EA_ROOM",
+          "appears_in_tiers": ["QT2", "QT3", "QT4", "QT5"]
+        },
+        {
+          "task_id": "TSK_WLRP_ASSESS_MOISTURE",
+          "name": "Moisture Meter Evaluation",
+          "description": "Test wall moisture content at suspect areas using pin-type or pinless moisture meter. Flag active moisture sources for remediation by other trades. Active moisture is a STOP WORK condition — do not proceed until source is resolved.",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "unit_of_measure": "EA_ROOM",
+          "appears_in_tiers": ["QT2", "QT3", "QT4", "QT5"],
+          "site_condition_rules": {
+            "stop_work_when": {
+              "moisture_condition": ["active_moisture"]
+            },
+            "include_when": {
+              "moisture_condition": ["recently_wet"]
+            }
+          }
+        },
+        {
+          "task_id": "TSK_WLRP_ASSESS_COATING_ID",
+          "name": "Coating Identification — Latex vs Oil",
+          "description": "Determine existing coating type via solvent test: mineral spirits dissolves alkyd, does not dissolve latex. Critical for primer compatibility — latex over oil requires adhesion primer.",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "unit_of_measure": "EA_ROOM",
+          "appears_in_tiers": ["QT2", "QT3", "QT4", "QT5"]
+        }
+      ],
+      "sequence_notes": "Condition scan first → Adhesion test at suspect areas → Moisture eval at suspect areas → Coating ID. Assessment results determine which prep and prime tasks activate downstream."
+    },
+
+    {
+      "module_id": "MOD_RRP_INT_CONTAINMENT",
+      "name": "Lead-Safe RRP Containment (Shared Module)",
+      "description": "Shared lead-safe work practice module for all 9 interior RP specs. Conditional on home built before 1978. Includes lead test, containment setup, wet methods, HEPA vacuum, containment removal, and waste disposal. This module is NOT owned by this spec — it is a shared module referenced by all interior RP specs.",
+      "phase": "prep",
+      "applies_when": {
+        "home_pre_1978": true
+      },
+      "required_inputs": [
+        { "input_name": "IN_BOOL_HOME_PRE_1978", "paintscope_key": "PS_META.BOOL.HOME_PRE_1978", "uom": "BOOL" },
+        { "input_name": "IN_EA_ROOMS_TOTAL", "paintscope_key": "PS_META.EA.ROOMS_TOTAL", "uom": "EA" }
+      ],
+      "tasks": [
+        {
+          "task_id": "TSK_RRP_LEAD_TEST",
+          "name": "Lead Test (XRF or Swab)",
+          "description": "Perform lead test at representative areas. XRF preferred; lead swab test acceptable. Test at minimum 2 locations per room on different walls.",
+          "task_classification": "binary",
+          "skill_level": "lead",
+          "unit_of_measure": "EA_ROOM",
+          "appears_in_tiers": ["QT2", "QT3", "QT4", "QT5"]
+        },
+        {
+          "task_id": "TSK_RRP_CONTAINMENT_SETUP",
+          "name": "RRP Containment Setup",
+          "description": "Install containment: poly sheeting on floors and openings, warning signs at entry points, restrict entry to certified personnel only. Per EPA RRP Rule 40 CFR 745.",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "unit_of_measure": "EA_ROOM",
+          "appears_in_tiers": ["QT2", "QT3", "QT4", "QT5"],
+          "site_condition_rules": {
+            "include_when": {
+              "lead_status": ["tested_positive", "unknown_pre1978"]
+            },
+            "exclude_when": {
+              "lead_status": ["tested_negative", "not_applicable"]
+            }
+          }
+        },
+        {
+          "task_id": "TSK_RRP_HEPA_VACUUM",
+          "name": "HEPA Vacuum After Paint Disturbance",
+          "description": "HEPA vacuum all surfaces after each sanding/scraping disturbance to capture lead-contaminated dust. Required by EPA RRP Rule.",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "unit_of_measure": "EA_ROOM",
+          "appears_in_tiers": ["QT2", "QT3", "QT4", "QT5"],
+          "site_condition_rules": {
+            "include_when": {
+              "lead_status": ["tested_positive", "unknown_pre1978"]
+            }
+          }
+        },
+        {
+          "task_id": "TSK_RRP_CONTAINMENT_REMOVAL",
+          "name": "RRP Containment Removal and Visual Clearance",
+          "description": "Remove containment poly sheeting, perform visual clearance inspection. No visible dust or debris. Dispose containment materials per EPA RRP waste handling rules.",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "unit_of_measure": "EA_ROOM",
+          "appears_in_tiers": ["QT2", "QT3", "QT4", "QT5"],
+          "site_condition_rules": {
+            "include_when": {
+              "lead_status": ["tested_positive", "unknown_pre1978"]
+            }
+          }
+        },
+        {
+          "task_id": "TSK_RRP_WASTE_DISPOSAL",
+          "name": "Lead-Contaminated Waste Disposal",
+          "description": "Package and dispose of lead-contaminated debris, containment materials, and cleaning supplies per EPA RRP Rule. Label and transport to approved disposal facility.",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "unit_of_measure": "FIXED",
+          "appears_in_tiers": ["QT2", "QT3", "QT4", "QT5"],
+          "site_condition_rules": {
+            "include_when": {
+              "lead_status": ["tested_positive", "unknown_pre1978"]
+            }
+          }
+        }
+      ],
+      "sequence_notes": "Lead test first → If positive: containment setup → All prep tasks use wet methods → HEPA vacuum after each disturbance → Containment removal after all prep complete → Waste disposal."
+    },
+
+    {
+      "module_id": "MOD_WLRP_PREP",
+      "name": "Prep — Degloss, Scrape, Feather, Contamination Treatment, Fill, Dust Removal",
+      "description": "Condition-driven prep module. GOOD condition: degloss/scuff + dust wipe. FAIR condition: add scrape, feather, contamination treatment, fill/patch. POOR condition: full scrape, extensive feathering, contamination treatment, full fill. Prep pool modifiers apply: condition_scale x contamination_type x wall_access.",
+      "phase": "prep",
+      "applies_when": {},
+      "required_inputs": [
+        { "input_name": "IN_SF_WALL_FIELD", "paintscope_key": "PS_SURFACE_SF.WALL_FIELD", "uom": "SF" },
+        { "input_name": "IN_ENUM_SURFACE_CONDITION", "paintscope_key": "PS_META.SURFACE_CONDITION", "uom": "ENUM" },
+        { "input_name": "IN_ENUM_CONTAMINATION_TYPE", "paintscope_key": "PS_META.ENUM.CONTAMINATION_TYPE", "uom": "ENUM" }
+      ],
+      "tasks": [
+        {
+          "task_id": "TSK_WLRP_WASH_TSP",
+          "name": "TSP Wash for Surface Contamination",
+          "description": "TSP (trisodium phosphate) wash for grease film, kitchen residue, smoke residue, or general surface contamination. Wipe on, scrub, rinse, allow to dry. Required before degloss or coating application when contamination is present.",
+          "task_classification": "qt_scaled",
+          "skill_level": "helper",
+          "unit_of_measure": "SF",
+          "appears_in_tiers": ["QT2", "QT3", "QT4", "QT5"],
+          "applies_when": {
+            "contamination_type": ["mildew", "smoke", "water_stain", "grease"]
+          },
+          "quality_notes": {
+            "QT2": "Single pass with TSP solution, rinse",
+            "QT3": "Thorough wash, rinse, verify clean",
+            "QT4": "Systematic wash with rinse verification, work light check",
+            "QT5": "Multiple passes as needed until clean, full verification"
+          }
+        },
+        {
+          "task_id": "TSK_WLRP_TREAT_MILDEW",
+          "name": "Mildew/Biocide Treatment",
+          "description": "Apply bleach or mildewcide solution to mildew-affected areas. Allow full contact/kill time per product directions. Rinse and allow to dry completely. Source moisture must already be resolved (gate condition from assessment).",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "unit_of_measure": "SF",
+          "appears_in_tiers": ["QT2", "QT3", "QT4", "QT5"],
+          "applies_when": {
+            "contamination_type": ["mildew"]
+          },
+          "substrate_state_rules": {
+            "applies_when_input_state": ["SS_INT_MOISTURE_DAMAGE"],
+            "skip_when_input_state": ["SS_INT_SOUND_PAINT", "SS_INT_FAILING_PAINT", "SS_INT_PEELING", "SS_INT_SMOKE_DAMAGE"]
+          }
+        },
+        {
+          "task_id": "TSK_WLRP_SCRAPE_LOOSE",
+          "name": "Scrape Loose and Failing Paint",
+          "description": "Scrape all failing, peeling, flaking, or loose paint to sound substrate using putty knife or paint scraper. Work systematically section by section. Remove all non-adhering coating.",
+          "task_classification": "qt_scaled",
+          "skill_level": "journeyman",
+          "unit_of_measure": "SF",
+          "appears_in_tiers": ["QT2", "QT3", "QT4", "QT5"],
+          "applies_when": {
+            "condition_scale": ["FAIR", "POOR"]
+          },
+          "substrate_state_rules": {
+            "applies_when_input_state": ["SS_INT_FAILING_PAINT", "SS_INT_PEELING", "SS_INT_MOISTURE_DAMAGE"],
+            "skip_when_input_state": ["SS_INT_SOUND_PAINT", "SS_INT_SMOKE_DAMAGE"]
+          },
+          "quality_notes": {
+            "QT2": "Remove obviously loose material, major peeling areas",
+            "QT3": "Remove all failing paint, thorough scrape of affected areas",
+            "QT4": "Comprehensive scrape with careful edge work, identify all weak adhesion zones",
+            "QT5": "Critical scrape — near-zero tolerance for remaining loose material"
+          }
+        },
+        {
+          "task_id": "TSK_WLRP_FEATHER_EDGES",
+          "name": "Feather-Sand Scrape Edges",
+          "description": "Feather-sand all scrape edges to create smooth transition between bare substrate and remaining sound paint. Critical to prevent ridge telegraphing through finish coats. Non-negotiable at all tiers.",
+          "task_classification": "qt_scaled",
+          "skill_level": "journeyman",
+          "unit_of_measure": "SF",
+          "appears_in_tiers": ["QT2", "QT3", "QT4", "QT5"],
+          "applies_when": {
+            "condition_scale": ["FAIR", "POOR"]
+          },
+          "substrate_state_rules": {
+            "applies_when_input_state": ["SS_INT_FAILING_PAINT", "SS_INT_PEELING", "SS_INT_MOISTURE_DAMAGE"],
+            "skip_when_input_state": ["SS_INT_SOUND_PAINT", "SS_INT_SMOKE_DAMAGE"]
+          },
+          "quality_notes": {
+            "QT2": "Sand visible ridges, reasonable transition",
+            "QT3": "Smooth transition, no visible ridge at 6 ft",
+            "QT4": "Near-invisible transition, no ridge at 3 ft",
+            "QT5": "Perfect transition, no ridge at arm's length"
+          }
+        },
+        {
+          "task_id": "TSK_WLRP_DEGLOSS",
+          "name": "Degloss Existing Paint Surface",
+          "description": "Chemical degloss (liquid sander wipe-on) or mechanical scuff (120-150 grit sandpaper) to promote adhesion of new coating. Required on all sound paint surfaces. Chemical degloss is faster but requires dry time.",
+          "task_classification": "qt_scaled",
+          "skill_level": "journeyman",
+          "unit_of_measure": "SF",
+          "appears_in_tiers": ["QT2", "QT3", "QT4", "QT5"],
+          "substrate_state_rules": {
+            "applies_when_input_state": ["SS_INT_SOUND_PAINT", "SS_INT_FAILING_PAINT"],
+            "skip_when_input_state": ["SS_INT_PEELING", "SS_INT_MOISTURE_DAMAGE", "SS_INT_SMOKE_DAMAGE"],
+            "modifier_by_state": {
+              "SS_INT_SOUND_PAINT": 1.00,
+              "SS_INT_FAILING_PAINT": 1.15
+            }
+          },
+          "quality_notes": {
+            "QT2": "Quick scuff, chemical degloss acceptable",
+            "QT3": "Thorough degloss, all surfaces addressed",
+            "QT4": "Full degloss with adhesion verification",
+            "QT5": "Complete degloss with bonding verification and spot adhesion re-test"
+          }
+        },
+        {
+          "task_id": "TSK_WLRP_SPACKLE_DEFECTS",
+          "name": "Fill Wall Defects — Spackle",
+          "description": "Apply lightweight spackle to nail holes, dings, scrapes, minor damage, and scrape-transition areas. Feather edges for smooth transition.",
+          "task_classification": "qt_scaled",
+          "skill_level": "journeyman",
+          "unit_of_measure": "SF",
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "applies_when": {
+            "quality_tier": ["QT3", "QT4", "QT5"]
+          },
+          "quality_notes": {
+            "QT3": "Fill all visible defects, reasonable feathering",
+            "QT4": "Fill all defects with careful feathering, invisible repairs",
+            "QT5": "Near-zero defect tolerance, wide feathering, multiple thin coats as needed"
+          }
+        },
+        {
+          "task_id": "TSK_WLRP_SAND_SPACKLE",
+          "name": "Sand Spackled Areas",
+          "description": "Sand spackled areas smooth after dry. Use 150-180 grit. Blend repairs into surrounding surface.",
+          "task_classification": "qt_scaled",
+          "skill_level": "journeyman",
+          "unit_of_measure": "SF",
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "applies_when": {
+            "quality_tier": ["QT3", "QT4", "QT5"]
+          },
+          "quality_notes": {
+            "QT3": "Sand and blend, repair should not telegraph",
+            "QT4": "Sand perfectly smooth, repair invisible",
+            "QT5": "Sand to perfection, wet sponge test for smoothness"
+          }
+        },
+        {
+          "task_id": "TSK_WLRP_CAULK_ASSESS_REPLACE",
+          "name": "Assess and Replace Failed Caulk",
+          "description": "Inspect all existing caulk joints (wall-to-trim, wall-to-ceiling, corners). Remove and replace cracked, shrunk, or failed sections. RP differs from NC — NC applies new caulk to bare joints; RP assesses existing and replaces only failed sections.",
+          "task_classification": "qt_scaled",
+          "skill_level": "journeyman",
+          "unit_of_measure": "LF",
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "applies_when": {
+            "quality_tier": ["QT3", "QT4", "QT5"]
+          },
+          "quality_notes": {
+            "QT3": "Replace visibly failed sections",
+            "QT4": "Comprehensive assessment, replace all suspect joints",
+            "QT5": "Critical assessment, replace all joints not in perfect condition"
+          }
+        },
+        {
+          "task_id": "TSK_WLRP_DUST_WIPE",
+          "name": "Dust Wipe Wall Surfaces",
+          "description": "Wipe all wall surfaces with damp cloth or tack cloth to remove sanding dust, degloss residue, and debris before priming or finish coat application.",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "unit_of_measure": "SF",
+          "appears_in_tiers": ["QT2", "QT3", "QT4", "QT5"]
+        },
+        {
+          "task_id": "TSK_WLRP_VACUUM_DUST",
+          "name": "Vacuum Wall and Floor Dust After Prep",
+          "description": "HEPA vacuum wall surfaces and floor area to remove all prep dust (sanding, scraping, spackling) before coating application.",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "unit_of_measure": "SF",
+          "appears_in_tiers": ["QT2", "QT3", "QT4", "QT5"]
+        }
+      ],
+      "sequence_notes": "TSP wash (if contaminated) → Mildew treatment (if moisture damage) → Scrape loose paint (if FAIR/POOR) → Feather edges (if scraped) → Degloss (if sound/failing paint) → Spackle defects (QT3+) → Sand spackle (QT3+) → Caulk assess/replace (QT3+) → Dust wipe → Vacuum. All prep must be complete and dry before prime."
+    },
+
+    {
+      "module_id": "MOD_WLRP_PRIME",
+      "name": "Prime — State-Driven Primer Application",
+      "description": "State-driven primer module. Primer product selection determined by substrate state: SS_INT_SOUND_PAINT may skip prime or use adhesion primer; SS_INT_FAILING_PAINT/PEELING use adhesion primer (spot or full); SS_INT_MOISTURE_DAMAGE uses mildew-resistant primer; SS_INT_SMOKE_DAMAGE uses shellac stain-blocker (full surface). Application method matches finish method (roll/spray_backroll/spray).",
+      "phase": "prime",
+      "applies_when": {},
+      "required_inputs": [
+        { "input_name": "IN_SF_WALL_FIELD", "paintscope_key": "PS_SURFACE_SF.WALL_FIELD", "uom": "SF" },
+        { "input_name": "IN_LF_EDGE_TO_CEILING", "paintscope_key": "PS_EDGE_LF.TO_CEILING", "uom": "LF" },
+        { "input_name": "IN_ENUM_SUBSTRATE_STATE_INT", "paintscope_key": "PS_META.ENUM.SUBSTRATE_STATE_INT", "uom": "ENUM" }
+      ],
+      "tasks": [
+        {
+          "task_id": "TSK_WLRP_CUTIN_PRIMER_CEILING",
+          "name": "Cut-In Primer at Ceiling Line",
+          "description": "Brush-cut primer along wall-to-ceiling boundary. Freehand cut-in — do NOT mask drywall ceilings. Clean line extending 2-3 inches down wall for roller overlap.",
+          "task_type": "apply",
+          "task_classification": "qt_scaled",
+          "skill_level": "journeyman",
+          "unit_of_measure": "LF",
+          "appears_in_tiers": ["QT2", "QT3", "QT4", "QT5"],
+          "applies_when": {
+            "application_method": ["roll"]
+          },
+          "adjacency_metadata": {
+            "adjacent_surface": "ceiling_field",
+            "condition": "different_finish",
+            "skip_when": "never",
+            "rate_modifier_category": "cut_in",
+            "application_method": "brush_roll"
+          },
+          "substrate_state_rules": {
+            "skip_when_input_state": ["SS_INT_SOUND_PAINT"]
+          },
+          "quality_notes": {
+            "QT2": "Acceptable edge, minor wavering tolerated",
+            "QT3": "Clean, consistent edge",
+            "QT4": "Crisp edge with minimal brush marks",
+            "QT5": "Perfect edge, straight line"
+          }
+        },
+        {
+          "task_id": "TSK_WLRP_ROLL_PRIMER",
+          "name": "Roll Primer on Wall",
+          "description": "Apply state-driven primer to wall field using 9-inch roller. Primer product varies by substrate state: adhesion primer for failing/peeling, mildew-resistant for moisture damage, shellac stain-blocker for smoke damage. W pattern, maintain wet edge.",
+          "task_classification": "qt_scaled",
+          "skill_level": "journeyman",
+          "unit_of_measure": "SF",
+          "appears_in_tiers": ["QT2", "QT3", "QT4", "QT5"],
+          "applies_when": {
+            "application_method": ["roll"]
+          },
+          "substrate_state_rules": {
+            "applies_when_input_state": ["SS_INT_FAILING_PAINT", "SS_INT_PEELING", "SS_INT_MOISTURE_DAMAGE", "SS_INT_SMOKE_DAMAGE"],
+            "skip_when_input_state": ["SS_INT_SOUND_PAINT"]
+          },
+          "quality_notes": {
+            "all": "No application defects — no drips, sags, holidays, or lap marks. Surface must be uniformly sealed."
+          }
+        },
+        {
+          "task_id": "TSK_WLRP_SPRAY_PRIMER",
+          "name": "Spray Primer on Wall",
+          "description": "Apply state-driven primer via airless sprayer. Proper distance, 50% overlap, consistent speed. Spray directly into wall-to-ceiling corner (no cut-in needed for spray). Primer product varies by substrate state.",
+          "task_classification": "qt_scaled",
+          "skill_level": "journeyman",
+          "unit_of_measure": "SF",
+          "appears_in_tiers": ["QT2", "QT3", "QT4", "QT5"],
+          "applies_when": {
+            "application_method": ["spray_backroll", "spray"]
+          },
+          "substrate_state_rules": {
+            "applies_when_input_state": ["SS_INT_FAILING_PAINT", "SS_INT_PEELING", "SS_INT_MOISTURE_DAMAGE", "SS_INT_SMOKE_DAMAGE"],
+            "skip_when_input_state": ["SS_INT_SOUND_PAINT"]
+          },
+          "quality_notes": {
+            "all": "No application defects — uniform coverage, proper mil thickness."
+          }
+        },
+        {
+          "task_id": "TSK_WLRP_BACKROLL_PRIMER",
+          "name": "Backroll Sprayed Primer",
+          "description": "Immediately follow spray with roller to consolidate primer. Use 18-inch roller on extension pole. Backroll is MANDATORY for primer on previously painted surfaces to ensure adhesion and eliminate air pockets.",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "unit_of_measure": "SF",
+          "appears_in_tiers": ["QT2", "QT3", "QT4", "QT5"],
+          "applies_when": {
+            "application_method": ["spray_backroll"]
+          },
+          "substrate_state_rules": {
+            "applies_when_input_state": ["SS_INT_FAILING_PAINT", "SS_INT_PEELING", "SS_INT_MOISTURE_DAMAGE", "SS_INT_SMOKE_DAMAGE"],
+            "skip_when_input_state": ["SS_INT_SOUND_PAINT"]
+          },
+          "quality_notes": {
+            "all": "Primer fully consolidated. No air pockets. Backroller follows sprayer closely."
+          }
+        },
+        {
+          "task_id": "TSK_WLRP_SPOT_PRIME",
+          "name": "Spot Prime Scraped/Repaired Areas",
+          "description": "Apply spot primer to all scraped areas, feathered edges, spackled repairs, and exposed substrate. Prevents flashing from differential absorption. For GOOD condition when only localized areas need attention.",
+          "task_classification": "qt_scaled",
+          "skill_level": "journeyman",
+          "unit_of_measure": "SF",
+          "appears_in_tiers": ["QT2", "QT3", "QT4", "QT5"],
+          "quality_notes": {
+            "QT2": "Spot prime major repair areas",
+            "QT3": "Spot prime all spackled and scraped areas",
+            "QT4": "Spot prime all repairs with feathered edges",
+            "QT5": "Spot prime all repairs with wide feather, may need light sand after"
+          }
+        }
+      ],
+      "sequence_notes": "Cut-in primer at ceiling (roll method only) → Roll/spray primer → Backroll (spray_backroll method). Spot prime is independent — used for localized repairs regardless of full-prime status. Skip entire module for SS_INT_SOUND_PAINT when adhesion test passes."
+    },
+
+    {
+      "module_id": "MOD_WLRP_INTERSTAGE",
+      "name": "Interstage — Between Coats",
+      "description": "Interstage maintenance between coats. QT4/QT5: light sand, vacuum dust, inspect, patch defects, spot coat. QT3: spot sand patches only if necessary. Run rule: AFTER each coat EXCEPT the final coat.",
+      "phase": "interstage",
+      "applies_when": {
+        "quality_tier": ["QT3", "QT4", "QT5"]
+      },
+      "required_inputs": [
+        { "input_name": "IN_SF_WALL_FIELD", "paintscope_key": "PS_SURFACE_SF.WALL_FIELD", "uom": "SF" }
+      ],
+      "run_rule": "Runs AFTER each coat EXCEPT the final coat. For prime+2finish: runs after prime, after finish coat 1. For 2finish (no prime): runs after finish coat 1.",
+      "run_count_formula": "total_coats - 1",
+      "tasks": [
+        {
+          "task_id": "TSK_WLRP_LIGHT_SAND_BETWEEN_COATS",
+          "name": "Light Sand Between Coats",
+          "description": "Light sand previous coat with 220 grit pole sander to smooth nibs, imperfections, and raised grain before next coat.",
+          "task_classification": "qt_conditional",
+          "skill_level": "journeyman",
+          "unit_of_measure": "SF",
+          "applies_when": { "quality_tier": ["QT4"] },
+          "appears_in_tiers": ["QT4"],
+          "quality_notes": {
+            "QT4": "Light even pass to smooth nibs"
+          }
+        },
+        {
+          "task_id": "TSK_WLRP_LIGHT_SAND_BETWEEN_COATS_QT5",
+          "name": "Light Sand Between Coats (Critical)",
+          "description": "Careful sanding between coats with inspection under work light. Critical for satin/semi-gloss finishes where every imperfection shows.",
+          "task_classification": "qt_conditional",
+          "skill_level": "journeyman",
+          "unit_of_measure": "SF",
+          "applies_when": { "quality_tier": ["QT5"] },
+          "appears_in_tiers": ["QT5"],
+          "quality_notes": {
+            "QT5": "Careful sanding with raking light inspection. Critical for satin/semi-gloss."
+          }
+        },
+        {
+          "task_id": "TSK_WLRP_VACUUM_INTERCOAT_DUST",
+          "name": "Vacuum Intercoat Sanding Dust",
+          "description": "Remove sanding dust from walls before applying next coat. HEPA vacuum with brush attachment or tack cloth follow-up.",
+          "task_classification": "qt_conditional",
+          "skill_level": "helper",
+          "unit_of_measure": "SF",
+          "applies_when": { "quality_tier": ["QT4", "QT5"] },
+          "appears_in_tiers": ["QT4", "QT5"]
+        },
+        {
+          "task_id": "TSK_WLRP_INSPECT_BETWEEN_COATS",
+          "name": "Inspect Between Coats",
+          "description": "Visual inspection of previous coat before applying next. Identify holidays, drips, lap marks, or imperfections requiring touch-up.",
+          "task_classification": "qt_scaled",
+          "skill_level": "journeyman",
+          "unit_of_measure": "SF",
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": {
+            "QT3": "Standard visual inspection, note obvious defects",
+            "QT4": "Systematic inspection with work light",
+            "QT5": "Critical inspection with raking light, multiple passes"
+          }
+        },
+        {
+          "task_id": "TSK_WLRP_PATCH_DEFECTS_INTERSTAGE",
+          "name": "Patch Interstage Defects",
+          "description": "Spackle and sand any defects found during intercoat inspection: drips, sags, missed spots, raised nap.",
+          "task_classification": "qt_scaled",
+          "skill_level": "journeyman",
+          "unit_of_measure": "SF",
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": {
+            "QT3": "Repair obvious defects",
+            "QT4": "Repair all identified defects",
+            "QT5": "Repair all defects with wide feathering, near-zero tolerance"
+          }
+        },
+        {
+          "task_id": "TSK_WLRP_SPOT_COAT_INTERSTAGE",
+          "name": "Spot Coat Patched Areas",
+          "description": "Apply spot coat of finish paint to patched areas to equalize absorption before full next coat.",
+          "task_classification": "qt_scaled",
+          "skill_level": "journeyman",
+          "unit_of_measure": "SF",
+          "appears_in_tiers": ["QT3", "QT4", "QT5"]
+        }
+      ],
+      "sequence_notes": "Inspect → Patch defects → Spot coat patches → Light sand (QT4/QT5) → Vacuum dust → Next coat. QT2 has no interstage (single coat). QT3 has inspect + patch only (no full sanding)."
+    },
+
+    {
+      "module_id": "MOD_WLRP_FINISH",
+      "name": "Finish — Cut-In + Field Application (Roll / Spray_Backroll / Spray)",
+      "description": "Finish coat application module. DIRECT transfer from NC wall finish — once surface is properly prepped and primed, finish application is identical. Includes cut-in at ceiling line, cut-in at trim tape lines, and field application via roll/spray_backroll/spray. QT2=1 coat, QT3+=2 coats.",
+      "phase": "finish",
+      "applies_when": {},
+      "required_inputs": [
+        { "input_name": "IN_SF_WALL_FIELD", "paintscope_key": "PS_SURFACE_SF.WALL_FIELD", "uom": "SF" },
+        { "input_name": "IN_LF_EDGE_TO_CEILING", "paintscope_key": "PS_EDGE_LF.TO_CEILING", "uom": "LF" },
+        { "input_name": "IN_LF_EDGE_TO_TRIM", "paintscope_key": "PS_EDGE_LF.TO_TRIM", "uom": "LF" }
+      ],
+      "tasks": [
+        {
+          "task_id": "TSK_WLRP_CUTIN_CEILING_R1",
+          "name": "Cut-In Wall at Ceiling Line (Finish Coat 1)",
+          "description": "Freehand brush-cut finish paint along wall-to-ceiling boundary. Wall painter establishes the clean ceiling line. Do NOT mask drywall ceilings.",
+          "task_type": "apply",
+          "task_classification": "qt_scaled",
+          "skill_level": "journeyman",
+          "unit_of_measure": "LF",
+          "appears_in_tiers": ["QT2", "QT3", "QT4", "QT5"],
+          "adjacency_metadata": {
+            "adjacent_surface": "ceiling_field",
+            "condition": "different_finish",
+            "skip_when": "never",
+            "rate_modifier_category": "cut_in",
+            "application_method": "brush_roll"
+          },
+          "quality_notes": {
+            "QT2": "Acceptable if neat, minor wobble tolerated",
+            "QT3": "Reasonably straight line at 6 ft viewing distance",
+            "QT4": "Clean line, no visible wobble at 3 ft",
+            "QT5": "Crisp line, no visible wobble at arm's length"
+          }
+        },
+        {
+          "task_id": "TSK_WLRP_CUTIN_CEILING_R2",
+          "name": "Cut-In Wall at Ceiling Line (Finish Coat 2)",
+          "description": "Cut-in ceiling line for second finish coat. Same technique as first coat.",
+          "task_type": "apply",
+          "task_classification": "qt_scaled",
+          "skill_level": "journeyman",
+          "unit_of_measure": "LF",
+          "applies_when": { "quality_tier": ["QT3", "QT4", "QT5"] },
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "adjacency_metadata": {
+            "adjacent_surface": "ceiling_field",
+            "condition": "different_finish",
+            "skip_when": "never",
+            "rate_modifier_category": "cut_in",
+            "application_method": "brush_roll"
+          }
+        },
+        {
+          "task_id": "TSK_WLRP_CUTIN_TRIM_R1",
+          "name": "Cut-In Wall at Trim Tape Lines (Coat 1)",
+          "description": "Cut in wall paint at baseboard, door casing, and window casing tape lines. Cut into tape edge for clean reveal when tape is removed.",
+          "task_type": "apply",
+          "task_classification": "qt_scaled",
+          "skill_level": "journeyman",
+          "unit_of_measure": "LF",
+          "appears_in_tiers": ["QT2", "QT3", "QT4", "QT5"],
+          "adjacency_metadata": {
+            "adjacent_surface": "trim_baseboard",
+            "condition": "different_finish",
+            "skip_when": null,
+            "rate_modifier_category": "cut_in"
+          }
+        },
+        {
+          "task_id": "TSK_WLRP_CUTIN_TRIM_R2",
+          "name": "Cut-In Wall at Trim Tape Lines (Coat 2)",
+          "description": "Cut-in trim edges for second finish coat.",
+          "task_type": "apply",
+          "task_classification": "qt_scaled",
+          "skill_level": "journeyman",
+          "unit_of_measure": "LF",
+          "applies_when": { "quality_tier": ["QT3", "QT4", "QT5"] },
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "adjacency_metadata": {
+            "adjacent_surface": "trim_baseboard",
+            "condition": "different_finish",
+            "skip_when": null,
+            "rate_modifier_category": "cut_in"
+          }
+        },
+        {
+          "task_id": "TSK_WLRP_ROLL_FINISH_R1",
+          "name": "Roll Wall Finish Coat 1",
+          "description": "Apply wall finish paint using 9-inch or 18-inch roller with extension pole. W pattern, maintain wet edge. Roll into cut-in areas at ceiling and trim edges.",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "unit_of_measure": "SF",
+          "appears_in_tiers": ["QT2", "QT3", "QT4", "QT5"],
+          "applies_when": { "application_method": ["roll"] },
+          "quality_notes": {
+            "QT2": "Full coverage, minor lap marks acceptable",
+            "QT3": "Even coverage, minimal lap marks",
+            "QT4": "Uniform coverage, no visible lap marks",
+            "QT5": "Critical application — uniform coverage, perfect technique"
+          }
+        },
+        {
+          "task_id": "TSK_WLRP_ROLL_FINISH_R2",
+          "name": "Roll Wall Finish Coat 2",
+          "description": "Apply second wall finish coat. Same technique as first coat.",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "unit_of_measure": "SF",
+          "applies_when": { "quality_tier": ["QT3", "QT4", "QT5"], "application_method": ["roll"] },
+          "appears_in_tiers": ["QT3", "QT4", "QT5"]
+        },
+        {
+          "task_id": "TSK_WLRP_SPRAY_FINISH_R1",
+          "name": "Spray Wall Finish Coat 1",
+          "description": "Apply wall finish paint via airless sprayer. Maintain proper distance, 50% overlap, consistent speed.",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "unit_of_measure": "SF",
+          "appears_in_tiers": ["QT2", "QT3", "QT4", "QT5"],
+          "applies_when": { "application_method": ["spray_backroll", "spray"] },
+          "quality_notes": {
+            "all": "No application defects — uniform coverage, proper mil thickness."
+          }
+        },
+        {
+          "task_id": "TSK_WLRP_BACKROLL_FINISH_R1",
+          "name": "Backroll Wall Finish Coat 1",
+          "description": "Immediately follow spray with 18-inch roller to consolidate paint, eliminate air pockets, and level finish. Backroller sets pace for sprayer.",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "unit_of_measure": "SF",
+          "appears_in_tiers": ["QT2", "QT3", "QT4", "QT5"],
+          "applies_when": { "application_method": ["spray_backroll"] },
+          "quality_notes": {
+            "all": "Complete backroll, even finish. Backroller follows sprayer closely."
+          }
+        },
+        {
+          "task_id": "TSK_WLRP_SPRAY_FINISH_R2",
+          "name": "Spray Wall Finish Coat 2",
+          "description": "Apply second wall finish coat via airless sprayer.",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "unit_of_measure": "SF",
+          "applies_when": { "quality_tier": ["QT3", "QT4", "QT5"], "application_method": ["spray_backroll", "spray"] },
+          "appears_in_tiers": ["QT3", "QT4", "QT5"]
+        },
+        {
+          "task_id": "TSK_WLRP_BACKROLL_FINISH_R2",
+          "name": "Backroll Wall Finish Coat 2",
+          "description": "Backroll second finish coat immediately after spray.",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "unit_of_measure": "SF",
+          "applies_when": { "quality_tier": ["QT3", "QT4", "QT5"], "application_method": ["spray_backroll"] },
+          "appears_in_tiers": ["QT3", "QT4", "QT5"]
+        }
+      ],
+      "sequence_notes": "Cut-in ceiling → Cut-in trim → Roll/Spray field → Backroll (spray_backroll). QT2 is single coat. QT3+ is two coats with interstage between."
+    },
+
+    {
+      "module_id": "MOD_WLRP_CLEANUP",
+      "name": "Cleanup — Protection Teardown, Furniture Replace, Customer Walkthrough",
+      "description": "Full cleanup module for interior wall repaint. Remove trim masking, fixture covers, floor protection. Replace furniture (occupied homes). Vacuum floors. Clean tools. Customer walkthrough (RP-specific). Final inspection.",
+      "phase": "cleanup",
+      "applies_when": {},
+      "required_inputs": [
+        { "input_name": "IN_SF_FLOOR_VACUUM_AREA", "paintscope_key": "PS_META.SF.FLOOR_VACUUM_AREA", "uom": "SF" },
+        { "input_name": "IN_EA_ROOMS_TOTAL", "paintscope_key": "PS_META.EA.ROOMS_TOTAL", "uom": "EA" },
+        { "input_name": "IN_SF_WALL_FIELD", "paintscope_key": "PS_SURFACE_SF.WALL_FIELD", "uom": "SF" }
+      ],
+      "tasks": [
+        {
+          "task_id": "TSK_WLRP_REMOVE_TRIM_MASKING",
+          "name": "Remove Trim Masking Tape",
+          "description": "Remove masking tape from baseboard, door casing, and window casing edges. Pull at angle for clean release. This spec installed the tape, this spec removes it.",
+          "task_type": "protect",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "unit_of_measure": "LF",
+          "appears_in_tiers": ["QT2", "QT3", "QT4", "QT5"],
+          "protection_metadata": {
+            "action": "teardown",
+            "zones": ["trim_edges"],
+            "method_dependent": false
+          }
+        },
+        {
+          "task_id": "TSK_WLRP_REMOVE_FIXTURE_COVERS",
+          "name": "Remove Fixture Covers",
+          "description": "Remove tape, paper, and plastic from outlets, switches, and wall-mounted fixtures.",
+          "task_type": "protect",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "unit_of_measure": "EA",
+          "appears_in_tiers": ["QT2", "QT3", "QT4", "QT5"],
+          "applies_when": { "application_method": ["spray_backroll", "spray"] },
+          "protection_metadata": {
+            "action": "teardown",
+            "zones": ["fixture_covers"],
+            "method_dependent": true
+          }
+        },
+        {
+          "task_id": "TSK_WLRP_FLOOR_PROTECT_TEARDOWN",
+          "name": "Floor Protection Teardown",
+          "description": "Remove floor protection (drop cloths or rosin paper/plastic). Fold toward center to contain debris.",
+          "task_type": "protect",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "unit_of_measure": "SF",
+          "appears_in_tiers": ["QT2", "QT3", "QT4", "QT5"],
+          "protection_metadata": {
+            "action": "teardown",
+            "zones": ["floor_perimeter", "floor_full"],
+            "method_dependent": true
+          }
+        },
+        {
+          "task_id": "TSK_WLRP_FURNITURE_REPLACE",
+          "name": "Replace Furniture to Original Positions",
+          "description": "Remove poly covers, return furniture to original positions, verify no paint damage to contents. Check for paint spatter on furniture, electronics, and flooring under furniture area.",
+          "task_type": "protect",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "unit_of_measure": "EA_ROOM",
+          "appears_in_tiers": ["QT2", "QT3", "QT4", "QT5"],
+          "protection_metadata": {
+            "action": "teardown",
+            "zones": ["furniture_room"],
+            "method_dependent": false
+          },
+          "site_condition_rules": {
+            "include_when": {
+              "occupancy_state": ["occupied_crew_handles", "occupied_sensitive"]
+            },
+            "exclude_when": {
+              "occupancy_state": ["vacant", "vacant_with_fixtures"]
+            }
+          }
+        },
+        {
+          "task_id": "TSK_WLRP_VACUUM_FLOORS",
+          "name": "Vacuum Floors",
+          "description": "Vacuum floor area to remove paint drips, overspray debris, sanding dust, and general work debris.",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "unit_of_measure": "SF",
+          "appears_in_tiers": ["QT2", "QT3", "QT4", "QT5"]
+        },
+        {
+          "task_id": "TSK_WLRP_CLEAN_TOOLS",
+          "name": "Clean Tools",
+          "description": "Clean brushes, rollers, spray equipment with water (latex) or denatured alcohol (shellac stain-blocker cleanup). Store or dispose properly.",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "unit_of_measure": "FIXED",
+          "appears_in_tiers": ["QT2", "QT3", "QT4", "QT5"]
+        },
+        {
+          "task_id": "TSK_WLRP_FINAL_INSPECT",
+          "name": "Final Wall Inspection",
+          "description": "Walk and inspect all painted wall surfaces. Check for holidays, lap marks, coverage issues, edge quality. Touch up as needed.",
+          "task_classification": "qt_scaled",
+          "skill_level": "journeyman",
+          "unit_of_measure": "SF",
+          "applies_when": { "quality_tier": ["QT2", "QT3"] },
+          "appears_in_tiers": ["QT2", "QT3"],
+          "quality_notes": {
+            "QT2": "Quick visual for major misses, ambient light",
+            "QT3": "Thorough visual with work light, address visible defects"
+          }
+        },
+        {
+          "task_id": "TSK_WLRP_FINAL_INSPECT_QT4",
+          "name": "Final Wall Inspection (Premium)",
+          "description": "Detailed inspection of all painted wall surfaces with work light. Systematic scan at 3 ft distance. Perfect finish expected.",
+          "task_classification": "qt_scaled",
+          "skill_level": "journeyman",
+          "unit_of_measure": "SF",
+          "applies_when": { "quality_tier": ["QT4"] },
+          "appears_in_tiers": ["QT4"]
+        },
+        {
+          "task_id": "TSK_WLRP_FINAL_INSPECT_QT5",
+          "name": "Final Wall Inspection (Critical)",
+          "description": "Critical inspection under raking light for satin/semi-gloss finish. Arm's length distance. Any imperfection must be addressed.",
+          "task_classification": "qt_scaled",
+          "skill_level": "journeyman",
+          "unit_of_measure": "SF",
+          "applies_when": { "quality_tier": ["QT5"] },
+          "appears_in_tiers": ["QT5"]
+        },
+        {
+          "task_id": "TSK_WLRP_TOUCHUP",
+          "name": "Touch-Up Defects Found During Inspection",
+          "description": "Brush or mini-roll touch-up on defects identified during final inspection. Holidays, thin spots, edge issues, drips.",
+          "task_classification": "qt_scaled",
+          "skill_level": "journeyman",
+          "unit_of_measure": "SF",
+          "appears_in_tiers": ["QT2", "QT3", "QT4", "QT5"],
+          "quality_notes": {
+            "QT2": "Address major misses only",
+            "QT3": "Address all identified defects",
+            "QT4": "Meticulous touch-up, blend into surrounding finish",
+            "QT5": "Critical touch-up, perfect blend, no visible repair"
+          }
+        },
+        {
+          "task_id": "TSK_WLRP_CUSTOMER_WALKTHROUGH",
+          "name": "Customer Walkthrough",
+          "description": "Post-completion room-by-room review with homeowner. Walk each painted room together, identify any touch-up needs, confirm satisfaction, note punch list items. RP-specific — does not exist in NC.",
+          "task_classification": "binary",
+          "skill_level": "lead",
+          "unit_of_measure": "EA_ROOM",
+          "appears_in_tiers": ["QT2", "QT3", "QT4", "QT5"],
+          "site_condition_rules": {
+            "include_when": {
+              "occupancy_state": ["occupied_crew_handles", "occupied_sensitive"]
+            },
+            "exclude_when": {
+              "occupancy_state": ["vacant", "vacant_with_fixtures"]
+            }
+          }
+        }
+      ],
+      "sequence_notes": "Remove trim masking → Remove fixture covers → Floor protection teardown → Vacuum floors → Final inspection → Touch-up → Replace furniture → Clean tools → Customer walkthrough. Customer walkthrough is the final task before departure."
+    }
+  ],
+
+  "round_configurations": [
+    {
+      "round_id": "ROUND_WLRP_PRIME_2FINISH",
+      "name": "Full Repaint — Prime + 2 Finish Coats",
+      "description": "Standard full repaint for FAIR/POOR condition. Assessment drives primer selection. Full prep, state-driven primer, 2 finish coats with interstage.",
+      "applies_when": {
+        "quality_tier": ["QT3", "QT4", "QT5"],
+        "condition_scale": ["FAIR", "POOR"]
+      },
+      "module_sequence": [
+        "MOD_WLRP_SETUP",
+        "MOD_WLRP_ASSESSMENT",
+        "MOD_RRP_INT_CONTAINMENT",
+        "MOD_WLRP_PREP",
+        "MOD_WLRP_PRIME",
+        "MOD_WLRP_INTERSTAGE",
+        "MOD_WLRP_FINISH",
+        "MOD_WLRP_INTERSTAGE",
+        "MOD_WLRP_FINISH",
+        "MOD_WLRP_CLEANUP"
+      ],
+      "coat_counts": {
+        "primer": 1,
+        "finish": 2,
+        "interstage_runs": 2
+      },
+      "notes": "Full execution path. RRP module conditional on home_pre_1978. Interstage runs after primer (before finish 1) and after finish 1 (before finish 2)."
+    },
+    {
+      "round_id": "ROUND_WLRP_PRIME_1FINISH",
+      "name": "Economy Repaint — Prime + 1 Finish Coat",
+      "description": "QT2 economy repaint for FAIR/POOR condition. Assessment, full prep, state-driven primer, single finish coat.",
+      "applies_when": {
+        "quality_tier": ["QT2"],
+        "condition_scale": ["FAIR", "POOR"]
+      },
+      "module_sequence": [
+        "MOD_WLRP_SETUP",
+        "MOD_WLRP_ASSESSMENT",
+        "MOD_RRP_INT_CONTAINMENT",
+        "MOD_WLRP_PREP",
+        "MOD_WLRP_PRIME",
+        "MOD_WLRP_FINISH",
+        "MOD_WLRP_CLEANUP"
+      ],
+      "coat_counts": {
+        "primer": 1,
+        "finish": 1,
+        "interstage_runs": 0
+      },
+      "notes": "QT2 single coat economy. No interstage sanding. Roll-only application."
+    },
+    {
+      "round_id": "ROUND_WLRP_NOPRIME_2FINISH",
+      "name": "Cosmetic Refresh — No Prime + 2 Finish Coats",
+      "description": "GOOD condition repaint where adhesion test passes and surface is sound. Skip primer, apply 2 finish coats. Standard for QT3-QT5 on sound paint.",
+      "applies_when": {
+        "quality_tier": ["QT3", "QT4", "QT5"],
+        "condition_scale": ["GOOD"]
+      },
+      "module_sequence": [
+        "MOD_WLRP_SETUP",
+        "MOD_WLRP_ASSESSMENT",
+        "MOD_WLRP_PREP",
+        "MOD_WLRP_FINISH",
+        "MOD_WLRP_INTERSTAGE",
+        "MOD_WLRP_FINISH",
+        "MOD_WLRP_CLEANUP"
+      ],
+      "coat_counts": {
+        "primer": 0,
+        "finish": 2,
+        "interstage_runs": 1
+      },
+      "notes": "Most common scenario for residential repaint. Sound paint, degloss + 2 finish coats. No primer needed when adhesion test passes. RRP module excluded — GOOD condition unlikely to have lead disturbance (no scraping)."
+    },
+    {
+      "round_id": "ROUND_WLRP_NOPRIME_1FINISH",
+      "name": "Economy Refresh — No Prime + 1 Finish Coat",
+      "description": "QT2 economy refresh for GOOD condition. Minimal prep, no primer, single finish coat. Landlord refresh, rental turnover.",
+      "applies_when": {
+        "quality_tier": ["QT2"],
+        "condition_scale": ["GOOD"]
+      },
+      "module_sequence": [
+        "MOD_WLRP_SETUP",
+        "MOD_WLRP_ASSESSMENT",
+        "MOD_WLRP_PREP",
+        "MOD_WLRP_FINISH",
+        "MOD_WLRP_CLEANUP"
+      ],
+      "coat_counts": {
+        "primer": 0,
+        "finish": 1,
+        "interstage_runs": 0
+      },
+      "notes": "Fastest execution path. QT2, GOOD condition, single coat. Most common rental turnover scenario."
+    }
+  ],
+
+  "required_inputs": [
+    { "input_name": "IN_SF_WALL_FIELD", "paintscope_key": "PS_SURFACE_SF.WALL_FIELD", "uom": "SF" },
+    { "input_name": "IN_LF_EDGE_TO_CEILING", "paintscope_key": "PS_EDGE_LF.TO_CEILING", "uom": "LF" },
+    { "input_name": "IN_LF_EDGE_TO_TRIM", "paintscope_key": "PS_EDGE_LF.TO_TRIM", "uom": "LF" },
+    { "input_name": "IN_SF_PROTECT_FLOOR_PERIMETER", "paintscope_key": "PS_PROTECT_SF.FLOOR_PERIMETER", "uom": "SF" },
+    { "input_name": "IN_SF_PROTECT_FLOOR_EXPOSED", "paintscope_key": "PS_PROTECT_SF.FLOOR_EXPOSED", "uom": "SF" },
+    { "input_name": "IN_EA_ROOMS_TOTAL", "paintscope_key": "PS_META.EA.ROOMS_TOTAL", "uom": "EA" },
+    { "input_name": "IN_SF_FLOOR_VACUUM_AREA", "paintscope_key": "PS_META.SF.FLOOR_VACUUM_AREA", "uom": "SF" },
+    { "input_name": "IN_SF_PROTECT_FURNITURE_ROOM", "paintscope_key": "PS_PROTECT_SF.FURNITURE_ROOM", "uom": "SF" },
+    { "input_name": "IN_LF_PROTECT_TRIM_EDGES", "paintscope_key": "PS_PROTECT_LF.TRIM_EDGES", "uom": "LF" },
+    { "input_name": "IN_ENUM_SURFACE_CONDITION", "paintscope_key": "PS_META.SURFACE_CONDITION", "uom": "ENUM" },
+    { "input_name": "IN_ENUM_SURFACE_TEXTURE", "paintscope_key": "PS_META.SURFACE_TEXTURE", "uom": "ENUM" },
+    { "input_name": "IN_ENUM_HEIGHT_BAND", "paintscope_key": "PS_META.HEIGHT_BAND", "uom": "ENUM" },
+    { "input_name": "IN_ENUM_SUBSTRATE_STATE_INT", "paintscope_key": "PS_META.ENUM.SUBSTRATE_STATE_INT", "uom": "ENUM" },
+    { "input_name": "IN_BOOL_HOME_PRE_1978", "paintscope_key": "PS_META.BOOL.HOME_PRE_1978", "uom": "BOOL" },
+    { "input_name": "IN_ENUM_CONTAMINATION_TYPE", "paintscope_key": "PS_META.ENUM.CONTAMINATION_TYPE", "uom": "ENUM" }
+  ],
+
+  "module_task_map": {
+    "MOD_WLRP_SETUP": [
+      "TSK_WLRP_FURNITURE_MOVE", "TSK_WLRP_FURNITURE_COVER",
+      "TSK_WLRP_FLOOR_PROTECT_PERIMETER_SETUP", "TSK_WLRP_FLOOR_PROTECT_FULL_SETUP",
+      "TSK_WLRP_MASK_TRIM_BASEBOARD", "TSK_WLRP_MASK_TRIM_DOOR_CASING", "TSK_WLRP_MASK_TRIM_WINDOW_CASING",
+      "TSK_WLRP_FIXTURE_COVERS_SETUP"
+    ],
+    "MOD_WLRP_ASSESSMENT": [
+      "TSK_WLRP_ASSESS_CONDITION", "TSK_WLRP_ASSESS_ADHESION",
+      "TSK_WLRP_ASSESS_MOISTURE", "TSK_WLRP_ASSESS_COATING_ID"
+    ],
+    "MOD_RRP_INT_CONTAINMENT": [
+      "TSK_RRP_LEAD_TEST", "TSK_RRP_CONTAINMENT_SETUP",
+      "TSK_RRP_HEPA_VACUUM", "TSK_RRP_CONTAINMENT_REMOVAL", "TSK_RRP_WASTE_DISPOSAL"
+    ],
+    "MOD_WLRP_PREP": [
+      "TSK_WLRP_WASH_TSP", "TSK_WLRP_TREAT_MILDEW",
+      "TSK_WLRP_SCRAPE_LOOSE", "TSK_WLRP_FEATHER_EDGES",
+      "TSK_WLRP_DEGLOSS", "TSK_WLRP_SPACKLE_DEFECTS", "TSK_WLRP_SAND_SPACKLE",
+      "TSK_WLRP_CAULK_ASSESS_REPLACE", "TSK_WLRP_DUST_WIPE", "TSK_WLRP_VACUUM_DUST"
+    ],
+    "MOD_WLRP_PRIME": [
+      "TSK_WLRP_CUTIN_PRIMER_CEILING", "TSK_WLRP_ROLL_PRIMER",
+      "TSK_WLRP_SPRAY_PRIMER", "TSK_WLRP_BACKROLL_PRIMER", "TSK_WLRP_SPOT_PRIME"
+    ],
+    "MOD_WLRP_INTERSTAGE": [
+      "TSK_WLRP_LIGHT_SAND_BETWEEN_COATS", "TSK_WLRP_LIGHT_SAND_BETWEEN_COATS_QT5",
+      "TSK_WLRP_VACUUM_INTERCOAT_DUST", "TSK_WLRP_INSPECT_BETWEEN_COATS",
+      "TSK_WLRP_PATCH_DEFECTS_INTERSTAGE", "TSK_WLRP_SPOT_COAT_INTERSTAGE"
+    ],
+    "MOD_WLRP_FINISH": [
+      "TSK_WLRP_CUTIN_CEILING_R1", "TSK_WLRP_CUTIN_CEILING_R2",
+      "TSK_WLRP_CUTIN_TRIM_R1", "TSK_WLRP_CUTIN_TRIM_R2",
+      "TSK_WLRP_ROLL_FINISH_R1", "TSK_WLRP_ROLL_FINISH_R2",
+      "TSK_WLRP_SPRAY_FINISH_R1", "TSK_WLRP_BACKROLL_FINISH_R1",
+      "TSK_WLRP_SPRAY_FINISH_R2", "TSK_WLRP_BACKROLL_FINISH_R2"
+    ],
+    "MOD_WLRP_CLEANUP": [
+      "TSK_WLRP_REMOVE_TRIM_MASKING", "TSK_WLRP_REMOVE_FIXTURE_COVERS",
+      "TSK_WLRP_FLOOR_PROTECT_TEARDOWN", "TSK_WLRP_FURNITURE_REPLACE",
+      "TSK_WLRP_VACUUM_FLOORS", "TSK_WLRP_CLEAN_TOOLS",
+      "TSK_WLRP_FINAL_INSPECT", "TSK_WLRP_FINAL_INSPECT_QT4", "TSK_WLRP_FINAL_INSPECT_QT5",
+      "TSK_WLRP_TOUCHUP", "TSK_WLRP_CUSTOMER_WALKTHROUGH"
+    ]
+  },
+
+  "applicability_rules": [
+    {
+      "rule_id": "RULE_QT2_SINGLE_COAT",
+      "description": "QT2 is single finish coat. No interstage sanding, no intercoat inspection module. Roll-only application.",
+      "applies_when": { "quality_tier": ["QT2"] },
+      "excluded_modules": ["MOD_WLRP_INTERSTAGE"],
+      "coat_count": 1,
+      "method_constraint": "roll"
+    },
+    {
+      "rule_id": "RULE_QT3_TWO_COAT_DEFAULT",
+      "description": "QT3 defaults to two finish coats. One coat acceptable if full coverage achieved. Interstage: inspect and patch only (no full sanding).",
+      "applies_when": { "quality_tier": ["QT3"] },
+      "coat_count": 2,
+      "coat_count_notes": "Default 2 coats. 1 coat acceptable if full coverage achieved."
+    },
+    {
+      "rule_id": "RULE_QT4_QT5_TWO_COAT_MANDATORY",
+      "description": "QT4/QT5 requires two finish coats with full interstage sanding between coats.",
+      "applies_when": { "quality_tier": ["QT4", "QT5"] },
+      "required_modules": ["MOD_WLRP_INTERSTAGE"],
+      "coat_count": 2
+    },
+    {
+      "rule_id": "RULE_SPRAY_METHODS_FIXTURE_PROTECTION",
+      "description": "Spray and spray_backroll methods require fixture covers.",
+      "applies_when": { "application_method": ["spray", "spray_backroll"] },
+      "required_tasks": ["TSK_WLRP_FIXTURE_COVERS_SETUP", "TSK_WLRP_REMOVE_FIXTURE_COVERS"]
+    },
+    {
+      "rule_id": "RULE_GOOD_CONDITION_SKIP_PRIME",
+      "description": "GOOD condition (SS_INT_SOUND_PAINT) may skip MOD_WLRP_PRIME entirely when adhesion test passes. Assessment still required.",
+      "applies_when": { "condition_scale": ["GOOD"] },
+      "conditionally_skipped_modules": ["MOD_WLRP_PRIME"],
+      "skip_condition": "adhesion_test_passes AND coating_ID_compatible"
+    },
+    {
+      "rule_id": "RULE_RRP_CONDITIONAL",
+      "description": "MOD_RRP_INT_CONTAINMENT activates only when home is pre-1978.",
+      "applies_when": { "home_pre_1978": true },
+      "required_modules": ["MOD_RRP_INT_CONTAINMENT"]
+    },
+    {
+      "rule_id": "RULE_FURNITURE_CONDITIONAL",
+      "description": "Furniture protection tasks activate only when home is occupied.",
+      "applies_when": { "occupancy_state": ["occupied_crew_handles", "occupied_sensitive"] },
+      "required_tasks": ["TSK_WLRP_FURNITURE_MOVE", "TSK_WLRP_FURNITURE_COVER", "TSK_WLRP_FURNITURE_REPLACE"]
+    },
+    {
+      "rule_id": "RULE_CONTAMINATION_TREATMENT",
+      "description": "TSP wash activates for any contamination type. Mildew treatment activates only for SS_INT_MOISTURE_DAMAGE.",
+      "applies_when": { "contamination_type": ["mildew", "smoke", "water_stain", "grease"] },
+      "required_tasks": ["TSK_WLRP_WASH_TSP"]
+    }
+  ],
+
+  "assumptions": [
+    {
+      "assumption_id": "A-001",
+      "field": "occupancy_context",
+      "value": "Default assumption is occupied home (occupied_crew_handles)",
+      "source": "RP market analysis — vast majority of interior repaints are in occupied homes",
+      "doctrine_gap": false,
+      "note": "Furniture protection tasks are conditional on occupancy_state."
+    },
+    {
+      "assumption_id": "A-002",
+      "field": "trim_always_present",
+      "value": "All trim is installed and finished when RP occurs",
+      "source": "RP context — repainting implies all finish surfaces exist",
+      "doctrine_gap": false,
+      "note": "Trim masking is always-on in RP. NC prime could skip because trim was not installed."
+    },
+    {
+      "assumption_id": "A-003",
+      "field": "floor_always_finished",
+      "value": "Finished flooring is always present in RP context",
+      "source": "RP context — occupied home always has finished floors",
+      "doctrine_gap": false,
+      "note": "Floor protection is mandatory. NC exception for subfloor does not apply."
+    },
+    {
+      "assumption_id": "A-004",
+      "field": "single_state_per_room",
+      "value": "Worst wall condition in the room determines the room's condition_scale",
+      "source": "Practical estimation — per-wall modifiers not supported in estimation engine",
+      "doctrine_gap": true,
+      "note": "Multiple walls may have different states. Worst state drives room modifier."
+    },
+    {
+      "assumption_id": "A-005",
+      "field": "sequencing",
+      "value": "Trim-first is the default RP sequencing (~80% of interior repaints)",
+      "source": "PaintScope_EdgeLF_Mapping.md section 4; Sequencing Doctrine",
+      "doctrine_gap": false,
+      "note": "Trim is painted first, then masked off, then walls painted. Wall painter cuts to tape line at trim."
+    },
+    {
+      "assumption_id": "A-006",
+      "field": "no_ceiling_masking",
+      "value": "Do NOT mask drywall ceilings when working on walls — cut-in or spray into corner",
+      "source": "NC wall prime/finish doctrine, Protection_and_Masking_Doctrine.md",
+      "doctrine_gap": false,
+      "note": "Ceiling line protection is 'none'. Wall painter establishes ceiling line via cut-in."
+    }
+  ],
+
+  "exclusions": [
+    {
+      "exclusion_id": "EXCL-001",
+      "item": "Bare/new drywall",
+      "reason": "Handled by NC specs (SF_DRYWALL_WALL_NC_PRIME, SF_DRYWALL_WALL_NC_FINISH)",
+      "route_to": "SF_DRYWALL_WALL_NC_PRIME / SF_DRYWALL_WALL_NC_FINISH"
+    },
+    {
+      "exclusion_id": "EXCL-002",
+      "item": "Ceiling repaint",
+      "reason": "Handled by SF_DRYWALL_CEILING_INT_RP",
+      "route_to": "SF_DRYWALL_CEILING_INT_RP"
+    },
+    {
+      "exclusion_id": "EXCL-003",
+      "item": "Trim repaint",
+      "reason": "Handled by SF_TRIM_INT_RP",
+      "route_to": "SF_TRIM_INT_RP"
+    },
+    {
+      "exclusion_id": "EXCL-004",
+      "item": "Structural drywall repair (holes, water damage to substrate)",
+      "reason": "Out of paint scope — requires drywall repair trade",
+      "route_to": "Out of scope"
+    },
+    {
+      "exclusion_id": "EXCL-005",
+      "item": "Texture application or repair",
+      "reason": "Texture is pre-paint trade — not part of painting spec",
+      "route_to": "Out of scope"
+    },
+    {
+      "exclusion_id": "EXCL-006",
+      "item": "Active moisture remediation (source resolution)",
+      "reason": "Moisture source resolution is plumbing/building envelope trade — paint spec gates on source being resolved",
+      "route_to": "Out of scope (gate condition)"
+    }
+  ],
+
+  "doctrine_conflicts": [],
+
+  "uncertainties": [
+    {
+      "uncertainty_id": "U-001",
+      "topic": "Scrape/feather production rates",
+      "description": "Scrape and feather rates for interior walls are highly variable. No NC baseline. Estimated from exterior RP analogs.",
+      "current_approach": "Using wide rate ranges (50-100 SF/hr scrape, 40-80 SF/hr feather) for estimation engineer",
+      "resolution_needed": true
+    },
+    {
+      "uncertainty_id": "U-002",
+      "topic": "TSP wash and mildew treatment rates",
+      "description": "Not well-documented in doctrine. Estimated from professional practice.",
+      "current_approach": "TSP wash ~200-300 SF/hr, mildew treatment ~100-200 SF/hr (biocide + dwell time)",
+      "resolution_needed": true
+    },
+    {
+      "uncertainty_id": "U-003",
+      "topic": "Wall access modifier not yet in Modifier_Registry",
+      "description": "wall_access modifier (open_wall/obstructed_light/obstructed_heavy) proposed but not yet formalized.",
+      "current_approach": "Using proposed values 1.0/1.15/1.30 based on room complexity pattern",
+      "resolution_needed": true
+    }
+  ],
+
+  "critical_constraints": {
+    "no_ceiling_masking": "Do NOT mask drywall ceilings when working on walls. Cut in at the ceiling line or spray directly into corner. Only millwork ceilings would require masking.",
+    "shellac_full_surface": "SS_INT_SMOKE_DAMAGE requires shellac stain-blocker (BIN) applied to FULL surface. Spot treatment is insufficient — smoke contamination is pervasive. Latex/acrylic primers have ZERO stain blocking capability (RC-002).",
+    "moisture_gate": "SS_INT_MOISTURE_DAMAGE is a gate condition — moisture SOURCE must be resolved before painting. Painting over active moisture fails within weeks.",
+    "modifier_partition": "Prep pool modifiers (condition, contamination, access) NEVER include quality_tier. Coating pool modifiers (QT, access) NEVER include condition or contamination. Pools do not cross-apply.",
+    "backroll_mandatory_spray_prime": "Backroll is MANDATORY for spray primer on previously painted surfaces. Spray-only primer is not valid for wall repaint."
+  }
+}

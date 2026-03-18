@@ -1,0 +1,963 @@
+{
+  "spec_family_id": "SF_SPECIALTY_INT_RP",
+  "version": "0.1.0",
+  "generated_by": "SOP Librarian",
+  "generated_at": "2026-03-14",
+
+  "sop_modules": [
+    {
+      "module_id": "MOD_SPRP_SETUP",
+      "name": "Setup — Shared Floor Protection, Wall/Ceiling Masking, Fixture Covers, Built-in Contents Protection",
+      "description": "Consolidated room-level setup covering all specialty surface types present. One setup pass per room eliminates 5 separate NC setup modules. Floor protection scales by method: perimeter drops for brush, full floor coverage for spray or when ceiling work is present. Wall/ceiling masking conditional on spray method and surface scope. Built-in contents protection is RP-specific (owner may not fully empty built-ins in occupied home).",
+      "phase": "setup",
+      "applies_when": {},
+      "required_inputs": [
+        { "input_name": "IN_SF_PROTECT_FLOOR_PERIMETER", "paintscope_key": "PS_PROTECT_SF.FLOOR_PERIMETER", "uom": "SF" },
+        { "input_name": "IN_SF_PROTECT_FLOOR_FULL", "paintscope_key": "PS_PROTECT_SF.FLOOR_FULL", "uom": "SF" },
+        { "input_name": "IN_EA_FIXTURE_COVERS", "paintscope_key": "PS_PROTECT_EA.FIXTURE_COVERS", "uom": "EA" },
+        { "input_name": "IN_EA_ROOMS_TOTAL", "paintscope_key": "PS_META.EA.ROOMS_TOTAL", "uom": "EA" },
+        { "input_name": "IN_EA_BUILTIN_UNIT", "paintscope_key": "PS_SURFACE_EA.BUILTIN_UNIT", "uom": "EA" }
+      ],
+      "tasks": [
+        {
+          "task_id": "TSK_SPRP_FLOOR_PROTECT_PERIM",
+          "name": "Install perimeter floor protection (brush method)",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "task_type": "protect",
+          "unit_of_measure": "SF",
+          "paintscope_key": "PS_PROTECT_SF.FLOOR_PERIMETER",
+          "applies_when": { "application_method": ["brush"] },
+          "protection_metadata": {
+            "action": "setup",
+            "zones": ["floor_perimeter"],
+            "method_dependent": true
+          },
+          "notes": "Canvas drop cloth runners along work area base. Shared across all specialty surface types in the room. Brush drip containment only — no full floor coverage needed."
+        },
+        {
+          "task_id": "TSK_SPRP_FLOOR_PROTECT_FULL",
+          "name": "Install full floor protection (spray method or ceiling work)",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "task_type": "protect",
+          "unit_of_measure": "SF",
+          "paintscope_key": "PS_PROTECT_SF.FLOOR_FULL",
+          "applies_when": { "application_method": ["spray"] },
+          "protection_metadata": {
+            "action": "setup",
+            "zones": ["floor_full"],
+            "method_dependent": true
+          },
+          "notes": "Canvas drop cloths or rosin paper over entire floor below work area. Triggered by spray method OR ceiling work present (overhead drip risk). Replaces perimeter protection when active."
+        },
+        {
+          "task_id": "TSK_SPRP_WALL_MASK",
+          "name": "Mask wall surfaces adjacent to specialty surfaces (spray)",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "task_type": "protect",
+          "unit_of_measure": "EA_ROOM",
+          "applies_when": { "application_method": ["spray"] },
+          "protection_metadata": {
+            "action": "setup",
+            "zones": ["wall_mask_above_wainscot", "wall_upper_band", "ceiling_line"],
+            "method_dependent": true
+          },
+          "substrate_state_rules": {
+            "adjacent_surface": "wall_field",
+            "protect_when_state": ["SS_PAINTED_FLAT", "SS_PAINTED_EGGSHELL", "SS_PAINTED_SATIN", "SS_PAINTED_SEMIGLOSS"],
+            "skip_when_state": ["SS_BARE", "SS_PRIMED_FIELD"],
+            "protection_level_by_state": {
+              "SS_PAINTED_FLAT": "full_mask",
+              "SS_PAINTED_EGGSHELL": "full_mask",
+              "SS_PAINTED_SATIN": "full_mask",
+              "SS_PAINTED_SEMIGLOSS": "full_mask"
+            }
+          },
+          "notes": "Paper/film + tape masking at wall-to-specialty junctions. Consolidates wainscot cap rail masking (wall_mask_above_wainscot), ceiling-wall junction masking (wall_upper_band for ceiling spray, ceiling_line for wall panel spray). Spray only. Per room — one masking pass covers all specialty-to-wall interfaces in the room."
+        },
+        {
+          "task_id": "TSK_SPRP_FIXTURE_MASK",
+          "name": "Mask ceiling-mounted fixtures",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "task_type": "protect",
+          "unit_of_measure": "EA",
+          "paintscope_key": "PS_PROTECT_EA.FIXTURE_COVERS",
+          "applies_when": {},
+          "protection_metadata": {
+            "action": "setup",
+            "zones": ["fixture_covers"],
+            "method_dependent": false
+          },
+          "notes": "Tape and plastic bag/film over ceiling fixtures (lights, fans, smoke detectors, sprinkler heads). Always required when ceiling work is present. Conditional when wall/element spray work is present. Per fixture."
+        },
+        {
+          "task_id": "TSK_SPRP_OPENING_COVER",
+          "name": "Install lightweight opening covers (ceiling spray)",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "task_type": "protect",
+          "unit_of_measure": "FIXED",
+          "applies_when": { "application_method": ["spray"] },
+          "protection_metadata": {
+            "action": "setup",
+            "zones": ["opening_cover_lightweight"],
+            "method_dependent": true
+          },
+          "notes": "Lightweight poly sheeting pin-up over door/window openings to catch overspray fallout from overhead ceiling spray. Quick pin-up, fast removal. Only when ceiling work is present with spray method."
+        },
+        {
+          "task_id": "TSK_SPRP_BUILTIN_CONTENTS_PROTECT",
+          "name": "Protect built-in contents (RP-specific)",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "task_type": "protect",
+          "unit_of_measure": "EA",
+          "paintscope_key": "PS_SURFACE_EA.BUILTIN_UNIT",
+          "applies_when": { "builtin_contents_present": true },
+          "protection_metadata": {
+            "action": "setup",
+            "zones": ["builtin_contents_cover"],
+            "method_dependent": false
+          },
+          "notes": "RP-specific — cover remaining items inside built-in openings if owner did not fully empty. Poly sheeting per unit. Rate adjusted by size tier. Not needed in NC (built-ins are empty at installation). Conditional on contents present."
+        }
+      ],
+      "sequence_notes": "Floor protection first (perimeter or full) -> Wall/ceiling masking (spray) -> Fixture covers -> Opening covers (ceiling spray) -> Built-in contents protection. All setup complete before assessment begins."
+    },
+
+    {
+      "module_id": "MOD_SPRP_ASSESSMENT",
+      "name": "Condition Assessment — Multi-Surface Inspect, Adhesion Test, Coating ID, Moisture Check",
+      "description": "RP-specific shared assessment module. One comprehensive pass per room covering all specialty surface types present. Visual condition scan maps cracking, peeling, adhesion failure, contamination across all 7 surface types. ASTM D3359 adhesion test at representative locations per surface type. Coating identification (latex vs alkyd vs stain/clear) per surface type — specialty millwork historically received oil-based paint and clear finishes. Moisture check on ceiling and wood wall surfaces in wet rooms. Assessment results drive all downstream task activation: primer selection, prep intensity, contamination treatment. 100% RP_NEW — no NC equivalent.",
+      "phase": "prep",
+      "applies_when": {},
+      "required_inputs": [
+        { "input_name": "IN_EA_ROOMS_TOTAL", "paintscope_key": "PS_META.EA.ROOMS_TOTAL", "uom": "EA" },
+        { "input_name": "IN_ENUM_SURFACE_CONDITION", "paintscope_key": "PS_META.SURFACE_CONDITION", "uom": "ENUM" },
+        { "input_name": "IN_ENUM_SUBSTRATE_STATE_INT", "paintscope_key": "PS_META.ENUM.SUBSTRATE_STATE_INT", "uom": "ENUM" },
+        { "input_name": "IN_ENUM_CONTAMINATION_TYPE", "paintscope_key": "PS_META.ENUM.CONTAMINATION_TYPE", "uom": "ENUM" },
+        { "input_name": "IN_BOOL_HOME_PRE_1978", "paintscope_key": "PS_META.BOOL.HOME_PRE_1978", "uom": "BOOL" }
+      ],
+      "tasks": [
+        {
+          "task_id": "TSK_SPRP_ASSESS_CONDITION",
+          "name": "Visual Condition Scan — All Specialty Surfaces Per Room",
+          "task_classification": "qt_scaled",
+          "skill_level": "journeyman",
+          "unit_of_measure": "EA_ROOM",
+          "quality_notes": {
+            "QT3": "Standard visual with work light, document visible defects per surface type",
+            "QT4": "Systematic scan with raking light, photograph all defect areas, per-surface-type assessment",
+            "QT5": "Critical assessment, multiple passes, raking light, full photographic documentation per surface type"
+          },
+          "notes": "Walk each room once and assess all specialty surfaces present. Base time per room + marginal increment per additional surface type. Assign condition_scale (GOOD/FAIR/POOR) based on worst-condition surface. Map cracking, peeling, adhesion failure, staining, moisture damage across wainscot, wood wall, wood ceiling, beams, columns, mantels, built-ins."
+        },
+        {
+          "task_id": "TSK_SPRP_ASSESS_ADHESION",
+          "name": "Adhesion Test (ASTM D3359 Cross-Hatch Tape Test)",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "unit_of_measure": "EA_ROOM",
+          "tools_required": ["cross_hatch_cutter", "pressure_sensitive_tape"],
+          "notes": "Perform cross-hatch tape test per ASTM D3359 at representative sections per surface type present. Minimum 1 test per surface type per room. Specialty millwork surfaces are high-risk for adhesion failure due to historical multi-layer paint buildup and high-sheen existing coatings. Results determine if adhesion primer is required."
+        },
+        {
+          "task_id": "TSK_SPRP_ASSESS_COATING_ID",
+          "name": "Coating Identification — Latex vs Alkyd vs Stain/Clear",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "unit_of_measure": "EA_ROOM",
+          "tools_required": ["mineral_spirits", "white_rags"],
+          "notes": "Determine existing coating type via solvent rub test per surface type. Specialty millwork historically received oil-based paint and clear finishes (polyurethane, lacquer, shellac) more often than drywall. Stain/clear coat surfaces require bonding primer (SYS_PRIMER_BONDING) for conversion to paint. Test at minimum 1 location per surface type present."
+        },
+        {
+          "task_id": "TSK_SPRP_ASSESS_MOISTURE",
+          "name": "Moisture Check — Ceiling and Wall Surfaces in Wet Rooms",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "unit_of_measure": "EA_ROOM",
+          "site_condition_rules": {
+            "stop_work_when": {
+              "moisture_condition": ["active_moisture"]
+            },
+            "include_when": {
+              "room_type_hint": ["bathroom", "kitchen", "laundry", "sunroom"]
+            }
+          },
+          "notes": "Moisture meter reading on wood ceiling surfaces, wood wall base, and built-in backs in wet rooms. Wood ceilings in bathrooms and kitchens are high-risk for moisture damage. Active moisture is a STOP WORK condition — do not proceed until source is resolved."
+        }
+      ],
+      "sequence_notes": "Condition scan first -> Adhesion test at representative sections -> Coating ID (latex vs alkyd vs stain/clear) -> Moisture check. Assessment results determine which prep and prime tasks activate downstream."
+    },
+
+    {
+      "module_id": "MOD_RRP_INT_CONTAINMENT",
+      "name": "Lead-Safe RRP Containment (Shared Module)",
+      "description": "Shared lead-safe work practice module for all interior RP specs. Conditional on home built before 1978. Specialty millwork is HIGH RISK for lead paint — wainscot, mantels, columns, built-ins were commonly painted with lead-based oil paint before 1978, making them among the most common lead-positive surfaces in residential interiors. This module is NOT owned by this spec — it is a shared module referenced by all interior RP specs.",
+      "phase": "prep",
+      "sequence_order": 3,
+      "applies_when": {
+        "home_pre_1978": true
+      },
+      "required_inputs": [
+        { "input_name": "IN_BOOL_HOME_PRE_1978", "paintscope_key": "PS_META.BOOL.HOME_PRE_1978", "uom": "BOOL" },
+        { "input_name": "IN_EA_ROOMS_TOTAL", "paintscope_key": "PS_META.EA.ROOMS_TOTAL", "uom": "EA" }
+      ],
+      "tasks": [
+        {
+          "task_id": "TSK_RRP_LEAD_TEST",
+          "name": "Lead Test (XRF or Swab)",
+          "task_classification": "binary",
+          "skill_level": "lead",
+          "unit_of_measure": "EA_ROOM",
+          "notes": "Perform lead test at representative areas per surface type. XRF preferred; lead swab test acceptable. Specialty millwork is high-risk — often last surfaces to transition from oil to latex. Test at minimum 1 location per surface type present."
+        },
+        {
+          "task_id": "TSK_RRP_CONTAINMENT_SETUP",
+          "name": "RRP Containment Setup",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "unit_of_measure": "EA_ROOM",
+          "site_condition_rules": {
+            "include_when": { "lead_status": ["tested_positive", "unknown_pre1978"] },
+            "exclude_when": { "lead_status": ["tested_negative", "not_applicable"] }
+          },
+          "notes": "Install containment: poly sheeting on floors and openings, warning signs at entry points, restrict entry to certified personnel only. Per EPA RRP Rule 40 CFR 745."
+        },
+        {
+          "task_id": "TSK_RRP_HEPA_VACUUM",
+          "name": "HEPA Vacuum After Paint Disturbance",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "unit_of_measure": "EA_ROOM",
+          "site_condition_rules": {
+            "include_when": { "lead_status": ["tested_positive", "unknown_pre1978"] }
+          },
+          "notes": "HEPA vacuum all surfaces after each sanding/scraping disturbance to capture lead-contaminated dust. Required by EPA RRP Rule."
+        },
+        {
+          "task_id": "TSK_RRP_CONTAINMENT_REMOVAL",
+          "name": "RRP Containment Removal and Visual Clearance",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "unit_of_measure": "EA_ROOM",
+          "site_condition_rules": {
+            "include_when": { "lead_status": ["tested_positive", "unknown_pre1978"] }
+          },
+          "notes": "Remove containment poly sheeting, perform visual clearance inspection. No visible dust or debris. Dispose containment materials per EPA RRP waste handling rules."
+        },
+        {
+          "task_id": "TSK_RRP_WASTE_DISPOSAL",
+          "name": "RRP Waste Disposal",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "unit_of_measure": "EA_ROOM",
+          "site_condition_rules": {
+            "include_when": { "lead_status": ["tested_positive", "unknown_pre1978"] }
+          },
+          "notes": "Bag and seal all lead-contaminated waste per EPA RRP Rule. Transport to approved disposal facility. Documentation required."
+        }
+      ]
+    },
+
+    {
+      "module_id": "MOD_SPRP_PREP",
+      "name": "Surface Preparation — TSP Wash, Per-Surface Degloss, Scrape/Feather, Mildew Treatment, Caulk",
+      "description": "Mixed shared and per-surface-type prep. TSP wash is shared (one pass per room cleans all specialty surfaces). Degloss is per-surface-type because rates genuinely differ by UOM and surface geometry (SF flat vs LF beam vs EA column). Scrape/feather is condition-gated and qt_scaled. Mildew treatment is condition-gated and shared. Caulk assess/repair is shared (RP caulk is repair, not new installation). Clean dust is shared.",
+      "phase": "prep",
+      "sequence_order": 4,
+      "tasks": [
+        {
+          "task_id": "TSK_SPRP_WASH_TSP",
+          "name": "TSP wash all specialty surfaces",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "task_type": "prep",
+          "unit_of_measure": "EA_ROOM",
+          "notes": "TSP (trisodium phosphate) solution wash to remove hand oils, cleaning residue, wax (furniture polish on built-ins), and surface contaminants. One pass per room covers all specialty surfaces. Rinse with clean water. Critical for adhesion on previously coated surfaces. Built-in interiors may have heavy wax buildup from furniture polish."
+        },
+        {
+          "task_id": "TSK_SPRP_DEGLOSS_WAINSCOT",
+          "name": "Degloss wainscot panel surfaces",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "task_type": "prep",
+          "unit_of_measure": "SF",
+          "paintscope_key": "PS_SURFACE_SF.WAINSCOTING",
+          "notes": "Chemical deglosser or mechanical scuff sand (150-180 grit) on all wainscot surfaces. Chemical preferred for raised panel profiles (gets into recesses without rounding profile edges). Beadboard grooves: sanding sponge conforms better than flat sandpaper. Provides tooth for primer/finish adhesion on existing high-sheen coating."
+        },
+        {
+          "task_id": "TSK_SPRP_DEGLOSS_WOOD_WALL",
+          "name": "Degloss wood wall panel surfaces",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "task_type": "prep",
+          "unit_of_measure": "SF",
+          "paintscope_key": "PS_SURFACE_SF.WOOD_WALL",
+          "notes": "Chemical deglosser or mechanical scuff sand on all wood wall panel surfaces. Library panel frame profiles and shiplap/T&G grooves prefer chemical degloss. Flat panels can use mechanical scuff. Height modifier applies — tall walls require ladder work."
+        },
+        {
+          "task_id": "TSK_SPRP_DEGLOSS_CEILING",
+          "name": "Degloss wood ceiling surfaces (overhead)",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "task_type": "prep",
+          "unit_of_measure": "SF",
+          "paintscope_key": "PS_SURFACE_SF.WOOD_CEILING",
+          "notes": "Chemical deglosser or mechanical scuff sand on all wood ceiling surfaces. ALL work is overhead — 0.80-0.85x productivity vs equivalent wall work. Chemical degloss preferred overhead (less dust falling on worker). Beadboard/T&G grooves and coffered beam-panel corners require flexible sanding sponge if mechanical method."
+        },
+        {
+          "task_id": "TSK_SPRP_DEGLOSS_BEAM",
+          "name": "Degloss architectural beam surfaces",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "task_type": "prep",
+          "unit_of_measure": "LF",
+          "paintscope_key": "PS_SURFACE_LF.ARCH_BEAM",
+          "notes": "Chemical deglosser or mechanical scuff sand on all beam faces. 3 exposed faces (bottom + 2 sides). Bottom face is overhead work. Profile-dependent: rectangular beams can use flat sanding; chamfered, curved, and ornate profiles require flexible sanding sponge or chemical degloss."
+        },
+        {
+          "task_id": "TSK_SPRP_DEGLOSS_COLUMN",
+          "name": "Degloss column surfaces",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "task_type": "prep",
+          "unit_of_measure": "EA",
+          "paintscope_key": "PS_SURFACE_EA.ARCH_COLUMN",
+          "notes": "Chemical deglosser or mechanical scuff sand on all column faces. Full height — ladder for upper portion. Fluted columns: chemical degloss strongly preferred (sanding sponge in flute channels is slow). Round columns: wrap technique with sanding sponge."
+        },
+        {
+          "task_id": "TSK_SPRP_DEGLOSS_MANTEL",
+          "name": "Degloss mantel/surround surfaces",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "task_type": "prep",
+          "unit_of_measure": "EA",
+          "paintscope_key": "PS_SURFACE_EA.ARCH_MANTEL",
+          "notes": "Chemical deglosser or mechanical scuff sand on shelf, legs/pilasters, and surround molding. Detail profiles strongly favor chemical degloss. Standard wall height (H1-H2). Complexity varies by mantel_type (simple_shelf vs traditional vs ornate)."
+        },
+        {
+          "task_id": "TSK_SPRP_DEGLOSS_BUILTIN",
+          "name": "Degloss built-in unit surfaces",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "task_type": "prep",
+          "unit_of_measure": "EA",
+          "paintscope_key": "PS_SURFACE_EA.BUILTIN_UNIT",
+          "notes": "Chemical deglosser or mechanical scuff sand on all built-in surfaces: opening interiors (sides, top, bottom, back, shelves), face frames, and doors/drawers. Chemical degloss preferred inside deep compartments (difficult to sand inside corners and backs). Rate adjusted by size tier (S/M/L/XL) and depth modifier."
+        },
+        {
+          "task_id": "TSK_SPRP_SCRAPE_FEATHER",
+          "name": "Scrape and feather failing paint (condition-gated)",
+          "task_classification": "qt_scaled",
+          "skill_level": "journeyman",
+          "task_type": "prep",
+          "unit_of_measure": "EA_ROOM",
+          "applies_when": { "condition_scale": ["FAIR", "POOR"] },
+          "quality_notes": {
+            "QT3": "Scrape loose paint, feather edges with 80-120 grit. Focus on visible areas.",
+            "QT4": "Thorough scraping of all failing areas. Feather edges to smooth transition. Contour scrapers for profiles.",
+            "QT5": "Complete removal of all failing paint. Perfect feathered transitions. Raking light check for missed areas."
+          },
+          "notes": "Condition-gated — only activates when condition_scale is FAIR or POOR (SS_INT_FAILING_PAINT, SS_INT_PEELING, SS_INT_MOISTURE_DAMAGE, SS_INT_SMOKE_DAMAGE). Per-room fixed base time with qt_scaled intensity. Contour scrapers for profiled surfaces (wainscot raised panels, column flutes, mantel molding, beadboard grooves). Flat scrapers for flat surfaces. Shared across all surface types — one pass covers the room."
+        },
+        {
+          "task_id": "TSK_SPRP_MILDEW_TREAT",
+          "name": "Mildew biocide treatment (condition-gated)",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "task_type": "prep",
+          "unit_of_measure": "EA_ROOM",
+          "applies_when": { "contamination_type": ["mildew"] },
+          "notes": "Apply biocide solution to kill active mildew before priming. Dwell time per manufacturer direction. Rinse and allow to dry. Typically needed on wood ceiling in bathroom/kitchen and wood wall in splash zones. Condition-gated — only activates when contamination_type = mildew."
+        },
+        {
+          "task_id": "TSK_SPRP_CAULK_ASSESS_REPAIR",
+          "name": "Assess and repair caulk at specialty surface junctions",
+          "task_classification": "qt_scaled",
+          "skill_level": "journeyman",
+          "task_type": "detail",
+          "unit_of_measure": "EA_ROOM",
+          "quality_notes": {
+            "QT3": "Replace failed caulk only. Quick assess, repair obvious failures.",
+            "QT4": "Systematic assess all joints. Replace cracked, shrunk, or discolored caulk.",
+            "QT5": "Complete assessment every joint. Replace all caulk that does not meet new-installation standard."
+          },
+          "notes": "RP caulk is repair/replacement, not new installation. Assess existing caulk at: wainscot-to-wall, wood wall perimeter, ceiling perimeter, beam-to-ceiling, column-to-ceiling/floor, mantel-to-wall, built-in-to-wall. Shared per-room task — one assessment pass covers all specialty surface junctions."
+        },
+        {
+          "task_id": "TSK_SPRP_CLEAN_DUST",
+          "name": "Clean all surfaces after prep",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "task_type": "prep",
+          "unit_of_measure": "EA_ROOM",
+          "notes": "Tack cloth or damp wipe all specialty surfaces after sanding/scraping/degloss. Remove all dust, debris, and chemical residue before prime or finish coat. One pass per room covers all surfaces. Built-in interiors need thorough dust removal from compartments."
+        }
+      ],
+      "sequence_notes": "TSP wash -> Degloss (per surface type, can be parallelized) -> Scrape/feather (condition-gated) -> Mildew treatment (condition-gated) -> Caulk assess/repair -> Clean dust. All prep must be complete before primer."
+    },
+
+    {
+      "module_id": "MOD_SPRP_PRIME",
+      "name": "Primer Application — State-Driven, Per-Surface-Type Application",
+      "description": "Conditional primer module driven by substrate state and assessment results. SYS_PRIMER_ADHESION_INT for alkyd existing or adhesion failure. SYS_PRIMER_STAINBLOCK_INT for smoke damage (shellac BIN). SYS_PRIMER_MILDEW_INT for moisture damage. SYS_PRIMER_BONDING for stain/clear coat conversion. No primer when SS_INT_SOUND_PAINT with good adhesion + compatible latex coating. Per-surface-type application tasks to preserve rate accuracy by UOM.",
+      "phase": "prime",
+      "sequence_order": 5,
+      "applies_when": { "substrate_state": ["SS_INT_FAILING_PAINT", "SS_INT_PEELING", "SS_INT_MOISTURE_DAMAGE", "SS_INT_SMOKE_DAMAGE"] },
+      "notes": "Skip this module entirely when all surfaces are SS_INT_SOUND_PAINT with adhesion test pass and compatible latex coating. State-driven primer selection is shared logic — same primer on all surfaces in a room. Application is per-surface-type for rate accuracy.",
+      "tasks": [
+        {
+          "task_id": "TSK_SPRP_PRIME_SF_SPRAY",
+          "name": "Spray prime SF surfaces (wainscot, wood wall, wood ceiling)",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "task_type": "prime",
+          "unit_of_measure": "SF",
+          "applies_when": { "application_method": ["spray"] },
+          "notes": "Spray state-driven primer on all SF specialty surfaces in one pass. Wainscot panels, wood wall panels, and wood ceiling panels consolidated into one spray task when same primer type. Overhead penalty baked into ceiling rate (0.80-0.85x). Lighter coats on ceiling to prevent sags. Wall masking must be in place."
+        },
+        {
+          "task_id": "TSK_SPRP_PRIME_SF_BRUSH",
+          "name": "Brush prime SF surfaces (wainscot, wood wall, wood ceiling)",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "task_type": "prime",
+          "unit_of_measure": "SF",
+          "applies_when": { "application_method": ["brush"] },
+          "notes": "Brush state-driven primer on all SF specialty surfaces. Work panel by panel, board by board. Overhead ceiling work is most fatiguing — load brush lighter. Thin coat in grooves and profiles to avoid buildup in recesses."
+        },
+        {
+          "task_id": "TSK_SPRP_PRIME_BEAM",
+          "name": "Prime beam surfaces",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "task_type": "prime",
+          "unit_of_measure": "LF",
+          "paintscope_key": "PS_SURFACE_LF.ARCH_BEAM",
+          "notes": "State-driven primer on all beam faces. Spray or brush per method selection. Multi-angle passes for 3-sided coverage. Bottom face is overhead work. Beam profile drives complexity modifier."
+        },
+        {
+          "task_id": "TSK_SPRP_PRIME_COLUMN",
+          "name": "Prime column surfaces",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "task_type": "prime",
+          "unit_of_measure": "EA",
+          "paintscope_key": "PS_SURFACE_EA.ARCH_COLUMN",
+          "notes": "State-driven primer on all column faces. Spray or brush per method selection. Full height — ladder for upper portion. Fluted columns: angle spray or sanding sponge applicator into channels."
+        },
+        {
+          "task_id": "TSK_SPRP_PRIME_MANTEL",
+          "name": "Prime mantel/surround surfaces",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "task_type": "prime",
+          "unit_of_measure": "EA",
+          "paintscope_key": "PS_SURFACE_EA.ARCH_MANTEL",
+          "notes": "State-driven primer on shelf, legs/pilasters, and surround molding. Detail profiles first, then flat faces. Standard wall height. Complexity varies by mantel_type."
+        },
+        {
+          "task_id": "TSK_SPRP_PRIME_BUILTIN",
+          "name": "Prime built-in unit surfaces",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "task_type": "prime",
+          "unit_of_measure": "EA",
+          "paintscope_key": "PS_SURFACE_EA.BUILTIN_UNIT",
+          "notes": "State-driven primer on all built-in surfaces: opening interiors, face frames, doors/drawers. Spray best for deep compartments (uniform coverage). Brush for small units or brush-method projects. Doors primed flat on sawhorses when removed. Rate adjusted by size tier."
+        }
+      ]
+    },
+
+    {
+      "module_id": "MOD_SPRP_INTERSTAGE",
+      "name": "Between-Coat Interstage — Shared Inspect, Sand, Patch, Clean",
+      "description": "Shared interstage module serving all specialty surface types. One inspection pass, one sand pass, one patch/repair cycle, one clean pass per room. Eliminates 5 separate NC interstage modules. Sanding discipline varies by QT: QT3=spot 220, QT4=full 220, QT5=thorough 320. Runs between each coat pair (total_coats - 1 cycles).",
+      "phase": "interstage",
+      "sequence_order": 6,
+      "run_rule": "Runs AFTER each coat EXCEPT the final coat",
+      "run_count_formula": "total_coats - 1",
+      "tasks": [
+        {
+          "task_id": "TSK_SPRP_INTERSTAGE_CLEAN_AREA",
+          "name": "Clean work area between coats",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "task_type": "cleanup",
+          "unit_of_measure": "EA_ROOM",
+          "notes": "Remove dust, debris from floor protection and work area. Built-in compartments trap sanding dust — clear out dust from inside openings. Overhead ceiling sanding generates dust that settles on floor and surrounding surfaces. One pass per room."
+        },
+        {
+          "task_id": "TSK_SPRP_INTERSTAGE_INSPECT",
+          "name": "Inspect previous coat on all specialty surfaces",
+          "task_classification": "qt_scaled",
+          "skill_level": "journeyman",
+          "task_type": "inspect",
+          "unit_of_measure": "EA_ROOM",
+          "quality_notes": {
+            "QT3": "Quick scan — obvious defects only. 6ft viewing distance on walls/wainscot, floor-level for ceiling.",
+            "QT4": "Systematic 3ft inspection. Mark all defects. Step ladder for ceiling. Light inside built-in compartments.",
+            "QT5": "Lighted critical inspection at arm's length. Zero tolerance. Angled light on all surfaces. Scaffold/ladder for ceiling."
+          },
+          "notes": "Inspect all specialty surfaces in one pass. Key checkpoints: wainscot panel-to-frame holidays, wood wall groove holidays, ceiling sags at board edges, beam underside sags, column run marks, mantel shelf edge drips, built-in shelf face sheen uniformity. Use flashlight inside deep built-in compartments."
+        },
+        {
+          "task_id": "TSK_SPRP_INTERSTAGE_SAND",
+          "name": "Sand between coats on all specialty surfaces",
+          "task_classification": "qt_scaled",
+          "skill_level": "journeyman",
+          "task_type": "prep",
+          "unit_of_measure": "EA_ROOM",
+          "quality_notes": {
+            "QT3": "Spot sand nibs/rough spots only.",
+            "QT4": "Full 220 grit all surfaces.",
+            "QT5": "Thorough 220-320 grit, uniform scratch pattern."
+          },
+          "notes": "Sand all specialty surfaces in one pass. Rigid sanding block on flat surfaces (FFD SS15.4.1). Flexible sanding sponge for profiled surfaces (wainscot raised panels, beadboard/T&G grooves, column flutes, mantel molding, coffered beam-panel corners, built-in inside corners). Overhead ceiling sanding is most fatiguing — shorter intervals. Pole sander for ceiling field areas."
+        },
+        {
+          "task_id": "TSK_SPRP_INTERSTAGE_PATCH",
+          "name": "Patch and repair marked defects",
+          "task_classification": "qt_scaled",
+          "skill_level": "journeyman",
+          "task_type": "detail",
+          "unit_of_measure": "FIXED",
+          "notes": "Fill, sand, and spot-prime any defects found during inspection. Scope varies by QT. Covers all surface types in one pass."
+        },
+        {
+          "task_id": "TSK_SPRP_INTERSTAGE_SPOT_COAT",
+          "name": "Spot coat patched areas",
+          "task_classification": "qt_scaled",
+          "skill_level": "journeyman",
+          "task_type": "finish",
+          "unit_of_measure": "FIXED",
+          "notes": "Touch-up patched areas to match surrounding finish before next full coat. Covers all surface types."
+        },
+        {
+          "task_id": "TSK_SPRP_INTERSTAGE_TACK",
+          "name": "Tack cloth all specialty surfaces",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "task_type": "prep",
+          "unit_of_measure": "EA_ROOM",
+          "notes": "Remove all sanding dust with tack cloth before next coat application. Cover every surface. Work tack cloth into grooves, profiles, inside corners, and built-in compartments. One pass per room."
+        }
+      ]
+    },
+
+    {
+      "module_id": "MOD_SPRP_FINISH",
+      "name": "Finish Coat Application — Per-Surface-Type for Rate Accuracy",
+      "description": "Per-surface-type finish coat tasks because rates genuinely differ by UOM, geometry, and overhead penalty. SF surfaces (wainscot, wall, ceiling) grouped by method. LF beam separate. EA elements (column, mantel, built-in) separate. Material system QT-driven: SYS_FF_STANDARD_ACRYLIC (QT3), SYS_FF_MODIFIED_URETHANE (QT4), SYS_FF_PREMIUM (QT5). Apply, tip once, walk away (FFD SS15.3.1).",
+      "phase": "finish",
+      "sequence_order": 7,
+      "tasks": [
+        {
+          "task_id": "TSK_SPRP_FINISH_SPRAY_WAINSCOT",
+          "name": "Spray finish coat on wainscot panels",
+          "task_classification": "binary",
+          "skill_level": "lead",
+          "task_type": "finish",
+          "unit_of_measure": "SF",
+          "paintscope_key": "PS_SURFACE_SF.WAINSCOTING",
+          "applies_when": { "application_method": ["spray"] },
+          "notes": "Spray technique: field panels first (broad passes), then frame detail (HVLP or fine-finish tip). Beadboard: thin passes to preserve groove definition. Raised panel: ensure full coverage in recessed profiles. Wall masking above cap rail must be in place."
+        },
+        {
+          "task_id": "TSK_SPRP_FINISH_BRUSH_WAINSCOT",
+          "name": "Brush finish coat on wainscot panels",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "task_type": "finish",
+          "unit_of_measure": "SF",
+          "paintscope_key": "PS_SURFACE_SF.WAINSCOTING",
+          "applies_when": { "application_method": ["brush"] },
+          "notes": "Work panel by panel, then frame members. Apply, tip once, walk away (FFD SS15.3.1). Flat panels: Roll and Tip methodology (FFD SS15.6) for even coverage. Raised panel: brush sized to profile. Beadboard: work with groove direction, avoid buildup."
+        },
+        {
+          "task_id": "TSK_SPRP_FINISH_SPRAY_WOOD_WALL",
+          "name": "Spray finish coat on wood wall panels",
+          "task_classification": "binary",
+          "skill_level": "lead",
+          "task_type": "finish",
+          "unit_of_measure": "SF",
+          "paintscope_key": "PS_SURFACE_SF.WOOD_WALL",
+          "applies_when": { "application_method": ["spray"] },
+          "notes": "Spray technique varies by wall_style: shiplap/T&G — sweep horizontal passes following board direction, maintain consistent distance to avoid pooling in grooves, light back-brush on grooves if needed. flat_panel — broad sweep passes. library_panel — field panels first, then HVLP for frame detail. Ceiling masking must be in place. Tall walls (H2+): back-check lower sections for drip accumulation."
+        },
+        {
+          "task_id": "TSK_SPRP_FINISH_BRUSH_WOOD_WALL",
+          "name": "Brush finish coat on wood wall panels",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "task_type": "finish",
+          "unit_of_measure": "SF",
+          "paintscope_key": "PS_SURFACE_SF.WOOD_WALL",
+          "applies_when": { "application_method": ["brush"] },
+          "notes": "Work board by board (shiplap/T&G) or panel by panel (flat_panel/library_panel). Apply, tip once, walk away (FFD SS15.3.1). Flat panels: Roll and Tip methodology (FFD SS15.6). Tall walls (H2+): watch for runs collecting on lower boards/panels."
+        },
+        {
+          "task_id": "TSK_SPRP_FINISH_SPRAY_CEILING",
+          "name": "Spray finish coat on wood ceiling (overhead)",
+          "task_classification": "binary",
+          "skill_level": "lead",
+          "task_type": "finish",
+          "unit_of_measure": "SF",
+          "paintscope_key": "PS_SURFACE_SF.WOOD_CEILING",
+          "applies_when": { "application_method": ["spray"] },
+          "notes": "Overhead spray — 0.80-0.85x productivity vs wall work. Lighter coats to prevent sags and groove pooling. Beadboard/T&G/flat_plank: sweep passes following board direction. Coffered: panel fields first, then beam faces. Wall masking must be in place. Lead skill for overhead spray control."
+        },
+        {
+          "task_id": "TSK_SPRP_FINISH_BRUSH_CEILING",
+          "name": "Brush finish coat on wood ceiling (overhead)",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "task_type": "finish",
+          "unit_of_measure": "SF",
+          "paintscope_key": "PS_SURFACE_SF.WOOD_CEILING",
+          "applies_when": { "application_method": ["brush"] },
+          "notes": "Overhead brush work — 0.80-0.85x productivity vs wall work. Load brush lighter overhead — gravity pulls excess paint. Work in manageable overhead sections to manage fatigue and open time. Coffered: panel fields first, then beam faces."
+        },
+        {
+          "task_id": "TSK_SPRP_FINISH_BEAM",
+          "name": "Finish coat on beams (spray or brush per method)",
+          "task_classification": "binary",
+          "skill_level": "lead",
+          "task_type": "finish",
+          "unit_of_measure": "LF",
+          "paintscope_key": "PS_SURFACE_LF.ARCH_BEAM",
+          "notes": "Multiple angle passes for 3-sided beam coverage. Bottom face first (overhead), then side faces. Lighter coats on bottom to prevent sags. Spray: lead skill for overhead spray control. Brush: work face-by-face, load lighter on bottom face. Beam profile drives complexity modifier."
+        },
+        {
+          "task_id": "TSK_SPRP_FINISH_COLUMN",
+          "name": "Finish coat on columns (spray or brush per method)",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "task_type": "finish",
+          "unit_of_measure": "EA",
+          "paintscope_key": "PS_SURFACE_EA.ARCH_COLUMN",
+          "notes": "Spray: rotate around column with consistent overlap, top-to-bottom, thin coats on vertical faces. Brush: Square columns — Roll and Tip (FFD SS15.6); Round/fluted — brush only, follow profile. Full height — ladder for upper portion. Column type drives complexity modifier."
+        },
+        {
+          "task_id": "TSK_SPRP_FINISH_MANTEL",
+          "name": "Finish coat on mantels (spray or brush per method)",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "task_type": "finish",
+          "unit_of_measure": "EA",
+          "paintscope_key": "PS_SURFACE_EA.ARCH_MANTEL",
+          "notes": "Detail profiles first (recessed areas, molding), then flat faces (shelf top, leg fronts). Spray: protect stone/brick surround with safe-release tape and film. Brush: shelf Roll and Tip, legs brush with grain, molding small angled brush. Mantel type drives complexity modifier."
+        },
+        {
+          "task_id": "TSK_SPRP_FINISH_BUILTIN",
+          "name": "Finish coat on built-in unit (spray or brush per method)",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "task_type": "finish",
+          "unit_of_measure": "EA",
+          "paintscope_key": "PS_SURFACE_EA.BUILTIN_UNIT",
+          "notes": "Opening interiors: spray reaches all surfaces uniformly for deep compartments, brush with mini foam roller for flat shelf faces. Face frames: brush or spray. Doors/drawers: flat on sawhorses — spray or Roll and Tip. Rate adjusted by size tier and depth/detail/access modifiers. Good lighting inside compartments essential."
+        }
+      ]
+    },
+
+    {
+      "module_id": "MOD_SPRP_CLEANUP",
+      "name": "Cleanup — Protection Teardown, Final Inspect, Customer Walkthrough, Tool Clean",
+      "description": "Consolidated cleanup eliminates 5 separate NC cleanup modules. One pass: remove all masking, remove floor protection, remove fixture covers, remove built-in contents protection, vacuum, final quality inspection, customer walkthrough, tool cleanup. Final inspection and customer walkthrough are RP-specific (occupied home, customer present).",
+      "phase": "cleanup",
+      "sequence_order": 8,
+      "tasks": [
+        {
+          "task_id": "TSK_SPRP_FINAL_INSPECT",
+          "name": "Final quality inspection of all specialty surfaces",
+          "task_classification": "qt_scaled",
+          "skill_level": "lead",
+          "task_type": "inspect",
+          "unit_of_measure": "EA_ROOM",
+          "quality_notes": {
+            "QT3": "Normal viewing distance scan. 6ft for walls/wainscot, floor-level for ceiling.",
+            "QT4": "Systematic 3ft review with raking light. Step ladder for ceiling. Light inside all compartments.",
+            "QT5": "Critical arm's-length inspection. Angled light on all surfaces. Zero tolerance. Scaffold/ladder for ceiling."
+          },
+          "notes": "Inspect all specialty surfaces in one pass. Key checkpoints: panel-to-frame junction holidays (wainscot), groove holidays (wood wall, wood ceiling), beam underside sags, column run marks, mantel shelf edge drips, built-in shelf face sheen uniformity, caulk line quality, overall sheen uniformity. Use flashlight inside deep built-in compartments."
+        },
+        {
+          "task_id": "TSK_SPRP_TOUCHUP",
+          "name": "Touch-up defects found during final inspection",
+          "task_classification": "qt_scaled",
+          "skill_level": "journeyman",
+          "task_type": "finish",
+          "unit_of_measure": "FIXED",
+          "notes": "Correct remaining defects on all specialty surfaces. Feather touch-ups into surrounding finish. QT5: may require full additional coat on affected area if defects are widespread."
+        },
+        {
+          "task_id": "TSK_SPRP_REMOVE_MASKING",
+          "name": "Remove all wall/ceiling/fixture masking",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "task_type": "cleanup",
+          "unit_of_measure": "EA_ROOM",
+          "applies_when": { "application_method": ["spray"] },
+          "protection_metadata": {
+            "action": "teardown",
+            "zones": ["wall_mask_above_wainscot", "wall_upper_band", "ceiling_line", "fixture_covers", "opening_cover_lightweight"],
+            "method_dependent": true
+          },
+          "notes": "Score tape edge before removal. Pull at 45-degree angle to prevent surface damage. Remove all wall masking, ceiling masking, fixture covers, and opening covers in one pass. Spray only — brush method has no masking to remove (except fixtures)."
+        },
+        {
+          "task_id": "TSK_SPRP_REMOVE_FIXTURE_MASK",
+          "name": "Remove fixture masking (brush method)",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "task_type": "cleanup",
+          "unit_of_measure": "EA",
+          "applies_when": { "application_method": ["brush"] },
+          "protection_metadata": {
+            "action": "teardown",
+            "zones": ["fixture_covers"],
+            "method_dependent": false
+          },
+          "notes": "Remove tape and plastic from ceiling fixtures. Clean any adhesive residue. Brush method fixture teardown when fixture masking was applied without wall masking."
+        },
+        {
+          "task_id": "TSK_SPRP_REMOVE_FLOOR_PROTECT",
+          "name": "Remove floor protection",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "task_type": "cleanup",
+          "unit_of_measure": "SF",
+          "protection_metadata": {
+            "action": "teardown",
+            "zones": ["floor_full", "floor_perimeter"],
+            "method_dependent": false
+          },
+          "notes": "Remove canvas drop cloths, rosin paper, or poly sheeting from floor. Fold inward to contain debris. More material to remove for spray (full floor) vs brush (perimeter)."
+        },
+        {
+          "task_id": "TSK_SPRP_REMOVE_BUILTIN_CONTENTS_PROTECT",
+          "name": "Remove built-in contents protection",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "task_type": "cleanup",
+          "unit_of_measure": "EA",
+          "applies_when": { "builtin_contents_present": true },
+          "protection_metadata": {
+            "action": "teardown",
+            "zones": ["builtin_contents_cover"],
+            "method_dependent": false
+          },
+          "notes": "Remove poly sheeting from built-in openings. Restore contents to original positions if moved. RP-specific task — conditional on contents protection having been set up."
+        },
+        {
+          "task_id": "TSK_SPRP_VACUUM",
+          "name": "Vacuum work area",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "task_type": "cleanup",
+          "unit_of_measure": "SF",
+          "paintscope_key": "PS_META.SF.FLOOR_VACUUM_AREA",
+          "notes": "Vacuum floor area after protection removal. Include inside built-in compartments — sanding dust settles inside. Overhead ceiling sanding generates significant dust on floor."
+        },
+        {
+          "task_id": "TSK_SPRP_CUSTOMER_WALKTHROUGH",
+          "name": "Customer walkthrough and sign-off",
+          "task_classification": "binary",
+          "skill_level": "lead",
+          "task_type": "inspect",
+          "unit_of_measure": "FIXED",
+          "notes": "RP-specific per-project fixed time. Walk customer through all completed specialty surfaces. Point out finish quality at each surface type. Discuss care instructions for specialty finishes (cure time, cleaning, touch-up kit). Get verbal or written sign-off. 15-25 minutes per project."
+        },
+        {
+          "task_id": "TSK_SPRP_TOOL_CLEANUP",
+          "name": "Clean tools and equipment",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "task_type": "cleanup",
+          "unit_of_measure": "FIXED",
+          "notes": "Clean brushes, spray equipment, rollers, dispose of consumables. Water cleanup for waterborne products. Solvent cleanup for shellac-based stain blocker residue. Fold and store sawhorses if built-in doors were removed."
+        }
+      ]
+    }
+  ],
+
+  "protection_metadata": {
+    "zones": [
+      {
+        "zone_id": "floor_perimeter",
+        "condition": { "application_method": "brush" },
+        "protection_level": "edge_only",
+        "setup_task": "TSK_SPRP_FLOOR_PROTECT_PERIM",
+        "teardown_task": "TSK_SPRP_REMOVE_FLOOR_PROTECT",
+        "materials": ["CON_DROP_CLOTH_CANVAS"]
+      },
+      {
+        "zone_id": "floor_full",
+        "condition": { "application_method": "spray" },
+        "protection_level": "full_cover",
+        "setup_task": "TSK_SPRP_FLOOR_PROTECT_FULL",
+        "teardown_task": "TSK_SPRP_REMOVE_FLOOR_PROTECT",
+        "materials": ["CON_DROP_CLOTH_CANVAS", "CON_ROSIN_PAPER"]
+      },
+      {
+        "zone_id": "wall_mask_above_wainscot",
+        "condition": { "application_method": "spray", "surface_in_scope": "wainscot" },
+        "protection_level": "full_cover",
+        "setup_task": "TSK_SPRP_WALL_MASK",
+        "teardown_task": "TSK_SPRP_REMOVE_MASKING",
+        "materials": ["CON_MASKING_TAPE_BLUE", "CON_MASKING_PAPER"]
+      },
+      {
+        "zone_id": "wall_upper_band",
+        "condition": { "application_method": "spray", "surface_in_scope": "wood_ceiling" },
+        "protection_level": "full_cover",
+        "setup_task": "TSK_SPRP_WALL_MASK",
+        "teardown_task": "TSK_SPRP_REMOVE_MASKING",
+        "materials": ["CON_MASKING_TAPE_BLUE", "CON_MASKING_PAPER"]
+      },
+      {
+        "zone_id": "ceiling_line",
+        "condition": { "application_method": "spray", "surface_in_scope": "wood_wall", "ceiling_not_in_scope": true },
+        "protection_level": "full_cover",
+        "setup_task": "TSK_SPRP_WALL_MASK",
+        "teardown_task": "TSK_SPRP_REMOVE_MASKING",
+        "materials": ["CON_MASKING_TAPE_BLUE", "CON_MASKING_PAPER"]
+      },
+      {
+        "zone_id": "fixture_covers",
+        "condition": "always_when_ceiling_or_wall_work",
+        "protection_level": "item_mask",
+        "setup_task": "TSK_SPRP_FIXTURE_MASK",
+        "teardown_task": "TSK_SPRP_REMOVE_MASKING",
+        "materials": ["CON_MASKING_TAPE_BLUE", "CON_PLASTIC_SHEETING"]
+      },
+      {
+        "zone_id": "opening_cover_lightweight",
+        "condition": { "application_method": "spray", "surface_in_scope": "wood_ceiling" },
+        "protection_level": "light_mask",
+        "setup_task": "TSK_SPRP_OPENING_COVER",
+        "teardown_task": "TSK_SPRP_REMOVE_MASKING",
+        "materials": ["CON_PLASTIC_SHEETING"]
+      },
+      {
+        "zone_id": "builtin_contents_cover",
+        "condition": { "surface_in_scope": "builtin", "contents_present": true },
+        "protection_level": "full_cover",
+        "setup_task": "TSK_SPRP_BUILTIN_CONTENTS_PROTECT",
+        "teardown_task": "TSK_SPRP_REMOVE_BUILTIN_CONTENTS_PROTECT",
+        "materials": ["CON_PLASTIC_SHEETING"]
+      },
+      {
+        "zone_id": "floor_workzone",
+        "condition": { "surface_in_scope": ["arch_element", "builtin"], "application_method": "spray" },
+        "protection_level": "full_cover",
+        "setup_task": "TSK_SPRP_FLOOR_PROTECT_FULL",
+        "teardown_task": "TSK_SPRP_REMOVE_FLOOR_PROTECT",
+        "materials": ["CON_DROP_CLOTH_CANVAS"],
+        "notes": "Subsumed by floor_full when spray. Listed for completeness — localized element protection around arch elements and built-ins."
+      }
+    ]
+  },
+
+  "workflow_sequence": {
+    "standard_good_condition_spray": "MOD_SPRP_SETUP > MOD_SPRP_ASSESSMENT > MOD_SPRP_PREP > MOD_SPRP_FINISH(1) > MOD_SPRP_INTERSTAGE > MOD_SPRP_FINISH(2) > MOD_SPRP_CLEANUP",
+    "standard_fair_condition_spray": "MOD_SPRP_SETUP > MOD_SPRP_ASSESSMENT > [MOD_RRP_INT_CONTAINMENT] > MOD_SPRP_PREP > MOD_SPRP_PRIME > MOD_SPRP_INTERSTAGE > MOD_SPRP_FINISH(1) > MOD_SPRP_INTERSTAGE > MOD_SPRP_FINISH(2) > MOD_SPRP_CLEANUP",
+    "qt5_brush_poor_condition": "MOD_SPRP_SETUP > MOD_SPRP_ASSESSMENT > [MOD_RRP_INT_CONTAINMENT] > MOD_SPRP_PREP > MOD_SPRP_PRIME > MOD_SPRP_INTERSTAGE > MOD_SPRP_FINISH(1) > MOD_SPRP_INTERSTAGE > MOD_SPRP_FINISH(2) > MOD_SPRP_INTERSTAGE > MOD_SPRP_FINISH(3) > MOD_SPRP_CLEANUP",
+    "notes": "Assessment always runs — it is RP-mandatory. RRP containment conditional on pre-1978 home. Prime conditional on substrate state (FAIR/POOR condition, adhesion failure, coating incompatibility, or stain/clear conversion). QT5 brush adds 3rd finish coat per FFD 15.10.3. 7 surface types share the same module sequence — per-surface-type tasks within each module handle the rate differentiation."
+  },
+
+  "round_configurations": [
+    {
+      "round_id": "ROUND_SPRP_2FINISH",
+      "name": "2 finish coats (no primer)",
+      "description": "GOOD condition, no prime needed — sound paint with adhesion verified and compatible coating.",
+      "applies_when": { "condition_scale": ["GOOD"] },
+      "phase_sequence": ["setup", "prep", "finish", "interstage", "finish", "cleanup"],
+      "total_coats": 2,
+      "interstage_cycles": 1,
+      "notes": "Most common residential repaint scenario. Skip prime when adhesion test passes, existing paint is sound, and coating is compatible (latex over latex)."
+    },
+    {
+      "round_id": "ROUND_SPRP_PRIME_2FINISH",
+      "name": "State-driven prime + 2 finish coats",
+      "description": "Standard RP sequence for FAIR/POOR condition or stain/clear conversion.",
+      "applies_when": { "condition_scale": ["FAIR", "POOR"] },
+      "phase_sequence": ["setup", "prep", "prime", "interstage", "finish", "interstage", "finish", "cleanup"],
+      "total_coats": 3,
+      "interstage_cycles": 2,
+      "notes": "Most common RP round for surfaces with adhesion/contamination issues. Prime coat is state-driven (adhesion, stain-block, mildew, bonding). Interstage between all coat pairs."
+    },
+    {
+      "round_id": "ROUND_SPRP_3FINISH",
+      "name": "3 finish coats (QT5 brush, GOOD condition)",
+      "description": "QT5 brush per FFD 15.10.3, no primer needed.",
+      "applies_when": { "quality_tier": ["QT5"], "application_method": ["brush"], "condition_scale": ["GOOD"] },
+      "phase_sequence": ["setup", "prep", "finish", "interstage", "finish", "interstage", "finish", "cleanup"],
+      "total_coats": 3,
+      "interstage_cycles": 2,
+      "notes": "QT5 brush adds 3rd finish coat per FFD 15.10.3 even without prime. 320 grit interstage sanding."
+    },
+    {
+      "round_id": "ROUND_SPRP_PRIME_3FINISH",
+      "name": "Prime + 3 finish coats (QT5 brush, FAIR/POOR condition)",
+      "description": "Maximum coat sequence for specialty surfaces.",
+      "applies_when": { "quality_tier": ["QT5"], "application_method": ["brush"], "condition_scale": ["FAIR", "POOR"] },
+      "phase_sequence": ["setup", "prep", "prime", "interstage", "finish", "interstage", "finish", "interstage", "finish", "cleanup"],
+      "total_coats": 4,
+      "interstage_cycles": 3,
+      "notes": "State-driven prime + 3 brush finish coats with thorough interstage at 320 grit. Maximum coat sequence for specialty surfaces. Rare but necessary for QT5 on deteriorated specialty millwork."
+    }
+  ],
+
+  "task_count_summary": {
+    "total_tasks": 58,
+    "by_module": {
+      "MOD_SPRP_SETUP": 6,
+      "MOD_SPRP_ASSESSMENT": 4,
+      "MOD_RRP_INT_CONTAINMENT": 5,
+      "MOD_SPRP_PREP": 12,
+      "MOD_SPRP_PRIME": 6,
+      "MOD_SPRP_INTERSTAGE": 6,
+      "MOD_SPRP_FINISH": 10,
+      "MOD_SPRP_CLEANUP": 9
+    },
+    "owned_tasks": 49,
+    "shared_tasks_note": "49 tasks with TSK_SPRP_* prefix owned by this spec. 5 TSK_RRP_* tasks are shared module (not owned). 4 assessment tasks are RP-standard but SPRP-prefixed.",
+    "by_classification": {
+      "binary": 44,
+      "qt_scaled": 14
+    },
+    "by_phase": {
+      "setup": 6,
+      "prep": 21,
+      "prime": 6,
+      "interstage": 6,
+      "finish": 12,
+      "cleanup": 7
+    },
+    "phase_detail": {
+      "setup_6": "6 protection tasks",
+      "prep_21": "4 assessment + 5 RRP + 12 surface prep",
+      "prime_6": "2 SF spray/brush + 4 EA/LF element tasks",
+      "interstage_6": "shared inspect/sand/patch/spot/tack/clean cycle",
+      "finish_12": "6 SF spray/brush (wainscot+wall+ceiling x 2 methods) + 4 EA/LF element tasks + 2 final inspect/touchup",
+      "cleanup_7": "masking teardown + floor protect + builtin contents + vacuum + walkthrough + tools"
+    },
+    "consolidation_ratio": "58 total tasks (49 SPRP-owned) from 154 NC tasks across 5 source specs (2.65x reduction). 49 owned tasks within 45-55 target range.",
+    "nc_source_task_counts": {
+      "SF_WAINSCOT_PANEL_NC": 25,
+      "SF_WOOD_WALL_NC": 25,
+      "SF_WOOD_CEILING_NC": 30,
+      "SF_ARCH_ELEMENT_NC": 39,
+      "SF_BUILTIN_NC": 35,
+      "total_nc": 154,
+      "rp_new_tasks": 9,
+      "note": "9 RP_NEW tasks (4 assessment + 5 RRP). Assessment and RRP modules have no NC equivalent — 100% new for RP."
+    }
+  }
+}

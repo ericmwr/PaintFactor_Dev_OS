@@ -1,0 +1,1303 @@
+{
+  "spec_family_id": "SF_DRYWALL_CEILING_INT_RP",
+  "version": "0.1.0",
+  "generated_by": "SOP Librarian",
+  "generated_at": "2026-03-13",
+
+  "sop_modules": [
+    {
+      "module_id": "MOD_CLRP_SETUP",
+      "name": "Setup — Floor Protection (Full), Wall-Top Masking, Ceiling Fixture Masking, Furniture Drip Covers",
+      "description": "Full setup module for interior ceiling repaint. Floor protection is ALWAYS full-room (overhead drip zone — no perimeter-only option). Wall-top masking for spray methods. Ceiling fixture masking (lights, fans, smoke detectors) for spray methods. Furniture drip covers in-place (no center-pile — furniture stays put, poly draped over). Opening covers for spray.",
+      "phase": "setup",
+      "applies_when": {},
+      "required_inputs": [
+        { "input_name": "IN_SF_PROTECT_FLOOR_EXPOSED", "paintscope_key": "PS_PROTECT_SF.FLOOR_EXPOSED", "uom": "SF" },
+        { "input_name": "IN_LF_EDGE_TO_WALL", "paintscope_key": "PS_EDGE_LF.TO_WALL", "uom": "LF" },
+        { "input_name": "IN_EA_ROOMS_TOTAL", "paintscope_key": "PS_META.EA.ROOMS_TOTAL", "uom": "EA" },
+        { "input_name": "IN_SF_PROTECT_FURNITURE_ROOM", "paintscope_key": "PS_PROTECT_SF.FURNITURE_ROOM", "uom": "SF" }
+      ],
+      "tasks": [
+        {
+          "task_id": "TSK_CLRP_FLOOR_PROTECT_FULL_SETUP",
+          "name": "Floor Protection Setup (Full Room — Always)",
+          "description": "Install full-room floor protection. Hard floors: rosin paper with taped seams. Carpet: plastic sheeting with taped edges. ALWAYS full-room for ceiling work — overhead drip zone covers entire floor regardless of application method. No perimeter-only option.",
+          "task_type": "protect",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "unit_of_measure": "SF",
+          "appears_in_tiers": ["QT2", "QT3", "QT4", "QT5"],
+          "protection_metadata": {
+            "action": "setup",
+            "zones": ["floor_full"],
+            "method_dependent": false
+          }
+        },
+        {
+          "task_id": "TSK_CLRP_FURNITURE_DRIP_COVER",
+          "name": "Cover Furniture with Poly Sheeting (In-Place)",
+          "description": "Drape 2-4 mil poly sheeting over furniture and contents in place. Tape edges to floor to prevent paint drips and overspray from reaching contents. Ceiling RP does NOT move furniture — furniture stays in place, covered with poly for overhead drip protection.",
+          "task_type": "protect",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "unit_of_measure": "EA_ROOM",
+          "appears_in_tiers": ["QT2", "QT3", "QT4", "QT5"],
+          "protection_metadata": {
+            "action": "setup",
+            "zones": ["furniture_drip_cover"],
+            "method_dependent": false
+          },
+          "site_condition_rules": {
+            "include_when": {
+              "occupancy_state": ["occupied_crew_handles", "occupied_sensitive"]
+            },
+            "exclude_when": {
+              "occupancy_state": ["vacant", "vacant_with_fixtures"]
+            }
+          }
+        },
+        {
+          "task_id": "TSK_CLRP_MASK_WALL_TOP",
+          "name": "Mask Wall Top at Ceiling Line (Spray Methods)",
+          "description": "Apply masking tape and paper along top of walls at ceiling line to protect finished wall surfaces from ceiling spray overspray. Required for spray and spray_backroll methods only. Roll method uses freehand cut-in — no wall masking needed.",
+          "task_type": "protect",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "unit_of_measure": "LF",
+          "appears_in_tiers": ["QT2", "QT3", "QT4", "QT5"],
+          "applies_when": { "application_method": ["spray_backroll", "spray"] },
+          "protection_metadata": {
+            "action": "setup",
+            "zones": ["wall_top_mask"],
+            "method_dependent": true
+          },
+          "substrate_state_rules": {
+            "adjacent_surface": "wall_field",
+            "protect_when_state": ["SS_PAINTED_FLAT", "SS_PAINTED_EGGSHELL", "SS_PAINTED_SATIN", "SS_PAINTED_SEMIGLOSS", "SS_PAINTED_GLOSS"],
+            "skip_when_state": [],
+            "protection_level_by_state": {
+              "SS_PAINTED_FLAT": "full_mask",
+              "SS_PAINTED_EGGSHELL": "full_mask",
+              "SS_PAINTED_SATIN": "full_mask",
+              "SS_PAINTED_SEMIGLOSS": "full_mask",
+              "SS_PAINTED_GLOSS": "full_mask"
+            }
+          }
+        },
+        {
+          "task_id": "TSK_CLRP_FIXTURE_MASK_SETUP",
+          "name": "Mask Ceiling Fixtures (Lights, Fans, Smoke Detectors)",
+          "description": "Apply masking covers to recessed lights, ceiling fans, smoke detectors, sprinkler heads, and ceiling electrical boxes. Stuff recessed cans with paper, tape edges. Required for spray methods. Recommended for roll at QT4+ to prevent drip risk onto fixtures.",
+          "task_type": "protect",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "unit_of_measure": "EA_ROOM",
+          "appears_in_tiers": ["QT2", "QT3", "QT4", "QT5"],
+          "applies_when": { "application_method": ["spray_backroll", "spray"] },
+          "protection_metadata": {
+            "action": "setup",
+            "zones": ["ceiling_fixtures"],
+            "method_dependent": true
+          },
+          "quantity_heuristic": {
+            "recessed_lights_per_room": { "average": 6, "range": "4-8" },
+            "smoke_detectors_per_room": { "average": 1, "range": "0-2" },
+            "ceiling_boxes_per_room": { "average": 1, "range": "0-2" },
+            "total_items_per_room": { "average": 8, "range": "5-12" }
+          }
+        },
+        {
+          "task_id": "TSK_CLRP_OPENING_COVERS_SETUP",
+          "name": "Apply Lightweight Opening Covers (Spray Methods)",
+          "description": "Apply lightweight plastic covers over door and window openings to contain overspray within the room. Quick pin or tape attachment. Required for spray methods only.",
+          "task_type": "protect",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "unit_of_measure": "EA_ROOM",
+          "appears_in_tiers": ["QT2", "QT3", "QT4", "QT5"],
+          "applies_when": { "application_method": ["spray_backroll", "spray"] },
+          "protection_metadata": {
+            "action": "setup",
+            "zones": ["opening_covers"],
+            "method_dependent": true
+          }
+        }
+      ],
+      "sequence_notes": "Floor protection (always full) → Furniture drip covers (occupied homes) → Wall-top masking (spray methods) → Ceiling fixture masking (spray methods) → Opening covers (spray methods). All setup complete before assessment begins."
+    },
+
+    {
+      "module_id": "MOD_CLRP_ASSESSMENT",
+      "name": "Condition Assessment",
+      "description": "RP-specific assessment phase for ceilings. Visual condition scan with work light at overhead angle, ASTM D3359 adhesion test, moisture evaluation, and coating identification. Results drive downstream task activation (primer selection, prep intensity, contamination treatment). Overhead viewing angle adds ~15-20% time vs wall assessment.",
+      "phase": "prep",
+      "applies_when": {},
+      "required_inputs": [
+        { "input_name": "IN_EA_ROOMS_TOTAL", "paintscope_key": "PS_META.EA.ROOMS_TOTAL", "uom": "EA" },
+        { "input_name": "IN_SF_CEILING_FIELD", "paintscope_key": "PS_SURFACE_SF.CEILING_FIELD", "uom": "SF" },
+        { "input_name": "IN_ENUM_SURFACE_CONDITION", "paintscope_key": "PS_META.SURFACE_CONDITION", "uom": "ENUM" },
+        { "input_name": "IN_ENUM_SUBSTRATE_STATE_INT", "paintscope_key": "PS_META.ENUM.SUBSTRATE_STATE_INT", "uom": "ENUM" },
+        { "input_name": "IN_ENUM_CONTAMINATION_TYPE", "paintscope_key": "PS_META.ENUM.CONTAMINATION_TYPE", "uom": "ENUM" },
+        { "input_name": "IN_BOOL_HOME_PRE_1978", "paintscope_key": "PS_META.BOOL.HOME_PRE_1978", "uom": "BOOL" }
+      ],
+      "tasks": [
+        {
+          "task_id": "TSK_CLRP_ASSESS_CONDITION",
+          "name": "Visual Condition Scan — All Ceilings",
+          "description": "Walk all ceiling surfaces with raking work light. Photograph defects, map damage areas, assign severity per room. Identify worst-condition ceiling to determine room-level condition_scale (GOOD/FAIR/POOR). Document scope of scraping, peeling, staining. Overhead viewing angle requires brighter work light and more deliberate scanning.",
+          "task_classification": "qt_scaled",
+          "qt_behavior": "rate_varies_by_tier",
+          "skill_level": "journeyman",
+          "unit_of_measure": "EA_ROOM",
+          "appears_in_tiers": ["QT2", "QT3", "QT4", "QT5"],
+          "quality_notes": {
+            "QT2": "Quick visual scan, note major issues only",
+            "QT3": "Standard visual with work light, document all visible defects",
+            "QT4": "Systematic scan with raking light, photograph all defect areas",
+            "QT5": "Critical assessment, multiple passes, raking light, full photographic documentation"
+          }
+        },
+        {
+          "task_id": "TSK_CLRP_ASSESS_ADHESION",
+          "name": "Adhesion Test (ASTM D3359 Cross-Hatch Tape Test)",
+          "description": "Perform cross-hatch tape test per ASTM D3359 at representative areas and any suspect zones on ceiling. Test at minimum 2 locations per room. Results determine if adhesion primer is required. Overhead access may require step ladder for precise test placement.",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "unit_of_measure": "EA_ROOM",
+          "appears_in_tiers": ["QT2", "QT3", "QT4", "QT5"]
+        },
+        {
+          "task_id": "TSK_CLRP_ASSESS_MOISTURE",
+          "name": "Moisture Meter Evaluation",
+          "description": "Test ceiling moisture content at suspect areas using pin-type or pinless moisture meter. Flag active moisture sources (roof leaks, condensation, plumbing above) for remediation by other trades. Active moisture is a STOP WORK condition — do not proceed until source is resolved.",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "unit_of_measure": "EA_ROOM",
+          "appears_in_tiers": ["QT2", "QT3", "QT4", "QT5"],
+          "site_condition_rules": {
+            "stop_work_when": {
+              "moisture_condition": ["active_moisture"]
+            },
+            "include_when": {
+              "moisture_condition": ["recently_wet"]
+            }
+          }
+        },
+        {
+          "task_id": "TSK_CLRP_ASSESS_COATING_ID",
+          "name": "Coating Identification — Latex vs Oil",
+          "description": "Determine existing ceiling coating type via solvent test: mineral spirits dissolves alkyd, does not dissolve latex. Critical for primer compatibility — latex over oil requires adhesion primer.",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "unit_of_measure": "EA_ROOM",
+          "appears_in_tiers": ["QT2", "QT3", "QT4", "QT5"]
+        }
+      ],
+      "sequence_notes": "Condition scan first → Adhesion test at suspect areas → Moisture eval at suspect areas → Coating ID. Assessment results determine which prep and prime tasks activate downstream."
+    },
+
+    {
+      "module_id": "MOD_RRP_INT_CONTAINMENT",
+      "name": "Lead-Safe RRP Containment (Shared Module)",
+      "description": "Shared lead-safe work practice module for all 9 interior RP specs. Conditional on home built before 1978. Includes lead test, containment setup, wet methods, HEPA vacuum, containment removal, and waste disposal. This module is NOT owned by this spec — it is a shared module referenced by all interior RP specs.",
+      "phase": "prep",
+      "applies_when": {
+        "home_pre_1978": true
+      },
+      "required_inputs": [
+        { "input_name": "IN_BOOL_HOME_PRE_1978", "paintscope_key": "PS_META.BOOL.HOME_PRE_1978", "uom": "BOOL" },
+        { "input_name": "IN_EA_ROOMS_TOTAL", "paintscope_key": "PS_META.EA.ROOMS_TOTAL", "uom": "EA" }
+      ],
+      "tasks": [
+        {
+          "task_id": "TSK_RRP_LEAD_TEST",
+          "name": "Lead Test (XRF or Swab)",
+          "description": "Perform lead test at representative areas. XRF preferred; lead swab test acceptable. Test at minimum 2 locations per room on ceiling surface.",
+          "task_classification": "binary",
+          "skill_level": "lead",
+          "unit_of_measure": "EA_ROOM",
+          "appears_in_tiers": ["QT2", "QT3", "QT4", "QT5"]
+        },
+        {
+          "task_id": "TSK_RRP_CONTAINMENT_SETUP",
+          "name": "RRP Containment Setup",
+          "description": "Install containment: poly sheeting on floors and openings, warning signs at entry points, restrict entry to certified personnel only. Per EPA RRP Rule 40 CFR 745.",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "unit_of_measure": "EA_ROOM",
+          "appears_in_tiers": ["QT2", "QT3", "QT4", "QT5"],
+          "site_condition_rules": {
+            "include_when": {
+              "lead_status": ["tested_positive", "unknown_pre1978"]
+            },
+            "exclude_when": {
+              "lead_status": ["tested_negative", "not_applicable"]
+            }
+          }
+        },
+        {
+          "task_id": "TSK_RRP_HEPA_VACUUM",
+          "name": "HEPA Vacuum After Paint Disturbance",
+          "description": "HEPA vacuum all surfaces after each sanding/scraping disturbance to capture lead-contaminated dust. Required by EPA RRP Rule.",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "unit_of_measure": "EA_ROOM",
+          "appears_in_tiers": ["QT2", "QT3", "QT4", "QT5"],
+          "site_condition_rules": {
+            "include_when": {
+              "lead_status": ["tested_positive", "unknown_pre1978"]
+            }
+          }
+        },
+        {
+          "task_id": "TSK_RRP_CONTAINMENT_REMOVAL",
+          "name": "RRP Containment Removal and Visual Clearance",
+          "description": "Remove containment poly sheeting, perform visual clearance inspection. No visible dust or debris. Dispose containment materials per EPA RRP waste handling rules.",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "unit_of_measure": "EA_ROOM",
+          "appears_in_tiers": ["QT2", "QT3", "QT4", "QT5"],
+          "site_condition_rules": {
+            "include_when": {
+              "lead_status": ["tested_positive", "unknown_pre1978"]
+            }
+          }
+        },
+        {
+          "task_id": "TSK_RRP_WASTE_DISPOSAL",
+          "name": "Lead-Contaminated Waste Disposal",
+          "description": "Package and dispose of lead-contaminated debris, containment materials, and cleaning supplies per EPA RRP Rule. Label and transport to approved disposal facility.",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "unit_of_measure": "FIXED",
+          "appears_in_tiers": ["QT2", "QT3", "QT4", "QT5"],
+          "site_condition_rules": {
+            "include_when": {
+              "lead_status": ["tested_positive", "unknown_pre1978"]
+            }
+          }
+        }
+      ],
+      "sequence_notes": "Lead test first → If positive: containment setup → All prep tasks use wet methods → HEPA vacuum after each disturbance → Containment removal after all prep complete → Waste disposal."
+    },
+
+    {
+      "module_id": "MOD_CLRP_PREP",
+      "name": "Prep — Degloss, Scrape, Feather, Contamination Treatment, Fill, Caulk Perimeter, Dust Removal",
+      "description": "Condition-driven prep module for ceilings. GOOD condition: degloss/scuff + dust wipe. FAIR condition: add scrape, feather, contamination treatment, fill/patch. POOR condition: full scrape, extensive feathering, contamination treatment, full fill. All tasks performed overhead with extension pole tools. Prep pool modifiers apply: condition_scale x contamination_type. No wall_access modifier (not applicable to ceilings).",
+      "phase": "prep",
+      "applies_when": {},
+      "required_inputs": [
+        { "input_name": "IN_SF_CEILING_FIELD", "paintscope_key": "PS_SURFACE_SF.CEILING_FIELD", "uom": "SF" },
+        { "input_name": "IN_LF_EDGE_TO_WALL", "paintscope_key": "PS_EDGE_LF.TO_WALL", "uom": "LF" },
+        { "input_name": "IN_ENUM_SURFACE_CONDITION", "paintscope_key": "PS_META.SURFACE_CONDITION", "uom": "ENUM" },
+        { "input_name": "IN_ENUM_CONTAMINATION_TYPE", "paintscope_key": "PS_META.ENUM.CONTAMINATION_TYPE", "uom": "ENUM" }
+      ],
+      "tasks": [
+        {
+          "task_id": "TSK_CLRP_WASH_TSP",
+          "name": "TSP Wash for Ceiling Surface Contamination",
+          "description": "TSP (trisodium phosphate) wash for grease film, kitchen residue, smoke residue, or general surface contamination on ceiling. Wipe on with extension pole applicator, scrub, rinse, allow to dry. Required before degloss or coating application when contamination is present. Overhead work is slower than wall TSP wash.",
+          "task_classification": "qt_scaled",
+          "skill_level": "helper",
+          "unit_of_measure": "SF",
+          "appears_in_tiers": ["QT2", "QT3", "QT4", "QT5"],
+          "applies_when": {
+            "contamination_type": ["mildew", "smoke", "water_stain", "grease"]
+          },
+          "quality_notes": {
+            "QT2": "Single pass with TSP solution, rinse",
+            "QT3": "Thorough wash, rinse, verify clean",
+            "QT4": "Systematic wash with rinse verification, work light check",
+            "QT5": "Multiple passes as needed until clean, full verification"
+          }
+        },
+        {
+          "task_id": "TSK_CLRP_TREAT_MILDEW",
+          "name": "Mildew/Biocide Treatment",
+          "description": "Apply bleach or mildewcide solution to mildew-affected ceiling areas. Allow full contact/kill time per product directions. Rinse and allow to dry completely. Source moisture must already be resolved (gate condition from assessment). Common on bathroom and kitchen ceilings.",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "unit_of_measure": "SF",
+          "appears_in_tiers": ["QT2", "QT3", "QT4", "QT5"],
+          "applies_when": {
+            "contamination_type": ["mildew"]
+          },
+          "substrate_state_rules": {
+            "applies_when_input_state": ["SS_INT_MOISTURE_DAMAGE"],
+            "skip_when_input_state": ["SS_INT_SOUND_PAINT", "SS_INT_FAILING_PAINT", "SS_INT_PEELING", "SS_INT_SMOKE_DAMAGE"]
+          }
+        },
+        {
+          "task_id": "TSK_CLRP_SCRAPE_LOOSE",
+          "name": "Scrape Loose and Failing Ceiling Paint",
+          "description": "Scrape all failing, peeling, flaking, or loose paint from ceiling to sound substrate using putty knife or paint scraper on extension pole. Work systematically section by section. Overhead scraping produces significant falling debris — ensure floor protection is in place.",
+          "task_classification": "qt_scaled",
+          "skill_level": "journeyman",
+          "unit_of_measure": "SF",
+          "appears_in_tiers": ["QT2", "QT3", "QT4", "QT5"],
+          "applies_when": {
+            "condition_scale": ["FAIR", "POOR"]
+          },
+          "substrate_state_rules": {
+            "applies_when_input_state": ["SS_INT_FAILING_PAINT", "SS_INT_PEELING", "SS_INT_MOISTURE_DAMAGE"],
+            "skip_when_input_state": ["SS_INT_SOUND_PAINT", "SS_INT_SMOKE_DAMAGE"]
+          },
+          "quality_notes": {
+            "QT2": "Remove obviously loose material, major peeling areas",
+            "QT3": "Remove all failing paint, thorough scrape of affected areas",
+            "QT4": "Comprehensive scrape with careful edge work, identify all weak adhesion zones",
+            "QT5": "Critical scrape — near-zero tolerance for remaining loose material"
+          }
+        },
+        {
+          "task_id": "TSK_CLRP_FEATHER_EDGES",
+          "name": "Feather-Sand Scrape Edges on Ceiling",
+          "description": "Feather-sand all scrape edges on ceiling to create smooth transition between bare substrate and remaining sound paint. Use pole sander or hand sand on step ladder. Critical to prevent ridge telegraphing through finish coats.",
+          "task_classification": "qt_scaled",
+          "skill_level": "journeyman",
+          "unit_of_measure": "SF",
+          "appears_in_tiers": ["QT2", "QT3", "QT4", "QT5"],
+          "applies_when": {
+            "condition_scale": ["FAIR", "POOR"]
+          },
+          "substrate_state_rules": {
+            "applies_when_input_state": ["SS_INT_FAILING_PAINT", "SS_INT_PEELING", "SS_INT_MOISTURE_DAMAGE"],
+            "skip_when_input_state": ["SS_INT_SOUND_PAINT", "SS_INT_SMOKE_DAMAGE"]
+          },
+          "quality_notes": {
+            "QT2": "Sand visible ridges, reasonable transition",
+            "QT3": "Smooth transition, no visible ridge at 6 ft",
+            "QT4": "Near-invisible transition, no ridge at 3 ft",
+            "QT5": "Perfect transition, no ridge at arm's length"
+          }
+        },
+        {
+          "task_id": "TSK_CLRP_DEGLOSS",
+          "name": "Degloss Existing Ceiling Paint Surface",
+          "description": "Chemical degloss (liquid sander wipe-on) or mechanical scuff (120-150 grit pole sander) to promote adhesion of new coating. Required on all sound paint surfaces. Chemical degloss preferred for overhead — less dust generation than mechanical scuff.",
+          "task_classification": "qt_scaled",
+          "skill_level": "journeyman",
+          "unit_of_measure": "SF",
+          "appears_in_tiers": ["QT2", "QT3", "QT4", "QT5"],
+          "substrate_state_rules": {
+            "applies_when_input_state": ["SS_INT_SOUND_PAINT", "SS_INT_FAILING_PAINT"],
+            "skip_when_input_state": ["SS_INT_PEELING", "SS_INT_MOISTURE_DAMAGE", "SS_INT_SMOKE_DAMAGE"],
+            "modifier_by_state": {
+              "SS_INT_SOUND_PAINT": 1.00,
+              "SS_INT_FAILING_PAINT": 1.15
+            }
+          },
+          "quality_notes": {
+            "QT2": "Quick scuff, chemical degloss acceptable",
+            "QT3": "Thorough degloss, all surfaces addressed",
+            "QT4": "Full degloss with adhesion verification",
+            "QT5": "Complete degloss with bonding verification and spot adhesion re-test"
+          }
+        },
+        {
+          "task_id": "TSK_CLRP_SPACKLE_DEFECTS",
+          "name": "Fill Ceiling Defects — Spackle",
+          "description": "Apply lightweight spackle to nail holes, dings, cracks, water stain residue areas, and scrape-transition areas on ceiling. Use extension pole applicator for overhead access. Feather edges for smooth transition.",
+          "task_classification": "qt_scaled",
+          "skill_level": "journeyman",
+          "unit_of_measure": "SF",
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "applies_when": {
+            "quality_tier": ["QT3", "QT4", "QT5"]
+          },
+          "quality_notes": {
+            "QT3": "Fill all visible defects, reasonable feathering",
+            "QT4": "Fill all defects with careful feathering, invisible repairs",
+            "QT5": "Near-zero defect tolerance, wide feathering, multiple thin coats as needed"
+          }
+        },
+        {
+          "task_id": "TSK_CLRP_SAND_SPACKLE",
+          "name": "Sand Spackled Ceiling Areas",
+          "description": "Sand spackled areas smooth after dry using pole sander. Use 150-180 grit. Blend repairs into surrounding surface. Overhead sanding generates significant dust — work light verification required.",
+          "task_classification": "qt_scaled",
+          "skill_level": "journeyman",
+          "unit_of_measure": "SF",
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "applies_when": {
+            "quality_tier": ["QT3", "QT4", "QT5"]
+          },
+          "quality_notes": {
+            "QT3": "Sand and blend, repair should not telegraph",
+            "QT4": "Sand perfectly smooth, repair invisible",
+            "QT5": "Sand to perfection, wet sponge test for smoothness"
+          }
+        },
+        {
+          "task_id": "TSK_CLRP_CAULK_PERIMETER",
+          "name": "Assess and Replace Failed Caulk at Ceiling Perimeter",
+          "description": "Inspect existing caulk joints at ceiling-to-wall perimeter. Remove and replace cracked, shrunk, or failed sections. RP differs from NC — NC applies new caulk to bare joints; RP assesses existing and replaces only failed sections. Simpler than wall caulk — only one joint type (ceiling-to-wall).",
+          "task_classification": "qt_scaled",
+          "skill_level": "journeyman",
+          "unit_of_measure": "LF",
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "applies_when": {
+            "quality_tier": ["QT3", "QT4", "QT5"]
+          },
+          "quality_notes": {
+            "QT3": "Replace visibly failed sections",
+            "QT4": "Comprehensive assessment, replace all suspect joints",
+            "QT5": "Critical assessment, replace all joints not in perfect condition"
+          }
+        },
+        {
+          "task_id": "TSK_CLRP_DUST_WIPE",
+          "name": "Dust Wipe Ceiling Surfaces",
+          "description": "Wipe ceiling surfaces with damp cloth or tack cloth on extension pole to remove sanding dust, degloss residue, and debris before priming or finish coat application.",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "unit_of_measure": "SF",
+          "appears_in_tiers": ["QT2", "QT3", "QT4", "QT5"]
+        },
+        {
+          "task_id": "TSK_CLRP_VACUUM_DUST",
+          "name": "Vacuum Ceiling and Floor Dust After Prep",
+          "description": "HEPA vacuum ceiling surfaces (extension pole with brush attachment) and floor area to remove all prep dust (sanding, scraping, spackling) before coating application.",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "unit_of_measure": "SF",
+          "appears_in_tiers": ["QT2", "QT3", "QT4", "QT5"]
+        }
+      ],
+      "sequence_notes": "TSP wash (if contaminated) → Mildew treatment (if moisture damage) → Scrape loose paint (if FAIR/POOR) → Feather edges (if scraped) → Degloss (if sound/failing paint) → Spackle defects (QT3+) → Sand spackle (QT3+) → Caulk perimeter (QT3+) → Dust wipe → Vacuum. All prep must be complete and dry before prime."
+    },
+
+    {
+      "module_id": "MOD_CLRP_PRIME",
+      "name": "Prime — State-Driven Primer Application",
+      "description": "State-driven primer module for ceilings. Primer product selection determined by substrate state: SS_INT_SOUND_PAINT may skip prime or use adhesion primer; SS_INT_FAILING_PAINT/PEELING use adhesion primer (spot or full); SS_INT_MOISTURE_DAMAGE uses mildew-resistant primer; SS_INT_SMOKE_DAMAGE uses shellac stain-blocker (full surface). Application method matches finish method (roll/spray_backroll/spray). Wall-line cut-in replaces ceiling-line cut-in (ceiling perspective).",
+      "phase": "prime",
+      "applies_when": {},
+      "required_inputs": [
+        { "input_name": "IN_SF_CEILING_FIELD", "paintscope_key": "PS_SURFACE_SF.CEILING_FIELD", "uom": "SF" },
+        { "input_name": "IN_LF_EDGE_TO_WALL", "paintscope_key": "PS_EDGE_LF.TO_WALL", "uom": "LF" },
+        { "input_name": "IN_ENUM_SUBSTRATE_STATE_INT", "paintscope_key": "PS_META.ENUM.SUBSTRATE_STATE_INT", "uom": "ENUM" }
+      ],
+      "tasks": [
+        {
+          "task_id": "TSK_CLRP_CUTIN_PRIMER_WALL",
+          "name": "Cut-In Primer at Wall Line (from Ceiling)",
+          "description": "Brush-cut primer along ceiling-to-wall boundary from ceiling perspective. Freehand cut-in along wall line. Clean line extending 2-3 inches into ceiling field for roller overlap. Overhead position makes cut-in slower than wall equivalent.",
+          "task_type": "apply",
+          "task_classification": "qt_scaled",
+          "skill_level": "journeyman",
+          "unit_of_measure": "LF",
+          "appears_in_tiers": ["QT2", "QT3", "QT4", "QT5"],
+          "applies_when": {
+            "application_method": ["roll"]
+          },
+          "adjacency_metadata": {
+            "adjacent_surface": "wall_field",
+            "condition": "different_finish",
+            "skip_when": "never",
+            "rate_modifier_category": "cut_in",
+            "application_method": "brush_roll"
+          },
+          "substrate_state_rules": {
+            "skip_when_input_state": ["SS_INT_SOUND_PAINT"]
+          },
+          "quality_notes": {
+            "QT2": "Acceptable edge, minor wavering tolerated",
+            "QT3": "Clean, consistent edge",
+            "QT4": "Crisp edge with minimal brush marks",
+            "QT5": "Perfect edge, straight line"
+          }
+        },
+        {
+          "task_id": "TSK_CLRP_ROLL_PRIMER",
+          "name": "Roll Primer on Ceiling",
+          "description": "Apply state-driven primer to ceiling field using 9-inch or 18-inch roller on extension pole. Primer product varies by substrate state: adhesion primer for failing/peeling, mildew-resistant for moisture damage, shellac stain-blocker for smoke damage. W pattern, maintain wet edge. Overhead fatigue slows rate vs wall rolling.",
+          "task_classification": "qt_scaled",
+          "skill_level": "journeyman",
+          "unit_of_measure": "SF",
+          "appears_in_tiers": ["QT2", "QT3", "QT4", "QT5"],
+          "applies_when": {
+            "application_method": ["roll"]
+          },
+          "substrate_state_rules": {
+            "applies_when_input_state": ["SS_INT_FAILING_PAINT", "SS_INT_PEELING", "SS_INT_MOISTURE_DAMAGE", "SS_INT_SMOKE_DAMAGE"],
+            "skip_when_input_state": ["SS_INT_SOUND_PAINT"]
+          },
+          "quality_notes": {
+            "all": "No application defects — no drips, sags, holidays, or lap marks. Surface must be uniformly sealed."
+          }
+        },
+        {
+          "task_id": "TSK_CLRP_SPRAY_PRIMER",
+          "name": "Spray Primer on Ceiling",
+          "description": "Apply state-driven primer via airless sprayer overhead. Proper distance, 50% overlap, consistent speed. Spray directly into ceiling-to-wall corner (no cut-in needed for spray). Primer product varies by substrate state. Overhead spray produces more fallback overspray than wall spray.",
+          "task_classification": "qt_scaled",
+          "skill_level": "journeyman",
+          "unit_of_measure": "SF",
+          "appears_in_tiers": ["QT2", "QT3", "QT4", "QT5"],
+          "applies_when": {
+            "application_method": ["spray_backroll", "spray"]
+          },
+          "substrate_state_rules": {
+            "applies_when_input_state": ["SS_INT_FAILING_PAINT", "SS_INT_PEELING", "SS_INT_MOISTURE_DAMAGE", "SS_INT_SMOKE_DAMAGE"],
+            "skip_when_input_state": ["SS_INT_SOUND_PAINT"]
+          },
+          "quality_notes": {
+            "all": "No application defects — uniform coverage, proper mil thickness."
+          }
+        },
+        {
+          "task_id": "TSK_CLRP_BACKROLL_PRIMER",
+          "name": "Backroll Sprayed Ceiling Primer",
+          "description": "Immediately follow spray with 18-inch roller on extension pole to consolidate primer overhead. Backroll is MANDATORY for primer on previously painted surfaces to ensure adhesion and eliminate air pockets. Backroller sets pace for spray+backroll system. Overhead fatigue makes ceiling backroll the bottleneck.",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "unit_of_measure": "SF",
+          "appears_in_tiers": ["QT2", "QT3", "QT4", "QT5"],
+          "applies_when": {
+            "application_method": ["spray_backroll"]
+          },
+          "substrate_state_rules": {
+            "applies_when_input_state": ["SS_INT_FAILING_PAINT", "SS_INT_PEELING", "SS_INT_MOISTURE_DAMAGE", "SS_INT_SMOKE_DAMAGE"],
+            "skip_when_input_state": ["SS_INT_SOUND_PAINT"]
+          },
+          "quality_notes": {
+            "all": "Primer fully consolidated. No air pockets. Backroller follows sprayer closely."
+          }
+        },
+        {
+          "task_id": "TSK_CLRP_SPOT_PRIME",
+          "name": "Spot Prime Scraped/Repaired Ceiling Areas",
+          "description": "Apply spot primer to all scraped areas, feathered edges, spackled repairs, and exposed substrate on ceiling. Prevents flashing from differential absorption. For GOOD condition when only localized areas need attention.",
+          "task_classification": "qt_scaled",
+          "skill_level": "journeyman",
+          "unit_of_measure": "SF",
+          "appears_in_tiers": ["QT2", "QT3", "QT4", "QT5"],
+          "quality_notes": {
+            "QT2": "Spot prime major repair areas",
+            "QT3": "Spot prime all spackled and scraped areas",
+            "QT4": "Spot prime all repairs with feathered edges",
+            "QT5": "Spot prime all repairs with wide feather, may need light sand after"
+          }
+        }
+      ],
+      "sequence_notes": "Cut-in primer at wall line (roll method only) → Roll/spray primer → Backroll (spray_backroll method). Spot prime is independent — used for localized repairs regardless of full-prime status. Skip entire module for SS_INT_SOUND_PAINT when adhesion test passes."
+    },
+
+    {
+      "module_id": "MOD_CLRP_INTERSTAGE",
+      "name": "Interstage — Between Coats",
+      "description": "Interstage maintenance between coats on ceiling. QT4/QT5: light sand with pole sander, vacuum dust, inspect, patch defects, spot coat. QT3: spot sand patches only if necessary. Overhead sanding with pole sander is slower than wall sanding. Run rule: AFTER each coat EXCEPT the final coat.",
+      "phase": "interstage",
+      "applies_when": {
+        "quality_tier": ["QT3", "QT4", "QT5"]
+      },
+      "required_inputs": [
+        { "input_name": "IN_SF_CEILING_FIELD", "paintscope_key": "PS_SURFACE_SF.CEILING_FIELD", "uom": "SF" }
+      ],
+      "run_rule": "Runs AFTER each coat EXCEPT the final coat. For prime+2finish: runs after prime, after finish coat 1. For 2finish (no prime): runs after finish coat 1.",
+      "run_count_formula": "total_coats - 1",
+      "tasks": [
+        {
+          "task_id": "TSK_CLRP_LIGHT_SAND_BETWEEN_COATS",
+          "name": "Light Sand Ceiling Between Coats",
+          "description": "Light sand previous coat on ceiling with 220 grit pole sander to smooth nibs, imperfections, and raised grain before next coat. Overhead pole sanding is slower than wall pole sanding.",
+          "task_classification": "qt_conditional",
+          "skill_level": "journeyman",
+          "unit_of_measure": "SF",
+          "applies_when": { "quality_tier": ["QT4"] },
+          "appears_in_tiers": ["QT4"],
+          "quality_notes": {
+            "QT4": "Light even pass to smooth nibs"
+          }
+        },
+        {
+          "task_id": "TSK_CLRP_LIGHT_SAND_BETWEEN_COATS_QT5",
+          "name": "Light Sand Ceiling Between Coats (Critical)",
+          "description": "Careful sanding between coats on ceiling with inspection under raking work light. Critical for satin/semi-gloss finishes where every imperfection shows on overhead surfaces.",
+          "task_classification": "qt_conditional",
+          "skill_level": "journeyman",
+          "unit_of_measure": "SF",
+          "applies_when": { "quality_tier": ["QT5"] },
+          "appears_in_tiers": ["QT5"],
+          "quality_notes": {
+            "QT5": "Careful sanding with raking light inspection. Critical for satin/semi-gloss on ceiling."
+          }
+        },
+        {
+          "task_id": "TSK_CLRP_VACUUM_INTERCOAT_DUST",
+          "name": "Vacuum Intercoat Sanding Dust from Ceiling",
+          "description": "Remove sanding dust from ceiling before applying next coat. HEPA vacuum with brush attachment on extension pole. Also vacuum floor — overhead sanding drops dust to floor protection.",
+          "task_classification": "qt_conditional",
+          "skill_level": "helper",
+          "unit_of_measure": "SF",
+          "applies_when": { "quality_tier": ["QT4", "QT5"] },
+          "appears_in_tiers": ["QT4", "QT5"]
+        },
+        {
+          "task_id": "TSK_CLRP_INSPECT_BETWEEN_COATS",
+          "name": "Inspect Ceiling Between Coats",
+          "description": "Visual inspection of previous coat on ceiling before applying next. Identify holidays, drips, lap marks, or imperfections requiring touch-up. Raking work light essential for overhead inspection.",
+          "task_classification": "qt_scaled",
+          "skill_level": "journeyman",
+          "unit_of_measure": "SF",
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": {
+            "QT3": "Standard visual inspection, note obvious defects",
+            "QT4": "Systematic inspection with work light",
+            "QT5": "Critical inspection with raking light, multiple passes"
+          }
+        },
+        {
+          "task_id": "TSK_CLRP_PATCH_DEFECTS_INTERSTAGE",
+          "name": "Patch Interstage Ceiling Defects",
+          "description": "Spackle and sand any defects found during intercoat ceiling inspection: drips, sags, missed spots, raised nap. Overhead patching requires step ladder or extension pole applicator.",
+          "task_classification": "qt_scaled",
+          "skill_level": "journeyman",
+          "unit_of_measure": "SF",
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "quality_notes": {
+            "QT3": "Repair obvious defects",
+            "QT4": "Repair all identified defects",
+            "QT5": "Repair all defects with wide feathering, near-zero tolerance"
+          }
+        },
+        {
+          "task_id": "TSK_CLRP_SPOT_COAT_INTERSTAGE",
+          "name": "Spot Coat Patched Ceiling Areas",
+          "description": "Apply spot coat of finish paint to patched areas on ceiling to equalize absorption before full next coat.",
+          "task_classification": "qt_scaled",
+          "skill_level": "journeyman",
+          "unit_of_measure": "SF",
+          "appears_in_tiers": ["QT3", "QT4", "QT5"]
+        }
+      ],
+      "sequence_notes": "Inspect → Patch defects → Spot coat patches → Light sand (QT4/QT5) → Vacuum dust → Next coat. QT2 has no interstage (single coat). QT3 has inspect + patch only (no full sanding)."
+    },
+
+    {
+      "module_id": "MOD_CLRP_FINISH",
+      "name": "Finish — Wall-Line Cut-In + Field Application (Roll / Spray_Backroll / Spray)",
+      "description": "Finish coat application module for ceilings. Only wall-line cut-in is needed (no trim cut-in — ceiling only borders walls). Field application via roll/spray_backroll/spray. QT2=1 coat, QT3+=2 coats. Overhead application is ~15-20% slower than wall equivalent.",
+      "phase": "finish",
+      "applies_when": {},
+      "required_inputs": [
+        { "input_name": "IN_SF_CEILING_FIELD", "paintscope_key": "PS_SURFACE_SF.CEILING_FIELD", "uom": "SF" },
+        { "input_name": "IN_LF_EDGE_TO_WALL", "paintscope_key": "PS_EDGE_LF.TO_WALL", "uom": "LF" }
+      ],
+      "tasks": [
+        {
+          "task_id": "TSK_CLRP_CUTIN_WALL_R1",
+          "name": "Cut-In Ceiling at Wall Line (Finish Coat 1)",
+          "description": "Freehand brush-cut finish paint along ceiling-to-wall boundary from ceiling perspective. Ceiling painter establishes the clean wall line. Overhead cut-in is slower than wall cut-in due to arm position and fatigue.",
+          "task_type": "apply",
+          "task_classification": "qt_scaled",
+          "skill_level": "journeyman",
+          "unit_of_measure": "LF",
+          "appears_in_tiers": ["QT2", "QT3", "QT4", "QT5"],
+          "applies_when": { "application_method": ["roll"] },
+          "adjacency_metadata": {
+            "adjacent_surface": "wall_field",
+            "condition": "different_finish",
+            "skip_when": "never",
+            "rate_modifier_category": "cut_in",
+            "application_method": "brush_roll"
+          },
+          "quality_notes": {
+            "QT2": "Acceptable if neat, minor wobble tolerated",
+            "QT3": "Reasonably straight line at 6 ft viewing distance",
+            "QT4": "Clean line, no visible wobble at 3 ft",
+            "QT5": "Crisp line, no visible wobble at arm's length"
+          }
+        },
+        {
+          "task_id": "TSK_CLRP_CUTIN_WALL_R2",
+          "name": "Cut-In Ceiling at Wall Line (Finish Coat 2)",
+          "description": "Cut-in wall line for second finish coat on ceiling. Same technique as first coat.",
+          "task_type": "apply",
+          "task_classification": "qt_scaled",
+          "skill_level": "journeyman",
+          "unit_of_measure": "LF",
+          "applies_when": { "quality_tier": ["QT3", "QT4", "QT5"], "application_method": ["roll"] },
+          "appears_in_tiers": ["QT3", "QT4", "QT5"],
+          "adjacency_metadata": {
+            "adjacent_surface": "wall_field",
+            "condition": "different_finish",
+            "skip_when": "never",
+            "rate_modifier_category": "cut_in",
+            "application_method": "brush_roll"
+          }
+        },
+        {
+          "task_id": "TSK_CLRP_ROLL_FINISH_R1",
+          "name": "Roll Ceiling Finish Coat 1",
+          "description": "Apply ceiling finish paint using 18-inch roller on extension pole. W pattern overhead, maintain wet edge. Overhead fatigue slows production vs wall rolling.",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "unit_of_measure": "SF",
+          "appears_in_tiers": ["QT2", "QT3", "QT4", "QT5"],
+          "applies_when": { "application_method": ["roll"] },
+          "quality_notes": {
+            "QT2": "Full coverage, minor lap marks acceptable",
+            "QT3": "Even coverage, minimal lap marks",
+            "QT4": "Uniform coverage, no visible lap marks",
+            "QT5": "Critical application — uniform coverage, perfect technique"
+          }
+        },
+        {
+          "task_id": "TSK_CLRP_ROLL_FINISH_R2",
+          "name": "Roll Ceiling Finish Coat 2",
+          "description": "Apply second ceiling finish coat. Same technique as first coat.",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "unit_of_measure": "SF",
+          "applies_when": { "quality_tier": ["QT3", "QT4", "QT5"], "application_method": ["roll"] },
+          "appears_in_tiers": ["QT3", "QT4", "QT5"]
+        },
+        {
+          "task_id": "TSK_CLRP_SPRAY_FINISH_R1",
+          "name": "Spray Ceiling Finish Coat 1",
+          "description": "Apply ceiling finish paint via airless sprayer overhead. Maintain proper distance, 50% overlap, consistent speed. Overhead spray is ~17% slower than wall spray.",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "unit_of_measure": "SF",
+          "appears_in_tiers": ["QT2", "QT3", "QT4", "QT5"],
+          "applies_when": { "application_method": ["spray_backroll", "spray"] },
+          "quality_notes": {
+            "all": "No application defects — uniform coverage, proper mil thickness."
+          }
+        },
+        {
+          "task_id": "TSK_CLRP_BACKROLL_FINISH_R1",
+          "name": "Backroll Ceiling Finish Coat 1",
+          "description": "Immediately follow spray with 18-inch roller on extension pole overhead to consolidate paint, eliminate air pockets, and level finish. Backroller sets pace for sprayer. Ceiling backroll is the system bottleneck.",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "unit_of_measure": "SF",
+          "appears_in_tiers": ["QT2", "QT3", "QT4", "QT5"],
+          "applies_when": { "application_method": ["spray_backroll"] },
+          "quality_notes": {
+            "all": "Complete backroll, even finish. Backroller follows sprayer closely."
+          }
+        },
+        {
+          "task_id": "TSK_CLRP_SPRAY_FINISH_R2",
+          "name": "Spray Ceiling Finish Coat 2",
+          "description": "Apply second ceiling finish coat via airless sprayer overhead.",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "unit_of_measure": "SF",
+          "applies_when": { "quality_tier": ["QT3", "QT4", "QT5"], "application_method": ["spray_backroll", "spray"] },
+          "appears_in_tiers": ["QT3", "QT4", "QT5"]
+        },
+        {
+          "task_id": "TSK_CLRP_BACKROLL_FINISH_R2",
+          "name": "Backroll Ceiling Finish Coat 2",
+          "description": "Backroll second finish coat on ceiling immediately after spray.",
+          "task_classification": "binary",
+          "skill_level": "journeyman",
+          "unit_of_measure": "SF",
+          "applies_when": { "quality_tier": ["QT3", "QT4", "QT5"], "application_method": ["spray_backroll"] },
+          "appears_in_tiers": ["QT3", "QT4", "QT5"]
+        }
+      ],
+      "sequence_notes": "Cut-in wall line (roll method) → Roll/Spray field → Backroll (spray_backroll). QT2 is single coat. QT3+ is two coats with interstage between. No trim cut-in — ceiling only borders walls."
+    },
+
+    {
+      "module_id": "MOD_CLRP_CLEANUP",
+      "name": "Cleanup — Protection Teardown, Furniture Uncover, Customer Walkthrough",
+      "description": "Full cleanup module for interior ceiling repaint. Remove wall-top masking (spray methods), ceiling fixture protection (spray methods), floor protection (always full). Uncover furniture (occupied homes — no furniture replace since furniture was not moved). Vacuum floors. Clean tools. Customer walkthrough (RP-specific). Final inspection.",
+      "phase": "cleanup",
+      "applies_when": {},
+      "required_inputs": [
+        { "input_name": "IN_SF_FLOOR_VACUUM_AREA", "paintscope_key": "PS_META.SF.FLOOR_VACUUM_AREA", "uom": "SF" },
+        { "input_name": "IN_EA_ROOMS_TOTAL", "paintscope_key": "PS_META.EA.ROOMS_TOTAL", "uom": "EA" },
+        { "input_name": "IN_SF_CEILING_FIELD", "paintscope_key": "PS_SURFACE_SF.CEILING_FIELD", "uom": "SF" }
+      ],
+      "tasks": [
+        {
+          "task_id": "TSK_CLRP_REMOVE_WALL_MASKING",
+          "name": "Remove Wall-Top Masking Tape and Paper",
+          "description": "Remove masking tape and paper from wall tops at ceiling line. Pull at 45-degree angle for clean release. Only applicable when spray methods were used.",
+          "task_type": "protect",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "unit_of_measure": "LF",
+          "appears_in_tiers": ["QT2", "QT3", "QT4", "QT5"],
+          "applies_when": { "application_method": ["spray_backroll", "spray"] },
+          "protection_metadata": {
+            "action": "teardown",
+            "zones": ["wall_top_mask"],
+            "method_dependent": true
+          }
+        },
+        {
+          "task_id": "TSK_CLRP_REMOVE_FIXTURE_PROTECTION",
+          "name": "Remove Ceiling Fixture Protection",
+          "description": "Remove tape, paper, and plastic from recessed lights, ceiling fans, smoke detectors, and ceiling electrical boxes. Verify no adhesive residue on fixtures.",
+          "task_type": "protect",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "unit_of_measure": "EA_ROOM",
+          "appears_in_tiers": ["QT2", "QT3", "QT4", "QT5"],
+          "applies_when": { "application_method": ["spray_backroll", "spray"] },
+          "protection_metadata": {
+            "action": "teardown",
+            "zones": ["ceiling_fixtures"],
+            "method_dependent": true
+          }
+        },
+        {
+          "task_id": "TSK_CLRP_FLOOR_PROTECT_TEARDOWN",
+          "name": "Floor Protection Teardown",
+          "description": "Remove full-room floor protection (rosin paper or plastic). Fold toward center to contain debris. Always full-room for ceiling work.",
+          "task_type": "protect",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "unit_of_measure": "SF",
+          "appears_in_tiers": ["QT2", "QT3", "QT4", "QT5"],
+          "protection_metadata": {
+            "action": "teardown",
+            "zones": ["floor_full"],
+            "method_dependent": false
+          }
+        },
+        {
+          "task_id": "TSK_CLRP_FURNITURE_UNCOVER",
+          "name": "Uncover Furniture and Contents",
+          "description": "Remove poly sheeting from furniture and contents. Verify no paint drips or overspray on furnishings. Ceiling RP does not move furniture — only uncover in-place.",
+          "task_type": "protect",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "unit_of_measure": "EA_ROOM",
+          "appears_in_tiers": ["QT2", "QT3", "QT4", "QT5"],
+          "protection_metadata": {
+            "action": "teardown",
+            "zones": ["furniture_drip_cover"],
+            "method_dependent": false
+          },
+          "site_condition_rules": {
+            "include_when": {
+              "occupancy_state": ["occupied_crew_handles", "occupied_sensitive"]
+            },
+            "exclude_when": {
+              "occupancy_state": ["vacant", "vacant_with_fixtures"]
+            }
+          }
+        },
+        {
+          "task_id": "TSK_CLRP_VACUUM_FLOORS",
+          "name": "Vacuum Floors",
+          "description": "Vacuum floor area to remove paint drips, overspray debris, sanding dust, and general work debris from ceiling repaint.",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "unit_of_measure": "SF",
+          "appears_in_tiers": ["QT2", "QT3", "QT4", "QT5"]
+        },
+        {
+          "task_id": "TSK_CLRP_CLEAN_TOOLS",
+          "name": "Clean Tools",
+          "description": "Clean brushes, rollers, extension poles, spray equipment with water (latex) or denatured alcohol (shellac stain-blocker cleanup). Store or dispose properly.",
+          "task_classification": "binary",
+          "skill_level": "helper",
+          "unit_of_measure": "FIXED",
+          "appears_in_tiers": ["QT2", "QT3", "QT4", "QT5"]
+        },
+        {
+          "task_id": "TSK_CLRP_FINAL_INSPECT",
+          "name": "Final Ceiling Inspection",
+          "description": "Walk and inspect all painted ceiling surfaces with work light. Check for holidays, lap marks, coverage issues, edge quality at wall line. Touch up as needed.",
+          "task_classification": "qt_scaled",
+          "skill_level": "journeyman",
+          "unit_of_measure": "SF",
+          "applies_when": { "quality_tier": ["QT2", "QT3"] },
+          "appears_in_tiers": ["QT2", "QT3"],
+          "quality_notes": {
+            "QT2": "Quick visual for major misses, ambient light",
+            "QT3": "Thorough visual with work light, address visible defects"
+          }
+        },
+        {
+          "task_id": "TSK_CLRP_FINAL_INSPECT_QT4",
+          "name": "Final Ceiling Inspection (Premium)",
+          "description": "Detailed inspection of all painted ceiling surfaces with raking work light. Systematic scan. Perfect finish expected. Eggshell/satin shows imperfections under light.",
+          "task_classification": "qt_scaled",
+          "skill_level": "journeyman",
+          "unit_of_measure": "SF",
+          "applies_when": { "quality_tier": ["QT4"] },
+          "appears_in_tiers": ["QT4"]
+        },
+        {
+          "task_id": "TSK_CLRP_FINAL_INSPECT_QT5",
+          "name": "Final Ceiling Inspection (Critical)",
+          "description": "Critical inspection under raking light for satin/semi-gloss ceiling finish. Semi-gloss on ceiling is extremely unforgiving — every imperfection is visible.",
+          "task_classification": "qt_scaled",
+          "skill_level": "journeyman",
+          "unit_of_measure": "SF",
+          "applies_when": { "quality_tier": ["QT5"] },
+          "appears_in_tiers": ["QT5"]
+        },
+        {
+          "task_id": "TSK_CLRP_TOUCHUP",
+          "name": "Touch-Up Defects Found During Ceiling Inspection",
+          "description": "Brush or mini-roll touch-up on defects identified during final ceiling inspection. Holidays, thin spots, edge issues, drips. Overhead touch-up requires steady hand on extension pole.",
+          "task_classification": "qt_scaled",
+          "skill_level": "journeyman",
+          "unit_of_measure": "SF",
+          "appears_in_tiers": ["QT2", "QT3", "QT4", "QT5"],
+          "quality_notes": {
+            "QT2": "Address major misses only",
+            "QT3": "Address all identified defects",
+            "QT4": "Meticulous touch-up, blend into surrounding finish",
+            "QT5": "Critical touch-up, perfect blend, no visible repair"
+          }
+        },
+        {
+          "task_id": "TSK_CLRP_CUSTOMER_WALKTHROUGH",
+          "name": "Customer Walkthrough",
+          "description": "Post-completion room-by-room review with homeowner. Walk each painted ceiling together, identify any touch-up needs, confirm satisfaction, note punch list items. RP-specific — does not exist in NC.",
+          "task_classification": "binary",
+          "skill_level": "lead",
+          "unit_of_measure": "EA_ROOM",
+          "appears_in_tiers": ["QT2", "QT3", "QT4", "QT5"],
+          "site_condition_rules": {
+            "include_when": {
+              "occupancy_state": ["occupied_crew_handles", "occupied_sensitive"]
+            },
+            "exclude_when": {
+              "occupancy_state": ["vacant", "vacant_with_fixtures"]
+            }
+          }
+        }
+      ],
+      "sequence_notes": "Remove wall masking (spray) → Remove fixture protection (spray) → Floor protection teardown → Vacuum floors → Final inspection → Touch-up → Uncover furniture (occupied) → Clean tools → Customer walkthrough. Customer walkthrough is the final task before departure."
+    }
+  ],
+
+  "round_configurations": [
+    {
+      "round_id": "ROUND_CLRP_PRIME_2FINISH",
+      "name": "Full Ceiling Repaint — Prime + 2 Finish Coats",
+      "description": "Standard full ceiling repaint for FAIR/POOR condition. Assessment drives primer selection. Full prep, state-driven primer, 2 finish coats with interstage.",
+      "applies_when": {
+        "quality_tier": ["QT3", "QT4", "QT5"],
+        "condition_scale": ["FAIR", "POOR"]
+      },
+      "module_sequence": [
+        "MOD_CLRP_SETUP",
+        "MOD_CLRP_ASSESSMENT",
+        "MOD_RRP_INT_CONTAINMENT",
+        "MOD_CLRP_PREP",
+        "MOD_CLRP_PRIME",
+        "MOD_CLRP_INTERSTAGE",
+        "MOD_CLRP_FINISH",
+        "MOD_CLRP_INTERSTAGE",
+        "MOD_CLRP_FINISH",
+        "MOD_CLRP_CLEANUP"
+      ],
+      "coat_counts": {
+        "primer": 1,
+        "finish": 2,
+        "interstage_runs": 2
+      },
+      "notes": "Full execution path. RRP module conditional on home_pre_1978. Interstage runs after primer (before finish 1) and after finish 1 (before finish 2)."
+    },
+    {
+      "round_id": "ROUND_CLRP_PRIME_1FINISH",
+      "name": "Economy Ceiling Repaint — Prime + 1 Finish Coat",
+      "description": "QT2 economy ceiling repaint for FAIR/POOR condition. Assessment, full prep, state-driven primer, single finish coat.",
+      "applies_when": {
+        "quality_tier": ["QT2"],
+        "condition_scale": ["FAIR", "POOR"]
+      },
+      "module_sequence": [
+        "MOD_CLRP_SETUP",
+        "MOD_CLRP_ASSESSMENT",
+        "MOD_RRP_INT_CONTAINMENT",
+        "MOD_CLRP_PREP",
+        "MOD_CLRP_PRIME",
+        "MOD_CLRP_FINISH",
+        "MOD_CLRP_CLEANUP"
+      ],
+      "coat_counts": {
+        "primer": 1,
+        "finish": 1,
+        "interstage_runs": 0
+      },
+      "notes": "QT2 single coat economy. No interstage sanding."
+    },
+    {
+      "round_id": "ROUND_CLRP_NOPRIME_2FINISH",
+      "name": "Cosmetic Ceiling Refresh — No Prime + 2 Finish Coats",
+      "description": "GOOD condition ceiling repaint where adhesion test passes and surface is sound. Skip primer, apply 2 finish coats. Standard for QT3-QT5 on sound paint.",
+      "applies_when": {
+        "quality_tier": ["QT3", "QT4", "QT5"],
+        "condition_scale": ["GOOD"]
+      },
+      "module_sequence": [
+        "MOD_CLRP_SETUP",
+        "MOD_CLRP_ASSESSMENT",
+        "MOD_CLRP_PREP",
+        "MOD_CLRP_FINISH",
+        "MOD_CLRP_INTERSTAGE",
+        "MOD_CLRP_FINISH",
+        "MOD_CLRP_CLEANUP"
+      ],
+      "coat_counts": {
+        "primer": 0,
+        "finish": 2,
+        "interstage_runs": 1
+      },
+      "notes": "Most common scenario for residential ceiling repaint. Sound paint, degloss + 2 finish coats. No primer needed when adhesion test passes. RRP module excluded — GOOD condition unlikely to have lead disturbance (no scraping)."
+    },
+    {
+      "round_id": "ROUND_CLRP_NOPRIME_1FINISH",
+      "name": "Economy Ceiling Refresh — No Prime + 1 Finish Coat",
+      "description": "QT2 economy refresh for GOOD condition ceiling. Minimal prep, no primer, single finish coat. Landlord refresh, rental turnover.",
+      "applies_when": {
+        "quality_tier": ["QT2"],
+        "condition_scale": ["GOOD"]
+      },
+      "module_sequence": [
+        "MOD_CLRP_SETUP",
+        "MOD_CLRP_ASSESSMENT",
+        "MOD_CLRP_PREP",
+        "MOD_CLRP_FINISH",
+        "MOD_CLRP_CLEANUP"
+      ],
+      "coat_counts": {
+        "primer": 0,
+        "finish": 1,
+        "interstage_runs": 0
+      },
+      "notes": "Fastest execution path. QT2, GOOD condition, single coat. Most common rental turnover scenario."
+    }
+  ],
+
+  "required_inputs": [
+    { "input_name": "IN_SF_CEILING_FIELD", "paintscope_key": "PS_SURFACE_SF.CEILING_FIELD", "uom": "SF" },
+    { "input_name": "IN_LF_EDGE_TO_WALL", "paintscope_key": "PS_EDGE_LF.TO_WALL", "uom": "LF" },
+    { "input_name": "IN_SF_PROTECT_FLOOR_EXPOSED", "paintscope_key": "PS_PROTECT_SF.FLOOR_EXPOSED", "uom": "SF" },
+    { "input_name": "IN_EA_ROOMS_TOTAL", "paintscope_key": "PS_META.EA.ROOMS_TOTAL", "uom": "EA" },
+    { "input_name": "IN_SF_FLOOR_VACUUM_AREA", "paintscope_key": "PS_META.SF.FLOOR_VACUUM_AREA", "uom": "SF" },
+    { "input_name": "IN_SF_PROTECT_FURNITURE_ROOM", "paintscope_key": "PS_PROTECT_SF.FURNITURE_ROOM", "uom": "SF" },
+    { "input_name": "IN_ENUM_SURFACE_CONDITION", "paintscope_key": "PS_META.SURFACE_CONDITION", "uom": "ENUM" },
+    { "input_name": "IN_ENUM_SURFACE_TEXTURE", "paintscope_key": "PS_META.SURFACE_TEXTURE", "uom": "ENUM" },
+    { "input_name": "IN_ENUM_HEIGHT_BAND", "paintscope_key": "PS_META.HEIGHT_BAND", "uom": "ENUM" },
+    { "input_name": "IN_ENUM_SUBSTRATE_STATE_INT", "paintscope_key": "PS_META.ENUM.SUBSTRATE_STATE_INT", "uom": "ENUM" },
+    { "input_name": "IN_BOOL_HOME_PRE_1978", "paintscope_key": "PS_META.BOOL.HOME_PRE_1978", "uom": "BOOL" },
+    { "input_name": "IN_ENUM_CONTAMINATION_TYPE", "paintscope_key": "PS_META.ENUM.CONTAMINATION_TYPE", "uom": "ENUM" }
+  ],
+
+  "module_task_map": {
+    "MOD_CLRP_SETUP": [
+      "TSK_CLRP_FLOOR_PROTECT_FULL_SETUP", "TSK_CLRP_FURNITURE_DRIP_COVER",
+      "TSK_CLRP_MASK_WALL_TOP", "TSK_CLRP_FIXTURE_MASK_SETUP", "TSK_CLRP_OPENING_COVERS_SETUP"
+    ],
+    "MOD_CLRP_ASSESSMENT": [
+      "TSK_CLRP_ASSESS_CONDITION", "TSK_CLRP_ASSESS_ADHESION",
+      "TSK_CLRP_ASSESS_MOISTURE", "TSK_CLRP_ASSESS_COATING_ID"
+    ],
+    "MOD_RRP_INT_CONTAINMENT": [
+      "TSK_RRP_LEAD_TEST", "TSK_RRP_CONTAINMENT_SETUP",
+      "TSK_RRP_HEPA_VACUUM", "TSK_RRP_CONTAINMENT_REMOVAL", "TSK_RRP_WASTE_DISPOSAL"
+    ],
+    "MOD_CLRP_PREP": [
+      "TSK_CLRP_WASH_TSP", "TSK_CLRP_TREAT_MILDEW",
+      "TSK_CLRP_SCRAPE_LOOSE", "TSK_CLRP_FEATHER_EDGES",
+      "TSK_CLRP_DEGLOSS", "TSK_CLRP_SPACKLE_DEFECTS", "TSK_CLRP_SAND_SPACKLE",
+      "TSK_CLRP_CAULK_PERIMETER", "TSK_CLRP_DUST_WIPE", "TSK_CLRP_VACUUM_DUST"
+    ],
+    "MOD_CLRP_PRIME": [
+      "TSK_CLRP_CUTIN_PRIMER_WALL", "TSK_CLRP_ROLL_PRIMER",
+      "TSK_CLRP_SPRAY_PRIMER", "TSK_CLRP_BACKROLL_PRIMER", "TSK_CLRP_SPOT_PRIME"
+    ],
+    "MOD_CLRP_INTERSTAGE": [
+      "TSK_CLRP_LIGHT_SAND_BETWEEN_COATS", "TSK_CLRP_LIGHT_SAND_BETWEEN_COATS_QT5",
+      "TSK_CLRP_VACUUM_INTERCOAT_DUST", "TSK_CLRP_INSPECT_BETWEEN_COATS",
+      "TSK_CLRP_PATCH_DEFECTS_INTERSTAGE", "TSK_CLRP_SPOT_COAT_INTERSTAGE"
+    ],
+    "MOD_CLRP_FINISH": [
+      "TSK_CLRP_CUTIN_WALL_R1", "TSK_CLRP_CUTIN_WALL_R2",
+      "TSK_CLRP_ROLL_FINISH_R1", "TSK_CLRP_ROLL_FINISH_R2",
+      "TSK_CLRP_SPRAY_FINISH_R1", "TSK_CLRP_BACKROLL_FINISH_R1",
+      "TSK_CLRP_SPRAY_FINISH_R2", "TSK_CLRP_BACKROLL_FINISH_R2"
+    ],
+    "MOD_CLRP_CLEANUP": [
+      "TSK_CLRP_REMOVE_WALL_MASKING", "TSK_CLRP_REMOVE_FIXTURE_PROTECTION",
+      "TSK_CLRP_FLOOR_PROTECT_TEARDOWN", "TSK_CLRP_FURNITURE_UNCOVER",
+      "TSK_CLRP_VACUUM_FLOORS", "TSK_CLRP_CLEAN_TOOLS",
+      "TSK_CLRP_FINAL_INSPECT", "TSK_CLRP_FINAL_INSPECT_QT4", "TSK_CLRP_FINAL_INSPECT_QT5",
+      "TSK_CLRP_TOUCHUP", "TSK_CLRP_CUSTOMER_WALKTHROUGH"
+    ]
+  },
+
+  "applicability_rules": [
+    {
+      "rule_id": "RULE_QT2_SINGLE_COAT",
+      "description": "QT2 is single finish coat. No interstage sanding, no intercoat inspection module.",
+      "applies_when": { "quality_tier": ["QT2"] },
+      "excluded_modules": ["MOD_CLRP_INTERSTAGE"],
+      "coat_count": 1
+    },
+    {
+      "rule_id": "RULE_QT3_TWO_COAT_DEFAULT",
+      "description": "QT3 defaults to two finish coats. One coat acceptable if full coverage achieved. Interstage: inspect and patch only (no full sanding).",
+      "applies_when": { "quality_tier": ["QT3"] },
+      "coat_count": 2,
+      "coat_count_notes": "Default 2 coats. 1 coat acceptable if full coverage achieved."
+    },
+    {
+      "rule_id": "RULE_QT4_QT5_TWO_COAT_MANDATORY",
+      "description": "QT4/QT5 requires two finish coats with full interstage sanding between coats.",
+      "applies_when": { "quality_tier": ["QT4", "QT5"] },
+      "required_modules": ["MOD_CLRP_INTERSTAGE"],
+      "coat_count": 2
+    },
+    {
+      "rule_id": "RULE_SPRAY_METHODS_PROTECTION",
+      "description": "Spray and spray_backroll methods require wall-top masking, ceiling fixture masking, and opening covers.",
+      "applies_when": { "application_method": ["spray", "spray_backroll"] },
+      "required_tasks": [
+        "TSK_CLRP_MASK_WALL_TOP", "TSK_CLRP_FIXTURE_MASK_SETUP", "TSK_CLRP_OPENING_COVERS_SETUP",
+        "TSK_CLRP_REMOVE_WALL_MASKING", "TSK_CLRP_REMOVE_FIXTURE_PROTECTION"
+      ]
+    },
+    {
+      "rule_id": "RULE_FLOOR_ALWAYS_FULL",
+      "description": "Floor protection is ALWAYS full-room for ceiling work. No perimeter-only option. Overhead drip zone covers entire floor.",
+      "applies_when": {},
+      "required_tasks": ["TSK_CLRP_FLOOR_PROTECT_FULL_SETUP", "TSK_CLRP_FLOOR_PROTECT_TEARDOWN"]
+    },
+    {
+      "rule_id": "RULE_GOOD_CONDITION_SKIP_PRIME",
+      "description": "GOOD condition (SS_INT_SOUND_PAINT) may skip MOD_CLRP_PRIME entirely when adhesion test passes. Assessment still required.",
+      "applies_when": { "condition_scale": ["GOOD"] },
+      "conditionally_skipped_modules": ["MOD_CLRP_PRIME"],
+      "skip_condition": "adhesion_test_passes AND coating_ID_compatible"
+    },
+    {
+      "rule_id": "RULE_RRP_CONDITIONAL",
+      "description": "MOD_RRP_INT_CONTAINMENT activates only when home is pre-1978.",
+      "applies_when": { "home_pre_1978": true },
+      "required_modules": ["MOD_RRP_INT_CONTAINMENT"]
+    },
+    {
+      "rule_id": "RULE_FURNITURE_CONDITIONAL",
+      "description": "Furniture drip protection tasks activate only when home is occupied. No furniture move for ceiling — in-place covering only.",
+      "applies_when": { "occupancy_state": ["occupied_crew_handles", "occupied_sensitive"] },
+      "required_tasks": ["TSK_CLRP_FURNITURE_DRIP_COVER", "TSK_CLRP_FURNITURE_UNCOVER"]
+    },
+    {
+      "rule_id": "RULE_CONTAMINATION_TREATMENT",
+      "description": "TSP wash activates for any contamination type. Mildew treatment activates only for SS_INT_MOISTURE_DAMAGE.",
+      "applies_when": { "contamination_type": ["mildew", "smoke", "water_stain", "grease"] },
+      "required_tasks": ["TSK_CLRP_WASH_TSP"]
+    }
+  ],
+
+  "assumptions": [
+    {
+      "assumption_id": "A-001",
+      "field": "occupancy_context",
+      "value": "Default assumption is occupied home (occupied_crew_handles)",
+      "source": "RP market analysis — vast majority of interior repaints are in occupied homes",
+      "doctrine_gap": false,
+      "note": "Furniture drip protection tasks are conditional on occupancy_state."
+    },
+    {
+      "assumption_id": "A-002",
+      "field": "no_furniture_move",
+      "value": "Ceiling RP does NOT move furniture — furniture stays in place with poly drip covers",
+      "source": "Practical field — ceiling painting does not require access to walls or floor perimeter. Furniture center-pile is wall RP specific.",
+      "doctrine_gap": true,
+      "note": "Wall RP center-piles furniture to access wall surfaces. Ceiling RP has no similar need — drip covers suffice."
+    },
+    {
+      "assumption_id": "A-003",
+      "field": "floor_always_full",
+      "value": "Floor protection is ALWAYS full-room for ceiling work regardless of application method",
+      "source": "Overhead drip zone — primer and paint drips from ceiling land anywhere on floor, not just perimeter",
+      "doctrine_gap": false,
+      "note": "Wall RP splits floor protection by method (perimeter for roll, full for spray). Ceiling always requires full due to overhead drip zone."
+    },
+    {
+      "assumption_id": "A-004",
+      "field": "no_trim_masking",
+      "value": "Ceiling RP has NO trim masking — ceiling only borders walls, not baseboard/door/window trim",
+      "source": "Physical adjacency — ceiling surface does not touch trim surfaces",
+      "doctrine_gap": false,
+      "note": "Wall RP has 3 trim masking tasks (baseboard, door casing, window casing). All removed for ceiling."
+    },
+    {
+      "assumption_id": "A-005",
+      "field": "single_cut_in_type",
+      "value": "Only wall-line cut-in exists for ceiling — no trim cut-in variants",
+      "source": "Physical adjacency — ceiling's only edge is at wall junction",
+      "doctrine_gap": false,
+      "note": "Wall RP has ceiling-line cut-in plus trim-line cut-in. Ceiling has only wall-line cut-in."
+    },
+    {
+      "assumption_id": "A-006",
+      "field": "wall_top_masking",
+      "value": "Wall-top masking (tape+paper at ceiling line on wall surface) replaces trim masking for spray methods",
+      "source": "Overspray containment — spray methods require masking adjacent finished surfaces",
+      "doctrine_gap": true,
+      "note": "Wall RP masks trim. Ceiling RP masks wall-top at ceiling line. Different adjacent surface, same principle."
+    }
+  ],
+
+  "exclusions": [
+    {
+      "exclusion_id": "EXCL-001",
+      "item": "Bare/new drywall ceiling",
+      "reason": "Handled by NC specs (SF_DRYWALL_CEILING_NC_PRIME, SF_DRYWALL_CEILING_NC_FINISH)",
+      "route_to": "SF_DRYWALL_CEILING_NC_PRIME / SF_DRYWALL_CEILING_NC_FINISH"
+    },
+    {
+      "exclusion_id": "EXCL-002",
+      "item": "Wall repaint",
+      "reason": "Handled by SF_DRYWALL_WALL_INT_RP",
+      "route_to": "SF_DRYWALL_WALL_INT_RP"
+    },
+    {
+      "exclusion_id": "EXCL-003",
+      "item": "Popcorn/acoustic ceiling removal",
+      "reason": "Texture removal is pre-paint trade — not part of painting spec. Popcorn ceiling PAINTING (over existing texture) is within scope via texture_type modifier.",
+      "route_to": "Out of scope (texture trade)"
+    },
+    {
+      "exclusion_id": "EXCL-004",
+      "item": "Structural drywall repair (holes, water damage to substrate)",
+      "reason": "Out of paint scope — requires drywall repair trade",
+      "route_to": "Out of scope"
+    },
+    {
+      "exclusion_id": "EXCL-005",
+      "item": "Active moisture remediation (source resolution)",
+      "reason": "Moisture source resolution is plumbing/roofing/building envelope trade — paint spec gates on source being resolved",
+      "route_to": "Out of scope (gate condition)"
+    }
+  ],
+
+  "doctrine_conflicts": [],
+
+  "uncertainties": [
+    {
+      "uncertainty_id": "U-001",
+      "topic": "Overhead scrape/feather production rates",
+      "description": "Scrape and feather rates for ceilings are highly variable. No direct NC baseline for RP ceiling scraping. Estimated from wall RP analogs with overhead penalty.",
+      "current_approach": "Using wall RP rate ranges with 15-20% overhead penalty for estimation engineer",
+      "resolution_needed": true
+    },
+    {
+      "uncertainty_id": "U-002",
+      "topic": "Popcorn ceiling modifier impact",
+      "description": "Popcorn/acoustic ceiling texture dramatically changes prep workflow (no mechanical sanding, no scraping unless removing texture). Research identified IN_BOOL_POPCORN_CEILING flag but SOP does not add explicit popcorn-specific tasks — modifier handles rate adjustment.",
+      "current_approach": "Popcorn impact handled via texture_type modifier in production rates. SOP tasks remain the same with different execution methods.",
+      "resolution_needed": false
+    }
+  ]
+}

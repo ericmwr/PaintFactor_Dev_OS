@@ -1,0 +1,263 @@
+{
+  "spec_family": {
+    "id": "SF_CLOSET_INT_RP",
+    "name": "Interior Closet Shelf Repaint",
+    "description": "Repaint of previously painted fixed closet shelving systems in residential homes. Covers shelf surfaces, cleats, and rods counted by opening tier (S/M/L/XL) per BuiltIns_Shelving Quantification System. Simplest interior RP spec — utility surfaces with lower quality expectations (QT2-QT3 only), brush/roll-only application, and minimal protection. RP additions over NC: condition assessment, degloss, state-driven primer, mildew treatment, customer walkthrough.",
+    "domain": "interior",
+    "version": "1.0.0",
+    "status": "review_required",
+    "review_required": true
+  },
+
+  "scope_boundaries": {
+    "includes": [
+      "Fixed closet shelf surfaces (top, bottom, front edge)",
+      "Shelf cleats and support brackets",
+      "Closet rods (if paintable wood/metal, counted as opening component)",
+      "Shelf-to-wall caulk joint repair (failed sections only)",
+      "Floor protection under closet opening",
+      "Condition assessment and substrate state assignment",
+      "State-driven RP primer (adhesion, stain-block, mildew — conditional)",
+      "Mildew biocide treatment (conditional on SS_INT_MOISTURE_DAMAGE)",
+      "Customer walkthrough per closet"
+    ],
+    "excludes": [
+      { "item": "Closet walls", "route_to": "SF_DRYWALL_WALL_INT_RP" },
+      { "item": "Closet ceiling", "route_to": "SF_DRYWALL_CEILING_INT_RP" },
+      { "item": "Closet trim (baseboard, casing)", "route_to": "SF_TRIM_INT_RP" },
+      { "item": "Closet doors", "route_to": "SF_DOOR_INT_RP" },
+      { "item": "Wire shelving systems", "route_to": "Not paintable — out of scope" },
+      { "item": "Freestanding/removable shelving", "route_to": "Not fixed — out of scope" },
+      { "item": "Closet contents removal", "route_to": "Homeowner responsibility" },
+      { "item": "Moisture source repair", "route_to": "General contractor — must be resolved before painting" }
+    ]
+  },
+
+  "configuration_dimensions": [
+    {
+      "dimension_id": "quality_tier",
+      "description": "Quality tier — drives prep intensity, coat count, and inspection rigor",
+      "values": ["QT2", "QT3"],
+      "default": "QT3",
+      "notes": "QT4/QT5 excluded — closet shelving is utility-grade surface where fine-finish prep is not justified. QT2=economy (1 coat, minimal prep, 0.85x modifier). QT3=standard (2 coats, thorough prep, 1.0x baseline)."
+    },
+    {
+      "dimension_id": "application_method",
+      "description": "Paint application method",
+      "values": ["brush_roll"],
+      "default": "brush_roll",
+      "notes": "Spray excluded — small scope, enclosed space, utility surface, occupied home. Brush/roll only."
+    },
+    {
+      "dimension_id": "sheen",
+      "description": "Finish coat sheen",
+      "values": ["flat", "eggshell", "satin"],
+      "default": "eggshell",
+      "notes": "Flat for maximum hide. Eggshell for slight washability (default). Satin for visible walk-in closets/pantries."
+    },
+    {
+      "dimension_id": "substrate_state",
+      "description": "Existing paint condition — drives primer selection and conditional task activation",
+      "values": ["SS_INT_SOUND_PAINT", "SS_INT_FAILING_PAINT", "SS_INT_PEELING", "SS_INT_MOISTURE_DAMAGE", "SS_INT_SMOKE_DAMAGE"],
+      "default": "SS_INT_SOUND_PAINT",
+      "notes": "Most common: SS_INT_SOUND_PAINT (simple refresh, no primer). Second most common: SS_INT_MOISTURE_DAMAGE (bathroom/basement closets)."
+    }
+  ],
+
+  "paintable_items": [
+    {
+      "item_id": "ITM_CLOSET_SHELF",
+      "name": "Closet shelf opening",
+      "unit_of_measure": "EA_OPENING",
+      "counting_rules": "Count openings by size tier: S (6-18\" x 6-18\"), M (18-36\" x 12-30\"), L (36-60\" x 18-42\"), XL (60\"+ x 30\"+). Each opening includes visible shelf surfaces, cleats, and rod if present. Per BuiltIns_Shelving Quantification System.",
+      "notes": "Same item and counting rules as NC spec (SF_CLOSET_SHELF_NC). Opening dimensions do not change for repaint."
+    }
+  ],
+
+  "variants": [
+    {
+      "variant_id": "VAR_CSRP_STANDARD",
+      "applies_when": {},
+      "included_items": ["ITM_CLOSET_SHELF"],
+      "notes": "Single variant — all closet shelf RP work includes the same item. No variant complexity."
+    }
+  ],
+
+  "required_paintscope_inputs": [
+    {
+      "input_name": "IN_EA_OPENING_S",
+      "paintscope_key": "PS_OPENING_EA.CLOSET_SHELF.S",
+      "uom": "EA",
+      "description": "Count of small openings (6-18\" x 6-18\")",
+      "required": true
+    },
+    {
+      "input_name": "IN_EA_OPENING_M",
+      "paintscope_key": "PS_OPENING_EA.CLOSET_SHELF.M",
+      "uom": "EA",
+      "description": "Count of medium openings (18-36\" x 12-30\")",
+      "required": true
+    },
+    {
+      "input_name": "IN_EA_OPENING_L",
+      "paintscope_key": "PS_OPENING_EA.CLOSET_SHELF.L",
+      "uom": "EA",
+      "description": "Count of large openings (36-60\" x 18-42\")",
+      "required": true
+    },
+    {
+      "input_name": "IN_EA_OPENING_XL",
+      "paintscope_key": "PS_OPENING_EA.CLOSET_SHELF.XL",
+      "uom": "EA",
+      "description": "Count of XL openings (60\"+ x 30\"+)",
+      "required": true
+    },
+    {
+      "input_name": "IN_ENUM_DEPTH",
+      "paintscope_key": "PS_OPENING_MOD.DEPTH",
+      "uom": "ENUM",
+      "description": "Depth modifier: SHALLOW / DEEP / VERY_DEEP",
+      "required": true
+    },
+    {
+      "input_name": "IN_ENUM_DETAIL",
+      "paintscope_key": "PS_OPENING_MOD.DETAIL",
+      "uom": "ENUM",
+      "description": "Detail modifier: SIMPLE_BOX / FACE_FRAME / CROWN_VALANCE / BEADED_ROUTED",
+      "required": true
+    },
+    {
+      "input_name": "IN_ENUM_ACCESS",
+      "paintscope_key": "PS_OPENING_MOD.ACCESS",
+      "uom": "ENUM",
+      "description": "Access modifier: OPEN_ACCESS / CRAMPED / OBSTRUCTED",
+      "required": true
+    },
+    {
+      "input_name": "IN_SF_FLOOR_WORKZONE",
+      "paintscope_key": "PS_PROTECT_SF.FLOOR_WORKZONE",
+      "uom": "SF",
+      "description": "Floor protection area under closet opening",
+      "required": true
+    },
+    {
+      "input_name": "IN_ENUM_SURFACE_CONDITION",
+      "paintscope_key": "PS_META.SURFACE_CONDITION",
+      "uom": "ENUM",
+      "description": "Surface condition (GOOD/FAIR/POOR) for prep intensity modifier",
+      "required": true
+    },
+    {
+      "input_name": "IN_ENUM_SUBSTRATE_STATE_INT",
+      "paintscope_key": "PS_META.ENUM.SUBSTRATE_STATE_INT",
+      "uom": "ENUM",
+      "description": "Interior substrate state — drives primer selection and conditional task activation",
+      "required": true
+    },
+    {
+      "input_name": "IN_BOOL_HOME_PRE_1978",
+      "paintscope_key": "PS_META.BOOL.HOME_PRE_1978",
+      "uom": "BOOL",
+      "description": "Home built before 1978 — triggers RRP lead-safe module",
+      "required": true
+    }
+  ],
+
+  "protection_zones_required": [
+    {
+      "zone_id": "floor_workzone",
+      "condition": { "floor_type": ["finished"] },
+      "protection_level": "edge_only",
+      "notes": "Drop cloth under closet opening. Always required — RP always has finished floors. Minimal protection footprint (1 zone only)."
+    }
+  ],
+
+  "adjacency_declarations": {
+    "primary_surface": "builtin_shelf",
+    "adjacent_surfaces": [
+      {
+        "surface_id": "wall_field",
+        "edge_type": "linear",
+        "typical_relationship": "different_finish",
+        "affected_tasks": [],
+        "notes": "Shelf back meets closet wall. Gap caulked during prep. No cut-in at paint time. Brush/roll on shelves creates no overspray risk. No masking needed."
+      }
+    ]
+  },
+
+  "state_declarations": {
+    "primary_surface": "builtin_shelf",
+    "valid_input_states": {
+      "states": ["SS_INT_SOUND_PAINT", "SS_INT_FAILING_PAINT", "SS_INT_PEELING", "SS_INT_MOISTURE_DAMAGE", "SS_INT_SMOKE_DAMAGE"],
+      "notes": "Interior closet shelf RP operates on previously painted surfaces. All 5 interior RP states supported. Does NOT accept SS_BARE, SS_PRIMED_*, or NC states — bare/uncoated substrates are NC scope."
+    },
+    "output_state": {
+      "state": "SS_PAINTED_EGGSHELL",
+      "varies_by": "sheen",
+      "state_map": {
+        "flat": "SS_PAINTED_FLAT",
+        "eggshell": "SS_PAINTED_EGGSHELL",
+        "satin": "SS_PAINTED_SATIN"
+      },
+      "notes": "Output state varies by selected sheen. Eggshell is default."
+    },
+    "adjacent_state_protection_rules": [
+      {
+        "adjacent_surface": "wall_field",
+        "when_state": "any",
+        "protection_zone": "none",
+        "protection_level": "none",
+        "notes": "Brush/roll application on shelving creates no overspray risk. No wall masking needed regardless of wall state."
+      }
+    ]
+  },
+
+  "site_condition_rules": [
+    {
+      "condition_id": "floor_type",
+      "include_when": ["finished"],
+      "exclude_when": [],
+      "affects": ["TSK_CSRP_FLOOR_PROTECT", "TSK_CSRP_FLOOR_PROTECT_TEARDOWN"],
+      "effect": "Floor protection always required — RP always has finished floors.",
+      "vocabulary_ref": "Site_Condition_Vocabulary_Reference.md"
+    },
+    {
+      "condition_id": "moisture_condition",
+      "include_when": ["recently_wet"],
+      "exclude_when": ["active_moisture"],
+      "affects": ["TSK_CSRP_TREAT_MILDEW"],
+      "effect": "Active moisture = STOP condition. Source must be resolved before painting. Recently wet with no active source = proceed with mildew treatment.",
+      "vocabulary_ref": "Site_Condition_Vocabulary_Reference.md"
+    }
+  ],
+
+  "cross_spec_coordination": {
+    "deduplication_note": "Floor protection may overlap with closet wall RP (SF_DRYWALL_WALL_INT_RP) but protection footprints are typically different. No deduplication needed.",
+    "shared_session_note": "Closet shelf RP may run in same session as closet wall/ceiling RP. Sequence: walls first, then shelves (to avoid drips on freshly painted walls)."
+  },
+
+  "dependencies": {
+    "research": "specs/SF_CLOSET_INT_RP_v1/research.json",
+    "resolution": "specs/SF_CLOSET_INT_RP_v1/resolution.json",
+    "materials": "specs/SF_CLOSET_INT_RP_v1/materials.json",
+    "sop_modules": "specs/SF_CLOSET_INT_RP_v1/sop_modules.json",
+    "production": "specs/SF_CLOSET_INT_RP_v1/production.json"
+  },
+
+  "change_log": [
+    {
+      "version": "1.0.0",
+      "date": "2026-03-14",
+      "author": "SpecFactory Pipeline",
+      "changes": [
+        "Initial spec creation — full 7-file pipeline",
+        "15 tasks: 7 DIRECT from NC, 5 MODIFIED, 3 RP_NEW",
+        "QT2-QT3 only (utility surface), brush_roll only",
+        "4 material systems: 3 shared RP primers + SYS_CLOSET_SHELF_STANDARD finish",
+        "15 consumables, 4 round configurations",
+        "1 protection zone (floor_workzone), 1 paintable item (ITM_CLOSET_SHELF)",
+        "QT2 modifier set to 0.85x (vs global 0.80x) per research RF-001 — closets require basic adhesion prep even at economy tier"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,724 @@
+{
+  "spec_family": {
+    "id": "SF_TRIM_INT_RP",
+    "name": "Interior Trim Repaint",
+    "description": "Combined prime + finish repaint spec for previously painted interior trim surfaces in occupied residential homes. Covers 9 trim types (baseboard, crown, door casing, window casing, chair rail, wainscot rail, shadow box, panel molding, picture rail). Includes condition assessment (visual scan, adhesion test ASTM D3359, coating ID, moisture meter), prep remediation (degloss, scrape, feather, contamination treatment, caulk replacement), state-driven primer selection (adhesion, stain-block, mildew-resistant), fine-finish coat application (brush, spray), interstage inspection/sanding, and furniture/contents protection.",
+    "domain": "interior",
+    "scope_type": "repaint",
+    "version": "1.0.0",
+    "status": "draft",
+    "review_required": true
+  },
+
+  "scope_boundaries": {
+    "includes": [
+      "Condition assessment (visual scan, ASTM D3359 adhesion test, moisture meter, coating ID solvent test)",
+      "EPA Lead-Safe RRP evaluation and containment for pre-1978 homes (trim is HIGH RISK for lead paint)",
+      "Surface contamination treatment (TSP wash for mildew, smoke, water stain)",
+      "Mildew/biocide treatment for SS_INT_MOISTURE_DAMAGE trim",
+      "Chemical deglossing of existing glossy paint surfaces",
+      "Scraping loose and failing paint with contour scrapers for profiled trim",
+      "Feather-sanding all scraped edges (mandatory at all QT)",
+      "Caulk assessment and replacement at trim joints and wall junctions",
+      "Dust wipe/vacuum after sanding and prep",
+      "State-driven primer selection and application (adhesion, stain-block, mildew-resistant)",
+      "Spot priming all scraped/patched areas",
+      "Fine-finish coat application — 2 coats QT3-QT4, 3 coats QT5 brush per FFD 15.10.3",
+      "Interstage inspection, contour sanding, and defect repair between all coats",
+      "Final inspection with raking light and touch-up",
+      "Floor perimeter protection (drop cloths along trim work zones)",
+      "Wall masking at trim edge (always required in RP — walls are finished)",
+      "Fixture covers (spray method only — outlets/switches near spray zone)",
+      "Furniture clearing from trim work zones (occupied homes)",
+      "Customer walkthrough per room (occupied homes)"
+    ],
+    "excludes": [
+      {
+        "item": "Bare/new trim (new construction)",
+        "route_to": "SF_TRIM_NC_PRIME_v1 + SF_TRIM_NC_PAINT_v1"
+      },
+      {
+        "item": "Wall repaint",
+        "route_to": "SF_DRYWALL_WALL_INT_RP_v1"
+      },
+      {
+        "item": "Ceiling repaint",
+        "route_to": "Future SF_DRYWALL_CEILING_INT_RP"
+      },
+      {
+        "item": "Door slab repaint",
+        "route_to": "Future SF_DOOR_SLAB_INT_RP"
+      },
+      {
+        "item": "Door frame repaint",
+        "route_to": "Future SF_DOOR_FRAME_INT_RP"
+      },
+      {
+        "item": "Window interior repaint",
+        "route_to": "Future SF_WINDOW_INT_RP"
+      },
+      {
+        "item": "Wainscot panel repaint",
+        "route_to": "Future SF_WAINSCOT_PANEL_INT_RP"
+      },
+      {
+        "item": "Structural trim repair (rotted, broken)",
+        "route_to": "Carpenter — outside painting scope"
+      },
+      {
+        "item": "Active moisture remediation",
+        "route_to": "Plumber/contractor — moisture SOURCE must be resolved before painting (gate condition)"
+      },
+      {
+        "item": "Wallpaper removal behind trim",
+        "route_to": "Future wallpaper removal spec"
+      }
+    ]
+  },
+
+  "configuration_dimensions": [
+    {
+      "dimension_id": "quality_tier",
+      "description": "Quality tier controlling coat count, inspection rigor, interstage sanding, and edge discipline. QT2 excluded — trim is a fine-finish surface per Fine_Finish_Doctrine.",
+      "values": ["QT3", "QT4", "QT5"],
+      "default": "QT3",
+      "notes": "QT3=2 finish coats, standard edges, standard inspect. QT4=2 coats, interstage sand, systematic inspect, semi-gloss standard. QT5=3 coats brush per FFD 15.10.3, critical raking-light inspect, gloss finish. QT modifier values: QT3=1.00, QT4=1.30, QT5=1.50."
+    },
+    {
+      "dimension_id": "application_method",
+      "description": "Primary application technique. Brush is primary for trim at all tiers. Spray available but requires wall masking. Roll is NOT valid for trim (profiles cannot be rolled effectively).",
+      "values": ["brush", "spray"],
+      "default": "brush",
+      "notes": "Brush: QT3-QT5 (most common). Spray: QT3-QT5 (requires full wall masking, fixture covers). No roll, no spray_backroll, no spray_rolloff for interior trim."
+    },
+    {
+      "dimension_id": "sheen",
+      "description": "Finish coating sheen level. Determines output substrate state. Trim uses higher sheens than walls per Fine_Finish_Doctrine.",
+      "values": ["satin", "semi-gloss", "gloss"],
+      "default": "satin",
+      "notes": "Satin default at QT3. Semi-gloss at QT4+. Gloss at QT5 only. Flat/matte/eggshell NOT valid trim sheens per Fine_Finish_Doctrine."
+    },
+    {
+      "dimension_id": "condition_scale",
+      "description": "Universal 3-level condition scale driving prep intensity. Maps from substrate state assessment during condition scan.",
+      "values": ["GOOD", "FAIR", "POOR"],
+      "default": "GOOD",
+      "notes": "GOOD=SS_INT_SOUND_PAINT (1.0x prep, may skip prime). FAIR=SS_INT_FAILING_PAINT or SS_INT_MOISTURE_DAMAGE (1.5x prep, prime required). POOR=SS_INT_PEELING or SS_INT_SMOKE_DAMAGE (2.0x prep, prime required)."
+    }
+  ],
+
+  "paintable_items": [
+    {
+      "item_id": "ITM_TRIM_BASEBOARD",
+      "name": "Baseboard",
+      "unit_of_measure": "LF",
+      "counting_rules": "Linear footage of baseboard measured at face. Include all straight runs and mitered returns.",
+      "notes": "Height band always H1 (floor level). Most common trim type in residential."
+    },
+    {
+      "item_id": "ITM_TRIM_CROWN",
+      "name": "Crown Molding",
+      "unit_of_measure": "LF",
+      "counting_rules": "Linear footage of crown molding measured at face. Include all straight runs and mitered returns.",
+      "notes": "Height band H2/H3 depending on ceiling height. Profile complexity varies (simple cove to ornate multi-piece)."
+    },
+    {
+      "item_id": "ITM_TRIM_CASING_DOOR",
+      "name": "Door Casing",
+      "unit_of_measure": "LF",
+      "counting_rules": "Linear footage of door casing measured at face. Both sides of each door opening, including head casing.",
+      "notes": "Adjacency with door frame surface. Height band typically H1."
+    },
+    {
+      "item_id": "ITM_TRIM_CASING_WINDOW",
+      "name": "Window Casing",
+      "unit_of_measure": "LF",
+      "counting_rules": "Linear footage of window casing measured at face. All four sides including stool and apron if present.",
+      "notes": "Adjacency with window frame surface. Height band H1-H2 depending on window placement."
+    },
+    {
+      "item_id": "ITM_TRIM_CHAIR_RAIL",
+      "name": "Chair Rail",
+      "unit_of_measure": "LF",
+      "counting_rules": "Linear footage of chair rail measured at face.",
+      "notes": "Height band H1 (typically 30-36 inches)."
+    },
+    {
+      "item_id": "ITM_TRIM_WAINSCOT_RAIL",
+      "name": "Wainscot Cap/Rail",
+      "unit_of_measure": "LF",
+      "counting_rules": "Linear footage of wainscot cap rail measured at face. Distinct from wainscot panel surface.",
+      "notes": "Height band H1. Often paired with SF_WAINSCOT_PANEL_NC_v1 or future RP equivalent."
+    },
+    {
+      "item_id": "ITM_TRIM_SHADOW_BOX",
+      "name": "Shadow Box / Picture Frame Molding",
+      "unit_of_measure": "LF",
+      "counting_rules": "Linear footage of shadow box or picture frame molding measured at face. Count all four sides of each panel.",
+      "notes": "Height band H1-H2. Complex profile common."
+    },
+    {
+      "item_id": "ITM_TRIM_PANEL_MOLD",
+      "name": "Panel Molding",
+      "unit_of_measure": "LF",
+      "counting_rules": "Linear footage of panel molding measured at face.",
+      "notes": "Height band H1. Applied to wall panels."
+    },
+    {
+      "item_id": "ITM_TRIM_PICTURE_RAIL",
+      "name": "Picture Rail",
+      "unit_of_measure": "LF",
+      "counting_rules": "Linear footage of picture rail measured at face.",
+      "notes": "Height band H2/H3 (typically 5-7 feet). Similar to crown for height modifier purposes."
+    }
+  ],
+
+  "variants": [
+    {
+      "variant_id": "VAR_TMRP_GOOD_QT3_BRUSH",
+      "applies_when": { "quality_tier": ["QT3"], "condition_scale": ["GOOD"], "application_method": ["brush"] },
+      "included_items": ["ITM_TRIM_BASEBOARD", "ITM_TRIM_CROWN", "ITM_TRIM_CASING_DOOR", "ITM_TRIM_CASING_WINDOW", "ITM_TRIM_CHAIR_RAIL", "ITM_TRIM_WAINSCOT_RAIL", "ITM_TRIM_SHADOW_BOX", "ITM_TRIM_PANEL_MOLD", "ITM_TRIM_PICTURE_RAIL"],
+      "round_config": "ROUND_TMRP_2FINISH",
+      "notes": "BASELINE. Most common residential trim repaint. Degloss + 2 finish coats brush. No prime needed (adhesion verified)."
+    },
+    {
+      "variant_id": "VAR_TMRP_FAIR_QT3_BRUSH",
+      "applies_when": { "quality_tier": ["QT3"], "condition_scale": ["FAIR"], "application_method": ["brush"] },
+      "included_items": ["ITM_TRIM_BASEBOARD", "ITM_TRIM_CROWN", "ITM_TRIM_CASING_DOOR", "ITM_TRIM_CASING_WINDOW", "ITM_TRIM_CHAIR_RAIL", "ITM_TRIM_WAINSCOT_RAIL", "ITM_TRIM_SHADOW_BOX", "ITM_TRIM_PANEL_MOLD", "ITM_TRIM_PICTURE_RAIL"],
+      "round_config": "ROUND_TMRP_PRIME_2FINISH",
+      "notes": "Standard repaint on failing/moisture-damaged trim. Scrape + feather + state-driven prime + 2 finish coats."
+    },
+    {
+      "variant_id": "VAR_TMRP_POOR_QT3_BRUSH",
+      "applies_when": { "quality_tier": ["QT3"], "condition_scale": ["POOR"], "application_method": ["brush"] },
+      "included_items": ["ITM_TRIM_BASEBOARD", "ITM_TRIM_CROWN", "ITM_TRIM_CASING_DOOR", "ITM_TRIM_CASING_WINDOW", "ITM_TRIM_CHAIR_RAIL", "ITM_TRIM_WAINSCOT_RAIL", "ITM_TRIM_SHADOW_BOX", "ITM_TRIM_PANEL_MOLD", "ITM_TRIM_PICTURE_RAIL"],
+      "round_config": "ROUND_TMRP_PRIME_2FINISH",
+      "notes": "Full remediation. Heavy scrape + full prime + 2 finish coats. Highest prep labor at QT3."
+    },
+    {
+      "variant_id": "VAR_TMRP_GOOD_QT4_BRUSH",
+      "applies_when": { "quality_tier": ["QT4"], "condition_scale": ["GOOD"], "application_method": ["brush"] },
+      "included_items": ["ITM_TRIM_BASEBOARD", "ITM_TRIM_CROWN", "ITM_TRIM_CASING_DOOR", "ITM_TRIM_CASING_WINDOW", "ITM_TRIM_CHAIR_RAIL", "ITM_TRIM_WAINSCOT_RAIL", "ITM_TRIM_SHADOW_BOX", "ITM_TRIM_PANEL_MOLD", "ITM_TRIM_PICTURE_RAIL"],
+      "round_config": "ROUND_TMRP_2FINISH",
+      "notes": "Premium refresh. Degloss + 2 finish coats with interstage sanding. Semi-gloss standard."
+    },
+    {
+      "variant_id": "VAR_TMRP_FAIR_QT4_SPRAY",
+      "applies_when": { "quality_tier": ["QT4"], "condition_scale": ["FAIR"], "application_method": ["spray"] },
+      "included_items": ["ITM_TRIM_BASEBOARD", "ITM_TRIM_CROWN", "ITM_TRIM_CASING_DOOR", "ITM_TRIM_CASING_WINDOW", "ITM_TRIM_CHAIR_RAIL", "ITM_TRIM_WAINSCOT_RAIL", "ITM_TRIM_SHADOW_BOX", "ITM_TRIM_PANEL_MOLD", "ITM_TRIM_PICTURE_RAIL"],
+      "round_config": "ROUND_TMRP_PRIME_2FINISH",
+      "notes": "Premium spray remediation. Full wall masking + fixture covers. State-driven prime + 2 spray finish coats with interstage sanding."
+    },
+    {
+      "variant_id": "VAR_TMRP_GOOD_QT5_BRUSH",
+      "applies_when": { "quality_tier": ["QT5"], "condition_scale": ["GOOD"], "application_method": ["brush"] },
+      "included_items": ["ITM_TRIM_BASEBOARD", "ITM_TRIM_CROWN", "ITM_TRIM_CASING_DOOR", "ITM_TRIM_CASING_WINDOW", "ITM_TRIM_CHAIR_RAIL", "ITM_TRIM_WAINSCOT_RAIL", "ITM_TRIM_SHADOW_BOX", "ITM_TRIM_PANEL_MOLD", "ITM_TRIM_PICTURE_RAIL"],
+      "round_config": "ROUND_TMRP_3FINISH",
+      "notes": "Superior brush finish. 3 finish coats per FFD 15.10.3. Gloss sheen. Critical raking-light inspection. Maximum effort on sound paint."
+    },
+    {
+      "variant_id": "VAR_TMRP_POOR_QT5_BRUSH",
+      "applies_when": { "quality_tier": ["QT5"], "condition_scale": ["POOR"], "application_method": ["brush"] },
+      "included_items": ["ITM_TRIM_BASEBOARD", "ITM_TRIM_CROWN", "ITM_TRIM_CASING_DOOR", "ITM_TRIM_CASING_WINDOW", "ITM_TRIM_CHAIR_RAIL", "ITM_TRIM_WAINSCOT_RAIL", "ITM_TRIM_SHADOW_BOX", "ITM_TRIM_PANEL_MOLD", "ITM_TRIM_PICTURE_RAIL"],
+      "round_config": "ROUND_TMRP_PRIME_3FINISH",
+      "notes": "Maximum effort. Full remediation + 3-coat brush finish + state-driven prime. Near-worst-case labor scenario."
+    }
+  ],
+
+  "required_paintscope_inputs": [
+    {
+      "input_name": "IN_LF_BASEBOARD",
+      "paintscope_key": "PS_SURFACE_LF.TRIM_BASEBOARD",
+      "uom": "LF",
+      "required": false,
+      "description": "Baseboard linear footage"
+    },
+    {
+      "input_name": "IN_LF_CROWN",
+      "paintscope_key": "PS_SURFACE_LF.TRIM_CROWN",
+      "uom": "LF",
+      "required": false,
+      "description": "Crown molding linear footage"
+    },
+    {
+      "input_name": "IN_LF_DOOR_CASING",
+      "paintscope_key": "PS_SURFACE_LF.TRIM_CASING_DOOR",
+      "uom": "LF",
+      "required": false,
+      "description": "Door casing linear footage"
+    },
+    {
+      "input_name": "IN_LF_WINDOW_CASING",
+      "paintscope_key": "PS_SURFACE_LF.TRIM_CASING_WINDOW",
+      "uom": "LF",
+      "required": false,
+      "description": "Window casing linear footage"
+    },
+    {
+      "input_name": "IN_LF_CHAIR_RAIL",
+      "paintscope_key": "PS_SURFACE_LF.TRIM_CHAIR_RAIL",
+      "uom": "LF",
+      "required": false,
+      "description": "Chair rail linear footage"
+    },
+    {
+      "input_name": "IN_LF_WAINSCOT_RAIL",
+      "paintscope_key": "PS_SURFACE_LF.TRIM_WAINSCOT_RAIL",
+      "uom": "LF",
+      "required": false,
+      "description": "Wainscot rail linear footage"
+    },
+    {
+      "input_name": "IN_LF_SHADOW_BOX",
+      "paintscope_key": "PS_SURFACE_LF.TRIM_SHADOW_BOX",
+      "uom": "LF",
+      "required": false,
+      "description": "Shadow box molding linear footage"
+    },
+    {
+      "input_name": "IN_LF_PANEL_MOLD",
+      "paintscope_key": "PS_SURFACE_LF.TRIM_PANEL_MOLD",
+      "uom": "LF",
+      "required": false,
+      "description": "Panel molding linear footage"
+    },
+    {
+      "input_name": "IN_LF_PICTURE_RAIL",
+      "paintscope_key": "PS_SURFACE_LF.TRIM_PICTURE_RAIL",
+      "uom": "LF",
+      "required": false,
+      "description": "Picture rail linear footage"
+    },
+    {
+      "input_name": "IN_LF_TRIM_EDGES",
+      "paintscope_key": "PS_EDGE_LF.TRIM_JOINTS",
+      "uom": "LF",
+      "required": true,
+      "description": "Total LF of trim joints requiring caulk assessment and potential replacement"
+    },
+    {
+      "input_name": "IN_SF_PROTECT_FLOOR_PERIMETER",
+      "paintscope_key": "PS_PROTECT_SF.FLOOR_PERIMETER",
+      "uom": "SF",
+      "required": true,
+      "description": "Perimeter floor protection area for drip containment during trim work"
+    },
+    {
+      "input_name": "IN_LF_WALL_ADJACENT",
+      "paintscope_key": "PS_PROTECT_LF.WALL_ADJACENT",
+      "uom": "LF",
+      "required": true,
+      "description": "Wall masking at trim edge — tape for brush, tape + paper for spray. Always required in RP."
+    },
+    {
+      "input_name": "IN_EA_ASSET_FIXTURES",
+      "paintscope_key": "PS_PROTECT_EA.ASSET.FIXTURES",
+      "uom": "EA",
+      "required": false,
+      "required_when": { "application_method": ["spray"] },
+      "description": "Count of fixtures near spray zone requiring covering"
+    },
+    {
+      "input_name": "IN_EA_ROOMS_TOTAL",
+      "paintscope_key": "PS_META.EA.ROOMS_TOTAL",
+      "uom": "EA",
+      "required": true,
+      "description": "Room count — drives per-room heuristics (furniture protection, assessment, customer walkthrough)"
+    },
+    {
+      "input_name": "IN_ENUM_SURFACE_CONDITION",
+      "paintscope_key": "PS_META.SURFACE_CONDITION",
+      "uom": "ENUM",
+      "required": true,
+      "description": "Surface condition enum (GOOD/FAIR/POOR) — primary prep intensity driver"
+    },
+    {
+      "input_name": "IN_ENUM_HEIGHT_BAND",
+      "paintscope_key": "PS_META.HEIGHT_BAND",
+      "uom": "ENUM",
+      "required": true,
+      "description": "Trim working height classification (H1/H2/H3). Per-item-type: baseboard=H1, crown/picture_rail=H2/H3."
+    },
+    {
+      "input_name": "IN_ENUM_PROFILE_COMPLEXITY",
+      "paintscope_key": "PS_META.PROFILE_COMPLEXITY",
+      "uom": "ENUM",
+      "required": true,
+      "description": "Trim profile complexity per item type (simple/standard/complex/ornate). Drives profile complexity modifier."
+    },
+    {
+      "input_name": "IN_SF_PROTECT_FURNITURE_ROOM",
+      "paintscope_key": "PS_PROTECT_SF.FURNITURE_ROOM",
+      "uom": "SF",
+      "required": false,
+      "required_when": { "occupancy_state": ["occupied_crew_handles", "occupied_sensitive"] },
+      "description": "Room floor area for furniture protection coverage in occupied homes"
+    },
+    {
+      "input_name": "IN_ENUM_SUBSTRATE_STATE_INT",
+      "paintscope_key": "PS_META.ENUM.SUBSTRATE_STATE_INT",
+      "uom": "ENUM",
+      "required": true,
+      "description": "Interior substrate state (SS_INT_SOUND_PAINT through SS_INT_SMOKE_DAMAGE) — drives primer selection"
+    },
+    {
+      "input_name": "IN_BOOL_HOME_PRE_1978",
+      "paintscope_key": "PS_META.BOOL.HOME_PRE_1978",
+      "uom": "BOOL",
+      "required": true,
+      "description": "Pre-1978 home flag — triggers EPA Lead-Safe RRP module. Trim is HIGH RISK for lead paint."
+    },
+    {
+      "input_name": "IN_ENUM_CONTAMINATION_TYPE",
+      "paintscope_key": "PS_META.ENUM.CONTAMINATION_TYPE",
+      "uom": "ENUM",
+      "required": true,
+      "description": "Contamination type (none/mildew/smoke/water_stain) — drives treatment tasks and primer selection"
+    }
+  ],
+
+  "material_systems_summary": [
+    {
+      "system_id": "SYS_PRIMER_ADHESION_INT",
+      "name": "Interior Adhesion Primer",
+      "product_role": "primer",
+      "applies_when": { "substrate_state": ["SS_INT_SOUND_PAINT", "SS_INT_FAILING_PAINT", "SS_INT_PEELING"] },
+      "notes": "Water-based adhesion promoter for previously painted trim. Bonds to glossy, chalky, or oil-based existing coatings. Trim is highest risk for oil-based existing paint."
+    },
+    {
+      "system_id": "SYS_PRIMER_STAINBLOCK_INT",
+      "name": "Interior Stain-Blocking Primer (Shellac)",
+      "product_role": "primer",
+      "applies_when": { "substrate_state": ["SS_INT_SMOKE_DAMAGE"] },
+      "notes": "Shellac-based stain blocker (BIN or equivalent). Only product that seals nicotine/smoke on trim."
+    },
+    {
+      "system_id": "SYS_PRIMER_MILDEW_INT",
+      "name": "Interior Mildew-Resistant Primer",
+      "product_role": "primer",
+      "applies_when": { "substrate_state": ["SS_INT_MOISTURE_DAMAGE"] },
+      "notes": "Mildew-resistant stain-blocking primer. Applied after biocide treatment and source moisture resolution."
+    },
+    {
+      "system_id": "SYS_FF_STANDARD_ACRYLIC",
+      "name": "Fine Finish — Standard Acrylic (QT3)",
+      "product_role": "finish",
+      "applies_when": { "quality_tier": ["QT3"] },
+      "notes": "Standard acrylic trim enamel. Satin sheen default. Good leveling and durability."
+    },
+    {
+      "system_id": "SYS_FF_MODIFIED_URETHANE",
+      "name": "Fine Finish — Modified Urethane (QT4)",
+      "product_role": "finish",
+      "applies_when": { "quality_tier": ["QT4"] },
+      "notes": "Urethane-modified acrylic. Superior hardness and leveling. Semi-gloss standard."
+    },
+    {
+      "system_id": "SYS_FF_PREMIUM",
+      "name": "Fine Finish — Premium (QT5)",
+      "product_role": "finish",
+      "applies_when": { "quality_tier": ["QT5"] },
+      "notes": "Premium waterborne alkyd or catalyzed finish. Maximum film build and self-leveling. Gloss sheen."
+    }
+  ],
+
+  "module_summary": [
+    { "module_id": "MOD_TMRP_SETUP", "phase": "setup", "task_count": 4, "description": "Floor perimeter protection, wall masking, fixture covers (spray), furniture clear (occupied)" },
+    { "module_id": "MOD_TMRP_ASSESSMENT", "phase": "prep", "task_count": 4, "description": "Condition scan, adhesion test (ASTM D3359), coating ID (solvent test), moisture meter" },
+    { "module_id": "MOD_RRP_INT_CONTAINMENT", "phase": "prep", "task_count": 5, "description": "Lead test, containment setup, HEPA vacuum, containment removal, waste disposal (conditional: pre-1978)" },
+    { "module_id": "MOD_TMRP_PREP", "phase": "prep", "task_count": 7, "description": "TSP wash, mildew treatment, degloss, scrape/feather, caulk assess/replace, dust wipe" },
+    { "module_id": "MOD_TMRP_PRIME", "phase": "prime", "task_count": 3, "description": "Brush prime, spray prime, spot prime (state-driven selection)" },
+    { "module_id": "MOD_TMRP_INTERSTAGE", "phase": "interstage", "task_count": 5, "description": "Inspect coat, contour sand between, patch defects, spot coat, clean interstage dust" },
+    { "module_id": "MOD_TMRP_FINISH", "phase": "finish", "task_count": 4, "description": "Brush finish coat 1/2, spray finish coat 1/2 (method-dependent)" },
+    { "module_id": "MOD_TMRP_CLEANUP", "phase": "cleanup", "task_count": 8, "description": "Final inspect, touch-up, wall mask teardown, fixture cover teardown, floor teardown, furniture restore, customer walkthrough, tool clean" }
+  ],
+
+  "round_configurations_summary": [
+    {
+      "round_id": "ROUND_TMRP_PRIME_2FINISH",
+      "name": "Trim RP — Prime + 2 Finish Coats",
+      "applies_when": { "quality_tier": ["QT3", "QT4"], "condition_scale": ["FAIR", "POOR"] },
+      "total_coats": 3,
+      "interstage_cycles": 2
+    },
+    {
+      "round_id": "ROUND_TMRP_PRIME_3FINISH",
+      "name": "Trim RP — Prime + 3 Finish Coats (QT5 Brush)",
+      "applies_when": { "quality_tier": ["QT5"], "condition_scale": ["FAIR", "POOR"], "application_method": ["brush"] },
+      "total_coats": 4,
+      "interstage_cycles": 3
+    },
+    {
+      "round_id": "ROUND_TMRP_2FINISH",
+      "name": "Trim RP — 2 Finish Coats (No Prime)",
+      "applies_when": { "quality_tier": ["QT3", "QT4"], "condition_scale": ["GOOD"] },
+      "total_coats": 2,
+      "interstage_cycles": 1
+    },
+    {
+      "round_id": "ROUND_TMRP_3FINISH",
+      "name": "Trim RP — 3 Finish Coats (QT5 Brush, No Prime)",
+      "applies_when": { "quality_tier": ["QT5"], "condition_scale": ["GOOD"], "application_method": ["brush"] },
+      "total_coats": 3,
+      "interstage_cycles": 2
+    }
+  ],
+
+  "factor_modifiers_summary": {
+    "condition_scale": {
+      "FAC_CONDITION_GOOD": 1.00,
+      "FAC_CONDITION_FAIR": 1.50,
+      "FAC_CONDITION_POOR": 2.00
+    },
+    "quality_tier": {
+      "FAC_QT3": 1.00,
+      "FAC_QT4": 1.30,
+      "FAC_QT5": 1.50
+    },
+    "height_factor": {
+      "FAC_HEIGHT_H1": 1.00,
+      "FAC_HEIGHT_H2": 1.30,
+      "FAC_HEIGHT_H3": 1.50
+    },
+    "profile_complexity": {
+      "FAC_PROFILE_SIMPLE": 0.85,
+      "FAC_PROFILE_STANDARD": 1.00,
+      "FAC_PROFILE_COMPLEX": 1.25,
+      "FAC_PROFILE_ORNATE": 1.40
+    },
+    "contamination_type": {
+      "FAC_CONTAM_NONE": 1.00,
+      "FAC_CONTAM_MILDEW": 1.20,
+      "FAC_CONTAM_SMOKE": 1.50,
+      "FAC_CONTAM_WATER_STAIN": 1.15
+    },
+    "stacking_partition": {
+      "prep_pool": "condition x height x profile_complexity (max 4.20x — flag for estimator review)",
+      "coating_pool": "qt x height x profile_complexity (max 3.15x)",
+      "never_cross": "Prep pool never includes QT. Coating pool never includes condition or contamination."
+    }
+  },
+
+  "protection_zones_required": [
+    {
+      "zone_id": "floor_perimeter",
+      "condition": "always",
+      "protection_level": "edge_only",
+      "notes": "Runner-style drop cloths along trim perimeter. Always required in RP (finished floors)."
+    },
+    {
+      "zone_id": "wall_adjacent",
+      "condition": "always",
+      "protection_level": "light_mask",
+      "upgrades_to_level": "full_mask",
+      "upgrade_condition": { "application_method": ["spray"] },
+      "notes": "Wall masking at trim edge. Always in RP (walls finished). Brush: light_mask (tape). Spray: full_mask (tape + paper)."
+    },
+    {
+      "zone_id": "fixture_covers",
+      "condition": { "application_method": ["spray"] },
+      "protection_level": "full_cover",
+      "notes": "Cover outlets/switches near spray zone. Spray method only."
+    },
+    {
+      "zone_id": "furniture_room",
+      "condition": { "occupancy_state": ["occupied_crew_handles", "occupied_sensitive"] },
+      "protection_level": "partial_cover",
+      "notes": "RP-specific. Clear items from trim work zones. Lighter scope than wall RP (trim zones narrower)."
+    }
+  ],
+
+  "adjacency_declarations": {
+    "primary_surface": "trim_baseboard",
+    "adjacent_surfaces": [
+      {
+        "surface_id": "wall_field",
+        "edge_type": "linear",
+        "typical_relationship": "different_finish",
+        "affected_tasks": ["TSK_TMRP_WALL_MASK_SETUP", "TSK_TMRP_WALL_MASK_TEARDOWN"],
+        "notes": "All trim types are adjacent to wall field. Wall masking always required in RP. Trim painter works to tape line on wall."
+      },
+      {
+        "surface_id": "ceiling_field",
+        "edge_type": "linear",
+        "typical_relationship": "different_finish",
+        "affected_tasks": ["TSK_TMRP_WALL_MASK_SETUP"],
+        "notes": "Crown molding adjacent to ceiling. No ceiling masking required (crown edge is at ceiling junction)."
+      },
+      {
+        "surface_id": "door_frame",
+        "edge_type": "linear",
+        "typical_relationship": "same_finish",
+        "affected_tasks": [],
+        "notes": "Door casing adjacent to door frame. Same finish group — no masking between them."
+      },
+      {
+        "surface_id": "window_frame",
+        "edge_type": "linear",
+        "typical_relationship": "same_finish",
+        "affected_tasks": [],
+        "notes": "Window casing adjacent to window frame. Same finish group — no masking between them."
+      }
+    ]
+  },
+
+  "state_declarations": {
+    "primary_surface": "trim_baseboard",
+
+    "valid_input_states": {
+      "states": [
+        "SS_INT_SOUND_PAINT",
+        "SS_INT_FAILING_PAINT",
+        "SS_INT_PEELING",
+        "SS_INT_MOISTURE_DAMAGE",
+        "SS_INT_SMOKE_DAMAGE"
+      ],
+      "notes": "All 5 SS_INT_* states accepted. Each drives distinct prep pathway and primer selection. Worst state per trim type drives overall condition_scale."
+    },
+
+    "output_state": {
+      "state": "SS_PAINTED_SATIN",
+      "varies_by": "sheen",
+      "state_map": {
+        "satin": "SS_PAINTED_SATIN",
+        "semi-gloss": "SS_PAINTED_SEMIGLOSS",
+        "gloss": "SS_PAINTED_GLOSS"
+      },
+      "notes": "All input states normalize to SS_PAINTED_* output after proper prep and coating. Satin is default."
+    },
+
+    "adjacent_state_protection_rules": [
+      {
+        "adjacent_surface": "wall_field",
+        "when_state": "finished",
+        "protection_zone": "wall_adjacent",
+        "protection_level": "light_mask",
+        "notes": "RP walls always finished. Tape line at wall-trim junction. Upgrades to full_mask for spray method."
+      },
+      {
+        "adjacent_surface": "door_frame",
+        "when_state": "finished",
+        "protection_zone": "wall_adjacent",
+        "protection_level": "none",
+        "notes": "Door frame and casing are typically same finish group. No masking between them."
+      },
+      {
+        "adjacent_surface": "window_frame",
+        "when_state": "finished",
+        "protection_zone": "wall_adjacent",
+        "protection_level": "none",
+        "notes": "Window frame and casing are typically same finish group. No masking between them."
+      }
+    ]
+  },
+
+  "site_condition_rules": [
+    {
+      "condition_id": "occupancy_state",
+      "include_when": ["occupied_crew_handles", "occupied_sensitive"],
+      "exclude_when": ["vacant"],
+      "affects": "protection and cleanup tasks",
+      "affected_tasks": ["TSK_TMRP_FURNITURE_CLEAR", "TSK_TMRP_FURNITURE_RESTORE", "TSK_TMRP_CUSTOMER_WALKTHROUGH"],
+      "notes": "Occupied home adds furniture protection and customer walkthrough. Vacant RP omits these tasks."
+    },
+    {
+      "condition_id": "lead_status",
+      "include_when": ["tested_positive", "unknown_pre1978"],
+      "exclude_when": ["not_applicable", "presumed_safe", "tested_negative"],
+      "affects": "prep tasks involving paint disturbance",
+      "affected_tasks": ["TSK_RRP_LEAD_TEST", "TSK_RRP_CONTAINMENT_SETUP", "TSK_RRP_HEPA_VACUUM", "TSK_RRP_CONTAINMENT_REMOVAL", "TSK_RRP_WASTE_DISPOSAL"],
+      "notes": "Pre-1978 + lead-positive activates MOD_RRP_INT_CONTAINMENT module. Trim is HIGH RISK for lead paint."
+    },
+    {
+      "condition_id": "contamination_type",
+      "include_when": ["mildew", "smoke", "water_stain"],
+      "affects": "contamination treatment tasks and primer selection",
+      "affected_tasks": ["TSK_TMRP_WASH_TSP", "TSK_TMRP_TREAT_MILDEW"],
+      "notes": "Contamination type drives TSP wash and biocide treatment activation. Smoke drives shellac stain-blocker primer."
+    },
+    {
+      "condition_id": "trim_height",
+      "include_when": ["H1_STANDARD", "H2_TALL", "H3_HIGH"],
+      "affects": "all labor tasks via height modifier",
+      "effect": "H1=1.0, H2=1.30, H3=1.50",
+      "notes": "Per-item-type: baseboard/chair_rail/wainscot_rail/panel_mold=H1. Crown/picture_rail=H2/H3. Shadow_box=H1-H2. H4 excluded for interior trim."
+    },
+    {
+      "condition_id": "profile_complexity",
+      "include_when": ["simple", "standard", "complex", "ornate"],
+      "affects": "all prep and application tasks via profile modifier",
+      "effect": "simple=0.85, standard=1.00, complex=1.25, ornate=1.40",
+      "notes": "Per-item-type. Simple=colonial/ranch casing. Standard=ogee. Complex=multi-piece crown. Ornate=detailed Victorian."
+    }
+  ],
+
+  "task_count": 40,
+  "module_count": 8,
+  "doctrine_overrides": [],
+
+  "research_corrections": [],
+
+  "sequencing_notes": {
+    "production_sequence": "Setup (protect) -> Assess (condition, adhesion, coating ID, moisture) -> RRP (if pre-1978) -> Prep (degloss, scrape, feather, caulk, dust) -> Prime (state-driven) -> Interstage (sand, inspect, patch) -> Finish 1 -> Interstage -> Finish 2 -> [Interstage -> Finish 3 if QT5 brush] -> Final Inspect -> Touch-up -> Teardown -> Cleanup -> Customer Walkthrough",
+    "edge_work": "Trim painter works to tape line on wall. Wall masking always required in RP. No freehand cut-in on trim (unlike wall-to-ceiling which is freehand).",
+    "key_prohibitions": "NO roll application on trim (profiles cannot be rolled). NO skipping degloss on glossy existing paint. NO latex primer on smoke damage (shellac only). Spot prime ALL scraped/patched areas regardless of full prime. NO painting over active moisture."
+  },
+
+  "relationships": {
+    "companion_spec": null,
+    "sibling_specs": ["SF_TRIM_NC_PRIME_v1", "SF_TRIM_NC_PAINT_v1"],
+    "often_combined_with": ["SF_DRYWALL_WALL_INT_RP_v1", "Future SF_DRYWALL_CEILING_INT_RP"],
+    "notes": "Third interior repaint spec. Combined prime+finish. Trim RP may run alongside wall RP in full interior repaint. Sequencing: trim first, then walls (80% default per A-005). NC trim uses two separate specs (phase-split); RP combines both phases."
+  },
+
+  "cross_spec_coordination": {
+    "deduplication_note": "MOD_RRP_INT_CONTAINMENT is shared across all interior RP specs. Do not duplicate lead-safe tasks when trim RP and wall RP run together. Engine deduplicates shared modules.",
+    "shared_session_note": "Trim RP and wall RP can share furniture protection setup. Trim-specific furniture clearing is lighter scope (narrow work zones vs full room center-pile for walls)."
+  },
+
+  "dependencies": {
+    "research": "research.json",
+    "resolution": "resolution.json",
+    "materials": "materials.json",
+    "sop_modules": "sop_modules.json",
+    "production": "production.json"
+  },
+
+  "artifact_counts": {
+    "total_tasks": 40,
+    "binary_tasks": 26,
+    "qt_scaled_tasks": 14,
+    "qt_conditional_tasks": 0,
+    "sop_modules": 8,
+    "material_systems": 6,
+    "round_configurations": 4,
+    "factor_modifier_categories": 5,
+    "protection_zones": 4,
+    "adjacent_surfaces": 4,
+    "paintscope_inputs": 21,
+    "variants": 7,
+    "paintable_items": 9,
+    "configuration_dimensions": 4
+  },
+
+  "doctrine_references": [
+    { "doctrine": "Fine_Finish_Doctrine.md", "sections_used": ["QT3 minimum for trim", "FFD 15.10.3 QT5 brush 3-coat", "Fine-finish systems by tier"] },
+    { "doctrine": "Quality_Tiers_and_Surface_Condition.md", "sections_used": ["QT3-QT5 tier definitions", "Condition scale GOOD/FAIR/POOR"] },
+    { "doctrine": "Materials_and_Consumables_Doctrine.md", "sections_used": ["State-driven primer selection", "Shellac stain-blocker for smoke damage", "Adhesion primer for oil-based existing"] },
+    { "doctrine": "Estimation_Modifiers_Doctrine.md", "sections_used": ["Profile complexity modifier", "Height modifiers H1-H3", "Stacking partition enforcement"] },
+    { "doctrine": "Interior_Protection_Doctrine.md", "sections_used": ["Floor perimeter protection", "Wall masking in RP", "Fixture covers for spray", "Furniture protection for occupied"] },
+    { "doctrine": "Protection_and_Masking_Doctrine.md", "sections_used": ["Tape line at wall-trim junction", "Spray requires full wall masking"] },
+    { "doctrine": "Modifier_Registry.md", "sections_used": ["Profile complexity (simple/standard/complex/ornate)", "Height H1-H3", "QT modifiers", "Condition modifiers"] },
+    { "doctrine": "Millwork_NC_Paint_Doctrine.md", "sections_used": ["Trim profile complexity factors inherited from NC", "Profile-specific contour sanding"] },
+    { "doctrine": "Substrate_State_Reference.md", "sections_used": ["5 SS_INT_* states", "State-to-condition mapping", "Output state by sheen"] }
+  ],
+
+  "change_log": [
+    {
+      "version": "1.0.0",
+      "date": "2026-03-13",
+      "author": "SpecFactory Assembly Agent",
+      "changes": "Initial spec.json assembly from 5 pipeline artifacts (research, resolution, materials, sop_modules, production). QA passed with no issues (3 minor warnings documented: missing optional task_type on 9 tasks, 4.20x prep stack flag, fixed_minutes field name convention). 40 tasks across 8 modules, 6 material systems, 4 round configurations, 5 factor modifier categories, 4 protection zones, 4 adjacent surfaces, 21 PaintScope inputs, 7 variants, 9 paintable items. Third interior RP spec. Combined prime + finish. Trim-specific features: profile complexity modifier, contour sanding, 9 trim types, no roll application method, QT3 minimum per Fine_Finish_Doctrine."
+    }
+  ]
+}

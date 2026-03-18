@@ -8,7 +8,6 @@
     "status": "draft",
     "review_required": true
   },
-
   "scope_boundaries": {
     "includes": [
       "Condition assessment (DSD rating, adhesion test, moisture content, existing coating ID)",
@@ -61,7 +60,7 @@
       },
       {
         "item": "Structural wood repair or replacement",
-        "route_to": "Carpentry/contractor — SC_SUBSTRATE_DAMAGE (DSD-4) is a HARD STOP"
+        "route_to": "Carpentry/contractor — HARD_STOP (DSD-4) is a HARD STOP"
       },
       {
         "item": "Stain-overcoat conversion (solid or semi-transparent stain)",
@@ -69,50 +68,71 @@
       }
     ]
   },
-
   "configuration_dimensions": [
     {
       "dimension_id": "quality_tier",
       "description": "Quality tier controlling coat count, inspection scrutiny, interstage sanding, and defect tolerance.",
-      "values": ["QT2", "QT3", "QT4"],
+      "values": [
+        "QT2",
+        "QT3",
+        "QT4"
+      ],
       "default": "QT3",
-      "notes": "QT2=economy (single finish coat, minimal inspection, appropriate only for sound_paint or chalking with SC_SOUND/SC_SLIGHT). QT3=standard (2 finish coats, scan-level inspection). QT4=premium (2 finish coats, interstage sand, systematic inspection). QT5 excluded for siding field."
+      "notes": "QT2=economy (single finish coat, minimal inspection, appropriate only for sound_paint or chalking with GOOD). QT3=standard (2 finish coats, scan-level inspection). QT4=premium (2 finish coats, interstage sand, systematic inspection). QT5 excluded for siding field."
     },
     {
       "dimension_id": "substrate_state",
       "description": "Existing coating condition state. Primary configuration dimension for repaint — drives primer selection, prep task activation, and round configuration.",
-      "values": ["SS_EXT_SOUND_PAINT", "SS_EXT_CHALKING", "SS_EXT_FAILING_PAINT", "SS_EXT_PEELING", "SS_EXT_WEATHERED"],
+      "values": [
+        "SS_EXT_SOUND_PAINT",
+        "SS_EXT_CHALKING",
+        "SS_EXT_FAILING_PAINT",
+        "SS_EXT_PEELING",
+        "SS_EXT_WEATHERED"
+      ],
       "default": "SS_EXT_SOUND_PAINT",
       "notes": "5 repaint-specific states. SS_EXT_SOUND_PAINT = minimal prep. SS_EXT_CHALKING = chalk-binding primer mandatory. SS_EXT_FAILING_PAINT = DSD-driven scraping + spot or full prime. SS_EXT_PEELING = extensive scraping + full prime. SS_EXT_WEATHERED = fully bare wood, penetrating primer. Per-elevation if conditions differ."
     },
     {
       "dimension_id": "substrate_condition",
-      "description": "MPI Degree of Surface Degradation (DSD 0-4). Drives prep labor multiplier (FAC_WSRP_DSD). SC_SUBSTRATE_DAMAGE is a hard stop.",
-      "values": ["SC_SOUND", "SC_SLIGHT_DETERIORATION", "SC_MODERATE_DETERIORATION", "SC_SEVERE_DETERIORATION", "SC_SUBSTRATE_DAMAGE"],
-      "default": "SC_SLIGHT_DETERIORATION",
-      "notes": "DSD is the dominant cost driver for repaint prep. SC_SUBSTRATE_DAMAGE (DSD-4) = structural damage, HARD STOP — outside painting scope, refer to carpenter. Per-elevation."
+      "description": "Universal 3-level condition scale. Drives prep labor multiplier (FAC_WSRP_DSD). HARD_STOP = structural damage, outside painting scope.",
+      "values": [
+        "GOOD",
+        "FAIR",
+        "POOR",
+        "HARD_STOP"
+      ],
+      "default": "GOOD",
+      "notes": "Harmonized from DSD 0-4 to universal GOOD/FAIR/POOR scale. GOOD: sound paint, minimal prep (DSD 0-1). FAIR: moderate deterioration, targeted repair (DSD 2). POOR: severe deterioration, full remediation (DSD 3). HARD_STOP: substrate damage (DSD 4), refer to carpenter."
     },
     {
       "dimension_id": "siding_profile",
       "description": "Siding profile type. Drives production rate modifier (FAC_WSRP_SIDING_PROFILE) and material coverage adjustment.",
-      "values": ["lap_horizontal", "board_and_batten", "shingle"],
+      "values": [
+        "lap_horizontal",
+        "board_and_batten",
+        "shingle"
+      ],
       "default": "lap_horizontal",
       "modifiers": {
-        "lap_horizontal": 1.00,
-        "board_and_batten": 1.20,
-        "shingle": 1.50
+        "lap_horizontal": 1,
+        "board_and_batten": 1.2,
+        "shingle": 1.5
       },
       "notes": "Lap horizontal is baseline. Board-and-batten has ~20% more effective surface due to batten profiles. Shingle has ~50% more due to overlapping edges and complex geometry."
     },
     {
       "dimension_id": "application_method",
       "description": "Primary application technique for prime and finish coats.",
-      "values": ["spray_backbrush", "brush_roll", "brush"],
+      "values": [
+        "spray_backbrush",
+        "brush_roll",
+        "brush"
+      ],
       "default": "spray_backbrush",
       "notes": "Spray on wood siding ALWAYS requires backbrushing for fiber penetration — no spray-only option. spray_backbrush is primary for lap/board_and_batten (2-person crew). Brush_roll for smaller areas or occupied-adjacent. Brush only for shingle/shake and detail areas."
     }
   ],
-
   "paintable_items": [
     {
       "item_id": "ITM_SIDING_FIELD",
@@ -122,115 +142,466 @@
       "notes": "Primary and only paintable item. Reused from SF_WOOD_SIDING_EXT_NC_PAINT. Profile modifier adjusts effective surface area for production rates and coverage."
     }
   ],
-
   "variants": [
     {
       "variant_id": "VAR_SOUND_QT2_SPRAY_LAP",
-      "applies_when": { "quality_tier": ["QT2"], "substrate_state": ["SS_EXT_SOUND_PAINT"], "application_method": ["spray_backbrush"], "siding_profile": ["lap_horizontal"] },
-      "coats": { "prime": 0, "finish": 1 },
-      "protection_zones": ["ext_landscape_perimeter", "ext_landscape_full", "ext_hardscape_walk", "ext_light_fixture", "ext_hvac_unit", "ext_vehicle_driveway"],
+      "applies_when": {
+        "quality_tier": [
+          "QT2"
+        ],
+        "substrate_state": [
+          "SS_EXT_SOUND_PAINT"
+        ],
+        "application_method": [
+          "spray_backbrush"
+        ],
+        "siding_profile": [
+          "lap_horizontal"
+        ]
+      },
+      "coats": {
+        "prime": 0,
+        "finish": 1
+      },
+      "protection_zones": [
+        "ext_landscape_perimeter",
+        "ext_landscape_full",
+        "ext_hardscape_walk",
+        "ext_light_fixture",
+        "ext_hvac_unit",
+        "ext_vehicle_driveway"
+      ],
       "notes": "Minimum viable repaint. Sound surface, no primer needed. Single finish coat. Economy tier."
     },
     {
       "variant_id": "VAR_SOUND_QT3_SPRAY_LAP",
-      "applies_when": { "quality_tier": ["QT3"], "substrate_state": ["SS_EXT_SOUND_PAINT"], "application_method": ["spray_backbrush"], "siding_profile": ["lap_horizontal"] },
-      "coats": { "prime": 1, "finish": 2 },
-      "protection_zones": ["ext_landscape_perimeter", "ext_landscape_full", "ext_hardscape_walk", "ext_hardscape_patio", "ext_light_fixture", "ext_hvac_unit", "ext_vehicle_driveway"],
+      "applies_when": {
+        "quality_tier": [
+          "QT3"
+        ],
+        "substrate_state": [
+          "SS_EXT_SOUND_PAINT"
+        ],
+        "application_method": [
+          "spray_backbrush"
+        ],
+        "siding_profile": [
+          "lap_horizontal"
+        ]
+      },
+      "coats": {
+        "prime": 1,
+        "finish": 2
+      },
+      "protection_zones": [
+        "ext_landscape_perimeter",
+        "ext_landscape_full",
+        "ext_hardscape_walk",
+        "ext_hardscape_patio",
+        "ext_light_fixture",
+        "ext_hvac_unit",
+        "ext_vehicle_driveway"
+      ],
       "notes": "Standard repaint on sound surface. Spot prime bare areas + 2 finish coats."
     },
     {
       "variant_id": "VAR_SOUND_QT4_SPRAY_LAP",
-      "applies_when": { "quality_tier": ["QT4"], "substrate_state": ["SS_EXT_SOUND_PAINT"], "application_method": ["spray_backbrush"], "siding_profile": ["lap_horizontal"] },
-      "coats": { "prime": 1, "finish": 2 },
-      "protection_zones": ["ext_landscape_perimeter", "ext_landscape_full", "ext_hardscape_walk", "ext_hardscape_patio", "ext_light_fixture", "ext_hvac_unit", "ext_vehicle_driveway"],
+      "applies_when": {
+        "quality_tier": [
+          "QT4"
+        ],
+        "substrate_state": [
+          "SS_EXT_SOUND_PAINT"
+        ],
+        "application_method": [
+          "spray_backbrush"
+        ],
+        "siding_profile": [
+          "lap_horizontal"
+        ]
+      },
+      "coats": {
+        "prime": 1,
+        "finish": 2
+      },
+      "protection_zones": [
+        "ext_landscape_perimeter",
+        "ext_landscape_full",
+        "ext_hardscape_walk",
+        "ext_hardscape_patio",
+        "ext_light_fixture",
+        "ext_hvac_unit",
+        "ext_vehicle_driveway"
+      ],
       "notes": "Premium repaint on sound surface. Spot prime + 2 finish coats + interstage sand + systematic inspection."
     },
     {
       "variant_id": "VAR_CHALKING_QT3_SPRAY_LAP",
-      "applies_when": { "quality_tier": ["QT3"], "substrate_state": ["SS_EXT_CHALKING"], "application_method": ["spray_backbrush"], "siding_profile": ["lap_horizontal"] },
-      "coats": { "prime": 1, "finish": 2 },
-      "protection_zones": ["ext_landscape_perimeter", "ext_landscape_full", "ext_hardscape_walk", "ext_hardscape_patio", "ext_light_fixture", "ext_hvac_unit", "ext_vehicle_driveway"],
+      "applies_when": {
+        "quality_tier": [
+          "QT3"
+        ],
+        "substrate_state": [
+          "SS_EXT_CHALKING"
+        ],
+        "application_method": [
+          "spray_backbrush"
+        ],
+        "siding_profile": [
+          "lap_horizontal"
+        ]
+      },
+      "coats": {
+        "prime": 1,
+        "finish": 2
+      },
+      "protection_zones": [
+        "ext_landscape_perimeter",
+        "ext_landscape_full",
+        "ext_hardscape_walk",
+        "ext_hardscape_patio",
+        "ext_light_fixture",
+        "ext_hvac_unit",
+        "ext_vehicle_driveway"
+      ],
       "notes": "Standard repaint on chalking surface. Chalk-binding primer mandatory + 2 finish coats."
     },
     {
       "variant_id": "VAR_FAILING_QT3_SPRAY_LAP",
-      "applies_when": { "quality_tier": ["QT3"], "substrate_state": ["SS_EXT_FAILING_PAINT"], "application_method": ["spray_backbrush"], "siding_profile": ["lap_horizontal"] },
-      "coats": { "prime": 1, "finish": 2 },
-      "protection_zones": ["ext_landscape_perimeter", "ext_landscape_full", "ext_hardscape_walk", "ext_hardscape_patio", "ext_light_fixture", "ext_hvac_unit", "ext_vehicle_driveway"],
+      "applies_when": {
+        "quality_tier": [
+          "QT3"
+        ],
+        "substrate_state": [
+          "SS_EXT_FAILING_PAINT"
+        ],
+        "application_method": [
+          "spray_backbrush"
+        ],
+        "siding_profile": [
+          "lap_horizontal"
+        ]
+      },
+      "coats": {
+        "prime": 1,
+        "finish": 2
+      },
+      "protection_zones": [
+        "ext_landscape_perimeter",
+        "ext_landscape_full",
+        "ext_hardscape_walk",
+        "ext_hardscape_patio",
+        "ext_light_fixture",
+        "ext_hvac_unit",
+        "ext_vehicle_driveway"
+      ],
       "notes": "Standard repaint on failing paint. Spot or full prime depending on bare percentage. DSD modifier on prep tasks."
     },
     {
       "variant_id": "VAR_PEELING_QT3_SPRAY_LAP",
-      "applies_when": { "quality_tier": ["QT3"], "substrate_state": ["SS_EXT_PEELING"], "application_method": ["spray_backbrush"], "siding_profile": ["lap_horizontal"] },
-      "coats": { "prime": 1, "finish": 2 },
-      "protection_zones": ["ext_landscape_perimeter", "ext_landscape_full", "ext_hardscape_walk", "ext_hardscape_patio", "ext_light_fixture", "ext_hvac_unit", "ext_vehicle_driveway"],
+      "applies_when": {
+        "quality_tier": [
+          "QT3"
+        ],
+        "substrate_state": [
+          "SS_EXT_PEELING"
+        ],
+        "application_method": [
+          "spray_backbrush"
+        ],
+        "siding_profile": [
+          "lap_horizontal"
+        ]
+      },
+      "coats": {
+        "prime": 1,
+        "finish": 2
+      },
+      "protection_zones": [
+        "ext_landscape_perimeter",
+        "ext_landscape_full",
+        "ext_hardscape_walk",
+        "ext_hardscape_patio",
+        "ext_light_fixture",
+        "ext_hvac_unit",
+        "ext_vehicle_driveway"
+      ],
       "notes": "Standard repaint on peeling surface. Aggressive scraping + full prime (acrylic or alkyd by wood chemistry)."
     },
     {
       "variant_id": "VAR_WEATHERED_QT3_SPRAY_LAP",
-      "applies_when": { "quality_tier": ["QT3"], "substrate_state": ["SS_EXT_WEATHERED"], "application_method": ["spray_backbrush"], "siding_profile": ["lap_horizontal"] },
-      "coats": { "prime": 1, "finish": 2 },
-      "protection_zones": ["ext_landscape_perimeter", "ext_landscape_full", "ext_hardscape_walk", "ext_hardscape_patio", "ext_light_fixture", "ext_hvac_unit", "ext_vehicle_driveway"],
+      "applies_when": {
+        "quality_tier": [
+          "QT3"
+        ],
+        "substrate_state": [
+          "SS_EXT_WEATHERED"
+        ],
+        "application_method": [
+          "spray_backbrush"
+        ],
+        "siding_profile": [
+          "lap_horizontal"
+        ]
+      },
+      "coats": {
+        "prime": 1,
+        "finish": 2
+      },
+      "protection_zones": [
+        "ext_landscape_perimeter",
+        "ext_landscape_full",
+        "ext_hardscape_walk",
+        "ext_hardscape_patio",
+        "ext_light_fixture",
+        "ext_hvac_unit",
+        "ext_vehicle_driveway"
+      ],
       "notes": "Standard repaint on weathered bare wood. Sand + wood brightener + penetrating primer + 2 finish coats."
     },
     {
       "variant_id": "VAR_FAILING_QT3_BRUSH_ROLL_LAP",
-      "applies_when": { "quality_tier": ["QT3"], "substrate_state": ["SS_EXT_FAILING_PAINT"], "application_method": ["brush_roll"], "siding_profile": ["lap_horizontal"] },
-      "coats": { "prime": 1, "finish": 2 },
-      "protection_zones": ["ext_landscape_perimeter", "ext_hardscape_walk", "ext_light_fixture"],
+      "applies_when": {
+        "quality_tier": [
+          "QT3"
+        ],
+        "substrate_state": [
+          "SS_EXT_FAILING_PAINT"
+        ],
+        "application_method": [
+          "brush_roll"
+        ],
+        "siding_profile": [
+          "lap_horizontal"
+        ]
+      },
+      "coats": {
+        "prime": 1,
+        "finish": 2
+      },
+      "protection_zones": [
+        "ext_landscape_perimeter",
+        "ext_hardscape_walk",
+        "ext_light_fixture"
+      ],
       "notes": "Standard brush/roll repaint on failing paint. Reduced protection — no full landscape, patio, or vehicle cover."
     },
     {
       "variant_id": "VAR_SOUND_QT3_BRUSH_ROLL_LAP",
-      "applies_when": { "quality_tier": ["QT3"], "substrate_state": ["SS_EXT_SOUND_PAINT"], "application_method": ["brush_roll"], "siding_profile": ["lap_horizontal"] },
-      "coats": { "prime": 1, "finish": 2 },
-      "protection_zones": ["ext_landscape_perimeter", "ext_hardscape_walk", "ext_light_fixture"],
+      "applies_when": {
+        "quality_tier": [
+          "QT3"
+        ],
+        "substrate_state": [
+          "SS_EXT_SOUND_PAINT"
+        ],
+        "application_method": [
+          "brush_roll"
+        ],
+        "siding_profile": [
+          "lap_horizontal"
+        ]
+      },
+      "coats": {
+        "prime": 1,
+        "finish": 2
+      },
+      "protection_zones": [
+        "ext_landscape_perimeter",
+        "ext_hardscape_walk",
+        "ext_light_fixture"
+      ],
       "notes": "Standard brush/roll on sound surface. Spot prime + 2 finish coats. Minimal protection."
     },
     {
       "variant_id": "VAR_CHALKING_QT3_SPRAY_BOARD_BATTEN",
-      "applies_when": { "quality_tier": ["QT3"], "substrate_state": ["SS_EXT_CHALKING"], "application_method": ["spray_backbrush"], "siding_profile": ["board_and_batten"] },
-      "coats": { "prime": 1, "finish": 2 },
-      "protection_zones": ["ext_landscape_perimeter", "ext_landscape_full", "ext_hardscape_walk", "ext_hardscape_patio", "ext_light_fixture", "ext_hvac_unit", "ext_vehicle_driveway"],
+      "applies_when": {
+        "quality_tier": [
+          "QT3"
+        ],
+        "substrate_state": [
+          "SS_EXT_CHALKING"
+        ],
+        "application_method": [
+          "spray_backbrush"
+        ],
+        "siding_profile": [
+          "board_and_batten"
+        ]
+      },
+      "coats": {
+        "prime": 1,
+        "finish": 2
+      },
+      "protection_zones": [
+        "ext_landscape_perimeter",
+        "ext_landscape_full",
+        "ext_hardscape_walk",
+        "ext_hardscape_patio",
+        "ext_light_fixture",
+        "ext_hvac_unit",
+        "ext_vehicle_driveway"
+      ],
       "notes": "Standard spray on board-and-batten chalking surface. 1.20x profile modifier on all tasks."
     },
     {
       "variant_id": "VAR_PEELING_QT3_SPRAY_SHINGLE",
-      "applies_when": { "quality_tier": ["QT3"], "substrate_state": ["SS_EXT_PEELING"], "application_method": ["spray_backbrush"], "siding_profile": ["shingle"] },
-      "coats": { "prime": 1, "finish": 2 },
-      "protection_zones": ["ext_landscape_perimeter", "ext_landscape_full", "ext_hardscape_walk", "ext_hardscape_patio", "ext_light_fixture", "ext_hvac_unit", "ext_vehicle_driveway"],
+      "applies_when": {
+        "quality_tier": [
+          "QT3"
+        ],
+        "substrate_state": [
+          "SS_EXT_PEELING"
+        ],
+        "application_method": [
+          "spray_backbrush"
+        ],
+        "siding_profile": [
+          "shingle"
+        ]
+      },
+      "coats": {
+        "prime": 1,
+        "finish": 2
+      },
+      "protection_zones": [
+        "ext_landscape_perimeter",
+        "ext_landscape_full",
+        "ext_hardscape_walk",
+        "ext_hardscape_patio",
+        "ext_light_fixture",
+        "ext_hvac_unit",
+        "ext_vehicle_driveway"
+      ],
       "notes": "Standard spray on peeling shingle siding. 1.50x profile modifier. Most labor-intensive non-RRP variant."
     },
     {
       "variant_id": "VAR_FAILING_QT3_BRUSH_SHINGLE",
-      "applies_when": { "quality_tier": ["QT3"], "substrate_state": ["SS_EXT_FAILING_PAINT"], "application_method": ["brush"], "siding_profile": ["shingle"] },
-      "coats": { "prime": 1, "finish": 2 },
-      "protection_zones": ["ext_landscape_perimeter", "ext_hardscape_walk", "ext_light_fixture"],
+      "applies_when": {
+        "quality_tier": [
+          "QT3"
+        ],
+        "substrate_state": [
+          "SS_EXT_FAILING_PAINT"
+        ],
+        "application_method": [
+          "brush"
+        ],
+        "siding_profile": [
+          "shingle"
+        ]
+      },
+      "coats": {
+        "prime": 1,
+        "finish": 2
+      },
+      "protection_zones": [
+        "ext_landscape_perimeter",
+        "ext_hardscape_walk",
+        "ext_light_fixture"
+      ],
       "notes": "Standard brush-only on failing shingle. Most labor-intensive application method on complex profile."
     },
     {
       "variant_id": "VAR_SOUND_QT3_SPRAY_LAP_RRP",
-      "applies_when": { "quality_tier": ["QT3"], "substrate_state": ["SS_EXT_SOUND_PAINT"], "application_method": ["spray_backbrush"], "siding_profile": ["lap_horizontal"], "pre_1978": true, "rrp_required": true },
-      "coats": { "prime": 1, "finish": 2 },
-      "protection_zones": ["ext_landscape_perimeter", "ext_landscape_full", "ext_hardscape_walk", "ext_hardscape_patio", "ext_light_fixture", "ext_hvac_unit", "ext_vehicle_driveway", "ext_rrp_containment"],
+      "applies_when": {
+        "quality_tier": [
+          "QT3"
+        ],
+        "substrate_state": [
+          "SS_EXT_SOUND_PAINT"
+        ],
+        "application_method": [
+          "spray_backbrush"
+        ],
+        "siding_profile": [
+          "lap_horizontal"
+        ],
+        "pre_1978": true,
+        "rrp_required": true
+      },
+      "coats": {
+        "prime": 1,
+        "finish": 2
+      },
+      "protection_zones": [
+        "ext_landscape_perimeter",
+        "ext_landscape_full",
+        "ext_hardscape_walk",
+        "ext_hardscape_patio",
+        "ext_light_fixture",
+        "ext_hvac_unit",
+        "ext_vehicle_driveway",
+        "ext_rrp_containment"
+      ],
       "notes": "Standard repaint with RRP containment. Pre-1978 + lead-positive. Adds containment setup/teardown tasks and RRP modifier on all prep tasks."
     },
     {
       "variant_id": "VAR_PEELING_QT4_SPRAY_LAP_RRP",
-      "applies_when": { "quality_tier": ["QT4"], "substrate_state": ["SS_EXT_PEELING"], "application_method": ["spray_backbrush"], "siding_profile": ["lap_horizontal"], "pre_1978": true, "rrp_required": true },
-      "coats": { "prime": 1, "finish": 2 },
-      "protection_zones": ["ext_landscape_perimeter", "ext_landscape_full", "ext_hardscape_walk", "ext_hardscape_patio", "ext_light_fixture", "ext_hvac_unit", "ext_vehicle_driveway", "ext_rrp_containment"],
+      "applies_when": {
+        "quality_tier": [
+          "QT4"
+        ],
+        "substrate_state": [
+          "SS_EXT_PEELING"
+        ],
+        "application_method": [
+          "spray_backbrush"
+        ],
+        "siding_profile": [
+          "lap_horizontal"
+        ],
+        "pre_1978": true,
+        "rrp_required": true
+      },
+      "coats": {
+        "prime": 1,
+        "finish": 2
+      },
+      "protection_zones": [
+        "ext_landscape_perimeter",
+        "ext_landscape_full",
+        "ext_hardscape_walk",
+        "ext_hardscape_patio",
+        "ext_light_fixture",
+        "ext_hvac_unit",
+        "ext_vehicle_driveway",
+        "ext_rrp_containment"
+      ],
       "notes": "Premium repaint with RRP on peeling surface. Most expensive common variant. DSD + access + RRP stack on prep."
     },
     {
       "variant_id": "VAR_WEATHERED_QT4_SPRAY_LAP",
-      "applies_when": { "quality_tier": ["QT4"], "substrate_state": ["SS_EXT_WEATHERED"], "application_method": ["spray_backbrush"], "siding_profile": ["lap_horizontal"] },
-      "coats": { "prime": 1, "finish": 2 },
-      "protection_zones": ["ext_landscape_perimeter", "ext_landscape_full", "ext_hardscape_walk", "ext_hardscape_patio", "ext_light_fixture", "ext_hvac_unit", "ext_vehicle_driveway"],
+      "applies_when": {
+        "quality_tier": [
+          "QT4"
+        ],
+        "substrate_state": [
+          "SS_EXT_WEATHERED"
+        ],
+        "application_method": [
+          "spray_backbrush"
+        ],
+        "siding_profile": [
+          "lap_horizontal"
+        ]
+      },
+      "coats": {
+        "prime": 1,
+        "finish": 2
+      },
+      "protection_zones": [
+        "ext_landscape_perimeter",
+        "ext_landscape_full",
+        "ext_hardscape_walk",
+        "ext_hardscape_patio",
+        "ext_light_fixture",
+        "ext_hvac_unit",
+        "ext_vehicle_driveway"
+      ],
       "notes": "Premium repaint on weathered bare wood. Penetrating primer + premium finish. Interstage sand + systematic inspection."
     }
   ],
-
   "required_paintscope_inputs": [
     {
       "input_name": "IN_SF_SIDING_FIELD",
@@ -265,7 +636,7 @@
       "paintscope_key": "PS_EXT_META.ENUM.SUBSTRATE_CONDITION",
       "uom": "ENUM",
       "required": true,
-      "description": "MPI Degree of Surface Degradation (SC_SOUND through SC_SUBSTRATE_DAMAGE) — drives FAC_WSRP_DSD prep multiplier"
+      "description": "Condition scale (GOOD/FAIR/POOR/HARD_STOP) — drives FAC_WSRP_DSD prep multiplier"
     },
     {
       "input_name": "IN_ENUM_SIDING_PROFILE",
@@ -346,19 +717,26 @@
       "description": "Linear feet of caulk joints to assess and replace"
     }
   ],
-
   "protection_zones_required": [
     {
       "zone_id": "ext_landscape_perimeter",
       "condition": "when_adjacent",
       "protection_level": "edge_only",
-      "upgrade_when": { "application_method": ["spray_backbrush"] },
+      "upgrade_when": {
+        "application_method": [
+          "spray_backbrush"
+        ]
+      },
       "upgrade_level": "full_cover",
       "notes": "LF-based — measured along house perimeter where landscape is adjacent. Brush/roll: drop cloth at base. Spray: full tarp width over plantings."
     },
     {
       "zone_id": "ext_landscape_full",
-      "condition": { "application_method": ["spray_backbrush"] },
+      "condition": {
+        "application_method": [
+          "spray_backbrush"
+        ]
+      },
       "protection_level": "full_cover",
       "notes": "Extended overspray zone beyond perimeter. Spray only."
     },
@@ -366,7 +744,11 @@
       "zone_id": "ext_hardscape_walk",
       "condition": "when_adjacent",
       "protection_level": "light_mask",
-      "upgrade_when": { "application_method": ["spray_backbrush"] },
+      "upgrade_when": {
+        "application_method": [
+          "spray_backbrush"
+        ]
+      },
       "upgrade_level": "full_cover",
       "notes": "Walkways adjacent to siding. Canvas drop cloths for non-slip crew traffic."
     },
@@ -374,7 +756,11 @@
       "zone_id": "ext_hardscape_patio",
       "condition": "when_adjacent",
       "protection_level": "light_mask",
-      "upgrade_when": { "application_method": ["spray_backbrush"] },
+      "upgrade_when": {
+        "application_method": [
+          "spray_backbrush"
+        ]
+      },
       "upgrade_level": "full_cover",
       "notes": "Patio adjacent to siding. Protection level driven by proximity and application method."
     },
@@ -392,18 +778,24 @@
     },
     {
       "zone_id": "ext_vehicle_driveway",
-      "condition": { "application_method": ["spray_backbrush"] },
+      "condition": {
+        "application_method": [
+          "spray_backbrush"
+        ]
+      },
       "protection_level": "full_cover",
       "notes": "Repaint-specific — occupied home. Vehicles and driveway surface require overspray protection during spray application."
     },
     {
       "zone_id": "ext_rrp_containment",
-      "condition": { "pre_1978": true, "rrp_required": true },
+      "condition": {
+        "pre_1978": true,
+        "rrp_required": true
+      },
       "protection_level": "full_containment",
       "notes": "EPA RRP Rule (40 CFR 745). 6-mil poly ground containment extending 10 ft from structure. Required when disturbing lead paint on pre-1978 structures. Separate setup/teardown tasks."
     }
   ],
-
   "adjacency_declarations": {
     "primary_surface": "siding_field",
     "adjacent_surfaces": [
@@ -411,55 +803,58 @@
         "surface_id": "soffit_field",
         "edge_type": "linear",
         "typical_relationship": "different_finish",
-        "continuity_rate_modifier": 1.0,
+        "continuity_rate_modifier": 1,
         "notes": "Soffit at eave line. Different color typically. Separate scope."
       },
       {
         "surface_id": "ext_trim_frieze",
         "edge_type": "linear",
         "typical_relationship": "different_finish",
-        "continuity_rate_modifier": 1.0,
+        "continuity_rate_modifier": 1,
         "notes": "Frieze board at siding-to-soffit junction. Trim color. Separate scope."
       },
       {
         "surface_id": "ext_trim_corner",
         "edge_type": "linear",
         "typical_relationship": "different_finish",
-        "continuity_rate_modifier": 1.0,
+        "continuity_rate_modifier": 1,
         "notes": "Corner boards frame siding. Trim color. Siding terminates at corner."
       },
       {
         "surface_id": "ext_trim_window_casing",
         "edge_type": "linear",
         "typical_relationship": "different_finish",
-        "continuity_rate_modifier": 1.0,
+        "continuity_rate_modifier": 1,
         "notes": "Window casing. Siding terminates at casing. Window/door protection is window/door spec's responsibility."
       },
       {
         "surface_id": "ext_trim_door_casing",
         "edge_type": "linear",
         "typical_relationship": "different_finish",
-        "continuity_rate_modifier": 1.0,
+        "continuity_rate_modifier": 1,
         "notes": "Door casing. Same as window casing relationship."
       },
       {
         "surface_id": "foundation_wall",
         "edge_type": "linear",
         "typical_relationship": "not_in_scope",
-        "continuity_rate_modifier": 1.0,
+        "continuity_rate_modifier": 1,
         "notes": "Foundation below siding. Not painted in siding scope."
       }
     ]
   },
-
   "state_declarations": {
     "primary_surface": "siding_field",
-
     "valid_input_states": {
-      "states": ["SS_EXT_SOUND_PAINT", "SS_EXT_CHALKING", "SS_EXT_FAILING_PAINT", "SS_EXT_PEELING", "SS_EXT_WEATHERED"],
+      "states": [
+        "SS_EXT_SOUND_PAINT",
+        "SS_EXT_CHALKING",
+        "SS_EXT_FAILING_PAINT",
+        "SS_EXT_PEELING",
+        "SS_EXT_WEATHERED"
+      ],
       "notes": "5 repaint-specific exterior wood substrate states. SS_EXT_BARE_WOOD excluded (NC domain). Stain states (SS_EXT_STAINED_SOLID, SS_EXT_STAINED_SEMI) excluded per KD-014 — requires separate stain conversion spec."
     },
-
     "output_state": {
       "state": "SS_EXT_SOUND_PAINT",
       "varies_by": "sheen",
@@ -471,7 +866,6 @@
       "notes": "All repaint input states converge to painted output state. Sheen determines specific output state."
     }
   },
-
   "site_condition_rules": [
     {
       "condition_id": "access_type",
@@ -486,7 +880,7 @@
       "treatment": "prep_labor_multiplier",
       "vocabulary_ref": "Exterior_Weathering_Surface_Assessment_Doctrine.md DSD 0-4",
       "affected_tasks": "Prep tasks only (scrape, sand, chalk remediation, dust cleanup, caulk)",
-      "effect": "SC_SOUND=1.00, SC_SLIGHT=1.15, SC_MODERATE=1.40, SC_SEVERE=1.75. Applied as time multiplier: effective_rate = base_rate / modifier.",
+      "effect": "GOOD=1.00, FAIR=1.50, POOR=2.00. Applied as time multiplier: effective_rate = base_rate / modifier.",
       "notes": "DSD is the dominant cost driver for repaint prep. Does NOT apply to coating tasks (prime, finish). Stacking pool: PREP_ONLY."
     },
     {
@@ -498,18 +892,26 @@
       "notes": "Gate condition — not a continuous modifier. Pre-1978 + lead-positive triggers RRP. Doubles prep task duration due to wet scraping, HEPA vacuum, containment maintenance. Stacking pool: PREP_ONLY."
     }
   ],
-
   "stacking_partition": {
     "description": "Modifiers are split into two non-overlapping pools to prevent compound blowout. Prep and coating tasks never share all modifiers.",
     "prep_tasks": {
-      "modifiers": ["FAC_WSRP_DSD", "FAC_EXT_ACCESS", "FAC_WSRP_SIDING_PROFILE", "FAC_WSRP_RRP"],
+      "modifiers": [
+        "FAC_WSRP_DSD",
+        "FAC_EXT_ACCESS",
+        "FAC_WSRP_SIDING_PROFILE",
+        "FAC_WSRP_RRP"
+      ],
       "formula": "effective_rate = base_rate / (FAC_WSRP_DSD x FAC_EXT_ACCESS x FAC_WSRP_SIDING_PROFILE x FAC_WSRP_RRP)",
       "max_stack_no_rrp": "1.75 x 1.60 x 1.50 = 4.20x",
       "max_stack_with_rrp": "1.75 x 1.60 x 1.50 x 2.00 = 8.40x",
       "notes": "FAC_WSRP_QT does NOT apply to prep tasks. Prep labor is condition-driven, not quality-driven. 8.40x with RRP is expected for severe exterior repaint with lead."
     },
     "coating_tasks": {
-      "modifiers": ["FAC_WSRP_SIDING_PROFILE", "FAC_EXT_ACCESS", "FAC_WSRP_QT"],
+      "modifiers": [
+        "FAC_WSRP_SIDING_PROFILE",
+        "FAC_EXT_ACCESS",
+        "FAC_WSRP_QT"
+      ],
       "formula": "effective_rate = base_rate / (FAC_WSRP_SIDING_PROFILE x FAC_EXT_ACCESS x FAC_WSRP_QT)",
       "max_stack": "1.50 x 1.60 x 1.15 = 2.76x",
       "notes": "FAC_WSRP_DSD and FAC_WSRP_RRP do NOT apply to coating tasks. Once prepped, surface is at baseline. Max 2.76x — well within 4.0x cap."
@@ -520,27 +922,39 @@
       "notes": "Assessment, equipment setup, and equipment cleaning are fixed-time tasks. No modifiers applied."
     }
   },
-
   "maintenance_cycles": {
     "description": "Expected repaint intervals for exterior wood siding by quality tier, assuming proper prep and application.",
     "cycles": [
-      { "quality_tier": "QT2", "repaint_interval_years": "5-7", "with_routine_maintenance": "10-12", "notes": "Economy single-coat repaint. Acceptable for rental/turnover properties." },
-      { "quality_tier": "QT3", "repaint_interval_years": "8-10", "with_routine_maintenance": "13-15", "notes": "Standard 2-coat repaint. Most common residential scenario." },
-      { "quality_tier": "QT4", "repaint_interval_years": "10-12", "with_routine_maintenance": "15-17", "notes": "Premium 2-coat repaint with superior materials. Longest maintenance cycle." }
+      {
+        "quality_tier": "QT2",
+        "repaint_interval_years": "5-7",
+        "with_routine_maintenance": "10-12",
+        "notes": "Economy single-coat repaint. Acceptable for rental/turnover properties."
+      },
+      {
+        "quality_tier": "QT3",
+        "repaint_interval_years": "8-10",
+        "with_routine_maintenance": "13-15",
+        "notes": "Standard 2-coat repaint. Most common residential scenario."
+      },
+      {
+        "quality_tier": "QT4",
+        "repaint_interval_years": "10-12",
+        "with_routine_maintenance": "15-17",
+        "notes": "Premium 2-coat repaint with superior materials. Longest maintenance cycle."
+      }
     ],
     "routine_maintenance_definition": "Annual inspection, caulk repair, spot touch-up of minor damage. Adds ~5 years to repaint interval at all tiers."
   },
-
   "hard_stops": [
     {
-      "condition": "SC_SUBSTRATE_DAMAGE",
+      "condition": "HARD_STOP",
       "dsd_level": "DSD-4",
       "action": "STOP — outside painting scope",
       "description": "Soft, punky, or structurally compromised wood. Cannot be painted. Requires replacement by carpenter/contractor before painting scope can proceed.",
-      "notes": "Engine must prevent estimation when SC_SUBSTRATE_DAMAGE is selected. Entire elevation is rejected — not partial."
+      "notes": "Engine must prevent estimation when HARD_STOP is selected. Entire elevation is rejected — not partial. Legacy: HARD_STOP."
     }
   ],
-
   "sequencing_notes": {
     "production_sequence": "Setup → Assess → Prep → Prime → Finish 1 → Interstage → Finish 2 → Final Inspect → Cleanup",
     "edge_work": "No edge work in this spec. Siding terminates at trim boards — no cut-in or blending across specs.",
@@ -549,17 +963,18 @@
     "elevation_strategy": "Work one elevation at a time to minimize protection setup/teardown cycles. Follow shade for optimal conditions. Per-elevation DSD rating allows mixed-condition estimation.",
     "key_prohibitions": "NO spray-only on wood siding (backbrush required). NO painting over DSD-4 (hard stop). NO RRP shortcuts (EPA 40 CFR 745 compliance mandatory)."
   },
-
   "relationships": {
     "companion_spec": null,
-    "often_combined_with": ["Future SF_TRIM_EXT_RP", "Future SF_SOFFIT_EXT_RP"],
+    "often_combined_with": [
+      "Future SF_TRIM_EXT_RP",
+      "Future SF_SOFFIT_EXT_RP"
+    ],
     "sibling_spec": "SF_WOOD_SIDING_EXT_NC_PAINT_v1",
     "typical_before": [],
     "typical_after": [],
     "cross_spec_protection_note": "Window/door protection during siding work is owned by window/door specs, not this spec. If windows/doors are in scope, their specs handle glass/hardware masking.",
     "notes": "First repaint spec in the system. Shares ITM_SIDING_FIELD with NC sibling. Key departures from NC: substrate_condition dimension, DSD prep multiplier, RRP gate, condition assessment module, stacking partition, 5 primer paths (vs NC's 3), caulk replacement module."
   },
-
   "dependencies": {
     "research": "research.json",
     "resolution": "resolution.json",
@@ -567,7 +982,6 @@
     "materials": "materials.json",
     "production": "production.json"
   },
-
   "artifact_counts": {
     "sop_modules": 11,
     "total_tasks": 47,
@@ -586,19 +1000,86 @@
     "configuration_dimensions": 5,
     "hard_stops": 1
   },
-
   "doctrine_references": [
-    { "doctrine": "Exterior_Wood_Siding_Systems_Doctrine.md", "sections_used": ["Substrate types", "Surface prep by condition", "Primer/coating systems", "Production rates", "Failure modes", "Moisture management", "Siding profile classifications"] },
-    { "doctrine": "Exterior_Weathering_Surface_Assessment_Doctrine.md", "sections_used": ["DSD 0-4 classification", "ASTM D3359 adhesion test", "Substrate state assessment", "Moisture content thresholds"] },
-    { "doctrine": "Exterior_Primer_Systems_Doctrine.md", "sections_used": ["Spot primer", "Chalk-binding primer", "Acrylic stain-blocking primer", "Alkyd stain-blocking primer (tannin)", "Penetrating oil-alkyd primer (weathered)"] },
-    { "doctrine": "Exterior_Application_Methods_Doctrine.md", "sections_used": ["Spray/backbrush coupling rule", "Brush/roll rates", "Brush-only for shingle/shake", "2-person crew requirement"] },
-    { "doctrine": "Exterior_Protection_Doctrine_T3.md", "sections_used": ["Landscape zones (LF-based)", "Hardscape zones", "Fixture zones", "Vehicle/driveway protection", "RRP containment requirements"] },
-    { "doctrine": "Exterior_Access_Staging_Systems_Doctrine.md", "sections_used": ["FAC_EXT_ACCESS height modifier", "Ground/ladder/scaffold/lift values"] },
-    { "doctrine": "Exterior_Caulking_Sealants_Doctrine.md", "sections_used": ["Joint assessment", "Caulk removal and replacement", "Siding-to-trim joint spec"] },
-    { "doctrine": "Exterior_Climate_Environmental_Conditions_Doctrine.md", "sections_used": ["NOT used as estimation modifiers (RC-003 from PaintFactor OS)"] },
-    { "doctrine": "Exterior_Color_Sheen_Configuration_Doctrine.md", "sections_used": ["Exterior sheen options (flat/satin/semi-gloss)", "Output state mapping"] }
+    {
+      "doctrine": "Exterior_Wood_Siding_Systems_Doctrine.md",
+      "sections_used": [
+        "Substrate types",
+        "Surface prep by condition",
+        "Primer/coating systems",
+        "Production rates",
+        "Failure modes",
+        "Moisture management",
+        "Siding profile classifications"
+      ]
+    },
+    {
+      "doctrine": "Exterior_Weathering_Surface_Assessment_Doctrine.md",
+      "sections_used": [
+        "DSD 0-4 classification",
+        "ASTM D3359 adhesion test",
+        "Substrate state assessment",
+        "Moisture content thresholds"
+      ]
+    },
+    {
+      "doctrine": "Exterior_Primer_Systems_Doctrine.md",
+      "sections_used": [
+        "Spot primer",
+        "Chalk-binding primer",
+        "Acrylic stain-blocking primer",
+        "Alkyd stain-blocking primer (tannin)",
+        "Penetrating oil-alkyd primer (weathered)"
+      ]
+    },
+    {
+      "doctrine": "Exterior_Application_Methods_Doctrine.md",
+      "sections_used": [
+        "Spray/backbrush coupling rule",
+        "Brush/roll rates",
+        "Brush-only for shingle/shake",
+        "2-person crew requirement"
+      ]
+    },
+    {
+      "doctrine": "Exterior_Protection_Doctrine_T3.md",
+      "sections_used": [
+        "Landscape zones (LF-based)",
+        "Hardscape zones",
+        "Fixture zones",
+        "Vehicle/driveway protection",
+        "RRP containment requirements"
+      ]
+    },
+    {
+      "doctrine": "Exterior_Access_Staging_Systems_Doctrine.md",
+      "sections_used": [
+        "FAC_EXT_ACCESS height modifier",
+        "Ground/ladder/scaffold/lift values"
+      ]
+    },
+    {
+      "doctrine": "Exterior_Caulking_Sealants_Doctrine.md",
+      "sections_used": [
+        "Joint assessment",
+        "Caulk removal and replacement",
+        "Siding-to-trim joint spec"
+      ]
+    },
+    {
+      "doctrine": "Exterior_Climate_Environmental_Conditions_Doctrine.md",
+      "sections_used": [
+        "NOT used as estimation modifiers (RC-003 from PaintFactor OS)"
+      ]
+    },
+    {
+      "doctrine": "Exterior_Color_Sheen_Configuration_Doctrine.md",
+      "sections_used": [
+        "Exterior sheen options (flat/satin/semi-gloss)",
+        "Output state mapping"
+      ]
+    }
   ],
-
   "research_corrections": [
     {
       "correction_id": "RC-001",
@@ -613,7 +1094,6 @@
       "source": "Research KD-014"
     }
   ],
-
   "change_log": [
     {
       "version": "0.1.0",

@@ -1,0 +1,152 @@
+{
+  "spec_family_id": "SF_STAIR_INT_RP",
+  "version": "1.0.0",
+  "generated_by": "QA Critic Agent",
+  "generated_at": "2026-03-14",
+  "overall_result": "pass_with_warnings",
+
+  "validation_summary": {
+    "total_checks": 14,
+    "passed": 13,
+    "warnings": 1,
+    "majors_found": 1,
+    "majors_fixed": 1,
+    "criticals_found": 0,
+    "criticals_fixed": 0
+  },
+
+  "findings": [
+    {
+      "finding_id": "QA-001",
+      "rule": "RULE 1 — Cross-file task threading",
+      "severity": "pass",
+      "description": "Every TSK_ in sop_modules.json has a matching rate in production.json, and vice versa. Zero orphans in either direction.",
+      "details": "69 tasks in SOP, 69 tasks in production. Perfect 1:1 mapping confirmed."
+    },
+    {
+      "finding_id": "QA-002",
+      "rule": "RULE 8 — UOM matching between sop_modules and production",
+      "severity": "pass",
+      "description": "All 69 tasks have identical unit_of_measure in both sop_modules.json and production.json.",
+      "details": "Dual UOM system (EA for risers/balusters/newels, LF for stringers/handrails/base rails, FIXED for system-level tasks, SF for floor protection) is consistent across files."
+    },
+    {
+      "finding_id": "QA-003",
+      "rule": "RULE 8 — task_classification matching",
+      "severity": "pass",
+      "description": "All 69 tasks have identical task_classification (binary or qt_scaled) in both sop_modules.json and production.json.",
+      "details": "No task_class convention violations found."
+    },
+    {
+      "finding_id": "QA-004",
+      "rule": "Rate sanity — no rate exceeds 2000 SF/hr or equivalent",
+      "severity": "pass",
+      "description": "Maximum rate is 350 LF/hr (TSK_STRP_SPRAY_FINISH_STRINGER). No rates exceed the 2000 threshold.",
+      "details": "All rates are within expected ranges. Spray rates are higher than brush rates as expected. FIXED time tasks range from 3 to 90 minutes."
+    },
+    {
+      "finding_id": "QA-005",
+      "rule": "Assessment tasks use FIXED time",
+      "severity": "pass",
+      "description": "All 4 assessment tasks (TSK_STRP_ASSESS_CONDITION, TSK_STRP_ASSESS_ADHESION, TSK_STRP_ASSESS_COATING_ID, TSK_STRP_ASSESS_ANTISLIP) use FIXED unit_of_measure with appropriate fixed_time_minutes or fixed_time_minutes_by_tier.",
+      "details": "TSK_STRP_ASSESS_CONDITION is qt_scaled with FIXED UOM (8/12/18 min by tier). Other 3 are binary FIXED."
+    },
+    {
+      "finding_id": "QA-006",
+      "rule": "QT modifiers are GLOBAL (1.0/1.3/1.5)",
+      "severity": "pass",
+      "description": "quality_tier_effects.values confirms QT3=1.0, QT4=1.3, QT5=1.5 — standard global values with no surface-specific overrides.",
+      "details": "Stairs use global QT modifiers per Stairway_Systems_Doctrine Section 10.1."
+    },
+    {
+      "finding_id": "QA-007",
+      "rule": "Baluster profile modifier applied correctly",
+      "severity": "pass",
+      "description": "FAC_BALUSTER_PROFILE (square=1.0x, turned=1.75x) is correctly applied to baluster-specific tasks only: TSK_STRP_DEGLOSS_BALUSTER, TSK_STRP_SCRAPE_FEATHER_RAILING, TSK_STRP_PRIME_BALUSTER, TSK_STRP_BRUSH_FINISH_BALUSTER. Not applied to TSK_STRP_SPRAY_FINISH_BALUSTER — correct, because spray rates are profile-independent (rate_basis_notes confirms: 'All profiles spray at similar rates').",
+      "details": "Modifier correctly absent from newel, handrail, base rail, riser, and stringer tasks."
+    },
+    {
+      "finding_id": "QA-008",
+      "rule": "Convention checks",
+      "severity": "pass",
+      "description": "All convention rules verified: task_classification (not task_class), CON_ prefix (not CONS_), severity values (critical/major/minor), phase values (setup/prep/prime/interstage/finish/cleanup), units uppercase (EA, LF, SF, FIXED), skill_level (helper/journeyman/lead).",
+      "details": "No convention violations found in sop_modules.json or production.json."
+    },
+    {
+      "finding_id": "QA-009",
+      "rule": "RULE 6 — Zone IDs match between research and sop_modules",
+      "severity": "pass",
+      "description": "5 protection zones in research.json protection_zones_analysis match 5 zones in sop_modules.json protection_metadata: stair_tread_covers, floor_perimeter, wall_adjacent, spray_containment, carpet_runner_protection.",
+      "details": "Each zone has matching setup_task and teardown_task. stair_tread_covers also has maintenance_task (TSK_STRP_TREAD_PROTECT_VERIFY)."
+    },
+    {
+      "finding_id": "QA-010",
+      "rule": "RULE 11 — Only enum values from resolution.json applicable_enums",
+      "severity": "pass",
+      "description": "All enum values used in sop_modules.json and production.json are within the applicable_enums defined in resolution.json.",
+      "details": "quality_tier: QT3/QT4/QT5 (valid). application_method: brush/spray (valid). sheen: satin/semi-gloss/gloss (valid). phase: setup/prep/prime/interstage/finish/cleanup (valid). task_classification: binary/qt_scaled (valid). skill_level: helper/journeyman/lead (valid). unit_of_measure: EA/LF/SF/FIXED (valid). substrate_state: all SS_INT_* values (valid). condition_scale: GOOD/FAIR/POOR (valid)."
+    },
+    {
+      "finding_id": "QA-011",
+      "rule": "Canonical painting sequence",
+      "severity": "pass",
+      "description": "Canonical painting sequence (stringers -> risers -> balusters -> newels -> handrails -> base rails) is correctly enforced in MOD_STRP_PREP (degloss tasks), MOD_STRP_PRIME (prime tasks), and MOD_STRP_FINISH (brush and spray finish tasks).",
+      "details": "Sequence enforcement is documented in canonical_sequence_enforcement block and sequence_notes for each affected module."
+    },
+    {
+      "finding_id": "QA-012",
+      "rule": "Tread protection is first setup task",
+      "severity": "pass",
+      "description": "TSK_STRP_TREAD_PROTECT is the first task in MOD_STRP_SETUP, marked as mandatory at all tiers with condition 'always'. Task description explicitly states 'FIRST task — before any other work'.",
+      "details": "Tread protection removal (TSK_STRP_REMOVE_TREAD_PROTECT) is correctly the last teardown task in cleanup."
+    },
+    {
+      "finding_id": "QA-013",
+      "rule": "State-driven primer (not substrate-driven)",
+      "severity": "pass",
+      "description": "MOD_STRP_PRIME correctly uses state-driven primer selection with substrate_state_rules. All prime tasks apply when SS_INT_FAILING_PAINT/PEELING/MOISTURE_DAMAGE/SMOKE_DAMAGE and skip when SS_INT_SOUND_PAINT.",
+      "details": "7 material systems confirmed: 3 state-driven primers (adhesion, stain-block, mildew-resistant), 3 QT-driven finish (standard acrylic, modified urethane, premium), 1 optional poly topcoat."
+    },
+    {
+      "finding_id": "QA-014",
+      "rule": "Task count summary accuracy",
+      "severity": "major",
+      "status": "FIXED",
+      "description": "task_count_summary.total in sop_modules.json was 68 but actual task count is 69 (7+4+5+14+8+7+12+12 = 69). Off by 1.",
+      "fix_applied": "Corrected total from 68 to 69 and total_excluding_shared_rrp from 63 to 64 in sop_modules.json. Updated corresponding note in production.json estimation_notes.task_count_verification.",
+      "files_modified": ["sop_modules.json", "production.json"]
+    }
+  ],
+
+  "stair_specific_checks": {
+    "canonical_sequence": "PASS — stringers -> risers -> balusters -> newels -> handrails -> base rails enforced in prep, prime, and finish modules",
+    "tread_protection_first": "PASS — TSK_STRP_TREAD_PROTECT is first setup task, mandatory at all tiers",
+    "state_driven_primer": "PASS — all prime tasks use substrate_state_rules with SS_INT_* states, not substrate-driven NC patterns",
+    "condition_modifiers_prep_only": "PASS — FAC_CONDITION_SCALE appears only in prep-phase tasks (degloss, scrape/feather, caulk assess, spot prime, dust clean). Never in finish-phase tasks.",
+    "baluster_profile_modifier": "PASS — FAC_BALUSTER_PROFILE applied to baluster-specific tasks only (degloss, scrape/feather railing, prime, brush finish). Correctly absent from spray finish (profile-independent).",
+    "stringer_type_modifier": "PASS — FAC_STRINGER_TYPE applied to stringer-specific tasks only (degloss, scrape/feather riser/stringer, prime, brush/spray finish stringer).",
+    "stairwell_access_modifier": "PASS — FAC_STAIRWELL_ACCESS applied to stringer tasks only. Other components accessed from adjacent treads (H1_STANDARD)."
+  },
+
+  "completeness_summary": {
+    "all_tasks_in_both_files": true,
+    "all_material_systems_present": true,
+    "all_protection_zones_present": true,
+    "all_round_configurations_present": true,
+    "round_configs_count": 4,
+    "round_configs": ["ROUND_STRP_PRIME_2FINISH", "ROUND_STRP_2FINISH", "ROUND_STRP_PRIME_3FINISH", "ROUND_STRP_3FINISH"],
+    "material_systems_count": 7,
+    "protection_zones_count": 5,
+    "paintable_items_count": 6,
+    "total_tasks": 69,
+    "binary_tasks": 44,
+    "qt_scaled_tasks": 25
+  },
+
+  "modifier_stacking_review": {
+    "prep_pool_max_realistic": "POOR(2.00) x turned_baluster(1.75) = 3.50x for baluster prep; POOR(2.00) x open_stringer(1.40) x step_ladder(1.30) = 3.64x for stringer prep",
+    "coating_pool_max_realistic": "QT5(1.50) x turned_baluster(1.75) = 2.63x for baluster coating; QT5(1.50) x open_stringer(1.40) x step_ladder(1.30) = 2.73x for stringer coating",
+    "worst_case_stacking": "POOR(2.00) x open_stringer(1.40) x scaffolding(2.00) = 5.60x — extremely rare, flagged for estimator review",
+    "verdict": "PASS — all realistic scenarios under 4.0x flag threshold. Extreme cases documented."
+  }
+}

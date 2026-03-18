@@ -1,0 +1,955 @@
+{
+  "research_metadata": {
+    "spec_family_id": "SF_DOOR_INT_RP",
+    "spec_family_version": "v1",
+    "domain": "interior",
+    "scope_type": "repaint",
+    "research_mode": "doctrine_driven",
+    "doctrine_loaded": [
+      "docs/System/PaintFactor_OS.md",
+      "docs/System/Conventions.md",
+      "docs/Doctrine/Quality_Tiers_and_Surface_Condition.md",
+      "docs/Doctrine/Fine_Finish_Doctrine.md",
+      "docs/Doctrine/Doors_Doctrine.md",
+      "docs/Doctrine/Protection_and_Masking_Doctrine.md",
+      "docs/Doctrine/Spec_Completeness_Doctrine.md",
+      "docs/Doctrine/Estimation_Modifiers_Doctrine.md",
+      "docs/Doctrine/Modifier_Registry.md",
+      "docs/Doctrine/Interior_Protection_Doctrine.md",
+      "docs/Reference/Protection_Zones_Reference.md",
+      "docs/Reference/Surface_Vocabulary_Reference.md",
+      "docs/Reference/Site_Condition_Vocabulary_Reference.md",
+      "docs/Reference/Substrate_State_Reference.md",
+      "docs/PaintScope/PaintScope_Quantity_Key_Catalog.md",
+      "docs/PaintScope/Spec_Input_to_PaintScope_Key_Mapping.md",
+      "devos/Interior_RP_Gap_Analysis.md"
+    ],
+    "sibling_specs_reviewed": [
+      "specs/SF_DOOR_FRAME_NC_FINISH_v1/production.json",
+      "specs/SF_DOOR_SLAB_INT_NC_v1/production.json",
+      "specs/SF_DOOR_EXT_RP_v1/production.json",
+      "specs/SF_TRIM_INT_RP_v1/research.json",
+      "specs/SF_DRYWALL_WALL_INT_RP_v1/research.json"
+    ],
+    "researcher": "Spec Researcher Agent",
+    "date": "2026-03-13",
+    "status": "draft",
+    "review_required": true,
+    "context_prefix": "DIRP"
+  },
+
+  "spec_family_id": "SF_DOOR_INT_RP",
+  "version": "1.0.0",
+
+  "context_prefix_rationale": "DRRP_ is already used by SF_DOOR_EXT_RP_v1 (51 tasks: TSK_DRRP_ASSESS_CONDITION through TSK_DRRP_FINAL_WALKTHROUGH). Many interior door RP tasks would share identical suffixes (ASSESS_CONDITION, ASSESS_ADHESION, HARDWARE_REMOVE, etc.), causing direct ID collisions. Using DIRP_ (Door Interior RePaint) eliminates all collisions. Verified: zero TSK_DIRP_* IDs exist in the codebase.",
+
+  "scope_summary": "Combined prime + finish repaint spec for previously painted interior door systems (frame + slab) in residential homes. Covers both door frames (EA) and door slabs (EA_SIDE) in a single spec, unlike NC which separates them into SF_DOOR_FRAME_NC_FINISH_v1 and SF_DOOR_SLAB_INT_NC_v1. Includes condition assessment, coating identification (latex vs oil), RP-specific prep (degloss, TSP wash, scrape/feather for failing paint), state-driven primer selection (adhesion, stain-block, mildew-resistant), finish coat application with fine-finish interstage protocol, and hardware handling (remove/mask/reinstall). Does NOT cover bare/new doors (NC specs), exterior doors (SF_DOOR_EXT_RP_v1), door casing/trim (covered by SF_TRIM_INT_RP_v1), sidelites/transoms (covered by SF_WINDOW_INT_RP), or structural door repair. Doors are fine-finish surfaces at QT4+ per Fine_Finish_Doctrine and Doors_Doctrine.",
+
+  "relevant_findings": [
+    {
+      "finding_id": "RF-001",
+      "topic": "Combined frame + slab architecture for RP",
+      "finding": "NC separates door frames (SF_DOOR_FRAME_NC_FINISH_v1, 25 tasks, EA) and door slabs (SF_DOOR_SLAB_INT_NC_v1, 25 tasks, EA_SIDE) into separate specs because NC workflow is often phased: frames installed and painted before doors hung. In RP, both frame and slab are already installed and painted — the painter assesses and works on both simultaneously. Combining into one spec eliminates duplicate protection, assessment, and cleanup tasks. The combined spec uses two paintable items: ITM_DOOR_FRAME (EA, per frame set) and ITM_DOOR_SLAB (EA_SIDE, per door side). This mirrors the exterior RP pattern (SF_DOOR_EXT_RP_v1 combines frame + slab + threshold).",
+      "source": "Interior_RP_Gap_Analysis.md Section C; SF_DOOR_EXT_RP_v1/production.json",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-002",
+      "topic": "Interior door RP is condition-driven, not substrate-driven",
+      "finding": "NC door primer selection is substrate-driven: bare wood gets stain-blocking primer, bare MDF gets shellac edge sealer, factory-primed gets optional field prime. RP primer selection is state-driven: sound paint requires no primer or adhesion promoter only; failing paint requires adhesion primer; peeling requires full adhesion prime after scrape; moisture damage requires biocide + stain-block; smoke damage requires shellac stain blocker. Two NC tasks are NOT_APPLICABLE in RP: TSK_DOOR_FILL_FASTENERS (bare wood only — fasteners filled in NC), TSK_DOOR_MDF_EDGE_SEAL (bare MDF only — sealed in NC). TSK_FRAME_FILL_STOP_HOLES is MODIFIED (RP: fill only if changing hardware or new damage, not routinely).",
+      "source": "Interior_RP_Gap_Analysis.md Section B (SF_DOOR_SLAB_INT_NC classification); Substrate_State_Reference.md",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-003",
+      "topic": "Five interior RP substrate states drive door prep pathways",
+      "finding": "Interior RP defines 5 substrate states applicable to doors: SS_INT_SOUND_PAINT (severity 0: degloss/scuff, no primer needed, most common state), SS_INT_FAILING_PAINT (severity 1: localized cracking/adhesion failure, scrape/feather/adhesion prime), SS_INT_PEELING (severity 2: active delamination, full scrape/sand/adhesion prime — often latex-over-oil failure), SS_INT_MOISTURE_DAMAGE (severity 3: water staining/mildew especially on bathroom door bottoms, biocide + stain-block), SS_INT_SMOKE_DAMAGE (severity 4: nicotine/soot staining, shellac BIN full-surface seal). These map to condition scale: GOOD = sound paint, FAIR = failing, POOR = peeling/moisture/smoke. Door frames and slabs may have different substrate states — bathroom door bottom frame commonly has moisture damage while upper portions are sound.",
+      "source": "Interior_RP_Gap_Analysis.md Section A; controlled_enums.json substrate_state",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-004",
+      "topic": "Condition assessment is mandatory before interior door RP work",
+      "finding": "Repaint doors require assessment before prep or coating. Assessment tasks include: (1) visual condition inspection — scan frame and slab surfaces for cracking, peeling, adhesion failure, moisture damage, contamination; photograph defects; assign substrate state per component. (2) Adhesion test — ASTM D3359 cross-hatch tape test on representative sections; critical for doors because high-touch surface with mechanical stress at hinges and latches. (3) Coating identification — solvent test to determine latex vs oil; doors historically received oil-based paint (alkyd enamel) more frequently than walls; latex over oil without proper primer is a common failure mode on doors. (4) Moisture check — moisture meter on frame bottoms (especially bathroom/kitchen doors) where splash/condensation collects; elevated MC indicates active moisture source requiring resolution before painting. Exterior door RP has 6 assessment tasks; interior needs 4 (no rust assessment, no lead assessment as separate task — lead is handled via site condition).",
+      "source": "Doors_Doctrine.md Section 3.2; SF_DOOR_EXT_RP_v1/production.json TSK_DRRP_ASSESS_*; Interior_RP_Gap_Analysis.md Section D",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-005",
+      "topic": "Doors are fine-finish surfaces — QT3 minimum, interstage protocol required",
+      "finding": "Per Doors_Doctrine Section 6, door slabs are scrutinized surfaces: occupants view daily at close range, touch frequently, and functional issues (blocking/sticking) result from insufficient prep. QT2 is NOT offered for door slabs. QT3 is minimum tier. Quality tier labor factors from Doors_Doctrine Section 6.1: QT3 = 1.0x (baseline), QT4 = 1.4x, QT5 = 1.8x. Note: door slab QT modifiers (1.4x/1.8x) are HIGHER than the global modifiers (1.3x/1.5x) because doors require more meticulous finish quality. Fine finish interstage protocol applies at all tiers: inspect coat, light sand between coats (QT3 spot sand 220, QT4 full sand 220, QT5 thorough 320), patch/repair defects, clean dust. Interstage is universal — scrutiny varies by tier.",
+      "source": "Doors_Doctrine.md Section 6, Section 6.1; Fine_Finish_Doctrine.md; SF_DOOR_SLAB_INT_NC_v1/production.json quality_tier_effects",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-006",
+      "topic": "Door type complexity modifiers transfer from NC unchanged",
+      "finding": "Door slab type drives complexity modifiers: flush/slab = 1.0x baseline, panel_4 = 1.25x, panel_6 = 1.35x (most common residential), raised_panel = 1.4x, french = 2.0x (glass masking dominant), bifold = 0.7x, louvered = 2.5x (spray-only practical). These modifiers affect both prep and coating tasks identically in NC and RP. Frame type modifiers also transfer: standard = 1.0x, pocket = 0.85x, cased_opening = 0.75x, bifold = 0.90x. In RP, complexity modifiers also affect assessment and degloss tasks (panel doors take longer to assess and degloss due to detail areas).",
+      "source": "Doors_Doctrine.md Section 1.1; SF_DOOR_SLAB_INT_NC_v1/production.json door_type_complexity; SF_DOOR_FRAME_NC_FINISH_v1/production.json frame_type_complexity",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-007",
+      "topic": "Hardware handling is identical between NC and RP for doors",
+      "finding": "Hardware handling tasks transfer DIRECT from NC to RP. For spray: remove lockset + hinges, bag and label (~20 min/door), reinstall after cure (~15 min/door). For brush: mask hinges (~5 min/hinge x 3 = 15 min) + mask lockset (~5 min), unmask after completion (~5 min/door). RP-specific consideration: existing hardware may be painted over from previous coats, requiring careful scoring of paint film before removal to avoid chipping adjacent paint. This is absorbed into the hardware removal rate (slightly slower for RP than NC) but does not warrant a separate task.",
+      "source": "Doors_Doctrine.md Section 10; SF_DOOR_SLAB_INT_NC_v1/production.json TSK_DOOR_HARDWARE_REMOVE/MASK/REINSTALL/UNMASK",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-008",
+      "topic": "Degloss is an RP-specific prep step not present in NC",
+      "finding": "Previously painted doors typically have semi-gloss or satin finish — high-sheen surfaces that resist adhesion of new coatings. Deglossing is required for most RP door work. Two methods: (1) chemical degloss — liquid deglosser applied with rag/pad, no sanding dust, faster but chemical dependent; (2) mechanical degloss — scuff sand with 150-180 grit, creates profile for adhesion, generates dust requiring cleanup. Method choice is contractor preference, not quality-tier driven. Frame degloss is simpler than slab degloss due to less surface area. Per Substrate_State_Reference: SS_PAINTED_SATIN requires optional degloss; SS_PAINTED_SEMIGLOSS and higher require degloss; SS_PAINTED_FLAT/EGGSHELL need light scuff only. Interior RP maps: SS_INT_SOUND_PAINT encompasses all existing sheen levels — degloss task is included but rate varies by existing sheen.",
+      "source": "Substrate_State_Reference.md Section 3.3 task implications; Doors_Doctrine.md Section 3.2",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-009",
+      "topic": "Scrape and feather is condition-gated for failing/peeling states",
+      "finding": "When doors are in SS_INT_FAILING_PAINT or SS_INT_PEELING state, loose and failing paint must be scraped to sound substrate and edges feathered smooth. This is a labor-intensive task on panel doors due to detail areas where paint builds up and cracks in panel-to-rail joints. Rate per EA_SIDE varies significantly by condition: failing paint (localized, 15-20% of surface) = moderate; peeling (widespread, 30-50%+) = heavy. Scrape/feather is NOT needed for SS_INT_SOUND_PAINT. This task does not exist in NC (new substrate has no existing paint to scrape). Exterior door RP has TSK_DRRP_SCRAPE_FEATHER at 2.5 EA/hr; interior should be similar rate but on EA_SIDE basis.",
+      "source": "Interior_RP_Gap_Analysis.md Section D; SF_DOOR_EXT_RP_v1/production.json TSK_DRRP_SCRAPE_FEATHER",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-010",
+      "topic": "TSP wash is standard RP prep for door contamination removal",
+      "finding": "Doors accumulate hand oils, cleaning chemical residue, and dust that interfere with coating adhesion. TSP (trisodium phosphate) wash is the standard decontamination method per Doors_Doctrine Section 3.3: (1) wash with TSP solution or specialized degreaser, (2) rinse with clean water, (3) allow complete drying. TSP residue interferes with acrylic curing if not fully rinsed. This is a binary task (done or not done) that applies to all RP door work regardless of substrate state. Rate is per EA_SIDE for slabs and per EA for frames. Bathroom and kitchen doors may require enhanced cleaning due to grease/moisture exposure.",
+      "source": "Doors_Doctrine.md Section 3.2, 3.3; SF_TRIM_INT_RP_v1/research.json RF-010",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-011",
+      "topic": "State-driven primer variants replace substrate-driven NC primers",
+      "finding": "NC door primers are substrate-driven: bare wood -> standard stain-blocking primer; MDF edges -> shellac sealer; factory-primed -> optional field prime. RP door primers are state-driven: (1) SYS_PRIMER_ADHESION — for SS_INT_SOUND_PAINT when existing coating is alkyd or unknown, provides bonding bridge; (2) SYS_PRIMER_STAIN_BLOCK — for SS_INT_MOISTURE_DAMAGE and SS_INT_SMOKE_DAMAGE, blocks stain bleed-through; shellac-based (BIN) for smoke, acrylic for water stains; (3) SYS_PRIMER_MILDEW_RESISTANT — for SS_INT_MOISTURE_DAMAGE with active mildew history, contains biocide; (4) No primer — for SS_INT_SOUND_PAINT with good adhesion test results and compatible coating (latex over latex). Each primer variant needs brush and spray application method tasks.",
+      "source": "Substrate_State_Reference.md Section 7.3; Interior_RP_Gap_Analysis.md Section C",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-012",
+      "topic": "Latex over oil is the dominant failure mode on interior doors",
+      "finding": "Interior doors historically received oil-based (alkyd) enamel due to its superior hardness and leveling — even after latex became dominant for walls. Many homes built before 2010 have oil-based paint on doors. When repainted with latex without proper adhesion primer, the latex film delaminates because it cannot bond to the hard, glossy alkyd surface. This is the single most common adhesion failure on interior doors. Coating identification (latex vs oil via solvent test) is therefore a critical assessment task that drives primer selection. If existing coating is alkyd: adhesion primer is REQUIRED. If existing coating is latex: adhesion primer is optional based on adhesion test results.",
+      "source": "Doors_Doctrine.md Section 3.2; Substrate_State_Reference.md Section 3.3 (SS_PAINTED_ALKYD)",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-013",
+      "topic": "Moisture damage on frame bottoms is interior-door-specific",
+      "finding": "Bathroom and kitchen door frame bottoms are prone to moisture damage from splash, condensation, and mopping. Water wicks up the end grain of wood jambs, causing swelling, paint bubbling, and mildew growth. This is interior-specific (exterior doors have thresholds and weatherstripping designed for moisture management). Assessment must check frame bottoms with moisture meter. If MC > 15%, the moisture source must be resolved before painting. Treatment: biocide for mildew, stain-block primer for water stains, and potentially wood hardener for softened substrate. This adds a moisture-specific assessment task not present in NC or exterior door RP.",
+      "source": "Doors_Doctrine.md Section 2.1; Interior_RP_Gap_Analysis.md Section C",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-014",
+      "topic": "Blocking prevention is critical for RP door finish selection",
+      "finding": "Per Doors_Doctrine Section 5.4, traditional latex paints are often too soft for doors, causing blocking (door sticks to weatherstripping or frame). RP compounds this risk: the new coating must bond to the existing finish AND resist blocking. Recommended finish coatings for RP doors: waterborne alkyd (QT3-QT4 standard), urethane-modified acrylic (QT4+ high-traffic), water-based urethane (kitchen/bath). Standard latex is acceptable only at QT3 budget. This is a materials manager note, not a task — but it affects material system selection.",
+      "source": "Doors_Doctrine.md Section 5.1, 5.4; Fine_Finish_Doctrine.md material systems",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-015",
+      "topic": "Height modifier applies to door frames but rarely exceeds H2",
+      "finding": "Standard interior doors are 6'8\" to 7'0\" (H1_STANDARD, 1.0x). Tall doors are 7'0\" to 8'0\" (H2_TALL, 1.30x — step ladder for head jamb). Interior doors rarely reach H3_HIGH (13+ ft). Door slabs are painted at ground level or on sawhorses regardless of opening height — height modifier applies only to frame work (head jamb, upper stop). NC production.json confirms H1 = 1.0, H2 = 1.30, H3 = 1.50 for frames. Door size effects on slabs: standard = 1.0x, tall = 1.1x (slightly more area), oversized = 1.25x (step ladder for top). These transfer unchanged from NC to RP.",
+      "source": "SF_DOOR_FRAME_NC_FINISH_v1/production.json height_access_effects; SF_DOOR_SLAB_INT_NC_v1/production.json door_size_effects",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-016",
+      "topic": "Brush and spray application methods both supported with method-dependent tasks",
+      "finding": "Interior door RP supports two application methods: brush (dominant for RP — doors repainted in occupied homes where spray setup is prohibitive for small quantities) and spray (production work — 10+ doors, full interior repaint where spray containment is already established). Brush is default; spray requires dedicated protection setup (floor_full_8ft_radius, wall_adjacent_door). Per Doors_Doctrine Section 8.3, brush cycle time is 40-60 min/door vs spray 15-20 min/door for application, but spray requires 60-90 min area masking setup. Breakeven is approximately 6-8 doors per project. NC production.json confirms brush method modifier = 1.20x spray time for coating tasks.",
+      "source": "Doors_Doctrine.md Section 8; SF_DOOR_FRAME_NC_FINISH_v1/production.json application_method_effects; SF_DOOR_SLAB_INT_NC_v1/production.json",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-017",
+      "topic": "Customer walkthrough is RP-specific completion task",
+      "finding": "RP projects in occupied homes include a post-completion customer walkthrough where the painter reviews finished work with the homeowner. This does not exist in NC (builder punch list is a different process). For doors, the walkthrough includes: verify door operation (swing, latch, lock), check for paint on hardware, verify color match between frame and slab, inspect for drips/sags/missed spots at customer's viewing angle. This is a fixed-time task per project (not per door) — approximately 5-10 minutes per door included in scope, with diminishing time per additional door.",
+      "source": "Interior_RP_Gap_Analysis.md Section C (RP_NEW additions); SF_TRIM_INT_RP_v1/research.json",
+      "confidence": "high"
+    }
+  ],
+
+  "condition_drivers": [
+    {
+      "driver_id": "CD-001",
+      "condition": "Existing coating type (latex vs alkyd)",
+      "effect": "Alkyd coatings REQUIRE adhesion primer before latex topcoat. Latex over latex may proceed without primer if adhesion test passes. This is the primary branch point in the RP primer decision tree.",
+      "assessment_method": "Solvent test: rub with denatured alcohol or lacquer thinner. Latex softens/dissolves; alkyd remains hard.",
+      "source": "Doors_Doctrine.md Section 3.2; Substrate_State_Reference.md Section 3.3"
+    },
+    {
+      "driver_id": "CD-002",
+      "condition": "Existing sheen level",
+      "effect": "Higher sheen = more degloss effort. Flat/eggshell needs light scuff only (150 grit, 3-4 min/side). Satin needs moderate degloss (150 grit, 5-6 min/side). Semi-gloss/gloss requires thorough degloss (120-150 grit or chemical deglosser, 7-10 min/side). Gloss may require bonding primer even with good adhesion test.",
+      "assessment_method": "Visual assessment of existing sheen; correlate with substrate state.",
+      "source": "Substrate_State_Reference.md Section 5.1 modifier values"
+    },
+    {
+      "driver_id": "CD-003",
+      "condition": "Paint film buildup (number of existing coats)",
+      "effect": "Multiple coats of paint create thick film buildup especially in panel detail areas, hinge mortises, and latch edges. Heavy buildup may cause door clearance issues (sticking, rubbing). Assessment may indicate: scrape high spots, accept and overcoat, or strip and start over. Strip-and-start is out of scope for this spec (separate remediation scope).",
+      "assessment_method": "Visual inspection of film thickness in detail areas; door operation test (stick/rub check).",
+      "source": "Doors_Doctrine.md Section 3.2; Professional practice"
+    },
+    {
+      "driver_id": "CD-004",
+      "condition": "Moisture exposure (bathroom/kitchen door frames)",
+      "effect": "Frame bottoms and lower jambs in wet areas accumulate moisture damage. MC > 15% indicates active moisture — source must be resolved before painting. Visible mildew requires biocide treatment before coating. Softened wood may need consolidant (hardener) before prime. All moisture tasks are condition-gated: they only fire when moisture damage state is declared.",
+      "assessment_method": "Moisture meter reading at frame bottom; visual mildew check; thumb test for wood softness.",
+      "source": "Doors_Doctrine.md Section 2.1; Interior_RP_Gap_Analysis.md Section A"
+    },
+    {
+      "driver_id": "CD-005",
+      "condition": "Smoke/nicotine contamination",
+      "effect": "Nicotine and soot contamination on doors requires full-surface shellac sealer (BIN or equivalent). Without sealer, staining bleeds through multiple latex topcoats. Shellac is the only reliable stain blocker for smoke damage. This is a binary gate: if SS_INT_SMOKE_DAMAGE, include shellac seal task for full surface; if not, skip.",
+      "assessment_method": "White rag test: wipe surface with damp white cloth. Yellow/brown transfer = nicotine present.",
+      "source": "Interior_RP_Gap_Analysis.md Section A (SS_INT_SMOKE_DAMAGE)"
+    },
+    {
+      "driver_id": "CD-006",
+      "condition": "Door type (slab/panel/french/louvered/bifold)",
+      "effect": "Complexity modifier applies to ALL labor tasks — prep, prime, finish, interstage, and assessment. Panel doors have detail areas where paint builds up in corners creating micro-cracking. French doors require glass masking (80-120% additional labor). Louvered doors are spray-only practical for RP — brush/roll is not offered for louvered doors in repaint due to extreme labor intensity.",
+      "assessment_method": "Visual door type identification during assessment.",
+      "source": "Doors_Doctrine.md Section 1.1, 9.2"
+    }
+  ],
+
+  "quality_differences": [
+    {
+      "tier": "QT3",
+      "description": "Standard interior door repaint — MINIMUM TIER for doors. Scuff/degloss prep, 2 finish coats, spot sand between coats.",
+      "modifier": 1.0,
+      "inspection": "Quick visual at 6 ft. Note obvious defects (drips, misses, adhesion failures).",
+      "sanding_between_coats": "Spot sand only — 220 grit on defects found during interstage inspection.",
+      "coat_count": "2 finish coats standard",
+      "edge_quality": "Professional — acceptable if neat",
+      "source": "Doors_Doctrine.md Section 6, 6.1; Quality_Tiers_and_Surface_Condition.md"
+    },
+    {
+      "tier": "QT4",
+      "description": "Premium interior door repaint — thorough prep, full sand between coats, crisp edges. Systematic inspection at 3 ft.",
+      "modifier": 1.4,
+      "inspection": "Systematic scan at 3 ft. Mark defects for repair. Raking light on flat surfaces.",
+      "sanding_between_coats": "Full surface sand — 220 grit between all coats.",
+      "coat_count": "2 finish coats standard",
+      "edge_quality": "Crisp — no visible wobble at 3 ft",
+      "notes": "QT4 modifier for doors (1.4x) is higher than global QT4 (1.3x) per Doors_Doctrine Section 6.1. Doors are scrutinized surfaces requiring more meticulous finish quality.",
+      "source": "Doors_Doctrine.md Section 6.1"
+    },
+    {
+      "tier": "QT5",
+      "description": "Superior interior door repaint — maximum care, zero tolerance, 320-grit between coats. Lighted critical inspection at arm's length.",
+      "modifier": 1.8,
+      "inspection": "Lighted critical inspection at arm's length. Every defect documented and corrected.",
+      "sanding_between_coats": "Thorough sand — 320 grit between all coats.",
+      "coat_count": "2-3 finish coats (3 coats for brush per Fine_Finish_Doctrine 15.10.3)",
+      "edge_quality": "Straight-line — no visible wobble at arm's length",
+      "notes": "QT5 modifier for doors (1.8x) is higher than global QT5 (1.5x) per Doors_Doctrine Section 6.1. Condition gate applies: QT5 only at Good condition; Fair/Poor goes hourly (QT6).",
+      "source": "Doors_Doctrine.md Section 6.1; Quality_Tiers_and_Surface_Condition.md QT5 condition gate"
+    }
+  ],
+
+  "failure_modes": [
+    {
+      "mode_id": "FM-001",
+      "failure": "Latex over alkyd delamination",
+      "cause": "Applying latex topcoat directly over existing alkyd (oil-based) paint without adhesion primer. The latex film cannot chemically bond to the hard, glossy alkyd surface.",
+      "frequency": "Very common — single most frequent door repaint failure",
+      "prevention": "Coating ID assessment (solvent test) → if alkyd, apply bonding/adhesion primer before latex topcoat",
+      "remediation": "Scrape delaminated areas, sand, apply adhesion primer, recoat",
+      "source": "Doors_Doctrine.md Section 3.2; Substrate_State_Reference.md SS_PAINTED_ALKYD"
+    },
+    {
+      "mode_id": "FM-002",
+      "failure": "Blocking (door sticks to frame/weatherstripping)",
+      "cause": "Coating too soft for door application. Standard latex often lacks hardness for door service. Insufficient cure time before closing door.",
+      "frequency": "Common with standard latex; uncommon with waterborne alkyd",
+      "prevention": "Use waterborne alkyd or urethane-modified coating. Allow full cure (7-14 days) before normal use. Do not close doors tightly during cure period.",
+      "remediation": "Rub blocking areas with wax or talcum powder for immediate relief. Long-term: recoat with harder enamel.",
+      "source": "Doors_Doctrine.md Section 5.4, 11"
+    },
+    {
+      "mode_id": "FM-003",
+      "failure": "Fisheying on door surface",
+      "cause": "Silicone or oil contamination from hand contact, cleaning products, or furniture polish. Doors are high-touch surfaces that accumulate contaminants.",
+      "frequency": "Occasional — more common on kitchen/bathroom doors",
+      "prevention": "TSP wash and thorough rinse before any prep or coating",
+      "remediation": "Strip affected area, clean with solvent, recoat. In severe cases, shellac seal before topcoat.",
+      "source": "Doors_Doctrine.md Section 3.3, 11"
+    },
+    {
+      "mode_id": "FM-004",
+      "failure": "Runs and sags on panel door detail",
+      "cause": "Over-application in panel corners and rail/stile intersections. Paint pools in recessed areas of panel profiles.",
+      "frequency": "Common at QT3 brush application; uncommon at QT4+ with proper technique",
+      "prevention": "Proper sequence: panels first, then rails, then stiles. Light coats in detail areas. Lay-off strokes to redistribute pooling.",
+      "remediation": "Sand flat after cure, recoat affected area",
+      "source": "Doors_Doctrine.md Section 8.1, 11"
+    },
+    {
+      "mode_id": "FM-005",
+      "failure": "Smoke stain bleed-through",
+      "cause": "Nicotine/soot migrates through latex primer and topcoat. Standard acrylic primers do not block nicotine.",
+      "frequency": "Guaranteed if smoke damage present and standard primer used",
+      "prevention": "Shellac-based stain blocker (BIN) on full surface before topcoat. Two coats BIN for heavy contamination.",
+      "remediation": "Apply shellac stain blocker over failed topcoat, then recoat finish",
+      "source": "Interior_RP_Gap_Analysis.md Section A (SS_INT_SMOKE_DAMAGE)"
+    },
+    {
+      "mode_id": "FM-006",
+      "failure": "Mildew regrowth under new paint",
+      "cause": "Painting over mildew without killing spores first. Mildew grows under paint film and eventually surfaces.",
+      "frequency": "Common on bathroom door frames if not treated",
+      "prevention": "Biocide treatment (bleach solution or commercial mildewcide) before any coating. Allow 24 hr dry. Use mildew-resistant primer.",
+      "remediation": "Strip to substrate, treat with biocide, reprime with mildew-resistant primer, recoat",
+      "source": "Interior_RP_Gap_Analysis.md Section A (SS_INT_MOISTURE_DAMAGE)"
+    },
+    {
+      "mode_id": "FM-007",
+      "failure": "Door clearance issues from paint film buildup",
+      "cause": "Multiple coats of paint over years build up thickness, especially on hinge side and edges. Each repaint adds 2-3 mils per coat; after 4-5 repaints, total DFT can exceed 15 mils, reducing clearance.",
+      "frequency": "Occasional on older doors with many repaints",
+      "prevention": "Assess film buildup during condition inspection. If clearance issues exist, sand down high spots or plane edges before painting.",
+      "remediation": "Chemical strip or heat strip problem areas; adjust hinge mortise depth; plane latch edge",
+      "source": "Doors_Doctrine.md Section 3.2; Professional practice"
+    }
+  ],
+
+  "notes_for_materials_manager": [
+    {
+      "note_id": "NM-001",
+      "topic": "State-driven primer systems for RP doors",
+      "note": "RP doors need 3-4 primer systems based on substrate state, not substrate material. (1) SYS_PRIMER_ADHESION (bonding primer) for SS_INT_SOUND_PAINT with alkyd existing coating — provides bonding bridge for latex topcoat. (2) SYS_PRIMER_STAIN_BLOCK_ACRYLIC for SS_INT_MOISTURE_DAMAGE with water staining — acrylic stain blocker for water marks. (3) SYS_PRIMER_STAIN_BLOCK_SHELLAC (BIN) for SS_INT_SMOKE_DAMAGE — shellac-based full-surface seal. (4) SYS_PRIMER_MILDEW_RESISTANT for SS_INT_MOISTURE_DAMAGE with mildew — contains biocide additive. Most RP door work (SS_INT_SOUND_PAINT, latex existing) needs NO primer — topcoat goes directly over deglossed surface."
+    },
+    {
+      "note_id": "NM-002",
+      "topic": "Finish coat systems must prioritize hardness for doors",
+      "note": "Per Doors_Doctrine Section 5.4, blocking prevention is critical. Recommend: QT3 = waterborne alkyd (SYS_FF_STANDARD_ACRYLIC per Fine_Finish_Doctrine is acceptable but urethane-alkyd preferred for doors); QT4 = urethane-modified acrylic or waterborne alkyd (SYS_FF_MODIFIED_URETHANE); QT5 = premium urethane (SYS_FF_PREMIUM). Standard latex should be discouraged for doors due to blocking risk."
+    },
+    {
+      "note_id": "NM-003",
+      "topic": "Sheen recommendations for RP doors",
+      "note": "Per Doors_Doctrine Section 5.3: satin (standard interior), semi-gloss (traditional, kitchens/baths), gloss (high-end/entry doors). Semi-gloss is the traditional door sheen. Gloss requires QT4+ prep per sheen gate. For RP, existing sheen should be noted during assessment — changing from higher to lower sheen may show imperfections that the original sheen hid."
+    },
+    {
+      "note_id": "NM-004",
+      "topic": "Degloss chemicals for RP prep",
+      "note": "Include liquid deglosser in consumables list for RP doors. Two types: (1) solvent-based deglosser (stronger, faster, higher VOC); (2) water-based deglosser (safer, slower, lower VOC). Contractor selects based on preference and VOC restrictions. Mechanical degloss (sanding) is alternative — no chemical needed but generates dust."
+    }
+  ],
+
+  "notes_for_sop_librarian": [
+    {
+      "note_id": "NS-001",
+      "topic": "RP door SOP combines frame + slab into single workflow",
+      "note": "Unlike NC which has separate frame and slab SOPs, RP door workflow treats the door system as a unit. Recommended module structure: (1) Assessment module (assess both frame and slab together per opening), (2) Prep module (degloss + scrape/feather + TSP wash per component), (3) Prime module (state-driven primer per component), (4) Finish module (frame first by brush, then slab), (5) Interstage module (inspect/sand/patch between coats), (6) Cleanup module (hardware reinstall, protection teardown, walkthrough). Assessment and cleanup are per-opening; prep/prime/finish are per-component."
+    },
+    {
+      "note_id": "NS-002",
+      "topic": "Panel door painting sequence for RP",
+      "note": "Per Doors_Doctrine Section 8.1 (PCA recommended): panels first (cut in edges with brush, fill flat areas with mini roller), then horizontal rails (tie in brush marks to panels), then vertical stiles (continuous vertical pattern), then edges. This sequence is identical for NC and RP. RP-specific: existing paint in panel corners may need extra attention — scrape buildup before coating if assessed as heavy."
+    },
+    {
+      "note_id": "NS-003",
+      "topic": "In-frame (on-hinge) is default RP handling method",
+      "note": "Per Doors_Doctrine Section 7: setup method is contractor discretion. However, RP default is in-frame/on-hinge because doors are already installed and removing them adds significant time. Chevron stand and horizontal rack methods are available but should be flagged as setup-intensive options. Per gap analysis, RP does not model door removal/reinstall as a default task — only for spray method where hardware removal is required."
+    },
+    {
+      "note_id": "NS-004",
+      "topic": "Assessment SOP must include coating identification",
+      "note": "The coating ID step (latex vs oil via solvent test) is the critical branch point that determines the entire RP primer strategy. SOP should mandate solvent test on EVERY door repaint job, even when homeowner states 'it was painted with latex.' Many homeowners do not know their paint history. The test takes 2-3 minutes per door and prevents the most common failure mode (FM-001)."
+    },
+    {
+      "note_id": "NS-005",
+      "topic": "Cure time advisory for door RP",
+      "note": "SOP should include a cure time advisory: doors should not be closed tightly for 7-14 days after final coat to prevent blocking. This is a customer communication task, not a labor task. Include in cleanup module documentation."
+    }
+  ],
+
+  "notes_for_estimation_engineer": [
+    {
+      "note_id": "NE-001",
+      "topic": "Dual UOM structure: EA (frames) + EA_SIDE (slabs)",
+      "note": "This spec has two paintable items with different UOMs. ITM_DOOR_FRAME uses EA (per frame set — one frame set = 2 jambs + head + stop). ITM_DOOR_SLAB uses EA_SIDE (per door side — allows different colors per side). Protection, hardware, and cleanup tasks use EA (per door opening). The engine must route tasks to correct UOM based on task target component. Frame tasks reference PS_SURFACE_EA.DOOR_FRAME_SET; slab tasks reference PS_SURFACE_EA_SIDE.DOOR_SLAB."
+    },
+    {
+      "note_id": "NE-002",
+      "topic": "QT modifiers for doors are HIGHER than global modifiers",
+      "note": "Door-specific QT modifiers per Doors_Doctrine Section 6.1: QT3 = 1.0, QT4 = 1.4 (vs global 1.3), QT5 = 1.8 (vs global 1.5). These are surface-specific overrides. Engine must apply door-specific modifiers, not global tier modifiers, to qt_scaled tasks in this spec."
+    },
+    {
+      "note_id": "NE-003",
+      "topic": "Door type complexity modifier stacks with QT modifier",
+      "note": "Complexity modifier (flush 1.0, panel_4 1.25, panel_6 1.35, raised 1.4, french 2.0, bifold 0.7, louvered 2.5) stacks multiplicatively with QT modifier. Example: 6-panel door at QT4 = 1.35 x 1.4 = 1.89x base rate. Verify max modifier stack stays under 4.0x flag threshold. Worst case: louvered QT5 = 2.5 x 1.8 = 4.5x — this exceeds flag threshold. DECISION NEEDED: cap louvered at QT4, or accept 4.5x with disclaimer.",
+      "flag": "REVIEW_REQUIRED — louvered + QT5 combination exceeds 4.0x modifier cap"
+    },
+    {
+      "note_id": "NE-004",
+      "topic": "Substrate state gates task inclusion",
+      "note": "Tasks must declare substrate_state_rules for conditional inclusion. Key gate patterns: (1) TSK_DIRP_DEGLOSS_* — include for all states (always needed for RP); (2) TSK_DIRP_SCRAPE_FEATHER — include only for SS_INT_FAILING_PAINT, SS_INT_PEELING; (3) TSK_DIRP_PRIME_ADHESION_* — include for SS_INT_FAILING_PAINT, SS_INT_PEELING, or when coating_id = alkyd; (4) TSK_DIRP_TREAT_MILDEW — include only for SS_INT_MOISTURE_DAMAGE; (5) TSK_DIRP_SEAL_SHELLAC — include only for SS_INT_SMOKE_DAMAGE."
+    },
+    {
+      "note_id": "NE-005",
+      "topic": "Glass masking for French doors — pane-count-based task",
+      "note": "French door glass masking uses pane count, not door count. PS_META.EA.DOOR_PANES_TOTAL provides pane count. Rate: ~10 EA (panes)/hr for masking, ~20 EA/hr for unmasking. This transfers DIRECT from NC (TSK_DOOR_GLASS_MASK, TSK_DOOR_GLASS_UNMASK). Applies_when: door_type = french."
+    },
+    {
+      "note_id": "NE-006",
+      "topic": "Protection task optimization for combined frame + slab spec",
+      "note": "NC had separate floor protection for frames and slabs (TSK_FRAME_FLOOR_PROTECT_* and TSK_DOOR_FLOOR_PROTECT). In RP combined spec, floor protection is per opening (EA), covering both frame and slab work. Single setup/teardown per door location. Wall protection (spray) similarly per opening. This consolidation reduces 4 NC protection tasks to 2 RP protection tasks."
+    },
+    {
+      "note_id": "NE-007",
+      "topic": "Projected task count: ~42 tasks",
+      "note": "Per Interior_RP_Gap_Analysis Section C: 38 DIRECT transfers + 10 MODIFIED (rewritten with RP conditions) - 2 NOT_APPLICABLE + 8-10 RP_NEW = approximately 42 tasks. Deduplication of shared frame/slab tasks (protection, cleanup, tools) reduces total below raw sum of 50 NC tasks. Exterior analog SF_DOOR_EXT_RP has 51 tasks — interior at 42 = 82% of exterior, which tracks (no weather, no threshold, no RRP containment)."
+    }
+  ],
+
+  "confidence_level": "high",
+
+  "assumptions": [
+    {
+      "assumption_id": "A-001",
+      "field": "context_prefix",
+      "value": "DIRP_ (Door Interior RePaint)",
+      "source": "Collision analysis against SF_DOOR_EXT_RP_v1/production.json",
+      "doctrine_gap": false,
+      "note": "DRRP_ prefix is fully consumed by exterior door RP (51 tasks). Using DIRP_ to avoid ID collisions. Both prefixes remain unambiguous."
+    },
+    {
+      "assumption_id": "A-002",
+      "field": "combined_frame_slab_spec",
+      "value": "Single spec covers both frame and slab unlike NC which separates them",
+      "source": "Interior_RP_Gap_Analysis.md Section C; SF_DOOR_EXT_RP_v1 pattern",
+      "doctrine_gap": true,
+      "note": "No doctrine explicitly mandates combined vs separate RP door specs. Decision based on workflow logic (RP painter works frame + slab together) and exterior RP precedent."
+    },
+    {
+      "assumption_id": "A-003",
+      "field": "door_qt_modifiers",
+      "value": "QT4 = 1.4x, QT5 = 1.8x (higher than global 1.3/1.5)",
+      "source": "Doors_Doctrine.md Section 6.1",
+      "doctrine_gap": false,
+      "note": "Doors_Doctrine defines surface-specific modifiers that override global QT values. This is doctrine-confirmed."
+    },
+    {
+      "assumption_id": "A-004",
+      "field": "in_frame_default_handling",
+      "value": "In-frame (on-hinge) is default handling method for RP",
+      "source": "Doors_Doctrine.md Section 7; Professional practice",
+      "doctrine_gap": true,
+      "note": "Doctrine states method is contractor discretion. Assumption that RP defaults to in-frame because doors are already installed. Chevron/rack methods available as options."
+    },
+    {
+      "assumption_id": "A-005",
+      "field": "louvered_qt5_flag",
+      "value": "Louvered + QT5 modifier stack = 4.5x exceeds 4.0x flag threshold",
+      "source": "Doors_Doctrine.md Section 1.1 (louvered = 2.5x); Section 6.1 (QT5 = 1.8x)",
+      "doctrine_gap": true,
+      "note": "No doctrine addresses modifier cap for extreme combinations. Flagged for human review — may need to cap louvered at QT4 or accept 4.5x with disclaimer."
+    }
+  ],
+
+  "uncertainties": [
+    {
+      "uncertainty_id": "U-001",
+      "topic": "Degloss rate variance by existing sheen",
+      "description": "Degloss time per EA_SIDE varies significantly by existing sheen level (flat ~3 min vs gloss ~10 min). Should degloss be a single task with existing-sheen modifier, or split into separate tasks per sheen level? Trim RP uses a single task with implicit rate variance. Recommend single task with rate basis noting the range.",
+      "impact": "Rate accuracy for degloss task",
+      "resolution": "Estimation Engineer to decide — single task recommended for simplicity"
+    },
+    {
+      "uncertainty_id": "U-002",
+      "topic": "Mixed substrate states within a single door system",
+      "description": "A door system may have different substrate states: frame bottom = SS_INT_MOISTURE_DAMAGE, frame upper = SS_INT_SOUND_PAINT, slab = SS_INT_FAILING_PAINT. Should the spec support per-component state assignment, or use worst-state-wins for the entire system? Per-component is more accurate but complex. Worst-state-wins is simpler but over-estimates prep for sound portions.",
+      "impact": "Spec configuration complexity; estimation accuracy",
+      "resolution": "Recommend worst-state-wins for frame and separate state for slab. Two state inputs: frame_state + slab_state."
+    },
+    {
+      "uncertainty_id": "U-003",
+      "topic": "RP door handling method as configuration dimension",
+      "description": "Should handling method (in-frame, chevron, horizontal) be a formal configuration dimension? Doctrine says method is contractor discretion. Including it as a dimension adds 2-3 setup tasks per method. Excluding it means in-frame is assumed and alternative methods are manual overrides.",
+      "impact": "Task count and spec complexity",
+      "resolution": "Recommend in-frame as default with handling_method as optional dimension. Only in-frame is modeled in v1; chevron/horizontal can be added in v2 if needed."
+    }
+  ],
+
+  "protection_zones_analysis": {
+    "spec_category": "door",
+    "zones": [
+      {
+        "zone_id": "floor_perimeter",
+        "condition": "always (brush method)",
+        "protection_level": "edge_only",
+        "upgrade_scenario": "Upgrades to floor_full_8ft_radius when application_method = spray",
+        "notes": "Drop cloth placement per door location for brush/roll drip risk. ~4-5 min setup per door opening."
+      },
+      {
+        "zone_id": "floor_full_8ft_radius",
+        "condition": "application_method = spray",
+        "protection_level": "full_cover",
+        "upgrade_scenario": null,
+        "notes": "Rosin paper 8ft radius around door opening for spray overspray containment. ~7-10 min setup per door opening."
+      },
+      {
+        "zone_id": "wall_adjacent_door",
+        "condition": "application_method = spray",
+        "protection_level": "full_cover",
+        "upgrade_scenario": null,
+        "notes": "Paper/plastic masking on wall surface adjacent to door opening during spray. Inclusion also dependent on adjacent wall state per state_declarations. If wall is SS_BARE or SS_PRIMED, protection may be skipped."
+      },
+      {
+        "zone_id": "hardware_covers",
+        "condition": "always (brush method — mask); spray method — remove",
+        "protection_level": "varies",
+        "upgrade_scenario": null,
+        "notes": "Brush: mask 3 hinges + lockset + strike plate (~15-20 min per door). Spray: remove all hardware, bag and label (~20 min per door), reinstall after cure (~15 min). Hardware handling is method-dependent but always required."
+      },
+      {
+        "zone_id": "floor_door_swing",
+        "condition": "application_method = spray",
+        "protection_level": "edge_only",
+        "upgrade_scenario": "Subsumed by floor_full_8ft_radius when spray",
+        "notes": "Door swing arc protection — typically subsumed by floor_full_8ft_radius for spray. May be separate for touch-up work."
+      }
+    ],
+    "zone_reference": "Protection_Zones_Reference.md",
+    "notes": "Door RP zones match NC door zones (Commonly Paired Zones table in Protection_Zones_Reference confirms: Door brush = floor_perimeter + hardware_covers; Door spray = floor_full_8ft_radius + wall_adjacent_door + hardware_covers + floor_door_swing). RP adds no new zones beyond NC — the protection geometry is identical."
+  },
+
+  "adjacency_analysis": {
+    "primary_surfaces": ["door_frame", "door_leaf_face", "door_leaf_edge", "door_stop"],
+    "adjacent_surfaces": [
+      {
+        "surface_id": "door_casing",
+        "edge_type": "complex",
+        "typical_relationship": "same_finish",
+        "edge_work_required": false,
+        "notes": "Door casing (trim) is typically the same color as the door frame. When same finish, no masking needed at junction. When different finish, tape line required at casing-to-frame edge. Casing is covered by SF_TRIM_INT_RP, not this spec."
+      },
+      {
+        "surface_id": "wall_field",
+        "edge_type": "linear",
+        "typical_relationship": "different_finish",
+        "edge_work_required": true,
+        "notes": "Wall surfaces adjacent to door frame/casing. Different color/sheen is typical (walls flat/eggshell, door semi-gloss). When spray, wall requires masking (wall_adjacent_door zone). When brush, minimal edge protection needed."
+      },
+      {
+        "surface_id": "door_leaf_edge",
+        "edge_type": "complex",
+        "typical_relationship": "same_finish",
+        "edge_work_required": false,
+        "notes": "Door edges connect face to frame visually. Per Doors_Doctrine Section 10.3: edge visible when door is open matches adjacent face color. If door has different colors per side, edge masking is required at leaf edge mid-point."
+      }
+    ],
+    "surface_reference": "Surface_Vocabulary_Reference.md"
+  },
+
+  "site_condition_analysis": {
+    "affected_conditions": [
+      {
+        "condition_id": "occupancy_state",
+        "affected_task_types": ["protect", "cleanup"],
+        "include_values": ["occupied_crew_handles", "occupied_sensitive"],
+        "exclude_values": ["vacant"],
+        "notes": "RP doors are typically in occupied homes. Contents protection and path protection tasks are gated by occupancy. Vacant homes skip furniture/contents tasks. Door work is localized — furniture protection is minimal compared to wall/ceiling work but still required when spray application used."
+      },
+      {
+        "condition_id": "lead_status",
+        "affected_task_types": ["prep", "protect"],
+        "include_values": ["tested_positive", "unknown_pre1978"],
+        "modifier_notes": "tested_positive = 2.0x, unknown_pre1978 = 1.5x per Modifier_Registry. Doors are HIGH RISK for lead paint — trim/doors were the last surfaces to transition from oil to latex. Pre-1978 doors should be presumed lead-positive unless tested.",
+        "notes": "Lead containment and RRP protocols add significant time to door RP. Scraping lead paint requires wet methods, HEPA vacuum, and containment. Lead status is a site-level condition, not per-door."
+      },
+      {
+        "condition_id": "moisture_condition",
+        "affected_task_types": ["assess", "prep"],
+        "include_values": ["recently_wet"],
+        "exclude_values": ["active_moisture"],
+        "notes": "Active moisture is a STOP condition — source must be resolved before painting. Recently wet (bathroom doors after shower) requires extended dry time. Moisture check on frame bottoms is part of assessment regardless of declared moisture_condition."
+      },
+      {
+        "condition_id": "temperature_condition",
+        "affected_task_types": ["prime", "apply"],
+        "include_values": ["cold_below_50f", "hot_above_90f"],
+        "modifier_notes": "cold_below_50f = 1.30x (extended dry time), hot_above_90f = 1.15x (reduced open time)",
+        "notes": "Interior temperature is typically controlled, making temperature condition less impactful than exterior. Main concern: unheated spaces (basements, garages with interior doors) in cold weather, or unconditioned spaces in summer."
+      },
+      {
+        "condition_id": "floor_type",
+        "affected_task_types": ["protect"],
+        "include_values": ["finished", "partial"],
+        "exclude_values": ["subfloor"],
+        "notes": "RP is always on finished floors (existing home). Floor protection is always required. This condition is primarily for NC but included for completeness — RP should default to floor_type = finished."
+      },
+      {
+        "condition_id": "time_constraint",
+        "affected_task_types": ["all"],
+        "include_values": ["phased_occupancy"],
+        "modifier_notes": "phased_occupancy = 1.25x",
+        "notes": "Door work must be scheduled around occupant access needs. If doors are painted in-frame, the room may be inaccessible during wet paint periods. Phased occupancy may require painting doors last to minimize access disruption."
+      }
+    ],
+    "condition_reference": "Site_Condition_Vocabulary_Reference.md",
+    "modifier_reference": "Modifier_Registry.md"
+  },
+
+  "state_analysis": {
+    "primary_surfaces": ["door_frame", "door_leaf_face"],
+    "valid_input_states": {
+      "states": [
+        "SS_INT_SOUND_PAINT",
+        "SS_INT_FAILING_PAINT",
+        "SS_INT_PEELING",
+        "SS_INT_MOISTURE_DAMAGE",
+        "SS_INT_SMOKE_DAMAGE"
+      ],
+      "rationale": "Interior door RP operates on previously painted surfaces. These 5 states cover the full range of existing interior paint conditions from sound (most common) through contaminated (smoke/mildew). Does NOT accept SS_BARE, SS_PRIMED_*, SS_STAINED_*, or SS_CLEAR_* — bare and uncoated surfaces are NC scope, stained/clear require different treatment specs."
+    },
+    "output_state": {
+      "state": "SS_PAINTED_SEMIGLOSS",
+      "varies_by": "sheen",
+      "rationale": "Output state varies by selected sheen. Satin = SS_PAINTED_SATIN, semi-gloss = SS_PAINTED_SEMIGLOSS (most common for doors), gloss = SS_PAINTED_GLOSS. Semi-gloss is the default/traditional door sheen."
+    },
+    "adjacent_state_protection_analysis": [
+      {
+        "adjacent_surface": "wall_field",
+        "finished_states": ["SS_PAINTED_FLAT", "SS_PAINTED_EGGSHELL", "SS_PAINTED_SATIN"],
+        "unfinished_states": ["SS_BARE", "SS_PRIMED"],
+        "protection_when_finished": "full_mask",
+        "protection_when_unfinished": "none",
+        "rationale": "Protect finished walls from door spray overspray. When walls are finished (typical in RP), full wall masking around door opening required for spray method. When walls are unfinished (rare in RP, possible in renovation), no protection needed. For brush method, minimal protection (light_mask or none) regardless of wall state."
+      },
+      {
+        "adjacent_surface": "door_casing",
+        "finished_states": ["SS_PAINTED_SEMIGLOSS", "SS_PAINTED_SATIN"],
+        "unfinished_states": ["SS_PRIMED_FACTORY", "SS_PRIMED_FIELD"],
+        "protection_when_finished": "light_mask",
+        "protection_when_unfinished": "none",
+        "rationale": "If door casing has already been repainted (by SF_TRIM_INT_RP) and is in a different color/sheen than door frame, tape line required at casing-to-frame junction. If same color/sheen, no masking needed. If casing is still unfinished (painted after door), no protection needed."
+      }
+    ],
+    "state_reference": "Substrate_State_Reference.md"
+  },
+
+  "required_paintscope_keys": [
+    {
+      "key": "PS_SURFACE_EA.DOOR_FRAME_SET",
+      "uom": "EA",
+      "purpose": "Count of door frame sets to be repainted. One frame set = head jamb + 2 side jambs + door stop. Drives all frame-component tasks.",
+      "required": true
+    },
+    {
+      "key": "PS_SURFACE_EA_SIDE.DOOR_SLAB",
+      "uom": "EA_SIDE",
+      "purpose": "Count of door slab sides to be repainted. Supports different-color-per-side and partial-painting scenarios.",
+      "required": true
+    },
+    {
+      "key": "PS_OPENING_EA.DOOR_OPENINGS_TOTAL",
+      "uom": "EA",
+      "purpose": "Total door openings in scope. Drives per-opening tasks: protection setup/teardown, hardware handling, assessment.",
+      "required": true
+    },
+    {
+      "key": "PS_META.EA_SIDE.DOOR_SLAB.SLAB",
+      "uom": "EA_SIDE",
+      "purpose": "Count of flush/slab door sides. Drives complexity modifier selection (1.0x).",
+      "required": false
+    },
+    {
+      "key": "PS_META.EA_SIDE.DOOR_SLAB.PANEL",
+      "uom": "EA_SIDE",
+      "purpose": "Count of panel door sides (includes 4-panel, 6-panel, raised). Drives complexity modifier (1.25-1.4x).",
+      "required": false
+    },
+    {
+      "key": "PS_META.EA_SIDE.DOOR_SLAB.FRENCH",
+      "uom": "EA_SIDE",
+      "purpose": "Count of French door sides. Drives complexity modifier (2.0x) and glass masking tasks.",
+      "required": false
+    },
+    {
+      "key": "PS_META.EA_SIDE.DOOR_SLAB.BIFOLD",
+      "uom": "EA_SIDE",
+      "purpose": "Count of bifold door panel sides. Drives complexity modifier (0.7x).",
+      "required": false
+    },
+    {
+      "key": "PS_META.EA_SIDE.DOOR_SLAB.LOUVERED",
+      "uom": "EA_SIDE",
+      "purpose": "Count of louvered door sides. Drives complexity modifier (2.5x). Spray-only for RP.",
+      "required": false
+    },
+    {
+      "key": "PS_META.EA.DOOR_PANES_TOTAL",
+      "uom": "EA",
+      "purpose": "Total glass panes across all French doors. Drives glass masking/unmasking tasks.",
+      "required": false
+    },
+    {
+      "key": "PS_PROTECT_SF.FLOOR_PERIMETER",
+      "uom": "SF",
+      "purpose": "Floor protection area for brush method.",
+      "required": true
+    },
+    {
+      "key": "PS_PROTECT_SF.FLOOR_8FT_RADIUS",
+      "uom": "SF",
+      "purpose": "Radial floor protection for spray method.",
+      "required": false
+    },
+    {
+      "key": "PS_PROTECT_LF.WALL_ADJACENT_DOOR",
+      "uom": "LF",
+      "purpose": "Wall masking around door openings for spray method.",
+      "required": false
+    },
+    {
+      "key": "PS_PROTECT_EA.ASSET.HARDWARE_GROUPS",
+      "uom": "EA",
+      "purpose": "Hardware group count for masking/removal tasks.",
+      "required": true
+    },
+    {
+      "key": "PS_META.HEIGHT_BAND",
+      "uom": "ENUM",
+      "purpose": "Height classification for frame tasks (STD, STEP, EXT). Most interior doors are STD or STEP.",
+      "required": true
+    },
+    {
+      "key": "PS_META.SURFACE_CONDITION",
+      "uom": "ENUM",
+      "purpose": "Surface condition (GOOD/FAIR/POOR) for prep modifier application.",
+      "required": true
+    }
+  ],
+
+  "proposed_new_keys": [],
+
+  "adjacency_notes": [
+    {
+      "note": "Door frame-to-casing edge: same physical junction as NC. When frame and casing are different colors, tape line required. This is an edge_work task driven by finish_group comparison, not a new PS key.",
+      "affected_key": "PS_SURFACE_EA.DOOR_FRAME_SET"
+    },
+    {
+      "note": "Door-to-wall adjacency: wall masking driven by PS_PROTECT_LF.WALL_ADJACENT_DOOR. Only applies for spray method. Protection level escalates from none (unfinished wall) to full_mask (finished wall) per state_declarations.",
+      "affected_key": "PS_PROTECT_LF.WALL_ADJACENT_DOOR"
+    },
+    {
+      "note": "Door edge color assignment: per Doors_Doctrine Section 10.3, edge visible when door is open matches adjacent face. This is a color/material decision, not a geometry/PS key issue. No new PS key needed.",
+      "affected_key": null
+    }
+  ],
+
+  "nc_task_transfer_summary": {
+    "source_specs": {
+      "SF_DOOR_FRAME_NC_FINISH_v1": {
+        "total_tasks": 25,
+        "DIRECT": 19,
+        "MODIFIED": 6,
+        "NOT_APPLICABLE": 0
+      },
+      "SF_DOOR_SLAB_INT_NC_v1": {
+        "total_tasks": 25,
+        "DIRECT": 19,
+        "MODIFIED": 4,
+        "NOT_APPLICABLE": 2
+      }
+    },
+    "transfer_summary": {
+      "total_nc_tasks": 50,
+      "DIRECT_transfers": 38,
+      "MODIFIED_transfers": 10,
+      "NOT_APPLICABLE_removals": 2,
+      "RP_NEW_additions": "8-10",
+      "projected_total": "42-44"
+    },
+    "not_applicable_tasks": [
+      {
+        "task_id": "TSK_DOOR_FILL_FASTENERS",
+        "reason": "Bare wood only — fasteners already filled in NC. RP has no new exposed fasteners unless hardware changes (covered by separate fill task)."
+      },
+      {
+        "task_id": "TSK_DOOR_MDF_EDGE_SEAL",
+        "reason": "Bare MDF only — edges sealed in NC with shellac. RP MDF edges are already sealed under existing paint."
+      }
+    ],
+    "modified_tasks": [
+      {
+        "nc_task_id": "TSK_FRAME_INSPECT",
+        "rp_change": "RP: assess existing paint condition, not bare substrate. Includes condition severity assignment, adhesion test reference, coating ID reference."
+      },
+      {
+        "nc_task_id": "TSK_FRAME_SAND_PREP",
+        "rp_change": "RP: degloss/scuff existing paint rather than sand bare wood. Different grit, different purpose (adhesion profile vs leveling)."
+      },
+      {
+        "nc_task_id": "TSK_FRAME_FILL_STOP_HOLES",
+        "rp_change": "RP: fill only if switching hardware (new screw holes) or if damage found. Not routine."
+      },
+      {
+        "nc_task_id": "TSK_FRAME_CAULK_CASING",
+        "rp_change": "RP: assess existing caulk and replace failed sections only (15-30% typical). Not full re-caulk."
+      },
+      {
+        "nc_task_id": "TSK_FRAME_PRIME_SPRAY",
+        "rp_change": "RP: state-driven primer (adhesion, stain-block, mildew-resistant) instead of PVA/standard."
+      },
+      {
+        "nc_task_id": "TSK_FRAME_PRIME_BRUSH",
+        "rp_change": "RP: state-driven primer, same as spray variant."
+      },
+      {
+        "nc_task_id": "TSK_DOOR_INSPECT",
+        "rp_change": "RP: condition assessment for existing paint, not bare substrate inspection."
+      },
+      {
+        "nc_task_id": "TSK_DOOR_SAND_PREP",
+        "rp_change": "RP: degloss existing finish, not sand bare substrate."
+      },
+      {
+        "nc_task_id": "TSK_DOOR_PRIME_SPRAY",
+        "rp_change": "RP: state-driven primer for adhesion/stain-block, not bare substrate primer."
+      },
+      {
+        "nc_task_id": "TSK_DOOR_PRIME_BRUSH",
+        "rp_change": "RP: state-driven primer, same as spray variant."
+      }
+    ],
+    "rp_new_tasks": [
+      {
+        "proposed_task_id": "TSK_DIRP_ASSESS_CONDITION",
+        "description": "Visual condition assessment of frame + slab per door opening. Scan for cracking, peeling, adhesion failure, moisture damage, contamination. Photograph defects. Assign substrate state per component.",
+        "uom": "EA",
+        "phase": "assess",
+        "applies_when": {}
+      },
+      {
+        "proposed_task_id": "TSK_DIRP_ASSESS_ADHESION",
+        "description": "ASTM D3359 cross-hatch adhesion test on representative sections of frame and slab. Critical for doors due to mechanical stress at hinges/latches.",
+        "uom": "EA",
+        "phase": "assess",
+        "applies_when": {}
+      },
+      {
+        "proposed_task_id": "TSK_DIRP_ASSESS_COATING_ID",
+        "description": "Solvent test to identify existing coating type (latex vs alkyd). Denatured alcohol or lacquer thinner rub test. Determines primer strategy.",
+        "uom": "EA",
+        "phase": "assess",
+        "applies_when": {}
+      },
+      {
+        "proposed_task_id": "TSK_DIRP_ASSESS_MOISTURE",
+        "description": "Moisture meter reading on frame bottoms, especially bathroom/kitchen doors. Identify elevated MC indicating active moisture source.",
+        "uom": "EA",
+        "phase": "assess",
+        "applies_when": {
+          "room_type_hint": ["bathroom", "kitchen", "laundry"]
+        }
+      },
+      {
+        "proposed_task_id": "TSK_DIRP_WASH_TSP",
+        "description": "TSP wash of frame and slab surfaces to remove hand oils, cleaning residue, and surface contaminants. Rinse and dry.",
+        "uom": "EA",
+        "phase": "prep",
+        "applies_when": {}
+      },
+      {
+        "proposed_task_id": "TSK_DIRP_DEGLOSS_FRAME",
+        "description": "Degloss door frame surfaces — chemical or mechanical (scuff sand 150-180). Required for all RP door work on previously painted surfaces with any sheen.",
+        "uom": "EA",
+        "phase": "prep",
+        "applies_when": {}
+      },
+      {
+        "proposed_task_id": "TSK_DIRP_DEGLOSS_SLAB",
+        "description": "Degloss door slab surfaces — chemical or mechanical. Rate varies by door type (flush fastest, panel slower due to detail areas).",
+        "uom": "EA_SIDE",
+        "phase": "prep",
+        "applies_when": {}
+      },
+      {
+        "proposed_task_id": "TSK_DIRP_SCRAPE_FEATHER",
+        "description": "Scrape loose/failing paint to sound substrate. Feather-sand edges for smooth transition. Labor-intensive on panel doors.",
+        "uom": "EA_SIDE",
+        "phase": "prep",
+        "applies_when": {
+          "substrate_state": ["SS_INT_FAILING_PAINT", "SS_INT_PEELING"]
+        }
+      },
+      {
+        "proposed_task_id": "TSK_DIRP_TREAT_MILDEW",
+        "description": "Apply biocide solution (bleach or commercial mildewcide) to mildew-affected areas. Allow 24 hr dry before priming.",
+        "uom": "EA",
+        "phase": "prep",
+        "applies_when": {
+          "substrate_state": ["SS_INT_MOISTURE_DAMAGE"]
+        }
+      },
+      {
+        "proposed_task_id": "TSK_DIRP_CUSTOMER_WALKTHROUGH",
+        "description": "Post-completion walkthrough with homeowner. Verify door operation, check for paint on hardware, inspect finish quality, confirm satisfaction.",
+        "uom": "EA",
+        "phase": "cleanup",
+        "applies_when": {}
+      }
+    ]
+  },
+
+  "configuration_dimensions": [
+    {
+      "dimension_id": "quality_tier",
+      "values": ["QT3", "QT4", "QT5"],
+      "default": "QT3",
+      "notes": "QT2 excluded per Doors_Doctrine — doors are scrutinized surfaces requiring minimum QT3. QT5 conditional on Good surface condition. QT6 = hourly, not modeled."
+    },
+    {
+      "dimension_id": "application_method",
+      "values": ["brush", "spray"],
+      "default": "brush",
+      "notes": "Brush is default for RP (occupied home, fewer doors). Spray for production work (10+ doors, full interior). Roll-and-tip is a brush sub-method, not a separate dimension."
+    },
+    {
+      "dimension_id": "substrate_state",
+      "values": ["SS_INT_SOUND_PAINT", "SS_INT_FAILING_PAINT", "SS_INT_PEELING", "SS_INT_MOISTURE_DAMAGE", "SS_INT_SMOKE_DAMAGE"],
+      "default": "SS_INT_SOUND_PAINT",
+      "notes": "Drives prep task inclusion and primer selection. Frame and slab may have different states (recommend two state inputs: frame_state + slab_state)."
+    },
+    {
+      "dimension_id": "condition",
+      "values": ["GOOD", "FAIR", "POOR"],
+      "default": "GOOD",
+      "notes": "Surface condition drives prep modifier (GOOD = 1.0, FAIR = 1.5, POOR = 2.0 on prep tasks). Maps to substrate state severity: GOOD = sound paint, FAIR = failing, POOR = peeling/moisture/smoke."
+    },
+    {
+      "dimension_id": "door_type",
+      "values": ["flush", "panel_4", "panel_6", "raised_panel", "french", "bifold", "louvered"],
+      "default": "panel_6",
+      "notes": "Drives complexity modifier on all labor tasks. Panel_6 (colonial) is most common residential. French adds glass masking tasks. Louvered is spray-only for RP."
+    },
+    {
+      "dimension_id": "frame_type",
+      "values": ["standard", "pocket", "cased_opening", "bifold"],
+      "default": "standard",
+      "notes": "Drives frame complexity modifier. Cased openings have no door stop or hardware."
+    }
+  ],
+
+  "paintable_items": [
+    {
+      "item_id": "ITM_DOOR_FRAME",
+      "name": "Door Frame Set",
+      "uom": "EA",
+      "counting_rules": "One frame set per door opening. Includes head jamb, 2 side jambs, door stop. Does NOT include casing (covered by SF_TRIM_INT_RP).",
+      "paintscope_key": "PS_SURFACE_EA.DOOR_FRAME_SET",
+      "notes": "Frame is always painted as a set. Cannot split jambs into separate items."
+    },
+    {
+      "item_id": "ITM_DOOR_SLAB",
+      "name": "Door Slab Side",
+      "uom": "EA_SIDE",
+      "counting_rules": "One EA_SIDE per paintable face. Standard door = 2 EA_SIDE. Supports different color per side. Includes edges assigned to that face per Doors_Doctrine Section 10.3.",
+      "paintscope_key": "PS_SURFACE_EA_SIDE.DOOR_SLAB",
+      "notes": "EA_SIDE enables partial painting (one side only) and multi-color scenarios."
+    }
+  ]
+}

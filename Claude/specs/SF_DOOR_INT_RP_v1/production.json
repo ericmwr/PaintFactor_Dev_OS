@@ -1,0 +1,1163 @@
+{
+  "spec_family_id": "SF_DOOR_INT_RP",
+  "version": "0.1.0",
+  "generated_by": "Estimation Engineer",
+  "generated_at": "2026-03-13",
+
+  "MODIFIER_STACKING_WARNING": {
+    "severity": "critical",
+    "description": "Modifier stacking uses TWO separate pools that never cross-apply. Prep tasks use condition_scale x door_type_complexity x height. Coating tasks use quality_tier x door_type_complexity x height. Contamination drives task activation, not rate modification.",
+    "worst_case_prep": "POOR(2.00) x louvered(2.50) x H2(1.30) = 6.50x — extremely rare combination, flag for estimator review",
+    "worst_case_coating": "QT5(1.80) x louvered(2.50) x H2(1.30) = 5.85x — louvered + QT5 unlikely, flag for review",
+    "realistic_max_prep": "POOR(2.00) x raised_panel(1.40) x H2(1.30) = 3.64x",
+    "realistic_max_coating": "QT5(1.80) x raised_panel(1.40) x H2(1.30) = 3.28x",
+    "stacking_rules": {
+      "prep_tasks": {
+        "formula": "effective_rate = base_rate / (condition_scale x door_type_complexity x height)",
+        "pool_modifiers": "FAC_CONDITION_SCALE (PREP pool)",
+        "shared_modifiers": "FAC_DOOR_TYPE_COMPLEXITY + FAC_HEIGHT_DOOR",
+        "applies_to_phases": ["setup", "prep", "prime"]
+      },
+      "coating_tasks": {
+        "formula": "effective_rate = base_rate / (quality_tier x door_type_complexity x height)",
+        "pool_modifiers": "QT (COATING pool)",
+        "shared_modifiers": "FAC_DOOR_TYPE_COMPLEXITY + FAC_HEIGHT_DOOR",
+        "applies_to_phases": ["finish", "interstage", "cleanup"]
+      }
+    }
+  },
+
+  "task_production_rates": [
+
+    {
+      "task_id": "TSK_DIRP_FLOOR_PROTECT_BRUSH",
+      "name": "Floor Protection Setup (Perimeter Drops — Brush)",
+      "task_classification": "binary",
+      "required_input_key": "IN_EA_DOOR_OPENINGS",
+      "paintscope_key": "PS_OPENING_EA.DOOR_OPENINGS_TOTAL",
+      "unit_of_measure": "EA",
+      "rate_per_hour": 12,
+      "rate_range_low": 10,
+      "rate_range_high": 15,
+      "crew_size": 1,
+      "applies_when": {
+        "application_method": ["brush"]
+      },
+      "factor_modifiers": [],
+      "rate_basis_notes": "Drop cloth at each door location. ~5 min per opening. RP always has finished floors. Adapted from NC TSK_DOOR_FLOOR_PROTECT (12 EA/hr) — same task, same rate. Brush method uses perimeter drops only."
+    },
+
+    {
+      "task_id": "TSK_DIRP_FLOOR_PROTECT_SPRAY",
+      "name": "Floor Protection Setup (8ft Radius — Spray)",
+      "task_classification": "binary",
+      "required_input_key": "IN_EA_DOOR_OPENINGS",
+      "paintscope_key": "PS_OPENING_EA.DOOR_OPENINGS_TOTAL",
+      "unit_of_measure": "EA",
+      "rate_per_hour": 6,
+      "rate_range_low": 5,
+      "rate_range_high": 8,
+      "crew_size": 1,
+      "applies_when": {
+        "application_method": ["spray"]
+      },
+      "factor_modifiers": [],
+      "rate_basis_notes": "Rosin paper 8ft radius per opening. ~10 min per opening. Adapted from NC TSK_DOOR_SPRAY_PROTECT (6 EA/hr). Spray overspray containment requires full coverage."
+    },
+
+    {
+      "task_id": "TSK_DIRP_WALL_MASK_SETUP",
+      "name": "Wall Masking Around Door Opening (Spray)",
+      "task_classification": "binary",
+      "required_input_key": "IN_EA_DOOR_OPENINGS",
+      "paintscope_key": "PS_OPENING_EA.DOOR_OPENINGS_TOTAL",
+      "unit_of_measure": "EA",
+      "rate_per_hour": 8,
+      "rate_range_low": 6,
+      "rate_range_high": 10,
+      "crew_size": 1,
+      "applies_when": {
+        "application_method": ["spray"]
+      },
+      "factor_modifiers": [],
+      "rate_basis_notes": "Mask wall surfaces around door opening with tape and masking paper. ~7-8 min per opening (both sides). Adapted from NC TSK_FRAME_WALL_PROTECT_SPRAY (10 EA/hr) — RP slightly slower due to finished wall precision masking. RP walls are already painted; requires clean tape line."
+    },
+
+    {
+      "task_id": "TSK_DIRP_HARDWARE_REMOVE",
+      "name": "Remove Door Hardware (Spray)",
+      "task_classification": "binary",
+      "required_input_key": "IN_EA_DOOR_OPENINGS",
+      "paintscope_key": "PS_OPENING_EA.DOOR_OPENINGS_TOTAL",
+      "unit_of_measure": "EA",
+      "rate_per_hour": 3,
+      "rate_range_low": 2.5,
+      "rate_range_high": 4,
+      "crew_size": 1,
+      "applies_when": {
+        "application_method": ["spray"]
+      },
+      "factor_modifiers": [],
+      "rate_basis_notes": "Remove lockset + 3 hinges + strike plate, bag and label, remove door from frame. ~20 min per door. Direct transfer from NC TSK_DOOR_HARDWARE_REMOVE (3 EA/hr). RP hardware may have paint build-up making removal slightly slower — captured in range."
+    },
+
+    {
+      "task_id": "TSK_DIRP_HARDWARE_MASK",
+      "name": "Mask Door Hardware (Brush)",
+      "task_classification": "binary",
+      "required_input_key": "IN_EA_DOOR_OPENINGS",
+      "paintscope_key": "PS_OPENING_EA.DOOR_OPENINGS_TOTAL",
+      "unit_of_measure": "EA",
+      "rate_per_hour": 4,
+      "rate_range_low": 3,
+      "rate_range_high": 5,
+      "crew_size": 1,
+      "applies_when": {
+        "application_method": ["brush"]
+      },
+      "factor_modifiers": [],
+      "rate_basis_notes": "Mask 3 hinge leaves + lockset + strike plate with tape. ~15 min per door. Adapted from NC TSK_DOOR_HARDWARE_MASK (4 EA/hr). Same rate — masking complexity identical for RP."
+    },
+
+    {
+      "task_id": "TSK_DIRP_GLASS_MASK",
+      "name": "Mask Glass Panes (French Doors)",
+      "task_classification": "binary",
+      "required_input_key": "IN_EA_DOOR_PANES",
+      "paintscope_key": "PS_META.EA.DOOR_PANES_TOTAL",
+      "unit_of_measure": "EA",
+      "rate_per_hour": 10,
+      "rate_range_low": 8,
+      "rate_range_high": 12,
+      "crew_size": 1,
+      "applies_when": {
+        "door_type": ["french"]
+      },
+      "factor_modifiers": [],
+      "rate_basis_notes": "Tape all 4 edges of each glass pane. ~6 min per pane. Direct transfer from NC TSK_DOOR_GLASS_MASK (10 EA/hr). Same precision masking regardless of NC/RP."
+    },
+
+    {
+      "task_id": "TSK_DIRP_ASSESS_CONDITION",
+      "name": "Visual Condition Scan — Frame + Slab Per Opening",
+      "task_classification": "qt_scaled",
+      "required_input_key": "IN_EA_DOOR_OPENINGS",
+      "paintscope_key": "PS_OPENING_EA.DOOR_OPENINGS_TOTAL",
+      "unit_of_measure": "EA",
+      "rates_by_tier": {
+        "QT3": { "rate_per_hour": 8, "rate_range_low": 6, "rate_range_high": 10, "notes": "Standard visual with work light, document visible defects on frame and slab. ~7-8 min per opening." },
+        "QT4": { "rate_per_hour": 6, "rate_range_low": 5, "rate_range_high": 8, "notes": "Systematic scan with raking light, photograph all defect areas, per-component assessment. ~10 min per opening." },
+        "QT5": { "rate_per_hour": 4, "rate_range_low": 3, "rate_range_high": 5, "notes": "Critical assessment, multiple passes, raking light, full photographic documentation per component. ~15 min per opening." }
+      },
+      "crew_size": 1,
+      "applies_when": {},
+      "factor_modifiers": [],
+      "rate_basis_notes": "RP-new task. Combined frame + slab assessment per opening. Door assessment is more thorough than wall assessment (smaller surface, higher scrutiny). Rates calibrated against wall RP TSK_WLRP_ASSESS_CONDITION (15 min/room QT3 = ~4 walls). Door is ~1 opening with 2 components."
+    },
+
+    {
+      "task_id": "TSK_DIRP_ASSESS_ADHESION",
+      "name": "Adhesion Test (ASTM D3359 Cross-Hatch Tape Test)",
+      "task_classification": "binary",
+      "required_input_key": "IN_EA_DOOR_OPENINGS",
+      "paintscope_key": "PS_OPENING_EA.DOOR_OPENINGS_TOTAL",
+      "unit_of_measure": "EA",
+      "rate_per_hour": 8,
+      "rate_range_low": 6,
+      "rate_range_high": 10,
+      "crew_size": 1,
+      "applies_when": {},
+      "factor_modifiers": [],
+      "rate_basis_notes": "Cross-hatch tape test per ASTM D3359 at 2 locations per opening (1 frame + 1 slab). ~7-8 min per opening. Calibrated against wall RP TSK_WLRP_ASSESS_ADHESION (8 min fixed). Two test locations vs one for walls but smaller prep area."
+    },
+
+    {
+      "task_id": "TSK_DIRP_ASSESS_COATING_ID",
+      "name": "Coating Identification — Latex vs Oil",
+      "task_classification": "binary",
+      "required_input_key": "IN_EA_DOOR_OPENINGS",
+      "paintscope_key": "PS_OPENING_EA.DOOR_OPENINGS_TOTAL",
+      "unit_of_measure": "EA",
+      "rate_per_hour": 12,
+      "rate_range_low": 10,
+      "rate_range_high": 15,
+      "crew_size": 1,
+      "applies_when": {},
+      "factor_modifiers": [],
+      "rate_basis_notes": "Solvent rub test at 1 location per opening. ~5 min per opening. Faster than adhesion test — single rub with mineral spirits + observation. Doors historically oil-based, making this test critical for primer selection."
+    },
+
+    {
+      "task_id": "TSK_DIRP_ASSESS_MOISTURE",
+      "name": "Moisture Check — Frame Bottoms",
+      "task_classification": "binary",
+      "required_input_key": "IN_EA_DOOR_OPENINGS",
+      "paintscope_key": "PS_OPENING_EA.DOOR_OPENINGS_TOTAL",
+      "unit_of_measure": "EA",
+      "rate_per_hour": 15,
+      "rate_range_low": 12,
+      "rate_range_high": 20,
+      "crew_size": 1,
+      "applies_when": {},
+      "factor_modifiers": [],
+      "rate_basis_notes": "Moisture meter reading on frame bottoms. ~4 min per opening. Quick test — point meter at suspect areas, record reading. Only applicable for bathroom/kitchen/laundry doors but estimator includes for all openings to cover assessment time."
+    },
+
+    {
+      "task_id": "TSK_RRP_LEAD_TEST",
+      "name": "Lead Test (XRF or Swab)",
+      "task_classification": "binary",
+      "required_input_key": "IN_EA_DOOR_OPENINGS",
+      "paintscope_key": "PS_OPENING_EA.DOOR_OPENINGS_TOTAL",
+      "unit_of_measure": "EA",
+      "rate_per_hour": 6,
+      "rate_range_low": 4,
+      "rate_range_high": 8,
+      "crew_size": 1,
+      "applies_when": {
+        "home_pre_1978": true
+      },
+      "factor_modifiers": [],
+      "rate_basis_notes": "Lead test at 2 locations per opening (1 frame + 1 slab). ~10 min per opening with XRF, ~8 min with swab. Doors are HIGH RISK for lead paint. Shared RRP module task — rate consistent across interior RP specs."
+    },
+
+    {
+      "task_id": "TSK_RRP_CONTAINMENT_SETUP",
+      "name": "RRP Containment Setup",
+      "task_classification": "binary",
+      "required_input_key": "IN_EA_DOOR_OPENINGS",
+      "paintscope_key": "PS_OPENING_EA.DOOR_OPENINGS_TOTAL",
+      "unit_of_measure": "EA",
+      "rate_per_hour": 4,
+      "rate_range_low": 3,
+      "rate_range_high": 5,
+      "crew_size": 1,
+      "applies_when": {
+        "home_pre_1978": true,
+        "lead_status": ["tested_positive", "unknown_pre1978"]
+      },
+      "factor_modifiers": [],
+      "rate_basis_notes": "Install poly sheeting containment around door opening. ~15 min per opening. EPA RRP Rule 40 CFR 745. Shared RRP module task."
+    },
+
+    {
+      "task_id": "TSK_RRP_HEPA_VACUUM",
+      "name": "HEPA Vacuum After Paint Disturbance",
+      "task_classification": "binary",
+      "required_input_key": "IN_EA_DOOR_OPENINGS",
+      "paintscope_key": "PS_OPENING_EA.DOOR_OPENINGS_TOTAL",
+      "unit_of_measure": "EA",
+      "rate_per_hour": 8,
+      "rate_range_low": 6,
+      "rate_range_high": 10,
+      "crew_size": 1,
+      "applies_when": {
+        "home_pre_1978": true,
+        "lead_status": ["tested_positive", "unknown_pre1978"]
+      },
+      "factor_modifiers": [],
+      "rate_basis_notes": "HEPA vacuum all surfaces after each sanding/scraping disturbance. ~7-8 min per opening per pass. Multiple passes may be needed. Shared RRP module task."
+    },
+
+    {
+      "task_id": "TSK_RRP_CONTAINMENT_REMOVAL",
+      "name": "RRP Containment Removal and Visual Clearance",
+      "task_classification": "binary",
+      "required_input_key": "IN_EA_DOOR_OPENINGS",
+      "paintscope_key": "PS_OPENING_EA.DOOR_OPENINGS_TOTAL",
+      "unit_of_measure": "EA",
+      "rate_per_hour": 6,
+      "rate_range_low": 4,
+      "rate_range_high": 8,
+      "crew_size": 1,
+      "applies_when": {
+        "home_pre_1978": true,
+        "lead_status": ["tested_positive", "unknown_pre1978"]
+      },
+      "factor_modifiers": [],
+      "rate_basis_notes": "Remove containment poly, visual clearance inspection. ~10 min per opening. Shared RRP module task."
+    },
+
+    {
+      "task_id": "TSK_RRP_WASTE_DISPOSAL",
+      "name": "Lead-Contaminated Waste Disposal",
+      "task_classification": "binary",
+      "required_input_key": null,
+      "paintscope_key": null,
+      "unit_of_measure": "FIXED",
+      "fixed_time_minutes": 30,
+      "fixed_time_range_low": 20,
+      "fixed_time_range_high": 45,
+      "crew_size": 1,
+      "applies_when": {
+        "home_pre_1978": true,
+        "lead_status": ["tested_positive", "unknown_pre1978"]
+      },
+      "factor_modifiers": [],
+      "rate_basis_notes": "Package and dispose lead-contaminated debris per EPA RRP Rule. Fixed time per project regardless of door count. ~30 min. Shared RRP module task."
+    },
+
+    {
+      "task_id": "TSK_DIRP_WASH_TSP",
+      "name": "TSP Wash Frame + Slab Surfaces",
+      "task_classification": "binary",
+      "required_input_key": "IN_EA_DOOR_OPENINGS",
+      "paintscope_key": "PS_OPENING_EA.DOOR_OPENINGS_TOTAL",
+      "unit_of_measure": "EA",
+      "rate_per_hour": 6,
+      "rate_range_low": 5,
+      "rate_range_high": 8,
+      "crew_size": 1,
+      "applies_when": {
+        "contamination_type": ["mildew", "smoke", "water_stain", "grease"]
+      },
+      "factor_modifiers": [],
+      "rate_basis_notes": "TSP wash frame and both slab sides per opening. ~10 min per opening. Wipe on, scrub detail areas, rinse, dry. RP-new task — no NC equivalent (new substrate is clean). Contamination-dependent activation."
+    },
+
+    {
+      "task_id": "TSK_DIRP_TREAT_MILDEW",
+      "name": "Mildew/Biocide Treatment",
+      "task_classification": "binary",
+      "required_input_key": "IN_EA_DOOR_OPENINGS",
+      "paintscope_key": "PS_OPENING_EA.DOOR_OPENINGS_TOTAL",
+      "unit_of_measure": "EA",
+      "rate_per_hour": 4,
+      "rate_range_low": 3,
+      "rate_range_high": 5,
+      "crew_size": 1,
+      "applies_when": {
+        "contamination_type": ["mildew"],
+        "substrate_state": ["SS_INT_MOISTURE_DAMAGE"]
+      },
+      "factor_modifiers": [],
+      "rate_basis_notes": "Apply bleach/mildewcide solution, full contact time, rinse. ~15 min per opening including dwell time. RP-new task. Bathroom/kitchen door frames are common mildew locations."
+    },
+
+    {
+      "task_id": "TSK_DIRP_DEGLOSS_FRAME",
+      "name": "Degloss Door Frame Surfaces",
+      "task_classification": "qt_scaled",
+      "required_input_key": "IN_EA_DOOR_FRAME_SET",
+      "paintscope_key": "PS_SURFACE_EA.DOOR_FRAME_SET",
+      "unit_of_measure": "EA",
+      "rates_by_tier": {
+        "QT3": { "rate_per_hour": 8, "rate_range_low": 6, "rate_range_high": 10, "notes": "Chemical or mechanical degloss, all accessible frame surfaces. ~7-8 min per frame." },
+        "QT4": { "rate_per_hour": 6, "rate_range_low": 5, "rate_range_high": 8, "notes": "Full degloss with adhesion verification on stop profile. ~10 min per frame." },
+        "QT5": { "rate_per_hour": 5, "rate_range_low": 4, "rate_range_high": 6, "notes": "Complete degloss with verification and spot adhesion re-test. ~12 min per frame." }
+      },
+      "crew_size": 1,
+      "applies_when": {
+        "substrate_state": ["SS_INT_SOUND_PAINT", "SS_INT_FAILING_PAINT"]
+      },
+      "factor_modifiers": [
+        { "modifier_id": "FAC_CONDITION_SCALE", "values": { "GOOD": 1.00, "FAIR": 1.50, "POOR": 2.00 } },
+        { "modifier_id": "FAC_FRAME_TYPE_COMPLEXITY", "values": { "standard": 1.00, "pocket": 0.85, "cased_opening": 0.75, "bifold": 0.90 } },
+        { "modifier_id": "FAC_HEIGHT_DOOR", "values": { "H1": 1.00, "H2": 1.30, "H3": 1.50 } }
+      ],
+      "rate_basis_notes": "RP replacement for NC TSK_FRAME_SAND_PREP (12 EA/hr). RP degloss is slower than NC sand prep — chemical degloss requires wipe-on, dwell, wipe-off vs simple scuff. Door stop profile areas need contour attention. Rates are QT3 baseline."
+    },
+
+    {
+      "task_id": "TSK_DIRP_DEGLOSS_SLAB",
+      "name": "Degloss Door Slab Surface",
+      "task_classification": "qt_scaled",
+      "required_input_key": "IN_EA_SIDE_DOOR_SLAB_TOTAL",
+      "paintscope_key": "PS_SURFACE_EA_SIDE.DOOR_SLAB",
+      "unit_of_measure": "EA_SIDE",
+      "rates_by_tier": {
+        "QT3": { "rate_per_hour": 6, "rate_range_low": 5, "rate_range_high": 8, "notes": "Chemical or mechanical degloss, full face + edge. ~10 min per side." },
+        "QT4": { "rate_per_hour": 5, "rate_range_low": 4, "rate_range_high": 6, "notes": "Full degloss with adhesion verification, panel recesses addressed. ~12 min per side." },
+        "QT5": { "rate_per_hour": 4, "rate_range_low": 3, "rate_range_high": 5, "notes": "Complete degloss with verification, all panel detail areas. ~15 min per side." }
+      },
+      "crew_size": 1,
+      "applies_when": {
+        "substrate_state": ["SS_INT_SOUND_PAINT", "SS_INT_FAILING_PAINT"]
+      },
+      "factor_modifiers": [
+        { "modifier_id": "FAC_CONDITION_SCALE", "values": { "GOOD": 1.00, "FAIR": 1.50, "POOR": 2.00 } },
+        { "modifier_id": "FAC_DOOR_TYPE_COMPLEXITY", "values": { "flush": 1.00, "panel_4": 1.25, "panel_6": 1.35, "raised_panel": 1.40, "french": 2.00, "bifold": 0.70, "louvered": 2.50 } }
+      ],
+      "rate_basis_notes": "RP replacement for NC TSK_DOOR_SAND_PREP (8 EA_SIDE/hr). RP degloss is slower — chemical process vs simple scuff. Panel doors significantly slower due to crevice access. Flush door baseline. Door_type_complexity modifier applies to slab tasks."
+    },
+
+    {
+      "task_id": "TSK_DIRP_SCRAPE_FEATHER",
+      "name": "Scrape Loose Paint and Feather Edges — Frame + Slab",
+      "task_classification": "qt_scaled",
+      "required_input_key": "IN_EA_SIDE_DOOR_SLAB_TOTAL",
+      "paintscope_key": "PS_SURFACE_EA_SIDE.DOOR_SLAB",
+      "unit_of_measure": "EA_SIDE",
+      "rates_by_tier": {
+        "QT3": { "rate_per_hour": 4, "rate_range_low": 3, "rate_range_high": 5, "notes": "Remove failing paint, feather edges — no visible ridge at 6 ft. ~15 min per side." },
+        "QT4": { "rate_per_hour": 3, "rate_range_low": 2.5, "rate_range_high": 4, "notes": "Comprehensive scrape + near-invisible feathering at 3 ft. ~20 min per side." },
+        "QT5": { "rate_per_hour": 2, "rate_range_low": 1.5, "rate_range_high": 3, "notes": "Critical scrape + perfect feathering — no ridge at arm's length. ~30 min per side." }
+      },
+      "crew_size": 1,
+      "applies_when": {
+        "condition_scale": ["FAIR", "POOR"],
+        "substrate_state": ["SS_INT_FAILING_PAINT", "SS_INT_PEELING", "SS_INT_MOISTURE_DAMAGE"]
+      },
+      "factor_modifiers": [
+        { "modifier_id": "FAC_CONDITION_SCALE", "values": { "FAIR": 1.50, "POOR": 2.00 } },
+        { "modifier_id": "FAC_DOOR_TYPE_COMPLEXITY", "values": { "flush": 1.00, "panel_4": 1.25, "panel_6": 1.35, "raised_panel": 1.40, "french": 2.00, "bifold": 0.70, "louvered": 2.50 } }
+      ],
+      "rate_basis_notes": "RP-new task — no NC equivalent (NC is bare wood, no existing paint to scrape). Labor-intensive on panel doors — contour scraper required. Combined scrape + feather. Non-negotiable feathering at all tiers — ridge telegraphing through fine-finish coats is unacceptable. FAIR baseline shown; POOR doubles the work."
+    },
+
+    {
+      "task_id": "TSK_DIRP_CAULK_ASSESS_REPLACE",
+      "name": "Assess and Replace Failed Caulk — Frame-to-Casing Joints",
+      "task_classification": "qt_scaled",
+      "required_input_key": "IN_EA_DOOR_FRAME_SET",
+      "paintscope_key": "PS_SURFACE_EA.DOOR_FRAME_SET",
+      "unit_of_measure": "EA",
+      "rates_by_tier": {
+        "QT3": { "rate_per_hour": 8, "rate_range_low": 6, "rate_range_high": 10, "notes": "Replace visibly failed sections. ~7-8 min per frame. ~15-20% joint replacement typical." },
+        "QT4": { "rate_per_hour": 6, "rate_range_low": 5, "rate_range_high": 8, "notes": "Comprehensive assessment, replace all suspect + failed joints. ~10 min per frame." },
+        "QT5": { "rate_per_hour": 4, "rate_range_low": 3, "rate_range_high": 5, "notes": "Replace all joints not in perfect condition, perfect tooled bead. ~15 min per frame." }
+      },
+      "crew_size": 1,
+      "applies_when": {},
+      "factor_modifiers": [
+        { "modifier_id": "FAC_CONDITION_SCALE", "values": { "GOOD": 1.00, "FAIR": 1.50, "POOR": 2.00 } },
+        { "modifier_id": "FAC_FRAME_TYPE_COMPLEXITY", "values": { "standard": 1.00, "pocket": 0.85, "cased_opening": 0.75, "bifold": 0.90 } },
+        { "modifier_id": "FAC_HEIGHT_DOOR", "values": { "H1": 1.00, "H2": 1.30, "H3": 1.50 } }
+      ],
+      "rate_basis_notes": "Modified from NC TSK_FRAME_CAULK_CASING (10 EA/hr). RP is slower — assess existing, remove failed, apply new vs NC simple bead. NC = full new caulk on bare joint; RP = selective replacement. QT3 baseline assumes 15-20% joint replacement."
+    },
+
+    {
+      "task_id": "TSK_DIRP_FILL_PATCH",
+      "name": "Fill and Patch Damaged Areas — Frame + Slab",
+      "task_classification": "qt_scaled",
+      "required_input_key": "IN_EA_DOOR_OPENINGS",
+      "paintscope_key": "PS_OPENING_EA.DOOR_OPENINGS_TOTAL",
+      "unit_of_measure": "EA",
+      "rates_by_tier": {
+        "QT3": { "rate_per_hour": 8, "rate_range_low": 6, "rate_range_high": 10, "notes": "Fill obvious damage and hardware change holes. ~7-8 min per opening." },
+        "QT4": { "rate_per_hour": 6, "rate_range_low": 5, "rate_range_high": 8, "notes": "Fill all visible defects, careful feathering. ~10 min per opening." },
+        "QT5": { "rate_per_hour": 4, "rate_range_low": 3, "rate_range_high": 5, "notes": "Fill every defect, near-zero tolerance, wood hardener where needed. ~15 min per opening." }
+      },
+      "crew_size": 1,
+      "applies_when": {
+        "condition_scale": ["FAIR", "POOR"]
+      },
+      "factor_modifiers": [
+        { "modifier_id": "FAC_CONDITION_SCALE", "values": { "FAIR": 1.50, "POOR": 2.00 } },
+        { "modifier_id": "FAC_DOOR_TYPE_COMPLEXITY", "values": { "flush": 1.00, "panel_4": 1.25, "panel_6": 1.35, "raised_panel": 1.40, "french": 2.00, "bifold": 0.70, "louvered": 2.50 } }
+      ],
+      "rate_basis_notes": "Modified from NC TSK_FRAME_FILL_STOP_HOLES (20 EA/hr). RP fill/patch is significantly slower — damage-related defects vs routine nail holes. Combined frame + slab per opening. Includes wood hardener on moisture-softened frame bottoms."
+    },
+
+    {
+      "task_id": "TSK_DIRP_SAND_FILL",
+      "name": "Sand Filled Areas Smooth",
+      "task_classification": "binary",
+      "required_input_key": "IN_EA_DOOR_OPENINGS",
+      "paintscope_key": "PS_OPENING_EA.DOOR_OPENINGS_TOTAL",
+      "unit_of_measure": "EA",
+      "rate_per_hour": 12,
+      "rate_range_low": 10,
+      "rate_range_high": 15,
+      "crew_size": 1,
+      "applies_when": {
+        "condition_scale": ["FAIR", "POOR"]
+      },
+      "factor_modifiers": [],
+      "rate_basis_notes": "Sand all filler spots flush on frame + slab per opening. ~5 min per opening. Adapted from NC TSK_FRAME_SAND_FILL (30 EA/hr frame only) + NC TSK_DOOR_SAND_FILL (30 EA_SIDE/hr). Combined task covers both components — more spots than NC but single pass per opening."
+    },
+
+    {
+      "task_id": "TSK_DIRP_DUST_WIPE",
+      "name": "Dust Wipe Frame + Slab Surfaces",
+      "task_classification": "binary",
+      "required_input_key": "IN_EA_DOOR_OPENINGS",
+      "paintscope_key": "PS_OPENING_EA.DOOR_OPENINGS_TOTAL",
+      "unit_of_measure": "EA",
+      "rate_per_hour": 15,
+      "rate_range_low": 12,
+      "rate_range_high": 20,
+      "crew_size": 1,
+      "applies_when": {},
+      "factor_modifiers": [],
+      "rate_basis_notes": "Tack cloth wipe all frame + slab surfaces per opening. ~4 min per opening. Adapted from NC TSK_FRAME_CLEAN_DUST (40 EA/hr frame only) + NC TSK_DOOR_CLEAN_DUST (30 EA_SIDE/hr). Combined per-opening task covers both components."
+    },
+
+    {
+      "task_id": "TSK_DIRP_PRIME_FRAME_BRUSH",
+      "name": "Brush State-Driven Primer on Frame",
+      "task_classification": "binary",
+      "required_input_key": "IN_EA_DOOR_FRAME_SET",
+      "paintscope_key": "PS_SURFACE_EA.DOOR_FRAME_SET",
+      "unit_of_measure": "EA",
+      "rate_per_hour": 7,
+      "rate_range_low": 6,
+      "rate_range_high": 9,
+      "crew_size": 1,
+      "applies_when": {
+        "application_method": ["brush"],
+        "substrate_state": ["SS_INT_FAILING_PAINT", "SS_INT_PEELING", "SS_INT_MOISTURE_DAMAGE", "SS_INT_SMOKE_DAMAGE"]
+      },
+      "factor_modifiers": [
+        { "modifier_id": "FAC_FRAME_TYPE_COMPLEXITY", "values": { "standard": 1.00, "pocket": 0.85, "cased_opening": 0.75, "bifold": 0.90 } },
+        { "modifier_id": "FAC_HEIGHT_DOOR", "values": { "H1": 1.00, "H2": 1.30, "H3": 1.50 } }
+      ],
+      "rate_basis_notes": "Brush adhesion/stain-block/mildew primer on frame set. ~8-9 min per frame. Adapted from NC TSK_FRAME_PRIME_BRUSH (8 EA/hr). RP slightly slower — adhesion primers are thicker/tackier than standard primer, require careful application. Head jamb → side jambs → stop."
+    },
+
+    {
+      "task_id": "TSK_DIRP_PRIME_FRAME_SPRAY",
+      "name": "Spray State-Driven Primer on Frame",
+      "task_classification": "binary",
+      "required_input_key": "IN_EA_DOOR_FRAME_SET",
+      "paintscope_key": "PS_SURFACE_EA.DOOR_FRAME_SET",
+      "unit_of_measure": "EA",
+      "rate_per_hour": 12,
+      "rate_range_low": 10,
+      "rate_range_high": 15,
+      "crew_size": 1,
+      "applies_when": {
+        "application_method": ["spray"],
+        "substrate_state": ["SS_INT_FAILING_PAINT", "SS_INT_PEELING", "SS_INT_MOISTURE_DAMAGE", "SS_INT_SMOKE_DAMAGE"]
+      },
+      "factor_modifiers": [
+        { "modifier_id": "FAC_FRAME_TYPE_COMPLEXITY", "values": { "standard": 1.00, "pocket": 0.85, "cased_opening": 0.75, "bifold": 0.90 } },
+        { "modifier_id": "FAC_HEIGHT_DOOR", "values": { "H1": 1.00, "H2": 1.30, "H3": 1.50 } }
+      ],
+      "rate_basis_notes": "Spray state-driven primer on frame set. ~5 min per frame. Adapted from NC TSK_FRAME_PRIME_SPRAY (15 EA/hr). RP slightly slower — adhesion primers require adjusted pressure and slower pass speed. Spray rate MUST be faster than brush rate (12 > 7). CHECK: spray(12) > brush(7) — PASS."
+    },
+
+    {
+      "task_id": "TSK_DIRP_PRIME_SLAB_BRUSH",
+      "name": "Brush State-Driven Primer on Slab",
+      "task_classification": "binary",
+      "required_input_key": "IN_EA_SIDE_DOOR_SLAB_TOTAL",
+      "paintscope_key": "PS_SURFACE_EA_SIDE.DOOR_SLAB",
+      "unit_of_measure": "EA_SIDE",
+      "rate_per_hour": 4,
+      "rate_range_low": 3,
+      "rate_range_high": 5,
+      "crew_size": 1,
+      "applies_when": {
+        "application_method": ["brush"],
+        "substrate_state": ["SS_INT_FAILING_PAINT", "SS_INT_PEELING", "SS_INT_MOISTURE_DAMAGE", "SS_INT_SMOKE_DAMAGE"]
+      },
+      "factor_modifiers": [
+        { "modifier_id": "FAC_DOOR_TYPE_COMPLEXITY", "values": { "flush": 1.00, "panel_4": 1.25, "panel_6": 1.35, "raised_panel": 1.40, "french": 2.00, "bifold": 0.70, "louvered": 2.50 } }
+      ],
+      "rate_basis_notes": "Brush state-driven primer on slab face + edge. ~15 min per side. Adapted from NC TSK_DOOR_PRIME_BRUSH (5 EA_SIDE/hr). RP slightly slower — adhesion primers are tackier, require careful tip-off. Panel doors: panels first, rails, then stiles."
+    },
+
+    {
+      "task_id": "TSK_DIRP_PRIME_SLAB_SPRAY",
+      "name": "Spray State-Driven Primer on Slab",
+      "task_classification": "binary",
+      "required_input_key": "IN_EA_SIDE_DOOR_SLAB_TOTAL",
+      "paintscope_key": "PS_SURFACE_EA_SIDE.DOOR_SLAB",
+      "unit_of_measure": "EA_SIDE",
+      "rate_per_hour": 10,
+      "rate_range_low": 8,
+      "rate_range_high": 12,
+      "crew_size": 1,
+      "applies_when": {
+        "application_method": ["spray"],
+        "substrate_state": ["SS_INT_FAILING_PAINT", "SS_INT_PEELING", "SS_INT_MOISTURE_DAMAGE", "SS_INT_SMOKE_DAMAGE"]
+      },
+      "factor_modifiers": [
+        { "modifier_id": "FAC_DOOR_TYPE_COMPLEXITY", "values": { "flush": 1.00, "panel_4": 1.25, "panel_6": 1.35, "raised_panel": 1.40, "french": 2.00, "bifold": 0.70, "louvered": 2.50 } }
+      ],
+      "rate_basis_notes": "Spray state-driven primer on slab face + edge. ~6 min per side. Adapted from NC TSK_DOOR_PRIME_SPRAY (12 EA_SIDE/hr). RP slightly slower — adhesion primers need adjusted settings. Spray rate MUST be faster than brush rate (10 > 4). CHECK: spray(10) > brush(4) — PASS."
+    },
+
+    {
+      "task_id": "TSK_DIRP_SPOT_PRIME",
+      "name": "Spot Prime Scraped/Repaired Areas",
+      "task_classification": "qt_scaled",
+      "required_input_key": "IN_EA_DOOR_OPENINGS",
+      "paintscope_key": "PS_OPENING_EA.DOOR_OPENINGS_TOTAL",
+      "unit_of_measure": "EA",
+      "rates_by_tier": {
+        "QT3": { "rate_per_hour": 10, "rate_range_low": 8, "rate_range_high": 12, "notes": "Spot prime all repair areas. ~6 min per opening." },
+        "QT4": { "rate_per_hour": 8, "rate_range_low": 6, "rate_range_high": 10, "notes": "Spot prime all repairs with feathered edges. ~7-8 min per opening." },
+        "QT5": { "rate_per_hour": 6, "rate_range_low": 5, "rate_range_high": 8, "notes": "Spot prime all repairs with wide feather, may need light sand after. ~10 min per opening." }
+      },
+      "crew_size": 1,
+      "applies_when": {},
+      "factor_modifiers": [
+        { "modifier_id": "FAC_CONDITION_SCALE", "values": { "GOOD": 1.00, "FAIR": 1.50, "POOR": 2.00 } }
+      ],
+      "rate_basis_notes": "RP-new task. Spot prime scraped, feathered, caulked, and patched areas to prevent flashing. Brush application regardless of method — spot work always brushed. GOOD condition has fewer spots; FAIR/POOR have more."
+    },
+
+    {
+      "task_id": "TSK_DIRP_INSPECT_COAT",
+      "name": "Inspect Coat (Interstage) — Frame + Slab",
+      "task_classification": "qt_scaled",
+      "required_input_key": "IN_EA_DOOR_OPENINGS",
+      "paintscope_key": "PS_OPENING_EA.DOOR_OPENINGS_TOTAL",
+      "unit_of_measure": "EA",
+      "rates_by_tier": {
+        "QT3": { "rate_per_hour": 15, "rate_range_low": 12, "rate_range_high": 20, "notes": "Quick glance at 6 feet — obvious defects only. ~4 min per opening." },
+        "QT4": { "rate_per_hour": 10, "rate_range_low": 8, "rate_range_high": 12, "notes": "Systematic scan at 3 feet — mark all visible defects. ~6 min per opening." },
+        "QT5": { "rate_per_hour": 6, "rate_range_low": 5, "rate_range_high": 8, "notes": "Lighted critical inspection at arm's length — zero tolerance. ~10 min per opening." }
+      },
+      "crew_size": 1,
+      "applies_when": {},
+      "factor_modifiers": [],
+      "rate_basis_notes": "Combined frame + slab interstage inspection per opening. Adapted from NC TSK_FRAME_INSPECT_COAT (30 EA/hr) + NC TSK_DOOR_INSPECT_COAT (20 EA_SIDE/hr). Combined task slower per opening than either individual NC task — covers both components."
+    },
+
+    {
+      "task_id": "TSK_DIRP_LIGHT_SAND_FRAME",
+      "name": "Sand Between Coats — Frame",
+      "task_classification": "qt_scaled",
+      "required_input_key": "IN_EA_DOOR_FRAME_SET",
+      "paintscope_key": "PS_SURFACE_EA.DOOR_FRAME_SET",
+      "unit_of_measure": "EA",
+      "rates_by_tier": {
+        "QT3": { "rate_per_hour": 15, "rate_range_low": 12, "rate_range_high": 20, "notes": "Spot sand nibs 220 grit. ~4 min per frame." },
+        "QT4": { "rate_per_hour": 10, "rate_range_low": 8, "rate_range_high": 12, "notes": "Full sand 220 grit, uniform scratch pattern. ~6 min per frame." },
+        "QT5": { "rate_per_hour": 8, "rate_range_low": 6, "rate_range_high": 10, "notes": "Thorough 320 grit, every imperfection. ~7-8 min per frame." }
+      },
+      "crew_size": 1,
+      "applies_when": {},
+      "factor_modifiers": [
+        { "modifier_id": "FAC_FRAME_TYPE_COMPLEXITY", "values": { "standard": 1.00, "pocket": 0.85, "cased_opening": 0.75, "bifold": 0.90 } },
+        { "modifier_id": "FAC_HEIGHT_DOOR", "values": { "H1": 1.00, "H2": 1.30, "H3": 1.50 } }
+      ],
+      "rate_basis_notes": "Adapted from NC TSK_FRAME_LIGHT_SAND (12 EA/hr). RP interstage sanding on previously painted surfaces. QT3 is slightly faster than NC baseline (spot sand vs scuff). Contour sponge for door stop profile."
+    },
+
+    {
+      "task_id": "TSK_DIRP_LIGHT_SAND_SLAB",
+      "name": "Sand Between Coats — Slab",
+      "task_classification": "qt_scaled",
+      "required_input_key": "IN_EA_SIDE_DOOR_SLAB_TOTAL",
+      "paintscope_key": "PS_SURFACE_EA_SIDE.DOOR_SLAB",
+      "unit_of_measure": "EA_SIDE",
+      "rates_by_tier": {
+        "QT3": { "rate_per_hour": 10, "rate_range_low": 8, "rate_range_high": 12, "notes": "Spot sand nibs 220 grit. ~6 min per side." },
+        "QT4": { "rate_per_hour": 6, "rate_range_low": 5, "rate_range_high": 8, "notes": "Full sand 220 grit, uniform scratch pattern. ~10 min per side." },
+        "QT5": { "rate_per_hour": 5, "rate_range_low": 4, "rate_range_high": 6, "notes": "Thorough 320 grit, every imperfection. ~12 min per side." }
+      },
+      "crew_size": 1,
+      "applies_when": {},
+      "factor_modifiers": [
+        { "modifier_id": "FAC_DOOR_TYPE_COMPLEXITY", "values": { "flush": 1.00, "panel_4": 1.25, "panel_6": 1.35, "raised_panel": 1.40, "french": 2.00, "bifold": 0.70, "louvered": 2.50 } }
+      ],
+      "rate_basis_notes": "Adapted from NC TSK_DOOR_LIGHT_SAND (8 EA_SIDE/hr). RP interstage sanding. Panel doors significantly slower due to recess detail. Rigid sanding block mandatory for flat surfaces (FFD 15.4.1), contour sponge for recesses."
+    },
+
+    {
+      "task_id": "TSK_DIRP_PATCH_DEFECTS",
+      "name": "Patch/Repair Defects (Interstage)",
+      "task_classification": "qt_scaled",
+      "required_input_key": "IN_EA_DOOR_OPENINGS",
+      "paintscope_key": "PS_OPENING_EA.DOOR_OPENINGS_TOTAL",
+      "unit_of_measure": "EA",
+      "rates_by_tier": {
+        "QT3": { "rate_per_hour": 15, "rate_range_low": 12, "rate_range_high": 20, "notes": "Repair only glaring defects — deep scratches, obvious holes. ~4 min per opening." },
+        "QT4": { "rate_per_hour": 10, "rate_range_low": 8, "rate_range_high": 12, "notes": "Repair all marked defects — visible at 3 feet. ~6 min per opening." },
+        "QT5": { "rate_per_hour": 6, "rate_range_low": 5, "rate_range_high": 8, "notes": "Repair all defects regardless of size. ~10 min per opening." }
+      },
+      "crew_size": 1,
+      "applies_when": {},
+      "factor_modifiers": [],
+      "rate_basis_notes": "Combined frame + slab interstage defect repair per opening. Adapted from NC TSK_FRAME_PATCH_REPAIR (30 EA/hr) + NC TSK_DOOR_PATCH_REPAIR (20 EA_SIDE/hr). RP has more defects to address than NC — existing paint issues add repair scope."
+    },
+
+    {
+      "task_id": "TSK_DIRP_SPOT_COAT",
+      "name": "Spot Coat Patched Areas",
+      "task_classification": "qt_scaled",
+      "required_input_key": "IN_EA_DOOR_OPENINGS",
+      "paintscope_key": "PS_OPENING_EA.DOOR_OPENINGS_TOTAL",
+      "unit_of_measure": "EA",
+      "rates_by_tier": {
+        "QT3": { "rate_per_hour": 15, "rate_range_low": 12, "rate_range_high": 20, "notes": "Spot coat obvious repairs only. ~4 min per opening." },
+        "QT4": { "rate_per_hour": 10, "rate_range_low": 8, "rate_range_high": 12, "notes": "Spot coat all patched areas. ~6 min per opening." },
+        "QT5": { "rate_per_hour": 8, "rate_range_low": 6, "rate_range_high": 10, "notes": "Spot coat all repairs, ensure uniform film build. ~7-8 min per opening." }
+      },
+      "crew_size": 1,
+      "applies_when": {},
+      "factor_modifiers": [],
+      "rate_basis_notes": "RP-new task. Apply spot coat over patched/repaired areas on frame and slab to build film thickness. Brush application. Scope proportional to quality tier — QT5 requires more spot repairs to maintain zero-defect standard."
+    },
+
+    {
+      "task_id": "TSK_DIRP_CLEAN_INTERSTAGE",
+      "name": "Clean Sanding Dust (Interstage)",
+      "task_classification": "binary",
+      "required_input_key": "IN_EA_DOOR_OPENINGS",
+      "paintscope_key": "PS_OPENING_EA.DOOR_OPENINGS_TOTAL",
+      "unit_of_measure": "EA",
+      "rate_per_hour": 15,
+      "rate_range_low": 12,
+      "rate_range_high": 20,
+      "crew_size": 1,
+      "applies_when": {},
+      "factor_modifiers": [],
+      "rate_basis_notes": "Tack cloth wipe frame + slab between coats per opening. ~4 min per opening. Adapted from NC TSK_FRAME_CLEAN_INTERSTAGE (40 EA/hr) + NC TSK_DOOR_CLEAN_INTERSTAGE (30 EA_SIDE/hr). Combined per-opening task."
+    },
+
+    {
+      "task_id": "TSK_DIRP_FINISH_FRAME_BRUSH",
+      "name": "Brush Finish Coat on Frame",
+      "task_classification": "binary",
+      "required_input_key": "IN_EA_DOOR_FRAME_SET",
+      "paintscope_key": "PS_SURFACE_EA.DOOR_FRAME_SET",
+      "unit_of_measure": "EA",
+      "rate_per_hour": 5,
+      "rate_range_low": 4,
+      "rate_range_high": 7,
+      "crew_size": 1,
+      "applies_when": {
+        "application_method": ["brush"]
+      },
+      "factor_modifiers": [
+        { "modifier_id": "FAC_FRAME_TYPE_COMPLEXITY", "values": { "standard": 1.00, "pocket": 0.85, "cased_opening": 0.75, "bifold": 0.90 } },
+        { "modifier_id": "FAC_HEIGHT_DOOR", "values": { "H1": 1.00, "H2": 1.30, "H3": 1.50 } }
+      ],
+      "rate_basis_notes": "Brush finish coat on frame set. ~12 min per frame. Adapted from NC TSK_FRAME_FINISH_BRUSH (6 EA/hr). RP slightly slower — fine-finish enamel on previously painted surface requires more careful application to avoid lifting. Apply, tip once, walk away per FFD 15.3.1."
+    },
+
+    {
+      "task_id": "TSK_DIRP_FINISH_FRAME_SPRAY",
+      "name": "Spray Finish Coat on Frame",
+      "task_classification": "binary",
+      "required_input_key": "IN_EA_DOOR_FRAME_SET",
+      "paintscope_key": "PS_SURFACE_EA.DOOR_FRAME_SET",
+      "unit_of_measure": "EA",
+      "rate_per_hour": 10,
+      "rate_range_low": 8,
+      "rate_range_high": 12,
+      "crew_size": 1,
+      "applies_when": {
+        "application_method": ["spray"]
+      },
+      "factor_modifiers": [
+        { "modifier_id": "FAC_FRAME_TYPE_COMPLEXITY", "values": { "standard": 1.00, "pocket": 0.85, "cased_opening": 0.75, "bifold": 0.90 } },
+        { "modifier_id": "FAC_HEIGHT_DOOR", "values": { "H1": 1.00, "H2": 1.30, "H3": 1.50 } }
+      ],
+      "rate_basis_notes": "Spray finish coat on frame set. ~6 min per frame. Adapted from NC TSK_FRAME_FINISH_SPRAY (12 EA/hr). RP slightly slower — fine-finish enamel atomization requires adjusted settings on repainted surface. Spray rate MUST be faster than brush rate (10 > 5). CHECK: spray(10) > brush(5) — PASS."
+    },
+
+    {
+      "task_id": "TSK_DIRP_FINISH_SLAB_BRUSH",
+      "name": "Brush Finish Coat on Slab",
+      "task_classification": "binary",
+      "required_input_key": "IN_EA_SIDE_DOOR_SLAB_TOTAL",
+      "paintscope_key": "PS_SURFACE_EA_SIDE.DOOR_SLAB",
+      "unit_of_measure": "EA_SIDE",
+      "rate_per_hour": 3.5,
+      "rate_range_low": 3,
+      "rate_range_high": 5,
+      "crew_size": 1,
+      "applies_when": {
+        "application_method": ["brush"]
+      },
+      "factor_modifiers": [
+        { "modifier_id": "FAC_DOOR_TYPE_COMPLEXITY", "values": { "flush": 1.00, "panel_4": 1.25, "panel_6": 1.35, "raised_panel": 1.40, "french": 2.00, "bifold": 0.70, "louvered": 2.50 } }
+      ],
+      "rate_basis_notes": "Brush finish coat on slab face + edge. ~17 min per side. Adapted from NC TSK_DOOR_FINISH_BRUSH (4 EA_SIDE/hr). RP slightly slower — waterborne fine-finish enamel on previously painted surface demands careful first-pass technique, especially on panel doors. Apply, tip once, walk away per FFD 15.3.1."
+    },
+
+    {
+      "task_id": "TSK_DIRP_FINISH_SLAB_SPRAY",
+      "name": "Spray Finish Coat on Slab",
+      "task_classification": "binary",
+      "required_input_key": "IN_EA_SIDE_DOOR_SLAB_TOTAL",
+      "paintscope_key": "PS_SURFACE_EA_SIDE.DOOR_SLAB",
+      "unit_of_measure": "EA_SIDE",
+      "rate_per_hour": 8,
+      "rate_range_low": 7,
+      "rate_range_high": 10,
+      "crew_size": 1,
+      "applies_when": {
+        "application_method": ["spray"]
+      },
+      "factor_modifiers": [
+        { "modifier_id": "FAC_DOOR_TYPE_COMPLEXITY", "values": { "flush": 1.00, "panel_4": 1.25, "panel_6": 1.35, "raised_panel": 1.40, "french": 2.00, "bifold": 0.70, "louvered": 2.50 } }
+      ],
+      "rate_basis_notes": "Spray finish coat on slab face + edge. ~7-8 min per side. Adapted from NC TSK_DOOR_FINISH_SPRAY (10 EA_SIDE/hr). RP slightly slower — fine-finish enamel atomization on repainted surface. Spray rate MUST be faster than brush rate (8 > 3.5). CHECK: spray(8) > brush(3.5) — PASS."
+    },
+
+    {
+      "task_id": "TSK_DIRP_FINISH_FRAME_ROLL_TIP",
+      "name": "Roll and Tip Finish Coat on Frame",
+      "task_classification": "binary",
+      "required_input_key": "IN_EA_DOOR_FRAME_SET",
+      "paintscope_key": "PS_SURFACE_EA.DOOR_FRAME_SET",
+      "unit_of_measure": "EA",
+      "rate_per_hour": 6,
+      "rate_range_low": 5,
+      "rate_range_high": 8,
+      "crew_size": 1,
+      "applies_when": {
+        "application_method": ["brush"]
+      },
+      "factor_modifiers": [
+        { "modifier_id": "FAC_FRAME_TYPE_COMPLEXITY", "values": { "standard": 1.00, "pocket": 0.85, "cased_opening": 0.75, "bifold": 0.90 } },
+        { "modifier_id": "FAC_HEIGHT_DOOR", "values": { "H1": 1.00, "H2": 1.30, "H3": 1.50 } }
+      ],
+      "rate_basis_notes": "Roll and Tip method for frame flat surfaces. ~10 min per frame. Adapted from NC TSK_FRAME_FINISH_ROLL_TIP (7 EA/hr). RP slightly slower. Alternative to TSK_DIRP_FINISH_FRAME_BRUSH — estimator selects one or the other, not both. Roll and tip produces smoother finish than brush-only on flat jamb surfaces. Per FFD 15.6."
+    },
+
+    {
+      "task_id": "TSK_DIRP_HARDWARE_REINSTALL",
+      "name": "Reinstall Door Hardware and Rehang Door (Spray)",
+      "task_classification": "binary",
+      "required_input_key": "IN_EA_DOOR_OPENINGS",
+      "paintscope_key": "PS_OPENING_EA.DOOR_OPENINGS_TOTAL",
+      "unit_of_measure": "EA",
+      "rate_per_hour": 3,
+      "rate_range_low": 2.5,
+      "rate_range_high": 4,
+      "crew_size": 1,
+      "applies_when": {
+        "application_method": ["spray"]
+      },
+      "factor_modifiers": [],
+      "rate_basis_notes": "Reinstall lockset + hinges, rehang door, verify operation. ~20 min per door. Adapted from NC TSK_DOOR_HARDWARE_REINSTALL (4 EA/hr). RP slightly slower — fresh fine-finish paint requires careful handling to avoid marring. Must verify no binding with new paint film build."
+    },
+
+    {
+      "task_id": "TSK_DIRP_HARDWARE_UNMASK",
+      "name": "Remove Hardware Masking (Brush)",
+      "task_classification": "binary",
+      "required_input_key": "IN_EA_DOOR_OPENINGS",
+      "paintscope_key": "PS_OPENING_EA.DOOR_OPENINGS_TOTAL",
+      "unit_of_measure": "EA",
+      "rate_per_hour": 10,
+      "rate_range_low": 8,
+      "rate_range_high": 12,
+      "crew_size": 1,
+      "applies_when": {
+        "application_method": ["brush"]
+      },
+      "factor_modifiers": [],
+      "rate_basis_notes": "Remove masking tape from hinges, lockset, strike plate. ~6 min per door. Adapted from NC TSK_DOOR_HARDWARE_UNMASK (12 EA/hr). RP slightly slower — more paint build-up at tape edge from RP coat sequence (primer + 2 finish vs NC 2 finish). Remove while slightly tacky for cleanest pull."
+    },
+
+    {
+      "task_id": "TSK_DIRP_GLASS_UNMASK",
+      "name": "Remove Glass Masking (French Doors)",
+      "task_classification": "binary",
+      "required_input_key": "IN_EA_DOOR_PANES",
+      "paintscope_key": "PS_META.EA.DOOR_PANES_TOTAL",
+      "unit_of_measure": "EA",
+      "rate_per_hour": 15,
+      "rate_range_low": 12,
+      "rate_range_high": 20,
+      "crew_size": 1,
+      "applies_when": {
+        "door_type": ["french"]
+      },
+      "factor_modifiers": [],
+      "rate_basis_notes": "Remove masking tape from each glass pane. ~4 min per pane. Adapted from NC TSK_DOOR_GLASS_UNMASK (20 EA/hr). RP slightly slower — more paint build-up at tape edge. Remove while slightly tacky for cleanest pull."
+    },
+
+    {
+      "task_id": "TSK_DIRP_MORTISE_TOUCHUP",
+      "name": "Touch Up Hinge Mortise Areas",
+      "task_classification": "binary",
+      "required_input_key": "IN_EA_DOOR_OPENINGS",
+      "paintscope_key": "PS_OPENING_EA.DOOR_OPENINGS_TOTAL",
+      "unit_of_measure": "EA",
+      "rate_per_hour": 12,
+      "rate_range_low": 10,
+      "rate_range_high": 15,
+      "crew_size": 1,
+      "applies_when": {
+        "application_method": ["spray"]
+      },
+      "factor_modifiers": [],
+      "rate_basis_notes": "Touch up 3 hinge mortises + 1 strike mortise after hardware reinstall. ~5 min per door. Adapted from NC TSK_FRAME_MORTISE_TOUCHUP (15 EA/hr). RP slightly slower — must blend with existing multi-coat build-up. Spray method only (brush method has hardware masked in place)."
+    },
+
+    {
+      "task_id": "TSK_DIRP_FINAL_INSPECT",
+      "name": "Final Inspection — Frame + Slab",
+      "task_classification": "qt_scaled",
+      "required_input_key": "IN_EA_DOOR_OPENINGS",
+      "paintscope_key": "PS_OPENING_EA.DOOR_OPENINGS_TOTAL",
+      "unit_of_measure": "EA",
+      "rates_by_tier": {
+        "QT3": { "rate_per_hour": 10, "rate_range_low": 8, "rate_range_high": 12, "notes": "Quick glance at 6 feet — no obvious defects, uniform sheen. ~6 min per opening." },
+        "QT4": { "rate_per_hour": 6, "rate_range_low": 5, "rate_range_high": 8, "notes": "Systematic scan at 3 feet — no visible defects, verify door operation. ~10 min per opening." },
+        "QT5": { "rate_per_hour": 4, "rate_range_low": 3, "rate_range_high": 5, "notes": "Critical inspection at arm's length under raking light — zero tolerance, gallery-quality. ~15 min per opening." }
+      },
+      "crew_size": 1,
+      "applies_when": {},
+      "factor_modifiers": [],
+      "rate_basis_notes": "Combined frame + slab final inspection per opening. Adapted from NC TSK_FRAME_FINAL_INSPECT (30 EA/hr) + NC TSK_DOOR_FINAL_INSPECT (20 EA_SIDE/hr). RP final inspection includes verifying door operation, hardware installation, and finish quality on both components."
+    },
+
+    {
+      "task_id": "TSK_DIRP_TOUCHUP",
+      "name": "Touch-Up Defects (Final)",
+      "task_classification": "qt_scaled",
+      "required_input_key": "IN_EA_DOOR_OPENINGS",
+      "paintscope_key": "PS_OPENING_EA.DOOR_OPENINGS_TOTAL",
+      "unit_of_measure": "EA",
+      "rates_by_tier": {
+        "QT3": { "rate_per_hour": 10, "rate_range_low": 8, "rate_range_high": 12, "notes": "Address obvious defects only. ~6 min per opening." },
+        "QT4": { "rate_per_hour": 6, "rate_range_low": 5, "rate_range_high": 8, "notes": "Address all visible defects, blend into surrounding finish. ~10 min per opening." },
+        "QT5": { "rate_per_hour": 4, "rate_range_low": 3, "rate_range_high": 5, "notes": "Every imperfection — full coat over spot repairs if needed to equalize sheen. ~15 min per opening." }
+      },
+      "crew_size": 1,
+      "applies_when": {},
+      "factor_modifiers": [],
+      "rate_basis_notes": "RP-new task. Touch up remaining defects found during final inspection on frame and slab. Spot sand and recoat as needed. More touch-up scope in RP than NC — existing paint condition introduces more defect opportunities."
+    },
+
+    {
+      "task_id": "TSK_DIRP_WALL_MASK_TEARDOWN",
+      "name": "Remove Wall Masking (Spray)",
+      "task_classification": "binary",
+      "required_input_key": "IN_EA_DOOR_OPENINGS",
+      "paintscope_key": "PS_OPENING_EA.DOOR_OPENINGS_TOTAL",
+      "unit_of_measure": "EA",
+      "rate_per_hour": 12,
+      "rate_range_low": 10,
+      "rate_range_high": 15,
+      "crew_size": 1,
+      "applies_when": {
+        "application_method": ["spray"]
+      },
+      "factor_modifiers": [],
+      "rate_basis_notes": "Remove tape and masking paper from walls around door opening. ~5 min per opening. Adapted from NC TSK_FRAME_WALL_PROTECT_TEARDOWN (20 EA/hr). RP slightly slower — finished wall requires careful tape removal to avoid pulling wall paint."
+    },
+
+    {
+      "task_id": "TSK_DIRP_FLOOR_PROTECT_TEARDOWN",
+      "name": "Floor Protection Teardown",
+      "task_classification": "binary",
+      "required_input_key": "IN_EA_DOOR_OPENINGS",
+      "paintscope_key": "PS_OPENING_EA.DOOR_OPENINGS_TOTAL",
+      "unit_of_measure": "EA",
+      "rate_per_hour": 15,
+      "rate_range_low": 12,
+      "rate_range_high": 20,
+      "crew_size": 1,
+      "applies_when": {},
+      "factor_modifiers": [],
+      "rate_basis_notes": "Remove floor protection per opening. ~4 min per opening. Fold toward center to contain debris. Adapted from NC TSK_DOOR_FLOOR_PROTECT_TEARDOWN (20 EA/hr). RP slightly slower — more debris from scraping/sanding."
+    },
+
+    {
+      "task_id": "TSK_DIRP_CUSTOMER_WALKTHROUGH",
+      "name": "Customer Walkthrough",
+      "task_classification": "binary",
+      "required_input_key": "IN_EA_DOOR_OPENINGS",
+      "paintscope_key": "PS_OPENING_EA.DOOR_OPENINGS_TOTAL",
+      "unit_of_measure": "EA",
+      "rate_per_hour": 8,
+      "rate_range_low": 6,
+      "rate_range_high": 10,
+      "crew_size": 1,
+      "applies_when": {
+        "occupancy_state": ["occupied_crew_handles", "occupied_sensitive"]
+      },
+      "factor_modifiers": [],
+      "rate_basis_notes": "Walk each door with homeowner. ~7-8 min per door. RP-specific — occupied home context requires client sign-off. Inspect finish, verify door operation, check hardware, address touch-up requests on the spot. No NC equivalent."
+    },
+
+    {
+      "task_id": "TSK_DIRP_CLEAN_TOOLS",
+      "name": "Clean Tools",
+      "task_classification": "binary",
+      "required_input_key": null,
+      "paintscope_key": null,
+      "unit_of_measure": "FIXED",
+      "fixed_time_minutes": 30,
+      "fixed_time_range_low": 20,
+      "fixed_time_range_high": 45,
+      "crew_size": 1,
+      "applies_when": {},
+      "factor_modifiers": [],
+      "rate_basis_notes": "Clean brushes, spray equipment (if used), rollers. Fixed time per session regardless of door count. ~30 min. All waterborne products — water cleanup. Adapted from NC TSK_DOOR_CLEAN_TOOLS (same 30 min fixed)."
+    }
+  ],
+
+  "quality_tier_effects": [
+    {
+      "quality_tier": "QT3",
+      "time_modifier": 1.0,
+      "description": "Standard door repaint — MINIMUM TIER for doors, baseline for all rates",
+      "mechanism": "baseline",
+      "notes": "QT3 is the MINIMUM acceptable tier for door slabs and frames. Per Doors Doctrine QT3 = 1.0. This is the floor — no cheaper option available for doors."
+    },
+    {
+      "quality_tier": "QT4",
+      "time_modifier": 1.4,
+      "description": "Premium door repaint — thorough prep, full sand between coats, crisp edges",
+      "mechanism": "selective_multiplier",
+      "notes": "Per Doors Doctrine §6.1 QT4 labor factor = 1.4. DOOR-SPECIFIC higher modifier than global (1.3). Full sand 220 between coats. Systematic inspection. Applied to qt_scaled tasks only."
+    },
+    {
+      "quality_tier": "QT5",
+      "time_modifier": 1.8,
+      "description": "Superior door repaint — maximum care, zero tolerance, 320-grit between coats, 3 brush coats per FFD 15.10.3",
+      "mechanism": "selective_multiplier",
+      "notes": "Per Doors Doctrine §6.1 QT5 labor factor = 1.8. DOOR-SPECIFIC higher modifier than global (1.5). Thorough sand 320 between coats. Critical inspection. QT5 brush adds 3rd finish coat per FFD 15.10.3. Applied to qt_scaled tasks only."
+    }
+  ],
+
+  "door_type_complexity": [
+    { "door_type": "flush", "complexity_modifier": 1.0, "notes": "Baseline — flat slab, simplest application" },
+    { "door_type": "panel_4", "complexity_modifier": 1.25, "notes": "4-panel door. Per Doors Doctrine §1.1." },
+    { "door_type": "panel_6", "complexity_modifier": 1.35, "notes": "6-panel door (colonial). Per Doors Doctrine §1.1." },
+    { "door_type": "raised_panel", "complexity_modifier": 1.40, "notes": "Raised panel. Deeper recesses than flat panel." },
+    { "door_type": "french", "complexity_modifier": 2.0, "notes": "French door. Glass masking is dominant labor. Per Doors Doctrine §9.2." },
+    { "door_type": "bifold", "complexity_modifier": 0.7, "notes": "Bifold door panel. Smaller, simpler. Per Doors Doctrine §1.1." },
+    { "door_type": "louvered", "complexity_modifier": 2.5, "notes": "Louvered door. Extreme complexity — individual slat painting. Spray-only for RP. Per Doors Doctrine §12.2." }
+  ],
+
+  "frame_type_complexity": [
+    { "frame_type": "standard", "complexity_modifier": 1.0, "notes": "Standard swing door frame. Baseline." },
+    { "frame_type": "pocket", "complexity_modifier": 0.85, "notes": "Pocket door frame. No door stop. ~15% less surface." },
+    { "frame_type": "cased_opening", "complexity_modifier": 0.75, "notes": "Cased opening. Jambs only, no stop, no hardware. ~25% less work." },
+    { "frame_type": "bifold", "complexity_modifier": 0.90, "notes": "Bifold door frame. Track hardware instead of hinges. ~10% less work." }
+  ],
+
+  "height_access_effects": [
+    { "height_category": "H1_STANDARD", "time_modifier": 1.0, "notes": "Standard 6'8\"-7'0\" door openings. Floor-level access." },
+    { "height_category": "H2_TALL", "time_modifier": 1.30, "notes": "Tall openings 7'0\"-8'0\". Step ladder for head jamb." },
+    { "height_category": "H3_HIGH", "time_modifier": 1.50, "notes": "High openings 8'0\"+. Rare for interior. Scaffold may be needed." }
+  ],
+
+  "condition_scale_effects": [
+    { "condition": "GOOD", "prep_modifier": 1.0, "notes": "Sound paint, adhesion passes, latex-over-latex compatible. Minimal prep." },
+    { "condition": "FAIR", "prep_modifier": 1.5, "notes": "Failing paint, localized peeling, some damage. Moderate prep. Scrape/feather + fill/patch activated." },
+    { "condition": "POOR", "prep_modifier": 2.0, "notes": "Extensive peeling, moisture damage, smoke damage. Full prep. All condition-dependent tasks activated at maximum scope." }
+  ],
+
+  "application_method_effects": [
+    {
+      "method": "spray",
+      "description": "Airless spray application — fastest coating but requires more setup (floor 8ft radius, wall mask, hardware remove)",
+      "notes": "Spray produces superior finish on doors. Production method for 10+ doors. Requires door removal and full containment."
+    },
+    {
+      "method": "brush",
+      "description": "Brush application — less setup but slower coating. RP default for occupied homes with fewer doors.",
+      "notes": "Brush is default for RP (occupied home, 1-5 doors). Door stays hung, hardware masked. Roll-and-tip available for flat frame surfaces."
+    }
+  ],
+
+  "round_configurations": [
+    {
+      "round_id": "ROUND_DIRP_PRIME_2FINISH",
+      "total_coats": 3,
+      "interstage_cycles": 2,
+      "applies_when": { "condition_scale": ["FAIR", "POOR"], "quality_tier": ["QT3", "QT4"] },
+      "notes": "Standard RP round with state-driven prime. Most common for doors with adhesion or contamination issues."
+    },
+    {
+      "round_id": "ROUND_DIRP_2FINISH",
+      "total_coats": 2,
+      "interstage_cycles": 1,
+      "applies_when": { "condition_scale": ["GOOD"], "quality_tier": ["QT3", "QT4"] },
+      "notes": "GOOD condition, skip prime. Sound paint with adhesion verified."
+    },
+    {
+      "round_id": "ROUND_DIRP_PRIME_3FINISH",
+      "total_coats": 4,
+      "interstage_cycles": 3,
+      "applies_when": { "quality_tier": ["QT5"], "application_method": ["brush"], "condition_scale": ["FAIR", "POOR"] },
+      "notes": "Maximum coat sequence. QT5 brush per FFD 15.10.3 + state-driven prime."
+    },
+    {
+      "round_id": "ROUND_DIRP_3FINISH",
+      "total_coats": 3,
+      "interstage_cycles": 2,
+      "applies_when": { "quality_tier": ["QT5"], "application_method": ["brush"], "condition_scale": ["GOOD"] },
+      "notes": "QT5 brush 3-coat finish sequence, no prime needed."
+    }
+  ],
+
+  "crew_configurations": [
+    {
+      "config_id": "CREW_DIRP_SPRAY",
+      "name": "Door RP Spray Crew",
+      "crew_size": 1,
+      "roles": ["journeyman_sprayer"],
+      "applies_when": { "application_method": ["spray"] },
+      "notes": "One journeyman sprayer handles all doors. Helper assists with masking/protection setup and teardown."
+    },
+    {
+      "config_id": "CREW_DIRP_BRUSH",
+      "name": "Door RP Brush Painter",
+      "crew_size": 1,
+      "roles": ["journeyman_brush"],
+      "applies_when": { "application_method": ["brush"] },
+      "notes": "One journeyman brush painter. Roll-and-tip option for flat frame surfaces."
+    }
+  ],
+
+  "rate_validation_checks": [
+    {
+      "check_id": "VAL-001",
+      "rule": "Spray rate MUST be >= brush rate on paired application tasks",
+      "results": [
+        { "task_pair": "PRIME_FRAME", "spray": 12, "brush": 7, "status": "PASS" },
+        { "task_pair": "PRIME_SLAB", "spray": 10, "brush": 4, "status": "PASS" },
+        { "task_pair": "FINISH_FRAME", "spray": 10, "brush": 5, "status": "PASS" },
+        { "task_pair": "FINISH_SLAB", "spray": 8, "brush": 3.5, "status": "PASS" }
+      ]
+    },
+    {
+      "check_id": "VAL-002",
+      "rule": "No rates above 2000 for any unit",
+      "status": "PASS",
+      "max_rate_in_spec": 15,
+      "notes": "All rates are EA-based or FIXED. Maximum rate is 15 EA/hr."
+    },
+    {
+      "check_id": "VAL-003",
+      "rule": "Rate ranges: low < rate < high",
+      "status": "PASS",
+      "notes": "All 50 tasks verified: rate_range_low < rate_per_hour < rate_range_high (or equivalent for rates_by_tier)."
+    },
+    {
+      "check_id": "VAL-004",
+      "rule": "Task count matches SOP exactly",
+      "sop_task_count": 50,
+      "production_task_count": 50,
+      "status": "PASS"
+    }
+  ],
+
+  "assumptions": [
+    {
+      "assumption_id": "A-001",
+      "field": "rp_vs_nc_rate_penalty",
+      "value": "RP tasks ~10-20% slower than equivalent NC tasks",
+      "source": "Previously painted surfaces are more difficult to work with — adhesion primers are thicker, existing paint can lift, scraping generates additional debris",
+      "doctrine_gap": true
+    },
+    {
+      "assumption_id": "A-002",
+      "field": "combined_per_opening_tasks",
+      "value": "Assessment, fill/patch, dust wipe, interstage inspect, and cleanup tasks are combined per-opening (frame + slab together)",
+      "source": "Efficiency gain — painter works entire opening as unit rather than separate frame/slab passes",
+      "doctrine_gap": true
+    },
+    {
+      "assumption_id": "A-003",
+      "field": "condition_scale_prep_modifiers",
+      "value": "GOOD=1.0x, FAIR=1.5x, POOR=2.0x",
+      "source": "Resolution.json factor_modifiers, consistent with wall RP and trim RP specs",
+      "doctrine_gap": false
+    },
+    {
+      "assumption_id": "A-004",
+      "field": "door_specific_qt_modifiers",
+      "value": "QT3=1.0x, QT4=1.4x, QT5=1.8x (higher than global 1.0/1.3/1.5)",
+      "source": "Doors Doctrine §6.1 — doors are scrutinized surfaces requiring higher QT differentiation",
+      "doctrine_gap": false
+    }
+  ]
+}

@@ -3,65 +3,63 @@ import { ProjectProvider } from './hooks/useProject';
 import { useProject } from './hooks/useProject';
 import { useEstimate } from './hooks/useEstimate';
 import { saveToStorage } from './state/persistence';
+import { createExteriorState } from './state/exterior-state';
 import ErrorBoundary from './components/shared/ErrorBoundary';
 import ProjectSetup from './components/setup/ProjectSetup';
 import RoomEditor from './components/room-editor/RoomEditor';
-import ProjectSummary from './components/summary/ProjectSummary';
+import ElevationEditor from './components/exterior-editor/ElevationEditor';
+import StandalonePanel from './components/exterior-editor/StandalonePanel';
 import EstimateView from './components/estimate/EstimateView';
-import WorkOrderView from './components/workorder/WorkOrderView';
-import ExportImport from './components/export/ExportImport';
+import OutputView from './components/output/OutputView';
 import PhotoAnalysisModal from './components/photo-analysis/PhotoAnalysisModal';
 import { usePhotoAnalysis } from './hooks/usePhotoAnalysis';
 
 const NAV_VIEWS = [
-  { id:'setup',    label:'Setup',        key:'1' },
-  { id:'editor',   label:'Room Editor',  key:'2' },
-  { id:'summary',  label:'Summary',      key:'3' },
-  { id:'estimate', label:'Estimate',     key:'4' },
-  { id:'workorder',label:'Work Order',   key:'5' },
-  { id:'export',   label:'Export/Import', key:'6' },
+  { id:'setup',    label:'Setup',    key:'1' },
+  { id:'scope',    label:'Scope',    key:'2' },
+  { id:'estimate', label:'Estimate', key:'3' },
+  { id:'output',   label:'Output',   key:'4' },
 ];
 
 function AppShell() {
   const { state, dispatch } = useProject();
   const estimate = useEstimate();
   const view = state.ui.view;
+  const scopeMode = state.ui.scopeMode || 'interior';
   const photoAnalysis = usePhotoAnalysis();
   const activeRoom = state.rooms.find(r => r.id === state.ui.activeRoomId) || state.rooms[0];
+  const exterior = state.exterior || createExteriorState();
+  const elevations = exterior.elevations || [];
+  const activeElev = elevations.find(e => e.id === state.ui.activeElevationId) || elevations[0];
   const [saveFlash, setSaveFlash] = useState(false);
 
-  // Manual save handler (also shows confirmation flash)
+  // Manual save handler
   const handleSave = useCallback(() => {
     saveToStorage(state);
     setSaveFlash(true);
     setTimeout(() => setSaveFlash(false), 1500);
   }, [state]);
 
-  // Keyboard shortcuts: Ctrl+1-6 switch views, Ctrl+N add room, Ctrl+S save
+  // Keyboard shortcuts: Ctrl+1-4 switch views, Ctrl+N add room, Ctrl+S save
   const handleKeyDown = useCallback((e) => {
-    // Skip if user is typing in an input/textarea/select
     const tag = e.target.tagName;
     if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
 
     if (e.ctrlKey || e.metaKey) {
-      // Ctrl+S: manual save
       if (e.key === 's' || e.key === 'S') {
         e.preventDefault();
         handleSave();
         return;
       }
-      // Ctrl+1 through Ctrl+6: switch views
       const idx = parseInt(e.key) - 1;
       if (idx >= 0 && idx < NAV_VIEWS.length) {
         e.preventDefault();
         dispatch({ type: 'SET_VIEW', payload: NAV_VIEWS[idx].id });
         return;
       }
-      // Ctrl+N: add room
       if (e.key === 'n' || e.key === 'N') {
         e.preventDefault();
         dispatch({ type: 'ADD_ROOM' });
-        dispatch({ type: 'SET_VIEW', payload: 'editor' });
         return;
       }
     }
@@ -76,6 +74,7 @@ function AppShell() {
     <div className="app-layout">
       {/* Sidebar */}
       <aside className="sidebar">
+        {/* ── Interior Rooms ── */}
         <div className="sidebar-header">
           <span className="sidebar-title">Rooms</span>
           <button className="btn btn-sm" onClick={() => dispatch({type:'ADD_ROOM'})} title="Ctrl+N">+ Add</button>
@@ -95,8 +94,8 @@ function AppShell() {
           {state.rooms.map(r => (
             <div
               key={r.id}
-              className={`room-item ${r.id === state.ui.activeRoomId ? 'active' : ''}`}
-              onClick={() => { dispatch({type:'SET_ACTIVE_ROOM', payload:r.id}); dispatch({type:'SET_VIEW', payload:'editor'}); }}
+              className={`room-item ${r.id === state.ui.activeRoomId && scopeMode === 'interior' ? 'active' : ''}`}
+              onClick={() => { dispatch({type:'SET_ACTIVE_ROOM', payload:r.id}); dispatch({type:'SET_VIEW', payload:'scope'}); }}
             >
               <div className="room-item-info">
                 <span className="room-item-label">{r.label || 'Untitled'}</span>
@@ -119,7 +118,7 @@ function AppShell() {
                   className="room-action-btn"
                   title="Duplicate room"
                   onClick={(e) => { e.stopPropagation(); dispatch({type:'DUPLICATE_ROOM', payload:r.id}); }}
-                >⧉</button>
+                >&#x29C9;</button>
                 <button
                   className="room-action-btn room-action-delete"
                   title="Delete room"
@@ -129,10 +128,66 @@ function AppShell() {
                     dispatch({type:'REMOVE_ROOM', payload:r.id});
                   }}
                   disabled={state.rooms.length <= 1}
-                >✕</button>
+                >&#x2715;</button>
               </div>
             </div>
           ))}
+        </div>
+
+        {/* ── Divider ── */}
+        <div style={{ borderTop: '1px solid var(--border)', margin: '0 8px' }} />
+
+        {/* ── Exterior Elevations ── */}
+        <div className="sidebar-header">
+          <span className="sidebar-title">Elevations</span>
+          <button className="btn btn-sm" onClick={() => dispatch({ type: 'ADD_ELEVATION' })}>+ Add</button>
+        </div>
+        <div className="room-list" style={{ flex: '0 1 auto', maxHeight: '30vh' }}>
+          {elevations.map(e => (
+            <div
+              key={e.id}
+              className={`room-item ${e.id === state.ui.activeElevationId && scopeMode === 'exterior' ? 'active' : ''}`}
+              onClick={() => { dispatch({ type: 'SET_ACTIVE_ELEVATION', payload: e.id }); dispatch({ type: 'SET_VIEW', payload: 'scope' }); }}
+            >
+              <div className="room-item-info">
+                <span className="room-item-label">{e.label || 'Untitled'}</span>
+                <span className="room-item-meta">{e.width_ft || 0}&times;{e.height_to_eave_ft || 0}</span>
+              </div>
+              <div className="room-item-actions">
+                <button
+                  className="room-action-btn"
+                  title="Duplicate elevation"
+                  onClick={ev => { ev.stopPropagation(); dispatch({ type: 'DUPLICATE_ELEVATION', payload: e.id }); }}
+                >&#x29C9;</button>
+                <button
+                  className="room-action-btn room-action-delete"
+                  title="Delete elevation"
+                  onClick={ev => {
+                    ev.stopPropagation();
+                    dispatch({ type: 'REMOVE_ELEVATION', payload: e.id });
+                  }}
+                >&#x2715;</button>
+              </div>
+            </div>
+          ))}
+          {elevations.length === 0 && (
+            <div style={{ padding: '8px 12px', fontSize: 11, color: 'var(--text-muted)' }}>
+              No elevations yet.
+            </div>
+          )}
+        </div>
+
+        {/* ── Standalone Items ── */}
+        <div
+          className={`room-item ${scopeMode === 'standalone' ? 'active' : ''}`}
+          onClick={() => { dispatch({ type: 'SET_SCOPE_MODE', payload: 'standalone' }); dispatch({ type: 'SET_VIEW', payload: 'scope' }); }}
+          style={{ borderTop: '1px solid var(--border)', margin: '0 0 0 0' }}
+        >
+          <div className="room-item-info">
+            <span className="room-item-label" style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.5px', color: 'var(--text-muted)', fontWeight: 600 }}>
+              Standalone Items
+            </span>
+          </div>
         </div>
       </aside>
 
@@ -149,10 +204,10 @@ function AppShell() {
               onClick={handleSave}
               title="Save project (Ctrl+S)"
             >
-              {saveFlash ? '✓ Saved' : '💾 Save'}
+              {saveFlash ? '\u2713 Saved' : 'Save'}
             </button>
-            <span style={{fontSize:10,color:'var(--text-muted)',opacity:0.5}} title="Ctrl+1-6 switch views, Ctrl+N add room, Ctrl+S save">
-              ⌨ Ctrl+1-6 / S
+            <span style={{fontSize:10,color:'var(--text-muted)',opacity:0.5}} title="Ctrl+1-4 switch views, Ctrl+N add room, Ctrl+S save">
+              Ctrl+1-4 / S
             </span>
           </div>
         </header>
@@ -176,25 +231,41 @@ function AppShell() {
           <ErrorBoundary label="Setup" key={view === 'setup' ? 'setup' : undefined}>
             {view === 'setup' && <ProjectSetup />}
           </ErrorBoundary>
-          <ErrorBoundary label="Room Editor" key={view === 'editor' ? 'editor' : undefined}>
-            {view === 'editor' && <RoomEditor room={activeRoom} project={state.project} dispatch={dispatch} />}
+
+          <ErrorBoundary label="Scope" key={view === 'scope' ? `scope-${scopeMode}` : undefined}>
+            {view === 'scope' && scopeMode === 'interior' && (
+              <RoomEditor room={activeRoom} project={state.project} dispatch={dispatch} />
+            )}
+            {view === 'scope' && scopeMode === 'exterior' && (
+              activeElev ? (
+                <ElevationEditor
+                  elevation={activeElev}
+                  dispatch={dispatch}
+                  exterior={exterior}
+                  project={state.project}
+                />
+              ) : (
+                <div className="no-data-msg">Add an elevation to begin.</div>
+              )
+            )}
+            {view === 'scope' && scopeMode === 'standalone' && (
+              <div style={{ padding: 12, overflow: 'auto', flex: 1 }}>
+                <StandalonePanel exterior={exterior} dispatch={dispatch} />
+              </div>
+            )}
           </ErrorBoundary>
-          <ErrorBoundary label="Summary" key={view === 'summary' ? 'summary' : undefined}>
-            {view === 'summary' && <ProjectSummary />}
-          </ErrorBoundary>
+
           <ErrorBoundary label="Estimate" key={view === 'estimate' ? 'estimate' : undefined}>
             {view === 'estimate' && <EstimateView />}
           </ErrorBoundary>
-          <ErrorBoundary label="Work Order" key={view === 'workorder' ? 'workorder' : undefined}>
-            {view === 'workorder' && <WorkOrderView />}
-          </ErrorBoundary>
-          <ErrorBoundary label="Export/Import" key={view === 'export' ? 'export' : undefined}>
-            {view === 'export' && <ExportImport />}
+
+          <ErrorBoundary label="Output" key={view === 'output' ? 'output' : undefined}>
+            {view === 'output' && <OutputView />}
           </ErrorBoundary>
         </div>
       </div>
 
-      {/* Photo analysis modal (from sidebar "Scan Room") */}
+      {/* Photo analysis modal */}
       {photoAnalysis.showModal && (
         <PhotoAnalysisModal
           roomId={photoAnalysis.targetRoomId}

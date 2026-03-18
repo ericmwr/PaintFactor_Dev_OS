@@ -1,0 +1,314 @@
+{
+  "spec_family_id": "SF_DRYWALL_WALL_INT_RP",
+  "qa_version": "1.0.0",
+  "qa_date": "2026-03-13",
+  "critic_agent": "Spec Critic Agent (QA)",
+  "overall_result": "pass_with_warnings",
+  "summary": {
+    "critical": 0,
+    "major": 4,
+    "minor": 5,
+    "info": 5
+  },
+
+  "findings": [
+    {
+      "id": "QA-001",
+      "severity": "major",
+      "category": "enum_validation",
+      "description": "7 tasks use invalid task_type values not in controlled_enums.json. 'mask' (3 tasks) and 'cut_in' (4 tasks) are not in the valid_values list: [prep, prime, finish, apply, protect, inspect, cleanup, detail]. 'mask' should map to 'protect', 'cut_in' should map to 'apply' or 'detail'.",
+      "affected_file": "sop_modules.json",
+      "affected_field": "tasks[].task_type",
+      "affected_ids": ["TSK_WLRP_MASK_TRIM_BASEBOARD", "TSK_WLRP_MASK_TRIM_DOOR_CASING", "TSK_WLRP_MASK_TRIM_WINDOW_CASING", "TSK_WLRP_CUTIN_CEILING_R1", "TSK_WLRP_CUTIN_CEILING_R2", "TSK_WLRP_CUTIN_TRIM_R1", "TSK_WLRP_CUTIN_TRIM_R2"],
+      "recommendation": "Change task_type 'mask' to 'protect' on masking tasks. Change task_type 'cut_in' to 'apply' on cut-in tasks. Alternatively, propose 'mask' and 'cut_in' as new enum additions via AR-010 if these values are genuinely needed."
+    },
+    {
+      "id": "QA-002",
+      "severity": "major",
+      "category": "spray_backroll_coupling",
+      "description": "Spray primer rate (550 SF/hr) exceeds backroll primer rate (400 SF/hr). Per Estimation_Modifiers_Doctrine: 'spray rate MUST BE <= backroll rate' when using spray+backroll. Spray cannot outrun backroller without causing defects.",
+      "affected_file": "production.json",
+      "affected_field": "task_production_rates[TSK_WLRP_SPRAY_PRIMER].rate_per_hour",
+      "recommendation": "Reduce TSK_WLRP_SPRAY_PRIMER rate_per_hour from 550 to 400 (or less) to match backroll primer rate. This is a doctrine-level violation. The spray and backroll primer tasks both have applies_when.application_method: spray_backroll, confirming they run as a coupled pair."
+    },
+    {
+      "id": "QA-003",
+      "severity": "major",
+      "category": "rate_reasonableness",
+      "description": "TSK_WLRP_FINAL_INSPECT rate at QT2 (2500 SF/hr via qt_rates) exceeds the 2000 SF/hr ceiling guideline for SF tasks. The base rate_per_hour is 2000, but the QT2 qt_rate is 2500 SF/hr.",
+      "affected_file": "production.json",
+      "affected_field": "task_production_rates[TSK_WLRP_FINAL_INSPECT].qt_rates.QT2",
+      "recommendation": "Review whether 2500 SF/hr QT2 final inspection rate is realistic. Consider capping at 2000 SF/hr or documenting why it exceeds the guideline (very fast walking scan for major misses only may justify the rate)."
+    },
+    {
+      "id": "QA-004",
+      "severity": "major",
+      "category": "rate_reasonableness",
+      "description": "TSK_WLRP_TOUCHUP QT2 qt_rate is 2500 SF/hr, exceeding the 2000 SF/hr guideline. This is a per-total-wall-SF rate for localized work, but the rate_range_high is also 2500.",
+      "affected_file": "production.json",
+      "affected_field": "task_production_rates[TSK_WLRP_TOUCHUP].qt_rates.QT2",
+      "recommendation": "Review and potentially cap at 2000 SF/hr. The rate basis notes explain this is per-total-wall-SF (touching only localized defects), which can justify high rates, but the system guideline is 2000 SF/hr max for SF tasks."
+    },
+    {
+      "id": "QA-005",
+      "severity": "minor",
+      "category": "round_configuration_consistency",
+      "description": "SOP round_configurations use 'module_sequence' structure with no total_coats or interstage_cycles fields. Production round_configurations include total_coats, coat_sequence, and interstage_cycles. The structural schema in structural_keys.json defines round_configurations under sop_modules_json with required_keys: round_id, name, description, applies_when, phase_sequence. Neither file uses 'phase_sequence' — SOP uses 'module_sequence' and production uses 'coat_sequence'.",
+      "affected_file": "sop_modules.json, production.json",
+      "affected_field": "round_configurations[].phase_sequence",
+      "recommendation": "Consider aligning the key name to 'phase_sequence' per structural_keys.json, or document that 'module_sequence' (SOP) and 'coat_sequence' (production) are acceptable domain-specific variants."
+    },
+    {
+      "id": "QA-006",
+      "severity": "minor",
+      "category": "fixture_uom_inconsistency",
+      "description": "TSK_WLRP_FIXTURE_COVERS_SETUP and TSK_WLRP_REMOVE_FIXTURE_COVERS use UOM=EA with required_input_key=IN_EA_ROOMS_TOTAL. The rate (15 EA/hr setup, 25 EA/hr remove) implies counting individual fixtures, but the input key counts rooms. The rate_basis_notes say '~4 min per room, ~6 fixtures/room' — this suggests the heuristic maps rooms to fixtures, but the UOM should either be EA_ROOM or the rate should reflect per-fixture counting.",
+      "affected_file": "production.json",
+      "affected_field": "task_production_rates[TSK_WLRP_FIXTURE_COVERS_SETUP].unit_of_measure",
+      "recommendation": "Either change UOM to EA_ROOM and adjust rates accordingly, or add a heuristic_items_per_room field (e.g., 6) to clarify the fixture-per-room mapping."
+    },
+    {
+      "id": "QA-007",
+      "severity": "minor",
+      "category": "state_declarations_location",
+      "description": "State declarations (input/output substrate states) are present in research.json under state_analysis, but resolution.json does not carry forward a state_declarations block. Per structural_keys.json, state_declarations should appear in spec.json and be verified by the Critic. Since this spec has no spec.json yet, the state analysis is only in research.json.",
+      "affected_file": "resolution.json",
+      "affected_field": "state_declarations (missing)",
+      "recommendation": "When spec.json is assembled, ensure state_declarations is populated from research.json state_analysis. The 5 SS_INT_* input states and sheen-dependent output states are correctly documented in research.json."
+    },
+    {
+      "id": "QA-008",
+      "severity": "minor",
+      "category": "adjacency_declarations_location",
+      "description": "Adjacency declarations are present in research.json under adjacency_analysis (6 adjacent surfaces declared) but not carried forward to resolution.json. Resolution has surface_ids with adjacent_surfaces listed, but no formal adjacency_declarations block with edge_type, typical_relationship, and affected_tasks.",
+      "affected_file": "resolution.json",
+      "affected_field": "adjacency_declarations (missing)",
+      "recommendation": "When spec.json is assembled, ensure adjacency_declarations is populated with full structure including affected_tasks per Spec_Completeness_Doctrine."
+    },
+    {
+      "id": "QA-009",
+      "severity": "minor",
+      "category": "protection_zones_location",
+      "description": "Protection zones are analyzed in research.json (5 zones: floor_perimeter, floor_full, trim_edges, fixture_covers, furniture_room) and implemented via tasks in sop_modules.json with protection_metadata. However, there is no formal protection_zones_required array in any file yet (required in spec.json per Spec_Completeness_Doctrine).",
+      "affected_file": "resolution.json",
+      "affected_field": "protection_zones_required (missing)",
+      "recommendation": "When spec.json is assembled, include formal protection_zones_required array. The protection zones are correctly implemented in SOP tasks — this is a spec.json assembly concern, not a current artifact issue."
+    },
+    {
+      "id": "QA-010",
+      "severity": "info",
+      "category": "cross_file_threading",
+      "description": "All 59 task IDs thread perfectly between sop_modules.json and production.json. Zero missing tasks in either direction. Zero UOM mismatches. Zero classification mismatches.",
+      "affected_file": "sop_modules.json, production.json",
+      "affected_field": "task_production_rates[].task_id",
+      "recommendation": "No action needed — excellent cross-file threading."
+    },
+    {
+      "id": "QA-011",
+      "severity": "info",
+      "category": "enum_validation",
+      "description": "All phase values (setup, prep, prime, interstage, finish, cleanup) are valid per controlled_enums.json. Module phase ordering follows canonical sequence. All task_classification values (binary, qt_scaled, qt_conditional) are valid. All skill_level values (helper, journeyman, lead) are valid. All unit_of_measure values (SF, LF, EA, EA_ROOM, FIXED) are valid. All substrate_state values are valid SS_INT_* states. All condition_scale values (GOOD, FAIR, POOR) are valid. All application_method values (roll, spray_backroll, spray) are valid. No prohibited patterns (task_class, CONS_, lowercase units, compound sheens) found.",
+      "affected_file": "all",
+      "affected_field": "multiple",
+      "recommendation": "No action needed."
+    },
+    {
+      "id": "QA-012",
+      "severity": "info",
+      "category": "rp_specific_validation",
+      "description": "RP-specific requirements satisfied: (1) Assessment phase has 5 assessment tasks (condition scan, adhesion test, moisture meter, coating ID, caulk assessment). (2) Furniture protection tasks present (TSK_WLRP_FURNITURE_MOVE, TSK_WLRP_FURNITURE_COVER, TSK_WLRP_FURNITURE_REPLACE). (3) Customer walkthrough task present (TSK_WLRP_CUSTOMER_WALKTHROUGH). (4) RRP containment module present (MOD_RRP_INT_CONTAINMENT) with 5 lead-safe tasks. (5) State-driven primer selection logic present in materials.json (3 primer systems for different substrate states). (6) Modifier stacking partition enforced (prep pool vs coating pool documented in MODIFIER_STACKING_WARNING and stacking_partition).",
+      "affected_file": "all",
+      "affected_field": "multiple",
+      "recommendation": "No action needed — all RP-specific requirements met."
+    },
+    {
+      "id": "QA-013",
+      "severity": "info",
+      "category": "registry_additions",
+      "description": "Resolution.json proposes 44 registry additions including: 1 spec family (SF_DRYWALL_WALL_INT_RP), 1 paintable item (ITM_WALL_FIELD_RP), 6 material systems, TSK_WLRP_* and MOD_WLRP_* prefixes, 4 round configurations, 5 coverage profiles, 8 PaintScope keys, 8 input IDs, 2 zone IDs, and 6 consumables. All proposed IDs follow naming conventions.",
+      "affected_file": "resolution.json",
+      "affected_field": "registry_additions_proposed",
+      "recommendation": "Escalate 44 proposed registry additions for id_registry.json update. Priority items: SF_DRYWALL_WALL_INT_RP, ITM_WALL_FIELD_RP, all SYS_* primer/finish systems."
+    },
+    {
+      "id": "QA-014",
+      "severity": "info",
+      "category": "material_systems",
+      "description": "6 material systems cover the full RP scope: 3 primers (SYS_PRIMER_ADHESION_INT for sound/failing/peeling, SYS_PRIMER_STAINBLOCK_INT for smoke damage, SYS_PRIMER_MILDEW_INT for moisture/mildew) and 3 finish systems (standard QT2-QT3, premium QT4, superior QT5). Primer selection is state-driven via applies_when.substrate_state. Finish tier selection is QT-driven. All 5 SS_INT_* states are covered across primer systems.",
+      "affected_file": "materials.json",
+      "affected_field": "material_systems",
+      "recommendation": "No action needed."
+    }
+  ],
+
+  "cross_file_threading_check": {
+    "rule_1_task_id_thread": {
+      "status": "pass",
+      "details": "All 59 task IDs in sop_modules.json have matching entries in production.json. Zero orphaned tasks in either direction."
+    },
+    "rule_2_item_id_thread": {
+      "status": "pass",
+      "details": "ITM_WALL_FIELD_RP and ITM_WALL_EDGE_CEILING declared in resolution.json paintable_items. Items correctly referenced in task scope."
+    },
+    "rule_3_system_id_thread": {
+      "status": "pass",
+      "details": "6 material systems in materials.json cover QT2-QT5 tiers. Primer systems tied to substrate_state, finish systems tied to quality_tier. All systems align with declared configuration dimensions."
+    },
+    "rule_4_input_thread": {
+      "status": "pass",
+      "details": "All IN_* inputs used in sop_modules.json required_inputs appear in production.json required_input_key fields. Key inputs: IN_SF_WALL_FIELD, IN_LF_EDGE_TO_CEILING, IN_LF_EDGE_TO_TRIM, IN_EA_ROOMS_TOTAL, IN_SF_PROTECT_FLOOR_PERIMETER, IN_SF_PROTECT_FLOOR_EXPOSED, IN_LF_PROTECT_TRIM_EDGES, IN_SF_PROTECT_FURNITURE_ROOM, IN_SF_FLOOR_VACUUM_AREA."
+    },
+    "rule_5_paintscope_key_thread": {
+      "status": "pass",
+      "details": "All PS_* keys used in production.json match keys declared in resolution.json paintscope_keys."
+    },
+    "rule_7_module_phase_sequence": {
+      "status": "pass",
+      "details": "Module phase ordering is correct: setup -> prep -> prep -> prime -> interstage -> finish -> cleanup -> cleanup. Multiple modules sharing a phase are allowed."
+    },
+    "rule_8_unit_of_measure_consistency": {
+      "status": "pass",
+      "details": "All task UOMs match between sop_modules.json and production.json. Zero mismatches across 59 tasks."
+    },
+    "rule_9_resolver_prefix_thread": {
+      "status": "pass",
+      "details": "All spec-owned tasks use TSK_WLRP_ prefix per resolution.json task_prefix.pattern. RRP module tasks use TSK_RRP_ prefix (shared cross-spec tasks). All modules use MOD_WLRP_ or MOD_RRP_ prefix."
+    },
+    "round_configuration_thread": {
+      "status": "pass",
+      "details": "All 4 round_configuration IDs (ROUND_WLRP_PRIME_2FINISH, ROUND_WLRP_PRIME_1FINISH, ROUND_WLRP_NOPRIME_2FINISH, ROUND_WLRP_NOPRIME_1FINISH) are consistent between sop_modules.json and production.json."
+    }
+  },
+
+  "enum_validation_check": {
+    "quality_tier": { "status": "pass", "values_used": ["QT2", "QT3", "QT4", "QT5"] },
+    "substrate_state": { "status": "pass", "values_used": ["SS_INT_SOUND_PAINT", "SS_INT_FAILING_PAINT", "SS_INT_PEELING", "SS_INT_MOISTURE_DAMAGE", "SS_INT_SMOKE_DAMAGE"], "notes": "All 5 SS_INT_* states covered across files." },
+    "phase": { "status": "pass", "values_used": ["setup", "prep", "prime", "interstage", "finish", "cleanup"] },
+    "application_method": { "status": "pass", "values_used": ["roll", "spray_backroll", "spray"] },
+    "task_classification": { "status": "pass", "values_used": ["binary", "qt_scaled", "qt_conditional"] },
+    "skill_level": { "status": "pass", "values_used": ["helper", "journeyman", "lead"] },
+    "unit_of_measure": { "status": "pass", "values_used": ["SF", "LF", "EA", "EA_ROOM", "FIXED"] },
+    "task_type": { "status": "fail", "values_used": ["prep", "prime", "finish", "apply", "protect", "inspect", "cleanup", "detail", "mask", "cut_in"], "invalid_values": ["mask", "cut_in"], "notes": "7 tasks use non-canonical task_type values. See QA-001." },
+    "condition_scale": { "status": "pass", "values_used": ["GOOD", "FAIR", "POOR"] },
+    "sheen": { "status": "pass", "values_used": ["flat", "matte", "eggshell", "satin", "semi-gloss"] },
+    "consumable_prefix": { "status": "pass", "notes": "All consumable IDs use CON_ prefix. No CONS_ violations." },
+    "consumable_unit": { "status": "pass", "notes": "All consumable units are uppercase per controlled_enums.json." },
+    "severity": { "status": "pass", "notes": "This report uses critical/major/minor/info only." },
+    "prohibited_patterns": { "status": "pass", "checked": ["task_class", "CONS_", "phase=protect/protection", "compound sheens", "lowercase units", "rate_per_hour in SOP", "coverage_sf_per_gallon in SOP"] }
+  },
+
+  "completeness_check": {
+    "protection_zones": {
+      "status": "pass",
+      "details": "5 zones implemented via SOP tasks: floor_perimeter, floor_full, trim_edges, fixture_covers, furniture_room. Research has complete protection_zones_analysis. Formal protection_zones_required array deferred to spec.json assembly."
+    },
+    "adjacency_declarations": {
+      "status": "pass",
+      "details": "6 adjacent surfaces analyzed in research.json: ceiling_field, trim_baseboard, trim_casing_door, trim_casing_window, trim_crown, trim_chair_rail. Surface IDs confirmed in resolution.json. Formal adjacency_declarations deferred to spec.json assembly."
+    },
+    "state_declarations": {
+      "status": "pass",
+      "details": "State analysis complete in research.json. 5 SS_INT_* input states, sheen-dependent output states (SS_PAINTED_FLAT through SS_PAINTED_SEMIGLOSS). Formal state_declarations deferred to spec.json assembly."
+    },
+    "site_condition_rules": {
+      "status": "pass",
+      "details": "Site condition rules present on affected tasks. Occupancy-driven tasks (furniture, walkthrough) correctly gated by occupancy_state. Lead-driven tasks gated by home_pre_1978 and lead_status. Contamination-driven tasks gated by contamination_type."
+    },
+    "skill_level_on_all_tasks": {
+      "status": "pass",
+      "details": "All 59 tasks in sop_modules.json have skill_level declared (helper, journeyman, or lead)."
+    },
+    "ss_int_state_coverage": {
+      "status": "pass",
+      "details": "All 5 SS_INT_* states are referenced across sop_modules.json, production.json, and materials.json. Primer selection, prep task activation, and coating application all address each state."
+    },
+    "assessment_phase": {
+      "status": "pass",
+      "details": "5 assessment tasks present: TSK_WLRP_ASSESS_CONDITION, TSK_WLRP_ASSESS_ADHESION, TSK_WLRP_ASSESS_MOISTURE, TSK_WLRP_ASSESS_COATING_ID, TSK_WLRP_CAULK_ASSESS_REPLACE. Exceeds minimum of 4."
+    },
+    "furniture_protection": {
+      "status": "pass",
+      "details": "3 furniture tasks: MOVE, COVER, REPLACE. Correctly gated by occupancy_state."
+    },
+    "customer_walkthrough": {
+      "status": "pass",
+      "details": "TSK_WLRP_CUSTOMER_WALKTHROUGH present in cleanup module, gated by occupancy_state."
+    },
+    "rrp_containment": {
+      "status": "pass",
+      "details": "MOD_RRP_INT_CONTAINMENT module with 5 tasks: LEAD_TEST, CONTAINMENT_SETUP, HEPA_VACUUM, CONTAINMENT_REMOVAL, WASTE_DISPOSAL. Conditionally gated by home_pre_1978."
+    },
+    "modifier_stacking_partition": {
+      "status": "pass",
+      "details": "Prep pool (condition + contamination + shared) and coating pool (QT + shared) documented with never_includes constraints. Max theoretical: prep=9.75x, coating=4.88x. Stacking partition enforced at task level via factor_modifiers assignment."
+    }
+  },
+
+  "rate_reasonableness_check": {
+    "sf_rate_range": {
+      "status": "pass_with_notes",
+      "details": "All SF task base rates between 80-2000 SF/hr. Two qt_rates entries (QT2 final_inspect at 2500, QT2 touchup at 2500) exceed 2000 SF/hr guideline. See QA-003 and QA-004.",
+      "min_sf_rate": "80 SF/hr (TSK_WLRP_SCRAPE_LOOSE)",
+      "max_sf_rate": "1800 SF/hr (TSK_WLRP_SPOT_COAT_INTERSTAGE base)"
+    },
+    "fixed_task_check": {
+      "status": "pass",
+      "details": "All FIXED-UOM tasks use fixed_minutes (no rate_per_hour on FIXED tasks). TSK_WLRP_CLEAN_TOOLS (25 min), TSK_RRP_WASTE_DISPOSAL (30 min)."
+    },
+    "rate_range_consistency": {
+      "status": "pass",
+      "details": "All tasks have rate_range_low <= rate_per_hour <= rate_range_high (or fixed_minutes equivalent). Zero violations."
+    },
+    "spray_backroll_coupling": {
+      "status": "fail",
+      "details": "Spray primer (550 SF/hr) exceeds backroll primer (400 SF/hr). Finish coat coupling is correct: R1 spray=backroll=390, R2 spray=backroll=420. See QA-002."
+    },
+    "prep_vs_finish_rates": {
+      "status": "pass",
+      "details": "Prep tasks (scrape 80 SF/hr, feather 120 SF/hr, degloss 280 SF/hr) are correctly slower than finish application tasks (roll 340-380 SF/hr, spray+backroll 390-420 SF/hr)."
+    }
+  },
+
+  "doctrine_compliance": {
+    "quality_tiers": {
+      "status": "pass",
+      "details": "QT2-QT5 implemented per Quality_Tiers_and_Surface_Condition.md. QT modifiers: QT2=0.80, QT3=1.00, QT4=1.30, QT5=1.50. Binary tasks same rate across tiers. QT-scaled tasks have per-tier rates. QT-conditional tasks correctly gated."
+    },
+    "estimation_modifiers": {
+      "status": "pass_with_notes",
+      "details": "Time modifiers correctly applied (modifier > 1.0 = slower). Height modifiers match doctrine (H1=1.0, H2=1.3, H3=1.5, H4=2.0). Texture modifiers match doctrine. One spray/backroll coupling violation on primer. See QA-002."
+    },
+    "spec_completeness": {
+      "status": "pass",
+      "details": "All three mandatory declaration layers (protection zones, adjacency, site conditions) are present in research/SOP. Formal spec.json assembly pending."
+    }
+  },
+
+  "spec_statistics": {
+    "total_tasks": 59,
+    "total_modules": 8,
+    "module_breakdown": {
+      "MOD_WLRP_SETUP": { "phase": "setup", "task_count": 8 },
+      "MOD_WLRP_ASSESSMENT": { "phase": "prep", "task_count": 4 },
+      "MOD_RRP_INT_CONTAINMENT": { "phase": "prep", "task_count": 5 },
+      "MOD_WLRP_PREP": { "phase": "prep", "task_count": 9 },
+      "MOD_WLRP_PRIME": { "phase": "prime", "task_count": 5 },
+      "MOD_WLRP_INTERSTAGE": { "phase": "interstage", "task_count": 6 },
+      "MOD_WLRP_FINISH": { "phase": "finish", "task_count": 14 },
+      "MOD_WLRP_CLEANUP": { "phase": "cleanup", "task_count": 8 }
+    },
+    "task_classification_breakdown": {
+      "binary": 30,
+      "qt_scaled": 22,
+      "qt_conditional": 7
+    },
+    "material_systems": 6,
+    "round_configurations": 4,
+    "factor_modifier_definitions": 23,
+    "protection_zones": 5,
+    "adjacent_surfaces": 6,
+    "consumables_count": "present in materials.json",
+    "coverage_profiles_count": "present in materials.json",
+    "registry_additions_proposed": 44
+  }
+}

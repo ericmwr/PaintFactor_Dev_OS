@@ -1,0 +1,1579 @@
+{
+  "spec_family_id": "SF_DRYWALL_CEILING_INT_RP",
+  "version": "1.0.0",
+  "generated_by": "Estimation Engineer",
+  "generated_at": "2026-03-13",
+
+  "MODIFIER_STACKING_WARNING": {
+    "severity": "critical",
+    "description": "Modifier stacking uses TWO separate pools that never cross-apply. Prep tasks use condition+contamination. Coating tasks use QT. Height and texture are shared across both pools. No wall_access modifier for ceilings.",
+    "worst_case_prep": "POOR(2.00) x smoke(1.50) x H4(2.00) x heavy_texture(1.25) = 7.50x",
+    "worst_case_coating": "QT5(1.50) x H4(2.00) x heavy_texture(1.25) = 3.75x",
+    "resolution": "STACKING PARTITION — prep pool and coating pool never overlap. Extreme combos flagged for estimator review.",
+    "stacking_rules": {
+      "prep_tasks": {
+        "formula": "effective_rate = base_rate / (condition x contamination x height x texture)",
+        "pool_modifiers": "CONDITION + CONTAMINATION (PREP pool)",
+        "shared_modifiers": "HEIGHT + TEXTURE",
+        "applies_to_phases": ["setup", "prep", "prime"]
+      },
+      "coating_tasks": {
+        "formula": "effective_rate = base_rate / (qt x height x texture)",
+        "pool_modifiers": "QT (COATING pool)",
+        "shared_modifiers": "HEIGHT + TEXTURE",
+        "applies_to_phases": ["finish", "interstage", "cleanup"]
+      }
+    },
+    "ceiling_vs_wall_note": "No wall_access modifier for ceilings — access obstruction is irrelevant when working overhead. Furniture stays in place (drip-covered), not center-piled."
+  },
+
+  "task_production_rates": [
+    {
+      "task_id": "TSK_CLRP_FLOOR_PROTECT_FULL_SETUP",
+      "name": "Floor Protection Setup (Full Room — Always)",
+      "task_classification": "binary",
+      "required_input_key": "IN_SF_PROTECT_FLOOR_EXPOSED",
+      "paintscope_key": "PS_PROTECT_SF.FLOOR_EXPOSED",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 400,
+      "rate_range_low": 300,
+      "rate_range_high": 500,
+      "crew_size": 1,
+      "applies_when": {},
+      "factor_modifiers": [],
+      "rate_basis_notes": "DIRECT transfer from NC ceiling prime TSK_CEIL_FLOOR_PROTECT_SETUP (400 SF/hr). Full room floor protection — ALWAYS full for ceiling work (overhead drip zone). Rosin paper or plastic with taped seams. Same task regardless of NC or RP context."
+    },
+    {
+      "task_id": "TSK_CLRP_FURNITURE_DRIP_COVER",
+      "name": "Cover Furniture with Poly Sheeting (In-Place)",
+      "task_classification": "binary",
+      "required_input_key": "IN_EA_ROOMS_TOTAL",
+      "paintscope_key": "PS_META.EA.ROOMS_TOTAL",
+      "unit_of_measure": "EA_ROOM",
+      "fixed_minutes": 8,
+      "fixed_minutes_range_low": 5,
+      "fixed_minutes_range_high": 12,
+      "crew_size": 1,
+      "applies_when": {
+        "occupancy_state": ["occupied_crew_handles", "occupied_sensitive"]
+      },
+      "factor_modifiers": [],
+      "rate_basis_notes": "ADAPTED from wall RP TSK_WLRP_FURNITURE_COVER (8 min/room). Ceiling RP covers furniture in-place (no center-pile) — drape poly sheeting over contents for overhead drip protection. Same time as wall furniture cover — technique is identical."
+    },
+    {
+      "task_id": "TSK_CLRP_MASK_WALL_TOP",
+      "name": "Mask Wall Top at Ceiling Line (Spray Methods)",
+      "task_classification": "binary",
+      "required_input_key": "IN_LF_EDGE_TO_WALL",
+      "paintscope_key": "PS_EDGE_LF.TO_WALL",
+      "unit_of_measure": "LF",
+      "rate_per_hour": 130,
+      "rate_range_low": 100,
+      "rate_range_high": 170,
+      "crew_size": 1,
+      "applies_when": {
+        "application_method": ["spray_backroll", "spray"]
+      },
+      "factor_modifiers": [],
+      "rate_basis_notes": "DIRECT transfer from NC ceiling prime TSK_CEIL_MASK_ADJACENT (130 LF/hr). Apply tape and paper to wall tops for ceiling spray masking. ~13% slower than wall masking (150 LF/hr) — working at ceiling line is overhead reach."
+    },
+    {
+      "task_id": "TSK_CLRP_FIXTURE_MASK_SETUP",
+      "name": "Mask Ceiling Fixtures (Lights, Fans, Smoke Detectors)",
+      "task_classification": "binary",
+      "required_input_key": "IN_EA_ROOMS_TOTAL",
+      "paintscope_key": "PS_META.EA.ROOMS_TOTAL",
+      "unit_of_measure": "EA_ROOM",
+      "rate_per_hour": 4,
+      "rate_range_low": 3,
+      "rate_range_high": 5,
+      "crew_size": 1,
+      "applies_when": {
+        "application_method": ["spray_backroll", "spray"]
+      },
+      "factor_modifiers": [],
+      "rate_basis_notes": "DIRECT transfer from NC ceiling finish TSK_PROTECT_CEILING_FIXTURES (4 rooms/hr, ~15 min per room). Stuff and tape ~8 items per room (6 recessed lights + 2 ceiling boxes average). Same task regardless of NC or RP context."
+    },
+    {
+      "task_id": "TSK_CLRP_OPENING_COVERS_SETUP",
+      "name": "Apply Lightweight Opening Covers (Spray Methods)",
+      "task_classification": "binary",
+      "required_input_key": "IN_EA_ROOMS_TOTAL",
+      "paintscope_key": "PS_META.EA.ROOMS_TOTAL",
+      "unit_of_measure": "EA_ROOM",
+      "fixed_minutes": 5,
+      "fixed_minutes_range_low": 3,
+      "fixed_minutes_range_high": 8,
+      "crew_size": 1,
+      "applies_when": {
+        "application_method": ["spray_backroll", "spray"]
+      },
+      "factor_modifiers": [],
+      "rate_basis_notes": "ADAPTED from NC ceiling finish TSK_VERIFY_MASK_OPENINGS pattern (~3 min per opening, ~2 openings per room). Lightweight plastic over door and window openings to contain ceiling overspray. Per-room fixed time."
+    },
+
+    {
+      "task_id": "TSK_CLRP_ASSESS_CONDITION",
+      "name": "Visual Condition Scan — All Ceilings",
+      "task_classification": "qt_scaled",
+      "required_input_key": "IN_EA_ROOMS_TOTAL",
+      "paintscope_key": "PS_META.EA.ROOMS_TOTAL",
+      "unit_of_measure": "EA_ROOM",
+      "fixed_minutes": 18,
+      "fixed_minutes_range_low": 10,
+      "fixed_minutes_range_high": 30,
+      "crew_size": 1,
+      "applies_when": {},
+      "qt_rates": {
+        "QT2": { "fixed_minutes": 10, "notes": "Quick visual scan overhead, major issues only" },
+        "QT3": { "fixed_minutes": 18, "notes": "Standard visual with raking work light, document all visible defects" },
+        "QT4": { "fixed_minutes": 24, "notes": "Systematic scan with raking light, photograph all defect areas" },
+        "QT5": { "fixed_minutes": 30, "notes": "Critical assessment, multiple passes, raking light, full photo documentation" }
+      },
+      "factor_modifiers": [
+        { "modifier_id": "FAC_HEIGHT_H1", "value": 1.00 },
+        { "modifier_id": "FAC_HEIGHT_H2", "value": 1.30 },
+        { "modifier_id": "FAC_HEIGHT_H3", "value": 1.50 },
+        { "modifier_id": "FAC_HEIGHT_H4", "value": 2.00 }
+      ],
+      "rate_basis_notes": "ADAPTED from wall RP TSK_WLRP_ASSESS_CONDITION (8-25 min). Ceiling assessment adds ~20% time for overhead viewing angle: brighter work light needed, neck fatigue, deliberate scanning. QT2: 10 min (wall=8), QT3: 18 min (wall=15), QT4: 24 min (wall=20), QT5: 30 min (wall=25)."
+    },
+    {
+      "task_id": "TSK_CLRP_ASSESS_ADHESION",
+      "name": "Adhesion Test (ASTM D3359 Cross-Hatch Tape Test)",
+      "task_classification": "binary",
+      "required_input_key": "IN_EA_ROOMS_TOTAL",
+      "paintscope_key": "PS_META.EA.ROOMS_TOTAL",
+      "unit_of_measure": "EA_ROOM",
+      "fixed_minutes": 10,
+      "fixed_minutes_range_low": 6,
+      "fixed_minutes_range_high": 15,
+      "crew_size": 1,
+      "applies_when": {},
+      "factor_modifiers": [],
+      "rate_basis_notes": "ADAPTED from wall RP TSK_WLRP_ASSESS_ADHESION (8 min). Overhead access requires step ladder for precise test placement — adds ~25%. 10 min/room. ASTM D3359 cross-hatch tape test at 2+ locations per room."
+    },
+    {
+      "task_id": "TSK_CLRP_ASSESS_MOISTURE",
+      "name": "Moisture Meter Evaluation",
+      "task_classification": "binary",
+      "required_input_key": "IN_EA_ROOMS_TOTAL",
+      "paintscope_key": "PS_META.EA.ROOMS_TOTAL",
+      "unit_of_measure": "EA_ROOM",
+      "fixed_minutes": 6,
+      "fixed_minutes_range_low": 4,
+      "fixed_minutes_range_high": 12,
+      "crew_size": 1,
+      "applies_when": {},
+      "factor_modifiers": [],
+      "rate_basis_notes": "ADAPTED from wall RP TSK_WLRP_ASSESS_MOISTURE (5 min). Overhead access adds ~20%. Moisture sources for ceilings: roof leaks, condensation, plumbing above. Active moisture is STOP WORK condition."
+    },
+    {
+      "task_id": "TSK_CLRP_ASSESS_COATING_ID",
+      "name": "Coating Identification — Latex vs Oil",
+      "task_classification": "binary",
+      "required_input_key": "IN_EA_ROOMS_TOTAL",
+      "paintscope_key": "PS_META.EA.ROOMS_TOTAL",
+      "unit_of_measure": "EA_ROOM",
+      "fixed_minutes": 6,
+      "fixed_minutes_range_low": 4,
+      "fixed_minutes_range_high": 10,
+      "crew_size": 1,
+      "applies_when": {},
+      "factor_modifiers": [],
+      "rate_basis_notes": "ADAPTED from wall RP TSK_WLRP_ASSESS_COATING_ID (5 min). Overhead access adds ~20%. Solvent test with mineral spirits. Critical for primer compatibility — latex over oil requires adhesion primer."
+    },
+
+    {
+      "task_id": "TSK_RRP_LEAD_TEST",
+      "name": "Lead Test (XRF or Swab)",
+      "task_classification": "binary",
+      "required_input_key": "IN_EA_ROOMS_TOTAL",
+      "paintscope_key": "PS_META.EA.ROOMS_TOTAL",
+      "unit_of_measure": "EA_ROOM",
+      "fixed_minutes": 10,
+      "fixed_minutes_range_low": 5,
+      "fixed_minutes_range_high": 15,
+      "crew_size": 1,
+      "applies_when": {
+        "home_pre_1978": true
+      },
+      "factor_modifiers": [],
+      "rate_basis_notes": "SHARED RRP module task. DIRECT transfer from wall RP TSK_RRP_LEAD_TEST (10 min). XRF or swab at 2+ ceiling locations per room. Identical rate — hand-held instrument, same technique regardless of surface orientation."
+    },
+    {
+      "task_id": "TSK_RRP_CONTAINMENT_SETUP",
+      "name": "RRP Containment Setup",
+      "task_classification": "binary",
+      "required_input_key": "IN_EA_ROOMS_TOTAL",
+      "paintscope_key": "PS_META.EA.ROOMS_TOTAL",
+      "unit_of_measure": "EA_ROOM",
+      "fixed_minutes": 30,
+      "fixed_minutes_range_low": 20,
+      "fixed_minutes_range_high": 45,
+      "crew_size": 1,
+      "applies_when": {
+        "home_pre_1978": true,
+        "lead_status": ["tested_positive", "unknown_pre1978"]
+      },
+      "factor_modifiers": [
+        { "modifier_id": "FAC_HEIGHT_H1", "value": 1.00 },
+        { "modifier_id": "FAC_HEIGHT_H2", "value": 1.30 },
+        { "modifier_id": "FAC_HEIGHT_H3", "value": 1.50 },
+        { "modifier_id": "FAC_HEIGHT_H4", "value": 2.00 }
+      ],
+      "rate_basis_notes": "SHARED RRP module task. DIRECT transfer from wall RP TSK_RRP_CONTAINMENT_SETUP (30 min). EPA RRP Rule 40 CFR 745. Poly sheeting, warning signs, restrict access. Same rate — containment is room-level, not surface-specific."
+    },
+    {
+      "task_id": "TSK_RRP_HEPA_VACUUM",
+      "name": "HEPA Vacuum After Paint Disturbance",
+      "task_classification": "binary",
+      "required_input_key": "IN_EA_ROOMS_TOTAL",
+      "paintscope_key": "PS_META.EA.ROOMS_TOTAL",
+      "unit_of_measure": "EA_ROOM",
+      "fixed_minutes": 20,
+      "fixed_minutes_range_low": 15,
+      "fixed_minutes_range_high": 30,
+      "crew_size": 1,
+      "applies_when": {
+        "home_pre_1978": true,
+        "lead_status": ["tested_positive", "unknown_pre1978"]
+      },
+      "factor_modifiers": [],
+      "rate_basis_notes": "SHARED RRP module task. DIRECT transfer from wall RP TSK_RRP_HEPA_VACUUM (20 min). HEPA vacuum all surfaces after each sanding/scraping disturbance. Required by EPA RRP Rule."
+    },
+    {
+      "task_id": "TSK_RRP_CONTAINMENT_REMOVAL",
+      "name": "RRP Containment Removal and Visual Clearance",
+      "task_classification": "binary",
+      "required_input_key": "IN_EA_ROOMS_TOTAL",
+      "paintscope_key": "PS_META.EA.ROOMS_TOTAL",
+      "unit_of_measure": "EA_ROOM",
+      "fixed_minutes": 20,
+      "fixed_minutes_range_low": 15,
+      "fixed_minutes_range_high": 30,
+      "crew_size": 1,
+      "applies_when": {
+        "home_pre_1978": true,
+        "lead_status": ["tested_positive", "unknown_pre1978"]
+      },
+      "factor_modifiers": [],
+      "rate_basis_notes": "SHARED RRP module task. DIRECT transfer from wall RP TSK_RRP_CONTAINMENT_REMOVAL (20 min). Remove containment poly, visual clearance inspection."
+    },
+    {
+      "task_id": "TSK_RRP_WASTE_DISPOSAL",
+      "name": "Lead-Contaminated Waste Disposal",
+      "task_classification": "binary",
+      "required_input_key": null,
+      "paintscope_key": null,
+      "unit_of_measure": "FIXED",
+      "fixed_minutes": 30,
+      "fixed_minutes_range_low": 20,
+      "fixed_minutes_range_high": 45,
+      "crew_size": 1,
+      "applies_when": {
+        "home_pre_1978": true,
+        "lead_status": ["tested_positive", "unknown_pre1978"]
+      },
+      "factor_modifiers": [],
+      "rate_basis_notes": "SHARED RRP module task. DIRECT transfer from wall RP TSK_RRP_WASTE_DISPOSAL (30 min). Package and dispose lead-contaminated debris per EPA RRP Rule. Per-job fixed time."
+    },
+
+    {
+      "task_id": "TSK_CLRP_WASH_TSP",
+      "name": "TSP Wash for Ceiling Surface Contamination",
+      "task_classification": "qt_scaled",
+      "required_input_key": "IN_SF_CEILING_FIELD",
+      "paintscope_key": "PS_SURFACE_SF.CEILING_FIELD",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 210,
+      "rate_range_low": 150,
+      "rate_range_high": 255,
+      "crew_size": 1,
+      "applies_when": {
+        "contamination_type": ["mildew", "smoke", "water_stain", "grease"]
+      },
+      "qt_rates": {
+        "QT2": { "rate_sf_per_hour": 255, "notes": "Single pass with TSP solution overhead, rinse" },
+        "QT3": { "rate_sf_per_hour": 210, "notes": "Thorough overhead wash, rinse, verify clean" },
+        "QT4": { "rate_sf_per_hour": 170, "notes": "Systematic wash overhead with rinse verification, work light check" },
+        "QT5": { "rate_sf_per_hour": 150, "notes": "Multiple passes as needed until clean, full verification" }
+      },
+      "factor_modifiers": [
+        { "modifier_id": "FAC_CLRP_CONDITION_GOOD", "value": 1.00 },
+        { "modifier_id": "FAC_CLRP_CONDITION_FAIR", "value": 1.50 },
+        { "modifier_id": "FAC_CLRP_CONDITION_POOR", "value": 2.00 },
+        { "modifier_id": "FAC_CLRP_CONTAM_MILDEW", "value": 1.20 },
+        { "modifier_id": "FAC_CLRP_CONTAM_SMOKE", "value": 1.50 },
+        { "modifier_id": "FAC_CLRP_CONTAM_WATER_STAIN", "value": 1.15 },
+        { "modifier_id": "FAC_CLRP_CONTAM_GREASE", "value": 1.10 },
+        { "modifier_id": "FAC_HEIGHT_H1", "value": 1.00 },
+        { "modifier_id": "FAC_HEIGHT_H2", "value": 1.30 },
+        { "modifier_id": "FAC_HEIGHT_H3", "value": 1.50 },
+        { "modifier_id": "FAC_HEIGHT_H4", "value": 2.00 }
+      ],
+      "rate_basis_notes": "ADAPTED from wall RP TSK_WLRP_WASH_TSP (250 SF/hr QT3) x 0.85 overhead penalty = 210 SF/hr. Overhead TSP wash with extension pole applicator is slower — drip management and rinse logistics overhead. Prep pool modifiers apply."
+    },
+    {
+      "task_id": "TSK_CLRP_TREAT_MILDEW",
+      "name": "Mildew/Biocide Treatment",
+      "task_classification": "binary",
+      "required_input_key": "IN_SF_CEILING_FIELD",
+      "paintscope_key": "PS_SURFACE_SF.CEILING_FIELD",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 170,
+      "rate_range_low": 125,
+      "rate_range_high": 210,
+      "crew_size": 1,
+      "applies_when": {
+        "contamination_type": ["mildew"],
+        "substrate_state": ["SS_INT_MOISTURE_DAMAGE"]
+      },
+      "factor_modifiers": [
+        { "modifier_id": "FAC_CLRP_CONDITION_FAIR", "value": 1.50 },
+        { "modifier_id": "FAC_CLRP_CONDITION_POOR", "value": 2.00 },
+        { "modifier_id": "FAC_HEIGHT_H1", "value": 1.00 },
+        { "modifier_id": "FAC_HEIGHT_H2", "value": 1.30 },
+        { "modifier_id": "FAC_HEIGHT_H3", "value": 1.50 },
+        { "modifier_id": "FAC_HEIGHT_H4", "value": 2.00 }
+      ],
+      "rate_basis_notes": "ADAPTED from wall RP TSK_WLRP_TREAT_MILDEW (200 SF/hr) x 0.85 overhead penalty = 170 SF/hr. Bleach/mildewcide solution overhead with extension pole applicator. Contact/kill time, rinse. Common on bathroom/kitchen ceilings."
+    },
+    {
+      "task_id": "TSK_CLRP_SCRAPE_LOOSE",
+      "name": "Scrape Loose and Failing Ceiling Paint",
+      "task_classification": "qt_scaled",
+      "required_input_key": "IN_SF_CEILING_FIELD",
+      "paintscope_key": "PS_SURFACE_SF.CEILING_FIELD",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 65,
+      "rate_range_low": 40,
+      "rate_range_high": 100,
+      "crew_size": 1,
+      "applies_when": {
+        "condition_scale": ["FAIR", "POOR"]
+      },
+      "qt_rates": {
+        "QT2": { "rate_sf_per_hour": 100, "notes": "Remove obviously loose material only" },
+        "QT3": { "rate_sf_per_hour": 65, "notes": "Remove all failing paint, thorough scrape overhead" },
+        "QT4": { "rate_sf_per_hour": 55, "notes": "Comprehensive scrape with careful edge work overhead" },
+        "QT5": { "rate_sf_per_hour": 40, "notes": "Critical scrape — near-zero tolerance, extreme overhead fatigue" }
+      },
+      "factor_modifiers": [
+        { "modifier_id": "FAC_CLRP_CONDITION_FAIR", "value": 1.50 },
+        { "modifier_id": "FAC_CLRP_CONDITION_POOR", "value": 2.00 },
+        { "modifier_id": "FAC_HEIGHT_H1", "value": 1.00 },
+        { "modifier_id": "FAC_HEIGHT_H2", "value": 1.30 },
+        { "modifier_id": "FAC_HEIGHT_H3", "value": 1.50 },
+        { "modifier_id": "FAC_HEIGHT_H4", "value": 2.00 }
+      ],
+      "rate_basis_notes": "ADAPTED from wall RP TSK_WLRP_SCRAPE_LOOSE (80 SF/hr QT3) x 0.80 overhead penalty = 65 SF/hr. Overhead scraping is significantly harder — gravity works against you, debris falls into face, arm fatigue. Extension pole scraper has less control than hand scraping."
+    },
+    {
+      "task_id": "TSK_CLRP_FEATHER_EDGES",
+      "name": "Feather-Sand Scrape Edges on Ceiling",
+      "task_classification": "qt_scaled",
+      "required_input_key": "IN_SF_CEILING_FIELD",
+      "paintscope_key": "PS_SURFACE_SF.CEILING_FIELD",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 100,
+      "rate_range_low": 65,
+      "rate_range_high": 135,
+      "crew_size": 1,
+      "applies_when": {
+        "condition_scale": ["FAIR", "POOR"]
+      },
+      "qt_rates": {
+        "QT2": { "rate_sf_per_hour": 135, "notes": "Sand visible ridges, reasonable transition" },
+        "QT3": { "rate_sf_per_hour": 100, "notes": "Smooth transition, no visible ridge at 6 ft" },
+        "QT4": { "rate_sf_per_hour": 85, "notes": "Near-invisible transition, no ridge at 3 ft" },
+        "QT5": { "rate_sf_per_hour": 65, "notes": "Perfect transition, no ridge at arm's length" }
+      },
+      "factor_modifiers": [
+        { "modifier_id": "FAC_CLRP_CONDITION_FAIR", "value": 1.50 },
+        { "modifier_id": "FAC_CLRP_CONDITION_POOR", "value": 2.00 },
+        { "modifier_id": "FAC_HEIGHT_H1", "value": 1.00 },
+        { "modifier_id": "FAC_HEIGHT_H2", "value": 1.30 },
+        { "modifier_id": "FAC_HEIGHT_H3", "value": 1.50 },
+        { "modifier_id": "FAC_HEIGHT_H4", "value": 2.00 }
+      ],
+      "rate_basis_notes": "ADAPTED from wall RP TSK_WLRP_FEATHER_EDGES (120 SF/hr QT3) x 0.83 overhead penalty = 100 SF/hr. Pole sander or hand sand on step ladder. Overhead feathering is more fatiguing, less control."
+    },
+    {
+      "task_id": "TSK_CLRP_DEGLOSS",
+      "name": "Degloss Existing Ceiling Paint Surface",
+      "task_classification": "qt_scaled",
+      "required_input_key": "IN_SF_CEILING_FIELD",
+      "paintscope_key": "PS_SURFACE_SF.CEILING_FIELD",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 235,
+      "rate_range_low": 170,
+      "rate_range_high": 300,
+      "crew_size": 1,
+      "applies_when": {
+        "substrate_state": ["SS_INT_SOUND_PAINT", "SS_INT_FAILING_PAINT"]
+      },
+      "qt_rates": {
+        "QT2": { "rate_sf_per_hour": 300, "notes": "Quick scuff overhead, chemical degloss preferred" },
+        "QT3": { "rate_sf_per_hour": 235, "notes": "Thorough degloss overhead, all surfaces addressed" },
+        "QT4": { "rate_sf_per_hour": 190, "notes": "Full degloss overhead with adhesion verification" },
+        "QT5": { "rate_sf_per_hour": 170, "notes": "Complete degloss overhead with bonding verification and spot re-test" }
+      },
+      "factor_modifiers": [
+        { "modifier_id": "FAC_CLRP_CONDITION_GOOD", "value": 1.00 },
+        { "modifier_id": "FAC_CLRP_CONDITION_FAIR", "value": 1.50 },
+        { "modifier_id": "FAC_HEIGHT_H1", "value": 1.00 },
+        { "modifier_id": "FAC_HEIGHT_H2", "value": 1.30 },
+        { "modifier_id": "FAC_HEIGHT_H3", "value": 1.50 },
+        { "modifier_id": "FAC_HEIGHT_H4", "value": 2.00 },
+        { "modifier_id": "FAC_TEXTURE_SMOOTH", "value": 1.00 },
+        { "modifier_id": "FAC_TEXTURE_ORANGE_PEEL", "value": 1.10 },
+        { "modifier_id": "FAC_TEXTURE_KNOCKDOWN", "value": 1.15 },
+        { "modifier_id": "FAC_TEXTURE_HEAVY", "value": 1.25 }
+      ],
+      "rate_basis_notes": "ADAPTED from wall RP TSK_WLRP_DEGLOSS (280 SF/hr QT3) x 0.84 overhead penalty = 235 SF/hr. Chemical degloss preferred for ceiling — less dust generation overhead. Extension pole applicator. Texture modifier applies."
+    },
+    {
+      "task_id": "TSK_CLRP_SPACKLE_DEFECTS",
+      "name": "Fill Ceiling Defects — Spackle",
+      "task_classification": "qt_scaled",
+      "required_input_key": "IN_SF_CEILING_FIELD",
+      "paintscope_key": "PS_SURFACE_SF.CEILING_FIELD",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 650,
+      "rate_range_low": 400,
+      "rate_range_high": 850,
+      "crew_size": 1,
+      "applies_when": {
+        "quality_tier": ["QT3", "QT4", "QT5"]
+      },
+      "qt_rates": {
+        "QT3": { "rate_sf_per_hour": 650, "notes": "Fill all visible defects, reasonable feathering overhead" },
+        "QT4": { "rate_sf_per_hour": 500, "notes": "Fill all defects with careful feathering, invisible repairs" },
+        "QT5": { "rate_sf_per_hour": 400, "notes": "Near-zero defect tolerance, wide feathering, multiple thin coats overhead" }
+      },
+      "factor_modifiers": [
+        { "modifier_id": "FAC_CLRP_CONDITION_GOOD", "value": 1.00 },
+        { "modifier_id": "FAC_CLRP_CONDITION_FAIR", "value": 1.50 },
+        { "modifier_id": "FAC_CLRP_CONDITION_POOR", "value": 2.00 },
+        { "modifier_id": "FAC_HEIGHT_H1", "value": 1.00 },
+        { "modifier_id": "FAC_HEIGHT_H2", "value": 1.30 },
+        { "modifier_id": "FAC_HEIGHT_H3", "value": 1.50 },
+        { "modifier_id": "FAC_HEIGHT_H4", "value": 2.00 }
+      ],
+      "rate_basis_notes": "ADAPTED from wall RP TSK_WLRP_SPACKLE_DEFECTS (800 SF/hr QT3) x 0.81 overhead penalty = 650 SF/hr. Cross-check: NC ceiling finish TSK_SPACKLE_CEILING_DEFECTS = 800 SF/hr for NC (lower defect density). RP has higher defect density + overhead = 650 reasonable. Extension pole applicator for overhead spackle."
+    },
+    {
+      "task_id": "TSK_CLRP_SAND_SPACKLE",
+      "name": "Sand Spackled Ceiling Areas",
+      "task_classification": "qt_scaled",
+      "required_input_key": "IN_SF_CEILING_FIELD",
+      "paintscope_key": "PS_SURFACE_SF.CEILING_FIELD",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 800,
+      "rate_range_low": 480,
+      "rate_range_high": 1000,
+      "crew_size": 1,
+      "applies_when": {
+        "quality_tier": ["QT3", "QT4", "QT5"]
+      },
+      "qt_rates": {
+        "QT3": { "rate_sf_per_hour": 800, "notes": "Sand and blend overhead, repair should not telegraph" },
+        "QT4": { "rate_sf_per_hour": 640, "notes": "Sand perfectly smooth overhead, repair invisible" },
+        "QT5": { "rate_sf_per_hour": 480, "notes": "Sand to perfection overhead, wet sponge test" }
+      },
+      "factor_modifiers": [
+        { "modifier_id": "FAC_CLRP_CONDITION_GOOD", "value": 1.00 },
+        { "modifier_id": "FAC_CLRP_CONDITION_FAIR", "value": 1.50 },
+        { "modifier_id": "FAC_CLRP_CONDITION_POOR", "value": 2.00 },
+        { "modifier_id": "FAC_HEIGHT_H1", "value": 1.00 },
+        { "modifier_id": "FAC_HEIGHT_H2", "value": 1.30 },
+        { "modifier_id": "FAC_HEIGHT_H3", "value": 1.50 },
+        { "modifier_id": "FAC_HEIGHT_H4", "value": 2.00 }
+      ],
+      "rate_basis_notes": "ADAPTED from wall RP TSK_WLRP_SAND_SPACKLE (1000 SF/hr QT3) x 0.80 overhead penalty = 800 SF/hr. Cross-check: NC ceiling finish TSK_SAND_SPACKLE_CEILING = 1000 SF/hr for NC (less spackled area). RP spackle sand at 800 is reasonable — more area but still localized spots."
+    },
+    {
+      "task_id": "TSK_CLRP_CAULK_PERIMETER",
+      "name": "Assess and Replace Failed Caulk at Ceiling Perimeter",
+      "task_classification": "qt_scaled",
+      "required_input_key": "IN_LF_EDGE_TO_WALL",
+      "paintscope_key": "PS_EDGE_LF.TO_WALL",
+      "unit_of_measure": "LF",
+      "rate_per_hour": 50,
+      "rate_range_low": 35,
+      "rate_range_high": 65,
+      "crew_size": 1,
+      "applies_when": {
+        "quality_tier": ["QT3", "QT4", "QT5"]
+      },
+      "qt_rates": {
+        "QT3": { "rate_lf_per_hour": 50, "notes": "Replace visibly failed sections at ceiling perimeter" },
+        "QT4": { "rate_lf_per_hour": 42, "notes": "Comprehensive assessment, replace all suspect joints" },
+        "QT5": { "rate_lf_per_hour": 35, "notes": "Critical assessment, replace all imperfect joints" }
+      },
+      "factor_modifiers": [
+        { "modifier_id": "FAC_CLRP_CONDITION_GOOD", "value": 1.00 },
+        { "modifier_id": "FAC_CLRP_CONDITION_FAIR", "value": 1.50 },
+        { "modifier_id": "FAC_CLRP_CONDITION_POOR", "value": 2.00 },
+        { "modifier_id": "FAC_HEIGHT_H1", "value": 1.00 },
+        { "modifier_id": "FAC_HEIGHT_H2", "value": 1.30 },
+        { "modifier_id": "FAC_HEIGHT_H3", "value": 1.50 },
+        { "modifier_id": "FAC_HEIGHT_H4", "value": 2.00 }
+      ],
+      "rate_basis_notes": "ADAPTED from wall RP TSK_WLRP_CAULK_ASSESS_REPLACE (60 LF/hr QT3) x 0.83 overhead penalty = 50 LF/hr. Overhead caulking at ceiling-to-wall joint is slower — gravity pulls bead, harder to tool smooth. Only one joint type (ceiling-to-wall) unlike wall RP (baseboard + casing)."
+    },
+    {
+      "task_id": "TSK_CLRP_DUST_WIPE",
+      "name": "Dust Wipe Ceiling Surfaces",
+      "task_classification": "binary",
+      "required_input_key": "IN_SF_CEILING_FIELD",
+      "paintscope_key": "PS_SURFACE_SF.CEILING_FIELD",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 850,
+      "rate_range_low": 680,
+      "rate_range_high": 1000,
+      "crew_size": 1,
+      "applies_when": {},
+      "factor_modifiers": [
+        { "modifier_id": "FAC_HEIGHT_H1", "value": 1.00 },
+        { "modifier_id": "FAC_HEIGHT_H2", "value": 1.30 },
+        { "modifier_id": "FAC_HEIGHT_H3", "value": 1.50 },
+        { "modifier_id": "FAC_HEIGHT_H4", "value": 2.00 }
+      ],
+      "rate_basis_notes": "ADAPTED from wall RP TSK_WLRP_DUST_WIPE (1000 SF/hr) x 0.85 overhead penalty = 850 SF/hr. Damp cloth or tack cloth on extension pole overhead. Slower than wall — overhead reach and wringing cloth."
+    },
+    {
+      "task_id": "TSK_CLRP_VACUUM_DUST",
+      "name": "Vacuum Ceiling and Floor Dust After Prep",
+      "task_classification": "binary",
+      "required_input_key": "IN_SF_CEILING_FIELD",
+      "paintscope_key": "PS_SURFACE_SF.CEILING_FIELD",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 600,
+      "rate_range_low": 470,
+      "rate_range_high": 730,
+      "crew_size": 1,
+      "applies_when": {},
+      "factor_modifiers": [
+        { "modifier_id": "FAC_HEIGHT_H1", "value": 1.00 },
+        { "modifier_id": "FAC_HEIGHT_H2", "value": 1.30 },
+        { "modifier_id": "FAC_HEIGHT_H3", "value": 1.50 },
+        { "modifier_id": "FAC_HEIGHT_H4", "value": 2.00 }
+      ],
+      "rate_basis_notes": "Cross-check: NC ceiling prime TSK_CEIL_VACUUM_DUST = 700 SF/hr (NC ceiling prep dust). RP generates more dust (scraping, extensive sanding) so 600 SF/hr for combined ceiling+floor vacuuming. Wall RP at 800 SF/hr x 0.80 overhead = 640 — 600 accounts for additional RP dust volume."
+    },
+
+    {
+      "task_id": "TSK_CLRP_CUTIN_PRIMER_WALL",
+      "name": "Cut-In Primer at Wall Line (from Ceiling)",
+      "task_classification": "qt_scaled",
+      "required_input_key": "IN_LF_EDGE_TO_WALL",
+      "paintscope_key": "PS_EDGE_LF.TO_WALL",
+      "unit_of_measure": "LF",
+      "rate_per_hour": 85,
+      "rate_range_low": 50,
+      "rate_range_high": 110,
+      "crew_size": 1,
+      "applies_when": {
+        "application_method": ["roll"],
+        "substrate_state": ["SS_INT_FAILING_PAINT", "SS_INT_PEELING", "SS_INT_MOISTURE_DAMAGE", "SS_INT_SMOKE_DAMAGE"]
+      },
+      "qt_rates": {
+        "QT2": { "rate_lf_per_hour": 110, "notes": "Acceptable edge, minor wavering tolerated" },
+        "QT3": { "rate_lf_per_hour": 85, "notes": "Clean, consistent edge at wall line from ceiling" },
+        "QT4": { "rate_lf_per_hour": 65, "notes": "Crisp edge with minimal brush marks" },
+        "QT5": { "rate_lf_per_hour": 50, "notes": "Perfect edge, straight line" }
+      },
+      "factor_modifiers": [
+        { "modifier_id": "FAC_CLRP_CONDITION_FAIR", "value": 1.50 },
+        { "modifier_id": "FAC_CLRP_CONDITION_POOR", "value": 2.00 },
+        { "modifier_id": "FAC_HEIGHT_H1", "value": 1.00 },
+        { "modifier_id": "FAC_HEIGHT_H2", "value": 1.30 },
+        { "modifier_id": "FAC_HEIGHT_H3", "value": 1.50 },
+        { "modifier_id": "FAC_HEIGHT_H4", "value": 2.00 }
+      ],
+      "rate_basis_notes": "ADAPTED from wall RP TSK_WLRP_CUTIN_PRIMER_CEILING (100 LF/hr QT3) x 0.85 overhead penalty = 85 LF/hr. Cross-check: NC ceiling prime TSK_CEIL_CUT_IN_WALL (85 LF/hr QT3) — matches. Overhead freehand cut-in at wall line. Skip for SS_INT_SOUND_PAINT."
+    },
+    {
+      "task_id": "TSK_CLRP_ROLL_PRIMER",
+      "name": "Roll Primer on Ceiling",
+      "task_classification": "qt_scaled",
+      "required_input_key": "IN_SF_CEILING_FIELD",
+      "paintscope_key": "PS_SURFACE_SF.CEILING_FIELD",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 275,
+      "rate_range_low": 210,
+      "rate_range_high": 320,
+      "crew_size": 1,
+      "applies_when": {
+        "application_method": ["roll"],
+        "substrate_state": ["SS_INT_FAILING_PAINT", "SS_INT_PEELING", "SS_INT_MOISTURE_DAMAGE", "SS_INT_SMOKE_DAMAGE"]
+      },
+      "qt_rates": {
+        "QT2": { "rate_sf_per_hour": 320, "notes": "Standard roll primer overhead, coverage priority" },
+        "QT3": { "rate_sf_per_hour": 275, "notes": "Thorough roll primer overhead, uniform coverage" },
+        "QT4": { "rate_sf_per_hour": 235, "notes": "Premium roll primer overhead, uniform mil thickness" },
+        "QT5": { "rate_sf_per_hour": 210, "notes": "Critical primer application overhead, perfect coverage" }
+      },
+      "factor_modifiers": [
+        { "modifier_id": "FAC_CLRP_CONDITION_FAIR", "value": 1.50 },
+        { "modifier_id": "FAC_CLRP_CONDITION_POOR", "value": 2.00 },
+        { "modifier_id": "FAC_HEIGHT_H1", "value": 1.00 },
+        { "modifier_id": "FAC_HEIGHT_H2", "value": 1.30 },
+        { "modifier_id": "FAC_HEIGHT_H3", "value": 1.50 },
+        { "modifier_id": "FAC_HEIGHT_H4", "value": 2.00 },
+        { "modifier_id": "FAC_TEXTURE_SMOOTH", "value": 1.00 },
+        { "modifier_id": "FAC_TEXTURE_ORANGE_PEEL", "value": 1.10 },
+        { "modifier_id": "FAC_TEXTURE_KNOCKDOWN", "value": 1.15 },
+        { "modifier_id": "FAC_TEXTURE_HEAVY", "value": 1.25 }
+      ],
+      "rate_basis_notes": "ADAPTED from wall RP TSK_WLRP_ROLL_PRIMER (325 SF/hr QT3) x 0.85 overhead penalty = 275 SF/hr. Cross-check: NC ceiling prime TSK_CEIL_ROLL_PRIMER (300 SF/hr) — RP adhesion primer is slightly slower due to higher viscosity. 275 is consistent. Skip for SS_INT_SOUND_PAINT."
+    },
+    {
+      "task_id": "TSK_CLRP_SPRAY_PRIMER",
+      "name": "Spray Primer on Ceiling",
+      "task_classification": "qt_scaled",
+      "required_input_key": "IN_SF_CEILING_FIELD",
+      "paintscope_key": "PS_SURFACE_SF.CEILING_FIELD",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 275,
+      "rate_range_low": 220,
+      "rate_range_high": 325,
+      "crew_size": 1,
+      "applies_when": {
+        "application_method": ["spray_backroll", "spray"],
+        "substrate_state": ["SS_INT_FAILING_PAINT", "SS_INT_PEELING", "SS_INT_MOISTURE_DAMAGE", "SS_INT_SMOKE_DAMAGE"]
+      },
+      "qt_rates": {
+        "QT2": { "rate_sf_per_hour": 325, "notes": "Standard spray primer overhead — capped at backroll rate" },
+        "QT3": { "rate_sf_per_hour": 275, "notes": "Thorough spray primer overhead — capped at backroll rate" },
+        "QT4": { "rate_sf_per_hour": 250, "notes": "Premium spray primer overhead, consistent mil thickness" },
+        "QT5": { "rate_sf_per_hour": 220, "notes": "Critical spray application overhead" }
+      },
+      "factor_modifiers": [
+        { "modifier_id": "FAC_CLRP_CONDITION_FAIR", "value": 1.50 },
+        { "modifier_id": "FAC_CLRP_CONDITION_POOR", "value": 2.00 },
+        { "modifier_id": "FAC_HEIGHT_H1", "value": 1.00 },
+        { "modifier_id": "FAC_HEIGHT_H2", "value": 1.30 },
+        { "modifier_id": "FAC_HEIGHT_H3", "value": 1.50 },
+        { "modifier_id": "FAC_HEIGHT_H4", "value": 2.00 }
+      ],
+      "rate_basis_notes": "ADAPTED from wall RP TSK_WLRP_SPRAY_PRIMER (380 SF/hr QT3). Applied 0.85 ceiling overhead = 323, but CAPPED to backroll rate per coupling constraint. Backroll ceiling primer = 325 SF/hr QT2, 275 QT3. Spray rates capped at backroll: QT2=325, QT3=275. Skip for SS_INT_SOUND_PAINT."
+    },
+    {
+      "task_id": "TSK_CLRP_BACKROLL_PRIMER",
+      "name": "Backroll Sprayed Ceiling Primer",
+      "task_classification": "binary",
+      "required_input_key": "IN_SF_CEILING_FIELD",
+      "paintscope_key": "PS_SURFACE_SF.CEILING_FIELD",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 325,
+      "rate_range_low": 280,
+      "rate_range_high": 400,
+      "crew_size": 1,
+      "applies_when": {
+        "application_method": ["spray_backroll"],
+        "substrate_state": ["SS_INT_FAILING_PAINT", "SS_INT_PEELING", "SS_INT_MOISTURE_DAMAGE", "SS_INT_SMOKE_DAMAGE"]
+      },
+      "factor_modifiers": [
+        { "modifier_id": "FAC_HEIGHT_H1", "value": 1.00 },
+        { "modifier_id": "FAC_HEIGHT_H2", "value": 1.30 },
+        { "modifier_id": "FAC_HEIGHT_H3", "value": 1.50 },
+        { "modifier_id": "FAC_HEIGHT_H4", "value": 2.00 },
+        { "modifier_id": "FAC_TEXTURE_SMOOTH", "value": 1.00 },
+        { "modifier_id": "FAC_TEXTURE_ORANGE_PEEL", "value": 1.10 },
+        { "modifier_id": "FAC_TEXTURE_KNOCKDOWN", "value": 1.15 },
+        { "modifier_id": "FAC_TEXTURE_HEAVY", "value": 1.25 }
+      ],
+      "rate_basis_notes": "ADAPTED from wall RP TSK_WLRP_BACKROLL_PRIMER (400 SF/hr) x 0.81 overhead penalty = 325 SF/hr. Cross-check: NC ceiling prime TSK_CEIL_BACKROLL_PRIMER (325 SF/hr) — exact match. MANDATORY for primer on previously painted surfaces. THIS IS THE BOTTLENECK — backroller sets pace. Skip for SS_INT_SOUND_PAINT."
+    },
+    {
+      "task_id": "TSK_CLRP_SPOT_PRIME",
+      "name": "Spot Prime Scraped/Repaired Ceiling Areas",
+      "task_classification": "qt_scaled",
+      "required_input_key": "IN_SF_CEILING_FIELD",
+      "paintscope_key": "PS_SURFACE_SF.CEILING_FIELD",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 1275,
+      "rate_range_low": 850,
+      "rate_range_high": 1530,
+      "crew_size": 1,
+      "applies_when": {},
+      "qt_rates": {
+        "QT2": { "rate_sf_per_hour": 1530, "notes": "Spot prime major repair areas overhead" },
+        "QT3": { "rate_sf_per_hour": 1275, "notes": "Spot prime all spackled and scraped areas overhead" },
+        "QT4": { "rate_sf_per_hour": 1020, "notes": "Spot prime all repairs with feathered edges overhead" },
+        "QT5": { "rate_sf_per_hour": 850, "notes": "Spot prime all repairs with wide feather overhead" }
+      },
+      "factor_modifiers": [
+        { "modifier_id": "FAC_CLRP_CONDITION_GOOD", "value": 1.00 },
+        { "modifier_id": "FAC_CLRP_CONDITION_FAIR", "value": 1.50 },
+        { "modifier_id": "FAC_CLRP_CONDITION_POOR", "value": 2.00 },
+        { "modifier_id": "FAC_HEIGHT_H1", "value": 1.00 },
+        { "modifier_id": "FAC_HEIGHT_H2", "value": 1.30 },
+        { "modifier_id": "FAC_HEIGHT_H3", "value": 1.50 },
+        { "modifier_id": "FAC_HEIGHT_H4", "value": 2.00 }
+      ],
+      "rate_basis_notes": "ADAPTED from wall RP TSK_WLRP_SPOT_PRIME (1500 SF/hr QT3) x 0.85 overhead penalty = 1275 SF/hr. Cross-check: NC ceiling finish TSK_SPOT_PRIME_CEILING (1500 SF/hr NC). RP has more spots (condition damage) so 1275 is reasonable. Rate per total ceiling SF."
+    },
+
+    {
+      "task_id": "TSK_CLRP_LIGHT_SAND_BETWEEN_COATS",
+      "name": "Light Sand Ceiling Between Coats",
+      "task_classification": "qt_conditional",
+      "required_input_key": "IN_SF_CEILING_FIELD",
+      "paintscope_key": "PS_SURFACE_SF.CEILING_FIELD",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 500,
+      "rate_range_low": 400,
+      "rate_range_high": 600,
+      "crew_size": 1,
+      "applies_when": {
+        "quality_tier": ["QT4"]
+      },
+      "factor_modifiers": [
+        { "modifier_id": "FAC_HEIGHT_H1", "value": 1.00 },
+        { "modifier_id": "FAC_HEIGHT_H2", "value": 1.30 },
+        { "modifier_id": "FAC_HEIGHT_H3", "value": 1.50 },
+        { "modifier_id": "FAC_HEIGHT_H4", "value": 2.00 }
+      ],
+      "rate_basis_notes": "ADAPTED from wall RP TSK_WLRP_LIGHT_SAND_BETWEEN_COATS (600 SF/hr) x 0.83 overhead penalty = 500 SF/hr. Cross-check: NC ceiling finish TSK_LIGHT_SAND_BETWEEN_COATS (500 SF/hr QT4) — exact match. 220 grit pole sander. Coating pool."
+    },
+    {
+      "task_id": "TSK_CLRP_LIGHT_SAND_BETWEEN_COATS_QT5",
+      "name": "Light Sand Ceiling Between Coats (Critical)",
+      "task_classification": "qt_conditional",
+      "required_input_key": "IN_SF_CEILING_FIELD",
+      "paintscope_key": "PS_SURFACE_SF.CEILING_FIELD",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 350,
+      "rate_range_low": 280,
+      "rate_range_high": 420,
+      "crew_size": 1,
+      "applies_when": {
+        "quality_tier": ["QT5"]
+      },
+      "factor_modifiers": [
+        { "modifier_id": "FAC_HEIGHT_H1", "value": 1.00 },
+        { "modifier_id": "FAC_HEIGHT_H2", "value": 1.30 },
+        { "modifier_id": "FAC_HEIGHT_H3", "value": 1.50 },
+        { "modifier_id": "FAC_HEIGHT_H4", "value": 2.00 }
+      ],
+      "rate_basis_notes": "ADAPTED from wall RP TSK_WLRP_LIGHT_SAND_BETWEEN_COATS_QT5 (420 SF/hr) x 0.83 overhead penalty = 350 SF/hr. Cross-check: NC ceiling finish TSK_LIGHT_SAND_BETWEEN_COATS_QT5 (350 SF/hr) — exact match. Careful sanding with raking light inspection. Critical for satin/semi-gloss on ceiling."
+    },
+    {
+      "task_id": "TSK_CLRP_VACUUM_INTERCOAT_DUST",
+      "name": "Vacuum Intercoat Sanding Dust from Ceiling",
+      "task_classification": "qt_conditional",
+      "required_input_key": "IN_SF_CEILING_FIELD",
+      "paintscope_key": "PS_SURFACE_SF.CEILING_FIELD",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 600,
+      "rate_range_low": 480,
+      "rate_range_high": 750,
+      "crew_size": 1,
+      "applies_when": {
+        "quality_tier": ["QT4", "QT5"]
+      },
+      "factor_modifiers": [
+        { "modifier_id": "FAC_HEIGHT_H1", "value": 1.00 },
+        { "modifier_id": "FAC_HEIGHT_H2", "value": 1.30 },
+        { "modifier_id": "FAC_HEIGHT_H3", "value": 1.50 },
+        { "modifier_id": "FAC_HEIGHT_H4", "value": 2.00 }
+      ],
+      "rate_basis_notes": "ADAPTED from wall RP TSK_WLRP_VACUUM_INTERCOAT_DUST (750 SF/hr) x 0.80 overhead penalty = 600 SF/hr. Cross-check: NC ceiling finish TSK_VACUUM_INTERCOAT_DUST (600 SF/hr) — exact match. HEPA vacuum with brush attachment on extension pole overhead."
+    },
+    {
+      "task_id": "TSK_CLRP_INSPECT_BETWEEN_COATS",
+      "name": "Inspect Ceiling Between Coats",
+      "task_classification": "qt_scaled",
+      "required_input_key": "IN_SF_CEILING_FIELD",
+      "paintscope_key": "PS_SURFACE_SF.CEILING_FIELD",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 1275,
+      "rate_range_low": 500,
+      "rate_range_high": 1530,
+      "crew_size": 1,
+      "applies_when": {
+        "quality_tier": ["QT3", "QT4", "QT5"]
+      },
+      "qt_rates": {
+        "QT3": { "rate_sf_per_hour": 1275, "notes": "Standard visual inspection overhead, note obvious defects" },
+        "QT4": { "rate_sf_per_hour": 850, "notes": "Systematic inspection overhead with work light" },
+        "QT5": { "rate_sf_per_hour": 500, "notes": "Critical inspection overhead with raking light, multiple passes" }
+      },
+      "factor_modifiers": [
+        { "modifier_id": "FAC_HEIGHT_H1", "value": 1.00 },
+        { "modifier_id": "FAC_HEIGHT_H2", "value": 1.30 },
+        { "modifier_id": "FAC_HEIGHT_H3", "value": 1.50 },
+        { "modifier_id": "FAC_HEIGHT_H4", "value": 2.00 }
+      ],
+      "rate_basis_notes": "ADAPTED from wall RP TSK_WLRP_INSPECT_BETWEEN_COATS (1500/1000/600 SF/hr) x 0.85 overhead penalty = 1275/850/510. Rounded QT5 to 500. Cross-check: NC ceiling finish inspection rates (1200/800/500 for QT3/QT4/QT5) — RP is slightly higher per-SF because RP inspection is more familiar with condition."
+    },
+    {
+      "task_id": "TSK_CLRP_PATCH_DEFECTS_INTERSTAGE",
+      "name": "Patch Interstage Ceiling Defects",
+      "task_classification": "qt_scaled",
+      "required_input_key": "IN_SF_CEILING_FIELD",
+      "paintscope_key": "PS_SURFACE_SF.CEILING_FIELD",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 1000,
+      "rate_range_low": 500,
+      "rate_range_high": 1275,
+      "crew_size": 1,
+      "applies_when": {
+        "quality_tier": ["QT3", "QT4", "QT5"]
+      },
+      "qt_rates": {
+        "QT3": { "rate_sf_per_hour": 1000, "notes": "Repair obvious defects overhead" },
+        "QT4": { "rate_sf_per_hour": 750, "notes": "Repair all identified defects overhead" },
+        "QT5": { "rate_sf_per_hour": 500, "notes": "Repair all defects with wide feathering, near-zero tolerance overhead" }
+      },
+      "factor_modifiers": [
+        { "modifier_id": "FAC_HEIGHT_H1", "value": 1.00 },
+        { "modifier_id": "FAC_HEIGHT_H2", "value": 1.30 },
+        { "modifier_id": "FAC_HEIGHT_H3", "value": 1.50 },
+        { "modifier_id": "FAC_HEIGHT_H4", "value": 2.00 }
+      ],
+      "rate_basis_notes": "ADAPTED from wall RP TSK_WLRP_PATCH_DEFECTS_INTERSTAGE (1200/900/600 SF/hr) x 0.83 overhead penalty = 1000/750/500. Rate per total ceiling SF. Higher rate than initial spackle because defect density is much lower after prime/first coat. Coating pool."
+    },
+    {
+      "task_id": "TSK_CLRP_SPOT_COAT_INTERSTAGE",
+      "name": "Spot Coat Patched Ceiling Areas",
+      "task_classification": "qt_scaled",
+      "required_input_key": "IN_SF_CEILING_FIELD",
+      "paintscope_key": "PS_SURFACE_SF.CEILING_FIELD",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 1530,
+      "rate_range_low": 1000,
+      "rate_range_high": 1870,
+      "crew_size": 1,
+      "applies_when": {
+        "quality_tier": ["QT3", "QT4", "QT5"]
+      },
+      "qt_rates": {
+        "QT3": { "rate_sf_per_hour": 1530, "notes": "Spot coat major patches overhead" },
+        "QT4": { "rate_sf_per_hour": 1275, "notes": "Spot coat all patches with feathered edges overhead" },
+        "QT5": { "rate_sf_per_hour": 1000, "notes": "Spot coat all repairs with wide blend zone overhead" }
+      },
+      "factor_modifiers": [
+        { "modifier_id": "FAC_HEIGHT_H1", "value": 1.00 },
+        { "modifier_id": "FAC_HEIGHT_H2", "value": 1.30 },
+        { "modifier_id": "FAC_HEIGHT_H3", "value": 1.50 },
+        { "modifier_id": "FAC_HEIGHT_H4", "value": 2.00 }
+      ],
+      "rate_basis_notes": "ADAPTED from wall RP TSK_WLRP_SPOT_COAT_INTERSTAGE (1800/1500/1200 SF/hr) x 0.85 overhead penalty = 1530/1275/1020. Rounded QT5 to 1000. Rate per total ceiling SF. Very fast — touching only patched areas. Coating pool."
+    },
+
+    {
+      "task_id": "TSK_CLRP_CUTIN_WALL_R1",
+      "name": "Cut-In Ceiling at Wall Line (Finish Coat 1)",
+      "task_classification": "qt_scaled",
+      "required_input_key": "IN_LF_EDGE_TO_WALL",
+      "paintscope_key": "PS_EDGE_LF.TO_WALL",
+      "unit_of_measure": "LF",
+      "rate_per_hour": 85,
+      "rate_range_low": 50,
+      "rate_range_high": 110,
+      "crew_size": 1,
+      "applies_when": {
+        "application_method": ["roll"]
+      },
+      "qt_rates": {
+        "QT2": { "rate_lf_per_hour": 110, "notes": "Acceptable if neat, minor wobble tolerated overhead" },
+        "QT3": { "rate_lf_per_hour": 85, "notes": "Reasonably straight line at 6 ft overhead" },
+        "QT4": { "rate_lf_per_hour": 65, "notes": "Clean line, no visible wobble at 3 ft" },
+        "QT5": { "rate_lf_per_hour": 50, "notes": "Crisp line, no visible wobble at arm's length" }
+      },
+      "factor_modifiers": [
+        { "modifier_id": "FAC_QT2", "value": 0.80 },
+        { "modifier_id": "FAC_QT3", "value": 1.00 },
+        { "modifier_id": "FAC_QT4", "value": 1.30 },
+        { "modifier_id": "FAC_QT5", "value": 1.50 },
+        { "modifier_id": "FAC_HEIGHT_H1", "value": 1.00 },
+        { "modifier_id": "FAC_HEIGHT_H2", "value": 1.30 },
+        { "modifier_id": "FAC_HEIGHT_H3", "value": 1.50 },
+        { "modifier_id": "FAC_HEIGHT_H4", "value": 2.00 }
+      ],
+      "rate_basis_notes": "ADAPTED from wall RP TSK_WLRP_CUTIN_CEILING_R1 (130/100/80/60 LF/hr) x 0.85 overhead penalty = 110/85/68/51. Cross-check: NC ceiling prime TSK_CEIL_CUT_IN_WALL (85 LF/hr QT3) — matches. Overhead freehand cut-in. Coating pool."
+    },
+    {
+      "task_id": "TSK_CLRP_CUTIN_WALL_R2",
+      "name": "Cut-In Ceiling at Wall Line (Finish Coat 2)",
+      "task_classification": "qt_scaled",
+      "required_input_key": "IN_LF_EDGE_TO_WALL",
+      "paintscope_key": "PS_EDGE_LF.TO_WALL",
+      "unit_of_measure": "LF",
+      "rate_per_hour": 85,
+      "rate_range_low": 50,
+      "rate_range_high": 100,
+      "crew_size": 1,
+      "applies_when": {
+        "quality_tier": ["QT3", "QT4", "QT5"],
+        "application_method": ["roll"]
+      },
+      "qt_rates": {
+        "QT3": { "rate_lf_per_hour": 85, "notes": "Match first coat line overhead" },
+        "QT4": { "rate_lf_per_hour": 65, "notes": "Clean line, no visible wobble at 3 ft" },
+        "QT5": { "rate_lf_per_hour": 50, "notes": "Crisp line, perfect match to first coat overhead" }
+      },
+      "factor_modifiers": [
+        { "modifier_id": "FAC_QT3", "value": 1.00 },
+        { "modifier_id": "FAC_QT4", "value": 1.30 },
+        { "modifier_id": "FAC_QT5", "value": 1.50 },
+        { "modifier_id": "FAC_HEIGHT_H1", "value": 1.00 },
+        { "modifier_id": "FAC_HEIGHT_H2", "value": 1.30 },
+        { "modifier_id": "FAC_HEIGHT_H3", "value": 1.50 },
+        { "modifier_id": "FAC_HEIGHT_H4", "value": 2.00 }
+      ],
+      "rate_basis_notes": "ADAPTED from wall RP TSK_WLRP_CUTIN_CEILING_R2 (100/80/60 LF/hr) x 0.85 overhead penalty = 85/68/51. Same rates as coat 1 at equivalent QT — second coat follows first coat line. Coating pool."
+    },
+    {
+      "task_id": "TSK_CLRP_ROLL_FINISH_R1",
+      "name": "Roll Ceiling Finish Coat 1",
+      "task_classification": "binary",
+      "required_input_key": "IN_SF_CEILING_FIELD",
+      "paintscope_key": "PS_SURFACE_SF.CEILING_FIELD",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 280,
+      "rate_range_low": 230,
+      "rate_range_high": 330,
+      "crew_size": 1,
+      "applies_when": {
+        "application_method": ["roll"]
+      },
+      "factor_modifiers": [
+        { "modifier_id": "FAC_HEIGHT_H1", "value": 1.00 },
+        { "modifier_id": "FAC_HEIGHT_H2", "value": 1.30 },
+        { "modifier_id": "FAC_HEIGHT_H3", "value": 1.50 },
+        { "modifier_id": "FAC_HEIGHT_H4", "value": 2.00 },
+        { "modifier_id": "FAC_TEXTURE_SMOOTH", "value": 1.00 },
+        { "modifier_id": "FAC_TEXTURE_ORANGE_PEEL", "value": 1.10 },
+        { "modifier_id": "FAC_TEXTURE_KNOCKDOWN", "value": 1.15 },
+        { "modifier_id": "FAC_TEXTURE_HEAVY", "value": 1.25 }
+      ],
+      "rate_basis_notes": "DIRECT transfer from NC ceiling finish TSK_ROLL_CEILING_FINISH_R1 (280 SF/hr smooth). Cross-check: wall RP roll finish (340 SF/hr) x 0.82 overhead = 279 — matches. Binary task — application rate constant across QT. 18-inch roller on extension pole overhead. Coating pool."
+    },
+    {
+      "task_id": "TSK_CLRP_ROLL_FINISH_R2",
+      "name": "Roll Ceiling Finish Coat 2",
+      "task_classification": "binary",
+      "required_input_key": "IN_SF_CEILING_FIELD",
+      "paintscope_key": "PS_SURFACE_SF.CEILING_FIELD",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 280,
+      "rate_range_low": 230,
+      "rate_range_high": 330,
+      "crew_size": 1,
+      "applies_when": {
+        "quality_tier": ["QT3", "QT4", "QT5"],
+        "application_method": ["roll"]
+      },
+      "factor_modifiers": [
+        { "modifier_id": "FAC_HEIGHT_H1", "value": 1.00 },
+        { "modifier_id": "FAC_HEIGHT_H2", "value": 1.30 },
+        { "modifier_id": "FAC_HEIGHT_H3", "value": 1.50 },
+        { "modifier_id": "FAC_HEIGHT_H4", "value": 2.00 },
+        { "modifier_id": "FAC_TEXTURE_SMOOTH", "value": 1.00 },
+        { "modifier_id": "FAC_TEXTURE_ORANGE_PEEL", "value": 1.10 },
+        { "modifier_id": "FAC_TEXTURE_KNOCKDOWN", "value": 1.15 },
+        { "modifier_id": "FAC_TEXTURE_HEAVY", "value": 1.25 }
+      ],
+      "rate_basis_notes": "DIRECT transfer from NC ceiling finish TSK_ROLL_CEILING_FINISH_R2 (280 SF/hr). Same rate as coat 1 — overhead fatigue accumulation offsets the slight efficiency gain of second coat. Coating pool."
+    },
+    {
+      "task_id": "TSK_CLRP_SPRAY_FINISH_R1",
+      "name": "Spray Ceiling Finish Coat 1",
+      "task_classification": "binary",
+      "required_input_key": "IN_SF_CEILING_FIELD",
+      "paintscope_key": "PS_SURFACE_SF.CEILING_FIELD",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 275,
+      "rate_range_low": 240,
+      "rate_range_high": 330,
+      "crew_size": 1,
+      "applies_when": {
+        "application_method": ["spray_backroll", "spray"]
+      },
+      "factor_modifiers": [
+        { "modifier_id": "FAC_HEIGHT_H1", "value": 1.00 },
+        { "modifier_id": "FAC_HEIGHT_H2", "value": 1.30 },
+        { "modifier_id": "FAC_HEIGHT_H3", "value": 1.50 },
+        { "modifier_id": "FAC_HEIGHT_H4", "value": 2.00 }
+      ],
+      "rate_basis_notes": "ADAPTED from wall RP TSK_WLRP_SPRAY_FINISH_R1 (390 SF/hr). Applied 0.85 overhead = 331, but CAPPED to backroll rate per coupling constraint. Backroll ceiling finish R1 = 275 SF/hr. Spray capped at 275. Cross-check: NC ceiling finish TSK_SPRAY_CEILING_FINISH_R1 (450 SF/hr uncapped). RP spray is legitimately slower — adhesion-primed surface has different overspray behavior. Coating pool."
+    },
+    {
+      "task_id": "TSK_CLRP_BACKROLL_FINISH_R1",
+      "name": "Backroll Ceiling Finish Coat 1",
+      "task_classification": "binary",
+      "required_input_key": "IN_SF_CEILING_FIELD",
+      "paintscope_key": "PS_SURFACE_SF.CEILING_FIELD",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 275,
+      "rate_range_low": 240,
+      "rate_range_high": 330,
+      "crew_size": 1,
+      "applies_when": {
+        "application_method": ["spray_backroll"]
+      },
+      "factor_modifiers": [
+        { "modifier_id": "FAC_HEIGHT_H1", "value": 1.00 },
+        { "modifier_id": "FAC_HEIGHT_H2", "value": 1.30 },
+        { "modifier_id": "FAC_HEIGHT_H3", "value": 1.50 },
+        { "modifier_id": "FAC_HEIGHT_H4", "value": 2.00 },
+        { "modifier_id": "FAC_TEXTURE_SMOOTH", "value": 1.00 },
+        { "modifier_id": "FAC_TEXTURE_ORANGE_PEEL", "value": 1.10 },
+        { "modifier_id": "FAC_TEXTURE_KNOCKDOWN", "value": 1.15 },
+        { "modifier_id": "FAC_TEXTURE_HEAVY", "value": 1.25 }
+      ],
+      "rate_basis_notes": "ADAPTED from wall RP TSK_WLRP_BACKROLL_FINISH_R1 (390 SF/hr) x 0.80 overhead penalty = 312. Adjusted down to 275 to match NC ceiling finish pattern. Cross-check: NC ceiling finish TSK_BACKROLL_CEILING_FINISH_R1 (320 SF/hr). RP backroll slightly slower than NC — previously painted surface has different texture. THIS IS THE BOTTLENECK. 18-inch roller on extension pole overhead. Coating pool."
+    },
+    {
+      "task_id": "TSK_CLRP_SPRAY_FINISH_R2",
+      "name": "Spray Ceiling Finish Coat 2",
+      "task_classification": "binary",
+      "required_input_key": "IN_SF_CEILING_FIELD",
+      "paintscope_key": "PS_SURFACE_SF.CEILING_FIELD",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 300,
+      "rate_range_low": 260,
+      "rate_range_high": 360,
+      "crew_size": 1,
+      "applies_when": {
+        "quality_tier": ["QT3", "QT4", "QT5"],
+        "application_method": ["spray_backroll", "spray"]
+      },
+      "factor_modifiers": [
+        { "modifier_id": "FAC_HEIGHT_H1", "value": 1.00 },
+        { "modifier_id": "FAC_HEIGHT_H2", "value": 1.30 },
+        { "modifier_id": "FAC_HEIGHT_H3", "value": 1.50 },
+        { "modifier_id": "FAC_HEIGHT_H4", "value": 2.00 }
+      ],
+      "rate_basis_notes": "ADAPTED from wall RP TSK_WLRP_SPRAY_FINISH_R2 (420 SF/hr) x 0.85 overhead = 357, but CAPPED to backroll R2 rate (300 SF/hr) per coupling constraint. Second coat faster than first. Coating pool."
+    },
+    {
+      "task_id": "TSK_CLRP_BACKROLL_FINISH_R2",
+      "name": "Backroll Ceiling Finish Coat 2",
+      "task_classification": "binary",
+      "required_input_key": "IN_SF_CEILING_FIELD",
+      "paintscope_key": "PS_SURFACE_SF.CEILING_FIELD",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 300,
+      "rate_range_low": 260,
+      "rate_range_high": 360,
+      "crew_size": 1,
+      "applies_when": {
+        "quality_tier": ["QT3", "QT4", "QT5"],
+        "application_method": ["spray_backroll"]
+      },
+      "factor_modifiers": [
+        { "modifier_id": "FAC_HEIGHT_H1", "value": 1.00 },
+        { "modifier_id": "FAC_HEIGHT_H2", "value": 1.30 },
+        { "modifier_id": "FAC_HEIGHT_H3", "value": 1.50 },
+        { "modifier_id": "FAC_HEIGHT_H4", "value": 2.00 },
+        { "modifier_id": "FAC_TEXTURE_SMOOTH", "value": 1.00 },
+        { "modifier_id": "FAC_TEXTURE_ORANGE_PEEL", "value": 1.10 },
+        { "modifier_id": "FAC_TEXTURE_KNOCKDOWN", "value": 1.15 },
+        { "modifier_id": "FAC_TEXTURE_HEAVY", "value": 1.25 }
+      ],
+      "rate_basis_notes": "ADAPTED from wall RP TSK_WLRP_BACKROLL_FINISH_R2 (420 SF/hr) x 0.80 overhead = 336, adjusted to 300 for consistency with NC ceiling R2 pattern (320 SF/hr NC). Second coat ~9% faster than first overhead. Coating pool."
+    },
+
+    {
+      "task_id": "TSK_CLRP_REMOVE_WALL_MASKING",
+      "name": "Remove Wall-Top Masking Tape and Paper",
+      "task_classification": "binary",
+      "required_input_key": "IN_LF_EDGE_TO_WALL",
+      "paintscope_key": "PS_EDGE_LF.TO_WALL",
+      "unit_of_measure": "LF",
+      "rate_per_hour": 275,
+      "rate_range_low": 225,
+      "rate_range_high": 350,
+      "crew_size": 1,
+      "applies_when": {
+        "application_method": ["spray_backroll", "spray"]
+      },
+      "factor_modifiers": [],
+      "rate_basis_notes": "DIRECT transfer from NC ceiling prime TSK_CEIL_REMOVE_MASKING (275 LF/hr). Pull tape and paper from wall tops at 45 degrees. ~8% slower than wall masking removal (300 LF/hr) — reaching overhead."
+    },
+    {
+      "task_id": "TSK_CLRP_REMOVE_FIXTURE_PROTECTION",
+      "name": "Remove Ceiling Fixture Protection",
+      "task_classification": "binary",
+      "required_input_key": "IN_EA_ROOMS_TOTAL",
+      "paintscope_key": "PS_META.EA.ROOMS_TOTAL",
+      "unit_of_measure": "EA_ROOM",
+      "rate_per_hour": 8,
+      "rate_range_low": 6,
+      "rate_range_high": 10,
+      "crew_size": 1,
+      "applies_when": {
+        "application_method": ["spray_backroll", "spray"]
+      },
+      "factor_modifiers": [],
+      "rate_basis_notes": "DIRECT transfer from NC ceiling finish TSK_REMOVE_CEILING_PROTECTION (8 rooms/hr, ~7.5 min per room). Remove tape and paper from ceiling fixtures. Faster than setup."
+    },
+    {
+      "task_id": "TSK_CLRP_FLOOR_PROTECT_TEARDOWN",
+      "name": "Floor Protection Teardown",
+      "task_classification": "binary",
+      "required_input_key": "IN_SF_PROTECT_FLOOR_EXPOSED",
+      "paintscope_key": "PS_PROTECT_SF.FLOOR_EXPOSED",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 600,
+      "rate_range_low": 500,
+      "rate_range_high": 800,
+      "crew_size": 1,
+      "applies_when": {},
+      "factor_modifiers": [],
+      "rate_basis_notes": "DIRECT transfer from NC ceiling prime TSK_CEIL_FLOOR_PROTECT_TEARDOWN (600 SF/hr). Fold toward center to contain debris. Always full-room teardown for ceiling work."
+    },
+    {
+      "task_id": "TSK_CLRP_FURNITURE_UNCOVER",
+      "name": "Uncover Furniture and Contents",
+      "task_classification": "binary",
+      "required_input_key": "IN_EA_ROOMS_TOTAL",
+      "paintscope_key": "PS_META.EA.ROOMS_TOTAL",
+      "unit_of_measure": "EA_ROOM",
+      "fixed_minutes": 6,
+      "fixed_minutes_range_low": 4,
+      "fixed_minutes_range_high": 8,
+      "crew_size": 1,
+      "applies_when": {
+        "occupancy_state": ["occupied_crew_handles", "occupied_sensitive"]
+      },
+      "factor_modifiers": [],
+      "rate_basis_notes": "Ceiling RP only uncovers (no furniture replace — furniture was never moved). Remove poly sheeting, verify no paint drips on furnishings. Faster than drip cover setup — just gathering poly. 6 min/room."
+    },
+    {
+      "task_id": "TSK_CLRP_VACUUM_FLOORS",
+      "name": "Vacuum Floors",
+      "task_classification": "binary",
+      "required_input_key": "IN_SF_FLOOR_VACUUM_AREA",
+      "paintscope_key": "PS_META.SF.FLOOR_VACUUM_AREA",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 1500,
+      "rate_range_low": 1200,
+      "rate_range_high": 1800,
+      "crew_size": 1,
+      "applies_when": {},
+      "factor_modifiers": [],
+      "rate_basis_notes": "DIRECT transfer from NC ceiling finish TSK_VACUUM_SUBFLOOR_POST (1500 SF/hr) and wall RP TSK_WLRP_VACUUM_FLOORS (1500 SF/hr). Shop vacuum to remove paint drips, debris, sanding dust. Floor-level task — no overhead penalty."
+    },
+    {
+      "task_id": "TSK_CLRP_CLEAN_TOOLS",
+      "name": "Clean Tools",
+      "task_classification": "binary",
+      "required_input_key": null,
+      "paintscope_key": null,
+      "unit_of_measure": "FIXED",
+      "fixed_minutes": 25,
+      "fixed_minutes_range_low": 15,
+      "fixed_minutes_range_high": 35,
+      "crew_size": 1,
+      "applies_when": {},
+      "factor_modifiers": [],
+      "rate_basis_notes": "DIRECT transfer from wall RP TSK_WLRP_CLEAN_TOOLS (25 min). RP adds 5 min vs NC for shellac stain-blocker cleanup (denatured alcohol) when smoke damage primer used. Cross-check: NC ceiling finish TSK_CLEAN_TOOLS_CEILING (25 min) — matches."
+    },
+    {
+      "task_id": "TSK_CLRP_FINAL_INSPECT",
+      "name": "Final Ceiling Inspection",
+      "task_classification": "qt_scaled",
+      "required_input_key": "IN_SF_CEILING_FIELD",
+      "paintscope_key": "PS_SURFACE_SF.CEILING_FIELD",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 1700,
+      "rate_range_low": 1275,
+      "rate_range_high": 2000,
+      "crew_size": 1,
+      "applies_when": {
+        "quality_tier": ["QT2", "QT3"]
+      },
+      "qt_rates": {
+        "QT2": { "rate_sf_per_hour": 2000, "notes": "Quick visual for major misses overhead, ambient light — capped at 2000 SF/hr guideline" },
+        "QT3": { "rate_sf_per_hour": 1700, "notes": "Thorough visual with work light overhead" }
+      },
+      "factor_modifiers": [
+        { "modifier_id": "FAC_HEIGHT_H1", "value": 1.00 },
+        { "modifier_id": "FAC_HEIGHT_H2", "value": 1.30 },
+        { "modifier_id": "FAC_HEIGHT_H3", "value": 1.50 },
+        { "modifier_id": "FAC_HEIGHT_H4", "value": 2.00 }
+      ],
+      "rate_basis_notes": "ADAPTED from wall RP TSK_WLRP_FINAL_INSPECT (2000 SF/hr QT2/QT3) x 0.85 overhead = 1700 for QT3. QT2 capped at 2000 per rate cap guideline. Cross-check: NC ceiling finish TSK_FINAL_INSPECT_CEILING (2000 SF/hr QT2/QT3) — RP inspection is slightly more thorough for repaint (looking for bleed-through, adhesion issues)."
+    },
+    {
+      "task_id": "TSK_CLRP_FINAL_INSPECT_QT4",
+      "name": "Final Ceiling Inspection (Premium)",
+      "task_classification": "qt_scaled",
+      "required_input_key": "IN_SF_CEILING_FIELD",
+      "paintscope_key": "PS_SURFACE_SF.CEILING_FIELD",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 850,
+      "rate_range_low": 680,
+      "rate_range_high": 1020,
+      "crew_size": 1,
+      "applies_when": {
+        "quality_tier": ["QT4"]
+      },
+      "factor_modifiers": [
+        { "modifier_id": "FAC_HEIGHT_H1", "value": 1.00 },
+        { "modifier_id": "FAC_HEIGHT_H2", "value": 1.30 },
+        { "modifier_id": "FAC_HEIGHT_H3", "value": 1.50 },
+        { "modifier_id": "FAC_HEIGHT_H4", "value": 2.00 }
+      ],
+      "rate_basis_notes": "ADAPTED from wall RP TSK_WLRP_FINAL_INSPECT_QT4 (1000 SF/hr) x 0.85 overhead = 850 SF/hr. Cross-check: NC ceiling finish TSK_FINAL_INSPECT_CEILING_QT4 (1200 SF/hr). RP QT4 is more thorough than NC — checking for bleed-through, adhesion, condition-driven defects."
+    },
+    {
+      "task_id": "TSK_CLRP_FINAL_INSPECT_QT5",
+      "name": "Final Ceiling Inspection (Critical)",
+      "task_classification": "qt_scaled",
+      "required_input_key": "IN_SF_CEILING_FIELD",
+      "paintscope_key": "PS_SURFACE_SF.CEILING_FIELD",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 500,
+      "rate_range_low": 400,
+      "rate_range_high": 640,
+      "crew_size": 1,
+      "applies_when": {
+        "quality_tier": ["QT5"]
+      },
+      "factor_modifiers": [
+        { "modifier_id": "FAC_HEIGHT_H1", "value": 1.00 },
+        { "modifier_id": "FAC_HEIGHT_H2", "value": 1.30 },
+        { "modifier_id": "FAC_HEIGHT_H3", "value": 1.50 },
+        { "modifier_id": "FAC_HEIGHT_H4", "value": 2.00 }
+      ],
+      "rate_basis_notes": "ADAPTED from wall RP TSK_WLRP_FINAL_INSPECT_QT5 (600 SF/hr) x 0.83 overhead = 500 SF/hr. Cross-check: NC ceiling finish TSK_FINAL_INSPECT_CEILING_QT5 (800 SF/hr). RP QT5 critical inspection on ceiling is the slowest — semi-gloss overhead is unforgiving and RP has more potential defect sources."
+    },
+    {
+      "task_id": "TSK_CLRP_TOUCHUP",
+      "name": "Touch-Up Defects Found During Ceiling Inspection",
+      "task_classification": "qt_scaled",
+      "required_input_key": "IN_SF_CEILING_FIELD",
+      "paintscope_key": "PS_SURFACE_SF.CEILING_FIELD",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 1530,
+      "rate_range_low": 680,
+      "rate_range_high": 1700,
+      "crew_size": 1,
+      "applies_when": {},
+      "qt_rates": {
+        "QT2": { "rate_sf_per_hour": 1700, "notes": "Address major misses only overhead — capped at 2000 guideline, adjusted for overhead" },
+        "QT3": { "rate_sf_per_hour": 1530, "notes": "Address all identified defects overhead" },
+        "QT4": { "rate_sf_per_hour": 1020, "notes": "Meticulous touch-up overhead, blend into surrounding finish" },
+        "QT5": { "rate_sf_per_hour": 680, "notes": "Critical touch-up overhead, perfect blend, no visible repair" }
+      },
+      "factor_modifiers": [
+        { "modifier_id": "FAC_QT2", "value": 0.80 },
+        { "modifier_id": "FAC_QT3", "value": 1.00 },
+        { "modifier_id": "FAC_QT4", "value": 1.30 },
+        { "modifier_id": "FAC_QT5", "value": 1.50 },
+        { "modifier_id": "FAC_HEIGHT_H1", "value": 1.00 },
+        { "modifier_id": "FAC_HEIGHT_H2", "value": 1.30 },
+        { "modifier_id": "FAC_HEIGHT_H3", "value": 1.50 },
+        { "modifier_id": "FAC_HEIGHT_H4", "value": 2.00 }
+      ],
+      "rate_basis_notes": "ADAPTED from wall RP TSK_WLRP_TOUCHUP (2000/1800/1200/800 SF/hr) x 0.85 overhead = 1700/1530/1020/680. Rate per total ceiling SF. Overhead touch-up requires steady hand on extension pole. Coating pool."
+    },
+    {
+      "task_id": "TSK_CLRP_CUSTOMER_WALKTHROUGH",
+      "name": "Customer Walkthrough",
+      "task_classification": "binary",
+      "required_input_key": "IN_EA_ROOMS_TOTAL",
+      "paintscope_key": "PS_META.EA.ROOMS_TOTAL",
+      "unit_of_measure": "EA_ROOM",
+      "fixed_minutes": 5,
+      "fixed_minutes_range_low": 3,
+      "fixed_minutes_range_high": 8,
+      "crew_size": 1,
+      "applies_when": {
+        "occupancy_state": ["occupied_crew_handles", "occupied_sensitive"]
+      },
+      "factor_modifiers": [],
+      "rate_basis_notes": "DIRECT transfer from wall RP TSK_WLRP_CUSTOMER_WALKTHROUGH (5 min/room). Post-completion room-by-room review with homeowner. Same rate — overhead viewing doesn't change walkthrough time."
+    }
+  ],
+
+  "factor_modifier_definitions": [
+    {
+      "modifier_id": "FAC_CLRP_CONDITION_GOOD",
+      "modifier_category": "condition_scale",
+      "value": 1.00,
+      "applies_to": "prep_pool",
+      "description": "GOOD condition — sound paint, minimal prep needed",
+      "condition_value": "GOOD"
+    },
+    {
+      "modifier_id": "FAC_CLRP_CONDITION_FAIR",
+      "modifier_category": "condition_scale",
+      "value": 1.50,
+      "applies_to": "prep_pool",
+      "description": "FAIR condition — localized peeling, scattered damage, moderate prep",
+      "condition_value": "FAIR"
+    },
+    {
+      "modifier_id": "FAC_CLRP_CONDITION_POOR",
+      "modifier_category": "condition_scale",
+      "value": 2.00,
+      "applies_to": "prep_pool",
+      "description": "POOR condition — extensive peeling, heavy damage, full prep needed",
+      "condition_value": "POOR"
+    },
+    {
+      "modifier_id": "FAC_CLRP_CONTAM_NONE",
+      "modifier_category": "contamination_type",
+      "value": 1.00,
+      "applies_to": "prep_pool",
+      "description": "No contamination — baseline"
+    },
+    {
+      "modifier_id": "FAC_CLRP_CONTAM_MILDEW",
+      "modifier_category": "contamination_type",
+      "value": 1.20,
+      "applies_to": "prep_pool",
+      "description": "Mildew contamination — biocide treatment adds time"
+    },
+    {
+      "modifier_id": "FAC_CLRP_CONTAM_SMOKE",
+      "modifier_category": "contamination_type",
+      "value": 1.50,
+      "applies_to": "prep_pool",
+      "description": "Smoke damage — extensive TSP wash, shellac stain-blocker adds significant time"
+    },
+    {
+      "modifier_id": "FAC_CLRP_CONTAM_WATER_STAIN",
+      "modifier_category": "contamination_type",
+      "value": 1.15,
+      "applies_to": "prep_pool",
+      "description": "Water stain — moderate additional prep and stain-blocking primer"
+    },
+    {
+      "modifier_id": "FAC_CLRP_CONTAM_GREASE",
+      "modifier_category": "contamination_type",
+      "value": 1.10,
+      "applies_to": "prep_pool",
+      "description": "Grease contamination — TSP cuts grease quickly, minimal additional time"
+    },
+    {
+      "modifier_id": "FAC_QT2",
+      "modifier_category": "quality_tier",
+      "value": 0.80,
+      "applies_to": "coating_pool",
+      "description": "QT2 economy — reduced prep intensity, basic coverage. Per Modifier_Registry."
+    },
+    {
+      "modifier_id": "FAC_QT3",
+      "modifier_category": "quality_tier",
+      "value": 1.00,
+      "applies_to": "coating_pool",
+      "description": "QT3 standard — baseline for all rates"
+    },
+    {
+      "modifier_id": "FAC_QT4",
+      "modifier_category": "quality_tier",
+      "value": 1.30,
+      "applies_to": "coating_pool",
+      "description": "QT4 premium — thorough prep, careful application, crisp edges"
+    },
+    {
+      "modifier_id": "FAC_QT5",
+      "modifier_category": "quality_tier",
+      "value": 1.50,
+      "applies_to": "coating_pool",
+      "description": "QT5 fine finish — multiple light coats, thorough inspection"
+    },
+    {
+      "modifier_id": "FAC_HEIGHT_H1",
+      "modifier_category": "height_factor",
+      "value": 1.00,
+      "applies_to": "both_pools",
+      "description": "Standard ceiling height 8-9ft — work from floor with extension pole"
+    },
+    {
+      "modifier_id": "FAC_HEIGHT_H2",
+      "modifier_category": "height_factor",
+      "value": 1.30,
+      "applies_to": "both_pools",
+      "description": "Tall 10-12ft — step ladder may be needed, longer extension pole, more fatigue"
+    },
+    {
+      "modifier_id": "FAC_HEIGHT_H3",
+      "modifier_category": "height_factor",
+      "value": 1.50,
+      "applies_to": "both_pools",
+      "description": "Vaulted 13-17ft — scaffold or baker staging required, significant overhead access challenge"
+    },
+    {
+      "modifier_id": "FAC_HEIGHT_H4",
+      "modifier_category": "height_factor",
+      "value": 2.00,
+      "applies_to": "both_pools",
+      "description": "Cathedral 18ft+ — scaffold or lift required, extreme overhead work, production rate cuts in half"
+    },
+    {
+      "modifier_id": "FAC_TEXTURE_SMOOTH",
+      "modifier_category": "texture_type",
+      "value": 1.00,
+      "applies_to": "both_pools",
+      "description": "Smooth ceiling — baseline"
+    },
+    {
+      "modifier_id": "FAC_TEXTURE_ORANGE_PEEL",
+      "modifier_category": "texture_type",
+      "value": 1.10,
+      "applies_to": "both_pools",
+      "description": "Orange peel texture — +10% surface area, 10% slower application"
+    },
+    {
+      "modifier_id": "FAC_TEXTURE_KNOCKDOWN",
+      "modifier_category": "texture_type",
+      "value": 1.15,
+      "applies_to": "both_pools",
+      "description": "Knockdown texture — +15% surface area, 15% slower"
+    },
+    {
+      "modifier_id": "FAC_TEXTURE_HEAVY",
+      "modifier_category": "texture_type",
+      "value": 1.25,
+      "applies_to": "both_pools",
+      "description": "Heavy texture (stomp, skip trowel) — +25% surface area, 25% slower"
+    }
+  ],
+
+  "stacking_partition": {
+    "prep_pool": {
+      "formula": "effective_rate = base_rate / (condition x contamination x height x texture)",
+      "pool_modifiers": ["FAC_CLRP_CONDITION_*", "FAC_CLRP_CONTAM_*"],
+      "shared_modifiers": ["FAC_HEIGHT_*", "FAC_TEXTURE_*"],
+      "never_includes": ["FAC_QT*"],
+      "max_theoretical": "POOR(2.0) x smoke(1.5) x H4(2.0) x heavy_texture(1.25) = 7.50x",
+      "applies_to_tasks": "Assessment, prep, prime tasks",
+      "ceiling_vs_wall_note": "No wall_access modifier for ceilings. Max theoretical is 7.50x vs wall RP's 9.75x."
+    },
+    "coating_pool": {
+      "formula": "effective_rate = base_rate / (qt x height x texture)",
+      "pool_modifiers": ["FAC_QT*"],
+      "shared_modifiers": ["FAC_HEIGHT_*", "FAC_TEXTURE_*"],
+      "never_includes": ["FAC_CLRP_CONDITION_*", "FAC_CLRP_CONTAM_*"],
+      "max_theoretical": "QT5(1.5) x H4(2.0) x heavy_texture(1.25) = 3.75x",
+      "applies_to_tasks": "Finish, interstage, cleanup tasks",
+      "ceiling_vs_wall_note": "No wall_access modifier for ceilings. Max theoretical is 3.75x vs wall RP's 4.88x."
+    }
+  },
+
+  "round_configurations": [
+    {
+      "round_id": "ROUND_CLRP_PRIME_2FINISH",
+      "name": "Full Ceiling Repaint — Prime + 2 Finish Coats",
+      "applies_when": {
+        "quality_tier": ["QT3", "QT4", "QT5"],
+        "condition_scale": ["FAIR", "POOR"]
+      },
+      "total_coats": 3,
+      "coat_sequence": ["primer", "finish_1", "finish_2"],
+      "interstage_cycles": 2,
+      "notes": "Standard full ceiling repaint for FAIR/POOR condition. Interstage after primer and after finish coat 1."
+    },
+    {
+      "round_id": "ROUND_CLRP_PRIME_1FINISH",
+      "name": "Economy Ceiling Repaint — Prime + 1 Finish Coat",
+      "applies_when": {
+        "quality_tier": ["QT2"],
+        "condition_scale": ["FAIR", "POOR"]
+      },
+      "total_coats": 2,
+      "coat_sequence": ["primer", "finish_1"],
+      "interstage_cycles": 0,
+      "notes": "QT2 economy. No interstage sanding."
+    },
+    {
+      "round_id": "ROUND_CLRP_NOPRIME_2FINISH",
+      "name": "Cosmetic Ceiling Refresh — No Prime + 2 Finish Coats",
+      "applies_when": {
+        "quality_tier": ["QT3", "QT4", "QT5"],
+        "condition_scale": ["GOOD"]
+      },
+      "total_coats": 2,
+      "coat_sequence": ["finish_1", "finish_2"],
+      "interstage_cycles": 1,
+      "notes": "Most common residential ceiling repaint. Sound paint, degloss + 2 finish coats. Primer skipped when adhesion test passes."
+    },
+    {
+      "round_id": "ROUND_CLRP_NOPRIME_1FINISH",
+      "name": "Economy Ceiling Refresh — No Prime + 1 Finish Coat",
+      "applies_when": {
+        "quality_tier": ["QT2"],
+        "condition_scale": ["GOOD"]
+      },
+      "total_coats": 1,
+      "coat_sequence": ["finish_1"],
+      "interstage_cycles": 0,
+      "notes": "Fastest execution path. QT2, GOOD condition, single coat. Rental turnover scenario."
+    }
+  ],
+
+  "coupling_constraints": [
+    {
+      "constraint_id": "COUPLE_SPRAY_BACKROLL_CEILING_RP",
+      "description": "When using spray+backroll on ceilings, spray rate must not exceed backroll rate. Backroller sets the pace.",
+      "rule": "spray_rate <= backroll_rate",
+      "applies_when": {
+        "application_method": ["spray_backroll"]
+      },
+      "practical_implication": "Ceiling primer: spray at 275 SF/hr, backroll at 325 SF/hr — spray is bottleneck. Ceiling finish R1: spray at 275 SF/hr, backroll at 275 SF/hr — matched. Ceiling finish R2: spray at 300 SF/hr, backroll at 300 SF/hr — matched.",
+      "verification": {
+        "primer_spray_275": "≤ primer_backroll_325 — PASS",
+        "finish_r1_spray_275": "≤ finish_r1_backroll_275 — PASS (matched)",
+        "finish_r2_spray_300": "≤ finish_r2_backroll_300 — PASS (matched)"
+      },
+      "notes": "Spray and backroll done by 2-person crew working in tandem overhead. Backroller is the bottleneck on ceilings due to overhead fatigue. All spray rates verified <= backroll rates."
+    }
+  ],
+
+  "crew_configurations": [
+    {
+      "config_id": "CREW_CLRP_ROLL_SINGLE",
+      "name": "Single Ceiling Roller",
+      "crew_size": 1,
+      "roles": ["journeyman_roller"],
+      "applies_when": { "application_method": ["roll"] },
+      "notes": "One person does ceiling cut-in and rolling with extension pole. Most common for RP (occupied home, room-by-room)."
+    },
+    {
+      "config_id": "CREW_CLRP_ROLL_PAIR",
+      "name": "Ceiling Roller Pair",
+      "crew_size": 2,
+      "roles": ["journeyman_cutter", "journeyman_roller"],
+      "applies_when": { "application_method": ["roll"] },
+      "notes": "Cutter stays ahead of roller for larger ceiling areas."
+    },
+    {
+      "config_id": "CREW_CLRP_SPRAY_BACKROLL",
+      "name": "Ceiling Spray + Backroll Crew",
+      "crew_size": 2,
+      "roles": ["journeyman_sprayer", "journeyman_backroller"],
+      "applies_when": { "application_method": ["spray_backroll"] },
+      "notes": "Sprayer and backroller work in tandem overhead. Backroller sets pace. More fatiguing than wall spray+backroll."
+    },
+    {
+      "config_id": "CREW_CLRP_SPRAY_SINGLE",
+      "name": "Single Ceiling Sprayer",
+      "crew_size": 1,
+      "roles": ["journeyman_sprayer"],
+      "applies_when": { "application_method": ["spray"] },
+      "notes": "Spray-only ceiling application, one person. Less common — backroll preferred for ceilings."
+    }
+  ],
+
+  "critical_constraints": {
+    "no_spray_only_primer": "Spray-only (no backroll) is NEVER valid for primer on previously painted ceiling surfaces. Backroll is MANDATORY for adhesion.",
+    "always_full_floor_protection": "Floor protection is ALWAYS full-room for ceiling work. No perimeter-only option — overhead drip zone covers entire floor.",
+    "furniture_stays_in_place": "Ceiling RP does NOT move furniture. Furniture stays in place, covered with poly for overhead drip protection. No center-pile.",
+    "no_wall_access_modifier": "No wall_access modifier for ceilings. Access obstruction is irrelevant when working overhead. Furniture is drip-covered in place.",
+    "shellac_cleanup_warning": "SYS_PRIMER_STAINBLOCK_INT (shellac) requires denatured alcohol for tool cleanup. Water does not work.",
+    "spot_prime_always": "Spot prime all spackled/scraped areas regardless of whether full primer coat is applied. Prevents flashing.",
+    "overhead_penalty_already_applied": "All rates already include 15-20% overhead penalty vs wall equivalents. Do NOT apply additional ceiling factor."
+  }
+}

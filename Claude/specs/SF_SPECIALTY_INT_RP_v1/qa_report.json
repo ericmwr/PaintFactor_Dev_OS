@@ -1,0 +1,192 @@
+{
+  "spec_family_id": "SF_SPECIALTY_INT_RP",
+  "version": "1.0.0",
+  "generated_by": "QA Critic",
+  "generated_at": "2026-03-14",
+  "overall_result": "pass_with_warnings",
+
+  "summary": {
+    "total_issues_found": 5,
+    "critical": 0,
+    "major": 1,
+    "minor": 4,
+    "issues_fixed_during_review": 1,
+    "remaining_warnings": 4,
+    "files_reviewed": ["research.json", "resolution.json", "materials.json", "sop_modules.json", "production.json"],
+    "cross_file_threading": "PASS — all 58 task IDs match 1:1 between sop_modules.json and production.json",
+    "task_count": {
+      "total": 58,
+      "owned_SPRP": 49,
+      "shared_RRP": 5,
+      "shared_assessment_SPRP": 4,
+      "binary": 44,
+      "qt_scaled": 14,
+      "consolidation_ratio": "2.65x reduction from 154 NC tasks across 5 source specs"
+    },
+    "module_count": 8,
+    "material_systems": 7,
+    "coverage_profiles": 5,
+    "consumables": 23,
+    "round_configurations": 4,
+    "protection_zones": 9,
+    "paintable_items": 7,
+    "configuration_dimensions": 5,
+    "factor_modifier_categories": 10
+  },
+
+  "issues": [
+    {
+      "issue_id": "QA-001",
+      "severity": "major",
+      "area": "production_rates",
+      "file": "production.json",
+      "description": "TSK_SPRP_FINISH_BEAM rate_range_high (170) was below rate_per_hour (225). The spray rate at 225 LF/hr is valid but the range did not encompass it. rate_range_low was 50 which is below the brush rate (90 LF/hr).",
+      "suggested_fix": "Corrected rate_range_low to 75, rate_range_high to 250 to encompass both spray (225) and brush (90) rates with standard variance.",
+      "status": "fixed",
+      "fixed_in": "production.json"
+    },
+    {
+      "issue_id": "QA-002",
+      "severity": "minor",
+      "area": "modifier_naming",
+      "file": "production.json vs resolution.json",
+      "description": "Beam profile modifier naming differs between resolution (rectangular, chamfered, curved, ornate) and production (small_box, standard_box, large_timber, ornate). Production refined the NC arch element names to more descriptive terms. Similarly, column_type expanded from 3 levels (resolution) to 4 levels (production), and mantel_type uses different labels (shelf_only/standard_surround/full_assembly vs simple_shelf/traditional/ornate).",
+      "suggested_fix": "Acceptable divergence — production refined resolution's preliminary names with more descriptive labels based on NC source data. Production values are authoritative. Engine should consume production modifier IDs.",
+      "status": "accepted_as_warning"
+    },
+    {
+      "issue_id": "QA-003",
+      "severity": "minor",
+      "area": "modifier_values",
+      "file": "production.json vs resolution.json",
+      "description": "FAC_BUILTIN_DEPTH DEEP modifier value is 1.25x in production but 1.30x in resolution. Small discrepancy (0.05x) — production value reflects NC source calibration.",
+      "suggested_fix": "Accept production value (1.25x) as authoritative — derived from NC SF_BUILTIN_NC production data. Update resolution if needed for spec.json assembly.",
+      "status": "accepted_as_warning"
+    },
+    {
+      "issue_id": "QA-004",
+      "severity": "minor",
+      "area": "task_count_labeling",
+      "file": "sop_modules.json",
+      "description": "SOP task_count_summary phase_detail says 'finish_12' includes '2 final inspect/touchup' but TSK_SPRP_FINAL_INSPECT and TSK_SPRP_TOUCHUP are in MOD_SPRP_CLEANUP (cleanup phase), not MOD_SPRP_FINISH. The by_phase count says 'cleanup: 7' but MOD_SPRP_CLEANUP actually has 9 tasks. Phase_detail text is inconsistent with actual module placement.",
+      "suggested_fix": "Cosmetic labeling issue in summary section. Actual module structure and task placement is correct. by_module counts (CLEANUP: 9) are accurate. by_phase rollup should be: setup=6, prep=21, prime=6, interstage=6, finish=10, cleanup=9. Note: finish=10 + cleanup=9 = 19, not finish=12 + cleanup=7 = 19. Same total.",
+      "status": "accepted_as_warning"
+    },
+    {
+      "issue_id": "QA-005",
+      "severity": "minor",
+      "area": "modifier_stacking",
+      "file": "production.json",
+      "description": "Worst-case prep stacking for wood ceiling (coffered + POOR + H3 = 4.05x) and beam (ornate + POOR + H3 = 4.20x) marginally exceed the 4.0x flag threshold. Built-in worst-case (5.27x) substantially exceeds it but requires extremely unlikely combination (very_deep + ornate + restricted + POOR).",
+      "suggested_fix": "Flagged in MODIFIER_STACKING_WARNING already. Estimator review mandatory when prep stack exceeds 4.0x. Consider QT5+POOR gate to hourly rate (COMPAT_011 in materials.json). No code fix needed.",
+      "status": "accepted_as_warning"
+    }
+  ],
+
+  "cross_file_threading_detail": {
+    "sop_to_production_task_match": {
+      "result": "PASS",
+      "sop_task_count": 58,
+      "production_task_count": 58,
+      "missing_in_production": [],
+      "missing_in_sop": [],
+      "notes": "Perfect 1:1 match between all 58 task IDs in sop_modules.json and production.json"
+    },
+    "uom_consistency": {
+      "result": "PASS",
+      "mismatches": [],
+      "notes": "All task UOMs match between SOP and production: SF, LF, EA, EA_ROOM, FIXED"
+    },
+    "task_classification_consistency": {
+      "result": "PASS",
+      "mismatches": [],
+      "notes": "All 44 binary tasks classified as binary in both files. All 14 qt_scaled tasks have rates_by_tier or fixed_time_minutes_by_tier in production."
+    },
+    "zone_id_match": {
+      "result": "PASS",
+      "sop_zones": ["floor_perimeter", "floor_full", "floor_workzone", "wall_mask_above_wainscot", "wall_upper_band", "ceiling_line", "fixture_covers", "opening_cover_lightweight", "builtin_contents_cover"],
+      "zone_count": 9,
+      "notes": "All 9 zones defined in sop_modules.json protection_metadata with correct setup/teardown task references"
+    },
+    "material_system_to_resolution": {
+      "result": "PASS",
+      "systems_in_materials": ["SYS_PRIMER_ADHESION_INT", "SYS_PRIMER_STAINBLOCK_INT", "SYS_PRIMER_MILDEW_INT", "SYS_PRIMER_BONDING", "SYS_FF_STANDARD_ACRYLIC", "SYS_FF_MODIFIED_URETHANE", "SYS_FF_PREMIUM"],
+      "systems_in_resolution": 7,
+      "notes": "All 7 material systems from resolution present in materials.json"
+    },
+    "round_configuration_match": {
+      "result": "PASS",
+      "rounds_in_sop": ["ROUND_SPRP_2FINISH", "ROUND_SPRP_PRIME_2FINISH", "ROUND_SPRP_3FINISH", "ROUND_SPRP_PRIME_3FINISH"],
+      "rounds_in_production": ["ROUND_SPRP_2FINISH", "ROUND_SPRP_PRIME_2FINISH", "ROUND_SPRP_3FINISH", "ROUND_SPRP_PRIME_3FINISH"],
+      "notes": "All 4 round configurations match between SOP and production with identical total_coats and interstage_cycles"
+    }
+  },
+
+  "rate_sanity_check": {
+    "max_sf_per_hour": {
+      "task": "TSK_SPRP_VACUUM",
+      "rate": 300,
+      "verdict": "PASS — well under 2000 SF/hr ceiling"
+    },
+    "assessment_uses_fixed": {
+      "result": "PASS",
+      "tasks": ["TSK_SPRP_ASSESS_CONDITION (EA_ROOM fixed_time_minutes_by_tier)", "TSK_SPRP_ASSESS_ADHESION (EA_ROOM fixed 10 min)", "TSK_SPRP_ASSESS_COATING_ID (EA_ROOM fixed 8 min)", "TSK_SPRP_ASSESS_MOISTURE (EA_ROOM fixed 5 min)"]
+    },
+    "ceiling_overhead_penalty_present": {
+      "result": "PASS",
+      "examples": [
+        "TSK_SPRP_DEGLOSS_CEILING: 60 SF/hr vs wall 80 SF/hr (0.75x)",
+        "TSK_SPRP_FINISH_SPRAY_CEILING: 130 SF/hr vs wall 175 SF/hr (0.74x)",
+        "TSK_SPRP_FINISH_BRUSH_CEILING: 50 SF/hr vs wall 70 SF/hr (0.71x)"
+      ]
+    },
+    "qt_modifier_consistency": {
+      "result": "PASS",
+      "values": "QT3=1.0x, QT4=1.3x, QT5=1.5x — standard global values per Modifier_Registry"
+    }
+  },
+
+  "convention_compliance": {
+    "task_classification": "PASS — binary and qt_scaled only, no prohibited 'task_class'",
+    "consumable_prefix": "PASS — all CON_ prefix, no CONS_",
+    "severity_values": "PASS — critical/major/minor only",
+    "phase_values": "PASS — setup/prep/prime/interstage/finish/cleanup only, no prohibited 'protect' or 'protection'",
+    "unit_values": "PASS — EA, SF, LF, FIXED, EA_ROOM — all uppercase",
+    "skill_level": "PASS — helper/journeyman/lead",
+    "sheen_values": "PASS — eggshell, satin, semi-gloss, gloss — no compound values",
+    "input_id_naming": "PASS — IN_EA_ROOMS_TOTAL (not IN_EA_ROOMS), IN_SF_PROTECT_FLOOR_PERIMETER (correct canonical), IN_SF_PROTECT_FLOOR_EXPOSED (correct), IN_SF_FLOOR_VACUUM_AREA (correct)"
+  },
+
+  "specialty_specific_validation": {
+    "seven_items_correct_uoms": {
+      "result": "PASS",
+      "items": [
+        {"item_id": "ITM_WAINSCOT_PANEL", "uom": "SF"},
+        {"item_id": "ITM_WOOD_WALL_PANEL", "uom": "SF"},
+        {"item_id": "ITM_WOOD_CEILING_PANEL", "uom": "SF"},
+        {"item_id": "ITM_ARCH_BEAM", "uom": "LF"},
+        {"item_id": "ITM_ARCH_COLUMN", "uom": "EA"},
+        {"item_id": "ITM_ARCH_MANTEL", "uom": "EA"},
+        {"item_id": "ITM_BUILTIN_UNIT", "uom": "EA"}
+      ]
+    },
+    "per_surface_type_tasks": {
+      "result": "PASS",
+      "degloss": "7 per-surface-type degloss tasks with correct UOMs (SF/SF/SF/LF/EA/EA/EA)",
+      "prime": "6 prime tasks — 2 SF spray/brush (consolidated wainscot+wall+ceiling), 4 EA/LF element tasks",
+      "finish": "10 finish tasks — 6 SF spray/brush (wainscot/wall/ceiling x 2 methods), 4 EA/LF element tasks"
+    },
+    "stain_clear_conversion": {
+      "result": "PASS",
+      "documented_in": "materials.json (SYS_PRIMER_BONDING, COMPAT_006), resolution.json (stain_clear_conversion condition)",
+      "notes": "Stain/clear conversion path documented: bonding primer mandatory, no skip-prime, tannin bleed-through inspection protocol"
+    },
+    "consolidation_architecture": {
+      "result": "PASS",
+      "shared_modules": ["MOD_SPRP_SETUP (6)", "MOD_SPRP_ASSESSMENT (4)", "MOD_SPRP_INTERSTAGE (6)", "MOD_SPRP_CLEANUP (9)", "MOD_SPRP_PREP (12 — mix shared and per-surface)"],
+      "per_surface_modules": ["MOD_SPRP_PRIME (per-surface-type prime tasks)", "MOD_SPRP_FINISH (per-surface-type finish tasks)"],
+      "shared_rrp": "MOD_RRP_INT_CONTAINMENT (5 shared tasks, not owned)",
+      "notes": "Consolidation architecture valid: shared assessment/interstage/cleanup eliminate 5 separate NC modules. Per-surface-type finish rates preserved for accuracy. 2.65x task reduction (154 NC -> 58 RP)."
+    }
+  }
+}

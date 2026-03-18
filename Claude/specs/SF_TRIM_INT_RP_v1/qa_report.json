@@ -1,0 +1,165 @@
+{
+  "spec_family_id": "SF_TRIM_INT_RP",
+  "version": "1.0.0",
+  "overall_result": "PASS",
+  "qa_date": "2026-03-13",
+  "critic_agent": "QA Critic Agent",
+
+  "validation_gates": {
+    "schema_compliance": {
+      "passed": true,
+      "notes": "All 5 pipeline files present (research.json, resolution.json, materials.json, sop_modules.json, production.json). Required top-level keys present in all files. spec_family_id = SF_TRIM_INT_RP across all files."
+    },
+    "task_id_threading": {
+      "passed": true,
+      "notes": "All 40 task IDs match exactly between sop_modules.json and production.json. No orphan tasks in either direction. 35 TSK_TMRP_* tasks + 5 TSK_RRP_* shared tasks."
+    },
+    "paintscope_readiness": {
+      "passed": true,
+      "notes": "20 PaintScope keys declared in resolution.json. All required_input_key and paintscope_key references in production.json map to declared keys. 9 surface LF keys, 3 protection keys, 1 edge key, 7 meta/enum keys."
+    },
+    "uom_alignment": {
+      "passed": true,
+      "notes": "All unit_of_measure values are uppercase and valid per controlled_enums.json. LF (primary), SF, EA, EA_ROOM, FIXED all used correctly. No lowercase units found."
+    },
+    "prefix_compliance": {
+      "passed": true,
+      "notes": "All spec-owned tasks use TSK_TMRP_* prefix. All spec-owned modules use MOD_TMRP_* prefix. No TSK_TRIM_*, TSK_SETUP_*, TSK_WLRP_*, TSK_CLRP_* reuse. Shared RRP module uses TSK_RRP_* (correct — not owned by this spec). CON_ prefix used for all consumables (no CONS_)."
+    },
+    "enum_validation": {
+      "passed": true,
+      "notes": "All quality_tier values QT3-QT5 (no QT2 — correct for trim). All substrate_state values are valid SS_INT_* values. All phase values valid (setup, prep, prime, interstage, finish, cleanup). All task_classification values valid (binary, qt_scaled — no qt_conditional in this spec). All sheen values valid (satin, semi-gloss, gloss — no compounds). All severity values use critical/major/minor (no high/medium/low). task_classification key used throughout (no task_class)."
+    },
+    "modifier_stacking": {
+      "passed": true,
+      "notes": "Stacking partition correctly enforced. Prep pool: condition x height x profile_complexity (max 4.20x at POOR/H3/Ornate — slightly over 4.0x flag, flagged for estimator review). Coating pool: QT x height x profile_complexity (max 3.15x). Pools never cross-apply. condition never in coating pool, QT never in prep pool."
+    },
+    "rate_reasonableness": {
+      "passed": true,
+      "notes": "Core LF application rates within 30-300 range: brush prime 90, brush finish 80-90, scrape 45, feather 80, caulk 80, degloss 160. Spray rates 375-445 LF/hr reasonable for airless spray on trim. Inspection/cleanup tasks above 300 LF/hr acceptable (visual scan, dust wipe). All rate_range_low <= rate <= rate_range_high. Fixed-time tasks 4-30 minutes per room — reasonable."
+    },
+    "rp_specific_checks": {
+      "passed": true,
+      "notes": "Assessment module present with 4 tasks (ASSESS_CONDITION, ASSESS_ADHESION, ASSESS_COATING_ID, ASSESS_MOISTURE). State-driven primer selection with 3 systems (adhesion, stain-block, mildew). No bare-wood NC tasks (no fill_fasteners, fill_end_grain, mdf_edge_seal, spot_prime_knots). Furniture protection (TSK_TMRP_FURNITURE_CLEAR + TSK_TMRP_FURNITURE_RESTORE) and customer walkthrough (TSK_TMRP_CUSTOMER_WALKTHROUGH) present."
+    },
+    "round_configuration_integrity": {
+      "passed": true,
+      "notes": "4 round configurations defined in sop_modules.json: ROUND_TMRP_PRIME_2FINISH (QT3-4 FAIR/POOR), ROUND_TMRP_PRIME_3FINISH (QT5 brush FAIR/POOR), ROUND_TMRP_2FINISH (QT3-4 GOOD), ROUND_TMRP_3FINISH (QT5 brush GOOD). All referenced in production.json. Phase sequences correctly ordered. 3rd coat handled by re-running finish phase tasks per phase_sequence (standard pattern). QT5 brush 3-coat per FFD 15.10.3."
+    },
+    "material_system_consistency": {
+      "passed": true,
+      "notes": "6 material systems: 3 state-driven primers (SYS_PRIMER_ADHESION_INT, SYS_PRIMER_STAINBLOCK_INT, SYS_PRIMER_MILDEW_INT) + 3 QT-driven fine-finish systems (SYS_FF_STANDARD_ACRYLIC/QT3, SYS_FF_MODIFIED_URETHANE/QT4, SYS_FF_PREMIUM/QT5). All system IDs consistent across materials.json and resolution.json. Primer applies_when substrate_state values are valid SS_INT_* values."
+    },
+    "protection_zone_threading": {
+      "passed": true,
+      "notes": "4 zones declared in resolution.json (floor_perimeter, wall_adjacent, fixture_covers, furniture_room). All 4 referenced in sop_modules.json task protection_metadata. Setup tasks for all zones present. Teardown tasks present in cleanup module."
+    }
+  },
+
+  "cross_file_integrity": [
+    {
+      "check": "Rule 1: TSK_ thread (sop_modules <-> production)",
+      "status": "PASS",
+      "details": "40/40 tasks match exactly. No orphans."
+    },
+    {
+      "check": "Rule 3: SYS_ quality_tier match",
+      "status": "PASS",
+      "details": "Fine-finish systems map to QT3, QT4, QT5. Primer systems map by substrate_state. All tiers within spec's QT3-QT5 range."
+    },
+    {
+      "check": "Rule 5: PS_ key thread (production -> resolution)",
+      "status": "PASS",
+      "details": "All paintscope_key references in production.json exist in resolution.json paintscope_keys."
+    },
+    {
+      "check": "Rule 6: zone_id thread (resolution <-> sop_modules)",
+      "status": "PASS",
+      "details": "4 zones match: floor_perimeter, wall_adjacent, fixture_covers, furniture_room."
+    },
+    {
+      "check": "Rule 7: Module phase ordering",
+      "status": "PASS",
+      "details": "Phases in order: setup, prep, prep (RRP), prep (TMRP_PREP), prime, interstage, finish, cleanup. Multiple prep-phase modules correctly ordered after setup."
+    },
+    {
+      "check": "Rule 9: TSK_ context prefix from resolution",
+      "status": "PASS",
+      "details": "Resolution declares TSK_TMRP_* prefix. All 35 spec-owned tasks use TSK_TMRP_*. 5 shared TSK_RRP_* tasks are from shared module MOD_RRP_INT_CONTAINMENT (not spec-owned)."
+    },
+    {
+      "check": "Rule 10: ITM_ existing IDs exact match",
+      "status": "PASS",
+      "details": "All 9 ITM_ IDs in resolution marked 'existing' and reuse exact registered IDs (ITM_TRIM_BASEBOARD, ITM_TRIM_CROWN, etc.)."
+    },
+    {
+      "check": "Rule 11: Downstream agents used only resolution enum values",
+      "status": "PASS",
+      "details": "All enum values in sop_modules.json, production.json, and materials.json are within resolution.json applicable_enums scope."
+    }
+  ],
+
+  "doctrine_compliance": [
+    {
+      "doctrine": "Fine_Finish_Doctrine",
+      "status": "PASS",
+      "details": "QT3 minimum for trim enforced (no QT2). FFD 15.10.3 implemented via QT5 brush 3-coat round configs. Fine-finish systems (SYS_FF_*) correctly mapped to tiers. Interstage inspection and sanding present."
+    },
+    {
+      "doctrine": "Protection_and_Masking_Doctrine",
+      "status": "PASS",
+      "details": "Wall masking always required in RP (walls are finished). Floor perimeter protection always required. Fixture covers conditional on spray method. Furniture protection conditional on occupancy."
+    },
+    {
+      "doctrine": "Estimation_Modifiers_Doctrine",
+      "status": "PASS",
+      "details": "Stacking partition enforced — prep pool and coating pool never overlap. Profile complexity modifier applied consistently. Height modifier applied to all tasks. Worst-case prep 4.20x flagged for estimator review."
+    },
+    {
+      "doctrine": "Spec_Completeness_Doctrine",
+      "status": "PASS",
+      "details": "All required sections present: protection zones, adjacency declarations, state declarations, site condition rules, configuration dimensions, variants, PaintScope inputs."
+    }
+  ],
+
+  "issues": [],
+
+  "warnings": [
+    {
+      "warning_id": "WARN-001",
+      "severity": "minor",
+      "message": "9 tasks missing optional task_type field (4 assessment tasks + 5 RRP shared tasks). task_type is optional per structural_keys.json but recommended for filtering.",
+      "recommendation": "Add task_type: 'inspect' to assessment tasks and appropriate task_type values to RRP tasks in a future update."
+    },
+    {
+      "warning_id": "WARN-002",
+      "severity": "minor",
+      "message": "Prep pool maximum modifier stack 4.20x (POOR 2.0 x H3 1.5 x Ornate 1.40) slightly exceeds 4.0x flag threshold. This is a real-world scenario (poor condition ornate crown in tall space).",
+      "recommendation": "Flag for estimator review when all three conditions co-occur. No rate adjustment needed — the stack is correct per doctrine."
+    },
+    {
+      "warning_id": "WARN-003",
+      "severity": "minor",
+      "message": "production.json uses 'fixed_minutes' field name instead of structural_keys.json canonical 'fixed_time_minutes'. This matches the wall RP precedent (SF_DRYWALL_WALL_INT_RP_v1) and is consistent within RP specs.",
+      "recommendation": "Accept as-is for RP spec consistency. Consider formalizing 'fixed_minutes' as accepted synonym in structural_keys.json."
+    }
+  ],
+
+  "registry_additions_escalated": {
+    "description": "Registry additions proposed in resolution.json that require id_registry.json updates before spec activation.",
+    "count": 25,
+    "categories": {
+      "SF_": 1,
+      "TSK_": 1,
+      "MOD_": 1,
+      "ROUND_": 4,
+      "COV_": 3,
+      "CON_": 4,
+      "PS_": 6,
+      "IN_": 5
+    },
+    "notes": "Many proposed items are shared with SF_DRYWALL_WALL_INT_RP (first interior RP spec). Shared items: PS_META.SURFACE_CONDITION, PS_PROTECT_SF.FURNITURE_ROOM, PS_META.ENUM.SUBSTRATE_STATE_INT, PS_META.BOOL.HOME_PRE_1978, PS_META.ENUM.CONTAMINATION_TYPE, and corresponding IN_ inputs. New to this spec: PS_META.PROFILE_COMPLEXITY, IN_ENUM_PROFILE_COMPLEXITY, CON_DEGLOSS_LIQUID, CON_SCRAPER_CONTOUR, CON_SANDING_SPONGE_CONTOUR."
+  },
+
+  "summary": "SF_TRIM_INT_RP_v1 passes all validation gates with no issues. 40 tasks across 8 modules (7 TMRP-owned + 1 shared RRP). 6 material systems (3 state-driven primers + 3 QT-driven fine-finish). 4 round configurations covering QT3-QT5 x brush/spray x GOOD/FAIR/POOR. 4 protection zones. 20 PaintScope inputs. 9 paintable items (all existing trim types). Profile complexity modifier correctly inherited from NC trim. Assessment phase present with 4 tasks. No bare-wood NC tasks. Furniture protection and customer walkthrough present. 3 minor warnings documented (missing optional task_type, 4.20x stack flag, fixed_minutes field name). Ready for spec.json assembly."
+}

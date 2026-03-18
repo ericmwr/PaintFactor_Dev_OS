@@ -1,0 +1,300 @@
+{
+  "spec_family_id": "SF_DRYWALL_CEILING_INT_RP",
+  "version": "1.0.0",
+  "overall_result": "PASS_WITH_WARNINGS",
+  "qa_date": "2026-03-13",
+  "critic_agent": "QA Critic Agent",
+
+  "validation_gates": {
+    "schema_compliance": {
+      "passed": true,
+      "notes": "All 5 artifact files (research.json, resolution.json, materials.json, sop_modules.json, production.json) structurally valid. Required top-level keys present per structural_keys.json."
+    },
+    "paintscope_readiness": {
+      "passed": true,
+      "notes": "16 PaintScope inputs declared in research.json. All inputs have paintscope_key mappings. Production tasks reference valid PS_ keys."
+    },
+    "uom_alignment": {
+      "passed": true,
+      "notes": "All unit_of_measure values are uppercase and from controlled_enums.json: SF, LF, EA_ROOM, FIXED. No lowercase violations."
+    },
+    "edge_lf_declarations": {
+      "passed": true,
+      "notes": "IN_LF_EDGE_TO_WALL declared with PS_EDGE_LF.TO_WALL. Cut-in tasks consume this input correctly."
+    },
+    "modifier_math": {
+      "passed": true,
+      "notes": "Stacking partition enforced. Prep pool max: 2.0 x 1.5 x 2.0 x 1.25 = 7.50x. Coating pool max: 1.5 x 2.0 x 1.25 = 3.75x. No wall_access modifier for ceilings (correct). Both well under extreme flagging thresholds."
+    },
+    "spray_backroll_coupling": {
+      "passed": true,
+      "notes": "Primer: spray 275 <= backroll 325 SF/hr (PASS). Finish R1: spray 275 <= backroll 275 SF/hr (PASS, matched). Finish R2: spray 300 <= backroll 300 SF/hr (PASS, matched)."
+    },
+    "rate_cap_2000": {
+      "passed": true,
+      "notes": "All base rates <= 2000 SF/hr. Highest base rate: QT2 final inspect at 2000 SF/hr (at cap, not exceeding). QT2 touchup at 1700 SF/hr. No violations."
+    },
+    "overhead_penalty_applied": {
+      "passed": true,
+      "notes": "All ceiling rates show 15-20% reduction from wall RP equivalents. Cross-checked against NC ceiling prime and finish rates for consistency. Roll finish at 280 SF/hr = wall RP 340 x 0.82. Scraping at 65 SF/hr = wall RP 80 x 0.81."
+    }
+  },
+
+  "cross_file_integrity": [
+    {
+      "check": "Rule 1: TSK_ threading (sop_modules ↔ production)",
+      "status": "PASS",
+      "details": "54 tasks in sop_modules.json, 54 tasks in production.json. All task_id values match character-for-character. Zero orphaned tasks in either direction."
+    },
+    {
+      "check": "Rule 2: ITM_ threading (research → resolution)",
+      "status": "PASS",
+      "details": "2 paintable items: ITM_CEILING_FIELD_RP (SF, proposed), ITM_CEILING_EDGE_WALL (LF, existing). Both present in resolution.json paintable_items."
+    },
+    {
+      "check": "Rule 3: SYS_ threading (materials → research)",
+      "status": "PASS",
+      "details": "6 material systems: 3 primer (SYS_PRIMER_ADHESION_INT, SYS_PRIMER_STAINBLOCK_INT, SYS_PRIMER_MILDEW_INT) + 3 finish (SYS_CEILING_FINISH_STANDARD, SYS_CEILING_FINISH_PREMIUM, SYS_CEILING_FINISH_SUPERIOR). All referenced in research material system requirements."
+    },
+    {
+      "check": "Rule 4: IN_ input threading",
+      "status": "PASS",
+      "details": "16 inputs declared in research. Key inputs consumed by sop_modules required_inputs and production required_input_key. IN_SF_CEILING_FIELD, IN_LF_EDGE_TO_WALL, IN_EA_ROOMS_TOTAL, IN_SF_PROTECT_FLOOR_EXPOSED, IN_SF_FLOOR_VACUUM_AREA all consumed."
+    },
+    {
+      "check": "Rule 5: PS_ key threading",
+      "status": "PASS",
+      "details": "PS_SURFACE_SF.CEILING_FIELD, PS_EDGE_LF.TO_WALL, PS_META.EA.ROOMS_TOTAL, PS_PROTECT_SF.FLOOR_EXPOSED, PS_META.SF.FLOOR_VACUUM_AREA, PS_PROTECT_SF.FURNITURE_ROOM all used consistently across files."
+    },
+    {
+      "check": "Rule 6: Zone ID threading (resolution → sop_modules)",
+      "status": "PASS (after fix)",
+      "details": "Fixed 3 zone ID mismatches in sop_modules.json: ceiling_fixture_covers→ceiling_fixtures, wall_top_line→wall_top_mask, furniture_room→furniture_drip_cover. All zone IDs now match resolution.json zone_ids. See ISS_CLRP_001, ISS_CLRP_002, ISS_CLRP_003."
+    },
+    {
+      "check": "Rule 7: Module phase sequence",
+      "status": "PASS",
+      "details": "8 modules in correct phase order: setup(MOD_CLRP_SETUP) → prep(MOD_CLRP_ASSESSMENT, MOD_RRP_INT_CONTAINMENT, MOD_CLRP_PREP) → prime(MOD_CLRP_PRIME) → interstage(MOD_CLRP_INTERSTAGE) → finish(MOD_CLRP_FINISH) → cleanup(MOD_CLRP_CLEANUP)."
+    },
+    {
+      "check": "Rule 8: UOM consistency across files",
+      "status": "PASS",
+      "details": "All task UOMs match between sop_modules.json and production.json. SF, LF, EA_ROOM, FIXED used consistently."
+    },
+    {
+      "check": "Rule 9: Resolver prefix thread (TSK_CLRP_*)",
+      "status": "PASS",
+      "details": "All spec-owned tasks use TSK_CLRP_* prefix. 5 shared RRP tasks use TSK_RRP_* prefix (correct — shared module). No TSK_WLRP_* or TSK_CEIL_* reuse."
+    },
+    {
+      "check": "Rule 10: Resolver item ID thread",
+      "status": "PASS",
+      "details": "ITM_CEILING_EDGE_WALL marked 'existing' in resolution — used as-is. ITM_CEILING_FIELD_RP marked 'proposed' — new ID with _RP suffix to avoid NC collision (ITM_CEILING_FIELD_PRIME/ITM_CEILING_FIELD_FINISH exist). Justified."
+    },
+    {
+      "check": "Rule 11: Resolver enum authority",
+      "status": "PASS",
+      "details": "All downstream agents used only enum values from resolution.json applicable_enums. No unauthorized pulls from raw registries."
+    },
+    {
+      "check": "Round ID consistency",
+      "status": "PASS",
+      "details": "4 round configurations: ROUND_CLRP_PRIME_2FINISH, ROUND_CLRP_PRIME_1FINISH, ROUND_CLRP_NOPRIME_2FINISH, ROUND_CLRP_NOPRIME_1FINISH. All use CLRP prefix. Present in both sop_modules round_configurations and production round_configurations."
+    }
+  ],
+
+  "doctrine_compliance": [
+    {
+      "doctrine": "Quality_Tiers_and_Surface_Condition.md",
+      "status": "PASS",
+      "details": "QT2-QT5 supported with correct modifier values (0.80/1.00/1.30/1.50). Condition scale GOOD/FAIR/POOR with correct multipliers (1.00/1.50/2.00)."
+    },
+    {
+      "doctrine": "Materials_and_Consumables_Doctrine.md",
+      "status": "PASS",
+      "details": "State-driven primer selection: adhesion primer for SS_INT_SOUND_PAINT/FAILING_PAINT/PEELING. Stain-block shellac for SS_INT_SMOKE_DAMAGE. Mildew-resistant primer for SS_INT_MOISTURE_DAMAGE. Correct."
+    },
+    {
+      "doctrine": "Estimation_Modifiers_Doctrine.md",
+      "status": "PASS",
+      "details": "Spray/backroll coupling enforced. Height modifiers H1-H4 applied. Texture modifiers applied. Stacking partition enforced with separate prep and coating pools."
+    },
+    {
+      "doctrine": "Interior_Protection_Doctrine.md",
+      "status": "PASS",
+      "details": "Full floor protection always (no perimeter-only for ceiling work). Furniture drip covers (in-place, no center-pile). Fixture masking for spray methods. Wall-top masking for spray methods."
+    },
+    {
+      "doctrine": "Protection_and_Masking_Doctrine.md",
+      "status": "PASS",
+      "details": "No ceiling masking from wall perspective. Freehand cut-in at wall line from ceiling perspective. Correct per doctrine."
+    },
+    {
+      "doctrine": "Modifier_Registry.md",
+      "status": "PASS",
+      "details": "Height H1-H4 (1.0/1.3/1.5/2.0). QT modifiers (0.8/1.0/1.3/1.5). Texture modifiers (1.0/1.1/1.15/1.25). All match registry values."
+    },
+    {
+      "doctrine": "Spec_Completeness_Doctrine.md",
+      "status": "PASS",
+      "details": "All required sections present: protection_zones_analysis, adjacency_analysis, site_condition_analysis, state_analysis in research.json. Resolution.json has zone_ids, surface_ids, applicable_enums."
+    },
+    {
+      "doctrine": "Substrate_State_Reference.md",
+      "status": "PASS",
+      "details": "5 SS_INT_* input states accepted. Output states map by sheen: flat→SS_PAINTED_FLAT, eggshell→SS_PAINTED_EGGSHELL, satin→SS_PAINTED_SATIN, semi-gloss→SS_PAINTED_SEMIGLOSS."
+    }
+  ],
+
+  "enum_validation": [
+    { "field": "quality_tier", "status": "PASS", "details": "QT2, QT3, QT4, QT5 — all valid per controlled_enums.json" },
+    { "field": "application_method", "status": "PASS", "details": "roll, spray_backroll, spray — all valid per controlled_enums.json" },
+    { "field": "sheen", "status": "PASS", "details": "flat, eggshell, satin, semi-gloss — all valid single values, no compound sheens" },
+    { "field": "phase", "status": "PASS", "details": "setup, prep, prime, interstage, finish, cleanup — all valid. No 'protect' or 'protection' phase values." },
+    { "field": "task_classification", "status": "PASS", "details": "binary, qt_scaled, qt_conditional — all valid. No 'task_class' key found anywhere." },
+    { "field": "task_type", "status": "PASS", "details": "prep, prime, finish, protect, inspect, cleanup, detail — all valid per controlled_enums.json" },
+    { "field": "skill_level", "status": "PASS", "details": "helper, journeyman, lead — all valid" },
+    { "field": "unit_of_measure", "status": "PASS", "details": "SF, LF, EA_ROOM, FIXED — all uppercase, all valid" },
+    { "field": "substrate_state", "status": "PASS", "details": "SS_INT_SOUND_PAINT, SS_INT_FAILING_PAINT, SS_INT_PEELING, SS_INT_MOISTURE_DAMAGE, SS_INT_SMOKE_DAMAGE — all valid" },
+    { "field": "condition_scale", "status": "PASS", "details": "GOOD, FAIR, POOR — all valid" },
+    { "field": "severity (qa_report)", "status": "PASS", "details": "Using critical/major/minor — no high/medium/low/WARN" },
+    { "field": "consumable prefix", "status": "PASS", "details": "All consumables use CON_ prefix. No CONS_ found." }
+  ],
+
+  "rp_specific_validation": [
+    {
+      "check": "Assessment phase exists (4+ tasks)",
+      "status": "PASS",
+      "details": "MOD_CLRP_ASSESSMENT contains 4 tasks: TSK_CLRP_ASSESS_CONDITION, TSK_CLRP_ASSESS_ADHESION, TSK_CLRP_ASSESS_MOISTURE, TSK_CLRP_ASSESS_COATING_ID."
+    },
+    {
+      "check": "State-driven primer selection",
+      "status": "PASS",
+      "details": "3 primer systems: adhesion primer (SS_INT_SOUND_PAINT/FAILING_PAINT/PEELING), stain-block shellac (SS_INT_SMOKE_DAMAGE), mildew-resistant (SS_INT_MOISTURE_DAMAGE). Prime scope varies by state (spot vs full)."
+    },
+    {
+      "check": "Furniture protection (drip covers)",
+      "status": "PASS",
+      "details": "TSK_CLRP_FURNITURE_DRIP_COVER (setup) and TSK_CLRP_FURNITURE_UNCOVER (cleanup) present. Conditional on occupancy_state. Furniture stays in place (no center-pile) — ceiling-specific approach."
+    },
+    {
+      "check": "Customer walkthrough",
+      "status": "PASS",
+      "details": "TSK_CLRP_CUSTOMER_WALKTHROUGH present in MOD_CLRP_CLEANUP. Conditional on occupied homes. 5 min/room."
+    },
+    {
+      "check": "RRP module referenced conditionally",
+      "status": "PASS",
+      "details": "MOD_RRP_INT_CONTAINMENT with 5 tasks. Conditional on home_pre_1978=true and lead_status. Shared task IDs (TSK_RRP_*) correctly reused from wall RP."
+    },
+    {
+      "check": "Modifier stacking partition enforced",
+      "status": "PASS",
+      "details": "Prep pool: condition x contamination x height x texture (max 7.50x). Coating pool: qt x height x texture (max 3.75x). Pools never cross. No wall_access modifier for ceilings (correctly omitted)."
+    }
+  ],
+
+  "issues": [
+    {
+      "issue_id": "ISS_CLRP_001",
+      "severity": "major",
+      "area": "cross_file_threading",
+      "file": "sop_modules.json",
+      "description": "Zone ID 'ceiling_fixture_covers' in sop_modules.json protection_metadata.zones does not match 'ceiling_fixtures' defined in resolution.json zone_ids.",
+      "suggested_fix": "Changed ceiling_fixture_covers → ceiling_fixtures in sop_modules.json (2 occurrences: setup and teardown tasks).",
+      "status": "FIXED"
+    },
+    {
+      "issue_id": "ISS_CLRP_002",
+      "severity": "major",
+      "area": "cross_file_threading",
+      "file": "sop_modules.json",
+      "description": "Zone ID 'wall_top_line' in sop_modules.json protection_metadata.zones does not match 'wall_top_mask' defined in resolution.json zone_ids.",
+      "suggested_fix": "Changed wall_top_line → wall_top_mask in sop_modules.json (2 occurrences: setup and teardown tasks).",
+      "status": "FIXED"
+    },
+    {
+      "issue_id": "ISS_CLRP_003",
+      "severity": "major",
+      "area": "cross_file_threading",
+      "file": "sop_modules.json",
+      "description": "Zone ID 'furniture_room' in sop_modules.json protection_metadata.zones does not match 'furniture_drip_cover' defined in resolution.json zone_ids. Resolution.json explicitly notes furniture_drip_cover is distinct from wall RP furniture_room (ceiling covers in-place vs wall center-pile).",
+      "suggested_fix": "Changed furniture_room → furniture_drip_cover in sop_modules.json (2 occurrences: setup and teardown tasks).",
+      "status": "FIXED"
+    }
+  ],
+
+  "warnings": [
+    {
+      "warning_id": "WARN_CLRP_001",
+      "severity": "minor",
+      "message": "Research.json uses 'scope_summary' as a long inline string (line 44). Acceptable but verbose.",
+      "recommendation": "No action required — informational only."
+    },
+    {
+      "warning_id": "WARN_CLRP_002",
+      "severity": "minor",
+      "message": "5 proposed zone IDs (wall_top_mask, ceiling_fixtures, furniture_drip_cover, opening_covers, ceiling_line) need registry addition in id_registry.json.",
+      "recommendation": "Add to id_registry.json zone_ids in next registry update cycle."
+    },
+    {
+      "warning_id": "WARN_CLRP_003",
+      "severity": "minor",
+      "message": "ITM_CEILING_FIELD_RP is a proposed new item ID requiring registry addition.",
+      "recommendation": "Add to id_registry.json ITM_ section in next registry update cycle."
+    }
+  ],
+
+  "registry_additions_escalated": [
+    {
+      "source_file": "resolution.json",
+      "count": 46,
+      "categories": {
+        "TSK_CLRP_*": 32,
+        "MOD_CLRP_*": 6,
+        "ITM_": 1,
+        "ROUND_CLRP_*": 4,
+        "FAC_CLRP_*": 8,
+        "zone_ids": 4,
+        "PS_keys": 2,
+        "IN_keys": 2,
+        "COUPLE_": 1,
+        "CREW_": 4,
+        "SYS_": 3,
+        "COV_": 3,
+        "VAR_CLRP_*": 7
+      },
+      "notes": "All proposals have justification in resolution.json registry_additions_proposed array. Recommend batch addition after spec approval."
+    }
+  ],
+
+  "completeness_checklist": {
+    "research_json": { "status": "PASS", "details": "All required sections present: scope_summary, relevant_findings, condition_drivers, quality_differences, failure_modes, required_paintscope_keys, state_analysis, assumptions, uncertainties, confidence_level. Optional sections also present: protection_zones_analysis, adjacency_analysis, site_condition_analysis, proposed_new_keys." },
+    "resolution_json": { "status": "PASS", "details": "All required sections present: _meta, spec_identity, paintable_items, task_prefix, module_prefix, paintscope_keys, applicable_enums, surface_ids, zone_ids, structural_reminders, cross_file_threading, registry_additions_proposed." },
+    "materials_json": { "status": "PASS", "details": "6 material systems, consumables with CON_ prefix, coverage_profiles with COV_ prefix, protection_materials mapped to zones, compatibility_rules, risk_notes." },
+    "sop_modules_json": { "status": "PASS", "details": "8 modules, 54 tasks, round_configurations (4), correct phase ordering. All tasks have task_classification, skill_level, and appropriate applies_when conditions." },
+    "production_json": { "status": "PASS", "details": "54 task production rates, 21 factor modifier definitions, stacking_partition, 4 round_configurations, coupling_constraints, 4 crew_configurations, critical_constraints." },
+    "protection_zones": { "status": "PASS", "details": "5 zones in resolution: floor_full, wall_top_mask, ceiling_fixtures, furniture_drip_cover, opening_covers. All implemented in sop_modules protection_metadata." },
+    "adjacency_declarations": { "status": "PASS", "details": "Primary surface: ceiling_field. Adjacent surfaces: wall_field (linear, different_finish), trim_crown (linear, different_finish, rare/conditional). Correct — ceilings have fewer adjacencies than walls." },
+    "state_declarations": { "status": "PASS", "details": "5 input states (SS_INT_*). Output state varies by sheen. Adjacent state protection rules: wall_field (none — freehand cut-in), trim_crown (light_mask — if present)." },
+    "site_condition_rules": { "status": "PASS", "details": "5 site conditions: occupancy_state, lead_status, moisture_condition, contamination_type, ceiling_height. All with include_when/exclude_when and affected_tasks." }
+  },
+
+  "artifact_counts_verified": {
+    "total_tasks": 54,
+    "binary_tasks": 26,
+    "qt_scaled_tasks": 20,
+    "qt_conditional_tasks": 8,
+    "sop_modules": 8,
+    "material_systems": 6,
+    "round_configurations": 4,
+    "factor_modifier_definitions": 21,
+    "protection_zones": 5,
+    "adjacent_surfaces": 2,
+    "paintscope_inputs": 16,
+    "crew_configurations": 4,
+    "coupling_constraints": 1
+  },
+
+  "summary": "SF_DRYWALL_CEILING_INT_RP_v1 passes QA with 3 major issues — all fixed during Critic stage. Issues were zone ID mismatches between sop_modules.json and resolution.json (ceiling_fixture_covers→ceiling_fixtures, wall_top_line→wall_top_mask, furniture_room→furniture_drip_cover). All cross-file threading validates. All enum values, prefixes, and structural keys are compliant. Spray/backroll coupling constraint met. Overhead penalty consistently applied (15-20% vs wall RP). Stacking partition enforced. 54 tasks across 8 modules, 6 material systems, 4 round configs, 21 factor modifiers. Ready for spec.json assembly."
+}

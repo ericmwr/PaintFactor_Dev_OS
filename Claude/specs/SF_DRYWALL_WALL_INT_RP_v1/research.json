@@ -1,0 +1,1153 @@
+{
+  "research_metadata": {
+    "spec_family_id": "SF_DRYWALL_WALL_INT_RP",
+    "spec_family_version": "v1",
+    "domain": "interior",
+    "scope_type": "repaint",
+    "research_mode": "doctrine_driven",
+    "doctrine_loaded": [
+      "docs/System/PaintFactor_OS.md",
+      "docs/System/Conventions.md",
+      "docs/Doctrine/Quality_Tiers_and_Surface_Condition.md",
+      "docs/Doctrine/Materials_and_Consumables_Doctrine.md",
+      "docs/Doctrine/Estimation_Modifiers_Doctrine.md",
+      "docs/Doctrine/Interior_Protection_Doctrine.md",
+      "docs/Doctrine/Protection_and_Masking_Doctrine.md",
+      "docs/Doctrine/Modifier_Registry.md",
+      "docs/Doctrine/Spec_Completeness_Doctrine.md",
+      "docs/Reference/Protection_Zones_Reference.md",
+      "docs/Reference/Surface_Vocabulary_Reference.md",
+      "docs/Reference/Site_Condition_Vocabulary_Reference.md",
+      "docs/Reference/Substrate_State_Reference.md",
+      "docs/PaintScope/PaintScope_Quantity_Key_Catalog.md",
+      "docs/PaintScope/Spec_Input_to_PaintScope_Key_Mapping.md",
+      "docs/PaintScope/PaintScope_Adjacency_Schema.md",
+      "devos/Interior_RP_Gap_Analysis.md"
+    ],
+    "sibling_specs_reviewed": [
+      "specs/SF_DRYWALL_WALL_NC_PRIME_v1/research.json",
+      "specs/SF_DRYWALL_WALL_NC_FINISH_v1/research.json",
+      "specs/SF_TRIM_EXT_RP_v1/research.json"
+    ],
+    "researcher": "Spec Researcher Agent",
+    "date": "2026-03-13",
+    "status": "draft",
+    "review_required": true,
+    "context_prefix": "WLRP"
+  },
+
+  "spec_family_id": "SF_DRYWALL_WALL_INT_RP",
+  "version": "1.0.0",
+
+  "scope_summary": "Combined prime + finish repaint spec for previously painted interior drywall wall surfaces in occupied residential homes. Covers condition assessment, prep remediation (degloss, scrape, feather, contamination treatment), state-driven primer selection, finish coat application, and furniture/contents protection. Does NOT cover bare/new drywall (NC specs), ceilings (SF_DRYWALL_CEILING_INT_RP), trim (SF_TRIM_INT_RP), or structural drywall repair. This is the highest-volume interior repaint spec — wall repaints represent the majority of residential interior repaint work.",
+
+  "relevant_findings": [
+    {
+      "finding_id": "RF-001",
+      "topic": "Interior repaint is condition-driven, not substrate-driven",
+      "finding": "Unlike NC where primer selection is based on substrate material (bare drywall -> PVA), RP primer selection is driven by existing coating condition: sound paint -> no prime or adhesion promoter; failing paint -> adhesion primer; moisture damage -> mildew-resistant primer; smoke damage -> shellac stain blocker. This is the fundamental architectural difference between NC and RP specs.",
+      "source": "Interior_RP_Gap_Analysis.md Section D Prime Phase; Substrate_State_Reference.md",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-002",
+      "topic": "Condition assessment is mandatory before any RP work",
+      "finding": "Repaint walls cannot be properly estimated or executed without assessing existing paint condition. Assessment includes: visual condition scan per wall, adhesion test (ASTM D3359 cross-hatch tape test), moisture meter evaluation at suspect areas, coating identification (latex vs oil via solvent test), and lead screening for pre-1978 homes. Assessment is a REQUIRED phase that does not exist in NC. Exterior RP proves this pattern with 4-7 assessment tasks per spec.",
+      "source": "Interior_RP_Gap_Analysis.md Section C; SF_TRIM_EXT_RP_v1/research.json RF-014",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-003",
+      "topic": "Five interior RP substrate states drive distinct prep pathways",
+      "finding": "Interior RP defines 5 substrate states, each with a distinct severity level and prep pathway: SS_INT_SOUND_PAINT (severity 0, degloss/scuff only), SS_INT_FAILING_PAINT (severity 1, scrape/feather/spot prime), SS_INT_PEELING (severity 2, full scrape/adhesion prime/possible skim), SS_INT_MOISTURE_DAMAGE (severity 3, source remediation gate/biocide/stain block), SS_INT_SMOKE_DAMAGE (severity 4, shellac seal full surface/encapsulation). These map to the universal GOOD/FAIR/POOR condition scale.",
+      "source": "Interior_RP_Gap_Analysis.md Section A; controlled_enums.json substrate_state",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-004",
+      "topic": "Universal GOOD/FAIR/POOR condition scale drives prep multipliers",
+      "finding": "The 3-level condition scale applies across all domains. For interior RP: GOOD (SS_INT_SOUND_PAINT) = 1.0x prep modifier; FAIR (SS_INT_FAILING_PAINT, SS_INT_MOISTURE_DAMAGE) = 1.3-1.8x prep modifier; POOR (SS_INT_PEELING, SS_INT_SMOKE_DAMAGE) = 2.0-3.0x prep modifier. Condition scale is a configuration dimension that controls prep labor intensity.",
+      "source": "Interior_RP_Gap_Analysis.md Section A; controlled_enums.json condition_scale",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-005",
+      "topic": "Modifier stacking partition prevents runaway multipliers",
+      "finding": "Interior RP inherits the exterior RP modifier stacking partition architecture. Two independent pools: PREP POOL = condition_scale x contamination_type x wall_access (never includes QT); COATING POOL = quality_tier x wall_access (never includes condition). Pools are never cross-applied. This prevents absurd stacking scenarios like POOR condition x QT5 x high access creating 9.0x+ total multipliers. Wall_access is the only modifier shared between pools.",
+      "source": "Interior_RP_Gap_Analysis.md Section D Prep Phase; SF_TRIM_EXT_RP_v1/research.json",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-006",
+      "topic": "Occupied home context adds furniture protection tasks",
+      "finding": "NC is typically done in unoccupied new construction. RP is in occupied homes with furniture, belongings, and daily foot traffic. This adds 2-3 tasks for contents management: furniture moving/center-piling, furniture/contents covering with poly sheeting, and furniture replacement post-completion. Shared base tasks (TSK_WLRP_FURNITURE_MOVE, TSK_WLRP_FURNITURE_COVER, TSK_WLRP_FURNITURE_REPLACE) with per-spec protection overrides as defined in Gap Analysis Decision 5.",
+      "source": "Interior_RP_Gap_Analysis.md Section D Setup Phase; Decision 5",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-007",
+      "topic": "Combined prime + finish in single spec is the correct RP architecture",
+      "finding": "RP combines prime and finish into a single spec because assessment drives primer selection. You cannot assess condition, remediate, prime based on state, and then hand off to a separate 'finish' spec. The NC split (separate prime and finish specs) does not apply to RP. This matches the exterior RP pattern where all 5 exterior RP specs are combined prime+finish.",
+      "source": "Interior_RP_Gap_Analysis.md Section E Decision 1",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-008",
+      "topic": "RP trim is already installed — adjacency differs from NC",
+      "finding": "Unlike NC where trim is installed after wall prime, in RP all trim is already in place. This means: (1) trim masking is always required before wall work, (2) cut-in at trim edges is needed for both prime and finish phases, (3) baseboard, door casing, and window casing adjacency relationships are always active. The NC wall prime spec could skip trim adjacency because trim was not installed yet — RP cannot skip this.",
+      "source": "SF_DRYWALL_WALL_NC_PRIME_v1/research.json adjacency_notes; NC production sequence analysis",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-009",
+      "topic": "Finish coat application is identical between NC and RP",
+      "finding": "Once the surface is properly prepped and primed, finish coat application is identical. The brush, roll, spray techniques, rates, interstage protocols, and cut-in methods transfer DIRECT from NC. 39 of 42 NC wall finish tasks classify as DIRECT transfer. Only 3 inspection tasks are MODIFIED (they inspect state-primed surface instead of bare-primed). This is a major efficiency — the finish phase of RP reuses NC finish work entirely.",
+      "source": "Interior_RP_Gap_Analysis.md Section B SF_DRYWALL_WALL_NC_FINISH_v1 classification",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-010",
+      "topic": "Customer walkthrough is RP-specific cleanup task",
+      "finding": "Interior RP in occupied homes requires a post-completion review with the homeowner. This is a quality assurance + customer satisfaction task where the painter walks each room with the homeowner, identifies any touch-up needs, and confirms completion. This task does not exist in NC (no homeowner present during new construction). It is a fixed-time task per room.",
+      "source": "Interior_RP_Gap_Analysis.md Section D Cleanup Phase",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-011",
+      "topic": "QT2 is valid for interior wall repaint — economy refresh tier",
+      "finding": "Unlike trim (which excludes QT2 as a fine-finish surface), wall repaint includes QT2 as the economy refresh tier. QT2 wall repaint is the most common interior repaint scenario — landlord refreshes, rental turnovers, cosmetic updates. QT2 = 1 finish coat (over primed surface), relaxed edge standards, quick inspection. QT2 is roll-only (no spray). Application quality is NOT reduced at QT2 — only prep and inspection intensity.",
+      "source": "Quality_Tiers_and_Surface_Condition.md; NC wall spec QT2 analysis",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-012",
+      "topic": "Spray application is rare in occupied interior repaint",
+      "finding": "Spray methods (spray_backroll, spray) are uncommon in occupied interior repaint due to: (1) furniture overspray risk, (2) fume containment issues, (3) room-by-room phased work prevents efficient spray setup. Spray_backroll is available at QT3+ but most interior repaints are roll. Spray-only (no backroll) is QT4+ and typically requires vacancy. This differs significantly from NC where spray_backroll is the production standard.",
+      "source": "Professional practice; NC wall spec application method analysis",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-013",
+      "topic": "Lead-safe RRP is conditional on home age via shared module",
+      "finding": "Pre-1978 homes require EPA Lead-Safe RRP practices before any paint disturbance (scraping, sanding). Rather than duplicating 5-8 lead-safe tasks in each RP spec, a shared MOD_RRP_INT_CONTAINMENT module is invoked conditionally when home_year < 1978. Tasks include: lead test (XRF or swab), containment setup (poly sheeting, warning signs), HEPA vacuum after disturbance, wet methods for sanding/scraping, containment removal and clearance test.",
+      "source": "Interior_RP_Gap_Analysis.md Section E Decision 4",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-014",
+      "topic": "Moisture damage requires source resolution gate before painting",
+      "finding": "SS_INT_MOISTURE_DAMAGE is a gate condition: the moisture SOURCE must be resolved before painting can proceed. Painting over active moisture damage is cosmetic-only and fails within weeks. The assessment phase must identify and flag active moisture for remediation by other trades. Once source is resolved, RP can proceed with biocide treatment, stain-blocking primer, and standard finish. Common in bathrooms, kitchens, and basements.",
+      "source": "Interior_RP_Gap_Analysis.md Section A; controlled_enums.json SS_INT_MOISTURE_DAMAGE definition",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-015",
+      "topic": "Smoke damage requires shellac-based stain blocker — no substitute",
+      "finding": "SS_INT_SMOKE_DAMAGE (nicotine, smoke, soot staining) requires shellac-based stain blocker (BIN or equivalent). Latex and acrylic primers have zero stain blocking capability (RC-002 from NC specs). Shellac is the only product that reliably seals nicotine/smoke residue. Full-surface application required — spot treatment is insufficient because smoke contamination is pervasive even when not visually apparent.",
+      "source": "Interior_RP_Gap_Analysis.md Section A; RC-002; Materials_and_Consumables_Doctrine.md",
+      "confidence": "high"
+    }
+  ],
+
+  "condition_drivers": [
+    {
+      "driver_id": "CD-001",
+      "name": "Condition Scale",
+      "type": "configuration_dimension",
+      "values": ["GOOD", "FAIR", "POOR"],
+      "impact": "Primary driver for prep task selection and labor intensity. GOOD = minimal prep (degloss/scuff); FAIR = targeted repair (scrape/feather/spot prime/contamination treatment); POOR = full remediation (full scrape/full prime/possible skim). Maps to prep multipliers: GOOD=1.0x, FAIR=1.3-1.8x, POOR=2.0-3.0x.",
+      "notes": "Universal 3-level scale per controlled_enums.json condition_scale. Replaces exterior DSD 0-4 for estimation purposes."
+    },
+    {
+      "driver_id": "CD-002",
+      "name": "Quality Tier",
+      "type": "configuration_dimension",
+      "values": ["QT2", "QT3", "QT4", "QT5"],
+      "impact": "Controls coat count, inspection rigor, edge discipline, interstage sanding. QT2=1 coat, relaxed edges, quick inspect. QT3=2 coats default (1 if coverage achieved), standard edges. QT4=2 coats mandatory, interstage sanding, systematic inspection. QT5=2 coats mandatory, full interstage, critical inspection. QT modifier values: QT2=0.80, QT3=1.00, QT4=1.30, QT5=1.50.",
+      "notes": "QT2 included for economy repaint. QT2 roll-only. QT minimum for spray: QT3."
+    },
+    {
+      "driver_id": "CD-003",
+      "name": "Application Method",
+      "type": "configuration_dimension",
+      "values": ["roll", "spray_backroll", "spray"],
+      "impact": "Roll is primary for occupied interior RP. spray_backroll available at QT3+ when rooms can be cleared. spray (no backroll) at QT4+ — rare in occupied homes. Application method drives protection zone activation and production rates. Roll: QT2-QT5. spray_backroll: QT3-QT5. spray: QT4-QT5.",
+      "notes": "spray_backroll coupling constraint: backroll rate limits system rate per Estimation_Modifiers_Doctrine."
+    },
+    {
+      "driver_id": "CD-004",
+      "name": "Sheen",
+      "type": "configuration_dimension",
+      "values": ["flat", "matte", "eggshell", "satin", "semi-gloss"],
+      "impact": "Eggshell is default for walls. Satin requires QT4+. Semi-gloss requires QT4+. Gloss excluded for walls (trim-only). Sheen affects output state and sheen matching to adjacent surfaces.",
+      "notes": "Gloss is not a valid wall sheen per doctrine. Flat/matte common for ceilings, less common for walls. Eggshell is the standard residential wall sheen."
+    },
+    {
+      "driver_id": "CD-005",
+      "name": "Wall Height",
+      "type": "modifier",
+      "values": {
+        "H1_STANDARD": { "range": "7-8 ft", "value": 1.00 },
+        "H2_TALL": { "range": "9-12 ft", "value": 1.30 },
+        "H3_HIGH": { "range": "13-17 ft", "value": 1.50 },
+        "H4_SCAFFOLD": { "range": "18-24 ft", "value": 2.00 }
+      },
+      "impact": "Applied to all labor tasks based on working height. No overhead fatigue for walls (unlike ceilings). Height modifiers per Modifier_Registry.md.",
+      "notes": "H5_LIFT (25+ ft) excluded for interior walls — residential interiors rarely exceed 24 ft. Uses standard registry values."
+    },
+    {
+      "driver_id": "CD-006",
+      "name": "Surface Texture",
+      "type": "modifier",
+      "values": {
+        "TEX_SMOOTH": 1.00,
+        "TEX_ORANGE_PEEL": 1.10,
+        "TEX_KNOCKDOWN": 1.15,
+        "TEX_HEAVY": 1.25
+      },
+      "impact": "Texture affects coverage rate, nap selection, and application speed. Applies to roll, spray, and cut-in tasks.",
+      "notes": "Per Modifier_Registry.md. skip_trowel texture treated as heavy_texture for modifier purposes."
+    },
+    {
+      "driver_id": "CD-007",
+      "name": "Wall Access",
+      "type": "modifier",
+      "values": {
+        "open_wall": 1.00,
+        "obstructed_light": 1.15,
+        "obstructed_heavy": 1.30
+      },
+      "impact": "Interior RP walls may have obstacles that NC walls do not: furniture that cannot be fully removed, built-in shelving, HVAC equipment, fireplaces. Access modifier applies to BOTH prep pool and coating pool (shared modifier per stacking partition). Open_wall = clear access. obstructed_light = some furniture/fixtures remain. obstructed_heavy = significant obstacles (bathroom hardware, built-in bookcases).",
+      "notes": "Wall access is the only modifier shared between prep and coating pools per the stacking partition design."
+    }
+  ],
+
+  "quality_differences": [
+    {
+      "aspect": "coat_count",
+      "QT2": "1 finish coat over primed surface",
+      "QT3": "2 finish coats default, 1 acceptable if full coverage achieved",
+      "QT4": "2 finish coats mandatory",
+      "QT5": "2 finish coats mandatory",
+      "notes": "Primer coat count is state-driven (not QT-driven): GOOD=0 or 1 prime, FAIR=spot prime, POOR=full prime."
+    },
+    {
+      "aspect": "prep_intensity",
+      "QT2": "Quick visual check, spot repairs for major defects only, standard degloss",
+      "QT3": "Standard visual inspection, address all visible defects, thorough degloss",
+      "QT4": "Systematic inspection with work light, comprehensive defect repair, full degloss with adhesion verification",
+      "QT5": "Critical inspection at every stage, near-zero defect tolerance, full degloss + bonding verification"
+    },
+    {
+      "aspect": "sanding_between_coats",
+      "QT2": "None",
+      "QT3": "Spot sand patches only if necessary",
+      "QT4": "Full light sand between finish coats (220 grit)",
+      "QT5": "Full light sand between all coats including primer-to-finish (220 grit)"
+    },
+    {
+      "aspect": "edge_discipline",
+      "QT2": "Acceptable if neat, minor wobble tolerated",
+      "QT3": "Reasonably straight line at 6 ft viewing distance",
+      "QT4": "Clean line, no visible wobble at 3 ft",
+      "QT5": "Crisp line, no visible wobble at arm's length"
+    },
+    {
+      "aspect": "inspection_standard",
+      "QT2": "Quick glance at 6 ft, ambient light, 1 pass",
+      "QT3": "Standard visual at 6 ft, 1 pass",
+      "QT4": "Systematic scan at 3 ft with work light, 2 passes",
+      "QT5": "Critical inspection at arm's length with raking light, 3 passes"
+    }
+  ],
+
+  "failure_modes": [
+    {
+      "mode_id": "FM-001",
+      "failure": "Adhesion failure over existing semi-gloss or gloss paint",
+      "cause": "Insufficient degloss or inadequate adhesion primer selection when repainting over high-sheen existing finish",
+      "prevention": "Thorough degloss (liquid sander or mechanical scuff), adhesion test before proceeding, adhesion primer when sheen is semi-gloss or higher",
+      "mitigation": "If peeling occurs post-application, full scrape to sound paint and re-prime with adhesion primer",
+      "risk_level": "major"
+    },
+    {
+      "mode_id": "FM-002",
+      "failure": "Stain bleed-through from water damage or smoke",
+      "cause": "Using latex primer instead of shellac stain blocker on contaminated surfaces. PVA and acrylic primers have zero stain blocking capability (RC-002).",
+      "prevention": "Proper contamination identification during assessment phase, shellac-based stain blocker (BIN) for smoke damage, stain-blocking primer for water stains",
+      "mitigation": "Additional coat of shellac stain blocker followed by finish coat",
+      "risk_level": "major"
+    },
+    {
+      "mode_id": "FM-003",
+      "failure": "Latex-over-oil adhesion failure",
+      "cause": "Applying latex finish directly over unknown oil/alkyd base without adhesion primer",
+      "prevention": "Coating identification in assessment phase (solvent test: mineral spirits dissolves alkyd, does not dissolve latex). Adhesion primer mandatory when oil-based existing coating is identified.",
+      "mitigation": "Scrape failed areas, spot prime with adhesion primer, recoat",
+      "risk_level": "major"
+    },
+    {
+      "mode_id": "FM-004",
+      "failure": "Mildew regrowth through new paint film",
+      "cause": "Painting over mildew without biocide treatment. Mildew spores survive under paint film and regrow through topcoat.",
+      "prevention": "Biocide treatment (bleach/mildewcide solution) during prep phase, allow full dry time, mildew-resistant primer. Source moisture must be resolved before painting.",
+      "mitigation": "Strip paint, re-treat with biocide, re-prime with mildew-resistant primer",
+      "risk_level": "major"
+    },
+    {
+      "mode_id": "FM-005",
+      "failure": "Mapping from scrape edges telegraphing through finish",
+      "cause": "Failure to feather-sand scrape edges before priming. Old paint edge creates a visible ridge under topcoats.",
+      "prevention": "Feather-sand all scrape edges to create smooth transition between bare substrate and remaining sound paint. Non-negotiable at all tiers.",
+      "mitigation": "Sand visible ridges, skim coat if severe, spot prime, recoat",
+      "risk_level": "minor"
+    },
+    {
+      "mode_id": "FM-006",
+      "failure": "Flashing/sheen variance from uneven absorption",
+      "cause": "Inconsistent primer coverage on scraped vs sound areas causing differential topcoat absorption",
+      "prevention": "Full prime when scrape area exceeds 30% of wall surface. Spot prime all scraped areas at minimum. Consistent primer film build.",
+      "mitigation": "Additional finish coat to equalize appearance",
+      "risk_level": "minor"
+    },
+    {
+      "mode_id": "FM-007",
+      "failure": "Furniture damage from paint spatter or contact",
+      "cause": "Inadequate furniture protection in occupied home",
+      "prevention": "Center-pile furniture, full poly sheeting cover, tape edges to floor. Move all items 4+ ft from walls. Specific attention to fabric furniture and electronics.",
+      "mitigation": "Professional cleaning of affected items. High liability risk for irreplaceable items.",
+      "risk_level": "major"
+    }
+  ],
+
+  "required_paintscope_keys": [
+    {
+      "key": "PS_SURFACE_SF.WALL_FIELD",
+      "description": "Total paintable wall field area (excluding openings)",
+      "uom": "SF",
+      "required": true,
+      "required_when": "Always — primary quantity driver for all wall tasks"
+    },
+    {
+      "key": "PS_EDGE_LF.TO_CEILING",
+      "description": "Linear footage of wall-to-ceiling boundary for edge cut-in",
+      "uom": "LF",
+      "required": true,
+      "required_when": "Always — RP always has ceiling in place (unlike NC where ceiling may not be finished during wall prime)"
+    },
+    {
+      "key": "PS_EDGE_LF.TO_TRIM",
+      "description": "Linear footage of wall-to-trim boundary for cut-in at trim edges",
+      "uom": "LF",
+      "required": true,
+      "required_when": "Always — RP always has trim in place"
+    },
+    {
+      "key": "PS_PROTECT_SF.FLOOR_PERIMETER",
+      "description": "Perimeter floor protection area for roll method",
+      "uom": "SF",
+      "required_when": { "application_method": ["roll"] }
+    },
+    {
+      "key": "PS_PROTECT_SF.FLOOR_EXPOSED",
+      "description": "Full floor protection area for spray overspray",
+      "uom": "SF",
+      "required_when": { "application_method": ["spray_backroll", "spray"] }
+    },
+    {
+      "key": "PS_META.EA.ROOMS_TOTAL",
+      "description": "Room count — drives per-room heuristics (fixture count, furniture protection, customer walkthrough)",
+      "uom": "EA",
+      "required": true,
+      "required_when": "Always — used for furniture protection, fixture count heuristic, walkthrough"
+    },
+    {
+      "key": "PS_META.SF.FLOOR_VACUUM_AREA",
+      "description": "Floor area for post-application vacuum cleanup",
+      "uom": "SF",
+      "required": true,
+      "required_when": "Always — cleanup task"
+    },
+    {
+      "key": "PS_META.SURFACE_CONDITION",
+      "description": "Surface condition enum (GOOD/FAIR/POOR) for condition modifier selection",
+      "uom": "ENUM",
+      "required": true,
+      "required_when": "Always — drives condition_scale dimension"
+    },
+    {
+      "key": "PS_META.SURFACE_TEXTURE",
+      "description": "Wall surface texture for texture modifier selection",
+      "uom": "ENUM",
+      "required": true,
+      "required_when": "Always — drives texture modifier"
+    },
+    {
+      "key": "PS_META.HEIGHT_BAND",
+      "description": "Ceiling height classification for height modifier selection",
+      "uom": "ENUM",
+      "required": true,
+      "required_when": "Always — drives height modifier"
+    },
+    {
+      "key": "PS_PROTECT_SF.FURNITURE_ROOM",
+      "description": "Room floor area for furniture protection coverage",
+      "uom": "SF",
+      "required_when": { "occupancy_state": ["occupied_crew_handles", "occupied_sensitive"] }
+    },
+    {
+      "key": "PS_PROTECT_LF.TRIM_EDGES",
+      "description": "Trim perimeter for masking before wall work",
+      "uom": "LF",
+      "required": true,
+      "required_when": "Always — RP trim is always in place and must be masked"
+    }
+  ],
+
+  "proposed_new_keys": [
+    {
+      "proposed_key": "PS_META.ENUM.SUBSTRATE_STATE_INT",
+      "uom": "ENUM",
+      "description": "Interior substrate state classification (SS_INT_SOUND_PAINT through SS_INT_SMOKE_DAMAGE). Captured during assessment phase.",
+      "justification": "Interior RP requires a substrate state selector distinct from exterior states. PS_META.SURFACE_CONDITION captures GOOD/FAIR/POOR but not the specific SS_INT_* state which drives primer selection logic. NC specs used SS_BARE only so this was not needed previously."
+    },
+    {
+      "proposed_key": "PS_META.BOOL.HOME_PRE_1978",
+      "uom": "BOOL",
+      "description": "Boolean flag indicating home was built before 1978, triggering RRP lead-safe work practice module.",
+      "justification": "Needed to conditionally activate MOD_RRP_INT_CONTAINMENT shared module. Derived from year_built field in project onboarding."
+    },
+    {
+      "proposed_key": "PS_META.ENUM.CONTAMINATION_TYPE",
+      "uom": "ENUM",
+      "description": "Contamination type classification: none, mildew, smoke, water_stain, grease. Drives primer selection and treatment task activation.",
+      "justification": "Interior RP needs contamination-specific treatment tasks and primer selection. This is captured during assessment phase and used by prep/prime task conditions."
+    }
+  ],
+
+  "protection_zones_analysis": {
+    "spec_category": "wall",
+    "application_method_sensitivity": true,
+    "zones": [
+      {
+        "zone_id": "floor_perimeter",
+        "condition": { "application_method": ["roll"] },
+        "protection_level": "edge_only",
+        "upgrade_scenario": "Upgrades to floor_full when spray or spray_backroll",
+        "paintscope_key": "PS_PROTECT_SF.FLOOR_PERIMETER",
+        "notes": "Perimeter drop cloths for drip risk during roll application. Standard for occupied RP."
+      },
+      {
+        "zone_id": "floor_full",
+        "condition": { "application_method": ["spray", "spray_backroll"] },
+        "protection_level": "full_cover",
+        "paintscope_key": "PS_PROTECT_SF.FLOOR_EXPOSED",
+        "notes": "Full floor coverage for spray methods. Rosin paper on hard floors, plastic on carpet."
+      },
+      {
+        "zone_id": "fixture_covers",
+        "condition": { "application_method": ["spray", "spray_backroll"] },
+        "protection_level": "full_cover",
+        "paintscope_key": "PS_META.EA.ROOMS_TOTAL",
+        "heuristic": "6 outlets/switches per room average",
+        "notes": "Outlets, switches, and wall-mounted fixtures require masking for spray methods. Also recommended for roll at QT4+ to prevent drip risk."
+      },
+      {
+        "zone_id": "trim_edges",
+        "condition": "always",
+        "protection_level": "light_mask",
+        "paintscope_key": "PS_PROTECT_LF.TRIM_EDGES",
+        "notes": "RP trim is always in place — tape line at baseboard, door casing, and window casing edges. NC could skip this during prime phase; RP cannot."
+      },
+      {
+        "zone_id": "furniture_room",
+        "condition": { "occupancy_state": ["occupied_crew_handles", "occupied_sensitive"] },
+        "protection_level": "full_cover",
+        "paintscope_key": "PS_PROTECT_SF.FURNITURE_ROOM",
+        "notes": "RP-specific. Furniture center-piled and covered with poly sheeting. Not applicable to NC or vacant RP."
+      },
+      {
+        "zone_id": "ceiling_line",
+        "condition": "always",
+        "protection_level": "none",
+        "notes": "Per doctrine: walls always cut into ceilings freehand — no tape or mask on drywall ceilings. Protection level is 'none' because wall painter establishes ceiling line via cut-in, not masking. Only millwork ceilings would require masking."
+      }
+    ],
+    "zone_reference": "Protection_Zones_Reference.md v2.0",
+    "method_escalation": "roll < spray_backroll < spray",
+    "rp_specific_note": "RP adds furniture_room zone (occupied home context) and always activates trim_edges zone (trim always present). NC wall prime could skip trim_edges because trim was not yet installed."
+  },
+
+  "adjacency_analysis": {
+    "primary_surface": "wall_field",
+    "adjacent_surfaces": [
+      {
+        "surface_id": "ceiling_field",
+        "edge_type": "linear",
+        "typical_relationship": "different_finish",
+        "edge_work_required": true,
+        "edge_owner": "wall_painter",
+        "notes": "Wall painter establishes the clean ceiling line via cut-in (brush technique). This is identical to NC wall finish spec. Ceiling is always finished in RP context. We do NOT mask drywall ceilings — cut-in or spray into corner."
+      },
+      {
+        "surface_id": "trim_baseboard",
+        "edge_type": "linear",
+        "typical_relationship": "different_finish",
+        "edge_work_required": false,
+        "notes": "Baseboard is always in place in RP. Masked off before wall work. Wall painter cuts to tape line at baseboard top edge. Protection relationship, not edge work. Different from NC prime where baseboard was not installed."
+      },
+      {
+        "surface_id": "trim_casing_door",
+        "edge_type": "linear",
+        "typical_relationship": "different_finish",
+        "edge_work_required": false,
+        "notes": "Door casing always in place in RP. Masked off. Wall painter cuts to tape line. Protection relationship."
+      },
+      {
+        "surface_id": "trim_casing_window",
+        "edge_type": "linear",
+        "typical_relationship": "different_finish",
+        "edge_work_required": false,
+        "notes": "Window casing always in place in RP. Masked off. Wall painter cuts to tape line. Protection relationship."
+      },
+      {
+        "surface_id": "trim_crown",
+        "edge_type": "linear",
+        "typical_relationship": "different_finish",
+        "edge_work_required": false,
+        "notes": "If crown exists, it is masked before wall work. Wall painter cuts to tape line at crown bottom edge."
+      },
+      {
+        "surface_id": "trim_chair_rail",
+        "edge_type": "linear",
+        "typical_relationship": "different_finish",
+        "edge_work_required": false,
+        "notes": "If chair rail exists, it is masked. Wall painter cuts to tape line. May split wall into upper/lower sections with different colors."
+      }
+    ],
+    "surface_reference": "Surface_Vocabulary_Reference.md v1.0",
+    "key_finding": "RP wall has ONE edge work requirement: ceiling line cut-in. All other edges (trim) are protection/masking relationships. This matches NC wall finish but differs from NC wall prime (which had no trim adjacency at all)."
+  },
+
+  "site_condition_analysis": {
+    "affected_conditions": [
+      {
+        "condition_id": "occupancy_state",
+        "vocabulary_ref": "Site_Condition_Vocabulary_Reference.md",
+        "affected_task_types": ["protect", "cleanup"],
+        "include_values": ["occupied_crew_handles", "occupied_sensitive"],
+        "exclude_values": ["vacant"],
+        "modifier_notes": "occupied_crew_handles=1.15x on protection tasks, occupied_sensitive=1.30x per Modifier_Registry",
+        "notes": "RP primary differentiator — occupied home context adds furniture protection, daily setup/teardown, and customer walkthrough. Vacant RP exists but is less common."
+      },
+      {
+        "condition_id": "lead_status",
+        "vocabulary_ref": "Site_Condition_Vocabulary_Reference.md",
+        "affected_task_types": ["prep", "protect"],
+        "include_values": ["tested_positive", "unknown_pre1978"],
+        "exclude_values": ["not_applicable", "presumed_safe", "tested_negative"],
+        "modifier_notes": "tested_positive=2.0x all tasks, unknown_pre1978=1.5x prep tasks per Modifier_Registry",
+        "notes": "Activates MOD_RRP_INT_CONTAINMENT shared module. Interior walls are a common lead paint substrate in pre-1978 homes. Triggered by PS_META.BOOL.HOME_PRE_1978."
+      },
+      {
+        "condition_id": "moisture_condition",
+        "vocabulary_ref": "Site_Condition_Vocabulary_Reference.md",
+        "affected_task_types": ["assessment", "prep"],
+        "include_values": ["recently_wet"],
+        "exclude_values": ["active_moisture"],
+        "notes": "active_moisture is a STOP WORK condition — do not proceed until remediated. recently_wet requires extended dry time. Directly related to SS_INT_MOISTURE_DAMAGE state."
+      },
+      {
+        "condition_id": "access_constraint",
+        "vocabulary_ref": "Site_Condition_Vocabulary_Reference.md",
+        "affected_task_types": ["application", "prep", "cut_in"],
+        "include_values": ["step_ladder", "extension_ladder", "scaffold"],
+        "effect_notes": "Height modifiers per Modifier_Registry: H1=1.0, H2=1.30, H3=1.50, H4=2.00",
+        "notes": "Interior RP rarely requires scaffold — most residential walls are under 12 ft. Lift excluded for interior."
+      },
+      {
+        "condition_id": "floor_type",
+        "vocabulary_ref": "Site_Condition_Vocabulary_Reference.md",
+        "affected_task_types": ["protect"],
+        "include_values": ["finished", "partial"],
+        "exclude_values": [],
+        "notes": "RP ALWAYS has finished floors (occupied home). Unlike NC where subfloor may be present, RP floor protection is mandatory. Floor_type is effectively always 'finished' for interior RP."
+      },
+      {
+        "condition_id": "temperature_condition",
+        "vocabulary_ref": "Site_Condition_Vocabulary_Reference.md",
+        "affected_task_types": ["application"],
+        "include_values": ["cold_below_50f", "hot_above_90f"],
+        "effect_notes": "cold_below_50f=1.30x, hot_above_90f=1.15x per Modifier_Registry",
+        "notes": "Less common for interior RP (homes typically have HVAC) but can occur in unoccupied or renovation scenarios."
+      },
+      {
+        "condition_id": "time_constraint",
+        "vocabulary_ref": "Site_Condition_Vocabulary_Reference.md",
+        "affected_task_types": ["protect", "cleanup"],
+        "include_values": ["phased_occupancy"],
+        "effect_notes": "phased_occupancy=1.25x on setup/teardown tasks per Modifier_Registry",
+        "notes": "Very common for interior RP — homeowner living in house during project requires room-by-room completion with daily setup/teardown."
+      }
+    ],
+    "condition_reference": "Site_Condition_Vocabulary_Reference.md v1.1",
+    "modifier_reference": "Modifier_Registry.md v1.2"
+  },
+
+  "state_analysis": {
+    "primary_surface": "wall_field",
+    "valid_input_states": {
+      "states": [
+        "SS_INT_SOUND_PAINT",
+        "SS_INT_FAILING_PAINT",
+        "SS_INT_PEELING",
+        "SS_INT_MOISTURE_DAMAGE",
+        "SS_INT_SMOKE_DAMAGE"
+      ],
+      "rationale": "Interior RP spec accepts all 5 interior RP substrate states. Each state drives a distinct prep pathway and primer selection. Input state is determined during assessment phase. Multiple states may exist on different walls in the same room — the worst state drives the overall condition_scale for the room."
+    },
+    "output_state": {
+      "state": "SS_PAINTED_EGGSHELL",
+      "varies_by": "sheen",
+      "state_map": {
+        "flat": "SS_PAINTED_FLAT",
+        "matte": "SS_PAINTED_FLAT",
+        "eggshell": "SS_PAINTED_EGGSHELL",
+        "satin": "SS_PAINTED_SATIN",
+        "semi-gloss": "SS_PAINTED_SEMIGLOSS"
+      },
+      "rationale": "Output state varies by selected sheen. Eggshell is default for residential walls. All input states normalize to a standard SS_PAINTED_* output after proper prep and coating."
+    },
+    "state_to_condition_mapping": {
+      "GOOD": ["SS_INT_SOUND_PAINT"],
+      "FAIR": ["SS_INT_FAILING_PAINT", "SS_INT_MOISTURE_DAMAGE"],
+      "POOR": ["SS_INT_PEELING", "SS_INT_SMOKE_DAMAGE"]
+    },
+    "state_driven_primer_selection": {
+      "SS_INT_SOUND_PAINT": {
+        "primer_required": "conditional",
+        "primer_system": "none or SYS_PRIMER_ADHESION_INT",
+        "logic": "No primer if adhesion test passes and existing paint is in good condition. Adhesion primer if existing sheen is semi-gloss or higher, or if coating ID shows oil-based base."
+      },
+      "SS_INT_FAILING_PAINT": {
+        "primer_required": "yes — spot or full",
+        "primer_system": "SYS_PRIMER_ADHESION_INT",
+        "logic": "Spot prime all scraped/feathered areas. Full prime if scraped area exceeds 30% of wall surface. Adhesion primer mandatory for adhesion to remaining sound paint."
+      },
+      "SS_INT_PEELING": {
+        "primer_required": "yes — full prime",
+        "primer_system": "SYS_PRIMER_ADHESION_INT",
+        "logic": "Full prime required after complete scrape to sound substrate. Extensive bare area requires full-coverage adhesion primer."
+      },
+      "SS_INT_MOISTURE_DAMAGE": {
+        "primer_required": "yes — full prime",
+        "primer_system": "SYS_PRIMER_MILDEW_INT",
+        "logic": "Mildew-resistant primer after biocide treatment. Stain-blocking primer for water stains. Source moisture must be resolved first (gate condition)."
+      },
+      "SS_INT_SMOKE_DAMAGE": {
+        "primer_required": "yes — full surface",
+        "primer_system": "SYS_PRIMER_STAINBLOCK_INT",
+        "logic": "Shellac-based stain blocker (BIN or equivalent) full surface application. Spot treatment insufficient — smoke contamination is pervasive. Latex primers have zero stain blocking capability (RC-002)."
+      }
+    },
+    "adjacent_state_protection_analysis": [
+      {
+        "adjacent_surface": "ceiling_field",
+        "finished_states": ["SS_PAINTED_FLAT", "SS_PAINTED_EGGSHELL", "SS_PAINTED_SATIN"],
+        "unfinished_states": [],
+        "protection_when_finished": "none",
+        "protection_when_unfinished": "none",
+        "rationale": "Per doctrine: walls always cut into ceilings freehand — no tape or mask on drywall ceilings. In RP, ceiling is always finished. Cut-in establishes line."
+      },
+      {
+        "adjacent_surface": "trim_baseboard",
+        "finished_states": ["SS_PAINTED_SATIN", "SS_PAINTED_SEMIGLOSS", "SS_PAINTED_GLOSS"],
+        "unfinished_states": [],
+        "protection_when_finished": "light_mask",
+        "protection_when_unfinished": "none",
+        "rationale": "RP trim is always present and typically finished. Tape line at baseboard top edge provides cut-in target for wall painter. If trim is being repainted in same project, coordination required on sequencing."
+      },
+      {
+        "adjacent_surface": "trim_casing_door",
+        "finished_states": ["SS_PAINTED_SATIN", "SS_PAINTED_SEMIGLOSS", "SS_PAINTED_GLOSS"],
+        "unfinished_states": [],
+        "protection_when_finished": "light_mask",
+        "protection_when_unfinished": "none",
+        "rationale": "Door casing always present in RP. Tape line at casing edge."
+      },
+      {
+        "adjacent_surface": "trim_casing_window",
+        "finished_states": ["SS_PAINTED_SATIN", "SS_PAINTED_SEMIGLOSS", "SS_PAINTED_GLOSS"],
+        "unfinished_states": [],
+        "protection_when_finished": "light_mask",
+        "protection_when_unfinished": "none",
+        "rationale": "Window casing always present in RP. Tape line at casing edge."
+      }
+    ],
+    "state_reference": "Substrate_State_Reference.md v1.0.0"
+  },
+
+  "task_inventory_projection": {
+    "source_nc_tasks": {
+      "wall_prime": { "total": 22, "direct": 10, "modified": 12, "not_applicable": 0 },
+      "wall_finish": { "total": 42, "direct": 39, "modified": 3, "not_applicable": 0 }
+    },
+    "projected_rp_tasks": {
+      "direct_transfers": 49,
+      "modified_transfers": 15,
+      "rp_new_tasks": 12,
+      "projected_total": "55-60"
+    },
+    "rp_new_task_projections": [
+      {
+        "task_id": "TSK_WLRP_ASSESS_CONDITION",
+        "phase": "prep",
+        "description": "Visual condition scan of all walls — photograph defects, map damage areas, assign severity",
+        "classification": "qt_scaled",
+        "skill_level": "journeyman"
+      },
+      {
+        "task_id": "TSK_WLRP_ASSESS_ADHESION",
+        "phase": "prep",
+        "description": "Cross-hatch tape test per ASTM D3359 at representative areas and suspect zones",
+        "classification": "binary",
+        "skill_level": "journeyman"
+      },
+      {
+        "task_id": "TSK_WLRP_ASSESS_MOISTURE",
+        "phase": "prep",
+        "description": "Moisture meter evaluation at suspect areas — identify source, flag active moisture for remediation",
+        "classification": "binary",
+        "skill_level": "journeyman"
+      },
+      {
+        "task_id": "TSK_WLRP_ASSESS_COATING_ID",
+        "phase": "prep",
+        "description": "Coating identification — latex vs oil via solvent test (mineral spirits dissolves alkyd). Determines primer compatibility.",
+        "classification": "binary",
+        "skill_level": "journeyman"
+      },
+      {
+        "task_id": "TSK_WLRP_WASH_TSP",
+        "phase": "prep",
+        "description": "TSP wash for grease film, kitchen residue, or general surface contamination. Required before degloss or coating application.",
+        "classification": "qt_scaled",
+        "skill_level": "helper"
+      },
+      {
+        "task_id": "TSK_WLRP_TREAT_MILDEW",
+        "phase": "prep",
+        "description": "Bleach/biocide solution application on mildew-affected areas. Wait for full kill time, rinse, dry.",
+        "classification": "binary",
+        "skill_level": "journeyman",
+        "applies_when": { "substrate_state": ["SS_INT_MOISTURE_DAMAGE"] }
+      },
+      {
+        "task_id": "TSK_WLRP_SCRAPE_LOOSE",
+        "phase": "prep",
+        "description": "Scrape all failing/peeling paint to sound substrate using putty knife or scraper",
+        "classification": "qt_scaled",
+        "skill_level": "journeyman",
+        "applies_when": { "condition_scale": ["FAIR", "POOR"] }
+      },
+      {
+        "task_id": "TSK_WLRP_FEATHER_EDGES",
+        "phase": "prep",
+        "description": "Feather-sand all scrape edges to create smooth transition between bare substrate and remaining sound paint. Non-negotiable at all tiers.",
+        "classification": "qt_scaled",
+        "skill_level": "journeyman",
+        "applies_when": { "condition_scale": ["FAIR", "POOR"] }
+      },
+      {
+        "task_id": "TSK_WLRP_DEGLOSS",
+        "phase": "prep",
+        "description": "Chemical or mechanical degloss of existing paint surface for adhesion. Liquid sander or 120-150 grit mechanical scuff.",
+        "classification": "qt_scaled",
+        "skill_level": "journeyman"
+      },
+      {
+        "task_id": "TSK_WLRP_FURNITURE_MOVE",
+        "phase": "setup",
+        "description": "Center-pile furniture away from walls (4+ ft clearance), protect electronics/valuables, clear wall surfaces",
+        "classification": "binary",
+        "skill_level": "helper",
+        "applies_when": { "occupancy_state": ["occupied_crew_handles", "occupied_sensitive"] }
+      },
+      {
+        "task_id": "TSK_WLRP_FURNITURE_COVER",
+        "phase": "setup",
+        "description": "Cover center-piled furniture with poly sheeting, tape edges to floor",
+        "classification": "binary",
+        "skill_level": "helper",
+        "applies_when": { "occupancy_state": ["occupied_crew_handles", "occupied_sensitive"] }
+      },
+      {
+        "task_id": "TSK_WLRP_FURNITURE_REPLACE",
+        "phase": "cleanup",
+        "description": "Remove poly covers, return furniture to original positions, verify no paint damage to contents",
+        "classification": "binary",
+        "skill_level": "helper",
+        "applies_when": { "occupancy_state": ["occupied_crew_handles", "occupied_sensitive"] }
+      },
+      {
+        "task_id": "TSK_WLRP_CUSTOMER_WALKTHROUGH",
+        "phase": "cleanup",
+        "description": "Post-completion room-by-room review with homeowner — identify touch-up needs, confirm satisfaction, note punch list items",
+        "classification": "binary",
+        "skill_level": "lead"
+      }
+    ],
+    "modified_task_notes": [
+      {
+        "nc_task": "TSK_WALL_INSPECT",
+        "rp_modification": "NC inspects bare substrate; RP inspects existing paint condition. Assessment is more thorough and condition-driven.",
+        "transfer_type": "MODIFIED"
+      },
+      {
+        "nc_task": "TSK_WALL_ROLL_PRIMER / TSK_WALL_SPRAY_PRIMER / TSK_WALL_BACKROLL_PRIMER",
+        "rp_modification": "Primer product changes from PVA to state-driven selection (adhesion/stain-block/mildew). Application technique and rate are similar but primer type is completely different.",
+        "transfer_type": "MODIFIED"
+      },
+      {
+        "nc_task": "TSK_INSPECT_PRIMED_WALL / _QT4 / _QT5",
+        "rp_modification": "Inspects state-primed surface (adhesion/stain-block) rather than bare-primed surface. Inspection criteria similar but surface characteristics differ.",
+        "transfer_type": "MODIFIED"
+      }
+    ]
+  },
+
+  "material_system_requirements": {
+    "primer_systems": [
+      {
+        "system_id": "SYS_PRIMER_ADHESION_INT",
+        "name": "Interior Adhesion Primer",
+        "when_to_use": "SS_INT_SOUND_PAINT (when adhesion test marginal or high sheen), SS_INT_FAILING_PAINT, SS_INT_PEELING",
+        "typical_products": ["Stix Waterborne Bonding Primer", "XIM UMA Primer", "KILZ Adhesion Primer"],
+        "notes": "Water-based adhesion promoter. Bonds to glossy, chalky, or previously painted surfaces. Replaces NC PVA primer for most RP scenarios."
+      },
+      {
+        "system_id": "SYS_PRIMER_STAINBLOCK_INT",
+        "name": "Interior Stain-Blocking Primer (Shellac-Based)",
+        "when_to_use": "SS_INT_SMOKE_DAMAGE, severe water stains",
+        "typical_products": ["Zinsser BIN Shellac-Based Primer", "KILZ Original (oil-based)"],
+        "notes": "Shellac-based for maximum stain blocking. Full surface application for smoke damage. Latex/acrylic primers have ZERO stain blocking capability (RC-002). Strong odor requires ventilation."
+      },
+      {
+        "system_id": "SYS_PRIMER_MILDEW_INT",
+        "name": "Interior Mildew-Resistant Primer",
+        "when_to_use": "SS_INT_MOISTURE_DAMAGE (after biocide treatment and source resolution)",
+        "typical_products": ["KILZ Mold & Mildew Primer", "Zinsser Mold Killing Primer"],
+        "notes": "Applied after biocide treatment and full drying. Contains antimicrobial additives to prevent regrowth under paint film. Source moisture must be resolved first."
+      }
+    ],
+    "finish_systems": [
+      {
+        "quality_tier": ["QT2", "QT3"],
+        "system_type": "Standard interior latex",
+        "notes": "Standard 100% acrylic latex wall paint. Eggshell default. Same product as NC wall finish."
+      },
+      {
+        "quality_tier": ["QT4"],
+        "system_type": "Premium interior latex",
+        "notes": "Premium 100% acrylic with better leveling and hide. Available in satin and semi-gloss."
+      },
+      {
+        "quality_tier": ["QT5"],
+        "system_type": "Superior interior latex",
+        "notes": "Top-tier paint with maximum hide, leveling, and durability. Available in all sheens."
+      }
+    ],
+    "consumable_notes": [
+      "Degloss supplies: liquid sander (Krud Kutter Gloss-Off or equivalent) for chemical degloss, OR 120-150 grit sandpaper for mechanical scuff",
+      "Scraping tools: 3-inch putty knife, 6-inch drywall knife, paint scraper",
+      "Contamination treatment: TSP powder (trisodium phosphate), bleach or mildewcide solution, spray bottles",
+      "Adhesion test kit: cross-hatch cutter, pressure-sensitive tape per ASTM D3359",
+      "Moisture meter: pin-type or pinless (not a consumable but required tool)",
+      "Furniture protection: poly sheeting (2-4 mil), painter's tape for edge sealing, furniture pads",
+      "Standard painting consumables same as NC: rollers, brushes, tape, drop cloths"
+    ]
+  },
+
+  "modifier_stacking_partition": {
+    "description": "Interior RP uses a two-pool stacking architecture inherited from exterior RP to prevent runaway modifier accumulation.",
+    "prep_pool": {
+      "modifiers": ["condition_scale", "contamination_type", "wall_access"],
+      "formula": "prep_modifier = condition_modifier x contamination_modifier x access_modifier",
+      "never_includes": ["quality_tier"],
+      "max_theoretical": "POOR(3.0) x smoke(1.5) x obstructed_heavy(1.3) = 5.85x",
+      "notes": "Prep pool applies to assessment, scrape, feather, degloss, contamination treatment, primer application tasks."
+    },
+    "coating_pool": {
+      "modifiers": ["quality_tier", "wall_access"],
+      "formula": "coating_modifier = qt_modifier x access_modifier",
+      "never_includes": ["condition_scale", "contamination_type"],
+      "max_theoretical": "QT5(1.50) x obstructed_heavy(1.3) = 1.95x",
+      "notes": "Coating pool applies to finish coat application, cut-in, interstage sanding, inspection tasks."
+    },
+    "shared_modifiers": {
+      "wall_access": "Applied to BOTH pools",
+      "height": "Applied to BOTH pools (independent of partition — physical constraint)",
+      "texture": "Applied to BOTH pools (physical surface property)"
+    },
+    "rationale": "Without partition, worst case would be POOR(3.0) x smoke(1.5) x QT5(1.50) x obstructed_heavy(1.3) x H3(1.50) = 13.16x. With partition, max per-pool is ~5.85x prep and ~1.95x coating. Height and texture stack independently on both."
+  },
+
+  "rrp_containment_integration": {
+    "shared_module": "MOD_RRP_INT_CONTAINMENT",
+    "trigger": "home_year < 1978 (via PS_META.BOOL.HOME_PRE_1978)",
+    "tasks_in_module": [
+      "Lead test (XRF or swab) — FIXED time per room",
+      "Containment setup (poly sheeting, warning signs, restricted entry) — per room",
+      "Wet methods enforcement for sanding/scraping — modifier on prep tasks",
+      "HEPA vacuum after each disturbance — per occurrence",
+      "Containment removal and visual clearance — per room",
+      "Waste disposal (lead-contaminated debris) — FIXED per project"
+    ],
+    "modifier_effect": "tested_positive=2.0x all tasks, unknown_pre1978=1.5x prep tasks per Modifier_Registry",
+    "notes": "Shared across all 9 interior RP specs. Wall repaint is highest risk for lead because walls represent the largest surface area and most common lead-painted interior surface in pre-1978 homes."
+  },
+
+  "notes_for_materials_manager": [
+    {
+      "note_id": "MAT-001",
+      "topic": "Three new primer systems required",
+      "content": "SYS_PRIMER_ADHESION_INT (adhesion promoter), SYS_PRIMER_STAINBLOCK_INT (shellac stain blocker), SYS_PRIMER_MILDEW_INT (mildew-resistant). State-driven selection — see state_driven_primer_selection in state_analysis. These are NEW systems not in id_registry — propose for addition."
+    },
+    {
+      "note_id": "MAT-002",
+      "topic": "Shellac stain blocker has special handling requirements",
+      "content": "SYS_PRIMER_STAINBLOCK_INT (BIN or equivalent) requires denatured alcohol cleanup, strong ventilation, and fire-safe handling. Different consumable profile from standard latex primers. Full-surface application for smoke damage — spot treatment is insufficient."
+    },
+    {
+      "note_id": "MAT-003",
+      "topic": "Degloss supplies are RP-specific consumables",
+      "content": "Liquid sander (Krud Kutter Gloss-Off or equivalent) for chemical degloss is a new consumable not in NC specs. Alternative is mechanical scuff with 120-150 grit sandpaper. Create CON_LIQUID_SANDER consumable."
+    },
+    {
+      "note_id": "MAT-004",
+      "topic": "Finish systems identical to NC wall finish",
+      "content": "Same finish products as SF_DRYWALL_WALL_NC_FINISH. No new finish material systems needed. QT-driven product selection (standard/premium/superior) is unchanged."
+    },
+    {
+      "note_id": "MAT-005",
+      "topic": "Furniture protection materials are RP-specific",
+      "content": "Poly sheeting (2-4 mil), furniture pads, and tape for furniture protection. Create protection_materials entries for furniture_room zone. Per-room quantities estimated from room SF."
+    },
+    {
+      "note_id": "MAT-006",
+      "topic": "Contamination treatment consumables",
+      "content": "TSP powder, bleach/mildewcide solution, spray bottles for contamination treatment tasks. These are RP-specific consumables not in NC specs."
+    }
+  ],
+
+  "notes_for_sop_librarian": [
+    {
+      "note_id": "SOP-001",
+      "topic": "Use WLRP_ prefix for all new RP task IDs",
+      "content": "Context prefix is WLRP (wall repaint). Pattern: TSK_WLRP_{ACTION}. DIRECT transfer tasks from NC retain their original TSK_WALL_ or TSK_ prefix — only NEW RP tasks use WLRP_."
+    },
+    {
+      "note_id": "SOP-002",
+      "topic": "Assessment phase is new — no NC equivalent",
+      "content": "Create assessment module MOD_WLRP_ASSESSMENT with 4-5 tasks: condition scan, adhesion test, moisture eval, coating ID. Lead screen is in shared MOD_RRP_INT_CONTAINMENT. Assessment tasks are FIXED time per room or per wall."
+    },
+    {
+      "note_id": "SOP-003",
+      "topic": "Prep remediation tasks are condition-gated",
+      "content": "TSK_WLRP_SCRAPE_LOOSE and TSK_WLRP_FEATHER_EDGES only activate at FAIR/POOR condition. TSK_WLRP_TREAT_MILDEW only activates for SS_INT_MOISTURE_DAMAGE. TSK_WLRP_WASH_TSP activates for any contamination. Use applies_when with condition_scale and substrate_state."
+    },
+    {
+      "note_id": "SOP-004",
+      "topic": "Primer module is state-driven, not substrate-driven",
+      "content": "NC prime module selected primer by substrate (bare drywall -> PVA). RP prime module selects by state (sound -> adhesion or skip, failing -> adhesion, moisture -> mildew-resistant, smoke -> shellac). Create MOD_WLRP_PRIME with state-conditional task activation."
+    },
+    {
+      "note_id": "SOP-005",
+      "topic": "Furniture protection tasks bracket the work",
+      "content": "TSK_WLRP_FURNITURE_MOVE and TSK_WLRP_FURNITURE_COVER in setup phase; TSK_WLRP_FURNITURE_REPLACE in cleanup phase. Conditional on occupancy_state. These tasks are per-room."
+    },
+    {
+      "note_id": "SOP-006",
+      "topic": "Trim masking is always required in RP",
+      "content": "Unlike NC wall prime (where trim was not installed), RP always has trim in place. TSK_MASK_TRIM_BASEBOARD, TSK_MASK_TRIM_DOOR_CASING, TSK_MASK_TRIM_WINDOW_CASING from NC wall finish transfer DIRECT. Trim masking happens before prep and remains through finish."
+    },
+    {
+      "note_id": "SOP-007",
+      "topic": "Module phase ordering for RP",
+      "content": "RP phase sequence: setup (furniture + floor + trim masking + fixture covers) -> prep (assessment + degloss/scrape/feather + contamination treatment + dust removal) -> prime (state-driven primer) -> interstage (if QT4+: sand between primer and finish) -> finish (cut-in + roll/spray + interstage between coats) -> cleanup (protection teardown + furniture replace + customer walkthrough + tool clean + vacuum)."
+    },
+    {
+      "note_id": "SOP-008",
+      "topic": "Customer walkthrough is RP-specific cleanup task",
+      "content": "TSK_WLRP_CUSTOMER_WALKTHROUGH is FIXED time per room. Lead skill level. Occurs after protection teardown but before final departure. Documents any punch list items."
+    }
+  ],
+
+  "notes_for_estimation_engineer": [
+    {
+      "note_id": "EST-001",
+      "topic": "Modifier stacking partition is critical — enforce two pools",
+      "content": "Prep pool: condition x contamination x access. Coating pool: QT x access. NEVER cross-apply. Height and texture are independent and apply to both pools. See modifier_stacking_partition section."
+    },
+    {
+      "note_id": "EST-002",
+      "topic": "Condition scale prep multipliers",
+      "content": "GOOD=1.0x, FAIR=1.5x (using COND_FAIR from Modifier_Registry), POOR=2.0x (using COND_POOR). These apply to prep tasks only. Finish tasks use QT modifier only. Per Modifier_Registry.md."
+    },
+    {
+      "note_id": "EST-003",
+      "topic": "Assessment tasks are FIXED time",
+      "content": "Assessment tasks (condition scan, adhesion test, moisture eval, coating ID) are FIXED time per room, not rate-based. Estimated 15-30 min per room depending on room size and condition complexity."
+    },
+    {
+      "note_id": "EST-004",
+      "topic": "Finish coat rates transfer directly from NC",
+      "content": "Roll, spray, backroll, and cut-in rates for finish coats are identical to NC wall finish spec. No adjustment needed for RP context once surface is properly prepped and primed."
+    },
+    {
+      "note_id": "EST-005",
+      "topic": "Scrape and feather rates are new — no NC baseline",
+      "content": "TSK_WLRP_SCRAPE_LOOSE and TSK_WLRP_FEATHER_EDGES are new tasks. Estimated scrape rate: 50-100 SF/hr depending on paint adhesion and layer count. Feather rate: 40-80 SF/hr. Highly variable — rate ranges should be wide."
+    },
+    {
+      "note_id": "EST-006",
+      "topic": "Degloss rate depends on method",
+      "content": "Chemical degloss (liquid sander wipe): ~200-300 SF/hr. Mechanical degloss (sand with 120-150 grit): ~150-250 SF/hr. Chemical is faster but requires dry time before coating."
+    },
+    {
+      "note_id": "EST-007",
+      "topic": "Furniture protection rates are per-room",
+      "content": "Furniture move: 15-45 min per room depending on furniture density. Furniture cover: 10-20 min per room. Furniture replace: 15-30 min per room. These are FIXED or EA_ROOM rates, not SF-based."
+    },
+    {
+      "note_id": "EST-008",
+      "topic": "Customer walkthrough is FIXED per room",
+      "content": "TSK_WLRP_CUSTOMER_WALKTHROUGH: 5-10 min per room. Lead skill level rate. Includes touch-up identification and customer sign-off."
+    },
+    {
+      "note_id": "EST-009",
+      "topic": "Height and texture modifiers use standard registry values",
+      "content": "Use Modifier_Registry values: H1=1.0, H2=1.30, H3=1.50, H4=2.00. Texture: smooth=1.0, orange_peel=1.10, knockdown=1.15, heavy=1.25. Same as NC — no RP-specific adjustments."
+    },
+    {
+      "note_id": "EST-010",
+      "topic": "Spray/backroll coupling constraint applies",
+      "content": "Per Estimation_Modifiers_Doctrine: spray rate <= backroll rate in spray_backroll system. Backroll is bottleneck. Same constraint as NC."
+    }
+  ],
+
+  "assumptions": [
+    {
+      "assumption_id": "A-001",
+      "field": "occupancy_context",
+      "value": "Default assumption is occupied home (occupied_crew_handles)",
+      "source": "RP market analysis — vast majority of interior repaints are in occupied homes",
+      "doctrine_gap": false,
+      "note": "Vacant RP exists but is less common. Furniture protection tasks are conditional on occupancy_state."
+    },
+    {
+      "assumption_id": "A-002",
+      "field": "trim_always_present",
+      "value": "All trim (baseboard, door casing, window casing) is installed and finished when RP occurs",
+      "source": "RP context — repainting implies all finish surfaces exist",
+      "doctrine_gap": false,
+      "note": "This changes adjacency declarations from NC prime (where trim was not yet installed)."
+    },
+    {
+      "assumption_id": "A-003",
+      "field": "floor_always_finished",
+      "value": "Finished flooring is always present in RP context",
+      "source": "RP context — repainting implies home is complete and occupied",
+      "doctrine_gap": false,
+      "note": "NC could have subfloor; RP always has finished floors requiring protection."
+    },
+    {
+      "assumption_id": "A-004",
+      "field": "single_state_per_room",
+      "value": "Worst wall condition in the room determines the room's condition_scale for estimation",
+      "source": "Practical estimation — cannot apply different modifiers per wall within a single room scope",
+      "doctrine_gap": true,
+      "note": "Multiple walls in one room may have different states (e.g., one bathroom wall with moisture damage, others sound). The worst state drives the overall room modifier."
+    },
+    {
+      "assumption_id": "A-005",
+      "field": "sequencing",
+      "value": "Trim-first is the default RP sequencing (~80% of interior repaints)",
+      "source": "PaintScope_EdgeLF_Mapping.md section 4; Sequencing Doctrine",
+      "doctrine_gap": false,
+      "note": "Trim is painted first, then masked off, then walls are painted. Wall painter cuts to tape line at trim."
+    }
+  ],
+
+  "uncertainties": [
+    {
+      "uncertainty_id": "U-001",
+      "topic": "Scrape/feather production rates",
+      "description": "Scrape and feather rates for interior walls are highly variable depending on paint age, layer count, adhesion quality, and substrate condition. No NC baseline exists for these tasks. Initial rates are estimated from exterior RP analogs and professional experience.",
+      "current_approach": "Using wide rate ranges (50-100 SF/hr scrape, 40-80 SF/hr feather) with field calibration expected.",
+      "resolution_needed": true
+    },
+    {
+      "uncertainty_id": "U-002",
+      "topic": "Contamination treatment coverage rates",
+      "description": "TSP wash and mildew treatment rates are not well-documented in existing doctrine. Estimated from professional practice but need field validation.",
+      "current_approach": "TSP wash ~200-300 SF/hr, mildew treatment ~100-200 SF/hr (biocide application + dwell time)",
+      "resolution_needed": true
+    },
+    {
+      "uncertainty_id": "U-003",
+      "topic": "Wall access modifier values",
+      "description": "The wall_access modifier (open_wall/obstructed_light/obstructed_heavy) is proposed with values 1.0/1.15/1.30 but not yet in Modifier_Registry.md. Needs formal doctrine addition.",
+      "current_approach": "Using proposed values based on room complexity modifier pattern in Modifier_Registry",
+      "resolution_needed": true
+    },
+    {
+      "uncertainty_id": "U-004",
+      "topic": "Contamination modifier values",
+      "description": "Contamination_type modifier (none/mildew/smoke/water_stain/grease) proposed but not yet formalized. Smoke contamination is the most impactful due to shellac requirement.",
+      "current_approach": "Proposed: none=1.0, mildew=1.2, water_stain=1.15, grease=1.1, smoke=1.5 (shellac adds significant time and complexity)",
+      "resolution_needed": true
+    }
+  ],
+
+  "inherited_research_corrections": [
+    {
+      "id": "RC-002",
+      "title": "PVA/acrylic drywall primers have zero stain blocking",
+      "impact": "Critical for RP — stain blocking requires shellac-based products (BIN). Do not specify latex primer for smoke/stain blocking. SYS_PRIMER_STAINBLOCK_INT must use shellac.",
+      "source": "SF_DRYWALL_CEILINGS_NC_PRIME pipeline"
+    },
+    {
+      "id": "RC-003",
+      "title": "Floor protection conditional on floor_type",
+      "impact": "In RP context, floor_type is effectively always 'finished' (occupied home). Floor protection is always required. NC exception for subfloor does not apply to RP.",
+      "source": "SF_DRYWALL_CEILINGS_NC_PRIME pipeline"
+    },
+    {
+      "id": "RC-004",
+      "title": "Do not specify dry times in specs",
+      "impact": "No dry time references in any artifact — refer to product PDS. Applies equally to RP primers (adhesion, stain-block, mildew) and NC primers.",
+      "source": "SF_DRYWALL_CEILINGS_NC_PRIME pipeline"
+    }
+  ],
+
+  "cross_spec_coordination": {
+    "related_specs": [
+      {
+        "spec_id": "SF_DRYWALL_CEILING_INT_RP",
+        "relationship": "Sibling — walls and ceilings often painted in same project. Shared protection setup/teardown optimization at project assembly.",
+        "coordination": "When both specs active in same room, protection setup is done once. Assessment phase may run concurrently for walls and ceiling."
+      },
+      {
+        "spec_id": "SF_TRIM_INT_RP",
+        "relationship": "Sibling — trim typically painted before walls in RP. Trim masking from trim RP serves as wall RP masking.",
+        "coordination": "Trim-first sequencing means trim masking is already in place when wall RP begins. No double masking."
+      }
+    ],
+    "shared_modules": [
+      "MOD_RRP_INT_CONTAINMENT — lead-safe work practices (shared across all 9 interior RP specs)"
+    ]
+  },
+
+  "confidence_level": "high"
+}

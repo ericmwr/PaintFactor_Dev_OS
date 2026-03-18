@@ -1,0 +1,1081 @@
+{
+  "spec_family_id": "SF_SPECIALTY_INT_RP",
+  "version": "0.1.0",
+  "generated_by": "Estimation Engineer",
+  "generated_at": "2026-03-14",
+
+  "MODIFIER_STACKING_WARNING": {
+    "severity": "critical",
+    "description": "Modifier stacking uses TWO separate pools that never cross-apply. Prep tasks use condition_scale x per-surface complexity x height. Coating tasks use quality_tier x per-surface complexity x height. Contamination drives task activation, not rate modification.",
+    "stacking_rules": {
+      "prep_tasks": {
+        "formula": "effective_rate = base_rate / (condition_scale x surface_complexity x height)",
+        "pool_modifiers": "FAC_CONDITION_SCALE (PREP pool): GOOD=1.0x, FAIR=1.5x, POOR=2.0x",
+        "shared_modifiers": "Per-surface complexity (wainscot_type, wall_style, ceiling_style, beam_profile, column_type, mantel_type, builtin depth/detail/access) + FAC_HEIGHT",
+        "applies_to_phases": ["setup", "prep", "prime"]
+      },
+      "coating_tasks": {
+        "formula": "effective_rate = base_rate / (quality_tier x surface_complexity x height)",
+        "pool_modifiers": "QT (COATING pool): QT3=1.0x, QT4=1.3x, QT5=1.5x",
+        "shared_modifiers": "Per-surface complexity + FAC_HEIGHT",
+        "applies_to_phases": ["interstage", "finish", "cleanup"]
+      }
+    },
+    "worst_case_prep": {
+      "wood_ceiling_coffered_H3": "POOR(2.0) x coffered(1.35) x H3(1.50) = 4.05x — flag for review",
+      "arch_beam_ornate_H3": "POOR(2.0) x ornate(1.40) x H3(1.50) = 4.20x — flag for review",
+      "builtin_max": "POOR(2.0) x very_deep(1.50) x ornate(1.35) x restricted(1.30) = 5.27x — extremely rare, flag"
+    },
+    "worst_case_coating": {
+      "all_surfaces_under_4x": true,
+      "highest": "arch_beam_ornate_H3: QT5(1.5) x ornate(1.40) x H3(1.50) = 3.15x"
+    }
+  },
+
+  "task_production_rates": [
+
+    {
+      "task_id": "TSK_SPRP_FLOOR_PROTECT_PERIM",
+      "name": "Install perimeter floor protection (brush method)",
+      "task_classification": "binary",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 200,
+      "rate_range_low": 150,
+      "rate_range_high": 250,
+      "applies_when": { "application_method": ["brush"] },
+      "factor_modifiers": [],
+      "notes": "SF/hr. Canvas drop cloth runners along work area. Floor-level work — no overhead. Shared across all specialty surfaces in the room. Direct transfer from NC wainscot/wood wall floor protect rates (200 SF/hr). Binary."
+    },
+    {
+      "task_id": "TSK_SPRP_FLOOR_PROTECT_FULL",
+      "name": "Install full floor protection (spray method or ceiling work)",
+      "task_classification": "binary",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 200,
+      "rate_range_low": 150,
+      "rate_range_high": 250,
+      "applies_when": { "application_method": ["spray"] },
+      "factor_modifiers": [],
+      "notes": "SF/hr. Full floor coverage with canvas drop cloths or rosin paper. Floor-level work. Triggered by spray method OR ceiling work present. Direct transfer from NC wood ceiling full floor protect rate (200 SF/hr). Binary."
+    },
+    {
+      "task_id": "TSK_SPRP_WALL_MASK",
+      "name": "Mask wall surfaces adjacent to specialty surfaces (spray)",
+      "task_classification": "binary",
+      "unit_of_measure": "EA_ROOM",
+      "fixed_time_minutes": 25,
+      "fixed_time_range_low": 15,
+      "fixed_time_range_high": 40,
+      "applies_when": { "application_method": ["spray"] },
+      "factor_modifiers": [],
+      "notes": "Per room. Consolidated wall/ceiling masking — covers wainscot cap rail mask, wall upper band (ceiling spray), ceiling line (wall spray). Paper/film + tape at all specialty-to-wall/ceiling interfaces. More masking zones than any single NC spec. Spray only. Binary."
+    },
+    {
+      "task_id": "TSK_SPRP_FIXTURE_MASK",
+      "name": "Mask ceiling-mounted fixtures",
+      "task_classification": "binary",
+      "unit_of_measure": "EA",
+      "rate_per_hour": 10,
+      "rate_range_low": 8,
+      "rate_range_high": 15,
+      "factor_modifiers": [],
+      "notes": "EA/hr. Tape and plastic bag over each ceiling fixture. Overhead work. Direct transfer from NC wood ceiling and arch element fixture mask rate (10 EA/hr). Binary."
+    },
+    {
+      "task_id": "TSK_SPRP_OPENING_COVER",
+      "name": "Install lightweight opening covers (ceiling spray)",
+      "task_classification": "binary",
+      "unit_of_measure": "FIXED",
+      "fixed_time_minutes": 10,
+      "fixed_time_range_low": 5,
+      "fixed_time_range_high": 15,
+      "applies_when": { "application_method": ["spray"] },
+      "factor_modifiers": [],
+      "notes": "Per room. Quick pin-up of lightweight plastic over window/door openings. Conditional on ceiling work present with spray. Direct transfer from NC wood ceiling opening cover (10 min). Binary."
+    },
+    {
+      "task_id": "TSK_SPRP_BUILTIN_CONTENTS_PROTECT",
+      "name": "Protect built-in contents (RP-specific)",
+      "task_classification": "binary",
+      "unit_of_measure": "EA",
+      "rate_per_hour": 6,
+      "rate_range_low": 4,
+      "rate_range_high": 8,
+      "applies_when": { "builtin_contents_present": true },
+      "factor_modifiers": [],
+      "notes": "EA/hr per built-in unit. Poly sheeting cover for remaining contents in occupied home. ~10 min per unit. RP_NEW — no NC equivalent (NC built-ins are empty at installation). Conditional on contents present. Binary."
+    },
+
+    {
+      "task_id": "TSK_SPRP_ASSESS_CONDITION",
+      "name": "Visual Condition Scan — All Specialty Surfaces Per Room",
+      "task_classification": "qt_scaled",
+      "unit_of_measure": "EA_ROOM",
+      "fixed_time_minutes_by_tier": {
+        "QT3": 12,
+        "QT4": 20,
+        "QT5": 30
+      },
+      "fixed_time_range_low": 8,
+      "fixed_time_range_high": 40,
+      "factor_modifiers": [],
+      "notes": "Per room. qt_scaled. Walk each room and assess all specialty surfaces present. Base time per room — marginal increment per additional surface type. Assign condition_scale (GOOD/FAIR/POOR) per worst-condition surface. Map cracking, peeling, adhesion failure across all 7 surface types. RP_NEW — no NC equivalent. Calibrated: 12 min QT3 (standard visual ~2 min per surface type), 20 min QT4 (systematic + raking light), 30 min QT5 (critical multi-pass)."
+    },
+    {
+      "task_id": "TSK_SPRP_ASSESS_ADHESION",
+      "name": "Adhesion Test (ASTM D3359 Cross-Hatch Tape Test)",
+      "task_classification": "binary",
+      "unit_of_measure": "EA_ROOM",
+      "fixed_time_minutes": 10,
+      "fixed_time_range_low": 5,
+      "fixed_time_range_high": 15,
+      "factor_modifiers": [],
+      "notes": "Per room. Cross-hatch tape test per ASTM D3359 at representative sections per surface type present. Minimum 1 test per surface type per room. ~10 min base time (~1.5 min per test location for ~7 surface types). Specialty millwork is high-risk for adhesion failure due to historical multi-layer paint buildup. RP_NEW. Binary."
+    },
+    {
+      "task_id": "TSK_SPRP_ASSESS_COATING_ID",
+      "name": "Coating Identification — Latex vs Alkyd vs Stain/Clear",
+      "task_classification": "binary",
+      "unit_of_measure": "EA_ROOM",
+      "fixed_time_minutes": 8,
+      "fixed_time_range_low": 5,
+      "fixed_time_range_high": 12,
+      "factor_modifiers": [],
+      "notes": "Per room. Solvent rub test per surface type. ~8 min base (1 min per test, ~7 surface types + documentation). Specialty millwork historically received oil-based paint and clear finishes — test at minimum 1 location per surface type. RP_NEW. Binary."
+    },
+    {
+      "task_id": "TSK_SPRP_ASSESS_MOISTURE",
+      "name": "Moisture Check — Ceiling and Wall Surfaces in Wet Rooms",
+      "task_classification": "binary",
+      "unit_of_measure": "EA_ROOM",
+      "fixed_time_minutes": 5,
+      "fixed_time_range_low": 3,
+      "fixed_time_range_high": 8,
+      "factor_modifiers": [],
+      "notes": "Per room. Moisture meter reading on wood ceiling, wood wall base, and built-in backs in wet rooms. Active moisture = STOP WORK. Quick check — 5 min per room. Conditional on wet room types (bathroom, kitchen, laundry, sunroom). RP_NEW. Binary."
+    },
+
+    {
+      "task_id": "TSK_RRP_LEAD_TEST",
+      "name": "Lead Test (XRF or Swab)",
+      "task_classification": "binary",
+      "unit_of_measure": "EA_ROOM",
+      "fixed_time_minutes": 10,
+      "fixed_time_range_low": 5,
+      "fixed_time_range_high": 15,
+      "applies_when": { "home_pre_1978": true },
+      "factor_modifiers": [],
+      "notes": "Per room. Shared RRP module task. Lead test at representative areas per surface type. XRF preferred; lead swab acceptable. Specialty millwork is HIGH RISK — often last surfaces to transition from oil to latex. ~10 min base for multi-surface testing. Direct transfer from Door RP RRP rates."
+    },
+    {
+      "task_id": "TSK_RRP_CONTAINMENT_SETUP",
+      "name": "RRP Containment Setup",
+      "task_classification": "binary",
+      "unit_of_measure": "EA_ROOM",
+      "fixed_time_minutes": 30,
+      "fixed_time_range_low": 20,
+      "fixed_time_range_high": 45,
+      "applies_when": { "lead_status": ["tested_positive", "unknown_pre1978"] },
+      "factor_modifiers": [],
+      "notes": "Per room. Shared RRP module task. Install poly sheeting on floors and openings, warning signs. Per EPA RRP Rule 40 CFR 745. ~30 min per room. Direct transfer from Door RP RRP rates."
+    },
+    {
+      "task_id": "TSK_RRP_HEPA_VACUUM",
+      "name": "HEPA Vacuum After Paint Disturbance",
+      "task_classification": "binary",
+      "unit_of_measure": "EA_ROOM",
+      "fixed_time_minutes": 15,
+      "fixed_time_range_low": 10,
+      "fixed_time_range_high": 25,
+      "applies_when": { "lead_status": ["tested_positive", "unknown_pre1978"] },
+      "factor_modifiers": [],
+      "notes": "Per room. Shared RRP module task. HEPA vacuum all surfaces after each sanding/scraping disturbance. Required by EPA RRP Rule. Specialty surfaces have more surface area per room than doors — slightly longer than door RP HEPA vacuum. ~15 min per room."
+    },
+    {
+      "task_id": "TSK_RRP_CONTAINMENT_REMOVAL",
+      "name": "RRP Containment Removal and Visual Clearance",
+      "task_classification": "binary",
+      "unit_of_measure": "EA_ROOM",
+      "fixed_time_minutes": 20,
+      "fixed_time_range_low": 15,
+      "fixed_time_range_high": 30,
+      "applies_when": { "lead_status": ["tested_positive", "unknown_pre1978"] },
+      "factor_modifiers": [],
+      "notes": "Per room. Shared RRP module task. Remove containment poly sheeting, visual clearance inspection. ~20 min per room. Direct transfer from Door RP RRP rates."
+    },
+    {
+      "task_id": "TSK_RRP_WASTE_DISPOSAL",
+      "name": "RRP Waste Disposal",
+      "task_classification": "binary",
+      "unit_of_measure": "EA_ROOM",
+      "fixed_time_minutes": 10,
+      "fixed_time_range_low": 5,
+      "fixed_time_range_high": 15,
+      "applies_when": { "lead_status": ["tested_positive", "unknown_pre1978"] },
+      "factor_modifiers": [],
+      "notes": "Per room. Shared RRP module task. Bag, seal, and document all lead-contaminated waste per EPA RRP Rule. ~10 min per room. Direct transfer from Door RP RRP rates."
+    },
+
+    {
+      "task_id": "TSK_SPRP_WASH_TSP",
+      "name": "TSP wash all specialty surfaces",
+      "task_classification": "binary",
+      "unit_of_measure": "EA_ROOM",
+      "fixed_time_minutes": 20,
+      "fixed_time_range_low": 12,
+      "fixed_time_range_high": 30,
+      "factor_modifiers": [],
+      "notes": "Per room. TSP solution wash to remove hand oils, cleaning residue, wax (furniture polish on built-ins). One pass per room covers all specialty surfaces. Rinse with clean water. More surfaces per room than door RP — ~20 min covers wash + rinse across wainscot, wall, ceiling, elements, built-ins. RP_NEW. Binary."
+    },
+    {
+      "task_id": "TSK_SPRP_DEGLOSS_WAINSCOT",
+      "name": "Degloss wainscot panel surfaces",
+      "task_classification": "binary",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 80,
+      "rate_range_low": 60,
+      "rate_range_high": 100,
+      "factor_modifiers": ["FAC_WAINSCOT_TYPE", "FAC_CONDITION_SCALE"],
+      "notes": "SF/hr. Chemical deglosser or mechanical scuff sand (150-180 grit). ~0.80x of NC sanding rate (NC TSK_WNSC_SAND_PREP SS_BARE=100 SF/hr → RP degloss=80 SF/hr). Harder existing finish requires more effort than bare wood. Chemical preferred for raised panel profiles. Always H1 (below chair-rail height). Binary."
+    },
+    {
+      "task_id": "TSK_SPRP_DEGLOSS_WOOD_WALL",
+      "name": "Degloss wood wall panel surfaces",
+      "task_classification": "binary",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 80,
+      "rate_range_low": 60,
+      "rate_range_high": 100,
+      "factor_modifiers": ["FAC_WALL_STYLE", "FAC_HEIGHT", "FAC_CONDITION_SCALE"],
+      "notes": "SF/hr. Chemical deglosser or mechanical scuff sand on wood wall surfaces. ~0.80x of NC sanding rate (NC TSK_WDWL_SAND_PREP SS_BARE=100 SF/hr → RP degloss=80 SF/hr). Library panel frame profiles and shiplap/T&G grooves prefer chemical degloss. Height modifier applies — tall walls require ladder work. Binary."
+    },
+    {
+      "task_id": "TSK_SPRP_DEGLOSS_CEILING",
+      "name": "Degloss wood ceiling surfaces (overhead)",
+      "task_classification": "binary",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 60,
+      "rate_range_low": 45,
+      "rate_range_high": 75,
+      "factor_modifiers": ["FAC_CEILING_STYLE", "FAC_HEIGHT", "FAC_CONDITION_SCALE"],
+      "notes": "SF/hr. Chemical deglosser or mechanical scuff sand on wood ceiling surfaces. ~0.80x of NC ceiling sanding rate (NC TSK_WDCL_SAND_PREP SS_BARE=75 SF/hr → RP degloss=60 SF/hr). ALL work is overhead. Chemical degloss preferred overhead (less dust). NC ceiling already has overhead penalty baked in; RP degloss stacks 0.80x on top. Binary."
+    },
+    {
+      "task_id": "TSK_SPRP_DEGLOSS_BEAM",
+      "name": "Degloss architectural beam surfaces",
+      "task_classification": "binary",
+      "unit_of_measure": "LF",
+      "rate_per_hour": 65,
+      "rate_range_low": 50,
+      "rate_range_high": 80,
+      "factor_modifiers": ["FAC_BEAM_PROFILE", "FAC_HEIGHT", "FAC_CONDITION_SCALE"],
+      "notes": "LF/hr. Chemical deglosser or mechanical scuff sand on beam faces. ~0.80x of NC sanding rate (NC TSK_ARCH_SAND_BEAM SS_BARE=80 LF/hr → RP degloss=65 LF/hr). 3 exposed faces (bottom + 2 sides). Bottom face is overhead. Profile-dependent: rectangular can use flat sanding; ornate requires flexible sponge or chemical. Binary."
+    },
+    {
+      "task_id": "TSK_SPRP_DEGLOSS_COLUMN",
+      "name": "Degloss column surfaces",
+      "task_classification": "binary",
+      "unit_of_measure": "EA",
+      "rate_per_hour": 4,
+      "rate_range_low": 3,
+      "rate_range_high": 6,
+      "factor_modifiers": ["FAC_COLUMN_TYPE", "FAC_HEIGHT", "FAC_CONDITION_SCALE"],
+      "notes": "EA/hr. Chemical deglosser or mechanical scuff sand on all column faces. ~0.80x of NC sanding rate (NC TSK_ARCH_SAND_COLUMN SS_BARE=5 EA/hr → RP degloss=4 EA/hr). Full height — ladder for upper portion. Fluted columns: chemical degloss strongly preferred. Binary."
+    },
+    {
+      "task_id": "TSK_SPRP_DEGLOSS_MANTEL",
+      "name": "Degloss mantel/surround surfaces",
+      "task_classification": "binary",
+      "unit_of_measure": "EA",
+      "rate_per_hour": 3,
+      "rate_range_low": 2,
+      "rate_range_high": 5,
+      "factor_modifiers": ["FAC_MANTEL_TYPE", "FAC_CONDITION_SCALE"],
+      "notes": "EA/hr. Chemical deglosser or mechanical scuff sand on shelf, legs/pilasters, surround molding. ~0.75x of NC sanding rate (NC TSK_ARCH_SAND_MANTEL SS_BARE=4 EA/hr → RP degloss=3 EA/hr). Detail profiles strongly favor chemical degloss. Standard wall height (H1-H2). Binary."
+    },
+    {
+      "task_id": "TSK_SPRP_DEGLOSS_BUILTIN",
+      "name": "Degloss built-in unit surfaces",
+      "task_classification": "binary",
+      "unit_of_measure": "EA",
+      "rates_by_builtin_size_tier": {
+        "S": { "rate_ea_per_hour": 4, "notes": "Small built-in — quick interior, few openings" },
+        "M": { "rate_ea_per_hour": 2, "notes": "Medium built-in — standard bookcase unit" },
+        "L": { "rate_ea_per_hour": 1, "notes": "Large built-in — wide media center or library section" },
+        "XL": { "rate_ea_per_hour": 0.5, "notes": "XL built-in — oversized wall unit, ~2 hours" }
+      },
+      "rate_range_low": 0.4,
+      "rate_range_high": 5,
+      "factor_modifiers": ["FAC_BUILTIN_DEPTH", "FAC_BUILTIN_DETAIL", "FAC_BUILTIN_ACCESS", "FAC_CONDITION_SCALE"],
+      "notes": "EA/hr by size tier. Chemical deglosser or mechanical scuff sand on all built-in surfaces: opening interiors, face frames, doors/drawers. Chemical degloss preferred inside deep compartments. RP degloss is significantly slower than NC sanding on built-ins — existing high-sheen finish (semi-gloss or gloss) requires more aggressive deglossing. Binary."
+    },
+    {
+      "task_id": "TSK_SPRP_SCRAPE_FEATHER",
+      "name": "Scrape and feather failing paint (condition-gated)",
+      "task_classification": "qt_scaled",
+      "unit_of_measure": "EA_ROOM",
+      "fixed_time_minutes_by_tier": {
+        "QT3": 20,
+        "QT4": 35,
+        "QT5": 50
+      },
+      "fixed_time_range_low": 10,
+      "fixed_time_range_high": 75,
+      "applies_when": { "condition_scale": ["FAIR", "POOR"] },
+      "factor_modifiers": ["FAC_CONDITION_SCALE"],
+      "notes": "Per room. qt_scaled. Condition-gated — only activates at FAIR or POOR. Scrape all failing paint, feather edges with 80-120 grit. Contour scrapers for profiled surfaces (wainscot raised panels, column flutes, mantel molding). Flat scrapers for flat surfaces. QT5 requires raking light check for missed areas. Shared pass covers all surface types. RP_NEW. Condition modifier (FAIR 1.5x, POOR 2.0x) drives time — POOR condition in a multi-surface room may take 100 min at QT5."
+    },
+    {
+      "task_id": "TSK_SPRP_MILDEW_TREAT",
+      "name": "Mildew biocide treatment (condition-gated)",
+      "task_classification": "binary",
+      "unit_of_measure": "EA_ROOM",
+      "fixed_time_minutes": 15,
+      "fixed_time_range_low": 10,
+      "fixed_time_range_high": 25,
+      "applies_when": { "contamination_type": ["mildew"] },
+      "factor_modifiers": [],
+      "notes": "Per room. Apply biocide solution, dwell time per manufacturer direction, rinse and dry. Typically needed on wood ceiling in bathroom/kitchen and wood wall in splash zones. Condition-gated. RP_NEW. Binary."
+    },
+    {
+      "task_id": "TSK_SPRP_CAULK_ASSESS_REPAIR",
+      "name": "Assess and repair caulk at specialty surface junctions",
+      "task_classification": "qt_scaled",
+      "unit_of_measure": "EA_ROOM",
+      "fixed_time_minutes_by_tier": {
+        "QT3": 15,
+        "QT4": 25,
+        "QT5": 40
+      },
+      "fixed_time_range_low": 10,
+      "fixed_time_range_high": 60,
+      "factor_modifiers": ["FAC_CONDITION_SCALE"],
+      "notes": "Per room. qt_scaled. RP caulk is repair/replacement, not new installation. Assess existing caulk at: wainscot-to-wall, wood wall perimeter, ceiling perimeter, beam-to-ceiling, column-to-ceiling/floor, mantel-to-wall, built-in-to-wall. Replace failed/cracked/discolored caulk. QT5 replaces all caulk not meeting new-installation standard. More junction types than any single NC spec — 7 surface types means many junction points. Condition modifier applies."
+    },
+    {
+      "task_id": "TSK_SPRP_CLEAN_DUST",
+      "name": "Clean all surfaces after prep",
+      "task_classification": "binary",
+      "unit_of_measure": "EA_ROOM",
+      "fixed_time_minutes": 20,
+      "fixed_time_range_low": 12,
+      "fixed_time_range_high": 30,
+      "factor_modifiers": [],
+      "notes": "Per room. Tack cloth or damp wipe all specialty surfaces after sanding/scraping/degloss. Remove all dust, debris, chemical residue. One pass per room covers all surfaces. Built-in interiors need thorough dust removal from compartments. NC wainscot=15 min, NC wood wall=20 min, NC wood ceiling=25 min — consolidated RP uses 20 min as weighted average. Binary."
+    },
+
+    {
+      "task_id": "TSK_SPRP_PRIME_SF_SPRAY",
+      "name": "Spray prime SF surfaces (wainscot, wood wall, wood ceiling)",
+      "task_classification": "binary",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 140,
+      "rate_range_low": 100,
+      "rate_range_high": 175,
+      "applies_when": { "application_method": ["spray"] },
+      "factor_modifiers": ["FAC_WAINSCOT_TYPE", "FAC_WALL_STYLE", "FAC_CEILING_STYLE", "FAC_HEIGHT"],
+      "notes": "SF/hr. Spray state-driven primer on all SF specialty surfaces. Weighted rate across wall (175 SF/hr spray from NC), ceiling (130 SF/hr spray from NC with overhead penalty), and wainscot (175 SF/hr from NC). Blended rate ~140 SF/hr accounts for mix of overhead and standing work. Engine should apply per-surface-type complexity modifier based on which surfaces are in scope. Conditional on substrate state requiring primer. Binary."
+    },
+    {
+      "task_id": "TSK_SPRP_PRIME_SF_BRUSH",
+      "name": "Brush prime SF surfaces (wainscot, wood wall, wood ceiling)",
+      "task_classification": "binary",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 80,
+      "rate_range_low": 55,
+      "rate_range_high": 110,
+      "applies_when": { "application_method": ["brush"] },
+      "factor_modifiers": ["FAC_WAINSCOT_TYPE", "FAC_WALL_STYLE", "FAC_CEILING_STYLE", "FAC_HEIGHT"],
+      "notes": "SF/hr. Brush state-driven primer on all SF surfaces. Weighted across NC wainscot prime (120 SF/hr brush), wood wall prime (120 SF/hr), wood ceiling prime (90 SF/hr with overhead penalty). Blended ~80 SF/hr conservatively — RP priming over existing paint requires more care than NC. Work panel by panel. Overhead ceiling work is most fatiguing. Binary."
+    },
+    {
+      "task_id": "TSK_SPRP_PRIME_BEAM",
+      "name": "Prime beam surfaces",
+      "task_classification": "binary",
+      "unit_of_measure": "LF",
+      "rate_per_hour": 170,
+      "rate_range_low": 80,
+      "rate_range_high": 225,
+      "factor_modifiers": ["FAC_BEAM_PROFILE", "FAC_HEIGHT"],
+      "notes": "LF/hr. State-driven primer on all beam faces. Rate is method-weighted average: spray ~225 LF/hr (from NC TSK_ARCH_SPRAY_PRIME_BEAM) and brush ~120 LF/hr (from NC TSK_ARCH_BRUSH_PRIME_BEAM). Method selection is per-project. Multi-angle passes for 3-sided coverage. Beam profile drives complexity modifier. Conditional on substrate state requiring primer. Binary."
+    },
+    {
+      "task_id": "TSK_SPRP_PRIME_COLUMN",
+      "name": "Prime column surfaces",
+      "task_classification": "binary",
+      "unit_of_measure": "EA",
+      "rate_per_hour": 4.5,
+      "rate_range_low": 2,
+      "rate_range_high": 7,
+      "factor_modifiers": ["FAC_COLUMN_TYPE", "FAC_HEIGHT"],
+      "notes": "EA/hr. State-driven primer on all column faces. Method-weighted: spray ~6 EA/hr (NC) and brush ~3 EA/hr (NC). Average ~4.5 EA/hr. Full height — ladder for upper portion. Column type drives complexity modifier. Binary."
+    },
+    {
+      "task_id": "TSK_SPRP_PRIME_MANTEL",
+      "name": "Prime mantel/surround surfaces",
+      "task_classification": "binary",
+      "unit_of_measure": "EA",
+      "rate_per_hour": 2.5,
+      "rate_range_low": 1.5,
+      "rate_range_high": 4,
+      "factor_modifiers": ["FAC_MANTEL_TYPE"],
+      "notes": "EA/hr. State-driven primer on shelf, legs/pilasters, surround molding. Method-weighted: spray ~3 EA/hr (NC) and brush ~2 EA/hr (NC). Average ~2.5 EA/hr. Detail profiles first, then flat faces. Mantel type drives complexity modifier. Binary."
+    },
+    {
+      "task_id": "TSK_SPRP_PRIME_BUILTIN",
+      "name": "Prime built-in unit surfaces",
+      "task_classification": "binary",
+      "unit_of_measure": "EA",
+      "rates_by_builtin_size_tier": {
+        "S": { "rate_ea_per_hour": 5, "notes": "Small unit — quick primer on shallow openings + doors" },
+        "M": { "rate_ea_per_hour": 2, "notes": "Medium unit — standard bookcase primer pass" },
+        "L": { "rate_ea_per_hour": 1, "notes": "Large unit — wide media center primer" },
+        "XL": { "rate_ea_per_hour": 0.5, "notes": "XL unit — oversized, ~2 hours primer" }
+      },
+      "rate_range_low": 0.4,
+      "rate_range_high": 6,
+      "factor_modifiers": ["FAC_BUILTIN_DEPTH", "FAC_BUILTIN_DETAIL", "FAC_BUILTIN_ACCESS"],
+      "notes": "EA/hr by size tier. Derived from NC built-in prime rates. NC prime opening M=5 EA_OPENING/hr, but RP unit rate reflects full unit (multiple openings + doors). Spray best for deep compartments. Conditional on substrate state requiring primer. Binary."
+    },
+
+    {
+      "task_id": "TSK_SPRP_INTERSTAGE_CLEAN_AREA",
+      "name": "Clean work area between coats",
+      "task_classification": "binary",
+      "unit_of_measure": "EA_ROOM",
+      "fixed_time_minutes": 12,
+      "fixed_time_range_low": 8,
+      "fixed_time_range_high": 18,
+      "factor_modifiers": [],
+      "notes": "Per room per interstage cycle. Remove dust/debris from floor protection and work area. Built-in compartments trap sanding dust. Overhead ceiling sanding generates significant floor debris. NC single-surface = 10 min; consolidated RP = 12 min (marginal increase for multi-surface cleanup). Binary."
+    },
+    {
+      "task_id": "TSK_SPRP_INTERSTAGE_INSPECT",
+      "name": "Inspect previous coat on all specialty surfaces",
+      "task_classification": "qt_scaled",
+      "unit_of_measure": "EA_ROOM",
+      "fixed_time_minutes_by_tier": {
+        "QT3": 15,
+        "QT4": 30,
+        "QT5": 50
+      },
+      "fixed_time_range_low": 10,
+      "fixed_time_range_high": 60,
+      "factor_modifiers": [],
+      "notes": "Per room per interstage cycle. qt_scaled. Inspect all specialty surfaces in one pass. Key checkpoints: wainscot panel-to-frame holidays, wood wall groove holidays, ceiling sags, beam underside sags, column run marks, mantel shelf edge drips, built-in shelf face sheen uniformity. Flashlight inside deep compartments. QT3 quick scan ~15 min, QT4 systematic ~30 min, QT5 critical lighted inspection ~50 min across all surfaces."
+    },
+    {
+      "task_id": "TSK_SPRP_INTERSTAGE_SAND",
+      "name": "Sand between coats on all specialty surfaces",
+      "task_classification": "qt_scaled",
+      "unit_of_measure": "EA_ROOM",
+      "fixed_time_minutes_by_tier": {
+        "QT3": 20,
+        "QT4": 40,
+        "QT5": 60
+      },
+      "fixed_time_range_low": 12,
+      "fixed_time_range_high": 75,
+      "factor_modifiers": [],
+      "notes": "Per room per interstage cycle. qt_scaled. Sand all specialty surfaces in one pass. Rigid sanding block on flat surfaces (FFD SS15.4.1). Flexible sanding sponge for profiled surfaces. QT3 spot sand nibs only ~20 min, QT4 full 220 grit ~40 min, QT5 thorough 220-320 grit ~60 min. Overhead ceiling sanding is most fatiguing. Pole sander for ceiling field areas."
+    },
+    {
+      "task_id": "TSK_SPRP_INTERSTAGE_PATCH",
+      "name": "Patch and repair marked defects",
+      "task_classification": "qt_scaled",
+      "unit_of_measure": "FIXED",
+      "fixed_time_minutes_by_tier": {
+        "QT3": 8,
+        "QT4": 20,
+        "QT5": 35
+      },
+      "factor_modifiers": [],
+      "notes": "Per interstage cycle. qt_scaled. Fill, sand, and spot-prime any defects found during inspection. Covers all surface types in one pass. More surfaces than NC single-spec patch — NC wainscot patch QT3=5/QT4=15/QT5=25; consolidated RP adds ~60% for multi-surface coverage."
+    },
+    {
+      "task_id": "TSK_SPRP_INTERSTAGE_SPOT_COAT",
+      "name": "Spot coat patched areas",
+      "task_classification": "qt_scaled",
+      "unit_of_measure": "FIXED",
+      "fixed_time_minutes_by_tier": {
+        "QT3": 8,
+        "QT4": 15,
+        "QT5": 25
+      },
+      "factor_modifiers": [],
+      "notes": "Per interstage cycle. qt_scaled. Touch-up patched areas to match surrounding finish. Covers all surface types. NC single-spec spot coat QT3=5/QT4=10/QT5=15; consolidated RP adds ~60% for multi-surface coverage."
+    },
+    {
+      "task_id": "TSK_SPRP_INTERSTAGE_TACK",
+      "name": "Tack cloth all specialty surfaces",
+      "task_classification": "binary",
+      "unit_of_measure": "EA_ROOM",
+      "fixed_time_minutes": 15,
+      "fixed_time_range_low": 10,
+      "fixed_time_range_high": 22,
+      "factor_modifiers": [],
+      "notes": "Per room per interstage cycle. Remove all sanding dust with tack cloth before next coat. Cover every surface: work into grooves, profiles, inside corners, built-in compartments. NC built-in tack = 15 min alone; consolidated RP all-surface tack = 15 min with efficiency gain from one continuous pass. Binary."
+    },
+
+    {
+      "task_id": "TSK_SPRP_FINISH_SPRAY_WAINSCOT",
+      "name": "Spray finish coat on wainscot panels",
+      "task_classification": "binary",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 175,
+      "rate_range_low": 150,
+      "rate_range_high": 200,
+      "applies_when": { "application_method": ["spray"] },
+      "factor_modifiers": ["FAC_WAINSCOT_TYPE"],
+      "notes": "SF/hr. Direct transfer from NC TSK_WNSC_SPRAY_FINISH (175 SF/hr for flat_panel baseline). Spray technique: field panels first, then frame detail. RP finish application rate is identical to NC — once surface is prepped and primed, finish coat application is the same work. Always H1 (below chair-rail height). Binary."
+    },
+    {
+      "task_id": "TSK_SPRP_FINISH_BRUSH_WAINSCOT",
+      "name": "Brush finish coat on wainscot panels",
+      "task_classification": "binary",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 70,
+      "rate_range_low": 60,
+      "rate_range_high": 80,
+      "applies_when": { "application_method": ["brush"] },
+      "factor_modifiers": ["FAC_WAINSCOT_TYPE"],
+      "notes": "SF/hr. Direct transfer from NC TSK_WNSC_BRUSH_FINISH (70 SF/hr for flat_panel baseline). Apply, tip once, walk away (FFD SS15.3.1). Flat panels: Roll and Tip (FFD SS15.6). RP finish rate identical to NC. Always H1. Binary."
+    },
+    {
+      "task_id": "TSK_SPRP_FINISH_SPRAY_WOOD_WALL",
+      "name": "Spray finish coat on wood wall panels",
+      "task_classification": "binary",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 175,
+      "rate_range_low": 150,
+      "rate_range_high": 200,
+      "applies_when": { "application_method": ["spray"] },
+      "factor_modifiers": ["FAC_WALL_STYLE", "FAC_HEIGHT"],
+      "notes": "SF/hr. Direct transfer from NC TSK_WDWL_SPRAY_FINISH (175 SF/hr for flat_panel baseline). Spray technique varies by wall_style. Tall walls (H2+): back-check lower sections for drip accumulation. Height modifier applied by engine. Binary."
+    },
+    {
+      "task_id": "TSK_SPRP_FINISH_BRUSH_WOOD_WALL",
+      "name": "Brush finish coat on wood wall panels",
+      "task_classification": "binary",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 70,
+      "rate_range_low": 60,
+      "rate_range_high": 80,
+      "applies_when": { "application_method": ["brush"] },
+      "factor_modifiers": ["FAC_WALL_STYLE", "FAC_HEIGHT"],
+      "notes": "SF/hr. Direct transfer from NC TSK_WDWL_BRUSH_FINISH (70 SF/hr for flat_panel baseline). Work board by board or panel by panel. Tall walls (H2+): watch for runs. Height modifier applied by engine. Binary."
+    },
+    {
+      "task_id": "TSK_SPRP_FINISH_SPRAY_CEILING",
+      "name": "Spray finish coat on wood ceiling (overhead)",
+      "task_classification": "binary",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 130,
+      "rate_range_low": 105,
+      "rate_range_high": 160,
+      "applies_when": { "application_method": ["spray"] },
+      "factor_modifiers": ["FAC_CEILING_STYLE", "FAC_HEIGHT"],
+      "notes": "SF/hr. Direct transfer from NC TSK_WDCL_SPRAY_FINISH (130 SF/hr for flat_plank baseline). Overhead penalty ~0.75x of wall rate already baked in. Lighter coats to prevent sags and groove pooling. RP finish rate identical to NC. Binary."
+    },
+    {
+      "task_id": "TSK_SPRP_FINISH_BRUSH_CEILING",
+      "name": "Brush finish coat on wood ceiling (overhead)",
+      "task_classification": "binary",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 50,
+      "rate_range_low": 40,
+      "rate_range_high": 65,
+      "applies_when": { "application_method": ["brush"] },
+      "factor_modifiers": ["FAC_CEILING_STYLE", "FAC_HEIGHT"],
+      "notes": "SF/hr. Direct transfer from NC TSK_WDCL_BRUSH_FINISH (50 SF/hr for flat_plank baseline). Overhead penalty ~0.70x of wall rate already baked in. Most fatiguing finish application. RP finish rate identical to NC. Binary."
+    },
+    {
+      "task_id": "TSK_SPRP_FINISH_BEAM",
+      "name": "Finish coat on beams (spray or brush per method)",
+      "task_classification": "binary",
+      "unit_of_measure": "LF",
+      "rates_by_method": {
+        "spray": { "rate_lf_per_hour": 225, "notes": "Multi-angle spray for 3-sided coverage. From NC TSK_ARCH_SPRAY_BEAM (225 LF/hr)." },
+        "brush": { "rate_lf_per_hour": 90, "notes": "Work face-by-face. Load lighter on bottom face. From NC TSK_ARCH_BRUSH_BEAM (90 LF/hr)." }
+      },
+      "rate_per_hour": 225,
+      "rate_range_low": 75,
+      "rate_range_high": 250,
+      "factor_modifiers": ["FAC_BEAM_PROFILE", "FAC_HEIGHT"],
+      "notes": "LF/hr. Direct transfer from NC arch element beam finish rates. Spray: 225 LF/hr (NC TSK_ARCH_SPRAY_BEAM). Brush: 90 LF/hr (NC TSK_ARCH_BRUSH_BEAM). Bottom face first (overhead), then side faces. RP finish rate identical to NC — once prepped, same application. Binary."
+    },
+    {
+      "task_id": "TSK_SPRP_FINISH_COLUMN",
+      "name": "Finish coat on columns (spray or brush per method)",
+      "task_classification": "binary",
+      "unit_of_measure": "EA",
+      "rates_by_method": {
+        "spray": { "rate_ea_per_hour": 5, "notes": "Rotate around column, top-to-bottom. From NC TSK_ARCH_SPRAY_COLUMN (5 EA/hr)." },
+        "brush": { "rate_ea_per_hour": 2.5, "notes": "Square: Roll and Tip. Round/fluted: brush only. From NC TSK_ARCH_BRUSH_COLUMN (2.5 EA/hr)." }
+      },
+      "rate_per_hour": 5,
+      "rate_range_low": 2,
+      "rate_range_high": 6,
+      "factor_modifiers": ["FAC_COLUMN_TYPE", "FAC_HEIGHT"],
+      "notes": "EA/hr. Direct transfer from NC arch element column finish rates. Spray: 5 EA/hr. Brush: 2.5 EA/hr. Full height — ladder for upper portion. Column type drives complexity modifier. RP finish rate identical to NC. Binary."
+    },
+    {
+      "task_id": "TSK_SPRP_FINISH_MANTEL",
+      "name": "Finish coat on mantels (spray or brush per method)",
+      "task_classification": "binary",
+      "unit_of_measure": "EA",
+      "rates_by_method": {
+        "spray": { "rate_ea_per_hour": 2.5, "notes": "Detail profiles first, then flat faces. From NC TSK_ARCH_SPRAY_MANTEL (2.5 EA/hr)." },
+        "brush": { "rate_ea_per_hour": 1.5, "notes": "Shelf Roll and Tip, legs with grain, molding detail brush. From NC TSK_ARCH_BRUSH_MANTEL (1.5 EA/hr)." }
+      },
+      "rate_per_hour": 2.5,
+      "rate_range_low": 1,
+      "rate_range_high": 3,
+      "factor_modifiers": ["FAC_MANTEL_TYPE"],
+      "notes": "EA/hr. Direct transfer from NC arch element mantel finish rates. Spray: 2.5 EA/hr. Brush: 1.5 EA/hr. Mantel type drives complexity modifier. Typically H1-H2. RP finish rate identical to NC. Binary."
+    },
+    {
+      "task_id": "TSK_SPRP_FINISH_BUILTIN",
+      "name": "Finish coat on built-in unit (spray or brush per method)",
+      "task_classification": "binary",
+      "unit_of_measure": "EA",
+      "rates_by_builtin_size_tier": {
+        "S": {
+          "spray": { "rate_ea_per_hour": 6, "notes": "Small unit spray — quick openings + doors flat" },
+          "brush": { "rate_ea_per_hour": 3, "notes": "Small unit brush — mini roller + brush" }
+        },
+        "M": {
+          "spray": { "rate_ea_per_hour": 2.5, "notes": "Medium unit spray — standard bookcase" },
+          "brush": { "rate_ea_per_hour": 1.2, "notes": "Medium unit brush — ~50 min per unit" }
+        },
+        "L": {
+          "spray": { "rate_ea_per_hour": 1.2, "notes": "Large unit spray — wide media center" },
+          "brush": { "rate_ea_per_hour": 0.6, "notes": "Large unit brush — ~100 min per unit" }
+        },
+        "XL": {
+          "spray": { "rate_ea_per_hour": 0.6, "notes": "XL unit spray — oversized wall unit" },
+          "brush": { "rate_ea_per_hour": 0.3, "notes": "XL unit brush — ~200 min per unit" }
+        }
+      },
+      "rate_range_low": 0.25,
+      "rate_range_high": 7,
+      "factor_modifiers": ["FAC_BUILTIN_DEPTH", "FAC_BUILTIN_DETAIL", "FAC_BUILTIN_ACCESS", "FAC_HEIGHT"],
+      "notes": "EA/hr by size tier and method. Derived from NC built-in finish rates (opening + door tasks consolidated into per-unit rate). NC M-tier opening spray=6 EA_OPENING/hr but RP unit rate covers full unit (~4-6 openings + doors per unit). Spray best for deep compartments. Good lighting essential. Binary."
+    },
+
+    {
+      "task_id": "TSK_SPRP_FINAL_INSPECT",
+      "name": "Final quality inspection of all specialty surfaces",
+      "task_classification": "qt_scaled",
+      "unit_of_measure": "EA_ROOM",
+      "fixed_time_minutes_by_tier": {
+        "QT3": 15,
+        "QT4": 35,
+        "QT5": 55
+      },
+      "fixed_time_range_low": 10,
+      "fixed_time_range_high": 70,
+      "factor_modifiers": [],
+      "notes": "Per room. qt_scaled. Inspect all specialty surfaces in one pass. Key checkpoints: panel-to-frame junction holidays, groove holidays, beam underside sags, column run marks, mantel shelf edge drips, built-in shelf face sheen uniformity, caulk line quality. Flashlight inside deep compartments. NC final inspect times: wainscot QT5=120 SF/hr, wood wall QT5=120 SF/hr, wood ceiling QT5=90 SF/hr, built-in QT5=45 min — consolidated RP final inspect per room covers all."
+    },
+    {
+      "task_id": "TSK_SPRP_TOUCHUP",
+      "name": "Touch-up defects found during final inspection",
+      "task_classification": "qt_scaled",
+      "unit_of_measure": "FIXED",
+      "fixed_time_minutes_by_tier": {
+        "QT3": 10,
+        "QT4": 25,
+        "QT5": 40
+      },
+      "factor_modifiers": [],
+      "notes": "Per room. qt_scaled. Correct remaining defects on all specialty surfaces. Feather touch-ups into surrounding finish. QT5 may require full additional coat on affected area. NC touch-up times: wainscot QT5=20 min, wood wall QT5=25 min, wood ceiling QT5=30 min, built-in QT5=30 min — consolidated RP uses 40 min at QT5 (efficiency gain from one continuous pass rather than 4 separate touch-up modules)."
+    },
+    {
+      "task_id": "TSK_SPRP_REMOVE_MASKING",
+      "name": "Remove all wall/ceiling/fixture masking",
+      "task_classification": "binary",
+      "unit_of_measure": "EA_ROOM",
+      "fixed_time_minutes": 15,
+      "fixed_time_range_low": 10,
+      "fixed_time_range_high": 25,
+      "applies_when": { "application_method": ["spray"] },
+      "factor_modifiers": [],
+      "notes": "Per room. Score tape edge, pull at 45 degrees. Consolidated removal of all wall masking, ceiling masking, fixture covers, opening covers in one pass. More masking to remove than NC single-spec cleanup. Spray only — brush method has minimal masking. Binary."
+    },
+    {
+      "task_id": "TSK_SPRP_REMOVE_FIXTURE_MASK",
+      "name": "Remove fixture masking (brush method)",
+      "task_classification": "binary",
+      "unit_of_measure": "EA",
+      "rate_per_hour": 15,
+      "rate_range_low": 12,
+      "rate_range_high": 20,
+      "applies_when": { "application_method": ["brush"] },
+      "factor_modifiers": [],
+      "notes": "EA/hr. Remove tape and plastic from ceiling fixtures. Brush method only — when fixture masking was applied without wall masking. Direct transfer from NC fixture removal rates (15 EA/hr). Binary."
+    },
+    {
+      "task_id": "TSK_SPRP_REMOVE_FLOOR_PROTECT",
+      "name": "Remove floor protection",
+      "task_classification": "binary",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 300,
+      "rate_range_low": 250,
+      "rate_range_high": 400,
+      "factor_modifiers": [],
+      "notes": "SF/hr. Floor-level work. Fold canvas/paper inward to contain debris. Direct transfer from NC floor protection removal rates (300 SF/hr). Covers both full floor (spray) and perimeter (brush) removal. Binary."
+    },
+    {
+      "task_id": "TSK_SPRP_REMOVE_BUILTIN_CONTENTS_PROTECT",
+      "name": "Remove built-in contents protection",
+      "task_classification": "binary",
+      "unit_of_measure": "EA",
+      "rate_per_hour": 8,
+      "rate_range_low": 6,
+      "rate_range_high": 12,
+      "applies_when": { "builtin_contents_present": true },
+      "factor_modifiers": [],
+      "notes": "EA/hr per built-in unit. Remove poly sheeting. Restore contents if moved. Faster than setup (removal is simpler — ~7.5 min per unit vs ~10 min setup). RP-specific. Conditional on contents protection having been set up. Binary."
+    },
+    {
+      "task_id": "TSK_SPRP_VACUUM",
+      "name": "Vacuum work area",
+      "task_classification": "binary",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 300,
+      "rate_range_low": 250,
+      "rate_range_high": 400,
+      "factor_modifiers": [],
+      "notes": "SF/hr. Vacuum floor area after protection removal. Include inside built-in compartments. Overhead ceiling sanding generates significant floor dust. Direct transfer from NC vacuum rates (300 SF/hr). Binary."
+    },
+    {
+      "task_id": "TSK_SPRP_CUSTOMER_WALKTHROUGH",
+      "name": "Customer walkthrough and sign-off",
+      "task_classification": "binary",
+      "unit_of_measure": "FIXED",
+      "fixed_time_minutes": 20,
+      "fixed_time_range_low": 15,
+      "fixed_time_range_high": 30,
+      "factor_modifiers": [],
+      "notes": "Per project. RP-specific. Walk customer through all completed specialty surfaces. More surfaces = more walkthrough time than door RP or wall RP. Point out finish quality, discuss care instructions for specialty finishes (cure time, cleaning, touch-up kit). Get sign-off. ~20 min per project. RP_NEW. Binary."
+    },
+    {
+      "task_id": "TSK_SPRP_TOOL_CLEANUP",
+      "name": "Clean tools and equipment",
+      "task_classification": "binary",
+      "unit_of_measure": "FIXED",
+      "fixed_time_minutes": 20,
+      "fixed_time_range_low": 15,
+      "fixed_time_range_high": 30,
+      "factor_modifiers": [],
+      "notes": "Per session. Clean brushes, spray equipment, rollers, dispose of consumables. Water cleanup for waterborne products. Solvent cleanup for shellac stain blocker residue. Fold and store sawhorses if built-in doors were removed. Direct transfer from NC tool cleanup rates (20 min). Binary."
+    }
+  ],
+
+  "factor_modifiers": [
+    {
+      "modifier_category": "condition_scale",
+      "modifier_id": "FAC_CONDITION_SCALE",
+      "source": "Interior RP Gap Analysis, shared across all interior RP specs",
+      "applies_to": ["prep_pool_tasks: degloss, scrape_feather, caulk_assess_repair"],
+      "does_not_apply_to": "coating_pool tasks (finish, interstage), protection tasks, assessment tasks, cleanup tasks",
+      "application_rule": "Modifiers increase TIME. effective_rate = base_rate / condition_scale_modifier. PREP pool only — never applied to coating tasks.",
+      "modifiers": [
+        { "modifier_id": "GOOD", "time_multiplier": 1.0, "notes": "Sound paint, adhesion passes, compatible coating" },
+        { "modifier_id": "FAIR", "time_multiplier": 1.5, "notes": "Minor adhesion failure, cracking, or surface defects" },
+        { "modifier_id": "POOR", "time_multiplier": 2.0, "notes": "Extensive peeling, moisture damage, smoke damage" }
+      ]
+    },
+    {
+      "modifier_category": "quality_tier",
+      "modifier_id": "QT",
+      "source": "Modifier_Registry.md v1.2",
+      "applies_to": ["qt_scaled tasks only: assess_condition, scrape_feather, caulk_assess_repair, interstage_inspect, interstage_sand, interstage_patch, interstage_spot_coat, final_inspect, touchup"],
+      "does_not_apply_to": "binary tasks — application (prime, spray, brush, finish) quality is NOT tiered; protection, assessment (adhesion/coating_id/moisture), and cleanup tasks",
+      "application_rule": "For tasks with rates_by_tier or fixed_time_minutes_by_tier, the tiered rate already reflects QT — do NOT double-apply. Global QT modifiers: QT3=1.0x, QT4=1.3x, QT5=1.5x.",
+      "modifiers": [
+        { "modifier_id": "QT3", "time_multiplier": 1.0 },
+        { "modifier_id": "QT4", "time_multiplier": 1.3 },
+        { "modifier_id": "QT5", "time_multiplier": 1.5 }
+      ]
+    },
+    {
+      "modifier_category": "complexity",
+      "sub_category": "wainscot_type",
+      "modifier_id": "FAC_WAINSCOT_TYPE",
+      "source": "Millwork_NC_Paint_Doctrine SS7.2, transferred from NC SF_WAINSCOT_PANEL_NC",
+      "applies_to": ["TSK_SPRP_DEGLOSS_WAINSCOT", "TSK_SPRP_PRIME_SF_SPRAY (wainscot portion)", "TSK_SPRP_PRIME_SF_BRUSH (wainscot portion)", "TSK_SPRP_FINISH_SPRAY_WAINSCOT", "TSK_SPRP_FINISH_BRUSH_WAINSCOT"],
+      "application_rule": "Modifiers increase TIME. effective_rate = base_rate / wainscot_type_modifier.",
+      "modifiers": [
+        { "modifier_id": "flat_panel", "time_multiplier": 1.0 },
+        { "modifier_id": "raised_panel", "time_multiplier": 1.25 },
+        { "modifier_id": "beadboard", "time_multiplier": 1.15 }
+      ]
+    },
+    {
+      "modifier_category": "complexity",
+      "sub_category": "wall_style",
+      "modifier_id": "FAC_WALL_STYLE",
+      "source": "Millwork_NC_Paint_Doctrine SS7.2, transferred from NC SF_WOOD_WALL_NC",
+      "applies_to": ["TSK_SPRP_DEGLOSS_WOOD_WALL", "TSK_SPRP_PRIME_SF_SPRAY (wood wall portion)", "TSK_SPRP_PRIME_SF_BRUSH (wood wall portion)", "TSK_SPRP_FINISH_SPRAY_WOOD_WALL", "TSK_SPRP_FINISH_BRUSH_WOOD_WALL"],
+      "application_rule": "Modifiers increase TIME. effective_rate = base_rate / wall_style_modifier.",
+      "modifiers": [
+        { "modifier_id": "flat_panel", "time_multiplier": 1.0 },
+        { "modifier_id": "shiplap", "time_multiplier": 1.15 },
+        { "modifier_id": "tongue_and_groove", "time_multiplier": 1.10 },
+        { "modifier_id": "library_panel", "time_multiplier": 1.25 }
+      ]
+    },
+    {
+      "modifier_category": "complexity",
+      "sub_category": "ceiling_style",
+      "modifier_id": "FAC_CEILING_STYLE",
+      "source": "Millwork_NC_Paint_Doctrine SS7.2 adapted, transferred from NC SF_WOOD_CEILING_NC",
+      "applies_to": ["TSK_SPRP_DEGLOSS_CEILING", "TSK_SPRP_PRIME_SF_SPRAY (ceiling portion)", "TSK_SPRP_PRIME_SF_BRUSH (ceiling portion)", "TSK_SPRP_FINISH_SPRAY_CEILING", "TSK_SPRP_FINISH_BRUSH_CEILING"],
+      "application_rule": "Modifiers increase TIME. effective_rate = base_rate / ceiling_style_modifier. Stacks with height modifier.",
+      "modifiers": [
+        { "modifier_id": "flat_plank", "time_multiplier": 1.0 },
+        { "modifier_id": "beadboard", "time_multiplier": 1.15 },
+        { "modifier_id": "tongue_and_groove", "time_multiplier": 1.10 },
+        { "modifier_id": "coffered", "time_multiplier": 1.35 }
+      ]
+    },
+    {
+      "modifier_category": "complexity",
+      "sub_category": "beam_profile",
+      "modifier_id": "FAC_BEAM_PROFILE",
+      "source": "Research CD-004, transferred from NC SF_ARCH_ELEMENT_NC",
+      "applies_to": ["TSK_SPRP_DEGLOSS_BEAM", "TSK_SPRP_PRIME_BEAM", "TSK_SPRP_FINISH_BEAM"],
+      "application_rule": "Modifiers increase TIME. effective_rate = base_rate / beam_profile_modifier.",
+      "modifiers": [
+        { "modifier_id": "small_box", "time_multiplier": 1.0 },
+        { "modifier_id": "standard_box", "time_multiplier": 1.1 },
+        { "modifier_id": "large_timber", "time_multiplier": 1.2 },
+        { "modifier_id": "ornate", "time_multiplier": 1.4 }
+      ]
+    },
+    {
+      "modifier_category": "complexity",
+      "sub_category": "column_type",
+      "modifier_id": "FAC_COLUMN_TYPE",
+      "source": "Research CD-005, transferred from NC SF_ARCH_ELEMENT_NC",
+      "applies_to": ["TSK_SPRP_DEGLOSS_COLUMN", "TSK_SPRP_PRIME_COLUMN", "TSK_SPRP_FINISH_COLUMN"],
+      "application_rule": "Modifiers increase TIME. effective_rate = base_rate / column_type_modifier.",
+      "modifiers": [
+        { "modifier_id": "square_smooth", "time_multiplier": 1.0 },
+        { "modifier_id": "square_detailed", "time_multiplier": 1.15 },
+        { "modifier_id": "round_smooth", "time_multiplier": 1.1 },
+        { "modifier_id": "round_fluted", "time_multiplier": 1.3 }
+      ]
+    },
+    {
+      "modifier_category": "complexity",
+      "sub_category": "mantel_type",
+      "modifier_id": "FAC_MANTEL_TYPE",
+      "source": "Research CD-006, transferred from NC SF_ARCH_ELEMENT_NC",
+      "applies_to": ["TSK_SPRP_DEGLOSS_MANTEL", "TSK_SPRP_PRIME_MANTEL", "TSK_SPRP_FINISH_MANTEL"],
+      "application_rule": "Modifiers increase TIME. effective_rate = base_rate / mantel_type_modifier.",
+      "modifiers": [
+        { "modifier_id": "shelf_only", "time_multiplier": 1.0 },
+        { "modifier_id": "standard_surround", "time_multiplier": 1.25 },
+        { "modifier_id": "full_assembly", "time_multiplier": 1.5 }
+      ]
+    },
+    {
+      "modifier_category": "height",
+      "modifier_id": "FAC_HEIGHT",
+      "source": "Modifier_Registry.md v1.2",
+      "applies_to": ["wood_wall tasks (height varies)", "wood_ceiling tasks (ceiling height)", "arch_beam tasks (overhead)", "arch_column tasks (full height)"],
+      "does_not_apply_to": ["wainscot tasks (always H1)", "mantel tasks (typically H1, engine can override)", "built-in tasks (typically H1)", "FIXED/EA_ROOM shared tasks"],
+      "application_rule": "Engine applies height modifier per room via PS_META.HEIGHT_BAND. NOT embedded in base rates. effective_rate = base_rate / height_modifier. Stacks ON TOP of overhead penalty already baked into ceiling and beam rates.",
+      "modifiers": [
+        { "modifier_id": "H1_STANDARD", "time_multiplier": 1.0, "height_range": "0-8 ft (walls) / 8-9 ft (ceilings)" },
+        { "modifier_id": "H2_STEP", "time_multiplier": 1.30, "height_range": "9-12 ft" },
+        { "modifier_id": "H3_EXT", "time_multiplier": 1.50, "height_range": "13-17 ft" },
+        { "modifier_id": "H4_SCAFFOLD", "time_multiplier": 2.00, "height_range": "18-24 ft" }
+      ]
+    },
+    {
+      "modifier_category": "complexity",
+      "sub_category": "builtin_depth",
+      "modifier_id": "FAC_BUILTIN_DEPTH",
+      "source": "BuiltIns_Shelving Quantification System v2.0 SS4, transferred from NC SF_BUILTIN_NC",
+      "applies_to": ["TSK_SPRP_DEGLOSS_BUILTIN", "TSK_SPRP_PRIME_BUILTIN", "TSK_SPRP_FINISH_BUILTIN"],
+      "application_rule": "Modifiers increase TIME. effective_rate = base_rate / depth_modifier. Stacks with detail and access modifiers.",
+      "modifiers": [
+        { "modifier_id": "SHALLOW", "time_multiplier": 1.0, "notes": "< 12 in depth" },
+        { "modifier_id": "DEEP", "time_multiplier": 1.25, "notes": "12-24 in depth" },
+        { "modifier_id": "VERY_DEEP", "time_multiplier": 1.50, "notes": "24+ in depth" }
+      ]
+    },
+    {
+      "modifier_category": "complexity",
+      "sub_category": "builtin_detail",
+      "modifier_id": "FAC_BUILTIN_DETAIL",
+      "source": "BuiltIns_Shelving Quantification System v2.0 SS4, transferred from NC SF_BUILTIN_NC",
+      "applies_to": ["TSK_SPRP_DEGLOSS_BUILTIN", "TSK_SPRP_PRIME_BUILTIN", "TSK_SPRP_FINISH_BUILTIN"],
+      "application_rule": "Modifiers increase TIME. effective_rate = base_rate / detail_modifier.",
+      "modifiers": [
+        { "modifier_id": "SIMPLE_BOX", "time_multiplier": 1.0 },
+        { "modifier_id": "FACE_FRAME", "time_multiplier": 1.15 },
+        { "modifier_id": "CROWN_VALANCE", "time_multiplier": 1.25 },
+        { "modifier_id": "BEADED_ROUTED", "time_multiplier": 1.35 }
+      ]
+    },
+    {
+      "modifier_category": "complexity",
+      "sub_category": "builtin_access",
+      "modifier_id": "FAC_BUILTIN_ACCESS",
+      "source": "BuiltIns_Shelving Quantification System v2.0 SS4, transferred from NC SF_BUILTIN_NC",
+      "applies_to": ["TSK_SPRP_DEGLOSS_BUILTIN", "TSK_SPRP_PRIME_BUILTIN", "TSK_SPRP_FINISH_BUILTIN"],
+      "application_rule": "Modifiers increase TIME. effective_rate = base_rate / access_modifier.",
+      "modifiers": [
+        { "modifier_id": "OPEN_ACCESS", "time_multiplier": 1.0 },
+        { "modifier_id": "CRAMPED", "time_multiplier": 1.15 },
+        { "modifier_id": "OBSTRUCTED", "time_multiplier": 1.30 }
+      ]
+    }
+  ],
+
+  "round_configurations": [
+    {
+      "round_id": "ROUND_SPRP_2FINISH",
+      "name": "2 finish coats (no primer)",
+      "applies_when": { "condition_scale": ["GOOD"] },
+      "phase_sequence": ["setup", "prep", "finish", "interstage", "finish", "cleanup"],
+      "total_coats": 2,
+      "interstage_cycles": 1,
+      "notes": "GOOD condition — sound paint, adhesion verified, compatible coating. Most common residential repaint scenario."
+    },
+    {
+      "round_id": "ROUND_SPRP_PRIME_2FINISH",
+      "name": "State-driven prime + 2 finish coats",
+      "applies_when": { "condition_scale": ["FAIR", "POOR"] },
+      "phase_sequence": ["setup", "prep", "prime", "interstage", "finish", "interstage", "finish", "cleanup"],
+      "total_coats": 3,
+      "interstage_cycles": 2,
+      "notes": "FAIR/POOR condition or stain/clear conversion. State-driven primer (adhesion, stain-block, mildew, bonding)."
+    },
+    {
+      "round_id": "ROUND_SPRP_3FINISH",
+      "name": "3 finish coats (QT5 brush, GOOD condition)",
+      "applies_when": { "quality_tier": ["QT5"], "application_method": ["brush"], "condition_scale": ["GOOD"] },
+      "phase_sequence": ["setup", "prep", "finish", "interstage", "finish", "interstage", "finish", "cleanup"],
+      "total_coats": 3,
+      "interstage_cycles": 2,
+      "notes": "QT5 brush per FFD 15.10.3, GOOD condition — no primer needed. 320 grit interstage sanding."
+    },
+    {
+      "round_id": "ROUND_SPRP_PRIME_3FINISH",
+      "name": "Prime + 3 finish coats (QT5 brush, FAIR/POOR condition)",
+      "applies_when": { "quality_tier": ["QT5"], "application_method": ["brush"], "condition_scale": ["FAIR", "POOR"] },
+      "phase_sequence": ["setup", "prep", "prime", "interstage", "finish", "interstage", "finish", "interstage", "finish", "cleanup"],
+      "total_coats": 4,
+      "interstage_cycles": 3,
+      "notes": "Maximum coat sequence. State-driven prime + 3 brush finish coats with thorough interstage at 320 grit."
+    }
+  ],
+
+  "coat_count": {
+    "QT3": { "finish_coats": 2, "interstage_cycles": 1 },
+    "QT4": { "finish_coats": 2, "interstage_cycles": 1 },
+    "QT5_spray": { "finish_coats": 2, "interstage_cycles": 1 },
+    "QT5_brush": { "finish_coats": 3, "interstage_cycles": 2, "notes": "3+ coats per FFD SS15.10.3" }
+  },
+
+  "estimation_notes": {
+    "consolidated_architecture": "This spec consolidates 5 NC specs (wainscot, wood wall, wood ceiling, arch elements, built-ins) into one RP spec with 58 tasks. Shared assessment/interstage/cleanup modules achieve 2.65x task reduction (154 NC tasks -> 58 RP tasks). Per-surface-type finish rates preserved from NC for accuracy.",
+    "nc_rate_transfer": "Finish coat application rates transfer directly from NC source specs — once surface is prepped and primed, finish coat application is identical work regardless of NC/RP context. Degloss rates are ~0.75-0.85x of NC sanding rates due to harder existing finish.",
+    "overhead_penalty": "Wood ceiling tasks have overhead penalty baked into NC base rates (~0.70-0.80x of equivalent wall rates). RP ceiling degloss applies additional 0.80x on NC overhead-adjusted rates. Beam tasks have ~0.85x overhead penalty baked into NC rates.",
+    "two_pool_modifiers": "PREP pool: condition_scale x surface_complexity x height. COATING pool: quality_tier x surface_complexity x height. Pools never cross-apply. This matches the SF_DOOR_INT_RP pattern.",
+    "per_surface_type_rates": "SF surfaces (wainscot, wall, ceiling) use SF UOM. LF for beams. EA for columns, mantels, built-ins. EA_ROOM for shared per-room tasks. FIXED for project-level tasks. Engine runs each surface type's tasks against its own quantity input.",
+    "builtin_size_tier": "Built-in tasks use per-unit EA rate with size-tier rate lookup (S/M/L/XL). NC used per-opening EA_OPENING rates; RP consolidates to per-unit with tier-based rates reflecting full unit work (multiple openings + doors).",
+    "rp_new_tasks": "9 RP_NEW tasks (4 assessment + 5 RRP). Assessment and RRP modules have no NC equivalent. Assessment rates calibrated against Door RP patterns. RRP rates are shared module transfers.",
+    "spray_vs_brush": "Spray is ~2.0-2.5x faster than brush across all surface types. NC rate differential carries directly to RP finish rates.",
+    "no_dry_times": "Per RC-004: no dry times specified. Refer to manufacturer PDS."
+  },
+
+  "assumptions": [
+    {
+      "assumption_id": "A-001",
+      "field": "degloss_rates",
+      "value": "~0.75-0.85x of NC sanding rates for equivalent surface type",
+      "source": "Interior_RP_Gap_Analysis, Door RP pattern, Millwork Doctrine",
+      "doctrine_gap": true,
+      "note": "No doctrine provides degloss-specific production rates. Derived from NC sanding rates with 0.75-0.85x factor for harder existing finish. Chemical degloss and mechanical scuff sand achieve similar throughput."
+    },
+    {
+      "assumption_id": "A-002",
+      "field": "nc_finish_rate_transfer",
+      "value": "Finish coat application rates identical to NC source specs",
+      "source": "Fine_Finish_Doctrine, Millwork_NC_Paint_Doctrine",
+      "doctrine_gap": false,
+      "note": "Once surface is properly prepped and primed, finish coat application is the same physical work. Prepped RP surface achieves same adhesion profile as NC surface."
+    },
+    {
+      "assumption_id": "A-003",
+      "field": "assessment_rates",
+      "value": "12-30 min/room condition scan, 10 min/room adhesion, 8 min/room coating ID, 5 min/room moisture",
+      "source": "Calibrated against Door RP assessment rates, adjusted for multi-surface coverage",
+      "doctrine_gap": true,
+      "note": "No doctrine provides multi-surface assessment rates. Rates are research-based estimates. Door RP assesses 2 components per opening; specialty RP assesses up to 7 surface types per room."
+    },
+    {
+      "assumption_id": "A-004",
+      "field": "consolidated_interstage_rates",
+      "value": "Per-room EA_ROOM fixed times for shared interstage tasks",
+      "source": "NC interstage rates weighted across 5 source specs, consolidation efficiency applied",
+      "doctrine_gap": true,
+      "note": "Consolidated interstage times are ~60% higher than single NC spec times but cover all 7 surface types. Efficiency gain from single continuous pass vs 5 separate module passes."
+    },
+    {
+      "assumption_id": "A-005",
+      "field": "builtin_per_unit_rates",
+      "value": "Per-unit EA rates derived from NC per-opening EA_OPENING rates",
+      "source": "NC SF_BUILTIN_NC production.json, BuiltIns_Shelving Quantification System v2.0",
+      "doctrine_gap": true,
+      "note": "RP consolidates NC's per-opening-tier rates into per-unit-tier rates. Typical residential unit: M-tier has 4-6 openings + 2-4 doors. Per-unit rate reflects full unit workflow including door removal/flat painting/reinstall."
+    },
+    {
+      "assumption_id": "A-006",
+      "field": "condition_scale_modifier",
+      "value": "GOOD=1.0x, FAIR=1.5x, POOR=2.0x on prep pool tasks",
+      "source": "Interior_RP_Gap_Analysis, shared across all interior RP specs",
+      "doctrine_gap": true,
+      "note": "No doctrine provides condition-based modifiers. Values are shared across all interior RP specs per the RP Gap Analysis. Field calibration recommended."
+    },
+    {
+      "assumption_id": "A-007",
+      "field": "rrp_rates",
+      "value": "Lead test 10 min, containment setup 30 min, HEPA vacuum 15 min, containment removal 20 min, waste disposal 10 min",
+      "source": "EPA RRP Rule 40 CFR 745, Door RP shared module rates",
+      "doctrine_gap": false,
+      "note": "RRP rates are regulatory-driven. Shared module — same rates across all interior RP specs. Specialty surfaces may require slightly more HEPA vacuum time due to larger surface area."
+    },
+    {
+      "assumption_id": "A-008",
+      "field": "customer_walkthrough",
+      "value": "20 minutes per project",
+      "source": "RP-specific task, calibrated against Door RP walkthrough with adjustment for more surface types",
+      "doctrine_gap": true,
+      "note": "More specialty surface types means more walkthrough time. Door RP walkthrough is ~15 min for single surface type. Specialty RP adds ~5 min for multi-surface coverage."
+    }
+  ],
+
+  "task_count_verification": {
+    "total_tasks": 58,
+    "by_module": {
+      "MOD_SPRP_SETUP": 6,
+      "MOD_SPRP_ASSESSMENT": 4,
+      "MOD_RRP_INT_CONTAINMENT": 5,
+      "MOD_SPRP_PREP": 12,
+      "MOD_SPRP_PRIME": 6,
+      "MOD_SPRP_INTERSTAGE": 6,
+      "MOD_SPRP_FINISH": 10,
+      "MOD_SPRP_CLEANUP": 9
+    },
+    "rates_provided": 58,
+    "coverage": "100%"
+  }
+}

@@ -1,0 +1,1126 @@
+{
+  "research_metadata": {
+    "spec_family_id": "SF_TRIM_INT_RP",
+    "spec_family_version": "v1",
+    "domain": "interior",
+    "scope_type": "repaint",
+    "research_mode": "doctrine_driven",
+    "doctrine_loaded": [
+      "docs/System/PaintFactor_OS.md",
+      "docs/System/Conventions.md",
+      "docs/Doctrine/Quality_Tiers_and_Surface_Condition.md",
+      "docs/Doctrine/Fine_Finish_Doctrine.md",
+      "docs/Doctrine/Protection_and_Masking_Doctrine.md",
+      "docs/Doctrine/Spec_Completeness_Doctrine.md",
+      "docs/Doctrine/Estimation_Modifiers_Doctrine.md",
+      "docs/Doctrine/Modifier_Registry.md",
+      "docs/Doctrine/Interior_Protection_Doctrine.md",
+      "docs/Doctrine/Millwork_NC_Paint_Doctrine.md",
+      "docs/Reference/Protection_Zones_Reference.md",
+      "docs/Reference/Surface_Vocabulary_Reference.md",
+      "docs/Reference/Site_Condition_Vocabulary_Reference.md",
+      "docs/Reference/Substrate_State_Reference.md",
+      "docs/PaintScope/PaintScope_Quantity_Key_Catalog.md",
+      "docs/PaintScope/Spec_Input_to_PaintScope_Key_Mapping.md",
+      "devos/Interior_RP_Gap_Analysis.md"
+    ],
+    "sibling_specs_reviewed": [
+      "specs/SF_TRIM_NC_PRIME_v1/production.json",
+      "specs/SF_TRIM_NC_PAINT_v1/production.json",
+      "specs/SF_DRYWALL_WALL_INT_RP_v1/research.json",
+      "specs/SF_TRIM_EXT_RP_v1/production.json"
+    ],
+    "researcher": "Spec Researcher Agent",
+    "date": "2026-03-13",
+    "status": "draft",
+    "review_required": true,
+    "context_prefix": "TMRP"
+  },
+
+  "spec_family_id": "SF_TRIM_INT_RP",
+  "version": "1.0.0",
+
+  "scope_summary": "Combined prime + finish repaint spec for previously painted interior trim surfaces in occupied residential homes. Covers 9 trim types (baseboard, crown, door casing, window casing, chair rail, wainscot rail, shadow box, panel mold, picture rail) measured in LF. Includes condition assessment, RP-specific prep (degloss, scrape/feather for failing paint, caulk assess/replace), state-driven primer selection, finish coat application with fine-finish interstage protocol, and furniture/contents protection for occupied homes. Does NOT cover bare/new trim (NC specs SF_TRIM_NC_PRIME + SF_TRIM_NC_PAINT), door frames/slabs (SF_DOOR_INT_RP), window frames (SF_WINDOW_INT_RP), exterior trim (SF_TRIM_EXT_RP), or structural trim repair. Trim is a fine-finish surface at QT4+ per Fine_Finish_Doctrine.",
+
+  "relevant_findings": [
+    {
+      "finding_id": "RF-001",
+      "topic": "Interior trim repaint is condition-driven, not substrate-driven",
+      "finding": "Unlike NC where primer selection is based on substrate material (bare wood -> acrylic primer, bare MDF -> shellac sealer), RP primer selection is driven by existing coating condition: sound paint -> no prime or adhesion promoter; failing paint -> adhesion primer; moisture damage -> mildew-resistant primer; smoke damage -> shellac stain blocker. This is the fundamental architectural difference between NC and RP specs. NC trim had 4 bare-substrate-specific tasks (fill fasteners, fill end grain, MDF edge seal, spot prime knots) that are NOT APPLICABLE in RP.",
+      "source": "Interior_RP_Gap_Analysis.md Section B (SF_TRIM_NC_PRIME classification); Substrate_State_Reference.md",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-002",
+      "topic": "LF-based UOM carries over from NC trim unchanged",
+      "finding": "Interior trim RP uses LF (linear foot) as primary UOM, identical to NC trim specs. Per PDCA standard, 1 LF trim = 1 SF regardless of actual width (Millwork_NC_Paint_Doctrine Section 1.3). All 9 trim types (baseboard, crown, door casing, window casing, chair rail, wainscot rail, shadow box, panel mold, picture rail) are measured in LF. The engine sums LF from all in-scope trim items and divides by task rate to calculate hours. Profile complexity modifiers may be applied per-item.",
+      "source": "SF_TRIM_NC_PAINT_v1/production.json trim_surface_input_group; SF_TRIM_NC_PRIME_v1/production.json",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-003",
+      "topic": "Condition assessment is mandatory before any trim RP work",
+      "finding": "Repaint trim cannot be properly estimated or executed without assessing existing paint condition. Assessment includes: visual condition scan (map cracking, peeling, adhesion failure areas), adhesion test (ASTM D3359 cross-hatch tape test on representative trim sections), coating identification (latex vs oil via solvent test — trim historically received oil-based paint more frequently than walls), and lead screening for pre-1978 homes (trim is HIGH RISK for lead paint). Exterior trim RP confirms this pattern with dedicated assessment tasks. Interior trim assessment is simpler — no moisture meter (wood MC testing), no rot probe, no scaffold/weather concerns.",
+      "source": "Interior_RP_Gap_Analysis.md Section C & D; SF_TRIM_EXT_RP_v1/production.json (TSK_TRRP_ASSESS_*)",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-004",
+      "topic": "Five interior RP substrate states drive distinct trim prep pathways",
+      "finding": "Interior RP defines 5 substrate states applicable to trim: SS_INT_SOUND_PAINT (severity 0, degloss/scuff only), SS_INT_FAILING_PAINT (severity 1, scrape/feather/spot prime), SS_INT_PEELING (severity 2, full scrape/adhesion prime), SS_INT_MOISTURE_DAMAGE (severity 3, biocide/stain-block — common on bathroom/kitchen trim), SS_INT_SMOKE_DAMAGE (severity 4, shellac seal full surface). These map to the universal GOOD/FAIR/POOR condition scale.",
+      "source": "Interior_RP_Gap_Analysis.md Section A; controlled_enums.json substrate_state",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-005",
+      "topic": "Trim is a fine-finish surface — interstage protocol applies at all tiers",
+      "finding": "Per Fine_Finish_Doctrine, trim is a fine-finish surface requiring interstage inspection, sanding between coats, and defect correction at all quality tiers. QT3 = spot sand only (220 grit), QT4 = full surface sand (220 grit), QT5 = thorough sand (220-320 grit). Interstage protocol is universal at all tiers — scrutiny level varies by QT. This transfers DIRECT from NC trim finish spec. Coat count: 2 finish coats standard, 3 coats at QT5 brush per FFD 15.10.3.",
+      "source": "SF_TRIM_NC_PAINT_v1/production.json; Fine_Finish_Doctrine.md",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-006",
+      "topic": "Profile complexity modifier transfers from NC unchanged",
+      "finding": "Trim profile complexity affects both prep and coating task rates. Simple (flat/square edge) = 0.85x time, Standard (ogee/cove) = 1.0x baseline, Complex (multi-piece/built-up) = 1.25x, Ornate (dentil/egg-and-dart) = 1.40x. These modifiers apply to RP prep tasks (degloss, scrape, feather) and coating tasks (prime, finish) identically to NC. Profile complexity is a per-item-type attribute — baseboard may be simple while crown may be complex in the same project.",
+      "source": "SF_TRIM_NC_PRIME_v1/production.json FAC_PROFILE_COMPLEXITY; Millwork_NC_Paint_Doctrine Section 7.2",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-007",
+      "topic": "Height modifier is critical for crown molding and high casings",
+      "finding": "Interior trim height ranges from floor-level baseboard (H1_STANDARD, 1.0x) to crown molding at 9-12 ft (H2_TALL, 1.30x) to crown in tall spaces at 13-17 ft (H3_HIGH, 1.50x). Height modifier applies to all labor tasks and transfers from NC unchanged. Crown molding and picture rail are the primary tall/high trim types. Baseboard, door casing, and chair rail are typically H1. Interior trim RP does NOT use scaffold-level H4 (2.0x) — residential interiors rarely have trim above 17 ft.",
+      "source": "SF_TRIM_NC_PRIME_v1/production.json FAC_HEIGHT_TRIM; Modifier_Registry.md",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-008",
+      "topic": "Caulk assess/replace replaces NC full caulk for RP",
+      "finding": "NC trim required full caulk of all joints (trim-to-wall, miter, cope joints) because joints were new and unfilled. RP trim has existing caulk — most is sound. RP caulk task assesses existing caulk condition and replaces only failed sections (cracked, separated, discolored). Estimated 15-30% of joints need replacement in typical RP. This is a MODIFIED task from NC (TSK_TRIM_CAULK_JOINTS) — same concept but different scope and rate. Rate is faster per LF because it is a walk-and-assess rate, not full application.",
+      "source": "Interior_RP_Gap_Analysis.md Section B (TSK_TRIM_CAULK_JOINTS -> MODIFIED)",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-009",
+      "topic": "Four NC tasks are NOT_APPLICABLE to RP",
+      "finding": "Four NC trim prime tasks do not transfer to RP because they address bare-wood conditions that do not exist on previously painted trim: (1) TSK_TRIM_FILL_FASTENERS — nail holes filled on original NC, (2) TSK_TRIM_FILL_END_GRAIN — casing end grain sealed on original NC, (3) TSK_MDF_EDGE_SEAL — MDF edges sealed with solvent-based sealer on original NC, (4) TSK_TRIM_SPOT_PRIME_KNOTS — knots sealed with shellac on original NC. These 4 tasks are removed from the RP spec.",
+      "source": "Interior_RP_Gap_Analysis.md Section B SF_TRIM_NC_PRIME_v1 classification",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-010",
+      "topic": "Finish coat application transfers DIRECT from NC",
+      "finding": "Once the surface is properly prepped and primed, finish coat application is identical between NC and RP. 20 of 21 NC trim finish tasks classify as DIRECT transfer. Only TSK_TRIM_INSPECT_PRIMER is MODIFIED (inspects state-driven primer coverage rather than bare-substrate primer). Brush finish coat 1 (80 LF/hr), brush finish coat 2 (90 LF/hr), spray finish coat 1 (380 LF/hr), spray finish coat 2 (445 LF/hr), and all interstage tasks transfer unchanged.",
+      "source": "Interior_RP_Gap_Analysis.md Section B SF_TRIM_NC_PAINT_v1 classification",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-011",
+      "topic": "Wall masking is critical — trim RP requires masking the wall",
+      "finding": "When painting trim in RP, the wall is always finished and must be protected. Wall masking at trim edge is required for spray method (tape + paper at wall-trim junction). For brush method, wall masking is conditional — required when walls are SS_PAINTED_* (which is always true in RP). This is the inverse of wall RP masking trim. NC trim prime already has TSK_SETUP_WALL_MASK and TSK_TRIM_WALL_MASK tasks — these transfer DIRECT.",
+      "source": "SF_TRIM_NC_PRIME_v1/production.json TSK_SETUP_WALL_MASK; SF_TRIM_NC_PAINT_v1/production.json TSK_TRIM_WALL_MASK",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-012",
+      "topic": "Interior trim RP is lighter than exterior trim RP",
+      "finding": "Exterior trim RP (SF_TRIM_EXT_RP) has 52 tasks. Interior trim RP is projected at 40-50 tasks (~83% of exterior). Differences: (1) No scaffold/lift setup tasks — interior trim is max 17 ft, (2) No pressure wash — interior trim does not accumulate exterior grime, (3) No rot probe — interior wood trim does not rot from weather exposure, (4) No RRP for most homes — lead is conditional not standard, (5) No weather-related delays or environmental modifiers, (6) No siding/roofline masking. Interior adds furniture protection instead.",
+      "source": "Interior_RP_Gap_Analysis.md Section C SF_TRIM_INT_RP projection; SF_TRIM_EXT_RP_v1/production.json",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-013",
+      "topic": "Occupied home context adds furniture protection tasks",
+      "finding": "NC trim is typically done in unoccupied new construction. RP trim is in occupied homes with furniture near baseboard, items on shelves near crown, and daily foot traffic. This adds furniture/contents protection tasks: move items away from trim work zones, cover furniture near spray zones (if spray method). Trim RP furniture protection is lighter than wall RP — trim work has a smaller spatter/overspray zone. Baseboard work requires clearing floor-level items; crown work requires clearing shelf/mantel items near ceiling.",
+      "source": "Interior_RP_Gap_Analysis.md Section D Setup Phase; SF_DRYWALL_WALL_INT_RP_v1/research.json RF-006",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-014",
+      "topic": "Trim historically received oil-based paint — coating ID is critical",
+      "finding": "Interior trim (especially in pre-1978 and pre-2000 homes) commonly has oil-based (alkyd) paint. Latex-over-oil adhesion failure is a primary RP failure mode. The assessment phase MUST include coating identification (solvent test: mineral spirits dissolves alkyd, does not dissolve latex). When oil-based existing coating is identified, adhesion primer is MANDATORY before any latex topcoat. This risk is higher for trim than for walls (which transitioned to latex earlier).",
+      "source": "Substrate_State_Reference.md Section 3.3 (SS_PAINTED_ALKYD); Interior_RP_Gap_Analysis.md Section D Prep Phase",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-015",
+      "topic": "Customer walkthrough is RP-specific cleanup task",
+      "finding": "Interior RP in occupied homes requires a post-completion review with the homeowner. The painter walks each room with the homeowner, inspects trim finish quality, identifies any touch-up needs, and confirms completion. This is a fixed-time task per room. Does not exist in NC.",
+      "source": "Interior_RP_Gap_Analysis.md Section D Cleanup Phase; SF_DRYWALL_WALL_INT_RP_v1/research.json RF-010",
+      "confidence": "high"
+    }
+  ],
+
+  "condition_drivers": [
+    {
+      "driver_id": "CD-001",
+      "name": "Condition Scale",
+      "type": "configuration_dimension",
+      "values": ["GOOD", "FAIR", "POOR"],
+      "impact": "Primary driver for prep task selection and labor intensity. GOOD = minimal prep (degloss/scuff); FAIR = targeted repair (scrape/feather/spot prime/contamination treatment); POOR = full remediation (full scrape/full prime). Maps to prep multipliers: GOOD=1.0x, FAIR=1.5x, POOR=2.0x.",
+      "state_mapping": {
+        "GOOD": ["SS_INT_SOUND_PAINT"],
+        "FAIR": ["SS_INT_FAILING_PAINT", "SS_INT_MOISTURE_DAMAGE"],
+        "POOR": ["SS_INT_PEELING", "SS_INT_SMOKE_DAMAGE"]
+      },
+      "notes": "Universal 3-level scale per controlled_enums.json condition_scale."
+    },
+    {
+      "driver_id": "CD-002",
+      "name": "Quality Tier",
+      "type": "configuration_dimension",
+      "values": ["QT3", "QT4", "QT5"],
+      "impact": "Controls coat count, inspection rigor, interstage sanding discipline, defect tolerance. QT3=2 coats standard, spot sand, quick inspect at 6ft. QT4=2 coats mandatory, full 220 sand, systematic inspect at 3ft. QT5=2 coats (spray) or 3 coats (brush per FFD 15.10.3), thorough 220-320 sand, critical inspect at arm's length. QT modifier values: QT3=1.00, QT4=1.30, QT5=1.50.",
+      "notes": "QT2 excluded for trim — trim is a fine-finish surface per NC convention. QT3 is minimum for trim."
+    },
+    {
+      "driver_id": "CD-003",
+      "name": "Application Method",
+      "type": "configuration_dimension",
+      "values": ["brush", "spray"],
+      "impact": "Brush is primary for trim at all tiers. Spray available but requires wall masking. Brush rates: 80-90 LF/hr finish. Spray rates: 380-445 LF/hr finish. Application method drives protection zone activation (spray adds wall_adjacent, fixture_covers). Roll is NOT a valid method for trim — trim profiles cannot be rolled effectively.",
+      "notes": "No spray_backroll for trim — trim is either brushed or sprayed, not back-rolled."
+    },
+    {
+      "driver_id": "CD-004",
+      "name": "Sheen",
+      "type": "configuration_dimension",
+      "values": ["satin", "semi-gloss", "gloss"],
+      "impact": "Satin is default at QT3+. Semi-gloss at QT4+. Gloss at QT5 only. Sheen affects output state. Higher sheens show imperfections more readily, increasing scrutiny requirements. Flat/matte/eggshell are NOT valid trim sheens per doctrine.",
+      "notes": "Per Fine_Finish_Doctrine sheen restrictions for trim surfaces."
+    },
+    {
+      "driver_id": "CD-005",
+      "name": "Trim Height",
+      "type": "modifier",
+      "values": {
+        "H1_STANDARD": { "range": "7-8 ft", "value": 1.00, "trim_types": "baseboard, door casing, window casing, chair rail" },
+        "H2_TALL": { "range": "9-12 ft", "value": 1.30, "trim_types": "crown molding, picture rail, high casings" },
+        "H3_HIGH": { "range": "13-17 ft", "value": 1.50, "trim_types": "crown in tall spaces, high window casings" }
+      },
+      "impact": "Applied to all labor tasks based on working height. Baseboard work is floor-level with bending penalty (absorbed into base rate). Crown work requires ladder repositioning. Per Modifier_Registry.md.",
+      "notes": "H4_SCAFFOLD (2.00) excluded for interior trim — residential trim rarely above 17ft."
+    },
+    {
+      "driver_id": "CD-006",
+      "name": "Profile Complexity",
+      "type": "modifier",
+      "values": {
+        "MOD_PROFILE_SIMPLE": { "value": 0.85, "examples": "flat ranch casing, square stock baseboard" },
+        "MOD_PROFILE_STANDARD": { "value": 1.00, "examples": "ogee baseboard, cove casing" },
+        "MOD_PROFILE_COMPLEX": { "value": 1.25, "examples": "built-up crown, multi-piece door surrounds" },
+        "MOD_PROFILE_ORNATE": { "value": 1.40, "examples": "dentil molding, egg-and-dart, deep carved profiles" }
+      },
+      "impact": "Affects prep and coating task rates. Complex profiles have more crevices, harder to sand/degloss, more detail to coat. Applied per-item-type (baseboard profile may differ from crown profile in same project).",
+      "notes": "Per Millwork_NC_Paint_Doctrine Section 7.2. Transfers from NC unchanged."
+    }
+  ],
+
+  "quality_differences": [
+    {
+      "aspect": "coat_count",
+      "QT3": "2 finish coats standard (1 acceptable if full coverage achieved)",
+      "QT4": "2 finish coats mandatory",
+      "QT5": "2 finish coats (spray) or 3 finish coats (brush per FFD 15.10.3)",
+      "notes": "Primer coat count is state-driven (not QT-driven): GOOD=0 or 1 prime, FAIR=spot prime, POOR=full prime."
+    },
+    {
+      "aspect": "prep_intensity",
+      "QT3": "Standard degloss, address visible defects, functional caulk assessment",
+      "QT4": "Thorough degloss with adhesion verification, comprehensive defect repair, clean caulk bead",
+      "QT5": "Meticulous degloss + bonding verification, near-zero defect tolerance, perfect tooled caulk"
+    },
+    {
+      "aspect": "sanding_between_coats",
+      "QT3": "Spot sand patches only (220 grit) — visible nibs and rough spots",
+      "QT4": "Full light sand entire surface (220 grit) — uniform scratch pattern",
+      "QT5": "Thorough full sand entire surface (220-320 grit) — every imperfection addressed"
+    },
+    {
+      "aspect": "inspection_standard",
+      "QT3": "Quick glance at 6 ft, ambient light — obvious defects only",
+      "QT4": "Systematic scan at 3 ft with work light — all visible defects",
+      "QT5": "Critical inspection at arm's length under raking light — zero tolerance"
+    },
+    {
+      "aspect": "fine_finish_material_system",
+      "QT3": "SYS_FF_STANDARD_ACRYLIC — 100% acrylic enamel",
+      "QT4": "SYS_FF_MODIFIED_URETHANE — urethane-modified alkyd",
+      "QT5": "SYS_FF_PREMIUM / SYS_FF_GALLERY — premium urethane/conversion",
+      "notes": "Per Fine_Finish_Doctrine material system alignment."
+    }
+  ],
+
+  "failure_modes": [
+    {
+      "mode_id": "FM-001",
+      "failure": "Latex-over-oil adhesion failure on trim",
+      "cause": "Applying latex finish directly over unknown oil/alkyd base without adhesion primer. Trim is the highest-risk surface for this failure because trim historically received oil-based paint.",
+      "prevention": "Coating identification in assessment phase (solvent test: mineral spirits dissolves alkyd). Adhesion primer mandatory when oil-based existing coating is identified. ASTM D3359 adhesion test at representative locations.",
+      "mitigation": "Scrape failed areas, spot prime with adhesion primer, recoat",
+      "risk_level": "major"
+    },
+    {
+      "mode_id": "FM-002",
+      "failure": "Stain bleed-through from smoke/water on trim",
+      "cause": "Using latex primer instead of shellac stain blocker on contaminated trim surfaces. PVA and acrylic primers have zero stain blocking capability (RC-002).",
+      "prevention": "Proper contamination identification during assessment phase. Shellac-based stain blocker (BIN) for smoke damage. Stain-blocking primer for water stains.",
+      "mitigation": "Additional coat of shellac stain blocker followed by finish coat",
+      "risk_level": "major"
+    },
+    {
+      "mode_id": "FM-003",
+      "failure": "Scrape edges telegraphing through trim finish",
+      "cause": "Failure to feather-sand scrape edges before priming. Old paint edge creates a visible ridge that is especially conspicuous on trim (viewed at close range unlike walls).",
+      "prevention": "Feather-sand all scrape edges to create smooth transition. Non-negotiable at all tiers. Trim is scrutinized at closer distances than walls — feathering must be thorough.",
+      "mitigation": "Sand visible ridges, spot prime, recoat. At QT5, may require skim coat on affected areas.",
+      "risk_level": "major"
+    },
+    {
+      "mode_id": "FM-004",
+      "failure": "Flashing/sheen variance at scraped areas",
+      "cause": "Inconsistent primer coverage on scraped vs sound areas causing differential topcoat absorption. Especially visible on semi-gloss and gloss trim finishes.",
+      "prevention": "Full prime when scrape area exceeds 30% of trim LF. Spot prime all scraped areas at minimum. Consistent primer film build.",
+      "mitigation": "Additional finish coat to equalize sheen appearance",
+      "risk_level": "minor"
+    },
+    {
+      "mode_id": "FM-005",
+      "failure": "Brush marks or lap marks on trim finish",
+      "cause": "Overworking finish material or failing to maintain wet edge. Trim's close viewing distance makes brush technique defects highly visible.",
+      "prevention": "Apply-tip once-walk away technique per FFD 15.3.1. Proper material choice (urethane-modified at QT4+). Correct brush size (2-2.5 inch angled sash brush). Do not over-brush.",
+      "mitigation": "Sand and recoat affected sections. At QT5, may need to sand and re-finish entire trim run.",
+      "risk_level": "minor"
+    },
+    {
+      "mode_id": "FM-006",
+      "failure": "Caulk failure at replaced joints",
+      "cause": "Poor caulk bead on replacement sections — incompatible caulk type, insufficient surface prep, or tooling technique failure.",
+      "prevention": "Clean old caulk residue before re-caulking. Use paintable acrylic caulk. Tool bead immediately. Allow cure time before coating.",
+      "mitigation": "Remove failed caulk, clean joint, re-apply",
+      "risk_level": "minor"
+    },
+    {
+      "mode_id": "FM-007",
+      "failure": "Wall surface damage during trim painting",
+      "cause": "Inadequate wall masking allowing paint transfer from trim work to finished wall surface.",
+      "prevention": "Proper wall masking: tape at wall-trim junction for brush method; tape + paper masking for spray method. Remove tape while finish is slightly tacky for cleanest pull.",
+      "mitigation": "Touch up wall surface. At occupied home, wall touch-up may not match perfectly — liability risk.",
+      "risk_level": "major"
+    }
+  ],
+
+  "required_paintscope_keys": [
+    {
+      "key": "PS_SURFACE_LF.TRIM_BASEBOARD",
+      "description": "Baseboard linear footage",
+      "uom": "LF",
+      "required_when": "baseboard in scope"
+    },
+    {
+      "key": "PS_SURFACE_LF.TRIM_CROWN",
+      "description": "Crown molding linear footage",
+      "uom": "LF",
+      "required_when": "crown in scope"
+    },
+    {
+      "key": "PS_SURFACE_LF.TRIM_CASING_DOOR",
+      "description": "Door casing linear footage",
+      "uom": "LF",
+      "required_when": "door casing in scope"
+    },
+    {
+      "key": "PS_SURFACE_LF.TRIM_CASING_WINDOW",
+      "description": "Window casing linear footage",
+      "uom": "LF",
+      "required_when": "window casing in scope"
+    },
+    {
+      "key": "PS_SURFACE_LF.TRIM_CHAIR_RAIL",
+      "description": "Chair rail linear footage",
+      "uom": "LF",
+      "required_when": "chair rail in scope"
+    },
+    {
+      "key": "PS_SURFACE_LF.TRIM_WAINSCOT_RAIL",
+      "description": "Wainscot rail linear footage",
+      "uom": "LF",
+      "required_when": "wainscot rail in scope"
+    },
+    {
+      "key": "PS_SURFACE_LF.TRIM_SHADOW_BOX",
+      "description": "Shadow box molding linear footage",
+      "uom": "LF",
+      "required_when": "shadow box in scope"
+    },
+    {
+      "key": "PS_SURFACE_LF.TRIM_PANEL_MOLD",
+      "description": "Panel molding linear footage",
+      "uom": "LF",
+      "required_when": "panel molding in scope"
+    },
+    {
+      "key": "PS_SURFACE_LF.TRIM_PICTURE_RAIL",
+      "description": "Picture rail linear footage",
+      "uom": "LF",
+      "required_when": "picture rail in scope"
+    },
+    {
+      "key": "PS_EDGE_LF.TRIM_JOINTS",
+      "description": "Total LF of trim joints requiring caulk assessment and potential replacement",
+      "uom": "LF",
+      "required_when": "caulk assess/replace tasks"
+    },
+    {
+      "key": "PS_PROTECT_SF.FLOOR_PERIMETER",
+      "description": "Perimeter floor protection area for drip containment during trim work",
+      "uom": "SF",
+      "required": true,
+      "required_when": "Always — floor protection is mandatory in RP (finished floors)"
+    },
+    {
+      "key": "PS_PROTECT_LF.WALL_ADJACENT",
+      "description": "Wall masking at trim edge for spray method protection",
+      "uom": "LF",
+      "required_when": { "application_method": ["spray"] }
+    },
+    {
+      "key": "PS_PROTECT_EA.ASSET.FIXTURES",
+      "description": "Count of fixtures near spray zone requiring covering",
+      "uom": "EA",
+      "required_when": { "application_method": ["spray"] }
+    },
+    {
+      "key": "PS_META.EA.ROOMS_TOTAL",
+      "description": "Room count — drives per-room heuristics (furniture protection, customer walkthrough)",
+      "uom": "EA",
+      "required": true,
+      "required_when": "Always — used for furniture protection, walkthrough"
+    },
+    {
+      "key": "PS_META.SURFACE_CONDITION",
+      "description": "Surface condition enum (GOOD/FAIR/POOR) for condition modifier selection",
+      "uom": "ENUM",
+      "required": true,
+      "required_when": "Always — drives condition_scale dimension"
+    },
+    {
+      "key": "PS_META.HEIGHT_BAND",
+      "description": "Trim working height classification for height modifier",
+      "uom": "ENUM",
+      "required": true,
+      "required_when": "Always — drives height modifier per trim type"
+    },
+    {
+      "key": "PS_META.PROFILE_COMPLEXITY",
+      "description": "Trim profile complexity for complexity modifier",
+      "uom": "ENUM",
+      "required": true,
+      "required_when": "Always — drives profile complexity modifier per trim type"
+    },
+    {
+      "key": "PS_PROTECT_SF.FURNITURE_ROOM",
+      "description": "Room floor area for furniture protection coverage",
+      "uom": "SF",
+      "required_when": { "occupancy_state": ["occupied_crew_handles", "occupied_sensitive"] }
+    }
+  ],
+
+  "proposed_new_keys": [
+    {
+      "proposed_key": "PS_META.ENUM.SUBSTRATE_STATE_INT",
+      "uom": "ENUM",
+      "description": "Interior substrate state classification (SS_INT_SOUND_PAINT through SS_INT_SMOKE_DAMAGE). Captured during assessment phase. Drives primer selection logic.",
+      "justification": "Shared with SF_DRYWALL_WALL_INT_RP — same key proposed there. Interior RP requires a substrate state selector distinct from exterior states. PS_META.SURFACE_CONDITION captures GOOD/FAIR/POOR but not the specific SS_INT_* state for primer routing."
+    },
+    {
+      "proposed_key": "PS_META.BOOL.HOME_PRE_1978",
+      "uom": "BOOL",
+      "description": "Boolean flag indicating home was built before 1978, triggering RRP lead-safe work practice module.",
+      "justification": "Shared with SF_DRYWALL_WALL_INT_RP — same key proposed there. Trim is HIGH RISK for lead paint — historically received oil-based lead paint more frequently than field surfaces."
+    },
+    {
+      "proposed_key": "PS_META.ENUM.CONTAMINATION_TYPE",
+      "uom": "ENUM",
+      "description": "Contamination type classification: none, mildew, smoke, water_stain. Drives primer selection and treatment task activation.",
+      "justification": "Shared with SF_DRYWALL_WALL_INT_RP — same key proposed there. Interior RP needs contamination-specific treatment tasks."
+    }
+  ],
+
+  "adjacency_analysis": {
+    "primary_surface": "trim_baseboard",
+    "primary_surface_note": "Baseboard is listed as the representative trim type. Adjacency analysis applies to all 9 trim types — each has its own adjacent surface. All trim types share the wall_field adjacency.",
+    "adjacent_surfaces": [
+      {
+        "surface_id": "wall_field",
+        "edge_type": "linear",
+        "typical_relationship": "different_finish",
+        "edge_work_required": false,
+        "notes": "Wall is always finished in RP context. Trim painter does NOT cut into wall — wall is masked (tape line for brush, tape + paper for spray). This is a PROTECTION relationship. Trim sheen (satin/semi-gloss/gloss) differs from wall sheen (typically eggshell). Wall masking is the critical adjacency protection for trim RP."
+      },
+      {
+        "surface_id": "ceiling_field",
+        "edge_type": "linear",
+        "typical_relationship": "different_finish",
+        "edge_work_required": false,
+        "notes": "Applies to crown molding only. Crown meets ceiling at top edge. Trim painter cuts into ceiling junction. No tape needed on drywall ceilings per doctrine — cut-in establishes line."
+      },
+      {
+        "surface_id": "door_frame",
+        "edge_type": "complex",
+        "typical_relationship": "same_finish",
+        "edge_work_required": false,
+        "notes": "Door casing meets door frame. Often same finish group (both painted trim). If door frame is in SF_DOOR_INT_RP scope, coordination required."
+      },
+      {
+        "surface_id": "window_frame",
+        "edge_type": "complex",
+        "typical_relationship": "varies",
+        "edge_work_required": false,
+        "notes": "Window casing meets window frame. Frame may be painted (wood) or unpainted (vinyl/aluminum). Painted frames are in SF_WINDOW_INT_RP scope."
+      }
+    ],
+    "surface_reference": "Surface_Vocabulary_Reference.md v1.0",
+    "key_finding": "Trim RP adjacency is dominated by the wall_field protection relationship. All trim types share the wall adjacency (wall must be masked). Crown additionally has ceiling adjacency. Door/window casings have frame adjacency. The critical protection direction is trim-to-wall — protecting finished walls from trim paint."
+  },
+
+  "protection_zones_analysis": {
+    "spec_category": "trim",
+    "application_method_sensitivity": true,
+    "zones": [
+      {
+        "zone_id": "floor_perimeter",
+        "condition": "always",
+        "protection_level": "edge_only",
+        "paintscope_key": "PS_PROTECT_SF.FLOOR_PERIMETER",
+        "notes": "Runner-style drop cloths along trim perimeter for drip containment. RP always has finished floors. Mandatory at all tiers and methods."
+      },
+      {
+        "zone_id": "wall_adjacent",
+        "condition": { "application_method": ["spray"] },
+        "protection_level": "heavy_mask",
+        "paintscope_key": "PS_PROTECT_LF.WALL_ADJACENT",
+        "notes": "Tape + paper masking at wall-trim junction to protect finished wall from overspray. Required for spray method. For brush method, tape-only (light_mask) provides cut line target."
+      },
+      {
+        "zone_id": "fixture_covers",
+        "condition": { "application_method": ["spray"] },
+        "protection_level": "full_cover",
+        "paintscope_key": "PS_PROTECT_EA.ASSET.FIXTURES",
+        "notes": "Cover outlets/switches near spray zone. Spray method only."
+      },
+      {
+        "zone_id": "furniture_room",
+        "condition": { "occupancy_state": ["occupied_crew_handles", "occupied_sensitive"] },
+        "protection_level": "partial_cover",
+        "paintscope_key": "PS_PROTECT_SF.FURNITURE_ROOM",
+        "notes": "RP-specific. Move items away from trim work zones, cover furniture near baseboard/crown. Lighter protection scope than wall RP because trim overspray/spatter zone is smaller."
+      }
+    ],
+    "zone_reference": "Protection_Zones_Reference.md v2.1",
+    "method_escalation": "brush < spray",
+    "rp_specific_note": "RP adds furniture_room zone (occupied home context) and always activates floor_perimeter (finished floors always present). Wall_adjacent is critical for spray method — wall is always finished in RP."
+  },
+
+  "site_condition_analysis": {
+    "affected_conditions": [
+      {
+        "condition_id": "occupancy_state",
+        "vocabulary_ref": "Site_Condition_Vocabulary_Reference.md",
+        "affected_task_types": ["protect", "cleanup"],
+        "include_values": ["occupied_crew_handles", "occupied_sensitive"],
+        "exclude_values": ["vacant"],
+        "modifier_notes": "occupied_crew_handles=1.15x on protection tasks, occupied_sensitive=1.30x per Modifier_Registry",
+        "notes": "RP primary differentiator — occupied home context adds furniture protection and customer walkthrough. Trim work specifically: clear items from baseboard zones, move shelf items near crown."
+      },
+      {
+        "condition_id": "lead_status",
+        "vocabulary_ref": "Site_Condition_Vocabulary_Reference.md",
+        "affected_task_types": ["prep", "protect"],
+        "include_values": ["tested_positive", "unknown_pre1978"],
+        "exclude_values": ["not_applicable", "presumed_safe", "tested_negative"],
+        "modifier_notes": "tested_positive=2.0x all tasks, unknown_pre1978=1.5x prep tasks per Modifier_Registry",
+        "notes": "Activates MOD_RRP_INT_CONTAINMENT shared module. Interior TRIM is HIGH RISK for lead paint — historically received oil-based lead paint more frequently than walls or ceilings. Scraping and sanding trim generates lead-contaminated dust."
+      },
+      {
+        "condition_id": "moisture_condition",
+        "vocabulary_ref": "Site_Condition_Vocabulary_Reference.md",
+        "affected_task_types": ["assessment"],
+        "include_values": ["recently_wet"],
+        "exclude_values": ["active_moisture"],
+        "notes": "Trim in bathrooms and kitchens may have moisture damage (SS_INT_MOISTURE_DAMAGE). active_moisture is a STOP WORK condition. Less common on trim than walls/ceilings but present at baseboard level in flood-affected homes and at window casing in condensation-prone areas."
+      },
+      {
+        "condition_id": "access_constraint",
+        "vocabulary_ref": "Site_Condition_Vocabulary_Reference.md",
+        "affected_task_types": ["application", "prep"],
+        "include_values": ["step_ladder", "extension_ladder"],
+        "effect_notes": "Height modifiers per Modifier_Registry: H1=1.0, H2=1.30, H3=1.50",
+        "notes": "Crown molding and picture rail require step/extension ladder. Baseboard and door/window casing are floor-level. Scaffold excluded for interior trim."
+      },
+      {
+        "condition_id": "floor_type",
+        "vocabulary_ref": "Site_Condition_Vocabulary_Reference.md",
+        "affected_task_types": ["protect"],
+        "include_values": ["finished"],
+        "notes": "RP ALWAYS has finished floors. Floor protection is mandatory. Unlike NC where subfloor may be present."
+      },
+      {
+        "condition_id": "time_constraint",
+        "vocabulary_ref": "Site_Condition_Vocabulary_Reference.md",
+        "affected_task_types": ["protect", "cleanup"],
+        "include_values": ["phased_occupancy"],
+        "effect_notes": "phased_occupancy=1.25x on setup/teardown tasks per Modifier_Registry",
+        "notes": "Common for interior RP — room-by-room completion with daily setup/teardown."
+      }
+    ],
+    "condition_reference": "Site_Condition_Vocabulary_Reference.md v1.2",
+    "modifier_reference": "Modifier_Registry.md"
+  },
+
+  "state_analysis": {
+    "primary_surface": "trim_baseboard",
+    "primary_surface_note": "Baseboard used as representative. State analysis applies to all 9 trim types identically.",
+    "valid_input_states": {
+      "states": [
+        "SS_INT_SOUND_PAINT",
+        "SS_INT_FAILING_PAINT",
+        "SS_INT_PEELING",
+        "SS_INT_MOISTURE_DAMAGE",
+        "SS_INT_SMOKE_DAMAGE"
+      ],
+      "rationale": "Interior trim RP spec accepts all 5 interior RP substrate states. Each state drives a distinct prep pathway and primer selection. Input state is determined during assessment phase. Multiple trim types in same room may have different states — worst state drives room condition_scale."
+    },
+    "output_state": {
+      "state": "SS_PAINTED_SATIN",
+      "varies_by": "sheen",
+      "state_map": {
+        "satin": "SS_PAINTED_SATIN",
+        "semi-gloss": "SS_PAINTED_SEMIGLOSS",
+        "gloss": "SS_PAINTED_GLOSS"
+      },
+      "rationale": "Output state varies by selected sheen. Satin is default for residential trim at QT3. Semi-gloss at QT4+. Gloss at QT5 only. All input states normalize to standard SS_PAINTED_* output after proper prep and coating."
+    },
+    "state_to_condition_mapping": {
+      "GOOD": ["SS_INT_SOUND_PAINT"],
+      "FAIR": ["SS_INT_FAILING_PAINT", "SS_INT_MOISTURE_DAMAGE"],
+      "POOR": ["SS_INT_PEELING", "SS_INT_SMOKE_DAMAGE"]
+    },
+    "state_driven_primer_selection": {
+      "SS_INT_SOUND_PAINT": {
+        "primer_required": "conditional",
+        "primer_system": "none or SYS_PRIMER_ADHESION_INT",
+        "logic": "No primer if adhesion test passes and existing paint is in good condition. Adhesion primer if existing sheen is semi-gloss or higher (very common on trim), or if coating ID shows oil-based base (also very common on trim). Most trim RP will require adhesion primer even at GOOD condition due to high-sheen and oil-based legacy."
+      },
+      "SS_INT_FAILING_PAINT": {
+        "primer_required": "yes - spot or full",
+        "primer_system": "SYS_PRIMER_ADHESION_INT",
+        "logic": "Spot prime all scraped/feathered areas. Full prime if scraped area exceeds 30% of trim LF. Adhesion primer mandatory."
+      },
+      "SS_INT_PEELING": {
+        "primer_required": "yes - full prime",
+        "primer_system": "SYS_PRIMER_ADHESION_INT",
+        "logic": "Full prime required after complete scrape to sound substrate. Extensive bare area requires full-coverage adhesion primer."
+      },
+      "SS_INT_MOISTURE_DAMAGE": {
+        "primer_required": "yes - full prime",
+        "primer_system": "SYS_PRIMER_MILDEW_INT",
+        "logic": "Mildew-resistant primer after biocide treatment. Stain-blocking primer for water stains. Source moisture must be resolved first (gate condition). Common on bathroom/kitchen baseboard and window casing."
+      },
+      "SS_INT_SMOKE_DAMAGE": {
+        "primer_required": "yes - full surface",
+        "primer_system": "SYS_PRIMER_STAINBLOCK_INT",
+        "logic": "Shellac-based stain blocker (BIN or equivalent) full surface application. Spot treatment insufficient — smoke contamination is pervasive even when not visually apparent on trim profiles."
+      }
+    },
+    "adjacent_state_protection_analysis": [
+      {
+        "adjacent_surface": "wall_field",
+        "finished_states": ["SS_PAINTED_FLAT", "SS_PAINTED_EGGSHELL", "SS_PAINTED_SATIN", "SS_PAINTED_SEMIGLOSS"],
+        "unfinished_states": [],
+        "protection_when_finished": "light_mask",
+        "protection_when_unfinished": "none",
+        "rationale": "RP walls are always finished. Tape at wall-trim junction protects wall from trim paint. For spray method, upgrade to heavy_mask (tape + paper). This is the inverse of wall RP protecting trim."
+      },
+      {
+        "adjacent_surface": "ceiling_field",
+        "finished_states": ["SS_PAINTED_FLAT", "SS_PAINTED_EGGSHELL"],
+        "unfinished_states": [],
+        "protection_when_finished": "none",
+        "protection_when_unfinished": "none",
+        "rationale": "Per doctrine: trim painter cuts into ceiling freehand at crown molding junction — no tape or mask on drywall ceilings. Same as NC convention."
+      }
+    ],
+    "state_reference": "Substrate_State_Reference.md v1.1.0"
+  },
+
+  "task_inventory_projection": {
+    "source_nc_tasks": {
+      "trim_prime": { "total": 16, "direct": 8, "modified": 4, "not_applicable": 4 },
+      "trim_paint": { "total": 21, "direct": 20, "modified": 1, "not_applicable": 0 }
+    },
+    "projected_rp_tasks": {
+      "direct_transfers": 28,
+      "modified_transfers": 5,
+      "rp_new_tasks": 12,
+      "not_applicable_removals": 4,
+      "projected_total": "40-45"
+    },
+    "rp_new_task_projections": [
+      {
+        "task_id": "TSK_TMRP_ASSESS_CONDITION",
+        "phase": "assessment",
+        "description": "Visual condition scan of all trim types — map cracking, peeling, adhesion failure areas, assess caulk integrity",
+        "classification": "binary",
+        "unit_of_measure": "FIXED",
+        "skill_level": "journeyman",
+        "estimated_fixed_minutes": "30-60 per project"
+      },
+      {
+        "task_id": "TSK_TMRP_ASSESS_ADHESION",
+        "phase": "assessment",
+        "description": "Cross-hatch tape test per ASTM D3359 at representative trim sections and suspect zones. Minimum 3 test locations.",
+        "classification": "binary",
+        "unit_of_measure": "FIXED",
+        "skill_level": "journeyman",
+        "estimated_fixed_minutes": "15-30 per project"
+      },
+      {
+        "task_id": "TSK_TMRP_ASSESS_COATING_ID",
+        "phase": "assessment",
+        "description": "Coating identification — latex vs oil via solvent test (mineral spirits dissolves alkyd). CRITICAL for trim — high probability of oil-based existing coating.",
+        "classification": "binary",
+        "unit_of_measure": "FIXED",
+        "skill_level": "journeyman",
+        "estimated_fixed_minutes": "10-20 per project"
+      },
+      {
+        "task_id": "TSK_TMRP_DEGLOSS",
+        "phase": "prep",
+        "description": "Degloss existing trim finish for adhesion. Chemical degloss (liquid sander wipe) or mechanical scuff (120-150 grit). Required for all states — even GOOD condition trim typically has semi-gloss or gloss requiring degloss.",
+        "classification": "qt_scaled",
+        "unit_of_measure": "LF",
+        "skill_level": "journeyman",
+        "applies_when": "all conditions"
+      },
+      {
+        "task_id": "TSK_TMRP_SCRAPE_LOOSE",
+        "phase": "prep",
+        "description": "Scrape all failing/peeling paint to sound substrate using putty knife or detail scraper. Profile-aware scraping — get into crevices on complex/ornate profiles.",
+        "classification": "qt_scaled",
+        "unit_of_measure": "LF",
+        "skill_level": "journeyman",
+        "applies_when": { "condition_scale": ["FAIR", "POOR"] }
+      },
+      {
+        "task_id": "TSK_TMRP_FEATHER_EDGES",
+        "phase": "prep",
+        "description": "Feather-sand all scrape edges to create smooth transition between bare substrate and remaining sound paint. Especially critical on trim — viewed at close range.",
+        "classification": "qt_scaled",
+        "unit_of_measure": "LF",
+        "skill_level": "journeyman",
+        "applies_when": { "condition_scale": ["FAIR", "POOR"] }
+      },
+      {
+        "task_id": "TSK_TMRP_CAULK_ASSESS_REPLACE",
+        "phase": "prep",
+        "description": "Walk all trim, assess existing caulk condition, remove failed caulk sections, re-caulk with paintable acrylic. Estimated 15-30% of joints need replacement in typical RP.",
+        "classification": "qt_scaled",
+        "unit_of_measure": "LF",
+        "skill_level": "journeyman",
+        "replaces_nc_task": "TSK_TRIM_CAULK_JOINTS (MODIFIED — assess-and-replace instead of full caulk)"
+      },
+      {
+        "task_id": "TSK_TMRP_TREAT_MILDEW",
+        "phase": "prep",
+        "description": "Bleach/biocide solution application on mildew-affected trim areas. Wait for full kill time, rinse, dry. Common on bathroom/kitchen baseboard.",
+        "classification": "binary",
+        "unit_of_measure": "LF",
+        "skill_level": "journeyman",
+        "applies_when": { "substrate_state": ["SS_INT_MOISTURE_DAMAGE"] }
+      },
+      {
+        "task_id": "TSK_TMRP_PRIME_ADHESION_BRUSH",
+        "phase": "prime",
+        "description": "Brush adhesion primer on trim — for sound paint with high sheen, failing paint, peeling, or oil-over-latex conditions. State-driven selection.",
+        "classification": "qt_scaled",
+        "unit_of_measure": "LF",
+        "skill_level": "journeyman",
+        "applies_when": { "application_method": ["brush"] },
+        "replaces_nc_task": "TSK_TRIM_PRIME_BRUSH (MODIFIED — adhesion primer instead of PVA/acrylic)"
+      },
+      {
+        "task_id": "TSK_TMRP_PRIME_ADHESION_SPRAY",
+        "phase": "prime",
+        "description": "Spray adhesion primer on trim. State-driven selection.",
+        "classification": "qt_scaled",
+        "unit_of_measure": "LF",
+        "skill_level": "journeyman",
+        "applies_when": { "application_method": ["spray"] },
+        "replaces_nc_task": "TSK_TRIM_PRIME_SPRAY (MODIFIED — adhesion primer instead of PVA/acrylic)"
+      },
+      {
+        "task_id": "TSK_TMRP_FURNITURE_CLEAR",
+        "phase": "setup",
+        "description": "Move items away from trim work zones — clear floor items near baseboard, shelf items near crown, wall-hung items near casings. Lighter scope than wall RP center-pile.",
+        "classification": "binary",
+        "unit_of_measure": "EA",
+        "skill_level": "helper",
+        "applies_when": { "occupancy_state": ["occupied_crew_handles", "occupied_sensitive"] },
+        "estimated_fixed_minutes": "10-20 per room"
+      },
+      {
+        "task_id": "TSK_TMRP_CUSTOMER_WALKTHROUGH",
+        "phase": "cleanup",
+        "description": "Post-completion room-by-room review with homeowner — inspect trim finish quality at close range, identify touch-up needs, confirm satisfaction.",
+        "classification": "binary",
+        "unit_of_measure": "FIXED",
+        "skill_level": "lead",
+        "estimated_fixed_minutes": "5-10 per room"
+      }
+    ],
+    "direct_transfer_tasks": [
+      "TSK_SETUP_FLOOR_PROTECTION -> floor drops along trim perimeter",
+      "TSK_SETUP_WALL_MASK -> wall masking at trim edge (spray)",
+      "TSK_SETUP_FIXTURE_COVERS -> cover fixtures near spray zone",
+      "TSK_TRIM_DUST_WIPE -> wipe dust from trim surfaces",
+      "TSK_REMOVE_WALL_MASK -> remove wall masking",
+      "TSK_REMOVE_FIXTURE_COVERS -> remove fixture covers",
+      "TSK_REMOVE_FLOOR_PROTECTION -> remove floor protection",
+      "TSK_FINAL_CLEANUP -> final cleanup",
+      "TSK_TRIM_FLOOR_PROTECT -> floor protection setup (finish phase)",
+      "TSK_TRIM_WALL_MASK -> wall masking (finish phase)",
+      "TSK_TRIM_FIXTURE_COVER -> fixture covers (finish phase)",
+      "TSK_TRIM_LIGHT_SAND_PRIMER -> light sand primer surface",
+      "TSK_TRIM_TOUCHUP_CAULK -> touch-up caulk cracked joints after primer",
+      "TSK_TRIM_TOUCHUP_FILL -> touch-up fill revealed defects",
+      "TSK_TRIM_CLEAN_DUST_PREP -> clean sanding dust",
+      "TSK_TRIM_BRUSH_FINISH_1 -> brush finish coat 1",
+      "TSK_TRIM_SPRAY_FINISH_1 -> spray finish coat 1",
+      "TSK_TRIM_INSPECT_COAT -> inspect coat (interstage)",
+      "TSK_TRIM_SAND_BETWEEN -> sand between coats",
+      "TSK_TRIM_PATCH_DEFECTS -> patch/repair defects",
+      "TSK_TRIM_SPOT_COAT -> spot coat patched areas",
+      "TSK_TRIM_CLEAN_INTERSTAGE -> clean sanding dust (interstage)",
+      "TSK_TRIM_BRUSH_FINISH_2 -> brush finish coat 2",
+      "TSK_TRIM_SPRAY_FINISH_2 -> spray finish coat 2",
+      "TSK_TRIM_FINAL_INSPECT -> final trim inspection",
+      "TSK_TRIM_TOUCHUP -> touch-up defects (final)",
+      "TSK_TRIM_PROTECT_TEARDOWN -> protection teardown",
+      "TSK_TRIM_CLEAN_TOOLS -> clean tools"
+    ],
+    "modified_transfer_tasks": [
+      {
+        "nc_task": "TSK_TRIM_CAULK_JOINTS",
+        "rp_task": "TSK_TMRP_CAULK_ASSESS_REPLACE",
+        "modification": "NC: full caulk all joints. RP: assess existing caulk, replace only failed sections (15-30%). Faster walk rate.",
+        "transfer_type": "MODIFIED"
+      },
+      {
+        "nc_task": "TSK_TRIM_SAND_PREP",
+        "rp_task": "TSK_TMRP_DEGLOSS",
+        "modification": "NC: sand bare wood for adhesion (light sand). RP: degloss existing paint finish (chemical or mechanical scuff). Different grit, different purpose.",
+        "transfer_type": "MODIFIED"
+      },
+      {
+        "nc_task": "TSK_TRIM_PRIME_BRUSH",
+        "rp_task": "TSK_TMRP_PRIME_ADHESION_BRUSH",
+        "modification": "NC: PVA/acrylic wood primer on bare substrate. RP: adhesion/stain-block/mildew primer based on substrate state. Different product, similar application rate.",
+        "transfer_type": "MODIFIED"
+      },
+      {
+        "nc_task": "TSK_TRIM_PRIME_SPRAY",
+        "rp_task": "TSK_TMRP_PRIME_ADHESION_SPRAY",
+        "modification": "NC: PVA/acrylic spray primer. RP: state-driven spray primer. Same application technique, different product.",
+        "transfer_type": "MODIFIED"
+      },
+      {
+        "nc_task": "TSK_TRIM_INSPECT_PRIMER",
+        "rp_task": "TSK_TRIM_INSPECT_PRIMER (modified in place)",
+        "modification": "NC: inspect bare-substrate primer coverage. RP: inspect state-driven primer coverage — verify adhesion primer bonding, stain blocker coverage, mildew primer film integrity.",
+        "transfer_type": "MODIFIED"
+      }
+    ],
+    "not_applicable_tasks": [
+      "TSK_TRIM_FILL_FASTENERS -> bare wood only, fasteners filled on original NC",
+      "TSK_TRIM_FILL_END_GRAIN -> bare wood only, end grain sealed on original NC",
+      "TSK_MDF_EDGE_SEAL -> bare MDF only, edges sealed on original NC",
+      "TSK_TRIM_SPOT_PRIME_KNOTS -> bare wood only, knots sealed on original NC"
+    ]
+  },
+
+  "modifier_stacking_partition": {
+    "description": "Interior trim RP uses the two-pool stacking architecture inherited from exterior RP and wall RP to prevent runaway modifier accumulation. Trim adds profile complexity as a shared modifier.",
+    "prep_pool": {
+      "modifiers": ["condition_scale", "height", "profile_complexity"],
+      "formula": "prep_modifier = condition_modifier x height_modifier x profile_complexity_modifier",
+      "never_includes": ["quality_tier"],
+      "max_theoretical": "POOR(2.0) x H3(1.50) x Ornate(1.40) = 4.20x",
+      "notes": "Prep pool applies to assessment, degloss, scrape, feather, caulk assess, contamination treatment, primer application. QT never applies to prep — prep is condition-driven. Max stack slightly exceeds 4.0x flag at extreme (poor + high + ornate) — flag for estimator review but achievable in real scenarios."
+    },
+    "coating_pool": {
+      "modifiers": ["quality_tier", "height", "profile_complexity"],
+      "formula": "coating_modifier = qt_modifier x height_modifier x profile_complexity_modifier",
+      "never_includes": ["condition_scale"],
+      "max_theoretical": "QT5(1.50) x H3(1.50) x Ornate(1.40) = 3.15x",
+      "notes": "Coating pool applies to finish coat application, interstage sanding, inspection. Condition does not apply — once prepped, surface is at baseline."
+    },
+    "shared_modifiers": {
+      "height": "Applied to BOTH pools — physical constraint",
+      "profile_complexity": "Applied to BOTH pools — physical surface property"
+    },
+    "comparison_to_exterior": {
+      "exterior_max_prep": "SC_SEVERE(1.75) x RRP(2.00) x Extreme(2.20) x Elaborate(1.60) = 12.32x",
+      "interior_max_prep": "POOR(2.0) x H3(1.50) x Ornate(1.40) = 4.20x",
+      "notes": "Interior trim RP stacking is dramatically lower than exterior due to: no scaffold/lift height tiers (capped at H3), no RRP modifier (lead is a shared module not a rate modifier), simpler condition scale (3-level vs 4-level exterior). This is expected and correct."
+    }
+  },
+
+  "material_system_requirements": {
+    "primer_systems": [
+      {
+        "system_id": "SYS_PRIMER_ADHESION_INT",
+        "name": "Interior Adhesion Primer",
+        "when_to_use": "SS_INT_SOUND_PAINT (when existing sheen is semi-gloss+ or coating is oil-based), SS_INT_FAILING_PAINT, SS_INT_PEELING",
+        "typical_products": ["Stix Waterborne Bonding Primer", "XIM UMA Primer", "KILZ Adhesion Primer"],
+        "notes": "Most common RP trim primer. Trim has high probability of semi-gloss/gloss or oil-based existing finish. Water-based adhesion promoter bonds to glossy, chalky, or previously painted surfaces."
+      },
+      {
+        "system_id": "SYS_PRIMER_STAINBLOCK_INT",
+        "name": "Interior Stain-Blocking Primer (Shellac-Based)",
+        "when_to_use": "SS_INT_SMOKE_DAMAGE, severe water stains on trim",
+        "typical_products": ["Zinsser BIN Shellac-Based Primer", "KILZ Original (oil-based)"],
+        "notes": "Shellac-based for maximum stain blocking. Full surface application. Strong odor requires ventilation. Denatured alcohol cleanup."
+      },
+      {
+        "system_id": "SYS_PRIMER_MILDEW_INT",
+        "name": "Interior Mildew-Resistant Primer",
+        "when_to_use": "SS_INT_MOISTURE_DAMAGE (bathroom/kitchen baseboard, window casing with condensation history)",
+        "typical_products": ["KILZ Mold & Mildew Primer", "Zinsser Mold Killing Primer"],
+        "notes": "Applied after biocide treatment and full drying. Source moisture must be resolved first."
+      }
+    ],
+    "finish_systems": [
+      {
+        "quality_tier": ["QT3"],
+        "system_id": "SYS_FF_STANDARD_ACRYLIC",
+        "system_type": "100% acrylic enamel",
+        "sheens": ["satin"],
+        "notes": "Standard fine-finish acrylic enamel. Satin sheen default."
+      },
+      {
+        "quality_tier": ["QT4"],
+        "system_id": "SYS_FF_MODIFIED_URETHANE",
+        "system_type": "Urethane-modified alkyd",
+        "sheens": ["satin", "semi-gloss"],
+        "notes": "Premium urethane-modified for better leveling and durability. Semi-gloss available."
+      },
+      {
+        "quality_tier": ["QT5"],
+        "system_id": "SYS_FF_PREMIUM",
+        "system_type": "Premium urethane or conversion finish",
+        "sheens": ["satin", "semi-gloss", "gloss"],
+        "notes": "Top-tier finish. Gloss sheen available at QT5 only. Per Fine_Finish_Doctrine."
+      }
+    ],
+    "consumable_notes": [
+      "Degloss supplies: liquid sander (Krud Kutter Gloss-Off or equivalent) for chemical degloss, OR 120-150 grit sandpaper for mechanical scuff",
+      "Detail scraping tools: 1.5-inch putty knife, detail scraper, contour scraper for profile trim",
+      "Sanding supplies: rigid sanding block per FFD 15.4, contour sanding sponge for profiles, 120-320 grit range",
+      "Caulk: paintable acrylic latex caulk, caulk gun, caulk removal tool",
+      "Contamination treatment: TSP powder, bleach/mildewcide solution, spray bottles",
+      "Adhesion test kit: cross-hatch cutter, pressure-sensitive tape per ASTM D3359",
+      "Solvent test supplies: mineral spirits, white rags (for coating identification)",
+      "Brushes: 2-2.5 inch angled sash brush (primary trim brush), 1-inch detail brush for tight profiles",
+      "Standard painting consumables: tack cloths, tape, drop cloths"
+    ]
+  },
+
+  "rrp_containment_integration": {
+    "shared_module": "MOD_RRP_INT_CONTAINMENT",
+    "trigger": "home_year < 1978 (via PS_META.BOOL.HOME_PRE_1978)",
+    "notes": "Trim is HIGH RISK for lead paint — historically received oil-based lead paint more frequently than walls or ceilings. Pre-1978 trim scraping and sanding generates lead-contaminated dust. Shared module across all 9 interior RP specs. Trim-specific concern: scraping profiles generates fine dust that is harder to contain than flat surface scraping."
+  },
+
+  "notes_for_materials_manager": [
+    {
+      "note_id": "MAT-001",
+      "topic": "Three primer systems required — shared with wall RP",
+      "content": "SYS_PRIMER_ADHESION_INT, SYS_PRIMER_STAINBLOCK_INT, SYS_PRIMER_MILDEW_INT. Same systems as SF_DRYWALL_WALL_INT_RP. State-driven selection — see state_driven_primer_selection. Trim has higher probability of needing adhesion primer than walls due to legacy semi-gloss/gloss and oil-based finishes."
+    },
+    {
+      "note_id": "MAT-002",
+      "topic": "Fine-finish material systems per QT tier",
+      "content": "QT3: SYS_FF_STANDARD_ACRYLIC, QT4: SYS_FF_MODIFIED_URETHANE, QT5: SYS_FF_PREMIUM. Same fine-finish systems as NC trim finish spec. No new finish material systems needed for RP."
+    },
+    {
+      "note_id": "MAT-003",
+      "topic": "Contour scraper for profile trim RP prep",
+      "content": "RP trim prep on complex/ornate profiles requires contour scrapers and contour sanding sponges not commonly used in NC. Create tool entries for profile-specific prep tools."
+    },
+    {
+      "note_id": "MAT-004",
+      "topic": "Coating identification supplies",
+      "content": "Mineral spirits and white rags for latex-vs-oil solvent test. Small quantity per project. Not needed in NC (substrate is known). Consider adding to CON_ASSESSMENT_KIT consumable."
+    }
+  ],
+
+  "notes_for_sop_librarian": [
+    {
+      "note_id": "SOP-001",
+      "topic": "Use TMRP_ prefix for all new RP task IDs",
+      "content": "Context prefix is TMRP (trim repaint). Pattern: TSK_TMRP_{ACTION}. DIRECT transfer tasks from NC retain their original TSK_TRIM_ or TSK_SETUP_ prefix — only NEW RP tasks and MODIFIED tasks use TMRP_. Avoid collision with existing WLRP_ (wall) and CLRP_ (ceiling) prefixes."
+    },
+    {
+      "note_id": "SOP-002",
+      "topic": "Assessment phase is new — no NC equivalent",
+      "content": "Create assessment module MOD_TMRP_ASSESSMENT with 3 tasks: condition scan, adhesion test, coating ID. Lead screen is in shared MOD_RRP_INT_CONTAINMENT. Assessment tasks are FIXED time per project. No moisture meter task (unlike wall RP) — trim MC testing is not standard for interior trim."
+    },
+    {
+      "note_id": "SOP-003",
+      "topic": "Module phase ordering for RP trim",
+      "content": "RP phase sequence: setup (furniture clear + floor protection + wall masking + fixture covers) -> assessment (condition scan + adhesion test + coating ID) -> prep (degloss + scrape/feather if FAIR/POOR + caulk assess/replace + contamination treatment if applicable + dust removal) -> prime (state-driven primer brush/spray) -> interstage (light sand primer + inspect + touch-up caulk/fill) -> finish (coat 1 brush/spray + inspect + sand between + coat 2 + inspect + optional coat 3 at QT5 brush) -> cleanup (protection teardown + furniture restore + customer walkthrough + tool clean)."
+    },
+    {
+      "note_id": "SOP-004",
+      "topic": "Trim surface input group carries over from NC",
+      "content": "The trim_surface_input_group from SF_TRIM_NC_PAINT_v1 carries over unchanged — same 9 trim types, same PS keys, same LF aggregation logic. Engine sums LF from all in-scope items and applies per-task rates."
+    },
+    {
+      "note_id": "SOP-005",
+      "topic": "Profile complexity applies per-item-type",
+      "content": "Profile complexity modifier is per-item-type, not per-project. Baseboard may be simple (0.85x) while crown is complex (1.25x) in the same project. Engine must apply complexity modifier per-item when iterating over trim_surface_input_group."
+    },
+    {
+      "note_id": "SOP-006",
+      "topic": "Caulk assess/replace is a different task than NC caulk",
+      "content": "TSK_TMRP_CAULK_ASSESS_REPLACE replaces TSK_TRIM_CAULK_JOINTS. NC rate was 135 LF/hr (full caulk). RP rate should be faster (walk-and-assess) at good condition, similar at poor condition. Estimated 15-30% replacement scope."
+    }
+  ],
+
+  "notes_for_estimation_engineer": [
+    {
+      "note_id": "EST-001",
+      "topic": "Modifier stacking partition — enforce two pools",
+      "content": "Prep pool: condition x height x profile_complexity. Coating pool: QT x height x profile_complexity. NEVER cross-apply. Height and profile complexity are shared. See modifier_stacking_partition section. Max prep = 4.20x, max coating = 3.15x."
+    },
+    {
+      "note_id": "EST-002",
+      "topic": "Assessment tasks are FIXED time",
+      "content": "Assessment tasks (condition scan, adhesion test, coating ID) are FIXED time per project, not rate-based. Estimated 55-110 min total for assessment phase. Not affected by trim quantity."
+    },
+    {
+      "note_id": "EST-003",
+      "topic": "Finish coat rates transfer directly from NC",
+      "content": "Brush finish coat 1: 80 LF/hr, coat 2: 90 LF/hr. Spray finish coat 1: 380 LF/hr, coat 2: 445 LF/hr. All interstage rates identical to NC. No RP-specific adjustments needed for finish phase."
+    },
+    {
+      "note_id": "EST-004",
+      "topic": "Degloss rate estimate for trim",
+      "content": "Chemical degloss (liquid sander wipe): estimated 150-250 LF/hr for trim. Mechanical degloss (sand with 120-150 grit): estimated 100-200 LF/hr. Profile complexity modifier applies. Trim is slower than wall degloss due to profiles and detail."
+    },
+    {
+      "note_id": "EST-005",
+      "topic": "Scrape and feather rates for trim profiles",
+      "content": "Scrape rate on trim: estimated 40-80 LF/hr depending on profile complexity and paint adhesion. Feather rate: estimated 30-60 LF/hr. Trim is slower than wall scrape because profiles have crevices. Profile complexity modifier applies. Wide rate ranges — field calibration needed."
+    },
+    {
+      "note_id": "EST-006",
+      "topic": "Caulk assess/replace rate",
+      "content": "TSK_TMRP_CAULK_ASSESS_REPLACE: estimated 200-300 LF/hr walk rate (faster than NC full caulk at 135 LF/hr because only 15-30% of joints need replacement). Rate is a walk-and-assess rate including inspection time."
+    },
+    {
+      "note_id": "EST-007",
+      "topic": "Additional round at QT5 brush",
+      "content": "Per NC convention (FFD 15.10.3): QT5 + brush adds coat 3 using TSK_TRIM_BRUSH_FINISH_2 rates (90 LF/hr). Additional interstage cycle. Same additional_rounds trigger as NC."
+    },
+    {
+      "note_id": "EST-008",
+      "topic": "Customer walkthrough is FIXED per room",
+      "content": "TSK_TMRP_CUSTOMER_WALKTHROUGH: 5-10 min per room. Lead skill level rate. Trim inspection at close range with homeowner."
+    }
+  ],
+
+  "assumptions": [
+    {
+      "assumption_id": "A-001",
+      "field": "occupancy_context",
+      "value": "Default assumption is occupied home (occupied_crew_handles)",
+      "source": "RP market analysis — vast majority of interior repaints are in occupied homes",
+      "doctrine_gap": false,
+      "note": "Vacant RP exists but is less common. Furniture protection tasks are conditional on occupancy_state."
+    },
+    {
+      "assumption_id": "A-002",
+      "field": "wall_always_finished",
+      "value": "Walls are always finished when trim RP occurs",
+      "source": "RP context — repainting trim implies walls are already painted",
+      "doctrine_gap": false,
+      "note": "This means wall masking is always required. Differs from NC where wall may be unfinished during trim work."
+    },
+    {
+      "assumption_id": "A-003",
+      "field": "oil_based_probability",
+      "value": "Higher probability of oil-based existing finish on trim than walls",
+      "source": "Professional practice — trim historically received oil-based paint for durability",
+      "doctrine_gap": true,
+      "note": "No doctrine quantifies this probability. Assessment phase coating ID test addresses it."
+    },
+    {
+      "assumption_id": "A-004",
+      "field": "caulk_replacement_scope",
+      "value": "15-30% of joints need replacement in typical RP",
+      "source": "Professional experience estimate",
+      "doctrine_gap": true,
+      "note": "No doctrine defines RP caulk replacement rates. Rate ranges should be wide to accommodate variability."
+    },
+    {
+      "assumption_id": "A-005",
+      "field": "sequencing",
+      "value": "Trim-first is the default RP sequencing (~80% of interior repaints)",
+      "source": "PaintScope_EdgeLF_Mapping.md section 4; Sequencing Doctrine",
+      "doctrine_gap": false,
+      "note": "Trim is painted first, then masked off, then walls are painted. Trim RP may be standalone (trim only) or part of full interior repaint."
+    },
+    {
+      "assumption_id": "A-006",
+      "field": "no_moisture_meter_for_trim",
+      "value": "Moisture meter evaluation is NOT standard for interior trim assessment",
+      "source": "Interior RP simplified assessment — moisture meter is wall/ceiling concern, not general trim concern",
+      "doctrine_gap": true,
+      "note": "Exterior trim RP includes moisture testing (TSK_TRRP_ASSESS_MOISTURE). Interior trim does not unless bathroom/kitchen baseboard shows visible water damage, in which case SS_INT_MOISTURE_DAMAGE state is assigned based on visual evidence."
+    }
+  ],
+
+  "uncertainties": [
+    {
+      "uncertainty_id": "U-001",
+      "topic": "Trim scrape and feather production rates",
+      "description": "Scrape and feather rates for interior trim are highly variable depending on profile complexity, paint age, layer count, and adhesion quality. No NC baseline exists for these tasks. Trim profiles make scraping/feathering slower than flat surfaces.",
+      "current_approach": "Using wide rate ranges (scrape 40-80 LF/hr, feather 30-60 LF/hr) with profile complexity modifier. Field calibration expected.",
+      "resolution_needed": true
+    },
+    {
+      "uncertainty_id": "U-002",
+      "topic": "Degloss rate on profiled trim",
+      "description": "Chemical and mechanical degloss rates on profiled trim are not well-documented. Profiles have crevices that are harder to reach with both chemical wipes and sandpaper.",
+      "current_approach": "Estimated 100-250 LF/hr with profile complexity modifier applied. Lower than wall degloss rate (200-300 SF/hr equivalent).",
+      "resolution_needed": true
+    },
+    {
+      "uncertainty_id": "U-003",
+      "topic": "Caulk replacement percentage in typical RP",
+      "description": "The 15-30% caulk replacement estimate is based on professional experience. Actual replacement rates vary by building age, quality of original caulk, and building movement.",
+      "current_approach": "Using caulk assess/replace walk rate (200-300 LF/hr) that includes inspection time. Rate absorbs variability in replacement percentage.",
+      "resolution_needed": true
+    },
+    {
+      "uncertainty_id": "U-004",
+      "topic": "Adhesion primer coverage rate on profiled trim",
+      "description": "Adhesion primer (Stix, XIM) may have different coverage and application characteristics than standard PVA/acrylic primer on profiled trim. Unknown if NC prime rates transfer directly.",
+      "current_approach": "Using NC prime brush rate (90 LF/hr) and spray rate (375 LF/hr) as starting point. Adhesion primers are similar viscosity to standard primers.",
+      "resolution_needed": false
+    }
+  ],
+
+  "confidence_level": "high"
+}

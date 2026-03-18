@@ -1,0 +1,1140 @@
+{
+  "research_metadata": {
+    "spec_family_id": "SF_DRYWALL_CEILING_INT_RP",
+    "spec_family_version": "v1",
+    "domain": "interior",
+    "scope_type": "repaint",
+    "research_mode": "doctrine_driven",
+    "doctrine_loaded": [
+      "docs/System/PaintFactor_OS.md",
+      "docs/System/Conventions.md",
+      "docs/Doctrine/Quality_Tiers_and_Surface_Condition.md",
+      "docs/Doctrine/Materials_and_Consumables_Doctrine.md",
+      "docs/Doctrine/Estimation_Modifiers_Doctrine.md",
+      "docs/Doctrine/Interior_Protection_Doctrine.md",
+      "docs/Doctrine/Protection_and_Masking_Doctrine.md",
+      "docs/Doctrine/Modifier_Registry.md",
+      "docs/Doctrine/Spec_Completeness_Doctrine.md",
+      "docs/Reference/Protection_Zones_Reference.md",
+      "docs/Reference/Surface_Vocabulary_Reference.md",
+      "docs/Reference/Site_Condition_Vocabulary_Reference.md",
+      "docs/Reference/Substrate_State_Reference.md",
+      "docs/PaintScope/PaintScope_Quantity_Key_Catalog.md",
+      "docs/PaintScope/Spec_Input_to_PaintScope_Key_Mapping.md",
+      "docs/PaintScope/PaintScope_Adjacency_Schema.md",
+      "devos/Interior_RP_Gap_Analysis.md"
+    ],
+    "sibling_specs_reviewed": [
+      "specs/SF_DRYWALL_WALL_INT_RP_v1/research.json",
+      "specs/SF_DRYWALL_CEILING_NC_PRIME_v1/production.json",
+      "specs/SF_DRYWALL_CEILING_NC_FINISH_v1/production.json",
+      "specs/SF_TRIM_EXT_RP_v1/research.json"
+    ],
+    "template_spec": "specs/SF_DRYWALL_WALL_INT_RP_v1/research.json",
+    "researcher": "Spec Researcher Agent",
+    "date": "2026-03-13",
+    "status": "draft",
+    "review_required": true,
+    "context_prefix": "CLRP"
+  },
+
+  "spec_family_id": "SF_DRYWALL_CEILING_INT_RP",
+  "version": "1.0.0",
+
+  "scope_summary": "Combined prime + finish repaint spec for previously painted interior drywall ceiling surfaces in occupied residential homes. Covers condition assessment, prep remediation (degloss, scrape, feather, contamination treatment), state-driven primer selection, finish coat application, and full-room floor/wall/fixture protection. Does NOT cover bare/new drywall ceilings (NC specs: SF_DRYWALL_CEILING_NC_PRIME, SF_DRYWALL_CEILING_NC_FINISH), walls (SF_DRYWALL_WALL_INT_RP), wood/specialty ceilings (SF_WOOD_CEILING_NC), or structural drywall repair. Ceiling repaints are the second-highest volume interior RP after walls. Key differentiators from wall RP: overhead penalty (15-20% slower), full floor protection always required (drip zone), ceiling fixture masking, wall-top masking for spray methods, texture is more prevalent (popcorn/knockdown/orange peel), and water damage is the #1 repaint trigger.",
+
+  "adaptation_from_wall_rp": {
+    "description": "This spec is derived from SF_DRYWALL_WALL_INT_RP_v1 with ceiling-specific adaptations. The architectural patterns (condition-driven prep, state-driven primer, two-pool modifier partition, combined prime+finish, RP assessment phase) transfer DIRECT. The differences are physical: overhead work, different protection zones, different adjacency relationships, and different modifier interactions.",
+    "direct_transfers": [
+      "Combined prime + finish architecture",
+      "5 substrate states (SS_INT_*) with identical prep pathways",
+      "GOOD/FAIR/POOR condition scale with same modifier values",
+      "State-driven primer selection logic (adhesion/stain-block/mildew)",
+      "Two-pool modifier stacking partition (prep pool vs coating pool)",
+      "Assessment phase structure (condition scan, adhesion test, moisture eval, coating ID)",
+      "RRP lead-safe containment integration (shared module)",
+      "QT2-QT5 tier structure with same tier behaviors",
+      "Customer walkthrough cleanup task"
+    ],
+    "ceiling_specific_changes": [
+      "Overhead penalty: all manual tasks 15-20% slower (0.80-0.85x of wall rates). Already factored into NC ceiling production rates.",
+      "Protection: full floor coverage mandatory (drip zone from overhead), wall-top masking for spray, ceiling fixture masking. No trim masking (ceiling has no trim adjacency except crown, which is rare).",
+      "No furniture move: furniture protection is floor-level covering only unless room is being fully repainted (wall + ceiling together). Furniture stays in place, covered from above.",
+      "Spray more common: ceilings are more often sprayed than walls (less cut-in to trim, more open field). spray_backroll is the production standard at QT3+.",
+      "Texture more prevalent: popcorn/knockdown/orange peel ceilings are common. Texture modifier has higher impact on ceiling RP.",
+      "Height modifier differs: standard 8-9ft ceilings have no height modifier. Height only matters for vaulted/cathedral (scaffold may be needed). No wall_access modifier equivalent.",
+      "Sheen: flat/matte is default (95%+ of ceiling repaints). Eggshell is rare. Satin/semi-gloss very rare and QT4+ only.",
+      "Water damage is #1 trigger: roof leaks, plumbing leaks, ice dams are the most common ceiling repaint driver.",
+      "Mildew common in bathrooms: shower steam causes ceiling mildew — SS_INT_MOISTURE_DAMAGE is more frequent on ceilings than walls.",
+      "No wall_access modifier: ceilings do not have furniture obstruction issues (work is overhead). Height is the only access modifier."
+    ]
+  },
+
+  "relevant_findings": [
+    {
+      "finding_id": "RF-001",
+      "topic": "Ceiling repaint inherits condition-driven architecture from wall RP",
+      "finding": "The fundamental RP architecture (condition assessment -> state classification -> state-driven primer -> finish) applies identically to ceilings. The same 5 substrate states (SS_INT_SOUND_PAINT through SS_INT_SMOKE_DAMAGE) apply with the same prep pathways. The only difference is that SS_INT_MOISTURE_DAMAGE is proportionally more common on ceilings (water damage from above is the #1 ceiling repaint trigger).",
+      "source": "SF_DRYWALL_WALL_INT_RP_v1/research.json RF-001; Interior_RP_Gap_Analysis.md Section A",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-002",
+      "topic": "Overhead penalty is the dominant ceiling-specific rate modifier",
+      "finding": "All manual ceiling tasks are 15-20% slower than equivalent wall tasks. This is already factored into NC ceiling production rates (e.g., NC ceiling roll primer 300 SF/hr vs wall 350 SF/hr = 14% overhead penalty). RP ceiling tasks inherit these overhead-adjusted rates from NC ceiling specs. The overhead penalty applies to: cut-in, roll, spray, backroll, sanding, inspection, spackle, and vacuum tasks. Protection tasks (floor covering, masking) are at normal rates since they are done at ground level.",
+      "source": "SF_DRYWALL_CEILING_NC_PRIME_v1/production.json rate_basis_notes; SF_DRYWALL_CEILING_NC_FINISH_v1/production.json overhead_factor",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-003",
+      "topic": "Water damage is the #1 ceiling repaint trigger",
+      "finding": "Ceiling repaints are most commonly triggered by water damage from: roof leaks, plumbing leaks from above, ice dam infiltration, condensation in attic/crawlspace, and HVAC condensate line overflow. This makes SS_INT_MOISTURE_DAMAGE the most common non-cosmetic ceiling repaint state. Unlike walls where cosmetic refresh (SS_INT_SOUND_PAINT) dominates, a significant portion of ceiling repaints involve active or resolved moisture damage requiring biocide treatment and stain-blocking primer.",
+      "source": "Interior_RP_Gap_Analysis.md Section A; professional practice",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-004",
+      "topic": "Mildew is more prevalent on ceilings than walls",
+      "finding": "Bathroom ceilings are the highest-risk surface for mildew growth in residential interiors. Shower steam rises and condenses on the ceiling, creating persistent moisture that supports mildew colonization. Kitchen ceilings above cooking areas face similar (but lower) risk from cooking steam. SS_INT_MOISTURE_DAMAGE prep pathway (biocide treatment + mildew-resistant primer) is activated more frequently for ceilings than walls.",
+      "source": "Interior_RP_Gap_Analysis.md Section A; Substrate_State_Reference.md SS_INT_MOISTURE_DAMAGE",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-005",
+      "topic": "Spray is more common for ceiling RP than wall RP",
+      "finding": "Ceilings are more frequently sprayed than walls in RP context because: (1) ceilings have fewer cut-in interruptions (no trim, no baseboard, no door/window casing — just wall edges), (2) large open field is ideal for spray efficiency, (3) flat sheen is forgiving of spray technique, (4) overhead roller fatigue makes spray ergonomically preferable for large areas. spray_backroll is the standard production method at QT3+. Spray-only (no backroll) is valid at QT2-QT3 for flat ceilings. Roll is still available but less preferred for large ceiling areas.",
+      "source": "SF_DRYWALL_CEILING_NC_PRIME_v1/production.json crew_configurations; professional practice",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-006",
+      "topic": "Texture prevalence makes texture_type modifier more impactful",
+      "finding": "Textured ceilings (popcorn, knockdown, orange peel) are more common than textured walls, especially in homes built 1960s-1990s. Popcorn/acoustic ceilings are the most extreme case — they absorb paint, are slow to cover, and may contain asbestos (pre-1980). Knockdown and orange peel are common in 1990s-2010s homes. Texture modifier values: smooth=1.0, orange_peel=1.10, knockdown=1.15, heavy_texture=1.25. Popcorn ceiling repaint is a significant special case that may warrant a separate handling note.",
+      "source": "SF_DRYWALL_CEILING_NC_PRIME_v1/production.json texture_effects; controlled_enums.json surface_texture",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-007",
+      "topic": "Full floor protection is always required for ceiling work",
+      "finding": "Unlike wall RP where floor protection varies by application method (perimeter for roll, full for spray), ceiling RP requires full floor protection ALWAYS — regardless of application method. Gravity ensures that drips, spatter, and overspray fall onto the floor. Roll method creates drip risk from overhead roller loading. Spray method creates overspray. Even brush cut-in at wall edges creates drip risk. Floor protection scope is the full room footprint, not just a perimeter.",
+      "source": "SF_DRYWALL_CEILING_NC_PRIME_v1/production.json TSK_CEIL_FLOOR_PROTECT_SETUP; Interior_Protection_Doctrine.md",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-008",
+      "topic": "Wall-top masking is ceiling-specific for spray methods",
+      "finding": "When spraying ceilings, the wall-to-ceiling junction requires masking on the wall side. Tape and paper at the wall top protects finished walls from ceiling overspray. This is the inverse of wall RP (where ceiling line is cut freehand). For roll method, wall masking is not required — ceiling cut-in at the wall edge is freehand (same as NC). Wall-top masking is a ceiling-specific protection task that does not exist in wall RP.",
+      "source": "SF_DRYWALL_CEILING_NC_PRIME_v1/production.json TSK_CEIL_MASK_ADJACENT",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-009",
+      "topic": "Ceiling fixture masking is always required for spray methods",
+      "finding": "Ceiling fixtures (recessed lights, flush-mount fixtures, ceiling fans, smoke detectors, HVAC vents, sprinkler heads) require masking or removal before ceiling spray application. Average per room: 6 recessed lights + 2 ceiling electrical boxes = 8 items. Fixture masking is a binary task at EA_ROOM rate. For roll method, fixture masking is recommended at QT4+ but not mandatory — careful rolling around fixtures is standard at QT2-QT3.",
+      "source": "SF_DRYWALL_CEILING_NC_FINISH_v1/production.json TSK_PROTECT_CEILING_FIXTURES heuristic_items_per_room",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-010",
+      "topic": "No furniture move for ceiling-only repaint",
+      "finding": "Unlike wall RP which requires center-piling furniture 4+ ft from walls, ceiling-only RP does not require furniture relocation. Furniture is protected in place with drop cloths or plastic sheeting covering tops and exposed surfaces. The drip risk is vertical (from above) not lateral (from walls). If the project includes both wall + ceiling RP, the wall spec handles furniture move — ceiling spec only covers overhead drip protection of in-place furniture and floor.",
+      "source": "Interior_RP_Gap_Analysis.md Section D Setup Phase; professional practice",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-011",
+      "topic": "Sheen is almost always flat for ceiling repaints",
+      "finding": "95%+ of residential ceiling repaints use flat sheen. Flat is standard because: (1) hides imperfections, (2) reduces glare from overhead lighting, (3) easier to apply overhead (lap marks less visible), (4) easier to touch up. Eggshell is rare and requires QT3+. Satin and semi-gloss are very rare, QT4+ only, and are extremely demanding on ceilings (every imperfection shows). The wall RP sheen range (flat through semi-gloss) applies but the distribution is heavily skewed to flat.",
+      "source": "SF_DRYWALL_CEILING_NC_FINISH_v1/production.json sheen_application_effects; controlled_enums.json sheen",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-012",
+      "topic": "Height modifier applies differently for ceilings than walls",
+      "finding": "Wall height modifier measures how high up the wall surface extends. Ceiling height modifier measures how high the ceiling is above the floor — which determines access difficulty. Standard 8-9 ft: baseline (H1=1.0, work from floor with extension pole). Tall 10-12 ft: step ladder needed (H2=1.15 — NOTE: ceiling H2 is 1.15, less aggressive than wall H2=1.30 because ceiling height change affects access only, not surface area). Vaulted 13-17 ft: scaffold required (H3=1.50). Cathedral 18+ ft: lift or scaffold tower (H4=2.00). No wall_access modifier — ceiling work has no furniture obstruction equivalent.",
+      "source": "SF_DRYWALL_CEILING_NC_PRIME_v1/production.json height_effects; SF_DRYWALL_CEILING_NC_FINISH_v1/production.json height_effects",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-013",
+      "topic": "Combined prime + finish is correct RP architecture for ceilings",
+      "finding": "Same rationale as wall RP: assessment drives primer selection, so prime and finish cannot be separated into distinct spec families. The NC split (separate prime and finish specs) does not apply to RP. This matches wall RP and all 5 exterior RP specs.",
+      "source": "SF_DRYWALL_WALL_INT_RP_v1/research.json RF-007; Interior_RP_Gap_Analysis.md Section E Decision 1",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-014",
+      "topic": "NC ceiling task transfer analysis: 39 DIRECT, 13 MODIFIED from 52 NC tasks",
+      "finding": "The gap analysis classifies 52 NC ceiling tasks (19 prime + 33 finish) into: 39 DIRECT transfers (protection, finish coat application, interstage, cleanup) and 13 MODIFIED transfers (inspection becomes condition assessment, primer becomes state-driven). Zero NOT_APPLICABLE. RP adds ~10-12 new tasks: 4 assessment tasks, 3-4 remediation prep tasks (scrape, feather, degloss, contamination treatment), furniture/floor drip protection, and customer walkthrough. Projected total: 45-52 tasks.",
+      "source": "Interior_RP_Gap_Analysis.md Section B — SF_DRYWALL_CEILING_NC_PRIME_v1 + SF_DRYWALL_CEILING_NC_FINISH_v1 classifications",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-015",
+      "topic": "Smoke damage on ceilings requires full-surface shellac",
+      "finding": "Smoke rises and deposits most heavily on ceilings. Nicotine staining from smoking is heaviest on ceiling surfaces. SS_INT_SMOKE_DAMAGE on ceilings is more severe than on walls because contamination concentration is highest overhead. Shellac stain blocker (BIN) full-surface application is mandatory — same as wall RP. Spot treatment is insufficient because smoke contamination is pervasive.",
+      "source": "SF_DRYWALL_WALL_INT_RP_v1/research.json RF-015; RC-002",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-016",
+      "topic": "Popcorn/acoustic ceiling special handling note",
+      "finding": "Popcorn (acoustic) ceilings are a special case within heavy_texture. They absorb 2-3x more paint than smooth ceilings, are extremely slow to roll (heavy nap required, low pressure to avoid tearing texture), and pre-1980 popcorn may contain asbestos (requires testing before any disturbance). If asbestos is present, ceiling work is STOP WORK until abatement is complete by licensed contractor. Popcorn ceiling repaint is valid for this spec ONLY after asbestos clearance. The heavy_texture modifier (1.25x) may underestimate popcorn — field calibration needed.",
+      "source": "Professional practice; EPA asbestos NESHAP regulations",
+      "confidence": "medium"
+    }
+  ],
+
+  "condition_drivers": [
+    {
+      "driver_id": "CD-001",
+      "name": "Condition Scale",
+      "type": "configuration_dimension",
+      "values": ["GOOD", "FAIR", "POOR"],
+      "impact": "Primary driver for prep task selection and labor intensity. GOOD = minimal prep (degloss/scuff); FAIR = targeted repair (scrape/feather/spot prime/contamination treatment); POOR = full remediation (full scrape/full prime/possible skim). Maps to prep multipliers: GOOD=1.0x, FAIR=1.3-1.8x, POOR=2.0-3.0x. Identical to wall RP.",
+      "notes": "Universal 3-level scale per controlled_enums.json condition_scale."
+    },
+    {
+      "driver_id": "CD-002",
+      "name": "Quality Tier",
+      "type": "configuration_dimension",
+      "values": ["QT2", "QT3", "QT4", "QT5"],
+      "impact": "Controls coat count, inspection rigor, edge discipline, interstage sanding. QT2=1 coat flat only, relaxed edges, quick inspect. QT3=1 coat flat default (2 if colored ceiling), standard edges. QT4=2 coats mandatory, interstage sanding, systematic inspection, eggshell+ available. QT5=2 coats mandatory, full interstage, critical inspection. QT modifier values: QT2=0.80, QT3=1.00, QT4=1.30, QT5=1.50.",
+      "notes": "QT2 included for economy ceiling refresh (rental turnover). QT2 spray-only or roll. QT3 is flat white standard. QT4+ enables colored ceilings and sheen options."
+    },
+    {
+      "driver_id": "CD-003",
+      "name": "Application Method",
+      "type": "configuration_dimension",
+      "values": ["roll", "spray_backroll", "spray"],
+      "impact": "Spray is more common for ceilings than walls. spray_backroll is production standard at QT3+. Spray-only (no backroll) is valid at QT2-QT3 for flat. Roll is available at all tiers but less preferred for large areas. Application method drives protection zone activation: spray methods require wall-top masking, full floor coverage, and ceiling fixture masking. Roll method requires full floor coverage (drip zone) but no wall masking.",
+      "notes": "spray_backroll coupling constraint: backroll rate (320 SF/hr) limits system rate. Ceiling spray is ergonomically preferable to overhead rolling for large areas."
+    },
+    {
+      "driver_id": "CD-004",
+      "name": "Sheen",
+      "type": "configuration_dimension",
+      "values": ["flat", "matte", "eggshell", "satin", "semi-gloss"],
+      "impact": "Flat is default (95%+ of ceiling repaints). Matte is near-flat variant. Eggshell requires QT3+ and adds 18% time overhead. Satin requires QT4+ and adds 18% time. Semi-gloss requires QT4+ and adds 43% time. Gloss excluded for ceilings. Higher sheens are extremely demanding on ceilings because every imperfection shows in overhead lighting.",
+      "notes": "Sheen significantly impacts ceiling work more than walls because overhead surfaces are viewed at oblique angles where sheen inconsistency is most visible. Flat/matte is standard."
+    },
+    {
+      "driver_id": "CD-005",
+      "name": "Ceiling Height",
+      "type": "modifier",
+      "values": {
+        "H1_STANDARD": { "range": "8-9 ft", "value": 1.00 },
+        "H2_TALL": { "range": "10-12 ft", "value": 1.15 },
+        "H3_VAULTED": { "range": "13-17 ft", "value": 1.50 },
+        "H4_CATHEDRAL": { "range": "18+ ft", "value": 2.00 }
+      },
+      "impact": "Applied to all overhead labor tasks based on ceiling height. Standard 8-9 ft has no modifier (work from floor with extension pole). H2 is less aggressive than wall H2 (1.15 vs 1.30) because ceiling height change affects access only, not painted surface area. H3/H4 require scaffold or lift.",
+      "notes": "No H5_LIFT for interior ceilings — residential interiors rarely exceed 24 ft cathedral. Height modifier applies to overhead tasks only — floor-level tasks (protection setup/teardown) are unaffected."
+    },
+    {
+      "driver_id": "CD-006",
+      "name": "Surface Texture",
+      "type": "modifier",
+      "values": {
+        "TEX_SMOOTH": 1.00,
+        "TEX_ORANGE_PEEL": 1.10,
+        "TEX_KNOCKDOWN": 1.15,
+        "TEX_HEAVY": 1.25
+      },
+      "impact": "Texture affects coverage rate, nap selection, and application speed. Textured ceilings are more common than textured walls. Heavy texture includes popcorn/acoustic which may be even slower than 1.25x suggests. Applies to roll, spray, and cut-in tasks.",
+      "notes": "Per Modifier_Registry.md. skip_trowel treated as heavy_texture. Popcorn ceiling may need field calibration beyond 1.25x."
+    }
+  ],
+
+  "quality_differences": [
+    {
+      "aspect": "coat_count",
+      "QT2": "1 finish coat flat only (over primed surface if needed)",
+      "QT3": "1 finish coat flat default, 2 coats if colored ceiling or coverage insufficient",
+      "QT4": "2 finish coats mandatory (flat or sheen)",
+      "QT5": "2 finish coats mandatory (any sheen)",
+      "notes": "Primer coat count is state-driven (not QT-driven): GOOD=0 or 1 prime, FAIR=spot prime, POOR=full prime. QT3 ceilings are typically 1 coat white-on-white refresh."
+    },
+    {
+      "aspect": "prep_intensity",
+      "QT2": "Quick visual check overhead with ambient light, spot repairs for major defects only, standard degloss",
+      "QT3": "Standard visual inspection with work light, address all visible defects, thorough degloss",
+      "QT4": "Systematic inspection with bright work light at multiple angles, comprehensive defect repair, full degloss with adhesion verification",
+      "QT5": "Critical inspection at every stage with raking light, near-zero defect tolerance, full degloss + bonding verification"
+    },
+    {
+      "aspect": "sanding_between_coats",
+      "QT2": "None",
+      "QT3": "None (spot sand patches only if necessary)",
+      "QT4": "Full light sand between finish coats (220 grit pole sander)",
+      "QT5": "Full light sand between all coats including primer-to-finish (220 grit pole sander)"
+    },
+    {
+      "aspect": "edge_discipline",
+      "QT2": "Acceptable if neat, minor wobble tolerated at wall line",
+      "QT3": "Reasonably straight line at 6 ft viewing distance",
+      "QT4": "Clean line, no visible wobble at 3 ft",
+      "QT5": "Crisp line, no visible wobble at arm's length"
+    },
+    {
+      "aspect": "inspection_standard",
+      "QT2": "Quick glance at 6 ft, ambient light, 1 pass — ceiling is viewed from below at distance",
+      "QT3": "Standard visual at 6 ft with work light, 1 pass",
+      "QT4": "Systematic scan with bright work light at multiple angles, 2 passes — raking light reveals sheen defects",
+      "QT5": "Critical inspection with raking light from multiple angles, 3 passes — every imperfection visible on sheen ceiling"
+    },
+    {
+      "aspect": "sheen_availability",
+      "QT2": "Flat only",
+      "QT3": "Flat, matte",
+      "QT4": "Flat, matte, eggshell, satin",
+      "QT5": "Flat, matte, eggshell, satin, semi-gloss"
+    }
+  ],
+
+  "failure_modes": [
+    {
+      "mode_id": "FM-001",
+      "failure": "Water stain bleed-through on ceiling",
+      "cause": "Using latex primer instead of stain-blocking primer on water-damaged ceiling. Water stains contain tannins and minerals that bleed through non-blocking primers.",
+      "prevention": "Stain-blocking primer (shellac-based BIN for severe stains, or high-hide latex stain blocker for minor marks) on all water-damaged areas. Full prime if staining exceeds 30% of ceiling surface.",
+      "mitigation": "Additional coat of shellac stain blocker (BIN) followed by finish coat",
+      "risk_level": "major"
+    },
+    {
+      "mode_id": "FM-002",
+      "failure": "Mildew regrowth through ceiling paint film",
+      "cause": "Painting over mildew without biocide treatment. Mildew spores survive under paint film and regrow through topcoat. Common in bathroom ceilings.",
+      "prevention": "Biocide treatment (bleach/mildewcide solution) during prep phase, allow full kill time, mildew-resistant primer. Source moisture must be resolved before painting.",
+      "mitigation": "Strip paint, re-treat with biocide, re-prime with mildew-resistant primer, ensure ventilation improvements (bath fan)",
+      "risk_level": "major"
+    },
+    {
+      "mode_id": "FM-003",
+      "failure": "Adhesion failure over existing semi-gloss or gloss ceiling paint",
+      "cause": "Insufficient degloss on high-sheen existing ceiling finish. Rare for ceilings (most are flat) but occurs in kitchens and bathrooms where semi-gloss was used for washability.",
+      "prevention": "Thorough degloss (liquid sander or mechanical scuff), adhesion test before proceeding, adhesion primer when existing sheen is semi-gloss or higher",
+      "mitigation": "Full scrape to sound paint and re-prime with adhesion primer",
+      "risk_level": "major"
+    },
+    {
+      "mode_id": "FM-004",
+      "failure": "Drips and spatter on floor, furniture, and contents",
+      "cause": "Inadequate floor and furniture protection during overhead work. Gravity ensures all drips and overspray fall downward.",
+      "prevention": "Full floor protection always (regardless of application method). Furniture/contents covered with drop cloths or poly sheeting. Particular attention to electronics and fabric furniture directly below work area.",
+      "mitigation": "Professional cleaning of affected items. High liability risk.",
+      "risk_level": "major"
+    },
+    {
+      "mode_id": "FM-005",
+      "failure": "Lap marks visible on sheen ceiling",
+      "cause": "Working too slowly overhead, allowing paint to set before maintaining wet edge. Sheen ceiling paint (eggshell, satin, semi-gloss) is extremely unforgiving of lap marks.",
+      "prevention": "Maintain wet edge at all times. Work in manageable sections. Use additives (Floetrol) if needed. Spray method is preferred for sheen ceilings. Two-person crew (cutter + roller) recommended at QT4+.",
+      "mitigation": "Full additional coat — spot touch-up on sheen surfaces creates visible patches",
+      "risk_level": "minor"
+    },
+    {
+      "mode_id": "FM-006",
+      "failure": "Popcorn/acoustic ceiling texture damage during prep",
+      "cause": "Aggressive scraping, sanding, or pressure washing popcorn texture. Texture is fragile and tears easily. Pre-1980 popcorn may contain asbestos.",
+      "prevention": "Gentle prep methods only — light brush dust removal, no mechanical sanding on popcorn. Asbestos test mandatory for pre-1980 homes before any disturbance. If asbestos present: STOP WORK, licensed abatement required.",
+      "mitigation": "Texture repair is expensive and difficult to match. May require full skim coat or professional texture re-application.",
+      "risk_level": "major"
+    },
+    {
+      "mode_id": "FM-007",
+      "failure": "Mapping from scrape edges telegraphing through ceiling finish",
+      "cause": "Failure to feather-sand scrape edges before priming. Old paint edge creates a visible ridge that is more noticeable on flat ceiling surfaces (viewed at oblique angles).",
+      "prevention": "Feather-sand all scrape edges. Ceiling mapping is more visible than wall mapping because ceilings are viewed at raking angles from below. Non-negotiable at all tiers.",
+      "mitigation": "Sand visible ridges, skim coat if severe, spot prime, recoat",
+      "risk_level": "minor"
+    },
+    {
+      "mode_id": "FM-008",
+      "failure": "Smoke damage on ceiling requires full-surface treatment",
+      "cause": "Spot-treating smoke stains on ceiling. Smoke contamination is pervasive and heaviest on ceiling surfaces (smoke rises).",
+      "prevention": "Full-surface shellac stain blocker (BIN) for smoke damage. Spot treatment is insufficient. Ceiling gets heaviest smoke deposition of any interior surface.",
+      "mitigation": "Additional full-surface coat of shellac stain blocker followed by finish coat",
+      "risk_level": "major"
+    }
+  ],
+
+  "required_paintscope_keys": [
+    {
+      "key": "PS_SURFACE_SF.CEILING_FIELD",
+      "description": "Total paintable ceiling field area",
+      "uom": "SF",
+      "required": true,
+      "required_when": "Always — primary quantity driver for all ceiling tasks"
+    },
+    {
+      "key": "PS_EDGE_LF.TO_WALL",
+      "description": "Linear footage of ceiling-to-wall boundary for edge cut-in",
+      "uom": "LF",
+      "required": true,
+      "required_when": "Always — ceiling cut-in at wall line is required for both roll and spray methods"
+    },
+    {
+      "key": "PS_PROTECT_SF.FLOOR_EXPOSED",
+      "description": "Full floor protection area — always required for ceiling work (drip zone)",
+      "uom": "SF",
+      "required": true,
+      "required_when": "Always — ceiling work requires full floor protection regardless of application method"
+    },
+    {
+      "key": "PS_META.EA.ROOMS_TOTAL",
+      "description": "Room count — drives per-room heuristics (fixture count, furniture drip protection, customer walkthrough)",
+      "uom": "EA",
+      "required": true,
+      "required_when": "Always — used for fixture count heuristic, furniture drip covers, and walkthrough"
+    },
+    {
+      "key": "PS_META.SF.FLOOR_VACUUM_AREA",
+      "description": "Floor area for post-application vacuum cleanup",
+      "uom": "SF",
+      "required": true,
+      "required_when": "Always — cleanup task"
+    },
+    {
+      "key": "PS_META.SURFACE_CONDITION",
+      "description": "Surface condition enum (GOOD/FAIR/POOR) for condition modifier selection",
+      "uom": "ENUM",
+      "required": true,
+      "required_when": "Always — drives condition_scale dimension"
+    },
+    {
+      "key": "PS_META.SURFACE_TEXTURE",
+      "description": "Ceiling surface texture for texture modifier selection",
+      "uom": "ENUM",
+      "required": true,
+      "required_when": "Always — drives texture modifier. More impactful for ceilings due to higher texture prevalence."
+    },
+    {
+      "key": "PS_META.HEIGHT_BAND",
+      "description": "Ceiling height classification for height modifier selection",
+      "uom": "ENUM",
+      "required": true,
+      "required_when": "Always — drives ceiling height modifier"
+    },
+    {
+      "key": "PS_PROTECT_SF.FURNITURE_ROOM",
+      "description": "Room floor area for furniture/contents drip protection (in-place covering, not center-pile)",
+      "uom": "SF",
+      "required_when": { "occupancy_state": ["occupied_crew_handles", "occupied_sensitive"] }
+    }
+  ],
+
+  "proposed_new_keys": [
+    {
+      "proposed_key": "PS_META.ENUM.SUBSTRATE_STATE_INT",
+      "uom": "ENUM",
+      "description": "Interior substrate state classification (SS_INT_SOUND_PAINT through SS_INT_SMOKE_DAMAGE). Shared with wall RP — proposed in wall RP spec.",
+      "justification": "Interior RP requires substrate state selector for primer selection logic. Shared key across all interior RP specs. Already proposed by SF_DRYWALL_WALL_INT_RP — no new proposal, just reuse."
+    },
+    {
+      "proposed_key": "PS_META.BOOL.HOME_PRE_1978",
+      "uom": "BOOL",
+      "description": "Boolean flag for RRP lead-safe module activation. Shared with wall RP — proposed in wall RP spec.",
+      "justification": "Shared across all interior RP specs. Already proposed by SF_DRYWALL_WALL_INT_RP — no new proposal, just reuse."
+    },
+    {
+      "proposed_key": "PS_META.ENUM.CONTAMINATION_TYPE",
+      "uom": "ENUM",
+      "description": "Contamination type classification: none, mildew, smoke, water_stain, grease. Shared with wall RP — proposed in wall RP spec.",
+      "justification": "Shared across all interior RP specs. Already proposed by SF_DRYWALL_WALL_INT_RP — no new proposal, just reuse."
+    },
+    {
+      "proposed_key": "PS_META.BOOL.POPCORN_CEILING",
+      "uom": "BOOL",
+      "description": "Boolean flag indicating popcorn/acoustic ceiling texture. Triggers special handling: no mechanical prep, asbestos test gate for pre-1980 homes, heavy nap roller selection, reduced production rates.",
+      "justification": "Popcorn ceilings are a distinct special case within heavy_texture that requires different prep protocols and may require asbestos clearance. A flag is needed to activate these special handling rules. This is ceiling-specific — not shared with other RP specs."
+    }
+  ],
+
+  "protection_zones_analysis": {
+    "spec_category": "ceiling",
+    "application_method_sensitivity": true,
+    "zones": [
+      {
+        "zone_id": "floor_full",
+        "condition": "always",
+        "protection_level": "full_cover",
+        "paintscope_key": "PS_PROTECT_SF.FLOOR_EXPOSED",
+        "notes": "ALWAYS full floor coverage for ceiling work — drips/spatter fall directly onto floor regardless of application method. This differs from wall RP where floor_full is spray-only. Rosin paper on hard floors, plastic on carpet."
+      },
+      {
+        "zone_id": "wall_top_mask",
+        "condition": { "application_method": ["spray", "spray_backroll"] },
+        "protection_level": "full_mask",
+        "paintscope_key": "PS_EDGE_LF.TO_WALL",
+        "notes": "Tape and paper at wall top edge to protect finished walls from ceiling spray overspray. Not needed for roll method — ceiling painter cuts freehand at wall line. Ceiling-specific zone — inverse of wall RP trim masking."
+      },
+      {
+        "zone_id": "ceiling_fixtures",
+        "condition": { "application_method": ["spray", "spray_backroll"] },
+        "protection_level": "item_mask",
+        "paintscope_key": "PS_META.EA.ROOMS_TOTAL",
+        "heuristic": "8 items per room average (6 recessed lights + 2 ceiling boxes)",
+        "notes": "Ceiling light fixtures, smoke detectors, HVAC vents, sprinkler heads. Stuff-and-tape or removal. Required for spray. Recommended for roll at QT4+."
+      },
+      {
+        "zone_id": "furniture_drip_cover",
+        "condition": { "occupancy_state": ["occupied_crew_handles", "occupied_sensitive"] },
+        "protection_level": "partial_cover",
+        "paintscope_key": "PS_PROTECT_SF.FURNITURE_ROOM",
+        "notes": "Ceiling-specific: cover furniture/contents IN PLACE with drop cloths or plastic sheeting to catch drips from overhead. No furniture move required (unlike wall RP center-pile). Furniture stays in room, covered from above."
+      },
+      {
+        "zone_id": "opening_covers",
+        "condition": { "application_method": ["spray", "spray_backroll"] },
+        "protection_level": "partial_cover",
+        "notes": "Lightweight plastic covers over window and door openings for overspray containment during ceiling spray. Quick tack — not intricate masking."
+      }
+    ],
+    "zone_reference": "Protection_Zones_Reference.md v2.0",
+    "method_escalation": "roll < spray_backroll < spray",
+    "rp_specific_note": "Ceiling RP always has full floor coverage (unlike wall RP which escalates). Furniture protection is in-place covering (not center-pile move). Wall-top masking is ceiling-specific (inverse of wall trim masking). No trim masking needed — ceilings have no trim adjacency except rare crown molding."
+  },
+
+  "adjacency_analysis": {
+    "primary_surface": "ceiling_field",
+    "adjacent_surfaces": [
+      {
+        "surface_id": "wall_field",
+        "edge_type": "linear",
+        "typical_relationship": "different_finish",
+        "edge_work_required": true,
+        "edge_owner": "ceiling_painter",
+        "notes": "Ceiling painter establishes the wall line via cut-in (brush technique). This is the primary edge work for ceiling spec. For roll method: freehand cut-in. For spray method: wall is masked, ceiling sprays into corner, touch-up cut-in after mask removal. Wall is always finished in RP context."
+      },
+      {
+        "surface_id": "trim_crown",
+        "edge_type": "linear",
+        "typical_relationship": "different_finish",
+        "edge_work_required": false,
+        "notes": "If crown molding exists (uncommon in standard residential), it is masked before ceiling work. Ceiling painter cuts to tape line at crown edge. Protection relationship, not edge work. Crown is NOT always present — conditional."
+      }
+    ],
+    "surface_reference": "Surface_Vocabulary_Reference.md v1.0",
+    "key_finding": "Ceiling RP has ONE edge work requirement: wall line cut-in. This is simpler than wall RP (which has ceiling line cut-in plus trim masking on 3 trim types). Ceiling has no baseboard, door casing, or window casing adjacency. This simplicity is why spray is more efficient on ceilings."
+  },
+
+  "site_condition_analysis": {
+    "affected_conditions": [
+      {
+        "condition_id": "occupancy_state",
+        "vocabulary_ref": "Site_Condition_Vocabulary_Reference.md",
+        "affected_task_types": ["protect", "cleanup"],
+        "include_values": ["occupied_crew_handles", "occupied_sensitive"],
+        "exclude_values": ["vacant"],
+        "modifier_notes": "occupied_crew_handles=1.15x on protection tasks, occupied_sensitive=1.30x per Modifier_Registry",
+        "notes": "Ceiling RP in occupied home requires furniture drip covers (in-place, not center-pile) and careful floor protection. Less impactful than wall RP occupancy because furniture does not need to be moved."
+      },
+      {
+        "condition_id": "lead_status",
+        "vocabulary_ref": "Site_Condition_Vocabulary_Reference.md",
+        "affected_task_types": ["prep", "protect"],
+        "include_values": ["tested_positive", "unknown_pre1978"],
+        "exclude_values": ["not_applicable", "presumed_safe", "tested_negative"],
+        "modifier_notes": "tested_positive=2.0x all tasks, unknown_pre1978=1.5x prep tasks per Modifier_Registry",
+        "notes": "Activates MOD_RRP_INT_CONTAINMENT shared module. Ceiling paint in pre-1978 homes may contain lead. Ceiling prep (scraping) creates falling lead dust — containment is critical."
+      },
+      {
+        "condition_id": "moisture_condition",
+        "vocabulary_ref": "Site_Condition_Vocabulary_Reference.md",
+        "affected_task_types": ["assessment", "prep"],
+        "include_values": ["recently_wet"],
+        "exclude_values": ["active_moisture"],
+        "notes": "active_moisture is a STOP WORK condition — do not proceed until source is remediated. This is MORE common for ceilings than walls (roof leaks, plumbing from above). Moisture meter testing is critical for ceiling assessment."
+      },
+      {
+        "condition_id": "access_constraint",
+        "vocabulary_ref": "Site_Condition_Vocabulary_Reference.md",
+        "affected_task_types": ["application", "prep", "cut_in"],
+        "include_values": ["step_ladder", "scaffold"],
+        "effect_notes": "Height modifiers: H1=1.0, H2=1.15, H3=1.50, H4=2.00",
+        "notes": "Ceiling height determines access. Standard ceilings (8-9 ft) require no special access. Vaulted/cathedral require scaffold or lift. Extension_ladder not applicable for overhead ceiling work."
+      },
+      {
+        "condition_id": "floor_type",
+        "vocabulary_ref": "Site_Condition_Vocabulary_Reference.md",
+        "affected_task_types": ["protect"],
+        "include_values": ["finished", "partial"],
+        "exclude_values": [],
+        "notes": "RP ALWAYS has finished floors. Floor protection is always mandatory for ceiling work (drip zone)."
+      },
+      {
+        "condition_id": "temperature_condition",
+        "vocabulary_ref": "Site_Condition_Vocabulary_Reference.md",
+        "affected_task_types": ["application"],
+        "include_values": ["cold_below_50f", "hot_above_90f"],
+        "effect_notes": "cold_below_50f=1.30x, hot_above_90f=1.15x per Modifier_Registry",
+        "notes": "Less common for interior work (homes have HVAC) but can occur in unoccupied renovation scenarios."
+      },
+      {
+        "condition_id": "time_constraint",
+        "vocabulary_ref": "Site_Condition_Vocabulary_Reference.md",
+        "affected_task_types": ["protect", "cleanup"],
+        "include_values": ["phased_occupancy"],
+        "effect_notes": "phased_occupancy=1.25x on setup/teardown tasks per Modifier_Registry",
+        "notes": "Room-by-room completion with daily setup/teardown. Less impactful for ceiling-only work (faster per room than wall RP)."
+      }
+    ],
+    "condition_reference": "Site_Condition_Vocabulary_Reference.md v1.1",
+    "modifier_reference": "Modifier_Registry.md v1.2"
+  },
+
+  "state_analysis": {
+    "primary_surface": "ceiling_field",
+    "valid_input_states": {
+      "states": [
+        "SS_INT_SOUND_PAINT",
+        "SS_INT_FAILING_PAINT",
+        "SS_INT_PEELING",
+        "SS_INT_MOISTURE_DAMAGE",
+        "SS_INT_SMOKE_DAMAGE"
+      ],
+      "rationale": "Interior ceiling RP accepts all 5 interior RP substrate states. Identical to wall RP. Each state drives a distinct prep pathway and primer selection. SS_INT_MOISTURE_DAMAGE is proportionally more common on ceilings (water damage from above). SS_INT_SMOKE_DAMAGE is proportionally more severe on ceilings (smoke rises, heaviest deposition overhead)."
+    },
+    "output_state": {
+      "state": "SS_PAINTED_FLAT",
+      "varies_by": "sheen",
+      "state_map": {
+        "flat": "SS_PAINTED_FLAT",
+        "matte": "SS_PAINTED_FLAT",
+        "eggshell": "SS_PAINTED_EGGSHELL",
+        "satin": "SS_PAINTED_SATIN",
+        "semi-gloss": "SS_PAINTED_SEMIGLOSS"
+      },
+      "rationale": "Output state varies by selected sheen. Flat is the overwhelming default for ceilings (95%+). All input states normalize to a standard SS_PAINTED_* output after proper prep and coating."
+    },
+    "state_to_condition_mapping": {
+      "GOOD": ["SS_INT_SOUND_PAINT"],
+      "FAIR": ["SS_INT_FAILING_PAINT", "SS_INT_MOISTURE_DAMAGE"],
+      "POOR": ["SS_INT_PEELING", "SS_INT_SMOKE_DAMAGE"]
+    },
+    "state_driven_primer_selection": {
+      "SS_INT_SOUND_PAINT": {
+        "primer_required": "conditional",
+        "primer_system": "none or SYS_PRIMER_ADHESION_INT",
+        "logic": "No primer if adhesion test passes and existing paint is in good condition. Adhesion primer if existing sheen is semi-gloss or higher (rare on ceilings) or if coating ID shows oil-based base."
+      },
+      "SS_INT_FAILING_PAINT": {
+        "primer_required": "yes — spot or full",
+        "primer_system": "SYS_PRIMER_ADHESION_INT",
+        "logic": "Spot prime all scraped/feathered areas. Full prime if scraped area exceeds 30% of ceiling surface. Adhesion primer mandatory for adhesion to remaining sound paint."
+      },
+      "SS_INT_PEELING": {
+        "primer_required": "yes — full prime",
+        "primer_system": "SYS_PRIMER_ADHESION_INT",
+        "logic": "Full prime required after complete scrape to sound substrate. Extensive bare area requires full-coverage adhesion primer."
+      },
+      "SS_INT_MOISTURE_DAMAGE": {
+        "primer_required": "yes — full prime",
+        "primer_system": "SYS_PRIMER_MILDEW_INT",
+        "logic": "Mildew-resistant primer after biocide treatment. Stain-blocking primer for water stains. Source moisture must be resolved first (gate condition). This is the most common non-cosmetic ceiling RP state."
+      },
+      "SS_INT_SMOKE_DAMAGE": {
+        "primer_required": "yes — full surface",
+        "primer_system": "SYS_PRIMER_STAINBLOCK_INT",
+        "logic": "Shellac-based stain blocker (BIN or equivalent) full surface application. Smoke deposition is heaviest on ceilings — full surface mandatory. Latex primers have zero stain blocking capability (RC-002)."
+      }
+    },
+    "adjacent_state_protection_analysis": [
+      {
+        "adjacent_surface": "wall_field",
+        "finished_states": ["SS_PAINTED_FLAT", "SS_PAINTED_EGGSHELL", "SS_PAINTED_SATIN", "SS_PAINTED_SEMIGLOSS"],
+        "unfinished_states": [],
+        "protection_when_finished": "full_mask",
+        "protection_when_unfinished": "none",
+        "rationale": "Wall tops must be masked for ceiling spray methods to prevent overspray on finished walls. For roll method, no wall masking needed — ceiling painter cuts freehand at wall line. In RP, walls are always finished."
+      },
+      {
+        "adjacent_surface": "trim_crown",
+        "finished_states": ["SS_PAINTED_SATIN", "SS_PAINTED_SEMIGLOSS", "SS_PAINTED_GLOSS"],
+        "unfinished_states": [],
+        "protection_when_finished": "light_mask",
+        "protection_when_unfinished": "none",
+        "rationale": "If crown molding exists, tape line at crown edge before ceiling work. Crown is not always present — conditional on room having crown molding."
+      }
+    ],
+    "state_reference": "Substrate_State_Reference.md v1.0.0"
+  },
+
+  "task_inventory_projection": {
+    "source_nc_tasks": {
+      "ceiling_prime": { "total": 19, "direct": 9, "modified": 10, "not_applicable": 0 },
+      "ceiling_finish": { "total": 33, "direct": 30, "modified": 3, "not_applicable": 0 }
+    },
+    "projected_rp_tasks": {
+      "direct_transfers": 39,
+      "modified_transfers": 13,
+      "rp_new_tasks": 10,
+      "projected_total": "45-52"
+    },
+    "rp_new_task_projections": [
+      {
+        "task_id": "TSK_CLRP_ASSESS_CONDITION",
+        "phase": "prep",
+        "description": "Visual condition scan of ceiling — photograph defects, map damage areas, identify water stains/mildew/peeling zones, assign severity",
+        "classification": "qt_scaled",
+        "skill_level": "journeyman"
+      },
+      {
+        "task_id": "TSK_CLRP_ASSESS_ADHESION",
+        "phase": "prep",
+        "description": "Cross-hatch tape test per ASTM D3359 at representative ceiling areas and suspect zones. May require step ladder for high ceilings.",
+        "classification": "binary",
+        "skill_level": "journeyman"
+      },
+      {
+        "task_id": "TSK_CLRP_ASSESS_MOISTURE",
+        "phase": "prep",
+        "description": "Moisture meter evaluation at suspect areas — particularly around plumbing penetrations, HVAC, and near exterior walls. Identify source, flag active moisture for remediation.",
+        "classification": "binary",
+        "skill_level": "journeyman"
+      },
+      {
+        "task_id": "TSK_CLRP_ASSESS_COATING_ID",
+        "phase": "prep",
+        "description": "Coating identification — latex vs oil via solvent test. Most ceilings are latex, but older homes may have oil-based ceiling paint. Determines primer compatibility.",
+        "classification": "binary",
+        "skill_level": "journeyman"
+      },
+      {
+        "task_id": "TSK_CLRP_WASH_TSP",
+        "phase": "prep",
+        "description": "TSP wash for grease film (kitchen ceilings), general contamination, or nicotine residue pre-treatment. Overhead application with sponge on pole.",
+        "classification": "qt_scaled",
+        "skill_level": "helper"
+      },
+      {
+        "task_id": "TSK_CLRP_TREAT_MILDEW",
+        "phase": "prep",
+        "description": "Bleach/biocide solution application on mildew-affected ceiling areas. Wait for full kill time, rinse, dry. Common in bathroom ceilings.",
+        "classification": "binary",
+        "skill_level": "journeyman",
+        "applies_when": { "substrate_state": ["SS_INT_MOISTURE_DAMAGE"] }
+      },
+      {
+        "task_id": "TSK_CLRP_SCRAPE_LOOSE",
+        "phase": "prep",
+        "description": "Scrape all failing/peeling paint from ceiling to sound substrate. Overhead scraping is more fatiguing than wall scraping — extension pole scraper recommended.",
+        "classification": "qt_scaled",
+        "skill_level": "journeyman",
+        "applies_when": { "condition_scale": ["FAIR", "POOR"] }
+      },
+      {
+        "task_id": "TSK_CLRP_FEATHER_EDGES",
+        "phase": "prep",
+        "description": "Feather-sand all scrape edges on ceiling to create smooth transition. Overhead sanding with pole sander. Ceiling mapping is more visible than wall mapping because of oblique viewing angle.",
+        "classification": "qt_scaled",
+        "skill_level": "journeyman",
+        "applies_when": { "condition_scale": ["FAIR", "POOR"] }
+      },
+      {
+        "task_id": "TSK_CLRP_DEGLOSS",
+        "phase": "prep",
+        "description": "Chemical or mechanical degloss of existing ceiling paint surface. Rare on ceilings (most are flat) but required when repainting over semi-gloss or satin ceiling. Liquid sander preferred for overhead work.",
+        "classification": "qt_scaled",
+        "skill_level": "journeyman"
+      },
+      {
+        "task_id": "TSK_CLRP_CUSTOMER_WALKTHROUGH",
+        "phase": "cleanup",
+        "description": "Post-completion room-by-room ceiling review with homeowner — identify touch-up needs, confirm satisfaction, note punch list items",
+        "classification": "binary",
+        "skill_level": "lead"
+      }
+    ],
+    "modified_task_notes": [
+      {
+        "nc_task": "TSK_CEIL_INSPECT / TSK_CEIL_INSPECT_QT4",
+        "rp_modification": "NC inspects bare substrate; RP inspects existing paint condition. Assessment is more thorough and condition-driven. Overhead viewing angle is the same.",
+        "transfer_type": "MODIFIED"
+      },
+      {
+        "nc_task": "TSK_CEIL_ROLL_PRIMER / TSK_CEIL_ROLL_PRIMER_TEXTURED / TSK_CEIL_ROLL_PRIMER_QT4",
+        "rp_modification": "Primer product changes from PVA to state-driven selection (adhesion/stain-block/mildew). Application technique and rate are similar but primer type is completely different.",
+        "transfer_type": "MODIFIED"
+      },
+      {
+        "nc_task": "TSK_CEIL_SPRAY_PRIMER / TSK_CEIL_SPRAY_PRIMER_QT4 / TSK_CEIL_SPRAY_PRIMER_ONLY",
+        "rp_modification": "Spray primer — rate same but product changes (stain-block vs PVA). Shellac stain blocker has different spray characteristics (faster dry, stronger odor, denatured alcohol cleanup).",
+        "transfer_type": "MODIFIED"
+      },
+      {
+        "nc_task": "TSK_CEIL_BACKROLL_PRIMER / TSK_CEIL_BACKROLL_PRIMER_QT4",
+        "rp_modification": "Backroll after spray — rate same but primer type differs.",
+        "transfer_type": "MODIFIED"
+      },
+      {
+        "nc_task": "TSK_INSPECT_PRIMED_CEILING / _QT4 / _QT5",
+        "rp_modification": "Inspects state-primed surface (adhesion/stain-block/mildew) rather than PVA-primed surface. Inspection criteria similar but surface characteristics differ.",
+        "transfer_type": "MODIFIED"
+      }
+    ]
+  },
+
+  "material_system_requirements": {
+    "primer_systems": [
+      {
+        "system_id": "SYS_PRIMER_ADHESION_INT",
+        "name": "Interior Adhesion Primer",
+        "when_to_use": "SS_INT_SOUND_PAINT (when adhesion test marginal or high sheen), SS_INT_FAILING_PAINT, SS_INT_PEELING",
+        "typical_products": ["Stix Waterborne Bonding Primer", "XIM UMA Primer", "KILZ Adhesion Primer"],
+        "notes": "Same system as wall RP. Water-based adhesion promoter. Bonds to glossy, chalky, or previously painted surfaces."
+      },
+      {
+        "system_id": "SYS_PRIMER_STAINBLOCK_INT",
+        "name": "Interior Stain-Blocking Primer (Shellac-Based)",
+        "when_to_use": "SS_INT_SMOKE_DAMAGE, severe water stains",
+        "typical_products": ["Zinsser BIN Shellac-Based Primer", "KILZ Original (oil-based)"],
+        "notes": "Same system as wall RP. Full surface application for smoke damage. Ceiling is worst surface for smoke deposition — full treatment mandatory. Strong odor requires ventilation."
+      },
+      {
+        "system_id": "SYS_PRIMER_MILDEW_INT",
+        "name": "Interior Mildew-Resistant Primer",
+        "when_to_use": "SS_INT_MOISTURE_DAMAGE (after biocide treatment and source resolution)",
+        "typical_products": ["KILZ Mold & Mildew Primer", "Zinsser Mold Killing Primer"],
+        "notes": "Same system as wall RP. Applied after biocide treatment and full drying. More frequently used on ceilings (bathroom mildew, water damage)."
+      }
+    ],
+    "finish_systems": [
+      {
+        "quality_tier": ["QT2", "QT3"],
+        "system_type": "Standard interior ceiling paint (flat)",
+        "notes": "Ceiling-specific flat paint designed for overhead application. Self-leveling, low-spatter formula. Same product regardless of QT2 vs QT3. Examples: Benjamin Moore Waterborne Ceiling Paint, Sherwin-Williams ProMar Ceiling Paint."
+      },
+      {
+        "quality_tier": ["QT4"],
+        "system_type": "Premium interior latex (ceiling-appropriate)",
+        "notes": "Premium 100% acrylic with better leveling and hide. Available in flat, eggshell, and satin for ceilings. Eggshell/satin on ceilings requires premium product for proper leveling."
+      },
+      {
+        "quality_tier": ["QT5"],
+        "system_type": "Superior interior latex (ceiling-appropriate)",
+        "notes": "Top-tier paint with maximum hide, leveling, and durability. Semi-gloss on ceilings is QT5 territory and requires superior product to minimize visible imperfections."
+      }
+    ],
+    "consumable_notes": [
+      "Degloss supplies: liquid sander (Krud Kutter Gloss-Off) preferred for overhead work — less physical effort than mechanical scuff on ceiling",
+      "Scraping tools: extension pole scraper for overhead reach, 3-inch putty knife for detail areas",
+      "Contamination treatment: TSP powder, bleach or mildewcide solution, sponge on extension pole for overhead application",
+      "Adhesion test kit: cross-hatch cutter, pressure-sensitive tape per ASTM D3359 — may require step ladder",
+      "Moisture meter: pin-type or pinless (not a consumable but required tool) — critical for ceiling assessment",
+      "Furniture drip protection: canvas drop cloths or plastic sheeting for covering furniture/contents in place (no center-pile)",
+      "Floor protection: rosin paper (hard floors) or plastic sheeting (carpet) — ALWAYS full room for ceiling work",
+      "Standard painting consumables: extension pole rollers (18-inch), extension pole brushes, spray equipment same as NC ceiling specs",
+      "Pole sander: required for overhead sanding (feathering, interstage) — standard hand sanding is impractical overhead"
+    ]
+  },
+
+  "modifier_stacking_partition": {
+    "description": "Interior ceiling RP uses the same two-pool stacking architecture as wall RP. Inherited from exterior RP pattern. Prevents runaway modifier accumulation.",
+    "prep_pool": {
+      "modifiers": ["condition_scale", "contamination_type"],
+      "formula": "prep_modifier = condition_modifier x contamination_modifier",
+      "never_includes": ["quality_tier"],
+      "max_theoretical": "POOR(3.0) x smoke(1.5) = 4.50x",
+      "notes": "Prep pool applies to assessment, scrape, feather, degloss, contamination treatment, primer application tasks. No wall_access modifier for ceilings (no furniture obstruction overhead)."
+    },
+    "coating_pool": {
+      "modifiers": ["quality_tier"],
+      "formula": "coating_modifier = qt_modifier",
+      "never_includes": ["condition_scale", "contamination_type"],
+      "max_theoretical": "QT5(1.50) = 1.50x",
+      "notes": "Coating pool applies to finish coat application, cut-in, interstage sanding, inspection tasks. No wall_access modifier for ceilings."
+    },
+    "shared_modifiers": {
+      "height": "Applied to BOTH pools (physical access constraint) — overhead tasks only, not floor-level tasks",
+      "texture": "Applied to BOTH pools (physical surface property)"
+    },
+    "rationale": "Ceiling stacking is simpler than wall RP because there is no wall_access modifier. Without partition, worst case would be POOR(3.0) x smoke(1.5) x QT5(1.50) x H4(2.00) = 13.50x. With partition, max per-pool is ~4.50x prep and ~1.50x coating. Height and texture stack independently on both."
+  },
+
+  "rrp_containment_integration": {
+    "shared_module": "MOD_RRP_INT_CONTAINMENT",
+    "trigger": "home_year < 1978 (via PS_META.BOOL.HOME_PRE_1978)",
+    "tasks_in_module": [
+      "Lead test (XRF or swab) — FIXED time per room",
+      "Containment setup (poly sheeting, warning signs, restricted entry) — per room",
+      "Wet methods enforcement for sanding/scraping — modifier on prep tasks",
+      "HEPA vacuum after each disturbance — per occurrence",
+      "Containment removal and visual clearance — per room",
+      "Waste disposal (lead-contaminated debris) — FIXED per project"
+    ],
+    "modifier_effect": "tested_positive=2.0x all tasks, unknown_pre1978=1.5x prep tasks per Modifier_Registry",
+    "ceiling_specific_note": "Ceiling scraping creates falling lead dust — containment is especially critical. All debris falls directly onto floor protection. HEPA vacuum frequency may be higher than for wall work."
+  },
+
+  "notes_for_materials_manager": [
+    {
+      "note_id": "MAT-001",
+      "topic": "Primer systems shared with wall RP — no new systems",
+      "content": "SYS_PRIMER_ADHESION_INT, SYS_PRIMER_STAINBLOCK_INT, SYS_PRIMER_MILDEW_INT are identical to wall RP. Same products, same selection logic. No ceiling-specific primer systems needed."
+    },
+    {
+      "note_id": "MAT-002",
+      "topic": "Ceiling-specific finish paint (flat formulation)",
+      "content": "QT2-QT3 ceiling finish uses ceiling-specific flat paint (low-spatter, self-leveling overhead formula). This is a distinct product from wall flat paint — ceiling paints are formulated for overhead application. Create or verify product entry for ceiling flat."
+    },
+    {
+      "note_id": "MAT-003",
+      "topic": "Shellac stain blocker — ventilation critical for ceiling application",
+      "content": "Overhead application of shellac stain blocker (BIN) creates intense fumes that accumulate at ceiling level. Ventilation requirements are more critical for ceiling application than wall. Respiratory protection may be needed."
+    },
+    {
+      "note_id": "MAT-004",
+      "topic": "Coverage rates may differ for textured ceilings",
+      "content": "Textured ceilings (popcorn, knockdown, orange_peel) absorb more paint per SF than smooth ceilings. Coverage modifier: smooth=1.0, orange_peel=1.15, knockdown=1.25, heavy_texture=1.35 (popcorn). Adjust material quantity calculations accordingly."
+    },
+    {
+      "note_id": "MAT-005",
+      "topic": "Consumable profile similar to wall RP with pole tool emphasis",
+      "content": "Ceiling RP uses same consumable categories as wall RP but emphasizes extension pole tools: pole roller, pole sander, pole scraper, sponge-on-pole for overhead TSP wash. Add ceiling-specific consumable entries for pole tool accessories."
+    }
+  ],
+
+  "notes_for_sop_librarian": [
+    {
+      "note_id": "SOP-001",
+      "topic": "Use CLRP_ prefix for all new RP ceiling task IDs",
+      "content": "Context prefix is CLRP (ceiling repaint). Pattern: TSK_CLRP_{ACTION}. DIRECT transfer tasks from NC ceiling specs retain their original TSK_CEIL_ or TSK_ prefix — only NEW RP tasks use CLRP_. Verify NO collision with WLRP_ (wall RP) prefix."
+    },
+    {
+      "note_id": "SOP-002",
+      "topic": "Assessment phase adapts from wall RP — 4 assessment tasks",
+      "content": "Create assessment module MOD_CLRP_ASSESSMENT with 4 tasks: TSK_CLRP_ASSESS_CONDITION, TSK_CLRP_ASSESS_ADHESION, TSK_CLRP_ASSESS_MOISTURE, TSK_CLRP_ASSESS_COATING_ID. Structure mirrors wall RP MOD_WLRP_ASSESSMENT. Assessment tasks are FIXED time per room — overhead inspection is ~15-20% slower than wall inspection."
+    },
+    {
+      "note_id": "SOP-003",
+      "topic": "Prep remediation tasks are condition-gated — same as wall RP",
+      "content": "TSK_CLRP_SCRAPE_LOOSE and TSK_CLRP_FEATHER_EDGES only activate at FAIR/POOR condition. TSK_CLRP_TREAT_MILDEW only activates for SS_INT_MOISTURE_DAMAGE. TSK_CLRP_WASH_TSP activates for any contamination. TSK_CLRP_DEGLOSS activates when existing ceiling sheen is eggshell+. Use applies_when with condition_scale and substrate_state."
+    },
+    {
+      "note_id": "SOP-004",
+      "topic": "Primer module is state-driven — identical logic to wall RP",
+      "content": "Create MOD_CLRP_PRIME with state-conditional task activation. Same primer selection logic as wall RP. Primer application tasks are MODIFIED transfers from NC ceiling prime (overhead rates already factored)."
+    },
+    {
+      "note_id": "SOP-005",
+      "topic": "No furniture MOVE tasks — only drip cover tasks",
+      "content": "Unlike wall RP (TSK_WLRP_FURNITURE_MOVE, COVER, REPLACE), ceiling RP has only furniture drip cover setup and teardown. Furniture stays in place. Conditional on occupancy_state."
+    },
+    {
+      "note_id": "SOP-006",
+      "topic": "Floor protection is always full room — no perimeter option",
+      "content": "Unlike wall RP (perimeter for roll, full for spray), ceiling RP always requires full room floor protection. Single floor protection setup task, not method-dependent. Simplifies setup module."
+    },
+    {
+      "note_id": "SOP-007",
+      "topic": "Wall-top masking is ceiling-specific setup task for spray",
+      "content": "TSK_CEIL_MASK_ADJACENT (from NC) transfers DIRECT for spray methods. This masks wall tops to protect finished walls from ceiling spray. Not needed for roll method. Inverse of wall RP trim masking."
+    },
+    {
+      "note_id": "SOP-008",
+      "topic": "Module phase ordering for ceiling RP",
+      "content": "RP phase sequence: setup (floor protection full room + furniture drip covers + ceiling fixture masking + wall-top masking if spray) -> prep (assessment + degloss/scrape/feather + contamination treatment + dust removal) -> prime (state-driven primer) -> interstage (if QT4+: sand between primer and finish) -> finish (cut-in at wall line + roll/spray + interstage between coats) -> cleanup (protection teardown + customer walkthrough + tool clean + vacuum)."
+    },
+    {
+      "note_id": "SOP-009",
+      "topic": "Customer walkthrough is shared RP pattern",
+      "content": "TSK_CLRP_CUSTOMER_WALKTHROUGH is FIXED time per room. Lead skill level. Same pattern as wall RP. If both wall + ceiling RP in same project, single combined walkthrough at project assembly level."
+    }
+  ],
+
+  "notes_for_estimation_engineer": [
+    {
+      "note_id": "EST-001",
+      "topic": "Modifier stacking partition — two pools, simpler than wall RP",
+      "content": "Prep pool: condition x contamination. Coating pool: QT only. No wall_access modifier for ceilings. Height and texture are independent and apply to both pools. See modifier_stacking_partition section."
+    },
+    {
+      "note_id": "EST-002",
+      "topic": "Condition scale prep multipliers — identical to wall RP",
+      "content": "GOOD=1.0x, FAIR=1.5x (COND_FAIR), POOR=2.0x (COND_POOR). Apply to prep tasks only. Per Modifier_Registry.md."
+    },
+    {
+      "note_id": "EST-003",
+      "topic": "Assessment tasks are FIXED time — overhead penalty applies",
+      "content": "Assessment tasks are FIXED time per room, ~15-20% slower than wall assessment due to overhead viewing angle and lighting setup. Estimated 20-35 min per room depending on ceiling size and condition complexity."
+    },
+    {
+      "note_id": "EST-004",
+      "topic": "Finish coat rates transfer directly from NC ceiling specs",
+      "content": "Roll, spray, backroll, and cut-in rates for finish coats are identical to NC ceiling finish spec. Overhead penalty is already factored into NC ceiling rates. No additional adjustment for RP context."
+    },
+    {
+      "note_id": "EST-005",
+      "topic": "Scrape and feather rates — overhead penalty on wall RP rates",
+      "content": "TSK_CLRP_SCRAPE_LOOSE and TSK_CLRP_FEATHER_EDGES are ~15-20% slower than equivalent wall tasks due to overhead position. Estimated ceiling scrape rate: 40-85 SF/hr (wall: 50-100 SF/hr). Ceiling feather rate: 35-70 SF/hr (wall: 40-80 SF/hr). Highly variable."
+    },
+    {
+      "note_id": "EST-006",
+      "topic": "Degloss rate — overhead penalty, but rare on ceilings",
+      "content": "Chemical degloss (liquid sander wipe overhead): ~170-255 SF/hr (wall: 200-300 SF/hr). Mechanical degloss (overhead sand): ~130-215 SF/hr. Chemical is preferred for overhead — less physical effort. Degloss is rare on ceilings since most ceilings are flat sheen."
+    },
+    {
+      "note_id": "EST-007",
+      "topic": "Furniture drip cover rates are per-room — faster than wall furniture move",
+      "content": "Furniture drip cover setup: 5-15 min per room (lighter than wall center-pile at 15-45 min). Drip cover teardown: 5-10 min per room. These are EA_ROOM rates."
+    },
+    {
+      "note_id": "EST-008",
+      "topic": "Customer walkthrough — same as wall RP",
+      "content": "TSK_CLRP_CUSTOMER_WALKTHROUGH: 5-10 min per room. Lead skill level. Same rate as wall RP."
+    },
+    {
+      "note_id": "EST-009",
+      "topic": "Height modifier uses ceiling-specific values",
+      "content": "Ceiling height modifiers: H1=1.0 (8-9ft), H2=1.15 (10-12ft), H3=1.50 (13-17ft), H4=2.00 (18+ft). NOTE: H2 for ceiling is 1.15 (not 1.30 as for walls) because ceiling height change affects overhead access only, not painted surface area. H3/H4 are same as wall."
+    },
+    {
+      "note_id": "EST-010",
+      "topic": "Spray/backroll coupling constraint — ceiling backroll is bottleneck",
+      "content": "Per Estimation_Modifiers_Doctrine: spray rate <= backroll rate in spray_backroll system. Ceiling backroll at 320 SF/hr is even more of a bottleneck than wall backroll at 400 SF/hr. Overhead fatigue makes ceiling backroll the tightest coupling constraint."
+    },
+    {
+      "note_id": "EST-011",
+      "topic": "Texture modifier more impactful for ceilings",
+      "content": "Standard texture modifiers apply (smooth=1.0, orange_peel=1.10, knockdown=1.15, heavy=1.25) but textured ceilings are more common than textured walls. Popcorn ceiling may exceed heavy_texture modifier — flag for field calibration."
+    },
+    {
+      "note_id": "EST-012",
+      "topic": "Floor protection is full room always — single rate",
+      "content": "Unlike wall RP (perimeter vs full floor by method), ceiling RP always uses full-room floor protection rate. Use NC ceiling rate: setup 400 SF/hr, teardown 600 SF/hr."
+    }
+  ],
+
+  "assumptions": [
+    {
+      "assumption_id": "A-001",
+      "field": "occupancy_context",
+      "value": "Default assumption is occupied home (occupied_crew_handles)",
+      "source": "RP market analysis — vast majority of interior ceiling repaints are in occupied homes",
+      "doctrine_gap": false,
+      "note": "Vacant ceiling RP exists but is less common. Furniture drip protection is conditional on occupancy_state."
+    },
+    {
+      "assumption_id": "A-002",
+      "field": "walls_always_finished",
+      "value": "All walls are finished when ceiling RP occurs — wall-top masking protects finished walls",
+      "source": "RP context — repainting implies all finish surfaces exist",
+      "doctrine_gap": false,
+      "note": "If walls are being repainted simultaneously, wall RP spec handles wall work. Ceiling spec always assumes finished walls for protection purposes."
+    },
+    {
+      "assumption_id": "A-003",
+      "field": "floor_always_finished",
+      "value": "Finished flooring is always present in RP context",
+      "source": "RP context — repainting implies home is complete and occupied",
+      "doctrine_gap": false,
+      "note": "Full floor protection always mandatory for ceiling work."
+    },
+    {
+      "assumption_id": "A-004",
+      "field": "no_furniture_move",
+      "value": "Ceiling-only RP does not require furniture relocation — furniture is protected in place with drip covers",
+      "source": "Professional practice — ceiling drip risk is vertical, not lateral",
+      "doctrine_gap": true,
+      "note": "If project includes both wall + ceiling RP in same room, wall spec handles furniture move. Ceiling spec only covers drip protection."
+    },
+    {
+      "assumption_id": "A-005",
+      "field": "flat_sheen_default",
+      "value": "Default sheen for ceiling RP is flat (95%+ of projects)",
+      "source": "Professional practice and NC ceiling spec sheen distribution",
+      "doctrine_gap": false,
+      "note": "Sheen selection is still a configuration dimension but the default and most common value is flat."
+    },
+    {
+      "assumption_id": "A-006",
+      "field": "no_crown_molding_default",
+      "value": "Crown molding is NOT present by default — conditional protection only",
+      "source": "Residential housing stock analysis — crown molding is present in <20% of homes",
+      "doctrine_gap": false,
+      "note": "Crown molding masking is a conditional task activated by room configuration, not a default."
+    },
+    {
+      "assumption_id": "A-007",
+      "field": "popcorn_asbestos_gate",
+      "value": "Popcorn/acoustic ceilings in pre-1980 homes require asbestos testing before any disturbance",
+      "source": "EPA NESHAP regulations; professional practice",
+      "doctrine_gap": true,
+      "note": "Asbestos testing is outside the painting spec scope but is a STOP WORK gate condition. Flag for project assembly."
+    }
+  ],
+
+  "uncertainties": [
+    {
+      "uncertainty_id": "U-001",
+      "topic": "Overhead scrape/feather production rates",
+      "description": "Scrape and feather rates for ceilings are estimated at 15-20% overhead penalty on wall RP rates, which are themselves estimated. Double uncertainty: wall rates need field validation, then overhead penalty needs validation.",
+      "current_approach": "Using 0.85x of wall RP estimated rates: ceiling scrape 40-85 SF/hr, ceiling feather 35-70 SF/hr",
+      "resolution_needed": true
+    },
+    {
+      "uncertainty_id": "U-002",
+      "topic": "Popcorn ceiling rate modifier",
+      "description": "heavy_texture modifier (1.25x) may underestimate popcorn/acoustic ceiling production impact. Popcorn absorbs 2-3x more paint and is extremely slow to roll. Actual modifier may be 1.50x-2.00x.",
+      "current_approach": "Using standard heavy_texture=1.25x with flag for field calibration. Proposed PS_META.BOOL.POPCORN_CEILING flag for special handling.",
+      "resolution_needed": true
+    },
+    {
+      "uncertainty_id": "U-003",
+      "topic": "Contamination treatment rates for overhead work",
+      "description": "TSP wash and mildew treatment rates overhead are not well-documented. Estimated from wall RP rates with 15-20% overhead penalty.",
+      "current_approach": "Ceiling TSP wash ~170-255 SF/hr, ceiling mildew treatment ~85-170 SF/hr",
+      "resolution_needed": true
+    },
+    {
+      "uncertainty_id": "U-004",
+      "topic": "Ceiling height H2 modifier value",
+      "description": "Ceiling H2 is set at 1.15 (vs wall H2=1.30). The rationale is that ceiling height change affects access only (not surface area), but the difference from wall H2 has not been field-validated.",
+      "current_approach": "Using 1.15 based on NC ceiling production.json height_effects. Consistent with existing NC data.",
+      "resolution_needed": false
+    }
+  ],
+
+  "inherited_research_corrections": [
+    {
+      "id": "RC-002",
+      "title": "PVA/acrylic drywall primers have zero stain blocking",
+      "impact": "Critical for ceiling RP — stain blocking requires shellac-based products (BIN). Ceilings are the worst surface for smoke deposition. SYS_PRIMER_STAINBLOCK_INT must use shellac.",
+      "source": "SF_DRYWALL_CEILINGS_NC_PRIME pipeline"
+    },
+    {
+      "id": "RC-003",
+      "title": "Floor protection conditional on floor_type",
+      "impact": "In RP context, floor_type is effectively always 'finished'. Additionally, ceiling work ALWAYS requires full floor coverage regardless of application method (drip zone). Double mandate.",
+      "source": "SF_DRYWALL_CEILINGS_NC_PRIME pipeline"
+    },
+    {
+      "id": "RC-004",
+      "title": "Do not specify dry times in specs",
+      "impact": "No dry time references in any artifact — refer to product PDS. Applies to RP primers (adhesion, stain-block, mildew) and finish coats.",
+      "source": "SF_DRYWALL_CEILINGS_NC_PRIME pipeline"
+    }
+  ],
+
+  "cross_spec_coordination": {
+    "related_specs": [
+      {
+        "spec_id": "SF_DRYWALL_WALL_INT_RP",
+        "relationship": "Sibling — walls and ceilings often painted in same project. Shared protection setup/teardown optimization at project assembly.",
+        "coordination": "When both specs active in same room: floor protection is done once (ceiling spec covers full floor), furniture protection is wall spec's center-pile (not ceiling drip cover), assessment may run concurrently, customer walkthrough is combined into single pass."
+      },
+      {
+        "spec_id": "SF_TRIM_INT_RP",
+        "relationship": "Sibling — if trim is being repainted, trim-first sequencing means trim is complete before ceiling work begins.",
+        "coordination": "Trim-first means no trim masking coordination needed for ceiling spec. Crown molding masking (if present) is ceiling spec's responsibility."
+      }
+    ],
+    "shared_modules": [
+      "MOD_RRP_INT_CONTAINMENT — lead-safe work practices (shared across all 9 interior RP specs)"
+    ]
+  },
+
+  "confidence_level": "high"
+}

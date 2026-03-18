@@ -2,8 +2,10 @@ import { useState, useMemo } from 'react';
 import { useProject } from '../../hooks/useProject';
 import { useEstimate } from '../../hooks/useEstimate';
 import { deriveRoom } from '../../engine/derive-room';
-import { PHASE_ORDER, PHASE_COLORS, specDisplayName } from '../../data/constants';
+import { exportProject } from '../../engine/export-project';
+import { PHASE_ORDER, PHASE_COLORS, specDisplayName, QUANTITY_KEY_LABELS } from '../../data/constants';
 import { FLOOR_TYPES, FLOOR_PROTECTION_LABEL } from '../../data/fixture-catalog';
+import { SUBSTRATE_MAP } from '../../data/substrate-catalog';
 import { DB_BUNDLE } from '../../data/db-bundle';
 
 // Solid colors for the stacked phase bars (visible on dark backgrounds)
@@ -40,12 +42,54 @@ const PhaseBar = ({ phaseHours, total, height = 24 }) => {
   );
 };
 
+const CAT_LABELS = {
+  'PS_SURFACE_SF': 'Surface Area (SF)',
+  'PS_SURFACE_LF': 'Surface Linear (LF)',
+  'PS_SURFACE_EA': 'Surface Count (EA)',
+  'PS_SURFACE_EA_SIDE': 'Surface Sides (EA_SIDE)',
+  'PS_EDGE_LF': 'Edges (LF)',
+  'PS_OPENING_EA': 'Openings (EA)',
+  'PS_META': 'Meta / Routing',
+  'PS_PROTECT_SF': 'Protection Area (SF)',
+  'PS_PROTECT_LF': 'Protection Linear (LF)',
+  'PS_PROTECT_EA': 'Protection Count (EA)',
+};
+
 export default function EstimateView() {
   const { state } = useProject();
   const estimate = useEstimate();
 
   const [expandedRooms, setExpandedRooms] = useState({});
   const [expandedItems, setExpandedItems] = useState({});
+  const [showSummary, setShowSummary] = useState(false);
+
+  // Summary data (merged from ProjectSummary)
+  const exported = useMemo(() => exportProject(state), [state]);
+  const winningFloorKey = useMemo(() => {
+    const hasFullCover = state.rooms.some(r => {
+      const subs = r.substrates || {};
+      return subs.walls || subs.ceilings;
+    });
+    if (hasFullCover) return 'PS_PROTECT_SF.FLOOR_EXPOSED';
+    const hasWorkzone = state.rooms.some(r => {
+      const subs = r.substrates || {};
+      return subs.doors?.painting || subs.windows?.painting || subs.door_frames || subs.window_jamb;
+    });
+    if (hasWorkzone) return 'PS_PROTECT_SF.FLOOR_WORKZONE';
+    return 'PS_PROTECT_SF.FLOOR_PERIMETER';
+  }, [state.rooms]);
+  const qtyByCategory = useMemo(() => {
+    const suppressed = new Set(['PS_PROTECT_SF.FLOOR_EXPOSED', 'PS_PROTECT_SF.FLOOR_WORKZONE', 'PS_PROTECT_SF.FLOOR_PERIMETER']);
+    suppressed.delete(winningFloorKey);
+    const cats = {};
+    exported.ps_quantities.forEach(q => {
+      if (suppressed.has(q.quantity_key)) return;
+      const prefix = q.quantity_key.split('.')[0];
+      if (!cats[prefix]) cats[prefix] = [];
+      cats[prefix].push(q);
+    });
+    return cats;
+  }, [exported, winningFloorKey]);
 
   // Task name suffix: adds coat count and/or floor protection material
   const taskNameSuffix = (t) => {
@@ -188,6 +232,71 @@ export default function EstimateView() {
         <div className="mod-chip"><span className="mod-label">Texture:</span><span className="mod-val">{projCtx.texture}</span></div>
         <div className="mod-chip"><span className="mod-label">Complexity:</span><span className="mod-val">{projCtx.complexity}</span></div>
       </div>
+
+      {/* ── Project Summary (collapsible) ── */}
+      <details open={showSummary} onToggle={e => setShowSummary(e.target.open)} style={{marginBottom:12}}>
+        <summary style={{cursor:'pointer',fontSize:12,fontWeight:600,color:'var(--text-secondary)',padding:'6px 0',userSelect:'none'}}>
+          Project Summary ({exported.ps_quantities.length} quantity keys | {state.rooms.length} rooms | {exported._meta.total_wall_sf} SF wall | {exported._meta.total_ceiling_sf} SF ceiling)
+        </summary>
+
+        {/* Room breakdown table */}
+        <div className="panel-section" style={{marginTop:8}}>
+          <div style={{overflowX:'auto'}}>
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th style={{minWidth:120}}>Room</th>
+                  <th>Area Group</th>
+                  <th style={{width:80,textAlign:'center'}}>Dims</th>
+                  <th style={{width:70,textAlign:'right'}}>Wall SF</th>
+                  <th style={{width:70,textAlign:'right'}}>Ceil SF</th>
+                  <th style={{width:60,textAlign:'center'}}>Opens</th>
+                  <th style={{width:60,textAlign:'center'}}>Wins</th>
+                  <th style={{maxWidth:200}}>Substrates</th>
+                  <th>QT</th>
+                </tr>
+              </thead>
+              <tbody>
+                {state.rooms.map((room, idx) => {
+                  const d = deriveRoom(room);
+                  const activeSubKeys = Object.keys(room.substrates||{}).filter(k => {
+                    const ap = k==='doors'||k==='windows'||k==='door_casing'||k==='window_casing';
+                    return ap ? room.substrates[k]?.painting : true;
+                  });
+                  return (
+                    <tr key={room.id} style={idx % 2 === 1 ? {background:'var(--bg-panel)'} : undefined}>
+                      <td style={{fontWeight:500,minWidth:120}}>{room.label}</td>
+                      <td style={{color:'var(--text-muted)'}}>{room.area_group||'\u2014'}</td>
+                      <td style={{fontFamily:'var(--font-mono)',width:80,textAlign:'center'}}>{d.L}{'\u00d7'}{d.W}{'\u00d7'}{d.H}</td>
+                      <td style={{fontFamily:'var(--font-mono)',color:'var(--accent)',width:70,textAlign:'right'}}>{d.wall_field_sf}</td>
+                      <td style={{fontFamily:'var(--font-mono)',color:'var(--accent)',width:70,textAlign:'right'}}>{d.ceiling_field_sf}</td>
+                      <td style={{fontFamily:'var(--font-mono)',width:60,textAlign:'center'}}>{d.totalOpenings}</td>
+                      <td style={{fontFamily:'var(--font-mono)',width:60,textAlign:'center'}}>{d.totalWindows}</td>
+                      <td style={{fontSize:11,color:'var(--text-secondary)',maxWidth:200,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{activeSubKeys.length > 0 ? activeSubKeys.map(s => SUBSTRATE_MAP[s]?.label || s).join(', ') : '\u2014'}</td>
+                      <td>{state.project.default_quality_tier} <span style={{fontSize:10,color:'var(--text-muted)'}}>({d.heightBand})</span></td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* Quantity keys by category */}
+        <div className="summary-grid" style={{marginTop:8}}>
+          {Object.entries(qtyByCategory).map(([cat, items]) => (
+            <div key={cat} className="summary-card">
+              <div className="summary-card-title">{CAT_LABELS[cat] || cat}</div>
+              {items.map(q => (
+                <div key={q.quantity_key} className="summary-row">
+                  <span style={{fontFamily:'var(--font-mono)',fontSize:11}}>{QUANTITY_KEY_LABELS[q.quantity_key] || q.quantity_key}</span>
+                  <span className="summary-value">{q.value !== null ? q.value : q.text_value} {q.uom}</span>
+                </div>
+              ))}
+            </div>
+          ))}
+        </div>
+      </details>
 
       {/* Warnings */}
       {estimate.warnings.length > 0 && (
@@ -337,8 +446,17 @@ export default function EstimateView() {
                                         t.modStack.qt !== 1 && `QT:${t.modStack.qt}`,
                                         t.modStack.height !== 1 && `Ht:${t.modStack.height}`,
                                         t.modStack.sizeMod && t.modStack.sizeMod !== 1 && `Size:${t.modStack.sizeMod}`,
-                                        t.modStack.typeMod && t.modStack.typeMod !== 1 && `Type:${t.modStack.typeMod}`
-                                      ].filter(Boolean).join(' \u00d7 ') || 'No modifiers'}>{t.modStack.total.toFixed(2)}x</td>
+                                        t.modStack.typeMod && t.modStack.typeMod !== 1 && `Type:${t.modStack.typeMod}`,
+                                        t.conditionScale && `Cond:${t.conditionScale}`
+                                      ].filter(Boolean).join(' \u00d7 ') || 'No modifiers'}>
+                                    {t.modStack.total.toFixed(2)}x
+                                    {t.conditionScale && t.conditionScale !== 'GOOD' && (
+                                      <span style={{fontSize:9,marginLeft:3,padding:'1px 3px',borderRadius:2,
+                                        background:t.conditionScale==='POOR'?'rgba(231,76,60,0.2)':'rgba(241,196,15,0.2)',
+                                        color:t.conditionScale==='POOR'?'#e74c3c':'#f1c40f'
+                                      }}>{t.conditionScale}</span>
+                                    )}
+                                  </td>
                                   <td style={{textAlign:'right',color:'var(--accent)',fontWeight:600}}
                                       title={t.coatMultiplier > 1 ? `${(t.hours / t.coatMultiplier).toFixed(2)} hrs \u00d7 ${t.coatMultiplier} coats` : ''}>
                                     {t.hours.toFixed(2)}

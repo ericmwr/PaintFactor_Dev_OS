@@ -1,0 +1,683 @@
+{
+  "spec_family": {
+    "id": "SF_STAIR_INT_RP",
+    "name": "Interior Stair System Repaint (Combined Riser/Stringer + Railing)",
+    "description": "Combined prime + finish repaint spec for previously painted interior stair systems in occupied residential homes. Consolidates two NC specs (SF_STAIR_RISER_NC with 30 tasks + SF_STAIR_RAILING_NC with 43 tasks = 73 NC tasks) into a single RP spec with 69 tasks. Covers condition assessment (visual scan, adhesion test, coating ID, anti-slip verification), RP-specific prep (degloss, scrape/feather for failing paint, contamination treatment, caulk assess/replace), state-driven primer selection (adhesion, stain-block, mildew-resistant), fine-finish coat application (brush or spray) on 6 paintable items (risers EA, stringers LF, balusters EA, newels EA, handrails LF, base rails LF), interstage inspection/sanding between every coat, tread walkability verification throughout work, and customer walkthrough. Sixth interior RP spec.",
+    "domain": "interior",
+    "scope_type": "repaint",
+    "version": "1.0.0",
+    "status": "draft",
+    "review_required": true
+  },
+
+  "scope_boundaries": {
+    "includes": [
+      "Condition assessment (visual scan with work light, ASTM D3359 adhesion test, coating identification latex vs oil, anti-slip verification of tread protection)",
+      "EPA Lead-Safe RRP evaluation and containment for pre-1978 homes (stair components are HIGH RISK for lead paint -- historically oil-based, multi-layer from multiple repaints)",
+      "Surface contamination treatment (TSP wash for mildew, smoke, water stain, grease -- especially handrails with hand-oil buildup)",
+      "Mildew/biocide treatment for SS_INT_MOISTURE_DAMAGE (rare on stairs but possible in basement stairwells)",
+      "Deglossing existing paint surfaces per component type (chemical or mechanical, canonical sequence)",
+      "Scraping loose and failing paint with contour scrapers for profiled components (turned balusters, newel detail, handrail profiles)",
+      "Feather-sanding all scraped edges (mandatory at all QT -- non-negotiable for fine finish)",
+      "Caulk assessment and replacement at stringer-to-wall, riser-to-stringer, and newel junction joints (partial, not full re-caulk)",
+      "State-driven primer selection and application (adhesion primer for failing/peeling, stain-block for smoke, mildew-resistant for moisture)",
+      "Spot priming all scraped/repaired areas to prevent flashing",
+      "Fine-finish coat application -- 2 coats QT3-QT4, 3 coats QT5 brush per FFD 15.10.3 (brush or spray)",
+      "Interstage inspection, sanding (QT3 spot 220, QT4 full 220, QT5 thorough 220-320), and defect repair between every coat",
+      "Tread protection (Ram Board Stair Armor) -- FIRST task, maintained walkable throughout, daily verification in occupied home context",
+      "Floor protection at landings (canvas drop cloths -- RP always has finished floors)",
+      "Wall masking along stringer edge and railing area (spray method -- finished walls in RP context)",
+      "Spray containment for balusters (cardboard shields, HVLP preferred over airless per doctrine 6.3)",
+      "Carpet runner protection if present (RP-specific -- rosin paper with low-tack tape)",
+      "Wet paint safety signage at top and bottom of stairway (RP occupied home context)",
+      "Handrail bracket removal/reinstall at QT4+ (paint behind attachment points)",
+      "Handrail feel test at QT5 (glass-smooth standard -- run hand along entire length)",
+      "Optional polyurethane topcoat on handrails at QT5 (maximum hand-oil resistance)",
+      "Final inspection and touch-up across all components",
+      "Customer walkthrough (RP-specific -- occupied home context, ~10-15 min per stairway system)"
+    ],
+    "excludes": [
+      {
+        "item": "Bare/new stair surfaces (new construction)",
+        "route_to": "SF_STAIR_RISER_NC_v1 + SF_STAIR_RAILING_NC_v1"
+      },
+      {
+        "item": "Stair treads (floor-rated coating, painted absolutely last per doctrine)",
+        "route_to": "SF_STAIR_TREAD spec (future)"
+      },
+      {
+        "item": "Stairwell walls",
+        "route_to": "SF_DRYWALL_WALL_INT_RP_v1"
+      },
+      {
+        "item": "Stairwell ceilings",
+        "route_to": "SF_DRYWALL_CEILING_INT_RP_v1"
+      },
+      {
+        "item": "Exterior stairs",
+        "route_to": "Future exterior stair spec"
+      },
+      {
+        "item": "Structural stair repair (broken treads, loose newels, damaged stringers)",
+        "route_to": "Carpenter -- outside painting scope"
+      },
+      {
+        "item": "Active moisture remediation",
+        "route_to": "Plumber/contractor -- moisture SOURCE must be resolved before painting (gate condition)"
+      },
+      {
+        "item": "Wall stringers handled by wall spec context",
+        "route_to": "Covered when stringer is integral to wall surface -- not a separate paintable item"
+      }
+    ]
+  },
+
+  "configuration_dimensions": [
+    {
+      "dimension_id": "quality_tier",
+      "description": "Quality tier controlling coat count, inspection rigor, interstage sanding discipline, defect tolerance, bracket removal, feel test, and poly topcoat. QT3 is MINIMUM for stairs -- no QT2 available.",
+      "values": ["QT3", "QT4", "QT5"],
+      "default": "QT3",
+      "notes": "QT3=1.0x baseline (minimum for stairs). QT4=1.3x (global modifier, bracket removal, systematic inspection). QT5=1.5x + 3rd brush coat per FFD 15.10.3, feel test, optional poly topcoat. Per Stairway_Systems_Doctrine Section 10.1."
+    },
+    {
+      "dimension_id": "application_method",
+      "description": "Primary application technique. Brush is default for stair detail work. Spray for production work (20+ balusters).",
+      "values": ["brush", "spray"],
+      "default": "brush",
+      "notes": "Brush: default for RP (occupied, detail work). HVLP spray preferred over airless for in-place baluster work per doctrine 6.3. Spray break-even at ~20-25 balusters. In occupied RP homes, brush is even more dominant due to containment difficulty. spray_backroll and roll are NOT valid for stairs."
+    },
+    {
+      "dimension_id": "sheen",
+      "description": "Finish coating sheen level. Semi-gloss is default for stairs (scuff/hand-oil resistance).",
+      "values": ["satin", "semi-gloss", "gloss"],
+      "default": "semi-gloss",
+      "notes": "Satin at QT3+. Semi-gloss at QT4+ (default). Gloss at QT5 only. Flat/matte/eggshell NOT valid for stairs per Stairway_Systems_Doctrine."
+    },
+    {
+      "dimension_id": "condition_scale",
+      "description": "Universal 3-level condition scale driving prep intensity. Maps from substrate state assessment.",
+      "values": ["GOOD", "FAIR", "POOR"],
+      "default": "GOOD",
+      "notes": "GOOD=SS_INT_SOUND_PAINT (1.0x prep, skip prime if adhesion passes). FAIR=SS_INT_FAILING_PAINT or SS_INT_MOISTURE_DAMAGE (1.5x prep, scrape/feather + state-driven prime). POOR=SS_INT_PEELING or SS_INT_SMOKE_DAMAGE (2.0x prep, full remediation + state-driven prime)."
+    },
+    {
+      "dimension_id": "substrate_state",
+      "description": "Interior substrate state driving primer selection and prep pathway. Different stair components may have different states.",
+      "values": ["SS_INT_SOUND_PAINT", "SS_INT_FAILING_PAINT", "SS_INT_PEELING", "SS_INT_MOISTURE_DAMAGE", "SS_INT_SMOKE_DAMAGE"],
+      "default": "SS_INT_SOUND_PAINT",
+      "notes": "All 5 SS_INT_* states accepted. Each drives distinct prep pathway and primer selection. Worst state at system drives condition_scale."
+    },
+    {
+      "dimension_id": "baluster_profile",
+      "description": "Baluster profile type driving production rate variation on baluster-specific tasks.",
+      "values": ["square", "turned"],
+      "default": "square",
+      "notes": "Square=1.0x baseline. Turned=1.75x per Stairway_Systems_Doctrine Section 9.2. Applies to degloss, scrape/feather, prime, brush finish baluster tasks. Does NOT apply to spray finish (profile-independent spray rates)."
+    },
+    {
+      "dimension_id": "stringer_type",
+      "description": "Stringer type driving production rate variation on stringer-specific tasks.",
+      "values": ["open", "closed"],
+      "default": "closed",
+      "notes": "Closed=1.0x baseline. Open=1.4x (notched profile, more surface area). Applies to all stringer tasks."
+    }
+  ],
+
+  "paintable_items": [
+    {
+      "item_id": "ITM_STAIR_RISER",
+      "name": "Stair Riser Face",
+      "unit_of_measure": "EA",
+      "counting_rules": "Count of stair risers to be repainted. One riser = one face (~2.2 SF per EA). Counted per individual riser.",
+      "notes": "Reuse existing item from SF_STAIR_RISER_NC. Same physical item in RP context. Flat vertical surface -- efficient to degloss and paint."
+    },
+    {
+      "item_id": "ITM_STAIR_STRINGER",
+      "name": "Stair Stringer / Skirtboard",
+      "unit_of_measure": "LF",
+      "counting_rules": "Linear feet of stringer/skirtboard to be repainted. Full diagonal run from bottom to top. Count each stringer separately.",
+      "notes": "Reuse existing item from SF_STAIR_RISER_NC. Open vs closed affects production rate (1.0x vs 1.4x). Stairwell access modifiers apply to stringer tasks."
+    },
+    {
+      "item_id": "ITM_STAIR_BALUSTER",
+      "name": "Stair Baluster",
+      "unit_of_measure": "EA",
+      "counting_rules": "Count of balusters to be repainted. Includes wood and iron balusters. Typical residential: 39-62 per stairway system.",
+      "notes": "Reuse existing item from SF_STAIR_RAILING_NC. DOMINANT cost driver. Profile type (square vs turned) is primary rate modifier. 62 turned balusters at 7 min/EA x 3 coats = ~22 hours of baluster painting alone."
+    },
+    {
+      "item_id": "ITM_STAIR_NEWEL",
+      "name": "Stair Newel Post",
+      "unit_of_measure": "EA",
+      "counting_rules": "Count of newel posts to be repainted. All newels are wood regardless of baluster material. Typical: 2-4 per stairway system.",
+      "notes": "Reuse existing item from SF_STAIR_RAILING_NC. Larger surface area with decorative detail (caps, rosettes, flutes). ~4-8 SF per EA."
+    },
+    {
+      "item_id": "ITM_STAIR_HANDRAIL",
+      "name": "Stair Handrail",
+      "unit_of_measure": "LF",
+      "counting_rules": "Linear feet of handrail to be repainted. Measured along handrail centerline. 4 surfaces (top, 2 sides, underside).",
+      "notes": "Reuse existing item from SF_STAIR_RAILING_NC. Most-touched surface in any home. QT4+: brackets removed for horizontal painting. QT5: feel test + optional poly topcoat."
+    },
+    {
+      "item_id": "ITM_STAIR_BASE_RAIL",
+      "name": "Stair Base Rail (Shoe Rail)",
+      "unit_of_measure": "LF",
+      "counting_rules": "Linear feet of base rail to be repainted. Conditional -- not all railing systems have base rails. 3 accessible surfaces.",
+      "notes": "Reuse existing item from SF_STAIR_RAILING_NC. Conditional item. When present, runs parallel to handrail at tread level."
+    }
+  ],
+
+  "variants": [
+    {
+      "variant_id": "VAR_STRP_GOOD_QT3_BRUSH",
+      "applies_when": { "quality_tier": ["QT3"], "condition_scale": ["GOOD"], "application_method": ["brush"] },
+      "included_items": ["ITM_STAIR_RISER", "ITM_STAIR_STRINGER", "ITM_STAIR_BALUSTER", "ITM_STAIR_NEWEL", "ITM_STAIR_HANDRAIL", "ITM_STAIR_BASE_RAIL"],
+      "round_config": "ROUND_STRP_2FINISH",
+      "notes": "BASELINE. Most common residential stair repaint. Sound paint, degloss + 2 finish coats, no prime. Brush application in occupied home."
+    },
+    {
+      "variant_id": "VAR_STRP_FAIR_QT3_BRUSH",
+      "applies_when": { "quality_tier": ["QT3"], "condition_scale": ["FAIR"], "application_method": ["brush"] },
+      "included_items": ["ITM_STAIR_RISER", "ITM_STAIR_STRINGER", "ITM_STAIR_BALUSTER", "ITM_STAIR_NEWEL", "ITM_STAIR_HANDRAIL", "ITM_STAIR_BASE_RAIL"],
+      "round_config": "ROUND_STRP_PRIME_2FINISH",
+      "notes": "Standard RP on failing paint. Scrape/feather + state-driven prime + 2 finish coats. Common on high-wear stair surfaces."
+    },
+    {
+      "variant_id": "VAR_STRP_POOR_QT3_BRUSH",
+      "applies_when": { "quality_tier": ["QT3"], "condition_scale": ["POOR"], "application_method": ["brush"] },
+      "included_items": ["ITM_STAIR_RISER", "ITM_STAIR_STRINGER", "ITM_STAIR_BALUSTER", "ITM_STAIR_NEWEL", "ITM_STAIR_HANDRAIL", "ITM_STAIR_BASE_RAIL"],
+      "round_config": "ROUND_STRP_PRIME_2FINISH",
+      "notes": "Full remediation. Heavy scrape, contamination treatment, state-driven prime + 2 finish coats. Highest prep labor."
+    },
+    {
+      "variant_id": "VAR_STRP_GOOD_QT4_BRUSH",
+      "applies_when": { "quality_tier": ["QT4"], "condition_scale": ["GOOD"], "application_method": ["brush"] },
+      "included_items": ["ITM_STAIR_RISER", "ITM_STAIR_STRINGER", "ITM_STAIR_BALUSTER", "ITM_STAIR_NEWEL", "ITM_STAIR_HANDRAIL", "ITM_STAIR_BASE_RAIL"],
+      "round_config": "ROUND_STRP_2FINISH",
+      "notes": "Premium refresh on sound paint. Full sand 220 between coats, systematic inspection, bracket removal. No prime needed."
+    },
+    {
+      "variant_id": "VAR_STRP_FAIR_QT4_BRUSH",
+      "applies_when": { "quality_tier": ["QT4"], "condition_scale": ["FAIR"], "application_method": ["brush"] },
+      "included_items": ["ITM_STAIR_RISER", "ITM_STAIR_STRINGER", "ITM_STAIR_BALUSTER", "ITM_STAIR_NEWEL", "ITM_STAIR_HANDRAIL", "ITM_STAIR_BASE_RAIL"],
+      "round_config": "ROUND_STRP_PRIME_2FINISH",
+      "notes": "Premium remediation. Full prep + state-driven prime + 2 finish coats + bracket removal."
+    },
+    {
+      "variant_id": "VAR_STRP_GOOD_QT3_SPRAY",
+      "applies_when": { "quality_tier": ["QT3"], "condition_scale": ["GOOD"], "application_method": ["spray"] },
+      "included_items": ["ITM_STAIR_RISER", "ITM_STAIR_STRINGER", "ITM_STAIR_BALUSTER", "ITM_STAIR_NEWEL", "ITM_STAIR_HANDRAIL", "ITM_STAIR_BASE_RAIL"],
+      "round_config": "ROUND_STRP_2FINISH",
+      "notes": "Production spray on sound paint. HVLP preferred. Requires spray containment setup (45+ min). Break-even at 20-25 balusters."
+    },
+    {
+      "variant_id": "VAR_STRP_FAIR_QT4_SPRAY",
+      "applies_when": { "quality_tier": ["QT4"], "condition_scale": ["FAIR"], "application_method": ["spray"] },
+      "included_items": ["ITM_STAIR_RISER", "ITM_STAIR_STRINGER", "ITM_STAIR_BALUSTER", "ITM_STAIR_NEWEL", "ITM_STAIR_HANDRAIL", "ITM_STAIR_BASE_RAIL"],
+      "round_config": "ROUND_STRP_PRIME_2FINISH",
+      "notes": "Premium remediation spray. Full prep + state-driven prime + 2 spray finish coats. Production method for large baluster counts."
+    },
+    {
+      "variant_id": "VAR_STRP_GOOD_QT5_BRUSH",
+      "applies_when": { "quality_tier": ["QT5"], "condition_scale": ["GOOD"], "application_method": ["brush"] },
+      "included_items": ["ITM_STAIR_RISER", "ITM_STAIR_STRINGER", "ITM_STAIR_BALUSTER", "ITM_STAIR_NEWEL", "ITM_STAIR_HANDRAIL", "ITM_STAIR_BASE_RAIL"],
+      "round_config": "ROUND_STRP_3FINISH",
+      "notes": "Superior refresh. 3 brush finish coats per FFD 15.10.3, thorough 220-320 interstage, bracket removal, feel test, optional poly topcoat."
+    },
+    {
+      "variant_id": "VAR_STRP_POOR_QT5_BRUSH",
+      "applies_when": { "quality_tier": ["QT5"], "condition_scale": ["POOR"], "application_method": ["brush"] },
+      "included_items": ["ITM_STAIR_RISER", "ITM_STAIR_STRINGER", "ITM_STAIR_BALUSTER", "ITM_STAIR_NEWEL", "ITM_STAIR_HANDRAIL", "ITM_STAIR_BASE_RAIL"],
+      "round_config": "ROUND_STRP_PRIME_3FINISH",
+      "notes": "Maximum effort. Full remediation + state-driven prime + 3 brush finish coats. Near-worst-case labor scenario. Gallery-quality finish."
+    },
+    {
+      "variant_id": "VAR_STRP_FAIR_QT3_SPRAY",
+      "applies_when": { "quality_tier": ["QT3"], "condition_scale": ["FAIR"], "application_method": ["spray"] },
+      "included_items": ["ITM_STAIR_RISER", "ITM_STAIR_STRINGER", "ITM_STAIR_BALUSTER", "ITM_STAIR_NEWEL", "ITM_STAIR_HANDRAIL", "ITM_STAIR_BASE_RAIL"],
+      "round_config": "ROUND_STRP_PRIME_2FINISH",
+      "notes": "Standard remediation spray. Scrape/feather + prime + 2 spray coats. Production method with containment."
+    }
+  ],
+
+  "required_paintscope_inputs": [
+    {
+      "input_name": "IN_EA_STAIR_RISER",
+      "paintscope_key": "PS_SURFACE_EA.STAIR_RISER",
+      "uom": "EA",
+      "required": true,
+      "description": "Count of stair risers to be repainted"
+    },
+    {
+      "input_name": "IN_LF_STAIR_STRINGER",
+      "paintscope_key": "PS_SURFACE_LF.STAIR_STRINGER",
+      "uom": "LF",
+      "required": true,
+      "description": "Linear feet of stringer/skirtboard to be repainted"
+    },
+    {
+      "input_name": "IN_EA_STAIR_BALUSTER",
+      "paintscope_key": "PS_SURFACE_EA.STAIR_BALUSTER",
+      "uom": "EA",
+      "required": true,
+      "description": "Count of balusters to be repainted"
+    },
+    {
+      "input_name": "IN_EA_STAIR_NEWEL",
+      "paintscope_key": "PS_SURFACE_EA.STAIR_NEWEL",
+      "uom": "EA",
+      "required": true,
+      "description": "Count of newel posts to be repainted"
+    },
+    {
+      "input_name": "IN_LF_STAIR_HANDRAIL",
+      "paintscope_key": "PS_SURFACE_LF.STAIR_HANDRAIL",
+      "uom": "LF",
+      "required": true,
+      "description": "Linear feet of handrail to be repainted"
+    },
+    {
+      "input_name": "IN_LF_STAIR_BASE_RAIL",
+      "paintscope_key": "PS_SURFACE_LF.STAIR_BASE_RAIL",
+      "uom": "LF",
+      "required": false,
+      "required_when": "system has base rail",
+      "description": "Linear feet of base rail to be repainted (conditional)"
+    },
+    {
+      "input_name": "IN_LF_STAIR_STRINGER_CAULK",
+      "paintscope_key": "PS_EDGE_LF.STAIR_STRINGER_TO_WALL",
+      "uom": "LF",
+      "required": false,
+      "required_when": { "stringer_type": ["closed"] },
+      "description": "Stringer-to-wall caulk joint length for assess/replace task"
+    },
+    {
+      "input_name": "IN_SF_STAIR_TREAD_PROTECT",
+      "paintscope_key": "PS_PROTECT_SF.ASSET.STAIR_TREADS",
+      "uom": "SF",
+      "required": true,
+      "description": "Tread protection area (Ram Board Stair Armor)"
+    },
+    {
+      "input_name": "IN_SF_PROTECT_FLOOR_PERIMETER",
+      "paintscope_key": "PS_PROTECT_SF.FLOOR_PERIMETER",
+      "uom": "SF",
+      "required": false,
+      "required_when": { "floor_type": ["finished", "partial"] },
+      "description": "Floor protection area at landings"
+    },
+    {
+      "input_name": "IN_LF_WALL_ADJACENT",
+      "paintscope_key": "PS_PROTECT_LF.WALL_ADJACENT",
+      "uom": "LF",
+      "required": false,
+      "required_when": { "application_method": ["spray"] },
+      "description": "Wall masking LF along stringer edge and railing area"
+    },
+    {
+      "input_name": "IN_ENUM_SURFACE_CONDITION",
+      "paintscope_key": "PS_META.SURFACE_CONDITION",
+      "uom": "ENUM",
+      "required": true,
+      "description": "Condition scale (GOOD/FAIR/POOR) -- primary prep intensity driver"
+    },
+    {
+      "input_name": "IN_ENUM_SUBSTRATE_STATE_INT",
+      "paintscope_key": "PS_META.ENUM.SUBSTRATE_STATE_INT",
+      "uom": "ENUM",
+      "required": true,
+      "description": "Interior substrate state (SS_INT_SOUND_PAINT through SS_INT_SMOKE_DAMAGE) -- drives primer selection"
+    },
+    {
+      "input_name": "IN_BOOL_HOME_PRE_1978",
+      "paintscope_key": "PS_META.BOOL.HOME_PRE_1978",
+      "uom": "BOOL",
+      "required": true,
+      "description": "Pre-1978 home flag -- triggers EPA Lead-Safe RRP module. Stair components are HIGH RISK for lead paint."
+    },
+    {
+      "input_name": "IN_ENUM_CONTAMINATION_TYPE",
+      "paintscope_key": "PS_META.ENUM.CONTAMINATION_TYPE",
+      "uom": "ENUM",
+      "required": true,
+      "description": "Contamination type (none/mildew/smoke/water_stain/grease) -- drives treatment task activation and primer selection"
+    },
+    {
+      "input_name": "IN_EA_ROOMS_TOTAL",
+      "paintscope_key": "PS_META.EA.ROOMS_TOTAL",
+      "uom": "EA",
+      "required": true,
+      "description": "Room count -- drives customer walkthrough heuristic"
+    }
+  ],
+
+  "material_systems_summary": [
+    {
+      "system_id": "SYS_PRIMER_ADHESION_INT",
+      "name": "Interior Adhesion Primer",
+      "product_role": "primer",
+      "applies_when": { "substrate_state": ["SS_INT_SOUND_PAINT", "SS_INT_FAILING_PAINT", "SS_INT_PEELING"] },
+      "notes": "Water-based adhesion promoter. Bonds to glossy, chalky, or oil-based existing coatings. Critical for stairs historically painted with alkyd enamel."
+    },
+    {
+      "system_id": "SYS_PRIMER_STAINBLOCK_INT",
+      "name": "Interior Stain-Blocking Primer (Shellac)",
+      "product_role": "primer",
+      "applies_when": { "substrate_state": ["SS_INT_SMOKE_DAMAGE"] },
+      "notes": "Shellac-based stain blocker (BIN or equivalent). Only product that seals nicotine/smoke. Full surface application required."
+    },
+    {
+      "system_id": "SYS_PRIMER_MILDEW_INT",
+      "name": "Interior Mildew-Resistant Primer",
+      "product_role": "primer",
+      "applies_when": { "substrate_state": ["SS_INT_MOISTURE_DAMAGE"] },
+      "notes": "Mildew-resistant stain-blocking primer. Applied after biocide treatment. Rare on stairs but applicable for basement stairwells."
+    },
+    {
+      "system_id": "SYS_FF_STANDARD_ACRYLIC",
+      "name": "Fine-Finish Standard Acrylic (QT3)",
+      "product_role": "finish",
+      "applies_when": { "quality_tier": ["QT3"] },
+      "notes": "Standard acrylic enamel for residential stair repaint. Self-leveling, low VOC."
+    },
+    {
+      "system_id": "SYS_FF_MODIFIED_URETHANE",
+      "name": "Fine-Finish Modified Urethane (QT4)",
+      "product_role": "finish",
+      "applies_when": { "quality_tier": ["QT4"] },
+      "notes": "Modified urethane enamel. Higher film build, better flow/leveling, increased hardness. Superior scuff resistance for high-traffic stairs."
+    },
+    {
+      "system_id": "SYS_FF_PREMIUM",
+      "name": "Fine-Finish Premium (QT5)",
+      "product_role": "finish",
+      "applies_when": { "quality_tier": ["QT5"] },
+      "notes": "Premium waterborne enamel. Maximum film build, superior self-leveling, maximum hardness. 3 brush coats per FFD 15.10.3."
+    },
+    {
+      "system_id": "SYS_TOPCOAT_POLY_HANDRAIL",
+      "name": "Polyurethane Topcoat for Handrails (QT5 Optional)",
+      "product_role": "topcoat",
+      "applies_when": { "quality_tier": ["QT5"] },
+      "notes": "Optional water-based polyurethane clear coat over cured enamel on handrails only. Maximum hand-oil resistance. Allow 24-48 hr enamel cure before application."
+    }
+  ],
+
+  "module_summary": [
+    { "module_id": "MOD_STRP_SETUP", "phase": "setup", "task_count": 7, "description": "Tread protection (FIRST), floor protection (landings), wall masking (spray), spray containment (balusters), carpet runner protection, safety signage, bracket removal (QT4+)" },
+    { "module_id": "MOD_STRP_ASSESSMENT", "phase": "prep", "task_count": 4, "description": "Condition scan all components, adhesion test (ASTM D3359), coating ID (latex vs oil), anti-slip verification" },
+    { "module_id": "MOD_RRP_INT_CONTAINMENT", "phase": "prep", "task_count": 5, "description": "Lead test, containment setup, HEPA vacuum, containment removal, waste disposal (conditional: pre-1978)" },
+    { "module_id": "MOD_STRP_PREP", "phase": "prep", "task_count": 14, "description": "TSP wash, mildew treatment, degloss per component (6 items), scrape/feather riser/stringer + railing, caulk assess/replace (3 joints), dust removal" },
+    { "module_id": "MOD_STRP_PRIME", "phase": "prime", "task_count": 8, "description": "State-driven primer per component (6 items) + sand primer + spot prime repairs" },
+    { "module_id": "MOD_STRP_INTERSTAGE", "phase": "interstage", "task_count": 7, "description": "Clean area, inspect coat, sand between coats, patch defects, spot coat, tack clean, tread protect verify (runs after each coat except final)" },
+    { "module_id": "MOD_STRP_FINISH", "phase": "finish", "task_count": 12, "description": "Brush/spray finish per component (6 items x 2 methods = 12 tasks)" },
+    { "module_id": "MOD_STRP_CLEANUP", "phase": "cleanup", "task_count": 12, "description": "Final inspect, touch-up, feel test (QT5), poly topcoat (QT5), bracket reinstall (QT4+), teardown (spray/wall/carpet/floor/tread), customer walkthrough, tool cleanup" }
+  ],
+
+  "round_configurations_summary": [
+    {
+      "round_id": "ROUND_STRP_PRIME_2FINISH",
+      "name": "Stair RP -- State-Driven Prime + 2 Finish Coats",
+      "applies_when": { "quality_tier": ["QT3", "QT4"], "condition_scale": ["FAIR", "POOR"] },
+      "total_coats": 3,
+      "interstage_cycles": 2
+    },
+    {
+      "round_id": "ROUND_STRP_2FINISH",
+      "name": "Stair RP -- 2 Finish Coats (No Prime)",
+      "applies_when": { "quality_tier": ["QT3", "QT4"], "condition_scale": ["GOOD"] },
+      "total_coats": 2,
+      "interstage_cycles": 1
+    },
+    {
+      "round_id": "ROUND_STRP_PRIME_3FINISH",
+      "name": "Stair RP -- Prime + 3 Finish Coats (QT5 Brush)",
+      "applies_when": { "quality_tier": ["QT5"], "application_method": ["brush"], "condition_scale": ["FAIR", "POOR"] },
+      "total_coats": 4,
+      "interstage_cycles": 3
+    },
+    {
+      "round_id": "ROUND_STRP_3FINISH",
+      "name": "Stair RP -- 3 Finish Coats (QT5 Brush, No Prime)",
+      "applies_when": { "quality_tier": ["QT5"], "application_method": ["brush"], "condition_scale": ["GOOD"] },
+      "total_coats": 3,
+      "interstage_cycles": 2
+    }
+  ],
+
+  "factor_modifiers_summary": {
+    "condition_scale": {
+      "FAC_CONDITION_GOOD": 1.00,
+      "FAC_CONDITION_FAIR": 1.50,
+      "FAC_CONDITION_POOR": 2.00
+    },
+    "quality_tier": {
+      "FAC_QT3": 1.00,
+      "FAC_QT4": 1.30,
+      "FAC_QT5": 1.50
+    },
+    "baluster_profile": {
+      "FAC_BALUSTER_SQUARE": 1.00,
+      "FAC_BALUSTER_TURNED": 1.75
+    },
+    "stringer_type": {
+      "FAC_STRINGER_CLOSED": 1.00,
+      "FAC_STRINGER_OPEN": 1.40
+    },
+    "stairwell_access": {
+      "FAC_ACCESS_STEP_LADDER": 1.30,
+      "FAC_ACCESS_EXTENSION_LADDER": 1.60,
+      "FAC_ACCESS_SCAFFOLDING": 2.00,
+      "FAC_ACCESS_LIFT": 2.50,
+      "FAC_ACCESS_TALL_LIFT": 2.80
+    },
+    "stacking_partition": {
+      "prep_pool": "condition_scale x component_modifier (baluster_profile OR stringer_type+access). Max realistic: 3.64x",
+      "coating_pool": "quality_tier x component_modifier. Max realistic: 2.73x",
+      "never_cross": "Prep pool never includes QT. Coating pool never includes condition_scale. Contamination drives task activation, not rate modification."
+    }
+  },
+
+  "protection_zones_required": [
+    {
+      "zone_id": "stair_tread_covers",
+      "condition": "always",
+      "protection_level": "full_cover",
+      "notes": "Ram Board Stair Armor -- FIRST task, mandatory at all tiers. NEVER plastic sheeting (fall hazard). Daily verification in RP occupied context. Removal is LAST task and may defer if tread work follows."
+    },
+    {
+      "zone_id": "floor_perimeter",
+      "condition": { "floor_type": ["finished", "partial"] },
+      "protection_level": "edge_only",
+      "notes": "Canvas drop cloth runners at landing areas. RP always has finished floors."
+    },
+    {
+      "zone_id": "wall_adjacent",
+      "condition": { "application_method": ["spray"] },
+      "protection_level": "light_mask",
+      "notes": "Wall masking along stringer edge and railing area. RP walls are always finished -- protection required."
+    },
+    {
+      "zone_id": "spray_containment",
+      "condition": { "application_method": ["spray"] },
+      "protection_level": "full_mask",
+      "notes": "Cardboard shields behind balusters, Tape & Drape on walls. HVLP preferred. 45+ min setup for typical system."
+    },
+    {
+      "zone_id": "carpet_runner_protection",
+      "condition": { "carpet_runner": true },
+      "protection_level": "full_cover",
+      "notes": "RP-specific. Rosin paper over carpet edges at paint work zones. Low-tack tape to avoid carpet backing damage."
+    }
+  ],
+
+  "adjacency_declarations": {
+    "primary_surfaces": ["stair_riser", "stair_stringer", "stair_baluster", "stair_newel", "stair_handrail", "stair_base_rail"],
+    "adjacent_surfaces": [
+      {
+        "surface_id": "stair_tread",
+        "edge_type": "linear",
+        "typical_relationship": "different_finish",
+        "affected_tasks": [],
+        "notes": "Treads are floor-rated coating -- different system. Protection only, no edge painting. Treads painted absolutely last per doctrine."
+      },
+      {
+        "surface_id": "wall_field",
+        "edge_type": "linear",
+        "typical_relationship": "different_finish",
+        "affected_tasks": ["TSK_STRP_CAULK_ASSESS_STRINGER_WALL"],
+        "notes": "Stringer meets wall at full length. RP walls always finished -- masking required. Caulk assess/replace at junction."
+      },
+      {
+        "surface_id": "trim_baseboard",
+        "edge_type": "linear",
+        "typical_relationship": "same_finish",
+        "affected_tasks": [],
+        "notes": "Stringer connects to baseboard at landing. Same finish group. Landing baseboard handled by SF_TRIM_INT_RP."
+      }
+    ]
+  },
+
+  "state_declarations": {
+    "primary_surfaces": ["stair_riser", "stair_stringer", "stair_baluster", "stair_newel", "stair_handrail", "stair_base_rail"],
+
+    "valid_input_states": {
+      "states": [
+        "SS_INT_SOUND_PAINT",
+        "SS_INT_FAILING_PAINT",
+        "SS_INT_PEELING",
+        "SS_INT_MOISTURE_DAMAGE",
+        "SS_INT_SMOKE_DAMAGE"
+      ],
+      "notes": "All 5 SS_INT_* states accepted. Each drives distinct prep pathway and primer selection. Different components may have different states -- handrails (high wear) may be failing while risers (low touch) remain sound. Worst state drives condition_scale."
+    },
+
+    "output_state": {
+      "state": "SS_PAINTED_SEMIGLOSS",
+      "varies_by": "sheen",
+      "state_map": {
+        "satin": "SS_PAINTED_SATIN",
+        "semi-gloss": "SS_PAINTED_SEMIGLOSS",
+        "gloss": "SS_PAINTED_GLOSS"
+      },
+      "notes": "All input states normalize to SS_PAINTED_* after proper prep and coating. Semi-gloss is default stair sheen."
+    },
+
+    "adjacent_state_protection_rules": [
+      {
+        "adjacent_surface": "wall_field",
+        "when_state": "finished",
+        "protection_zone": "wall_adjacent",
+        "protection_level": "light_mask",
+        "notes": "RP walls are always finished. Masking required for spray method."
+      },
+      {
+        "adjacent_surface": "stair_tread",
+        "when_state": "any",
+        "protection_zone": "stair_tread_covers",
+        "protection_level": "full_cover",
+        "notes": "Treads always protected regardless of state. Ram Board Stair Armor mandatory."
+      }
+    ]
+  },
+
+  "site_condition_rules": [
+    {
+      "condition_id": "occupancy_state",
+      "include_when": ["occupied_crew_handles", "occupied_sensitive"],
+      "exclude_when": ["vacant"],
+      "affects": "safety signage, tread protection verification, customer walkthrough",
+      "affected_tasks": ["TSK_STRP_SAFETY_SIGNAGE", "TSK_STRP_TREAD_PROTECT_VERIFY", "TSK_STRP_CUSTOMER_WALKTHROUGH"],
+      "notes": "RP stairs are always in occupied homes. Additional safety considerations because stairs are primary circulation path."
+    },
+    {
+      "condition_id": "lead_status",
+      "include_when": ["tested_positive", "unknown_pre1978"],
+      "exclude_when": ["not_applicable", "presumed_safe", "tested_negative"],
+      "affects": "prep tasks involving paint disturbance",
+      "affected_tasks": ["TSK_RRP_LEAD_TEST", "TSK_RRP_CONTAINMENT_SETUP", "TSK_RRP_HEPA_VACUUM", "TSK_RRP_CONTAINMENT_REMOVAL", "TSK_RRP_WASTE_DISPOSAL"],
+      "notes": "Pre-1978 + lead-positive activates MOD_RRP_INT_CONTAINMENT. Stair components are HIGH RISK for lead paint."
+    },
+    {
+      "condition_id": "contamination_type",
+      "include_when": ["mildew", "smoke", "water_stain", "grease"],
+      "affects": "contamination treatment tasks",
+      "affected_tasks": ["TSK_STRP_TSP_WASH", "TSK_STRP_TREAT_MILDEW"],
+      "notes": "Contamination type drives TSP wash activation and biocide treatment."
+    },
+    {
+      "condition_id": "carpet_runner",
+      "include_when": [true],
+      "exclude_when": [false],
+      "affects": "carpet protection setup and teardown",
+      "affected_tasks": ["TSK_STRP_CARPET_PROTECT", "TSK_STRP_REMOVE_CARPET_PROTECT"],
+      "notes": "RP-specific. Occupied homes may have carpet runner on stairs."
+    }
+  ],
+
+  "cross_spec_coordination": {
+    "deduplication_note": "MOD_RRP_INT_CONTAINMENT is shared across all interior RP specs -- do not duplicate lead-safe tasks when running stair RP alongside wall RP or trim RP.",
+    "shared_session_note": "Stair RP typically runs alongside SF_TRIM_INT_RP (landing baseboard). Tread protection from stair spec covers landing area that trim spec would also protect. Coordinate to avoid duplicate protection. If tread work (SF_STAIR_TREAD spec) follows, defer tread protection removal."
+  },
+
+  "sequencing_notes": {
+    "production_sequence": "Setup (tread protect FIRST, floor protect, wall mask, spray contain, carpet protect, signage, bracket remove) -> Assess (condition/adhesion/coating ID/anti-slip) -> RRP (if pre-1978) -> Prep (TSP, mildew, degloss per component canonical, scrape/feather, caulk assess, dust removal) -> Prime (state-driven per component canonical, sand primer, spot prime) -> Interstage -> Finish 1 -> Interstage -> Finish 2 (QT3+) -> [QT5 brush: Interstage -> Finish 3] -> Final Inspect -> Touch-up -> Feel Test (QT5) -> Poly Topcoat (QT5) -> Bracket Reinstall (QT4+) -> Teardown -> Customer Walkthrough -> Tool Cleanup",
+    "canonical_sequence": "Within every coat module: stringers (#4) -> risers (#8) -> balusters (#5) -> newels (#6) -> handrails (#7) -> base rails",
+    "key_prohibitions": "NO painting over active moisture. NO latex primer on smoke damage (shellac only). NO plastic sheeting on treads (fall hazard). NO skipping interstage sanding on stairs -- all tiers. Spot prime ALL scraped/repaired areas.",
+    "tread_protection_note": "Tread protection is FIRST task and LAST removal. Daily verification in occupied home context. May defer removal if tread work follows."
+  },
+
+  "relationships": {
+    "companion_spec": null,
+    "sibling_specs": ["SF_STAIR_RISER_NC_v1", "SF_STAIR_RAILING_NC_v1"],
+    "often_combined_with": ["SF_TRIM_INT_RP", "SF_DRYWALL_WALL_INT_RP_v1"],
+    "notes": "Sixth interior RP spec. Consolidates two NC specs (riser + railing) into single RP spec. NC specs are siblings with significant task adaptation. Context prefix STRP avoids collision with NC prefixes STRS (riser) and STRL (railing)."
+  },
+
+  "dependencies": {
+    "research": "research.json",
+    "resolution": "resolution.json",
+    "materials": "materials.json",
+    "sop_modules": "sop_modules.json",
+    "production": "production.json"
+  },
+
+  "artifact_counts": {
+    "total_tasks": 69,
+    "binary_tasks": 44,
+    "qt_scaled_tasks": 25,
+    "qt_conditional_tasks": 0,
+    "sop_modules": 8,
+    "material_systems": 7,
+    "round_configurations": 4,
+    "protection_zones": 5,
+    "adjacent_surfaces": 3,
+    "paintscope_inputs": 15,
+    "variants": 10,
+    "paintable_items": 6,
+    "configuration_dimensions": 7
+  },
+
+  "doctrine_references": [
+    { "doctrine": "Stairway_Systems_Doctrine", "sections_used": ["Section 3.2 canonical painting sequence", "Section 5.6 access staging overhead", "Section 6.2 tread protection safety", "Section 6.3 HVLP preference", "Section 7.2 sheen/QT gate", "Section 8 oil-based paint history", "Section 9.2 baluster profile modifier", "Section 10.1 QT3 minimum", "Section 12.1 bracket removal/feel test"] },
+    { "doctrine": "Fine_Finish_Doctrine", "sections_used": ["FFD 15.3.1 apply-tip-walk-away", "FFD 15.4.1 rigid sanding block", "FFD 15.10.3 QT5 3rd brush coat"] },
+    { "doctrine": "Quality_Tiers_and_Surface_Condition.md", "sections_used": ["QT3-QT5 tier definitions", "Condition scale GOOD/FAIR/POOR"] },
+    { "doctrine": "Materials_and_Consumables_Doctrine.md", "sections_used": ["State-driven primer selection", "Shellac stain-blocker mandate for smoke damage (RC-002)"] },
+    { "doctrine": "Estimation_Modifiers_Doctrine.md", "sections_used": ["Stacking partition prep vs coating", "Baluster profile modifier", "Stringer type modifier", "Stairwell access modifiers"] },
+    { "doctrine": "Protection_and_Masking_Doctrine.md", "sections_used": ["Tread protection (Ram Board Stair Armor)", "Spray containment", "Wall masking"] },
+    { "doctrine": "Interior_Protection_Doctrine.md", "sections_used": ["RP finished floor protection", "Occupied home safety requirements"] },
+    { "doctrine": "Substrate_State_Reference.md", "sections_used": ["5 SS_INT_* states", "State-to-condition mapping", "Output state by sheen"] }
+  ],
+
+  "change_log": [
+    {
+      "version": "1.0.0",
+      "date": "2026-03-14",
+      "author": "SpecFactory Assembly Agent",
+      "changes": "Initial spec.json assembly from 5 pipeline artifacts (research, resolution, materials, sop_modules, production). QA Critic found 1 major issue (task count summary off by 1) -- fixed in sop_modules.json and production.json. pass_with_warnings. 69 tasks across 8 modules (7 owned MOD_STRP_* + 1 shared MOD_RRP_INT_CONTAINMENT), 7 material systems (3 state-driven primers + 3 QT-driven fine-finish + 1 optional poly topcoat), 4 round configurations, 5 protection zones, 3 adjacent surfaces, 15 PaintScope inputs, 10 variants, 6 paintable items with dual UOM (EA + LF). Consolidates SF_STAIR_RISER_NC (30 tasks) + SF_STAIR_RAILING_NC (43 tasks) = 73 NC tasks into 69 RP tasks. Context prefix STRP. Sixth interior RP spec."
+    }
+  ]
+}

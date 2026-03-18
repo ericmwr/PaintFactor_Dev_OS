@@ -4,6 +4,60 @@ import { ENUMS } from '../../../data/enums';
 import { OPENING_TYPES } from '../../../data/opening-types';
 import { SUBSTRATE_APPLICATION_METHODS } from '../../../data/substrate-catalog';
 
+// Compact inline stain/clear controls for opening substrates
+function InlineCoatingControls({ subConfig, onSet }) {
+  if (!subConfig || subConfig.substrate_state !== 'bare_wood') return null;
+  const ct = subConfig.coating_type || 'paint';
+  const hasStain = ct === 'stain_clear' || ct === 'stain_only';
+  const hasClear = ct === 'stain_clear' || ct === 'clear_only';
+  return (
+    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', paddingLeft: 24, marginBottom: 4 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+        <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>Coating</span>
+        <Select options={ENUMS.intCoatingTypes} value={ct} onChange={v => onSet('coating_type', v)} style={{ width: 160, fontSize: 11 }} />
+      </div>
+      {ct !== 'paint' && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+          <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>Species</span>
+          <Select options={ENUMS.woodSpeciesGroup} value={subConfig.wood_species_group || 'hardwood'} onChange={v => onSet('wood_species_group', v)} style={{ width: 140, fontSize: 11 }} />
+        </div>
+      )}
+      {hasStain && (
+        <>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+            <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>Stain</span>
+            <Select options={ENUMS.stainApplicationMethods} value={subConfig.application_method_stain || 'brush'} onChange={v => onSet('application_method_stain', v)} style={{ width: 110, fontSize: 11 }} />
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+            <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>Stain Coats</span>
+            <Select options={ENUMS.stainCoatCounts} value={subConfig.stain_coats ?? 1} onChange={v => onSet('stain_coats', Number(v))} style={{ width: 70, fontSize: 11 }} />
+          </div>
+        </>
+      )}
+      {hasClear && (
+        <>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+            <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>Clear</span>
+            <Select options={ENUMS.clearApplicationMethods} value={subConfig.application_method_clear || 'brush'} onChange={v => onSet('application_method_clear', v)} style={{ width: 90, fontSize: 11 }} />
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+            <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>Sheen</span>
+            <Select options={ENUMS.clearSheen} value={subConfig.clear_sheen || 'satin'} onChange={v => onSet('clear_sheen', v)} style={{ width: 100, fontSize: 11 }} />
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+            <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>Sealer</span>
+            <Select options={ENUMS.sealerCoatCounts} value={subConfig.sealer_coats ?? 0} onChange={v => onSet('sealer_coats', Number(v))} style={{ width: 70, fontSize: 11 }} />
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+            <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>Clear Coats</span>
+            <Select options={ENUMS.clearCoatCounts} value={subConfig.clear_coats ?? 1} onChange={v => onSet('clear_coats', Number(v))} style={{ width: 70, fontSize: 11 }} />
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
 export default function OpeningsTab({ room, derived, dispatch, project }) {
   const rid = room.id;
   const subs = room.substrates || {};
@@ -96,20 +150,23 @@ export default function OpeningsTab({ room, derived, dispatch, project }) {
             <span style={{ fontSize: 11, fontFamily: 'var(--font-mono)', color: 'var(--derived)', marginLeft: 'auto' }}>{doorCasingLF > 0 ? `${doorCasingLF} LF` : '\u2014'}</span>
           </div>
           {subs.door_casing?.painting && (
-            <div style={{ display: 'flex', gap: 10, marginBottom: 4, paddingLeft: 24 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>State</span>
-                <Select options={casingStates} value={subs.door_casing?.substrate_state || null} onChange={v => setSub('door_casing', 'substrate_state', v)} placeholder="Default" style={{ width: 130, fontSize: 11 }} />
+            <>
+              <div style={{ display: 'flex', gap: 10, marginBottom: 4, paddingLeft: 24 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>State</span>
+                  <Select options={casingStates} value={subs.door_casing?.substrate_state || null} onChange={v => setSub('door_casing', 'substrate_state', v)} placeholder="Default" style={{ width: 130, fontSize: 11 }} />
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>App</span>
+                  {(() => {
+                    const sam = SUBSTRATE_APPLICATION_METHODS['door_casing'];
+                    const opts = ENUMS.applicationMethods.filter(m => sam.methods.includes(m.value));
+                    return <Select options={opts} value={subs.door_casing?.application_method || null} onChange={v => setSub('door_casing', 'application_method', v)} placeholder={`Default (${sam.default})`} style={{ width: 130, fontSize: 11 }} />;
+                  })()}
+                </div>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>App</span>
-                {(() => {
-                  const sam = SUBSTRATE_APPLICATION_METHODS['door_casing'];
-                  const opts = ENUMS.applicationMethods.filter(m => sam.methods.includes(m.value));
-                  return <Select options={opts} value={subs.door_casing?.application_method || null} onChange={v => setSub('door_casing', 'application_method', v)} placeholder={`Default (${sam.default})`} style={{ width: 130, fontSize: 11 }} />;
-                })()}
-              </div>
-            </div>
+              <InlineCoatingControls subConfig={subs.door_casing} onSet={(f, v) => setSub('door_casing', f, v)} />
+            </>
           )}
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 3 }}>
             <input type="checkbox" checked={!!subs.door_frames} onChange={() => dispatch({ type: 'TOGGLE_SUBSTRATE', payload: { roomId: rid, substrateId: 'door_frames' } })} />
@@ -117,20 +174,23 @@ export default function OpeningsTab({ room, derived, dispatch, project }) {
             <span style={{ fontSize: 11, fontFamily: 'var(--font-mono)', color: 'var(--derived)', marginLeft: 'auto' }}>{totalOpenings > 0 ? `${totalOpenings} EA` : '\u2014'}</span>
           </div>
           {!!subs.door_frames && (
-            <div style={{ display: 'flex', gap: 10, marginBottom: 4, paddingLeft: 24 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>State</span>
-                <Select options={frameStates} value={subs.door_frames?.substrate_state || null} onChange={v => setSub('door_frames', 'substrate_state', v)} placeholder="Default" style={{ width: 130, fontSize: 11 }} />
+            <>
+              <div style={{ display: 'flex', gap: 10, marginBottom: 4, paddingLeft: 24 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>State</span>
+                  <Select options={frameStates} value={subs.door_frames?.substrate_state || null} onChange={v => setSub('door_frames', 'substrate_state', v)} placeholder="Default" style={{ width: 130, fontSize: 11 }} />
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>App</span>
+                  {(() => {
+                    const sam = SUBSTRATE_APPLICATION_METHODS['door_frames'];
+                    const opts = ENUMS.applicationMethods.filter(m => sam.methods.includes(m.value));
+                    return <Select options={opts} value={subs.door_frames?.application_method || null} onChange={v => setSub('door_frames', 'application_method', v)} placeholder={`Default (${sam.default})`} style={{ width: 130, fontSize: 11 }} />;
+                  })()}
+                </div>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>App</span>
-                {(() => {
-                  const sam = SUBSTRATE_APPLICATION_METHODS['door_frames'];
-                  const opts = ENUMS.applicationMethods.filter(m => sam.methods.includes(m.value));
-                  return <Select options={opts} value={subs.door_frames?.application_method || null} onChange={v => setSub('door_frames', 'application_method', v)} placeholder={`Default (${sam.default})`} style={{ width: 130, fontSize: 11 }} />;
-                })()}
-              </div>
-            </div>
+              <InlineCoatingControls subConfig={subs.door_frames} onSet={(f, v) => setSub('door_frames', f, v)} />
+            </>
           )}
         </div>
       </div>
@@ -144,18 +204,21 @@ export default function OpeningsTab({ room, derived, dispatch, project }) {
           <button className="btn btn-sm btn-accent" style={{ marginLeft: 'auto' }} onClick={() => dispatch({ type: 'ADD_DOOR', payload: { roomId: rid } })}>+ Add Door</button>
         </div>
         {doorsPainting && (
-          <div style={{ display: 'flex', gap: 12, marginBottom: 6 }}>
-            <div>
-              <span className="field-label" style={{ marginRight: 4 }}>Application</span>
-              {(() => {
-                const sam = SUBSTRATE_APPLICATION_METHODS['doors'];
-                const methodOptions = ENUMS.applicationMethods.filter(m => sam.methods.includes(m.value));
-                return <Select options={methodOptions} value={subs.doors?.application_method || null}
-                  onChange={v => dispatch({ type: 'SET_SUBSTRATE', payload: { roomId: rid, substrateId: 'doors', field: 'application_method', value: v || null } })}
-                  placeholder={`Default (${sam.default})`} style={{ width: 150 }} />;
-              })()}
+          <>
+            <div style={{ display: 'flex', gap: 12, marginBottom: 6 }}>
+              <div>
+                <span className="field-label" style={{ marginRight: 4 }}>Application</span>
+                {(() => {
+                  const sam = SUBSTRATE_APPLICATION_METHODS['doors'];
+                  const methodOptions = ENUMS.applicationMethods.filter(m => sam.methods.includes(m.value));
+                  return <Select options={methodOptions} value={subs.doors?.application_method || null}
+                    onChange={v => dispatch({ type: 'SET_SUBSTRATE', payload: { roomId: rid, substrateId: 'doors', field: 'application_method', value: v || null } })}
+                    placeholder={`Default (${sam.default})`} style={{ width: 150 }} />;
+                })()}
+              </div>
             </div>
-          </div>
+            <InlineCoatingControls subConfig={subs.doors} onSet={(f, v) => setSub('doors', f, v)} />
+          </>
         )}
         {doorItems.length === 0 ? (
           <div style={{ color: 'var(--text-muted)', padding: 8, textAlign: 'center', fontSize: 12 }}>No door panels added yet.</div>
@@ -186,18 +249,21 @@ export default function OpeningsTab({ room, derived, dispatch, project }) {
           <button className="btn btn-sm btn-accent" style={{ marginLeft: 'auto' }} onClick={() => dispatch({ type: 'ADD_WINDOW', payload: { roomId: rid } })}>+ Add Window</button>
         </div>
         {windowsPainting && (
-          <div style={{ display: 'flex', gap: 12, marginBottom: 6 }}>
-            <div>
-              <span className="field-label" style={{ marginRight: 4 }}>Application</span>
-              {(() => {
-                const sam = SUBSTRATE_APPLICATION_METHODS['windows'];
-                const methodOptions = ENUMS.applicationMethods.filter(m => sam.methods.includes(m.value));
-                return <Select options={methodOptions} value={subs.windows?.application_method || null}
-                  onChange={v => dispatch({ type: 'SET_SUBSTRATE', payload: { roomId: rid, substrateId: 'windows', field: 'application_method', value: v || null } })}
-                  placeholder={`Default (${sam.default})`} style={{ width: 150 }} />;
-              })()}
+          <>
+            <div style={{ display: 'flex', gap: 12, marginBottom: 6 }}>
+              <div>
+                <span className="field-label" style={{ marginRight: 4 }}>Application</span>
+                {(() => {
+                  const sam = SUBSTRATE_APPLICATION_METHODS['windows'];
+                  const methodOptions = ENUMS.applicationMethods.filter(m => sam.methods.includes(m.value));
+                  return <Select options={methodOptions} value={subs.windows?.application_method || null}
+                    onChange={v => dispatch({ type: 'SET_SUBSTRATE', payload: { roomId: rid, substrateId: 'windows', field: 'application_method', value: v || null } })}
+                    placeholder={`Default (${sam.default})`} style={{ width: 150 }} />;
+                })()}
+              </div>
             </div>
-          </div>
+            <InlineCoatingControls subConfig={subs.windows} onSet={(f, v) => setSub('windows', f, v)} />
+          </>
         )}
         {windowItems.length === 0 ? (
           <div style={{ color: 'var(--text-muted)', padding: 8, textAlign: 'center', fontSize: 12 }}>No windows added yet.</div>
@@ -227,20 +293,23 @@ export default function OpeningsTab({ room, derived, dispatch, project }) {
             <span style={{ fontSize: 11, fontFamily: 'var(--font-mono)', color: 'var(--derived)', marginLeft: 'auto' }}>{totalWindows > 0 ? `${totalWindows} x 12 = ${totalWindows * 12} LF` : '\u2014'}</span>
           </div>
           {subs.window_casing?.painting && (
-            <div style={{ display: 'flex', gap: 10, marginBottom: 4, paddingLeft: 24 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>State</span>
-                <Select options={winCasingStates} value={subs.window_casing?.substrate_state || null} onChange={v => setSub('window_casing', 'substrate_state', v)} placeholder="Default" style={{ width: 130, fontSize: 11 }} />
+            <>
+              <div style={{ display: 'flex', gap: 10, marginBottom: 4, paddingLeft: 24 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>State</span>
+                  <Select options={winCasingStates} value={subs.window_casing?.substrate_state || null} onChange={v => setSub('window_casing', 'substrate_state', v)} placeholder="Default" style={{ width: 130, fontSize: 11 }} />
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>App</span>
+                  {(() => {
+                    const sam = SUBSTRATE_APPLICATION_METHODS['window_casing'];
+                    const opts = ENUMS.applicationMethods.filter(m => sam.methods.includes(m.value));
+                    return <Select options={opts} value={subs.window_casing?.application_method || null} onChange={v => setSub('window_casing', 'application_method', v)} placeholder={`Default (${sam.default})`} style={{ width: 130, fontSize: 11 }} />;
+                  })()}
+                </div>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>App</span>
-                {(() => {
-                  const sam = SUBSTRATE_APPLICATION_METHODS['window_casing'];
-                  const opts = ENUMS.applicationMethods.filter(m => sam.methods.includes(m.value));
-                  return <Select options={opts} value={subs.window_casing?.application_method || null} onChange={v => setSub('window_casing', 'application_method', v)} placeholder={`Default (${sam.default})`} style={{ width: 130, fontSize: 11 }} />;
-                })()}
-              </div>
-            </div>
+              <InlineCoatingControls subConfig={subs.window_casing} onSet={(f, v) => setSub('window_casing', f, v)} />
+            </>
           )}
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 3 }}>
             <input type="checkbox" checked={!!subs.window_jamb} onChange={() => dispatch({ type: 'TOGGLE_SUBSTRATE', payload: { roomId: rid, substrateId: 'window_jamb' } })} />
@@ -248,20 +317,23 @@ export default function OpeningsTab({ room, derived, dispatch, project }) {
             <span style={{ fontSize: 11, fontFamily: 'var(--font-mono)', color: 'var(--derived)', marginLeft: 'auto' }}>{totalWindows > 0 ? `${totalWindows} EA` : '\u2014'}</span>
           </div>
           {!!subs.window_jamb && (
-            <div style={{ display: 'flex', gap: 10, marginBottom: 4, paddingLeft: 24 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>State</span>
-                <Select options={jambStates} value={subs.window_jamb?.substrate_state || null} onChange={v => setSub('window_jamb', 'substrate_state', v)} placeholder="Default" style={{ width: 130, fontSize: 11 }} />
+            <>
+              <div style={{ display: 'flex', gap: 10, marginBottom: 4, paddingLeft: 24 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>State</span>
+                  <Select options={jambStates} value={subs.window_jamb?.substrate_state || null} onChange={v => setSub('window_jamb', 'substrate_state', v)} placeholder="Default" style={{ width: 130, fontSize: 11 }} />
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>App</span>
+                  {(() => {
+                    const sam = SUBSTRATE_APPLICATION_METHODS['window_jamb'];
+                    const opts = ENUMS.applicationMethods.filter(m => sam.methods.includes(m.value));
+                    return <Select options={opts} value={subs.window_jamb?.application_method || null} onChange={v => setSub('window_jamb', 'application_method', v)} placeholder={`Default (${sam.default})`} style={{ width: 130, fontSize: 11 }} />;
+                  })()}
+                </div>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>App</span>
-                {(() => {
-                  const sam = SUBSTRATE_APPLICATION_METHODS['window_jamb'];
-                  const opts = ENUMS.applicationMethods.filter(m => sam.methods.includes(m.value));
-                  return <Select options={opts} value={subs.window_jamb?.application_method || null} onChange={v => setSub('window_jamb', 'application_method', v)} placeholder={`Default (${sam.default})`} style={{ width: 130, fontSize: 11 }} />;
-                })()}
-              </div>
-            </div>
+              <InlineCoatingControls subConfig={subs.window_jamb} onSet={(f, v) => setSub('window_jamb', f, v)} />
+            </>
           )}
         </div>
       </div>

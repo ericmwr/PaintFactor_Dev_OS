@@ -1,0 +1,1376 @@
+{
+  "spec_family_id": "SF_CABINET_INT_RP",
+  "version": "0.1.0",
+  "generated_by": "Estimation Engineer",
+  "generated_at": "2026-03-14",
+
+  "MODIFIER_STACKING_WARNING": {
+    "severity": "critical",
+    "description": "Modifier stacking uses TWO separate pools that never cross-apply. Prep tasks use condition_scale x door_style x height (frame tasks) x kitchen_complexity (frame/protection tasks). Coating tasks use quality_tier x door_style x height (frame tasks) x kitchen_complexity (frame/protection tasks). Condition drives prep intensity; QT drives coating quality. Pools NEVER mix.",
+    "worst_case_prep": "POOR(2.50) x raised_panel(1.30) x extra_tall(1.30) x very_complex(1.30) = 5.49x — exceeds 4.0x but extremely rare; flag for estimator review",
+    "worst_case_coating": "QT5(1.50) x raised_panel(1.30) x extra_tall(1.30) x very_complex(1.30) = 3.29x — under 4.0x, valid",
+    "realistic_max_prep": "POOR(2.50) x raised_panel(1.30) x tall_9_10ft(1.15) x standard(1.10) = 4.11x — flag for review",
+    "realistic_max_coating": "QT5(1.50) x raised_panel(1.30) x extra_tall(1.30) = 2.54x (frames) or 1.95x (doors)",
+    "stacking_rules": {
+      "prep_tasks": {
+        "formula": "effective_rate = base_rate / (condition_scale x door_style x height x kitchen_complexity)",
+        "pool_modifiers": "FAC_CONDITION_SCALE (PREP pool)",
+        "shared_modifiers": "MOD_CBRP_DOOR_STYLE + MOD_CBRP_HEIGHT + MOD_CBRP_KITCHEN_COMPLEXITY",
+        "applies_to_phases": ["setup", "prep", "prime"],
+        "notes": "door_style applies to door/drawer tasks only. height and kitchen_complexity apply to frame/protection tasks only. These never overlap on the same task."
+      },
+      "coating_tasks": {
+        "formula": "effective_rate = base_rate / (quality_tier x door_style x height x kitchen_complexity)",
+        "pool_modifiers": "QT (COATING pool)",
+        "shared_modifiers": "MOD_CBRP_DOOR_STYLE + MOD_CBRP_HEIGHT + MOD_CBRP_KITCHEN_COMPLEXITY",
+        "applies_to_phases": ["finish", "interstage", "cleanup"]
+      }
+    }
+  },
+
+  "task_production_rates": [
+
+    {
+      "task_id": "TSK_CBRP_PROTECT_FLOOR_FULL",
+      "name": "Install full kitchen floor protection for spray",
+      "task_classification": "binary",
+      "unit_of_measure": "SF",
+      "paintscope_key": "PS_PROTECT_SF.FLOOR_EXPOSED",
+      "rate_per_hour": 250,
+      "rate_range_low": 200,
+      "rate_range_high": 300,
+      "crew_size": 1,
+      "applies_when": { "application_method": ["spray"] },
+      "factor_modifiers": ["MOD_CBRP_KITCHEN_COMPLEXITY"],
+      "notes": "SF/hr. DIRECT from NC TSK_CABT_PROTECT_FLOOR_FULL (250 SF/hr). Canvas drop cloths + tape edges. Full room coverage for spray method."
+    },
+    {
+      "task_id": "TSK_CBRP_PROTECT_FLOOR_PERIM",
+      "name": "Install perimeter floor protection for brush",
+      "task_classification": "binary",
+      "unit_of_measure": "SF",
+      "paintscope_key": "PS_PROTECT_SF.FLOOR_PERIMETER",
+      "rate_per_hour": 200,
+      "rate_range_low": 150,
+      "rate_range_high": 250,
+      "crew_size": 1,
+      "applies_when": { "application_method": ["brush"] },
+      "factor_modifiers": ["MOD_CBRP_KITCHEN_COMPLEXITY"],
+      "notes": "SF/hr. DIRECT from NC TSK_CABT_PROTECT_FLOOR_PERIM (200 SF/hr). Drop cloth runners at cabinet base only."
+    },
+    {
+      "task_id": "TSK_CBRP_PROTECT_COUNTERTOP",
+      "name": "Protect countertop surfaces",
+      "task_classification": "binary",
+      "unit_of_measure": "SF",
+      "paintscope_key": "PS_PROTECT_SF.ASSET.COUNTERTOPS",
+      "rate_per_hour": 90,
+      "rate_range_low": 80,
+      "rate_range_high": 100,
+      "crew_size": 1,
+      "factor_modifiers": ["MOD_CBRP_KITCHEN_COMPLEXITY"],
+      "notes": "SF/hr. DIRECT from NC TSK_CABT_PROTECT_COUNTERTOP (90 SF/hr). Kraft/rosin paper + tape + plastic sheeting. CRITICAL: high-value surfaces."
+    },
+    {
+      "task_id": "TSK_CBRP_PROTECT_BACKSPLASH",
+      "name": "Mask backsplash",
+      "task_classification": "binary",
+      "unit_of_measure": "LF",
+      "paintscope_key": "PS_PROTECT_SF.ASSET.TILE_BACKSPLASH",
+      "rate_per_hour": 50,
+      "rate_range_low": 40,
+      "rate_range_high": 60,
+      "crew_size": 1,
+      "factor_modifiers": ["MOD_CBRP_KITCHEN_COMPLEXITY"],
+      "notes": "LF/hr. DIRECT from NC TSK_CABT_PROTECT_BACKSPLASH (50 LF/hr). Green tape edge seal against tile."
+    },
+    {
+      "task_id": "TSK_CBRP_PROTECT_WALL",
+      "name": "Mask walls for spray overspray",
+      "task_classification": "binary",
+      "unit_of_measure": "SF",
+      "paintscope_key": "PS_PROTECT_LF.WALL_ADJACENT_CABINET",
+      "rate_per_hour": 125,
+      "rate_range_low": 100,
+      "rate_range_high": 150,
+      "crew_size": 1,
+      "applies_when": { "application_method": ["spray"] },
+      "factor_modifiers": ["MOD_CBRP_HEIGHT", "MOD_CBRP_KITCHEN_COMPLEXITY"],
+      "notes": "SF/hr. DIRECT from NC TSK_CABT_PROTECT_WALL (125 SF/hr). Plastic sheeting taped to walls. In RP, walls are ALWAYS finished — masking is mandatory."
+    },
+    {
+      "task_id": "TSK_CBRP_PROTECT_CEILING",
+      "name": "Mask ceiling for spray overspray",
+      "task_classification": "binary",
+      "unit_of_measure": "SF",
+      "paintscope_key": "PS_PROTECT_SF.CEILING_SPRAY",
+      "rate_per_hour": 125,
+      "rate_range_low": 100,
+      "rate_range_high": 150,
+      "crew_size": 1,
+      "applies_when": { "application_method": ["spray"] },
+      "factor_modifiers": ["MOD_CBRP_HEIGHT", "MOD_CBRP_KITCHEN_COMPLEXITY"],
+      "notes": "SF/hr. DIRECT from NC TSK_CABT_PROTECT_CEILING (125 SF/hr). Plastic sheeting + pre-taped masking film."
+    },
+    {
+      "task_id": "TSK_CBRP_PROTECT_APPLIANCE",
+      "name": "Mask and protect appliances",
+      "task_classification": "binary",
+      "unit_of_measure": "EA",
+      "paintscope_key": "PS_PROTECT_EA.APPLIANCE_COVERS",
+      "rate_per_hour": 3,
+      "rate_range_low": 2.5,
+      "rate_range_high": 4,
+      "crew_size": 1,
+      "factor_modifiers": [],
+      "notes": "EA/hr. DIRECT rate from NC TSK_CABT_PROTECT_APPLIANCE (3 EA/hr, ~15-25 min per appliance). MODIFIED scope: was conditional in NC, ALWAYS required in RP — appliances are always present in occupied homes."
+    },
+    {
+      "task_id": "TSK_CBRP_PROTECT_PLUMBING",
+      "name": "Mask sink plumbing in base cabinet",
+      "task_classification": "binary",
+      "unit_of_measure": "FIXED",
+      "fixed_time_minutes": 15,
+      "fixed_time_range_low": 10,
+      "fixed_time_range_high": 20,
+      "crew_size": 1,
+      "factor_modifiers": [],
+      "notes": "FIXED per room. DIRECT from NC TSK_CABT_PROTECT_PLUMBING (15 min). Plastic wrap around plumbing fixtures."
+    },
+    {
+      "task_id": "TSK_CBRP_PROTECT_ELECTRICAL",
+      "name": "Remove switch plates and mask electrical",
+      "task_classification": "binary",
+      "unit_of_measure": "FIXED",
+      "fixed_time_minutes": 15,
+      "fixed_time_range_low": 10,
+      "fixed_time_range_high": 20,
+      "crew_size": 1,
+      "factor_modifiers": [],
+      "notes": "FIXED per room. DIRECT from NC TSK_CABT_PROTECT_ELECTRICAL (15 min). Remove outlet/switch plates, mask under-cabinet lights."
+    },
+    {
+      "task_id": "TSK_CBRP_VERIFY_CONTENTS_EMPTY",
+      "name": "Verify all cabinet contents removed by homeowner",
+      "task_classification": "binary",
+      "unit_of_measure": "FIXED",
+      "fixed_time_minutes": 10,
+      "fixed_time_range_low": 5,
+      "fixed_time_range_high": 15,
+      "crew_size": 1,
+      "factor_modifiers": [],
+      "notes": "FIXED per room. RP-NEW. Walk all cabinets to verify homeowner has emptied contents. Check uppers, lowers, drawers, pantry. Any remaining items must be removed and staged."
+    },
+    {
+      "task_id": "TSK_CBRP_REMOVE_HARDWARE",
+      "name": "Score paint, remove all cabinet hardware, bag, label",
+      "task_classification": "binary",
+      "unit_of_measure": "EA",
+      "paintscope_key": "PS_META.EA.CABINET_HARDWARE",
+      "rate_per_hour": 24,
+      "rate_range_low": 20,
+      "rate_range_high": 30,
+      "crew_size": 1,
+      "factor_modifiers": [],
+      "notes": "EA/hr (hardware pieces). MODIFIED from NC TSK_CABT_REMOVE_HARDWARE (35 EA/hr). RP hardware is painted over — must score paint around hinges/screws before removal. ~30% slower than NC. May require screw extractor for stripped screws. ~2.5 min per piece."
+    },
+    {
+      "task_id": "TSK_CBRP_REMOVE_DOORS",
+      "name": "Remove cabinet doors and label",
+      "task_classification": "binary",
+      "unit_of_measure": "EA",
+      "paintscope_key": "PS_SURFACE_EA.CABINET_DOOR",
+      "rate_per_hour": 18,
+      "rate_range_low": 15,
+      "rate_range_high": 20,
+      "crew_size": 1,
+      "factor_modifiers": [],
+      "notes": "EA/hr. DIRECT from NC TSK_CABT_REMOVE_DOORS (18 EA/hr). ~3-4 min per door. Removal technique identical once hardware is removed."
+    },
+    {
+      "task_id": "TSK_CBRP_REMOVE_DRAWERS",
+      "name": "Remove cabinet drawers and label",
+      "task_classification": "binary",
+      "unit_of_measure": "EA",
+      "paintscope_key": "PS_SURFACE_EA.CABINET_DRAWER",
+      "rate_per_hour": 22,
+      "rate_range_low": 18,
+      "rate_range_high": 25,
+      "crew_size": 1,
+      "factor_modifiers": [],
+      "notes": "EA/hr. DIRECT from NC TSK_CABT_REMOVE_DRAWERS (22 EA/hr). ~2.5-3 min per drawer."
+    },
+
+    {
+      "task_id": "TSK_CBRP_ASSESS_CONDITION",
+      "name": "Visual condition inspection — all cabinet components",
+      "task_classification": "qt_scaled",
+      "unit_of_measure": "FIXED",
+      "fixed_time_minutes_by_tier": {
+        "QT3": 20,
+        "QT4": 30,
+        "QT5": 40
+      },
+      "fixed_time_range_low": 15,
+      "fixed_time_range_high": 50,
+      "crew_size": 1,
+      "factor_modifiers": [],
+      "notes": "FIXED per room. RP-NEW. Systematic visual inspection of all cabinet surfaces: frames, doors, drawers, interiors (if in scope). Document condition per component. QT3: standard scan with work light. QT4: systematic with raking light + photos. QT5: exhaustive, multiple passes, full documentation. Calibrated from door RP TSK_DIRP_ASSESS_CONDITION (7-15 min per opening) scaled for room-level cabinet assessment."
+    },
+    {
+      "task_id": "TSK_CBRP_ASSESS_ADHESION",
+      "name": "Adhesion test — ASTM D3359 cross-hatch tape test",
+      "task_classification": "binary",
+      "unit_of_measure": "FIXED",
+      "fixed_time_minutes": 12,
+      "fixed_time_range_low": 10,
+      "fixed_time_range_high": 15,
+      "crew_size": 1,
+      "factor_modifiers": [],
+      "notes": "FIXED per room. RP-NEW. CRITICAL for cabinets. Test minimum 3 locations per room: one upper door, one lower door, one frame section. Diverse existing finish types demand adhesion verification. Calibrated from door RP TSK_DIRP_ASSESS_ADHESION (7-8 min per opening) — cabinet tests 3 representative locations per room."
+    },
+    {
+      "task_id": "TSK_CBRP_ASSESS_COATING_ID",
+      "name": "Coating identification — solvent test for existing finish type",
+      "task_classification": "binary",
+      "unit_of_measure": "FIXED",
+      "fixed_time_minutes": 12,
+      "fixed_time_range_low": 10,
+      "fixed_time_range_high": 15,
+      "crew_size": 1,
+      "factor_modifiers": [],
+      "notes": "FIXED per room. RP-NEW. Solvent test to identify existing coating type (painted_latex, painted_oil, lacquer, catalyzed_varnish, thermofoil). Cabinet coating ID is more complex than doors/trim (5 possible finish types vs 2). Test at minimum 2 locations per room. Results drive primer routing."
+    },
+    {
+      "task_id": "TSK_CBRP_ASSESS_MOISTURE",
+      "name": "Moisture check — base cabinets and bath vanity",
+      "task_classification": "binary",
+      "unit_of_measure": "FIXED",
+      "fixed_time_minutes": 8,
+      "fixed_time_range_low": 5,
+      "fixed_time_range_high": 10,
+      "crew_size": 1,
+      "factor_modifiers": [],
+      "notes": "FIXED per room. RP-NEW. Moisture meter reading on base cabinet floor, back wall, sides. Check under-sink and dishwasher-adjacent. Active moisture is STOP WORK condition. Calibrated from door RP TSK_DIRP_ASSESS_MOISTURE (4 min per opening) — cabinets need multiple check points per room."
+    },
+    {
+      "task_id": "TSK_CBRP_ASSESS_THERMOFOIL",
+      "name": "Thermofoil assessment gate — paintability determination",
+      "task_classification": "binary",
+      "unit_of_measure": "FIXED",
+      "fixed_time_minutes": 12,
+      "fixed_time_range_low": 10,
+      "fixed_time_range_high": 15,
+      "crew_size": 1,
+      "applies_when": { "factory_finish_type": ["thermofoil"] },
+      "factor_modifiers": [],
+      "notes": "FIXED per room. RP-NEW. Conditional on thermofoil presence. Inspect all door/drawer edges, corners, heat-exposed areas (near oven, dishwasher) for vinyl lifting/bubbling/delamination. ANY delamination = not paintable — recommend replacement. GO/NO-GO documented with photos. Cabinet-specific gate."
+    },
+    {
+      "task_id": "TSK_CBRP_ASSESS_LEAD",
+      "name": "Lead paint screening — pre-1978 homes",
+      "task_classification": "binary",
+      "unit_of_measure": "FIXED",
+      "fixed_time_minutes": 10,
+      "fixed_time_range_low": 8,
+      "fixed_time_range_high": 15,
+      "crew_size": 1,
+      "applies_when": { "home_pre_1978": true },
+      "factor_modifiers": [],
+      "notes": "FIXED per room. RP-NEW. XRF or swab test. Cabinets are HIGH RISK for lead (oil-based enamel standard through 1970s). Test minimum 2 locations per room (1 door, 1 frame). If positive, triggers MOD_RRP_INT_CONTAINMENT."
+    },
+
+    {
+      "task_id": "TSK_RRP_LEAD_TEST",
+      "name": "Lead Test (XRF or Swab)",
+      "task_classification": "binary",
+      "unit_of_measure": "EA",
+      "rate_per_hour": 8,
+      "rate_range_low": 6,
+      "rate_range_high": 10,
+      "crew_size": 1,
+      "applies_when": { "home_pre_1978": true },
+      "factor_modifiers": [],
+      "notes": "EA/hr (rooms). Shared RRP module task. Test at minimum 1 door + 1 frame per room. ~7-8 min per room. Rate from door RP TSK_DIRP_ASSESS_LEAD pattern."
+    },
+    {
+      "task_id": "TSK_RRP_CONTAINMENT_SETUP",
+      "name": "RRP Containment Setup",
+      "task_classification": "binary",
+      "unit_of_measure": "EA",
+      "rate_per_hour": 2,
+      "rate_range_low": 1.5,
+      "rate_range_high": 3,
+      "crew_size": 1,
+      "applies_when": { "home_pre_1978": true },
+      "factor_modifiers": [],
+      "notes": "EA/hr (rooms). Shared RRP module. Poly sheeting on floors and openings, warning signs, restrict entry. ~30 min per room. Kitchen containment is complex due to multiple openings, appliances, ventilation. Rate from door RP RRP containment pattern."
+    },
+    {
+      "task_id": "TSK_RRP_HEPA_VACUUM",
+      "name": "HEPA Vacuum After Paint Disturbance",
+      "task_classification": "binary",
+      "unit_of_measure": "EA",
+      "rate_per_hour": 4,
+      "rate_range_low": 3,
+      "rate_range_high": 6,
+      "crew_size": 1,
+      "applies_when": { "home_pre_1978": true },
+      "factor_modifiers": [],
+      "notes": "EA/hr (rooms). Shared RRP module. HEPA vacuum all surfaces after each sanding/scraping disturbance. ~15 min per room. Runs after each prep disturbance activity."
+    },
+    {
+      "task_id": "TSK_RRP_CONTAINMENT_REMOVAL",
+      "name": "RRP Containment Removal and Visual Clearance",
+      "task_classification": "binary",
+      "unit_of_measure": "EA",
+      "rate_per_hour": 3,
+      "rate_range_low": 2,
+      "rate_range_high": 4,
+      "crew_size": 1,
+      "applies_when": { "home_pre_1978": true },
+      "factor_modifiers": [],
+      "notes": "EA/hr (rooms). Shared RRP module. Remove containment, visual clearance inspection. ~20 min per room."
+    },
+    {
+      "task_id": "TSK_RRP_WASTE_DISPOSAL",
+      "name": "Lead-Contaminated Waste Disposal",
+      "task_classification": "binary",
+      "unit_of_measure": "FIXED",
+      "fixed_time_minutes": 20,
+      "fixed_time_range_low": 15,
+      "fixed_time_range_high": 30,
+      "crew_size": 1,
+      "applies_when": { "home_pre_1978": true },
+      "factor_modifiers": [],
+      "notes": "FIXED per job. Shared RRP module. Package and dispose of lead-contaminated debris per EPA RRP Rule."
+    },
+
+    {
+      "task_id": "TSK_CBRP_GREASE_WASH",
+      "name": "TSP/degreaser wash — kitchen grease removal",
+      "task_classification": "binary",
+      "unit_of_measure": "FIXED",
+      "fixed_time_minutes": 40,
+      "fixed_time_range_low": 30,
+      "fixed_time_range_high": 55,
+      "crew_size": 1,
+      "factor_modifiers": ["MOD_CBRP_KITCHEN_COMPLEXITY"],
+      "notes": "FIXED per room. MODIFIED from NC TSK_CABT_DUST_CLEAN (25 min). RP grease wash is fundamentally different: TSP/degreaser, multiple passes above range/cooktop, white cloth verification. ~1.6x NC dust clean time. Kitchen_complexity modifier applies (more cabinets = more grease accumulation)."
+    },
+    {
+      "task_id": "TSK_CBRP_DEGLOSS_FRAMES",
+      "name": "Degloss face frames and box surfaces",
+      "task_classification": "qt_scaled",
+      "unit_of_measure": "SF",
+      "paintscope_key": "PS_SURFACE_SF.CABINET_FRAME",
+      "rates_by_tier": {
+        "QT3": { "rate_per_hour": 140, "notes": "Thorough mechanical degloss 120-150 grit on existing finish. Heavier grit than NC sand." },
+        "QT4": { "rate_per_hour": 100, "notes": "Full degloss with adhesion verification, profile details addressed." },
+        "QT5": { "rate_per_hour": 65, "notes": "Complete degloss with verification, spot adhesion re-test." }
+      },
+      "rate_range_low": 50,
+      "rate_range_high": 160,
+      "crew_size": 1,
+      "applies_when": { "scope": ["full_exterior", "full_with_interior"] },
+      "factor_modifiers": ["MOD_CBRP_HEIGHT", "MOD_CBRP_KITCHEN_COMPLEXITY"],
+      "notes": "SF/hr. MODIFIED from NC TSK_CABT_SAND_FRAMES (QT3: 175 SF/hr). RP degloss ~0.80x NC sand rate — harder existing finish, coarser grit (120-150 vs 180-220). Narrow frame members require careful hand work."
+    },
+    {
+      "task_id": "TSK_CBRP_DEGLOSS_DOORS",
+      "name": "Degloss cabinet doors",
+      "task_classification": "qt_scaled",
+      "unit_of_measure": "EA",
+      "paintscope_key": "PS_SURFACE_EA.CABINET_DOOR",
+      "rates_by_tier": {
+        "QT3": { "rate_per_hour": 14, "notes": "Thorough mechanical degloss, full face." },
+        "QT4": { "rate_per_hour": 9, "notes": "Full degloss with adhesion verification, panel recesses addressed." },
+        "QT5": { "rate_per_hour": 6, "notes": "Complete degloss, all panel detail areas." }
+      },
+      "rate_range_low": 5,
+      "rate_range_high": 16,
+      "crew_size": 1,
+      "factor_modifiers": ["MOD_CBRP_DOOR_STYLE"],
+      "notes": "EA/hr. MODIFIED from NC TSK_CABT_SAND_DOORS (QT3: 18 EA/hr). RP degloss ~0.78x NC sand rate. Flat on sawhorses. door_style modifier applies (raised_panel recesses trap existing finish)."
+    },
+    {
+      "task_id": "TSK_CBRP_DEGLOSS_DRAWERS",
+      "name": "Degloss cabinet drawer fronts",
+      "task_classification": "qt_scaled",
+      "unit_of_measure": "EA",
+      "paintscope_key": "PS_SURFACE_EA.CABINET_DRAWER",
+      "rates_by_tier": {
+        "QT3": { "rate_per_hour": 18, "notes": "Thorough mechanical degloss." },
+        "QT4": { "rate_per_hour": 12, "notes": "Full degloss, adhesion verification." },
+        "QT5": { "rate_per_hour": 8, "notes": "Complete degloss with verification." }
+      },
+      "rate_range_low": 6,
+      "rate_range_high": 22,
+      "crew_size": 1,
+      "factor_modifiers": ["MOD_CBRP_DOOR_STYLE"],
+      "notes": "EA/hr. MODIFIED from NC TSK_CABT_SAND_DRAWERS (QT3: 24 EA/hr). RP degloss ~0.75x NC sand rate. ~0.7x door degloss time (smaller surface). door_style modifier applies."
+    },
+    {
+      "task_id": "TSK_CBRP_DEGLOSS_INTERIOR",
+      "name": "Degloss cabinet interior surfaces",
+      "task_classification": "binary",
+      "unit_of_measure": "SF",
+      "paintscope_key": "PS_SURFACE_SF.CABINET_INTERIOR",
+      "rate_per_hour": 185,
+      "rate_range_low": 160,
+      "rate_range_high": 210,
+      "crew_size": 1,
+      "applies_when": { "scope": ["full_with_interior"] },
+      "factor_modifiers": [],
+      "notes": "SF/hr. RP-NEW. Light scuff degloss on cabinet interiors. Always QT3 effort level regardless of exterior tier. Interior surfaces less exposed — light 220-grit scuff sufficient. Binary (not qt_scaled) because always QT3."
+    },
+    {
+      "task_id": "TSK_CBRP_DEGLOSS_CHEMICAL",
+      "name": "Chemical degloss — liquid sander for profiled doors/drawers",
+      "task_classification": "binary",
+      "unit_of_measure": "EA",
+      "rate_per_hour": 10,
+      "rate_range_low": 8,
+      "rate_range_high": 12,
+      "crew_size": 1,
+      "applies_when": {
+        "door_style": ["raised_panel", "shaker", "glass_frame"],
+        "factory_finish_type": ["painted_latex", "painted_oil", "lacquer", "catalyzed_varnish"]
+      },
+      "factor_modifiers": [],
+      "notes": "EA/hr (doors + drawers combined). RP-NEW. Supplemental to mechanical degloss — profile areas only. Apply liquid sander/deglosser (Wilbond, Krud Kutter Gloss-Off) to raised panel recesses, shaker inside corners. NOT for thermofoil (solvents damage vinyl). ~6 min per door/drawer."
+    },
+    {
+      "task_id": "TSK_CBRP_SCRAPE_LOOSE",
+      "name": "Scrape loose/failing paint to sound substrate",
+      "task_classification": "qt_scaled",
+      "unit_of_measure": "FIXED",
+      "fixed_time_minutes_by_tier": {
+        "QT3": 25,
+        "QT4": 40,
+        "QT5": 60
+      },
+      "fixed_time_range_low": 15,
+      "fixed_time_range_high": 75,
+      "crew_size": 1,
+      "applies_when": { "condition_scale": ["FAIR", "POOR"] },
+      "factor_modifiers": [],
+      "notes": "FIXED per room. RP-NEW. Condition-gated (FAIR/POOR). Scrape all loose, cracking, delaminating paint from frames, doors, drawers. Careful on profiled doors. HEPA vacuum if RRP active. QT5 exhaustive scraping with zero tolerance for loose edges."
+    },
+    {
+      "task_id": "TSK_CBRP_FEATHER_EDGES",
+      "name": "Feather-sand scrape edges for smooth transition",
+      "task_classification": "qt_scaled",
+      "unit_of_measure": "FIXED",
+      "fixed_time_minutes_by_tier": {
+        "QT3": 20,
+        "QT4": 30,
+        "QT5": 45
+      },
+      "fixed_time_range_low": 12,
+      "fixed_time_range_high": 55,
+      "crew_size": 1,
+      "applies_when": { "condition_scale": ["FAIR", "POOR"] },
+      "factor_modifiers": [],
+      "notes": "FIXED per room. RP-NEW. Non-negotiable at all tiers — cabinet finishes are scrutinized at arm's length. 150-180 grit feather sanding. Condition-gated (FAIR/POOR). Ridge telegraphing through semi-gloss/gloss is unacceptable."
+    },
+    {
+      "task_id": "TSK_CBRP_DAMAGE_REPAIR",
+      "name": "Repair surface damage — dings, scratches, impact damage",
+      "task_classification": "qt_scaled",
+      "unit_of_measure": "FIXED",
+      "fixed_time_minutes_by_tier": {
+        "QT3": 15,
+        "QT4": 25,
+        "QT5": 35
+      },
+      "fixed_time_range_low": 10,
+      "fixed_time_range_high": 45,
+      "crew_size": 1,
+      "applies_when": { "condition_scale": ["FAIR", "POOR"] },
+      "factor_modifiers": [],
+      "notes": "FIXED per room. RP-NEW. Replaces NC fill tasks (TSK_CABT_FILL_FRAMES/DOORS/DRAWERS which are NOT_APPLICABLE in RP). Fill dings, scratches, impact marks, hardware relocation holes. Lightweight spackle or wood filler. Includes sand-flush. Condition-gated."
+    },
+    {
+      "task_id": "TSK_CBRP_SAND_FILL",
+      "name": "Sand filled/repaired areas smooth",
+      "task_classification": "binary",
+      "unit_of_measure": "FIXED",
+      "fixed_time_minutes": 12,
+      "fixed_time_range_low": 8,
+      "fixed_time_range_high": 18,
+      "crew_size": 1,
+      "applies_when": { "condition_scale": ["FAIR", "POOR"] },
+      "factor_modifiers": [],
+      "notes": "FIXED per room. DIRECT technique from NC TSK_CABT_SAND_FILL (QT3: 10 min). Sanding filled areas is identical NC or RP. Slightly longer in RP (12 min) because RP damage repairs may include deeper fills. Condition-gated."
+    },
+    {
+      "task_id": "TSK_CBRP_CAULK_ASSESS_REPLACE",
+      "name": "Assess and replace failed caulk — cabinet-to-wall joints",
+      "task_classification": "qt_scaled",
+      "unit_of_measure": "LF",
+      "paintscope_key": "PS_EDGE_LF.CABINET_CAULK",
+      "rates_by_tier": {
+        "QT3": { "rate_per_hour": 110, "notes": "Walk-and-assess, replace visibly failed sections (~15-20% of joints)." },
+        "QT4": { "rate_per_hour": 80, "notes": "Comprehensive assessment, replace all suspect and failed joints (~25-35%)." },
+        "QT5": { "rate_per_hour": 55, "notes": "Critical assessment, replace all joints not in perfect condition (~40-50%), perfect tooled bead." }
+      },
+      "rate_range_low": 40,
+      "rate_range_high": 130,
+      "crew_size": 1,
+      "applies_when": { "scope": ["full_exterior", "full_with_interior"] },
+      "factor_modifiers": ["MOD_CBRP_HEIGHT", "MOD_CBRP_KITCHEN_COMPLEXITY"],
+      "notes": "LF/hr. MODIFIED from NC TSK_CABT_CAULK_JOINTS (QT3: 80 LF/hr full caulk). RP is faster per LF because walk-and-assess replaces only failed sections (15-30% typical). NC applied new caulk to ALL joints. RP QT3 ~1.38x NC QT3 rate."
+    },
+    {
+      "task_id": "TSK_CBRP_TREAT_MILDEW",
+      "name": "Biocide treatment for mildew/mold — under-sink and bath vanity",
+      "task_classification": "binary",
+      "unit_of_measure": "FIXED",
+      "fixed_time_minutes": 20,
+      "fixed_time_range_low": 15,
+      "fixed_time_range_high": 25,
+      "crew_size": 1,
+      "applies_when": { "contamination_type": ["mildew"] },
+      "factor_modifiers": [],
+      "notes": "FIXED per room. RP-NEW. Conditional on moisture damage + mildew. Apply biocide, allow dwell time, rinse/wipe per product. Source must be resolved before treatment."
+    },
+    {
+      "task_id": "TSK_CBRP_TREAT_SMOKE",
+      "name": "Smoke/nicotine pre-treatment wash",
+      "task_classification": "binary",
+      "unit_of_measure": "FIXED",
+      "fixed_time_minutes": 30,
+      "fixed_time_range_low": 20,
+      "fixed_time_range_high": 40,
+      "crew_size": 1,
+      "applies_when": { "contamination_type": ["smoke"] },
+      "factor_modifiers": ["MOD_CBRP_KITCHEN_COMPLEXITY"],
+      "notes": "FIXED per room. RP-NEW. Conditional on smoke damage. Heavy TSP wash to remove surface nicotine/smoke film before shellac stain blocker. Kitchen cabinets may have combined grease + smoke. May require multiple passes."
+    },
+    {
+      "task_id": "TSK_CBRP_VACUUM_FLOOR",
+      "name": "Vacuum floor after prep work",
+      "task_classification": "binary",
+      "unit_of_measure": "SF",
+      "paintscope_key": "PS_META.SF.FLOOR_VACUUM_AREA",
+      "rate_per_hour": 300,
+      "rate_range_low": 250,
+      "rate_range_high": 400,
+      "crew_size": 1,
+      "factor_modifiers": [],
+      "notes": "SF/hr. DIRECT from NC TSK_CABT_VACUUM_FLOOR (300 SF/hr). HEPA vacuum for dust control — critical in kitchen environment."
+    },
+
+    {
+      "task_id": "TSK_CBRP_PRIME_FRAMES_SPRAY",
+      "name": "Spray primer on face frames and box surfaces",
+      "task_classification": "binary",
+      "unit_of_measure": "SF",
+      "paintscope_key": "PS_SURFACE_SF.CABINET_FRAME",
+      "rate_per_hour": 225,
+      "rate_range_low": 190,
+      "rate_range_high": 260,
+      "crew_size": 1,
+      "applies_when": { "application_method": ["spray"], "scope": ["full_exterior", "full_with_interior"] },
+      "factor_modifiers": ["MOD_CBRP_HEIGHT", "MOD_CBRP_KITCHEN_COMPLEXITY"],
+      "notes": "SF/hr. DIRECT rate from NC TSK_CABT_PRIME_FRAMES spray method (225 SF/hr). Application technique identical. Primer chemistry changed: RP uses state-driven + factory-finish-type-driven routing (4 systems) vs NC substrate-driven (7 systems). Rate is product-independent."
+    },
+    {
+      "task_id": "TSK_CBRP_PRIME_FRAMES_BRUSH",
+      "name": "Brush primer on face frames and box surfaces",
+      "task_classification": "binary",
+      "unit_of_measure": "SF",
+      "paintscope_key": "PS_SURFACE_SF.CABINET_FRAME",
+      "rate_per_hour": 115,
+      "rate_range_low": 90,
+      "rate_range_high": 140,
+      "crew_size": 1,
+      "applies_when": { "application_method": ["brush"], "scope": ["full_exterior", "full_with_interior"] },
+      "factor_modifiers": ["MOD_CBRP_HEIGHT", "MOD_CBRP_KITCHEN_COMPLEXITY"],
+      "notes": "SF/hr. DIRECT rate from NC TSK_CABT_PRIME_FRAMES brush method (115 SF/hr). Roll and Tip per FFD SS15.6."
+    },
+    {
+      "task_id": "TSK_CBRP_PRIME_DOORS_SPRAY",
+      "name": "Spray primer on cabinet doors (flat on sawhorses)",
+      "task_classification": "binary",
+      "unit_of_measure": "EA",
+      "paintscope_key": "PS_SURFACE_EA.CABINET_DOOR",
+      "rate_per_hour": 13,
+      "rate_range_low": 10,
+      "rate_range_high": 16,
+      "crew_size": 1,
+      "applies_when": { "application_method": ["spray"] },
+      "factor_modifiers": ["MOD_CBRP_DOOR_STYLE"],
+      "notes": "EA/hr. DIRECT rate from NC TSK_CABT_PRIME_DOORS spray method (13 EA/hr). HVLP spray, face and edges. Horizontal gravity-assisted leveling. door_style modifier applies."
+    },
+    {
+      "task_id": "TSK_CBRP_PRIME_DOORS_BRUSH",
+      "name": "Brush primer on cabinet doors (flat on sawhorses)",
+      "task_classification": "binary",
+      "unit_of_measure": "EA",
+      "paintscope_key": "PS_SURFACE_EA.CABINET_DOOR",
+      "rate_per_hour": 7,
+      "rate_range_low": 5,
+      "rate_range_high": 9,
+      "crew_size": 1,
+      "applies_when": { "application_method": ["brush"] },
+      "factor_modifiers": ["MOD_CBRP_DOOR_STYLE"],
+      "notes": "EA/hr. DIRECT rate from NC TSK_CABT_PRIME_DOORS brush method (7 EA/hr). Roll and Tip. door_style modifier applies."
+    },
+    {
+      "task_id": "TSK_CBRP_PRIME_DRAWERS_SPRAY",
+      "name": "Spray primer on drawer fronts (flat on sawhorses)",
+      "task_classification": "binary",
+      "unit_of_measure": "EA",
+      "paintscope_key": "PS_SURFACE_EA.CABINET_DRAWER",
+      "rate_per_hour": 18,
+      "rate_range_low": 14,
+      "rate_range_high": 22,
+      "crew_size": 1,
+      "applies_when": { "application_method": ["spray"] },
+      "factor_modifiers": ["MOD_CBRP_DOOR_STYLE"],
+      "notes": "EA/hr. DIRECT rate from NC TSK_CABT_PRIME_DRAWERS spray method (18 EA/hr). ~0.7x door time. door_style modifier applies."
+    },
+    {
+      "task_id": "TSK_CBRP_PRIME_DRAWERS_BRUSH",
+      "name": "Brush primer on drawer fronts (flat on sawhorses)",
+      "task_classification": "binary",
+      "unit_of_measure": "EA",
+      "paintscope_key": "PS_SURFACE_EA.CABINET_DRAWER",
+      "rate_per_hour": 10,
+      "rate_range_low": 8,
+      "rate_range_high": 12,
+      "crew_size": 1,
+      "applies_when": { "application_method": ["brush"] },
+      "factor_modifiers": ["MOD_CBRP_DOOR_STYLE"],
+      "notes": "EA/hr. DIRECT rate from NC TSK_CABT_PRIME_DRAWERS brush method (10 EA/hr). Roll and Tip. door_style modifier applies."
+    },
+    {
+      "task_id": "TSK_CBRP_PRIME_INTERIOR",
+      "name": "Spray primer on cabinet interiors",
+      "task_classification": "binary",
+      "unit_of_measure": "SF",
+      "paintscope_key": "PS_SURFACE_SF.CABINET_INTERIOR",
+      "rate_per_hour": 175,
+      "rate_range_low": 150,
+      "rate_range_high": 200,
+      "crew_size": 1,
+      "applies_when": { "scope": ["full_with_interior"] },
+      "factor_modifiers": [],
+      "notes": "SF/hr. DIRECT rate from NC TSK_CABT_PRIME_INTERIOR (175 SF/hr). Spray-only in practice. Always QT3. Angle gun into cabinet box, work back wall forward."
+    },
+    {
+      "task_id": "TSK_CBRP_PRIME_ADHESION_TEST",
+      "name": "Post-primer adhesion test — verify bonding",
+      "task_classification": "binary",
+      "unit_of_measure": "FIXED",
+      "fixed_time_minutes": 12,
+      "fixed_time_range_low": 8,
+      "fixed_time_range_high": 15,
+      "crew_size": 1,
+      "factor_modifiers": [],
+      "notes": "FIXED per room. RP-NEW. Quality gate for bonding/adhesion primers. Tape test at minimum 2 primed locations per room. CRITICAL when bonding primer used on factory lacquer/thermofoil. Failure = STOP WORK."
+    },
+
+    {
+      "task_id": "TSK_CBRP_CLEAN_AREA",
+      "name": "Clean work area between coats",
+      "task_classification": "binary",
+      "unit_of_measure": "FIXED",
+      "fixed_time_minutes": 10,
+      "crew_size": 1,
+      "factor_modifiers": [],
+      "notes": "FIXED per interstage cycle. DIRECT from NC TSK_CABT_CLEAN_AREA (10 min). Remove dust and debris from floor protection, countertop covers, sawhorse area."
+    },
+    {
+      "task_id": "TSK_CBRP_INSPECT_COAT",
+      "name": "Inspect previous coat for defects",
+      "task_classification": "qt_scaled",
+      "unit_of_measure": "FIXED",
+      "fixed_time_minutes_by_tier": {
+        "QT3": 10,
+        "QT4": 25,
+        "QT5": 40
+      },
+      "crew_size": 1,
+      "factor_modifiers": [],
+      "notes": "FIXED per interstage cycle. DIRECT from NC TSK_CABT_INSPECT_COAT. QT3: quick scan at 6 ft. QT4: systematic 3-ft inspection, mark defects. QT5: lighted critical inspection at arm's length, zero tolerance."
+    },
+    {
+      "task_id": "TSK_CBRP_SAND_BETWEEN_FRAMES",
+      "name": "Sand between coats on frames",
+      "task_classification": "qt_scaled",
+      "unit_of_measure": "SF",
+      "paintscope_key": "PS_SURFACE_SF.CABINET_FRAME",
+      "rates_by_tier": {
+        "QT3": { "rate_per_hour": 175, "notes": "Spot sand nibs only — 220 grit." },
+        "QT4": { "rate_per_hour": 100, "notes": "Full light sand 220 grit." },
+        "QT5": { "rate_per_hour": 60, "notes": "Thorough full sand 220-320 grit, uniform scratch." }
+      },
+      "rate_range_low": 45,
+      "rate_range_high": 200,
+      "crew_size": 1,
+      "applies_when": { "scope": ["full_exterior", "full_with_interior"] },
+      "factor_modifiers": ["MOD_CBRP_HEIGHT", "MOD_CBRP_KITCHEN_COMPLEXITY"],
+      "notes": "SF/hr per interstage cycle. DIRECT from NC TSK_CABT_SAND_BETWEEN_FRAMES. Once coated, interstage sanding is product-driven not substrate-driven — identical NC and RP."
+    },
+    {
+      "task_id": "TSK_CBRP_SAND_BETWEEN_DOORS",
+      "name": "Sand between coats on doors",
+      "task_classification": "qt_scaled",
+      "unit_of_measure": "EA",
+      "paintscope_key": "PS_SURFACE_EA.CABINET_DOOR",
+      "rates_by_tier": {
+        "QT3": { "rate_per_hour": 18, "notes": "Spot sand nibs only." },
+        "QT4": { "rate_per_hour": 10, "notes": "Full sand 220 grit." },
+        "QT5": { "rate_per_hour": 6, "notes": "Thorough sand 220-320 grit, uniform scratch." }
+      },
+      "rate_range_low": 5,
+      "rate_range_high": 22,
+      "crew_size": 1,
+      "factor_modifiers": ["MOD_CBRP_DOOR_STYLE"],
+      "notes": "EA/hr per interstage cycle. DIRECT from NC TSK_CABT_SAND_BETWEEN_DOORS. door_style modifier applies."
+    },
+    {
+      "task_id": "TSK_CBRP_SAND_BETWEEN_DRAWERS",
+      "name": "Sand between coats on drawers",
+      "task_classification": "qt_scaled",
+      "unit_of_measure": "EA",
+      "paintscope_key": "PS_SURFACE_EA.CABINET_DRAWER",
+      "rates_by_tier": {
+        "QT3": { "rate_per_hour": 24, "notes": "Spot sand nibs only." },
+        "QT4": { "rate_per_hour": 13, "notes": "Full sand 220 grit." },
+        "QT5": { "rate_per_hour": 8, "notes": "Thorough sand 220-320 grit." }
+      },
+      "rate_range_low": 6,
+      "rate_range_high": 30,
+      "crew_size": 1,
+      "factor_modifiers": ["MOD_CBRP_DOOR_STYLE"],
+      "notes": "EA/hr per interstage cycle. DIRECT from NC TSK_CABT_SAND_BETWEEN_DRAWERS. ~0.7x door time. door_style modifier applies."
+    },
+    {
+      "task_id": "TSK_CBRP_SAND_BETWEEN_INTERIOR",
+      "name": "Sand between coats on interiors",
+      "task_classification": "qt_scaled",
+      "unit_of_measure": "SF",
+      "paintscope_key": "PS_SURFACE_SF.CABINET_INTERIOR",
+      "rate_per_hour": 150,
+      "rate_range_low": 120,
+      "rate_range_high": 180,
+      "crew_size": 1,
+      "applies_when": { "scope": ["full_with_interior"] },
+      "factor_modifiers": [],
+      "notes": "SF/hr per interstage cycle. DIRECT from NC TSK_CABT_SAND_BETWEEN_INTERIOR (150 SF/hr). Always QT3 — spot sand only. Awkward interior access. NOTE: qt_scaled in SOP for structural consistency but effectively single-rate because always QT3."
+    },
+    {
+      "task_id": "TSK_CBRP_PATCH_DEFECTS",
+      "name": "Patch and repair interstage defects",
+      "task_classification": "qt_scaled",
+      "unit_of_measure": "FIXED",
+      "fixed_time_minutes_by_tier": {
+        "QT3": 5,
+        "QT4": 15,
+        "QT5": 25
+      },
+      "crew_size": 1,
+      "factor_modifiers": [],
+      "notes": "FIXED per interstage cycle. DIRECT from NC TSK_CABT_PATCH_DEFECTS. Fill, sand, spot-prime defects. Scope increases with tier."
+    },
+    {
+      "task_id": "TSK_CBRP_SPOT_COAT",
+      "name": "Spot coat patched areas",
+      "task_classification": "qt_scaled",
+      "unit_of_measure": "FIXED",
+      "fixed_time_minutes_by_tier": {
+        "QT3": 5,
+        "QT4": 10,
+        "QT5": 15
+      },
+      "crew_size": 1,
+      "factor_modifiers": [],
+      "notes": "FIXED per interstage cycle. DIRECT from NC TSK_CABT_SPOT_COAT. Touch-up patched areas to match surrounding finish."
+    },
+    {
+      "task_id": "TSK_CBRP_TACK_CLEAN",
+      "name": "Tack cloth all surfaces before next coat",
+      "task_classification": "binary",
+      "unit_of_measure": "FIXED",
+      "fixed_time_minutes": 15,
+      "fixed_time_range_low": 10,
+      "fixed_time_range_high": 25,
+      "crew_size": 1,
+      "factor_modifiers": [],
+      "notes": "FIXED per interstage cycle. DIRECT from NC TSK_CABT_TACK_CLEAN (15 min). Remove all sanding dust. Frames, doors, drawers, interiors (if in scope)."
+    },
+
+    {
+      "task_id": "TSK_CBRP_SPRAY_FRAMES",
+      "name": "Spray finish coat on frames",
+      "task_classification": "qt_scaled",
+      "unit_of_measure": "SF",
+      "paintscope_key": "PS_SURFACE_SF.CABINET_FRAME",
+      "rate_per_hour": 200,
+      "rate_range_low": 180,
+      "rate_range_high": 220,
+      "crew_size": 1,
+      "applies_when": { "application_method": ["spray"], "scope": ["full_exterior", "full_with_interior"] },
+      "factor_modifiers": ["MOD_CBRP_HEIGHT", "MOD_CBRP_KITCHEN_COMPLEXITY"],
+      "notes": "SF/hr. DIRECT from NC TSK_CABT_SPRAY_FRAMES (200 SF/hr). HVLP or fine-finish airless. Horizontal rails first, then vertical stiles. Once surface is prepped/primed, finish application is identical NC and RP."
+    },
+    {
+      "task_id": "TSK_CBRP_BRUSH_FRAMES",
+      "name": "Brush finish coat on frames (Roll and Tip)",
+      "task_classification": "qt_scaled",
+      "unit_of_measure": "SF",
+      "paintscope_key": "PS_SURFACE_SF.CABINET_FRAME",
+      "rate_per_hour": 105,
+      "rate_range_low": 90,
+      "rate_range_high": 120,
+      "crew_size": 1,
+      "applies_when": { "application_method": ["brush"], "scope": ["full_exterior", "full_with_interior"] },
+      "factor_modifiers": ["MOD_CBRP_HEIGHT", "MOD_CBRP_KITCHEN_COMPLEXITY"],
+      "notes": "SF/hr. DIRECT from NC TSK_CABT_BRUSH_FRAMES (105 SF/hr). 2-2.5 inch angled sash brush. Roll and Tip per FFD SS15.6. Waterborne alkyd STRONGLY recommended."
+    },
+    {
+      "task_id": "TSK_CBRP_SPRAY_DOORS",
+      "name": "Spray finish coat on doors",
+      "task_classification": "qt_scaled",
+      "unit_of_measure": "EA",
+      "paintscope_key": "PS_SURFACE_EA.CABINET_DOOR",
+      "rate_per_hour": 11,
+      "rate_range_low": 10,
+      "rate_range_high": 12,
+      "crew_size": 1,
+      "applies_when": { "application_method": ["spray"] },
+      "factor_modifiers": ["MOD_CBRP_DOOR_STYLE"],
+      "notes": "EA/hr. DIRECT from NC TSK_CABT_SPRAY_DOORS (11 EA/hr). Flat on sawhorses — gravity-assisted leveling. ~5-6 min per door. door_style modifier applies."
+    },
+    {
+      "task_id": "TSK_CBRP_BRUSH_DOORS",
+      "name": "Brush finish coat on doors (Roll and Tip)",
+      "task_classification": "qt_scaled",
+      "unit_of_measure": "EA",
+      "paintscope_key": "PS_SURFACE_EA.CABINET_DOOR",
+      "rate_per_hour": 6,
+      "rate_range_low": 5,
+      "rate_range_high": 7,
+      "crew_size": 1,
+      "applies_when": { "application_method": ["brush"] },
+      "factor_modifiers": ["MOD_CBRP_DOOR_STYLE"],
+      "notes": "EA/hr. DIRECT from NC TSK_CABT_BRUSH_DOORS (6 EA/hr). Roll and Tip per FFD SS15.6. Thin to Win per SS15.11.3. ~10 min per door. door_style modifier applies."
+    },
+    {
+      "task_id": "TSK_CBRP_SPRAY_DRAWERS",
+      "name": "Spray finish coat on drawer fronts",
+      "task_classification": "qt_scaled",
+      "unit_of_measure": "EA",
+      "paintscope_key": "PS_SURFACE_EA.CABINET_DRAWER",
+      "rate_per_hour": 15,
+      "rate_range_low": 13,
+      "rate_range_high": 18,
+      "crew_size": 1,
+      "applies_when": { "application_method": ["spray"] },
+      "factor_modifiers": ["MOD_CBRP_DOOR_STYLE"],
+      "notes": "EA/hr. DIRECT from NC TSK_CABT_SPRAY_DRAWERS (15 EA/hr). ~0.7x door time. door_style modifier applies."
+    },
+    {
+      "task_id": "TSK_CBRP_BRUSH_DRAWERS",
+      "name": "Brush finish coat on drawer fronts (Roll and Tip)",
+      "task_classification": "qt_scaled",
+      "unit_of_measure": "EA",
+      "paintscope_key": "PS_SURFACE_EA.CABINET_DRAWER",
+      "rate_per_hour": 8,
+      "rate_range_low": 7,
+      "rate_range_high": 10,
+      "crew_size": 1,
+      "applies_when": { "application_method": ["brush"] },
+      "factor_modifiers": ["MOD_CBRP_DOOR_STYLE"],
+      "notes": "EA/hr. DIRECT from NC TSK_CABT_BRUSH_DRAWERS (8 EA/hr). Roll and Tip. ~0.7x door time. door_style modifier applies."
+    },
+    {
+      "task_id": "TSK_CBRP_SPRAY_INTERIOR",
+      "name": "Spray finish coat on interiors",
+      "task_classification": "qt_scaled",
+      "unit_of_measure": "SF",
+      "paintscope_key": "PS_SURFACE_SF.CABINET_INTERIOR",
+      "rate_per_hour": 150,
+      "rate_range_low": 130,
+      "rate_range_high": 170,
+      "crew_size": 1,
+      "applies_when": { "scope": ["full_with_interior"] },
+      "factor_modifiers": [],
+      "notes": "SF/hr. DIRECT from NC TSK_CABT_SPRAY_INTERIOR (150 SF/hr). Always QT3 regardless of exterior tier (AWI semi-exposed standard). Spray-only. NOTE: qt_scaled in SOP but effectively single-rate because always QT3."
+    },
+    {
+      "task_id": "TSK_CBRP_FINAL_INSPECT",
+      "name": "Final quality inspection per tier",
+      "task_classification": "qt_scaled",
+      "unit_of_measure": "FIXED",
+      "fixed_time_minutes_by_tier": {
+        "QT3": 10,
+        "QT4": 30,
+        "QT5": 45
+      },
+      "crew_size": 1,
+      "factor_modifiers": [],
+      "notes": "FIXED per room. DIRECT from NC TSK_CABT_FINAL_INSPECT. QT3: quick scan ambient light. QT4: systematic 3-ft with work light. QT5: critical inspection at arm's length, every door and drawer."
+    },
+    {
+      "task_id": "TSK_CBRP_TOUCHUP",
+      "name": "Touch-up defects from final inspection",
+      "task_classification": "qt_scaled",
+      "unit_of_measure": "FIXED",
+      "fixed_time_minutes_by_tier": {
+        "QT3": 5,
+        "QT4": 15,
+        "QT5": 30
+      },
+      "crew_size": 1,
+      "factor_modifiers": [],
+      "notes": "FIXED per room. DIRECT from NC TSK_CABT_TOUCHUP. Correct remaining defects, feather into surrounding finish."
+    },
+
+    {
+      "task_id": "TSK_CBRP_CURE_PERIOD",
+      "name": "Cure period — doors stored safely",
+      "task_classification": "binary",
+      "unit_of_measure": "FIXED",
+      "fixed_time_minutes": 0,
+      "crew_size": 1,
+      "factor_modifiers": [],
+      "notes": "Calendar days, NOT work hours. DIRECT from NC TSK_CABT_CURE_PERIOD. MANDATORY 5-7 day minimum. 7-14 days for waterborne alkyd (QT4). Doors stored safely, not touching. Engine flags scheduling constraint."
+    },
+    {
+      "task_id": "TSK_CBRP_REINSTALL_DOORS",
+      "name": "Reinstall doors, verify alignment and operation",
+      "task_classification": "binary",
+      "unit_of_measure": "EA",
+      "paintscope_key": "PS_SURFACE_EA.CABINET_DOOR",
+      "rate_per_hour": 10,
+      "rate_range_low": 8,
+      "rate_range_high": 12,
+      "crew_size": 1,
+      "factor_modifiers": [],
+      "notes": "EA/hr. DIRECT from NC TSK_CABT_REINSTALL_DOORS (10 EA/hr). ~6 min per door. Hang, adjust hinges, check swing. RP may need hinge mortise cleaning for paint build-up from multiple repaint cycles."
+    },
+    {
+      "task_id": "TSK_CBRP_REINSTALL_DRAWERS",
+      "name": "Reinstall drawers, check slides and operation",
+      "task_classification": "binary",
+      "unit_of_measure": "EA",
+      "paintscope_key": "PS_SURFACE_EA.CABINET_DRAWER",
+      "rate_per_hour": 14,
+      "rate_range_low": 12,
+      "rate_range_high": 16,
+      "crew_size": 1,
+      "factor_modifiers": [],
+      "notes": "EA/hr. DIRECT from NC TSK_CABT_REINSTALL_DRAWERS (14 EA/hr). ~4 min per drawer. Reinstall on slides, verify soft-close."
+    },
+    {
+      "task_id": "TSK_CBRP_REINSTALL_HARDWARE",
+      "name": "Reinstall all cabinet hardware",
+      "task_classification": "binary",
+      "unit_of_measure": "EA",
+      "paintscope_key": "PS_META.EA.CABINET_HARDWARE",
+      "rate_per_hour": 25,
+      "rate_range_low": 20,
+      "rate_range_high": 30,
+      "crew_size": 1,
+      "factor_modifiers": [],
+      "notes": "EA/hr. DIRECT from NC TSK_CABT_REINSTALL_HARDWARE (25 EA/hr). ~2.5 min per piece. RP: clean paint from screw holes and hinge mortises. Account for paint build-up thickness."
+    },
+    {
+      "task_id": "TSK_CBRP_HINGE_ADJUST",
+      "name": "Adjust hinge alignment after reinstall",
+      "task_classification": "binary",
+      "unit_of_measure": "EA",
+      "paintscope_key": "PS_SURFACE_EA.CABINET_DOOR",
+      "rate_per_hour": 15,
+      "rate_range_low": 12,
+      "rate_range_high": 20,
+      "crew_size": 1,
+      "factor_modifiers": [],
+      "notes": "EA/hr (per door). RP-NEW. Fine-tune alignment after reinstallation. Paint film thickness changes hinge geometry. Check door-to-frame reveal uniformity. Adjust Euro hinge screws or shim traditional hinges. ~4 min per door. More critical in RP than NC due to accumulated paint thickness."
+    },
+    {
+      "task_id": "TSK_CBRP_REINSTALL_TOUCHUP",
+      "name": "Touch-up after reinstallation",
+      "task_classification": "qt_scaled",
+      "unit_of_measure": "FIXED",
+      "fixed_time_minutes_by_tier": {
+        "QT3": 10,
+        "QT4": 20,
+        "QT5": 35
+      },
+      "crew_size": 1,
+      "factor_modifiers": [],
+      "notes": "FIXED per room. DIRECT from NC TSK_CABT_REINSTALL_TOUCHUP. Touch-up hinge areas, pull/knob mounting points, handling damage from reinstallation."
+    },
+    {
+      "task_id": "TSK_CBRP_CONTENTS_REPLACE",
+      "name": "Coordinate cabinet contents replacement with homeowner",
+      "task_classification": "binary",
+      "unit_of_measure": "FIXED",
+      "fixed_time_minutes": 8,
+      "fixed_time_range_low": 5,
+      "fixed_time_range_high": 12,
+      "crew_size": 1,
+      "factor_modifiers": [],
+      "notes": "FIXED per room. RP-NEW. Verify cabinets are clean, dry, and ready for contents. Advise homeowner to wait 24-48 hrs before heavy loading. Painter does NOT replace contents (homeowner responsibility)."
+    },
+    {
+      "task_id": "TSK_CBRP_CUSTOMER_WALKTHROUGH",
+      "name": "Customer walkthrough and completion review",
+      "task_classification": "binary",
+      "unit_of_measure": "FIXED",
+      "fixed_time_minutes": 15,
+      "fixed_time_range_low": 10,
+      "fixed_time_range_high": 20,
+      "crew_size": 1,
+      "factor_modifiers": [],
+      "notes": "FIXED per room. RP-NEW. Walk through with homeowner, inspect every door and drawer face, demonstrate operation/alignment/soft-close, identify touch-up needs, leave touch-up paint. Cabinet walkthrough is more thorough than wall/trim — homeowner inspects every door individually."
+    },
+    {
+      "task_id": "TSK_CBRP_REMOVE_COUNTERTOP_PROTECT",
+      "name": "Remove countertop protection",
+      "task_classification": "binary",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 120,
+      "rate_range_low": 100,
+      "rate_range_high": 150,
+      "crew_size": 1,
+      "factor_modifiers": [],
+      "notes": "SF/hr. DIRECT from NC TSK_CABT_REMOVE_COUNTERTOP_PROTECT (120 SF/hr). Careful removal to avoid adhesive residue on stone surfaces."
+    },
+    {
+      "task_id": "TSK_CBRP_REMOVE_BACKSPLASH_MASK",
+      "name": "Remove backsplash masking",
+      "task_classification": "binary",
+      "unit_of_measure": "LF",
+      "rate_per_hour": 80,
+      "rate_range_low": 60,
+      "rate_range_high": 100,
+      "crew_size": 1,
+      "factor_modifiers": [],
+      "notes": "LF/hr. DIRECT from NC TSK_CABT_REMOVE_BACKSPLASH_MASK (80 LF/hr). Score tape edge, pull at 45 degrees."
+    },
+    {
+      "task_id": "TSK_CBRP_REMOVE_WALL_MASK",
+      "name": "Remove wall masking",
+      "task_classification": "binary",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 180,
+      "rate_range_low": 150,
+      "rate_range_high": 220,
+      "crew_size": 1,
+      "applies_when": { "application_method": ["spray"] },
+      "factor_modifiers": [],
+      "notes": "SF/hr. DIRECT from NC TSK_CABT_REMOVE_WALL_MASK (180 SF/hr). Remove plastic sheeting, fold inward."
+    },
+    {
+      "task_id": "TSK_CBRP_REMOVE_CEILING_MASK",
+      "name": "Remove ceiling masking",
+      "task_classification": "binary",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 180,
+      "rate_range_low": 150,
+      "rate_range_high": 220,
+      "crew_size": 1,
+      "applies_when": { "application_method": ["spray"] },
+      "factor_modifiers": [],
+      "notes": "SF/hr. DIRECT from NC TSK_CABT_REMOVE_CEILING_MASK (180 SF/hr). Remove plastic sheeting."
+    },
+    {
+      "task_id": "TSK_CBRP_REMOVE_APPLIANCE_MASK",
+      "name": "Remove appliance protection",
+      "task_classification": "binary",
+      "unit_of_measure": "EA",
+      "rate_per_hour": 5,
+      "rate_range_low": 4,
+      "rate_range_high": 6,
+      "crew_size": 1,
+      "factor_modifiers": [],
+      "notes": "EA/hr. DIRECT from NC TSK_CABT_REMOVE_APPLIANCE_MASK (5 EA/hr). ~12 min per appliance. Remove plastic wrap and tape."
+    },
+    {
+      "task_id": "TSK_CBRP_REMOVE_FLOOR_PROTECT",
+      "name": "Remove floor protection",
+      "task_classification": "binary",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 300,
+      "rate_range_low": 250,
+      "rate_range_high": 400,
+      "crew_size": 1,
+      "factor_modifiers": [],
+      "notes": "SF/hr. DIRECT from NC TSK_CABT_REMOVE_FLOOR_PROTECT (300 SF/hr). Fold inward to contain debris. Covers both spray (full) and brush (perimeter)."
+    },
+    {
+      "task_id": "TSK_CBRP_VACUUM_FINAL",
+      "name": "Final vacuum of work area",
+      "task_classification": "binary",
+      "unit_of_measure": "SF",
+      "paintscope_key": "PS_META.SF.FLOOR_VACUUM_AREA",
+      "rate_per_hour": 300,
+      "rate_range_low": 250,
+      "rate_range_high": 400,
+      "crew_size": 1,
+      "factor_modifiers": [],
+      "notes": "SF/hr. DIRECT from NC TSK_CABT_VACUUM_FINAL (300 SF/hr). Floor area after all protection removed. Include inside cabinet boxes — dust settles during cure period."
+    },
+    {
+      "task_id": "TSK_CBRP_TOOL_CLEANUP",
+      "name": "Clean tools and equipment",
+      "task_classification": "binary",
+      "unit_of_measure": "FIXED",
+      "fixed_time_minutes": 20,
+      "fixed_time_range_low": 15,
+      "fixed_time_range_high": 30,
+      "crew_size": 1,
+      "factor_modifiers": [],
+      "notes": "FIXED per session. DIRECT from NC TSK_CABT_TOOL_CLEANUP (20 min). Clean brushes, rollers, spray equipment. Water cleanup for waterborne. Solvent cleanup for shellac primer residue."
+    }
+  ],
+
+  "modifier_registry": {
+    "condition_scale_modifier": {
+      "modifier_id": "MOD_CBRP_CONDITION_SCALE",
+      "source": "Research: condition_drivers.CD-001",
+      "applies_to": "Prep-phase tasks (degloss, scrape, feather, damage repair, grease wash). PREP pool only.",
+      "does_not_apply_to": "Finish tasks, interstage tasks, protection tasks, assessment tasks, cleanup tasks. NEVER in COATING pool.",
+      "values": {
+        "GOOD": { "value": 1.0, "description": "Minimal prep — sound paint, cosmetic refresh." },
+        "FAIR": { "value": 1.5, "description": "Targeted repair — scrape failing areas, feather, spot prime." },
+        "POOR": { "value": 2.5, "description": "Full remediation — extensive scrape, full feathering, comprehensive repair." }
+      },
+      "application_rule": "TIME modifier. effective_rate = base_rate / condition_scale. Applies to qt_scaled prep tasks. Binary prep tasks are gated by condition (applies_when) rather than modified.",
+      "notes": "Cabinet POOR is 2.5x (higher than wall/trim 2.0x) because cabinet failure remediation involves 4 item types across different orientations (frames vertical, doors/drawers horizontal)."
+    },
+    "door_style_modifier": {
+      "modifier_id": "MOD_CBRP_DOOR_STYLE",
+      "source": "Research: CD-007 door_style. DIRECT transfer from NC MOD_CABT_DOOR_STYLE.",
+      "applies_to": ["TSK_CBRP_DEGLOSS_DOORS", "TSK_CBRP_DEGLOSS_DRAWERS", "TSK_CBRP_DEGLOSS_CHEMICAL", "TSK_CBRP_PRIME_DOORS_SPRAY", "TSK_CBRP_PRIME_DOORS_BRUSH", "TSK_CBRP_PRIME_DRAWERS_SPRAY", "TSK_CBRP_PRIME_DRAWERS_BRUSH", "TSK_CBRP_SPRAY_DOORS", "TSK_CBRP_BRUSH_DOORS", "TSK_CBRP_SPRAY_DRAWERS", "TSK_CBRP_BRUSH_DRAWERS", "TSK_CBRP_SAND_BETWEEN_DOORS", "TSK_CBRP_SAND_BETWEEN_DRAWERS"],
+      "does_not_apply_to": ["frame tasks (SF-based)", "interior tasks", "protection tasks", "FIXED tasks", "hardware tasks", "cleanup tasks"],
+      "values": {
+        "slab": { "value": 1.0, "description": "Flat panel — simplest to prep and paint." },
+        "shaker": { "value": 1.15, "description": "Recessed panel with square-profile frame. Moderate degloss complexity." },
+        "raised_panel": { "value": 1.30, "description": "Most complex. Recessed areas trap existing finish, difficult to degloss mechanically." },
+        "glass_frame": { "value": 1.20, "description": "Frame only (glass removed or masked). Narrow members." }
+      },
+      "application_rule": "TIME modifier. adjusted_hours = base_hours * door_style_value. Applies to door AND drawer tasks equally."
+    },
+    "quality_tier_modifier": {
+      "modifier_id": "MOD_CBRP_QUALITY_TIER",
+      "source": "Research: CD-002 quality_tier. DIRECT transfer from NC MOD_CABT_QUALITY_TIER.",
+      "applies_to": "qt_scaled tasks in COATING pool (finish, interstage). For tasks with rates_by_tier, the tiered rate already embeds QT — do NOT double-apply.",
+      "does_not_apply_to": "binary tasks, prep pool tasks, protection tasks, assessment tasks. For tasks WITH rates_by_tier or fixed_time_minutes_by_tier, QT is pre-embedded.",
+      "values": {
+        "QT3": 1.0,
+        "QT4": 1.3,
+        "QT5": 1.5
+      },
+      "application_rule": "TIME modifier. effective_rate = base_rate / modifier. Applies ONLY to qt_scaled tasks WITHOUT rates_by_tier (those tasks pre-embed the QT effect). COATING pool only."
+    },
+    "height_modifier": {
+      "modifier_id": "MOD_CBRP_HEIGHT",
+      "source": "Research: CD-008 height. DIRECT transfer from NC MOD_CABT_HEIGHT.",
+      "applies_to": ["TSK_CBRP_PRIME_FRAMES_SPRAY", "TSK_CBRP_PRIME_FRAMES_BRUSH", "TSK_CBRP_SPRAY_FRAMES", "TSK_CBRP_BRUSH_FRAMES", "TSK_CBRP_DEGLOSS_FRAMES", "TSK_CBRP_SAND_BETWEEN_FRAMES", "TSK_CBRP_CAULK_ASSESS_REPLACE", "TSK_CBRP_PROTECT_WALL", "TSK_CBRP_PROTECT_CEILING"],
+      "does_not_apply_to": "Door/drawer tasks (painted flat on sawhorses at ground level), interior tasks, hardware tasks, FIXED tasks, floor protection",
+      "values": {
+        "standard_8ft": { "value": 1.0, "height_range": "8 ft ceiling" },
+        "tall_9_10ft": { "value": 1.15, "height_range": "9-10 ft ceiling" },
+        "extra_tall_11_12ft": { "value": 1.30, "height_range": "11-12 ft ceiling" }
+      },
+      "application_rule": "TIME modifier. effective_rate = base_rate / height_modifier. Frame tasks only — doors/drawers at ground level."
+    },
+    "kitchen_complexity_modifier": {
+      "modifier_id": "MOD_CBRP_KITCHEN_COMPLEXITY",
+      "source": "Research: CD-009 kitchen_complexity. DIRECT transfer from NC MOD_CABT_KITCHEN_COMPLEXITY.",
+      "applies_to": ["protection tasks", "frame painting tasks", "caulk tasks", "TSK_CBRP_GREASE_WASH", "TSK_CBRP_TREAT_SMOKE"],
+      "does_not_apply_to": "Door/drawer tasks (removed, painted separately), interior tasks, FIXED assessment tasks",
+      "values": {
+        "simple": { "value": 1.0, "description": "Straight run. Small bathroom vanity." },
+        "standard": { "value": 1.1, "description": "L-shaped kitchen, island." },
+        "complex": { "value": 1.2, "description": "U-shaped with island, multiple corner cabinets." },
+        "very_complex": { "value": 1.3, "description": "Large custom kitchen with multiple zones, butler's pantry." }
+      },
+      "application_rule": "TIME modifier. effective_rate = base_rate / complexity_modifier."
+    },
+    "coat_count": {
+      "ROUND_CBRP_PRIME_2FINISH": { "primer_coats": 1, "finish_coats": 2, "interstage_cycles": 2, "notes": "Standard RP for FAIR/POOR or non-latex existing finish." },
+      "ROUND_CBRP_2FINISH": { "primer_coats": 0, "finish_coats": 2, "interstage_cycles": 1, "notes": "GOOD condition, sound latex, no prime." },
+      "ROUND_CBRP_PRIME_3FINISH": { "primer_coats": 1, "finish_coats": 3, "interstage_cycles": 3, "notes": "QT5 brush + FAIR/POOR. Maximum coat sequence." },
+      "ROUND_CBRP_3FINISH": { "primer_coats": 0, "finish_coats": 3, "interstage_cycles": 2, "notes": "QT5 brush + GOOD condition latex." }
+    }
+  },
+
+  "modifier_stacking_validation": {
+    "maximum_theoretical_prep": {
+      "scenario": "POOR + raised_panel + extra_tall + very_complex (frame degloss)",
+      "calculation": "POOR(2.50) * raised_panel(1.30) * extra_tall(1.30) * very_complex(1.30) = 5.49x",
+      "note": "EXCEEDS 4.0x — extremely rare. Flag for estimator review. POOR condition cabinets genuinely require 2.5x+ prep effort."
+    },
+    "maximum_theoretical_coating": {
+      "scenario": "QT5 + raised_panel + extra_tall + very_complex (frame spray)",
+      "calculation": "QT5(1.50) * raised_panel(1.30) * extra_tall(1.30) * very_complex(1.30) = 3.29x",
+      "note": "Under 4.0x — valid. Identical to NC maximum."
+    },
+    "realistic_maximum_doors_prep": {
+      "scenario": "POOR + raised_panel doors (degloss)",
+      "calculation": "POOR(2.50) * raised_panel(1.30) = 3.25x",
+      "note": "Door tasks not affected by height or kitchen_complexity. Under 4.0x."
+    },
+    "realistic_maximum_doors_coating": {
+      "scenario": "QT5 + raised_panel doors (brush finish)",
+      "calculation": "QT5(1.50) * raised_panel(1.30) = 1.95x",
+      "note": "Modest stacking for door coating tasks."
+    },
+    "realistic_maximum_frames_prep": {
+      "scenario": "POOR + extra_tall + very_complex (frame degloss)",
+      "calculation": "POOR(2.50) * extra_tall(1.30) * very_complex(1.30) = 4.23x",
+      "note": "Frame tasks not affected by door_style. Exceeds 4.0x — flag for review."
+    },
+    "realistic_maximum_frames_coating": {
+      "scenario": "QT5 + extra_tall + very_complex (frame spray finish)",
+      "calculation": "QT5(1.50) * extra_tall(1.30) * very_complex(1.30) = 2.54x",
+      "note": "Under 4.0x — valid."
+    },
+    "flag_threshold": 4.0,
+    "flag_note": "Prep pool stacking can exceed 4.0x in extreme scenarios because condition_scale adds a dimension not present in NC. This is expected and acceptable — POOR condition cabinets in extra-tall, very complex kitchens genuinely require extended prep time."
+  },
+
+  "estimation_notes": {
+    "four_item_types": "4 paintable items: ITM_CABINET_DOOR (EA), ITM_CABINET_DRAWER (EA), ITM_CABINET_FRAME (SF), ITM_CABINET_INTERIOR (SF conditional). Mixed UOM structure carries over from NC.",
+    "spray_vs_brush": "Spray is strongly preferred. Spray ~1.4-2.0x faster. Finish coat tasks split by method. Prime tasks split by method. Interstage/assessment tasks are method-independent. Transfers from NC.",
+    "drawer_vs_door": "Drawer fronts ~0.7x door time per unit. Ratio transfers from NC.",
+    "interior_independence": "Cabinet interiors always QT3 regardless of exterior tier (AWI semi-exposed standard). Always spray. Conditional on scope=full_with_interior.",
+    "door_independence": "Door/drawer tasks NOT affected by height or kitchen_complexity modifiers. Removed and painted flat on sawhorses at ground level.",
+    "cure_time_constraint": "5-7 day minimum (7-14 days waterborne alkyd at QT4). Calendar days, not work hours. Identical to NC.",
+    "two_mobilizations": "Visit 1: assess/prep/prime/finish/cure setup. Visit 2: reinstall/touchup/cleanup. Identical to NC.",
+    "rp_vs_nc_key_differences": {
+      "assessment_phase": "6 tasks, 100% RP-NEW. Condition inspect, adhesion test, coating ID, moisture check, thermofoil gate, lead screen.",
+      "prep_phase": "Degloss replaces NC sand (~0.75-0.85x NC sand rates on existing finish). Grease wash replaces dust clean (~1.6x time). Damage repair replaces NC fill tasks. Caulk is assess/replace vs full.",
+      "prime_phase": "4 state-driven primer systems (vs NC 7 substrate-driven). Post-primer adhesion test is RP quality gate.",
+      "hardware_removal": "~30% slower than NC (painted-over hardware requires scoring).",
+      "cleanup_phase": "Adds hinge adjustment, contents replacement, customer walkthrough."
+    },
+    "rate_derivation_summary": {
+      "direct_transfers": "~38 tasks — NC rates re-keyed TSK_CABT_* to TSK_CBRP_*. All finish, interstage, reinstall, protection teardown, vacuum, tool cleanup tasks.",
+      "modified_rates": "~14 tasks — NC base with RP adjustments. Degloss (~0.75-0.85x NC sand), hardware removal (~0.69x NC), grease wash (~1.6x NC dust clean), caulk assess (~1.38x NC full caulk per LF).",
+      "rp_new_rates": "~23 tasks — Assessment (6), chemical degloss (1), scrape/feather/damage repair (3), mildew/smoke treatment (2), adhesion test gate (1), hinge adjust (1), contents replace (1), customer walkthrough (1), verify contents empty (1), RRP shared (5)."
+    },
+    "no_dry_times": "Per RC-004: no dry times specified. Key constraint: 16-24 hour recoat for waterborne alkyd (BM Advance at QT4).",
+    "pricing_structure": "Cabinet RP priced as PACKAGE per kitchen/room, not per individual task."
+  },
+
+  "task_count_verification": {
+    "total_tasks": 80,
+    "by_prefix": {
+      "TSK_CBRP_": 75,
+      "TSK_RRP_": 5
+    },
+    "by_classification": {
+      "binary": 55,
+      "qt_scaled": 25
+    },
+    "by_classification_note": "Actual count from SOP task data. SOP task_count_summary declares 52/28 but actual SOP task entries count to 55/25.",
+    "by_module": {
+      "MOD_CBRP_SETUP": 13,
+      "MOD_CBRP_ASSESS": 6,
+      "MOD_RRP_INT_CONTAINMENT": 5,
+      "MOD_CBRP_PREP": 14,
+      "MOD_CBRP_PRIME": 8,
+      "MOD_CBRP_INTERSTAGE": 9,
+      "MOD_CBRP_FINISH": 9,
+      "MOD_CBRP_CLEANUP": 16
+    },
+    "coverage_check": "ALL 80 tasks from sop_modules.json have matching production rate entries. 100% coverage verified."
+  },
+
+  "assumptions": [
+    {
+      "assumption_id": "A-001",
+      "field": "degloss_frame_rate_qt3",
+      "value": "140 SF/hr (vs NC sand 175 SF/hr)",
+      "source": "Research RF-016: RP degloss ~0.80x NC sand. Harder existing finish (120-150 grit vs 180-220). Cross-referenced with door RP degloss patterns.",
+      "doctrine_gap": true
+    },
+    {
+      "assumption_id": "A-002",
+      "field": "degloss_door_rate_qt3",
+      "value": "14 EA/hr (vs NC sand 18 EA/hr)",
+      "source": "Research: RP degloss ~0.78x NC sand. Existing semi-gloss/gloss finish harder to degloss than bare wood to sand.",
+      "doctrine_gap": true
+    },
+    {
+      "assumption_id": "A-003",
+      "field": "degloss_drawer_rate_qt3",
+      "value": "18 EA/hr (vs NC sand 24 EA/hr)",
+      "source": "Research: ~0.75x NC sand rate. ~0.7x door degloss time (smaller surface).",
+      "doctrine_gap": true
+    },
+    {
+      "assumption_id": "A-004",
+      "field": "degloss_interior_rate",
+      "value": "185 SF/hr",
+      "source": "RP-NEW. Light scuff only (always QT3). Interior surfaces less exposed. Between NC sand rate (175 SF/hr) and NC prime interior rate (175 SF/hr) — light scuff is faster than either.",
+      "doctrine_gap": true
+    },
+    {
+      "assumption_id": "A-005",
+      "field": "hardware_removal_rp_rate",
+      "value": "24 EA/hr (vs NC 35 EA/hr)",
+      "source": "Research: ~30% slower than NC. Painted-over hardware requires scoring paint around hinges/screws. ~2.5 min per piece vs NC ~1.7 min.",
+      "doctrine_gap": true
+    },
+    {
+      "assumption_id": "A-006",
+      "field": "grease_wash_time",
+      "value": "40 min FIXED (vs NC dust clean 25 min)",
+      "source": "Research: ~1.6x NC dust clean time. TSP/degreaser wash with multiple passes and white cloth verification is fundamentally heavier than construction dust wipe.",
+      "doctrine_gap": true
+    },
+    {
+      "assumption_id": "A-007",
+      "field": "condition_scale_poor_multiplier",
+      "value": "2.5x (vs wall/trim RP 2.0x)",
+      "source": "Research CD-001: Cabinet POOR is higher multiplier because failure remediation involves 4 item types across different orientations (frames vertical, doors/drawers horizontal).",
+      "doctrine_gap": true
+    },
+    {
+      "assumption_id": "A-008",
+      "field": "caulk_assess_rate_qt3",
+      "value": "110 LF/hr (vs NC full caulk 80 LF/hr)",
+      "source": "Research RF-017: Walk-and-assess is faster per LF than full application. Only 15-30% of joints typically need replacement.",
+      "doctrine_gap": true
+    },
+    {
+      "assumption_id": "A-009",
+      "field": "chemical_degloss_rate",
+      "value": "10 EA/hr",
+      "source": "Research: Apply liquid sander, allow dwell time, wipe off. ~6 min per door/drawer. Supplemental to mechanical degloss.",
+      "doctrine_gap": true
+    },
+    {
+      "assumption_id": "A-010",
+      "field": "hinge_adjust_rate",
+      "value": "15 EA/hr",
+      "source": "Research FM-009: ~4 min per door. Modern Euro hinges have 3-axis adjustment. More critical in RP than NC due to accumulated paint thickness.",
+      "doctrine_gap": true
+    },
+    {
+      "assumption_id": "A-011",
+      "field": "assessment_task_times",
+      "value": "Condition 20-40 min, Adhesion 12 min, Coating ID 12 min, Moisture 8 min, Thermofoil 12 min, Lead 10 min",
+      "source": "Calibrated from door RP assessment patterns (TSK_DIRP_ASSESS_*) scaled for room-level cabinet assessment with multiple component types.",
+      "doctrine_gap": true
+    },
+    {
+      "assumption_id": "A-012",
+      "field": "rrp_shared_module_rates",
+      "value": "Lead test 8 EA/hr, Containment setup 2 EA/hr, HEPA vacuum 4 EA/hr, Containment removal 3 EA/hr, Waste disposal 20 min FIXED",
+      "source": "Door RP RRP module pattern. Kitchen containment is complex due to multiple openings and appliances.",
+      "doctrine_gap": true
+    }
+  ]
+}

@@ -1,0 +1,831 @@
+{
+  "spec_family": {
+    "id": "SF_CABINET_INT_RP",
+    "name": "Interior Cabinet Repaint (Combined Prime + Finish)",
+    "description": "Combined prime+finish repaint spec for previously painted or factory-finished interior cabinets in occupied residential homes. Covers condition assessment (visual inspect, ASTM D3359 adhesion test, 4-solvent coating identification, moisture check, thermofoil go/no-go gate, lead screening), kitchen grease degreasing (mandatory), condition-driven prep (degloss, scrape, feather, damage repair, caulk assess/replace, contamination treatment), double-dimension primer routing (condition_scale + factory_finish_type — adhesion, bonding, stain-block, mildew), post-primer adhesion test gate, fine-finish coat application (spray or brush), between-coat interstage at all tiers, two-mobilization workflow (paint + 5-7 day cure + reinstall), and customer walkthrough. 4 paintable items: ITM_CABINET_DOOR (EA), ITM_CABINET_DRAWER (EA), ITM_CABINET_FRAME (SF conditional on scope), ITM_CABINET_INTERIOR (SF conditional on scope=full_with_interior, always QT3). Highest-complexity interior RP spec.",
+    "domain": "interior",
+    "scope_type": "repaint",
+    "version": "1.0.0",
+    "status": "draft",
+    "review_required": true
+  },
+
+  "scope_boundaries": {
+    "includes": [
+      "Kitchen cabinets (upper, lower, pantry, island) — previously painted or factory-finished",
+      "Bathroom vanity cabinets",
+      "Laundry room and utility cabinets",
+      "Mudroom cabinets (cabinet-style construction with doors/drawers)",
+      "Condition assessment — visual inspection, ASTM D3359 adhesion test, 4-solvent coating ID (mineral spirits/xylene/denatured alcohol/acetone), moisture check, thermofoil go/no-go gate, lead screening (pre-1978)",
+      "Kitchen grease degreasing — TSP/degreaser wash, mandatory for all kitchen cabinet RP",
+      "Cabinet doors — all styles: slab, shaker, raised panel, glass frame (frame only, glass excluded)",
+      "Cabinet drawer front faces",
+      "Face frames (stiles, rails), end panels, toe kicks, filler strips",
+      "Cabinet interiors (conditional on scope=full_with_interior, always QT3, spray-only)",
+      "Hardware removal with paint scoring (painted-over RP hardware), bag, label, reinstall after cure",
+      "Door and drawer removal, label, flat painting on sawhorses, reinstallation after 5-7 day cure",
+      "Mechanical degloss (existing semi-gloss/gloss finish) + chemical degloss for profiled doors",
+      "Scrape loose/failing paint, feather-sand edges (FAIR/POOR condition)",
+      "Damage repair — dings, scratches, impact damage, hardware relocation holes",
+      "Caulk assess and replace at cabinet-to-wall joints (15-30% failed sections typical)",
+      "Contamination treatment — mildew biocide (moisture damage), smoke/nicotine pre-treatment wash",
+      "State-driven + factory-finish-type-driven primer selection and application (4 RP primer systems)",
+      "Post-primer adhesion test gate (verify bonding before finish coats)",
+      "Fine-finish coat application (spray or brush) — 2 coats QT3-QT4, 3 coats QT5 brush per FFD 15.10.3",
+      "Between-coat interstage (inspect, sand, patch, spot coat, tack) at ALL quality tiers",
+      "Floor protection (full kitchen for spray, perimeter for brush)",
+      "Countertop protection (CRITICAL high-value surfaces — kraft/rosin paper + plastic)",
+      "Backsplash masking, wall/ceiling masking (spray), appliance protection (ALWAYS in RP)",
+      "Plumbing/electrical masking",
+      "Cabinet contents verification (homeowner empties, painter verifies)",
+      "Hinge alignment adjustment after reinstallation (RP-specific — paint build-up)",
+      "Contents replacement coordination with homeowner",
+      "Customer walkthrough with per-door/drawer inspection (RP-specific)",
+      "EPA Lead-Safe RRP evaluation and containment (pre-1978 homes — cabinets are HIGH RISK for lead paint)"
+    ],
+    "excludes": [
+      {
+        "item": "New construction cabinet painting (bare/new substrates)",
+        "route_to": "SF_CABINET_NC_PAINT_v1"
+      },
+      {
+        "item": "Cabinet refinishing / full strip-and-repaint",
+        "route_to": "SF_CABINET_REFINISH (future)"
+      },
+      {
+        "item": "Built-in bookshelves, entertainment centers, mudroom cubbies (open shelving)",
+        "route_to": "SF_BUILTIN_NC_v1"
+      },
+      {
+        "item": "Countertop removal or replacement (GC responsibility)",
+        "route_to": "Not a painting scope"
+      },
+      {
+        "item": "Plumbing disconnect for sink base (GC responsibility)",
+        "route_to": "Not a painting scope"
+      },
+      {
+        "item": "Appliance removal (GC responsibility)",
+        "route_to": "Not a painting scope"
+      },
+      {
+        "item": "Drawer box interiors (functional surfaces, not cosmetic)",
+        "route_to": "Not a painting scope"
+      },
+      {
+        "item": "Glass panel inserts (glazier scope)",
+        "route_to": "Not a painting scope"
+      },
+      {
+        "item": "Cabinet installation or modification (carpentry scope)",
+        "route_to": "Not a painting scope"
+      },
+      {
+        "item": "Exterior-rated cabinets (outdoor kitchen)",
+        "route_to": "Future exterior doctrine"
+      }
+    ]
+  },
+
+  "configuration_dimensions": [
+    {
+      "dimension_id": "quality_tier",
+      "description": "Quality tier controlling coat count, inspection rigor, interstage sanding discipline, repair scope, and material system.",
+      "values": ["QT3", "QT4", "QT5"],
+      "default": "QT3",
+      "notes": "QT3 standard residential. QT4 premium — waterborne alkyd STRONGLY recommended. QT5 showroom — premium product mandatory, spray preferred. Cabinet interiors always QT3 regardless of exterior tier (AWI semi-exposed standard). QT modifiers: QT3=1.0x, QT4=1.30x, QT5=1.50x."
+    },
+    {
+      "dimension_id": "application_method",
+      "description": "Primary application technique for primer and finish coats.",
+      "values": ["spray", "brush"],
+      "default": "spray",
+      "notes": "Spray strongly preferred per Fine Finish Doctrine SS10.3 and SS15.1.2. Brush method uses Roll and Tip technique per SS15.6. Cabinet interiors are spray-only. Roll is NOT valid for cabinets."
+    },
+    {
+      "dimension_id": "sheen",
+      "description": "Finish sheen. Constrained by quality tier gate.",
+      "values": ["satin", "semi-gloss", "gloss"],
+      "default": "semi-gloss",
+      "sheen_qt_gate": {
+        "satin": ["QT3", "QT4", "QT5"],
+        "semi-gloss": ["QT4", "QT5"],
+        "gloss": ["QT5"]
+      },
+      "notes": "Semi-gloss is kitchen/bath standard for cleanability. Gloss requires QT5 + spray method."
+    },
+    {
+      "dimension_id": "substrate_state",
+      "description": "Input substrate condition. All 5 SS_INT_* states accepted.",
+      "values": ["SS_INT_SOUND_PAINT", "SS_INT_FAILING_PAINT", "SS_INT_PEELING", "SS_INT_MOISTURE_DAMAGE", "SS_INT_SMOKE_DAMAGE"],
+      "default": "SS_INT_SOUND_PAINT",
+      "notes": "Each state drives distinct prep pathway and primer selection. Different cabinet components may have different substrate states — worst state at component level drives condition_scale. SS_INT_SOUND_PAINT with passing adhesion test and latex existing may skip prime entirely."
+    },
+    {
+      "dimension_id": "condition_scale",
+      "description": "Universal 3-level condition scale driving prep intensity. Maps from substrate state assessment.",
+      "values": ["GOOD", "FAIR", "POOR"],
+      "default": "GOOD",
+      "state_mapping": {
+        "GOOD": ["SS_INT_SOUND_PAINT"],
+        "FAIR": ["SS_INT_FAILING_PAINT", "SS_INT_MOISTURE_DAMAGE"],
+        "POOR": ["SS_INT_PEELING", "SS_INT_SMOKE_DAMAGE"]
+      },
+      "notes": "Prep pool modifier: GOOD=1.0x, FAIR=1.5x, POOR=2.5x (higher than wall/trim RP 2.0x because cabinet failure remediation involves 4 item types across different orientations)."
+    },
+    {
+      "dimension_id": "scope",
+      "description": "Cabinet painting scope — which item groups are active.",
+      "values": ["doors_only", "full_exterior", "full_with_interior"],
+      "default": "full_exterior",
+      "notes": "doors_only = ITM_CABINET_DOOR + ITM_CABINET_DRAWER only. full_exterior = doors + drawers + frame. full_with_interior = full exterior + ITM_CABINET_INTERIOR."
+    },
+    {
+      "dimension_id": "door_style",
+      "description": "Cabinet door style complexity modifier.",
+      "values": ["slab", "shaker", "raised_panel", "glass_frame"],
+      "default": "slab",
+      "notes": "slab=1.0x, shaker=1.15x, raised_panel=1.30x, glass_frame=1.20x. Applies to door/drawer tasks only. Raised panel has deepest profile — hardest to degloss and paint."
+    }
+  ],
+
+  "paintable_items": [
+    {
+      "item_id": "ITM_CABINET_DOOR",
+      "name": "Cabinet door face",
+      "unit_of_measure": "EA",
+      "counting_rules": "Each door face counted individually. Removed from cabinet, painted flat on sawhorses/pyramids. Style complexity handled by door_style modifier.",
+      "conditional": false,
+      "notes": "Existing item from SF_CABINET_NC_PAINT. Same physical item in RP context."
+    },
+    {
+      "item_id": "ITM_CABINET_DRAWER",
+      "name": "Cabinet drawer front face",
+      "unit_of_measure": "EA",
+      "counting_rules": "Each drawer front face counted individually. Removed from cabinet, painted flat on sawhorses. ~0.7x door time per unit.",
+      "conditional": false,
+      "notes": "Existing item from SF_CABINET_NC_PAINT. Drawer box interior NOT painted."
+    },
+    {
+      "item_id": "ITM_CABINET_FRAME",
+      "name": "Cabinet face frame and exposed box surfaces",
+      "unit_of_measure": "SF",
+      "counting_rules": "Total SF of paintable face frame and exposed box surfaces: stiles, rails, end panels, toe kicks, filler strips. Painted in-place after doors/drawers removed.",
+      "conditional": true,
+      "condition": "scope = full_exterior or full_with_interior",
+      "notes": "Existing item from SF_CABINET_NC_PAINT. Height modifier applies for upper cabinets in tall rooms."
+    },
+    {
+      "item_id": "ITM_CABINET_INTERIOR",
+      "name": "Cabinet box interior surfaces",
+      "unit_of_measure": "SF",
+      "counting_rules": "Total SF of cabinet interior surfaces — inside walls, ceiling, floor of cabinet box, fixed shelves. Spray-only. Always QT3 regardless of exterior tier (AWI semi-exposed standard).",
+      "conditional": true,
+      "condition": "scope = full_with_interior",
+      "notes": "Existing item from SF_CABINET_NC_PAINT. Separate line item for independent pricing."
+    }
+  ],
+
+  "variants": [
+    {
+      "variant_id": "VAR_CBRP_GOOD_QT3_SPRAY",
+      "applies_when": { "condition_scale": ["GOOD"], "quality_tier": ["QT3"], "application_method": ["spray"] },
+      "included_items": ["ITM_CABINET_DOOR", "ITM_CABINET_DRAWER", "ITM_CABINET_FRAME"],
+      "round_config": "ROUND_CBRP_2FINISH",
+      "notes": "BASELINE. Most common residential cabinet repaint. Cosmetic color change on sound latex. Degloss + 2 spray finish coats, no prime. Adhesion verified."
+    },
+    {
+      "variant_id": "VAR_CBRP_GOOD_QT4_SPRAY",
+      "applies_when": { "condition_scale": ["GOOD"], "quality_tier": ["QT4"], "application_method": ["spray"] },
+      "included_items": ["ITM_CABINET_DOOR", "ITM_CABINET_DRAWER", "ITM_CABINET_FRAME"],
+      "round_config": "ROUND_CBRP_2FINISH",
+      "notes": "Premium refresh on sound latex. Waterborne alkyd recommended. No prime needed."
+    },
+    {
+      "variant_id": "VAR_CBRP_FAIR_QT3_SPRAY",
+      "applies_when": { "condition_scale": ["FAIR"], "quality_tier": ["QT3"], "application_method": ["spray"] },
+      "included_items": ["ITM_CABINET_DOOR", "ITM_CABINET_DRAWER", "ITM_CABINET_FRAME"],
+      "round_config": "ROUND_CBRP_PRIME_2FINISH",
+      "notes": "Standard RP on failing paint or oil-based existing finish. Scrape + feather + state-driven prime + 2 spray finish coats."
+    },
+    {
+      "variant_id": "VAR_CBRP_FAIR_QT4_SPRAY",
+      "applies_when": { "condition_scale": ["FAIR"], "quality_tier": ["QT4"], "application_method": ["spray"] },
+      "included_items": ["ITM_CABINET_DOOR", "ITM_CABINET_DRAWER", "ITM_CABINET_FRAME"],
+      "round_config": "ROUND_CBRP_PRIME_2FINISH",
+      "notes": "Premium remediation spray. Full prep + state-driven prime + 2 spray finish coats. Waterborne alkyd recommended."
+    },
+    {
+      "variant_id": "VAR_CBRP_POOR_QT3_SPRAY",
+      "applies_when": { "condition_scale": ["POOR"], "quality_tier": ["QT3"], "application_method": ["spray"] },
+      "included_items": ["ITM_CABINET_DOOR", "ITM_CABINET_DRAWER", "ITM_CABINET_FRAME"],
+      "round_config": "ROUND_CBRP_PRIME_2FINISH",
+      "notes": "Full remediation on peeling/smoke-damaged cabinets. Heavy scrape, contamination treatment, state-driven prime + 2 finish coats."
+    },
+    {
+      "variant_id": "VAR_CBRP_GOOD_QT3_BRUSH",
+      "applies_when": { "condition_scale": ["GOOD"], "quality_tier": ["QT3"], "application_method": ["brush"] },
+      "included_items": ["ITM_CABINET_DOOR", "ITM_CABINET_DRAWER", "ITM_CABINET_FRAME"],
+      "round_config": "ROUND_CBRP_2FINISH",
+      "notes": "Standard brush on sound paint. Minimal room masking. Roll and Tip technique."
+    },
+    {
+      "variant_id": "VAR_CBRP_FAIR_QT4_BRUSH",
+      "applies_when": { "condition_scale": ["FAIR"], "quality_tier": ["QT4"], "application_method": ["brush"] },
+      "included_items": ["ITM_CABINET_DOOR", "ITM_CABINET_DRAWER", "ITM_CABINET_FRAME"],
+      "round_config": "ROUND_CBRP_PRIME_2FINISH",
+      "notes": "Premium brush remediation. Full prep + prime + 2 brush finish coats."
+    },
+    {
+      "variant_id": "VAR_CBRP_GOOD_QT5_SPRAY",
+      "applies_when": { "condition_scale": ["GOOD"], "quality_tier": ["QT5"], "application_method": ["spray"] },
+      "included_items": ["ITM_CABINET_DOOR", "ITM_CABINET_DRAWER", "ITM_CABINET_FRAME"],
+      "round_config": "ROUND_CBRP_2FINISH",
+      "notes": "Showroom refresh on sound paint. QT5 spray: 2 finish coats standard. Premium product mandatory."
+    },
+    {
+      "variant_id": "VAR_CBRP_GOOD_QT5_BRUSH",
+      "applies_when": { "condition_scale": ["GOOD"], "quality_tier": ["QT5"], "application_method": ["brush"] },
+      "included_items": ["ITM_CABINET_DOOR", "ITM_CABINET_DRAWER", "ITM_CABINET_FRAME"],
+      "round_config": "ROUND_CBRP_3FINISH",
+      "notes": "Showroom brush on sound paint. 3 finish coats per FFD 15.10.3. No prime on sound latex. NOT RECOMMENDED — spray preferred."
+    },
+    {
+      "variant_id": "VAR_CBRP_POOR_QT5_BRUSH",
+      "applies_when": { "condition_scale": ["POOR"], "quality_tier": ["QT5"], "application_method": ["brush"] },
+      "included_items": ["ITM_CABINET_DOOR", "ITM_CABINET_DRAWER", "ITM_CABINET_FRAME"],
+      "round_config": "ROUND_CBRP_PRIME_3FINISH",
+      "notes": "Maximum effort. Full remediation + state-driven prime + 3 brush finish coats. 4 total coats, 3 interstage cycles. Near-worst-case labor scenario."
+    },
+    {
+      "variant_id": "VAR_CBRP_FACTORY_LACQUER_QT4_SPRAY",
+      "applies_when": { "condition_scale": ["GOOD", "FAIR"], "quality_tier": ["QT4"], "application_method": ["spray"], "factory_finish_type": ["lacquer", "catalyzed_varnish"] },
+      "included_items": ["ITM_CABINET_DOOR", "ITM_CABINET_DRAWER", "ITM_CABINET_FRAME"],
+      "round_config": "ROUND_CBRP_PRIME_2FINISH",
+      "notes": "Factory lacquer/catalyzed varnish cabinets. Bonding primer mandatory regardless of condition. Post-primer adhesion test gate critical."
+    },
+    {
+      "variant_id": "VAR_CBRP_THERMOFOIL_QT3_SPRAY",
+      "applies_when": { "condition_scale": ["GOOD"], "quality_tier": ["QT3"], "application_method": ["spray"], "factory_finish_type": ["thermofoil"] },
+      "included_items": ["ITM_CABINET_DOOR", "ITM_CABINET_DRAWER", "ITM_CABINET_FRAME"],
+      "round_config": "ROUND_CBRP_PRIME_2FINISH",
+      "notes": "Thermofoil cabinets. Go/no-go gate (delamination = not paintable). Mechanical scuff only (NO chemical degloss). Bonding primer with post-primer adhesion test."
+    }
+  ],
+
+  "required_paintscope_inputs": [
+    {
+      "input_name": "IN_EA_CABINET_DOORS",
+      "paintscope_key": "PS_SURFACE_EA.CABINET_DOOR",
+      "uom": "EA",
+      "required": true,
+      "description": "Count of cabinet door faces to be painted."
+    },
+    {
+      "input_name": "IN_EA_CABINET_DRAWERS",
+      "paintscope_key": "PS_SURFACE_EA.CABINET_DRAWER",
+      "uom": "EA",
+      "required": true,
+      "description": "Count of cabinet drawer front faces to be painted."
+    },
+    {
+      "input_name": "IN_SF_CABINET_FRAME",
+      "paintscope_key": "PS_SURFACE_SF.CABINET_FRAME",
+      "uom": "SF",
+      "required": true,
+      "required_when": "scope = full_exterior or full_with_interior",
+      "description": "Total SF of face frame and exposed box surfaces."
+    },
+    {
+      "input_name": "IN_SF_CABINET_INTERIOR",
+      "paintscope_key": "PS_SURFACE_SF.CABINET_INTERIOR",
+      "uom": "SF",
+      "required": false,
+      "required_when": "scope = full_with_interior",
+      "description": "Total SF of cabinet interior surfaces."
+    },
+    {
+      "input_name": "IN_EA_CABINET_HARDWARE_PIECES",
+      "paintscope_key": "PS_META.EA.CABINET_HARDWARE",
+      "uom": "EA",
+      "required": true,
+      "description": "Total hardware piece count (hinges + pulls + knobs) for removal/reinstall. RP rate ~30% slower than NC due to painted-over hardware."
+    },
+    {
+      "input_name": "IN_LF_CABINET_CAULK",
+      "paintscope_key": "PS_EDGE_LF.CABINET_CAULK",
+      "uom": "LF",
+      "required": true,
+      "description": "Total LF of cabinet-to-wall caulk joints for assess/replace."
+    },
+    {
+      "input_name": "IN_EA_ROOMS_TOTAL",
+      "paintscope_key": "PS_META.EA.ROOMS_TOTAL",
+      "uom": "EA",
+      "required": true,
+      "description": "Room count for setup/cleanup, assessment, and FIXED-time tasks."
+    },
+    {
+      "input_name": "IN_SF_PROTECT_FLOOR_EXPOSED",
+      "paintscope_key": "PS_PROTECT_SF.FLOOR_EXPOSED",
+      "uom": "SF",
+      "required": true,
+      "description": "Floor area requiring protection in cabinet work zone. RP always has finished floors."
+    },
+    {
+      "input_name": "IN_SF_PROTECT_FLOOR_PERIMETER",
+      "paintscope_key": "PS_PROTECT_SF.FLOOR_PERIMETER",
+      "uom": "SF",
+      "required": false,
+      "required_when": "application_method = brush",
+      "description": "Perimeter floor protection for brush method."
+    },
+    {
+      "input_name": "IN_SF_PROTECT_COUNTERTOP",
+      "paintscope_key": "PS_PROTECT_SF.ASSET.COUNTERTOPS",
+      "uom": "SF",
+      "required": true,
+      "description": "Countertop surface area requiring protection. CRITICAL: high-value surfaces."
+    },
+    {
+      "input_name": "IN_LF_PROTECT_BACKSPLASH",
+      "paintscope_key": "PS_PROTECT_SF.ASSET.TILE_BACKSPLASH",
+      "uom": "LF",
+      "required": true,
+      "description": "Linear footage of backsplash requiring masking."
+    },
+    {
+      "input_name": "IN_SF_PROTECT_WALL_SPRAY",
+      "paintscope_key": "PS_PROTECT_LF.WALL_ADJACENT_CABINET",
+      "uom": "SF",
+      "required": false,
+      "required_when": "application_method = spray",
+      "description": "Wall area requiring masking for spray overspray. Walls always finished in RP — mandatory for spray."
+    },
+    {
+      "input_name": "IN_SF_PROTECT_CEILING_SPRAY",
+      "paintscope_key": "PS_PROTECT_SF.CEILING_SPRAY",
+      "uom": "SF",
+      "required": false,
+      "required_when": "application_method = spray",
+      "description": "Ceiling area requiring masking for spray overspray."
+    },
+    {
+      "input_name": "IN_EA_APPLIANCE_MASK",
+      "paintscope_key": "PS_PROTECT_EA.APPLIANCE_COVERS",
+      "uom": "EA",
+      "required": true,
+      "description": "Number of appliances requiring protection. ALWAYS required in RP — appliances always present in occupied homes."
+    },
+    {
+      "input_name": "IN_SF_FLOOR_VACUUM_AREA",
+      "paintscope_key": "PS_META.SF.FLOOR_VACUUM_AREA",
+      "uom": "SF",
+      "required": true,
+      "description": "Post-work vacuum cleanup area."
+    },
+    {
+      "input_name": "IN_ENUM_HEIGHT_BAND",
+      "paintscope_key": "PS_META.HEIGHT_BAND",
+      "uom": "ENUM",
+      "required": true,
+      "description": "Height classification for frame tasks (standard_8ft, tall_9_10ft, extra_tall_11_12ft)."
+    },
+    {
+      "input_name": "IN_ENUM_SURFACE_CONDITION",
+      "paintscope_key": "PS_META.SURFACE_CONDITION",
+      "uom": "ENUM",
+      "required": true,
+      "description": "Condition scale (GOOD/FAIR/POOR) — primary prep intensity driver."
+    },
+    {
+      "input_name": "IN_ENUM_SUBSTRATE_STATE_INT",
+      "paintscope_key": "PS_META.ENUM.SUBSTRATE_STATE_INT",
+      "uom": "ENUM",
+      "required": true,
+      "description": "Interior substrate state (SS_INT_SOUND_PAINT through SS_INT_SMOKE_DAMAGE) — drives primer selection."
+    },
+    {
+      "input_name": "IN_ENUM_FACTORY_FINISH_TYPE",
+      "paintscope_key": "PS_META.ENUM.FACTORY_FINISH_TYPE",
+      "uom": "ENUM",
+      "required": true,
+      "description": "Factory finish type (painted_latex, painted_oil, lacquer, catalyzed_varnish, thermofoil, unknown) — drives primer routing."
+    },
+    {
+      "input_name": "IN_BOOL_THERMOFOIL_PRESENT",
+      "paintscope_key": "PS_META.BOOL.THERMOFOIL_PRESENT",
+      "uom": "BOOL",
+      "required": true,
+      "description": "Thermofoil flag — triggers assessment gate and modified prep workflow."
+    },
+    {
+      "input_name": "IN_BOOL_HOME_PRE_1978",
+      "paintscope_key": "PS_META.BOOL.HOME_PRE_1978",
+      "uom": "BOOL",
+      "required": true,
+      "description": "Pre-1978 home flag — triggers EPA Lead-Safe RRP module. Cabinets are HIGH RISK for lead paint."
+    },
+    {
+      "input_name": "IN_ENUM_CONTAMINATION_TYPE",
+      "paintscope_key": "PS_META.ENUM.CONTAMINATION_TYPE",
+      "uom": "ENUM",
+      "required": true,
+      "description": "Contamination type (none/mildew/smoke/water_stain/grease) — drives treatment task activation and primer selection."
+    }
+  ],
+
+  "material_systems_summary": [
+    {
+      "system_id": "SYS_PRIMER_ADHESION_INT",
+      "name": "Interior Adhesion Primer",
+      "product_role": "primer",
+      "applies_when": { "substrate_state": ["SS_INT_SOUND_PAINT", "SS_INT_FAILING_PAINT", "SS_INT_PEELING"], "factory_finish_type": ["painted_latex", "painted_oil"] },
+      "notes": "Water-based adhesion promoter. MANDATORY for painted_oil (latex-over-oil). Conditional for painted_latex (skip if adhesion test passes on low-sheen). Always for failing/peeling."
+    },
+    {
+      "system_id": "SYS_PRIMER_BONDING_FACTORY",
+      "name": "Bonding Primer for Factory Lacquer/Catalyzed Varnish/Thermofoil",
+      "product_role": "primer",
+      "applies_when": { "factory_finish_type": ["lacquer", "catalyzed_varnish", "thermofoil", "unknown"] },
+      "notes": "Enhanced bonding primer for extremely hard non-porous factory finishes. Mandatory regardless of condition. Thermofoil requires adhesion test gate BEFORE priming."
+    },
+    {
+      "system_id": "SYS_PRIMER_STAINBLOCK_INT",
+      "name": "Interior Stain-Blocking Primer (Shellac)",
+      "product_role": "primer",
+      "applies_when": { "substrate_state": ["SS_INT_SMOKE_DAMAGE"] },
+      "notes": "Shellac-based stain blocker (BIN or equivalent). Only product that seals nicotine/smoke. Full surface application. Denatured alcohol cleanup."
+    },
+    {
+      "system_id": "SYS_PRIMER_MILDEW_INT",
+      "name": "Interior Mildew-Resistant Primer",
+      "product_role": "primer",
+      "applies_when": { "substrate_state": ["SS_INT_MOISTURE_DAMAGE"] },
+      "notes": "Mildew-resistant primer with antimicrobial additives. Gate: moisture source must be resolved. Under-sink and bath vanity primary targets."
+    },
+    {
+      "system_id": "SYS_FF_STANDARD_ACRYLIC",
+      "name": "Standard Acrylic Trim Enamel (QT3)",
+      "product_role": "finish",
+      "applies_when": { "quality_tier": ["QT3"] },
+      "notes": "Standard acrylic enamel. Also used for cabinet interiors regardless of exterior tier."
+    },
+    {
+      "system_id": "SYS_FF_MODIFIED_URETHANE",
+      "name": "Modified Urethane Trim Enamel (QT4)",
+      "product_role": "finish",
+      "applies_when": { "quality_tier": ["QT4"] },
+      "notes": "Waterborne alkyd. STRONGLY recommended for all cabinet work. Superior hardness, blocking resistant."
+    },
+    {
+      "system_id": "SYS_FF_PREMIUM",
+      "name": "Premium Urethane Trim Enamel (QT5)",
+      "product_role": "finish",
+      "applies_when": { "quality_tier": ["QT5"] },
+      "notes": "Premium acrylic-urethane enamel. Maximum durability. 3 brush coats per FFD 15.10.3."
+    }
+  ],
+
+  "module_summary": [
+    { "module_id": "MOD_CBRP_SETUP", "phase": "setup", "task_count": 13, "description": "Floor protection, countertop/backsplash masking, wall/ceiling masking (spray), appliance protection (ALWAYS in RP), plumbing/electrical masking, contents verification, hardware removal (paint scoring for painted-over RP hardware), door/drawer removal" },
+    { "module_id": "MOD_CBRP_ASSESS", "phase": "prep", "task_count": 6, "description": "Condition inspect, adhesion test (ASTM D3359), coating ID (4-solvent), moisture check, thermofoil gate (conditional), lead screen (conditional pre-1978). 100% RP_NEW" },
+    { "module_id": "MOD_RRP_INT_CONTAINMENT", "phase": "prep", "task_count": 5, "description": "Shared lead-safe RRP module. Conditional on pre-1978 + lead positive. Cabinets are HIGH RISK for lead paint" },
+    { "module_id": "MOD_CBRP_PREP", "phase": "prep", "task_count": 14, "description": "Grease wash (mandatory kitchen), degloss (4 item types + chemical), scrape/feather (FAIR/POOR), damage repair, caulk assess/replace, mildew/smoke treatment, vacuum" },
+    { "module_id": "MOD_CBRP_PRIME", "phase": "prime", "task_count": 8, "description": "State-driven + factory-finish-type-driven primer: spray/brush variants for frames, doors, drawers, interiors. Post-primer adhesion test gate" },
+    { "module_id": "MOD_CBRP_INTERSTAGE", "phase": "interstage", "task_count": 9, "description": "Clean area, inspect coat, sand between (frames SF, doors EA, drawers EA, interior SF), patch defects, spot coat, tack clean. Runs between each coat pair" },
+    { "module_id": "MOD_CBRP_FINISH", "phase": "finish", "task_count": 9, "description": "Spray/brush finish on frames, doors, drawers, interiors. Final inspection and touch-up. 2 coats QT3-QT4, 3 coats QT5 brush" },
+    { "module_id": "MOD_CBRP_CLEANUP", "phase": "cleanup", "task_count": 16, "description": "Cure period (5-7 day, separate mobilization), door/drawer/hardware reinstall, hinge adjustment, reinstall touch-up, contents replacement coordination, customer walkthrough, protection teardown, final vacuum, tool cleanup" }
+  ],
+
+  "round_configurations_summary": [
+    {
+      "round_id": "ROUND_CBRP_PRIME_2FINISH",
+      "name": "State-Driven Prime + 2 Finish Coats",
+      "applies_when": { "condition_scale": ["FAIR", "POOR"] },
+      "total_coats": 3,
+      "interstage_cycles": 2,
+      "notes": "Most common RP round. Also applies to GOOD condition with painted_oil or factory lacquer/thermofoil."
+    },
+    {
+      "round_id": "ROUND_CBRP_2FINISH",
+      "name": "2 Finish Coats (No Prime)",
+      "applies_when": { "condition_scale": ["GOOD"], "factory_finish_type": ["painted_latex"] },
+      "total_coats": 2,
+      "interstage_cycles": 1,
+      "notes": "Simplest RP round — cosmetic color change on sound latex."
+    },
+    {
+      "round_id": "ROUND_CBRP_PRIME_3FINISH",
+      "name": "Prime + 3 Finish Coats (QT5 Brush)",
+      "applies_when": { "quality_tier": ["QT5"], "application_method": ["brush"], "condition_scale": ["FAIR", "POOR"] },
+      "total_coats": 4,
+      "interstage_cycles": 3,
+      "notes": "Maximum coat sequence. 4 total coats."
+    },
+    {
+      "round_id": "ROUND_CBRP_3FINISH",
+      "name": "3 Finish Coats (QT5 Brush, No Prime)",
+      "applies_when": { "quality_tier": ["QT5"], "application_method": ["brush"], "condition_scale": ["GOOD"], "factory_finish_type": ["painted_latex"] },
+      "total_coats": 3,
+      "interstage_cycles": 2,
+      "notes": "QT5 brush adds 3rd finish coat per FFD 15.10.3."
+    }
+  ],
+
+  "factor_modifiers_summary": {
+    "condition_scale": {
+      "FAC_CONDITION_GOOD": 1.00,
+      "FAC_CONDITION_FAIR": 1.50,
+      "FAC_CONDITION_POOR": 2.50
+    },
+    "quality_tier": {
+      "FAC_QT3": 1.00,
+      "FAC_QT4": 1.30,
+      "FAC_QT5": 1.50
+    },
+    "door_style": {
+      "FAC_DOOR_STYLE_SLAB": 1.00,
+      "FAC_DOOR_STYLE_SHAKER": 1.15,
+      "FAC_DOOR_STYLE_RAISED_PANEL": 1.30,
+      "FAC_DOOR_STYLE_GLASS_FRAME": 1.20
+    },
+    "height": {
+      "FAC_HEIGHT_STANDARD_8FT": 1.00,
+      "FAC_HEIGHT_TALL_9_10FT": 1.15,
+      "FAC_HEIGHT_EXTRA_TALL_11_12FT": 1.30
+    },
+    "kitchen_complexity": {
+      "FAC_KITCHEN_SIMPLE": 1.00,
+      "FAC_KITCHEN_STANDARD": 1.10,
+      "FAC_KITCHEN_COMPLEX": 1.20,
+      "FAC_KITCHEN_VERY_COMPLEX": 1.30
+    },
+    "stacking_partition": {
+      "prep_pool": "condition_scale x door_style (door/drawer tasks) x height (frame tasks) x kitchen_complexity (frame/protection tasks)",
+      "coating_pool": "quality_tier x door_style (door/drawer tasks) x height (frame tasks) x kitchen_complexity (frame/protection tasks)",
+      "never_cross": "Prep pool never includes QT. Coating pool never includes condition_scale."
+    }
+  },
+
+  "protection_zones_required": [
+    {
+      "zone_id": "floor_full_kitchen",
+      "condition": { "application_method": ["spray"] },
+      "protection_level": "full_cover",
+      "notes": "Full kitchen floor coverage for spray. RP always has finished floors."
+    },
+    {
+      "zone_id": "floor_perimeter",
+      "condition": { "application_method": ["brush"] },
+      "protection_level": "edge_only",
+      "notes": "Drop cloth runners at cabinet base for brush."
+    },
+    {
+      "zone_id": "countertop_covers",
+      "condition": "always",
+      "protection_level": "full_cover",
+      "notes": "CRITICAL: high-value surfaces (granite, quartz, marble). Always installed in RP."
+    },
+    {
+      "zone_id": "backsplash_mask",
+      "condition": "always",
+      "protection_level": "partial_cover",
+      "notes": "Tile backsplash masking. Always present in RP kitchen."
+    },
+    {
+      "zone_id": "wall_adjacent_cabinet",
+      "condition": { "application_method": ["spray"] },
+      "protection_level": "full_cover",
+      "notes": "Wall masking for spray. Walls ALWAYS finished in RP — mandatory."
+    },
+    {
+      "zone_id": "fixture_covers",
+      "condition": { "application_method": ["spray"] },
+      "protection_level": "full_cover",
+      "notes": "Ceiling fixtures and under-cabinet lighting. Includes ceiling masking for spray."
+    },
+    {
+      "zone_id": "appliance_covers",
+      "condition": "always_in_rp",
+      "protection_level": "full_cover",
+      "notes": "Full appliance wrap. ALWAYS in RP — appliances always present in occupied homes."
+    },
+    {
+      "zone_id": "cabinet_hardware",
+      "condition": "always",
+      "protection_level": "item_mask",
+      "notes": "Hardware removed, bagged, and labeled. RP adds scoring for painted-over hardware."
+    },
+    {
+      "zone_id": "plumbing_electrical",
+      "condition": "always",
+      "protection_level": "light_mask",
+      "notes": "Plumbing in sink base, electrical outlets/switches, under-cabinet lighting."
+    },
+    {
+      "zone_id": "contents_staging",
+      "condition": "always_in_rp",
+      "protection_level": "full_cover",
+      "notes": "RP-NEW: cabinet contents must be emptied. Homeowner empties, painter verifies."
+    }
+  ],
+
+  "adjacency_declarations": {
+    "primary_surface": "cabinet_face_frame",
+    "adjacent_surfaces": [
+      {
+        "surface_id": "wall_field",
+        "edge_type": "linear",
+        "typical_relationship": "different_finish",
+        "affected_tasks": ["TSK_CBRP_CAULK_ASSESS_REPLACE", "TSK_CBRP_PROTECT_WALL", "TSK_CBRP_REMOVE_WALL_MASK"],
+        "notes": "Cabinet frame meets wall. Different finish. RP walls are always finished — full masking for spray."
+      },
+      {
+        "surface_id": "ceiling_field",
+        "edge_type": "linear",
+        "typical_relationship": "different_finish",
+        "affected_tasks": ["TSK_CBRP_PROTECT_CEILING", "TSK_CBRP_REMOVE_CEILING_MASK"],
+        "notes": "Upper cabinet tops near ceiling. Crown molding bridges gap if integral to cabinet."
+      },
+      {
+        "surface_id": "cabinet_door",
+        "edge_type": "complex",
+        "typical_relationship": "same_finish",
+        "affected_tasks": [],
+        "notes": "Door overlays frame. Same finish. Doors removed during painting."
+      },
+      {
+        "surface_id": "cabinet_box_interior",
+        "edge_type": "linear",
+        "typical_relationship": "same_finish",
+        "affected_tasks": [],
+        "notes": "Frame edge meets interior. Interior typically QT3 vs exterior QT."
+      },
+      {
+        "surface_id": "countertop",
+        "edge_type": "linear",
+        "typical_relationship": "different_finish",
+        "affected_tasks": ["TSK_CBRP_PROTECT_COUNTERTOP", "TSK_CBRP_REMOVE_COUNTERTOP_PROTECT"],
+        "notes": "Lower cabinet frame-to-countertop junction. CRITICAL protection for high-value surfaces."
+      },
+      {
+        "surface_id": "backsplash",
+        "edge_type": "linear",
+        "typical_relationship": "different_finish",
+        "affected_tasks": ["TSK_CBRP_PROTECT_BACKSPLASH", "TSK_CBRP_REMOVE_BACKSPLASH_MASK"],
+        "notes": "Upper/lower cabinet frame-to-backsplash junction."
+      }
+    ]
+  },
+
+  "state_declarations": {
+    "primary_surfaces": ["cabinet_face_frame", "cabinet_door", "cabinet_drawer", "cabinet_box_interior"],
+
+    "valid_input_states": {
+      "states": [
+        "SS_INT_SOUND_PAINT",
+        "SS_INT_FAILING_PAINT",
+        "SS_INT_PEELING",
+        "SS_INT_MOISTURE_DAMAGE",
+        "SS_INT_SMOKE_DAMAGE"
+      ],
+      "notes": "All 5 SS_INT_* states accepted. Different components may have different substrate states. Worst state at component level drives condition_scale."
+    },
+
+    "output_state": {
+      "state": "SS_PAINTED_SEMIGLOSS",
+      "varies_by": "sheen",
+      "state_map": {
+        "satin": "SS_PAINTED_SATIN",
+        "semi-gloss": "SS_PAINTED_SEMIGLOSS",
+        "gloss": "SS_PAINTED_GLOSS"
+      }
+    },
+
+    "adjacent_state_protection_rules": [
+      {
+        "adjacent_surface": "wall_field",
+        "when_state": "finished",
+        "protection_zone": "wall_adjacent_cabinet",
+        "protection_level": "full_cover",
+        "applies_when": { "application_method": ["spray"] },
+        "notes": "RP walls are ALWAYS finished. Full masking mandatory for spray."
+      },
+      {
+        "adjacent_surface": "countertop",
+        "when_state": "installed",
+        "protection_zone": "countertop_covers",
+        "protection_level": "full_cover",
+        "notes": "Countertops always installed in RP. CRITICAL high-value protection."
+      }
+    ]
+  },
+
+  "site_condition_rules": [
+    {
+      "condition_id": "occupancy_state",
+      "include_when": ["occupied_crew_handles", "occupied_sensitive"],
+      "exclude_when": [],
+      "affects": "customer walkthrough, contents verification, appliance protection",
+      "affected_tasks": ["TSK_CBRP_CUSTOMER_WALKTHROUGH", "TSK_CBRP_VERIFY_CONTENTS_EMPTY", "TSK_CBRP_PROTECT_APPLIANCE"],
+      "notes": "Cabinet RP is ALWAYS occupied home context. Appliance protection always required."
+    },
+    {
+      "condition_id": "lead_status",
+      "include_when": ["tested_positive", "unknown_pre1978"],
+      "exclude_when": ["not_applicable", "presumed_safe", "tested_negative"],
+      "affects": "prep tasks involving paint disturbance",
+      "affected_tasks": ["TSK_RRP_LEAD_TEST", "TSK_RRP_CONTAINMENT_SETUP", "TSK_RRP_HEPA_VACUUM", "TSK_RRP_CONTAINMENT_REMOVAL", "TSK_RRP_WASTE_DISPOSAL"],
+      "notes": "Pre-1978 + lead-positive activates MOD_RRP_INT_CONTAINMENT. Cabinets are HIGH RISK for lead paint."
+    },
+    {
+      "condition_id": "moisture_condition",
+      "include_when": ["recently_wet"],
+      "exclude_when": ["active_moisture"],
+      "affects": "assessment and prep tasks",
+      "notes": "active_moisture is STOP WORK — do not proceed until source is resolved."
+    },
+    {
+      "condition_id": "contamination_type",
+      "include_when": ["mildew", "smoke", "water_stain", "grease"],
+      "affects": "contamination treatment tasks",
+      "affected_tasks": ["TSK_CBRP_GREASE_WASH", "TSK_CBRP_TREAT_MILDEW", "TSK_CBRP_TREAT_SMOKE"],
+      "notes": "Grease is kitchen-specific. Mildew conditional on SS_INT_MOISTURE_DAMAGE. Smoke conditional on SS_INT_SMOKE_DAMAGE."
+    }
+  ],
+
+  "cross_spec_coordination": {
+    "deduplication_note": "MOD_RRP_INT_CONTAINMENT is shared across all interior RP specs — do not duplicate lead-safe tasks when running cabinet RP alongside wall/trim/door RP.",
+    "shared_session_note": "Cabinet RP is typically the LAST interior RP scope in occupied homes. Sequencing: wall RP first (remove cabinet protection zone overlap concern), then trim RP, then cabinet RP (minimizes dust contamination on wet cabinet finishes)."
+  },
+
+  "sequencing_notes": {
+    "production_sequence": "Setup (protect + contents verify + hardware/door/drawer removal) > Assess (condition/adhesion/coating/moisture/thermofoil/lead) > [RRP if pre-1978] > Prep (grease wash, degloss, scrape/feather, damage repair, caulk, treatment, vacuum) > Prime (state-driven, if required) > Adhesion test > Interstage > Finish 1 > Interstage > Finish 2 > [QT5 brush: Interstage > Finish 3] > Final Inspect > Touch-up > 5-7 DAY CURE (separate mobilization) > Reinstall doors/drawers/hardware > Hinge adjust > Reinstall touch-up > Contents replacement > Customer walkthrough > Protection teardown > Vacuum > Tool cleanup",
+    "two_mobilization_note": "Visit 1: assess/prep/prime/finish. Visit 2 (after 5-7 day cure): reinstall/touchup/cleanup. Scheduling constraint.",
+    "key_prohibitions": "NO painting over active moisture. NO latex primer on smoke damage (shellac only). NO chemical degloss on thermofoil (solvents damage vinyl). NO skipping interstage sanding on cabinets — all tiers. NO skipping grease wash on kitchen cabinets."
+  },
+
+  "relationships": {
+    "sibling_specs": ["SF_CABINET_NC_PAINT_v1"],
+    "often_combined_with": ["SF_TRIM_INT_RP", "SF_DRYWALL_WALL_INT_RP", "SF_DOOR_INT_RP"],
+    "typical_after": ["SF_DRYWALL_WALL_INT_RP", "SF_DRYWALL_CEILING_INT_RP", "SF_TRIM_INT_RP", "SF_DOOR_INT_RP"],
+    "notes": "Cabinet RP is typically the LAST interior RP scope — after walls, ceilings, trim, doors. Minimizes dust contamination on wet cabinet finishes. NC sibling is SF_CABINET_NC_PAINT_v1 (58 tasks vs RP 80 tasks)."
+  },
+
+  "dependencies": {
+    "research": "research.json",
+    "resolution": "resolution.json",
+    "materials": "materials.json",
+    "sop_modules": "sop_modules.json",
+    "production": "production.json",
+    "qa_report": "qa_report.json"
+  },
+
+  "artifact_counts": {
+    "total_tasks": 80,
+    "binary_tasks": 55,
+    "qt_scaled_tasks": 25,
+    "sop_modules": 8,
+    "material_systems": 7,
+    "round_configurations": 4,
+    "protection_zones": 10,
+    "adjacent_surfaces": 6,
+    "paintscope_inputs": 22,
+    "variants": 12,
+    "paintable_items": 4,
+    "configuration_dimensions": 7,
+    "modifiers": 5,
+    "consumables": 20,
+    "coverage_profiles": 5,
+    "assumptions": 12
+  },
+
+  "doctrine_references": [
+    { "doctrine": "Fine_Finish_Doctrine.md", "sections_used": ["SS4.1 Sheen/QT Gate", "SS10.3 Built-Ins and Cabinets", "SS15.1.2 Spray Preferred", "SS15.3.1 Apply-Tip-Walk-Away", "SS15.4.1 Rigid Sanding Block", "SS15.6 Roll and Tip", "SS15.10.3 QT5 Brush Coat Count", "SS15.11.3 Cabinetry", "SS15.12 Dust Control"] },
+    { "doctrine": "Millwork_NC_Paint_Doctrine.md", "sections_used": ["SS2 Substrate Classification", "SS3 Surface Preparation Matrix", "SS4 Primer Systems"] },
+    { "doctrine": "Quality_Tiers_and_Surface_Condition.md", "sections_used": ["QT3-QT5 Definitions", "Condition Scale GOOD/FAIR/POOR", "QT Modifier Values"] },
+    { "doctrine": "Materials_and_Consumables_Doctrine.md", "sections_used": ["State-driven primer selection", "Shellac stain-blocker mandate for smoke damage (RC-002)"] },
+    { "doctrine": "Estimation_Modifiers_Doctrine.md", "sections_used": ["Stacking partition prep vs coating", "Door-style complexity modifiers", "Height modifiers", "Kitchen complexity modifiers"] },
+    { "doctrine": "Protection_and_Masking_Doctrine.md", "sections_used": ["Floor protection by method", "Countertop protection", "Backsplash masking", "Wall/ceiling spray masking", "Appliance protection"] },
+    { "doctrine": "Interior_Protection_Doctrine.md", "sections_used": ["RP finished floor protection", "Spray containment zones"] },
+    { "doctrine": "Substrate_State_Reference.md", "sections_used": ["5 SS_INT_* states", "State-to-condition mapping", "Output state by sheen"] },
+    { "doctrine": "AWI/ANSI 0400 Architectural Woodwork Standards", "sections_used": ["Semi-Exposed Interior Standard (cabinet interiors always QT3)"] }
+  ],
+
+  "inherited_research_corrections": [
+    { "correction_id": "RC-002", "corrected_to": "Latex/acrylic primers have zero stain blocking capability. Shellac (BIN) is mandatory for smoke damage.", "source": "SF_DRYWALL_WALL_NC_PRIME research" },
+    { "correction_id": "RC-004", "corrected_to": "No dry times in specs — refer to product PDS.", "source": "SF_DRYWALL_WALL_NC_PRIME research" },
+    { "correction_id": "RC-005", "corrected_to": "Material systems are suggestions per QT — contractor has discretion.", "source": "SF_TRIM_NC_PAINT research" },
+    { "correction_id": "RC-006", "corrected_to": "Both Advance (waterborne alkyd) and Emerald Urethane (acrylic-urethane enamel) have SHORT working times.", "source": "SF_TRIM_NC_PAINT research" }
+  ],
+
+  "change_log": [
+    {
+      "version": "1.0.0",
+      "date": "2026-03-14",
+      "author": "SpecFactory Assembly Agent",
+      "changes": "Initial spec.json assembly from 5 pipeline artifacts (research, resolution, materials, sop_modules, production). QA Critic found 1 major issue (SOP task count metadata mismatch binary=52/qt_scaled=28 declared vs binary=55/qt_scaled=25 actual) — FIXED in sop_modules.json. Zero critical issues. 80 tasks across 8 modules (7 owned MOD_CBRP_* + 1 shared MOD_RRP_INT_CONTAINMENT), 7 material systems (4 RP primer + 3 QT-driven fine-finish), 4 round configurations, 10 protection zones (highest of any interior RP spec), 6 adjacent surfaces, 22 PaintScope inputs, 12 variants, 5 modifiers (condition_scale, door_style, quality_tier, height, kitchen_complexity). Combined 4-item architecture (door EA, drawer EA, frame SF, interior SF conditional). Double-dimension primer routing (condition + factory finish type). Thermofoil go/no-go gate. Kitchen grease mandatory. Post-primer adhesion test gate. Two-mobilization workflow. Highest-complexity interior RP spec."
+    }
+  ]
+}

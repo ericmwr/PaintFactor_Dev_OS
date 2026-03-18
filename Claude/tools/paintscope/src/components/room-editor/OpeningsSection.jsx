@@ -6,6 +6,7 @@ import { SUBSTRATE_APPLICATION_METHODS } from '../../data/substrate-catalog';
 
 // Compact inline stain/clear controls for opening substrates
 function InlineCoatingControls({ subConfig, onSet }) {
+  console.log('[InlineCoatingControls]', { subConfig, state: subConfig?.substrate_state });
   if (!subConfig || subConfig.substrate_state !== 'bare_wood') return null;
   const ct = subConfig.coating_type || 'paint';
   const hasStain = ct === 'stain_clear' || ct === 'stain_only';

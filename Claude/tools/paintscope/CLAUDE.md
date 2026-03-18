@@ -218,3 +218,8 @@ All development happens in the React app under `src/`.
 - PDF export
 - Multi-project support
 - Room duplication with closets (already handled in reducer)
+
+
+<claude-mem-context>
+
+</claude-mem-context>

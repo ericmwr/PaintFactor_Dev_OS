@@ -1,0 +1,1350 @@
+{
+  "research_metadata": {
+    "spec_family_id": "SF_SPECIALTY_INT_RP",
+    "spec_family_version": "v1",
+    "domain": "interior",
+    "scope_type": "repaint",
+    "research_mode": "doctrine_driven",
+    "doctrine_loaded": [
+      "docs/System/PaintFactor_OS.md",
+      "docs/System/Conventions.md",
+      "docs/Doctrine/Quality_Tiers_and_Surface_Condition.md",
+      "docs/Doctrine/Fine_Finish_Doctrine.md",
+      "docs/Doctrine/Protection_and_Masking_Doctrine.md",
+      "docs/Doctrine/Spec_Completeness_Doctrine.md",
+      "docs/Doctrine/Estimation_Modifiers_Doctrine.md",
+      "docs/Doctrine/Modifier_Registry.md",
+      "docs/Doctrine/Interior_Protection_Doctrine.md",
+      "docs/Reference/Protection_Zones_Reference.md",
+      "docs/Reference/Surface_Vocabulary_Reference.md",
+      "docs/Reference/Site_Condition_Vocabulary_Reference.md",
+      "docs/Reference/Substrate_State_Reference.md",
+      "docs/PaintScope/PaintScope_Quantity_Key_Catalog.md",
+      "docs/PaintScope/Spec_Input_to_PaintScope_Key_Mapping.md",
+      "devos/Interior_RP_Gap_Analysis.md"
+    ],
+    "sibling_specs_reviewed": [
+      "specs/SF_WAINSCOT_PANEL_NC_v1/spec.json",
+      "specs/SF_WAINSCOT_PANEL_NC_v1/production.json",
+      "specs/SF_WOOD_WALL_NC_v1/spec.json",
+      "specs/SF_WOOD_WALL_NC_v1/production.json",
+      "specs/SF_WOOD_CEILING_NC_v1/spec.json",
+      "specs/SF_WOOD_CEILING_NC_v1/production.json",
+      "specs/SF_ARCH_ELEMENT_NC_v1/spec.json",
+      "specs/SF_ARCH_ELEMENT_NC_v1/production.json",
+      "specs/SF_BUILTIN_NC_v1/spec.json",
+      "specs/SF_BUILTIN_NC_v1/production.json",
+      "specs/SF_DOOR_INT_RP_v1/research.json",
+      "specs/SF_TRIM_INT_RP_v1/research.json"
+    ],
+    "researcher": "Spec Researcher Agent",
+    "date": "2026-03-14",
+    "status": "draft",
+    "review_required": true,
+    "context_prefix": "SPRP"
+  },
+
+  "spec_family_id": "SF_SPECIALTY_INT_RP",
+  "version": "1.0.0",
+
+  "context_prefix_rationale": "SPRP_ (SPecialty RePaint) avoids collision with all existing context prefixes. Source NC prefixes: WNSC (wainscot), WDWL (wood wall), WDCL (wood ceiling), ARCH (arch element), BLTN (built-in). Existing RP prefixes: WLRP, CLRP, TMRP, DIRP, WNRP, STRP, CBRP, DRRP, ALRP, WSRP, VNRP, TRRP. Verified: zero TSK_SPRP_* IDs exist in the codebase. SPRP is concise and unambiguous — SP for Specialty, RP for RePaint.",
+
+  "scope_summary": "Consolidated repaint spec for 5 interior specialty surface families: wainscot panels (SF), wood wall panels (SF), wood ceilings (SF), architectural elements (LF+EA), and built-in units (EA). Covers previously painted surfaces only — paint-over-paint repaint with condition-driven prep and state-driven primer selection. 7 paintable items across mixed UOMs. Consolidation architecture: ONE set of shared modules (assessment, protection, cleanup) plus per-surface-type task sections for prep, prime, and finish. Does NOT cover bare/new surfaces (NC specs), stained or clear-coated surfaces requiring conversion (separate remediation scope beyond bonding primer), exterior surfaces, or door/trim/wall/ceiling drywall surfaces (covered by dedicated RP specs). All surfaces except built-ins are fine-finish surfaces per Fine_Finish_Doctrine with interstage protocol at all tiers. QT3-QT5 range (QT2 excluded — prominent millwork and specialty surfaces are scrutinized).",
+
+  "relevant_findings": [
+    {
+      "finding_id": "RF-001",
+      "topic": "Five-to-one consolidation architecture for specialty RP",
+      "finding": "NC separates wainscot, wood wall, wood ceiling, architectural elements, and built-ins into 5 independent specs (157 combined tasks) because NC workflow is phase-sequential: each surface type is installed and painted at different construction phases. In RP, all specialty surfaces in a room are assessed, prepped, and painted in a single mobilization. Consolidation eliminates duplicate protection (5 sets of floor protection -> 1 shared), duplicate cleanup (5 tool cleanup tasks -> 1 shared), and duplicate assessment (5 inspection tasks -> 1 shared condition assessment pass). The consolidated spec uses per-surface-type task sections for operations that vary by surface geometry (degloss, prime, finish coats) while sharing assessment, protection, interstage, and cleanup modules. Target: 45-55 tasks (65-70% reduction from 157 NC tasks).",
+      "source": "Interior_RP_Gap_Analysis.md Sections B-C; SF_WAINSCOT_PANEL_NC_v1 through SF_BUILTIN_NC_v1 production.json files",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-002",
+      "topic": "Interior specialty RP is condition-driven, not substrate-driven",
+      "finding": "NC primer selection is substrate-driven: bare wood gets stain-blocking primer, bare MDF gets shellac edge sealer, factory-primed gets optional field prime. RP primer selection is state-driven: sound paint requires no primer or adhesion promoter only; failing paint requires adhesion primer after scrape; peeling requires full adhesion prime; moisture damage requires biocide + stain-block; smoke damage requires shellac stain blocker. Multiple NC tasks are NOT_APPLICABLE in RP: fill fasteners (bare wood only — fasteners filled in NC), MDF edge seal (bare MDF only — sealed in NC), knot spot prime (bare wood only). These eliminations apply uniformly across all 5 source specs.",
+      "source": "Interior_RP_Gap_Analysis.md Section B; Substrate_State_Reference.md",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-003",
+      "topic": "Five interior RP substrate states drive specialty surface prep pathways",
+      "finding": "Interior RP defines 5 substrate states: SS_INT_SOUND_PAINT (severity 0: degloss/scuff, no primer needed, most common state), SS_INT_FAILING_PAINT (severity 1: localized cracking/adhesion failure, scrape/feather/adhesion prime), SS_INT_PEELING (severity 2: active delamination, full scrape/sand/adhesion prime), SS_INT_MOISTURE_DAMAGE (severity 3: water staining/mildew, biocide + stain-block), SS_INT_SMOKE_DAMAGE (severity 4: nicotine/soot, shellac BIN full-surface seal). These map to condition scale: GOOD = sound paint, FAIR = failing, POOR = peeling/moisture/smoke. Different surfaces in the same room may have different states — ceiling may have moisture damage while walls are sound paint. Each paintable item accepts its own substrate_state input.",
+      "source": "Interior_RP_Gap_Analysis.md Section A; controlled_enums.json substrate_state",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-004",
+      "topic": "Shared condition assessment replaces per-surface NC inspection",
+      "finding": "NC has separate inspection tasks per surface type (TSK_WNSC_INSPECT, TSK_WDWL_INSPECT, etc.) that check bare substrate quality. RP consolidates these into a shared multi-surface assessment pass that evaluates: (1) visual condition — scan all specialty surfaces for cracking, peeling, adhesion failure, moisture damage, contamination; photograph defects; assign substrate state per surface type. (2) Adhesion test — ASTM D3359 cross-hatch tape test on representative sections of each surface type present. (3) Coating identification — solvent test to determine latex vs oil on each surface type (specialty surfaces historically received oil-based paints more frequently than drywall walls). (4) Moisture check — moisture meter on ceiling surfaces and wall surfaces adjacent to bathrooms/kitchens. Assessment is per-room (not per-SF or per-EA), making it a fixed-time task with per-surface-type increments.",
+      "source": "SF_DOOR_INT_RP_v1/research.json RF-004 pattern; Interior_RP_Gap_Analysis.md Section D",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-005",
+      "topic": "Overhead penalty for wood ceiling work transfers unchanged to RP",
+      "finding": "Wood ceiling NC base rates incorporate a 0.70-0.80x overhead penalty vs equivalent wood wall rates: spray 130 SF/hr ceiling vs 175 SF/hr wall, brush 50 SF/hr ceiling vs 70 SF/hr wall. This overhead penalty reflects the physical difficulty of working above head (neck strain, arm fatigue, gravity working against applicator, drip risk onto protection below). The penalty transfers DIRECT to RP — overhead difficulty is identical whether deglossing new vs existing paint on a ceiling. RP degloss on ceilings similarly needs the overhead penalty applied to the base degloss rate. The overhead penalty is baked into per-task rates (not a modifier), following NC production.json convention.",
+      "source": "SF_WOOD_CEILING_NC_v1/production.json task rates vs SF_WOOD_WALL_NC_v1/production.json task rates",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-006",
+      "topic": "Per-surface-type complexity modifiers transfer from NC unchanged",
+      "finding": "Each surface type has complexity modifiers that affect labor rates identically in NC and RP: (1) Wainscot: wainscot_type — flat_panel 1.0x, raised_panel 1.25x, beadboard 1.15x. (2) Wood wall: wall_style — flat_panel 1.0x, shiplap 1.15x, T&G 1.10x, library_panel 1.25x. (3) Wood ceiling: ceiling_style — flat_plank 1.0x, beadboard 1.15x, T&G 1.10x, coffered 1.35x. (4) Arch beam: beam_profile — rectangular 1.0x, chamfered 1.10x, curved 1.25x, ornate 1.40x. (5) Arch column: column_type — square 1.0x, round 1.15x, fluted 1.30x. (6) Arch mantel: mantel_type — simple_shelf 1.0x, traditional 1.25x, ornate 1.50x. (7) Built-in: opening size tier (S/M/L/XL) with depth/detail/access modifiers from Opening Count method. In RP, complexity modifiers also affect degloss and scrape/feather tasks (detail areas take longer to degloss and scrape).",
+      "source": "SF_WAINSCOT_PANEL_NC_v1/production.json through SF_BUILTIN_NC_v1/production.json complexity modifier sections",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-007",
+      "topic": "Height modifiers apply to wood wall, wood ceiling, and architectural elements",
+      "finding": "Height modifiers from NC transfer unchanged: H1=1.0x (standard reach), H2=1.30x (step ladder), H3=1.50x (extension ladder), H4=2.00x (scaffold/lift). Applicability by surface type: (1) Wainscot — always H1 (wainscot is below chair-rail height by definition). (2) Wood wall — height varies via PS_META.HEIGHT_BAND; full-height wood walls (library panels, accent walls) may reach H2-H3. (3) Wood ceiling — height is ceiling height, not surface-access height; H1 for 8-9ft, H2 for 10-12ft, H3 for 13-16ft, H4 for 16ft+. Ceiling height modifier stacks with overhead penalty. (4) Arch beam — baked into base rate at ~0.85x for overhead; height modifier adds for vaulted/cathedral installations. (5) Arch column — floor-to-ceiling columns may need H2-H3 for upper section. (6) Arch mantel — typically H1-H2. (7) Built-in — typically H1; tall built-ins (floor-to-ceiling bookcases) may reach H2.",
+      "source": "SF_WOOD_WALL_NC_v1/production.json height_access_effects; SF_WOOD_CEILING_NC_v1/production.json; SF_ARCH_ELEMENT_NC_v1/production.json",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-008",
+      "topic": "Degloss is universal RP prep step not present in NC",
+      "finding": "Previously painted specialty surfaces typically have semi-gloss or satin finish (millwork tradition). Deglossing is required for all RP specialty work. Two methods: (1) chemical degloss — liquid deglosser applied with rag/pad, no sanding dust, faster but chemical dependent; (2) mechanical degloss — scuff sand with 150-180 grit, creates profile for adhesion, generates dust requiring cleanup. Per-surface-type degloss tasks are needed because rates differ significantly: flat SF surfaces (wainscot, wood wall, wood ceiling) have SF-based rates; architectural elements have per-element rates (beam LF, column EA, mantel EA); built-ins use per-opening rates. Ceiling degloss gets overhead penalty. Degloss is a binary task (always included for RP) — rate varies by surface geometry, not by existing sheen.",
+      "source": "Substrate_State_Reference.md Section 3.3; SF_DOOR_INT_RP_v1/research.json RF-008 pattern",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-009",
+      "topic": "Scrape and feather is condition-gated for failing/peeling states",
+      "finding": "When surfaces are in SS_INT_FAILING_PAINT or SS_INT_PEELING state, loose and failing paint must be scraped to sound substrate and edges feathered smooth. This is per-surface-type with varying difficulty: flat panel surfaces (wainscot, wood wall) are straightforward; beadboard/T&G grooves trap failing paint requiring careful scraping; coffered ceilings add overhead penalty to already-difficult scraping; architectural element detail profiles (fluted columns, ornate mantels) multiply scraping labor; built-in interiors with shelving require shelf-by-shelf scraping. Scrape/feather tasks are condition-gated: NOT needed for SS_INT_SOUND_PAINT. Rate modifiers for each surface type's complexity dimension apply to scrape/feather just as they do to other prep tasks.",
+      "source": "Interior_RP_Gap_Analysis.md Section D; SF_DOOR_INT_RP_v1/research.json RF-009 pattern",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-010",
+      "topic": "Stain/clear coat conversion requires bonding primer — not a separate spec",
+      "finding": "Previously stained or clear-coated specialty surfaces (common on built-in bookcases, wood walls, mantels, beams) being converted to paint require bonding primer (SYS_PRIMER_BONDING) to bridge between the existing finish and latex topcoat. This is NOT a separate remediation spec — it is handled as a substrate state condition within this RP spec. The conversion scenario adds: (1) thorough degloss (clear/stain finishes are typically high-gloss, requiring aggressive scuffing), (2) bonding primer (full surface, no skip-prime option), (3) possible tannin bleed-through requiring shellac spot-prime after first coat. This maps to a condition driver, not a separate workflow. The engine treats stain-over-paint conversion as equivalent to SS_INT_SOUND_PAINT with mandatory adhesion primer.",
+      "source": "Interior_RP_Gap_Analysis.md Section C; Substrate_State_Reference.md",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-011",
+      "topic": "State-driven primer variants replace substrate-driven NC primers",
+      "finding": "NC specialty primers are substrate-driven: bare wood -> stain-blocking primer; MDF -> shellac sealer; factory-primed -> optional field prime. RP specialty primers are state-driven: (1) SYS_PRIMER_ADHESION — for SS_INT_SOUND_PAINT when existing coating is alkyd or stain/clear, or when adhesion test indicates poor bond; provides bonding bridge. (2) SYS_PRIMER_STAIN_BLOCK — for SS_INT_MOISTURE_DAMAGE and tannin bleed-through; acrylic stain blocker for water marks, shellac-based (BIN) for tannin. (3) SYS_PRIMER_STAIN_BLOCK_SHELLAC (BIN) — for SS_INT_SMOKE_DAMAGE; shellac full-surface seal. (4) SYS_PRIMER_BONDING — for stain/clear coat conversion; aggressive bonding primer for non-paint substrates. (5) No primer — for SS_INT_SOUND_PAINT with good adhesion test and compatible coating (latex over latex). Each primer needs per-surface-type application tasks (SF-based for flat surfaces, per-element for arch, per-opening for built-in).",
+      "source": "Substrate_State_Reference.md Section 7.3; Interior_RP_Gap_Analysis.md Section C; SF_DOOR_INT_RP_v1/research.json RF-011 pattern",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-012",
+      "topic": "Built-in Opening Count method transfers to RP with modified assessment",
+      "finding": "NC built-ins use the Opening Count quantification method (from BuiltIns Quantification System v2.0): openings categorized by size tier (S/M/L/XL) with 3 modifiers (depth 1.0-1.50, detail 1.0-1.35, access 1.0-1.30). This transfers to RP with the following modifications: (1) Assessment includes existing paint condition per opening (some openings may be in different states). (2) Depth modifier applies to degloss as well as coating (deeper shelving takes longer to degloss). (3) Door/drawer removal and flat painting workflow transfers DIRECT — removed components are painted flat regardless of NC or RP. (4) Hardware remove/reinstall transfers DIRECT (20 EA/hr remove, 15 EA/hr reinstall). (5) 5-7 day cure before reinstall applies identically. Built-in doors and drawers may have different substrate state than the opening frame (doors are high-touch surfaces, more likely to show wear).",
+      "source": "SF_BUILTIN_NC_v1/spec.json; SF_BUILTIN_NC_v1/production.json; Interior_RP_Gap_Analysis.md Section B (SF_BUILTIN_NC_v1)",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-013",
+      "topic": "Mixed UOM architecture requires per-surface-type task routing",
+      "finding": "This consolidated spec spans 4 distinct UOM families: (1) SF-based: wainscot, wood wall, wood ceiling — measured in square feet, rates in SF/hr. (2) LF-based: beams — measured in linear feet, rates in LF/hr. (3) EA-based: columns, mantels — measured in each, rates in EA/hr. (4) EA_OPENING-based: built-in openings — measured per opening tier, rates in EA/hr with size-tier adjustment. The engine must route each task to the correct paintable item and UOM. Shared tasks (assessment, protection, cleanup) use room-level or project-level UOM (fixed time or per-room). Per-surface tasks are scoped to their specific paintable item. This is the most complex UOM architecture of any interior RP spec.",
+      "source": "SF_ARCH_ELEMENT_NC_v1/spec.json; SF_BUILTIN_NC_v1/spec.json; SF_WAINSCOT_PANEL_NC_v1/spec.json",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-014",
+      "topic": "Caulk assessment and selective replacement replaces NC full-caulk",
+      "finding": "NC caulking tasks apply caulk to all joints (freshly installed surfaces, no existing caulk). RP caulking is assess-and-replace: inspect existing caulk lines, replace only failed sections (cracked, separated, discolored). Typical RP caulk replacement: 15-30% of total caulk length. This applies to wainscot panel-to-wall joints, wood wall perimeter/panel joints, wood ceiling perimeter joints, architectural element wall/ceiling junctions, and built-in perimeter caulk. RP caulk assessment is a MODIFIED task (same concept, reduced rate) rather than a new task. The caulk rate is reduced proportionally: NC full caulk at X LF/hr becomes RP assess+selective at approximately 1.5-2.0X LF/hr (faster because only 15-30% needs replacement, but assessment adds overhead).",
+      "source": "Interior_RP_Gap_Analysis.md task classifications for caulk tasks across all 5 specs",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-015",
+      "topic": "Fine Finish Doctrine applies to all specialty surfaces except built-in interiors",
+      "finding": "Per Fine_Finish_Doctrine, interstage protocol (inspect coat, sand between coats, patch defects, clean dust) is required at all quality tiers for fine-finish surfaces. Wainscot, wood wall, wood ceiling, and architectural elements are all fine-finish surfaces — they are prominent decorative elements viewed at close range. Built-in interiors (shelf surfaces) are semi-exposed per AWI standards and do not require full fine-finish protocol, but built-in doors/drawers (visible faces) do. Interstage tasks are shared across surface types (one interstage pass covers all surfaces in the room) but the rate varies: flat surfaces are fastest, detail profiles (raised panel, beadboard, coffered) are slower, architectural elements are slowest per unit. QT3 = spot sand 220 on defects; QT4 = full sand 220; QT5 = thorough 320.",
+      "source": "Fine_Finish_Doctrine.md; Quality_Tiers_and_Surface_Condition.md",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-016",
+      "topic": "Brush and spray application methods supported with geometry-dependent defaults",
+      "finding": "Application method support varies by surface type: (1) Wainscot — brush (default, detail work) or spray (production, requires wall masking above wainscot). (2) Wood wall — spray (default for large SF areas) or brush (small accent walls). (3) Wood ceiling — spray (default, overhead makes brush extremely slow) or brush (small areas only). (4) Arch elements — brush (default for detailed profiles) or spray (production, beams only practical for spray). (5) Built-in — spray (default for opening interiors) or brush (exterior faces, door faces). The consolidated spec supports both methods globally but per-surface-type task selection differs: spray is dominant for SF-measured surfaces; brush is dominant for detail elements. Spray requires expanded protection zones (floor_full, wall/ceiling masking); brush needs floor_perimeter only.",
+      "source": "SF_WAINSCOT_PANEL_NC_v1 through SF_BUILTIN_NC_v1 production.json application_method sections",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-017",
+      "topic": "Customer walkthrough is RP-specific completion task",
+      "finding": "RP projects in occupied homes include a post-completion customer walkthrough where the painter reviews finished work with the homeowner. For specialty surfaces, the walkthrough includes: verify finish quality on all surface types present, check for missed spots in detail areas (panel grooves, beam undersides, built-in shelf corners), confirm color consistency across surface types, inspect protection removal completeness (no tape residue on adjacent surfaces). This is a fixed-time task per project — approximately 10-15 minutes for specialty surfaces. The walkthrough task is shared (one per project) regardless of how many surface types are present.",
+      "source": "Interior_RP_Gap_Analysis.md Section C (RP_NEW additions); SF_DOOR_INT_RP_v1/research.json RF-017",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-018",
+      "topic": "Protection zone consolidation across 5 source specs",
+      "finding": "NC has per-spec protection zones with significant overlap: wainscot has floor_perimeter + wall_mask_above; wood wall has floor_perimeter + ceiling_mask; wood ceiling has floor_full + floor_perimeter + wall_upper_band + fixture_covers + opening_cover; arch elements have floor_workzone + floor_perimeter + wall_mask + fixture_mask; built-ins have floor_workzone + floor_perimeter + wall_mask + fixture_mask. RP consolidation: shared floor protection (floor_full for spray, floor_perimeter for brush — covers all surface types), shared wall/ceiling masking (one setup covers all surface types being sprayed in the room), shared fixture covers, shared opening covers. Protection is per-room, not per-surface-type. Setup once, work all surfaces, teardown once. This eliminates 12-15 redundant protection tasks.",
+      "source": "SF_WAINSCOT_PANEL_NC_v1 through SF_BUILTIN_NC_v1 spec.json protection_zones sections; Protection_Zones_Reference.md",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-019",
+      "topic": "Built-in contents protection is RP-specific",
+      "finding": "Built-ins in occupied homes contain books, collectibles, photos, electronics, and other personal items. NC built-ins are empty (newly installed). RP adds a contents protection workflow: (1) remove all contents from shelving (owner responsibility or painter add-on), (2) box and cover removed contents, (3) mask remaining items if partial scope. This is an RP_NEW task not present in NC. The contents protection task is per-opening (EA) with a size-tier rate adjustment (XL openings contain more items than S openings). Some contractors require owner to empty built-ins before painting begins — this is captured as a scope assumption, not a task deletion.",
+      "source": "Interior_RP_Gap_Analysis.md Section B (SF_BUILTIN_NC_v1 RP_NEW); Professional practice",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-020",
+      "topic": "Latex over oil is a common failure mode on specialty millwork",
+      "finding": "Like doors, specialty millwork (wainscot, wood walls, mantels, built-ins, columns) historically received oil-based (alkyd) enamel due to its hardness and leveling properties. Many homes built before 2010 have alkyd paint on these surfaces. When repainted with latex without proper adhesion primer, the latex film delaminates. Coating identification via solvent test is therefore a critical assessment task for ALL specialty surfaces, not just doors. The assessment pass must test each surface type present because different surfaces may have been painted at different times with different coatings (e.g., built-ins repainted with latex while original wainscot retains alkyd).",
+      "source": "Substrate_State_Reference.md Section 3.3; SF_DOOR_INT_RP_v1/research.json RF-012 pattern; Professional practice",
+      "confidence": "high"
+    }
+  ],
+
+  "condition_drivers": [
+    {
+      "driver_id": "CD-001",
+      "condition": "Existing coating type (latex vs alkyd vs stain/clear)",
+      "effect": "Alkyd coatings REQUIRE adhesion primer before latex topcoat. Stain/clear coatings require bonding primer (SYS_PRIMER_BONDING) for paint conversion. Latex over latex may proceed without primer if adhesion test passes. Assessment must test EACH surface type present — different surfaces may have different coating histories.",
+      "assessment_method": "Solvent test: rub with denatured alcohol or lacquer thinner. Latex softens/dissolves; alkyd remains hard. Stain/clear identified visually (wood grain visible through finish).",
+      "source": "Substrate_State_Reference.md Section 3.3; Interior_RP_Gap_Analysis.md Section C"
+    },
+    {
+      "driver_id": "CD-002",
+      "condition": "Existing sheen level",
+      "effect": "Higher sheen = more degloss effort. Flat/eggshell needs light scuff (150 grit). Satin needs moderate degloss. Semi-gloss/gloss requires thorough degloss (120-150 grit or chemical deglosser). Specialty millwork traditionally uses semi-gloss or gloss — expect higher degloss effort than drywall walls. Clear coat finishes (on built-ins, mantels) may be extremely glossy requiring aggressive scuffing.",
+      "assessment_method": "Visual assessment of existing sheen per surface type.",
+      "source": "Substrate_State_Reference.md Section 5.1; Fine_Finish_Doctrine.md"
+    },
+    {
+      "driver_id": "CD-003",
+      "condition": "Paint film buildup (number of existing coats)",
+      "effect": "Multiple coats of paint create thick film buildup in detail areas: wainscot panel-to-rail joints, beadboard grooves, T&G channels, column flutes, mantel profiles, built-in shelf edges. Heavy buildup causes visible profile loss (detail becomes rounded/blurred) and may require scraping of high spots before overcoating. Assessment may indicate: overcoat as-is, scrape high spots, or strip and start over (strip is out of scope for this spec).",
+      "assessment_method": "Visual inspection of film thickness in detail areas. Profile sharpness comparison to unpainted reference.",
+      "source": "Professional practice; Interior_RP_Gap_Analysis.md Section D"
+    },
+    {
+      "driver_id": "CD-004",
+      "condition": "Moisture exposure (ceiling and wall surfaces)",
+      "effect": "Wood ceiling surfaces in bathrooms, kitchens, and laundry rooms are prone to moisture damage from steam condensation. Wood wall panels adjacent to wet areas may wick moisture at floor level. Built-in units in bathrooms accumulate humidity damage. MC > 15% indicates active moisture — source must be resolved before painting. Visible mildew requires biocide treatment. All moisture tasks are condition-gated: fire only when SS_INT_MOISTURE_DAMAGE declared.",
+      "assessment_method": "Moisture meter reading on ceiling surfaces and wall panel bottoms. Visual mildew check in corners and crevices.",
+      "source": "Interior_RP_Gap_Analysis.md Section A (SS_INT_MOISTURE_DAMAGE)"
+    },
+    {
+      "driver_id": "CD-005",
+      "condition": "Smoke/nicotine contamination",
+      "effect": "Nicotine and soot contamination on specialty surfaces requires full-surface shellac sealer (BIN or equivalent). Without sealer, staining bleeds through multiple latex topcoats. Specialty surfaces with texture (beadboard grooves, panel profiles) are harder to seal — contamination lodges in detail areas. Shellac application on coffered ceilings or ornate mantels is especially labor-intensive. Binary gate: if SS_INT_SMOKE_DAMAGE, include shellac seal for affected surfaces.",
+      "assessment_method": "White rag test: wipe surface with damp white cloth. Yellow/brown transfer = nicotine present.",
+      "source": "Interior_RP_Gap_Analysis.md Section A (SS_INT_SMOKE_DAMAGE)"
+    },
+    {
+      "driver_id": "CD-006",
+      "condition": "Stain/clear coat to paint conversion",
+      "effect": "Previously stained or clear-coated surfaces being converted to paint add: (1) aggressive degloss (clear finishes are high-gloss), (2) bonding primer mandatory — no skip-prime option, (3) possible tannin bleed-through from wood species (oak, mahogany, cedar) requiring shellac spot-prime after first coat. Common on built-in bookcases, mantels, beams, and library-style wood wall panels. Conversion is within RP scope (not separate remediation) but requires bonding primer system.",
+      "assessment_method": "Visual identification of stained/clear finish. Wood grain visibility confirms non-paint coating.",
+      "source": "Interior_RP_Gap_Analysis.md Section C; Substrate_State_Reference.md"
+    }
+  ],
+
+  "quality_differences": [
+    {
+      "tier": "QT3",
+      "description": "Standard specialty surface repaint — MINIMUM TIER for prominent millwork. Degloss/scuff prep, 2 finish coats, spot sand between coats on defects only.",
+      "modifier": 1.0,
+      "inspection": "Quick visual at 6 ft. Note obvious defects (drips, misses, adhesion failures).",
+      "sanding_between_coats": "Spot sand only — 220 grit on defects found during interstage inspection.",
+      "coat_count": "2 finish coats standard",
+      "edge_quality": "Professional — acceptable if neat",
+      "source": "Fine_Finish_Doctrine.md; Quality_Tiers_and_Surface_Condition.md"
+    },
+    {
+      "tier": "QT4",
+      "description": "Premium specialty surface repaint — thorough prep, full sand between coats, crisp edges. Systematic inspection at 3 ft.",
+      "modifier": 1.3,
+      "inspection": "Systematic scan at 3 ft. Mark defects for repair. Raking light on flat panels.",
+      "sanding_between_coats": "Full surface sand — 220 grit between all coats.",
+      "coat_count": "2 finish coats standard",
+      "edge_quality": "Crisp — no visible wobble at 3 ft",
+      "notes": "Global QT4 modifier (1.3x) applies to specialty surfaces. Unlike doors (1.4x), specialty surfaces use the standard global modifier because they are less scrutinized than doors at close range.",
+      "source": "Quality_Tiers_and_Surface_Condition.md; Estimation_Modifiers_Doctrine.md"
+    },
+    {
+      "tier": "QT5",
+      "description": "Superior specialty surface repaint — maximum care, zero tolerance, 320-grit between coats. Lighted critical inspection at arm's length.",
+      "modifier": 1.5,
+      "inspection": "Lighted critical inspection at arm's length. Every defect documented and corrected.",
+      "sanding_between_coats": "Thorough sand — 320 grit between all coats.",
+      "coat_count": "2-3 finish coats (3 coats for brush per Fine_Finish_Doctrine 15.10.3)",
+      "edge_quality": "Straight-line — no visible wobble at arm's length",
+      "notes": "Global QT5 modifier (1.5x) applies. Condition gate: QT5 only at GOOD condition; FAIR/POOR goes hourly (QT6). Ornate architectural elements (ornate mantel at 1.50x complexity + QT5 at 1.5x = 2.25x max stack) stay well under 4.0x flag threshold.",
+      "source": "Quality_Tiers_and_Surface_Condition.md; Fine_Finish_Doctrine.md"
+    }
+  ],
+
+  "failure_modes": [
+    {
+      "mode_id": "FM-001",
+      "failure": "Latex over alkyd delamination on millwork",
+      "cause": "Applying latex topcoat directly over existing alkyd paint without adhesion primer. Common on wainscot, mantels, columns, and built-ins that historically received oil-based enamel.",
+      "frequency": "Very common — specialty millwork has highest incidence of legacy alkyd coatings",
+      "prevention": "Coating ID assessment (solvent test) on EACH surface type present → if alkyd, apply bonding/adhesion primer before latex topcoat",
+      "remediation": "Scrape delaminated areas, sand, apply adhesion primer, recoat",
+      "source": "Substrate_State_Reference.md SS_PAINTED_ALKYD; SF_DOOR_INT_RP_v1/research.json FM-001"
+    },
+    {
+      "mode_id": "FM-002",
+      "failure": "Tannin bleed-through on stain/clear coat conversion",
+      "cause": "Wood species with high tannin content (oak, mahogany, cedar) bleed yellow-brown discoloration through standard latex primer and topcoat when converting from stain/clear to paint.",
+      "frequency": "Common on stain-to-paint conversions, especially on oak built-ins and mantels",
+      "prevention": "Bonding primer with stain-blocking properties. Shellac spot-prime after first topcoat if bleed-through appears.",
+      "remediation": "Apply shellac stain blocker (BIN) over affected areas, allow cure, recoat finish",
+      "source": "Professional practice; Substrate_State_Reference.md"
+    },
+    {
+      "mode_id": "FM-003",
+      "failure": "Profile loss from paint film buildup in detail areas",
+      "cause": "Multiple coats of paint over years fill in beadboard grooves, panel profiles, column flutes, and mantel details. Each repaint adds 2-3 mils; after several repaints, decorative profiles become soft/rounded.",
+      "frequency": "Occasional on older homes with 4+ previous repaints",
+      "prevention": "Assess film buildup during condition inspection. If profile loss is significant, consider scraping detail areas to restore profile definition before overcoating.",
+      "remediation": "Chemical strip detail areas to restore profile; selective scraping of high spots",
+      "source": "Professional practice"
+    },
+    {
+      "mode_id": "FM-004",
+      "failure": "Runs and sags on overhead and vertical detail surfaces",
+      "cause": "Over-application on ceiling surfaces (gravity pulls paint), in panel grooves (paint pools), and on column flutes (paint settles in channels).",
+      "frequency": "Common at QT3 brush application; uncommon at QT4+ with proper technique",
+      "prevention": "Light coats in detail areas. Lay-off strokes to redistribute pooling. Spray-and-backroll for ceilings.",
+      "remediation": "Sand flat after cure, recoat affected area",
+      "source": "Fine_Finish_Doctrine.md application guidance"
+    },
+    {
+      "mode_id": "FM-005",
+      "failure": "Smoke stain bleed-through on specialty surfaces",
+      "cause": "Nicotine/soot migrates through latex primer and topcoat. Specialty surfaces with texture trap contamination in grooves and detail areas.",
+      "frequency": "Guaranteed if smoke damage present and standard primer used",
+      "prevention": "Shellac-based stain blocker (BIN) on full surface. Two coats BIN for heavy contamination. Extra attention to grooves and detail areas.",
+      "remediation": "Apply shellac stain blocker over failed topcoat, then recoat finish",
+      "source": "Interior_RP_Gap_Analysis.md Section A (SS_INT_SMOKE_DAMAGE)"
+    },
+    {
+      "mode_id": "FM-006",
+      "failure": "Moisture damage regrowth on ceiling and wall surfaces",
+      "cause": "Painting over moisture-damaged wood ceiling or wall panel without treating mildew and resolving moisture source. Mildew grows under paint film.",
+      "frequency": "Common on bathroom/kitchen wood ceilings if not treated",
+      "prevention": "Biocide treatment before any coating. Verify moisture source resolved. Use mildew-resistant primer.",
+      "remediation": "Strip to substrate, treat with biocide, reprime with mildew-resistant primer, recoat",
+      "source": "Interior_RP_Gap_Analysis.md Section A (SS_INT_MOISTURE_DAMAGE)"
+    },
+    {
+      "mode_id": "FM-007",
+      "failure": "Adhesion failure at built-in shelf edges and interior corners",
+      "cause": "Built-in interiors accumulate dust, wax (furniture polish), and handling oils. Insufficient cleaning before painting causes adhesion failure at edges where mechanical abrasion from book placement/removal stress-tests the coating.",
+      "frequency": "Occasional — more common when TSP wash is skipped",
+      "prevention": "TSP wash and thorough rinse of all built-in interior surfaces before prep",
+      "remediation": "Scrape affected areas, clean with solvent, reprime, recoat",
+      "source": "Professional practice"
+    }
+  ],
+
+  "notes_for_materials_manager": [
+    {
+      "note_id": "NM-001",
+      "topic": "State-driven primer systems for RP specialty surfaces",
+      "note": "RP specialty surfaces need 4-5 primer systems based on substrate state and coating conversion: (1) SYS_PRIMER_ADHESION (bonding primer) for SS_INT_SOUND_PAINT with alkyd existing coating — bonding bridge for latex topcoat. (2) SYS_PRIMER_STAIN_BLOCK_ACRYLIC for SS_INT_MOISTURE_DAMAGE with water staining. (3) SYS_PRIMER_STAIN_BLOCK_SHELLAC (BIN) for SS_INT_SMOKE_DAMAGE — shellac full-surface seal. (4) SYS_PRIMER_MILDEW_RESISTANT for SS_INT_MOISTURE_DAMAGE with mildew. (5) SYS_PRIMER_BONDING for stain/clear coat to paint conversion — aggressive bonding primer. Most RP specialty work (SS_INT_SOUND_PAINT, latex existing) needs NO primer."
+    },
+    {
+      "note_id": "NM-002",
+      "topic": "Finish coat systems for specialty millwork",
+      "note": "Per Fine_Finish_Doctrine, specialty millwork finish systems: QT3 = SYS_FF_STANDARD_ACRYLIC (standard acrylic enamel); QT4 = SYS_FF_MODIFIED_URETHANE (urethane-modified acrylic for better hardness and leveling); QT5 = SYS_FF_PREMIUM (premium urethane). Unlike doors, specialty surfaces do not have the same blocking concern (no surface-to-surface contact during cure). However, durability is still important for high-touch surfaces (wainscot chair rail, mantel shelf top, built-in shelf edges)."
+    },
+    {
+      "note_id": "NM-003",
+      "topic": "Sheen recommendations for RP specialty surfaces",
+      "note": "Traditional specialty millwork sheen: semi-gloss (traditional), satin (contemporary). Ceiling surfaces: satin or eggshell (reduce glare from overhead lighting). Built-in interiors: eggshell or satin (semi-exposed, lower scrutiny). Per sheen gate: gloss requires QT4+ prep. For RP, existing sheen should be noted during assessment — changing from higher to lower sheen may reveal imperfections the original sheen masked."
+    },
+    {
+      "note_id": "NM-004",
+      "topic": "Degloss chemicals and abrasives",
+      "note": "Include liquid deglosser and appropriate abrasives in consumables for RP specialty work. Flat surfaces: 150-180 grit sanding sponges or pads. Detail profiles: liquid deglosser preferred (gets into grooves without changing profile). Overhead ceiling work: liquid deglosser preferred (less dust generation overhead). Built-in interiors: liquid deglosser preferred (dust containment in enclosed space)."
+    },
+    {
+      "note_id": "NM-005",
+      "topic": "Tannin-blocking products for stain/clear conversion",
+      "note": "When converting stained or clear-coated surfaces to paint, stock shellac-based stain blocker (BIN) for tannin bleed-through spot treatment. This is separate from the full-surface smoke damage seal — tannin bleed-through appears after first topcoat and requires spot treatment before second coat. High-tannin species: red oak, white oak, mahogany, cedar, redwood."
+    }
+  ],
+
+  "notes_for_sop_librarian": [
+    {
+      "note_id": "NS-001",
+      "topic": "Consolidated RP SOP with per-surface-type task sections",
+      "note": "Unlike NC which has 5 separate SOPs (one per spec), RP specialty SOP combines all surface types into a single workflow: (1) Assessment module — multi-surface condition assessment, adhesion testing, coating identification per surface type. (2) Protection module — shared room protection (floor, wall/ceiling masking, fixture covers). (3) Prep module — per-surface-type sections: TSP wash (shared), degloss (per surface type), scrape/feather (condition-gated per surface type), caulk assess/replace (per surface type). (4) Prime module — state-driven primer per surface type. (5) Finish module — per-surface-type coating (SF surfaces first via spray, then detail elements via brush). (6) Interstage module — shared inspection/sand/patch between coats. (7) Cleanup module — protection teardown, tool cleanup, customer walkthrough."
+    },
+    {
+      "note_id": "NS-002",
+      "topic": "Recommended painting sequence for multi-surface rooms",
+      "note": "When multiple specialty surface types are present in one room, recommended painting sequence: (1) Ceilings first (overhead — drips fall on protected surfaces below), (2) Upper walls / wall panels (above wainscot), (3) Wainscot panels, (4) Architectural elements (beams, columns, mantels — work from top down), (5) Built-ins (last — they can be masked while other surfaces are coated). This sequence minimizes re-masking and manages drip risk. Within each surface type, standard NC application sequences apply (e.g., panels before rails before stiles for raised panel wainscot)."
+    },
+    {
+      "note_id": "NS-003",
+      "topic": "Built-in contents handling protocol",
+      "note": "SOP must address built-in contents: Option A (preferred): owner empties built-in before painter arrives — this is a scope assumption, not a billable task. Option B (add-on): painter empties contents, boxes and covers, restores after cure. Option B is a per-opening task with size-tier rate. SOP should mandate contents removal verification BEFORE protection setup — do not begin masking around filled shelving."
+    },
+    {
+      "note_id": "NS-004",
+      "topic": "Assessment SOP must include coating identification per surface type",
+      "note": "Coating ID (solvent test) must be performed on EACH surface type present, not just one representative sample. Different surfaces may have been painted at different times with different coatings (built-ins repainted with latex while original wainscot retains alkyd). Document coating type per surface type in assessment notes."
+    }
+  ],
+
+  "notes_for_estimation_engineer": [
+    {
+      "note_id": "NE-001",
+      "topic": "Mixed UOM architecture: SF + LF + EA + EA_OPENING",
+      "note": "This spec has 7 paintable items across 4 UOM families. ITM_WAINSCOT_PANEL (SF), ITM_WOOD_WALL_PANEL (SF), ITM_WOOD_CEILING (SF) use SF-based rates. ITM_ARCH_BEAM (LF) uses LF-based rates. ITM_ARCH_COLUMN (EA) and ITM_ARCH_MANTEL (EA) use EA-based rates. ITM_BUILTIN_UNIT (EA) uses EA-based rates with size-tier adjustment from Opening Count method. Shared tasks (assessment, protection, cleanup) use per-room or per-project fixed time. The engine must route each task to the correct paintable item UOM."
+    },
+    {
+      "note_id": "NE-002",
+      "topic": "Global QT modifiers apply (not surface-specific overrides)",
+      "note": "Unlike doors (which have elevated QT modifiers at 1.4/1.8), specialty surfaces use the standard global QT modifiers: QT3 = 1.0x, QT4 = 1.3x, QT5 = 1.5x. These apply uniformly to all qt_scaled tasks across all 7 paintable items."
+    },
+    {
+      "note_id": "NE-003",
+      "topic": "Per-surface-type complexity modifiers stack with QT modifier",
+      "note": "Each surface type has its own complexity dimension that stacks multiplicatively with QT. Maximum modifier stacks: (1) Wainscot: raised_panel 1.25 x QT5 1.5 = 1.875x. (2) Wood wall: library_panel 1.25 x QT5 1.5 x H3 1.5 = 2.8125x. (3) Wood ceiling: coffered 1.35 x QT5 1.5 x H3 1.5 = 3.0375x. (4) Arch beam: ornate 1.40 x QT5 1.5 x H3 1.5 = 3.15x. (5) Arch column: fluted 1.30 x QT5 1.5 x H3 1.5 = 2.925x. (6) Arch mantel: ornate 1.50 x QT5 1.5 = 2.25x. (7) Built-in: XL 1.0 x depth_deep 1.50 x detail_ornate 1.35 x QT5 1.5 = 3.0375x. All max stacks remain under 4.0x flag threshold."
+    },
+    {
+      "note_id": "NE-004",
+      "topic": "Substrate state gates task inclusion per surface type",
+      "note": "Each paintable item accepts its own substrate_state input. Tasks declare substrate_state_rules: (1) TSK_SPRP_DEGLOSS_* — include for ALL states (always needed for RP). (2) TSK_SPRP_SCRAPE_* — include only for SS_INT_FAILING_PAINT, SS_INT_PEELING. (3) TSK_SPRP_PRIME_* — include for SS_INT_FAILING_PAINT, SS_INT_PEELING, or when coating_id = alkyd/stain/clear. (4) TSK_SPRP_TREAT_MILDEW — include only for SS_INT_MOISTURE_DAMAGE. (5) TSK_SPRP_SEAL_SHELLAC_* — include only for SS_INT_SMOKE_DAMAGE. (6) TSK_SPRP_PRIME_BONDING_* — include for stain/clear coat conversion."
+    },
+    {
+      "note_id": "NE-005",
+      "topic": "Overhead penalty for ceiling tasks is rate-based, not modifier-based",
+      "note": "Wood ceiling overhead penalty (0.70-0.80x of wood wall rates) is baked into per-task base rates, NOT applied as a modifier. This follows NC production.json convention. Ceiling degloss, ceiling primer, ceiling finish all have their own lower base rates reflecting overhead difficulty. Height modifier for ceilings (H1-H4 based on ceiling height) applies ON TOP of the already-reduced overhead rate."
+    },
+    {
+      "note_id": "NE-006",
+      "topic": "Protection task consolidation reduces task count significantly",
+      "note": "NC has 14-18 separate protection tasks across 5 specs. RP consolidation: 4-6 shared protection tasks (floor_full/perimeter setup+teardown, wall/ceiling mask setup+teardown, fixture covers setup+teardown). Protection is per-room, one setup covers all surface types. This is the single largest source of task count reduction in the consolidation."
+    },
+    {
+      "note_id": "NE-007",
+      "topic": "Projected task count: 45-55 tasks",
+      "note": "Per Interior_RP_Gap_Analysis aggregate: 5 source specs contribute 157 NC tasks. Task consolidation removes ~60% through shared protection/cleanup (saves ~15 tasks), shared assessment (saves ~5 tasks), shared interstage (saves ~5 tasks), NOT_APPLICABLE removals (saves ~11 tasks). Adds ~10-12 RP_NEW tasks (assessment, degloss per surface type, scrape/feather, mildew treatment, shellac seal, bonding primer, contents protection, customer walkthrough). Net: approximately 45-55 tasks."
+    }
+  ],
+
+  "confidence_level": "high",
+
+  "assumptions": [
+    {
+      "assumption_id": "A-001",
+      "field": "context_prefix",
+      "value": "SPRP_ (SPecialty RePaint)",
+      "source": "Collision analysis against all existing context prefixes in specs directory",
+      "doctrine_gap": false,
+      "note": "SPRP verified collision-free across all 40+ specs. No existing TSK_SPRP_*, MOD_SPRP_*, or SYS_SPRP_* IDs in codebase."
+    },
+    {
+      "assumption_id": "A-002",
+      "field": "five_to_one_consolidation",
+      "value": "Single RP spec consolidates 5 NC specialty specs (wainscot, wood wall, wood ceiling, arch element, built-in)",
+      "source": "Interior_RP_Gap_Analysis.md Section B; user specification",
+      "doctrine_gap": true,
+      "note": "No doctrine mandates specific consolidation ratios. Decision based on RP workflow logic (painter works all specialty surfaces in a room in one pass) and task deduplication opportunity."
+    },
+    {
+      "assumption_id": "A-003",
+      "field": "qt_modifiers_global",
+      "value": "QT4 = 1.3x, QT5 = 1.5x (standard global modifiers, not elevated like doors)",
+      "source": "Quality_Tiers_and_Surface_Condition.md; Estimation_Modifiers_Doctrine.md",
+      "doctrine_gap": false,
+      "note": "No doctrine defines specialty-surface-specific QT overrides like Doors_Doctrine does. Standard global modifiers apply."
+    },
+    {
+      "assumption_id": "A-004",
+      "field": "contents_protection_scope",
+      "value": "Built-in contents removal is owner responsibility by default; painter add-on if contracted",
+      "source": "Professional practice",
+      "doctrine_gap": true,
+      "note": "No doctrine addresses built-in contents handling. Industry standard is owner empties before painter arrives. Optional add-on task included for cases where painter handles contents."
+    },
+    {
+      "assumption_id": "A-005",
+      "field": "stain_clear_conversion_within_scope",
+      "value": "Stain/clear coat to paint conversion is within RP scope via bonding primer, not a separate remediation spec",
+      "source": "User specification; Interior_RP_Gap_Analysis.md Section C",
+      "doctrine_gap": true,
+      "note": "Conversion adds bonding primer and possible tannin treatment but does not require chemical stripping or full substrate prep. Heavy stripping scenarios are out of scope."
+    },
+    {
+      "assumption_id": "A-006",
+      "field": "per_item_substrate_state",
+      "value": "Each paintable item accepts its own substrate_state input independently",
+      "source": "Architecture decision — different surfaces in same room may have different conditions",
+      "doctrine_gap": true,
+      "note": "Most RP specs use a single substrate_state input. This spec needs per-item state because surfaces have different exposure histories (ceiling vs wall vs millwork). Engine must support 7 independent state inputs."
+    }
+  ],
+
+  "uncertainties": [
+    {
+      "uncertainty_id": "U-001",
+      "topic": "Per-item vs room-level substrate state input",
+      "description": "Should each of the 7 paintable items accept an independent substrate_state, or should the spec use a single room-level state (worst-state-wins)? Per-item is more accurate but creates 7 state inputs. Room-level is simpler but over-estimates prep for sound surfaces when one surface has damage. Recommended: per-surface-TYPE (not per-item) — 5 state inputs matching the 5 source spec families (wainscot_state, wall_state, ceiling_state, arch_state, builtin_state). Beam/column/mantel share arch_state.",
+      "impact": "Spec configuration complexity; estimation accuracy",
+      "resolution": "Estimation Engineer to decide — per-surface-type recommended as balanced approach"
+    },
+    {
+      "uncertainty_id": "U-002",
+      "topic": "Shared vs per-surface-type interstage tasks",
+      "description": "Should interstage sanding be one shared task (inspect and sand all surfaces between coats) or per-surface-type tasks (sand wainscot, sand wall, sand ceiling separately)? Shared is simpler (fewer tasks) but loses per-surface-type rate granularity. Per-surface-type is more accurate (ceiling interstage is slower than wall interstage due to overhead) but adds 5-7 tasks.",
+      "impact": "Task count and rate accuracy",
+      "resolution": "Recommend per-surface-type for SF surfaces (different overhead rates) and shared for EA elements (small count, marginal rate difference)"
+    },
+    {
+      "uncertainty_id": "U-003",
+      "topic": "Built-in door/drawer handling in consolidated spec",
+      "description": "NC built-in spec includes door/drawer removal, flat painting, 5-7 day cure, and reinstall. Does the consolidated RP spec model this same workflow, or simplify to in-place painting for RP? In NC, removal is standard because doors are new and easy to remove. In RP, hinges may be painted over and removal is more difficult. Recommend keeping removal workflow for spray method (matching NC pattern) but allowing in-place brush for small built-ins.",
+      "impact": "Task structure for built-in component",
+      "resolution": "Estimation Engineer to decide — NC removal workflow recommended as default"
+    },
+    {
+      "uncertainty_id": "U-004",
+      "topic": "Assessment task granularity for consolidated spec",
+      "description": "Should assessment be one comprehensive task per room covering all surface types, or should there be per-surface-type assessment increments? A single room assessment takes 15-25 minutes regardless of surface count (walk the room once). But adding surface types does increase assessment time marginally. Recommend: base assessment task (per room, fixed) + per-surface-type assessment increment (small fixed time per additional surface type present).",
+      "impact": "Assessment time accuracy",
+      "resolution": "Estimation Engineer to decide — base + increment model recommended"
+    }
+  ],
+
+  "protection_zones_analysis": {
+    "spec_category": "specialty_consolidated",
+    "zones": [
+      {
+        "zone_id": "floor_perimeter",
+        "condition": "always (brush method)",
+        "protection_level": "edge_only",
+        "upgrade_scenario": "Upgrades to floor_full when application_method = spray",
+        "notes": "Drop cloth placement around work area for brush drip risk. Shared across all surface types in the room. ~5-7 min setup per room."
+      },
+      {
+        "zone_id": "floor_full",
+        "condition": "application_method = spray OR ceiling work present",
+        "protection_level": "full_cover",
+        "upgrade_scenario": null,
+        "notes": "Full floor coverage for spray overspray and ceiling drip risk. Rosin paper or poly sheeting. Ceiling work always triggers full floor coverage regardless of application method. ~10-15 min setup per room."
+      },
+      {
+        "zone_id": "wall_upper_band",
+        "condition": "ceiling work present AND application_method = spray",
+        "protection_level": "full_cover",
+        "upgrade_scenario": null,
+        "notes": "Upper wall masking during ceiling spray application. Paper/plastic masking on wall surface from ceiling line down 12-18 inches. ~5-8 min per wall."
+      },
+      {
+        "zone_id": "ceiling_mask",
+        "condition": "wall panel work present AND application_method = spray AND no ceiling work in scope",
+        "protection_level": "full_cover",
+        "upgrade_scenario": null,
+        "notes": "Ceiling masking during wall panel spray. NOT needed if ceiling is also being painted (ceiling goes first). ~5-8 min per wall."
+      },
+      {
+        "zone_id": "wall_mask_above_wainscot",
+        "condition": "wainscot work present AND application_method = spray",
+        "protection_level": "full_cover",
+        "upgrade_scenario": null,
+        "notes": "Wall masking above wainscot cap rail during spray. Paper from rail up 24-36 inches. ~3-5 min per wall section."
+      },
+      {
+        "zone_id": "fixture_covers",
+        "condition": "ceiling OR wall work present",
+        "protection_level": "varies",
+        "upgrade_scenario": null,
+        "notes": "Light fixtures, switches, outlets, vents — mask or remove. Per fixture count. Shared across all surface types."
+      },
+      {
+        "zone_id": "opening_cover_lightweight",
+        "condition": "ceiling work present AND application_method = spray",
+        "protection_level": "light_cover",
+        "upgrade_scenario": null,
+        "notes": "Lightweight cover over door openings during ceiling spray to prevent overspray migration. Poly sheeting or paper. Per opening."
+      },
+      {
+        "zone_id": "builtin_contents_cover",
+        "condition": "built-in work present AND contents not removed",
+        "protection_level": "full_cover",
+        "upgrade_scenario": null,
+        "notes": "RP-specific — cover remaining items in built-in if owner did not fully empty. Poly sheeting per opening. Rate per opening with size-tier adjustment."
+      },
+      {
+        "zone_id": "floor_workzone",
+        "condition": "arch element OR built-in work present",
+        "protection_level": "full_cover",
+        "upgrade_scenario": null,
+        "notes": "Localized work zone protection around individual architectural elements or built-ins. May be subsumed by floor_full if spray. Per element/unit."
+      }
+    ],
+    "zone_reference": "Protection_Zones_Reference.md",
+    "notes": "RP consolidation reduces NC's 14-18 per-spec protection tasks to 6-9 shared tasks. Key insight: all surfaces in a room share the same floor, wall, and ceiling protection. Setup once, work all surfaces, teardown once. Zone triggers are additive — if both ceiling and wall work present, both wall_upper_band and ceiling_mask may activate (but NOT simultaneously — ceiling goes first, wall second, so ceiling_mask replaces wall_upper_band on the second pass)."
+  },
+
+  "adjacency_analysis": {
+    "primary_surfaces": ["wainscot_panel_face", "wood_wall_panel_face", "wood_ceiling_panel_face", "beam_face", "column_face", "mantel_face", "builtin_opening_interior"],
+    "adjacent_surfaces": [
+      {
+        "surface_id": "drywall_wall",
+        "edge_type": "linear",
+        "typical_relationship": "different_finish",
+        "edge_work_required": true,
+        "notes": "Wall surfaces above wainscot, adjacent to wood wall panels, adjacent to built-ins. Different color/sheen typical (walls flat/eggshell, specialty semi-gloss). When spray, wall requires masking. When brush, cut-in line at junction."
+      },
+      {
+        "surface_id": "drywall_ceiling",
+        "edge_type": "linear",
+        "typical_relationship": "different_finish",
+        "edge_work_required": true,
+        "notes": "Ceiling surface above wood wall panels and at beam/column junctions. When wall spray, ceiling requires masking. When ceiling is wood (in scope), no edge work needed at ceiling-to-wall because ceiling is being painted."
+      },
+      {
+        "surface_id": "trim_baseboard",
+        "edge_type": "linear",
+        "typical_relationship": "same_finish",
+        "edge_work_required": false,
+        "notes": "Baseboard below wainscot — typically same color/sheen. No masking at junction when same finish. If different finish, tape line required."
+      },
+      {
+        "surface_id": "trim_chair_rail",
+        "edge_type": "linear",
+        "typical_relationship": "same_finish",
+        "edge_work_required": false,
+        "notes": "Chair rail at top of wainscot — typically same color/sheen as wainscot. No masking when same finish."
+      },
+      {
+        "surface_id": "trim_crown",
+        "edge_type": "linear",
+        "typical_relationship": "same_finish",
+        "edge_work_required": false,
+        "notes": "Crown molding at ceiling-to-wall junction. When wood ceiling is in scope, crown masking may be needed if crown is different color. Typically same finish as ceiling."
+      }
+    ],
+    "surface_reference": "Surface_Vocabulary_Reference.md"
+  },
+
+  "site_condition_analysis": {
+    "affected_conditions": [
+      {
+        "condition_id": "occupancy_state",
+        "affected_task_types": ["protect", "cleanup"],
+        "include_values": ["occupied_crew_handles", "occupied_sensitive"],
+        "exclude_values": ["vacant"],
+        "notes": "RP specialty work is typically in occupied homes. Built-in contents protection and furniture protection tasks are gated by occupancy. Vacant homes skip contents/furniture tasks. Occupied_sensitive may require off-hours work or partial-room phasing."
+      },
+      {
+        "condition_id": "lead_status",
+        "affected_task_types": ["prep", "protect"],
+        "include_values": ["tested_positive", "unknown_pre1978"],
+        "modifier_notes": "tested_positive = 2.0x, unknown_pre1978 = 1.5x per Modifier_Registry",
+        "notes": "Specialty millwork is HIGH RISK for lead paint — wainscot, mantels, columns, built-ins were commonly painted with lead-based paint before 1978. Scraping lead paint requires wet methods, HEPA vacuum, and containment. Pre-1978 specialty surfaces should be presumed lead-positive unless tested."
+      },
+      {
+        "condition_id": "moisture_condition",
+        "affected_task_types": ["assess", "prep"],
+        "include_values": ["recently_wet"],
+        "exclude_values": ["active_moisture"],
+        "notes": "Active moisture is a STOP condition — source must be resolved before painting. Particularly relevant for wood ceiling in bathroom/kitchen and wood wall in splash zones."
+      },
+      {
+        "condition_id": "temperature_condition",
+        "affected_task_types": ["prime", "apply"],
+        "include_values": ["cold_below_50f", "hot_above_90f"],
+        "modifier_notes": "cold_below_50f = 1.30x (extended dry time), hot_above_90f = 1.15x (reduced open time)",
+        "notes": "Interior temperature is typically controlled. Main concern: unheated spaces in cold weather where specialty surfaces are present (sunrooms, enclosed porches with beams/columns)."
+      },
+      {
+        "condition_id": "floor_type",
+        "affected_task_types": ["protect"],
+        "include_values": ["finished", "partial"],
+        "exclude_values": ["subfloor"],
+        "notes": "RP is always on finished floors. Floor protection is always required. Default to floor_type = finished."
+      },
+      {
+        "condition_id": "ceiling_height",
+        "affected_task_types": ["all"],
+        "include_values": ["standard", "tall", "cathedral"],
+        "modifier_notes": "Drives height modifier selection for wall panels, ceiling, beams, columns",
+        "notes": "Specialty surfaces are common in rooms with non-standard ceiling heights (great rooms with beams, foyers with columns, libraries with tall built-ins). Height modifier is the primary cost driver for these surfaces."
+      }
+    ],
+    "condition_reference": "Site_Condition_Vocabulary_Reference.md",
+    "modifier_reference": "Modifier_Registry.md"
+  },
+
+  "state_analysis": {
+    "primary_surfaces": ["wainscot_panel_face", "wood_wall_panel_face", "wood_ceiling_panel_face", "beam_face", "column_face", "mantel_face", "builtin_opening_interior"],
+    "valid_input_states": {
+      "states": [
+        "SS_INT_SOUND_PAINT",
+        "SS_INT_FAILING_PAINT",
+        "SS_INT_PEELING",
+        "SS_INT_MOISTURE_DAMAGE",
+        "SS_INT_SMOKE_DAMAGE"
+      ],
+      "rationale": "Interior specialty RP operates on previously painted surfaces. These 5 states cover the full range of existing interior paint conditions. Does NOT accept SS_BARE, SS_PRIMED_*, SS_STAINED_*, or SS_CLEAR_* — bare/uncoated surfaces are NC scope. Stain/clear conversion is handled as a condition driver with bonding primer, not a separate input state."
+    },
+    "output_state": {
+      "state": "SS_PAINTED_SEMIGLOSS",
+      "varies_by": "sheen",
+      "rationale": "Output state varies by selected sheen. Satin = SS_PAINTED_SATIN, semi-gloss = SS_PAINTED_SEMIGLOSS (traditional for millwork), eggshell = SS_PAINTED_EGGSHELL (for built-in interiors and ceilings). Semi-gloss is the default/traditional millwork sheen."
+    },
+    "adjacent_state_protection_analysis": [
+      {
+        "adjacent_surface": "drywall_wall",
+        "finished_states": ["SS_PAINTED_FLAT", "SS_PAINTED_EGGSHELL", "SS_PAINTED_SATIN"],
+        "unfinished_states": ["SS_BARE", "SS_PRIMED"],
+        "protection_when_finished": "full_mask",
+        "protection_when_unfinished": "none",
+        "rationale": "Protect finished walls from spray overspray when spraying specialty surfaces. When walls are finished (typical in RP), masking required for spray method. When walls are unfinished (rare in RP, possible in renovation), no protection needed."
+      },
+      {
+        "adjacent_surface": "drywall_ceiling",
+        "finished_states": ["SS_PAINTED_FLAT", "SS_PAINTED_EGGSHELL"],
+        "unfinished_states": ["SS_BARE", "SS_PRIMED"],
+        "protection_when_finished": "full_mask",
+        "protection_when_unfinished": "none",
+        "rationale": "Protect finished ceiling when spraying wall panels or wainscot. NOT needed when wood ceiling is also in scope (painted first). For brush method, light masking or none."
+      }
+    ],
+    "state_reference": "Substrate_State_Reference.md"
+  },
+
+  "required_paintscope_keys": [
+    {
+      "key": "PS_SURFACE_SF.WAINSCOT_PANEL",
+      "uom": "SF",
+      "purpose": "Square footage of wainscot panel surfaces to be repainted. Drives all wainscot-specific tasks.",
+      "required": false,
+      "notes": "Required when wainscot is in scope. Zero or absent when not present."
+    },
+    {
+      "key": "PS_SURFACE_SF.WOOD_WALL_PANEL",
+      "uom": "SF",
+      "purpose": "Square footage of wood wall panel surfaces to be repainted. Drives all wood wall-specific tasks.",
+      "required": false,
+      "notes": "Required when wood wall panels are in scope."
+    },
+    {
+      "key": "PS_SURFACE_SF.WOOD_CEILING",
+      "uom": "SF",
+      "purpose": "Square footage of wood ceiling surfaces to be repainted. Drives all ceiling-specific tasks (with overhead penalty rates).",
+      "required": false,
+      "notes": "Required when wood ceiling is in scope."
+    },
+    {
+      "key": "PS_SURFACE_LF.ARCH_BEAM",
+      "uom": "LF",
+      "purpose": "Linear footage of architectural beams to be repainted. Drives all beam-specific tasks.",
+      "required": false,
+      "notes": "Required when beams are in scope."
+    },
+    {
+      "key": "PS_SURFACE_EA.ARCH_COLUMN",
+      "uom": "EA",
+      "purpose": "Count of architectural columns to be repainted. Drives all column-specific tasks.",
+      "required": false,
+      "notes": "Required when columns are in scope."
+    },
+    {
+      "key": "PS_SURFACE_EA.ARCH_MANTEL",
+      "uom": "EA",
+      "purpose": "Count of mantels to be repainted. Drives all mantel-specific tasks.",
+      "required": false,
+      "notes": "Required when mantels are in scope."
+    },
+    {
+      "key": "PS_SURFACE_EA.BUILTIN_UNIT",
+      "uom": "EA",
+      "purpose": "Count of built-in units to be repainted. Uses Opening Count method with size-tier rates.",
+      "required": false,
+      "notes": "Required when built-ins are in scope. Size tier (S/M/L/XL) provided via PS_META."
+    },
+    {
+      "key": "PS_META.HEIGHT_BAND",
+      "uom": "ENUM",
+      "purpose": "Height classification for wall panels, ceiling, beams, columns. Drives height modifier (H1-H4).",
+      "required": true
+    },
+    {
+      "key": "PS_META.SURFACE_CONDITION",
+      "uom": "ENUM",
+      "purpose": "Surface condition (GOOD/FAIR/POOR) for prep modifier application.",
+      "required": true
+    },
+    {
+      "key": "PS_PROTECT_SF.FLOOR_FULL",
+      "uom": "SF",
+      "purpose": "Full floor protection area for spray method or ceiling work.",
+      "required": false
+    },
+    {
+      "key": "PS_PROTECT_SF.FLOOR_PERIMETER",
+      "uom": "SF",
+      "purpose": "Perimeter floor protection area for brush method.",
+      "required": true
+    },
+    {
+      "key": "PS_PROTECT_EA.FIXTURE_COVERS",
+      "uom": "EA",
+      "purpose": "Count of fixtures to mask/cover (lights, switches, outlets, vents).",
+      "required": false
+    },
+    {
+      "key": "IN_SF_PROTECT_FLOOR_EXPOSED",
+      "uom": "SF",
+      "purpose": "Exposed floor area requiring protection.",
+      "required": true
+    }
+  ],
+
+  "proposed_new_keys": [],
+
+  "adjacency_notes": [
+    {
+      "note": "Wainscot cap rail to wall field: linear edge. When different finish (typical), tape line required at cap rail. Chair rail molding (covered by trim spec) may mediate the junction.",
+      "affected_key": "PS_SURFACE_SF.WAINSCOT_PANEL"
+    },
+    {
+      "note": "Wood wall panel to ceiling: linear edge at ceiling line. Masking required when spraying wall panels if ceiling is finished. Not needed if ceiling is also wood and being painted (ceiling first sequence).",
+      "affected_key": "PS_SURFACE_SF.WOOD_WALL_PANEL"
+    },
+    {
+      "note": "Beam to ceiling/wall: junctions where beam meets ceiling or wall. Caulk assessment applies at these junctions in RP. Masking at junction only if adjacent surface has a different finish and is not in scope.",
+      "affected_key": "PS_SURFACE_LF.ARCH_BEAM"
+    },
+    {
+      "note": "Built-in to wall: perimeter edge where built-in unit meets wall surface. Caulk assess/replace at perimeter. Masking only if wall is finished and different color.",
+      "affected_key": "PS_SURFACE_EA.BUILTIN_UNIT"
+    }
+  ],
+
+  "nc_task_transfer_summary": {
+    "source_specs": {
+      "SF_WAINSCOT_PANEL_NC_v1": {
+        "total_tasks": 25,
+        "DIRECT": 19,
+        "MODIFIED": 4,
+        "NOT_APPLICABLE": 2,
+        "RP_NEW": 0,
+        "not_applicable_tasks": [
+          {
+            "task_id": "TSK_WNSC_FILL_FASTENERS",
+            "reason": "Bare wood only — fasteners already filled in NC. RP has no new exposed fasteners."
+          },
+          {
+            "task_id": "TSK_WNSC_SEAL_MDF_EDGES",
+            "reason": "Bare MDF only — edges sealed in NC. RP MDF edges are already sealed under existing paint."
+          }
+        ],
+        "modified_tasks": [
+          {
+            "nc_task_id": "TSK_WNSC_SAND_PREP",
+            "rp_change": "RP: degloss existing finish (150-180 grit scuff) rather than sand bare wood (120-150 grit leveling). Different purpose, different grit, potentially different rate."
+          },
+          {
+            "nc_task_id": "TSK_WNSC_CAULK_JOINTS",
+            "rp_change": "RP: assess existing caulk and replace failed sections only (15-30% typical). Not full-joint caulking."
+          },
+          {
+            "nc_task_id": "TSK_WNSC_CAULK_WALL",
+            "rp_change": "RP: assess wainscot-to-wall perimeter caulk, replace failed sections. Same partial replacement model."
+          },
+          {
+            "nc_task_id": "TSK_WNSC_PRIME_FACES",
+            "rp_change": "RP: state-driven primer (adhesion, stain-block, bonding) instead of bare-wood primer. Skip-prime when SS_INT_SOUND_PAINT with latex existing."
+          }
+        ]
+      },
+      "SF_WOOD_WALL_NC_v1": {
+        "total_tasks": 25,
+        "DIRECT": 19,
+        "MODIFIED": 4,
+        "NOT_APPLICABLE": 2,
+        "RP_NEW": 0,
+        "not_applicable_tasks": [
+          {
+            "task_id": "TSK_WDWL_FILL_FASTENERS",
+            "reason": "Bare wood only — fasteners already filled in NC."
+          },
+          {
+            "task_id": "TSK_WDWL_SEAL_MDF_EDGES",
+            "reason": "Bare MDF only — edges sealed in NC."
+          }
+        ],
+        "modified_tasks": [
+          {
+            "nc_task_id": "TSK_WDWL_SAND_PREP",
+            "rp_change": "RP: degloss existing finish rather than sand bare wood. Height modifier still applies."
+          },
+          {
+            "nc_task_id": "TSK_WDWL_CAULK_JOINTS",
+            "rp_change": "RP: assess and replace failed caulk sections at panel joints (15-30% typical)."
+          },
+          {
+            "nc_task_id": "TSK_WDWL_CAULK_PERIMETER",
+            "rp_change": "RP: assess perimeter caulk, replace failed sections."
+          },
+          {
+            "nc_task_id": "TSK_WDWL_PRIME_FACES",
+            "rp_change": "RP: state-driven primer. Height modifier still applies."
+          }
+        ]
+      },
+      "SF_WOOD_CEILING_NC_v1": {
+        "total_tasks": 30,
+        "DIRECT": 22,
+        "MODIFIED": 4,
+        "NOT_APPLICABLE": 2,
+        "RP_NEW": 2,
+        "not_applicable_tasks": [
+          {
+            "task_id": "TSK_WDCL_FILL_FASTENERS",
+            "reason": "Bare wood only — fasteners already filled in NC."
+          },
+          {
+            "task_id": "TSK_WDCL_SEAL_MDF_EDGES",
+            "reason": "Bare MDF only — edges sealed in NC."
+          }
+        ],
+        "modified_tasks": [
+          {
+            "nc_task_id": "TSK_WDCL_SAND_PREP",
+            "rp_change": "RP: degloss existing finish at overhead rates. Overhead penalty on degloss rate."
+          },
+          {
+            "nc_task_id": "TSK_WDCL_CAULK_JOINTS",
+            "rp_change": "RP: assess and replace failed caulk at ceiling panel joints (15-30% typical). Overhead penalty applies."
+          },
+          {
+            "nc_task_id": "TSK_WDCL_CAULK_PERIMETER",
+            "rp_change": "RP: assess ceiling perimeter caulk, replace failed sections. Overhead penalty applies."
+          },
+          {
+            "nc_task_id": "TSK_WDCL_PRIME_FACES",
+            "rp_change": "RP: state-driven primer at overhead rates."
+          }
+        ],
+        "rp_new_notes": "Ceiling-specific RP_NEW tasks: overhead degloss (distinct rate from wall degloss), ceiling moisture assessment (condensation-prone surface)."
+      },
+      "SF_ARCH_ELEMENT_NC_v1": {
+        "total_tasks": 42,
+        "DIRECT": 24,
+        "MODIFIED": 12,
+        "NOT_APPLICABLE": 4,
+        "RP_NEW": 2,
+        "not_applicable_tasks": [
+          {
+            "task_id": "TSK_ARCH_FILL_BEAM",
+            "reason": "Bare wood fill — fasteners/defects already filled in NC."
+          },
+          {
+            "task_id": "TSK_ARCH_FILL_COLUMN",
+            "reason": "Bare wood fill — same."
+          },
+          {
+            "task_id": "TSK_ARCH_FILL_MANTEL",
+            "reason": "Bare wood fill — same."
+          },
+          {
+            "task_id": "TSK_ARCH_SEAL_MDF_EDGES",
+            "reason": "Bare MDF only — edges sealed in NC."
+          }
+        ],
+        "modified_tasks": [
+          {
+            "nc_task_id": "TSK_ARCH_SAND_BEAM",
+            "rp_change": "RP: degloss existing finish on beam. LF-based rate with overhead factor."
+          },
+          {
+            "nc_task_id": "TSK_ARCH_SAND_COLUMN",
+            "rp_change": "RP: degloss existing finish on column. EA-based rate."
+          },
+          {
+            "nc_task_id": "TSK_ARCH_SAND_MANTEL",
+            "rp_change": "RP: degloss existing finish on mantel. EA-based rate."
+          },
+          {
+            "nc_task_id": "TSK_ARCH_CAULK_BEAM",
+            "rp_change": "RP: assess and replace failed caulk at beam-to-ceiling/wall joints."
+          },
+          {
+            "nc_task_id": "TSK_ARCH_CAULK_COLUMN",
+            "rp_change": "RP: assess and replace failed caulk at column-to-floor/ceiling joints."
+          },
+          {
+            "nc_task_id": "TSK_ARCH_CAULK_MANTEL",
+            "rp_change": "RP: assess and replace failed caulk at mantel-to-wall joints."
+          },
+          {
+            "nc_task_id": "TSK_ARCH_SPRAY_PRIME_BEAM",
+            "rp_change": "RP: state-driven primer. Skip-prime when sound paint + latex existing."
+          },
+          {
+            "nc_task_id": "TSK_ARCH_BRUSH_PRIME_BEAM",
+            "rp_change": "RP: state-driven primer, brush variant."
+          },
+          {
+            "nc_task_id": "TSK_ARCH_SPRAY_PRIME_COLUMN",
+            "rp_change": "RP: state-driven primer, spray variant."
+          },
+          {
+            "nc_task_id": "TSK_ARCH_BRUSH_PRIME_COLUMN",
+            "rp_change": "RP: state-driven primer, brush variant."
+          },
+          {
+            "nc_task_id": "TSK_ARCH_SPRAY_PRIME_MANTEL",
+            "rp_change": "RP: state-driven primer, spray variant."
+          },
+          {
+            "nc_task_id": "TSK_ARCH_BRUSH_PRIME_MANTEL",
+            "rp_change": "RP: state-driven primer, brush variant."
+          }
+        ],
+        "rp_new_notes": "Element-specific RP_NEW tasks: per-element condition assessment (per element type), per-element degloss (distinct from sanding bare wood)."
+      },
+      "SF_BUILTIN_NC_v1": {
+        "total_tasks": 35,
+        "DIRECT": 24,
+        "MODIFIED": 5,
+        "NOT_APPLICABLE": 3,
+        "RP_NEW": 3,
+        "not_applicable_tasks": [
+          {
+            "task_id": "TSK_BLTN_FILL_OPENING",
+            "reason": "Bare wood fill — fasteners/defects already filled in NC."
+          },
+          {
+            "task_id": "TSK_BLTN_FILL_DOOR",
+            "reason": "Bare wood fill — same."
+          },
+          {
+            "task_id": "TSK_BLTN_SEAL_MDF_EDGES",
+            "reason": "Bare MDF only — edges sealed in NC."
+          }
+        ],
+        "modified_tasks": [
+          {
+            "nc_task_id": "TSK_BLTN_SAND_OPENING",
+            "rp_change": "RP: degloss existing finish in built-in opening. Per-opening rate with depth modifier."
+          },
+          {
+            "nc_task_id": "TSK_BLTN_SAND_DOOR",
+            "rp_change": "RP: degloss built-in doors/drawers. Per-EA rate."
+          },
+          {
+            "nc_task_id": "TSK_BLTN_CAULK",
+            "rp_change": "RP: assess and replace failed perimeter caulk (15-30% typical)."
+          },
+          {
+            "nc_task_id": "TSK_BLTN_PRIME_OPENING",
+            "rp_change": "RP: state-driven primer for openings. Skip-prime when sound paint + latex existing."
+          },
+          {
+            "nc_task_id": "TSK_BLTN_PRIME_DOOR",
+            "rp_change": "RP: state-driven primer for doors/drawers."
+          }
+        ],
+        "rp_new_notes": "Built-in-specific RP_NEW tasks: contents protection (RP-only — occupied home), built-in condition assessment (per opening), built-in coating identification."
+      }
+    },
+    "transfer_summary": {
+      "total_nc_tasks": 157,
+      "DIRECT_transfers": 108,
+      "MODIFIED_transfers": 29,
+      "NOT_APPLICABLE_removals": 13,
+      "RP_NEW_additions": "10-12",
+      "consolidation_deductions": "~60-70 (shared protection, shared cleanup, shared assessment, shared interstage)",
+      "projected_total": "45-55"
+    },
+    "rp_new_tasks": [
+      {
+        "proposed_task_id": "TSK_SPRP_ASSESS_CONDITION",
+        "description": "Multi-surface visual condition assessment. Scan all specialty surfaces present for cracking, peeling, adhesion failure, moisture damage, contamination. Photograph defects. Assign substrate state per surface type.",
+        "uom": "EA",
+        "phase": "setup",
+        "applies_when": {},
+        "notes": "Per-room fixed time with per-surface-type increment. Base ~15 min + ~3-5 min per additional surface type."
+      },
+      {
+        "proposed_task_id": "TSK_SPRP_ASSESS_ADHESION",
+        "description": "ASTM D3359 cross-hatch adhesion test on representative sections of each surface type present. Determines if adhesion primer is needed.",
+        "uom": "EA",
+        "phase": "setup",
+        "applies_when": {}
+      },
+      {
+        "proposed_task_id": "TSK_SPRP_ASSESS_COATING_ID",
+        "description": "Solvent test to identify existing coating type (latex vs alkyd vs stain/clear) on each surface type present. Determines primer strategy per surface type.",
+        "uom": "EA",
+        "phase": "setup",
+        "applies_when": {}
+      },
+      {
+        "proposed_task_id": "TSK_SPRP_ASSESS_MOISTURE",
+        "description": "Moisture meter reading on ceiling surfaces, wall panel bottoms, and built-in interiors. Identify elevated MC indicating active moisture source.",
+        "uom": "EA",
+        "phase": "setup",
+        "applies_when": {
+          "surface_types_present": ["ceiling", "wall_panel", "builtin"]
+        }
+      },
+      {
+        "proposed_task_id": "TSK_SPRP_WASH_TSP",
+        "description": "TSP wash of all specialty surfaces to remove hand oils, cleaning residue, dust, and surface contaminants. Rinse and dry. Shared task — one pass covers all surface types.",
+        "uom": "SF",
+        "phase": "prep",
+        "applies_when": {},
+        "notes": "Rate in SF/hr for SF-based surfaces; fixed-time per element for EA-based surfaces."
+      },
+      {
+        "proposed_task_id": "TSK_SPRP_DEGLOSS_WAINSCOT",
+        "description": "Degloss wainscot panel surfaces — chemical or mechanical (scuff sand 150-180). Required for all RP work.",
+        "uom": "SF",
+        "phase": "prep",
+        "applies_when": {
+          "surface_present": "wainscot"
+        }
+      },
+      {
+        "proposed_task_id": "TSK_SPRP_DEGLOSS_WALL",
+        "description": "Degloss wood wall panel surfaces. Height modifier applies.",
+        "uom": "SF",
+        "phase": "prep",
+        "applies_when": {
+          "surface_present": "wood_wall"
+        }
+      },
+      {
+        "proposed_task_id": "TSK_SPRP_DEGLOSS_CEILING",
+        "description": "Degloss wood ceiling surfaces. Overhead penalty rate (~0.70-0.80x of wall degloss rate).",
+        "uom": "SF",
+        "phase": "prep",
+        "applies_when": {
+          "surface_present": "wood_ceiling"
+        }
+      },
+      {
+        "proposed_task_id": "TSK_SPRP_DEGLOSS_BEAM",
+        "description": "Degloss beam surfaces. LF-based rate with beam_profile complexity modifier.",
+        "uom": "LF",
+        "phase": "prep",
+        "applies_when": {
+          "surface_present": "beam"
+        }
+      },
+      {
+        "proposed_task_id": "TSK_SPRP_DEGLOSS_COLUMN",
+        "description": "Degloss column surfaces. EA-based rate with column_type complexity modifier.",
+        "uom": "EA",
+        "phase": "prep",
+        "applies_when": {
+          "surface_present": "column"
+        }
+      },
+      {
+        "proposed_task_id": "TSK_SPRP_DEGLOSS_MANTEL",
+        "description": "Degloss mantel surfaces. EA-based rate with mantel_type complexity modifier.",
+        "uom": "EA",
+        "phase": "prep",
+        "applies_when": {
+          "surface_present": "mantel"
+        }
+      },
+      {
+        "proposed_task_id": "TSK_SPRP_DEGLOSS_BUILTIN",
+        "description": "Degloss built-in opening interior and door/drawer surfaces. EA-based rate with size-tier and depth modifier.",
+        "uom": "EA",
+        "phase": "prep",
+        "applies_when": {
+          "surface_present": "builtin"
+        }
+      },
+      {
+        "proposed_task_id": "TSK_SPRP_SCRAPE_FEATHER",
+        "description": "Scrape loose/failing paint to sound substrate and feather-sand edges for smooth transition. Per-surface-type rates with complexity modifiers. Condition-gated.",
+        "uom": "SF",
+        "phase": "prep",
+        "applies_when": {
+          "substrate_state": ["SS_INT_FAILING_PAINT", "SS_INT_PEELING"]
+        },
+        "notes": "SF rate for flat surfaces; per-element rate for arch/built-in. Overhead penalty for ceiling."
+      },
+      {
+        "proposed_task_id": "TSK_SPRP_TREAT_MILDEW",
+        "description": "Apply biocide solution to mildew-affected areas on specialty surfaces. Allow 24 hr dry before priming.",
+        "uom": "SF",
+        "phase": "prep",
+        "applies_when": {
+          "substrate_state": ["SS_INT_MOISTURE_DAMAGE"]
+        }
+      },
+      {
+        "proposed_task_id": "TSK_SPRP_SEAL_SHELLAC",
+        "description": "Full-surface shellac seal (BIN) for smoke/nicotine contamination on affected specialty surfaces.",
+        "uom": "SF",
+        "phase": "prime",
+        "applies_when": {
+          "substrate_state": ["SS_INT_SMOKE_DAMAGE"]
+        },
+        "notes": "Per-surface-type rate. Extra attention to grooves and detail areas."
+      },
+      {
+        "proposed_task_id": "TSK_SPRP_CONTENTS_PROTECT",
+        "description": "Cover/protect remaining contents in built-in units when owner has not fully emptied. Poly sheeting per opening.",
+        "uom": "EA",
+        "phase": "setup",
+        "applies_when": {
+          "surface_present": "builtin",
+          "contents_status": "partial"
+        },
+        "notes": "Optional add-on task. Default assumption is owner empties before painter arrives."
+      },
+      {
+        "proposed_task_id": "TSK_SPRP_CUSTOMER_WALKTHROUGH",
+        "description": "Post-completion walkthrough with homeowner. Verify finish quality on all specialty surface types, check detail areas, confirm satisfaction.",
+        "uom": "EA",
+        "phase": "cleanup",
+        "applies_when": {},
+        "notes": "Per-project fixed time (~10-15 minutes for specialty surfaces)."
+      }
+    ]
+  },
+
+  "configuration_dimensions": [
+    {
+      "dimension_id": "quality_tier",
+      "values": ["QT3", "QT4", "QT5"],
+      "default": "QT3",
+      "notes": "QT2 excluded — prominent millwork and specialty surfaces are scrutinized. QT5 conditional on GOOD surface condition. QT6 = hourly, not modeled."
+    },
+    {
+      "dimension_id": "application_method",
+      "values": ["brush", "spray"],
+      "default": "spray",
+      "notes": "Spray is default for SF-measured surfaces (wainscot, wall, ceiling). Brush is default for detail elements (columns, mantels). Both supported globally. Spray requires expanded protection."
+    },
+    {
+      "dimension_id": "substrate_state",
+      "values": ["SS_INT_SOUND_PAINT", "SS_INT_FAILING_PAINT", "SS_INT_PEELING", "SS_INT_MOISTURE_DAMAGE", "SS_INT_SMOKE_DAMAGE"],
+      "default": "SS_INT_SOUND_PAINT",
+      "notes": "Drives prep task inclusion and primer selection. Recommend per-surface-type state inputs (wainscot_state, wall_state, ceiling_state, arch_state, builtin_state)."
+    },
+    {
+      "dimension_id": "condition",
+      "values": ["GOOD", "FAIR", "POOR"],
+      "default": "GOOD",
+      "notes": "Surface condition drives prep modifier (GOOD = 1.0, FAIR = 1.5, POOR = 2.0 on prep tasks). Maps to substrate state severity."
+    },
+    {
+      "dimension_id": "sheen",
+      "values": ["eggshell", "satin", "semi-gloss", "gloss"],
+      "default": "semi-gloss",
+      "notes": "Traditional millwork sheen is semi-gloss. Gloss requires QT4+ prep per sheen gate. Ceiling surfaces may default to eggshell/satin."
+    },
+    {
+      "dimension_id": "wainscot_type",
+      "values": ["flat_panel", "raised_panel", "beadboard"],
+      "default": "flat_panel",
+      "notes": "Drives wainscot complexity modifier. Applies only when wainscot is in scope."
+    },
+    {
+      "dimension_id": "wall_style",
+      "values": ["flat_panel", "shiplap", "tongue_and_groove", "library_panel"],
+      "default": "flat_panel",
+      "notes": "Drives wood wall complexity modifier. Applies only when wood wall is in scope."
+    },
+    {
+      "dimension_id": "ceiling_style",
+      "values": ["flat_plank", "beadboard", "tongue_and_groove", "coffered"],
+      "default": "flat_plank",
+      "notes": "Drives wood ceiling complexity modifier. Applies only when wood ceiling is in scope. Coffered is highest complexity (1.35x)."
+    },
+    {
+      "dimension_id": "beam_profile",
+      "values": ["rectangular", "chamfered", "curved", "ornate"],
+      "default": "rectangular",
+      "notes": "Drives beam complexity modifier. Applies only when beams are in scope."
+    },
+    {
+      "dimension_id": "column_type",
+      "values": ["square", "round", "fluted"],
+      "default": "square",
+      "notes": "Drives column complexity modifier. Applies only when columns are in scope."
+    },
+    {
+      "dimension_id": "mantel_type",
+      "values": ["simple_shelf", "traditional", "ornate"],
+      "default": "simple_shelf",
+      "notes": "Drives mantel complexity modifier. Applies only when mantels are in scope."
+    },
+    {
+      "dimension_id": "builtin_size_tier",
+      "values": ["S", "M", "L", "XL"],
+      "default": "M",
+      "notes": "Opening Count size tier per built-in unit. Drives EA-based rate selection with depth/detail/access modifiers. Applies only when built-ins are in scope."
+    }
+  ],
+
+  "paintable_items": [
+    {
+      "item_id": "ITM_WAINSCOT_PANEL",
+      "name": "Wainscot Panel",
+      "uom": "SF",
+      "counting_rules": "Square footage of wainscot panel face area. Measured from floor/baseboard to cap rail. Includes panel faces, rails, and stiles.",
+      "paintscope_key": "PS_SURFACE_SF.WAINSCOT_PANEL",
+      "notes": "Always H1 — wainscot is below chair-rail height by definition."
+    },
+    {
+      "item_id": "ITM_WOOD_WALL_PANEL",
+      "name": "Wood Wall Panel",
+      "uom": "SF",
+      "counting_rules": "Square footage of wood wall panel face area. Full-height wall panels (library style) or partial-height accent walls.",
+      "paintscope_key": "PS_SURFACE_SF.WOOD_WALL_PANEL",
+      "notes": "Height varies via PS_META.HEIGHT_BAND. Full-height panels may reach H2-H3."
+    },
+    {
+      "item_id": "ITM_WOOD_CEILING",
+      "name": "Wood Ceiling",
+      "uom": "SF",
+      "counting_rules": "Square footage of wood ceiling surface. ALL work is overhead — overhead penalty baked into base rates.",
+      "paintscope_key": "PS_SURFACE_SF.WOOD_CEILING",
+      "notes": "Overhead penalty: spray 130 SF/hr (vs wall 175), brush 50 SF/hr (vs wall 70). Height modifier based on ceiling height."
+    },
+    {
+      "item_id": "ITM_ARCH_BEAM",
+      "name": "Architectural Beam",
+      "uom": "LF",
+      "counting_rules": "Linear footage of beam. Includes all exposed faces (typically 3 faces for ceiling-mounted beams). beam_profile drives complexity modifier.",
+      "paintscope_key": "PS_SURFACE_LF.ARCH_BEAM",
+      "notes": "Spray 225 LF/hr, brush 90 LF/hr (NC baseline). Overhead factor ~0.85x baked into base rate."
+    },
+    {
+      "item_id": "ITM_ARCH_COLUMN",
+      "name": "Architectural Column",
+      "uom": "EA",
+      "counting_rules": "Count of columns. One EA per column regardless of height. Height modifier applies for tall columns.",
+      "paintscope_key": "PS_SURFACE_EA.ARCH_COLUMN",
+      "notes": "Spray 5 EA/hr, brush 2.5 EA/hr (NC baseline). Column_type drives complexity."
+    },
+    {
+      "item_id": "ITM_ARCH_MANTEL",
+      "name": "Architectural Mantel",
+      "uom": "EA",
+      "counting_rules": "Count of mantels. One EA per mantel/fireplace surround. mantel_type drives complexity modifier.",
+      "paintscope_key": "PS_SURFACE_EA.ARCH_MANTEL",
+      "notes": "Spray 2.5 EA/hr, brush 1.5 EA/hr (NC baseline). Typically H1-H2."
+    },
+    {
+      "item_id": "ITM_BUILTIN_UNIT",
+      "name": "Built-in Unit",
+      "uom": "EA",
+      "counting_rules": "Count of built-in units using Opening Count method. Size tier (S/M/L/XL) with depth, detail, and access modifiers. Includes shelving, cabinet openings, door/drawer faces.",
+      "paintscope_key": "PS_SURFACE_EA.BUILTIN_UNIT",
+      "notes": "M spray 6 EA/hr, brush 3 EA/hr (NC baseline). Door/drawer removal + flat painting workflow from NC transfers to RP."
+    }
+  ]
+}

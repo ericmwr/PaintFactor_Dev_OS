@@ -1,0 +1,105 @@
+{
+  "spec_family_id": "SF_WINDOW_INT_RP",
+  "version": "1.0.0",
+  "overall_result": "pass",
+  "qa_agent": "Critic Agent",
+  "qa_date": "2026-03-14",
+
+  "issues_found": [
+    {
+      "issue_id": "QA-WNRP-001",
+      "severity": "minor",
+      "area": "assessment_task_classification",
+      "file": "production.json",
+      "description": "TSK_WNRP_ASSESS_CONDITION uses rates_by_tier (qt_scaled) instead of fixed_time_minutes. Assessment tasks typically use FIXED time. However, this is a deliberate design choice: condition inspection time genuinely scales with quality tier (QT3 quick glance at 6ft, QT4 systematic scan at 3ft, QT5 critical multi-pass raking light). The 5 remaining assessment tasks correctly use fixed_time_minutes. No fix required.",
+      "suggested_fix": "None — deliberate design choice consistent with door RP TSK_DIRP_ASSESS_CONDITION pattern.",
+      "fixed": false
+    },
+    {
+      "issue_id": "QA-WNRP-002",
+      "severity": "minor",
+      "area": "task_count_summary",
+      "file": "sop_modules.json",
+      "description": "task_count_summary shows total_tasks=47, total_unique_WNRP_tasks=42, total_shared_RRP_tasks=5. The transfer_breakdown adds to 44 (22+5+15+2=44), but notes say 2 NOT_APPLICABLE tasks — these are NC tasks NOT transferred (TSK_WIN_PREP_WOOD_FILL, TSK_WIN_PREP_ALUMINUM_ETCH), so they correctly do NOT appear in the 42 WNRP count. No error.",
+      "suggested_fix": "None — transfer_breakdown documents NC task disposition, not WNRP task count.",
+      "fixed": false
+    },
+    {
+      "issue_id": "QA-WNRP-003",
+      "severity": "minor",
+      "area": "modifier_stacking",
+      "file": "production.json",
+      "description": "Worst-case prep pool stacking = 4.37x (POOR 2.0 x L 1.40 x DH 1.00 x TDL 1.20 x H2 1.30) exceeds 4.0x flag threshold. This is an extreme worst case (large TDL double-hung at height in POOR condition). Realistic max is 2.0x. The production.json correctly flags this for estimator review. No fix required.",
+      "suggested_fix": "None — extreme worst case correctly documented with estimator review flag.",
+      "fixed": false
+    }
+  ],
+
+  "issues_fixed": [],
+
+  "validation_summary": {
+    "rule_1_task_threading": {
+      "status": "pass",
+      "detail": "All 47 SOP tasks have matching production rates. No orphaned tasks in either direction."
+    },
+    "rule_6_zone_matching": {
+      "status": "pass",
+      "detail": "All 7 zone_ids match between resolution.json and sop_modules.json protection_metadata: floor_perimeter, floor_full_8ft_radius, glass_mask, hardware_covers, wall_adjacent_window, sill_protection, furniture_adjacent."
+    },
+    "rule_8_uom_matching": {
+      "status": "pass",
+      "detail": "All task UOMs match between sop_modules.json and production.json. No mismatches."
+    },
+    "rule_11_enum_values": {
+      "status": "pass",
+      "detail": "All enum values used in sop_modules and production match resolution.json applicable_enums."
+    },
+    "rate_sanity": {
+      "status": "pass",
+      "detail": "No rate exceeds 2000 SF/hr or equivalent. Max EA/hr rate is 40 (TSK_WNRP_SPOT_COAT QT3). Max SF/hr rate is 60 (glass masking and glass scraping). Max LF/hr rate is 200 (sill protection)."
+    },
+    "spray_backroll_coupling": {
+      "status": "pass",
+      "detail": "N/A for windows — no backroll operation on window surfaces."
+    },
+    "assessment_fixed_time": {
+      "status": "pass",
+      "detail": "5 of 6 assessment tasks use fixed_time_minutes. TSK_WNRP_ASSESS_CONDITION uses rates_by_tier (qt_scaled) — deliberate design choice documented in QA-WNRP-001."
+    },
+    "qt_modifiers_global": {
+      "status": "pass",
+      "detail": "QT3=1.0x, QT4=1.3x, QT5=1.5x — GLOBAL values confirmed. NOT door-specific (1.0/1.4/1.8)."
+    },
+    "convention_compliance": {
+      "status": "pass",
+      "detail": "task_classification used (never task_class). severity uses critical/major/minor (never high/medium/low). CON_ prefix used (never CONS_). Phase values use setup/prep/prime/interstage/finish/cleanup (never protect/protection as phase). Units uppercase (EA, SF, LF, EA_ROOM, FIXED). skill_level values: helper/journeyman/lead."
+    },
+    "completeness": {
+      "status": "pass",
+      "detail": "42 WNRP tasks + 5 RRP shared tasks = 47 total. 6 material systems (3 primers + 3 fine-finish). 7 protection zones. 4 round configurations. All items present in SOP and production."
+    },
+    "rp_specific_checks": {
+      "status": "pass",
+      "detail": "State-driven primer selection confirmed (substrate_state drives primer, not substrate type). Condition modifiers in prep pool only — never in coating pool. QT modifiers in coating pool (via rates_by_tier) — never condition. Glass masking mandatory regardless of method. Wall masking required for BOTH brush and spray in RP."
+    },
+    "classification_consistency": {
+      "status": "pass",
+      "detail": "All task_classification values match between sop_modules.json and production.json. No mismatches."
+    }
+  },
+
+  "task_count_verification": {
+    "sop_total": 47,
+    "sop_wnrp": 42,
+    "sop_rrp": 5,
+    "production_total": 47,
+    "binary_tasks": 30,
+    "qt_scaled_tasks": 12,
+    "assessment_fixed_tasks": 5,
+    "modules": 8,
+    "material_systems": 6,
+    "round_configurations": 4,
+    "protection_zones": 7,
+    "paintscope_keys": 22
+  }
+}

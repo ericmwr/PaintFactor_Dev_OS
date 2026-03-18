@@ -1,0 +1,656 @@
+{
+  "spec_family": {
+    "id": "SF_DRYWALL_WALL_INT_RP",
+    "name": "Interior Drywall Wall Repaint",
+    "description": "Combined prime + finish repaint spec for previously painted interior drywall wall surfaces in occupied residential homes. Covers condition assessment (visual scan, adhesion test, moisture meter, coating ID), prep remediation (degloss, scrape, feather, contamination treatment), state-driven primer selection (adhesion, stain-block, mildew-resistant), finish coat application (roll, spray_backroll, spray), interstage inspection/repair, and furniture/contents protection. First interior repaint spec in the system.",
+    "domain": "interior",
+    "scope_type": "repaint",
+    "version": "1.0.0",
+    "status": "draft",
+    "review_required": true
+  },
+
+  "scope_boundaries": {
+    "includes": [
+      "Condition assessment (visual scan, ASTM D3359 adhesion test, moisture meter, coating ID, caulk assessment)",
+      "EPA Lead-Safe RRP evaluation and containment for pre-1978 homes",
+      "Surface contamination treatment (TSP wash for mildew, smoke, water stain, grease)",
+      "Mildew/biocide treatment for SS_INT_MOISTURE_DAMAGE",
+      "Scraping loose and failing paint (condition-driven intensity)",
+      "Feather-sanding all scraped edges (mandatory at all QT)",
+      "Deglossing existing paint surface (chemical or mechanical)",
+      "Spackle wall defects and sand repairs (QT3+)",
+      "Caulk assessment and replacement at trim junctions (QT3+)",
+      "State-driven primer selection and application (adhesion, stain-block, mildew-resistant)",
+      "Spot priming all spackled/scraped areas",
+      "Finish coat application — 1 coat QT2, 2 coats QT3-QT5 (roll, spray_backroll, spray)",
+      "Interstage inspection, light sanding (QT4/QT5), and defect repair",
+      "Final inspection and touch-up",
+      "Floor protection (perimeter for roll, full for spray methods)",
+      "Trim edge masking (baseboard, door casing, window casing — always required in RP)",
+      "Fixture covers (spray methods or QT4+ roll)",
+      "Furniture moving, covering, and replacement (occupied homes)",
+      "Floor vacuum and tool cleaning",
+      "Customer walkthrough (occupied homes)"
+    ],
+    "excludes": [
+      {
+        "item": "Bare/new drywall (new construction)",
+        "route_to": "SF_DRYWALL_WALL_NC_PRIME_v1 + SF_DRYWALL_WALL_NC_FINISH_v1"
+      },
+      {
+        "item": "Ceiling repaint",
+        "route_to": "Future SF_DRYWALL_CEILING_INT_RP"
+      },
+      {
+        "item": "Interior trim repaint",
+        "route_to": "Future SF_TRIM_INT_RP"
+      },
+      {
+        "item": "Structural drywall repair (holes, water damage to substrate)",
+        "route_to": "Drywall contractor — outside painting scope"
+      },
+      {
+        "item": "Active moisture remediation",
+        "route_to": "Plumber/contractor — moisture SOURCE must be resolved before painting (gate condition)"
+      },
+      {
+        "item": "Wallpaper removal",
+        "route_to": "Future wallpaper removal spec"
+      }
+    ]
+  },
+
+  "configuration_dimensions": [
+    {
+      "dimension_id": "quality_tier",
+      "description": "Quality tier controlling coat count, inspection rigor, edge discipline, and interstage sanding. QT2 included as economy refresh tier (most common residential RP scenario).",
+      "values": ["QT2", "QT3", "QT4", "QT5"],
+      "default": "QT3",
+      "notes": "QT2=1 finish coat, relaxed edges, quick inspect, roll-only. QT3=2 coats default, standard edges. QT4=2 coats mandatory, interstage sand, systematic inspect. QT5=2 coats, full interstage, critical raking-light inspect. QT modifier values: QT2=0.80, QT3=1.00, QT4=1.30, QT5=1.50."
+    },
+    {
+      "dimension_id": "application_method",
+      "description": "Primary application technique. Roll is primary for occupied interior RP. Spray methods available at QT3+.",
+      "values": ["roll", "spray_backroll", "spray"],
+      "default": "roll",
+      "notes": "Roll: QT2-QT5 (most common). spray_backroll: QT3-QT5 (requires room clearing). spray: QT4-QT5 (rare in occupied). Spray/backroll coupling constraint: spray rate <= backroll rate."
+    },
+    {
+      "dimension_id": "sheen",
+      "description": "Finish coating sheen level. Determines output substrate state.",
+      "values": ["flat", "matte", "eggshell", "satin", "semi-gloss"],
+      "default": "eggshell",
+      "notes": "Eggshell is standard for residential walls. Satin and semi-gloss require QT4+. Gloss excluded for walls (trim-only per doctrine)."
+    },
+    {
+      "dimension_id": "condition_scale",
+      "description": "Universal 3-level condition scale driving prep intensity. Maps from substrate state assessment.",
+      "values": ["GOOD", "FAIR", "POOR"],
+      "default": "GOOD",
+      "notes": "GOOD=SS_INT_SOUND_PAINT (1.0x prep). FAIR=SS_INT_FAILING_PAINT or SS_INT_MOISTURE_DAMAGE (1.3-1.8x prep). POOR=SS_INT_PEELING or SS_INT_SMOKE_DAMAGE (2.0-3.0x prep)."
+    }
+  ],
+
+  "paintable_items": [
+    {
+      "item_id": "ITM_WALL_FIELD_RP",
+      "name": "Wall Field Repaint Surface",
+      "unit_of_measure": "SF",
+      "counting_rules": "Square footage of wall surface measured at finished face. Deduct window and door openings >16 SF per PCA standard.",
+      "notes": "Combined prime+finish RP item. _RP suffix avoids collision with NC ITM_WALL_FIELD_PRIME."
+    },
+    {
+      "item_id": "ITM_WALL_EDGE_CEILING",
+      "name": "Ceiling Edge Cut-In (from wall perspective)",
+      "unit_of_measure": "LF",
+      "counting_rules": "Linear footage of wall-to-ceiling junction. Measured at room perimeter minus openings.",
+      "notes": "Reuse existing item from NC wall prime. Same physical edge work applies in RP context."
+    }
+  ],
+
+  "variants": [
+    {
+      "variant_id": "VAR_WLRP_GOOD_QT2_ROLL",
+      "applies_when": { "quality_tier": ["QT2"], "condition_scale": ["GOOD"], "application_method": ["roll"] },
+      "included_items": ["ITM_WALL_FIELD_RP", "ITM_WALL_EDGE_CEILING"],
+      "round_config": "ROUND_WLRP_NOPRIME_1FINISH",
+      "notes": "Fastest path. Economy refresh on sound paint. 1 finish coat, no prime. Rental turnover scenario."
+    },
+    {
+      "variant_id": "VAR_WLRP_GOOD_QT3_ROLL",
+      "applies_when": { "quality_tier": ["QT3"], "condition_scale": ["GOOD"], "application_method": ["roll"] },
+      "included_items": ["ITM_WALL_FIELD_RP", "ITM_WALL_EDGE_CEILING"],
+      "round_config": "ROUND_WLRP_NOPRIME_2FINISH",
+      "notes": "BASELINE. Most common residential wall repaint. Degloss + 2 finish coats. No prime needed."
+    },
+    {
+      "variant_id": "VAR_WLRP_FAIR_QT3_ROLL",
+      "applies_when": { "quality_tier": ["QT3"], "condition_scale": ["FAIR"], "application_method": ["roll"] },
+      "included_items": ["ITM_WALL_FIELD_RP", "ITM_WALL_EDGE_CEILING"],
+      "round_config": "ROUND_WLRP_PRIME_2FINISH",
+      "notes": "Standard repaint on failing/moisture-damaged walls. Scrape + feather + spot/full prime + 2 finish coats."
+    },
+    {
+      "variant_id": "VAR_WLRP_POOR_QT3_ROLL",
+      "applies_when": { "quality_tier": ["QT3"], "condition_scale": ["POOR"], "application_method": ["roll"] },
+      "included_items": ["ITM_WALL_FIELD_RP", "ITM_WALL_EDGE_CEILING"],
+      "round_config": "ROUND_WLRP_PRIME_2FINISH",
+      "notes": "Full remediation. Heavy scrape + full adhesion/stain-block prime + 2 finish coats. Highest prep labor."
+    },
+    {
+      "variant_id": "VAR_WLRP_GOOD_QT4_SPRAY_BACKROLL",
+      "applies_when": { "quality_tier": ["QT4"], "condition_scale": ["GOOD"], "application_method": ["spray_backroll"] },
+      "included_items": ["ITM_WALL_FIELD_RP", "ITM_WALL_EDGE_CEILING"],
+      "round_config": "ROUND_WLRP_NOPRIME_2FINISH",
+      "notes": "Premium refresh. Spray+backroll with interstage sanding. Full room protection required."
+    },
+    {
+      "variant_id": "VAR_WLRP_FAIR_QT4_ROLL",
+      "applies_when": { "quality_tier": ["QT4"], "condition_scale": ["FAIR"], "application_method": ["roll"] },
+      "included_items": ["ITM_WALL_FIELD_RP", "ITM_WALL_EDGE_CEILING"],
+      "round_config": "ROUND_WLRP_PRIME_2FINISH",
+      "notes": "Premium remediation. Full prep + interstage sand between finish coats. Semi-gloss or satin."
+    },
+    {
+      "variant_id": "VAR_WLRP_POOR_QT5_ROLL",
+      "applies_when": { "quality_tier": ["QT5"], "condition_scale": ["POOR"], "application_method": ["roll"] },
+      "included_items": ["ITM_WALL_FIELD_RP", "ITM_WALL_EDGE_CEILING"],
+      "round_config": "ROUND_WLRP_PRIME_2FINISH",
+      "notes": "Maximum effort. Full remediation + critical quality. Near-worst-case labor scenario."
+    }
+  ],
+
+  "required_paintscope_inputs": [
+    {
+      "input_name": "IN_SF_WALL_FIELD",
+      "paintscope_key": "PS_SURFACE_SF.WALL_FIELD",
+      "uom": "SF",
+      "required": true,
+      "description": "Total square footage of wall surfaces to be repainted"
+    },
+    {
+      "input_name": "IN_LF_EDGE_TO_CEILING",
+      "paintscope_key": "PS_EDGE_LF.TO_CEILING",
+      "uom": "LF",
+      "required": true,
+      "description": "Linear footage of wall-to-ceiling junction for cut-in work"
+    },
+    {
+      "input_name": "IN_LF_EDGE_TO_TRIM",
+      "paintscope_key": "PS_EDGE_LF.TO_TRIM",
+      "uom": "LF",
+      "required": true,
+      "description": "Linear footage of wall-to-trim junction (baseboard, casing) for cut-in at tape line"
+    },
+    {
+      "input_name": "IN_SF_PROTECT_FLOOR_PERIMETER",
+      "paintscope_key": "PS_PROTECT_SF.FLOOR_PERIMETER",
+      "uom": "SF",
+      "required": false,
+      "required_when": { "application_method": ["roll"] },
+      "description": "Floor area for perimeter drop cloth protection (roll method)"
+    },
+    {
+      "input_name": "IN_SF_PROTECT_FLOOR_EXPOSED",
+      "paintscope_key": "PS_PROTECT_SF.FLOOR_EXPOSED",
+      "uom": "SF",
+      "required": false,
+      "required_when": { "application_method": ["spray_backroll", "spray"] },
+      "description": "Full floor area for spray protection coverage"
+    },
+    {
+      "input_name": "IN_EA_ROOMS_TOTAL",
+      "paintscope_key": "PS_META.EA.ROOMS_TOTAL",
+      "uom": "EA",
+      "required": true,
+      "description": "Total room count driving per-room fixed tasks (assessment, furniture, fixtures, walkthrough)"
+    },
+    {
+      "input_name": "IN_SF_FLOOR_VACUUM_AREA",
+      "paintscope_key": "PS_META.SF.FLOOR_VACUUM_AREA",
+      "uom": "SF",
+      "required": true,
+      "description": "Floor area requiring post-work vacuum"
+    },
+    {
+      "input_name": "IN_SF_PROTECT_FURNITURE_ROOM",
+      "paintscope_key": "PS_PROTECT_SF.FURNITURE_ROOM",
+      "uom": "SF",
+      "required": false,
+      "required_when": { "occupancy_state": ["occupied_crew_handles", "occupied_sensitive"] },
+      "description": "Furniture protection area in occupied homes"
+    },
+    {
+      "input_name": "IN_LF_PROTECT_TRIM_EDGES",
+      "paintscope_key": "PS_PROTECT_LF.TRIM_EDGES",
+      "uom": "LF",
+      "required": true,
+      "description": "Linear footage of trim edges requiring masking tape (baseboard, door casing, window casing)"
+    },
+    {
+      "input_name": "IN_ENUM_SURFACE_CONDITION",
+      "paintscope_key": "PS_META.SURFACE_CONDITION",
+      "uom": "ENUM",
+      "required": true,
+      "description": "Condition scale (GOOD/FAIR/POOR) — primary prep intensity driver"
+    },
+    {
+      "input_name": "IN_ENUM_SURFACE_TEXTURE",
+      "paintscope_key": "PS_META.SURFACE_TEXTURE",
+      "uom": "ENUM",
+      "required": true,
+      "description": "Wall surface texture (smooth/orange_peel/knockdown/heavy_texture) — drives texture modifier"
+    },
+    {
+      "input_name": "IN_ENUM_HEIGHT_BAND",
+      "paintscope_key": "PS_META.HEIGHT_BAND",
+      "uom": "ENUM",
+      "required": true,
+      "description": "Wall height tier (H1/H2/H3/H4) — drives height modifier"
+    },
+    {
+      "input_name": "IN_ENUM_SUBSTRATE_STATE_INT",
+      "paintscope_key": "PS_META.ENUM.SUBSTRATE_STATE_INT",
+      "uom": "ENUM",
+      "required": true,
+      "description": "Interior substrate state (SS_INT_SOUND_PAINT through SS_INT_SMOKE_DAMAGE) — drives primer selection and prep pathway"
+    },
+    {
+      "input_name": "IN_BOOL_HOME_PRE_1978",
+      "paintscope_key": "PS_META.BOOL.HOME_PRE_1978",
+      "uom": "BOOL",
+      "required": true,
+      "description": "Pre-1978 home flag — triggers EPA Lead-Safe RRP module"
+    },
+    {
+      "input_name": "IN_ENUM_CONTAMINATION_TYPE",
+      "paintscope_key": "PS_META.ENUM.CONTAMINATION_TYPE",
+      "uom": "ENUM",
+      "required": true,
+      "description": "Contamination type (none/mildew/smoke/water_stain/grease) — drives contamination treatment tasks and modifier"
+    }
+  ],
+
+  "material_systems_summary": [
+    {
+      "system_id": "SYS_PRIMER_ADHESION_INT",
+      "name": "Interior Adhesion Primer",
+      "product_role": "primer",
+      "applies_when": { "substrate_state": ["SS_INT_SOUND_PAINT", "SS_INT_FAILING_PAINT", "SS_INT_PEELING"] },
+      "notes": "Water-based adhesion promoter for previously painted surfaces. Bonds to glossy, chalky, or oil-based existing coatings."
+    },
+    {
+      "system_id": "SYS_PRIMER_STAINBLOCK_INT",
+      "name": "Interior Stain-Blocking Primer (Shellac)",
+      "product_role": "primer",
+      "applies_when": { "substrate_state": ["SS_INT_SMOKE_DAMAGE"] },
+      "notes": "Shellac-based stain blocker (BIN or equivalent). Only product that seals nicotine/smoke. Full surface application required."
+    },
+    {
+      "system_id": "SYS_PRIMER_MILDEW_INT",
+      "name": "Interior Mildew-Resistant Primer",
+      "product_role": "primer",
+      "applies_when": { "substrate_state": ["SS_INT_MOISTURE_DAMAGE"] },
+      "notes": "Mildew-resistant stain-blocking primer. Applied after biocide treatment and source moisture resolution."
+    },
+    {
+      "system_id": "SYS_FINISH_INT_STANDARD",
+      "name": "Interior Finish — Standard (QT2-QT3)",
+      "product_role": "finish",
+      "applies_when": { "quality_tier": ["QT2", "QT3"] },
+      "notes": "Standard interior wall finish. Eggshell or flat sheen."
+    },
+    {
+      "system_id": "SYS_FINISH_INT_PREMIUM",
+      "name": "Interior Finish — Premium (QT4)",
+      "product_role": "finish",
+      "applies_when": { "quality_tier": ["QT4"] },
+      "notes": "Premium interior wall finish. Higher solids, better hide, satin or semi-gloss."
+    },
+    {
+      "system_id": "SYS_FINISH_INT_SUPERIOR",
+      "name": "Interior Finish — Superior (QT5)",
+      "product_role": "finish",
+      "applies_when": { "quality_tier": ["QT5"] },
+      "notes": "Superior interior wall finish. Maximum film build, self-leveling, semi-gloss."
+    }
+  ],
+
+  "module_summary": [
+    { "module_id": "MOD_WLRP_SETUP", "phase": "setup", "task_count": 8, "description": "Floor, trim masking, fixture covers, furniture protection" },
+    { "module_id": "MOD_WLRP_ASSESSMENT", "phase": "prep", "task_count": 4, "description": "Condition scan, adhesion test, moisture meter, coating ID" },
+    { "module_id": "MOD_RRP_INT_CONTAINMENT", "phase": "prep", "task_count": 5, "description": "Lead test, containment setup, HEPA vacuum, containment removal, waste disposal (conditional: pre-1978)" },
+    { "module_id": "MOD_WLRP_PREP", "phase": "prep", "task_count": 9, "description": "TSP wash, mildew treatment, scrape, feather, degloss, spackle, sand, caulk, dust wipe/vacuum" },
+    { "module_id": "MOD_WLRP_PRIME", "phase": "prime", "task_count": 5, "description": "Cut-in primer at ceiling, roll primer, spray primer, backroll primer, spot prime" },
+    { "module_id": "MOD_WLRP_INTERSTAGE", "phase": "interstage", "task_count": 6, "description": "Light sand, vacuum intercoat dust, inspect between coats, patch defects, spot coat" },
+    { "module_id": "MOD_WLRP_FINISH", "phase": "finish", "task_count": 14, "description": "Cut-in ceiling R1/R2, cut-in trim R1/R2, roll finish R1/R2, spray finish R1/R2, backroll finish R1/R2" },
+    { "module_id": "MOD_WLRP_CLEANUP", "phase": "cleanup", "task_count": 8, "description": "Remove masking, fixture covers, floor teardown, furniture replace, vacuum, clean tools, final inspect, touchup, customer walkthrough" }
+  ],
+
+  "round_configurations_summary": [
+    {
+      "round_id": "ROUND_WLRP_PRIME_2FINISH",
+      "name": "Full Repaint — Prime + 2 Finish Coats",
+      "applies_when": { "quality_tier": ["QT3", "QT4", "QT5"], "condition_scale": ["FAIR", "POOR"] },
+      "total_coats": 3,
+      "interstage_cycles": 2
+    },
+    {
+      "round_id": "ROUND_WLRP_PRIME_1FINISH",
+      "name": "Economy Repaint — Prime + 1 Finish Coat",
+      "applies_when": { "quality_tier": ["QT2"], "condition_scale": ["FAIR", "POOR"] },
+      "total_coats": 2,
+      "interstage_cycles": 0
+    },
+    {
+      "round_id": "ROUND_WLRP_NOPRIME_2FINISH",
+      "name": "Cosmetic Refresh — No Prime + 2 Finish Coats",
+      "applies_when": { "quality_tier": ["QT3", "QT4", "QT5"], "condition_scale": ["GOOD"] },
+      "total_coats": 2,
+      "interstage_cycles": 1
+    },
+    {
+      "round_id": "ROUND_WLRP_NOPRIME_1FINISH",
+      "name": "Economy Refresh — No Prime + 1 Finish Coat",
+      "applies_when": { "quality_tier": ["QT2"], "condition_scale": ["GOOD"] },
+      "total_coats": 1,
+      "interstage_cycles": 0
+    }
+  ],
+
+  "factor_modifiers_summary": {
+    "condition_scale": {
+      "FAC_WLRP_CONDITION_GOOD": 1.00,
+      "FAC_WLRP_CONDITION_FAIR": 1.50,
+      "FAC_WLRP_CONDITION_POOR": 2.00
+    },
+    "contamination_type": {
+      "FAC_WLRP_CONTAM_NONE": 1.00,
+      "FAC_WLRP_CONTAM_MILDEW": 1.20,
+      "FAC_WLRP_CONTAM_SMOKE": 1.50,
+      "FAC_WLRP_CONTAM_WATER_STAIN": 1.15,
+      "FAC_WLRP_CONTAM_GREASE": 1.10
+    },
+    "wall_access": {
+      "FAC_WLRP_ACCESS_OPEN": 1.00,
+      "FAC_WLRP_ACCESS_OBSTRUCTED_LIGHT": 1.15,
+      "FAC_WLRP_ACCESS_OBSTRUCTED_HEAVY": 1.30
+    },
+    "quality_tier": {
+      "FAC_QT2": 0.80,
+      "FAC_QT3": 1.00,
+      "FAC_QT4": 1.30,
+      "FAC_QT5": 1.50
+    },
+    "height_factor": {
+      "FAC_HEIGHT_H1": 1.00,
+      "FAC_HEIGHT_H2": 1.30,
+      "FAC_HEIGHT_H3": 1.50,
+      "FAC_HEIGHT_H4": 2.00
+    },
+    "texture_type": {
+      "FAC_TEXTURE_SMOOTH": 1.00,
+      "FAC_TEXTURE_ORANGE_PEEL": 1.10,
+      "FAC_TEXTURE_KNOCKDOWN": 1.15,
+      "FAC_TEXTURE_HEAVY": 1.25
+    },
+    "stacking_partition": {
+      "prep_pool": "condition x contamination x access x height x texture (max 9.75x)",
+      "coating_pool": "qt x access x height x texture (max 4.88x)",
+      "never_cross": "Prep pool never includes QT. Coating pool never includes condition or contamination."
+    }
+  },
+
+  "protection_zones_required": [
+    {
+      "zone_id": "floor_perimeter",
+      "condition": { "application_method": ["roll"] },
+      "protection_level": "edge_only",
+      "notes": "Perimeter drop cloths for drip risk during roll application."
+    },
+    {
+      "zone_id": "floor_full",
+      "condition": { "application_method": ["spray", "spray_backroll"] },
+      "protection_level": "full_cover",
+      "notes": "Full floor coverage for spray methods. Rosin paper on hard floors, plastic on carpet."
+    },
+    {
+      "zone_id": "trim_edges",
+      "condition": "always",
+      "protection_level": "light_mask",
+      "notes": "RP trim always in place. Tape line at baseboard, door casing, and window casing edges."
+    },
+    {
+      "zone_id": "fixture_covers",
+      "condition": { "application_method": ["spray", "spray_backroll"] },
+      "protection_level": "full_cover",
+      "notes": "Outlets, switches, and wall-mounted fixtures. Also recommended for roll at QT4+."
+    },
+    {
+      "zone_id": "furniture_room",
+      "condition": { "occupancy_state": ["occupied_crew_handles", "occupied_sensitive"] },
+      "protection_level": "full_cover",
+      "notes": "RP-specific. Furniture center-piled and covered with poly sheeting."
+    }
+  ],
+
+  "adjacency_declarations": {
+    "primary_surface": "wall_field",
+    "adjacent_surfaces": [
+      {
+        "surface_id": "ceiling_field",
+        "edge_type": "linear",
+        "typical_relationship": "different_finish",
+        "affected_tasks": ["TSK_WLRP_CUTIN_PRIMER_CEILING", "TSK_WLRP_CUTIN_CEILING_R1", "TSK_WLRP_CUTIN_CEILING_R2"],
+        "notes": "Wall painter establishes ceiling line via freehand cut-in. No tape/mask on drywall ceilings per doctrine."
+      },
+      {
+        "surface_id": "trim_baseboard",
+        "edge_type": "linear",
+        "typical_relationship": "different_finish",
+        "affected_tasks": ["TSK_WLRP_MASK_TRIM_BASEBOARD", "TSK_WLRP_CUTIN_TRIM_R1", "TSK_WLRP_CUTIN_TRIM_R2"],
+        "notes": "Baseboard always in place in RP. Masked off, wall painter cuts to tape line."
+      },
+      {
+        "surface_id": "trim_casing_door",
+        "edge_type": "linear",
+        "typical_relationship": "different_finish",
+        "affected_tasks": ["TSK_WLRP_MASK_TRIM_DOOR_CASING", "TSK_WLRP_CUTIN_TRIM_R1", "TSK_WLRP_CUTIN_TRIM_R2"],
+        "notes": "Door casing always in place in RP. Masked off, wall painter cuts to tape line."
+      },
+      {
+        "surface_id": "trim_casing_window",
+        "edge_type": "linear",
+        "typical_relationship": "different_finish",
+        "affected_tasks": ["TSK_WLRP_MASK_TRIM_WINDOW_CASING", "TSK_WLRP_CUTIN_TRIM_R1", "TSK_WLRP_CUTIN_TRIM_R2"],
+        "notes": "Window casing always in place in RP. Masked off, wall painter cuts to tape line."
+      },
+      {
+        "surface_id": "trim_crown",
+        "edge_type": "linear",
+        "typical_relationship": "different_finish",
+        "affected_tasks": ["TSK_WLRP_CUTIN_TRIM_R1", "TSK_WLRP_CUTIN_TRIM_R2"],
+        "notes": "If crown exists, masked before wall work. Wall painter cuts to tape line at crown bottom edge."
+      },
+      {
+        "surface_id": "trim_chair_rail",
+        "edge_type": "linear",
+        "typical_relationship": "different_finish",
+        "affected_tasks": ["TSK_WLRP_CUTIN_TRIM_R1", "TSK_WLRP_CUTIN_TRIM_R2"],
+        "notes": "If chair rail exists, masked. May split wall into upper/lower sections with different colors."
+      }
+    ]
+  },
+
+  "state_declarations": {
+    "primary_surface": "wall_field",
+
+    "valid_input_states": {
+      "states": [
+        "SS_INT_SOUND_PAINT",
+        "SS_INT_FAILING_PAINT",
+        "SS_INT_PEELING",
+        "SS_INT_MOISTURE_DAMAGE",
+        "SS_INT_SMOKE_DAMAGE"
+      ],
+      "notes": "All 5 SS_INT_* states accepted. Each drives distinct prep pathway and primer selection. Worst state in room drives overall condition_scale."
+    },
+
+    "output_state": {
+      "state": "SS_PAINTED_EGGSHELL",
+      "varies_by": "sheen",
+      "state_map": {
+        "flat": "SS_PAINTED_FLAT",
+        "matte": "SS_PAINTED_FLAT",
+        "eggshell": "SS_PAINTED_EGGSHELL",
+        "satin": "SS_PAINTED_SATIN",
+        "semi-gloss": "SS_PAINTED_SEMIGLOSS"
+      },
+      "notes": "All input states normalize to SS_PAINTED_* output after proper prep and coating. Eggshell is default."
+    },
+
+    "adjacent_state_protection_rules": [
+      {
+        "adjacent_surface": "ceiling_field",
+        "when_state": "finished",
+        "protection_zone": "ceiling_line",
+        "protection_level": "none",
+        "notes": "Per doctrine: walls always cut into ceilings freehand. No tape/mask on drywall ceilings."
+      },
+      {
+        "adjacent_surface": "trim_baseboard",
+        "when_state": "finished",
+        "protection_zone": "trim_edges",
+        "protection_level": "light_mask",
+        "notes": "RP trim always finished. Tape line at baseboard top edge provides cut-in target."
+      },
+      {
+        "adjacent_surface": "trim_casing_door",
+        "when_state": "finished",
+        "protection_zone": "trim_edges",
+        "protection_level": "light_mask",
+        "notes": "Door casing always present in RP. Tape line at casing edge."
+      },
+      {
+        "adjacent_surface": "trim_casing_window",
+        "when_state": "finished",
+        "protection_zone": "trim_edges",
+        "protection_level": "light_mask",
+        "notes": "Window casing always present in RP. Tape line at casing edge."
+      }
+    ]
+  },
+
+  "site_condition_rules": [
+    {
+      "condition_id": "occupancy_state",
+      "include_when": ["occupied_crew_handles", "occupied_sensitive"],
+      "exclude_when": ["vacant"],
+      "affects": "protection and cleanup tasks",
+      "affected_tasks": ["TSK_WLRP_FURNITURE_MOVE", "TSK_WLRP_FURNITURE_COVER", "TSK_WLRP_FURNITURE_REPLACE", "TSK_WLRP_CUSTOMER_WALKTHROUGH"],
+      "notes": "Occupied home adds furniture protection and customer walkthrough. Vacant RP omits these tasks."
+    },
+    {
+      "condition_id": "lead_status",
+      "include_when": ["tested_positive", "unknown_pre1978"],
+      "exclude_when": ["not_applicable", "presumed_safe", "tested_negative"],
+      "affects": "prep tasks involving paint disturbance",
+      "affected_tasks": ["TSK_RRP_LEAD_TEST", "TSK_RRP_CONTAINMENT_SETUP", "TSK_RRP_HEPA_VACUUM", "TSK_RRP_CONTAINMENT_REMOVAL", "TSK_RRP_WASTE_DISPOSAL"],
+      "notes": "Pre-1978 + lead-positive activates MOD_RRP_INT_CONTAINMENT module."
+    },
+    {
+      "condition_id": "moisture_condition",
+      "include_when": ["recently_wet"],
+      "exclude_when": ["active_moisture"],
+      "affects": "assessment and prep tasks",
+      "notes": "active_moisture is STOP WORK. recently_wet requires extended dry time."
+    },
+    {
+      "condition_id": "contamination_type",
+      "include_when": ["mildew", "smoke", "water_stain", "grease"],
+      "affects": "contamination treatment tasks",
+      "affected_tasks": ["TSK_WLRP_WASH_TSP", "TSK_WLRP_TREAT_MILDEW"],
+      "notes": "Contamination type drives TSP wash and biocide treatment activation."
+    },
+    {
+      "condition_id": "wall_height",
+      "include_when": ["H1_STANDARD", "H2_TALL", "H3_HIGH", "H4_SCAFFOLD"],
+      "affects": "all labor tasks",
+      "effect": "H1=1.0, H2=1.30, H3=1.50, H4=2.00",
+      "notes": "Per Modifier_Registry. Applied to all tasks based on working height."
+    },
+    {
+      "condition_id": "surface_texture",
+      "include_when": ["smooth", "orange_peel", "knockdown", "heavy_texture"],
+      "affects": "application and prep tasks",
+      "effect": "smooth=1.0, orange_peel=1.10, knockdown=1.15, heavy=1.25",
+      "notes": "Texture increases surface area and slows application rate."
+    }
+  ],
+
+  "task_count": 59,
+  "module_count": 8,
+  "doctrine_overrides": [],
+
+  "research_corrections": [],
+
+  "sequencing_notes": {
+    "production_sequence": "Setup (protect) -> Assess (condition) -> RRP (if pre-1978) -> Prep (state-driven) -> Prime (state-driven) -> Interstage (QT4/QT5) -> Finish 1 -> Interstage (QT4/QT5) -> Finish 2 (QT3+) -> Inspect -> Touch-up -> Teardown -> Cleanup -> Customer Walkthrough",
+    "edge_work": "Wall-to-ceiling cut-in is the primary edge work. All trim edges are masked (protection relationship, not edge work).",
+    "key_prohibitions": "NO spray primer without backroll (adhesion mandatory). NO masking drywall ceilings. NO painting over active moisture. NO latex primer on smoke damage (shellac only). Spot prime ALL spackled/scraped areas regardless of full prime."
+  },
+
+  "relationships": {
+    "companion_spec": null,
+    "sibling_specs": ["SF_DRYWALL_WALL_NC_PRIME_v1", "SF_DRYWALL_WALL_NC_FINISH_v1"],
+    "often_combined_with": ["Future SF_TRIM_INT_RP", "Future SF_DRYWALL_CEILING_INT_RP"],
+    "notes": "First interior repaint spec. Combined prime+finish (no separate phases). NC wall prime/finish are sibling specs with significant task reuse (~49 direct transfers)."
+  },
+
+  "dependencies": {
+    "research": "research.json",
+    "resolution": "resolution.json",
+    "materials": "materials.json",
+    "sop_modules": "sop_modules.json",
+    "production": "production.json"
+  },
+
+  "artifact_counts": {
+    "total_tasks": 59,
+    "binary_tasks": 30,
+    "qt_scaled_tasks": 22,
+    "qt_conditional_tasks": 7,
+    "sop_modules": 8,
+    "material_systems": 6,
+    "round_configurations": 4,
+    "factor_modifier_definitions": 23,
+    "protection_zones": 5,
+    "adjacent_surfaces": 6,
+    "paintscope_inputs": 16,
+    "variants": 7,
+    "paintable_items": 2,
+    "configuration_dimensions": 4,
+    "registry_additions_proposed": 44
+  },
+
+  "doctrine_references": [
+    { "doctrine": "Quality_Tiers_and_Surface_Condition.md", "sections_used": ["QT2-QT5 tier definitions", "Condition scale GOOD/FAIR/POOR"] },
+    { "doctrine": "Materials_and_Consumables_Doctrine.md", "sections_used": ["Primer systems by substrate state", "Shellac stain-blocker mandate for smoke damage"] },
+    { "doctrine": "Estimation_Modifiers_Doctrine.md", "sections_used": ["Spray/backroll coupling constraint", "Height modifiers", "Texture modifiers", "Stacking partition"] },
+    { "doctrine": "Interior_Protection_Doctrine.md", "sections_used": ["Floor protection by method", "Trim masking", "Fixture covers", "Furniture protection"] },
+    { "doctrine": "Protection_and_Masking_Doctrine.md", "sections_used": ["No ceiling masking for drywall", "Freehand cut-in doctrine"] },
+    { "doctrine": "Modifier_Registry.md", "sections_used": ["Height modifiers H1-H4", "Texture modifiers", "QT modifiers", "Condition modifiers"] },
+    { "doctrine": "Spec_Completeness_Doctrine.md", "sections_used": ["Protection zones", "Adjacency declarations", "State declarations", "Site condition rules"] },
+    { "doctrine": "Substrate_State_Reference.md", "sections_used": ["5 SS_INT_* states", "State-to-condition mapping", "Output state by sheen"] }
+  ],
+
+  "change_log": [
+    {
+      "version": "1.0.0",
+      "date": "2026-03-13",
+      "author": "SpecFactory Assembly Agent",
+      "changes": "Initial spec.json assembly from 5 pipeline artifacts (research, resolution, materials, sop_modules, production). Applied 4 QA fixes from Critic: QA-001 (task_type 'mask'->'protect', 'cut_in'->'apply' in sop_modules.json), QA-002 (spray primer rate 550->380 SF/hr to comply with spray/backroll coupling constraint in production.json), QA-003 (final inspect QT2 rate 2500->2000 SF/hr cap in production.json), QA-004 (touchup QT2 rate 2500->2000 SF/hr cap in production.json). First interior repaint spec. 59 tasks across 8 modules, 6 material systems, 4 round configurations, 23 factor modifier definitions, 5 protection zones, 6 adjacent surfaces, 16 PaintScope inputs, 44 proposed registry additions."
+    }
+  ]
+}

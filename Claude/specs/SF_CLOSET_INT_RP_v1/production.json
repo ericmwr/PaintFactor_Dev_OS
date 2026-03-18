@@ -1,0 +1,295 @@
+{
+  "spec_family_id": "SF_CLOSET_INT_RP",
+  "version": "0.1.0",
+  "generated_by": "Estimation Engineer",
+  "generated_at": "2026-03-14",
+
+  "rate_basis": "Opening Count per BuiltIns_Shelving Quantification System.md v2.0 — rates transferred from SF_CLOSET_SHELF_NC production.json with RP-specific adjustments",
+  "rate_notes": [
+    "Rates are per opening (EA_OPENING) by tier for opening-based tasks",
+    "Per-closet (EA_CLOSET) for protection and walkthrough tasks",
+    "FIXED for assessment task (flat time regardless of opening count)",
+    "NC DIRECT transfers use same rates re-keyed to TSK_CSRP_*",
+    "RP-specific tasks (assess, degloss, scrape, mildew treat, walkthrough) calibrated from RP research and door RP patterns",
+    "Depth, detail, access modifiers from NC Quantification System transfer unchanged",
+    "QT modifiers: QT2=0.85x, QT3=1.00x (closet-specific — QT2 is 0.85 not 0.80 per research RF-001)"
+  ],
+
+  "task_production_rates": [
+    {
+      "task_id": "TSK_CSRP_FLOOR_PROTECT",
+      "name": "Floor protection setup",
+      "unit_of_measure": "EA_CLOSET",
+      "task_classification": "binary",
+      "rate_per_hour": 10,
+      "paintscope_key": "PS_PROTECT_SF.FLOOR_WORKZONE",
+      "notes": "Per closet, not per opening. DIRECT transfer from NC TSK_FLOOR_PROTECT (rate 10/hr). Drop cloth placement under closet opening."
+    },
+    {
+      "task_id": "TSK_CSRP_ASSESS_CONDITION",
+      "name": "Visual condition assessment",
+      "unit_of_measure": "FIXED",
+      "task_classification": "binary",
+      "fixed_time_minutes": 4,
+      "fixed_time_range_low": 3,
+      "fixed_time_range_high": 5,
+      "notes": "RP-NEW task. FIXED ~4 min per closet. Brief visual scan of all shelf surfaces — check peeling, mildew, water stains, general condition. Assign substrate state. Verify contents removed. No adhesion test, no coating ID, no moisture meter."
+    },
+    {
+      "task_id": "TSK_CSRP_DEGLOSS",
+      "name": "Degloss / scuff sand existing paint",
+      "unit_of_measure": "EA_OPENING",
+      "task_classification": "binary",
+      "rates_by_tier": {
+        "S": 25,
+        "M": 15,
+        "L": 10,
+        "XL": 5
+      },
+      "rate_unit": "openings/hr",
+      "notes": "RP MODIFIED — replaces NC TSK_DUST_WIPE and TSK_LIGHT_SAND. Mechanical scuff sand (150 grit) for adhesion profile on existing paint. Slightly faster than NC TSK_LIGHT_SAND (which was scuffing factory primer on unfamiliar surfaces). Existing paint is more predictable."
+    },
+    {
+      "task_id": "TSK_CSRP_SCRAPE_FEATHER",
+      "name": "Scrape and feather failing paint",
+      "unit_of_measure": "EA_OPENING",
+      "task_classification": "binary",
+      "rates_by_tier": {
+        "S": 15,
+        "M": 10,
+        "L": 6,
+        "XL": 3
+      },
+      "rate_unit": "openings/hr",
+      "applies_when": {
+        "substrate_state": ["SS_INT_FAILING_PAINT", "SS_INT_PEELING"]
+      },
+      "state_condition_note": "Only active for failing or peeling substrate states. Rate similar to NC prime brush/roll — scraping and feathering is comparable effort to priming.",
+      "notes": "RP-NEW task. Scrape all loose paint, feather edges with 120 grit. Labor-intensive for POOR condition (heavy peeling). Condition modifier (FAC_CONDITION_SCALE) applies on top of base rate."
+    },
+    {
+      "task_id": "TSK_CSRP_TREAT_MILDEW",
+      "name": "Mildew biocide treatment",
+      "unit_of_measure": "EA_CLOSET",
+      "task_classification": "binary",
+      "rate_per_hour": 4,
+      "rate_range_low": 3,
+      "rate_range_high": 5,
+      "applies_when": {
+        "substrate_state": ["SS_INT_MOISTURE_DAMAGE"]
+      },
+      "state_condition_note": "Only active for moisture damage state. Per-closet rate — all affected surfaces in one closet treated together.",
+      "notes": "RP-NEW task. ~15 min per closet. Apply biocide, scrub, rinse. Does NOT include 24hr dry time (scheduling gap). Bathroom/basement closets are primary use case."
+    },
+    {
+      "task_id": "TSK_CSRP_SPOT_FILL",
+      "name": "Spot fill defects",
+      "unit_of_measure": "EA_OPENING",
+      "task_classification": "qt_scaled",
+      "rates_by_tier": {
+        "S": 25,
+        "M": 15,
+        "L": 10,
+        "XL": 5
+      },
+      "rate_unit": "openings/hr",
+      "qt_modifier_applies": true,
+      "notes": "DIRECT transfer from NC TSK_SPOT_FILL (identical rates). Fill nail holes and minor defects. QT-scaled: QT2 minimal fill (0.85x = faster), QT3 thorough fill (1.0x baseline)."
+    },
+    {
+      "task_id": "TSK_CSRP_CAULK_REPAIR",
+      "name": "Caulk repair (failed sections)",
+      "unit_of_measure": "EA_OPENING",
+      "task_classification": "binary",
+      "rates_by_tier": {
+        "S": 30,
+        "M": 18,
+        "L": 12,
+        "XL": 6
+      },
+      "rate_unit": "openings/hr",
+      "notes": "RP MODIFIED from NC TSK_CAULK. RP caulk repair is ~50% faster than NC full caulk because only failed sections are replaced (15-30% of joints typical). NC rates: S=20, M=12, L=8, XL=4. RP rates: S=30, M=18, L=12, XL=6."
+    },
+    {
+      "task_id": "TSK_CSRP_PRIME_ADHESION",
+      "name": "Prime - adhesion primer (brush/roll)",
+      "unit_of_measure": "EA_OPENING",
+      "task_classification": "binary",
+      "rates_by_tier": {
+        "S": 15,
+        "M": 10,
+        "L": 6,
+        "XL": 3
+      },
+      "rate_unit": "openings/hr",
+      "applies_when": {
+        "substrate_state": ["SS_INT_FAILING_PAINT", "SS_INT_PEELING"]
+      },
+      "state_condition_note": "Adhesion primer for failing/peeling states. Spot prime for failing, full prime for peeling.",
+      "notes": "RP MODIFIED from NC TSK_PRIME_BRUSH_ROLL (identical rates). Same physical action — brush/roll primer on shelf surfaces. Product is adhesion primer instead of bare-substrate primer."
+    },
+    {
+      "task_id": "TSK_CSRP_PRIME_STAIN_BLOCK",
+      "name": "Prime - stain-block primer (brush/roll)",
+      "unit_of_measure": "EA_OPENING",
+      "task_classification": "binary",
+      "rates_by_tier": {
+        "S": 15,
+        "M": 10,
+        "L": 6,
+        "XL": 3
+      },
+      "rate_unit": "openings/hr",
+      "applies_when": {
+        "substrate_state": ["SS_INT_MOISTURE_DAMAGE", "SS_INT_SMOKE_DAMAGE"]
+      },
+      "state_condition_note": "Stain-block primer for moisture or smoke damage. Full surface prime.",
+      "notes": "RP MODIFIED from NC TSK_PRIME_BRUSH_ROLL (identical rates). Same physical action. Product is acrylic stain-block primer. Full surface coverage to seal stains."
+    },
+    {
+      "task_id": "TSK_CSRP_PRIME_BRUSH",
+      "name": "Prime - general brush/roll primer",
+      "unit_of_measure": "EA_OPENING",
+      "task_classification": "binary",
+      "rates_by_tier": {
+        "S": 15,
+        "M": 10,
+        "L": 6,
+        "XL": 3
+      },
+      "rate_unit": "openings/hr",
+      "state_condition_note": "Fallback primer task. No primer for SS_INT_SOUND_PAINT. Used when primer needed but specialty primers not indicated.",
+      "notes": "RP MODIFIED from NC TSK_PRIME_BRUSH_ROLL (identical rates). Catch-all primer task for cases not covered by adhesion or stain-block primers."
+    },
+    {
+      "task_id": "TSK_CSRP_FINISH_BRUSH",
+      "name": "Finish coat - brush and roll",
+      "unit_of_measure": "EA_OPENING",
+      "task_classification": "qt_scaled",
+      "rates_by_tier": {
+        "S": 12,
+        "M": 8,
+        "L": 5,
+        "XL": 2.5
+      },
+      "rate_unit": "openings/hr",
+      "qt_modifier_applies": true,
+      "notes": "DIRECT transfer from NC TSK_FINISH_BRUSH_ROLL (identical rates). Per coat. QT2=1 coat, QT3=2 coats. Multiply by coat count for total time. QT-scaled: QT2 faster (0.85x), QT3 baseline (1.0x)."
+    },
+    {
+      "task_id": "TSK_CSRP_FLOOR_PROTECT_TEARDOWN",
+      "name": "Floor protection teardown",
+      "unit_of_measure": "EA_CLOSET",
+      "task_classification": "binary",
+      "rate_per_hour": 15,
+      "notes": "DIRECT transfer from NC TSK_FLOOR_PROTECT_TEARDOWN (rate 15/hr). Per closet. Faster than setup (just remove and fold)."
+    },
+    {
+      "task_id": "TSK_CSRP_FINAL_INSPECT",
+      "name": "Final inspection and touch-up",
+      "unit_of_measure": "EA_OPENING",
+      "task_classification": "qt_scaled",
+      "rates_by_tier": {
+        "S": 60,
+        "M": 40,
+        "L": 25,
+        "XL": 12
+      },
+      "rate_unit": "openings/hr",
+      "qt_modifier_applies": true,
+      "notes": "DIRECT transfer from NC TSK_FINAL_INSPECT (identical rates). QT-scaled: QT2 quick glance (0.85x = faster), QT3 arm's-length check (1.0x)."
+    },
+    {
+      "task_id": "TSK_CSRP_CUSTOMER_WALKTHROUGH",
+      "name": "Customer walkthrough",
+      "unit_of_measure": "EA_CLOSET",
+      "task_classification": "binary",
+      "rate_per_hour": 20,
+      "rate_range_low": 15,
+      "rate_range_high": 30,
+      "notes": "RP-NEW task. ~2-3 min per closet. Brief walkthrough with homeowner — verify shelves coated, no drips, closet ready for contents. Fast rate reflects minimal scope of closet walkthrough vs door/room walkthrough."
+    }
+  ],
+
+  "quality_tier_effects": [
+    {
+      "quality_tier": "QT2",
+      "time_modifier": 0.85,
+      "description": "Economy closet shelf repaint. Reduced prep, 1 finish coat, glance inspection.",
+      "mechanism": "baseline_reduction",
+      "coats": 1,
+      "notes": "QT2 modifier is 0.85x for closet shelving (slightly higher than global 0.80x per research RF-001 — closets still require basic adhesion prep even at economy tier)."
+    },
+    {
+      "quality_tier": "QT3",
+      "time_modifier": 1.0,
+      "description": "Standard closet shelf repaint. Thorough prep, 2 finish coats, arm's-length inspection.",
+      "mechanism": "baseline",
+      "coats": 2,
+      "notes": "Baseline rate. Standard quality for owner-occupied homes."
+    }
+  ],
+
+  "opening_modifiers": {
+    "source": "SF_CLOSET_SHELF_NC production.json — transferred unchanged",
+    "depth": {
+      "SHALLOW": 1.0,
+      "DEEP": 1.15,
+      "VERY_DEEP": 1.30
+    },
+    "detail": {
+      "SIMPLE_BOX": 1.0,
+      "FACE_FRAME": 1.20,
+      "CROWN_VALANCE": 1.35,
+      "BEADED_ROUTED": 1.50
+    },
+    "access": {
+      "OPEN_ACCESS": 1.0,
+      "CRAMPED": 1.25,
+      "OBSTRUCTED": 1.50
+    }
+  },
+
+  "qt_modifiers": {
+    "source": "Resolution.json quality_tier_effects — closet-specific",
+    "values": {
+      "QT2": 0.85,
+      "QT3": 1.00
+    }
+  },
+
+  "coat_counts": {
+    "QT2": { "primer": "0 or 1 (state-driven)", "finish": 1 },
+    "QT3": { "primer": "0 or 1 (state-driven)", "finish": 2 }
+  },
+
+  "modifier_stacking": "Multiplicative: depth x detail x access x qt_modifier. Condition modifier (FAC_CONDITION_SCALE) applies to prep pool tasks only. Max realistic stack: FAIR(1.3) x DEEP(1.15) x FACE_FRAME(1.20) x CRAMPED(1.25) = 2.24x.",
+
+  "crew_configurations": [
+    {
+      "config_id": "CREW_CSRP_SOLO",
+      "name": "Solo painter",
+      "crew_size": 1,
+      "roles": ["journeyman"],
+      "applies_when": { "quality_tier": ["QT2", "QT3"] },
+      "notes": "Closet shelving RP is always solo work. Space constraints (single closet opening) do not support 2-person crews. Helper may assist with floor protection setup/teardown on large scope (10+ closets)."
+    }
+  ],
+
+  "assumptions": [
+    "Rates assume standard residential closet shelving (wire organizer systems excluded)",
+    "Contents removed by homeowner before painter arrival",
+    "Finished floors in all closets (RP context)",
+    "Single color per closet (no accent shelving)",
+    "Standard ceiling height (8-9 ft) — no high-reach shelving",
+    "24hr dry time for biocide treatment is scheduling gap, not labor time"
+  ],
+
+  "validation_plan": [
+    "Verify all 15 TSK_CSRP_* task_ids match sop_modules.json exactly",
+    "Verify UOM consistency between sop_modules.json and production.json for each task",
+    "Verify coat_counts match materials.json system coats_required",
+    "Verify QT modifier values match research.json quality_differences",
+    "Verify opening modifiers match NC production.json exactly (unchanged transfer)"
+  ]
+}

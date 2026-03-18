@@ -1,0 +1,188 @@
+{
+  "spec_family_id": "SF_DOOR_INT_RP",
+  "version": "1.0.0",
+  "overall_result": "PASS",
+  "qa_date": "2026-03-14",
+  "critic_agent": "QA Critic Agent",
+
+  "validation_gates": {
+    "schema_compliance": {
+      "passed": true,
+      "notes": "All 5 artifact files (research.json, resolution.json, materials.json, sop_modules.json, production.json) have correct top-level keys per structural_keys.json. spec_family_id = SF_DOOR_INT_RP across all files. Version 0.1.0 consistent across downstream artifacts."
+    },
+    "task_id_threading": {
+      "passed": true,
+      "notes": "50 task IDs in sop_modules.json exactly match 50 task IDs in production.json. Zero orphans in either direction. 40 TSK_DIRP_* tasks + 5 TSK_RRP_* shared tasks + 5 method-alternative tasks = 50 total."
+    },
+    "prefix_compliance": {
+      "passed": true,
+      "notes": "All owned tasks use TSK_DIRP_ prefix per resolution.json context prefix DIRP. 5 shared RRP tasks use TSK_RRP_ prefix (MOD_RRP_INT_CONTAINMENT). No collision with TSK_DOOR_* (NC slab), TSK_FRAME_* (NC frame), TSK_DRRP_* (exterior door RP). Module IDs use MOD_DIRP_* prefix (7 owned modules) + MOD_RRP_INT_CONTAINMENT (shared)."
+    },
+    "uom_alignment": {
+      "passed": true,
+      "notes": "All 50 tasks have matching unit_of_measure between sop_modules.json and production.json. Frame tasks use EA. Slab tasks use EA_SIDE. Per-opening tasks use EA. Fixed tasks use FIXED. All units uppercase per controlled_enums.json."
+    },
+    "qt2_exclusion": {
+      "passed": true,
+      "notes": "No QT2 values found in any artifact. appears_in_tiers consistently uses [QT3, QT4, QT5]. rates_by_tier keys are QT3/QT4/QT5 only. quality_tier_effects start at QT3 (baseline). Per Doors Doctrine: doors are scrutinized surfaces requiring minimum QT3."
+    },
+    "spray_brush_rate_check": {
+      "passed": true,
+      "notes": "Spray rate >= brush rate on all 4 paired application tasks. PRIME_FRAME: spray(12) > brush(7). PRIME_SLAB: spray(10) > brush(4). FINISH_FRAME: spray(10) > brush(5). FINISH_SLAB: spray(8) > brush(3.5). Door spray IS faster than brush (opposite of wall spray/backroll coupling constraint — doors spray faster because spray eliminates brush marks on scrutinized surfaces)."
+    },
+    "door_type_modifier_consistency": {
+      "passed": true,
+      "notes": "FAC_DOOR_TYPE_COMPLEXITY applied consistently to all slab tasks (EA_SIDE) in production.json with values: flush=1.0, panel_4=1.25, panel_6=1.35, raised_panel=1.40, french=2.0, bifold=0.70, louvered=2.50. FAC_FRAME_TYPE_COMPLEXITY applied to all frame tasks (EA) with values: standard=1.0, pocket=0.85, cased_opening=0.75, bifold=0.90. Modifier values match resolution.json factor_modifiers."
+    },
+    "modifier_stacking_partition": {
+      "passed": true,
+      "notes": "Prep pool: condition_scale x door_type_complexity x height. Coating pool: quality_tier x door_type_complexity x height. Prep tasks never include QT modifier. Coating tasks never include condition_scale modifier. MODIFIER_STACKING_WARNING in production.json correctly documents worst-case: prep=6.50x (POOR x louvered x H2), coating=5.85x (QT5 x louvered x H2). Realistic max: prep=3.64x, coating=3.28x. Louvered + POOR or louvered + QT5 flagged for estimator review."
+    },
+    "assessment_tasks": {
+      "passed": true,
+      "notes": "4 assessment tasks in MOD_DIRP_ASSESSMENT: TSK_DIRP_ASSESS_CONDITION (qt_scaled), TSK_DIRP_ASSESS_ADHESION (binary), TSK_DIRP_ASSESS_COATING_ID (binary), TSK_DIRP_ASSESS_MOISTURE (binary). All use EA UOM at per-opening granularity. Assessment results drive downstream task activation (primer selection, prep intensity, contamination treatment)."
+    },
+    "state_driven_primers": {
+      "passed": true,
+      "notes": "3 state-driven primer systems in materials.json: SYS_PRIMER_ADHESION_INT (SS_INT_SOUND_PAINT, SS_INT_FAILING_PAINT, SS_INT_PEELING), SYS_PRIMER_STAINBLOCK_INT (SS_INT_SMOKE_DAMAGE), SYS_PRIMER_MILDEW_INT (SS_INT_MOISTURE_DAMAGE). All system IDs are existing/shared. Prime tasks have correct substrate_state_rules: applies_when_input_state excludes SS_INT_SOUND_PAINT (skip prime for GOOD condition when adhesion passes)."
+    },
+    "customer_walkthrough": {
+      "passed": true,
+      "notes": "TSK_DIRP_CUSTOMER_WALKTHROUGH present in MOD_DIRP_CLEANUP. Binary classification, lead skill level. site_condition_rules: include_when occupied, exclude_when vacant. Rate: 8 EA/hr (7-8 min per door). RP-specific — no NC equivalent."
+    },
+    "enum_compliance": {
+      "passed": true,
+      "notes": "All enum values verified against controlled_enums.json: task_classification (binary/qt_scaled — no qt_conditional needed), skill_level (helper/journeyman/lead), phase (setup/prep/prime/interstage/finish/cleanup), task_type (protect/prep/prime/finish/inspect/cleanup/detail), sheen (satin/semi-gloss/gloss), application_method (brush/spray), substrate_state (5 SS_INT_* input states + SS_PAINTED_* output states), condition_scale (GOOD/FAIR/POOR), severity (critical/major/minor), protection_level (edge_only/full_cover/full_mask/item_mask/partial_cover), protection_action (setup/teardown). No prohibited values found."
+    },
+    "prohibited_pattern_check": {
+      "passed": true,
+      "notes": "No task_class (always task_classification). No CONS_ prefix (all CON_). No protect/protection phase values (setup/cleanup used correctly). No compound sheens. No lowercase units. No production rates in sop_modules.json. No coverage data in sop_modules.json. No severity high/medium/low/WARN."
+    },
+    "module_phase_ordering": {
+      "passed": true,
+      "notes": "Module phase sequence: setup -> prep -> prep -> prep -> prime -> interstage -> finish -> cleanup. Follows canonical sequence per controlled_enums.json phase.sequence_order. Three prep-phase modules (assessment, RRP containment, prep) are correctly grouped."
+    },
+    "paintscope_readiness": {
+      "passed": true,
+      "notes": "18 PaintScope keys defined in resolution.json. All required_input_keys in production.json reference valid PS keys. All module required_inputs reference valid IN/PS pairs. Door type distribution keys (PS_META.EA_SIDE.DOOR_SLAB.SLAB through .LOUVERED) properly proposed for weighted complexity modifier."
+    }
+  },
+
+  "cross_file_integrity": [
+    {
+      "check": "RULE 1: TSK_ IDs match sop_modules.json <-> production.json",
+      "status": "PASS",
+      "details": "50/50 task IDs match exactly. Zero orphans."
+    },
+    {
+      "check": "RULE 3: SYS_ quality_tier matches configuration_dimensions",
+      "status": "PASS",
+      "details": "3 primer systems use applies_when.substrate_state (not QT-driven). 3 finish systems use applies_when.quality_tier matching QT3/QT4/QT5. No QT2 systems."
+    },
+    {
+      "check": "RULE 6: zone_ids match spec -> sop_modules protection_metadata",
+      "status": "PASS",
+      "details": "6 zones declared in resolution.json (floor_perimeter, floor_full_8ft_radius, wall_adjacent_door, hardware_covers, floor_door_swing, glass_mask). All zones referenced in sop_modules.json protection_metadata. floor_door_swing correctly noted as subsumed (no separate task)."
+    },
+    {
+      "check": "RULE 7: Module phase ordering",
+      "status": "PASS",
+      "details": "setup -> prep -> prep -> prep -> prime -> interstage -> finish -> cleanup. Correct."
+    },
+    {
+      "check": "RULE 8: UOM consistency sop <-> production",
+      "status": "PASS",
+      "details": "All 50 tasks have matching UOM. Frame=EA, slab=EA_SIDE, opening=EA, fixed=FIXED."
+    },
+    {
+      "check": "RULE 9: TSK_ context prefix from resolution.json",
+      "status": "PASS",
+      "details": "All 40 owned tasks use TSK_DIRP_* prefix per resolution.json task_prefix.pattern. 5 shared tasks use TSK_RRP_* per MOD_RRP_INT_CONTAINMENT."
+    },
+    {
+      "check": "RULE 10: ITM_ existing IDs match registry",
+      "status": "PASS",
+      "details": "ITM_DOOR_FRAME_SET (existing, EA). ITM_DOOR_SLAB_RP (proposed, EA_SIDE). Exact IDs from resolution.json."
+    },
+    {
+      "check": "RULE 11: Downstream agents used resolution.json enum subsets",
+      "status": "PASS",
+      "details": "All enum values in sop_modules.json and production.json are within resolution.json applicable_enums ranges. No out-of-scope values."
+    }
+  ],
+
+  "doctrine_compliance": [
+    {
+      "doctrine": "Doors_Doctrine",
+      "status": "PASS",
+      "details": "QT3 minimum enforced (no QT2). Door-specific QT modifiers: QT3=1.0, QT4=1.4, QT5=1.8 (higher than global). 3rd brush coat at QT5 per FFD 15.10.3. Hardware remove for spray, mask for brush per Section 10. Edge assigned to face per Section 10.3. Panel door sequencing (panels-rails-stiles) documented."
+    },
+    {
+      "doctrine": "Fine_Finish_Doctrine",
+      "status": "PASS",
+      "details": "Interstage sanding at all tiers (QT3 spot 220, QT4 full 220, QT5 thorough 320). Rigid sanding block for flat surfaces (FFD 15.4.1). Apply-tip-walk-away protocol for waterborne products (FFD 15.3.1). Roll-and-tip option for flat frame surfaces (FFD 15.6). Fine-finish material systems: SYS_FF_STANDARD_ACRYLIC (QT3), SYS_FF_MODIFIED_URETHANE (QT4), SYS_FF_PREMIUM (QT5)."
+    },
+    {
+      "doctrine": "Protection_and_Masking_Doctrine",
+      "status": "PASS",
+      "details": "6 protection zones defined. Method-dependent protection: brush=perimeter drops + hardware mask, spray=8ft radius + wall mask + hardware remove. Glass masking for French doors. Teardown tasks paired with setup tasks."
+    },
+    {
+      "doctrine": "Estimation_Modifiers_Doctrine",
+      "status": "PASS",
+      "details": "Modifier stacking partition enforced: prep pool (condition x door_type x height) never includes QT; coating pool (QT x door_type x height) never includes condition. Worst-case flagged for estimator review when exceeding 4.0x threshold."
+    },
+    {
+      "doctrine": "Spec_Completeness_Doctrine",
+      "status": "PASS",
+      "details": "All required sections present: scope boundaries, configuration dimensions, paintable items, variants (to be created in spec.json), required PaintScope inputs, protection zones, adjacency declarations, state declarations, site condition rules."
+    },
+    {
+      "doctrine": "Materials_and_Consumables_Doctrine",
+      "status": "PASS",
+      "details": "State-driven primer selection. Shellac stain-blocker mandate for smoke damage (SYS_PRIMER_STAINBLOCK_INT — no latex/acrylic alternative). CON_ prefix for all consumables. All consumable categories from controlled_enums.json."
+    }
+  ],
+
+  "issues": [],
+
+  "warnings": [
+    {
+      "warning_id": "WARN-001",
+      "severity": "minor",
+      "message": "Worst-case modifier stacking exceeds 4.0x for both pools when louvered door type is combined with extreme conditions. Prep: 6.50x (POOR x louvered x H2). Coating: 5.85x (QT5 x louvered x H2). These combinations are extremely rare in practice (louvered doors rarely get QT5 treatment, and tall louvered doors in POOR condition are uncommon).",
+      "recommendation": "Production.json correctly flags these for estimator review. No action needed beyond documentation."
+    },
+    {
+      "warning_id": "WARN-002",
+      "severity": "minor",
+      "message": "TSK_DIRP_FINISH_FRAME_ROLL_TIP is an alternative to TSK_DIRP_FINISH_FRAME_BRUSH (estimator selects one, not both). Both are included in SOP and production counts. This is correct — the estimator selects per project — but the alternative relationship should be clearly surfaced in spec.json variants.",
+      "recommendation": "Document roll-and-tip as alternative in spec.json sequencing_notes."
+    },
+    {
+      "warning_id": "WARN-003",
+      "severity": "minor",
+      "message": "Production.json condition_scale modifier on TSK_DIRP_DEGLOSS_FRAME and TSK_DIRP_DEGLOSS_SLAB includes GOOD/FAIR/POOR values, but these tasks have substrate_state_rules that skip them for SS_INT_PEELING/SS_INT_MOISTURE_DAMAGE/SS_INT_SMOKE_DAMAGE (which map to POOR). The condition_scale modifier POOR value (2.0x) would only apply if the task were activated, which it is not for POOR states. This is not an error — the modifier is a rate adjustment only when the task is active — but could be confusing to implementers.",
+      "recommendation": "Add a clarifying note in production.json rate_basis_notes that POOR modifier is defensive only."
+    }
+  ],
+
+  "registry_additions_proposed_escalation": {
+    "total_proposed": 25,
+    "sources": ["resolution.json"],
+    "categories": {
+      "SF_": 1,
+      "ITM_": 1,
+      "TSK_": 1,
+      "MOD_": 1,
+      "ROUND_": 4,
+      "COV_": 3,
+      "CON_": 2,
+      "PS_": 5,
+      "IN_": 5
+    },
+    "notes": "All 25 proposed registry additions are in resolution.json. No additional proposals from downstream agents. All proposals have justification and naming convention compliance."
+  },
+
+  "summary": "SF_DOOR_INT_RP_v1 passes all validation gates with zero issues and 3 minor warnings. 50 tasks across 8 modules (7 owned + 1 shared RRP). Combined frame (EA) + slab (EA_SIDE) architecture. QT3-QT5 only (no QT2). State-driven primer selection. 4 assessment tasks. Customer walkthrough. All spray rates > brush rates. Modifier stacking partition enforced. All cross-file threading rules satisfied. All enum values compliant. All prohibited patterns absent. Ready for spec.json assembly."
+}

@@ -1,0 +1,1227 @@
+{
+  "spec_family_id": "SF_TRIM_INT_RP",
+  "version": "0.1.0",
+  "generated_by": "Estimation Engineer",
+  "generated_at": "2026-03-13",
+
+  "MODIFIER_STACKING_WARNING": {
+    "severity": "critical",
+    "description": "Modifier stacking uses TWO separate pools that never cross-apply. Prep tasks use condition+height+profile. Coating tasks use QT+height+profile. Contamination drives task activation, not rate modification.",
+    "worst_case_prep": "POOR(2.00) x H3(1.50) x Ornate(1.40) = 4.20x — slightly exceeds 4.0x flag, flag for estimator review",
+    "worst_case_coating": "QT5(1.50) x H3(1.50) x Ornate(1.40) = 3.15x",
+    "resolution": "STACKING PARTITION — prep pool and coating pool never overlap. Extreme combos flagged for estimator review.",
+    "stacking_rules": {
+      "prep_tasks": {
+        "formula": "effective_rate = base_rate / (condition x height x profile_complexity)",
+        "pool_modifiers": "CONDITION (PREP pool)",
+        "shared_modifiers": "HEIGHT + PROFILE_COMPLEXITY",
+        "applies_to_phases": ["setup", "prep", "prime"]
+      },
+      "coating_tasks": {
+        "formula": "effective_rate = base_rate / (qt x height x profile_complexity)",
+        "pool_modifiers": "QT (COATING pool)",
+        "shared_modifiers": "HEIGHT + PROFILE_COMPLEXITY",
+        "applies_to_phases": ["finish", "interstage", "cleanup"]
+      }
+    }
+  },
+
+  "trim_surface_input_group": {
+    "description": "Rate per LF applies to aggregate trim LF across all in-scope items. Engine sums LF from all active trim items and divides by rate to calculate hours. Profile complexity modifiers applied per-item-type.",
+    "inputs": [
+      { "input_name": "IN_LF_BASEBOARD", "paintscope_key": "PS_SURFACE_LF.TRIM_BASEBOARD" },
+      { "input_name": "IN_LF_DOOR_CASING", "paintscope_key": "PS_SURFACE_LF.TRIM_CASING_DOOR" },
+      { "input_name": "IN_LF_WINDOW_CASING", "paintscope_key": "PS_SURFACE_LF.TRIM_CASING_WINDOW" },
+      { "input_name": "IN_LF_CROWN", "paintscope_key": "PS_SURFACE_LF.TRIM_CROWN" },
+      { "input_name": "IN_LF_CHAIR_RAIL", "paintscope_key": "PS_SURFACE_LF.TRIM_CHAIR_RAIL" },
+      { "input_name": "IN_LF_WAINSCOT_RAIL", "paintscope_key": "PS_SURFACE_LF.TRIM_WAINSCOT_RAIL" },
+      { "input_name": "IN_LF_SHADOW_BOX", "paintscope_key": "PS_SURFACE_LF.TRIM_SHADOW_BOX" },
+      { "input_name": "IN_LF_PANEL_MOLD", "paintscope_key": "PS_SURFACE_LF.TRIM_PANEL_MOLD" },
+      { "input_name": "IN_LF_PICTURE_RAIL", "paintscope_key": "PS_SURFACE_LF.TRIM_PICTURE_RAIL" }
+    ]
+  },
+
+  "task_production_rates": [
+
+    {
+      "task_id": "TSK_TMRP_FURNITURE_CLEAR",
+      "name": "Clear Furniture and Contents from Trim Work Zones",
+      "task_classification": "binary",
+      "required_input_key": "IN_EA_ROOMS_TOTAL",
+      "paintscope_key": "PS_META.EA.ROOMS_TOTAL",
+      "unit_of_measure": "EA_ROOM",
+      "fixed_minutes": 8,
+      "fixed_minutes_range_low": 5,
+      "fixed_minutes_range_high": 12,
+      "crew_size": 1,
+      "applies_when": {
+        "occupancy_state": ["occupied_crew_handles", "occupied_sensitive"]
+      },
+      "factor_modifiers": [],
+      "rate_basis_notes": "RP-new task. Per-room fixed time. Lighter scope than wall RP full-room center-pile (12 min) — trim work zones are narrower, only clear items 3+ ft from walls. 5-12 min per room depending on furnishing density. Derived from wall RP TSK_WLRP_FURNITURE_MOVE (12 min) scaled down ~67% for reduced scope."
+    },
+    {
+      "task_id": "TSK_TMRP_FLOOR_PROTECT_SETUP",
+      "name": "Floor Protection Setup (Perimeter Drops)",
+      "task_classification": "binary",
+      "required_input_key": "IN_SF_PROTECT_FLOOR_PERIMETER",
+      "paintscope_key": "PS_PROTECT_SF.FLOOR_PERIMETER",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 300,
+      "rate_range_low": 250,
+      "rate_range_high": 400,
+      "crew_size": 1,
+      "applies_when": {},
+      "factor_modifiers": [],
+      "rate_basis_notes": "DIRECT transfer from NC trim paint TSK_TRIM_FLOOR_PROTECT (300 SF/hr). Runner-style drop cloths along trim perimeter. Same task in RP — finished floors always present."
+    },
+    {
+      "task_id": "TSK_TMRP_WALL_MASK_SETUP",
+      "name": "Wall Masking at Trim Edge",
+      "task_classification": "binary",
+      "required_input_key": "IN_LF_WALL_ADJACENT",
+      "paintscope_key": "PS_PROTECT_LF.WALL_ADJACENT",
+      "unit_of_measure": "LF",
+      "rate_per_hour": 150,
+      "rate_range_low": 120,
+      "rate_range_high": 200,
+      "crew_size": 1,
+      "applies_when": {},
+      "factor_modifiers": [
+        { "modifier_id": "FAC_HEIGHT_H1", "value": 1.00 },
+        { "modifier_id": "FAC_HEIGHT_H2", "value": 1.30 },
+        { "modifier_id": "FAC_HEIGHT_H3", "value": 1.50 }
+      ],
+      "rate_basis_notes": "DIRECT transfer from NC trim prime TSK_SETUP_WALL_MASK (150 LF/hr). In RP, wall masking is ALWAYS required (walls are finished) for both brush (tape only) and spray (tape + paper). Rate represents spray/paper scenario as the more labor-intensive case. Brush-only tape is faster (~200 LF/hr) but rate conservatively uses spray baseline since both methods need masking."
+    },
+    {
+      "task_id": "TSK_TMRP_FIXTURE_COVER_SETUP",
+      "name": "Cover Fixtures Near Spray Zone",
+      "task_classification": "binary",
+      "required_input_key": "IN_EA_ASSET_FIXTURES",
+      "paintscope_key": "PS_PROTECT_EA.ASSET.FIXTURES",
+      "unit_of_measure": "EA",
+      "rate_per_hour": 30,
+      "rate_range_low": 25,
+      "rate_range_high": 40,
+      "crew_size": 1,
+      "applies_when": {
+        "application_method": ["spray"]
+      },
+      "factor_modifiers": [],
+      "rate_basis_notes": "DIRECT transfer from NC trim paint TSK_TRIM_FIXTURE_COVER (30 EA/hr). Tape over outlet/switch plates near spray zone. ~2 min per fixture. Spray method only."
+    },
+
+    {
+      "task_id": "TSK_TMRP_ASSESS_CONDITION",
+      "name": "Visual Condition Scan — All Trim Surfaces",
+      "task_classification": "qt_scaled",
+      "required_input_key": "IN_EA_ROOMS_TOTAL",
+      "paintscope_key": "PS_META.EA.ROOMS_TOTAL",
+      "unit_of_measure": "EA_ROOM",
+      "fixed_minutes": 10,
+      "fixed_minutes_range_low": 6,
+      "fixed_minutes_range_high": 18,
+      "crew_size": 1,
+      "applies_when": {},
+      "qt_rates": {
+        "QT3": { "fixed_minutes": 6, "notes": "Quick visual scan with work light, document visible defects per trim type" },
+        "QT4": { "fixed_minutes": 10, "notes": "Systematic scan with raking light, photograph all defect areas, map per trim type" },
+        "QT5": { "fixed_minutes": 18, "notes": "Critical assessment, multiple passes, raking light, full photo documentation per trim type" }
+      },
+      "factor_modifiers": [
+        { "modifier_id": "FAC_HEIGHT_H1", "value": 1.00 },
+        { "modifier_id": "FAC_HEIGHT_H2", "value": 1.30 },
+        { "modifier_id": "FAC_HEIGHT_H3", "value": 1.50 }
+      ],
+      "rate_basis_notes": "RP-new task. Derived from wall RP TSK_WLRP_ASSESS_CONDITION (8-25 min per room for walls). Trim assessment is faster — less surface area per room but more surface types to inspect (up to 9 trim types). Scaled to ~60-70% of wall RP times. QT3=6 min (quick scan), QT4=10 min (systematic), QT5=18 min (critical)."
+    },
+    {
+      "task_id": "TSK_TMRP_ASSESS_ADHESION",
+      "name": "Adhesion Test (ASTM D3359 Cross-Hatch Tape Test)",
+      "task_classification": "binary",
+      "required_input_key": "IN_EA_ROOMS_TOTAL",
+      "paintscope_key": "PS_META.EA.ROOMS_TOTAL",
+      "unit_of_measure": "EA_ROOM",
+      "fixed_minutes": 8,
+      "fixed_minutes_range_low": 5,
+      "fixed_minutes_range_high": 12,
+      "crew_size": 1,
+      "applies_when": {},
+      "factor_modifiers": [],
+      "rate_basis_notes": "DIRECT transfer from wall RP TSK_WLRP_ASSESS_ADHESION (8 min per room). Same ASTM D3359 procedure. Test at 2+ locations per room on different trim types. ~4 min per test site. Trim is higher risk for adhesion failure than walls due to higher sheen existing coatings."
+    },
+    {
+      "task_id": "TSK_TMRP_ASSESS_COATING_ID",
+      "name": "Coating Identification — Latex vs Oil",
+      "task_classification": "binary",
+      "required_input_key": "IN_EA_ROOMS_TOTAL",
+      "paintscope_key": "PS_META.EA.ROOMS_TOTAL",
+      "unit_of_measure": "EA_ROOM",
+      "fixed_minutes": 5,
+      "fixed_minutes_range_low": 3,
+      "fixed_minutes_range_high": 8,
+      "crew_size": 1,
+      "applies_when": {},
+      "factor_modifiers": [],
+      "rate_basis_notes": "DIRECT transfer from wall RP TSK_WLRP_ASSESS_COATING_ID (5 min per room). Solvent test with mineral spirits. Trim historically received oil-based paint more frequently than walls — this test is especially critical for trim RP."
+    },
+    {
+      "task_id": "TSK_TMRP_ASSESS_MOISTURE",
+      "name": "Moisture Check at Suspect Areas",
+      "task_classification": "binary",
+      "required_input_key": "IN_EA_ROOMS_TOTAL",
+      "paintscope_key": "PS_META.EA.ROOMS_TOTAL",
+      "unit_of_measure": "EA_ROOM",
+      "fixed_minutes": 4,
+      "fixed_minutes_range_low": 2,
+      "fixed_minutes_range_high": 8,
+      "crew_size": 1,
+      "applies_when": {},
+      "factor_modifiers": [],
+      "rate_basis_notes": "MODIFIED from wall RP TSK_WLRP_ASSESS_MOISTURE (5 min per room for walls). Trim has less surface area but targeted check at bathroom trim, kitchen trim, window casings. Slightly faster. Active moisture = STOP WORK condition."
+    },
+
+    {
+      "task_id": "TSK_RRP_LEAD_TEST",
+      "name": "Lead Test (XRF or Swab)",
+      "task_classification": "binary",
+      "required_input_key": "IN_EA_ROOMS_TOTAL",
+      "paintscope_key": "PS_META.EA.ROOMS_TOTAL",
+      "unit_of_measure": "EA_ROOM",
+      "fixed_minutes": 10,
+      "fixed_minutes_range_low": 5,
+      "fixed_minutes_range_high": 15,
+      "crew_size": 1,
+      "applies_when": {
+        "home_pre_1978": true
+      },
+      "factor_modifiers": [],
+      "rate_basis_notes": "Shared RRP module task. DIRECT transfer from wall RP TSK_RRP_LEAD_TEST (10 min per room). XRF preferred. Trim is HIGH RISK for lead paint — interior trim historically received multiple layers of lead-based oil paint."
+    },
+    {
+      "task_id": "TSK_RRP_CONTAINMENT_SETUP",
+      "name": "RRP Containment Setup",
+      "task_classification": "binary",
+      "required_input_key": "IN_EA_ROOMS_TOTAL",
+      "paintscope_key": "PS_META.EA.ROOMS_TOTAL",
+      "unit_of_measure": "EA_ROOM",
+      "fixed_minutes": 30,
+      "fixed_minutes_range_low": 20,
+      "fixed_minutes_range_high": 45,
+      "crew_size": 1,
+      "applies_when": {
+        "home_pre_1978": true,
+        "lead_status": ["tested_positive", "unknown_pre1978"]
+      },
+      "factor_modifiers": [
+        { "modifier_id": "FAC_HEIGHT_H1", "value": 1.00 },
+        { "modifier_id": "FAC_HEIGHT_H2", "value": 1.30 },
+        { "modifier_id": "FAC_HEIGHT_H3", "value": 1.50 }
+      ],
+      "rate_basis_notes": "Shared RRP module task. DIRECT transfer from wall RP TSK_RRP_CONTAINMENT_SETUP (30 min per room). Poly sheeting on floors and openings, warning signs, restrict access. EPA RRP Rule 40 CFR 745."
+    },
+    {
+      "task_id": "TSK_RRP_HEPA_VACUUM",
+      "name": "HEPA Vacuum After Paint Disturbance",
+      "task_classification": "binary",
+      "required_input_key": "IN_EA_ROOMS_TOTAL",
+      "paintscope_key": "PS_META.EA.ROOMS_TOTAL",
+      "unit_of_measure": "EA_ROOM",
+      "fixed_minutes": 20,
+      "fixed_minutes_range_low": 15,
+      "fixed_minutes_range_high": 30,
+      "crew_size": 1,
+      "applies_when": {
+        "home_pre_1978": true,
+        "lead_status": ["tested_positive", "unknown_pre1978"]
+      },
+      "factor_modifiers": [],
+      "rate_basis_notes": "Shared RRP module task. DIRECT transfer from wall RP TSK_RRP_HEPA_VACUUM (20 min per room). HEPA vacuum all surfaces after each sanding/scraping disturbance. Required by EPA RRP Rule."
+    },
+    {
+      "task_id": "TSK_RRP_CONTAINMENT_REMOVAL",
+      "name": "RRP Containment Removal and Visual Clearance",
+      "task_classification": "binary",
+      "required_input_key": "IN_EA_ROOMS_TOTAL",
+      "paintscope_key": "PS_META.EA.ROOMS_TOTAL",
+      "unit_of_measure": "EA_ROOM",
+      "fixed_minutes": 20,
+      "fixed_minutes_range_low": 15,
+      "fixed_minutes_range_high": 30,
+      "crew_size": 1,
+      "applies_when": {
+        "home_pre_1978": true,
+        "lead_status": ["tested_positive", "unknown_pre1978"]
+      },
+      "factor_modifiers": [],
+      "rate_basis_notes": "Shared RRP module task. DIRECT transfer from wall RP TSK_RRP_CONTAINMENT_REMOVAL (20 min per room). Remove containment poly, visual clearance inspection."
+    },
+    {
+      "task_id": "TSK_RRP_WASTE_DISPOSAL",
+      "name": "Lead-Contaminated Waste Disposal",
+      "task_classification": "binary",
+      "required_input_key": null,
+      "paintscope_key": null,
+      "unit_of_measure": "FIXED",
+      "fixed_minutes": 30,
+      "fixed_minutes_range_low": 20,
+      "fixed_minutes_range_high": 45,
+      "crew_size": 1,
+      "applies_when": {
+        "home_pre_1978": true,
+        "lead_status": ["tested_positive", "unknown_pre1978"]
+      },
+      "factor_modifiers": [],
+      "rate_basis_notes": "Shared RRP module task. DIRECT transfer from wall RP TSK_RRP_WASTE_DISPOSAL (30 min per job). Package and dispose lead-contaminated debris per EPA RRP Rule."
+    },
+
+    {
+      "task_id": "TSK_TMRP_WASH_TSP",
+      "name": "TSP Wash Trim Surfaces",
+      "task_classification": "binary",
+      "input_group": "trim_surface_input_group",
+      "unit_of_measure": "LF",
+      "rate_per_hour": 150,
+      "rate_range_low": 100,
+      "rate_range_high": 200,
+      "crew_size": 1,
+      "applies_when": {
+        "contamination_type": ["mildew", "smoke", "water_stain", "grease"]
+      },
+      "factor_modifiers": [
+        { "modifier_id": "FAC_CONDITION_GOOD", "value": 1.00 },
+        { "modifier_id": "FAC_CONDITION_FAIR", "value": 1.50 },
+        { "modifier_id": "FAC_CONDITION_POOR", "value": 2.00 },
+        { "modifier_id": "FAC_HEIGHT_H1", "value": 1.00 },
+        { "modifier_id": "FAC_HEIGHT_H2", "value": 1.30 },
+        { "modifier_id": "FAC_HEIGHT_H3", "value": 1.50 },
+        { "modifier_id": "FAC_PROFILE_SIMPLE", "value": 0.85 },
+        { "modifier_id": "FAC_PROFILE_STANDARD", "value": 1.00 },
+        { "modifier_id": "FAC_PROFILE_COMPLEX", "value": 1.25 },
+        { "modifier_id": "FAC_PROFILE_ORNATE", "value": 1.40 }
+      ],
+      "rate_basis_notes": "MODIFIED from wall RP TSK_WLRP_WASH_TSP (250 SF/hr for walls). Trim TSP wash is slower per LF than walls per SF — profile detail areas require rag work into crevices. 150 LF/hr baseline. Prep pool modifiers apply. Contamination type drives task activation, not rate modification."
+    },
+    {
+      "task_id": "TSK_TMRP_TREAT_MILDEW",
+      "name": "Mildew/Biocide Treatment on Trim",
+      "task_classification": "binary",
+      "input_group": "trim_surface_input_group",
+      "unit_of_measure": "LF",
+      "rate_per_hour": 120,
+      "rate_range_low": 80,
+      "rate_range_high": 160,
+      "crew_size": 1,
+      "applies_when": {
+        "contamination_type": ["mildew"],
+        "substrate_state": ["SS_INT_MOISTURE_DAMAGE"]
+      },
+      "factor_modifiers": [
+        { "modifier_id": "FAC_CONDITION_FAIR", "value": 1.50 },
+        { "modifier_id": "FAC_CONDITION_POOR", "value": 2.00 },
+        { "modifier_id": "FAC_HEIGHT_H1", "value": 1.00 },
+        { "modifier_id": "FAC_HEIGHT_H2", "value": 1.30 },
+        { "modifier_id": "FAC_HEIGHT_H3", "value": 1.50 }
+      ],
+      "rate_basis_notes": "MODIFIED from wall RP TSK_WLRP_TREAT_MILDEW (200 SF/hr for walls). Trim mildew treatment slower per LF — apply solution into profile detail, allow dwell, rinse. Includes dwell time. 120 LF/hr baseline. Source moisture must already be resolved."
+    },
+    {
+      "task_id": "TSK_TMRP_DEGLOSS",
+      "name": "Degloss Existing Trim Paint Surface",
+      "task_classification": "qt_scaled",
+      "input_group": "trim_surface_input_group",
+      "unit_of_measure": "LF",
+      "rate_per_hour": 160,
+      "rate_range_low": 100,
+      "rate_range_high": 200,
+      "crew_size": 1,
+      "applies_when": {
+        "substrate_state": ["SS_INT_SOUND_PAINT", "SS_INT_FAILING_PAINT"]
+      },
+      "qt_rates": {
+        "QT3": { "rate_lf_per_hour": 160, "notes": "Thorough degloss — chemical or mechanical, all accessible surfaces" },
+        "QT4": { "rate_lf_per_hour": 123, "notes": "Full degloss with adhesion verification on profiled surfaces (160 / 1.3)" },
+        "QT5": { "rate_lf_per_hour": 107, "notes": "Complete degloss with verification and spot adhesion re-test (160 / 1.5)" }
+      },
+      "factor_modifiers": [
+        { "modifier_id": "FAC_CONDITION_GOOD", "value": 1.00 },
+        { "modifier_id": "FAC_CONDITION_FAIR", "value": 1.50 },
+        { "modifier_id": "FAC_CONDITION_POOR", "value": 2.00 },
+        { "modifier_id": "FAC_HEIGHT_H1", "value": 1.00 },
+        { "modifier_id": "FAC_HEIGHT_H2", "value": 1.30 },
+        { "modifier_id": "FAC_HEIGHT_H3", "value": 1.50 },
+        { "modifier_id": "FAC_PROFILE_SIMPLE", "value": 0.85 },
+        { "modifier_id": "FAC_PROFILE_STANDARD", "value": 1.00 },
+        { "modifier_id": "FAC_PROFILE_COMPLEX", "value": 1.25 },
+        { "modifier_id": "FAC_PROFILE_ORNATE", "value": 1.40 }
+      ],
+      "substrate_state_modifiers": {
+        "SS_INT_SOUND_PAINT": 1.00,
+        "SS_INT_FAILING_PAINT": 1.15
+      },
+      "rate_basis_notes": "MODIFIED from NC trim sand rate TSK_TRIM_SAND_PREP (200 LF/hr). Degloss is ~80% of NC sand rate — chemical degloss requires wipe-on/wipe-off cycle, mechanical scuff on profiles uses contour sponge. 160 LF/hr baseline at QT3. Prep pool modifiers apply. Chemical degloss preferred for profiled trim — reaches crevices that sanding blocks cannot."
+    },
+    {
+      "task_id": "TSK_TMRP_SCRAPE_LOOSE",
+      "name": "Scrape Loose and Failing Paint from Trim",
+      "task_classification": "qt_scaled",
+      "input_group": "trim_surface_input_group",
+      "unit_of_measure": "LF",
+      "rate_per_hour": 45,
+      "rate_range_low": 30,
+      "rate_range_high": 60,
+      "crew_size": 1,
+      "applies_when": {
+        "condition_scale": ["FAIR", "POOR"],
+        "substrate_state": ["SS_INT_FAILING_PAINT", "SS_INT_PEELING", "SS_INT_MOISTURE_DAMAGE"]
+      },
+      "qt_rates": {
+        "QT3": { "rate_lf_per_hour": 45, "notes": "Remove all failing paint, thorough scrape of affected areas" },
+        "QT4": { "rate_lf_per_hour": 35, "notes": "Comprehensive scrape, careful profile work, identify all weak adhesion zones (45 / 1.3)" },
+        "QT5": { "rate_lf_per_hour": 30, "notes": "Critical scrape — near-zero tolerance for remaining loose material (45 / 1.5)" }
+      },
+      "factor_modifiers": [
+        { "modifier_id": "FAC_CONDITION_FAIR", "value": 1.50 },
+        { "modifier_id": "FAC_CONDITION_POOR", "value": 2.00 },
+        { "modifier_id": "FAC_HEIGHT_H1", "value": 1.00 },
+        { "modifier_id": "FAC_HEIGHT_H2", "value": 1.30 },
+        { "modifier_id": "FAC_HEIGHT_H3", "value": 1.50 },
+        { "modifier_id": "FAC_PROFILE_SIMPLE", "value": 0.85 },
+        { "modifier_id": "FAC_PROFILE_STANDARD", "value": 1.00 },
+        { "modifier_id": "FAC_PROFILE_COMPLEX", "value": 1.25 },
+        { "modifier_id": "FAC_PROFILE_ORNATE", "value": 1.40 }
+      ],
+      "rate_basis_notes": "RP-new task. Slow detail work — contour scraper follows molding profiles, putty knife for flat runs. 45 LF/hr baseline at QT3. Significantly slower than wall scraping (wall RP 80 SF/hr) because trim profiles create more detailed work per LF. Prep pool modifiers apply. FAIR/POOR condition only — GOOD condition skips scraping."
+    },
+    {
+      "task_id": "TSK_TMRP_FEATHER_EDGES",
+      "name": "Feather-Sand Scrape Edges on Trim",
+      "task_classification": "qt_scaled",
+      "input_group": "trim_surface_input_group",
+      "unit_of_measure": "LF",
+      "rate_per_hour": 80,
+      "rate_range_low": 60,
+      "rate_range_high": 100,
+      "crew_size": 1,
+      "applies_when": {
+        "condition_scale": ["FAIR", "POOR"],
+        "substrate_state": ["SS_INT_FAILING_PAINT", "SS_INT_PEELING", "SS_INT_MOISTURE_DAMAGE"]
+      },
+      "qt_rates": {
+        "QT3": { "rate_lf_per_hour": 80, "notes": "Smooth transition, no visible ridge at 6 ft" },
+        "QT4": { "rate_lf_per_hour": 62, "notes": "Near-invisible transition, no ridge at 3 ft (80 / 1.3)" },
+        "QT5": { "rate_lf_per_hour": 53, "notes": "Perfect transition, no ridge at arm's length (80 / 1.5)" }
+      },
+      "factor_modifiers": [
+        { "modifier_id": "FAC_CONDITION_FAIR", "value": 1.50 },
+        { "modifier_id": "FAC_CONDITION_POOR", "value": 2.00 },
+        { "modifier_id": "FAC_HEIGHT_H1", "value": 1.00 },
+        { "modifier_id": "FAC_HEIGHT_H2", "value": 1.30 },
+        { "modifier_id": "FAC_HEIGHT_H3", "value": 1.50 },
+        { "modifier_id": "FAC_PROFILE_SIMPLE", "value": 0.85 },
+        { "modifier_id": "FAC_PROFILE_STANDARD", "value": 1.00 },
+        { "modifier_id": "FAC_PROFILE_COMPLEX", "value": 1.25 },
+        { "modifier_id": "FAC_PROFILE_ORNATE", "value": 1.40 }
+      ],
+      "rate_basis_notes": "RP-new task. Feather-sand all scrape edges to prevent ridge telegraphing. Contour sanding sponge for profiled trim. 80 LF/hr baseline at QT3 — faster than scraping but still detail work. Non-negotiable at all tiers. Prep pool modifiers apply. Always follows TSK_TMRP_SCRAPE_LOOSE."
+    },
+    {
+      "task_id": "TSK_TMRP_CAULK_ASSESS_REPLACE",
+      "name": "Assess and Replace Failed Caulk on Trim Joints",
+      "task_classification": "qt_scaled",
+      "required_input_key": "IN_LF_TRIM_EDGES",
+      "paintscope_key": "PS_EDGE_LF.TRIM_JOINTS",
+      "unit_of_measure": "LF",
+      "rate_per_hour": 80,
+      "rate_range_low": 60,
+      "rate_range_high": 100,
+      "crew_size": 1,
+      "applies_when": {},
+      "qt_rates": {
+        "QT3": { "rate_lf_per_hour": 80, "notes": "Replace visibly failed sections — cracked or separated joints" },
+        "QT4": { "rate_lf_per_hour": 62, "notes": "Comprehensive assessment, replace all suspect and failed joints (80 / 1.3)" },
+        "QT5": { "rate_lf_per_hour": 53, "notes": "Critical assessment, replace all joints not in perfect condition, perfect tooled bead (80 / 1.5)" }
+      },
+      "factor_modifiers": [
+        { "modifier_id": "FAC_CONDITION_GOOD", "value": 1.00 },
+        { "modifier_id": "FAC_CONDITION_FAIR", "value": 1.50 },
+        { "modifier_id": "FAC_CONDITION_POOR", "value": 2.00 },
+        { "modifier_id": "FAC_HEIGHT_H1", "value": 1.00 },
+        { "modifier_id": "FAC_HEIGHT_H2", "value": 1.30 },
+        { "modifier_id": "FAC_HEIGHT_H3", "value": 1.50 },
+        { "modifier_id": "FAC_PROFILE_SIMPLE", "value": 0.85 },
+        { "modifier_id": "FAC_PROFILE_STANDARD", "value": 1.00 },
+        { "modifier_id": "FAC_PROFILE_COMPLEX", "value": 1.25 },
+        { "modifier_id": "FAC_PROFILE_ORNATE", "value": 1.40 }
+      ],
+      "rate_basis_notes": "MODIFIED from NC trim caulk TSK_TRIM_CAULK_JOINTS (135 LF/hr for full NC caulk). RP caulk assess/replace is ~60% of NC full-caulk rate — includes inspection walk (which joints need work?), removal of failed sections, and replacement. Estimated 15-30% of joints need replacement in typical RP. 80 LF/hr baseline at QT3. Prep pool modifiers apply."
+    },
+    {
+      "task_id": "TSK_TMRP_DUST_WIPE",
+      "name": "Dust Wipe Trim Surfaces",
+      "task_classification": "binary",
+      "input_group": "trim_surface_input_group",
+      "unit_of_measure": "LF",
+      "rate_per_hour": 300,
+      "rate_range_low": 250,
+      "rate_range_high": 400,
+      "crew_size": 1,
+      "applies_when": {},
+      "factor_modifiers": [],
+      "rate_basis_notes": "DIRECT transfer from NC trim prime TSK_TRIM_DUST_WIPE (300 LF/hr). Wipe with tack cloth per Fine_Finish_Doctrine Section 15.12. Binary task — surface is dust-free or it is not. Same standard all tiers."
+    },
+
+    {
+      "task_id": "TSK_TMRP_PRIME_BRUSH",
+      "name": "Brush State-Driven Primer on Trim",
+      "task_classification": "qt_scaled",
+      "input_group": "trim_surface_input_group",
+      "unit_of_measure": "LF",
+      "rate_per_hour": 90,
+      "rate_range_low": 50,
+      "rate_range_high": 120,
+      "crew_size": 1,
+      "applies_when": {
+        "application_method": ["brush"],
+        "substrate_state": ["SS_INT_FAILING_PAINT", "SS_INT_PEELING", "SS_INT_MOISTURE_DAMAGE", "SS_INT_SMOKE_DAMAGE"]
+      },
+      "qt_rates": {
+        "QT3": { "rate_lf_per_hour": 90, "notes": "Complete coverage, even film, no holidays" },
+        "QT4": { "rate_lf_per_hour": 69, "notes": "Complete coverage, minimal brush marks (90 / 1.3)" },
+        "QT5": { "rate_lf_per_hour": 60, "notes": "Complete coverage, no visible brush marks, uniform film (90 / 1.5)" }
+      },
+      "factor_modifiers": [
+        { "modifier_id": "FAC_HEIGHT_H1", "value": 1.00 },
+        { "modifier_id": "FAC_HEIGHT_H2", "value": 1.30 },
+        { "modifier_id": "FAC_HEIGHT_H3", "value": 1.50 },
+        { "modifier_id": "FAC_PROFILE_SIMPLE", "value": 0.85 },
+        { "modifier_id": "FAC_PROFILE_STANDARD", "value": 1.00 },
+        { "modifier_id": "FAC_PROFILE_COMPLEX", "value": 1.25 },
+        { "modifier_id": "FAC_PROFILE_ORNATE", "value": 1.40 }
+      ],
+      "rate_basis_notes": "DIRECT transfer from NC trim prime TSK_TRIM_PRIME_BRUSH (90 LF/hr at QT3). State-driven primer has similar application characteristics to NC primer — same brush, same pace. Primer product varies by substrate state (adhesion, mildew, stain-block) but application rate is consistent. Skip for SS_INT_SOUND_PAINT when adhesion passes."
+    },
+    {
+      "task_id": "TSK_TMRP_PRIME_SPRAY",
+      "name": "Spray State-Driven Primer on Trim",
+      "task_classification": "qt_scaled",
+      "input_group": "trim_surface_input_group",
+      "unit_of_measure": "LF",
+      "rate_per_hour": 375,
+      "rate_range_low": 200,
+      "rate_range_high": 450,
+      "crew_size": 1,
+      "applies_when": {
+        "application_method": ["spray"],
+        "substrate_state": ["SS_INT_FAILING_PAINT", "SS_INT_PEELING", "SS_INT_MOISTURE_DAMAGE", "SS_INT_SMOKE_DAMAGE"]
+      },
+      "qt_rates": {
+        "QT3": { "rate_lf_per_hour": 375, "notes": "Complete coverage, even film, no holidays" },
+        "QT4": { "rate_lf_per_hour": 288, "notes": "Complete coverage, uniform mil thickness (375 / 1.3)" },
+        "QT5": { "rate_lf_per_hour": 250, "notes": "Complete coverage, perfect uniformity, no orange peel (375 / 1.5)" }
+      },
+      "factor_modifiers": [
+        { "modifier_id": "FAC_HEIGHT_H1", "value": 1.00 },
+        { "modifier_id": "FAC_HEIGHT_H2", "value": 1.30 },
+        { "modifier_id": "FAC_HEIGHT_H3", "value": 1.50 },
+        { "modifier_id": "FAC_PROFILE_SIMPLE", "value": 0.85 },
+        { "modifier_id": "FAC_PROFILE_STANDARD", "value": 1.00 },
+        { "modifier_id": "FAC_PROFILE_COMPLEX", "value": 1.25 },
+        { "modifier_id": "FAC_PROFILE_ORNATE", "value": 1.40 }
+      ],
+      "rate_basis_notes": "DIRECT transfer from NC trim prime TSK_TRIM_PRIME_SPRAY (375 LF/hr at QT3). Spray application rate independent of primer type. Skip for SS_INT_SOUND_PAINT when adhesion passes."
+    },
+    {
+      "task_id": "TSK_TMRP_SPOT_PRIME",
+      "name": "Spot Prime Scraped/Repaired Areas",
+      "task_classification": "qt_scaled",
+      "input_group": "trim_surface_input_group",
+      "unit_of_measure": "LF",
+      "rate_per_hour": 120,
+      "rate_range_low": 80,
+      "rate_range_high": 160,
+      "crew_size": 1,
+      "applies_when": {},
+      "qt_rates": {
+        "QT3": { "rate_lf_per_hour": 120, "notes": "Spot prime all repair areas, sealed against flashing" },
+        "QT4": { "rate_lf_per_hour": 92, "notes": "Spot prime all repairs with feathered edges (120 / 1.3)" },
+        "QT5": { "rate_lf_per_hour": 80, "notes": "Spot prime all repairs with wide feather, may need light sand after (120 / 1.5)" }
+      },
+      "factor_modifiers": [
+        { "modifier_id": "FAC_HEIGHT_H1", "value": 1.00 },
+        { "modifier_id": "FAC_HEIGHT_H2", "value": 1.30 },
+        { "modifier_id": "FAC_HEIGHT_H3", "value": 1.50 },
+        { "modifier_id": "FAC_PROFILE_SIMPLE", "value": 0.85 },
+        { "modifier_id": "FAC_PROFILE_STANDARD", "value": 1.00 },
+        { "modifier_id": "FAC_PROFILE_COMPLEX", "value": 1.25 },
+        { "modifier_id": "FAC_PROFILE_ORNATE", "value": 1.40 }
+      ],
+      "rate_basis_notes": "RP-new task. Walk rate — brush spot prime on scraped areas, feathered edges, and caulk replacements. Prevents flashing from differential absorption. Faster than full prime (brush at 120 vs 90 LF/hr) because only localized areas need attention. Rate is per aggregate trim LF (walk rate). Used for GOOD condition or to supplement full prime at repair areas."
+    },
+
+    {
+      "task_id": "TSK_TMRP_INSPECT_COAT",
+      "name": "Inspect Coat (Interstage)",
+      "task_classification": "qt_scaled",
+      "input_group": "trim_surface_input_group",
+      "unit_of_measure": "LF",
+      "rate_per_hour": 800,
+      "rate_range_low": 250,
+      "rate_range_high": 900,
+      "crew_size": 1,
+      "applies_when": {},
+      "qt_rates": {
+        "QT3": { "rate_lf_per_hour": 800, "notes": "Quick glance at 6 feet — obvious defects only" },
+        "QT4": { "rate_lf_per_hour": 500, "notes": "Systematic scan at 3 feet — mark all visible defects" },
+        "QT5": { "rate_lf_per_hour": 300, "notes": "Lighted critical inspection at arm's length — zero tolerance" }
+      },
+      "factor_modifiers": [
+        { "modifier_id": "FAC_HEIGHT_H1", "value": 1.00 },
+        { "modifier_id": "FAC_HEIGHT_H2", "value": 1.30 },
+        { "modifier_id": "FAC_HEIGHT_H3", "value": 1.50 }
+      ],
+      "rate_basis_notes": "DIRECT transfer from NC trim paint TSK_TRIM_INSPECT_COAT (QT3=800, QT4=500, QT5=300 LF/hr). Same inspection protocol in RP — inspection rigor and rates are independent of NC vs RP context. Per Fine Finish Doctrine."
+    },
+    {
+      "task_id": "TSK_TMRP_SAND_BETWEEN",
+      "name": "Sand Between Coats",
+      "task_classification": "qt_scaled",
+      "input_group": "trim_surface_input_group",
+      "unit_of_measure": "LF",
+      "rate_per_hour": 400,
+      "rate_range_low": 120,
+      "rate_range_high": 500,
+      "crew_size": 1,
+      "applies_when": {},
+      "qt_rates": {
+        "QT3": { "rate_lf_per_hour": 400, "notes": "Spot sand only — visible nibs and rough spots. 220 grit." },
+        "QT4": { "rate_lf_per_hour": 250, "notes": "Light full sand — entire surface, 220 grit. Uniform scratch pattern." },
+        "QT5": { "rate_lf_per_hour": 150, "notes": "Thorough full sand — entire surface, 220-320 grit. Every imperfection addressed." }
+      },
+      "factor_modifiers": [
+        { "modifier_id": "FAC_HEIGHT_H1", "value": 1.00 },
+        { "modifier_id": "FAC_HEIGHT_H2", "value": 1.30 },
+        { "modifier_id": "FAC_HEIGHT_H3", "value": 1.50 },
+        { "modifier_id": "FAC_PROFILE_SIMPLE", "value": 0.85 },
+        { "modifier_id": "FAC_PROFILE_STANDARD", "value": 1.00 },
+        { "modifier_id": "FAC_PROFILE_COMPLEX", "value": 1.25 },
+        { "modifier_id": "FAC_PROFILE_ORNATE", "value": 1.40 }
+      ],
+      "rate_basis_notes": "DIRECT transfer from NC trim paint TSK_TRIM_SAND_BETWEEN (QT3=400, QT4=250, QT5=150 LF/hr). Between-coat sanding uses contour sanding sponge for profiles. Coating pool modifiers apply. Per Fine Finish Doctrine 15.4.1."
+    },
+    {
+      "task_id": "TSK_TMRP_PATCH_DEFECTS",
+      "name": "Patch/Repair Defects (Interstage)",
+      "task_classification": "qt_scaled",
+      "input_group": "trim_surface_input_group",
+      "unit_of_measure": "LF",
+      "rate_per_hour": 400,
+      "rate_range_low": 200,
+      "rate_range_high": 500,
+      "crew_size": 1,
+      "applies_when": {},
+      "qt_rates": {
+        "QT3": { "rate_lf_per_hour": 400, "notes": "Repair glaring defects only — deep scratches, obvious holes" },
+        "QT4": { "rate_lf_per_hour": 300, "notes": "Repair all marked defects — visible at 3 feet" },
+        "QT5": { "rate_lf_per_hour": 250, "notes": "Repair all defects regardless of size — anything that could telegraph through finish" }
+      },
+      "factor_modifiers": [
+        { "modifier_id": "FAC_HEIGHT_H1", "value": 1.00 },
+        { "modifier_id": "FAC_HEIGHT_H2", "value": 1.30 },
+        { "modifier_id": "FAC_HEIGHT_H3", "value": 1.50 }
+      ],
+      "rate_basis_notes": "DIRECT transfer from NC trim paint TSK_TRIM_PATCH_DEFECTS (QT3=400, QT4=300, QT5=250 LF/hr). Same interstage patch process in RP. Walk rate — most LF requires no patching at QT3. Coating pool modifiers apply."
+    },
+    {
+      "task_id": "TSK_TMRP_SPOT_COAT",
+      "name": "Spot Coat Patched Areas",
+      "task_classification": "qt_scaled",
+      "input_group": "trim_surface_input_group",
+      "unit_of_measure": "LF",
+      "rate_per_hour": 500,
+      "rate_range_low": 250,
+      "rate_range_high": 600,
+      "crew_size": 1,
+      "applies_when": {},
+      "qt_rates": {
+        "QT3": { "rate_lf_per_hour": 500, "notes": "Spot coat obvious repairs only" },
+        "QT4": { "rate_lf_per_hour": 380, "notes": "Spot coat all patched areas" },
+        "QT5": { "rate_lf_per_hour": 300, "notes": "Spot coat all repairs — ensure uniform film build" }
+      },
+      "factor_modifiers": [
+        { "modifier_id": "FAC_HEIGHT_H1", "value": 1.00 },
+        { "modifier_id": "FAC_HEIGHT_H2", "value": 1.30 },
+        { "modifier_id": "FAC_HEIGHT_H3", "value": 1.50 }
+      ],
+      "rate_basis_notes": "DIRECT transfer from NC trim paint TSK_TRIM_SPOT_COAT (QT3=500, QT4=380, QT5=300 LF/hr). Same interstage spot coat process in RP. Walk rate. Coating pool modifiers apply."
+    },
+    {
+      "task_id": "TSK_TMRP_CLEAN_INTERSTAGE",
+      "name": "Clean Sanding Dust (Interstage)",
+      "task_classification": "binary",
+      "input_group": "trim_surface_input_group",
+      "unit_of_measure": "LF",
+      "rate_per_hour": 600,
+      "rate_range_low": 500,
+      "rate_range_high": 700,
+      "crew_size": 1,
+      "applies_when": {},
+      "factor_modifiers": [],
+      "rate_basis_notes": "DIRECT transfer from NC trim paint TSK_TRIM_CLEAN_INTERSTAGE (600 LF/hr). Tack cloth wipe all sanded trim surfaces between coats. ~6 sec per LF. Binary — complete dust removal is same pace at all tiers."
+    },
+
+    {
+      "task_id": "TSK_TMRP_BRUSH_FINISH_1",
+      "name": "Brush Finish Coat 1",
+      "task_classification": "binary",
+      "input_group": "trim_surface_input_group",
+      "unit_of_measure": "LF",
+      "rate_per_hour": 80,
+      "rate_range_low": 70,
+      "rate_range_high": 90,
+      "crew_size": 1,
+      "applies_when": {
+        "application_method": ["brush"]
+      },
+      "factor_modifiers": [
+        { "modifier_id": "FAC_HEIGHT_H1", "value": 1.00 },
+        { "modifier_id": "FAC_HEIGHT_H2", "value": 1.30 },
+        { "modifier_id": "FAC_HEIGHT_H3", "value": 1.50 },
+        { "modifier_id": "FAC_PROFILE_SIMPLE", "value": 0.85 },
+        { "modifier_id": "FAC_PROFILE_STANDARD", "value": 1.00 },
+        { "modifier_id": "FAC_PROFILE_COMPLEX", "value": 1.25 },
+        { "modifier_id": "FAC_PROFILE_ORNATE", "value": 1.40 }
+      ],
+      "defect_tolerance": {
+        "all": "No drips, sags, holidays, or lap marks. Application quality is NOT tiered."
+      },
+      "rate_basis_notes": "DIRECT transfer from NC trim paint TSK_TRIM_BRUSH_FINISH_1 (80 LF/hr). Coat 1 is slower than coat 2 — surface absorption, establishing coverage. Apply, tip once, walk away (FFD 15.3.1). Application quality is binary, not tiered."
+    },
+    {
+      "task_id": "TSK_TMRP_SPRAY_FINISH_1",
+      "name": "Spray Finish Coat 1",
+      "task_classification": "binary",
+      "input_group": "trim_surface_input_group",
+      "unit_of_measure": "LF",
+      "rate_per_hour": 380,
+      "rate_range_low": 350,
+      "rate_range_high": 420,
+      "crew_size": 1,
+      "applies_when": {
+        "application_method": ["spray"]
+      },
+      "factor_modifiers": [
+        { "modifier_id": "FAC_HEIGHT_H1", "value": 1.00 },
+        { "modifier_id": "FAC_HEIGHT_H2", "value": 1.30 },
+        { "modifier_id": "FAC_HEIGHT_H3", "value": 1.50 },
+        { "modifier_id": "FAC_PROFILE_SIMPLE", "value": 0.85 },
+        { "modifier_id": "FAC_PROFILE_STANDARD", "value": 1.00 },
+        { "modifier_id": "FAC_PROFILE_COMPLEX", "value": 1.25 },
+        { "modifier_id": "FAC_PROFILE_ORNATE", "value": 1.40 }
+      ],
+      "defect_tolerance": {
+        "all": "No drips, sags, holidays, or lap marks. No orange peel. Application quality is NOT tiered."
+      },
+      "rate_basis_notes": "DIRECT transfer from NC trim paint TSK_TRIM_SPRAY_FINISH_1 (380 LF/hr). Coat 1 airless spray. Application quality is binary, not tiered."
+    },
+    {
+      "task_id": "TSK_TMRP_BRUSH_FINISH_2",
+      "name": "Brush Finish Coat 2",
+      "task_classification": "binary",
+      "input_group": "trim_surface_input_group",
+      "unit_of_measure": "LF",
+      "rate_per_hour": 90,
+      "rate_range_low": 80,
+      "rate_range_high": 100,
+      "crew_size": 1,
+      "applies_when": {
+        "application_method": ["brush"]
+      },
+      "factor_modifiers": [
+        { "modifier_id": "FAC_HEIGHT_H1", "value": 1.00 },
+        { "modifier_id": "FAC_HEIGHT_H2", "value": 1.30 },
+        { "modifier_id": "FAC_HEIGHT_H3", "value": 1.50 },
+        { "modifier_id": "FAC_PROFILE_SIMPLE", "value": 0.85 },
+        { "modifier_id": "FAC_PROFILE_STANDARD", "value": 1.00 },
+        { "modifier_id": "FAC_PROFILE_COMPLEX", "value": 1.25 },
+        { "modifier_id": "FAC_PROFILE_ORNATE", "value": 1.40 }
+      ],
+      "defect_tolerance": {
+        "all": "No drips, sags, holidays, or lap marks. Application quality is NOT tiered."
+      },
+      "rate_basis_notes": "DIRECT transfer from NC trim paint TSK_TRIM_BRUSH_FINISH_2 (90 LF/hr). Coat 2 faster than coat 1 — consistent substrate. Also used for coat 3 at QT5 brush per FFD 15.10.3."
+    },
+    {
+      "task_id": "TSK_TMRP_SPRAY_FINISH_2",
+      "name": "Spray Finish Coat 2",
+      "task_classification": "binary",
+      "input_group": "trim_surface_input_group",
+      "unit_of_measure": "LF",
+      "rate_per_hour": 445,
+      "rate_range_low": 400,
+      "rate_range_high": 500,
+      "crew_size": 1,
+      "applies_when": {
+        "application_method": ["spray"]
+      },
+      "factor_modifiers": [
+        { "modifier_id": "FAC_HEIGHT_H1", "value": 1.00 },
+        { "modifier_id": "FAC_HEIGHT_H2", "value": 1.30 },
+        { "modifier_id": "FAC_HEIGHT_H3", "value": 1.50 },
+        { "modifier_id": "FAC_PROFILE_SIMPLE", "value": 0.85 },
+        { "modifier_id": "FAC_PROFILE_STANDARD", "value": 1.00 },
+        { "modifier_id": "FAC_PROFILE_COMPLEX", "value": 1.25 },
+        { "modifier_id": "FAC_PROFILE_ORNATE", "value": 1.40 }
+      ],
+      "defect_tolerance": {
+        "all": "No drips, sags, holidays, or lap marks. No orange peel. Application quality is NOT tiered."
+      },
+      "rate_basis_notes": "DIRECT transfer from NC trim paint TSK_TRIM_SPRAY_FINISH_2 (445 LF/hr). Coat 2 faster than coat 1 — consistent substrate."
+    },
+
+    {
+      "task_id": "TSK_TMRP_FINAL_INSPECT",
+      "name": "Final Trim Inspection",
+      "task_classification": "qt_scaled",
+      "input_group": "trim_surface_input_group",
+      "unit_of_measure": "LF",
+      "rate_per_hour": 600,
+      "rate_range_low": 200,
+      "rate_range_high": 700,
+      "crew_size": 1,
+      "applies_when": {},
+      "qt_rates": {
+        "QT3": { "rate_lf_per_hour": 600, "notes": "Quick glance at 6 feet — no obvious defects, uniform sheen" },
+        "QT4": { "rate_lf_per_hour": 400, "notes": "Systematic scan at 3 feet — no visible defects, uniform sheen across all surfaces" },
+        "QT5": { "rate_lf_per_hour": 250, "notes": "Critical inspection at arm's length under raking light — zero tolerance, gallery-quality finish" }
+      },
+      "factor_modifiers": [
+        { "modifier_id": "FAC_HEIGHT_H1", "value": 1.00 },
+        { "modifier_id": "FAC_HEIGHT_H2", "value": 1.30 },
+        { "modifier_id": "FAC_HEIGHT_H3", "value": 1.50 }
+      ],
+      "rate_basis_notes": "DIRECT transfer from NC trim paint TSK_TRIM_FINAL_INSPECT (QT3=600, QT4=400, QT5=250 LF/hr). Slower than interstage inspect — final inspection is more thorough even at QT3. Same protocol in RP."
+    },
+    {
+      "task_id": "TSK_TMRP_TOUCHUP",
+      "name": "Touch-Up Defects (Final)",
+      "task_classification": "qt_scaled",
+      "input_group": "trim_surface_input_group",
+      "unit_of_measure": "LF",
+      "rate_per_hour": 400,
+      "rate_range_low": 150,
+      "rate_range_high": 500,
+      "crew_size": 1,
+      "applies_when": {},
+      "qt_rates": {
+        "QT3": { "rate_lf_per_hour": 400, "notes": "Address obvious defects only" },
+        "QT4": { "rate_lf_per_hour": 300, "notes": "Address all visible defects — blend touch-up into surrounding finish" },
+        "QT5": { "rate_lf_per_hour": 200, "notes": "Address every imperfection — full coat over spot repairs if needed to equalize sheen" }
+      },
+      "factor_modifiers": [
+        { "modifier_id": "FAC_HEIGHT_H1", "value": 1.00 },
+        { "modifier_id": "FAC_HEIGHT_H2", "value": 1.30 },
+        { "modifier_id": "FAC_HEIGHT_H3", "value": 1.50 }
+      ],
+      "rate_basis_notes": "DIRECT transfer from NC trim paint TSK_TRIM_TOUCHUP (QT3=400, QT4=300, QT5=200 LF/hr). Same touch-up process in RP. Walk rate with spot work. Coating pool modifiers apply."
+    },
+    {
+      "task_id": "TSK_TMRP_WALL_MASK_TEARDOWN",
+      "name": "Remove Wall Masking",
+      "task_classification": "binary",
+      "required_input_key": "IN_LF_WALL_ADJACENT",
+      "paintscope_key": "PS_PROTECT_LF.WALL_ADJACENT",
+      "unit_of_measure": "LF",
+      "rate_per_hour": 200,
+      "rate_range_low": 160,
+      "rate_range_high": 250,
+      "crew_size": 1,
+      "applies_when": {},
+      "factor_modifiers": [],
+      "rate_basis_notes": "DIRECT transfer from NC trim prime TSK_REMOVE_WALL_MASK (200 LF/hr). Teardown is ~33% faster than setup. Remove tape while finish is slightly tacky for cleanest pull. Both brush and spray methods require teardown in RP."
+    },
+    {
+      "task_id": "TSK_TMRP_FIXTURE_COVER_TEARDOWN",
+      "name": "Remove Fixture Covers",
+      "task_classification": "binary",
+      "required_input_key": "IN_EA_ASSET_FIXTURES",
+      "paintscope_key": "PS_PROTECT_EA.ASSET.FIXTURES",
+      "unit_of_measure": "EA",
+      "rate_per_hour": 45,
+      "rate_range_low": 35,
+      "rate_range_high": 60,
+      "crew_size": 1,
+      "applies_when": {
+        "application_method": ["spray"]
+      },
+      "factor_modifiers": [],
+      "rate_basis_notes": "MODIFIED from NC trim prime TSK_REMOVE_FIXTURE_COVERS (90 EA/hr in NC prime spec). Rate adjusted to 45 EA/hr — teardown is faster than setup but NC prime rate of 90 EA/hr was for an earlier spec with simpler fixture count assumption. 45 EA/hr = ~80 sec per fixture (remove cover, inspect, dispose)."
+    },
+    {
+      "task_id": "TSK_TMRP_FLOOR_PROTECT_TEARDOWN",
+      "name": "Floor Protection Teardown",
+      "task_classification": "binary",
+      "required_input_key": "IN_SF_PROTECT_FLOOR_PERIMETER",
+      "paintscope_key": "PS_PROTECT_SF.FLOOR_PERIMETER",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 500,
+      "rate_range_low": 400,
+      "rate_range_high": 600,
+      "crew_size": 1,
+      "applies_when": {},
+      "factor_modifiers": [],
+      "rate_basis_notes": "DIRECT transfer from NC trim paint TSK_TRIM_PROTECT_TEARDOWN (500 SF/hr). Fold drops toward center to contain debris. Teardown ~1.5x faster than setup."
+    },
+    {
+      "task_id": "TSK_TMRP_FURNITURE_RESTORE",
+      "name": "Restore Furniture and Contents to Original Position",
+      "task_classification": "binary",
+      "required_input_key": "IN_EA_ROOMS_TOTAL",
+      "paintscope_key": "PS_META.EA.ROOMS_TOTAL",
+      "unit_of_measure": "EA_ROOM",
+      "fixed_minutes": 6,
+      "fixed_minutes_range_low": 4,
+      "fixed_minutes_range_high": 10,
+      "crew_size": 1,
+      "applies_when": {
+        "occupancy_state": ["occupied_crew_handles", "occupied_sensitive"]
+      },
+      "factor_modifiers": [],
+      "rate_basis_notes": "RP-new task. Per-room fixed time. Return furniture to original positions. Faster than clear (6 vs 8 min) — no decisions about where to move, just return. Verify no paint transfer. Lighter scope than wall RP because trim work zones are narrower."
+    },
+    {
+      "task_id": "TSK_TMRP_CUSTOMER_WALKTHROUGH",
+      "name": "Customer Walkthrough",
+      "task_classification": "binary",
+      "required_input_key": "IN_EA_ROOMS_TOTAL",
+      "paintscope_key": "PS_META.EA.ROOMS_TOTAL",
+      "unit_of_measure": "EA_ROOM",
+      "fixed_minutes": 5,
+      "fixed_minutes_range_low": 3,
+      "fixed_minutes_range_high": 8,
+      "crew_size": 1,
+      "applies_when": {
+        "occupancy_state": ["occupied_crew_handles", "occupied_sensitive"]
+      },
+      "factor_modifiers": [],
+      "rate_basis_notes": "RP-new task. Walk each room with homeowner. Inspect trim finish quality at all trim types. Identify any touch-up needs. Confirm completion. 5 min per room includes discussion. Lead skill level — crew lead or project manager handles client interaction."
+    },
+    {
+      "task_id": "TSK_TMRP_CLEAN_TOOLS",
+      "name": "Clean Tools",
+      "task_classification": "binary",
+      "required_input_key": null,
+      "paintscope_key": null,
+      "unit_of_measure": "FIXED",
+      "fixed_minutes": 30,
+      "fixed_minutes_range_low": 20,
+      "fixed_minutes_range_high": 45,
+      "crew_size": 1,
+      "applies_when": {},
+      "factor_modifiers": [],
+      "rate_basis_notes": "DIRECT transfer from NC trim paint TSK_TRIM_CLEAN_TOOLS (30 min per session). Fixed time per job session. Clean brushes, spray equipment (if used). All waterborne products — water cleanup. RP may include additional cleanup for deglosser/TSP supplies."
+    }
+  ],
+
+  "factor_modifiers": [
+    {
+      "factor_id": "FAC_QT_TRIM_RP",
+      "name": "Quality Tier Modifier",
+      "description": "Time multiplier based on quality tier selection per Modifier_Registry.md",
+      "modifier_category": "quality_tier",
+      "modifier_type": "time_multiplier",
+      "applies_to_task_classes": ["qt_scaled"],
+      "value_table": {
+        "QT3_STANDARD": 1.0,
+        "QT4_PREMIUM": 1.3,
+        "QT5_SUPERIOR": 1.5
+      },
+      "application_rule": "effective_rate = base_rate / modifier",
+      "pool": "coating",
+      "notes": "QT modifiers increase TIME, not rate. Applied to qt_scaled tasks only. Binary tasks unaffected. Coating pool only — never stacks with condition modifier."
+    },
+    {
+      "factor_id": "FAC_CONDITION_SCALE",
+      "name": "Condition Scale Modifier",
+      "description": "Time multiplier based on surface condition (GOOD/FAIR/POOR) per Estimation_Modifiers_Doctrine",
+      "modifier_category": "condition",
+      "modifier_type": "time_multiplier",
+      "applies_to_phases": ["prep", "prime"],
+      "value_table": {
+        "GOOD": 1.0,
+        "FAIR": 1.5,
+        "POOR": 2.0
+      },
+      "input_key": "IN_ENUM_SURFACE_CONDITION",
+      "paintscope_key": "PS_META.SURFACE_CONDITION",
+      "application_rule": "effective_rate = base_rate / modifier",
+      "pool": "prep",
+      "notes": "Prep pool only — never stacks with QT modifier. Drives prep task intensity. Shared with wall RP."
+    },
+    {
+      "factor_id": "FAC_PROFILE_COMPLEXITY",
+      "name": "Profile Complexity Modifier",
+      "description": "Time multiplier based on trim profile complexity per Millwork_NC_Paint_Doctrine Section 7.2",
+      "modifier_category": "profile",
+      "modifier_type": "time_multiplier",
+      "applies_to_tasks": "prep and finish tasks with LF input_group",
+      "value_table": {
+        "MOD_PROFILE_SIMPLE": 0.85,
+        "MOD_PROFILE_STANDARD": 1.00,
+        "MOD_PROFILE_COMPLEX": 1.25,
+        "MOD_PROFILE_ORNATE": 1.40
+      },
+      "input_key": "IN_ENUM_PROFILE_COMPLEXITY",
+      "paintscope_key": "PS_META.PROFILE_COMPLEXITY",
+      "application_rule": "effective_rate = base_rate / modifier",
+      "pool": "shared",
+      "notes": "Shared across both prep and coating pools. Applied per-item-type (baseboard may be simple, crown may be complex). Inherited from NC trim FAC_PROFILE_COMPLEXITY."
+    },
+    {
+      "factor_id": "FAC_HEIGHT_TRIM",
+      "name": "Height Modifier for Trim",
+      "description": "Time multiplier based on trim working height per Modifier_Registry.md",
+      "modifier_category": "height",
+      "modifier_type": "time_multiplier",
+      "applies_to_tasks": "all tasks except FIXED time and EA tasks",
+      "value_table": {
+        "H1_STANDARD": 1.0,
+        "H2_TALL": 1.30,
+        "H3_HIGH": 1.50
+      },
+      "height_ranges": {
+        "H1_STANDARD": "7-8ft — floor-level access, standard trim",
+        "H2_TALL": "9-12ft — step/extension ladder for crown, high casings",
+        "H3_HIGH": "13-17ft — scaffold likely for elevated trim work"
+      },
+      "input_key": "IN_ENUM_HEIGHT_BAND",
+      "paintscope_key": "PS_META.HEIGHT_BAND",
+      "application_rule": "effective_rate = base_rate / modifier",
+      "pool": "shared",
+      "notes": "Shared across both prep and coating pools. Primarily affects crown molding and high casing work. Standard baseboard/casing at floor level uses H1. H4 excluded for interior trim. Per-item-type: baseboard=H1, crown/picture_rail=H2/H3."
+    }
+  ],
+
+  "quality_tier_effects": [
+    {
+      "quality_tier": "QT3",
+      "time_modifier": 1.0,
+      "modifier_id": "QT3_STANDARD",
+      "description": "Standard trim repaint — baseline for all rates",
+      "inspection_distance": "6ft",
+      "inspection_method": "quick_glance",
+      "mechanism": "baseline",
+      "notes": "Standard RP production: proper prep, conditional prime, 2 finish coats. Quick glance inspection at 6ft."
+    },
+    {
+      "quality_tier": "QT4",
+      "time_modifier": 1.3,
+      "modifier_id": "QT4_PREMIUM",
+      "description": "Premium trim repaint — thorough prep, full interstage sanding",
+      "inspection_distance": "3ft",
+      "inspection_method": "systematic_scan",
+      "mechanism": "selective_multiplier",
+      "notes": "Premium: detailed inspection, all visible defects addressed, full surface between-coat sanding. Semi-gloss minimum sheen."
+    },
+    {
+      "quality_tier": "QT5",
+      "time_modifier": 1.5,
+      "modifier_id": "QT5_SUPERIOR",
+      "description": "Superior trim repaint — meticulous prep, critical inspection, optional coat 3 brush",
+      "inspection_distance": "arm's length",
+      "inspection_method": "lighted_critical",
+      "mechanism": "selective_multiplier",
+      "notes": "Superior: meticulous pace, every defect addressed, thorough 220-320 grit sanding. Coat count: 2 (spray) or 3 (brush per FFD 15.10.3). Gloss sheen allowed."
+    }
+  ],
+
+  "additional_rounds": {
+    "trigger": "quality_tier = QT5 AND application_method = brush",
+    "round_id": "ROUND_TMRP_3FINISH",
+    "additional_cycles": 1,
+    "description": "QT5 brush adds coat 3 + interstage 2. Coat 3 uses TSK_TMRP_BRUSH_FINISH_2 rates (consistent substrate). Per FFD 15.10.3.",
+    "notes": "Applies to both ROUND_TMRP_PRIME_3FINISH (FAIR/POOR) and ROUND_TMRP_3FINISH (GOOD). Do NOT enforce spray for QT5 gloss."
+  },
+
+  "round_configurations": [
+    {
+      "round_id": "ROUND_TMRP_PRIME_2FINISH",
+      "name": "Trim RP: Prime + 2 Finish Coats",
+      "total_coats": 3,
+      "interstage_count": 2,
+      "applies_when": {
+        "condition_scale": ["FAIR", "POOR"],
+        "quality_tier": ["QT3", "QT4"]
+      }
+    },
+    {
+      "round_id": "ROUND_TMRP_PRIME_3FINISH",
+      "name": "Trim RP: Prime + 3 Finish Coats (QT5 Brush)",
+      "total_coats": 4,
+      "interstage_count": 3,
+      "applies_when": {
+        "condition_scale": ["FAIR", "POOR"],
+        "quality_tier": ["QT5"],
+        "application_method": ["brush"]
+      }
+    },
+    {
+      "round_id": "ROUND_TMRP_2FINISH",
+      "name": "Trim RP: 2 Finish Coats (No Prime)",
+      "total_coats": 2,
+      "interstage_count": 1,
+      "applies_when": {
+        "condition_scale": ["GOOD"],
+        "quality_tier": ["QT3", "QT4"]
+      }
+    },
+    {
+      "round_id": "ROUND_TMRP_3FINISH",
+      "name": "Trim RP: 3 Finish Coats (QT5 Brush, No Prime)",
+      "total_coats": 3,
+      "interstage_count": 2,
+      "applies_when": {
+        "condition_scale": ["GOOD"],
+        "quality_tier": ["QT5"],
+        "application_method": ["brush"]
+      }
+    }
+  ],
+
+  "crew_configurations": [
+    {
+      "config_id": "CREW_TMRP_BRUSH",
+      "name": "Single Trim Brush Painter (RP)",
+      "crew_size": 1,
+      "roles": ["journeyman_painter"],
+      "applies_when": {
+        "application_method": ["brush"]
+      },
+      "notes": "One journeyman handles assessment, all prep, prime, and finish. Helper for setup/teardown/furniture. Lead for customer walkthrough."
+    },
+    {
+      "config_id": "CREW_TMRP_SPRAY",
+      "name": "Single Trim Sprayer (RP)",
+      "crew_size": 1,
+      "roles": ["journeyman_sprayer"],
+      "applies_when": {
+        "application_method": ["spray"]
+      },
+      "notes": "One journeyman handles assessment, prep, masking, spray, teardown. Helper for setup. Lead for customer walkthrough."
+    }
+  ],
+
+  "production_notes": {
+    "rate_derivation_strategy": "Three-tier derivation: (1) DIRECT transfer from NC trim for same-process tasks (protection, finish coats, interstage, cleanup, inspection). (2) MODIFIED from NC trim for adjusted-scope tasks (degloss from sand, caulk assess from full caulk). (3) RP-NEW for assessment and condition-dependent tasks, derived from wall RP patterns adapted to LF context.",
+    "lf_to_sf_equivalence": "Per PDCA standard, 1 LF trim = 1 SF regardless of actual width (Millwork_NC_Paint_Doctrine Section 1.3).",
+    "condition_vs_qt": "Condition modifiers (GOOD/FAIR/POOR) drive prep pool intensity. QT modifiers drive coating pool scrutiny. They NEVER cross-apply. This prevents double-compounding on the same task.",
+    "profile_complexity_note": "Profile complexity applied per-item-type — baseboard may be simple while crown may be ornate in the same project. Engine must apply modifier per item, not globally.",
+    "coat_1_vs_coat_2": "Coat 1 is systematically slower than coat 2 (surface absorption vs consistent substrate). Separate task IDs enable distinct rates. Coat 3 at QT5 uses coat 2 rates.",
+    "rp_vs_nc_differences": "Key RP additions vs NC: (1) Assessment module (4 tasks). (2) Furniture clear/restore. (3) Customer walkthrough. (4) Condition-driven prep (degloss, scrape, feather). (5) State-driven primer selection. (6) RRP lead-safe module. (7) Wall masking always-on for both methods."
+  },
+
+  "assumptions": [
+    {
+      "assumption_id": "A-001",
+      "field": "furniture_clear_time",
+      "value": "8 min per room (lighter scope than wall RP 12 min)",
+      "source": "Derived from wall RP TSK_WLRP_FURNITURE_MOVE, scaled ~67%",
+      "doctrine_gap": true,
+      "note": "Trim work zones are narrower — only items within 3 ft of walls need clearing, not full room center-pile."
+    },
+    {
+      "assumption_id": "A-002",
+      "field": "degloss_rate_derivation",
+      "value": "160 LF/hr (80% of NC sand rate 200 LF/hr)",
+      "source": "Derived from NC trim TSK_TRIM_SAND_PREP baseline",
+      "doctrine_gap": true,
+      "note": "Chemical degloss wipe-on/wipe-off cycle is similar effort to mechanical scuffing. 80% factor accounts for chemical application/dwell/wipe vs direct sanding."
+    },
+    {
+      "assumption_id": "A-003",
+      "field": "caulk_assess_rate_derivation",
+      "value": "80 LF/hr (~60% of NC full-caulk rate 135 LF/hr)",
+      "source": "Derived from NC trim TSK_TRIM_CAULK_JOINTS baseline",
+      "doctrine_gap": true,
+      "note": "RP caulk assess/replace includes inspection walk + selective removal + replacement. 15-30% of joints need replacement in typical RP."
+    },
+    {
+      "assumption_id": "A-004",
+      "field": "scrape_rate",
+      "value": "45 LF/hr baseline",
+      "source": "Calibrated from wall RP scrape (80 SF/hr) adjusted for trim profile complexity",
+      "doctrine_gap": true,
+      "note": "Trim scraping with contour scraper is slower per LF than wall scraping per SF — profile detail work."
+    },
+    {
+      "assumption_id": "A-005",
+      "field": "feather_sand_rate",
+      "value": "80 LF/hr baseline",
+      "source": "Calibrated: faster than scraping, slower than between-coat sanding",
+      "doctrine_gap": true,
+      "note": "Feathering requires smooth transitions at scrape edges — detail work with contour sanding sponge."
+    },
+    {
+      "assumption_id": "A-006",
+      "field": "assessment_times",
+      "value": "Condition 6-18 min, adhesion 8 min, coating ID 5 min, moisture 4 min per room",
+      "source": "Derived from wall RP assessment times, scaled for trim surface area",
+      "doctrine_gap": true,
+      "note": "Trim assessment faster than wall assessment — less surface area per room but more surface types to inspect."
+    },
+    {
+      "assumption_id": "A-007",
+      "field": "coat_3_rates",
+      "value": "Coat 3 at QT5 brush uses same rates as coat 2 (TSK_TMRP_BRUSH_FINISH_2 at 90 LF/hr)",
+      "source": "Production Rate Reference System 3, same as NC convention",
+      "doctrine_gap": true,
+      "note": "No separate coat 3 rate defined. Coat 2 rates apply — substrate is consistent after first coat."
+    }
+  ],
+
+  "validation_plan": [
+    {
+      "validation_id": "VAL-001",
+      "task": "Degloss rate validation",
+      "method": "Time chemical degloss on 50 LF baseboard (standard profile) and 50 LF crown (complex profile)",
+      "expected_range": "100-200 LF/hr",
+      "notes": "Verify chemical vs mechanical degloss rate differential."
+    },
+    {
+      "validation_id": "VAL-002",
+      "task": "Scrape rate validation",
+      "method": "Time contour scraping on 50 LF failing paint trim, FAIR condition",
+      "expected_range": "30-60 LF/hr",
+      "notes": "Verify trim profile impact vs flat wall scraping."
+    },
+    {
+      "validation_id": "VAL-003",
+      "task": "Caulk assess/replace rate",
+      "method": "Walk 100 LF trim joints, count and time assessment + selective replacement",
+      "expected_range": "60-100 LF/hr",
+      "notes": "Verify ~15-30% replacement assumption. Count actual failed joints."
+    },
+    {
+      "validation_id": "VAL-004",
+      "task": "Assessment times per room",
+      "method": "Time full assessment sequence (condition + adhesion + coating ID + moisture) in 5 rooms",
+      "expected_range": "20-35 min total per room at QT3",
+      "notes": "Verify task-level time estimates sum to realistic total."
+    },
+    {
+      "validation_id": "VAL-005",
+      "task": "Brush finish coat rates (RP context)",
+      "method": "Time painter brushing finish coat on 100 LF previously painted trim",
+      "expected_range": "70-100 LF/hr",
+      "notes": "Verify NC rates transfer cleanly to RP context. Compare coat 1 vs coat 2 differential."
+    },
+    {
+      "validation_id": "VAL-006",
+      "task": "Furniture clear/restore times",
+      "method": "Time furniture clear and restore in 5 typical rooms with standard furnishing",
+      "expected_range": "Clear 5-12 min, Restore 4-10 min per room",
+      "notes": "Verify lighter scope than wall RP full-room center-pile."
+    }
+  ]
+}

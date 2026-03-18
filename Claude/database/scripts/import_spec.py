@@ -180,6 +180,8 @@ def import_spec_json(conn, spec, sf_id, report):
     """Decompose spec.json into normalized tables."""
 
     sf = spec.get("spec_family") or spec.get("spec_metadata")
+    if sf is None:
+        sf = spec
 
     # --- spec_families ---
     conn.execute(
@@ -193,14 +195,15 @@ def import_spec_json(conn, spec, sf_id, report):
     report.add_rows("spec_families", 1)
 
     # --- spec_configuration_dimensions ---
-    dims = spec.get("configuration_dimensions", [])
+    dims = spec.get("configuration_dimensions") or spec.get("config_dimensions", [])
     for i, dim in enumerate(dims):
+        dim_id = dim.get("dimension_id") or dim.get("dimension")
         conn.execute(
             """INSERT INTO spec_configuration_dimensions
                (spec_family_id, dimension_id, description, allowed_values, default_value,
                 prohibited, notes, sort_order)
                VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
-            (sf_id, dim["dimension_id"], dim.get("description"),
+            (sf_id, dim_id, dim.get("description"),
              json_str(dim.get("values", [])), dim.get("default"),
              json_str(dim.get("prohibited")),
              dim.get("notes"), i),
@@ -358,7 +361,18 @@ def import_spec_json(conn, spec, sf_id, report):
     # Can be a single object or an array
     state_raw = spec.get("state_declarations") or spec.get("substrate_state_rules")
     if state_raw:
-        state_list = state_raw if isinstance(state_raw, list) else [state_raw]
+        # Handle alternate dict format: {input_states: [...], output_states: [...]}
+        if isinstance(state_raw, dict) and "input_states" in state_raw:
+            synth = {
+                "primary_surface": "",
+                "valid_input_states": [s.get("state_id") for s in state_raw.get("input_states", [])],
+                "output_state": {
+                    "state": json_str([s.get("state_id") for s in state_raw.get("output_states", [])]),
+                }
+            }
+            state_list = [synth]
+        else:
+            state_list = state_raw if isinstance(state_raw, list) else [state_raw]
         for state in state_list:
             # Handle primary_surface vs primary_surfaces
             primary = state.get("primary_surface") or ""
@@ -451,7 +465,7 @@ def import_materials_json(conn, materials, sf_id, report):
                        VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
                     (sf_id, sys_id, prod.get("product_role"), prod.get("product_type"),
                      json_str(prod.get("example_products")), prod.get("sheen"),
-                     prod.get("coats_required") or prod.get("default_coats"), prod.get("notes")),
+                     json_str(prod.get("coats_required")) if isinstance(prod.get("coats_required"), dict) else (prod.get("coats_required") or prod.get("default_coats")), prod.get("notes")),
                 )
                 product_count += 1
         elif any(sys_obj.get(k) and isinstance(sys_obj.get(k), dict) for k in ("primer", "finish", "sealer", "stain", "clear")):
@@ -645,6 +659,9 @@ def import_production_json(conn, production, sf_id, report):
     rates = production.get("task_production_rates", [])
     skipped_rates = 0
     for r in rates:
+        # Skip section header entries (e.g., {"_section": "=== MOD_FNRP_SETUP — 3 tasks ==="})
+        if "_section" in r or "task_id" not in r:
+            continue
         if r["task_id"] not in valid_task_ids:
             report.add_warning(f"Skipped orphaned rate for task {r['task_id']} (not in sop_tasks)")
             skipped_rates += 1
@@ -936,8 +953,11 @@ def import_spec_family(spec_path, db_path, reimport=False):
 
     spec = artifacts["spec.json"]
     sf_obj = spec.get("spec_family") or spec.get("spec_metadata")
+    if sf_obj is None:
+        # Flat top-level structure fallback
+        sf_obj = spec
     sf_id = sf_obj.get("id") or sf_obj.get("spec_family_id")
-    version = sf_obj["version"]
+    version = sf_obj.get("version", "0.1.0")
     print(f"  Spec Family: {sf_id} v{version}")
 
     report = ImportReport(sf_id, version)

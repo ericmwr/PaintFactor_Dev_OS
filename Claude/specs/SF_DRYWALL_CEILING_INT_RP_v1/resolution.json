@@ -1,0 +1,985 @@
+{
+  "_meta": {
+    "spec_family_id": "SF_DRYWALL_CEILING_INT_RP",
+    "generated_by": "registry_resolver",
+    "generated_at": "2026-03-13",
+    "version": "1.0.0",
+    "purpose": "Pre-resolved registry values for downstream agents. Agents consuming this file do NOT need to load raw registry files.",
+    "input_files": [
+      "specs/SF_DRYWALL_CEILING_INT_RP_v1/research.json",
+      "specs/_registry/controlled_enums.json",
+      "specs/_registry/id_registry.json",
+      "specs/_registry/structural_keys.json",
+      "specs/_registry/agent_rules.json"
+    ]
+  },
+
+  "spec_identity": {
+    "spec_family_id": "SF_DRYWALL_CEILING_INT_RP",
+    "status": "proposed",
+    "context_prefix": "CLRP",
+    "notes": "Second interior RP spec (after SF_DRYWALL_WALL_INT_RP). Combined prime + finish. Context prefix CLRP (ceiling repaint) confirmed — no collision with existing prefixes. TSK_CEIL_* is NC ceiling prime/finish; CLRP avoids collision. TSK_WLRP_* is wall RP; CLRP avoids collision."
+  },
+
+  "paintable_items": [
+    {
+      "item_id": "ITM_CEILING_FIELD_RP",
+      "name": "Ceiling Field Repaint Surface",
+      "unit_of_measure": "SF",
+      "surface_ref": "ceiling_field",
+      "status": "proposed",
+      "notes": "Combined prime+finish RP item. Phase suffix _RP used to avoid collision with existing ITM_CEILING_FIELD_PRIME and ITM_CEILING_FIELD_FINISH (NC specs are phase-split, creating the collision condition that justifies the suffix)."
+    },
+    {
+      "item_id": "ITM_CEILING_EDGE_WALL",
+      "name": "Wall Edge Cut-In (from ceiling perspective)",
+      "unit_of_measure": "LF",
+      "surface_ref": "ceiling_field",
+      "status": "existing",
+      "notes": "Reuse existing item from NC ceiling prime. Same physical edge work applies in RP context."
+    }
+  ],
+
+  "task_prefix": {
+    "pattern": "TSK_CLRP_",
+    "context": "CLRP",
+    "collision_check": "No collision. TSK_CEIL_* is used by NC ceiling prime/finish. TSK_WLRP_* is used by wall RP. TSK_CLRP_* is unique for RP ceiling tasks. Checked against id_registry.json context_prefixes_in_use — CLRP not present.",
+    "naming_rule": "TSK_CLRP_{ACTION} — action should be verb-based. RP-NEW tasks use this prefix. DIRECT transfer tasks from NC may retain original TSK_CEIL_* prefix where appropriate, but SOP Librarian should prefer re-issuing under TSK_CLRP_* for consistency in a combined spec."
+  },
+
+  "module_prefix": {
+    "pattern": "MOD_CLRP_",
+    "expected_modules": [
+      { "module_id": "MOD_CLRP_SETUP", "phase": "setup", "notes": "Floor protection full room (always), furniture drip covers (occupied), ceiling fixture masking (spray), wall-top masking (spray), opening covers (spray)" },
+      { "module_id": "MOD_CLRP_ASSESSMENT", "phase": "prep", "notes": "RP-specific: condition scan, adhesion test, moisture eval, coating ID. Overhead viewing — 15-20% slower than wall assessment." },
+      { "module_id": "MOD_CLRP_PREP", "phase": "prep", "notes": "Degloss, scrape, feather, contamination treatment (TSP wash, mildew treatment), fill/patch, dust removal" },
+      { "module_id": "MOD_CLRP_PRIME", "phase": "prime", "notes": "State-driven primer: adhesion / stain-block / mildew-resistant. Conditional on substrate_state. Roll/spray/spray_backroll application." },
+      { "module_id": "MOD_CLRP_INTERSTAGE", "phase": "interstage", "notes": "Sand between coats (QT4+), inspect, dust removal. Overhead pole sander." },
+      { "module_id": "MOD_CLRP_FINISH", "phase": "finish", "notes": "Cut-in at wall line + roll/spray/spray_backroll finish coats. Interstage between finish coats at QT4+." },
+      { "module_id": "MOD_CLRP_CLEANUP", "phase": "cleanup", "notes": "Protection teardown, customer walkthrough, tool clean, vacuum" },
+      { "module_id": "MOD_RRP_INT_CONTAINMENT", "phase": "prep", "notes": "Shared lead-safe RRP module. Conditional on PS_META.BOOL.HOME_PRE_1978. Shared across all 9 interior RP specs. Pre-existing ID from wall RP — not owned by this spec." }
+    ]
+  },
+
+  "paintscope_keys": [
+    {
+      "paintscope_key": "PS_SURFACE_SF.CEILING_FIELD",
+      "input_name": "IN_SF_CEILING_FIELD",
+      "uom": "SF",
+      "status": "existing",
+      "description": "Total paintable ceiling field area"
+    },
+    {
+      "paintscope_key": "PS_EDGE_LF.TO_WALL",
+      "input_name": "IN_LF_EDGE_TO_WALL",
+      "uom": "LF",
+      "status": "existing",
+      "description": "Linear footage of ceiling-to-wall boundary for edge cut-in"
+    },
+    {
+      "paintscope_key": "PS_PROTECT_SF.FLOOR_EXPOSED",
+      "input_name": "IN_SF_PROTECT_FLOOR_EXPOSED",
+      "uom": "SF",
+      "status": "existing",
+      "description": "Full floor protection area — ALWAYS required for ceiling work (drip zone), regardless of application method"
+    },
+    {
+      "paintscope_key": "PS_META.EA.ROOMS_TOTAL",
+      "input_name": "IN_EA_ROOMS_TOTAL",
+      "uom": "EA",
+      "status": "existing",
+      "description": "Room count — drives per-room heuristics (fixture count, furniture drip protection, customer walkthrough)"
+    },
+    {
+      "paintscope_key": "PS_META.SF.FLOOR_VACUUM_AREA",
+      "input_name": "IN_SF_FLOOR_VACUUM_AREA",
+      "uom": "SF",
+      "status": "existing",
+      "description": "Floor area for post-application vacuum cleanup"
+    },
+    {
+      "paintscope_key": "PS_META.SURFACE_CONDITION",
+      "input_name": "IN_ENUM_SURFACE_CONDITION",
+      "uom": "ENUM",
+      "status": "proposed",
+      "description": "Surface condition enum (GOOD/FAIR/POOR) for condition modifier selection",
+      "notes": "Shared with wall RP — proposed in SF_DRYWALL_WALL_INT_RP resolution. Values from condition_scale enum."
+    },
+    {
+      "paintscope_key": "PS_META.SURFACE_TEXTURE",
+      "input_name": "IN_ENUM_SURFACE_TEXTURE",
+      "uom": "ENUM",
+      "status": "proposed",
+      "description": "Ceiling surface texture for texture modifier selection. More impactful for ceilings due to higher texture prevalence.",
+      "notes": "Shared with wall RP — proposed in SF_DRYWALL_WALL_INT_RP resolution."
+    },
+    {
+      "paintscope_key": "PS_META.HEIGHT_BAND",
+      "input_name": "IN_ENUM_HEIGHT_BAND",
+      "uom": "ENUM",
+      "status": "existing",
+      "description": "Ceiling height classification for height modifier selection. Ceiling H2=1.15 (not 1.30 as walls)."
+    },
+    {
+      "paintscope_key": "PS_PROTECT_SF.FURNITURE_ROOM",
+      "input_name": "IN_SF_PROTECT_FURNITURE_ROOM",
+      "uom": "SF",
+      "status": "proposed",
+      "description": "Room floor area for furniture/contents drip protection (in-place covering, not center-pile). Ceiling-specific: overhead drip risk.",
+      "notes": "Shared with wall RP — proposed in SF_DRYWALL_WALL_INT_RP resolution. Conditional on occupancy_state."
+    },
+    {
+      "paintscope_key": "PS_META.ENUM.SUBSTRATE_STATE_INT",
+      "input_name": "IN_ENUM_SUBSTRATE_STATE_INT",
+      "uom": "ENUM",
+      "status": "proposed",
+      "description": "Interior substrate state classification (SS_INT_SOUND_PAINT through SS_INT_SMOKE_DAMAGE). Drives primer selection logic.",
+      "notes": "Shared with wall RP — proposed in SF_DRYWALL_WALL_INT_RP resolution."
+    },
+    {
+      "paintscope_key": "PS_META.BOOL.HOME_PRE_1978",
+      "input_name": "IN_BOOL_HOME_PRE_1978",
+      "uom": "BOOL",
+      "status": "proposed",
+      "description": "Boolean flag indicating home built before 1978, triggering RRP lead-safe module.",
+      "notes": "Shared with wall RP — proposed in SF_DRYWALL_WALL_INT_RP resolution."
+    },
+    {
+      "paintscope_key": "PS_META.ENUM.CONTAMINATION_TYPE",
+      "input_name": "IN_ENUM_CONTAMINATION_TYPE",
+      "uom": "ENUM",
+      "status": "proposed",
+      "description": "Contamination type: none, mildew, smoke, water_stain, grease. Drives primer selection and treatment task activation.",
+      "notes": "Shared with wall RP — proposed in SF_DRYWALL_WALL_INT_RP resolution."
+    },
+    {
+      "paintscope_key": "PS_META.BOOL.POPCORN_CEILING",
+      "input_name": "IN_BOOL_POPCORN_CEILING",
+      "uom": "BOOL",
+      "status": "proposed",
+      "description": "Boolean flag indicating popcorn/acoustic ceiling texture. Triggers special handling: no mechanical prep, asbestos test gate for pre-1980 homes, heavy nap roller selection, reduced production rates.",
+      "notes": "Ceiling-specific — NOT shared with wall RP. New PS key proposed by Researcher."
+    }
+  ],
+
+  "applicable_enums": {
+    "quality_tier": {
+      "values": ["QT2", "QT3", "QT4", "QT5"],
+      "default": "QT3",
+      "prohibited": [],
+      "notes": "QT2 included for economy ceiling refresh (rental turnover). QT2 is spray-only or roll. QT3 is flat white standard."
+    },
+    "application_method": {
+      "values": ["roll", "spray_backroll", "spray"],
+      "prohibited": [],
+      "notes": "Spray is more common for ceilings than walls. spray_backroll is production standard at QT3+. spray-only at QT2-QT3 flat. Roll available but less preferred for large areas. Brush excluded — ceiling field specs do not use brush-only."
+    },
+    "sheen": {
+      "values": ["flat", "matte", "eggshell", "satin", "semi-gloss"],
+      "prohibited": ["eggshell/satin", "semi-gloss+"],
+      "notes": "Flat is default (95%+ of ceiling repaints). Gloss excluded for ceilings. Eggshell requires QT3+. Satin/semi-gloss require QT4+."
+    },
+    "phase": {
+      "values": ["setup", "prep", "prime", "interstage", "finish", "cleanup"],
+      "full_sequence": ["setup", "prep", "prime", "apply", "interstage", "finish", "cleanup"],
+      "prohibited": ["protect", "protection"],
+      "notes": "'apply' phase not used — this spec uses prime and finish directly."
+    },
+    "task_classification": {
+      "values": ["binary", "qt_conditional", "qt_scaled"]
+    },
+    "task_type": {
+      "values": ["prep", "prime", "finish", "apply", "protect", "inspect", "cleanup", "detail"],
+      "prohibited": ["prep_minimal", "prime_coat", "finish_coats", "protection_setup", "interstage_inspection", "interstage_sanding", "defect_repair_interstage", "detailed_defect_fill", "final_inspection"]
+    },
+    "skill_level": {
+      "values": ["helper", "journeyman", "lead"]
+    },
+    "unit_of_measure": {
+      "values": ["EA", "LF", "SF", "EA_ROOM", "FIXED"],
+      "prohibited": ["each", "ROOM", "FIXED_TIME"],
+      "notes": "EA_ROOM for per-room heuristics (fixture masking, furniture drip cover, walkthrough). FIXED for assessment tasks and tool cleanup. SF for ceiling field. LF for wall-line cut-in."
+    },
+    "uom_input": {
+      "values": ["EA", "LF", "SF", "ENUM", "BOOL"],
+      "notes": "ENUM for condition_scale, surface_texture, height_band, substrate_state, contamination_type. BOOL for home_pre_1978, popcorn_ceiling."
+    },
+    "substrate_state": {
+      "input_states": [
+        "SS_INT_SOUND_PAINT",
+        "SS_INT_FAILING_PAINT",
+        "SS_INT_PEELING",
+        "SS_INT_MOISTURE_DAMAGE",
+        "SS_INT_SMOKE_DAMAGE"
+      ],
+      "output_states": {
+        "default": "SS_PAINTED_FLAT",
+        "varies_by": "sheen",
+        "state_map": {
+          "flat": "SS_PAINTED_FLAT",
+          "matte": "SS_PAINTED_FLAT",
+          "eggshell": "SS_PAINTED_EGGSHELL",
+          "satin": "SS_PAINTED_SATIN",
+          "semi-gloss": "SS_PAINTED_SEMIGLOSS"
+        }
+      },
+      "notes": "Identical 5 input states to wall RP. Default output is SS_PAINTED_FLAT (95%+ of ceilings). Matte maps to SS_PAINTED_FLAT per ceiling convention."
+    },
+    "condition_scale": {
+      "values": ["GOOD", "FAIR", "POOR"],
+      "notes": "Universal 3-level scale from controlled_enums.json. GOOD=SS_INT_SOUND_PAINT. FAIR=SS_INT_FAILING_PAINT/SS_INT_MOISTURE_DAMAGE. POOR=SS_INT_PEELING/SS_INT_SMOKE_DAMAGE."
+    },
+    "surface_texture": {
+      "values": ["smooth", "orange_peel", "knockdown", "heavy_texture", "skip_trowel"],
+      "notes": "Textured ceilings more common than textured walls. skip_trowel treated as heavy_texture. Popcorn ceiling is a special case within heavy_texture — flag via PS_META.BOOL.POPCORN_CEILING."
+    },
+    "floor_type": {
+      "values": ["finished", "partial", "subfloor"],
+      "notes": "RP is always 'finished' (occupied home). Full floor protection always mandatory for ceiling work."
+    },
+    "protection_level": {
+      "values": ["none", "edge_only", "partial_cover", "full_cover", "item_mask", "light_mask", "full_mask"],
+      "notes": "floor_full=full_cover (always), wall_top_mask=full_mask (spray only), ceiling_fixtures=item_mask (spray; QT4+ for roll), furniture_drip_cover=partial_cover (occupied), opening_covers=partial_cover (spray)."
+    },
+    "protection_action": {
+      "values": ["setup", "maintain", "teardown"]
+    },
+    "edge_type": {
+      "values": ["linear", "complex"],
+      "notes": "All ceiling adjacencies are linear. Ceiling-to-wall is linear. Ceiling-to-crown (rare) is linear."
+    },
+    "typical_relationship": {
+      "values": ["same_finish", "different_finish", "varies"],
+      "notes": "Ceiling-to-wall is always different_finish. Ceiling-to-crown is different_finish."
+    },
+    "finish_group": {
+      "values": ["same", "different"],
+      "notes": "Used in adjacent_state_protection_rules."
+    },
+    "consumable_unit": {
+      "values": ["EA", "ROLL", "SHEET", "BOX", "TUBE", "GAL", "QT", "PINT"],
+      "prohibited": ["each", "roll", "sheet", "tube"]
+    },
+    "consumable_category": {
+      "values": ["applicator", "protection", "prep", "cleanup", "abrasive", "fill_material", "tool"]
+    },
+    "product_role": {
+      "values": ["primer", "finish", "sealer", "clear", "stain", "specialty"],
+      "notes": "This spec uses primer (3 state-driven systems, shared with wall RP) and finish (3 QT-driven ceiling-specific systems). Specialty for shellac stain-blocker if classified separately."
+    },
+    "yield_uom": {
+      "values": ["SF", "LF", "EA", "EA_OPENING", "SF_FLOOR", "LF_EDGE", "GAL"]
+    },
+    "severity": {
+      "values": ["critical", "major", "minor"],
+      "prohibited": ["high", "medium", "low", "WARN"]
+    },
+    "confidence_level": {
+      "values": ["low", "medium", "high"]
+    },
+    "modifier_mechanism": {
+      "values": ["baseline", "baseline_reduction", "selective_multiplier", "additional_rounds", "excluded"]
+    },
+    "domain": {
+      "values": ["interior"]
+    },
+    "spec_status": {
+      "values": ["draft", "review_required", "approved", "active", "deprecated", "referenced_not_built"]
+    }
+  },
+
+  "surface_ids": {
+    "primary_surface": "ceiling_field",
+    "adjacent_surfaces": [
+      "wall_field",
+      "trim_crown"
+    ],
+    "all_status": "existing",
+    "notes": "All surfaces are in id_registry.json entries_in_active_use. Ceiling has far fewer adjacencies than walls — only wall_field (always) and trim_crown (conditional/rare). No baseboard, door casing, or window casing adjacency."
+  },
+
+  "zone_ids": [
+    {
+      "zone_id": "floor_full",
+      "status": "existing",
+      "retired_alias_warning": null,
+      "notes": "ALWAYS required for ceiling work — drip zone from overhead. Full room floor coverage regardless of application method. Differs from wall RP where floor_full is spray-only."
+    },
+    {
+      "zone_id": "wall_top_mask",
+      "status": "proposed",
+      "retired_alias_warning": null,
+      "notes": "New zone for ceiling RP/NC spray methods. Tape and paper at wall top to protect finished walls from ceiling spray overspray. Not needed for roll method. Ceiling-specific — inverse of wall RP's ceiling_line zone."
+    },
+    {
+      "zone_id": "ceiling_fixtures",
+      "status": "proposed",
+      "retired_alias_warning": null,
+      "notes": "New zone for ceiling fixture masking. Recessed lights, flush-mount fixtures, ceiling fans, smoke detectors, HVAC vents, sprinkler heads. Required for spray; recommended for roll at QT4+. Heuristic: 8 items per room."
+    },
+    {
+      "zone_id": "furniture_drip_cover",
+      "status": "proposed",
+      "retired_alias_warning": null,
+      "notes": "New zone for ceiling-specific furniture drip protection. Furniture/contents covered IN PLACE (not center-piled). Conditional on occupancy_state. Distinct from wall RP furniture_room (which involves center-pile move)."
+    },
+    {
+      "zone_id": "opening_covers",
+      "status": "proposed",
+      "retired_alias_warning": null,
+      "notes": "New zone for lightweight plastic covers over window and door openings during ceiling spray. Quick tack for overspray containment. Spray methods only."
+    },
+    {
+      "zone_id": "ceiling_line",
+      "status": "existing",
+      "retired_alias_warning": null,
+      "notes": "Per doctrine: ceiling painter cuts into wall line freehand (roll method) — no protection needed on ceiling side. Wall-top masking handles spray method protection on wall side. This zone is for documentation reference."
+    }
+  ],
+
+  "material_system_prefix": {
+    "pattern": "SYS_{CONTEXT}_{DESCRIPTION}",
+    "primer_systems_shared": [
+      {
+        "system_id": "SYS_PRIMER_ADHESION_INT",
+        "name": "Interior Adhesion Primer",
+        "status": "proposed",
+        "notes": "SHARED with wall RP. Same products, same selection logic. No ceiling-specific primer systems needed. Proposed in SF_DRYWALL_WALL_INT_RP resolution."
+      },
+      {
+        "system_id": "SYS_PRIMER_STAINBLOCK_INT",
+        "name": "Interior Stain-Blocking Primer (Shellac-Based)",
+        "status": "proposed",
+        "notes": "SHARED with wall RP. Shellac stain blocker for smoke damage. Full surface application. Proposed in SF_DRYWALL_WALL_INT_RP resolution. Ventilation critical for overhead ceiling application."
+      },
+      {
+        "system_id": "SYS_PRIMER_MILDEW_INT",
+        "name": "Interior Mildew-Resistant Primer",
+        "status": "proposed",
+        "notes": "SHARED with wall RP. Mildew-resistant primer for moisture damage. Proposed in SF_DRYWALL_WALL_INT_RP resolution. More frequently used on ceilings (bathroom mildew, water damage from above)."
+      }
+    ],
+    "finish_systems_to_create": [
+      {
+        "system_id": "SYS_CEILING_FINISH_STANDARD",
+        "status": "proposed",
+        "quality_tiers": ["QT2", "QT3"],
+        "notes": "Ceiling-specific flat paint designed for overhead application — low-spatter, self-leveling formula. Distinct product from wall flat paint (SYS_WALL_FINISH_STANDARD). Examples: Benjamin Moore Waterborne Ceiling Paint, Sherwin-Williams ProMar Ceiling Paint."
+      },
+      {
+        "system_id": "SYS_CEILING_FINISH_PREMIUM",
+        "status": "proposed",
+        "quality_tiers": ["QT4"],
+        "notes": "Premium interior latex appropriate for ceiling application. Available in flat, eggshell, satin. Better leveling critical for overhead sheen application."
+      },
+      {
+        "system_id": "SYS_CEILING_FINISH_SUPERIOR",
+        "status": "proposed",
+        "quality_tiers": ["QT5"],
+        "notes": "Top-tier ceiling paint with maximum hide, leveling, and durability. Semi-gloss on ceilings is QT5 territory."
+      }
+    ],
+    "existing_systems_to_consider": [
+      "SYS_WALL_FINISH_STANDARD/PREMIUM/SUPERIOR — wall finish systems from wall RP. Ceiling finish is a DISTINCT product line (ceiling-specific flat formulation for QT2-QT3). QT4-QT5 may use same premium/superior product as walls but in ceiling-appropriate application. New SYS_CEILING_FINISH_* IDs avoid confusion."
+    ],
+    "notes": "3 shared primer systems (from wall RP) + 3 new ceiling finish systems = 6 total SYS_ IDs referenced. Primer selection is state-driven (not QT-driven). Finish selection is QT-driven. Ceiling finish systems use SYS_CEILING_FINISH_* prefix — distinct from SYS_WALL_FINISH_* to reflect ceiling-specific product formulations."
+  },
+
+  "consumable_prefix": {
+    "canonical_prefix": "CON_",
+    "prohibited_prefix": "CONS_",
+    "reusable_consumables": [
+      "CON_SANDPAPER_150",
+      "CON_SANDPAPER_180",
+      "CON_SANDPAPER_220",
+      "CON_SPACKLE_LIGHTWEIGHT",
+      "CON_CAULK_PAINTABLE",
+      "CON_BRUSH_ANGLED_SASH",
+      "CON_MASKING_TAPE_BLUE",
+      "CON_MASKING_PAPER_12IN",
+      "CON_DROP_CLOTH_CANVAS",
+      "CON_ROSIN_PAPER",
+      "CON_TACK_CLOTH",
+      "CON_SPRAY_TIP_310",
+      "CON_MASKING_FILM_PLASTIC"
+    ],
+    "shared_rp_consumables": [
+      {
+        "consumable_id": "CON_LIQUID_SANDER",
+        "name": "Liquid Sander / Chemical Degloss",
+        "category": "prep",
+        "status": "proposed",
+        "notes": "Shared with wall RP. Preferred for overhead ceiling work — less physical effort than mechanical scuff. Proposed in SF_DRYWALL_WALL_INT_RP resolution."
+      },
+      {
+        "consumable_id": "CON_TSP_POWDER",
+        "name": "TSP Powder (Trisodium Phosphate)",
+        "category": "prep",
+        "status": "proposed",
+        "notes": "Shared with wall RP. Surface cleaning for contamination. Overhead application with sponge on pole. Proposed in SF_DRYWALL_WALL_INT_RP resolution."
+      },
+      {
+        "consumable_id": "CON_MILDEWCIDE_SOLUTION",
+        "name": "Bleach / Mildewcide Solution",
+        "category": "prep",
+        "status": "proposed",
+        "notes": "Shared with wall RP. Biocide treatment for moisture damage. More frequently used on ceilings. Proposed in SF_DRYWALL_WALL_INT_RP resolution."
+      },
+      {
+        "consumable_id": "CON_POLY_SHEETING_FURNITURE",
+        "name": "Poly Sheeting for Furniture/Contents Drip Protection (2-4 mil)",
+        "category": "protection",
+        "status": "proposed",
+        "notes": "Shared with wall RP. Ceiling context: covers furniture/contents in place from overhead drips. Proposed in SF_DRYWALL_WALL_INT_RP resolution."
+      },
+      {
+        "consumable_id": "CON_ADHESION_TEST_KIT",
+        "name": "Adhesion Test Kit (Cross-Hatch Cutter + Tape)",
+        "category": "tool",
+        "status": "proposed",
+        "notes": "Shared with wall RP. ASTM D3359 cross-hatch tape test. May require step ladder for ceiling assessment. Proposed in SF_DRYWALL_WALL_INT_RP resolution."
+      },
+      {
+        "consumable_id": "CON_DENATURED_ALCOHOL",
+        "name": "Denatured Alcohol (Shellac Cleanup)",
+        "category": "cleanup",
+        "status": "proposed",
+        "notes": "Shared with wall RP. Required for shellac stain-blocker tool cleanup. Proposed in SF_DRYWALL_WALL_INT_RP resolution."
+      }
+    ],
+    "proposed_new_consumables": [],
+    "notes": "No ceiling-specific new consumables needed beyond what wall RP proposed. All RP consumables are shared. Ceiling emphasizes extension pole tool accessories (pole roller, pole sander, pole scraper) but these are reusable tools, not consumables tracked in the spec."
+  },
+
+  "round_configurations": {
+    "existing_patterns": [
+      "ROUND_SINGLE_COAT",
+      "ROUND_TWO_COAT"
+    ],
+    "proposed_rounds": [
+      {
+        "round_id": "ROUND_CLRP_PRIME_1FINISH",
+        "description": "Prime + 1 finish coat (QT2 economy or QT3 white-on-white with full coverage)",
+        "applies_when": { "quality_tier": ["QT2"] },
+        "status": "proposed"
+      },
+      {
+        "round_id": "ROUND_CLRP_PRIME_2FINISH",
+        "description": "Prime + 2 finish coats (standard QT3-QT5, or QT3 colored ceiling)",
+        "applies_when": { "quality_tier": ["QT3", "QT4", "QT5"] },
+        "status": "proposed"
+      },
+      {
+        "round_id": "ROUND_CLRP_NOPRIME_1FINISH",
+        "description": "No prime + 1 finish coat (GOOD condition, QT2 — sound paint, white-on-white refresh)",
+        "applies_when": { "quality_tier": ["QT2"], "condition_scale": ["GOOD"] },
+        "status": "proposed"
+      },
+      {
+        "round_id": "ROUND_CLRP_NOPRIME_2FINISH",
+        "description": "No prime + 2 finish coats (GOOD condition, QT3-QT5 when adhesion test passes)",
+        "applies_when": { "quality_tier": ["QT3", "QT4", "QT5"], "condition_scale": ["GOOD"] },
+        "status": "proposed"
+      }
+    ],
+    "naming_pattern": "ROUND_CLRP_{PRIME_STATUS}_{COAT_COUNT}",
+    "notes": "Mirror of wall RP round configs with CLRP_ prefix. RP round configs are conditional on substrate state — GOOD condition may skip primer. FAIR/POOR always prime. Coat count driven by QT. QT3 ceilings are typically 1 coat white-on-white refresh."
+  },
+
+  "coverage_profiles": {
+    "existing_profiles": [],
+    "proposed_profiles": [
+      {
+        "profile_id": "COV_CLRP_ADHESION_PRIMER",
+        "description": "Coverage rate for adhesion primer on previously painted ceiling",
+        "status": "proposed"
+      },
+      {
+        "profile_id": "COV_CLRP_STAINBLOCK_PRIMER",
+        "description": "Coverage rate for shellac stain-blocker on smoke-damaged ceiling. Ceiling is worst surface for smoke deposition.",
+        "status": "proposed"
+      },
+      {
+        "profile_id": "COV_CLRP_MILDEW_PRIMER",
+        "description": "Coverage rate for mildew-resistant primer on moisture-damaged ceiling",
+        "status": "proposed"
+      },
+      {
+        "profile_id": "COV_CLRP_FINISH_SMOOTH",
+        "description": "Coverage rate for ceiling finish coat on smooth ceiling",
+        "status": "proposed"
+      },
+      {
+        "profile_id": "COV_CLRP_FINISH_TEXTURED",
+        "description": "Coverage rate for ceiling finish coat on textured ceiling (orange peel / knockdown / heavy / popcorn)",
+        "status": "proposed"
+      }
+    ],
+    "naming_pattern": "COV_CLRP_{PRODUCT_ROLE}_{CONDITION}"
+  },
+
+  "factor_modifiers": {
+    "spec_specific": [
+      {
+        "modifier_id": "FAC_CLRP_CONDITION_GOOD",
+        "value": 1.00,
+        "applies_to": "prep_pool",
+        "status": "proposed"
+      },
+      {
+        "modifier_id": "FAC_CLRP_CONDITION_FAIR",
+        "value": 1.50,
+        "applies_to": "prep_pool",
+        "status": "proposed",
+        "notes": "Per research EST-002: COND_FAIR from Modifier_Registry"
+      },
+      {
+        "modifier_id": "FAC_CLRP_CONDITION_POOR",
+        "value": 2.00,
+        "applies_to": "prep_pool",
+        "status": "proposed",
+        "notes": "Per research EST-002: COND_POOR from Modifier_Registry"
+      },
+      {
+        "modifier_id": "FAC_CLRP_CONTAM_NONE",
+        "value": 1.00,
+        "applies_to": "prep_pool",
+        "status": "proposed"
+      },
+      {
+        "modifier_id": "FAC_CLRP_CONTAM_MILDEW",
+        "value": 1.20,
+        "applies_to": "prep_pool",
+        "status": "proposed",
+        "notes": "More frequently activated on ceilings (bathroom mildew). Same value as wall RP."
+      },
+      {
+        "modifier_id": "FAC_CLRP_CONTAM_SMOKE",
+        "value": 1.50,
+        "applies_to": "prep_pool",
+        "status": "proposed",
+        "notes": "Highest contamination modifier. Smoke deposition heaviest on ceilings. Same value as wall RP."
+      },
+      {
+        "modifier_id": "FAC_CLRP_CONTAM_WATER_STAIN",
+        "value": 1.15,
+        "applies_to": "prep_pool",
+        "status": "proposed",
+        "notes": "Water damage is #1 ceiling repaint trigger. Same value as wall RP."
+      },
+      {
+        "modifier_id": "FAC_CLRP_CONTAM_GREASE",
+        "value": 1.10,
+        "applies_to": "prep_pool",
+        "status": "proposed",
+        "notes": "Kitchen ceiling grease film. Same value as wall RP."
+      }
+    ],
+    "shared_modifiers": [
+      {
+        "modifier_id": "FAC_QT2",
+        "value": 0.80,
+        "applies_to": "coating_pool",
+        "status": "existing"
+      },
+      {
+        "modifier_id": "FAC_QT3",
+        "value": 1.00,
+        "applies_to": "coating_pool",
+        "status": "existing"
+      },
+      {
+        "modifier_id": "FAC_QT4",
+        "value": 1.30,
+        "applies_to": "coating_pool",
+        "status": "existing"
+      },
+      {
+        "modifier_id": "FAC_QT5",
+        "value": 1.50,
+        "applies_to": "coating_pool",
+        "status": "existing"
+      },
+      {
+        "modifier_id": "FAC_HEIGHT_H1",
+        "value": 1.00,
+        "applies_to": "both_pools",
+        "status": "existing",
+        "notes": "8-9 ft standard ceiling — work from floor with extension pole"
+      },
+      {
+        "modifier_id": "FAC_HEIGHT_H2",
+        "value": 1.15,
+        "applies_to": "both_pools",
+        "status": "existing",
+        "notes": "10-12 ft — step ladder needed. CEILING H2=1.15, NOT 1.30 as for walls. Height change affects access only, not surface area."
+      },
+      {
+        "modifier_id": "FAC_HEIGHT_H3",
+        "value": 1.50,
+        "applies_to": "both_pools",
+        "status": "existing",
+        "notes": "13-17 ft vaulted — scaffold required"
+      },
+      {
+        "modifier_id": "FAC_HEIGHT_H4",
+        "value": 2.00,
+        "applies_to": "both_pools",
+        "status": "existing",
+        "notes": "18+ ft cathedral — lift or scaffold tower"
+      },
+      {
+        "modifier_id": "FAC_TEXTURE_SMOOTH",
+        "value": 1.00,
+        "applies_to": "both_pools",
+        "status": "existing"
+      },
+      {
+        "modifier_id": "FAC_TEXTURE_ORANGE_PEEL",
+        "value": 1.10,
+        "applies_to": "both_pools",
+        "status": "existing"
+      },
+      {
+        "modifier_id": "FAC_TEXTURE_KNOCKDOWN",
+        "value": 1.15,
+        "applies_to": "both_pools",
+        "status": "existing"
+      },
+      {
+        "modifier_id": "FAC_TEXTURE_HEAVY",
+        "value": 1.25,
+        "applies_to": "both_pools",
+        "status": "existing",
+        "notes": "Includes popcorn/acoustic — 1.25x may underestimate popcorn. Flag for field calibration."
+      }
+    ],
+    "stacking_partition": {
+      "prep_pool": {
+        "formula": "condition_modifier x contamination_modifier",
+        "never_includes": ["quality_tier", "wall_access"],
+        "max_theoretical": "POOR(2.0) x smoke(1.5) = 3.00x",
+        "notes": "Simpler than wall RP — no wall_access modifier for ceilings (no furniture obstruction overhead)."
+      },
+      "coating_pool": {
+        "formula": "qt_modifier",
+        "never_includes": ["condition_scale", "contamination_type", "wall_access"],
+        "max_theoretical": "QT5(1.50) = 1.50x",
+        "notes": "No wall_access modifier for ceilings."
+      },
+      "shared_across_pools": ["height", "texture"],
+      "notes": "Height and texture stack independently on both pools. Height applies to overhead tasks only — floor-level tasks (protection setup/teardown) are unaffected. No wall_access modifier equivalent for ceilings."
+    }
+  },
+
+  "cross_spec_coordination": {
+    "xspec_flags_consumed": [],
+    "xspec_flags_set": [],
+    "comp_modifiers_set": [],
+    "comp_modifiers_affected_by": [],
+    "related_specs": [
+      "SF_DRYWALL_WALL_INT_RP — sibling (shared protection setup when both active in same room: floor protection done once by ceiling spec, furniture move done by wall spec)",
+      "SF_TRIM_INT_RP — sibling (trim-first sequencing means trim complete before ceiling work; crown masking is ceiling spec's responsibility)"
+    ],
+    "shared_modules": [
+      "MOD_RRP_INT_CONTAINMENT — lead-safe work practices (shared across all 9 interior RP specs)"
+    ]
+  },
+
+  "structural_reminders": {
+    "materials_json": {
+      "required_keys": ["spec_family_id", "version", "material_systems", "consumables"],
+      "system_item_keys": ["system_id", "name", "applies_when | quality_tier"],
+      "consumable_item_keys": ["consumable_id", "name", "category"],
+      "prohibited": { "consumable_usage_models": "use 'consumables'" },
+      "notes": "3 shared primer systems (from wall RP) + 3 new ceiling finish systems. 6 shared RP consumables (from wall RP). Coverage profiles optional but recommended. Ceiling-specific flat paint (QT2-QT3) is a distinct product from wall flat paint."
+    },
+    "sop_modules_json": {
+      "required_keys": ["spec_family_id", "version", "sop_modules"],
+      "module_keys": ["module_id", "name", "phase", "tasks"],
+      "task_required_keys": ["task_id", "name", "task_classification", "skill_level"],
+      "task_prohibited_keys": ["task_class", "rate_per_hour", "coverage_sf_per_gallon"],
+      "notes": "7 spec-owned modules + 1 shared module (MOD_RRP_INT_CONTAINMENT). Assessment module is RP-new (overhead). Phase ordering: setup > prep(assessment+remediation) > prime > interstage > finish > cleanup. No furniture MOVE tasks — only drip cover. Floor protection is always full room."
+    },
+    "production_json": {
+      "required_keys": ["spec_family_id", "version", "task_production_rates"],
+      "rate_item_keys": ["task_id", "unit_of_measure", "rate_per_hour | rates_by_tier | fixed_time_minutes"],
+      "prohibited": { "tasks": "use sop_modules.json", "sop_modules": "use sop_modules.json" },
+      "notes": "Assessment tasks use FIXED or EA_ROOM rates (15-20% slower than wall). Scrape/feather rates are new with wide ranges and overhead penalty. Finish rates transfer from NC ceiling specs (overhead penalty already factored). Spray/backroll coupling: ceiling backroll at 320 SF/hr is tightest coupling constraint."
+    },
+    "qa_report_json": {
+      "required_keys": ["spec_family_id", "version", "overall_result"],
+      "issue_keys": ["issue_id", "severity", "area", "file", "description", "suggested_fix"],
+      "notes": "severity: critical/major/minor only. ISS_ prefix for issues."
+    }
+  },
+
+  "cross_file_threading": [
+    "RULE 1: Every TSK_ in sop_modules.json MUST have a matching rate in production.json",
+    "RULE 2: Every ITM_ in spec.json MUST appear in at least one variant",
+    "RULE 3: Every SYS_ quality_tier MUST match spec.json configuration_dimensions",
+    "RULE 4: Every IN_ input in spec.json SHOULD be consumed by sop_modules or production",
+    "RULE 5: Every PS_ key in production.json MUST match spec.json required_paintscope_inputs",
+    "RULE 6: Every zone_id in spec.json MUST match sop_modules.json protection_metadata.zones",
+    "RULE 7: Module phase order: setup > prep > prime > apply > interstage > finish > cleanup",
+    "RULE 8: UOM for a task MUST match between sop_modules.json and production.json",
+    "RULE 9: TSK_ context prefix from resolution.json (CLRP) MUST be used for all new task IDs",
+    "RULE 10: ITM_ IDs marked 'existing' MUST use exact registered ID — no synonyms",
+    "RULE 11: Downstream agents MUST use ONLY enum values from resolution.json applicable_enums"
+  ],
+
+  "migration_warnings": [
+    "No direct migration items from agent_rules.json migration_checklist affect this spec. Standard enforcement applies: CON_ prefix (never CONS_), task_classification (never task_class), phase values from controlled_enums (never 'protect'/'protection'), and uppercase units throughout."
+  ],
+
+  "registry_additions_proposed": [
+    {
+      "registry": "id_registry.json",
+      "section": "SF_",
+      "proposed_id": "SF_DRYWALL_CEILING_INT_RP",
+      "name": "Interior Drywall Ceiling Repaint (Combined Prime + Finish)",
+      "justification": "Second interior RP spec. No existing SF_ entry for interior ceiling repaint."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "ITM_",
+      "proposed_id": "ITM_CEILING_FIELD_RP",
+      "name": "Ceiling Field Repaint Surface",
+      "justification": "Combined prime+finish RP item. ITM_CEILING_FIELD_PRIME and ITM_CEILING_FIELD_FINISH exist for NC specs (phase-split). _RP suffix avoids collision."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "TSK_",
+      "proposed_id": "TSK_CLRP_*",
+      "name": "Ceiling Repaint task prefix",
+      "justification": "New context prefix for interior ceiling repaint tasks. No collision with existing TSK_CEIL_* (NC ceiling) or TSK_WLRP_* (wall RP)."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "MOD_",
+      "proposed_id": "MOD_CLRP_*",
+      "name": "Ceiling Repaint module prefix",
+      "justification": "New context prefix for interior ceiling repaint modules. No collision with existing MOD_ prefixes."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "SYS_",
+      "proposed_id": "SYS_CEILING_FINISH_STANDARD",
+      "name": "Standard Interior Ceiling Finish (QT2-QT3)",
+      "justification": "Ceiling-specific flat paint — distinct formulation from wall flat paint (low-spatter, self-leveling overhead). New SYS_ ID needed; SYS_WALL_FINISH_STANDARD is wall-specific."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "SYS_",
+      "proposed_id": "SYS_CEILING_FINISH_PREMIUM",
+      "name": "Premium Interior Ceiling Finish (QT4)",
+      "justification": "Premium ceiling paint. May share product with wall premium but tracked separately for ceiling-specific application context."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "SYS_",
+      "proposed_id": "SYS_CEILING_FINISH_SUPERIOR",
+      "name": "Superior Interior Ceiling Finish (QT5)",
+      "justification": "Top-tier ceiling paint. Semi-gloss on ceilings is QT5 territory."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "ROUND_",
+      "proposed_id": "ROUND_CLRP_PRIME_1FINISH",
+      "name": "Ceiling RP: Prime + 1 finish coat",
+      "justification": "QT2 economy round config. CLRP_ prefix avoids collision with ROUND_WLRP_*."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "ROUND_",
+      "proposed_id": "ROUND_CLRP_PRIME_2FINISH",
+      "name": "Ceiling RP: Prime + 2 finish coats",
+      "justification": "Standard QT3-QT5 round config."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "ROUND_",
+      "proposed_id": "ROUND_CLRP_NOPRIME_1FINISH",
+      "name": "Ceiling RP: No prime + 1 finish coat",
+      "justification": "GOOD condition QT2 — sound paint, no prime needed."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "ROUND_",
+      "proposed_id": "ROUND_CLRP_NOPRIME_2FINISH",
+      "name": "Ceiling RP: No prime + 2 finish coats",
+      "justification": "GOOD condition QT3-QT5 — sound paint with passing adhesion test."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "COV_",
+      "proposed_id": "COV_CLRP_ADHESION_PRIMER",
+      "name": "Adhesion primer coverage on previously painted ceiling",
+      "justification": "New coverage profile for RP adhesion primer on ceiling. CLRP_ prefix avoids collision with COV_WLRP_*."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "COV_",
+      "proposed_id": "COV_CLRP_STAINBLOCK_PRIMER",
+      "name": "Shellac stain-blocker coverage on smoke-damaged ceiling",
+      "justification": "New coverage profile for RP stain-block primer on ceiling."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "COV_",
+      "proposed_id": "COV_CLRP_MILDEW_PRIMER",
+      "name": "Mildew-resistant primer coverage on moisture-damaged ceiling",
+      "justification": "New coverage profile for RP mildew primer on ceiling."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "COV_",
+      "proposed_id": "COV_CLRP_FINISH_SMOOTH",
+      "name": "Ceiling finish coat coverage on smooth ceiling",
+      "justification": "New coverage profile for ceiling finish coat on smooth texture."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "COV_",
+      "proposed_id": "COV_CLRP_FINISH_TEXTURED",
+      "name": "Ceiling finish coat coverage on textured ceiling",
+      "justification": "New coverage profile for ceiling finish coat on textured surfaces (orange peel/knockdown/heavy/popcorn)."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "FAC_",
+      "proposed_id": "FAC_CLRP_CONDITION_GOOD",
+      "name": "Ceiling RP condition modifier — GOOD",
+      "justification": "Ceiling-specific condition modifier. CLRP_ prefix avoids collision with FAC_WLRP_*. Values identical to wall RP."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "FAC_",
+      "proposed_id": "FAC_CLRP_CONDITION_FAIR",
+      "name": "Ceiling RP condition modifier — FAIR",
+      "justification": "Ceiling-specific condition modifier."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "FAC_",
+      "proposed_id": "FAC_CLRP_CONDITION_POOR",
+      "name": "Ceiling RP condition modifier — POOR",
+      "justification": "Ceiling-specific condition modifier."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "FAC_",
+      "proposed_id": "FAC_CLRP_CONTAM_NONE",
+      "name": "Ceiling RP contamination modifier — none",
+      "justification": "Ceiling-specific contamination modifier baseline."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "FAC_",
+      "proposed_id": "FAC_CLRP_CONTAM_MILDEW",
+      "name": "Ceiling RP contamination modifier — mildew",
+      "justification": "Ceiling-specific contamination modifier. More frequently activated on ceilings than walls."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "FAC_",
+      "proposed_id": "FAC_CLRP_CONTAM_SMOKE",
+      "name": "Ceiling RP contamination modifier — smoke",
+      "justification": "Ceiling-specific contamination modifier. Smoke deposition heaviest on ceilings."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "FAC_",
+      "proposed_id": "FAC_CLRP_CONTAM_WATER_STAIN",
+      "name": "Ceiling RP contamination modifier — water stain",
+      "justification": "Ceiling-specific contamination modifier. Water damage is #1 ceiling repaint trigger."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "FAC_",
+      "proposed_id": "FAC_CLRP_CONTAM_GREASE",
+      "name": "Ceiling RP contamination modifier — grease",
+      "justification": "Ceiling-specific contamination modifier. Kitchen ceiling grease film."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "PS_",
+      "proposed_id": "PS_META.BOOL.POPCORN_CEILING",
+      "name": "Popcorn/acoustic ceiling boolean flag",
+      "justification": "Ceiling-specific PS key. Triggers special handling: no mechanical prep, asbestos test gate, heavy nap, reduced rates. Not shared with wall RP."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "IN_",
+      "proposed_id": "IN_BOOL_POPCORN_CEILING",
+      "name": "Popcorn ceiling boolean input",
+      "justification": "Maps to PS_META.BOOL.POPCORN_CEILING. Ceiling-specific."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "zone_ids",
+      "proposed_id": "wall_top_mask",
+      "name": "Wall-top masking zone for ceiling spray methods",
+      "justification": "Ceiling-specific zone. Tape and paper at wall top to protect finished walls from ceiling overspray. Not present in zone_ids entries_in_active_use."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "zone_ids",
+      "proposed_id": "ceiling_fixtures",
+      "name": "Ceiling fixture masking zone",
+      "justification": "Ceiling-specific zone. Recessed lights, flush-mount fixtures, ceiling fans, smoke detectors, HVAC vents. Not present in zone_ids entries_in_active_use."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "zone_ids",
+      "proposed_id": "furniture_drip_cover",
+      "name": "Furniture/contents drip protection zone (ceiling-specific)",
+      "justification": "Ceiling-specific zone. In-place overhead drip covers. Distinct from wall RP furniture_room (center-pile move). Not present in zone_ids entries_in_active_use."
+    },
+    {
+      "registry": "id_registry.json",
+      "section": "zone_ids",
+      "proposed_id": "opening_covers",
+      "name": "Window/door opening overspray covers",
+      "justification": "Ceiling-specific zone for spray methods. Lightweight plastic covers over openings for overspray containment. Not present in zone_ids entries_in_active_use."
+    }
+  ],
+
+  "warnings": [
+    {
+      "warning_id": "W-001",
+      "severity": "minor",
+      "topic": "Ceiling H2 height modifier differs from wall H2",
+      "message": "Research specifies ceiling FAC_HEIGHT_H2=1.15 (not 1.30 as for walls). This means the shared FAC_HEIGHT_H2=1.30 in the existing registry may need a ceiling-specific override. However, the existing FAC_HEIGHT_H2 was set from NC ceiling production.json at 1.15 for ceiling context. Estimation Engineer should verify which value applies — the shared modifier may already be context-aware.",
+      "recommendation": "Estimation Engineer should use 1.15 for ceiling H2 and document the deviation from wall H2=1.30. If FAC_HEIGHT_H2 is truly shared at 1.30, a ceiling-specific FAC_CLRP_HEIGHT_H2=1.15 may be needed."
+    },
+    {
+      "warning_id": "W-002",
+      "severity": "minor",
+      "topic": "Popcorn ceiling heavy_texture modifier may underestimate",
+      "message": "Research uncertainty U-002: heavy_texture modifier (1.25x) may underestimate popcorn/acoustic ceiling impact. Actual modifier may be 1.50-2.00x. PS_META.BOOL.POPCORN_CEILING flag proposed for special handling.",
+      "recommendation": "Estimation Engineer should use 1.25x baseline with PS_META.BOOL.POPCORN_CEILING activating additional rate reduction. Flag for field calibration."
+    },
+    {
+      "warning_id": "W-003",
+      "severity": "minor",
+      "topic": "Contamination modifier values are research estimates",
+      "message": "FAC_CLRP_CONTAM_* values (1.10-1.50) are adapted from wall RP (which were themselves research estimates). Not yet in Modifier_Registry.md.",
+      "recommendation": "Use proposed values. Flag in production.json for field validation."
+    },
+    {
+      "warning_id": "W-004",
+      "severity": "minor",
+      "topic": "Overhead scrape/feather rates have double uncertainty",
+      "message": "Per research U-001: ceiling scrape 40-85 SF/hr, feather 35-70 SF/hr. These are 0.85x of wall RP estimated rates, which are themselves unvalidated.",
+      "recommendation": "Use midpoint rates with rate_range_low and rate_range_high fields. Flag for field validation."
+    },
+    {
+      "warning_id": "W-005",
+      "severity": "minor",
+      "topic": "MOD_RRP_INT_CONTAINMENT shared module not yet built",
+      "message": "The lead-safe RRP shared module is referenced but not yet built. If wall RP builds it first, ceiling RP should reference the same module definition.",
+      "recommendation": "SOP Librarian should coordinate with wall RP — whichever spec is built first defines the module, second spec references it."
+    }
+  ]
+}

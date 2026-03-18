@@ -88,6 +88,7 @@ export function createSidingSection(overrides = {}) {
     substrate_material: 'fiber_cement',
     substrate_state: 'factory_primed',
     texture_profile: 'smooth',
+    condition_scale: null,   // RP mode: GOOD | FAIR | POOR
     sf: 0,
     sf_override: false,
     ...overrides,
@@ -102,6 +103,7 @@ export function createTrimConfig(trimType, overrides = {}) {
     substrate_material: 'wood',
     substrate_state: 'bare_wood',
     profile_complexity: 'standard',
+    condition_scale: null,   // RP mode: GOOD | FAIR | POOR
     width_in: trimType === 'soffit' ? 12 : 4,
     depth_ft: trimType === 'soffit' ? 1.5 : 0,
     lf: 0,
@@ -228,6 +230,7 @@ export function createGarageDoor(overrides = {}) {
     panel_type: 'raised_panel',
     substrate: 'steel',
     substrate_state: 'factory_primed',
+    condition_scale: null,   // RP mode: GOOD | FAIR | POOR
     has_windows: false,
     count: 1,
     ...overrides,
@@ -241,6 +244,7 @@ export function createDeck(overrides = {}) {
     sf: 0,
     substrate: 'wood',
     substrate_state: 'bare_wood',
+    condition_scale: null,   // RP mode: GOOD | FAIR | POOR
     railing_lf: 0,
     coating_type: 'stain',
     ...overrides,
@@ -256,6 +260,7 @@ export function createFence(overrides = {}) {
     sides: 2,
     substrate: 'wood',
     substrate_state: 'bare_wood',
+    condition_scale: null,   // RP mode: GOOD | FAIR | POOR
     coating_type: 'stain',
     style: 'board',
     ...overrides,
@@ -270,6 +275,7 @@ export function createFoundation(overrides = {}) {
     height_ft: 2,
     substrate: 'concrete',
     substrate_state: 'bare_wood',
+    condition_scale: null,   // RP mode: GOOD | FAIR | POOR
     ...overrides,
   };
 }
@@ -277,8 +283,8 @@ export function createFoundation(overrides = {}) {
 export function createPorch(overrides = {}) {
   return {
     id: genId('porch'),
-    floor: { enabled: false, sf: 0, substrate: 'concrete', substrate_state: 'bare_wood' },
-    ceiling: { enabled: false, sf: 0, substrate: 'wood', substrate_state: 'bare_wood' },
+    floor: { enabled: false, sf: 0, substrate: 'concrete', substrate_state: 'bare_wood', condition_scale: null },
+    ceiling: { enabled: false, sf: 0, substrate: 'wood', substrate_state: 'bare_wood', condition_scale: null },
     ...overrides,
   };
 }
@@ -289,6 +295,7 @@ export function createMetalSurface(overrides = {}) {
     type: 'railing',
     lf: 0,
     substrate_state: 'sound_paint',
+    condition_scale: null,   // RP mode: GOOD | FAIR | POOR
     ...overrides,
   };
 }
@@ -303,9 +310,23 @@ export function createSiteConditions(overrides = {}) {
   };
 }
 
+// ── Condition Scale (RP mode) ──
+export const EXT_CONDITION_SCALE = [
+  { value: 'GOOD', label: 'Good (1.0x)' },
+  { value: 'FAIR', label: 'Fair (1.5x)' },
+  { value: 'POOR', label: 'Poor (2.0x)' },
+];
+
+// Substrate states filtered for RP mode (exclude NC-only bare/factory states)
+export const EXT_RP_SUBSTRATE_STATES = EXT_SUBSTRATE_STATES.filter(s =>
+  ['sound_paint', 'chalking', 'failing_paint', 'peeling', 'weathered',
+   'stained_solid', 'stained_semi', 'painted_flat', 'painted_satin', 'painted_semigloss'].includes(s.value)
+);
+
 // ── Full Exterior State ──
 export function createExteriorState(overrides = {}) {
   return {
+    project_type: 'NC',  // 'NC' | 'RP'
     elevations: [],
     standalone: {
       garage_doors: [],
@@ -324,6 +345,7 @@ export function createExteriorState(overrides = {}) {
       trim_substrate: 'wood',
       trim_substrate_state: 'bare_wood',
       caulk_scope: 'complete',
+      condition_scale: 'GOOD',  // RP mode default
     },
     ...overrides,
   };

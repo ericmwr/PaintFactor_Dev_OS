@@ -1,0 +1,764 @@
+{
+  "spec_family": {
+    "id": "SF_SPECIALTY_INT_RP",
+    "name": "Interior Specialty Surface Repaint (Consolidated: Wainscot + Wood Wall + Wood Ceiling + Arch Elements + Built-ins)",
+    "description": "Consolidated prime + finish repaint spec for previously painted interior specialty millwork surfaces in occupied residential homes. Covers 7 paintable items across 5 NC source specs (SF_WAINSCOT_PANEL_NC, SF_WOOD_WALL_NC, SF_WOOD_CEILING_NC, SF_ARCH_ELEMENT_NC, SF_BUILTIN_NC). Includes condition assessment (visual scan, adhesion test, coating ID, moisture check), prep remediation (TSP wash, per-surface degloss, scrape/feather, caulk assess/repair, mildew treatment), state-driven primer selection (adhesion, stain-block, mildew-resistant, bonding for stain/clear conversion), fine-finish coat application (spray or brush per surface type), interstage inspection/sanding between every coat, and consolidated room-level protection. 58 total tasks (49 SPRP-owned + 5 shared RRP + 4 SPRP assessment). 2.65x task reduction from 154 NC tasks.",
+    "domain": "interior",
+    "scope_type": "repaint",
+    "version": "1.0.0",
+    "status": "draft",
+    "review_required": true
+  },
+
+  "scope_boundaries": {
+    "includes": [
+      "Condition assessment per room covering all specialty surface types present (visual scan, ASTM D3359 adhesion test, coating identification latex vs alkyd vs stain/clear, moisture check on ceiling/wall surfaces)",
+      "EPA Lead-Safe RRP evaluation and containment for pre-1978 homes (specialty millwork is HIGH RISK for lead paint)",
+      "Surface contamination treatment (TSP wash for wax, oils, cleaning residue on all specialty surfaces)",
+      "Mildew/biocide treatment for SS_INT_MOISTURE_DAMAGE on wood ceiling and wall surfaces",
+      "Scraping loose and failing paint with contour scrapers for profiled specialty surfaces (condition-gated FAIR/POOR)",
+      "Feather-sanding all scraped edges (mandatory at all QT)",
+      "Per-surface-type deglossing (chemical deglosser or mechanical scuff 150-180 grit) with correct UOM per item",
+      "Caulk assessment and partial replacement at all specialty-to-wall/ceiling junctions",
+      "State-driven primer selection and application per surface type (adhesion, stain-block shellac, mildew-resistant, bonding for stain/clear conversion)",
+      "Fine-finish coat application: 2 coats QT3-QT4, 3 coats QT5 brush per FFD 15.10.3 (spray or brush per surface type)",
+      "Interstage inspection, sanding (QT3 spot 220, QT4 full 220, QT5 thorough 320), and defect repair between every coat",
+      "Consolidated room-level floor protection (perimeter for brush, full for spray or ceiling work)",
+      "Wall/ceiling masking at specialty-to-adjacent-surface junctions (spray method only)",
+      "Fixture masking (ceiling fixtures, switches, outlets, vents)",
+      "Built-in contents protection in occupied homes (RP-specific)",
+      "Stain/clear coat to paint conversion with bonding primer (SYS_PRIMER_BONDING)",
+      "Final quality inspection and touch-up across all specialty surfaces",
+      "Customer walkthrough and sign-off (RP-specific, occupied home context)",
+      "Wainscot panel surfaces (SF) including panels, internal rails/stiles, base rail, applied molding",
+      "Wood wall panel surfaces (SF) including board faces, panel faces, joint detail",
+      "Wood ceiling panel surfaces (SF) with overhead penalty rates",
+      "Architectural beam surfaces (LF) with 3-sided exposure and overhead penalty",
+      "Architectural column surfaces (EA) with full-height work",
+      "Fireplace mantel/surround surfaces (EA) with safe-release masking at surround junction",
+      "Built-in unit surfaces (EA) using Opening Count method with size-tier rates and depth/detail/access modifiers"
+    ],
+    "excludes": [
+      {
+        "item": "Bare/new specialty surfaces (new construction)",
+        "route_to": "SF_WAINSCOT_PANEL_NC_v1, SF_WOOD_WALL_NC_v1, SF_WOOD_CEILING_NC_v1, SF_ARCH_ELEMENT_NC_v1, SF_BUILTIN_NC_v1"
+      },
+      {
+        "item": "Trim surfaces (baseboard, chair rail, crown molding, wainscot cap rail, door casing)",
+        "route_to": "SF_TRIM_INT_RP (covers all trim elements)"
+      },
+      {
+        "item": "Drywall wall surfaces (wall field above wainscot, adjacent to wood wall panels)",
+        "route_to": "SF_DRYWALL_WALL_INT_RP_v1"
+      },
+      {
+        "item": "Drywall ceiling surfaces (above wood wall panels, at beam/column junctions)",
+        "route_to": "SF_DRYWALL_CEILING_INT_RP_v1"
+      },
+      {
+        "item": "Interior door repaint (frame + slab)",
+        "route_to": "SF_DOOR_INT_RP_v1"
+      },
+      {
+        "item": "Cabinet repaint",
+        "route_to": "SF_CABINET_NC_PAINT_v1 or future SF_CABINET_INT_RP"
+      },
+      {
+        "item": "Exterior specialty surfaces",
+        "route_to": "Exterior RP specs (SF_EXT_*)"
+      },
+      {
+        "item": "Structural repair (wood rot, joist damage, load-bearing columns)",
+        "route_to": "Carpenter/structural contractor — outside painting scope"
+      },
+      {
+        "item": "Active moisture remediation",
+        "route_to": "Plumber/contractor — moisture SOURCE must be resolved before painting (gate condition)"
+      },
+      {
+        "item": "New installations (new built-in, new mantel, new wainscot)",
+        "route_to": "Corresponding NC spec"
+      }
+    ]
+  },
+
+  "configuration_dimensions": [
+    {
+      "dimension_id": "quality_tier",
+      "description": "Quality tier controlling coat count, inspection rigor, interstage sanding discipline, and defect tolerance. QT3 is minimum for specialty millwork. Standard global modifiers.",
+      "values": ["QT3", "QT4", "QT5"],
+      "default": "QT3",
+      "notes": "QT3=1.0x baseline. QT4=1.3x (standard global). QT5=1.5x + 3rd brush coat per FFD 15.10.3. No QT2 — specialty millwork is prominent/scrutinized."
+    },
+    {
+      "dimension_id": "application_method",
+      "description": "Primary application technique. Spray is default for SF surfaces (wainscot, wall, ceiling). Brush for detail elements (columns, mantels). Per-surface method selection supported.",
+      "values": ["brush", "spray"],
+      "default": "spray",
+      "notes": "Spray: production method for SF surfaces, superior finish in grooves/profiles. Brush: detail method for columns, mantels, small built-ins. Roll is NOT valid for specialty millwork. spray_backroll not applicable."
+    },
+    {
+      "dimension_id": "sheen",
+      "description": "Finish coating sheen. Semi-gloss is traditional millwork default. Sheen/QT gate per FFD SS4.1.",
+      "values": ["eggshell", "satin", "semi-gloss", "gloss"],
+      "default": "semi-gloss",
+      "notes": "QT3: satin only. QT4: satin or semi-gloss. QT5: satin, semi-gloss, or gloss. Eggshell valid for ceiling surfaces and built-in interiors (lower scrutiny). Flat/matte NOT valid."
+    },
+    {
+      "dimension_id": "condition_scale",
+      "description": "Universal 3-level condition scale driving prep intensity. Maps from substrate state assessment.",
+      "values": ["GOOD", "FAIR", "POOR"],
+      "default": "GOOD",
+      "notes": "GOOD=SS_INT_SOUND_PAINT (1.0x prep, skip prime if adhesion passes). FAIR=SS_INT_FAILING_PAINT (1.5x prep, state-driven prime). POOR=SS_INT_PEELING or SS_INT_MOISTURE_DAMAGE or SS_INT_SMOKE_DAMAGE (2.0x prep, full remediation + state-driven prime)."
+    },
+    {
+      "dimension_id": "per_surface_modifiers",
+      "description": "Per-surface-type complexity modifiers transferred from 5 NC source specs. Each surface type has its own complexity dimension.",
+      "values": ["wainscot_type (flat_panel/raised_panel/beadboard)", "wall_style (flat_panel/shiplap/T&G/library_panel)", "ceiling_style (flat_plank/beadboard/T&G/coffered)", "beam_profile (small_box/standard_box/large_timber/ornate)", "column_type (square_smooth/square_detailed/round_smooth/round_fluted)", "mantel_type (shelf_only/standard_surround/full_assembly)", "builtin_depth/detail/access (Opening Count modifiers)"],
+      "notes": "Complexity modifiers stack with condition_scale (prep pool) or quality_tier (coating pool). Height modifier (H1-H4) applies to wood wall, ceiling, beam, column. NOT applied to wainscot (always H1) or built-in (typically H1)."
+    }
+  ],
+
+  "paintable_items": [
+    {
+      "item_id": "ITM_WAINSCOT_PANEL",
+      "name": "Wainscot panel assembly",
+      "unit_of_measure": "SF",
+      "counting_rules": "Square footage of wainscot panel surfaces to be repainted. Includes panels, internal rails/stiles, base rail, applied molding. Cap rail excluded (covered by SF_TRIM_INT_RP as ITM_TRIM_WAINSCOT_RAIL).",
+      "notes": "Existing item from SF_WAINSCOT_PANEL_NC. wainscot_type drives complexity modifier. Always H1 (below chair-rail height)."
+    },
+    {
+      "item_id": "ITM_WOOD_WALL_PANEL",
+      "name": "Wood wall panel/board surface",
+      "unit_of_measure": "SF",
+      "counting_rules": "Square footage of wood wall panel surfaces to be repainted. Includes board faces, panel faces, internal rails/stiles (library_panel), joint detail.",
+      "notes": "Existing item from SF_WOOD_WALL_NC. wall_style drives complexity modifier. Height varies via PS_META.HEIGHT_BAND."
+    },
+    {
+      "item_id": "ITM_WOOD_CEILING_PANEL",
+      "name": "Wood ceiling panel/board surface",
+      "unit_of_measure": "SF",
+      "counting_rules": "Square footage of wood ceiling surfaces to be repainted. All tasks apply overhead penalty rates (0.70-0.80x of equivalent wall rates).",
+      "notes": "Existing item from SF_WOOD_CEILING_NC. ceiling_style drives complexity modifier. Height modifier based on ceiling height (H1-H4)."
+    },
+    {
+      "item_id": "ITM_ARCH_BEAM",
+      "name": "Decorative beam",
+      "unit_of_measure": "LF",
+      "counting_rules": "Running linear footage of exposed beam length. Typically 3 exposed faces (bottom + 2 sides). beam_profile drives complexity modifier.",
+      "notes": "Existing item from SF_ARCH_ELEMENT_NC. Overhead factor ~0.85x baked into base rate."
+    },
+    {
+      "item_id": "ITM_ARCH_COLUMN",
+      "name": "Decorative column wrap",
+      "unit_of_measure": "EA",
+      "counting_rules": "Count of columns to be repainted. Each column counted individually.",
+      "notes": "Existing item from SF_ARCH_ELEMENT_NC. column_type drives complexity modifier. Height via PS_META.HEIGHT_BAND."
+    },
+    {
+      "item_id": "ITM_ARCH_MANTEL",
+      "name": "Fireplace mantel/surround",
+      "unit_of_measure": "EA",
+      "counting_rules": "Count of mantels to be repainted. Each mantel counted individually. Includes shelf, legs/pilasters, surround molding.",
+      "notes": "Existing item from SF_ARCH_ELEMENT_NC. mantel_type drives complexity modifier. Typically H1-H2."
+    },
+    {
+      "item_id": "ITM_BUILTIN_UNIT",
+      "name": "Built-in unit (consolidated RP item)",
+      "unit_of_measure": "EA",
+      "counting_rules": "Count of built-in units to be repainted. Size tier (S/M/L/XL) provided via PS_META.ENUM.BUILTIN_SIZE_TIER. Per-unit rate reflects full unit workflow: opening interiors, face frames, doors/drawers removal, flat painting, reinstall.",
+      "notes": "Proposed item for RP consolidation. NC uses ITM_OPENING_S/M/L/XL (per opening tier) + ITM_BUILTIN_DOOR. RP consolidates to single EA per unit with size-tier rate lookup and depth/detail/access modifiers."
+    }
+  ],
+
+  "variants": [
+    {
+      "variant_id": "VAR_SPRP_GOOD_QT3_SPRAY",
+      "applies_when": { "quality_tier": ["QT3"], "condition_scale": ["GOOD"], "application_method": ["spray"] },
+      "included_items": ["ITM_WAINSCOT_PANEL", "ITM_WOOD_WALL_PANEL", "ITM_WOOD_CEILING_PANEL", "ITM_ARCH_BEAM", "ITM_ARCH_COLUMN", "ITM_ARCH_MANTEL", "ITM_BUILTIN_UNIT"],
+      "round_config": "ROUND_SPRP_2FINISH",
+      "notes": "BASELINE. Most common residential specialty repaint. Sound paint, adhesion verified, compatible coating. Spray for SF surfaces. No prime. 2 finish coats."
+    },
+    {
+      "variant_id": "VAR_SPRP_GOOD_QT3_BRUSH",
+      "applies_when": { "quality_tier": ["QT3"], "condition_scale": ["GOOD"], "application_method": ["brush"] },
+      "included_items": ["ITM_WAINSCOT_PANEL", "ITM_WOOD_WALL_PANEL", "ITM_WOOD_CEILING_PANEL", "ITM_ARCH_BEAM", "ITM_ARCH_COLUMN", "ITM_ARCH_MANTEL", "ITM_BUILTIN_UNIT"],
+      "round_config": "ROUND_SPRP_2FINISH",
+      "notes": "Brush variant for small scope or occupied home preference. No prime. 2 finish coats."
+    },
+    {
+      "variant_id": "VAR_SPRP_FAIR_QT3_SPRAY",
+      "applies_when": { "quality_tier": ["QT3"], "condition_scale": ["FAIR"], "application_method": ["spray"] },
+      "included_items": ["ITM_WAINSCOT_PANEL", "ITM_WOOD_WALL_PANEL", "ITM_WOOD_CEILING_PANEL", "ITM_ARCH_BEAM", "ITM_ARCH_COLUMN", "ITM_ARCH_MANTEL", "ITM_BUILTIN_UNIT"],
+      "round_config": "ROUND_SPRP_PRIME_2FINISH",
+      "notes": "Standard RP on failing paint. Scrape + feather + state-driven prime + 2 spray finish coats."
+    },
+    {
+      "variant_id": "VAR_SPRP_POOR_QT3_SPRAY",
+      "applies_when": { "quality_tier": ["QT3"], "condition_scale": ["POOR"], "application_method": ["spray"] },
+      "included_items": ["ITM_WAINSCOT_PANEL", "ITM_WOOD_WALL_PANEL", "ITM_WOOD_CEILING_PANEL", "ITM_ARCH_BEAM", "ITM_ARCH_COLUMN", "ITM_ARCH_MANTEL", "ITM_BUILTIN_UNIT"],
+      "round_config": "ROUND_SPRP_PRIME_2FINISH",
+      "notes": "Full remediation. Heavy scrape, contamination treatment, state-driven prime + 2 spray finish coats. Highest prep labor."
+    },
+    {
+      "variant_id": "VAR_SPRP_GOOD_QT4_SPRAY",
+      "applies_when": { "quality_tier": ["QT4"], "condition_scale": ["GOOD"], "application_method": ["spray"] },
+      "included_items": ["ITM_WAINSCOT_PANEL", "ITM_WOOD_WALL_PANEL", "ITM_WOOD_CEILING_PANEL", "ITM_ARCH_BEAM", "ITM_ARCH_COLUMN", "ITM_ARCH_MANTEL", "ITM_BUILTIN_UNIT"],
+      "round_config": "ROUND_SPRP_2FINISH",
+      "notes": "Premium refresh on sound paint. Full sand 220 between coats, systematic inspection. No prime. Modified urethane enamel."
+    },
+    {
+      "variant_id": "VAR_SPRP_FAIR_QT4_SPRAY",
+      "applies_when": { "quality_tier": ["QT4"], "condition_scale": ["FAIR"], "application_method": ["spray"] },
+      "included_items": ["ITM_WAINSCOT_PANEL", "ITM_WOOD_WALL_PANEL", "ITM_WOOD_CEILING_PANEL", "ITM_ARCH_BEAM", "ITM_ARCH_COLUMN", "ITM_ARCH_MANTEL", "ITM_BUILTIN_UNIT"],
+      "round_config": "ROUND_SPRP_PRIME_2FINISH",
+      "notes": "Premium remediation spray. Full prep + state-driven prime + 2 spray finish coats. Modified urethane enamel."
+    },
+    {
+      "variant_id": "VAR_SPRP_POOR_QT4_BRUSH",
+      "applies_when": { "quality_tier": ["QT4"], "condition_scale": ["POOR"], "application_method": ["brush"] },
+      "included_items": ["ITM_WAINSCOT_PANEL", "ITM_WOOD_WALL_PANEL", "ITM_WOOD_CEILING_PANEL", "ITM_ARCH_BEAM", "ITM_ARCH_COLUMN", "ITM_ARCH_MANTEL", "ITM_BUILTIN_UNIT"],
+      "round_config": "ROUND_SPRP_PRIME_2FINISH",
+      "notes": "Premium remediation brush. Maximum prep + state-driven prime + 2 brush finish coats."
+    },
+    {
+      "variant_id": "VAR_SPRP_GOOD_QT5_BRUSH",
+      "applies_when": { "quality_tier": ["QT5"], "condition_scale": ["GOOD"], "application_method": ["brush"] },
+      "included_items": ["ITM_WAINSCOT_PANEL", "ITM_WOOD_WALL_PANEL", "ITM_WOOD_CEILING_PANEL", "ITM_ARCH_BEAM", "ITM_ARCH_COLUMN", "ITM_ARCH_MANTEL", "ITM_BUILTIN_UNIT"],
+      "round_config": "ROUND_SPRP_3FINISH",
+      "notes": "Superior refresh. 3 brush finish coats per FFD 15.10.3, thorough 320-grit interstage. No prime on sound paint. Premium urethane enamel."
+    },
+    {
+      "variant_id": "VAR_SPRP_FAIR_QT5_BRUSH",
+      "applies_when": { "quality_tier": ["QT5"], "condition_scale": ["FAIR"], "application_method": ["brush"] },
+      "included_items": ["ITM_WAINSCOT_PANEL", "ITM_WOOD_WALL_PANEL", "ITM_WOOD_CEILING_PANEL", "ITM_ARCH_BEAM", "ITM_ARCH_COLUMN", "ITM_ARCH_MANTEL", "ITM_BUILTIN_UNIT"],
+      "round_config": "ROUND_SPRP_PRIME_3FINISH",
+      "notes": "Superior remediation. State-driven prime + 3 brush finish coats. Near-worst-case labor."
+    },
+    {
+      "variant_id": "VAR_SPRP_POOR_QT5_BRUSH",
+      "applies_when": { "quality_tier": ["QT5"], "condition_scale": ["POOR"], "application_method": ["brush"] },
+      "included_items": ["ITM_WAINSCOT_PANEL", "ITM_WOOD_WALL_PANEL", "ITM_WOOD_CEILING_PANEL", "ITM_ARCH_BEAM", "ITM_ARCH_COLUMN", "ITM_ARCH_MANTEL", "ITM_BUILTIN_UNIT"],
+      "round_config": "ROUND_SPRP_PRIME_3FINISH",
+      "notes": "Maximum effort. Full remediation + state-driven prime + 3 brush finish coats. QT5+POOR gates to hourly rate recommendation (COMPAT_011). Gallery-quality finish on deteriorated millwork."
+    }
+  ],
+
+  "required_paintscope_inputs": [
+    {
+      "input_name": "IN_SF_WAINSCOT_PANEL",
+      "paintscope_key": "PS_SURFACE_SF.WAINSCOTING",
+      "uom": "SF",
+      "required": false,
+      "required_when": { "surface_in_scope": "wainscot" },
+      "description": "Square footage of wainscot panel surfaces to be repainted"
+    },
+    {
+      "input_name": "IN_SF_WOOD_WALL_PANEL",
+      "paintscope_key": "PS_SURFACE_SF.WOOD_WALL",
+      "uom": "SF",
+      "required": false,
+      "required_when": { "surface_in_scope": "wood_wall" },
+      "description": "Square footage of wood wall panel surfaces to be repainted"
+    },
+    {
+      "input_name": "IN_SF_WOOD_CEILING",
+      "paintscope_key": "PS_SURFACE_SF.WOOD_CEILING",
+      "uom": "SF",
+      "required": false,
+      "required_when": { "surface_in_scope": "wood_ceiling" },
+      "description": "Square footage of wood ceiling surfaces to be repainted"
+    },
+    {
+      "input_name": "IN_LF_ARCH_BEAM",
+      "paintscope_key": "PS_SURFACE_LF.ARCH_BEAM",
+      "uom": "LF",
+      "required": false,
+      "required_when": { "surface_in_scope": "beam" },
+      "description": "Linear footage of architectural beams to be repainted"
+    },
+    {
+      "input_name": "IN_EA_ARCH_COLUMN",
+      "paintscope_key": "PS_SURFACE_EA.ARCH_COLUMN",
+      "uom": "EA",
+      "required": false,
+      "required_when": { "surface_in_scope": "column" },
+      "description": "Count of architectural columns to be repainted"
+    },
+    {
+      "input_name": "IN_EA_ARCH_MANTEL",
+      "paintscope_key": "PS_SURFACE_EA.ARCH_MANTEL",
+      "uom": "EA",
+      "required": false,
+      "required_when": { "surface_in_scope": "mantel" },
+      "description": "Count of mantels to be repainted"
+    },
+    {
+      "input_name": "IN_EA_BUILTIN_UNIT",
+      "paintscope_key": "PS_SURFACE_EA.BUILTIN_UNIT",
+      "uom": "EA",
+      "required": false,
+      "required_when": { "surface_in_scope": "builtin" },
+      "description": "Count of built-in units to be repainted"
+    },
+    {
+      "input_name": "IN_ENUM_BUILTIN_SIZE_TIER",
+      "paintscope_key": "PS_META.ENUM.BUILTIN_SIZE_TIER",
+      "uom": "ENUM",
+      "required": false,
+      "required_when": { "surface_in_scope": "builtin" },
+      "description": "Built-in size tier (S/M/L/XL) per Opening Count method for rate and material lookup"
+    },
+    {
+      "input_name": "IN_EA_ROOMS_TOTAL",
+      "paintscope_key": "PS_META.EA.ROOMS_TOTAL",
+      "uom": "EA",
+      "required": true,
+      "description": "Room count — drives per-room heuristics (assessment, protection, customer walkthrough)"
+    },
+    {
+      "input_name": "IN_ENUM_HEIGHT_BAND",
+      "paintscope_key": "PS_META.HEIGHT_BAND",
+      "uom": "ENUM",
+      "required": true,
+      "description": "Height classification (H1-H4) for wall panels, ceiling, beams, columns"
+    },
+    {
+      "input_name": "IN_ENUM_SURFACE_CONDITION",
+      "paintscope_key": "PS_META.SURFACE_CONDITION",
+      "uom": "ENUM",
+      "required": true,
+      "description": "Condition scale (GOOD/FAIR/POOR) — primary prep intensity driver"
+    },
+    {
+      "input_name": "IN_ENUM_SUBSTRATE_STATE_INT",
+      "paintscope_key": "PS_META.ENUM.SUBSTRATE_STATE_INT",
+      "uom": "ENUM",
+      "required": true,
+      "description": "Interior substrate state (SS_INT_SOUND_PAINT through SS_INT_SMOKE_DAMAGE) — drives primer selection"
+    },
+    {
+      "input_name": "IN_BOOL_HOME_PRE_1978",
+      "paintscope_key": "PS_META.BOOL.HOME_PRE_1978",
+      "uom": "BOOL",
+      "required": true,
+      "description": "Pre-1978 home flag — triggers EPA Lead-Safe RRP module. Specialty millwork is HIGH RISK."
+    },
+    {
+      "input_name": "IN_ENUM_CONTAMINATION_TYPE",
+      "paintscope_key": "PS_META.ENUM.CONTAMINATION_TYPE",
+      "uom": "ENUM",
+      "required": true,
+      "description": "Contamination type (none/mildew/smoke/water_stain) — drives treatment task activation and primer selection"
+    },
+    {
+      "input_name": "IN_SF_PROTECT_FLOOR_PERIMETER",
+      "paintscope_key": "PS_PROTECT_SF.FLOOR_PERIMETER",
+      "uom": "SF",
+      "required": false,
+      "required_when": { "application_method": ["brush"] },
+      "description": "Floor protection area for brush method drip containment"
+    },
+    {
+      "input_name": "IN_SF_PROTECT_FLOOR_FULL",
+      "paintscope_key": "PS_PROTECT_SF.FLOOR_FULL",
+      "uom": "SF",
+      "required": false,
+      "required_when": { "application_method": ["spray"] },
+      "description": "Full floor protection area for spray method or ceiling work"
+    },
+    {
+      "input_name": "IN_EA_FIXTURE_COVERS",
+      "paintscope_key": "PS_PROTECT_EA.FIXTURE_COVERS",
+      "uom": "EA",
+      "required": false,
+      "description": "Count of fixtures to mask/cover (lights, switches, outlets, vents)"
+    },
+    {
+      "input_name": "IN_SF_PROTECT_FLOOR_EXPOSED",
+      "paintscope_key": "PS_PROTECT_SF.FLOOR_EXPOSED",
+      "uom": "SF",
+      "required": true,
+      "description": "Exposed floor area requiring protection — canonical consolidated input"
+    },
+    {
+      "input_name": "IN_SF_FLOOR_VACUUM_AREA",
+      "paintscope_key": "PS_META.SF.FLOOR_VACUUM_AREA",
+      "uom": "SF",
+      "required": false,
+      "description": "Post-work vacuum cleanup area"
+    }
+  ],
+
+  "material_systems_summary": [
+    {
+      "system_id": "SYS_PRIMER_ADHESION_INT",
+      "name": "Interior Adhesion Primer",
+      "product_role": "primer",
+      "applies_when": { "substrate_state": ["SS_INT_SOUND_PAINT", "SS_INT_FAILING_PAINT", "SS_INT_PEELING"] },
+      "notes": "Water-based adhesion promoter for existing coatings. Conditional on adhesion test or oil-based existing for SS_INT_SOUND_PAINT."
+    },
+    {
+      "system_id": "SYS_PRIMER_STAINBLOCK_INT",
+      "name": "Interior Stain-Blocking Primer (Shellac)",
+      "product_role": "primer",
+      "applies_when": { "substrate_state": ["SS_INT_SMOKE_DAMAGE"] },
+      "notes": "Shellac-based stain blocker. Only product that seals nicotine/smoke (RC-002). Full surface mandatory."
+    },
+    {
+      "system_id": "SYS_PRIMER_MILDEW_INT",
+      "name": "Interior Mildew-Resistant Primer",
+      "product_role": "primer",
+      "applies_when": { "substrate_state": ["SS_INT_MOISTURE_DAMAGE"] },
+      "notes": "Mildew-resistant primer after biocide treatment. Primary target: wood ceiling in bathrooms/kitchens."
+    },
+    {
+      "system_id": "SYS_PRIMER_BONDING",
+      "name": "Bonding Primer for Stain/Clear Coat Conversion",
+      "product_role": "primer",
+      "applies_when": { "condition": "stain_clear_conversion" },
+      "notes": "Aggressive bonding formula for non-paint existing finishes. Full surface mandatory. No skip-prime for conversion."
+    },
+    {
+      "system_id": "SYS_FF_STANDARD_ACRYLIC",
+      "name": "Standard Acrylic Trim Enamel",
+      "product_role": "finish",
+      "applies_when": { "quality_tier": ["QT3"] },
+      "notes": "100% acrylic enamel. Standard production grade. Satin only per sheen/QT gate."
+    },
+    {
+      "system_id": "SYS_FF_MODIFIED_URETHANE",
+      "name": "Modified Urethane Trim Enamel",
+      "product_role": "finish",
+      "applies_when": { "quality_tier": ["QT4"] },
+      "notes": "Urethane-modified alkyd. Superior flow/leveling. Satin or semi-gloss."
+    },
+    {
+      "system_id": "SYS_FF_PREMIUM",
+      "name": "Premium Urethane Trim Enamel",
+      "product_role": "finish",
+      "applies_when": { "quality_tier": ["QT5"] },
+      "notes": "Premium acrylic-urethane enamel. Maximum durability. Satin, semi-gloss, or gloss. 3 brush coats per FFD 15.10.3."
+    }
+  ],
+
+  "module_summary": [
+    { "module_id": "MOD_SPRP_SETUP", "phase": "setup", "task_count": 6, "description": "Shared floor protection, wall/ceiling masking (spray), fixture covers, opening covers (ceiling spray), built-in contents protection (RP-specific)" },
+    { "module_id": "MOD_SPRP_ASSESSMENT", "phase": "prep", "task_count": 4, "description": "Multi-surface condition scan, ASTM D3359 adhesion test, coating ID (latex vs alkyd vs stain/clear), moisture check. 100% RP_NEW." },
+    { "module_id": "MOD_RRP_INT_CONTAINMENT", "phase": "prep", "task_count": 5, "description": "Lead test, containment setup, HEPA vacuum, containment removal, waste disposal (conditional: pre-1978). Shared module — not owned by this spec." },
+    { "module_id": "MOD_SPRP_PREP", "phase": "prep", "task_count": 12, "description": "TSP wash (shared), 7 per-surface-type degloss, scrape/feather (condition-gated), mildew treatment (condition-gated), caulk assess/repair, clean dust" },
+    { "module_id": "MOD_SPRP_PRIME", "phase": "prime", "task_count": 6, "description": "State-driven primer per surface type: 2 SF spray/brush (consolidated wainscot+wall+ceiling), 4 EA/LF element tasks" },
+    { "module_id": "MOD_SPRP_INTERSTAGE", "phase": "interstage", "task_count": 6, "description": "Shared inspect, sand, patch, spot coat, tack, clean between every coat pair. Runs total_coats - 1 times." },
+    { "module_id": "MOD_SPRP_FINISH", "phase": "finish", "task_count": 10, "description": "Per-surface-type finish: 6 SF spray/brush (wainscot+wall+ceiling x 2 methods), 4 EA/LF element tasks" },
+    { "module_id": "MOD_SPRP_CLEANUP", "phase": "cleanup", "task_count": 9, "description": "Final inspect, touch-up, remove masking, remove floor protection, remove built-in contents protection, vacuum, customer walkthrough, tool cleanup" }
+  ],
+
+  "round_configurations_summary": [
+    {
+      "round_id": "ROUND_SPRP_2FINISH",
+      "name": "Specialty RP — 2 Finish Coats (No Prime)",
+      "applies_when": { "condition_scale": ["GOOD"] },
+      "total_coats": 2,
+      "interstage_cycles": 1
+    },
+    {
+      "round_id": "ROUND_SPRP_PRIME_2FINISH",
+      "name": "Specialty RP — State-Driven Prime + 2 Finish Coats",
+      "applies_when": { "condition_scale": ["FAIR", "POOR"] },
+      "total_coats": 3,
+      "interstage_cycles": 2
+    },
+    {
+      "round_id": "ROUND_SPRP_3FINISH",
+      "name": "Specialty RP — 3 Finish Coats (QT5 Brush, No Prime)",
+      "applies_when": { "quality_tier": ["QT5"], "application_method": ["brush"], "condition_scale": ["GOOD"] },
+      "total_coats": 3,
+      "interstage_cycles": 2
+    },
+    {
+      "round_id": "ROUND_SPRP_PRIME_3FINISH",
+      "name": "Specialty RP — Prime + 3 Finish Coats (QT5 Brush)",
+      "applies_when": { "quality_tier": ["QT5"], "application_method": ["brush"], "condition_scale": ["FAIR", "POOR"] },
+      "total_coats": 4,
+      "interstage_cycles": 3
+    }
+  ],
+
+  "factor_modifiers_summary": {
+    "condition_scale": {
+      "FAC_CONDITION_GOOD": 1.00,
+      "FAC_CONDITION_FAIR": 1.50,
+      "FAC_CONDITION_POOR": 2.00
+    },
+    "quality_tier": {
+      "FAC_QT3": 1.00,
+      "FAC_QT4": 1.30,
+      "FAC_QT5": 1.50
+    },
+    "per_surface_complexity": {
+      "wainscot_type": "flat_panel=1.0, raised_panel=1.25, beadboard=1.15",
+      "wall_style": "flat_panel=1.0, shiplap=1.15, T&G=1.10, library_panel=1.25",
+      "ceiling_style": "flat_plank=1.0, beadboard=1.15, T&G=1.10, coffered=1.35",
+      "beam_profile": "small_box=1.0, standard_box=1.10, large_timber=1.20, ornate=1.40",
+      "column_type": "square_smooth=1.0, square_detailed=1.15, round_smooth=1.10, round_fluted=1.30",
+      "mantel_type": "shelf_only=1.0, standard_surround=1.25, full_assembly=1.50",
+      "builtin_depth": "SHALLOW=1.0, DEEP=1.25, VERY_DEEP=1.50",
+      "builtin_detail": "SIMPLE_BOX=1.0, FACE_FRAME=1.15, CROWN_VALANCE=1.25, BEADED_ROUTED=1.35",
+      "builtin_access": "OPEN_ACCESS=1.0, CRAMPED=1.15, OBSTRUCTED=1.30"
+    },
+    "height_factor": {
+      "FAC_HEIGHT_H1": 1.00,
+      "FAC_HEIGHT_H2": 1.30,
+      "FAC_HEIGHT_H3": 1.50,
+      "FAC_HEIGHT_H4": 2.00
+    },
+    "stacking_partition": {
+      "prep_pool": "condition_scale x surface_complexity x height",
+      "coating_pool": "quality_tier x surface_complexity x height",
+      "never_cross": "Prep pool never includes QT. Coating pool never includes condition_scale. Contamination drives task activation, not rate modification."
+    }
+  },
+
+  "protection_zones_required": [
+    {
+      "zone_id": "floor_perimeter",
+      "condition": { "application_method": ["brush"] },
+      "protection_level": "edge_only",
+      "notes": "Perimeter drop cloth runners at work area. Brush drip containment. Shared across all surface types."
+    },
+    {
+      "zone_id": "floor_full",
+      "condition": { "application_method": ["spray"], "or": "ceiling_work_present" },
+      "protection_level": "full_cover",
+      "notes": "Full floor coverage for spray overspray and ceiling drip risk. Replaces perimeter protection."
+    },
+    {
+      "zone_id": "floor_workzone",
+      "condition": { "surface_in_scope": ["arch_element", "builtin"], "application_method": "spray" },
+      "protection_level": "full_cover",
+      "notes": "Localized work zone around individual elements. Subsumed by floor_full when spray."
+    },
+    {
+      "zone_id": "wall_mask_above_wainscot",
+      "condition": { "application_method": ["spray"], "surface_in_scope": "wainscot" },
+      "protection_level": "full_cover",
+      "notes": "Wall masking above wainscot cap rail during spray. Paper from rail up 24-36 inches."
+    },
+    {
+      "zone_id": "wall_upper_band",
+      "condition": { "application_method": ["spray"], "surface_in_scope": "wood_ceiling" },
+      "protection_level": "full_cover",
+      "notes": "Upper wall masking during ceiling spray. Paper/plastic from ceiling line down 12-18 inches."
+    },
+    {
+      "zone_id": "ceiling_line",
+      "condition": { "application_method": ["spray"], "surface_in_scope": "wood_wall", "ceiling_not_in_scope": true },
+      "protection_level": "full_cover",
+      "notes": "Ceiling masking during wall panel spray. NOT needed if ceiling is also being painted."
+    },
+    {
+      "zone_id": "fixture_covers",
+      "condition": "always_when_ceiling_or_wall_work",
+      "protection_level": "item_mask",
+      "notes": "Light fixtures, switches, outlets, vents. Per fixture count."
+    },
+    {
+      "zone_id": "opening_cover_lightweight",
+      "condition": { "application_method": ["spray"], "surface_in_scope": "wood_ceiling" },
+      "protection_level": "light_mask",
+      "notes": "Lightweight poly cover over door/window openings during ceiling spray."
+    },
+    {
+      "zone_id": "builtin_contents_cover",
+      "condition": { "surface_in_scope": "builtin", "contents_not_removed": true },
+      "protection_level": "full_cover",
+      "notes": "RP-specific. Poly sheeting per opening with size-tier adjustment. Conditional on contents present."
+    }
+  ],
+
+  "adjacency_declarations": {
+    "primary_surfaces": ["wainscot_panel", "wall_panel", "ceiling_panel", "beam_wrap", "column_wrap", "mantel", "builtin_carcass"],
+    "adjacent_surfaces": [
+      {
+        "surface_id": "drywall_wall",
+        "edge_type": "linear",
+        "typical_relationship": "different_finish",
+        "affected_tasks": ["TSK_SPRP_WALL_MASK", "TSK_SPRP_REMOVE_MASKING"],
+        "notes": "Wall surfaces above wainscot, adjacent to wood wall panels, adjacent to built-ins. Different color/sheen typical. When spray, wall requires masking."
+      },
+      {
+        "surface_id": "drywall_ceiling",
+        "edge_type": "linear",
+        "typical_relationship": "different_finish",
+        "affected_tasks": ["TSK_SPRP_WALL_MASK", "TSK_SPRP_REMOVE_MASKING"],
+        "notes": "Ceiling above wood wall panels, at beam/column junctions. When wall spray and ceiling NOT in scope, ceiling requires masking."
+      },
+      {
+        "surface_id": "trim_baseboard",
+        "edge_type": "linear",
+        "typical_relationship": "same_finish",
+        "affected_tasks": [],
+        "notes": "Baseboard below wainscot. Typically same color/sheen. No masking when same finish."
+      },
+      {
+        "surface_id": "trim_chair_rail",
+        "edge_type": "linear",
+        "typical_relationship": "same_finish",
+        "affected_tasks": [],
+        "notes": "Chair rail at top of wainscot. Typically same color/sheen as wainscot."
+      },
+      {
+        "surface_id": "trim_crown",
+        "edge_type": "linear",
+        "typical_relationship": "same_finish",
+        "affected_tasks": [],
+        "notes": "Crown molding at ceiling-wall junction. Typically same finish as ceiling when wood ceiling present."
+      }
+    ]
+  },
+
+  "state_declarations": {
+    "primary_surfaces": ["wainscot_panel", "wall_panel", "ceiling_panel", "beam_wrap", "column_wrap", "mantel", "builtin_carcass"],
+
+    "valid_input_states": {
+      "states": [
+        "SS_INT_SOUND_PAINT",
+        "SS_INT_FAILING_PAINT",
+        "SS_INT_PEELING",
+        "SS_INT_MOISTURE_DAMAGE",
+        "SS_INT_SMOKE_DAMAGE"
+      ],
+      "notes": "All 5 SS_INT_* states accepted. Each drives distinct prep pathway and primer selection. Different surfaces in the same room may have different substrate states — per-surface-type state input supported. Does NOT accept SS_BARE (NC scope). Stain/clear conversion handled as condition driver with bonding primer."
+    },
+
+    "output_state": {
+      "state": "SS_PAINTED_SEMIGLOSS",
+      "varies_by": "sheen",
+      "state_map": {
+        "eggshell": "SS_PAINTED_EGGSHELL",
+        "satin": "SS_PAINTED_SATIN",
+        "semi-gloss": "SS_PAINTED_SEMIGLOSS",
+        "gloss": "SS_PAINTED_GLOSS"
+      },
+      "notes": "All input states normalize to SS_PAINTED_* after proper prep and coating. Semi-gloss is default millwork sheen."
+    },
+
+    "adjacent_state_protection_rules": [
+      {
+        "adjacent_surface": "drywall_wall",
+        "when_state": "finished",
+        "protection_zone": "wall_mask_above_wainscot",
+        "protection_level": "full_mask",
+        "notes": "RP walls are always finished. Full masking required for spray method."
+      },
+      {
+        "adjacent_surface": "drywall_ceiling",
+        "when_state": "finished",
+        "protection_zone": "ceiling_line",
+        "protection_level": "full_mask",
+        "notes": "Ceiling masking when wall panels sprayed and ceiling NOT in scope."
+      }
+    ]
+  },
+
+  "site_condition_rules": [
+    {
+      "condition_id": "occupancy_state",
+      "include_when": ["occupied_crew_handles", "occupied_sensitive"],
+      "exclude_when": ["vacant"],
+      "affects": "customer walkthrough, built-in contents protection",
+      "affected_tasks": ["TSK_SPRP_CUSTOMER_WALKTHROUGH", "TSK_SPRP_BUILTIN_CONTENTS_PROTECT", "TSK_SPRP_REMOVE_BUILTIN_CONTENTS_PROTECT"],
+      "notes": "Occupied home adds walkthrough and contents protection. Vacant RP omits both."
+    },
+    {
+      "condition_id": "lead_status",
+      "include_when": ["tested_positive", "unknown_pre1978"],
+      "exclude_when": ["not_applicable", "presumed_safe", "tested_negative"],
+      "affects": "prep tasks involving paint disturbance",
+      "affected_tasks": ["TSK_RRP_LEAD_TEST", "TSK_RRP_CONTAINMENT_SETUP", "TSK_RRP_HEPA_VACUUM", "TSK_RRP_CONTAINMENT_REMOVAL", "TSK_RRP_WASTE_DISPOSAL"],
+      "notes": "Pre-1978 + lead-positive activates MOD_RRP_INT_CONTAINMENT. Specialty millwork is HIGH RISK for lead paint."
+    },
+    {
+      "condition_id": "moisture_condition",
+      "include_when": ["recently_wet"],
+      "exclude_when": ["active_moisture"],
+      "affects": "assessment and prep tasks",
+      "notes": "active_moisture is STOP WORK. Wood ceiling in bathroom/kitchen and wood wall in splash zones are high-risk."
+    },
+    {
+      "condition_id": "contamination_type",
+      "include_when": ["mildew", "smoke", "water_stain"],
+      "affects": "contamination treatment and primer selection",
+      "affected_tasks": ["TSK_SPRP_WASH_TSP", "TSK_SPRP_MILDEW_TREAT"],
+      "notes": "Mildew treatment conditional on SS_INT_MOISTURE_DAMAGE. Smoke damage requires shellac primer."
+    }
+  ],
+
+  "cross_spec_coordination": {
+    "deduplication_note": "MOD_RRP_INT_CONTAINMENT is shared across all interior RP specs — do not duplicate lead-safe tasks when running specialty RP alongside wall RP, ceiling RP, trim RP, or door RP.",
+    "shared_session_note": "Specialty RP typically runs alongside SF_TRIM_INT_RP (cap rail, baseboard, crown). Protection zone consolidation: one shared floor protection, one shared fixture cover pass per room. Setup once, work all surfaces, teardown once. Wainscot cap rail adjacency with trim RP — tape line needed only when different finish group."
+  },
+
+  "sequencing_notes": {
+    "production_sequence": "Setup (protect) -> Assess (condition/adhesion/coating/moisture) -> RRP (if pre-1978) -> Prep (TSP, degloss per surface type, scrape, mildew, caulk, clean) -> Prime (state-driven, if required) -> Interstage -> Finish 1 -> Interstage -> Finish 2 (QT3+) -> [QT5 brush: Interstage -> Finish 3] -> Final Inspect -> Touch-up -> Teardown -> Customer Walkthrough -> Clean Tools",
+    "surface_type_sequence": "When multiple surface types in scope: ceiling first (overhead drip risk), then wood wall (height-dependent), then wainscot (H1), then elements (beams, columns, mantels), then built-ins. This minimizes masking rework.",
+    "key_prohibitions": "NO painting over active moisture (gate condition). NO latex primer on smoke damage (shellac only, RC-002). NO skipping interstage sanding — all tiers. Spot prime ALL scraped/repaired areas. QT5+POOR gates to hourly rate recommendation.",
+    "stain_clear_conversion_note": "Stain/clear coat conversion requires SYS_PRIMER_BONDING. Full surface, no skip-prime. After first topcoat, inspect for tannin bleed-through from high-tannin species. If bleed, apply shellac spot-prime before second topcoat."
+  },
+
+  "relationships": {
+    "companion_spec": null,
+    "sibling_specs": ["SF_WAINSCOT_PANEL_NC_v1", "SF_WOOD_WALL_NC_v1", "SF_WOOD_CEILING_NC_v1", "SF_ARCH_ELEMENT_NC_v1", "SF_BUILTIN_NC_v1"],
+    "often_combined_with": ["SF_TRIM_INT_RP", "SF_DRYWALL_WALL_INT_RP_v1", "SF_DRYWALL_CEILING_INT_RP_v1", "SF_DOOR_INT_RP_v1"],
+    "notes": "Consolidated interior specialty RP spec. Combined prime+finish (no separate phases). 5 NC source specs are sibling specs with significant task adaptation. Context prefix SPRP avoids collision with NC prefixes (WNSC, WDWL, WDCL, ARCH, BLTN)."
+  },
+
+  "dependencies": {
+    "research": "research.json",
+    "resolution": "resolution.json",
+    "materials": "materials.json",
+    "sop_modules": "sop_modules.json",
+    "production": "production.json"
+  },
+
+  "artifact_counts": {
+    "total_tasks": 58,
+    "binary_tasks": 44,
+    "qt_scaled_tasks": 14,
+    "qt_conditional_tasks": 0,
+    "sop_modules": 8,
+    "material_systems": 7,
+    "coverage_profiles": 5,
+    "consumables": 23,
+    "round_configurations": 4,
+    "protection_zones": 9,
+    "adjacent_surfaces": 5,
+    "paintscope_inputs": 19,
+    "variants": 10,
+    "paintable_items": 7,
+    "configuration_dimensions": 5,
+    "registry_additions_proposed": 35
+  },
+
+  "doctrine_references": [
+    { "doctrine": "Fine_Finish_Doctrine", "sections_used": ["FFD 15.3.1 apply-tip-walk-away", "FFD 15.4.1 rigid sanding block", "FFD 15.6 roll-and-tip option", "FFD 15.10.3 QT5 3rd brush coat", "FFD SS4.1 sheen/QT gate"] },
+    { "doctrine": "Quality_Tiers_and_Surface_Condition.md", "sections_used": ["QT3-QT5 tier definitions", "Condition scale GOOD/FAIR/POOR"] },
+    { "doctrine": "Materials_and_Consumables_Doctrine.md", "sections_used": ["State-driven primer selection", "Shellac stain-blocker mandate for smoke damage (RC-002)", "Material system recommendations (RC-005)", "Product classification (RC-006)"] },
+    { "doctrine": "Estimation_Modifiers_Doctrine.md", "sections_used": ["Stacking partition prep vs coating", "Per-surface complexity modifiers", "Height modifiers", "4.0x flag threshold"] },
+    { "doctrine": "Protection_and_Masking_Doctrine.md", "sections_used": ["Floor protection by method", "Wall masking for spray", "Fixture masking"] },
+    { "doctrine": "Interior_Protection_Doctrine.md", "sections_used": ["RP finished floor protection", "Spray containment zones", "Occupied home contents protection"] },
+    { "doctrine": "Substrate_State_Reference.md", "sections_used": ["5 SS_INT_* states", "State-to-condition mapping", "Output state by sheen"] },
+    { "doctrine": "Spec_Completeness_Doctrine.md", "sections_used": ["Consolidated spec architecture validation", "Cross-spec deduplication"] },
+    { "doctrine": "Millwork_NC_Paint_Doctrine", "sections_used": ["SS7.2 complexity modifiers per surface type"] },
+    { "doctrine": "BuiltIns_Shelving Quantification System v2.0", "sections_used": ["SS4 Opening Count method", "Size tier rate lookup", "Depth/detail/access modifiers"] }
+  ],
+
+  "change_log": [
+    {
+      "version": "1.0.0",
+      "date": "2026-03-14",
+      "author": "SpecFactory Assembly Agent",
+      "changes": "Initial spec.json assembly from 5 pipeline artifacts (research, resolution, materials, sop_modules, production). QA Critic found 1 major issue (beam finish rate range inverted — fixed), 4 minor warnings (modifier naming refinements, builtin depth value discrepancy, task count labeling, stacking threshold). 58 tasks across 8 modules (7 owned MOD_SPRP_* + 1 shared MOD_RRP_INT_CONTAINMENT), 7 material systems (4 state-driven primers + 3 QT-driven fine-finish), 4 round configurations, 9 protection zones, 5 adjacent surfaces, 19 PaintScope inputs, 10 variants, 35 proposed registry additions. Consolidated 5 NC specs (wainscot + wood wall + wood ceiling + arch elements + built-ins) into one RP spec with 7 paintable items. 2.65x task reduction (154 NC -> 58 RP). Fifth interior RP spec."
+    }
+  ]
+}

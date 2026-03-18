@@ -1,0 +1,1147 @@
+{
+  "spec_family_id": "SF_STAIR_INT_RP",
+  "version": "1.0.0",
+  "generated_by": "Estimation Engineer",
+  "generated_at": "2026-03-14",
+
+  "MODIFIER_STACKING_WARNING": {
+    "severity": "critical",
+    "description": "Modifier stacking uses TWO separate pools that never cross-apply. Prep tasks use condition_scale x component_modifier (baluster_profile OR stringer_type+access). Coating tasks use quality_tier x component_modifier. Contamination drives task ACTIVATION, not rate modification.",
+    "worst_case_prep": "POOR(2.00) x open_stringer(1.40) x scaffolding(2.00) = 5.60x — extremely rare residential RP, flag for estimator review",
+    "worst_case_coating": "QT5(1.50) x open_stringer(1.40) x scaffolding(2.00) = 4.20x — extremely rare residential, flag for review",
+    "realistic_max_prep": "POOR(2.00) x turned_baluster(1.75) = 3.50x for baluster prep; POOR(2.00) x open_stringer(1.40) x step_ladder(1.30) = 3.64x for stringer prep",
+    "realistic_max_coating": "QT5(1.50) x turned_baluster(1.75) = 2.63x for baluster coating; QT5(1.50) x open_stringer(1.40) x step_ladder(1.30) = 2.73x for stringer coating",
+    "stacking_rules": {
+      "prep_tasks": {
+        "formula": "effective_rate = base_rate / (condition_scale x component_modifier)",
+        "pool_modifiers": "FAC_CONDITION_SCALE (PREP pool)",
+        "component_modifiers": "FAC_BALUSTER_PROFILE (baluster tasks) OR FAC_STRINGER_TYPE + FAC_STAIRWELL_ACCESS (stringer tasks) OR 1.0x (riser/newel/handrail/base_rail)",
+        "applies_to_phases": ["setup", "prep", "prime"]
+      },
+      "coating_tasks": {
+        "formula": "effective_rate = base_rate / (quality_tier x component_modifier)",
+        "pool_modifiers": "QT (COATING pool)",
+        "component_modifiers": "FAC_BALUSTER_PROFILE (baluster tasks) OR FAC_STRINGER_TYPE + FAC_STAIRWELL_ACCESS (stringer tasks) OR 1.0x (riser/newel/handrail/base_rail)",
+        "applies_to_phases": ["finish", "interstage", "cleanup"]
+      }
+    }
+  },
+
+  "task_production_rates": [
+
+    {
+      "task_id": "TSK_STRP_TREAD_PROTECT",
+      "name": "Install Tread Protection (Ram Board Stair Armor)",
+      "task_classification": "binary",
+      "unit_of_measure": "EA",
+      "rate_per_hour": 25,
+      "crew_size": 1,
+      "applies_when": {},
+      "factor_modifiers": [],
+      "rate_basis_notes": "DIRECT transfer from TSK_STRS_TREAD_PROTECT (25 EA/hr). ~2.5 min per tread for Ram Board Stair Armor install. Includes positioning, securing with Safe-Release tape. Standard flight of 14 treads = ~35 min. FIRST task — mandatory at all tiers."
+    },
+    {
+      "task_id": "TSK_STRP_FLOOR_PROTECT",
+      "name": "Install Landing Floor Protection",
+      "task_classification": "binary",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 200,
+      "crew_size": 1,
+      "applies_when": {
+        "floor_type": ["finished", "partial"]
+      },
+      "factor_modifiers": [],
+      "rate_basis_notes": "DIRECT transfer from TSK_STRS_FLOOR_PROTECT (200 SF/hr). Canvas drop cloth layout at landings. Standard protection rate. In RP, landing floors are almost always finished."
+    },
+    {
+      "task_id": "TSK_STRP_WALL_MASK",
+      "name": "Mask Walls Along Stringer Edge and Railing Area",
+      "task_classification": "binary",
+      "unit_of_measure": "LF",
+      "rate_per_hour": 120,
+      "crew_size": 1,
+      "applies_when": {
+        "application_method": ["spray"]
+      },
+      "factor_modifiers": [],
+      "rate_basis_notes": "DIRECT transfer from TSK_STRS_WALL_MASK / TSK_STRL_WALL_MASK (both 120 LF/hr). Tape and paper along stringer top edge and railing wall area. Standard masking rate."
+    },
+    {
+      "task_id": "TSK_STRP_SPRAY_CONTAIN",
+      "name": "Set Up Baluster Spray Containment",
+      "task_classification": "binary",
+      "unit_of_measure": "FIXED",
+      "fixed_time_minutes": 45,
+      "crew_size": 1,
+      "applies_when": {
+        "application_method": ["spray"]
+      },
+      "factor_modifiers": [],
+      "rate_basis_notes": "DIRECT transfer from TSK_STRL_SPRAY_CONTAIN (45 min FIXED). Per system. Cardboard shields behind balusters, junction taping. Time varies with baluster count — 45 min is typical for 39-62 baluster system."
+    },
+    {
+      "task_id": "TSK_STRP_CARPET_PROTECT",
+      "name": "Protect Carpet Runner",
+      "task_classification": "binary",
+      "unit_of_measure": "FIXED",
+      "fixed_time_minutes": 20,
+      "crew_size": 1,
+      "applies_when": {
+        "carpet_runner": true
+      },
+      "factor_modifiers": [],
+      "rate_basis_notes": "RP_NEW task. Rosin paper over carpet edges where paint work occurs. Low-tack Safe-Release tape to avoid carpet backing damage. ~20 min per stairway system — similar to floor runner protection. Not present in NC."
+    },
+    {
+      "task_id": "TSK_STRP_SAFETY_SIGNAGE",
+      "name": "Install Wet Paint Safety Signage",
+      "task_classification": "binary",
+      "unit_of_measure": "FIXED",
+      "fixed_time_minutes": 5,
+      "crew_size": 1,
+      "applies_when": {},
+      "factor_modifiers": [],
+      "rate_basis_notes": "RP_NEW task. Install signs at top and bottom of stairway. ~5 min per system. Quick task but critical for occupied home safety."
+    },
+    {
+      "task_id": "TSK_STRP_BRACKET_REMOVE",
+      "name": "Remove Handrail Brackets (Label and Bag)",
+      "task_classification": "binary",
+      "unit_of_measure": "EA",
+      "rate_per_hour": 12,
+      "crew_size": 1,
+      "applies_when": {
+        "quality_tier": ["QT4", "QT5"]
+      },
+      "factor_modifiers": [],
+      "rate_basis_notes": "DIRECT transfer from TSK_STRL_BRACKET_REMOVE (12 EA/hr). ~5 min per bracket. Remove screws, label bracket, bag hardware, mark location on wall. QT4+ only. Typical: 3-5 brackets per handrail run. In RP, may encounter paint build-up on screw heads — captured in existing rate range."
+    },
+
+    {
+      "task_id": "TSK_STRP_ASSESS_CONDITION",
+      "name": "Visual Condition Inspection — All Stair Components",
+      "task_classification": "qt_scaled",
+      "unit_of_measure": "FIXED",
+      "fixed_time_minutes_by_tier": {
+        "QT3": 8,
+        "QT4": 12,
+        "QT5": 18
+      },
+      "crew_size": 1,
+      "applies_when": {},
+      "factor_modifiers": [],
+      "rate_basis_notes": "RP_NEW task. Scan all 6 stair component types with work light: risers, stringers, balusters, newels, handrails, base rails. Map cracking, peeling, adhesion failure, wear patterns, staining. Assign condition_scale per component. More components than door RP assessment (~7-8 min/opening QT3). QT3: 8 min standard visual. QT4: 12 min systematic with raking light + photographs. QT5: 18 min critical assessment, multiple passes. Calibrated against door RP TSK_DIRP_ASSESS_CONDITION — stairs have more component types but assessed as a single system."
+    },
+    {
+      "task_id": "TSK_STRP_ASSESS_ADHESION",
+      "name": "Adhesion Test (ASTM D3359 Cross-Hatch Tape Test)",
+      "task_classification": "binary",
+      "unit_of_measure": "FIXED",
+      "fixed_time_minutes": 5,
+      "crew_size": 1,
+      "applies_when": {},
+      "factor_modifiers": [],
+      "rate_basis_notes": "RP_NEW task. Cross-hatch tape test at minimum 4 locations (1 riser + 1 stringer + 1 baluster + 1 handrail). ~5 min per stairway system. Faster than door RP per-opening test because tests are concentrated in one area. Calibrated against door RP TSK_DIRP_ASSESS_ADHESION (~7-8 min per opening with 2 locations)."
+    },
+    {
+      "task_id": "TSK_STRP_ASSESS_COATING_ID",
+      "name": "Coating Identification — Latex vs Oil",
+      "task_classification": "binary",
+      "unit_of_measure": "FIXED",
+      "fixed_time_minutes": 4,
+      "crew_size": 1,
+      "applies_when": {},
+      "factor_modifiers": [],
+      "rate_basis_notes": "RP_NEW task. Solvent rub test at minimum 2 locations (riser + handrail). ~4 min per system. Critical for stairs — historically oil-based. Faster per-system than door RP per-opening test. Calibrated against door RP TSK_DIRP_ASSESS_COATING_ID (~5 min per opening)."
+    },
+    {
+      "task_id": "TSK_STRP_ASSESS_ANTISLIP",
+      "name": "Anti-Slip Verification — Tread Protection Adequacy",
+      "task_classification": "binary",
+      "unit_of_measure": "FIXED",
+      "fixed_time_minutes": 3,
+      "crew_size": 1,
+      "applies_when": {},
+      "factor_modifiers": [],
+      "rate_basis_notes": "RP_NEW task. Verify tread protection is non-slip and secured. Check all treads — quick visual + tactile check. ~3 min per system. Safety assessment for occupied homes. No NC equivalent."
+    },
+
+    {
+      "task_id": "TSK_RRP_LEAD_TEST",
+      "name": "Lead Test (XRF or Swab)",
+      "task_classification": "binary",
+      "unit_of_measure": "FIXED",
+      "fixed_time_minutes": 15,
+      "crew_size": 1,
+      "applies_when": {
+        "home_pre_1978": true
+      },
+      "factor_modifiers": [],
+      "rate_basis_notes": "Shared RRP module task. Test at 4 locations minimum (1 riser + 1 stringer + 1 handrail + 1 baluster). ~15 min per stairway system. Stairs are HIGH RISK for lead paint — historically oil-based, multi-layer from multiple repaints. Stair-specific rate slightly longer than door RP (10 min) due to 4 test locations vs 2."
+    },
+    {
+      "task_id": "TSK_RRP_CONTAINMENT_SETUP",
+      "name": "RRP Containment Setup",
+      "task_classification": "binary",
+      "unit_of_measure": "FIXED",
+      "fixed_time_minutes": 30,
+      "crew_size": 1,
+      "applies_when": {
+        "home_pre_1978": true,
+        "lead_status": ["tested_positive", "unknown_pre1978"]
+      },
+      "factor_modifiers": [],
+      "rate_basis_notes": "Shared RRP module task. Install poly sheeting containment at stairwell access points (top and bottom). Warning signs. ~30 min per system. Stairwell containment is more complex than room containment due to open vertical shaft — longer than door RP (15 min/opening). Per EPA RRP Rule 40 CFR 745."
+    },
+    {
+      "task_id": "TSK_RRP_HEPA_VACUUM",
+      "name": "HEPA Vacuum After Paint Disturbance",
+      "task_classification": "binary",
+      "unit_of_measure": "FIXED",
+      "fixed_time_minutes": 20,
+      "crew_size": 1,
+      "applies_when": {
+        "home_pre_1978": true,
+        "lead_status": ["tested_positive", "unknown_pre1978"]
+      },
+      "factor_modifiers": [],
+      "rate_basis_notes": "Shared RRP module task. HEPA vacuum all surfaces after each sanding/scraping disturbance. On stairs, dust settles on treads below — vacuum treads and landings. ~20 min per cycle. More surface area than single door opening."
+    },
+    {
+      "task_id": "TSK_RRP_CONTAINMENT_REMOVAL",
+      "name": "RRP Containment Removal and Visual Clearance",
+      "task_classification": "binary",
+      "unit_of_measure": "FIXED",
+      "fixed_time_minutes": 20,
+      "crew_size": 1,
+      "applies_when": {
+        "home_pre_1978": true,
+        "lead_status": ["tested_positive", "unknown_pre1978"]
+      },
+      "factor_modifiers": [],
+      "rate_basis_notes": "Shared RRP module task. Remove containment poly from stairwell access points, visual clearance inspection. ~20 min per system. Slightly longer than door RP (10 min) due to vertical shaft containment complexity."
+    },
+    {
+      "task_id": "TSK_RRP_WASTE_DISPOSAL",
+      "name": "Lead-Contaminated Waste Disposal",
+      "task_classification": "binary",
+      "unit_of_measure": "FIXED",
+      "fixed_time_minutes": 30,
+      "crew_size": 1,
+      "applies_when": {
+        "home_pre_1978": true,
+        "lead_status": ["tested_positive", "unknown_pre1978"]
+      },
+      "factor_modifiers": [],
+      "rate_basis_notes": "Shared RRP module task. Package and dispose lead-contaminated debris per EPA RRP Rule. Fixed time per project. ~30 min. Consistent with door RP rate."
+    },
+
+    {
+      "task_id": "TSK_STRP_TSP_WASH",
+      "name": "TSP Wash All Stair Component Surfaces",
+      "task_classification": "binary",
+      "unit_of_measure": "FIXED",
+      "fixed_time_minutes": 30,
+      "crew_size": 1,
+      "applies_when": {
+        "contamination_type": ["mildew", "smoke", "water_stain", "grease"]
+      },
+      "factor_modifiers": [],
+      "rate_basis_notes": "RP_NEW task. TSP wash of all stair component surfaces. Wipe-on, scrub detail areas (baluster junctions, newel caps), rinse, dry. ~30 min per stairway system. Stairs have extensive detail surface requiring scrubbing — longer than wall RP TSP wash (~20 min/room) due to multi-component geometry."
+    },
+    {
+      "task_id": "TSK_STRP_TREAT_MILDEW",
+      "name": "Mildew/Biocide Treatment",
+      "task_classification": "binary",
+      "unit_of_measure": "FIXED",
+      "fixed_time_minutes": 20,
+      "crew_size": 1,
+      "applies_when": {
+        "contamination_type": ["mildew"]
+      },
+      "factor_modifiers": [],
+      "rate_basis_notes": "RP_NEW task. Bleach/mildewcide solution to affected areas. Full contact/kill time + rinse. ~20 min per system. Rare on stairs but possible in basement stairwells. Calibrated against door RP TSK_DIRP_TREAT_MILDEW (~15 min per opening). Stairs need more solution coverage if mildew is present."
+    },
+    {
+      "task_id": "TSK_STRP_DEGLOSS_STRINGER",
+      "name": "Degloss Stringer Surfaces",
+      "task_classification": "qt_scaled",
+      "unit_of_measure": "LF",
+      "rates_by_tier": {
+        "QT3": { "rate_per_hour": 50, "notes": "Chemical or mechanical degloss, all accessible stringer surfaces. ~1.2 min/LF." },
+        "QT4": { "rate_per_hour": 40, "notes": "Full degloss with adhesion verification on open stringer profiles. ~1.5 min/LF." },
+        "QT5": { "rate_per_hour": 30, "notes": "Complete degloss with verification and spot adhesion re-test. ~2 min/LF." }
+      },
+      "crew_size": 1,
+      "applies_when": {
+        "substrate_state": ["SS_INT_SOUND_PAINT", "SS_INT_FAILING_PAINT"]
+      },
+      "factor_modifiers": [
+        { "modifier_id": "FAC_CONDITION_SCALE", "values": { "GOOD": 1.00, "FAIR": 1.50, "POOR": 2.00 } },
+        { "modifier_id": "FAC_STRINGER_TYPE", "values": { "closed": 1.00, "open": 1.40 } },
+        { "modifier_id": "FAC_STAIRWELL_ACCESS", "values": { "step_ladder": 1.30, "extension_ladder": 1.60, "scaffolding": 2.00, "lift": 2.50 } }
+      ],
+      "rate_basis_notes": "RP_NEW — replaces NC TSK_STRS_SAND_PREP_STRINGER. NC sand prep was 60-100 LF/hr substrate-driven. RP degloss is slower: chemical degloss requires wipe-on, dwell, wipe-off vs simple scuff. Stringer profile is linear — faster per LF than door frame degloss per EA. QT3 baseline: ~50 LF/hr chemical degloss. Open stringer modifier: 1.4x (notched profile). Access modifier applies to stringer tasks only."
+    },
+    {
+      "task_id": "TSK_STRP_DEGLOSS_RISER",
+      "name": "Degloss Riser Surfaces",
+      "task_classification": "qt_scaled",
+      "unit_of_measure": "EA",
+      "rates_by_tier": {
+        "QT3": { "rate_per_hour": 30, "notes": "Chemical or mechanical degloss, full riser face. ~2 min/EA." },
+        "QT4": { "rate_per_hour": 24, "notes": "Full degloss with adhesion verification. ~2.5 min/EA." },
+        "QT5": { "rate_per_hour": 20, "notes": "Complete degloss with verification. ~3 min/EA." }
+      },
+      "crew_size": 1,
+      "applies_when": {
+        "substrate_state": ["SS_INT_SOUND_PAINT", "SS_INT_FAILING_PAINT"]
+      },
+      "factor_modifiers": [
+        { "modifier_id": "FAC_CONDITION_SCALE", "values": { "GOOD": 1.00, "FAIR": 1.50, "POOR": 2.00 } }
+      ],
+      "rate_basis_notes": "RP_NEW — replaces NC TSK_STRS_SAND_PREP_RISER. NC sand prep was 20-30 EA/hr substrate-driven. RP degloss: ~30 EA/hr QT3. Risers are flat vertical surfaces (~2.2 SF each) — efficient to degloss with sanding sponge. Per research A-003: degloss rates from trim/door RP patterns."
+    },
+    {
+      "task_id": "TSK_STRP_DEGLOSS_BALUSTER",
+      "name": "Degloss Baluster Surfaces",
+      "task_classification": "qt_scaled",
+      "unit_of_measure": "EA",
+      "rates_by_tier": {
+        "QT3": { "rate_per_hour": 20, "notes": "Chemical preferred for turned profiles. ~3 min/EA (square baseline)." },
+        "QT4": { "rate_per_hour": 15, "notes": "Full degloss with adhesion verification at junctions. ~4 min/EA." },
+        "QT5": { "rate_per_hour": 12, "notes": "Complete degloss with verification, all profile surfaces. ~5 min/EA." }
+      },
+      "crew_size": 1,
+      "applies_when": {
+        "substrate_state": ["SS_INT_SOUND_PAINT", "SS_INT_FAILING_PAINT"]
+      },
+      "factor_modifiers": [
+        { "modifier_id": "FAC_CONDITION_SCALE", "values": { "GOOD": 1.00, "FAIR": 1.50, "POOR": 2.00 } },
+        { "modifier_id": "FAC_BALUSTER_PROFILE", "values": { "square": 1.00, "turned": 1.75 } }
+      ],
+      "rate_basis_notes": "RP_NEW — replaces NC TSK_STRL_SAND_PREP_BALUSTER + TSK_STRL_SCUFF_SAND_IRON. NC bare wood sand was 12 EA/hr square, 8 EA/hr turned. RP degloss of existing paint is faster than NC bare-wood full sand on flat profiles, but chemical degloss on turned profiles adds dwell time. Baluster_profile modifier: square=1.0x, turned=1.75x per Stairway_Systems_Doctrine Section 9.2. Per research A-003: ~12-20 EA/hr depending on profile."
+    },
+    {
+      "task_id": "TSK_STRP_DEGLOSS_NEWEL",
+      "name": "Degloss Newel Post Surfaces",
+      "task_classification": "qt_scaled",
+      "unit_of_measure": "EA",
+      "rates_by_tier": {
+        "QT3": { "rate_per_hour": 8, "notes": "Chemical degloss, all accessible surfaces. ~7.5 min/EA." },
+        "QT4": { "rate_per_hour": 6, "notes": "Full degloss including caps, rosettes, detail areas. ~10 min/EA." },
+        "QT5": { "rate_per_hour": 5, "notes": "Complete degloss with verification, all decorative detail. ~12 min/EA." }
+      },
+      "crew_size": 1,
+      "applies_when": {
+        "substrate_state": ["SS_INT_SOUND_PAINT", "SS_INT_FAILING_PAINT"]
+      },
+      "factor_modifiers": [
+        { "modifier_id": "FAC_CONDITION_SCALE", "values": { "GOOD": 1.00, "FAIR": 1.50, "POOR": 2.00 } }
+      ],
+      "rate_basis_notes": "RP_NEW — replaces NC TSK_STRL_SAND_PREP_NEWEL. NC bare sand was 5-8 EA/hr. RP degloss is comparable — newels have large surface area with decorative detail (caps, rosettes, flutes). Chemical degloss preferred for detail areas. QT3 baseline: ~8 EA/hr."
+    },
+    {
+      "task_id": "TSK_STRP_DEGLOSS_HANDRAIL",
+      "name": "Degloss Handrail Surfaces",
+      "task_classification": "qt_scaled",
+      "unit_of_measure": "LF",
+      "rates_by_tier": {
+        "QT3": { "rate_per_hour": 40, "notes": "Chemical or mechanical degloss, all 4 surfaces. ~1.5 min/LF." },
+        "QT4": { "rate_per_hour": 30, "notes": "Full degloss with adhesion verification, underside addressed. ~2 min/LF." },
+        "QT5": { "rate_per_hour": 25, "notes": "Complete degloss all surfaces with verification. ~2.4 min/LF." }
+      },
+      "crew_size": 1,
+      "applies_when": {
+        "substrate_state": ["SS_INT_SOUND_PAINT", "SS_INT_FAILING_PAINT"]
+      },
+      "factor_modifiers": [
+        { "modifier_id": "FAC_CONDITION_SCALE", "values": { "GOOD": 1.00, "FAIR": 1.50, "POOR": 2.00 } }
+      ],
+      "rate_basis_notes": "RP_NEW — replaces NC TSK_STRL_SAND_PREP_HANDRAIL. NC bare sand was 40-60 LF/hr. RP degloss of handrails: 4 surfaces to degloss — chemical deglosser is efficient but requires dwell time. High wear on handrails means existing finish is often already dulled. QT3 baseline: ~40 LF/hr."
+    },
+    {
+      "task_id": "TSK_STRP_DEGLOSS_BASE_RAIL",
+      "name": "Degloss Base Rail Surfaces",
+      "task_classification": "qt_scaled",
+      "unit_of_measure": "LF",
+      "rates_by_tier": {
+        "QT3": { "rate_per_hour": 50, "notes": "Chemical or mechanical degloss, 3 accessible surfaces. ~1.2 min/LF." },
+        "QT4": { "rate_per_hour": 40, "notes": "Full degloss with adhesion verification. ~1.5 min/LF." },
+        "QT5": { "rate_per_hour": 30, "notes": "Complete degloss with verification. ~2 min/LF." }
+      },
+      "crew_size": 1,
+      "applies_when": {
+        "has_base_rail": true,
+        "substrate_state": ["SS_INT_SOUND_PAINT", "SS_INT_FAILING_PAINT"]
+      },
+      "factor_modifiers": [
+        { "modifier_id": "FAC_CONDITION_SCALE", "values": { "GOOD": 1.00, "FAIR": 1.50, "POOR": 2.00 } }
+      ],
+      "rate_basis_notes": "RP_NEW — replaces NC TSK_STRL_SAND_PREP_BASE_RAIL. NC bare sand was 50-75 LF/hr. RP degloss base rail: 3 surfaces vs handrail 4 surfaces — slightly faster. Conditional: not all systems have base rails. QT3 baseline: ~50 LF/hr."
+    },
+    {
+      "task_id": "TSK_STRP_SCRAPE_FEATHER_RISER_STRINGER",
+      "name": "Scrape Loose Paint and Feather Edges — Risers and Stringers",
+      "task_classification": "qt_scaled",
+      "unit_of_measure": "FIXED",
+      "fixed_time_minutes_by_tier": {
+        "QT3": 30,
+        "QT4": 45,
+        "QT5": 60
+      },
+      "crew_size": 1,
+      "applies_when": {
+        "condition_scale": ["FAIR", "POOR"],
+        "substrate_state": ["SS_INT_FAILING_PAINT", "SS_INT_PEELING", "SS_INT_MOISTURE_DAMAGE"]
+      },
+      "factor_modifiers": [
+        { "modifier_id": "FAC_CONDITION_SCALE", "values": { "FAIR": 1.50, "POOR": 2.00 } },
+        { "modifier_id": "FAC_STRINGER_TYPE", "values": { "closed": 1.00, "open": 1.40 } },
+        { "modifier_id": "FAC_STAIRWELL_ACCESS", "values": { "step_ladder": 1.30, "extension_ladder": 1.60, "scaffolding": 2.00, "lift": 2.50 } }
+      ],
+      "rate_basis_notes": "RP_NEW task. Scrape failing paint from riser faces and stringer surfaces, feather-sand all edges. FIXED time per stairway system. QT3: 30 min baseline (spot scrape visible failures). QT4: 45 min (comprehensive scrape + near-invisible feathering). QT5: 60 min (critical scrape + perfect feathering). Stringer_type and access modifiers apply. Per research A-004: flat surfaces ~10-15 EA/hr risers equivalent. Combined riser+stringer as FIXED since they are worked together sequentially."
+    },
+    {
+      "task_id": "TSK_STRP_SCRAPE_FEATHER_RAILING",
+      "name": "Scrape Loose Paint and Feather Edges — Balusters, Newels, Handrails",
+      "task_classification": "qt_scaled",
+      "unit_of_measure": "FIXED",
+      "fixed_time_minutes_by_tier": {
+        "QT3": 45,
+        "QT4": 60,
+        "QT5": 90
+      },
+      "crew_size": 1,
+      "applies_when": {
+        "condition_scale": ["FAIR", "POOR"],
+        "substrate_state": ["SS_INT_FAILING_PAINT", "SS_INT_PEELING", "SS_INT_MOISTURE_DAMAGE"]
+      },
+      "factor_modifiers": [
+        { "modifier_id": "FAC_CONDITION_SCALE", "values": { "FAIR": 1.50, "POOR": 2.00 } },
+        { "modifier_id": "FAC_BALUSTER_PROFILE", "values": { "square": 1.00, "turned": 1.75 } }
+      ],
+      "rate_basis_notes": "RP_NEW task. Extremely labor-intensive for turned balusters — each baluster is a separate scrape/feather operation on complex profiles. Handrails have 4-surface access. FIXED time per system. QT3: 45 min baseline. QT4: 60 min comprehensive. QT5: 90 min critical. Baluster_profile modifier applies — turned profiles at 1.75x can push QT5 to 157 min. Per research A-004: profiled surfaces ~5-8 EA/hr balusters."
+    },
+    {
+      "task_id": "TSK_STRP_CAULK_ASSESS_STRINGER_WALL",
+      "name": "Assess and Replace Failed Caulk — Stringer-to-Wall Junction",
+      "task_classification": "qt_scaled",
+      "unit_of_measure": "LF",
+      "rates_by_tier": {
+        "QT3": { "rate_per_hour": 80, "notes": "Replace visibly failed sections — cracked or separated joints. ~0.75 min/LF." },
+        "QT4": { "rate_per_hour": 60, "notes": "Comprehensive assessment, replace all suspect and failed joints. ~1 min/LF." },
+        "QT5": { "rate_per_hour": 45, "notes": "Critical assessment, replace all joints not in perfect condition. ~1.3 min/LF." }
+      },
+      "crew_size": 1,
+      "applies_when": {
+        "stringer_type": ["closed"]
+      },
+      "factor_modifiers": [
+        { "modifier_id": "FAC_CONDITION_SCALE", "values": { "GOOD": 1.00, "FAIR": 1.50, "POOR": 2.00 } }
+      ],
+      "rate_basis_notes": "MODIFIED from NC TSK_STRS_CAULK_STRINGER_WALL (60 LF/hr full caulk). RP assess-and-replace is faster per LF than NC full caulk for GOOD condition (most joints intact, 15-30% replacement). QT3 baseline: 80 LF/hr. Closed stringers only — this is the stringer-to-wall junction. Higher tiers do more comprehensive assessment."
+    },
+    {
+      "task_id": "TSK_STRP_CAULK_ASSESS_RISER_STRINGER",
+      "name": "Assess and Replace Failed Caulk — Riser-to-Stringer Junctions",
+      "task_classification": "qt_scaled",
+      "unit_of_measure": "EA",
+      "rates_by_tier": {
+        "QT3": { "rate_per_hour": 20, "notes": "Replace visibly failed joints. ~3 min/EA for 2 joints." },
+        "QT4": { "rate_per_hour": 15, "notes": "Comprehensive assessment of all riser-stringer joints. ~4 min/EA." },
+        "QT5": { "rate_per_hour": 12, "notes": "Critical assessment, all joints in perfect condition. ~5 min/EA." }
+      },
+      "crew_size": 1,
+      "applies_when": {},
+      "factor_modifiers": [
+        { "modifier_id": "FAC_CONDITION_SCALE", "values": { "GOOD": 1.00, "FAIR": 1.50, "POOR": 2.00 } }
+      ],
+      "rate_basis_notes": "MODIFIED from NC TSK_STRS_CAULK_RISER_STRINGER (15 EA/hr full caulk, both joints). RP assess-and-replace: QT3 is faster than NC full caulk (~20 EA/hr) because only failed sections replaced (15-30% typical). 2 joints per riser at left/right stringer edges."
+    },
+    {
+      "task_id": "TSK_STRP_CAULK_ASSESS_NEWEL",
+      "name": "Assess and Replace Failed Caulk — Newel Junction Joints",
+      "task_classification": "qt_scaled",
+      "unit_of_measure": "EA",
+      "rates_by_tier": {
+        "QT3": { "rate_per_hour": 10, "notes": "Replace visibly failed newel junctions. ~6 min/EA." },
+        "QT4": { "rate_per_hour": 8, "notes": "Comprehensive assessment of all newel junctions. ~7.5 min/EA." },
+        "QT5": { "rate_per_hour": 6, "notes": "Critical assessment, all joints in perfect condition. ~10 min/EA." }
+      },
+      "crew_size": 1,
+      "applies_when": {},
+      "factor_modifiers": [
+        { "modifier_id": "FAC_CONDITION_SCALE", "values": { "GOOD": 1.00, "FAIR": 1.50, "POOR": 2.00 } }
+      ],
+      "rate_basis_notes": "MODIFIED from NC TSK_STRL_CAULK_NEWEL (8 EA/hr full caulk). RP assess-and-replace for GOOD condition is faster (~10 EA/hr QT3) because only failed sections replaced. Newels have 2-3 joints each (newel-to-tread, newel-to-handrail). Higher tiers require more thorough assessment."
+    },
+    {
+      "task_id": "TSK_STRP_CLEAN_DUST",
+      "name": "Remove Sanding/Scraping Dust (Tack Cloth / Vacuum)",
+      "task_classification": "binary",
+      "unit_of_measure": "FIXED",
+      "fixed_time_minutes": 25,
+      "crew_size": 1,
+      "applies_when": {},
+      "factor_modifiers": [],
+      "rate_basis_notes": "Consolidated from TSK_STRS_CLEAN_DUST (15 min) + TSK_STRL_CLEAN_DUST (20 min). Combined RP spec cleans all components in single pass — not additive. ~25 min per system. Tack cloth all surfaces, vacuum treads and landings. HEPA vacuum recommended in RP occupied context."
+    },
+
+    {
+      "task_id": "TSK_STRP_PRIME_STRINGER",
+      "name": "Apply State-Driven Primer on Stringers",
+      "task_classification": "binary",
+      "unit_of_measure": "LF",
+      "rate_per_hour": 80,
+      "crew_size": 1,
+      "applies_when": {
+        "substrate_state": ["SS_INT_FAILING_PAINT", "SS_INT_PEELING", "SS_INT_MOISTURE_DAMAGE", "SS_INT_SMOKE_DAMAGE"]
+      },
+      "factor_modifiers": [
+        { "modifier_id": "FAC_STRINGER_TYPE", "values": { "closed": 1.00, "open": 1.40 } },
+        { "modifier_id": "FAC_STAIRWELL_ACCESS", "values": { "step_ladder": 1.30, "extension_ladder": 1.60, "scaffolding": 2.00, "lift": 2.50 } }
+      ],
+      "rate_basis_notes": "DIRECT transfer from TSK_STRS_PRIME_STRINGER (80 LF/hr brush prime). Comparable to baseboard brush rate. Primer type is state-driven (adhesion, stain-block, or mildew-resistant) but application rate is the same regardless of primer product. Open stringer modifier: 1.4x. Access modifier for stringer tasks."
+    },
+    {
+      "task_id": "TSK_STRP_PRIME_RISER",
+      "name": "Apply State-Driven Primer on Risers",
+      "task_classification": "binary",
+      "unit_of_measure": "EA",
+      "rate_per_hour": 15,
+      "crew_size": 1,
+      "applies_when": {
+        "substrate_state": ["SS_INT_FAILING_PAINT", "SS_INT_PEELING", "SS_INT_MOISTURE_DAMAGE", "SS_INT_SMOKE_DAMAGE"]
+      },
+      "factor_modifiers": [],
+      "rate_basis_notes": "DIRECT transfer from TSK_STRS_PRIME_RISER (15 EA/hr brush prime). ~4 min per riser (~2.2 SF each). Vertical surface — thin coat, no runs. State-driven primer selection but same application rate."
+    },
+    {
+      "task_id": "TSK_STRP_PRIME_BALUSTER",
+      "name": "Apply State-Driven Primer on Balusters",
+      "task_classification": "binary",
+      "unit_of_measure": "EA",
+      "rate_per_hour": 15,
+      "rates_by_profile": {
+        "square": 15,
+        "turned": 8.5
+      },
+      "crew_size": 1,
+      "applies_when": {
+        "substrate_state": ["SS_INT_FAILING_PAINT", "SS_INT_PEELING", "SS_INT_MOISTURE_DAMAGE", "SS_INT_SMOKE_DAMAGE"]
+      },
+      "factor_modifiers": [
+        { "modifier_id": "FAC_BALUSTER_PROFILE", "values": { "square": 1.00, "turned": 1.75 } }
+      ],
+      "rate_basis_notes": "DIRECT transfer from TSK_STRL_PRIME_BALUSTER. Square: 15 EA/hr (~4 min/EA). Turned: 8.5 EA/hr (~7 min/EA). Per Stairway_Systems_Doctrine Section 9.2. State-driven primer but same application rates. German round trim brush for turned profiles."
+    },
+    {
+      "task_id": "TSK_STRP_PRIME_NEWEL",
+      "name": "Apply State-Driven Primer on Newel Posts",
+      "task_classification": "binary",
+      "unit_of_measure": "EA",
+      "rate_per_hour": 4,
+      "crew_size": 1,
+      "applies_when": {
+        "substrate_state": ["SS_INT_FAILING_PAINT", "SS_INT_PEELING", "SS_INT_MOISTURE_DAMAGE", "SS_INT_SMOKE_DAMAGE"]
+      },
+      "factor_modifiers": [],
+      "rate_basis_notes": "DIRECT transfer from TSK_STRL_PRIME_NEWEL (4 EA/hr). ~15 min/newel brush prime. Larger surface, more detail than balusters. Caps, rosettes, flutes require careful coverage."
+    },
+    {
+      "task_id": "TSK_STRP_PRIME_HANDRAIL",
+      "name": "Apply State-Driven Primer on Handrails",
+      "task_classification": "binary",
+      "unit_of_measure": "LF",
+      "rate_per_hour": 65,
+      "crew_size": 1,
+      "applies_when": {
+        "substrate_state": ["SS_INT_FAILING_PAINT", "SS_INT_PEELING", "SS_INT_MOISTURE_DAMAGE", "SS_INT_SMOKE_DAMAGE"]
+      },
+      "factor_modifiers": [],
+      "rate_basis_notes": "DIRECT transfer from TSK_STRL_PRIME_HANDRAIL (65 LF/hr brush prime). ~25% slower than flat trim (80 LF/hr) due to 4-surface access. QT4+: painting horizontally (brackets removed) is faster but rate accounts for average."
+    },
+    {
+      "task_id": "TSK_STRP_PRIME_BASE_RAIL",
+      "name": "Apply State-Driven Primer on Base Rails",
+      "task_classification": "binary",
+      "unit_of_measure": "LF",
+      "rate_per_hour": 70,
+      "crew_size": 1,
+      "applies_when": {
+        "has_base_rail": true,
+        "substrate_state": ["SS_INT_FAILING_PAINT", "SS_INT_PEELING", "SS_INT_MOISTURE_DAMAGE", "SS_INT_SMOKE_DAMAGE"]
+      },
+      "factor_modifiers": [],
+      "rate_basis_notes": "DIRECT transfer from TSK_STRL_PRIME_BASE_RAIL (70 LF/hr). Slightly faster than handrail (3 surfaces vs 4). Conditional."
+    },
+    {
+      "task_id": "TSK_STRP_SAND_PRIMER",
+      "name": "Light Sand Primer for Finish Coat Adhesion",
+      "task_classification": "binary",
+      "unit_of_measure": "FIXED",
+      "fixed_time_minutes": 30,
+      "crew_size": 1,
+      "applies_when": {
+        "substrate_state": ["SS_INT_FAILING_PAINT", "SS_INT_PEELING", "SS_INT_MOISTURE_DAMAGE", "SS_INT_SMOKE_DAMAGE"]
+      },
+      "factor_modifiers": [],
+      "rate_basis_notes": "Consolidated from TSK_STRS_SAND_PRIMER (20 min) + TSK_STRL_SAND_PRIMER (25 min). Combined RP spec sands all primed components in single pass — not fully additive. ~30 min per system. 220 grit light sand all primed surfaces. Tack cloth after."
+    },
+    {
+      "task_id": "TSK_STRP_SPOT_PRIME",
+      "name": "Spot Prime Scraped/Repaired Areas",
+      "task_classification": "qt_scaled",
+      "unit_of_measure": "FIXED",
+      "fixed_time_minutes_by_tier": {
+        "QT3": 10,
+        "QT4": 15,
+        "QT5": 20
+      },
+      "crew_size": 1,
+      "applies_when": {},
+      "factor_modifiers": [
+        { "modifier_id": "FAC_CONDITION_SCALE", "values": { "GOOD": 1.00, "FAIR": 1.50, "POOR": 2.00 } }
+      ],
+      "rate_basis_notes": "RP_NEW task. Spot prime all scraped areas, feathered edges, caulk replacements, patched areas. Brush application regardless of method. GOOD condition has fewer spots. QT3: 10 min (few spot areas). QT4: 15 min (more thorough). QT5: 20 min (all repairs with wide feather). Calibrated against door RP spot prime patterns."
+    },
+
+    {
+      "task_id": "TSK_STRP_CLEAN_AREA",
+      "name": "Clean Work Area Between Coats",
+      "task_classification": "binary",
+      "unit_of_measure": "FIXED",
+      "fixed_time_minutes": 15,
+      "crew_size": 1,
+      "applies_when": {},
+      "factor_modifiers": [],
+      "rate_basis_notes": "Consolidated from TSK_STRS_CLEAN_AREA (10 min) + TSK_STRL_CLEAN_AREA (10 min). Combined RP spec cleans entire stairway in single pass. ~15 min per interstage cycle. Not fully additive — overlap in tread/landing cleaning."
+    },
+    {
+      "task_id": "TSK_STRP_INSPECT_COAT",
+      "name": "Inspect Previous Coat — All Components",
+      "task_classification": "qt_scaled",
+      "unit_of_measure": "FIXED",
+      "fixed_time_minutes_by_tier": {
+        "QT3": 15,
+        "QT4": 30,
+        "QT5": 45
+      },
+      "crew_size": 1,
+      "applies_when": {},
+      "factor_modifiers": [],
+      "rate_basis_notes": "Consolidated from TSK_STRS_INSPECT_COAT (10/20/30 min) + TSK_STRL_INSPECT_COAT (15/25/40 min). Combined RP spec inspects all components in single pass. Not fully additive — some overlap. QT3: 15 min quick scan. QT4: 30 min systematic all components + junctions. QT5: 45 min critical with light, junction nibs, handrail underside."
+    },
+    {
+      "task_id": "TSK_STRP_SAND_BETWEEN",
+      "name": "Sand Between Coats — All Components",
+      "task_classification": "qt_scaled",
+      "unit_of_measure": "FIXED",
+      "fixed_time_minutes_by_tier": {
+        "QT3": 20,
+        "QT4": 45,
+        "QT5": 60
+      },
+      "crew_size": 1,
+      "applies_when": {},
+      "factor_modifiers": [],
+      "rate_basis_notes": "Consolidated from TSK_STRS_SAND_BETWEEN (10/25/35 min) + TSK_STRL_SAND_BETWEEN (15/35/50 min). Combined RP spec sands all components in single pass. Not fully additive — some overlap in setup. QT3: 20 min spot sand nibs only. QT4: 45 min full 220 grit all surfaces. QT5: 60 min thorough 220-320 grit. Rigid sanding block for flat surfaces, contour sanding for turned profiles."
+    },
+    {
+      "task_id": "TSK_STRP_PATCH_DEFECTS",
+      "name": "Patch and Repair Marked Defects (Interstage)",
+      "task_classification": "qt_scaled",
+      "unit_of_measure": "FIXED",
+      "fixed_time_minutes_by_tier": {
+        "QT3": 8,
+        "QT4": 20,
+        "QT5": 35
+      },
+      "crew_size": 1,
+      "applies_when": {},
+      "factor_modifiers": [],
+      "rate_basis_notes": "Consolidated from TSK_STRS_PATCH_DEFECTS (5/15/25 min) + TSK_STRL_PATCH_DEFECTS (5/15/25 min). Combined: QT3: 8 min (combined defects from all components). QT4: 20 min. QT5: 35 min. Not fully additive — setup and tooling overlap."
+    },
+    {
+      "task_id": "TSK_STRP_SPOT_COAT",
+      "name": "Spot Coat Patched Areas",
+      "task_classification": "qt_scaled",
+      "unit_of_measure": "FIXED",
+      "fixed_time_minutes_by_tier": {
+        "QT3": 8,
+        "QT4": 15,
+        "QT5": 20
+      },
+      "crew_size": 1,
+      "applies_when": {},
+      "factor_modifiers": [],
+      "rate_basis_notes": "Consolidated from TSK_STRS_SPOT_COAT (5/10/15 min) + TSK_STRL_SPOT_COAT (5/10/15 min). Combined: QT3: 8 min. QT4: 15 min. QT5: 20 min. Touch-up patched areas before next full coat."
+    },
+    {
+      "task_id": "TSK_STRP_TACK_CLEAN",
+      "name": "Tack Cloth All Surfaces",
+      "task_classification": "binary",
+      "unit_of_measure": "FIXED",
+      "fixed_time_minutes": 20,
+      "crew_size": 1,
+      "applies_when": {},
+      "factor_modifiers": [],
+      "rate_basis_notes": "Consolidated from TSK_STRS_TACK_CLEAN (10 min) + TSK_STRL_TACK_CLEAN (15 min). Combined RP spec tack cleans all components in single pass. ~20 min per interstage cycle. Not fully additive."
+    },
+    {
+      "task_id": "TSK_STRP_TREAD_PROTECT_VERIFY",
+      "name": "Verify Tread Protection Integrity (Daily)",
+      "task_classification": "binary",
+      "unit_of_measure": "FIXED",
+      "fixed_time_minutes": 5,
+      "crew_size": 1,
+      "applies_when": {},
+      "factor_modifiers": [],
+      "rate_basis_notes": "RP_NEW task. Daily check + per interstage cycle. Quick visual + tactile verify of tread protection integrity. Repair/replace damaged sections. ~5 min per cycle. Critical safety task for occupied homes. NC had TSK_STRL_TREAD_PROTECT_VERIFY but as verification of existing install (40 EA/hr). RP uses fixed time per system check."
+    },
+
+    {
+      "task_id": "TSK_STRP_BRUSH_FINISH_STRINGER",
+      "name": "Brush Finish Coat on Stringers",
+      "task_classification": "binary",
+      "unit_of_measure": "LF",
+      "rate_per_hour": 85,
+      "crew_size": 1,
+      "applies_when": {
+        "application_method": ["brush"]
+      },
+      "factor_modifiers": [
+        { "modifier_id": "FAC_STRINGER_TYPE", "values": { "closed": 1.00, "open": 1.40 } },
+        { "modifier_id": "FAC_STAIRWELL_ACCESS", "values": { "step_ladder": 1.30, "extension_ladder": 1.60, "scaffolding": 2.00, "lift": 2.50 } }
+      ],
+      "rate_basis_notes": "DIRECT transfer from TSK_STRS_BRUSH_FINISH_STRINGER (85 LF/hr). Comparable to baseboard trim rates (80-90 LF/hr). Application quality is NOT tiered — same speed at all QTs. Open stringer modifier: 1.4x. Access modifier for stringer tasks."
+    },
+    {
+      "task_id": "TSK_STRP_BRUSH_FINISH_RISER",
+      "name": "Brush Finish Coat on Risers",
+      "task_classification": "binary",
+      "unit_of_measure": "EA",
+      "rate_per_hour": 15,
+      "crew_size": 1,
+      "applies_when": {
+        "application_method": ["brush"]
+      },
+      "factor_modifiers": [],
+      "rate_basis_notes": "DIRECT transfer from TSK_STRS_BRUSH_FINISH_RISER (15 EA/hr). ~4 min per riser. Vertical surface — apply, tip once, walk away. Check for sags before moving to next riser."
+    },
+    {
+      "task_id": "TSK_STRP_BRUSH_FINISH_BALUSTER",
+      "name": "Brush Finish Coat on Balusters",
+      "task_classification": "binary",
+      "unit_of_measure": "EA",
+      "rate_per_hour": 15,
+      "rates_by_profile": {
+        "square": 15,
+        "turned": 8.5
+      },
+      "crew_size": 1,
+      "applies_when": {
+        "application_method": ["brush"]
+      },
+      "factor_modifiers": [
+        { "modifier_id": "FAC_BALUSTER_PROFILE", "values": { "square": 1.00, "turned": 1.75 } }
+      ],
+      "rate_basis_notes": "DIRECT transfer from TSK_STRL_BRUSH_FINISH_BALUSTER. Square: 15 EA/hr (~4 min/EA). Turned: 8.5 EA/hr (~7 min/EA). Per Stairway_Systems_Doctrine Section 9.2. German round trim brush + flow additive for turned profiles to prevent roping. Application quality is NOT tiered."
+    },
+    {
+      "task_id": "TSK_STRP_BRUSH_FINISH_NEWEL",
+      "name": "Brush Finish Coat on Newel Posts",
+      "task_classification": "binary",
+      "unit_of_measure": "EA",
+      "rate_per_hour": 4,
+      "crew_size": 1,
+      "applies_when": {
+        "application_method": ["brush"]
+      },
+      "factor_modifiers": [],
+      "rate_basis_notes": "DIRECT transfer from TSK_STRL_BRUSH_FINISH_NEWEL (4 EA/hr). ~15 min/newel per coat. Larger and more detailed than balusters. Caps, rosettes, flutes, all 4 sides."
+    },
+    {
+      "task_id": "TSK_STRP_BRUSH_FINISH_HANDRAIL",
+      "name": "Brush Finish Coat on Handrails",
+      "task_classification": "binary",
+      "unit_of_measure": "LF",
+      "rate_per_hour": 65,
+      "crew_size": 1,
+      "applies_when": {
+        "application_method": ["brush"]
+      },
+      "factor_modifiers": [],
+      "rate_basis_notes": "DIRECT transfer from TSK_STRL_BRUSH_FINISH_HANDRAIL (65 LF/hr). 4 surfaces (top, 2 sides, underside). ~25% slower than flat trim (85 LF/hr). QT4+: painting horizontally (brackets removed) may be slightly faster."
+    },
+    {
+      "task_id": "TSK_STRP_BRUSH_FINISH_BASE_RAIL",
+      "name": "Brush Finish Coat on Base Rails",
+      "task_classification": "binary",
+      "unit_of_measure": "LF",
+      "rate_per_hour": 70,
+      "crew_size": 1,
+      "applies_when": {
+        "application_method": ["brush"],
+        "has_base_rail": true
+      },
+      "factor_modifiers": [],
+      "rate_basis_notes": "DIRECT transfer from TSK_STRL_BRUSH_FINISH_BASE_RAIL (70 LF/hr). 3 surfaces — slightly faster than handrail. Conditional."
+    },
+    {
+      "task_id": "TSK_STRP_SPRAY_FINISH_STRINGER",
+      "name": "Spray Finish Coat on Stringers",
+      "task_classification": "binary",
+      "unit_of_measure": "LF",
+      "rate_per_hour": 350,
+      "crew_size": 1,
+      "applies_when": {
+        "application_method": ["spray"]
+      },
+      "factor_modifiers": [
+        { "modifier_id": "FAC_STRINGER_TYPE", "values": { "closed": 1.00, "open": 1.40 } },
+        { "modifier_id": "FAC_STAIRWELL_ACCESS", "values": { "step_ladder": 1.30, "extension_ladder": 1.60, "scaffolding": 2.00, "lift": 2.50 } }
+      ],
+      "rate_basis_notes": "DIRECT transfer from TSK_STRS_SPRAY_FINISH_STRINGER (350 LF/hr). Significantly faster than brush. Open stringer modifier: 1.4x. Requires wall masking."
+    },
+    {
+      "task_id": "TSK_STRP_SPRAY_FINISH_RISER",
+      "name": "Spray Finish Coat on Risers",
+      "task_classification": "binary",
+      "unit_of_measure": "EA",
+      "rate_per_hour": 60,
+      "crew_size": 1,
+      "applies_when": {
+        "application_method": ["spray"]
+      },
+      "factor_modifiers": [],
+      "rate_basis_notes": "DIRECT transfer from TSK_STRS_SPRAY_FINISH_RISER (60 EA/hr). ~1 min per riser. Light passes on vertical surface."
+    },
+    {
+      "task_id": "TSK_STRP_SPRAY_FINISH_BALUSTER",
+      "name": "Spray Finish Coat on Balusters",
+      "task_classification": "binary",
+      "unit_of_measure": "EA",
+      "rate_per_hour": 40,
+      "crew_size": 1,
+      "applies_when": {
+        "application_method": ["spray"]
+      },
+      "factor_modifiers": [],
+      "rate_basis_notes": "DIRECT transfer from TSK_STRL_SPRAY_FINISH_BALUSTER (40 EA/hr). ~2.5x faster than brush for square. HVLP preferred. All profiles spray at similar rates (profile complexity affects brush, not spray). Containment must be in place."
+    },
+    {
+      "task_id": "TSK_STRP_SPRAY_FINISH_NEWEL",
+      "name": "Spray Finish Coat on Newel Posts",
+      "task_classification": "binary",
+      "unit_of_measure": "EA",
+      "rate_per_hour": 12,
+      "crew_size": 1,
+      "applies_when": {
+        "application_method": ["spray"]
+      },
+      "factor_modifiers": [],
+      "rate_basis_notes": "DIRECT transfer from TSK_STRL_SPRAY_FINISH_NEWEL (12 EA/hr). ~3x faster than brush (4 EA/hr). Larger target, easy to spray."
+    },
+    {
+      "task_id": "TSK_STRP_SPRAY_FINISH_HANDRAIL",
+      "name": "Spray Finish Coat on Handrails",
+      "task_classification": "binary",
+      "unit_of_measure": "LF",
+      "rate_per_hour": 200,
+      "crew_size": 1,
+      "applies_when": {
+        "application_method": ["spray"]
+      },
+      "factor_modifiers": [],
+      "rate_basis_notes": "DIRECT transfer from TSK_STRL_SPRAY_FINISH_HANDRAIL (200 LF/hr). ~3x faster than brush. Light passes on all 4 surfaces."
+    },
+    {
+      "task_id": "TSK_STRP_SPRAY_FINISH_BASE_RAIL",
+      "name": "Spray Finish Coat on Base Rails",
+      "task_classification": "binary",
+      "unit_of_measure": "LF",
+      "rate_per_hour": 220,
+      "crew_size": 1,
+      "applies_when": {
+        "application_method": ["spray"],
+        "has_base_rail": true
+      },
+      "factor_modifiers": [],
+      "rate_basis_notes": "DIRECT transfer from TSK_STRL_SPRAY_FINISH_BASE_RAIL (220 LF/hr). Slightly faster than handrail (3 surfaces). Conditional."
+    },
+
+    {
+      "task_id": "TSK_STRP_FINAL_INSPECT",
+      "name": "Final Quality Inspection — All Components",
+      "task_classification": "qt_scaled",
+      "unit_of_measure": "FIXED",
+      "fixed_time_minutes_by_tier": {
+        "QT3": 20,
+        "QT4": 35,
+        "QT5": 50
+      },
+      "crew_size": 1,
+      "applies_when": {},
+      "factor_modifiers": [],
+      "rate_basis_notes": "Consolidated from TSK_STRS_FINAL_INSPECT (10/20/30 min) + TSK_STRL_FINAL_INSPECT (15/30/45 min). Combined: QT3: 20 min (scan all components). QT4: 35 min (systematic review all components + junctions). QT5: 50 min (critical inspection, zero tolerance). Not fully additive — inspect as single integrated system."
+    },
+    {
+      "task_id": "TSK_STRP_TOUCHUP",
+      "name": "Touch-Up Defects Found During Final Inspection",
+      "task_classification": "qt_scaled",
+      "unit_of_measure": "FIXED",
+      "fixed_time_minutes_by_tier": {
+        "QT3": 10,
+        "QT4": 25,
+        "QT5": 35
+      },
+      "crew_size": 1,
+      "applies_when": {},
+      "factor_modifiers": [],
+      "rate_basis_notes": "Consolidated from TSK_STRS_TOUCHUP (5/15/20 min) + TSK_STRL_TOUCHUP (10/20/30 min). Combined: QT3: 10 min. QT4: 25 min. QT5: 35 min. Correct all defects across all components. Feather into surrounding finish."
+    },
+    {
+      "task_id": "TSK_STRP_FEEL_TEST_HANDRAIL",
+      "name": "Feel Test on Handrails",
+      "task_classification": "binary",
+      "unit_of_measure": "LF",
+      "rate_per_hour": 120,
+      "crew_size": 1,
+      "applies_when": {
+        "quality_tier": ["QT5"]
+      },
+      "factor_modifiers": [],
+      "rate_basis_notes": "DIRECT transfer from TSK_STRL_FEEL_TEST_HANDRAIL (120 LF/hr). ~30 sec/LF. Run hand along handrail — must feel glass-smooth. QT5 only. In RP, existing surface may have prior paint nibs making this test even more important."
+    },
+    {
+      "task_id": "TSK_STRP_POLY_TOPCOAT_HANDRAIL",
+      "name": "Apply Polyurethane Topcoat on Handrails",
+      "task_classification": "binary",
+      "unit_of_measure": "LF",
+      "rate_per_hour": 50,
+      "crew_size": 1,
+      "applies_when": {
+        "quality_tier": ["QT5"]
+      },
+      "factor_modifiers": [],
+      "rate_basis_notes": "DIRECT transfer from TSK_STRL_POLY_TOPCOAT_HANDRAIL (50 LF/hr). Optional QT5. Single coat water-based poly. Thin, even application. Allow enamel to fully cure first (24-48 hours). Handrails only — not balusters, newels, or risers."
+    },
+    {
+      "task_id": "TSK_STRP_BRACKET_REINSTALL",
+      "name": "Reinstall Handrail Brackets",
+      "task_classification": "binary",
+      "unit_of_measure": "EA",
+      "rate_per_hour": 10,
+      "crew_size": 1,
+      "applies_when": {
+        "quality_tier": ["QT4", "QT5"]
+      },
+      "factor_modifiers": [],
+      "rate_basis_notes": "DIRECT transfer from TSK_STRL_BRACKET_REINSTALL (10 EA/hr). ~6 min/bracket. Reinstall from labeled bags, align to marks, secure, touch-up. QT4+ only."
+    },
+    {
+      "task_id": "TSK_STRP_REMOVE_SPRAY_CONTAIN",
+      "name": "Remove Spray Containment",
+      "task_classification": "binary",
+      "unit_of_measure": "FIXED",
+      "fixed_time_minutes": 20,
+      "crew_size": 1,
+      "applies_when": {
+        "application_method": ["spray"]
+      },
+      "factor_modifiers": [],
+      "rate_basis_notes": "DIRECT transfer from TSK_STRL_REMOVE_SPRAY_CONTAIN (20 min FIXED). Remove cardboard shields, Tape & Drape. Spray method only."
+    },
+    {
+      "task_id": "TSK_STRP_REMOVE_WALL_MASK",
+      "name": "Remove Wall Masking",
+      "task_classification": "binary",
+      "unit_of_measure": "LF",
+      "rate_per_hour": 200,
+      "crew_size": 1,
+      "applies_when": {
+        "application_method": ["spray"]
+      },
+      "factor_modifiers": [],
+      "rate_basis_notes": "DIRECT transfer from TSK_STRS_REMOVE_WALL_MASK / TSK_STRL_REMOVE_WALL_MASK (both 200 LF/hr). Score tape edge, pull at 45-degree angle."
+    },
+    {
+      "task_id": "TSK_STRP_REMOVE_CARPET_PROTECT",
+      "name": "Remove Carpet Runner Protection",
+      "task_classification": "binary",
+      "unit_of_measure": "FIXED",
+      "fixed_time_minutes": 15,
+      "crew_size": 1,
+      "applies_when": {
+        "carpet_runner": true
+      },
+      "factor_modifiers": [],
+      "rate_basis_notes": "RP_NEW task. Remove rosin paper and low-tack tape from carpet runner. Verify no paint transfer. ~15 min per system. Teardown is faster than setup (20 min) — no precision tape placement needed."
+    },
+    {
+      "task_id": "TSK_STRP_REMOVE_FLOOR_PROTECT",
+      "name": "Remove Floor Protection at Landings",
+      "task_classification": "binary",
+      "unit_of_measure": "SF",
+      "rate_per_hour": 300,
+      "crew_size": 1,
+      "applies_when": {},
+      "factor_modifiers": [],
+      "rate_basis_notes": "DIRECT transfer from TSK_STRS_REMOVE_FLOOR_PROTECT / TSK_STRL_REMOVE_FLOOR_PROTECT (both 300 SF/hr). Fold and remove canvas drops."
+    },
+    {
+      "task_id": "TSK_STRP_REMOVE_TREAD_PROTECT",
+      "name": "Remove Tread Protection",
+      "task_classification": "binary",
+      "unit_of_measure": "EA",
+      "rate_per_hour": 40,
+      "crew_size": 1,
+      "applies_when": {},
+      "factor_modifiers": [],
+      "rate_basis_notes": "DIRECT transfer from TSK_STRS_REMOVE_TREAD_PROTECT / TSK_STRL_REMOVE_TREAD_PROTECT (both 40 EA/hr). ~1.5 min per tread. Score tape edges, remove Ram Board carefully. LAST task — may defer if tread work follows."
+    },
+    {
+      "task_id": "TSK_STRP_CUSTOMER_WALKTHROUGH",
+      "name": "Customer Walkthrough — Stairway System Review",
+      "task_classification": "binary",
+      "unit_of_measure": "FIXED",
+      "fixed_time_minutes": 12,
+      "crew_size": 1,
+      "applies_when": {},
+      "factor_modifiers": [],
+      "rate_basis_notes": "RP_NEW task. Post-completion review with homeowner. Walk entire stairway, verify all components painted consistently, handrail smooth to touch, treads safe. ~12 min per stairway system (midpoint of 10-15 min per research RF-017). No NC equivalent."
+    },
+    {
+      "task_id": "TSK_STRP_TOOL_CLEANUP",
+      "name": "Clean Tools and Equipment",
+      "task_classification": "binary",
+      "unit_of_measure": "FIXED",
+      "fixed_time_minutes": 25,
+      "crew_size": 1,
+      "applies_when": {},
+      "factor_modifiers": [],
+      "rate_basis_notes": "Consolidated from TSK_STRS_TOOL_CLEANUP (20 min) + TSK_STRL_TOOL_CLEANUP (25 min). Combined RP spec: single tool cleanup session. ~25 min. Includes German round brushes, angled sash brushes, spray equipment (if used). Not additive — same cleanup station."
+    }
+  ],
+
+  "quality_tier_effects": {
+    "source": "Modifier_Registry.md v1.2 — global QT modifiers for stairs (no surface-specific override)",
+    "applies_to": "qt_scaled tasks only (assessment, degloss, scrape/feather, caulk assess, interstage inspect/sand/patch/spot coat, spot prime, final inspect, touchup)",
+    "does_not_apply_to": "binary tasks — application rates (brush/spray finish, prime), protection setup/teardown, assessment adhesion/coating_id/antislip, fixed overhead tasks",
+    "values": {
+      "QT3": 1.0,
+      "QT4": 1.3,
+      "QT5": 1.5
+    },
+    "notes": "Stairs use GLOBAL QT modifiers (1.0/1.3/1.5), not surface-specific overrides. QT2 is excluded — stairs are scrutinized, prominent surfaces per Stairway_Systems_Doctrine Section 10.1. QT3 is minimum."
+  },
+
+  "modifier_stacking_rules": {
+    "prep_pool": {
+      "modifiers": ["FAC_CONDITION_SCALE", "FAC_BALUSTER_PROFILE (baluster tasks only)", "FAC_STRINGER_TYPE (stringer tasks only)", "FAC_STAIRWELL_ACCESS (stringer tasks only)"],
+      "formula": "effective_rate = base_rate / (condition_modifier x component_modifier)",
+      "never_includes": ["quality_tier"],
+      "applies_to_phases": ["setup", "prep", "prime"],
+      "max_theoretical_baluster": "POOR(2.00) x turned(1.75) = 3.50x",
+      "max_theoretical_stringer": "POOR(2.00) x open(1.40) x scaffolding(2.00) = 5.60x — flag for estimator review if scaffolding + POOR",
+      "realistic_max_stringer": "POOR(2.00) x open(1.40) x step_ladder(1.30) = 3.64x"
+    },
+    "coating_pool": {
+      "modifiers": ["quality_tier", "FAC_BALUSTER_PROFILE (baluster tasks only)", "FAC_STRINGER_TYPE (stringer tasks only)", "FAC_STAIRWELL_ACCESS (stringer tasks only)"],
+      "formula": "effective_rate = base_rate / (qt_modifier x component_modifier)",
+      "never_includes": ["FAC_CONDITION_SCALE"],
+      "applies_to_phases": ["finish", "interstage", "cleanup"],
+      "max_theoretical_baluster": "QT5(1.50) x turned(1.75) = 2.63x",
+      "max_theoretical_stringer": "QT5(1.50) x open(1.40) x scaffolding(2.00) = 4.20x — flag for review",
+      "realistic_max_stringer": "QT5(1.50) x open(1.40) x step_ladder(1.30) = 2.73x"
+    },
+    "modifier_definitions": {
+      "FAC_CONDITION_SCALE": {
+        "pool": "PREP",
+        "values": { "GOOD": 1.00, "FAIR": 1.50, "POOR": 2.00 },
+        "notes": "Drives prep task intensity. Never applied to coating tasks."
+      },
+      "FAC_BALUSTER_PROFILE": {
+        "pool": "SHARED (both prep and coating, baluster tasks only)",
+        "values": { "square": 1.00, "turned": 1.75 },
+        "applies_to": "ALL baluster-specific tasks: degloss, scrape/feather, prime, finish coat",
+        "does_not_apply_to": "newel, handrail, base rail, riser, stringer tasks",
+        "source": "Stairway_Systems_Doctrine Section 9.2"
+      },
+      "FAC_STRINGER_TYPE": {
+        "pool": "SHARED (both prep and coating, stringer tasks only)",
+        "values": { "closed": 1.00, "open": 1.40 },
+        "applies_to": "ALL stringer tasks: degloss, scrape/feather, prime, finish, interstage sanding",
+        "source": "SF_STAIR_RISER_NC_v1/production.json"
+      },
+      "FAC_STAIRWELL_ACCESS": {
+        "pool": "SHARED (both prep and coating, stringer tasks only)",
+        "values": {
+          "step_ladder": 1.30,
+          "extension_ladder": 1.60,
+          "scaffolding": 2.00,
+          "lift": 2.50,
+          "tall_lift": 2.80
+        },
+        "applies_to": "Stringer tasks only — based on max working height at top of stringer run",
+        "does_not_apply_to": "All other components (risers, balusters, newels, handrails) — accessed from adjacent treads, always H1_STANDARD (1.0x)",
+        "source": "PaintScope_Stairwell_Geometry_System"
+      }
+    }
+  },
+
+  "coat_count": {
+    "QT3": { "finish_coats": 2, "interstage_cycles": 1 },
+    "QT4": { "finish_coats": 2, "interstage_cycles": 1 },
+    "QT5_spray": { "finish_coats": 2, "interstage_cycles": 1 },
+    "QT5_brush": { "finish_coats": 3, "interstage_cycles": 2, "notes": "3+ coats per FFD 15.10.3" },
+    "primer": "Conditional on substrate state. SS_INT_SOUND_PAINT with good adhesion = no primer. All other states = 1 coat state-driven primer."
+  },
+
+  "round_configurations": [
+    {
+      "round_id": "ROUND_STRP_PRIME_2FINISH",
+      "description": "State-driven prime + 2 finish coats",
+      "applies_when": { "condition_scale": ["FAIR", "POOR"], "quality_tier": ["QT3", "QT4"] },
+      "modules": ["MOD_STRP_SETUP", "MOD_STRP_ASSESSMENT", "MOD_STRP_PREP", "MOD_STRP_PRIME", "MOD_STRP_INTERSTAGE", "MOD_STRP_FINISH", "MOD_STRP_INTERSTAGE", "MOD_STRP_FINISH", "MOD_STRP_CLEANUP"],
+      "total_coat_count": 3,
+      "interstage_count": 2
+    },
+    {
+      "round_id": "ROUND_STRP_2FINISH",
+      "description": "2 finish coats only — no prime needed",
+      "applies_when": { "condition_scale": ["GOOD"], "quality_tier": ["QT3", "QT4"] },
+      "modules": ["MOD_STRP_SETUP", "MOD_STRP_ASSESSMENT", "MOD_STRP_PREP", "MOD_STRP_FINISH", "MOD_STRP_INTERSTAGE", "MOD_STRP_FINISH", "MOD_STRP_CLEANUP"],
+      "total_coat_count": 2,
+      "interstage_count": 1
+    },
+    {
+      "round_id": "ROUND_STRP_PRIME_3FINISH",
+      "description": "Prime + 3 finish coats (QT5 brush)",
+      "applies_when": { "quality_tier": ["QT5"], "application_method": ["brush"], "condition_scale": ["FAIR", "POOR"] },
+      "modules": ["MOD_STRP_SETUP", "MOD_STRP_ASSESSMENT", "MOD_STRP_PREP", "MOD_STRP_PRIME", "MOD_STRP_INTERSTAGE", "MOD_STRP_FINISH", "MOD_STRP_INTERSTAGE", "MOD_STRP_FINISH", "MOD_STRP_INTERSTAGE", "MOD_STRP_FINISH", "MOD_STRP_CLEANUP"],
+      "total_coat_count": 4,
+      "interstage_count": 3
+    },
+    {
+      "round_id": "ROUND_STRP_3FINISH",
+      "description": "3 finish coats (QT5 brush, no prime)",
+      "applies_when": { "quality_tier": ["QT5"], "application_method": ["brush"], "condition_scale": ["GOOD"] },
+      "modules": ["MOD_STRP_SETUP", "MOD_STRP_ASSESSMENT", "MOD_STRP_PREP", "MOD_STRP_FINISH", "MOD_STRP_INTERSTAGE", "MOD_STRP_FINISH", "MOD_STRP_INTERSTAGE", "MOD_STRP_FINISH", "MOD_STRP_CLEANUP"],
+      "total_coat_count": 3,
+      "interstage_count": 2
+    }
+  ],
+
+  "estimation_notes": {
+    "dual_uom": "Six paintable items with dual UOM: risers (EA), balusters (EA), newels (EA), stringers (LF), handrails (LF), base rails (LF). Total labor = riser_hours + stringer_hours + baluster_hours + newel_hours + handrail_hours + base_rail_hours + fixed_hours. Most complex multi-UOM calculation in the RP portfolio.",
+    "baluster_count_driver": "Baluster count is the DOMINANT cost driver (same as NC). A system with 62 turned balusters at 7 min/EA x 3 coats = ~22 hours of baluster painting alone. Always validate baluster count input.",
+    "access_staging_overhead": "Per Stairway_Systems_Doctrine Section 5.6: 15-40% of total stairway project time consumed by access staging. This is a project-level overhead — not modeled per-task. Factor into overall project estimate.",
+    "spray_vs_brush_tradeoff": "Spray is 2.5-3x faster for application but requires 45+ min containment setup (spray_contain). Break-even at ~20-25 balusters. In RP occupied context, brush is even more dominant due to containment difficulty in inhabited stairwells.",
+    "consolidation_savings": "Combined RP spec eliminates duplicate setup/teardown, interstage, and cleanup from NC riser + railing specs. Consolidated tasks are NOT fully additive — single-pass efficiency reduces combined times.",
+    "no_dry_times": "Per RC-004: no dry times specified. Refer to manufacturer PDS.",
+    "task_count_verification": "69 total tasks: 7 setup + 4 assessment + 5 RRP + 14 prep + 8 prime + 7 interstage + 12 finish + 12 cleanup = 69. sop_modules.json task_count_summary corrected from 68 to 69 during QA. All 69 tasks have matching production rates."
+  }
+}

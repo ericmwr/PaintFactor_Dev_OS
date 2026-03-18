@@ -1,0 +1,650 @@
+{
+  "spec_family": {
+    "id": "SF_DOOR_INT_RP",
+    "name": "Interior Door Repaint (Combined Frame + Slab)",
+    "description": "Combined prime + finish repaint spec for previously painted interior door frame and slab surfaces in occupied residential homes. Covers condition assessment (visual scan, adhesion test, coating ID, moisture check), prep remediation (TSP wash, degloss, scrape, feather, caulk assess/replace, fill/patch, mildew treatment), state-driven primer selection (adhesion, stain-block, mildew-resistant), fine-finish coat application (brush or spray), interstage inspection/sanding between every coat, and hardware handling. Frame tasks measured in EA, slab tasks in EA_SIDE. Fourth interior RP spec.",
+    "domain": "interior",
+    "scope_type": "repaint",
+    "version": "1.0.0",
+    "status": "draft",
+    "review_required": true
+  },
+
+  "scope_boundaries": {
+    "includes": [
+      "Condition assessment (visual scan with work light, ASTM D3359 adhesion test, coating identification latex vs oil, moisture check on frame bottoms)",
+      "EPA Lead-Safe RRP evaluation and containment for pre-1978 homes (doors are HIGH RISK for lead paint)",
+      "Surface contamination treatment (TSP wash for mildew, smoke, water stain, grease)",
+      "Mildew/biocide treatment for SS_INT_MOISTURE_DAMAGE on frame bottoms",
+      "Scraping loose and failing paint with contour scrapers for profile areas",
+      "Feather-sanding all scraped edges (mandatory at all QT — non-negotiable for fine finish)",
+      "Deglossing existing paint surface (chemical deglosser or mechanical scuff 150-180 grit)",
+      "Caulk assessment and replacement at frame-to-casing joints (partial, not full re-caulk)",
+      "Fill and patch damage (nail holes from hardware changes, dings, wood hardener on moisture-softened areas)",
+      "State-driven primer selection and application (adhesion, stain-block, mildew-resistant)",
+      "Spot priming all scraped/repaired areas to prevent flashing",
+      "Fine-finish coat application — 2 coats QT3-QT4, 3 coats QT5 brush per FFD 15.10.3 (brush or spray)",
+      "Interstage inspection, sanding (QT3 spot 220, QT4 full 220, QT5 thorough 320), and defect repair between every coat",
+      "Roll-and-tip option for flat frame surfaces (brush sub-method per FFD 15.6)",
+      "Floor protection (perimeter drops for brush, 8ft radius rosin paper for spray)",
+      "Wall masking around door openings (spray method only — finished walls in RP context)",
+      "Hardware handling: remove/bag/label for spray, mask in place for brush",
+      "Glass pane masking for French doors",
+      "Hardware reinstall and door rehang verification (spray method)",
+      "Hinge mortise touch-up after hardware reinstall",
+      "Final inspection and touch-up",
+      "Customer walkthrough (RP-specific — occupied home context)"
+    ],
+    "excludes": [
+      {
+        "item": "Bare/new door surfaces (new construction)",
+        "route_to": "SF_DOOR_FRAME_NC_FINISH_v1 + SF_DOOR_SLAB_INT_NC_v1"
+      },
+      {
+        "item": "Door casing/trim repaint",
+        "route_to": "SF_TRIM_INT_RP (covers door casing as part of trim scope)"
+      },
+      {
+        "item": "Exterior door repaint",
+        "route_to": "SF_DOOR_EXT_RP_v1"
+      },
+      {
+        "item": "Structural door repair (split jambs, broken frames)",
+        "route_to": "Carpenter — outside painting scope"
+      },
+      {
+        "item": "Active moisture remediation",
+        "route_to": "Plumber/contractor — moisture SOURCE must be resolved before painting (gate condition)"
+      },
+      {
+        "item": "Door replacement (new slab on existing frame)",
+        "route_to": "Future door replacement spec or NC slab spec"
+      }
+    ]
+  },
+
+  "configuration_dimensions": [
+    {
+      "dimension_id": "quality_tier",
+      "description": "Quality tier controlling coat count, inspection rigor, interstage sanding discipline, and edge precision. QT3 is MINIMUM for doors — no QT2 economy tier available. Door-specific QT modifiers are HIGHER than global values.",
+      "values": ["QT3", "QT4", "QT5"],
+      "default": "QT3",
+      "notes": "QT3=1.0x baseline (minimum for doors). QT4=1.4x (higher than global 1.3x — doors are scrutinized surfaces). QT5=1.8x (higher than global 1.5x) + 3rd brush coat per FFD 15.10.3. Per Doors Doctrine Section 6.1."
+    },
+    {
+      "dimension_id": "application_method",
+      "description": "Primary application technique. Brush is default for RP (occupied home, fewer doors). Spray for production work (10+ doors). Roll is NOT valid for doors.",
+      "values": ["brush", "spray"],
+      "default": "brush",
+      "notes": "Brush: default for RP (occupied, 1-5 doors). Door stays hung, hardware masked. Roll-and-tip sub-option for flat frame surfaces. Spray: production method for 10+ doors. Door removed, hardware removed. Superior finish but requires full containment. Louvered doors are spray-only. spray_backroll and roll are NOT valid for doors."
+    },
+    {
+      "dimension_id": "sheen",
+      "description": "Finish coating sheen level. Semi-gloss is traditional/default door sheen. Determines output substrate state.",
+      "values": ["satin", "semi-gloss", "gloss"],
+      "default": "semi-gloss",
+      "notes": "Semi-gloss: traditional door sheen, default. Satin: acceptable at QT3+. Gloss: QT5 only — maximum sheen, shows every imperfection. Flat/matte/eggshell NOT valid for doors per Fine_Finish_Doctrine."
+    },
+    {
+      "dimension_id": "condition_scale",
+      "description": "Universal 3-level condition scale driving prep intensity. Maps from substrate state assessment.",
+      "values": ["GOOD", "FAIR", "POOR"],
+      "default": "GOOD",
+      "notes": "GOOD=SS_INT_SOUND_PAINT (1.0x prep, skip prime if adhesion passes). FAIR=SS_INT_FAILING_PAINT (1.5x prep, scrape/feather + state-driven prime). POOR=SS_INT_PEELING or SS_INT_MOISTURE_DAMAGE or SS_INT_SMOKE_DAMAGE (2.0x prep, full remediation + state-driven prime)."
+    }
+  ],
+
+  "paintable_items": [
+    {
+      "item_id": "ITM_DOOR_FRAME_SET",
+      "name": "Door Frame Set (jamb + stop)",
+      "unit_of_measure": "EA",
+      "counting_rules": "Count of door frame sets to be repainted. One frame set = head jamb + 2 side jambs + door stop. Entire frame assembly counted as one EA regardless of component count.",
+      "notes": "Existing item from SF_DOOR_FRAME_NC_FINISH. Same physical item in RP context. Frame tasks reference this item via PS_SURFACE_EA.DOOR_FRAME_SET."
+    },
+    {
+      "item_id": "ITM_DOOR_SLAB_RP",
+      "name": "Door Slab Side (repaint)",
+      "unit_of_measure": "EA_SIDE",
+      "counting_rules": "Count of door slab sides to be repainted. Supports different-color-per-side and partial-painting scenarios. Each side includes the assigned edge per Doors Doctrine Section 10.3.",
+      "notes": "Proposed item for combined RP spec. EA_SIDE granularity allows different-color scenarios (hallway side vs room side) and partial scope (paint only visible side)."
+    }
+  ],
+
+  "variants": [
+    {
+      "variant_id": "VAR_DIRP_GOOD_QT3_BRUSH",
+      "applies_when": { "quality_tier": ["QT3"], "condition_scale": ["GOOD"], "application_method": ["brush"] },
+      "included_items": ["ITM_DOOR_FRAME_SET", "ITM_DOOR_SLAB_RP"],
+      "round_config": "ROUND_DIRP_2FINISH",
+      "notes": "BASELINE. Most common residential door repaint. Degloss + 2 finish coats, no prime. Sound paint with adhesion verified. Brush application in occupied home."
+    },
+    {
+      "variant_id": "VAR_DIRP_FAIR_QT3_BRUSH",
+      "applies_when": { "quality_tier": ["QT3"], "condition_scale": ["FAIR"], "application_method": ["brush"] },
+      "included_items": ["ITM_DOOR_FRAME_SET", "ITM_DOOR_SLAB_RP"],
+      "round_config": "ROUND_DIRP_PRIME_2FINISH",
+      "notes": "Standard RP on failing paint. Scrape + feather + state-driven prime + 2 finish coats."
+    },
+    {
+      "variant_id": "VAR_DIRP_POOR_QT3_BRUSH",
+      "applies_when": { "quality_tier": ["QT3"], "condition_scale": ["POOR"], "application_method": ["brush"] },
+      "included_items": ["ITM_DOOR_FRAME_SET", "ITM_DOOR_SLAB_RP"],
+      "round_config": "ROUND_DIRP_PRIME_2FINISH",
+      "notes": "Full remediation. Heavy scrape, contamination treatment, state-driven prime + 2 finish coats. Highest prep labor."
+    },
+    {
+      "variant_id": "VAR_DIRP_GOOD_QT4_BRUSH",
+      "applies_when": { "quality_tier": ["QT4"], "condition_scale": ["GOOD"], "application_method": ["brush"] },
+      "included_items": ["ITM_DOOR_FRAME_SET", "ITM_DOOR_SLAB_RP"],
+      "round_config": "ROUND_DIRP_2FINISH",
+      "notes": "Premium refresh on sound paint. Full sand 220 between coats, systematic inspection. No prime needed."
+    },
+    {
+      "variant_id": "VAR_DIRP_FAIR_QT4_SPRAY",
+      "applies_when": { "quality_tier": ["QT4"], "condition_scale": ["FAIR"], "application_method": ["spray"] },
+      "included_items": ["ITM_DOOR_FRAME_SET", "ITM_DOOR_SLAB_RP"],
+      "round_config": "ROUND_DIRP_PRIME_2FINISH",
+      "notes": "Premium remediation spray. Full prep + state-driven prime + 2 spray finish coats. Production method for multiple doors."
+    },
+    {
+      "variant_id": "VAR_DIRP_GOOD_QT5_BRUSH",
+      "applies_when": { "quality_tier": ["QT5"], "condition_scale": ["GOOD"], "application_method": ["brush"] },
+      "included_items": ["ITM_DOOR_FRAME_SET", "ITM_DOOR_SLAB_RP"],
+      "round_config": "ROUND_DIRP_3FINISH",
+      "notes": "Superior refresh. 3 brush finish coats per FFD 15.10.3, thorough 320-grit interstage. No prime on sound paint."
+    },
+    {
+      "variant_id": "VAR_DIRP_POOR_QT5_BRUSH",
+      "applies_when": { "quality_tier": ["QT5"], "condition_scale": ["POOR"], "application_method": ["brush"] },
+      "included_items": ["ITM_DOOR_FRAME_SET", "ITM_DOOR_SLAB_RP"],
+      "round_config": "ROUND_DIRP_PRIME_3FINISH",
+      "notes": "Maximum effort. Full remediation + state-driven prime + 3 brush finish coats. Near-worst-case labor scenario. Gallery-quality finish."
+    }
+  ],
+
+  "required_paintscope_inputs": [
+    {
+      "input_name": "IN_EA_DOOR_FRAME_SET",
+      "paintscope_key": "PS_SURFACE_EA.DOOR_FRAME_SET",
+      "uom": "EA",
+      "required": true,
+      "description": "Count of door frame sets to be repainted"
+    },
+    {
+      "input_name": "IN_EA_SIDE_DOOR_SLAB_TOTAL",
+      "paintscope_key": "PS_SURFACE_EA_SIDE.DOOR_SLAB",
+      "uom": "EA_SIDE",
+      "required": true,
+      "description": "Count of door slab sides to be repainted"
+    },
+    {
+      "input_name": "IN_EA_DOOR_OPENINGS",
+      "paintscope_key": "PS_OPENING_EA.DOOR_OPENINGS_TOTAL",
+      "uom": "EA",
+      "required": true,
+      "description": "Total door openings in scope — drives per-opening tasks (assessment, protection, hardware)"
+    },
+    {
+      "input_name": "IN_EA_DOOR_PANES",
+      "paintscope_key": "PS_META.EA.DOOR_PANES_TOTAL",
+      "uom": "EA",
+      "required": false,
+      "required_when": { "door_type": ["french"] },
+      "description": "Total glass panes across all French doors — drives glass masking tasks"
+    },
+    {
+      "input_name": "IN_SF_PROTECT_FLOOR_PERIMETER",
+      "paintscope_key": "PS_PROTECT_SF.FLOOR_PERIMETER",
+      "uom": "SF",
+      "required": false,
+      "required_when": { "application_method": ["brush"] },
+      "description": "Floor protection area for brush method drip containment"
+    },
+    {
+      "input_name": "IN_SF_FLOOR_8FT_RADIUS",
+      "paintscope_key": "PS_PROTECT_SF.FLOOR_8FT_RADIUS",
+      "uom": "SF",
+      "required": false,
+      "required_when": { "application_method": ["spray"] },
+      "description": "Radial floor protection for spray method overspray containment"
+    },
+    {
+      "input_name": "IN_LF_WALL_ADJACENT_DOOR",
+      "paintscope_key": "PS_PROTECT_LF.WALL_ADJACENT_DOOR",
+      "uom": "LF",
+      "required": false,
+      "required_when": { "application_method": ["spray"] },
+      "description": "Wall masking LF around door openings for spray method"
+    },
+    {
+      "input_name": "IN_EA_PROTECT_HARDWARE",
+      "paintscope_key": "PS_PROTECT_EA.ASSET.HARDWARE_GROUPS",
+      "uom": "EA",
+      "required": true,
+      "description": "Hardware group count for masking/removal tasks (hinges + lockset + strike per door)"
+    },
+    {
+      "input_name": "IN_EA_SIDE_DOOR_SLAB_SLAB",
+      "paintscope_key": "PS_META.EA_SIDE.DOOR_SLAB.SLAB",
+      "uom": "EA_SIDE",
+      "required": false,
+      "description": "Flush/slab door side count for complexity modifier (1.0x)"
+    },
+    {
+      "input_name": "IN_EA_SIDE_DOOR_SLAB_PANEL",
+      "paintscope_key": "PS_META.EA_SIDE.DOOR_SLAB.PANEL",
+      "uom": "EA_SIDE",
+      "required": false,
+      "description": "Panel door side count for complexity modifier (1.25-1.4x)"
+    },
+    {
+      "input_name": "IN_EA_SIDE_DOOR_SLAB_FRENCH",
+      "paintscope_key": "PS_META.EA_SIDE.DOOR_SLAB.FRENCH",
+      "uom": "EA_SIDE",
+      "required": false,
+      "description": "French door side count for complexity modifier (2.0x) and glass masking activation"
+    },
+    {
+      "input_name": "IN_EA_SIDE_DOOR_SLAB_BIFOLD",
+      "paintscope_key": "PS_META.EA_SIDE.DOOR_SLAB.BIFOLD",
+      "uom": "EA_SIDE",
+      "required": false,
+      "description": "Bifold door side count for complexity modifier (0.7x)"
+    },
+    {
+      "input_name": "IN_EA_SIDE_DOOR_SLAB_LOUVERED",
+      "paintscope_key": "PS_META.EA_SIDE.DOOR_SLAB.LOUVERED",
+      "uom": "EA_SIDE",
+      "required": false,
+      "description": "Louvered door side count for complexity modifier (2.5x) — spray-only constraint"
+    },
+    {
+      "input_name": "IN_ENUM_HEIGHT_BAND",
+      "paintscope_key": "PS_META.HEIGHT_BAND",
+      "uom": "ENUM",
+      "required": true,
+      "description": "Height classification for frame tasks (H1 standard, H2 tall 7-8ft, H3 rare high)"
+    },
+    {
+      "input_name": "IN_ENUM_SURFACE_CONDITION",
+      "paintscope_key": "PS_META.SURFACE_CONDITION",
+      "uom": "ENUM",
+      "required": true,
+      "description": "Condition scale (GOOD/FAIR/POOR) — primary prep intensity driver"
+    },
+    {
+      "input_name": "IN_ENUM_SUBSTRATE_STATE_INT",
+      "paintscope_key": "PS_META.ENUM.SUBSTRATE_STATE_INT",
+      "uom": "ENUM",
+      "required": true,
+      "description": "Interior substrate state (SS_INT_SOUND_PAINT through SS_INT_SMOKE_DAMAGE) — drives primer selection"
+    },
+    {
+      "input_name": "IN_BOOL_HOME_PRE_1978",
+      "paintscope_key": "PS_META.BOOL.HOME_PRE_1978",
+      "uom": "BOOL",
+      "required": true,
+      "description": "Pre-1978 home flag — triggers EPA Lead-Safe RRP module. Doors are HIGH RISK for lead paint."
+    },
+    {
+      "input_name": "IN_ENUM_CONTAMINATION_TYPE",
+      "paintscope_key": "PS_META.ENUM.CONTAMINATION_TYPE",
+      "uom": "ENUM",
+      "required": true,
+      "description": "Contamination type (none/mildew/smoke/water_stain/grease) — drives treatment task activation and primer selection"
+    },
+    {
+      "input_name": "IN_EA_ROOMS_TOTAL",
+      "paintscope_key": "PS_META.EA.ROOMS_TOTAL",
+      "uom": "EA",
+      "required": true,
+      "description": "Room count — drives customer walkthrough heuristic"
+    }
+  ],
+
+  "material_systems_summary": [
+    {
+      "system_id": "SYS_PRIMER_ADHESION_INT",
+      "name": "Interior Adhesion Primer",
+      "product_role": "primer",
+      "applies_when": { "substrate_state": ["SS_INT_SOUND_PAINT", "SS_INT_FAILING_PAINT", "SS_INT_PEELING"] },
+      "notes": "Water-based adhesion promoter. Bonds to glossy, chalky, or oil-based existing coatings. Conditional on adhesion test results for SS_INT_SOUND_PAINT."
+    },
+    {
+      "system_id": "SYS_PRIMER_STAINBLOCK_INT",
+      "name": "Interior Stain-Blocking Primer (Shellac)",
+      "product_role": "primer",
+      "applies_when": { "substrate_state": ["SS_INT_SMOKE_DAMAGE"] },
+      "notes": "Shellac-based stain blocker (BIN or equivalent). Only product that seals nicotine/smoke. Full surface application required."
+    },
+    {
+      "system_id": "SYS_PRIMER_MILDEW_INT",
+      "name": "Interior Mildew-Resistant Primer",
+      "product_role": "primer",
+      "applies_when": { "substrate_state": ["SS_INT_MOISTURE_DAMAGE"] },
+      "notes": "Mildew-resistant stain-blocking primer. Applied after biocide treatment and moisture source resolution."
+    },
+    {
+      "system_id": "SYS_FF_STANDARD_ACRYLIC",
+      "name": "Fine-Finish Standard Acrylic (QT3)",
+      "product_role": "finish",
+      "applies_when": { "quality_tier": ["QT3"] },
+      "notes": "Standard acrylic enamel for residential door repaint. Self-leveling, low VOC."
+    },
+    {
+      "system_id": "SYS_FF_MODIFIED_URETHANE",
+      "name": "Fine-Finish Modified Urethane (QT4)",
+      "product_role": "finish",
+      "applies_when": { "quality_tier": ["QT4"] },
+      "notes": "Modified urethane enamel. Higher film build, better flow/leveling, increased hardness."
+    },
+    {
+      "system_id": "SYS_FF_PREMIUM",
+      "name": "Fine-Finish Premium (QT5)",
+      "product_role": "finish",
+      "applies_when": { "quality_tier": ["QT5"] },
+      "notes": "Premium waterborne enamel. Maximum film build, superior self-leveling, maximum hardness. 3 brush coats per FFD 15.10.3."
+    }
+  ],
+
+  "module_summary": [
+    { "module_id": "MOD_DIRP_SETUP", "phase": "setup", "task_count": 6, "description": "Floor protection, wall masking (spray), hardware remove (spray) / mask (brush), glass masking (French)" },
+    { "module_id": "MOD_DIRP_ASSESSMENT", "phase": "prep", "task_count": 4, "description": "Condition scan, adhesion test (ASTM D3359), coating ID (latex vs oil), moisture check frame bottoms" },
+    { "module_id": "MOD_RRP_INT_CONTAINMENT", "phase": "prep", "task_count": 5, "description": "Lead test, containment setup, HEPA vacuum, containment removal, waste disposal (conditional: pre-1978)" },
+    { "module_id": "MOD_DIRP_PREP", "phase": "prep", "task_count": 9, "description": "TSP wash, mildew treatment, degloss frame + slab, scrape/feather, caulk assess/replace, fill/patch, sand fill, dust wipe" },
+    { "module_id": "MOD_DIRP_PRIME", "phase": "prime", "task_count": 5, "description": "Brush/spray primer frame, brush/spray primer slab, spot prime repairs (state-driven: adhesion, stain-block, mildew)" },
+    { "module_id": "MOD_DIRP_INTERSTAGE", "phase": "interstage", "task_count": 6, "description": "Inspect coat, sand frame, sand slab, patch defects, spot coat, clean dust (runs between every coat pair)" },
+    { "module_id": "MOD_DIRP_FINISH", "phase": "finish", "task_count": 5, "description": "Brush/spray finish frame, brush/spray finish slab, roll-and-tip frame (alternative to brush)" },
+    { "module_id": "MOD_DIRP_CLEANUP", "phase": "cleanup", "task_count": 10, "description": "Hardware reinstall (spray) / unmask (brush), glass unmask, mortise touch-up, final inspect, touch-up, wall mask teardown, floor teardown, customer walkthrough, tool clean" }
+  ],
+
+  "round_configurations_summary": [
+    {
+      "round_id": "ROUND_DIRP_PRIME_2FINISH",
+      "name": "Door RP — State-Driven Prime + 2 Finish Coats",
+      "applies_when": { "quality_tier": ["QT3", "QT4"], "condition_scale": ["FAIR", "POOR"] },
+      "total_coats": 3,
+      "interstage_cycles": 2
+    },
+    {
+      "round_id": "ROUND_DIRP_2FINISH",
+      "name": "Door RP — 2 Finish Coats (No Prime)",
+      "applies_when": { "quality_tier": ["QT3", "QT4"], "condition_scale": ["GOOD"] },
+      "total_coats": 2,
+      "interstage_cycles": 1
+    },
+    {
+      "round_id": "ROUND_DIRP_PRIME_3FINISH",
+      "name": "Door RP — Prime + 3 Finish Coats (QT5 Brush)",
+      "applies_when": { "quality_tier": ["QT5"], "application_method": ["brush"], "condition_scale": ["FAIR", "POOR"] },
+      "total_coats": 4,
+      "interstage_cycles": 3
+    },
+    {
+      "round_id": "ROUND_DIRP_3FINISH",
+      "name": "Door RP — 3 Finish Coats (QT5 Brush, No Prime)",
+      "applies_when": { "quality_tier": ["QT5"], "application_method": ["brush"], "condition_scale": ["GOOD"] },
+      "total_coats": 3,
+      "interstage_cycles": 2
+    }
+  ],
+
+  "factor_modifiers_summary": {
+    "condition_scale": {
+      "FAC_CONDITION_GOOD": 1.00,
+      "FAC_CONDITION_FAIR": 1.50,
+      "FAC_CONDITION_POOR": 2.00
+    },
+    "quality_tier": {
+      "FAC_QT3": 1.00,
+      "FAC_QT4": 1.40,
+      "FAC_QT5": 1.80
+    },
+    "door_type_complexity": {
+      "FAC_DOOR_TYPE_FLUSH": 1.00,
+      "FAC_DOOR_TYPE_PANEL_4": 1.25,
+      "FAC_DOOR_TYPE_PANEL_6": 1.35,
+      "FAC_DOOR_TYPE_RAISED_PANEL": 1.40,
+      "FAC_DOOR_TYPE_FRENCH": 2.00,
+      "FAC_DOOR_TYPE_BIFOLD": 0.70,
+      "FAC_DOOR_TYPE_LOUVERED": 2.50
+    },
+    "frame_type_complexity": {
+      "FAC_FRAME_STANDARD": 1.00,
+      "FAC_FRAME_POCKET": 0.85,
+      "FAC_FRAME_CASED_OPENING": 0.75,
+      "FAC_FRAME_BIFOLD": 0.90
+    },
+    "height_factor": {
+      "FAC_HEIGHT_H1": 1.00,
+      "FAC_HEIGHT_H2": 1.30,
+      "FAC_HEIGHT_H3": 1.50
+    },
+    "stacking_partition": {
+      "prep_pool": "condition_scale x door_type_complexity x height (max realistic 3.64x, max theoretical 6.50x)",
+      "coating_pool": "quality_tier x door_type_complexity x height (max realistic 3.28x, max theoretical 5.85x)",
+      "never_cross": "Prep pool never includes QT. Coating pool never includes condition_scale. Contamination drives task activation, not rate modification."
+    }
+  },
+
+  "protection_zones_required": [
+    {
+      "zone_id": "floor_perimeter",
+      "condition": { "application_method": ["brush"] },
+      "protection_level": "edge_only",
+      "notes": "Perimeter drop cloth at each door location for drip containment. RP always has finished floors."
+    },
+    {
+      "zone_id": "floor_full_8ft_radius",
+      "condition": { "application_method": ["spray"] },
+      "protection_level": "full_cover",
+      "notes": "Rosin paper 8ft radius around door opening for overspray containment."
+    },
+    {
+      "zone_id": "wall_adjacent_door",
+      "condition": { "application_method": ["spray"] },
+      "protection_level": "full_mask",
+      "notes": "Wall masking around door opening. RP walls are already painted — requires clean tape line at frame-to-wall junction."
+    },
+    {
+      "zone_id": "hardware_covers",
+      "condition": "always",
+      "protection_level": "item_mask",
+      "notes": "Brush: mask 3 hinges + lockset + strike plate. Spray: remove all hardware, bag and label, reinstall after cure. Method-dependent action."
+    },
+    {
+      "zone_id": "floor_door_swing",
+      "condition": "always",
+      "protection_level": "partial_cover",
+      "notes": "Door swing arc protection. Subsumed by floor_full_8ft_radius for spray. Covered by floor_perimeter for brush. No separate task needed."
+    },
+    {
+      "zone_id": "glass_mask",
+      "condition": { "door_type": ["french"] },
+      "protection_level": "full_mask",
+      "notes": "Glass pane masking for French doors. Tape all 4 edges of each pane. Masking labor is dominant cost for French doors (80-120% over flush baseline)."
+    }
+  ],
+
+  "adjacency_declarations": {
+    "primary_surface": "door_frame",
+    "adjacent_surfaces": [
+      {
+        "surface_id": "door_casing",
+        "edge_type": "complex",
+        "typical_relationship": "same_finish",
+        "affected_tasks": ["TSK_DIRP_CAULK_ASSESS_REPLACE"],
+        "notes": "Frame-to-casing junction. Caulk assessed and replaced if failed. Door casing covered by SF_TRIM_INT_RP — when both specs active, tape line needed only if different finish group."
+      },
+      {
+        "surface_id": "wall_field",
+        "edge_type": "linear",
+        "typical_relationship": "different_finish",
+        "affected_tasks": ["TSK_DIRP_WALL_MASK_SETUP", "TSK_DIRP_WALL_MASK_TEARDOWN"],
+        "notes": "Wall adjacent to door opening. Spray method requires full wall masking. RP walls are finished — protection escalates to full_mask."
+      },
+      {
+        "surface_id": "door_leaf_face",
+        "edge_type": "complex",
+        "typical_relationship": "varies",
+        "affected_tasks": ["TSK_DIRP_FINISH_SLAB_BRUSH", "TSK_DIRP_FINISH_SLAB_SPRAY"],
+        "notes": "Slab face is the other primary surface in this combined spec. Frame and slab may have same or different color."
+      },
+      {
+        "surface_id": "door_leaf_edge",
+        "edge_type": "complex",
+        "typical_relationship": "same_finish",
+        "affected_tasks": ["TSK_DIRP_FINISH_SLAB_BRUSH", "TSK_DIRP_FINISH_SLAB_SPRAY"],
+        "notes": "Slab edge assigned to face per Doors Doctrine Section 10.3. Painted with same coat as face."
+      },
+      {
+        "surface_id": "door_stop",
+        "edge_type": "complex",
+        "typical_relationship": "same_finish",
+        "affected_tasks": ["TSK_DIRP_FINISH_FRAME_BRUSH", "TSK_DIRP_FINISH_FRAME_SPRAY"],
+        "notes": "Door stop bundled with frame set (ITM_DOOR_FRAME_SET). Same finish as jambs."
+      }
+    ]
+  },
+
+  "state_declarations": {
+    "primary_surface": "door_frame",
+
+    "valid_input_states": {
+      "states": [
+        "SS_INT_SOUND_PAINT",
+        "SS_INT_FAILING_PAINT",
+        "SS_INT_PEELING",
+        "SS_INT_MOISTURE_DAMAGE",
+        "SS_INT_SMOKE_DAMAGE"
+      ],
+      "notes": "All 5 SS_INT_* states accepted. Each drives distinct prep pathway and primer selection. Frame and slab may have different substrate states (e.g., bathroom door frame bottom = moisture damage, slab = sound paint). Worst state at opening drives condition_scale."
+    },
+
+    "output_state": {
+      "state": "SS_PAINTED_SEMIGLOSS",
+      "varies_by": "sheen",
+      "state_map": {
+        "satin": "SS_PAINTED_SATIN",
+        "semi-gloss": "SS_PAINTED_SEMIGLOSS",
+        "gloss": "SS_PAINTED_GLOSS"
+      },
+      "notes": "All input states normalize to SS_PAINTED_* after proper prep and coating. Semi-gloss is default door sheen."
+    },
+
+    "adjacent_state_protection_rules": [
+      {
+        "adjacent_surface": "wall_field",
+        "when_state": "finished",
+        "protection_zone": "wall_adjacent_door",
+        "protection_level": "full_mask",
+        "notes": "RP walls are always finished. Full masking required for spray method to prevent overspray on painted walls."
+      },
+      {
+        "adjacent_surface": "door_casing",
+        "when_state": "finished",
+        "protection_zone": "hardware_covers",
+        "protection_level": "light_mask",
+        "notes": "When door casing has different finish group, light tape at casing-to-frame junction. Same finish group = no masking needed."
+      }
+    ]
+  },
+
+  "site_condition_rules": [
+    {
+      "condition_id": "occupancy_state",
+      "include_when": ["occupied_crew_handles", "occupied_sensitive"],
+      "exclude_when": ["vacant"],
+      "affects": "customer walkthrough",
+      "affected_tasks": ["TSK_DIRP_CUSTOMER_WALKTHROUGH"],
+      "notes": "Occupied home adds customer walkthrough per-door. Vacant RP omits walkthrough."
+    },
+    {
+      "condition_id": "lead_status",
+      "include_when": ["tested_positive", "unknown_pre1978"],
+      "exclude_when": ["not_applicable", "presumed_safe", "tested_negative"],
+      "affects": "prep tasks involving paint disturbance",
+      "affected_tasks": ["TSK_RRP_LEAD_TEST", "TSK_RRP_CONTAINMENT_SETUP", "TSK_RRP_HEPA_VACUUM", "TSK_RRP_CONTAINMENT_REMOVAL", "TSK_RRP_WASTE_DISPOSAL"],
+      "notes": "Pre-1978 + lead-positive activates MOD_RRP_INT_CONTAINMENT. Doors are HIGH RISK for lead paint — interior doors/trim were last surfaces to transition from oil to latex."
+    },
+    {
+      "condition_id": "moisture_condition",
+      "include_when": ["recently_wet"],
+      "exclude_when": ["active_moisture"],
+      "affects": "assessment and prep tasks",
+      "notes": "active_moisture is STOP WORK — do not proceed until source is resolved. recently_wet requires extended dry time."
+    },
+    {
+      "condition_id": "contamination_type",
+      "include_when": ["mildew", "smoke", "water_stain", "grease"],
+      "affects": "contamination treatment tasks",
+      "affected_tasks": ["TSK_DIRP_WASH_TSP", "TSK_DIRP_TREAT_MILDEW"],
+      "notes": "Contamination type drives TSP wash activation and biocide treatment. Mildew treatment conditional on SS_INT_MOISTURE_DAMAGE."
+    }
+  ],
+
+  "cross_spec_coordination": {
+    "deduplication_note": "MOD_RRP_INT_CONTAINMENT is shared across all interior RP specs — do not duplicate lead-safe tasks when running door RP alongside wall RP or trim RP.",
+    "shared_session_note": "Door RP typically runs alongside SF_TRIM_INT_RP (door casing). Sequencing: trim first, then doors (trim masking protects finished casing during door spray). Or same session if same color. Wall masking for door spray may already be in place from wall RP setup — coordinate to avoid duplicate protection."
+  },
+
+  "sequencing_notes": {
+    "production_sequence": "Setup (protect) -> Assess (condition/adhesion/coating/moisture) -> RRP (if pre-1978) -> Prep (TSP, mildew, degloss, scrape, caulk, fill, sand, dust) -> Prime (state-driven, if required) -> Interstage -> Finish 1 -> Interstage -> Finish 2 (QT3+) -> [QT5 brush: Interstage -> Finish 3] -> Final Inspect -> Touch-up -> Teardown -> Hardware Reinstall/Unmask -> Customer Walkthrough -> Clean Tools",
+    "edge_work": "Frame-to-slab junction is within combined spec scope — no separate edge masking needed. Slab edge painted with face (Doors Doctrine 10.3).",
+    "key_prohibitions": "NO painting over active moisture. NO latex primer on smoke damage (shellac only). NO brush on louvered doors (spray only). NO skipping interstage sanding on doors — all tiers. Spot prime ALL scraped/repaired areas regardless of full prime status.",
+    "roll_and_tip_note": "TSK_DIRP_FINISH_FRAME_ROLL_TIP is an alternative to TSK_DIRP_FINISH_FRAME_BRUSH — estimator selects one per project, not both."
+  },
+
+  "relationships": {
+    "companion_spec": null,
+    "sibling_specs": ["SF_DOOR_FRAME_NC_FINISH_v1", "SF_DOOR_SLAB_INT_NC_v1", "SF_DOOR_EXT_RP_v1"],
+    "often_combined_with": ["SF_TRIM_INT_RP", "SF_DRYWALL_WALL_INT_RP_v1"],
+    "notes": "Fourth interior RP spec. Combined prime+finish (no separate phases). NC door frame/slab are sibling specs with significant task adaptation. Exterior door RP uses TSK_DRRP_* prefix (51 tasks) — no collision."
+  },
+
+  "dependencies": {
+    "research": "research.json",
+    "resolution": "resolution.json",
+    "materials": "materials.json",
+    "sop_modules": "sop_modules.json",
+    "production": "production.json"
+  },
+
+  "artifact_counts": {
+    "total_tasks": 50,
+    "binary_tasks": 36,
+    "qt_scaled_tasks": 14,
+    "qt_conditional_tasks": 0,
+    "sop_modules": 8,
+    "material_systems": 6,
+    "round_configurations": 4,
+    "protection_zones": 6,
+    "adjacent_surfaces": 5,
+    "paintscope_inputs": 19,
+    "variants": 7,
+    "paintable_items": 2,
+    "configuration_dimensions": 4,
+    "registry_additions_proposed": 25
+  },
+
+  "doctrine_references": [
+    { "doctrine": "Doors_Doctrine", "sections_used": ["Section 1.1 door types", "Section 6.1 QT modifiers (1.0/1.4/1.8)", "Section 9.2 French door complexity", "Section 10 hardware handling", "Section 10.3 edge assignment", "Section 12.2 louvered spray-only"] },
+    { "doctrine": "Fine_Finish_Doctrine", "sections_used": ["FFD 15.3.1 apply-tip-walk-away", "FFD 15.4.1 rigid sanding block", "FFD 15.6 roll-and-tip option", "FFD 15.10.3 QT5 3rd brush coat"] },
+    { "doctrine": "Quality_Tiers_and_Surface_Condition.md", "sections_used": ["QT3-QT5 tier definitions", "Condition scale GOOD/FAIR/POOR"] },
+    { "doctrine": "Materials_and_Consumables_Doctrine.md", "sections_used": ["State-driven primer selection", "Shellac stain-blocker mandate for smoke damage (RC-002)"] },
+    { "doctrine": "Estimation_Modifiers_Doctrine.md", "sections_used": ["Stacking partition prep vs coating", "Door-type complexity modifiers", "Frame-type complexity modifiers", "Height modifiers"] },
+    { "doctrine": "Protection_and_Masking_Doctrine.md", "sections_used": ["Floor protection by method", "Wall masking for spray", "Hardware handling by method", "Glass pane masking"] },
+    { "doctrine": "Interior_Protection_Doctrine.md", "sections_used": ["RP finished floor protection", "Spray containment zones"] },
+    { "doctrine": "Substrate_State_Reference.md", "sections_used": ["5 SS_INT_* states", "State-to-condition mapping", "Output state by sheen"] }
+  ],
+
+  "change_log": [
+    {
+      "version": "1.0.0",
+      "date": "2026-03-14",
+      "author": "SpecFactory Assembly Agent",
+      "changes": "Initial spec.json assembly from 5 pipeline artifacts (research, resolution, materials, sop_modules, production). QA Critic found zero issues — clean PASS. 50 tasks across 8 modules (7 owned MOD_DIRP_* + 1 shared MOD_RRP_INT_CONTAINMENT), 6 material systems (3 state-driven primers + 3 QT-driven fine-finish), 4 round configurations, 6 protection zones, 5 adjacent surfaces, 19 PaintScope inputs, 7 variants, 25 proposed registry additions. Combined frame (EA) + slab (EA_SIDE) architecture. QT3-QT5 only (no QT2 — doors are scrutinized surfaces). Fourth interior RP spec."
+    }
+  ]
+}
