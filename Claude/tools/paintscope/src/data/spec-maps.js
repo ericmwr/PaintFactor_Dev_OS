@@ -19,21 +19,27 @@ export const SPEC_SUBSTRATE_MAP = {
   'SF_STAIR_RISER_NC':           'stair_risers',
   'SF_STAIR_RAILING_NC':         'stair_railing',
   'SF_CABINET_NC_PAINT':         'doors',
-  // ── Exterior — maps to elevation/standalone source, not interior substrate IDs ──
+  // ── Interior Stain/Clear ──
+  'SF_TRIM_NC_STAIN':            'baseboard',
+  'SF_DOOR_SLAB_INT_NC_STAIN':   'doors',
+  'SF_DOOR_FRAME_NC_STAIN':      'door_frames',
+  'SF_WINDOW_INT_NC_STAIN':      'windows',
+  'SF_STAIR_RISER_NC_STAIN':     'stair_risers',
+  'SF_STAIR_RAILING_NC_STAIN':   'stair_railing',
+  'SF_WOOD_WALL_NC_STAIN':       'wood_feature_wall',
+  'SF_WOOD_CEILING_NC_STAIN':    'wood_ceiling',
+  'SF_WAINSCOT_PANEL_NC_STAIN':  'wainscoting',
+  'SF_ARCH_ELEMENT_NC_STAIN':    'beams',
+  // ── Exterior NC — maps to elevation/standalone source ──
   'SF_WOOD_SIDING_EXT_NC_PAINT':    'ext_siding',
   'SF_SIDING_FIBERCEMENT_EXT_NC':   'ext_siding',
   'SF_SIDING_ENGINEERED_EXT_NC':    'ext_siding',
-  'SF_SIDING_VINYL_EXT_RP':         'ext_siding',
-  'SF_SIDING_ALUMINUM_EXT_RP':      'ext_siding',
-  'SF_SIDING_WOOD_EXT_RP':          'ext_siding',
   'SF_STUCCO_EXT_NC':               'ext_siding',
   'SF_MASONRY_EXT_NC':              'ext_siding',
   'SF_TRIM_EXT_NC':                 'ext_trim',
-  'SF_TRIM_EXT_RP':                 'ext_trim',
   'SF_SOFFIT_EXT_NC':               'ext_soffit',
   'SF_WINDOW_EXT_NC':               'ext_window',
   'SF_DOOR_EXT_NC':                 'ext_door',
-  'SF_DOOR_EXT_RP':                 'ext_door',
   'SF_GARAGE_DOOR_EXT_NC':          'ext_garage_door',
   'SF_CAULK_EXT':                   'ext_caulk',
   'SF_DECK_EXT':                    'ext_deck',
@@ -42,6 +48,25 @@ export const SPEC_SUBSTRATE_MAP = {
   'SF_PORCH_CEILING_EXT_NC':        'ext_porch_ceiling',
   'SF_PORCH_FLOOR_EXT_NC':          'ext_porch_floor',
   'SF_METAL_EXT':                   'ext_metal',
+  // ── Exterior RP ──
+  'SF_SIDING_WOOD_EXT_RP':          'ext_siding',
+  'SF_SIDING_ALUMINUM_EXT_RP':      'ext_siding',
+  'SF_SIDING_VINYL_EXT_RP':         'ext_siding',
+  'SF_SIDING_FIBERCEMENT_EXT_RP':   'ext_siding',
+  'SF_SIDING_ENGINEERED_EXT_RP':    'ext_siding',
+  'SF_STUCCO_EXT_RP':               'ext_siding',
+  'SF_MASONRY_EXT_RP':              'ext_siding',
+  'SF_TRIM_EXT_RP':                 'ext_trim',
+  'SF_SOFFIT_EXT_RP':               'ext_soffit',
+  'SF_WINDOW_EXT_RP':               'ext_window',
+  'SF_DOOR_EXT_RP':                 'ext_door',
+  'SF_GARAGE_DOOR_EXT_RP':          'ext_garage_door',
+  'SF_DECK_EXT_RP':                 'ext_deck',
+  'SF_FENCE_EXT_RP':                'ext_fence',
+  'SF_FOUNDATION_EXT_RP':           'ext_foundation',
+  'SF_PORCH_CEILING_EXT_RP':        'ext_porch_ceiling',
+  'SF_PORCH_FLOOR_EXT_RP':          'ext_porch_floor',
+  'SF_METAL_EXT_RP':                'ext_metal',
 };
 
 // Maps UI substrate_state values to spec system enum values (SS_* codes)
@@ -53,6 +78,7 @@ export const UI_STATE_TO_SPEC_STATE = {
   'previously_finished':'SS_PAINTED',           // Beam/specialty alias for previously_painted
   'bare_wood':          'SS_BARE',
   'stained':            'SS_STAINED',
+  'clear_coated':       'SS_CLEAR_COATED',
   'stained_sealed':     'SS_STAINED',           // Beam alias — stained and sealed wood
   'drywall':            'SS_BARE',              // Beam alias — bare drywall-wrapped element
   'wood':               'SS_BARE',              // Legacy alias — kept for backwards compat with preset data
@@ -79,6 +105,17 @@ export const SPEC_VALID_INPUT_STATES = {
   'SF_STAIR_RISER_NC':           ['SS_BARE','SS_PRIMED_FACTORY'],
   'SF_STAIR_RAILING_NC':         ['SS_BARE','SS_PRIMED_FACTORY','SS_POWDER_COATED'],
   'SF_CABINET_NC_PAINT':         ['SS_BARE','SS_PRIMED_FACTORY'],
+  // ── Interior Stain/Clear ──
+  'SF_TRIM_NC_STAIN':            ['SS_BARE', 'SS_STAINED'],
+  'SF_DOOR_SLAB_INT_NC_STAIN':   ['SS_BARE', 'SS_STAINED'],
+  'SF_DOOR_FRAME_NC_STAIN':      ['SS_BARE', 'SS_STAINED'],
+  'SF_WINDOW_INT_NC_STAIN':      ['SS_BARE', 'SS_STAINED'],
+  'SF_STAIR_RISER_NC_STAIN':     ['SS_BARE', 'SS_STAINED'],
+  'SF_STAIR_RAILING_NC_STAIN':   ['SS_BARE', 'SS_STAINED'],
+  'SF_WOOD_WALL_NC_STAIN':       ['SS_BARE', 'SS_STAINED'],
+  'SF_WOOD_CEILING_NC_STAIN':    ['SS_BARE', 'SS_STAINED'],
+  'SF_WAINSCOT_PANEL_NC_STAIN':  ['SS_BARE', 'SS_STAINED'],
+  'SF_ARCH_ELEMENT_NC_STAIN':    ['SS_BARE', 'SS_STAINED'],
 };
 
 // Exterior UI substrate_state → spec system enum values (SS_EXT_* codes)
@@ -108,14 +145,13 @@ export const SPEC_OUTPUT_STATES = {
   'SF_TRIM_NC_PRIME':            'SS_PRIMED_FIELD',
 };
 
-// Set of all exterior spec family IDs (for domain gating in run-estimate)
-export const EXTERIOR_SPEC_IDS = new Set([
+// Set of all exterior NC spec family IDs
+export const EXTERIOR_NC_SPEC_IDS = new Set([
   'SF_WOOD_SIDING_EXT_NC_PAINT', 'SF_SIDING_FIBERCEMENT_EXT_NC', 'SF_SIDING_ENGINEERED_EXT_NC',
-  'SF_SIDING_VINYL_EXT_RP', 'SF_SIDING_ALUMINUM_EXT_RP', 'SF_SIDING_WOOD_EXT_RP',
   'SF_STUCCO_EXT_NC', 'SF_MASONRY_EXT_NC',
-  'SF_TRIM_EXT_NC', 'SF_TRIM_EXT_RP',
+  'SF_TRIM_EXT_NC',
   'SF_SOFFIT_EXT_NC',
-  'SF_WINDOW_EXT_NC', 'SF_DOOR_EXT_NC', 'SF_DOOR_EXT_RP',
+  'SF_WINDOW_EXT_NC', 'SF_DOOR_EXT_NC',
   'SF_GARAGE_DOOR_EXT_NC',
   'SF_CAULK_EXT',
   'SF_DECK_EXT', 'SF_FENCE_EXT',
@@ -123,3 +159,46 @@ export const EXTERIOR_SPEC_IDS = new Set([
   'SF_PORCH_CEILING_EXT_NC', 'SF_PORCH_FLOOR_EXT_NC',
   'SF_METAL_EXT',
 ]);
+
+// Set of all exterior RP spec family IDs
+export const EXTERIOR_RP_SPEC_IDS = new Set([
+  'SF_SIDING_WOOD_EXT_RP', 'SF_SIDING_ALUMINUM_EXT_RP', 'SF_SIDING_VINYL_EXT_RP',
+  'SF_SIDING_FIBERCEMENT_EXT_RP', 'SF_SIDING_ENGINEERED_EXT_RP',
+  'SF_STUCCO_EXT_RP', 'SF_MASONRY_EXT_RP',
+  'SF_TRIM_EXT_RP',
+  'SF_SOFFIT_EXT_RP',
+  'SF_WINDOW_EXT_RP', 'SF_DOOR_EXT_RP',
+  'SF_GARAGE_DOOR_EXT_RP',
+  'SF_DECK_EXT_RP', 'SF_FENCE_EXT_RP',
+  'SF_FOUNDATION_EXT_RP',
+  'SF_PORCH_CEILING_EXT_RP', 'SF_PORCH_FLOOR_EXT_RP',
+  'SF_METAL_EXT_RP',
+]);
+
+// Union of NC + RP for backwards compatibility
+export const EXTERIOR_SPEC_IDS = new Set([...EXTERIOR_NC_SPEC_IDS, ...EXTERIOR_RP_SPEC_IDS]);
+
+// Get the active exterior spec set based on project type
+export function getExteriorSpecIds(projectType) {
+  return projectType === 'RP' ? EXTERIOR_RP_SPEC_IDS : EXTERIOR_NC_SPEC_IDS;
+}
+
+// Set of all interior stain/clear coat spec family IDs
+export const STAIN_SPEC_FAMILIES = new Set([
+  'SF_TRIM_NC_STAIN',
+  'SF_DOOR_SLAB_INT_NC_STAIN',
+  'SF_DOOR_FRAME_NC_STAIN',
+  'SF_WINDOW_INT_NC_STAIN',
+  'SF_STAIR_RISER_NC_STAIN',
+  'SF_STAIR_RAILING_NC_STAIN',
+  'SF_WOOD_WALL_NC_STAIN',
+  'SF_WOOD_CEILING_NC_STAIN',
+  'SF_WAINSCOT_PANEL_NC_STAIN',
+  'SF_ARCH_ELEMENT_NC_STAIN',
+]);
+
+export function resolveStainOutputState(specId, coatingType) {
+  if (!STAIN_SPEC_FAMILIES.has(specId)) return SPEC_OUTPUT_STATES[specId] || null;
+  if (coatingType === 'stain_only') return 'SS_STAINED';
+  return 'SS_CLEAR_COATED';
+}

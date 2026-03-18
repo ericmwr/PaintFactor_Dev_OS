@@ -32,6 +32,17 @@ export const SPEC_DISPLAY_NAMES = {
   'SF_BUILTIN_NC': 'Built-Ins',
   'SF_STAIR_RAILING_NC': 'Stair Railings',
   'SF_STAIR_RISER_NC': 'Stair Risers',
+  // Interior Stain/Clear
+  'SF_TRIM_NC_STAIN':            'Trim — Stain/Clear',
+  'SF_DOOR_SLAB_INT_NC_STAIN':   'Door Slab — Stain/Clear',
+  'SF_DOOR_FRAME_NC_STAIN':      'Door Frame — Stain/Clear',
+  'SF_WINDOW_INT_NC_STAIN':      'Window — Stain/Clear',
+  'SF_STAIR_RISER_NC_STAIN':     'Stair Riser — Stain/Clear',
+  'SF_STAIR_RAILING_NC_STAIN':   'Stair Railing — Stain/Clear',
+  'SF_WOOD_WALL_NC_STAIN':       'Wood Wall — Stain/Clear',
+  'SF_WOOD_CEILING_NC_STAIN':    'Wood Ceiling — Stain/Clear',
+  'SF_WAINSCOT_PANEL_NC_STAIN':  'Wainscot — Stain/Clear',
+  'SF_ARCH_ELEMENT_NC_STAIN':    'Arch Element — Stain/Clear',
   // ── Exterior ──
   'SF_WOOD_SIDING_EXT_NC_PAINT': 'Wood Siding',
   'SF_SIDING_FIBERCEMENT_EXT_NC': 'Fiber Cement Siding',
