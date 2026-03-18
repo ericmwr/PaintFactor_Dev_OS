@@ -1,4 +1,5 @@
 import { createSubstrateConfig, createOpening, bumpNextId } from './initial-state';
+import { createExteriorState } from './exterior-state';
 
 /**
  * Migrate v0.2 state (flat drywall/trim/doors/windows/specialty) to v0.3 substrate model.
@@ -133,6 +134,41 @@ export function migrateInline(parsed) {
       r.openings = totalDoors > 0 ? [createOpening({ count: totalDoors })] : [];
     }
   });
+
+  // Ensure exterior state exists (added in Phase 9)
+  if (!parsed.exterior) {
+    parsed.exterior = createExteriorState();
+  }
+
+  // Ensure exterior project_type exists (NC/RP toggle)
+  if (parsed.exterior.project_type === undefined) {
+    parsed.exterior.project_type = 'NC';
+  }
+  if (parsed.exterior.defaults && parsed.exterior.defaults.condition_scale === undefined) {
+    parsed.exterior.defaults.condition_scale = 'GOOD';
+  }
+
+  // Ensure UI has scopeMode and activeElevationId (added in UI restructure)
+  if (parsed.ui) {
+    if (!parsed.ui.scopeMode) parsed.ui.scopeMode = 'interior';
+    if (parsed.ui.activeElevationId === undefined) parsed.ui.activeElevationId = null;
+    // Migrate old view names to new 4-view structure
+    if (parsed.ui.view === 'editor' || parsed.ui.view === 'exterior') parsed.ui.view = 'scope';
+    if (parsed.ui.view === 'summary') parsed.ui.view = 'estimate';
+    if (parsed.ui.view === 'workorder' || parsed.ui.view === 'export') parsed.ui.view = 'output';
+  }
+
+  // v0.9 migration: inject coating_type defaults for existing wood substrates
+  const woodSubstrates = ['doors', 'door_frames', 'door_casing', 'window_casing', 'windows', 'window_jamb',
+    'baseboard', 'crown', 'chair_rail', 'shoe_mold', 'wainscoting', 'wood_feature_wall', 'wood_ceiling',
+    'beams', 'columns', 'mantels', 'builtins', 'stair_risers', 'stair_railing'];
+  for (const room of parsed.rooms || []) {
+    for (const [id, sub] of Object.entries(room.substrates || {})) {
+      if (woodSubstrates.includes(id) && sub.substrate_state === 'bare_wood' && !sub.coating_type) {
+        sub.coating_type = 'paint';
+      }
+    }
+  }
 
   // Bump nextId past all existing IDs to prevent collisions
   let maxId = 0;
