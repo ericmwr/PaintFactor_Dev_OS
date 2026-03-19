@@ -1,6 +1,7 @@
 import { SUBSTRATE_MAP, WOOD_SUBSTRATES } from '../data/substrate-catalog';
 import { ROOM_PRESETS } from '../data/room-presets';
 import { createExteriorState } from './exterior-state';
+import { initialColorState } from './color-state.js';
 
 // ============================================================
 // STATE FACTORY
@@ -142,7 +143,8 @@ export function createRoom(overrides={}) {
 
 export const initialState = {
   project: {
-    name: '', new_construction: true,
+    name: '', client_name: '', address: '', status: 'draft',
+    new_construction: true,
     default_quality_tier: 'QT3', default_height_band: 'STD',
     default_complexity: 'STD', default_application_method: 'spray_backroll',
     default_texture: 'smooth', notes: '',
@@ -150,5 +152,6 @@ export const initialState = {
   },
   rooms: [createRoom()],
   exterior: createExteriorState(),
+  colors: initialColorState,
   ui: { activeRoomId: null, activeElevationId: null, activeTab:'scope', view:'setup', scopeMode: 'interior' }
 };
