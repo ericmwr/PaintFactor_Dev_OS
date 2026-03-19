@@ -19,7 +19,19 @@ import { WINDOW_TYPE_LABELS, WINDOW_SIZE_LABELS, DOOR_TYPE_LABELS } from '../dat
  * Resolve a task's effective rate from its production rate row + context.
  * Returns { effectiveRate, isFixed, fixedMinutes, uom, source }
  */
-function resolveTaskRate(rateRow, ctx) {
+function resolveTaskRate(rateRow, ctx, overlayMap, specFamilyId) {
+  // Check overlay map first (user overrides)
+  if (overlayMap && specFamilyId && rateRow.task_id) {
+    const key = `${specFamilyId}::${rateRow.task_id}`;
+    if (overlayMap[key]) {
+      const ov = overlayMap[key];
+      if (ov.field_name === 'fixed_minutes' || ov.field_name === 'fixed_minutes_by_tier') {
+        return { effectiveRate: null, isFixed: true, fixedMinutes: ov.override_value, uom: rateRow.unit_of_measure, source: 'overlay' };
+      }
+      return { effectiveRate: ov.override_value, isFixed: false, fixedMinutes: null, uom: rateRow.unit_of_measure, source: 'overlay' };
+    }
+  }
+
   const qt = ctx.quality_tier || 'QT3';
 
   // 1. Try rates_by_tier first (per-QT rates)
@@ -60,7 +72,7 @@ function resolveTaskRate(rateRow, ctx) {
  * Main estimation orchestrator.
  * Returns { specResults[], totalHours, totalCrewDays, warnings[], materialEstimates[] }
  */
-export function runEstimate(state, db) {
+export function runEstimate(state, db, overlayMap) {
   const { project, rooms } = state;
   const roomLookups = buildRoomQuantityLookups(state);
   const warnings = [];
@@ -284,7 +296,7 @@ export function runEstimate(state, db) {
             // Check rate applies_when
             if (!evaluateAppliesWhen(rateRow.applies_when, ctx)) return;
 
-            const resolved = resolveTaskRate(rateRow, ctx);
+            const resolved = resolveTaskRate(rateRow, ctx, overlayMap, spec.id);
             if (!resolved) return;
 
             const phase = mod.phase || 'apply';
@@ -534,7 +546,7 @@ export function runEstimate(state, db) {
             rates.forEach(rateRow => {
               if (!evaluateAppliesWhen(rateRow.applies_when, ctx)) return;
 
-              const resolved = resolveTaskRate(rateRow, ctx);
+              const resolved = resolveTaskRate(rateRow, ctx, overlayMap, spec.id);
               if (!resolved) return;
 
               const phase = mod.phase || 'apply';

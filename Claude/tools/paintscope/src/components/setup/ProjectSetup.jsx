@@ -49,14 +49,34 @@ export default function ProjectSetup() {
     <div className="setup-form">
       <h2 style={{ fontSize: 18, marginBottom: 20, color: 'var(--accent)' }}>Project Setup</h2>
 
-      <div className="setup-field">
-        <label>Project Name</label>
-        <input
-          value={project.name}
-          onChange={e => set('name', e.target.value)}
-          placeholder="e.g. Smith Residence NC"
-          style={{ fontSize: 15, padding: '8px 12px' }}
-        />
+      <div className="form-grid" style={{ gridTemplateColumns: '1fr 1fr', marginBottom: 12 }}>
+        <div className="setup-field">
+          <label>Project Name</label>
+          <input
+            value={project.name}
+            onChange={e => set('name', e.target.value)}
+            placeholder="e.g. Smith Residence NC"
+            style={{ fontSize: 15, padding: '8px 12px' }}
+          />
+        </div>
+        <div className="setup-field">
+          <label>Client Name</label>
+          <input
+            value={project.client_name || ''}
+            onChange={e => set('client_name', e.target.value)}
+            placeholder="Client name"
+            style={{ fontSize: 15, padding: '8px 12px' }}
+          />
+        </div>
+        <div className="setup-field" style={{ gridColumn: '1 / -1' }}>
+          <label>Address</label>
+          <input
+            value={project.address || ''}
+            onChange={e => set('address', e.target.value)}
+            placeholder="Job site address"
+            style={{ fontSize: 15, padding: '8px 12px' }}
+          />
+        </div>
       </div>
 
       <div className="setup-field">

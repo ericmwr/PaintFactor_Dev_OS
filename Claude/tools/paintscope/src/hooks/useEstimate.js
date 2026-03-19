@@ -3,14 +3,14 @@ import { useProject } from './useProject';
 import { runEstimate } from '../engine/run-estimate';
 import { DB_BUNDLE } from '../data/db-bundle';
 
-export function useEstimate() {
+export function useEstimate(overlayMap) {
   const { state } = useProject();
   return useMemo(() => {
     try {
-      return runEstimate(state, DB_BUNDLE);
+      return runEstimate(state, DB_BUNDLE, overlayMap);
     } catch (e) {
       console.error('[PaintScope] Estimate error:', e);
       return null;
     }
-  }, [state]);
+  }, [state, overlayMap]);
 }
