@@ -2,6 +2,8 @@ import { useState, useEffect, useCallback } from 'react';
 import { ProjectProvider } from './hooks/useProject';
 import { useProject } from './hooks/useProject';
 import { useEstimate } from './hooks/useEstimate';
+import { useProjectDB } from './hooks/useProjectDB';
+import { loadProject } from './data/project-db';
 import { saveToStorage } from './state/persistence';
 import { createExteriorState } from './state/exterior-state';
 import ErrorBoundary from './components/shared/ErrorBoundary';
@@ -13,16 +15,32 @@ import EstimateView from './components/estimate/EstimateView';
 import OutputView from './components/output/OutputView';
 import PhotoAnalysisModal from './components/photo-analysis/PhotoAnalysisModal';
 import { usePhotoAnalysis } from './hooks/usePhotoAnalysis';
+import ProjectListView from './components/projects/ProjectListView';
+import CompanyProfileView from './components/settings/CompanyProfileView';
+import RateExplorerView from './components/rates/RateExplorerView';
+import AssemblyManagerView from './components/assemblies/AssemblyManagerView';
+import MaterialsView from './components/materials/MaterialsView';
+import TimeTrackerView from './components/tracker/TimeTrackerView';
+import AnalyticsDashboard from './components/analytics/AnalyticsDashboard';
+import ColorsView from './components/colors/ColorsView.jsx';
 
 const NAV_VIEWS = [
-  { id:'setup',    label:'Setup',    key:'1' },
-  { id:'scope',    label:'Scope',    key:'2' },
-  { id:'estimate', label:'Estimate', key:'3' },
-  { id:'output',   label:'Output',   key:'4' },
+  { id:'projects',   label:'Projects' },
+  { id:'setup',      label:'Setup' },
+  { id:'scope',      label:'Scope' },
+  { id:'estimate',   label:'Estimate' },
+  { id:'colors',     label:'Colors' },
+  { id:'output',     label:'Output' },
+  { id:'rates',      label:'Rates' },
+  { id:'assemblies', label:'Assemblies' },
+  { id:'materials',  label:'Materials' },
+  { id:'tracker',    label:'Tracker' },
+  { id:'analytics',  label:'Analytics' },
+  { id:'settings',   label:'Settings' },
 ];
 
-function AppShell() {
-  const { state, dispatch } = useProject();
+function AppShell({ projectDb }) {
+  const { state, dispatch, saveNow } = useProject();
   const estimate = useEstimate();
   const view = state.ui.view;
   const scopeMode = state.ui.scopeMode || 'interior';
@@ -35,12 +53,12 @@ function AppShell() {
 
   // Manual save handler
   const handleSave = useCallback(() => {
-    saveToStorage(state);
+    saveNow();
     setSaveFlash(true);
     setTimeout(() => setSaveFlash(false), 1500);
-  }, [state]);
+  }, [saveNow]);
 
-  // Keyboard shortcuts: Ctrl+1-4 switch views, Ctrl+N add room, Ctrl+S save
+  // Keyboard shortcuts
   const handleKeyDown = useCallback((e) => {
     const tag = e.target.tagName;
     if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
@@ -49,12 +67,6 @@ function AppShell() {
       if (e.key === 's' || e.key === 'S') {
         e.preventDefault();
         handleSave();
-        return;
-      }
-      const idx = parseInt(e.key) - 1;
-      if (idx >= 0 && idx < NAV_VIEWS.length) {
-        e.preventDefault();
-        dispatch({ type: 'SET_VIEW', payload: NAV_VIEWS[idx].id });
         return;
       }
       if (e.key === 'n' || e.key === 'N') {
@@ -70,131 +82,137 @@ function AppShell() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [handleKeyDown]);
 
+  const setView = (id) => dispatch({ type: 'SET_VIEW', payload: id });
+
+  // Check if current view is a scope-editing view (needs sidebar)
+  const isScopeView = ['setup', 'scope', 'estimate', 'output'].includes(view);
+
   return (
     <div className="app-layout">
-      {/* Sidebar */}
-      <aside className="sidebar">
-        {/* ── Interior Rooms ── */}
-        <div className="sidebar-header">
-          <span className="sidebar-title">Rooms</span>
-          <button className="btn btn-sm" onClick={() => dispatch({type:'ADD_ROOM'})} title="Ctrl+N">+ Add</button>
-        </div>
-        <button
-          className="btn-scan-room"
-          onClick={photoAnalysis.openForNewRoom}
-          title="Create room from photos"
-        >
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/>
-            <circle cx="12" cy="13" r="4"/>
-          </svg>
-          Scan Room
-        </button>
-        <div className="room-list">
-          {state.rooms.map(r => (
-            <div
-              key={r.id}
-              className={`room-item ${r.id === state.ui.activeRoomId && scopeMode === 'interior' ? 'active' : ''}`}
-              onClick={() => { dispatch({type:'SET_ACTIVE_ROOM', payload:r.id}); dispatch({type:'SET_VIEW', payload:'scope'}); }}
-            >
-              <div className="room-item-info">
-                <span className="room-item-label">{r.label || 'Untitled'}</span>
-                <span className="room-item-meta">{r.length_ft}x{r.width_ft}</span>
-              </div>
-              {r.photoAnalysis && (
-                <button
-                  className="room-action-btn room-action-scan"
-                  title="Review scan results"
-                  onClick={(e) => { e.stopPropagation(); photoAnalysis.openForRoom(r.id); }}
-                >
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/>
-                    <circle cx="12" cy="13" r="4"/>
-                  </svg>
-                </button>
-              )}
-              <div className="room-item-actions">
-                <button
-                  className="room-action-btn"
-                  title="Duplicate room"
-                  onClick={(e) => { e.stopPropagation(); dispatch({type:'DUPLICATE_ROOM', payload:r.id}); }}
-                >&#x29C9;</button>
-                <button
-                  className="room-action-btn room-action-delete"
-                  title="Delete room"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    if (state.rooms.length <= 1) return;
-                    dispatch({type:'REMOVE_ROOM', payload:r.id});
-                  }}
-                  disabled={state.rooms.length <= 1}
-                >&#x2715;</button>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* ── Divider ── */}
-        <div style={{ borderTop: '1px solid var(--border)', margin: '0 8px' }} />
-
-        {/* ── Exterior Elevations ── */}
-        <div className="sidebar-header">
-          <span className="sidebar-title">Elevations</span>
-          <button className="btn btn-sm" onClick={() => dispatch({ type: 'ADD_ELEVATION' })}>+ Add</button>
-        </div>
-        <div className="room-list" style={{ flex: '0 1 auto', maxHeight: '30vh' }}>
-          {elevations.map(e => (
-            <div
-              key={e.id}
-              className={`room-item ${e.id === state.ui.activeElevationId && scopeMode === 'exterior' ? 'active' : ''}`}
-              onClick={() => { dispatch({ type: 'SET_ACTIVE_ELEVATION', payload: e.id }); dispatch({ type: 'SET_VIEW', payload: 'scope' }); }}
-            >
-              <div className="room-item-info">
-                <span className="room-item-label">{e.label || 'Untitled'}</span>
-                <span className="room-item-meta">{e.width_ft || 0}&times;{e.height_to_eave_ft || 0}</span>
-              </div>
-              <div className="room-item-actions">
-                <button
-                  className="room-action-btn"
-                  title="Duplicate elevation"
-                  onClick={ev => { ev.stopPropagation(); dispatch({ type: 'DUPLICATE_ELEVATION', payload: e.id }); }}
-                >&#x29C9;</button>
-                <button
-                  className="room-action-btn room-action-delete"
-                  title="Delete elevation"
-                  onClick={ev => {
-                    ev.stopPropagation();
-                    dispatch({ type: 'REMOVE_ELEVATION', payload: e.id });
-                  }}
-                >&#x2715;</button>
-              </div>
-            </div>
-          ))}
-          {elevations.length === 0 && (
-            <div style={{ padding: '8px 12px', fontSize: 11, color: 'var(--text-muted)' }}>
-              No elevations yet.
-            </div>
-          )}
-        </div>
-
-        {/* ── Standalone Items ── */}
-        <div
-          className={`room-item ${scopeMode === 'standalone' ? 'active' : ''}`}
-          onClick={() => { dispatch({ type: 'SET_SCOPE_MODE', payload: 'standalone' }); dispatch({ type: 'SET_VIEW', payload: 'scope' }); }}
-          style={{ borderTop: '1px solid var(--border)', margin: '0 0 0 0' }}
-        >
-          <div className="room-item-info">
-            <span className="room-item-label" style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.5px', color: 'var(--text-muted)', fontWeight: 600 }}>
-              Standalone Items
-            </span>
+      {/* Sidebar — only for scope-editing views */}
+      {isScopeView && (
+        <aside className="sidebar">
+          {/* Interior Rooms */}
+          <div className="sidebar-header">
+            <span className="sidebar-title">Rooms</span>
+            <button className="btn btn-sm" onClick={() => dispatch({type:'ADD_ROOM'})} title="Ctrl+N">+ Add</button>
           </div>
-        </div>
-      </aside>
+          <button
+            className="btn-scan-room"
+            onClick={photoAnalysis.openForNewRoom}
+            title="Create room from photos"
+          >
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/>
+              <circle cx="12" cy="13" r="4"/>
+            </svg>
+            Scan Room
+          </button>
+          <div className="room-list">
+            {state.rooms.map(r => (
+              <div
+                key={r.id}
+                className={`room-item ${r.id === state.ui.activeRoomId && scopeMode === 'interior' ? 'active' : ''}`}
+                onClick={() => { dispatch({type:'SET_ACTIVE_ROOM', payload:r.id}); dispatch({type:'SET_VIEW', payload:'scope'}); }}
+              >
+                <div className="room-item-info">
+                  <span className="room-item-label">{r.label || 'Untitled'}</span>
+                  <span className="room-item-meta">{r.length_ft}x{r.width_ft}</span>
+                </div>
+                {r.photoAnalysis && (
+                  <button
+                    className="room-action-btn room-action-scan"
+                    title="Review scan results"
+                    onClick={(e) => { e.stopPropagation(); photoAnalysis.openForRoom(r.id); }}
+                  >
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/>
+                      <circle cx="12" cy="13" r="4"/>
+                    </svg>
+                  </button>
+                )}
+                <div className="room-item-actions">
+                  <button
+                    className="room-action-btn"
+                    title="Duplicate room"
+                    onClick={(e) => { e.stopPropagation(); dispatch({type:'DUPLICATE_ROOM', payload:r.id}); }}
+                  >&#x29C9;</button>
+                  <button
+                    className="room-action-btn room-action-delete"
+                    title="Delete room"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (state.rooms.length <= 1) return;
+                      dispatch({type:'REMOVE_ROOM', payload:r.id});
+                    }}
+                    disabled={state.rooms.length <= 1}
+                  >&#x2715;</button>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div style={{ borderTop: '1px solid var(--border)', margin: '0 8px' }} />
+
+          {/* Exterior Elevations */}
+          <div className="sidebar-header">
+            <span className="sidebar-title">Elevations</span>
+            <button className="btn btn-sm" onClick={() => dispatch({ type: 'ADD_ELEVATION' })}>+ Add</button>
+          </div>
+          <div className="room-list" style={{ flex: '0 1 auto', maxHeight: '30vh' }}>
+            {elevations.map(e => (
+              <div
+                key={e.id}
+                className={`room-item ${e.id === state.ui.activeElevationId && scopeMode === 'exterior' ? 'active' : ''}`}
+                onClick={() => { dispatch({ type: 'SET_ACTIVE_ELEVATION', payload: e.id }); dispatch({ type: 'SET_VIEW', payload: 'scope' }); }}
+              >
+                <div className="room-item-info">
+                  <span className="room-item-label">{e.label || 'Untitled'}</span>
+                  <span className="room-item-meta">{e.width_ft || 0}&times;{e.height_to_eave_ft || 0}</span>
+                </div>
+                <div className="room-item-actions">
+                  <button
+                    className="room-action-btn"
+                    title="Duplicate elevation"
+                    onClick={ev => { ev.stopPropagation(); dispatch({ type: 'DUPLICATE_ELEVATION', payload: e.id }); }}
+                  >&#x29C9;</button>
+                  <button
+                    className="room-action-btn room-action-delete"
+                    title="Delete elevation"
+                    onClick={ev => {
+                      ev.stopPropagation();
+                      dispatch({ type: 'REMOVE_ELEVATION', payload: e.id });
+                    }}
+                  >&#x2715;</button>
+                </div>
+              </div>
+            ))}
+            {elevations.length === 0 && (
+              <div style={{ padding: '8px 12px', fontSize: 11, color: 'var(--text-muted)' }}>
+                No elevations yet.
+              </div>
+            )}
+          </div>
+
+          {/* Standalone Items */}
+          <div
+            className={`room-item ${scopeMode === 'standalone' ? 'active' : ''}`}
+            onClick={() => { dispatch({ type: 'SET_SCOPE_MODE', payload: 'standalone' }); dispatch({ type: 'SET_VIEW', payload: 'scope' }); }}
+            style={{ borderTop: '1px solid var(--border)', margin: '0 0 0 0' }}
+          >
+            <div className="room-item-info">
+              <span className="room-item-label" style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.5px', color: 'var(--text-muted)', fontWeight: 600 }}>
+                Standalone Items
+              </span>
+            </div>
+          </div>
+        </aside>
+      )}
 
       {/* Main panel */}
-      <div className="main-panel">
+      <div className="main-panel" style={!isScopeView ? { marginLeft: 0 } : undefined}>
         <header className="app-header">
-          <div className="app-title">Paint<span>Scope</span></div>
+          <div className="app-title">Paint<span>Factor</span></div>
           <div style={{display:'flex',gap:10,alignItems:'center'}}>
             <span style={{fontSize:12,color:'var(--text-muted)'}}>
               {state.project.name || 'Untitled Project'}
@@ -206,20 +224,17 @@ function AppShell() {
             >
               {saveFlash ? '\u2713 Saved' : 'Save'}
             </button>
-            <span style={{fontSize:10,color:'var(--text-muted)',opacity:0.5}} title="Ctrl+1-4 switch views, Ctrl+N add room, Ctrl+S save">
-              Ctrl+1-4 / S
-            </span>
           </div>
         </header>
 
         {/* Nav */}
-        <nav className="nav-bar">
+        <nav className="nav-bar" style={{ overflowX: 'auto' }}>
           {NAV_VIEWS.map(v => (
             <div
               key={v.id}
               className={`nav-item ${view === v.id ? 'active' : ''}`}
-              onClick={() => dispatch({type:'SET_VIEW', payload:v.id})}
-              title={`Ctrl+${v.key}`}
+              onClick={() => setView(v.id)}
+              style={{ whiteSpace: 'nowrap', flexShrink: 0 }}
             >
               {v.label}
             </div>
@@ -228,6 +243,17 @@ function AppShell() {
 
         {/* Content */}
         <div className="main-content">
+          {view === 'projects' && (
+            <ProjectListView
+              projects={projectDb.projects}
+              activeProjectId={projectDb.activeProjectId}
+              onSelect={projectDb.switchProject}
+              onCreate={projectDb.createProject}
+              onDelete={projectDb.deleteProject}
+              onSave={projectDb.saveProject}
+            />
+          )}
+
           <ErrorBoundary label="Setup" key={view === 'setup' ? 'setup' : undefined}>
             {view === 'setup' && <ProjectSetup />}
           </ErrorBoundary>
@@ -259,9 +285,51 @@ function AppShell() {
             {view === 'estimate' && <EstimateView />}
           </ErrorBoundary>
 
+          {view === 'colors' && (
+            <ErrorBoundary label="Colors">
+              <ColorsView state={state} dispatch={dispatch} />
+            </ErrorBoundary>
+          )}
+
           <ErrorBoundary label="Output" key={view === 'output' ? 'output' : undefined}>
             {view === 'output' && <OutputView />}
           </ErrorBoundary>
+
+          {view === 'rates' && (
+            <ErrorBoundary label="Rates">
+              <RateExplorerView />
+            </ErrorBoundary>
+          )}
+
+          {view === 'assemblies' && (
+            <ErrorBoundary label="Assemblies">
+              <AssemblyManagerView />
+            </ErrorBoundary>
+          )}
+
+          {view === 'materials' && (
+            <ErrorBoundary label="Materials">
+              <MaterialsView />
+            </ErrorBoundary>
+          )}
+
+          {view === 'tracker' && (
+            <ErrorBoundary label="Tracker">
+              <TimeTrackerView estimate={estimate} />
+            </ErrorBoundary>
+          )}
+
+          {view === 'analytics' && (
+            <ErrorBoundary label="Analytics">
+              <AnalyticsDashboard estimate={estimate} />
+            </ErrorBoundary>
+          )}
+
+          {view === 'settings' && (
+            <ErrorBoundary label="Settings">
+              <CompanyProfileView />
+            </ErrorBoundary>
+          )}
         </div>
       </div>
 
@@ -279,10 +347,39 @@ function AppShell() {
   );
 }
 
-export default function App() {
+function ProjectLoader({ projectDb }) {
+  const [projectData, setProjectData] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      if (projectDb.activeProjectId) {
+        const proj = await loadProject(projectDb.activeProjectId);
+        if (!cancelled) {
+          setProjectData(proj?.project_data || null);
+          setLoading(false);
+        }
+      } else {
+        setProjectData(null);
+        setLoading(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [projectDb.activeProjectId]);
+
+  if (loading || projectDb.loading) {
+    return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', color: 'var(--text-muted)' }}>Loading...</div>;
+  }
+
   return (
-    <ProjectProvider>
-      <AppShell />
+    <ProjectProvider initialData={projectData} projectId={projectDb.activeProjectId}>
+      <AppShell projectDb={projectDb} />
     </ProjectProvider>
   );
+}
+
+export default function App() {
+  const projectDb = useProjectDB();
+  return <ProjectLoader projectDb={projectDb} />;
 }
