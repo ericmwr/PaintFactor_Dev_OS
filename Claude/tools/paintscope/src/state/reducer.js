@@ -46,7 +46,9 @@ export function reducer(state, action) {
     case 'REMOVE_ROOM': {
       const rooms = state.rooms.filter(r => r.id !== payload);
       const activeId = state.ui.activeRoomId === payload ? (rooms[0]?.id || null) : state.ui.activeRoomId;
-      return { ...state, rooms, ui:{...state.ui, activeRoomId:activeId} };
+      const room_overrides = { ...state.colors.room_overrides };
+      delete room_overrides[payload];
+      return { ...state, rooms, ui:{...state.ui, activeRoomId:activeId}, colors: { ...state.colors, room_overrides } };
     }
     case 'DUPLICATE_ROOM': {
       const src = state.rooms.find(r => r.id === payload);
@@ -344,10 +346,13 @@ export function reducer(state, action) {
     case 'REMOVE_ELEVATION': {
       const elevs = state.exterior.elevations.filter(e => e.id !== payload);
       const activeId = state.ui.activeElevationId === payload ? (elevs[0]?.id || null) : state.ui.activeElevationId;
+      const elevation_overrides = { ...state.colors.elevation_overrides };
+      delete elevation_overrides[payload];
       return {
         ...state,
         exterior: { ...state.exterior, elevations: elevs },
-        ui: { ...state.ui, activeElevationId: activeId, scopeMode: elevs.length > 0 ? 'exterior' : state.ui.scopeMode }
+        ui: { ...state.ui, activeElevationId: activeId, scopeMode: elevs.length > 0 ? 'exterior' : state.ui.scopeMode },
+        colors: { ...state.colors, elevation_overrides }
       };
     }
     case 'DUPLICATE_ELEVATION': {
@@ -828,6 +833,65 @@ export function reducer(state, action) {
     case 'IMPORT_PROJECT': {
       return payload;
     }
+
+    // ── Color Management ──────────────────────────────────
+    case 'SET_COLOR_DEFAULT': {
+      const { group, data } = payload;
+      return { ...state, colors: { ...state.colors,
+        defaults: { ...state.colors.defaults, [group]: { ...(state.colors.defaults[group] || {}), ...data } }
+      }};
+    }
+    case 'REMOVE_COLOR_DEFAULT': {
+      const { group } = payload;
+      const defaults = { ...state.colors.defaults };
+      delete defaults[group];
+      return { ...state, colors: { ...state.colors, defaults } };
+    }
+    case 'SET_COLOR_SUBSTRATE_OVERRIDE': {
+      const { substrate, data } = payload;
+      return { ...state, colors: { ...state.colors,
+        substrate_overrides: { ...state.colors.substrate_overrides, [substrate]: { ...(state.colors.substrate_overrides[substrate] || {}), ...data } }
+      }};
+    }
+    case 'REMOVE_COLOR_SUBSTRATE_OVERRIDE': {
+      const { substrate } = payload;
+      const substrate_overrides = { ...state.colors.substrate_overrides };
+      delete substrate_overrides[substrate];
+      return { ...state, colors: { ...state.colors, substrate_overrides } };
+    }
+    case 'SET_COLOR_ROOM_OVERRIDE': {
+      const { roomId, substrate, data } = payload;
+      const roomOvr = state.colors.room_overrides[roomId] || {};
+      return { ...state, colors: { ...state.colors,
+        room_overrides: { ...state.colors.room_overrides, [roomId]: { ...roomOvr, [substrate]: { ...(roomOvr[substrate] || {}), ...data } } }
+      }};
+    }
+    case 'REMOVE_COLOR_ROOM_OVERRIDE': {
+      const { roomId, substrate } = payload;
+      const roomOvr = { ...(state.colors.room_overrides[roomId] || {}) };
+      delete roomOvr[substrate];
+      const room_overrides = { ...state.colors.room_overrides };
+      if (Object.keys(roomOvr).length === 0) delete room_overrides[roomId];
+      else room_overrides[roomId] = roomOvr;
+      return { ...state, colors: { ...state.colors, room_overrides } };
+    }
+    case 'SET_COLOR_ELEVATION_OVERRIDE': {
+      const { elevId, substrate, data } = payload;
+      const elevOvr = state.colors.elevation_overrides[elevId] || {};
+      return { ...state, colors: { ...state.colors,
+        elevation_overrides: { ...state.colors.elevation_overrides, [elevId]: { ...elevOvr, [substrate]: { ...(elevOvr[substrate] || {}), ...data } } }
+      }};
+    }
+    case 'REMOVE_COLOR_ELEVATION_OVERRIDE': {
+      const { elevId, substrate } = payload;
+      const elevOvr = { ...(state.colors.elevation_overrides[elevId] || {}) };
+      delete elevOvr[substrate];
+      const elevation_overrides = { ...state.colors.elevation_overrides };
+      if (Object.keys(elevOvr).length === 0) delete elevation_overrides[elevId];
+      else elevation_overrides[elevId] = elevOvr;
+      return { ...state, colors: { ...state.colors, elevation_overrides } };
+    }
+
     default: return state;
   }
 }

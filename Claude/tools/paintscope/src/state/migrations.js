@@ -170,6 +170,11 @@ export function migrateInline(parsed) {
     }
   }
 
+  // v1.0: Initialize colors state
+  if (!parsed.colors) {
+    parsed.colors = { defaults: {}, substrate_overrides: {}, room_overrides: {}, elevation_overrides: {} };
+  }
+
   // Bump nextId past all existing IDs to prevent collisions
   let maxId = 0;
   const extractNum = (s) => { const m = s && s.match(/_(\d+)$/); return m ? parseInt(m[1]) : 0; };
