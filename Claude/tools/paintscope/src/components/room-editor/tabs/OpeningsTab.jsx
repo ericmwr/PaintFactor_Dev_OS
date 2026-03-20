@@ -293,14 +293,16 @@ export default function OpeningsTab({ room, derived, dispatch, project }) {
                         <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>Measured Size</span>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                           <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>W (ft)</span>
-                          <input type="number" value={win.width_ft || ''} min="0" step="0.5" placeholder="ft"
+                          <input type="text" inputMode="decimal" value={win.width_ft || ''} placeholder="ft"
+                            onFocus={e => e.target.select()}
                             onChange={e => dispatch({ type: 'SET_WINDOW', payload: { roomId: rid, winId: win.id, field: 'width_ft', value: parseFloat(e.target.value) || 0 } })}
                             style={{ width: 55, fontSize: 11 }} />
                         </div>
                         <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>×</span>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                           <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>H (ft)</span>
-                          <input type="number" value={win.height_ft || ''} min="0" step="0.5" placeholder="ft"
+                          <input type="text" inputMode="decimal" value={win.height_ft || ''} placeholder="ft"
+                            onFocus={e => e.target.select()}
                             onChange={e => dispatch({ type: 'SET_WINDOW', payload: { roomId: rid, winId: win.id, field: 'height_ft', value: parseFloat(e.target.value) || 0 } })}
                             style={{ width: 55, fontSize: 11 }} />
                         </div>
