@@ -2,6 +2,23 @@ import { OPENING_SUBSTRATES } from './quantity-lookups.js';
 import { SPEC_SUBSTRATE_MAP } from '../data/spec-maps.js';
 import { SUBSTRATE_APPLICATION_METHODS } from '../data/substrate-catalog.js';
 
+// Items-based substrates (doors, windows) store per-item fields like
+// coating_type, substrate_state, wood_species_group on each item rather
+// than on the top-level substrate config. This helper reads a field from
+// the first item that has it set, falling back to the top-level config.
+const ITEMS_SUBSTRATES = new Set(['doors', 'windows']);
+function resolveItemField(config, subId, field, fallback) {
+  // Try top-level config first
+  if (config?.[field] != null) return config[field];
+  // For items-based substrates, check items
+  if (ITEMS_SUBSTRATES.has(subId) && config?.items?.length > 0) {
+    for (const item of config.items) {
+      if (item[field] != null) return item[field];
+    }
+  }
+  return fallback;
+}
+
 export function resolveQualityTier(specId, room, project) {
   const primarySub = SPEC_SUBSTRATE_MAP[specId];
   // Opening QT override takes priority for opening-related specs
@@ -53,39 +70,39 @@ export function resolveCoatingType(specId, room, project) {
   const primarySub = SPEC_SUBSTRATE_MAP[specId];
   if (!primarySub) return 'paint';
   const config = room.substrates?.[primarySub];
-  return config?.coating_type || 'paint';
+  return resolveItemField(config, primarySub, 'coating_type', 'paint');
 }
 
 export function resolveStainMethod(specId, room, project) {
   const primarySub = SPEC_SUBSTRATE_MAP[specId];
   const config = room.substrates?.[primarySub];
-  return config?.application_method_stain || 'brush';
+  return resolveItemField(config, primarySub, 'application_method_stain', 'brush');
 }
 
 export function resolveClearMethod(specId, room, project) {
   const primarySub = SPEC_SUBSTRATE_MAP[specId];
   const config = room.substrates?.[primarySub];
-  return config?.application_method_clear || 'brush';
+  return resolveItemField(config, primarySub, 'application_method_clear', 'brush');
 }
 
 export function resolveCoatCounts(specId, room, project) {
   const primarySub = SPEC_SUBSTRATE_MAP[specId];
   const config = room.substrates?.[primarySub];
   return {
-    stain_coats: config?.stain_coats ?? 1,
-    sealer_coats: config?.sealer_coats ?? 0,
-    clear_coats: config?.clear_coats ?? 1,
+    stain_coats: resolveItemField(config, primarySub, 'stain_coats', 1),
+    sealer_coats: resolveItemField(config, primarySub, 'sealer_coats', 0),
+    clear_coats: resolveItemField(config, primarySub, 'clear_coats', 1),
   };
 }
 
 export function resolveClearSheen(specId, room, project) {
   const primarySub = SPEC_SUBSTRATE_MAP[specId];
   const config = room.substrates?.[primarySub];
-  return config?.clear_sheen || 'satin';
+  return resolveItemField(config, primarySub, 'clear_sheen', 'satin');
 }
 
 export function resolveWoodSpecies(specId, room, project) {
   const primarySub = SPEC_SUBSTRATE_MAP[specId];
   const config = room.substrates?.[primarySub];
-  return config?.wood_species_group || 'hardwood';
+  return resolveItemField(config, primarySub, 'wood_species_group', 'hardwood');
 }
