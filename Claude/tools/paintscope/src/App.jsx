@@ -374,7 +374,7 @@ function ProjectLoader({ projectDb }) {
   }
 
   return (
-    <ProjectProvider initialData={projectData} projectId={projectDb.activeProjectId}>
+    <ProjectProvider key={projectDb.activeProjectId} initialData={projectData} projectId={projectDb.activeProjectId}>
       <AppShell projectDb={projectDb} />
     </ProjectProvider>
   );
