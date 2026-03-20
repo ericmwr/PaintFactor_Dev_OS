@@ -25,16 +25,43 @@ export default function ProjectListView({ projects, activeProjectId, onSelect, o
     try {
       const { loadProject } = await import('../../data/project-db');
       const full = await loadProject(project.id);
-      if (!full) return;
-      const blob = new Blob([JSON.stringify(full, null, 2)], { type: 'application/json' });
+      if (!full) { alert('Project data not found'); return; }
+      const json = JSON.stringify(full, null, 2);
+      const blob = new Blob([json], { type: 'application/json' });
+      const filename = `${(project.name || 'project').replace(/\s+/g, '_')}.json`;
+
+      // Try modern File System Access API first (best for mobile)
+      if (window.showSaveFilePicker) {
+        try {
+          const handle = await window.showSaveFilePicker({
+            suggestedName: filename,
+            types: [{ description: 'JSON', accept: { 'application/json': ['.json'] } }],
+          });
+          const writable = await handle.createWritable();
+          await writable.write(blob);
+          await writable.close();
+          return;
+        } catch (pickErr) {
+          if (pickErr.name === 'AbortError') return; // user cancelled
+          // Fall through to legacy approach
+        }
+      }
+
+      // Legacy: create link in DOM (required for Android Chrome)
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `${(project.name || 'project').replace(/\s+/g, '_')}.json`;
+      a.download = filename;
+      a.style.display = 'none';
+      document.body.appendChild(a);
       a.click();
-      URL.revokeObjectURL(url);
+      setTimeout(() => {
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }, 1000);
     } catch (err) {
       console.error('Export failed:', err);
+      alert('Export failed: ' + err.message);
     }
   };
 
