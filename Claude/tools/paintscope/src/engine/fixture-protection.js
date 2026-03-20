@@ -49,18 +49,19 @@ export function resolveRoomFixtureProtection(rooms, roomSpecMethods) {
         const cfg = fixtures[fixtureId];
         const sf = Math.round((parseFloat(cfg.length_ft) || 0) * (parseFloat(cfg.height_ft) || 0) * (parseInt(cfg.count) || 1));
         if (sf <= 0) return;
-        // ~2 min/SF for masking setup, ~1 min/SF teardown
-        const setupMin = Math.round(sf * 2);
-        const teardownMin = Math.round(sf * 1);
+        const SETUP_RATE = 450;   // SF/hr for masking setup
+        const REMOVAL_RATE = 1500; // SF/hr for removal
+        const setupHrs = round3(sf / SETUP_RATE);
+        const teardownHrs = round3(sf / REMOVAL_RATE);
         const protLevel = cfg.protection || 'full_mask';
         const levelLabel = protLevel.replace(/_/g, ' ');
         tasks.push({
           taskId: '__FP_FEATURE_WALL_SETUP__',
           taskName: `Protect Feature Wall \u2014 ${capitalize(levelLabel)}`,
           phase: 'setup',
-          hours: round3(setupMin / 60),
+          hours: setupHrs,
           isFixed: false,
-          baseRate: `${(60 / 2).toFixed(0)} SF/hr`,
+          baseRate: `${SETUP_RATE} SF/hr`,
           quantity: sf,
           uom: 'SF',
           isFixtureProtection: true,
@@ -74,9 +75,9 @@ export function resolveRoomFixtureProtection(rooms, roomSpecMethods) {
           taskId: '__FP_FEATURE_WALL_TEARDOWN__',
           taskName: `Remove Feature Wall Protection`,
           phase: 'cleanup',
-          hours: round3(teardownMin / 60),
+          hours: teardownHrs,
           isFixed: false,
-          baseRate: `${(60 / 1).toFixed(0)} SF/hr`,
+          baseRate: `${REMOVAL_RATE} SF/hr`,
           quantity: sf,
           uom: 'SF',
           isFixtureProtection: true,
