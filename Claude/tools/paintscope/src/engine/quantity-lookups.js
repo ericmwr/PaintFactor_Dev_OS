@@ -57,17 +57,33 @@ export function buildRoomQuantityLookups(state) {
     // Trim joints — approximately equal to total trim LF (every piece has joints)
     addQ('PS_EDGE_LF.TRIM_JOINTS', 'LF', allTrimLF);
 
-    // Doors — from substrates.doors.items; surface keys only when painting (doors are painting scope)
+    // Doors — from substrates.doors.items; emit paint or stain keys based on coating_type
     const doorItems = subs.doors?.items || [];
     const doorsPainting2 = subs.doors?.painting;
     doorItems.forEach(door => {
       const cnt = parseInt(door.count) || 0;
       const sides = cnt * (parseInt(door.sides_per_door) || 2);
-      if (doorsPainting2) addQ('PS_SURFACE_EA_SIDE.DOOR_SLAB', 'EA_SIDE', sides);
+      if (doorsPainting2) {
+        const ct = door.coating_type || 'paint';
+        if (ct === 'paint') {
+          addQ('PS_SURFACE_EA_SIDE.DOOR_SLAB', 'EA_SIDE', sides);
+        } else {
+          // Stain/clear specs use EA (not EA_SIDE) — count of doors, not sides
+          addQ('PS_SURFACE_EA.DOOR_SLAB_STAIN', 'EA', cnt);
+        }
+      }
     });
     // Opening counts from openings table (structural, always emit)
     addQ('PS_OPENING_EA.DOOR_OPENINGS_TOTAL', 'EA', d.totalOpenings);
-    if (subs.door_frames) addQ('PS_SURFACE_EA.DOOR_FRAME_SET', 'EA', d.door_frames_ea);
+    // Door frames — emit stain key when coating_type is stain/clear
+    if (subs.door_frames) {
+      const frameCt = subs.door_frames.coating_type || 'paint';
+      if (frameCt === 'paint') {
+        addQ('PS_SURFACE_EA.DOOR_FRAME_SET', 'EA', d.door_frames_ea);
+      } else {
+        addQ('PS_SURFACE_EA.DOOR_FRAME_STAIN', 'EA', d.door_frames_ea);
+      }
+    }
 
     // Windows — from substrates.windows.items; surface keys only when painting, opening counts always
     const windowItems = subs.windows?.items || [];
