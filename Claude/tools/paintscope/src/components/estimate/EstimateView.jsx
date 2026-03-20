@@ -387,14 +387,17 @@ export default function EstimateView() {
                       {isFpOpen && (
                         <div className="task-detail">
                           <table className="task-table">
-                            <thead><tr><th>Task</th><th>Phase</th><th>Fixture</th><th>Context</th><th style={{textAlign:'right'}}>Hours</th></tr></thead>
+                            <thead><tr><th>Task</th><th>Phase</th><th>PS Key</th><th>UOM</th><th style={{textAlign:'right'}}>Qty</th><th style={{textAlign:'right'}}>Rate</th><th style={{textAlign:'right'}}>Mod</th><th style={{textAlign:'right'}}>Hours</th></tr></thead>
                             <tbody>
                               {fp.tasks.map((t, i) => (
                                 <tr key={i} style={{background: PHASE_COLORS[t.phase] || 'transparent'}}>
-                                  <td className="task-name-col">{t.taskName}</td>
+                                  <td className="task-name-col" title={t.taskName}>{t.taskName}</td>
                                   <td style={{fontSize:11,color:'var(--text-muted)',textTransform:'capitalize'}}>{t.phase}</td>
-                                  <td style={{fontSize:11}}>{t.fixtureId}</td>
-                                  <td style={{fontSize:11,color:'var(--derived)'}}>{t.paintingContext}</td>
+                                  <td style={{fontSize:10,color:'var(--derived)'}}>{t.fixtureId === 'feature_wall' ? 'PS_PROTECT_SF.FIXTURE_FEATURE_WALL' : `PS_PROTECT_EA.FIXTURE_${t.fixtureId?.toUpperCase()}`}</td>
+                                  <td style={{fontSize:11}}>{t.uom || 'EA'}</td>
+                                  <td style={{textAlign:'right'}}>{t.quantity || '\u2014'}</td>
+                                  <td style={{textAlign:'right',color:'var(--text-muted)'}}>{t.baseRate || '\u2014'}</td>
+                                  <td style={{textAlign:'right',color:'var(--text-secondary)'}}>1.00x</td>
                                   <td style={{textAlign:'right',color:'var(--accent)',fontWeight:600}}>{t.hours.toFixed(2)}</td>
                                 </tr>
                               ))}

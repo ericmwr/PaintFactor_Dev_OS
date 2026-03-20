@@ -56,11 +56,11 @@ export function resolveRoomFixtureProtection(rooms, roomSpecMethods) {
         const levelLabel = protLevel.replace(/_/g, ' ');
         tasks.push({
           taskId: '__FP_FEATURE_WALL_SETUP__',
-          taskName: `Protect Feature Wall \u2014 ${capitalize(levelLabel)} (${sf} SF)`,
+          taskName: `Protect Feature Wall \u2014 ${capitalize(levelLabel)}`,
           phase: 'setup',
           hours: round3(setupMin / 60),
-          isFixed: true,
-          baseRate: `${setupMin}m`,
+          isFixed: false,
+          baseRate: `${(60 / 2).toFixed(0)} SF/hr`,
           quantity: sf,
           uom: 'SF',
           isFixtureProtection: true,
@@ -72,11 +72,11 @@ export function resolveRoomFixtureProtection(rooms, roomSpecMethods) {
         });
         tasks.push({
           taskId: '__FP_FEATURE_WALL_TEARDOWN__',
-          taskName: `Remove Feature Wall Protection (${sf} SF)`,
+          taskName: `Remove Feature Wall Protection`,
           phase: 'cleanup',
           hours: round3(teardownMin / 60),
-          isFixed: true,
-          baseRate: `${teardownMin}m`,
+          isFixed: false,
+          baseRate: `${(60 / 1).toFixed(0)} SF/hr`,
           quantity: sf,
           uom: 'SF',
           isFixtureProtection: true,
