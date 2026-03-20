@@ -1,3 +1,4 @@
+import React from 'react';
 import Select from '../../shared/Select';
 import Toggle from '../../shared/Toggle';
 import { ENUMS } from '../../../data/enums';
@@ -217,7 +218,6 @@ export default function OpeningsTab({ room, derived, dispatch, project }) {
                 })()}
               </div>
             </div>
-            <InlineCoatingControls subConfig={subs.doors} onSet={(f, v) => setSub('doors', f, v)} />
           </>
         )}
         {doorItems.length === 0 ? (
@@ -227,14 +227,21 @@ export default function OpeningsTab({ room, derived, dispatch, project }) {
             <thead><tr><th>Count</th><th>Type</th><th>Substrate State</th><th>Sides</th><th>Total Sides</th><th></th></tr></thead>
             <tbody>
               {doorItems.map(door => (
-                <tr key={door.id}>
-                  <td><input type="number" value={door.count || ''} min="0" onChange={e => dispatch({ type: 'SET_DOOR', payload: { roomId: rid, doorId: door.id, field: 'count', value: parseInt(e.target.value) || 0 } })} style={{ width: 60 }} placeholder="0" /></td>
-                  <td><Select options={ENUMS.doorTypes} value={door.door_type} onChange={v => dispatch({ type: 'SET_DOOR', payload: { roomId: rid, doorId: door.id, field: 'door_type', value: v } })} /></td>
-                  <td><Select options={doorStates} value={door.substrate_state} onChange={v => dispatch({ type: 'SET_DOOR', payload: { roomId: rid, doorId: door.id, field: 'substrate_state', value: v } })} /></td>
-                  <td><input type="number" value={door.sides_per_door || ''} min="1" max="2" onChange={e => dispatch({ type: 'SET_DOOR', payload: { roomId: rid, doorId: door.id, field: 'sides_per_door', value: parseInt(e.target.value) || 2 } })} style={{ width: 50 }} placeholder="2" /></td>
-                  <td style={{ fontFamily: 'var(--font-mono)', color: 'var(--accent)' }}>{(parseInt(door.count) || 0) * (parseInt(door.sides_per_door) || 2)} EA_SIDE</td>
-                  <td><button className="btn btn-sm btn-danger" onClick={() => dispatch({ type: 'REMOVE_DOOR', payload: { roomId: rid, doorId: door.id } })}>&#x2715;</button></td>
-                </tr>
+                <React.Fragment key={door.id}>
+                  <tr>
+                    <td><input type="number" value={door.count || ''} min="0" onChange={e => dispatch({ type: 'SET_DOOR', payload: { roomId: rid, doorId: door.id, field: 'count', value: parseInt(e.target.value) || 0 } })} style={{ width: 60 }} placeholder="0" /></td>
+                    <td><Select options={ENUMS.doorTypes} value={door.door_type} onChange={v => dispatch({ type: 'SET_DOOR', payload: { roomId: rid, doorId: door.id, field: 'door_type', value: v } })} /></td>
+                    <td><Select options={doorStates} value={door.substrate_state} onChange={v => dispatch({ type: 'SET_DOOR', payload: { roomId: rid, doorId: door.id, field: 'substrate_state', value: v } })} /></td>
+                    <td><input type="number" value={door.sides_per_door || ''} min="1" max="2" onChange={e => dispatch({ type: 'SET_DOOR', payload: { roomId: rid, doorId: door.id, field: 'sides_per_door', value: parseInt(e.target.value) || 2 } })} style={{ width: 50 }} placeholder="2" /></td>
+                    <td style={{ fontFamily: 'var(--font-mono)', color: 'var(--accent)' }}>{(parseInt(door.count) || 0) * (parseInt(door.sides_per_door) || 2)} EA_SIDE</td>
+                    <td><button className="btn btn-sm btn-danger" onClick={() => dispatch({ type: 'REMOVE_DOOR', payload: { roomId: rid, doorId: door.id } })}>&#x2715;</button></td>
+                  </tr>
+                  {door.substrate_state === 'bare_wood' && doorsPainting && (
+                    <tr><td colSpan="6" style={{ padding: '2px 0' }}>
+                      <InlineCoatingControls subConfig={door} onSet={(f, v) => dispatch({ type: 'SET_DOOR', payload: { roomId: rid, doorId: door.id, field: f, value: v } })} />
+                    </td></tr>
+                  )}
+                </React.Fragment>
               ))}
             </tbody>
           </table>
@@ -262,7 +269,6 @@ export default function OpeningsTab({ room, derived, dispatch, project }) {
                 })()}
               </div>
             </div>
-            <InlineCoatingControls subConfig={subs.windows} onSet={(f, v) => setSub('windows', f, v)} />
           </>
         )}
         {windowItems.length === 0 ? (
@@ -272,14 +278,21 @@ export default function OpeningsTab({ room, derived, dispatch, project }) {
             <thead><tr><th>Count</th><th>Type</th><th>Size Bucket</th><th>Substrate State</th><th>PS Key</th><th></th></tr></thead>
             <tbody>
               {windowItems.map(win => (
-                <tr key={win.id}>
-                  <td><input type="number" value={win.count || ''} min="0" onChange={e => dispatch({ type: 'SET_WINDOW', payload: { roomId: rid, winId: win.id, field: 'count', value: parseInt(e.target.value) || 0 } })} style={{ width: 60 }} placeholder="0" /></td>
-                  <td><Select options={ENUMS.windowTypes} value={win.window_type} onChange={v => dispatch({ type: 'SET_WINDOW', payload: { roomId: rid, winId: win.id, field: 'window_type', value: v } })} /></td>
-                  <td><Select options={ENUMS.windowSizes} value={win.size_bucket} onChange={v => dispatch({ type: 'SET_WINDOW', payload: { roomId: rid, winId: win.id, field: 'size_bucket', value: v } })} /></td>
-                  <td><Select options={winStates} value={win.substrate_state} onChange={v => dispatch({ type: 'SET_WINDOW', payload: { roomId: rid, winId: win.id, field: 'substrate_state', value: v } })} /></td>
-                  <td style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--derived)' }}>PS_OPENING_EA.WINDOW_{win.size_bucket}</td>
-                  <td><button className="btn btn-sm btn-danger" onClick={() => dispatch({ type: 'REMOVE_WINDOW', payload: { roomId: rid, winId: win.id } })}>&#x2715;</button></td>
-                </tr>
+                <React.Fragment key={win.id}>
+                  <tr>
+                    <td><input type="number" value={win.count || ''} min="0" onChange={e => dispatch({ type: 'SET_WINDOW', payload: { roomId: rid, winId: win.id, field: 'count', value: parseInt(e.target.value) || 0 } })} style={{ width: 60 }} placeholder="0" /></td>
+                    <td><Select options={ENUMS.windowTypes} value={win.window_type} onChange={v => dispatch({ type: 'SET_WINDOW', payload: { roomId: rid, winId: win.id, field: 'window_type', value: v } })} /></td>
+                    <td><Select options={ENUMS.windowSizes} value={win.size_bucket} onChange={v => dispatch({ type: 'SET_WINDOW', payload: { roomId: rid, winId: win.id, field: 'size_bucket', value: v } })} /></td>
+                    <td><Select options={winStates} value={win.substrate_state} onChange={v => dispatch({ type: 'SET_WINDOW', payload: { roomId: rid, winId: win.id, field: 'substrate_state', value: v } })} /></td>
+                    <td style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--derived)' }}>PS_OPENING_EA.WINDOW_{win.size_bucket}</td>
+                    <td><button className="btn btn-sm btn-danger" onClick={() => dispatch({ type: 'REMOVE_WINDOW', payload: { roomId: rid, winId: win.id } })}>&#x2715;</button></td>
+                  </tr>
+                  {win.substrate_state === 'bare_wood' && windowsPainting && (
+                    <tr><td colSpan="6" style={{ padding: '2px 0' }}>
+                      <InlineCoatingControls subConfig={win} onSet={(f, v) => dispatch({ type: 'SET_WINDOW', payload: { roomId: rid, winId: win.id, field: f, value: v } })} />
+                    </td></tr>
+                  )}
+                </React.Fragment>
               ))}
             </tbody>
           </table>
