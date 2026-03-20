@@ -80,7 +80,15 @@ export default function OpeningsTab({ room, derived, dispatch, project }) {
   const winDeduct = totalWindows * 15;
   const totalDeduct = derived.openingDeduction;
   const doorCasingLF = derived.openingCasingLF;
-  const winCasingLF = totalWindows * 12;
+  const SIZE_BUCKET_PERIM = { S: 8, M: 12, L: 17 };
+  const winCasingLF = windowItems.reduce((sum, win) => {
+    const count = parseInt(win.count) || 0;
+    if (win.size_bucket === 'O') {
+      const perim = Math.round(2 * ((win.width_ft || 0) + (win.height_ft || 0)));
+      return sum + count * perim;
+    }
+    return sum + count * (SIZE_BUCKET_PERIM[win.size_bucket] || 12);
+  }, 0);
 
   const openingTypeOptions = Object.entries(OPENING_TYPES).map(([k, v]) => ({ value: k, label: v.label }));
   const setRoomField = (f, v) => dispatch({ type: 'SET_ROOM', payload: { roomId: rid, field: f, value: v || null } });
@@ -108,7 +116,7 @@ export default function OpeningsTab({ room, derived, dispatch, project }) {
           {' = '}<b style={{ color: 'var(--warning)' }}>{totalDeduct} SF deducted</b></div>
           <div style={{ marginTop: 2 }}>Masking: {doorCasingLF > 0 && <span>{doorCasingLF} LF door casing</span>}
           {doorCasingLF > 0 && winCasingLF > 0 && ' | '}
-          {winCasingLF > 0 && <span>{totalWindows} window{totalWindows !== 1 ? 's' : ''} x 12 = {winCasingLF} LF window casing</span>}</div>
+          {winCasingLF > 0 && <span>{winCasingLF} LF window casing</span>}</div>
         </div>
       )}
 
@@ -330,7 +338,7 @@ export default function OpeningsTab({ room, derived, dispatch, project }) {
             <Toggle checked={!!subs.window_casing?.painting} onChange={() => dispatch({ type: 'TOGGLE_SUBSTRATE', payload: { roomId: rid, substrateId: 'window_casing' } })} label="Paint" />
             <span style={{ fontSize: 12, color: 'var(--text-primary)' }}>Window Casing</span>
             <span style={{ fontSize: 10, color: subs.window_casing?.painting ? 'var(--accent)' : 'var(--text-muted)', fontWeight: 500 }}>{subs.window_casing?.painting ? 'PAINT' : 'PROTECT'}</span>
-            <span style={{ fontSize: 11, fontFamily: 'var(--font-mono)', color: 'var(--derived)', marginLeft: 'auto' }}>{totalWindows > 0 ? `${totalWindows} x 12 = ${totalWindows * 12} LF` : '\u2014'}</span>
+            <span style={{ fontSize: 11, fontFamily: 'var(--font-mono)', color: 'var(--derived)', marginLeft: 'auto' }}>{winCasingLF > 0 ? `${winCasingLF} LF` : '\u2014'}</span>
           </div>
           {subs.window_casing?.painting && (
             <>
