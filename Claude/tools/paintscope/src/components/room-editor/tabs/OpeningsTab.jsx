@@ -292,22 +292,21 @@ export default function OpeningsTab({ room, derived, dispatch, project }) {
                       <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
                         <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>Measured Size</span>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                          <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>W</span>
-                          <input type="number" value={win.width_in || ''} min="0" placeholder="in"
-                            onChange={e => dispatch({ type: 'SET_WINDOW', payload: { roomId: rid, winId: win.id, field: 'width_in', value: parseInt(e.target.value) || 0 } })}
+                          <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>W (ft)</span>
+                          <input type="number" value={win.width_ft || ''} min="0" step="0.5" placeholder="ft"
+                            onChange={e => dispatch({ type: 'SET_WINDOW', payload: { roomId: rid, winId: win.id, field: 'width_ft', value: parseFloat(e.target.value) || 0 } })}
                             style={{ width: 55, fontSize: 11 }} />
                         </div>
                         <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>×</span>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                          <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>H</span>
-                          <input type="number" value={win.height_in || ''} min="0" placeholder="in"
-                            onChange={e => dispatch({ type: 'SET_WINDOW', payload: { roomId: rid, winId: win.id, field: 'height_in', value: parseInt(e.target.value) || 0 } })}
+                          <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>H (ft)</span>
+                          <input type="number" value={win.height_ft || ''} min="0" step="0.5" placeholder="ft"
+                            onChange={e => dispatch({ type: 'SET_WINDOW', payload: { roomId: rid, winId: win.id, field: 'height_ft', value: parseFloat(e.target.value) || 0 } })}
                             style={{ width: 55, fontSize: 11 }} />
                         </div>
-                        <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>in</span>
-                        {win.width_in > 0 && win.height_in > 0 && (
+                        {win.width_ft > 0 && win.height_ft > 0 && (
                           <span style={{ fontSize: 10, fontFamily: 'var(--font-mono)', color: 'var(--derived)' }}>
-                            {Math.round((2 * (win.width_in + win.height_in)) / 12)} LF perim
+                            {Math.round(2 * (win.width_ft + win.height_ft))} LF perim
                           </span>
                         )}
                       </div>

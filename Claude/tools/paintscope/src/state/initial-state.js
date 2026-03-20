@@ -45,7 +45,7 @@ export function createDoor(overrides={}) {
 }
 
 export function createWindow(overrides={}) {
-  return { id:genId('win'), count:1, window_type:'double_hung', size_bucket:'M', substrate_state:'bare_wood', width_in:0, height_in:0, ...overrides };
+  return { id:genId('win'), count:1, window_type:'double_hung', size_bucket:'M', substrate_state:'bare_wood', width_ft:0, height_ft:0, ...overrides };
 }
 
 /** Build a default substrate config by merging catalog defaults with any overrides. */
