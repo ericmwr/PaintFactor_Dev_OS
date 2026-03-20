@@ -247,11 +247,11 @@ function AppShell({ projectDb }) {
             <ProjectListView
               projects={projectDb.projects}
               activeProjectId={projectDb.activeProjectId}
-              onSelect={projectDb.switchProject}
+              onSelect={(id) => { projectDb.switchProject(id); dispatch({ type: 'SET_VIEW', payload: 'setup' }); }}
               onCreate={projectDb.createProject}
               onDelete={projectDb.deleteProject}
               onSave={projectDb.saveProject}
-              onImport={projectDb.importProject}
+              onImport={async (data) => { await projectDb.importProject(data); dispatch({ type: 'SET_VIEW', payload: 'setup' }); }}
             />
           )}
 
