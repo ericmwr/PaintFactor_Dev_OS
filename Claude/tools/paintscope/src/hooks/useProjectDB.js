@@ -105,6 +105,18 @@ export function useProjectDB() {
     // Accept a full project record (exported JSON) and save it with a new ID
     const id = `proj_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
     const now = new Date().toISOString();
+
+    // Validate project_data exists
+    if (!data.project_data) {
+      console.error('[Import] No project_data in imported file. Keys:', Object.keys(data));
+      alert('Import error: file does not contain project_data. This may not be a valid export.');
+      return null;
+    }
+
+    console.log('[Import] project_data keys:', Object.keys(data.project_data));
+    console.log('[Import] rooms count:', data.project_data.rooms?.length);
+    console.log('[Import] project name:', data.project_data.project?.name);
+
     const project = {
       ...data,
       id,

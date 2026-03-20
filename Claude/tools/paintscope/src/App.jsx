@@ -357,6 +357,7 @@ function ProjectLoader({ projectDb }) {
     (async () => {
       if (projectDb.activeProjectId) {
         const proj = await loadProject(projectDb.activeProjectId);
+        console.log('[ProjectLoader] loaded proj:', proj?.id, 'has project_data:', !!proj?.project_data, 'rooms:', proj?.project_data?.rooms?.length);
         if (!cancelled) {
           setProjectData(proj?.project_data || null);
           setLoading(false);
