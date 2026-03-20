@@ -349,33 +349,38 @@ function AppShell({ projectDb }) {
 }
 
 function ProjectLoader({ projectDb }) {
-  const [projectData, setProjectData] = useState(null);
-  const [loading, setLoading] = useState(true);
+  // loaded.forId tracks WHICH project the data was loaded for
+  // This prevents rendering with stale data from a previous project
+  const [loaded, setLoaded] = useState({ data: null, forId: null });
 
   useEffect(() => {
     let cancelled = false;
+    // Reset so we show loading while fetching
+    setLoaded({ data: null, forId: null });
     (async () => {
       if (projectDb.activeProjectId) {
         const proj = await loadProject(projectDb.activeProjectId);
-        console.log('[ProjectLoader] loaded proj:', proj?.id, 'has project_data:', !!proj?.project_data, 'rooms:', proj?.project_data?.rooms?.length);
         if (!cancelled) {
-          setProjectData(proj?.project_data || null);
-          setLoading(false);
+          setLoaded({ data: proj?.project_data || null, forId: projectDb.activeProjectId });
         }
       } else {
-        setProjectData(null);
-        setLoading(false);
+        if (!cancelled) {
+          setLoaded({ data: null, forId: '__none__' });
+        }
       }
     })();
     return () => { cancelled = true; };
   }, [projectDb.activeProjectId]);
 
-  if (loading || projectDb.loading) {
+  // Don't render until we've loaded data for the CURRENT active project
+  const isReady = !projectDb.loading && loaded.forId === (projectDb.activeProjectId || '__none__');
+
+  if (!isReady) {
     return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', color: 'var(--text-muted)' }}>Loading...</div>;
   }
 
   return (
-    <ProjectProvider key={projectDb.activeProjectId} initialData={projectData} projectId={projectDb.activeProjectId}>
+    <ProjectProvider key={loaded.forId} initialData={loaded.data} projectId={projectDb.activeProjectId}>
       <AppShell projectDb={projectDb} />
     </ProjectProvider>
   );
