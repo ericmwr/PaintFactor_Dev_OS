@@ -101,6 +101,24 @@ export function useProjectDB() {
     }, 1000);
   }, [activeProjectId]);
 
+  const handleImportProject = useCallback(async (data) => {
+    // Accept a full project record (exported JSON) and save it with a new ID
+    const id = `proj_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
+    const now = new Date().toISOString();
+    const project = {
+      ...data,
+      id,
+      created_at: now,
+      updated_at: now,
+      name: data.name ? `${data.name} (imported)` : 'Imported Project',
+    };
+    const { saveProject: dbSave } = await import('../data/project-db');
+    await dbSave(project);
+    await refreshList();
+    setActiveProjectId(id);
+    return project;
+  }, [refreshList]);
+
   const switchProject = useCallback(async (id) => {
     setActiveProjectId(id);
   }, []);
@@ -116,5 +134,6 @@ export function useProjectDB() {
     autoSave,
     switchProject,
     refreshList,
+    importProject: handleImportProject,
   };
 }

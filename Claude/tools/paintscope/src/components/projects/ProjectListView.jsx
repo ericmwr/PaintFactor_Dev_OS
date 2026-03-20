@@ -15,10 +15,46 @@ const STATUS_COLORS = {
   completed: '#27ae60',
 };
 
-export default function ProjectListView({ projects, activeProjectId, onSelect, onCreate, onDelete, onSave }) {
+export default function ProjectListView({ projects, activeProjectId, onSelect, onCreate, onDelete, onSave, onImport }) {
   const [showNew, setShowNew] = useState(false);
   const [newName, setNewName] = useState('');
   const [editingId, setEditingId] = useState(null);
+
+  const handleExport = async (e, project) => {
+    e.stopPropagation();
+    try {
+      const { loadProject } = await import('../../data/project-db');
+      const full = await loadProject(project.id);
+      if (!full) return;
+      const blob = new Blob([JSON.stringify(full, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${(project.name || 'project').replace(/\s+/g, '_')}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('Export failed:', err);
+    }
+  };
+
+  const handleImportClick = () => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.json';
+    input.onchange = async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      try {
+        const text = await file.text();
+        const data = JSON.parse(text);
+        if (onImport) await onImport(data);
+      } catch (err) {
+        alert('Failed to import project: ' + err.message);
+      }
+    };
+    input.click();
+  };
 
   const handleCreate = async () => {
     if (!newName.trim()) return;
@@ -39,9 +75,14 @@ export default function ProjectListView({ projects, activeProjectId, onSelect, o
     <div style={{ padding: 16, maxWidth: 900 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
         <h2 style={{ fontSize: 18, color: 'var(--accent)', margin: 0 }}>Projects</h2>
-        <button className="btn btn-accent" onClick={() => setShowNew(true)} style={{ fontSize: 13 }}>
-          + New Project
-        </button>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button className="btn btn-sm" onClick={handleImportClick} style={{ fontSize: 13 }}>
+            Import
+          </button>
+          <button className="btn btn-accent" onClick={() => setShowNew(true)} style={{ fontSize: 13 }}>
+            + New Project
+          </button>
+        </div>
       </div>
 
       {showNew && (
@@ -93,6 +134,12 @@ export default function ProjectListView({ projects, activeProjectId, onSelect, o
               </div>
             </div>
             <div style={{ display: 'flex', gap: 6 }}>
+              <button
+                className="btn btn-sm"
+                onClick={e => handleExport(e, p)}
+                title="Export project as JSON"
+                style={{ fontSize: 11 }}
+              >Export</button>
               <button
                 className="btn btn-sm"
                 onClick={e => { e.stopPropagation(); setEditingId(editingId === p.id ? null : p.id); }}

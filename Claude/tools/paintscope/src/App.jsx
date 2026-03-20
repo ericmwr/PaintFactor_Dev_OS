@@ -251,6 +251,7 @@ function AppShell({ projectDb }) {
               onCreate={projectDb.createProject}
               onDelete={projectDb.deleteProject}
               onSave={projectDb.saveProject}
+              onImport={projectDb.importProject}
             />
           )}
 
