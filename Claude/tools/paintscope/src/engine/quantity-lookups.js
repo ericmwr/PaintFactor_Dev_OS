@@ -156,6 +156,9 @@ export function buildRoomQuantityLookups(state) {
       if (fId === 'cabinets') {
         const lf = parseFloat(cfg.linear_ft) || 0;
         if (lf > 0) addQ('PS_PROTECT_LF.FIXTURE_CABINETS', 'LF', lf);
+      } else if (fId === 'feature_wall') {
+        const sf = Math.round((parseFloat(cfg.length_ft) || 0) * (parseFloat(cfg.height_ft) || 0) * (parseInt(cfg.count) || 1));
+        if (sf > 0) addQ('PS_PROTECT_SF.FIXTURE_FEATURE_WALL', 'SF', sf);
       } else {
         const cnt = parseInt(cfg.count) || 1;
         addQ('PS_PROTECT_EA.FIXTURE_' + fId.toUpperCase(), 'EA', cnt);

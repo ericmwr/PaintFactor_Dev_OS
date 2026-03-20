@@ -105,9 +105,15 @@ export function deriveRoom(room) {
     beamTotalLF = Math.round(beamTotalLF);
   }
 
+  // Feature wall deduction (from protection fixtures)
+  const fwFixture = room.fixtures?.feature_wall;
+  const featureWallDeduct = fwFixture
+    ? Math.round((parseFloat(fwFixture.length_ft) || 0) * (parseFloat(fwFixture.height_ft) || 0) * (parseInt(fwFixture.count) || 1))
+    : 0;
+
   // Walls — only derive if substrate checked
   const wall_field_sf = subs.walls
-    ? (subs.walls.sf_override ? parseFloat(subs.walls.sf_manual)||0 : Math.round(wallNet + gableExtra))
+    ? (subs.walls.sf_override ? parseFloat(subs.walls.sf_manual)||0 : Math.max(0, Math.round(wallNet + gableExtra - featureWallDeduct)))
     : 0;
 
   // Ceiling — only derive if substrate checked
@@ -149,7 +155,7 @@ export function deriveRoom(room) {
     L, W, H, effectiveHeight, perimeter,
     totalOpenings, openingCasingLF, doorOpeningDeduction,
     totalDoors, totalWindows, openingDeduction,
-    wallGross, wallNet, ceilingSF, vaultedExtra, gableExtra, pitch,
+    wallGross, wallNet, ceilingSF, vaultedExtra, gableExtra, pitch, featureWallDeduct,
     heightBand,
     wall_field_sf, ceiling_field_sf,
     baseboard_lf, crown_lf, door_casing_lf, window_casing_lf,

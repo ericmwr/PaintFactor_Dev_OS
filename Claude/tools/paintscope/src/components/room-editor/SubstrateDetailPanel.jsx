@@ -172,7 +172,7 @@ export default function SubstrateDetailPanel({ room, derived, dispatch, substrat
           <div>
             <NumField value={config.sf_manual || ''} derived={Math.round(autoDerivedVal)} isOverride={!!config.sf_override}
               onValueChange={v => setSub('sf_manual', v)} onOverrideToggle={v => setSub('sf_override', v)} uom="SF" />
-            {substrateId === 'walls' && <div style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 2 }}>Gross {derived.wallGross} - Deduct {derived.openingDeduction} = Net {derived.wallNet}{derived.gableExtra > 0 ? ` + Gable ${derived.gableExtra}` : ''}</div>}
+            {substrateId === 'walls' && <div style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 2 }}>Gross {derived.wallGross} - Openings {derived.openingDeduction}{derived.featureWallDeduct > 0 ? ` - Feature Wall ${derived.featureWallDeduct}` : ''}{derived.gableExtra > 0 ? ` + Gable ${derived.gableExtra}` : ''} = {derived.wall_field_sf} SF</div>}
             {substrateId === 'ceiling' && <div style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 2 }}>L&times;W = {derived.ceilingSF}{derived.vaultedExtra > 0 ? ` + Vault ${derived.vaultedExtra}` : ''}</div>}
           </div>
         )}

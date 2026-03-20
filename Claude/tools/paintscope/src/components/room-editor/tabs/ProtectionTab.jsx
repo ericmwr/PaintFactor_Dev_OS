@@ -136,6 +136,52 @@ export default function ProtectionTab({ room, derived, dispatch, project }) {
               </div>
             );
 
+            // Feature Wall config
+            if (focusedFixture === 'feature_wall') {
+              const fwSF = Math.round((parseFloat(cfg.length_ft) || 0) * (parseFloat(cfg.height_ft) || 0) * (parseInt(cfg.count) || 1));
+              return (
+                <div style={{ marginBottom: 12 }}>
+                  {header}
+                  <div className="form-grid" style={{ gridTemplateColumns: '1fr 1fr 1fr' }}>
+                    <div>
+                      <div className="field-label">Count</div>
+                      <input type="number" min="1" max="20" value={cfg.count || ''} onChange={e => setFix('count', parseInt(e.target.value) || 1)} placeholder="1" />
+                    </div>
+                    <div>
+                      <div className="field-label">Length (ft)</div>
+                      <input type="number" min="0" step="0.5" value={cfg.length_ft || ''} onChange={e => setFix('length_ft', parseFloat(e.target.value) || 0)} placeholder="0" />
+                    </div>
+                    <div>
+                      <div className="field-label">Height (ft)</div>
+                      <input type="number" min="0" step="0.5" value={cfg.height_ft || ''} onChange={e => setFix('height_ft', parseFloat(e.target.value) || 0)} placeholder="0" />
+                    </div>
+                  </div>
+                  <div className="form-grid" style={{ gridTemplateColumns: '1fr 1fr', marginTop: 6 }}>
+                    <div>
+                      <div className="field-label">Protection Level</div>
+                      <select value={cfg.protection || 'full_mask'} onChange={e => setFix('protection', e.target.value)} style={{ width: '100%' }}>
+                        <option value="edge_only">Edge Only</option>
+                        <option value="partial_cover">Partial Cover</option>
+                        <option value="full_cover">Full Cover</option>
+                        <option value="full_mask">Full Mask</option>
+                      </select>
+                    </div>
+                    <div style={{ alignSelf: 'end' }}>
+                      {fwSF > 0 && (
+                        <div style={{ fontSize: 12, fontFamily: 'var(--font-mono)', color: 'var(--derived)' }}>
+                          {fwSF} SF <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>(deducts from wall area)</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  <div style={{ marginTop: 6 }}>
+                    <div className="field-label">Notes</div>
+                    <input type="text" value={cfg.notes || ''} onChange={e => setFix('notes', e.target.value)} style={{ width: '100%' }} placeholder="e.g., shiplap accent wall, stone veneer" />
+                  </div>
+                </div>
+              );
+            }
+
             // Generic fixture config
             return (
               <div style={{ marginBottom: 12 }}>

@@ -18,6 +18,7 @@ export const FIXTURE_CATALOG = [
   // Features
   { id: 'fireplace',        group: 'Feature', label: 'Fireplace',         defaultProtection: 'full_cover' },
   { id: 'stone_fireplace',  group: 'Feature', label: 'Stone Fireplace',   defaultProtection: 'full_cover' },
+  { id: 'feature_wall',     group: 'Feature', label: 'Feature Wall',      defaultProtection: 'full_mask' },
   { id: 'builtin_shelving', group: 'Feature', label: 'Built-in Shelving', defaultProtection: 'partial_cover' },
   { id: 'light_fixtures',   group: 'Feature', label: 'Light Fixtures',    defaultProtection: 'item_mask' },
 ];
