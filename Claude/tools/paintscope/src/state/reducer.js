@@ -243,6 +243,8 @@ export function reducer(state, action) {
           const cat = FIXTURE_MAP[fixtureId];
           if (fixtureId === 'cabinets') {
             fixtures[fixtureId] = { protection: 'full_cover', layout: 'lower_upper', linear_ft: 0, upper_height_ft: 2.5, notes: '' };
+          } else if (fixtureId === 'feature_wall') {
+            fixtures[fixtureId] = { protection: 'full_mask', count: 1, length_ft: 0, height_ft: 0, notes: '' };
           } else {
             fixtures[fixtureId] = { protection: cat ? cat.defaultProtection : 'partial_cover', count: 1, size: '', notes: '' };
           }

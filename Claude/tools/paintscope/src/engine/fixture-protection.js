@@ -44,6 +44,51 @@ export function resolveRoomFixtureProtection(rooms, roomSpecMethods) {
       const fixtureDef = FIXTURE_MAP[fixtureId];
       if (!fixtureDef) return;
 
+      // Feature wall: SF-based protection (mask/cover)
+      if (fixtureId === 'feature_wall') {
+        const cfg = fixtures[fixtureId];
+        const sf = Math.round((parseFloat(cfg.length_ft) || 0) * (parseFloat(cfg.height_ft) || 0) * (parseInt(cfg.count) || 1));
+        if (sf <= 0) return;
+        // ~2 min/SF for masking setup, ~1 min/SF teardown
+        const setupMin = Math.round(sf * 2);
+        const teardownMin = Math.round(sf * 1);
+        const protLevel = cfg.protection || 'full_mask';
+        const levelLabel = protLevel.replace(/_/g, ' ');
+        tasks.push({
+          taskId: '__FP_FEATURE_WALL_SETUP__',
+          taskName: `Protect Feature Wall \u2014 ${capitalize(levelLabel)} (${sf} SF)`,
+          phase: 'setup',
+          hours: round3(setupMin / 60),
+          isFixed: true,
+          baseRate: `${setupMin}m`,
+          quantity: sf,
+          uom: 'SF',
+          isFixtureProtection: true,
+          fixtureId,
+          protectionLevel: protLevel,
+          mechanism: 'task',
+          roomIndex: riNum,
+          roomLabel: room.label,
+        });
+        tasks.push({
+          taskId: '__FP_FEATURE_WALL_TEARDOWN__',
+          taskName: `Remove Feature Wall Protection (${sf} SF)`,
+          phase: 'cleanup',
+          hours: round3(teardownMin / 60),
+          isFixed: true,
+          baseRate: `${teardownMin}m`,
+          quantity: sf,
+          uom: 'SF',
+          isFixtureProtection: true,
+          fixtureId,
+          protectionLevel: protLevel,
+          mechanism: 'task',
+          roomIndex: riNum,
+          roomLabel: room.label,
+        });
+        return;
+      }
+
       // Only bathroom fixtures have context-dependent scenarios
       if (fixtureDef.group !== 'Bathroom') return;
 
