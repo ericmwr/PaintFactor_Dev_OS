@@ -1,0 +1,164 @@
+{
+  "spec_family_id": "SF_WOOD_GRAIN_FILL_NC",
+  "version": "0.1.0",
+  "generated_by": "Critic Agent",
+  "generated_at": "2026-03-20",
+
+  "overall_result": "pass_with_warnings",
+  "summary": "SF_WOOD_GRAIN_FILL_NC_v1 passes QA with 4 minor warnings and 0 blockers. All 5 pipeline files reviewed. Cross-file threading validated: 6 TSK_GRAIN_* IDs in sop_modules match 6 rates in production. Single SF-based paintable item (ITM_GRAIN_FILL_SURFACE). First add-on spec in the system — standalone process that chains between parent prime and parent finish specs. Quality tier drives fill coat count (1/2/3). Surface profile is dominant modifier (1.0-2.8x). No protection zones (parent spec workspace). New state SS_GRAIN_FILLED proposed. Max modifier stacking 4.2x exceeds 4.0x flag threshold — documented and flagged for review. Human Feedback Gate has NOT occurred — expected for v0.1.0 draft.",
+
+  "files_reviewed": [
+    "research.json",
+    "materials.json",
+    "sop_modules.json",
+    "production.json",
+    "spec.json"
+  ],
+
+  "statistics": {
+    "critical": 0,
+    "major": 0,
+    "minor": 4
+  },
+
+  "cross_file_threading_check": {
+    "rule_1_tsk_sop_to_production": {
+      "status": "pass",
+      "details": "All 6 TSK_GRAIN_* task IDs in sop_modules.json have matching entries in production.json. Complete list: SAND_PREP, FILL_COAT, SAND_BETWEEN, FINAL_SAND, PRIME_SEAL, SAND_PRIME."
+    },
+    "rule_2_itm_in_variants": {
+      "status": "pass",
+      "details": "ITM_GRAIN_FILL_SURFACE is the sole paintable item. All 3 variants (VAR_GRAIN_QT3, VAR_GRAIN_QT4, VAR_GRAIN_QT5) implicitly include it as the single item."
+    },
+    "rule_3_sys_qt_match": {
+      "status": "pass",
+      "details": "SYS_GRAIN_FILLER_WB in materials.json has coats_by_qt covering QT3/QT4/QT5, matching spec.json configuration_dimensions quality_tier values."
+    },
+    "rule_4_inputs_consumed": {
+      "status": "pass",
+      "details": "Both IN_ inputs consumed: IN_SF_GRAIN_FILL (PS_SURFACE_SF.GRAIN_FILL — primary surface SF for all tasks), IN_ENUM_HEIGHT_BAND (PS_META.HEIGHT_BAND — height modifier selection). Materials.json required_inputs declares both."
+    },
+    "rule_5_ps_keys_match": {
+      "status": "pass",
+      "details": "All PS_ keys referenced in sop_modules/production match spec.json required_paintscope_inputs: PS_SURFACE_SF.GRAIN_FILL (proposed new key), PS_META.HEIGHT_BAND (existing)."
+    },
+    "rule_6_zones_match": {
+      "status": "pass",
+      "details": "No protection zones declared in spec.json — no zone_ids to match. Consistent across all files. Add-on spec runs within parent spec's protected workspace."
+    },
+    "rule_7_phase_order": {
+      "status": "pass",
+      "details": "Module sequence_order: prep(1) > apply(2) > interstage(3) > prep(4, QT5 final sand) > prime(5). All module phase values are valid per controlled_enums.json."
+    },
+    "rule_8_uom_match": {
+      "status": "pass",
+      "details": "UOM consistent across all 6 tasks between sop_modules and production: all 6 tasks are SF with SF rates (rate_per_hour). No EA or FIXED tasks. All paintscope_key references match PS_SURFACE_SF.GRAIN_FILL."
+    },
+    "rule_9_tsk_prefix": {
+      "status": "pass",
+      "details": "All 6 tasks use TSK_GRAIN_ prefix per context prefix GRAIN. No prefix deviations."
+    },
+    "rule_10_itm_ids": {
+      "status": "pass",
+      "details": "ITM_GRAIN_FILL_SURFACE is proposed (new), correctly requires registration."
+    },
+    "rule_11_enum_values": {
+      "status": "pass",
+      "details": "All enum values used across files are valid. quality_tier: QT3/QT4/QT5 (QT2 excluded). surface_profile: flat/light_profile/medium_profile/heavy_profile (new enum values, require registration). task_classification: binary/qt_scaled. unit_of_measure: SF. skill_level: journeyman. severity: critical/major/minor. consumable_category: abrasive/prep. No prohibited values detected."
+    }
+  },
+
+  "prohibited_pattern_check": {
+    "AR_009_violations": [],
+    "checks": [
+      { "pattern": "CONS_ prefix", "found": false },
+      { "pattern": "task_class (instead of task_classification)", "found": false },
+      { "pattern": "phase 'protect' or 'protection'", "found": false },
+      { "pattern": "compound sheens (eggshell/satin, semi-gloss+)", "found": false },
+      { "pattern": "lowercase units (each, sheet, tip)", "found": false },
+      { "pattern": "severity high/medium/low/WARN", "found": false },
+      { "pattern": "consumable_category 'consumable'", "found": false },
+      { "pattern": "IN_EA_ROOMS (should be IN_EA_ROOMS_TOTAL)", "found": false },
+      { "pattern": "IN_SF_FLOOR_VACUUM (should be IN_SF_FLOOR_VACUUM_AREA)", "found": false },
+      { "pattern": "IN_SF_FLOOR_PERIMETER (should be IN_SF_PROTECT_FLOOR_PERIMETER)", "found": false }
+    ],
+    "status": "pass"
+  },
+
+  "fine_finish_doctrine_compliance": {
+    "interstage_module": {
+      "status": "pass",
+      "details": "MOD_GRAIN_INTERSTAGE with TSK_GRAIN_SAND_BETWEEN handles interstage sanding between fill coats."
+    },
+    "sanding_block": {
+      "status": "pass",
+      "details": "production.json notes orbital sander on flats per FFD §15.4.1. Hand sand on profiles."
+    },
+    "prep_tasks": {
+      "status": "pass",
+      "details": "TSK_GRAIN_SAND_PREP provides prep sanding before fill application."
+    }
+  },
+
+  "geometry_validation": {
+    "status": "pass",
+    "details": "No internal geometry computation. All SF from PaintScope input PS_SURFACE_SF.GRAIN_FILL. UOM conversion happens in quantity-lookups.js, not in the spec."
+  },
+
+  "modifier_validation": {
+    "status": "pass_with_flag",
+    "details": "3 modifiers: surface_profile (1.0-2.8x), wood_species (0.85-1.0x), height (1.0-2.0x). All documented as time_multipliers. Max stacking: heavy_profile(2.8) × H3(1.5) × deep_grain(1.0) = 4.2x — EXCEEDS 4.0x flag threshold. Documented in estimation_notes. Realistic worst case: ornate crown molding at 13+ ft height with deep-grain oak. Flagged for review but likely accurate."
+  },
+
+  "issues": [
+    {
+      "issue_id": "QA-001",
+      "severity": "minor",
+      "area": "production",
+      "description": "Production rate estimates need field validation. All rates are design doc estimates without field calibration data. Surface profile modifier values (especially medium_profile=2.0x and heavy_profile=2.8x) are aggressive and need confirmation.",
+      "resolution": "Flag for field validation. Rates are reasonable starting points but should be calibrated with actual job data."
+    },
+    {
+      "issue_id": "QA-002",
+      "severity": "minor",
+      "area": "modifier_stacking",
+      "description": "Max modifier stacking of 4.2x exceeds the 4.0x flag threshold. This occurs with heavy_profile (2.8x) × H3 (1.5x) × deep_grain (1.0x). While realistic for ornate crown molding at height, this is an edge case that may produce unexpectedly high estimates.",
+      "resolution": "Document in estimation_notes. Flag for review during field validation. Consider whether heavy_profile at H3+ is a realistic scenario."
+    },
+    {
+      "issue_id": "QA-003",
+      "severity": "minor",
+      "area": "registry",
+      "description": "New IDs need registration: SF_WOOD_GRAIN_FILL_NC, ITM_GRAIN_FILL_SURFACE, SYS_GRAIN_FILLER_WB, SS_GRAIN_FILLED, PS_SURFACE_SF.GRAIN_FILL, IN_SF_GRAIN_FILL, TSK_GRAIN_* (6), MOD_GRAIN_* (5), ROUND_GRAIN_* (3), COV_GRAIN_* (2). Surface_profile enum values (flat, light_profile, medium_profile, heavy_profile) need registration.",
+      "resolution": "Update id_registry.json and controlled_enums.json after spec approval."
+    },
+    {
+      "issue_id": "QA-004",
+      "severity": "minor",
+      "area": "state_chain",
+      "description": "New state SS_GRAIN_FILLED needs to be added as valid input state to all parent finish specs (SF_TRIM_NC_PAINT, SF_WOOD_WALL_NC, SF_CABINET_NC_PAINT, etc.) so the chain Parent Prime → Grain Fill → Parent Finish works correctly.",
+      "resolution": "After spec approval, update valid_input_states in all parent finish specs to include SS_GRAIN_FILLED."
+    }
+  ],
+
+  "doctrine_compliance": {
+    "inherited_corrections_respected": ["RC-004 (no dry times)", "RC-005 (material systems are suggestions)"],
+    "doctrine_conflicts": [],
+    "human_feedback_gate": "NOT OCCURRED — expected for v0.1.0 draft"
+  },
+
+  "brief_compliance": {
+    "design_doc": "docs/superpowers/specs/2026-03-20-wood-grain-fill-spec-design.md",
+    "acceptance_criteria_met": "All design doc requirements implemented: 6 tasks as specified, QT-driven coat count, surface_profile/wood_species/height modifiers, AquaCoat material system, UOM conversion model, PS key PS_SURFACE_SF.GRAIN_FILL, state chain SS_PRIMED_* → SS_GRAIN_FILLED, wood species classification (open vs closed grain).",
+    "deviations": [
+      {
+        "item": "Design doc listed task IDs without TSK_ prefix",
+        "resolution": "Added TSK_GRAIN_ prefix per convention"
+      },
+      {
+        "item": "Design doc listed 'Sand Between' rate as 80 SF/hr without noting grit progression",
+        "resolution": "Added grit progression detail (220→280-320→320) in task notes"
+      }
+    ]
+  }
+}

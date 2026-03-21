@@ -4,7 +4,7 @@
     "version": "2.0.0",
     "purpose": "Canonical registry of all prefixed IDs in the spec system. Agents MUST check this registry before creating new IDs. If the needed ID exists, use it exactly. If it does not exist, propose an addition - do not invent on the fly.",
     "created": "2026-02-06",
-    "last_updated": "2026-03-15",
+    "last_updated": "2026-03-20",
     "naming_rules": {
       "general": "ALL_CAPS_WITH_UNDERSCORES. Prefix identifies the type. ID must be unique across the entire system.",
       "ITM_": "Paintable item. Identifies the PHYSICAL THING being painted. NEVER include phase suffixes (_PRIME, _FINISH) unless the spec family is phase-split AND a collision would occur.",
@@ -151,6 +151,13 @@
         "phase_scope": "full",
         "status": "active",
         "notes": "Combined prime+paint for NC on-site cabinet finishing (kitchen, bath, utility). 4 paintable items (door EA, drawer EA, frame SF, interior SF conditional). Door/drawer removal + flat painting + 5-7 day cure + reinstall. 9 protection zones. 5 modifiers (door_style, quality_tier, height, kitchen_complexity, masking_scope). 58 tasks, 7 modules."
+      },
+      "SF_WOOD_GRAIN_FILL_NC": {
+        "name": "New Construction Wood Grain Fill (Paint Grade)",
+        "domain": "interior",
+        "phase_scope": "add-on",
+        "status": "draft",
+        "notes": "Standalone grain fill add-on for open-grain hardwoods being painted. First add-on spec in system. User-activated toggle. QT-driven fill coat count (1/2/3). Surface profile dominant modifier (1.0-2.8x). 6 tasks, 5 modules. Chains: Parent Prime → Grain Fill → Parent Finish. No protection zones."
       },
       "SF_WOOD_SIDING_EXT_NC_PAINT": {
         "name": "Exterior Wood Siding Prime and Paint",
@@ -649,6 +656,15 @@
         "surface_ref": "cabinet_box_interior",
         "notes": "Conditional on scope=full_with_interior. AWI semi-exposed standard — always QT3 regardless of exterior tier. Spray-only."
       },
+      "ITM_GRAIN_FILL_SURFACE": {
+        "name": "Grain fill surface area",
+        "unit_of_measure": "SF",
+        "used_in": [
+          "SF_WOOD_GRAIN_FILL_NC"
+        ],
+        "surface_ref": "grain_fill_surface",
+        "notes": "Aggregated SF from all grain-fill-enabled substrates after UOM conversion. LF→SF 1:1, EA doors via type-based SF lookup, SF direct. First add-on item in system."
+      },
       "ITM_SIDING_FIELD": {
         "name": "Exterior siding field surface",
         "unit_of_measure": "SF",
@@ -900,6 +916,18 @@
           "SF_CABINET_NC_PAINT"
         ],
         "notes": "Enhanced adhesion bonding primer for smooth MDF, questionable factory primers, and hard-to-bond surfaces. Products: Stix, Extreme Bond, Gripper Premium. Recommended (not required) for QT4+ cabinet work."
+      },
+      "SYS_GRAIN_FILLER_WB": {
+        "name": "Water-Based Grain Filler",
+        "quality_tiers": [
+          "QT3",
+          "QT4",
+          "QT5"
+        ],
+        "used_in": [
+          "SF_WOOD_GRAIN_FILL_NC"
+        ],
+        "notes": "Water-based grain filler (AquaCoat or equivalent) for open-grain hardwoods. Paint-grade only. Coverage varies by grain depth: 60 SF/GAL deep grain, 75 SF/GAL moderate grain. First filler material system (not primer or finish)."
       },
       "SYS_EXT_WOOD_PRIMER_ACRYLIC": {
         "name": "Exterior Acrylic Latex Primer",
@@ -1201,6 +1229,7 @@
       "cabinet_drawer",
       "cabinet_box_interior",
       "cabinet_end_panel",
+      "grain_fill_surface",
       "siding_field",
       "soffit_field",
       "ext_trim_frieze",
@@ -1357,7 +1386,8 @@
       "PS_EXT_PROTECT_EA.LIGHT_FIXTURE",
       "PS_EXT_PROTECT_EA.HVAC_UNIT",
       "PS_EXT_META.FLAG.NEW_CONSTRUCTION",
-      "PS_EXT_PROTECT_LF.LANDSCAPE_PERIMETER"
+      "PS_EXT_PROTECT_LF.LANDSCAPE_PERIMETER",
+      "PS_SURFACE_SF.GRAIN_FILL"
     ]
   },
   "IN_": {
@@ -1452,7 +1482,8 @@
       "IN_EA_EXT_PROTECT_LIGHT_FIXTURE",
       "IN_EA_EXT_PROTECT_HVAC_UNIT",
       "IN_BOOL_NEW_CONSTRUCTION",
-      "IN_LF_EXT_PROTECT_LANDSCAPE_PERIMETER"
+      "IN_LF_EXT_PROTECT_LANDSCAPE_PERIMETER",
+      "IN_SF_GRAIN_FILL"
     ],
     "completed_consolidations": {
       "date": "2026-02-07",
@@ -1531,6 +1562,7 @@
       "TSK_SCRP_*": "Exterior Stucco Repaint tasks (52 tasks)",
       "TSK_TRRP_*": "Exterior Trim Repaint tasks (44 tasks)",
       "TSK_XWRP_*": "Exterior Window Repaint tasks (69 tasks)",
+      "TSK_GRAIN_*": "Wood grain fill tasks (6 tasks — sand prep, fill coat, sand between, final sand QT5, prime seal, sand prime)",
       "TSK_RRP_EXT_*": "Shared exterior RRP lead-safe containment tasks (5 tasks, shared across all exterior RP specs)"
     },
     "inconsistency_notes": "The closet shelf spec uses short generic names (TSK_LIGHT_SAND) while other specs use context-prefixed names (TSK_FRAME_LIGHT_SAND, TSK_DOOR_LIGHT_SAND). Ceiling finish spec uses long descriptive names (TSK_LIGHT_SAND_BETWEEN_COATS_SPRAY). Future specs should use the context-prefixed pattern: TSK_{CONTEXT}_{ACTION}."
@@ -1882,6 +1914,13 @@
         "MOD_XWRP_CLEANUP",
         "MOD_RRP_EXT_CONTAINMENT"
       ],
+      "SF_WOOD_GRAIN_FILL_NC": [
+        "MOD_GRAIN_PREP",
+        "MOD_GRAIN_FILL",
+        "MOD_GRAIN_INTERSTAGE",
+        "MOD_GRAIN_FINAL",
+        "MOD_GRAIN_SEAL"
+      ],
       "SHARED_EXT_RP": [
         "MOD_RRP_EXT_CONTAINMENT"
       ]
@@ -1953,7 +1992,10 @@
       "ROUND_XWRP_PRIME_2FINISH",
       "ROUND_XWRP_2FINISH",
       "ROUND_XWRP_PRIME_2PRIME_2FINISH",
-      "ROUND_XWRP_2PRIME_2FINISH"
+      "ROUND_XWRP_2PRIME_2FINISH",
+      "ROUND_GRAIN_QT3",
+      "ROUND_GRAIN_QT4",
+      "ROUND_GRAIN_QT5"
     ]
   },
   "COV_": {
@@ -2001,7 +2043,9 @@
       "COV_XWRP_PRIMER_CHALK_BIND",
       "COV_XWRP_PRIMER_DTM_SPOT",
       "COV_XWRP_PRIMER_PVC_SPOT",
-      "COV_XWRP_FINISH"
+      "COV_XWRP_FINISH",
+      "COV_GRAIN_FILLER",
+      "COV_GRAIN_SEAL_PRIMER"
     ],
     "notes": "Only door frame spec currently uses formal coverage profile IDs. Other specs embed coverage rates directly in material_systems. Future standardization should extract all coverage data into COV_ profiles."
   },

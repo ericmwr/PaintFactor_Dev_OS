@@ -163,6 +163,25 @@ export default function SubstrateDetailPanel({ room, derived, dispatch, substrat
         </div>
       )}
 
+      {/* Grain Fill toggle (bare wood + paint coating only) */}
+      {isBareWood && coatingType === 'paint' && (
+        <div className="panel-section">
+          <div className="section-title">Grain Fill</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '4px 0' }}>
+            <input type="checkbox" id={`grain-fill-${substrateId}`} checked={!!config.grain_fill}
+              onChange={e => setSub('grain_fill', e.target.checked)} />
+            <label htmlFor={`grain-fill-${substrateId}`} style={{ fontSize: 12 }}>
+              Fill open grain before painting
+            </label>
+          </div>
+          {config.grain_fill && (
+            <div style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 4 }}>
+              Open-grain hardwoods (oak, ash, walnut, hickory, mahogany). Coat count follows quality tier.
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Quantity section */}
       <div className="panel-section">
         <div className="section-title">Quantity ({uom})</div>

@@ -1,0 +1,145 @@
+{
+  "spec_family_id": "SF_WOOD_GRAIN_FILL_NC",
+  "version": "0.1.0",
+  "generated_by": "Estimation Engineer",
+  "generated_at": "2026-03-20",
+
+  "task_production_rates": [
+    {
+      "task_id": "TSK_GRAIN_SAND_PREP",
+      "name": "Sand primed surface 220 grit before grain fill",
+      "unit_of_measure": "SF",
+      "paintscope_key": "PS_SURFACE_SF.GRAIN_FILL",
+      "rate_per_hour": 100,
+      "rate_range_low": 80,
+      "rate_range_high": 130,
+      "notes": "SF/hr for flat surface baseline. 220 grit orbital on flats, hand on profiles. Standard prep sanding rate on already-primed surface. Binary. Apply surface_profile modifier."
+    },
+    {
+      "task_id": "TSK_GRAIN_FILL_COAT",
+      "name": "Apply grain filler skim coat",
+      "unit_of_measure": "SF",
+      "paintscope_key": "PS_SURFACE_SF.GRAIN_FILL",
+      "rate_per_hour": 70,
+      "rate_range_low": 50,
+      "rate_range_high": 90,
+      "notes": "SF/hr for flat surface baseline. Blended flat/profile application — squeegee on flats forcing filler into grain pores, brush on profiles. Wipe excess off cross-grain. qt_scaled — rate is per-coat, coat count driven by QT (1/2/3). Apply surface_profile and wood_species modifiers."
+    },
+    {
+      "task_id": "TSK_GRAIN_SAND_BETWEEN",
+      "name": "Sand between fill coats",
+      "unit_of_measure": "SF",
+      "paintscope_key": "PS_SURFACE_SF.GRAIN_FILL",
+      "rate_per_hour": 80,
+      "rate_range_low": 60,
+      "rate_range_high": 100,
+      "notes": "SF/hr for flat surface baseline. 220-320 grit depending on coat number. Orbital on flats, hand on profiles. qt_scaled — matches fill coat count. Apply surface_profile and wood_species modifiers."
+    },
+    {
+      "task_id": "TSK_GRAIN_FINAL_SAND",
+      "name": "Final sand 400 grit (QT5 only)",
+      "unit_of_measure": "SF",
+      "paintscope_key": "PS_SURFACE_SF.GRAIN_FILL",
+      "rate_per_hour": 60,
+      "rate_range_low": 40,
+      "rate_range_high": 80,
+      "notes": "SF/hr for flat surface baseline. 400 grit hand work only — no orbital at this grit. Glass-smooth surface prep. QT5 only. Binary (runs once when QT5). Apply surface_profile modifier. Wood_species modifier does NOT apply (sanding filled surface, not filling grain)."
+    },
+    {
+      "task_id": "TSK_GRAIN_PRIME_SEAL",
+      "name": "Apply second prime coat (seal coat over filler)",
+      "unit_of_measure": "SF",
+      "paintscope_key": "PS_SURFACE_SF.GRAIN_FILL",
+      "rate_per_hour": 150,
+      "rate_range_low": 120,
+      "rate_range_high": 180,
+      "notes": "SF/hr for flat surface baseline. Standard primer application rate — seal coat is a normal primer coat. Uses parent spec's primer product. Binary. Apply surface_profile modifier. Wood_species modifier does NOT apply (priming, not filling grain)."
+    },
+    {
+      "task_id": "TSK_GRAIN_SAND_PRIME",
+      "name": "Sand second prime 320 grit",
+      "unit_of_measure": "SF",
+      "paintscope_key": "PS_SURFACE_SF.GRAIN_FILL",
+      "rate_per_hour": 90,
+      "rate_range_low": 70,
+      "rate_range_high": 110,
+      "notes": "SF/hr for flat surface baseline. 320 grit light sand for finish coat adhesion tooth. Orbital on flats, hand on profiles. Binary. Apply surface_profile modifier. Wood_species modifier does NOT apply."
+    }
+  ],
+
+  "modifier_registry": {
+    "surface_profile_modifier": {
+      "source": "Design doc — field calibration pending",
+      "flat": 1.0,
+      "light_profile": 1.3,
+      "medium_profile": 2.0,
+      "heavy_profile": 2.8,
+      "application_rule": "Modifiers increase TIME. effective_rate = base_rate / modifier. Apply to ALL SF-based tasks. Profiled surfaces require hand work where flat surfaces can use squeegee/orbital. Heavy_profile is the dominant cost driver in this spec.",
+      "notes": "flat=cabinet doors, flat trim, flat panels. light_profile=simple casing, baseboard with small profile. medium_profile=crown molding, chair rail, standard raised panel. heavy_profile=ornate crown, complex raised panel, dentil trim."
+    },
+    "wood_species_modifier": {
+      "source": "Design doc — field calibration pending",
+      "deep_grain": 1.0,
+      "moderate_grain": 0.85,
+      "application_rule": "Modifiers increase TIME. effective_rate = base_rate / modifier. Apply ONLY to TSK_GRAIN_FILL_COAT and TSK_GRAIN_SAND_BETWEEN. Does NOT apply to TSK_GRAIN_FINAL_SAND, TSK_GRAIN_PRIME_SEAL, or TSK_GRAIN_SAND_PRIME (these tasks work on filled/primed surface, not raw grain).",
+      "notes": "deep_grain=oak, hickory (baseline — most common grain fill substrate). moderate_grain=ash, walnut (shallower grain, faster fill). Modifier makes moderate_grain FASTER than deep_grain (0.85x means effective_rate = base / 0.85 = higher rate)."
+    },
+    "height_modifiers": {
+      "source": "Modifier_Registry.md v1.2",
+      "H1_STANDARD": { "value": 1.0, "height_range": "8-9 ft" },
+      "H2_STEP": { "value": 1.30, "height_range": "9-12 ft" },
+      "H3_EXT": { "value": 1.50, "height_range": "13-17 ft" },
+      "H4_SCAFFOLD": { "value": 2.00, "height_range": "18-24 ft" },
+      "application_rule": "Modifiers increase TIME. effective_rate = base_rate / modifier. Apply to ALL tasks. Standard height modifiers — grain fill work height depends on the substrate being filled."
+    },
+    "coat_count": {
+      "QT3": { "fill_coats": 1, "sand_between_cycles": 1, "final_sand": false },
+      "QT4": { "fill_coats": 2, "sand_between_cycles": 2, "final_sand": false },
+      "QT5": { "fill_coats": 3, "sand_between_cycles": 3, "final_sand": true }
+    }
+  },
+
+  "estimation_notes": {
+    "sf_based": "All 6 tasks use SF as primary UOM. SF from PaintScope input PS_SURFACE_SF.GRAIN_FILL (pre-converted from parent substrate UOM).",
+    "surface_profile_dominance": "Surface profile is the dominant modifier. A heavy_profile surface (crown molding, 2.8x) takes nearly 3x as long as a flat surface (cabinet door, 1.0x). This reflects the reality that grain fill on profiled surfaces requires meticulous hand work on every contour.",
+    "modifier_stacking": "Max theoretical stacking: heavy_profile (2.8) × H3 (1.5) × deep_grain (1.0) = 4.2x. This exceeds the 4.0x flag threshold. Realistic worst case: heavy_profile crown molding at 13+ ft height with deep-grain oak. Flag for review but likely accurate — this is genuinely very slow work.",
+    "wood_species_selective": "Wood species modifier only applies to fill coat and sand between tasks — these are the tasks where grain depth directly affects production rate. Second prime and its sanding are normal coating operations unaffected by grain depth.",
+    "no_dry_times": "Per RC-004: no dry times specified. AquaCoat grain filler typically dries in 30-60 minutes between coats. Refer to product TDS.",
+    "add_on_cost_structure": "Grain fill adds significant cost to the parent spec. Example: QT4 grain fill on 100 SF of flat oak trim = ~3.3 hours (sand prep 1h + 2 fill coats @ 1.4h + 2 sand between @ 1.25h + prime seal 0.67h + sand prime 1.1h ÷ multiplied and adjusted). The cost is justified — grain fill transforms a textured surface into a glass-smooth finish."
+  },
+
+  "assumptions": [
+    {
+      "assumption_id": "A-001",
+      "field": "fill_coat_rate",
+      "value": "70 SF/hr flat surface grain filler application",
+      "source": "Design doc + field estimate",
+      "doctrine_gap": true,
+      "note": "No doctrine provides grain fill production rates. Squeegee + brush technique. Flat surface baseline."
+    },
+    {
+      "assumption_id": "A-002",
+      "field": "surface_profile_modifier_values",
+      "value": "flat=1.0, light=1.3, medium=2.0, heavy=2.8",
+      "source": "Design doc",
+      "doctrine_gap": true,
+      "note": "Profile modifier values need field calibration. The jump from medium (2.0) to heavy (2.8) reflects exponential difficulty increase on ornate profiles."
+    },
+    {
+      "assumption_id": "A-003",
+      "field": "wood_species_modifier_values",
+      "value": "deep_grain=1.0, moderate_grain=0.85",
+      "source": "Design doc",
+      "doctrine_gap": true,
+      "note": "Species modifier values need field calibration."
+    },
+    {
+      "assumption_id": "A-004",
+      "field": "second_prime_rate",
+      "value": "150 SF/hr — standard primer application rate",
+      "source": "Aligned with parent spec primer rates",
+      "doctrine_gap": false,
+      "note": "Second prime is a standard primer coat — uses existing primer rate."
+    }
+  ]
+}

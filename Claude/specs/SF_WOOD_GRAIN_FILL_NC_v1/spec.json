@@ -1,0 +1,241 @@
+{
+  "spec_family": {
+    "id": "SF_WOOD_GRAIN_FILL_NC",
+    "name": "New Construction Wood Grain Fill (Paint Grade)",
+    "description": "Standalone grain fill add-on spec for open-grain hardwoods being painted. User-activated toggle on any bare_wood substrate with paint coating type. Fills open grain pores with water-based grain filler (AquaCoat or similar) before finish painting. Quality tier controls fill coat count: QT3=1 coat, QT4=2 coats, QT5=3 coats. Includes interstage sanding between fill coats and a second prime coat (seal coat) over filled surface. Chains between parent prime spec and parent finish spec: Parent Prime → Grain Fill → Parent Finish. This is the first add-on spec in the system — it does not replace or modify the parent spec, it inserts additional process steps between prime and finish phases. No protection zones (runs within parent spec's already-protected workspace). Single SF-based paintable item (ITM_GRAIN_FILL_SURFACE) representing the sum of all grain-fill-enabled substrates' SF after UOM conversion. Surface_profile is the dominant production modifier (flat=1.0x to heavy_profile=2.8x). Wood_species modifier (deep_grain/moderate_grain) affects fill and sand tasks only.",
+    "domain": "interior",
+    "version": "0.1.0",
+    "status": "draft",
+    "review_required": true
+  },
+
+  "scope_boundaries": {
+    "includes": [
+      "Sand prep of primed surface before grain fill (220 grit)",
+      "Grain filler skim coat application (1/2/3 coats by quality tier)",
+      "Sanding between fill coats (220-320 grit progression)",
+      "Final sand at QT5 only (400 grit for glass-smooth surface)",
+      "Second prime coat (seal coat over filled surface — uses parent spec's primer)",
+      "Sand second prime (320 grit for finish coat adhesion)",
+      "All work on open-grain hardwoods: red oak, white oak, ash, walnut, mahogany, hickory, elm, chestnut"
+    ],
+    "excludes": [
+      {
+        "item": "Initial prime coat — handled by parent prime spec",
+        "route_to": "SF_TRIM_NC_PRIME, SF_DRYWALL_WALL_NC_PRIME, or other parent prime spec"
+      },
+      {
+        "item": "Finish paint coats — handled by parent finish spec",
+        "route_to": "SF_TRIM_NC_PAINT, SF_WOOD_WALL_NC, SF_CABINET_NC_PAINT, or other parent finish spec"
+      },
+      {
+        "item": "Stain-grade grain fill (different process — fill then stain, not fill then paint)",
+        "route_to": "Future stain grain fill spec"
+      },
+      {
+        "item": "Auto-detection of wood species — user decides when grain fill is needed",
+        "route_to": "N/A"
+      },
+      {
+        "item": "Protection setup/teardown — parent spec handles workspace protection",
+        "route_to": "Parent spec protection zones"
+      },
+      {
+        "item": "Closed-grain wood species (maple, cherry, poplar, birch, pine, alder, MDF)",
+        "route_to": "N/A — these species do not need grain fill"
+      }
+    ]
+  },
+
+  "configuration_dimensions": [
+    {
+      "dimension_id": "quality_tier",
+      "description": "Quality tier controlling fill coat count, sanding progression, and final sand. QT3=1 fill coat. QT4=2 fill coats. QT5=3 fill coats + final 400 grit sand.",
+      "values": ["QT3", "QT4", "QT5"],
+      "default": "QT3",
+      "prohibited": ["QT2"],
+      "notes": "QT2 not applicable — grain fill is premium prep work for painted millwork. QT follows project/room tier setting. More coats = more grain pore fill = smoother surface."
+    },
+    {
+      "dimension_id": "surface_profile",
+      "description": "Surface profile complexity. Dominant production modifier — profiled surfaces require hand work.",
+      "values": ["flat", "light_profile", "medium_profile", "heavy_profile"],
+      "default": "flat",
+      "modifiers": {
+        "flat": 1.0,
+        "light_profile": 1.3,
+        "medium_profile": 2.0,
+        "heavy_profile": 2.8
+      },
+      "notes": "flat=cabinet doors, flat trim, flat panels. light_profile=simple casing, baseboard with small profile. medium_profile=crown molding, chair rail, standard raised panel. heavy_profile=ornate crown, complex raised panel, dentil trim."
+    }
+  ],
+
+  "paintable_items": [
+    {
+      "item_id": "ITM_GRAIN_FILL_SURFACE",
+      "name": "Grain fill surface area",
+      "unit_of_measure": "SF",
+      "counting_rules": "Sum of all grain-fill-enabled substrates' SF after UOM conversion. LF substrates (trim, baseboard, casing) convert 1:1 to SF. EA doors convert via type-based SF lookup (slab=~21 SF/side × sides). SF substrates (walls, wainscot, cabinets) pass through directly. Sourced from PaintScope input PS_SURFACE_SF.GRAIN_FILL.",
+      "notes": "Single SF item representing all grain-fill-enabled surfaces. Aggregated from multiple parent substrates. UOM conversion happens in quantity-lookups.js before emitting PS key."
+    }
+  ],
+
+  "variants": [
+    {
+      "variant_id": "VAR_GRAIN_QT3",
+      "applies_when": {
+        "quality_tier": ["QT3"]
+      },
+      "fill_coats": 1,
+      "sand_between_cycles": 1,
+      "final_sand": false,
+      "seal_prime_coats": 1,
+      "round_id": "ROUND_GRAIN_QT3",
+      "protection_zones": [],
+      "notes": "Standard grain fill. 1 fill coat + 1 sand between + seal prime + sand prime. Sufficient for satin finish on standard millwork."
+    },
+    {
+      "variant_id": "VAR_GRAIN_QT4",
+      "applies_when": {
+        "quality_tier": ["QT4"]
+      },
+      "fill_coats": 2,
+      "sand_between_cycles": 2,
+      "final_sand": false,
+      "seal_prime_coats": 1,
+      "round_id": "ROUND_GRAIN_QT4",
+      "protection_zones": [],
+      "notes": "Premium grain fill. 2 fill coats + 2 sands between + seal prime + sand prime. Smoother surface for semi-gloss finish."
+    },
+    {
+      "variant_id": "VAR_GRAIN_QT5",
+      "applies_when": {
+        "quality_tier": ["QT5"]
+      },
+      "fill_coats": 3,
+      "sand_between_cycles": 3,
+      "final_sand": true,
+      "seal_prime_coats": 1,
+      "round_id": "ROUND_GRAIN_QT5",
+      "protection_zones": [],
+      "notes": "Superior grain fill. 3 fill coats + 3 sands between + final 400 grit sand + seal prime + sand prime. Glass-smooth surface for gloss finish."
+    }
+  ],
+
+  "required_paintscope_inputs": [
+    {
+      "input_name": "IN_SF_GRAIN_FILL",
+      "paintscope_key": "PS_SURFACE_SF.GRAIN_FILL",
+      "uom": "SF",
+      "required": true,
+      "description": "Total SF of all grain-fill-enabled substrates after UOM conversion. Emitted by quantity-lookups.js when any substrate has grain_fill=true.",
+      "status": "proposed"
+    },
+    {
+      "input_name": "IN_ENUM_HEIGHT_BAND",
+      "paintscope_key": "PS_META.HEIGHT_BAND",
+      "uom": "ENUM",
+      "required": true,
+      "description": "Height classification for modifier selection. Standard height modifiers applied to all tasks.",
+      "status": "existing"
+    }
+  ],
+
+  "protection_zones_required": [],
+
+  "adjacency_declarations": {
+    "primary_surface": "grain_fill_surface",
+    "adjacent_surfaces": [],
+    "notes": "No adjacency declarations — grain fill is an add-on process that operates on the same surface as the parent spec. It does not interact with adjacent surfaces."
+  },
+
+  "state_declarations": {
+    "primary_surface": "grain_fill_surface",
+
+    "valid_input_states": {
+      "states": ["SS_PRIMED_FIELD", "SS_PRIMED_FACTORY"],
+      "notes": "Surface must already be primed by parent spec. Grain filler adheres to primed surface, not bare wood."
+    },
+
+    "output_state": {
+      "state": "SS_GRAIN_FILLED",
+      "notes": "New state. Surface is grain-filled, sealed with second prime, and sanded 320 grit. Ready for finish paint. Parent finish spec must accept SS_GRAIN_FILLED as valid input state."
+    },
+
+    "adjacent_state_protection_rules": []
+  },
+
+  "site_condition_rules": [],
+
+  "sequencing_notes": {
+    "production_sequence": "Grain fill inserts between parent prime and parent finish specs. Chain: Parent Prime → Grain Fill → Parent Finish. The grain fill process is a prep add-on that happens after initial primer but before finish coats.",
+    "internal_sequence": "Sand prep > Fill coat(s) with interstage sand > [QT5: Final sand] > Seal prime > Sand prime. Single paintable item — no component sequencing.",
+    "coat_sequence": "Sand prep (220) > Fill coat 1 > Sand (220) > [QT4+: Fill coat 2 > Sand (280-320)] > [QT5: Fill coat 3 > Sand (320) > Final sand (400)] > Seal prime > Sand prime (320)"
+  },
+
+  "relationships": {
+    "companion_specs": [],
+    "add_on_to": ["SF_TRIM_NC_PAINT", "SF_TRIM_NC_PRIME", "SF_WOOD_WALL_NC", "SF_WOOD_CEILING_NC", "SF_CABINET_NC_PAINT", "SF_DOOR_SLAB_INT_NC", "SF_WAINSCOT_PANEL_NC", "SF_BUILTIN_NC", "SF_ARCH_ELEMENT_NC"],
+    "chains_after": ["SF_TRIM_NC_PRIME", "SF_DRYWALL_WALL_NC_PRIME"],
+    "chains_before": ["SF_TRIM_NC_PAINT", "SF_WOOD_WALL_NC", "SF_CABINET_NC_PAINT"],
+    "notes": "First add-on spec in the system. Activates via user toggle on any bare_wood paint substrate. Chains between prime and finish phases of parent spec."
+  },
+
+  "dependencies": {
+    "research": "research.json",
+    "materials": "materials.json",
+    "sop_modules": "sop_modules.json",
+    "production": "production.json",
+    "qa_report": "qa_report.json"
+  },
+
+  "doctrine_references": [
+    {
+      "doctrine": "Millwork_NC_Paint_Doctrine.md",
+      "sections_used": ["SS2 — Substrate Classification (hardwood species)", "SS3 — Surface Preparation Matrix"]
+    },
+    {
+      "doctrine": "Fine_Finish_Doctrine.md",
+      "sections_used": ["SS2 — Core Principles", "SS7 — Interstage Process", "SS15.4.1 — Rigid Sanding Block"]
+    },
+    {
+      "doctrine": "Quality_Tiers_and_Surface_Condition.md",
+      "sections_used": ["QT3-QT5 Definitions"]
+    },
+    {
+      "doctrine": "Modifier_Registry.md",
+      "sections_used": ["Height Modifiers (H1-H4)"]
+    },
+    {
+      "doctrine": "Estimation_Modifiers_Doctrine.md",
+      "sections_used": ["Production Rate Philosophy", "Modifier Application Rule (time multipliers, not rate multipliers)"]
+    }
+  ],
+
+  "inherited_research_corrections": [
+    {
+      "correction_id": "RC-004",
+      "original_claim": "Dry times should be specified in specs",
+      "corrected_to": "No dry times in specs — refer to product PDS.",
+      "corrected_by": "Eric",
+      "source": "SF_DRYWALL_WALL_NC_PRIME research"
+    },
+    {
+      "correction_id": "RC-005",
+      "original_claim": "Material system selection is mandatory doctrine",
+      "corrected_to": "Material systems are suggestions per QT — contractor has discretion.",
+      "corrected_by": "Eric",
+      "source": "SF_TRIM_NC_PAINT research"
+    }
+  ],
+
+  "change_log": [
+    {
+      "version": "0.1.0",
+      "date": "2026-03-20",
+      "author": "SpecFactory",
+      "changes": "Initial draft spec for NC wood grain fill (Spec #19 in generation order). Key features: standalone add-on spec (first in system), user-activated toggle, quality tier drives fill coat count (QT3=1, QT4=2, QT5=3), surface_profile dominant modifier (1.0-2.8x), wood_species modifier (deep/moderate grain), single SF paintable item (ITM_GRAIN_FILL_SURFACE) with UOM conversion from parent substrates, no protection zones (parent spec workspace), state chain SS_PRIMED_* → SS_GRAIN_FILLED, 6 tasks across 5 modules, 3 round configurations, 3 variants. New proposed: PS_SURFACE_SF.GRAIN_FILL (aggregation key), SS_GRAIN_FILLED (new state), ITM_GRAIN_FILL_SURFACE (new item), SYS_GRAIN_FILLER_WB (new material system)."
+    }
+  ]
+}

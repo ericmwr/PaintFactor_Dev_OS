@@ -1,0 +1,296 @@
+{
+  "research_metadata": {
+    "spec_family_id": "SF_WOOD_GRAIN_FILL_NC",
+    "research_mode": "lightweight",
+    "brief_source": "docs/superpowers/specs/2026-03-20-wood-grain-fill-spec-design.md",
+    "doctrine_loaded": [
+      "docs/Doctrine/Millwork_NC_Paint_Doctrine.md",
+      "docs/Doctrine/Fine_Finish_Doctrine.md",
+      "docs/Doctrine/Quality_Tiers_and_Surface_Condition.md",
+      "docs/Doctrine/Materials_and_Consumables_Doctrine.md",
+      "docs/Doctrine/Modifier_Registry.md",
+      "docs/Doctrine/Estimation_Modifiers_Doctrine.md",
+      "docs/Reference/Surface_Vocabulary_Reference.md",
+      "docs/Reference/Substrate_State_Reference.md",
+      "docs/PaintScope/PaintScope_Quantity_Key_Catalog.md",
+      "docs/PaintScope/Spec_Input_to_PaintScope_Key_Mapping.md"
+    ],
+    "sibling_specs_reviewed": [
+      "specs/SF_TRIM_NC_PAINT_v1/spec.json",
+      "specs/SF_WOOD_WALL_NC_v1/spec.json",
+      "specs/SF_CABINET_NC_PAINT_v1/spec.json",
+      "specs/SF_DOOR_SLAB_INT_NC_v1/spec.json"
+    ],
+    "researcher": "Spec Researcher Agent",
+    "date": "2026-03-20",
+    "status": "draft",
+    "review_required": true
+  },
+
+  "scope_summary": {
+    "description": "Standalone grain fill add-on spec for open-grain hardwoods being painted. User-activated toggle on any bare_wood substrate with paint coating type. Fills open grain pores with water-based grain filler (AquaCoat or similar) before finish painting. Quality tier controls fill coat count (QT3=1, QT4=2, QT5=3). Includes interstage sanding between fill coats and a second prime coat (seal coat) over filled surface. This is a prep add-on that chains between the parent prime spec and parent finish spec.",
+    "paintable_items": [
+      {
+        "item_id": "ITM_GRAIN_FILL_SURFACE",
+        "name": "Grain fill surface area",
+        "unit_of_measure": "SF",
+        "notes": "SF of all grain-fill-enabled substrates, converted from native UOM. LF substrates (trim, baseboard) convert 1:1 to SF. EA doors convert via type-based SF lookup. SF substrates (walls, wainscot, cabinets) pass through directly."
+      }
+    ],
+    "config_dimensions": ["quality_tier", "surface_profile"],
+    "boundaries": {
+      "includes": [
+        "Sand prep of primed surface before grain fill (220 grit)",
+        "Grain filler application (1/2/3 coats by QT)",
+        "Sanding between fill coats (220-320 grit by coat)",
+        "Final sand at QT5 (400 grit)",
+        "Second prime coat (seal coat over filler)",
+        "Sand second prime (320 grit)"
+      ],
+      "excludes": [
+        {
+          "item": "Initial prime coat — handled by parent prime spec",
+          "route_to": "SF_TRIM_NC_PRIME, SF_DRYWALL_WALL_NC_PRIME, etc."
+        },
+        {
+          "item": "Finish paint coats — handled by parent finish spec",
+          "route_to": "SF_TRIM_NC_PAINT, SF_WOOD_WALL_NC, etc."
+        },
+        {
+          "item": "Stain-grade grain fill (different process — fill then stain)",
+          "route_to": "Future stain grain fill spec"
+        },
+        {
+          "item": "Auto-detection of wood species — user decides when grain fill is needed",
+          "route_to": "N/A"
+        },
+        {
+          "item": "Protection setup/teardown — parent spec handles workspace protection",
+          "route_to": "Parent spec protection zones"
+        }
+      ]
+    }
+  },
+
+  "relevant_findings": [
+    {
+      "finding_id": "RF-001",
+      "topic": "Standalone add-on architecture",
+      "finding": "Grain fill is a standalone spec that runs alongside (not within) the parent paint spec. It chains between the parent prime spec and parent finish spec: Parent Prime → Grain Fill → Parent Finish. This is the first add-on spec in the system — it does not replace or modify the parent spec, it inserts additional process steps between prime and finish phases.",
+      "impact": "No protection zones needed (parent spec's workspace protection is already in place). No setup/cleanup module. Spec activates via user toggle, not automatic detection.",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-002",
+      "topic": "Quality tier drives fill coat count",
+      "finding": "QT3: 1 fill coat + 1 sand between. QT4: 2 fill coats + 2 sands between. QT5: 3 fill coats + 3 sands between + final sand (400 grit). All tiers get a second prime coat (seal coat) over the filled surface, sanded 320 grit. The fill coat count is the primary quality differentiator — more coats = more grain pore fill = smoother surface.",
+      "impact": "qt_scaled tasks for fill and sand. TSK_GRAIN_FINAL_SAND is QT5-only (applies_when). Round configurations vary by QT.",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-003",
+      "topic": "Surface profile is dominant production modifier",
+      "finding": "Open-grain wood surfaces range from flat (cabinet doors, flat trim) to heavily profiled (crown molding, raised panel doors). Profiled surfaces require hand work where flat surfaces can use squeegee or orbital sander. Profile modifier: flat=1.0x, light_profile=1.3x, medium_profile=2.0x, heavy_profile=2.8x. This is the largest single modifier in the spec.",
+      "impact": "surface_profile modifier applied to all SF-based tasks. Heavy_profile surfaces may exceed the 4.0x modifier stacking threshold when combined with height and species modifiers.",
+      "confidence": "medium — profile modifier values need field calibration"
+    },
+    {
+      "finding_id": "RF-004",
+      "topic": "Wood species affects grain fill rate",
+      "finding": "Deep-grain species (oak, hickory) require more filler per coat and slower application than moderate-grain species (ash, walnut). Deep grain pores absorb more filler, requiring heavier application. Species modifier: deep_grain=1.0x (baseline — most common), moderate_grain=0.85x (faster).",
+      "impact": "wood_species modifier applied to fill coat and sanding tasks. Does NOT affect second prime coat.",
+      "confidence": "medium — species modifier values need field calibration"
+    },
+    {
+      "finding_id": "RF-005",
+      "topic": "AquaCoat water-based grain filler is preferred product",
+      "finding": "AquaCoat White Grain Filler is the industry standard water-based grain filler for painted wood. Water-based cleanup, low VOC, fills grain without excessive shrinkage. Coverage varies by grain depth: 60 SF/GAL per coat for deep grain, 75 SF/GAL for moderate grain. 12% waste factor for squeegee/brush application.",
+      "impact": "Single material system (SYS_GRAIN_FILLER_WB). Coverage profile varies by wood_species modifier.",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-006",
+      "topic": "Second prime coat is seal coat, not structural primer",
+      "finding": "The second prime coat after grain fill serves as a seal coat — it encapsulates the filled grain surface and provides a uniform base for the finish coat. It uses the same primer as the parent spec's prime system. This is NOT a new primer system — it reuses whatever primer the parent spec selected based on substrate chemistry.",
+      "impact": "No new SYS_ primer IDs needed. Second prime coverage uses parent spec's primer coverage profile. Task uses standard prime application rate.",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-007",
+      "topic": "UOM conversion from parent substrate",
+      "finding": "Grain fill spec uses SF as native UOM. Parent substrates may use different UOM: LF (trim, baseboard, casing) converts 1:1 to SF. EA doors convert via type-based SF lookup (slab=~21 SF/side). SF substrates (walls, wainscot, cabinets) pass through directly. The conversion happens in quantity-lookups.js when emitting PS_SURFACE_SF.GRAIN_FILL.",
+      "impact": "PS key PS_SURFACE_SF.GRAIN_FILL is the sum of all grain-fill-enabled substrates' SF after UOM conversion. Spec receives pre-converted SF — no internal UOM conversion needed.",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-008",
+      "topic": "Grain fill only on open-grain hardwoods being painted",
+      "finding": "Open-grain species requiring fill: Red Oak, White Oak, Ash, Walnut, Mahogany, Hickory, Elm, Chestnut. Closed-grain species that do NOT need fill: Maple, Cherry, Poplar, Birch, Pine, Alder, MDF. Grain fill is ONLY for paint coating type — stain-grade grain fill is a different process (fill then stain vs fill then paint).",
+      "impact": "Activation conditions: substrate_state=bare_wood AND coating_type=paint AND substrate in WOOD_SUBSTRATES with open grain. UI shows toggle only when all conditions met.",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-009",
+      "topic": "State chain integration",
+      "finding": "Input states: SS_PRIMED_FIELD (field-primed), SS_PRIMED_FACTORY (factory-primed). Output state: SS_GRAIN_FILLED (new state). The chain is: Parent prime spec outputs SS_PRIMED_* → Grain Fill spec reads SS_PRIMED_* and outputs SS_GRAIN_FILLED → Parent finish spec reads SS_GRAIN_FILLED and applies finish coats. SS_GRAIN_FILLED is a new substrate state that needs to be registered.",
+      "impact": "New state SS_GRAIN_FILLED must be added to controlled_enums.json. Parent finish specs must be updated to accept SS_GRAIN_FILLED as valid input state.",
+      "confidence": "high"
+    },
+    {
+      "finding_id": "RF-010",
+      "topic": "No protection zones needed",
+      "finding": "Grain fill runs within the parent spec's already-protected workspace. Floor protection, masking, and fixture covers are already in place from the parent prime spec's setup module. Grain fill does not generate overspray (squeegee/brush application) and produces minimal dust (hand sanding). No additional protection needed.",
+      "impact": "No protection_zones_required in spec.json. No protection_metadata in sop_modules.json. No protection materials in materials.json.",
+      "confidence": "high"
+    }
+  ],
+
+  "required_paintscope_keys": [
+    {
+      "key": "PS_SURFACE_SF.GRAIN_FILL",
+      "uom": "SF",
+      "status": "proposed",
+      "description": "Total SF of all grain-fill-enabled substrates after UOM conversion. Emitted by quantity-lookups.js when any substrate has grain_fill=true.",
+      "source": "quantity-lookups.js grain fill aggregation"
+    },
+    {
+      "key": "PS_META.HEIGHT_BAND",
+      "uom": "ENUM",
+      "status": "existing",
+      "description": "Height classification for modifier selection.",
+      "source": "Room-level metadata"
+    }
+  ],
+
+  "proposed_new_keys": [
+    {
+      "key": "PS_SURFACE_SF.GRAIN_FILL",
+      "rationale": "New aggregation key — sums SF from all substrates with grain_fill=true, converting from native UOM.",
+      "source": "quantity-lookups.js"
+    }
+  ],
+
+  "state_analysis": {
+    "input_states": ["SS_PRIMED_FIELD", "SS_PRIMED_FACTORY"],
+    "output_state": "SS_GRAIN_FILLED",
+    "new_states_proposed": ["SS_GRAIN_FILLED"],
+    "notes": "SS_GRAIN_FILLED is a new state. Parent finish specs need to accept it as valid input. The grain-filled surface is ready for finish paint — the second prime coat provides uniform adhesion base."
+  },
+
+  "modifiers_proposed": [
+    {
+      "modifier_id": "MOD_GRAIN_SURFACE_PROFILE",
+      "name": "Surface profile complexity",
+      "values": {
+        "flat": { "time_multiplier": 1.0, "notes": "Cabinet doors, flat trim, flat panels" },
+        "light_profile": { "time_multiplier": 1.3, "notes": "Simple casing, baseboard with small profile" },
+        "medium_profile": { "time_multiplier": 2.0, "notes": "Crown molding, chair rail, standard raised panel" },
+        "heavy_profile": { "time_multiplier": 2.8, "notes": "Ornate crown, complex raised panel, dentil trim" }
+      },
+      "applies_to": "All SF-based tasks (fill, sand, prime)",
+      "mechanism": "time_multiplier — effective_rate = base_rate / modifier"
+    },
+    {
+      "modifier_id": "MOD_GRAIN_WOOD_SPECIES",
+      "name": "Wood grain depth",
+      "values": {
+        "deep_grain": { "time_multiplier": 1.0, "notes": "Oak, hickory — baseline (most common)" },
+        "moderate_grain": { "time_multiplier": 0.85, "notes": "Ash, walnut — shallower grain, faster fill" }
+      },
+      "applies_to": "Fill coat and sanding tasks only (not second prime)",
+      "mechanism": "time_multiplier — effective_rate = base_rate / modifier"
+    },
+    {
+      "modifier_id": "MOD_GRAIN_HEIGHT",
+      "name": "Height band modifier",
+      "values": {
+        "H1_STANDARD": { "time_multiplier": 1.0 },
+        "H2_STEP": { "time_multiplier": 1.30 },
+        "H3_EXT": { "time_multiplier": 1.50 },
+        "H4_SCAFFOLD": { "time_multiplier": 2.00 }
+      },
+      "applies_to": "All tasks",
+      "mechanism": "time_multiplier — standard height modifiers from Modifier_Registry"
+    }
+  ],
+
+  "notes_for_materials_manager": [
+    "Single material system: water-based grain filler (AquaCoat or equivalent).",
+    "Coverage varies by grain depth: 60 SF/GAL deep grain, 75 SF/GAL moderate grain.",
+    "Waste factor 12% for squeegee/brush application.",
+    "Sandpaper: 220 grit (prep + between coats), 280/320 grit (later coats), 400 grit (QT5 final sand).",
+    "Second prime coat uses parent spec's primer — no new primer system needed.",
+    "No protection materials — parent spec handles workspace protection."
+  ],
+
+  "notes_for_sop_librarian": [
+    "5 modules: PREP, FILL, INTERSTAGE, FINAL (QT5 only), SEAL.",
+    "No SETUP or CLEANUP modules — parent spec handles these.",
+    "Fill coat (MOD_GRAIN_FILL) repeats by QT: 1/2/3 coats.",
+    "Interstage sand (MOD_GRAIN_INTERSTAGE) repeats by QT: 1/2/3 cycles.",
+    "MOD_GRAIN_FINAL is QT5-only (applies_when).",
+    "MOD_GRAIN_SEAL includes both second prime coat and sand prime.",
+    "6 total tasks across 5 modules."
+  ],
+
+  "notes_for_estimation_engineer": [
+    "All rates are SF/hr — no EA or FIXED tasks.",
+    "Base rates from design doc: sand prep 100, fill coat 70, sand between 80, final sand 60, second prime 150, sand prime 90.",
+    "Surface profile is dominant modifier — heavy_profile at 2.8x can make this a very slow process.",
+    "Wood species modifier only applies to fill and sand tasks, not second prime.",
+    "Height modifiers are standard from Modifier_Registry.",
+    "Max modifier stacking: heavy_profile (2.8) × height H3 (1.5) × deep_grain (1.0) = 4.2x — exceeds 4.0x flag threshold. Document this."
+  ],
+
+  "inherited_research_corrections": [
+    {
+      "correction_id": "RC-004",
+      "original_claim": "Dry times should be specified in specs",
+      "corrected_to": "No dry times in specs — refer to product PDS.",
+      "corrected_by": "Eric",
+      "source": "SF_DRYWALL_WALL_NC_PRIME research"
+    },
+    {
+      "correction_id": "RC-005",
+      "original_claim": "Material system selection is mandatory doctrine",
+      "corrected_to": "Material systems are suggestions per QT — contractor has discretion.",
+      "corrected_by": "Eric",
+      "source": "SF_TRIM_NC_PAINT research"
+    }
+  ],
+
+  "assumptions": [
+    {
+      "assumption_id": "U-001",
+      "field": "fill_coat_rate",
+      "value": "70 SF/hr for flat surface grain filler application",
+      "source": "Design doc + field estimate",
+      "doctrine_gap": true,
+      "note": "No doctrine provides grain fill production rates. Based on squeegee + brush application method, flat surface baseline."
+    },
+    {
+      "assumption_id": "U-002",
+      "field": "surface_profile_modifier",
+      "value": "flat=1.0, light_profile=1.3, medium_profile=2.0, heavy_profile=2.8",
+      "source": "Design doc",
+      "doctrine_gap": true,
+      "note": "Profile modifiers need field calibration. Heavy_profile (2.8x) is aggressive — profiled surfaces require hand work on every contour."
+    },
+    {
+      "assumption_id": "U-003",
+      "field": "wood_species_modifier",
+      "value": "deep_grain=1.0, moderate_grain=0.85",
+      "source": "Design doc",
+      "doctrine_gap": true,
+      "note": "Species modifier values need field calibration. Oak (deep grain) is baseline as most common grain fill substrate."
+    },
+    {
+      "assumption_id": "U-004",
+      "field": "grain_filler_coverage",
+      "value": "60 SF/GAL (deep grain), 75 SF/GAL (moderate grain) per coat",
+      "source": "AquaCoat product data + field estimate",
+      "doctrine_gap": true,
+      "note": "Coverage varies significantly by grain depth and application technique."
+    }
+  ]
+}

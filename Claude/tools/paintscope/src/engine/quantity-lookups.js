@@ -122,6 +122,26 @@ export function buildRoomQuantityLookups(state) {
       addQ('PS_SURFACE_LF.ARCH_BEAM', 'LF', d.beamTotalLF);
     }
 
+    // Grain Fill — aggregate SF from all substrates with grain_fill enabled
+    // UOM conversion: LF→SF 1:1, EA→SF 20 SF/EA baseline, SF direct
+    let grainFillSF = 0;
+    Object.entries(subs).forEach(([subId, cfg]) => {
+      if (!cfg || !cfg.grain_fill) return;
+      const cat = SUBSTRATE_MAP[subId];
+      if (!cat) return;
+      const uomSub = cat.uom;
+      let sf = 0;
+      if (uomSub === 'SF') {
+        sf = parseFloat(cfg.sf_manual) || 0;
+      } else if (uomSub === 'LF') {
+        sf = parseFloat(cfg.lf_manual) || (d[subId + '_lf'] || 0);
+      } else if (uomSub === 'EA') {
+        sf = (parseInt(cfg.ea_manual) || 0) * 20;
+      }
+      grainFillSF += sf;
+    });
+    if (grainFillSF > 0) addQ('PS_SURFACE_SF.GRAIN_FILL', 'SF', grainFillSF);
+
     // Edges
     addQ('PS_EDGE_LF.TO_CEILING', 'LF', d.perimeter);
     const trimLF = d.baseboard_lf + d.door_casing_lf + d.window_casing_lf;
