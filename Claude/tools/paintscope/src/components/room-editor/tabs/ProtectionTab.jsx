@@ -174,6 +174,16 @@ export default function ProtectionTab({ room, derived, dispatch, project }) {
                       )}
                     </div>
                   </div>
+                  <div style={{ marginTop: 6, display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <input type="checkbox" id="fw-deduct-baseboard" checked={cfg.deduct_baseboard || false}
+                      onChange={e => setFix('deduct_baseboard', e.target.checked)} />
+                    <label htmlFor="fw-deduct-baseboard" style={{ fontSize: 12 }}>
+                      Deduct baseboard LF along feature wall
+                    </label>
+                    <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>
+                      {cfg.deduct_baseboard ? `\u2212${Math.round((parseFloat(cfg.length_ft) || 0) * (parseInt(cfg.count) || 1))} LF` : ''}
+                    </span>
+                  </div>
                   <div style={{ marginTop: 6 }}>
                     <div className="field-label">Notes</div>
                     <input type="text" value={cfg.notes || ''} onChange={e => setFix('notes', e.target.value)} style={{ width: '100%' }} placeholder="e.g., shiplap accent wall, stone veneer" />

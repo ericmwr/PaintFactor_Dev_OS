@@ -110,6 +110,10 @@ export function deriveRoom(room) {
   const featureWallDeduct = fwFixture
     ? Math.round((parseFloat(fwFixture.length_ft) || 0) * (parseFloat(fwFixture.height_ft) || 0) * (parseInt(fwFixture.count) || 1))
     : 0;
+  // Feature wall baseboard LF deduction (when user checks "deduct baseboard")
+  const fwBaseboardDeduct = (fwFixture && fwFixture.deduct_baseboard)
+    ? Math.round((parseFloat(fwFixture.length_ft) || 0) * (parseInt(fwFixture.count) || 1))
+    : 0;
 
   // Walls — only derive if substrate checked
   const wall_field_sf = subs.walls
@@ -130,7 +134,10 @@ export function deriveRoom(room) {
     return parseFloat(subs[subId].lf_manual)||0;
   }
 
-  const baseboard_lf = deriveLF('baseboard');
+  const baseboard_lf_raw = deriveLF('baseboard');
+  const baseboard_lf = fwBaseboardDeduct > 0 && !subs.baseboard?.lf_override
+    ? Math.max(0, baseboard_lf_raw - fwBaseboardDeduct)
+    : baseboard_lf_raw;
   const crown_lf = deriveLF('crown');
   const door_casing_lf = deriveLF('door_casing');
   const window_casing_lf = deriveLF('window_casing');
@@ -155,7 +162,7 @@ export function deriveRoom(room) {
     L, W, H, effectiveHeight, perimeter,
     totalOpenings, openingCasingLF, doorOpeningDeduction,
     totalDoors, totalWindows, openingDeduction,
-    wallGross, wallNet, ceilingSF, vaultedExtra, gableExtra, pitch, featureWallDeduct,
+    wallGross, wallNet, ceilingSF, vaultedExtra, gableExtra, pitch, featureWallDeduct, fwBaseboardDeduct,
     heightBand,
     wall_field_sf, ceiling_field_sf,
     baseboard_lf, crown_lf, door_casing_lf, window_casing_lf,
