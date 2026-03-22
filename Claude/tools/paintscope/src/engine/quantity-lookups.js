@@ -136,9 +136,17 @@ export function buildRoomQuantityLookups(state) {
         const cat = SUBSTRATE_MAP[subId];
         if (cat) {
           const uomSub = cat.uom;
-          if (uomSub === 'SF') subSF += parseFloat(cfg.sf_manual) || 0;
-          else if (uomSub === 'LF') subSF += parseFloat(cfg.lf_manual) || (d[subId + '_lf'] || 0);
-          else if (uomSub === 'EA') subSF += (parseInt(cfg.ea_manual) || 0) * 20;
+          if (uomSub === 'SF') {
+            // SF: manual override or auto-derived
+            subSF += parseFloat(cfg.sf_manual) || (cat.autoDerive ? (cat.autoDerive(d) || 0) : 0);
+          } else if (uomSub === 'LF') {
+            // LF→SF 1:1: manual override or auto-derived
+            subSF += parseFloat(cfg.lf_manual) || (d[subId + '_lf'] || 0);
+          } else if (uomSub === 'EA') {
+            // EA→SF: manual or auto-derived (door_frames, window_jamb, etc.) × 20 SF baseline
+            const eaCount = parseInt(cfg.ea_manual) || (d[subId + '_ea'] || 0);
+            subSF += eaCount * 20;
+          }
         }
       }
       // Per-item grain_fill (doors, windows — each item can have grain_fill independently)
