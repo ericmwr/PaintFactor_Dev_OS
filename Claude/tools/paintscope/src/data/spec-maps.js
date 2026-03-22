@@ -199,6 +199,40 @@ export const STAIN_SPEC_FAMILIES = new Set([
   'SF_ARCH_ELEMENT_NC_STAIN',
 ]);
 
+// Maps substrate IDs to their parent paint/finish spec for grain fill attribution.
+// Grain fill hours computed under SF_WOOD_GRAIN_FILL_NC are redistributed into
+// these parent specs so they appear as prep tasks under the parent line item.
+export const GRAIN_FILL_PARENT_SPEC = {
+  // Trim group — all roll into SF_TRIM_NC_PAINT
+  'baseboard':       'SF_TRIM_NC_PAINT',
+  'crown':           'SF_TRIM_NC_PAINT',
+  'door_casing':     'SF_TRIM_NC_PAINT',
+  'window_casing':   'SF_TRIM_NC_PAINT',
+  'chair_rail':      'SF_TRIM_NC_PAINT',
+  'shoe_mold':       'SF_TRIM_NC_PAINT',
+  'wainscot_cap':    'SF_TRIM_NC_PAINT',
+  'picture_rail':    'SF_TRIM_NC_PAINT',
+  'window_stool':    'SF_TRIM_NC_PAINT',
+  'window_apron':    'SF_TRIM_NC_PAINT',
+  'shadow_box':      'SF_TRIM_NC_PAINT',
+  'panel_mold':      'SF_TRIM_NC_PAINT',
+  // Doors & Windows
+  'doors':           'SF_DOOR_SLAB_INT_NC',
+  'door_frames':     'SF_DOOR_FRAME_NC_FINISH',
+  'windows':         'SF_WINDOW_INT_NC',
+  'window_jamb':     'SF_WINDOW_INT_NC',
+  // Specialty wood
+  'wainscoting':     'SF_WAINSCOT_PANEL_NC',
+  'wood_feature_wall':'SF_WOOD_WALL_NC',
+  'wood_ceiling':    'SF_WOOD_CEILING_NC',
+  'beams':           'SF_ARCH_ELEMENT_NC',
+  'columns':         'SF_ARCH_ELEMENT_NC',
+  'mantels':         'SF_ARCH_ELEMENT_NC',
+  'builtins':        'SF_BUILTIN_NC',
+  'stair_risers':    'SF_STAIR_RISER_NC',
+  'stair_railing':   'SF_STAIR_RAILING_NC',
+};
+
 export function resolveStainOutputState(specId, coatingType) {
   if (!STAIN_SPEC_FAMILIES.has(specId)) return SPEC_OUTPUT_STATES[specId] || null;
   if (coatingType === 'stain_only') return 'SS_STAINED';

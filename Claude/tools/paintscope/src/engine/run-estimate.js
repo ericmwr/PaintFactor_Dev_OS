@@ -10,7 +10,7 @@ import { computeMaterialEstimates, computeExteriorMaterialEstimates } from './ma
 import { resolveRoomFloorProtection } from './floor-protection.js';
 import { resolveRoomFixtureProtection } from './fixture-protection.js';
 import { resolveExteriorProtection } from './exterior-protection.js';
-import { SPEC_SUBSTRATE_MAP, SPEC_OUTPUT_STATES, UI_STATE_TO_SPEC_STATE, SPEC_VALID_INPUT_STATES, EXT_UI_STATE_TO_SPEC_STATE, EXTERIOR_SPEC_IDS, getExteriorSpecIds, STAIN_SPEC_FAMILIES } from '../data/spec-maps.js';
+import { SPEC_SUBSTRATE_MAP, SPEC_OUTPUT_STATES, UI_STATE_TO_SPEC_STATE, SPEC_VALID_INPUT_STATES, EXT_UI_STATE_TO_SPEC_STATE, EXTERIOR_SPEC_IDS, getExteriorSpecIds, STAIN_SPEC_FAMILIES, GRAIN_FILL_PARENT_SPEC } from '../data/spec-maps.js';
 import { SPEC_DISPLAY_NAMES, specDisplayName, PHASE_ORDER, ARCH_ELEMENT_PS_GROUPS } from '../data/constants.js';
 import { FIXTURE_CATALOG } from '../data/fixture-catalog.js';
 import { WINDOW_TYPE_LABELS, WINDOW_SIZE_LABELS, DOOR_TYPE_LABELS } from '../data/modifiers.js';
@@ -384,6 +384,75 @@ export function runEstimate(state, db, overlayMap) {
       grandTotalHours += specTotalHours;
     }
   });
+
+  // Redistribute grain fill tasks into parent spec results.
+  // Grain fill is computed as a standalone spec but hours should appear under the
+  // parent line item (Trim, Door Frames, etc.) rather than as a separate entry.
+  const grainFillIdx = specResults.findIndex(sr => sr.specId === 'SF_WOOD_GRAIN_FILL_NC');
+  if (grainFillIdx >= 0) {
+    const gfResult = specResults[grainFillIdx];
+    // Group grain fill tasks by room, then distribute to parent specs by SF proportion
+    const tasksByRoom = {};
+    gfResult.tasks.forEach(t => {
+      if (!tasksByRoom[t.roomIndex]) tasksByRoom[t.roomIndex] = [];
+      tasksByRoom[t.roomIndex].push(t);
+    });
+
+    Object.entries(tasksByRoom).forEach(([ri, tasks]) => {
+      const roomQty = roomLookups.get(parseInt(ri));
+      const breakdown = roomQty && roomQty.get('_GRAIN_FILL_BREAKDOWN');
+      if (!breakdown) return;
+
+      const totalSF = Object.values(breakdown).reduce((s, v) => s + v, 0);
+      if (totalSF <= 0) return;
+
+      // For each substrate that contributed grain fill SF, find its parent spec
+      // and allocate a proportional share of grain fill tasks
+      Object.entries(breakdown).forEach(([subId, sf]) => {
+        const parentSpecId = GRAIN_FILL_PARENT_SPEC[subId];
+        if (!parentSpecId) return;
+        const proportion = sf / totalSF;
+
+        // Find or create the parent spec result
+        let parentResult = specResults.find(sr => sr.specId === parentSpecId);
+        if (!parentResult) {
+          // Parent spec may not have fired (e.g., factory_primed trim with grain fill on door frames only)
+          // In this case, create a minimal parent result
+          const parentSpec = db.spec_families.find(s => s.id === parentSpecId);
+          parentResult = {
+            specId: parentSpecId,
+            specName: parentSpec ? parentSpec.name : parentSpecId,
+            domain: 'interior',
+            totalHours: 0,
+            phaseHours: {},
+            tasks: []
+          };
+          specResults.push(parentResult);
+        }
+
+        // Create prorated copies of each grain fill task for this parent
+        tasks.forEach(t => {
+          const proratedHours = Math.round(t.hours * proportion * 1000) / 1000;
+          const proratedQty = Math.round(t.quantity * proportion * 100) / 100;
+          if (proratedHours <= 0) return;
+          parentResult.tasks.push({
+            ...t,
+            hours: proratedHours,
+            quantity: proratedQty,
+            specId: parentSpecId,
+            taskName: `Grain Fill: ${t.taskName}`,
+            isGrainFill: true,
+          });
+          parentResult.totalHours = Math.round((parentResult.totalHours + proratedHours) * 100) / 100;
+          const p = t.phase || 'prep';
+          parentResult.phaseHours[p] = Math.round(((parentResult.phaseHours[p] || 0) + proratedHours) * 100) / 100;
+        });
+      });
+    });
+
+    // Remove the standalone grain fill spec result
+    specResults.splice(grainFillIdx, 1);
+  }
 
   // Split door/window specs into per-type sub-entries for grouped display
   const SPECS_WITH_ITEM_GROUPS = [

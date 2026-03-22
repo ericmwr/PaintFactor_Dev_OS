@@ -125,17 +125,20 @@ export function buildRoomQuantityLookups(state) {
     // Grain Fill — aggregate SF from all substrates with grain_fill enabled
     // UOM conversion: LF→SF 1:1, EA→SF 20 SF/EA baseline, SF direct
     // Also checks per-item grain_fill on doors and windows (items-based substrates)
+    // Tracks per-substrate breakdown for attribution to parent specs
     let grainFillSF = 0;
+    const grainFillBreakdown = {}; // { substrateId: sfContribution }
     Object.entries(subs).forEach(([subId, cfg]) => {
       if (!cfg) return;
+      let subSF = 0;
       // Top-level grain_fill (trim, specialty substrates)
       if (cfg.grain_fill) {
         const cat = SUBSTRATE_MAP[subId];
         if (cat) {
           const uomSub = cat.uom;
-          if (uomSub === 'SF') grainFillSF += parseFloat(cfg.sf_manual) || 0;
-          else if (uomSub === 'LF') grainFillSF += parseFloat(cfg.lf_manual) || (d[subId + '_lf'] || 0);
-          else if (uomSub === 'EA') grainFillSF += (parseInt(cfg.ea_manual) || 0) * 20;
+          if (uomSub === 'SF') subSF += parseFloat(cfg.sf_manual) || 0;
+          else if (uomSub === 'LF') subSF += parseFloat(cfg.lf_manual) || (d[subId + '_lf'] || 0);
+          else if (uomSub === 'EA') subSF += (parseInt(cfg.ea_manual) || 0) * 20;
         }
       }
       // Per-item grain_fill (doors, windows — each item can have grain_fill independently)
@@ -144,12 +147,20 @@ export function buildRoomQuantityLookups(state) {
           if (item.grain_fill && item.substrate_state === 'bare_wood' && (item.coating_type || 'paint') === 'paint') {
             const cnt = parseInt(item.count) || 0;
             const sides = (subId === 'doors') ? cnt * (parseInt(item.sides_per_door) || 2) : cnt;
-            grainFillSF += sides * 20; // ~20 SF per EA/side baseline
+            subSF += sides * 20; // ~20 SF per EA/side baseline
           }
         });
       }
+      if (subSF > 0) {
+        grainFillSF += subSF;
+        grainFillBreakdown[subId] = (grainFillBreakdown[subId] || 0) + subSF;
+      }
     });
-    if (grainFillSF > 0) addQ('PS_SURFACE_SF.GRAIN_FILL', 'SF', grainFillSF);
+    if (grainFillSF > 0) {
+      addQ('PS_SURFACE_SF.GRAIN_FILL', 'SF', grainFillSF);
+      // Store breakdown for parent spec attribution (not a PS key — metadata only)
+      qty.set('_GRAIN_FILL_BREAKDOWN', grainFillBreakdown);
+    }
 
     // Edges
     addQ('PS_EDGE_LF.TO_CEILING', 'LF', d.perimeter);
