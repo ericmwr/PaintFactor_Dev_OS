@@ -105,15 +105,16 @@ export function deriveRoom(room) {
     beamTotalLF = Math.round(beamTotalLF);
   }
 
-  // Feature wall deduction (from protection fixtures)
-  const fwFixture = room.fixtures?.feature_wall;
-  const featureWallDeduct = fwFixture
-    ? Math.round((parseFloat(fwFixture.length_ft) || 0) * (parseFloat(fwFixture.height_ft) || 0) * (parseInt(fwFixture.count) || 1))
-    : 0;
-  // Feature wall baseboard LF deduction (when user checks "deduct baseboard")
-  const fwBaseboardDeduct = (fwFixture && fwFixture.deduct_baseboard)
-    ? Math.round((parseFloat(fwFixture.length_ft) || 0) * (parseInt(fwFixture.count) || 1))
-    : 0;
+  // Feature wall deductions (from protection fixtures — supports multiple items)
+  const fwItems = room.fixtures?.feature_wall?.items || [];
+  // Backwards compat: old format had count/length_ft/height_ft at top level
+  const fwLegacy = room.fixtures?.feature_wall;
+  const fwItemsResolved = fwItems.length > 0 ? fwItems
+    : (fwLegacy && fwLegacy.length_ft ? [{ length_ft: fwLegacy.length_ft, height_ft: fwLegacy.height_ft, count: fwLegacy.count, deduct_baseboard: fwLegacy.deduct_baseboard }] : []);
+  const featureWallDeduct = fwItemsResolved.reduce((s, i) =>
+    s + Math.round((parseFloat(i.length_ft) || 0) * (parseFloat(i.height_ft) || 0) * (parseInt(i.count) || 1)), 0);
+  const fwBaseboardDeduct = fwItemsResolved.filter(i => i.deduct_baseboard).reduce((s, i) =>
+    s + Math.round((parseFloat(i.length_ft) || 0) * (parseInt(i.count) || 1)), 0);
 
   // Walls — only derive if substrate checked
   const wall_field_sf = subs.walls

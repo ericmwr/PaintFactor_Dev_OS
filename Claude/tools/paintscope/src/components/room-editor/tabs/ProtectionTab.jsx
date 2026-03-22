@@ -136,58 +136,69 @@ export default function ProtectionTab({ room, derived, dispatch, project }) {
               </div>
             );
 
-            // Feature Wall config
+            // Feature Wall config — items list
             if (focusedFixture === 'feature_wall') {
-              const fwSF = Math.round((parseFloat(cfg.length_ft) || 0) * (parseFloat(cfg.height_ft) || 0) * (parseInt(cfg.count) || 1));
+              const items = cfg.items || [];
+              const totalSF = items.reduce((s, i) => s + Math.round((parseFloat(i.length_ft) || 0) * (parseFloat(i.height_ft) || 0)), 0);
+              const totalBaseboardDeduct = items.filter(i => i.deduct_baseboard).reduce((s, i) => s + Math.round(parseFloat(i.length_ft) || 0), 0);
+              const setFW = (itemId, f, v) => dispatch({ type: 'SET_FEATURE_WALL', payload: { roomId: rid, itemId, field: f, value: v } });
               return (
                 <div style={{ marginBottom: 12 }}>
-                  {header}
-                  <div className="form-grid" style={{ gridTemplateColumns: '1fr 1fr 1fr' }}>
-                    <div>
-                      <div className="field-label">Count</div>
-                      <input type="number" min="1" max="20" value={cfg.count || ''} onChange={e => setFix('count', parseInt(e.target.value) || 1)} placeholder="1" />
-                    </div>
-                    <div>
-                      <div className="field-label">Length (ft)</div>
-                      <input type="number" min="0" step="0.5" value={cfg.length_ft || ''} onChange={e => setFix('length_ft', parseFloat(e.target.value) || 0)} placeholder="0" />
-                    </div>
-                    <div>
-                      <div className="field-label">Height (ft)</div>
-                      <input type="number" min="0" step="0.5" value={cfg.height_ft || ''} onChange={e => setFix('height_ft', parseFloat(e.target.value) || 0)} placeholder="0" />
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                    <span style={{ fontWeight: 600, fontSize: 13 }}>Feature Walls</span>
+                    <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                      {totalSF > 0 && <span style={{ fontSize: 11, fontFamily: 'var(--font-mono)', color: 'var(--derived)' }}>{totalSF} SF total</span>}
+                      <button className="btn btn-sm btn-accent" onClick={() => dispatch({ type: 'ADD_FEATURE_WALL', payload: { roomId: rid } })}>+ Add</button>
+                      <button onClick={() => setFocusedFixture(null)} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: 16 }}>&times;</button>
                     </div>
                   </div>
-                  <div className="form-grid" style={{ gridTemplateColumns: '1fr 1fr', marginTop: 6 }}>
-                    <div>
-                      <div className="field-label">Protection Level</div>
-                      <select value={cfg.protection || 'full_mask'} onChange={e => setFix('protection', e.target.value)} style={{ width: '100%' }}>
-                        <option value="edge_only">Edge Only</option>
-                        <option value="partial_cover">Partial Cover</option>
-                        <option value="full_cover">Full Cover</option>
-                        <option value="full_mask">Full Mask</option>
-                      </select>
-                    </div>
-                    <div style={{ alignSelf: 'end' }}>
-                      {fwSF > 0 && (
-                        <div style={{ fontSize: 12, fontFamily: 'var(--font-mono)', color: 'var(--derived)' }}>
-                          {fwSF} SF <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>(deducts from wall area)</span>
+                  {items.map((item, idx) => {
+                    const itemSF = Math.round((parseFloat(item.length_ft) || 0) * (parseFloat(item.height_ft) || 0));
+                    return (
+                      <div key={item.id} style={{ padding: '6px 8px', marginBottom: 6, background: 'var(--bg-tertiary)', borderRadius: 4 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+                          <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)' }}>Wall {idx + 1}</span>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                            {itemSF > 0 && <span style={{ fontSize: 11, fontFamily: 'var(--font-mono)', color: 'var(--warning)' }}>{itemSF} SF deducted</span>}
+                            <button className="btn btn-sm btn-danger" onClick={() => dispatch({ type: 'REMOVE_FEATURE_WALL', payload: { roomId: rid, itemId: item.id } })}>&times;</button>
+                          </div>
                         </div>
-                      )}
+                        <div className="form-grid" style={{ gridTemplateColumns: '1fr 1fr 1fr' }}>
+                          <div>
+                            <div className="field-label">Length (ft)</div>
+                            <input type="number" min="0" step="0.5" value={item.length_ft || ''} onChange={e => setFW(item.id, 'length_ft', parseFloat(e.target.value) || 0)} placeholder="0" />
+                          </div>
+                          <div>
+                            <div className="field-label">Height (ft)</div>
+                            <input type="number" min="0" step="0.5" value={item.height_ft || ''} onChange={e => setFW(item.id, 'height_ft', parseFloat(e.target.value) || 0)} placeholder="0" />
+                          </div>
+                          <div>
+                            <div className="field-label">Protection</div>
+                            <select value={item.protection || 'full_mask'} onChange={e => setFW(item.id, 'protection', e.target.value)} style={{ width: '100%' }}>
+                              <option value="edge_only">Edge Only</option>
+                              <option value="partial_cover">Partial Cover</option>
+                              <option value="full_cover">Full Cover</option>
+                              <option value="full_mask">Full Mask</option>
+                            </select>
+                          </div>
+                        </div>
+                        <div style={{ marginTop: 4, display: 'flex', alignItems: 'center', gap: 8 }}>
+                          <input type="checkbox" id={`fw-bb-${item.id}`} checked={!!item.deduct_baseboard}
+                            onChange={e => setFW(item.id, 'deduct_baseboard', e.target.checked)} />
+                          <label htmlFor={`fw-bb-${item.id}`} style={{ fontSize: 11 }}>Deduct baseboard</label>
+                          {item.deduct_baseboard && <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>{`\u2212${Math.round(parseFloat(item.length_ft) || 0)} LF`}</span>}
+                        </div>
+                        <div style={{ marginTop: 4 }}>
+                          <input type="text" value={item.notes || ''} onChange={e => setFW(item.id, 'notes', e.target.value)} style={{ width: '100%', fontSize: 11 }} placeholder="e.g., stone veneer, shiplap" />
+                        </div>
+                      </div>
+                    );
+                  })}
+                  {totalBaseboardDeduct > 0 && (
+                    <div style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 4 }}>
+                      Total baseboard deduction: {totalBaseboardDeduct} LF
                     </div>
-                  </div>
-                  <div style={{ marginTop: 6, display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <input type="checkbox" id="fw-deduct-baseboard" checked={cfg.deduct_baseboard || false}
-                      onChange={e => setFix('deduct_baseboard', e.target.checked)} />
-                    <label htmlFor="fw-deduct-baseboard" style={{ fontSize: 12 }}>
-                      Deduct baseboard LF along feature wall
-                    </label>
-                    <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>
-                      {cfg.deduct_baseboard ? `\u2212${Math.round((parseFloat(cfg.length_ft) || 0) * (parseInt(cfg.count) || 1))} LF` : ''}
-                    </span>
-                  </div>
-                  <div style={{ marginTop: 6 }}>
-                    <div className="field-label">Notes</div>
-                    <input type="text" value={cfg.notes || ''} onChange={e => setFix('notes', e.target.value)} style={{ width: '100%' }} placeholder="e.g., shiplap accent wall, stone veneer" />
-                  </div>
+                  )}
                 </div>
               );
             }

@@ -127,16 +127,17 @@ export function resolveRoomFixtureProtection(rooms, roomSpecMethods) {
       const fixtureDef = FIXTURE_MAP[fixtureId];
       if (!fixtureDef) return;
 
-      // Feature wall: SF-based protection (mask/cover)
+      // Feature wall: SF-based protection (mask/cover) — supports multiple items
       if (fixtureId === 'feature_wall') {
         const cfg = fixtures[fixtureId];
-        const sf = Math.round((parseFloat(cfg.length_ft) || 0) * (parseFloat(cfg.height_ft) || 0) * (parseInt(cfg.count) || 1));
+        const items = cfg.items || (cfg.length_ft ? [cfg] : []);
+        const sf = items.reduce((s, i) => s + Math.round((parseFloat(i.length_ft) || 0) * (parseFloat(i.height_ft) || 0) * (parseInt(i.count) || 1)), 0);
         if (sf <= 0) return;
         const SETUP_RATE = 450;   // SF/hr for masking setup
         const REMOVAL_RATE = 1500; // SF/hr for removal
         const setupHrs = round3(sf / SETUP_RATE);
         const teardownHrs = round3(sf / REMOVAL_RATE);
-        const protLevel = cfg.protection || 'full_mask';
+        const protLevel = items[0]?.protection || cfg.protection || 'full_mask';
         const levelLabel = protLevel.replace(/_/g, ' ');
         tasks.push({
           taskId: '__FP_FEATURE_WALL_SETUP__',

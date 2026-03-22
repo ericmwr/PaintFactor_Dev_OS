@@ -244,7 +244,7 @@ export function reducer(state, action) {
           if (fixtureId === 'cabinets') {
             fixtures[fixtureId] = { protection: 'full_cover', layout: 'lower_upper', linear_ft: 0, upper_height_ft: 2.5, notes: '' };
           } else if (fixtureId === 'feature_wall') {
-            fixtures[fixtureId] = { protection: 'full_mask', count: 1, length_ft: 0, height_ft: 0, notes: '' };
+            fixtures[fixtureId] = { items: [{ id: genId('fw'), length_ft: 0, height_ft: 0, protection: 'full_mask', deduct_baseboard: false, notes: '' }] };
           } else {
             fixtures[fixtureId] = { protection: cat ? cat.defaultProtection : 'partial_cover', count: 1, size: '', notes: '' };
           }
@@ -259,6 +259,33 @@ export function reducer(state, action) {
       return mapRoom(roomId, r => {
         if (!r.fixtures[fixtureId]) return r;
         return { ...r, fixtures: { ...r.fixtures, [fixtureId]: { ...r.fixtures[fixtureId], [field]: value } } };
+      });
+    }
+
+    case 'ADD_FEATURE_WALL': {
+      return mapRoom(payload.roomId, r => {
+        const fw = r.fixtures?.feature_wall || { items: [] };
+        return { ...r, fixtures: { ...r.fixtures, feature_wall: { ...fw, items: [...fw.items, { id: genId('fw'), length_ft: 0, height_ft: 0, protection: 'full_mask', deduct_baseboard: false, notes: '' }] } } };
+      });
+    }
+    case 'REMOVE_FEATURE_WALL': {
+      return mapRoom(payload.roomId, r => {
+        if (!r.fixtures?.feature_wall) return r;
+        const items = r.fixtures.feature_wall.items.filter(i => i.id !== payload.itemId);
+        if (items.length === 0) {
+          const fixtures = { ...r.fixtures };
+          delete fixtures.feature_wall;
+          return { ...r, fixtures };
+        }
+        return { ...r, fixtures: { ...r.fixtures, feature_wall: { ...r.fixtures.feature_wall, items } } };
+      });
+    }
+    case 'SET_FEATURE_WALL': {
+      const { roomId, itemId, field, value } = payload;
+      return mapRoom(roomId, r => {
+        if (!r.fixtures?.feature_wall) return r;
+        const items = r.fixtures.feature_wall.items.map(i => i.id === itemId ? { ...i, [field]: value } : i);
+        return { ...r, fixtures: { ...r.fixtures, feature_wall: { ...r.fixtures.feature_wall, items } } };
       });
     }
 

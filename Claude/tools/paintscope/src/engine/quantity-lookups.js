@@ -221,7 +221,9 @@ export function buildRoomQuantityLookups(state) {
         const lf = parseFloat(cfg.linear_ft) || 0;
         if (lf > 0) addQ('PS_PROTECT_LF.FIXTURE_CABINETS', 'LF', lf);
       } else if (fId === 'feature_wall') {
-        const sf = Math.round((parseFloat(cfg.length_ft) || 0) * (parseFloat(cfg.height_ft) || 0) * (parseInt(cfg.count) || 1));
+        // Sum SF across all feature wall items (or legacy single config)
+        const items = cfg.items || (cfg.length_ft ? [cfg] : []);
+        const sf = items.reduce((s, i) => s + Math.round((parseFloat(i.length_ft) || 0) * (parseFloat(i.height_ft) || 0) * (parseInt(i.count) || 1)), 0);
         if (sf > 0) addQ('PS_PROTECT_SF.FIXTURE_FEATURE_WALL', 'SF', sf);
       } else {
         const cnt = parseInt(cfg.count) || 1;
