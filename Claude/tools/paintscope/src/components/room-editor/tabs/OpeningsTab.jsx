@@ -5,6 +5,19 @@ import { ENUMS } from '../../../data/enums';
 import { OPENING_TYPES } from '../../../data/opening-types';
 import { SUBSTRATE_APPLICATION_METHODS } from '../../../data/substrate-catalog';
 
+// Inline grain fill checkbox for opening substrates (bare_wood + paint only)
+function InlineGrainFill({ subConfig, onSet }) {
+  if (!subConfig || subConfig.substrate_state !== 'bare_wood') return null;
+  const ct = subConfig.coating_type || 'paint';
+  if (ct !== 'paint') return null;
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 6, paddingLeft: 24, marginBottom: 4 }}>
+      <input type="checkbox" checked={!!subConfig.grain_fill} onChange={e => onSet('grain_fill', e.target.checked)} />
+      <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>Grain fill (open-grain hardwoods)</span>
+    </div>
+  );
+}
+
 // Compact inline stain/clear controls for opening substrates
 function InlineCoatingControls({ subConfig, onSet }) {
   if (!subConfig || subConfig.substrate_state !== 'bare_wood') return null;
@@ -175,6 +188,7 @@ export default function OpeningsTab({ room, derived, dispatch, project }) {
                 </div>
               </div>
               <InlineCoatingControls subConfig={subs.door_casing} onSet={(f, v) => setSub('door_casing', f, v)} />
+              <InlineGrainFill subConfig={subs.door_casing} onSet={(f, v) => setSub('door_casing', f, v)} />
             </>
           )}
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 3 }}>
@@ -199,6 +213,7 @@ export default function OpeningsTab({ room, derived, dispatch, project }) {
                 </div>
               </div>
               <InlineCoatingControls subConfig={subs.door_frames} onSet={(f, v) => setSub('door_frames', f, v)} />
+              <InlineGrainFill subConfig={subs.door_frames} onSet={(f, v) => setSub('door_frames', f, v)} />
             </>
           )}
         </div>
@@ -247,6 +262,7 @@ export default function OpeningsTab({ room, derived, dispatch, project }) {
                   {door.substrate_state === 'bare_wood' && doorsPainting && (
                     <tr><td colSpan="6" style={{ padding: '2px 0' }}>
                       <InlineCoatingControls subConfig={door} onSet={(f, v) => dispatch({ type: 'SET_DOOR', payload: { roomId: rid, doorId: door.id, field: f, value: v } })} />
+                      <InlineGrainFill subConfig={door} onSet={(f, v) => dispatch({ type: 'SET_DOOR', payload: { roomId: rid, doorId: door.id, field: f, value: v } })} />
                     </td></tr>
                   )}
                 </React.Fragment>
@@ -325,6 +341,7 @@ export default function OpeningsTab({ room, derived, dispatch, project }) {
                   {win.substrate_state === 'bare_wood' && windowsPainting && (
                     <tr><td colSpan="6" style={{ padding: '2px 0' }}>
                       <InlineCoatingControls subConfig={win} onSet={(f, v) => dispatch({ type: 'SET_WINDOW', payload: { roomId: rid, winId: win.id, field: f, value: v } })} />
+                      <InlineGrainFill subConfig={win} onSet={(f, v) => dispatch({ type: 'SET_WINDOW', payload: { roomId: rid, winId: win.id, field: f, value: v } })} />
                     </td></tr>
                   )}
                 </React.Fragment>
@@ -357,6 +374,7 @@ export default function OpeningsTab({ room, derived, dispatch, project }) {
                 </div>
               </div>
               <InlineCoatingControls subConfig={subs.window_casing} onSet={(f, v) => setSub('window_casing', f, v)} />
+              <InlineGrainFill subConfig={subs.window_casing} onSet={(f, v) => setSub('window_casing', f, v)} />
             </>
           )}
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 3 }}>
@@ -381,6 +399,7 @@ export default function OpeningsTab({ room, derived, dispatch, project }) {
                 </div>
               </div>
               <InlineCoatingControls subConfig={subs.window_jamb} onSet={(f, v) => setSub('window_jamb', f, v)} />
+              <InlineGrainFill subConfig={subs.window_jamb} onSet={(f, v) => setSub('window_jamb', f, v)} />
             </>
           )}
         </div>

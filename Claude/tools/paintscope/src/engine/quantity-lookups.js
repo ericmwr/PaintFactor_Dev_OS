@@ -124,21 +124,30 @@ export function buildRoomQuantityLookups(state) {
 
     // Grain Fill — aggregate SF from all substrates with grain_fill enabled
     // UOM conversion: LF→SF 1:1, EA→SF 20 SF/EA baseline, SF direct
+    // Also checks per-item grain_fill on doors and windows (items-based substrates)
     let grainFillSF = 0;
     Object.entries(subs).forEach(([subId, cfg]) => {
-      if (!cfg || !cfg.grain_fill) return;
-      const cat = SUBSTRATE_MAP[subId];
-      if (!cat) return;
-      const uomSub = cat.uom;
-      let sf = 0;
-      if (uomSub === 'SF') {
-        sf = parseFloat(cfg.sf_manual) || 0;
-      } else if (uomSub === 'LF') {
-        sf = parseFloat(cfg.lf_manual) || (d[subId + '_lf'] || 0);
-      } else if (uomSub === 'EA') {
-        sf = (parseInt(cfg.ea_manual) || 0) * 20;
+      if (!cfg) return;
+      // Top-level grain_fill (trim, specialty substrates)
+      if (cfg.grain_fill) {
+        const cat = SUBSTRATE_MAP[subId];
+        if (cat) {
+          const uomSub = cat.uom;
+          if (uomSub === 'SF') grainFillSF += parseFloat(cfg.sf_manual) || 0;
+          else if (uomSub === 'LF') grainFillSF += parseFloat(cfg.lf_manual) || (d[subId + '_lf'] || 0);
+          else if (uomSub === 'EA') grainFillSF += (parseInt(cfg.ea_manual) || 0) * 20;
+        }
       }
-      grainFillSF += sf;
+      // Per-item grain_fill (doors, windows — each item can have grain_fill independently)
+      if (cfg.items) {
+        cfg.items.forEach(item => {
+          if (item.grain_fill && item.substrate_state === 'bare_wood' && (item.coating_type || 'paint') === 'paint') {
+            const cnt = parseInt(item.count) || 0;
+            const sides = (subId === 'doors') ? cnt * (parseInt(item.sides_per_door) || 2) : cnt;
+            grainFillSF += sides * 20; // ~20 SF per EA/side baseline
+          }
+        });
+      }
     });
     if (grainFillSF > 0) addQ('PS_SURFACE_SF.GRAIN_FILL', 'SF', grainFillSF);
 
