@@ -164,10 +164,26 @@ export function buildRoomQuantityLookups(state) {
         grainFillBreakdown[subId] = (grainFillBreakdown[subId] || 0) + subSF;
       }
     });
+    // Debug: log grain fill state for each substrate
+    Object.entries(subs).forEach(([subId, cfg]) => {
+      if (cfg && cfg.grain_fill) {
+        const cat = SUBSTRATE_MAP[subId];
+        const eaDerived = d[subId + '_ea'] || 0;
+        const lfDerived = d[subId + '_lf'] || 0;
+        console.warn(`[GrainFill] ${subId}: grain_fill=${cfg.grain_fill}, uom=${cat?.uom}, ea_manual=${cfg.ea_manual}, ea_derived=${eaDerived}, lf_manual=${cfg.lf_manual}, lf_derived=${lfDerived}, sf_manual=${cfg.sf_manual}, breakdown=${grainFillBreakdown[subId] || 0}`);
+      }
+    });
     if (grainFillSF > 0) {
+      console.warn(`[GrainFill] Total SF=${grainFillSF}, breakdown=`, grainFillBreakdown);
       addQ('PS_SURFACE_SF.GRAIN_FILL', 'SF', grainFillSF);
       // Store breakdown for parent spec attribution (not a PS key — metadata only)
       qty.set('_GRAIN_FILL_BREAKDOWN', grainFillBreakdown);
+    } else {
+      // Check if any substrates have grain_fill enabled but produced 0 SF
+      const gfSubs = Object.entries(subs).filter(([, cfg]) => cfg && cfg.grain_fill);
+      if (gfSubs.length > 0) {
+        console.warn(`[GrainFill] WARNING: ${gfSubs.length} substrates have grain_fill=true but total SF=0`, gfSubs.map(([id]) => id));
+      }
     }
 
     // Edges
