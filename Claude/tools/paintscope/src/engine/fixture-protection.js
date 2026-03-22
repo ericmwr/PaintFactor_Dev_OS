@@ -33,11 +33,94 @@ export function resolveRoomFixtureProtection(rooms, roomSpecMethods) {
     const room = rooms[riNum];
     if (!room) return;
 
+    const tasks = [];
+    const subs = room.substrates || {};
+
+    // Auto-detect: Window masking when any spray spec fires + windows exist but aren't being painted
+    const anySpray = [...contextMap.values()].some(m => isSprayMethod(m));
+    if (anySpray) {
+      const windowItems = subs.windows?.items || [];
+      const windowCount = windowItems.reduce((sum, w) => sum + (parseInt(w.count) || 0), 0);
+      const windowsPainting = !!subs.windows?.painting;
+      if (windowCount > 0 && !windowsPainting) {
+        tasks.push({
+          taskId: '__FP_WINDOW_MASK_SETUP__',
+          taskName: `Mask Windows \u2014 Full Cover (${windowCount} windows)`,
+          phase: 'setup',
+          hours: round3(windowCount * 8 / 60), // ~8 min per window
+          isFixed: true,
+          baseRate: '8m/EA',
+          quantity: windowCount,
+          uom: 'EA',
+          isFixtureProtection: true,
+          fixtureId: 'windows_auto',
+          protectionLevel: 'full_mask',
+          mechanism: 'task',
+          roomIndex: riNum,
+          roomLabel: room.label,
+        });
+        tasks.push({
+          taskId: '__FP_WINDOW_MASK_TEARDOWN__',
+          taskName: `Remove Window Masking (${windowCount} windows)`,
+          phase: 'cleanup',
+          hours: round3(windowCount * 4 / 60), // ~4 min per window
+          isFixed: true,
+          baseRate: '4m/EA',
+          quantity: windowCount,
+          uom: 'EA',
+          isFixtureProtection: true,
+          fixtureId: 'windows_auto',
+          protectionLevel: 'full_mask',
+          mechanism: 'task',
+          roomIndex: riNum,
+          roomLabel: room.label,
+        });
+      }
+
+      // Auto-detect: Door masking when spray fires + doors exist but aren't being painted
+      const doorItems = subs.doors?.items || [];
+      const doorsPainting = !!subs.doors?.painting;
+      const unpaintedDoorCount = doorsPainting ? 0 : doorItems.reduce((sum, d) => sum + (parseInt(d.count) || 0), 0);
+      if (unpaintedDoorCount > 0) {
+        tasks.push({
+          taskId: '__FP_DOOR_MASK_SETUP__',
+          taskName: `Mask Doors \u2014 Full Cover (${unpaintedDoorCount} doors)`,
+          phase: 'setup',
+          hours: round3(unpaintedDoorCount * 6 / 60), // ~6 min per door
+          isFixed: true,
+          baseRate: '6m/EA',
+          quantity: unpaintedDoorCount,
+          uom: 'EA',
+          isFixtureProtection: true,
+          fixtureId: 'doors_auto',
+          protectionLevel: 'full_mask',
+          mechanism: 'task',
+          roomIndex: riNum,
+          roomLabel: room.label,
+        });
+        tasks.push({
+          taskId: '__FP_DOOR_MASK_TEARDOWN__',
+          taskName: `Remove Door Masking (${unpaintedDoorCount} doors)`,
+          phase: 'cleanup',
+          hours: round3(unpaintedDoorCount * 3 / 60), // ~3 min per door
+          isFixed: true,
+          baseRate: '3m/EA',
+          quantity: unpaintedDoorCount,
+          uom: 'EA',
+          isFixtureProtection: true,
+          fixtureId: 'doors_auto',
+          protectionLevel: 'full_mask',
+          mechanism: 'task',
+          roomIndex: riNum,
+          roomLabel: room.label,
+        });
+      }
+    }
+
+    // Catalog fixtures
     const fixtures = room.fixtures || {};
     const fixtureIds = Object.keys(fixtures);
-    if (fixtureIds.length === 0) return;
-
-    const tasks = [];
+    if (fixtureIds.length === 0 && tasks.length === 0) return;
 
     // For each fixture present in the room
     fixtureIds.forEach(fixtureId => {
