@@ -32,6 +32,7 @@ export const SPEC_DISPLAY_NAMES = {
   'SF_BUILTIN_NC': 'Built-Ins',
   'SF_STAIR_RAILING_NC': 'Stair Railings',
   'SF_STAIR_RISER_NC': 'Stair Risers',
+  'SF_WOOD_GRAIN_FILL_NC': 'Grain Fill',
   // Interior Stain/Clear
   'SF_TRIM_NC_STAIN':            'Trim — Stain/Clear',
   'SF_DOOR_SLAB_INT_NC_STAIN':   'Door Slab — Stain/Clear',
