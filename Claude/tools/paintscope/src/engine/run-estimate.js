@@ -160,6 +160,16 @@ export function runEstimate(state, db, overlayMap) {
       if (!roomHasSpec) return;
       if (!isSpecStateCompatible(spec.id, room)) return;
 
+      // Painting toggle guard: skip specs whose primary substrate isn't toggled for painting.
+      // Some substrates (doors, windows, door_casing, window_casing) have a 'painting' flag
+      // that controls whether they're in scope. PS keys may still be emitted for structural
+      // purposes (wall deductions, casing LF) even when painting is off.
+      const primarySub = SPEC_SUBSTRATE_MAP[spec.id];
+      if (primarySub) {
+        const subConfig = (room.substrates || {})[primarySub];
+        if (subConfig && subConfig.painting === false) return;
+      }
+
       // Stain/paint routing: skip specs that don't match the substrate's coating_type
       const coatingType = resolveCoatingType(spec.id, room, project);
       // Skip stain specs when coating_type is paint (or not set)
