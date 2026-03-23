@@ -93,6 +93,14 @@ function AppShell({ projectDb }) {
       {/* Sidebar — only for scope-editing views */}
       {isScopeView && (
         <aside className={`sidebar ${sidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
+          {/* Collapse toggle */}
+          <button
+            className="sidebar-toggle"
+            onClick={() => setSidebarCollapsed(c => !c)}
+            title={sidebarCollapsed ? 'Expand panel' : 'Collapse panel'}
+          >
+            {sidebarCollapsed ? '\u25B6' : '\u25C0'}
+          </button>
           {/* Interior Rooms */}
           <div className="sidebar-header">
             <span className="sidebar-title">Rooms</span>
@@ -207,14 +215,6 @@ function AppShell({ projectDb }) {
               </span>
             </div>
           </div>
-          {/* Collapse toggle */}
-          <button
-            className="sidebar-toggle"
-            onClick={() => setSidebarCollapsed(c => !c)}
-            title={sidebarCollapsed ? 'Expand panel' : 'Collapse panel'}
-          >
-            {sidebarCollapsed ? '\u25B6' : '\u25C0'}
-          </button>
         </aside>
       )}
 
