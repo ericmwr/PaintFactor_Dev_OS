@@ -309,20 +309,21 @@ export default function EstimateView() {
       {/* ── Expand / Collapse All ── */}
       <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
         <button className="btn btn-sm" onClick={() => {
-          const allOpen = {};
+          const rooms = {};
+          const items = {};
           roomEntries.forEach(([ri, rd]) => {
-            allOpen[ri] = true;
-            Object.keys(rd.specs).forEach(sk => { allOpen[`${ri}::${sk}`] = true; });
-            if (estimate.roomProtection?.[ri]) allOpen[`rp_${ri}`] = true;
-            if (estimate.fixtureProtection?.[ri]) allOpen[`fp_${ri}`] = true;
+            rooms[ri] = true;
+            Object.keys(rd.specs).forEach(sk => { items[`${ri}::${sk}`] = true; });
+            items[`${ri}::__ROOM_PROTECTION__`] = true;
+            items[`${ri}::__FIXTURE_PROTECTION__`] = true;
           });
-          setExpandedRooms(allOpen);
-          setExpandedItems(allOpen);
+          setExpandedRooms(rooms);
+          setExpandedItems(items);
         }}>Expand All</button>
         <button className="btn btn-sm" onClick={() => {
-          const allClosed = {};
-          roomEntries.forEach(([ri]) => { allClosed[ri] = false; });
-          setExpandedRooms(allClosed);
+          const rooms = {};
+          roomEntries.forEach(([ri]) => { rooms[ri] = false; });
+          setExpandedRooms(rooms);
           setExpandedItems({});
         }}>Collapse All</button>
       </div>
