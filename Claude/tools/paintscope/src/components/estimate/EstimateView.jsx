@@ -7,6 +7,7 @@ import { PHASE_ORDER, PHASE_COLORS, specDisplayName, QUANTITY_KEY_LABELS } from 
 import { FLOOR_TYPES, FLOOR_PROTECTION_LABEL } from '../../data/fixture-catalog';
 import { SUBSTRATE_MAP } from '../../data/substrate-catalog';
 import { DB_BUNDLE } from '../../data/db-bundle';
+import { COMPLEXITY_OPT_OUT_SPECS } from '../../engine/modifier-stack.js';
 
 // Solid colors for the stacked phase bars (visible on dark backgrounds)
 const PHASE_BAR_COLORS = {
@@ -306,6 +307,26 @@ export default function EstimateView() {
         </details>
       )}
 
+      {/* Info messages for complexity opt-out specs */}
+      {(() => {
+        const complexityInfos = (estimate.specResults || [])
+          .filter(sr => COMPLEXITY_OPT_OUT_SPECS.has(sr.specId))
+          .map(sr => `Complexity modifier not applicable to ${sr.specName || sr.specId} — door/frame type and QT cover variation`);
+        if (complexityInfos.length === 0) return null;
+        return (
+          <details className="warn-panel" style={{ borderColor: 'var(--text-muted)' }}>
+            <summary style={{ color: 'var(--text-secondary)' }}>
+              {complexityInfos.length} info
+            </summary>
+            <ul>
+              {complexityInfos.map((msg, i) => (
+                <li key={i} style={{ color: 'var(--text-secondary)' }}>{msg}</li>
+              ))}
+            </ul>
+          </details>
+        );
+      })()}
+
       {/* ── Expand / Collapse All ── */}
       <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
         <button className="btn btn-sm" onClick={() => {
@@ -470,6 +491,8 @@ export default function EstimateView() {
                                       title={[
                                         t.modStack.qt !== 1 && `QT:${t.modStack.qt}`,
                                         t.modStack.height !== 1 && `Ht:${t.modStack.height}`,
+                                        t.modStack.complexityApplicable === false ? 'Cmplx: n/a' :
+                                          (t.modStack.complexity !== 1 && `Cmplx:${t.modStack.complexity}${t.modStack.complexityApplied ? '' : ' (phase exempt)'}`),
                                         t.modStack.sizeMod && t.modStack.sizeMod !== 1 && `Size:${t.modStack.sizeMod}`,
                                         t.modStack.typeMod && t.modStack.typeMod !== 1 && `Type:${t.modStack.typeMod}`,
                                         t.conditionScale && `Cond:${t.conditionScale}`
