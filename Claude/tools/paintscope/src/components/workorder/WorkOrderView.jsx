@@ -203,6 +203,25 @@ export default function WorkOrderView() {
 
       {viewMode === 'room' && (
         <div>
+          <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
+            <button className="btn btn-sm" onClick={() => {
+              const allOpen = {};
+              roomEntries.forEach(([ri, rd]) => {
+                allOpen[ri] = true;
+                Object.keys(rd.specs).forEach(sk => { allOpen[`${ri}::${sk}`] = true; });
+                if (estimate.roomProtection?.[ri]) allOpen[`rp_${ri}`] = true;
+                if (estimate.fixtureProtection?.[ri]) allOpen[`fp_${ri}`] = true;
+              });
+              setExpandedRooms(allOpen);
+              setExpandedItems(allOpen);
+            }}>Expand All</button>
+            <button className="btn btn-sm" onClick={() => {
+              const allClosed = {};
+              roomEntries.forEach(([ri]) => { allClosed[ri] = false; });
+              setExpandedRooms(allClosed);
+              setExpandedItems({});
+            }}>Collapse All</button>
+          </div>
           {roomEntries.map(([ri, roomData]) => {
             const room = state.rooms[parseInt(ri)];
             const d = room ? deriveRoom(room) : null;
