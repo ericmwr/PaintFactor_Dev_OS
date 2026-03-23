@@ -175,6 +175,18 @@ export function migrateInline(parsed) {
     parsed.colors = { defaults: {}, substrate_overrides: {}, room_overrides: {}, elevation_overrides: {} };
   }
 
+  // v0.9: COMPLEX tier removed — map to MOD
+  if (parsed.project && parsed.project.default_complexity === 'COMPLEX') {
+    parsed.project.default_complexity = 'MOD';
+  }
+  if (parsed.rooms) {
+    parsed.rooms.forEach(room => {
+      if (room.complexity === 'COMPLEX') {
+        room.complexity = 'MOD';
+      }
+    });
+  }
+
   // Bump nextId past all existing IDs to prevent collisions
   let maxId = 0;
   const extractNum = (s) => { const m = s && s.match(/_(\d+)$/); return m ? parseInt(m[1]) : 0; };
