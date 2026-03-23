@@ -1,5 +1,22 @@
 import { SPEC_SUBSTRATE_MAP } from '../data/spec-maps.js';
 import { SUBSTRATE_APPLICATION_METHODS } from '../data/substrate-catalog.js';
+import { EXTERIOR_SPEC_IDS } from '../data/spec-maps.js';
+
+// Specs where room complexity does NOT apply — door/frame type and QT already cover variation
+const COMPLEXITY_OPT_OUT_SPECS = new Set([
+  'SF_DOOR_SLAB_INT_NC',
+  'SF_DOOR_FRAME_NC_FINISH',
+  'SF_DOOR_SLAB_INT_NC_STAIN',
+  'SF_DOOR_FRAME_NC_STAIN',
+]);
+
+// Default complexity modifier values — used when no DB rows exist for an interior spec
+const COMPLEXITY_DEFAULTS = {
+  OPEN: 0.85,
+  STD: 1.0,
+  MOD: 1.2,
+  VCOMPLEX: 1.5,
+};
 
 /**
  * Compute modifier stack for a spec family + context.
@@ -42,7 +59,18 @@ export function computeModifierStack(specFamilyId, ctx, db, warnings) {
     } else if (category === 'texture') {
       mod = resolveConditionModifier(factors, ctx.surface_texture || 'smooth', category, specFamilyId, warnings);
     } else if (category === 'complexity') {
-      mod = resolveConditionModifier(factors, ctx.complexity || 'STD', category, specFamilyId, warnings);
+      if (EXTERIOR_SPEC_IDS.has(specFamilyId)) {
+        // Exterior specs: complexity means item complexity (garage door size, window type)
+        // Keep it folded into total as before
+        mod = resolveConditionModifier(factors, ctx.complexity || 'STD', category, specFamilyId, warnings);
+      } else {
+        // Interior specs: room complexity — resolve but DON'T fold into total
+        // Applied per-task in run-estimate based on phase + method
+        const cMod = resolveConditionModifier(factors, ctx.complexity || 'STD', category, specFamilyId, warnings);
+        result.complexity = cMod;
+        result.complexityApplicable = !COMPLEXITY_OPT_OUT_SPECS.has(specFamilyId);
+        return; // skip the result[category] = mod; total *= mod; below
+      }
     } else {
       // Dynamic exterior categories: access, wind, sun, profile, siding_profile, coating_type, etc.
       // First try values_map (new exterior pattern), then condition (interior pattern), then direct match
@@ -57,10 +85,19 @@ export function computeModifierStack(specFamilyId, ctx, db, warnings) {
   if (result.height === undefined) result.height = 1.0;
   if (result.texture === undefined) result.texture = 1.0;
   if (result.complexity === undefined) {
-    result.complexity = 1.0;
-    if (ctx.complexity && ctx.complexity !== 'STD') {
-      warnings.push(`Complexity modifier for ${ctx.complexity} not available in DB for ${specFamilyId}. Using 1.0 (neutral).`);
+    if (COMPLEXITY_OPT_OUT_SPECS.has(specFamilyId)) {
+      result.complexity = 1.0;
+      result.complexityApplicable = false;
+    } else {
+      // Use defaults map for specs without DB complexity rows
+      const cxVal = (ctx.complexity || 'STD').toUpperCase();
+      result.complexity = COMPLEXITY_DEFAULTS[cxVal] ?? 1.0;
+      result.complexityApplicable = true;
     }
+  }
+  // Ensure complexityApplicable is always set
+  if (result.complexityApplicable === undefined) {
+    result.complexityApplicable = !COMPLEXITY_OPT_OUT_SPECS.has(specFamilyId);
   }
 
   result.total = Math.round(total * 1000) / 1000;
@@ -193,3 +230,5 @@ function resolveDynamicModifier(factors, ctx, category, specFamilyId, warnings) 
 
   return 1.0;
 }
+
+export { COMPLEXITY_OPT_OUT_SPECS };
