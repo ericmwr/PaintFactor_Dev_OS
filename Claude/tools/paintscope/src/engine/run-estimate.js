@@ -16,6 +16,35 @@ import { FIXTURE_CATALOG } from '../data/fixture-catalog.js';
 import { WINDOW_TYPE_LABELS, WINDOW_SIZE_LABELS, DOOR_TYPE_LABELS } from '../data/modifiers.js';
 
 /**
+ * Determine if complexity modifier should apply to a given task.
+ * Complexity applies to: prep, interstage phases (always)
+ * and apply/finish/prime phases ONLY for non-spray methods.
+ */
+function shouldApplyComplexity(modStack, phase, ctx) {
+  if (!modStack.complexityApplicable) return false;
+  if (modStack.complexity === 1.0) return false; // STD = no effect
+  if (phase === 'prep' || phase === 'interstage') return true;
+  if (phase === 'apply' || phase === 'finish' || phase === 'prime') {
+    const method = (ctx.application_method || '').toLowerCase();
+    return !method.startsWith('spray');
+  }
+  // setup, cleanup: no complexity
+  return false;
+}
+
+/**
+ * Compute effective total modifier for a task, conditionally including complexity.
+ * Returns { effectiveTotal, complexityApplied }
+ */
+function computeEffectiveTotal(modStack, phase, ctx) {
+  const complexityApplied = shouldApplyComplexity(modStack, phase, ctx);
+  const effectiveTotal = complexityApplied
+    ? Math.round(modStack.total * modStack.complexity * 1000) / 1000
+    : modStack.total;
+  return { effectiveTotal, complexityApplied };
+}
+
+/**
  * Resolve a task's effective rate from its production rate row + context.
  * Returns { effectiveRate, isFixed, fixedMinutes, uom, source }
  */
@@ -343,35 +372,44 @@ export function runEstimate(state, db, overlayMap) {
 
             if (resolved.isFixed) {
               // FIXED: hours = fixed_minutes / 60 (no modifier per doctrine)
-              pushResult(resolved.fixedMinutes / 60, 1, null, { ...modStack });
+              pushResult(resolved.fixedMinutes / 60, 1, null, { ...modStack, complexityApplied: false });
             } else if (psKey === 'PS_OPENING_EA.WINDOW_TOTAL' && spec.id === 'SF_WINDOW_INT_NC') {
               // Per-item window calculation: separate line items per window type x size
-              const itemResults = computeWindowPerItemResults(resolved.effectiveRate, modStack.total, room);
+              const { effectiveTotal, complexityApplied } = computeEffectiveTotal(modStack, phase, ctx);
+              const itemResults = computeWindowPerItemResults(resolved.effectiveRate, effectiveTotal, room);
               if (itemResults) {
                 itemResults.forEach(ir => {
                   pushResult(ir.hours, ir.quantity, null,
-                    { ...modStack, sizeMod: ir.sizeMod, typeMod: ir.typeMod, total: Math.round(modStack.total * ir.itemMod * 1000) / 1000 },
+                    { ...modStack, sizeMod: ir.sizeMod, typeMod: ir.typeMod,
+                      total: Math.round(effectiveTotal * ir.itemMod * 1000) / 1000,
+                      complexityApplied },
                     ir.label);
                 });
               }
             } else if ((psKey === 'PS_SURFACE_EA_SIDE.DOOR_SLAB' || psKey === 'PS_OPENING_EA.DOOR_OPENINGS_TOTAL') && spec.id === 'SF_DOOR_SLAB_INT_NC') {
               // Per-item door calculation: separate line items per door type
               const useSides = psKey === 'PS_SURFACE_EA_SIDE.DOOR_SLAB';
-              const itemResults = computeDoorPerItemResults(resolved.effectiveRate, modStack.total, room, useSides);
+              const { effectiveTotal, complexityApplied } = computeEffectiveTotal(modStack, phase, ctx);
+              const itemResults = computeDoorPerItemResults(resolved.effectiveRate, effectiveTotal, room, useSides);
               if (itemResults) {
                 itemResults.forEach(ir => {
                   pushResult(ir.hours, ir.quantity, null,
-                    { ...modStack, typeMod: ir.typeMod, total: Math.round(modStack.total * ir.itemMod * 1000) / 1000 },
+                    { ...modStack, typeMod: ir.typeMod,
+                      total: Math.round(effectiveTotal * ir.itemMod * 1000) / 1000,
+                      complexityApplied },
                     ir.label);
                 });
               }
             } else if (psKey && roomQty && roomQty.has(psKey)) {
               // Standard rate-based calculation
               const quantity = roomQty.get(psKey).value;
-              const effRate = resolved.effectiveRate / modStack.total;
+              const { effectiveTotal, complexityApplied } = computeEffectiveTotal(modStack, phase, ctx);
+              const effRate = resolved.effectiveRate / effectiveTotal;
               // Arch element per-item grouping: assign itemGroup by PS key
               const archGroup = (spec.id === 'SF_ARCH_ELEMENT_NC') ? (ARCH_ELEMENT_PS_GROUPS[psKey] || null) : null;
-              pushResult(quantity / effRate, quantity, null, { ...modStack }, archGroup);
+              pushResult(quantity / effRate, quantity, null,
+                { ...modStack, total: effectiveTotal, complexityApplied },
+                archGroup);
             } else if (!psKey) {
               return; // No PS key — skip
             } else {
