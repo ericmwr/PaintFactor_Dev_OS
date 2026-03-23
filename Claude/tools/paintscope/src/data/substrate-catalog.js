@@ -91,7 +91,7 @@ export const SUBSTRATE_CATALOG = [
   },
   {
     id: 'wood_ceiling', group: 'Specialty', label: 'Wood Ceiling', uom: 'SF',
-    autoDerive: null, defaultConfig: { substrate_state: 'bare_wood', application_method: null, sf_manual: 0 }
+    autoDerive: (d) => d.ceiling_field_sf, defaultConfig: { substrate_state: 'bare_wood', application_method: null, sf_override: false, sf_manual: 0 }
   },
   {
     id: 'closet_shelving', group: 'Specialty', label: 'Closet Shelving', uom: 'LF',

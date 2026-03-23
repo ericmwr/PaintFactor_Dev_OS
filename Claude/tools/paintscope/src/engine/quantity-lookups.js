@@ -112,7 +112,13 @@ export function buildRoomQuantityLookups(state) {
     ];
     specKeys.forEach(([subId, psKey, uom, manualKey]) => {
       if (subs[subId]) {
-        const v = parseFloat(subs[subId][manualKey]) || 0;
+        const cfg = subs[subId];
+        const cat = SUBSTRATE_MAP[subId];
+        // Use manual value if overridden, otherwise try auto-derive
+        let v = parseFloat(cfg[manualKey]) || 0;
+        if (v === 0 && !cfg.sf_override && !cfg.lf_override && cat?.autoDerive) {
+          v = cat.autoDerive(d) || 0;
+        }
         if (v > 0) addQ(psKey, uom, v);
       }
     });
