@@ -187,6 +187,12 @@ export function migrateInline(parsed) {
     });
   }
 
+  // v1.0: material catalog integration — add brand preference and overrides
+  if (parsed.project) {
+    if (parsed.project.default_brand === undefined) parsed.project.default_brand = null;
+    if (!parsed.project.material_overrides) parsed.project.material_overrides = { system: {}, manual: {} };
+  }
+
   // Bump nextId past all existing IDs to prevent collisions
   let maxId = 0;
   const extractNum = (s) => { const m = s && s.match(/_(\d+)$/); return m ? parseInt(m[1]) : 0; };

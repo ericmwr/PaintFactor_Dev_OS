@@ -147,7 +147,10 @@ export const initialState = {
     new_construction: true,
     default_quality_tier: 'QT3', default_height_band: 'STD',
     default_complexity: 'STD', default_application_method: 'spray_backroll',
-    default_texture: 'smooth', notes: '',
+    default_texture: 'smooth',
+    default_brand: null,
+    material_overrides: { system: {}, manual: {} },
+    notes: '',
     default_substrates: ['ceiling', 'walls', 'baseboard']
   },
   rooms: [createRoom()],
