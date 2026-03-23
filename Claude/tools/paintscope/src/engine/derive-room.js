@@ -121,9 +121,12 @@ export function deriveRoom(room) {
     ? (subs.walls.sf_override ? parseFloat(subs.walls.sf_manual)||0 : Math.max(0, Math.round(wallNet + gableExtra - featureWallDeduct)))
     : 0;
 
-  // Ceiling — only derive if substrate checked
-  const ceiling_field_sf = subs.ceiling
-    ? (subs.ceiling.sf_override ? parseFloat(subs.ceiling.sf_manual)||0 : Math.round(ceilingSF + vaultedExtra))
+  // Ceiling — derive if drywall ceiling OR wood ceiling is checked
+  const anyCeiling = subs.ceiling || subs.wood_ceiling;
+  const ceiling_field_sf = anyCeiling
+    ? (subs.ceiling?.sf_override ? parseFloat(subs.ceiling.sf_manual)||0
+      : subs.wood_ceiling?.sf_override ? parseFloat(subs.wood_ceiling.sf_manual)||0
+      : Math.round(ceilingSF + vaultedExtra))
     : 0;
 
   // Helper: derive LF for a trim substrate with auto-derive from catalog
