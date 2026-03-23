@@ -34,7 +34,6 @@ export const ENUMS = {
     { value:'OPEN', label:'Open' },
     { value:'STD', label:'Standard' },
     { value:'MOD', label:'Moderate' },
-    { value:'COMPLEX', label:'Complex' },
     { value:'VCOMPLEX', label:'Very Complex' }
   ],
   doorTypes: [
