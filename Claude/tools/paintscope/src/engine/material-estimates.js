@@ -102,10 +102,14 @@ export function computeMaterialEstimates(state, db, roomLookups) {
     const specInputs = (db.spec_required_inputs || []).filter(i => i.spec_family_id === specId);
     const psKeys = specInputs.map(i => i.paintscope_key);
 
+    // For material calculation, only sum SURFACE keys (the actual paintable area).
+    // Exclude edge, protection, meta, and opening keys — those drive task hours, not material coverage.
+    const surfaceKeys = psKeys.filter(k => k && k.startsWith('PS_SURFACE_'));
+
     // Check if this spec has matching quantities
     let specSF = 0;
     let matchedKey = null;
-    psKeys.forEach(k => {
+    surfaceKeys.forEach(k => {
       const q = totalQty.get(k);
       if (q && q.value > 0) {
         specSF += q.value;
