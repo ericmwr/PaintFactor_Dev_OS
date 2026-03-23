@@ -57,6 +57,17 @@ export default function SurfacesTab({ room, derived, dispatch, project, focusedS
               </div>
               <button onClick={() => setFocusedSubstrate(null)} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: 16 }}>&times;</button>
             </div>
+            {/* Conflict warnings */}
+            {focusedSubstrate === 'ceiling' && subs.wood_ceiling && (
+              <div style={{ padding: '6px 10px', marginBottom: 8, background: '#4a3a1a', borderRadius: 4, fontSize: 11, color: '#f0c040' }}>
+                <strong>Note:</strong> Wood Ceiling is also active in the Specialty tab. Both will generate separate ceiling estimates. If this is a wood ceiling, uncheck Ceiling here and configure it in Specialty instead.
+              </div>
+            )}
+            {focusedSubstrate === 'ceiling' && !subs.wood_ceiling && (
+              <div style={{ fontSize: 10, color: 'var(--text-muted)', marginBottom: 6 }}>
+                For wood plank, beadboard, or coffered ceilings, use Wood Ceiling in the Specialty tab instead.
+              </div>
+            )}
             <SubstrateDetailPanel room={room} derived={derived} dispatch={dispatch} substrateId={focusedSubstrate} project={project} />
           </div>
         ) : (

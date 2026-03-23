@@ -57,6 +57,17 @@ export default function SpecialtyTab({ room, derived, dispatch, project, focused
               </div>
               <button onClick={() => setFocusedSubstrate(null)} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: 16 }}>&times;</button>
             </div>
+            {/* Conflict warnings */}
+            {focusedSubstrate === 'wood_ceiling' && subs.ceiling && (
+              <div style={{ padding: '6px 10px', marginBottom: 8, background: '#4a3a1a', borderRadius: 4, fontSize: 11, color: '#f0c040' }}>
+                <strong>Warning:</strong> Drywall Ceiling is active in the Surfaces tab. Both will generate separate ceiling estimates. To use Wood Ceiling, uncheck Ceiling in the Surfaces tab first, or the estimate will double-count ceiling work.
+              </div>
+            )}
+            {focusedSubstrate === 'wood_feature_wall' && subs.walls && (
+              <div style={{ fontSize: 10, color: 'var(--text-muted)', marginBottom: 6 }}>
+                Wood Feature Wall SF is deducted from the wall field in the Surfaces tab. Both can be active simultaneously.
+              </div>
+            )}
             <SubstrateDetailPanel room={room} derived={derived} dispatch={dispatch} substrateId={focusedSubstrate} project={project} />
           </div>
         ) : (
