@@ -264,26 +264,30 @@ export function reducer(state, action) {
 
     case 'ADD_FEATURE_WALL': {
       return mapRoom(payload.roomId, r => {
-        const fw = r.fixtures?.feature_wall || { items: [] };
-        return { ...r, fixtures: { ...r.fixtures, feature_wall: { ...fw, items: [...fw.items, { id: genId('fw'), length_ft: 0, height_ft: 0, protection: 'full_mask', deduct_baseboard: false, notes: '' }] } } };
+        const fw = r.fixtures?.feature_wall;
+        // Migrate legacy format (single config without items array)
+        const existing = fw?.items ? fw.items
+          : (fw && fw.length_ft ? [{ id: genId('fw'), length_ft: fw.length_ft, height_ft: fw.height_ft, protection: fw.protection || 'full_mask', deduct_baseboard: fw.deduct_baseboard || false, notes: fw.notes || '' }] : []);
+        const newItem = { id: genId('fw'), length_ft: 0, height_ft: 0, protection: 'full_mask', deduct_baseboard: false, notes: '' };
+        return { ...r, fixtures: { ...r.fixtures, feature_wall: { items: [...existing, newItem] } } };
       });
     }
     case 'REMOVE_FEATURE_WALL': {
       return mapRoom(payload.roomId, r => {
         if (!r.fixtures?.feature_wall) return r;
-        const items = r.fixtures.feature_wall.items.filter(i => i.id !== payload.itemId);
+        const items = (r.fixtures.feature_wall.items || []).filter(i => i.id !== payload.itemId);
         if (items.length === 0) {
           const fixtures = { ...r.fixtures };
           delete fixtures.feature_wall;
           return { ...r, fixtures };
         }
-        return { ...r, fixtures: { ...r.fixtures, feature_wall: { ...r.fixtures.feature_wall, items } } };
+        return { ...r, fixtures: { ...r.fixtures, feature_wall: { items } } };
       });
     }
     case 'SET_FEATURE_WALL': {
       const { roomId, itemId, field, value } = payload;
       return mapRoom(roomId, r => {
-        if (!r.fixtures?.feature_wall) return r;
+        if (!r.fixtures?.feature_wall?.items) return r;
         const items = r.fixtures.feature_wall.items.map(i => i.id === itemId ? { ...i, [field]: value } : i);
         return { ...r, fixtures: { ...r.fixtures, feature_wall: { ...r.fixtures.feature_wall, items } } };
       });
