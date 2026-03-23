@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import ProductCatalog from './ProductCatalog';
 import MaterialCostView from './MaterialCostView';
+import ResolvedProductsView from './ResolvedProductsView';
 
 export default function MaterialsView() {
   const [tab, setTab] = useState('catalog');
@@ -11,6 +12,7 @@ export default function MaterialsView() {
         {[
           { id: 'catalog', label: 'Product Catalog' },
           { id: 'costs', label: 'Material Costs' },
+          { id: 'resolved', label: 'Resolved Products' },
         ].map(t => (
           <button
             key={t.id}
@@ -27,6 +29,7 @@ export default function MaterialsView() {
       <div style={{ flex: 1, overflowY: 'auto' }}>
         {tab === 'catalog' && <ProductCatalog />}
         {tab === 'costs' && <MaterialCostView />}
+        {tab === 'resolved' && <ResolvedProductsView />}
       </div>
     </div>
   );
