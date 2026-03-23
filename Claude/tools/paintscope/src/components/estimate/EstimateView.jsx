@@ -176,34 +176,41 @@ export default function EstimateView() {
   });
   const projectTotalHours = parseFloat(estimate.totalHours) || 0;
 
-  // Consolidated material estimates: group by systemName + surfaceTexture
+  // Consolidated material estimates: group by productId + surfaceTexture
   const consolidatedMaterials = useMemo(() => {
     if (!estimate.materialEstimates || estimate.materialEstimates.length === 0) return [];
     const groups = {};
     estimate.materialEstimates.forEach(m => {
-      const key = `${m.systemName || m.specFamilyId}||${m.surfaceTexture || ''}`;
+      const key = `${m.productId || m.systemName || m.specFamilyId}||${m.surfaceTexture || ''}`;
       if (!groups[key]) {
         groups[key] = {
           systemName: m.systemName || m.specFamilyId,
+          productName: m.productName || m.systemName || m.specFamilyId,
+          brand: m.brand || null,
+          resolvedBy: m.resolvedBy || null,
           surfaceTexture: m.surfaceTexture || '',
           gallons: 0,
           totalSF: 0,
+          totalCost: 0,
           coats: m.coats || 1,
           coverageRate: m.coverageRate,
           sprayLoss: m.sprayLoss,
+          pricePerGallon: m.pricePerGallon || null,
         };
       }
       groups[key].gallons += m.gallons;
       groups[key].totalSF += m.totalSF;
+      if (m.totalCost) groups[key].totalCost += m.totalCost;
     });
     return Object.values(groups);
   }, [estimate.materialEstimates]);
 
-  // Group materials by product type (first word of systemName as heuristic)
+  // Group materials by product type
   const materialsByType = useMemo(() => {
     const byType = {};
     consolidatedMaterials.forEach(m => {
-      const type = m.systemName.includes(' ') ? m.systemName.split(' ')[0] : 'Paint';
+      const type = m.systemName.includes('Primer') || m.systemName.includes('primer')
+        ? 'Primers' : m.systemName.includes('Stain') ? 'Stains' : 'Finish';
       if (!byType[type]) byType[type] = [];
       byType[type].push(m);
     });
@@ -533,13 +540,32 @@ export default function EstimateView() {
             <div key={type} style={{marginBottom:12}}>
               <div style={{fontSize:11,fontWeight:600,color:'var(--text-muted)',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:4}}>{type}</div>
               {mats.map((m, i) => (
-                <div key={i} className="mat-row">
-                  <span className="mat-name">{m.systemName}{m.surfaceTexture ? ` (${m.surfaceTexture})` : ''}</span>
-                  <span className="mat-qty">{m.gallons} gal <span style={{color:'var(--text-muted)',fontSize:11}}>({m.totalSF} SF {'\u00d7'} {m.coats} coat{m.coats>1?'s':''} @ {m.coverageRate} SF/gal{m.sprayLoss ? ' +5% spray' : ''})</span></span>
+                <div key={i} className="mat-row" style={{display:'flex',justifyContent:'space-between',alignItems:'baseline',padding:'4px 0'}}>
+                  <div style={{flex:1}}>
+                    <span className="mat-name" style={{fontWeight:600}}>{m.productName}</span>
+                    {m.brand && <span style={{fontSize:11,color:'var(--text-muted)',marginLeft:6}}>({m.brand})</span>}
+                    <div style={{fontSize:11,color:'var(--text-muted)'}}>
+                      {m.gallons.toFixed(1)} gal ({m.totalSF} SF {'\u00d7'} {m.coats} coat{m.coats>1?'s':''} @ {m.coverageRate} SF/gal{m.sprayLoss ? ' +5% spray' : ''})
+                    </div>
+                  </div>
+                  {m.totalCost > 0 && (
+                    <span style={{fontWeight:600,color:'var(--accent)',whiteSpace:'nowrap',marginLeft:12}}>
+                      ${m.totalCost.toFixed(2)}
+                    </span>
+                  )}
                 </div>
               ))}
             </div>
           ))}
+          {(() => {
+            const totalMaterialCost = consolidatedMaterials.reduce((s, m) => s + (m.totalCost || 0), 0);
+            return totalMaterialCost > 0 ? (
+              <div style={{borderTop:'1px solid var(--border)',marginTop:8,paddingTop:8,display:'flex',justifyContent:'space-between',fontWeight:700}}>
+                <span>Total Material Cost</span>
+                <span style={{color:'var(--accent)'}}>${totalMaterialCost.toFixed(2)}</span>
+              </div>
+            ) : null;
+          })()}
         </div>
       )}
     </div>
