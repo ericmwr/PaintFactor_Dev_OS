@@ -45,6 +45,7 @@ function AppShell({ projectDb }) {
   const view = state.ui.view;
   const scopeMode = state.ui.scopeMode || 'interior';
   const photoAnalysis = usePhotoAnalysis();
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const activeRoom = state.rooms.find(r => r.id === state.ui.activeRoomId) || state.rooms[0];
   const exterior = state.exterior || createExteriorState();
   const elevations = exterior.elevations || [];
@@ -91,7 +92,15 @@ function AppShell({ projectDb }) {
     <div className="app-layout">
       {/* Sidebar — only for scope-editing views */}
       {isScopeView && (
-        <aside className="sidebar">
+        <aside className={`sidebar ${sidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
+          {/* Collapse toggle */}
+          <button
+            className="sidebar-toggle"
+            onClick={() => setSidebarCollapsed(c => !c)}
+            title={sidebarCollapsed ? 'Expand panel' : 'Collapse panel'}
+          >
+            {sidebarCollapsed ? '\u25B6' : '\u25C0'}
+          </button>
           {/* Interior Rooms */}
           <div className="sidebar-header">
             <span className="sidebar-title">Rooms</span>
