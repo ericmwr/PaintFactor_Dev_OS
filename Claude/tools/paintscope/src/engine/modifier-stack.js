@@ -15,6 +15,7 @@ const COMPLEXITY_DEFAULTS = {
   OPEN: 0.85,
   STD: 1.0,
   MOD: 1.2,
+  COMPLEX: 1.2,   // legacy — maps to MOD for unmigrated data
   VCOMPLEX: 1.5,
 };
 
