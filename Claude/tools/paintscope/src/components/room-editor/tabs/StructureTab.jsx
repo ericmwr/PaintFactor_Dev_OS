@@ -143,14 +143,6 @@ export default function StructureTab({ room, derived, dispatch, project }) {
                   placeholder="Height"
                   style={{ width: 60, fontSize: 12, padding: '3px 6px' }}
                 />
-                <label style={{ display: 'flex', alignItems: 'center', gap: 3, fontSize: 11, color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>
-                  <input
-                    type="checkbox"
-                    checked={!!w.both_sides}
-                    onChange={e => dispatch({ type: 'SET_WALL_DEDUCTION', payload: { roomId: rid, wallId: w.id, field: 'both_sides', value: e.target.checked } })}
-                  />
-                  Both sides
-                </label>
                 <span style={{ fontSize: 11, color: '#e74c3c', minWidth: 55 }}>-{Math.round(wSF)} SF</span>
                 <button
                   onClick={() => dispatch({ type: 'REMOVE_WALL_DEDUCTION', payload: { roomId: rid, wallId: w.id } })}
