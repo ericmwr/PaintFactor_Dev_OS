@@ -55,10 +55,13 @@ const SPRAY_LOSS_BY_METHOD = {
 /**
  * Compute material estimates from coverage profiles.
  */
-export function computeMaterialEstimates(state, db, roomLookups) {
+export function computeMaterialEstimates(state, db, roomLookups, specResults = []) {
   const estimates = [];
   const { project, rooms } = state;
   const SPRAY_LOSS_FACTOR = 0.05; // 5% material loss for spray application
+
+  // Only produce material estimates for specs the hours engine actually activated
+  const activatedSpecs = new Set(specResults.map(sr => sr.specId));
 
   // Resolve project-level config
   const defaultQT = project.default_quality_tier || 'QT3';
@@ -103,6 +106,9 @@ export function computeMaterialEstimates(state, db, roomLookups) {
   const specFamilyIds = [...new Set(db.material_coverage_profiles.map(cp => cp.spec_family_id))];
 
   specFamilyIds.forEach(specId => {
+    // Skip specs that weren't activated by the hours engine
+    if (activatedSpecs.size > 0 && !activatedSpecs.has(specId)) return;
+
     const specProfiles = db.material_coverage_profiles.filter(cp => cp.spec_family_id === specId);
     const specSystems = systemsBySpec[specId] || [];
 
@@ -200,10 +206,8 @@ export function computeMaterialEstimates(state, db, roomLookups) {
       }) || specProfiles[0];
     }
 
-    if (!matchedProfile || !matchedProfile.coverage_sf_per_gallon) return;
-
-    // Try to resolve a real catalog product for this system
-    let coverageRate = matchedProfile.coverage_sf_per_gallon;
+    // Try to resolve a real catalog product for this system (primary path)
+    let coverageRate = null;
     let productInfo = {
       productId: null,
       productName: matchedSystem ? matchedSystem.name : '(unknown)',
@@ -226,6 +230,13 @@ export function computeMaterialEstimates(state, db, roomLookups) {
       }
     }
 
+    // Fallback: use DB coverage profile if resolver didn't provide coverage
+    if (!coverageRate && matchedProfile && matchedProfile.coverage_sf_per_gallon) {
+      coverageRate = matchedProfile.coverage_sf_per_gallon;
+    }
+
+    if (!coverageRate) return; // No coverage data from either source — skip
+
     // Compute gallons: (SF * coats) / coverage_rate / (1 - spray_loss)
     const rawGallons = (specSF * coats) / coverageRate;
     const sprayMultiplier = isSpray ? (1 / (1 - SPRAY_LOSS_FACTOR)) : 1;
@@ -236,14 +247,15 @@ export function computeMaterialEstimates(state, db, roomLookups) {
       systemId: matchedSystem ? matchedSystem.id : null,
       systemName: matchedSystem ? matchedSystem.name : '(unknown)',
       ...productInfo,
-      productRole: matchedProfile.product_role || 'finish',
+      productRole: (matchedProfile && matchedProfile.product_role) || 'finish',
       surfaceTexture: defaultTexture,
       totalSF: Math.round(specSF),
       coverageRate: coverageRate,
       coats: coats,
-      gallons: Math.round(gallons * 10) / 10,
+      gallonsRaw: Math.round(gallons * 10) / 10,
+      gallons: Math.ceil(gallons),
       totalCost: productInfo.pricePerGallon
-        ? Math.round(gallons * productInfo.pricePerGallon * 100) / 100 : null,
+        ? Math.round(Math.ceil(gallons) * productInfo.pricePerGallon * 100) / 100 : null,
       sprayLoss: isSpray ? SPRAY_LOSS_FACTOR : 0,
       psKey: matchedKey
     });

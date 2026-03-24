@@ -4,15 +4,15 @@ import MaterialCostView from './MaterialCostView';
 import ResolvedProductsView from './ResolvedProductsView';
 
 export default function MaterialsView() {
-  const [tab, setTab] = useState('catalog');
+  const [tab, setTab] = useState('resolved');
 
   return (
     <div style={{ padding: 16, height: '100%', display: 'flex', flexDirection: 'column' }}>
       <div style={{ display: 'flex', gap: 0, marginBottom: 16, borderRadius: 'var(--radius-sm)', overflow: 'hidden', border: '1px solid var(--border)', alignSelf: 'flex-start' }}>
         {[
-          { id: 'catalog', label: 'Product Catalog' },
-          { id: 'costs', label: 'Material Costs' },
           { id: 'resolved', label: 'Resolved Products' },
+          { id: 'costs', label: 'Material Costs' },
+          { id: 'catalog', label: 'Product Entry' },
         ].map(t => (
           <button
             key={t.id}

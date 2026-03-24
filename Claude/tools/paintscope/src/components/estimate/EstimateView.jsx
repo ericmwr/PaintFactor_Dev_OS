@@ -545,7 +545,7 @@ export default function EstimateView() {
                     <span className="mat-name" style={{fontWeight:600}}>{m.productName}</span>
                     {m.brand && <span style={{fontSize:11,color:'var(--text-muted)',marginLeft:6}}>({m.brand})</span>}
                     <div style={{fontSize:11,color:'var(--text-muted)'}}>
-                      {m.gallons.toFixed(1)} gal ({m.totalSF} SF {'\u00d7'} {m.coats} coat{m.coats>1?'s':''} @ {m.coverageRate} SF/gal{m.sprayLoss ? ' +5% spray' : ''})
+                      {m.gallons} gal ({m.totalSF} SF {'\u00d7'} {m.coats} coat{m.coats>1?'s':''} @ {m.coverageRate} SF/gal{m.sprayLoss ? ' +5% spray' : ''})
                     </div>
                   </div>
                   {m.totalCost > 0 && (

@@ -8,7 +8,23 @@ export default function ResolvedProductsView() {
   const { state, dispatch } = useProject();
   const overrides = state.project.material_overrides || { system: {}, manual: {} };
 
-  const materials = estimate?.materialEstimates || [];
+  // Consolidate by productId — same product from multiple specs merges into one row
+  const materials = useMemo(() => {
+    const raw = estimate?.materialEstimates || [];
+    const groups = {};
+    raw.forEach(m => {
+      const key = m.productId || m.systemName || m.specFamilyId;
+      if (!groups[key]) {
+        groups[key] = { ...m, totalSF: 0, gallons: 0 };
+      }
+      groups[key].totalSF += m.totalSF || 0;
+      groups[key].gallons += m.gallons || 0;
+    });
+    return Object.values(groups).map(g => ({
+      ...g,
+      gallons: Math.round(g.gallons * 10) / 10,
+    }));
+  }, [estimate]);
 
   const setSystemOverride = (systemId, productId) => {
     const newOverrides = { ...state.project.material_overrides };

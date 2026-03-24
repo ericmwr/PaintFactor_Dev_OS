@@ -1,35 +1,36 @@
 import { useMemo } from 'react';
 import { useEstimate } from '../../hooks/useEstimate';
-import { useProducts } from '../../hooks/useProducts';
 
 export default function MaterialCostView() {
   const estimate = useEstimate();
-  const { products, loading } = useProducts();
 
   const materialCosts = useMemo(() => {
     if (!estimate?.materialEstimates) return [];
 
-    return estimate.materialEstimates.map(mat => {
-      // Try to find a matching product
-      const matchingProduct = products.find(p =>
-        (mat.material_system_id && p.material_system_ids?.includes(mat.material_system_id)) ||
-        (p.product_type === mat.product_type)
-      );
-
-      const gallons = mat.gallons_needed || 0;
-      const unitCost = matchingProduct?.unit_cost || 0;
-      const totalCost = gallons * unitCost;
-
-      return {
-        ...mat,
-        product: matchingProduct,
-        unitCost,
-        totalCost,
-      };
+    // Consolidate by productId — same product from multiple specs (e.g. wall + ceiling primer) merges
+    const groups = {};
+    estimate.materialEstimates.forEach(mat => {
+      const key = mat.productId || mat.systemName || mat.specFamilyId;
+      if (!groups[key]) {
+        groups[key] = {
+          systemName: mat.systemName || mat.specFamilyId,
+          productName: mat.productName || mat.systemName || mat.specFamilyId,
+          brand: mat.brand || null,
+          gallons: 0,
+          totalSF: 0,
+          unitCost: mat.pricePerGallon || 0,
+          coverageRate: mat.coverageRate,
+        };
+      }
+      groups[key].gallons += mat.gallons || 0;
+      groups[key].totalSF += mat.totalSF || 0;
     });
-  }, [estimate, products]);
-
-  if (loading) return <div style={{ color: 'var(--text-muted)' }}>Loading...</div>;
+    return Object.values(groups).map(g => ({
+      ...g,
+      gallons: Math.round(g.gallons * 10) / 10,
+      totalCost: g.unitCost ? Math.round(g.gallons * g.unitCost * 100) / 100 : 0,
+    }));
+  }, [estimate]);
 
   const totalMaterialCost = materialCosts.reduce((sum, m) => sum + m.totalCost, 0);
 
@@ -39,7 +40,7 @@ export default function MaterialCostView() {
 
       {materialCosts.length === 0 ? (
         <div style={{ padding: 20, textAlign: 'center', color: 'var(--text-muted)' }}>
-          Run an estimate first to see material costs. Add products to the catalog to calculate pricing.
+          Run an estimate first to see material costs. Add rooms with surfaces to generate material estimates.
         </div>
       ) : (
         <>
@@ -56,10 +57,13 @@ export default function MaterialCostView() {
             <tbody>
               {materialCosts.map((m, i) => (
                 <tr key={i} style={{ borderBottom: '1px solid var(--border)' }}>
-                  <td style={{ padding: '6px 8px' }}>{m.product_name || m.material_system_id || 'Unknown'}</td>
-                  <td style={{ padding: '6px 8px', fontFamily: 'monospace' }}>{(m.gallons_needed || 0).toFixed(1)} gal</td>
+                  <td style={{ padding: '6px 8px' }}>{m.systemName || m.specFamilyId || 'Unknown'}</td>
+                  <td style={{ padding: '6px 8px', fontFamily: 'monospace' }}>{(m.gallons || 0).toFixed(1)} gal</td>
                   <td style={{ padding: '6px 8px', fontSize: 11 }}>
-                    {m.product ? `${m.product.brand} ${m.product.product_name}` : <span style={{ color: 'var(--text-muted)' }}>No product linked</span>}
+                    {m.productName && m.brand
+                      ? <span>{m.brand} — {m.productName}</span>
+                      : <span style={{ color: 'var(--text-muted)' }}>{m.productName || 'No product linked'}</span>
+                    }
                   </td>
                   <td style={{ padding: '6px 8px', fontFamily: 'monospace' }}>{m.unitCost ? `$${m.unitCost.toFixed(2)}` : '—'}</td>
                   <td style={{ padding: '6px 8px', fontFamily: 'monospace', fontWeight: 600 }}>{m.totalCost ? `$${m.totalCost.toFixed(2)}` : '—'}</td>

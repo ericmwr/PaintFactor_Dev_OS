@@ -13,7 +13,7 @@ const CATALOG_PRODUCTS = [
     "coverage_sf_per_gallon": 350,
     "sheen_options": "N/A",
     "price_per_gallon": 55,
-    "system_mappings": "SYS_ACRYLIC_LATEX_PRIMER, SYS_PRIMER_WOOD_STANDARD, SYS_PRIMER_WOOD_ACRYLIC, SYS_PRIMER_PLYWOOD_SEALER, SYS_PRIMER_MDF_LATEX, SYS_PRIMER_MILDEW_INT"
+    "system_mappings": "SYS_ACRYLIC_LATEX_PRIMER, SYS_PRIMER_WOOD_STANDARD, SYS_PRIMER_WOOD_ACRYLIC, SYS_PRIMER_PLYWOOD_SEALER, SYS_PRIMER_MDF_LATEX, SYS_PRIMER_MILDEW_INT, SYS_TRIM_THIN_ACRYLIC_PRIME"
   },
   {
     "product_id": "PROD_BM_FRESH_START_0046",
@@ -25,7 +25,7 @@ const CATALOG_PRODUCTS = [
     "coverage_sf_per_gallon": 425,
     "sheen_options": "N/A",
     "price_per_gallon": null,
-    "system_mappings": "SYS_ACRYLIC_LATEX_PRIMER, SYS_PRIMER_WOOD_STANDARD, SYS_PRIMER_WOOD_ACRYLIC, SYS_PRIMER_MILDEW_INT, SYS_PRIMER_PLYWOOD_SEALER, SYS_PRIMER_POWDER_COAT_BOND"
+    "system_mappings": "SYS_ACRYLIC_LATEX_PRIMER, SYS_PRIMER_WOOD_STANDARD, SYS_PRIMER_WOOD_ACRYLIC, SYS_PRIMER_MILDEW_INT, SYS_PRIMER_PLYWOOD_SEALER, SYS_PRIMER_POWDER_COAT_BOND, SYS_TRIM_PREMIUM_ACRYLIC_PRIME"
   },
   {
     "product_id": "PROD_PPG_SPEEDHIDE_PROEV_ZERO",
@@ -73,7 +73,7 @@ const CATALOG_PRODUCTS = [
     "coverage_sf_per_gallon": 400,
     "sheen_options": "N/A",
     "price_per_gallon": 30,
-    "system_mappings": "SYS_BONDING_PRIME, SYS_PRIMER_ADHESION_INT, SYS_PRIMER_BONDING, SYS_PRIMER_BONDING_FACTORY"
+    "system_mappings": "SYS_BONDING_PRIME, SYS_PRIMER_ADHESION_INT, SYS_PRIMER_BONDING, SYS_PRIMER_BONDING_FACTORY, SYS_TRIM_THIN_ACRYLIC_PRIME"
   },
   {
     "product_id": "PROD_SW_BUILDERS_SOL_SURFACER",
@@ -1669,7 +1669,7 @@ const CATALOG_PRODUCTS = [
     "coverage_sf_per_gallon": 400,
     "sheen_options": "N/A",
     "price_per_gallon": 48,
-    "system_mappings": "SYS_EXT_DRRP_PRIMER_ACRYLIC"
+    "system_mappings": "SYS_EXT_DRRP_PRIMER_ACRYLIC, SYS_TRIM_PREMIUM_ACRYLIC_PRIME"
   },
   {
     "product_id": "PROD_BM_INSLX_STIX_DTM",
@@ -4202,6 +4202,30 @@ const CATALOG_PRODUCTS = [
     "sheen_options": "flat",
     "price_per_gallon": 50,
     "system_mappings": "SYS_EXT_SFRP_PRIMER_CHALK_BIND"
+  },
+  {
+    "product_id": "PROD_RENNER_YLM648_2K_PRIMER",
+    "brand": "Renner Italia",
+    "product_name": "YL-M648 Water-Base 2K Urethane Primer",
+    "product_line": "YL-M648",
+    "sku": "YL-M648",
+    "product_type": "primer",
+    "coverage_sf_per_gallon": 450,
+    "sheen_options": "N/A",
+    "price_per_gallon": 95,
+    "system_mappings": "SYS_TRIM_2K_URETHANE_PRIME"
+  },
+  {
+    "product_id": "PROD_MILESI_HBR1_2K_PRIMER",
+    "brand": "Milesi",
+    "product_name": "HBR1 Water-Borne 2K Urethane Primer",
+    "product_line": "HBR1",
+    "sku": "HBR1",
+    "product_type": "primer",
+    "coverage_sf_per_gallon": 400,
+    "sheen_options": "N/A",
+    "price_per_gallon": 110,
+    "system_mappings": "SYS_TRIM_2K_URETHANE_PRIME"
   }
 ];
 

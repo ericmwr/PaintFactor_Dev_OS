@@ -789,7 +789,8 @@ export function runEstimate(state, db, overlayMap) {
   Object.values(exteriorProtection.standaloneProtection).forEach(sp => { grandTotalHours += sp.totalHours; });
 
   // Material estimates — interior (DB-driven) + exterior (default profiles)
-  const interiorMaterialEstimates = computeMaterialEstimates(state, db, roomLookups);
+  const intSpecResults = specResults.filter(sr => sr.domain !== 'exterior');
+  const interiorMaterialEstimates = computeMaterialEstimates(state, db, roomLookups, intSpecResults);
   const extSpecResults = specResults.filter(sr => sr.domain === 'exterior');
   const exteriorMaterialEstimates = (exterior && exterior.elevations && exterior.elevations.length > 0)
     ? computeExteriorMaterialEstimates(state, db, buildElevationQuantityLookups(state), buildStandaloneQuantityLookups(state), extSpecResults)
