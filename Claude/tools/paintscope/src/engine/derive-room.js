@@ -127,9 +127,20 @@ export function deriveRoom(room) {
     return s + lf * (w.both_sides ? 2 : 1);
   }, 0);
 
+  // Wall deductions — cabinets, tile, built-ins covering wall area
+  const wallDeductions = room.wall_deductions || [];
+  const wallDeductSF = wallDeductions.reduce((s, w) => {
+    const sf = (parseFloat(w.length_ft) || 0) * (parseFloat(w.height_ft) || 0);
+    return s + sf * (w.both_sides ? 2 : 1);
+  }, 0);
+  const wallDeductLF = wallDeductions.reduce((s, w) => {
+    const lf = parseFloat(w.length_ft) || 0;
+    return s + lf * (w.both_sides ? 2 : 1);
+  }, 0);
+
   // Walls — only derive if substrate checked
   const wall_field_sf = subs.walls
-    ? (subs.walls.sf_override ? parseFloat(subs.walls.sf_manual)||0 : Math.max(0, Math.round(wallNet + gableExtra - featureWallDeduct + extraWallSF)))
+    ? (subs.walls.sf_override ? parseFloat(subs.walls.sf_manual)||0 : Math.max(0, Math.round(wallNet + gableExtra - featureWallDeduct + extraWallSF - wallDeductSF)))
     : 0;
 
   // Ceiling — derive if drywall ceiling OR wood ceiling is checked
@@ -149,7 +160,7 @@ export function deriveRoom(room) {
     return parseFloat(subs[subId].lf_manual)||0;
   }
 
-  const baseboard_lf_raw = deriveLF('baseboard') + (subs.baseboard ? Math.round(extraWallLF) : 0);
+  const baseboard_lf_raw = deriveLF('baseboard') + (subs.baseboard ? Math.round(extraWallLF) - Math.round(wallDeductLF) : 0);
   const baseboard_lf = fwBaseboardDeduct > 0 && !subs.baseboard?.lf_override
     ? Math.max(0, baseboard_lf_raw - fwBaseboardDeduct)
     : baseboard_lf_raw;
@@ -179,6 +190,7 @@ export function deriveRoom(room) {
     totalDoors, totalWindows, openingDeduction,
     wallGross, wallNet, ceilingSF, vaultedExtra, gableExtra, pitch, featureWallDeduct, fwBaseboardDeduct,
     extraWallSF: Math.round(extraWallSF), extraWallLF: Math.round(extraWallLF),
+    wallDeductSF: Math.round(wallDeductSF), wallDeductLF: Math.round(wallDeductLF),
     heightBand,
     wall_field_sf, ceiling_field_sf,
     baseboard_lf, crown_lf, door_casing_lf, window_casing_lf,

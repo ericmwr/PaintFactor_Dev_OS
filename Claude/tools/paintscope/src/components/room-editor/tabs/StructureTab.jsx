@@ -53,7 +53,7 @@ export default function StructureTab({ room, derived, dispatch, project }) {
           <div className="field-label">Wall SF</div>
           <NumField value={wallCfg.sf_manual || ''} derived={Math.round(derived.wall_field_sf || 0)} isOverride={!!wallCfg.sf_override}
             onValueChange={v => setSub('walls', 'sf_manual', v)} onOverrideToggle={v => setSub('walls', 'sf_override', v)} uom="SF" />
-          <div style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 2 }}>Gross {derived.wallGross} - Deduct {derived.openingDeduction} = Net {derived.wallNet}{derived.gableExtra > 0 ? ` + Gable ${derived.gableExtra}` : ''}{derived.extraWallSF > 0 ? ` + Extra ${derived.extraWallSF}` : ''}</div>
+          <div style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 2 }}>Gross {derived.wallGross} - Deduct {derived.openingDeduction} = Net {derived.wallNet}{derived.gableExtra > 0 ? ` + Gable ${derived.gableExtra}` : ''}{derived.extraWallSF > 0 ? ` + Extra ${derived.extraWallSF}` : ''}{derived.wallDeductSF > 0 ? ` - Deduct ${derived.wallDeductSF}` : ''}</div>
         </div>
         {/* ── Extra Walls ── */}
         <div style={{ marginTop: 10 }}>
@@ -112,6 +112,64 @@ export default function StructureTab({ room, derived, dispatch, project }) {
             onClick={() => dispatch({ type: 'ADD_EXTRA_WALL', payload: { roomId: rid } })}
             style={{ fontSize: 11, marginTop: 4 }}
           >+ Add Wall</button>
+        </div>
+        {/* ── Wall Deductions ── */}
+        <div style={{ marginTop: 10 }}>
+          {(room.wall_deductions || []).length > 0 && (
+            <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 4 }}>Wall Deductions</div>
+          )}
+          {(room.wall_deductions || []).map(w => {
+            const wSF = (parseFloat(w.length_ft) || 0) * (parseFloat(w.height_ft) || 0) * (w.both_sides ? 2 : 1);
+            return (
+              <div key={w.id} style={{ display: 'flex', gap: 6, alignItems: 'center', marginBottom: 4 }}>
+                <input
+                  value={w.label}
+                  onChange={e => dispatch({ type: 'SET_WALL_DEDUCTION', payload: { roomId: rid, wallId: w.id, field: 'label', value: e.target.value } })}
+                  placeholder="Label"
+                  style={{ width: 100, fontSize: 12, padding: '3px 6px' }}
+                />
+                <input
+                  type="number" min="0" step="0.5"
+                  value={w.length_ft || ''}
+                  onChange={e => dispatch({ type: 'SET_WALL_DEDUCTION', payload: { roomId: rid, wallId: w.id, field: 'length_ft', value: parseFloat(e.target.value) || 0 } })}
+                  placeholder="Length"
+                  style={{ width: 60, fontSize: 12, padding: '3px 6px' }}
+                />
+                <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>{'\u00d7'}</span>
+                <input
+                  type="number" min="0" step="0.5"
+                  value={w.height_ft || ''}
+                  onChange={e => dispatch({ type: 'SET_WALL_DEDUCTION', payload: { roomId: rid, wallId: w.id, field: 'height_ft', value: parseFloat(e.target.value) || 0 } })}
+                  placeholder="Height"
+                  style={{ width: 60, fontSize: 12, padding: '3px 6px' }}
+                />
+                <label style={{ display: 'flex', alignItems: 'center', gap: 3, fontSize: 11, color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>
+                  <input
+                    type="checkbox"
+                    checked={!!w.both_sides}
+                    onChange={e => dispatch({ type: 'SET_WALL_DEDUCTION', payload: { roomId: rid, wallId: w.id, field: 'both_sides', value: e.target.checked } })}
+                  />
+                  Both sides
+                </label>
+                <span style={{ fontSize: 11, color: '#e74c3c', minWidth: 55 }}>-{Math.round(wSF)} SF</span>
+                <button
+                  onClick={() => dispatch({ type: 'REMOVE_WALL_DEDUCTION', payload: { roomId: rid, wallId: w.id } })}
+                  style={{ background: 'none', border: 'none', color: '#e74c3c', cursor: 'pointer', fontSize: 14, padding: '0 4px', lineHeight: 1 }}
+                  title="Remove deduction"
+                >{'\u00d7'}</button>
+              </div>
+            );
+          })}
+          {(derived.wallDeductSF > 0) && (
+            <div style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 2 }}>
+              Wall deductions: -{derived.wallDeductSF} SF wall, -{derived.wallDeductLF} LF baseboard
+            </div>
+          )}
+          <button
+            className="btn btn-sm"
+            onClick={() => dispatch({ type: 'ADD_WALL_DEDUCTION', payload: { roomId: rid } })}
+            style={{ fontSize: 11, marginTop: 4 }}
+          >- Deduct Wall</button>
         </div>
         </>
       )}

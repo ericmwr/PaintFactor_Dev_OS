@@ -128,6 +128,7 @@ export function migrateInline(parsed) {
     // Initialize closets array
     if (!r.closets) r.closets = [];
     if (!r.extra_walls) r.extra_walls = [];
+    if (!r.wall_deductions) r.wall_deductions = [];
     // v0.7 migration: initialize openings array; convert existing door items to single openings
     if (!r.openings) {
       const doorItems = subs.doors?.items || [];

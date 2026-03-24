@@ -105,6 +105,8 @@ export function createRoom(overrides={}) {
     closets: [],
     // Extra walls — partitions, shower walls, nooks
     extra_walls: [],
+    // Wall deductions — cabinets, tile, built-ins covering wall area
+    wall_deductions: [],
     // v0.5 adjacency — items present but not being painted
     floor_type: '',
     floor_protection: '',

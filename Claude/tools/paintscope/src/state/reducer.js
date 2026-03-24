@@ -198,6 +198,23 @@ export function reducer(state, action) {
       });
     }
 
+    // Wall deductions — cabinets, tile, built-ins covering wall area
+    case 'ADD_WALL_DEDUCTION': {
+      return mapRoom(payload.roomId, r => {
+        return { ...r, wall_deductions: [...(r.wall_deductions || []), { id: genId('wd'), label: '', length_ft: 0, height_ft: 0, both_sides: false }] };
+      });
+    }
+    case 'REMOVE_WALL_DEDUCTION': {
+      return mapRoom(payload.roomId, r => {
+        return { ...r, wall_deductions: (r.wall_deductions || []).filter(w => w.id !== payload.wallId) };
+      });
+    }
+    case 'SET_WALL_DEDUCTION': {
+      return mapRoom(payload.roomId, r => {
+        return { ...r, wall_deductions: (r.wall_deductions || []).map(w => w.id === payload.wallId ? { ...w, [payload.field]: payload.value } : w) };
+      });
+    }
+
     // Closets — sub-rooms with own dimensions, inherited substrates
     case 'ADD_CLOSET': {
       return mapRoom(payload.roomId, r => {
