@@ -4,7 +4,7 @@ import RoomQuickStats from './RoomQuickStats';
 import IdentityTab from './tabs/IdentityTab';
 import StructureTab from './tabs/StructureTab';
 import OpeningsTab from './tabs/OpeningsTab';
-import SurfacesTab from './tabs/SurfacesTab';
+
 import TrimTab from './tabs/TrimTab';
 import SpecialtyTab from './tabs/SpecialtyTab';
 import ClosetsTab from './tabs/ClosetsTab';
@@ -16,7 +16,6 @@ const TABS = [
   { id: 'identity',   label: 'Identity' },
   { id: 'structure',  label: 'Structure' },
   { id: 'openings',   label: 'Openings' },
-  { id: 'surfaces',   label: 'Surfaces' },
   { id: 'trim',       label: 'Trim' },
   { id: 'specialty',  label: 'Specialty' },
   { id: 'closets',    label: 'Closets' },
@@ -43,7 +42,6 @@ export default function RoomEditor({ room, project, dispatch }) {
 
   // Tab badge counts
   const openingIds = new Set(['doors', 'windows', 'door_casing', 'window_casing', 'door_frames', 'window_jamb']);
-  const surfaceCount = ['walls', 'ceiling'].filter(id => subs[id]).length;
   const trimCount = Object.keys(subs).filter(id => !openingIds.has(id) && !['walls', 'ceiling'].includes(id) && (subs[id]?.group === 'Trim' || ['baseboard', 'crown_molding', 'chair_rail', 'shoe_mold', 'wainscot_cap', 'picture_rail', 'window_stool', 'window_apron', 'shadow_box', 'panel_mold'].includes(id))).length;
   const specialtyCount = Object.keys(subs).filter(id => ['wainscoting', 'wood_feature_wall', 'wood_ceiling', 'closet_shelving', 'beams', 'columns', 'mantels', 'builtins', 'stair_risers', 'stair_railing'].includes(id)).length;
   const openingCount = (room.openings?.length || 0) + (subs.doors?.items?.length || 0) + (subs.windows?.items?.length || 0);
@@ -51,7 +49,6 @@ export default function RoomEditor({ room, project, dispatch }) {
 
   const getBadge = (tabId) => {
     switch (tabId) {
-      case 'surfaces': return surfaceCount || null;
       case 'trim': return trimCount || null;
       case 'specialty': return specialtyCount || null;
       case 'openings': return openingCount || null;
@@ -133,7 +130,7 @@ export default function RoomEditor({ room, project, dispatch }) {
         {activeTab === 'identity' && <IdentityTab {...tabProps} />}
         {activeTab === 'structure' && <StructureTab {...tabProps} />}
         {activeTab === 'openings' && <OpeningsTab {...tabProps} />}
-        {activeTab === 'surfaces' && <SurfacesTab {...substrateTabProps} />}
+
         {activeTab === 'trim' && <TrimTab {...substrateTabProps} />}
         {activeTab === 'specialty' && <SpecialtyTab {...substrateTabProps} />}
         {activeTab === 'closets' && <ClosetsTab {...tabProps} />}

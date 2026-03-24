@@ -22,9 +22,14 @@ export default function StructureTab({ room, derived, dispatch, project }) {
   return (
     <div>
       {/* ── Walls ── */}
-      {subs.walls && (
       <div className="panel-section" data-section="walls">
-        <div className="section-title">Walls</div>
+        <div className="section-title" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <input type="checkbox" checked={!!subs.walls}
+            onChange={() => dispatch({ type: 'TOGGLE_SUBSTRATE', payload: { roomId: rid, substrateId: 'walls' } })} />
+          Walls
+        </div>
+      {subs.walls && (
+        <>
         <div className="form-grid" style={{ gridTemplateColumns: '1fr 1fr 1fr 1fr' }}>
           <div>
             <div className="field-label">Substrate State</div>
@@ -107,13 +112,19 @@ export default function StructureTab({ room, derived, dispatch, project }) {
             style={{ fontSize: 11, marginTop: 4 }}
           >+ Add Wall</button>
         </div>
-      </div>
+        </>
       )}
+      </div>
 
       {/* ── Ceiling ── */}
-      {subs.ceiling && (
       <div className="panel-section" data-section="ceiling">
-        <div className="section-title">Ceiling</div>
+        <div className="section-title" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <input type="checkbox" checked={!!subs.ceiling}
+            onChange={() => dispatch({ type: 'TOGGLE_SUBSTRATE', payload: { roomId: rid, substrateId: 'ceiling' } })} />
+          Ceiling
+        </div>
+      {subs.ceiling && (
+        <>
         <div className="form-grid" style={{ gridTemplateColumns: '1fr 1fr 1fr 1fr' }}>
           <div>
             <div className="field-label">Substrate State</div>
@@ -138,15 +149,19 @@ export default function StructureTab({ room, derived, dispatch, project }) {
             onValueChange={v => setSub('ceiling', 'sf_manual', v)} onOverrideToggle={v => setSub('ceiling', 'sf_override', v)} uom="SF" />
           <div style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 2 }}>L&times;W = {derived.ceilingSF}{derived.vaultedExtra > 0 ? ` + Vault ${derived.vaultedExtra}` : ''}</div>
         </div>
+        {subs.wood_ceiling && (
+          <div style={{ padding: '6px 10px', marginTop: 6, background: '#4a3a1a', borderRadius: 4, fontSize: 11, color: '#f0c040' }}>
+            <strong>Note:</strong> Wood Ceiling is also active in the Specialty tab. Both will generate separate ceiling estimates. If this is a wood ceiling, uncheck Ceiling here and configure it in Specialty instead.
+          </div>
+        )}
+        {!subs.wood_ceiling && (
+          <div style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 4 }}>
+            For wood plank, beadboard, or coffered ceilings, use Wood Ceiling in the Specialty tab instead.
+          </div>
+        )}
+        </>
+      )}
       </div>
-      )}
-
-      {/* ── Not painting surfaces hint ── */}
-      {!subs.walls && !subs.ceiling && (
-        <div className="panel-section" style={{ color: 'var(--text-muted)', fontSize: 12, textAlign: 'center', padding: '16px 8px' }}>
-          Enable <b>Walls</b> and/or <b>Ceiling</b> in the Scope tab to configure surfaces here.
-        </div>
-      )}
 
       {/* ── Vault & Gable ── */}
       <div className="panel-section" data-section="vault">
