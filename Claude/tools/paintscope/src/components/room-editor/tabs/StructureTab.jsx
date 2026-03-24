@@ -23,11 +23,12 @@ export default function StructureTab({ room, derived, dispatch, project }) {
     <div>
       {/* ── Walls ── */}
       <div className="panel-section" data-section="walls">
-        <div className="section-title" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <div className="section-title">Walls</div>
+        <label style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, marginBottom: 6, cursor: 'pointer' }}>
           <input type="checkbox" checked={!!subs.walls}
             onChange={() => dispatch({ type: 'TOGGLE_SUBSTRATE', payload: { roomId: rid, substrateId: 'walls' } })} />
-          Walls
-        </div>
+          Paint
+        </label>
       {subs.walls && (
         <>
         <div className="form-grid" style={{ gridTemplateColumns: '1fr 1fr 1fr 1fr' }}>
@@ -118,11 +119,12 @@ export default function StructureTab({ room, derived, dispatch, project }) {
 
       {/* ── Ceiling ── */}
       <div className="panel-section" data-section="ceiling">
-        <div className="section-title" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <div className="section-title">Ceiling</div>
+        <label style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, marginBottom: 6, cursor: 'pointer' }}>
           <input type="checkbox" checked={!!subs.ceiling}
             onChange={() => dispatch({ type: 'TOGGLE_SUBSTRATE', payload: { roomId: rid, substrateId: 'ceiling' } })} />
-          Ceiling
-        </div>
+          Paint
+        </label>
       {subs.ceiling && (
         <>
         <div className="form-grid" style={{ gridTemplateColumns: '1fr 1fr 1fr 1fr' }}>
