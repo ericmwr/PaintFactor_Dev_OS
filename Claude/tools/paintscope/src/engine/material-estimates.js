@@ -140,124 +140,149 @@ export function computeMaterialEstimates(state, db, roomLookups, specResults = [
     if (specId.includes('PRIME')) defaultSheen = 'flat';
     if (specId.includes('TRIM') || specId.includes('DOOR') || specId.includes('CABINET') || specId.includes('WINDOW')) defaultSheen = 'semi-gloss';
 
-    // Find matching system by quality tier + sheen
-    let matchedSystem = null;
-    specSystems.forEach(ms => {
-      if (ms.applies_when) {
-        const aw = typeof ms.applies_when === 'string' ? JSON.parse(ms.applies_when) : ms.applies_when;
-        const qtMatch = !aw.quality_tier || aw.quality_tier.includes(defaultQT);
-        const sheenMatch = !aw.finish_sheen || aw.finish_sheen.includes(defaultSheen);
-        if (qtMatch && sheenMatch && !matchedSystem) {
-          matchedSystem = ms;
+    // Determine which systems to resolve for this spec.
+    // Stain/clear specs need multiple systems (stain + sealer + clear coat).
+    // Paint specs need one system matched by QT + sheen.
+    const isStainSpec = specId.includes('STAIN');
+    let matchedSystems = [];
+
+    if (isStainSpec) {
+      // Stain specs: match ALL systems whose coating_type applies
+      // For stain_clear projects: stain + sealer + clear coat
+      // For stain_only: just stain
+      // For clear_only: sealer + clear coat
+      // Pick first system per role (stain, sealer, clear)
+      const seenRoles = new Set();
+      specSystems.forEach(ms => {
+        const aw = typeof ms.applies_when === 'string' ? JSON.parse(ms.applies_when) : (ms.applies_when || {});
+        // Determine role from system ID
+        let role = 'stain';
+        if (ms.id.includes('SEALER')) role = 'sealer';
+        else if (ms.id.includes('CLEAR') || ms.id.includes('POLY') || ms.id.includes('LACQUER')) role = 'clear';
+        if (!seenRoles.has(role)) {
+          seenRoles.add(role);
+          matchedSystems.push({ system: ms, role });
+        }
+      });
+    } else {
+      // Paint/prime specs: match one system by QT + sheen
+      let matchedSystem = null;
+      specSystems.forEach(ms => {
+        if (ms.applies_when) {
+          const aw = typeof ms.applies_when === 'string' ? JSON.parse(ms.applies_when) : ms.applies_when;
+          const qtMatch = !aw.quality_tier || aw.quality_tier.includes(defaultQT);
+          const sheenMatch = !aw.finish_sheen || aw.finish_sheen.includes(defaultSheen);
+          if (qtMatch && sheenMatch && !matchedSystem) {
+            matchedSystem = ms;
+          }
+        }
+      });
+      if (!matchedSystem && specSystems.length > 0) {
+        matchedSystem = specSystems[0];
+      }
+      if (matchedSystem) {
+        matchedSystems.push({ system: matchedSystem, role: 'finish' });
+      }
+    }
+
+    // Emit one estimate per matched system
+    matchedSystems.forEach(({ system: matchedSystem, role }) => {
+      // Get coats from material_system_products
+      let coats = 1;
+      if (matchedSystem) {
+        const products = productsBySystem[specId + '::' + matchedSystem.id] || [];
+        if (products.length > 0) {
+          const finishProd = products.find(p => (p.product_role || '').includes('finish')) || products[0];
+          if (finishProd.coats_required) coats = finishProd.coats_required;
         }
       }
-    });
 
-    // Fallback: pick first system for this spec
-    if (!matchedSystem && specSystems.length > 0) {
-      matchedSystem = specSystems[0];
-    }
-
-    // Get coats from material_system_products
-    let coats = 1; // default
-    if (matchedSystem) {
-      const products = productsBySystem[specId + '::' + matchedSystem.id] || [];
-      if (products.length > 0) {
-        // Use the first product's coats (finish role preferred)
-        const finishProd = products.find(p => (p.product_role || '').includes('finish')) || products[0];
-        if (finishProd.coats_required) coats = finishProd.coats_required;
-      }
-    }
-
-    // Find coverage profile matching system + texture
-    let matchedProfile = null;
-    specProfiles.forEach(cp => {
-      // Check if coverage profile belongs to our matched system
-      let cpSystems = cp.material_system;
-      if (typeof cpSystems === 'string') {
-        try { cpSystems = JSON.parse(cpSystems); } catch(e) { cpSystems = [cpSystems]; }
-      }
-      if (!Array.isArray(cpSystems)) cpSystems = [cpSystems];
-
-      const systemMatch = !matchedSystem || cpSystems.includes(matchedSystem.id);
-
-      // Check texture match
-      let textures = cp.surface_texture;
-      if (typeof textures === 'string') {
-        try { textures = JSON.parse(textures); } catch(e) { textures = [textures]; }
-      }
-      if (!Array.isArray(textures)) textures = [textures];
-      const textureMatch = textures.includes(defaultTexture);
-
-      if (systemMatch && textureMatch && !matchedProfile) {
-        matchedProfile = cp;
-      }
-    });
-
-    // Fallback: use first profile for this spec + matched system
-    if (!matchedProfile) {
-      matchedProfile = specProfiles.find(cp => {
+      // Find coverage profile matching system + texture
+      let matchedProfile = null;
+      specProfiles.forEach(cp => {
         let cpSystems = cp.material_system;
         if (typeof cpSystems === 'string') {
           try { cpSystems = JSON.parse(cpSystems); } catch(e) { cpSystems = [cpSystems]; }
         }
         if (!Array.isArray(cpSystems)) cpSystems = [cpSystems];
-        return !matchedSystem || cpSystems.includes(matchedSystem.id);
-      }) || specProfiles[0];
-    }
+        const systemMatch = !matchedSystem || cpSystems.includes(matchedSystem.id);
 
-    // Try to resolve a real catalog product for this system (primary path)
-    let coverageRate = null;
-    let productInfo = {
-      productId: null,
-      productName: matchedSystem ? matchedSystem.name : '(unknown)',
-      brand: null,
-      resolvedBy: 'db_fallback',
-      pricePerGallon: null,
-    };
+        let textures = cp.surface_texture;
+        if (typeof textures === 'string') {
+          try { textures = JSON.parse(textures); } catch(e) { textures = [textures]; }
+        }
+        if (!Array.isArray(textures)) textures = [textures];
+        const textureMatch = textures.includes(defaultTexture);
 
-    if (matchedSystem) {
-      const resolved = resolveProduct(matchedSystem.id, resolverCtx, overrides);
-      if (resolved && resolved.coverage_sf_per_gallon) {
-        coverageRate = resolved.coverage_sf_per_gallon;
-        productInfo = {
-          productId: resolved.product_id,
-          productName: resolved.product_name,
-          brand: resolved.brand,
-          resolvedBy: resolved.resolved_by,
-          pricePerGallon: resolved.price_per_gallon || null,
-        };
+        if (systemMatch && textureMatch && !matchedProfile) {
+          matchedProfile = cp;
+        }
+      });
+
+      if (!matchedProfile) {
+        matchedProfile = specProfiles.find(cp => {
+          let cpSystems = cp.material_system;
+          if (typeof cpSystems === 'string') {
+            try { cpSystems = JSON.parse(cpSystems); } catch(e) { cpSystems = [cpSystems]; }
+          }
+          if (!Array.isArray(cpSystems)) cpSystems = [cpSystems];
+          return !matchedSystem || cpSystems.includes(matchedSystem.id);
+        }) || specProfiles[0];
       }
-    }
 
-    // Fallback: use DB coverage profile if resolver didn't provide coverage
-    if (!coverageRate && matchedProfile && matchedProfile.coverage_sf_per_gallon) {
-      coverageRate = matchedProfile.coverage_sf_per_gallon;
-    }
+      // Try to resolve a real catalog product (primary path)
+      let coverageRate = null;
+      let productInfo = {
+        productId: null,
+        productName: matchedSystem ? matchedSystem.name : '(unknown)',
+        brand: null,
+        resolvedBy: 'db_fallback',
+        pricePerGallon: null,
+      };
 
-    if (!coverageRate) return; // No coverage data from either source — skip
+      if (matchedSystem) {
+        const resolved = resolveProduct(matchedSystem.id, resolverCtx, overrides);
+        if (resolved && resolved.coverage_sf_per_gallon) {
+          coverageRate = resolved.coverage_sf_per_gallon;
+          productInfo = {
+            productId: resolved.product_id,
+            productName: resolved.product_name,
+            brand: resolved.brand,
+            resolvedBy: resolved.resolved_by,
+            pricePerGallon: resolved.price_per_gallon || null,
+          };
+        }
+      }
 
-    // Compute gallons: (SF * coats) / coverage_rate / (1 - spray_loss)
-    const rawGallons = (specSF * coats) / coverageRate;
-    const sprayMultiplier = isSpray ? (1 / (1 - SPRAY_LOSS_FACTOR)) : 1;
-    const gallons = rawGallons * sprayMultiplier;
+      // Fallback: use DB coverage profile
+      if (!coverageRate && matchedProfile && matchedProfile.coverage_sf_per_gallon) {
+        coverageRate = matchedProfile.coverage_sf_per_gallon;
+      }
 
-    estimates.push({
-      specFamilyId: specId,
-      systemId: matchedSystem ? matchedSystem.id : null,
-      systemName: matchedSystem ? matchedSystem.name : '(unknown)',
-      ...productInfo,
-      productRole: (matchedProfile && matchedProfile.product_role) || 'finish',
-      surfaceTexture: defaultTexture,
-      totalSF: Math.round(specSF),
-      coverageRate: coverageRate,
-      coats: coats,
-      gallonsRaw: Math.round(gallons * 10) / 10,
-      gallons: Math.ceil(gallons),
-      totalCost: productInfo.pricePerGallon
-        ? Math.round(Math.ceil(gallons) * productInfo.pricePerGallon * 100) / 100 : null,
-      sprayLoss: isSpray ? SPRAY_LOSS_FACTOR : 0,
-      psKey: matchedKey
+      if (!coverageRate) return; // No coverage data — skip
+
+      // Compute gallons
+      const rawGallons = (specSF * coats) / coverageRate;
+      const sprayMultiplier = isSpray ? (1 / (1 - SPRAY_LOSS_FACTOR)) : 1;
+      const gallons = rawGallons * sprayMultiplier;
+
+      estimates.push({
+        specFamilyId: specId,
+        systemId: matchedSystem ? matchedSystem.id : null,
+        systemName: matchedSystem ? matchedSystem.name : '(unknown)',
+        ...productInfo,
+        productRole: role,
+        surfaceTexture: defaultTexture,
+        totalSF: Math.round(specSF),
+        coverageRate: coverageRate,
+        coats: coats,
+        gallonsRaw: Math.round(gallons * 10) / 10,
+        gallons: Math.ceil(gallons),
+        totalCost: productInfo.pricePerGallon
+          ? Math.round(Math.ceil(gallons) * productInfo.pricePerGallon * 100) / 100 : null,
+        sprayLoss: isSpray ? SPRAY_LOSS_FACTOR : 0,
+        psKey: matchedKey
+      });
     });
   });
 
