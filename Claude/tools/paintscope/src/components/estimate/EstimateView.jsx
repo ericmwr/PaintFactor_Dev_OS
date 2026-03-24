@@ -9,6 +9,16 @@ import { SUBSTRATE_MAP } from '../../data/substrate-catalog';
 import { DB_BUNDLE } from '../../data/db-bundle';
 import { COMPLEXITY_OPT_OUT_SPECS } from '../../engine/modifier-stack.js';
 
+/** Format decimal hours as Xh Ym */
+function fmtHrs(h) {
+  if (!h || h <= 0) return '0m';
+  const hrs = Math.floor(h);
+  const mins = Math.round((h - hrs) * 60);
+  if (hrs === 0) return `${mins}m`;
+  if (mins === 0) return `${hrs}h`;
+  return `${hrs}h ${mins}m`;
+}
+
 // Solid colors for the stacked phase bars (visible on dark backgrounds)
 const PHASE_BAR_COLORS = {
   setup:      '#3a5a8a',
@@ -223,7 +233,7 @@ export default function EstimateView() {
       <div className="estimate-header">
         <h2>Estimate{state.project.name ? ` \u2014 ${state.project.name}` : ''}</h2>
         <div className="estimate-totals">
-          <div><span className="big-num">{estimate.totalHours}</span><span className="unit">hrs</span></div>
+          <div><span className="big-num">{fmtHrs(estimate.totalHours)}</span></div>
           <div><span className="big-num">{estimate.totalCrewDays}</span><span className="unit">crew days</span><span style={{fontSize:11,color:'var(--text-muted)',marginLeft:4}}>(@ 8hr, 2 crew)</span></div>
           <div style={{color:'var(--text-secondary)',alignSelf:'center'}}>{estimate.activatedSpecs}/{estimate.totalSpecs} specs | {state.rooms.length} rooms</div>
         </div>
@@ -375,7 +385,7 @@ export default function EstimateView() {
               <span style={{flex:'0 0 auto', marginRight:12}}>
                 <PhaseBar phaseHours={roomData.phaseHours} total={roomData.totalHours} height={14} />
               </span>
-              <span className="spec-hours">{roomData.totalHours.toFixed(1)} hrs</span>
+              <span className="spec-hours">{fmtHrs(roomData.totalHours)}</span>
             </div>
 
             {/* Expanded room content */}
@@ -393,7 +403,7 @@ export default function EstimateView() {
                         <span className={`chevron${isRpOpen ? ' open' : ''}`}>{'\u25B6'}</span>
                         <span className="spec-name" style={{marginLeft:8,color:'#e6a817'}}>Room Protection</span>
                         <span style={{fontSize:11,color:'var(--text-muted)',textTransform:'capitalize',marginLeft:8}}>{levelLabel}</span>
-                        <span className="spec-hours">{rp.totalHours.toFixed(2)} hrs</span>
+                        <span className="spec-hours">{fmtHrs(rp.totalHours)}</span>
                       </div>
                       {isRpOpen && (
                         <div className="task-detail">
@@ -408,7 +418,7 @@ export default function EstimateView() {
                                   <td style={{textAlign:'right'}}>{t.isFixed ? '\u2014' : t.quantity}</td>
                                   <td style={{textAlign:'right',color:'var(--text-muted)'}}>{t.baseRate}</td>
                                   <td style={{textAlign:'right',color:'var(--accent)',fontWeight:600}}>
-                                    {t.hours.toFixed(2)}
+                                    {fmtHrs(t.hours)}
                                     {t.coatMultiplier > 1 && <span style={{fontSize:9,color:'var(--text-muted)',marginLeft:3}}>{'\u00d7'}{t.coatMultiplier}</span>}
                                   </td>
                                 </tr>
@@ -432,7 +442,7 @@ export default function EstimateView() {
                         <span className={`chevron${isFpOpen ? ' open' : ''}`}>{'\u25B6'}</span>
                         <span className="spec-name" style={{marginLeft:8,color:'#b87333'}}>Fixture Protection</span>
                         <span style={{fontSize:11,color:'var(--text-muted)',marginLeft:8}}>{fp.tasks.length} entries</span>
-                        <span className="spec-hours">{fp.totalHours.toFixed(2)} hrs</span>
+                        <span className="spec-hours">{fmtHrs(fp.totalHours)}</span>
                       </div>
                       {isFpOpen && (
                         <div className="task-detail">
@@ -448,7 +458,7 @@ export default function EstimateView() {
                                   <td style={{textAlign:'right'}}>{t.quantity || '\u2014'}</td>
                                   <td style={{textAlign:'right',color:'var(--text-muted)'}}>{t.baseRate || '\u2014'}</td>
                                   <td style={{textAlign:'right',color:'var(--text-secondary)'}}>1.00x</td>
-                                  <td style={{textAlign:'right',color:'var(--accent)',fontWeight:600}}>{t.hours.toFixed(2)}</td>
+                                  <td style={{textAlign:'right',color:'var(--accent)',fontWeight:600}}>{fmtHrs(t.hours)}</td>
                                 </tr>
                               ))}
                             </tbody>
@@ -475,11 +485,11 @@ export default function EstimateView() {
                           {PHASE_ORDER.filter(p => specData.phaseHours[p]).map(p => (
                             <div key={p} className="phase-chip">
                               <span className="phase-label">{p}</span>
-                              <span className="phase-hrs">{specData.phaseHours[p].toFixed(1)}h</span>
+                              <span className="phase-hrs">{fmtHrs(specData.phaseHours[p])}</span>
                             </div>
                           ))}
                         </div>
-                        <span className="spec-hours">{specData.totalHours.toFixed(2)} hrs</span>
+                        <span className="spec-hours">{fmtHrs(specData.totalHours)}</span>
                       </div>
                       {isItemOpen && (
                         <div className="task-detail">
@@ -513,8 +523,8 @@ export default function EstimateView() {
                                     )}
                                   </td>
                                   <td style={{textAlign:'right',color:'var(--accent)',fontWeight:600}}
-                                      title={t.coatMultiplier > 1 ? `${(t.hours / t.coatMultiplier).toFixed(2)} hrs \u00d7 ${t.coatMultiplier} coats` : ''}>
-                                    {t.hours.toFixed(2)}
+                                      title={t.coatMultiplier > 1 ? `${fmtHrs(t.hours / t.coatMultiplier)} \u00d7 ${t.coatMultiplier} coats` : ''}>
+                                    {fmtHrs(t.hours)}
                                     {t.coatMultiplier > 1 && <span style={{fontSize:9,color:'var(--text-muted)',marginLeft:3}}>{'\u00d7'}{t.coatMultiplier}</span>}
                                   </td>
                                 </tr>
