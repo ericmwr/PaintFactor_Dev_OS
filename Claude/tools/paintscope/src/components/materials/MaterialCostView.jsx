@@ -10,7 +10,7 @@ export default function MaterialCostView() {
     // Consolidate by productId — same product from multiple specs (e.g. wall + ceiling primer) merges
     const groups = {};
     estimate.materialEstimates.forEach(mat => {
-      const key = mat.productId || mat.systemName || mat.specFamilyId;
+      const key = `${mat.productId || mat.systemName || mat.specFamilyId}||${mat.productRole || ''}`;
       if (!groups[key]) {
         groups[key] = {
           systemName: mat.systemName || mat.specFamilyId,

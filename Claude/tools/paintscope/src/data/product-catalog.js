@@ -4226,6 +4226,18 @@ const CATALOG_PRODUCTS = [
     "sheen_options": "N/A",
     "price_per_gallon": 110,
     "system_mappings": "SYS_TRIM_2K_URETHANE_PRIME"
+  },
+  {
+    "product_id": "PROD_MIN_SANDING_SEALER_WB",
+    "brand": "Minwax",
+    "product_name": "Professional Formula Sanding Sealer",
+    "product_line": "Professional Formula",
+    "sku": "15700",
+    "product_type": "sealer",
+    "coverage_sf_per_gallon": 425,
+    "sheen_options": "N/A",
+    "price_per_gallon": 75,
+    "system_mappings": "SYS_SEALER_WB"
   }
 ];
 

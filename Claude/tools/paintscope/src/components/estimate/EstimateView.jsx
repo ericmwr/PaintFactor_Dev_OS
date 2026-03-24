@@ -181,7 +181,7 @@ export default function EstimateView() {
     if (!estimate.materialEstimates || estimate.materialEstimates.length === 0) return [];
     const groups = {};
     estimate.materialEstimates.forEach(m => {
-      const key = `${m.productId || m.systemName || m.specFamilyId}||${m.surfaceTexture || ''}`;
+      const key = `${m.productId || m.systemName || m.specFamilyId}||${m.productRole || ''}||${m.surfaceTexture || ''}`;
       if (!groups[key]) {
         groups[key] = {
           systemName: m.systemName || m.specFamilyId,

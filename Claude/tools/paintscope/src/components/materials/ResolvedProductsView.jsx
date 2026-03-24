@@ -13,7 +13,7 @@ export default function ResolvedProductsView() {
     const raw = estimate?.materialEstimates || [];
     const groups = {};
     raw.forEach(m => {
-      const key = m.productId || m.systemName || m.specFamilyId;
+      const key = `${m.productId || m.systemName || m.specFamilyId}||${m.productRole || ''}`;
       if (!groups[key]) {
         groups[key] = { ...m, totalSF: 0, gallons: 0 };
       }
