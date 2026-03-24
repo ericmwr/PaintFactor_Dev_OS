@@ -127,6 +127,7 @@ export function migrateInline(parsed) {
     if (r.openings_quality_tier === undefined) r.openings_quality_tier = null;
     // Initialize closets array
     if (!r.closets) r.closets = [];
+    if (!r.extra_walls) r.extra_walls = [];
     // v0.7 migration: initialize openings array; convert existing door items to single openings
     if (!r.openings) {
       const doorItems = subs.doors?.items || [];

@@ -181,6 +181,23 @@ export function reducer(state, action) {
       });
     }
 
+    // Extra walls — partitions, shower walls, nooks
+    case 'ADD_EXTRA_WALL': {
+      return mapRoom(payload.roomId, r => {
+        return { ...r, extra_walls: [...(r.extra_walls || []), { id: genId('xw'), label: '', length_ft: 0, height_ft: 0, both_sides: false }] };
+      });
+    }
+    case 'REMOVE_EXTRA_WALL': {
+      return mapRoom(payload.roomId, r => {
+        return { ...r, extra_walls: (r.extra_walls || []).filter(w => w.id !== payload.wallId) };
+      });
+    }
+    case 'SET_EXTRA_WALL': {
+      return mapRoom(payload.roomId, r => {
+        return { ...r, extra_walls: (r.extra_walls || []).map(w => w.id === payload.wallId ? { ...w, [payload.field]: payload.value } : w) };
+      });
+    }
+
     // Closets — sub-rooms with own dimensions, inherited substrates
     case 'ADD_CLOSET': {
       return mapRoom(payload.roomId, r => {

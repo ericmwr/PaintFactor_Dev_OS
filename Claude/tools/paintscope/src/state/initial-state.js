@@ -103,6 +103,8 @@ export function createRoom(overrides={}) {
     openings: [],
     // Closets — sub-rooms with own dimensions, inherited substrates
     closets: [],
+    // Extra walls — partitions, shower walls, nooks
+    extra_walls: [],
     // v0.5 adjacency — items present but not being painted
     floor_type: '',
     floor_protection: '',
