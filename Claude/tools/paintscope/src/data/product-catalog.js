@@ -24,7 +24,7 @@ const CATALOG_PRODUCTS = [
     "product_type": "primer",
     "coverage_sf_per_gallon": 425,
     "sheen_options": "N/A",
-    "price_per_gallon": null,
+    "price_per_gallon": 52,
     "system_mappings": "SYS_ACRYLIC_LATEX_PRIMER, SYS_PRIMER_WOOD_STANDARD, SYS_PRIMER_WOOD_ACRYLIC, SYS_PRIMER_MILDEW_INT, SYS_PRIMER_PLYWOOD_SEALER, SYS_PRIMER_POWDER_COAT_BOND, SYS_TRIM_PREMIUM_ACRYLIC_PRIME"
   },
   {
@@ -84,7 +84,7 @@ const CATALOG_PRODUCTS = [
     "product_type": "primer",
     "coverage_sf_per_gallon": null,
     "sheen_options": "N/A",
-    "price_per_gallon": null,
+    "price_per_gallon": 20,
     "system_mappings": "SYS_HIGH_BUILD_PRIMER"
   },
   {
@@ -96,7 +96,7 @@ const CATALOG_PRODUCTS = [
     "product_type": "primer",
     "coverage_sf_per_gallon": 94,
     "sheen_options": "flat",
-    "price_per_gallon": null,
+    "price_per_gallon": 19,
     "system_mappings": "SYS_HIGH_BUILD_PRIMER"
   },
   {
@@ -168,7 +168,7 @@ const CATALOG_PRODUCTS = [
     "product_type": "primer",
     "coverage_sf_per_gallon": 236,
     "sheen_options": "flat",
-    "price_per_gallon": null,
+    "price_per_gallon": 36,
     "system_mappings": "SYS_PRIMER_IRON_DTM, SYS_PRIMER_STEEL_DTM"
   },
   {
@@ -180,7 +180,7 @@ const CATALOG_PRODUCTS = [
     "product_type": "primer",
     "coverage_sf_per_gallon": 425,
     "sheen_options": "flat",
-    "price_per_gallon": null,
+    "price_per_gallon": 74,
     "system_mappings": "SYS_PRIMER_MDF_LATEX"
   },
   {
@@ -216,7 +216,7 @@ const CATALOG_PRODUCTS = [
     "product_type": "stainblock",
     "coverage_sf_per_gallon": 600,
     "sheen_options": "flat",
-    "price_per_gallon": null,
+    "price_per_gallon": 68,
     "system_mappings": "SYS_PRIMER_POPLAR_STAINBLOCK"
   },
   {
@@ -252,7 +252,7 @@ const CATALOG_PRODUCTS = [
     "product_type": "primer",
     "coverage_sf_per_gallon": 400,
     "sheen_options": "flat",
-    "price_per_gallon": null,
+    "price_per_gallon": 12,
     "system_mappings": "SYS_PVA_PRIMER"
   },
   {
@@ -264,7 +264,7 @@ const CATALOG_PRODUCTS = [
     "product_type": "primer",
     "coverage_sf_per_gallon": 400,
     "sheen_options": "flat",
-    "price_per_gallon": null,
+    "price_per_gallon": 18,
     "system_mappings": "SYS_PVA_PRIMER"
   },
   {
@@ -708,7 +708,7 @@ const CATALOG_PRODUCTS = [
     "product_type": "primer",
     "coverage_sf_per_gallon": 350,
     "sheen_options": "flat",
-    "price_per_gallon": null,
+    "price_per_gallon": 40,
     "system_mappings": "SYS_STANDARD_PRIME, SYS_MDF_FACE_PRIME"
   },
   {
@@ -732,7 +732,7 @@ const CATALOG_PRODUCTS = [
     "product_type": "clear_coat",
     "coverage_sf_per_gallon": 400,
     "sheen_options": "satin, semi-gloss, gloss",
-    "price_per_gallon": null,
+    "price_per_gallon": 60,
     "system_mappings": "SYS_CLEAR_POLY_OIL, SYS_SEALER_OIL"
   },
   {
@@ -792,7 +792,7 @@ const CATALOG_PRODUCTS = [
     "product_type": "stain",
     "coverage_sf_per_gallon": 300,
     "sheen_options": "satin, gloss",
-    "price_per_gallon": null,
+    "price_per_gallon": 60,
     "system_mappings": "SYS_STAIN_WB"
   },
   {
@@ -828,7 +828,7 @@ const CATALOG_PRODUCTS = [
     "product_type": "stain",
     "coverage_sf_per_gallon": 200,
     "sheen_options": "satin, gloss",
-    "price_per_gallon": null,
+    "price_per_gallon": 20,
     "system_mappings": "SYS_STAIN_GEL"
   },
   {
@@ -972,7 +972,7 @@ const CATALOG_PRODUCTS = [
     "product_type": "finish",
     "coverage_sf_per_gallon": 275,
     "sheen_options": "flat, satin, semi-gloss",
-    "price_per_gallon": null,
+    "price_per_gallon": 56,
     "system_mappings": "SYS_EXT_MSRY_FINISH_ACRYLIC_PREM, SYS_EXT_STCO_FINISH_ACRYLIC_PREM"
   },
   {
@@ -996,7 +996,7 @@ const CATALOG_PRODUCTS = [
     "product_type": "finish",
     "coverage_sf_per_gallon": 325,
     "sheen_options": "flat, low lustre, soft gloss",
-    "price_per_gallon": null,
+    "price_per_gallon": 83,
     "system_mappings": "SYS_EXT_EW_FINISH_STANDARD, SYS_EXT_FC_FINISH_STANDARD, SYS_EXT_WOOD_FINISH_STANDARD, SYS_EXT_WSRP_FINISH_STANDARD"
   },
   {
@@ -1008,7 +1008,7 @@ const CATALOG_PRODUCTS = [
     "product_type": "finish",
     "coverage_sf_per_gallon": 350,
     "sheen_options": "flat, satin, semi-gloss",
-    "price_per_gallon": null,
+    "price_per_gallon": 41,
     "system_mappings": "SYS_EXT_EW_FINISH_STANDARD, SYS_EXT_FC_FINISH_STANDARD, SYS_EXT_WOOD_FINISH_STANDARD, SYS_EXT_WSRP_FINISH_STANDARD"
   },
   {
@@ -1032,7 +1032,7 @@ const CATALOG_PRODUCTS = [
     "product_type": "primer",
     "coverage_sf_per_gallon": 350,
     "sheen_options": "N/A",
-    "price_per_gallon": null,
+    "price_per_gallon": 58,
     "system_mappings": "SYS_EXT_EW_PRIMER_ACRYLIC, SYS_EXT_FC_PRIMER_ACRYLIC, SYS_EXT_WOOD_PRIMER_ACRYLIC"
   },
   {
@@ -1104,7 +1104,7 @@ const CATALOG_PRODUCTS = [
     "product_type": "primer",
     "coverage_sf_per_gallon": 325,
     "sheen_options": "N/A",
-    "price_per_gallon": null,
+    "price_per_gallon": 32,
     "system_mappings": "SYS_EXT_FC_PRIMER_ALKALI"
   },
   {
@@ -1116,7 +1116,7 @@ const CATALOG_PRODUCTS = [
     "product_type": "primer",
     "coverage_sf_per_gallon": 350,
     "sheen_options": "N/A",
-    "price_per_gallon": null,
+    "price_per_gallon": 37,
     "system_mappings": "SYS_EXT_FC_PRIMER_ALKALI"
   },
   {
@@ -1500,7 +1500,7 @@ const CATALOG_PRODUCTS = [
     "product_type": "finish",
     "coverage_sf_per_gallon": 350,
     "sheen_options": "flat, low_lustre, satin, semi-gloss",
-    "price_per_gallon": null,
+    "price_per_gallon": 80,
     "system_mappings": "SYS_EXT_DOOR_FINISH_IR_REFLECTIVE, SYS_EXT_DOOR_FINISH_PREMIUM"
   },
   {
@@ -1680,7 +1680,7 @@ const CATALOG_PRODUCTS = [
     "product_type": "primer",
     "coverage_sf_per_gallon": 400,
     "sheen_options": "N/A",
-    "price_per_gallon": null,
+    "price_per_gallon": 65,
     "system_mappings": "SYS_EXT_DRRP_PRIMER_DTM"
   },
   {
@@ -1860,7 +1860,7 @@ const CATALOG_PRODUCTS = [
     "product_type": "primer",
     "coverage_sf_per_gallon": 350,
     "sheen_options": "N/A",
-    "price_per_gallon": null,
+    "price_per_gallon": 30,
     "system_mappings": "SYS_EXT_GRDR_PRIMER_BONDING"
   },
   {
@@ -2232,7 +2232,7 @@ const CATALOG_PRODUCTS = [
     "product_type": "finish",
     "coverage_sf_per_gallon": 350,
     "sheen_options": "flat",
-    "price_per_gallon": null,
+    "price_per_gallon": 72,
     "system_mappings": "SYS_EXT_DECK_SOLID_STAIN"
   },
   {
@@ -2256,7 +2256,7 @@ const CATALOG_PRODUCTS = [
     "product_type": "finish",
     "coverage_sf_per_gallon": 350,
     "sheen_options": "flat",
-    "price_per_gallon": null,
+    "price_per_gallon": 57,
     "system_mappings": "SYS_EXT_DECK_SEMI_TRANSPARENT"
   },
   {
@@ -2280,7 +2280,7 @@ const CATALOG_PRODUCTS = [
     "product_type": "sealer",
     "coverage_sf_per_gallon": null,
     "sheen_options": "satin",
-    "price_per_gallon": null,
+    "price_per_gallon": 5,
     "system_mappings": "SYS_EXT_CAULK_ACRYLIC, SYS_EXT_CAULK_SILICONIZED"
   },
   {
@@ -2292,7 +2292,7 @@ const CATALOG_PRODUCTS = [
     "product_type": "sealer",
     "coverage_sf_per_gallon": null,
     "sheen_options": "satin",
-    "price_per_gallon": null,
+    "price_per_gallon": 12,
     "system_mappings": "SYS_EXT_CAULK_POLYURETHANE, SYS_EXT_CAULK_HYBRID"
   },
   {
@@ -2376,7 +2376,7 @@ const CATALOG_PRODUCTS = [
     "product_type": "finish",
     "coverage_sf_per_gallon": 350,
     "sheen_options": "satin, semi-gloss",
-    "price_per_gallon": null,
+    "price_per_gallon": 80,
     "system_mappings": "SYS_EXT_SFIT_FINISH_PREMIUM"
   },
   {
@@ -2736,7 +2736,7 @@ const CATALOG_PRODUCTS = [
     "product_type": "clear_coat",
     "coverage_sf_per_gallon": 400,
     "sheen_options": "gloss, satin",
-    "price_per_gallon": null,
+    "price_per_gallon": 56,
     "system_mappings": "SYS_EXT_DECK_CLEAR_SEALER"
   },
   {
@@ -2880,7 +2880,7 @@ const CATALOG_PRODUCTS = [
     "product_type": "finish",
     "coverage_sf_per_gallon": 550,
     "sheen_options": "low-sheen, high-gloss",
-    "price_per_gallon": null,
+    "price_per_gallon": 32,
     "system_mappings": "SYS_EXT_PFRP_FINISH_PORCH_ENAMEL"
   },
   {
@@ -2892,7 +2892,7 @@ const CATALOG_PRODUCTS = [
     "product_type": "finish",
     "coverage_sf_per_gallon": 350,
     "sheen_options": "satin",
-    "price_per_gallon": null,
+    "price_per_gallon": 48,
     "system_mappings": "SYS_EXT_PFRP_FINISH_PORCH_ENAMEL"
   },
   {
@@ -2904,7 +2904,7 @@ const CATALOG_PRODUCTS = [
     "product_type": "bonding_primer",
     "coverage_sf_per_gallon": 400,
     "sheen_options": "flat",
-    "price_per_gallon": null,
+    "price_per_gallon": 85,
     "system_mappings": "SYS_EXT_PFRP_PRIMER_BONDING"
   },
   {
@@ -3012,7 +3012,7 @@ const CATALOG_PRODUCTS = [
     "product_type": "finish",
     "coverage_sf_per_gallon": 350,
     "sheen_options": "flat, eggshell, satin",
-    "price_per_gallon": null,
+    "price_per_gallon": 70,
     "system_mappings": "SYS_EXT_PRCH_FINISH_STANDARD"
   },
   {
@@ -3396,7 +3396,7 @@ const CATALOG_PRODUCTS = [
     "product_type": "finish",
     "coverage_sf_per_gallon": 300,
     "sheen_options": "satin",
-    "price_per_gallon": null,
+    "price_per_gallon": 34,
     "system_mappings": "SYS_EXT_PRFL_FINISH_CONCRETE_STAIN"
   },
   {
@@ -3444,7 +3444,7 @@ const CATALOG_PRODUCTS = [
     "product_type": "caulk",
     "coverage_sf_per_gallon": null,
     "sheen_options": "paintable",
-    "price_per_gallon": null,
+    "price_per_gallon": 5,
     "system_mappings": "SYS_EXT_CAULK_ACRYLIC"
   },
   {
@@ -3456,7 +3456,7 @@ const CATALOG_PRODUCTS = [
     "product_type": "caulk",
     "coverage_sf_per_gallon": null,
     "sheen_options": "paintable",
-    "price_per_gallon": null,
+    "price_per_gallon": 3,
     "system_mappings": "SYS_EXT_CAULK_ACRYLIC"
   },
   {
@@ -3492,7 +3492,7 @@ const CATALOG_PRODUCTS = [
     "product_type": "caulk",
     "coverage_sf_per_gallon": null,
     "sheen_options": "paintable",
-    "price_per_gallon": null,
+    "price_per_gallon": 9,
     "system_mappings": "SYS_EXT_CAULK_POLYURETHANE"
   },
   {
@@ -3540,7 +3540,7 @@ const CATALOG_PRODUCTS = [
     "product_type": "caulk",
     "coverage_sf_per_gallon": null,
     "sheen_options": "paintable",
-    "price_per_gallon": null,
+    "price_per_gallon": 5,
     "system_mappings": "SYS_EXT_CAULK_SILICONIZED"
   },
   {
@@ -3576,7 +3576,7 @@ const CATALOG_PRODUCTS = [
     "product_type": "sealer",
     "coverage_sf_per_gallon": 250,
     "sheen_options": "gloss, satin",
-    "price_per_gallon": null,
+    "price_per_gallon": 56,
     "system_mappings": "SYS_EXT_DECK_CLEAR_SEALER"
   },
   {
@@ -3588,7 +3588,7 @@ const CATALOG_PRODUCTS = [
     "product_type": "finish",
     "coverage_sf_per_gallon": 200,
     "sheen_options": "flat",
-    "price_per_gallon": null,
+    "price_per_gallon": 57,
     "system_mappings": "SYS_EXT_DECK_SEMI_SOLID"
   },
   {
@@ -3600,7 +3600,7 @@ const CATALOG_PRODUCTS = [
     "product_type": "finish",
     "coverage_sf_per_gallon": 200,
     "sheen_options": "flat",
-    "price_per_gallon": null,
+    "price_per_gallon": 72,
     "system_mappings": "SYS_EXT_DECK_SEMI_SOLID"
   },
   {
@@ -3624,7 +3624,7 @@ const CATALOG_PRODUCTS = [
     "product_type": "finish",
     "coverage_sf_per_gallon": 250,
     "sheen_options": "flat",
-    "price_per_gallon": null,
+    "price_per_gallon": 58,
     "system_mappings": "SYS_EXT_DECK_SOLID_STAIN"
   },
   {
@@ -3660,7 +3660,7 @@ const CATALOG_PRODUCTS = [
     "product_type": "finish",
     "coverage_sf_per_gallon": 150,
     "sheen_options": "flat",
-    "price_per_gallon": null,
+    "price_per_gallon": 43,
     "system_mappings": "SYS_EXT_DECK_SEMI_TRANSPARENT"
   },
   {
@@ -3672,7 +3672,7 @@ const CATALOG_PRODUCTS = [
     "product_type": "finish",
     "coverage_sf_per_gallon": 150,
     "sheen_options": "flat",
-    "price_per_gallon": null,
+    "price_per_gallon": 57,
     "system_mappings": "SYS_EXT_DECK_SEMI_TRANSPARENT"
   },
   {
@@ -3696,7 +3696,7 @@ const CATALOG_PRODUCTS = [
     "product_type": "bonding_primer",
     "coverage_sf_per_gallon": 350,
     "sheen_options": "flat",
-    "price_per_gallon": null,
+    "price_per_gallon": 45,
     "system_mappings": "SYS_EXT_DKRP_BONDING_PRIMER"
   },
   {
