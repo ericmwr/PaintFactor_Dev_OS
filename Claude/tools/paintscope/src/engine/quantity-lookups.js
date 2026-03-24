@@ -14,13 +14,20 @@ export function buildRoomQuantityLookups(state) {
     const d = deriveRoom(room);
     const subs = room.substrates || {};
     const qty = new Map();
-
+    const closetQty = new Map();
 
     function addQ(key, uom, val) {
       if (!val || val <= 0) return;
       const existing = qty.get(key);
       if (existing) existing.value += val;
       else qty.set(key, { value: val, uom });
+    }
+    function addClosetQ(key, uom, val) {
+      if (!val || val <= 0) return;
+      addQ(key, uom, val); // still rolls into main qty
+      const existing = closetQty.get(key);
+      if (existing) existing.value += val;
+      else closetQty.set(key, { value: val, uom });
     }
 
     // Wall + Ceiling — conditional
@@ -243,46 +250,47 @@ export function buildRoomQuantityLookups(state) {
     addQ('PS_META.SF.FLOOR_VACUUM_AREA', 'SF', d.ceilingSF);
 
     // Closets — sub-rooms that roll up quantities into the parent room
+    // Uses addClosetQ to track closet contributions separately for display
     const closets = room.closets || [];
     closets.forEach((closet) => {
       const cd = deriveCloset(closet, room);
       // Closet walls
       if (subs.walls && cd.wall_field_sf > 0) {
-        addQ('PS_SURFACE_SF.WALL_FIELD', 'SF', cd.wall_field_sf);
+        addClosetQ('PS_SURFACE_SF.WALL_FIELD', 'SF', cd.wall_field_sf);
       }
       // Closet ceiling
       if (subs.ceiling && cd.ceiling_field_sf > 0) {
-        addQ('PS_SURFACE_SF.CEILING_FIELD', 'SF', cd.ceiling_field_sf);
+        addClosetQ('PS_SURFACE_SF.CEILING_FIELD', 'SF', cd.ceiling_field_sf);
       }
       // Closet baseboard
       if (subs.baseboard && cd.baseboard_lf > 0) {
-        addQ('PS_SURFACE_LF.TRIM_BASEBOARD', 'LF', cd.baseboard_lf);
-        addQ('PS_SURFACE_LF.TRIM_TOTAL', 'LF', cd.baseboard_lf);
-        addQ('PS_EDGE_LF.TRIM_JOINTS', 'LF', cd.baseboard_lf);
+        addClosetQ('PS_SURFACE_LF.TRIM_BASEBOARD', 'LF', cd.baseboard_lf);
+        addClosetQ('PS_SURFACE_LF.TRIM_TOTAL', 'LF', cd.baseboard_lf);
+        addClosetQ('PS_EDGE_LF.TRIM_JOINTS', 'LF', cd.baseboard_lf);
       }
       // Closet shelving
       if (closet.shelving_type !== 'none' && cd.shelving_lf > 0) {
-        addQ('PS_SURFACE_LF.CLOSET_SHELF', 'LF', cd.shelving_lf);
+        addClosetQ('PS_SURFACE_LF.CLOSET_SHELF', 'LF', cd.shelving_lf);
       }
       // Closet perimeter edges + protection
-      addQ('PS_EDGE_LF.TO_CEILING', 'LF', cd.perimeter);
+      addClosetQ('PS_EDGE_LF.TO_CEILING', 'LF', cd.perimeter);
       if (cd.baseboard_lf > 0) {
-        addQ('PS_EDGE_LF.TO_TRIM', 'LF', cd.baseboard_lf);
-        if (subs.baseboard) addQ('PS_PROTECT_LF.TRIM_BASEBOARD', 'LF', cd.baseboard_lf);
+        addClosetQ('PS_EDGE_LF.TO_TRIM', 'LF', cd.baseboard_lf);
+        if (subs.baseboard) addClosetQ('PS_PROTECT_LF.TRIM_BASEBOARD', 'LF', cd.baseboard_lf);
       }
-      addQ('PS_PROTECT_LF.CEILING_LINE', 'LF', cd.perimeter);
+      addClosetQ('PS_PROTECT_LF.CEILING_LINE', 'LF', cd.perimeter);
       // Floor protection (inherits parent floor type)
       if (hasFloorProt) {
-        addQ('PS_PROTECT_SF.FLOOR_EXPOSED', 'SF', cd.ceilingSF);
+        addClosetQ('PS_PROTECT_SF.FLOOR_EXPOSED', 'SF', cd.ceilingSF);
       }
       // Meta
-      addQ('PS_META.SF.FLOOR_VACUUM_AREA', 'SF', cd.ceilingSF);
+      addClosetQ('PS_META.SF.FLOOR_VACUUM_AREA', 'SF', cd.ceilingSF);
     });
     if (closets.length > 0) {
       addQ('PS_META.EA.CLOSETS_TOTAL', 'EA', closets.length);
     }
 
-    roomLookups.set(ri, qty);
+    roomLookups.set(ri, { qty, closetQty });
   });
   return roomLookups;
 }

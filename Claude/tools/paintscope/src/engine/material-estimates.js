@@ -79,7 +79,8 @@ export function computeMaterialEstimates(state, db, roomLookups, specResults = [
   // Aggregate quantities across all rooms by spec family
   // We need per-spec quantities to match coverage profiles to specs
   const totalQty = new Map();
-  roomLookups.forEach((roomQty) => {
+  roomLookups.forEach((roomLookup) => {
+    const roomQty = roomLookup?.qty || roomLookup;
     roomQty.forEach((val, key) => {
       const existing = totalQty.get(key);
       if (existing) existing.value += val.value;

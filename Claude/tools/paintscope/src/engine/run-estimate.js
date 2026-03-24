@@ -162,7 +162,7 @@ export function runEstimate(state, db, overlayMap) {
     const psKeys = allPsKeys.filter(k => k.startsWith('PS_SURFACE_') || k.startsWith('PS_OPENING_EA.'));
 
     rooms.forEach((room, ri) => {
-      const roomQty = roomLookups.get(ri);
+      const roomQty = roomLookups.get(ri)?.qty;
       if (psKeys.some(k => roomQty && roomQty.has(k) && roomQty.get(k).value > 0)) {
         // Quantity exists — now check substrate state compatibility
         if (isSpecStateCompatible(spec.id, room)) {
@@ -181,7 +181,9 @@ export function runEstimate(state, db, overlayMap) {
 
     // For each room
     rooms.forEach((room, ri) => {
-      const roomQty = roomLookups.get(ri);
+      const roomLookup = roomLookups.get(ri);
+      const roomQty = roomLookup?.qty;
+      const closetQty = roomLookup?.closetQty;
 
       // Per-room activation: skip this room if it has NONE of the spec's activation keys
       // OR if the room's substrate state is incompatible with this spec
@@ -447,7 +449,7 @@ export function runEstimate(state, db, overlayMap) {
     });
 
     Object.entries(tasksByRoom).forEach(([ri, tasks]) => {
-      const roomQty = roomLookups.get(parseInt(ri));
+      const roomQty = roomLookups.get(parseInt(ri))?.qty;
       const breakdown = roomQty && roomQty.get('_GRAIN_FILL_BREAKDOWN');
       if (!breakdown) return;
 
@@ -799,11 +801,41 @@ export function runEstimate(state, db, overlayMap) {
 
   const crewDays = grandTotalHours / 8 / 2; // 8hr day, 2-person crew
 
+  // Compute closet hours per room — proportion of surface quantities from closets
+  const closetHoursByRoom = {};
+  rooms.forEach((room, ri) => {
+    const roomLookup = roomLookups.get(ri);
+    const roomQty = roomLookup?.qty;
+    const cQty = roomLookup?.closetQty;
+    if (!cQty || cQty.size === 0) return;
+    // Sum surface-key quantities from closets and total
+    const surfacePrefix = 'PS_SURFACE_';
+    let closetSurfaceTotal = 0, roomSurfaceTotal = 0;
+    roomQty.forEach((val, key) => {
+      if (key.startsWith(surfacePrefix)) roomSurfaceTotal += val.value;
+    });
+    cQty.forEach((val, key) => {
+      if (key.startsWith(surfacePrefix)) closetSurfaceTotal += val.value;
+    });
+    if (roomSurfaceTotal <= 0) return;
+    const fraction = closetSurfaceTotal / roomSurfaceTotal;
+    // Sum all interior hours for this room from spec results
+    let roomHours = 0;
+    specResults.forEach(sr => {
+      if (sr.domain === 'exterior') return;
+      sr.tasks.forEach(t => {
+        if (t.roomIndex === ri) roomHours += t.hours;
+      });
+    });
+    closetHoursByRoom[ri] = Math.round(roomHours * fraction * 100) / 100;
+  });
+
   return {
     specResults,
     roomProtection,
     fixtureProtection,
     exteriorProtection,
+    closetHoursByRoom,
     totalHours: Math.round(grandTotalHours * 100) / 100,
     totalCrewDays: Math.round(crewDays * 10) / 10,
     warnings,

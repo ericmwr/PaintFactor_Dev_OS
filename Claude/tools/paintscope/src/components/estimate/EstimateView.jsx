@@ -387,6 +387,25 @@ export default function EstimateView() {
               </span>
               <span className="spec-hours">{fmtHrs(roomData.totalHours)}</span>
             </div>
+            {/* Closet contribution */}
+            {(() => {
+              const closetHrs = estimate.closetHoursByRoom?.[ri];
+              const closetCount = (room?.closets || []).length;
+              if (!closetCount || !closetHrs) return null;
+              const closetSF = (room.closets || []).reduce((s, c) => {
+                const cL = parseFloat(c.length_ft) || 0, cW = parseFloat(c.width_ft) || 0, cH = parseFloat(room.height_ft) || 0;
+                const perim = 2 * (cL + cW);
+                return s + Math.max(0, Math.round(perim * cH - 21));
+              }, 0);
+              const closetCeilSF = (room.closets || []).reduce((s, c) => s + Math.round((parseFloat(c.length_ft) || 0) * (parseFloat(c.width_ft) || 0)), 0);
+              const closetBaseLF = (room.closets || []).reduce((s, c) => s + Math.max(0, Math.round(2 * ((parseFloat(c.length_ft) || 0) + (parseFloat(c.width_ft) || 0)) - 3)), 0);
+              return (
+                <div style={{ padding: '4px 8px 4px 28px', fontSize: 11, color: 'var(--text-muted)', background: 'rgba(130,170,255,0.03)' }}>
+                  {closetCount} closet{closetCount > 1 ? 's' : ''}: +{closetSF} SF wall, +{closetCeilSF} SF ceil, +{closetBaseLF} LF baseboard
+                  <span style={{ marginLeft: 12, color: 'var(--accent)' }}>{fmtHrs(closetHrs)}</span>
+                </div>
+              );
+            })()}
 
             {/* Expanded room content */}
             {isRoomOpen && (
