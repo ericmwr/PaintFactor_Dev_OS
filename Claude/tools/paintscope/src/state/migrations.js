@@ -172,6 +172,23 @@ export function migrateInline(parsed) {
     }
   }
 
+  // v1.1: migrate builtins from flat ea_manual to opening tier counts
+  for (const room of parsed.rooms || []) {
+    const bi = room.substrates?.builtins;
+    if (bi && bi.openings_m === undefined) {
+      bi.openings_s = 0;
+      bi.openings_m = bi.ea_manual || 0;
+      bi.openings_l = 0;
+      bi.openings_xl = 0;
+      bi.full_height_sides = 0;
+      if (bi.depth_modifier === undefined) bi.depth_modifier = 'deep';
+      if (bi.detail_modifier === undefined) bi.detail_modifier = 'simple_box';
+      if (bi.access_modifier === undefined) bi.access_modifier = 'open_access';
+      if (bi.quality_tier === undefined) bi.quality_tier = null;
+      if (bi.grain_fill === undefined) bi.grain_fill = false;
+    }
+  }
+
   // v1.0: Initialize colors state
   if (!parsed.colors) {
     parsed.colors = { defaults: {}, substrate_overrides: {}, room_overrides: {}, elevation_overrides: {} };
