@@ -186,6 +186,7 @@ export function migrateInline(parsed) {
       if (bi.access_modifier === undefined) bi.access_modifier = 'open_access';
       if (bi.quality_tier === undefined) bi.quality_tier = null;
       if (bi.grain_fill === undefined) bi.grain_fill = false;
+      if (bi.coating_type === undefined) bi.coating_type = 'paint';
     }
   }
 
