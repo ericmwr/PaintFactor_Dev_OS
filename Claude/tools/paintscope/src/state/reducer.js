@@ -122,6 +122,11 @@ export function reducer(state, action) {
           updated.ea_manual = (updated.openings_s || 0) + (updated.openings_m || 0) + (updated.openings_l || 0) + (updated.openings_xl || 0);
         }
 
+        // Recompute lf_manual when closet shelving dimensions change
+        if (substrateId === 'closet_shelving' && ['shelf_count', 'lf_per_shelf'].includes(field)) {
+          updated.lf_manual = (updated.shelf_count || 0) * (updated.lf_per_shelf || 0);
+        }
+
         return {
           ...r,
           substrates: { ...r.substrates, [substrateId]: updated }

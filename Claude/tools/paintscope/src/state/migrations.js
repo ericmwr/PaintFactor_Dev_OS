@@ -190,6 +190,21 @@ export function migrateInline(parsed) {
     }
   }
 
+  // v1.2: migrate closet_shelving from flat lf_manual to shelf count + dimensions
+  for (const room of parsed.rooms || []) {
+    const cs = room.substrates?.closet_shelving;
+    if (cs && cs.shelf_count === undefined) {
+      cs.shelf_count = 0;
+      cs.lf_per_shelf = cs.lf_manual || 0;
+      if (cs.lf_manual > 0) cs.shelf_count = 1;
+      cs.depth_in = 12;
+      if (cs.quality_tier === undefined) cs.quality_tier = null;
+      if (cs.grain_fill === undefined) cs.grain_fill = false;
+      if (cs.coating_type === undefined) cs.coating_type = 'paint';
+      if (cs.title === undefined) cs.title = '';
+    }
+  }
+
   // v1.0: Initialize colors state
   if (!parsed.colors) {
     parsed.colors = { defaults: {}, substrate_overrides: {}, room_overrides: {}, elevation_overrides: {} };

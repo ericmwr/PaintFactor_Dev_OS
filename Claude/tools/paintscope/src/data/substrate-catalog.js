@@ -95,7 +95,12 @@ export const SUBSTRATE_CATALOG = [
   },
   {
     id: 'closet_shelving', group: 'Specialty', label: 'Closet Shelving', uom: 'LF',
-    autoDerive: null, defaultConfig: { substrate_state: 'bare_wood', application_method: null, lf_manual: 0 }
+    autoDerive: null, defaultConfig: {
+      substrate_state: 'bare_wood', application_method: null, quality_tier: null,
+      coating_type: 'paint', grain_fill: false, title: '',
+      shelf_count: 0, lf_per_shelf: 0, depth_in: 12,
+      lf_manual: 0
+    }
   },
   {
     id: 'beams', group: 'Specialty', label: 'Beams', uom: 'EA',
