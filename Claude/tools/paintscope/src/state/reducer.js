@@ -117,6 +117,11 @@ export function reducer(state, action) {
           updated = { ...updated, ...d };
         }
 
+        // Recompute ea_manual when builtin opening tier counts change
+        if (substrateId === 'builtins' && ['openings_s', 'openings_m', 'openings_l', 'openings_xl'].includes(field)) {
+          updated.ea_manual = (updated.openings_s || 0) + (updated.openings_m || 0) + (updated.openings_l || 0) + (updated.openings_xl || 0);
+        }
+
         return {
           ...r,
           substrates: { ...r.substrates, [substrateId]: updated }
