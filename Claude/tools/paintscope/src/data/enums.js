@@ -134,6 +134,23 @@ export const ENUMS = {
     { value: 'stain_semi', label: 'Stain (Semi-Transparent)' },
     { value: 'clear_seal', label: 'Clear Sealer' },
   ],
+  // ── Built-In Modifiers ──
+  builtinDepth: [
+    { value: 'shallow', label: 'Shallow (≤10")' },
+    { value: 'deep', label: 'Deep (10–16")' },
+    { value: 'very_deep', label: 'Very Deep (16"+)' },
+  ],
+  builtinDetail: [
+    { value: 'simple_box', label: 'Simple Box' },
+    { value: 'face_frame', label: 'Face Frame' },
+    { value: 'crown_valance', label: 'Crown & Valance' },
+    { value: 'beaded_routed', label: 'Beaded / Routed' },
+  ],
+  builtinAccess: [
+    { value: 'open_access', label: 'Open Access' },
+    { value: 'cramped', label: 'Cramped' },
+    { value: 'obstructed', label: 'Obstructed' },
+  ],
   // ── Interior Stain/Clear Coat ──
   intCoatingTypes: [
     { value: 'paint', label: 'Paint' },
