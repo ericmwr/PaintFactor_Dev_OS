@@ -111,7 +111,13 @@ export const SUBSTRATE_CATALOG = [
   },
   {
     id: 'builtins', group: 'Specialty', label: 'Built-ins', uom: 'EA',
-    autoDerive: null, defaultConfig: { substrate_state: 'bare_wood', application_method: null, ea_manual: 0 }
+    autoDerive: null, defaultConfig: {
+      substrate_state: 'bare_wood', application_method: null, quality_tier: null,
+      coating_type: 'paint', grain_fill: false,
+      openings_s: 0, openings_m: 0, openings_l: 0, openings_xl: 0, full_height_sides: 0,
+      ea_manual: 0,
+      depth_modifier: 'deep', detail_modifier: 'simple_box', access_modifier: 'open_access'
+    }
   },
   {
     id: 'stair_risers', group: 'Specialty', label: 'Stair Risers', uom: 'EA',
