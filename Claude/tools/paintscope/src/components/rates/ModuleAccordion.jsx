@@ -8,6 +8,7 @@ export default function ModuleAccordion({ module, specId, tasks, rates, psKeyOpt
   const { dispatch } = useSpecData();
 
   const addTask = () => dispatch({ type: 'ADD_TASK', payload: { specId, moduleId: module.id } });
+  const removeModule = () => { if (confirm(`Delete module "${module.name}" and its ${tasks.length} tasks?`)) dispatch({ type: 'REMOVE_MODULE', payload: { moduleId: module.id } }); };
 
   return (
     <div style={{ background: 'var(--bg-card, #111a28)', borderRadius: 6, marginBottom: 4, borderLeft: expanded ? '2px solid var(--accent)' : '2px solid transparent' }}>
@@ -21,6 +22,10 @@ export default function ModuleAccordion({ module, specId, tasks, rates, psKeyOpt
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
           <span style={{ fontSize: 10, padding: '2px 6px', background: 'var(--bg-badge, #1a2a3a)', borderRadius: 3, color: expanded ? 'var(--accent)' : 'var(--text-muted)' }}>{module.phase}</span>
+          {expanded && (
+            <span onClick={e => { e.stopPropagation(); removeModule(); }}
+              style={{ color: '#e74c3c', cursor: 'pointer', fontSize: 14, padding: '0 4px' }} title="Delete module">×</span>
+          )}
           {expanded && (
             <button onClick={e => { e.stopPropagation(); addTask(); }}
               style={{ background: 'none', border: '1px solid var(--border)', color: 'var(--text-muted)', padding: '2px 8px', borderRadius: 3, fontSize: 10, cursor: 'pointer' }}>+ Task</button>
