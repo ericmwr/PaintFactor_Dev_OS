@@ -114,7 +114,7 @@ export function buildRoomQuantityLookups(state) {
       ['wainscoting', 'PS_SURFACE_SF.WAINSCOTING', 'SF', 'sf_manual'], ['wood_feature_wall', 'PS_SURFACE_SF.WOOD_WALL', 'SF', 'sf_manual'],
       ['wood_ceiling', 'PS_SURFACE_SF.WOOD_CEILING', 'SF', 'sf_manual'], ['closet_shelving', 'PS_SURFACE_LF.CLOSET_SHELF', 'LF', 'lf_manual'],
       ['beams', 'PS_SURFACE_LF.ARCH_BEAM', 'LF', 'ea_manual'], ['columns', 'PS_SURFACE_EA.ARCH_COLUMN', 'EA', 'ea_manual'],
-      ['mantels', 'PS_SURFACE_EA.ARCH_MANTEL', 'EA', 'ea_manual'], ['builtins', 'PS_SURFACE_EA.BUILTIN', 'EA', 'ea_manual'],
+      ['mantels', 'PS_SURFACE_EA.ARCH_MANTEL', 'EA', 'ea_manual'],
       ['stair_risers', 'PS_SURFACE_EA.STAIR_RISER', 'EA', 'ea_manual'], ['stair_railing', 'PS_SURFACE_EA.STAIR_RAILING', 'EA', 'ea_manual']
     ];
     specKeys.forEach(([subId, psKey, uom, manualKey]) => {
@@ -129,6 +129,15 @@ export function buildRoomQuantityLookups(state) {
         if (v > 0) addQ(psKey, uom, v);
       }
     });
+
+    // Built-ins — emit per-tier opening counts (spec uses PS_OPENING_EA.BUILTIN_SHELF.*)
+    if (subs.builtins) {
+      const bi = subs.builtins;
+      if (bi.openings_s > 0) addQ('PS_OPENING_EA.BUILTIN_SHELF.S', 'EA', bi.openings_s);
+      if (bi.openings_m > 0) addQ('PS_OPENING_EA.BUILTIN_SHELF.M', 'EA', bi.openings_m);
+      if (bi.openings_l > 0) addQ('PS_OPENING_EA.BUILTIN_SHELF.L', 'EA', bi.openings_l);
+      if (bi.openings_xl > 0) addQ('PS_OPENING_EA.BUILTIN_SHELF.XL', 'EA', bi.openings_xl);
+    }
 
     // Ceiling beams — geometry-derived LF from vault config, feeds ARCH_BEAM spec
     if (room.vaulted_ceiling && room.beams_enabled && d.beamTotalLF > 0) {

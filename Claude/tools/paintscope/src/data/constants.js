@@ -129,6 +129,10 @@ export const QUANTITY_KEY_LABELS = {
   'PS_SURFACE_EA.ARCH_COLUMN': 'Columns',
   'PS_SURFACE_EA.ARCH_MANTEL': 'Mantels',
   'PS_SURFACE_EA.BUILTIN': 'Built-ins',
+  'PS_OPENING_EA.BUILTIN_SHELF.S': 'Built-in Openings (S)',
+  'PS_OPENING_EA.BUILTIN_SHELF.M': 'Built-in Openings (M)',
+  'PS_OPENING_EA.BUILTIN_SHELF.L': 'Built-in Openings (L)',
+  'PS_OPENING_EA.BUILTIN_SHELF.XL': 'Built-in Openings (XL)',
   'PS_SURFACE_EA.STAIR_RISER': 'Stair Risers',
   'PS_SURFACE_EA.STAIR_RAILING': 'Stair Railings',
   // Surface sides keys
