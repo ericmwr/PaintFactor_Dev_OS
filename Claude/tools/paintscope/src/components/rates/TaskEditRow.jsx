@@ -3,7 +3,7 @@ import { useSpecData } from '../../hooks/useSpecData';
 const UOM_OPTIONS = ['LF', 'SF', 'EA', 'EA_OPENING', 'EA_CLOSET', 'FIXED'];
 const CLASS_OPTIONS = ['binary', 'qt_scaled'];
 
-export default function TaskEditRow({ task, rate, specId, psKeyOptions }) {
+export default function TaskEditRow({ task, rate, specId, psKeyOptions, onMoveUp, onMoveDown, isFirst, isLast }) {
   const { dispatch } = useSpecData();
 
   const updateTask = (field, value) => dispatch({ type: 'UPDATE_TASK', payload: { specId, taskId: task.id, field, value } });
@@ -55,8 +55,10 @@ export default function TaskEditRow({ task, rate, specId, psKeyOptions }) {
           <span style={{ color: 'var(--text-muted)', fontSize: 10 }}>—</span>
         )}
       </td>
-      <td style={{ textAlign: 'center' }}>
-        <span onClick={removeTask} style={{ color: 'var(--text-muted)', cursor: 'pointer', fontSize: 14 }} title="Delete task">×</span>
+      <td style={{ textAlign: 'center', whiteSpace: 'nowrap' }}>
+        <span onClick={isFirst ? undefined : onMoveUp} style={{ color: isFirst ? 'var(--border, #1a2a3a)' : 'var(--text-muted)', cursor: isFirst ? 'default' : 'pointer', fontSize: 10, padding: '0 2px' }} title="Move up">▲</span>
+        <span onClick={isLast ? undefined : onMoveDown} style={{ color: isLast ? 'var(--border, #1a2a3a)' : 'var(--text-muted)', cursor: isLast ? 'default' : 'pointer', fontSize: 10, padding: '0 2px' }} title="Move down">▼</span>
+        <span onClick={removeTask} style={{ color: 'var(--text-muted)', cursor: 'pointer', fontSize: 14, padding: '0 2px' }} title="Delete task">×</span>
       </td>
     </tr>
   );

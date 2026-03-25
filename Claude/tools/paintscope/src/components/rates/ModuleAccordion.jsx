@@ -10,6 +10,14 @@ export default function ModuleAccordion({ module, specId, tasks, rates, psKeyOpt
   const addTask = () => dispatch({ type: 'ADD_TASK', payload: { specId, moduleId: module.id } });
   const removeModule = () => { if (confirm(`Delete module "${module.name}" and its ${tasks.length} tasks?`)) dispatch({ type: 'REMOVE_MODULE', payload: { moduleId: module.id } }); };
 
+  const swapTasks = (idxA, idxB) => {
+    const a = tasks[idxA];
+    const b = tasks[idxB];
+    if (!a || !b) return;
+    dispatch({ type: 'UPDATE_TASK', payload: { specId, taskId: a.id, field: 'sort_order', value: b.sort_order ?? idxB } });
+    dispatch({ type: 'UPDATE_TASK', payload: { specId, taskId: b.id, field: 'sort_order', value: a.sort_order ?? idxA } });
+  };
+
   return (
     <div style={{ background: 'var(--bg-card, #111a28)', borderRadius: 6, marginBottom: 4, borderLeft: expanded ? '2px solid var(--accent)' : '2px solid transparent' }}>
       {/* Header */}
@@ -49,9 +57,11 @@ export default function ModuleAccordion({ module, specId, tasks, rates, psKeyOpt
               </tr>
             </thead>
             <tbody>
-              {tasks.map(task => {
+              {tasks.map((task, idx) => {
                 const rate = rates.find(r => r.task_id === task.id);
-                return <TaskEditRow key={task.id} task={task} rate={rate} specId={specId} psKeyOptions={psKeyOptions} />;
+                return <TaskEditRow key={task.id} task={task} rate={rate} specId={specId} psKeyOptions={psKeyOptions}
+                  isFirst={idx === 0} isLast={idx === tasks.length - 1}
+                  onMoveUp={() => swapTasks(idx, idx - 1)} onMoveDown={() => swapTasks(idx, idx + 1)} />;
               })}
             </tbody>
           </table>
