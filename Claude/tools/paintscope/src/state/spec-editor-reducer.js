@@ -45,13 +45,10 @@ export const EDITABLE_TABLES = [
  * @returns {Object} Full spec data state object
  */
 export function createInitialSpecData(workingCopy, overlays) {
-  // Start with a deep clone of the base DB_BUNDLE editable tables
-  const base = {};
-  for (const table of EDITABLE_TABLES) {
-    base[table] = JSON.parse(JSON.stringify(DB_BUNDLE[table] || []));
-  }
+  // Start with a FULL deep clone of DB_BUNDLE (engine needs all tables)
+  const base = JSON.parse(JSON.stringify(DB_BUNDLE));
 
-  // Merge working copy (persisted edits) — replace entire table arrays
+  // Merge working copy (persisted edits) — replace editable table arrays
   if (workingCopy) {
     for (const table of EDITABLE_TABLES) {
       if (workingCopy[table] != null) {
@@ -60,7 +57,7 @@ export function createInitialSpecData(workingCopy, overlays) {
     }
   }
 
-  // Merge overlay data on top
+  // Merge overlay data on top (editable tables only)
   if (overlays) {
     for (const table of EDITABLE_TABLES) {
       if (overlays[table] != null) {
@@ -144,7 +141,8 @@ export function specEditorReducer(state, action) {
     //              back to the base DB_BUNDLE values
     // -----------------------------------------------------------------------
     case 'RESET_SPEC': {
-      const { spec_family_id } = payload;
+      const { specId, spec_family_id: sfId } = payload;
+      const spec_family_id = specId || sfId;
       const next = { ...state };
 
       for (const table of EDITABLE_TABLES) {
@@ -180,11 +178,12 @@ export function specEditorReducer(state, action) {
     // payload: { taskId, changes }  where changes is a partial task object
     // -----------------------------------------------------------------------
     case 'UPDATE_TASK': {
-      const { taskId, changes } = payload;
+      const { taskId, field, value, changes } = payload;
+      const update = changes || { [field]: value };
       return {
         ...state,
         sop_tasks: state.sop_tasks.map(t =>
-          t.id === taskId ? { ...t, ...changes } : t
+          t.id === taskId ? { ...t, ...update } : t
         ),
       };
     }
@@ -194,7 +193,9 @@ export function specEditorReducer(state, action) {
     // payload: { spec_family_id, module_id, taskData? }
     // -----------------------------------------------------------------------
     case 'ADD_TASK': {
-      const { spec_family_id, module_id, taskData = {} } = payload;
+      const { specId, moduleId, spec_family_id: sfId, module_id: mId, taskData = {} } = payload;
+      const spec_family_id = specId || sfId;
+      const module_id = moduleId || mId;
 
       // Find the highest sort_order in this module
       const moduleTasks = state.sop_tasks.filter(
@@ -243,7 +244,7 @@ export function specEditorReducer(state, action) {
     // payload: { taskId }
     // -----------------------------------------------------------------------
     case 'REMOVE_TASK': {
-      const { taskId } = payload;
+      const { taskId } = payload || {};
       return {
         ...state,
         sop_tasks: state.sop_tasks.filter(t => t.id !== taskId),
@@ -256,11 +257,12 @@ export function specEditorReducer(state, action) {
     // payload: { taskId, changes }  where changes is partial task_production_rates fields
     // -----------------------------------------------------------------------
     case 'UPDATE_RATE': {
-      const { taskId, changes } = payload;
+      const { taskId, field, value, changes } = payload;
+      const update = changes || { [field]: value };
       return {
         ...state,
         task_production_rates: state.task_production_rates.map(r =>
-          r.task_id === taskId ? { ...r, ...changes } : r
+          r.task_id === taskId ? { ...r, ...update } : r
         ),
       };
     }
@@ -270,7 +272,9 @@ export function specEditorReducer(state, action) {
     // payload: { spec_family_id, moduleData? }
     // -----------------------------------------------------------------------
     case 'ADD_MODULE': {
-      const { spec_family_id, moduleData = {} } = payload;
+      const { specId, phase, spec_family_id: sfId, moduleData = {} } = payload;
+      const spec_family_id = specId || sfId;
+      if (phase && !moduleData.phase) moduleData.phase = phase;
 
       const specModules = state.sop_modules.filter(
         m => m.spec_family_id === spec_family_id
@@ -335,11 +339,12 @@ export function specEditorReducer(state, action) {
     // payload: { modifierId, changes }
     // -----------------------------------------------------------------------
     case 'UPDATE_MODIFIER': {
-      const { modifierId, changes } = payload;
+      const { modifierId, field, value, changes } = payload;
+      const update = changes || { [field]: value };
       return {
         ...state,
         factor_modifiers: state.factor_modifiers.map(m =>
-          m.id === modifierId ? { ...m, ...changes } : m
+          m.id === modifierId ? { ...m, ...update } : m
         ),
       };
     }
@@ -350,11 +355,12 @@ export function specEditorReducer(state, action) {
     // payload: { inputId (array index), changes }
     // -----------------------------------------------------------------------
     case 'UPDATE_REQUIRED_INPUT': {
-      const { inputId, changes } = payload;
+      const { inputId, field, value, changes } = payload;
+      const update = changes || { [field]: value };
       return {
         ...state,
         spec_required_inputs: state.spec_required_inputs.map((inp, i) =>
-          i === inputId ? { ...inp, ...changes } : inp
+          i === inputId ? { ...inp, ...update } : inp
         ),
       };
     }
@@ -364,7 +370,8 @@ export function specEditorReducer(state, action) {
     // payload: { spec_family_id, paintscope_key, uom?, is_required? }
     // -----------------------------------------------------------------------
     case 'ADD_REQUIRED_INPUT': {
-      const { spec_family_id, paintscope_key, uom = 'SF', is_required = 0 } = payload;
+      const { specId, spec_family_id: sfId, paintscope_key, uom = 'SF', is_required = 0 } = payload;
+      const spec_family_id = specId || sfId;
       const newInput = {
         spec_family_id,
         paintscope_key: paintscope_key || '',
