@@ -1,7 +1,7 @@
 import { openDB } from 'idb';
 
 const DB_NAME = 'paintfactor';
-const DB_VERSION = 5;
+const DB_VERSION = 6;
 
 let dbPromise = null;
 
@@ -37,6 +37,10 @@ export function getDB() {
           const entries = db.createObjectStore('time_entries', { keyPath: 'id' });
           entries.createIndex('project_id', 'project_id');
           entries.createIndex('date', 'date');
+        }
+        // v6: spec editor working copy
+        if (oldVersion < 6) {
+          db.createObjectStore('spec_editor', { keyPath: 'key' });
         }
       },
     });
