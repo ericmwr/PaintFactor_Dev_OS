@@ -1,16 +1,17 @@
 import { useMemo } from 'react';
 import { useProject } from './useProject';
+import { useSpecData } from './useSpecData';
 import { runEstimate } from '../engine/run-estimate';
-import { DB_BUNDLE } from '../data/db-bundle';
 
-export function useEstimate(overlayMap) {
+export function useEstimate() {
   const { state } = useProject();
+  const { specData } = useSpecData();
   return useMemo(() => {
     try {
-      return runEstimate(state, DB_BUNDLE, overlayMap);
+      return runEstimate(state, specData);
     } catch (e) {
       console.error('[PaintScope] Estimate error:', e);
       return null;
     }
-  }, [state, overlayMap]);
+  }, [state, specData]);
 }

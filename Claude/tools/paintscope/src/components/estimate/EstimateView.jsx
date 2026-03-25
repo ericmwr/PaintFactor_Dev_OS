@@ -6,7 +6,7 @@ import { exportProject } from '../../engine/export-project';
 import { PHASE_ORDER, PHASE_COLORS, specDisplayName, QUANTITY_KEY_LABELS } from '../../data/constants';
 import { FLOOR_TYPES, FLOOR_PROTECTION_LABEL } from '../../data/fixture-catalog';
 import { SUBSTRATE_MAP } from '../../data/substrate-catalog';
-import { DB_BUNDLE } from '../../data/db-bundle';
+import { useSpecData } from '../../hooks/useSpecData';
 import { COMPLEXITY_OPT_OUT_SPECS } from '../../engine/modifier-stack.js';
 
 /** Format decimal hours as Xh Ym */
@@ -69,6 +69,7 @@ const CAT_LABELS = {
 export default function EstimateView() {
   const { state } = useProject();
   const estimate = useEstimate();
+  const { specData } = useSpecData();
 
   const [expandedRooms, setExpandedRooms] = useState({});
   const [expandedItems, setExpandedItems] = useState({});
@@ -117,7 +118,7 @@ export default function EstimateView() {
     <div className="no-data-msg">
       <div style={{fontSize:18,marginBottom:8}}>No Specs Activated</div>
       <div>Add rooms with geometry (wall SF, doors, trim, etc.) to activate specs.</div>
-      <div style={{marginTop:8,fontSize:12}}>The engine checks {DB_BUNDLE.spec_families.length} spec families against your project's PaintScope quantity keys.</div>
+      <div style={{marginTop:8,fontSize:12}}>The engine checks {specData.spec_families.length} spec families against your project's PaintScope quantity keys.</div>
     </div>
   );
 

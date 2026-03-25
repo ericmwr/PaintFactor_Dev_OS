@@ -1,13 +1,14 @@
 import { useState, useMemo } from 'react';
-import { DB_BUNDLE } from '../../data/db-bundle';
+import { useSpecData } from '../../hooks/useSpecData';
 
 export default function TaskPickerModal({ onSelect, onClose }) {
+  const { specData } = useSpecData();
   const [search, setSearch] = useState('');
   const [selectedSpecId, setSelectedSpecId] = useState('');
   const [checked, setChecked] = useState(new Set());
 
   const specs = useMemo(() => {
-    return DB_BUNDLE.spec_families.map(sf => ({
+    return specData.spec_families.map(sf => ({
       id: sf.spec_family_id,
       name: sf.display_name || sf.spec_family_id,
     })).sort((a, b) => a.name.localeCompare(b.name));
@@ -18,8 +19,8 @@ export default function TaskPickerModal({ onSelect, onClose }) {
     const specFilter = selectedSpecId || null;
 
     const modules = specFilter
-      ? DB_BUNDLE.sop_modules.filter(m => m.spec_family_id === specFilter)
-      : DB_BUNDLE.sop_modules;
+      ? specData.sop_modules.filter(m => m.spec_family_id === specFilter)
+      : specData.sop_modules;
 
     const moduleMap = {};
     for (const m of modules) {
@@ -27,7 +28,7 @@ export default function TaskPickerModal({ onSelect, onClose }) {
     }
 
     const moduleIds = new Set(Object.keys(moduleMap));
-    const filteredTasks = DB_BUNDLE.sop_tasks.filter(t => moduleIds.has(t.module_id));
+    const filteredTasks = specData.sop_tasks.filter(t => moduleIds.has(t.module_id));
 
     for (const task of filteredTasks) {
       const mod = moduleMap[task.module_id];

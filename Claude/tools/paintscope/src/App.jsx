@@ -6,6 +6,7 @@ import { useProjectDB } from './hooks/useProjectDB';
 import { loadProject } from './data/project-db';
 import { saveToStorage } from './state/persistence';
 import { createExteriorState } from './state/exterior-state';
+import { SpecDataProvider } from './hooks/useSpecData';
 import ErrorBoundary from './components/shared/ErrorBoundary';
 import ProjectSetup from './components/setup/ProjectSetup';
 import RoomEditor from './components/room-editor/RoomEditor';
@@ -17,7 +18,7 @@ import PhotoAnalysisModal from './components/photo-analysis/PhotoAnalysisModal';
 import { usePhotoAnalysis } from './hooks/usePhotoAnalysis';
 import ProjectListView from './components/projects/ProjectListView';
 import CompanyProfileView from './components/settings/CompanyProfileView';
-import RateExplorerView from './components/rates/RateExplorerView';
+import SpecEditorView from './components/rates/SpecEditorView';
 import AssemblyManagerView from './components/assemblies/AssemblyManagerView';
 import MaterialsView from './components/materials/MaterialsView';
 import TimeTrackerView from './components/tracker/TimeTrackerView';
@@ -307,7 +308,7 @@ function AppShell({ projectDb }) {
 
           {view === 'rates' && (
             <ErrorBoundary label="Rates">
-              <RateExplorerView />
+              <SpecEditorView />
             </ErrorBoundary>
           )}
 
@@ -389,9 +390,11 @@ function ProjectLoader({ projectDb }) {
   }
 
   return (
-    <ProjectProvider key={loaded.forId} initialData={loaded.data} projectId={projectDb.activeProjectId}>
-      <AppShell projectDb={projectDb} />
-    </ProjectProvider>
+    <SpecDataProvider>
+      <ProjectProvider key={loaded.forId} initialData={loaded.data} projectId={projectDb.activeProjectId}>
+        <AppShell projectDb={projectDb} />
+      </ProjectProvider>
+    </SpecDataProvider>
   );
 }
 
