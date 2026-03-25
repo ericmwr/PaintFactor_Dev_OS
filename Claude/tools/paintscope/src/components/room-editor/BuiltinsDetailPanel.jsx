@@ -25,6 +25,14 @@ export default function BuiltinsDetailPanel({ room, dispatch, project }) {
 
   return (
     <div>
+      {/* Title */}
+      <div className="panel-section">
+        <div className="field-label">Title</div>
+        <input value={config.title || ''} onChange={e => setSub('title', e.target.value || '')}
+          placeholder="e.g. Office Bookcase, Hallway Cubbies"
+          style={{ width: '100%', fontSize: 13 }} />
+      </div>
+
       {/* Section 1: Substrate & Coating */}
       <div className="panel-section">
         <div className="section-title">Built-ins Details</div>
