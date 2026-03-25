@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import SubstrateDetailPanel from '../SubstrateDetailPanel';
+import BuiltinsDetailPanel from '../BuiltinsDetailPanel';
 import { SUBSTRATE_MAP, SUBSTRATE_GROUPS } from '../../../data/substrate-catalog';
 
 const openingIds = new Set(['doors', 'windows', 'door_casing', 'window_casing', 'door_frames', 'window_jamb']);
@@ -68,7 +69,11 @@ export default function SpecialtyTab({ room, derived, dispatch, project, focused
                 Wood Feature Wall SF is deducted from the wall field in the Surfaces tab. Both can be active simultaneously.
               </div>
             )}
-            <SubstrateDetailPanel room={room} derived={derived} dispatch={dispatch} substrateId={focusedSubstrate} project={project} />
+            {focusedSubstrate === 'builtins' ? (
+              <BuiltinsDetailPanel room={room} dispatch={dispatch} project={project} />
+            ) : (
+              <SubstrateDetailPanel room={room} derived={derived} dispatch={dispatch} substrateId={focusedSubstrate} project={project} />
+            )}
           </div>
         ) : (
           <div className="detail-panel-empty">Select an item to configure</div>
