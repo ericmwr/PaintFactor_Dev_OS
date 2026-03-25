@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import TaskEditRow from './TaskEditRow';
 import ModifierPanel from './ModifierPanel';
+import AppliesWhenChip from './AppliesWhenChip';
 import { useSpecData } from '../../hooks/useSpecData';
 
 export default function ModuleAccordion({ module, specId, tasks, rates, psKeyOptions }) {
@@ -27,6 +28,8 @@ export default function ModuleAccordion({ module, specId, tasks, rates, psKeyOpt
           <span style={{ color: expanded ? 'var(--accent)' : 'var(--text-muted)', fontSize: 10 }}>{expanded ? '▼' : '▶'}</span>
           <span style={{ fontWeight: 600, color: expanded ? 'var(--text-primary)' : 'var(--text-secondary)' }}>{module.name}</span>
           <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>{tasks.length} tasks</span>
+          <AppliesWhenChip value={module.applies_when} label="Module"
+            onChange={v => dispatch({ type: 'UPDATE_MODULE', payload: { moduleId: module.id, field: 'applies_when', value: v } })} />
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
           <span style={{ fontSize: 10, padding: '2px 6px', background: 'var(--bg-badge, #1a2a3a)', borderRadius: 3, color: expanded ? 'var(--accent)' : 'var(--text-muted)' }}>{module.phase}</span>

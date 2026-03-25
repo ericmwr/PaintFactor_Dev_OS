@@ -1,4 +1,5 @@
 import { useSpecData } from '../../hooks/useSpecData';
+import AppliesWhenChip from './AppliesWhenChip';
 
 const UOM_OPTIONS = ['LF', 'SF', 'EA', 'EA_OPENING', 'EA_CLOSET', 'FIXED'];
 const CLASS_OPTIONS = ['binary', 'qt_scaled'];
@@ -17,6 +18,10 @@ export default function TaskEditRow({ task, rate, specId, psKeyOptions, onMoveUp
       <td style={{ padding: '3px 6px' }}>
         <input value={task.name || ''} onChange={e => updateTask('name', e.target.value)}
           style={{ background: 'var(--bg-input, #0a1018)', border: '1px solid var(--border, #1a2a3a)', color: 'var(--text-primary)', padding: '2px 5px', borderRadius: 3, width: '100%', fontSize: 11 }} />
+        <div style={{ display: 'flex', gap: 6, marginTop: 2 }}>
+          <AppliesWhenChip value={task.applies_when} onChange={v => updateTask('applies_when', v)} label="Task" />
+          {rate && <AppliesWhenChip value={rate.applies_when} onChange={v => updateRate('applies_when', v)} label="Rate" />}
+        </div>
       </td>
       <td style={{ padding: '3px 4px', textAlign: 'center' }}>
         {isFixed ? (

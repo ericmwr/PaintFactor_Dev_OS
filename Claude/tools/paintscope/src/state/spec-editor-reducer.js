@@ -313,6 +313,21 @@ export function specEditorReducer(state, action) {
     }
 
     // -----------------------------------------------------------------------
+    // UPDATE_MODULE — Update fields on a single sop_module by module id
+    // payload: { moduleId, field, value } or { moduleId, changes }
+    // -----------------------------------------------------------------------
+    case 'UPDATE_MODULE': {
+      const { moduleId, field, value, changes } = payload;
+      const update = changes || { [field]: value };
+      return {
+        ...state,
+        sop_modules: state.sop_modules.map(m =>
+          m.id === moduleId ? { ...m, ...update } : m
+        ),
+      };
+    }
+
+    // -----------------------------------------------------------------------
     // REMOVE_MODULE — Remove a module and cascade-delete its tasks + rates
     // payload: { moduleId }
     // -----------------------------------------------------------------------
