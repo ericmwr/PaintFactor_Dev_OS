@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import SubstrateDetailPanel from '../SubstrateDetailPanel';
 import BuiltinsDetailPanel from '../BuiltinsDetailPanel';
 import ClosetShelvingDetailPanel from '../ClosetShelvingDetailPanel';
+import StairwayDetailPanel from '../StairwayDetailPanel';
 import { SUBSTRATE_MAP, SUBSTRATE_GROUPS } from '../../../data/substrate-catalog';
 
 const openingIds = new Set(['doors', 'windows', 'door_casing', 'window_casing', 'door_frames', 'window_jamb']);
@@ -74,6 +75,8 @@ export default function SpecialtyTab({ room, derived, dispatch, project, focused
               <BuiltinsDetailPanel room={room} dispatch={dispatch} project={project} />
             ) : focusedSubstrate === 'closet_shelving' ? (
               <ClosetShelvingDetailPanel room={room} dispatch={dispatch} project={project} />
+            ) : focusedSubstrate === 'stairway' ? (
+              <StairwayDetailPanel room={room} dispatch={dispatch} project={project} />
             ) : (
               <SubstrateDetailPanel room={room} derived={derived} dispatch={dispatch} substrateId={focusedSubstrate} project={project} />
             )}
