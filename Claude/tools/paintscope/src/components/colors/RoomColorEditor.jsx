@@ -162,17 +162,41 @@ export default function RoomColorEditor({ state, schedule, dispatch }) {
   return (
     <div style={{ display: 'flex', flex: 1, minHeight: 0 }}>
       <div style={{ width: 120, borderRight: '1px solid var(--border)', padding: 8, background: 'var(--bg-deep)', overflowY: 'auto' }}>
-        {rooms.length > 0 && (
-          <>
-            <div style={{ fontSize: 10, textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 6 }}>Interior</div>
-            {rooms.map(r => (
-              <div key={r.id} style={sidebarItemStyle(r.id, 'room')}
-                onClick={() => { setSelectedType('room'); setSelectedId(r.id); setEditingSub(null); }}>
-                {r.label || r.id}
-              </div>
-            ))}
-          </>
-        )}
+        {rooms.length > 0 && (() => {
+          const grouped = new Map();
+          for (const r of rooms) {
+            const group = r.area_group?.trim() || '';
+            if (!grouped.has(group)) grouped.set(group, []);
+            grouped.get(group).push(r);
+          }
+          // Named groups first, ungrouped last
+          const sorted = [...grouped.entries()].sort((a, b) => {
+            if (!a[0] && b[0]) return 1;
+            if (a[0] && !b[0]) return -1;
+            return a[0].localeCompare(b[0]);
+          });
+
+          return (
+            <>
+              <div style={{ fontSize: 10, textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 6 }}>Interior</div>
+              {sorted.map(([group, groupRooms]) => (
+                <div key={group || '_ungrouped'}>
+                  {group && (
+                    <div style={{ fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.5px', color: 'var(--accent)', padding: '6px 4px 2px', fontWeight: 600 }}>
+                      {group}
+                    </div>
+                  )}
+                  {groupRooms.map(r => (
+                    <div key={r.id} style={{ ...sidebarItemStyle(r.id, 'room'), ...(group ? { paddingLeft: 14 } : {}) }}
+                      onClick={() => { setSelectedType('room'); setSelectedId(r.id); setEditingSub(null); }}>
+                      {r.label || r.id}
+                    </div>
+                  ))}
+                </div>
+              ))}
+            </>
+          );
+        })()}
         {elevations.length > 0 && (
           <>
             <div style={{ fontSize: 10, textTransform: 'uppercase', color: 'var(--text-muted)', margin: '10px 0 6px' }}>Exterior</div>
