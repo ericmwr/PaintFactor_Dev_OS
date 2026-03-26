@@ -66,6 +66,25 @@ export const ENUMS = {
     { value:'wood', label:'Wood' },
     { value:'vinyl_clad', label:'Vinyl Clad' }
   ],
+  // ── Stairway ──
+  stairwayRuns: [
+    { value: 1, label: '1 Run' },
+    { value: 2, label: '2 Runs' },
+  ],
+  stairwayLayout: [
+    { value: 'l_shape', label: 'L-Shape' },
+    { value: 'u_shape', label: 'U-Shape' },
+  ],
+  balusterType: [
+    { value: 'square', label: 'Square' },
+    { value: 'turned', label: 'Turned' },
+    { value: 'ornate', label: 'Ornate' },
+    { value: 'iron', label: 'Iron' },
+  ],
+  balusterMaterial: [
+    { value: 'wood', label: 'Wood' },
+    { value: 'iron', label: 'Iron / Metal' },
+  ],
   // Exterior-specific enums
   extApplicationMethods: [
     { value: 'spray_backbrush', label: 'Spray + Back-Brush' },
