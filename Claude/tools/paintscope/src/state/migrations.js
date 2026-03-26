@@ -245,6 +245,12 @@ export function migrateInline(parsed) {
   // v1.2: Add color notes
   if (parsed.colors.project_notes === undefined) parsed.colors.project_notes = '';
   if (!parsed.colors.room_notes) parsed.colors.room_notes = {};
+  // v1.3: Room categories — auto-populate from existing area_group values
+  if (!parsed.room_categories) {
+    const existing = new Set();
+    (parsed.rooms || []).forEach(r => { if (r.area_group?.trim()) existing.add(r.area_group.trim()); });
+    parsed.room_categories = [...existing].sort();
+  }
 
   // v0.9: COMPLEX tier removed — map to MOD
   if (parsed.project && parsed.project.default_complexity === 'COMPLEX') {

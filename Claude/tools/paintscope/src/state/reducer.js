@@ -24,6 +24,29 @@ export function reducer(state, action) {
     case 'SET_TAB': return { ...state, ui: { ...state.ui, activeTab: payload } };
     case 'SET_SCOPE_MODE': return { ...state, ui: { ...state.ui, scopeMode: payload } };
     case 'SET_ACTIVE_ROOM': return { ...state, ui: { ...state.ui, activeRoomId: payload, scopeMode: 'interior' } };
+    case 'ADD_ROOM_CATEGORY': {
+      const name = (payload?.name || 'New Category').trim();
+      if (!name || (state.room_categories || []).includes(name)) return state;
+      return { ...state, room_categories: [...(state.room_categories || []), name] };
+    }
+    case 'REMOVE_ROOM_CATEGORY': {
+      const name = payload;
+      return {
+        ...state,
+        room_categories: (state.room_categories || []).filter(c => c !== name),
+        rooms: state.rooms.map(r => r.area_group === name ? { ...r, area_group: '' } : r),
+      };
+    }
+    case 'RENAME_ROOM_CATEGORY': {
+      const { oldName, newName } = payload;
+      const trimmed = newName.trim();
+      if (!trimmed || trimmed === oldName) return state;
+      return {
+        ...state,
+        room_categories: (state.room_categories || []).map(c => c === oldName ? trimmed : c),
+        rooms: state.rooms.map(r => r.area_group === oldName ? { ...r, area_group: trimmed } : r),
+      };
+    }
     case 'ADD_ROOM': {
       const room = createRoom(payload || {});
       const projSubs = state.project.default_substrates || [];

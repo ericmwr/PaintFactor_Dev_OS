@@ -118,48 +118,87 @@ function AppShell({ projectDb }) {
             </svg>
             Scan Room
           </button>
+          <div style={{ padding: '2px 8px' }}>
+            <button className="btn btn-sm" style={{ width: '100%', fontSize: 9, padding: '2px 4px' }}
+              onClick={() => {
+                const name = prompt('Category name:');
+                if (name?.trim()) dispatch({ type: 'ADD_ROOM_CATEGORY', payload: { name: name.trim() } });
+              }}>+ Add Category</button>
+          </div>
           <div className="room-list">
-            {state.rooms.map(r => (
-              <div
-                key={r.id}
-                className={`room-item ${r.id === state.ui.activeRoomId && scopeMode === 'interior' ? 'active' : ''}`}
-                onClick={() => { dispatch({type:'SET_ACTIVE_ROOM', payload:r.id}); dispatch({type:'SET_VIEW', payload:'scope'}); }}
-              >
-                <div className="room-item-info">
-                  <span className="room-item-label">{r.label || 'Untitled'}</span>
-                  <span className="room-item-meta">{r.length_ft}x{r.width_ft}</span>
+            {(() => {
+              const categories = state.room_categories || [];
+              const grouped = new Map();
+              for (const cat of categories) grouped.set(cat, []);
+              grouped.set('', []);
+              for (const r of state.rooms) {
+                const cat = r.area_group?.trim() || '';
+                if (!grouped.has(cat)) grouped.set(cat, []);
+                grouped.get(cat).push(r);
+              }
+
+              const renderRoom = (r) => (
+                <div
+                  key={r.id}
+                  className={`room-item ${r.id === state.ui.activeRoomId && scopeMode === 'interior' ? 'active' : ''}`}
+                  onClick={() => { dispatch({type:'SET_ACTIVE_ROOM', payload:r.id}); dispatch({type:'SET_VIEW', payload:'scope'}); }}
+                >
+                  <div className="room-item-info">
+                    <span className="room-item-label">{r.label || 'Untitled'}</span>
+                    <span className="room-item-meta">{r.length_ft}x{r.width_ft}</span>
+                  </div>
+                  {r.photoAnalysis && (
+                    <button
+                      className="room-action-btn room-action-scan"
+                      title="Review scan results"
+                      onClick={(e) => { e.stopPropagation(); photoAnalysis.openForRoom(r.id); }}
+                    >
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/>
+                        <circle cx="12" cy="13" r="4"/>
+                      </svg>
+                    </button>
+                  )}
+                  <div className="room-item-actions">
+                    <button
+                      className="room-action-btn"
+                      title="Duplicate room"
+                      onClick={(e) => { e.stopPropagation(); dispatch({type:'DUPLICATE_ROOM', payload:r.id}); }}
+                    >&#x29C9;</button>
+                    <button
+                      className="room-action-btn room-action-delete"
+                      title="Delete room"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (state.rooms.length <= 1) return;
+                        dispatch({type:'REMOVE_ROOM', payload:r.id});
+                      }}
+                      disabled={state.rooms.length <= 1}
+                    >&#x2715;</button>
+                  </div>
                 </div>
-                {r.photoAnalysis && (
-                  <button
-                    className="room-action-btn room-action-scan"
-                    title="Review scan results"
-                    onClick={(e) => { e.stopPropagation(); photoAnalysis.openForRoom(r.id); }}
-                  >
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/>
-                      <circle cx="12" cy="13" r="4"/>
-                    </svg>
-                  </button>
-                )}
-                <div className="room-item-actions">
-                  <button
-                    className="room-action-btn"
-                    title="Duplicate room"
-                    onClick={(e) => { e.stopPropagation(); dispatch({type:'DUPLICATE_ROOM', payload:r.id}); }}
-                  >&#x29C9;</button>
-                  <button
-                    className="room-action-btn room-action-delete"
-                    title="Delete room"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      if (state.rooms.length <= 1) return;
-                      dispatch({type:'REMOVE_ROOM', payload:r.id});
-                    }}
-                    disabled={state.rooms.length <= 1}
-                  >&#x2715;</button>
-                </div>
-              </div>
-            ))}
+              );
+
+              return [...grouped.entries()].map(([cat, catRooms]) => {
+                if (!cat) {
+                  return catRooms.map(renderRoom);
+                }
+                return (
+                  <div key={cat}>
+                    <div style={{ display: 'flex', alignItems: 'center', padding: '4px 8px 2px', gap: 4 }}>
+                      <span style={{ fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.5px', color: 'var(--accent)', fontWeight: 600, flex: 1 }}>{cat}</span>
+                      <button
+                        className="room-action-btn"
+                        title="Remove category"
+                        style={{ fontSize: 9, padding: '0 2px' }}
+                        onClick={() => dispatch({ type: 'REMOVE_ROOM_CATEGORY', payload: cat })}
+                      >&#x2715;</button>
+                    </div>
+                    {catRooms.map(renderRoom)}
+                  </div>
+                );
+              });
+            })()}
           </div>
 
           <div style={{ borderTop: '1px solid var(--border)', margin: '0 8px' }} />
@@ -271,7 +310,7 @@ function AppShell({ projectDb }) {
 
           <ErrorBoundary label="Scope" key={view === 'scope' ? `scope-${scopeMode}` : undefined}>
             {view === 'scope' && scopeMode === 'interior' && (
-              <RoomEditor room={activeRoom} project={state.project} dispatch={dispatch} />
+              <RoomEditor room={activeRoom} project={state.project} dispatch={dispatch} roomCategories={state.room_categories} />
             )}
             {view === 'scope' && scopeMode === 'exterior' && (
               activeElev ? (

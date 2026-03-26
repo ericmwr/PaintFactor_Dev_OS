@@ -22,7 +22,7 @@ const TABS = [
   { id: 'protection', label: 'Protection' },
 ];
 
-export default function RoomEditor({ room, project, dispatch }) {
+export default function RoomEditor({ room, project, dispatch, roomCategories }) {
   const [activeTab, setActiveTab] = useState('identity');
   const [focusedSubstrate, setFocusedSubstrate] = useState(null);
   const derived = useDerivedRoom(room);
@@ -71,7 +71,7 @@ export default function RoomEditor({ room, project, dispatch }) {
     }
   }, [activeTab]);
 
-  const tabProps = { room, derived, dispatch, project };
+  const tabProps = { room, derived, dispatch, project, roomCategories };
   const substrateTabProps = { ...tabProps, focusedSubstrate, setFocusedSubstrate };
 
   return (

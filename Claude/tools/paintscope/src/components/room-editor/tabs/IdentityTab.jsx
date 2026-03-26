@@ -1,7 +1,7 @@
 import Select from '../../shared/Select';
 import { ENUMS } from '../../../data/enums';
 
-export default function IdentityTab({ room, derived, dispatch, project }) {
+export default function IdentityTab({ room, derived, dispatch, project, roomCategories }) {
   const rid = room.id;
   const setRoom = (f, v) => dispatch({ type: 'SET_ROOM', payload: { roomId: rid, field: f, value: v } });
   const setRoomNullable = (f, v) => dispatch({ type: 'SET_ROOM', payload: { roomId: rid, field: f, value: v || null } });
@@ -18,7 +18,10 @@ export default function IdentityTab({ room, derived, dispatch, project }) {
           </div>
           <div>
             <div className="field-label">Area Group</div>
-            <input value={room.area_group} onChange={e => setRoom('area_group', e.target.value)} style={{ width: '100%' }} placeholder="e.g. Main Floor" />
+            <select value={room.area_group || ''} onChange={e => setRoom('area_group', e.target.value)} style={{ width: '100%' }}>
+              <option value="">None</option>
+              {(roomCategories || []).map(c => <option key={c} value={c}>{c}</option>)}
+            </select>
           </div>
         </div>
         <div style={{ marginTop: 8 }}>

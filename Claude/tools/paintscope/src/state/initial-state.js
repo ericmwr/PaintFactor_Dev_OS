@@ -157,6 +157,7 @@ export const initialState = {
     notes: '',
     default_substrates: ['ceiling', 'walls', 'baseboard']
   },
+  room_categories: [],
   rooms: [createRoom()],
   exterior: createExteriorState(),
   colors: initialColorState,
