@@ -189,11 +189,21 @@ export default function RoomColorEditor({ state, schedule, dispatch }) {
       <div style={{ flex: 1, padding: 12, overflowY: 'auto' }}>
         {selectedItem ? (
           <>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
               <div>
                 <span style={{ fontSize: 13, fontWeight: 600 }}>{selectedItem.label || selectedItem.id}</span>
                 <span style={{ fontSize: 10, color: 'var(--text-muted)', marginLeft: 6 }}>click any row to override</span>
               </div>
+            </div>
+
+            <div style={{ marginBottom: 10 }}>
+              <textarea
+                value={(isRoom ? colors.room_notes?.[selectedId] : '') || ''}
+                onChange={e => {
+                  if (isRoom) dispatch({ type: 'SET_COLOR_ROOM_NOTES', payload: { roomId: selectedId, notes: e.target.value } });
+                }}
+                placeholder={`Color notes for ${selectedItem.label || selectedItem.id}...`}
+                style={{ width: '100%', minHeight: 36, padding: '5px 8px', background: 'var(--bg-panel)', color: 'var(--text-primary)', border: '1px solid var(--border)', borderRadius: 4, fontSize: 11, resize: 'vertical', fontFamily: 'inherit' }} />
             </div>
 
             {[...groupedSubstrates.entries()].map(([group, substrates]) => {

@@ -242,6 +242,9 @@ export function migrateInline(parsed) {
   // v1.1: Add room/elevation group overrides
   if (!parsed.colors.room_group_overrides) parsed.colors.room_group_overrides = {};
   if (!parsed.colors.elevation_group_overrides) parsed.colors.elevation_group_overrides = {};
+  // v1.2: Add color notes
+  if (parsed.colors.project_notes === undefined) parsed.colors.project_notes = '';
+  if (!parsed.colors.room_notes) parsed.colors.room_notes = {};
 
   // v0.9: COMPLEX tier removed — map to MOD
   if (parsed.project && parsed.project.default_complexity === 'COMPLEX') {

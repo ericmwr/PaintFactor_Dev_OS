@@ -67,4 +67,6 @@ export const initialColorState = {
   room_group_overrides: {},
   elevation_overrides: {},
   elevation_group_overrides: {},
+  project_notes: '',
+  room_notes: {},
 };

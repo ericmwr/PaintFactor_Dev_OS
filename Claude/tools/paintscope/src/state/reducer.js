@@ -1000,6 +1000,13 @@ export function reducer(state, action) {
       else elevation_group_overrides[elevId] = elevGrp;
       return { ...state, colors: { ...state.colors, elevation_group_overrides } };
     }
+    case 'SET_COLOR_PROJECT_NOTES': {
+      return { ...state, colors: { ...state.colors, project_notes: payload.notes } };
+    }
+    case 'SET_COLOR_ROOM_NOTES': {
+      const { roomId, notes } = payload;
+      return { ...state, colors: { ...state.colors, room_notes: { ...state.colors.room_notes, [roomId]: notes } } };
+    }
 
     default: return state;
   }

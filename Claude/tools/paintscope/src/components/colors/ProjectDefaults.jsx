@@ -99,6 +99,15 @@ export default function ProjectDefaults({ colors, dispatch }) {
           ))}
         </div>
       )}
+
+      <div style={{ marginTop: 10 }}>
+        <div style={{ fontSize: 10, color: 'var(--text-muted)', marginBottom: 3 }}>Project Color Notes</div>
+        <textarea
+          value={colors.project_notes || ''}
+          onChange={e => dispatch({ type: 'SET_COLOR_PROJECT_NOTES', payload: { notes: e.target.value } })}
+          placeholder="General color notes, preferences, or instructions..."
+          style={{ width: '100%', minHeight: 48, padding: '6px 8px', background: 'var(--bg-panel)', color: 'var(--text-primary)', border: '1px solid var(--border)', borderRadius: 4, fontSize: 11, resize: 'vertical', fontFamily: 'inherit' }} />
+      </div>
     </div>
   );
 }
