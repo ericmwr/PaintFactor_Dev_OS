@@ -24,6 +24,17 @@ export function reducer(state, action) {
     case 'SET_TAB': return { ...state, ui: { ...state.ui, activeTab: payload } };
     case 'SET_SCOPE_MODE': return { ...state, ui: { ...state.ui, scopeMode: payload } };
     case 'SET_ACTIVE_ROOM': return { ...state, ui: { ...state.ui, activeRoomId: payload, scopeMode: 'interior' } };
+    case 'REORDER_ROOM': {
+      const { dragId, dropId } = payload;
+      if (dragId === dropId) return state;
+      const rooms = [...state.rooms];
+      const dragIdx = rooms.findIndex(r => r.id === dragId);
+      const dropIdx = rooms.findIndex(r => r.id === dropId);
+      if (dragIdx < 0 || dropIdx < 0) return state;
+      const [moved] = rooms.splice(dragIdx, 1);
+      rooms.splice(dropIdx, 0, moved);
+      return { ...state, rooms };
+    }
     case 'ADD_ROOM_CATEGORY': {
       const name = (payload?.name || 'New Category').trim();
       if (!name || (state.room_categories || []).includes(name)) return state;

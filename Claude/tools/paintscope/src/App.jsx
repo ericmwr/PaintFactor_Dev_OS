@@ -47,6 +47,8 @@ function AppShell({ projectDb }) {
   const scopeMode = state.ui.scopeMode || 'interior';
   const photoAnalysis = usePhotoAnalysis();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [dragRoomId, setDragRoomId] = useState(null);
+  const [dragOverRoomId, setDragOverRoomId] = useState(null);
   const activeRoom = state.rooms.find(r => r.id === state.ui.activeRoomId) || state.rooms[0];
   const exterior = state.exterior || createExteriorState();
   const elevations = exterior.elevations || [];
@@ -141,7 +143,14 @@ function AppShell({ projectDb }) {
                 <div
                   key={r.id}
                   className={`room-item ${r.id === state.ui.activeRoomId && scopeMode === 'interior' ? 'active' : ''}`}
+                  draggable
+                  onDragStart={(e) => { setDragRoomId(r.id); e.dataTransfer.effectAllowed = 'move'; }}
+                  onDragOver={(e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; setDragOverRoomId(r.id); }}
+                  onDragLeave={() => { if (dragOverRoomId === r.id) setDragOverRoomId(null); }}
+                  onDrop={(e) => { e.preventDefault(); if (dragRoomId && dragRoomId !== r.id) dispatch({ type: 'REORDER_ROOM', payload: { dragId: dragRoomId, dropId: r.id } }); setDragRoomId(null); setDragOverRoomId(null); }}
+                  onDragEnd={() => { setDragRoomId(null); setDragOverRoomId(null); }}
                   onClick={() => { dispatch({type:'SET_ACTIVE_ROOM', payload:r.id}); dispatch({type:'SET_VIEW', payload:'scope'}); }}
+                  style={dragOverRoomId === r.id && dragRoomId !== r.id ? { borderTop: '2px solid var(--accent)' } : undefined}
                 >
                   <div className="room-item-info">
                     <span className="room-item-label">{r.label || 'Untitled'}</span>
