@@ -106,6 +106,41 @@ export default function RoomColorEditor({ state, schedule, dispatch }) {
       : colors.elevation_group_overrides?.[selectedId]?.[group];
   };
 
+  const renderColorInfo = (data, highlight) => {
+    if (!data) return null;
+    const ct = data.coating_type;
+    const textColor = highlight ? 'var(--text-primary)' : 'var(--text-secondary)';
+    const mutedColor = 'var(--text-muted)';
+
+    if (ct === 'stain' || ct === 'stain_clear' || ct === 'clear') {
+      return (
+        <>
+          <span style={{ display: 'inline-block', width: 12, height: 12, background: '#8b6914', border: '1px solid var(--border)', borderRadius: 2 }} />
+          <span style={{ fontSize: 11, color: textColor }}>
+            {ct === 'clear' ? (data.clear_product || 'Clear Coat') : (data.stain_color || data.color_code || '—')}
+          </span>
+          <span style={{ fontSize: 9, color: mutedColor }}>
+            {ct === 'stain' && `· ${data.stain_product || '—'} · stain`}
+            {ct === 'clear' && `· ${data.clear_sheen || '—'} · clear`}
+            {ct === 'stain_clear' && `· ${data.stain_product || '—'} + ${data.clear_product || 'clear'} · ${data.clear_sheen || '—'}`}
+          </span>
+        </>
+      );
+    }
+
+    return (
+      <>
+        <span style={{ display: 'inline-block', width: 12, height: 12, background: '#ccc', border: '1px solid var(--border)', borderRadius: 2 }} />
+        <span style={{ fontSize: 11, color: textColor }}>
+          {data.color_code} {data.color_name}
+        </span>
+        <span style={{ fontSize: 9, color: mutedColor }}>
+          · {data.product || '—'} · {data.sheen || '—'}
+        </span>
+      </>
+    );
+  };
+
   const getSourceBadge = (resolved) => {
     if (!resolved) return { label: 'none', style: { color: 'var(--text-muted)' } };
     if (resolved.source === 'room' || resolved.source === 'elevation')
@@ -181,15 +216,7 @@ export default function RoomColorEditor({ state, schedule, dispatch }) {
                           {groupLabel}
                         </span>
                         {hasGroupOvr ? (
-                          <>
-                            <span style={{ display: 'inline-block', width: 12, height: 12, background: '#ccc', border: '1px solid var(--border)', borderRadius: 2 }} />
-                            <span style={{ fontSize: 11, color: 'var(--text-primary)' }}>
-                              {groupOvr.color_code} {groupOvr.color_name}
-                            </span>
-                            <span style={{ fontSize: 9, color: 'var(--text-muted)' }}>
-                              · {groupOvr.product || '—'} · {groupOvr.sheen || '—'}
-                            </span>
-                          </>
+                          <>{renderColorInfo(groupOvr, true)}</>
                         ) : (
                           <span style={{ fontSize: 10, color: 'var(--text-muted)', fontStyle: 'italic' }}>click to set room {groupLabel.toLowerCase()} color</span>
                         )}
@@ -235,15 +262,7 @@ export default function RoomColorEditor({ state, schedule, dispatch }) {
                             {getSubstrateLabel(subId)}
                           </span>
                           {resolved ? (
-                            <>
-                              <span style={{ display: 'inline-block', width: 12, height: 12, background: '#ccc', border: '1px solid var(--border)', borderRadius: 2 }} />
-                              <span style={{ fontSize: 11, color: isOverride ? 'var(--text-primary)' : 'var(--text-secondary)' }}>
-                                {resolved.color_code} {resolved.color_name}
-                              </span>
-                              <span style={{ fontSize: 9, color: 'var(--text-muted)' }}>
-                                · {resolved.product || '—'} · {resolved.sheen || '—'}
-                              </span>
-                            </>
+                            <>{renderColorInfo(resolved, isOverride)}</>
                           ) : (
                             <span style={{ fontSize: 11, color: 'var(--text-muted)', fontStyle: 'italic' }}>No color assigned</span>
                           )}

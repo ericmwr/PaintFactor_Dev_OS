@@ -20,9 +20,9 @@ export const SUBSTRATE_COLOR_GROUPS = {
   panel_mold: 'trim',
   // Doors & Windows
   doors: 'doors',
-  door_frames: 'doors',
+  door_frames: 'trim',
   windows: 'windows',
-  window_jamb: 'windows',
+  window_jamb: 'trim',
   // Specialty
   wainscoting: 'specialty',
   wood_feature_wall: 'specialty',

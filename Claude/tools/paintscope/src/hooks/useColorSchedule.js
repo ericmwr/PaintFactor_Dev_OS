@@ -11,13 +11,19 @@ function resolveColor(substrate, locationOverrides, locationGroupOverrides, colo
   ];
 
   const sourceLabels = ['room', 'room-group', 'substrate', 'default'];
-  const merged = { color_code: null, color_name: null, product: null, sheen: null };
+  const ALL_FIELDS = [
+    'coating_type', 'color_code', 'color_name', 'product', 'sheen',
+    'stain_type', 'stain_color', 'stain_product',
+    'clear_product', 'clear_sheen',
+  ];
+  const merged = {};
+  for (const f of ALL_FIELDS) merged[f] = null;
   let hasAny = false;
 
   for (let i = layers.length - 1; i >= 0; i--) {
     const layer = layers[i];
     if (!layer) continue;
-    for (const field of ['color_code', 'color_name', 'product', 'sheen']) {
+    for (const field of ALL_FIELDS) {
       if (layer[field] != null && layer[field] !== '') {
         merged[field] = layer[field];
         hasAny = true;
