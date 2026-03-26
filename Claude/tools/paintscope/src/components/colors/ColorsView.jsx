@@ -15,7 +15,8 @@ export default function ColorsView({ state, dispatch }) {
         <ColorSchedule
           rooms={state.rooms || []}
           elevations={state.exterior?.elevations || []}
-          schedule={schedule} />
+          schedule={schedule}
+          colors={state.colors} />
       </div>
     </div>
   );

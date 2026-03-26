@@ -1,7 +1,52 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { SUBSTRATE_MAP } from '../../data/substrate-catalog.js';
 
-export default function ColorSchedule({ rooms, elevations, schedule }) {
+function RFINotesSummary({ rooms, colors }) {
+  const projectNotes = colors?.project_notes || '';
+  const roomNotes = colors?.room_notes || {};
+  const roomsWithNotes = rooms.filter(r => roomNotes[r.id]?.trim());
+  const hasAny = projectNotes.trim() || roomsWithNotes.length > 0;
+
+  const [expanded, setExpanded] = useState({});
+  const toggle = (id) => setExpanded(prev => ({ ...prev, [id]: !prev[id] }));
+
+  if (!hasAny) return null;
+
+  return (
+    <div style={{ marginBottom: 12, background: 'var(--bg-panel)', borderRadius: 6, border: '1px solid var(--border)', overflow: 'hidden' }}>
+      <div style={{ padding: '8px 10px', background: 'var(--bg-active)', borderBottom: '1px solid var(--border)' }}>
+        <div style={{ fontSize: 10, textTransform: 'uppercase', letterSpacing: 1, color: 'var(--accent)', fontWeight: 600 }}>RFI — Color Notes</div>
+      </div>
+
+      {projectNotes.trim() && (
+        <div style={{ padding: '8px 10px', borderBottom: roomsWithNotes.length > 0 ? '1px solid var(--border-subtle)' : 'none' }}>
+          <div style={{ fontSize: 10, fontWeight: 600, color: 'var(--text-muted)', marginBottom: 3 }}>Project</div>
+          <div style={{ fontSize: 11, color: 'var(--text-primary)', whiteSpace: 'pre-wrap', lineHeight: 1.4 }}>{projectNotes}</div>
+        </div>
+      )}
+
+      {roomsWithNotes.map(room => {
+        const isOpen = expanded[room.id] !== false;
+        return (
+          <div key={room.id} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+            <div onClick={() => toggle(room.id)}
+              style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 10px', cursor: 'pointer' }}>
+              <span style={{ fontSize: 10, color: 'var(--text-muted)', width: 12 }}>{isOpen ? '▾' : '▸'}</span>
+              <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)' }}>{room.label || room.id}</span>
+            </div>
+            {isOpen && (
+              <div style={{ padding: '0 10px 8px 28px' }}>
+                <div style={{ fontSize: 11, color: 'var(--text-primary)', whiteSpace: 'pre-wrap', lineHeight: 1.4 }}>{roomNotes[room.id]}</div>
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+export default function ColorSchedule({ rooms, elevations, schedule, colors }) {
   const getLabel = (subId) => {
     const cat = SUBSTRATE_MAP[subId];
     return cat ? cat.label : subId.replace(/_/g, ' ');
@@ -13,6 +58,8 @@ export default function ColorSchedule({ rooms, elevations, schedule }) {
     <div style={{ width: 260, padding: 10, background: 'var(--bg-deep)', overflowY: 'auto', borderLeft: '1px solid var(--border)' }}>
       <div style={{ fontSize: 10, textTransform: 'uppercase', letterSpacing: 1, color: 'var(--text-muted)', marginBottom: 8 }}>Full Color Schedule</div>
       <div style={{ fontSize: 10, color: 'var(--text-muted)', marginBottom: 10 }}>Resolved colors for every substrate</div>
+
+      <RFINotesSummary rooms={rooms} colors={colors} />
 
       {!hasAnyColors && (
         <div style={{ textAlign: 'center', padding: 20, color: 'var(--text-muted)', fontSize: 11, fontStyle: 'italic' }}>
