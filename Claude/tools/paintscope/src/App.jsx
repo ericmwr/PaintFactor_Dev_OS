@@ -191,7 +191,13 @@ function AppShell({ projectDb }) {
                         className="room-action-btn"
                         title="Remove category"
                         style={{ fontSize: 9, padding: '0 2px' }}
-                        onClick={() => dispatch({ type: 'REMOVE_ROOM_CATEGORY', payload: cat })}
+                        onClick={() => {
+                          dispatch({ type: 'REMOVE_ROOM_CATEGORY', payload: cat });
+                          // Also clear area_group on rooms for orphan groups not in room_categories
+                          catRooms.forEach(r => {
+                            if (r.area_group === cat) dispatch({ type: 'SET_ROOM', payload: { roomId: r.id, field: 'area_group', value: '' } });
+                          });
+                        }}
                       >&#x2715;</button>
                     </div>
                     {catRooms.map(renderRoom)}
