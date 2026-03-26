@@ -968,6 +968,38 @@ export function reducer(state, action) {
       else elevation_overrides[elevId] = elevOvr;
       return { ...state, colors: { ...state.colors, elevation_overrides } };
     }
+    case 'SET_COLOR_ROOM_GROUP_OVERRIDE': {
+      const { roomId, group, data } = payload;
+      const roomGrp = state.colors.room_group_overrides?.[roomId] || {};
+      return { ...state, colors: { ...state.colors,
+        room_group_overrides: { ...state.colors.room_group_overrides, [roomId]: { ...roomGrp, [group]: { ...(roomGrp[group] || {}), ...data } } }
+      }};
+    }
+    case 'REMOVE_COLOR_ROOM_GROUP_OVERRIDE': {
+      const { roomId, group } = payload;
+      const roomGrp = { ...(state.colors.room_group_overrides?.[roomId] || {}) };
+      delete roomGrp[group];
+      const room_group_overrides = { ...state.colors.room_group_overrides };
+      if (Object.keys(roomGrp).length === 0) delete room_group_overrides[roomId];
+      else room_group_overrides[roomId] = roomGrp;
+      return { ...state, colors: { ...state.colors, room_group_overrides } };
+    }
+    case 'SET_COLOR_ELEVATION_GROUP_OVERRIDE': {
+      const { elevId, group, data } = payload;
+      const elevGrp = state.colors.elevation_group_overrides?.[elevId] || {};
+      return { ...state, colors: { ...state.colors,
+        elevation_group_overrides: { ...state.colors.elevation_group_overrides, [elevId]: { ...elevGrp, [group]: { ...(elevGrp[group] || {}), ...data } } }
+      }};
+    }
+    case 'REMOVE_COLOR_ELEVATION_GROUP_OVERRIDE': {
+      const { elevId, group } = payload;
+      const elevGrp = { ...(state.colors.elevation_group_overrides?.[elevId] || {}) };
+      delete elevGrp[group];
+      const elevation_group_overrides = { ...state.colors.elevation_group_overrides };
+      if (Object.keys(elevGrp).length === 0) delete elevation_group_overrides[elevId];
+      else elevation_group_overrides[elevId] = elevGrp;
+      return { ...state, colors: { ...state.colors, elevation_group_overrides } };
+    }
 
     default: return state;
   }

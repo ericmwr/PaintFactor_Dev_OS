@@ -1,15 +1,16 @@
 import { useMemo } from 'react';
 import { getColorGroup } from '../state/color-state.js';
 
-function resolveColor(substrate, locationOverrides, colors) {
+function resolveColor(substrate, locationOverrides, locationGroupOverrides, colors) {
   const group = getColorGroup(substrate);
   const layers = [
     locationOverrides?.[substrate],
+    group ? locationGroupOverrides?.[group] : null,
     colors.substrate_overrides?.[substrate],
     group ? colors.defaults?.[group] : null,
   ];
 
-  const sourceLabels = ['room', 'substrate', 'default'];
+  const sourceLabels = ['room', 'room-group', 'substrate', 'default'];
   const merged = { color_code: null, color_name: null, product: null, sheen: null };
   let hasAny = false;
 
@@ -49,7 +50,7 @@ export function useColorSchedule(state) {
       const subs = room.substrates || {};
       for (const subId of Object.keys(subs)) {
         if (subs[subId].painting === false) continue;
-        const resolved = resolveColor(subId, colors.room_overrides?.[room.id], colors);
+        const resolved = resolveColor(subId, colors.room_overrides?.[room.id], colors.room_group_overrides?.[room.id], colors);
         if (resolved) roomColors[subId] = resolved;
       }
       if (Object.keys(roomColors).length > 0 || colors.room_overrides?.[room.id]) {
@@ -61,22 +62,22 @@ export function useColorSchedule(state) {
     for (const elev of elevations) {
       const elevColors = {};
       if (elev.siding_sections?.length > 0) {
-        const resolved = resolveColor('siding', colors.elevation_overrides?.[elev.id], colors);
+        const resolved = resolveColor('siding', colors.elevation_overrides?.[elev.id], colors.elevation_group_overrides?.[elev.id], colors);
         if (resolved) elevColors.siding = resolved;
       }
       if (elev.trim) {
         for (const trimType of Object.keys(elev.trim)) {
           if (!elev.trim[trimType].enabled) continue;
-          const resolved = resolveColor(trimType, colors.elevation_overrides?.[elev.id], colors);
+          const resolved = resolveColor(trimType, colors.elevation_overrides?.[elev.id], colors.elevation_group_overrides?.[elev.id], colors);
           if (resolved) elevColors[trimType] = resolved;
         }
       }
       if (elev.windows?.length > 0) {
-        const resolved = resolveColor('ext_windows', colors.elevation_overrides?.[elev.id], colors);
+        const resolved = resolveColor('ext_windows', colors.elevation_overrides?.[elev.id], colors.elevation_group_overrides?.[elev.id], colors);
         if (resolved) elevColors.ext_windows = resolved;
       }
       if (elev.doors?.length > 0) {
-        const resolved = resolveColor('ext_doors', colors.elevation_overrides?.[elev.id], colors);
+        const resolved = resolveColor('ext_doors', colors.elevation_overrides?.[elev.id], colors.elevation_group_overrides?.[elev.id], colors);
         if (resolved) elevColors.ext_doors = resolved;
       }
       if (Object.keys(elevColors).length > 0 || colors.elevation_overrides?.[elev.id]) {

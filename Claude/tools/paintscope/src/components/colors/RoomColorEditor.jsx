@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { SUBSTRATE_MAP } from '../../data/substrate-catalog.js';
-import { getColorGroup } from '../../state/color-state.js';
+import { getColorGroup, COLOR_GROUP_LABELS } from '../../state/color-state.js';
 import ColorEntryForm from './ColorEntryForm.jsx';
 
 export default function RoomColorEditor({ state, schedule, dispatch }) {
@@ -10,6 +10,7 @@ export default function RoomColorEditor({ state, schedule, dispatch }) {
   const [selectedType, setSelectedType] = useState(rooms.length > 0 ? 'room' : 'elevation');
   const [selectedId, setSelectedId] = useState(rooms[0]?.id || elevations[0]?.id || null);
   const [editingSub, setEditingSub] = useState(null);
+  const [editingGroup, setEditingGroup] = useState(null);
 
   const isRoom = selectedType === 'room';
   const selectedItem = isRoom
@@ -50,7 +51,14 @@ export default function RoomColorEditor({ state, schedule, dispatch }) {
     const group = getColorGroup(subId);
     const subOvr = colors.substrate_overrides?.[subId];
     const groupDef = group ? colors.defaults?.[group] : null;
-    return { ...groupDef, ...subOvr };
+    const locGroupOvr = isRoom
+      ? colors.room_group_overrides?.[selectedId]?.[group]
+      : colors.elevation_group_overrides?.[selectedId]?.[group];
+    return { ...groupDef, ...subOvr, ...locGroupOvr };
+  };
+
+  const getGroupInherited = (group) => {
+    return colors.defaults?.[group] || {};
   };
 
   const handleSaveOverride = (subId, data) => {
@@ -67,10 +75,43 @@ export default function RoomColorEditor({ state, schedule, dispatch }) {
     setEditingSub(null);
   };
 
+  const handleSaveGroupOverride = (group, data) => {
+    const actionType = isRoom ? 'SET_COLOR_ROOM_GROUP_OVERRIDE' : 'SET_COLOR_ELEVATION_GROUP_OVERRIDE';
+    const idKey = isRoom ? 'roomId' : 'elevId';
+    dispatch({ type: actionType, payload: { [idKey]: selectedId, group, data } });
+    setEditingGroup(null);
+  };
+
+  const handleRemoveGroupOverride = (group) => {
+    const actionType = isRoom ? 'REMOVE_COLOR_ROOM_GROUP_OVERRIDE' : 'REMOVE_COLOR_ELEVATION_GROUP_OVERRIDE';
+    const idKey = isRoom ? 'roomId' : 'elevId';
+    dispatch({ type: actionType, payload: { [idKey]: selectedId, group } });
+    setEditingGroup(null);
+  };
+
+  // Group active substrates by color group for display
+  const groupedSubstrates = useMemo(() => {
+    const groups = new Map();
+    for (const subId of activeSubstrates) {
+      const group = getColorGroup(subId) || '_ungrouped';
+      if (!groups.has(group)) groups.set(group, []);
+      groups.get(group).push(subId);
+    }
+    return groups;
+  }, [activeSubstrates]);
+
+  const getGroupOverride = (group) => {
+    return isRoom
+      ? colors.room_group_overrides?.[selectedId]?.[group]
+      : colors.elevation_group_overrides?.[selectedId]?.[group];
+  };
+
   const getSourceBadge = (resolved) => {
     if (!resolved) return { label: 'none', style: { color: 'var(--text-muted)' } };
     if (resolved.source === 'room' || resolved.source === 'elevation')
       return { label: 'override', style: { background: '#2a5a4a', padding: '1px 5px', borderRadius: 3, color: '#8fc', fontSize: 9 } };
+    if (resolved.source === 'room-group' || resolved.source === 'elev-group')
+      return { label: 'room group', style: { background: '#2a4a5a', padding: '1px 5px', borderRadius: 3, color: '#8cf', fontSize: 9 } };
     if (resolved.source === 'substrate')
       return { label: 'project', style: { background: '#4a3a2a', padding: '1px 5px', borderRadius: 3, color: '#dab', fontSize: 9 } };
     return { label: 'inherited', style: { color: 'var(--text-muted)', fontSize: 9, fontStyle: 'italic' } };
@@ -120,55 +161,114 @@ export default function RoomColorEditor({ state, schedule, dispatch }) {
               </div>
             </div>
 
-            {activeSubstrates.map(subId => {
-              const resolved = resolvedColors[subId];
-              const badge = getSourceBadge(resolved);
-              const isEditing = editingSub === subId;
-              const isOverride = resolved?.source === 'room' || resolved?.source === 'elevation';
+            {[...groupedSubstrates.entries()].map(([group, substrates]) => {
+              const groupLabel = COLOR_GROUP_LABELS[group] || group;
+              const groupOvr = getGroupOverride(group);
+              const hasGroupOvr = !!groupOvr?.color_code;
+              const showGroupRow = substrates.length > 1;
 
               return (
-                <div key={subId}>
-                  <div onClick={() => setEditingSub(isEditing ? null : subId)}
-                    style={{
-                      display: 'flex', alignItems: 'center', gap: 6, padding: '7px 10px', borderRadius: 4, marginBottom: 4, cursor: 'pointer',
-                      background: isOverride ? 'var(--bg-override)' : 'var(--bg-panel)',
-                      border: isOverride ? '1px solid var(--accent)' : '1px solid transparent',
-                    }}>
-                    <span style={{ width: 70, fontSize: 11, color: isOverride ? 'var(--accent)' : 'var(--text-secondary)', fontWeight: isOverride ? 600 : 400 }}>
-                      {getSubstrateLabel(subId)}
-                    </span>
-                    {resolved ? (
-                      <>
-                        <span style={{ display: 'inline-block', width: 12, height: 12, background: '#ccc', border: '1px solid var(--border)', borderRadius: 2 }} />
-                        <span style={{ fontSize: 11, color: isOverride ? 'var(--text-primary)' : 'var(--text-secondary)' }}>
-                          {resolved.color_code} {resolved.color_name}
+                <div key={group} style={{ marginBottom: 8 }}>
+                  {showGroupRow && (
+                    <>
+                      <div onClick={() => { setEditingGroup(editingGroup === group ? null : group); setEditingSub(null); }}
+                        style={{
+                          display: 'flex', alignItems: 'center', gap: 6, padding: '7px 10px', borderRadius: 4, marginBottom: 2, cursor: 'pointer',
+                          background: hasGroupOvr ? 'var(--bg-override)' : 'var(--bg-deep)',
+                          border: hasGroupOvr ? '1px solid var(--accent)' : '1px solid var(--border)',
+                        }}>
+                        <span style={{ width: 70, fontSize: 11, fontWeight: 600, color: hasGroupOvr ? 'var(--accent)' : 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                          {groupLabel}
                         </span>
-                        <span style={{ fontSize: 9, color: 'var(--text-muted)' }}>
-                          · {resolved.product || '—'} · {resolved.sheen || '—'}
-                        </span>
-                      </>
-                    ) : (
-                      <span style={{ fontSize: 11, color: 'var(--text-muted)', fontStyle: 'italic' }}>No color assigned</span>
-                    )}
-                    <span style={{ flex: 1 }} />
-                    <span style={badge.style}>{badge.label}</span>
-                  </div>
-
-                  {isEditing && (
-                    <div style={{ marginLeft: 16, marginBottom: 8, padding: 10, background: 'var(--bg-tertiary)', borderRadius: 6, border: '1px solid var(--accent)' }}>
-                      <ColorEntryForm
-                        initial={resolved || {}}
-                        inherited={getInherited(subId)}
-                        onSave={(data) => handleSaveOverride(subId, data)}
-                        onCancel={() => setEditingSub(null)} />
-                      {isOverride && (
-                        <button onClick={() => handleRemoveOverride(subId)}
-                          style={{ marginTop: 6, fontSize: 10, background: 'none', border: 'none', color: '#c44', cursor: 'pointer' }}>
-                          Remove override (revert to inherited)
-                        </button>
+                        {hasGroupOvr ? (
+                          <>
+                            <span style={{ display: 'inline-block', width: 12, height: 12, background: '#ccc', border: '1px solid var(--border)', borderRadius: 2 }} />
+                            <span style={{ fontSize: 11, color: 'var(--text-primary)' }}>
+                              {groupOvr.color_code} {groupOvr.color_name}
+                            </span>
+                            <span style={{ fontSize: 9, color: 'var(--text-muted)' }}>
+                              · {groupOvr.product || '—'} · {groupOvr.sheen || '—'}
+                            </span>
+                          </>
+                        ) : (
+                          <span style={{ fontSize: 10, color: 'var(--text-muted)', fontStyle: 'italic' }}>click to set room {groupLabel.toLowerCase()} color</span>
+                        )}
+                        <span style={{ flex: 1 }} />
+                        {hasGroupOvr && (
+                          <span style={{ background: '#2a4a5a', padding: '1px 5px', borderRadius: 3, color: '#8cf', fontSize: 9 }}>room group</span>
+                        )}
+                      </div>
+                      {editingGroup === group && (
+                        <div style={{ marginLeft: 16, marginBottom: 8, padding: 10, background: 'var(--bg-tertiary)', borderRadius: 6, border: '1px solid var(--accent)' }}>
+                          <ColorEntryForm
+                            initial={groupOvr || {}}
+                            inherited={getGroupInherited(group)}
+                            onSave={(data) => handleSaveGroupOverride(group, data)}
+                            onCancel={() => setEditingGroup(null)} />
+                          {hasGroupOvr && (
+                            <button onClick={() => handleRemoveGroupOverride(group)}
+                              style={{ marginTop: 6, fontSize: 10, background: 'none', border: 'none', color: '#c44', cursor: 'pointer' }}>
+                              Remove room {groupLabel.toLowerCase()} override
+                            </button>
+                          )}
+                        </div>
                       )}
-                    </div>
+                    </>
                   )}
+
+                  {substrates.map(subId => {
+                    const resolved = resolvedColors[subId];
+                    const badge = getSourceBadge(resolved);
+                    const isEditing = editingSub === subId;
+                    const isOverride = resolved?.source === 'room' || resolved?.source === 'elevation';
+
+                    return (
+                      <div key={subId}>
+                        <div onClick={() => { setEditingSub(isEditing ? null : subId); setEditingGroup(null); }}
+                          style={{
+                            display: 'flex', alignItems: 'center', gap: 6, padding: '7px 10px', borderRadius: 4, marginBottom: 4, cursor: 'pointer',
+                            marginLeft: showGroupRow ? 12 : 0,
+                            background: isOverride ? 'var(--bg-override)' : 'var(--bg-panel)',
+                            border: isOverride ? '1px solid var(--accent)' : '1px solid transparent',
+                          }}>
+                          <span style={{ width: 70, fontSize: 11, color: isOverride ? 'var(--accent)' : 'var(--text-secondary)', fontWeight: isOverride ? 600 : 400 }}>
+                            {getSubstrateLabel(subId)}
+                          </span>
+                          {resolved ? (
+                            <>
+                              <span style={{ display: 'inline-block', width: 12, height: 12, background: '#ccc', border: '1px solid var(--border)', borderRadius: 2 }} />
+                              <span style={{ fontSize: 11, color: isOverride ? 'var(--text-primary)' : 'var(--text-secondary)' }}>
+                                {resolved.color_code} {resolved.color_name}
+                              </span>
+                              <span style={{ fontSize: 9, color: 'var(--text-muted)' }}>
+                                · {resolved.product || '—'} · {resolved.sheen || '—'}
+                              </span>
+                            </>
+                          ) : (
+                            <span style={{ fontSize: 11, color: 'var(--text-muted)', fontStyle: 'italic' }}>No color assigned</span>
+                          )}
+                          <span style={{ flex: 1 }} />
+                          <span style={badge.style}>{badge.label}</span>
+                        </div>
+
+                        {isEditing && (
+                          <div style={{ marginLeft: showGroupRow ? 28 : 16, marginBottom: 8, padding: 10, background: 'var(--bg-tertiary)', borderRadius: 6, border: '1px solid var(--accent)' }}>
+                            <ColorEntryForm
+                              initial={resolved || {}}
+                              inherited={getInherited(subId)}
+                              onSave={(data) => handleSaveOverride(subId, data)}
+                              onCancel={() => setEditingSub(null)} />
+                            {isOverride && (
+                              <button onClick={() => handleRemoveOverride(subId)}
+                                style={{ marginTop: 6, fontSize: 10, background: 'none', border: 'none', color: '#c44', cursor: 'pointer' }}>
+                                Remove override (revert to inherited)
+                              </button>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
               );
             })}

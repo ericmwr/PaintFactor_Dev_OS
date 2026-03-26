@@ -64,5 +64,7 @@ export const initialColorState = {
   defaults: {},
   substrate_overrides: {},
   room_overrides: {},
+  room_group_overrides: {},
   elevation_overrides: {},
+  elevation_group_overrides: {},
 };
