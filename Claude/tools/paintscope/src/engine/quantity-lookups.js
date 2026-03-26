@@ -1,6 +1,7 @@
 import { deriveRoom, deriveCloset } from './derive-room.js';
 import { SUBSTRATE_MAP, SUBSTRATE_CATALOG, SUBSTRATE_APPLICATION_METHODS } from '../data/substrate-catalog.js';
 import { OPENING_TYPES } from '../data/opening-types.js';
+import { deriveStairway, getComponentQuantity } from './derive-stairway';
 
 /**
  * Build per-room quantity lookup from the prototype state.
@@ -115,7 +116,6 @@ export function buildRoomQuantityLookups(state) {
       ['wood_ceiling', 'PS_SURFACE_SF.WOOD_CEILING', 'SF', 'sf_manual'], ['closet_shelving', 'PS_SURFACE_LF.CLOSET_SHELF', 'LF', 'lf_manual'],
       ['beams', 'PS_SURFACE_LF.ARCH_BEAM', 'LF', 'ea_manual'], ['columns', 'PS_SURFACE_EA.ARCH_COLUMN', 'EA', 'ea_manual'],
       ['mantels', 'PS_SURFACE_EA.ARCH_MANTEL', 'EA', 'ea_manual'],
-      ['stair_risers', 'PS_SURFACE_EA.STAIR_RISER', 'EA', 'ea_manual'], ['stair_railing', 'PS_SURFACE_EA.STAIR_RAILING', 'EA', 'ea_manual']
     ];
     specKeys.forEach(([subId, psKey, uom, manualKey]) => {
       if (subs[subId]) {
@@ -137,6 +137,30 @@ export function buildRoomQuantityLookups(state) {
       if (bi.openings_m > 0) addQ('PS_OPENING_EA.BUILTIN_SHELF.M', 'EA', bi.openings_m);
       if (bi.openings_l > 0) addQ('PS_OPENING_EA.BUILTIN_SHELF.L', 'EA', bi.openings_l);
       if (bi.openings_xl > 0) addQ('PS_OPENING_EA.BUILTIN_SHELF.XL', 'EA', bi.openings_xl);
+    }
+
+    // Stairway — emit per-component PS keys from derived or overridden quantities
+    if (subs.stairway) {
+      const derived = deriveStairway(subs.stairway);
+      const comps = subs.stairway.components || {};
+      if (derived) {
+        const riserQty = getComponentQuantity(comps.risers, derived.total_risers);
+        if (riserQty > 0) addQ('PS_SURFACE_EA.STAIR_RISER', 'EA', riserQty);
+        if (comps.treads?.enabled) {
+          const treadQty = getComponentQuantity(comps.treads, derived.total_treads);
+          if (treadQty > 0) addQ('PS_SURFACE_EA.STAIR_TREAD', 'EA', treadQty);
+        }
+        const balQty = getComponentQuantity(comps.balusters, derived.total_balusters);
+        if (balQty > 0) addQ('PS_SURFACE_EA.STAIR_BALUSTER', 'EA', balQty);
+        const newelQty = getComponentQuantity(comps.newel_posts, derived.newel_posts);
+        if (newelQty > 0) addQ('PS_SURFACE_EA.STAIR_NEWEL', 'EA', newelQty);
+        const railQty = getComponentQuantity(comps.open_rail, derived.total_rake_lf);
+        if (railQty > 0) addQ('PS_SURFACE_LF.STAIR_OPEN_RAIL', 'LF', railQty);
+        const wallRailQty = comps.wall_rail?.lf || 0;
+        if (wallRailQty > 0) addQ('PS_SURFACE_LF.STAIR_WALL_RAIL', 'LF', wallRailQty);
+        const skirtQty = getComponentQuantity(comps.skirtboard, derived.skirtboard_lf);
+        if (skirtQty > 0) addQ('PS_SURFACE_LF.STAIR_SKIRTBOARD', 'LF', skirtQty);
+      }
     }
 
     // Ceiling beams — geometry-derived LF from vault config, feeds ARCH_BEAM spec

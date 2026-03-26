@@ -134,7 +134,12 @@ export const QUANTITY_KEY_LABELS = {
   'PS_OPENING_EA.BUILTIN_SHELF.L': 'Built-in Openings (L)',
   'PS_OPENING_EA.BUILTIN_SHELF.XL': 'Built-in Openings (XL)',
   'PS_SURFACE_EA.STAIR_RISER': 'Stair Risers',
-  'PS_SURFACE_EA.STAIR_RAILING': 'Stair Railings',
+  'PS_SURFACE_EA.STAIR_TREAD': 'Stair Treads',
+  'PS_SURFACE_EA.STAIR_BALUSTER': 'Balusters',
+  'PS_SURFACE_EA.STAIR_NEWEL': 'Newel Posts',
+  'PS_SURFACE_LF.STAIR_OPEN_RAIL': 'Open Handrail',
+  'PS_SURFACE_LF.STAIR_WALL_RAIL': 'Wall Rail',
+  'PS_SURFACE_LF.STAIR_SKIRTBOARD': 'Skirtboard',
   // Surface sides keys
   'PS_SURFACE_EA_SIDE.DOOR_SLAB': 'Door Slab Sides',
   'PS_SURFACE_EA_SIDE.DOOR_FRAME': 'Door Frame Sides',
