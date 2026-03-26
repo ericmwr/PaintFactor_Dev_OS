@@ -9,7 +9,7 @@ const COATING_TYPES = [
 
 const PAINT_SHEENS = ['flat', 'matte', 'eggshell', 'satin', 'semi_gloss', 'gloss'];
 const STAIN_TYPES = ['penetrating_oil', 'penetrating_wb', 'gel_stain', 'lacquer_stain'];
-const CLEAR_SHEENS = ['satin', 'semi_gloss', 'gloss'];
+const CLEAR_SHEENS = ['flat', 'satin', 'semi_gloss', 'gloss'];
 
 const STAIN_LABELS = {
   penetrating_oil: 'Penetrating Oil',
