@@ -125,12 +125,20 @@ export const SUBSTRATE_CATALOG = [
     }
   },
   {
-    id: 'stair_risers', group: 'Specialty', label: 'Stair Risers', uom: 'EA',
-    autoDerive: null, defaultConfig: { substrate_state: 'bare_wood', application_method: null, ea_manual: 0 }
-  },
-  {
-    id: 'stair_railing', group: 'Specialty', label: 'Stair Railing', uom: 'EA',
-    autoDerive: null, defaultConfig: { substrate_state: 'bare_wood', application_method: null, ea_manual: 0 }
+    id: 'stairway', group: 'Specialty', label: 'Stairway', uom: 'EA',
+    autoDerive: null, defaultConfig: {
+      title: '',
+      runs: 1, layout: 'l_shape', run1_risers: 0, run2_risers: 0, stair_width: 3.5, landing_depth: 0,
+      components: {
+        risers:      { count: null, count_override: false, substrate_state: 'bare_wood', quality_tier: null, application_method: null, coating_type: 'paint', grain_fill: false },
+        treads:      { count: null, count_override: false, enabled: false, substrate_state: 'bare_wood', quality_tier: null, application_method: null, coating_type: 'paint', grain_fill: false },
+        balusters:   { count: null, count_override: false, substrate_state: 'bare_wood', quality_tier: null, application_method: null, coating_type: 'paint', grain_fill: false, baluster_type: 'square', material: 'wood' },
+        newel_posts: { count: null, count_override: false, substrate_state: 'bare_wood', quality_tier: null, application_method: null, coating_type: 'paint', grain_fill: false },
+        open_rail:   { lf: null, lf_override: false, substrate_state: 'bare_wood', quality_tier: null, application_method: null, coating_type: 'paint', grain_fill: false },
+        wall_rail:   { lf: 0, substrate_state: 'bare_wood', quality_tier: null, application_method: null, coating_type: 'paint', grain_fill: false },
+        skirtboard:  { lf: null, lf_override: false, substrate_state: 'bare_wood', quality_tier: null, application_method: null, coating_type: 'paint', grain_fill: false },
+      }
+    }
   },
 ];
 
@@ -139,7 +147,7 @@ export const WOOD_SUBSTRATES = new Set([
   'doors', 'door_frames', 'door_casing', 'window_casing', 'windows', 'window_jamb',
   'baseboard', 'crown', 'chair_rail', 'shoe_mold', 'wainscoting',
   'wood_feature_wall', 'wood_ceiling', 'beams', 'columns', 'mantels',
-  'builtins', 'stair_risers', 'stair_railing',
+  'builtins', 'stairway',
 ]);
 
 // Quick lookup by substrate id
@@ -184,6 +192,5 @@ export const SUBSTRATE_APPLICATION_METHODS = {
   columns: { methods: ['brush', 'spray'], default: 'brush' },
   mantels: { methods: ['brush', 'spray'], default: 'brush' },
   builtins: { methods: ['brush', 'spray'], default: 'brush' },
-  stair_risers: { methods: ['brush', 'spray'], default: 'brush' },
-  stair_railing: { methods: ['brush', 'spray'], default: 'brush' },
+  stairway: { methods: ['brush', 'spray'], default: 'brush' },
 };
