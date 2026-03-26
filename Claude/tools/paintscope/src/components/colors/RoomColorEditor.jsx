@@ -196,16 +196,6 @@ export default function RoomColorEditor({ state, schedule, dispatch }) {
               </div>
             </div>
 
-            <div style={{ marginBottom: 10 }}>
-              <textarea
-                value={(isRoom ? colors.room_notes?.[selectedId] : '') || ''}
-                onChange={e => {
-                  if (isRoom) dispatch({ type: 'SET_COLOR_ROOM_NOTES', payload: { roomId: selectedId, notes: e.target.value } });
-                }}
-                placeholder={`Color notes for ${selectedItem.label || selectedItem.id}...`}
-                style={{ width: '100%', minHeight: 36, padding: '5px 8px', background: 'var(--bg-panel)', color: 'var(--text-primary)', border: '1px solid var(--border)', borderRadius: 4, fontSize: 11, resize: 'vertical', fontFamily: 'inherit' }} />
-            </div>
-
             {[...groupedSubstrates.entries()].map(([group, substrates]) => {
               const groupLabel = COLOR_GROUP_LABELS[group] || group;
               const groupOvr = getGroupOverride(group);
@@ -305,6 +295,17 @@ export default function RoomColorEditor({ state, schedule, dispatch }) {
             {activeSubstrates.length === 0 && (
               <div style={{ textAlign: 'center', padding: 20, color: 'var(--text-muted)', fontSize: 12, fontStyle: 'italic' }}>
                 No active substrates in this {isRoom ? 'room' : 'elevation'}
+              </div>
+            )}
+
+            {isRoom && (
+              <div style={{ marginTop: 12 }}>
+                <div style={{ fontSize: 10, color: 'var(--text-muted)', marginBottom: 3 }}>Room Color Notes</div>
+                <textarea
+                  value={colors.room_notes?.[selectedId] || ''}
+                  onChange={e => dispatch({ type: 'SET_COLOR_ROOM_NOTES', payload: { roomId: selectedId, notes: e.target.value } })}
+                  placeholder={`Color notes for ${selectedItem.label || selectedItem.id}...`}
+                  style={{ width: '100%', minHeight: 36, padding: '5px 8px', background: 'var(--bg-panel)', color: 'var(--text-primary)', border: '1px solid var(--border)', borderRadius: 4, fontSize: 11, resize: 'vertical', fontFamily: 'inherit' }} />
               </div>
             )}
           </>
