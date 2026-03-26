@@ -75,7 +75,7 @@ export function migrateV02toV03(state) {
         ['wood_ceiling_sf','wood_ceiling','sf_manual'], ['closet_shelving_lf','closet_shelving','lf_manual'],
         ['beam_wrap_ea','beams','ea_manual'], ['column_wrap_ea','columns','ea_manual'],
         ['fireplace_mantel_ea','mantels','ea_manual'], ['builtin_unit_ea','builtins','ea_manual'],
-        ['stair_risers_ea','stair_risers','ea_manual'], ['stair_railing_ea','stair_railing','ea_manual']
+        ['stair_risers_ea','stairway','ea_manual'], ['stair_railing_ea','stairway','ea_manual']
       ];
       specMigration.forEach(([oldKey, newSubId, manualKey]) => {
         const v = parseFloat(room.specialty[oldKey])||0;
@@ -163,7 +163,7 @@ export function migrateInline(parsed) {
   // v0.9 migration: inject coating_type defaults for existing wood substrates
   const woodSubstrates = ['doors', 'door_frames', 'door_casing', 'window_casing', 'windows', 'window_jamb',
     'baseboard', 'crown', 'chair_rail', 'shoe_mold', 'wainscoting', 'wood_feature_wall', 'wood_ceiling',
-    'beams', 'columns', 'mantels', 'builtins', 'stair_risers', 'stair_railing'];
+    'beams', 'columns', 'mantels', 'builtins', 'stairway'];
   for (const room of parsed.rooms || []) {
     for (const [id, sub] of Object.entries(room.substrates || {})) {
       if (woodSubstrates.includes(id) && sub.substrate_state === 'bare_wood' && !sub.coating_type) {
@@ -202,6 +202,36 @@ export function migrateInline(parsed) {
       if (cs.grain_fill === undefined) cs.grain_fill = false;
       if (cs.coating_type === undefined) cs.coating_type = 'paint';
       if (cs.title === undefined) cs.title = '';
+    }
+  }
+
+  // v1.3: migrate stair_risers + stair_railing to unified stairway
+  for (const room of parsed.rooms || []) {
+    const subs = room.substrates || {};
+    if ((subs.stair_risers || subs.stair_railing) && !subs.stairway) {
+      const riserCount = subs.stair_risers?.ea_manual || 0;
+      const railCount = subs.stair_railing?.ea_manual || 0;
+      const riserState = subs.stair_risers?.substrate_state || 'bare_wood';
+      const railState = subs.stair_railing?.substrate_state || 'bare_wood';
+      const riserCoating = subs.stair_risers?.coating_type || 'paint';
+      const railCoating = subs.stair_railing?.coating_type || 'paint';
+
+      // Create stairway with default structure
+      subs.stairway = {
+        title: '', runs: 1, layout: 'l_shape', run1_risers: 0, run2_risers: 0,
+        stair_width: 3.5, landing_depth: 0,
+        components: {
+          risers:      { count: riserCount, count_override: riserCount > 0, substrate_state: riserState, quality_tier: null, application_method: null, coating_type: riserCoating, grain_fill: false },
+          treads:      { count: null, count_override: false, enabled: false, substrate_state: 'bare_wood', quality_tier: null, application_method: null, coating_type: 'paint', grain_fill: false },
+          balusters:   { count: railCount, count_override: railCount > 0, substrate_state: railState, quality_tier: null, application_method: null, coating_type: railCoating, grain_fill: false, baluster_type: 'square', material: 'wood' },
+          newel_posts: { count: null, count_override: false, substrate_state: 'bare_wood', quality_tier: null, application_method: null, coating_type: 'paint', grain_fill: false },
+          open_rail:   { lf: null, lf_override: false, substrate_state: railState, quality_tier: null, application_method: null, coating_type: railCoating, grain_fill: false },
+          wall_rail:   { lf: 0, substrate_state: 'bare_wood', quality_tier: null, application_method: null, coating_type: 'paint', grain_fill: false },
+          skirtboard:  { lf: null, lf_override: false, substrate_state: 'bare_wood', quality_tier: null, application_method: null, coating_type: 'paint', grain_fill: false },
+        }
+      };
+      delete subs.stair_risers;
+      delete subs.stair_railing;
     }
   }
 

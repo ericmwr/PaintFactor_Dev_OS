@@ -32,8 +32,7 @@ export const SUBSTRATE_COLOR_GROUPS = {
   columns: 'specialty',
   mantels: 'specialty',
   builtins: 'specialty',
-  stair_risers: 'specialty',
-  stair_railing: 'specialty',
+  stairway: 'specialty',
   // Exterior
   siding: 'siding',
   fascia: 'ext_trim',

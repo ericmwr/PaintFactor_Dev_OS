@@ -16,16 +16,16 @@ export const SPEC_SUBSTRATE_MAP = {
   'SF_CLOSET_SHELF_NC':          'closet_shelving',
   'SF_ARCH_ELEMENT_NC':          'beams',
   'SF_BUILTIN_NC':               'builtins',
-  'SF_STAIR_RISER_NC':           'stair_risers',
-  'SF_STAIR_RAILING_NC':         'stair_railing',
+  'SF_STAIR_RISER_NC':           'stairway',
+  'SF_STAIR_RAILING_NC':         'stairway',
   'SF_CABINET_NC_PAINT':         'doors',
   // ── Interior Stain/Clear ──
   'SF_TRIM_NC_STAIN':            'baseboard',
   'SF_DOOR_SLAB_INT_NC_STAIN':   'doors',
   'SF_DOOR_FRAME_NC_STAIN':      'door_frames',
   'SF_WINDOW_INT_NC_STAIN':      'windows',
-  'SF_STAIR_RISER_NC_STAIN':     'stair_risers',
-  'SF_STAIR_RAILING_NC_STAIN':   'stair_railing',
+  'SF_STAIR_RISER_NC_STAIN':     'stairway',
+  'SF_STAIR_RAILING_NC_STAIN':   'stairway',
   'SF_WOOD_WALL_NC_STAIN':       'wood_feature_wall',
   'SF_WOOD_CEILING_NC_STAIN':    'wood_ceiling',
   'SF_WAINSCOT_PANEL_NC_STAIN':  'wainscoting',
@@ -229,8 +229,7 @@ export const GRAIN_FILL_PARENT_SPEC = {
   'columns':         'SF_ARCH_ELEMENT_NC',
   'mantels':         'SF_ARCH_ELEMENT_NC',
   'builtins':        'SF_BUILTIN_NC',
-  'stair_risers':    'SF_STAIR_RISER_NC',
-  'stair_railing':   'SF_STAIR_RAILING_NC',
+  'stairway':        'SF_STAIR_RISER_NC',
 };
 
 export function resolveStainOutputState(specId, coatingType) {

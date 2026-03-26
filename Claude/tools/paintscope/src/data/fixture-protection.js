@@ -27,8 +27,8 @@ export const SPEC_PAINTING_CONTEXT = {
   'SF_DOOR_SLAB_INT_NC':          'trim',
   'SF_DOOR_FRAME_NC_FINISH':      'trim',
   'SF_WINDOW_INT_NC':             'trim',
-  'SF_STAIR_RISER_NC':            'trim',
-  'SF_STAIR_RAILING_NC':          'trim',
+  'SF_STAIR_RISER_NC':            'stairway',
+  'SF_STAIR_RAILING_NC':          'stairway',
   'SF_CLOSET_SHELF_NC':           'trim',
 };
 
