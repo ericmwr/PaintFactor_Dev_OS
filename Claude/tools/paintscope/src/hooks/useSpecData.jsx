@@ -38,9 +38,16 @@ export function SpecDataProvider({ children }) {
     setDirty(true);
     if (saveTimer.current) clearTimeout(saveTimer.current);
     saveTimer.current = setTimeout(() => {
-      saveWorkingCopy(extractEditableTables(specData)).catch(e =>
-        console.error('[SpecEditor] Auto-save failed:', e)
-      );
+      const delta = extractEditableTables(specData);
+      if (delta) {
+        saveWorkingCopy(delta).catch(e =>
+          console.error('[SpecEditor] Auto-save failed:', e)
+        );
+      } else {
+        // No changes from DB_BUNDLE — clear the working copy
+        clearWorkingCopy().catch(() => {});
+        setDirty(false);
+      }
     }, 500);
     return () => { if (saveTimer.current) clearTimeout(saveTimer.current); };
   }, [specData]);

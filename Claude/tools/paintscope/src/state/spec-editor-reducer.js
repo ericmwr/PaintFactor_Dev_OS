@@ -33,31 +33,98 @@ export const EDITABLE_TABLES = [
 ];
 
 // ---------------------------------------------------------------------------
+// Row-key functions — unique identifier per table row
+// ---------------------------------------------------------------------------
+
+const ROW_KEY_FNS = {
+  spec_families:        r => r.id,
+  sop_modules:          r => r.id,
+  sop_tasks:            r => r.id,
+  task_production_rates:r => `${r.spec_family_id}::${r.task_id}`,
+  factor_modifiers:     r => r.id,
+  spec_required_inputs: r => `${r.spec_family_id}::${r.paintscope_key}`,
+  quality_tier_effects: r => `${r.spec_family_id}::${r.quality_tier}`,
+};
+
+function getRowKey(table, row) {
+  const fn = ROW_KEY_FNS[table];
+  return fn ? fn(row) : JSON.stringify(row);
+}
+
+function buildRowIndex(table, rows) {
+  const index = new Map();
+  (rows || []).forEach((row, i) => index.set(getRowKey(table, row), { row, i }));
+  return index;
+}
+
+function rowsEqual(a, b) {
+  const keysA = Object.keys(a).sort();
+  const keysB = Object.keys(b).sort();
+  if (keysA.length !== keysB.length) return false;
+  for (let i = 0; i < keysA.length; i++) {
+    if (keysA[i] !== keysB[i]) return false;
+    const va = a[keysA[i]], vb = b[keysB[i]];
+    if (va === vb) continue;
+    if (JSON.stringify(va) !== JSON.stringify(vb)) return false;
+  }
+  return true;
+}
+
+// ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
 
 /**
- * Deep-clone the DB_BUNDLE editable tables, then merge in any working-copy
- * overrides followed by overlay data.
+ * Delta working copy format:
+ *   { _format: 'delta', modified: {}, added: {}, removed: {} }
  *
- * @param {Object|null} workingCopy  - Persisted edits from IndexedDB (keyed by table)
- * @param {Object|null} overlays     - Additional overlay data to merge on top
- * @returns {Object} Full spec data state object
+ * Legacy (v1) format:
+ *   { spec_families: [...], sop_modules: [...], ... }  (full table snapshots)
+ *
+ * This function handles BOTH formats for backward compatibility.
  */
 export function createInitialSpecData(workingCopy, overlays) {
   // Start with a FULL deep clone of DB_BUNDLE (engine needs all tables)
   const base = JSON.parse(JSON.stringify(DB_BUNDLE));
 
-  // Merge working copy (persisted edits) — replace editable table arrays
   if (workingCopy) {
-    for (const table of EDITABLE_TABLES) {
-      if (workingCopy[table] != null) {
-        base[table] = JSON.parse(JSON.stringify(workingCopy[table]));
+    if (workingCopy._format === 'delta') {
+      // ── Delta format: apply diffs on top of DB_BUNDLE ──
+      const { modified = {}, added = {}, removed = {} } = workingCopy;
+
+      for (const table of EDITABLE_TABLES) {
+        const baseIndex = buildRowIndex(table, base[table]);
+
+        // Apply field-level modifications
+        if (modified[table]) {
+          for (const [key, changes] of Object.entries(modified[table])) {
+            const entry = baseIndex.get(key);
+            if (entry) Object.assign(base[table][entry.i], changes);
+          }
+        }
+
+        // Remove deleted rows
+        if (removed[table] && removed[table].length > 0) {
+          const removeSet = new Set(removed[table]);
+          base[table] = base[table].filter(r => !removeSet.has(getRowKey(table, r)));
+        }
+
+        // Append user-added rows
+        if (added[table] && added[table].length > 0) {
+          base[table] = [...base[table], ...JSON.parse(JSON.stringify(added[table]))];
+        }
+      }
+    } else {
+      // ── Legacy format: full table replacement (backward compat) ──
+      for (const table of EDITABLE_TABLES) {
+        if (workingCopy[table] != null) {
+          base[table] = JSON.parse(JSON.stringify(workingCopy[table]));
+        }
       }
     }
   }
 
-  // Merge overlay data on top (editable tables only)
+  // Merge overlay data on top (editable tables only) — legacy support
   if (overlays) {
     for (const table of EDITABLE_TABLES) {
       if (overlays[table] != null) {
@@ -70,15 +137,68 @@ export function createInitialSpecData(workingCopy, overlays) {
 }
 
 /**
- * Extract only the editable tables from a full spec data state.
- * Used to produce the payload that gets persisted to IndexedDB.
+ * Compute delta between current specData and DB_BUNDLE.
+ * Only stores user modifications, additions, and removals — NOT full snapshots.
+ * This ensures upstream DB_BUNDLE fixes flow through for unedited rows.
  */
 export function extractEditableTables(specData) {
-  const result = {};
+  const modified = {};
+  const added = {};
+  const removed = {};
+  let hasChanges = false;
+
   for (const table of EDITABLE_TABLES) {
-    result[table] = specData[table];
+    const baseRows = DB_BUNDLE[table] || [];
+    const currentRows = specData[table] || [];
+    const baseIndex = buildRowIndex(table, baseRows);
+    const currentIndex = buildRowIndex(table, currentRows);
+
+    // Find modified rows (exist in both, but fields differ)
+    const tableMods = {};
+    for (const [key, { row: currentRow }] of currentIndex) {
+      const baseEntry = baseIndex.get(key);
+      if (baseEntry) {
+        if (!rowsEqual(currentRow, baseEntry.row)) {
+          // Store only the changed fields
+          const changes = {};
+          const allKeys = new Set([...Object.keys(currentRow), ...Object.keys(baseEntry.row)]);
+          for (const field of allKeys) {
+            if (JSON.stringify(currentRow[field]) !== JSON.stringify(baseEntry.row[field])) {
+              changes[field] = currentRow[field];
+            }
+          }
+          if (Object.keys(changes).length > 0) {
+            tableMods[key] = changes;
+            hasChanges = true;
+          }
+        }
+      }
+    }
+    if (Object.keys(tableMods).length > 0) modified[table] = tableMods;
+
+    // Find added rows (in current but not in base)
+    const tableAdded = [];
+    for (const [key, { row }] of currentIndex) {
+      if (!baseIndex.has(key)) {
+        tableAdded.push(row);
+        hasChanges = true;
+      }
+    }
+    if (tableAdded.length > 0) added[table] = tableAdded;
+
+    // Find removed rows (in base but not in current)
+    const tableRemoved = [];
+    for (const [key] of baseIndex) {
+      if (!currentIndex.has(key)) {
+        tableRemoved.push(key);
+        hasChanges = true;
+      }
+    }
+    if (tableRemoved.length > 0) removed[table] = tableRemoved;
   }
-  return result;
+
+  if (!hasChanges) return null;
+  return { _format: 'delta', modified, added, removed };
 }
 
 // ---------------------------------------------------------------------------
