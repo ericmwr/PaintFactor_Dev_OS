@@ -144,22 +144,19 @@ export function buildRoomQuantityLookups(state) {
       const derived = deriveStairway(subs.stairway);
       const comps = subs.stairway.components || {};
       if (derived) {
-        const riserQty = getComponentQuantity(comps.risers, derived.total_risers);
-        if (riserQty > 0) addQ('PS_SURFACE_EA.STAIR_RISER', 'EA', riserQty);
-        if (comps.treads?.enabled) {
-          const treadQty = getComponentQuantity(comps.treads, derived.total_treads);
-          if (treadQty > 0) addQ('PS_SURFACE_EA.STAIR_TREAD', 'EA', treadQty);
-        }
-        const balQty = getComponentQuantity(comps.balusters, derived.total_balusters);
-        if (balQty > 0) addQ('PS_SURFACE_EA.STAIR_BALUSTER', 'EA', balQty);
-        const newelQty = getComponentQuantity(comps.newel_posts, derived.newel_posts);
-        if (newelQty > 0) addQ('PS_SURFACE_EA.STAIR_NEWEL', 'EA', newelQty);
-        const railQty = getComponentQuantity(comps.open_rail, derived.total_rake_lf);
-        if (railQty > 0) addQ('PS_SURFACE_LF.STAIR_OPEN_RAIL', 'LF', railQty);
-        const wallRailQty = comps.wall_rail?.lf || 0;
-        if (wallRailQty > 0) addQ('PS_SURFACE_LF.STAIR_WALL_RAIL', 'LF', wallRailQty);
-        const skirtQty = getComponentQuantity(comps.skirtboard, derived.skirtboard_lf);
-        if (skirtQty > 0) addQ('PS_SURFACE_LF.STAIR_SKIRTBOARD', 'LF', skirtQty);
+        const emit = (comp, key, uom, derivedVal) => {
+          if (comp?.enabled === false) return;
+          const qty = getComponentQuantity(comp, derivedVal);
+          if (qty > 0) addQ(key, uom, qty);
+        };
+        emit(comps.risers, 'PS_SURFACE_EA.STAIR_RISER', 'EA', derived.total_risers);
+        emit(comps.treads, 'PS_SURFACE_EA.STAIR_TREAD', 'EA', derived.total_treads);
+        emit(comps.balusters, 'PS_SURFACE_EA.STAIR_BALUSTER', 'EA', derived.total_balusters);
+        emit(comps.newel_posts, 'PS_SURFACE_EA.STAIR_NEWEL', 'EA', derived.newel_posts);
+        emit(comps.open_rail, 'PS_SURFACE_LF.STAIR_OPEN_RAIL', 'LF', derived.total_rake_lf);
+        if (comps.wall_rail?.enabled !== false && (comps.wall_rail?.lf || 0) > 0)
+          addQ('PS_SURFACE_LF.STAIR_WALL_RAIL', 'LF', comps.wall_rail.lf);
+        emit(comps.skirtboard, 'PS_SURFACE_LF.STAIR_SKIRTBOARD', 'LF', derived.skirtboard_lf);
       }
     }
 

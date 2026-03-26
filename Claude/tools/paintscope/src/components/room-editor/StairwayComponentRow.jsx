@@ -17,14 +17,18 @@ export default function StairwayComponentRow({ label, uom, derivedValue, compone
 
   const isBareWood = component.substrate_state === 'bare_wood';
   const coatingType = component.coating_type || 'paint';
+  const painting = component.enabled !== false;
 
   return (
-    <div style={{ background: 'var(--bg-card, #111a28)', borderRadius: 6, marginBottom: 4, borderLeft: expanded ? '2px solid var(--accent)' : '2px solid transparent' }}>
-      <div onClick={() => setExpanded(!expanded)}
-        style={{ padding: '6px 10px', display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
-        <span style={{ color: expanded ? 'var(--accent)' : 'var(--text-muted)', fontSize: 10 }}>{expanded ? '▼' : '▶'}</span>
-        <span style={{ fontWeight: 600, color: 'var(--text-primary)', fontSize: 12, flex: 1 }}>{label}</span>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+    <div style={{ background: 'var(--bg-card, #111a28)', borderRadius: 6, marginBottom: 4, borderLeft: expanded && painting ? '2px solid var(--accent)' : '2px solid transparent', opacity: painting ? 1 : 0.5 }}>
+      <div onClick={() => painting && setExpanded(!expanded)}
+        style={{ padding: '6px 10px', display: 'flex', alignItems: 'center', gap: 8, cursor: painting ? 'pointer' : 'default' }}>
+        <input type="checkbox" checked={painting} onClick={e => e.stopPropagation()}
+          onChange={e => set('enabled', e.target.checked)}
+          style={{ marginRight: 2 }} />
+        <span style={{ color: expanded && painting ? 'var(--accent)' : 'var(--text-muted)', fontSize: 10 }}>{expanded && painting ? '▼' : '▶'}</span>
+        <span style={{ fontWeight: 600, color: painting ? 'var(--text-primary)' : 'var(--text-muted)', fontSize: 12, flex: 1 }}>{label}</span>
+        {painting && <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
           {isOverride ? (
             <>
               <input type="number" value={component[valueKey] || ''} min="0"
@@ -45,10 +49,10 @@ export default function StairwayComponentRow({ label, uom, derivedValue, compone
                 style={{ fontSize: 9, color: 'var(--text-muted)', cursor: 'pointer', textDecoration: 'underline' }}>override</span>
             </>
           )}
-        </div>
+        </div>}
       </div>
 
-      {expanded && (
+      {expanded && painting && (
         <div style={{ padding: '0 10px 8px' }}>
           <div className="form-grid" style={{ gridTemplateColumns: '1fr 1fr' }}>
             <div>
