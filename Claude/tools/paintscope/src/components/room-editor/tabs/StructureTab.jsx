@@ -26,6 +26,8 @@ export default function StructureTab({ room, derived, dispatch, project }) {
 
   const isWoodWall = room.wall_material === 'wood';
   const isWoodCeil = room.ceiling_material === 'wood';
+  const isBareWoodWall = isWoodWall && wallCfg.substrate_state === 'bare_wood';
+  const isBareWoodCeil = isWoodCeil && ceilCfg.substrate_state === 'bare_wood';
   const wallCoating = wallCfg.coating_type || 'paint';
   const ceilCoating = ceilCfg.coating_type || 'paint';
   const hasStain = (ct) => ct === 'stain_clear' || ct === 'stain_only';
@@ -52,13 +54,13 @@ export default function StructureTab({ room, derived, dispatch, project }) {
             <div className="field-label">Substrate State</div>
             <SubstrateStateSelect substrateId={isWoodWall ? 'wood_feature_wall' : 'walls'} value={wallCfg.substrate_state} onChange={v => setSub('walls', 'substrate_state', v)} />
           </div>
-          {!isWoodWall && (
+          {!isBareWoodWall && (
             <div>
               <div className="field-label">Texture</div>
               <Select options={ENUMS.textures} value={wallCfg.texture} onChange={v => setSub('walls', 'texture', v || null)} placeholder="Project Default" />
             </div>
           )}
-          {isWoodWall && (
+          {isBareWoodWall && (
             <div>
               <div className="field-label">Coating Type</div>
               <Select options={COATING_OPTS} value={wallCoating} onChange={v => setSub('walls', 'coating_type', v)} />
@@ -74,7 +76,7 @@ export default function StructureTab({ room, derived, dispatch, project }) {
           </div>
         </div>
 
-        {isWoodWall && (
+        {isBareWoodWall && (
           <div className="form-grid" style={{ gridTemplateColumns: '1fr 1fr 1fr 1fr 1fr', marginTop: 6 }}>
             <div>
               <div className="field-label">Wood Species</div>
@@ -177,13 +179,13 @@ export default function StructureTab({ room, derived, dispatch, project }) {
             <div className="field-label">Substrate State</div>
             <SubstrateStateSelect substrateId={isWoodCeil ? 'wood_ceiling' : 'ceiling'} value={ceilCfg.substrate_state} onChange={v => setSub('ceiling', 'substrate_state', v)} />
           </div>
-          {!isWoodCeil && (
+          {!isBareWoodCeil && (
             <div>
               <div className="field-label">Texture</div>
               <Select options={ENUMS.textures} value={ceilCfg.texture} onChange={v => setSub('ceiling', 'texture', v || null)} placeholder="Project Default" />
             </div>
           )}
-          {isWoodCeil && (
+          {isBareWoodCeil && (
             <div>
               <div className="field-label">Coating Type</div>
               <Select options={COATING_OPTS} value={ceilCoating} onChange={v => setSub('ceiling', 'coating_type', v)} />
@@ -199,7 +201,7 @@ export default function StructureTab({ room, derived, dispatch, project }) {
           </div>
         </div>
 
-        {isWoodCeil && (
+        {isBareWoodCeil && (
           <div className="form-grid" style={{ gridTemplateColumns: '1fr 1fr 1fr 1fr 1fr', marginTop: 6 }}>
             <div>
               <div className="field-label">Wood Species</div>
