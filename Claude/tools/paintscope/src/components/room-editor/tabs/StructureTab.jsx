@@ -33,8 +33,12 @@ export default function StructureTab({ room, derived, dispatch, project }) {
         <>
         <div className="form-grid" style={{ gridTemplateColumns: '1fr 1fr 1fr 1fr' }}>
           <div>
+            <div className="field-label">Wall Material</div>
+            <Select options={[{value:'drywall',label:'Drywall'},{value:'wood',label:'Wood'}]} value={room.wall_material || 'drywall'} onChange={v => setRoom('wall_material', v || 'drywall')} />
+          </div>
+          <div>
             <div className="field-label">Substrate State</div>
-            <SubstrateStateSelect substrateId="walls" value={wallCfg.substrate_state} onChange={v => setSub('walls', 'substrate_state', v)} />
+            <SubstrateStateSelect substrateId={room.wall_material === 'wood' ? 'wood_feature_wall' : 'walls'} value={wallCfg.substrate_state} onChange={v => setSub('walls', 'substrate_state', v)} />
           </div>
           <div>
             <div className="field-label">Texture</div>
@@ -55,6 +59,34 @@ export default function StructureTab({ room, derived, dispatch, project }) {
             onValueChange={v => setSub('walls', 'sf_manual', v)} onOverrideToggle={v => setSub('walls', 'sf_override', v)} uom="SF" />
           <div style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 2 }}>Gross {derived.wallGross} - Deduct {derived.openingDeduction} = Net {derived.wallNet}{derived.gableExtra > 0 ? ` + Gable ${derived.gableExtra}` : ''}{derived.extraWallSF > 0 ? ` + Extra ${derived.extraWallSF}` : ''}{derived.wallDeductSF > 0 ? ` - Deduct ${derived.wallDeductSF}` : ''}</div>
         </div>
+        {room.wall_material === 'wood' && (
+          <div className="form-grid" style={{ gridTemplateColumns: '1fr 1fr 1fr 1fr', marginTop: 8 }}>
+            <div>
+              <div className="field-label">Coating Type</div>
+              <Select options={[{value:'paint',label:'Paint'},{value:'stain_clear',label:'Stain + Clear'},{value:'stain_only',label:'Stain Only'},{value:'clear_only',label:'Clear Only'}]}
+                value={wallCfg.coating_type || 'paint'} onChange={v => setSub('walls', 'coating_type', v)} />
+            </div>
+            <div>
+              <div className="field-label">Wood Species</div>
+              <Select options={[{value:'softwood',label:'Softwood'},{value:'hardwood',label:'Hardwood'}]}
+                value={wallCfg.wood_species_group || 'hardwood'} onChange={v => setSub('walls', 'wood_species_group', v)} />
+            </div>
+            {(wallCfg.coating_type === 'stain_clear' || wallCfg.coating_type === 'stain_only') && (
+              <div>
+                <div className="field-label">Stain Method</div>
+                <Select options={[{value:'brush',label:'Brush'},{value:'spray',label:'Spray'},{value:'roll',label:'Roll'}]}
+                  value={wallCfg.application_method_stain || 'brush'} onChange={v => setSub('walls', 'application_method_stain', v)} />
+              </div>
+            )}
+            {(wallCfg.coating_type === 'stain_clear' || wallCfg.coating_type === 'clear_only') && (
+              <div>
+                <div className="field-label">Clear Method</div>
+                <Select options={[{value:'brush',label:'Brush'},{value:'spray',label:'Spray'}]}
+                  value={wallCfg.application_method_clear || 'brush'} onChange={v => setSub('walls', 'application_method_clear', v)} />
+              </div>
+            )}
+          </div>
+        )}
         {/* ── Extra Walls ── */}
         <div style={{ marginTop: 10 }}>
           {(room.extra_walls || []).length > 0 && (
@@ -179,8 +211,12 @@ export default function StructureTab({ room, derived, dispatch, project }) {
         <>
         <div className="form-grid" style={{ gridTemplateColumns: '1fr 1fr 1fr 1fr' }}>
           <div>
+            <div className="field-label">Ceiling Material</div>
+            <Select options={[{value:'drywall',label:'Drywall'},{value:'wood',label:'Wood'}]} value={room.ceiling_material || 'drywall'} onChange={v => setRoom('ceiling_material', v || 'drywall')} />
+          </div>
+          <div>
             <div className="field-label">Substrate State</div>
-            <SubstrateStateSelect substrateId="ceiling" value={ceilCfg.substrate_state} onChange={v => setSub('ceiling', 'substrate_state', v)} />
+            <SubstrateStateSelect substrateId={room.ceiling_material === 'wood' ? 'wood_ceiling' : 'ceiling'} value={ceilCfg.substrate_state} onChange={v => setSub('ceiling', 'substrate_state', v)} />
           </div>
           <div>
             <div className="field-label">Texture</div>
@@ -201,14 +237,42 @@ export default function StructureTab({ room, derived, dispatch, project }) {
             onValueChange={v => setSub('ceiling', 'sf_manual', v)} onOverrideToggle={v => setSub('ceiling', 'sf_override', v)} uom="SF" />
           <div style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 2 }}>L&times;W = {derived.ceilingSF}{derived.vaultedExtra > 0 ? ` + Vault ${derived.vaultedExtra}` : ''}</div>
         </div>
-        {subs.wood_ceiling && (
-          <div style={{ padding: '6px 10px', marginTop: 6, background: '#4a3a1a', borderRadius: 4, fontSize: 11, color: '#f0c040' }}>
-            <strong>Note:</strong> Wood Ceiling is also active in the Specialty tab. Both will generate separate ceiling estimates. If this is a wood ceiling, uncheck Ceiling here and configure it in Specialty instead.
+        {room.ceiling_material === 'wood' && (
+          <div className="form-grid" style={{ gridTemplateColumns: '1fr 1fr 1fr 1fr', marginTop: 8 }}>
+            <div>
+              <div className="field-label">Coating Type</div>
+              <Select options={[{value:'paint',label:'Paint'},{value:'stain_clear',label:'Stain + Clear'},{value:'stain_only',label:'Stain Only'},{value:'clear_only',label:'Clear Only'}]}
+                value={ceilCfg.coating_type || 'paint'} onChange={v => setSub('ceiling', 'coating_type', v)} />
+            </div>
+            <div>
+              <div className="field-label">Wood Species</div>
+              <Select options={[{value:'softwood',label:'Softwood'},{value:'hardwood',label:'Hardwood'}]}
+                value={ceilCfg.wood_species_group || 'hardwood'} onChange={v => setSub('ceiling', 'wood_species_group', v)} />
+            </div>
+            {(ceilCfg.coating_type === 'stain_clear' || ceilCfg.coating_type === 'stain_only') && (
+              <div>
+                <div className="field-label">Stain Method</div>
+                <Select options={[{value:'brush',label:'Brush'},{value:'spray',label:'Spray'},{value:'roll',label:'Roll'}]}
+                  value={ceilCfg.application_method_stain || 'brush'} onChange={v => setSub('ceiling', 'application_method_stain', v)} />
+              </div>
+            )}
+            {(ceilCfg.coating_type === 'stain_clear' || ceilCfg.coating_type === 'clear_only') && (
+              <div>
+                <div className="field-label">Clear Method</div>
+                <Select options={[{value:'brush',label:'Brush'},{value:'spray',label:'Spray'}]}
+                  value={ceilCfg.application_method_clear || 'brush'} onChange={v => setSub('ceiling', 'application_method_clear', v)} />
+              </div>
+            )}
           </div>
         )}
-        {!subs.wood_ceiling && (
-          <div style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 4 }}>
-            For wood plank, beadboard, or coffered ceilings, use Wood Ceiling in the Specialty tab instead.
+        {subs.wood_ceiling && room.ceiling_material === 'wood' && (
+          <div style={{ padding: '6px 10px', marginTop: 6, background: '#4a3a1a', borderRadius: 4, fontSize: 11, color: '#f0c040' }}>
+            <strong>Note:</strong> Wood Ceiling is also active in Specialty. Since ceiling material is set to Wood here, the Specialty wood ceiling will produce duplicate estimates — consider unchecking it there.
+          </div>
+        )}
+        {subs.wood_ceiling && room.ceiling_material !== 'wood' && (
+          <div style={{ padding: '6px 10px', marginTop: 6, background: '#4a3a1a', borderRadius: 4, fontSize: 11, color: '#f0c040' }}>
+            <strong>Note:</strong> Wood Ceiling is also active in Specialty. Both will generate separate ceiling estimates. Set ceiling material to Wood here, or uncheck Ceiling and use Specialty instead.
           </div>
         )}
         </>

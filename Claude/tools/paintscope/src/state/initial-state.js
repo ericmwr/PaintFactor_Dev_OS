@@ -79,6 +79,8 @@ export function createRoom(overrides={}) {
     label: preset ? preset.label : `Room ${nextId}`,
     area_group: '',
     is_interior: true,
+    wall_material: 'drywall',
+    ceiling_material: 'drywall',
     length_ft: 0, width_ft: 0, height_ft: 8,
     // v0.3 vault/gable
     vaulted_ceiling: false,

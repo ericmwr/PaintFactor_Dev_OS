@@ -14,11 +14,16 @@ export function resolveSubstrateStateForSpec(specId, room) {
 
   // For trim specs, check all trim-group substrates (they share prime/paint specs)
   // For window spec, also check window_jamb as a fallback when windows aren't selected
-  const subIds = (primarySub === 'baseboard')
+  let subIds = (primarySub === 'baseboard')
     ? SUBSTRATE_CATALOG.filter(s => s.group === 'Trim').map(s => s.id).filter(id => subs[id])
     : (primarySub === 'windows')
       ? [subs.windows?.painting ? 'windows' : null, subs.window_jamb ? 'window_jamb' : null].filter(Boolean)
       : (subs[primarySub] ? [primarySub] : []);
+  // Fallback: wood wall/ceiling specs read from walls/ceiling when material is wood
+  if (subIds.length === 0) {
+    if (primarySub === 'wood_feature_wall' && room.wall_material === 'wood' && subs.walls) subIds = ['walls'];
+    else if (primarySub === 'wood_ceiling' && room.ceiling_material === 'wood' && subs.ceiling) subIds = ['ceiling'];
+  }
 
   // Return array of resolved SS_* states for all relevant substrates in this room
   const states = [];

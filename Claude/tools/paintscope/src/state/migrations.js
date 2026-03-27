@@ -245,7 +245,14 @@ export function migrateInline(parsed) {
   // v1.2: Add color notes
   if (parsed.colors.project_notes === undefined) parsed.colors.project_notes = '';
   if (!parsed.colors.room_notes) parsed.colors.room_notes = {};
-  // v1.3: Room categories — auto-populate from existing area_group values
+  // v1.3: Wall/ceiling material type
+  if (parsed.rooms) {
+    parsed.rooms.forEach(r => {
+      if (!r.wall_material) r.wall_material = 'drywall';
+      if (!r.ceiling_material) r.ceiling_material = 'drywall';
+    });
+  }
+  // v1.4: Room categories — auto-populate from existing area_group values
   if (!parsed.room_categories) {
     const existing = new Set();
     (parsed.rooms || []).forEach(r => { if (r.area_group?.trim()) existing.add(r.area_group.trim()); });

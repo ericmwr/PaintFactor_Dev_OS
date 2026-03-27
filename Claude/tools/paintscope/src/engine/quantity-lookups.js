@@ -31,9 +31,15 @@ export function buildRoomQuantityLookups(state) {
       else closetQty.set(key, { value: val, uom });
     }
 
-    // Wall + Ceiling — conditional
-    if (subs.walls) addQ('PS_SURFACE_SF.WALL_FIELD', 'SF', d.wall_field_sf);
-    if (subs.ceiling) addQ('PS_SURFACE_SF.CEILING_FIELD', 'SF', d.ceiling_field_sf);
+    // Wall + Ceiling — conditional; material type controls PS key routing
+    if (subs.walls) {
+      const wallKey = room.wall_material === 'wood' ? 'PS_SURFACE_SF.WOOD_WALL' : 'PS_SURFACE_SF.WALL_FIELD';
+      addQ(wallKey, 'SF', d.wall_field_sf);
+    }
+    if (subs.ceiling) {
+      const ceilKey = room.ceiling_material === 'wood' ? 'PS_SURFACE_SF.WOOD_CEILING' : 'PS_SURFACE_SF.CEILING_FIELD';
+      addQ(ceilKey, 'SF', d.ceiling_field_sf);
+    }
 
     // Trim — conditional on substrate presence (casing: painting flag)
     const casingIds2 = new Set(['door_casing', 'window_casing']);

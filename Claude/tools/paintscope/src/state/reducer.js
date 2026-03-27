@@ -100,7 +100,37 @@ export function reducer(state, action) {
       return { ...state, rooms, ui:{...state.ui, activeRoomId:copy.id} };
     }
     case 'SET_ROOM': {
-      return mapRoom(payload.roomId, r => ({ ...r, [payload.field]: payload.value }));
+      return mapRoom(payload.roomId, r => {
+        const updated = { ...r, [payload.field]: payload.value };
+        // When switching wall/ceiling material to wood, initialize coating fields on the substrate
+        if (payload.field === 'wall_material' && payload.value === 'wood' && updated.substrates?.walls) {
+          const w = { ...updated.substrates.walls };
+          if (!w.coating_type) w.coating_type = 'paint';
+          if (!w.wood_species_group) w.wood_species_group = 'hardwood';
+          if (!w.application_method_stain) w.application_method_stain = 'brush';
+          if (!w.application_method_clear) w.application_method_clear = 'brush';
+          if (w.stain_coats == null) w.stain_coats = 1;
+          if (w.sealer_coats == null) w.sealer_coats = 0;
+          if (w.clear_coats == null) w.clear_coats = 1;
+          if (!w.clear_sheen) w.clear_sheen = 'satin';
+          if (!w.substrate_state) w.substrate_state = 'bare_wood';
+          updated.substrates = { ...updated.substrates, walls: w };
+        }
+        if (payload.field === 'ceiling_material' && payload.value === 'wood' && updated.substrates?.ceiling) {
+          const c = { ...updated.substrates.ceiling };
+          if (!c.coating_type) c.coating_type = 'paint';
+          if (!c.wood_species_group) c.wood_species_group = 'hardwood';
+          if (!c.application_method_stain) c.application_method_stain = 'brush';
+          if (!c.application_method_clear) c.application_method_clear = 'brush';
+          if (c.stain_coats == null) c.stain_coats = 1;
+          if (c.sealer_coats == null) c.sealer_coats = 0;
+          if (c.clear_coats == null) c.clear_coats = 1;
+          if (!c.clear_sheen) c.clear_sheen = 'satin';
+          if (!c.substrate_state) c.substrate_state = 'bare_wood';
+          updated.substrates = { ...updated.substrates, ceiling: c };
+        }
+        return updated;
+      });
     }
 
     // v0.3: Toggle a substrate on/off
