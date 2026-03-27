@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { ProjectProvider } from './hooks/useProject';
 import { useProject } from './hooks/useProject';
 import { useEstimate } from './hooks/useEstimate';
@@ -49,6 +49,56 @@ function AppShell({ projectDb }) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [dragRoomId, setDragRoomId] = useState(null);
   const [dragOverRoomId, setDragOverRoomId] = useState(null);
+  const touchDragRef = useRef({ id: null, timer: null, active: false, startY: 0 });
+  const roomListRef = useRef(null);
+
+  const getTouchTargetRoomId = useCallback((touchY) => {
+    if (!roomListRef.current) return null;
+    const items = roomListRef.current.querySelectorAll('[data-room-id]');
+    for (const el of items) {
+      const rect = el.getBoundingClientRect();
+      if (touchY >= rect.top && touchY <= rect.bottom) return el.dataset.roomId;
+    }
+    return null;
+  }, []);
+
+  const handleTouchStart = useCallback((e, roomId) => {
+    const td = touchDragRef.current;
+    td.id = roomId;
+    td.startY = e.touches[0].clientY;
+    td.active = false;
+    td.timer = setTimeout(() => {
+      td.active = true;
+      setDragRoomId(roomId);
+    }, 300);
+  }, []);
+
+  const handleTouchMove = useCallback((e) => {
+    const td = touchDragRef.current;
+    if (!td.active) {
+      if (td.timer && Math.abs(e.touches[0].clientY - td.startY) > 10) {
+        clearTimeout(td.timer);
+        td.timer = null;
+      }
+      return;
+    }
+    e.preventDefault();
+    const overId = getTouchTargetRoomId(e.touches[0].clientY);
+    setDragOverRoomId(overId);
+  }, [getTouchTargetRoomId]);
+
+  const handleTouchEnd = useCallback(() => {
+    const td = touchDragRef.current;
+    if (td.timer) { clearTimeout(td.timer); td.timer = null; }
+    if (td.active && td.id && dragOverRoomId && td.id !== dragOverRoomId) {
+      dispatch({ type: 'REORDER_ROOM', payload: { dragId: td.id, dropId: dragOverRoomId } });
+    }
+    td.id = null;
+    td.active = false;
+    setDragRoomId(null);
+    setDragOverRoomId(null);
+  }, [dragOverRoomId, dispatch]);
+
   const activeRoom = state.rooms.find(r => r.id === state.ui.activeRoomId) || state.rooms[0];
   const exterior = state.exterior || createExteriorState();
   const elevations = exterior.elevations || [];
@@ -127,7 +177,7 @@ function AppShell({ projectDb }) {
                 if (name?.trim()) dispatch({ type: 'ADD_ROOM_CATEGORY', payload: { name: name.trim() } });
               }}>+ Add Category</button>
           </div>
-          <div className="room-list">
+          <div className="room-list" ref={roomListRef}>
             {(() => {
               const categories = state.room_categories || [];
               const grouped = new Map();
@@ -142,6 +192,7 @@ function AppShell({ projectDb }) {
               const renderRoom = (r) => (
                 <div
                   key={r.id}
+                  data-room-id={r.id}
                   className={`room-item ${r.id === state.ui.activeRoomId && scopeMode === 'interior' ? 'active' : ''}`}
                   draggable
                   onDragStart={(e) => { setDragRoomId(r.id); e.dataTransfer.effectAllowed = 'move'; }}
@@ -149,8 +200,14 @@ function AppShell({ projectDb }) {
                   onDragLeave={() => { if (dragOverRoomId === r.id) setDragOverRoomId(null); }}
                   onDrop={(e) => { e.preventDefault(); if (dragRoomId && dragRoomId !== r.id) dispatch({ type: 'REORDER_ROOM', payload: { dragId: dragRoomId, dropId: r.id } }); setDragRoomId(null); setDragOverRoomId(null); }}
                   onDragEnd={() => { setDragRoomId(null); setDragOverRoomId(null); }}
-                  onClick={() => { dispatch({type:'SET_ACTIVE_ROOM', payload:r.id}); dispatch({type:'SET_VIEW', payload:'scope'}); }}
-                  style={dragOverRoomId === r.id && dragRoomId !== r.id ? { borderTop: '2px solid var(--accent)' } : undefined}
+                  onTouchStart={(e) => handleTouchStart(e, r.id)}
+                  onTouchMove={handleTouchMove}
+                  onTouchEnd={handleTouchEnd}
+                  onClick={() => { if (!touchDragRef.current.active) { dispatch({type:'SET_ACTIVE_ROOM', payload:r.id}); dispatch({type:'SET_VIEW', payload:'scope'}); } }}
+                  style={{
+                    ...(dragOverRoomId === r.id && dragRoomId !== r.id ? { borderTop: '2px solid var(--accent)' } : {}),
+                    ...(dragRoomId === r.id ? { opacity: 0.5 } : {}),
+                  }}
                 >
                   <div className="room-item-info">
                     <span className="room-item-label">{r.label || 'Untitled'}</span>
