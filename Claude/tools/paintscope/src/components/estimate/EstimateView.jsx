@@ -8,6 +8,10 @@ import { FLOOR_TYPES, FLOOR_PROTECTION_LABEL } from '../../data/fixture-catalog'
 import { SUBSTRATE_MAP } from '../../data/substrate-catalog';
 import { useSpecData } from '../../hooks/useSpecData';
 import { COMPLEXITY_OPT_OUT_SPECS } from '../../engine/modifier-stack.js';
+import { computeMultiQT } from '../../engine/multi-qt.js';
+import { assembleBundle } from '../../engine/proposal-bundle.js';
+import { runEstimate } from '../../engine/run-estimate.js';
+import { useCompanyProfile } from '../../hooks/useCompanyProfile.js';
 
 /** Format decimal hours as Xh Ym */
 function fmtHrs(h) {
@@ -71,9 +75,11 @@ export default function EstimateView() {
   const estimate = useEstimate();
   const { specData } = useSpecData();
 
+  const { profile } = useCompanyProfile();
   const [expandedRooms, setExpandedRooms] = useState({});
   const [expandedItems, setExpandedItems] = useState({});
   const [showSummary, setShowSummary] = useState(false);
+  const [generatingProposal, setGeneratingProposal] = useState(false);
 
   // Summary data (merged from ProjectSummary)
   const exported = useMemo(() => exportProject(state), [state]);
@@ -111,6 +117,25 @@ export default function EstimateView() {
       parts.push(`${FLOOR_PROTECTION_LABEL[t.floorType]} \u2014 ${(FLOOR_TYPES.find(f=>f.id===t.floorType)||{}).label||t.floorType}`);
     }
     return parts.length > 0 ? ` (${parts.join(', ')})` : '';
+  };
+
+  const handleGenerateProposal = async () => {
+    if (!estimate || !profile) return;
+    setGeneratingProposal(true);
+    try {
+      const multiQT = computeMultiQT(runEstimate, state, specData, profile, estimate);
+      const bundle = assembleBundle(state, profile, estimate.pricing, multiQT);
+
+      const blob = new Blob([JSON.stringify(bundle, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `proposal_${(state.project?.name || 'project').replace(/\s+/g, '_')}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } finally {
+      setGeneratingProposal(false);
+    }
   };
 
   if (!estimate) return <div className="no-data-msg">Error running estimate. Check console for details.</div>;
@@ -237,6 +262,24 @@ export default function EstimateView() {
           <div><span className="big-num">{fmtHrs(estimate.totalHours)}</span></div>
           <div><span className="big-num">{estimate.totalCrewDays}</span><span className="unit">crew days</span><span style={{fontSize:11,color:'var(--text-muted)',marginLeft:4}}>(@ 8hr, 2 crew)</span></div>
           <div style={{color:'var(--text-secondary)',alignSelf:'center'}}>{estimate.activatedSpecs}/{estimate.totalSpecs} specs | {state.rooms.length} rooms</div>
+          {estimate.pricing && (
+            <div style={{marginLeft:'auto',textAlign:'right'}}>
+              <div style={{fontSize:11,color:'var(--text-muted)'}}>Bid Price</div>
+              <div style={{fontSize:24,fontWeight:700,color:'var(--success)',fontFamily:'var(--font-mono)'}}>
+                ${estimate.pricing.bidPrice.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+              </div>
+            </div>
+          )}
+          <div style={{display:'flex',alignItems:'center',marginLeft: estimate.pricing ? 0 : 'auto'}}>
+            <button
+              className={`btn${estimate.pricing ? ' btn-accent' : ''}`}
+              onClick={handleGenerateProposal}
+              disabled={generatingProposal || !estimate.pricing}
+              style={{opacity: (!estimate.pricing) ? 0.5 : 1}}
+            >
+              {generatingProposal ? 'Generating\u2026' : 'Generate Proposal'}
+            </button>
+          </div>
         </div>
 
         {/* Project-wide stacked phase bar */}
