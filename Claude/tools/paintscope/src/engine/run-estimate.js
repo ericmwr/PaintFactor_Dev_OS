@@ -10,6 +10,7 @@ import { computeMaterialEstimates, computeExteriorMaterialEstimates } from './ma
 import { resolveRoomFloorProtection } from './floor-protection.js';
 import { resolveRoomFixtureProtection } from './fixture-protection.js';
 import { resolveExteriorProtection } from './exterior-protection.js';
+import { computeBlendedRate, computeLineCost, computeBidPrice, computeTravelCost } from './pricing.js';
 import { SPEC_SUBSTRATE_MAP, SPEC_OUTPUT_STATES, UI_STATE_TO_SPEC_STATE, SPEC_VALID_INPUT_STATES, EXT_UI_STATE_TO_SPEC_STATE, EXTERIOR_SPEC_IDS, getExteriorSpecIds, STAIN_SPEC_FAMILIES, GRAIN_FILL_PARENT_SPEC } from '../data/spec-maps.js';
 import { SPEC_DISPLAY_NAMES, specDisplayName, PHASE_ORDER, ARCH_ELEMENT_PS_GROUPS } from '../data/constants.js';
 import { FIXTURE_CATALOG } from '../data/fixture-catalog.js';
@@ -101,7 +102,7 @@ function resolveTaskRate(rateRow, ctx, overlayMap, specFamilyId) {
  * Main estimation orchestrator.
  * Returns { specResults[], totalHours, totalCrewDays, warnings[], materialEstimates[] }
  */
-export function runEstimate(state, db, overlayMap) {
+export function runEstimate(state, db, overlayMap, profile) {
   const { project, rooms } = state;
   const roomLookups = buildRoomQuantityLookups(state);
   const warnings = [];
@@ -830,6 +831,84 @@ export function runEstimate(state, db, overlayMap) {
     closetHoursByRoom[ri] = Math.round(roomHours * fraction * 100) / 100;
   });
 
+  // --- Pricing pass (requires profile) ---
+  let pricing = null;
+  if (profile) {
+    const crew = profile.crew_configs?.[0] || { lead: 1, painter: 1, apprentice: 0 };
+    const blendedRate = computeBlendedRate(profile.labor_rates, crew);
+    const burdenPct = (profile.labor_burden_pct || 0) / 100;
+
+    // Build material cost lookup: specFamilyId → totalCost
+    const matCostBySpec = new Map();
+    for (const mat of materialEstimates) {
+      const prev = matCostBySpec.get(mat.specFamilyId) || 0;
+      matCostBySpec.set(mat.specFamilyId, prev + (mat.totalCost || 0));
+    }
+
+    // Aggregate hours per room+spec from specResults
+    const lineMap = new Map();
+    for (const sr of specResults) {
+      for (const task of sr.tasks) {
+        const key = `${task.roomIndex}_${sr.specId}`;
+        if (!lineMap.has(key)) {
+          lineMap.set(key, {
+            room: task.roomLabel,
+            roomIndex: task.roomIndex,
+            domain: sr.domain || 'interior',
+            specFamilyId: sr.specId,
+            specName: sr.specName,
+            hours: 0
+          });
+        }
+        lineMap.get(key).hours += task.hours;
+      }
+    }
+
+    // Compute line costs
+    let subtotal = 0;
+    const lineItems = [];
+    for (const [key, line] of lineMap) {
+      const specTotalHours = specResults.find(s => s.specId === line.specFamilyId)?.totalHours || 1;
+      const matCostForSpec = matCostBySpec.get(line.specFamilyId) || 0;
+      const matShare = Math.round((line.hours / specTotalHours) * matCostForSpec * 100) / 100;
+
+      const lc = computeLineCost({
+        hours: line.hours,
+        blendedRate,
+        burdenPct,
+        materialCost: matShare
+      });
+
+      subtotal += lc.lineCost;
+      lineItems.push({
+        room: line.room,
+        roomIndex: line.roomIndex,
+        domain: line.domain,
+        specFamilyId: line.specFamilyId,
+        specName: line.specName,
+        hours: Math.round(line.hours * 100) / 100,
+        laborCost: lc.laborCost,
+        materialCost: lc.materialCost,
+        lineCost: lc.lineCost
+      });
+    }
+
+    subtotal = Math.round(subtotal * 100) / 100;
+    const rules = profile.business_rules || {};
+    const travelCost = computeTravelCost(rules.travel_time_min || 0, blendedRate, burdenPct);
+
+    pricing = computeBidPrice({
+      subtotal,
+      overheadPct: (profile.overhead_rate_pct || 0) / 100,
+      marginPct: (profile.profit_margin_pct || 0) / 100,
+      mobilization: rules.mobilization_charge || 0,
+      travelCost,
+      minJobCharge: rules.min_job_charge || 0
+    });
+    pricing.laborRates = { blended: blendedRate, burdened: Math.round(blendedRate * (1 + burdenPct) * 100) / 100 };
+    pricing.lineItems = lineItems;
+  }
+
   return {
     specResults,
     roomProtection,
@@ -841,7 +920,8 @@ export function runEstimate(state, db, overlayMap) {
     warnings,
     materialEstimates,
     activatedSpecs: specResults.length,
-    totalSpecs: db.spec_families.length
+    totalSpecs: db.spec_families.length,
+    pricing
   };
 }
 
