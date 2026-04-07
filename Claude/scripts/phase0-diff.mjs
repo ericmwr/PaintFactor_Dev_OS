@@ -65,6 +65,10 @@ const SYNTHETIC_ROOM_QTY = new Map([
   ['PS_META.EA.CASING_END_COUNT',       { value: 6   }],
   ['PS_META.EA.KNOT_COUNT',             { value: 8   }],
   ['PS_OPENING_EA.WINDOW_OPENINGS_TOTAL', { value: 2 }],
+  // Door quantities: 1 four-panel door, factory-primed by default
+  ['PS_OPENING_EA.DOOR_OPENINGS_TOTAL',  { value: 1 }],
+  ['PS_SURFACE_EA_SIDE.DOOR_SLAB',       { value: 2 }],
+  ['PS_META.EA.DOOR_PANES_TOTAL',        { value: 0 }],
 ]);
 
 const BASE_CTX_WALL = {
@@ -94,6 +98,13 @@ const BASE_CTX_TRIM = {
   floor_type:          'finished',
 };
 
+const BASE_CTX_DOOR = {
+  substrate:    'door_slab',
+  height_band:  'STD',
+  complexity:   'STD',
+  floor_type:   'finished',
+};
+
 const SCENARIOS_TO_TEST = [
   // Wall finish scenarios (Phase 0)
   { scenario: 'SCN_DRYWALL_FINISH_QT2_ROLL',             qt: 'QT2', method: 'roll',           state: 'SS_PRIMED_FIELD', surface: 'wall' },
@@ -118,6 +129,10 @@ const SCENARIOS_TO_TEST = [
   { scenario: 'SCN_TRIM_PRIME_FROM_GLOSSY_QT3_BRUSH',    qt: 'QT3', method: 'brush',          state: 'SS_PAINTED_SEMIGLOSS', surface: 'trim', substrate_condition: 'glossy_existing' },
   { scenario: 'SCN_TRIM_PAINT_QT3_BRUSH',                qt: 'QT3', method: 'brush',          state: 'SS_PRIMED_FIELD',      surface: 'trim' },
   { scenario: 'SCN_TRIM_PAINT_QT4_SPRAY',                qt: 'QT4', method: 'spray',          state: 'SS_PRIMED_FIELD',      surface: 'trim' },
+  // Door scenarios (Phase 1b)
+  { scenario: 'SCN_DOOR_SLAB_NC_QT3_SPRAY_FROM_BARE',    qt: 'QT3', method: 'spray',          state: 'SS_BARE',           surface: 'door', substrate_condition: 'bare_wood',     door_type: 'panel_4' },
+  { scenario: 'SCN_DOOR_SLAB_NC_QT4_SPRAY_FROM_FACTORY', qt: 'QT4', method: 'spray',          state: 'SS_PRIMED_FACTORY', surface: 'door', substrate_condition: 'factory_primed', door_type: 'panel_4' },
+  { scenario: 'SCN_DOOR_SLAB_NC_QT3_BRUSH_FROM_BARE',    qt: 'QT3', method: 'brush',          state: 'SS_BARE',           surface: 'door', substrate_condition: 'bare_wood',     door_type: 'panel_4' },
 ];
 
 // ============================================================
@@ -138,10 +153,12 @@ for (const test of SCENARIOS_TO_TEST) {
   let baseCtx;
   if (surface === 'ceiling') baseCtx = BASE_CTX_CEILING;
   else if (surface === 'trim') baseCtx = BASE_CTX_TRIM;
+  else if (surface === 'door') baseCtx = BASE_CTX_DOOR;
   else baseCtx = BASE_CTX_WALL;
   const ctx = { ...baseCtx, quality_tier: qt, application_method: method, substrate_state: state };
   if (substrate_condition) ctx.substrate_condition = substrate_condition;
   if (primer_on_factory_primed) ctx.primer_on_factory_primed = primer_on_factory_primed;
+  if (test.door_type) ctx.door_type = test.door_type;
   const result = runScenarioEstimate({
     scenarioBundle: bundle,
     ctx,
@@ -632,8 +649,71 @@ console.log('');
 console.log(trimChainPass ? 'TRIM CHAIN: PASS (bare → primed → painted in 2 scenarios)'
                           : 'TRIM CHAIN: FAIL');
 
+// ============================================================
+// PHASE 1b — DOOR SANITY CHECK (1 panel_4 door, bare wood, QT3 spray)
+// ============================================================
+// Synthetic: 1 four-panel door, 2 sides total, bare wood, QT3 spray, 2 coats
+//
+// SCN_DOOR_SLAB_NC_QT3_SPRAY_FROM_BARE expected (no modifiers):
+//
+//   setup:    floor 1/12=0.083 + spray protect 1/6=0.167 + hardware remove 1/3=0.333  = 0.583
+//   prep:     inspect 2/20=0.100 + sand 2/8=0.250 + fill 2/30=0.067
+//             + sand fill 2/30=0.067 + MDF edge seal 2/15=0.133 (panel_4 OK)
+//             + clean dust 2/30=0.067                                                  = 0.684
+//   prime:    spray prime 2/12=0.167 (bare wood)                                       = 0.167
+//   interstage: inspect 2/20=0.100 + light sand 2/8=0.250
+//               + patch 2/20=0.100 + clean 2/30=0.067                                  = 0.517
+//   finish:   coat 1 spray 2/10=0.200 + coat 2 spray 2/10=0.200                        = 0.400
+//   cleanup:  final inspect 2/20=0.100 + hardware reinstall 1/4=0.250
+//             + floor td 1/20=0.050 + clean tools 25min=0.417                          = 0.817
+//   TOTAL:                                                                               3.168
+
+console.log('');
+console.log('='.repeat(80));
+console.log('PHASE 1b — DOOR SANITY CHECK (panel_4 bare wood, QT3 SPRAY)');
+console.log('='.repeat(80));
+
+const doorBare = results.find(r => r.expected === 'SCN_DOOR_SLAB_NC_QT3_SPRAY_FROM_BARE').result;
+const expectedDoor = {
+  setup:      0.583,
+  prep:       0.684,
+  prime:      0.167,
+  interstage: 0.517,
+  finish:     0.400,
+  cleanup:    0.817,
+  total:      3.168,
+};
+
+console.log('\nPhase-by-phase:');
+console.log(`${'phase'.padEnd(12)} ${'expected'.padStart(10)} ${'actual'.padStart(10)} ${'delta'.padStart(10)} ${'pct'.padStart(8)}`);
+let doorPass = true;
+for (const [phase, exp] of Object.entries(expectedDoor)) {
+  const actual = phase === 'total' ? doorBare.totalHours : (doorBare.phaseHours[phase] || 0);
+  const delta  = Math.round((actual - exp) * 1000) / 1000;
+  const pct    = exp === 0 ? 0 : (delta / exp * 100);
+  const pass   = Math.abs(pct) <= 5;
+  if (!pass) doorPass = false;
+  const mark = pass ? 'OK ' : '!! ';
+  console.log(`${mark}${phase.padEnd(10)} ${exp.toString().padStart(10)} ${actual.toString().padStart(10)} ${delta.toString().padStart(10)} ${pct.toFixed(1).padStart(7)}%`);
+}
+console.log('');
+console.log(doorPass ? 'DOOR (bare wood, spray): PASS' : 'DOOR (bare wood, spray): FAIL');
+
+// Verify factory-primed door skips the prime module entirely
+console.log('');
+console.log('Door state branching (factory primed should skip prime tasks):');
+const doorFactory = results.find(r => r.expected === 'SCN_DOOR_SLAB_NC_QT4_SPRAY_FROM_FACTORY').result;
+const factoryHasPrimeTask = doorFactory.tasks.some(t => t.taskId === 'TSK_DOOR_PRIME_SPRAY' || t.taskId === 'TSK_DOOR_PRIME_BRUSH');
+const doorBareHasPrimeTask = doorBare.tasks.some(t => t.taskId === 'TSK_DOOR_PRIME_SPRAY');
+console.log(`  bare wood:      ${doorBare.totalHours.toString().padStart(6)} hrs   prime task fired: ${doorBareHasPrimeTask}`);
+console.log(`  factory primed: ${doorFactory.totalHours.toString().padStart(6)} hrs   prime task fired: ${factoryHasPrimeTask}`);
+const doorBranchPass = doorBareHasPrimeTask === true && factoryHasPrimeTask === false;
+console.log('');
+console.log(doorBranchPass ? 'DOOR STATE BRANCHING: PASS (prime skipped for factory-primed)'
+                            : 'DOOR STATE BRANCHING: FAIL');
+
 const overallPass = allPass && primePass && chainPass && ceilPrimePass && ceilFinishPass && ceilChainPass
-  && trimPrimePass && branchPass && trimChainPass;
+  && trimPrimePass && branchPass && trimChainPass && doorPass && doorBranchPass;
 console.log('');
 console.log('='.repeat(80));
 console.log(overallPass ? 'OVERALL: ALL TESTS PASS' : 'OVERALL: ONE OR MORE TESTS FAILED');
