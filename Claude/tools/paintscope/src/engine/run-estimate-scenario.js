@@ -216,10 +216,22 @@ function resolveTaskRate(task, ctx, coatNumber) {
 }
 
 /**
- * Find the scenario whose matches{} object is compatible with ctx.
- * Returns the first matching scenario, or null.
+ * Find the scenario whose matches{} object is compatible with ctx AND is the
+ * MOST SPECIFIC match (most keys in matches{}). Specificity scoring prevents
+ * a less-specific scenario from accidentally winning over a more-specific one
+ * when both could legitimately match — for example, a paint scenario whose
+ * state list includes SS_PRIMED_FACTORY would otherwise win over a prime
+ * scenario that specifically targets factory-primed substrate.
+ *
+ * Returns the most-specific matching scenario, or null. If multiple scenarios
+ * tie for the highest specificity score, returns the first one and pushes a
+ * warning to the caller via the second-arg warnings array (when provided).
  */
-function findMatchingScenario(scenarioBundle, ctx) {
+function findMatchingScenario(scenarioBundle, ctx, warnings = null) {
+  let bestMatch = null;
+  let bestScore = -1;
+  let tied = false;
+
   for (const scenario of scenarioBundle.scenarios) {
     const m = scenario.matches || {};
     let ok = true;
@@ -231,9 +243,24 @@ function findMatchingScenario(scenarioBundle, ctx) {
         if (ctxVal !== expected) { ok = false; break; }
       }
     }
-    if (ok) return scenario;
+    if (!ok) continue;
+
+    // Specificity score: count of keys in matches{} (more keys = more specific)
+    const score = Object.keys(m).length;
+    if (score > bestScore) {
+      bestMatch = scenario;
+      bestScore = score;
+      tied = false;
+    } else if (score === bestScore) {
+      tied = true;
+    }
   }
-  return null;
+
+  if (tied && warnings) {
+    warnings.push(`Multiple scenarios tied at specificity ${bestScore} for ctx; picked ${bestMatch?.scenario_id} (alphabetically first). Consider adding more specific keys to disambiguate.`);
+  }
+
+  return bestMatch;
 }
 
 /**
@@ -246,7 +273,7 @@ export function runScenarioEstimate({ scenarioBundle, ctx, roomQty, roomIndex = 
   const phaseHours = {};
   let totalHours = 0;
 
-  const scenario = findMatchingScenario(scenarioBundle, ctx);
+  const scenario = findMatchingScenario(scenarioBundle, ctx, warnings);
   if (!scenario) {
     warnings.push(`No scenario matched ctx: quality_tier=${ctx.quality_tier} application_method=${ctx.application_method} substrate=${ctx.substrate} surface=${ctx.surface} state=${ctx.substrate_state}`);
     return { scenarioId: null, scenarioName: null, totalHours: 0, phaseHours: {}, tasks: [], warnings };

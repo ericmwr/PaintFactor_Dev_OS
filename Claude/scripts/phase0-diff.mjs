@@ -37,15 +37,33 @@ const REPO_ROOT  = path.resolve(__dirname, '..', '..');
 //   floor protect: 120 SF (fully finished)
 //   rooms total:   1 EA
 
+// Synthetic 12x10x9 bedroom with 2 windows, 1 door, baseboard around perimeter,
+// casings on the door and windows, no other trim. Sums:
+//   baseboard:    44 LF (perimeter, minus door opening = 41 LF, rounded to 44 for simplicity)
+//   door casing:  17 LF (one door, ~17 LF per opening)
+//   window casing: 14 LF (two windows, ~7 LF each)
+//   trim_total:   75 LF (44 + 17 + 14)
+//   trim_joints:  20 LF (estimate of joint count)
+//   knot_count:   8 EA (typical solid wood)
+//   casing_ends:  6 EA (3 ends per door, 1.5 per window x 2 = 3, total ~6)
+//   wall_adjacent: 75 LF (matches trim total since trim is wall-mounted)
+//   fixture_assets: 4 EA (door hardware sets and outlet/switch covers near trim)
 const SYNTHETIC_ROOM_QTY = new Map([
   ['PS_SURFACE_SF.WALL_FIELD',          { value: 400 }],
   ['PS_SURFACE_SF.CEILING_FIELD',       { value: 120 }],
+  ['PS_SURFACE_LF.TRIM_TOTAL',          { value: 75  }],
   ['PS_EDGE_LF.TO_CEILING',             { value: 44  }],
   ['PS_EDGE_LF.TO_WALL',                { value: 44  }],
+  ['PS_EDGE_LF.TRIM_JOINTS',            { value: 20  }],
   ['PS_PROTECT_LF.TRIM_EDGES',          { value: 74  }],
+  ['PS_PROTECT_LF.WALL_ADJACENT',       { value: 75  }],
   ['PS_PROTECT_SF.FLOOR_EXPOSED',       { value: 120 }],
+  ['PS_PROTECT_SF.FLOOR_PERIMETER',     { value: 132 }],
+  ['PS_PROTECT_EA.ASSET.FIXTURES',      { value: 4   }],
   ['PS_META.SF.FLOOR_VACUUM_AREA',      { value: 120 }],
   ['PS_META.EA.ROOMS_TOTAL',            { value: 1   }],
+  ['PS_META.EA.CASING_END_COUNT',       { value: 6   }],
+  ['PS_META.EA.KNOT_COUNT',             { value: 8   }],
   ['PS_OPENING_EA.WINDOW_OPENINGS_TOTAL', { value: 2 }],
 ]);
 
@@ -67,6 +85,15 @@ const BASE_CTX_CEILING = {
   floor_type:         'finished',
 };
 
+const BASE_CTX_TRIM = {
+  substrate:           'trim',
+  surface_texture:     'smooth',
+  height_band:         'STD',
+  complexity:          'STD',
+  profile_complexity:  'standard',
+  floor_type:          'finished',
+};
+
 const SCENARIOS_TO_TEST = [
   // Wall finish scenarios (Phase 0)
   { scenario: 'SCN_DRYWALL_FINISH_QT2_ROLL',             qt: 'QT2', method: 'roll',           state: 'SS_PRIMED_FIELD', surface: 'wall' },
@@ -85,6 +112,12 @@ const SCENARIOS_TO_TEST = [
   { scenario: 'SCN_CEILING_FINISH_QT3_ROLL',             qt: 'QT3', method: 'roll',           state: 'SS_PRIMED_FIELD', surface: 'ceiling' },
   { scenario: 'SCN_CEILING_FINISH_QT3_SPRAY_BACKROLL',   qt: 'QT3', method: 'spray_backroll', state: 'SS_PRIMED_FIELD', surface: 'ceiling' },
   { scenario: 'SCN_CEILING_FINISH_QT4_SPRAY_BACKROLL',   qt: 'QT4', method: 'spray_backroll', state: 'SS_PRIMED_FIELD', surface: 'ceiling' },
+  // Trim scenarios (Phase 1b)
+  { scenario: 'SCN_TRIM_PRIME_FROM_BARE_QT3_BRUSH',      qt: 'QT3', method: 'brush',          state: 'SS_BARE',              surface: 'trim', substrate_condition: 'bare_solid_wood' },
+  { scenario: 'SCN_TRIM_PRIME_FROM_FACTORY_QT3_BRUSH',   qt: 'QT3', method: 'brush',          state: 'SS_PRIMED_FACTORY',    surface: 'trim', substrate_condition: 'factory_primed', primer_on_factory_primed: 'true' },
+  { scenario: 'SCN_TRIM_PRIME_FROM_GLOSSY_QT3_BRUSH',    qt: 'QT3', method: 'brush',          state: 'SS_PAINTED_SEMIGLOSS', surface: 'trim', substrate_condition: 'glossy_existing' },
+  { scenario: 'SCN_TRIM_PAINT_QT3_BRUSH',                qt: 'QT3', method: 'brush',          state: 'SS_PRIMED_FIELD',      surface: 'trim' },
+  { scenario: 'SCN_TRIM_PAINT_QT4_SPRAY',                qt: 'QT4', method: 'spray',          state: 'SS_PRIMED_FIELD',      surface: 'trim' },
 ];
 
 // ============================================================
@@ -100,9 +133,15 @@ console.log('');
 // RUN EACH SCENARIO
 // ============================================================
 const results = [];
-for (const { scenario: scenarioId, qt, method, state, surface } of SCENARIOS_TO_TEST) {
-  const baseCtx = surface === 'ceiling' ? BASE_CTX_CEILING : BASE_CTX_WALL;
+for (const test of SCENARIOS_TO_TEST) {
+  const { scenario: scenarioId, qt, method, state, surface, substrate_condition, primer_on_factory_primed } = test;
+  let baseCtx;
+  if (surface === 'ceiling') baseCtx = BASE_CTX_CEILING;
+  else if (surface === 'trim') baseCtx = BASE_CTX_TRIM;
+  else baseCtx = BASE_CTX_WALL;
   const ctx = { ...baseCtx, quality_tier: qt, application_method: method, substrate_state: state };
+  if (substrate_condition) ctx.substrate_condition = substrate_condition;
+  if (primer_on_factory_primed) ctx.primer_on_factory_primed = primer_on_factory_primed;
   const result = runScenarioEstimate({
     scenarioBundle: bundle,
     ctx,
@@ -468,7 +507,133 @@ console.log(`Actual ceiling chain:   ${ceilChain.totalHours} hrs (delta ${ceilCh
 console.log('');
 console.log(ceilChainPass ? 'CEILING CHAIN: PASS' : 'CEILING CHAIN: FAIL');
 
-const overallPass = allPass && primePass && chainPass && ceilPrimePass && ceilFinishPass && ceilChainPass;
+// ============================================================
+// PHASE 1b — TRIM SANITY CHECK (PRIME from BARE)
+// ============================================================
+// Synthetic room trim quantities:
+//   trim_total: 75 LF, trim_joints: 20 LF, knot_count: 8 EA, casing_ends: 6 EA,
+//   floor_perimeter: 132 SF, wall_adjacent: 75 LF, fixtures: 4 EA
+//
+// SCN_TRIM_PRIME_FROM_BARE_QT3_BRUSH (substrate_condition=bare_solid_wood):
+//
+//   setup:   floor protect 132/1200 = 0.110                              = 0.110
+//   prep:    dust wipe 75/300=0.250 + fill fasteners 75/120=0.625
+//            + caulk joints 20/135=0.148 + sand prep 75/200=0.375
+//            (NO end grain fill for solid wood)                          = 1.398
+//   apply:   spot prime knots 8/40=0.200 + brush prime 75/90=0.833
+//            (NO MDF edge seal for solid wood)                           = 1.033
+//   cleanup: floor td 132/1500=0.088 + final cleanup 15min=0.250         = 0.338
+//   TOTAL:                                                                 2.879
+
+console.log('');
+console.log('='.repeat(80));
+console.log('PHASE 1b — TRIM PRIME FROM BARE WOOD SANITY CHECK (QT3 BRUSH)');
+console.log('='.repeat(80));
+
+const trimPrime = results.find(r => r.expected === 'SCN_TRIM_PRIME_FROM_BARE_QT3_BRUSH').result;
+const expectedTrimPrime = {
+  setup:   0.110,
+  prep:    1.398,
+  apply:   1.033,
+  cleanup: 0.338,
+  total:   2.879,
+};
+
+console.log('\nPhase-by-phase:');
+console.log(`${'phase'.padEnd(12)} ${'expected'.padStart(10)} ${'actual'.padStart(10)} ${'delta'.padStart(10)} ${'pct'.padStart(8)}`);
+let trimPrimePass = true;
+for (const [phase, exp] of Object.entries(expectedTrimPrime)) {
+  const actual = phase === 'total' ? trimPrime.totalHours : (trimPrime.phaseHours[phase] || 0);
+  const delta  = Math.round((actual - exp) * 1000) / 1000;
+  const pct    = exp === 0 ? 0 : (delta / exp * 100);
+  const pass   = Math.abs(pct) <= 5;
+  if (!pass) trimPrimePass = false;
+  const mark = pass ? 'OK ' : '!! ';
+  console.log(`${mark}${phase.padEnd(10)} ${exp.toString().padStart(10)} ${actual.toString().padStart(10)} ${delta.toString().padStart(10)} ${pct.toFixed(1).padStart(7)}%`);
+}
+console.log('');
+console.log(trimPrimePass ? 'TRIM PRIME (bare wood): PASS' : 'TRIM PRIME (bare wood): FAIL');
+
+// ============================================================
+// PHASE 1b — TRIM STATE BRANCHING DEMONSTRATION
+// ============================================================
+// Verify that the SAME modules produce DIFFERENT outputs for different
+// substrate states/conditions because of task-level applies_when gating.
+//
+// From bare wood:        spot prime knots fires (8 EA), MDF edge seal skips
+// From factory primed:   both spot prime knots AND MDF edge seal skip
+// From glossy existing:  both spot prime knots AND MDF edge seal skip
+
+console.log('');
+console.log('='.repeat(80));
+console.log('PHASE 1b — TRIM STATE BRANCHING DEMO (3 starting states, same modules)');
+console.log('='.repeat(80));
+
+const branchScenarios = [
+  'SCN_TRIM_PRIME_FROM_BARE_QT3_BRUSH',
+  'SCN_TRIM_PRIME_FROM_FACTORY_QT3_BRUSH',
+  'SCN_TRIM_PRIME_FROM_GLOSSY_QT3_BRUSH',
+];
+for (const sid of branchScenarios) {
+  const r = results.find(x => x.expected === sid);
+  if (!r || !r.result.scenarioId) {
+    console.log(`  ${sid.padEnd(45)} NO MATCH`);
+    continue;
+  }
+  console.log(`  ${sid.padEnd(45)} ${r.result.totalHours.toString().padStart(6)} hrs  (${r.result.tasks.length} tasks)`);
+  // Show which gated tasks fired
+  const gatedTasks = ['TSK_TRIM_SPOT_PRIME_KNOTS', 'TSK_MDF_EDGE_SEAL', 'TSK_TRIM_FILL_END_GRAIN'];
+  for (const tid of gatedTasks) {
+    const fired = r.result.tasks.some(t => t.taskId === tid);
+    console.log(`      ${tid.padEnd(35)} ${fired ? 'FIRED' : 'skipped (gated)'}`);
+  }
+}
+
+// Verify the branching produces different totals (not all identical)
+const branchTotals = branchScenarios.map(sid => results.find(x => x.expected === sid)?.result.totalHours || 0);
+const branchPass = new Set(branchTotals).size > 1; // at least 2 distinct totals
+console.log('');
+console.log(branchPass ? 'STATE BRANCHING: PASS (scenarios produce different totals via task-level gating)'
+                       : 'STATE BRANCHING: FAIL (all scenarios produced identical totals)');
+
+// ============================================================
+// PHASE 1b — TRIM CHAIN TEST (bare wood → primed → painted)
+// ============================================================
+console.log('');
+console.log('='.repeat(80));
+console.log('PHASE 1b — TRIM CHAIN TEST: bare wood → primed → painted');
+console.log('='.repeat(80));
+
+const trimChain = runScenarioChain({
+  scenarioBundle: bundle,
+  ctx: {
+    ...BASE_CTX_TRIM,
+    quality_tier: 'QT3',
+    application_method: 'brush',
+    substrate_state: 'SS_BARE',
+    substrate_condition: 'bare_solid_wood',
+  },
+  roomQty: SYNTHETIC_ROOM_QTY,
+  roomIndex: 0,
+  roomLabel: 'Test Bedroom',
+});
+
+console.log(`Chain depth:    ${trimChain.scenarioResults.length} scenarios`);
+console.log(`Final state:    ${trimChain.finalState}`);
+console.log(`Chain total:    ${trimChain.totalHours} hrs`);
+console.log(`Per scenario:`);
+for (const sr of trimChain.scenarioResults) {
+  console.log(`  ${sr.scenarioId.padEnd(45)} ${sr.totalHours.toString().padStart(8)} hrs`);
+}
+
+const trimChainPass = trimChain.scenarioResults.length === 2
+  && trimChain.finalState === 'SS_PAINTED_SEMIGLOSS';
+console.log('');
+console.log(trimChainPass ? 'TRIM CHAIN: PASS (bare → primed → painted in 2 scenarios)'
+                          : 'TRIM CHAIN: FAIL');
+
+const overallPass = allPass && primePass && chainPass && ceilPrimePass && ceilFinishPass && ceilChainPass
+  && trimPrimePass && branchPass && trimChainPass;
 console.log('');
 console.log('='.repeat(80));
 console.log(overallPass ? 'OVERALL: ALL TESTS PASS' : 'OVERALL: ONE OR MORE TESTS FAILED');
