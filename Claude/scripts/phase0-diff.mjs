@@ -38,15 +38,18 @@ const REPO_ROOT  = path.resolve(__dirname, '..', '..');
 //   rooms total:   1 EA
 
 const SYNTHETIC_ROOM_QTY = new Map([
-  ['PS_SURFACE_SF.WALL_FIELD',       { value: 400 }],
-  ['PS_EDGE_LF.TO_CEILING',          { value: 44  }],
-  ['PS_PROTECT_LF.TRIM_EDGES',       { value: 74  }],
-  ['PS_PROTECT_SF.FLOOR_EXPOSED',    { value: 120 }],
-  ['PS_META.SF.FLOOR_VACUUM_AREA',   { value: 120 }],
-  ['PS_META.EA.ROOMS_TOTAL',         { value: 1   }],
+  ['PS_SURFACE_SF.WALL_FIELD',          { value: 400 }],
+  ['PS_SURFACE_SF.CEILING_FIELD',       { value: 120 }],
+  ['PS_EDGE_LF.TO_CEILING',             { value: 44  }],
+  ['PS_EDGE_LF.TO_WALL',                { value: 44  }],
+  ['PS_PROTECT_LF.TRIM_EDGES',          { value: 74  }],
+  ['PS_PROTECT_SF.FLOOR_EXPOSED',       { value: 120 }],
+  ['PS_META.SF.FLOOR_VACUUM_AREA',      { value: 120 }],
+  ['PS_META.EA.ROOMS_TOTAL',            { value: 1   }],
+  ['PS_OPENING_EA.WINDOW_OPENINGS_TOTAL', { value: 2 }],
 ]);
 
-const BASE_CTX = {
+const BASE_CTX_WALL = {
   substrate:          'drywall',
   surface:            'wall',
   surface_texture:    'smooth',
@@ -55,17 +58,33 @@ const BASE_CTX = {
   floor_type:         'finished',
 };
 
+const BASE_CTX_CEILING = {
+  substrate:          'drywall',
+  surface:            'ceiling',
+  surface_texture:    'smooth',
+  height_band:        'STD',
+  complexity:         'STD',
+  floor_type:         'finished',
+};
+
 const SCENARIOS_TO_TEST = [
-  // Finish scenarios (Phase 0)
-  { scenario: 'SCN_DRYWALL_FINISH_QT2_ROLL',             qt: 'QT2', method: 'roll',           state: 'SS_PRIMED_FIELD' },
-  { scenario: 'SCN_DRYWALL_FINISH_QT3_ROLL',             qt: 'QT3', method: 'roll',           state: 'SS_PRIMED_FIELD' },
-  { scenario: 'SCN_DRYWALL_FINISH_QT3_SPRAY_BACKROLL',   qt: 'QT3', method: 'spray_backroll', state: 'SS_PRIMED_FIELD' },
-  { scenario: 'SCN_DRYWALL_FINISH_QT4_SPRAY_BACKROLL',   qt: 'QT4', method: 'spray_backroll', state: 'SS_PRIMED_FIELD' },
-  { scenario: 'SCN_DRYWALL_FINISH_QT5_SPRAY_BACKROLL',   qt: 'QT5', method: 'spray_backroll', state: 'SS_PRIMED_FIELD' },
-  // Prime scenarios (Phase 1a)
-  { scenario: 'SCN_DRYWALL_PRIME_QT3_ROLL',              qt: 'QT3', method: 'roll',           state: 'SS_BARE' },
-  { scenario: 'SCN_DRYWALL_PRIME_QT3_SPRAY_BACKROLL',    qt: 'QT3', method: 'spray_backroll', state: 'SS_BARE' },
-  { scenario: 'SCN_DRYWALL_PRIME_QT4_SPRAY_BACKROLL',    qt: 'QT4', method: 'spray_backroll', state: 'SS_BARE' },
+  // Wall finish scenarios (Phase 0)
+  { scenario: 'SCN_DRYWALL_FINISH_QT2_ROLL',             qt: 'QT2', method: 'roll',           state: 'SS_PRIMED_FIELD', surface: 'wall' },
+  { scenario: 'SCN_DRYWALL_FINISH_QT3_ROLL',             qt: 'QT3', method: 'roll',           state: 'SS_PRIMED_FIELD', surface: 'wall' },
+  { scenario: 'SCN_DRYWALL_FINISH_QT3_SPRAY_BACKROLL',   qt: 'QT3', method: 'spray_backroll', state: 'SS_PRIMED_FIELD', surface: 'wall' },
+  { scenario: 'SCN_DRYWALL_FINISH_QT4_SPRAY_BACKROLL',   qt: 'QT4', method: 'spray_backroll', state: 'SS_PRIMED_FIELD', surface: 'wall' },
+  { scenario: 'SCN_DRYWALL_FINISH_QT5_SPRAY_BACKROLL',   qt: 'QT5', method: 'spray_backroll', state: 'SS_PRIMED_FIELD', surface: 'wall' },
+  // Wall prime scenarios (Phase 1a)
+  { scenario: 'SCN_DRYWALL_PRIME_QT3_ROLL',              qt: 'QT3', method: 'roll',           state: 'SS_BARE',         surface: 'wall' },
+  { scenario: 'SCN_DRYWALL_PRIME_QT3_SPRAY_BACKROLL',    qt: 'QT3', method: 'spray_backroll', state: 'SS_BARE',         surface: 'wall' },
+  { scenario: 'SCN_DRYWALL_PRIME_QT4_SPRAY_BACKROLL',    qt: 'QT4', method: 'spray_backroll', state: 'SS_BARE',         surface: 'wall' },
+  // Ceiling prime scenarios (Phase 1b)
+  { scenario: 'SCN_CEILING_PRIME_QT3_ROLL',              qt: 'QT3', method: 'roll',           state: 'SS_BARE',         surface: 'ceiling' },
+  { scenario: 'SCN_CEILING_PRIME_QT3_SPRAY_BACKROLL',    qt: 'QT3', method: 'spray_backroll', state: 'SS_BARE',         surface: 'ceiling' },
+  // Ceiling finish scenarios (Phase 1b)
+  { scenario: 'SCN_CEILING_FINISH_QT3_ROLL',             qt: 'QT3', method: 'roll',           state: 'SS_PRIMED_FIELD', surface: 'ceiling' },
+  { scenario: 'SCN_CEILING_FINISH_QT3_SPRAY_BACKROLL',   qt: 'QT3', method: 'spray_backroll', state: 'SS_PRIMED_FIELD', surface: 'ceiling' },
+  { scenario: 'SCN_CEILING_FINISH_QT4_SPRAY_BACKROLL',   qt: 'QT4', method: 'spray_backroll', state: 'SS_PRIMED_FIELD', surface: 'ceiling' },
 ];
 
 // ============================================================
@@ -81,8 +100,9 @@ console.log('');
 // RUN EACH SCENARIO
 // ============================================================
 const results = [];
-for (const { scenario: scenarioId, qt, method, state } of SCENARIOS_TO_TEST) {
-  const ctx = { ...BASE_CTX, quality_tier: qt, application_method: method, substrate_state: state };
+for (const { scenario: scenarioId, qt, method, state, surface } of SCENARIOS_TO_TEST) {
+  const baseCtx = surface === 'ceiling' ? BASE_CTX_CEILING : BASE_CTX_WALL;
+  const ctx = { ...baseCtx, quality_tier: qt, application_method: method, substrate_state: state };
   const result = runScenarioEstimate({
     scenarioBundle: bundle,
     ctx,
@@ -286,7 +306,7 @@ console.log('='.repeat(80));
 
 const chainResult = runScenarioChain({
   scenarioBundle: bundle,
-  ctx: { ...BASE_CTX, quality_tier: 'QT3', application_method: 'spray_backroll', substrate_state: 'SS_BARE' },
+  ctx: { ...BASE_CTX_WALL, quality_tier: 'QT3', application_method: 'spray_backroll', substrate_state: 'SS_BARE' },
   roomQty: SYNTHETIC_ROOM_QTY,
   roomIndex: 0,
   roomLabel: 'Test Bedroom',
@@ -322,7 +342,133 @@ if (chainResult.warnings.length > 0) {
   for (const w of chainResult.warnings) console.log(`  - ${w}`);
 }
 
-const overallPass = allPass && primePass && chainPass;
+// ============================================================
+// PHASE 1b — CEILING SANITY CHECKS
+// ============================================================
+// Hand-computed expected values for ceiling scenarios on the synthetic room.
+// Synthetic ceiling: 120 SF (12x10), 44 LF perimeter (TO_WALL), 2 windows.
+//
+// SCN_CEILING_PRIME_QT3_SPRAY_BACKROLL expected (no modifiers):
+//   prep:    inspect 120/1250=0.096 + vacuum 120/700=0.171         = 0.267
+//   setup:   floor 120/400=0.300 + mask wall 44/130=0.338          = 0.638
+//   apply:   spray 120/500=0.240 + backroll 120/325=0.369
+//            + cutin 44/100=0.440                                  = 1.049
+//   cleanup: floor td 120/600=0.200 + mask td 44/275=0.160
+//            + inspect 120/1750=0.069 + clean tools 20min=0.333    = 0.762
+//   TOTAL:                                                           2.716
+//
+// SCN_CEILING_FINISH_QT3_SPRAY_BACKROLL expected (single coat at QT3):
+//   protection: fixtures 1/4=0.250 + verify openings 2/20=0.100    = 0.350
+//   prep:    inspect 120/1200=0.100 + spackle 120/800=0.150
+//            + sand 120/1000=0.120 + spot prime 120/1500=0.080
+//            + vacuum 120/600=0.200                                 = 0.650
+//   apply:   spray 120/450=0.267 + backroll 120/320=0.375          = 0.642
+//   cleanup: vacuum 120/1500=0.080 + remove fix 1/8=0.125
+//            + clean tools 0.333 + final inspect 120/2000=0.060    = 0.598
+//   TOTAL:                                                           2.240
+//
+// Ceiling chain: 2.716 + 2.240 = 4.956 hrs
+
+console.log('');
+console.log('='.repeat(80));
+console.log('PHASE 1b — CEILING PRIME SANITY CHECK (QT3 SPRAY_BACKROLL)');
+console.log('='.repeat(80));
+
+const ceilPrime = results.find(r => r.expected === 'SCN_CEILING_PRIME_QT3_SPRAY_BACKROLL').result;
+const expectedCeilPrime = {
+  prep:    0.267,
+  setup:   0.638,
+  apply:   1.049,
+  cleanup: 0.762,
+  total:   2.716,
+};
+
+console.log('\nPhase-by-phase:');
+console.log(`${'phase'.padEnd(12)} ${'expected'.padStart(10)} ${'actual'.padStart(10)} ${'delta'.padStart(10)} ${'pct'.padStart(8)}`);
+let ceilPrimePass = true;
+for (const [phase, exp] of Object.entries(expectedCeilPrime)) {
+  const actual = phase === 'total' ? ceilPrime.totalHours : (ceilPrime.phaseHours[phase] || 0);
+  const delta  = Math.round((actual - exp) * 1000) / 1000;
+  const pct    = exp === 0 ? 0 : (delta / exp * 100);
+  const pass   = Math.abs(pct) <= 5;
+  if (!pass) ceilPrimePass = false;
+  const mark = pass ? 'OK ' : '!! ';
+  console.log(`${mark}${phase.padEnd(10)} ${exp.toString().padStart(10)} ${actual.toString().padStart(10)} ${delta.toString().padStart(10)} ${pct.toFixed(1).padStart(7)}%`);
+}
+console.log('');
+console.log(ceilPrimePass ? 'CEILING PRIME: PASS' : 'CEILING PRIME: FAIL');
+
+console.log('');
+console.log('='.repeat(80));
+console.log('PHASE 1b — CEILING FINISH SANITY CHECK (QT3 SPRAY_BACKROLL)');
+console.log('='.repeat(80));
+
+const ceilFinish = results.find(r => r.expected === 'SCN_CEILING_FINISH_QT3_SPRAY_BACKROLL').result;
+const expectedCeilFinish = {
+  protection: 0.350,
+  prep:       0.650,
+  apply:      0.642,
+  cleanup:    0.598,
+  total:      2.240,
+};
+
+console.log('\nPhase-by-phase:');
+console.log(`${'phase'.padEnd(12)} ${'expected'.padStart(10)} ${'actual'.padStart(10)} ${'delta'.padStart(10)} ${'pct'.padStart(8)}`);
+let ceilFinishPass = true;
+for (const [phase, exp] of Object.entries(expectedCeilFinish)) {
+  const actual = phase === 'total' ? ceilFinish.totalHours : (ceilFinish.phaseHours[phase] || 0);
+  const delta  = Math.round((actual - exp) * 1000) / 1000;
+  const pct    = exp === 0 ? 0 : (delta / exp * 100);
+  const pass   = Math.abs(pct) <= 5;
+  if (!pass) ceilFinishPass = false;
+  const mark = pass ? 'OK ' : '!! ';
+  console.log(`${mark}${phase.padEnd(10)} ${exp.toString().padStart(10)} ${actual.toString().padStart(10)} ${delta.toString().padStart(10)} ${pct.toFixed(1).padStart(7)}%`);
+}
+console.log('');
+console.log(ceilFinishPass ? 'CEILING FINISH: PASS' : 'CEILING FINISH: FAIL');
+
+// ============================================================
+// PHASE 1b — CEILING CHAIN TEST: bare ceiling → primed → finished
+// ============================================================
+console.log('');
+console.log('='.repeat(80));
+console.log('PHASE 1b — CEILING CHAIN TEST: bare ceiling → primed → finished');
+console.log('='.repeat(80));
+
+const ceilChain = runScenarioChain({
+  scenarioBundle: bundle,
+  ctx: { ...BASE_CTX_CEILING, quality_tier: 'QT3', application_method: 'spray_backroll', substrate_state: 'SS_BARE' },
+  roomQty: SYNTHETIC_ROOM_QTY,
+  roomIndex: 0,
+  roomLabel: 'Test Bedroom',
+});
+
+console.log(`Chain depth:    ${ceilChain.scenarioResults.length} scenarios`);
+console.log(`Final state:    ${ceilChain.finalState}`);
+console.log(`Chain total:    ${ceilChain.totalHours} hrs`);
+console.log(`Per scenario:`);
+for (const sr of ceilChain.scenarioResults) {
+  console.log(`  ${sr.scenarioId.padEnd(45)} ${sr.totalHours.toString().padStart(8)} hrs`);
+}
+console.log(`Per phase (merged):`);
+for (const [phase, hrs] of Object.entries(ceilChain.phaseHours)) {
+  console.log(`  ${phase.padEnd(12)} ${hrs.toString().padStart(8)} hrs`);
+}
+
+const expectedCeilChain = 2.716 + 2.240;
+const ceilChainDelta = Math.round((ceilChain.totalHours - expectedCeilChain) * 1000) / 1000;
+const ceilChainPct = (ceilChainDelta / expectedCeilChain * 100).toFixed(2);
+const ceilChainPass = Math.abs(ceilChainPct) <= 5
+  && ceilChain.scenarioResults.length === 2
+  && ceilChain.finalState === 'SS_PAINTED_FLAT';
+
+console.log('');
+console.log(`Expected ceiling chain: ${expectedCeilChain} hrs (prime ${2.716} + finish ${2.240})`);
+console.log(`Actual ceiling chain:   ${ceilChain.totalHours} hrs (delta ${ceilChainDelta}, ${ceilChainPct}%)`);
+console.log('');
+console.log(ceilChainPass ? 'CEILING CHAIN: PASS' : 'CEILING CHAIN: FAIL');
+
+const overallPass = allPass && primePass && chainPass && ceilPrimePass && ceilFinishPass && ceilChainPass;
 console.log('');
 console.log('='.repeat(80));
 console.log(overallPass ? 'OVERALL: ALL TESTS PASS' : 'OVERALL: ONE OR MORE TESTS FAILED');
