@@ -169,16 +169,32 @@ function evaluateAppliesWhen(condition, ctx, coatNumber) {
  * Resolve a task's effective rate for a given ctx + coat number.
  * Priority order (matches resolveTaskRate in run-estimate.js, extended for
  * the new module shape):
+ *   0. overlayMap[task_id] — field-editable override (Phase 1c.4)
  *   1. task.rates[] — array of rate variants with applies_when (incl. coat key)
  *   2. task.rates_by_coat — { "1": n, "2": n } keyed by coat number
  *   3. task.rates_by_tier — { QT3: n, QT4: n, QT5: n }
  *   4. task.rate_per_hour — flat number
  *   5. task.fixed_minutes — flat number, no modifier applied
  *
+ * overlayMap is an optional { task_id: { rate_per_hour | fixed_minutes } }
+ * object that gives Phase 1c.4 field-edit capability without mutating
+ * module files. Field overrides always win over module-defined rates.
+ *
  * Returns { effectiveRate, isFixed, fixedMinutes, uom, source } or null.
  */
-function resolveTaskRate(task, ctx, coatNumber) {
+function resolveTaskRate(task, ctx, coatNumber, overlayMap = null) {
   const uom = task.uom;
+
+  // 0. Overlay override — short-circuits all other lookups
+  if (overlayMap && overlayMap[task.task_id]) {
+    const ov = overlayMap[task.task_id];
+    if (ov.rate_per_hour != null && ov.rate_per_hour > 0) {
+      return { effectiveRate: ov.rate_per_hour, isFixed: false, fixedMinutes: null, uom, source: 'overlay' };
+    }
+    if (ov.fixed_minutes != null && ov.fixed_minutes > 0) {
+      return { effectiveRate: null, isFixed: true, fixedMinutes: ov.fixed_minutes, uom, source: 'overlay' };
+    }
+  }
 
   // 1. rates[] with per-variant applies_when
   if (Array.isArray(task.rates)) {
@@ -284,7 +300,7 @@ function findMatchingScenario(scenarioBundle, ctx, warnings = null) {
  * is true. The chain runner threads chainState across scenarios so setup and
  * teardown work fire only once across a prime+finish chain.
  */
-export function runScenarioEstimate({ scenarioBundle, ctx, roomQty, roomItems = null, roomIndex = 0, roomLabel = 'Room 1', chainState = null }) {
+export function runScenarioEstimate({ scenarioBundle, ctx, roomQty, roomItems = null, overlayMap = null, roomIndex = 0, roomLabel = 'Room 1', chainState = null }) {
   const warnings = [];
   const tasks = [];
   const phaseHours = {};
@@ -336,7 +352,7 @@ export function runScenarioEstimate({ scenarioBundle, ctx, roomQty, roomItems = 
         }
       }
 
-      const resolved = resolveTaskRate(task, ctx, coatNumber);
+      const resolved = resolveTaskRate(task, ctx, coatNumber, overlayMap);
       if (!resolved) continue;
 
       const phase = mod.phase;
