@@ -69,6 +69,12 @@ const SYNTHETIC_ROOM_QTY = new Map([
   ['PS_OPENING_EA.DOOR_OPENINGS_TOTAL',  { value: 1 }],
   ['PS_SURFACE_EA_SIDE.DOOR_SLAB',       { value: 2 }],
   ['PS_META.EA.DOOR_PANES_TOTAL',        { value: 0 }],
+  // Window quantities: 2 windows, ~6 SF glass each = 12 SF, ~14 LF wall adjacent
+  ['PS_OPENING_EA.WINDOW_TOTAL',         { value: 2  }],
+  ['PS_PROTECT_SF.ASSET.GLASS_AREA',     { value: 12 }],
+  ['PS_PROTECT_LF.WALL_ADJACENT_WINDOW', { value: 14 }],
+  ['PS_PROTECT_LF.SILL',                 { value: 8  }],
+  ['PS_PROTECT_EA.ASSET.HARDWARE_GROUPS',{ value: 2  }],
 ]);
 
 const BASE_CTX_WALL = {
@@ -105,6 +111,14 @@ const BASE_CTX_DOOR = {
   floor_type:   'finished',
 };
 
+const BASE_CTX_WINDOW = {
+  substrate:    'window',
+  height_band:  'STD',
+  complexity:   'STD',
+  floor_type:   'finished',
+  window_substrate_material: 'wood',
+};
+
 const SCENARIOS_TO_TEST = [
   // Wall finish scenarios (Phase 0)
   { scenario: 'SCN_DRYWALL_FINISH_QT2_ROLL',             qt: 'QT2', method: 'roll',           state: 'SS_PRIMED_FIELD', surface: 'wall' },
@@ -133,6 +147,10 @@ const SCENARIOS_TO_TEST = [
   { scenario: 'SCN_DOOR_SLAB_NC_QT3_SPRAY_FROM_BARE',    qt: 'QT3', method: 'spray',          state: 'SS_BARE',           surface: 'door', substrate_condition: 'bare_wood',     door_type: 'panel_4' },
   { scenario: 'SCN_DOOR_SLAB_NC_QT4_SPRAY_FROM_FACTORY', qt: 'QT4', method: 'spray',          state: 'SS_PRIMED_FACTORY', surface: 'door', substrate_condition: 'factory_primed', door_type: 'panel_4' },
   { scenario: 'SCN_DOOR_SLAB_NC_QT3_BRUSH_FROM_BARE',    qt: 'QT3', method: 'brush',          state: 'SS_BARE',           surface: 'door', substrate_condition: 'bare_wood',     door_type: 'panel_4' },
+  // Window scenarios (Phase 1b)
+  { scenario: 'SCN_WINDOW_INT_NC_QT3_BRUSH_FROM_BARE_WOOD',     qt: 'QT3', method: 'brush', state: 'SS_BARE',           surface: 'window' },
+  { scenario: 'SCN_WINDOW_INT_NC_QT3_SPRAY_FROM_BARE_WOOD',     qt: 'QT3', method: 'spray', state: 'SS_BARE',           surface: 'window' },
+  { scenario: 'SCN_WINDOW_INT_NC_QT4_SPRAY_FROM_FACTORY_WOOD',  qt: 'QT4', method: 'spray', state: 'SS_PRIMED_FACTORY', surface: 'window' },
 ];
 
 // ============================================================
@@ -154,6 +172,7 @@ for (const test of SCENARIOS_TO_TEST) {
   if (surface === 'ceiling') baseCtx = BASE_CTX_CEILING;
   else if (surface === 'trim') baseCtx = BASE_CTX_TRIM;
   else if (surface === 'door') baseCtx = BASE_CTX_DOOR;
+  else if (surface === 'window') baseCtx = BASE_CTX_WINDOW;
   else baseCtx = BASE_CTX_WALL;
   const ctx = { ...baseCtx, quality_tier: qt, application_method: method, substrate_state: state };
   if (substrate_condition) ctx.substrate_condition = substrate_condition;
@@ -712,8 +731,75 @@ console.log('');
 console.log(doorBranchPass ? 'DOOR STATE BRANCHING: PASS (prime skipped for factory-primed)'
                             : 'DOOR STATE BRANCHING: FAIL');
 
+// ============================================================
+// PHASE 1b — WINDOW SANITY CHECK (2 bare wood windows, QT3 brush)
+// ============================================================
+// Synthetic: 2 wood windows, bare, 12 SF glass, 14 LF wall adjacent,
+// 8 LF sill (skipped for brush), 2 hardware groups, 132 SF floor perimeter
+//
+// SCN_WINDOW_INT_NC_QT3_BRUSH_FROM_BARE_WOOD expected:
+//
+//   setup:    floor 132/300=0.440 + glass 12/60=0.200
+//             + hardware 2/20=0.100 + wall mask 14/150=0.093
+//             (sill skipped for brush)                                           = 0.833
+//   prep:     wood sand 2/8=0.250 + wood fill 2/15=0.133 + clean 2/30=0.067
+//             (scuff/metal/etch/rust all gated off)                               = 0.450
+//   prime:    brush prime 2/6=0.333 (bare wood, brush)                            = 0.333
+//   finish:   coat 1 brush 2/3.5=0.571 + coat 2 brush 2/4=0.500                  = 1.071
+//   interstage: inspect 2/20=0.100 + sand 2/10=0.200 + patch 2/25=0.080
+//               + spot coat 2/30=0.067 + clean 2/30=0.067                         = 0.514
+//   cleanup:  final inspect 2/15=0.133 + touchup 2/25=0.080 + scrape 2/12=0.167
+//             + hardware reinstall 2/20=0.100 + teardown 132/500=0.264
+//             + clean tools 25min=0.417                                           = 1.161
+//   TOTAL:                                                                          4.362
+
+console.log('');
+console.log('='.repeat(80));
+console.log('PHASE 1b — WINDOW SANITY CHECK (2 bare wood windows, QT3 BRUSH)');
+console.log('='.repeat(80));
+
+const window = results.find(r => r.expected === 'SCN_WINDOW_INT_NC_QT3_BRUSH_FROM_BARE_WOOD').result;
+const expectedWindow = {
+  setup:      0.833,
+  prep:       0.450,
+  prime:      0.333,
+  finish:     1.071,
+  interstage: 0.514,
+  cleanup:    1.161,
+  total:      4.362,
+};
+
+console.log('\nPhase-by-phase:');
+console.log(`${'phase'.padEnd(12)} ${'expected'.padStart(10)} ${'actual'.padStart(10)} ${'delta'.padStart(10)} ${'pct'.padStart(8)}`);
+let windowPass = true;
+for (const [phase, exp] of Object.entries(expectedWindow)) {
+  const actual = phase === 'total' ? window.totalHours : (window.phaseHours[phase] || 0);
+  const delta  = Math.round((actual - exp) * 1000) / 1000;
+  const pct    = exp === 0 ? 0 : (delta / exp * 100);
+  const pass   = Math.abs(pct) <= 5;
+  if (!pass) windowPass = false;
+  const mark = pass ? 'OK ' : '!! ';
+  console.log(`${mark}${phase.padEnd(10)} ${exp.toString().padStart(10)} ${actual.toString().padStart(10)} ${delta.toString().padStart(10)} ${pct.toFixed(1).padStart(7)}%`);
+}
+console.log('');
+console.log(windowPass ? 'WINDOW (bare wood, brush): PASS' : 'WINDOW (bare wood, brush): FAIL');
+
+// Verify factory-primed window skips prime + wood sand/fill
+console.log('');
+console.log('Window state branching (factory primed should skip prime + wood prep):');
+const winFactory = results.find(r => r.expected === 'SCN_WINDOW_INT_NC_QT4_SPRAY_FROM_FACTORY_WOOD').result;
+const winBareSpray = results.find(r => r.expected === 'SCN_WINDOW_INT_NC_QT3_SPRAY_FROM_BARE_WOOD').result;
+const winFactoryHasPrime = winFactory.tasks.some(t => t.taskId.startsWith('TSK_WIN_PRIME_'));
+const winBareHasPrime = winBareSpray.tasks.some(t => t.taskId.startsWith('TSK_WIN_PRIME_'));
+console.log(`  bare wood spray:    ${winBareSpray.totalHours.toString().padStart(6)} hrs   prime fired: ${winBareHasPrime}`);
+console.log(`  factory primed:     ${winFactory.totalHours.toString().padStart(6)} hrs   prime fired: ${winFactoryHasPrime}`);
+const winBranchPass = winBareHasPrime === true && winFactoryHasPrime === false;
+console.log('');
+console.log(winBranchPass ? 'WINDOW STATE BRANCHING: PASS' : 'WINDOW STATE BRANCHING: FAIL');
+
 const overallPass = allPass && primePass && chainPass && ceilPrimePass && ceilFinishPass && ceilChainPass
-  && trimPrimePass && branchPass && trimChainPass && doorPass && doorBranchPass;
+  && trimPrimePass && branchPass && trimChainPass && doorPass && doorBranchPass
+  && windowPass && winBranchPass;
 console.log('');
 console.log('='.repeat(80));
 console.log(overallPass ? 'OVERALL: ALL TESTS PASS' : 'OVERALL: ONE OR MORE TESTS FAILED');

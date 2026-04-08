@@ -294,7 +294,10 @@ export function runScenarioEstimate({ scenarioBundle, ctx, roomQty, roomIndex = 
     }
 
     moduleInvocations[moduleId] = (moduleInvocations[moduleId] || 0) + 1;
-    const coatNumber = (mod.phase === 'apply') ? moduleInvocations[moduleId] : 1;
+    // Coat counter bumps for any module whose phase represents paint application:
+    // apply (drywall/ceiling/trim/wall finish), finish (door/window finish coat).
+    // Other phases (setup/prep/prime/interstage/cleanup) always run at coat 1.
+    const coatNumber = (mod.phase === 'apply' || mod.phase === 'finish') ? moduleInvocations[moduleId] : 1;
 
     const modStack = computeScenarioModifierStack(mod, ctx);
 
