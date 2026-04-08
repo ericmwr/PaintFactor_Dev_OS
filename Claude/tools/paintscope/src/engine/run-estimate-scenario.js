@@ -1,3 +1,13 @@
+import {
+  DOOR_TYPE_MODIFIERS,
+  DOOR_TYPE_LABELS,
+  WINDOW_SIZE_MODIFIERS,
+  WINDOW_TYPE_MODIFIERS,
+  WINDOW_SIZE_LABELS,
+  WINDOW_TYPE_LABELS,
+  MUNTIN_MODIFIER,
+} from '../data/modifiers.js';
+
 // Phase 0: Parallel scenario-based estimation orchestrator.
 //
 // This is the new-architecture counterpart to run-estimate.js. It consumes
@@ -266,8 +276,15 @@ function findMatchingScenario(scenarioBundle, ctx, warnings = null) {
 /**
  * Main entry point: run the scenario estimator for a single room against a
  * single scenario pack. Returns a flat task result list plus per-phase totals.
+ *
+ * Chain dedup support (Phase 1c.1): when called from runScenarioChain with
+ * chainState.dedupEnabled true, tasks tagged `chain_behavior: "once_per_chain"`
+ * are skipped if their task_id is already in chainState.claimedTasks. Tasks
+ * tagged `chain_behavior: "last_only"` are skipped unless chainState.isLastInChain
+ * is true. The chain runner threads chainState across scenarios so setup and
+ * teardown work fire only once across a prime+finish chain.
  */
-export function runScenarioEstimate({ scenarioBundle, ctx, roomQty, roomIndex = 0, roomLabel = 'Room 1' }) {
+export function runScenarioEstimate({ scenarioBundle, ctx, roomQty, roomItems = null, roomIndex = 0, roomLabel = 'Room 1', chainState = null }) {
   const warnings = [];
   const tasks = [];
   const phaseHours = {};
@@ -307,11 +324,94 @@ export function runScenarioEstimate({ scenarioBundle, ctx, roomQty, roomIndex = 
         continue;
       }
 
+      // Chain dedup: skip once_per_chain tasks that have already fired earlier
+      // in the chain, and skip last_only tasks when we're not the last scenario.
+      if (chainState && chainState.dedupEnabled) {
+        const cb = task.chain_behavior;
+        if (cb === 'once_per_chain' && chainState.claimedTasks.has(task.task_id)) {
+          continue;
+        }
+        if (cb === 'last_only' && !chainState.isLastInChain) {
+          continue;
+        }
+      }
+
       const resolved = resolveTaskRate(task, ctx, coatNumber);
       if (!resolved) continue;
 
       const phase = mod.phase;
       const psKey = task.ps_key;
+
+      // Per-item compute path: tasks tagged `per_item: "doors"` or "windows"
+      // iterate the corresponding roomItems list and emit one task result
+      // per item with the type/size modifier applied to the effective rate.
+      // Matches legacy engine's computeDoorPerItemResults / computeWindowPerItemResults.
+      if (task.per_item && roomItems && !resolved.isFixed) {
+        const { effectiveTotal } = computeEffectiveTotal(modStack, phase, ctx);
+        const items = roomItems[task.per_item] || [];
+        if (items.length === 0) continue;
+
+        for (const item of items) {
+          const cnt = item.count || 0;
+          if (cnt <= 0) continue;
+
+          let itemMod = 1.0;
+          let label = '';
+          let sizeMod = 1.0;
+          let typeMod = 1.0;
+
+          if (task.per_item === 'doors') {
+            typeMod = DOOR_TYPE_MODIFIERS[item.door_type] || 1.0;
+            itemMod = typeMod;
+            label = DOOR_TYPE_LABELS[item.door_type] || item.door_type;
+          } else if (task.per_item === 'windows') {
+            sizeMod = WINDOW_SIZE_MODIFIERS[item.size_bucket] || 1.0;
+            typeMod = WINDOW_TYPE_MODIFIERS[item.window_type] || 1.0;
+            const muntinMod = item.has_muntins ? MUNTIN_MODIFIER : 1.0;
+            itemMod = sizeMod * typeMod * muntinMod;
+            const tLabel = WINDOW_TYPE_LABELS[item.window_type] || item.window_type;
+            const sLabel = WINDOW_SIZE_LABELS[item.size_bucket] || item.size_bucket || '';
+            label = `${tLabel} ${sLabel}`.trim();
+          }
+
+          // For door EA_SIDE tasks, multiply count by sides_per_door (default 2)
+          const qty = (task.uom === 'EA_SIDE' && task.per_item === 'doors')
+            ? cnt * (parseInt(item.sides_per_door) || 2)
+            : cnt;
+
+          const itemEffRate = resolved.effectiveRate / (effectiveTotal * itemMod);
+          const itemHours = qty / itemEffRate;
+          if (itemHours <= 0) continue;
+
+          const roundedHours = Math.round(itemHours * 1000) / 1000;
+          phaseHours[phase] = Math.round(((phaseHours[phase] || 0) + roundedHours) * 1000) / 1000;
+          totalHours += roundedHours;
+
+          tasks.push({
+            taskId: task.task_id,
+            taskName: task.name,
+            phase,
+            moduleId: mod.module_id,
+            moduleName: mod.name,
+            roomIndex,
+            roomLabel,
+            psKey: psKey || '(per_item)',
+            uom: resolved.uom,
+            quantity: Math.round(qty * 100) / 100,
+            baseRate: resolved.effectiveRate,
+            modStack: { ...modStack, itemMod, sizeMod, typeMod },
+            hours: roundedHours,
+            coatNumber,
+            skillLevel: task.skill_level || 'general',
+            crewSize: 1,
+            isFixed: false,
+            rateSource: resolved.source + '+per_item',
+            itemGroup: label,
+            itemLabel: label,
+          });
+        }
+        continue; // per-item compute replaces the standard emit below
+      }
 
       let hours = 0;
       let quantity = 0;
@@ -333,6 +433,12 @@ export function runScenarioEstimate({ scenarioBundle, ctx, roomQty, roomIndex = 
       }
 
       if (hours <= 0) continue;
+
+      // Claim the task_id in chain state if it's a once_per_chain task so
+      // subsequent scenarios in the chain skip it.
+      if (chainState && chainState.dedupEnabled && task.chain_behavior === 'once_per_chain') {
+        chainState.claimedTasks.add(task.task_id);
+      }
 
       const roundedHours = Math.round(hours * 1000) / 1000;
       phaseHours[phase] = Math.round(((phaseHours[phase] || 0) + roundedHours) * 1000) / 1000;
@@ -381,33 +487,35 @@ export function runScenarioEstimate({ scenarioBundle, ctx, roomQty, roomIndex = 
  * The chain stops at the first scenario that fails to match (no scenario in the
  * bundle has matches{} compatible with the threaded ctx). A warning is recorded.
  *
- * Phase 1a: chain just runs each scenario standalone in sequence and concatenates
- * results. No cross-scenario protection dedup yet — that's Phase 1c.
+ * Phase 1c.1: optional `dedupProtection` flag enables cross-scenario setup task
+ * dedup. Tasks tagged `chain_behavior: "once_per_chain"` fire only the first
+ * time their task_id appears in the chain. Default is false for backward
+ * compatibility with phase0-diff.mjs parity tests.
  *
  * Inputs:
  *   scenarioBundle, ctx (initial), roomQty, roomIndex, roomLabel
+ *   dedupProtection: boolean (default false) — enable setup task dedup
  *
  * Returns:
  *   {
- *     totalHours: sum across all scenarios in chain,
- *     phaseHours: merged across all scenarios,
- *     scenarioResults: [ {scenarioId, totalHours, phaseHours, tasks}, ... ],
- *     finalState: substrate state after all scenarios ran,
- *     warnings: [],
+ *     totalHours, phaseHours, scenarioResults, finalState, warnings,
+ *     dedupSavings: hours saved by setup dedup (only when dedupProtection=true)
  *   }
- *
- * The orchestrator picks the next scenario in the chain by:
- *   1. Updating ctx.substrate_state to the previous scenario's output_state
- *   2. Calling findMatchingScenario(scenarioBundle, ctx) to get the next match
- *   3. Stopping when no scenario matches the threaded state (chain complete)
  */
-export function runScenarioChain({ scenarioBundle, ctx, roomQty, roomIndex = 0, roomLabel = 'Room 1' }) {
+export function runScenarioChain({ scenarioBundle, ctx, roomQty, roomIndex = 0, roomLabel = 'Room 1', dedupProtection = false }) {
   const warnings = [];
   const scenarioResults = [];
   const mergedPhaseHours = {};
   let totalHours = 0;
   let currentCtx = { ...ctx };
   let finalState = currentCtx.substrate_state;
+
+  // Chain state for dedup tracking (shared across all scenarios in the chain).
+  const chainState = {
+    dedupEnabled: dedupProtection,
+    claimedTasks: new Set(),
+    isLastInChain: false,  // we don't know yet; set when we know chain is done
+  };
 
   // Hard cap to prevent infinite loops in case a scenario's output_state somehow
   // re-matches its own input state.
@@ -421,6 +529,7 @@ export function runScenarioChain({ scenarioBundle, ctx, roomQty, roomIndex = 0, 
       roomQty,
       roomIndex,
       roomLabel,
+      chainState,
     });
 
     if (!result.scenarioId) {
