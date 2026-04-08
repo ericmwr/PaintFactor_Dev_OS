@@ -101,10 +101,6 @@ export default function ProjectSetup() {
             <Select options={ENUMS.complexity} value={project.default_complexity} onChange={v => set('default_complexity', v)} />
           </div>
           <div className="setup-field">
-            <label>Application Method</label>
-            <Select options={ENUMS.applicationMethods} value={project.default_application_method} onChange={v => set('default_application_method', v)} />
-          </div>
-          <div className="setup-field">
             <label>Preferred Brand</label>
             <Select
               options={[
@@ -116,10 +112,6 @@ export default function ProjectSetup() {
               value={project.default_brand || ''}
               onChange={v => set('default_brand', v || null)}
             />
-          </div>
-          <div className="setup-field">
-            <label>Surface Texture</label>
-            <Select options={ENUMS.textures} value={project.default_texture} onChange={v => set('default_texture', v)} />
           </div>
         </div>
 
