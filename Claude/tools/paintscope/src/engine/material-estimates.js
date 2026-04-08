@@ -1,6 +1,7 @@
 import { deriveRoom } from './derive-room.js';
 import { SUBSTRATE_MAP, SUBSTRATE_APPLICATION_METHODS } from '../data/substrate-catalog.js';
-import { EXTERIOR_SPEC_IDS } from '../data/spec-maps.js';
+import { EXTERIOR_SPEC_IDS, SPEC_SUBSTRATE_MAP } from '../data/spec-maps.js';
+import { isSpecStateCompatible } from './spec-compatibility.js';
 import { resolveProduct } from './product-resolver.js';
 
 /**
@@ -76,17 +77,32 @@ export function computeMaterialEstimates(state, db, roomLookups, specResults = [
   };
   const overrides = project.material_overrides || { system: {}, manual: {} };
 
-  // Aggregate quantities across all rooms by spec family
-  // We need per-spec quantities to match coverage profiles to specs
-  const totalQty = new Map();
-  roomLookups.forEach((roomLookup) => {
-    const roomQty = roomLookup?.qty || roomLookup;
-    roomQty.forEach((val, key) => {
-      const existing = totalQty.get(key);
-      if (existing) existing.value += val.value;
-      else totalQty.set(key, { ...val });
+  // Build per-spec quantity totals, filtering rooms by substrate-state compatibility
+  // and the substrate's painting flag — mirrors run-estimate.js per-room activation.
+  // This prevents (e.g.) wall primer from being calculated against rooms whose walls
+  // are field_primed when only one room is bare_drywall.
+  function buildSpecScopedQty(specId) {
+    const scoped = new Map();
+    rooms.forEach((room, ri) => {
+      // Substrate state compatibility (e.g. trim prime spec only counts bare_wood rooms)
+      if (!isSpecStateCompatible(specId, room)) return;
+      // Painting toggle guard for substrates that have one (doors, windows, casings)
+      const primarySub = SPEC_SUBSTRATE_MAP[specId];
+      if (primarySub) {
+        const subConfig = (room.substrates || {})[primarySub];
+        if (subConfig && subConfig.painting === false) return;
+      }
+      const roomLookup = roomLookups.get(ri);
+      const roomQty = roomLookup?.qty || roomLookup;
+      if (!roomQty) return;
+      roomQty.forEach((val, key) => {
+        const existing = scoped.get(key);
+        if (existing) existing.value += val.value;
+        else scoped.set(key, { ...val });
+      });
     });
-  });
+    return scoped;
+  }
 
   // Build a map: spec_family_id -> list of applicable material systems
   const systemsBySpec = {};
@@ -121,11 +137,15 @@ export function computeMaterialEstimates(state, db, roomLookups, specResults = [
     // Exclude edge, protection, meta, and opening keys — those drive task hours, not material coverage.
     const surfaceKeys = psKeys.filter(k => k && k.startsWith('PS_SURFACE_'));
 
+    // Build spec-scoped quantity total: only rooms whose substrate state is compatible
+    // with this spec contribute. Fixes primer over-calculation across all rooms.
+    const scopedQty = buildSpecScopedQty(specId);
+
     // Check if this spec has matching quantities
     let specSF = 0;
     let matchedKey = null;
     surfaceKeys.forEach(k => {
-      const q = totalQty.get(k);
+      const q = scopedQty.get(k);
       if (q && q.value > 0) {
         specSF += q.value;
         matchedKey = k;
