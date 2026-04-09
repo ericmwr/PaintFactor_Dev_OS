@@ -304,9 +304,13 @@ export function buildRoomQuantityLookups(state) {
         addClosetQ('PS_SURFACE_LF.TRIM_TOTAL', 'LF', cd.baseboard_lf);
         addClosetQ('PS_EDGE_LF.TRIM_JOINTS', 'LF', cd.baseboard_lf);
       }
-      // Closet shelving
+      // Closet shelving — emit paint surface key only when paint_shelving is true.
+      // When paint_shelving is false, masking + obstruction is handled by
+      // resolveClosetShelfProtection() in the run-estimate pipeline.
       if (closet.shelving_type !== 'none' && cd.shelving_lf > 0) {
-        addClosetQ('PS_SURFACE_LF.CLOSET_SHELF', 'LF', cd.shelving_lf);
+        if (closet.paint_shelving !== false) {
+          addClosetQ('PS_SURFACE_LF.CLOSET_SHELF', 'LF', cd.shelving_lf);
+        }
       }
       // Closet perimeter edges + protection
       addClosetQ('PS_EDGE_LF.TO_CEILING', 'LF', cd.perimeter);
