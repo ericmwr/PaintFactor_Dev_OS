@@ -127,6 +127,12 @@ export function migrateInline(parsed) {
     if (r.openings_quality_tier === undefined) r.openings_quality_tier = null;
     // Initialize closets array
     if (!r.closets) r.closets = [];
+    // v1.5: Closet shelving paint-or-protect toggle.
+    // Existing closets default to paint_shelving=true (preserves prior behavior).
+    (r.closets || []).forEach(c => {
+      if (c.paint_shelving === undefined) c.paint_shelving = true;
+      if (c.protection_level === undefined) c.protection_level = null;
+    });
     if (!r.extra_walls) r.extra_walls = [];
     if (!r.wall_deductions) r.wall_deductions = [];
     // v0.7 migration: initialize openings array; convert existing door items to single openings
