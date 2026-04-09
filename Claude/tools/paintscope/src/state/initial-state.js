@@ -34,6 +34,11 @@ export function createCloset(overrides={}) {
     // height inherited from parent room — not stored here
     shelving_type: 'none',
     shelving_lf: 0,
+    // Paint/protect toggle for shelving — only meaningful when shelving_type !== 'none'
+    paint_shelving: true,
+    // Protection level override — null = use shelving type's default
+    // Values: 'item_mask' | 'partial_cover' | 'full_cover'
+    protection_level: null,
     // Only contains keys the user explicitly overrides; absent = inherit from parent room
     substrate_overrides: {},
     ...overrides,
