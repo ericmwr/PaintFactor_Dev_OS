@@ -36,7 +36,7 @@ const ROOM = new Map([
 ]);
 
 const CTX = {
-  substrate: 'drywall', surface: 'wall', substrate_state: 'SS_PRIMED_FIELD',
+  paintable_item: 'drywall', surface: 'wall', substrate_state: 'SS_PRIMED_FIELD',
   surface_texture: 'smooth', height_band: 'STD', complexity: 'STD',
   floor_type: 'finished', quality_tier: 'QT3', application_method: 'spray_backroll',
 };

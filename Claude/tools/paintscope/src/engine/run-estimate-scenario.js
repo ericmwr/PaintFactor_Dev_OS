@@ -26,7 +26,7 @@ import {
 //   runScenarioEstimate({
 //     scenarioBundle,    // { modules: {MOD_ID: {...}}, scenarios: [{...}, ...] }
 //     ctx,               // { quality_tier, application_method, surface_texture,
-//                        //   height_band, complexity, substrate_state, substrate,
+//                        //   height_band, complexity, substrate_state, paintable_item,
 //                        //   surface, floor_type }
 //     roomQty,           // Map<ps_key, { value }>
 //     roomIndex,         // number (for TaskResult.roomIndex)
@@ -49,7 +49,7 @@ import {
 // so the new orchestrator doesn't depend on the spec-keyed db.factor_modifiers.
 // These values are the canonical Modifier_Registry defaults for interior work.
 
-const QT_MODIFIERS = { QT2: 1.00, QT3: 1.00, QT4: 1.20, QT5: 1.50 };
+const QT_MODIFIERS = { QT1: 0.80, QT2: 0.80, QT3: 1.00, QT4: 1.30, QT5: 1.50 };
 
 const HEIGHT_MODIFIERS = {
   STD:      1.00,  // <= 9 ft
@@ -70,6 +70,12 @@ const COMPLEXITY_MODIFIERS = {
   MOD:      1.20,
   COMPLEX:  1.20, // legacy alias
   VCOMPLEX: 1.50,
+};
+
+const CONDITION_MODIFIERS = {
+  good: 0.70,
+  fair: 1.00,
+  poor: 1.50,
 };
 
 /**
@@ -98,13 +104,18 @@ export function computeScenarioModifierStack(module, ctx) {
     ? (COMPLEXITY_MODIFIERS[(ctx.complexity || 'STD').toUpperCase()] ?? 1.0)
     : 1.0;
 
+  const condition = eligibility.condition !== false
+    ? (CONDITION_MODIFIERS[ctx.substrate_condition || 'fair'] ?? 1.0)
+    : 1.0;
+
   // Total excludes complexity — same pattern as modifier-stack.js for interior specs
-  const total = Math.round(qt * height * texture * 1000) / 1000;
+  const total = Math.round(qt * height * texture * condition * 1000) / 1000;
 
   return {
     qt,
     height,
     texture,
+    condition,
     complexity,
     complexityApplicable: eligibility.complexity !== false,
     total,
@@ -308,7 +319,7 @@ export function runScenarioEstimate({ scenarioBundle, ctx, roomQty, roomItems = 
 
   const scenario = findMatchingScenario(scenarioBundle, ctx, warnings);
   if (!scenario) {
-    warnings.push(`No scenario matched ctx: quality_tier=${ctx.quality_tier} application_method=${ctx.application_method} substrate=${ctx.substrate} surface=${ctx.surface} state=${ctx.substrate_state}`);
+    warnings.push(`No scenario matched ctx: quality_tier=${ctx.quality_tier} application_method=${ctx.application_method} paintable_item=${ctx.paintable_item} surface=${ctx.surface} state=${ctx.substrate_state}`);
     return { scenarioId: null, scenarioName: null, totalHours: 0, phaseHours: {}, tasks: [], warnings };
   }
 

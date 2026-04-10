@@ -63,14 +63,14 @@ const testBundle = {
     {
       scenario_id: 'SCN_TEST_DOOR_PER_ITEM',
       name: 'Test Scenario - Per-Item Doors',
-      matches: { substrate: 'test_door' },
+      matches: { paintable_item: 'test_door' },
       modules: ['MOD_TEST_DOOR_FINISH_PER_ITEM'],
       output_state: 'SS_PAINTED_TEST',
     },
     {
       scenario_id: 'SCN_TEST_WINDOW_PER_ITEM',
       name: 'Test Scenario - Per-Item Windows',
-      matches: { substrate: 'test_window' },
+      matches: { paintable_item: 'test_window' },
       modules: ['MOD_TEST_WINDOW_FINISH_PER_ITEM'],
       output_state: 'SS_PAINTED_TEST',
     },
@@ -108,7 +108,7 @@ console.log('');
 
 const doorResult = runScenarioEstimate({
   scenarioBundle: testBundle,
-  ctx: { substrate: 'test_door', substrate_state: 'SS_BARE' },
+  ctx: { paintable_item: 'test_door', substrate_state: 'SS_BARE' },
   roomQty: new Map(),
   roomItems: roomItemsDoors,
   roomIndex: 0,
@@ -142,7 +142,7 @@ console.log('');
 
 const windowResult = runScenarioEstimate({
   scenarioBundle: testBundle,
-  ctx: { substrate: 'test_window', substrate_state: 'SS_BARE' },
+  ctx: { paintable_item: 'test_window', substrate_state: 'SS_BARE' },
   roomQty: new Map(),
   roomItems: roomItemsWindows,
   roomIndex: 0,

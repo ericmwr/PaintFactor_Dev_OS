@@ -25,6 +25,26 @@ Scenarios know which modules to call but don't redefine task content. They're th
 
 ---
 
+## Dimensional model
+
+Four estimation dimensions, each narrowing what you know about the surface:
+
+1. **Paintable Item** (`paintable_item` in scenario matches, ctx) — the physical element: baseboard, crown, casing, door slab, window sash, wall field, ceiling field, siding lap, etc.
+2. **Substrate** (`substrate` in module applies_when) — the material being coated: wood, mdf, fjp, drywall, fiber cement, metal, etc. Gates material-specific tasks (MDF edge seal, knot prime).
+3. **Substrate State** (`substrate_state` in scenario matches) — coating state: SS_BARE, SS_PRIMED_FACTORY, SS_PAINTED_SEMIGLOSS, etc. Controls which scenario fires and which prime modules are needed.
+4. **Substrate Condition** (`substrate_condition` in ctx) — physical condition: good (0.7x), fair (1.0x), poor (1.5x). Drives prep intensity as a modifier, not a task selector.
+
+**Categories** (trim, walls, ceilings, etc.) are an engine-level grouping concept — they group paintable items that typically get painted the same way. Not part of the estimation hierarchy.
+
+## QT modifier model
+
+Each task has ONE `rate_per_hour` calibrated to QT3 baseline. The QT modifier scales it:
+- QT1: 0.80, QT2: 0.80, QT3: 1.00, QT4: 1.30, QT5: 1.50
+
+**Never** use `rates_by_tier` AND a QT modifier together (double-counts). Exception: QT4/QT5-only tasks that don't exist at QT3 may use `rates_by_tier` with `qt: false`.
+
+---
+
 ## Module shape
 
 ```json
@@ -41,7 +61,7 @@ Scenarios know which modules to call but don't redefine task content. They're th
       "ps_key": "PS_SURFACE_SF.WALL_FIELD",
       "uom": "SF",
       "skill_level": "experienced",
-      "rates_by_tier": { "QT3": 1500, "QT4": 1000, "QT5": 600 }
+      "rate_per_hour": 1500
     },
     {
       "task_id": "TSK_SPACKLE_WALL_DEFECTS",
@@ -49,7 +69,7 @@ Scenarios know which modules to call but don't redefine task content. They're th
       "ps_key": "PS_SURFACE_SF.WALL_FIELD",
       "uom": "SF",
       "skill_level": "experienced",
-      "rates_by_tier": { "QT3": 1000, "QT4": 1000, "QT5": 600 }
+      "rate_per_hour": 1000
     },
     {
       "task_id": "TSK_SAND_SPACKLE_WALL",
@@ -57,7 +77,7 @@ Scenarios know which modules to call but don't redefine task content. They're th
       "ps_key": "PS_SURFACE_SF.WALL_FIELD",
       "uom": "SF",
       "skill_level": "general",
-      "rates_by_tier": { "QT3": 1200, "QT4": 1200, "QT5": 750 }
+      "rate_per_hour": 1200
     },
     {
       "task_id": "TSK_SPOT_PRIME_WALL",
@@ -93,13 +113,13 @@ Scenarios know which modules to call but don't redefine task content. They're th
 - **`module_id`** — `MOD_<verb>_<noun>` form. Stable across scenarios.
 - **`phase`** — one of: `setup | protection | prep | prime | apply | interstage | finish | cleanup`. Same enum as the existing engine, so phaseHours rolls up unchanged.
 - **`intent`** — one sentence. What this module is for. Not regulatory, not theoretical.
-- **`tasks[]`** — ordered list. Each task has either `rate_per_hour` (flat), `rates_by_tier` (object keyed by QT), or `fixed_minutes` (no quantity).
-- **`modifier_eligibility`** — which of the 4 modifier categories apply. Default `qt: true, height: true, texture: false, complexity: true`. Texture only matters for apply-phase rolling/spraying tasks. Lets us turn off complexity on tasks where it shouldn't apply (matches the existing `shouldApplyComplexity` logic).
+- **`tasks[]`** — ordered list. Each task has either `rate_per_hour` (flat, QT3 baseline — preferred), `rates_by_coat` (coat-specific), `rates[]` (conditional variants with `applies_when`), or `fixed_minutes` (no quantity). The `rates_by_tier` form is deprecated — use `rate_per_hour` + QT modifier instead. Exception: QT4/QT5-only tasks that don't exist at QT3 may use `rates_by_tier` with `qt: false` to prevent double-counting.
+- **`modifier_eligibility`** — which of the 5 modifier categories apply. Default `qt: true, height: true, texture: false, complexity: true, condition: true`. Texture only for apply-phase rolling/spraying. Condition scales prep intensity by substrate physical condition (good=0.7, fair=1.0, poor=1.5). Lets us turn off modifiers per-module.
 - **`doctrine`** — 3–8 lines, prose. *What the work is, what triggers it, what the rate assumes.* No regulatory citations unless they directly drive a task being required vs. optional. No theory beyond what an estimator needs to defend the line item.
 
 ### Module field rules — what's NOT in a module
 
-- No `applies_when` at the task level. Module-level conditions live in scenarios. Inside a module, every task fires when the module fires. *(Exception: tasks with `rates_by_tier` only fire for tiers that have a rate row — same effective behavior as `appears_in_tiers` today.)*
+- Task-level `applies_when` is allowed for substrate-specific gating (e.g., MDF edge seal only fires when `substrate: ["mdf"]`). Scenario-level `matches` handles broad routing; task-level `applies_when` handles material-specific tasks within a module.
 - No `coat_count`. Coats are scenario-controlled (see below).
 - No spec_family_id, no variant_id. Modules are spec-agnostic.
 - No protection zones. Those live in scenarios.
@@ -118,7 +138,7 @@ Scenarios know which modules to call but don't redefine task content. They're th
   "context": "NC",
 
   "matches": {
-    "substrate": "drywall",
+    "paintable_item": "drywall",
     "surface": "wall",
     "state": ["SS_PRIMED", "SS_PRIMED_FIELD"],
     "quality_tier": "QT4",

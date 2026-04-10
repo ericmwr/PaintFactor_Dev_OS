@@ -78,7 +78,7 @@ const SYNTHETIC_ROOM_QTY = new Map([
 ]);
 
 const BASE_CTX_WALL = {
-  substrate:          'drywall',
+  paintable_item:          'drywall',
   surface:            'wall',
   surface_texture:    'smooth',
   height_band:        'STD',
@@ -87,7 +87,7 @@ const BASE_CTX_WALL = {
 };
 
 const BASE_CTX_CEILING = {
-  substrate:          'drywall',
+  paintable_item:          'drywall',
   surface:            'ceiling',
   surface_texture:    'smooth',
   height_band:        'STD',
@@ -96,7 +96,7 @@ const BASE_CTX_CEILING = {
 };
 
 const BASE_CTX_TRIM = {
-  substrate:           'trim',
+  paintable_item:           'trim',
   surface_texture:     'smooth',
   height_band:         'STD',
   complexity:          'STD',
@@ -105,14 +105,14 @@ const BASE_CTX_TRIM = {
 };
 
 const BASE_CTX_DOOR = {
-  substrate:    'door_slab',
+  paintable_item:    'door_slab',
   height_band:  'STD',
   complexity:   'STD',
   floor_type:   'finished',
 };
 
 const BASE_CTX_WINDOW = {
-  substrate:    'window',
+  paintable_item:    'window',
   height_band:  'STD',
   complexity:   'STD',
   floor_type:   'finished',
@@ -138,15 +138,15 @@ const SCENARIOS_TO_TEST = [
   { scenario: 'SCN_CEILING_FINISH_QT3_SPRAY_BACKROLL',   qt: 'QT3', method: 'spray_backroll', state: 'SS_PRIMED_FIELD', surface: 'ceiling' },
   { scenario: 'SCN_CEILING_FINISH_QT4_SPRAY_BACKROLL',   qt: 'QT4', method: 'spray_backroll', state: 'SS_PRIMED_FIELD', surface: 'ceiling' },
   // Trim scenarios (Phase 1b)
-  { scenario: 'SCN_TRIM_PRIME_FROM_BARE_QT3_BRUSH',      qt: 'QT3', method: 'brush',          state: 'SS_BARE',              surface: 'trim', substrate_condition: 'bare_solid_wood' },
-  { scenario: 'SCN_TRIM_PRIME_FROM_FACTORY_QT3_BRUSH',   qt: 'QT3', method: 'brush',          state: 'SS_PRIMED_FACTORY',    surface: 'trim', substrate_condition: 'factory_primed', primer_on_factory_primed: 'true' },
-  { scenario: 'SCN_TRIM_PRIME_FROM_GLOSSY_QT3_BRUSH',    qt: 'QT3', method: 'brush',          state: 'SS_PAINTED_SEMIGLOSS', surface: 'trim', substrate_condition: 'glossy_existing' },
+  { scenario: 'SCN_TRIM_PRIME_FROM_BARE_QT3_BRUSH',      qt: 'QT3', method: 'brush',          state: 'SS_BARE',              surface: 'trim', substrate: 'bare_solid_wood' },
+  { scenario: 'SCN_TRIM_PRIME_FROM_FACTORY_QT3_BRUSH',   qt: 'QT3', method: 'brush',          state: 'SS_PRIMED_FACTORY',    surface: 'trim', substrate: 'factory_primed', primer_on_factory_primed: 'true' },
+  { scenario: 'SCN_TRIM_PRIME_FROM_GLOSSY_QT3_BRUSH',    qt: 'QT3', method: 'brush',          state: 'SS_PAINTED_SEMIGLOSS', surface: 'trim', substrate: 'glossy_existing' },
   { scenario: 'SCN_TRIM_PAINT_QT3_BRUSH',                qt: 'QT3', method: 'brush',          state: 'SS_PRIMED_FIELD',      surface: 'trim' },
   { scenario: 'SCN_TRIM_PAINT_QT4_SPRAY',                qt: 'QT4', method: 'spray',          state: 'SS_PRIMED_FIELD',      surface: 'trim' },
   // Door scenarios (Phase 1b)
-  { scenario: 'SCN_DOOR_SLAB_NC_QT3_SPRAY_FROM_BARE',    qt: 'QT3', method: 'spray',          state: 'SS_BARE',           surface: 'door', substrate_condition: 'bare_wood',     door_type: 'panel_4' },
-  { scenario: 'SCN_DOOR_SLAB_NC_QT4_SPRAY_FROM_FACTORY', qt: 'QT4', method: 'spray',          state: 'SS_PRIMED_FACTORY', surface: 'door', substrate_condition: 'factory_primed', door_type: 'panel_4' },
-  { scenario: 'SCN_DOOR_SLAB_NC_QT3_BRUSH_FROM_BARE',    qt: 'QT3', method: 'brush',          state: 'SS_BARE',           surface: 'door', substrate_condition: 'bare_wood',     door_type: 'panel_4' },
+  { scenario: 'SCN_DOOR_SLAB_NC_QT3_SPRAY_FROM_BARE',    qt: 'QT3', method: 'spray',          state: 'SS_BARE',           surface: 'door', substrate: 'bare_wood',     door_type: 'panel_4' },
+  { scenario: 'SCN_DOOR_SLAB_NC_QT4_SPRAY_FROM_FACTORY', qt: 'QT4', method: 'spray',          state: 'SS_PRIMED_FACTORY', surface: 'door', substrate: 'factory_primed', door_type: 'panel_4' },
+  { scenario: 'SCN_DOOR_SLAB_NC_QT3_BRUSH_FROM_BARE',    qt: 'QT3', method: 'brush',          state: 'SS_BARE',           surface: 'door', substrate: 'bare_wood',     door_type: 'panel_4' },
   // Window scenarios (Phase 1b)
   { scenario: 'SCN_WINDOW_INT_NC_QT3_BRUSH_FROM_BARE_WOOD',     qt: 'QT3', method: 'brush', state: 'SS_BARE',           surface: 'window' },
   { scenario: 'SCN_WINDOW_INT_NC_QT3_SPRAY_FROM_BARE_WOOD',     qt: 'QT3', method: 'spray', state: 'SS_BARE',           surface: 'window' },
@@ -167,7 +167,7 @@ console.log('');
 // ============================================================
 const results = [];
 for (const test of SCENARIOS_TO_TEST) {
-  const { scenario: scenarioId, qt, method, state, surface, substrate_condition, primer_on_factory_primed } = test;
+  const { scenario: scenarioId, qt, method, state, surface, substrate, primer_on_factory_primed } = test;
   let baseCtx;
   if (surface === 'ceiling') baseCtx = BASE_CTX_CEILING;
   else if (surface === 'trim') baseCtx = BASE_CTX_TRIM;
@@ -175,7 +175,7 @@ for (const test of SCENARIOS_TO_TEST) {
   else if (surface === 'window') baseCtx = BASE_CTX_WINDOW;
   else baseCtx = BASE_CTX_WALL;
   const ctx = { ...baseCtx, quality_tier: qt, application_method: method, substrate_state: state };
-  if (substrate_condition) ctx.substrate_condition = substrate_condition;
+  if (substrate) ctx.substrate = substrate;
   if (primer_on_factory_primed) ctx.primer_on_factory_primed = primer_on_factory_primed;
   if (test.door_type) ctx.door_type = test.door_type;
   const result = runScenarioEstimate({
@@ -606,7 +606,7 @@ console.log(ceilChainPass ? 'CEILING CHAIN: PASS' : 'CEILING CHAIN: FAIL');
 //   trim_total: 75 LF, trim_joints: 20 LF, knot_count: 8 EA, casing_ends: 6 EA,
 //   floor_perimeter: 132 SF, wall_adjacent: 75 LF, fixtures: 4 EA
 //
-// SCN_TRIM_PRIME_FROM_BARE_QT3_BRUSH (substrate_condition=bare_solid_wood):
+// SCN_TRIM_PRIME_FROM_BARE_QT3_BRUSH (substrate=bare_solid_wood):
 //
 //   setup:   floor protect 132/1200 = 0.110                              = 0.110
 //   prep:    dust wipe 75/300=0.250 + fill fasteners 75/120=0.625
@@ -703,7 +703,7 @@ const trimChain = runScenarioChain({
     quality_tier: 'QT3',
     application_method: 'brush',
     substrate_state: 'SS_BARE',
-    substrate_condition: 'bare_solid_wood',
+    substrate: 'bare_solid_wood',
   },
   roomQty: SYNTHETIC_ROOM_QTY,
   roomIndex: 0,
@@ -798,16 +798,16 @@ console.log(doorBranchPass ? 'DOOR STATE BRANCHING: PASS (prime skipped for fact
 //   setup:    floor 132/300=0.440 + glass 12/60=0.200
 //             + hardware 2/20=0.100 + wall mask 14/150=0.093
 //             (sill skipped for brush)                                           = 0.833
-//   prep:     wood sand 2/8=0.250 + wood fill 2/15=0.133 + clean 2/30=0.067
-//             (scuff/metal/etch/rust all gated off)                               = 0.450
+//   prep:     wood sand 2/10=0.200 + wood fill 2/15=0.133 + clean 2/30=0.067
+//             (scuff/metal/etch/rust all gated off)                               = 0.400
 //   prime:    brush prime 2/6=0.333 (bare wood, brush)                            = 0.333
 //   finish:   coat 1 brush 2/3.5=0.571 + coat 2 brush 2/4=0.500                  = 1.071
-//   interstage: inspect 2/20=0.100 + sand 2/10=0.200 + patch 2/25=0.080
-//               + spot coat 2/30=0.067 + clean 2/30=0.067                         = 0.514
-//   cleanup:  final inspect 2/15=0.133 + touchup 2/25=0.080 + scrape 2/12=0.167
+//   interstage: inspect 2/25=0.080 + sand 2/15=0.133 + patch 2/30=0.067
+//               + spot coat 2/40=0.050 + clean 2/30=0.067                         = 0.397
+//   cleanup:  final inspect 2/20=0.100 + touchup 2/25=0.080 + scrape 2/12=0.167
 //             + hardware reinstall 2/20=0.100 + teardown 132/500=0.264
-//             + clean tools 25min=0.417                                           = 1.161
-//   TOTAL:                                                                          4.362
+//             + clean tools 25min=0.417                                           = 1.128
+//   TOTAL:                                                                          4.162
 
 console.log('');
 console.log('='.repeat(80));
@@ -817,12 +817,12 @@ console.log('='.repeat(80));
 const window = results.find(r => r.expected === 'SCN_WINDOW_INT_NC_QT3_BRUSH_FROM_BARE_WOOD').result;
 const expectedWindow = {
   setup:      0.833,
-  prep:       0.450,
+  prep:       0.400,
   prime:      0.333,
   finish:     1.071,
-  interstage: 0.514,
-  cleanup:    1.161,
-  total:      4.362,
+  interstage: 0.397,
+  cleanup:    1.128,
+  total:      4.162,
 };
 
 console.log('\nPhase-by-phase:');

@@ -20,11 +20,11 @@
 //
 //   Walls prime+finish QT3 spray_backroll chain:   13.836 hrs
 //   Ceiling prime+finish QT3 spray_backroll chain:  4.956 hrs
-//   Trim prime+paint QT3 brush chain:               7.270 hrs  (approx from phase0-diff)
+//   Trim prime+paint QT3 brush chain:               7.650 hrs  (updated after Correction 3 rate calibration)
 //   Doors: 1 panel_4 bare wood QT3 spray:           3.168 hrs
-//   Windows: 2 bare wood QT3 brush:                 4.362 hrs
+//   Windows: 2 bare wood QT3 brush:                 4.162 hrs  (updated after Correction 3 rate calibration)
 //   ----------------------------------------------
-//   Multi-substrate room total:                    33.592 hrs
+//   Multi-substrate room total:                    33.772 hrs
 //
 // These substrates run independently in the new engine (each has its own
 // scenario chain with its own protection setup/teardown), so the multi-
@@ -86,7 +86,7 @@ const runs = [
   {
     label: 'Drywall walls (QT3 SB, bare→primed→painted)',
     ctx: {
-      substrate: 'drywall', surface: 'wall', surface_texture: 'smooth',
+      paintable_item: 'drywall', surface: 'wall', surface_texture: 'smooth',
       height_band: 'STD', complexity: 'STD', floor_type: 'finished',
       quality_tier: 'QT3', application_method: 'spray_backroll',
       substrate_state: 'SS_BARE',
@@ -97,7 +97,7 @@ const runs = [
   {
     label: 'Drywall ceiling (QT3 SB, bare→primed→painted)',
     ctx: {
-      substrate: 'drywall', surface: 'ceiling', surface_texture: 'smooth',
+      paintable_item: 'drywall', surface: 'ceiling', surface_texture: 'smooth',
       height_band: 'STD', complexity: 'STD', floor_type: 'finished',
       quality_tier: 'QT3', application_method: 'spray_backroll',
       substrate_state: 'SS_BARE',
@@ -108,20 +108,20 @@ const runs = [
   {
     label: 'Interior trim (QT3 brush, bare wood→primed→painted)',
     ctx: {
-      substrate: 'trim', surface_texture: 'smooth', height_band: 'STD',
+      paintable_item: 'trim', surface_texture: 'smooth', height_band: 'STD',
       complexity: 'STD', profile_complexity: 'standard', floor_type: 'finished',
       quality_tier: 'QT3', application_method: 'brush',
-      substrate_state: 'SS_BARE', substrate_condition: 'bare_solid_wood',
+      substrate_state: 'SS_BARE', substrate: 'bare_solid_wood',
     },
-    expected: 7.270,
+    expected: 7.650,
     chainFn: true,
   },
   {
     label: 'Interior door (QT3 spray, bare wood, panel_4)',
     ctx: {
-      substrate: 'door_slab', height_band: 'STD', complexity: 'STD',
+      paintable_item: 'door_slab', height_band: 'STD', complexity: 'STD',
       floor_type: 'finished', quality_tier: 'QT3', application_method: 'spray',
-      substrate_state: 'SS_BARE', substrate_condition: 'bare_wood',
+      substrate_state: 'SS_BARE', substrate: 'bare_wood',
       door_type: 'panel_4',
     },
     expected: 3.168,
@@ -130,11 +130,11 @@ const runs = [
   {
     label: 'Interior windows (2 bare wood, QT3 brush)',
     ctx: {
-      substrate: 'window', height_band: 'STD', complexity: 'STD',
+      paintable_item: 'window', height_band: 'STD', complexity: 'STD',
       floor_type: 'finished', quality_tier: 'QT3', application_method: 'brush',
       substrate_state: 'SS_BARE', window_substrate_material: 'wood',
     },
-    expected: 4.362,
+    expected: 4.162,
     chainFn: false,
   },
 ];

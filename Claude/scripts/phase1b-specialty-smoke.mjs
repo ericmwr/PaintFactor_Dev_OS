@@ -66,21 +66,21 @@ const ROOM = new Map([
 
 const TESTS = [
   { id: 'SCN_WAINSCOT_NC_QT3_BRUSH_FROM_BARE',
-    ctx: { substrate: 'wainscot',     substrate_state: 'SS_BARE', quality_tier: 'QT3', application_method: 'brush', height_band: 'STD', complexity: 'STD' } },
+    ctx: { paintable_item: 'wainscot',     substrate_state: 'SS_BARE', quality_tier: 'QT3', application_method: 'brush', height_band: 'STD', complexity: 'STD' } },
   { id: 'SCN_WOOD_WALL_NC_QT3_SPRAY_FROM_BARE',
-    ctx: { substrate: 'wood_wall',    substrate_state: 'SS_BARE', quality_tier: 'QT3', application_method: 'spray', height_band: 'STD', complexity: 'STD' } },
+    ctx: { paintable_item: 'wood_wall',    substrate_state: 'SS_BARE', quality_tier: 'QT3', application_method: 'spray', height_band: 'STD', complexity: 'STD' } },
   { id: 'SCN_WOOD_CEILING_NC_QT3_SPRAY_FROM_BARE',
-    ctx: { substrate: 'wood_ceiling', substrate_state: 'SS_BARE', quality_tier: 'QT3', application_method: 'spray', height_band: 'STD', complexity: 'STD' } },
+    ctx: { paintable_item: 'wood_ceiling', substrate_state: 'SS_BARE', quality_tier: 'QT3', application_method: 'spray', height_band: 'STD', complexity: 'STD' } },
   { id: 'SCN_STAIR_RISER_NC_QT3_BRUSH_FROM_BARE',
-    ctx: { substrate: 'stair_riser',  substrate_state: 'SS_BARE', quality_tier: 'QT3', application_method: 'brush', height_band: 'STD', complexity: 'STD' } },
+    ctx: { paintable_item: 'stair_riser',  substrate_state: 'SS_BARE', quality_tier: 'QT3', application_method: 'brush', height_band: 'STD', complexity: 'STD' } },
   { id: 'SCN_STAIR_RAILING_NC_QT3_BRUSH_ALL_WOOD_FROM_BARE',
-    ctx: { substrate: 'stair_railing',substrate_state: 'SS_BARE', quality_tier: 'QT3', application_method: 'brush', height_band: 'STD', complexity: 'STD', railing_type: 'all_wood' } },
+    ctx: { paintable_item: 'stair_railing',substrate_state: 'SS_BARE', quality_tier: 'QT3', application_method: 'brush', height_band: 'STD', complexity: 'STD', railing_type: 'all_wood' } },
   { id: 'SCN_ARCH_ELEMENT_NC_QT3_BRUSH_FROM_BARE',
-    ctx: { substrate: 'arch_element', substrate_state: 'SS_BARE', quality_tier: 'QT3', application_method: 'brush', height_band: 'STD', complexity: 'STD' } },
+    ctx: { paintable_item: 'arch_element', substrate_state: 'SS_BARE', quality_tier: 'QT3', application_method: 'brush', height_band: 'STD', complexity: 'STD' } },
   { id: 'SCN_BUILTIN_NC_QT3_BRUSH_FROM_BARE',
-    ctx: { substrate: 'builtin',      substrate_state: 'SS_BARE', quality_tier: 'QT3', application_method: 'brush', height_band: 'STD', complexity: 'STD' } },
+    ctx: { paintable_item: 'builtin',      substrate_state: 'SS_BARE', quality_tier: 'QT3', application_method: 'brush', height_band: 'STD', complexity: 'STD' } },
   { id: 'SCN_CABINET_NC_QT4_SPRAY_FROM_BARE',
-    ctx: { substrate: 'cabinet',      substrate_state: 'SS_BARE', quality_tier: 'QT4', application_method: 'spray', height_band: 'STD', complexity: 'STD' } },
+    ctx: { paintable_item: 'cabinet',      substrate_state: 'SS_BARE', quality_tier: 'QT4', application_method: 'spray', height_band: 'STD', complexity: 'STD' } },
 ];
 
 console.log('Loading bundle from', REPO_ROOT);
