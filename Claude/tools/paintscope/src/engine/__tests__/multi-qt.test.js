@@ -31,18 +31,31 @@ describe('buildDescription', () => {
 });
 
 describe('collectAvailableTiers', () => {
-  it('returns sorted unique tiers from spec dimensions', () => {
-    const dimensions = [
-      { dimension_id: 'quality_tier', values: ['QT3', 'QT4', 'QT5'] },
-      { dimension_id: 'application_method', values: ['spray', 'roll'] }
-    ];
-    expect(collectAvailableTiers(dimensions)).toEqual(['QT3', 'QT4', 'QT5']);
+  const mockDb = {
+    quality_tier_effects: [
+      { spec_family_id: 'SF_DRYWALL_WALL_NC_FINISH', quality_tier: 'QT2', time_modifier: 0.8 },
+      { spec_family_id: 'SF_DRYWALL_WALL_NC_FINISH', quality_tier: 'QT3', time_modifier: 1.0 },
+      { spec_family_id: 'SF_DRYWALL_WALL_NC_FINISH', quality_tier: 'QT4', time_modifier: 1.3 },
+      { spec_family_id: 'SF_DRYWALL_WALL_NC_FINISH', quality_tier: 'QT5', time_modifier: 1.6 },
+      { spec_family_id: 'SF_DOOR_FRAME_NC_FINISH', quality_tier: 'QT3', time_modifier: 1.0 }
+    ]
+  };
+
+  it('returns sorted tiers for a spec from quality_tier_effects', () => {
+    expect(collectAvailableTiers(mockDb, 'SF_DRYWALL_WALL_NC_FINISH'))
+      .toEqual(['QT2', 'QT3', 'QT4', 'QT5']);
   });
 
-  it('returns empty array if no quality_tier dimension', () => {
-    const dimensions = [
-      { dimension_id: 'application_method', values: ['spray'] }
-    ];
-    expect(collectAvailableTiers(dimensions)).toEqual([]);
+  it('returns only tiers belonging to the requested spec', () => {
+    expect(collectAvailableTiers(mockDb, 'SF_DOOR_FRAME_NC_FINISH'))
+      .toEqual(['QT3']);
+  });
+
+  it('returns empty array if spec has no rows', () => {
+    expect(collectAvailableTiers(mockDb, 'SF_NONEXISTENT')).toEqual([]);
+  });
+
+  it('handles missing quality_tier_effects table', () => {
+    expect(collectAvailableTiers({}, 'SF_DRYWALL_WALL_NC_FINISH')).toEqual([]);
   });
 });

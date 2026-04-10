@@ -19,14 +19,23 @@ export function buildDescription({ coats, productName, sheen, method }) {
 }
 
 /**
- * Extract available quality tiers from a spec's configuration dimensions.
- * @param {Array<{ dimension_id: string, values: string[] }>} dimensions
- * @returns {string[]} sorted tier values
+ * Extract available quality tiers for a spec family from the DB bundle.
+ * Reads from the `quality_tier_effects` table (one row per spec × QT).
+ *
+ * NOTE: Earlier revisions of this function read from
+ * `spec_family.configuration_dimensions`, but that field only exists in the
+ * source spec.json files — the SQLite-generated DB bundle flattens QT data
+ * into the `quality_tier_effects` table with one row per (spec, tier).
+ *
+ * @param {object} db - DB bundle (must contain `quality_tier_effects`)
+ * @param {string} specFamilyId - e.g., 'SF_DRYWALL_WALL_NC_FINISH'
+ * @returns {string[]} sorted unique tier values
  */
-export function collectAvailableTiers(dimensions) {
-  const qtDim = dimensions.find(d => d.dimension_id === 'quality_tier');
-  if (!qtDim) return [];
-  return [...qtDim.values].sort();
+export function collectAvailableTiers(db, specFamilyId) {
+  const rows = (db?.quality_tier_effects || []).filter(
+    r => r.spec_family_id === specFamilyId
+  );
+  return rows.map(r => r.quality_tier).sort();
 }
 
 /**
@@ -84,10 +93,8 @@ export function computeMultiQT(runEstimateFn, state, db, profile, baseEstimate) 
     const substrate = specToSubstrate(baseLine.specFamilyId);
     const lineId = buildLineItemId(baseLine.roomIndex, substrate);
 
-    // Find the spec's available tiers
-    const specFamily = db.spec_families?.find(s => s.id === baseLine.specFamilyId || s.spec_family?.id === baseLine.specFamilyId);
-    const dimensions = specFamily?.configuration_dimensions || specFamily?.spec_family?.configuration_dimensions || [];
-    const availableTiers = collectAvailableTiers(dimensions);
+    // Find the spec's available tiers from quality_tier_effects
+    const availableTiers = collectAvailableTiers(db, baseLine.specFamilyId);
 
     const baseMethod = resolveMethod(state, baseLine.roomIndex);
     const options = {};
