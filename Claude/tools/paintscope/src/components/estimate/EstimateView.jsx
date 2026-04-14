@@ -12,6 +12,7 @@ import { computeMultiQT } from '../../engine/multi-qt.js';
 import { assembleBundle } from '../../engine/proposal-bundle.js';
 import { runEstimate } from '../../engine/run-estimate.js';
 import { useCompanyProfile } from '../../hooks/useCompanyProfile.js';
+import ScenarioEnginePanel from './ScenarioEnginePanel.jsx';
 
 /** Format decimal hours as Xh Ym */
 function fmtHrs(h) {
@@ -287,6 +288,9 @@ export default function EstimateView() {
           <PhaseBar phaseHours={projectPhaseHours} total={projectTotalHours} height={24} />
         </div>
       </div>
+
+      {/* Scenario engine comparison panel (Beta — toggle to enable) */}
+      <ScenarioEnginePanel legacyEstimate={estimate} />
 
       {/* Modifier chips */}
       <div className="modifier-summary">
