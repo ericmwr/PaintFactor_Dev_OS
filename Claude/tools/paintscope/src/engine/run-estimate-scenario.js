@@ -76,7 +76,121 @@ const CONDITION_MODIFIERS = {
   good: 0.70,
   fair: 1.00,
   poor: 1.50,
+  // Exterior RP canonical scale (uppercase, different from interior)
+  GOOD: 1.00,
+  FAIR: 1.50,
+  POOR: 2.00,
 };
+
+// Exterior access modifier — applied when ctx.access_type is set (ground/ladder/
+// scaffold/lift). Mirrors FAC_EXT_ACCESS from exterior specs. Phase 2a exterior
+// modules declare this as `height: true` in modifier_eligibility; we map
+// ctx.access_type to the modifier table here since exterior work uses a
+// different height scheme than interior (no STEP/EXT/SCAFFOLD ladder bands).
+const EXT_ACCESS_MODIFIERS = {
+  ground:   1.00,
+  ladder:   1.35,
+  scaffold: 1.60,
+  lift:     1.50,
+};
+
+// ============================================================
+// DYNAMIC MODIFIER REGISTRY
+// ============================================================
+// Exterior and specialty specs declare named modifiers in their scenario JSON
+// (e.g. FAC_EXT_ACCESS, FAC_MSRY_SUBSTRATE_TYPE, FAC_STCO_TEXTURE_PROFILE).
+// The scenario's `modifiers: [...]` array lists which dynamic modifiers apply
+// to the whole scenario. Each modifier ID maps to a lookup table + ctx key
+// below. When a module's modifier_eligibility includes the corresponding
+// category (currently only `height` is coupled — to FAC_EXT_ACCESS), the
+// modifier is folded into the stack total.
+//
+// Non-hardcoded modifiers (substrate type, coating system, texture profile,
+// siding profile, fence style, etc.) are applied via DYNAMIC_MODIFIERS and
+// folded into `total` unconditionally when the scenario declares them.
+const DYNAMIC_MODIFIERS = {
+  // Exterior
+  FAC_EXT_ACCESS: { ctxKey: 'access_type', table: EXT_ACCESS_MODIFIERS, default: 'ground' },
+
+  // Masonry
+  FAC_MSRY_SUBSTRATE_TYPE: { ctxKey: 'substrate_type', table: { brick: 1.00, CMU: 1.15, concrete: 1.05, limestone: 1.10 }, default: 'brick' },
+  FAC_MSRY_COATING_SYSTEM: { ctxKey: 'coating_system', table: { acrylic: 1.00, elastomeric: 1.50 }, default: 'acrylic' },
+
+  // Foundation
+  FAC_FNDN_FOUNDATION_TYPE: { ctxKey: 'foundation_type', table: { poured: 1.00, CMU: 1.15 }, default: 'poured' },
+  FAC_FNDN_CONDITION_SCALE: { ctxKey: 'condition_scale', table: { GOOD: 1.00, FAIR: 1.30, POOR: 1.60 }, default: 'GOOD' },
+
+  // Stucco
+  FAC_STCO_TEXTURE_PROFILE: { ctxKey: 'texture_profile', table: { smooth: 1.00, sand: 1.25, lace: 1.50, dash: 2.00 }, default: 'smooth' },
+
+  // Siding profile / texture (shared pattern across engineered / fibercement)
+  FAC_ENSD_SIDING_PROFILE: { ctxKey: 'siding_profile', table: { lap: 1.00, panel: 1.10, t1_11: 1.80 }, default: 'lap' },
+  FAC_ENSD_SURFACE_TEXTURE: { ctxKey: 'surface_texture', table: { smooth: 1.00, cedarmill: 1.20, roughsawn: 1.30 }, default: 'smooth' },
+  FAC_FCSD_SIDING_PROFILE: { ctxKey: 'siding_profile', table: { lap: 1.00, panel: 1.10, shingle: 2.00 }, default: 'lap' },
+  FAC_FCSD_SURFACE_TEXTURE: { ctxKey: 'surface_texture', table: { smooth: 1.00, cedarmill: 1.20, roughsawn: 1.30 }, default: 'smooth' },
+
+  // Soffit / metal
+  FAC_SFIT_FACE_TYPE: { ctxKey: 'soffit_face_type', table: { closed_face: 1.00, open_face: 2.00 }, default: 'closed_face' },
+  FAC_METAL_PROFILE_COMPLEXITY: { ctxKey: 'metal_profile_complexity', table: { simple: 1.00, moderate: 1.50, ornate: 2.50 }, default: 'simple' },
+
+  // Garage door
+  FAC_GRDR_DOOR_SIZE: { ctxKey: 'door_size', table: { single: 1.00, double: 1.80 }, default: 'single' },
+  FAC_GRDR_PANEL_COMPLEXITY: { ctxKey: 'panel_complexity', table: { flush: 1.00, raised_panel: 1.10, carriage: 1.30 }, default: 'flush' },
+
+  // Fence / aluminum
+  FAC_FENCE_STYLE: { ctxKey: 'fence_style', table: { privacy: 1.00, picket: 1.30, rail: 0.80 }, default: 'privacy' },
+  FAC_ALRP_CHALK_SEVERITY: { ctxKey: 'chalk_severity', table: { none: 1.00, light: 1.25, heavy: 1.75 }, default: 'none' },
+
+  // Grain fill
+  FAC_SURFACE_PROFILE: { ctxKey: 'surface_profile', table: { flat: 1.00, light_profile: 1.30, medium_profile: 2.00, heavy_profile: 2.80 }, default: 'flat' },
+  FAC_WOOD_SPECIES: { ctxKey: 'wood_species_group', table: { closed_grain: 1.00, moderate_grain: 1.20, deep_grain: 1.40, open_grain: 1.30 }, default: 'closed_grain' },
+
+  // Universal condition scale (exterior RP fallback)
+  FAC_CONDITION_SCALE: { ctxKey: 'substrate_condition', table: { good: 0.70, fair: 1.00, poor: 1.50, GOOD: 1.00, FAIR: 1.50, POOR: 2.00 }, default: 'fair' },
+};
+
+/**
+ * Resolve dynamic modifiers declared in scenario.modifiers[]. Returns an
+ * object { modifierId: value } with every listed modifier folded into the
+ * scenario's context. Unknown modifier IDs log a warning (passed in) and
+ * default to 1.0.
+ */
+function resolveScenarioModifiers(scenario, ctx, warnings) {
+  const result = {};
+  const list = Array.isArray(scenario.modifiers) ? scenario.modifiers : [];
+  for (const modId of list) {
+    const def = DYNAMIC_MODIFIERS[modId];
+    if (!def) {
+      if (warnings) warnings.push(`Unknown modifier ${modId} in scenario ${scenario.scenario_id}`);
+      result[modId] = 1.0;
+      continue;
+    }
+    const raw = ctx[def.ctxKey];
+    const key = raw ?? def.default;
+    const val = def.table[key];
+    result[modId] = (typeof val === 'number') ? val : 1.0;
+  }
+  return result;
+}
+
+/**
+ * Compute the combined dynamic multiplier for a module — the product of every
+ * scenario-declared modifier that applies to this module. FAC_EXT_ACCESS only
+ * applies when module.modifier_eligibility.height is true (matches the legacy
+ * convention that height/access modifiers are per-module eligible). All other
+ * dynamic modifiers apply unconditionally when the scenario declares them.
+ */
+function computeDynamicStack(module, scenarioModifiers) {
+  const eligibility = module.modifier_eligibility || {};
+  let dyn = 1.0;
+  const applied = {};
+  for (const [modId, val] of Object.entries(scenarioModifiers)) {
+    if (modId === 'FAC_EXT_ACCESS' && eligibility.height === false) continue;
+    dyn = Math.round(dyn * val * 1000) / 1000;
+    applied[modId] = val;
+  }
+  return { dyn, applied };
+}
 
 /**
  * Build the modifier stack for a module in a given context.
@@ -85,15 +199,20 @@ const CONDITION_MODIFIERS = {
  * (which is applied per-task by shouldApplyComplexity, matching run-estimate.js
  * lines 24-46). This keeps the field shape compatible with the legacy engine.
  */
-export function computeScenarioModifierStack(module, ctx) {
+export function computeScenarioModifierStack(module, ctx, scenarioModifiers = null) {
   const eligibility = module.modifier_eligibility || {};
 
   const qt = eligibility.qt !== false
     ? (QT_MODIFIERS[ctx.quality_tier] ?? 1.0)
     : 1.0;
 
+  // Height resolution: exterior specs use ctx.access_type via FAC_EXT_ACCESS
+  // (handled in dynamic modifiers). Interior specs use ctx.height_band directly.
+  // When a scenario declares FAC_EXT_ACCESS, the height slot reflects access,
+  // not the interior height band. Otherwise fall back to interior height_band.
+  const hasExtAccess = scenarioModifiers && scenarioModifiers.FAC_EXT_ACCESS != null;
   const height = eligibility.height !== false
-    ? (HEIGHT_MODIFIERS[ctx.height_band || 'STD'] ?? 1.0)
+    ? (hasExtAccess ? 1.0 : (HEIGHT_MODIFIERS[ctx.height_band || 'STD'] ?? 1.0))
     : 1.0;
 
   const texture = eligibility.texture === true
@@ -108,8 +227,14 @@ export function computeScenarioModifierStack(module, ctx) {
     ? (CONDITION_MODIFIERS[ctx.substrate_condition || 'fair'] ?? 1.0)
     : 1.0;
 
+  // Dynamic modifiers from scenario.modifiers[] (exterior access, substrate
+  // type, coating system, texture profile, etc.). Folded into total.
+  const dynamic = scenarioModifiers
+    ? computeDynamicStack(module, scenarioModifiers)
+    : { dyn: 1.0, applied: {} };
+
   // Total excludes complexity — same pattern as modifier-stack.js for interior specs
-  const total = Math.round(qt * height * texture * condition * 1000) / 1000;
+  const total = Math.round(qt * height * texture * condition * dynamic.dyn * 1000) / 1000;
 
   return {
     qt,
@@ -118,6 +243,7 @@ export function computeScenarioModifierStack(module, ctx) {
     condition,
     complexity,
     complexityApplicable: eligibility.complexity !== false,
+    dynamic: dynamic.applied,
     total,
   };
 }
@@ -323,6 +449,11 @@ export function runScenarioEstimate({ scenarioBundle, ctx, roomQty, roomItems = 
     return { scenarioId: null, scenarioName: null, totalHours: 0, phaseHours: {}, tasks: [], warnings };
   }
 
+  // Resolve scenario-declared dynamic modifiers (exterior access, substrate
+  // type, coating system, texture profile, etc.) once per run — they apply to
+  // every module in the scenario.
+  const scenarioModifiers = resolveScenarioModifiers(scenario, ctx, warnings);
+
   // Walk the modules[] in order. Repeated module IDs = multi-coat semantics:
   // each apply-phase module invocation increments a PER-MODULE counter, so
   // the Nth time a given module appears in the scenario list, its tasks see
@@ -343,7 +474,7 @@ export function runScenarioEstimate({ scenarioBundle, ctx, roomQty, roomItems = 
     // Other phases (setup/prep/prime/interstage/cleanup) always run at coat 1.
     const coatNumber = (mod.phase === 'apply' || mod.phase === 'finish') ? moduleInvocations[moduleId] : 1;
 
-    const modStack = computeScenarioModifierStack(mod, ctx);
+    const modStack = computeScenarioModifierStack(mod, ctx, scenarioModifiers);
 
     for (const task of mod.tasks) {
       // Task-level applies_when (not variant-level; variant-level lives inside rates[])

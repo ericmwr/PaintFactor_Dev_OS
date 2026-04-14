@@ -1,7 +1,7 @@
 import { deriveRoom, deriveCloset } from './derive-room.js';
 import { SUBSTRATE_MAP, SUBSTRATE_CATALOG, SUBSTRATE_APPLICATION_METHODS } from '../data/substrate-catalog.js';
 import { OPENING_TYPES } from '../data/opening-types.js';
-import { deriveStairway, getComponentQuantity } from './derive-stairway';
+import { deriveStairway, getComponentQuantity } from './derive-stairway.js';
 
 /**
  * Build per-room quantity lookup from the prototype state.

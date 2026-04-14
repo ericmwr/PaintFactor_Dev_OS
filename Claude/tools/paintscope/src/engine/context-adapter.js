@@ -1,0 +1,297 @@
+// Context adapter: PaintScope UI state → scenario engine inputs.
+//
+// Extracts the per-(room, spec) context derivation from run-estimate.js
+// into a standalone module so the scenario engine can consume the same
+// inputs the legacy engine does. This is the bridge that lets us run
+// both engines on the same project data side-by-side.
+//
+// Usage:
+//   const adapter = buildScenarioInputs(state, db);
+//   // adapter.roomInputs: Array<{ roomIndex, roomLabel, specId, ctx, roomQty, roomItems }>
+//   // adapter.lookups:    the underlying buildRoomQuantityLookups output (useful for debugging)
+//
+// Each roomInput can be passed directly to runScenarioEstimate:
+//   runScenarioEstimate({ scenarioBundle, ctx, roomQty, roomIndex, roomLabel })
+//
+// The adapter does NOT call the scenario engine — it only builds inputs.
+// The test harness (Phase 5) decides how to run and compare both engines.
+
+import { buildRoomQuantityLookups } from './quantity-lookups.js';
+import {
+  resolveQualityTier,
+  resolveApplicationMethod,
+  resolveTextureForSpec,
+  resolveCoatingType,
+  resolveStainMethod,
+  resolveClearMethod,
+  resolveCoatCounts,
+  resolveClearSheen,
+  resolveWoodSpecies,
+} from './spec-resolution.js';
+import { resolveSubstrateStateForSpec } from './spec-compatibility.js';
+import { deriveRoom, deriveHeightBand } from './derive-room.js';
+import { FIXTURE_CATALOG } from '../data/fixture-catalog.js';
+import { STAIN_SPEC_FAMILIES, UI_STATE_TO_SPEC_STATE } from '../data/spec-maps.js';
+
+// Spec families that map cleanly to a paintable_item in the scenario matcher.
+// This is the single-most-important mapping between the spec-keyed legacy
+// engine and the scenario-keyed new engine. Scenarios match on paintable_item
+// (e.g. "drywall", "ext_eng_siding", "int_door") rather than spec family id.
+//
+// Missing entries default to null — the scenario matcher will fail to match
+// and the caller will see a warning, which is the correct behavior during
+// the transition period (exposes gaps rather than silently producing zero).
+const SPEC_TO_PAINTABLE_ITEM = {
+  // Interior paint NC
+  SF_DRYWALL_WALL_NC_FINISH:        'drywall',
+  SF_DRYWALL_WALL_NC_PRIME:         'drywall',
+  SF_DRYWALL_CEILING_NC_FINISH:     'drywall',
+  SF_DRYWALL_CEILING_NC_PRIME:      'drywall',
+  SF_TRIM_NC_PAINT:                 'int_trim',
+  SF_TRIM_NC_PRIME:                 'int_trim',
+  SF_DOOR_SLAB_INT_NC:              'int_door_slab',
+  SF_DOOR_FRAME_NC_FINISH:          'int_door_frame',
+  SF_WINDOW_INT_NC:                 'int_window',
+  SF_STAIR_RISER_NC:                'int_stair_riser',
+  SF_STAIR_RAILING_NC:              'int_stair_railing',
+  SF_WAINSCOT_PANEL_NC:             'int_wainscot',
+  SF_WOOD_WALL_NC:                  'int_wood_wall',
+  SF_WOOD_CEILING_NC:               'int_wood_ceiling',
+  SF_ARCH_ELEMENT_NC:               'int_arch_element',
+  SF_BUILTIN_NC:                    'int_builtin',
+  SF_CABINET_NC_PAINT:              'int_cabinet',
+  SF_CLOSET_SHELF_NC:               'int_closet',
+
+  // Interior stain NC
+  SF_TRIM_NC_STAIN:                 'int_trim',
+  SF_DOOR_SLAB_INT_NC_STAIN:        'int_door_slab',
+  SF_DOOR_FRAME_NC_STAIN:           'int_door_frame',
+  SF_WINDOW_INT_NC_STAIN:           'int_window',
+  SF_STAIR_RAILING_NC_STAIN:        'int_stair_railing',
+  SF_STAIR_RISER_NC_STAIN:          'int_stair_riser',
+  SF_WAINSCOT_PANEL_NC_STAIN:       'int_wainscot',
+  SF_WOOD_WALL_NC_STAIN:            'int_wood_wall',
+  SF_WOOD_CEILING_NC_STAIN:         'int_wood_ceiling',
+  SF_ARCH_ELEMENT_NC_STAIN:         'int_arch_element',
+
+  // Interior RP
+  SF_DRYWALL_WALL_INT_RP:           'int_drywall_wall',
+  SF_DRYWALL_CEILING_INT_RP:        'int_drywall_ceiling',
+  SF_TRIM_INT_RP:                   'int_trim',
+  SF_DOOR_INT_RP:                   'int_door',
+  SF_WINDOW_INT_RP:                 'int_window',
+  SF_STAIR_INT_RP:                  'int_stair',
+  SF_CLOSET_INT_RP:                 'int_closet',
+  SF_CABINET_INT_RP:                'int_cabinet',
+  SF_SPECIALTY_INT_RP:              'int_specialty',
+
+  // Exterior (families converted in Phase 2a)
+  SF_TRIM_EXT_NC:                   'ext_trim',
+  SF_TRIM_EXT_RP:                   'ext_trim',
+  SF_WOOD_SIDING_EXT_NC_PAINT:      'ext_siding',
+  SF_SIDING_WOOD_EXT_RP:            'ext_siding',
+  SF_SIDING_ENGINEERED_EXT_NC:      'ext_eng_siding',
+  SF_SIDING_ENGINEERED_EXT_RP:      'ext_eng_siding',
+  SF_SIDING_FIBERCEMENT_EXT_NC:     'ext_fc_siding',
+  SF_SIDING_FIBERCEMENT_EXT_RP:     'ext_fc_siding',
+  SF_SIDING_VINYL_EXT_RP:           'ext_vinyl_siding',
+  SF_SIDING_ALUMINUM_EXT_RP:        'ext_aluminum_siding',
+  SF_DOOR_EXT_NC:                   'ext_door',
+  SF_DOOR_EXT_RP:                   'ext_door',
+  SF_WINDOW_EXT_NC:                 'ext_window',
+  SF_WINDOW_EXT_RP:                 'ext_window',
+  SF_PORCH_CEILING_EXT_NC:          'ext_porch_ceiling',
+  SF_PORCH_CEILING_EXT_RP:          'ext_porch_ceiling',
+  SF_PORCH_FLOOR_EXT_NC:            'ext_porch_floor',
+  SF_PORCH_FLOOR_EXT_RP:            'ext_porch_floor',
+  SF_SOFFIT_EXT_NC:                 'ext_soffit',
+  SF_SOFFIT_EXT_RP:                 'ext_soffit',
+  SF_FOUNDATION_EXT_NC:             'ext_foundation',
+  SF_FOUNDATION_EXT_RP:             'ext_foundation',
+  SF_MASONRY_EXT_NC:                'ext_masonry_wall',
+  SF_MASONRY_EXT_RP:                'ext_masonry_wall',
+  SF_STUCCO_EXT_NC:                 'ext_stucco_wall',
+  SF_STUCCO_EXT_RP:                 'ext_stucco_wall',
+  SF_METAL_EXT:                     'ext_metal_railing',
+  SF_METAL_EXT_RP:                  'ext_metal_railing',
+  SF_GARAGE_DOOR_EXT_NC:            'ext_garage_door',
+  SF_GARAGE_DOOR_EXT_RP:            'ext_garage_door',
+  SF_CAULK_EXT:                     'ext_caulk_joint',
+  SF_DECK_EXT:                      'ext_deck_floor',
+  SF_DECK_EXT_RP:                   'ext_deck_floor',
+  SF_FENCE_EXT:                     'ext_fence',
+  SF_FENCE_EXT_RP:                  'ext_fence',
+
+  // Specialty add-on
+  SF_WOOD_GRAIN_FILL_NC:            'grain_fill_surface',
+};
+
+/**
+ * Build the per-spec per-room context + quantity lookup for every active
+ * (room, spec) pair in the project. Mirrors the `for (spec of db.spec_families)
+ * { for (room of state.rooms) { ... } }` loop in run-estimate.js lines 180-280
+ * but returns a flat array the scenario engine can iterate.
+ *
+ * Inputs:
+ *   state — full PaintScope project state { project, rooms }
+ *   db    — spec data bundle (used to iterate active specs, though the
+ *           scenario engine doesn't read db directly)
+ *
+ * Returns:
+ *   {
+ *     roomInputs: Array<{
+ *       roomIndex: number,
+ *       roomLabel: string,
+ *       specId:    string,            // legacy spec family id (for diffing)
+ *       ctx:       object,            // { quality_tier, application_method, ... }
+ *       roomQty:   Map<ps_key, { value }>,
+ *       roomItems: object | null,     // { doors: [...], windows: [...] }
+ *     }>,
+ *     lookups: ReturnType<buildRoomQuantityLookups>,
+ *     warnings: string[],
+ *   }
+ */
+export function buildScenarioInputs(state, db) {
+  const warnings = [];
+  const roomInputs = [];
+  const project = state.project || {};
+  const rooms = state.rooms || [];
+
+  const lookups = buildRoomQuantityLookups(state);
+
+  // Active specs come from the spec families referenced by any room's
+  // substrates. If the caller passes db, we iterate db.spec_families for
+  // consistency with run-estimate; otherwise we derive from rooms.
+  const activeSpecIds = new Set();
+  if (db && Array.isArray(db.spec_families)) {
+    for (const spec of db.spec_families) activeSpecIds.add(spec.id);
+  } else {
+    for (const room of rooms) {
+      for (const sub of (room.substrates || [])) {
+        for (const sp of (sub.active_specs || [])) activeSpecIds.add(sp);
+      }
+    }
+  }
+
+  for (let ri = 0; ri < rooms.length; ri++) {
+    const room = rooms[ri];
+    const roomLabel = room.name || `Room ${ri + 1}`;
+    const roomDerived = deriveRoom(room);
+    const roomQty = lookups.rooms[ri] ? lookups.rooms[ri].qty : new Map();
+    const roomItems = {
+      doors: room.doors || [],
+      windows: room.windows || [],
+    };
+
+    for (const specId of activeSpecIds) {
+      // Is this spec active for this room? Check substrates' active_specs
+      const specActiveHere = (room.substrates || []).some(sub =>
+        (sub.active_specs || []).includes(specId)
+      );
+      if (!specActiveHere) continue;
+
+      const paintableItem = SPEC_TO_PAINTABLE_ITEM[specId] || null;
+      if (!paintableItem) {
+        warnings.push(`No paintable_item mapping for spec ${specId} — scenario match will fail`);
+      }
+
+      const coatingType = resolveCoatingType(specId, room, project);
+      const roomSpecStates = resolveSubstrateStateForSpec(specId, room);
+
+      const ctx = {
+        // Core spec context
+        quality_tier: resolveQualityTier(specId, room, project),
+        height_band: roomDerived.heightBand,
+        complexity: room.complexity || project.default_complexity,
+        application_method: resolveApplicationMethod(specId, room, project),
+        surface_texture: resolveTextureForSpec(specId, room, project),
+        substrate_state: (roomSpecStates && roomSpecStates.length > 0) ? roomSpecStates[0] : null,
+
+        // Room adjacency
+        floor_type: room.floor_type || 'subfloor',
+        floor_protection: room.floor_protection || '',
+
+        // New architecture additions
+        paintable_item: paintableItem,
+        substrate_condition: room.substrate_condition || 'fair',
+        // surface: derived from paintable_item for scenarios that match on surface
+        //   (e.g. 'wall' vs 'ceiling' for drywall specs)
+        surface: deriveSurfaceFromSpec(specId),
+      };
+
+      // Fixture presence flags (matches run-estimate.js lines 237-239)
+      FIXTURE_CATALOG.forEach(f => { ctx['has_' + f.id] = false; });
+      Object.keys(room.fixtures || {}).forEach(fId => { ctx['has_' + fId] = true; });
+
+      // Window substrate (matches line 231)
+      if (specId === 'SF_WINDOW_INT_NC') ctx.substrate = 'wood';
+
+      // Beam overrides (matches lines 241-257)
+      if (specId === 'SF_ARCH_ELEMENT_NC' && room.vaulted_ceiling && room.beams_enabled) {
+        const peakFt = parseFloat(room.peak_height_ft) || 0;
+        if (peakFt > 0) ctx.height_band = deriveHeightBand(peakFt);
+        if (room.beam_application_method) ctx.application_method = room.beam_application_method;
+        if (room.beam_substrate_state) {
+          const mapped = UI_STATE_TO_SPEC_STATE[room.beam_substrate_state];
+          if (mapped) ctx.substrate_state = mapped;
+        }
+      }
+
+      // Stain-specific context (matches lines 260-270)
+      if (STAIN_SPEC_FAMILIES.has(specId)) {
+        ctx.coating_type = coatingType;
+        ctx.application_method_stain = resolveStainMethod(specId, room, project);
+        ctx.application_method_clear = resolveClearMethod(specId, room, project);
+        ctx.wood_species_group = resolveWoodSpecies(specId, room, project);
+        ctx.clear_sheen = resolveClearSheen(specId, room, project);
+        const coats = resolveCoatCounts(specId, room, project);
+        ctx.stain_coats = coats.stain_coats;
+        ctx.sealer_coats = coats.sealer_coats;
+        ctx.clear_coats = coats.clear_coats;
+      }
+
+      // Exterior-only fields pulled from project/room when present.
+      // The legacy engine doesn't explicitly track these on the room yet,
+      // so we read from project config as a fallback. Exterior modules
+      // use these via scenario.modifiers[].
+      ctx.access_type = room.access_type || project.default_access_type || 'ground';
+      ctx.substrate_type = room.substrate_type || null;
+      ctx.coating_system = room.coating_system || null;
+      ctx.foundation_type = room.foundation_type || null;
+      ctx.siding_profile = room.siding_profile || null;
+      ctx.texture_profile = room.texture_profile || null;
+      ctx.soffit_face_type = room.soffit_face_type || 'closed_face';
+      ctx.fence_style = room.fence_style || null;
+      ctx.chalk_severity = room.chalk_severity || 'none';
+      ctx.metal_profile_complexity = room.metal_profile_complexity || 'simple';
+      ctx.door_size = room.door_size || 'single';
+      ctx.panel_complexity = room.panel_complexity || 'flush';
+      ctx.surface_profile = room.surface_profile || 'flat';
+      ctx.condition_scale = room.condition_scale || 'GOOD';
+
+      roomInputs.push({
+        roomIndex: ri,
+        roomLabel,
+        specId,
+        ctx,
+        roomQty,
+        roomItems,
+      });
+    }
+  }
+
+  return { roomInputs, lookups, warnings };
+}
+
+/**
+ * Derive the 'surface' context key from a spec family id. Scenarios for
+ * drywall wall vs ceiling both have paintable_item: "drywall" but differ on
+ * surface: "wall" vs "ceiling". Returns null for specs that don't need this
+ * disambiguation.
+ */
+function deriveSurfaceFromSpec(specId) {
+  if (!specId) return null;
+  if (specId.includes('WALL')) return 'wall';
+  if (specId.includes('CEILING')) return 'ceiling';
+  return null;
+}
