@@ -28,10 +28,12 @@ import {
   resolveClearSheen,
   resolveWoodSpecies,
 } from './spec-resolution.js';
-import { resolveSubstrateStateForSpec } from './spec-compatibility.js';
+import { resolveSubstrateStateForSpec, isSpecStateCompatible } from './spec-compatibility.js';
 import { deriveRoom, deriveHeightBand } from './derive-room.js';
 import { FIXTURE_CATALOG } from '../data/fixture-catalog.js';
-import { STAIN_SPEC_FAMILIES, UI_STATE_TO_SPEC_STATE } from '../data/spec-maps.js';
+import { STAIN_SPEC_FAMILIES, UI_STATE_TO_SPEC_STATE, SPEC_SUBSTRATE_MAP, SPEC_ROLE } from '../data/spec-maps.js';
+import { resolveActivation, STATE_TRANSITION_TARGET } from '../data/system-catalog.js';
+import { resolveSystem } from './spec-resolution.js';
 
 // Spec families that map cleanly to a paintable_item in the scenario matcher.
 // This is the single-most-important mapping between the spec-keyed legacy
@@ -47,10 +49,10 @@ const SPEC_TO_PAINTABLE_ITEM = {
   SF_DRYWALL_WALL_NC_PRIME:         'drywall',
   SF_DRYWALL_CEILING_NC_FINISH:     'drywall',
   SF_DRYWALL_CEILING_NC_PRIME:      'drywall',
-  SF_TRIM_NC_PAINT:                 'int_trim',
-  SF_TRIM_NC_PRIME:                 'int_trim',
-  SF_DOOR_SLAB_INT_NC:              'int_door_slab',
-  SF_DOOR_FRAME_NC_FINISH:          'int_door_frame',
+  SF_TRIM_NC_PAINT:                 'trim',
+  SF_TRIM_NC_PRIME:                 'trim',
+  SF_DOOR_SLAB_INT_NC:              'door_slab',
+  SF_DOOR_FRAME_NC_FINISH:          'door_frame',
   SF_WINDOW_INT_NC:                 'int_window',
   SF_STAIR_RISER_NC:                'int_stair_riser',
   SF_STAIR_RAILING_NC:              'int_stair_railing',
@@ -63,7 +65,7 @@ const SPEC_TO_PAINTABLE_ITEM = {
   SF_CLOSET_SHELF_NC:               'int_closet',
 
   // Interior stain NC
-  SF_TRIM_NC_STAIN:                 'int_trim',
+  SF_TRIM_NC_STAIN:                 'trim',
   SF_DOOR_SLAB_INT_NC_STAIN:        'int_door_slab',
   SF_DOOR_FRAME_NC_STAIN:           'int_door_frame',
   SF_WINDOW_INT_NC_STAIN:           'int_window',
@@ -75,9 +77,9 @@ const SPEC_TO_PAINTABLE_ITEM = {
   SF_ARCH_ELEMENT_NC_STAIN:         'int_arch_element',
 
   // Interior RP
-  SF_DRYWALL_WALL_INT_RP:           'int_drywall_wall',
-  SF_DRYWALL_CEILING_INT_RP:        'int_drywall_ceiling',
-  SF_TRIM_INT_RP:                   'int_trim',
+  SF_DRYWALL_WALL_INT_RP:           'drywall_wall',
+  SF_DRYWALL_CEILING_INT_RP:        'drywall_ceiling',
+  SF_TRIM_INT_RP:                   'trim',
   SF_DOOR_INT_RP:                   'int_door',
   SF_WINDOW_INT_RP:                 'int_window',
   SF_STAIR_INT_RP:                  'int_stair',
@@ -159,36 +161,46 @@ export function buildScenarioInputs(state, db) {
 
   const lookups = buildRoomQuantityLookups(state);
 
-  // Active specs come from the spec families referenced by any room's
-  // substrates. If the caller passes db, we iterate db.spec_families for
-  // consistency with run-estimate; otherwise we derive from rooms.
+  // Active specs — iterate db.spec_families when available (matches legacy
+  // engine), otherwise fall back to every spec known in SPEC_SUBSTRATE_MAP.
   const activeSpecIds = new Set();
   if (db && Array.isArray(db.spec_families)) {
     for (const spec of db.spec_families) activeSpecIds.add(spec.id);
-  } else {
-    for (const room of rooms) {
-      for (const sub of (room.substrates || [])) {
-        for (const sp of (sub.active_specs || [])) activeSpecIds.add(sp);
-      }
-    }
   }
+  // Always union in specs from SPEC_SUBSTRATE_MAP so scenario-only families
+  // (e.g. Interior RP specs that have no legacy SQLite row) still iterate.
+  for (const sid of Object.keys(SPEC_SUBSTRATE_MAP)) activeSpecIds.add(sid);
 
   for (let ri = 0; ri < rooms.length; ri++) {
     const room = rooms[ri];
     const roomLabel = room.name || `Room ${ri + 1}`;
     const roomDerived = deriveRoom(room);
-    const roomQty = lookups.rooms[ri] ? lookups.rooms[ri].qty : new Map();
+    const roomQty = lookups.get(ri)?.qty || new Map();
     const roomItems = {
       doors: room.doors || [],
       windows: room.windows || [],
     };
 
+    const subsObj = room.substrates || {};
     for (const specId of activeSpecIds) {
-      // Is this spec active for this room? Check substrates' active_specs
-      const specActiveHere = (room.substrates || []).some(sub =>
-        (sub.active_specs || []).includes(specId)
-      );
-      if (!specActiveHere) continue;
+      // Is this spec active for this room? Look up the spec's primary
+      // substrate in SPEC_SUBSTRATE_MAP, then check whether that substrate
+      // key is present in room.substrates and (for opening substrates)
+      // whether painting is enabled. This matches run-estimate.js lines
+      // 199-203.
+      const primarySub = SPEC_SUBSTRATE_MAP[specId];
+      if (!primarySub) continue;
+      const subConfig = subsObj[primarySub];
+      if (!subConfig) continue;
+      // Opening substrates (doors, windows, door_casing, window_casing) have
+      // a painting toggle — skip specs whose substrate has painting=false.
+      if (subConfig.painting === false) continue;
+
+      // Substrate-state compatibility: skip specs whose valid_input_states don't
+      // accept the room's resolved substrate_state (e.g. NC specs for painted
+      // rooms, RP specs for bare rooms). Uses one-level chain activation so
+      // FINISH specs still activate when a PRIME spec's output matches.
+      if (!isSpecStateCompatible(specId, room)) continue;
 
       const paintableItem = SPEC_TO_PAINTABLE_ITEM[specId] || null;
       if (!paintableItem) {
@@ -197,6 +209,23 @@ export function buildScenarioInputs(state, db) {
 
       const coatingType = resolveCoatingType(specId, room, project);
       const roomSpecStates = resolveSubstrateStateForSpec(specId, room);
+      const resolvedInputState = (roomSpecStates && roomSpecStates.length > 0) ? roomSpecStates[0] : null;
+
+      // ── System-driven activation & state transition (Pass A) ──
+      // `system` expresses workflow intent (paint_full / paint_finish / stain_clear / etc.).
+      // For each spec family, its SPEC_ROLE + the resolved system decides:
+      //   (a) does this spec activate? (PRIME skipped under paint_finish, etc.)
+      //   (b) what substrate_state does its ctx carry? FINISH specs under paint_full
+      //       get SS_PRIMED because a PRIME pass precedes them in the workflow.
+      const system = resolveSystem(specId, room, project);
+      const specRole = SPEC_ROLE[specId] || 'COMBINED';
+      const activation = resolveActivation(system, specRole);
+      if (activation.active === false) {
+        // Spec is suppressed by the current system — skip emitting an input for it.
+        continue;
+      }
+      const transitionTarget = STATE_TRANSITION_TARGET[activation.stateTransition];
+      const effectiveSubstrateState = transitionTarget != null ? transitionTarget : resolvedInputState;
 
       const ctx = {
         // Core spec context
@@ -205,7 +234,7 @@ export function buildScenarioInputs(state, db) {
         complexity: room.complexity || project.default_complexity,
         application_method: resolveApplicationMethod(specId, room, project),
         surface_texture: resolveTextureForSpec(specId, room, project),
-        substrate_state: (roomSpecStates && roomSpecStates.length > 0) ? roomSpecStates[0] : null,
+        substrate_state: effectiveSubstrateState,
 
         // Room adjacency
         floor_type: room.floor_type || 'subfloor',
@@ -217,6 +246,9 @@ export function buildScenarioInputs(state, db) {
         // surface: derived from paintable_item for scenarios that match on surface
         //   (e.g. 'wall' vs 'ceiling' for drywall specs)
         surface: deriveSurfaceFromSpec(specId),
+        // Workflow intent (visible in Dev tab; matcher consumption deferred to Pass B)
+        system: system,
+        spec_role: specRole,
       };
 
       // Fixture presence flags (matches run-estimate.js lines 237-239)
@@ -265,6 +297,10 @@ export function buildScenarioInputs(state, db) {
       ctx.chalk_severity = room.chalk_severity || 'none';
       ctx.metal_profile_complexity = room.metal_profile_complexity || 'simple';
       ctx.door_size = room.door_size || 'single';
+      // Door-type: pulled from the first door item so door slab scenarios can
+      // match on panel_4 / panel_6 / flush / french / etc. Only meaningful for
+      // door specs; harmless elsewhere.
+      ctx.door_type = subsObj.doors?.items?.[0]?.door_type || 'panel_4';
       ctx.panel_complexity = room.panel_complexity || 'flush';
       ctx.surface_profile = room.surface_profile || 'flat';
       ctx.condition_scale = room.condition_scale || 'GOOD';
@@ -291,7 +327,9 @@ export function buildScenarioInputs(state, db) {
  */
 function deriveSurfaceFromSpec(specId) {
   if (!specId) return null;
-  if (specId.includes('WALL')) return 'wall';
+  // Check CEILING first — otherwise 'DRYWALL_CEILING' matches WALL via substring
+  // and every drywall ceiling spec gets silently tagged as surface=wall.
   if (specId.includes('CEILING')) return 'ceiling';
+  if (specId.includes('WALL')) return 'wall';
   return null;
 }
