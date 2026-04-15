@@ -1,303 +1,96 @@
 {
-  "spec_family": {
-    "id": "SF_CLOSET_SHELF_NC",
-    "name": "New Construction Closet Shelf Paint",
-    "description": "Painting of fixed closet shelving in new construction. Uses Opening Count quantification method per BuiltIns_Shelving Quantification System.md v2.0. Counts shelf compartments (openings) by tier S/M/L/XL. Simple spec with clear scope boundaries.",
-    "domain": "interior",
-    "version": "0.1.0",
-    "status": "draft",
-    "review_required": true
-  },
-
-  "scope_boundaries": {
-    "includes": [
-      "Closet shelf compartment interiors (counted as openings per tier S/M/L/XL)",
-      "Shelf surfaces (top, bottom, edges — bundled in opening count)",
-      "Shelf cleats and wood support brackets",
-      "Light prep (sanding, dusting, spot fill)",
-      "Caulk gaps and joints (shelf-to-wall, cleat joints)",
-      "MDF edge seal (conditional on SS_BARE)",
-      "Prime coat (conditional on SS_BARE)",
-      "Finish coats (1-2 coats per quality tier)"
-    ],
-    "excludes": [
-      { "item": "Closet walls", "route_to": "SF_DRYWALL_WALL_NC_PRIME, SF_DRYWALL_WALL_NC_FINISH" },
-      { "item": "Closet ceiling", "route_to": "SF_DRYWALL_CEILING_NC_PRIME, SF_DRYWALL_CEILING_NC_FINISH" },
-      { "item": "Closet trim", "route_to": "SF_TRIM_NC_PAINT" },
-      { "item": "Closet door", "route_to": "SF_DOOR_SLAB_INT_NC, SF_DOOR_FRAME_NC_FINISH" },
-      { "item": "Wire shelving mesh (chrome/coated)", "route_to": "Not paintable — excluded" },
-      { "item": "Freestanding/removable shelving", "route_to": "Not fixed — excluded" }
-    ]
-  },
-
-  "configuration_dimensions": [
+  "spec_id": "SF_CLOSET_SHELF_NC_v1",
+  "version": "1.0.0",
+  "display_name": "Closet Shelf — New Construction",
+  "domain": "interior",
+  "context": "NC",
+  "uom": "LF",
+  "context_prefix": "CLSH",
+  "description": "New construction paint coverage for single closet shelves quantified in linear feet. Covers bare wood, factory-primed wood, and melamine substrates across QT2-QT5 with brush_roll, spray, and spray_rolloff (bare only) application methods. Not to be confused with built-in shelving (multi-opening) which is covered by SF_BUILTIN_NC_v1.",
+  "paintable_items": [
     {
-      "dimension_id": "quality_tier",
-      "description": "Quality tier applied to this spec",
+      "item_id": "ITM_CLOSET_SHELF",
+      "name": "Closet Shelf",
+      "uom": "LF",
+      "ps_keys": ["PS_SURFACE_LF.CLOSET_SHELF"]
+    }
+  ],
+  "configuration_dimensions": {
+    "quality_tier": {
       "values": ["QT2", "QT3", "QT4", "QT5"],
       "default": "QT3"
     },
-    {
-      "dimension_id": "application_method",
-      "description": "Primary application technique",
+    "application_method": {
       "values": ["brush_roll", "spray", "spray_rolloff"],
-      "default": "brush_roll",
-      "notes": "spray_rolloff required for SS_BARE to work primer into wood grain"
+      "default": "brush_roll"
+    },
+    "substrate_state": {
+      "values": ["SS_BARE", "SS_PRIMED_FACTORY", "SS_FACTORY_FINISH"],
+      "default": "SS_BARE"
+    },
+    "sheen": {
+      "values": ["eggshell", "satin", "semi_gloss"],
+      "default": "semi_gloss"
+    },
+    "coating_type": {
+      "values": ["paint"],
+      "default": "paint"
+    }
+  },
+  "modifiers": [
+    {
+      "modifier_id": "MOD_CLSH_QUALITY_TIER",
+      "name": "Quality Tier",
+      "type": "time_modifier",
+      "applies_to": "qt_scaled"
     },
     {
-      "dimension_id": "sheen",
-      "description": "Finish sheen",
-      "values": ["flat", "eggshell", "satin"],
-      "default": "satin"
+      "modifier_id": "MOD_CLSH_SHELF_DEPTH",
+      "name": "Shelf Depth",
+      "type": "time_modifier",
+      "values": ["shallow", "standard", "deep"],
+      "default": "standard"
     },
     {
-      "dimension_id": "substrate_state",
-      "description": "Starting substrate condition per Substrate_State_Reference.md",
-      "values": ["SS_BARE", "SS_PRIMED_FACTORY"],
-      "default": "SS_PRIMED_FACTORY"
+      "modifier_id": "MOD_CLSH_ACCESS_DIFFICULTY",
+      "name": "Access Difficulty",
+      "type": "time_modifier",
+      "values": ["easy", "tight", "overhead"],
+      "default": "easy"
     }
   ],
-
-  "paintable_items": [
-    {
-      "item_id": "ITM_OPENING_S",
-      "name": "Small opening (6-18\" x 6-18\")",
-      "unit_of_measure": "EA",
-      "counting_rules": "Per BuiltIns_Shelving Quantification System.md tier S"
-    },
-    {
-      "item_id": "ITM_OPENING_M",
-      "name": "Medium opening (18-36\" x 12-30\")",
-      "unit_of_measure": "EA",
-      "counting_rules": "Per BuiltIns_Shelving Quantification System.md tier M"
-    },
-    {
-      "item_id": "ITM_OPENING_L",
-      "name": "Large opening (36-60\" x 18-42\")",
-      "unit_of_measure": "EA",
-      "counting_rules": "Per BuiltIns_Shelving Quantification System.md tier L"
-    },
-    {
-      "item_id": "ITM_OPENING_XL",
-      "name": "XL opening (60\"+ x 30\"+)",
-      "unit_of_measure": "EA",
-      "counting_rules": "Per BuiltIns_Shelving Quantification System.md tier XL"
+  "material_systems": {
+    "primer_bare": "SYS_PRIMER_WOOD_ACRYLIC",
+    "primer_bonding": "SYS_PRIMER_BONDING",
+    "finish": {
+      "QT2": "SYS_FF_STANDARD_ACRYLIC",
+      "QT3": "SYS_FF_STANDARD_ACRYLIC",
+      "QT4": "SYS_FF_MODIFIED_URETHANE",
+      "QT5": "SYS_FF_PREMIUM"
     }
-  ],
-
+  },
+  "output_state_by_sheen": {
+    "eggshell": "SS_PAINTED_EGGSHELL",
+    "satin": "SS_PAINTED_SATIN",
+    "semi_gloss": "SS_PAINTED_SEMIGLOSS"
+  },
   "variants": [
-    {
-      "variant_id": "VAR_BRUSH_ROLL_PRIMED",
-      "applies_when": {
-        "application_method": ["brush_roll"],
-        "substrate_state": ["SS_PRIMED_FACTORY"]
-      },
-      "included_items": ["ITM_OPENING_S", "ITM_OPENING_M", "ITM_OPENING_L", "ITM_OPENING_XL"],
-      "notes": "Standard brush/roll on factory-primed shelving. No primer coat."
-    },
-    {
-      "variant_id": "VAR_BRUSH_ROLL_BARE",
-      "applies_when": {
-        "application_method": ["brush_roll"],
-        "substrate_state": ["SS_BARE"]
-      },
-      "included_items": ["ITM_OPENING_S", "ITM_OPENING_M", "ITM_OPENING_L", "ITM_OPENING_XL"],
-      "notes": "Brush/roll on bare wood/MDF. Includes edge seal and primer."
-    },
-    {
-      "variant_id": "VAR_SPRAY_ROLLOFF_BARE",
-      "applies_when": {
-        "application_method": ["spray_rolloff"],
-        "substrate_state": ["SS_BARE"]
-      },
-      "included_items": ["ITM_OPENING_S", "ITM_OPENING_M", "ITM_OPENING_L", "ITM_OPENING_XL"],
-      "notes": "Spray + rolloff for bare wood. Works primer into grain."
-    }
+    { "variant_id": "BRUSH_ROLL_BARE", "substrate_state": "SS_BARE", "application_method": "brush_roll" },
+    { "variant_id": "BRUSH_ROLL_PRIMED", "substrate_state": "SS_PRIMED_FACTORY", "application_method": "brush_roll" },
+    { "variant_id": "BRUSH_ROLL_MELAMINE", "substrate_state": "SS_FACTORY_FINISH", "application_method": "brush_roll" },
+    { "variant_id": "SPRAY_BARE", "substrate_state": "SS_BARE", "application_method": "spray" },
+    { "variant_id": "SPRAY_PRIMED", "substrate_state": "SS_PRIMED_FACTORY", "application_method": "spray" },
+    { "variant_id": "SPRAY_MELAMINE", "substrate_state": "SS_FACTORY_FINISH", "application_method": "spray" },
+    { "variant_id": "SPRAY_ROLLOFF_BARE", "substrate_state": "SS_BARE", "application_method": "spray_rolloff" }
   ],
-
-  "required_paintscope_inputs": [
-    {
-      "input_name": "IN_EA_OPENING_S",
-      "paintscope_key": "PS_OPENING_EA.CLOSET_SHELF.S",
-      "uom": "EA",
-      "required": true,
-      "description": "Small openings count"
-    },
-    {
-      "input_name": "IN_EA_OPENING_M",
-      "paintscope_key": "PS_OPENING_EA.CLOSET_SHELF.M",
-      "uom": "EA",
-      "required": true,
-      "description": "Medium openings count"
-    },
-    {
-      "input_name": "IN_EA_OPENING_L",
-      "paintscope_key": "PS_OPENING_EA.CLOSET_SHELF.L",
-      "uom": "EA",
-      "required": true,
-      "description": "Large openings count"
-    },
-    {
-      "input_name": "IN_EA_OPENING_XL",
-      "paintscope_key": "PS_OPENING_EA.CLOSET_SHELF.XL",
-      "uom": "EA",
-      "required": true,
-      "description": "XL openings count"
-    },
-    {
-      "input_name": "IN_MOD_DEPTH",
-      "paintscope_key": "PS_OPENING_MOD.DEPTH",
-      "uom": "ENUM",
-      "required": true,
-      "description": "Depth modifier: SHALLOW / DEEP / VERY_DEEP"
-    },
-    {
-      "input_name": "IN_MOD_DETAIL",
-      "paintscope_key": "PS_OPENING_MOD.DETAIL",
-      "uom": "ENUM",
-      "required": true,
-      "description": "Detail modifier: SIMPLE_BOX / FACE_FRAME"
-    },
-    {
-      "input_name": "IN_MOD_ACCESS",
-      "paintscope_key": "PS_OPENING_MOD.ACCESS",
-      "uom": "ENUM",
-      "required": true,
-      "description": "Access modifier: OPEN_ACCESS / CRAMPED"
-    },
-    {
-      "input_name": "IN_SF_FLOOR_WORKZONE",
-      "paintscope_key": "PS_PROTECT_SF.FLOOR_WORKZONE",
-      "uom": "SF",
-      "required_when": { "floor_type": ["finished", "partial"] },
-      "description": "Floor protection area"
-    }
-  ],
-
-  "protection_zones_required": [
-    {
-      "zone_id": "floor_workzone",
-      "condition": { "floor_type": ["finished", "partial"] },
-      "protection_level": "edge_only",
-      "notes": "Drop cloth under closet opening. Excluded when subfloor."
-    }
-  ],
-
-  "adjacency_declarations": {
-    "primary_surface": "builtin_shelf",
-    "adjacent_surfaces": [
-      {
-        "surface_id": "wall_field",
-        "edge_type": "linear",
-        "typical_relationship": "different_finish",
-        "continuity_rate_modifier": 1.0,
-        "affected_tasks": [],
-        "notes": "Shelf back meets wall. Gap caulked during prep. No cut-in at paint time."
-      }
-    ]
+  "round_configurations": {
+    "SS_BARE": { "prime_coats": 1, "finish_coats": 2, "interstage_cycles": 1 },
+    "SS_FACTORY_FINISH": { "prime_coats": 1, "finish_coats": 2, "interstage_cycles": 1 },
+    "SS_PRIMED_FACTORY": { "prime_coats": 0, "finish_coats": 2, "interstage_cycles": 1 }
   },
-
-  "state_declarations": {
-    "primary_surface": "builtin_shelf",
-
-    "valid_input_states": {
-      "states": ["SS_BARE", "SS_PRIMED_FACTORY"],
-      "notes": "NC closet shelving is either bare wood/MDF or factory-primed"
-    },
-
-    "output_state": {
-      "state": "SS_PAINTED_SATIN",
-      "varies_by": "sheen",
-      "state_map": {
-        "flat": "SS_PAINTED_FLAT",
-        "eggshell": "SS_PAINTED_EGGSHELL",
-        "satin": "SS_PAINTED_SATIN"
-      },
-      "notes": "Output state determined by sheen configuration"
-    },
-
-    "adjacent_state_protection_rules": [
-      {
-        "adjacent_surface": "wall_field",
-        "when_state": ["SS_PAINTED_FLAT", "SS_PAINTED_EGGSHELL", "SS_PAINTED_SATIN"],
-        "protection_zone": null,
-        "protection_level": "none",
-        "notes": "Shelf-to-wall junction is caulked gap, no overspray risk with brush_roll"
-      },
-      {
-        "adjacent_surface": "wall_field",
-        "when_state": ["SS_BARE", "SS_PRIMED"],
-        "protection_zone": null,
-        "protection_level": "none",
-        "notes": "Unfinished walls need no protection"
-      }
-    ]
-  },
-
-  "site_condition_rules": [
-    {
-      "condition_id": "floor_type",
-      "vocabulary_ref": "Site_Condition_Vocabulary_Reference.md § floor_type",
-      "include_when": ["finished", "partial"],
-      "exclude_when": ["subfloor"],
-      "affected_tasks": ["TSK_FLOOR_PROTECT", "TSK_FLOOR_PROTECT_TEARDOWN"],
-      "effect": "Floor protection excluded when floor is subfloor"
-    }
-  ],
-
-  "sequencing_notes": {
-    "production_sequence": "Shelves typically painted after wall prime, before or after wall finish",
-    "protection_sequence": "Setup floor protection → Prep → Prime (if bare) → Finish → Cleanup",
-    "coat_sequence": "Dust/wipe → Sand → Edge seal (if bare MDF) → Prime (if bare) → Finish coat 1 → Sand between (QT4/5) → Finish coat 2 → Inspect"
-  },
-
-  "relationships": {
-    "often_combined_with": ["SF_DRYWALL_WALL_NC_FINISH", "SF_TRIM_NC_PAINT"],
-    "typical_before": ["SF_DRYWALL_WALL_NC_FINISH"],
-    "typical_after": ["SF_DRYWALL_WALL_NC_PRIME"],
-    "causes_modifier_on": {
-      "modifier_id": "COMP_CLOSET_SHELVING",
-      "value": 1.5,
-      "affected_specs": ["SF_DRYWALL_WALL_NC_PRIME", "SF_DRYWALL_WALL_NC_FINISH", "SF_DRYWALL_CEILING_NC_PRIME", "SF_DRYWALL_CEILING_NC_FINISH"],
-      "notes": "This spec causes 1.5x modifier on wall/ceiling specs in same closet"
-    }
-  },
-
-  "dependencies": {
-    "materials": "materials.json",
-    "sop_modules": "sop_modules.json",
-    "production": "production.json"
-  },
-
-  "doctrine_references": [
-    {
-      "doctrine": "BuiltIns_Shelving Quantification System.md",
-      "sections_used": ["Opening Count method", "Tier definitions", "Modifiers"]
-    },
-    {
-      "doctrine": "Millwork_NC_Paint_Doctrine.md",
-      "sections_used": ["MDF edge sealing", "Substrate prep"]
-    },
-    {
-      "doctrine": "Quality_Tiers_and_Surface_Condition.md",
-      "sections_used": ["QT2-QT5 definitions"]
-    },
-    {
-      "doctrine": "Modifier_Registry.md",
-      "sections_used": ["QT modifiers", "COMP_CLOSET_SHELVING"]
-    },
-    {
-      "doctrine": "Substrate_State_Reference.md",
-      "sections_used": ["SS_BARE", "SS_PRIMED_FACTORY", "SS_PAINTED_*"]
-    }
-  ],
-
-  "change_log": [
-    {
-      "version": "0.1.0",
-      "date": "2026-02-03",
-      "author": "SpecFactory",
-      "changes": "Initial draft spec for NC closet shelf paint. Uses Opening Count quantification method per BuiltIns_Shelving Quantification System.md v2.0. Aligned with Substrate_State_Reference.md for SS_* values. Includes spray_rolloff application method for bare wood."
-    }
+  "scope_exclusions": [
+    "Multi-opening built-in shelving — see SF_BUILTIN_NC_v1",
+    "Wire shelving — protect-only, never painted",
+    "Previously-painted shelving — covered by SF_CLOSET_INT_RP"
   ]
 }
