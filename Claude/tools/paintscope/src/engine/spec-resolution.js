@@ -1,6 +1,7 @@
 import { OPENING_SUBSTRATES } from './quantity-lookups.js';
 import { SPEC_SUBSTRATE_MAP } from '../data/spec-maps.js';
 import { SUBSTRATE_APPLICATION_METHODS } from '../data/substrate-catalog.js';
+import { inferDefaultSystem } from '../data/system-catalog.js';
 
 // Items-based substrates (doors, windows) store per-item fields like
 // coating_type, substrate_state, wood_species_group on each item rather
@@ -48,7 +49,53 @@ export function resolveQualityTier(specId, room, project) {
       return subConfig.quality_tier;
     }
   }
+  // Room-level override (mirrors multi-qt.js:151 and resolveApplicationMethod cascade)
+  if (room.quality_tier) return room.quality_tier;
   return project.default_quality_tier;
+}
+
+/**
+ * Resolve the effective `system` (workflow intent) for a spec's substrate.
+ * Cascade, most→least specific:
+ *   1. Per-substrate override (`room.substrates[sub].system`)
+ *   2. Backward-compat: legacy `coating_type` on wood substrates maps to an
+ *      equivalent system value (no migration required on saved projects)
+ *   3. Per-room override (`room.system`)
+ *   4. Inferred default from (substrate × substrate_state) via system-catalog
+ *
+ * Returns null if nothing matches — the adapter treats null as "unknown"
+ * (activates all spec roles with input state, matching pre-Pass-A behavior).
+ */
+export function resolveSystem(specId, room, project) {
+  const primarySub = SPEC_SUBSTRATE_MAP[specId];
+  const subConfig = primarySub && room.substrates?.[primarySub];
+
+  // 1. Per-substrate override
+  if (subConfig?.system) return subConfig.system;
+
+  // 2. Backward compat — legacy coating_type on bare wood
+  if (subConfig?.substrate_state === 'bare_wood') {
+    if (subConfig?.coating_type === 'stain') return 'stain_sealer_clear';
+    if (subConfig?.coating_type === 'paint') return 'paint_full';
+  }
+
+  // 3. Per-room override
+  if (room.system) return room.system;
+
+  // 4. Inferred default — read top-level substrate_state, or fall back to
+  // items[0].substrate_state for items-based substrates (doors, windows).
+  if (primarySub) {
+    const stateForInference = subConfig?.substrate_state
+      ?? (Array.isArray(subConfig?.items) && subConfig.items.length > 0
+          ? subConfig.items[0].substrate_state
+          : undefined);
+    if (stateForInference) {
+      const inferred = inferDefaultSystem(primarySub, stateForInference);
+      if (inferred) return inferred;
+    }
+  }
+
+  return null;
 }
 
 export function resolveApplicationMethod(specId, room, project) {
