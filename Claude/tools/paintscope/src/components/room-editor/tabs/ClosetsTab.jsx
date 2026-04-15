@@ -1,6 +1,13 @@
 import { useState, useMemo } from 'react';
 import { CLOSET_SHELVING_TYPES } from '../../../state/initial-state';
 import { deriveCloset } from '../../../engine/derive-room';
+import {
+  SHELVING_PROTECTION_DEFAULTS,
+  PROTECTION_LEVELS,
+  PROTECTION_LEVEL_LABELS,
+  PROTECTION_LEVEL_MULTIPLIERS,
+  resolveProtectionLevel,
+} from '../../../data/closet-shelving-protection';
 
 const INHERITABLE_SUBSTRATES = [
   { id: 'walls', label: 'Walls', stateField: 'substrate_state' },
@@ -179,7 +186,15 @@ export default function ClosetsTab({ room, derived, dispatch, project }) {
                     <div>
                       <select
                         value={focused.shelving_type}
-                        onChange={e => setCl(focused.id, 'shelving_type', e.target.value)}
+                        onChange={e => {
+                          const newType = e.target.value;
+                          setCl(focused.id, 'shelving_type', newType);
+                          // Reset toggle + override when going back to 'none'
+                          if (newType === 'none') {
+                            setCl(focused.id, 'paint_shelving', true);
+                            setCl(focused.id, 'protection_level', null);
+                          }
+                        }}
                         style={{ width: '100%' }}
                       >
                         {CLOSET_SHELVING_TYPES.map(t => (
@@ -199,6 +214,83 @@ export default function ClosetsTab({ room, derived, dispatch, project }) {
                       </div>
                     )}
                   </div>
+
+                  {/* Paint / Don't paint toggle (only when type !== 'none') */}
+                  {focused.shelving_type !== 'none' && (
+                    <div style={{ display: 'flex', gap: 12, marginTop: 8, alignItems: 'center' }}>
+                      <label style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, cursor: 'pointer' }}>
+                        <input
+                          type="radio"
+                          name={`paint_shelving_${focused.id}`}
+                          checked={focused.paint_shelving !== false}
+                          onChange={() => setCl(focused.id, 'paint_shelving', true)}
+                        />
+                        Paint shelving
+                      </label>
+                      <label style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, cursor: 'pointer' }}>
+                        <input
+                          type="radio"
+                          name={`paint_shelving_${focused.id}`}
+                          checked={focused.paint_shelving === false}
+                          onChange={() => setCl(focused.id, 'paint_shelving', false)}
+                        />
+                        Don't paint (mask + protect)
+                      </label>
+                    </div>
+                  )}
+
+                  {/* Protection level dropdown + derived mask time (only when not painting) */}
+                  {focused.shelving_type !== 'none' && focused.paint_shelving === false && (() => {
+                    const def = SHELVING_PROTECTION_DEFAULTS[focused.shelving_type];
+                    const effectiveLevel = resolveProtectionLevel(focused);
+                    const isOverridden = !!focused.protection_level;
+                    const lf = parseFloat(focused.shelving_lf) || 0;
+                    const levelMult = PROTECTION_LEVEL_MULTIPLIERS[effectiveLevel] ?? 1.0;
+                    const setupHrs    = def ? lf * def.setup_min_per_lf    * levelMult / 60 : 0;
+                    const teardownHrs = def ? lf * def.teardown_min_per_lf * levelMult / 60 : 0;
+                    const totalMaskHrs = Math.round((setupHrs + teardownHrs) * 100) / 100;
+                    return (
+                      <div className="form-grid" style={{ gridTemplateColumns: '1fr 1fr', marginTop: 8 }}>
+                        <div>
+                          <div className="field-label">Protection level</div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                            <select
+                              value={effectiveLevel || ''}
+                              onChange={e => {
+                                const v = e.target.value;
+                                const defaultForType = def?.defaultLevel || null;
+                                // If user picks the type's default, clear the override
+                                setCl(focused.id, 'protection_level', v === defaultForType ? null : v);
+                              }}
+                              style={{ width: '100%' }}
+                            >
+                              {PROTECTION_LEVELS.map(lvl => (
+                                <option key={lvl} value={lvl}>{PROTECTION_LEVEL_LABELS[lvl]}</option>
+                              ))}
+                            </select>
+                            {isOverridden ? (
+                              <span
+                                className="override-toggle manual"
+                                style={{ cursor: 'pointer' }}
+                                onClick={() => setCl(focused.id, 'protection_level', null)}
+                                title="Reset to type default"
+                              >
+                                override
+                              </span>
+                            ) : (
+                              <span className="auto-tag">default</span>
+                            )}
+                          </div>
+                        </div>
+                        <div>
+                          <div className="field-label">Est. mask time</div>
+                          <div style={{ fontSize: 12, color: 'var(--text-secondary)', padding: '4px 0' }}>
+                            ~{totalMaskHrs} hrs
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })()}
                 </div>
 
                 {/* Inherited Substrates */}
