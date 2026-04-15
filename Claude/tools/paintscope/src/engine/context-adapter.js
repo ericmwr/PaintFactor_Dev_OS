@@ -53,7 +53,7 @@ const SPEC_TO_PAINTABLE_ITEM = {
   SF_TRIM_NC_PRIME:                 'trim',
   SF_DOOR_SLAB_INT_NC:              'door_slab',
   SF_DOOR_FRAME_NC_FINISH:          'door_frame',
-  SF_WINDOW_INT_NC:                 'int_window',
+  SF_WINDOW_INT_NC:                 'window',
   SF_STAIR_RISER_NC:                'int_stair_riser',
   SF_STAIR_RAILING_NC:              'int_stair_railing',
   SF_WAINSCOT_PANEL_NC:             'int_wainscot',
@@ -256,7 +256,7 @@ export function buildScenarioInputs(state, db) {
       Object.keys(room.fixtures || {}).forEach(fId => { ctx['has_' + fId] = true; });
 
       // Window substrate (matches line 231)
-      if (specId === 'SF_WINDOW_INT_NC') ctx.substrate = 'wood';
+      if (specId === 'SF_WINDOW_INT_NC') ctx.window_substrate_material = 'wood';
 
       // Beam overrides (matches lines 241-257)
       if (specId === 'SF_ARCH_ELEMENT_NC' && room.vaulted_ceiling && room.beams_enabled) {
