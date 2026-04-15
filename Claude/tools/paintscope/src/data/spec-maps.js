@@ -19,6 +19,9 @@ export const SPEC_SUBSTRATE_MAP = {
   'SF_STAIR_RISER_NC':           'stairway',
   'SF_STAIR_RAILING_NC':         'stairway',
   'SF_CABINET_NC_PAINT':         'doors',
+  // ── Interior RP ──
+  'SF_DRYWALL_WALL_INT_RP':      'walls',
+  'SF_DRYWALL_CEILING_INT_RP':   'ceiling',
   // ── Interior Stain/Clear ──
   'SF_TRIM_NC_STAIN':            'baseboard',
   'SF_DOOR_SLAB_INT_NC_STAIN':   'doors',
@@ -69,6 +72,89 @@ export const SPEC_SUBSTRATE_MAP = {
   'SF_METAL_EXT_RP':                'ext_metal',
 };
 
+// ============================================================
+// SPEC ROLE — which phase of the workflow each spec family represents.
+// ============================================================
+// Used by the system-catalog (Pass A) activation matrix to decide which specs
+// fire for a given system and what substrate_state each receives. Specs
+// whose names end in _PRIME / _FINISH / _STAIN / _CLEAR are role-split;
+// everything else is COMBINED (the scenario contains the full workflow).
+export const SPEC_ROLE = {
+  // Role-split interior
+  'SF_DRYWALL_WALL_NC_PRIME':     'PRIME',
+  'SF_DRYWALL_WALL_NC_FINISH':    'FINISH',
+  'SF_DRYWALL_CEILING_NC_PRIME':  'PRIME',
+  'SF_DRYWALL_CEILING_NC_FINISH': 'FINISH',
+  'SF_TRIM_NC_PRIME':             'PRIME',
+  'SF_TRIM_NC_PAINT':             'COMBINED',  // paint = prime+finish internally
+  'SF_TRIM_NC_STAIN':             'STAIN',     // stain = stain+sealer+clear internally
+  'SF_DOOR_FRAME_NC_FINISH':      'FINISH',
+  'SF_DOOR_FRAME_NC_STAIN':       'STAIN',
+
+  // Combined interior
+  'SF_DOOR_SLAB_INT_NC':          'COMBINED',
+  'SF_DOOR_SLAB_INT_NC_STAIN':    'STAIN',
+  'SF_WINDOW_INT_NC':             'COMBINED',
+  'SF_WINDOW_INT_NC_STAIN':       'STAIN',
+  'SF_WAINSCOT_PANEL_NC':         'COMBINED',
+  'SF_WAINSCOT_PANEL_NC_STAIN':   'STAIN',
+  'SF_WOOD_WALL_NC':              'COMBINED',
+  'SF_WOOD_WALL_NC_STAIN':        'STAIN',
+  'SF_WOOD_CEILING_NC':           'COMBINED',
+  'SF_WOOD_CEILING_NC_STAIN':     'STAIN',
+  'SF_CLOSET_SHELF_NC':           'COMBINED',
+  'SF_ARCH_ELEMENT_NC':           'COMBINED',
+  'SF_ARCH_ELEMENT_NC_STAIN':     'STAIN',
+  'SF_BUILTIN_NC':                'COMBINED',
+  'SF_STAIR_RISER_NC':            'COMBINED',
+  'SF_STAIR_RISER_NC_STAIN':      'STAIN',
+  'SF_STAIR_RAILING_NC':          'COMBINED',
+  'SF_STAIR_RAILING_NC_STAIN':    'STAIN',
+  'SF_CABINET_NC_PAINT':          'COMBINED',
+  'SF_WOOD_GRAIN_FILL_NC':        'COMBINED',
+
+  // Interior RP
+  'SF_DRYWALL_WALL_INT_RP':       'COMBINED',
+  'SF_DRYWALL_CEILING_INT_RP':    'COMBINED',
+
+  // Exterior — all treated COMBINED for Pass A (their scenarios already bundle workflow)
+  'SF_WOOD_SIDING_EXT_NC_PAINT':  'COMBINED',
+  'SF_SIDING_FIBERCEMENT_EXT_NC': 'COMBINED',
+  'SF_SIDING_ENGINEERED_EXT_NC':  'COMBINED',
+  'SF_STUCCO_EXT_NC':             'COMBINED',
+  'SF_MASONRY_EXT_NC':            'COMBINED',
+  'SF_TRIM_EXT_NC':               'COMBINED',
+  'SF_SOFFIT_EXT_NC':             'COMBINED',
+  'SF_WINDOW_EXT_NC':             'COMBINED',
+  'SF_DOOR_EXT_NC':               'COMBINED',
+  'SF_GARAGE_DOOR_EXT_NC':        'COMBINED',
+  'SF_CAULK_EXT':                 'COMBINED',
+  'SF_DECK_EXT':                  'COMBINED',
+  'SF_FENCE_EXT':                 'COMBINED',
+  'SF_FOUNDATION_EXT_NC':         'COMBINED',
+  'SF_PORCH_CEILING_EXT_NC':      'COMBINED',
+  'SF_PORCH_FLOOR_EXT_NC':        'COMBINED',
+  'SF_METAL_EXT':                 'COMBINED',
+  'SF_SIDING_WOOD_EXT_RP':        'COMBINED',
+  'SF_SIDING_ALUMINUM_EXT_RP':    'COMBINED',
+  'SF_SIDING_VINYL_EXT_RP':       'COMBINED',
+  'SF_SIDING_FIBERCEMENT_EXT_RP': 'COMBINED',
+  'SF_SIDING_ENGINEERED_EXT_RP':  'COMBINED',
+  'SF_STUCCO_EXT_RP':             'COMBINED',
+  'SF_MASONRY_EXT_RP':            'COMBINED',
+  'SF_TRIM_EXT_RP':               'COMBINED',
+  'SF_SOFFIT_EXT_RP':             'COMBINED',
+  'SF_WINDOW_EXT_RP':             'COMBINED',
+  'SF_DOOR_EXT_RP':               'COMBINED',
+  'SF_GARAGE_DOOR_EXT_RP':        'COMBINED',
+  'SF_DECK_EXT_RP':               'COMBINED',
+  'SF_FENCE_EXT_RP':              'COMBINED',
+  'SF_FOUNDATION_EXT_RP':         'COMBINED',
+  'SF_PORCH_CEILING_EXT_RP':      'COMBINED',
+  'SF_PORCH_FLOOR_EXT_RP':        'COMBINED',
+  'SF_METAL_EXT_RP':              'COMBINED',
+};
+
 // Maps UI substrate_state values to spec system enum values (SS_* codes)
 export const UI_STATE_TO_SPEC_STATE = {
   'bare_drywall':       'SS_BARE',
@@ -76,7 +162,9 @@ export const UI_STATE_TO_SPEC_STATE = {
   'factory_primed':     'SS_PRIMED_FACTORY',
   'previously_painted': 'SS_PAINTED',           // Generic prefix — matches any SS_PAINTED_*
   'previously_finished':'SS_PAINTED',           // Beam/specialty alias for previously_painted
+  'painted_drywall':    'SS_SOUND_PAINT',       // Interior RP drywall — sound paint (failing handled via substrate_condition)
   'bare_wood':          'SS_BARE',
+  'melamine':           'SS_FACTORY_FINISH',     // Closet shelf — factory-finished synthetic surface (laminate/melamine/thermofoil) requiring bonding primer
   'stained':            'SS_STAINED',
   'clear_coated':       'SS_CLEAR_COATED',
   'stained_sealed':     'SS_STAINED',           // Beam alias — stained and sealed wood
@@ -99,13 +187,16 @@ export const SPEC_VALID_INPUT_STATES = {
   'SF_WAINSCOT_PANEL_NC':        ['SS_BARE','SS_PRIMED_FACTORY'],
   'SF_WOOD_WALL_NC':             ['SS_BARE','SS_PRIMED_FACTORY'],
   'SF_WOOD_CEILING_NC':          ['SS_BARE','SS_PRIMED_FACTORY'],
-  'SF_CLOSET_SHELF_NC':          ['SS_BARE','SS_PRIMED_FACTORY'],
+  'SF_CLOSET_SHELF_NC':          ['SS_BARE','SS_PRIMED_FACTORY','SS_FACTORY_FINISH'],
   'SF_ARCH_ELEMENT_NC':          ['SS_BARE','SS_PRIMED_FACTORY'],
   'SF_BUILTIN_NC':               ['SS_BARE','SS_PRIMED_FACTORY'],
   'SF_STAIR_RISER_NC':           ['SS_BARE','SS_PRIMED_FACTORY'],
   'SF_STAIR_RAILING_NC':         ['SS_BARE','SS_PRIMED_FACTORY','SS_POWDER_COATED'],
   'SF_CABINET_NC_PAINT':         ['SS_BARE','SS_PRIMED_FACTORY'],
   'SF_WOOD_GRAIN_FILL_NC':       ['SS_PRIMED_FIELD','SS_PRIMED_FACTORY'],
+  // ── Interior RP ──
+  'SF_DRYWALL_WALL_INT_RP':      ['SS_SOUND_PAINT','SS_FAILING_PAINT'],
+  'SF_DRYWALL_CEILING_INT_RP':   ['SS_SOUND_PAINT','SS_FAILING_PAINT'],
   // ── Interior Stain/Clear ──
   'SF_TRIM_NC_STAIN':            ['SS_BARE', 'SS_STAINED'],
   'SF_DOOR_SLAB_INT_NC_STAIN':   ['SS_BARE', 'SS_STAINED'],
