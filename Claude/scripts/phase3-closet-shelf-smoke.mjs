@@ -34,6 +34,8 @@ const TESTS = [
     ctx: { paintable_item: 'closet', substrate_state: 'SS_FACTORY_FINISH', quality_tier: 'QT3', application_method: 'brush_roll', coating_type: 'paint', height_band: 'STD', complexity: 'STD' } },
   { id: 'SCN_CLOSET_SHELF_NC_QT3_BARE_SPRAY',
     ctx: { paintable_item: 'closet', substrate_state: 'SS_BARE', quality_tier: 'QT3', application_method: 'spray', coating_type: 'paint', height_band: 'STD', complexity: 'STD' } },
+  { id: 'SCN_CLOSET_SHELF_NC_QT3_BARE_ROLLOFF',
+    ctx: { paintable_item: 'closet', substrate_state: 'SS_BARE', quality_tier: 'QT3', application_method: 'spray_rolloff', coating_type: 'paint', height_band: 'STD', complexity: 'STD' } },
 ];
 
 console.log('Loading bundle from', REPO_ROOT);
