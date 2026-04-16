@@ -103,6 +103,17 @@ export const SUBSTRATE_CATALOG = [
     }
   },
   {
+    id: 'cabinets', group: 'Specialty', label: 'Cabinets', uom: 'EA',
+    autoDerive: null, defaultConfig: {
+      title: '', substrate_state: 'factory_finish', paint_cabinets: false,
+      protection_level: 'standard', quality_tier: null, application_method: 'spray',
+      coating_type: 'paint', sheen: 'satin', scope: 'full_exterior',
+      door_style: 'shaker', kitchen_complexity: 'galley', height_band: 'standard',
+      cabinet_count: 0, door_count: 0, drawer_count: 0,
+      frame_sf: 0, interior_sf: 0, hardware_count: 0, caulk_lf: 0,
+    }
+  },
+  {
     id: 'beams', group: 'Specialty', label: 'Beams', uom: 'EA',
     autoDerive: null, defaultConfig: { substrate_state: 'bare_wood', application_method: null, ea_manual: 0 }
   },
@@ -188,6 +199,7 @@ export const SUBSTRATE_APPLICATION_METHODS = {
   wood_feature_wall: { methods: ['brush', 'spray'], default: 'brush' },
   wood_ceiling: { methods: ['brush', 'spray'], default: 'brush' },
   closet_shelving: { methods: ['brush_roll', 'spray', 'spray_rolloff'], default: 'brush_roll' },
+  cabinets: { methods: ['spray', 'brush'], default: 'spray' },
   beams: { methods: ['brush', 'spray'], default: 'brush' },
   columns: { methods: ['brush', 'spray'], default: 'brush' },
   mantels: { methods: ['brush', 'spray'], default: 'brush' },
