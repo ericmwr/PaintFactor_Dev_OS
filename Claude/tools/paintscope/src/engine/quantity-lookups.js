@@ -330,6 +330,28 @@ export function buildRoomQuantityLookups(state) {
       addQ('PS_META.EA.CLOSETS_TOTAL', 'EA', closets.length);
     }
 
+    // ── Cabinet paint surface emission ──
+    // Emit paint surface keys only when paint_cabinets is true.
+    // When paint_cabinets is false, protection is handled by
+    // resolveCabinetProtection() in the run-estimate pipeline.
+    const cab = subs.cabinets;
+    if (cab && cab.paint_cabinets) {
+      const scope = cab.scope || 'full_exterior';
+      // Always emit doors + drawers + hardware (all scope levels)
+      if (cab.door_count > 0) addQ('PS_SURFACE_EA.CABINET_DOOR', 'EA', cab.door_count);
+      if (cab.drawer_count > 0) addQ('PS_SURFACE_EA.CABINET_DRAWER', 'EA', cab.drawer_count);
+      if (cab.hardware_count > 0) addQ('PS_SURFACE_EA.ASSET.CABINET_HARDWARE', 'EA', cab.hardware_count);
+      // Frame + caulk only for full_exterior and full_with_interior
+      if (scope !== 'doors_only') {
+        if (cab.frame_sf > 0) addQ('PS_SURFACE_SF.CABINET_FRAME', 'SF', cab.frame_sf);
+        if (cab.caulk_lf > 0) addQ('PS_SURFACE_LF.CABINET_CAULK', 'LF', cab.caulk_lf);
+      }
+      // Interior only for full_with_interior
+      if (scope === 'full_with_interior' && cab.interior_sf > 0) {
+        addQ('PS_SURFACE_SF.CABINET_INTERIOR', 'SF', cab.interior_sf);
+      }
+    }
+
     roomLookups.set(ri, { qty, closetQty });
   });
   return roomLookups;
