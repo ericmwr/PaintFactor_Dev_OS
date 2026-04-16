@@ -54,8 +54,6 @@ const SPEC_TO_PAINTABLE_ITEM = {
   SF_DOOR_SLAB_INT_NC:              'door_slab',
   SF_DOOR_FRAME_NC_FINISH:          'door_frame',
   SF_WINDOW_INT_NC:                 'window',
-  SF_STAIR_RISER_NC:                'stair_riser',
-  SF_STAIR_RAILING_NC:              'stair_railing',
   SF_WAINSCOT_PANEL_NC:             'wainscot',
   SF_WOOD_WALL_NC:                  'wood_wall',
   SF_WOOD_CEILING_NC:               'wood_ceiling',
@@ -69,8 +67,6 @@ const SPEC_TO_PAINTABLE_ITEM = {
   SF_DOOR_SLAB_INT_NC_STAIN:        'int_door_slab',
   SF_DOOR_FRAME_NC_STAIN:           'int_door_frame',
   SF_WINDOW_INT_NC_STAIN:           'int_window',
-  SF_STAIR_RAILING_NC_STAIN:        'int_stair_railing',
-  SF_STAIR_RISER_NC_STAIN:          'int_stair_riser',
   SF_WAINSCOT_PANEL_NC_STAIN:       'int_wainscot',
   SF_WOOD_WALL_NC_STAIN:            'int_wood_wall',
   SF_WOOD_CEILING_NC_STAIN:         'int_wood_ceiling',
@@ -127,6 +123,18 @@ const SPEC_TO_PAINTABLE_ITEM = {
   // Specialty add-on
   SF_WOOD_GRAIN_FILL_NC:            'grain_fill_surface',
 };
+
+// Stair NC specs use per-component expansion: the adapter emits one ctx per
+// enabled stairway component covered by the spec. Each ctx carries
+// paintable_item = <component> (e.g. 'baluster', 'tread'), not a single
+// spec-level paintable_item.
+export const COMPONENT_EXPANDED_SPECS = new Set([
+  'SF_STAIR_RISER_NC',
+  'SF_STAIR_RAILING_NC',
+  'SF_STAIR_RISER_NC_STAIN',
+  'SF_STAIR_RAILING_NC_STAIN',
+  'SF_STAIR_TREAD_NC_STAIN',
+]);
 
 /**
  * Build the per-spec per-room context + quantity lookup for every active
