@@ -148,6 +148,7 @@ export const SUBSTRATE_CATALOG = [
         open_rail:   { enabled: true, lf: null, lf_override: false, substrate_state: 'bare_wood', quality_tier: null, application_method: null, coating_type: 'paint', grain_fill: false },
         wall_rail:   { enabled: false, lf: 0, substrate_state: 'bare_wood', quality_tier: null, application_method: null, coating_type: 'paint', grain_fill: false },
         skirtboard:  { enabled: true, lf: null, lf_override: false, substrate_state: 'bare_wood', quality_tier: null, application_method: null, coating_type: 'paint', grain_fill: false },
+        stringer:    { enabled: true, lf: null, lf_override: false, substrate_state: 'bare_wood', quality_tier: null, application_method: null, coating_type: 'paint', grain_fill: false },
       }
     }
   },
