@@ -163,6 +163,7 @@ export function buildRoomQuantityLookups(state) {
         if (comps.wall_rail?.enabled !== false && (comps.wall_rail?.lf || 0) > 0)
           addQ('PS_SURFACE_LF.STAIR_WALL_RAIL', 'LF', comps.wall_rail.lf);
         emit(comps.skirtboard, 'PS_SURFACE_LF.STAIR_SKIRTBOARD', 'LF', derived.skirtboard_lf);
+        emit(comps.stringer, 'PS_SURFACE_LF.STAIR_STRINGER', 'LF', derived.total_rake_lf);
       }
     }
 
