@@ -133,6 +133,23 @@ export function migrateInline(parsed) {
       if (c.paint_shelving === undefined) c.paint_shelving = true;
       if (c.protection_level === undefined) c.protection_level = null;
     });
+    // v1.6: Backfill cabinet substrate defaults on existing rooms.
+    const existingCab = subs.cabinets;
+    if (existingCab) {
+      if (existingCab.paint_cabinets === undefined) existingCab.paint_cabinets = false;
+      if (existingCab.protection_level === undefined) existingCab.protection_level = 'standard';
+      if (existingCab.scope === undefined) existingCab.scope = 'full_exterior';
+      if (existingCab.door_style === undefined) existingCab.door_style = 'shaker';
+      if (existingCab.kitchen_complexity === undefined) existingCab.kitchen_complexity = 'galley';
+      if (existingCab.height_band === undefined) existingCab.height_band = 'standard';
+      if (existingCab.cabinet_count === undefined) existingCab.cabinet_count = 0;
+      if (existingCab.door_count === undefined) existingCab.door_count = 0;
+      if (existingCab.drawer_count === undefined) existingCab.drawer_count = 0;
+      if (existingCab.frame_sf === undefined) existingCab.frame_sf = 0;
+      if (existingCab.interior_sf === undefined) existingCab.interior_sf = 0;
+      if (existingCab.hardware_count === undefined) existingCab.hardware_count = 0;
+      if (existingCab.caulk_lf === undefined) existingCab.caulk_lf = 0;
+    }
     if (!r.extra_walls) r.extra_walls = [];
     if (!r.wall_deductions) r.wall_deductions = [];
     // v0.7 migration: initialize openings array; convert existing door items to single openings
