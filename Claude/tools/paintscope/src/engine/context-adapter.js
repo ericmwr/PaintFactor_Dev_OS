@@ -219,6 +219,37 @@ export function expandStairwaySpecContexts(specId, room, project) {
 }
 
 /**
+ * Build protect ctxs for a cabinet substrate in protect mode.
+ *
+ * Returns an array of 0 or 1 ctx objects. Ctx is emitted only when:
+ *   - room.substrates.cabinets exists
+ *   - cabinets.paint_cabinets === false (user chose protect)
+ *   - at least one cabinet face exists (door_count + drawer_count > 0)
+ *
+ * Matches SCN_CABINET_PROTECT_{LIGHT,STANDARD,HEAVY} scenarios.
+ */
+export function buildCabinetProtectCtxs(room, project) {
+  const cab = room?.substrates?.cabinets;
+  if (!cab) return [];
+  if (cab.paint_cabinets !== false) return [];
+  const totalFaces = (cab.door_count || 0) + (cab.drawer_count || 0);
+  if (totalFaces <= 0) return [];
+  const level = cab.protection_level || 'standard';
+  return [{
+    paintable_item: 'cabinet',
+    coating_type: 'protect',
+    protection_level: level,
+    quality_tier: cab.quality_tier || project?.default_quality_tier || 'QT3',
+    application_method: 'n/a',
+    substrate_state: 'SS_PROTECTED',
+    height_band: 'STD',
+    complexity: 'STD',
+    __specId: 'SF_CABINET_NC_PAINT',
+    __component: 'cabinet_protect',
+  }];
+}
+
+/**
  * Build the per-spec per-room context + quantity lookup for every active
  * (room, spec) pair in the project. Mirrors the `for (spec of db.spec_families)
  * { for (room of state.rooms) { ... } }` loop in run-estimate.js lines 180-280
