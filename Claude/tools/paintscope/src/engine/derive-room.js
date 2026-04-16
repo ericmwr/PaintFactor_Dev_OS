@@ -182,7 +182,9 @@ export function deriveRoom(room) {
 
   const effectiveHeight = (room.vaulted_ceiling && parseFloat(room.peak_height_ft) > H)
     ? parseFloat(room.peak_height_ft) : H;
-  const heightBand = deriveHeightBand(effectiveHeight);
+  // Honor explicit room-level override (defined in initial-state.js:100)
+  // before falling back to geometry-derived band.
+  const heightBand = room.height_band || deriveHeightBand(effectiveHeight);
 
   return {
     L, W, H, effectiveHeight, perimeter,

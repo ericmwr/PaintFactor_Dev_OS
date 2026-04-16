@@ -7,6 +7,7 @@ import {
   WINDOW_TYPE_LABELS,
   MUNTIN_MODIFIER,
 } from '../data/modifiers.js';
+import { getFactor, getModifier } from './modifier-registry.js';
 
 // Phase 0: Parallel scenario-based estimation orchestrator.
 //
@@ -155,19 +156,30 @@ const DYNAMIC_MODIFIERS = {
  * scenario's context. Unknown modifier IDs log a warning (passed in) and
  * default to 1.0.
  */
-function resolveScenarioModifiers(scenario, ctx, warnings) {
+function resolveScenarioModifiers(scenario, ctx, warnings, bundle = null) {
   const result = {};
   const list = Array.isArray(scenario.modifiers) ? scenario.modifiers : [];
   for (const modId of list) {
-    const def = DYNAMIC_MODIFIERS[modId];
-    if (!def) {
+    // Prefer bundle-sourced definition (from Claude/modifiers/FAC_*.json).
+    // Falls back to hardcoded DYNAMIC_MODIFIERS for backward compat during migration.
+    const bundleDef = getModifier(bundle, modId);
+    if (bundleDef) {
+      const ctxKey = bundleDef.ctx_key;
+      const raw = ctxKey ? ctx[ctxKey] : undefined;
+      const key = raw ?? bundleDef.default;
+      const val = bundleDef.factors?.[key];
+      result[modId] = (typeof val === 'number') ? val : 1.0;
+      continue;
+    }
+    const legacy = DYNAMIC_MODIFIERS[modId];
+    if (!legacy) {
       if (warnings) warnings.push(`Unknown modifier ${modId} in scenario ${scenario.scenario_id}`);
       result[modId] = 1.0;
       continue;
     }
-    const raw = ctx[def.ctxKey];
-    const key = raw ?? def.default;
-    const val = def.table[key];
+    const raw = ctx[legacy.ctxKey];
+    const key = raw ?? legacy.default;
+    const val = legacy.table[key];
     result[modId] = (typeof val === 'number') ? val : 1.0;
   }
   return result;
@@ -199,11 +211,11 @@ function computeDynamicStack(module, scenarioModifiers) {
  * (which is applied per-task by shouldApplyComplexity, matching run-estimate.js
  * lines 24-46). This keeps the field shape compatible with the legacy engine.
  */
-export function computeScenarioModifierStack(module, ctx, scenarioModifiers = null) {
+export function computeScenarioModifierStack(module, ctx, scenarioModifiers = null, bundle = null) {
   const eligibility = module.modifier_eligibility || {};
 
   const qt = eligibility.qt !== false
-    ? (QT_MODIFIERS[ctx.quality_tier] ?? 1.0)
+    ? (bundle ? getFactor(bundle, 'FAC_QT', ctx.quality_tier) : (QT_MODIFIERS[ctx.quality_tier] ?? 1.0))
     : 1.0;
 
   // Height resolution: exterior specs use ctx.access_type via FAC_EXT_ACCESS
@@ -212,19 +224,19 @@ export function computeScenarioModifierStack(module, ctx, scenarioModifiers = nu
   // not the interior height band. Otherwise fall back to interior height_band.
   const hasExtAccess = scenarioModifiers && scenarioModifiers.FAC_EXT_ACCESS != null;
   const height = eligibility.height !== false
-    ? (hasExtAccess ? 1.0 : (HEIGHT_MODIFIERS[ctx.height_band || 'STD'] ?? 1.0))
+    ? (hasExtAccess ? 1.0 : (bundle ? getFactor(bundle, 'FAC_HEIGHT', ctx.height_band || 'STD') : (HEIGHT_MODIFIERS[ctx.height_band || 'STD'] ?? 1.0)))
     : 1.0;
 
   const texture = eligibility.texture === true
-    ? (TEXTURE_MODIFIERS[ctx.surface_texture || 'smooth'] ?? 1.0)
+    ? (bundle ? getFactor(bundle, 'FAC_TEXTURE', ctx.surface_texture || 'smooth') : (TEXTURE_MODIFIERS[ctx.surface_texture || 'smooth'] ?? 1.0))
     : 1.0;
 
   const complexity = eligibility.complexity !== false
-    ? (COMPLEXITY_MODIFIERS[(ctx.complexity || 'STD').toUpperCase()] ?? 1.0)
+    ? (bundle ? getFactor(bundle, 'FAC_COMPLEXITY', (ctx.complexity || 'STD').toUpperCase()) : (COMPLEXITY_MODIFIERS[(ctx.complexity || 'STD').toUpperCase()] ?? 1.0))
     : 1.0;
 
   const condition = eligibility.condition !== false
-    ? (CONDITION_MODIFIERS[ctx.substrate_condition || 'fair'] ?? 1.0)
+    ? (bundle ? getFactor(bundle, 'FAC_CONDITION', ctx.substrate_condition || 'fair') : (CONDITION_MODIFIERS[ctx.substrate_condition || 'fair'] ?? 1.0))
     : 1.0;
 
   // Dynamic modifiers from scenario.modifiers[] (exterior access, substrate
@@ -452,7 +464,7 @@ export function runScenarioEstimate({ scenarioBundle, ctx, roomQty, roomItems = 
   // Resolve scenario-declared dynamic modifiers (exterior access, substrate
   // type, coating system, texture profile, etc.) once per run — they apply to
   // every module in the scenario.
-  const scenarioModifiers = resolveScenarioModifiers(scenario, ctx, warnings);
+  const scenarioModifiers = resolveScenarioModifiers(scenario, ctx, warnings, scenarioBundle);
 
   // Walk the modules[] in order. Repeated module IDs = multi-coat semantics:
   // each apply-phase module invocation increments a PER-MODULE counter, so
@@ -474,7 +486,7 @@ export function runScenarioEstimate({ scenarioBundle, ctx, roomQty, roomItems = 
     // Other phases (setup/prep/prime/interstage/cleanup) always run at coat 1.
     const coatNumber = (mod.phase === 'apply' || mod.phase === 'finish') ? moduleInvocations[moduleId] : 1;
 
-    const modStack = computeScenarioModifierStack(mod, ctx, scenarioModifiers);
+    const modStack = computeScenarioModifierStack(mod, ctx, scenarioModifiers, scenarioBundle);
 
     for (const task of mod.tasks) {
       // Task-level applies_when (not variant-level; variant-level lives inside rates[])
