@@ -313,6 +313,11 @@ export function buildRoomQuantityLookups(state) {
           addClosetQ('PS_SURFACE_LF.CLOSET_SHELF', 'LF', cd.shelving_lf);
         }
       }
+      // Closet shelf protection — emit LF when NOT painting shelves.
+      // Consumed by MOD_PROTECT_CLOSET_SHELF_* modules via SCN_CLOSET_SHELF_PROTECT_* scenarios.
+      if (closet.shelving_type !== 'none' && cd.shelving_lf > 0 && closet.paint_shelving === false) {
+        addClosetQ('PS_PROTECT_LF.CLOSET_SHELF_MASK', 'LF', cd.shelving_lf);
+      }
       // Closet perimeter edges + protection
       addClosetQ('PS_EDGE_LF.TO_CEILING', 'LF', cd.perimeter);
       if (cd.baseboard_lf > 0) {
@@ -350,6 +355,27 @@ export function buildRoomQuantityLookups(state) {
       // Interior only for full_with_interior
       if (scope === 'full_with_interior' && cab.interior_sf > 0) {
         addQ('PS_SURFACE_SF.CABINET_INTERIOR', 'SF', cab.interior_sf);
+      }
+    }
+    // ── Cabinet protection PS key emission ──
+    // Emit PS_PROTECT_* keys only when paint_cabinets is false (room is protecting cabinets).
+    // These quantities drive MOD_PROTECT_CABINET_* module tasks consumed by
+    // SCN_CABINET_PROTECT_{LIGHT,STANDARD,HEAVY} scenarios.
+    if (cab && cab.paint_cabinets === false) {
+      const totalFaces = (cab.door_count || 0) + (cab.drawer_count || 0);
+      if (totalFaces > 0) addQ('PS_PROTECT_EA.CABINET_FACE_COVERS', 'EA', totalFaces);
+      const level = cab.protection_level || 'standard';
+      if (level === 'standard' || level === 'heavy') {
+        if (cab.hardware_count > 0) addQ('PS_PROTECT_EA.ASSET.HARDWARE', 'EA', cab.hardware_count);
+        const counterLF = (cab.cabinet_count || 0) * 3;
+        if (counterLF > 0) addQ('PS_PROTECT_LF.COUNTERTOP_EDGE', 'LF', counterLF);
+      }
+      if (level === 'heavy') {
+        const floorSF = (cab.cabinet_count || 0) * 8;
+        const backsplashSF = (cab.cabinet_count || 0) * 3;
+        if (floorSF > 0) addQ('PS_PROTECT_SF.FLOOR_FULL_KITCHEN', 'SF', floorSF);
+        if (backsplashSF > 0) addQ('PS_PROTECT_SF.BACKSPLASH_MASK', 'SF', backsplashSF);
+        addQ('PS_PROTECT_EA.ASSET.APPLIANCES', 'EA', 2);
       }
     }
 
