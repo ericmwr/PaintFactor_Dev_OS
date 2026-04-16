@@ -250,6 +250,55 @@ export function buildCabinetProtectCtxs(room, project) {
 }
 
 /**
+ * Build protect ctxs for closets in protect mode.
+ *
+ * Iterates room.closets[] and emits one ctx per closet with:
+ *   - shelving_type !== 'none'
+ *   - shelving_lf > 0
+ *   - paint_shelving === false
+ *
+ * Protection level resolution: user override if set, else shelving-type default
+ * (wire_shelving → item_mask, wood_shelving → partial_cover, builtin_system → full_cover).
+ * Mirrors resolveProtectionLevel() in data/closet-shelving-protection.js.
+ *
+ * Matches SCN_CLOSET_SHELF_PROTECT_{ITEM_MASK,PARTIAL_COVER,FULL_COVER}.
+ */
+export function buildClosetShelfProtectCtxs(room, project) {
+  const closets = room?.closets || [];
+  if (closets.length === 0) return [];
+  const contexts = [];
+  for (const closet of closets) {
+    if (closet.shelving_type === 'none') continue;
+    const lf = parseFloat(closet.shelving_lf) || 0;
+    if (lf <= 0) continue;
+    if (closet.paint_shelving !== false) continue;
+    // Level: user override, else shelving-type default.
+    let level = closet.protection_level;
+    if (!level) {
+      level = closet.shelving_type === 'wire_shelving'  ? 'item_mask'
+            : closet.shelving_type === 'wood_shelving'  ? 'partial_cover'
+            : closet.shelving_type === 'builtin_system' ? 'full_cover'
+            : 'partial_cover';
+    }
+    contexts.push({
+      paintable_item: 'closet',
+      coating_type: 'protect',
+      protection_level: level,
+      quality_tier: closet.quality_tier || project?.default_quality_tier || 'QT3',
+      application_method: 'n/a',
+      substrate_state: 'SS_PROTECTED',
+      height_band: 'STD',
+      complexity: 'STD',
+      __specId: 'SF_CLOSET_SHELF_NC',
+      __component: 'closet_shelf_protect',
+      __closetId: closet.id || null,
+      __closetLabel: closet.label || null,
+    });
+  }
+  return contexts;
+}
+
+/**
  * Build the per-spec per-room context + quantity lookup for every active
  * (room, spec) pair in the project. Mirrors the `for (spec of db.spec_families)
  * { for (room of state.rooms) { ... } }` loop in run-estimate.js lines 180-280
