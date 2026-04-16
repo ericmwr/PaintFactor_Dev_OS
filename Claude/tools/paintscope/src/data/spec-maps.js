@@ -168,6 +168,7 @@ export const UI_STATE_TO_SPEC_STATE = {
   'painted_drywall':    'SS_SOUND_PAINT',       // Interior RP drywall — sound paint (failing handled via substrate_condition)
   'bare_wood':          'SS_BARE',
   'melamine':           'SS_FACTORY_FINISH',     // Closet shelf — factory-finished synthetic surface (laminate/melamine/thermofoil) requiring bonding primer
+  'factory_finish':     'SS_FACTORY_FINISH',     // Cabinet — factory-coated (thermofoil, factory-painted, laminated MDF) requiring bonding primer
   'stained':            'SS_STAINED',
   'clear_coated':       'SS_CLEAR_COATED',
   'stained_sealed':     'SS_STAINED',           // Beam alias — stained and sealed wood
@@ -200,6 +201,7 @@ export const SPEC_VALID_INPUT_STATES = {
   // ── Interior RP ──
   'SF_DRYWALL_WALL_INT_RP':      ['SS_SOUND_PAINT','SS_FAILING_PAINT'],
   'SF_DRYWALL_CEILING_INT_RP':   ['SS_SOUND_PAINT','SS_FAILING_PAINT'],
+  'SF_CABINET_INT_RP':           ['SS_SOUND_PAINT','SS_FAILING_PAINT'],
   // ── Interior Stain/Clear ──
   'SF_TRIM_NC_STAIN':            ['SS_BARE', 'SS_STAINED'],
   'SF_DOOR_SLAB_INT_NC_STAIN':   ['SS_BARE', 'SS_STAINED'],
