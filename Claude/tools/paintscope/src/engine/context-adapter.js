@@ -136,6 +136,88 @@ export const COMPONENT_EXPANDED_SPECS = new Set([
   'SF_STAIR_TREAD_NC_STAIN',
 ]);
 
+// Map spec_id → the list of stairway components it covers.
+// Each entry is a pair [substrate_key, paintable_item_name] because the
+// substrate uses plural names (risers/treads/balusters/newel_posts) but
+// the paintable_item must be singular.
+const STAIR_SPEC_COMPONENTS = {
+  'SF_STAIR_RISER_NC': [
+    ['stringer',   'stringer'],
+    ['risers',     'riser'],
+    ['skirtboard', 'skirtboard'],
+  ],
+  'SF_STAIR_RAILING_NC': [
+    ['balusters',   'baluster'],
+    ['newel_posts', 'newel'],
+    ['open_rail',   'open_rail'],
+    ['wall_rail',   'wall_rail'],
+  ],
+  'SF_STAIR_RISER_NC_STAIN': [
+    ['risers',     'riser'],
+  ],
+  'SF_STAIR_RAILING_NC_STAIN': [
+    ['balusters',   'baluster'],
+    ['newel_posts', 'newel'],
+    ['open_rail',   'open_rail'],
+    ['wall_rail',   'wall_rail'],
+  ],
+  'SF_STAIR_TREAD_NC_STAIN': [
+    ['treads',     'tread'],
+  ],
+};
+
+// Convert UI substrate_state (e.g. 'bare_wood', 'factory_primed', 'stained')
+// to the spec form (SS_BARE, SS_PRIMED_FACTORY, SS_STAINED).
+function stairUIStateToSpecState(uiState) {
+  switch (uiState) {
+    case 'bare_wood':       return 'SS_BARE';
+    case 'factory_primed':  return 'SS_PRIMED_FACTORY';
+    case 'stained':         return 'SS_STAINED';
+    default:                return 'SS_BARE';
+  }
+}
+
+/**
+ * For stair specs in COMPONENT_EXPANDED_SPECS, emit one ctx per enabled component.
+ * Each ctx carries paintable_item = <component> plus that component's own
+ * substrate_state, application_method, quality_tier, coating_type.
+ *
+ * Returns: array of ctx objects. Empty array if no enabled components or no stairway.
+ */
+export function expandStairwaySpecContexts(specId, room, project) {
+  const stair = room?.substrates?.stairway;
+  if (!stair) return [];
+  const componentPairs = STAIR_SPEC_COMPONENTS[specId];
+  if (!componentPairs) return [];
+
+  const isStainSpec = specId.includes('STAIN');
+  const contexts = [];
+
+  for (const [subKey, paintableItem] of componentPairs) {
+    const comp = stair.components?.[subKey];
+    if (!comp || comp.enabled === false) continue;
+
+    const ctx = {
+      paintable_item: paintableItem,
+      substrate_state: stairUIStateToSpecState(comp.substrate_state),
+      application_method: comp.application_method || (isStainSpec ? 'wipe' : 'brush'),
+      quality_tier: comp.quality_tier || project?.default_quality_tier || 'QT3',
+      coating_type: comp.coating_type || (isStainSpec ? 'stain_clear' : 'paint'),
+      grain_fill: comp.grain_fill || false,
+      height_band: 'STD',
+      complexity: 'STD',
+      __specId: specId,
+      __component: paintableItem,
+    };
+    if (paintableItem === 'baluster') {
+      ctx.baluster_type = comp.baluster_type || 'square';
+      ctx.material = comp.material || 'wood';
+    }
+    contexts.push(ctx);
+  }
+  return contexts;
+}
+
 /**
  * Build the per-spec per-room context + quantity lookup for every active
  * (room, spec) pair in the project. Mirrors the `for (spec of db.spec_families)
