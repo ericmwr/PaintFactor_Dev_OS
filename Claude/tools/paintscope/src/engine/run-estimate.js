@@ -10,6 +10,7 @@ import { computeMaterialEstimates, computeExteriorMaterialEstimates } from './ma
 import { resolveRoomFloorProtection } from './floor-protection.js';
 import { resolveRoomFixtureProtection } from './fixture-protection.js';
 import { resolveClosetShelfProtection } from './closet-shelf-protection.js';
+import { resolveCabinetProtection } from './cabinet-protection.js';
 import { resolveExteriorProtection } from './exterior-protection.js';
 import { computeBlendedRate, computeLineCost, computeBidPrice, computeTravelCost } from './pricing.js';
 import { SPEC_SUBSTRATE_MAP, SPEC_OUTPUT_STATES, UI_STATE_TO_SPEC_STATE, SPEC_VALID_INPUT_STATES, EXT_UI_STATE_TO_SPEC_STATE, EXTERIOR_SPEC_IDS, getExteriorSpecIds, STAIN_SPEC_FAMILIES, GRAIN_FILL_PARENT_SPEC } from '../data/spec-maps.js';
@@ -782,6 +783,9 @@ export function runEstimate(state, db, overlayMap, profile) {
   // Closet shelf protection (unpainted shelves: masking + obstruction)
   const closetShelfProtection = resolveClosetShelfProtection(rooms);
 
+  // Cabinet protection (unpainted cabinets: face covers + kitchen protection)
+  const cabinetProtection = resolveCabinetProtection(rooms);
+
   // Exterior protection dedup — per-elevation and per-standalone-item
   let exteriorProtection = { elevationProtection: {}, standaloneProtection: {} };
   if (exterior && exterior.elevations && exterior.elevations.length > 0) {
@@ -793,6 +797,7 @@ export function runEstimate(state, db, overlayMap, profile) {
   Object.values(roomProtection).forEach(rp => { grandTotalHours += rp.totalHours; });
   Object.values(fixtureProtection).forEach(fp => { grandTotalHours += fp.totalHours; });
   Object.values(closetShelfProtection).forEach(cp => { grandTotalHours += cp.totalHours; });
+  Object.values(cabinetProtection).forEach(cp => { grandTotalHours += cp.totalHours; });
   Object.values(exteriorProtection.elevationProtection).forEach(ep => { grandTotalHours += ep.totalHours; });
   Object.values(exteriorProtection.standaloneProtection).forEach(sp => { grandTotalHours += sp.totalHours; });
 
@@ -919,6 +924,7 @@ export function runEstimate(state, db, overlayMap, profile) {
     roomProtection,
     fixtureProtection,
     closetShelfProtection,
+    cabinetProtection,
     exteriorProtection,
     closetHoursByRoom,
     totalHours: Math.round(grandTotalHours * 100) / 100,
