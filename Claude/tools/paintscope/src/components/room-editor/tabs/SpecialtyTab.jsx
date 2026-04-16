@@ -3,6 +3,7 @@ import SubstrateDetailPanel from '../SubstrateDetailPanel';
 import BuiltinsDetailPanel from '../BuiltinsDetailPanel';
 import ClosetShelvingDetailPanel from '../ClosetShelvingDetailPanel';
 import StairwayDetailPanel from '../StairwayDetailPanel';
+import CabinetsDetailPanel from '../CabinetsDetailPanel';
 import { SUBSTRATE_MAP, SUBSTRATE_GROUPS } from '../../../data/substrate-catalog';
 
 const openingIds = new Set(['doors', 'windows', 'door_casing', 'window_casing', 'door_frames', 'window_jamb']);
@@ -77,6 +78,8 @@ export default function SpecialtyTab({ room, derived, dispatch, project, focused
               <ClosetShelvingDetailPanel room={room} dispatch={dispatch} project={project} />
             ) : focusedSubstrate === 'stairway' ? (
               <StairwayDetailPanel room={room} dispatch={dispatch} project={project} />
+            ) : focusedSubstrate === 'cabinets' ? (
+              <CabinetsDetailPanel room={room} dispatch={dispatch} project={project} />
             ) : (
               <SubstrateDetailPanel room={room} derived={derived} dispatch={dispatch} substrateId={focusedSubstrate} project={project} />
             )}
