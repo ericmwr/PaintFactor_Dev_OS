@@ -192,18 +192,28 @@ export function expandStairwaySpecContexts(specId, room, project) {
   if (!componentPairs) return [];
 
   const isStainSpec = specId.includes('STAIN');
+  // Set of acceptable coating_types for this spec. A component whose
+  // coating_type doesn't match is silently skipped — this prevents stain
+  // specs from emitting duplicate ctxs for paint components (and vice versa),
+  // which was causing double-counting in mixed-coating stairways.
+  const expectedCoatingTypes = isStainSpec
+    ? new Set(['stain_clear', 'stain_only', 'clear_only'])
+    : new Set(['paint']);
   const contexts = [];
 
   for (const [subKey, paintableItem] of componentPairs) {
     const comp = stair.components?.[subKey];
     if (!comp || comp.enabled === false) continue;
+    // Default coating_type if unset matches the spec's family.
+    const compCoatingType = comp.coating_type || (isStainSpec ? 'stain_clear' : 'paint');
+    if (!expectedCoatingTypes.has(compCoatingType)) continue;
 
     const ctx = {
       paintable_item: paintableItem,
       substrate_state: stairUIStateToSpecState(comp.substrate_state),
       application_method: comp.application_method || (isStainSpec ? 'wipe' : 'brush'),
       quality_tier: comp.quality_tier || project?.default_quality_tier || 'QT3',
-      coating_type: comp.coating_type || (isStainSpec ? 'stain_clear' : 'paint'),
+      coating_type: compCoatingType,
       grain_fill: comp.grain_fill || false,
       height_band: 'STD',
       complexity: 'STD',
