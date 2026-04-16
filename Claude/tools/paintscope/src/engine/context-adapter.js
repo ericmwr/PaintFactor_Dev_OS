@@ -282,6 +282,27 @@ export function buildScenarioInputs(state, db) {
       if (!primarySub) continue;
       const subConfig = subsObj[primarySub];
       if (!subConfig) continue;
+
+      // Per-component expansion for stair NC specs.
+      // These specs emit multiple roomInputs — one per enabled component —
+      // with per-component substrate_state, method, QT in each ctx.
+      // Bypass the room-level state compat check (each component's ctx
+      // carries its own substrate_state).
+      if (COMPONENT_EXPANDED_SPECS.has(specId)) {
+        const perComponentCtxs = expandStairwaySpecContexts(specId, room, project);
+        for (const compCtx of perComponentCtxs) {
+          roomInputs.push({
+            roomIndex: ri,
+            roomLabel,
+            specId,
+            ctx: compCtx,
+            roomQty,
+            roomItems,
+          });
+        }
+        continue;
+      }
+
       // Opening substrates (doors, windows, door_casing, window_casing) have
       // a painting toggle — skip specs whose substrate has painting=false.
       if (subConfig.painting === false) continue;
