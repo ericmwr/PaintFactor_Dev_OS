@@ -29,6 +29,7 @@ const ROOM = new Map([
   ['PS_PROTECT_LF.WALL_ADJACENT',   { value: 8 }],
   ['PS_PROTECT_EA.ASSET.FIXTURES',  { value: 1 }],
   ['PS_META.EA.ROOMS_TOTAL',        { value: 1 }],
+  ['PS_PROTECT_LF.CLOSET_SHELF_MASK',    { value: 20 }],
 ]);
 
 const QTS = ['QT2', 'QT3', 'QT4', 'QT5'];
@@ -92,6 +93,13 @@ TESTS.push(
     },
     regression: true,
   }
+);
+
+// 3 closet shelf protect cases
+TESTS.push(
+  { id: 'SCN_CLOSET_SHELF_PROTECT_ITEM_MASK',     ctx: { paintable_item: 'closet', coating_type: 'protect', protection_level: 'item_mask',     quality_tier: 'QT3', application_method: 'n/a', substrate_state: 'SS_PROTECTED', height_band: 'STD', complexity: 'STD' } },
+  { id: 'SCN_CLOSET_SHELF_PROTECT_PARTIAL_COVER', ctx: { paintable_item: 'closet', coating_type: 'protect', protection_level: 'partial_cover', quality_tier: 'QT3', application_method: 'n/a', substrate_state: 'SS_PROTECTED', height_band: 'STD', complexity: 'STD' } },
+  { id: 'SCN_CLOSET_SHELF_PROTECT_FULL_COVER',    ctx: { paintable_item: 'closet', coating_type: 'protect', protection_level: 'full_cover',    quality_tier: 'QT3', application_method: 'n/a', substrate_state: 'SS_PROTECTED', height_band: 'STD', complexity: 'STD' } },
 );
 
 console.log('Loading bundle from', REPO_ROOT);

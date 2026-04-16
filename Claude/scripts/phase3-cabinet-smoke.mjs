@@ -28,6 +28,12 @@ const ROOM = new Map([
   ['PS_PROTECT_SF.FLOOR_PERIMETER',   { value: 40 }],
   ['PS_PROTECT_LF.WALL_ADJACENT',     { value: 20 }],
   ['PS_META.EA.ROOMS_TOTAL',          { value: 1 }],
+  ['PS_PROTECT_EA.CABINET_FACE_COVERS',  { value: 18 }],
+  ['PS_PROTECT_EA.ASSET.HARDWARE',       { value: 24 }],
+  ['PS_PROTECT_LF.COUNTERTOP_EDGE',      { value: 15 }],
+  ['PS_PROTECT_SF.FLOOR_FULL_KITCHEN',   { value: 80 }],
+  ['PS_PROTECT_SF.BACKSPLASH_MASK',      { value: 30 }],
+  ['PS_PROTECT_EA.ASSET.APPLIANCES',     { value: 2 }],
 ]);
 
 const QTS = ['QT3', 'QT4', 'QT5'];
@@ -77,6 +83,13 @@ TESTS.push(
     ctx: { paintable_item: 'cabinet', substrate_state: 'SS_FAILING_PAINT', quality_tier: 'QT3', application_method: 'brush', coating_type: 'paint', height_band: 'STD', complexity: 'STD' },
     regression: true,
   }
+);
+
+// 3 cabinet protect cases
+TESTS.push(
+  { id: 'SCN_CABINET_PROTECT_LIGHT',    ctx: { paintable_item: 'cabinet', coating_type: 'protect', protection_level: 'light',    quality_tier: 'QT3', application_method: 'n/a', substrate_state: 'SS_PROTECTED', height_band: 'STD', complexity: 'STD' } },
+  { id: 'SCN_CABINET_PROTECT_STANDARD', ctx: { paintable_item: 'cabinet', coating_type: 'protect', protection_level: 'standard', quality_tier: 'QT3', application_method: 'n/a', substrate_state: 'SS_PROTECTED', height_band: 'STD', complexity: 'STD' } },
+  { id: 'SCN_CABINET_PROTECT_HEAVY',    ctx: { paintable_item: 'cabinet', coating_type: 'protect', protection_level: 'heavy',    quality_tier: 'QT3', application_method: 'n/a', substrate_state: 'SS_PROTECTED', height_band: 'STD', complexity: 'STD' } },
 );
 
 console.log('Loading bundle from', REPO_ROOT);
