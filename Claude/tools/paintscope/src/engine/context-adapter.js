@@ -299,6 +299,21 @@ export function buildClosetShelfProtectCtxs(room, project) {
 }
 
 /**
+ * Dispatcher for all protect-mode ctx builders.
+ *
+ * Returns a flat array of protect ctxs for the given room. Each
+ * substrate-specific helper decides whether to emit anything. Future
+ * substrates (walls, trim, floors) plug in here without changing the
+ * adapter's control flow.
+ */
+export function expandProtectContexts(room, project) {
+  const out = [];
+  out.push(...buildCabinetProtectCtxs(room, project));
+  out.push(...buildClosetShelfProtectCtxs(room, project));
+  return out;
+}
+
+/**
  * Build the per-spec per-room context + quantity lookup for every active
  * (room, spec) pair in the project. Mirrors the `for (spec of db.spec_families)
  * { for (room of state.rooms) { ... } }` loop in run-estimate.js lines 180-280
@@ -501,6 +516,19 @@ export function buildScenarioInputs(state, db) {
         roomLabel,
         specId,
         ctx,
+        roomQty,
+        roomItems,
+      });
+    }
+
+    // Protect-mode expansion: emit protect ctxs for cabinets/closets in protect mode.
+    // Each ctx becomes its own roomInput so the scenario matcher handles them like any other.
+    for (const protectCtx of expandProtectContexts(room, project)) {
+      roomInputs.push({
+        roomIndex: ri,
+        roomLabel,
+        specId: protectCtx.__specId,
+        ctx: protectCtx,
         roomQty,
         roomItems,
       });
