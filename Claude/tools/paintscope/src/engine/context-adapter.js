@@ -61,7 +61,7 @@ const SPEC_TO_PAINTABLE_ITEM = {
   SF_WOOD_CEILING_NC:               'wood_ceiling',
   SF_ARCH_ELEMENT_NC:               'arch_element',
   SF_BUILTIN_NC:                    'builtin',
-  SF_CABINET_NC_PAINT:              'int_cabinet',
+  SF_CABINET_NC_PAINT:              'cabinet',
   SF_CLOSET_SHELF_NC:               'closet',
 
   // Interior stain NC (matches SCN_INT_*_STAIN_CLEAR scenarios which use int_ prefix)
@@ -84,7 +84,7 @@ const SPEC_TO_PAINTABLE_ITEM = {
   SF_WINDOW_INT_RP:                 'int_window',
   SF_STAIR_INT_RP:                  'int_stair',
   SF_CLOSET_INT_RP:                 'closet',
-  SF_CABINET_INT_RP:                'int_cabinet',
+  SF_CABINET_INT_RP:                'cabinet',
   SF_SPECIALTY_INT_RP:              'int_specialty',
 
   // Exterior (families converted in Phase 2a)

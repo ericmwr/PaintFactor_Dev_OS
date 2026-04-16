@@ -18,10 +18,11 @@ export const SPEC_SUBSTRATE_MAP = {
   'SF_BUILTIN_NC':               'builtins',
   'SF_STAIR_RISER_NC':           'stairway',
   'SF_STAIR_RAILING_NC':         'stairway',
-  'SF_CABINET_NC_PAINT':         'doors',
+  'SF_CABINET_NC_PAINT':         'cabinets',
   // ── Interior RP ──
   'SF_DRYWALL_WALL_INT_RP':      'walls',
   'SF_DRYWALL_CEILING_INT_RP':   'ceiling',
+  'SF_CABINET_INT_RP':           'cabinets',
   // ── Interior Stain/Clear ──
   'SF_TRIM_NC_STAIN':            'baseboard',
   'SF_DOOR_SLAB_INT_NC_STAIN':   'doors',
@@ -192,7 +193,7 @@ export const SPEC_VALID_INPUT_STATES = {
   'SF_BUILTIN_NC':               ['SS_BARE','SS_PRIMED_FACTORY'],
   'SF_STAIR_RISER_NC':           ['SS_BARE','SS_PRIMED_FACTORY'],
   'SF_STAIR_RAILING_NC':         ['SS_BARE','SS_PRIMED_FACTORY','SS_POWDER_COATED'],
-  'SF_CABINET_NC_PAINT':         ['SS_BARE','SS_PRIMED_FACTORY'],
+  'SF_CABINET_NC_PAINT':         ['SS_BARE','SS_PRIMED_FACTORY','SS_FACTORY_FINISH','SS_STAINED'],
   'SF_WOOD_GRAIN_FILL_NC':       ['SS_PRIMED_FIELD','SS_PRIMED_FACTORY'],
   // ── Interior RP ──
   'SF_DRYWALL_WALL_INT_RP':      ['SS_SOUND_PAINT','SS_FAILING_PAINT'],
