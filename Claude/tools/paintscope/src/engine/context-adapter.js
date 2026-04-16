@@ -124,16 +124,17 @@ const SPEC_TO_PAINTABLE_ITEM = {
   SF_WOOD_GRAIN_FILL_NC:            'grain_fill_surface',
 };
 
-// Stair NC specs use per-component expansion: the adapter emits one ctx per
-// enabled stairway component covered by the spec. Each ctx carries
-// paintable_item = <component> (e.g. 'baluster', 'tread'), not a single
-// spec-level paintable_item.
+// Specs that use per-substrate-child expansion: the adapter emits one ctx per
+// enabled child element (stair components, closets) rather than a single
+// room-level ctx. Each ctx carries paintable_item = <child-scoped> (e.g.
+// 'baluster', 'tread', 'closet') instead of a spec-level paintable_item.
 export const COMPONENT_EXPANDED_SPECS = new Set([
   'SF_STAIR_RISER_NC',
   'SF_STAIR_RAILING_NC',
   'SF_STAIR_RISER_NC_STAIN',
   'SF_STAIR_RAILING_NC_STAIN',
   'SF_STAIR_TREAD_NC_STAIN',
+  'SF_CLOSET_SHELF_NC',
 ]);
 
 // Map spec_id → the list of stairway components it covers.
@@ -299,6 +300,54 @@ export function buildClosetShelfProtectCtxs(room, project) {
 }
 
 /**
+ * Build paint ctxs for closets in paint mode.
+ *
+ * Iterates room.closets[] and emits one ctx per closet with:
+ *   - shelving_type !== 'none'
+ *   - shelving_lf > 0
+ *   - paint_shelving !== false (paint is the default)
+ *
+ * Each ctx carries that closet's own substrate_state, quality_tier,
+ * application_method — critical for kits where a single room has closets
+ * with mixed states (bare + factory_primed + melamine etc.).
+ *
+ * Matches SCN_CLOSET_SHELF_NC_* scenarios.
+ */
+export function buildClosetShelfPaintCtxs(room, project) {
+  const closets = room?.closets || [];
+  if (closets.length === 0) return [];
+  const contexts = [];
+  for (const closet of closets) {
+    if (closet.shelving_type === 'none') continue;
+    const lf = parseFloat(closet.shelving_lf) || 0;
+    if (lf <= 0) continue;
+    if (closet.paint_shelving === false) continue; // protect path, not paint
+    // UI → spec state conversion (mirrors stair converter).
+    const uiState = closet.substrate_state;
+    const specState =
+      uiState === 'bare_wood'      ? 'SS_BARE'
+      : uiState === 'factory_primed' ? 'SS_PRIMED_FACTORY'
+      : uiState === 'melamine'     ? 'SS_FACTORY_FINISH'
+      : uiState === 'stained'      ? 'SS_STAINED'
+      : 'SS_BARE';
+    contexts.push({
+      paintable_item: 'closet',
+      coating_type: closet.coating_type || 'paint',
+      substrate_state: specState,
+      quality_tier: closet.quality_tier || project?.default_quality_tier || 'QT3',
+      application_method: closet.application_method || 'brush_roll',
+      height_band: 'STD',
+      complexity: 'STD',
+      __specId: 'SF_CLOSET_SHELF_NC',
+      __component: 'closet_shelf_paint',
+      __closetId: closet.id || null,
+      __closetLabel: closet.label || null,
+    });
+  }
+  return contexts;
+}
+
+/**
  * Dispatcher for all protect-mode ctx builders.
  *
  * Returns a flat array of protect ctxs for the given room. Each
@@ -378,13 +427,16 @@ export function buildScenarioInputs(state, db) {
       const subConfig = subsObj[primarySub];
       if (!subConfig) continue;
 
-      // Per-component expansion for stair NC specs.
-      // These specs emit multiple roomInputs — one per enabled component —
-      // with per-component substrate_state, method, QT in each ctx.
-      // Bypass the room-level state compat check (each component's ctx
-      // carries its own substrate_state).
+      // Per-child-element expansion for stair NC + closet shelf specs.
+      // These specs emit multiple roomInputs — one per enabled child element
+      // (stair component or closet) — with per-child substrate_state, method,
+      // QT in each ctx. Bypass the room-level state compat check (each
+      // ctx carries its own substrate_state).
       if (COMPONENT_EXPANDED_SPECS.has(specId)) {
-        const perComponentCtxs = expandStairwaySpecContexts(specId, room, project);
+        const perComponentCtxs =
+          specId === 'SF_CLOSET_SHELF_NC'
+            ? buildClosetShelfPaintCtxs(room, project)
+            : expandStairwaySpecContexts(specId, room, project);
         for (const compCtx of perComponentCtxs) {
           roomInputs.push({
             roomIndex: ri,
@@ -441,6 +493,7 @@ export function buildScenarioInputs(state, db) {
         application_method: resolveApplicationMethod(specId, room, project),
         surface_texture: resolveTextureForSpec(specId, room, project),
         substrate_state: effectiveSubstrateState,
+        coating_type: coatingType,
 
         // Room adjacency
         floor_type: room.floor_type || 'subfloor',
@@ -475,9 +528,9 @@ export function buildScenarioInputs(state, db) {
         }
       }
 
-      // Stain-specific context (matches lines 260-270)
+      // Stain-specific context (matches lines 260-270). coating_type is
+      // emitted for all specs above; stain specs add method/species/coat fields.
       if (STAIN_SPEC_FAMILIES.has(specId)) {
-        ctx.coating_type = coatingType;
         ctx.application_method_stain = resolveStainMethod(specId, room, project);
         ctx.application_method_clear = resolveClearMethod(specId, room, project);
         ctx.wood_species_group = resolveWoodSpecies(specId, room, project);
