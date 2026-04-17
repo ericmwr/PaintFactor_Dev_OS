@@ -39,22 +39,35 @@ export function computeWindowPerItemResults(effRate, modStackTotal, room) {
   return results.length > 0 ? results : null;
 }
 
+// Tasks where door_type panel complexity modifier applies.
+// Sanding (more surface area), brush cutting in (more edges), cleaning (more surfaces).
+// Setup, spray, prime, inspect, hardware tasks use flat rates regardless of panel count.
+const DOOR_TYPE_MOD_TASKS = new Set([
+  'TSK_DOOR_SAND_PREP',
+  'TSK_DOOR_LIGHT_SAND',
+  'TSK_DOOR_FINISH_BRUSH',
+  'TSK_DOOR_CLEAN_DUST',
+  'TSK_DOOR_CLEAN_INTERSTAGE',
+]);
+
 /**
  * Compute per-item results for door tasks using PS_SURFACE_EA_SIDE.DOOR_SLAB
  * or PS_OPENING_EA.DOOR_OPENINGS_TOTAL.
  * Returns an array of per-item results, each representing a unique door type
  * with its complexity modifier and hours.
  * @param useSides - true for EA_SIDE tasks, false for EA (opening) tasks
+ * @param taskId - task ID used to determine if door_type modifier applies
  */
-export function computeDoorPerItemResults(effRate, modStackTotal, room, useSides) {
+export function computeDoorPerItemResults(effRate, modStackTotal, room, useSides, taskId) {
   const doors = room.substrates?.doors?.items || [];
   const results = [];
+  const applyTypeMod = DOOR_TYPE_MOD_TASKS.has(taskId);
 
   doors.forEach(door => {
     const cnt = door.count || 0;
     if (cnt <= 0) return;
     const qty = useSides ? cnt * (parseInt(door.sides_per_door) || 2) : cnt;
-    const typeMod = DOOR_TYPE_MODIFIERS[door.door_type] || 1.0;
+    const typeMod = applyTypeMod ? (DOOR_TYPE_MODIFIERS[door.door_type] || 1.0) : 1.0;
     // effective_rate = base_rate / (room_modifiers * type_modifier)
     const itemEffRate = effRate / (modStackTotal * typeMod);
     const hours = qty / itemEffRate;
