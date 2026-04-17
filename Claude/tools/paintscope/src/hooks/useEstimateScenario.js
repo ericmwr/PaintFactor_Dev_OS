@@ -1,18 +1,18 @@
 // Parallel scenario-engine estimate hook. Runs the new module-based engine
 // on the same project state the legacy engine consumes via useEstimate().
-// Returns null if the bundle hasn't been generated, or { totalHours,
-// phaseHours, perInputResults, warnings, gaps } when the run succeeds.
+//
+// Returns an estimate-compatible object with the SAME SHAPE as run-estimate.js:
+//   { specResults, roomProtection, fixtureProtection, totalHours, totalCrewDays,
+//     closetHoursByRoom, warnings, materialEstimates, activatedSpecs, totalSpecs,
+//     pricing, perInputResults, gaps, bundleStats }
+//
+// The specResults normalization (Step 1) groups per-input results by
+// (roomIndex, specId) into the specResults[] array that EstimateView and
+// all downstream components consume. Steps 2-4 add protection, crew days,
+// and closet hours on top.
 //
 // This hook never mutates state and never throws — it always returns either
 // a result or null, so it's safe to render alongside the legacy estimate.
-//
-// The bundle is imported statically from scenario-bundle.gen.js, which is
-// produced by Claude/scripts/build-scenario-bundle.mjs. Re-run that script
-// after authoring new modules/scenarios.
-//
-// Overlay: authoring drafts in IndexedDB are merged over the canonical
-// bundle once per session via overlay-loader. Revisions to drafts require
-// a page reload to re-merge (acceptable for an admin tool).
 
 import { useMemo, useState, useEffect } from 'react';
 import { useProject } from './useProject';
@@ -21,6 +21,8 @@ import { runScenarioEstimate } from '../engine/run-estimate-scenario.js';
 import { buildScenarioInputs } from '../engine/context-adapter.js';
 import { findBestMatch, findNearMisses } from '../engine/scenario-matcher.js';
 import { loadOverlayBundle } from '../engine/overlay-loader.js';
+import { resolveRoomFloorProtection } from '../engine/floor-protection.js';
+import { resolveRoomFixtureProtection } from '../engine/fixture-protection.js';
 import canonicalBundle from '../data/scenario-bundle.gen.js';
 
 export function useEstimateScenario() {
@@ -60,13 +62,11 @@ export function useEstimateScenario() {
         adapter = buildScenarioInputs(state, specData);
       } catch (adapterErr) {
         console.error('[PaintScope] Adapter error:', adapterErr);
-        return { error: `Adapter: ${adapterErr.message}`, totalHours: 0, phaseHours: {}, perInputResults: [], gaps: [], warnings: [], bundleStats };
+        return { error: `Adapter: ${adapterErr.message}`, specResults: [], totalHours: 0, totalCrewDays: 0, phaseHours: {}, perInputResults: [], gaps: [], warnings: [], bundleStats, roomProtection: {}, fixtureProtection: {}, closetHoursByRoom: {}, materialEstimates: [], pricing: null, activatedSpecs: 0, totalSpecs: 0 };
       }
       const perInputResults = [];
-      const phaseHours = {};
       const gaps = [];
       const warnings = [...adapter.warnings];
-      let totalHours = 0;
 
       for (const input of adapter.roomInputs) {
         try {
@@ -124,29 +124,156 @@ export function useEstimateScenario() {
       // counted once per (room, spec), not once per component.
       dedupeSharedTasks(perInputResults);
 
-      // Recompute totals from (possibly deduped) per-input results.
-      totalHours = 0;
-      for (const k of Object.keys(phaseHours)) delete phaseHours[k];
-      for (const pr of perInputResults) {
-        totalHours += pr.totalHours;
-        for (const [phase, hrs] of Object.entries(pr.phaseHours)) {
+      // ── Step 1: Normalize perInputResults → specResults ──
+      // Groups by (roomIndex, specId), merges tasks, produces the same shape
+      // that EstimateView and all downstream components consume.
+      const specResults = normalizeToSpecResults(perInputResults, specData);
+
+      // ── Step 2: Protection resolvers ──
+      // Derive roomSpecMethods from perInputResults (needed by fixture protection).
+      const rooms = state.rooms || [];
+      const roomSpecMethods = perInputResults.map(pr => ({
+        roomIndex: pr.roomIndex,
+        specId: pr.specId,
+        method: pr.ctx?.application_method || 'brush_roll',
+      }));
+      const roomProtection = resolveRoomFloorProtection(specResults, specData, rooms);
+      const fixtureProtection = resolveRoomFixtureProtection(rooms, roomSpecMethods);
+
+      // ── Step 3: Grand total + crew days ──
+      let grandTotalHours = specResults.reduce((s, sr) => s + sr.totalHours, 0);
+      Object.values(roomProtection).forEach(rp => { grandTotalHours += rp.totalHours; });
+      Object.values(fixtureProtection).forEach(fp => { grandTotalHours += fp.totalHours; });
+      grandTotalHours = Math.round(grandTotalHours * 100) / 100;
+      const totalCrewDays = Math.round((grandTotalHours / 8 / 2) * 10) / 10;
+
+      // ── Step 4: Closet hours allocation ──
+      const closetHoursByRoom = {};
+      const roomLookups = adapter.lookups;
+      rooms.forEach((room, ri) => {
+        const roomLookup = roomLookups.get(ri);
+        const roomQty = roomLookup?.qty;
+        const cQty = roomLookup?.closetQty;
+        if (!cQty || cQty.size === 0) return;
+        let closetSurfaceTotal = 0, roomSurfaceTotal = 0;
+        roomQty.forEach((val, key) => {
+          if (key.startsWith('PS_SURFACE_')) roomSurfaceTotal += val.value;
+        });
+        cQty.forEach((val, key) => {
+          if (key.startsWith('PS_SURFACE_')) closetSurfaceTotal += val.value;
+        });
+        if (roomSurfaceTotal <= 0) return;
+        const fraction = closetSurfaceTotal / roomSurfaceTotal;
+        let roomHours = 0;
+        specResults.forEach(sr => {
+          if (sr.domain === 'exterior') return;
+          sr.tasks.forEach(t => { if (t.roomIndex === ri) roomHours += t.hours; });
+        });
+        closetHoursByRoom[ri] = Math.round(roomHours * fraction * 100) / 100;
+      });
+
+      // Recompute phase totals from specResults (post-merge).
+      const phaseHours = {};
+      for (const sr of specResults) {
+        for (const [phase, hrs] of Object.entries(sr.phaseHours)) {
           phaseHours[phase] = Math.round(((phaseHours[phase] || 0) + hrs) * 100) / 100;
         }
       }
 
       return {
-        totalHours: Math.round(totalHours * 100) / 100,
-        phaseHours,
+        // Legacy-compatible shape (Steps 1-4)
+        specResults,
+        roomProtection,
+        fixtureProtection,
+        exteriorProtection: { elevationProtection: {}, standaloneProtection: {} },
+        closetHoursByRoom,
+        totalHours: grandTotalHours,
+        totalCrewDays,
+        warnings,
+        materialEstimates: [],   // Step 5 — not yet wired
+        activatedSpecs: specResults.length,
+        totalSpecs: specData?.spec_families?.length || 0,
+        pricing: null,           // Step 6 — not yet wired
+        // Scenario-specific extras (Dev tab still uses these)
         perInputResults,
         gaps,
-        warnings,
         bundleStats,
+        phaseHours,
       };
     } catch (e) {
       console.error('[PaintScope] Scenario estimate error:', e);
-      return { error: e.message, totalHours: 0, phaseHours: {}, perInputResults: [], gaps: [], warnings: [], bundleStats };
+      return { error: e.message, specResults: [], totalHours: 0, totalCrewDays: 0, phaseHours: {}, perInputResults: [], gaps: [], warnings: [], bundleStats, roomProtection: {}, fixtureProtection: {}, closetHoursByRoom: {}, materialEstimates: [], pricing: null, activatedSpecs: 0, totalSpecs: 0 };
     }
   }, [state, specData, bundle, overlayStats]);
+}
+
+/**
+ * Step 1: Normalize perInputResults into specResults[].
+ *
+ * Groups by (roomIndex, specId), merges tasks from multi-component results
+ * (stairs, closets), and produces the same shape as run-estimate.js:
+ *   { specId, specName, domain, totalHours, phaseHours, tasks[] }
+ *
+ * Each task retains its roomIndex, roomLabel, phase, hours, modStack etc.
+ * so EstimateView can group by room → spec → task.
+ */
+function normalizeToSpecResults(perInputResults, specData) {
+  // Lookup table: specId → { name, domain } from the DB bundle
+  const specLookup = {};
+  if (specData?.spec_families) {
+    for (const sf of specData.spec_families) {
+      specLookup[sf.id] = { name: sf.name, domain: sf.domain || 'interior' };
+    }
+  }
+
+  // Group by (roomIndex, specId) — multi-component specs (stairs, closets)
+  // produce multiple perInputResults that belong together.
+  const groups = new Map();
+  for (const pr of perInputResults) {
+    const key = `${pr.roomIndex}|${pr.specId}`;
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(pr);
+  }
+
+  const specResults = [];
+  for (const [, group] of groups) {
+    const first = group[0];
+    const specId = first.specId;
+    const info = specLookup[specId] || {};
+
+    // Merge tasks from all results in the group
+    const allTasks = [];
+    for (const pr of group) {
+      for (const t of pr.tasks || []) {
+        allTasks.push({
+          ...t,
+          // Ensure legacy field names are present
+          module: t.moduleId || t.module || null,
+        });
+      }
+    }
+
+    // Compute totals
+    const totalHours = Math.round(allTasks.reduce((s, t) => s + (t.hours || 0), 0) * 100) / 100;
+    const phaseHours = {};
+    for (const t of allTasks) {
+      const p = t.phase || 'apply';
+      phaseHours[p] = Math.round(((phaseHours[p] || 0) + (t.hours || 0)) * 100) / 100;
+    }
+
+    specResults.push({
+      specId,
+      specName: info.name || first.scenarioName || specId,
+      domain: info.domain || 'interior',
+      totalHours,
+      phaseHours,
+      tasks: allTasks,
+    });
+  }
+
+  // Sort by total hours descending (matches legacy behavior)
+  specResults.sort((a, b) => b.totalHours - a.totalHours);
+  return specResults;
 }
 
 /**
