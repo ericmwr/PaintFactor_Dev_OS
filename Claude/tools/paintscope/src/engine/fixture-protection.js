@@ -174,6 +174,59 @@ export function resolveRoomFixtureProtection(rooms, roomSpecMethods) {
         return;
       }
 
+      // Cabinet protection: LF-based covering (Protection tab)
+      if (fixtureId === 'cabinets') {
+        const cfg = fixtures[fixtureId];
+        const lf = parseFloat(cfg.linear_ft) || 0;
+        if (lf <= 0) return;
+        const hasUppers = cfg.layout === 'lower_upper';
+        const lowerFaces = Math.ceil(lf / 1.5);
+        const upperFaces = hasUppers ? Math.ceil(lf / 2) : 0;
+        const totalFaces = lowerFaces + upperFaces;
+        const protLevel = cfg.protection || 'full_cover';
+        // Rates aligned with MOD_PROTECT_CABINET_* module tasks
+        const FACE_COVER_RATE = 20;       // EA/hr — cover cabinet faces
+        const HARDWARE_RATE = 40;          // EA/hr — cover hardware
+        const COUNTERTOP_RATE = 50;        // LF/hr — mask countertop edges
+        const TEARDOWN_RATE = 40;          // EA/hr — remove face covers
+        const hwCount = totalFaces * 2;
+        const setupHrs = round3(totalFaces / FACE_COVER_RATE + hwCount / HARDWARE_RATE + lf / COUNTERTOP_RATE);
+        const teardownHrs = round3(totalFaces / TEARDOWN_RATE);
+        tasks.push({
+          taskId: '__FP_CABINET_PROTECT_SETUP__',
+          taskName: `Protect Cabinets \u2014 ${capitalize(protLevel.replace(/_/g, ' '))} (${totalFaces} faces, ${lf} LF)`,
+          phase: 'setup',
+          hours: setupHrs,
+          isFixed: false,
+          baseRate: `${FACE_COVER_RATE} EA/hr + ${COUNTERTOP_RATE} LF/hr`,
+          quantity: totalFaces,
+          uom: 'EA',
+          isFixtureProtection: true,
+          fixtureId,
+          protectionLevel: protLevel,
+          mechanism: 'task',
+          roomIndex: riNum,
+          roomLabel: room.label,
+        });
+        tasks.push({
+          taskId: '__FP_CABINET_PROTECT_TEARDOWN__',
+          taskName: `Remove Cabinet Protection (${totalFaces} faces)`,
+          phase: 'cleanup',
+          hours: teardownHrs,
+          isFixed: false,
+          baseRate: `${TEARDOWN_RATE} EA/hr`,
+          quantity: totalFaces,
+          uom: 'EA',
+          isFixtureProtection: true,
+          fixtureId,
+          protectionLevel: protLevel,
+          mechanism: 'task',
+          roomIndex: riNum,
+          roomLabel: room.label,
+        });
+        return;
+      }
+
       // Only bathroom fixtures have context-dependent scenarios
       if (fixtureDef.group !== 'Bathroom') return;
 
