@@ -46,7 +46,7 @@ export function createCloset(overrides={}) {
 }
 
 export function createDoor(overrides={}) {
-  return { id:genId('door'), count:1, door_type:'panel_6', substrate_state:'factory_primed', sides_per_door:2, ...overrides };
+  return { id:genId('door'), count:1, door_type:'panel_6', substrate_state:'factory_primed', sides_per_door:2, painting:true, ...overrides };
 }
 
 export function createWindow(overrides={}) {

@@ -247,26 +247,37 @@ export default function OpeningsTab({ room, derived, dispatch, project }) {
           <div style={{ color: 'var(--text-muted)', padding: 8, textAlign: 'center', fontSize: 12 }}>No door panels added yet.</div>
         ) : (
           <table className="data-table">
-            <thead><tr><th>Count</th><th>Type</th><th>Substrate State</th><th>Sides</th><th>Total Sides</th><th></th></tr></thead>
+            <thead><tr><th>Count</th><th>Type</th><th>Scope</th><th>Substrate State</th><th>Sides</th><th>Total Sides</th><th></th></tr></thead>
             <tbody>
-              {doorItems.map(door => (
+              {doorItems.map(door => {
+                const itemPainting = door.painting !== false;
+                const effectivelyPainting = doorsPainting && itemPainting;
+                return (
                 <React.Fragment key={door.id}>
                   <tr>
                     <td><input type="number" value={door.count || ''} min="0" onChange={e => dispatch({ type: 'SET_DOOR', payload: { roomId: rid, doorId: door.id, field: 'count', value: parseInt(e.target.value) || 0 } })} style={{ width: 60 }} placeholder="0" /></td>
                     <td><Select options={ENUMS.doorTypes} value={door.door_type} onChange={v => dispatch({ type: 'SET_DOOR', payload: { roomId: rid, doorId: door.id, field: 'door_type', value: v } })} /></td>
+                    <td>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }} title={doorsPainting ? '' : 'Enable Paint Doors above to allow painting individual items'}>
+                        <Toggle checked={itemPainting} onChange={() => dispatch({ type: 'SET_DOOR', payload: { roomId: rid, doorId: door.id, field: 'painting', value: !itemPainting } })} />
+                        <span style={{ fontSize: 10, fontWeight: 500, color: effectivelyPainting ? 'var(--accent)' : 'var(--text-muted)' }}>
+                          {effectivelyPainting ? 'PAINT' : 'PROTECT'}
+                        </span>
+                      </div>
+                    </td>
                     <td><Select options={doorStates} value={door.substrate_state} onChange={v => dispatch({ type: 'SET_DOOR', payload: { roomId: rid, doorId: door.id, field: 'substrate_state', value: v } })} /></td>
                     <td><input type="number" value={door.sides_per_door || ''} min="1" max="2" onChange={e => dispatch({ type: 'SET_DOOR', payload: { roomId: rid, doorId: door.id, field: 'sides_per_door', value: parseInt(e.target.value) || 2 } })} style={{ width: 50 }} placeholder="2" /></td>
                     <td style={{ fontFamily: 'var(--font-mono)', color: 'var(--accent)' }}>{(parseInt(door.count) || 0) * (parseInt(door.sides_per_door) || 2)} EA_SIDE</td>
                     <td><button className="btn btn-sm btn-danger" onClick={() => dispatch({ type: 'REMOVE_DOOR', payload: { roomId: rid, doorId: door.id } })}>&#x2715;</button></td>
                   </tr>
-                  {door.substrate_state === 'bare_wood' && doorsPainting && (
-                    <tr><td colSpan="6" style={{ padding: '2px 0' }}>
+                  {door.substrate_state === 'bare_wood' && effectivelyPainting && (
+                    <tr><td colSpan="7" style={{ padding: '2px 0' }}>
                       <InlineCoatingControls subConfig={door} onSet={(f, v) => dispatch({ type: 'SET_DOOR', payload: { roomId: rid, doorId: door.id, field: f, value: v } })} />
                       <InlineGrainFill subConfig={door} onSet={(f, v) => dispatch({ type: 'SET_DOOR', payload: { roomId: rid, doorId: door.id, field: f, value: v } })} />
                     </td></tr>
                   )}
                 </React.Fragment>
-              ))}
+              );})}
             </tbody>
           </table>
         )}

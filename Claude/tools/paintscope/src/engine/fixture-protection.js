@@ -77,10 +77,14 @@ export function resolveRoomFixtureProtection(rooms, roomSpecMethods) {
         });
       }
 
-      // Auto-detect: Door masking when spray fires + doors exist but aren't being painted
+      // Auto-detect: Door masking when spray fires + doors exist but aren't being painted.
+      // Item is unpainted if the substrate-level toggle is off OR the per-item paint flag is false.
       const doorItems = subs.doors?.items || [];
       const doorsPainting = !!subs.doors?.painting;
-      const unpaintedDoorCount = doorsPainting ? 0 : doorItems.reduce((sum, d) => sum + (parseInt(d.count) || 0), 0);
+      const unpaintedDoorCount = doorItems.reduce((sum, d) => {
+        const itemPainting = d.painting !== false;
+        return (doorsPainting && itemPainting) ? sum : sum + (parseInt(d.count) || 0);
+      }, 0);
       if (unpaintedDoorCount > 0) {
         tasks.push({
           taskId: '__FP_DOOR_MASK_SETUP__',

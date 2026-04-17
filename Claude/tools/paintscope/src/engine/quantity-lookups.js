@@ -77,7 +77,8 @@ export function buildRoomQuantityLookups(state) {
     doorItems.forEach(door => {
       const cnt = parseInt(door.count) || 0;
       const sides = cnt * (parseInt(door.sides_per_door) || 2);
-      if (doorsPainting2) {
+      const itemPainting = door.painting !== false;
+      if (doorsPainting2 && itemPainting) {
         const ct = door.coating_type || 'paint';
         if (ct === 'paint') {
           addQ('PS_SURFACE_EA_SIDE.DOOR_SLAB', 'EA_SIDE', sides);

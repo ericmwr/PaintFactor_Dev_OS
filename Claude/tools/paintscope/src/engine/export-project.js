@@ -83,9 +83,10 @@ export function exportProject(state) {
     doorItems.forEach(door => {
       const cnt = parseInt(door.count)||0;
       const sides = cnt * (parseInt(door.sides_per_door)||2);
+      const itemPainting = door.painting !== false;
       if (cnt > 0) {
-        if (doorsPainting) addSurface('DOOR_SLAB', 'EA_SIDE', sides, 'manual', {door_type:door.door_type, substrate_state:door.substrate_state});
-        assetsData.push({ room_label:room.label, room_index:ri, asset_category:'DOOR', asset_subtype:door.door_type, protect_uom:'EA', protect_qty:cnt, attributes:{substrate_state:door.substrate_state, sides_per_door:door.sides_per_door} });
+        if (doorsPainting && itemPainting) addSurface('DOOR_SLAB', 'EA_SIDE', sides, 'manual', {door_type:door.door_type, substrate_state:door.substrate_state});
+        assetsData.push({ room_label:room.label, room_index:ri, asset_category:'DOOR', asset_subtype:door.door_type, protect_uom:'EA', protect_qty:cnt, attributes:{substrate_state:door.substrate_state, sides_per_door:door.sides_per_door, painting:itemPainting} });
       }
     });
 
