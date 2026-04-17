@@ -183,11 +183,11 @@ export function resolveRoomFixtureProtection(rooms, roomSpecMethods) {
         if (lf <= 0) return;
         const hasUppers = cfg.layout === 'lower_upper';
         const protLevel = cfg.protection || 'full_cover';
-        const LOWER_MIN_PER_LF = 15;
-        const UPPER_MIN_PER_LF = 10;
-        const TEARDOWN_MIN_PER_LF = 5;
-        const setupMin = lf * LOWER_MIN_PER_LF + (hasUppers ? lf * UPPER_MIN_PER_LF : 0);
-        const teardownMin = lf * TEARDOWN_MIN_PER_LF + (hasUppers ? lf * 3 : 0);
+        const LOWER_MIN_PER_20LF = 15;   // 15 min per 20 LF
+        const UPPER_MIN_PER_20LF = 10;   // 10 min per 20 LF
+        const TEARDOWN_MIN_PER_20LF = 5;
+        const setupMin = (lf / 20) * LOWER_MIN_PER_20LF + (hasUppers ? (lf / 20) * UPPER_MIN_PER_20LF : 0);
+        const teardownMin = (lf / 20) * TEARDOWN_MIN_PER_20LF + (hasUppers ? (lf / 20) * 3 : 0);
         const setupHrs = round3(setupMin / 60);
         const teardownHrs = round3(teardownMin / 60);
         const desc = hasUppers ? `${lf} LF lower + upper` : `${lf} LF lower only`;
@@ -197,7 +197,7 @@ export function resolveRoomFixtureProtection(rooms, roomSpecMethods) {
           phase: 'setup',
           hours: setupHrs,
           isFixed: false,
-          baseRate: `${LOWER_MIN_PER_LF} min/LF lower${hasUppers ? ` + ${UPPER_MIN_PER_LF} min/LF upper` : ''}`,
+          baseRate: `${LOWER_MIN_PER_20LF}min/20LF lower${hasUppers ? ` + ${UPPER_MIN_PER_20LF}min/20LF upper` : ''}`,
           quantity: lf,
           uom: 'LF',
           isFixtureProtection: true,
@@ -213,7 +213,7 @@ export function resolveRoomFixtureProtection(rooms, roomSpecMethods) {
           phase: 'cleanup',
           hours: teardownHrs,
           isFixed: false,
-          baseRate: `${TEARDOWN_MIN_PER_LF} min/LF`,
+          baseRate: `${TEARDOWN_MIN_PER_20LF}min/20LF`,
           quantity: lf,
           uom: 'LF',
           isFixtureProtection: true,
