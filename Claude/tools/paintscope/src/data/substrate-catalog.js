@@ -167,8 +167,8 @@ export const SUBSTRATE_APPLICATION_METHODS = {
   // Trim: brush, spray
   baseboard: { methods: ['brush', 'spray'], default: 'brush' },
   crown: { methods: ['brush', 'spray'], default: 'brush' },
-  door_casing: { methods: ['brush', 'spray'], default: 'brush' },
-  window_casing: { methods: ['brush', 'spray'], default: 'brush' },
+  door_casing: { methods: ['brush', 'spray'], default: 'spray' },
+  window_casing: { methods: ['brush', 'spray'], default: 'spray' },
   chair_rail: { methods: ['brush', 'spray'], default: 'brush' },
   shoe_mold: { methods: ['brush', 'spray'], default: 'brush' },
   wainscot_cap: { methods: ['brush', 'spray'], default: 'brush' },
@@ -178,11 +178,11 @@ export const SUBSTRATE_APPLICATION_METHODS = {
   shadow_box: { methods: ['brush', 'spray'], default: 'brush' },
   panel_mold: { methods: ['brush', 'spray'], default: 'brush' },
   // Doors & Frames: brush, spray
-  doors: { methods: ['brush', 'spray'], default: 'brush' },
-  door_frames: { methods: ['brush', 'spray'], default: 'brush' },
+  doors: { methods: ['brush', 'spray'], default: 'spray' },
+  door_frames: { methods: ['brush', 'spray'], default: 'spray' },
   // Windows: brush, spray
   windows: { methods: ['brush', 'spray'], default: 'brush' },
-  window_jamb: { methods: ['brush', 'spray'], default: 'brush' },
+  window_jamb: { methods: ['brush', 'spray'], default: 'spray' },
   // Specialty
   wainscoting: { methods: ['brush', 'spray'], default: 'brush' },
   wood_feature_wall: { methods: ['brush', 'spray'], default: 'brush' },
