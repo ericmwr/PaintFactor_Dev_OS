@@ -198,7 +198,7 @@ export function resolveRoomFixtureProtection(rooms, roomSpecMethods) {
           phase: 'setup',
           hours: setupHrs,
           isFixed: false,
-          baseRate: `${FACE_COVER_RATE} EA/hr + ${COUNTERTOP_RATE} LF/hr`,
+          baseRate: `composite`,
           quantity: totalFaces,
           uom: 'EA',
           isFixtureProtection: true,
