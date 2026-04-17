@@ -34,6 +34,7 @@ export function ProjectProvider({ children, initialData, projectId }) {
         if (!proj) return;
         proj.project_data = {
           project: state.project,
+          room_categories: state.room_categories,
           rooms: state.rooms,
           exterior: state.exterior,
           colors: state.colors,
@@ -62,7 +63,7 @@ export function ProjectProvider({ children, initialData, projectId }) {
       try {
         const proj = await loadProject(projectId);
         if (proj) {
-          proj.project_data = { project: state.project, rooms: state.rooms, exterior: state.exterior, colors: state.colors, ui: state.ui };
+          proj.project_data = { project: state.project, room_categories: state.room_categories, rooms: state.rooms, exterior: state.exterior, colors: state.colors, ui: state.ui };
           proj.name = state.project.name || proj.name;
           await saveProjectDB(proj);
         }

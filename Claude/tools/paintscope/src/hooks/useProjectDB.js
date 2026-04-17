@@ -89,6 +89,7 @@ export function useProjectDB() {
         if (!proj) return;
         proj.project_data = {
           project: state.project,
+          room_categories: state.room_categories,
           rooms: state.rooms,
           exterior: state.exterior,
           ui: state.ui,
