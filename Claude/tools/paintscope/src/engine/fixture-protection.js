@@ -226,6 +226,55 @@ export function resolveRoomFixtureProtection(rooms, roomSpecMethods) {
         return;
       }
 
+      // Fireplace / stone fireplace: SF-based masking — tape edges + encapsulate with plastic.
+      // Same practice as cabinets, driven by face SF (width × height × count).
+      // Setup: 100 SF/hr, Teardown: 300 SF/hr.
+      if (fixtureId === 'fireplace' || fixtureId === 'stone_fireplace') {
+        const cfg = fixtures[fixtureId];
+        const count = parseInt(cfg.count) || 1;
+        const sf = Math.round((parseFloat(cfg.width_ft) || 0) * (parseFloat(cfg.height_ft) || 0) * count);
+        if (sf <= 0) return;
+        const SETUP_RATE = 100;    // SF/hr
+        const TEARDOWN_RATE = 300; // SF/hr
+        const setupHrs = round3(sf / SETUP_RATE);
+        const teardownHrs = round3(sf / TEARDOWN_RATE);
+        const protLevel = cfg.protection || 'full_cover';
+        const label = fixtureDef.label;
+        tasks.push({
+          taskId: `__FP_${fixtureId.toUpperCase()}_SETUP__`,
+          taskName: `Mask ${label} \u2014 ${capitalize(protLevel.replace(/_/g, ' '))} (${sf} SF)`,
+          phase: 'setup',
+          hours: setupHrs,
+          isFixed: false,
+          baseRate: `${SETUP_RATE} SF/hr`,
+          quantity: sf,
+          uom: 'SF',
+          isFixtureProtection: true,
+          fixtureId,
+          protectionLevel: protLevel,
+          mechanism: 'task',
+          roomIndex: riNum,
+          roomLabel: room.label,
+        });
+        tasks.push({
+          taskId: `__FP_${fixtureId.toUpperCase()}_TEARDOWN__`,
+          taskName: `Remove ${label} Masking (${sf} SF)`,
+          phase: 'cleanup',
+          hours: teardownHrs,
+          isFixed: false,
+          baseRate: `${TEARDOWN_RATE} SF/hr`,
+          quantity: sf,
+          uom: 'SF',
+          isFixtureProtection: true,
+          fixtureId,
+          protectionLevel: protLevel,
+          mechanism: 'task',
+          roomIndex: riNum,
+          roomLabel: room.label,
+        });
+        return;
+      }
+
       // Only bathroom fixtures have context-dependent scenarios
       if (fixtureDef.group !== 'Bathroom') return;
 
