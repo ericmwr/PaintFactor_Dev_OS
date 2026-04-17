@@ -124,8 +124,14 @@ export function runEstimate(state, db, overlayMap, profile) {
     modulesBySpec[m.spec_family_id].push(m);
   });
 
+  // Tasks suppressed from the legacy engine (removed from workflow, kept in DB for history).
+  const SUPPRESSED_TASKS = new Set([
+    'TSK_DOOR_SPRAY_PROTECT', // Spray surround masking — unnecessary when surrounding surfaces are painted in same pass
+  ]);
+
   const tasksByModule = {};
   db.sop_tasks.forEach(t => {
+    if (SUPPRESSED_TASKS.has(t.id)) return;
     const key = `${t.spec_family_id}::${t.module_id}`;
     if (!tasksByModule[key]) tasksByModule[key] = [];
     tasksByModule[key].push(t);
@@ -394,7 +400,7 @@ export function runEstimate(state, db, overlayMap, profile) {
               // Per-item door calculation: separate line items per door type
               const useSides = psKey === 'PS_SURFACE_EA_SIDE.DOOR_SLAB';
               const { effectiveTotal, complexityApplied } = computeEffectiveTotal(modStack, phase, ctx);
-              const itemResults = computeDoorPerItemResults(resolved.effectiveRate, effectiveTotal, room, useSides);
+              const itemResults = computeDoorPerItemResults(resolved.effectiveRate, effectiveTotal, room, useSides, task.id);
               if (itemResults) {
                 itemResults.forEach(ir => {
                   pushResult(ir.hours, ir.quantity, null,

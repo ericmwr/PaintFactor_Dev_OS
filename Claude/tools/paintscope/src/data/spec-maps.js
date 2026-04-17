@@ -77,6 +77,8 @@ export const UI_STATE_TO_SPEC_STATE = {
   'previously_painted': 'SS_PAINTED',           // Generic prefix — matches any SS_PAINTED_*
   'previously_finished':'SS_PAINTED',           // Beam/specialty alias for previously_painted
   'bare_wood':          'SS_BARE',
+  'melamine':           'SS_FACTORY_FINISH',     // Closet shelf — factory-finished synthetic surface
+  'factory_finish':     'SS_FACTORY_FINISH',     // Cabinet — factory-coated (thermofoil, factory-painted, laminated MDF)
   'stained':            'SS_STAINED',
   'clear_coated':       'SS_CLEAR_COATED',
   'stained_sealed':     'SS_STAINED',           // Beam alias — stained and sealed wood

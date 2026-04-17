@@ -174,6 +174,106 @@ export function resolveRoomFixtureProtection(rooms, roomSpecMethods) {
         return;
       }
 
+      // Cabinet protection: LF-based masking (Protection tab)
+      // Tape edges + encapsulate entire cabinet system (including countertop) with plastic.
+      // Lower run: 15 min per 20 LF, Upper run: 10 min per 20 LF.
+      if (fixtureId === 'cabinets') {
+        const cfg = fixtures[fixtureId];
+        const lf = parseFloat(cfg.linear_ft) || 0;
+        if (lf <= 0) return;
+        const hasUppers = cfg.layout === 'lower_upper';
+        const protLevel = cfg.protection || 'full_cover';
+        const LOWER_MIN_PER_20LF = 15;
+        const UPPER_MIN_PER_20LF = 10;
+        const TEARDOWN_MIN_PER_20LF = 5;
+        const setupMin = (lf / 20) * LOWER_MIN_PER_20LF + (hasUppers ? (lf / 20) * UPPER_MIN_PER_20LF : 0);
+        const teardownMin = (lf / 20) * TEARDOWN_MIN_PER_20LF + (hasUppers ? (lf / 20) * 3 : 0);
+        const setupHrs = round3(setupMin / 60);
+        const teardownHrs = round3(teardownMin / 60);
+        const desc = hasUppers ? `${lf} LF lower + upper` : `${lf} LF lower only`;
+        tasks.push({
+          taskId: '__FP_CABINET_PROTECT_SETUP__',
+          taskName: `Mask Cabinet System \u2014 ${capitalize(protLevel.replace(/_/g, ' '))} (${desc})`,
+          phase: 'setup',
+          hours: setupHrs,
+          isFixed: false,
+          baseRate: `${LOWER_MIN_PER_20LF}min/20LF lower${hasUppers ? ` + ${UPPER_MIN_PER_20LF}min/20LF upper` : ''}`,
+          quantity: lf,
+          uom: 'LF',
+          isFixtureProtection: true,
+          fixtureId,
+          protectionLevel: protLevel,
+          mechanism: 'task',
+          roomIndex: riNum,
+          roomLabel: room.label,
+        });
+        tasks.push({
+          taskId: '__FP_CABINET_PROTECT_TEARDOWN__',
+          taskName: `Remove Cabinet Masking (${desc})`,
+          phase: 'cleanup',
+          hours: teardownHrs,
+          isFixed: false,
+          baseRate: `${TEARDOWN_MIN_PER_20LF}min/20LF`,
+          quantity: lf,
+          uom: 'LF',
+          isFixtureProtection: true,
+          fixtureId,
+          protectionLevel: protLevel,
+          mechanism: 'task',
+          roomIndex: riNum,
+          roomLabel: room.label,
+        });
+        return;
+      }
+
+      // Fireplace / stone fireplace: SF-based masking — tape edges + encapsulate with plastic.
+      // Setup: 100 SF/hr, Teardown: 300 SF/hr.
+      if (fixtureId === 'fireplace' || fixtureId === 'stone_fireplace') {
+        const cfg = fixtures[fixtureId];
+        const count = parseInt(cfg.count) || 1;
+        const sf = Math.round((parseFloat(cfg.width_ft) || 0) * (parseFloat(cfg.height_ft) || 0) * count);
+        if (sf <= 0) return;
+        const SETUP_RATE = 100;
+        const TEARDOWN_RATE = 300;
+        const setupHrs = round3(sf / SETUP_RATE);
+        const teardownHrs = round3(sf / TEARDOWN_RATE);
+        const protLevel = cfg.protection || 'full_cover';
+        const label = fixtureDef.label;
+        tasks.push({
+          taskId: `__FP_${fixtureId.toUpperCase()}_SETUP__`,
+          taskName: `Mask ${label} \u2014 ${capitalize(protLevel.replace(/_/g, ' '))} (${sf} SF)`,
+          phase: 'setup',
+          hours: setupHrs,
+          isFixed: false,
+          baseRate: `${SETUP_RATE} SF/hr`,
+          quantity: sf,
+          uom: 'SF',
+          isFixtureProtection: true,
+          fixtureId,
+          protectionLevel: protLevel,
+          mechanism: 'task',
+          roomIndex: riNum,
+          roomLabel: room.label,
+        });
+        tasks.push({
+          taskId: `__FP_${fixtureId.toUpperCase()}_TEARDOWN__`,
+          taskName: `Remove ${label} Masking (${sf} SF)`,
+          phase: 'cleanup',
+          hours: teardownHrs,
+          isFixed: false,
+          baseRate: `${TEARDOWN_RATE} SF/hr`,
+          quantity: sf,
+          uom: 'SF',
+          isFixtureProtection: true,
+          fixtureId,
+          protectionLevel: protLevel,
+          mechanism: 'task',
+          roomIndex: riNum,
+          roomLabel: room.label,
+        });
+        return;
+      }
+
       // Only bathroom fixtures have context-dependent scenarios
       if (fixtureDef.group !== 'Bathroom') return;
 

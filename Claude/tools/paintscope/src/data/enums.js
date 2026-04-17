@@ -243,6 +243,7 @@ export const ENUMS = {
     { value:'stained',            label:'Stained',            applies_to:['doors','door_casing','window_casing','door_frames','windows','window_jamb','baseboard','crown','chair_rail','shoe_mold','wainscoting','wood_feature_wall','wood_ceiling','beams','columns','mantels','builtins','stair_risers','stair_railing','cabinets'] },
     { value:'clear_coated',       label:'Clear Coated',       applies_to:['doors','door_casing','window_casing','door_frames','windows','window_jamb','baseboard','crown','chair_rail','shoe_mold','wainscoting','wood_feature_wall','wood_ceiling','beams','columns','mantels','builtins','stair_risers','stair_railing'] },
     { value:'melamine',           label:'Melamine',           applies_to:['closet_shelving','cabinets'] },
+    { value:'factory_finish',     label:'Factory Finish',     applies_to:['cabinets'] },
     { value:'vinyl_clad',         label:'Vinyl Clad',         applies_to:['windows'] },
   ]
 };
