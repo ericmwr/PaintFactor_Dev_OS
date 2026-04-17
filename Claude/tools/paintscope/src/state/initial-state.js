@@ -165,7 +165,7 @@ export const initialState = {
     default_substrates: ['ceiling', 'walls', 'baseboard']
   },
   room_categories: [],
-  rooms: [createRoom()],
+  rooms: [],
   exterior: createExteriorState(),
   colors: initialColorState,
   ui: { activeRoomId: null, activeElevationId: null, activeTab:'scope', view:'setup', scopeMode: 'interior' }
