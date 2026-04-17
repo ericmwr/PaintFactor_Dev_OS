@@ -174,33 +174,32 @@ export function resolveRoomFixtureProtection(rooms, roomSpecMethods) {
         return;
       }
 
-      // Cabinet protection: LF-based covering (Protection tab)
+      // Cabinet protection: LF-based masking (Protection tab)
+      // Entire cabinet system (including countertop) gets masked with plastic.
+      // Lower run: 15 min/LF, Upper run: 10 min/LF.
       if (fixtureId === 'cabinets') {
         const cfg = fixtures[fixtureId];
         const lf = parseFloat(cfg.linear_ft) || 0;
         if (lf <= 0) return;
         const hasUppers = cfg.layout === 'lower_upper';
-        const lowerFaces = Math.ceil(lf / 1.5);
-        const upperFaces = hasUppers ? Math.ceil(lf / 2) : 0;
-        const totalFaces = lowerFaces + upperFaces;
         const protLevel = cfg.protection || 'full_cover';
-        // Rates aligned with MOD_PROTECT_CABINET_* module tasks
-        const FACE_COVER_RATE = 20;       // EA/hr — cover cabinet faces
-        const HARDWARE_RATE = 40;          // EA/hr — cover hardware
-        const COUNTERTOP_RATE = 50;        // LF/hr — mask countertop edges
-        const TEARDOWN_RATE = 40;          // EA/hr — remove face covers
-        const hwCount = totalFaces * 2;
-        const setupHrs = round3(totalFaces / FACE_COVER_RATE + hwCount / HARDWARE_RATE + lf / COUNTERTOP_RATE);
-        const teardownHrs = round3(totalFaces / TEARDOWN_RATE);
+        const LOWER_MIN_PER_LF = 15;
+        const UPPER_MIN_PER_LF = 10;
+        const TEARDOWN_MIN_PER_LF = 5;
+        const setupMin = lf * LOWER_MIN_PER_LF + (hasUppers ? lf * UPPER_MIN_PER_LF : 0);
+        const teardownMin = lf * TEARDOWN_MIN_PER_LF + (hasUppers ? lf * 3 : 0);
+        const setupHrs = round3(setupMin / 60);
+        const teardownHrs = round3(teardownMin / 60);
+        const desc = hasUppers ? `${lf} LF lower + upper` : `${lf} LF lower only`;
         tasks.push({
           taskId: '__FP_CABINET_PROTECT_SETUP__',
-          taskName: `Protect Cabinets \u2014 ${capitalize(protLevel.replace(/_/g, ' '))} (${totalFaces} faces, ${lf} LF)`,
+          taskName: `Mask Cabinet System \u2014 ${capitalize(protLevel.replace(/_/g, ' '))} (${desc})`,
           phase: 'setup',
           hours: setupHrs,
           isFixed: false,
-          baseRate: `composite`,
-          quantity: totalFaces,
-          uom: 'EA',
+          baseRate: `${LOWER_MIN_PER_LF} min/LF lower${hasUppers ? ` + ${UPPER_MIN_PER_LF} min/LF upper` : ''}`,
+          quantity: lf,
+          uom: 'LF',
           isFixtureProtection: true,
           fixtureId,
           protectionLevel: protLevel,
@@ -210,13 +209,13 @@ export function resolveRoomFixtureProtection(rooms, roomSpecMethods) {
         });
         tasks.push({
           taskId: '__FP_CABINET_PROTECT_TEARDOWN__',
-          taskName: `Remove Cabinet Protection (${totalFaces} faces)`,
+          taskName: `Remove Cabinet Masking (${desc})`,
           phase: 'cleanup',
           hours: teardownHrs,
           isFixed: false,
-          baseRate: `${TEARDOWN_RATE} EA/hr`,
-          quantity: totalFaces,
-          uom: 'EA',
+          baseRate: `${TEARDOWN_MIN_PER_LF} min/LF`,
+          quantity: lf,
+          uom: 'LF',
           isFixtureProtection: true,
           fixtureId,
           protectionLevel: protLevel,
