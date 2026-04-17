@@ -155,6 +155,38 @@ def fmt_applies_when(aw) -> str:
     return " · ".join(parts)
 
 
+def spec_is_rp(spec_id: str) -> bool:
+    """Interior/exterior repaint specs are defined but many aren't yet imported.
+    We mark their production-only rows as SKIP to keep the active sync scope tight."""
+    return spec_id.endswith("_RP") or spec_id.endswith("_INT_RP")
+
+
+def default_decision_mismatch(bundle_row: dict, prod_row: dict, spec_id: str) -> str:
+    """Default triage for a rate where bundle and production.json disagree."""
+    b_rate = bundle_row.get("rate_per_hour")
+    p_rate = prod_row.get("rate_per_hour")
+    b_fm = bundle_row.get("fixed_minutes")
+    p_fm = prod_row.get("fixed_minutes")
+    # Bundle missing both fields = stub row, probably safe to use production.json
+    if b_rate is None and b_fm is None and (p_rate is not None or p_fm is not None):
+        return "REVERT — bundle has no rate; production.json value is the only signal"
+    # Production.json has nothing while bundle is populated = calibration held only in DB/bundle
+    if (b_rate is not None or b_fm is not None) and p_rate is None and p_fm is None:
+        return "SYNC — bundle carries the calibrated value, production.json is empty"
+    # Ratio check: bundle dramatically higher or lower than production.json
+    return "SYNC — bundle is the user's calibrated rate (mirror into production.json)"
+
+
+def default_decision_bundle_only(bundle_row: dict, spec_id: str) -> str:
+    return "SYNC — add this row to production.json so it persists across reimports"
+
+
+def default_decision_production_only(prod_row: dict, spec_id: str) -> str:
+    if spec_is_rp(spec_id):
+        return "SKIP — unimported RP spec; out of scope for Phase 3"
+    return "INVESTIGATE — task in production.json but not firing; decide per-task before activating"
+
+
 def render_report(
     bundle_meta: dict,
     per_spec: dict[str, dict],
@@ -218,8 +250,9 @@ def render_report(
                 psig = rate_signature(pr)
                 bstr = "/".join(fmt_val(bsig[f]) for f in RATE_FIELDS)
                 pstr = "/".join(fmt_val(psig[f]) for f in RATE_FIELDS)
+                dec = default_decision_mismatch(br, pr, spec_id)
                 lines.append(
-                    f"| `{br.get('task_id')}` | {fmt_applies_when(br.get('applies_when'))} | {bstr} | {pstr} | |"
+                    f"| `{br.get('task_id')}` | {fmt_applies_when(br.get('applies_when'))} | {bstr} | {pstr} | {dec} |"
                 )
             lines.append("")
             lines.append("_Rate column order:_ `rate_per_hour` / `fixed_minutes`")
@@ -233,8 +266,9 @@ def render_report(
             for br in sorted(diff["bundle_only"], key=lambda x: x.get("task_id", "")):
                 bsig = rate_signature(br)
                 bstr = "/".join(fmt_val(bsig[f]) for f in RATE_FIELDS)
+                dec = default_decision_bundle_only(br, spec_id)
                 lines.append(
-                    f"| `{br.get('task_id')}` | {fmt_applies_when(br.get('applies_when'))} | {bstr} | |"
+                    f"| `{br.get('task_id')}` | {fmt_applies_when(br.get('applies_when'))} | {bstr} | {dec} |"
                 )
             lines.append("")
 
@@ -246,8 +280,9 @@ def render_report(
             for pr in sorted(diff["production_only"], key=lambda x: x.get("task_id", "")):
                 psig = rate_signature(pr)
                 pstr = "/".join(fmt_val(psig[f]) for f in RATE_FIELDS)
+                dec = default_decision_production_only(pr, spec_id)
                 lines.append(
-                    f"| `{pr.get('task_id')}` | {fmt_applies_when(pr.get('applies_when'))} | {pstr} | |"
+                    f"| `{pr.get('task_id')}` | {fmt_applies_when(pr.get('applies_when'))} | {pstr} | {dec} |"
                 )
             lines.append("")
 

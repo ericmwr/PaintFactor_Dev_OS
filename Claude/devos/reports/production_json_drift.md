@@ -15,14 +15,14 @@ Reminder from the plan: bundle wins by default. Mark REVERT only if the bundle r
 
 | Spec | Mismatched | Bundle-only | Production-only |
 |---|---:|---:|---:|
-| `SF_ARCH_ELEMENT_NC` | 9 | 3 | 7 |
+| `SF_ARCH_ELEMENT_NC` | 9 | 3 | 6 |
 | `SF_ARCH_ELEMENT_NC_STAIN` | 3 | 2 | 0 |
-| `SF_BUILTIN_NC` | 17 | 0 | 2 |
+| `SF_BUILTIN_NC` | 17 | 0 | 1 |
 | `SF_CABINET_INT_RP` | 0 | 0 | 80 |
-| `SF_CABINET_NC_PAINT` | 10 | 0 | 1 |
+| `SF_CABINET_NC_PAINT` | 10 | 0 | 0 |
 | `SF_CAULK_EXT` | 2 | 0 | 0 |
 | `SF_CLOSET_INT_RP` | 0 | 0 | 14 |
-| `SF_CLOSET_SHELF_NC` | 11 | 5 | 1 |
+| `SF_CLOSET_SHELF_NC` | 11 | 5 | 0 |
 | `SF_DECK_EXT` | 10 | 0 | 0 |
 | `SF_DECK_EXT_RP` | 13 | 0 | 0 |
 | `SF_DOOR_EXT_NC` | 24 | 0 | 0 |
@@ -30,7 +30,7 @@ Reminder from the plan: bundle wins by default. Mark REVERT only if the bundle r
 | `SF_DOOR_FRAME_NC_FINISH` | 1 | 0 | 0 |
 | `SF_DOOR_FRAME_NC_STAIN` | 1 | 1 | 0 |
 | `SF_DOOR_INT_RP` | 0 | 0 | 50 |
-| `SF_DOOR_SLAB_INT_NC` | 1 | 0 | 1 |
+| `SF_DOOR_SLAB_INT_NC` | 1 | 0 | 0 |
 | `SF_DOOR_SLAB_INT_NC_STAIN` | 1 | 1 | 0 |
 | `SF_DRYWALL_CEILING_INT_RP` | 0 | 0 | 54 |
 | `SF_DRYWALL_CEILING_NC_FINISH` | 11 | 0 | 3 |
@@ -65,7 +65,7 @@ Reminder from the plan: bundle wins by default. Mark REVERT only if the bundle r
 | `SF_STAIR_INT_RP` | 0 | 0 | 69 |
 | `SF_STAIR_RAILING_NC` | 11 | 0 | 0 |
 | `SF_STAIR_RAILING_NC_STAIN` | 21 | 1 | 0 |
-| `SF_STAIR_RISER_NC` | 7 | 0 | 1 |
+| `SF_STAIR_RISER_NC` | 7 | 0 | 0 |
 | `SF_STAIR_RISER_NC_STAIN` | 2 | 2 | 0 |
 | `SF_STUCCO_EXT_NC` | 10 | 0 | 0 |
 | `SF_STUCCO_EXT_RP` | 13 | 0 | 1 |
@@ -73,21 +73,21 @@ Reminder from the plan: bundle wins by default. Mark REVERT only if the bundle r
 | `SF_TRIM_EXT_RP` | 17 | 0 | 0 |
 | `SF_TRIM_INT_RP` | 0 | 0 | 40 |
 | `SF_TRIM_NC_PAINT` | 12 | 2 | 0 |
-| `SF_TRIM_NC_PRIME` | 1 | 0 | 1 |
+| `SF_TRIM_NC_PRIME` | 1 | 0 | 0 |
 | `SF_TRIM_NC_STAIN` | 2 | 2 | 0 |
-| `SF_WAINSCOT_PANEL_NC` | 4 | 0 | 1 |
+| `SF_WAINSCOT_PANEL_NC` | 4 | 0 | 0 |
 | `SF_WAINSCOT_PANEL_NC_STAIN` | 2 | 1 | 0 |
 | `SF_WINDOW_EXT_NC` | 17 | 0 | 0 |
 | `SF_WINDOW_EXT_RP` | 36 | 0 | 0 |
 | `SF_WINDOW_INT_NC` | 10 | 3 | 0 |
 | `SF_WINDOW_INT_NC_STAIN` | 2 | 3 | 0 |
 | `SF_WINDOW_INT_RP` | 0 | 0 | 47 |
-| `SF_WOOD_CEILING_NC` | 6 | 0 | 1 |
+| `SF_WOOD_CEILING_NC` | 6 | 0 | 0 |
 | `SF_WOOD_CEILING_NC_STAIN` | 8 | 2 | 0 |
 | `SF_WOOD_SIDING_EXT_NC_PAINT` | 4 | 0 | 0 |
-| `SF_WOOD_WALL_NC` | 4 | 0 | 1 |
+| `SF_WOOD_WALL_NC` | 4 | 0 | 0 |
 | `SF_WOOD_WALL_NC_STAIN` | 2 | 2 | 0 |
-| **TOTAL** | **580** | **35** | **502** |
+| **TOTAL** | **580** | **35** | **492** |
 
 ## SF_ARCH_ELEMENT_NC
 
@@ -95,15 +95,15 @@ Reminder from the plan: bundle wins by default. Mark REVERT only if the bundle r
 
 | task_id | applies_when | Bundle | Production.json | Decision |
 |---|---|---|---|---|
-| `TSK_ARCH_BRUSH_BEAM` | — | 60/— | 90/— | |
-| `TSK_ARCH_CLEAN_AREA` | — | —/10 | —/— | |
-| `TSK_ARCH_DUST_CLEAN` | — | —/20 | 400/— | |
-| `TSK_ARCH_SAND_BEAM` | — | 80/— | —/— | |
-| `TSK_ARCH_SAND_COLUMN` | — | 6/— | —/— | |
-| `TSK_ARCH_SAND_MANTEL` | — | 4/— | —/— | |
-| `TSK_ARCH_SPRAY_BEAM` | — | 150/— | 225/— | |
-| `TSK_ARCH_TACK_CLEAN` | — | —/15 | 400/— | |
-| `TSK_ARCH_TOOL_CLEANUP` | — | —/10 | —/— | |
+| `TSK_ARCH_BRUSH_BEAM` | — | 60/— | 90/— | SYNC — bundle is the user's calibrated rate (mirror into production.json) |
+| `TSK_ARCH_CLEAN_AREA` | — | —/10 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_ARCH_DUST_CLEAN` | — | —/20 | 400/— | SYNC — bundle is the user's calibrated rate (mirror into production.json) |
+| `TSK_ARCH_SAND_BEAM` | — | 80/— | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_ARCH_SAND_COLUMN` | — | 6/— | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_ARCH_SAND_MANTEL` | — | 4/— | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_ARCH_SPRAY_BEAM` | — | 150/— | 225/— | SYNC — bundle is the user's calibrated rate (mirror into production.json) |
+| `TSK_ARCH_TACK_CLEAN` | — | —/15 | 400/— | SYNC — bundle is the user's calibrated rate (mirror into production.json) |
+| `TSK_ARCH_TOOL_CLEANUP` | — | —/10 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
 
 _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
@@ -111,21 +111,20 @@ _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
 | task_id | applies_when | Bundle | Decision |
 |---|---|---|---|
-| `TSK_ARCH_PRIME_BEAM` | — | 120/— | |
-| `TSK_ARCH_PRIME_COLUMN` | — | 5/— | |
-| `TSK_ARCH_PRIME_MANTEL` | — | 3/— | |
+| `TSK_ARCH_PRIME_BEAM` | — | 120/— | SYNC — add this row to production.json so it persists across reimports |
+| `TSK_ARCH_PRIME_COLUMN` | — | 5/— | SYNC — add this row to production.json so it persists across reimports |
+| `TSK_ARCH_PRIME_MANTEL` | — | 3/— | SYNC — add this row to production.json so it persists across reimports |
 
 ### Production.json-only rate rows (missing from bundle)
 
 | task_id | applies_when | Production.json | Decision |
 |---|---|---|---|
-| `TSK_ARCH_BRUSH_PRIME_BEAM` | application_method=[brush] | 120/— | |
-| `TSK_ARCH_BRUSH_PRIME_COLUMN` | application_method=[brush] | 3/— | |
-| `TSK_ARCH_BRUSH_PRIME_MANTEL` | application_method=[brush] | 2/— | |
-| `TSK_ARCH_SEAL_MDF_EDGES` | — | 200/— | |
-| `TSK_ARCH_SPRAY_PRIME_BEAM` | application_method=[spray,spray_backbrush] | 225/— | |
-| `TSK_ARCH_SPRAY_PRIME_COLUMN` | application_method=[spray,spray_backbrush] | 6/— | |
-| `TSK_ARCH_SPRAY_PRIME_MANTEL` | application_method=[spray,spray_backbrush] | 3/— | |
+| `TSK_ARCH_BRUSH_PRIME_BEAM` | application_method=[brush] | 120/— | INVESTIGATE — task in production.json but not firing; decide per-task before activating |
+| `TSK_ARCH_BRUSH_PRIME_COLUMN` | application_method=[brush] | 3/— | INVESTIGATE — task in production.json but not firing; decide per-task before activating |
+| `TSK_ARCH_BRUSH_PRIME_MANTEL` | application_method=[brush] | 2/— | INVESTIGATE — task in production.json but not firing; decide per-task before activating |
+| `TSK_ARCH_SPRAY_PRIME_BEAM` | application_method=[spray,spray_backbrush] | 225/— | INVESTIGATE — task in production.json but not firing; decide per-task before activating |
+| `TSK_ARCH_SPRAY_PRIME_COLUMN` | application_method=[spray,spray_backbrush] | 6/— | INVESTIGATE — task in production.json but not firing; decide per-task before activating |
+| `TSK_ARCH_SPRAY_PRIME_MANTEL` | application_method=[spray,spray_backbrush] | 3/— | INVESTIGATE — task in production.json but not firing; decide per-task before activating |
 
 ## SF_ARCH_ELEMENT_NC_STAIN
 
@@ -133,9 +132,9 @@ _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
 | task_id | applies_when | Bundle | Production.json | Decision |
 |---|---|---|---|---|
-| `TSK_AEST_FIREPLACE_MASK` | — | —/20 | —/— | |
-| `TSK_AEST_STAIN_DRY_VERIFY` | coating_type=[stain_clear] | —/10 | —/— | |
-| `TSK_AEST_VACUUM` | — | —/20 | —/— | |
+| `TSK_AEST_FIREPLACE_MASK` | — | —/20 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_AEST_STAIN_DRY_VERIFY` | coating_type=[stain_clear] | —/10 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_AEST_VACUUM` | — | —/20 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
 
 _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
@@ -143,8 +142,8 @@ _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
 | task_id | applies_when | Bundle | Decision |
 |---|---|---|---|
-| `TSK_AEST_REMOVE_FIREPLACE_MASK` | — | —/15 | |
-| `TSK_AEST_REMOVE_WALL_MASK` | — | 200/— | |
+| `TSK_AEST_REMOVE_FIREPLACE_MASK` | — | —/15 | SYNC — add this row to production.json so it persists across reimports |
+| `TSK_AEST_REMOVE_WALL_MASK` | — | 200/— | SYNC — add this row to production.json so it persists across reimports |
 
 ## SF_BUILTIN_NC
 
@@ -152,23 +151,23 @@ _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
 | task_id | applies_when | Bundle | Production.json | Decision |
 |---|---|---|---|---|
-| `TSK_BLTN_BRUSH_OPENING` | — | 4/— | —/— | |
-| `TSK_BLTN_CAULK` | — | 8/— | —/— | |
-| `TSK_BLTN_CLEAN_AREA` | — | —/10 | —/— | |
-| `TSK_BLTN_DUST_CLEAN` | — | 20/— | —/— | |
-| `TSK_BLTN_FILL_OPENING` | — | 12/— | —/— | |
-| `TSK_BLTN_FINAL_INSPECT` | — | 40/— | —/— | |
-| `TSK_BLTN_INSPECT_COAT` | — | 40/— | —/— | |
-| `TSK_BLTN_PATCH_DEFECTS` | — | 20/— | —/— | |
-| `TSK_BLTN_PRIME_OPENING` | — | 14/— | —/— | |
-| `TSK_BLTN_SAND_BETWEEN_OPENING` | — | 8/— | —/— | |
-| `TSK_BLTN_SAND_DOOR` | — | 10/— | —/— | |
-| `TSK_BLTN_SAND_OPENING` | — | 8/— | —/— | |
-| `TSK_BLTN_SPOT_COAT` | — | 40/— | —/— | |
-| `TSK_BLTN_SPRAY_OPENING` | — | 16/— | —/— | |
-| `TSK_BLTN_TACK_CLEAN` | — | 30/— | —/— | |
-| `TSK_BLTN_TOOL_CLEANUP` | — | —/10 | —/— | |
-| `TSK_BLTN_TOUCHUP` | — | 20/— | —/— | |
+| `TSK_BLTN_BRUSH_OPENING` | — | 4/— | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_BLTN_CAULK` | — | 8/— | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_BLTN_CLEAN_AREA` | — | —/10 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_BLTN_DUST_CLEAN` | — | 20/— | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_BLTN_FILL_OPENING` | — | 12/— | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_BLTN_FINAL_INSPECT` | — | 40/— | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_BLTN_INSPECT_COAT` | — | 40/— | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_BLTN_PATCH_DEFECTS` | — | 20/— | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_BLTN_PRIME_OPENING` | — | 14/— | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_BLTN_SAND_BETWEEN_OPENING` | — | 8/— | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_BLTN_SAND_DOOR` | — | 10/— | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_BLTN_SAND_OPENING` | — | 8/— | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_BLTN_SPOT_COAT` | — | 40/— | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_BLTN_SPRAY_OPENING` | — | 16/— | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_BLTN_TACK_CLEAN` | — | 30/— | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_BLTN_TOOL_CLEANUP` | — | —/10 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_BLTN_TOUCHUP` | — | 20/— | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
 
 _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
@@ -176,8 +175,7 @@ _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
 | task_id | applies_when | Production.json | Decision |
 |---|---|---|---|
-| `TSK_BLTN_SEAL_MDF_EDGES` | — | —/— | |
-| `TSK_BLTN_VACUUM` | — | 300/— | |
+| `TSK_BLTN_VACUUM` | — | 300/— | INVESTIGATE — task in production.json but not firing; decide per-task before activating |
 
 ## SF_CABINET_INT_RP
 
@@ -185,86 +183,86 @@ _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
 | task_id | applies_when | Production.json | Decision |
 |---|---|---|---|
-| `TSK_CBRP_ASSESS_ADHESION` | — | —/— | |
-| `TSK_CBRP_ASSESS_COATING_ID` | — | —/— | |
-| `TSK_CBRP_ASSESS_CONDITION` | — | —/— | |
-| `TSK_CBRP_ASSESS_LEAD` | home_pre_1978=True | —/— | |
-| `TSK_CBRP_ASSESS_MOISTURE` | — | —/— | |
-| `TSK_CBRP_ASSESS_THERMOFOIL` | factory_finish_type=[thermofoil] | —/— | |
-| `TSK_CBRP_BRUSH_DOORS` | application_method=[brush] | 6/— | |
-| `TSK_CBRP_BRUSH_DRAWERS` | application_method=[brush] | 8/— | |
-| `TSK_CBRP_BRUSH_FRAMES` | application_method=[brush] · scope=[full_exterior,full_with_interior] | 105/— | |
-| `TSK_CBRP_CAULK_ASSESS_REPLACE` | scope=[full_exterior,full_with_interior] | —/— | |
-| `TSK_CBRP_CLEAN_AREA` | — | —/— | |
-| `TSK_CBRP_CONTENTS_REPLACE` | — | —/— | |
-| `TSK_CBRP_CURE_PERIOD` | — | —/— | |
-| `TSK_CBRP_CUSTOMER_WALKTHROUGH` | — | —/— | |
-| `TSK_CBRP_DAMAGE_REPAIR` | condition_scale=[FAIR,POOR] | —/— | |
-| `TSK_CBRP_DEGLOSS_CHEMICAL` | door_style=[raised_panel,shaker,glass_frame] · factory_finish_type=[painted_latex,painted_oil,lacquer,catalyzed_varnish] | 10/— | |
-| `TSK_CBRP_DEGLOSS_DOORS` | — | —/— | |
-| `TSK_CBRP_DEGLOSS_DRAWERS` | — | —/— | |
-| `TSK_CBRP_DEGLOSS_FRAMES` | scope=[full_exterior,full_with_interior] | —/— | |
-| `TSK_CBRP_DEGLOSS_INTERIOR` | scope=[full_with_interior] | 185/— | |
-| `TSK_CBRP_FEATHER_EDGES` | condition_scale=[FAIR,POOR] | —/— | |
-| `TSK_CBRP_FINAL_INSPECT` | — | —/— | |
-| `TSK_CBRP_GREASE_WASH` | — | —/— | |
-| `TSK_CBRP_HINGE_ADJUST` | — | 15/— | |
-| `TSK_CBRP_INSPECT_COAT` | — | —/— | |
-| `TSK_CBRP_PATCH_DEFECTS` | — | —/— | |
-| `TSK_CBRP_PRIME_ADHESION_TEST` | — | —/— | |
-| `TSK_CBRP_PRIME_DOORS_BRUSH` | application_method=[brush] | 7/— | |
-| `TSK_CBRP_PRIME_DOORS_SPRAY` | application_method=[spray] | 13/— | |
-| `TSK_CBRP_PRIME_DRAWERS_BRUSH` | application_method=[brush] | 10/— | |
-| `TSK_CBRP_PRIME_DRAWERS_SPRAY` | application_method=[spray] | 18/— | |
-| `TSK_CBRP_PRIME_FRAMES_BRUSH` | application_method=[brush] · scope=[full_exterior,full_with_interior] | 115/— | |
-| `TSK_CBRP_PRIME_FRAMES_SPRAY` | application_method=[spray] · scope=[full_exterior,full_with_interior] | 225/— | |
-| `TSK_CBRP_PRIME_INTERIOR` | scope=[full_with_interior] | 175/— | |
-| `TSK_CBRP_PROTECT_APPLIANCE` | — | 3/— | |
-| `TSK_CBRP_PROTECT_BACKSPLASH` | — | 50/— | |
-| `TSK_CBRP_PROTECT_CEILING` | application_method=[spray] | 125/— | |
-| `TSK_CBRP_PROTECT_COUNTERTOP` | — | 90/— | |
-| `TSK_CBRP_PROTECT_ELECTRICAL` | — | —/— | |
-| `TSK_CBRP_PROTECT_FLOOR_FULL` | application_method=[spray] | 250/— | |
-| `TSK_CBRP_PROTECT_FLOOR_PERIM` | application_method=[brush] | 200/— | |
-| `TSK_CBRP_PROTECT_PLUMBING` | — | —/— | |
-| `TSK_CBRP_PROTECT_WALL` | application_method=[spray] | 125/— | |
-| `TSK_CBRP_REINSTALL_DOORS` | — | 10/— | |
-| `TSK_CBRP_REINSTALL_DRAWERS` | — | 14/— | |
-| `TSK_CBRP_REINSTALL_HARDWARE` | — | 25/— | |
-| `TSK_CBRP_REINSTALL_TOUCHUP` | — | —/— | |
-| `TSK_CBRP_REMOVE_APPLIANCE_MASK` | — | 5/— | |
-| `TSK_CBRP_REMOVE_BACKSPLASH_MASK` | — | 80/— | |
-| `TSK_CBRP_REMOVE_CEILING_MASK` | application_method=[spray] | 180/— | |
-| `TSK_CBRP_REMOVE_COUNTERTOP_PROTECT` | — | 120/— | |
-| `TSK_CBRP_REMOVE_DOORS` | — | 18/— | |
-| `TSK_CBRP_REMOVE_DRAWERS` | — | 22/— | |
-| `TSK_CBRP_REMOVE_FLOOR_PROTECT` | — | 300/— | |
-| `TSK_CBRP_REMOVE_HARDWARE` | — | 24/— | |
-| `TSK_CBRP_REMOVE_WALL_MASK` | application_method=[spray] | 180/— | |
-| `TSK_CBRP_SAND_BETWEEN_DOORS` | — | —/— | |
-| `TSK_CBRP_SAND_BETWEEN_DRAWERS` | — | —/— | |
-| `TSK_CBRP_SAND_BETWEEN_FRAMES` | scope=[full_exterior,full_with_interior] | —/— | |
-| `TSK_CBRP_SAND_BETWEEN_INTERIOR` | scope=[full_with_interior] | 150/— | |
-| `TSK_CBRP_SAND_FILL` | condition_scale=[FAIR,POOR] | —/— | |
-| `TSK_CBRP_SCRAPE_LOOSE` | condition_scale=[FAIR,POOR] | —/— | |
-| `TSK_CBRP_SPOT_COAT` | — | —/— | |
-| `TSK_CBRP_SPRAY_DOORS` | application_method=[spray] | 11/— | |
-| `TSK_CBRP_SPRAY_DRAWERS` | application_method=[spray] | 15/— | |
-| `TSK_CBRP_SPRAY_FRAMES` | application_method=[spray] · scope=[full_exterior,full_with_interior] | 200/— | |
-| `TSK_CBRP_SPRAY_INTERIOR` | scope=[full_with_interior] | 150/— | |
-| `TSK_CBRP_TACK_CLEAN` | — | —/— | |
-| `TSK_CBRP_TOOL_CLEANUP` | — | —/— | |
-| `TSK_CBRP_TOUCHUP` | — | —/— | |
-| `TSK_CBRP_TREAT_MILDEW` | contamination_type=[mildew] | —/— | |
-| `TSK_CBRP_TREAT_SMOKE` | contamination_type=[smoke] | —/— | |
-| `TSK_CBRP_VACUUM_FINAL` | — | 300/— | |
-| `TSK_CBRP_VACUUM_FLOOR` | — | 300/— | |
-| `TSK_CBRP_VERIFY_CONTENTS_EMPTY` | — | —/— | |
-| `TSK_RRP_CONTAINMENT_REMOVAL` | home_pre_1978=True | 3/— | |
-| `TSK_RRP_CONTAINMENT_SETUP` | home_pre_1978=True | 2/— | |
-| `TSK_RRP_HEPA_VACUUM` | home_pre_1978=True | 4/— | |
-| `TSK_RRP_LEAD_TEST` | home_pre_1978=True | 8/— | |
-| `TSK_RRP_WASTE_DISPOSAL` | home_pre_1978=True | —/— | |
+| `TSK_CBRP_ASSESS_ADHESION` | — | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_CBRP_ASSESS_COATING_ID` | — | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_CBRP_ASSESS_CONDITION` | — | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_CBRP_ASSESS_LEAD` | home_pre_1978=True | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_CBRP_ASSESS_MOISTURE` | — | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_CBRP_ASSESS_THERMOFOIL` | factory_finish_type=[thermofoil] | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_CBRP_BRUSH_DOORS` | application_method=[brush] | 6/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_CBRP_BRUSH_DRAWERS` | application_method=[brush] | 8/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_CBRP_BRUSH_FRAMES` | application_method=[brush] · scope=[full_exterior,full_with_interior] | 105/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_CBRP_CAULK_ASSESS_REPLACE` | scope=[full_exterior,full_with_interior] | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_CBRP_CLEAN_AREA` | — | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_CBRP_CONTENTS_REPLACE` | — | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_CBRP_CURE_PERIOD` | — | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_CBRP_CUSTOMER_WALKTHROUGH` | — | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_CBRP_DAMAGE_REPAIR` | condition_scale=[FAIR,POOR] | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_CBRP_DEGLOSS_CHEMICAL` | door_style=[raised_panel,shaker,glass_frame] · factory_finish_type=[painted_latex,painted_oil,lacquer,catalyzed_varnish] | 10/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_CBRP_DEGLOSS_DOORS` | — | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_CBRP_DEGLOSS_DRAWERS` | — | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_CBRP_DEGLOSS_FRAMES` | scope=[full_exterior,full_with_interior] | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_CBRP_DEGLOSS_INTERIOR` | scope=[full_with_interior] | 185/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_CBRP_FEATHER_EDGES` | condition_scale=[FAIR,POOR] | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_CBRP_FINAL_INSPECT` | — | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_CBRP_GREASE_WASH` | — | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_CBRP_HINGE_ADJUST` | — | 15/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_CBRP_INSPECT_COAT` | — | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_CBRP_PATCH_DEFECTS` | — | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_CBRP_PRIME_ADHESION_TEST` | — | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_CBRP_PRIME_DOORS_BRUSH` | application_method=[brush] | 7/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_CBRP_PRIME_DOORS_SPRAY` | application_method=[spray] | 13/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_CBRP_PRIME_DRAWERS_BRUSH` | application_method=[brush] | 10/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_CBRP_PRIME_DRAWERS_SPRAY` | application_method=[spray] | 18/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_CBRP_PRIME_FRAMES_BRUSH` | application_method=[brush] · scope=[full_exterior,full_with_interior] | 115/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_CBRP_PRIME_FRAMES_SPRAY` | application_method=[spray] · scope=[full_exterior,full_with_interior] | 225/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_CBRP_PRIME_INTERIOR` | scope=[full_with_interior] | 175/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_CBRP_PROTECT_APPLIANCE` | — | 3/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_CBRP_PROTECT_BACKSPLASH` | — | 50/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_CBRP_PROTECT_CEILING` | application_method=[spray] | 125/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_CBRP_PROTECT_COUNTERTOP` | — | 90/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_CBRP_PROTECT_ELECTRICAL` | — | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_CBRP_PROTECT_FLOOR_FULL` | application_method=[spray] | 250/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_CBRP_PROTECT_FLOOR_PERIM` | application_method=[brush] | 200/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_CBRP_PROTECT_PLUMBING` | — | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_CBRP_PROTECT_WALL` | application_method=[spray] | 125/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_CBRP_REINSTALL_DOORS` | — | 10/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_CBRP_REINSTALL_DRAWERS` | — | 14/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_CBRP_REINSTALL_HARDWARE` | — | 25/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_CBRP_REINSTALL_TOUCHUP` | — | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_CBRP_REMOVE_APPLIANCE_MASK` | — | 5/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_CBRP_REMOVE_BACKSPLASH_MASK` | — | 80/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_CBRP_REMOVE_CEILING_MASK` | application_method=[spray] | 180/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_CBRP_REMOVE_COUNTERTOP_PROTECT` | — | 120/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_CBRP_REMOVE_DOORS` | — | 18/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_CBRP_REMOVE_DRAWERS` | — | 22/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_CBRP_REMOVE_FLOOR_PROTECT` | — | 300/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_CBRP_REMOVE_HARDWARE` | — | 24/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_CBRP_REMOVE_WALL_MASK` | application_method=[spray] | 180/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_CBRP_SAND_BETWEEN_DOORS` | — | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_CBRP_SAND_BETWEEN_DRAWERS` | — | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_CBRP_SAND_BETWEEN_FRAMES` | scope=[full_exterior,full_with_interior] | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_CBRP_SAND_BETWEEN_INTERIOR` | scope=[full_with_interior] | 150/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_CBRP_SAND_FILL` | condition_scale=[FAIR,POOR] | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_CBRP_SCRAPE_LOOSE` | condition_scale=[FAIR,POOR] | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_CBRP_SPOT_COAT` | — | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_CBRP_SPRAY_DOORS` | application_method=[spray] | 11/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_CBRP_SPRAY_DRAWERS` | application_method=[spray] | 15/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_CBRP_SPRAY_FRAMES` | application_method=[spray] · scope=[full_exterior,full_with_interior] | 200/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_CBRP_SPRAY_INTERIOR` | scope=[full_with_interior] | 150/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_CBRP_TACK_CLEAN` | — | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_CBRP_TOOL_CLEANUP` | — | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_CBRP_TOUCHUP` | — | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_CBRP_TREAT_MILDEW` | contamination_type=[mildew] | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_CBRP_TREAT_SMOKE` | contamination_type=[smoke] | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_CBRP_VACUUM_FINAL` | — | 300/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_CBRP_VACUUM_FLOOR` | — | 300/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_CBRP_VERIFY_CONTENTS_EMPTY` | — | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_RRP_CONTAINMENT_REMOVAL` | home_pre_1978=True | 3/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_RRP_CONTAINMENT_SETUP` | home_pre_1978=True | 2/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_RRP_HEPA_VACUUM` | home_pre_1978=True | 4/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_RRP_LEAD_TEST` | home_pre_1978=True | 8/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_RRP_WASTE_DISPOSAL` | home_pre_1978=True | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
 
 ## SF_CABINET_NC_PAINT
 
@@ -272,24 +270,18 @@ _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
 | task_id | applies_when | Bundle | Production.json | Decision |
 |---|---|---|---|---|
-| `TSK_CABT_CLEAN_AREA` | — | —/10 | —/— | |
-| `TSK_CABT_CURE_PERIOD` | — | —/0 | —/— | |
-| `TSK_CABT_DUST_CLEAN` | — | —/25 | —/— | |
-| `TSK_CABT_PRIME_DOORS` | — | 8/— | —/— | |
-| `TSK_CABT_PRIME_DRAWERS` | — | 12/— | —/— | |
-| `TSK_CABT_PRIME_FRAMES` | — | 90/— | —/— | |
-| `TSK_CABT_PROTECT_ELECTRICAL` | — | —/15 | —/— | |
-| `TSK_CABT_PROTECT_PLUMBING` | — | —/15 | —/— | |
-| `TSK_CABT_TACK_CLEAN` | — | —/15 | —/— | |
-| `TSK_CABT_TOOL_CLEANUP` | — | —/10 | —/— | |
+| `TSK_CABT_CLEAN_AREA` | — | —/10 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_CABT_CURE_PERIOD` | — | —/0 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_CABT_DUST_CLEAN` | — | —/25 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_CABT_PRIME_DOORS` | — | 8/— | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_CABT_PRIME_DRAWERS` | — | 12/— | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_CABT_PRIME_FRAMES` | — | 90/— | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_CABT_PROTECT_ELECTRICAL` | — | —/15 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_CABT_PROTECT_PLUMBING` | — | —/15 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_CABT_TACK_CLEAN` | — | —/15 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_CABT_TOOL_CLEANUP` | — | —/10 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
 
 _Rate column order:_ `rate_per_hour` / `fixed_minutes`
-
-### Production.json-only rate rows (missing from bundle)
-
-| task_id | applies_when | Production.json | Decision |
-|---|---|---|---|
-| `TSK_CABT_EDGE_SEAL` | — | —/— | |
 
 ## SF_CAULK_EXT
 
@@ -297,8 +289,8 @@ _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
 | task_id | applies_when | Bundle | Production.json | Decision |
 |---|---|---|---|---|
-| `TSK_CAULK_CLEANUP` | — | —/15 | —/— | |
-| `TSK_CAULK_STAGE_MATERIALS` | — | —/10 | —/— | |
+| `TSK_CAULK_CLEANUP` | — | —/15 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_CAULK_STAGE_MATERIALS` | — | —/10 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
 
 _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
@@ -308,20 +300,20 @@ _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
 | task_id | applies_when | Production.json | Decision |
 |---|---|---|---|
-| `TSK_CSRP_ASSESS_CONDITION` | — | —/— | |
-| `TSK_CSRP_CAULK_REPAIR` | — | —/— | |
-| `TSK_CSRP_CUSTOMER_WALKTHROUGH` | — | 20/— | |
-| `TSK_CSRP_DEGLOSS` | — | —/— | |
-| `TSK_CSRP_FINAL_INSPECT` | — | —/— | |
-| `TSK_CSRP_FINISH_BRUSH` | — | —/— | |
-| `TSK_CSRP_FLOOR_PROTECT` | — | 10/— | |
-| `TSK_CSRP_FLOOR_PROTECT_TEARDOWN` | — | 15/— | |
-| `TSK_CSRP_PRIME_ADHESION` | substrate_state=[SS_INT_FAILING_PAINT,SS_INT_PEELING] | —/— | |
-| `TSK_CSRP_PRIME_BRUSH` | — | —/— | |
-| `TSK_CSRP_PRIME_STAIN_BLOCK` | substrate_state=[SS_INT_MOISTURE_DAMAGE,SS_INT_SMOKE_DAMAGE] | —/— | |
-| `TSK_CSRP_SCRAPE_FEATHER` | substrate_state=[SS_INT_FAILING_PAINT,SS_INT_PEELING] | —/— | |
-| `TSK_CSRP_SPOT_FILL` | — | —/— | |
-| `TSK_CSRP_TREAT_MILDEW` | substrate_state=[SS_INT_MOISTURE_DAMAGE] | 4/— | |
+| `TSK_CSRP_ASSESS_CONDITION` | — | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_CSRP_CAULK_REPAIR` | — | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_CSRP_CUSTOMER_WALKTHROUGH` | — | 20/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_CSRP_DEGLOSS` | — | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_CSRP_FINAL_INSPECT` | — | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_CSRP_FINISH_BRUSH` | — | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_CSRP_FLOOR_PROTECT` | — | 10/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_CSRP_FLOOR_PROTECT_TEARDOWN` | — | 15/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_CSRP_PRIME_ADHESION` | substrate_state=[SS_INT_FAILING_PAINT,SS_INT_PEELING] | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_CSRP_PRIME_BRUSH` | — | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_CSRP_PRIME_STAIN_BLOCK` | substrate_state=[SS_INT_MOISTURE_DAMAGE,SS_INT_SMOKE_DAMAGE] | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_CSRP_SCRAPE_FEATHER` | substrate_state=[SS_INT_FAILING_PAINT,SS_INT_PEELING] | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_CSRP_SPOT_FILL` | — | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_CSRP_TREAT_MILDEW` | substrate_state=[SS_INT_MOISTURE_DAMAGE] | 4/— | SKIP — unimported RP spec; out of scope for Phase 3 |
 
 ## SF_CLOSET_SHELF_NC
 
@@ -329,17 +321,17 @@ _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
 | task_id | applies_when | Bundle | Production.json | Decision |
 |---|---|---|---|---|
-| `TSK_CAULK` | — | 45/— | —/— | |
-| `TSK_DUST_WIPE` | — | 80/— | —/— | |
-| `TSK_FINAL_INSPECT` | — | 200/— | —/— | |
-| `TSK_FINISH_BRUSH_ROLL` | — | 25/— | —/— | |
-| `TSK_FINISH_SPRAY` | — | 100/— | —/— | |
-| `TSK_INTERSTAGE_SAND` | quality_tier=[QT4,QT5] | 100/— | —/— | |
-| `TSK_LIGHT_SAND` | — | 60/— | —/— | |
-| `TSK_PRIME_BRUSH_ROLL` | — | 30/— | —/— | |
-| `TSK_PRIME_SPRAY` | — | 100/— | —/— | |
-| `TSK_PRIME_SPRAY_ROLLOFF` | — | 80/— | —/— | |
-| `TSK_SPOT_FILL` | — | 40/— | —/— | |
+| `TSK_CAULK` | — | 45/— | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_DUST_WIPE` | — | 80/— | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_FINAL_INSPECT` | — | 200/— | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_FINISH_BRUSH_ROLL` | — | 25/— | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_FINISH_SPRAY` | — | 100/— | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_INTERSTAGE_SAND` | quality_tier=[QT4,QT5] | 100/— | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_LIGHT_SAND` | — | 60/— | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_PRIME_BRUSH_ROLL` | — | 30/— | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_PRIME_SPRAY` | — | 100/— | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_PRIME_SPRAY_ROLLOFF` | — | 80/— | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_SPOT_FILL` | — | 40/— | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
 
 _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
@@ -347,17 +339,11 @@ _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
 | task_id | applies_when | Bundle | Decision |
 |---|---|---|---|
-| `TSK_SHELF_CLEAN_DUST` | — | 150/— | |
-| `TSK_SHELF_INSPECT_COAT` | — | 200/— | |
-| `TSK_SHELF_PATCH_DEFECTS` | — | 100/— | |
-| `TSK_SHELF_SPOT_COAT` | — | 120/— | |
-| `TSK_SHELF_TOUCHUP` | — | 100/— | |
-
-### Production.json-only rate rows (missing from bundle)
-
-| task_id | applies_when | Production.json | Decision |
-|---|---|---|---|
-| `TSK_EDGE_SEAL` | — | —/— | |
+| `TSK_SHELF_CLEAN_DUST` | — | 150/— | SYNC — add this row to production.json so it persists across reimports |
+| `TSK_SHELF_INSPECT_COAT` | — | 200/— | SYNC — add this row to production.json so it persists across reimports |
+| `TSK_SHELF_PATCH_DEFECTS` | — | 100/— | SYNC — add this row to production.json so it persists across reimports |
+| `TSK_SHELF_SPOT_COAT` | — | 120/— | SYNC — add this row to production.json so it persists across reimports |
+| `TSK_SHELF_TOUCHUP` | — | 100/— | SYNC — add this row to production.json so it persists across reimports |
 
 ## SF_DECK_EXT
 
@@ -365,16 +351,16 @@ _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
 | task_id | applies_when | Bundle | Production.json | Decision |
 |---|---|---|---|---|
-| `TSK_DECK_BRIGHTEN_DWELL` | wood_condition=[weathered,previously_coated] | —/12 | —/— | |
-| `TSK_DECK_DRY_VERIFY` | — | —/12 | —/— | |
-| `TSK_DECK_FINAL_INSPECT` | — | —/20 | —/— | |
-| `TSK_DECK_FURNITURE_RETURN` | — | —/22 | —/— | |
-| `TSK_DECK_FURNITURE_STAGE` | — | —/30 | —/— | |
-| `TSK_DECK_MOISTURE_TEST` | — | —/20 | —/— | |
-| `TSK_DECK_PROTECT_TEARDOWN` | — | —/20 | —/— | |
-| `TSK_DECK_SEASONING_VERIFY` | substrate_type=[pressure_treated_pine] · wood_condition=[new] | —/12 | —/— | |
-| `TSK_DECK_STRIP_DWELL` | wood_condition=[weathered,previously_coated] | —/17 | —/— | |
-| `TSK_DECK_TOOL_CLEAN` | — | —/10 | —/— | |
+| `TSK_DECK_BRIGHTEN_DWELL` | wood_condition=[weathered,previously_coated] | —/12 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_DECK_DRY_VERIFY` | — | —/12 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_DECK_FINAL_INSPECT` | — | —/20 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_DECK_FURNITURE_RETURN` | — | —/22 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_DECK_FURNITURE_STAGE` | — | —/30 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_DECK_MOISTURE_TEST` | — | —/20 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_DECK_PROTECT_TEARDOWN` | — | —/20 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_DECK_SEASONING_VERIFY` | substrate_type=[pressure_treated_pine] · wood_condition=[new] | —/12 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_DECK_STRIP_DWELL` | wood_condition=[weathered,previously_coated] | —/17 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_DECK_TOOL_CLEAN` | — | —/10 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
 
 _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
@@ -384,19 +370,19 @@ _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
 | task_id | applies_when | Bundle | Production.json | Decision |
 |---|---|---|---|---|
-| `TSK_DKRP_ASSESS_ADHESION` | existing_coating_type=[solid_stain,paint] | —/25 | —/— | |
-| `TSK_DKRP_ASSESS_COATING_ID` | — | —/20 | —/— | |
-| `TSK_DKRP_ASSESS_CONDITION` | — | —/45 | —/— | |
-| `TSK_DKRP_ASSESS_ROT_PROBE` | — | —/20 | —/— | |
-| `TSK_DKRP_BRIGHTEN_DWELL` | existing_coating_condition=[failing,peeling] | —/12 | —/— | |
-| `TSK_DKRP_DRY_VERIFY` | — | —/12 | —/— | |
-| `TSK_DKRP_FINAL_INSPECT` | — | —/20 | —/— | |
-| `TSK_DKRP_FURNITURE_RETURN` | — | —/22 | —/— | |
-| `TSK_DKRP_FURNITURE_STAGE` | — | —/30 | —/— | |
-| `TSK_DKRP_MOISTURE_TEST` | — | —/20 | —/— | |
-| `TSK_DKRP_PROTECT_TEARDOWN` | — | —/20 | —/— | |
-| `TSK_DKRP_STRIP_DWELL` | existing_coating_condition=[failing,peeling] | —/17 | —/— | |
-| `TSK_DKRP_TOOL_CLEAN` | — | —/10 | —/— | |
+| `TSK_DKRP_ASSESS_ADHESION` | existing_coating_type=[solid_stain,paint] | —/25 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_DKRP_ASSESS_COATING_ID` | — | —/20 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_DKRP_ASSESS_CONDITION` | — | —/45 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_DKRP_ASSESS_ROT_PROBE` | — | —/20 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_DKRP_BRIGHTEN_DWELL` | existing_coating_condition=[failing,peeling] | —/12 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_DKRP_DRY_VERIFY` | — | —/12 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_DKRP_FINAL_INSPECT` | — | —/20 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_DKRP_FURNITURE_RETURN` | — | —/22 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_DKRP_FURNITURE_STAGE` | — | —/30 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_DKRP_MOISTURE_TEST` | — | —/20 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_DKRP_PROTECT_TEARDOWN` | — | —/20 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_DKRP_STRIP_DWELL` | existing_coating_condition=[failing,peeling] | —/17 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_DKRP_TOOL_CLEAN` | — | —/10 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
 
 _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
@@ -406,30 +392,30 @@ _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
 | task_id | applies_when | Bundle | Production.json | Decision |
 |---|---|---|---|---|
-| `TSK_XDOR_DENT_FILL_STEEL` | substrate_material=[steel] | —/20 | —/— | |
-| `TSK_XDOR_DUST_INTERCOAT` | quality_tier=[QT4,QT5] | —/5 | —/— | |
-| `TSK_XDOR_DUST_REMOVE` | — | —/5 | —/— | |
-| `TSK_XDOR_EQUIPMENT_SETUP_BRUSH` | application_method=[brush] | —/15 | —/— | |
-| `TSK_XDOR_EQUIPMENT_SETUP_SPRAY` | application_method=[spray] | —/30 | —/— | |
-| `TSK_XDOR_GLASS_MASK` | door_complexity=[panel,grand_entry] | —/12 | —/— | |
-| `TSK_XDOR_GLASS_UNMASK` | door_complexity=[panel,grand_entry] | —/8 | —/— | |
-| `TSK_XDOR_HARDWARE_REINSTALL` | — | —/18 | —/— | |
-| `TSK_XDOR_HARDWARE_REMOVE` | — | —/18 | —/— | |
-| `TSK_XDOR_OPERATION_TEST` | — | —/5 | —/— | |
-| `TSK_XDOR_PRIME_BRUSH_ACRYLIC` | application_method=[brush] · substrate_material=[fiberglass,wood] | —/30 | —/— | |
-| `TSK_XDOR_PRIME_BRUSH_DTM` | application_method=[brush] · substrate_material=[steel] | —/30 | —/— | |
-| `TSK_XDOR_PRIME_EDGES` | application_method=[spray] | —/12 | —/— | |
-| `TSK_XDOR_PRIME_SPRAY_ACRYLIC` | application_method=[spray] · substrate_material=[fiberglass,wood] | —/15 | —/— | |
-| `TSK_XDOR_PRIME_SPRAY_DTM` | application_method=[spray] · substrate_material=[steel] | —/15 | —/— | |
-| `TSK_XDOR_SCUFF_FIBERGLASS` | substrate_material=[fiberglass] | —/12 | —/— | |
-| `TSK_XDOR_SEAL_SIX_SIDES` | substrate_material=[wood] | —/5 | —/— | |
-| `TSK_XDOR_SOLVENT_CLEAN_STEEL` | substrate_material=[steel] | —/18 | —/— | |
-| `TSK_XDOR_THRESHOLD_PROTECT` | — | —/5 | —/— | |
-| `TSK_XDOR_THRESHOLD_TEARDOWN` | — | —/3 | —/— | |
-| `TSK_XDOR_TOOL_CLEAN` | — | —/10 | —/— | |
-| `TSK_XDOR_WASH_FIBERGLASS` | substrate_material=[fiberglass] | —/12 | —/— | |
-| `TSK_XDOR_WEATHERSTRIP_PROTECT` | — | —/10 | —/— | |
-| `TSK_XDOR_WEATHERSTRIP_REINSTALL` | — | —/8 | —/— | |
+| `TSK_XDOR_DENT_FILL_STEEL` | substrate_material=[steel] | —/20 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_XDOR_DUST_INTERCOAT` | quality_tier=[QT4,QT5] | —/5 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_XDOR_DUST_REMOVE` | — | —/5 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_XDOR_EQUIPMENT_SETUP_BRUSH` | application_method=[brush] | —/15 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_XDOR_EQUIPMENT_SETUP_SPRAY` | application_method=[spray] | —/30 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_XDOR_GLASS_MASK` | door_complexity=[panel,grand_entry] | —/12 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_XDOR_GLASS_UNMASK` | door_complexity=[panel,grand_entry] | —/8 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_XDOR_HARDWARE_REINSTALL` | — | —/18 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_XDOR_HARDWARE_REMOVE` | — | —/18 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_XDOR_OPERATION_TEST` | — | —/5 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_XDOR_PRIME_BRUSH_ACRYLIC` | application_method=[brush] · substrate_material=[fiberglass,wood] | —/30 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_XDOR_PRIME_BRUSH_DTM` | application_method=[brush] · substrate_material=[steel] | —/30 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_XDOR_PRIME_EDGES` | application_method=[spray] | —/12 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_XDOR_PRIME_SPRAY_ACRYLIC` | application_method=[spray] · substrate_material=[fiberglass,wood] | —/15 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_XDOR_PRIME_SPRAY_DTM` | application_method=[spray] · substrate_material=[steel] | —/15 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_XDOR_SCUFF_FIBERGLASS` | substrate_material=[fiberglass] | —/12 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_XDOR_SEAL_SIX_SIDES` | substrate_material=[wood] | —/5 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_XDOR_SOLVENT_CLEAN_STEEL` | substrate_material=[steel] | —/18 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_XDOR_THRESHOLD_PROTECT` | — | —/5 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_XDOR_THRESHOLD_TEARDOWN` | — | —/3 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_XDOR_TOOL_CLEAN` | — | —/10 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_XDOR_WASH_FIBERGLASS` | substrate_material=[fiberglass] | —/12 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_XDOR_WEATHERSTRIP_PROTECT` | — | —/10 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_XDOR_WEATHERSTRIP_REINSTALL` | — | —/8 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
 
 _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
@@ -439,15 +425,15 @@ _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
 | task_id | applies_when | Bundle | Production.json | Decision |
 |---|---|---|---|---|
-| `TSK_DRRP_ASSESS_LEAD` | — | —/20 | —/— | |
-| `TSK_DRRP_CLEAN_EQUIPMENT` | — | —/20 | —/— | |
-| `TSK_DRRP_FINAL_WALKTHROUGH` | — | —/15 | —/— | |
-| `TSK_DRRP_MOBILIZE` | — | —/30 | —/— | |
-| `TSK_DRRP_RRP_CONTAINMENT_SETUP` | — | —/45 | —/— | |
-| `TSK_DRRP_RRP_CONTAINMENT_TEARDOWN` | — | —/45 | —/— | |
-| `TSK_DRRP_RRP_WET_METHOD_PREP` | — | —/20 | —/— | |
-| `TSK_DRRP_TEARDOWN_PROTECTION` | — | —/25 | —/— | |
-| `TSK_DRRP_WASTE_DISPOSAL` | — | —/15 | —/— | |
+| `TSK_DRRP_ASSESS_LEAD` | — | —/20 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_DRRP_CLEAN_EQUIPMENT` | — | —/20 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_DRRP_FINAL_WALKTHROUGH` | — | —/15 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_DRRP_MOBILIZE` | — | —/30 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_DRRP_RRP_CONTAINMENT_SETUP` | — | —/45 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_DRRP_RRP_CONTAINMENT_TEARDOWN` | — | —/45 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_DRRP_RRP_WET_METHOD_PREP` | — | —/20 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_DRRP_TEARDOWN_PROTECTION` | — | —/25 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_DRRP_WASTE_DISPOSAL` | — | —/15 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
 
 _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
@@ -455,9 +441,9 @@ _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
 | task_id | applies_when | Bundle | Decision |
 |---|---|---|---|
-| `TSK_DRRP_REMOVE_GLASS_MASK` | — | —/8 | |
-| `TSK_DRRP_REMOVE_SIDING_MASK` | — | —/7 | |
-| `TSK_DRRP_REMOVE_THRESHOLD` | — | —/5 | |
+| `TSK_DRRP_REMOVE_GLASS_MASK` | — | —/8 | SYNC — add this row to production.json so it persists across reimports |
+| `TSK_DRRP_REMOVE_SIDING_MASK` | — | —/7 | SYNC — add this row to production.json so it persists across reimports |
+| `TSK_DRRP_REMOVE_THRESHOLD` | — | —/5 | SYNC — add this row to production.json so it persists across reimports |
 
 ## SF_DOOR_FRAME_NC_FINISH
 
@@ -465,7 +451,7 @@ _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
 | task_id | applies_when | Bundle | Production.json | Decision |
 |---|---|---|---|---|
-| `TSK_FRAME_CLEAN_TOOLS` | — | —/10 | —/25 | |
+| `TSK_FRAME_CLEAN_TOOLS` | — | —/10 | —/25 | SYNC — bundle is the user's calibrated rate (mirror into production.json) |
 
 _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
@@ -475,7 +461,7 @@ _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
 | task_id | applies_when | Bundle | Production.json | Decision |
 |---|---|---|---|---|
-| `TSK_DFST_STAIN_DRY_VERIFY` | coating_type=[stain_clear] | —/10 | —/— | |
+| `TSK_DFST_STAIN_DRY_VERIFY` | coating_type=[stain_clear] | —/10 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
 
 _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
@@ -483,7 +469,7 @@ _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
 | task_id | applies_when | Bundle | Decision |
 |---|---|---|---|
-| `TSK_DFST_REMOVE_WALL_MASK` | — | 200/— | |
+| `TSK_DFST_REMOVE_WALL_MASK` | — | 200/— | SYNC — add this row to production.json so it persists across reimports |
 
 ## SF_DOOR_INT_RP
 
@@ -491,56 +477,56 @@ _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
 | task_id | applies_when | Production.json | Decision |
 |---|---|---|---|
-| `TSK_DIRP_ASSESS_ADHESION` | — | 8/— | |
-| `TSK_DIRP_ASSESS_COATING_ID` | — | 12/— | |
-| `TSK_DIRP_ASSESS_CONDITION` | — | —/— | |
-| `TSK_DIRP_ASSESS_MOISTURE` | — | 15/— | |
-| `TSK_DIRP_CAULK_ASSESS_REPLACE` | — | —/— | |
-| `TSK_DIRP_CLEAN_INTERSTAGE` | — | 15/— | |
-| `TSK_DIRP_CLEAN_TOOLS` | — | —/— | |
-| `TSK_DIRP_CUSTOMER_WALKTHROUGH` | occupancy_state=[occupied_crew_handles,occupied_sensitive] | 8/— | |
-| `TSK_DIRP_DEGLOSS_FRAME` | substrate_state=[SS_INT_SOUND_PAINT,SS_INT_FAILING_PAINT] | —/— | |
-| `TSK_DIRP_DEGLOSS_SLAB` | substrate_state=[SS_INT_SOUND_PAINT,SS_INT_FAILING_PAINT] | —/— | |
-| `TSK_DIRP_DUST_WIPE` | — | 15/— | |
-| `TSK_DIRP_FILL_PATCH` | condition_scale=[FAIR,POOR] | —/— | |
-| `TSK_DIRP_FINAL_INSPECT` | — | —/— | |
-| `TSK_DIRP_FINISH_FRAME_BRUSH` | application_method=[brush] | 5/— | |
-| `TSK_DIRP_FINISH_FRAME_ROLL_TIP` | application_method=[brush] | 6/— | |
-| `TSK_DIRP_FINISH_FRAME_SPRAY` | application_method=[spray] | 10/— | |
-| `TSK_DIRP_FINISH_SLAB_BRUSH` | application_method=[brush] | 3.5/— | |
-| `TSK_DIRP_FINISH_SLAB_SPRAY` | application_method=[spray] | 8/— | |
-| `TSK_DIRP_FLOOR_PROTECT_BRUSH` | application_method=[brush] | 12/— | |
-| `TSK_DIRP_FLOOR_PROTECT_SPRAY` | application_method=[spray] | 6/— | |
-| `TSK_DIRP_FLOOR_PROTECT_TEARDOWN` | — | 15/— | |
-| `TSK_DIRP_GLASS_MASK` | door_type=[french] | 10/— | |
-| `TSK_DIRP_GLASS_UNMASK` | door_type=[french] | 15/— | |
-| `TSK_DIRP_HARDWARE_MASK` | application_method=[brush] | 4/— | |
-| `TSK_DIRP_HARDWARE_REINSTALL` | application_method=[spray] | 3/— | |
-| `TSK_DIRP_HARDWARE_REMOVE` | application_method=[spray] | 3/— | |
-| `TSK_DIRP_HARDWARE_UNMASK` | application_method=[brush] | 10/— | |
-| `TSK_DIRP_INSPECT_COAT` | — | —/— | |
-| `TSK_DIRP_LIGHT_SAND_FRAME` | — | —/— | |
-| `TSK_DIRP_LIGHT_SAND_SLAB` | — | —/— | |
-| `TSK_DIRP_MORTISE_TOUCHUP` | application_method=[spray] | 12/— | |
-| `TSK_DIRP_PATCH_DEFECTS` | — | —/— | |
-| `TSK_DIRP_PRIME_FRAME_BRUSH` | application_method=[brush] · substrate_state=[SS_INT_FAILING_PAINT,SS_INT_PEELING,SS_INT_MOISTURE_DAMAGE,SS_INT_SMOKE_DAMAGE] | 7/— | |
-| `TSK_DIRP_PRIME_FRAME_SPRAY` | application_method=[spray] · substrate_state=[SS_INT_FAILING_PAINT,SS_INT_PEELING,SS_INT_MOISTURE_DAMAGE,SS_INT_SMOKE_DAMAGE] | 12/— | |
-| `TSK_DIRP_PRIME_SLAB_BRUSH` | application_method=[brush] · substrate_state=[SS_INT_FAILING_PAINT,SS_INT_PEELING,SS_INT_MOISTURE_DAMAGE,SS_INT_SMOKE_DAMAGE] | 4/— | |
-| `TSK_DIRP_PRIME_SLAB_SPRAY` | application_method=[spray] · substrate_state=[SS_INT_FAILING_PAINT,SS_INT_PEELING,SS_INT_MOISTURE_DAMAGE,SS_INT_SMOKE_DAMAGE] | 10/— | |
-| `TSK_DIRP_SAND_FILL` | condition_scale=[FAIR,POOR] | 12/— | |
-| `TSK_DIRP_SCRAPE_FEATHER` | condition_scale=[FAIR,POOR] · substrate_state=[SS_INT_FAILING_PAINT,SS_INT_PEELING,SS_INT_MOISTURE_DAMAGE] | —/— | |
-| `TSK_DIRP_SPOT_COAT` | — | —/— | |
-| `TSK_DIRP_SPOT_PRIME` | — | —/— | |
-| `TSK_DIRP_TOUCHUP` | — | —/— | |
-| `TSK_DIRP_TREAT_MILDEW` | contamination_type=[mildew] · substrate_state=[SS_INT_MOISTURE_DAMAGE] | 4/— | |
-| `TSK_DIRP_WALL_MASK_SETUP` | application_method=[spray] | 8/— | |
-| `TSK_DIRP_WALL_MASK_TEARDOWN` | application_method=[spray] | 12/— | |
-| `TSK_DIRP_WASH_TSP` | contamination_type=[mildew,smoke,water_stain,grease] | 6/— | |
-| `TSK_RRP_CONTAINMENT_REMOVAL` | home_pre_1978=True · lead_status=[tested_positive,unknown_pre1978] | 6/— | |
-| `TSK_RRP_CONTAINMENT_SETUP` | home_pre_1978=True · lead_status=[tested_positive,unknown_pre1978] | 4/— | |
-| `TSK_RRP_HEPA_VACUUM` | home_pre_1978=True · lead_status=[tested_positive,unknown_pre1978] | 8/— | |
-| `TSK_RRP_LEAD_TEST` | home_pre_1978=True | 6/— | |
-| `TSK_RRP_WASTE_DISPOSAL` | home_pre_1978=True · lead_status=[tested_positive,unknown_pre1978] | —/— | |
+| `TSK_DIRP_ASSESS_ADHESION` | — | 8/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_DIRP_ASSESS_COATING_ID` | — | 12/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_DIRP_ASSESS_CONDITION` | — | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_DIRP_ASSESS_MOISTURE` | — | 15/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_DIRP_CAULK_ASSESS_REPLACE` | — | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_DIRP_CLEAN_INTERSTAGE` | — | 15/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_DIRP_CLEAN_TOOLS` | — | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_DIRP_CUSTOMER_WALKTHROUGH` | occupancy_state=[occupied_crew_handles,occupied_sensitive] | 8/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_DIRP_DEGLOSS_FRAME` | substrate_state=[SS_INT_SOUND_PAINT,SS_INT_FAILING_PAINT] | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_DIRP_DEGLOSS_SLAB` | substrate_state=[SS_INT_SOUND_PAINT,SS_INT_FAILING_PAINT] | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_DIRP_DUST_WIPE` | — | 15/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_DIRP_FILL_PATCH` | condition_scale=[FAIR,POOR] | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_DIRP_FINAL_INSPECT` | — | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_DIRP_FINISH_FRAME_BRUSH` | application_method=[brush] | 5/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_DIRP_FINISH_FRAME_ROLL_TIP` | application_method=[brush] | 6/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_DIRP_FINISH_FRAME_SPRAY` | application_method=[spray] | 10/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_DIRP_FINISH_SLAB_BRUSH` | application_method=[brush] | 3.5/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_DIRP_FINISH_SLAB_SPRAY` | application_method=[spray] | 8/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_DIRP_FLOOR_PROTECT_BRUSH` | application_method=[brush] | 12/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_DIRP_FLOOR_PROTECT_SPRAY` | application_method=[spray] | 6/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_DIRP_FLOOR_PROTECT_TEARDOWN` | — | 15/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_DIRP_GLASS_MASK` | door_type=[french] | 10/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_DIRP_GLASS_UNMASK` | door_type=[french] | 15/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_DIRP_HARDWARE_MASK` | application_method=[brush] | 4/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_DIRP_HARDWARE_REINSTALL` | application_method=[spray] | 3/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_DIRP_HARDWARE_REMOVE` | application_method=[spray] | 3/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_DIRP_HARDWARE_UNMASK` | application_method=[brush] | 10/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_DIRP_INSPECT_COAT` | — | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_DIRP_LIGHT_SAND_FRAME` | — | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_DIRP_LIGHT_SAND_SLAB` | — | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_DIRP_MORTISE_TOUCHUP` | application_method=[spray] | 12/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_DIRP_PATCH_DEFECTS` | — | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_DIRP_PRIME_FRAME_BRUSH` | application_method=[brush] · substrate_state=[SS_INT_FAILING_PAINT,SS_INT_PEELING,SS_INT_MOISTURE_DAMAGE,SS_INT_SMOKE_DAMAGE] | 7/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_DIRP_PRIME_FRAME_SPRAY` | application_method=[spray] · substrate_state=[SS_INT_FAILING_PAINT,SS_INT_PEELING,SS_INT_MOISTURE_DAMAGE,SS_INT_SMOKE_DAMAGE] | 12/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_DIRP_PRIME_SLAB_BRUSH` | application_method=[brush] · substrate_state=[SS_INT_FAILING_PAINT,SS_INT_PEELING,SS_INT_MOISTURE_DAMAGE,SS_INT_SMOKE_DAMAGE] | 4/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_DIRP_PRIME_SLAB_SPRAY` | application_method=[spray] · substrate_state=[SS_INT_FAILING_PAINT,SS_INT_PEELING,SS_INT_MOISTURE_DAMAGE,SS_INT_SMOKE_DAMAGE] | 10/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_DIRP_SAND_FILL` | condition_scale=[FAIR,POOR] | 12/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_DIRP_SCRAPE_FEATHER` | condition_scale=[FAIR,POOR] · substrate_state=[SS_INT_FAILING_PAINT,SS_INT_PEELING,SS_INT_MOISTURE_DAMAGE] | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_DIRP_SPOT_COAT` | — | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_DIRP_SPOT_PRIME` | — | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_DIRP_TOUCHUP` | — | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_DIRP_TREAT_MILDEW` | contamination_type=[mildew] · substrate_state=[SS_INT_MOISTURE_DAMAGE] | 4/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_DIRP_WALL_MASK_SETUP` | application_method=[spray] | 8/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_DIRP_WALL_MASK_TEARDOWN` | application_method=[spray] | 12/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_DIRP_WASH_TSP` | contamination_type=[mildew,smoke,water_stain,grease] | 6/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_RRP_CONTAINMENT_REMOVAL` | home_pre_1978=True · lead_status=[tested_positive,unknown_pre1978] | 6/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_RRP_CONTAINMENT_SETUP` | home_pre_1978=True · lead_status=[tested_positive,unknown_pre1978] | 4/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_RRP_HEPA_VACUUM` | home_pre_1978=True · lead_status=[tested_positive,unknown_pre1978] | 8/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_RRP_LEAD_TEST` | home_pre_1978=True | 6/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_RRP_WASTE_DISPOSAL` | home_pre_1978=True · lead_status=[tested_positive,unknown_pre1978] | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
 
 ## SF_DOOR_SLAB_INT_NC
 
@@ -548,15 +534,9 @@ _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
 | task_id | applies_when | Bundle | Production.json | Decision |
 |---|---|---|---|---|
-| `TSK_DOOR_CLEAN_TOOLS` | — | —/10 | —/25 | |
+| `TSK_DOOR_CLEAN_TOOLS` | — | —/10 | —/25 | SYNC — bundle is the user's calibrated rate (mirror into production.json) |
 
 _Rate column order:_ `rate_per_hour` / `fixed_minutes`
-
-### Production.json-only rate rows (missing from bundle)
-
-| task_id | applies_when | Production.json | Decision |
-|---|---|---|---|
-| `TSK_DOOR_MDF_EDGE_SEAL` | door_type=[flush,panel_4,panel_6] | 15/— | |
 
 ## SF_DOOR_SLAB_INT_NC_STAIN
 
@@ -564,7 +544,7 @@ _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
 | task_id | applies_when | Bundle | Production.json | Decision |
 |---|---|---|---|---|
-| `TSK_DSST_STAIN_DRY_VERIFY` | coating_type=[stain_clear] | —/10 | —/— | |
+| `TSK_DSST_STAIN_DRY_VERIFY` | coating_type=[stain_clear] | —/10 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
 
 _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
@@ -572,7 +552,7 @@ _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
 | task_id | applies_when | Bundle | Decision |
 |---|---|---|---|
-| `TSK_DSST_REMOVE_WALL_MASK` | — | 200/— | |
+| `TSK_DSST_REMOVE_WALL_MASK` | — | 200/— | SYNC — add this row to production.json so it persists across reimports |
 
 ## SF_DRYWALL_CEILING_INT_RP
 
@@ -580,60 +560,60 @@ _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
 | task_id | applies_when | Production.json | Decision |
 |---|---|---|---|
-| `TSK_CLRP_ASSESS_ADHESION` | — | —/10 | |
-| `TSK_CLRP_ASSESS_COATING_ID` | — | —/6 | |
-| `TSK_CLRP_ASSESS_CONDITION` | — | —/18 | |
-| `TSK_CLRP_ASSESS_MOISTURE` | — | —/6 | |
-| `TSK_CLRP_BACKROLL_FINISH_R1` | application_method=[spray_backroll] | 275/— | |
-| `TSK_CLRP_BACKROLL_FINISH_R2` | application_method=[spray_backroll] · quality_tier=[QT3,QT4,QT5] | 300/— | |
-| `TSK_CLRP_BACKROLL_PRIMER` | application_method=[spray_backroll] · substrate_state=[SS_INT_FAILING_PAINT,SS_INT_PEELING,SS_INT_MOISTURE_DAMAGE,SS_INT_SMOKE_DAMAGE] | 325/— | |
-| `TSK_CLRP_CAULK_PERIMETER` | quality_tier=[QT3,QT4,QT5] | 50/— | |
-| `TSK_CLRP_CLEAN_TOOLS` | — | —/25 | |
-| `TSK_CLRP_CUSTOMER_WALKTHROUGH` | occupancy_state=[occupied_crew_handles,occupied_sensitive] | —/5 | |
-| `TSK_CLRP_CUTIN_PRIMER_WALL` | application_method=[roll] · substrate_state=[SS_INT_FAILING_PAINT,SS_INT_PEELING,SS_INT_MOISTURE_DAMAGE,SS_INT_SMOKE_DAMAGE] | 85/— | |
-| `TSK_CLRP_CUTIN_WALL_R1` | application_method=[roll] | 85/— | |
-| `TSK_CLRP_CUTIN_WALL_R2` | application_method=[roll] · quality_tier=[QT3,QT4,QT5] | 85/— | |
-| `TSK_CLRP_DEGLOSS` | substrate_state=[SS_INT_SOUND_PAINT,SS_INT_FAILING_PAINT] | 235/— | |
-| `TSK_CLRP_DUST_WIPE` | — | 850/— | |
-| `TSK_CLRP_FEATHER_EDGES` | condition_scale=[FAIR,POOR] | 100/— | |
-| `TSK_CLRP_FINAL_INSPECT` | quality_tier=[QT2,QT3] | 1700/— | |
-| `TSK_CLRP_FINAL_INSPECT_QT4` | quality_tier=[QT4] | 850/— | |
-| `TSK_CLRP_FINAL_INSPECT_QT5` | quality_tier=[QT5] | 500/— | |
-| `TSK_CLRP_FIXTURE_MASK_SETUP` | application_method=[spray_backroll,spray] | 4/— | |
-| `TSK_CLRP_FLOOR_PROTECT_FULL_SETUP` | — | 400/— | |
-| `TSK_CLRP_FLOOR_PROTECT_TEARDOWN` | — | 600/— | |
-| `TSK_CLRP_FURNITURE_DRIP_COVER` | occupancy_state=[occupied_crew_handles,occupied_sensitive] | —/8 | |
-| `TSK_CLRP_FURNITURE_UNCOVER` | occupancy_state=[occupied_crew_handles,occupied_sensitive] | —/6 | |
-| `TSK_CLRP_INSPECT_BETWEEN_COATS` | quality_tier=[QT3,QT4,QT5] | 1275/— | |
-| `TSK_CLRP_LIGHT_SAND_BETWEEN_COATS` | quality_tier=[QT4] | 500/— | |
-| `TSK_CLRP_LIGHT_SAND_BETWEEN_COATS_QT5` | quality_tier=[QT5] | 350/— | |
-| `TSK_CLRP_MASK_WALL_TOP` | application_method=[spray_backroll,spray] | 130/— | |
-| `TSK_CLRP_OPENING_COVERS_SETUP` | application_method=[spray_backroll,spray] | —/5 | |
-| `TSK_CLRP_PATCH_DEFECTS_INTERSTAGE` | quality_tier=[QT3,QT4,QT5] | 1000/— | |
-| `TSK_CLRP_REMOVE_FIXTURE_PROTECTION` | application_method=[spray_backroll,spray] | 8/— | |
-| `TSK_CLRP_REMOVE_WALL_MASKING` | application_method=[spray_backroll,spray] | 275/— | |
-| `TSK_CLRP_ROLL_FINISH_R1` | application_method=[roll] | 280/— | |
-| `TSK_CLRP_ROLL_FINISH_R2` | application_method=[roll] · quality_tier=[QT3,QT4,QT5] | 280/— | |
-| `TSK_CLRP_ROLL_PRIMER` | application_method=[roll] · substrate_state=[SS_INT_FAILING_PAINT,SS_INT_PEELING,SS_INT_MOISTURE_DAMAGE,SS_INT_SMOKE_DAMAGE] | 275/— | |
-| `TSK_CLRP_SAND_SPACKLE` | quality_tier=[QT3,QT4,QT5] | 800/— | |
-| `TSK_CLRP_SCRAPE_LOOSE` | condition_scale=[FAIR,POOR] | 65/— | |
-| `TSK_CLRP_SPACKLE_DEFECTS` | quality_tier=[QT3,QT4,QT5] | 650/— | |
-| `TSK_CLRP_SPOT_COAT_INTERSTAGE` | quality_tier=[QT3,QT4,QT5] | 1530/— | |
-| `TSK_CLRP_SPOT_PRIME` | — | 1275/— | |
-| `TSK_CLRP_SPRAY_FINISH_R1` | application_method=[spray_backroll,spray] | 275/— | |
-| `TSK_CLRP_SPRAY_FINISH_R2` | application_method=[spray_backroll,spray] · quality_tier=[QT3,QT4,QT5] | 300/— | |
-| `TSK_CLRP_SPRAY_PRIMER` | application_method=[spray_backroll,spray] · substrate_state=[SS_INT_FAILING_PAINT,SS_INT_PEELING,SS_INT_MOISTURE_DAMAGE,SS_INT_SMOKE_DAMAGE] | 275/— | |
-| `TSK_CLRP_TOUCHUP` | — | 1530/— | |
-| `TSK_CLRP_TREAT_MILDEW` | contamination_type=[mildew] · substrate_state=[SS_INT_MOISTURE_DAMAGE] | 170/— | |
-| `TSK_CLRP_VACUUM_DUST` | — | 600/— | |
-| `TSK_CLRP_VACUUM_FLOORS` | — | 1500/— | |
-| `TSK_CLRP_VACUUM_INTERCOAT_DUST` | quality_tier=[QT4,QT5] | 600/— | |
-| `TSK_CLRP_WASH_TSP` | contamination_type=[mildew,smoke,water_stain,grease] | 210/— | |
-| `TSK_RRP_CONTAINMENT_REMOVAL` | home_pre_1978=True · lead_status=[tested_positive,unknown_pre1978] | —/20 | |
-| `TSK_RRP_CONTAINMENT_SETUP` | home_pre_1978=True · lead_status=[tested_positive,unknown_pre1978] | —/30 | |
-| `TSK_RRP_HEPA_VACUUM` | home_pre_1978=True · lead_status=[tested_positive,unknown_pre1978] | —/20 | |
-| `TSK_RRP_LEAD_TEST` | home_pre_1978=True | —/10 | |
-| `TSK_RRP_WASTE_DISPOSAL` | home_pre_1978=True · lead_status=[tested_positive,unknown_pre1978] | —/30 | |
+| `TSK_CLRP_ASSESS_ADHESION` | — | —/10 | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_CLRP_ASSESS_COATING_ID` | — | —/6 | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_CLRP_ASSESS_CONDITION` | — | —/18 | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_CLRP_ASSESS_MOISTURE` | — | —/6 | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_CLRP_BACKROLL_FINISH_R1` | application_method=[spray_backroll] | 275/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_CLRP_BACKROLL_FINISH_R2` | application_method=[spray_backroll] · quality_tier=[QT3,QT4,QT5] | 300/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_CLRP_BACKROLL_PRIMER` | application_method=[spray_backroll] · substrate_state=[SS_INT_FAILING_PAINT,SS_INT_PEELING,SS_INT_MOISTURE_DAMAGE,SS_INT_SMOKE_DAMAGE] | 325/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_CLRP_CAULK_PERIMETER` | quality_tier=[QT3,QT4,QT5] | 50/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_CLRP_CLEAN_TOOLS` | — | —/25 | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_CLRP_CUSTOMER_WALKTHROUGH` | occupancy_state=[occupied_crew_handles,occupied_sensitive] | —/5 | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_CLRP_CUTIN_PRIMER_WALL` | application_method=[roll] · substrate_state=[SS_INT_FAILING_PAINT,SS_INT_PEELING,SS_INT_MOISTURE_DAMAGE,SS_INT_SMOKE_DAMAGE] | 85/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_CLRP_CUTIN_WALL_R1` | application_method=[roll] | 85/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_CLRP_CUTIN_WALL_R2` | application_method=[roll] · quality_tier=[QT3,QT4,QT5] | 85/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_CLRP_DEGLOSS` | substrate_state=[SS_INT_SOUND_PAINT,SS_INT_FAILING_PAINT] | 235/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_CLRP_DUST_WIPE` | — | 850/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_CLRP_FEATHER_EDGES` | condition_scale=[FAIR,POOR] | 100/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_CLRP_FINAL_INSPECT` | quality_tier=[QT2,QT3] | 1700/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_CLRP_FINAL_INSPECT_QT4` | quality_tier=[QT4] | 850/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_CLRP_FINAL_INSPECT_QT5` | quality_tier=[QT5] | 500/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_CLRP_FIXTURE_MASK_SETUP` | application_method=[spray_backroll,spray] | 4/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_CLRP_FLOOR_PROTECT_FULL_SETUP` | — | 400/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_CLRP_FLOOR_PROTECT_TEARDOWN` | — | 600/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_CLRP_FURNITURE_DRIP_COVER` | occupancy_state=[occupied_crew_handles,occupied_sensitive] | —/8 | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_CLRP_FURNITURE_UNCOVER` | occupancy_state=[occupied_crew_handles,occupied_sensitive] | —/6 | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_CLRP_INSPECT_BETWEEN_COATS` | quality_tier=[QT3,QT4,QT5] | 1275/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_CLRP_LIGHT_SAND_BETWEEN_COATS` | quality_tier=[QT4] | 500/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_CLRP_LIGHT_SAND_BETWEEN_COATS_QT5` | quality_tier=[QT5] | 350/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_CLRP_MASK_WALL_TOP` | application_method=[spray_backroll,spray] | 130/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_CLRP_OPENING_COVERS_SETUP` | application_method=[spray_backroll,spray] | —/5 | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_CLRP_PATCH_DEFECTS_INTERSTAGE` | quality_tier=[QT3,QT4,QT5] | 1000/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_CLRP_REMOVE_FIXTURE_PROTECTION` | application_method=[spray_backroll,spray] | 8/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_CLRP_REMOVE_WALL_MASKING` | application_method=[spray_backroll,spray] | 275/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_CLRP_ROLL_FINISH_R1` | application_method=[roll] | 280/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_CLRP_ROLL_FINISH_R2` | application_method=[roll] · quality_tier=[QT3,QT4,QT5] | 280/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_CLRP_ROLL_PRIMER` | application_method=[roll] · substrate_state=[SS_INT_FAILING_PAINT,SS_INT_PEELING,SS_INT_MOISTURE_DAMAGE,SS_INT_SMOKE_DAMAGE] | 275/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_CLRP_SAND_SPACKLE` | quality_tier=[QT3,QT4,QT5] | 800/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_CLRP_SCRAPE_LOOSE` | condition_scale=[FAIR,POOR] | 65/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_CLRP_SPACKLE_DEFECTS` | quality_tier=[QT3,QT4,QT5] | 650/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_CLRP_SPOT_COAT_INTERSTAGE` | quality_tier=[QT3,QT4,QT5] | 1530/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_CLRP_SPOT_PRIME` | — | 1275/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_CLRP_SPRAY_FINISH_R1` | application_method=[spray_backroll,spray] | 275/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_CLRP_SPRAY_FINISH_R2` | application_method=[spray_backroll,spray] · quality_tier=[QT3,QT4,QT5] | 300/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_CLRP_SPRAY_PRIMER` | application_method=[spray_backroll,spray] · substrate_state=[SS_INT_FAILING_PAINT,SS_INT_PEELING,SS_INT_MOISTURE_DAMAGE,SS_INT_SMOKE_DAMAGE] | 275/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_CLRP_TOUCHUP` | — | 1530/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_CLRP_TREAT_MILDEW` | contamination_type=[mildew] · substrate_state=[SS_INT_MOISTURE_DAMAGE] | 170/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_CLRP_VACUUM_DUST` | — | 600/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_CLRP_VACUUM_FLOORS` | — | 1500/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_CLRP_VACUUM_INTERCOAT_DUST` | quality_tier=[QT4,QT5] | 600/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_CLRP_WASH_TSP` | contamination_type=[mildew,smoke,water_stain,grease] | 210/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_RRP_CONTAINMENT_REMOVAL` | home_pre_1978=True · lead_status=[tested_positive,unknown_pre1978] | —/20 | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_RRP_CONTAINMENT_SETUP` | home_pre_1978=True · lead_status=[tested_positive,unknown_pre1978] | —/30 | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_RRP_HEPA_VACUUM` | home_pre_1978=True · lead_status=[tested_positive,unknown_pre1978] | —/20 | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_RRP_LEAD_TEST` | home_pre_1978=True | —/10 | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_RRP_WASTE_DISPOSAL` | home_pre_1978=True · lead_status=[tested_positive,unknown_pre1978] | —/30 | SKIP — unimported RP spec; out of scope for Phase 3 |
 
 ## SF_DRYWALL_CEILING_NC_FINISH
 
@@ -641,17 +621,17 @@ _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
 | task_id | applies_when | Bundle | Production.json | Decision |
 |---|---|---|---|---|
-| `TSK_BACKROLL_CEILING_FINISH_R1` | application_method=[spray_backroll] | 825/— | 320/— | |
-| `TSK_BACKROLL_CEILING_FINISH_R2` | application_method=[spray_backroll] · quality_tier=[QT4,QT5] | 825/— | 320/— | |
-| `TSK_CLEAN_TOOLS_CEILING` | — | —/10 | —/— | |
-| `TSK_ROLL_CEILING_FINISH_R1` | application_method=[roll] · surface_texture=[smooth] | 725/— | 280/— | |
-| `TSK_ROLL_CEILING_FINISH_R1_TEXTURED` | application_method=[roll] · surface_texture=[orange_peel,knockdown] | 565/— | 220/— | |
-| `TSK_ROLL_CEILING_FINISH_R2` | application_method=[roll] · quality_tier=[QT4,QT5] · surface_texture=[smooth] | 725/— | 280/— | |
-| `TSK_SPRAY_CEILING_FINISH_ONLY` | application_method=[spray] · quality_tier=[QT2,QT3] | 1480/— | 550/— | |
-| `TSK_SPRAY_CEILING_FINISH_R1` | application_method=[spray_backroll] | 825/— | 450/— | |
-| `TSK_SPRAY_CEILING_FINISH_R2` | application_method=[spray_backroll] · quality_tier=[QT4,QT5] | 825/— | 450/— | |
-| `TSK_VACUUM_REPAIR_DUST_CEILING` | quality_tier=[QT3,QT4,QT5] | 2000/— | 600/— | |
-| `TSK_VACUUM_SAND_DUST_CEILING_FULL` | quality_tier=[QT4,QT5] | 2000/— | 600/— | |
+| `TSK_BACKROLL_CEILING_FINISH_R1` | application_method=[spray_backroll] | 825/— | 320/— | SYNC — bundle is the user's calibrated rate (mirror into production.json) |
+| `TSK_BACKROLL_CEILING_FINISH_R2` | application_method=[spray_backroll] · quality_tier=[QT4,QT5] | 825/— | 320/— | SYNC — bundle is the user's calibrated rate (mirror into production.json) |
+| `TSK_CLEAN_TOOLS_CEILING` | — | —/10 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_ROLL_CEILING_FINISH_R1` | application_method=[roll] · surface_texture=[smooth] | 725/— | 280/— | SYNC — bundle is the user's calibrated rate (mirror into production.json) |
+| `TSK_ROLL_CEILING_FINISH_R1_TEXTURED` | application_method=[roll] · surface_texture=[orange_peel,knockdown] | 565/— | 220/— | SYNC — bundle is the user's calibrated rate (mirror into production.json) |
+| `TSK_ROLL_CEILING_FINISH_R2` | application_method=[roll] · quality_tier=[QT4,QT5] · surface_texture=[smooth] | 725/— | 280/— | SYNC — bundle is the user's calibrated rate (mirror into production.json) |
+| `TSK_SPRAY_CEILING_FINISH_ONLY` | application_method=[spray] · quality_tier=[QT2,QT3] | 1480/— | 550/— | SYNC — bundle is the user's calibrated rate (mirror into production.json) |
+| `TSK_SPRAY_CEILING_FINISH_R1` | application_method=[spray_backroll] | 825/— | 450/— | SYNC — bundle is the user's calibrated rate (mirror into production.json) |
+| `TSK_SPRAY_CEILING_FINISH_R2` | application_method=[spray_backroll] · quality_tier=[QT4,QT5] | 825/— | 450/— | SYNC — bundle is the user's calibrated rate (mirror into production.json) |
+| `TSK_VACUUM_REPAIR_DUST_CEILING` | quality_tier=[QT3,QT4,QT5] | 2000/— | 600/— | SYNC — bundle is the user's calibrated rate (mirror into production.json) |
+| `TSK_VACUUM_SAND_DUST_CEILING_FULL` | quality_tier=[QT4,QT5] | 2000/— | 600/— | SYNC — bundle is the user's calibrated rate (mirror into production.json) |
 
 _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
@@ -659,9 +639,9 @@ _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
 | task_id | applies_when | Production.json | Decision |
 |---|---|---|---|
-| `TSK_VACUUM_INTERCOAT_DUST` | quality_tier=[QT4,QT5] | 600/— | |
-| `TSK_VACUUM_INTERCOAT_DUST_SPRAY` | quality_tier=[QT4,QT5] | 600/— | |
-| `TSK_VACUUM_SUBFLOOR_POST` | — | 1500/— | |
+| `TSK_VACUUM_INTERCOAT_DUST` | quality_tier=[QT4,QT5] | 600/— | INVESTIGATE — task in production.json but not firing; decide per-task before activating |
+| `TSK_VACUUM_INTERCOAT_DUST_SPRAY` | quality_tier=[QT4,QT5] | 600/— | INVESTIGATE — task in production.json but not firing; decide per-task before activating |
+| `TSK_VACUUM_SUBFLOOR_POST` | — | 1500/— | INVESTIGATE — task in production.json but not firing; decide per-task before activating |
 
 ## SF_DRYWALL_CEILING_NC_PRIME
 
@@ -669,18 +649,18 @@ _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
 | task_id | applies_when | Bundle | Production.json | Decision |
 |---|---|---|---|---|
-| `TSK_CEIL_BACKROLL_PRIMER` | application_method=[spray_backroll] · quality_tier=[QT2,QT3] | 840/— | 325/— | |
-| `TSK_CEIL_BACKROLL_PRIMER_QT4` | application_method=[spray_backroll] · quality_tier=[QT4] | 720/— | 280/— | |
-| `TSK_CEIL_CUT_IN_WALL` | application_method=[roll] · quality_tier=[QT2,QT3] | 170/— | 85/— | |
-| `TSK_CEIL_CUT_IN_WALL_QT4` | application_method=[roll] · quality_tier=[QT4] | 130/— | 65/— | |
-| `TSK_CEIL_CUT_IN_WALL_SPRAY` | application_method=[spray_backroll] · quality_tier=[QT2,QT3,QT4] | 200/— | 100/— | |
-| `TSK_CEIL_ROLL_PRIMER` | application_method=[roll] · quality_tier=[QT2,QT3] · surface_texture=[smooth] | 775/— | 300/— | |
-| `TSK_CEIL_ROLL_PRIMER_QT4` | application_method=[roll] · quality_tier=[QT4] | 605/— | 235/— | |
-| `TSK_CEIL_ROLL_PRIMER_TEXTURED` | application_method=[roll] · quality_tier=[QT2,QT3] · surface_texture=[orange_peel,knockdown] | 605/— | 235/— | |
-| `TSK_CEIL_SPRAY_PRIMER` | application_method=[spray_backroll] · quality_tier=[QT2,QT3] | 840/— | 500/— | |
-| `TSK_CEIL_SPRAY_PRIMER_ONLY` | application_method=[spray] · quality_tier=[QT2,QT3] | 1480/— | 575/— | |
-| `TSK_CEIL_SPRAY_PRIMER_QT4` | application_method=[spray_backroll] · quality_tier=[QT4] | 720/— | 425/— | |
-| `TSK_CEIL_VACUUM_DUST` | quality_tier=[QT2,QT3,QT4] | 2335/— | 700/— | |
+| `TSK_CEIL_BACKROLL_PRIMER` | application_method=[spray_backroll] · quality_tier=[QT2,QT3] | 840/— | 325/— | SYNC — bundle is the user's calibrated rate (mirror into production.json) |
+| `TSK_CEIL_BACKROLL_PRIMER_QT4` | application_method=[spray_backroll] · quality_tier=[QT4] | 720/— | 280/— | SYNC — bundle is the user's calibrated rate (mirror into production.json) |
+| `TSK_CEIL_CUT_IN_WALL` | application_method=[roll] · quality_tier=[QT2,QT3] | 170/— | 85/— | SYNC — bundle is the user's calibrated rate (mirror into production.json) |
+| `TSK_CEIL_CUT_IN_WALL_QT4` | application_method=[roll] · quality_tier=[QT4] | 130/— | 65/— | SYNC — bundle is the user's calibrated rate (mirror into production.json) |
+| `TSK_CEIL_CUT_IN_WALL_SPRAY` | application_method=[spray_backroll] · quality_tier=[QT2,QT3,QT4] | 200/— | 100/— | SYNC — bundle is the user's calibrated rate (mirror into production.json) |
+| `TSK_CEIL_ROLL_PRIMER` | application_method=[roll] · quality_tier=[QT2,QT3] · surface_texture=[smooth] | 775/— | 300/— | SYNC — bundle is the user's calibrated rate (mirror into production.json) |
+| `TSK_CEIL_ROLL_PRIMER_QT4` | application_method=[roll] · quality_tier=[QT4] | 605/— | 235/— | SYNC — bundle is the user's calibrated rate (mirror into production.json) |
+| `TSK_CEIL_ROLL_PRIMER_TEXTURED` | application_method=[roll] · quality_tier=[QT2,QT3] · surface_texture=[orange_peel,knockdown] | 605/— | 235/— | SYNC — bundle is the user's calibrated rate (mirror into production.json) |
+| `TSK_CEIL_SPRAY_PRIMER` | application_method=[spray_backroll] · quality_tier=[QT2,QT3] | 840/— | 500/— | SYNC — bundle is the user's calibrated rate (mirror into production.json) |
+| `TSK_CEIL_SPRAY_PRIMER_ONLY` | application_method=[spray] · quality_tier=[QT2,QT3] | 1480/— | 575/— | SYNC — bundle is the user's calibrated rate (mirror into production.json) |
+| `TSK_CEIL_SPRAY_PRIMER_QT4` | application_method=[spray_backroll] · quality_tier=[QT4] | 720/— | 425/— | SYNC — bundle is the user's calibrated rate (mirror into production.json) |
+| `TSK_CEIL_VACUUM_DUST` | quality_tier=[QT2,QT3,QT4] | 2335/— | 700/— | SYNC — bundle is the user's calibrated rate (mirror into production.json) |
 
 _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
@@ -690,65 +670,65 @@ _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
 | task_id | applies_when | Production.json | Decision |
 |---|---|---|---|
-| `TSK_RRP_CONTAINMENT_REMOVAL` | home_pre_1978=True · lead_status=[tested_positive,unknown_pre1978] | —/20 | |
-| `TSK_RRP_CONTAINMENT_SETUP` | home_pre_1978=True · lead_status=[tested_positive,unknown_pre1978] | —/30 | |
-| `TSK_RRP_HEPA_VACUUM` | home_pre_1978=True · lead_status=[tested_positive,unknown_pre1978] | —/20 | |
-| `TSK_RRP_LEAD_TEST` | home_pre_1978=True | —/10 | |
-| `TSK_RRP_WASTE_DISPOSAL` | home_pre_1978=True · lead_status=[tested_positive,unknown_pre1978] | —/30 | |
-| `TSK_WLRP_ASSESS_ADHESION` | — | —/8 | |
-| `TSK_WLRP_ASSESS_COATING_ID` | — | —/5 | |
-| `TSK_WLRP_ASSESS_CONDITION` | — | —/15 | |
-| `TSK_WLRP_ASSESS_MOISTURE` | — | —/5 | |
-| `TSK_WLRP_BACKROLL_FINISH_R1` | application_method=[spray_backroll] | 390/— | |
-| `TSK_WLRP_BACKROLL_FINISH_R2` | application_method=[spray_backroll] · quality_tier=[QT3,QT4,QT5] | 420/— | |
-| `TSK_WLRP_BACKROLL_PRIMER` | application_method=[spray_backroll] · substrate_state=[SS_INT_FAILING_PAINT,SS_INT_PEELING,SS_INT_MOISTURE_DAMAGE,SS_INT_SMOKE_DAMAGE] | 400/— | |
-| `TSK_WLRP_CAULK_ASSESS_REPLACE` | quality_tier=[QT3,QT4,QT5] | 60/— | |
-| `TSK_WLRP_CLEAN_TOOLS` | — | —/25 | |
-| `TSK_WLRP_CUSTOMER_WALKTHROUGH` | occupancy_state=[occupied_crew_handles,occupied_sensitive] | —/5 | |
-| `TSK_WLRP_CUTIN_CEILING_R1` | — | 130/— | |
-| `TSK_WLRP_CUTIN_CEILING_R2` | quality_tier=[QT3,QT4,QT5] | 100/— | |
-| `TSK_WLRP_CUTIN_PRIMER_CEILING` | application_method=[roll] · substrate_state=[SS_INT_FAILING_PAINT,SS_INT_PEELING,SS_INT_MOISTURE_DAMAGE,SS_INT_SMOKE_DAMAGE] | 100/— | |
-| `TSK_WLRP_CUTIN_TRIM_R1` | — | 120/— | |
-| `TSK_WLRP_CUTIN_TRIM_R2` | quality_tier=[QT3,QT4,QT5] | 120/— | |
-| `TSK_WLRP_DEGLOSS` | substrate_state=[SS_INT_SOUND_PAINT,SS_INT_FAILING_PAINT] | 280/— | |
-| `TSK_WLRP_DUST_WIPE` | — | 1000/— | |
-| `TSK_WLRP_FEATHER_EDGES` | condition_scale=[FAIR,POOR] | 120/— | |
-| `TSK_WLRP_FINAL_INSPECT` | quality_tier=[QT2,QT3] | 2000/— | |
-| `TSK_WLRP_FINAL_INSPECT_QT4` | quality_tier=[QT4] | 1000/— | |
-| `TSK_WLRP_FINAL_INSPECT_QT5` | quality_tier=[QT5] | 600/— | |
-| `TSK_WLRP_FIXTURE_COVERS_SETUP` | application_method=[spray_backroll,spray] | 15/— | |
-| `TSK_WLRP_FLOOR_PROTECT_FULL_SETUP` | application_method=[spray_backroll,spray] | 400/— | |
-| `TSK_WLRP_FLOOR_PROTECT_PERIMETER_SETUP` | application_method=[roll] | 600/— | |
-| `TSK_WLRP_FLOOR_PROTECT_TEARDOWN` | — | 700/— | |
-| `TSK_WLRP_FURNITURE_COVER` | occupancy_state=[occupied_crew_handles,occupied_sensitive] | —/8 | |
-| `TSK_WLRP_FURNITURE_MOVE` | occupancy_state=[occupied_crew_handles,occupied_sensitive] | —/12 | |
-| `TSK_WLRP_FURNITURE_REPLACE` | occupancy_state=[occupied_crew_handles,occupied_sensitive] | —/15 | |
-| `TSK_WLRP_INSPECT_BETWEEN_COATS` | quality_tier=[QT3,QT4,QT5] | 1500/— | |
-| `TSK_WLRP_LIGHT_SAND_BETWEEN_COATS` | quality_tier=[QT4] | 600/— | |
-| `TSK_WLRP_LIGHT_SAND_BETWEEN_COATS_QT5` | quality_tier=[QT5] | 420/— | |
-| `TSK_WLRP_MASK_TRIM_BASEBOARD` | — | 200/— | |
-| `TSK_WLRP_MASK_TRIM_DOOR_CASING` | — | 180/— | |
-| `TSK_WLRP_MASK_TRIM_WINDOW_CASING` | — | 180/— | |
-| `TSK_WLRP_PATCH_DEFECTS_INTERSTAGE` | quality_tier=[QT3,QT4,QT5] | 1200/— | |
-| `TSK_WLRP_REMOVE_FIXTURE_COVERS` | application_method=[spray_backroll,spray] | 25/— | |
-| `TSK_WLRP_REMOVE_TRIM_MASKING` | — | 400/— | |
-| `TSK_WLRP_ROLL_FINISH_R1` | application_method=[roll] | 340/— | |
-| `TSK_WLRP_ROLL_FINISH_R2` | application_method=[roll] · quality_tier=[QT3,QT4,QT5] | 380/— | |
-| `TSK_WLRP_ROLL_PRIMER` | application_method=[roll] · substrate_state=[SS_INT_FAILING_PAINT,SS_INT_PEELING,SS_INT_MOISTURE_DAMAGE,SS_INT_SMOKE_DAMAGE] | 325/— | |
-| `TSK_WLRP_SAND_SPACKLE` | quality_tier=[QT3,QT4,QT5] | 1000/— | |
-| `TSK_WLRP_SCRAPE_LOOSE` | condition_scale=[FAIR,POOR] | 80/— | |
-| `TSK_WLRP_SPACKLE_DEFECTS` | quality_tier=[QT3,QT4,QT5] | 800/— | |
-| `TSK_WLRP_SPOT_COAT_INTERSTAGE` | quality_tier=[QT3,QT4,QT5] | 1800/— | |
-| `TSK_WLRP_SPOT_PRIME` | — | 1500/— | |
-| `TSK_WLRP_SPRAY_FINISH_R1` | application_method=[spray_backroll,spray] | 390/— | |
-| `TSK_WLRP_SPRAY_FINISH_R2` | application_method=[spray_backroll,spray] · quality_tier=[QT3,QT4,QT5] | 420/— | |
-| `TSK_WLRP_SPRAY_PRIMER` | application_method=[spray_backroll,spray] · substrate_state=[SS_INT_FAILING_PAINT,SS_INT_PEELING,SS_INT_MOISTURE_DAMAGE,SS_INT_SMOKE_DAMAGE] | 380/— | |
-| `TSK_WLRP_TOUCHUP` | — | 1800/— | |
-| `TSK_WLRP_TREAT_MILDEW` | contamination_type=[mildew] · substrate_state=[SS_INT_MOISTURE_DAMAGE] | 200/— | |
-| `TSK_WLRP_VACUUM_DUST` | — | 800/— | |
-| `TSK_WLRP_VACUUM_FLOORS` | — | 1500/— | |
-| `TSK_WLRP_VACUUM_INTERCOAT_DUST` | quality_tier=[QT4,QT5] | 750/— | |
-| `TSK_WLRP_WASH_TSP` | contamination_type=[mildew,smoke,water_stain,grease] | 250/— | |
+| `TSK_RRP_CONTAINMENT_REMOVAL` | home_pre_1978=True · lead_status=[tested_positive,unknown_pre1978] | —/20 | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_RRP_CONTAINMENT_SETUP` | home_pre_1978=True · lead_status=[tested_positive,unknown_pre1978] | —/30 | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_RRP_HEPA_VACUUM` | home_pre_1978=True · lead_status=[tested_positive,unknown_pre1978] | —/20 | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_RRP_LEAD_TEST` | home_pre_1978=True | —/10 | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_RRP_WASTE_DISPOSAL` | home_pre_1978=True · lead_status=[tested_positive,unknown_pre1978] | —/30 | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_WLRP_ASSESS_ADHESION` | — | —/8 | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_WLRP_ASSESS_COATING_ID` | — | —/5 | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_WLRP_ASSESS_CONDITION` | — | —/15 | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_WLRP_ASSESS_MOISTURE` | — | —/5 | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_WLRP_BACKROLL_FINISH_R1` | application_method=[spray_backroll] | 390/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_WLRP_BACKROLL_FINISH_R2` | application_method=[spray_backroll] · quality_tier=[QT3,QT4,QT5] | 420/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_WLRP_BACKROLL_PRIMER` | application_method=[spray_backroll] · substrate_state=[SS_INT_FAILING_PAINT,SS_INT_PEELING,SS_INT_MOISTURE_DAMAGE,SS_INT_SMOKE_DAMAGE] | 400/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_WLRP_CAULK_ASSESS_REPLACE` | quality_tier=[QT3,QT4,QT5] | 60/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_WLRP_CLEAN_TOOLS` | — | —/25 | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_WLRP_CUSTOMER_WALKTHROUGH` | occupancy_state=[occupied_crew_handles,occupied_sensitive] | —/5 | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_WLRP_CUTIN_CEILING_R1` | — | 130/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_WLRP_CUTIN_CEILING_R2` | quality_tier=[QT3,QT4,QT5] | 100/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_WLRP_CUTIN_PRIMER_CEILING` | application_method=[roll] · substrate_state=[SS_INT_FAILING_PAINT,SS_INT_PEELING,SS_INT_MOISTURE_DAMAGE,SS_INT_SMOKE_DAMAGE] | 100/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_WLRP_CUTIN_TRIM_R1` | — | 120/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_WLRP_CUTIN_TRIM_R2` | quality_tier=[QT3,QT4,QT5] | 120/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_WLRP_DEGLOSS` | substrate_state=[SS_INT_SOUND_PAINT,SS_INT_FAILING_PAINT] | 280/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_WLRP_DUST_WIPE` | — | 1000/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_WLRP_FEATHER_EDGES` | condition_scale=[FAIR,POOR] | 120/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_WLRP_FINAL_INSPECT` | quality_tier=[QT2,QT3] | 2000/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_WLRP_FINAL_INSPECT_QT4` | quality_tier=[QT4] | 1000/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_WLRP_FINAL_INSPECT_QT5` | quality_tier=[QT5] | 600/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_WLRP_FIXTURE_COVERS_SETUP` | application_method=[spray_backroll,spray] | 15/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_WLRP_FLOOR_PROTECT_FULL_SETUP` | application_method=[spray_backroll,spray] | 400/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_WLRP_FLOOR_PROTECT_PERIMETER_SETUP` | application_method=[roll] | 600/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_WLRP_FLOOR_PROTECT_TEARDOWN` | — | 700/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_WLRP_FURNITURE_COVER` | occupancy_state=[occupied_crew_handles,occupied_sensitive] | —/8 | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_WLRP_FURNITURE_MOVE` | occupancy_state=[occupied_crew_handles,occupied_sensitive] | —/12 | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_WLRP_FURNITURE_REPLACE` | occupancy_state=[occupied_crew_handles,occupied_sensitive] | —/15 | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_WLRP_INSPECT_BETWEEN_COATS` | quality_tier=[QT3,QT4,QT5] | 1500/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_WLRP_LIGHT_SAND_BETWEEN_COATS` | quality_tier=[QT4] | 600/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_WLRP_LIGHT_SAND_BETWEEN_COATS_QT5` | quality_tier=[QT5] | 420/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_WLRP_MASK_TRIM_BASEBOARD` | — | 200/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_WLRP_MASK_TRIM_DOOR_CASING` | — | 180/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_WLRP_MASK_TRIM_WINDOW_CASING` | — | 180/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_WLRP_PATCH_DEFECTS_INTERSTAGE` | quality_tier=[QT3,QT4,QT5] | 1200/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_WLRP_REMOVE_FIXTURE_COVERS` | application_method=[spray_backroll,spray] | 25/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_WLRP_REMOVE_TRIM_MASKING` | — | 400/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_WLRP_ROLL_FINISH_R1` | application_method=[roll] | 340/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_WLRP_ROLL_FINISH_R2` | application_method=[roll] · quality_tier=[QT3,QT4,QT5] | 380/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_WLRP_ROLL_PRIMER` | application_method=[roll] · substrate_state=[SS_INT_FAILING_PAINT,SS_INT_PEELING,SS_INT_MOISTURE_DAMAGE,SS_INT_SMOKE_DAMAGE] | 325/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_WLRP_SAND_SPACKLE` | quality_tier=[QT3,QT4,QT5] | 1000/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_WLRP_SCRAPE_LOOSE` | condition_scale=[FAIR,POOR] | 80/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_WLRP_SPACKLE_DEFECTS` | quality_tier=[QT3,QT4,QT5] | 800/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_WLRP_SPOT_COAT_INTERSTAGE` | quality_tier=[QT3,QT4,QT5] | 1800/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_WLRP_SPOT_PRIME` | — | 1500/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_WLRP_SPRAY_FINISH_R1` | application_method=[spray_backroll,spray] | 390/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_WLRP_SPRAY_FINISH_R2` | application_method=[spray_backroll,spray] · quality_tier=[QT3,QT4,QT5] | 420/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_WLRP_SPRAY_PRIMER` | application_method=[spray_backroll,spray] · substrate_state=[SS_INT_FAILING_PAINT,SS_INT_PEELING,SS_INT_MOISTURE_DAMAGE,SS_INT_SMOKE_DAMAGE] | 380/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_WLRP_TOUCHUP` | — | 1800/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_WLRP_TREAT_MILDEW` | contamination_type=[mildew] · substrate_state=[SS_INT_MOISTURE_DAMAGE] | 200/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_WLRP_VACUUM_DUST` | — | 800/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_WLRP_VACUUM_FLOORS` | — | 1500/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_WLRP_VACUUM_INTERCOAT_DUST` | quality_tier=[QT4,QT5] | 750/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_WLRP_WASH_TSP` | contamination_type=[mildew,smoke,water_stain,grease] | 250/— | SKIP — unimported RP spec; out of scope for Phase 3 |
 
 ## SF_DRYWALL_WALL_NC_FINISH
 
@@ -756,21 +736,21 @@ _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
 | task_id | applies_when | Bundle | Production.json | Decision |
 |---|---|---|---|---|
-| `TSK_BACKROLL_WALL_FINISH_R1` | application_method=[spray_backroll] | 700/— | 390/— | |
-| `TSK_BACKROLL_WALL_FINISH_R2` | application_method=[spray_backroll] · quality_tier=[QT3,QT4,QT5] | 755/— | 420/— | |
-| `TSK_CLEAN_TOOLS_WALL` | — | —/10 | —/— | |
-| `TSK_CUTIN_WALL_TO_CEILING` | — | 260/— | 130/— | |
-| `TSK_CUTIN_WALL_TO_CEILING_R2` | quality_tier=[QT3,QT4,QT5] | 200/— | 100/— | |
-| `TSK_CUTIN_WALL_TO_TRIM_R1` | — | 360/— | 120/— | |
-| `TSK_CUTIN_WALL_TO_TRIM_R2` | quality_tier=[QT3,QT4,QT5] | 360/— | 120/— | |
-| `TSK_CUTIN_WALL_TO_TRIM_SPRAY_ONLY_R1` | application_method=[spray] | 360/— | 230/— | |
-| `TSK_DUST_WIPE_WALL` | quality_tier=[QT3,QT4,QT5] | 4669/— | 1400/— | |
-| `TSK_SPRAY_WALL_FINISH_ONLY` | application_method=[spray] · quality_tier=[QT2,QT3] | 1170/— | 650/— | |
-| `TSK_SPRAY_WALL_FINISH_R1` | application_method=[spray_backroll] | 700/— | 390/— | |
-| `TSK_SPRAY_WALL_FINISH_R2` | application_method=[spray_backroll] · quality_tier=[QT3,QT4,QT5] | 755/— | 420/— | |
-| `TSK_VACUUM_INTERCOAT_DUST_WALL` | quality_tier=[QT4,QT5] | 2500/— | 750/— | |
-| `TSK_VACUUM_SAND_DUST_WALL_FULL` | quality_tier=[QT4,QT5] | 3500/— | 1050/— | |
-| `TSK_VACUUM_SUBFLOOR_POST_WALL` | — | 2000/— | 1500/— | |
+| `TSK_BACKROLL_WALL_FINISH_R1` | application_method=[spray_backroll] | 700/— | 390/— | SYNC — bundle is the user's calibrated rate (mirror into production.json) |
+| `TSK_BACKROLL_WALL_FINISH_R2` | application_method=[spray_backroll] · quality_tier=[QT3,QT4,QT5] | 755/— | 420/— | SYNC — bundle is the user's calibrated rate (mirror into production.json) |
+| `TSK_CLEAN_TOOLS_WALL` | — | —/10 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_CUTIN_WALL_TO_CEILING` | — | 260/— | 130/— | SYNC — bundle is the user's calibrated rate (mirror into production.json) |
+| `TSK_CUTIN_WALL_TO_CEILING_R2` | quality_tier=[QT3,QT4,QT5] | 200/— | 100/— | SYNC — bundle is the user's calibrated rate (mirror into production.json) |
+| `TSK_CUTIN_WALL_TO_TRIM_R1` | — | 360/— | 120/— | SYNC — bundle is the user's calibrated rate (mirror into production.json) |
+| `TSK_CUTIN_WALL_TO_TRIM_R2` | quality_tier=[QT3,QT4,QT5] | 360/— | 120/— | SYNC — bundle is the user's calibrated rate (mirror into production.json) |
+| `TSK_CUTIN_WALL_TO_TRIM_SPRAY_ONLY_R1` | application_method=[spray] | 360/— | 230/— | SYNC — bundle is the user's calibrated rate (mirror into production.json) |
+| `TSK_DUST_WIPE_WALL` | quality_tier=[QT3,QT4,QT5] | 4669/— | 1400/— | SYNC — bundle is the user's calibrated rate (mirror into production.json) |
+| `TSK_SPRAY_WALL_FINISH_ONLY` | application_method=[spray] · quality_tier=[QT2,QT3] | 1170/— | 650/— | SYNC — bundle is the user's calibrated rate (mirror into production.json) |
+| `TSK_SPRAY_WALL_FINISH_R1` | application_method=[spray_backroll] | 700/— | 390/— | SYNC — bundle is the user's calibrated rate (mirror into production.json) |
+| `TSK_SPRAY_WALL_FINISH_R2` | application_method=[spray_backroll] · quality_tier=[QT3,QT4,QT5] | 755/— | 420/— | SYNC — bundle is the user's calibrated rate (mirror into production.json) |
+| `TSK_VACUUM_INTERCOAT_DUST_WALL` | quality_tier=[QT4,QT5] | 2500/— | 750/— | SYNC — bundle is the user's calibrated rate (mirror into production.json) |
+| `TSK_VACUUM_SAND_DUST_WALL_FULL` | quality_tier=[QT4,QT5] | 3500/— | 1050/— | SYNC — bundle is the user's calibrated rate (mirror into production.json) |
+| `TSK_VACUUM_SUBFLOOR_POST_WALL` | — | 2000/— | 1500/— | SYNC — bundle is the user's calibrated rate (mirror into production.json) |
 
 _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
@@ -778,14 +758,14 @@ _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
 | task_id | applies_when | Bundle | Decision |
 |---|---|---|---|
-| `TSK_CUTIN_WALL_TO_TRIM_SPRAY_R1` | application_method=[spray_backroll] | 360/— | |
-| `TSK_CUTIN_WALL_TO_TRIM_SPRAY_R2` | application_method=[spray_backroll] · quality_tier=[QT3,QT4,QT5] | 360/— | |
+| `TSK_CUTIN_WALL_TO_TRIM_SPRAY_R1` | application_method=[spray_backroll] | 360/— | SYNC — add this row to production.json so it persists across reimports |
+| `TSK_CUTIN_WALL_TO_TRIM_SPRAY_R2` | application_method=[spray_backroll] · quality_tier=[QT3,QT4,QT5] | 360/— | SYNC — add this row to production.json so it persists across reimports |
 
 ### Production.json-only rate rows (missing from bundle)
 
 | task_id | applies_when | Production.json | Decision |
 |---|---|---|---|
-| `TSK_ROLL_WALL_FINISH_R1_TEXTURED` | application_method=[roll] · surface_texture=[orange_peel,knockdown] | 280/— | |
+| `TSK_ROLL_WALL_FINISH_R1_TEXTURED` | application_method=[roll] · surface_texture=[orange_peel,knockdown] | 280/— | INVESTIGATE — task in production.json but not firing; decide per-task before activating |
 
 ## SF_DRYWALL_WALL_NC_PRIME
 
@@ -793,16 +773,16 @@ _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
 | task_id | applies_when | Bundle | Production.json | Decision |
 |---|---|---|---|---|
-| `TSK_WALL_BACKROLL_PRIMER` | application_method=[spray_backroll] · quality_tier=[QT2,QT3] | 720/— | 400/— | |
-| `TSK_WALL_BACKROLL_PRIMER_QT4` | application_method=[spray_backroll] · quality_tier=[QT4] | 630/— | 350/— | |
-| `TSK_WALL_BACKROLL_PRIMER_TEXTURED` | application_method=[spray_backroll] · quality_tier=[QT2,QT3] · surface_texture=[orange_peel,knockdown] | 630/— | 350/— | |
-| `TSK_WALL_CLEAN_TOOLS` | — | —/10 | —/20 | |
-| `TSK_WALL_CUT_IN_CEILING` | application_method=[roll] · quality_tier=[QT2,QT3] | 200/— | 100/— | |
-| `TSK_WALL_CUT_IN_CEILING_QT4` | application_method=[roll] · quality_tier=[QT4] | 150/— | 75/— | |
-| `TSK_WALL_SPRAY_PRIMER` | application_method=[spray_backroll] · quality_tier=[QT2,QT3] | 1080/— | 600/— | |
-| `TSK_WALL_SPRAY_PRIMER_QT4` | application_method=[spray_backroll] · quality_tier=[QT4] | 900/— | 500/— | |
-| `TSK_WALL_VACUUM_CLEANUP` | — | 4000/— | 1200/— | |
-| `TSK_WALL_VACUUM_DUST` | quality_tier=[QT2,QT3,QT4] | 3731/— | 1120/— | |
+| `TSK_WALL_BACKROLL_PRIMER` | application_method=[spray_backroll] · quality_tier=[QT2,QT3] | 720/— | 400/— | SYNC — bundle is the user's calibrated rate (mirror into production.json) |
+| `TSK_WALL_BACKROLL_PRIMER_QT4` | application_method=[spray_backroll] · quality_tier=[QT4] | 630/— | 350/— | SYNC — bundle is the user's calibrated rate (mirror into production.json) |
+| `TSK_WALL_BACKROLL_PRIMER_TEXTURED` | application_method=[spray_backroll] · quality_tier=[QT2,QT3] · surface_texture=[orange_peel,knockdown] | 630/— | 350/— | SYNC — bundle is the user's calibrated rate (mirror into production.json) |
+| `TSK_WALL_CLEAN_TOOLS` | — | —/10 | —/20 | SYNC — bundle is the user's calibrated rate (mirror into production.json) |
+| `TSK_WALL_CUT_IN_CEILING` | application_method=[roll] · quality_tier=[QT2,QT3] | 200/— | 100/— | SYNC — bundle is the user's calibrated rate (mirror into production.json) |
+| `TSK_WALL_CUT_IN_CEILING_QT4` | application_method=[roll] · quality_tier=[QT4] | 150/— | 75/— | SYNC — bundle is the user's calibrated rate (mirror into production.json) |
+| `TSK_WALL_SPRAY_PRIMER` | application_method=[spray_backroll] · quality_tier=[QT2,QT3] | 1080/— | 600/— | SYNC — bundle is the user's calibrated rate (mirror into production.json) |
+| `TSK_WALL_SPRAY_PRIMER_QT4` | application_method=[spray_backroll] · quality_tier=[QT4] | 900/— | 500/— | SYNC — bundle is the user's calibrated rate (mirror into production.json) |
+| `TSK_WALL_VACUUM_CLEANUP` | — | 4000/— | 1200/— | SYNC — bundle is the user's calibrated rate (mirror into production.json) |
+| `TSK_WALL_VACUUM_DUST` | quality_tier=[QT2,QT3,QT4] | 3731/— | 1120/— | SYNC — bundle is the user's calibrated rate (mirror into production.json) |
 
 _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
@@ -812,9 +792,9 @@ _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
 | task_id | applies_when | Production.json | Decision |
 |---|---|---|---|
-| `TASK_CUTIN_FINISH_WALL` | — | 120/— | |
-| `TASK_DUST_SURFACE` | — | 1500/— | |
-| `TASK_INSPECT_PRIME` | — | 2000/— | |
+| `TASK_CUTIN_FINISH_WALL` | — | 120/— | INVESTIGATE — task in production.json but not firing; decide per-task before activating |
+| `TASK_DUST_SURFACE` | — | 1500/— | INVESTIGATE — task in production.json but not firing; decide per-task before activating |
+| `TASK_INSPECT_PRIME` | — | 2000/— | INVESTIGATE — task in production.json but not firing; decide per-task before activating |
 
 ## SF_FENCE_EXT
 
@@ -822,15 +802,15 @@ _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
 | task_id | applies_when | Bundle | Production.json | Decision |
 |---|---|---|---|---|
-| `TSK_FNCE_BRIGHTEN_DWELL` | wood_condition=[weathered] | —/12 | —/— | |
-| `TSK_FNCE_DRY_VERIFY` | — | —/12 | —/— | |
-| `TSK_FNCE_FINAL_INSPECT` | — | —/22 | —/— | |
-| `TSK_FNCE_MOISTURE_TEST` | — | —/20 | —/— | |
-| `TSK_FNCE_PROTECT_NEIGHBOR` | — | —/45 | —/— | |
-| `TSK_FNCE_PROTECT_TEARDOWN` | — | —/20 | —/— | |
-| `TSK_FNCE_SEASONING_VERIFY` | substrate_material=[pressure_treated_pine] · wood_condition=[new] | —/12 | —/— | |
-| `TSK_FNCE_STRIP_DWELL` | wood_condition=[weathered] | —/17 | —/— | |
-| `TSK_FNCE_TOOL_CLEAN` | — | —/10 | —/— | |
+| `TSK_FNCE_BRIGHTEN_DWELL` | wood_condition=[weathered] | —/12 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_FNCE_DRY_VERIFY` | — | —/12 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_FNCE_FINAL_INSPECT` | — | —/22 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_FNCE_MOISTURE_TEST` | — | —/20 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_FNCE_PROTECT_NEIGHBOR` | — | —/45 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_FNCE_PROTECT_TEARDOWN` | — | —/20 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_FNCE_SEASONING_VERIFY` | substrate_material=[pressure_treated_pine] · wood_condition=[new] | —/12 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_FNCE_STRIP_DWELL` | wood_condition=[weathered] | —/17 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_FNCE_TOOL_CLEAN` | — | —/10 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
 
 _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
@@ -840,18 +820,18 @@ _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
 | task_id | applies_when | Bundle | Production.json | Decision |
 |---|---|---|---|---|
-| `TSK_FERP_ASSESS_ADHESION` | substrate_state=[SS_EXT_STAINED_SOLID,SS_EXT_PEELING] | —/15 | —/— | |
-| `TSK_FERP_ASSESS_COATING_ID` | — | —/20 | —/— | |
-| `TSK_FERP_ASSESS_MILDEW` | — | —/10 | —/— | |
-| `TSK_FERP_ASSESS_MOISTURE` | — | —/15 | —/— | |
-| `TSK_FERP_ASSESS_ROT_PROBE` | — | —/20 | —/— | |
-| `TSK_FERP_CHEM_BRIGHT_DWELL` | substrate_state=[SS_EXT_WEATHERED] | —/15 | —/— | |
-| `TSK_FERP_CHEM_DRY_VERIFY` | substrate_state=[SS_EXT_WEATHERED] | —/15 | —/— | |
-| `TSK_FERP_CHEM_STRIP_DWELL` | substrate_state=[SS_EXT_WEATHERED] | —/20 | —/— | |
-| `TSK_FERP_FINAL_INSPECT` | — | —/20 | —/— | |
-| `TSK_FERP_PROTECTION_TEARDOWN` | — | —/30 | —/— | |
-| `TSK_FERP_TOOL_CLEANUP` | — | —/10 | —/— | |
-| `TSK_FERP_TOUCHUP` | — | —/15 | —/— | |
+| `TSK_FERP_ASSESS_ADHESION` | substrate_state=[SS_EXT_STAINED_SOLID,SS_EXT_PEELING] | —/15 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_FERP_ASSESS_COATING_ID` | — | —/20 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_FERP_ASSESS_MILDEW` | — | —/10 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_FERP_ASSESS_MOISTURE` | — | —/15 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_FERP_ASSESS_ROT_PROBE` | — | —/20 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_FERP_CHEM_BRIGHT_DWELL` | substrate_state=[SS_EXT_WEATHERED] | —/15 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_FERP_CHEM_DRY_VERIFY` | substrate_state=[SS_EXT_WEATHERED] | —/15 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_FERP_CHEM_STRIP_DWELL` | substrate_state=[SS_EXT_WEATHERED] | —/20 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_FERP_FINAL_INSPECT` | — | —/20 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_FERP_PROTECTION_TEARDOWN` | — | —/30 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_FERP_TOOL_CLEANUP` | — | —/10 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_FERP_TOUCHUP` | — | —/15 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
 
 _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
@@ -861,10 +841,10 @@ _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
 | task_id | applies_when | Bundle | Production.json | Decision |
 |---|---|---|---|---|
-| `TSK_FNDN_FINAL_INSPECT` | — | —/20 | —/— | |
-| `TSK_FNDN_MOISTURE_TEST` | — | —/20 | —/— | |
-| `TSK_FNDN_PROTECT_TEARDOWN` | — | —/20 | —/— | |
-| `TSK_FNDN_TOOL_CLEAN` | — | —/10 | —/— | |
+| `TSK_FNDN_FINAL_INSPECT` | — | —/20 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_FNDN_MOISTURE_TEST` | — | —/20 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_FNDN_PROTECT_TEARDOWN` | — | —/20 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_FNDN_TOOL_CLEAN` | — | —/10 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
 
 _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
@@ -874,16 +854,16 @@ _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
 | task_id | applies_when | Bundle | Production.json | Decision |
 |---|---|---|---|---|
-| `TSK_FNRP_ASSESS_CHALK_ADHESION` | — | —/10 | —/— | |
-| `TSK_FNRP_ASSESS_GRADE_GAP` | — | —/10 | —/— | |
-| `TSK_FNRP_ASSESS_MOISTURE` | — | —/20 | —/— | |
-| `TSK_FNRP_CUSTOMER_WALKTHROUGH` | — | —/10 | —/— | |
-| `TSK_FNRP_DUST_CLEANUP` | — | —/15 | —/— | |
-| `TSK_FNRP_EQUIPMENT_SETUP` | — | —/15 | —/— | |
-| `TSK_FNRP_FINAL_INSPECT` | — | —/20 | —/— | |
-| `TSK_FNRP_PROTECT_TEARDOWN` | — | —/20 | —/— | |
-| `TSK_FNRP_SITE_DEBRIS` | — | —/15 | —/— | |
-| `TSK_FNRP_TOOL_CLEAN` | — | —/10 | —/— | |
+| `TSK_FNRP_ASSESS_CHALK_ADHESION` | — | —/10 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_FNRP_ASSESS_GRADE_GAP` | — | —/10 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_FNRP_ASSESS_MOISTURE` | — | —/20 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_FNRP_CUSTOMER_WALKTHROUGH` | — | —/10 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_FNRP_DUST_CLEANUP` | — | —/15 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_FNRP_EQUIPMENT_SETUP` | — | —/15 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_FNRP_FINAL_INSPECT` | — | —/20 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_FNRP_PROTECT_TEARDOWN` | — | —/20 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_FNRP_SITE_DEBRIS` | — | —/15 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_FNRP_TOOL_CLEAN` | — | —/10 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
 
 _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
@@ -891,7 +871,7 @@ _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
 | task_id | applies_when | Production.json | Decision |
 |---|---|---|---|
-| `None` | — | —/— | |
+| `None` | — | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
 
 ## SF_GARAGE_DOOR_EXT_NC
 
@@ -899,35 +879,35 @@ _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
 | task_id | applies_when | Bundle | Production.json | Decision |
 |---|---|---|---|---|
-| `TSK_GRDR_ADHESION_TEST` | substrate_material=[steel] | —/8 | —/— | |
-| `TSK_GRDR_ARTICULATION_TEST` | — | —/5 | —/— | |
-| `TSK_GRDR_BALANCE_CHECK` | — | —/5 | —/— | |
-| `TSK_GRDR_BOTTOM_SEAL_PREP` | — | —/12 | —/— | |
-| `TSK_GRDR_BOTTOM_SEAL_PROP` | — | —/5 | —/— | |
-| `TSK_GRDR_BOTTOM_SEAL_REINSTALL` | — | —/12 | —/— | |
-| `TSK_GRDR_DUST_INTERCOAT` | quality_tier=[QT4] | —/6 | —/— | |
-| `TSK_GRDR_DUST_REMOVE` | — | —/8 | —/— | |
-| `TSK_GRDR_EQUIPMENT_SETUP_BRUSH` | application_method=[brush] | —/12 | —/— | |
-| `TSK_GRDR_EQUIPMENT_SETUP_SPRAY` | application_method=[spray] | —/25 | —/— | |
-| `TSK_GRDR_LEAPFROG_VERIFY_1` | — | —/5 | —/— | |
-| `TSK_GRDR_LEAPFROG_VERIFY_2` | — | —/5 | —/— | |
-| `TSK_GRDR_PRIME_ACRYLIC_BRUSH` | application_method=[brush] · substrate_material=[wood] | —/45 | —/— | |
-| `TSK_GRDR_PRIME_ACRYLIC_SPRAY` | application_method=[spray] · substrate_material=[wood] | —/20 | —/— | |
-| `TSK_GRDR_PRIME_BONDING_CARRIAGE` | substrate_material=[carriage] | —/20 | —/— | |
-| `TSK_GRDR_PRIME_DTM_BRUSH` | application_method=[brush] · substrate_material=[steel] | —/40 | —/— | |
-| `TSK_GRDR_PRIME_DTM_SPRAY` | application_method=[spray] · substrate_material=[steel] | —/18 | —/— | |
-| `TSK_GRDR_PRIME_SIX_SIDE` | substrate_material=[wood] | —/35 | —/— | |
-| `TSK_GRDR_SAND_INTERCOAT` | quality_tier=[QT4] | —/20 | —/— | |
-| `TSK_GRDR_SIDING_MASK` | application_method=[spray] | —/20 | —/— | |
-| `TSK_GRDR_SIDING_UNMASK` | application_method=[spray] | —/10 | —/— | |
-| `TSK_GRDR_TOOL_CLEAN` | — | —/10 | —/— | |
-| `TSK_GRDR_TRACK_HARDWARE_MASK` | — | —/18 | —/— | |
-| `TSK_GRDR_TRACK_HARDWARE_UNMASK` | — | —/8 | —/— | |
-| `TSK_GRDR_WAX_REMOVE` | substrate_material=[steel] | —/25 | —/— | |
-| `TSK_GRDR_WEATHERSTRIP_PROTECT` | — | —/18 | —/— | |
-| `TSK_GRDR_WEATHERSTRIP_UNMASK` | — | —/8 | —/— | |
-| `TSK_GRDR_WINDOW_MASK` | panel_type=[windows] | —/20 | —/— | |
-| `TSK_GRDR_WINDOW_UNMASK` | panel_type=[windows] | —/10 | —/— | |
+| `TSK_GRDR_ADHESION_TEST` | substrate_material=[steel] | —/8 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_GRDR_ARTICULATION_TEST` | — | —/5 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_GRDR_BALANCE_CHECK` | — | —/5 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_GRDR_BOTTOM_SEAL_PREP` | — | —/12 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_GRDR_BOTTOM_SEAL_PROP` | — | —/5 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_GRDR_BOTTOM_SEAL_REINSTALL` | — | —/12 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_GRDR_DUST_INTERCOAT` | quality_tier=[QT4] | —/6 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_GRDR_DUST_REMOVE` | — | —/8 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_GRDR_EQUIPMENT_SETUP_BRUSH` | application_method=[brush] | —/12 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_GRDR_EQUIPMENT_SETUP_SPRAY` | application_method=[spray] | —/25 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_GRDR_LEAPFROG_VERIFY_1` | — | —/5 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_GRDR_LEAPFROG_VERIFY_2` | — | —/5 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_GRDR_PRIME_ACRYLIC_BRUSH` | application_method=[brush] · substrate_material=[wood] | —/45 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_GRDR_PRIME_ACRYLIC_SPRAY` | application_method=[spray] · substrate_material=[wood] | —/20 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_GRDR_PRIME_BONDING_CARRIAGE` | substrate_material=[carriage] | —/20 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_GRDR_PRIME_DTM_BRUSH` | application_method=[brush] · substrate_material=[steel] | —/40 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_GRDR_PRIME_DTM_SPRAY` | application_method=[spray] · substrate_material=[steel] | —/18 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_GRDR_PRIME_SIX_SIDE` | substrate_material=[wood] | —/35 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_GRDR_SAND_INTERCOAT` | quality_tier=[QT4] | —/20 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_GRDR_SIDING_MASK` | application_method=[spray] | —/20 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_GRDR_SIDING_UNMASK` | application_method=[spray] | —/10 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_GRDR_TOOL_CLEAN` | — | —/10 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_GRDR_TRACK_HARDWARE_MASK` | — | —/18 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_GRDR_TRACK_HARDWARE_UNMASK` | — | —/8 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_GRDR_WAX_REMOVE` | substrate_material=[steel] | —/25 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_GRDR_WEATHERSTRIP_PROTECT` | — | —/18 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_GRDR_WEATHERSTRIP_UNMASK` | — | —/8 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_GRDR_WINDOW_MASK` | panel_type=[windows] | —/20 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_GRDR_WINDOW_UNMASK` | panel_type=[windows] | —/10 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
 
 _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
@@ -937,40 +917,40 @@ _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
 | task_id | applies_when | Bundle | Production.json | Decision |
 |---|---|---|---|---|
-| `TSK_GDRP_ARTICULATION_TEST` | — | —/5 | —/— | |
-| `TSK_GDRP_ASSESS_ADHESION` | — | —/10 | —/— | |
-| `TSK_GDRP_ASSESS_COATING_ID` | — | —/5 | —/— | |
-| `TSK_GDRP_ASSESS_CONDITION` | — | —/15 | —/— | |
-| `TSK_GDRP_ASSESS_LEAD` | pre_1978=True | —/20 | —/— | |
-| `TSK_GDRP_ASSESS_MOISTURE` | door_substrate=[wood] | —/8 | —/— | |
-| `TSK_GDRP_ASSESS_RUST` | door_substrate=[steel] | —/10 | —/— | |
-| `TSK_GDRP_BALANCE_CHECK` | — | —/3 | —/— | |
-| `TSK_GDRP_BOTTOM_SEAL_PREP` | — | —/12 | —/— | |
-| `TSK_GDRP_BOTTOM_SEAL_PROP` | — | —/5 | —/— | |
-| `TSK_GDRP_BOTTOM_SEAL_REINSTALL` | — | —/12 | —/— | |
-| `TSK_GDRP_CAULK_JOINTS` | — | —/15 | —/— | |
-| `TSK_GDRP_CHALK_REMEDIATE` | substrate_state=[SS_EXT_CHALKING] | —/25 | —/— | |
-| `TSK_GDRP_CLEAN_SURFACE` | — | —/20 | —/— | |
-| `TSK_GDRP_DUST_INTERCOAT` | quality_tier=[QT4] | —/5 | —/— | |
-| `TSK_GDRP_DUST_REMOVE` | — | —/8 | —/— | |
-| `TSK_GDRP_EQUIPMENT_SETUP_BRUSH` | application_method=[brush] | —/10 | —/— | |
-| `TSK_GDRP_EQUIPMENT_SETUP_SPRAY` | application_method=[spray] | —/25 | —/— | |
-| `TSK_GDRP_FILL_WOOD` | door_substrate=[wood] | —/15 | —/— | |
-| `TSK_GDRP_LEAPFROG_VERIFY_1` | — | —/5 | —/— | |
-| `TSK_GDRP_LEAPFROG_VERIFY_2` | — | —/5 | —/— | |
-| `TSK_GDRP_PREP_COMPOSITE` | door_substrate=[composite] | —/20 | —/— | |
-| `TSK_GDRP_PRIME_BONDING_COMPOSITE` | door_substrate=[composite] | —/15 | —/— | |
-| `TSK_GDRP_SAND_INTERCOAT` | quality_tier=[QT4] | —/20 | —/— | |
-| `TSK_GDRP_SIDING_MASK` | application_method=[spray] | —/20 | —/— | |
-| `TSK_GDRP_SIDING_UNMASK` | application_method=[spray] | —/8 | —/— | |
-| `TSK_GDRP_TANNIN_SPOT_PRIME` | door_substrate=[wood] | —/12 | —/— | |
-| `TSK_GDRP_TOOL_CLEAN` | — | —/10 | —/— | |
-| `TSK_GDRP_TRACK_HARDWARE_MASK` | — | —/18 | —/— | |
-| `TSK_GDRP_TRACK_HARDWARE_UNMASK` | — | —/10 | —/— | |
-| `TSK_GDRP_WEATHERSTRIP_PROTECT` | — | —/10 | —/— | |
-| `TSK_GDRP_WEATHERSTRIP_UNMASK` | — | —/5 | —/— | |
-| `TSK_GDRP_WINDOW_MASK` | panel_type=[windows] | —/15 | —/— | |
-| `TSK_GDRP_WINDOW_UNMASK` | panel_type=[windows] | —/8 | —/— | |
+| `TSK_GDRP_ARTICULATION_TEST` | — | —/5 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_GDRP_ASSESS_ADHESION` | — | —/10 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_GDRP_ASSESS_COATING_ID` | — | —/5 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_GDRP_ASSESS_CONDITION` | — | —/15 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_GDRP_ASSESS_LEAD` | pre_1978=True | —/20 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_GDRP_ASSESS_MOISTURE` | door_substrate=[wood] | —/8 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_GDRP_ASSESS_RUST` | door_substrate=[steel] | —/10 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_GDRP_BALANCE_CHECK` | — | —/3 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_GDRP_BOTTOM_SEAL_PREP` | — | —/12 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_GDRP_BOTTOM_SEAL_PROP` | — | —/5 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_GDRP_BOTTOM_SEAL_REINSTALL` | — | —/12 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_GDRP_CAULK_JOINTS` | — | —/15 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_GDRP_CHALK_REMEDIATE` | substrate_state=[SS_EXT_CHALKING] | —/25 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_GDRP_CLEAN_SURFACE` | — | —/20 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_GDRP_DUST_INTERCOAT` | quality_tier=[QT4] | —/5 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_GDRP_DUST_REMOVE` | — | —/8 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_GDRP_EQUIPMENT_SETUP_BRUSH` | application_method=[brush] | —/10 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_GDRP_EQUIPMENT_SETUP_SPRAY` | application_method=[spray] | —/25 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_GDRP_FILL_WOOD` | door_substrate=[wood] | —/15 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_GDRP_LEAPFROG_VERIFY_1` | — | —/5 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_GDRP_LEAPFROG_VERIFY_2` | — | —/5 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_GDRP_PREP_COMPOSITE` | door_substrate=[composite] | —/20 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_GDRP_PRIME_BONDING_COMPOSITE` | door_substrate=[composite] | —/15 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_GDRP_SAND_INTERCOAT` | quality_tier=[QT4] | —/20 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_GDRP_SIDING_MASK` | application_method=[spray] | —/20 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_GDRP_SIDING_UNMASK` | application_method=[spray] | —/8 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_GDRP_TANNIN_SPOT_PRIME` | door_substrate=[wood] | —/12 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_GDRP_TOOL_CLEAN` | — | —/10 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_GDRP_TRACK_HARDWARE_MASK` | — | —/18 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_GDRP_TRACK_HARDWARE_UNMASK` | — | —/10 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_GDRP_WEATHERSTRIP_PROTECT` | — | —/10 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_GDRP_WEATHERSTRIP_UNMASK` | — | —/5 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_GDRP_WINDOW_MASK` | panel_type=[windows] | —/15 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_GDRP_WINDOW_UNMASK` | panel_type=[windows] | —/8 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
 
 _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
@@ -980,11 +960,11 @@ _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
 | task_id | applies_when | Bundle | Production.json | Decision |
 |---|---|---|---|---|
-| `TSK_MSRY_CLEAN_EQUIPMENT` | — | —/40 | —/— | |
-| `TSK_MSRY_CURE_VERIFY` | — | —/15 | —/— | |
-| `TSK_MSRY_EQUIPMENT_SETUP_ROLL` | application_method=[roll,brush] | —/20 | —/— | |
-| `TSK_MSRY_EQUIPMENT_SETUP_SPRAY` | application_method=[spray_backroll] | —/55 | —/— | |
-| `TSK_MSRY_SITE_CLEANUP` | — | —/20 | —/— | |
+| `TSK_MSRY_CLEAN_EQUIPMENT` | — | —/40 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_MSRY_CURE_VERIFY` | — | —/15 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_MSRY_EQUIPMENT_SETUP_ROLL` | application_method=[roll,brush] | —/20 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_MSRY_EQUIPMENT_SETUP_SPRAY` | application_method=[spray_backroll] | —/55 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_MSRY_SITE_CLEANUP` | — | —/20 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
 
 _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
@@ -994,21 +974,21 @@ _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
 | task_id | applies_when | Bundle | Production.json | Decision |
 |---|---|---|---|---|
-| `TSK_MSRP_ASSESS_ADHESION` | — | —/10 | —/— | |
-| `TSK_MSRP_ASSESS_CHALK` | — | —/5 | —/— | |
-| `TSK_MSRP_ASSESS_CRACK` | — | —/10 | —/— | |
-| `TSK_MSRP_ASSESS_EFFLORESCENCE` | — | —/10 | —/— | |
-| `TSK_MSRP_ASSESS_MOISTURE` | — | —/15 | —/— | |
-| `TSK_MSRP_ASSESS_MORTAR` | — | —/10 | —/— | |
-| `TSK_MSRP_CUSTOMER_WALKTHROUGH` | — | —/20 | —/— | |
-| `TSK_MSRP_EQUIPMENT_CLEANUP` | — | —/40 | —/— | |
-| `TSK_MSRP_EQUIPMENT_SETUP_BRUSH_ROLL` | application_method=[brush_roll] | —/30 | —/— | |
-| `TSK_MSRP_EQUIPMENT_SETUP_SPRAY_BACKROLL` | application_method=[spray_backroll] | —/50 | —/— | |
-| `TSK_MSRP_PROTECTION_TEARDOWN` | — | —/45 | —/— | |
-| `TSK_MSRP_SITE_DEBRIS_CLEANUP` | — | —/30 | —/— | |
-| `TSK_RRP_EXT_CONTAINMENT_SETUP` | pre_1978=True | —/60 | —/— | |
-| `TSK_RRP_EXT_CONTAINMENT_TEARDOWN` | pre_1978=True | —/45 | —/— | |
-| `TSK_RRP_EXT_LEAD_SCREEN` | pre_1978=True | —/20 | —/— | |
+| `TSK_MSRP_ASSESS_ADHESION` | — | —/10 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_MSRP_ASSESS_CHALK` | — | —/5 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_MSRP_ASSESS_CRACK` | — | —/10 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_MSRP_ASSESS_EFFLORESCENCE` | — | —/10 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_MSRP_ASSESS_MOISTURE` | — | —/15 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_MSRP_ASSESS_MORTAR` | — | —/10 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_MSRP_CUSTOMER_WALKTHROUGH` | — | —/20 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_MSRP_EQUIPMENT_CLEANUP` | — | —/40 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_MSRP_EQUIPMENT_SETUP_BRUSH_ROLL` | application_method=[brush_roll] | —/30 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_MSRP_EQUIPMENT_SETUP_SPRAY_BACKROLL` | application_method=[spray_backroll] | —/50 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_MSRP_PROTECTION_TEARDOWN` | — | —/45 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_MSRP_SITE_DEBRIS_CLEANUP` | — | —/30 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_RRP_EXT_CONTAINMENT_SETUP` | pre_1978=True | —/60 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_RRP_EXT_CONTAINMENT_TEARDOWN` | pre_1978=True | —/45 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_RRP_EXT_LEAD_SCREEN` | pre_1978=True | —/20 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
 
 _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
@@ -1016,7 +996,7 @@ _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
 | task_id | applies_when | Production.json | Decision |
 |---|---|---|---|
-| `None` | — | —/— | |
+| `None` | — | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
 
 ## SF_METAL_EXT
 
@@ -1024,11 +1004,11 @@ _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
 | task_id | applies_when | Bundle | Production.json | Decision |
 |---|---|---|---|---|
-| `TSK_METL_CLEANUP` | — | —/22 | —/— | |
-| `TSK_METL_MOBILIZE` | — | —/45 | —/— | |
-| `TSK_METL_REMOVE_PROTECTION` | — | —/22 | —/— | |
-| `TSK_METL_SCAFFOLD_SETUP` | access_method=[scaffold] | —/120 | —/— | |
-| `TSK_METL_SCAFFOLD_TEARDOWN` | access_method=[scaffold] | —/75 | —/— | |
+| `TSK_METL_CLEANUP` | — | —/22 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_METL_MOBILIZE` | — | —/45 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_METL_REMOVE_PROTECTION` | — | —/22 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_METL_SCAFFOLD_SETUP` | access_method=[scaffold] | —/120 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_METL_SCAFFOLD_TEARDOWN` | access_method=[scaffold] | —/75 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
 
 _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
@@ -1038,15 +1018,15 @@ _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
 | task_id | applies_when | Bundle | Production.json | Decision |
 |---|---|---|---|---|
-| `TSK_MTRP_ASSESS_ADHESION` | — | —/15 | —/— | |
-| `TSK_MTRP_ASSESS_CONDITION` | — | —/30 | —/— | |
-| `TSK_MTRP_ASSESS_LEAD` | pre_1978=True | —/15 | —/— | |
-| `TSK_MTRP_CLEANUP` | — | —/25 | —/— | |
-| `TSK_MTRP_MOBILIZE` | — | —/50 | —/— | |
-| `TSK_MTRP_REMOVE_PROTECTION` | — | —/22 | —/— | |
-| `TSK_MTRP_SCAFFOLD_SETUP` | access_type=[scaffold,lift] | —/90 | —/— | |
-| `TSK_MTRP_SCAFFOLD_TEARDOWN` | access_type=[scaffold,lift] | —/75 | —/— | |
-| `TSK_MTRP_STRUCTURAL_RUST_CHECK` | — | —/15 | —/— | |
+| `TSK_MTRP_ASSESS_ADHESION` | — | —/15 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_MTRP_ASSESS_CONDITION` | — | —/30 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_MTRP_ASSESS_LEAD` | pre_1978=True | —/15 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_MTRP_CLEANUP` | — | —/25 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_MTRP_MOBILIZE` | — | —/50 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_MTRP_REMOVE_PROTECTION` | — | —/22 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_MTRP_SCAFFOLD_SETUP` | access_type=[scaffold,lift] | —/90 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_MTRP_SCAFFOLD_TEARDOWN` | access_type=[scaffold,lift] | —/75 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_MTRP_STRUCTURAL_RUST_CHECK` | — | —/15 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
 
 _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
@@ -1056,10 +1036,10 @@ _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
 | task_id | applies_when | Bundle | Production.json | Decision |
 |---|---|---|---|---|
-| `TSK_PRCH_CLEAN_EQUIPMENT` | — | —/30 | —/— | |
-| `TSK_PRCH_EQUIPMENT_SETUP_BRUSH` | application_method=[brush_roll] | —/25 | —/— | |
-| `TSK_PRCH_EQUIPMENT_SETUP_SPRAY` | application_method=[spray] | —/45 | —/— | |
-| `TSK_PRCH_SITE_CLEANUP` | — | —/20 | —/— | |
+| `TSK_PRCH_CLEAN_EQUIPMENT` | — | —/30 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_PRCH_EQUIPMENT_SETUP_BRUSH` | application_method=[brush_roll] | —/25 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_PRCH_EQUIPMENT_SETUP_SPRAY` | application_method=[spray] | —/45 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_PRCH_SITE_CLEANUP` | — | —/20 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
 
 _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
@@ -1069,19 +1049,19 @@ _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
 | task_id | applies_when | Bundle | Production.json | Decision |
 |---|---|---|---|---|
-| `TSK_PCRP_ADHESION_TEST` | — | —/10 | —/— | |
-| `TSK_PCRP_CAULK_ASSESS` | — | —/10 | —/— | |
-| `TSK_PCRP_CLEAN_EQUIPMENT` | — | —/30 | —/— | |
-| `TSK_PCRP_CUSTOMER_WALKTHROUGH` | — | —/15 | —/— | |
-| `TSK_PCRP_EQUIPMENT_SETUP_BRUSH` | application_method=[brush_roll] | —/25 | —/— | |
-| `TSK_PCRP_EQUIPMENT_SETUP_SPRAY` | application_method=[spray] | —/45 | —/— | |
-| `TSK_PCRP_MILDEW_ASSESS` | — | —/10 | —/— | |
-| `TSK_PCRP_MOISTURE_CHECK` | substrate_material=[wood] | —/10 | —/— | |
-| `TSK_PCRP_SITE_CLEANUP` | — | —/25 | —/— | |
-| `TSK_PCRP_VISUAL_INSPECT` | — | —/20 | —/— | |
-| `TSK_RRP_EXT_CONTAINMENT_SETUP` | pre_1978=True | —/45 | —/— | |
-| `TSK_RRP_EXT_CONTAINMENT_TEARDOWN` | pre_1978=True | —/30 | —/— | |
-| `TSK_RRP_EXT_LEAD_SCREEN` | pre_1978=True | —/15 | —/— | |
+| `TSK_PCRP_ADHESION_TEST` | — | —/10 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_PCRP_CAULK_ASSESS` | — | —/10 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_PCRP_CLEAN_EQUIPMENT` | — | —/30 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_PCRP_CUSTOMER_WALKTHROUGH` | — | —/15 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_PCRP_EQUIPMENT_SETUP_BRUSH` | application_method=[brush_roll] | —/25 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_PCRP_EQUIPMENT_SETUP_SPRAY` | application_method=[spray] | —/45 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_PCRP_MILDEW_ASSESS` | — | —/10 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_PCRP_MOISTURE_CHECK` | substrate_material=[wood] | —/10 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_PCRP_SITE_CLEANUP` | — | —/25 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_PCRP_VISUAL_INSPECT` | — | —/20 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_RRP_EXT_CONTAINMENT_SETUP` | pre_1978=True | —/45 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_RRP_EXT_CONTAINMENT_TEARDOWN` | pre_1978=True | —/30 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_RRP_EXT_LEAD_SCREEN` | pre_1978=True | —/15 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
 
 _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
@@ -1089,7 +1069,7 @@ _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
 | task_id | applies_when | Production.json | Decision |
 |---|---|---|---|
-| `None` | — | —/— | |
+| `None` | — | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
 
 ## SF_PORCH_FLOOR_EXT_RP
 
@@ -1097,7 +1077,7 @@ _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
 | task_id | applies_when | Bundle | Production.json | Decision |
 |---|---|---|---|---|
-| `TSK_PFRP_TOOL_CLEANUP` | — | —/10 | —/25 | |
+| `TSK_PFRP_TOOL_CLEANUP` | — | —/10 | —/25 | SYNC — bundle is the user's calibrated rate (mirror into production.json) |
 
 _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
@@ -1107,14 +1087,14 @@ _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
 | task_id | applies_when | Bundle | Production.json | Decision |
 |---|---|---|---|---|
-| `TSK_ALRP_CHALK_VERIFY` | — | —/20 | —/— | |
-| `TSK_ALRP_CLEAN_EQUIPMENT` | — | —/30 | —/— | |
-| `TSK_ALRP_DFT_VERIFY` | — | —/15 | —/— | |
-| `TSK_ALRP_MOBILIZE` | — | —/45 | —/— | |
-| `TSK_ALRP_SCAFFOLD_SETUP` | access_type=[scaffold,lift,ladder] | —/90 | —/— | |
-| `TSK_ALRP_SCAFFOLD_TEARDOWN` | access_type=[scaffold,lift,ladder] | —/60 | —/— | |
-| `TSK_ALRP_SITE_CLEANUP` | — | —/20 | —/— | |
-| `TSK_ALRP_WASH_MIX` | — | —/10 | —/— | |
+| `TSK_ALRP_CHALK_VERIFY` | — | —/20 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_ALRP_CLEAN_EQUIPMENT` | — | —/30 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_ALRP_DFT_VERIFY` | — | —/15 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_ALRP_MOBILIZE` | — | —/45 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_ALRP_SCAFFOLD_SETUP` | access_type=[scaffold,lift,ladder] | —/90 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_ALRP_SCAFFOLD_TEARDOWN` | access_type=[scaffold,lift,ladder] | —/60 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_ALRP_SITE_CLEANUP` | — | —/20 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_ALRP_WASH_MIX` | — | —/10 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
 
 _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
@@ -1124,10 +1104,10 @@ _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
 | task_id | applies_when | Bundle | Production.json | Decision |
 |---|---|---|---|---|
-| `TSK_ENSD_CLEAN_EQUIPMENT` | — | —/35 | —/— | |
-| `TSK_ENSD_EQUIPMENT_SETUP_BRUSH` | application_method=[brush_roll] | —/20 | —/— | |
-| `TSK_ENSD_EQUIPMENT_SETUP_SPRAY` | application_method=[spray,spray_backroll] | —/50 | —/— | |
-| `TSK_ENSD_SITE_CLEANUP` | — | —/20 | —/— | |
+| `TSK_ENSD_CLEAN_EQUIPMENT` | — | —/35 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_ENSD_EQUIPMENT_SETUP_BRUSH` | application_method=[brush_roll] | —/20 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_ENSD_EQUIPMENT_SETUP_SPRAY` | application_method=[spray,spray_backroll] | —/50 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_ENSD_SITE_CLEANUP` | — | —/20 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
 
 _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
@@ -1137,18 +1117,18 @@ _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
 | task_id | applies_when | Bundle | Production.json | Decision |
 |---|---|---|---|---|
-| `TSK_EWRP_ASSESS_ADHESION` | — | —/10 | —/— | |
-| `TSK_EWRP_ASSESS_CHALK` | — | —/5 | —/— | |
-| `TSK_EWRP_ASSESS_EDGE_SEAL` | — | —/10 | —/— | |
-| `TSK_EWRP_ASSESS_MOISTURE` | — | —/10 | —/— | |
-| `TSK_EWRP_CLEAN_EQUIPMENT` | — | —/35 | —/— | |
-| `TSK_EWRP_CUSTOMER_WALKTHROUGH` | — | —/15 | —/— | |
-| `TSK_EWRP_EQUIPMENT_SETUP_BRUSH_ROLL` | application_method=[brush_roll] | —/20 | —/— | |
-| `TSK_EWRP_EQUIPMENT_SETUP_SPRAY_BACKROLL` | application_method=[spray_backroll] | —/50 | —/— | |
-| `TSK_EWRP_SITE_CLEANUP` | — | —/25 | —/— | |
-| `TSK_RRP_EXT_CONTAINMENT_SETUP` | pre_1978=True | —/45 | —/— | |
-| `TSK_RRP_EXT_CONTAINMENT_TEARDOWN` | pre_1978=True | —/35 | —/— | |
-| `TSK_RRP_EXT_LEAD_SCREEN` | pre_1978=True | —/15 | —/— | |
+| `TSK_EWRP_ASSESS_ADHESION` | — | —/10 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_EWRP_ASSESS_CHALK` | — | —/5 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_EWRP_ASSESS_EDGE_SEAL` | — | —/10 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_EWRP_ASSESS_MOISTURE` | — | —/10 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_EWRP_CLEAN_EQUIPMENT` | — | —/35 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_EWRP_CUSTOMER_WALKTHROUGH` | — | —/15 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_EWRP_EQUIPMENT_SETUP_BRUSH_ROLL` | application_method=[brush_roll] | —/20 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_EWRP_EQUIPMENT_SETUP_SPRAY_BACKROLL` | application_method=[spray_backroll] | —/50 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_EWRP_SITE_CLEANUP` | — | —/25 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_RRP_EXT_CONTAINMENT_SETUP` | pre_1978=True | —/45 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_RRP_EXT_CONTAINMENT_TEARDOWN` | pre_1978=True | —/35 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_RRP_EXT_LEAD_SCREEN` | pre_1978=True | —/15 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
 
 _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
@@ -1156,7 +1136,7 @@ _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
 | task_id | applies_when | Production.json | Decision |
 |---|---|---|---|
-| `None` | — | —/— | |
+| `None` | — | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
 
 ## SF_SIDING_FIBERCEMENT_EXT_NC
 
@@ -1164,10 +1144,10 @@ _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
 | task_id | applies_when | Bundle | Production.json | Decision |
 |---|---|---|---|---|
-| `TSK_FCSD_CLEAN_EQUIPMENT` | — | —/30 | —/— | |
-| `TSK_FCSD_EQUIPMENT_SETUP_BRUSH` | application_method=[brush_roll] | —/20 | —/— | |
-| `TSK_FCSD_EQUIPMENT_SETUP_SPRAY` | application_method=[spray] | —/45 | —/— | |
-| `TSK_FCSD_SITE_CLEANUP` | — | —/20 | —/— | |
+| `TSK_FCSD_CLEAN_EQUIPMENT` | — | —/30 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_FCSD_EQUIPMENT_SETUP_BRUSH` | application_method=[brush_roll] | —/20 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_FCSD_EQUIPMENT_SETUP_SPRAY` | application_method=[spray] | —/45 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_FCSD_SITE_CLEANUP` | — | —/20 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
 
 _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
@@ -1177,19 +1157,19 @@ _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
 | task_id | applies_when | Bundle | Production.json | Decision |
 |---|---|---|---|---|
-| `TSK_FCRP_ASSESS_ADHESION` | — | —/10 | —/— | |
-| `TSK_FCRP_ASSESS_CHALK` | — | —/5 | —/— | |
-| `TSK_FCRP_ASSESS_EFFLORESCENCE` | — | —/5 | —/— | |
-| `TSK_FCRP_ASSESS_MOISTURE` | — | —/10 | —/— | |
-| `TSK_FCRP_CLEAN_EQUIPMENT` | — | —/35 | —/— | |
-| `TSK_FCRP_CUSTOMER_WALKTHROUGH` | — | —/15 | —/— | |
-| `TSK_FCRP_EQUIPMENT_SETUP_BRUSH_ROLL` | application_method=[brush_roll] | —/20 | —/— | |
-| `TSK_FCRP_EQUIPMENT_SETUP_SPRAY_BACKROLL` | application_method=[spray_backroll] | —/50 | —/— | |
-| `TSK_FCRP_RINSE_LOW_PRESSURE` | — | —/30 | —/— | |
-| `TSK_FCRP_SITE_CLEANUP` | — | —/25 | —/— | |
-| `TSK_RRP_EXT_CONTAINMENT_SETUP` | pre_1978=True | —/45 | —/— | |
-| `TSK_RRP_EXT_CONTAINMENT_TEARDOWN` | pre_1978=True | —/35 | —/— | |
-| `TSK_RRP_EXT_LEAD_SCREEN` | pre_1978=True | —/15 | —/— | |
+| `TSK_FCRP_ASSESS_ADHESION` | — | —/10 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_FCRP_ASSESS_CHALK` | — | —/5 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_FCRP_ASSESS_EFFLORESCENCE` | — | —/5 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_FCRP_ASSESS_MOISTURE` | — | —/10 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_FCRP_CLEAN_EQUIPMENT` | — | —/35 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_FCRP_CUSTOMER_WALKTHROUGH` | — | —/15 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_FCRP_EQUIPMENT_SETUP_BRUSH_ROLL` | application_method=[brush_roll] | —/20 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_FCRP_EQUIPMENT_SETUP_SPRAY_BACKROLL` | application_method=[spray_backroll] | —/50 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_FCRP_RINSE_LOW_PRESSURE` | — | —/30 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_FCRP_SITE_CLEANUP` | — | —/25 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_RRP_EXT_CONTAINMENT_SETUP` | pre_1978=True | —/45 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_RRP_EXT_CONTAINMENT_TEARDOWN` | pre_1978=True | —/35 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_RRP_EXT_LEAD_SCREEN` | pre_1978=True | —/15 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
 
 _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
@@ -1197,7 +1177,7 @@ _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
 | task_id | applies_when | Production.json | Decision |
 |---|---|---|---|
-| `None` | — | —/— | |
+| `None` | — | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
 
 ## SF_SIDING_VINYL_EXT_RP
 
@@ -1205,14 +1185,14 @@ _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
 | task_id | applies_when | Bundle | Production.json | Decision |
 |---|---|---|---|---|
-| `TSK_VNRP_CLEAN_EQUIPMENT` | — | —/30 | —/— | |
-| `TSK_VNRP_LRV_VERIFY` | — | —/10 | —/— | |
-| `TSK_VNRP_MOBILIZE` | — | —/45 | —/— | |
-| `TSK_VNRP_SCAFFOLD_SETUP` | access_type=[scaffold,lift,ladder] | —/60 | —/— | |
-| `TSK_VNRP_SCAFFOLD_TEARDOWN` | access_type=[scaffold,lift,ladder] | —/45 | —/— | |
-| `TSK_VNRP_SITE_CLEANUP` | — | —/20 | —/— | |
-| `TSK_VNRP_WARRANTY_GATE` | — | —/10 | —/— | |
-| `TSK_VNRP_WASH_MIX` | — | —/10 | —/— | |
+| `TSK_VNRP_CLEAN_EQUIPMENT` | — | —/30 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_VNRP_LRV_VERIFY` | — | —/10 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_VNRP_MOBILIZE` | — | —/45 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_VNRP_SCAFFOLD_SETUP` | access_type=[scaffold,lift,ladder] | —/60 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_VNRP_SCAFFOLD_TEARDOWN` | access_type=[scaffold,lift,ladder] | —/45 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_VNRP_SITE_CLEANUP` | — | —/20 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_VNRP_WARRANTY_GATE` | — | —/10 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_VNRP_WASH_MIX` | — | —/10 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
 
 _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
@@ -1222,15 +1202,15 @@ _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
 | task_id | applies_when | Bundle | Production.json | Decision |
 |---|---|---|---|---|
-| `TSK_WSRP_CLEANUP` | — | —/45 | —/— | |
-| `TSK_WSRP_COATING_ID` | — | —/20 | —/— | |
-| `TSK_WSRP_CONDITION_ASSESS` | — | —/90 | —/— | |
-| `TSK_WSRP_DSD4_GATE` | substrate_condition=[HARD_STOP] | —/15 | —/— | |
-| `TSK_WSRP_LEAD_EVALUATE` | building_year=pre_1978 | —/40 | —/— | |
-| `TSK_WSRP_MC_TEST` | — | —/40 | —/— | |
-| `TSK_WSRP_MOBILIZE` | — | —/45 | —/— | |
-| `TSK_WSRP_SCAFFOLD_SETUP` | access_type=[scaffold,lift,ladder] | —/90 | —/— | |
-| `TSK_WSRP_SCAFFOLD_TEARDOWN` | access_type=[scaffold,lift,ladder] | —/60 | —/— | |
+| `TSK_WSRP_CLEANUP` | — | —/45 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_WSRP_COATING_ID` | — | —/20 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_WSRP_CONDITION_ASSESS` | — | —/90 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_WSRP_DSD4_GATE` | substrate_condition=[HARD_STOP] | —/15 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_WSRP_LEAD_EVALUATE` | building_year=pre_1978 | —/40 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_WSRP_MC_TEST` | — | —/40 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_WSRP_MOBILIZE` | — | —/45 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_WSRP_SCAFFOLD_SETUP` | access_type=[scaffold,lift,ladder] | —/90 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_WSRP_SCAFFOLD_TEARDOWN` | access_type=[scaffold,lift,ladder] | —/60 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
 
 _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
@@ -1240,10 +1220,10 @@ _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
 | task_id | applies_when | Bundle | Production.json | Decision |
 |---|---|---|---|---|
-| `TSK_SFIT_CLEAN_EQUIPMENT` | — | —/30 | —/— | |
-| `TSK_SFIT_EQUIPMENT_SETUP_BRUSH` | application_method=[brush_roll] | —/25 | —/— | |
-| `TSK_SFIT_EQUIPMENT_SETUP_SPRAY` | application_method=[spray] · soffit_vent_type=[non_vented] | —/50 | —/— | |
-| `TSK_SFIT_SITE_CLEANUP` | — | —/20 | —/— | |
+| `TSK_SFIT_CLEAN_EQUIPMENT` | — | —/30 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_SFIT_EQUIPMENT_SETUP_BRUSH` | application_method=[brush_roll] | —/25 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_SFIT_EQUIPMENT_SETUP_SPRAY` | application_method=[spray] · soffit_vent_type=[non_vented] | —/50 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_SFIT_SITE_CLEANUP` | — | —/20 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
 
 _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
@@ -1253,18 +1233,18 @@ _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
 | task_id | applies_when | Bundle | Production.json | Decision |
 |---|---|---|---|---|
-| `TSK_RRP_EXT_CONTAINMENT_SETUP` | pre_1978=True | —/45 | —/— | |
-| `TSK_RRP_EXT_CONTAINMENT_TEARDOWN` | pre_1978=True | —/35 | —/— | |
-| `TSK_RRP_EXT_LEAD_SCREEN` | pre_1978=True | —/15 | —/— | |
-| `TSK_SFRP_ASSESS_ADHESION` | — | —/10 | —/— | |
-| `TSK_SFRP_ASSESS_MOISTURE` | substrate_type_soffit=[wood] | —/10 | —/— | |
-| `TSK_SFRP_CLEAN_EQUIPMENT` | — | —/30 | —/— | |
-| `TSK_SFRP_CUSTOMER_WALKTHROUGH` | — | —/15 | —/— | |
-| `TSK_SFRP_EQUIPMENT_SETUP_BRUSH` | application_method=[brush_roll] | —/25 | —/— | |
-| `TSK_SFRP_EQUIPMENT_SETUP_SPRAY` | application_method=[spray] · soffit_vent_type=[non_vented] | —/50 | —/— | |
-| `TSK_SFRP_PROTECT_TEARDOWN` | — | —/25 | —/— | |
-| `TSK_SFRP_SITE_CLEANUP` | — | —/25 | —/— | |
-| `TSK_SFRP_WASH_LOW_PRESSURE` | — | —/30 | —/— | |
+| `TSK_RRP_EXT_CONTAINMENT_SETUP` | pre_1978=True | —/45 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_RRP_EXT_CONTAINMENT_TEARDOWN` | pre_1978=True | —/35 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_RRP_EXT_LEAD_SCREEN` | pre_1978=True | —/15 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_SFRP_ASSESS_ADHESION` | — | —/10 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_SFRP_ASSESS_MOISTURE` | substrate_type_soffit=[wood] | —/10 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_SFRP_CLEAN_EQUIPMENT` | — | —/30 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_SFRP_CUSTOMER_WALKTHROUGH` | — | —/15 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_SFRP_EQUIPMENT_SETUP_BRUSH` | application_method=[brush_roll] | —/25 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_SFRP_EQUIPMENT_SETUP_SPRAY` | application_method=[spray] · soffit_vent_type=[non_vented] | —/50 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_SFRP_PROTECT_TEARDOWN` | — | —/25 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_SFRP_SITE_CLEANUP` | — | —/25 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_SFRP_WASH_LOW_PRESSURE` | — | —/30 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
 
 _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
@@ -1272,7 +1252,7 @@ _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
 | task_id | applies_when | Production.json | Decision |
 |---|---|---|---|
-| `None` | — | —/— | |
+| `None` | — | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
 
 ## SF_SPECIALTY_INT_RP
 
@@ -1280,64 +1260,64 @@ _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
 | task_id | applies_when | Production.json | Decision |
 |---|---|---|---|
-| `TSK_RRP_CONTAINMENT_REMOVAL` | lead_status=[tested_positive,unknown_pre1978] | —/— | |
-| `TSK_RRP_CONTAINMENT_SETUP` | lead_status=[tested_positive,unknown_pre1978] | —/— | |
-| `TSK_RRP_HEPA_VACUUM` | lead_status=[tested_positive,unknown_pre1978] | —/— | |
-| `TSK_RRP_LEAD_TEST` | home_pre_1978=True | —/— | |
-| `TSK_RRP_WASTE_DISPOSAL` | lead_status=[tested_positive,unknown_pre1978] | —/— | |
-| `TSK_SPRP_ASSESS_ADHESION` | — | —/— | |
-| `TSK_SPRP_ASSESS_COATING_ID` | — | —/— | |
-| `TSK_SPRP_ASSESS_CONDITION` | — | —/— | |
-| `TSK_SPRP_ASSESS_MOISTURE` | — | —/— | |
-| `TSK_SPRP_BUILTIN_CONTENTS_PROTECT` | builtin_contents_present=True | 6/— | |
-| `TSK_SPRP_CAULK_ASSESS_REPAIR` | — | —/— | |
-| `TSK_SPRP_CLEAN_DUST` | — | —/— | |
-| `TSK_SPRP_CUSTOMER_WALKTHROUGH` | — | —/— | |
-| `TSK_SPRP_DEGLOSS_BEAM` | — | 65/— | |
-| `TSK_SPRP_DEGLOSS_BUILTIN` | — | —/— | |
-| `TSK_SPRP_DEGLOSS_CEILING` | — | 60/— | |
-| `TSK_SPRP_DEGLOSS_COLUMN` | — | 4/— | |
-| `TSK_SPRP_DEGLOSS_MANTEL` | — | 3/— | |
-| `TSK_SPRP_DEGLOSS_WAINSCOT` | — | 80/— | |
-| `TSK_SPRP_DEGLOSS_WOOD_WALL` | — | 80/— | |
-| `TSK_SPRP_FINAL_INSPECT` | — | —/— | |
-| `TSK_SPRP_FINISH_BEAM` | — | 225/— | |
-| `TSK_SPRP_FINISH_BRUSH_CEILING` | application_method=[brush] | 50/— | |
-| `TSK_SPRP_FINISH_BRUSH_WAINSCOT` | application_method=[brush] | 70/— | |
-| `TSK_SPRP_FINISH_BRUSH_WOOD_WALL` | application_method=[brush] | 70/— | |
-| `TSK_SPRP_FINISH_BUILTIN` | — | —/— | |
-| `TSK_SPRP_FINISH_COLUMN` | — | 5/— | |
-| `TSK_SPRP_FINISH_MANTEL` | — | 2.5/— | |
-| `TSK_SPRP_FINISH_SPRAY_CEILING` | application_method=[spray] | 130/— | |
-| `TSK_SPRP_FINISH_SPRAY_WAINSCOT` | application_method=[spray] | 175/— | |
-| `TSK_SPRP_FINISH_SPRAY_WOOD_WALL` | application_method=[spray] | 175/— | |
-| `TSK_SPRP_FIXTURE_MASK` | — | 10/— | |
-| `TSK_SPRP_FLOOR_PROTECT_FULL` | application_method=[spray] | 200/— | |
-| `TSK_SPRP_FLOOR_PROTECT_PERIM` | application_method=[brush] | 200/— | |
-| `TSK_SPRP_INTERSTAGE_CLEAN_AREA` | — | —/— | |
-| `TSK_SPRP_INTERSTAGE_INSPECT` | — | —/— | |
-| `TSK_SPRP_INTERSTAGE_PATCH` | — | —/— | |
-| `TSK_SPRP_INTERSTAGE_SAND` | — | —/— | |
-| `TSK_SPRP_INTERSTAGE_SPOT_COAT` | — | —/— | |
-| `TSK_SPRP_INTERSTAGE_TACK` | — | —/— | |
-| `TSK_SPRP_MILDEW_TREAT` | contamination_type=[mildew] | —/— | |
-| `TSK_SPRP_OPENING_COVER` | application_method=[spray] | —/— | |
-| `TSK_SPRP_PRIME_BEAM` | — | 170/— | |
-| `TSK_SPRP_PRIME_BUILTIN` | — | —/— | |
-| `TSK_SPRP_PRIME_COLUMN` | — | 4.5/— | |
-| `TSK_SPRP_PRIME_MANTEL` | — | 2.5/— | |
-| `TSK_SPRP_PRIME_SF_BRUSH` | application_method=[brush] | 80/— | |
-| `TSK_SPRP_PRIME_SF_SPRAY` | application_method=[spray] | 140/— | |
-| `TSK_SPRP_REMOVE_BUILTIN_CONTENTS_PROTECT` | builtin_contents_present=True | 8/— | |
-| `TSK_SPRP_REMOVE_FIXTURE_MASK` | application_method=[brush] | 15/— | |
-| `TSK_SPRP_REMOVE_FLOOR_PROTECT` | — | 300/— | |
-| `TSK_SPRP_REMOVE_MASKING` | application_method=[spray] | —/— | |
-| `TSK_SPRP_SCRAPE_FEATHER` | condition_scale=[FAIR,POOR] | —/— | |
-| `TSK_SPRP_TOOL_CLEANUP` | — | —/— | |
-| `TSK_SPRP_TOUCHUP` | — | —/— | |
-| `TSK_SPRP_VACUUM` | — | 300/— | |
-| `TSK_SPRP_WALL_MASK` | application_method=[spray] | —/— | |
-| `TSK_SPRP_WASH_TSP` | — | —/— | |
+| `TSK_RRP_CONTAINMENT_REMOVAL` | lead_status=[tested_positive,unknown_pre1978] | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_RRP_CONTAINMENT_SETUP` | lead_status=[tested_positive,unknown_pre1978] | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_RRP_HEPA_VACUUM` | lead_status=[tested_positive,unknown_pre1978] | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_RRP_LEAD_TEST` | home_pre_1978=True | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_RRP_WASTE_DISPOSAL` | lead_status=[tested_positive,unknown_pre1978] | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_SPRP_ASSESS_ADHESION` | — | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_SPRP_ASSESS_COATING_ID` | — | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_SPRP_ASSESS_CONDITION` | — | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_SPRP_ASSESS_MOISTURE` | — | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_SPRP_BUILTIN_CONTENTS_PROTECT` | builtin_contents_present=True | 6/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_SPRP_CAULK_ASSESS_REPAIR` | — | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_SPRP_CLEAN_DUST` | — | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_SPRP_CUSTOMER_WALKTHROUGH` | — | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_SPRP_DEGLOSS_BEAM` | — | 65/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_SPRP_DEGLOSS_BUILTIN` | — | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_SPRP_DEGLOSS_CEILING` | — | 60/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_SPRP_DEGLOSS_COLUMN` | — | 4/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_SPRP_DEGLOSS_MANTEL` | — | 3/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_SPRP_DEGLOSS_WAINSCOT` | — | 80/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_SPRP_DEGLOSS_WOOD_WALL` | — | 80/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_SPRP_FINAL_INSPECT` | — | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_SPRP_FINISH_BEAM` | — | 225/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_SPRP_FINISH_BRUSH_CEILING` | application_method=[brush] | 50/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_SPRP_FINISH_BRUSH_WAINSCOT` | application_method=[brush] | 70/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_SPRP_FINISH_BRUSH_WOOD_WALL` | application_method=[brush] | 70/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_SPRP_FINISH_BUILTIN` | — | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_SPRP_FINISH_COLUMN` | — | 5/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_SPRP_FINISH_MANTEL` | — | 2.5/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_SPRP_FINISH_SPRAY_CEILING` | application_method=[spray] | 130/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_SPRP_FINISH_SPRAY_WAINSCOT` | application_method=[spray] | 175/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_SPRP_FINISH_SPRAY_WOOD_WALL` | application_method=[spray] | 175/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_SPRP_FIXTURE_MASK` | — | 10/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_SPRP_FLOOR_PROTECT_FULL` | application_method=[spray] | 200/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_SPRP_FLOOR_PROTECT_PERIM` | application_method=[brush] | 200/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_SPRP_INTERSTAGE_CLEAN_AREA` | — | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_SPRP_INTERSTAGE_INSPECT` | — | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_SPRP_INTERSTAGE_PATCH` | — | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_SPRP_INTERSTAGE_SAND` | — | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_SPRP_INTERSTAGE_SPOT_COAT` | — | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_SPRP_INTERSTAGE_TACK` | — | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_SPRP_MILDEW_TREAT` | contamination_type=[mildew] | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_SPRP_OPENING_COVER` | application_method=[spray] | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_SPRP_PRIME_BEAM` | — | 170/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_SPRP_PRIME_BUILTIN` | — | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_SPRP_PRIME_COLUMN` | — | 4.5/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_SPRP_PRIME_MANTEL` | — | 2.5/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_SPRP_PRIME_SF_BRUSH` | application_method=[brush] | 80/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_SPRP_PRIME_SF_SPRAY` | application_method=[spray] | 140/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_SPRP_REMOVE_BUILTIN_CONTENTS_PROTECT` | builtin_contents_present=True | 8/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_SPRP_REMOVE_FIXTURE_MASK` | application_method=[brush] | 15/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_SPRP_REMOVE_FLOOR_PROTECT` | — | 300/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_SPRP_REMOVE_MASKING` | application_method=[spray] | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_SPRP_SCRAPE_FEATHER` | condition_scale=[FAIR,POOR] | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_SPRP_TOOL_CLEANUP` | — | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_SPRP_TOUCHUP` | — | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_SPRP_VACUUM` | — | 300/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_SPRP_WALL_MASK` | application_method=[spray] | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_SPRP_WASH_TSP` | — | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
 
 ## SF_STAIR_INT_RP
 
@@ -1345,75 +1325,75 @@ _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
 | task_id | applies_when | Production.json | Decision |
 |---|---|---|---|
-| `TSK_RRP_CONTAINMENT_REMOVAL` | home_pre_1978=True · lead_status=[tested_positive,unknown_pre1978] | —/— | |
-| `TSK_RRP_CONTAINMENT_SETUP` | home_pre_1978=True · lead_status=[tested_positive,unknown_pre1978] | —/— | |
-| `TSK_RRP_HEPA_VACUUM` | home_pre_1978=True · lead_status=[tested_positive,unknown_pre1978] | —/— | |
-| `TSK_RRP_LEAD_TEST` | home_pre_1978=True | —/— | |
-| `TSK_RRP_WASTE_DISPOSAL` | home_pre_1978=True · lead_status=[tested_positive,unknown_pre1978] | —/— | |
-| `TSK_STRP_ASSESS_ADHESION` | — | —/— | |
-| `TSK_STRP_ASSESS_ANTISLIP` | — | —/— | |
-| `TSK_STRP_ASSESS_COATING_ID` | — | —/— | |
-| `TSK_STRP_ASSESS_CONDITION` | — | —/— | |
-| `TSK_STRP_BRACKET_REINSTALL` | quality_tier=[QT4,QT5] | 10/— | |
-| `TSK_STRP_BRACKET_REMOVE` | quality_tier=[QT4,QT5] | 12/— | |
-| `TSK_STRP_BRUSH_FINISH_BALUSTER` | application_method=[brush] | 15/— | |
-| `TSK_STRP_BRUSH_FINISH_BASE_RAIL` | application_method=[brush] · has_base_rail=True | 70/— | |
-| `TSK_STRP_BRUSH_FINISH_HANDRAIL` | application_method=[brush] | 65/— | |
-| `TSK_STRP_BRUSH_FINISH_NEWEL` | application_method=[brush] | 4/— | |
-| `TSK_STRP_BRUSH_FINISH_RISER` | application_method=[brush] | 15/— | |
-| `TSK_STRP_BRUSH_FINISH_STRINGER` | application_method=[brush] | 85/— | |
-| `TSK_STRP_CARPET_PROTECT` | carpet_runner=True | —/— | |
-| `TSK_STRP_CAULK_ASSESS_NEWEL` | — | —/— | |
-| `TSK_STRP_CAULK_ASSESS_RISER_STRINGER` | — | —/— | |
-| `TSK_STRP_CAULK_ASSESS_STRINGER_WALL` | stringer_type=[closed] | —/— | |
-| `TSK_STRP_CLEAN_AREA` | — | —/— | |
-| `TSK_STRP_CLEAN_DUST` | — | —/— | |
-| `TSK_STRP_CUSTOMER_WALKTHROUGH` | — | —/— | |
-| `TSK_STRP_DEGLOSS_BALUSTER` | substrate_state=[SS_INT_SOUND_PAINT,SS_INT_FAILING_PAINT] | —/— | |
-| `TSK_STRP_DEGLOSS_BASE_RAIL` | has_base_rail=True · substrate_state=[SS_INT_SOUND_PAINT,SS_INT_FAILING_PAINT] | —/— | |
-| `TSK_STRP_DEGLOSS_HANDRAIL` | substrate_state=[SS_INT_SOUND_PAINT,SS_INT_FAILING_PAINT] | —/— | |
-| `TSK_STRP_DEGLOSS_NEWEL` | substrate_state=[SS_INT_SOUND_PAINT,SS_INT_FAILING_PAINT] | —/— | |
-| `TSK_STRP_DEGLOSS_RISER` | substrate_state=[SS_INT_SOUND_PAINT,SS_INT_FAILING_PAINT] | —/— | |
-| `TSK_STRP_DEGLOSS_STRINGER` | substrate_state=[SS_INT_SOUND_PAINT,SS_INT_FAILING_PAINT] | —/— | |
-| `TSK_STRP_FEEL_TEST_HANDRAIL` | quality_tier=[QT5] | 120/— | |
-| `TSK_STRP_FINAL_INSPECT` | — | —/— | |
-| `TSK_STRP_FLOOR_PROTECT` | floor_type=[finished,partial] | 200/— | |
-| `TSK_STRP_INSPECT_COAT` | — | —/— | |
-| `TSK_STRP_PATCH_DEFECTS` | — | —/— | |
-| `TSK_STRP_POLY_TOPCOAT_HANDRAIL` | quality_tier=[QT5] | 50/— | |
-| `TSK_STRP_PRIME_BALUSTER` | substrate_state=[SS_INT_FAILING_PAINT,SS_INT_PEELING,SS_INT_MOISTURE_DAMAGE,SS_INT_SMOKE_DAMAGE] | 15/— | |
-| `TSK_STRP_PRIME_BASE_RAIL` | has_base_rail=True · substrate_state=[SS_INT_FAILING_PAINT,SS_INT_PEELING,SS_INT_MOISTURE_DAMAGE,SS_INT_SMOKE_DAMAGE] | 70/— | |
-| `TSK_STRP_PRIME_HANDRAIL` | substrate_state=[SS_INT_FAILING_PAINT,SS_INT_PEELING,SS_INT_MOISTURE_DAMAGE,SS_INT_SMOKE_DAMAGE] | 65/— | |
-| `TSK_STRP_PRIME_NEWEL` | substrate_state=[SS_INT_FAILING_PAINT,SS_INT_PEELING,SS_INT_MOISTURE_DAMAGE,SS_INT_SMOKE_DAMAGE] | 4/— | |
-| `TSK_STRP_PRIME_RISER` | substrate_state=[SS_INT_FAILING_PAINT,SS_INT_PEELING,SS_INT_MOISTURE_DAMAGE,SS_INT_SMOKE_DAMAGE] | 15/— | |
-| `TSK_STRP_PRIME_STRINGER` | substrate_state=[SS_INT_FAILING_PAINT,SS_INT_PEELING,SS_INT_MOISTURE_DAMAGE,SS_INT_SMOKE_DAMAGE] | 80/— | |
-| `TSK_STRP_REMOVE_CARPET_PROTECT` | carpet_runner=True | —/— | |
-| `TSK_STRP_REMOVE_FLOOR_PROTECT` | — | 300/— | |
-| `TSK_STRP_REMOVE_SPRAY_CONTAIN` | application_method=[spray] | —/— | |
-| `TSK_STRP_REMOVE_TREAD_PROTECT` | — | 40/— | |
-| `TSK_STRP_REMOVE_WALL_MASK` | application_method=[spray] | 200/— | |
-| `TSK_STRP_SAFETY_SIGNAGE` | — | —/— | |
-| `TSK_STRP_SAND_BETWEEN` | — | —/— | |
-| `TSK_STRP_SAND_PRIMER` | substrate_state=[SS_INT_FAILING_PAINT,SS_INT_PEELING,SS_INT_MOISTURE_DAMAGE,SS_INT_SMOKE_DAMAGE] | —/— | |
-| `TSK_STRP_SCRAPE_FEATHER_RAILING` | condition_scale=[FAIR,POOR] · substrate_state=[SS_INT_FAILING_PAINT,SS_INT_PEELING,SS_INT_MOISTURE_DAMAGE] | —/— | |
-| `TSK_STRP_SCRAPE_FEATHER_RISER_STRINGER` | condition_scale=[FAIR,POOR] · substrate_state=[SS_INT_FAILING_PAINT,SS_INT_PEELING,SS_INT_MOISTURE_DAMAGE] | —/— | |
-| `TSK_STRP_SPOT_COAT` | — | —/— | |
-| `TSK_STRP_SPOT_PRIME` | — | —/— | |
-| `TSK_STRP_SPRAY_CONTAIN` | application_method=[spray] | —/— | |
-| `TSK_STRP_SPRAY_FINISH_BALUSTER` | application_method=[spray] | 40/— | |
-| `TSK_STRP_SPRAY_FINISH_BASE_RAIL` | application_method=[spray] · has_base_rail=True | 220/— | |
-| `TSK_STRP_SPRAY_FINISH_HANDRAIL` | application_method=[spray] | 200/— | |
-| `TSK_STRP_SPRAY_FINISH_NEWEL` | application_method=[spray] | 12/— | |
-| `TSK_STRP_SPRAY_FINISH_RISER` | application_method=[spray] | 60/— | |
-| `TSK_STRP_SPRAY_FINISH_STRINGER` | application_method=[spray] | 350/— | |
-| `TSK_STRP_TACK_CLEAN` | — | —/— | |
-| `TSK_STRP_TOOL_CLEANUP` | — | —/— | |
-| `TSK_STRP_TOUCHUP` | — | —/— | |
-| `TSK_STRP_TREAD_PROTECT` | — | 25/— | |
-| `TSK_STRP_TREAD_PROTECT_VERIFY` | — | —/— | |
-| `TSK_STRP_TREAT_MILDEW` | contamination_type=[mildew] | —/— | |
-| `TSK_STRP_TSP_WASH` | contamination_type=[mildew,smoke,water_stain,grease] | —/— | |
-| `TSK_STRP_WALL_MASK` | application_method=[spray] | 120/— | |
+| `TSK_RRP_CONTAINMENT_REMOVAL` | home_pre_1978=True · lead_status=[tested_positive,unknown_pre1978] | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_RRP_CONTAINMENT_SETUP` | home_pre_1978=True · lead_status=[tested_positive,unknown_pre1978] | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_RRP_HEPA_VACUUM` | home_pre_1978=True · lead_status=[tested_positive,unknown_pre1978] | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_RRP_LEAD_TEST` | home_pre_1978=True | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_RRP_WASTE_DISPOSAL` | home_pre_1978=True · lead_status=[tested_positive,unknown_pre1978] | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_STRP_ASSESS_ADHESION` | — | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_STRP_ASSESS_ANTISLIP` | — | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_STRP_ASSESS_COATING_ID` | — | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_STRP_ASSESS_CONDITION` | — | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_STRP_BRACKET_REINSTALL` | quality_tier=[QT4,QT5] | 10/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_STRP_BRACKET_REMOVE` | quality_tier=[QT4,QT5] | 12/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_STRP_BRUSH_FINISH_BALUSTER` | application_method=[brush] | 15/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_STRP_BRUSH_FINISH_BASE_RAIL` | application_method=[brush] · has_base_rail=True | 70/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_STRP_BRUSH_FINISH_HANDRAIL` | application_method=[brush] | 65/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_STRP_BRUSH_FINISH_NEWEL` | application_method=[brush] | 4/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_STRP_BRUSH_FINISH_RISER` | application_method=[brush] | 15/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_STRP_BRUSH_FINISH_STRINGER` | application_method=[brush] | 85/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_STRP_CARPET_PROTECT` | carpet_runner=True | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_STRP_CAULK_ASSESS_NEWEL` | — | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_STRP_CAULK_ASSESS_RISER_STRINGER` | — | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_STRP_CAULK_ASSESS_STRINGER_WALL` | stringer_type=[closed] | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_STRP_CLEAN_AREA` | — | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_STRP_CLEAN_DUST` | — | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_STRP_CUSTOMER_WALKTHROUGH` | — | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_STRP_DEGLOSS_BALUSTER` | substrate_state=[SS_INT_SOUND_PAINT,SS_INT_FAILING_PAINT] | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_STRP_DEGLOSS_BASE_RAIL` | has_base_rail=True · substrate_state=[SS_INT_SOUND_PAINT,SS_INT_FAILING_PAINT] | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_STRP_DEGLOSS_HANDRAIL` | substrate_state=[SS_INT_SOUND_PAINT,SS_INT_FAILING_PAINT] | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_STRP_DEGLOSS_NEWEL` | substrate_state=[SS_INT_SOUND_PAINT,SS_INT_FAILING_PAINT] | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_STRP_DEGLOSS_RISER` | substrate_state=[SS_INT_SOUND_PAINT,SS_INT_FAILING_PAINT] | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_STRP_DEGLOSS_STRINGER` | substrate_state=[SS_INT_SOUND_PAINT,SS_INT_FAILING_PAINT] | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_STRP_FEEL_TEST_HANDRAIL` | quality_tier=[QT5] | 120/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_STRP_FINAL_INSPECT` | — | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_STRP_FLOOR_PROTECT` | floor_type=[finished,partial] | 200/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_STRP_INSPECT_COAT` | — | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_STRP_PATCH_DEFECTS` | — | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_STRP_POLY_TOPCOAT_HANDRAIL` | quality_tier=[QT5] | 50/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_STRP_PRIME_BALUSTER` | substrate_state=[SS_INT_FAILING_PAINT,SS_INT_PEELING,SS_INT_MOISTURE_DAMAGE,SS_INT_SMOKE_DAMAGE] | 15/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_STRP_PRIME_BASE_RAIL` | has_base_rail=True · substrate_state=[SS_INT_FAILING_PAINT,SS_INT_PEELING,SS_INT_MOISTURE_DAMAGE,SS_INT_SMOKE_DAMAGE] | 70/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_STRP_PRIME_HANDRAIL` | substrate_state=[SS_INT_FAILING_PAINT,SS_INT_PEELING,SS_INT_MOISTURE_DAMAGE,SS_INT_SMOKE_DAMAGE] | 65/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_STRP_PRIME_NEWEL` | substrate_state=[SS_INT_FAILING_PAINT,SS_INT_PEELING,SS_INT_MOISTURE_DAMAGE,SS_INT_SMOKE_DAMAGE] | 4/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_STRP_PRIME_RISER` | substrate_state=[SS_INT_FAILING_PAINT,SS_INT_PEELING,SS_INT_MOISTURE_DAMAGE,SS_INT_SMOKE_DAMAGE] | 15/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_STRP_PRIME_STRINGER` | substrate_state=[SS_INT_FAILING_PAINT,SS_INT_PEELING,SS_INT_MOISTURE_DAMAGE,SS_INT_SMOKE_DAMAGE] | 80/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_STRP_REMOVE_CARPET_PROTECT` | carpet_runner=True | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_STRP_REMOVE_FLOOR_PROTECT` | — | 300/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_STRP_REMOVE_SPRAY_CONTAIN` | application_method=[spray] | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_STRP_REMOVE_TREAD_PROTECT` | — | 40/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_STRP_REMOVE_WALL_MASK` | application_method=[spray] | 200/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_STRP_SAFETY_SIGNAGE` | — | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_STRP_SAND_BETWEEN` | — | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_STRP_SAND_PRIMER` | substrate_state=[SS_INT_FAILING_PAINT,SS_INT_PEELING,SS_INT_MOISTURE_DAMAGE,SS_INT_SMOKE_DAMAGE] | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_STRP_SCRAPE_FEATHER_RAILING` | condition_scale=[FAIR,POOR] · substrate_state=[SS_INT_FAILING_PAINT,SS_INT_PEELING,SS_INT_MOISTURE_DAMAGE] | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_STRP_SCRAPE_FEATHER_RISER_STRINGER` | condition_scale=[FAIR,POOR] · substrate_state=[SS_INT_FAILING_PAINT,SS_INT_PEELING,SS_INT_MOISTURE_DAMAGE] | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_STRP_SPOT_COAT` | — | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_STRP_SPOT_PRIME` | — | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_STRP_SPRAY_CONTAIN` | application_method=[spray] | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_STRP_SPRAY_FINISH_BALUSTER` | application_method=[spray] | 40/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_STRP_SPRAY_FINISH_BASE_RAIL` | application_method=[spray] · has_base_rail=True | 220/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_STRP_SPRAY_FINISH_HANDRAIL` | application_method=[spray] | 200/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_STRP_SPRAY_FINISH_NEWEL` | application_method=[spray] | 12/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_STRP_SPRAY_FINISH_RISER` | application_method=[spray] | 60/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_STRP_SPRAY_FINISH_STRINGER` | application_method=[spray] | 350/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_STRP_TACK_CLEAN` | — | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_STRP_TOOL_CLEANUP` | — | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_STRP_TOUCHUP` | — | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_STRP_TREAD_PROTECT` | — | 25/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_STRP_TREAD_PROTECT_VERIFY` | — | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_STRP_TREAT_MILDEW` | contamination_type=[mildew] | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_STRP_TSP_WASH` | contamination_type=[mildew,smoke,water_stain,grease] | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_STRP_WALL_MASK` | application_method=[spray] | 120/— | SKIP — unimported RP spec; out of scope for Phase 3 |
 
 ## SF_STAIR_RAILING_NC
 
@@ -1421,17 +1401,17 @@ _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
 | task_id | applies_when | Bundle | Production.json | Decision |
 |---|---|---|---|---|
-| `TSK_STRL_CLEAN_AREA` | — | —/10 | —/— | |
-| `TSK_STRL_CLEAN_DUST` | — | —/20 | —/— | |
-| `TSK_STRL_REMOVE_SPRAY_CONTAIN` | — | —/20 | —/— | |
-| `TSK_STRL_SAND_PREP_BALUSTER` | — | 30/— | —/— | |
-| `TSK_STRL_SAND_PREP_BASE_RAIL` | — | 80/— | —/— | |
-| `TSK_STRL_SAND_PREP_HANDRAIL` | — | 80/— | —/— | |
-| `TSK_STRL_SAND_PREP_NEWEL` | — | 8/— | —/— | |
-| `TSK_STRL_SAND_PRIMER` | — | —/25 | —/— | |
-| `TSK_STRL_SPRAY_CONTAIN` | — | —/45 | —/— | |
-| `TSK_STRL_TACK_CLEAN` | — | —/15 | —/— | |
-| `TSK_STRL_TOOL_CLEANUP` | — | —/10 | —/— | |
+| `TSK_STRL_CLEAN_AREA` | — | —/10 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_STRL_CLEAN_DUST` | — | —/20 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_STRL_REMOVE_SPRAY_CONTAIN` | — | —/20 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_STRL_SAND_PREP_BALUSTER` | — | 30/— | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_STRL_SAND_PREP_BASE_RAIL` | — | 80/— | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_STRL_SAND_PREP_HANDRAIL` | — | 80/— | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_STRL_SAND_PREP_NEWEL` | — | 8/— | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_STRL_SAND_PRIMER` | — | —/25 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_STRL_SPRAY_CONTAIN` | — | —/45 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_STRL_TACK_CLEAN` | — | —/15 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_STRL_TOOL_CLEANUP` | — | —/10 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
 
 _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
@@ -1441,27 +1421,27 @@ _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
 | task_id | applies_when | Bundle | Production.json | Decision |
 |---|---|---|---|---|
-| `TSK_RLST_APPLY_CONDITIONER` | coating_type=[stain_clear,stain_only] · wood_species_group=[softwood] | —/40 | —/— | |
-| `TSK_RLST_CLEAR_COAT_1_BRUSH` | application_method_clear=[brush] | —/150 | —/— | |
-| `TSK_RLST_CLEAR_COAT_1_SPRAY` | application_method_clear=[spray] | —/90 | —/— | |
-| `TSK_RLST_CLEAR_COAT_2` | clear_coats=[2,3] | —/130 | —/— | |
-| `TSK_RLST_CLEAR_COAT_3` | clear_coats=[3] | —/130 | —/— | |
-| `TSK_RLST_GRAIN_RAISE` | — | —/60 | —/— | |
-| `TSK_RLST_REMOVE_MASK` | — | —/20 | —/— | |
-| `TSK_RLST_SAND_BARE_120` | — | —/90 | —/— | |
-| `TSK_RLST_SAND_BARE_150` | — | —/75 | —/— | |
-| `TSK_RLST_SAND_SEALER_220` | sealer_coats=[2] | —/50 | —/— | |
-| `TSK_RLST_SAND_SEALER_FINAL_320` | sealer_coats=[1,2] | —/45 | —/— | |
-| `TSK_RLST_SEALER_COAT_1` | sealer_coats=[1,2] | —/60 | —/— | |
-| `TSK_RLST_SEALER_COAT_2` | sealer_coats=[2] | —/55 | —/— | |
-| `TSK_RLST_STAIN_COAT_2_APPLY` | stain_coats=[2] | —/180 | —/— | |
-| `TSK_RLST_STAIN_DRY_VERIFY` | coating_type=[stain_clear] | —/10 | —/— | |
-| `TSK_RLST_TACK_BEFORE_CLEAR` | sealer_coats=[1,2] | —/15 | —/— | |
-| `TSK_RLST_TACK_CLEAN` | — | —/20 | —/— | |
-| `TSK_RLST_TACK_CLEAR` | clear_coats=[2,3] | —/15 | —/— | |
-| `TSK_RLST_TACK_SEALER` | sealer_coats=[2] | —/15 | —/— | |
-| `TSK_RLST_VACUUM` | — | —/25 | —/— | |
-| `TSK_RLST_WIPE_CONDITIONER` | coating_type=[stain_clear,stain_only] · wood_species_group=[softwood] | —/25 | —/— | |
+| `TSK_RLST_APPLY_CONDITIONER` | coating_type=[stain_clear,stain_only] · wood_species_group=[softwood] | —/40 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_RLST_CLEAR_COAT_1_BRUSH` | application_method_clear=[brush] | —/150 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_RLST_CLEAR_COAT_1_SPRAY` | application_method_clear=[spray] | —/90 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_RLST_CLEAR_COAT_2` | clear_coats=[2,3] | —/130 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_RLST_CLEAR_COAT_3` | clear_coats=[3] | —/130 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_RLST_GRAIN_RAISE` | — | —/60 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_RLST_REMOVE_MASK` | — | —/20 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_RLST_SAND_BARE_120` | — | —/90 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_RLST_SAND_BARE_150` | — | —/75 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_RLST_SAND_SEALER_220` | sealer_coats=[2] | —/50 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_RLST_SAND_SEALER_FINAL_320` | sealer_coats=[1,2] | —/45 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_RLST_SEALER_COAT_1` | sealer_coats=[1,2] | —/60 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_RLST_SEALER_COAT_2` | sealer_coats=[2] | —/55 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_RLST_STAIN_COAT_2_APPLY` | stain_coats=[2] | —/180 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_RLST_STAIN_DRY_VERIFY` | coating_type=[stain_clear] | —/10 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_RLST_TACK_BEFORE_CLEAR` | sealer_coats=[1,2] | —/15 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_RLST_TACK_CLEAN` | — | —/20 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_RLST_TACK_CLEAR` | clear_coats=[2,3] | —/15 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_RLST_TACK_SEALER` | sealer_coats=[2] | —/15 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_RLST_VACUUM` | — | —/25 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_RLST_WIPE_CONDITIONER` | coating_type=[stain_clear,stain_only] · wood_species_group=[softwood] | —/25 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
 
 _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
@@ -1469,7 +1449,7 @@ _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
 | task_id | applies_when | Bundle | Decision |
 |---|---|---|---|
-| `TSK_RLST_REMOVE_WALL_MASK` | — | —/10 | |
+| `TSK_RLST_REMOVE_WALL_MASK` | — | —/10 | SYNC — add this row to production.json so it persists across reimports |
 
 ## SF_STAIR_RISER_NC
 
@@ -1477,21 +1457,15 @@ _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
 | task_id | applies_when | Bundle | Production.json | Decision |
 |---|---|---|---|---|
-| `TSK_STRS_CLEAN_AREA` | — | —/10 | —/— | |
-| `TSK_STRS_CLEAN_DUST` | — | —/15 | —/— | |
-| `TSK_STRS_SAND_PREP_RISER` | — | 20/— | —/— | |
-| `TSK_STRS_SAND_PREP_STRINGER` | — | 60/— | —/— | |
-| `TSK_STRS_SAND_PRIMER` | — | —/20 | —/— | |
-| `TSK_STRS_TACK_CLEAN` | — | —/10 | —/— | |
-| `TSK_STRS_TOOL_CLEANUP` | — | —/10 | —/— | |
+| `TSK_STRS_CLEAN_AREA` | — | —/10 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_STRS_CLEAN_DUST` | — | —/15 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_STRS_SAND_PREP_RISER` | — | 20/— | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_STRS_SAND_PREP_STRINGER` | — | 60/— | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_STRS_SAND_PRIMER` | — | —/20 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_STRS_TACK_CLEAN` | — | —/10 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_STRS_TOOL_CLEANUP` | — | —/10 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
 
 _Rate column order:_ `rate_per_hour` / `fixed_minutes`
-
-### Production.json-only rate rows (missing from bundle)
-
-| task_id | applies_when | Production.json | Decision |
-|---|---|---|---|
-| `TSK_STRS_SEAL_MDF_EDGES` | — | 20/— | |
 
 ## SF_STAIR_RISER_NC_STAIN
 
@@ -1499,8 +1473,8 @@ _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
 | task_id | applies_when | Bundle | Production.json | Decision |
 |---|---|---|---|---|
-| `TSK_SRST_STAIN_DRY_VERIFY` | coating_type=[stain_clear] | —/10 | —/— | |
-| `TSK_SRST_VACUUM` | — | —/15 | —/— | |
+| `TSK_SRST_STAIN_DRY_VERIFY` | coating_type=[stain_clear] | —/10 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_SRST_VACUUM` | — | —/15 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
 
 _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
@@ -1508,8 +1482,8 @@ _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
 | task_id | applies_when | Bundle | Decision |
 |---|---|---|---|
-| `TSK_SRST_REMOVE_TREAD_PROTECT` | — | 20/— | |
-| `TSK_SRST_REMOVE_WALL_MASK` | — | 200/— | |
+| `TSK_SRST_REMOVE_TREAD_PROTECT` | — | 20/— | SYNC — add this row to production.json so it persists across reimports |
+| `TSK_SRST_REMOVE_WALL_MASK` | — | 200/— | SYNC — add this row to production.json so it persists across reimports |
 
 ## SF_STUCCO_EXT_NC
 
@@ -1517,16 +1491,16 @@ _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
 | task_id | applies_when | Bundle | Production.json | Decision |
 |---|---|---|---|---|
-| `TSK_STCO_CRACK_ASSESS` | — | —/45 | —/— | |
-| `TSK_STCO_CURE_VERIFY` | substrate_type=[traditional_stucco] | —/20 | —/— | |
-| `TSK_STCO_EIFS_INSURANCE_VERIFY` | substrate_type=[EIFS] | —/20 | —/— | |
-| `TSK_STCO_EIFS_KNOCK_TEST` | substrate_type=[EIFS] | —/45 | —/— | |
-| `TSK_STCO_INSPECT_INTERCOAT` | — | —/25 | —/— | |
-| `TSK_STCO_MOISTURE_TEST` | — | —/45 | —/— | |
-| `TSK_STCO_PROTECT_TEARDOWN` | — | —/30 | —/— | |
-| `TSK_STCO_SPRAY_SETUP` | application_method=[spray_backroll] | —/35 | —/— | |
-| `TSK_STCO_TOOL_CLEAN` | — | —/10 | —/— | |
-| `TSK_STCO_WASTE_DISPOSE` | — | —/20 | —/— | |
+| `TSK_STCO_CRACK_ASSESS` | — | —/45 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_STCO_CURE_VERIFY` | substrate_type=[traditional_stucco] | —/20 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_STCO_EIFS_INSURANCE_VERIFY` | substrate_type=[EIFS] | —/20 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_STCO_EIFS_KNOCK_TEST` | substrate_type=[EIFS] | —/45 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_STCO_INSPECT_INTERCOAT` | — | —/25 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_STCO_MOISTURE_TEST` | — | —/45 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_STCO_PROTECT_TEARDOWN` | — | —/30 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_STCO_SPRAY_SETUP` | application_method=[spray_backroll] | —/35 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_STCO_TOOL_CLEAN` | — | —/10 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_STCO_WASTE_DISPOSE` | — | —/20 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
 
 _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
@@ -1536,19 +1510,19 @@ _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
 | task_id | applies_when | Bundle | Production.json | Decision |
 |---|---|---|---|---|
-| `TSK_RRP_EXT_CONTAINMENT_SETUP` | pre_1978=True | —/60 | —/— | |
-| `TSK_RRP_EXT_CONTAINMENT_TEARDOWN` | pre_1978=True | —/45 | —/— | |
-| `TSK_RRP_EXT_LEAD_SCREEN` | pre_1978=True | —/45 | —/— | |
-| `TSK_SCRP_CRACK_ASSESS` | — | —/45 | —/— | |
-| `TSK_SCRP_CUSTOMER_WALKTHROUGH` | — | —/30 | —/— | |
-| `TSK_SCRP_EIFS_INSURANCE_VERIFY` | substrate_type=[EIFS] | —/20 | —/— | |
-| `TSK_SCRP_EIFS_KNOCK_TEST` | substrate_type=[EIFS] | —/45 | —/— | |
-| `TSK_SCRP_INSPECT_INTERCOAT` | — | —/25 | —/— | |
-| `TSK_SCRP_MOISTURE_TEST` | — | —/45 | —/— | |
-| `TSK_SCRP_PROTECT_TEARDOWN` | — | —/35 | —/— | |
-| `TSK_SCRP_SPRAY_SETUP` | application_method=[spray_backroll] | —/35 | —/— | |
-| `TSK_SCRP_TOOL_CLEAN` | — | —/10 | —/— | |
-| `TSK_SCRP_WASTE_DISPOSE` | — | —/25 | —/— | |
+| `TSK_RRP_EXT_CONTAINMENT_SETUP` | pre_1978=True | —/60 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_RRP_EXT_CONTAINMENT_TEARDOWN` | pre_1978=True | —/45 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_RRP_EXT_LEAD_SCREEN` | pre_1978=True | —/45 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_SCRP_CRACK_ASSESS` | — | —/45 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_SCRP_CUSTOMER_WALKTHROUGH` | — | —/30 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_SCRP_EIFS_INSURANCE_VERIFY` | substrate_type=[EIFS] | —/20 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_SCRP_EIFS_KNOCK_TEST` | substrate_type=[EIFS] | —/45 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_SCRP_INSPECT_INTERCOAT` | — | —/25 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_SCRP_MOISTURE_TEST` | — | —/45 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_SCRP_PROTECT_TEARDOWN` | — | —/35 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_SCRP_SPRAY_SETUP` | application_method=[spray_backroll] | —/35 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_SCRP_TOOL_CLEAN` | — | —/10 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_SCRP_WASTE_DISPOSE` | — | —/25 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
 
 _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
@@ -1556,7 +1530,7 @@ _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
 | task_id | applies_when | Production.json | Decision |
 |---|---|---|---|
-| `None` | — | —/— | |
+| `None` | — | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
 
 ## SF_TRIM_EXT_NC
 
@@ -1564,11 +1538,11 @@ _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
 | task_id | applies_when | Bundle | Production.json | Decision |
 |---|---|---|---|---|
-| `TSK_XTRM_CLEAN_EQUIPMENT` | — | —/25 | —/— | |
-| `TSK_XTRM_EQUIPMENT_SETUP_BRUSH` | application_method=[brush] | —/25 | —/— | |
-| `TSK_XTRM_EQUIPMENT_SETUP_SPRAY` | application_method=[spray] | —/45 | —/— | |
-| `TSK_XTRM_PROTECT_TEARDOWN` | — | —/45 | —/— | |
-| `TSK_XTRM_SITE_CLEANUP` | — | —/20 | —/— | |
+| `TSK_XTRM_CLEAN_EQUIPMENT` | — | —/25 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_XTRM_EQUIPMENT_SETUP_BRUSH` | application_method=[brush] | —/25 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_XTRM_EQUIPMENT_SETUP_SPRAY` | application_method=[spray] | —/45 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_XTRM_PROTECT_TEARDOWN` | — | —/45 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_XTRM_SITE_CLEANUP` | — | —/20 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
 
 _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
@@ -1578,23 +1552,23 @@ _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
 | task_id | applies_when | Bundle | Production.json | Decision |
 |---|---|---|---|---|
-| `TSK_TRRP_ASSESS_ADHESION` | — | —/30 | —/— | |
-| `TSK_TRRP_ASSESS_CONDITION` | — | —/90 | —/— | |
-| `TSK_TRRP_ASSESS_LEAD_TEST` | pre_1978=True | —/40 | —/— | |
-| `TSK_TRRP_ASSESS_MOISTURE` | — | —/40 | —/— | |
-| `TSK_TRRP_ASSESS_ROT_PROBE` | — | —/30 | —/— | |
-| `TSK_TRRP_CHALK_VERIFY` | substrate_state=[SS_EXT_CHALKING] | —/20 | —/— | |
-| `TSK_TRRP_CLEAN_EQUIPMENT` | — | —/20 | —/— | |
-| `TSK_TRRP_FINAL_WALKTHROUGH` | — | —/20 | —/— | |
-| `TSK_TRRP_MOBILIZE` | — | —/30 | —/— | |
-| `TSK_TRRP_RRP_CONTAINMENT_SETUP` | pre_1978=True · rrp_required=True | —/90 | —/— | |
-| `TSK_TRRP_RRP_CONTAINMENT_TEARDOWN` | pre_1978=True · rrp_required=True | —/60 | —/— | |
-| `TSK_TRRP_RRP_WET_METHOD_PREP` | pre_1978=True · rrp_required=True | —/30 | —/— | |
-| `TSK_TRRP_SCAFFOLD_SETUP` | access_type=[scaffold,lift,ladder] | —/60 | —/— | |
-| `TSK_TRRP_SCAFFOLD_TEARDOWN` | access_type=[scaffold,lift,ladder] | —/45 | —/— | |
-| `TSK_TRRP_TEARDOWN_PROTECTION` | — | —/45 | —/— | |
-| `TSK_TRRP_WASH_DRY_TIME` | — | —/20 | —/— | |
-| `TSK_TRRP_WASTE_DISPOSAL` | — | —/25 | —/— | |
+| `TSK_TRRP_ASSESS_ADHESION` | — | —/30 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_TRRP_ASSESS_CONDITION` | — | —/90 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_TRRP_ASSESS_LEAD_TEST` | pre_1978=True | —/40 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_TRRP_ASSESS_MOISTURE` | — | —/40 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_TRRP_ASSESS_ROT_PROBE` | — | —/30 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_TRRP_CHALK_VERIFY` | substrate_state=[SS_EXT_CHALKING] | —/20 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_TRRP_CLEAN_EQUIPMENT` | — | —/20 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_TRRP_FINAL_WALKTHROUGH` | — | —/20 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_TRRP_MOBILIZE` | — | —/30 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_TRRP_RRP_CONTAINMENT_SETUP` | pre_1978=True · rrp_required=True | —/90 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_TRRP_RRP_CONTAINMENT_TEARDOWN` | pre_1978=True · rrp_required=True | —/60 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_TRRP_RRP_WET_METHOD_PREP` | pre_1978=True · rrp_required=True | —/30 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_TRRP_SCAFFOLD_SETUP` | access_type=[scaffold,lift,ladder] | —/60 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_TRRP_SCAFFOLD_TEARDOWN` | access_type=[scaffold,lift,ladder] | —/45 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_TRRP_TEARDOWN_PROTECTION` | — | —/45 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_TRRP_WASH_DRY_TIME` | — | —/20 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_TRRP_WASTE_DISPOSAL` | — | —/25 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
 
 _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
@@ -1604,46 +1578,46 @@ _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
 | task_id | applies_when | Production.json | Decision |
 |---|---|---|---|
-| `TSK_RRP_CONTAINMENT_REMOVAL` | home_pre_1978=True · lead_status=[tested_positive,unknown_pre1978] | —/20 | |
-| `TSK_RRP_CONTAINMENT_SETUP` | home_pre_1978=True · lead_status=[tested_positive,unknown_pre1978] | —/30 | |
-| `TSK_RRP_HEPA_VACUUM` | home_pre_1978=True · lead_status=[tested_positive,unknown_pre1978] | —/20 | |
-| `TSK_RRP_LEAD_TEST` | home_pre_1978=True | —/10 | |
-| `TSK_RRP_WASTE_DISPOSAL` | home_pre_1978=True · lead_status=[tested_positive,unknown_pre1978] | —/30 | |
-| `TSK_TMRP_ASSESS_ADHESION` | — | —/8 | |
-| `TSK_TMRP_ASSESS_COATING_ID` | — | —/5 | |
-| `TSK_TMRP_ASSESS_CONDITION` | — | —/10 | |
-| `TSK_TMRP_ASSESS_MOISTURE` | — | —/4 | |
-| `TSK_TMRP_BRUSH_FINISH_1` | application_method=[brush] | 80/— | |
-| `TSK_TMRP_BRUSH_FINISH_2` | application_method=[brush] | 90/— | |
-| `TSK_TMRP_CAULK_ASSESS_REPLACE` | — | 80/— | |
-| `TSK_TMRP_CLEAN_INTERSTAGE` | — | 600/— | |
-| `TSK_TMRP_CLEAN_TOOLS` | — | —/30 | |
-| `TSK_TMRP_CUSTOMER_WALKTHROUGH` | occupancy_state=[occupied_crew_handles,occupied_sensitive] | —/5 | |
-| `TSK_TMRP_DEGLOSS` | substrate_state=[SS_INT_SOUND_PAINT,SS_INT_FAILING_PAINT] | 160/— | |
-| `TSK_TMRP_DUST_WIPE` | — | 300/— | |
-| `TSK_TMRP_FEATHER_EDGES` | condition_scale=[FAIR,POOR] · substrate_state=[SS_INT_FAILING_PAINT,SS_INT_PEELING,SS_INT_MOISTURE_DAMAGE] | 80/— | |
-| `TSK_TMRP_FINAL_INSPECT` | — | 600/— | |
-| `TSK_TMRP_FIXTURE_COVER_SETUP` | application_method=[spray] | 30/— | |
-| `TSK_TMRP_FIXTURE_COVER_TEARDOWN` | application_method=[spray] | 45/— | |
-| `TSK_TMRP_FLOOR_PROTECT_SETUP` | — | 300/— | |
-| `TSK_TMRP_FLOOR_PROTECT_TEARDOWN` | — | 500/— | |
-| `TSK_TMRP_FURNITURE_CLEAR` | occupancy_state=[occupied_crew_handles,occupied_sensitive] | —/8 | |
-| `TSK_TMRP_FURNITURE_RESTORE` | occupancy_state=[occupied_crew_handles,occupied_sensitive] | —/6 | |
-| `TSK_TMRP_INSPECT_COAT` | — | 800/— | |
-| `TSK_TMRP_PATCH_DEFECTS` | — | 400/— | |
-| `TSK_TMRP_PRIME_BRUSH` | application_method=[brush] · substrate_state=[SS_INT_FAILING_PAINT,SS_INT_PEELING,SS_INT_MOISTURE_DAMAGE,SS_INT_SMOKE_DAMAGE] | 90/— | |
-| `TSK_TMRP_PRIME_SPRAY` | application_method=[spray] · substrate_state=[SS_INT_FAILING_PAINT,SS_INT_PEELING,SS_INT_MOISTURE_DAMAGE,SS_INT_SMOKE_DAMAGE] | 375/— | |
-| `TSK_TMRP_SAND_BETWEEN` | — | 400/— | |
-| `TSK_TMRP_SCRAPE_LOOSE` | condition_scale=[FAIR,POOR] · substrate_state=[SS_INT_FAILING_PAINT,SS_INT_PEELING,SS_INT_MOISTURE_DAMAGE] | 45/— | |
-| `TSK_TMRP_SPOT_COAT` | — | 500/— | |
-| `TSK_TMRP_SPOT_PRIME` | — | 120/— | |
-| `TSK_TMRP_SPRAY_FINISH_1` | application_method=[spray] | 380/— | |
-| `TSK_TMRP_SPRAY_FINISH_2` | application_method=[spray] | 445/— | |
-| `TSK_TMRP_TOUCHUP` | — | 400/— | |
-| `TSK_TMRP_TREAT_MILDEW` | contamination_type=[mildew] · substrate_state=[SS_INT_MOISTURE_DAMAGE] | 120/— | |
-| `TSK_TMRP_WALL_MASK_SETUP` | — | 150/— | |
-| `TSK_TMRP_WALL_MASK_TEARDOWN` | — | 200/— | |
-| `TSK_TMRP_WASH_TSP` | contamination_type=[mildew,smoke,water_stain,grease] | 150/— | |
+| `TSK_RRP_CONTAINMENT_REMOVAL` | home_pre_1978=True · lead_status=[tested_positive,unknown_pre1978] | —/20 | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_RRP_CONTAINMENT_SETUP` | home_pre_1978=True · lead_status=[tested_positive,unknown_pre1978] | —/30 | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_RRP_HEPA_VACUUM` | home_pre_1978=True · lead_status=[tested_positive,unknown_pre1978] | —/20 | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_RRP_LEAD_TEST` | home_pre_1978=True | —/10 | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_RRP_WASTE_DISPOSAL` | home_pre_1978=True · lead_status=[tested_positive,unknown_pre1978] | —/30 | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_TMRP_ASSESS_ADHESION` | — | —/8 | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_TMRP_ASSESS_COATING_ID` | — | —/5 | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_TMRP_ASSESS_CONDITION` | — | —/10 | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_TMRP_ASSESS_MOISTURE` | — | —/4 | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_TMRP_BRUSH_FINISH_1` | application_method=[brush] | 80/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_TMRP_BRUSH_FINISH_2` | application_method=[brush] | 90/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_TMRP_CAULK_ASSESS_REPLACE` | — | 80/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_TMRP_CLEAN_INTERSTAGE` | — | 600/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_TMRP_CLEAN_TOOLS` | — | —/30 | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_TMRP_CUSTOMER_WALKTHROUGH` | occupancy_state=[occupied_crew_handles,occupied_sensitive] | —/5 | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_TMRP_DEGLOSS` | substrate_state=[SS_INT_SOUND_PAINT,SS_INT_FAILING_PAINT] | 160/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_TMRP_DUST_WIPE` | — | 300/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_TMRP_FEATHER_EDGES` | condition_scale=[FAIR,POOR] · substrate_state=[SS_INT_FAILING_PAINT,SS_INT_PEELING,SS_INT_MOISTURE_DAMAGE] | 80/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_TMRP_FINAL_INSPECT` | — | 600/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_TMRP_FIXTURE_COVER_SETUP` | application_method=[spray] | 30/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_TMRP_FIXTURE_COVER_TEARDOWN` | application_method=[spray] | 45/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_TMRP_FLOOR_PROTECT_SETUP` | — | 300/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_TMRP_FLOOR_PROTECT_TEARDOWN` | — | 500/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_TMRP_FURNITURE_CLEAR` | occupancy_state=[occupied_crew_handles,occupied_sensitive] | —/8 | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_TMRP_FURNITURE_RESTORE` | occupancy_state=[occupied_crew_handles,occupied_sensitive] | —/6 | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_TMRP_INSPECT_COAT` | — | 800/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_TMRP_PATCH_DEFECTS` | — | 400/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_TMRP_PRIME_BRUSH` | application_method=[brush] · substrate_state=[SS_INT_FAILING_PAINT,SS_INT_PEELING,SS_INT_MOISTURE_DAMAGE,SS_INT_SMOKE_DAMAGE] | 90/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_TMRP_PRIME_SPRAY` | application_method=[spray] · substrate_state=[SS_INT_FAILING_PAINT,SS_INT_PEELING,SS_INT_MOISTURE_DAMAGE,SS_INT_SMOKE_DAMAGE] | 375/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_TMRP_SAND_BETWEEN` | — | 400/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_TMRP_SCRAPE_LOOSE` | condition_scale=[FAIR,POOR] · substrate_state=[SS_INT_FAILING_PAINT,SS_INT_PEELING,SS_INT_MOISTURE_DAMAGE] | 45/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_TMRP_SPOT_COAT` | — | 500/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_TMRP_SPOT_PRIME` | — | 120/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_TMRP_SPRAY_FINISH_1` | application_method=[spray] | 380/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_TMRP_SPRAY_FINISH_2` | application_method=[spray] | 445/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_TMRP_TOUCHUP` | — | 400/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_TMRP_TREAT_MILDEW` | contamination_type=[mildew] · substrate_state=[SS_INT_MOISTURE_DAMAGE] | 120/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_TMRP_WALL_MASK_SETUP` | — | 150/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_TMRP_WALL_MASK_TEARDOWN` | — | 200/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_TMRP_WASH_TSP` | contamination_type=[mildew,smoke,water_stain,grease] | 150/— | SKIP — unimported RP spec; out of scope for Phase 3 |
 
 ## SF_TRIM_NC_PAINT
 
@@ -1651,18 +1625,18 @@ _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
 | task_id | applies_when | Bundle | Production.json | Decision |
 |---|---|---|---|---|
-| `TSK_TRIM_CLEAN_TOOLS` | — | —/10 | —/— | |
-| `TSK_TRIM_FINAL_INSPECT` | — | 600/— | —/— | |
-| `TSK_TRIM_INSPECT_COAT` | — | 800/— | —/— | |
-| `TSK_TRIM_INSPECT_PRIMER` | — | 800/— | —/— | |
-| `TSK_TRIM_PATCH_DEFECTS` | — | 400/— | —/— | |
-| `TSK_TRIM_SAND_BETWEEN` | — | 400/— | —/— | |
-| `TSK_TRIM_SPOT_COAT` | — | 500/— | —/— | |
-| `TSK_TRIM_SPRAY_FINISH_1` | application_method=[spray] | 700/— | 380/— | |
-| `TSK_TRIM_SPRAY_FINISH_2` | application_method=[spray] | 820/— | 445/— | |
-| `TSK_TRIM_TOUCHUP` | — | 400/— | —/— | |
-| `TSK_TRIM_TOUCHUP_CAULK` | — | 150/— | —/— | |
-| `TSK_TRIM_TOUCHUP_FILL` | — | 200/— | —/— | |
+| `TSK_TRIM_CLEAN_TOOLS` | — | —/10 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_TRIM_FINAL_INSPECT` | — | 600/— | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_TRIM_INSPECT_COAT` | — | 800/— | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_TRIM_INSPECT_PRIMER` | — | 800/— | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_TRIM_PATCH_DEFECTS` | — | 400/— | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_TRIM_SAND_BETWEEN` | — | 400/— | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_TRIM_SPOT_COAT` | — | 500/— | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_TRIM_SPRAY_FINISH_1` | application_method=[spray] | 700/— | 380/— | SYNC — bundle is the user's calibrated rate (mirror into production.json) |
+| `TSK_TRIM_SPRAY_FINISH_2` | application_method=[spray] | 820/— | 445/— | SYNC — bundle is the user's calibrated rate (mirror into production.json) |
+| `TSK_TRIM_TOUCHUP` | — | 400/— | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_TRIM_TOUCHUP_CAULK` | — | 150/— | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_TRIM_TOUCHUP_FILL` | — | 200/— | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
 
 _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
@@ -1670,8 +1644,8 @@ _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
 | task_id | applies_when | Bundle | Decision |
 |---|---|---|---|
-| `TSK_TRIM_REMOVE_FIXTURE_COVER` | application_method=[spray] | 20/— | |
-| `TSK_TRIM_REMOVE_WALL_MASK` | — | 200/— | |
+| `TSK_TRIM_REMOVE_FIXTURE_COVER` | application_method=[spray] | 20/— | SYNC — add this row to production.json so it persists across reimports |
+| `TSK_TRIM_REMOVE_WALL_MASK` | — | 200/— | SYNC — add this row to production.json so it persists across reimports |
 
 ## SF_TRIM_NC_PRIME
 
@@ -1679,15 +1653,9 @@ _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
 | task_id | applies_when | Bundle | Production.json | Decision |
 |---|---|---|---|---|
-| `TSK_TRIM_PRIME_SPRAY` | application_method=[spray] · quality_tier=[QT3,QT4,QT5] | 690/— | 375/— | |
+| `TSK_TRIM_PRIME_SPRAY` | application_method=[spray] · quality_tier=[QT3,QT4,QT5] | 690/— | 375/— | SYNC — bundle is the user's calibrated rate (mirror into production.json) |
 
 _Rate column order:_ `rate_per_hour` / `fixed_minutes`
-
-### Production.json-only rate rows (missing from bundle)
-
-| task_id | applies_when | Production.json | Decision |
-|---|---|---|---|
-| `TSK_MDF_EDGE_SEAL` | quality_tier=[QT3,QT4,QT5] · substrate_condition=[bare_mdf] | 100/— | |
 
 ## SF_TRIM_NC_STAIN
 
@@ -1695,8 +1663,8 @@ _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
 | task_id | applies_when | Bundle | Production.json | Decision |
 |---|---|---|---|---|
-| `TSK_TRST_STAIN_DRY_VERIFY` | coating_type=[stain_clear] | —/10 | —/— | |
-| `TSK_TRST_VACUUM` | — | —/20 | —/— | |
+| `TSK_TRST_STAIN_DRY_VERIFY` | coating_type=[stain_clear] | —/10 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_TRST_VACUUM` | — | —/20 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
 
 _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
@@ -1704,8 +1672,8 @@ _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
 | task_id | applies_when | Bundle | Decision |
 |---|---|---|---|
-| `TSK_TRST_REMOVE_FIXTURE_COVER` | — | 20/— | |
-| `TSK_TRST_REMOVE_WALL_MASK` | — | 200/— | |
+| `TSK_TRST_REMOVE_FIXTURE_COVER` | — | 20/— | SYNC — add this row to production.json so it persists across reimports |
+| `TSK_TRST_REMOVE_WALL_MASK` | — | 200/— | SYNC — add this row to production.json so it persists across reimports |
 
 ## SF_WAINSCOT_PANEL_NC
 
@@ -1713,18 +1681,12 @@ _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
 | task_id | applies_when | Bundle | Production.json | Decision |
 |---|---|---|---|---|
-| `TSK_WNSC_CLEAN_AREA` | — | —/10 | —/— | |
-| `TSK_WNSC_DUST_CLEAN` | — | —/15 | —/— | |
-| `TSK_WNSC_SAND_PREP` | — | 100/— | —/— | |
-| `TSK_WNSC_TOOL_CLEANUP` | — | —/10 | —/— | |
+| `TSK_WNSC_CLEAN_AREA` | — | —/10 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_WNSC_DUST_CLEAN` | — | —/15 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_WNSC_SAND_PREP` | — | 100/— | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_WNSC_TOOL_CLEANUP` | — | —/10 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
 
 _Rate column order:_ `rate_per_hour` / `fixed_minutes`
-
-### Production.json-only rate rows (missing from bundle)
-
-| task_id | applies_when | Production.json | Decision |
-|---|---|---|---|
-| `TSK_WNSC_SEAL_MDF_EDGES` | — | 60/— | |
 
 ## SF_WAINSCOT_PANEL_NC_STAIN
 
@@ -1732,8 +1694,8 @@ _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
 | task_id | applies_when | Bundle | Production.json | Decision |
 |---|---|---|---|---|
-| `TSK_WPST_STAIN_DRY_VERIFY` | coating_type=[stain_clear] | —/10 | —/— | |
-| `TSK_WPST_VACUUM` | — | —/20 | —/— | |
+| `TSK_WPST_STAIN_DRY_VERIFY` | coating_type=[stain_clear] | —/10 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_WPST_VACUUM` | — | —/20 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
 
 _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
@@ -1741,7 +1703,7 @@ _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
 | task_id | applies_when | Bundle | Decision |
 |---|---|---|---|
-| `TSK_WPST_REMOVE_WALL_MASK` | — | 200/— | |
+| `TSK_WPST_REMOVE_WALL_MASK` | — | 200/— | SYNC — add this row to production.json so it persists across reimports |
 
 ## SF_WINDOW_EXT_NC
 
@@ -1749,23 +1711,23 @@ _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
 | task_id | applies_when | Bundle | Production.json | Decision |
 |---|---|---|---|---|
-| `TSK_XWIN_CASING_PROTECT` | — | —/3 | —/— | |
-| `TSK_XWIN_CASING_PROTECT_REMOVE` | — | —/2 | —/— | |
-| `TSK_XWIN_DUST_AFTER_SAND_ALUM` | cladding_type=[aluminum_clad] | —/4 | —/— | |
-| `TSK_XWIN_DUST_AFTER_SAND_WOOD` | cladding_type=[wood] | —/4 | —/— | |
-| `TSK_XWIN_EQUIPMENT_CLEAN` | — | —/20 | —/— | |
-| `TSK_XWIN_EQUIPMENT_SETUP_BRUSH` | application_method=[brush] | —/15 | —/— | |
-| `TSK_XWIN_EQUIPMENT_SETUP_SPRAY` | application_method=[spray] | —/30 | —/— | |
-| `TSK_XWIN_HARDWARE_REINSTALL` | window_type=[awning,casement,double_hung,bay,bow] | —/10 | —/— | |
-| `TSK_XWIN_HARDWARE_REMOVE` | window_type=[awning,casement,double_hung,bay,bow] | —/8 | —/— | |
-| `TSK_XWIN_LUBRICATE_CHANNELS` | window_type=[double_hung] | —/4 | —/— | |
-| `TSK_XWIN_SASH_DRY_POSTURE` | window_type=[double_hung] | —/2 | —/— | |
-| `TSK_XWIN_SASH_PERIODIC_MOVE` | window_type=[double_hung] | —/8 | —/— | |
-| `TSK_XWIN_SASH_REVERSE` | window_type=[double_hung] | —/5 | —/— | |
-| `TSK_XWIN_SILL_PROTECT` | — | —/4 | —/— | |
-| `TSK_XWIN_SILL_PROTECT_REMOVE` | — | —/2 | —/— | |
-| `TSK_XWIN_WEATHERSTRIP_PROTECT` | window_type=[awning,casement,double_hung,bay,bow] | —/8 | —/— | |
-| `TSK_XWIN_WEATHERSTRIP_REINSTALL` | window_type=[awning,casement,double_hung,bay,bow] | —/6 | —/— | |
+| `TSK_XWIN_CASING_PROTECT` | — | —/3 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_XWIN_CASING_PROTECT_REMOVE` | — | —/2 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_XWIN_DUST_AFTER_SAND_ALUM` | cladding_type=[aluminum_clad] | —/4 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_XWIN_DUST_AFTER_SAND_WOOD` | cladding_type=[wood] | —/4 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_XWIN_EQUIPMENT_CLEAN` | — | —/20 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_XWIN_EQUIPMENT_SETUP_BRUSH` | application_method=[brush] | —/15 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_XWIN_EQUIPMENT_SETUP_SPRAY` | application_method=[spray] | —/30 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_XWIN_HARDWARE_REINSTALL` | window_type=[awning,casement,double_hung,bay,bow] | —/10 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_XWIN_HARDWARE_REMOVE` | window_type=[awning,casement,double_hung,bay,bow] | —/8 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_XWIN_LUBRICATE_CHANNELS` | window_type=[double_hung] | —/4 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_XWIN_SASH_DRY_POSTURE` | window_type=[double_hung] | —/2 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_XWIN_SASH_PERIODIC_MOVE` | window_type=[double_hung] | —/8 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_XWIN_SASH_REVERSE` | window_type=[double_hung] | —/5 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_XWIN_SILL_PROTECT` | — | —/4 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_XWIN_SILL_PROTECT_REMOVE` | — | —/2 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_XWIN_WEATHERSTRIP_PROTECT` | window_type=[awning,casement,double_hung,bay,bow] | —/8 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_XWIN_WEATHERSTRIP_REINSTALL` | window_type=[awning,casement,double_hung,bay,bow] | —/6 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
 
 _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
@@ -1775,42 +1737,42 @@ _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
 | task_id | applies_when | Bundle | Production.json | Decision |
 |---|---|---|---|---|
-| `TSK_RRP_EXT_CONTAINMENT_SETUP` | pre_1978=True | —/60 | —/— | |
-| `TSK_RRP_EXT_CONTAINMENT_TEARDOWN` | pre_1978=True | —/40 | —/— | |
-| `TSK_RRP_EXT_HEPA_VACUUM` | pre_1978=True | —/8 | —/— | |
-| `TSK_RRP_EXT_LEAD_SCREEN` | pre_1978=True | —/20 | —/— | |
-| `TSK_RRP_EXT_WET_SCRAPE` | pre_1978=True | —/5 | —/— | |
-| `TSK_XWRP_ASSESS_ADHESION` | — | —/5 | —/— | |
-| `TSK_XWRP_ASSESS_CHALK` | — | —/3 | —/— | |
-| `TSK_XWRP_ASSESS_GLAZING` | window_cladding=[wood] | —/4 | —/— | |
-| `TSK_XWRP_ASSESS_MOISTURE` | — | —/4 | —/— | |
-| `TSK_XWRP_ASSESS_ROT` | window_cladding=[wood] | —/4 | —/— | |
-| `TSK_XWRP_ASSESS_SASH_OPERATION` | window_type=[awning,casement,double_hung,bay,bow] | —/3 | —/— | |
-| `TSK_XWRP_CASING_PROTECT` | — | —/3 | —/— | |
-| `TSK_XWRP_CASING_PROTECT_REMOVE` | — | —/2 | —/— | |
-| `TSK_XWRP_CURE_ADVISORY` | — | —/5 | —/— | |
-| `TSK_XWRP_CUSTOMER_WALKTHROUGH` | — | —/20 | —/— | |
-| `TSK_XWRP_DUST_AFTER_SAND_ALUM` | window_cladding=[aluminum_clad] | —/4 | —/— | |
-| `TSK_XWRP_DUST_AFTER_SAND_WOOD` | window_cladding=[wood] | —/4 | —/— | |
-| `TSK_XWRP_DUST_INTERCOAT` | — | —/3 | —/— | |
-| `TSK_XWRP_EQUIPMENT_CLEAN` | — | —/20 | —/— | |
-| `TSK_XWRP_EQUIPMENT_SETUP_BRUSH` | application_method=[brush] | —/15 | —/— | |
-| `TSK_XWRP_EQUIPMENT_SETUP_SPRAY` | application_method=[spray] | —/30 | —/— | |
-| `TSK_XWRP_HARDWARE_REINSTALL` | window_type=[awning,casement,double_hung,bay,bow] | —/10 | —/— | |
-| `TSK_XWRP_HARDWARE_REMOVE` | window_type=[awning,casement,double_hung,bay,bow] | —/10 | —/— | |
-| `TSK_XWRP_LUBRICATE_CHANNELS` | window_type=[double_hung] | —/4 | —/— | |
-| `TSK_XWRP_POWER_WASH` | — | —/25 | —/— | |
-| `TSK_XWRP_PRIME_BRUSH_SPOT_ALUM` | window_cladding=[aluminum_clad] | —/8 | —/— | |
-| `TSK_XWRP_PRIME_BRUSH_SPOT_VINYL` | window_cladding=[vinyl_clad] | —/8 | —/— | |
-| `TSK_XWRP_SASH_BREAK` | window_type=[awning,casement,double_hung,bay,bow] | —/5 | —/— | |
-| `TSK_XWRP_SASH_DRY_POSTURE` | window_type=[double_hung] | —/2 | —/— | |
-| `TSK_XWRP_SASH_PERIODIC_MOVE` | window_type=[double_hung] | —/10 | —/— | |
-| `TSK_XWRP_SASH_REVERSE` | window_type=[double_hung] | —/6 | —/— | |
-| `TSK_XWRP_SILL_PROTECT` | — | —/4 | —/— | |
-| `TSK_XWRP_SILL_PROTECT_REMOVE` | — | —/2 | —/— | |
-| `TSK_XWRP_WEATHERSTRIP_PROTECT` | window_type=[awning,casement,double_hung,bay,bow] | —/8 | —/— | |
-| `TSK_XWRP_WEATHERSTRIP_REINSTALL` | window_type=[awning,casement,double_hung,bay,bow] | —/6 | —/— | |
-| `TSK_XWRP_WOOD_HARDEN` | rot_assessment=surface_soft · window_cladding=[wood] | —/10 | —/— | |
+| `TSK_RRP_EXT_CONTAINMENT_SETUP` | pre_1978=True | —/60 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_RRP_EXT_CONTAINMENT_TEARDOWN` | pre_1978=True | —/40 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_RRP_EXT_HEPA_VACUUM` | pre_1978=True | —/8 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_RRP_EXT_LEAD_SCREEN` | pre_1978=True | —/20 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_RRP_EXT_WET_SCRAPE` | pre_1978=True | —/5 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_XWRP_ASSESS_ADHESION` | — | —/5 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_XWRP_ASSESS_CHALK` | — | —/3 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_XWRP_ASSESS_GLAZING` | window_cladding=[wood] | —/4 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_XWRP_ASSESS_MOISTURE` | — | —/4 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_XWRP_ASSESS_ROT` | window_cladding=[wood] | —/4 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_XWRP_ASSESS_SASH_OPERATION` | window_type=[awning,casement,double_hung,bay,bow] | —/3 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_XWRP_CASING_PROTECT` | — | —/3 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_XWRP_CASING_PROTECT_REMOVE` | — | —/2 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_XWRP_CURE_ADVISORY` | — | —/5 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_XWRP_CUSTOMER_WALKTHROUGH` | — | —/20 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_XWRP_DUST_AFTER_SAND_ALUM` | window_cladding=[aluminum_clad] | —/4 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_XWRP_DUST_AFTER_SAND_WOOD` | window_cladding=[wood] | —/4 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_XWRP_DUST_INTERCOAT` | — | —/3 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_XWRP_EQUIPMENT_CLEAN` | — | —/20 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_XWRP_EQUIPMENT_SETUP_BRUSH` | application_method=[brush] | —/15 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_XWRP_EQUIPMENT_SETUP_SPRAY` | application_method=[spray] | —/30 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_XWRP_HARDWARE_REINSTALL` | window_type=[awning,casement,double_hung,bay,bow] | —/10 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_XWRP_HARDWARE_REMOVE` | window_type=[awning,casement,double_hung,bay,bow] | —/10 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_XWRP_LUBRICATE_CHANNELS` | window_type=[double_hung] | —/4 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_XWRP_POWER_WASH` | — | —/25 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_XWRP_PRIME_BRUSH_SPOT_ALUM` | window_cladding=[aluminum_clad] | —/8 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_XWRP_PRIME_BRUSH_SPOT_VINYL` | window_cladding=[vinyl_clad] | —/8 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_XWRP_SASH_BREAK` | window_type=[awning,casement,double_hung,bay,bow] | —/5 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_XWRP_SASH_DRY_POSTURE` | window_type=[double_hung] | —/2 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_XWRP_SASH_PERIODIC_MOVE` | window_type=[double_hung] | —/10 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_XWRP_SASH_REVERSE` | window_type=[double_hung] | —/6 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_XWRP_SILL_PROTECT` | — | —/4 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_XWRP_SILL_PROTECT_REMOVE` | — | —/2 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_XWRP_WEATHERSTRIP_PROTECT` | window_type=[awning,casement,double_hung,bay,bow] | —/8 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_XWRP_WEATHERSTRIP_REINSTALL` | window_type=[awning,casement,double_hung,bay,bow] | —/6 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_XWRP_WOOD_HARDEN` | rot_assessment=surface_soft · window_cladding=[wood] | —/10 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
 
 _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
@@ -1820,16 +1782,16 @@ _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
 | task_id | applies_when | Bundle | Production.json | Decision |
 |---|---|---|---|---|
-| `TSK_WIN_CLEAN_TOOLS` | — | —/10 | —/— | |
-| `TSK_WIN_FINAL_INSPECT` | — | 20/— | —/— | |
-| `TSK_WIN_INSPECT_COAT` | — | 25/— | —/— | |
-| `TSK_WIN_PATCH_DEFECTS` | — | 30/— | —/— | |
-| `TSK_WIN_PREP_STEEL_RUST` | substrate=[steel] | 8/— | —/— | |
-| `TSK_WIN_PREP_WOOD_FILL` | substrate=[wood] · substrate_state=[SS_BARE] | 15/— | —/— | |
-| `TSK_WIN_PREP_WOOD_SAND` | substrate=[wood] · substrate_state=[SS_BARE] | 10/— | —/— | |
-| `TSK_WIN_SAND_BETWEEN` | — | 15/— | —/— | |
-| `TSK_WIN_SPOT_COAT` | — | 40/— | —/— | |
-| `TSK_WIN_TOUCHUP` | — | 25/— | —/— | |
+| `TSK_WIN_CLEAN_TOOLS` | — | —/10 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_WIN_FINAL_INSPECT` | — | 20/— | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_WIN_INSPECT_COAT` | — | 25/— | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_WIN_PATCH_DEFECTS` | — | 30/— | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_WIN_PREP_STEEL_RUST` | substrate=[steel] | 8/— | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_WIN_PREP_WOOD_FILL` | substrate=[wood] · substrate_state=[SS_BARE] | 15/— | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_WIN_PREP_WOOD_SAND` | substrate=[wood] · substrate_state=[SS_BARE] | 10/— | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_WIN_SAND_BETWEEN` | — | 15/— | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_WIN_SPOT_COAT` | — | 40/— | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_WIN_TOUCHUP` | — | 25/— | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
 
 _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
@@ -1837,9 +1799,9 @@ _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
 | task_id | applies_when | Bundle | Decision |
 |---|---|---|---|
-| `TSK_WIN_REMOVE_HARDWARE_MASK` | — | 20/— | |
-| `TSK_WIN_REMOVE_SILL_PROTECT` | — | 300/— | |
-| `TSK_WIN_REMOVE_WALL_MASK` | — | 200/— | |
+| `TSK_WIN_REMOVE_HARDWARE_MASK` | — | 20/— | SYNC — add this row to production.json so it persists across reimports |
+| `TSK_WIN_REMOVE_SILL_PROTECT` | — | 300/— | SYNC — add this row to production.json so it persists across reimports |
+| `TSK_WIN_REMOVE_WALL_MASK` | — | 200/— | SYNC — add this row to production.json so it persists across reimports |
 
 ## SF_WINDOW_INT_NC_STAIN
 
@@ -1847,8 +1809,8 @@ _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
 | task_id | applies_when | Bundle | Production.json | Decision |
 |---|---|---|---|---|
-| `TSK_WIST_STAIN_DRY_VERIFY` | coating_type=[stain_clear] | —/10 | —/— | |
-| `TSK_WIST_VACUUM` | — | —/15 | —/— | |
+| `TSK_WIST_STAIN_DRY_VERIFY` | coating_type=[stain_clear] | —/10 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_WIST_VACUUM` | — | —/15 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
 
 _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
@@ -1856,9 +1818,9 @@ _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
 | task_id | applies_when | Bundle | Decision |
 |---|---|---|---|
-| `TSK_WIST_REMOVE_HARDWARE_MASK` | — | 20/— | |
-| `TSK_WIST_REMOVE_SILL_PROTECT` | — | 300/— | |
-| `TSK_WIST_REMOVE_WALL_MASK` | — | 200/— | |
+| `TSK_WIST_REMOVE_HARDWARE_MASK` | — | 20/— | SYNC — add this row to production.json so it persists across reimports |
+| `TSK_WIST_REMOVE_SILL_PROTECT` | — | 300/— | SYNC — add this row to production.json so it persists across reimports |
+| `TSK_WIST_REMOVE_WALL_MASK` | — | 200/— | SYNC — add this row to production.json so it persists across reimports |
 
 ## SF_WINDOW_INT_RP
 
@@ -1866,53 +1828,53 @@ _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
 | task_id | applies_when | Production.json | Decision |
 |---|---|---|---|
-| `TSK_RRP_CONTAINMENT_REMOVAL` | home_pre_1978=True · lead_status=[tested_positive,unknown_pre1978] | 6/— | |
-| `TSK_RRP_CONTAINMENT_SETUP` | home_pre_1978=True · lead_status=[tested_positive,unknown_pre1978] | 4/— | |
-| `TSK_RRP_HEPA_VACUUM` | home_pre_1978=True · lead_status=[tested_positive,unknown_pre1978] | 8/— | |
-| `TSK_RRP_LEAD_TEST` | home_pre_1978=True | 6/— | |
-| `TSK_RRP_WASTE_DISPOSAL` | home_pre_1978=True · lead_status=[tested_positive,unknown_pre1978] | —/— | |
-| `TSK_WNRP_ASSESS_ADHESION` | — | —/— | |
-| `TSK_WNRP_ASSESS_COATING_ID` | — | —/— | |
-| `TSK_WNRP_ASSESS_CONDITION` | — | —/— | |
-| `TSK_WNRP_ASSESS_GLAZING` | window_glazing_type=[single_pane,TDL_traditional] | —/— | |
-| `TSK_WNRP_ASSESS_MOISTURE` | — | —/— | |
-| `TSK_WNRP_ASSESS_SASH_OPERATION` | — | —/— | |
-| `TSK_WNRP_BRUSH_FINISH_1` | application_method=[brush] | 3.5/— | |
-| `TSK_WNRP_BRUSH_FINISH_2` | application_method=[brush] | 4/— | |
-| `TSK_WNRP_CAULK_ASSESS_REPAIR` | — | —/— | |
-| `TSK_WNRP_CLEAN_INTERSTAGE` | — | 30/— | |
-| `TSK_WNRP_CLEAN_PREP` | — | 30/— | |
-| `TSK_WNRP_CLEAN_TOOLS` | — | —/— | |
-| `TSK_WNRP_CUSTOMER_WALKTHROUGH` | occupancy_state=[occupied_crew_handles,occupied_sensitive] | —/— | |
-| `TSK_WNRP_DEGLOSS` | substrate_state=[SS_INT_SOUND_PAINT,SS_INT_FAILING_PAINT] | —/— | |
-| `TSK_WNRP_FINAL_INSPECT` | — | —/— | |
-| `TSK_WNRP_FLOOR_PROTECT_BRUSH` | application_method=[brush] | 12/— | |
-| `TSK_WNRP_FLOOR_PROTECT_SPRAY` | application_method=[spray] | 6/— | |
-| `TSK_WNRP_FURNITURE_MANAGE` | occupancy_state=[occupied_crew_handles,occupied_sensitive] | 10/— | |
-| `TSK_WNRP_GLASS_MASK` | — | 60/— | |
-| `TSK_WNRP_GLASS_SCRAPE` | — | 60/— | |
-| `TSK_WNRP_GLAZING_REPAIR` | window_glazing_type=[single_pane,TDL_traditional] | —/— | |
-| `TSK_WNRP_HARDWARE_PROTECT` | — | 20/— | |
-| `TSK_WNRP_HARDWARE_REINSTALL` | — | 20/— | |
-| `TSK_WNRP_INSPECT_COAT` | — | —/— | |
-| `TSK_WNRP_METAL_DEGREASE` | substrate=[aluminum,steel] | 15/— | |
-| `TSK_WNRP_PATCH_DEFECTS` | — | —/— | |
-| `TSK_WNRP_PRIME_BRUSH` | application_method=[brush] · substrate_state=[SS_INT_FAILING_PAINT,SS_INT_PEELING,SS_INT_MOISTURE_DAMAGE,SS_INT_SMOKE_DAMAGE] | 6/— | |
-| `TSK_WNRP_PRIME_SPRAY` | application_method=[spray] · substrate_state=[SS_INT_FAILING_PAINT,SS_INT_PEELING,SS_INT_MOISTURE_DAMAGE,SS_INT_SMOKE_DAMAGE] | 15/— | |
-| `TSK_WNRP_PROTECT_TEARDOWN` | — | 15/— | |
-| `TSK_WNRP_RUST_TREAT` | substrate=[steel] | —/— | |
-| `TSK_WNRP_SAND_BETWEEN` | — | —/— | |
-| `TSK_WNRP_SASH_BREAK` | — | —/— | |
-| `TSK_WNRP_SCRAPE_FEATHER` | condition_scale=[FAIR,POOR] · substrate_state=[SS_INT_FAILING_PAINT,SS_INT_PEELING,SS_INT_MOISTURE_DAMAGE] | —/— | |
-| `TSK_WNRP_SCUFF_SAND` | — | 10/— | |
-| `TSK_WNRP_SILL_PROTECT` | application_method=[spray] | 200/— | |
-| `TSK_WNRP_SPOT_COAT` | — | —/— | |
-| `TSK_WNRP_SPRAY_FINISH_1` | application_method=[spray] | 8/— | |
-| `TSK_WNRP_SPRAY_FINISH_2` | application_method=[spray] | 10/— | |
-| `TSK_WNRP_TOUCHUP` | — | —/— | |
-| `TSK_WNRP_TREAT_MILDEW` | contamination_type=[mildew] · substrate_state=[SS_INT_MOISTURE_DAMAGE] | 6/— | |
-| `TSK_WNRP_WALL_MASK` | — | 150/— | |
-| `TSK_WNRP_WASH_TSP` | contamination_type=[mildew,smoke,water_stain,grease] | 8/— | |
+| `TSK_RRP_CONTAINMENT_REMOVAL` | home_pre_1978=True · lead_status=[tested_positive,unknown_pre1978] | 6/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_RRP_CONTAINMENT_SETUP` | home_pre_1978=True · lead_status=[tested_positive,unknown_pre1978] | 4/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_RRP_HEPA_VACUUM` | home_pre_1978=True · lead_status=[tested_positive,unknown_pre1978] | 8/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_RRP_LEAD_TEST` | home_pre_1978=True | 6/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_RRP_WASTE_DISPOSAL` | home_pre_1978=True · lead_status=[tested_positive,unknown_pre1978] | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_WNRP_ASSESS_ADHESION` | — | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_WNRP_ASSESS_COATING_ID` | — | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_WNRP_ASSESS_CONDITION` | — | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_WNRP_ASSESS_GLAZING` | window_glazing_type=[single_pane,TDL_traditional] | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_WNRP_ASSESS_MOISTURE` | — | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_WNRP_ASSESS_SASH_OPERATION` | — | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_WNRP_BRUSH_FINISH_1` | application_method=[brush] | 3.5/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_WNRP_BRUSH_FINISH_2` | application_method=[brush] | 4/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_WNRP_CAULK_ASSESS_REPAIR` | — | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_WNRP_CLEAN_INTERSTAGE` | — | 30/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_WNRP_CLEAN_PREP` | — | 30/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_WNRP_CLEAN_TOOLS` | — | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_WNRP_CUSTOMER_WALKTHROUGH` | occupancy_state=[occupied_crew_handles,occupied_sensitive] | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_WNRP_DEGLOSS` | substrate_state=[SS_INT_SOUND_PAINT,SS_INT_FAILING_PAINT] | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_WNRP_FINAL_INSPECT` | — | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_WNRP_FLOOR_PROTECT_BRUSH` | application_method=[brush] | 12/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_WNRP_FLOOR_PROTECT_SPRAY` | application_method=[spray] | 6/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_WNRP_FURNITURE_MANAGE` | occupancy_state=[occupied_crew_handles,occupied_sensitive] | 10/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_WNRP_GLASS_MASK` | — | 60/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_WNRP_GLASS_SCRAPE` | — | 60/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_WNRP_GLAZING_REPAIR` | window_glazing_type=[single_pane,TDL_traditional] | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_WNRP_HARDWARE_PROTECT` | — | 20/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_WNRP_HARDWARE_REINSTALL` | — | 20/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_WNRP_INSPECT_COAT` | — | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_WNRP_METAL_DEGREASE` | substrate=[aluminum,steel] | 15/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_WNRP_PATCH_DEFECTS` | — | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_WNRP_PRIME_BRUSH` | application_method=[brush] · substrate_state=[SS_INT_FAILING_PAINT,SS_INT_PEELING,SS_INT_MOISTURE_DAMAGE,SS_INT_SMOKE_DAMAGE] | 6/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_WNRP_PRIME_SPRAY` | application_method=[spray] · substrate_state=[SS_INT_FAILING_PAINT,SS_INT_PEELING,SS_INT_MOISTURE_DAMAGE,SS_INT_SMOKE_DAMAGE] | 15/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_WNRP_PROTECT_TEARDOWN` | — | 15/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_WNRP_RUST_TREAT` | substrate=[steel] | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_WNRP_SAND_BETWEEN` | — | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_WNRP_SASH_BREAK` | — | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_WNRP_SCRAPE_FEATHER` | condition_scale=[FAIR,POOR] · substrate_state=[SS_INT_FAILING_PAINT,SS_INT_PEELING,SS_INT_MOISTURE_DAMAGE] | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_WNRP_SCUFF_SAND` | — | 10/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_WNRP_SILL_PROTECT` | application_method=[spray] | 200/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_WNRP_SPOT_COAT` | — | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_WNRP_SPRAY_FINISH_1` | application_method=[spray] | 8/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_WNRP_SPRAY_FINISH_2` | application_method=[spray] | 10/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_WNRP_TOUCHUP` | — | —/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_WNRP_TREAT_MILDEW` | contamination_type=[mildew] · substrate_state=[SS_INT_MOISTURE_DAMAGE] | 6/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_WNRP_WALL_MASK` | — | 150/— | SKIP — unimported RP spec; out of scope for Phase 3 |
+| `TSK_WNRP_WASH_TSP` | contamination_type=[mildew,smoke,water_stain,grease] | 8/— | SKIP — unimported RP spec; out of scope for Phase 3 |
 
 ## SF_WOOD_CEILING_NC
 
@@ -1920,20 +1882,14 @@ _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
 | task_id | applies_when | Bundle | Production.json | Decision |
 |---|---|---|---|---|
-| `TSK_WDCL_CLEAN_AREA` | — | —/10 | —/— | |
-| `TSK_WDCL_DUST_CLEAN` | — | —/25 | —/— | |
-| `TSK_WDCL_OPENING_COVER` | — | —/10 | —/— | |
-| `TSK_WDCL_REMOVE_OPENING_COVER` | — | —/5 | —/— | |
-| `TSK_WDCL_SAND_PREP` | — | 75/— | —/— | |
-| `TSK_WDCL_TOOL_CLEANUP` | — | —/10 | —/— | |
+| `TSK_WDCL_CLEAN_AREA` | — | —/10 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_WDCL_DUST_CLEAN` | — | —/25 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_WDCL_OPENING_COVER` | — | —/10 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_WDCL_REMOVE_OPENING_COVER` | — | —/5 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_WDCL_SAND_PREP` | — | 75/— | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_WDCL_TOOL_CLEANUP` | — | —/10 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
 
 _Rate column order:_ `rate_per_hour` / `fixed_minutes`
-
-### Production.json-only rate rows (missing from bundle)
-
-| task_id | applies_when | Production.json | Decision |
-|---|---|---|---|
-| `TSK_WDCL_SEAL_MDF_EDGES` | — | 45/— | |
 
 ## SF_WOOD_CEILING_NC_STAIN
 
@@ -1941,14 +1897,14 @@ _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
 | task_id | applies_when | Bundle | Production.json | Decision |
 |---|---|---|---|---|
-| `TSK_WCST_FILL_DEFECTS` | — | 170/— | —/— | |
-| `TSK_WCST_FINAL_INSPECT` | — | 400/— | —/— | |
-| `TSK_WCST_INSPECT_BARE` | — | 500/— | —/— | |
-| `TSK_WCST_INSPECT_CLEAR` | clear_coats=[2,3] | 500/— | —/— | |
-| `TSK_WCST_SAND_CLEAR_320` | clear_coats=[2,3] | 170/— | —/— | |
-| `TSK_WCST_STAIN_DRY_VERIFY` | coating_type=[stain_clear] | —/10 | —/— | |
-| `TSK_WCST_TOUCHUP` | — | 280/— | —/— | |
-| `TSK_WCST_VACUUM` | — | —/25 | —/— | |
+| `TSK_WCST_FILL_DEFECTS` | — | 170/— | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_WCST_FINAL_INSPECT` | — | 400/— | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_WCST_INSPECT_BARE` | — | 500/— | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_WCST_INSPECT_CLEAR` | clear_coats=[2,3] | 500/— | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_WCST_SAND_CLEAR_320` | clear_coats=[2,3] | 170/— | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_WCST_STAIN_DRY_VERIFY` | coating_type=[stain_clear] | —/10 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_WCST_TOUCHUP` | — | 280/— | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_WCST_VACUUM` | — | —/25 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
 
 _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
@@ -1956,8 +1912,8 @@ _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
 | task_id | applies_when | Bundle | Decision |
 |---|---|---|---|
-| `TSK_WCST_REMOVE_FIXTURE_COVER` | — | 20/— | |
-| `TSK_WCST_REMOVE_WALL_MASK` | — | 200/— | |
+| `TSK_WCST_REMOVE_FIXTURE_COVER` | — | 20/— | SYNC — add this row to production.json so it persists across reimports |
+| `TSK_WCST_REMOVE_WALL_MASK` | — | 200/— | SYNC — add this row to production.json so it persists across reimports |
 
 ## SF_WOOD_SIDING_EXT_NC_PAINT
 
@@ -1965,10 +1921,10 @@ _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
 | task_id | applies_when | Bundle | Production.json | Decision |
 |---|---|---|---|---|
-| `TSK_SDNG_CLEAN_EQUIPMENT` | application_method=[spray,spray_backroll] | —/30 | —/— | |
-| `TSK_SDNG_EQUIPMENT_SETUP_BRUSH` | application_method=[brush_roll] | —/20 | —/— | |
-| `TSK_SDNG_EQUIPMENT_SETUP_SPRAY` | application_method=[spray,spray_backroll] | —/45 | —/— | |
-| `TSK_SDNG_SITE_CLEANUP` | — | —/20 | —/— | |
+| `TSK_SDNG_CLEAN_EQUIPMENT` | application_method=[spray,spray_backroll] | —/30 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_SDNG_EQUIPMENT_SETUP_BRUSH` | application_method=[brush_roll] | —/20 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_SDNG_EQUIPMENT_SETUP_SPRAY` | application_method=[spray,spray_backroll] | —/45 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_SDNG_SITE_CLEANUP` | — | —/20 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
 
 _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
@@ -1978,18 +1934,12 @@ _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
 | task_id | applies_when | Bundle | Production.json | Decision |
 |---|---|---|---|---|
-| `TSK_WDWL_CLEAN_AREA` | — | —/10 | —/— | |
-| `TSK_WDWL_DUST_CLEAN` | — | —/20 | —/— | |
-| `TSK_WDWL_SAND_PREP` | — | 100/— | —/— | |
-| `TSK_WDWL_TOOL_CLEANUP` | — | —/10 | —/— | |
+| `TSK_WDWL_CLEAN_AREA` | — | —/10 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_WDWL_DUST_CLEAN` | — | —/20 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_WDWL_SAND_PREP` | — | 100/— | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_WDWL_TOOL_CLEANUP` | — | —/10 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
 
 _Rate column order:_ `rate_per_hour` / `fixed_minutes`
-
-### Production.json-only rate rows (missing from bundle)
-
-| task_id | applies_when | Production.json | Decision |
-|---|---|---|---|
-| `TSK_WDWL_SEAL_MDF_EDGES` | — | 60/— | |
 
 ## SF_WOOD_WALL_NC_STAIN
 
@@ -1997,8 +1947,8 @@ _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
 | task_id | applies_when | Bundle | Production.json | Decision |
 |---|---|---|---|---|
-| `TSK_WWST_STAIN_DRY_VERIFY` | coating_type=[stain_clear] | —/10 | —/— | |
-| `TSK_WWST_VACUUM` | — | —/25 | —/— | |
+| `TSK_WWST_STAIN_DRY_VERIFY` | coating_type=[stain_clear] | —/10 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
+| `TSK_WWST_VACUUM` | — | —/25 | —/— | SYNC — bundle carries the calibrated value, production.json is empty |
 
 _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
@@ -2006,6 +1956,6 @@ _Rate column order:_ `rate_per_hour` / `fixed_minutes`
 
 | task_id | applies_when | Bundle | Decision |
 |---|---|---|---|
-| `TSK_WWST_REMOVE_CEILING_MASK` | — | 200/— | |
-| `TSK_WWST_REMOVE_TRIM_MASK` | — | 200/— | |
+| `TSK_WWST_REMOVE_CEILING_MASK` | — | 200/— | SYNC — add this row to production.json so it persists across reimports |
+| `TSK_WWST_REMOVE_TRIM_MASK` | — | 200/— | SYNC — add this row to production.json so it persists across reimports |
 
