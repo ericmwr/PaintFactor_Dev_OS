@@ -269,7 +269,21 @@ export function buildRoomQuantityLookups(state) {
     Object.entries(room.fixtures || {}).forEach(function ([fId, cfg]) {
       if (fId === 'cabinets') {
         const lf = parseFloat(cfg.linear_ft) || 0;
-        if (lf > 0) addQ('PS_PROTECT_LF.FIXTURE_CABINETS', 'LF', lf);
+        if (lf > 0) {
+          // Emit the same PS keys the cabinet protect modules consume.
+          // Countertop edge = linear feet entered by user.
+          addQ('PS_PROTECT_LF.COUNTERTOP_EDGE', 'LF', lf);
+          // Derive face count from LF: ~1 door per 1.5 LF for lowers.
+          const lowerFaces = Math.ceil(lf / 1.5);
+          const hasUppers = cfg.layout === 'lower_upper';
+          const upperFaces = hasUppers ? Math.ceil(lf / 2) : 0;
+          const totalFaces = lowerFaces + upperFaces;
+          if (totalFaces > 0) addQ('PS_PROTECT_EA.CABINET_FACE_COVERS', 'EA', totalFaces);
+          // Hardware: ~2 per face (handle + hinge cover)
+          addQ('PS_PROTECT_EA.ASSET.HARDWARE', 'EA', totalFaces * 2);
+          // Keep legacy key for any downstream consumers
+          addQ('PS_PROTECT_LF.FIXTURE_CABINETS', 'LF', lf);
+        }
       } else if (fId === 'feature_wall') {
         // Sum SF across all feature wall items (or legacy single config)
         const items = cfg.items || (cfg.length_ft ? [cfg] : []);

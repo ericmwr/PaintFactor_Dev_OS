@@ -232,14 +232,45 @@ export function expandStairwaySpecContexts(specId, room, project) {
 /**
  * Build protect ctxs for a cabinet substrate in protect mode.
  *
- * Returns an array of 0 or 1 ctx objects. Ctx is emitted only when:
- *   - room.substrates.cabinets exists
- *   - cabinets.paint_cabinets === false (user chose protect)
- *   - at least one cabinet face exists (door_count + drawer_count > 0)
+ * Returns an array of 0 or 1 ctx objects. Two sources are checked:
+ *
+ *   1. Protection tab fixture: room.fixtures.cabinets (preferred)
+ *      Has: linear_ft, layout (lower_only/lower_upper), protection level.
+ *      Emitted when the fixture checkbox is checked (fixture exists + linear_ft > 0).
+ *
+ *   2. Specialty tab fallback: room.substrates.cabinets with paint_cabinets === false
+ *      Legacy path — kept for backwards compatibility with coverage kit data.
  *
  * Matches SCN_CABINET_PROTECT_{LIGHT,STANDARD,HEAVY} scenarios.
  */
 export function buildCabinetProtectCtxs(room, project) {
+  // ── Source 1: Protection tab fixture (authoritative when present) ──
+  const fix = room?.fixtures?.cabinets;
+  if (fix) {
+    const lf = parseFloat(fix.linear_ft) || 0;
+    if (lf > 0) {
+      // Map Protection tab's 'protection' field to scenario's protection_level.
+      // Protection tab uses: edge_only / partial_cover / full_cover
+      // Scenarios use: light / standard / heavy
+      const levelMap = { edge_only: 'light', partial_cover: 'standard', full_cover: 'heavy' };
+      const level = levelMap[fix.protection] || 'standard';
+      return [{
+        paintable_item: 'cabinet',
+        coating_type: 'protect',
+        protection_level: level,
+        quality_tier: project?.default_quality_tier || 'QT3',
+        application_method: 'n/a',
+        substrate_state: 'SS_PROTECTED',
+        height_band: 'STD',
+        complexity: 'STD',
+        __specId: 'SF_CABINET_NC_PAINT',
+        __component: 'cabinet_protect',
+        __source: 'fixture',
+      }];
+    }
+  }
+
+  // ── Source 2: Specialty tab fallback ──
   const cab = room?.substrates?.cabinets;
   if (!cab) return [];
   if (cab.paint_cabinets !== false) return [];
@@ -257,6 +288,7 @@ export function buildCabinetProtectCtxs(room, project) {
     complexity: 'STD',
     __specId: 'SF_CABINET_NC_PAINT',
     __component: 'cabinet_protect',
+    __source: 'substrate',
   }];
 }
 
