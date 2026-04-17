@@ -283,75 +283,89 @@ export function resolveRoomFixtureProtection(rooms, roomSpecMethods) {
 
       const label = fixtureDef.label;
 
-      // For each active painting context in this room
+      // Collect every scenario this fixture triggers across active painting contexts.
+      // Physical protection (mechanism=task) is performed once for the whole visit, so
+      // we collapse those down to a single dominant scenario. Production-penalty
+      // modifiers stay per-context because they tax each spec's apply phase separately.
+      const taskScenarios = [];
+      const modifierScenarios = [];
       contextMap.forEach((method, paintingContext) => {
         const scenario = resolveFixtureScenario(fixtureId, paintingContext, method);
         if (!scenario) return;
+        if (scenario.mechanism === 'task') taskScenarios.push({ scenario, paintingContext, method });
+        else if (scenario.mechanism === 'modifier' && scenario.added_min > 0) modifierScenarios.push({ scenario, paintingContext, method });
+      });
 
+      if (taskScenarios.length > 0) {
+        const dominant = taskScenarios.reduce((best, cur) => {
+          const bestRank = PROTECTION_LEVEL_RANK[best.scenario.level] || 0;
+          const curRank = PROTECTION_LEVEL_RANK[cur.scenario.level] || 0;
+          if (curRank !== bestRank) return curRank > bestRank ? cur : best;
+          return (cur.scenario.setup_min || 0) > (best.scenario.setup_min || 0) ? cur : best;
+        });
+        const { scenario, paintingContext, method } = dominant;
         const methodLabel = isSprayMethod(method) ? 'spray' : 'brush/roll';
+        const levelLabel = scenario.level.replace(/_/g, ' ');
 
-        if (scenario.mechanism === 'task') {
-          // Physical protection work: setup + teardown entries
-          const levelLabel = scenario.level.replace(/_/g, ' ');
-
-          if (scenario.setup_min > 0) {
-            tasks.push({
-              taskId: `__FP_${fixtureId.toUpperCase()}_${paintingContext.toUpperCase()}_SETUP__`,
-              taskName: `Protect ${label} \u2014 ${capitalize(levelLabel)} (${paintingContext} ${methodLabel})`,
-              phase: 'setup',
-              hours: round3(scenario.setup_min / 60),
-              isFixed: true,
-              baseRate: `${scenario.setup_min}m`,
-              quantity: 1,
-              uom: 'EA',
-              isFixtureProtection: true,
-              fixtureId,
-              paintingContext,
-              protectionLevel: scenario.level,
-              mechanism: 'task',
-              roomIndex: riNum,
-              roomLabel: room.label,
-            });
-          }
-
-          if (scenario.teardown_min > 0) {
-            tasks.push({
-              taskId: `__FP_${fixtureId.toUpperCase()}_${paintingContext.toUpperCase()}_TEARDOWN__`,
-              taskName: `Remove ${label} Protection (${paintingContext} ${methodLabel})`,
-              phase: 'cleanup',
-              hours: round3(scenario.teardown_min / 60),
-              isFixed: true,
-              baseRate: `${scenario.teardown_min}m`,
-              quantity: 1,
-              uom: 'EA',
-              isFixtureProtection: true,
-              fixtureId,
-              paintingContext,
-              protectionLevel: scenario.level,
-              mechanism: 'task',
-              roomIndex: riNum,
-              roomLabel: room.label,
-            });
-          }
-        } else if (scenario.mechanism === 'modifier' && scenario.added_min > 0) {
-          // Production penalty: fixture presence slows adjacent work
+        if (scenario.setup_min > 0) {
           tasks.push({
-            taskId: `__FP_${fixtureId.toUpperCase()}_${paintingContext.toUpperCase()}_MOD__`,
-            taskName: `Fixture Obstruction \u2014 ${label} (${methodLabel} ${paintingContext})`,
-            phase: 'apply',
-            hours: round3(scenario.added_min / 60),
+            taskId: `__FP_${fixtureId.toUpperCase()}_SETUP__`,
+            taskName: `Protect ${label} \u2014 ${capitalize(levelLabel)} (${paintingContext} ${methodLabel})`,
+            phase: 'setup',
+            hours: round3(scenario.setup_min / 60),
             isFixed: true,
-            baseRate: `${scenario.added_min}m`,
+            baseRate: `${scenario.setup_min}m`,
             quantity: 1,
             uom: 'EA',
             isFixtureProtection: true,
             fixtureId,
             paintingContext,
-            mechanism: 'modifier',
+            protectionLevel: scenario.level,
+            mechanism: 'task',
             roomIndex: riNum,
             roomLabel: room.label,
           });
         }
+
+        if (scenario.teardown_min > 0) {
+          tasks.push({
+            taskId: `__FP_${fixtureId.toUpperCase()}_TEARDOWN__`,
+            taskName: `Remove ${label} Protection (${paintingContext} ${methodLabel})`,
+            phase: 'cleanup',
+            hours: round3(scenario.teardown_min / 60),
+            isFixed: true,
+            baseRate: `${scenario.teardown_min}m`,
+            quantity: 1,
+            uom: 'EA',
+            isFixtureProtection: true,
+            fixtureId,
+            paintingContext,
+            protectionLevel: scenario.level,
+            mechanism: 'task',
+            roomIndex: riNum,
+            roomLabel: room.label,
+          });
+        }
+      }
+
+      modifierScenarios.forEach(({ scenario, paintingContext, method }) => {
+        const methodLabel = isSprayMethod(method) ? 'spray' : 'brush/roll';
+        tasks.push({
+          taskId: `__FP_${fixtureId.toUpperCase()}_${paintingContext.toUpperCase()}_MOD__`,
+          taskName: `Fixture Obstruction \u2014 ${label} (${methodLabel} ${paintingContext})`,
+          phase: 'apply',
+          hours: round3(scenario.added_min / 60),
+          isFixed: true,
+          baseRate: `${scenario.added_min}m`,
+          quantity: 1,
+          uom: 'EA',
+          isFixtureProtection: true,
+          fixtureId,
+          paintingContext,
+          mechanism: 'modifier',
+          roomIndex: riNum,
+          roomLabel: room.label,
+        });
       });
     });
 
@@ -365,6 +379,16 @@ export function resolveRoomFixtureProtection(rooms, roomSpecMethods) {
 
   return result;
 }
+
+// Higher rank = more restrictive protection. Used to pick the dominant
+// scenario when one fixture is touched by multiple painting contexts.
+const PROTECTION_LEVEL_RANK = {
+  none: 0,
+  item_mask: 1,
+  partial_cover: 2,
+  full_cover: 3,
+  full_mask: 3,
+};
 
 function round3(n) {
   return Math.round(n * 1000) / 1000;
