@@ -19,6 +19,7 @@ const STORES = {
   scenario: 'scenario_drafts',
   assembly: 'assembly_drafts',
   modifier: 'modifier_drafts',
+  task: 'task_drafts',
 };
 
 function now() { return new Date().toISOString(); }
@@ -100,14 +101,23 @@ export const loadModifierDraft    = (id) => load(STORES.modifier, id);
 export const saveModifierDraft    = (fac) => save(STORES.modifier, fac);
 export const deleteModifierDraft  = (id) => remove(STORES.modifier, id);
 
+// ── Task drafts ──
+
+export const listTaskDrafts   = () => list(STORES.task);
+export const loadTaskDraft    = (id) => load(STORES.task, id);
+export const saveTaskDraft    = (tsk) => save(STORES.task, tsk);
+export const deleteTaskDraft  = (id) => remove(STORES.task, id);
+export const listActiveTaskOverlays = () => listByStatus(STORES.task, 'draft');
+
 // ── Bulk read for overlay loader ──
 
 export async function loadAllDrafts() {
-  const [modules, scenarios, assemblies, modifiers] = await Promise.all([
+  const [modules, scenarios, assemblies, modifiers, tasks] = await Promise.all([
     listModuleDrafts(),
     listScenarioDrafts(),
     listAssemblyDrafts(),
     listModifierDrafts(),
+    listTaskDrafts(),
   ]);
-  return { modules, scenarios, assemblies, modifiers };
+  return { modules, scenarios, assemblies, modifiers, tasks };
 }

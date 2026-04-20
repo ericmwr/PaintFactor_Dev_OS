@@ -11,13 +11,15 @@ import { useModuleDrafts } from '../../hooks/useModuleDrafts.js';
 import { useScenarioDrafts } from '../../hooks/useScenarioDrafts.js';
 import { useAssemblyDrafts } from '../../hooks/useAssemblyDrafts.js';
 import { useModifierDrafts } from '../../hooks/useModifierDrafts.js';
-import { publishModule, publishScenario, publishAssembly, publishModifier } from '../../authoring/publish.js';
+import { useTaskDrafts } from '../../hooks/useTaskDrafts.js';
+import { publishModule, publishScenario, publishAssembly, publishModifier, publishTask } from '../../authoring/publish.js';
 
 const PUBLISH_FN = {
   module: publishModule,
   scenario: publishScenario,
   assembly: publishAssembly,
   modifier: publishModifier,
+  task: publishTask,
 };
 
 const KIND_COLORS = {
@@ -25,6 +27,7 @@ const KIND_COLORS = {
   scenario: '#c792ea',
   assembly: '#f78c6c',
   modifier: '#89ddff',
+  task: '#ffcb6b',
 };
 
 export default function DraftsView({ onNavigate }) {
@@ -32,12 +35,13 @@ export default function DraftsView({ onNavigate }) {
   const scns = useScenarioDrafts();
   const asms = useAssemblyDrafts();
   const mfrs = useModifierDrafts();
+  const tsks = useTaskDrafts();
 
   const [publishing, setPublishing] = useState(false);
   const [progress, setProgress] = useState({ done: 0, total: 0 });
   const [lastRun, setLastRun] = useState(null); // { ok: number, failed: [{kind, id, error}] }
 
-  const loading = mods.loading || scns.loading || asms.loading || mfrs.loading;
+  const loading = mods.loading || scns.loading || asms.loading || mfrs.loading || tsks.loading;
 
   const allDrafts = useMemo(() => {
     const rows = [];
@@ -45,8 +49,9 @@ export default function DraftsView({ onNavigate }) {
     scns.drafts.forEach(d => rows.push({ kind: 'scenario', record: d, hook: scns }));
     asms.drafts.forEach(d => rows.push({ kind: 'assembly', record: d, hook: asms }));
     mfrs.drafts.forEach(d => rows.push({ kind: 'modifier', record: d, hook: mfrs }));
+    tsks.drafts.forEach(d => rows.push({ kind: 'task', record: d, hook: tsks }));
     return rows;
-  }, [mods.drafts, scns.drafts, asms.drafts, mfrs.drafts]);
+  }, [mods.drafts, scns.drafts, asms.drafts, mfrs.drafts, tsks.drafts]);
 
   const pending = useMemo(() => allDrafts.filter(r => r.record.status !== 'published'), [allDrafts]);
   const published = useMemo(() => allDrafts.filter(r => r.record.status === 'published'), [allDrafts]);
@@ -72,8 +77,8 @@ export default function DraftsView({ onNavigate }) {
       setProgress(p => ({ ...p, done: p.done + 1 }));
     }
 
-    // Refresh all four hook lists so status flips from 'draft' → 'published'
-    await Promise.all([mods.refresh(), scns.refresh(), asms.refresh(), mfrs.refresh()]);
+    // Refresh all hook lists so status flips from 'draft' → 'published'
+    await Promise.all([mods.refresh(), scns.refresh(), asms.refresh(), mfrs.refresh(), tsks.refresh()]);
     setLastRun({ ok, failed });
     setPublishing(false);
   }
@@ -154,7 +159,7 @@ export default function DraftsView({ onNavigate }) {
       <div style={{ flex: 1, overflowY: 'auto', border: '1px solid var(--border)', borderRadius: 3 }}>
         {pending.length === 0 ? (
           <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-muted)', fontSize: 12 }}>
-            No pending drafts. Anything you save in the Modules / Scenarios / Assemblies / Modifiers tabs will show up here.
+            No pending drafts. Anything you save in the Modules / Scenarios / Tasks / Assemblies / Modifiers tabs will show up here.
           </div>
         ) : (
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11 }}>

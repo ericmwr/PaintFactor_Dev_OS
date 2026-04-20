@@ -11,6 +11,10 @@
 
 import { useState, useEffect } from 'react';
 import ModifierImpactPreview from './ModifierImpactPreview.jsx';
+import TaskPicker from './TaskPicker.jsx';
+import canonicalBundle from '../../data/scenario-bundle.gen.js';
+
+const RARE_OVERRIDE_FIELDS = ['ps_key', 'uom', 'skill_level', 'name'];
 
 const PHASE_OPTIONS = ['setup', 'prep', 'prime', 'apply', 'finish', 'interstage', 'cleanup'];
 const MODIFIER_KEYS = ['qt', 'height', 'texture', 'complexity', 'condition', 'access', 'coat'];
@@ -48,6 +52,11 @@ function emptyModule() {
 export default function ModuleEditor({ draft, onSave, onCancel, onPublish }) {
   const [record, setRecord] = useState(() => draft ? structuredClone(draft) : emptyModule());
   const [dirty, setDirty] = useState(false);
+  const [pickerOpen, setPickerOpen] = useState(false);
+  // Track which rare-field overrides are revealed per task-index (variant B
+  // pattern — user clicks "override" to reveal an input, otherwise canonical
+  // value is shown read-only).
+  const [revealedOverrides, setRevealedOverrides] = useState({}); // { [taskIdx]: Set<fieldName> }
 
   useEffect(() => {
     setRecord(draft ? structuredClone(draft) : emptyModule());
@@ -132,7 +141,63 @@ export default function ModuleEditor({ draft, onSave, onCancel, onPublish }) {
   };
 
   const addTask = () => updatePayload(p => { p.tasks.push(cloneEmptyTask()); });
+  const addLibraryTask = (taskId) => updatePayload(p => { p.tasks.push({ task_ref: taskId }); });
   const removeTask = (idx) => updatePayload(p => { p.tasks.splice(idx, 1); });
+
+  // ── Library task helpers ──
+
+  const getCanonicalTask = (taskRef) => {
+    return canonicalBundle.tasks?.[taskRef] || null;
+  };
+
+  const isLibraryTask = (t) => !!t.task_ref;
+
+  /**
+   * For library tasks, compute the effective value: override from entry
+   * if set, otherwise canonical. Returns { value, isOverride }.
+   */
+  const resolveLibraryField = (t, field) => {
+    if (Object.prototype.hasOwnProperty.call(t, field)) {
+      return { value: t[field], isOverride: true };
+    }
+    const canon = getCanonicalTask(t.task_ref);
+    return { value: canon ? canon[field] : undefined, isOverride: false };
+  };
+
+  /**
+   * Set (or clear) an override on a library task entry.
+   * Value === '' or null clears the override (entry reverts to canonical).
+   */
+  const setLibraryOverride = (idx, field, value) => {
+    updatePayload(p => {
+      const t = p.tasks[idx];
+      if (value === '' || value == null) {
+        delete t[field];
+      } else if (field === 'rate_per_hour') {
+        const n = parseFloat(value);
+        if (isNaN(n) || n <= 0) delete t[field];
+        else t[field] = n;
+      } else {
+        t[field] = value;
+      }
+    });
+  };
+
+  const toggleRevealedOverride = (idx, field) => {
+    setRevealedOverrides(prev => {
+      const next = { ...prev };
+      const cur = new Set(next[idx] || []);
+      if (cur.has(field)) {
+        cur.delete(field);
+        // If removing reveal, also clear the override itself
+        updatePayload(p => { delete p.tasks[idx][field]; });
+      } else {
+        cur.add(field);
+      }
+      next[idx] = cur;
+      return next;
+    });
+  };
 
   const toggleModEligibility = (key) => updatePayload(p => {
     p.modifier_eligibility = { ...p.modifier_eligibility, [key]: !p.modifier_eligibility[key] };
@@ -157,6 +222,12 @@ export default function ModuleEditor({ draft, onSave, onCancel, onPublish }) {
 
   return (
     <div style={{ display: 'flex', gap: 16, height: '100%' }}>
+      <TaskPicker
+        open={pickerOpen}
+        onClose={() => setPickerOpen(false)}
+        onPick={addLibraryTask}
+        phaseHint={payload.phase}
+      />
       <div style={{ flex: 1, overflowY: 'auto', padding: '0 8px' }}>
         {/* Header */}
         <div style={{ marginBottom: 16 }}>
@@ -197,10 +268,32 @@ export default function ModuleEditor({ draft, onSave, onCancel, onPublish }) {
         <div style={{ marginBottom: 16 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
             <h4 style={{ margin: 0, fontSize: 12, color: 'var(--text-muted)' }}>TASKS ({payload.tasks.length})</h4>
-            <button className="btn btn-sm btn-accent" onClick={addTask} style={{ fontSize: 10 }}>+ Task</button>
+            <div style={{ display: 'flex', gap: 6 }}>
+              <button className="btn btn-sm btn-accent" onClick={addTask} style={{ fontSize: 10 }}>+ Inline Task</button>
+              <button className="btn btn-sm" onClick={() => setPickerOpen(true)} style={{ fontSize: 10 }}>+ From Library</button>
+            </div>
           </div>
           {payload.tasks.map((t, idx) => (
+            isLibraryTask(t)
+              ? <LibraryTaskRow
+                  key={idx}
+                  idx={idx}
+                  entry={t}
+                  canonical={getCanonicalTask(t.task_ref)}
+                  revealed={revealedOverrides[idx] || new Set()}
+                  onRateChange={(v) => setLibraryOverride(idx, 'rate_per_hour', v)}
+                  onFieldChange={(field, v) => setLibraryOverride(idx, field, v)}
+                  onToggleReveal={(field) => toggleRevealedOverride(idx, field)}
+                  onRemove={() => removeTask(idx)}
+                />
+              : (
             <div key={idx} style={{ border: '1px solid var(--border)', borderRadius: 4, padding: 8, marginBottom: 6, fontSize: 12 }}>
+              <div style={{ display: 'flex', gap: 6, marginBottom: 6, alignItems: 'center' }}>
+                <span style={{ fontSize: 9, padding: '1px 5px', background: '#555', color: '#fff', borderRadius: 2 }}>inline</span>
+                <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>
+                  self-contained task definition in this module
+                </span>
+              </div>
               <div style={{ display: 'grid', gridTemplateColumns: '2fr 2fr 1fr 1fr auto', gap: 6, alignItems: 'end' }}>
                 <label style={labelStyle}>
                   Task ID
@@ -291,6 +384,7 @@ export default function ModuleEditor({ draft, onSave, onCancel, onPublish }) {
                 </div>
               </div>
             </div>
+              )
           ))}
         </div>
 
@@ -355,6 +449,136 @@ const labelStyle = {
   textTransform: 'uppercase',
 };
 const inputStyle = {
+  display: 'block',
+  width: '100%',
+  marginTop: 2,
+  padding: '4px 6px',
+  fontSize: 12,
+  background: 'var(--bg-input, #222)',
+  color: 'var(--text)',
+  border: '1px solid var(--border)',
+  borderRadius: 3,
+};
+
+// ── Library task row ──
+//
+// Compact block for task_ref entries. Variant A UX for rate_per_hour (inline
+// input with canonical shown faded). Variant B for rare fields (ps_key, uom,
+// skill_level, name) — canonical shown read-only until user clicks "override".
+function LibraryTaskRow({ idx, entry, canonical, revealed, onRateChange, onFieldChange, onToggleReveal, onRemove }) {
+  if (!canonical) {
+    // Broken ref — missing from library
+    return (
+      <div style={{ border: '1px solid #e74c3c', borderRadius: 4, padding: 8, marginBottom: 6, fontSize: 12 }}>
+        <div style={{ color: '#e74c3c', fontSize: 11, marginBottom: 4 }}>
+          ⚠ Unresolved task_ref: <code>{entry.task_ref}</code>
+        </div>
+        <button className="btn btn-sm" onClick={onRemove} style={{ color: '#e74c3c', fontSize: 10 }}>Remove</button>
+      </div>
+    );
+  }
+
+  const canonRate = canonical.rate_per_hour;
+  const overrideRate = Object.prototype.hasOwnProperty.call(entry, 'rate_per_hour') ? entry.rate_per_hour : null;
+  const effectiveRate = overrideRate != null ? overrideRate : canonRate;
+
+  return (
+    <div style={{ border: '1px solid var(--accent, #82aaff)', borderRadius: 4, padding: 8, marginBottom: 6, fontSize: 12, background: 'rgba(130, 170, 255, 0.04)' }}>
+      <div style={{ display: 'flex', gap: 6, marginBottom: 6, alignItems: 'center' }}>
+        <span style={{ fontSize: 9, padding: '1px 5px', background: 'var(--accent, #82aaff)', color: '#000', borderRadius: 2 }}>library</span>
+        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10 }}>{entry.task_ref}</span>
+        <span style={{ fontSize: 10, color: 'var(--text-muted)', flex: 1 }}>— {canonical.name}</span>
+        <button className="btn btn-sm" onClick={onRemove} style={{ color: '#e74c3c', fontSize: 10, padding: '2px 6px' }}>X</button>
+      </div>
+
+      {/* Rate — Variant A: inline override with canonical shown faded */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 6, alignItems: 'end', marginBottom: 6 }}>
+        <label style={libLabel}>
+          Rate/hr{overrideRate != null && <span style={{ color: 'var(--accent, #82aaff)' }}> (override)</span>}
+          <input
+            style={{ ...libInput, fontWeight: overrideRate != null ? 600 : 400, color: overrideRate != null ? 'var(--accent, #82aaff)' : 'var(--text)' }}
+            type="number"
+            step="0.01"
+            placeholder={`canonical: ${canonRate}`}
+            value={overrideRate ?? ''}
+            onChange={e => onRateChange(e.target.value)}
+          />
+          <span style={{ fontSize: 9, color: 'var(--text-muted)', marginTop: 2, display: 'block' }}>
+            canonical: {canonRate} {canonical.uom}/hr · effective: {effectiveRate} {canonical.uom}/hr
+          </span>
+        </label>
+        <div style={{ fontSize: 11 }}>
+          <div style={libLabel}>PS Key</div>
+          <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--text-muted)', padding: '4px 6px' }}>
+            {entry.ps_key || canonical.ps_key}
+          </div>
+        </div>
+        <div style={{ fontSize: 11 }}>
+          <div style={libLabel}>UOM / Skill</div>
+          <div style={{ fontSize: 10, color: 'var(--text-muted)', padding: '4px 6px' }}>
+            {entry.uom || canonical.uom} · {entry.skill_level || canonical.skill_level}
+          </div>
+        </div>
+      </div>
+
+      {/* Rare-field overrides — Variant B: toggle to reveal */}
+      <div style={{ borderTop: '1px dashed var(--border)', paddingTop: 6 }}>
+        <div style={{ fontSize: 9, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: 4 }}>
+          Overrides (rare)
+        </div>
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+          {RARE_OVERRIDE_FIELDS.map(field => {
+            const isRevealed = revealed.has(field);
+            const hasOverride = Object.prototype.hasOwnProperty.call(entry, field);
+            const showInput = isRevealed || hasOverride;
+            return (
+              <div key={field} style={{ flex: showInput ? '1 1 180px' : '0 0 auto' }}>
+                {showInput ? (
+                  <label style={libLabel}>
+                    {field}{hasOverride && <span style={{ color: 'var(--accent, #82aaff)' }}> (override)</span>}
+                    <input
+                      style={{ ...libInput, color: hasOverride ? 'var(--accent, #82aaff)' : 'var(--text)' }}
+                      placeholder={`canonical: ${canonical[field] ?? '—'}`}
+                      value={entry[field] ?? ''}
+                      onChange={e => onFieldChange(field, e.target.value)}
+                    />
+                    <button
+                      onClick={() => onToggleReveal(field)}
+                      style={{ fontSize: 9, color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, marginTop: 2 }}
+                      title="Hide and revert to canonical"
+                    >clear override</button>
+                  </label>
+                ) : (
+                  <button
+                    onClick={() => onToggleReveal(field)}
+                    style={{
+                      fontSize: 10,
+                      padding: '3px 8px',
+                      background: 'transparent',
+                      border: '1px dashed var(--border)',
+                      borderRadius: 3,
+                      color: 'var(--text-muted)',
+                      cursor: 'pointer',
+                    }}
+                    title={`Override canonical ${field} (${canonical[field] ?? '—'})`}
+                  >+ override {field}</button>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+const libLabel = {
+  display: 'block',
+  fontSize: 10,
+  color: 'var(--text-muted)',
+  textTransform: 'uppercase',
+};
+const libInput = {
   display: 'block',
   width: '100%',
   marginTop: 2,

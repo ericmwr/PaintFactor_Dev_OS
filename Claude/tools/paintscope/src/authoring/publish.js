@@ -10,6 +10,7 @@ import {
   saveScenarioDraft,
   saveAssemblyDraft,
   saveModifierDraft,
+  saveTaskDraft,
 } from '../data/authoring-db.js';
 
 const ENDPOINT = '/__authoring/publish';
@@ -52,12 +53,19 @@ export async function publishModifier(draft) {
   return result;
 }
 
+export async function publishTask(draft) {
+  const result = await post('task', draft.payload || draft);
+  await saveTaskDraft({ ...draft, status: 'published' });
+  return result;
+}
+
 export async function publishDraft(kind, draft) {
   switch (kind) {
     case 'module':   return publishModule(draft);
     case 'scenario': return publishScenario(draft);
     case 'assembly': return publishAssembly(draft);
     case 'modifier': return publishModifier(draft);
+    case 'task':     return publishTask(draft);
     default: throw new Error(`Unknown kind: ${kind}`);
   }
 }

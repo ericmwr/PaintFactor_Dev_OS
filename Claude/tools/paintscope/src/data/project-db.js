@@ -1,7 +1,7 @@
 import { openDB } from 'idb';
 
 const DB_NAME = 'paintfactor';
-const DB_VERSION = 8;
+const DB_VERSION = 9;
 
 let dbPromise = null;
 
@@ -58,6 +58,12 @@ export function getDB() {
           const modifierDrafts = db.createObjectStore('modifier_drafts', { keyPath: 'id' });
           modifierDrafts.createIndex('status', 'status');
           modifierDrafts.createIndex('kind', 'kind');
+        }
+        // v9: task drafts (canonical task library)
+        if (oldVersion < 9) {
+          const taskDrafts = db.createObjectStore('task_drafts', { keyPath: 'id' });
+          taskDrafts.createIndex('status', 'status');
+          taskDrafts.createIndex('phase', 'phase');
         }
       },
     });

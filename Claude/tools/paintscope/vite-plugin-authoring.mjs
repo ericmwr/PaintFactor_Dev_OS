@@ -17,12 +17,14 @@ const MODULES_DIR   = path.join(WORKTREE_ROOT, 'Claude', 'modules');
 const SCENARIOS_DIR = path.join(WORKTREE_ROOT, 'Claude', 'scenarios');
 const ASSEMBLIES_DIR = path.join(SCENARIOS_DIR, 'assemblies');
 const MODIFIERS_DIR = path.join(WORKTREE_ROOT, 'Claude', 'modifiers');
+const TASKS_DIR = path.join(WORKTREE_ROOT, 'Claude', 'tasks');
 
 const KIND_CONFIG = {
   module:   { dir: MODULES_DIR,    prefix: 'MOD_', idField: 'module_id'    },
   scenario: { dir: SCENARIOS_DIR,  prefix: 'SCN_', idField: 'scenario_id'  },
   assembly: { dir: ASSEMBLIES_DIR, prefix: 'ASM_', idField: 'assembly_id'  },
   modifier: { dir: MODIFIERS_DIR,  prefix: 'FAC_', idField: 'modifier_id'  },
+  task:     { dir: TASKS_DIR,      prefix: 'TSK_', idField: 'task_id'      },
 };
 
 function assertSafePath(dir, filename) {
