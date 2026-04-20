@@ -1,7 +1,7 @@
 import { openDB } from 'idb';
 
 const DB_NAME = 'paintfactor';
-const DB_VERSION = 6;
+const DB_VERSION = 8;
 
 let dbPromise = null;
 
@@ -41,6 +41,23 @@ export function getDB() {
         // v6: spec editor working copy
         if (oldVersion < 6) {
           db.createObjectStore('spec_editor', { keyPath: 'key' });
+        }
+        // v7: authoring drafts (modules, scenarios, assemblies)
+        if (oldVersion < 7) {
+          const moduleDrafts = db.createObjectStore('module_drafts', { keyPath: 'id' });
+          moduleDrafts.createIndex('status', 'status');
+          moduleDrafts.createIndex('phase', 'phase');
+          const scenarioDrafts = db.createObjectStore('scenario_drafts', { keyPath: 'id' });
+          scenarioDrafts.createIndex('status', 'status');
+          scenarioDrafts.createIndex('paintable_item', 'paintable_item');
+          const assemblyDrafts = db.createObjectStore('assembly_drafts', { keyPath: 'id' });
+          assemblyDrafts.createIndex('status', 'status');
+        }
+        // v8: modifier drafts
+        if (oldVersion < 8) {
+          const modifierDrafts = db.createObjectStore('modifier_drafts', { keyPath: 'id' });
+          modifierDrafts.createIndex('status', 'status');
+          modifierDrafts.createIndex('kind', 'kind');
         }
       },
     });

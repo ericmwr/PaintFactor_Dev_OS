@@ -7,8 +7,10 @@ import { ENUMS } from '../../data/enums';
 import { SUBSTRATE_MAP, SUBSTRATE_GROUPS } from '../../data/substrate-catalog';
 import { FIXTURE_CATALOG, FIXTURE_MAP, FIXTURE_GROUPS, FLOOR_TYPES } from '../../data/fixture-catalog';
 import { deriveProtectionSummary } from '../../engine/derive-protection';
+import { useModifierEnum } from '../../hooks/useModifierEnum';
 
 export default function ScopePanel({ room, derived, dispatch, project, focusedSubstrate, setFocusedSubstrate }) {
+  const complexityOptions = useModifierEnum('FAC_COMPLEXITY');
   const rid = room.id;
   const setRoom = (f, v) => dispatch({ type: 'SET_ROOM', payload: { roomId: rid, field: f, value: v } });
   const setRoomNullable = (f, v) => dispatch({ type: 'SET_ROOM', payload: { roomId: rid, field: f, value: v || null } });
@@ -46,7 +48,7 @@ export default function ScopePanel({ room, derived, dispatch, project, focusedSu
         <div className="form-grid" style={{ gridTemplateColumns: '1fr 1fr' }}>
           <div>
             <div className="field-label">Complexity <span style={{ color: 'var(--text-muted)' }}>({project.default_complexity})</span></div>
-            <Select options={ENUMS.complexity} value={room.complexity} onChange={v => setRoomNullable('complexity', v)} placeholder="Project Default" />
+            <Select options={complexityOptions} value={room.complexity} onChange={v => setRoomNullable('complexity', v)} placeholder="Project Default" />
           </div>
           <div>
             <div className="field-label">Height Band</div>

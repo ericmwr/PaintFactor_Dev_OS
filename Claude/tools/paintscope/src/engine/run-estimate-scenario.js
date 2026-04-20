@@ -211,8 +211,22 @@ function computeDynamicStack(module, scenarioModifiers) {
  * (which is applied per-task by shouldApplyComplexity, matching run-estimate.js
  * lines 24-46). This keeps the field shape compatible with the legacy engine.
  */
-export function computeScenarioModifierStack(module, ctx, scenarioModifiers = null, bundle = null) {
-  const eligibility = module.modifier_eligibility || {};
+/**
+ * Module eligibility + optional task-level overrides merged into a single map.
+ * Per-task override semantics: if task.modifier_eligibility[key] is defined,
+ * it wins over module.modifier_eligibility[key]. Otherwise module wins.
+ * Used by spray+backroll-style modules where one task is texture-sensitive
+ * and the other isn't.
+ */
+function resolveEligibility(module, task) {
+  const modEl = module.modifier_eligibility || {};
+  const taskEl = (task && task.modifier_eligibility) || null;
+  if (!taskEl) return modEl;
+  return { ...modEl, ...taskEl };
+}
+
+export function computeScenarioModifierStack(module, ctx, scenarioModifiers = null, bundle = null, task = null) {
+  const eligibility = resolveEligibility(module, task);
 
   const qt = eligibility.qt !== false
     ? (bundle ? getFactor(bundle, 'FAC_QT', ctx.quality_tier) : (QT_MODIFIERS[ctx.quality_tier] ?? 1.0))
@@ -285,6 +299,16 @@ function computeEffectiveTotal(modStack, phase, ctx) {
     ? Math.round(modStack.total * modStack.complexity * 1000) / 1000
     : modStack.total;
   return { effectiveTotal, complexityApplied };
+}
+
+/**
+ * Build the display-facing task name, appending "— Coat N" when coatNumber > 1.
+ * Keeps the estimate readable when the same task fires on multiple coats.
+ */
+function displayTaskName(task, coatNumber) {
+  const base = task.name;
+  if (coatNumber && coatNumber > 1) return `${base} \u2014 Coat ${coatNumber}`;
+  return base;
 }
 
 /**
@@ -377,9 +401,16 @@ function resolveTaskRate(task, ctx, coatNumber, overlayMap = null) {
     return null;
   }
 
-  // 4. rate_per_hour
+  // 4. rate_per_hour (+ optional coat_2_rate_multiplier for coat-aware scaling)
+  //    coat_2_rate_multiplier semantics: coat 2 rate = rate_per_hour × multiplier.
+  //    multiplier > 1 means coat 2 is faster (e.g. 1.25 = 25% faster, less time).
+  //    multiplier < 1 means coat 2 is slower. Default 1.0 (same rate as coat 1).
   if (task.rate_per_hour != null && task.rate_per_hour > 0) {
-    return { effectiveRate: task.rate_per_hour, isFixed: false, fixedMinutes: null, uom, source: 'rate_per_hour' };
+    let effective = task.rate_per_hour;
+    if (coatNumber > 1 && typeof task.coat_2_rate_multiplier === 'number' && task.coat_2_rate_multiplier > 0) {
+      effective = task.rate_per_hour * task.coat_2_rate_multiplier;
+    }
+    return { effectiveRate: effective, isFixed: false, fixedMinutes: null, uom, source: coatNumber > 1 && task.coat_2_rate_multiplier ? 'rate_per_hour+coat_2_rate_multiplier' : 'rate_per_hour' };
   }
 
   // 5. fixed_minutes
@@ -489,6 +520,13 @@ export function runScenarioEstimate({ scenarioBundle, ctx, roomQty, roomItems = 
     const modStack = computeScenarioModifierStack(mod, ctx, scenarioModifiers, scenarioBundle);
 
     for (const task of mod.tasks) {
+      // Per-task eligibility override: if this task overrides any eligibility,
+      // rebuild the stack scoped to this task. Example: MOD_APPLY_WALL_PRIME_SPRAY_BACKROLL
+      // has texture:true at the module level, but the spray task overrides with
+      // texture:false because spray pattern is texture-insensitive.
+      const taskStack = task.modifier_eligibility
+        ? computeScenarioModifierStack(mod, ctx, scenarioModifiers, scenarioBundle, task)
+        : modStack;
       // Task-level applies_when (not variant-level; variant-level lives inside rates[])
       if (task.applies_when && !evaluateAppliesWhen(task.applies_when, ctx, coatNumber)) {
         continue;
@@ -517,7 +555,7 @@ export function runScenarioEstimate({ scenarioBundle, ctx, roomQty, roomItems = 
       // per item with the type/size modifier applied to the effective rate.
       // Matches legacy engine's computeDoorPerItemResults / computeWindowPerItemResults.
       if (task.per_item && roomItems && !resolved.isFixed) {
-        const { effectiveTotal } = computeEffectiveTotal(modStack, phase, ctx);
+        const { effectiveTotal } = computeEffectiveTotal(taskStack, phase, ctx);
         const items = roomItems[task.per_item] || [];
         if (items.length === 0) continue;
 
@@ -559,7 +597,7 @@ export function runScenarioEstimate({ scenarioBundle, ctx, roomQty, roomItems = 
 
           tasks.push({
             taskId: task.task_id,
-            taskName: task.name,
+            taskName: displayTaskName(task, coatNumber),
             phase,
             moduleId: mod.module_id,
             moduleName: mod.name,
@@ -569,7 +607,7 @@ export function runScenarioEstimate({ scenarioBundle, ctx, roomQty, roomItems = 
             uom: resolved.uom,
             quantity: Math.round(qty * 100) / 100,
             baseRate: resolved.effectiveRate,
-            modStack: { ...modStack, itemMod, sizeMod, typeMod },
+            modStack: { ...taskStack, itemMod, sizeMod, typeMod },
             hours: roundedHours,
             coatNumber,
             skillLevel: task.skill_level || 'general',
@@ -593,7 +631,7 @@ export function runScenarioEstimate({ scenarioBundle, ctx, roomQty, roomItems = 
       } else if (psKey && roomQty && roomQty.has(psKey)) {
         quantity = roomQty.get(psKey).value;
         if (quantity <= 0) continue;
-        const { effectiveTotal } = computeEffectiveTotal(modStack, phase, ctx);
+        const { effectiveTotal } = computeEffectiveTotal(taskStack, phase, ctx);
         const effRate = resolved.effectiveRate / effectiveTotal;
         hours = quantity / effRate;
       } else {
@@ -616,7 +654,7 @@ export function runScenarioEstimate({ scenarioBundle, ctx, roomQty, roomItems = 
 
       tasks.push({
         taskId: task.task_id,
-        taskName: task.name,
+        taskName: displayTaskName(task, coatNumber),
         phase,
         moduleId: mod.module_id,
         moduleName: mod.name,
@@ -626,7 +664,7 @@ export function runScenarioEstimate({ scenarioBundle, ctx, roomQty, roomItems = 
         uom: resolved.uom,
         quantity: Math.round(quantity * 100) / 100,
         baseRate: resolved.isFixed ? `${resolved.fixedMinutes}m` : resolved.effectiveRate,
-        modStack: { ...modStack },
+        modStack: { ...taskStack },
         hours: roundedHours,
         coatNumber,
         skillLevel: task.skill_level || 'general',

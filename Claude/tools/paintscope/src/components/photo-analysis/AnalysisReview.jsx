@@ -7,6 +7,7 @@ import Select from '../shared/Select';
 import { ENUMS } from '../../data/enums';
 import { OPENING_TYPES } from '../../data/opening-types';
 import { FLOOR_TYPES } from '../../data/fixture-catalog';
+import { useModifierEnum } from '../../hooks/useModifierEnum';
 
 const SURFACE_LABELS = { walls: 'Walls', ceiling: 'Ceiling' };
 const TRIM_LABELS = {
@@ -83,7 +84,7 @@ function SurfaceRow({ id, data, onScopeChange, onUpdate }) {
         />
         <Select
           className="edit-select"
-          options={ENUMS.textures}
+          options={textureOptions}
           value={data.texture || ''}
           onChange={v => onUpdate('texture', v)}
         />
@@ -328,6 +329,8 @@ function SpecialtyRow({ id, data, onScopeChange, onUpdate }) {
 // --- Main component ---
 
 export default function AnalysisReview({ result, onResultChange }) {
+  const textureOptions = useModifierEnum('FAC_TEXTURE');
+  const complexityOptions = useModifierEnum('FAC_COMPLEXITY');
   const update = (path, value) => {
     const next = JSON.parse(JSON.stringify(result));
     let obj = next;
@@ -408,7 +411,7 @@ export default function AnalysisReview({ result, onResultChange }) {
             <div className="detection-edit">
               <Select
                 className="edit-select"
-                options={ENUMS.complexity}
+                options={complexityOptions}
                 value={roomPatch.complexity || ''}
                 onChange={v => update(['roomPatch', 'complexity'], v)}
               />

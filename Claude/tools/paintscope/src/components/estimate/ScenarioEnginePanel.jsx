@@ -85,7 +85,7 @@ export default function ScenarioEnginePanel({ legacyEstimate }) {
           <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-secondary)' }}>
             Scenario Engine (Beta)
           </span>
-          {scenario && (
+          {scenario?.bundleStats && (
             <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>
               {scenario.bundleStats.modules} mods · {scenario.bundleStats.scenarios} scenarios
             </span>

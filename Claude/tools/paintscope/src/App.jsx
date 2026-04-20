@@ -24,8 +24,10 @@ import MaterialsView from './components/materials/MaterialsView';
 import TimeTrackerView from './components/tracker/TimeTrackerView';
 import AnalyticsDashboard from './components/analytics/AnalyticsDashboard';
 import ColorsView from './components/colors/ColorsView.jsx';
+import AuthoringView, { isAuthoringEnabled } from './components/authoring/AuthoringView.jsx';
+import DevView from './components/dev/DevView.jsx';
 
-const NAV_VIEWS = [
+const BASE_NAV_VIEWS = [
   { id:'projects',   label:'Projects' },
   { id:'setup',      label:'Setup' },
   { id:'scope',      label:'Scope' },
@@ -39,6 +41,10 @@ const NAV_VIEWS = [
   { id:'analytics',  label:'Analytics' },
   { id:'settings',   label:'Settings' },
 ];
+// Admin-gated via localStorage.paintscope.admin = '1'.
+const NAV_VIEWS = isAuthoringEnabled()
+  ? [...BASE_NAV_VIEWS, { id: 'authoring', label: 'Authoring' }, { id: 'dev', label: 'Dev' }]
+  : BASE_NAV_VIEWS;
 
 function AppShell({ projectDb }) {
   const { state, dispatch, saveNow } = useProject();
@@ -450,6 +456,18 @@ function AppShell({ projectDb }) {
           {view === 'settings' && (
             <ErrorBoundary label="Settings">
               <CompanyProfileView />
+            </ErrorBoundary>
+          )}
+
+          {view === 'authoring' && (
+            <ErrorBoundary label="Authoring">
+              <AuthoringView />
+            </ErrorBoundary>
+          )}
+
+          {view === 'dev' && (
+            <ErrorBoundary label="Dev">
+              <DevView />
             </ErrorBoundary>
           )}
         </div>

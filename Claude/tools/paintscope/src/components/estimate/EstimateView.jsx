@@ -132,6 +132,42 @@ export default function EstimateView() {
     return parts.length > 0 ? ` (${parts.join(', ')})` : '';
   };
 
+  const handleExportEstimate = () => {
+    if (!estimate) return;
+    const payload = {
+      exportedAt: new Date().toISOString(),
+      project: {
+        name: state.project?.name || null,
+        client: state.project?.client_name || null,
+        defaultQualityTier: state.project?.default_quality_tier || null,
+        defaultApplicationMethod: state.project?.default_application_method || null,
+        roomCount: (state.rooms || []).length,
+      },
+      totals: {
+        totalHours: estimate.totalHours,
+        totalCrewDays: estimate.totalCrewDays,
+        activatedSpecs: estimate.activatedSpecs,
+        totalSpecs: estimate.totalSpecs,
+      },
+      specResults: estimate.specResults,
+      roomProtection: estimate.roomProtection,
+      fixtureProtection: estimate.fixtureProtection,
+      closetShelfProtection: estimate.closetShelfProtection,
+      exteriorProtection: estimate.exteriorProtection,
+      warnings: estimate.warnings,
+      pricing: estimate.pricing,
+    };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    const slug = (state.project?.name || 'project').replace(/\s+/g, '_');
+    const ts = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+    a.download = `estimate_${slug}_${ts}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   const handleGenerateProposal = async () => {
     if (!estimate || !profile) return;
     setGeneratingProposal(true);
@@ -160,7 +196,7 @@ export default function EstimateView() {
     </div>
   );
 
-  const toggleRoom = (id) => setExpandedRooms(p => ({...p, [id]: p[id] === false ? true : false}));
+  const toggleRoom = (id) => setExpandedRooms(p => ({...p, [id]: p[id] === true ? false : true}));
   const toggleItem = (id) => setExpandedItems(p => ({...p, [id]: !p[id]}));
 
   const projCtx = {
@@ -301,7 +337,14 @@ export default function EstimateView() {
               </div>
             </div>
           )}
-          <div style={{display:'flex',alignItems:'center',marginLeft: estimate.pricing ? 0 : 'auto'}}>
+          <div style={{display:'flex',alignItems:'center',gap:8,marginLeft: estimate.pricing ? 0 : 'auto'}}>
+            <button
+              className="btn"
+              onClick={handleExportEstimate}
+              title="Download full estimate JSON (tasks, hours, phases, protection) for diagnostic diffing"
+            >
+              Export Estimate JSON
+            </button>
             <button
               className={`btn${estimate.pricing ? ' btn-accent' : ''}`}
               onClick={handleGenerateProposal}
@@ -448,7 +491,7 @@ export default function EstimateView() {
       {roomEntries.map(([ri, roomData]) => {
         const room = state.rooms[parseInt(ri)];
         const d = room ? deriveRoom(room) : null;
-        const isRoomOpen = expandedRooms[ri] !== false;
+        const isRoomOpen = expandedRooms[ri] === true;
         const specEntries = Object.entries(roomData.specs).sort((a,b) => b[1].totalHours - a[1].totalHours);
 
         return (

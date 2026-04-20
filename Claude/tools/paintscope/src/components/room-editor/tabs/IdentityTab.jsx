@@ -1,7 +1,10 @@
 import Select from '../../shared/Select';
 import { ENUMS } from '../../../data/enums';
+import { useModifierEnum } from '../../../hooks/useModifierEnum';
 
 export default function IdentityTab({ room, derived, dispatch, project, roomCategories }) {
+  const textureOptions = useModifierEnum('FAC_TEXTURE');
+  const complexityOptions = useModifierEnum('FAC_COMPLEXITY');
   const rid = room.id;
   const setRoom = (f, v) => dispatch({ type: 'SET_ROOM', payload: { roomId: rid, field: f, value: v } });
   const setRoomNullable = (f, v) => dispatch({ type: 'SET_ROOM', payload: { roomId: rid, field: f, value: v || null } });
@@ -68,7 +71,7 @@ export default function IdentityTab({ room, derived, dispatch, project, roomCate
         <div className="form-grid" style={{ gridTemplateColumns: '1fr 1fr' }}>
           <div>
             <div className="field-label">Complexity <span style={{ color: 'var(--text-muted)' }}>({project.default_complexity})</span></div>
-            <Select options={ENUMS.complexity} value={room.complexity} onChange={v => setRoomNullable('complexity', v)} placeholder="Project Default" />
+            <Select options={complexityOptions} value={room.complexity} onChange={v => setRoomNullable('complexity', v)} placeholder="Project Default" />
           </div>
           <div>
             <div className="field-label">Height Band</div>
@@ -101,7 +104,7 @@ export default function IdentityTab({ room, derived, dispatch, project, roomCate
           <div>
             <div className="field-label">Texture</div>
             <Select
-              options={ENUMS.textures}
+              options={textureOptions}
               value={room.texture}
               onChange={v => setRoomNullable('texture', v)}
               placeholder="Project Default"

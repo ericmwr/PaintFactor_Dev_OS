@@ -3,8 +3,11 @@ import NumField from '../shared/NumField';
 import SubstrateStateSelect from './SubstrateStateSelect';
 import { ENUMS } from '../../data/enums';
 import { SUBSTRATE_MAP, SUBSTRATE_APPLICATION_METHODS } from '../../data/substrate-catalog';
+import { SUBSTRATE_SYSTEMS, SYSTEM_METADATA, inferDefaultSystem } from '../../data/system-catalog.js';
+import { useModifierEnum } from '../../hooks/useModifierEnum';
 
 export default function SubstrateDetailPanel({ room, derived, dispatch, substrateId, project }) {
+  const textureOptions = useModifierEnum('FAC_TEXTURE');
   const rid = room.id;
   const config = room.substrates[substrateId];
   if (!config) return null;
@@ -70,6 +73,45 @@ export default function SubstrateDetailPanel({ room, derived, dispatch, substrat
             <Select options={ENUMS.qualityTiers} value={config.quality_tier || null} onChange={v => setSub('quality_tier', v || null)} placeholder={`Project Default (${project?.default_quality_tier || 'QT3'})`} />
           </div>
 
+          {/* System (workflow intent) — gates which spec phases activate */}
+          {(() => {
+            const allowed = SUBSTRATE_SYSTEMS[substrateId] || [];
+            if (allowed.length === 0) return null;
+            const inferred = inferDefaultSystem(substrateId, config.substrate_state);
+            const effective = config.system || inferred;
+            const isAutoInferred = !config.system || config.system === inferred;
+            const options = allowed.map(v => ({ value: v, label: SYSTEM_METADATA[v]?.label || v }));
+            return (
+              <div>
+                <div className="field-label" title="Workflow intent — prime+finish, finish-only, prime-only, stain, etc.">
+                  System {isAutoInferred && effective && <span style={{ fontSize: 9, color: 'var(--text-muted)', fontWeight: 400, marginLeft: 4 }}>(auto-inferred)</span>}
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <div style={{ flex: 1 }}>
+                    <Select
+                      options={options}
+                      value={effective || null}
+                      onChange={v => setSub('system', v || null)}
+                      placeholder={inferred ? `Default (${SYSTEM_METADATA[inferred]?.label || inferred})` : 'Select system…'}
+                    />
+                  </div>
+                  {config.system && (
+                    <button
+                      onClick={() => setSub('system', null)}
+                      title="Reset to auto-inferred default"
+                      style={{ fontSize: 10, padding: '2px 6px', background: 'transparent', color: 'var(--text-muted)', border: '1px solid var(--border)', borderRadius: 3, cursor: 'pointer' }}
+                    >↺</button>
+                  )}
+                </div>
+                {effective && SYSTEM_METADATA[effective]?.description && (
+                  <div style={{ fontSize: 9, color: 'var(--text-muted)', marginTop: 2 }}>
+                    {SYSTEM_METADATA[effective].description}
+                  </div>
+                )}
+              </div>
+            );
+          })()}
+
           {/* Application Method per-substrate */}
           {config.application_method !== undefined && (() => {
             const sam = SUBSTRATE_APPLICATION_METHODS[substrateId];
@@ -87,7 +129,7 @@ export default function SubstrateDetailPanel({ room, derived, dispatch, substrat
           {config.texture !== undefined && (
             <div>
               <div className="field-label">Texture (null = project default)</div>
-              <Select options={ENUMS.textures} value={config.texture} onChange={v => setSub('texture', v || null)} placeholder="Project Default" />
+              <Select options={textureOptions} value={config.texture} onChange={v => setSub('texture', v || null)} placeholder="Project Default" />
             </div>
           )}
 

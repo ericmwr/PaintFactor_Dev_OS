@@ -17,17 +17,22 @@
 import { useMemo, useState, useEffect } from 'react';
 import { useProject } from './useProject';
 import { useSpecData } from './useSpecData';
+import { useCompanyProfile } from './useCompanyProfile';
 import { runScenarioEstimate } from '../engine/run-estimate-scenario.js';
 import { buildScenarioInputs } from '../engine/context-adapter.js';
 import { findBestMatch, findNearMisses } from '../engine/scenario-matcher.js';
 import { loadOverlayBundle } from '../engine/overlay-loader.js';
+import { configureHeightThresholds } from '../engine/derive-room.js';
 import { resolveRoomFloorProtection } from '../engine/floor-protection.js';
 import { resolveRoomFixtureProtection } from '../engine/fixture-protection.js';
+import { computeMaterialEstimates } from '../engine/material-estimates.js';
+import { computePricing } from '../engine/pricing.js';
 import canonicalBundle from '../data/scenario-bundle.gen.js';
 
 export function useEstimateScenario() {
   const { state } = useProject();
   const { specData } = useSpecData();
+  const { profile } = useCompanyProfile();
 
   // Load draft overlays once, then re-run estimate. Until drafts resolve
   // we run against the canonical bundle — overlay merge is additive.
@@ -40,6 +45,9 @@ export function useEstimateScenario() {
       if (cancelled) return;
       setBundle({ modules: merged.modules, scenarios: merged.scenarios, modifiers: merged.modifiers });
       setOverlayStats(merged.overlayStats);
+      // Push the merged FAC_HEIGHT thresholds into derive-room so ceiling-
+      // height → band mapping reflects user-authored drafts, not just canonical.
+      configureHeightThresholds({ modifiers: merged.modifiers });
     }).catch(err => {
       console.warn('[PaintScope] Overlay load failed, using canonical:', err);
     });
@@ -180,8 +188,30 @@ export function useEstimateScenario() {
         }
       }
 
+      // ── Step 5: Material estimates ──
+      // Interior only — scenario engine doesn't yet handle exterior domain.
+      // Same signature run-estimate.js uses at line 802.
+      const intSpecResults = specResults.filter(sr => sr.domain !== 'exterior');
+      let materialEstimates = [];
+      try {
+        materialEstimates = computeMaterialEstimates(state, specData, roomLookups, intSpecResults);
+      } catch (matErr) {
+        console.error('[PaintScope] Material estimate error:', matErr);
+        warnings.push(`Material estimates: ${matErr.message}`);
+      }
+
+      // ── Step 6: Pricing ──
+      // Shared computePricing(); returns null when profile is missing.
+      let pricing = null;
+      try {
+        pricing = computePricing(profile, specResults, materialEstimates);
+      } catch (priceErr) {
+        console.error('[PaintScope] Pricing error:', priceErr);
+        warnings.push(`Pricing: ${priceErr.message}`);
+      }
+
       return {
-        // Legacy-compatible shape (Steps 1-4)
+        // Legacy-compatible shape (Steps 1-6)
         specResults,
         roomProtection,
         fixtureProtection,
@@ -190,10 +220,10 @@ export function useEstimateScenario() {
         totalHours: grandTotalHours,
         totalCrewDays,
         warnings,
-        materialEstimates: [],   // Step 5 — not yet wired
+        materialEstimates,
         activatedSpecs: specResults.length,
         totalSpecs: specData?.spec_families?.length || 0,
-        pricing: null,           // Step 6 — not yet wired
+        pricing,
         // Scenario-specific extras (Dev tab still uses these)
         perInputResults,
         gaps,
@@ -204,7 +234,7 @@ export function useEstimateScenario() {
       console.error('[PaintScope] Scenario estimate error:', e);
       return { error: e.message, specResults: [], totalHours: 0, totalCrewDays: 0, phaseHours: {}, perInputResults: [], gaps: [], warnings: [], bundleStats, roomProtection: {}, fixtureProtection: {}, closetHoursByRoom: {}, materialEstimates: [], pricing: null, activatedSpecs: 0, totalSpecs: 0 };
     }
-  }, [state, specData, bundle, overlayStats]);
+  }, [state, specData, profile, bundle, overlayStats]);
 }
 
 /**

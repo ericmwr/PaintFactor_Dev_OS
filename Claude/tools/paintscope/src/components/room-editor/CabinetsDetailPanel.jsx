@@ -2,6 +2,7 @@ import Select from '../shared/Select';
 import SubstrateStateSelect from './SubstrateStateSelect';
 import { ENUMS } from '../../data/enums';
 import { SUBSTRATE_APPLICATION_METHODS } from '../../data/substrate-catalog';
+import { useModifierEnum } from '../../hooks/useModifierEnum';
 
 const SCOPE_OPTIONS = [
   { value: 'doors_only', label: 'Doors Only' },
@@ -36,6 +37,7 @@ const SHEEN_OPTIONS = [
 ];
 
 export default function CabinetsDetailPanel({ room, dispatch, project }) {
+  const heightBandOptions = useModifierEnum('FAC_HEIGHT');
   const rid = room.id;
   const config = room.substrates.cabinets;
   if (!config) return null;
@@ -196,7 +198,7 @@ export default function CabinetsDetailPanel({ room, dispatch, project }) {
           </div>
           <div>
             <div className="field-label">Height Band</div>
-            <Select options={ENUMS.heightBands || [{ value: 'standard', label: 'Standard' }, { value: 'upper_reach', label: 'Upper Reach' }, { value: 'scaffold', label: 'Scaffold' }]} value={config.height_band || 'standard'} onChange={v => setSub('height_band', v)} />
+            <Select options={heightBandOptions.length ? heightBandOptions : [{ value: 'standard', label: 'Standard' }, { value: 'upper_reach', label: 'Upper Reach' }, { value: 'scaffold', label: 'Scaffold' }]} value={config.height_band || 'standard'} onChange={v => setSub('height_band', v)} />
           </div>
         </div>
       </div>
