@@ -1,12 +1,66 @@
 import { OPENING_TYPES } from '../data/opening-types.js';
 import { SUBSTRATE_MAP } from '../data/substrate-catalog.js';
+import canonicalBundle from '../data/scenario-bundle.gen.js';
 
+// Fallback thresholds (ft) if FAC_HEIGHT.band_thresholds_ft is missing from
+// the bundle. Mirrors the original hardcoded breakpoints.
+const DEFAULT_HEIGHT_THRESHOLDS = { STEP: 10, EXT: 13, SCAFFOLD: 18, LIFT: 25 };
+
+// Overlay state. When the scenario engine loads drafts via overlay-loader, it
+// calls configureHeightThresholds() with the merged bundle so deriveHeightBand
+// sees the user's authored thresholds (not just canonical).
+let overlayBundle = null;
+let overlayDefaultBand = null;
+
+/**
+ * Called by useEstimateScenario after loadOverlayBundle resolves. Accepts
+ * either the full merged bundle, a FAC_HEIGHT modifier definition, or a raw
+ * thresholds object. Passing null/undefined clears the overlay (fallback to
+ * canonical static import).
+ */
+export function configureHeightThresholds(source) {
+  if (!source) { overlayBundle = null; overlayDefaultBand = null; return; }
+  const fac = source.modifiers ? source.modifiers.FAC_HEIGHT
+    : source.band_thresholds_ft ? source
+    : null;
+  if (fac) {
+    overlayBundle = fac.band_thresholds_ft || null;
+    overlayDefaultBand = fac.default || null;
+  } else if (typeof source === 'object') {
+    overlayBundle = source;
+    overlayDefaultBand = null;
+  }
+}
+
+/**
+ * Pick a height band for a ceiling height (ft). Thresholds are read from
+ * FAC_HEIGHT in the scenario bundle so they're author-editable in the
+ * Modifier editor — change "step ladder starts at 9 ft" without touching code.
+ *
+ * Semantics: band_thresholds_ft[band] = minimum ft that band applies at.
+ * Highest matching threshold wins. If no threshold matches, returns the
+ * modifier's default band (normally 'STD').
+ *
+ * Arbitrary band names are supported — add a new key to factors AND
+ * band_thresholds_ft and deriveHeightBand will return it automatically.
+ */
 export function deriveHeightBand(heightFt) {
-  if (heightFt >= 25) return 'LIFT';
-  if (heightFt >= 18) return 'SCAFFOLD';
-  if (heightFt >= 13) return 'EXT';
-  if (heightFt >= 10) return 'STEP';
-  return 'STD';
+  const canonFac = (canonicalBundle && canonicalBundle.modifiers) ? canonicalBundle.modifiers.FAC_HEIGHT : null;
+  // Overlay thresholds (from IDB drafts via overlay-loader) take precedence over canonical.
+  const thresholds = overlayBundle || (canonFac && canonFac.band_thresholds_ft) || DEFAULT_HEIGHT_THRESHOLDS;
+  const defaultBand = overlayDefaultBand || (canonFac && canonFac.default) || 'STD';
+
+  // Sort (band, threshold) pairs descending by threshold so the tallest match wins
+  const sorted = Object.entries(thresholds)
+    .filter(function (entry) { return typeof entry[1] === 'number' && entry[1] > 0; })
+    .sort(function (a, b) { return b[1] - a[1]; });
+
+  for (var i = 0; i < sorted.length; i++) {
+    const band = sorted[i][0];
+    const minFt = sorted[i][1];
+    if (heightFt >= minFt) return band;
+  }
+  return defaultBand;
 }
 
 export function deriveRoom(room) {
