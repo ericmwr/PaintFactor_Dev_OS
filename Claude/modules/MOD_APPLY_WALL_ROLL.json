@@ -2,34 +2,23 @@
   "module_id": "MOD_APPLY_WALL_ROLL",
   "name": "Apply Wall Finish (Roll Method)",
   "phase": "apply",
-  "intent": "Cut in to masked trim, then roll the wall field with an 18-inch roller. One coat per module invocation. Scenarios that need two coats list this module twice in the modules[] sequence. Coat 2 is slightly faster on smooth walls (less lap reworking) and same-rate on textured walls.",
+  "intent": "Roll the wall field with an 18-inch roller. One coat per module invocation. Scenarios that need two coats list this module twice in the modules[] sequence. Coat 2 is slightly faster on smooth walls (less lap reworking) and same-rate on textured walls. Cut-in to trim is handled by the standalone MOD_APPLY_CUTIN_TRIM module which fires in parallel.",
   "tasks": [
-    {
-      "task_id": "TSK_CUTIN_WALL_TO_TRIM",
-      "name": "Cut-In Wall to Trim Edges",
-      "ps_key": "PS_PROTECT_LF.TRIM_EDGES",
-      "uom": "LF",
-      "skill_level": "experienced",
-      "rate_per_hour": 120
-    },
     {
       "task_id": "TSK_ROLL_WALL_FINISH",
       "name": "Roll Wall Finish",
       "ps_key": "PS_SURFACE_SF.WALL_FIELD",
       "uom": "SF",
       "skill_level": "general",
-      "rates": [
-        { "rate_per_hour": 340, "applies_when": { "surface_texture": ["smooth"], "coat": [1] } },
-        { "rate_per_hour": 380, "applies_when": { "surface_texture": ["smooth"], "coat": [2] } },
-        { "rate_per_hour": 280, "applies_when": { "surface_texture": ["orange_peel", "knockdown"] } }
-      ]
+      "rate_per_hour": 340,
+      "coat_2_rate_multiplier": 1.118
     }
   ],
   "modifier_eligibility": {
     "qt": true,
     "height": true,
-    "texture": false,
+    "texture": true,
     "complexity": true
   },
-  "doctrine": "Cut-in to taped trim is faster than freehand cut-in to ceiling because the tape line provides a stop. The 120 LF/hr rate is the same on both coats — re-cutting to tape is mechanical, not skill-bound. Roll rate is texture-driven: smooth walls accept paint cleanly, textured walls require slower laydown to fill profile. Texture modifier is OFF in modifier_eligibility because the rate variant already encodes texture; applying it twice would double-count."
+  "doctrine": "Roll rate is texture-driven: smooth walls accept paint cleanly, textured walls require slower laydown to fill profile. Baseline (340 LF/hr) is the smooth coat-1 rate. Textured variants (orange_peel, knockdown) are produced by FAC_TEXTURE (see Modifiers tab) — tune there to adjust texture sensitivity without touching this module. Coat 2 runs ~12% faster on smooth walls (coat_2_rate_multiplier = 1.118); FAC_TEXTURE still applies on coat 2 so textured coat 2 compounds the speedup and texture slowdown. Cut-in to trim is handled by the standalone MOD_APPLY_CUTIN_TRIM module which fires in parallel to the wall roll rounds."
 }

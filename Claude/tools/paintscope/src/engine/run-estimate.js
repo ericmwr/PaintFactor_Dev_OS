@@ -10,7 +10,7 @@ import { computeMaterialEstimates, computeExteriorMaterialEstimates } from './ma
 import { resolveRoomFloorProtection } from './floor-protection.js';
 import { resolveRoomFixtureProtection } from './fixture-protection.js';
 import { resolveExteriorProtection } from './exterior-protection.js';
-import { computeBlendedRate, computeLineCost, computeBidPrice, computeTravelCost } from './pricing.js';
+import { computePricing } from './pricing.js';
 import { SPEC_SUBSTRATE_MAP, SPEC_OUTPUT_STATES, UI_STATE_TO_SPEC_STATE, SPEC_VALID_INPUT_STATES, EXT_UI_STATE_TO_SPEC_STATE, EXTERIOR_SPEC_IDS, getExteriorSpecIds, STAIN_SPEC_FAMILIES, GRAIN_FILL_PARENT_SPEC } from '../data/spec-maps.js';
 import { SPEC_DISPLAY_NAMES, specDisplayName, PHASE_ORDER, ARCH_ELEMENT_PS_GROUPS } from '../data/constants.js';
 import { FIXTURE_CATALOG } from '../data/fixture-catalog.js';
@@ -124,8 +124,36 @@ export function runEstimate(state, db, overlayMap, profile) {
   });
 
   // Tasks suppressed from the legacy engine (removed from workflow, kept in DB for history).
+  // Clean-tools tasks eliminated — arbitrary fixed-time values that inflate hours
+  // when multiplied across rooms. Real cleanup overhead is absorbed into production rates.
+  // Scenario engine parity: same task IDs have been deleted from module JSONs under Claude/modules/.
   const SUPPRESSED_TASKS = new Set([
-    'TSK_DOOR_SPRAY_PROTECT', // Spray surround masking — unnecessary when surrounding surfaces are painted in same pass
+    'TSK_DOOR_SPRAY_PROTECT',
+    'TSK_ARCH_TOOL_CLEANUP', 'TSK_BLTN_TOOL_CLEANUP', 'TSK_CABT_TOOL_CLEANUP',
+    'TSK_FRAME_CLEAN_TOOLS', 'TSK_DOOR_CLEAN_TOOLS',
+    'TSK_CLEAN_TOOLS_CEILING', 'TSK_CEIL_CLEAN_TOOLS',
+    'TSK_CLEAN_TOOLS_WALL', 'TSK_WALL_CLEAN_TOOLS',
+    'TSK_STRL_TOOL_CLEANUP', 'TSK_STRS_TOOL_CLEANUP',
+    'TSK_TRIM_CLEAN_TOOLS', 'TSK_WNSC_TOOL_CLEANUP',
+    'TSK_WIN_CLEAN_TOOLS', 'TSK_WDCL_TOOL_CLEANUP', 'TSK_WDWL_TOOL_CLEANUP',
+    'TSK_XTRM_CLEAN_EQUIPMENT', 'TSK_MSRY_CLEAN_EQUIPMENT', 'TSK_PRCH_CLEAN_EQUIPMENT',
+    'TSK_ENSD_CLEAN_EQUIPMENT', 'TSK_FCSD_CLEAN_EQUIPMENT', 'TSK_SFIT_CLEAN_EQUIPMENT',
+    'TSK_SDNG_CLEAN_EQUIPMENT', 'TSK_PCRP_CLEAN_EQUIPMENT', 'TSK_FCRP_CLEAN_EQUIPMENT',
+    'TSK_SFRP_CLEAN_EQUIPMENT', 'TSK_EWRP_CLEAN_EQUIPMENT', 'TSK_TRRP_CLEAN_EQUIPMENT',
+    'TSK_DRRP_CLEAN_EQUIPMENT', 'TSK_ALRP_CLEAN_EQUIPMENT', 'TSK_VNRP_CLEAN_EQUIPMENT',
+    'TSK_FINAL_CLEANUP',
+    'TSK_DECK_TOOL_CLEAN', 'TSK_XDOR_TOOL_CLEAN', 'TSK_FNDN_TOOL_CLEAN',
+    'TSK_GRDR_TOOL_CLEAN', 'TSK_STCO_TOOL_CLEAN', 'TSK_XWIN_EQUIPMENT_CLEAN',
+    'TSK_FNCE_TOOL_CLEAN', 'TSK_DKRP_TOOL_CLEAN', 'TSK_FERP_TOOL_CLEANUP',
+    'TSK_GDRP_TOOL_CLEAN', 'TSK_PFRP_TOOL_CLEANUP', 'TSK_XWRP_EQUIPMENT_CLEAN',
+    'TSK_FNRP_TOOL_CLEAN', 'TSK_MSRP_EQUIPMENT_CLEANUP', 'TSK_SCRP_TOOL_CLEAN',
+    // MDF edge seal tasks — caulk + primer on MDF edges already covers the same work,
+    // no separate billable task needed. Heuristic for when to fire is unreliable.
+    // Scenario engine parity: same task IDs have been deleted from module JSONs.
+    'TSK_ARCH_SEAL_MDF_EDGES', 'TSK_BLTN_SEAL_MDF_EDGES', 'TSK_CABT_EDGE_SEAL',
+    'TSK_EDGE_SEAL', 'TSK_DOOR_MDF_EDGE_SEAL', 'TSK_STRS_SEAL_MDF_EDGES',
+    'TSK_MDF_EDGE_SEAL', 'TSK_MDF_EDGE_SEAL_SPRAY',
+    'TSK_WNSC_SEAL_MDF_EDGES', 'TSK_WDCL_SEAL_MDF_EDGES', 'TSK_WDWL_SEAL_MDF_EDGES',
   ]);
 
   const tasksByModule = {};
@@ -838,82 +866,7 @@ export function runEstimate(state, db, overlayMap, profile) {
   });
 
   // --- Pricing pass (requires profile) ---
-  let pricing = null;
-  if (profile) {
-    const crew = profile.crew_configs?.[0] || { lead: 1, painter: 1, apprentice: 0 };
-    const blendedRate = computeBlendedRate(profile.labor_rates, crew);
-    const burdenPct = (profile.labor_burden_pct || 0) / 100;
-
-    // Build material cost lookup: specFamilyId → totalCost
-    const matCostBySpec = new Map();
-    for (const mat of materialEstimates) {
-      const prev = matCostBySpec.get(mat.specFamilyId) || 0;
-      matCostBySpec.set(mat.specFamilyId, prev + (mat.totalCost || 0));
-    }
-
-    // Aggregate hours per room+spec from specResults
-    const lineMap = new Map();
-    for (const sr of specResults) {
-      for (const task of sr.tasks) {
-        const key = `${task.roomIndex}_${sr.specId}`;
-        if (!lineMap.has(key)) {
-          lineMap.set(key, {
-            room: task.roomLabel,
-            roomIndex: task.roomIndex,
-            domain: sr.domain || 'interior',
-            specFamilyId: sr.specId,
-            specName: sr.specName,
-            hours: 0
-          });
-        }
-        lineMap.get(key).hours += task.hours;
-      }
-    }
-
-    // Compute line costs
-    let subtotal = 0;
-    const lineItems = [];
-    for (const [key, line] of lineMap) {
-      const specTotalHours = specResults.find(s => s.specId === line.specFamilyId)?.totalHours || 1;
-      const matCostForSpec = matCostBySpec.get(line.specFamilyId) || 0;
-      const matShare = Math.round((line.hours / specTotalHours) * matCostForSpec * 100) / 100;
-
-      const lc = computeLineCost({
-        hours: line.hours,
-        blendedRate,
-        burdenPct,
-        materialCost: matShare
-      });
-
-      subtotal += lc.lineCost;
-      lineItems.push({
-        room: line.room,
-        roomIndex: line.roomIndex,
-        domain: line.domain,
-        specFamilyId: line.specFamilyId,
-        specName: line.specName,
-        hours: Math.round(line.hours * 100) / 100,
-        laborCost: lc.laborCost,
-        materialCost: lc.materialCost,
-        lineCost: lc.lineCost
-      });
-    }
-
-    subtotal = Math.round(subtotal * 100) / 100;
-    const rules = profile.business_rules || {};
-    const travelCost = computeTravelCost(rules.travel_time_min || 0, blendedRate, burdenPct);
-
-    pricing = computeBidPrice({
-      subtotal,
-      overheadPct: (profile.overhead_rate_pct || 0) / 100,
-      marginPct: (profile.profit_margin_pct || 0) / 100,
-      mobilization: rules.mobilization_charge || 0,
-      travelCost,
-      minJobCharge: rules.min_job_charge || 0
-    });
-    pricing.laborRates = { blended: blendedRate, burdened: Math.round(blendedRate * (1 + burdenPct) * 100) / 100 };
-    pricing.lineItems = lineItems;
-  }
+  const pricing = computePricing(profile, specResults, materialEstimates);
 
   return {
     specResults,

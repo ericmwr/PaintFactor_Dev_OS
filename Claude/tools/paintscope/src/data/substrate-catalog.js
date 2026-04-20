@@ -176,25 +176,25 @@ export const SUBSTRATE_APPLICATION_METHODS = {
   // Surfaces: spray_backroll, roll, spray
   walls: { methods: ['spray_backroll', 'roll', 'spray'], default: 'spray_backroll' },
   ceiling: { methods: ['spray_backroll', 'roll', 'spray'], default: 'spray_backroll' },
-  // Trim: brush, spray
-  baseboard: { methods: ['brush', 'spray'], default: 'brush' },
-  crown: { methods: ['brush', 'spray'], default: 'brush' },
-  door_casing: { methods: ['brush', 'spray'], default: 'brush' },
-  window_casing: { methods: ['brush', 'spray'], default: 'brush' },
-  chair_rail: { methods: ['brush', 'spray'], default: 'brush' },
-  shoe_mold: { methods: ['brush', 'spray'], default: 'brush' },
-  wainscot_cap: { methods: ['brush', 'spray'], default: 'brush' },
-  picture_rail: { methods: ['brush', 'spray'], default: 'brush' },
-  window_stool: { methods: ['brush', 'spray'], default: 'brush' },
-  window_apron: { methods: ['brush', 'spray'], default: 'brush' },
-  shadow_box: { methods: ['brush', 'spray'], default: 'brush' },
-  panel_mold: { methods: ['brush', 'spray'], default: 'brush' },
-  // Doors & Frames: brush, spray
-  doors: { methods: ['brush', 'spray'], default: 'brush' },
-  door_frames: { methods: ['brush', 'spray'], default: 'brush' },
-  // Windows: brush, spray
-  windows: { methods: ['brush', 'spray'], default: 'brush' },
-  window_jamb: { methods: ['brush', 'spray'], default: 'brush' },
+  // Trim: brush, spray — default spray (typical for NC trim packages)
+  baseboard: { methods: ['brush', 'spray'], default: 'spray' },
+  crown: { methods: ['brush', 'spray'], default: 'spray' },
+  door_casing: { methods: ['brush', 'spray'], default: 'spray' },
+  window_casing: { methods: ['brush', 'spray'], default: 'spray' },
+  chair_rail: { methods: ['brush', 'spray'], default: 'spray' },
+  shoe_mold: { methods: ['brush', 'spray'], default: 'spray' },
+  wainscot_cap: { methods: ['brush', 'spray'], default: 'spray' },
+  picture_rail: { methods: ['brush', 'spray'], default: 'spray' },
+  window_stool: { methods: ['brush', 'spray'], default: 'spray' },
+  window_apron: { methods: ['brush', 'spray'], default: 'spray' },
+  shadow_box: { methods: ['brush', 'spray'], default: 'spray' },
+  panel_mold: { methods: ['brush', 'spray'], default: 'spray' },
+  // Doors & Frames: brush, spray — default spray (typical for NC trim packages)
+  doors: { methods: ['brush', 'spray'], default: 'spray' },
+  door_frames: { methods: ['brush', 'spray'], default: 'spray' },
+  // Windows: brush, spray — default spray (typical for NC trim packages)
+  windows: { methods: ['brush', 'spray'], default: 'spray' },
+  window_jamb: { methods: ['brush', 'spray'], default: 'spray' },
   // Specialty
   wainscoting: { methods: ['brush', 'spray'], default: 'brush' },
   wood_feature_wall: { methods: ['brush', 'spray'], default: 'brush' },
