@@ -228,9 +228,25 @@ function resolveEligibility(module, task) {
 export function computeScenarioModifierStack(module, ctx, scenarioModifiers = null, bundle = null, task = null) {
   const eligibility = resolveEligibility(module, task);
 
-  const qt = eligibility.qt !== false
-    ? (bundle ? getFactor(bundle, 'FAC_QT', ctx.quality_tier) : (QT_MODIFIERS[ctx.quality_tier] ?? 1.0))
-    : 1.0;
+  // QT resolution honors per-task fac_qt_override (Option 3 from the QT
+  // Builder design): if the canonical task declares a tier-specific
+  // multiplier, use it in place of the global FAC_QT value for this task.
+  // Preserves the "baseline rate + modifier" math — overrides replace the
+  // multiplier, not the rate. If the task has no override for this tier,
+  // FAC_QT.factors applies as before.
+  let qt;
+  if (eligibility.qt === false) {
+    qt = 1.0;
+  } else {
+    const taskOverride = task && task.fac_qt_override
+      ? task.fac_qt_override[ctx.quality_tier]
+      : undefined;
+    if (typeof taskOverride === 'number') {
+      qt = taskOverride;
+    } else {
+      qt = bundle ? getFactor(bundle, 'FAC_QT', ctx.quality_tier) : (QT_MODIFIERS[ctx.quality_tier] ?? 1.0);
+    }
+  }
 
   // Height resolution: exterior specs use ctx.access_type via FAC_EXT_ACCESS
   // (handled in dynamic modifiers). Interior specs use ctx.height_band directly.
@@ -553,7 +569,11 @@ export function runScenarioEstimate({ scenarioBundle, ctx, roomQty, roomItems = 
       // rebuild the stack scoped to this task. Example: MOD_APPLY_WALL_PRIME_SPRAY_BACKROLL
       // has texture:true at the module level, but the spray task overrides with
       // texture:false because spray pattern is texture-insensitive.
-      const taskStack = task.modifier_eligibility
+      // Also trigger per-task stack when the canonical task has a
+      // fac_qt_override map — the per-tier multiplier override needs the
+      // task to be visible to computeScenarioModifierStack.
+      const needsTaskStack = !!(task.modifier_eligibility || task.fac_qt_override);
+      const taskStack = needsTaskStack
         ? computeScenarioModifierStack(mod, ctx, scenarioModifiers, scenarioBundle, task)
         : modStack;
       // Task-level applies_when (not variant-level; variant-level lives inside rates[])

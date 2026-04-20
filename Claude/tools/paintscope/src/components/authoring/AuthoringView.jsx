@@ -1,10 +1,12 @@
-// Admin authoring hub. Six sub-tabs: Modules, Scenarios, Tasks, Assemblies,
-// Modifiers, Drafts. Gate: shown only when localStorage.paintscope.admin === '1'.
+// Admin authoring hub. Seven sub-tabs: Modules, Scenarios, Tasks, QT Builder,
+// Assemblies, Modifiers, Drafts. Gate: shown only when
+// localStorage.paintscope.admin === '1'.
 
 import { useState, useCallback } from 'react';
 import ModuleList from './ModuleList.jsx';
 import ScenarioList from './ScenarioList.jsx';
 import TaskList from './TaskList.jsx';
+import QTBuilder from './QTBuilder.jsx';
 import AssemblyBuilder from './AssemblyBuilder.jsx';
 import ModifierList from './ModifierList.jsx';
 import DraftsView from './DraftsView.jsx';
@@ -21,6 +23,7 @@ const TABS = [
   { id: 'modules',    label: 'Modules'    },
   { id: 'scenarios',  label: 'Scenarios'  },
   { id: 'tasks',      label: 'Tasks'      },
+  { id: 'qt',         label: 'QT Builder' },
   { id: 'assemblies', label: 'Assemblies' },
   { id: 'modifiers',  label: 'Modifiers'  },
   { id: 'drafts',     label: 'Drafts'     },
@@ -73,6 +76,7 @@ export default function AuthoringView() {
         {tab === 'modules'    && <ModuleList pendingSelection={pendingSelection?.kind === 'module' ? pendingSelection : null} />}
         {tab === 'scenarios'  && <ScenarioList pendingSelection={pendingSelection?.kind === 'scenario' ? pendingSelection : null} />}
         {tab === 'tasks'      && <TaskList pendingSelection={pendingSelection?.kind === 'task' ? pendingSelection : null} onNavigateToModule={(id) => handleNavigate('module', id)} />}
+        {tab === 'qt'         && <QTBuilder />}
         {tab === 'assemblies' && <AssemblyBuilder pendingSelection={pendingSelection?.kind === 'assembly' ? pendingSelection : null} />}
         {tab === 'modifiers'  && <ModifierList pendingSelection={pendingSelection?.kind === 'modifier' ? pendingSelection : null} />}
         {tab === 'drafts'     && <DraftsView onNavigate={handleNavigate} />}
