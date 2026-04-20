@@ -39,7 +39,7 @@ function wallScenario(qt) {
       'MOD_PREP_WALL_PRIME',
       'MOD_SETUP_FLOOR_PROTECT_FULL',
       'MOD_SETUP_FIXTURE_COVERS',
-      'MOD_APPLY_WALL_PRIME_SPRAY_BACKROLL',
+      'MOD_APPLY_WALL_PRIME_SPRAY_BACKROLL_COMBINED',
       'MOD_CLEANUP_WALL_PRIME',
     ],
     coat_counts: { finish_coats: 1, interstage_cycles: 0 },

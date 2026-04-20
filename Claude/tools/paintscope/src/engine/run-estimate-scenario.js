@@ -339,6 +339,29 @@ function evaluateAppliesWhen(condition, ctx, coatNumber) {
 }
 
 /**
+ * Resolve a module-level task entry into a concrete task.
+ *
+ * If the entry has `task_ref`, load the canonical task from the library
+ * (scenarioBundle.tasks dict) and shallow-merge any override fields from
+ * the entry over it. Override fields use canonical field names directly —
+ * e.g., { task_ref: "TSK_CEIL_SPRAY_PRIMER", rate_per_hour: 575 } replaces
+ * the canonical 500 with 575 for this module only.
+ *
+ * If the entry has no `task_ref`, it's an inline task (back-compat) and is
+ * returned unchanged.
+ *
+ * Returns null if task_ref references an unknown task (caller pushes a warning).
+ */
+function resolveTaskFromRef(entry, tasksLibrary) {
+  if (!entry || !entry.task_ref) return entry;
+  const canonical = tasksLibrary && tasksLibrary[entry.task_ref];
+  if (!canonical) return null;
+  // Spread canonical first, then entry overrides (minus task_ref itself)
+  const { task_ref: _ref, ...overrides } = entry;
+  return { ...canonical, ...overrides };
+}
+
+/**
  * Resolve a task's effective rate for a given ctx + coat number.
  * Priority order (matches resolveTaskRate in run-estimate.js, extended for
  * the new module shape):
@@ -519,7 +542,13 @@ export function runScenarioEstimate({ scenarioBundle, ctx, roomQty, roomItems = 
 
     const modStack = computeScenarioModifierStack(mod, ctx, scenarioModifiers, scenarioBundle);
 
-    for (const task of mod.tasks) {
+    const tasksLibrary = scenarioBundle.tasks || {};
+    for (const taskEntry of mod.tasks) {
+      const task = resolveTaskFromRef(taskEntry, tasksLibrary);
+      if (!task) {
+        warnings.push(`Module ${mod.module_id} references unknown task ${taskEntry.task_ref}`);
+        continue;
+      }
       // Per-task eligibility override: if this task overrides any eligibility,
       // rebuild the stack scoped to this task. Example: MOD_APPLY_WALL_PRIME_SPRAY_BACKROLL
       // has texture:true at the module level, but the spray task overrides with
