@@ -77,7 +77,8 @@ export function buildRoomQuantityLookups(state) {
     doorItems.forEach(door => {
       const cnt = parseInt(door.count) || 0;
       const sides = cnt * (parseInt(door.sides_per_door) || 2);
-      if (doorsPainting2) {
+      const itemPainting = door.painting !== false;
+      if (doorsPainting2 && itemPainting) {
         const ct = door.coating_type || 'paint';
         if (ct === 'paint') {
           addQ('PS_SURFACE_EA_SIDE.DOOR_SLAB', 'EA_SIDE', sides);
@@ -236,8 +237,12 @@ export function buildRoomQuantityLookups(state) {
       }
     }
 
-    // Edges
+    // Edges — wall↔ceiling perimeter is the same LF from either side.
+    // TO_CEILING names it from the wall's perspective (used by wall cut-in tasks);
+    // TO_WALL names it from the ceiling's perspective (used by ceiling cut-in
+    // and ceiling-adjacent masking tasks). Same underlying value.
     addQ('PS_EDGE_LF.TO_CEILING', 'LF', d.perimeter);
+    addQ('PS_EDGE_LF.TO_WALL', 'LF', d.perimeter);
     const trimLF = d.baseboard_lf + d.door_casing_lf + d.window_casing_lf;
     addQ('PS_EDGE_LF.TO_TRIM', 'LF', trimLF);
 

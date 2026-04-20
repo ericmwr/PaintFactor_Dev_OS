@@ -3,6 +3,7 @@ import Select from '../shared/Select';
 import Toggle from '../shared/Toggle';
 import { ENUMS } from '../../data/enums';
 import { useProject } from '../../hooks/useProject';
+import { useModifierEnum } from '../../hooks/useModifierEnum';
 import { createExteriorState, EXT_SIDING_TYPES, EXT_SUBSTRATE_MATERIALS, EXT_SUBSTRATE_STATES, EXT_RP_SUBSTRATE_STATES, EXT_CAULK_SCOPES, EXT_CONDITION_SCALE } from '../../state/exterior-state';
 
 const DEFAULT_SURFACE_OPTIONS = [
@@ -36,7 +37,8 @@ const TEMP_OPTIONS = [
 export default function ProjectSetup() {
   const { state, dispatch } = useProject();
   const project = state.project;
-  const exterior = state.exterior || createExteriorState();
+  const complexityOptions = useModifierEnum('FAC_COMPLEXITY');
+  const exterior = { ...createExteriorState(), ...(state.exterior || {}) };
   const sc = exterior.site_conditions;
   const defaults = exterior.defaults;
   const isRP = exterior.project_type === 'RP';
@@ -98,7 +100,7 @@ export default function ProjectSetup() {
           </div>
           <div className="setup-field">
             <label>Complexity</label>
-            <Select options={ENUMS.complexity} value={project.default_complexity} onChange={v => set('default_complexity', v)} />
+            <Select options={complexityOptions} value={project.default_complexity} onChange={v => set('default_complexity', v)} />
           </div>
           <div className="setup-field">
             <label>Preferred Brand</label>
@@ -112,6 +114,18 @@ export default function ProjectSetup() {
               value={project.default_brand || ''}
               onChange={v => set('default_brand', v || null)}
             />
+          </div>
+          <div className="setup-field" style={{ gridColumn: '1 / -1' }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
+              <Toggle
+                checked={!!project.default_combined_prime}
+                onChange={() => set('default_combined_prime', !project.default_combined_prime)}
+              />
+              <span>Combined wall and ceiling prime (pre-trim)</span>
+            </label>
+            <div style={{ fontSize: 11, color: 'var(--text-muted)', marginLeft: 36, marginTop: 2 }}>
+              For pre-trim NC jobs where walls + ceiling get primed in one continuous spray pass. Rooms can override individually.
+            </div>
           </div>
         </div>
 

@@ -1,5 +1,6 @@
 import { createRoom, createDoor, createWindow, createOpening, createCloset, createSubstrateConfig, genId } from './initial-state';
 import { FIXTURE_MAP } from '../data/fixture-catalog';
+import { inferDefaultSystem } from '../data/system-catalog.js';
 import {
   createElevation, createSidingSection, createTrimConfig, createExtWindow, createExtDoor,
   createBumpOut, createDormer, createGable, createGarageDoor, createDeck, createFence,
@@ -189,6 +190,18 @@ export function reducer(state, action) {
         // Recompute lf_manual when closet shelving dimensions change
         if (substrateId === 'closet_shelving' && ['shelf_count', 'lf_per_shelf'].includes(field)) {
           updated.lf_manual = (updated.shelf_count || 0) * (updated.lf_per_shelf || 0);
+        }
+
+        // When substrate_state changes, re-infer system (only if current system
+        // matches the previous inferred value — i.e., the user hasn't explicitly
+        // picked a system yet). This keeps auto-inference fresh as the surface
+        // state changes, but never overrides an explicit choice.
+        if (field === 'substrate_state') {
+          const prevInferred = inferDefaultSystem(substrateId, r.substrates[substrateId]?.substrate_state);
+          const currentSystem = r.substrates[substrateId]?.system;
+          if (currentSystem === prevInferred || currentSystem == null) {
+            updated.system = inferDefaultSystem(substrateId, value) || null;
+          }
         }
 
         return {

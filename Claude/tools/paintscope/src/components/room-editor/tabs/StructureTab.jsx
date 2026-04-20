@@ -4,6 +4,7 @@ import NumField from '../../shared/NumField';
 import SubstrateStateSelect from '../SubstrateStateSelect';
 import { ENUMS } from '../../../data/enums';
 import { SUBSTRATE_APPLICATION_METHODS } from '../../../data/substrate-catalog';
+import { useModifierEnum } from '../../../hooks/useModifierEnum';
 
 const MATERIAL_OPTS = [{value:'drywall',label:'Drywall'},{value:'wood',label:'Wood'}];
 const COATING_OPTS = [{value:'paint',label:'Paint'},{value:'stain_clear',label:'Stain + Clear'},{value:'stain_only',label:'Stain Only'},{value:'clear_only',label:'Clear Only'}];
@@ -13,6 +14,7 @@ const CLEAR_METHOD_OPTS = [{value:'brush',label:'Brush'},{value:'spray',label:'S
 
 export default function StructureTab({ room, derived, dispatch, project }) {
   const rid = room.id;
+  const textureOptions = useModifierEnum('FAC_TEXTURE');
   const subs = room.substrates || {};
   const setRoom = (f, v) => dispatch({ type: 'SET_ROOM', payload: { roomId: rid, field: f, value: v } });
   const setSub = (subId, field, value) => dispatch({ type: 'SET_SUBSTRATE', payload: { roomId: rid, substrateId: subId, field, value: value ?? null } });
@@ -33,8 +35,35 @@ export default function StructureTab({ room, derived, dispatch, project }) {
   const hasStain = (ct) => ct === 'stain_clear' || ct === 'stain_only';
   const hasClear = (ct) => ct === 'stain_clear' || ct === 'clear_only';
 
+  const projectCombined = !!project.default_combined_prime;
+  const roomOverride = room.combined_prime_override || null;
+  const effectivePrimeMode = roomOverride || (projectCombined ? 'combined' : 'separate');
+  const primeModeOpts = [
+    { value: '', label: `Project default (${projectCombined ? 'Combined' : 'Separate'})` },
+    { value: 'combined', label: 'Combined wall and ceiling prime (pre-trim)' },
+    { value: 'separate', label: 'Separate wall and ceiling prime' },
+  ];
+
   return (
     <div>
+      {/* ── Prime workflow (room-level override of project default) ── */}
+      <div className="panel-section" data-section="prime-workflow" style={{ padding: '8px 12px' }}>
+        <div className="field-label" style={{ marginBottom: 4 }}>Prime Workflow</div>
+        <Select
+          options={primeModeOpts}
+          value={roomOverride || ''}
+          onChange={v => setRoom('combined_prime_override', v || null)}
+          style={{ width: '100%', maxWidth: 420 }}
+        />
+        <div style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 3 }}>
+          Currently: <strong style={{ color: effectivePrimeMode === 'combined' ? 'var(--accent, #82aaff)' : 'inherit' }}>{effectivePrimeMode === 'combined' ? 'Combined' : 'Separate'}</strong>
+          {' — '}
+          {effectivePrimeMode === 'combined'
+            ? 'walls + ceiling primed in one continuous spray pass; drops cut-in + wall masking tasks.'
+            : 'walls and ceiling primed in distinct passes with full cut-in / masking.'}
+        </div>
+      </div>
+
       {/* ── Walls ── */}
       <div className="panel-section" data-section="walls">
         <div className="section-title">Walls</div>
@@ -57,7 +86,7 @@ export default function StructureTab({ room, derived, dispatch, project }) {
           {!isBareWoodWall && (
             <div>
               <div className="field-label">Texture</div>
-              <Select options={ENUMS.textures} value={wallCfg.texture} onChange={v => setSub('walls', 'texture', v || null)} placeholder="Project Default" />
+              <Select options={textureOptions} value={wallCfg.texture} onChange={v => setSub('walls', 'texture', v || null)} placeholder="Project Default" />
             </div>
           )}
           {isBareWoodWall && (
@@ -182,7 +211,7 @@ export default function StructureTab({ room, derived, dispatch, project }) {
           {!isBareWoodCeil && (
             <div>
               <div className="field-label">Texture</div>
-              <Select options={ENUMS.textures} value={ceilCfg.texture} onChange={v => setSub('ceiling', 'texture', v || null)} placeholder="Project Default" />
+              <Select options={textureOptions} value={ceilCfg.texture} onChange={v => setSub('ceiling', 'texture', v || null)} placeholder="Project Default" />
             </div>
           )}
           {isBareWoodCeil && (

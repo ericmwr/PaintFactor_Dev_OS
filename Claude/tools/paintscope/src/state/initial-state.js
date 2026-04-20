@@ -2,6 +2,7 @@ import { SUBSTRATE_MAP, WOOD_SUBSTRATES } from '../data/substrate-catalog';
 import { ROOM_PRESETS } from '../data/room-presets';
 import { createExteriorState } from './exterior-state';
 import { initialColorState } from './color-state.js';
+import { inferDefaultSystem } from '../data/system-catalog.js';
 
 // ============================================================
 // STATE FACTORY
@@ -46,7 +47,7 @@ export function createCloset(overrides={}) {
 }
 
 export function createDoor(overrides={}) {
-  return { id:genId('door'), count:1, door_type:'panel_6', substrate_state:'factory_primed', sides_per_door:2, ...overrides };
+  return { id:genId('door'), count:1, door_type:'panel_6', substrate_state:'factory_primed', sides_per_door:2, painting:true, ...overrides };
 }
 
 export function createWindow(overrides={}) {
@@ -73,6 +74,12 @@ export function createSubstrateConfig(substrateId, overrides={}) {
     config.sealer_coats = config.sealer_coats ?? 0;
     config.clear_coats = config.clear_coats ?? 1;
     config.clear_sheen = config.clear_sheen || 'satin';
+  }
+  // Infer default `system` (workflow intent) from substrate_state if not set.
+  // Explicit overrides always win; if nothing matches the inference, leaves it null
+  // and resolveSystem falls back to room/project defaults or final null.
+  if (config.system === undefined) {
+    config.system = inferDefaultSystem(substrateId, config.substrate_state) || null;
   }
   return config;
 }
@@ -104,6 +111,7 @@ export function createRoom(overrides={}) {
     // Room-level overrides
     quality_tier: null, height_band: null, complexity: null, application_method: null,
     openings_quality_tier: null, // v0.8 — QT override for all opening-related specs
+    system: null, // v0.9 — room-level workflow override; substrates inherit if not explicitly set
     // v0.3 substrate model — starts blank, presence = in scope
     substrates: {},
     // v0.7 openings — structural wall holes (deductions, casing, frames); separate from door items
@@ -159,13 +167,17 @@ export const initialState = {
     default_quality_tier: 'QT3', default_height_band: 'STD',
     default_complexity: 'STD', default_application_method: 'spray_backroll',
     default_texture: 'smooth',
+    // Pre-trim NC workflow: when true, walls and ceiling are primed in one
+    // continuous spray pass. Combined scenarios drop the wall-line cut-in and
+    // ceiling masking. Per-room override in room.combined_prime_override.
+    default_combined_prime: false,
     default_brand: null,
     material_overrides: { system: {}, manual: {} },
     notes: '',
     default_substrates: ['ceiling', 'walls', 'baseboard']
   },
   room_categories: [],
-  rooms: [createRoom()],
+  rooms: [],
   exterior: createExteriorState(),
   colors: initialColorState,
   ui: { activeRoomId: null, activeElevationId: null, activeTab:'scope', view:'setup', scopeMode: 'interior' }

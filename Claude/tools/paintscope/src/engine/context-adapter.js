@@ -449,7 +449,7 @@ export function buildScenarioInputs(state, db) {
 
   for (let ri = 0; ri < rooms.length; ri++) {
     const room = rooms[ri];
-    const roomLabel = room.name || `Room ${ri + 1}`;
+    const roomLabel = room.label || room.name || `Room ${ri + 1}`;
     const roomDerived = deriveRoom(room);
     const roomQty = lookups.get(ri)?.qty || new Map();
     const roomItems = {
@@ -547,6 +547,13 @@ export function buildScenarioInputs(state, db) {
         // surface: derived from paintable_item for scenarios that match on surface
         //   (e.g. 'wall' vs 'ceiling' for drywall specs)
         surface: deriveSurfaceFromSpec(specId),
+        // Pre-trim NC workflow indicator. Drives scenario selection for drywall
+        // prime (and later finish) — combined mode fires scenarios that skip
+        // wall-line cut-in and ceiling masking. Resolution: room override wins
+        // over project default; null override inherits project default.
+        prime_mode: (room.combined_prime_override === 'combined' || room.combined_prime_override === 'separate')
+          ? room.combined_prime_override
+          : (project.default_combined_prime ? 'combined' : 'separate'),
         // Workflow intent (visible in Dev tab; matcher consumption deferred to Pass B)
         system: system,
         spec_role: specRole,

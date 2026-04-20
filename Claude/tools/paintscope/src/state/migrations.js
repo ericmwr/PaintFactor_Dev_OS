@@ -122,6 +122,9 @@ export function migrateInline(parsed) {
     if (subs.windows.painting === undefined) subs.windows.painting = true;
     if (subs.door_casing.painting === undefined) subs.door_casing.painting = true;
     if (subs.window_casing.painting === undefined) subs.window_casing.painting = true;
+    // Per-item paint/protect flag on door items (added so a room can mix painted + protected doors).
+    // Existing items default to true to preserve prior behavior.
+    (subs.doors.items || []).forEach(d => { if (d.painting === undefined) d.painting = true; });
     r.substrates = subs;
     // v0.8 migration: ensure openings_quality_tier exists
     if (r.openings_quality_tier === undefined) r.openings_quality_tier = null;
