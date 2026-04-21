@@ -31,9 +31,51 @@ export function resolvePassGroups(room, project, specData) {
   const primeGroup = tryCombinedPrimeGroup(room, project);
   if (primeGroup) groups.push(primeGroup);
 
-  // Phase 3 will add tryCombinedFinishGroup(room, project, specData)
+  const finishGroup = tryCombinedFinishGroup(room, project, specData);
+  if (finishGroup) groups.push(finishGroup);
 
   return groups;
+}
+
+function tryCombinedFinishGroup(room, project, specData) {
+  if (!specData?.resolvedFinishByRoomSubstrate) return null;
+  if (!room.id) return null;
+
+  const walls = room.substrates?.walls;
+  const ceiling = room.substrates?.ceiling;
+  if (!walls || !ceiling) return null;
+
+  const wallsFinish   = specData.resolvedFinishByRoomSubstrate[`${room.id}:walls`];
+  const ceilingFinish = specData.resolvedFinishByRoomSubstrate[`${room.id}:ceiling`];
+  if (!wallsFinish || !ceilingFinish) return null;
+
+  // All four product fields must match for a combined pass to make sense
+  if (wallsFinish.system_id  !== ceilingFinish.system_id)  return null;
+  if (wallsFinish.product_id !== ceilingFinish.product_id) return null;
+  if (wallsFinish.sheen      !== ceilingFinish.sheen)      return null;
+  if (wallsFinish.color_code !== ceilingFinish.color_code) return null;
+
+  // Method + QT must match
+  const wallsMethod   = resolveMethod(walls, project);
+  const ceilingMethod = resolveMethod(ceiling, project);
+  if (wallsMethod !== ceilingMethod) return null;
+
+  const wallsQt   = resolveQt(walls, room, project);
+  const ceilingQt = resolveQt(ceiling, room, project);
+  if (wallsQt !== ceilingQt) return null;
+
+  return {
+    group_id: 'walls_ceiling_finish_combined',
+    substrates: ['walls', 'ceiling'],
+    pass_type: 'finish',
+    source: 'product_match',
+    metadata: {
+      system_id:  wallsFinish.system_id,
+      product_id: wallsFinish.product_id,
+      sheen:      wallsFinish.sheen,
+      color_code: wallsFinish.color_code,
+    },
+  };
 }
 
 function tryCombinedPrimeGroup(room, project) {

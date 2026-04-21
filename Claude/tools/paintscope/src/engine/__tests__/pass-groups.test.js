@@ -155,6 +155,98 @@ describe('resolvePassGroups combined-prime precheck', () => {
   });
 });
 
+describe('resolvePassGroups combined-finish precheck', () => {
+  const sameProduct = {
+    system_id: 'SYS_WALL_FINISH',
+    product_id: 'PROD_SW_CASHMERE_INT',
+    sheen: 'eggshell',
+    color_code: 'SW7036',
+  };
+  const baseRoom = {
+    id: 'r1',
+    substrates: {
+      walls:   { substrate_state: 'primed_factory', application_method: 'spray_backroll' },
+      ceiling: { substrate_state: 'primed_factory', application_method: 'spray_backroll' },
+    },
+    quality_tier: 'QT3',
+  };
+  const baseProject = {
+    default_combined_prime: false,
+    default_quality_tier: 'QT3',
+    default_application_method: 'spray_backroll',
+    new_construction: true,
+  };
+  const specDataWithMatch = {
+    resolvedFinishByRoomSubstrate: {
+      'r1:walls':   sameProduct,
+      'r1:ceiling': sameProduct,
+    },
+  };
+
+  it('forms combined-finish group when all product fields match', () => {
+    const groups = resolvePassGroups(baseRoom, baseProject, specDataWithMatch);
+    const finishGroup = groups.find(g => g.group_id === 'walls_ceiling_finish_combined');
+    expect(finishGroup).toBeDefined();
+    expect(finishGroup.pass_type).toBe('finish');
+    expect(finishGroup.source).toBe('product_match');
+    expect(finishGroup.metadata).toEqual({
+      system_id: 'SYS_WALL_FINISH',
+      product_id: 'PROD_SW_CASHMERE_INT',
+      sheen: 'eggshell',
+      color_code: 'SW7036',
+    });
+  });
+
+  it('does not form group when sheens differ', () => {
+    const specData = {
+      resolvedFinishByRoomSubstrate: {
+        'r1:walls':   sameProduct,
+        'r1:ceiling': { ...sameProduct, sheen: 'satin' },
+      },
+    };
+    const groups = resolvePassGroups(baseRoom, baseProject, specData);
+    expect(groups.find(g => g.group_id === 'walls_ceiling_finish_combined')).toBeUndefined();
+  });
+
+  it('does not form group when color_codes differ', () => {
+    const specData = {
+      resolvedFinishByRoomSubstrate: {
+        'r1:walls':   sameProduct,
+        'r1:ceiling': { ...sameProduct, color_code: 'SW7008' },
+      },
+    };
+    const groups = resolvePassGroups(baseRoom, baseProject, specData);
+    expect(groups.find(g => g.group_id === 'walls_ceiling_finish_combined')).toBeUndefined();
+  });
+
+  it('does not form group when products differ', () => {
+    const specData = {
+      resolvedFinishByRoomSubstrate: {
+        'r1:walls':   sameProduct,
+        'r1:ceiling': { ...sameProduct, product_id: 'PROD_SW_PROMAR200_INT' },
+      },
+    };
+    const groups = resolvePassGroups(baseRoom, baseProject, specData);
+    expect(groups.find(g => g.group_id === 'walls_ceiling_finish_combined')).toBeUndefined();
+  });
+
+  it('does not form group when systems differ', () => {
+    const specData = {
+      resolvedFinishByRoomSubstrate: {
+        'r1:walls':   sameProduct,
+        'r1:ceiling': { ...sameProduct, system_id: 'SYS_CEILING_FINISH' },
+      },
+    };
+    const groups = resolvePassGroups(baseRoom, baseProject, specData);
+    expect(groups.find(g => g.group_id === 'walls_ceiling_finish_combined')).toBeUndefined();
+  });
+
+  it('returns [] when specData has no resolved finish for walls or ceiling', () => {
+    const specData = { resolvedFinishByRoomSubstrate: {} };
+    expect(resolvePassGroups(baseRoom, baseProject, specData)).toEqual([]);
+  });
+});
+
 describe('buildScenarioInputs emits grouped input for combined prime', () => {
   it('emits one input with pass_group_id set when combined prime group forms', () => {
     const state = {
