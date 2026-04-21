@@ -72,6 +72,89 @@ describe('findMatchingScenario deprecated-scenario skip', () => {
   });
 });
 
+describe('resolvePassGroups combined-prime precheck', () => {
+  const baseRoom = {
+    substrates: {
+      walls: {
+        substrate_state: 'bare_drywall',
+        application_method: 'spray_backroll',
+      },
+      ceiling: {
+        substrate_state: 'bare_drywall',
+        application_method: 'spray_backroll',
+      },
+    },
+    quality_tier: 'QT3',
+  };
+  const baseProject = {
+    default_combined_prime: true,
+    default_quality_tier: 'QT3',
+    default_application_method: 'spray_backroll',
+    new_construction: true,
+  };
+
+  it('forms a combined-prime group when all conditions met', () => {
+    const groups = resolvePassGroups(baseRoom, baseProject, null);
+    expect(groups).toHaveLength(1);
+    expect(groups[0].group_id).toBe('walls_ceiling_prime_combined');
+    expect(groups[0].substrates).toEqual(['walls', 'ceiling']);
+    expect(groups[0].pass_type).toBe('prime');
+    expect(groups[0].source).toBe('project_flag');
+    expect(groups[0].metadata.prime_mode).toBe('combined');
+  });
+
+  it('returns [] when combined-prime flag is off', () => {
+    const project = { ...baseProject, default_combined_prime: false };
+    expect(resolvePassGroups(baseRoom, project, null)).toEqual([]);
+  });
+
+  it('returns [] when walls substrate is missing', () => {
+    const room = { ...baseRoom, substrates: { ceiling: baseRoom.substrates.ceiling } };
+    expect(resolvePassGroups(room, baseProject, null)).toEqual([]);
+  });
+
+  it('returns [] when ceiling substrate is missing', () => {
+    const room = { ...baseRoom, substrates: { walls: baseRoom.substrates.walls } };
+    expect(resolvePassGroups(room, baseProject, null)).toEqual([]);
+  });
+
+  it('returns [] when walls and ceiling substrate_state differ', () => {
+    const room = {
+      ...baseRoom,
+      substrates: {
+        walls: { ...baseRoom.substrates.walls, substrate_state: 'bare_drywall' },
+        ceiling: { ...baseRoom.substrates.ceiling, substrate_state: 'primed_factory' },
+      },
+    };
+    expect(resolvePassGroups(room, baseProject, null)).toEqual([]);
+  });
+
+  it('returns [] when application_method is not spray_backroll', () => {
+    const project = { ...baseProject, default_application_method: 'brush_roll' };
+    const room = {
+      ...baseRoom,
+      substrates: {
+        walls: { ...baseRoom.substrates.walls, application_method: 'brush_roll' },
+        ceiling: { ...baseRoom.substrates.ceiling, application_method: 'brush_roll' },
+      },
+    };
+    expect(resolvePassGroups(room, project, null)).toEqual([]);
+  });
+
+  it('room-level combined_prime_override="separate" suppresses the group', () => {
+    const room = { ...baseRoom, combined_prime_override: 'separate' };
+    expect(resolvePassGroups(room, baseProject, null)).toEqual([]);
+  });
+
+  it('room-level combined_prime_override="combined" creates the group even when project flag is off', () => {
+    const project = { ...baseProject, default_combined_prime: false };
+    const room = { ...baseRoom, combined_prime_override: 'combined' };
+    const groups = resolvePassGroups(room, project, null);
+    expect(groups).toHaveLength(1);
+    expect(groups[0].group_id).toBe('walls_ceiling_prime_combined');
+  });
+});
+
 describe('buildScenarioInputs with pass-group fields', () => {
   it('adds explicit-null pass-group fields to every ctx when no groups form', () => {
     // Minimal fixture: one room, walls substrate only.

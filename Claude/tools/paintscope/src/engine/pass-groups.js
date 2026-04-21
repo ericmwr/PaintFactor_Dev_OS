@@ -26,8 +26,68 @@
  */
 export function resolvePassGroups(room, project, specData) {
   if (!room || !project) return [];
-  // Phase 1 stub: no groups formed yet.
-  // Phase 2 adds combined-prime precheck.
-  // Phase 3 adds combined-finish precheck.
-  return [];
+  const groups = [];
+
+  const primeGroup = tryCombinedPrimeGroup(room, project);
+  if (primeGroup) groups.push(primeGroup);
+
+  // Phase 3 will add tryCombinedFinishGroup(room, project, specData)
+
+  return groups;
+}
+
+function tryCombinedPrimeGroup(room, project) {
+  const primeMode = resolvePrimeMode(room, project);
+  if (primeMode !== 'combined') return null;
+
+  const walls = room.substrates?.walls;
+  const ceiling = room.substrates?.ceiling;
+  if (!walls || !ceiling) return null;
+
+  // Both substrates must be present AND "being primed" — in the NC workflow
+  // that's implicit when the substrate is bare (state === 'bare_drywall').
+  // TODO (post-scope-c): handle non-drywall wall/ceiling materials when
+  //   pass-group expansion covers wood_wall / wood_ceiling / etc.
+  if (walls.substrate_state !== 'bare_drywall') return null;
+  if (ceiling.substrate_state !== 'bare_drywall') return null;
+  if (walls.substrate_state !== ceiling.substrate_state) return null;
+
+  // Same application method, must be spray_backroll
+  const wallsMethod   = resolveMethod(walls, project);
+  const ceilingMethod = resolveMethod(ceiling, project);
+  if (wallsMethod !== 'spray_backroll') return null;
+  if (ceilingMethod !== 'spray_backroll') return null;
+  if (wallsMethod !== ceilingMethod) return null;
+
+  // Same QT
+  const wallsQt   = resolveQt(walls, room, project);
+  const ceilingQt = resolveQt(ceiling, room, project);
+  if (wallsQt !== ceilingQt) return null;
+
+  return {
+    group_id: 'walls_ceiling_prime_combined',
+    substrates: ['walls', 'ceiling'],
+    pass_type: 'prime',
+    source: 'project_flag',
+    metadata: { prime_mode: 'combined' },
+  };
+}
+
+function resolvePrimeMode(room, project) {
+  const override = room.combined_prime_override;
+  if (override === 'combined' || override === 'separate') return override;
+  return project.default_combined_prime ? 'combined' : 'separate';
+}
+
+function resolveMethod(substrateConfig, project) {
+  return substrateConfig.application_method
+      || project.default_application_method
+      || 'brush_roll';
+}
+
+function resolveQt(substrateConfig, room, project) {
+  return substrateConfig.quality_tier
+      || room.quality_tier
+      || project.default_quality_tier
+      || 'QT3';
 }
