@@ -36,6 +36,49 @@ import { resolveActivation, STATE_TRANSITION_TARGET } from '../data/system-catal
 import { resolveSystem } from './spec-resolution.js';
 import { resolvePassGroups } from './pass-groups.js';
 
+// Build a flat lookup from `${roomId}:${substrateKey}` → resolved finish spec.
+// The finish spec is { system_id, product_id, sheen, color_code } — enough
+// for the combined-finish pass-group precheck to determine product identity.
+//
+// Scope (c) limit: only walls + ceiling resolve here. Extend when trim-family
+// combined finish comes online.
+//
+// The implementation reads directly from substrate-level fields. Real-world
+// resolution via material_overrides + system defaults is a known Phase 4
+// enhancement — if the substrate doesn't have these fields set explicitly,
+// no combined finish group forms (fail-closed, which is correct when data
+// identity can't be confirmed).
+function buildResolvedFinishMap(rooms, project, db) {
+  const map = {};
+  for (const room of rooms) {
+    if (!room.id) continue;
+    for (const subKey of ['walls', 'ceiling']) {
+      const resolved = resolveFinishSpecForSubstrate(room, subKey, project, db);
+      if (resolved) {
+        map[`${room.id}:${subKey}`] = resolved;
+      }
+    }
+  }
+  return map;
+}
+
+function resolveFinishSpecForSubstrate(room, substrateKey, project, db) {
+  const sub = room.substrates?.[substrateKey];
+  if (!sub) return null;
+
+  // Direct substrate fields — all four must be set for a combined group
+  // to form. Missing any field fails closed: substrate runs its own finish
+  // scenario. Enhancing this to resolve via project.material_overrides.system
+  // lookup + sheen/color defaults is Phase 4 downstream work.
+  const system_id  = sub.finish_system_id || null;
+  const product_id = sub.finish_product_id || null;
+  const sheen      = sub.sheen || null;
+  const color_code = sub.color_code || room.color_assignments?.[substrateKey]?.color_code || null;
+
+  if (!system_id || !product_id || !sheen || !color_code) return null;
+  return { system_id, product_id, sheen, color_code };
+}
+
 // Helper: set explicit-null pass-group fields on a ctx. Required because
 // applies_when: { pass_group_id: [null] } uses array-includes semantics and
 // [null].includes(undefined) === false — so pass-group fields MUST be null,
@@ -484,6 +527,12 @@ export function buildScenarioInputs(state, db) {
 
   const lookups = buildRoomQuantityLookups(state);
 
+  // Pre-compute resolved finish specs for walls + ceiling per room — used
+  // by combined-finish pass-group precheck in resolvePassGroups. Empty for
+  // projects that don't set substrate-level finish_system_id/product_id/
+  // sheen/color_code fields; combined finish simply doesn't form there.
+  const passGroupSpecDataFinishMap = buildResolvedFinishMap(rooms, project, db);
+
   // Active specs — iterate db.spec_families when available (matches legacy
   // engine), otherwise fall back to every spec known in SPEC_SUBSTRATE_MAP.
   const activeSpecIds = new Set();
@@ -507,8 +556,14 @@ export function buildScenarioInputs(state, db) {
     const subsObj = room.substrates || {};
 
     // Pass groups: coalesce N substrates into one coordinated painting pass.
-    // Phase 1 returns []; Phases 2-3 add combined-prime and combined-finish.
-    const passGroups = resolvePassGroups(room, project, db);
+    // Phases 2-3: combined-prime and combined-finish.
+    // specData for the resolver carries the resolved finish map used by
+    // combined-finish precheck (product/sheen/color match comparison).
+    const passGroupSpecData = {
+      ...(db || {}),
+      resolvedFinishByRoomSubstrate: passGroupSpecDataFinishMap,
+    };
+    const passGroups = resolvePassGroups(room, project, passGroupSpecData);
 
     // Build the set of (substrate, spec_role) pairs that a pass group
     // covers. Only specs matching a pair are skipped — finish specs for a
