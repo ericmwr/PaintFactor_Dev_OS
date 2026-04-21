@@ -188,7 +188,7 @@ describe('buildScenarioInputs emits grouped input for combined prime', () => {
     expect(groupInputs[0].specId).toBe('walls_ceiling_prime_combined');
   });
 
-  it('does not emit per-substrate inputs for grouped substrates (wall/ceiling PRIME specs)', () => {
+  it('does not emit per-substrate inputs for grouped PRIME specs, but keeps FINISH specs intact', () => {
     const state = {
       project: {
         name: 'test',
@@ -213,10 +213,20 @@ describe('buildScenarioInputs emits grouped input for combined prime', () => {
       ],
     };
     const result = buildScenarioInputs(state, null);
+
+    // PRIME specs for grouped substrates are suppressed — the pass group
+    // covers them.
     const primeSpecInputs = result.roomInputs.filter(i =>
       i.specId === 'SF_DRYWALL_WALL_NC_PRIME' || i.specId === 'SF_DRYWALL_CEILING_NC_PRIME'
     );
     expect(primeSpecInputs).toHaveLength(0);
+
+    // FINISH specs for the same substrates still fire — the prime-phase
+    // group does NOT cover the finish phase.
+    const finishSpecInputs = result.roomInputs.filter(i =>
+      i.specId === 'SF_DRYWALL_WALL_NC_FINISH' || i.specId === 'SF_DRYWALL_CEILING_NC_FINISH'
+    );
+    expect(finishSpecInputs.length).toBeGreaterThan(0);
   });
 });
 

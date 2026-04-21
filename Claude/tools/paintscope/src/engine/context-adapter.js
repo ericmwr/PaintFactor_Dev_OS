@@ -509,7 +509,23 @@ export function buildScenarioInputs(state, db) {
     // Pass groups: coalesce N substrates into one coordinated painting pass.
     // Phase 1 returns []; Phases 2-3 add combined-prime and combined-finish.
     const passGroups = resolvePassGroups(room, project, db);
-    const groupedSubstrates = new Set(passGroups.flatMap(g => g.substrates));
+
+    // Build the set of (substrate, spec_role) pairs that a pass group
+    // covers. Only specs matching a pair are skipped — finish specs for a
+    // grouped substrate keep firing when the group is a prime group, and
+    // vice versa. Pass group pass_type ('prime'|'finish') maps to SPEC_ROLE
+    // enum ('PRIME'|'FINISH').
+    const groupedRolesBySubstrate = new Map(); // substrate → Set<SPEC_ROLE>
+    for (const group of passGroups) {
+      const role = group.pass_type === 'prime' ? 'PRIME'
+                 : group.pass_type === 'finish' ? 'FINISH'
+                 : null;
+      if (!role) continue;
+      for (const sub of group.substrates) {
+        if (!groupedRolesBySubstrate.has(sub)) groupedRolesBySubstrate.set(sub, new Set());
+        groupedRolesBySubstrate.get(sub).add(role);
+      }
+    }
 
     // Emit one merged input per group BEFORE the spec loop. The group's
     // merged ctx replaces per-substrate scenarios for the grouped substrates.
@@ -535,9 +551,11 @@ export function buildScenarioInputs(state, db) {
       // 199-203.
       const primarySub = SPEC_SUBSTRATE_MAP[specId];
       if (!primarySub) continue;
-      // Skip specs whose primary substrate is consumed by a pass group —
-      // the group's merged input already represents the combined work.
-      if (groupedSubstrates.has(primarySub)) continue;
+      // Skip specs ONLY when a pass group covers (this substrate + this role).
+      // A prime-phase pass group skips PRIME specs for walls/ceiling but
+      // leaves their FINISH specs intact so they still fire per-substrate.
+      const skipRoles = groupedRolesBySubstrate.get(primarySub);
+      if (skipRoles && skipRoles.has(SPEC_ROLE[specId])) continue;
       const subConfig = subsObj[primarySub];
       if (!subConfig) continue;
 
