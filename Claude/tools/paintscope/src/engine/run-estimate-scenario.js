@@ -490,6 +490,25 @@ function findMatchingScenario(scenarioBundle, ctx, warnings = null) {
     }
     if (!ok) continue;
 
+    // Scenario would have matched — but skip if author marked it broken.
+    // This is a holding action for scenarios whose tasks point at dead ps_keys
+    // or have other latent design defects. See Claude/docs/Future_Work/*_TODO.md
+    // files for planned redesign per family.
+    if (scenario.status === 'broken') {
+      if (warnings) {
+        warnings.push(`Scenario ${scenario.scenario_id} matches context but is marked status:"broken" — skipping. Reason: ${scenario.broken_reason || 'no reason given'}`);
+      }
+      continue;
+    }
+
+    // Deprecated scenarios: silently skip. Scenario was intentionally retired
+    // (e.g., superseded by a pass-group-based equivalent). No user-visible
+    // warning — caller's "no scenario matched" fallback fires only if NO
+    // live scenario also matches.
+    if (scenario.status === 'deprecated') {
+      continue;
+    }
+
     // Specificity score: count of keys in matches{} (more keys = more specific)
     const score = Object.keys(m).length;
     if (score > bestScore) {

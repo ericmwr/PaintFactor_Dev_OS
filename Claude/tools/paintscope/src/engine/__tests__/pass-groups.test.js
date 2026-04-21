@@ -16,6 +16,62 @@ describe('resolvePassGroups', () => {
   });
 });
 
+// A minimal bundle with one deprecated scenario and one live scenario.
+function makeTestBundle() {
+  return {
+    modules: {
+      MOD_TEST: {
+        module_id: 'MOD_TEST',
+        phase: 'apply',
+        tasks: [{ task_ref: 'TSK_TEST' }],
+        modifier_eligibility: {},
+      },
+    },
+    scenarios: [
+      {
+        scenario_id: 'SCN_DEPRECATED',
+        status: 'deprecated',
+        matches: { paintable_item: 'test' },
+        modules: ['MOD_TEST'],
+      },
+      {
+        scenario_id: 'SCN_LIVE',
+        matches: { paintable_item: 'test' },
+        modules: ['MOD_TEST'],
+      },
+    ],
+    modifiers: {},
+    tasks: {
+      TSK_TEST: {
+        task_id: 'TSK_TEST', name: 'Test Task', ps_key: 'PS_TEST.X',
+        uom: 'EA', skill_level: 'experienced', rate_per_hour: 100,
+      },
+    },
+  };
+}
+
+describe('findMatchingScenario deprecated-scenario skip', () => {
+  it('skips scenarios with status: "deprecated" silently', async () => {
+    const { runScenarioEstimate } = await import('../run-estimate-scenario.js');
+    const bundle = makeTestBundle();
+    const ctx = {
+      paintable_item: 'test',
+      quality_tier: 'QT3', application_method: 'brush', substrate_state: null,
+      complexity: 'STD', height_band: 'STD', texture: 'smooth',
+      pass_group_id: null, pass_group_substrates: null, pass_type: null,
+    };
+    const roomQty = new Map([['PS_TEST.X', { value: 10, uom: 'EA' }]]);
+    const result = runScenarioEstimate({
+      scenarioBundle: bundle, ctx, roomQty,
+      roomIndex: 0, roomLabel: 'R1',
+    });
+    expect(result.scenarioId).toBe('SCN_LIVE');
+    // No warning about deprecation — silent skip
+    const deprecWarnings = result.warnings.filter(w => w.includes('deprecated'));
+    expect(deprecWarnings).toEqual([]);
+  });
+});
+
 describe('buildScenarioInputs with pass-group fields', () => {
   it('adds explicit-null pass-group fields to every ctx when no groups form', () => {
     // Minimal fixture: one room, walls substrate only.
