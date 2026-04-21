@@ -47,6 +47,41 @@ function normalizePassGroupCtx(ctx) {
   return ctx;
 }
 
+// Build ctx for a grouped input by taking common values from the first
+// substrate. Precheck in resolvePassGroups already verified the critical
+// dimensions (QT, method, state) are identical across substrates.
+function buildGroupCtx(group, room, project, roomDerived) {
+  const firstSub = room.substrates[group.substrates[0]];
+  const ctx = {
+    // Dimensions (verified identical by precheck)
+    quality_tier:       firstSub.quality_tier || room.quality_tier || project.default_quality_tier || 'QT3',
+    application_method: firstSub.application_method || project.default_application_method || 'brush_roll',
+    substrate_state:    firstSub.substrate_state ? uiStateToSpecState(firstSub.substrate_state) : null,
+    complexity:         room.complexity || project.default_complexity || 'STD',
+    height_band:        roomDerived?.heightBand || 'STD',
+    texture:            firstSub.texture || project.default_texture || 'smooth',
+
+    // Pass group fields
+    pass_group_id:         group.group_id,
+    pass_group_substrates: group.substrates.slice(),
+    pass_type:             group.pass_type,
+
+    // Phase-specific flags from metadata
+    ...(group.metadata?.prime_mode ? { prime_mode: group.metadata.prime_mode } : {}),
+
+    // Explicit null for paintable_item — no single-substrate identity
+    paintable_item: null,
+  };
+  return ctx;
+}
+
+// Bridge: the room substrate_state strings use UI conventions ("bare_drywall");
+// scenarios match on spec-state names ("SS_BARE_DRYWALL"). The existing
+// UI_STATE_TO_SPEC_STATE map handles this.
+function uiStateToSpecState(uiState) {
+  return UI_STATE_TO_SPEC_STATE?.[uiState] || uiState;
+}
+
 // Spec families that map cleanly to a paintable_item in the scenario matcher.
 // This is the single-most-important mapping between the spec-keyed legacy
 // engine and the scenario-keyed new engine. Scenarios match on paintable_item
@@ -476,6 +511,22 @@ export function buildScenarioInputs(state, db) {
     const passGroups = resolvePassGroups(room, project, db);
     const groupedSubstrates = new Set(passGroups.flatMap(g => g.substrates));
 
+    // Emit one merged input per group BEFORE the spec loop. The group's
+    // merged ctx replaces per-substrate scenarios for the grouped substrates.
+    for (const group of passGroups) {
+      const groupCtx = buildGroupCtx(group, room, project, roomDerived);
+      normalizePassGroupCtx(groupCtx);
+      roomInputs.push({
+        roomIndex: ri,
+        roomLabel,
+        specId: group.group_id,           // group_id acts as specId for downstream
+        ctx: groupCtx,
+        roomQty,
+        roomItems,
+        passGroup: group,                  // reference for downstream consumers
+      });
+    }
+
     for (const specId of activeSpecIds) {
       // Is this spec active for this room? Look up the spec's primary
       // substrate in SPEC_SUBSTRATE_MAP, then check whether that substrate
@@ -484,6 +535,9 @@ export function buildScenarioInputs(state, db) {
       // 199-203.
       const primarySub = SPEC_SUBSTRATE_MAP[specId];
       if (!primarySub) continue;
+      // Skip specs whose primary substrate is consumed by a pass group —
+      // the group's merged input already represents the combined work.
+      if (groupedSubstrates.has(primarySub)) continue;
       const subConfig = subsObj[primarySub];
       if (!subConfig) continue;
 
