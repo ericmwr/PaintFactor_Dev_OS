@@ -34,6 +34,18 @@ import { FIXTURE_CATALOG } from '../data/fixture-catalog.js';
 import { STAIN_SPEC_FAMILIES, UI_STATE_TO_SPEC_STATE, SPEC_SUBSTRATE_MAP, SPEC_ROLE } from '../data/spec-maps.js';
 import { resolveActivation, STATE_TRANSITION_TARGET } from '../data/system-catalog.js';
 import { resolveSystem } from './spec-resolution.js';
+import { resolvePassGroups } from './pass-groups.js';
+
+// Helper: set explicit-null pass-group fields on a ctx. Required because
+// applies_when: { pass_group_id: [null] } uses array-includes semantics and
+// [null].includes(undefined) === false — so pass-group fields MUST be null,
+// not undefined, on ungrouped inputs.
+function normalizePassGroupCtx(ctx) {
+  if (ctx.pass_group_id === undefined) ctx.pass_group_id = null;
+  if (ctx.pass_group_substrates === undefined) ctx.pass_group_substrates = null;
+  if (ctx.pass_type === undefined) ctx.pass_type = null;
+  return ctx;
+}
 
 // Spec families that map cleanly to a paintable_item in the scenario matcher.
 // This is the single-most-important mapping between the spec-keyed legacy
@@ -458,6 +470,12 @@ export function buildScenarioInputs(state, db) {
     };
 
     const subsObj = room.substrates || {};
+
+    // Pass groups: coalesce N substrates into one coordinated painting pass.
+    // Phase 1 returns []; Phases 2-3 add combined-prime and combined-finish.
+    const passGroups = resolvePassGroups(room, project, db);
+    const groupedSubstrates = new Set(passGroups.flatMap(g => g.substrates));
+
     for (const specId of activeSpecIds) {
       // Is this spec active for this room? Look up the spec's primary
       // substrate in SPEC_SUBSTRATE_MAP, then check whether that substrate
@@ -484,7 +502,7 @@ export function buildScenarioInputs(state, db) {
             roomIndex: ri,
             roomLabel,
             specId,
-            ctx: compCtx,
+            ctx: normalizePassGroupCtx(compCtx),
             roomQty,
             roomItems,
           });
@@ -617,7 +635,7 @@ export function buildScenarioInputs(state, db) {
         roomIndex: ri,
         roomLabel,
         specId,
-        ctx,
+        ctx: normalizePassGroupCtx(ctx),
         roomQty,
         roomItems,
       });
@@ -630,7 +648,7 @@ export function buildScenarioInputs(state, db) {
         roomIndex: ri,
         roomLabel,
         specId: protectCtx.__specId,
-        ctx: protectCtx,
+        ctx: normalizePassGroupCtx(protectCtx),
         roomQty,
         roomItems,
       });
