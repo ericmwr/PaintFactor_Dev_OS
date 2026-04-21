@@ -41,7 +41,9 @@ export async function loadOverlayBundle(canonicalBundle) {
       modules: canonicalBundle.modules,
       scenarios: canonicalBundle.scenarios,
       assemblies: [],
-      overlayStats: { modulesOverlaid: 0, scenariosOverlaid: 0, assembliesActive: 0 },
+      modifiers: canonicalBundle.modifiers || {},
+      tasks: canonicalBundle.tasks || {},
+      overlayStats: { modulesOverlaid: 0, scenariosOverlaid: 0, assembliesActive: 0, modifiersOverlaid: 0, tasksOverlaid: 0 },
     };
   }
 
@@ -49,6 +51,7 @@ export async function loadOverlayBundle(canonicalBundle) {
   const activeScenarios = drafts.scenarios.filter(isActive);
   const activeAssemblies = drafts.assemblies.filter(isActive);
   const activeModifiers = (drafts.modifiers || []).filter(isActive);
+  const activeTasks = (drafts.tasks || []).filter(isActive);
 
   // Modules: merge by id. Drafts win.
   const mergedModules = { ...canonicalBundle.modules };
@@ -74,14 +77,22 @@ export async function loadOverlayBundle(canonicalBundle) {
     mergedModifiers[fac.id] = fac.payload || fac;
   }
 
+  // Tasks: merge by id. Drafts win. Canonical tasks MUST pass through so the
+  // engine's resolveTaskFromRef can look up module task_ref entries.
+  const mergedTasks = { ...(canonicalBundle.tasks || {}) };
+  for (const tsk of activeTasks) {
+    mergedTasks[tsk.id] = tsk.payload || tsk;
+  }
+
   const overlayStats = {
     modulesOverlaid: activeModules.length,
     scenariosOverlaid: activeScenarios.length,
     assembliesActive: activeAssemblies.length,
     modifiersOverlaid: activeModifiers.length,
+    tasksOverlaid: activeTasks.length,
   };
 
-  if (overlayStats.modulesOverlaid || overlayStats.scenariosOverlaid || overlayStats.assembliesActive || overlayStats.modifiersOverlaid) {
+  if (overlayStats.modulesOverlaid || overlayStats.scenariosOverlaid || overlayStats.assembliesActive || overlayStats.modifiersOverlaid || overlayStats.tasksOverlaid) {
     console.log('[overlay-loader]', overlayStats);
   }
 
@@ -90,6 +101,7 @@ export async function loadOverlayBundle(canonicalBundle) {
     scenarios: mergedScenarios,
     assemblies: activeAssemblies.map(a => a.payload || a),
     modifiers: mergedModifiers,
+    tasks: mergedTasks,
     overlayStats,
   };
 }

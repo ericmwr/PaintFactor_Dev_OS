@@ -43,7 +43,7 @@ export function useEstimateScenario() {
     let cancelled = false;
     loadOverlayBundle(canonicalBundle).then(merged => {
       if (cancelled) return;
-      setBundle({ modules: merged.modules, scenarios: merged.scenarios, modifiers: merged.modifiers });
+      setBundle({ modules: merged.modules, scenarios: merged.scenarios, modifiers: merged.modifiers, tasks: merged.tasks });
       setOverlayStats(merged.overlayStats);
       // Push the merged FAC_HEIGHT thresholds into derive-room so ceiling-
       // height → band mapping reflects user-authored drafts, not just canonical.
