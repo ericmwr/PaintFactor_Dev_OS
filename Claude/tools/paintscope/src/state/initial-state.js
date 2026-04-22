@@ -14,6 +14,19 @@ export function genId(prefix) { return `${prefix}_${nextId++}`; }
 export function bumpNextId(n) { if (n >= nextId) nextId = n + 1; }
 export function getNextId() { return nextId; }
 
+// ============================================================
+// FINISH GROUP default seeding
+// ============================================================
+// V1a palette reserves A/B for walls/ceiling (toggle-driven); non-wall/ceiling
+// items get seeded to C (paint package) or D (stain/clear package) based on
+// coating_type. Unknown/null coating_type falls back to C.
+const STAIN_LIKE_COATING_TYPES = new Set(['stain_clear', 'stain_only', 'clear_only']);
+
+export function defaultFinishGroupForCoatingType(coatingType) {
+  if (STAIN_LIKE_COATING_TYPES.has(coatingType)) return 'D';
+  return 'C';
+}
+
 export function createOpening(overrides={}) {
   return { id:genId('opn'), opening_type:'single', count:1, ...overrides };
 }
