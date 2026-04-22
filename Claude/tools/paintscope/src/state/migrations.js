@@ -261,6 +261,23 @@ export function migrateInline(parsed) {
     }
   }
 
+  // v1.7: Seed finish_group on existing non-wall/ceiling substrates based on
+  // coating_type. Walls/ceiling are driven by the combined-finish toggle
+  // (see context-adapter + resolver) and never get this field via migration.
+  const FINISH_GROUP_EXCLUDED_MIG = new Set(['walls', 'ceiling']);
+  for (const room of parsed.rooms || []) {
+    for (const [id, sub] of Object.entries(room.substrates || {})) {
+      if (FINISH_GROUP_EXCLUDED_MIG.has(id)) continue;
+      if (sub.finish_group !== undefined) continue; // don't clobber
+      const ct = sub.coating_type;
+      if (ct === 'stain_clear' || ct === 'stain_only' || ct === 'clear_only') {
+        sub.finish_group = 'D';
+      } else {
+        sub.finish_group = 'C';
+      }
+    }
+  }
+
   // v1.0: Initialize colors state
   if (!parsed.colors) {
     parsed.colors = { defaults: {}, substrate_overrides: {}, room_overrides: {}, room_group_overrides: {}, elevation_overrides: {}, elevation_group_overrides: {} };

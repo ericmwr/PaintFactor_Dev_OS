@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { defaultFinishGroupForCoatingType, createSubstrateConfig } from '../../state/initial-state.js';
+import { migrateInline } from '../../state/migrations.js';
 
 describe('defaultFinishGroupForCoatingType', () => {
   it('returns C for paint', () => {
@@ -35,5 +36,48 @@ describe('createSubstrateConfig seeds finish_group', () => {
   it('explicit override in overrides wins over auto-seed', () => {
     const cfg = createSubstrateConfig('baseboard', { finish_group: 'E' });
     expect(cfg.finish_group).toBe('E');
+  });
+});
+
+describe('v1.7 migration — finish_group seeding', () => {
+  it('seeds finish_group on existing non-wall/ceiling substrates based on coating_type', () => {
+    const state = {
+      rooms: [{
+        id: 'room_1', label: 'R',
+        substrates: {
+          walls:        { substrate_state: 'bare_drywall' },
+          ceiling:      { substrate_state: 'bare_drywall' },
+          baseboard:    { substrate_state: 'factory_primed', coating_type: 'paint' },
+          door_frames:  { substrate_state: 'bare_wood', coating_type: 'stain_clear' },
+        },
+        closets: [], openings: [], extra_walls: [], wall_deductions: [],
+      }],
+      project: {},
+      colors: {},
+      exterior: { defaults: {} },
+    };
+    const out = migrateInline(state);
+    expect(out.rooms[0].substrates.baseboard.finish_group).toBe('C');
+    expect(out.rooms[0].substrates.door_frames.finish_group).toBe('D');
+    // walls/ceiling never get finish_group via this migration (driven externally)
+    expect(out.rooms[0].substrates.walls.finish_group).toBeUndefined();
+    expect(out.rooms[0].substrates.ceiling.finish_group).toBeUndefined();
+  });
+
+  it('does NOT overwrite existing finish_group values', () => {
+    const state = {
+      rooms: [{
+        id: 'room_1', label: 'R',
+        substrates: {
+          baseboard: { substrate_state: 'factory_primed', coating_type: 'paint', finish_group: 'E' },
+        },
+        closets: [], openings: [], extra_walls: [], wall_deductions: [],
+      }],
+      project: {},
+      colors: {},
+      exterior: { defaults: {} },
+    };
+    const out = migrateInline(state);
+    expect(out.rooms[0].substrates.baseboard.finish_group).toBe('E');
   });
 });
