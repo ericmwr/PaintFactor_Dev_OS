@@ -5,6 +5,24 @@ import { ENUMS } from '../../../data/enums';
 import { OPENING_TYPES } from '../../../data/opening-types';
 import { SUBSTRATE_APPLICATION_METHODS } from '../../../data/substrate-catalog';
 
+// Compact finish_group dropdown for opening substrates. V1a palette shows
+// C/D/E/F (A/B reserved for walls/ceiling). Hidden if config has no
+// finish_group field (e.g. pre-migration state).
+function InlineFinishGroup({ subConfig, onSet }) {
+  if (!subConfig || subConfig.finish_group === undefined) return null;
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+      <span style={{ fontSize: 10, color: 'var(--text-muted)' }} title="Items with the same finish group are pooled into one coordinated pass.">Finish Group</span>
+      <Select
+        options={[{ value: 'C', label: 'C' }, { value: 'D', label: 'D' }, { value: 'E', label: 'E' }, { value: 'F', label: 'F' }]}
+        value={subConfig.finish_group}
+        onChange={v => onSet('finish_group', v)}
+        style={{ width: 70, fontSize: 11 }}
+      />
+    </div>
+  );
+}
+
 // Inline grain fill checkbox for opening substrates (bare_wood + paint only)
 function InlineGrainFill({ subConfig, onSet }) {
   if (!subConfig || subConfig.substrate_state !== 'bare_wood') return null;
@@ -187,6 +205,9 @@ export default function OpeningsTab({ room, derived, dispatch, project }) {
                   })()}
                 </div>
               </div>
+              <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', paddingLeft: 24, marginBottom: 4 }}>
+                <InlineFinishGroup subConfig={subs.door_casing} onSet={(f, v) => setSub('door_casing', f, v)} />
+              </div>
               <InlineCoatingControls subConfig={subs.door_casing} onSet={(f, v) => setSub('door_casing', f, v)} />
               <InlineGrainFill subConfig={subs.door_casing} onSet={(f, v) => setSub('door_casing', f, v)} />
             </>
@@ -212,6 +233,9 @@ export default function OpeningsTab({ room, derived, dispatch, project }) {
                   })()}
                 </div>
               </div>
+              <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', paddingLeft: 24, marginBottom: 4 }}>
+                <InlineFinishGroup subConfig={subs.door_frames} onSet={(f, v) => setSub('door_frames', f, v)} />
+              </div>
               <InlineCoatingControls subConfig={subs.door_frames} onSet={(f, v) => setSub('door_frames', f, v)} />
               <InlineGrainFill subConfig={subs.door_frames} onSet={(f, v) => setSub('door_frames', f, v)} />
             </>
@@ -229,7 +253,7 @@ export default function OpeningsTab({ room, derived, dispatch, project }) {
         </div>
         {doorsPainting && (
           <>
-            <div style={{ display: 'flex', gap: 12, marginBottom: 6 }}>
+            <div style={{ display: 'flex', gap: 12, marginBottom: 6, alignItems: 'center' }}>
               <div>
                 <span className="field-label" style={{ marginRight: 4 }}>Application</span>
                 {(() => {
@@ -240,6 +264,7 @@ export default function OpeningsTab({ room, derived, dispatch, project }) {
                     placeholder={`Default (${sam.default})`} style={{ width: 150 }} />;
                 })()}
               </div>
+              <InlineFinishGroup subConfig={subs.doors} onSet={(f, v) => setSub('doors', f, v)} />
             </div>
           </>
         )}
@@ -292,7 +317,7 @@ export default function OpeningsTab({ room, derived, dispatch, project }) {
         </div>
         {windowsPainting && (
           <>
-            <div style={{ display: 'flex', gap: 12, marginBottom: 6 }}>
+            <div style={{ display: 'flex', gap: 12, marginBottom: 6, alignItems: 'center' }}>
               <div>
                 <span className="field-label" style={{ marginRight: 4 }}>Application</span>
                 {(() => {
@@ -303,6 +328,7 @@ export default function OpeningsTab({ room, derived, dispatch, project }) {
                     placeholder={`Default (${sam.default})`} style={{ width: 150 }} />;
                 })()}
               </div>
+              <InlineFinishGroup subConfig={subs.windows} onSet={(f, v) => setSub('windows', f, v)} />
             </div>
           </>
         )}
@@ -384,6 +410,9 @@ export default function OpeningsTab({ room, derived, dispatch, project }) {
                   })()}
                 </div>
               </div>
+              <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', paddingLeft: 24, marginBottom: 4 }}>
+                <InlineFinishGroup subConfig={subs.window_casing} onSet={(f, v) => setSub('window_casing', f, v)} />
+              </div>
               <InlineCoatingControls subConfig={subs.window_casing} onSet={(f, v) => setSub('window_casing', f, v)} />
               <InlineGrainFill subConfig={subs.window_casing} onSet={(f, v) => setSub('window_casing', f, v)} />
             </>
@@ -408,6 +437,9 @@ export default function OpeningsTab({ room, derived, dispatch, project }) {
                     return <Select options={opts} value={subs.window_jamb?.application_method || null} onChange={v => setSub('window_jamb', 'application_method', v)} placeholder={`Default (${sam.default})`} style={{ width: 130, fontSize: 11 }} />;
                   })()}
                 </div>
+              </div>
+              <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', paddingLeft: 24, marginBottom: 4 }}>
+                <InlineFinishGroup subConfig={subs.window_jamb} onSet={(f, v) => setSub('window_jamb', f, v)} />
               </div>
               <InlineCoatingControls subConfig={subs.window_jamb} onSet={(f, v) => setSub('window_jamb', f, v)} />
               <InlineGrainFill subConfig={subs.window_jamb} onSet={(f, v) => setSub('window_jamb', f, v)} />
