@@ -228,3 +228,72 @@ describe('resolvePassGroups precedence — pre-authored vs dynamic', () => {
     expect(fg.substrates).not.toContain('ceiling');
   });
 });
+
+import { buildScenarioInputs } from '../context-adapter.js';
+
+describe('adapter integration — finish_group threading', () => {
+  it('per-member inputs receive pass_group_id=finish_group_assignment and finish_group value', () => {
+    const state = {
+      rooms: [{
+        id: 'room_1', label: 'R',
+        length_ft: 12, width_ft: 10, height_ft: 8,
+        substrates: {
+          walls:       { substrate_state: 'bare_drywall', application_method: 'spray_backroll' },
+          ceiling:     { substrate_state: 'bare_drywall', application_method: 'spray_backroll' },
+          baseboard:   { substrate_state: 'factory_primed', coating_type: 'paint', finish_group: 'C' },
+          door_casing: { substrate_state: 'factory_primed', coating_type: 'paint', finish_group: 'C', painting: true },
+        },
+        closets: [], openings: [], extra_walls: [], wall_deductions: [], fixtures: {},
+      }],
+      project: { default_quality_tier: 'QT3', default_combined_wc_finish: false },
+      colors: {},
+      exterior: { defaults: {} },
+      ui: {},
+    };
+    // Use a minimal-but-sufficient db stub. If the adapter requires specific
+    // fields beyond what this provides, read the adapter's db usage and adapt.
+    const db = { specFamilies: [] };
+
+    const out = buildScenarioInputs(state, db);
+    const memberInputs = out.roomInputs.filter(i =>
+      i.ctx && i.ctx.pass_group_id === 'finish_group_assignment' && i.ctx.paintable_item
+    );
+    expect(memberInputs.length).toBeGreaterThanOrEqual(1);
+    for (const mi of memberInputs) {
+      expect(mi.ctx.finish_group).toBe('C');
+      expect(mi.ctx.pass_group_substrates.sort()).toEqual(['baseboard', 'door_casing']);
+    }
+  });
+
+  it('group-level input emitted for finish_group_assignment with null paintable_item', () => {
+    const state = {
+      rooms: [{
+        id: 'room_1', label: 'R',
+        length_ft: 12, width_ft: 10, height_ft: 8,
+        substrates: {
+          baseboard:   { substrate_state: 'factory_primed', coating_type: 'paint', finish_group: 'C' },
+          door_casing: { substrate_state: 'factory_primed', coating_type: 'paint', finish_group: 'C', painting: true },
+          door_frames: { substrate_state: 'bare_wood', coating_type: 'stain_clear', finish_group: 'D' },
+          window_jamb: { substrate_state: 'bare_wood', coating_type: 'stain_clear', finish_group: 'D' },
+        },
+        closets: [], openings: [], extra_walls: [], wall_deductions: [], fixtures: {},
+      }],
+      project: { default_quality_tier: 'QT3' },
+      colors: {},
+      exterior: { defaults: {} },
+      ui: {},
+    };
+    const db = { specFamilies: [] };
+    const out = buildScenarioInputs(state, db);
+    const groupInputs = out.roomInputs.filter(i =>
+      i.ctx && i.ctx.pass_group_id === 'finish_group_assignment' && !i.ctx.paintable_item
+    );
+    expect(groupInputs.length).toBe(2); // one for C, one for D
+    const cInput = groupInputs.find(i => i.ctx.finish_group === 'C');
+    const dInput = groupInputs.find(i => i.ctx.finish_group === 'D');
+    expect(cInput).toBeDefined();
+    expect(dInput).toBeDefined();
+    expect(cInput.ctx.pass_group_substrates.sort()).toEqual(['baseboard', 'door_casing']);
+    expect(dInput.ctx.pass_group_substrates.sort()).toEqual(['door_frames', 'window_jamb']);
+  });
+});

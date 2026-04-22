@@ -66,6 +66,11 @@ function buildGroupCtx(group, room, project, roomDerived) {
     pass_group_substrates: group.substrates.slice(),
     pass_type:             group.pass_type,
 
+    // V1a: when source is item_assignment, expose finish_group on ctx so
+    // downstream consumers (summary display, scenario matchers) can see
+    // which palette slot this group represents.
+    ...(group.metadata?.finish_group ? { finish_group: group.metadata.finish_group } : {}),
+
     // Phase-specific flags from metadata
     ...(group.metadata?.prime_mode ? { prime_mode: group.metadata.prime_mode } : {}),
     ...(group.metadata?.finish_mode ? { finish_mode: group.metadata.finish_mode } : {}),
@@ -526,7 +531,19 @@ export function buildScenarioInputs(state, db) {
     // vice versa. Pass group pass_type ('prime'|'finish') maps to SPEC_ROLE
     // enum ('PRIME'|'FINISH').
     const groupedRolesBySubstrate = new Map(); // substrate → Set<SPEC_ROLE>
+    // finish_group_assignment groups DO NOT suppress per-substrate specs —
+    // their members keep firing so prep + apply tasks reach the estimate.
+    // Only shared setup/interstage/cleanup tasks are deduped (via applies_when
+    // gates on the per-substrate task definitions). See
+    // docs/superpowers/specs/2026-04-22-finish-groups-v1a-design.md §10.
+    // Parallel map: members of a finish_group_assignment group get pass_group_id
+    // threaded into their per-substrate ctx so gates can detect grouped state.
+    const memberToItemGroup = new Map(); // substrate → PassGroup (item_assignment only)
     for (const group of passGroups) {
+      if (group.group_id === 'finish_group_assignment') {
+        for (const sub of group.substrates) memberToItemGroup.set(sub, group);
+        continue;
+      }
       const role = group.pass_type === 'prime' ? 'PRIME'
                  : group.pass_type === 'finish' ? 'FINISH'
                  : null;
@@ -712,6 +729,18 @@ export function buildScenarioInputs(state, db) {
       ctx.panel_complexity = room.panel_complexity || 'flush';
       ctx.surface_profile = room.surface_profile || 'flat';
       ctx.condition_scale = room.condition_scale || 'GOOD';
+
+      // V1a: if this substrate is a finish_group_assignment member, thread
+      // pass-group context so gate-based tasks (setup/interstage/cleanup)
+      // can detect grouped state via applies_when. Per-substrate prep + apply
+      // still fire; only dedup-able phase tasks gate off.
+      const memberGroup = memberToItemGroup.get(primarySub);
+      if (memberGroup) {
+        ctx.pass_group_id         = memberGroup.group_id;
+        ctx.pass_group_substrates = memberGroup.substrates.slice();
+        ctx.pass_type             = memberGroup.pass_type;
+        ctx.finish_group          = memberGroup.metadata.finish_group;
+      }
 
       roomInputs.push({
         roomIndex: ri,
