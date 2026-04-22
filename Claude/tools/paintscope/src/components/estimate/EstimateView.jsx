@@ -14,6 +14,7 @@ import { assembleBundle } from '../../engine/proposal-bundle.js';
 import { runEstimate } from '../../engine/run-estimate.js';
 import { useCompanyProfile } from '../../hooks/useCompanyProfile.js';
 import ScenarioEnginePanel from './ScenarioEnginePanel.jsx';
+import EstimateDiagnostic from './EstimateDiagnostic.jsx';
 
 /** Format decimal hours as Xh Ym */
 function fmtHrs(h) {
@@ -93,6 +94,7 @@ export default function EstimateView() {
   const [expandedItems, setExpandedItems] = useState({});
   const [showSummary, setShowSummary] = useState(false);
   const [generatingProposal, setGeneratingProposal] = useState(false);
+  const [activeTab, setActiveTab] = useState('summary');
 
   // Summary data (merged from ProjectSummary)
   const exported = useMemo(() => exportProject(state), [state]);
@@ -371,6 +373,35 @@ export default function EstimateView() {
         <div className="mod-chip"><span className="mod-label">Texture:</span><span className="mod-val">{projCtx.texture}</span></div>
         <div className="mod-chip"><span className="mod-label">Complexity:</span><span className="mod-val">{projCtx.complexity}</span></div>
       </div>
+
+      {/* Tab bar: Summary vs Diagnostic */}
+      <div style={{ display: 'flex', gap: 2, borderBottom: '1px solid var(--border)', marginBottom: 12 }}>
+        {[
+          { id: 'summary', label: 'Summary' },
+          { id: 'diagnostic', label: 'Diagnostic' },
+        ].map(tab => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id)}
+            style={{
+              padding: '8px 16px',
+              border: 'none',
+              background: activeTab === tab.id ? 'var(--bg-secondary, var(--bg-tertiary))' : 'transparent',
+              color: activeTab === tab.id ? 'var(--accent)' : 'var(--text-secondary)',
+              fontWeight: activeTab === tab.id ? 600 : 400,
+              borderBottom: activeTab === tab.id ? '2px solid var(--accent)' : '2px solid transparent',
+              cursor: 'pointer',
+              fontSize: 13,
+            }}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
+      {activeTab === 'diagnostic' && <EstimateDiagnostic />}
+
+      {activeTab === 'summary' && (<>
 
       {/* ── Project Summary (collapsible) ── */}
       <details open={showSummary} onToggle={e => setShowSummary(e.target.open)} style={{marginBottom:12}}>
@@ -718,6 +749,8 @@ export default function EstimateView() {
           })()}
         </div>
       )}
+
+      </>)}
     </div>
   );
 }
