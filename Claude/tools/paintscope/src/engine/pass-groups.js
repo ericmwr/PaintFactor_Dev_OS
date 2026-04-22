@@ -34,6 +34,18 @@ export function resolvePassGroups(room, project, specData) {
   const finishGroup = tryCombinedFinishGroup(room, project);
   if (finishGroup) groups.push(finishGroup);
 
+  // Track substrates already claimed by pre-authored groups so the dynamic
+  // resolver doesn't double-claim them. Walls/ceiling are excluded by default
+  // but this defensive collection covers any future pre-authored groups that
+  // target other substrates.
+  const claimed = new Set();
+  for (const g of groups) {
+    for (const s of g.substrates) claimed.add(s);
+  }
+
+  const itemGroups = resolveItemAssignmentGroups(room, claimed);
+  groups.push(...itemGroups);
+
   return groups;
 }
 
@@ -120,6 +132,48 @@ function resolvePrimeMode(room, project) {
   const override = room.combined_prime_override;
   if (override === 'combined' || override === 'separate') return override;
   return project.default_combined_prime ? 'combined' : 'separate';
+}
+
+// Substrates that are never eligible for dynamic item-assignment grouping.
+// Walls and ceiling are owned by walls_ceiling_*_combined groups (pre-authored
+// pass-groups handle their finish behavior).
+const ITEM_ASSIGNMENT_EXCLUDED = new Set(['walls', 'ceiling']);
+
+/**
+ * Dynamic pass-group resolution from per-item finish_group values.
+ *
+ * Collects all non-wall/ceiling substrates in a room by their finish_group,
+ * emits one PassGroup per value that has >=2 members. Singletons are skipped.
+ *
+ * @param {object} room
+ * @param {Set<string>} excludedSubstrates — substrates already claimed by a prior
+ *   pass-group (precedence); these are skipped to preserve the "each substrate
+ *   in at most one group" invariant.
+ * @returns {Array<PassGroup>}
+ */
+function resolveItemAssignmentGroups(room, excludedSubstrates) {
+  if (!room?.substrates) return [];
+  const byGroup = new Map();
+  for (const [id, cfg] of Object.entries(room.substrates)) {
+    if (ITEM_ASSIGNMENT_EXCLUDED.has(id)) continue;
+    if (excludedSubstrates?.has(id)) continue;
+    const fg = cfg?.finish_group;
+    if (!fg) continue;
+    if (!byGroup.has(fg)) byGroup.set(fg, []);
+    byGroup.get(fg).push(id);
+  }
+  const groups = [];
+  for (const [fg, substrates] of byGroup.entries()) {
+    if (substrates.length < 2) continue; // singleton skip
+    groups.push({
+      group_id: 'finish_group_assignment',
+      substrates: substrates.slice().sort(),
+      pass_type: 'finish',
+      source: 'item_assignment',
+      metadata: { finish_group: fg },
+    });
+  }
+  return groups;
 }
 
 function resolveMethod(substrateConfig, project) {

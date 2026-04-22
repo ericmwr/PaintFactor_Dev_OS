@@ -82,6 +82,78 @@ describe('v1.7 migration — finish_group seeding', () => {
   });
 });
 
+import { resolvePassGroups } from '../pass-groups.js';
+
+describe('resolveItemAssignmentGroups', () => {
+  function baseRoom(substrates) {
+    return { substrates };
+  }
+
+  it('emits a group when 2+ items share finish_group C', () => {
+    const room = baseRoom({
+      baseboard:   { finish_group: 'C', coating_type: 'paint' },
+      door_casing: { finish_group: 'C', coating_type: 'paint' },
+    });
+    const groups = resolvePassGroups(room, {}, null);
+    const fgGroups = groups.filter(g => g.group_id === 'finish_group_assignment');
+    expect(fgGroups).toHaveLength(1);
+    expect(fgGroups[0].substrates.sort()).toEqual(['baseboard', 'door_casing']);
+    expect(fgGroups[0].pass_type).toBe('finish');
+    expect(fgGroups[0].metadata?.finish_group).toBe('C');
+  });
+
+  it('emits TWO groups when items split across C and D', () => {
+    const room = baseRoom({
+      baseboard:   { finish_group: 'C', coating_type: 'paint' },
+      door_casing: { finish_group: 'C', coating_type: 'paint' },
+      door_frames: { finish_group: 'D', coating_type: 'stain_clear' },
+      window_jamb: { finish_group: 'D', coating_type: 'stain_clear' },
+    });
+    const groups = resolvePassGroups(room, {}, null);
+    const fgGroups = groups.filter(g => g.group_id === 'finish_group_assignment');
+    expect(fgGroups).toHaveLength(2);
+    const cGroup = fgGroups.find(g => g.metadata.finish_group === 'C');
+    const dGroup = fgGroups.find(g => g.metadata.finish_group === 'D');
+    expect(cGroup.substrates.sort()).toEqual(['baseboard', 'door_casing']);
+    expect(dGroup.substrates.sort()).toEqual(['door_frames', 'window_jamb']);
+  });
+
+  it('SKIPS singletons (group with only 1 member)', () => {
+    const room = baseRoom({
+      baseboard:   { finish_group: 'C', coating_type: 'paint' },
+      door_casing: { finish_group: 'C', coating_type: 'paint' },
+      door_frames: { finish_group: 'D', coating_type: 'stain_clear' },  // singleton
+    });
+    const groups = resolvePassGroups(room, {}, null);
+    const fgGroups = groups.filter(g => g.group_id === 'finish_group_assignment');
+    expect(fgGroups).toHaveLength(1);
+    expect(fgGroups[0].metadata.finish_group).toBe('C');
+  });
+
+  it('EXCLUDES walls and ceiling from item-assignment grouping', () => {
+    const room = baseRoom({
+      walls:       { finish_group: 'A' },
+      ceiling:     { finish_group: 'A' },
+      baseboard:   { finish_group: 'A', coating_type: 'paint' },
+    });
+    const groups = resolvePassGroups(room, {}, null);
+    const fgGroups = groups.filter(g => g.group_id === 'finish_group_assignment');
+    // baseboard in A with no other non-wall/ceiling members = singleton, skipped
+    expect(fgGroups).toHaveLength(0);
+  });
+
+  it('IGNORES items with null or undefined finish_group', () => {
+    const room = baseRoom({
+      baseboard:   { finish_group: null, coating_type: 'paint' },
+      door_casing: { coating_type: 'paint' },  // no finish_group at all
+      crown:       { finish_group: 'C', coating_type: 'paint' },
+    });
+    const groups = resolvePassGroups(room, {}, null);
+    const fgGroups = groups.filter(g => g.group_id === 'finish_group_assignment');
+    expect(fgGroups).toHaveLength(0);  // only crown has C; singleton
+  });
+});
+
 import { reducer } from '../../state/reducer.js';
 
 describe('SET_SUBSTRATE coating_type flip re-seeds finish_group', () => {
