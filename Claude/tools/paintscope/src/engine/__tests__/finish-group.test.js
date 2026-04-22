@@ -199,3 +199,32 @@ describe('SET_SUBSTRATE coating_type flip re-seeds finish_group', () => {
     expect(out.rooms[0].substrates.door_frames.finish_group).toBe('E');
   });
 });
+
+describe('resolvePassGroups precedence — pre-authored vs dynamic', () => {
+  it('both pre-authored walls_ceiling_finish_combined AND dynamic finish_group fire when applicable', () => {
+    const room = {
+      combined_wc_finish_override: 'combined',
+      substrates: {
+        walls:       { substrate_state: 'bare_drywall', application_method: 'spray_backroll', quality_tier: 'QT3' },
+        ceiling:     { substrate_state: 'bare_drywall', application_method: 'spray_backroll', quality_tier: 'QT3' },
+        baseboard:   { finish_group: 'C', coating_type: 'paint' },
+        door_casing: { finish_group: 'C', coating_type: 'paint' },
+        crown:       { finish_group: 'C', coating_type: 'paint' },
+      },
+    };
+    const project = { default_combined_wc_finish: true };
+    const groups = resolvePassGroups(room, project, null);
+
+    const wc = groups.find(g => g.group_id === 'walls_ceiling_finish_combined');
+    const fg = groups.find(g => g.group_id === 'finish_group_assignment');
+
+    expect(wc).toBeDefined();
+    expect(wc.substrates.sort()).toEqual(['ceiling', 'walls']);
+
+    expect(fg).toBeDefined();
+    expect(fg.substrates.sort()).toEqual(['baseboard', 'crown', 'door_casing']);
+    // Walls and ceiling must NOT appear in the dynamic group
+    expect(fg.substrates).not.toContain('walls');
+    expect(fg.substrates).not.toContain('ceiling');
+  });
+});
