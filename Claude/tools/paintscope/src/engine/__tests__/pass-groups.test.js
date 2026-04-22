@@ -155,13 +155,7 @@ describe('resolvePassGroups combined-prime precheck', () => {
   });
 });
 
-describe('resolvePassGroups combined-finish precheck', () => {
-  const sameProduct = {
-    system_id: 'SYS_WALL_FINISH',
-    product_id: 'PROD_SW_CASHMERE_INT',
-    sheen: 'eggshell',
-    color_code: 'SW7036',
-  };
+describe('resolvePassGroups combined-finish precheck (toggle-driven)', () => {
   const baseRoom = {
     id: 'r1',
     substrates: {
@@ -172,78 +166,62 @@ describe('resolvePassGroups combined-finish precheck', () => {
   };
   const baseProject = {
     default_combined_prime: false,
+    default_combined_wc_finish: true,
     default_quality_tier: 'QT3',
     default_application_method: 'spray_backroll',
     new_construction: true,
   };
-  const specDataWithMatch = {
-    resolvedFinishByRoomSubstrate: {
-      'r1:walls':   sameProduct,
-      'r1:ceiling': sameProduct,
-    },
-  };
 
-  it('forms combined-finish group when all product fields match', () => {
-    const groups = resolvePassGroups(baseRoom, baseProject, specDataWithMatch);
+  it('forms combined-finish group when toggle is on + substrates primed + method/QT match', () => {
+    const groups = resolvePassGroups(baseRoom, baseProject, null);
     const finishGroup = groups.find(g => g.group_id === 'walls_ceiling_finish_combined');
     expect(finishGroup).toBeDefined();
     expect(finishGroup.pass_type).toBe('finish');
-    expect(finishGroup.source).toBe('product_match');
-    expect(finishGroup.metadata).toEqual({
-      system_id: 'SYS_WALL_FINISH',
-      product_id: 'PROD_SW_CASHMERE_INT',
-      sheen: 'eggshell',
-      color_code: 'SW7036',
-    });
+    expect(finishGroup.source).toBe('project_flag');
+    expect(finishGroup.metadata.finish_mode).toBe('combined');
   });
 
-  it('does not form group when sheens differ', () => {
-    const specData = {
-      resolvedFinishByRoomSubstrate: {
-        'r1:walls':   sameProduct,
-        'r1:ceiling': { ...sameProduct, sheen: 'satin' },
-      },
-    };
-    const groups = resolvePassGroups(baseRoom, baseProject, specData);
+  it('returns [] when combined-finish toggle is off', () => {
+    const project = { ...baseProject, default_combined_wc_finish: false };
+    const groups = resolvePassGroups(baseRoom, project, null);
     expect(groups.find(g => g.group_id === 'walls_ceiling_finish_combined')).toBeUndefined();
   });
 
-  it('does not form group when color_codes differ', () => {
-    const specData = {
-      resolvedFinishByRoomSubstrate: {
-        'r1:walls':   sameProduct,
-        'r1:ceiling': { ...sameProduct, color_code: 'SW7008' },
+  it('room-level combined_wc_finish_override="separate" suppresses the group', () => {
+    const room = { ...baseRoom, combined_wc_finish_override: 'separate' };
+    expect(resolvePassGroups(room, baseProject, null)).toEqual([]);
+  });
+
+  it('room-level combined_wc_finish_override="combined" creates the group even when project flag is off', () => {
+    const project = { ...baseProject, default_combined_wc_finish: false };
+    const room = { ...baseRoom, combined_wc_finish_override: 'combined' };
+    const groups = resolvePassGroups(room, project, null);
+    expect(groups.find(g => g.group_id === 'walls_ceiling_finish_combined')).toBeDefined();
+  });
+
+  it('does not form group when substrate_state is not primed (e.g., bare)', () => {
+    const room = {
+      ...baseRoom,
+      substrates: {
+        walls:   { ...baseRoom.substrates.walls, substrate_state: 'bare_drywall' },
+        ceiling: { ...baseRoom.substrates.ceiling, substrate_state: 'bare_drywall' },
       },
     };
-    const groups = resolvePassGroups(baseRoom, baseProject, specData);
+    const groups = resolvePassGroups(room, baseProject, null);
     expect(groups.find(g => g.group_id === 'walls_ceiling_finish_combined')).toBeUndefined();
   });
 
-  it('does not form group when products differ', () => {
-    const specData = {
-      resolvedFinishByRoomSubstrate: {
-        'r1:walls':   sameProduct,
-        'r1:ceiling': { ...sameProduct, product_id: 'PROD_SW_PROMAR200_INT' },
+  it('does not form group when method is not spray_backroll', () => {
+    const room = {
+      ...baseRoom,
+      substrates: {
+        walls:   { ...baseRoom.substrates.walls, application_method: 'brush_roll' },
+        ceiling: { ...baseRoom.substrates.ceiling, application_method: 'brush_roll' },
       },
     };
-    const groups = resolvePassGroups(baseRoom, baseProject, specData);
+    const project = { ...baseProject, default_application_method: 'brush_roll' };
+    const groups = resolvePassGroups(room, project, null);
     expect(groups.find(g => g.group_id === 'walls_ceiling_finish_combined')).toBeUndefined();
-  });
-
-  it('does not form group when systems differ', () => {
-    const specData = {
-      resolvedFinishByRoomSubstrate: {
-        'r1:walls':   sameProduct,
-        'r1:ceiling': { ...sameProduct, system_id: 'SYS_CEILING_FINISH' },
-      },
-    };
-    const groups = resolvePassGroups(baseRoom, baseProject, specData);
-    expect(groups.find(g => g.group_id === 'walls_ceiling_finish_combined')).toBeUndefined();
-  });
-
-  it('returns [] when specData has no resolved finish for walls or ceiling', () => {
-    const specData = { resolvedFinishByRoomSubstrate: {} };
-    expect(resolvePassGroups(baseRoom, baseProject, specData)).toEqual([]);
   });
 });
 

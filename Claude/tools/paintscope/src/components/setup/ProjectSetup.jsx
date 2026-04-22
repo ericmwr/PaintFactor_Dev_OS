@@ -127,6 +127,18 @@ export default function ProjectSetup() {
               For pre-trim NC jobs where walls + ceiling get primed in one continuous spray pass. Rooms can override individually.
             </div>
           </div>
+          <div className="setup-field" style={{ gridColumn: '1 / -1' }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
+              <Toggle
+                checked={!!project.default_combined_wc_finish}
+                onChange={() => set('default_combined_wc_finish', !project.default_combined_wc_finish)}
+              />
+              <span>Combined wall and ceiling finish (same sheen/product)</span>
+            </label>
+            <div style={{ fontSize: 11, color: 'var(--text-muted)', marginLeft: 36, marginTop: 2 }}>
+              When walls and ceiling will receive the same finish paint — estimator's consultation call. Dedups setup/cleanup + drops between-substrate cut-in. Rooms can override individually.
+            </div>
+          </div>
         </div>
 
         <div className="setup-field" style={{ marginTop: 8 }}>

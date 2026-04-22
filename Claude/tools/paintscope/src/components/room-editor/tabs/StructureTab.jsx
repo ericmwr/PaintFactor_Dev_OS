@@ -44,6 +44,15 @@ export default function StructureTab({ room, derived, dispatch, project }) {
     { value: 'separate', label: 'Separate wall and ceiling prime' },
   ];
 
+  const projectCombinedFinish = !!project.default_combined_wc_finish;
+  const roomFinishOverride = room.combined_wc_finish_override || null;
+  const effectiveFinishMode = roomFinishOverride || (projectCombinedFinish ? 'combined' : 'separate');
+  const finishModeOpts = [
+    { value: '', label: `Project default (${projectCombinedFinish ? 'Combined' : 'Separate'})` },
+    { value: 'combined', label: 'Combined wall and ceiling finish' },
+    { value: 'separate', label: 'Separate wall and ceiling finish' },
+  ];
+
   return (
     <div>
       {/* ── Prime workflow (room-level override of project default) ── */}
@@ -61,6 +70,24 @@ export default function StructureTab({ room, derived, dispatch, project }) {
           {effectivePrimeMode === 'combined'
             ? 'walls + ceiling primed in one continuous spray pass; drops cut-in + wall masking tasks.'
             : 'walls and ceiling primed in distinct passes with full cut-in / masking.'}
+        </div>
+      </div>
+
+      {/* ── Finish workflow (room-level override of project default) ── */}
+      <div className="panel-section" data-section="finish-workflow" style={{ padding: '8px 12px' }}>
+        <div className="field-label" style={{ marginBottom: 4 }}>Finish Workflow</div>
+        <Select
+          options={finishModeOpts}
+          value={roomFinishOverride || ''}
+          onChange={v => setRoom('combined_wc_finish_override', v || null)}
+          style={{ width: '100%', maxWidth: 420 }}
+        />
+        <div style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 3 }}>
+          Currently: <strong style={{ color: effectiveFinishMode === 'combined' ? 'var(--accent, #82aaff)' : 'inherit' }}>{effectiveFinishMode === 'combined' ? 'Combined' : 'Separate'}</strong>
+          {' — '}
+          {effectiveFinishMode === 'combined'
+            ? 'walls + ceiling finished together in one spray pass; dedups setup/cleanup, drops between-substrate cut-in.'
+            : 'walls and ceiling finished in distinct passes with full setup/cleanup each.'}
         </div>
       </div>
 

@@ -171,6 +171,10 @@ export const initialState = {
     // continuous spray pass. Combined scenarios drop the wall-line cut-in and
     // ceiling masking. Per-room override in room.combined_prime_override.
     default_combined_prime: false,
+    // Finish-phase workflow: when true, walls and ceiling are finished in one
+    // spray pass (estimator's consultation call — same sheen/product, no need
+    // to cut in between them). Per-room override in room.combined_wc_finish_override.
+    default_combined_wc_finish: false,
     default_brand: null,
     material_overrides: { system: {}, manual: {} },
     notes: '',

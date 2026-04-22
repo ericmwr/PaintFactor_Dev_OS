@@ -31,35 +31,32 @@ export function resolvePassGroups(room, project, specData) {
   const primeGroup = tryCombinedPrimeGroup(room, project);
   if (primeGroup) groups.push(primeGroup);
 
-  const finishGroup = tryCombinedFinishGroup(room, project, specData);
+  const finishGroup = tryCombinedFinishGroup(room, project);
   if (finishGroup) groups.push(finishGroup);
 
   return groups;
 }
 
-function tryCombinedFinishGroup(room, project, specData) {
-  if (!specData?.resolvedFinishByRoomSubstrate) return null;
-  if (!room.id) return null;
+function tryCombinedFinishGroup(room, project) {
+  const finishMode = resolveFinishMode(room, project);
+  if (finishMode !== 'combined') return null;
 
   const walls = room.substrates?.walls;
   const ceiling = room.substrates?.ceiling;
   if (!walls || !ceiling) return null;
 
-  const wallsFinish   = specData.resolvedFinishByRoomSubstrate[`${room.id}:walls`];
-  const ceilingFinish = specData.resolvedFinishByRoomSubstrate[`${room.id}:ceiling`];
-  if (!wallsFinish || !ceilingFinish) return null;
+  // Both substrates must be in a finish-eligible (primed) state. This
+  // intentionally excludes bare drywall rooms since finish follows prime.
+  if (!isPrimedState(walls.substrate_state)) return null;
+  if (!isPrimedState(ceiling.substrate_state)) return null;
 
-  // All four product fields must match for a combined pass to make sense
-  if (wallsFinish.system_id  !== ceilingFinish.system_id)  return null;
-  if (wallsFinish.product_id !== ceilingFinish.product_id) return null;
-  if (wallsFinish.sheen      !== ceilingFinish.sheen)      return null;
-  if (wallsFinish.color_code !== ceilingFinish.color_code) return null;
-
-  // Method + QT must match
+  // Same application method, must be spray_backroll for combined to make sense
   const wallsMethod   = resolveMethod(walls, project);
   const ceilingMethod = resolveMethod(ceiling, project);
+  if (wallsMethod !== 'spray_backroll') return null;
   if (wallsMethod !== ceilingMethod) return null;
 
+  // Same QT
   const wallsQt   = resolveQt(walls, room, project);
   const ceilingQt = resolveQt(ceiling, room, project);
   if (wallsQt !== ceilingQt) return null;
@@ -68,14 +65,25 @@ function tryCombinedFinishGroup(room, project, specData) {
     group_id: 'walls_ceiling_finish_combined',
     substrates: ['walls', 'ceiling'],
     pass_type: 'finish',
-    source: 'product_match',
-    metadata: {
-      system_id:  wallsFinish.system_id,
-      product_id: wallsFinish.product_id,
-      sheen:      wallsFinish.sheen,
-      color_code: wallsFinish.color_code,
-    },
+    source: 'project_flag',
+    metadata: { finish_mode: 'combined' },
   };
+}
+
+function resolveFinishMode(room, project) {
+  const override = room.combined_wc_finish_override;
+  if (override === 'combined' || override === 'separate') return override;
+  return project.default_combined_wc_finish ? 'combined' : 'separate';
+}
+
+function isPrimedState(state) {
+  if (!state) return false;
+  // Accept any substrate_state in a primed-or-painted family — the estimator's
+  // toggle drives the decision; the resolver only validates basic feasibility.
+  return state === 'primed_factory'
+      || state === 'primed_field'
+      || state === 'primed'
+      || state.startsWith('painted_');
 }
 
 function tryCombinedPrimeGroup(room, project) {
