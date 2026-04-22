@@ -45,10 +45,13 @@ function tryCombinedFinishGroup(room, project) {
   const ceiling = room.substrates?.ceiling;
   if (!walls || !ceiling) return null;
 
-  // Both substrates must be in a finish-eligible (primed) state. This
-  // intentionally excludes bare drywall rooms since finish follows prime.
-  if (!isPrimedState(walls.substrate_state)) return null;
-  if (!isPrimedState(ceiling.substrate_state)) return null;
+  // substrate_state intentionally NOT checked here — in NC chain activation,
+  // substrates start bare and become primed before the finish phase fires.
+  // The scenarios themselves handle state matching (combined finish scenarios
+  // match on pass_group_id + QT + method + sheen; they're phase-inherent
+  // finish and don't gate on state). Letting the group form on bare_drywall
+  // rooms is correct: the engine's finish-phase ctx gets the right state
+  // via chain activation downstream.
 
   // Same application method, must be spray_backroll for combined to make sense
   const wallsMethod   = resolveMethod(walls, project);
@@ -74,16 +77,6 @@ function resolveFinishMode(room, project) {
   const override = room.combined_wc_finish_override;
   if (override === 'combined' || override === 'separate') return override;
   return project.default_combined_wc_finish ? 'combined' : 'separate';
-}
-
-function isPrimedState(state) {
-  if (!state) return false;
-  // Accept any substrate_state in a primed-or-painted family — the estimator's
-  // toggle drives the decision; the resolver only validates basic feasibility.
-  return state === 'primed_factory'
-      || state === 'primed_field'
-      || state === 'primed'
-      || state.startsWith('painted_');
 }
 
 function tryCombinedPrimeGroup(room, project) {

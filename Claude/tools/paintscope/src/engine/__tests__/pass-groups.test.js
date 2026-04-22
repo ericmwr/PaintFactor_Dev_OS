@@ -199,7 +199,7 @@ describe('resolvePassGroups combined-finish precheck (toggle-driven)', () => {
     expect(groups.find(g => g.group_id === 'walls_ceiling_finish_combined')).toBeDefined();
   });
 
-  it('does not form group when substrate_state is not primed (e.g., bare)', () => {
+  it('forms group on bare_drywall substrates (NC chain activation — prime happens before finish)', () => {
     const room = {
       ...baseRoom,
       substrates: {
@@ -208,7 +208,7 @@ describe('resolvePassGroups combined-finish precheck (toggle-driven)', () => {
       },
     };
     const groups = resolvePassGroups(room, baseProject, null);
-    expect(groups.find(g => g.group_id === 'walls_ceiling_finish_combined')).toBeUndefined();
+    expect(groups.find(g => g.group_id === 'walls_ceiling_finish_combined')).toBeDefined();
   });
 
   it('does not form group when method is not spray_backroll', () => {
