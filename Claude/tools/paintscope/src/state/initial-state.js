@@ -94,6 +94,15 @@ export function createSubstrateConfig(substrateId, overrides={}) {
   if (config.system === undefined) {
     config.system = inferDefaultSystem(substrateId, config.substrate_state) || null;
   }
+  // V1a: seed finish_group for non-wall/ceiling substrates. Walls and ceiling
+  // are driven by the combined-finish toggle (written by the adapter / selector
+  // layer), not by this factory. Fixed set of IDs is the simplest guard.
+  const FINISH_GROUP_EXCLUDED = new Set(['walls', 'ceiling']);
+  if (!FINISH_GROUP_EXCLUDED.has(substrateId)) {
+    if (config.finish_group === undefined) {
+      config.finish_group = defaultFinishGroupForCoatingType(config.coating_type);
+    }
+  }
   return config;
 }
 
