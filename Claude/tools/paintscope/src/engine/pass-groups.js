@@ -165,6 +165,25 @@ function resolveItemAssignmentGroups(room, excludedSubstrates) {
   const groups = [];
   for (const [fg, substrates] of byGroup.entries()) {
     if (substrates.length < 2) continue; // singleton skip
+
+    // V1a: warn (but still pool) on coating_type / application_method mismatches.
+    // These are authoring errors — one pass can't be both paint and stain_clear,
+    // or both brush and spray simultaneously. Console warning is defensive;
+    // strict validation is a V2 decision based on observed frequency.
+    const coatingTypes = new Set();
+    const methods = new Set();
+    for (const s of substrates) {
+      const cfg = room.substrates[s];
+      coatingTypes.add(cfg?.coating_type || 'paint');
+      if (cfg?.application_method) methods.add(cfg.application_method);
+    }
+    if (coatingTypes.size > 1) {
+      console.warn(`[finish-group] Warning: group ${fg} has mixed coating_type (${[...coatingTypes].join(', ')}) — likely authoring mistake; pooling anyway.`);
+    }
+    if (methods.size > 1) {
+      console.warn(`[finish-group] Warning: group ${fg} has mixed application_method (${[...methods].join(', ')}) — likely authoring mistake; pooling anyway.`);
+    }
+
     groups.push({
       group_id: 'finish_group_assignment',
       substrates: substrates.slice().sort(),

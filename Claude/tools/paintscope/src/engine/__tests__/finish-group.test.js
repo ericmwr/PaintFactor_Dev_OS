@@ -200,6 +200,62 @@ describe('SET_SUBSTRATE coating_type flip re-seeds finish_group', () => {
   });
 });
 
+describe('mismatch warning', () => {
+  it('warns when a group has mixed coating_type', () => {
+    const warnings = [];
+    const origWarn = console.warn;
+    console.warn = (msg) => warnings.push(msg);
+    try {
+      const room = {
+        substrates: {
+          baseboard:   { finish_group: 'C', coating_type: 'paint', application_method: 'spray' },
+          door_frames: { finish_group: 'C', coating_type: 'stain_clear', application_method: 'spray' },
+        },
+      };
+      resolvePassGroups(room, {}, null);
+      expect(warnings.some(w => /mixed coating_type/.test(w))).toBe(true);
+    } finally {
+      console.warn = origWarn;
+    }
+  });
+
+  it('warns when a group has mixed application_method', () => {
+    const warnings = [];
+    const origWarn = console.warn;
+    console.warn = (msg) => warnings.push(msg);
+    try {
+      const room = {
+        substrates: {
+          baseboard:   { finish_group: 'C', coating_type: 'paint', application_method: 'brush' },
+          door_casing: { finish_group: 'C', coating_type: 'paint', application_method: 'spray' },
+        },
+      };
+      resolvePassGroups(room, {}, null);
+      expect(warnings.some(w => /mixed application_method/.test(w))).toBe(true);
+    } finally {
+      console.warn = origWarn;
+    }
+  });
+
+  it('does NOT warn when group members agree', () => {
+    const warnings = [];
+    const origWarn = console.warn;
+    console.warn = (msg) => warnings.push(msg);
+    try {
+      const room = {
+        substrates: {
+          baseboard:   { finish_group: 'C', coating_type: 'paint', application_method: 'spray' },
+          door_casing: { finish_group: 'C', coating_type: 'paint', application_method: 'spray' },
+        },
+      };
+      resolvePassGroups(room, {}, null);
+      expect(warnings.filter(w => /mixed/.test(w))).toEqual([]);
+    } finally {
+      console.warn = origWarn;
+    }
+  });
+});
+
 describe('resolvePassGroups precedence — pre-authored vs dynamic', () => {
   it('both pre-authored walls_ceiling_finish_combined AND dynamic finish_group fire when applicable', () => {
     const room = {
