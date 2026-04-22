@@ -140,6 +140,26 @@ export default function SubstrateDetailPanel({ room, derived, dispatch, substrat
               <input value={config.style || ''} onChange={e => setSub('style', e.target.value || null)} style={{ width: '100%' }} placeholder="e.g. Colonial, Craftsman" />
             </div>
           )}
+
+          {/* V1a: Finish Group — non-wall/ceiling only. A/B reserved for
+              walls/ceiling (driven by the combined-finish toggle). */}
+          {!['walls', 'ceiling'].includes(substrateId) && config.finish_group !== undefined && (
+            <div>
+              <div className="field-label" title="Groups items that share a finish pass. Items in the same group get one coordinated setup/cleanup.">
+                Finish Group
+              </div>
+              <Select
+                options={[
+                  { value: 'C', label: 'C' },
+                  { value: 'D', label: 'D' },
+                  { value: 'E', label: 'E' },
+                  { value: 'F', label: 'F' },
+                ]}
+                value={config.finish_group}
+                onChange={v => setSub('finish_group', v)}
+              />
+            </div>
+          )}
         </div>
       </div>
 
