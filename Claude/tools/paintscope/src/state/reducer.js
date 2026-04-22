@@ -182,6 +182,20 @@ export function reducer(state, action) {
           updated = { ...updated, ...d };
         }
 
+        // V1a: re-seed finish_group when coating_type flips, but preserve
+        // manual overrides. Re-seeds only if current finish_group matches the
+        // previous coating_type's default (i.e., the user hasn't manually
+        // picked E/F/etc.).
+        if (field === 'coating_type') {
+          const STAIN_LIKE = new Set(['stain_clear', 'stain_only', 'clear_only']);
+          const prevCoatingType = r.substrates[substrateId].coating_type;
+          const prevDefault = STAIN_LIKE.has(prevCoatingType) ? 'D' : 'C';
+          const newDefault  = STAIN_LIKE.has(value) ? 'D' : 'C';
+          if (updated.finish_group === prevDefault) {
+            updated.finish_group = newDefault;
+          }
+        }
+
         // Recompute ea_manual when builtin opening tier counts change
         if (substrateId === 'builtins' && ['openings_s', 'openings_m', 'openings_l', 'openings_xl'].includes(field)) {
           updated.ea_manual = (updated.openings_s || 0) + (updated.openings_m || 0) + (updated.openings_l || 0) + (updated.openings_xl || 0);

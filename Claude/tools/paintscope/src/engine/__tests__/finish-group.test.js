@@ -81,3 +81,49 @@ describe('v1.7 migration — finish_group seeding', () => {
     expect(out.rooms[0].substrates.baseboard.finish_group).toBe('E');
   });
 });
+
+import { reducer } from '../../state/reducer.js';
+
+describe('SET_SUBSTRATE coating_type flip re-seeds finish_group', () => {
+  function baseState() {
+    return {
+      rooms: [{
+        id: 'room_1', label: 'R',
+        substrates: {
+          door_frames: { substrate_state: 'bare_wood', coating_type: 'paint', finish_group: 'C' },
+        },
+      }],
+      project: { default_quality_tier: 'QT3' },
+    };
+  }
+
+  it('paint (C) → stain_clear reseeds to D', () => {
+    const s = baseState();
+    const out = reducer(s, {
+      type: 'SET_SUBSTRATE',
+      payload: { roomId: 'room_1', substrateId: 'door_frames', field: 'coating_type', value: 'stain_clear' },
+    });
+    expect(out.rooms[0].substrates.door_frames.finish_group).toBe('D');
+  });
+
+  it('stain_clear (D) → paint reseeds to C', () => {
+    const s = baseState();
+    s.rooms[0].substrates.door_frames.coating_type = 'stain_clear';
+    s.rooms[0].substrates.door_frames.finish_group = 'D';
+    const out = reducer(s, {
+      type: 'SET_SUBSTRATE',
+      payload: { roomId: 'room_1', substrateId: 'door_frames', field: 'coating_type', value: 'paint' },
+    });
+    expect(out.rooms[0].substrates.door_frames.finish_group).toBe('C');
+  });
+
+  it('manual override (E) is preserved across coating_type flip', () => {
+    const s = baseState();
+    s.rooms[0].substrates.door_frames.finish_group = 'E';
+    const out = reducer(s, {
+      type: 'SET_SUBSTRATE',
+      payload: { roomId: 'room_1', substrateId: 'door_frames', field: 'coating_type', value: 'stain_clear' },
+    });
+    expect(out.rooms[0].substrates.door_frames.finish_group).toBe('E');
+  });
+});
