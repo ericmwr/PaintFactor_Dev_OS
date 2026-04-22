@@ -47,6 +47,17 @@ export default function RoomEditor({ room, project, dispatch, roomCategories }) 
   const openingCount = (room.openings?.length || 0) + (subs.doors?.items?.length || 0) + (subs.windows?.items?.length || 0);
   const fixtureCount = room.fixtures ? Object.keys(room.fixtures).length : 0;
 
+  // V1a: Finish group membership summary — non-wall/ceiling items grouped by finish_group.
+  const finishGroupSummary = (() => {
+    const counts = new Map();
+    for (const [id, cfg] of Object.entries(subs)) {
+      if (id === 'walls' || id === 'ceiling') continue;
+      if (!cfg || !cfg.finish_group) continue;
+      counts.set(cfg.finish_group, (counts.get(cfg.finish_group) || 0) + 1);
+    }
+    return [...counts.entries()].sort(([a], [b]) => a.localeCompare(b));
+  })();
+
   const getBadge = (tabId) => {
     switch (tabId) {
       case 'trim': return trimCount || null;
@@ -101,6 +112,26 @@ export default function RoomEditor({ room, project, dispatch, roomCategories }) 
           onCreateRoom={(patch, analysisResult) => dispatch({ type: 'CREATE_ROOM_FROM_PHOTO', payload: { patch, analysisResult } })}
           onClose={photoAnalysis.close}
         />
+      )}
+
+      {/* V1a: Finish group summary badge */}
+      {finishGroupSummary.length > 0 && (
+        <div style={{
+          padding: '4px 12px',
+          background: 'var(--surface-muted, #f5f5f5)',
+          fontSize: 11,
+          color: 'var(--text-muted)',
+          borderTop: '1px solid var(--border, #e0e0e0)',
+          borderBottom: '1px solid var(--border, #e0e0e0)',
+        }}>
+          Finish groups:{' '}
+          {finishGroupSummary.map(([group, count], i) => (
+            <span key={group} style={{ marginRight: 10 }}>
+              <strong>{group}</strong> ({count} {count === 1 ? 'item — singleton' : 'items'})
+              {i < finishGroupSummary.length - 1 ? ' ·' : ''}
+            </span>
+          ))}
+        </div>
       )}
 
       {/* Tab bar */}
