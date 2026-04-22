@@ -48,11 +48,16 @@ export default function RoomEditor({ room, project, dispatch, roomCategories }) 
   const fixtureCount = room.fixtures ? Object.keys(room.fixtures).length : 0;
 
   // V1a: Finish group membership summary — non-wall/ceiling items grouped by finish_group.
+  // Excludes always-present substrates (doors/windows/door_casing/window_casing) when
+  // painting=false — they stay in state even when not being painted, so their default
+  // finish_group would otherwise inflate the count.
   const finishGroupSummary = (() => {
     const counts = new Map();
     for (const [id, cfg] of Object.entries(subs)) {
       if (id === 'walls' || id === 'ceiling') continue;
       if (!cfg || !cfg.finish_group) continue;
+      // If the substrate has a painting flag, require it to be true to count.
+      if (cfg.painting !== undefined && cfg.painting !== true) continue;
       counts.set(cfg.finish_group, (counts.get(cfg.finish_group) || 0) + 1);
     }
     return [...counts.entries()].sort(([a], [b]) => a.localeCompare(b));

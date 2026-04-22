@@ -159,6 +159,10 @@ function resolveItemAssignmentGroups(room, excludedSubstrates) {
     if (excludedSubstrates?.has(id)) continue;
     const fg = cfg?.finish_group;
     if (!fg) continue;
+    // Always-present substrates (doors, windows, door_casing, window_casing)
+    // stay in state with painting=false when not being painted. Skip them
+    // so their auto-seeded finish_group doesn't inflate group membership.
+    if (cfg.painting !== undefined && cfg.painting !== true) continue;
     if (!byGroup.has(fg)) byGroup.set(fg, []);
     byGroup.get(fg).push(id);
   }

@@ -142,6 +142,34 @@ describe('resolveItemAssignmentGroups', () => {
     expect(fgGroups).toHaveLength(0);
   });
 
+  it('IGNORES always-present substrates with painting=false (inactive doors/windows/door_casing/window_casing)', () => {
+    const room = baseRoom({
+      // Always-present substrates, painting=false — should be skipped
+      doors:          { finish_group: 'C', coating_type: 'paint', painting: false },
+      windows:        { finish_group: 'C', coating_type: 'paint', painting: false },
+      door_casing:    { finish_group: 'C', coating_type: 'paint', painting: false },
+      window_casing:  { finish_group: 'C', coating_type: 'paint', painting: false },
+      // Real members
+      baseboard:      { finish_group: 'C', coating_type: 'paint' },
+      crown:          { finish_group: 'C', coating_type: 'paint' },
+    });
+    const groups = resolvePassGroups(room, {}, null);
+    const fgGroups = groups.filter(g => g.group_id === 'finish_group_assignment');
+    expect(fgGroups).toHaveLength(1);
+    expect(fgGroups[0].substrates.sort()).toEqual(['baseboard', 'crown']);
+  });
+
+  it('COUNTS always-present substrates when painting=true', () => {
+    const room = baseRoom({
+      door_casing:    { finish_group: 'C', coating_type: 'paint', painting: true },
+      window_casing:  { finish_group: 'C', coating_type: 'paint', painting: true },
+    });
+    const groups = resolvePassGroups(room, {}, null);
+    const fgGroups = groups.filter(g => g.group_id === 'finish_group_assignment');
+    expect(fgGroups).toHaveLength(1);
+    expect(fgGroups[0].substrates.sort()).toEqual(['door_casing', 'window_casing']);
+  });
+
   it('IGNORES items with null or undefined finish_group', () => {
     const room = baseRoom({
       baseboard:   { finish_group: null, coating_type: 'paint' },
