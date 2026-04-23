@@ -120,6 +120,8 @@ const SPEC_TO_PAINTABLE_ITEM = {
   SF_WINDOW_CASING_NC_PRIME:        'window_casing',
   SF_DOOR_CASING_NC_PAINT:          'door_casing',
   SF_DOOR_CASING_NC_PRIME:          'door_casing',
+  SF_CROWN_NC_PAINT:                'crown',
+  SF_CROWN_NC_PRIME:                'crown',
   SF_WAINSCOT_PANEL_NC:             'wainscot',
   SF_WOOD_WALL_NC:                  'wood_wall',
   SF_WOOD_CEILING_NC:               'wood_ceiling',

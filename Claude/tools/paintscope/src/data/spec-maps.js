@@ -17,6 +17,8 @@ export const SPEC_SUBSTRATE_MAP = {
   'SF_WINDOW_CASING_NC_PRIME':   'window_casing',
   'SF_DOOR_CASING_NC_PAINT':     'door_casing',
   'SF_DOOR_CASING_NC_PRIME':     'door_casing',
+  'SF_CROWN_NC_PAINT':           'crown',
+  'SF_CROWN_NC_PRIME':           'crown',
   'SF_WAINSCOT_PANEL_NC':        'wainscoting',
   'SF_WOOD_WALL_NC':             'wood_feature_wall',
   'SF_WOOD_CEILING_NC':          'wood_ceiling',
@@ -112,6 +114,8 @@ export const SPEC_ROLE = {
   'SF_WINDOW_CASING_NC_PRIME':    'PRIME',
   'SF_DOOR_CASING_NC_PAINT':      'FINISH',
   'SF_DOOR_CASING_NC_PRIME':      'PRIME',
+  'SF_CROWN_NC_PAINT':            'FINISH',
+  'SF_CROWN_NC_PRIME':            'PRIME',
   'SF_WAINSCOT_PANEL_NC':         'COMBINED',
   'SF_WAINSCOT_PANEL_NC_STAIN':   'STAIN',
   'SF_WOOD_WALL_NC':              'COMBINED',
@@ -209,6 +213,8 @@ export const SPEC_VALID_INPUT_STATES = {
   'SF_WINDOW_CASING_NC_PRIME':   ['SS_BARE'],
   'SF_DOOR_CASING_NC_PAINT':     ['SS_PRIMED','SS_PRIMED_FIELD','SS_PRIMED_FACTORY'],
   'SF_DOOR_CASING_NC_PRIME':     ['SS_BARE'],
+  'SF_CROWN_NC_PAINT':           ['SS_PRIMED','SS_PRIMED_FIELD','SS_PRIMED_FACTORY'],
+  'SF_CROWN_NC_PRIME':           ['SS_BARE'],
   'SF_WAINSCOT_PANEL_NC':        ['SS_BARE','SS_PRIMED_FACTORY'],
   'SF_WOOD_WALL_NC':             ['SS_BARE','SS_PRIMED_FACTORY'],
   'SF_WOOD_CEILING_NC':          ['SS_BARE','SS_PRIMED_FACTORY'],
@@ -265,6 +271,7 @@ export const SPEC_OUTPUT_STATES = {
   'SF_WINDOW_JAMB_NC_PRIME':     'SS_PRIMED_FIELD',
   'SF_WINDOW_CASING_NC_PRIME':   'SS_PRIMED_FIELD',
   'SF_DOOR_CASING_NC_PRIME':     'SS_PRIMED_FIELD',
+  'SF_CROWN_NC_PRIME':           'SS_PRIMED_FIELD',
   'SF_DOOR_FRAME_NC_PRIME':      'SS_PRIMED_FIELD',
   'SF_WOOD_GRAIN_FILL_NC':       'SS_GRAIN_FILLED',
 };
@@ -328,7 +335,7 @@ export const STAIN_SPEC_FAMILIES = new Set([
 export const GRAIN_FILL_PARENT_SPEC = {
   // Trim group — all roll into SF_TRIM_NC_PAINT
   'baseboard':       'SF_TRIM_NC_PAINT',
-  'crown':           'SF_TRIM_NC_PAINT',
+  'crown':           'SF_CROWN_NC_PAINT',
   'door_casing':     'SF_DOOR_CASING_NC_PAINT',
   'window_casing':   'SF_WINDOW_CASING_NC_PAINT',
   'chair_rail':      'SF_TRIM_NC_PAINT',
