@@ -132,6 +132,8 @@ const SPEC_TO_PAINTABLE_ITEM = {
   SF_WAINSCOT_CAP_NC_PRIME:         'wainscot_cap',
   SF_WINDOW_STOOL_NC_PAINT:         'window_stool',
   SF_WINDOW_STOOL_NC_PRIME:         'window_stool',
+  SF_WINDOW_APRON_NC_PAINT:         'window_apron',
+  SF_WINDOW_APRON_NC_PRIME:         'window_apron',
   SF_WAINSCOT_PANEL_NC:             'wainscot',
   SF_WOOD_WALL_NC:                  'wood_wall',
   SF_WOOD_CEILING_NC:               'wood_ceiling',
