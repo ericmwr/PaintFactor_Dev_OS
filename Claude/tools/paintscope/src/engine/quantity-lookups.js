@@ -62,8 +62,15 @@ export function buildRoomQuantityLookups(state) {
       if (active) addQ(`PS_SURFACE_LF.${surfType}`, 'LF', d[derivedKey] || 0);
     });
 
-    // Aggregate all trim LF for specs that use PS_SURFACE_LF.TRIM_TOTAL (only painting trim)
+    // Aggregate all trim LF for specs that use PS_SURFACE_LF.TRIM_TOTAL
+    // (only painting trim). window_casing is EXCLUDED — it has its own spec
+    // family (SF_WINDOW_CASING_NC_PAINT) that reads PS_SURFACE_LF.TRIM_CASING_WINDOW
+    // directly, so including it here would double-count. Other trim substrates
+    // (baseboard, crown, door_casing, chair_rail, etc.) still aggregate into
+    // TRIM_TOTAL and fire via SF_TRIM_NC_PAINT anchored at baseboard.
+    const TRIM_TOTAL_EXCLUDED = new Set(['window_casing']);
     const allTrimLF = trimKeys.reduce((s, [subId, , derivedKey]) => {
+      if (TRIM_TOTAL_EXCLUDED.has(subId)) return s;
       const active = casingIds2.has(subId) ? subs[subId]?.painting : !!subs[subId];
       return s + (active ? (d[derivedKey] || 0) : 0);
     }, 0);

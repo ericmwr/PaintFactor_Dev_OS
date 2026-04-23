@@ -114,6 +114,7 @@ const SPEC_TO_PAINTABLE_ITEM = {
   SF_DOOR_FRAME_NC_FINISH:          'door_frame',
   SF_WINDOW_INT_NC:                 'window',
   SF_WINDOW_JAMB_NC_FINISH:         'window_jamb',
+  SF_WINDOW_CASING_NC_PAINT:        'window_casing',
   SF_WAINSCOT_PANEL_NC:             'wainscot',
   SF_WOOD_WALL_NC:                  'wood_wall',
   SF_WOOD_CEILING_NC:               'wood_ceiling',
