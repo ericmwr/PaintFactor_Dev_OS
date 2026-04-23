@@ -136,6 +136,8 @@ const SPEC_TO_PAINTABLE_ITEM = {
   SF_WINDOW_APRON_NC_PRIME:         'window_apron',
   SF_SHADOW_BOX_NC_PAINT:           'shadow_box',
   SF_SHADOW_BOX_NC_PRIME:           'shadow_box',
+  SF_PANEL_MOLD_NC_PAINT:           'panel_mold',
+  SF_PANEL_MOLD_NC_PRIME:           'panel_mold',
   SF_WAINSCOT_PANEL_NC:             'wainscot',
   SF_WOOD_WALL_NC:                  'wood_wall',
   SF_WOOD_CEILING_NC:               'wood_ceiling',
