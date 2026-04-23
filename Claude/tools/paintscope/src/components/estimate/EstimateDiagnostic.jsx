@@ -1,9 +1,10 @@
 import { useState, useMemo } from 'react';
 import { useProject } from '../../hooks/useProject';
 import { useEstimateScenario } from '../../hooks/useEstimateScenario';
-import { SUBSTRATE_MAP } from '../../data/substrate-catalog';
+import { SUBSTRATE_MAP, SUBSTRATE_CATALOG } from '../../data/substrate-catalog';
 import { PHASE_ORDER } from '../../data/constants';
 import { SPEC_SUBSTRATE_MAP } from '../../data/spec-maps';
+import { deriveRoom } from '../../engine/derive-room';
 
 /** Format decimal hours as Xh Ym */
 function fmtHrs(h) {
@@ -141,6 +142,67 @@ function TaskTable({ tasks }) {
   );
 }
 
+// Map substrate ID → key on derivedRoom. Covers trim-family + walls/ceiling.
+// For substrates not in this map, we skip the breakdown row.
+const SUBSTRATE_DERIVED_KEY = {
+  walls:         { key: 'wall_field_sf',    uom: 'SF' },
+  ceiling:       { key: 'ceiling_field_sf', uom: 'SF' },
+  baseboard:     { key: 'baseboard_lf',     uom: 'LF' },
+  crown:         { key: 'crown_lf',         uom: 'LF' },
+  door_casing:   { key: 'door_casing_lf',   uom: 'LF' },
+  window_casing: { key: 'window_casing_lf', uom: 'LF' },
+  chair_rail:    { key: 'chair_rail_lf',    uom: 'LF' },
+  shoe_mold:     { key: 'shoe_mold_lf',     uom: 'LF' },
+  wainscot_cap:  { key: 'wainscot_cap_lf',  uom: 'LF' },
+  picture_rail:  { key: 'picture_rail_lf',  uom: 'LF' },
+  window_stool:  { key: 'window_stool_lf',  uom: 'LF' },
+  window_apron:  { key: 'window_apron_lf',  uom: 'LF' },
+  shadow_box:    { key: 'shadow_box_lf',    uom: 'LF' },
+  panel_mold:    { key: 'panel_mold_lf',    uom: 'LF' },
+  door_frames:   { key: 'door_frame_lf',    uom: 'LF' },
+  window_jamb:   { key: 'window_jamb_lf',   uom: 'LF' },
+};
+
+function QuantityBreakdown({ room, derived }) {
+  const rows = [];
+  // Preserve the catalog's natural order (Surfaces → Trim → Doors & Windows)
+  for (const cat of SUBSTRATE_CATALOG) {
+    const cfg = room.substrates?.[cat.id];
+    if (!cfg) continue;
+    if (!isActiveSubstrate(cfg)) continue;
+    const map = SUBSTRATE_DERIVED_KEY[cat.id];
+    if (!map) continue; // skip EA-based / specialty items not in the trim LF story
+    const qty = derived?.[map.key] || 0;
+    const overridden =
+      (map.uom === 'LF' && cfg.lf_override) ||
+      (map.uom === 'SF' && cfg.sf_override);
+    rows.push({ id: cat.id, label: cat.label, qty, uom: map.uom, overridden });
+  }
+  if (rows.length === 0) {
+    return <div style={{ fontSize: 11, color: 'var(--text-muted)', fontStyle: 'italic', padding: '4px 8px' }}>No LF/SF substrates active in this room.</div>;
+  }
+  return (
+    <div style={{ border: '1px solid var(--border)', borderRadius: 4, marginBottom: 12, background: 'var(--bg-secondary, transparent)' }}>
+      <div style={{ padding: '6px 12px', background: 'var(--bg-tertiary)', fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)', borderRadius: '4px 4px 0 0', textTransform: 'uppercase', letterSpacing: 0.5 }}>
+        Substrate Quantities (derived)
+      </div>
+      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11, fontFamily: 'var(--font-mono)' }}>
+        <tbody>
+          {rows.map((r, i) => (
+            <tr key={r.id} style={i > 0 ? { borderTop: '1px solid var(--border)' } : undefined}>
+              <td style={{ padding: '4px 12px' }}>{r.label}</td>
+              <td style={{ padding: '4px 12px', textAlign: 'right', fontWeight: 600, color: 'var(--accent)' }}>
+                {r.qty} {r.uom}
+                {r.overridden && <span style={{ marginLeft: 6, fontSize: 9, fontWeight: 500, color: 'var(--warning)' }}>override</span>}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
 function GroupSection({ title, subtitle, totalHours, tasks }) {
   const [expanded, setExpanded] = useState(false);
   return (
@@ -222,6 +284,7 @@ export default function EstimateDiagnostic() {
       {byRoom.map(({ roomIndex, roomLabel, inputs }) => {
         const room = state.rooms[roomIndex];
         if (!room) return null;
+        const derivedRoom = deriveRoom(room);
         const activeGroups = buildActiveGroups(room);
 
         // Classify and bucket each input
@@ -259,6 +322,9 @@ export default function EstimateDiagnostic() {
 
             {roomExpanded && (
               <div style={{ padding: 12 }}>
+                {/* Per-substrate quantity breakdown — verify what's being measured */}
+                <QuantityBreakdown room={room} derived={derivedRoom} />
+
                 {/* Grouped line items */}
                 {[...groupBuckets.entries()].sort(([a], [b]) => a.localeCompare(b)).map(([group, bucket]) => {
                   const members = activeGroups.get(group) || [];
