@@ -68,7 +68,7 @@ export function buildRoomQuantityLookups(state) {
     // directly, so including them here would double-count. Other trim
     // substrates (baseboard, crown, chair_rail, etc.) still aggregate into
     // TRIM_TOTAL and fire via SF_TRIM_NC_PAINT anchored at baseboard.
-    const TRIM_TOTAL_EXCLUDED = new Set(['window_casing', 'door_casing', 'crown', 'chair_rail', 'shoe_mold', 'picture_rail']);
+    const TRIM_TOTAL_EXCLUDED = new Set(['window_casing', 'door_casing', 'crown', 'chair_rail', 'shoe_mold', 'picture_rail', 'wainscot_cap']);
     const allTrimLF = trimKeys.reduce((s, [subId, , derivedKey]) => {
       if (TRIM_TOTAL_EXCLUDED.has(subId)) return s;
       const active = casingIds2.has(subId) ? subs[subId]?.painting : !!subs[subId];
