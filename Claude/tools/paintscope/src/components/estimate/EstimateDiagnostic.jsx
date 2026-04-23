@@ -64,17 +64,40 @@ function classifyInput(input, room, activeGroups) {
   return { kind: 'ungrouped', primarySub };
 }
 
-/** Sort tasks by canonical phase order then by task_id. */
+/** Sort tasks by canonical phase order then by taskId. */
 function sortTasks(tasks) {
   const phaseIdx = new Map(PHASE_ORDER.map((p, i) => [p, i]));
   return [...tasks].sort((a, b) => {
     const pa = phaseIdx.get(a.phase) ?? 99;
     const pb = phaseIdx.get(b.phase) ?? 99;
     if (pa !== pb) return pa - pb;
-    const ai = a.task_id || a.taskId || a.taskName || '';
-    const bi = b.task_id || b.taskId || b.taskName || '';
+    const ai = a.taskId || a.taskName || '';
+    const bi = b.taskId || b.taskName || '';
     return ai.localeCompare(bi);
   });
+}
+
+/** Format a task's rate for display. Engine outputs baseRate as either a
+ *  numeric per-hour rate OR a string like "15m" for fixed-minute tasks. */
+function fmtRate(t) {
+  const r = t.baseRate;
+  if (r == null || r === '') return '-';
+  if (typeof r === 'string') return r; // e.g. "15m" fixed-minutes
+  const uom = t.uom || '';
+  return uom ? `${r} ${uom}/hr` : `${r}/hr`;
+}
+
+/** Compute the effective rate after modifiers: quantity / hours (units/hr).
+ *  Useful to see how QT / height / complexity modifiers shifted the canonical
+ *  baseRate. Returns null for fixed-minute tasks or zero-hour tasks. */
+function fmtEffectiveRate(t) {
+  if (t.isFixed) return '—';
+  if (!t.hours || t.hours <= 0) return '—';
+  const qty = t.quantity ?? 0;
+  if (!qty) return '—';
+  const eff = qty / t.hours;
+  const uom = t.uom || '';
+  return uom ? `${eff.toFixed(1)} ${uom}/hr` : `${eff.toFixed(1)}/hr`;
 }
 
 function TaskTable({ tasks }) {
@@ -89,22 +112,26 @@ function TaskTable({ tasks }) {
           <th style={{ textAlign: 'left', padding: '4px 6px' }}>task_id</th>
           <th style={{ textAlign: 'left', padding: '4px 6px' }}>ps_key</th>
           <th style={{ textAlign: 'right', padding: '4px 6px', width: 70 }}>qty</th>
-          <th style={{ textAlign: 'right', padding: '4px 6px', width: 80 }}>rate</th>
+          <th style={{ textAlign: 'right', padding: '4px 6px', width: 100 }} title="Canonical production rate from the task library (before modifiers)">base rate</th>
+          <th style={{ textAlign: 'right', padding: '4px 6px', width: 100 }} title="Effective rate after QT / height / complexity modifiers (quantity ÷ hours)">eff. rate</th>
           <th style={{ textAlign: 'right', padding: '4px 6px', width: 70 }}>hours</th>
         </tr>
       </thead>
       <tbody>
         {tasks.map((t, i) => {
-          const qty = t.qty ?? t.quantity ?? 0;
+          const qty = t.quantity ?? 0;
           const uom = t.uom || '';
-          const rate = t.effectiveRate ?? t.rate ?? t.rate_per_hour ?? 0;
           return (
             <tr key={i} style={{ borderTop: '1px solid var(--border)' }}>
               <td style={{ padding: '3px 6px', color: 'var(--text-secondary)' }}>{t.phase || '-'}</td>
-              <td style={{ padding: '3px 6px' }}>{t.task_id || t.taskId || t.taskName || '?'}</td>
-              <td style={{ padding: '3px 6px', color: 'var(--text-muted)' }}>{t.ps_key || t.psKey || '-'}</td>
+              <td style={{ padding: '3px 6px' }} title={t.rateSource ? `source: ${t.rateSource}` : ''}>
+                {t.taskId || t.taskName || '?'}
+                {t.coatNumber > 1 ? <span style={{ color: 'var(--text-muted)' }}> · coat {t.coatNumber}</span> : null}
+              </td>
+              <td style={{ padding: '3px 6px', color: 'var(--text-muted)' }}>{t.psKey || '-'}</td>
               <td style={{ textAlign: 'right', padding: '3px 6px' }}>{qty} {uom}</td>
-              <td style={{ textAlign: 'right', padding: '3px 6px' }}>{rate ? rate.toFixed?.(1) ?? rate : '-'}/hr</td>
+              <td style={{ textAlign: 'right', padding: '3px 6px', color: 'var(--text-secondary)' }}>{fmtRate(t)}</td>
+              <td style={{ textAlign: 'right', padding: '3px 6px', color: 'var(--text-secondary)' }}>{fmtEffectiveRate(t)}</td>
               <td style={{ textAlign: 'right', padding: '3px 6px', fontWeight: 600, color: 'var(--accent)' }}>{fmtHrs(t.hours || 0)}</td>
             </tr>
           );
