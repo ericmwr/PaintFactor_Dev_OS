@@ -70,13 +70,24 @@ export function resolveSystem(specId, room, project) {
   const primarySub = SPEC_SUBSTRATE_MAP[specId];
   const subConfig = primarySub && room.substrates?.[primarySub];
 
-  // 1. Per-substrate override
+  // 1. Stain/clear coating_type asserts workflow intent over any stale
+  // `system` value. Coating Type is the user-facing toggle for wood substrates;
+  // picking "Stain + Clear" must suppress paint specs even if a prior session
+  // left config.system = 'paint_full' cached on the substrate.
+  if (subConfig?.substrate_state === 'bare_wood') {
+    if (subConfig?.coating_type === 'stain_clear')  return 'stain_sealer_clear';
+    if (subConfig?.coating_type === 'stain_only')   return 'stain_only';
+    if (subConfig?.coating_type === 'clear_only')   return 'clear_refresh';
+    if (subConfig?.coating_type === 'stain')        return 'stain_sealer_clear';
+  }
+
+  // 2. Per-substrate explicit system override (e.g. user picked paint_finish
+  // via the System dropdown when the inferred default would've been paint_full).
   if (subConfig?.system) return subConfig.system;
 
-  // 2. Backward compat — legacy coating_type on bare wood
-  if (subConfig?.substrate_state === 'bare_wood') {
-    if (subConfig?.coating_type === 'stain') return 'stain_sealer_clear';
-    if (subConfig?.coating_type === 'paint') return 'paint_full';
+  // 3. Paint coating_type on bare wood → full paint system (default inference).
+  if (subConfig?.substrate_state === 'bare_wood' && subConfig?.coating_type === 'paint') {
+    return 'paint_full';
   }
 
   // 3. Per-room override
@@ -152,11 +163,17 @@ export function resolveClearMethod(specId, room, project) {
 export function resolveCoatCounts(specId, room, project) {
   const primarySub = SPEC_SUBSTRATE_MAP[specId];
   const config = resolveSubstrateConfig(specId, room);
-  return {
+  const coatingType = resolveItemField(config, primarySub, 'coating_type', 'paint');
+  const counts = {
     stain_coats: resolveItemField(config, primarySub, 'stain_coats', 1),
     sealer_coats: resolveItemField(config, primarySub, 'sealer_coats', 0),
     clear_coats: resolveItemField(config, primarySub, 'clear_coats', 1),
   };
+  // Gate irrelevant phases by coating_type — UI hides the dropdowns but may
+  // have stale saved values. dynamic_coats uses these to skip phase modules.
+  if (coatingType === 'stain_only') { counts.sealer_coats = 0; counts.clear_coats = 0; }
+  if (coatingType === 'clear_only') { counts.stain_coats = 0; counts.sealer_coats = 0; }
+  return counts;
 }
 
 export function resolveClearSheen(specId, room, project) {

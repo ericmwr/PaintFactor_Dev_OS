@@ -337,6 +337,15 @@ function evaluateAppliesWhen(condition, ctx, coatNumber) {
     return true;
   }
   for (const [key, values] of Object.entries(condition)) {
+    // coat_lt_ctx: "<field>" — fires when coatNumber < ctx[field]. Used to
+    // suppress interstage sand on the final coat of a multi-coat module
+    // expanded via scenario.dynamic_coats.
+    if (key === 'coat_lt_ctx') {
+      const field = Array.isArray(values) ? values[0] : values;
+      const max = Number(ctx[field]);
+      if (!(Number.isFinite(max) && coatNumber < max)) return false;
+      continue;
+    }
     if (!Array.isArray(values)) continue;
     let ctxValue;
     if (key === 'coat') {
@@ -560,9 +569,26 @@ export function runScenarioEstimate({ scenarioBundle, ctx, roomQty, roomItems = 
   // the Nth time a given module appears in the scenario list, its tasks see
   // coatNumber = N. Non-apply modules (protect, prep, interstage, cleanup)
   // always run at coatNumber = 1.
+  //
+  // Dynamic coat expansion: if scenario.dynamic_coats maps a module_id to a
+  // ctx field (e.g. "stain_coats"), that module is repeated ctx[field] times
+  // at this point in the sequence. 0 = skipped. This lets one scenario serve
+  // any per-coat user configuration without combinatorial scenario fanout.
+  const dynamicCoats = scenario.dynamic_coats || {};
+  const expandedModules = [];
+  for (const moduleId of scenario.modules) {
+    const ctxField = dynamicCoats[moduleId];
+    if (ctxField) {
+      const n = Number(ctx[ctxField]);
+      const reps = Number.isFinite(n) && n > 0 ? Math.floor(n) : 0;
+      for (let i = 0; i < reps; i++) expandedModules.push(moduleId);
+    } else {
+      expandedModules.push(moduleId);
+    }
+  }
   const moduleInvocations = {}; // module_id -> count so far
 
-  for (const moduleId of scenario.modules) {
+  for (const moduleId of expandedModules) {
     const mod = scenarioBundle.modules[moduleId];
     if (!mod) {
       warnings.push(`Scenario ${scenario.scenario_id} references unknown module ${moduleId}`);

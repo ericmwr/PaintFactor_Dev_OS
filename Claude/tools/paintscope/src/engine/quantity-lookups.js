@@ -97,16 +97,10 @@ export function buildRoomQuantityLookups(state) {
     });
     // Opening counts from openings table (structural, always emit)
     addQ('PS_OPENING_EA.DOOR_OPENINGS_TOTAL', 'EA', d.totalOpenings);
-    // Door frames — LF-based for paint (matches casing/trim convention).
-    // Stain path still emits EA for now (stain spec modules read EA); will
-    // migrate if stain-frame work is also converted to LF.
+    // Door frames — LF-based for both paint and stain. Derived LF accounts
+    // for fixed LF-per-variant (single=17, double=20, etc.) × openings count.
     if (subs.door_frames) {
-      const frameCt = subs.door_frames.coating_type || 'paint';
-      if (frameCt === 'paint') {
-        addQ('PS_SURFACE_LF.DOOR_FRAME', 'LF', d.door_frame_lf);
-      } else {
-        addQ('PS_SURFACE_EA.DOOR_FRAME_STAIN', 'EA', d.totalOpenings);
-      }
+      addQ('PS_SURFACE_LF.DOOR_FRAME', 'LF', d.door_frame_lf);
     }
 
     // Windows — from substrates.windows.items; surface keys only when painting, opening counts always

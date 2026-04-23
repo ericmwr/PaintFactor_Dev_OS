@@ -244,10 +244,14 @@ export const SYSTEM_SPEC_ACTIVATION = {
   },
   clear_refresh: {
     CLEAR:    { active: true,  stateTransition: 'input' },
+    // STAIN-role specs hold the per-substrate workflow (stain+sealer+clear)
+    // as one bundled spec. Under clear_refresh we still want that spec to
+    // activate so its PREP/CLEAR/CLEANUP modules fire — stain and sealer
+    // modules are zeroed out via resolveCoatCounts' coating_type gating.
+    STAIN:    { active: true,  stateTransition: 'input' },
     COMBINED: { active: false },
     PRIME:    { active: false },
     FINISH:   { active: false },
-    STAIN:    { active: false },
   },
   restain_recoat: {
     STAIN:    { active: true,  stateTransition: 'input' },
