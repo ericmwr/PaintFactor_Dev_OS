@@ -115,7 +115,7 @@ function TaskTable({ tasks }) {
 }
 
 function GroupSection({ title, subtitle, totalHours, tasks }) {
-  const [expanded, setExpanded] = useState(true);
+  const [expanded, setExpanded] = useState(false);
   return (
     <div style={{ border: '1px solid var(--border)', borderRadius: 4, marginBottom: 8, background: 'var(--bg-secondary, transparent)' }}>
       <div
@@ -166,7 +166,7 @@ export default function EstimateDiagnostic() {
   }
   const perInputResults = scenarioEstimate.perInputResults || [];
 
-  const toggleRoom = (ri) => setExpandedRooms(p => ({ ...p, [ri]: p[ri] === undefined ? false : !p[ri] }));
+  const toggleRoom = (ri) => setExpandedRooms(p => ({ ...p, [ri]: p[ri] === undefined ? true : !p[ri] }));
 
   // Group perInputResults by room
   const byRoom = useMemo(() => {
@@ -216,7 +216,7 @@ export default function EstimateDiagnostic() {
           }
         }
 
-        const roomExpanded = expandedRooms[roomIndex] !== false;
+        const roomExpanded = expandedRooms[roomIndex] === true;
         const roomTotal = inputs.reduce((s, pr) => s + (pr.totalHours || 0), 0);
 
         return (
