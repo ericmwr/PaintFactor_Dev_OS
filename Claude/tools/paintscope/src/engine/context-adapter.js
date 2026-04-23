@@ -124,6 +124,8 @@ const SPEC_TO_PAINTABLE_ITEM = {
   SF_CROWN_NC_PRIME:                'crown',
   SF_CHAIR_RAIL_NC_PAINT:           'chair_rail',
   SF_CHAIR_RAIL_NC_PRIME:           'chair_rail',
+  SF_SHOE_MOLD_NC_PAINT:            'shoe_mold',
+  SF_SHOE_MOLD_NC_PRIME:            'shoe_mold',
   SF_WAINSCOT_PANEL_NC:             'wainscot',
   SF_WOOD_WALL_NC:                  'wood_wall',
   SF_WOOD_CEILING_NC:               'wood_ceiling',
