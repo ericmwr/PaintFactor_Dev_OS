@@ -215,7 +215,7 @@ export default function OpeningsTab({ room, derived, dispatch, project }) {
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 3 }}>
             <input type="checkbox" checked={!!subs.door_frames} onChange={() => dispatch({ type: 'TOGGLE_SUBSTRATE', payload: { roomId: rid, substrateId: 'door_frames' } })} />
             <span style={{ fontSize: 12, color: subs.door_frames ? 'var(--text-primary)' : 'var(--text-muted)' }}>Door Frames</span>
-            <span style={{ fontSize: 11, fontFamily: 'var(--font-mono)', color: 'var(--derived)', marginLeft: 'auto' }}>{totalOpenings > 0 ? `${totalOpenings} EA` : '\u2014'}</span>
+            <span style={{ fontSize: 11, fontFamily: 'var(--font-mono)', color: 'var(--derived)', marginLeft: 'auto' }}>{derived.door_frame_lf > 0 ? `${derived.door_frame_lf} LF` : '\u2014'}</span>
           </div>
           {!!subs.door_frames && (
             <>
@@ -420,7 +420,7 @@ export default function OpeningsTab({ room, derived, dispatch, project }) {
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 3 }}>
             <input type="checkbox" checked={!!subs.window_jamb} onChange={() => dispatch({ type: 'TOGGLE_SUBSTRATE', payload: { roomId: rid, substrateId: 'window_jamb' } })} />
             <span style={{ fontSize: 12, color: subs.window_jamb ? 'var(--text-primary)' : 'var(--text-muted)' }}>Window Jambs</span>
-            <span style={{ fontSize: 11, fontFamily: 'var(--font-mono)', color: 'var(--derived)', marginLeft: 'auto' }}>{totalWindows > 0 ? `${totalWindows} EA` : '\u2014'}</span>
+            <span style={{ fontSize: 11, fontFamily: 'var(--font-mono)', color: 'var(--derived)', marginLeft: 'auto' }}>{derived.window_jamb_lf > 0 ? `${derived.window_jamb_lf} LF` : '\u2014'}</span>
           </div>
           {!!subs.window_jamb && (
             <>

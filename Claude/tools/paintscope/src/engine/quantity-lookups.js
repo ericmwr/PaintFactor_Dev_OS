@@ -90,13 +90,15 @@ export function buildRoomQuantityLookups(state) {
     });
     // Opening counts from openings table (structural, always emit)
     addQ('PS_OPENING_EA.DOOR_OPENINGS_TOTAL', 'EA', d.totalOpenings);
-    // Door frames — emit stain key when coating_type is stain/clear
+    // Door frames — LF-based for paint (matches casing/trim convention).
+    // Stain path still emits EA for now (stain spec modules read EA); will
+    // migrate if stain-frame work is also converted to LF.
     if (subs.door_frames) {
       const frameCt = subs.door_frames.coating_type || 'paint';
       if (frameCt === 'paint') {
-        addQ('PS_SURFACE_EA.DOOR_FRAME_SET', 'EA', d.door_frames_ea);
+        addQ('PS_SURFACE_LF.DOOR_FRAME', 'LF', d.door_frame_lf);
       } else {
-        addQ('PS_SURFACE_EA.DOOR_FRAME_STAIN', 'EA', d.door_frames_ea);
+        addQ('PS_SURFACE_EA.DOOR_FRAME_STAIN', 'EA', d.totalOpenings);
       }
     }
 
@@ -110,10 +112,11 @@ export function buildRoomQuantityLookups(state) {
       addQ('PS_OPENING_EA.WINDOW_OPENINGS_TOTAL', 'EA', cnt);
     });
     if (subs.window_jamb) {
-      addQ('PS_SURFACE_EA.WINDOW_JAMB', 'EA', d.window_jamb_ea);
-      // Jamb count also contributes to WINDOW_TOTAL when windows not already painting
+      addQ('PS_SURFACE_LF.WINDOW_JAMB', 'LF', d.window_jamb_lf);
+      // Jamb also contributes to WINDOW_TOTAL (EA count) when window panels
+      // aren't already painting — lets jamb work activate window-aware specs.
       if (!windowsPainting2 || !windowItems.length) {
-        addQ('PS_OPENING_EA.WINDOW_TOTAL', 'EA', d.window_jamb_ea);
+        addQ('PS_OPENING_EA.WINDOW_TOTAL', 'EA', d.totalWindows);
       }
     }
 

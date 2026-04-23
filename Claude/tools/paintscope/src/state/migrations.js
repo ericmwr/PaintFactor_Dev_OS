@@ -278,6 +278,14 @@ export function migrateInline(parsed) {
     }
   }
 
+  // v1.8: Rename opening_type 'wide' → '4_door'. Also introduces '3_door'
+  // (no existing rooms use it yet, so no conversion needed there).
+  for (const room of parsed.rooms || []) {
+    for (const opn of room.openings || []) {
+      if (opn.opening_type === 'wide') opn.opening_type = '4_door';
+    }
+  }
+
   // v1.0: Initialize colors state
   if (!parsed.colors) {
     parsed.colors = { defaults: {}, substrate_overrides: {}, room_overrides: {}, room_group_overrides: {}, elevation_overrides: {}, elevation_group_overrides: {} };

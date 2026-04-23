@@ -205,12 +205,33 @@ export function deriveRoom(room) {
       : Math.round(ceilingSF + vaultedExtra))
     : 0;
 
+  // Door frame LF: sum each opening's count × casing_lf (shares perimeter
+  // used by door_casing). Matches the user-facing per-opening-type values in
+  // OPENING_TYPES (single=17, double=20, 3_door=23, 4_door=26).
+  const _doorFrameLF = openings.reduce((s, o) => {
+    const cnt = parseInt(o.count) || 0;
+    const type = OPENING_TYPES[o.opening_type] || OPENING_TYPES.single;
+    return s + cnt * type.casing_lf;
+  }, 0);
+
+  // Window jamb LF: sum each window's count × size-bucket perimeter (matches
+  // window_casing convention). 'O' is a measured XL — uses width + height.
+  const WINDOW_SIZE_PERIM_LF = { S: 8, M: 12, L: 17 };
+  const _windowJambLF = windowItems.reduce((s, w) => {
+    const cnt = parseInt(w.count) || 0;
+    if (w.size_bucket === 'O') {
+      const perim = Math.round(2 * ((w.width_ft || 0) + (w.height_ft || 0)));
+      return s + cnt * perim;
+    }
+    return s + cnt * (WINDOW_SIZE_PERIM_LF[w.size_bucket] || 12);
+  }, 0);
+
   // Helper: derive LF for a trim substrate with auto-derive from catalog
   function deriveLF(subId) {
     if (!subs[subId]) return 0;
     const cat = SUBSTRATE_MAP[subId];
     if (subs[subId].lf_override) return parseFloat(subs[subId].lf_manual)||0;
-    if (cat?.autoDerive) return Math.round(cat.autoDerive({ perimeter, totalDoors, totalWindows, totalOpenings, openingCasingLF, wall_field_sf, ceiling_field_sf }));
+    if (cat?.autoDerive) return Math.round(cat.autoDerive({ perimeter, totalDoors, totalWindows, totalOpenings, openingCasingLF, wall_field_sf, ceiling_field_sf, door_frame_lf: _doorFrameLF, window_jamb_lf: _windowJambLF }));
     return parseFloat(subs[subId].lf_manual)||0;
   }
 
@@ -230,9 +251,11 @@ export function deriveRoom(room) {
   const shadow_box_lf = deriveLF('shadow_box');
   const panel_mold_lf = deriveLF('panel_mold');
 
-  // EA-based substrates
-  const door_frames_ea = subs.door_frames ? (SUBSTRATE_MAP.door_frames.autoDerive({ totalOpenings })) : 0;
-  const window_jamb_ea = subs.window_jamb ? (SUBSTRATE_MAP.window_jamb.autoDerive({ totalWindows })) : 0;
+  // Final derived LF for door_frame / window_jamb substrates (respects
+  // lf_override via deriveLF, falls back to the auto-derived _doorFrameLF /
+  // _windowJambLF above).
+  const door_frame_lf = deriveLF('door_frames');
+  const window_jamb_lf = deriveLF('window_jamb');
 
   const effectiveHeight = (room.vaulted_ceiling && parseFloat(room.peak_height_ft) > H)
     ? parseFloat(room.peak_height_ft) : H;
@@ -252,7 +275,7 @@ export function deriveRoom(room) {
     baseboard_lf, crown_lf, door_casing_lf, window_casing_lf,
     chair_rail_lf, shoe_mold_lf, wainscot_cap_lf, picture_rail_lf,
     window_stool_lf, window_apron_lf, shadow_box_lf, panel_mold_lf,
-    door_frames_ea, window_jamb_ea,
+    door_frame_lf, window_jamb_lf,
     totalDoorSides,
     beamTotalLF, beamPeakLF, beamCrossLFEach, beamRidgeLFEach
   };

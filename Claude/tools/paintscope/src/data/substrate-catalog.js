@@ -68,16 +68,16 @@ export const SUBSTRATE_CATALOG = [
     autoDerive: null, defaultConfig: { items: [], application_method: null, painting: false }
   },
   {
-    id: 'door_frames', group: 'Doors & Windows', label: 'Door Frames', uom: 'EA',
-    autoDerive: (d) => d.totalOpenings, defaultConfig: { substrate_state: 'factory_primed', application_method: null }
+    id: 'door_frames', group: 'Doors & Windows', label: 'Door Frames', uom: 'LF',
+    autoDerive: (d) => d.door_frame_lf, defaultConfig: { substrate_state: 'factory_primed', application_method: null }
   },
   {
     id: 'windows', group: 'Doors & Windows', label: 'Windows', uom: 'EA',
     autoDerive: null, defaultConfig: { items: [], application_method: null, painting: false }
   },
   {
-    id: 'window_jamb', group: 'Doors & Windows', label: 'Window Jambs', uom: 'EA',
-    autoDerive: (d) => d.totalWindows, defaultConfig: { substrate_state: 'bare_wood', application_method: null }
+    id: 'window_jamb', group: 'Doors & Windows', label: 'Window Jambs', uom: 'LF',
+    autoDerive: (d) => d.window_jamb_lf, defaultConfig: { substrate_state: 'bare_wood', application_method: null }
   },
 
   // --- Specialty ---
