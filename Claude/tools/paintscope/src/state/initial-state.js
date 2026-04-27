@@ -148,6 +148,17 @@ export function createRoom(overrides={}) {
     floor_type: '',
     floor_protection: '',
     fixtures: {},  // keyed by fixture_id → { protection: 'partial_cover', count: 1, size: '', notes: '' }
+    // Room-level protection (decoupled from paintable-item modules).
+    // Levels: 'none' | 'edge' | 'partial' | 'full' | 'encapsulate'.
+    // Consumed by SCN_ROOM_PROTECTION_NC via mask-level applies_when gates.
+    protection: {
+      floor_mask_level: 'edge',
+      wall_mask_level: 'edge',
+      ceiling_mask_level: 'none',
+      containment_mode: false,
+      containment_door_zipper: false,
+      tapeline_edge: false,
+    },
     notes: ''
   };
 

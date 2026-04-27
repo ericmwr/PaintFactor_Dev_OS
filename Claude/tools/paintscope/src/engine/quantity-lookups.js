@@ -274,6 +274,58 @@ export function buildRoomQuantityLookups(state) {
     }
     addQ('PS_PROTECT_LF.CEILING_LINE', 'LF', d.perimeter);
 
+    // === Room Protection v1 quantity emissions ===
+    // New protection scenario (SCN_ROOM_PROTECTION_NC) consumes these. Modules
+    // gate by floor/wall/ceiling mask_level — engine emits all keys; the
+    // scenario's modules pick which level's task to fire. Quantities reflect
+    // what would be masked at any chosen level (engine doesn't know level here).
+    const wallTotalSF = d.perimeter * (parseFloat(room.height_ft) || 8);
+    // Floor
+    addQ('PS_PROTECT_LF.FLOOR_EDGE', 'LF', d.perimeter);
+    addQ('PS_PROTECT_LF.FLOOR_PARTIAL', 'LF', d.perimeter);
+    addQ('PS_PROTECT_SF.FLOOR_AREA', 'SF', d.ceilingSF);
+    // Wall — edge/partial = LF perimeter, full/encapsulate = total wall SF
+    addQ('PS_PROTECT_LF.WALL_EDGE', 'LF', d.perimeter);
+    addQ('PS_PROTECT_LF.WALL_PARTIAL', 'LF', d.perimeter);
+    addQ('PS_PROTECT_SF.WALL_AREA', 'SF', wallTotalSF);
+    // Ceiling — edge/partial perimeter, encapsulate area
+    addQ('PS_PROTECT_LF.CEILING_EDGE', 'LF', d.perimeter);
+    addQ('PS_PROTECT_LF.CEILING_PARTIAL', 'LF', d.perimeter);
+    addQ('PS_PROTECT_SF.CEILING_AREA', 'SF', d.ceilingSF);
+    // Adjacent-surface masks — emit only when neighbor NOT in paint/stain scope.
+    // Doors not in scope: count = totalOpenings - active door panels
+    const doorsActiveCnt = (subs.doors?.painting && subs.doors?.items) ? subs.doors.items.reduce((s, di) => s + (parseInt(di.count) || 0), 0) : 0;
+    const doorsUnpaintedCnt = Math.max(0, d.totalOpenings - doorsActiveCnt);
+    if (doorsUnpaintedCnt > 0) addQ('PS_PROTECT_EA.DOOR_SLAB', 'EA', doorsUnpaintedCnt);
+    // Door frame / casing / window jamb / window casing — mask when not in scope
+    if (!subs.door_frames && d.door_frame_lf > 0) {
+      addQ('PS_PROTECT_LF.DOOR_FRAME_ADJACENT', 'LF', d.door_frame_lf);
+    }
+    if (!subs.door_casing?.painting && d.door_casing_lf > 0) {
+      addQ('PS_PROTECT_LF.DOOR_CASING_ADJACENT', 'LF', d.door_casing_lf);
+    }
+    if (!subs.window_casing?.painting && d.window_casing_lf > 0) {
+      addQ('PS_PROTECT_LF.WINDOW_CASING_ADJACENT', 'LF', d.window_casing_lf);
+    }
+    if (!subs.window_jamb && d.window_jamb_lf > 0) {
+      addQ('PS_PROTECT_LF.WINDOW_JAMB_ADJACENT', 'LF', d.window_jamb_lf);
+    }
+    // Trim tape line — total trim LF being painted (for crisp finished edge before walls)
+    const tapelineLF = (subs.baseboard ? d.baseboard_lf : 0)
+      + (subs.crown ? d.crown_lf || 0 : 0)
+      + (subs.door_casing?.painting ? d.door_casing_lf : 0)
+      + (subs.window_casing?.painting ? d.window_casing_lf : 0)
+      + (subs.chair_rail ? d.chair_rail_lf || 0 : 0);
+    if (tapelineLF > 0) addQ('PS_PROTECT_LF.TRIM_TAPELINE', 'LF', tapelineLF);
+    // Containment — singleton (engine handles FIXED tasks via quantity=1 sentinel)
+    addQ('PS_PROTECT_FIXED.CONTAINMENT', 'FIXED', 1);
+    addQ('PS_PROTECT_FIXED.CONTAINMENT_ZIPPER', 'FIXED', 1);
+    // Spot mask quantities — opening counts for floor/ceiling spot tasks.
+    // Floor spot fires at base of door casing/frame (door openings only).
+    // Ceiling spot fires above doors + windows (any opening with ceiling above).
+    addQ('PS_PROTECT_EA.OPENING_BASE_FLOOR', 'EA', d.totalOpenings);
+    addQ('PS_PROTECT_EA.OPENING_ABOVE_CEILING', 'EA', d.totalOpenings + d.totalWindows);
+
     // Fixture protection keys (v0.5)
     Object.entries(room.fixtures || {}).forEach(function ([fId, cfg]) {
       if (fId === 'cabinets') {

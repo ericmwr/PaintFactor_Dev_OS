@@ -34,6 +34,7 @@ import { FIXTURE_CATALOG } from '../data/fixture-catalog.js';
 import { STAIN_SPEC_FAMILIES, UI_STATE_TO_SPEC_STATE, SPEC_SUBSTRATE_MAP, SPEC_ROLE } from '../data/spec-maps.js';
 import { resolveActivation, STATE_TRANSITION_TARGET } from '../data/system-catalog.js';
 import { resolveSystem } from './spec-resolution.js';
+import { deriveProtectionDefaults } from './derive-protection-defaults.js';
 import { resolvePassGroups } from './pass-groups.js';
 
 // Helper: set explicit-null pass-group fields on a ctx. Required because
@@ -147,6 +148,10 @@ const SPEC_TO_PAINTABLE_ITEM = {
   SF_BUILTIN_NC:                    'builtin',
   SF_CABINET_NC_PAINT:              'cabinet',
   SF_CLOSET_SHELF_NC:               'closet',
+
+  // Room-level protection (decoupled from paintable-item modules).
+  // Activated once per room via buildRoomProtectionCtxs after the substrate loop.
+  SF_ROOM_PROTECTION:               'room_protection',
 
   // Interior stain NC (matches SCN_INT_*_STAIN_CLEAR scenarios which use int_ prefix)
   SF_TRIM_NC_STAIN:                 'trim',
@@ -504,6 +509,40 @@ export function expandProtectContexts(room, project) {
 }
 
 /**
+ * Build the SF_ROOM_PROTECTION ctx for a room. Fires when the room has at
+ * least one active paintable item (otherwise no protection needed). Pulls
+ * mask levels + flags from `room.protection` state. Modules' applies_when
+ * gates pick which level's task fires per surface.
+ *
+ * Caller should only invoke this AFTER the substrate loop has determined
+ * whether the room has any active spec — pass `roomHasActiveSpec` boolean.
+ */
+export function buildRoomProtectionCtxs(room, project, roomHasActiveSpec) {
+  if (!roomHasActiveSpec) return [];
+  const p = room.protection || {};
+  // Auto-derive defaults from active scope + floor type + methods. User overrides
+  // in room.protection.* take precedence; rules fill in anything the user hasn't pinned.
+  const defaults = deriveProtectionDefaults(room, project);
+  return [{
+    paintable_item: 'room_protection',
+    quality_tier: project?.default_quality_tier || 'QT3',
+    application_method: 'n/a',
+    substrate_state: 'SS_ANY',
+    height_band: 'STD',
+    complexity: room.complexity || project?.default_complexity || 'STD',
+    floor_mask_level:    p.floor_mask_level    || defaults.floor_mask_level,
+    wall_mask_level:     p.wall_mask_level     || defaults.wall_mask_level,
+    ceiling_mask_level:  p.ceiling_mask_level  || defaults.ceiling_mask_level,
+    containment_mode:        p.containment_mode === true,
+    containment_door_zipper: p.containment_door_zipper === true,
+    tapeline_edge:           p.tapeline_edge === true || project?.protection_defaults?.full_trim_tapeline === true,
+    __specId: 'SF_ROOM_PROTECTION',
+    __component: 'room_protection',
+    __auto_categories: defaults._categories,  // exposed for diagnostic / UI reason display
+  }];
+}
+
+/**
  * Build the per-spec per-room context + quantity lookup for every active
  * (room, spec) pair in the project. Mirrors the `for (spec of db.spec_families)
  * { for (room of state.rooms) { ... } }` loop in run-estimate.js lines 180-280
@@ -787,6 +826,20 @@ export function buildScenarioInputs(state, db) {
         roomLabel,
         specId,
         ctx: normalizePassGroupCtx(ctx),
+        roomQty,
+        roomItems,
+      });
+    }
+
+    // Room-level protection — emit one SF_ROOM_PROTECTION ctx per room that
+    // has any active paintable item. Modules gate by mask_level applies_when.
+    const roomHasActiveSpec = roomInputs.some(ri2 => ri2.roomIndex === ri);
+    for (const protectionCtx of buildRoomProtectionCtxs(room, project, roomHasActiveSpec)) {
+      roomInputs.push({
+        roomIndex: ri,
+        roomLabel,
+        specId: protectionCtx.__specId,
+        ctx: normalizePassGroupCtx(protectionCtx),
         roomQty,
         roomItems,
       });
