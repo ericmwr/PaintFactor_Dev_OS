@@ -1,6 +1,7 @@
-import { createRoom, createDoor, createWindow, createOpening, createCloset, createSubstrateConfig, genId } from './initial-state';
+import { createRoom, createDoor, createWindow, createOpening, createCloset, createSubstrateConfig, genId, bumpNextIdFromState } from './initial-state';
 import { FIXTURE_MAP } from '../data/fixture-catalog';
 import { inferDefaultSystem } from '../data/system-catalog.js';
+import { PAINTING_SCOPE_PRESET_MAP, ALWAYS_PRESENT_SUBSTRATES } from '../data/painting-scope-presets.js';
 import {
   createElevation, createSidingSection, createTrimConfig, createExtWindow, createExtDoor,
   createBumpOut, createDormer, createGable, createGarageDoor, createDeck, createFence,
@@ -60,6 +61,7 @@ export function reducer(state, action) {
       };
     }
     case 'ADD_ROOM': {
+      bumpNextIdFromState(state);
       const room = createRoom(payload || {});
       const projSubs = state.project.default_substrates || [];
       projSubs.forEach(subId => {
@@ -130,6 +132,57 @@ export function reducer(state, action) {
           if (!c.substrate_state) c.substrate_state = 'bare_wood';
           updated.substrates = { ...updated.substrates, ceiling: c };
         }
+        return updated;
+      });
+    }
+
+    // v0.10: Set a single field on room.protection. Used by Protection tab v2
+    // to record per-room overrides for floor/wall/ceiling mask levels, tape
+    // line, containment, etc. Empty / null values delete the key (= revert to
+    // auto-derived default).
+    case 'SET_ROOM_PROTECTION_FIELD': {
+      const { roomId, field, value } = payload;
+      return mapRoom(roomId, r => {
+        const prot = { ...(r.protection || {}) };
+        if (value === null || value === undefined || value === '') delete prot[field];
+        else prot[field] = value;
+        return { ...r, protection: prot };
+      });
+    }
+
+    // v0.10: Set the painting scope preset for a room. When the preset has a
+    // substrates list, bulk-replace the room's active substrate set:
+    //   - Substrates IN the preset get added (or painting=true for always-present openings)
+    //   - Substrates NOT in the preset get removed (or painting=false for openings)
+    // 'custom' preset is a no-op on substrate state — user manages manually.
+    case 'SET_PAINTING_SCOPE_PRESET': {
+      const { roomId, presetId } = payload;
+      const preset = PAINTING_SCOPE_PRESET_MAP[presetId];
+      if (!preset) return state;
+      return mapRoom(roomId, r => {
+        const updated = { ...r, painting_scope_preset: presetId };
+        if (preset.substrates === null) return updated; // 'custom' — no substrate change
+        const targetSet = new Set(preset.substrates);
+        const newSubs = { ...r.substrates };
+        // Activate target substrates
+        for (const subId of targetSet) {
+          if (ALWAYS_PRESENT_SUBSTRATES.has(subId)) {
+            if (!newSubs[subId]) newSubs[subId] = createSubstrateConfig(subId);
+            newSubs[subId] = { ...newSubs[subId], painting: true };
+          } else if (!newSubs[subId]) {
+            newSubs[subId] = createSubstrateConfig(subId);
+          }
+        }
+        // Deactivate non-target substrates
+        for (const subId of Object.keys(newSubs)) {
+          if (targetSet.has(subId)) continue;
+          if (ALWAYS_PRESENT_SUBSTRATES.has(subId)) {
+            newSubs[subId] = { ...newSubs[subId], painting: false };
+          } else {
+            delete newSubs[subId];
+          }
+        }
+        updated.substrates = newSubs;
         return updated;
       });
     }
@@ -227,6 +280,7 @@ export function reducer(state, action) {
 
     // Doors — now operate on substrates.doors.items
     case 'ADD_DOOR': {
+      bumpNextIdFromState(state);
       return mapRoom(payload.roomId, r => {
         const doors = r.substrates.doors || createSubstrateConfig('doors');
         return { ...r, substrates: { ...r.substrates, doors: { ...doors, items: [...(doors.items||[]), createDoor()] } } };
@@ -247,6 +301,7 @@ export function reducer(state, action) {
 
     // Windows — now operate on substrates.windows.items
     case 'ADD_WINDOW': {
+      bumpNextIdFromState(state);
       return mapRoom(payload.roomId, r => {
         const wins = r.substrates.windows || createSubstrateConfig('windows');
         return { ...r, substrates: { ...r.substrates, windows: { ...wins, items: [...(wins.items||[]), createWindow()] } } };
@@ -267,6 +322,7 @@ export function reducer(state, action) {
 
     // v0.7: Openings — structural wall holes
     case 'ADD_OPENING': {
+      bumpNextIdFromState(state);
       return mapRoom(payload.roomId, r => {
         return { ...r, openings: [...(r.openings||[]), createOpening()] };
       });
@@ -284,6 +340,7 @@ export function reducer(state, action) {
 
     // Extra walls — partitions, shower walls, nooks
     case 'ADD_EXTRA_WALL': {
+      bumpNextIdFromState(state);
       return mapRoom(payload.roomId, r => {
         return { ...r, extra_walls: [...(r.extra_walls || []), { id: genId('xw'), label: '', length_ft: 0, height_ft: 0, both_sides: false }] };
       });
@@ -301,6 +358,7 @@ export function reducer(state, action) {
 
     // Wall deductions — cabinets, tile, built-ins covering wall area
     case 'ADD_WALL_DEDUCTION': {
+      bumpNextIdFromState(state);
       return mapRoom(payload.roomId, r => {
         return { ...r, wall_deductions: [...(r.wall_deductions || []), { id: genId('wd'), label: '', length_ft: 0, height_ft: 0, both_sides: false }] };
       });
@@ -318,6 +376,7 @@ export function reducer(state, action) {
 
     // Closets — sub-rooms with own dimensions, inherited substrates
     case 'ADD_CLOSET': {
+      bumpNextIdFromState(state);
       return mapRoom(payload.roomId, r => {
         return { ...r, closets: [...(r.closets || []), createCloset()] };
       });
@@ -398,6 +457,7 @@ export function reducer(state, action) {
     }
 
     case 'ADD_FEATURE_WALL': {
+      bumpNextIdFromState(state);
       return mapRoom(payload.roomId, r => {
         const fw = r.fixtures?.feature_wall;
         // Migrate legacy format (single config without items array)

@@ -1,6 +1,7 @@
 // Derive auto-suggested mask levels for floor/wall/ceiling from room state.
 // Implements the matrix in Claude/devos/mask_level_matrix.docx (filled
 // 2026-04-27). Pure function — no engine state, no side effects.
+// Updated 2026-04-29: methodOf cascade matches resolveApplicationMethod.
 //
 // Mask level enum (per-surface):
 //   none, edge, spot, partial, full, encapsulate,
@@ -8,7 +9,7 @@
 //
 // Ceiling never returns 'full' or 'edge_full' (gravity prevents draping).
 
-import { SUBSTRATE_MAP } from '../data/substrate-catalog.js';
+import { SUBSTRATE_MAP, SUBSTRATE_APPLICATION_METHODS } from '../data/substrate-catalog.js';
 
 // Substrates classified as "fine finish" — i.e., what an estimator calls
 // the "trim package" once scope is decided. Not an engine grouping; just
@@ -37,7 +38,7 @@ const CASING_OR_FRAME = new Set(['door_casing', 'door_frame', 'door_frames']);
  *     methods: { ceiling, walls, fineFinish }  // 'brush' | 'spray' | 'mixed' | null
  *   }
  */
-export function categorizeScope(room) {
+export function categorizeScope(room, project = {}) {
   const subs = room.substrates || {};
   const active = (id) => {
     const s = subs[id];
@@ -76,9 +77,29 @@ export function categorizeScope(room) {
 
   // Resolve methods per category. 'spray' if any active sub uses spray;
   // 'brush' if all use brush/roll; 'mixed' if a mix.
+  // Cascade matches resolveApplicationMethod in spec-resolution.js:
+  //   1. substrate.application_method (explicit per-substrate override)
+  //   2. SUBSTRATE_APPLICATION_METHODS[id].default (substrate type default)
+  //   3. room.application_method (room-level override)
+  //   4. project.default_application_method (project default)
   const methodOf = (subId) => {
-    const s = subs[subId];
-    return s?.application_method || s?.application_method_stain || null;
+    const s = subs[subId] || {};
+    const coatingType = s.coating_type || 'paint';
+    const isStainCoating = coatingType !== 'paint';
+    // Stain coating types: prefer the stain method (clear method also valid).
+    // Stain method is irrelevant for paint substrates — even if a stale
+    // application_method_stain is saved, ignore it.
+    if (isStainCoating) {
+      if (s.application_method_stain) return s.application_method_stain;
+      if (s.application_method_clear) return s.application_method_clear;
+    }
+    // Paint cascade — matches resolveApplicationMethod in spec-resolution.js
+    if (s.application_method) return s.application_method;
+    const sam = SUBSTRATE_APPLICATION_METHODS[subId];
+    if (sam?.default) return sam.default;
+    if (room.application_method) return room.application_method;
+    if (project?.default_application_method) return project.default_application_method;
+    return null;
   };
   const isSpray = (m) => m === 'spray' || m === 'spray_backbrush' || m === 'spray_backroll';
   const methodFor = (subList) => {
@@ -140,11 +161,13 @@ export function deriveFloorMaskLevel(cats, floorType) {
     return 'full'; // optional Edge+ default = full
   }
 
-  // 3. Walls + Trim (no ceiling)
+  // 3. Walls + Trim (no ceiling) — matrix rows 11–14
+  // Trim spray = encapsulate (trim overspray reaches deep into floor area).
+  // Walls spray + trim brush = perimeter only (wall overspray stays at edge).
+  // All brush = perimeter.
   if (!ceiling && walls && fineFinishKind !== 'none') {
-    if (trimSpray && !wallsSpray) return 'edge_encapsulate'; // trim spray, walls brush
-    if (wallsSpray) return 'edge_encapsulate'; // any spray → encapsulate
-    return 'partial'; // all-brush: optional Edge+ default = perimeter
+    if (trimSpray) return 'edge_encapsulate'; // covers trim+walls both spray and trim spray + walls brush
+    return 'partial';                         // walls spray + trim brush, OR all-brush
   }
 
   // 4. Ceiling + Walls (no trim)
@@ -266,7 +289,7 @@ export function deriveCeilingMaskLevel(cats) {
  * user overrides from room.protection state.
  */
 export function deriveProtectionDefaults(room, project) {
-  const cats = categorizeScope(room);
+  const cats = categorizeScope(room, project);
   return {
     floor_mask_level:   deriveFloorMaskLevel(cats, room.floor_type),
     wall_mask_level:    deriveWallMaskLevel(cats),

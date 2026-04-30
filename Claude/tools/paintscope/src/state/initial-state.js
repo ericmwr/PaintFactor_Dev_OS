@@ -14,6 +14,27 @@ export function genId(prefix) { return `${prefix}_${nextId++}`; }
 export function bumpNextId(n) { if (n >= nextId) nextId = n + 1; }
 export function getNextId() { return nextId; }
 
+// Walk a state tree and bump nextId past every entity ID seen.
+// Defensive: HMR can reset the module-level counter, causing new entities
+// to collide with existing ones. Call this from any reducer action that
+// creates a new entity, BEFORE calling createRoom/createDoor/etc.
+export function bumpNextIdFromState(state) {
+  let maxId = 0;
+  const num = (s) => { const m = s && String(s).match(/_(\d+)$/); return m ? parseInt(m[1]) : 0; };
+  (state?.rooms || []).forEach(r => {
+    maxId = Math.max(maxId, num(r.id));
+    const subs = r.substrates || {};
+    (subs.doors?.items || []).forEach(d => { maxId = Math.max(maxId, num(d.id)); });
+    (subs.windows?.items || []).forEach(w => { maxId = Math.max(maxId, num(w.id)); });
+    (r.openings || []).forEach(o => { maxId = Math.max(maxId, num(o.id)); });
+    (r.closets || []).forEach(c => { maxId = Math.max(maxId, num(c.id)); });
+    Object.values(r.fixtures || {}).forEach(f => {
+      (f?.items || []).forEach(i => { maxId = Math.max(maxId, num(i?.id)); });
+    });
+  });
+  bumpNextId(maxId);
+}
+
 // ============================================================
 // FINISH GROUP default seeding
 // ============================================================
@@ -112,6 +133,10 @@ export function createRoom(overrides={}) {
     id: genId('room'),
     label: preset ? preset.label : `Room ${nextId}`,
     area_group: '',
+    // Identity tab additions (v0.10) — informational room classification +
+    // painting scope preset. Scope preset bulk-toggles substrates via reducer.
+    room_type: '',                     // '' | one of ROOM_TYPES ids
+    painting_scope_preset: 'custom',   // 'custom' = user manages substrates manually
     is_interior: true,
     wall_material: 'drywall',
     ceiling_material: 'drywall',
@@ -148,16 +173,16 @@ export function createRoom(overrides={}) {
     floor_type: '',
     floor_protection: '',
     fixtures: {},  // keyed by fixture_id → { protection: 'partial_cover', count: 1, size: '', notes: '' }
-    // Room-level protection (decoupled from paintable-item modules).
-    // Levels: 'none' | 'edge' | 'partial' | 'full' | 'encapsulate'.
-    // Consumed by SCN_ROOM_PROTECTION_NC via mask-level applies_when gates.
+    // v0.10 room-level protection state — Protection tab v2.
+    // Mask-level fields (floor/wall/ceiling) are intentionally absent here so
+    // that fresh rooms default to AUTO (deriver fills in the matrix output).
+    // Setting an explicit value via the Protection tab dropdown flips the row
+    // to OVERRIDE. Boolean toggles persist as false defaults.
     protection: {
-      floor_mask_level: 'edge',
-      wall_mask_level: 'edge',
-      ceiling_mask_level: 'none',
+      // floor_mask_level / wall_mask_level / ceiling_mask_level: undefined → auto
+      tapeline_edge: false,
       containment_mode: false,
       containment_door_zipper: false,
-      tapeline_edge: false,
     },
     notes: ''
   };
@@ -211,7 +236,18 @@ export const initialState = {
     default_brand: null,
     material_overrides: { system: {}, manual: {} },
     notes: '',
-    default_substrates: ['ceiling', 'walls', 'baseboard']
+    default_substrates: ['ceiling', 'walls', 'baseboard'],
+    // v0.10 Protection rollout — project-level heuristics for outlets/HVAC vents
+    // and project-wide protection defaults.
+    protection_defaults: {
+      full_trim_tapeline: false,
+    },
+    protection_heuristics: {
+      outlets_per_room: 4,            // mask qty per non-closet room when spraying
+      hvac_vents_per_room: 0.7,       // mask qty per room (closets excluded)
+      outlet_remove_reinstall: false, // toggle: also remove + reinstall outlet covers (separate prep)
+      hvac_action: 'mask',            // 'mask' | 'remove' — mutually exclusive
+    },
   },
   room_categories: [],
   rooms: [],

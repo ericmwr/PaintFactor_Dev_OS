@@ -11,6 +11,18 @@ export function buildRoomQuantityLookups(state) {
   const { project, rooms } = state;
   const roomLookups = new Map();
 
+  // Project-wide allowance singletons fire on the FIRST room that triggers them.
+  // Tracked across the rooms.forEach iteration so we emit exactly once per project.
+  let lightFanMantelAllowanceEmitted = false;
+
+  // Project-level protection heuristics — outlets per room, HVAC vents per room.
+  // Closets are sub-rooms (room.closets[]), not entries in state.rooms[], so
+  // rooms.length is automatically the non-closet count.
+  const heur = project?.protection_heuristics || {};
+  const outletsPerRoom = Number.isFinite(heur.outlets_per_room) ? heur.outlets_per_room : 4;
+  const hvacPerRoom = Number.isFinite(heur.hvac_vents_per_room) ? heur.hvac_vents_per_room : 0.7;
+  const hvacAction = heur.hvac_action || 'mask';  // 'mask' | 'remove'
+
   rooms.forEach((room, ri) => {
     const d = deriveRoom(room);
     const subs = room.substrates || {};
@@ -326,13 +338,13 @@ export function buildRoomQuantityLookups(state) {
     addQ('PS_PROTECT_EA.OPENING_BASE_FLOOR', 'EA', d.totalOpenings);
     addQ('PS_PROTECT_EA.OPENING_ABOVE_CEILING', 'EA', d.totalOpenings + d.totalWindows);
 
-    // Fixture protection keys (v0.5)
+    // Fixture protection keys (v0.5 — legacy + v1.0 — Protection tab v2 mask tasks)
     Object.entries(room.fixtures || {}).forEach(function ([fId, cfg]) {
       if (fId === 'cabinets') {
         const lf = parseFloat(cfg.linear_ft) || 0;
         if (lf > 0) {
-          // Emit the same PS keys the cabinet protect modules consume.
-          // Countertop edge = linear feet entered by user.
+          // Cabinet mask consumes PS_PROTECT_LF.CABINET (new task) + legacy keys
+          addQ('PS_PROTECT_LF.CABINET', 'LF', lf);
           addQ('PS_PROTECT_LF.COUNTERTOP_EDGE', 'LF', lf);
           // Derive face count from LF: ~1 door per 1.5 LF for lowers.
           const lowerFaces = Math.ceil(lf / 1.5);
@@ -340,21 +352,91 @@ export function buildRoomQuantityLookups(state) {
           const upperFaces = hasUppers ? Math.ceil(lf / 2) : 0;
           const totalFaces = lowerFaces + upperFaces;
           if (totalFaces > 0) addQ('PS_PROTECT_EA.CABINET_FACE_COVERS', 'EA', totalFaces);
-          // Hardware: ~2 per face (handle + hinge cover)
           addQ('PS_PROTECT_EA.ASSET.HARDWARE', 'EA', totalFaces * 2);
-          // Keep legacy key for any downstream consumers
           addQ('PS_PROTECT_LF.FIXTURE_CABINETS', 'LF', lf);
         }
       } else if (fId === 'feature_wall') {
-        // Sum SF across all feature wall items (or legacy single config)
         const items = cfg.items || (cfg.length_ft ? [cfg] : []);
         const sf = items.reduce((s, i) => s + Math.round((parseFloat(i.length_ft) || 0) * (parseFloat(i.height_ft) || 0) * (parseInt(i.count) || 1)), 0);
-        if (sf > 0) addQ('PS_PROTECT_SF.FIXTURE_FEATURE_WALL', 'SF', sf);
+        if (sf > 0) {
+          addQ('PS_PROTECT_SF.FEATURE_WALL', 'SF', sf);          // new key
+          addQ('PS_PROTECT_SF.FIXTURE_FEATURE_WALL', 'SF', sf);  // legacy
+        }
+      } else if (fId === 'fireplace' || fId === 'stone_fireplace') {
+        // Both fireplace and stone fireplace use the same PS key — masking method
+        // differs (delicate vs duct tape) but UOM and quantity formula match.
+        const sf = Math.round((parseFloat(cfg.width_ft) || 0) * (parseFloat(cfg.height_ft) || 0) * (parseInt(cfg.count) || 1));
+        if (sf > 0) addQ('PS_PROTECT_SF.FIREPLACE', 'SF', sf);
+      } else if (fId === 'builtin_shelving') {
+        const sf = Math.round((parseFloat(cfg.width_ft) || 0) * (parseFloat(cfg.height_ft) || 0) * (parseInt(cfg.count) || 1));
+        if (sf > 0) addQ('PS_PROTECT_SF.BUILTIN', 'SF', sf);
+      } else if (fId === 'shower') {
+        const sf = Math.round((parseFloat(cfg.width_ft) || 0) * (parseFloat(cfg.height_ft) || 0) * (parseInt(cfg.count) || 1));
+        if (sf > 0) addQ('PS_PROTECT_SF.SHOWER', 'SF', sf);
+      } else if (fId === 'vanity') {
+        // Vanity rule: width LF for all levels EXCEPT encapsulate when width<3 LF.
+        // In that special case, emit the singleton fixed-min key instead so the
+        // 5-min minimum task fires (and the regular LF task gracefully skips at 0).
+        const width = parseFloat(cfg.width_ft) || 0;
+        const count = parseInt(cfg.count) || 1;
+        const lf = width * count;
+        const level = cfg.protection || 'full_cover';
+        const isEncap = level === 'encapsulate' || level === 'edge_encapsulate' || level === 'full_mask';
+        if (width < 3 && isEncap && count > 0) {
+          addQ('PS_PROTECT_EA.VANITY_SMALL_ENCAP', 'EA', count);
+        } else if (lf > 0) {
+          addQ('PS_PROTECT_LF.VANITY', 'LF', lf);
+        }
+      } else if (fId === 'bathtub') {
+        const cnt = parseInt(cfg.count) || 1;
+        if (cnt > 0) addQ('PS_PROTECT_EA.BATHTUB', 'EA', cnt);
+      } else if (fId === 'toilet') {
+        const cnt = parseInt(cfg.count) || 1;
+        if (cnt > 0) addQ('PS_PROTECT_EA.TOILET', 'EA', cnt);
+      } else if (fId === 'appliances') {
+        const cnt = parseInt(cfg.count) || 1;
+        if (cnt > 0) addQ('PS_PROTECT_EA.APPLIANCES', 'EA', cnt);
+      } else if (fId === 'countertops') {
+        const lf = parseFloat(cfg.linear_ft) || 0;
+        if (lf > 0) addQ('PS_PROTECT_LF.COUNTERTOP_EDGE', 'LF', lf);
       } else {
+        // Generic fixture — fall through to legacy FIXTURE_* key
         const cnt = parseInt(cfg.count) || 1;
         addQ('PS_PROTECT_EA.FIXTURE_' + fId.toUpperCase(), 'EA', cnt);
       }
     });
+
+    // Project-wide allowance for light fixtures + ceiling fans + fireplace mantels.
+    // Single fire per project — emit on the FIRST room with any of these checked.
+    if (!lightFanMantelAllowanceEmitted) {
+      const f = room.fixtures || {};
+      if (f.light_fixtures || f.ceiling_fan || f.fireplace || f.stone_fireplace) {
+        addQ('PS_PROTECT_EA.LIGHT_FAN_MANTEL_ALLOWANCE', 'EA', 1);
+        lightFanMantelAllowanceEmitted = true;
+      }
+    }
+
+    // Outlet/switch heuristic — emit only when spraying walls/ceiling/trim.
+    // Brush+roll only → no outlet mask (covers stay on, get cut around).
+    const wallsSprayQ = (subs.walls?.application_method || '').toString().includes('spray');
+    const ceilingSprayQ = (subs.ceiling?.application_method || '').toString().includes('spray');
+    const anyTrimSprayQ = ['baseboard','crown','door_casing','window_casing','chair_rail','shoe_mold','wainscot_cap','picture_rail','window_stool','window_apron','shadow_box','panel_mold','door_frames','window_jamb']
+      .some(id => {
+        const s = subs[id];
+        if (!s) return false;
+        if (s.painting === false) return false;
+        return (s.application_method || '').toString().includes('spray');
+      });
+    const anySprayInRoom = wallsSprayQ || ceilingSprayQ || anyTrimSprayQ;
+    if (anySprayInRoom && outletsPerRoom > 0) {
+      const cnt = (room.protection?.outlets_count_override != null ? Number(room.protection.outlets_count_override) : outletsPerRoom);
+      if (cnt > 0) addQ('PS_PROTECT_EA.OUTLET_SWITCH', 'EA', cnt);
+    }
+    // HVAC vent heuristic — emit count regardless of method; tasks gate on hvac_action.
+    if (hvacPerRoom > 0) {
+      const cnt = (room.protection?.hvac_vents_count_override != null ? Number(room.protection.hvac_vents_count_override) : hvacPerRoom);
+      if (cnt > 0) addQ('PS_PROTECT_EA.HVAC_VENT', 'EA', cnt);
+    }
 
     // Meta
     addQ('PS_META.EA.ROOMS_TOTAL', 'EA', 1);

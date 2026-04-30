@@ -1,347 +1,409 @@
-import { useState, useMemo } from 'react';
-import { FIXTURE_CATALOG, FIXTURE_MAP, FIXTURE_GROUPS, FLOOR_TYPES } from '../../../data/fixture-catalog';
-import { deriveProtectionSummary } from '../../../engine/derive-protection';
+import { useMemo, useState } from 'react';
+import { FIXTURE_MAP, FLOOR_TYPES } from '../../../data/fixture-catalog';
+import { deriveProtectionDefaults } from '../../../engine/derive-protection-defaults.js';
 
-const PROTECTION_LABELS = {
-  none: 'NONE', edge_only: 'EDGE', light_mask: 'LIGHT',
-  partial_cover: 'PARTIAL', item_mask: 'ITEM',
-  full_cover: 'FULL', full_mask: 'FULL MASK'
+// Mask level enum (per surface). Not all values valid for every surface:
+//   floor: all 9
+//   wall:  all except 'spot' (no spot for walls)
+//   ceiling: all except 'full' / 'edge_full' (gravity)
+const MASK_LEVELS_FLOOR = [
+  { id: 'none',             label: 'None' },
+  { id: 'edge',             label: 'Edge tape only' },
+  { id: 'spot',             label: 'Spot (per opening)' },
+  { id: 'partial',          label: 'Partial (perimeter)' },
+  { id: 'full',             label: 'Full drape' },
+  { id: 'encapsulate',      label: 'Encapsulate (taped/sealed)' },
+  { id: 'edge_partial',     label: 'Edge+ Partial' },
+  { id: 'edge_full',        label: 'Edge+ Full' },
+  { id: 'edge_encapsulate', label: 'Edge+ Encapsulate' },
+];
+const MASK_LEVELS_WALL = MASK_LEVELS_FLOOR.filter(l => l.id !== 'spot');
+const MASK_LEVELS_CEILING = MASK_LEVELS_FLOOR.filter(l =>
+  l.id !== 'full' && l.id !== 'edge_full');
+
+const LEVEL_LABEL_SHORT = {
+  none: 'None', edge: 'Edge', spot: 'Spot', partial: 'Partial', full: 'Full',
+  encapsulate: 'Encapsulate', edge_partial: 'Edge+ Partial', edge_full: 'Edge+ Full',
+  edge_encapsulate: 'Edge+ Encapsulate',
 };
 
 export default function ProtectionTab({ room, derived, dispatch, project }) {
   const rid = room.id;
-  const subs = room.substrates || {};
-  const applicationMethod = room.application_method || project.default_application_method;
-  const protectionSummary = useMemo(() => deriveProtectionSummary(room, subs, applicationMethod), [room, subs, applicationMethod]);
+  const protection = room.protection || {};
+  const fixtures = room.fixtures || {};
 
-  const setRoom = (f, v) => dispatch({ type: 'SET_ROOM', payload: { roomId: rid, field: f, value: v } });
+  // Run deriver to compute auto-suggested defaults from current scope/method/floor type.
+  const derivedDefaults = useMemo(
+    () => deriveProtectionDefaults(room, project),
+    [room, project]
+  );
+  const cats = derivedDefaults._categories || {};
 
-  // Fixture focus state
   const [focusedFixture, setFocusedFixture] = useState(null);
+
+  const setProt = (field, value) =>
+    dispatch({ type: 'SET_ROOM_PROTECTION_FIELD', payload: { roomId: rid, field, value } });
+
+  const setFix = (fId, field, value) =>
+    dispatch({ type: 'SET_FIXTURE', payload: { roomId: rid, fixtureId: fId, field, value } });
+
+  const checkedFixtureIds = Object.keys(fixtures).filter(id => fixtures[id]);
+
+  const floorTypeLabel = FLOOR_TYPES.find(f => f.id === room.floor_type)?.label || '— not set —';
+
+  function MaskRow({ surface, label, qtyLabel, autoLevel, currentValue, options }) {
+    const isAuto = !currentValue;
+    const effective = currentValue || autoLevel;
+    return (
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 110px 1fr 110px', gap: 8, alignItems: 'center', padding: '6px 0', borderBottom: '1px solid var(--border)' }}>
+        <div>
+          <div style={{ fontWeight: 600, fontSize: 13 }}>{label}</div>
+          <div style={{ fontSize: 10, color: 'var(--text-muted)' }}>{qtyLabel}</div>
+        </div>
+        <div>
+          <span style={{
+            fontSize: 11, padding: '2px 8px', borderRadius: 3,
+            background: isAuto ? 'var(--bg-tertiary)' : 'var(--accent)',
+            color: isAuto ? 'var(--text-secondary)' : '#fff',
+            fontWeight: 600
+          }}>
+            {isAuto ? 'AUTO' : 'OVERRIDE'}
+          </span>
+        </div>
+        <div>
+          <select
+            value={currentValue || ''}
+            onChange={e => setProt(`${surface}_mask_level`, e.target.value)}
+            style={{ width: '100%', fontSize: 12 }}
+          >
+            <option value="">Auto: {LEVEL_LABEL_SHORT[autoLevel] || autoLevel}</option>
+            {options.map(o => (
+              <option key={o.id} value={o.id}>{o.label}</option>
+            ))}
+          </select>
+        </div>
+        <div style={{ fontSize: 11, color: 'var(--accent)', fontWeight: 600, fontFamily: 'var(--font-mono)' }}>
+          {LEVEL_LABEL_SHORT[effective] || effective}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>
       <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 8 }}>
-        Mark items present in the room that are not being painted.
+        Mask levels auto-derive from painting scope + method + floor type. Override per surface to deviate from the rule.
       </div>
 
-      {/* Floor Type & Protection */}
-      <div className="form-grid" style={{ gridTemplateColumns: '1fr 1fr 1fr' }}>
-        <div>
-          <div className="field-label">Floor Type</div>
-          <select value={room.floor_type || ''} onChange={e => {
-            const ft = FLOOR_TYPES.find(f => f.id === e.target.value);
-            setRoom('floor_type', e.target.value || '');
-            setRoom('floor_protection', ft ? ft.defaultProtection : '');
-          }} style={{ width: '100%' }}>
-            <option value="">&mdash; Select &mdash;</option>
-            {FLOOR_TYPES.map(f => <option key={f.id} value={f.id}>{f.label}</option>)}
-          </select>
-        </div>
-        <div>
-          <div className="field-label">Floor Protection</div>
-          <select value={room.floor_protection || ''} onChange={e => setRoom('floor_protection', e.target.value)} style={{ width: '100%' }} disabled={!room.floor_type || room.floor_type === 'subfloor'}>
-            <option value="">&mdash;</option>
-            <option value="edge_only">Edge Only</option>
-            <option value="partial_cover">Partial Cover</option>
-            <option value="full_cover">Full Cover</option>
-          </select>
-        </div>
-        <div style={{ alignSelf: 'end', fontSize: 11, color: 'var(--text-muted)' }}>
-          {!room.floor_type ? '' : room.floor_type === 'subfloor' ? 'Subfloor \u2014 no protection needed' : ''}
-        </div>
-      </div>
-
-      {/* Master/Detail: Fixture Checklist + Config/Summary */}
-      <div className="master-detail-container" style={{ marginTop: 8 }}>
-        {/* LEFT: Fixture checklist grouped by Kitchen/Bathroom/Feature */}
-        <div className="master-list">
-          {FIXTURE_GROUPS.map(g => (
-            <div key={g.group} style={{ marginBottom: 10 }}>
-              <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 4 }}>{g.group}</div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2px 8px' }}>
-                {g.items.map(fix => {
-                  const checked = !!(room.fixtures && room.fixtures[fix.id]);
-                  const isFocused = focusedFixture === fix.id;
-                  return (
-                    <div key={fix.id} className={'substrate-item' + (isFocused ? ' focused' : '')}
-                      onClick={() => { if (checked) setFocusedFixture(fix.id); }}>
-                      <input type="checkbox" checked={checked}
-                        onChange={(e) => {
-                          e.stopPropagation();
-                          dispatch({ type: 'TOGGLE_FIXTURE', payload: { roomId: rid, fixtureId: fix.id } });
-                          if (!checked) setFocusedFixture(fix.id);
-                          else if (focusedFixture === fix.id) setFocusedFixture(null);
-                        }}
-                        onClick={(e) => e.stopPropagation()} />
-                      <span style={{ color: checked ? 'var(--text-primary)' : 'var(--text-muted)' }}>{fix.label}</span>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* RIGHT: Per-fixture config (top) + Accumulated summary (bottom) */}
-        <div className="detail-panel">
-          {/* Per-fixture config when one is focused */}
-          {focusedFixture && room.fixtures && room.fixtures[focusedFixture] && (() => {
-            const cfg = room.fixtures[focusedFixture];
-            const setFix = (f, v) => dispatch({ type: 'SET_FIXTURE', payload: { roomId: rid, fixtureId: focusedFixture, field: f, value: v } });
-            const header = (
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                <span style={{ fontWeight: 600, fontSize: 13 }}>{FIXTURE_MAP[focusedFixture].label}</span>
-                <button onClick={() => setFocusedFixture(null)} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: 16 }}>&times;</button>
-              </div>
-            );
-
-            // Cabinet-specific config
-            if (focusedFixture === 'cabinets') return (
-              <div style={{ marginBottom: 12 }}>
-                {header}
-                <div className="form-grid" style={{ gridTemplateColumns: '1fr 1fr' }}>
-                  <div>
-                    <div className="field-label">Layout</div>
-                    <select value={cfg.layout || 'lower_upper'} onChange={e => setFix('layout', e.target.value)} style={{ width: '100%' }}>
-                      <option value="lower_only">Lower Only</option>
-                      <option value="lower_upper">Lower + Upper</option>
-                    </select>
-                  </div>
-                  <div>
-                    <div className="field-label">Protection Level</div>
-                    <select value={cfg.protection || 'full_cover'} onChange={e => setFix('protection', e.target.value)} style={{ width: '100%' }}>
-                      <option value="edge_only">Edge Only</option>
-                      <option value="partial_cover">Partial Cover</option>
-                      <option value="full_cover">Full Cover</option>
-                    </select>
-                  </div>
-                </div>
-                <div className="form-grid" style={{ gridTemplateColumns: '1fr 1fr', marginTop: 6 }}>
-                  <div>
-                    <div className="field-label">Linear Feet</div>
-                    <input type="number" min="0" max="200" step="0.5" value={cfg.linear_ft || ''} onChange={e => setFix('linear_ft', parseFloat(e.target.value) || 0)} placeholder="0" />
-                  </div>
-                  {(cfg.layout === 'lower_upper') && (
-                    <div>
-                      <div className="field-label">Upper Height (ft)</div>
-                      <input type="number" min="1" max="6" step="0.5" value={cfg.upper_height_ft || ''} onChange={e => setFix('upper_height_ft', parseFloat(e.target.value) || 2.5)} placeholder="2.5" />
-                    </div>
-                  )}
-                </div>
-                <div style={{ marginTop: 6 }}>
-                  <div className="field-label">Notes</div>
-                  <input type="text" value={cfg.notes || ''} onChange={e => setFix('notes', e.target.value)} style={{ width: '100%' }} placeholder="e.g., L-shaped run, island separate" />
-                </div>
-              </div>
-            );
-
-            // Feature Wall config — items list
-            if (focusedFixture === 'feature_wall') {
-              const items = cfg.items || [];
-              const totalSF = items.reduce((s, i) => s + Math.round((parseFloat(i.length_ft) || 0) * (parseFloat(i.height_ft) || 0)), 0);
-              const totalBaseboardDeduct = items.filter(i => i.deduct_baseboard).reduce((s, i) => s + Math.round(parseFloat(i.length_ft) || 0), 0);
-              const setFW = (itemId, f, v) => dispatch({ type: 'SET_FEATURE_WALL', payload: { roomId: rid, itemId, field: f, value: v } });
-              return (
-                <div style={{ marginBottom: 12 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                    <span style={{ fontWeight: 600, fontSize: 13 }}>Feature Walls</span>
-                    <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                      {totalSF > 0 && <span style={{ fontSize: 11, fontFamily: 'var(--font-mono)', color: 'var(--derived)' }}>{totalSF} SF total</span>}
-                      <button className="btn btn-sm btn-accent" onClick={() => dispatch({ type: 'ADD_FEATURE_WALL', payload: { roomId: rid } })}>+ Add</button>
-                      <button onClick={() => setFocusedFixture(null)} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: 16 }}>&times;</button>
-                    </div>
-                  </div>
-                  {items.map((item, idx) => {
-                    const itemSF = Math.round((parseFloat(item.length_ft) || 0) * (parseFloat(item.height_ft) || 0));
-                    return (
-                      <div key={item.id} style={{ padding: '6px 8px', marginBottom: 6, background: 'var(--bg-tertiary)', borderRadius: 4 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
-                          <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)' }}>Wall {idx + 1}</span>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                            {itemSF > 0 && <span style={{ fontSize: 11, fontFamily: 'var(--font-mono)', color: 'var(--warning)' }}>{itemSF} SF deducted</span>}
-                            <button className="btn btn-sm btn-danger" onClick={() => dispatch({ type: 'REMOVE_FEATURE_WALL', payload: { roomId: rid, itemId: item.id } })}>&times;</button>
-                          </div>
-                        </div>
-                        <div className="form-grid" style={{ gridTemplateColumns: '1fr 1fr 1fr' }}>
-                          <div>
-                            <div className="field-label">Length (ft)</div>
-                            <input type="number" min="0" step="0.5" value={item.length_ft || ''} onChange={e => setFW(item.id, 'length_ft', parseFloat(e.target.value) || 0)} placeholder="0" />
-                          </div>
-                          <div>
-                            <div className="field-label">Height (ft)</div>
-                            <input type="number" min="0" step="0.5" value={item.height_ft || ''} onChange={e => setFW(item.id, 'height_ft', parseFloat(e.target.value) || 0)} placeholder="0" />
-                          </div>
-                          <div>
-                            <div className="field-label">Protection</div>
-                            <select value={item.protection || 'full_mask'} onChange={e => setFW(item.id, 'protection', e.target.value)} style={{ width: '100%' }}>
-                              <option value="edge_only">Edge Only</option>
-                              <option value="partial_cover">Partial Cover</option>
-                              <option value="full_cover">Full Cover</option>
-                              <option value="full_mask">Full Mask</option>
-                            </select>
-                          </div>
-                        </div>
-                        <div style={{ marginTop: 4, display: 'flex', alignItems: 'center', gap: 8 }}>
-                          <input type="checkbox" id={`fw-bb-${item.id}`} checked={!!item.deduct_baseboard}
-                            onChange={e => setFW(item.id, 'deduct_baseboard', e.target.checked)} />
-                          <label htmlFor={`fw-bb-${item.id}`} style={{ fontSize: 11 }}>Deduct baseboard</label>
-                          {item.deduct_baseboard && <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>{`\u2212${Math.round(parseFloat(item.length_ft) || 0)} LF`}</span>}
-                        </div>
-                        <div style={{ marginTop: 4 }}>
-                          <input type="text" value={item.notes || ''} onChange={e => setFW(item.id, 'notes', e.target.value)} style={{ width: '100%', fontSize: 11 }} placeholder="e.g., stone veneer, shiplap" />
-                        </div>
-                      </div>
-                    );
-                  })}
-                  {totalBaseboardDeduct > 0 && (
-                    <div style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 4 }}>
-                      Total baseboard deduction: {totalBaseboardDeduct} LF
-                    </div>
-                  )}
-                </div>
-              );
-            }
-
-            // Built-in shelving: needs dimensions for SF-based protection
-            if (focusedFixture === 'builtin_shelving') {
-              const bsSF = Math.round((parseFloat(cfg.width_ft) || 0) * (parseFloat(cfg.height_ft) || 0) * (parseInt(cfg.count) || 1));
-              return (
-                <div style={{ marginBottom: 12 }}>
-                  {header}
-                  <div className="form-grid" style={{ gridTemplateColumns: '1fr 1fr 1fr' }}>
-                    <div>
-                      <div className="field-label">Count</div>
-                      <input type="number" min="1" max="20" value={cfg.count || ''} onChange={e => setFix('count', parseInt(e.target.value) || 1)} placeholder="1" />
-                    </div>
-                    <div>
-                      <div className="field-label">Width (ft)</div>
-                      <input type="number" min="0" step="0.5" value={cfg.width_ft || ''} onChange={e => setFix('width_ft', parseFloat(e.target.value) || 0)} placeholder="0" />
-                    </div>
-                    <div>
-                      <div className="field-label">Height (ft)</div>
-                      <input type="number" min="0" step="0.5" value={cfg.height_ft || ''} onChange={e => setFix('height_ft', parseFloat(e.target.value) || 0)} placeholder="0" />
-                    </div>
-                  </div>
-                  <div className="form-grid" style={{ gridTemplateColumns: '1fr 1fr', marginTop: 6 }}>
-                    <div>
-                      <div className="field-label">Protection Level</div>
-                      <select value={cfg.protection || 'partial_cover'} onChange={e => setFix('protection', e.target.value)} style={{ width: '100%' }}>
-                        <option value="edge_only">Edge Only</option>
-                        <option value="partial_cover">Partial Cover</option>
-                        <option value="full_cover">Full Cover</option>
-                      </select>
-                    </div>
-                    <div style={{ alignSelf: 'end' }}>
-                      {bsSF > 0 && (
-                        <div style={{ fontSize: 12, fontFamily: 'var(--font-mono)', color: 'var(--derived)' }}>
-                          {bsSF} SF
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                  <div style={{ marginTop: 6 }}>
-                    <div className="field-label">Notes</div>
-                    <input type="text" value={cfg.notes || ''} onChange={e => setFix('notes', e.target.value)} style={{ width: '100%' }} placeholder="e.g., floor-to-ceiling bookcase, entertainment center" />
-                  </div>
-                </div>
-              );
-            }
-
-            // Dimensioned fixtures: shower, vanity, fireplace, stone_fireplace
-            if (['shower', 'vanity', 'fireplace', 'stone_fireplace'].includes(focusedFixture)) {
-              const fixSF = Math.round((parseFloat(cfg.width_ft) || 0) * (parseFloat(cfg.height_ft) || 0) * (parseInt(cfg.count) || 1));
-              const fixLabel = FIXTURE_MAP[focusedFixture]?.label || focusedFixture;
-              return (
-                <div style={{ marginBottom: 12 }}>
-                  {header}
-                  <div className="form-grid" style={{ gridTemplateColumns: '1fr 1fr 1fr' }}>
-                    <div>
-                      <div className="field-label">Count</div>
-                      <input type="number" min="1" max="10" value={cfg.count || ''} onChange={e => setFix('count', parseInt(e.target.value) || 1)} placeholder="1" />
-                    </div>
-                    <div>
-                      <div className="field-label">Width (ft)</div>
-                      <input type="number" min="0" step="0.5" value={cfg.width_ft || ''} onChange={e => setFix('width_ft', parseFloat(e.target.value) || 0)} placeholder="0" />
-                    </div>
-                    <div>
-                      <div className="field-label">Height (ft)</div>
-                      <input type="number" min="0" step="0.5" value={cfg.height_ft || ''} onChange={e => setFix('height_ft', parseFloat(e.target.value) || 0)} placeholder="0" />
-                    </div>
-                  </div>
-                  <div className="form-grid" style={{ gridTemplateColumns: '1fr 1fr', marginTop: 6 }}>
-                    <div>
-                      <div className="field-label">Protection Level</div>
-                      <select value={cfg.protection || FIXTURE_MAP[focusedFixture]?.defaultProtection || 'full_cover'} onChange={e => setFix('protection', e.target.value)} style={{ width: '100%' }}>
-                        <option value="edge_only">Edge Only</option>
-                        <option value="partial_cover">Partial Cover</option>
-                        <option value="full_cover">Full Cover</option>
-                        <option value="full_mask">Full Mask</option>
-                      </select>
-                    </div>
-                    <div style={{ alignSelf: 'end' }}>
-                      {fixSF > 0 && (
-                        <div style={{ fontSize: 12, fontFamily: 'var(--font-mono)', color: 'var(--derived)' }}>
-                          {fixSF} SF
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                  <div style={{ marginTop: 6 }}>
-                    <div className="field-label">Notes</div>
-                    <input type="text" value={cfg.notes || ''} onChange={e => setFix('notes', e.target.value)} style={{ width: '100%' }} placeholder={`e.g., ${focusedFixture === 'shower' ? 'walk-in, glass door' : focusedFixture === 'vanity' ? 'double sink, wall-mounted' : 'mantel + surround'}`} />
-                  </div>
-                </div>
-              );
-            }
-
-            // Generic fixture config
-            return (
-              <div style={{ marginBottom: 12 }}>
-                {header}
-                <div className="form-grid" style={{ gridTemplateColumns: '1fr 1fr' }}>
-                  <div>
-                    <div className="field-label">Count</div>
-                    <input type="number" min="1" max="20" value={cfg.count || ''} onChange={e => setFix('count', parseInt(e.target.value) || 1)} placeholder="1" />
-                  </div>
-                  <div>
-                    <div className="field-label">Protection Level</div>
-                    <select value={cfg.protection || 'partial_cover'} onChange={e => setFix('protection', e.target.value)} style={{ width: '100%' }}>
-                      <option value="none">None</option>
-                      <option value="edge_only">Edge Only</option>
-                      <option value="partial_cover">Partial Cover</option>
-                      <option value="full_cover">Full Cover</option>
-                      <option value="item_mask">Item Mask</option>
-                    </select>
-                  </div>
-                </div>
-                <div style={{ marginTop: 6 }}>
-                  <div className="field-label">Size / Notes</div>
-                  <input type="text" value={cfg.size || ''} onChange={e => setFix('size', e.target.value)} style={{ width: '100%' }} placeholder="e.g., 6ft granite island" />
-                </div>
-              </div>
-            );
-          })()}
-
-          {/* Accumulated protection summary — always visible */}
-          <div style={{ borderTop: focusedFixture && room.fixtures && room.fixtures[focusedFixture] ? '1px solid var(--border)' : 'none', paddingTop: 8 }}>
-            <div className="field-label" style={{ marginBottom: 4 }}>Protection Summary</div>
-            {protectionSummary.map(item => {
-              const badgeLabel = PROTECTION_LABELS[item.protection] || item.protection?.toUpperCase() || '?';
-              return (
-                <div key={item.zone} className="protection-row">
-                  <span className={'protection-badge ' + item.protection}>{badgeLabel}</span>
-                  <span>{item.label}</span>
-                  {item.count > 1 && <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>&times;{item.count}</span>}
-                  {item.auto && <span className="auto-tag">auto</span>}
-                  {item.contextDependent && <span className="auto-tag" style={{ background: 'var(--bg-tertiary)', color: '#b87333' }} title="Protection level varies by painting context and application method. Resolved at estimate time.">varies</span>}
-                </div>
-              );
-            })}
-            {protectionSummary.length === 0 && <div className="detail-panel-empty">No protection required</div>}
+      {/* ── Floor type readout (set on Identity tab) ── */}
+      <div className="panel-section">
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 16 }}>
+          <div>
+            <div className="field-label">Floor Type</div>
+            <div style={{ fontSize: 13, fontWeight: 600 }}>{floorTypeLabel}</div>
           </div>
+          <div style={{ fontSize: 10, color: 'var(--text-muted)', fontStyle: 'italic' }}>
+            Set on Identity tab
+          </div>
+        </div>
+        {/* Auto-derived scope summary, mostly diagnostic */}
+        <div style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 6, fontFamily: 'var(--font-mono)' }}>
+          Active scope: {[
+            cats.ceiling && `ceiling (${cats.methods?.ceiling || '—'})`,
+            cats.walls && `walls (${cats.methods?.walls || '—'})`,
+            (cats.fineFinish || []).length > 0 && `trim:${(cats.fineFinish || []).length} (${cats.methods?.fineFinish || '—'})`,
+            cats.openings && `openings (${cats.methods?.openings || '—'})`,
+          ].filter(Boolean).join(' + ') || 'nothing in scope'}
+          {cats.fineFinishKind && cats.fineFinishKind !== 'none' && ` · trim-kind: ${cats.fineFinishKind}`}
+        </div>
+      </div>
+
+      {/* ── Section 1: Mask Levels ── */}
+      <div className="panel-section">
+        <div className="section-title">Mask Levels</div>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 110px 1fr 110px', gap: 8, alignItems: 'center', padding: '4px 0', borderBottom: '2px solid var(--border)', fontSize: 10, color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600, letterSpacing: '0.5px' }}>
+          <div>Surface</div>
+          <div>Source</div>
+          <div>Override</div>
+          <div>Effective</div>
+        </div>
+        <MaskRow
+          surface="floor"
+          label="Floor"
+          qtyLabel={`${derived.ceilingSF || 0} SF · ${derived.perimeter || 0} LF perimeter`}
+          autoLevel={derivedDefaults.floor_mask_level}
+          currentValue={protection.floor_mask_level}
+          options={MASK_LEVELS_FLOOR}
+        />
+        <MaskRow
+          surface="wall"
+          label="Walls"
+          qtyLabel={`${derived.wallGross || 0} SF gross · ${derived.perimeter || 0} LF perimeter`}
+          autoLevel={derivedDefaults.wall_mask_level}
+          currentValue={protection.wall_mask_level}
+          options={MASK_LEVELS_WALL}
+        />
+        <MaskRow
+          surface="ceiling"
+          label="Ceiling"
+          qtyLabel={`${derived.ceilingSF || 0} SF · ${derived.perimeter || 0} LF perimeter`}
+          autoLevel={derivedDefaults.ceiling_mask_level}
+          currentValue={protection.ceiling_mask_level}
+          options={MASK_LEVELS_CEILING}
+        />
+      </div>
+
+      {/* ── Section 2: Adjacent Items (fixtures) ── */}
+      <div className="panel-section">
+        <div className="section-title">Adjacent Items</div>
+        {checkedFixtureIds.length === 0 ? (
+          <div className="detail-panel-empty">No fixtures present. Check fixtures on the Identity tab to configure their protection.</div>
+        ) : (
+          <div className="master-detail-container">
+            {/* Left: list of present fixtures */}
+            <div className="master-list">
+              {checkedFixtureIds.map(fId => {
+                const cat = FIXTURE_MAP[fId];
+                if (!cat) return null;
+                const isFocused = focusedFixture === fId;
+                const cfg = fixtures[fId] || {};
+                return (
+                  <div key={fId} className={'substrate-item' + (isFocused ? ' focused' : '')}
+                    onClick={() => setFocusedFixture(fId)}>
+                    <span style={{ fontWeight: 600 }}>{cat.label}</span>
+                    <span style={{ fontSize: 10, color: 'var(--text-muted)', marginLeft: 'auto' }}>
+                      {cfg.protection || cat.defaultProtection}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+            {/* Right: detail panel for focused fixture */}
+            <div className="detail-panel">
+              {focusedFixture && fixtures[focusedFixture] ? (
+                <FixtureDetail fixtureId={focusedFixture} cfg={fixtures[focusedFixture]} setFix={setFix} room={room} dispatch={dispatch} onClose={() => setFocusedFixture(null)} />
+              ) : (
+                <div className="detail-panel-empty">Select a fixture to configure its protection level + dimensions.</div>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* ── Section 3: Special Treatments ── */}
+      <div className="panel-section">
+        <div className="section-title">Special Treatments</div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, cursor: 'pointer' }}>
+            <input
+              type="checkbox"
+              checked={protection.tapeline_edge === true}
+              onChange={e => setProt('tapeline_edge', e.target.checked)}
+            />
+            <span>
+              <b>Tape line on trim edge</b>
+              <span style={{ fontSize: 10, color: 'var(--text-muted)', marginLeft: 6 }}>
+                Crisp finished edge after trim cures, before adjacent wall paint
+              </span>
+            </span>
+          </label>
+          <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, opacity: 0.5, cursor: 'not-allowed' }}>
+            <input type="checkbox" disabled checked={false} />
+            <span>
+              <b>Containment mode</b>
+              <span style={{ fontSize: 10, color: 'var(--text-muted)', marginLeft: 6 }}>
+                Zip-wall enclosure (deferred — not yet wired)
+              </span>
+            </span>
+          </label>
         </div>
       </div>
     </>
+  );
+}
+
+// =============================================================================
+// FIXTURE DETAIL PANEL — preserves the legacy per-fixture configs
+// =============================================================================
+// Same patterns as the original ProtectionTab: cabinets (LF + layout),
+// feature_wall (multi-item with deduct_baseboard), builtin_shelving (W×H×count),
+// shower/vanity/fireplace/stone_fireplace (W×H), generic.
+
+function FixtureDetail({ fixtureId, cfg, setFix, room, dispatch, onClose }) {
+  const cat = FIXTURE_MAP[fixtureId];
+  if (!cat) return null;
+  const rid = room.id;
+
+  const Header = ({ title }) => (
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+      <span style={{ fontWeight: 600, fontSize: 13 }}>{title}</span>
+      <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: 16 }}>&times;</button>
+    </div>
+  );
+
+  // Cabinets
+  if (fixtureId === 'cabinets') {
+    return (
+      <div>
+        <Header title="Cabinets" />
+        <div className="form-grid" style={{ gridTemplateColumns: '1fr 1fr' }}>
+          <div>
+            <div className="field-label">Layout</div>
+            <select value={cfg.layout || 'lower_upper'} onChange={e => setFix(fixtureId, 'layout', e.target.value)} style={{ width: '100%' }}>
+              <option value="lower_only">Lower Only</option>
+              <option value="lower_upper">Lower + Upper</option>
+            </select>
+          </div>
+          <div>
+            <div className="field-label">Protection Level</div>
+            <select value={cfg.protection || 'full_cover'} onChange={e => setFix(fixtureId, 'protection', e.target.value)} style={{ width: '100%' }}>
+              <option value="edge_only">Edge Only</option>
+              <option value="partial_cover">Partial Cover</option>
+              <option value="full_cover">Full Cover</option>
+            </select>
+          </div>
+        </div>
+        <div className="form-grid" style={{ gridTemplateColumns: '1fr 1fr', marginTop: 6 }}>
+          <div>
+            <div className="field-label">Linear Feet</div>
+            <input type="number" min="0" max="200" step="0.5" value={cfg.linear_ft || ''}
+              onChange={e => setFix(fixtureId, 'linear_ft', parseFloat(e.target.value) || 0)} placeholder="0" />
+          </div>
+          {cfg.layout === 'lower_upper' && (
+            <div>
+              <div className="field-label">Upper Height (ft)</div>
+              <input type="number" min="1" max="6" step="0.5" value={cfg.upper_height_ft || ''}
+                onChange={e => setFix(fixtureId, 'upper_height_ft', parseFloat(e.target.value) || 2.5)} placeholder="2.5" />
+            </div>
+          )}
+        </div>
+        <div style={{ marginTop: 6 }}>
+          <div className="field-label">Notes</div>
+          <input type="text" value={cfg.notes || ''} onChange={e => setFix(fixtureId, 'notes', e.target.value)} style={{ width: '100%' }} placeholder="e.g., L-shaped run, island separate" />
+        </div>
+      </div>
+    );
+  }
+
+  // Feature wall — multi-item
+  if (fixtureId === 'feature_wall') {
+    const items = cfg.items || [];
+    const totalSF = items.reduce((s, i) => s + Math.round((parseFloat(i.length_ft) || 0) * (parseFloat(i.height_ft) || 0)), 0);
+    const setFW = (itemId, f, v) => dispatch({ type: 'SET_FEATURE_WALL', payload: { roomId: rid, itemId, field: f, value: v } });
+    return (
+      <div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+          <span style={{ fontWeight: 600, fontSize: 13 }}>Feature Walls</span>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+            {totalSF > 0 && <span style={{ fontSize: 11, fontFamily: 'var(--font-mono)', color: 'var(--derived)' }}>{totalSF} SF total</span>}
+            <button className="btn btn-sm btn-accent" onClick={() => dispatch({ type: 'ADD_FEATURE_WALL', payload: { roomId: rid } })}>+ Add</button>
+            <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: 16 }}>&times;</button>
+          </div>
+        </div>
+        {items.map((item, idx) => (
+          <div key={item.id} style={{ padding: '6px 8px', marginBottom: 6, background: 'var(--bg-tertiary)', borderRadius: 4 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+              <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)' }}>Wall {idx + 1}</span>
+              <button className="btn btn-sm btn-danger" onClick={() => dispatch({ type: 'REMOVE_FEATURE_WALL', payload: { roomId: rid, itemId: item.id } })}>&times;</button>
+            </div>
+            <div className="form-grid" style={{ gridTemplateColumns: '1fr 1fr 1fr' }}>
+              <div>
+                <div className="field-label">Length (ft)</div>
+                <input type="number" min="0" step="0.5" value={item.length_ft || ''} onChange={e => setFW(item.id, 'length_ft', parseFloat(e.target.value) || 0)} placeholder="0" />
+              </div>
+              <div>
+                <div className="field-label">Height (ft)</div>
+                <input type="number" min="0" step="0.5" value={item.height_ft || ''} onChange={e => setFW(item.id, 'height_ft', parseFloat(e.target.value) || 0)} placeholder="0" />
+              </div>
+              <div>
+                <div className="field-label">Protection</div>
+                <select value={item.protection || 'full_mask'} onChange={e => setFW(item.id, 'protection', e.target.value)} style={{ width: '100%' }}>
+                  <option value="edge_only">Edge Only</option>
+                  <option value="partial_cover">Partial Cover</option>
+                  <option value="full_cover">Full Cover</option>
+                  <option value="full_mask">Full Mask</option>
+                </select>
+              </div>
+            </div>
+            <div style={{ marginTop: 4, display: 'flex', alignItems: 'center', gap: 8 }}>
+              <input type="checkbox" id={`fw-bb-${item.id}`} checked={!!item.deduct_baseboard}
+                onChange={e => setFW(item.id, 'deduct_baseboard', e.target.checked)} />
+              <label htmlFor={`fw-bb-${item.id}`} style={{ fontSize: 11 }}>Deduct baseboard</label>
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  // Built-in shelving / dimensional fixtures (shower, vanity, fireplace, stone_fireplace)
+  if (['builtin_shelving', 'shower', 'vanity', 'fireplace', 'stone_fireplace'].includes(fixtureId)) {
+    const sf = Math.round((parseFloat(cfg.width_ft) || 0) * (parseFloat(cfg.height_ft) || 0) * (parseInt(cfg.count) || 1));
+    return (
+      <div>
+        <Header title={cat.label} />
+        <div className="form-grid" style={{ gridTemplateColumns: '1fr 1fr 1fr' }}>
+          <div>
+            <div className="field-label">Count</div>
+            <input type="number" min="1" max="20" value={cfg.count || ''} onChange={e => setFix(fixtureId, 'count', parseInt(e.target.value) || 1)} placeholder="1" />
+          </div>
+          <div>
+            <div className="field-label">Width (ft)</div>
+            <input type="number" min="0" step="0.5" value={cfg.width_ft || ''} onChange={e => setFix(fixtureId, 'width_ft', parseFloat(e.target.value) || 0)} placeholder="0" />
+          </div>
+          <div>
+            <div className="field-label">Height (ft)</div>
+            <input type="number" min="0" step="0.5" value={cfg.height_ft || ''} onChange={e => setFix(fixtureId, 'height_ft', parseFloat(e.target.value) || 0)} placeholder="0" />
+          </div>
+        </div>
+        <div className="form-grid" style={{ gridTemplateColumns: '1fr 1fr', marginTop: 6 }}>
+          <div>
+            <div className="field-label">Protection Level</div>
+            <select value={cfg.protection || cat.defaultProtection || 'full_cover'} onChange={e => setFix(fixtureId, 'protection', e.target.value)} style={{ width: '100%' }}>
+              <option value="edge_only">Edge Only</option>
+              <option value="partial_cover">Partial Cover</option>
+              <option value="full_cover">Full Cover</option>
+              <option value="full_mask">Full Mask</option>
+            </select>
+          </div>
+          <div style={{ alignSelf: 'end' }}>
+            {sf > 0 && (
+              <div style={{ fontSize: 12, fontFamily: 'var(--font-mono)', color: 'var(--derived)' }}>{sf} SF</div>
+            )}
+          </div>
+        </div>
+        <div style={{ marginTop: 6 }}>
+          <div className="field-label">Notes</div>
+          <input type="text" value={cfg.notes || ''} onChange={e => setFix(fixtureId, 'notes', e.target.value)} style={{ width: '100%' }} />
+        </div>
+      </div>
+    );
+  }
+
+  // Generic fixture
+  return (
+    <div>
+      <Header title={cat.label} />
+      <div className="form-grid" style={{ gridTemplateColumns: '1fr 1fr' }}>
+        <div>
+          <div className="field-label">Count</div>
+          <input type="number" min="1" max="20" value={cfg.count || ''} onChange={e => setFix(fixtureId, 'count', parseInt(e.target.value) || 1)} placeholder="1" />
+        </div>
+        <div>
+          <div className="field-label">Protection Level</div>
+          <select value={cfg.protection || 'partial_cover'} onChange={e => setFix(fixtureId, 'protection', e.target.value)} style={{ width: '100%' }}>
+            <option value="none">None</option>
+            <option value="edge_only">Edge Only</option>
+            <option value="partial_cover">Partial Cover</option>
+            <option value="full_cover">Full Cover</option>
+            <option value="item_mask">Item Mask</option>
+          </select>
+        </div>
+      </div>
+      <div style={{ marginTop: 6 }}>
+        <div className="field-label">Size / Notes</div>
+        <input type="text" value={cfg.size || ''} onChange={e => setFix(fixtureId, 'size', e.target.value)} style={{ width: '100%' }} />
+      </div>
+    </div>
   );
 }

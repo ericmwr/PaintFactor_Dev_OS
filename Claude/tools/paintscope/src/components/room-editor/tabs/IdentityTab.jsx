@@ -1,6 +1,10 @@
+import { useState } from 'react';
 import Select from '../../shared/Select';
 import { ENUMS } from '../../../data/enums';
 import { useModifierEnum } from '../../../hooks/useModifierEnum';
+import { ROOM_TYPES, ROOM_TYPE_SUGGESTED_FIXTURES } from '../../../data/room-types';
+import { PAINTING_SCOPE_PRESETS } from '../../../data/painting-scope-presets';
+import { FIXTURE_CATALOG, FIXTURE_MAP, FLOOR_TYPES } from '../../../data/fixture-catalog';
 
 export default function IdentityTab({ room, derived, dispatch, project, roomCategories }) {
   const textureOptions = useModifierEnum('FAC_TEXTURE');
@@ -8,6 +12,18 @@ export default function IdentityTab({ room, derived, dispatch, project, roomCate
   const rid = room.id;
   const setRoom = (f, v) => dispatch({ type: 'SET_ROOM', payload: { roomId: rid, field: f, value: v } });
   const setRoomNullable = (f, v) => dispatch({ type: 'SET_ROOM', payload: { roomId: rid, field: f, value: v || null } });
+  const setScopePreset = (presetId) => dispatch({ type: 'SET_PAINTING_SCOPE_PRESET', payload: { roomId: rid, presetId } });
+
+  // Outlier indicator — fires when room's preset differs from project default
+  const projectDefaultPreset = project.default_painting_scope_preset || null;
+  const isOutlier = projectDefaultPreset && room.painting_scope_preset && room.painting_scope_preset !== projectDefaultPreset;
+
+  // Suggested vs Other fixture split
+  const suggestedIds = ROOM_TYPE_SUGGESTED_FIXTURES[room.room_type] || [];
+  const suggestedSet = new Set(suggestedIds);
+  const suggestedFixtures = FIXTURE_CATALOG.filter(f => suggestedSet.has(f.id));
+  const otherFixtures = FIXTURE_CATALOG.filter(f => !suggestedSet.has(f.id));
+  const [otherExpanded, setOtherExpanded] = useState(false);
 
   return (
     <div>
@@ -25,6 +41,32 @@ export default function IdentityTab({ room, derived, dispatch, project, roomCate
               <option value="">None</option>
               {(roomCategories || []).map(c => <option key={c} value={c}>{c}</option>)}
             </select>
+          </div>
+        </div>
+        <div className="form-grid" style={{ gridTemplateColumns: '2fr 2fr', marginTop: 8 }}>
+          <div>
+            <div className="field-label">Room Type</div>
+            <select value={room.room_type || ''} onChange={e => setRoom('room_type', e.target.value)} style={{ width: '100%' }}>
+              <option value="">— Select —</option>
+              {ROOM_TYPES.map(rt => <option key={rt.id} value={rt.id}>{rt.label}</option>)}
+            </select>
+          </div>
+          <div>
+            <div className="field-label" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <span>Painting Scope Preset</span>
+              {isOutlier && (
+                <span style={{ fontSize: 10, padding: '1px 6px', background: 'var(--warning)', color: '#fff', borderRadius: 3, fontWeight: 600 }}
+                  title={`Project default: ${projectDefaultPreset}`}>
+                  OUTLIER
+                </span>
+              )}
+            </div>
+            <select value={room.painting_scope_preset || 'custom'} onChange={e => setScopePreset(e.target.value)} style={{ width: '100%' }}>
+              {PAINTING_SCOPE_PRESETS.map(p => <option key={p.id} value={p.id}>{p.label}</option>)}
+            </select>
+            <div style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 4 }}>
+              Picking a preset bulk-toggles substrates. "Custom" leaves substrates as-is.
+            </div>
           </div>
         </div>
         <div style={{ marginTop: 8 }}>
@@ -62,6 +104,76 @@ export default function IdentityTab({ room, derived, dispatch, project, roomCate
           <span>Floor/Ceiling: <b style={{ color: 'var(--text-primary)' }}>{derived.ceilingSF} SF</b></span>
           <span>Wall Gross: <b style={{ color: 'var(--text-primary)' }}>{derived.wallGross} SF</b></span>
           <span>Opening Deduct: <b style={{ color: 'var(--warning)' }}>{derived.openingDeduction} SF</b></span>
+        </div>
+      </div>
+
+      {/* ── Room Contents (identification only) ── */}
+      <div className="panel-section" data-section="contents">
+        <div className="section-title">Room Contents <span style={{ fontSize: 10, color: 'var(--text-muted)', fontWeight: 400 }}>identification only — protection levels on Protection tab</span></div>
+
+        {/* Floor Type */}
+        <div style={{ marginBottom: 8 }}>
+          <div className="field-label">Floor Type</div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12 }}>
+            {FLOOR_TYPES.map(ft => (
+              <label key={ft.id} style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, cursor: 'pointer' }}>
+                <input type="radio" name={`floor-type-${rid}`} value={ft.id}
+                  checked={room.floor_type === ft.id}
+                  onChange={() => setRoom('floor_type', ft.id)} />
+                <span style={{ color: room.floor_type === ft.id ? 'var(--text-primary)' : 'var(--text-muted)' }}>{ft.label}</span>
+              </label>
+            ))}
+          </div>
+        </div>
+
+        {/* Fixtures Present — Suggested + Other */}
+        <div style={{ marginTop: 12 }}>
+          <div className="field-label">Fixtures Present</div>
+          {room.room_type && suggestedFixtures.length > 0 && (
+            <div style={{ marginBottom: 8 }}>
+              <div style={{ fontSize: 10, fontWeight: 600, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 4 }}>
+                Suggested for {ROOM_TYPES.find(r => r.id === room.room_type)?.label || room.room_type}
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '2px 8px' }}>
+                {suggestedFixtures.map(fix => {
+                  const checked = !!(room.fixtures && room.fixtures[fix.id]);
+                  return (
+                    <label key={fix.id} style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, cursor: 'pointer' }}>
+                      <input type="checkbox" checked={checked}
+                        onChange={() => dispatch({ type: 'TOGGLE_FIXTURE', payload: { roomId: rid, fixtureId: fix.id } })} />
+                      <span style={{ color: checked ? 'var(--text-primary)' : 'var(--text-muted)' }}>{fix.label}</span>
+                    </label>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', marginBottom: 4 }}
+              onClick={() => setOtherExpanded(!otherExpanded)}>
+              <span style={{ fontSize: 10, fontWeight: 600, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                {room.room_type && suggestedFixtures.length > 0 ? 'Other' : 'All Fixtures'}
+              </span>
+              <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>{otherExpanded ? '▾' : '▸'}</span>
+            </div>
+            {otherExpanded && (
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '2px 8px' }}>
+                {otherFixtures.map(fix => {
+                  const checked = !!(room.fixtures && room.fixtures[fix.id]);
+                  return (
+                    <label key={fix.id} style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, cursor: 'pointer' }}>
+                      <input type="checkbox" checked={checked}
+                        onChange={() => dispatch({ type: 'TOGGLE_FIXTURE', payload: { roomId: rid, fixtureId: fix.id } })} />
+                      <span style={{ color: checked ? 'var(--text-primary)' : 'var(--text-muted)' }}>{fix.label}</span>
+                    </label>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+          <div style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 6 }}>
+            Per-fixture configuration (dimensions, protection level) lives on the Protection tab.
+          </div>
         </div>
       </div>
 

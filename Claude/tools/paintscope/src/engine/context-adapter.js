@@ -536,6 +536,9 @@ export function buildRoomProtectionCtxs(room, project, roomHasActiveSpec) {
     containment_mode:        p.containment_mode === true,
     containment_door_zipper: p.containment_door_zipper === true,
     tapeline_edge:           p.tapeline_edge === true || project?.protection_defaults?.full_trim_tapeline === true,
+    // Project-level prep heuristic toggles — gate prep-phase tasks
+    outlet_remove_reinstall: project?.protection_heuristics?.outlet_remove_reinstall === true,
+    hvac_action:             project?.protection_heuristics?.hvac_action || 'mask',
     __specId: 'SF_ROOM_PROTECTION',
     __component: 'room_protection',
     __auto_categories: defaults._categories,  // exposed for diagnostic / UI reason display

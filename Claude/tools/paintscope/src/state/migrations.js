@@ -341,5 +341,32 @@ export function migrateInline(parsed) {
   });
   bumpNextId(maxId);
 
+  // v1.0.1: One-time repair for duplicate room IDs — caused by HMR resetting
+  // the module-level genId counter mid-session. If two rooms share an id,
+  // assign the second-onward instances a fresh suffix past maxId.
+  const seenRoomIds = new Set();
+  parsed.rooms.forEach(r => {
+    if (seenRoomIds.has(r.id)) {
+      maxId += 1;
+      r.id = `room_${maxId}`;
+    }
+    seenRoomIds.add(r.id);
+  });
+  bumpNextId(maxId);
+
+  // v1.0.2: Clean up legacy room.protection defaults. createRoom previously
+  // initialized {floor_mask_level: 'edge', wall_mask_level: 'edge',
+  // ceiling_mask_level: 'none'} — that made every new room show OVERRIDE in
+  // the Protection tab. Fix: if the persisted values exactly match those
+  // legacy defaults, delete them so the deriver re-takes control (AUTO).
+  parsed.rooms.forEach(r => {
+    const p = r.protection;
+    if (p && p.floor_mask_level === 'edge' && p.wall_mask_level === 'edge' && p.ceiling_mask_level === 'none') {
+      delete p.floor_mask_level;
+      delete p.wall_mask_level;
+      delete p.ceiling_mask_level;
+    }
+  });
+
   return parsed;
 }

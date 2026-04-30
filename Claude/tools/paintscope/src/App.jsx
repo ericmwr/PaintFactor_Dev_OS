@@ -388,7 +388,11 @@ function AppShell({ projectDb }) {
 
           <ErrorBoundary label="Scope" key={view === 'scope' ? `scope-${scopeMode}` : undefined}>
             {view === 'scope' && scopeMode === 'interior' && (
-              <RoomEditor room={activeRoom} project={state.project} dispatch={dispatch} roomCategories={state.room_categories} />
+              activeRoom ? (
+                <RoomEditor room={activeRoom} project={state.project} dispatch={dispatch} roomCategories={state.room_categories} />
+              ) : (
+                <div className="no-data-msg">Add a room to begin.</div>
+              )
             )}
             {view === 'scope' && scopeMode === 'exterior' && (
               activeElev ? (
