@@ -6,6 +6,7 @@ import { deriveRoom } from '../../engine/derive-room';
 import { exportProject } from '../../engine/export-project';
 import { PHASE_ORDER, PHASE_COLORS, specDisplayName, QUANTITY_KEY_LABELS } from '../../data/constants';
 import { FLOOR_TYPES, FLOOR_PROTECTION_LABEL } from '../../data/fixture-catalog';
+import { maskLabel } from '../../data/mask-levels';
 import { SUBSTRATE_MAP } from '../../data/substrate-catalog';
 import { useSpecData } from '../../hooks/useSpecData';
 import { COMPLEXITY_OPT_OUT_SPECS } from '../../engine/modifier-stack.js';
@@ -567,7 +568,7 @@ export default function EstimateView() {
                   const rp = estimate.roomProtection[ri];
                   const rpKey = ri + '::__ROOM_PROTECTION__';
                   const isRpOpen = expandedItems[rpKey];
-                  const levelLabel = (rp.protectionLevel || 'edge_only').replace(/_/g, ' ');
+                  const levelLabel = maskLabel(rp.protectionLevel, { short: true });
                   return (
                     <div className="spec-section" style={{marginBottom:8}}>
                       <div className="spec-header" onClick={() => toggleItem(rpKey)}>

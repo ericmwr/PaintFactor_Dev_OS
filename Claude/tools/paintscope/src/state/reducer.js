@@ -436,11 +436,11 @@ export function reducer(state, action) {
         } else {
           const cat = FIXTURE_MAP[fixtureId];
           if (fixtureId === 'cabinets') {
-            fixtures[fixtureId] = { protection: 'full_cover', layout: 'lower_upper', linear_ft: 0, upper_height_ft: 2.5, notes: '' };
+            fixtures[fixtureId] = { protection: 'full', layout: 'lower_upper', linear_ft: 0, upper_height_ft: 2.5, notes: '' };
           } else if (fixtureId === 'feature_wall') {
-            fixtures[fixtureId] = { items: [{ id: genId('fw'), length_ft: 0, height_ft: 0, protection: 'full_mask', deduct_baseboard: false, notes: '' }] };
+            fixtures[fixtureId] = { items: [{ id: genId('fw'), length_ft: 0, height_ft: 0, protection: 'encapsulate', deduct_baseboard: false, notes: '' }] };
           } else {
-            fixtures[fixtureId] = { protection: cat ? cat.defaultProtection : 'partial_cover', count: 1, size: '', notes: '' };
+            fixtures[fixtureId] = { protection: cat ? cat.defaultProtection : 'partial', count: 1, size: '', notes: '' };
           }
         }
         return { ...r, fixtures };
@@ -462,8 +462,8 @@ export function reducer(state, action) {
         const fw = r.fixtures?.feature_wall;
         // Migrate legacy format (single config without items array)
         const existing = fw?.items ? fw.items
-          : (fw && fw.length_ft ? [{ id: genId('fw'), length_ft: fw.length_ft, height_ft: fw.height_ft, protection: fw.protection || 'full_mask', deduct_baseboard: fw.deduct_baseboard || false, notes: fw.notes || '' }] : []);
-        const newItem = { id: genId('fw'), length_ft: 0, height_ft: 0, protection: 'full_mask', deduct_baseboard: false, notes: '' };
+          : (fw && fw.length_ft ? [{ id: genId('fw'), length_ft: fw.length_ft, height_ft: fw.height_ft, protection: fw.protection || 'encapsulate', deduct_baseboard: fw.deduct_baseboard || false, notes: fw.notes || '' }] : []);
+        const newItem = { id: genId('fw'), length_ft: 0, height_ft: 0, protection: 'encapsulate', deduct_baseboard: false, notes: '' };
         return { ...r, fixtures: { ...r.fixtures, feature_wall: { items: [...existing, newItem] } } };
       });
     }

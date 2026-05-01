@@ -4,6 +4,7 @@ import { useEstimate } from '../../hooks/useEstimate';
 import { deriveRoom } from '../../engine/derive-room';
 import { PHASE_ORDER, PHASE_COLORS, specDisplayName } from '../../data/constants';
 import { FLOOR_TYPES, FLOOR_PROTECTION_LABEL } from '../../data/fixture-catalog';
+import { maskLabel } from '../../data/mask-levels';
 
 // Solid accent colors for the phase legend strip and left-border accents
 const PHASE_ACCENT = {
@@ -242,7 +243,7 @@ export default function WorkOrderView() {
                   const rp = estimate.roomProtection[ri];
                   const rpKey = 'wo::' + ri + '::__RP__';
                   const isRpOpen = expandedItems[rpKey] !== false;
-                  const levelLabel = (rp.protectionLevel || 'edge_only').replace(/_/g, ' ');
+                  const levelLabel = maskLabel(rp.protectionLevel, { short: true });
                   return (
                     <div className="spec-section" style={{marginLeft:16,borderLeft:'3px solid #e6a817',marginBottom:8}}>
                       <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'4px 8px',cursor:'pointer'}} onClick={() => toggleItem(rpKey)}>

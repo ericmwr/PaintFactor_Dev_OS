@@ -1,50 +1,54 @@
 // ============================================================
-// CLOSET SHELVING PROTECTION DATA TABLE (v1.0)
+// CLOSET SHELVING PROTECTION DATA TABLE (v2.0)
 //
 // Per-shelving-type defaults for masking + obstruction rates
 // when a closet's shelving is NOT being painted but is in the
 // closet during paint work on walls/ceiling/baseboard.
 //
-// Consumed by engine/closet-shelf-protection.js — same shape
-// as data/fixture-protection.js (rates are DRAFT, calibrate later).
+// v2.0 — migrated from legacy vocab (item_mask/partial_cover/
+// full_cover) to canonical mask-level enum. See data/mask-levels.js.
 // ============================================================
+
+import { CLOSET_SHELF_LEVELS, MASK_LEVEL_LABELS } from './mask-levels';
 
 export const SHELVING_PROTECTION_DEFAULTS = {
   wire_shelving: {
-    defaultLevel: 'item_mask',
+    defaultLevel: 'edge',
     setup_min_per_lf: 0.5,
     teardown_min_per_lf: 0.25,
     obstruction_min_per_lf: 0.3,
   },
   wood_shelving: {
-    defaultLevel: 'partial_cover',
+    defaultLevel: 'partial',
     setup_min_per_lf: 1.5,
     teardown_min_per_lf: 0.5,
     obstruction_min_per_lf: 1.0,
   },
   builtin_system: {
-    defaultLevel: 'full_cover',
+    defaultLevel: 'full',
     setup_min_per_lf: 2.5,
     teardown_min_per_lf: 1.0,
     obstruction_min_per_lf: 2.0,
   },
 };
 
-export const PROTECTION_LEVELS = ['item_mask', 'partial_cover', 'full_cover'];
+// Allowed levels for closet shelving protection — Group A (7 canonical levels).
+export const PROTECTION_LEVELS = CLOSET_SHELF_LEVELS.map(l => l.id);
 
-export const PROTECTION_LEVEL_LABELS = {
-  item_mask:     'Item Mask',
-  partial_cover: 'Partial Cover',
-  full_cover:    'Full Cover',
-};
+export const PROTECTION_LEVEL_LABELS = MASK_LEVEL_LABELS;
 
 // Multipliers applied to setup + teardown only.
 // Obstruction is intrinsic to the shelving's physical bulk
 // and does not scale with how thoroughly the painter wraps it.
+// DRAFT calibration — base rates anchored at 'partial' = 1.0x.
 export const PROTECTION_LEVEL_MULTIPLIERS = {
-  item_mask:     0.5,
-  partial_cover: 1.0,
-  full_cover:    1.5,
+  edge:             0.5,
+  partial:          1.0,
+  full:             1.5,
+  encapsulate:      2.0,
+  edge_partial:     1.2,
+  edge_full:        1.7,
+  edge_encapsulate: 2.2,
 };
 
 /**

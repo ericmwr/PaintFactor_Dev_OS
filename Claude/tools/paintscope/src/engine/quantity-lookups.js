@@ -262,12 +262,15 @@ export function buildRoomQuantityLookups(state) {
     const trimLF = d.baseboard_lf + d.door_casing_lf + d.window_casing_lf;
     addQ('PS_EDGE_LF.TO_TRIM', 'LF', trimLF);
 
-    // Protection — floor level driven by floor_type + user override
+    // Protection — floor level driven by floor_type + user override.
+    // floor_protection is canonical mask-level vocab (edge/partial/full/etc.).
     const floorProt2 = room.floor_protection || '';
     const hasFloorProt = room.floor_type && room.floor_type !== 'subfloor' && floorProt2;
     if (hasFloorProt) {
       addQ('PS_PROTECT_SF.FLOOR_EXPOSED', 'SF', d.ceilingSF);
-      if (floorProt2 === 'full_cover' || floorProt2 === 'partial_cover') {
+      if (floorProt2 === 'full' || floorProt2 === 'partial' ||
+          floorProt2 === 'edge_full' || floorProt2 === 'edge_partial' ||
+          floorProt2 === 'encapsulate' || floorProt2 === 'edge_encapsulate') {
         addQ('PS_PROTECT_SF.FLOOR_PERIMETER', 'SF', d.perimeter * 2);
       }
     }
@@ -343,17 +346,17 @@ export function buildRoomQuantityLookups(state) {
       if (fId === 'cabinets') {
         const lf = parseFloat(cfg.linear_ft) || 0;
         if (lf > 0) {
-          // Cabinet mask consumes PS_PROTECT_LF.CABINET (new task) + legacy keys
-          addQ('PS_PROTECT_LF.CABINET', 'LF', lf);
-          addQ('PS_PROTECT_LF.COUNTERTOP_EDGE', 'LF', lf);
-          // Derive face count from LF: ~1 door per 1.5 LF for lowers.
-          const lowerFaces = Math.ceil(lf / 1.5);
-          const hasUppers = cfg.layout === 'lower_upper';
-          const upperFaces = hasUppers ? Math.ceil(lf / 2) : 0;
-          const totalFaces = lowerFaces + upperFaces;
-          if (totalFaces > 0) addQ('PS_PROTECT_EA.CABINET_FACE_COVERS', 'EA', totalFaces);
-          addQ('PS_PROTECT_EA.ASSET.HARDWARE', 'EA', totalFaces * 2);
-          addQ('PS_PROTECT_LF.FIXTURE_CABINETS', 'LF', lf);
+          // Cabinet Path 1 (paint_cabinets=false): single PS key, quantity =
+          // linear_ft × stack_multiplier (1 lower-only, 2 lower+upper). Feeds
+          // the 7 SCN_CABINET_PROTECT_* canonical-mask-level scenarios.
+          //
+          // Per-zone keys (CABINET_FACE_COVERS, COUNTERTOP_EDGE from cabinet
+          // branch, ASSET.HARDWARE, FLOOR_FULL_KITCHEN, BACKSPLASH_MASK,
+          // ASSET.APPLIANCES) are RESERVED for Path 2 (paint_cabinets=true) —
+          // not emitted here. The standalone Countertops fixture still emits
+          // PS_PROTECT_LF.COUNTERTOP_EDGE via its own branch below.
+          const stackMult = (cfg.layout === 'lower_upper') ? 2 : 1;
+          addQ('PS_PROTECT_LF.CABINET', 'LF', lf * stackMult);
         }
       } else if (fId === 'feature_wall') {
         const items = cfg.items || (cfg.length_ft ? [cfg] : []);
@@ -380,8 +383,8 @@ export function buildRoomQuantityLookups(state) {
         const width = parseFloat(cfg.width_ft) || 0;
         const count = parseInt(cfg.count) || 1;
         const lf = width * count;
-        const level = cfg.protection || 'full_cover';
-        const isEncap = level === 'encapsulate' || level === 'edge_encapsulate' || level === 'full_mask';
+        const level = cfg.protection || 'full';
+        const isEncap = level === 'encapsulate' || level === 'edge_encapsulate';
         if (width < 3 && isEncap && count > 0) {
           addQ('PS_PROTECT_EA.VANITY_SMALL_ENCAP', 'EA', count);
         } else if (lf > 0) {
@@ -514,25 +517,23 @@ export function buildRoomQuantityLookups(state) {
         addQ('PS_SURFACE_SF.CABINET_INTERIOR', 'SF', cab.interior_sf);
       }
     }
-    // ── Cabinet protection PS key emission ──
-    // Emit PS_PROTECT_* keys only when paint_cabinets is false (room is protecting cabinets).
-    // These quantities drive MOD_PROTECT_CABINET_* module tasks consumed by
-    // SCN_CABINET_PROTECT_{LIGHT,STANDARD,HEAVY} scenarios.
+    // ── Cabinet protection PS key emission (substrate fallback) ──
+    // Path 1 (paint_cabinets=false): single PS_PROTECT_LF.CABINET key drives
+    // the 7 SCN_CABINET_PROTECT_* scenarios. The substrate carries cabinet_count
+    // (not linear_ft) so we derive linear_ft ≈ cabinet_count × 2 LF/box.
+    // Stack multiplier defaults to 2 (typical lower+upper kitchen). For exact
+    // accounting, add cabinets via the Protection-tab fixture which carries
+    // linear_ft and layout directly.
+    //
+    // Per-zone keys (CABINET_FACE_COVERS, COUNTERTOP_EDGE, ASSET.HARDWARE,
+    // FLOOR_FULL_KITCHEN, BACKSPLASH_MASK, ASSET.APPLIANCES) are RESERVED
+    // for Path 2 (paint_cabinets=true) — wired in a later pass.
     if (cab && cab.paint_cabinets === false) {
-      const totalFaces = (cab.door_count || 0) + (cab.drawer_count || 0);
-      if (totalFaces > 0) addQ('PS_PROTECT_EA.CABINET_FACE_COVERS', 'EA', totalFaces);
-      const level = cab.protection_level || 'standard';
-      if (level === 'standard' || level === 'heavy') {
-        if (cab.hardware_count > 0) addQ('PS_PROTECT_EA.ASSET.HARDWARE', 'EA', cab.hardware_count);
-        const counterLF = (cab.cabinet_count || 0) * 3;
-        if (counterLF > 0) addQ('PS_PROTECT_LF.COUNTERTOP_EDGE', 'LF', counterLF);
-      }
-      if (level === 'heavy') {
-        const floorSF = (cab.cabinet_count || 0) * 8;
-        const backsplashSF = (cab.cabinet_count || 0) * 3;
-        if (floorSF > 0) addQ('PS_PROTECT_SF.FLOOR_FULL_KITCHEN', 'SF', floorSF);
-        if (backsplashSF > 0) addQ('PS_PROTECT_SF.BACKSPLASH_MASK', 'SF', backsplashSF);
-        addQ('PS_PROTECT_EA.ASSET.APPLIANCES', 'EA', 2);
+      const cabCount = cab.cabinet_count || 0;
+      if (cabCount > 0) {
+        const derivedLF = cabCount * 2;
+        const stackMult = 2;
+        addQ('PS_PROTECT_LF.CABINET', 'LF', derivedLF * stackMult);
       }
     }
 

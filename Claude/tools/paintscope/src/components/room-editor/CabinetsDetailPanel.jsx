@@ -3,6 +3,7 @@ import SubstrateStateSelect from './SubstrateStateSelect';
 import { ENUMS } from '../../data/enums';
 import { SUBSTRATE_APPLICATION_METHODS } from '../../data/substrate-catalog';
 import { useModifierEnum } from '../../hooks/useModifierEnum';
+import { CABINET_PROTECT_LEVELS, CABINET_PROTECT_DEFAULT } from '../../data/mask-levels';
 
 const SCOPE_OPTIONS = [
   { value: 'doors_only', label: 'Doors Only' },
@@ -10,11 +11,12 @@ const SCOPE_OPTIONS = [
   { value: 'full_with_interior', label: 'Full with Interior' },
 ];
 
-const PROTECTION_LEVEL_OPTIONS = [
-  { value: 'light', label: 'Light — tape + plastic on cabinet faces' },
-  { value: 'standard', label: 'Standard — faces + countertop + hardware' },
-  { value: 'heavy', label: 'Heavy — full kitchen containment' },
-];
+// Protection level options when cabinets are NOT being painted (Protect mode).
+// 4 levels of the canonical mask-level vocab — edge / partial / full / encapsulate.
+const PROTECTION_LEVEL_OPTIONS = CABINET_PROTECT_LEVELS.map(l => ({
+  value: l.id,
+  label: l.label,
+}));
 
 const DOOR_STYLE_OPTIONS = [
   { value: 'slab', label: 'Slab' },
@@ -45,7 +47,7 @@ export default function CabinetsDetailPanel({ room, dispatch, project }) {
   const setSub = (f, v) => dispatch({ type: 'SET_SUBSTRATE', payload: { roomId: rid, substrateId: 'cabinets', field: f, value: v } });
 
   const paintCabinets = config.paint_cabinets !== false && config.paint_cabinets !== undefined ? config.paint_cabinets : false;
-  const protectionLevel = config.protection_level || 'standard';
+  const protectionLevel = config.protection_level || CABINET_PROTECT_DEFAULT;
   const scope = config.scope || 'full_exterior';
 
   const sam = SUBSTRATE_APPLICATION_METHODS.cabinets;

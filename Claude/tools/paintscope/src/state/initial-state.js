@@ -72,7 +72,7 @@ export function createCloset(overrides={}) {
     // Paint/protect toggle for shelving — only meaningful when shelving_type !== 'none'
     paint_shelving: true,
     // Protection level override — null = use shelving type's default
-    // Values: 'item_mask' | 'partial_cover' | 'full_cover'
+    // Values: any canonical mask level (see data/mask-levels.js)
     protection_level: null,
     // Only contains keys the user explicitly overrides; absent = inherit from parent room
     substrate_overrides: {},
@@ -172,7 +172,7 @@ export function createRoom(overrides={}) {
     // v0.5 adjacency — items present but not being painted
     floor_type: '',
     floor_protection: '',
-    fixtures: {},  // keyed by fixture_id → { protection: 'partial_cover', count: 1, size: '', notes: '' }
+    fixtures: {},  // keyed by fixture_id → { protection: 'partial', count: 1, size: '', notes: '' }
     // v0.10 room-level protection state — Protection tab v2.
     // Mask-level fields (floor/wall/ceiling) are intentionally absent here so
     // that fresh rooms default to AUTO (deriver fills in the matrix output).

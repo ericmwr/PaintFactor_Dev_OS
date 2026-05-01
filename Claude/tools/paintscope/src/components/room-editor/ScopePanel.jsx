@@ -8,6 +8,12 @@ import { SUBSTRATE_MAP, SUBSTRATE_GROUPS } from '../../data/substrate-catalog';
 import { FIXTURE_CATALOG, FIXTURE_MAP, FIXTURE_GROUPS, FLOOR_TYPES } from '../../data/fixture-catalog';
 import { deriveProtectionSummary } from '../../engine/derive-protection';
 import { useModifierEnum } from '../../hooks/useModifierEnum';
+import {
+  MASK_LEVEL_SHORT,
+  getFixtureLevels,
+  getFixtureDefault,
+  maskLabel,
+} from '../../data/mask-levels';
 
 export default function ScopePanel({ room, derived, dispatch, project, focusedSubstrate, setFocusedSubstrate }) {
   const complexityOptions = useModifierEnum('FAC_COMPLEXITY');
@@ -263,9 +269,9 @@ export default function ScopePanel({ room, derived, dispatch, project, focusedSu
             <div className="field-label">Floor Protection</div>
             <select value={room.floor_protection || ''} onChange={e => setRoom('floor_protection', e.target.value)} style={{ width: '100%' }} disabled={!room.floor_type || room.floor_type === 'subfloor'}>
               <option value="">&mdash;</option>
-              <option value="edge_only">Edge Only</option>
-              <option value="partial_cover">Partial Cover</option>
-              <option value="full_cover">Full Cover</option>
+              <option value="edge">Edge tape only</option>
+              <option value="partial">Partial (perimeter)</option>
+              <option value="full">Full drape</option>
             </select>
           </div>
           <div style={{ alignSelf: 'end', fontSize: 11, color: 'var(--text-muted)' }}>
@@ -331,10 +337,10 @@ export default function ScopePanel({ room, derived, dispatch, project, focusedSu
                     </div>
                     <div>
                       <div className="field-label">Protection Level</div>
-                      <select value={cfg.protection || 'full_cover'} onChange={e => setFix('protection', e.target.value)} style={{ width: '100%' }}>
-                        <option value="edge_only">Edge Only</option>
-                        <option value="partial_cover">Partial Cover</option>
-                        <option value="full_cover">Full Cover</option>
+                      <select value={cfg.protection || getFixtureDefault('cabinets')} onChange={e => setFix('protection', e.target.value)} style={{ width: '100%' }}>
+                        {getFixtureLevels('cabinets').map(o => (
+                          <option key={o.id} value={o.id}>{o.label}</option>
+                        ))}
                       </select>
                     </div>
                   </div>
@@ -368,12 +374,10 @@ export default function ScopePanel({ room, derived, dispatch, project, focusedSu
                     </div>
                     <div>
                       <div className="field-label">Protection Level</div>
-                      <select value={cfg.protection || 'partial_cover'} onChange={e => setFix('protection', e.target.value)} style={{ width: '100%' }}>
-                        <option value="none">None</option>
-                        <option value="edge_only">Edge Only</option>
-                        <option value="partial_cover">Partial Cover</option>
-                        <option value="full_cover">Full Cover</option>
-                        <option value="item_mask">Item Mask</option>
+                      <select value={cfg.protection || getFixtureDefault(focusedFixture)} onChange={e => setFix('protection', e.target.value)} style={{ width: '100%' }}>
+                        {getFixtureLevels(focusedFixture).map(o => (
+                          <option key={o.id} value={o.id}>{o.label}</option>
+                        ))}
                       </select>
                     </div>
                   </div>
@@ -389,8 +393,8 @@ export default function ScopePanel({ room, derived, dispatch, project, focusedSu
             <div style={{ borderTop: focusedFixture && room.fixtures && room.fixtures[focusedFixture] ? '1px solid var(--border)' : 'none', paddingTop: 8 }}>
               <div className="field-label" style={{ marginBottom: 4 }}>Protection Summary</div>
               {protectionSummary.map(item => {
-                const PROTECTION_LABELS = { none: 'NONE', edge_only: 'EDGE', light_mask: 'LIGHT', partial_cover: 'PARTIAL', item_mask: 'ITEM', full_cover: 'FULL', full_mask: 'FULL MASK' };
-                const badgeLabel = PROTECTION_LABELS[item.protection] || item.protection?.toUpperCase() || '?';
+                // maskLabel handles canonical + legacy values via the mask-levels migration helper.
+                const badgeLabel = (maskLabel(item.protection, { short: true }) || '?').toUpperCase();
                 return (
                   <div key={item.zone} className="protection-row">
                     <span className={'protection-badge ' + item.protection}>{badgeLabel}</span>

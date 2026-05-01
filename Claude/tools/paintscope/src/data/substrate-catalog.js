@@ -106,7 +106,7 @@ export const SUBSTRATE_CATALOG = [
     id: 'cabinets', group: 'Specialty', label: 'Cabinets', uom: 'EA',
     autoDerive: null, defaultConfig: {
       title: '', substrate_state: 'factory_finish', paint_cabinets: false,
-      protection_level: 'standard', quality_tier: null, application_method: 'spray',
+      protection_level: 'partial', quality_tier: null, application_method: 'spray',
       coating_type: 'paint', sheen: 'satin', scope: 'full_exterior',
       door_style: 'shaker', kitchen_complexity: 'galley', height_band: 'standard',
       cabinet_count: 0, door_count: 0, drawer_count: 0,

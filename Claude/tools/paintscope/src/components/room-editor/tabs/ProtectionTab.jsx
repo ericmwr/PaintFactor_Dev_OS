@@ -1,31 +1,14 @@
 import { useMemo, useState } from 'react';
 import { FIXTURE_MAP, FLOOR_TYPES } from '../../../data/fixture-catalog';
 import { deriveProtectionDefaults } from '../../../engine/derive-protection-defaults.js';
-
-// Mask level enum (per surface). Not all values valid for every surface:
-//   floor: all 9
-//   wall:  all except 'spot' (no spot for walls)
-//   ceiling: all except 'full' / 'edge_full' (gravity)
-const MASK_LEVELS_FLOOR = [
-  { id: 'none',             label: 'None' },
-  { id: 'edge',             label: 'Edge tape only' },
-  { id: 'spot',             label: 'Spot (per opening)' },
-  { id: 'partial',          label: 'Partial (perimeter)' },
-  { id: 'full',             label: 'Full drape' },
-  { id: 'encapsulate',      label: 'Encapsulate (taped/sealed)' },
-  { id: 'edge_partial',     label: 'Edge+ Partial' },
-  { id: 'edge_full',        label: 'Edge+ Full' },
-  { id: 'edge_encapsulate', label: 'Edge+ Encapsulate' },
-];
-const MASK_LEVELS_WALL = MASK_LEVELS_FLOOR.filter(l => l.id !== 'spot');
-const MASK_LEVELS_CEILING = MASK_LEVELS_FLOOR.filter(l =>
-  l.id !== 'full' && l.id !== 'edge_full');
-
-const LEVEL_LABEL_SHORT = {
-  none: 'None', edge: 'Edge', spot: 'Spot', partial: 'Partial', full: 'Full',
-  encapsulate: 'Encapsulate', edge_partial: 'Edge+ Partial', edge_full: 'Edge+ Full',
-  edge_encapsulate: 'Edge+ Encapsulate',
-};
+import {
+  MASK_LEVELS_FLOOR,
+  MASK_LEVELS_WALL,
+  MASK_LEVELS_CEILING,
+  MASK_LEVEL_SHORT as LEVEL_LABEL_SHORT,
+  getFixtureLevels,
+  getFixtureDefault,
+} from '../../../data/mask-levels';
 
 export default function ProtectionTab({ room, derived, dispatch, project }) {
   const rid = room.id;
@@ -256,10 +239,10 @@ function FixtureDetail({ fixtureId, cfg, setFix, room, dispatch, onClose }) {
           </div>
           <div>
             <div className="field-label">Protection Level</div>
-            <select value={cfg.protection || 'full_cover'} onChange={e => setFix(fixtureId, 'protection', e.target.value)} style={{ width: '100%' }}>
-              <option value="edge_only">Edge Only</option>
-              <option value="partial_cover">Partial Cover</option>
-              <option value="full_cover">Full Cover</option>
+            <select value={cfg.protection || getFixtureDefault('cabinets')} onChange={e => setFix(fixtureId, 'protection', e.target.value)} style={{ width: '100%' }}>
+              {getFixtureLevels('cabinets').map(o => (
+                <option key={o.id} value={o.id}>{o.label}</option>
+              ))}
             </select>
           </div>
         </div>
@@ -317,11 +300,10 @@ function FixtureDetail({ fixtureId, cfg, setFix, room, dispatch, onClose }) {
               </div>
               <div>
                 <div className="field-label">Protection</div>
-                <select value={item.protection || 'full_mask'} onChange={e => setFW(item.id, 'protection', e.target.value)} style={{ width: '100%' }}>
-                  <option value="edge_only">Edge Only</option>
-                  <option value="partial_cover">Partial Cover</option>
-                  <option value="full_cover">Full Cover</option>
-                  <option value="full_mask">Full Mask</option>
+                <select value={item.protection || getFixtureDefault('feature_wall')} onChange={e => setFW(item.id, 'protection', e.target.value)} style={{ width: '100%' }}>
+                  {getFixtureLevels('feature_wall').map(o => (
+                    <option key={o.id} value={o.id}>{o.label}</option>
+                  ))}
                 </select>
               </div>
             </div>
@@ -336,8 +318,8 @@ function FixtureDetail({ fixtureId, cfg, setFix, room, dispatch, onClose }) {
     );
   }
 
-  // Built-in shelving / dimensional fixtures (shower, vanity, fireplace, stone_fireplace)
-  if (['builtin_shelving', 'shower', 'vanity', 'fireplace', 'stone_fireplace'].includes(fixtureId)) {
+  // Built-in shelving / dimensional fixtures (shower, vanity, fireplace, stone_fireplace, bathtub, toilet)
+  if (['builtin_shelving', 'shower', 'vanity', 'fireplace', 'stone_fireplace', 'bathtub', 'toilet'].includes(fixtureId)) {
     const sf = Math.round((parseFloat(cfg.width_ft) || 0) * (parseFloat(cfg.height_ft) || 0) * (parseInt(cfg.count) || 1));
     return (
       <div>
@@ -359,11 +341,10 @@ function FixtureDetail({ fixtureId, cfg, setFix, room, dispatch, onClose }) {
         <div className="form-grid" style={{ gridTemplateColumns: '1fr 1fr', marginTop: 6 }}>
           <div>
             <div className="field-label">Protection Level</div>
-            <select value={cfg.protection || cat.defaultProtection || 'full_cover'} onChange={e => setFix(fixtureId, 'protection', e.target.value)} style={{ width: '100%' }}>
-              <option value="edge_only">Edge Only</option>
-              <option value="partial_cover">Partial Cover</option>
-              <option value="full_cover">Full Cover</option>
-              <option value="full_mask">Full Mask</option>
+            <select value={cfg.protection || cat.defaultProtection || getFixtureDefault(fixtureId)} onChange={e => setFix(fixtureId, 'protection', e.target.value)} style={{ width: '100%' }}>
+              {getFixtureLevels(fixtureId).map(o => (
+                <option key={o.id} value={o.id}>{o.label}</option>
+              ))}
             </select>
           </div>
           <div style={{ alignSelf: 'end' }}>
@@ -391,12 +372,10 @@ function FixtureDetail({ fixtureId, cfg, setFix, room, dispatch, onClose }) {
         </div>
         <div>
           <div className="field-label">Protection Level</div>
-          <select value={cfg.protection || 'partial_cover'} onChange={e => setFix(fixtureId, 'protection', e.target.value)} style={{ width: '100%' }}>
-            <option value="none">None</option>
-            <option value="edge_only">Edge Only</option>
-            <option value="partial_cover">Partial Cover</option>
-            <option value="full_cover">Full Cover</option>
-            <option value="item_mask">Item Mask</option>
+          <select value={cfg.protection || getFixtureDefault(fixtureId)} onChange={e => setFix(fixtureId, 'protection', e.target.value)} style={{ width: '100%' }}>
+            {getFixtureLevels(fixtureId).map(o => (
+              <option key={o.id} value={o.id}>{o.label}</option>
+            ))}
           </select>
         </div>
       </div>

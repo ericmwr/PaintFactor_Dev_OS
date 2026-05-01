@@ -276,7 +276,7 @@ export function buildRoomPatch(accepted) {
   if (accepted.fixtures) {
     for (const f of accepted.fixtures) {
       if (f.scope !== 'protect') continue;
-      fixtures[f.fixture_id] = { protection: 'partial_cover', count: f.count || 1, size: '', notes: f.notes || '' };
+      fixtures[f.fixture_id] = { protection: 'partial', count: f.count || 1, size: '', notes: f.notes || '' };
     }
   }
 

@@ -353,11 +353,11 @@ export function buildCabinetProtectCtxs(room, project) {
   if (fix) {
     const lf = parseFloat(fix.linear_ft) || 0;
     if (lf > 0) {
-      // Map Protection tab's 'protection' field to scenario's protection_level.
-      // Protection tab uses: edge_only / partial_cover / full_cover
-      // Scenarios use: light / standard / heavy
-      const levelMap = { edge_only: 'light', partial_cover: 'standard', full_cover: 'heavy' };
-      const level = levelMap[fix.protection] || 'standard';
+      // Path 1: pass canonical mask-level vocab through directly. The 7
+      // SCN_CABINET_PROTECT_* scenarios match on canonical levels
+      // (edge/partial/full/encapsulate/edge_partial/edge_full/edge_encapsulate).
+      // The legacy LIGHT/STANDARD/HEAVY scenarios are reserved for Path 2.
+      const level = fix.protection || 'partial';
       return [{
         paintable_item: 'cabinet',
         coating_type: 'protect',
@@ -380,7 +380,10 @@ export function buildCabinetProtectCtxs(room, project) {
   if (cab.paint_cabinets !== false) return [];
   const totalFaces = (cab.door_count || 0) + (cab.drawer_count || 0);
   if (totalFaces <= 0) return [];
-  const level = cab.protection_level || 'standard';
+  // CabinetsDetailPanel ("Protect" mode) emits canonical mask-level vocab
+  // (edge / partial / full / encapsulate). Path 1 scenarios match on
+  // canonical levels directly — no translation needed.
+  const level = cab.protection_level || 'partial';
   return [{
     paintable_item: 'cabinet',
     coating_type: 'protect',
@@ -405,8 +408,12 @@ export function buildCabinetProtectCtxs(room, project) {
  *   - paint_shelving === false
  *
  * Protection level resolution: user override if set, else shelving-type default
- * (wire_shelving → item_mask, wood_shelving → partial_cover, builtin_system → full_cover).
+ * (wire_shelving → edge, wood_shelving → partial, builtin_system → full).
  * Mirrors resolveProtectionLevel() in data/closet-shelving-protection.js.
+ *
+ * Translates canonical mask-level vocab → scenario keys
+ * (edge → item_mask, partial → partial_cover, full → full_cover).
+ * Edge+ variants and encapsulate fall through to closest existing scenario.
  *
  * Matches SCN_CLOSET_SHELF_PROTECT_{ITEM_MASK,PARTIAL_COVER,FULL_COVER}.
  */
@@ -414,19 +421,30 @@ export function buildClosetShelfProtectCtxs(room, project) {
   const closets = room?.closets || [];
   if (closets.length === 0) return [];
   const contexts = [];
+  // Canonical mask-level → existing scenario key.
+  const closetLevelMap = {
+    edge: 'item_mask',
+    partial: 'partial_cover',
+    full: 'full_cover',
+    encapsulate: 'full_cover',
+    edge_partial: 'partial_cover',
+    edge_full: 'full_cover',
+    edge_encapsulate: 'full_cover',
+  };
   for (const closet of closets) {
     if (closet.shelving_type === 'none') continue;
     const lf = parseFloat(closet.shelving_lf) || 0;
     if (lf <= 0) continue;
     if (closet.paint_shelving !== false) continue;
-    // Level: user override, else shelving-type default.
-    let level = closet.protection_level;
-    if (!level) {
-      level = closet.shelving_type === 'wire_shelving'  ? 'item_mask'
-            : closet.shelving_type === 'wood_shelving'  ? 'partial_cover'
-            : closet.shelving_type === 'builtin_system' ? 'full_cover'
-            : 'partial_cover';
+    // Level: user override, else shelving-type default (canonical vocab).
+    let canonical = closet.protection_level;
+    if (!canonical) {
+      canonical = closet.shelving_type === 'wire_shelving'  ? 'edge'
+                : closet.shelving_type === 'wood_shelving'  ? 'partial'
+                : closet.shelving_type === 'builtin_system' ? 'full'
+                : 'partial';
     }
+    const level = closetLevelMap[canonical] || 'partial_cover';
     contexts.push({
       paintable_item: 'closet',
       coating_type: 'protect',

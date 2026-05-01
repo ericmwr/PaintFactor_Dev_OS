@@ -1,5 +1,6 @@
 import { createSubstrateConfig, createOpening, bumpNextId } from './initial-state';
 import { createExteriorState } from './exterior-state';
+import { migrateMaskLevel } from '../data/mask-levels';
 
 /**
  * Migrate v0.2 state (flat drywall/trim/doors/windows/specialty) to v0.3 substrate model.
@@ -140,7 +141,7 @@ export function migrateInline(parsed) {
     const existingCab = subs.cabinets;
     if (existingCab) {
       if (existingCab.paint_cabinets === undefined) existingCab.paint_cabinets = false;
-      if (existingCab.protection_level === undefined) existingCab.protection_level = 'standard';
+      if (existingCab.protection_level === undefined) existingCab.protection_level = 'partial';
       if (existingCab.scope === undefined) existingCab.scope = 'full_exterior';
       if (existingCab.door_style === undefined) existingCab.door_style = 'shaker';
       if (existingCab.kitchen_complexity === undefined) existingCab.kitchen_complexity = 'galley';
@@ -366,6 +367,42 @@ export function migrateInline(parsed) {
       delete p.wall_mask_level;
       delete p.ceiling_mask_level;
     }
+  });
+
+  // v1.0.3: Migrate legacy mask-level vocabulary to canonical 9-value enum.
+  //   Legacy: edge_only / item_mask / partial_cover / full_cover / full_mask
+  //           + cabinet-only: light / standard / heavy
+  //   New:    edge / partial / full / encapsulate (+ edge_partial / edge_full /
+  //           edge_encapsulate / spot / none)
+  parsed.rooms.forEach(r => {
+    // Adjacent fixtures
+    const fix = r.fixtures || {};
+    Object.keys(fix).forEach(fId => {
+      const cfg = fix[fId];
+      if (!cfg || typeof cfg !== 'object') return;
+      if (cfg.protection) cfg.protection = migrateMaskLevel(cfg.protection);
+      // Feature wall items carry their own protection field
+      if (Array.isArray(cfg.items)) {
+        cfg.items.forEach(item => {
+          if (item.protection) item.protection = migrateMaskLevel(item.protection);
+        });
+      }
+    });
+
+    // Cabinet substrate "Protect" mode (CabinetsDetailPanel) — light/standard/heavy
+    const cab = r.substrates?.cabinets;
+    if (cab && cab.protection_level) {
+      cab.protection_level = migrateMaskLevel(cab.protection_level);
+    }
+
+    // Closet shelving protection level
+    (r.closets || []).forEach(c => {
+      if (c.protection_level) c.protection_level = migrateMaskLevel(c.protection_level);
+    });
+
+    // Legacy floor protection field (room.floor_protection) — separate from
+    // room.protection.floor_mask_level. Some rooms may still carry this.
+    if (r.floor_protection) r.floor_protection = migrateMaskLevel(r.floor_protection);
   });
 
   return parsed;
