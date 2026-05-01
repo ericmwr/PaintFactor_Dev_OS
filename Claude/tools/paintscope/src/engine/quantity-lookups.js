@@ -323,23 +323,50 @@ export function buildRoomQuantityLookups(state) {
     addQ('PS_PROTECT_LF.CEILING_EDGE', 'LF', d.perimeter);
     addQ('PS_PROTECT_LF.CEILING_PARTIAL', 'LF', d.perimeter);
     addQ('PS_PROTECT_SF.CEILING_AREA', 'SF', d.ceilingSF);
-    // Adjacent-surface masks — emit only when neighbor NOT in paint/stain scope.
-    // Doors not in scope: count = totalOpenings - active door panels
-    const doorsActiveCnt = (subs.doors?.painting && subs.doors?.items) ? subs.doors.items.reduce((s, di) => s + (parseInt(di.count) || 0), 0) : 0;
-    const doorsUnpaintedCnt = Math.max(0, d.totalOpenings - doorsActiveCnt);
-    if (doorsUnpaintedCnt > 0) addQ('PS_PROTECT_EA.DOOR_SLAB', 'EA', doorsUnpaintedCnt);
-    // Door frame / casing / window jamb / window casing — mask when not in scope
-    if (!subs.door_frames && d.door_frame_lf > 0) {
-      addQ('PS_PROTECT_LF.DOOR_FRAME_ADJACENT', 'LF', d.door_frame_lf);
-    }
-    if (!subs.door_casing?.painting && d.door_casing_lf > 0) {
-      addQ('PS_PROTECT_LF.DOOR_CASING_ADJACENT', 'LF', d.door_casing_lf);
-    }
-    if (!subs.window_casing?.painting && d.window_casing_lf > 0) {
-      addQ('PS_PROTECT_LF.WINDOW_CASING_ADJACENT', 'LF', d.window_casing_lf);
-    }
-    if (!subs.window_jamb && d.window_jamb_lf > 0) {
-      addQ('PS_PROTECT_LF.WINDOW_JAMB_ADJACENT', 'LF', d.window_jamb_lf);
+    // Adjacent-surface masks — emit only when neighbor NOT in paint/stain scope
+    // AND there's spray happening in the room. Brush+roll doesn't need physical
+    // mask on these surfaces. Mirrors the legacy fixture-protection.js auto-mask
+    // semantic which used to handle this for door slabs and window glass.
+    if (anySprayInRoom) {
+      // Door slab: count items where (substrate.painting=false) OR (item.painting=false).
+      // Substrate-level off → all door panels unpainted; otherwise per-item flag.
+      const doorItems = subs.doors?.items || [];
+      const doorsPainting = !!subs.doors?.painting;
+      const doorsUnpaintedCnt = doorItems.reduce((sum, di) => {
+        const itemPainting = di.painting !== false;
+        return (doorsPainting && itemPainting) ? sum : sum + (parseInt(di.count) || 0);
+      }, 0);
+      if (doorsUnpaintedCnt > 0) addQ('PS_PROTECT_EA.DOOR_SLAB', 'EA', doorsUnpaintedCnt);
+
+      // Window full mask: emit per size bucket (S/M/L/O → SMALL/STD/LG/XL)
+      // for windows that are NOT in paint scope.
+      const windowsPainting = !!subs.windows?.painting;
+      if (!windowsPainting) {
+        const windowItems = subs.windows?.items || [];
+        const sizeMap = { S: 'SMALL', M: 'STD', L: 'LG', O: 'XL' };
+        const bucketCounts = { SMALL: 0, STD: 0, LG: 0, XL: 0 };
+        windowItems.forEach(w => {
+          const bucket = sizeMap[w.size_bucket] || 'STD';
+          bucketCounts[bucket] += (parseInt(w.count) || 0);
+        });
+        for (const [bucket, cnt] of Object.entries(bucketCounts)) {
+          if (cnt > 0) addQ('PS_PROTECT_EA.WINDOW_FULL_' + bucket, 'EA', cnt);
+        }
+      }
+
+      // Adjacent trim masks — fire when the trim substrate is NOT in scope.
+      if (!subs.door_frames && d.door_frame_lf > 0) {
+        addQ('PS_PROTECT_LF.DOOR_FRAME_ADJACENT', 'LF', d.door_frame_lf);
+      }
+      if (!subs.door_casing?.painting && d.door_casing_lf > 0) {
+        addQ('PS_PROTECT_LF.DOOR_CASING_ADJACENT', 'LF', d.door_casing_lf);
+      }
+      if (!subs.window_casing?.painting && d.window_casing_lf > 0) {
+        addQ('PS_PROTECT_LF.WINDOW_CASING_ADJACENT', 'LF', d.window_casing_lf);
+      }
+      if (!subs.window_jamb && d.window_jamb_lf > 0) {
+        addQ('PS_PROTECT_LF.WINDOW_JAMB_ADJACENT', 'LF', d.window_jamb_lf);
+      }
     }
     // Trim tape line — total trim LF being painted (for crisp finished edge before walls)
     const tapelineLF = (subs.baseboard ? d.baseboard_lf : 0)

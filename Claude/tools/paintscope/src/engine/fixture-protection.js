@@ -36,9 +36,15 @@ export function resolveRoomFixtureProtection(rooms, roomSpecMethods) {
     const tasks = [];
     const subs = room.substrates || {};
 
-    // Auto-detect: Window masking when any spray spec fires + windows exist but aren't being painted
-    const anySpray = [...contextMap.values()].some(m => isSprayMethod(m));
-    if (anySpray) {
+    // Window + door auto-mask — RETIRED. Replaced by room-level emission of
+    // PS_PROTECT_EA.WINDOW_FULL_{SMALL,STD,LG,XL} and PS_PROTECT_EA.DOOR_SLAB
+    // in quantity-lookups.js (gated on anySprayInRoom + windows-not-painted /
+    // doors-not-painted), consumed by TSK_MASK_WINDOW_FULL_*_INSTALL/REMOVE
+    // and TSK_MASK_DOOR_SLAB_INSTALL/REMOVE in MOD_PROTECT_SETUP/TEARDOWN.
+    // The dead block below is preserved temporarily for diff legibility;
+    // remove in a follow-up cleanup pass.
+    const anySpray = false; // RETIRED — auto-mask logic moved to room-level
+    if (false && anySpray) {
       const windowItems = subs.windows?.items || [];
       const windowCount = windowItems.reduce((sum, w) => sum + (parseInt(w.count) || 0), 0);
       const windowsPainting = !!subs.windows?.painting;
