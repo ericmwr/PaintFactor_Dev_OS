@@ -81,8 +81,11 @@ export default function EstimateView() {
   const { specData } = useSpecData();
 
   // Engine toggle: 'legacy' (spec-driven) or 'scenario' (module-driven).
-  // Persisted in localStorage so it survives page reloads.
-  const [engine, setEngine] = useState(() => localStorage.getItem('paintscope.engine') || 'legacy');
+  // Default is 'scenario' — the scenario engine is now the source of truth
+  // for the bid number. Legacy is kept available behind the toggle as a
+  // diagnostic / fallback only. Persisted in localStorage so it survives
+  // page reloads.
+  const [engine, setEngine] = useState(() => localStorage.getItem('paintscope.engine') || 'scenario');
   const toggleEngine = () => {
     const next = engine === 'legacy' ? 'scenario' : 'legacy';
     localStorage.setItem('paintscope.engine', next);
