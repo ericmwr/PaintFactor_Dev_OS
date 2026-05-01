@@ -475,11 +475,15 @@ export function buildRoomQuantityLookups(state) {
       }
     }
 
-    // Outlet/switch heuristic — emit only when spraying walls/ceiling/trim.
-    // Brush+roll only → no outlet mask (covers stay on, get cut around).
-    // anySprayInRoom is hoisted to the top of the per-room block — also
-    // gates bath fixture mask emission above.
-    if (anySprayInRoom && outletsPerRoom > 0) {
+    // Outlet/switch heuristic — emit count when EITHER:
+    //   (a) any substrate in the room is sprayed (mask is needed), OR
+    //   (b) outlet_remove_reinstall toggle is on (covers come off regardless of method).
+    // Mask vs R+R are independent — both can fire on the same outlet count.
+    // Mask tasks (TSK_MASK_OUTLET_SWITCH_*) gate on any_spray_in_room ctx field
+    // so they only fire under condition (a). Prep R+R tasks gate on
+    // outlet_remove_reinstall and fire under condition (b).
+    const outletRR = project?.protection_heuristics?.outlet_remove_reinstall === true;
+    if ((anySprayInRoom || outletRR) && outletsPerRoom > 0) {
       const cnt = (room.protection?.outlets_count_override != null ? Number(room.protection.outlets_count_override) : outletsPerRoom);
       if (cnt > 0) addQ('PS_PROTECT_EA.OUTLET_SWITCH', 'EA', cnt);
     }

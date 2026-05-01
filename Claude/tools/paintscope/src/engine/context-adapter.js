@@ -37,6 +37,24 @@ import { resolveSystem } from './spec-resolution.js';
 import { deriveProtectionDefaults } from './derive-protection-defaults.js';
 import { resolvePassGroups } from './pass-groups.js';
 
+// Helper: returns true if any substrate in the room uses a spray application
+// method. Mirrors the same check in quantity-lookups.js. Used by the
+// room_protection ctx to gate outlet mask tasks (and any future mask tasks
+// that should only fire when spraying is happening).
+function computeAnySprayInRoom(room) {
+  const subs = room?.substrates || {};
+  const isSpray = (m) => (m || '').toString().includes('spray');
+  if (isSpray(subs.walls?.application_method)) return true;
+  if (isSpray(subs.ceiling?.application_method)) return true;
+  const trimIds = ['baseboard','crown','door_casing','window_casing','chair_rail','shoe_mold','wainscot_cap','picture_rail','window_stool','window_apron','shadow_box','panel_mold','door_frames','window_jamb'];
+  for (const id of trimIds) {
+    const s = subs[id];
+    if (!s || s.painting === false) continue;
+    if (isSpray(s.application_method)) return true;
+  }
+  return false;
+}
+
 // Helper: set explicit-null pass-group fields on a ctx. Required because
 // applies_when: { pass_group_id: [null] } uses array-includes semantics and
 // [null].includes(undefined) === false — so pass-group fields MUST be null,
@@ -538,6 +556,9 @@ export function buildRoomProtectionCtxs(room, project, roomHasActiveSpec) {
     containment_mode:        p.containment_mode === true,
     containment_door_zipper: p.containment_door_zipper === true,
     tapeline_edge:           p.tapeline_edge === true || project?.protection_defaults?.full_trim_tapeline === true,
+    // Spray-in-room flag — gates outlet mask tasks (and any other future
+    // mask tasks that should only fire when spraying happens).
+    any_spray_in_room:       computeAnySprayInRoom(room),
     // Project-level prep heuristic toggles — gate prep-phase tasks
     outlet_remove_reinstall: project?.protection_heuristics?.outlet_remove_reinstall === true,
     hvac_action:             project?.protection_heuristics?.hvac_action || 'mask',
