@@ -267,6 +267,23 @@ export default function EstimateView() {
   });
   const projectTotalHours = parseFloat(estimate.totalHours) || 0;
 
+  // Project-wide protection rollup — sum hours from every per-input result
+  // whose scenario is a protection scenario. Uses perInputResults (not the
+  // normalized specResults) because the latter strips scenarioId during
+  // grouping. Matches:
+  //   SCN_ROOM_PROTECTION_NC
+  //   SCN_CABINET_PROTECT_*
+  //   SCN_CLOSET_SHELF_PROTECT_*
+  const projectProtectionHours = (estimate.perInputResults || []).reduce((sum, pr) => {
+    if (pr && pr.scenarioId && /PROTECT/.test(pr.scenarioId)) {
+      return sum + (parseFloat(pr.totalHours) || 0);
+    }
+    return sum;
+  }, 0);
+  const projectProtectionPct = projectTotalHours > 0
+    ? Math.round((projectProtectionHours / projectTotalHours) * 100)
+    : 0;
+
   // Consolidated material estimates: group by productId + surfaceTexture
   const consolidatedMaterials = useMemo(() => {
     if (!estimate.materialEstimates || estimate.materialEstimates.length === 0) return [];
@@ -335,6 +352,13 @@ export default function EstimateView() {
           <div><span className="big-num">{fmtHrs(estimate.totalHours)}</span></div>
           <div><span className="big-num">{estimate.totalCrewDays}</span><span className="unit">crew days</span><span style={{fontSize:11,color:'var(--text-muted)',marginLeft:4}}>(@ 8hr, 2 crew)</span></div>
           <div style={{color:'var(--text-secondary)',alignSelf:'center'}}>{estimate.activatedSpecs}/{estimate.totalSpecs} specs | {state.rooms.length} rooms</div>
+          <div
+            style={{color:'#e6a817',alignSelf:'center',fontSize:12,fontWeight:600}}
+            title="Sum of all room protection, cabinet protect, and closet shelf protect hours across the entire project"
+          >
+            Protection (project): {fmtHrs(projectProtectionHours)}
+            {projectTotalHours > 0 && <span style={{color:'var(--text-muted)',fontWeight:400,marginLeft:6}}>({projectProtectionPct}% of total)</span>}
+          </div>
           {estimate.pricing && (
             <div style={{marginLeft:'auto',textAlign:'right'}}>
               <div style={{fontSize:11,color:'var(--text-muted)'}}>Bid Price</div>
