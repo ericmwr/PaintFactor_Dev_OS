@@ -201,6 +201,38 @@ export default function ProtectionTab({ room, derived, dispatch, project }) {
           </label>
         </div>
       </div>
+
+      {/* ── Section 4: Per-room heuristic overrides ── */}
+      {/* Override the project-level outlets-per-room / HVAC-vents-per-room
+          heuristics for THIS room only. Leave blank to use the project default. */}
+      <div className="panel-section">
+        <div className="section-title">Per-Room Heuristic Overrides</div>
+        <div style={{ fontSize: 10, color: 'var(--text-muted)', marginBottom: 8 }}>
+          Override the project-level counts for this room only. Leave blank to use the project heuristic.
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+          <div>
+            <div className="field-label" title="Number of outlets/switches in this room. Overrides the project heuristic only for this room.">Outlets in this room</div>
+            <input
+              type="number" min="0" step="1"
+              value={protection.outlets_count_override ?? ''}
+              onChange={e => setProt('outlets_count_override', e.target.value === '' ? null : parseFloat(e.target.value))}
+              placeholder={`project default: ${project?.protection_heuristics?.outlets_per_room ?? 4}`}
+              style={{ width: '100%', fontSize: 12 }}
+            />
+          </div>
+          <div>
+            <div className="field-label" title="Number of HVAC vents in this room. Overrides the project heuristic only for this room.">HVAC vents in this room</div>
+            <input
+              type="number" min="0" step="0.5"
+              value={protection.hvac_vents_count_override ?? ''}
+              onChange={e => setProt('hvac_vents_count_override', e.target.value === '' ? null : parseFloat(e.target.value))}
+              placeholder={`project default: ${project?.protection_heuristics?.hvac_vents_per_room ?? 0.7}`}
+              style={{ width: '100%', fontSize: 12 }}
+            />
+          </div>
+        </div>
+      </div>
     </>
   );
 }

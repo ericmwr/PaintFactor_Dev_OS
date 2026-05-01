@@ -25,6 +25,7 @@ export const SPEC_DISPLAY_NAMES = {
   'SF_WINDOW_INT_NC': 'Windows',
   'SF_CABINET_NC_PAINT': 'Cabinets',
   'SF_CLOSET_SHELF_NC': 'Closet Shelves',
+  'SF_ROOM_PROTECTION': 'Room Protection',
   'SF_WOOD_CEILING_NC': 'Wood Ceilings',
   'SF_WOOD_WALL_NC': 'Wood Walls',
   'SF_WAINSCOT_PANEL_NC': 'Wainscoting',

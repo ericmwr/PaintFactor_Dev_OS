@@ -178,55 +178,12 @@ export function resolveRoomFixtureProtection(rooms, roomSpecMethods) {
         return;
       }
 
-      // Cabinet protection: LF-based masking (Protection tab)
-      // Entire cabinet system (including countertop) gets masked with plastic.
-      // Lower run: 15 min/LF, Upper run: 10 min/LF.
+      // Cabinet protection \u2014 RETIRED. Replaced by the SCN_CABINET_PROTECT_*
+      // scenario family (see Cabinet Path 1 commit c3feb93). Cabinet protect
+      // hours are now produced via the scenario engine through
+      // PS_PROTECT_LF.CABINET. Skip the legacy path here to prevent
+      // double-counting in the bid.
       if (fixtureId === 'cabinets') {
-        const cfg = fixtures[fixtureId];
-        const lf = parseFloat(cfg.linear_ft) || 0;
-        if (lf <= 0) return;
-        const hasUppers = cfg.layout === 'lower_upper';
-        const protLevel = cfg.protection || 'full_cover';
-        const LOWER_MIN_PER_20LF = 15;   // 15 min per 20 LF
-        const UPPER_MIN_PER_20LF = 10;   // 10 min per 20 LF
-        const TEARDOWN_MIN_PER_20LF = 5;
-        const setupMin = (lf / 20) * LOWER_MIN_PER_20LF + (hasUppers ? (lf / 20) * UPPER_MIN_PER_20LF : 0);
-        const teardownMin = (lf / 20) * TEARDOWN_MIN_PER_20LF + (hasUppers ? (lf / 20) * 3 : 0);
-        const setupHrs = round3(setupMin / 60);
-        const teardownHrs = round3(teardownMin / 60);
-        const desc = hasUppers ? `${lf} LF lower + upper` : `${lf} LF lower only`;
-        tasks.push({
-          taskId: '__FP_CABINET_PROTECT_SETUP__',
-          taskName: `Mask Cabinet System \u2014 ${capitalize(protLevel.replace(/_/g, ' '))} (${desc})`,
-          phase: 'setup',
-          hours: setupHrs,
-          isFixed: false,
-          baseRate: `${LOWER_MIN_PER_20LF}min/20LF lower${hasUppers ? ` + ${UPPER_MIN_PER_20LF}min/20LF upper` : ''}`,
-          quantity: lf,
-          uom: 'LF',
-          isFixtureProtection: true,
-          fixtureId,
-          protectionLevel: protLevel,
-          mechanism: 'task',
-          roomIndex: riNum,
-          roomLabel: room.label,
-        });
-        tasks.push({
-          taskId: '__FP_CABINET_PROTECT_TEARDOWN__',
-          taskName: `Remove Cabinet Masking (${desc})`,
-          phase: 'cleanup',
-          hours: teardownHrs,
-          isFixed: false,
-          baseRate: `${TEARDOWN_MIN_PER_20LF}min/20LF`,
-          quantity: lf,
-          uom: 'LF',
-          isFixtureProtection: true,
-          fixtureId,
-          protectionLevel: protLevel,
-          mechanism: 'task',
-          roomIndex: riNum,
-          roomLabel: room.label,
-        });
         return;
       }
 
