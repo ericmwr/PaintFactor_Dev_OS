@@ -2,11 +2,12 @@ import { useState, useMemo } from 'react';
 import { CLOSET_SHELVING_TYPES } from '../../../state/initial-state';
 import { deriveCloset } from '../../../engine/derive-room';
 import {
-  SHELVING_PROTECTION_DEFAULTS,
   PROTECTION_LEVELS,
   PROTECTION_LEVEL_LABELS,
-  PROTECTION_LEVEL_MULTIPLIERS,
   resolveProtectionLevel,
+  isClosetShelfType,
+  SHELVING_DEFAULT_LEVEL,
+  previewClosetShelfMaskHours,
 } from '../../../data/closet-shelving-protection';
 
 const INHERITABLE_SUBSTRATES = [
@@ -239,16 +240,13 @@ export default function ClosetsTab({ room, derived, dispatch, project }) {
                     </div>
                   )}
 
-                  {/* Protection level dropdown + derived mask time (only when not painting) */}
-                  {focused.shelving_type !== 'none' && focused.paint_shelving === false && (() => {
-                    const def = SHELVING_PROTECTION_DEFAULTS[focused.shelving_type];
+                  {/* Protection level dropdown + derived mask time (only when not painting).
+                      Built-in systems are excluded — they have a separate SF-based design (deferred). */}
+                  {isClosetShelfType(focused.shelving_type) && focused.paint_shelving === false && (() => {
                     const effectiveLevel = resolveProtectionLevel(focused);
                     const isOverridden = !!focused.protection_level;
-                    const lf = parseFloat(focused.shelving_lf) || 0;
-                    const levelMult = PROTECTION_LEVEL_MULTIPLIERS[effectiveLevel] ?? 1.0;
-                    const setupHrs    = def ? lf * def.setup_min_per_lf    * levelMult / 60 : 0;
-                    const teardownHrs = def ? lf * def.teardown_min_per_lf * levelMult / 60 : 0;
-                    const totalMaskHrs = Math.round((setupHrs + teardownHrs) * 100) / 100;
+                    const defaultForType = SHELVING_DEFAULT_LEVEL[focused.shelving_type] || null;
+                    const totalMaskHrs = previewClosetShelfMaskHours(focused, effectiveLevel);
                     return (
                       <div className="form-grid" style={{ gridTemplateColumns: '1fr 1fr', marginTop: 8 }}>
                         <div>
@@ -258,7 +256,6 @@ export default function ClosetsTab({ room, derived, dispatch, project }) {
                               value={effectiveLevel || ''}
                               onChange={e => {
                                 const v = e.target.value;
-                                const defaultForType = def?.defaultLevel || null;
                                 // If user picks the type's default, clear the override
                                 setCl(focused.id, 'protection_level', v === defaultForType ? null : v);
                               }}

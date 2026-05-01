@@ -473,10 +473,16 @@ export function buildRoomQuantityLookups(state) {
           addClosetQ('PS_SURFACE_LF.CLOSET_SHELF', 'LF', cd.shelving_lf);
         }
       }
-      // Closet shelf protection — emit LF when NOT painting shelves.
+      // Closet shelf protection — emit when NOT painting shelves.
+      // Quantity = shelving_lf × perimeter_factor (3.6, for 5-ft shelf at
+      // 2-ft depth heuristic) × type_multiplier (wire 2× because of brackets,
+      // wood 1×, builtin SKIP — built-ins get their own SF-based design).
       // Consumed by MOD_PROTECT_CLOSET_SHELF_* modules via SCN_CLOSET_SHELF_PROTECT_* scenarios.
-      if (closet.shelving_type !== 'none' && cd.shelving_lf > 0 && closet.paint_shelving === false) {
-        addClosetQ('PS_PROTECT_LF.CLOSET_SHELF_MASK', 'LF', cd.shelving_lf);
+      if (cd.shelving_lf > 0 && closet.paint_shelving === false &&
+          (closet.shelving_type === 'wire_shelving' || closet.shelving_type === 'wood_shelving')) {
+        const PERIMETER_FACTOR = 3.6;
+        const typeMult = closet.shelving_type === 'wire_shelving' ? 2 : 1;
+        addClosetQ('PS_PROTECT_LF.CLOSET_SHELF', 'LF', cd.shelving_lf * PERIMETER_FACTOR * typeMult);
       }
       // Closet perimeter edges + protection
       addClosetQ('PS_EDGE_LF.TO_CEILING', 'LF', cd.perimeter);

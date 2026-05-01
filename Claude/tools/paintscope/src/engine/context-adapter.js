@@ -408,43 +408,27 @@ export function buildCabinetProtectCtxs(room, project) {
  *   - paint_shelving === false
  *
  * Protection level resolution: user override if set, else shelving-type default
- * (wire_shelving → edge, wood_shelving → partial, builtin_system → full).
- * Mirrors resolveProtectionLevel() in data/closet-shelving-protection.js.
+ * (wire_shelving → edge, wood_shelving → partial). Built-in systems are
+ * SKIPPED — they have a separate SF-based protection design (deferred).
  *
- * Translates canonical mask-level vocab → scenario keys
- * (edge → item_mask, partial → partial_cover, full → full_cover).
- * Edge+ variants and encapsulate fall through to closest existing scenario.
- *
- * Matches SCN_CLOSET_SHELF_PROTECT_{ITEM_MASK,PARTIAL_COVER,FULL_COVER}.
+ * Canonical mask-level vocab passes through directly — the 7 new
+ * SCN_CLOSET_SHELF_PROTECT_* scenarios match on canonical levels.
  */
 export function buildClosetShelfProtectCtxs(room, project) {
   const closets = room?.closets || [];
   if (closets.length === 0) return [];
   const contexts = [];
-  // Canonical mask-level → existing scenario key.
-  const closetLevelMap = {
-    edge: 'item_mask',
-    partial: 'partial_cover',
-    full: 'full_cover',
-    encapsulate: 'full_cover',
-    edge_partial: 'partial_cover',
-    edge_full: 'full_cover',
-    edge_encapsulate: 'full_cover',
-  };
   for (const closet of closets) {
-    if (closet.shelving_type === 'none') continue;
+    // Built-in systems are out of scope for this protection model.
+    if (closet.shelving_type !== 'wire_shelving' && closet.shelving_type !== 'wood_shelving') continue;
     const lf = parseFloat(closet.shelving_lf) || 0;
     if (lf <= 0) continue;
     if (closet.paint_shelving !== false) continue;
     // Level: user override, else shelving-type default (canonical vocab).
-    let canonical = closet.protection_level;
-    if (!canonical) {
-      canonical = closet.shelving_type === 'wire_shelving'  ? 'edge'
-                : closet.shelving_type === 'wood_shelving'  ? 'partial'
-                : closet.shelving_type === 'builtin_system' ? 'full'
-                : 'partial';
+    let level = closet.protection_level;
+    if (!level) {
+      level = closet.shelving_type === 'wire_shelving' ? 'edge' : 'partial';
     }
-    const level = closetLevelMap[canonical] || 'partial_cover';
     contexts.push({
       paintable_item: 'closet',
       coating_type: 'protect',
