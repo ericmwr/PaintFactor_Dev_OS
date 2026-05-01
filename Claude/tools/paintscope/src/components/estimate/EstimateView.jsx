@@ -193,6 +193,57 @@ export default function EstimateView() {
     }
   };
 
+  // Project-wide protection rollup — aggregates every task from every
+  // per-input result whose scenario is a protection scenario, summing
+  // quantities + hours by (taskId + phase). Matches:
+  //   SCN_ROOM_PROTECTION_NC
+  //   SCN_CABINET_PROTECT_*
+  //   SCN_CLOSET_SHELF_PROTECT_*
+  // Renders as a sibling card to the room cards (see "Project Protection"
+  // section in the JSX below). Placed BEFORE the early-return guards to
+  // keep hooks-order stable across renders.
+  const projectProtection = useMemo(() => {
+    const inputs = (estimate?.perInputResults || []).filter(pr => pr?.scenarioId && /PROTECT/.test(pr.scenarioId));
+    if (inputs.length === 0) return null;
+    const taskMap = new Map();      // key: taskId+phase → aggregated row
+    const phaseHours = {};
+    let totalHours = 0;
+    for (const pr of inputs) {
+      for (const t of pr.tasks || []) {
+        const key = (t.taskId || t.taskName || 'unknown') + '::' + (t.phase || 'apply');
+        const existing = taskMap.get(key);
+        if (existing) {
+          existing.quantity += (parseFloat(t.quantity) || 0);
+          existing.hours += (parseFloat(t.hours) || 0);
+          existing.roomCount += 1;
+        } else {
+          taskMap.set(key, {
+            taskId: t.taskId,
+            taskName: t.taskName,
+            phase: t.phase || 'apply',
+            psKey: t.psKey || t.ps_key,
+            uom: t.uom,
+            baseRate: t.baseRate,
+            quantity: parseFloat(t.quantity) || 0,
+            hours: parseFloat(t.hours) || 0,
+            roomCount: 1,
+            isFixed: !!t.isFixed,
+            coatMultiplier: t.coatMultiplier,
+          });
+        }
+        const ph = t.phase || 'apply';
+        phaseHours[ph] = (phaseHours[ph] || 0) + (parseFloat(t.hours) || 0);
+        totalHours += (parseFloat(t.hours) || 0);
+      }
+    }
+    return {
+      tasks: [...taskMap.values()],
+      phaseHours,
+      totalHours: Math.round(totalHours * 100) / 100,
+      inputCount: inputs.length,
+    };
+  }, [estimate?.perInputResults]);
+
   if (!estimate) return <div className="no-data-msg">Error running estimate. Check console for details.</div>;
   if (estimate.specResults.length === 0) return (
     <div className="no-data-msg">
@@ -267,21 +318,10 @@ export default function EstimateView() {
   });
   const projectTotalHours = parseFloat(estimate.totalHours) || 0;
 
-  // Project-wide protection rollup — sum hours from every per-input result
-  // whose scenario is a protection scenario. Uses perInputResults (not the
-  // normalized specResults) because the latter strips scenarioId during
-  // grouping. Matches:
-  //   SCN_ROOM_PROTECTION_NC
-  //   SCN_CABINET_PROTECT_*
-  //   SCN_CLOSET_SHELF_PROTECT_*
-  const projectProtectionHours = (estimate.perInputResults || []).reduce((sum, pr) => {
-    if (pr && pr.scenarioId && /PROTECT/.test(pr.scenarioId)) {
-      return sum + (parseFloat(pr.totalHours) || 0);
-    }
-    return sum;
-  }, 0);
-  const projectProtectionPct = projectTotalHours > 0
-    ? Math.round((projectProtectionHours / projectTotalHours) * 100)
+  // projectProtection useMemo moved to before the early-return guards at
+  // line ~196 to keep hooks-order stable across renders.
+  const projectProtectionPct = projectTotalHours > 0 && projectProtection
+    ? Math.round((projectProtection.totalHours / projectTotalHours) * 100)
     : 0;
 
   // Consolidated material estimates: group by productId + surfaceTexture
@@ -352,13 +392,6 @@ export default function EstimateView() {
           <div><span className="big-num">{fmtHrs(estimate.totalHours)}</span></div>
           <div><span className="big-num">{estimate.totalCrewDays}</span><span className="unit">crew days</span><span style={{fontSize:11,color:'var(--text-muted)',marginLeft:4}}>(@ 8hr, 2 crew)</span></div>
           <div style={{color:'var(--text-secondary)',alignSelf:'center'}}>{estimate.activatedSpecs}/{estimate.totalSpecs} specs | {state.rooms.length} rooms</div>
-          <div
-            style={{color:'#e6a817',alignSelf:'center',fontSize:12,fontWeight:600}}
-            title="Sum of all room protection, cabinet protect, and closet shelf protect hours across the entire project"
-          >
-            Protection (project): {fmtHrs(projectProtectionHours)}
-            {projectTotalHours > 0 && <span style={{color:'var(--text-muted)',fontWeight:400,marginLeft:6}}>({projectProtectionPct}% of total)</span>}
-          </div>
           {estimate.pricing && (
             <div style={{marginLeft:'auto',textAlign:'right'}}>
               <div style={{fontSize:11,color:'var(--text-muted)'}}>Bid Price</div>
@@ -545,6 +578,70 @@ export default function EstimateView() {
           setExpandedItems({});
         }}>Collapse All</button>
       </div>
+
+      {/* ── Project Protection card (sibling to room cards) ──
+          Aggregates all protection-scenario tasks (room protection +
+          cabinet protect + closet shelf protect) across the whole project.
+          Quantities and hours summed across rooms. Renders only when at
+          least one protection scenario fires. */}
+      {projectProtection && (() => {
+        const ppKey = '__PROJECT_PROTECTION__';
+        const isPpOpen = expandedRooms[ppKey] === true;
+        return (
+          <div className="spec-section" style={{marginBottom:12, borderLeft:'3px solid #e6a817'}}>
+            <div className="spec-header" onClick={() => toggleRoom(ppKey)}>
+              <span className={`chevron${isPpOpen ? ' open' : ''}`}>{'▶'}</span>
+              <span className="spec-name" style={{marginLeft:8, color:'#e6a817'}}>
+                Project Protection
+                <span className="wo-room-dims">
+                  {projectProtection.tasks.length} task{projectProtection.tasks.length === 1 ? '' : 's'} aggregated across {projectProtection.inputCount} room/spec instance{projectProtection.inputCount === 1 ? '' : 's'}
+                  {projectTotalHours > 0 && ` · ${projectProtectionPct}% of project`}
+                </span>
+              </span>
+              <span style={{flex:'0 0 auto', marginRight:12}}>
+                <PhaseBar phaseHours={projectProtection.phaseHours} total={projectProtection.totalHours} height={14} />
+              </span>
+              <span className="spec-hours">{fmtHrs(projectProtection.totalHours)}</span>
+            </div>
+            {isPpOpen && (
+              <div style={{padding:'0 16px 12px'}}>
+                <div className="task-detail">
+                  <table className="task-table">
+                    <thead>
+                      <tr>
+                        <th>Task</th>
+                        <th>Phase</th>
+                        <th>PS Key</th>
+                        <th>UOM</th>
+                        <th style={{textAlign:'right'}}>Qty (project)</th>
+                        <th style={{textAlign:'right'}}>Rate</th>
+                        <th style={{textAlign:'right'}}>Rooms</th>
+                        <th style={{textAlign:'right'}}>Hours</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {projectProtection.tasks
+                        .sort((a, b) => (b.hours || 0) - (a.hours || 0))
+                        .map((t, i) => (
+                          <tr key={i} style={{background: PHASE_COLORS[t.phase] || 'transparent'}}>
+                            <td className="task-name-col" title={t.taskName}>{t.taskName}{taskNameSuffix(t)}</td>
+                            <td style={{fontSize:11,color:'var(--text-muted)',textTransform:'capitalize'}}>{t.phase}</td>
+                            <td style={{fontSize:10,color:'var(--derived)'}}>{t.psKey || '—'}</td>
+                            <td style={{fontSize:11}}>{t.uom || '—'}</td>
+                            <td style={{textAlign:'right'}}>{t.isFixed ? '—' : Math.round((t.quantity || 0) * 100) / 100}</td>
+                            <td style={{textAlign:'right',color:'var(--text-muted)'}}>{t.baseRate || '—'}</td>
+                            <td style={{textAlign:'right',fontSize:10,color:'var(--text-muted)'}}>{t.roomCount}</td>
+                            <td style={{textAlign:'right',color:'var(--accent)',fontWeight:600}}>{fmtHrs(t.hours)}</td>
+                          </tr>
+                        ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+          </div>
+        );
+      })()}
 
       {/* ── Room Cards ── */}
       {roomEntries.map(([ri, roomData]) => {
