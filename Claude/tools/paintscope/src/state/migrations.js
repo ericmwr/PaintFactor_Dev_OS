@@ -329,6 +329,25 @@ export function migrateInline(parsed) {
     if (!parsed.project.material_overrides) parsed.project.material_overrides = { system: {}, manual: {} };
   }
 
+  // v1.0.4: Backfill EVERY protection_heuristics field independently — counts,
+  // toggle, action, and the rate-override fields. Per-field backfill so a
+  // partial heuristics object (from older state where some fields were
+  // wiped) gets fully restored. Rate fields default to null = use canonical
+  // task rate; a number = override the install + remove tasks in that
+  // category. Wired through useEstimateScenario → overlayMap.
+  if (parsed.project) {
+    if (!parsed.project.protection_heuristics) parsed.project.protection_heuristics = {};
+    const ph = parsed.project.protection_heuristics;
+    if (ph.outlets_per_room === undefined)             ph.outlets_per_room = 4;
+    if (ph.hvac_vents_per_room === undefined)          ph.hvac_vents_per_room = 0.7;
+    if (ph.outlet_remove_reinstall === undefined)      ph.outlet_remove_reinstall = false;
+    if (ph.hvac_action === undefined)                  ph.hvac_action = 'mask';
+    if (ph.outlet_mask_rate === undefined)             ph.outlet_mask_rate = null;
+    if (ph.outlet_remove_reinstall_rate === undefined) ph.outlet_remove_reinstall_rate = null;
+    if (ph.hvac_mask_rate === undefined)               ph.hvac_mask_rate = null;
+    if (ph.hvac_remove_reinstall_rate === undefined)   ph.hvac_remove_reinstall_rate = null;
+  }
+
   // Bump nextId past all existing IDs to prevent collisions
   let maxId = 0;
   const extractNum = (s) => { const m = s && s.match(/_(\d+)$/); return m ? parseInt(m[1]) : 0; };

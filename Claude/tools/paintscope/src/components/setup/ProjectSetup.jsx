@@ -47,6 +47,34 @@ export default function ProjectSetup() {
   const setSC = (f, v) => dispatch({ type: 'SET_SITE_CONDITION', payload: { field: f, value: v } });
   const setDef = (f, v) => dispatch({ type: 'SET_EXTERIOR_DEFAULT', payload: { field: f, value: v } });
 
+  // Protection heuristics dispatch — merges into nested object via SET_PROJECT.
+  const ph = project.protection_heuristics || {};
+  const setPH = (field, value) => set('protection_heuristics', { ...ph, [field]: value });
+  // Canonical task rates — shown as placeholders when override is null.
+  const PH_RATE_DEFAULTS = {
+    outlet_mask_rate: 40,             // TSK_MASK_OUTLET_SWITCH_INSTALL/REMOVE
+    outlet_remove_reinstall_rate: 60, // TSK_PREP_OUTLET_COVER_REMOVE/REINSTALL
+    hvac_mask_rate: 20,               // TSK_MASK_HVAC_VENT_INSTALL (REMOVE is 30 — single override applies to both)
+    hvac_remove_reinstall_rate: 10,   // TSK_PREP_HVAC_VENT_REMOVE/REINSTALL
+  };
+  const PH_FIELD_DEFAULTS = {
+    outlets_per_room: 4,
+    hvac_vents_per_room: 0.7,
+    outlet_remove_reinstall: false,
+    hvac_action: 'mask',
+    outlet_mask_rate: null,
+    outlet_remove_reinstall_rate: null,
+    hvac_mask_rate: null,
+    hvac_remove_reinstall_rate: null,
+  };
+  const resetPH = () => set('protection_heuristics', { ...PH_FIELD_DEFAULTS });
+  // Number-input change handler — empty string → null (use canonical), else parsed number.
+  const numOrNull = (s) => {
+    if (s === '' || s == null) return null;
+    const n = parseFloat(s);
+    return Number.isFinite(n) && n > 0 ? n : null;
+  };
+
   return (
     <div className="setup-form">
       <h2 style={{ fontSize: 18, marginBottom: 20, color: 'var(--accent)' }}>Project Setup</h2>
@@ -80,6 +108,132 @@ export default function ProjectSetup() {
           />
         </div>
       </div>
+
+      {/* ─────────────────────────────────────────────────────────────────
+          Protection Heuristics — collapsible panel near top.
+          Project-level defaults for outlet + HVAC vent counts & rates.
+          Counts/toggles drive quantity emission; rates override the
+          canonical task rates (null = use canonical, plumbed via overlayMap
+          in useEstimateScenario.js).
+          Pilot scope — outlet covers + HVAC vents only. Add more heuristics
+          here as future needs arise.
+          ───────────────────────────────────────────────────────────────── */}
+      <details open style={{ border: '1px solid var(--border)', borderRadius: 6, padding: '8px 12px', marginBottom: 16, background: 'var(--bg-elevated, #1f1f1f)' }}>
+        <summary style={{ cursor: 'pointer', fontWeight: 600, fontSize: 14, color: 'var(--accent)', userSelect: 'none', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <span>Protection Heuristics</span>
+          <button
+            type="button"
+            onClick={(e) => { e.preventDefault(); e.stopPropagation(); if (window.confirm('Reset protection heuristics to defaults?')) resetPH(); }}
+            style={{ fontSize: 11, background: 'transparent', color: 'var(--text-muted)', border: '1px solid var(--border)', borderRadius: 4, padding: '2px 8px', cursor: 'pointer' }}
+            title="Reset all heuristics fields to their default values"
+          >
+            Reset to defaults
+          </button>
+        </summary>
+
+        <div style={{ marginTop: 12, fontSize: 12, color: 'var(--text-muted)', marginBottom: 8 }}>
+          Project-level counts, toggles, and production rates that drive outlet/switch and HVAC vent protection. Rate fields show the canonical default as placeholder — leave blank to use the canonical rate, or override per-project.
+        </div>
+
+        {/* Outlets section */}
+        <div style={{ marginTop: 12 }}>
+          <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 6, color: 'var(--text-secondary)' }}>Outlets / Switches</div>
+          <div className="form-grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+            <div className="setup-field">
+              <label title="Mask quantity per non-closet room when any spray method is active in the room.">Outlets per room</label>
+              <input
+                type="number" min="0" step="1"
+                value={ph.outlets_per_room ?? ''}
+                onChange={e => setPH('outlets_per_room', e.target.value === '' ? 0 : parseFloat(e.target.value))}
+                placeholder="4"
+                style={{ fontSize: 14, padding: '6px 10px' }}
+              />
+            </div>
+            <div className="setup-field">
+              <label title="Mask install + remove rate. Applies to both TSK_MASK_OUTLET_SWITCH_INSTALL and TSK_MASK_OUTLET_SWITCH_REMOVE.">Outlet mask rate (EA/hr)</label>
+              <input
+                type="number" min="0" step="1"
+                value={ph.outlet_mask_rate ?? ''}
+                onChange={e => setPH('outlet_mask_rate', numOrNull(e.target.value))}
+                placeholder={String(PH_RATE_DEFAULTS.outlet_mask_rate)}
+                style={{ fontSize: 14, padding: '6px 10px' }}
+              />
+            </div>
+            <div className="setup-field" style={{ gridColumn: '1 / -1' }}>
+              <Toggle
+                checked={!!ph.outlet_remove_reinstall}
+                onChange={v => setPH('outlet_remove_reinstall', v)}
+                label="Outlet Covers Remove + Reinstall"
+              />
+              <div className="hint" title="When on, fires separate prep tasks to physically remove + reinstall outlet covers (additive to mask).">Adds prep tasks (additive to mask, not replacement)</div>
+            </div>
+            {ph.outlet_remove_reinstall && (
+              <div className="setup-field" style={{ gridColumn: '1 / -1' }}>
+                <label title="Remove + reinstall rate. Applies to both TSK_PREP_OUTLET_COVER_REMOVE and TSK_PREP_OUTLET_COVER_REINSTALL.">Outlet Covers R+R rate (EA/hr)</label>
+                <input
+                  type="number" min="0" step="1"
+                  value={ph.outlet_remove_reinstall_rate ?? ''}
+                  onChange={e => setPH('outlet_remove_reinstall_rate', numOrNull(e.target.value))}
+                  placeholder={String(PH_RATE_DEFAULTS.outlet_remove_reinstall_rate)}
+                  style={{ fontSize: 14, padding: '6px 10px', maxWidth: 200 }}
+                />
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* HVAC Vents section */}
+        <div style={{ marginTop: 16 }}>
+          <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 6, color: 'var(--text-secondary)' }}>HVAC Vents</div>
+          <div className="form-grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+            <div className="setup-field">
+              <label title="Mask quantity per room (closets excluded). Fractional avg across rooms — e.g. 0.7 means ~7 vents per 10 rooms.">HVAC vents per room</label>
+              <input
+                type="number" min="0" step="0.1"
+                value={ph.hvac_vents_per_room ?? ''}
+                onChange={e => setPH('hvac_vents_per_room', e.target.value === '' ? 0 : parseFloat(e.target.value))}
+                placeholder="0.7"
+                style={{ fontSize: 14, padding: '6px 10px' }}
+              />
+            </div>
+            <div className="setup-field">
+              <label title="Mask install + remove rate. Applies to both TSK_MASK_HVAC_VENT_INSTALL and TSK_MASK_HVAC_VENT_REMOVE (canonical defaults differ — install 20, remove 30; this single value applies to both).">HVAC mask rate (EA/hr)</label>
+              <input
+                type="number" min="0" step="1"
+                value={ph.hvac_mask_rate ?? ''}
+                onChange={e => setPH('hvac_mask_rate', numOrNull(e.target.value))}
+                placeholder={String(PH_RATE_DEFAULTS.hvac_mask_rate)}
+                style={{ fontSize: 14, padding: '6px 10px' }}
+              />
+            </div>
+            <div className="setup-field" style={{ gridColumn: '1 / -1' }}>
+              <label title="Mask = tape over the vent. Remove = unscrew + reinstall the vent cover (mutually exclusive).">HVAC Action</label>
+              <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 13, cursor: 'pointer' }}>
+                  <input type="radio" name="hvac_action" checked={ph.hvac_action === 'mask'} onChange={() => setPH('hvac_action', 'mask')} />
+                  Mask
+                </label>
+                <label style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 13, cursor: 'pointer' }}>
+                  <input type="radio" name="hvac_action" checked={ph.hvac_action === 'remove'} onChange={() => setPH('hvac_action', 'remove')} />
+                  Remove
+                </label>
+              </div>
+            </div>
+            {ph.hvac_action === 'remove' && (
+              <div className="setup-field" style={{ gridColumn: '1 / -1' }}>
+                <label title="Remove + reinstall rate. Applies to both TSK_PREP_HVAC_VENT_REMOVE and TSK_PREP_HVAC_VENT_REINSTALL.">HVAC Vent R+R rate (EA/hr)</label>
+                <input
+                  type="number" min="0" step="1"
+                  value={ph.hvac_remove_reinstall_rate ?? ''}
+                  onChange={e => setPH('hvac_remove_reinstall_rate', numOrNull(e.target.value))}
+                  placeholder={String(PH_RATE_DEFAULTS.hvac_remove_reinstall_rate)}
+                  style={{ fontSize: 14, padding: '6px 10px', maxWidth: 200 }}
+                />
+              </div>
+            )}
+          </div>
+        </div>
+      </details>
 
       <div className="setup-field">
         <Toggle

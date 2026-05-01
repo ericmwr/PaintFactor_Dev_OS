@@ -247,6 +247,13 @@ export const initialState = {
       hvac_vents_per_room: 0.7,       // mask qty per room (closets excluded)
       outlet_remove_reinstall: false, // toggle: also remove + reinstall outlet covers (separate prep)
       hvac_action: 'mask',            // 'mask' | 'remove' — mutually exclusive
+      // Per-project production rate overrides (EA/hr). null = use canonical
+      // task rate; a number = override both install + remove tasks in that
+      // category. Plumbed through useEstimateScenario → overlayMap.
+      outlet_mask_rate: null,             // overrides TSK_MASK_OUTLET_SWITCH_INSTALL/REMOVE (default 40)
+      outlet_remove_reinstall_rate: null, // overrides TSK_PREP_OUTLET_COVER_REMOVE/REINSTALL (default 60)
+      hvac_mask_rate: null,               // overrides TSK_MASK_HVAC_VENT_INSTALL/REMOVE (default 20/30)
+      hvac_remove_reinstall_rate: null,   // overrides TSK_PREP_HVAC_VENT_REMOVE/REINSTALL (default 10)
     },
   },
   room_categories: [],

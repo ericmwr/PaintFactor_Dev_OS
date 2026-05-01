@@ -76,6 +76,24 @@ export function useEstimateScenario() {
       const gaps = [];
       const warnings = [...adapter.warnings];
 
+      // Build per-project task-rate overlayMap from protection_heuristics.
+      // Each rate override applies to BOTH the install/remove task in that
+      // category — user sees a single rate per work item; engine maps to
+      // the underlying install + remove task pair.
+      const ph = state?.project?.protection_heuristics || {};
+      const projectOverlayMap = {};
+      const setRate = (taskId, rate) => {
+        if (rate != null && rate > 0) projectOverlayMap[taskId] = { rate_per_hour: rate };
+      };
+      setRate('TSK_MASK_OUTLET_SWITCH_INSTALL',  ph.outlet_mask_rate);
+      setRate('TSK_MASK_OUTLET_SWITCH_REMOVE',   ph.outlet_mask_rate);
+      setRate('TSK_PREP_OUTLET_COVER_REMOVE',    ph.outlet_remove_reinstall_rate);
+      setRate('TSK_PREP_OUTLET_COVER_REINSTALL', ph.outlet_remove_reinstall_rate);
+      setRate('TSK_MASK_HVAC_VENT_INSTALL',      ph.hvac_mask_rate);
+      setRate('TSK_MASK_HVAC_VENT_REMOVE',       ph.hvac_mask_rate);
+      setRate('TSK_PREP_HVAC_VENT_REMOVE',       ph.hvac_remove_reinstall_rate);
+      setRate('TSK_PREP_HVAC_VENT_REINSTALL',    ph.hvac_remove_reinstall_rate);
+
       for (const input of adapter.roomInputs) {
         try {
         const matchInfo = findBestMatch(bundle, input.ctx);
@@ -101,6 +119,7 @@ export function useEstimateScenario() {
           ctx: input.ctx,
           roomQty: input.roomQty,
           roomItems: input.roomItems,
+          overlayMap: projectOverlayMap,
           roomIndex: input.roomIndex,
           roomLabel: input.roomLabel,
         });

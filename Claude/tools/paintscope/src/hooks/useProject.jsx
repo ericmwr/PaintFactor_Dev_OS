@@ -2,15 +2,20 @@ import { createContext, useContext, useReducer, useEffect, useCallback, useRef }
 import { reducer } from '../state/reducer';
 import { initialState } from '../state/initial-state';
 import { loadFromStorage, saveToStorage } from '../state/persistence';
+import { migrateInline } from '../state/migrations';
 import { loadProject, saveProject as saveProjectDB } from '../data/project-db';
 
 const ProjectContext = createContext(null);
 
 export function ProjectProvider({ children, initialData, projectId }) {
   const initFn = (init) => {
-    // If initialData is provided (loaded from IndexedDB), use it
+    // If initialData is provided (loaded from IndexedDB), use it.
+    // Run migrateInline to backfill any missing fields added by newer
+    // schema versions — IndexedDB-loaded state would otherwise bypass
+    // the migration that runs in loadFromStorage().
     if (initialData && initialData.project && initialData.rooms) {
-      return { ...init, ...initialData, ui: initialData.ui || init.ui };
+      const merged = { ...init, ...initialData, ui: initialData.ui || init.ui };
+      return migrateInline(merged);
     }
     // Otherwise fall back to localStorage
     return loadFromStorage(init);
