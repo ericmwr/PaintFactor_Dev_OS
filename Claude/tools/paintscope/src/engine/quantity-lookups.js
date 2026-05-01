@@ -29,6 +29,22 @@ export function buildRoomQuantityLookups(state) {
     const qty = new Map();
     const closetQty = new Map();
 
+    // anySprayInRoom: true when any substrate in the room uses a spray
+    // application method. Used by fixture protection emission and outlet
+    // heuristic — both gate on this so brush-only rooms don't emit
+    // physical-mask quantities (covers/tape stay on; brush around them).
+    // Hoisted here so the fixture iteration below can reference it.
+    const wallsSprayQ = (subs.walls?.application_method || '').toString().includes('spray');
+    const ceilingSprayQ = (subs.ceiling?.application_method || '').toString().includes('spray');
+    const anyTrimSprayQ = ['baseboard','crown','door_casing','window_casing','chair_rail','shoe_mold','wainscot_cap','picture_rail','window_stool','window_apron','shadow_box','panel_mold','door_frames','window_jamb']
+      .some(id => {
+        const s = subs[id];
+        if (!s) return false;
+        if (s.painting === false) return false;
+        return (s.application_method || '').toString().includes('spray');
+      });
+    const anySprayInRoom = wallsSprayQ || ceilingSprayQ || anyTrimSprayQ;
+
     function addQ(key, uom, val) {
       if (!val || val <= 0) return;
       const existing = qty.get(key);
@@ -374,28 +390,41 @@ export function buildRoomQuantityLookups(state) {
         const sf = Math.round((parseFloat(cfg.width_ft) || 0) * (parseFloat(cfg.height_ft) || 0) * (parseInt(cfg.count) || 1));
         if (sf > 0) addQ('PS_PROTECT_SF.BUILTIN', 'SF', sf);
       } else if (fId === 'shower') {
-        const sf = Math.round((parseFloat(cfg.width_ft) || 0) * (parseFloat(cfg.height_ft) || 0) * (parseInt(cfg.count) || 1));
-        if (sf > 0) addQ('PS_PROTECT_SF.SHOWER', 'SF', sf);
+        // Bath fixture mask emission gated on spray — brush+roll doesn't need
+        // physical masking (covers stay on, painter cuts around). Mirrors the
+        // legacy fixture-protection.js semantic which only fired masking for
+        // spray contexts.
+        if (anySprayInRoom) {
+          const sf = Math.round((parseFloat(cfg.width_ft) || 0) * (parseFloat(cfg.height_ft) || 0) * (parseInt(cfg.count) || 1));
+          if (sf > 0) addQ('PS_PROTECT_SF.SHOWER', 'SF', sf);
+        }
       } else if (fId === 'vanity') {
         // Vanity rule: width LF for all levels EXCEPT encapsulate when width<3 LF.
         // In that special case, emit the singleton fixed-min key instead so the
         // 5-min minimum task fires (and the regular LF task gracefully skips at 0).
-        const width = parseFloat(cfg.width_ft) || 0;
-        const count = parseInt(cfg.count) || 1;
-        const lf = width * count;
-        const level = cfg.protection || 'full';
-        const isEncap = level === 'encapsulate' || level === 'edge_encapsulate';
-        if (width < 3 && isEncap && count > 0) {
-          addQ('PS_PROTECT_EA.VANITY_SMALL_ENCAP', 'EA', count);
-        } else if (lf > 0) {
-          addQ('PS_PROTECT_LF.VANITY', 'LF', lf);
+        // Gated on anySprayInRoom — see shower comment above.
+        if (anySprayInRoom) {
+          const width = parseFloat(cfg.width_ft) || 0;
+          const count = parseInt(cfg.count) || 1;
+          const lf = width * count;
+          const level = cfg.protection || 'full';
+          const isEncap = level === 'encapsulate' || level === 'edge_encapsulate';
+          if (width < 3 && isEncap && count > 0) {
+            addQ('PS_PROTECT_EA.VANITY_SMALL_ENCAP', 'EA', count);
+          } else if (lf > 0) {
+            addQ('PS_PROTECT_LF.VANITY', 'LF', lf);
+          }
         }
       } else if (fId === 'bathtub') {
-        const cnt = parseInt(cfg.count) || 1;
-        if (cnt > 0) addQ('PS_PROTECT_EA.BATHTUB', 'EA', cnt);
+        if (anySprayInRoom) {
+          const cnt = parseInt(cfg.count) || 1;
+          if (cnt > 0) addQ('PS_PROTECT_EA.BATHTUB', 'EA', cnt);
+        }
       } else if (fId === 'toilet') {
-        const cnt = parseInt(cfg.count) || 1;
-        if (cnt > 0) addQ('PS_PROTECT_EA.TOILET', 'EA', cnt);
+        if (anySprayInRoom) {
+          const cnt = parseInt(cfg.count) || 1;
+          if (cnt > 0) addQ('PS_PROTECT_EA.TOILET', 'EA', cnt);
+        }
       } else if (fId === 'appliances') {
         const cnt = parseInt(cfg.count) || 1;
         if (cnt > 0) addQ('PS_PROTECT_EA.APPLIANCES', 'EA', cnt);
@@ -421,16 +450,8 @@ export function buildRoomQuantityLookups(state) {
 
     // Outlet/switch heuristic — emit only when spraying walls/ceiling/trim.
     // Brush+roll only → no outlet mask (covers stay on, get cut around).
-    const wallsSprayQ = (subs.walls?.application_method || '').toString().includes('spray');
-    const ceilingSprayQ = (subs.ceiling?.application_method || '').toString().includes('spray');
-    const anyTrimSprayQ = ['baseboard','crown','door_casing','window_casing','chair_rail','shoe_mold','wainscot_cap','picture_rail','window_stool','window_apron','shadow_box','panel_mold','door_frames','window_jamb']
-      .some(id => {
-        const s = subs[id];
-        if (!s) return false;
-        if (s.painting === false) return false;
-        return (s.application_method || '').toString().includes('spray');
-      });
-    const anySprayInRoom = wallsSprayQ || ceilingSprayQ || anyTrimSprayQ;
+    // anySprayInRoom is hoisted to the top of the per-room block — also
+    // gates bath fixture mask emission above.
     if (anySprayInRoom && outletsPerRoom > 0) {
       const cnt = (room.protection?.outlets_count_override != null ? Number(room.protection.outlets_count_override) : outletsPerRoom);
       if (cnt > 0) addQ('PS_PROTECT_EA.OUTLET_SWITCH', 'EA', cnt);

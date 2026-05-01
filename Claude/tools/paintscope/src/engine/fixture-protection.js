@@ -131,8 +131,16 @@ export function resolveRoomFixtureProtection(rooms, roomSpecMethods) {
       const fixtureDef = FIXTURE_MAP[fixtureId];
       if (!fixtureDef) return;
 
-      // Feature wall: SF-based protection (mask/cover) — supports multiple items
+      // Feature wall protection — RETIRED. Replaced by room-level emission of
+      // PS_PROTECT_SF.FEATURE_WALL → TSK_MASK_FEATURE_WALL_INSTALL/REMOVE in
+      // MOD_PROTECT_SETUP/TEARDOWN (SCN_ROOM_PROTECTION_NC). Skip to prevent
+      // double-counting.
       if (fixtureId === 'feature_wall') {
+        return;
+      }
+
+      // ── Dead branch below — preserved for diff legibility, removable later ──
+      if (false && fixtureId === 'feature_wall') {
         const cfg = fixtures[fixtureId];
         const items = cfg.items || (cfg.length_ft ? [cfg] : []);
         const sf = items.reduce((s, i) => s + Math.round((parseFloat(i.length_ft) || 0) * (parseFloat(i.height_ft) || 0) * (parseInt(i.count) || 1)), 0);
@@ -189,8 +197,17 @@ export function resolveRoomFixtureProtection(rooms, roomSpecMethods) {
 
       // Fireplace / stone fireplace: SF-based masking — tape edges + encapsulate with plastic.
       // Same practice as cabinets, driven by face SF (width × height × count).
-      // Setup: 100 SF/hr, Teardown: 300 SF/hr.
+      // Fireplace / stone fireplace protection — RETIRED. Replaced by room-level
+      // emission of PS_PROTECT_SF.FIREPLACE → TSK_MASK_FIREPLACE_INSTALL/REMOVE
+      // in MOD_PROTECT_SETUP/TEARDOWN (SCN_ROOM_PROTECTION_NC). Skip to prevent
+      // double-counting.
       if (fixtureId === 'fireplace' || fixtureId === 'stone_fireplace') {
+        return;
+      }
+
+      // ── Dead branch below — preserved for diff legibility, removable later ──
+      // Setup: 100 SF/hr, Teardown: 300 SF/hr.
+      if (false && (fixtureId === 'fireplace' || fixtureId === 'stone_fireplace')) {
         const cfg = fixtures[fixtureId];
         const count = parseInt(cfg.count) || 1;
         const sf = Math.round((parseFloat(cfg.width_ft) || 0) * (parseFloat(cfg.height_ft) || 0) * count);
@@ -236,7 +253,17 @@ export function resolveRoomFixtureProtection(rooms, roomSpecMethods) {
         return;
       }
 
-      // Only bathroom fixtures have context-dependent scenarios
+      // Bathroom fixture protection (toilet, vanity, shower, bathtub) — RETIRED.
+      // Replaced by room-level emission of PS_PROTECT_EA.{TOILET,BATHTUB},
+      // PS_PROTECT_LF.VANITY, PS_PROTECT_SF.SHOWER → TSK_MASK_*_INSTALL/REMOVE
+      // in MOD_PROTECT_SETUP/TEARDOWN. The legacy spray-aware semantic is
+      // preserved by gating those PS key emissions on anySprayInRoom in
+      // quantity-lookups.js (so brush-only rooms still skip the mask).
+      // Skip the legacy path here to prevent double-counting.
+      if (fixtureDef.group === 'Bathroom') return;
+
+      // Non-bathroom fixtures with no specific branch above fall through
+      // (legacy: all bathroom-only context logic skipped for them).
       if (fixtureDef.group !== 'Bathroom') return;
 
       const label = fixtureDef.label;
