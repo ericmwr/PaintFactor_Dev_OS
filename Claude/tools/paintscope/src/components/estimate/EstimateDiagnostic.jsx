@@ -272,9 +272,6 @@ export default function EstimateDiagnostic() {
     <div style={{ padding: '16px 24px' }}>
       <div style={{ background: 'var(--bg-tertiary)', border: '1px solid var(--border)', borderRadius: 4, padding: 10, marginBottom: 12, fontSize: 11, color: 'var(--text-muted)' }}>
         <strong style={{ color: 'var(--text-secondary)' }}>Reading this view:</strong> Line items are grouped by your finish_group assignments (≥2 active members). Each group section merges tasks from the shared finish-group scenario AND each per-substrate scenario whose primary substrate belongs to the group.
-        <div style={{ marginTop: 4 }}>
-          <strong style={{ color: 'var(--warning)' }}>Note on trim anchor:</strong> The trim family (baseboard, crown, door_casing, window_casing, chair_rail, etc.) fires ONE scenario (<code>SF_TRIM_NC_PAINT</code>) anchored at baseboard. Its task hours cover ALL trim LF via <code>PS_SURFACE_LF.TRIM_TOTAL</code>, so the trim scenario appears only under baseboard's assigned group. If you split trim across finish groups, trim tasks always attribute to wherever baseboard is. Refactoring trim into per-substrate scenarios is a V2 item.
-        </div>
       </div>
 
       {byRoom.length === 0 && (

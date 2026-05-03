@@ -104,25 +104,10 @@ export function buildRoomQuantityLookups(state) {
       }
     });
 
-    // Aggregate all trim LF for legacy SF_TRIM_NC_PAINT (soft-retired).
-    // TRIM_TOTAL_EXCLUDED keeps the pre-extraction behavior — every extracted
-    // substrate is excluded, so allTrimLF = 0 and SF_TRIM_NC_PAINT scenarios
-    // produce 0 hours (soft retirement until Track C cleanup).
-    const TRIM_TOTAL_EXCLUDED = new Set(['window_casing', 'door_casing', 'crown', 'chair_rail', 'shoe_mold', 'picture_rail', 'wainscot_cap', 'window_stool', 'window_apron', 'shadow_box', 'panel_mold', 'baseboard']);
-    const allTrimLF = trimKeys.reduce((s, [subId, , derivedKey]) => {
-      if (TRIM_TOTAL_EXCLUDED.has(subId)) return s;
-      return s + (isTrimActive(subId) ? (d[derivedKey] || 0) : 0);
-    }, 0);
-    addQ('PS_SURFACE_LF.TRIM_TOTAL', 'LF', allTrimLF);
-
-    // Legacy TRIM_JOINTS — kept at 0 to match TRIM_TOTAL soft-retirement.
-    // Any module still calling TSK_TRIM_CAULK_JOINTS (door_frames + window_jamb
-    // prep + the legacy MOD_PREP_TRIM_INITIAL inside SF_TRIM_NC_PAINT) reads 0
-    // and bills no hours. Per-substrate caulk lives in TRIM_JOINTS_<SUBSTRATE>
-    // keys above and is consumed by per-substrate caulk tasks. Setting this
-    // to a derived sum here would resurrect the legacy lumped task on top of
-    // the per-substrate ones — a real double-count.
-    addQ('PS_EDGE_LF.TRIM_JOINTS', 'LF', 0);
+    // Note: legacy PS_SURFACE_LF.TRIM_TOTAL and PS_EDGE_LF.TRIM_JOINTS were
+    // emitted here for the soft-retired SF_TRIM_NC_PAINT/PRIME spec families.
+    // Both retired in 2026-05-03; per-substrate keys (TRIM_<SUB>, TRIM_JOINTS_<SUB>)
+    // emitted above are the canonical source.
 
     // Doors — from substrates.doors.items; emit paint or stain keys based on coating_type
     const doorItems = subs.doors?.items || [];

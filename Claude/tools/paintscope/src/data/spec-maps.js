@@ -5,8 +5,6 @@ export const SPEC_SUBSTRATE_MAP = {
   'SF_DRYWALL_WALL_NC_FINISH':   'walls',
   'SF_DRYWALL_CEILING_NC_PRIME': 'ceiling',
   'SF_DRYWALL_CEILING_NC_FINISH':'ceiling',
-  'SF_TRIM_NC_PRIME':            'baseboard',
-  'SF_TRIM_NC_PAINT':            'baseboard',
   'SF_DOOR_SLAB_INT_NC':         'doors',
   'SF_DOOR_FRAME_NC_FINISH':     'door_frames',
   'SF_DOOR_FRAME_NC_PRIME':      'door_frames',
@@ -127,8 +125,6 @@ export const SPEC_ROLE = {
   'SF_DRYWALL_WALL_NC_FINISH':    'FINISH',
   'SF_DRYWALL_CEILING_NC_PRIME':  'PRIME',
   'SF_DRYWALL_CEILING_NC_FINISH': 'FINISH',
-  'SF_TRIM_NC_PRIME':             'PRIME',
-  'SF_TRIM_NC_PAINT':             'COMBINED',  // paint = prime+finish internally
   'SF_TRIM_NC_STAIN':             'STAIN',     // stain = stain+sealer+clear internally
   'SF_DOOR_CASING_NC_STAIN':      'STAIN',
   'SF_WINDOW_CASING_NC_STAIN':    'STAIN',
@@ -263,8 +259,6 @@ export const SPEC_VALID_INPUT_STATES = {
   'SF_DRYWALL_WALL_NC_FINISH':   ['SS_PRIMED','SS_PRIMED_FIELD'],
   'SF_DRYWALL_CEILING_NC_PRIME': ['SS_BARE'],
   'SF_DRYWALL_CEILING_NC_FINISH':['SS_PRIMED','SS_PRIMED_FIELD'],
-  'SF_TRIM_NC_PRIME':            ['SS_PRIMED_FACTORY','SS_BARE','SS_PAINTED_SEMIGLOSS','SS_PAINTED_GLOSS','SS_PAINTED_ALKYD'],
-  'SF_TRIM_NC_PAINT':            ['SS_PRIMED_FIELD','SS_PRIMED_FACTORY'],
   'SF_DOOR_SLAB_INT_NC':         ['SS_PRIMED_FACTORY','SS_BARE'],
   'SF_DOOR_FRAME_NC_FINISH':     ['SS_PRIMED','SS_PRIMED_FIELD','SS_PRIMED_FACTORY'],
   'SF_DOOR_FRAME_NC_PRIME':      ['SS_BARE'],
@@ -360,7 +354,6 @@ export const EXT_UI_STATE_TO_SPEC_STATE = {
 export const SPEC_OUTPUT_STATES = {
   'SF_DRYWALL_WALL_NC_PRIME':    'SS_PRIMED_FIELD',
   'SF_DRYWALL_CEILING_NC_PRIME': 'SS_PRIMED_FIELD',
-  'SF_TRIM_NC_PRIME':            'SS_PRIMED_FIELD',
   'SF_WINDOW_JAMB_NC_PRIME':     'SS_PRIMED_FIELD',
   'SF_WINDOW_CASING_NC_PRIME':   'SS_PRIMED_FIELD',
   'SF_DOOR_CASING_NC_PRIME':     'SS_PRIMED_FIELD',
@@ -448,7 +441,7 @@ export const STAIN_SPEC_FAMILIES = new Set([
 // Grain fill hours computed under SF_WOOD_GRAIN_FILL_NC are redistributed into
 // these parent specs so they appear as prep tasks under the parent line item.
 export const GRAIN_FILL_PARENT_SPEC = {
-  // Trim group — all roll into SF_TRIM_NC_PAINT
+  // Trim group — each substrate has its own SF_<SUBSTRATE>_NC_PAINT spec.
   'baseboard':       'SF_BASEBOARD_NC_PAINT',
   'crown':           'SF_CROWN_NC_PAINT',
   'door_casing':     'SF_DOOR_CASING_NC_PAINT',

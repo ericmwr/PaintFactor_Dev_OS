@@ -18,8 +18,6 @@ export const SPEC_DISPLAY_NAMES = {
   'SF_DRYWALL_WALL_NC_PRIME': 'Walls (Prime)',
   'SF_DRYWALL_CEILING_NC_FINISH': 'Ceilings',
   'SF_DRYWALL_CEILING_NC_PRIME': 'Ceilings (Prime)',
-  'SF_TRIM_NC_PAINT': 'Trim',
-  'SF_TRIM_NC_PRIME': 'Trim (Prime)',
   'SF_DOOR_SLAB_INT_NC': 'Doors',
   'SF_DOOR_FRAME_NC_FINISH': 'Door Frames',
   'SF_WINDOW_INT_NC': 'Windows',

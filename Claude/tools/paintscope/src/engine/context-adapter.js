@@ -127,8 +127,6 @@ const SPEC_TO_PAINTABLE_ITEM = {
   SF_DRYWALL_WALL_NC_PRIME:         'drywall',
   SF_DRYWALL_CEILING_NC_FINISH:     'drywall',
   SF_DRYWALL_CEILING_NC_PRIME:      'drywall',
-  SF_TRIM_NC_PAINT:                 'trim',
-  SF_TRIM_NC_PRIME:                 'trim',
   SF_DOOR_SLAB_INT_NC:              'door_slab',
   SF_DOOR_FRAME_NC_FINISH:          'door_frame',
   SF_DOOR_FRAME_NC_PRIME:           'door_frame',

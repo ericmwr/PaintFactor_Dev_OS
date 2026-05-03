@@ -189,14 +189,9 @@ export function exportProject(state) {
         addQty(`PS_EDGE_LF.TRIM_JOINTS_${subKey}`, 'LF', d[derivedKey]||0);
       }
     });
-    // TRIM_TOTAL — soft-retired SF_TRIM_NC_PAINT scenarios read this; all
-    // extracted substrates excluded so it always emits 0.
-    addQty('PS_SURFACE_LF.TRIM_TOTAL', 'LF', 0);
-    // Legacy TRIM_JOINTS — kept at 0 to match TRIM_TOTAL soft-retirement and
-    // prevent the legacy TSK_TRIM_CAULK_JOINTS task from billing on top of
-    // the new per-substrate caulk tasks (real double-count). Per-substrate
-    // caulk LF is in TRIM_JOINTS_<SUBSTRATE> keys above.
-    addQty('PS_EDGE_LF.TRIM_JOINTS', 'LF', 0);
+    // Note: legacy PS_SURFACE_LF.TRIM_TOTAL and PS_EDGE_LF.TRIM_JOINTS were
+    // emitted here for the soft-retired SF_TRIM_NC_PAINT/PRIME spec families.
+    // Both retired in 2026-05-03; per-substrate keys are the canonical source.
 
     // Edge quantity keys
     addQty('PS_EDGE_LF.TO_CEILING', 'LF', d.perimeter);

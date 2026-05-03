@@ -46,8 +46,6 @@ const SPEC_TO_SUBSTRATE = {
   SF_DRYWALL_WALL_NC_PRIME: 'walls_prime',
   SF_DRYWALL_CEILING_NC_FINISH: 'ceiling',
   SF_DRYWALL_CEILING_NC_PRIME: 'ceiling_prime',
-  SF_TRIM_NC_PAINT: 'trim',
-  SF_TRIM_NC_PRIME: 'trim_prime',
   SF_DOOR_SLAB_INT_NC: 'doors',
   SF_DOOR_FRAME_NC_FINISH: 'door_frames',
   SF_WINDOW_INT_NC: 'windows',
