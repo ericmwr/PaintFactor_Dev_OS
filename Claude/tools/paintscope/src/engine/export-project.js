@@ -148,7 +148,11 @@ export function exportProject(state) {
     });
     // Opening counts from openings table (structural, always emit)
     addQty('PS_OPENING_EA.DOOR_OPENINGS_TOTAL', 'EA', d.totalOpenings);
-    if (subs.door_frames) addQty('PS_SURFACE_EA.DOOR_FRAME_SET', 'EA', d.door_frames_ea);
+    if (subs.door_frames) {
+      addQty('PS_SURFACE_EA.DOOR_FRAME_SET', 'EA', d.door_frames_ea);
+      // Per-substrate joint caulk LF (mirrors quantity-lookups.js)
+      addQty('PS_EDGE_LF.TRIM_JOINTS_DOOR_FRAME', 'LF', d.door_frame_lf);
+    }
 
     // Window quantity keys — opening counts always emit, surface keys only when painting
     windowItems.forEach(win => {
@@ -159,6 +163,8 @@ export function exportProject(state) {
     });
     if (subs.window_jamb) {
       addQty('PS_SURFACE_EA.WINDOW_JAMB', 'EA', d.window_jamb_ea);
+      // Per-substrate joint caulk LF (mirrors quantity-lookups.js)
+      addQty('PS_EDGE_LF.TRIM_JOINTS_WINDOW_JAMB', 'LF', d.window_jamb_lf);
       if (!windowsPainting || !windowItems.length) {
         addQty('PS_OPENING_EA.WINDOW_TOTAL', 'EA', d.window_jamb_ea);
       }
@@ -173,14 +179,24 @@ export function exportProject(state) {
       }
     });
 
-    // Aggregate all trim LF for specs that use PS_SURFACE_LF.TRIM_TOTAL (only painting trim)
-    const allTrimLF = trimSurfaces.reduce((s, [subId,,derivedKey]) => {
-      const active = casingIds.has(subId) ? subs[subId]?.painting : !!subs[subId];
-      return s + (active ? (d[derivedKey]||0) : 0);
-    }, 0);
-    addQty('PS_SURFACE_LF.TRIM_TOTAL', 'LF', allTrimLF);
-    // Trim joints — approximately equal to total trim LF (every piece has joints)
-    addQty('PS_EDGE_LF.TRIM_JOINTS', 'LF', allTrimLF);
+    // Per-substrate joint caulk LF — every painted trim substrate has joints
+    // (trim-to-wall seam) equal to its own LF. Each per-substrate prep module
+    // reads its own TRIM_JOINTS_<SUBSTRATE> key (Track A: 2026-05-02).
+    const isTrimActiveExp = (subId) => casingIds.has(subId) ? subs[subId]?.painting : !!subs[subId];
+    trimSurfaces.forEach(([subId, surfType, derivedKey]) => {
+      if (isTrimActiveExp(subId)) {
+        const subKey = surfType.replace(/^TRIM_/, '');
+        addQty(`PS_EDGE_LF.TRIM_JOINTS_${subKey}`, 'LF', d[derivedKey]||0);
+      }
+    });
+    // TRIM_TOTAL — soft-retired SF_TRIM_NC_PAINT scenarios read this; all
+    // extracted substrates excluded so it always emits 0.
+    addQty('PS_SURFACE_LF.TRIM_TOTAL', 'LF', 0);
+    // Legacy TRIM_JOINTS — kept at 0 to match TRIM_TOTAL soft-retirement and
+    // prevent the legacy TSK_TRIM_CAULK_JOINTS task from billing on top of
+    // the new per-substrate caulk tasks (real double-count). Per-substrate
+    // caulk LF is in TRIM_JOINTS_<SUBSTRATE> keys above.
+    addQty('PS_EDGE_LF.TRIM_JOINTS', 'LF', 0);
 
     // Edge quantity keys
     addQty('PS_EDGE_LF.TO_CEILING', 'LF', d.perimeter);
@@ -204,13 +220,30 @@ export function exportProject(state) {
       d.ceilingSF
     );
     addQty('PS_PROTECT_SF.FLOOR_WORKZONE', 'SF', workzoneSF);
-    addQty('PS_PROTECT_LF.TRIM_EDGES', 'LF', trimLF);
-    if (subs.baseboard) addQty('PS_PROTECT_LF.TRIM_BASEBOARD', 'LF', d.baseboard_lf);
-    // Casing protection always emits when walls are painted (masking casing during wall work)
+
+    // === Per-substrate trim wall-collateral keys (Track A: 2026-05-02) ===
+    // Mask + cut-in driven per painted trim substrate. Wall-adjacent substrates
+    // only (excludes shoe_mold and door_frames). Each fires only when walls are
+    // being painted AND the trim substrate is being painted.
+    const WALL_ADJACENT_TRIM_EXP = new Set([
+      'baseboard', 'door_casing', 'window_casing', 'window_stool', 'window_apron',
+      'crown', 'chair_rail', 'picture_rail', 'wainscot_cap', 'panel_mold', 'shadow_box',
+    ]);
+    let allWallTrimLF = 0;
     if (subs.walls) {
-      addQty('PS_PROTECT_LF.TRIM_CASING_DOOR', 'LF', d.door_casing_lf);
-      addQty('PS_PROTECT_LF.TRIM_CASING_WINDOW', 'LF', d.window_casing_lf);
+      trimSurfaces.forEach(([subId, surfType, derivedKey]) => {
+        if (!WALL_ADJACENT_TRIM_EXP.has(subId)) return;
+        if (!isTrimActiveExp(subId)) return;
+        const lf = d[derivedKey] || 0;
+        if (lf <= 0) return;
+        const subKey = surfType.replace(/^TRIM_/, '');
+        addQty(`PS_PROTECT_LF.TRIM_${subKey}`, 'LF', lf);
+        addQty(`PS_EDGE_LF.CUTIN_WALL_TO_${subKey}`, 'LF', lf);
+        allWallTrimLF += lf;
+      });
     }
+    // Legacy lump — derived sum for backward compat.
+    addQty('PS_PROTECT_LF.TRIM_EDGES', 'LF', allWallTrimLF);
     addQty('PS_PROTECT_LF.CEILING_LINE', 'LF', d.perimeter);
     addQty('PS_META.SF.FLOOR_VACUUM_AREA', 'SF', d.ceilingSF);
 

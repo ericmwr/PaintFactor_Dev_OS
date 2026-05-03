@@ -2,11 +2,19 @@
   "module_id": "MOD_APPLY_CUTIN_TRIM",
   "name": "Cut In Wall at Trim Edges",
   "phase": "apply",
-  "intent": "Wall painter establishes the wall-to-trim brush line along baseboard tops, door casing edges, and window casing edges. Same brush technique regardless of whether the wall field is sprayed + backrolled, sprayed only, or brushed + rolled. Fires once per coat.",
+  "intent": "Wall painter establishes the wall-to-trim brush line along every painted trim substrate that abuts a painted wall. Same brush technique regardless of whether the wall field is sprayed + backrolled, sprayed only, or brushed + rolled. Fires once per coat per substrate.",
   "tasks": [
-    {
-      "task_ref": "TSK_CUTIN_WALL_TO_TRIM"
-    }
+    { "task_ref": "TSK_CUTIN_WALL_TO_BASEBOARD" },
+    { "task_ref": "TSK_CUTIN_WALL_TO_CASING_DOOR" },
+    { "task_ref": "TSK_CUTIN_WALL_TO_CASING_WINDOW" },
+    { "task_ref": "TSK_CUTIN_WALL_TO_CROWN" },
+    { "task_ref": "TSK_CUTIN_WALL_TO_CHAIR_RAIL" },
+    { "task_ref": "TSK_CUTIN_WALL_TO_PICTURE_RAIL" },
+    { "task_ref": "TSK_CUTIN_WALL_TO_WAINSCOT_CAP" },
+    { "task_ref": "TSK_CUTIN_WALL_TO_WINDOW_STOOL" },
+    { "task_ref": "TSK_CUTIN_WALL_TO_WINDOW_APRON" },
+    { "task_ref": "TSK_CUTIN_WALL_TO_PANEL_MOLD" },
+    { "task_ref": "TSK_CUTIN_WALL_TO_SHADOW_BOX" }
   ],
   "modifier_eligibility": {
     "qt": true,
@@ -14,5 +22,5 @@
     "texture": false,
     "complexity": true
   },
-  "doctrine": "Cut-in to trim is a brush task independent of the wall field method. Previously bundled inside MOD_APPLY_WALL_SPRAY_BACKROLL / _SPRAY_ONLY / _ROLL as separate task variants at identical 120 LF/hr rates; consolidated into this standalone module 2026-04-18 so the cut-in rate is tunable in one place. Coat 1 at baseline (120 LF/hr); coat 2 runs 25% faster (150 LF/hr effective) because the painter follows the line already established on coat 1. TRIM_EDGES ps_key is the sum of baseboard + door casing + window casing LF — appropriate here because cut-in actually happens at every trim edge."
+  "doctrine": "Cut-in to trim is a brush task independent of the wall field method. Track A 2026-05-02: split single TSK_CUTIN_WALL_TO_TRIM (lumped baseboard+door_casing+window_casing LF only) into 11 per-substrate tasks reading PS_EDGE_LF.CUTIN_WALL_TO_<SUBSTRATE>. Each substrate emits 0 LF unless walls AND that substrate are painted, so inactive substrates contribute 0 hours. This isolation enables (a) per-substrate height-band override (Track B — crown at vaulted ceiling, picture rail at 10ft, etc.), and (b) future per-substrate opt-out flags. Coat 1 baseline 120 LF/hr; coat 2 runs 25% faster (150 LF/hr effective). Excludes shoe_mold (sits on baseboard, not wall-adjacent) and door_frames (inside opening)."
 }

@@ -85,26 +85,44 @@ export function buildRoomQuantityLookups(state) {
       ['shadow_box', 'TRIM_SHADOW_BOX', 'shadow_box_lf'],
       ['panel_mold', 'TRIM_PANEL_MOLD', 'panel_mold_lf'],
     ];
+    // Helper — substrate active for emission (painting flag for casings,
+    // truthy presence for other trim substrates).
+    const isTrimActive = (subId) => casingIds2.has(subId) ? subs[subId]?.painting : !!subs[subId];
+
     trimKeys.forEach(([subId, surfType, derivedKey]) => {
-      const active = casingIds2.has(subId) ? subs[subId]?.painting : !!subs[subId];
-      if (active) addQ(`PS_SURFACE_LF.${surfType}`, 'LF', d[derivedKey] || 0);
+      if (isTrimActive(subId)) addQ(`PS_SURFACE_LF.${surfType}`, 'LF', d[derivedKey] || 0);
     });
 
-    // Aggregate all trim LF for specs that use PS_SURFACE_LF.TRIM_TOTAL
-    // (only painting trim). Substrates with their own extracted spec family
-    // are EXCLUDED — they read their own PS_SURFACE_LF.TRIM_CASING_* keys
-    // directly, so including them here would double-count. Other trim
-    // substrates (baseboard, crown, chair_rail, etc.) still aggregate into
-    // TRIM_TOTAL and fire via SF_TRIM_NC_PAINT anchored at baseboard.
+    // Per-substrate joint caulk LF — every painted trim substrate has joints
+    // (trim-to-wall seam) equal to its own LF. Each per-substrate spec's prep
+    // module reads its own TRIM_JOINTS_<SUBSTRATE> key, so joint caulk does
+    // not double-count across painted trim substrates (Track A: 2026-05-02).
+    trimKeys.forEach(([subId, surfType, derivedKey]) => {
+      if (isTrimActive(subId)) {
+        const subKey = surfType.replace(/^TRIM_/, '');
+        addQ(`PS_EDGE_LF.TRIM_JOINTS_${subKey}`, 'LF', d[derivedKey] || 0);
+      }
+    });
+
+    // Aggregate all trim LF for legacy SF_TRIM_NC_PAINT (soft-retired).
+    // TRIM_TOTAL_EXCLUDED keeps the pre-extraction behavior — every extracted
+    // substrate is excluded, so allTrimLF = 0 and SF_TRIM_NC_PAINT scenarios
+    // produce 0 hours (soft retirement until Track C cleanup).
     const TRIM_TOTAL_EXCLUDED = new Set(['window_casing', 'door_casing', 'crown', 'chair_rail', 'shoe_mold', 'picture_rail', 'wainscot_cap', 'window_stool', 'window_apron', 'shadow_box', 'panel_mold', 'baseboard']);
     const allTrimLF = trimKeys.reduce((s, [subId, , derivedKey]) => {
       if (TRIM_TOTAL_EXCLUDED.has(subId)) return s;
-      const active = casingIds2.has(subId) ? subs[subId]?.painting : !!subs[subId];
-      return s + (active ? (d[derivedKey] || 0) : 0);
+      return s + (isTrimActive(subId) ? (d[derivedKey] || 0) : 0);
     }, 0);
     addQ('PS_SURFACE_LF.TRIM_TOTAL', 'LF', allTrimLF);
-    // Trim joints — approximately equal to total trim LF (every piece has joints)
-    addQ('PS_EDGE_LF.TRIM_JOINTS', 'LF', allTrimLF);
+
+    // Legacy TRIM_JOINTS — kept at 0 to match TRIM_TOTAL soft-retirement.
+    // Any module still calling TSK_TRIM_CAULK_JOINTS (door_frames + window_jamb
+    // prep + the legacy MOD_PREP_TRIM_INITIAL inside SF_TRIM_NC_PAINT) reads 0
+    // and bills no hours. Per-substrate caulk lives in TRIM_JOINTS_<SUBSTRATE>
+    // keys above and is consumed by per-substrate caulk tasks. Setting this
+    // to a derived sum here would resurrect the legacy lumped task on top of
+    // the per-substrate ones — a real double-count.
+    addQ('PS_EDGE_LF.TRIM_JOINTS', 'LF', 0);
 
     // Doors — from substrates.doors.items; emit paint or stain keys based on coating_type
     const doorItems = subs.doors?.items || [];
@@ -129,6 +147,8 @@ export function buildRoomQuantityLookups(state) {
     // for fixed LF-per-variant (single=17, double=20, etc.) × openings count.
     if (subs.door_frames) {
       addQ('PS_SURFACE_LF.DOOR_FRAME', 'LF', d.door_frame_lf);
+      // Per-substrate joint caulk LF — door frame to wall + frame to casing seams
+      addQ('PS_EDGE_LF.TRIM_JOINTS_DOOR_FRAME', 'LF', d.door_frame_lf);
     }
 
     // Windows — from substrates.windows.items; surface keys only when painting, opening counts always
@@ -142,6 +162,8 @@ export function buildRoomQuantityLookups(state) {
     });
     if (subs.window_jamb) {
       addQ('PS_SURFACE_LF.WINDOW_JAMB', 'LF', d.window_jamb_lf);
+      // Per-substrate joint caulk LF — jamb to rough opening + jamb to casing seams
+      addQ('PS_EDGE_LF.TRIM_JOINTS_WINDOW_JAMB', 'LF', d.window_jamb_lf);
       // Jamb also contributes to WINDOW_TOTAL (EA count) when window panels
       // aren't already painting — lets jamb work activate window-aware specs.
       if (!windowsPainting2 || !windowItems.length) {
@@ -296,13 +318,35 @@ export function buildRoomQuantityLookups(state) {
       d.ceilingSF
     );
     addQ('PS_PROTECT_SF.FLOOR_WORKZONE', 'SF', wzSF);
-    addQ('PS_PROTECT_LF.TRIM_EDGES', 'LF', trimLF);
-    if (subs.baseboard) addQ('PS_PROTECT_LF.TRIM_BASEBOARD', 'LF', d.baseboard_lf);
-    // Casing protection always emits when walls are painted (masking casing during wall work)
+
+    // === Per-substrate trim wall-collateral keys (Track A: 2026-05-02) ===
+    // Mask, cut-in, and tapeline driven per painted trim substrate. Wall-
+    // adjacent substrates (excludes shoe_mold which sits on baseboard, and
+    // door_frames which live inside the opening). Each fires only when walls
+    // are being painted AND the trim substrate is being painted.
+    const WALL_ADJACENT_TRIM = new Set([
+      'baseboard', 'door_casing', 'window_casing', 'window_stool', 'window_apron',
+      'crown', 'chair_rail', 'picture_rail', 'wainscot_cap', 'panel_mold', 'shadow_box',
+    ]);
+    let allWallTrimLF = 0;
     if (subs.walls) {
-      addQ('PS_PROTECT_LF.TRIM_CASING_DOOR', 'LF', d.door_casing_lf);
-      addQ('PS_PROTECT_LF.TRIM_CASING_WINDOW', 'LF', d.window_casing_lf);
+      trimKeys.forEach(([subId, surfType, derivedKey]) => {
+        if (!WALL_ADJACENT_TRIM.has(subId)) return;
+        if (!isTrimActive(subId)) return;
+        const lf = d[derivedKey] || 0;
+        if (lf <= 0) return;
+        const subKey = surfType.replace(/^TRIM_/, '');
+        // Mask install — overspray containment along the wall-trim seam
+        addQ(`PS_PROTECT_LF.TRIM_${subKey}`, 'LF', lf);
+        // Wall-to-trim cut-in — physics-mandatory when wall is painted
+        addQ(`PS_EDGE_LF.CUTIN_WALL_TO_${subKey}`, 'LF', lf);
+        allWallTrimLF += lf;
+      });
     }
+    // Legacy lumped keys — derived sums for backward compat. Existing tasks
+    // (TSK_CUTIN_WALL_TO_TRIM, TSK_REMOVE_TRIM_MASKING, TSK_TRIM_TAPELINE_*)
+    // continue to read these until per-substrate task swap completes.
+    addQ('PS_PROTECT_LF.TRIM_EDGES', 'LF', allWallTrimLF);
     addQ('PS_PROTECT_LF.CEILING_LINE', 'LF', d.perimeter);
 
     // === Room Protection v1 quantity emissions ===
@@ -368,13 +412,22 @@ export function buildRoomQuantityLookups(state) {
         addQ('PS_PROTECT_LF.WINDOW_JAMB_ADJACENT', 'LF', d.window_jamb_lf);
       }
     }
-    // Trim tape line — total trim LF being painted (for crisp finished edge before walls)
-    const tapelineLF = (subs.baseboard ? d.baseboard_lf : 0)
-      + (subs.crown ? d.crown_lf || 0 : 0)
-      + (subs.door_casing?.painting ? d.door_casing_lf : 0)
-      + (subs.window_casing?.painting ? d.window_casing_lf : 0)
-      + (subs.chair_rail ? d.chair_rail_lf || 0 : 0);
-    if (tapelineLF > 0) addQ('PS_PROTECT_LF.TRIM_TAPELINE', 'LF', tapelineLF);
+    // Trim tape line — sum of LF for ALL painted wall-adjacent trim substrates.
+    // Gated on tapeline_edge flag (room-level toggle, or project-level
+    // protection_defaults.full_trim_tapeline override). The consumer task
+    // (TSK_TRIM_TAPELINE_INSTALL via MOD_TAPELINE_INSTALL) is also gated by
+    // tapeline_edge in applies_when — gating the emission too keeps the data
+    // clean and prevents misleading LF appearing in protection rollups when
+    // the feature is off (2026-05-03).
+    const tapelineEnabled = room.protection?.tapeline_edge === true
+      || project?.protection_defaults?.full_trim_tapeline === true;
+    if (tapelineEnabled) {
+      const tapelineLF = trimKeys.reduce((s, [subId, , derivedKey]) => {
+        if (!WALL_ADJACENT_TRIM.has(subId)) return s;
+        return s + (isTrimActive(subId) ? (d[derivedKey] || 0) : 0);
+      }, 0);
+      if (tapelineLF > 0) addQ('PS_PROTECT_LF.TRIM_TAPELINE', 'LF', tapelineLF);
+    }
     // Containment — singleton (engine handles FIXED tasks via quantity=1 sentinel)
     addQ('PS_PROTECT_FIXED.CONTAINMENT', 'FIXED', 1);
     addQ('PS_PROTECT_FIXED.CONTAINMENT_ZIPPER', 'FIXED', 1);
@@ -515,7 +568,10 @@ export function buildRoomQuantityLookups(state) {
       if (subs.baseboard && cd.baseboard_lf > 0) {
         addClosetQ('PS_SURFACE_LF.TRIM_BASEBOARD', 'LF', cd.baseboard_lf);
         addClosetQ('PS_SURFACE_LF.TRIM_TOTAL', 'LF', cd.baseboard_lf);
-        addClosetQ('PS_EDGE_LF.TRIM_JOINTS', 'LF', cd.baseboard_lf);
+        // Per-substrate joint caulk (Track A 2026-05-02). Legacy TRIM_JOINTS
+        // intentionally not emitted here — it stays 0 to prevent the legacy
+        // TSK_TRIM_CAULK_JOINTS from double-billing on top of TSK_BASEBOARD_CAULK_JOINTS.
+        addClosetQ('PS_EDGE_LF.TRIM_JOINTS_BASEBOARD', 'LF', cd.baseboard_lf);
       }
       // Closet shelving — emit paint surface key only when paint_shelving is true.
       // When paint_shelving is false, masking + obstruction is handled by
