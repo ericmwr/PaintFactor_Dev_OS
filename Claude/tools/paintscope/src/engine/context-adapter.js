@@ -266,6 +266,41 @@ const WINDOW_BAND_SPEC_KEYS = {
   'SF_WINDOW_APRON_NC_PRIME':   { sub: 'apron',  mainKey: 'PS_SURFACE_LF.TRIM_WINDOW_APRON',   jointKey: 'PS_EDGE_LF.TRIM_JOINTS_WINDOW_APRON'  },
 };
 
+// Substrate-specific height-band override.
+// For trim substrates whose work height differs from the room band, returns
+// the band derived from substrate config or room geometry. Returns null when
+// no override applies (callers fall back to ctx.height_band = roomDerived.heightBand).
+//
+// Rules:
+//   crown        → ceiling/peak (always at ceiling level, follows vault)
+//   picture_rail → ceiling − 1 ft, or explicit cfg.mounted_height_ft
+//   panel_mold   → STD by default, or explicit cfg.height_band_override
+//   shadow_box   → STD by default, or explicit cfg.height_band_override
+function deriveSubstrateHeightBand(specId, room, subsObj) {
+  const subId = SPEC_TO_PAINTABLE_ITEM[specId];
+  if (!subId) return null;
+  const cfg = subsObj?.[subId];
+  if (!cfg) return null;
+
+  if (subId === 'crown') {
+    const ft = parseFloat(room.peak_height_ft) || parseFloat(room.height_ft) || 0;
+    return ft > 0 ? deriveHeightBand(ft) : null;
+  }
+  if (subId === 'picture_rail') {
+    const explicit = parseFloat(cfg.mounted_height_ft);
+    if (explicit > 0) return deriveHeightBand(explicit);
+    const ceil = parseFloat(room.peak_height_ft) || parseFloat(room.height_ft) || 0;
+    return ceil > 0 ? deriveHeightBand(Math.max(0, ceil - 1)) : null;
+  }
+  if (subId === 'panel_mold' || subId === 'shadow_box') {
+    // Wall-mounted decorative trim — at hand height regardless of ceiling.
+    // Default constant STD; user can override for unusual mounting (e.g.
+    // coffered ceiling panels at peak height).
+    return cfg.height_band_override || 'STD';
+  }
+  return null;
+}
+
 // Specs that use per-substrate-child expansion: the adapter emits one ctx per
 // enabled child element (stair components, closets) rather than a single
 // room-level ctx. Each ctx carries paintable_item = <child-scoped> (e.g.
@@ -818,6 +853,13 @@ export function buildScenarioInputs(state, db) {
           if (mapped) ctx.substrate_state = mapped;
         }
       }
+
+      // Per-substrate height-band override for trim substrates whose work
+      // height differs from the room band (crown at ceiling, picture_rail
+      // at ceiling-1, panel_mold/shadow_box with optional explicit override).
+      // Returns null when no override applies, leaving ctx.height_band as-is.
+      const subBand = deriveSubstrateHeightBand(specId, room, subsObj);
+      if (subBand) ctx.height_band = subBand;
 
       // Stain-specific context (matches lines 260-270). coating_type is
       // emitted for all specs above; stain specs add method/species/coat fields.

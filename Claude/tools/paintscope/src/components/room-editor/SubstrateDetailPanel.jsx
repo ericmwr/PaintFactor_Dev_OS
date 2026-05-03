@@ -5,6 +5,17 @@ import { ENUMS } from '../../data/enums';
 import { SUBSTRATE_MAP, SUBSTRATE_APPLICATION_METHODS } from '../../data/substrate-catalog';
 import { SUBSTRATE_SYSTEMS, SYSTEM_METADATA, inferDefaultSystem } from '../../data/system-catalog.js';
 import { useModifierEnum } from '../../hooks/useModifierEnum';
+import { deriveHeightBand } from '../../engine/derive-room.js';
+
+const HEIGHT_BAND_OPTIONS = [
+  { value: 'STD',      label: 'Ground Level (STD)' },
+  { value: 'STEP',     label: 'Step Ladder (9–13 ft)' },
+  { value: 'EXT',      label: 'Extension Ladder (13–18 ft)' },
+  { value: 'SCAFFOLD', label: 'Scaffold (18–25 ft)' },
+  { value: 'LIFT',     label: 'Lift (25+ ft)' },
+];
+
+const HEIGHT_BAND_LABELS = HEIGHT_BAND_OPTIONS.reduce((acc, o) => { acc[o.value] = o.label; return acc; }, {});
 
 export default function SubstrateDetailPanel({ room, derived, dispatch, substrateId, project }) {
   const textureOptions = useModifierEnum('FAC_TEXTURE');
@@ -162,6 +173,81 @@ export default function SubstrateDetailPanel({ room, derived, dispatch, substrat
           )}
         </div>
       </div>
+
+      {/* Height Band — per-substrate work-height override for trim that
+          doesn't follow the room band (crown at ceiling, picture_rail near
+          ceiling, panel_mold / shadow_box with optional explicit override). */}
+      {['crown', 'picture_rail', 'panel_mold', 'shadow_box'].includes(substrateId) && (() => {
+        const ceilFt = parseFloat(room.peak_height_ft) || parseFloat(room.height_ft) || 0;
+        let derivedBand = null;
+        let derivedSourceFt = 0;
+        if (substrateId === 'crown' && ceilFt > 0) {
+          derivedBand = deriveHeightBand(ceilFt);
+          derivedSourceFt = ceilFt;
+        } else if (substrateId === 'picture_rail') {
+          const explicit = parseFloat(config.mounted_height_ft);
+          if (explicit > 0) {
+            derivedBand = deriveHeightBand(explicit);
+            derivedSourceFt = explicit;
+          } else if (ceilFt > 0) {
+            derivedSourceFt = Math.max(0, ceilFt - 1);
+            derivedBand = deriveHeightBand(derivedSourceFt);
+          }
+        }
+        return (
+          <div className="panel-section">
+            <div className="section-title">Height Band</div>
+            <div className="form-grid" style={{ gridTemplateColumns: '1fr 1fr' }}>
+              {substrateId === 'crown' && (
+                <div style={{ gridColumn: '1 / -1' }}>
+                  <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>
+                    {derivedBand
+                      ? <>Auto: <strong>{HEIGHT_BAND_LABELS[derivedBand]}</strong> (from {derivedSourceFt.toFixed(1)} ft ceiling/peak)</>
+                      : <>Set ceiling height on the Structure tab to derive the band.</>}
+                  </div>
+                </div>
+              )}
+
+              {substrateId === 'picture_rail' && (
+                <>
+                  <div>
+                    <div className="field-label" title="Override the derived mounting height (ceiling − 1 ft) when the picture rail sits at a non-standard height.">
+                      Mounted Height (ft)
+                    </div>
+                    <input
+                      type="number" min="0" step="0.5"
+                      value={config.mounted_height_ft || ''}
+                      onChange={e => setSub('mounted_height_ft', e.target.value ? parseFloat(e.target.value) : null)}
+                      placeholder={ceilFt > 0 ? `Auto (${Math.max(0, ceilFt - 1).toFixed(1)})` : 'Auto'}
+                      style={{ width: '100%' }}
+                    />
+                  </div>
+                  <div>
+                    <div className="field-label">Derived Band</div>
+                    <div style={{ fontSize: 11, color: 'var(--text-muted)', padding: '6px 0' }}>
+                      {derivedBand ? HEIGHT_BAND_LABELS[derivedBand] : '—'}
+                    </div>
+                  </div>
+                </>
+              )}
+
+              {(substrateId === 'panel_mold' || substrateId === 'shadow_box') && (
+                <div style={{ gridColumn: '1 / -1' }}>
+                  <div className="field-label" title="Defaults to ground level. Override only when this substrate is mounted high (e.g. coffered ceiling panels).">
+                    Height Band Override
+                  </div>
+                  <Select
+                    options={HEIGHT_BAND_OPTIONS}
+                    value={config.height_band_override || null}
+                    onChange={v => setSub('height_band_override', v || null)}
+                    placeholder="Default (Ground Level)"
+                  />
+                </div>
+              )}
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Stain / Clear Coat controls (bare wood on wood substrates only) */}
       {isBareWood && (
