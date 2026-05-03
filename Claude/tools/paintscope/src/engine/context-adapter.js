@@ -170,7 +170,6 @@ const SPEC_TO_PAINTABLE_ITEM = {
   SF_ROOM_PROTECTION:               'room_protection',
 
   // Interior stain NC (matches SCN_INT_*_STAIN_CLEAR scenarios which use int_ prefix)
-  SF_TRIM_NC_STAIN:                 'trim',
   SF_DOOR_CASING_NC_STAIN:          'int_door_casing',
   SF_WINDOW_CASING_NC_STAIN:        'int_window_casing',
   SF_BASEBOARD_NC_STAIN:            'int_baseboard',

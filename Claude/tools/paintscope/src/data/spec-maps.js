@@ -49,7 +49,6 @@ export const SPEC_SUBSTRATE_MAP = {
   'SF_DRYWALL_CEILING_INT_RP':   'ceiling',
   'SF_CABINET_INT_RP':           'cabinets',
   // ── Interior Stain/Clear ──
-  'SF_TRIM_NC_STAIN':            'baseboard',
   'SF_DOOR_CASING_NC_STAIN':     'door_casing',
   'SF_WINDOW_CASING_NC_STAIN':   'window_casing',
   'SF_BASEBOARD_NC_STAIN':       'baseboard',
@@ -125,7 +124,6 @@ export const SPEC_ROLE = {
   'SF_DRYWALL_WALL_NC_FINISH':    'FINISH',
   'SF_DRYWALL_CEILING_NC_PRIME':  'PRIME',
   'SF_DRYWALL_CEILING_NC_FINISH': 'FINISH',
-  'SF_TRIM_NC_STAIN':             'STAIN',     // stain = stain+sealer+clear internally
   'SF_DOOR_CASING_NC_STAIN':      'STAIN',
   'SF_WINDOW_CASING_NC_STAIN':    'STAIN',
   'SF_BASEBOARD_NC_STAIN':        'STAIN',
@@ -304,7 +302,6 @@ export const SPEC_VALID_INPUT_STATES = {
   'SF_DRYWALL_CEILING_INT_RP':   ['SS_SOUND_PAINT','SS_FAILING_PAINT'],
   'SF_CABINET_INT_RP':           ['SS_SOUND_PAINT','SS_FAILING_PAINT'],
   // ── Interior Stain/Clear ──
-  'SF_TRIM_NC_STAIN':            ['SS_BARE', 'SS_STAINED'],
   'SF_DOOR_CASING_NC_STAIN':     ['SS_BARE', 'SS_STAINED'],
   'SF_WINDOW_CASING_NC_STAIN':   ['SS_BARE', 'SS_STAINED'],
   'SF_BASEBOARD_NC_STAIN':       ['SS_BARE', 'SS_STAINED'],
@@ -411,7 +408,6 @@ export function getExteriorSpecIds(projectType) {
 
 // Set of all interior stain/clear coat spec family IDs
 export const STAIN_SPEC_FAMILIES = new Set([
-  'SF_TRIM_NC_STAIN',
   'SF_DOOR_CASING_NC_STAIN',
   'SF_WINDOW_CASING_NC_STAIN',
   'SF_BASEBOARD_NC_STAIN',
