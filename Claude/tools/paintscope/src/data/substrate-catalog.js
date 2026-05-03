@@ -103,7 +103,7 @@ export const SUBSTRATE_CATALOG = [
     }
   },
   {
-    id: 'cabinets', group: 'Specialty', label: 'Cabinets', uom: 'EA',
+    id: 'cabinets', group: 'Cabinets', label: 'Cabinets', uom: 'EA',
     autoDerive: null, defaultConfig: {
       title: '', substrate_state: 'factory_finish', paint_cabinets: false,
       protection_level: 'partial', quality_tier: null, application_method: 'spray',
@@ -136,7 +136,7 @@ export const SUBSTRATE_CATALOG = [
     }
   },
   {
-    id: 'stairway', group: 'Specialty', label: 'Stairway', uom: 'EA',
+    id: 'stairway', group: 'Stairway', label: 'Stairway', uom: 'EA',
     autoDerive: null, defaultConfig: {
       title: '',
       runs: 1, layout: 'l_shape', run1_risers: 0, run2_risers: 0, stair_width: 3.5, landing_depth: 0,

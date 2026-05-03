@@ -7,15 +7,17 @@ import CabinetsDetailPanel from '../CabinetsDetailPanel';
 import { SUBSTRATE_MAP, SUBSTRATE_GROUPS } from '../../../data/substrate-catalog';
 
 const openingIds = new Set(['doors', 'windows', 'door_casing', 'window_casing', 'door_frames', 'window_jamb']);
+const SPECIALTY_TAB_GROUPS = new Set(['Specialty', 'Cabinets', 'Stairway']);
 
 export default function SpecialtyTab({ room, derived, dispatch, project, focusedSubstrate, setFocusedSubstrate }) {
   const rid = room.id;
   const subs = room.substrates || {};
 
   const items = useMemo(() => {
-    const group = SUBSTRATE_GROUPS.find(g => g.group === 'Specialty');
-    if (!group) return [];
-    return group.items.filter(c => !openingIds.has(c.id));
+    return SUBSTRATE_GROUPS
+      .filter(g => SPECIALTY_TAB_GROUPS.has(g.group))
+      .flatMap(g => g.items)
+      .filter(c => !openingIds.has(c.id));
   }, []);
 
   const handleToggle = (catId) => {
@@ -52,7 +54,7 @@ export default function SpecialtyTab({ room, derived, dispatch, project, focused
         </div>
       </div>
       <div className="detail-panel">
-        {focusedSubstrate && subs[focusedSubstrate] && SUBSTRATE_MAP[focusedSubstrate]?.group === 'Specialty' ? (
+        {focusedSubstrate && subs[focusedSubstrate] && SPECIALTY_TAB_GROUPS.has(SUBSTRATE_MAP[focusedSubstrate]?.group) ? (
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
               <div>
