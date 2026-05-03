@@ -27,6 +27,18 @@ function fmtHrs(h) {
   return `${hrs}h ${mins}m`;
 }
 
+// Height-band display labels for grouping band-stratified tasks. Window
+// casing/jamb/stool/apron may have tasks at multiple bands in the same room
+// when windows mix ground + clerestory + transom.
+const HEIGHT_BAND_LABELS = {
+  STD:      'Ground Level',
+  STEP:     'Step Ladder (9–13 ft)',
+  EXT:      'Extension Ladder (13–18 ft)',
+  SCAFFOLD: 'Scaffold (18–25 ft)',
+  LIFT:     'Lift (25+ ft)',
+};
+const HEIGHT_BAND_ORDER = ['STD', 'STEP', 'EXT', 'SCAFFOLD', 'LIFT'];
+
 // Solid colors for the stacked phase bars (visible on dark backgrounds)
 const PHASE_BAR_COLORS = {
   setup:      '#3a5a8a',
@@ -787,48 +799,109 @@ export default function EstimateView() {
                         </div>
                         <span className="spec-hours">{fmtHrs(specData.totalHours)}</span>
                       </div>
-                      {isItemOpen && (
-                        <div className="task-detail">
-                          <table className="task-table">
-                            <thead><tr><th>Task</th><th>Phase</th><th>PS Key</th><th>UOM</th><th style={{textAlign:'right'}}>Qty</th><th style={{textAlign:'right'}}>Rate</th><th style={{textAlign:'right'}}>Mod</th><th style={{textAlign:'right'}}>Hours</th></tr></thead>
-                            <tbody>
-                              {specData.tasks.map((t, i) => (
-                                <tr key={i} style={{background: PHASE_COLORS[t.phase] || 'transparent'}}>
-                                  <td className="task-name-col" title={t.taskName}>{t.taskName}{taskNameSuffix(t)}</td>
-                                  <td style={{fontSize:11,color:'var(--text-muted)',textTransform:'capitalize'}}>{t.phase}</td>
-                                  <td style={{fontSize:10,color:'var(--derived)'}}>{t.psKey}</td>
-                                  <td style={{fontSize:11}}>{t.uom}</td>
-                                  <td style={{textAlign:'right'}}>{t.isFixed ? '\u2014' : t.quantity}</td>
-                                  <td style={{textAlign:'right',color:'var(--text-muted)'}}>{t.baseRate}</td>
-                                  <td style={{textAlign:'right',color:t.modStack.total>1.5?'var(--warning)':'var(--text-secondary)'}}
-                                      title={[
-                                        t.modStack.qt !== 1 && `QT:${t.modStack.qt}`,
-                                        t.modStack.height !== 1 && `Ht:${t.modStack.height}`,
-                                        t.modStack.complexityApplicable === false ? 'Cmplx: n/a' :
-                                          (t.modStack.complexity !== 1 && `Cmplx:${t.modStack.complexity}${t.modStack.complexityApplied ? '' : ' (phase exempt)'}`),
-                                        t.modStack.sizeMod && t.modStack.sizeMod !== 1 && `Size:${t.modStack.sizeMod}`,
-                                        t.modStack.typeMod && t.modStack.typeMod !== 1 && `Type:${t.modStack.typeMod}`,
-                                        t.conditionScale && `Cond:${t.conditionScale}`
-                                      ].filter(Boolean).join(' \u00d7 ') || 'No modifiers'}>
-                                    {t.modStack.total.toFixed(2)}x
-                                    {t.conditionScale && t.conditionScale !== 'GOOD' && (
-                                      <span style={{fontSize:9,marginLeft:3,padding:'1px 3px',borderRadius:2,
-                                        background:t.conditionScale==='POOR'?'rgba(231,76,60,0.2)':'rgba(241,196,15,0.2)',
-                                        color:t.conditionScale==='POOR'?'#e74c3c':'#f1c40f'
-                                      }}>{t.conditionScale}</span>
-                                    )}
-                                  </td>
-                                  <td style={{textAlign:'right',color:'var(--accent)',fontWeight:600}}
-                                      title={t.coatMultiplier > 1 ? `${fmtHrs(t.hours / t.coatMultiplier)} \u00d7 ${t.coatMultiplier} coats` : ''}>
-                                    {fmtHrs(t.hours)}
-                                    {t.coatMultiplier > 1 && <span style={{fontSize:9,color:'var(--text-muted)',marginLeft:3}}>{'\u00d7'}{t.coatMultiplier}</span>}
-                                  </td>
-                                </tr>
-                              ))}
-                            </tbody>
-                          </table>
-                        </div>
-                      )}
+                      {isItemOpen && (() => {
+                        // Group tasks by height_band for band-stratified specs
+                        // (window casing/jamb/stool/apron when room mixes heights).
+                        // Single-band specs render flat as before.
+                        const taskRow = (t, i) => (
+                          <tr key={i} style={{background: PHASE_COLORS[t.phase] || 'transparent'}}>
+                            <td className="task-name-col" title={t.taskName}>{t.taskName}{taskNameSuffix(t)}</td>
+                            <td style={{fontSize:11,color:'var(--text-muted)',textTransform:'capitalize'}}>{t.phase}</td>
+                            <td style={{fontSize:10,color:'var(--derived)'}}>{t.psKey}</td>
+                            <td style={{fontSize:11}}>{t.uom}</td>
+                            <td style={{textAlign:'right'}}>{t.isFixed ? '\u2014' : t.quantity}</td>
+                            <td style={{textAlign:'right',color:'var(--text-muted)'}}>{t.baseRate}</td>
+                            <td style={{textAlign:'right',color:t.modStack.total>1.5?'var(--warning)':'var(--text-secondary)'}}
+                                title={[
+                                  t.modStack.qt !== 1 && `QT:${t.modStack.qt}`,
+                                  t.modStack.height !== 1 && `Ht:${t.modStack.height}`,
+                                  t.modStack.complexityApplicable === false ? 'Cmplx: n/a' :
+                                    (t.modStack.complexity !== 1 && `Cmplx:${t.modStack.complexity}${t.modStack.complexityApplied ? '' : ' (phase exempt)'}`),
+                                  t.modStack.sizeMod && t.modStack.sizeMod !== 1 && `Size:${t.modStack.sizeMod}`,
+                                  t.modStack.typeMod && t.modStack.typeMod !== 1 && `Type:${t.modStack.typeMod}`,
+                                  t.conditionScale && `Cond:${t.conditionScale}`
+                                ].filter(Boolean).join(' \u00d7 ') || 'No modifiers'}>
+                              {t.modStack.total.toFixed(2)}x
+                              {t.conditionScale && t.conditionScale !== 'GOOD' && (
+                                <span style={{fontSize:9,marginLeft:3,padding:'1px 3px',borderRadius:2,
+                                  background:t.conditionScale==='POOR'?'rgba(231,76,60,0.2)':'rgba(241,196,15,0.2)',
+                                  color:t.conditionScale==='POOR'?'#e74c3c':'#f1c40f'
+                                }}>{t.conditionScale}</span>
+                              )}
+                            </td>
+                            <td style={{textAlign:'right',color:'var(--accent)',fontWeight:600}}
+                                title={t.coatMultiplier > 1 ? `${fmtHrs(t.hours / t.coatMultiplier)} \u00d7 ${t.coatMultiplier} coats` : ''}>
+                              {fmtHrs(t.hours)}
+                              {t.coatMultiplier > 1 && <span style={{fontSize:9,color:'var(--text-muted)',marginLeft:3}}>{'\u00d7'}{t.coatMultiplier}</span>}
+                            </td>
+                          </tr>
+                        );
+
+                        const tableHead = (
+                          <thead><tr><th>Task</th><th>Phase</th><th>PS Key</th><th>UOM</th><th style={{textAlign:'right'}}>Qty</th><th style={{textAlign:'right'}}>Rate</th><th style={{textAlign:'right'}}>Mod</th><th style={{textAlign:'right'}}>Hours</th></tr></thead>
+                        );
+
+                        // Bucket tasks by band (preserving original order within each)
+                        const bandGroups = new Map();
+                        for (const t of specData.tasks) {
+                          const b = t.band || 'STD';
+                          if (!bandGroups.has(b)) bandGroups.set(b, []);
+                          bandGroups.get(b).push(t);
+                        }
+                        const presentBands = HEIGHT_BAND_ORDER.filter(b => bandGroups.has(b));
+
+                        // Single-band path \u2014 preserve current flat layout
+                        if (presentBands.length <= 1) {
+                          return (
+                            <div className="task-detail">
+                              <table className="task-table">
+                                {tableHead}
+                                <tbody>{specData.tasks.map((t, i) => taskRow(t, i))}</tbody>
+                              </table>
+                            </div>
+                          );
+                        }
+
+                        // Multi-band path \u2014 collapsible sub-section per band
+                        return (
+                          <div className="task-detail">
+                            {presentBands.map(band => {
+                              const bandTasks = bandGroups.get(band);
+                              const bandHours = bandTasks.reduce((s, t) => s + (t.hours || 0), 0);
+                              const bandKey = `${itemKey}::band:${band}`;
+                              const isBandOpen = expandedItems[bandKey] !== false; // default open
+                              const label = HEIGHT_BAND_LABELS[band] || band;
+                              return (
+                                <div key={band} style={{marginTop:4}}>
+                                  <div
+                                    onClick={() => toggleItem(bandKey)}
+                                    style={{
+                                      display:'flex', alignItems:'center', gap:6,
+                                      padding:'4px 8px', cursor:'pointer',
+                                      background:'var(--surface-2, rgba(255,255,255,0.03))',
+                                      borderLeft:'2px solid var(--accent)',
+                                      fontSize:11, fontWeight:500,
+                                    }}
+                                  >
+                                    <span className={`chevron${isBandOpen ? ' open' : ''}`}>{'\u25b6'}</span>
+                                    <span style={{color:'var(--text-secondary)'}}>{label}</span>
+                                    <span style={{fontSize:10, color:'var(--text-muted)', marginLeft:4}}>({band})</span>
+                                    <span style={{flex:1}} />
+                                    <span style={{fontSize:10, color:'var(--text-muted)'}}>{bandTasks.length} task{bandTasks.length===1?'':'s'}</span>
+                                    <span style={{color:'var(--accent)', fontWeight:600}}>{fmtHrs(bandHours)}</span>
+                                  </div>
+                                  {isBandOpen && (
+                                    <table className="task-table">
+                                      {tableHead}
+                                      <tbody>{bandTasks.map((t, i) => taskRow(t, i))}</tbody>
+                                    </table>
+                                  )}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        );
+                      })()}
                     </div>
                   );
                 })}
