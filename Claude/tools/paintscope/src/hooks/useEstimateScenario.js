@@ -290,14 +290,18 @@ function normalizeToSpecResults(perInputResults, specData) {
     const specId = first.specId;
     const info = specLookup[specId] || {};
 
-    // Merge tasks from all results in the group
+    // Merge tasks from all results in the group, tagging each task with its
+    // source activation's height_band so the Estimate UI can group band-
+    // stratified tasks (window casing/jamb/stool/apron) by access level.
     const allTasks = [];
     for (const pr of group) {
+      const prBand = pr.ctx?.height_band || 'STD';
       for (const t of pr.tasks || []) {
         allTasks.push({
           ...t,
           // Ensure legacy field names are present
           module: t.moduleId || t.module || null,
+          band: prBand,
         });
       }
     }
@@ -339,9 +343,15 @@ function normalizeToSpecResults(perInputResults, specData) {
  * Mutates perInputResults in place.
  */
 function dedupeSharedTasks(perInputResults) {
+  // Group by (roomIndex, specId, height_band). Including height_band keeps
+  // band-stratified activations of the same spec independent — e.g. window
+  // casing fanned out per band for mixed-height windows in one room (window
+  // stratification, 2026-05-03). Without this, the second activation's tasks
+  // get dropped because the first claims their IDs.
   const groups = new Map();
   for (const pr of perInputResults) {
-    const key = `${pr.roomIndex}|${pr.specId}`;
+    const band = pr.ctx?.height_band || '';
+    const key = `${pr.roomIndex}|${pr.specId}|${band}`;
     if (!groups.has(key)) groups.set(key, []);
     groups.get(key).push(pr);
   }

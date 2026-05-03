@@ -246,6 +246,26 @@ const SPEC_TO_PAINTABLE_ITEM = {
   SF_WOOD_GRAIN_FILL_NC:            'grain_fill_surface',
 };
 
+// Window-related specs that fan out per height band when a room contains
+// windows at different mounting heights (e.g. ground-level + clerestory).
+// Maps spec_id → { sub: <key in roomDerived.windowBandLf>, mainKey, jointKey }.
+// At adapter-input emit time, if roomDerived.windowBandLf carries multiple
+// bands with non-zero LF for the substrate, the engine emits one input per
+// band: ctx.height_band is overridden to the band and roomQty is cloned with
+// band-specific LF substituted for the spec's main + joint keys. Single-band
+// rooms emit one input (the band override still applies, so all-clerestory
+// rooms correctly bill at STEP/EXT instead of the room's STD band).
+const WINDOW_BAND_SPEC_KEYS = {
+  'SF_WINDOW_CASING_NC_PAINT':  { sub: 'casing', mainKey: 'PS_SURFACE_LF.TRIM_CASING_WINDOW',  jointKey: 'PS_EDGE_LF.TRIM_JOINTS_CASING_WINDOW'  },
+  'SF_WINDOW_CASING_NC_PRIME':  { sub: 'casing', mainKey: 'PS_SURFACE_LF.TRIM_CASING_WINDOW',  jointKey: 'PS_EDGE_LF.TRIM_JOINTS_CASING_WINDOW'  },
+  'SF_WINDOW_JAMB_NC_FINISH':   { sub: 'jamb',   mainKey: 'PS_SURFACE_LF.WINDOW_JAMB',         jointKey: 'PS_EDGE_LF.TRIM_JOINTS_WINDOW_JAMB'   },
+  'SF_WINDOW_JAMB_NC_PRIME':    { sub: 'jamb',   mainKey: 'PS_SURFACE_LF.WINDOW_JAMB',         jointKey: 'PS_EDGE_LF.TRIM_JOINTS_WINDOW_JAMB'   },
+  'SF_WINDOW_STOOL_NC_PAINT':   { sub: 'stool',  mainKey: 'PS_SURFACE_LF.TRIM_WINDOW_STOOL',   jointKey: 'PS_EDGE_LF.TRIM_JOINTS_WINDOW_STOOL'  },
+  'SF_WINDOW_STOOL_NC_PRIME':   { sub: 'stool',  mainKey: 'PS_SURFACE_LF.TRIM_WINDOW_STOOL',   jointKey: 'PS_EDGE_LF.TRIM_JOINTS_WINDOW_STOOL'  },
+  'SF_WINDOW_APRON_NC_PAINT':   { sub: 'apron',  mainKey: 'PS_SURFACE_LF.TRIM_WINDOW_APRON',   jointKey: 'PS_EDGE_LF.TRIM_JOINTS_WINDOW_APRON'  },
+  'SF_WINDOW_APRON_NC_PRIME':   { sub: 'apron',  mainKey: 'PS_SURFACE_LF.TRIM_WINDOW_APRON',   jointKey: 'PS_EDGE_LF.TRIM_JOINTS_WINDOW_APRON'  },
+};
+
 // Specs that use per-substrate-child expansion: the adapter emits one ctx per
 // enabled child element (stair components, closets) rather than a single
 // room-level ctx. Each ctx carries paintable_item = <child-scoped> (e.g.
@@ -845,6 +865,35 @@ export function buildScenarioInputs(state, db) {
         ctx.pass_group_substrates = memberGroup.substrates.slice();
         ctx.pass_type             = memberGroup.pass_type;
         ctx.finish_group          = memberGroup.metadata.finish_group;
+      }
+
+      // Window-related specs fan out per height band when the room contains
+      // windows at different mounting heights. roomDerived.windowBandLf carries
+      // per-band LF for casing/jamb/stool/apron. For each band with non-zero
+      // LF, emit one input with ctx.height_band = band and roomQty cloned with
+      // band-specific LF for the spec's main + joint keys. Falls through to the
+      // default single-push when no band entries exist (no windows in room).
+      const winBandKeys = WINDOW_BAND_SPEC_KEYS[specId];
+      const bandLfMap = winBandKeys ? roomDerived.windowBandLf : null;
+      if (winBandKeys && bandLfMap && Object.keys(bandLfMap).length > 0) {
+        for (const [band, lfBySub] of Object.entries(bandLfMap)) {
+          const lf = lfBySub[winBandKeys.sub] || 0;
+          if (lf <= 0) continue;
+          const bandQty = new Map(roomQty);
+          bandQty.set(winBandKeys.mainKey, { value: Math.round(lf), uom: 'LF' });
+          if (winBandKeys.jointKey) {
+            bandQty.set(winBandKeys.jointKey, { value: Math.round(lf), uom: 'LF' });
+          }
+          roomInputs.push({
+            roomIndex: ri,
+            roomLabel,
+            specId,
+            ctx: normalizePassGroupCtx({ ...ctx, height_band: band }),
+            roomQty: bandQty,
+            roomItems,
+          });
+        }
+        continue; // skip default single-push below
       }
 
       roomInputs.push({

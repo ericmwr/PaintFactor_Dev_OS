@@ -263,6 +263,39 @@ export function deriveRoom(room) {
   // before falling back to geometry-derived band.
   const heightBand = room.height_band || deriveHeightBand(effectiveHeight);
 
+  // Per-band window LF breakdown — drives stratified spec activation for
+  // window_casing / window_jamb / window_stool / window_apron when the room
+  // contains windows at different mounting heights (e.g. ground + clerestory).
+  // Each window item carries window_position ('ground' | 'clerestory' | 'transom')
+  // and sill_height_band ('STD' | 'STEP' | 'EXT' | 'SCAFFOLD' | 'LIFT'). Ground
+  // windows inherit the room band; elevated windows use their own sill band.
+  // Casing and jamb LF are stratified per window item (count × size_bucket
+  // perimeter). Stool and apron LF are user-entered aggregates — distributed
+  // proportionally to window count per band.
+  const windowBandLf = {};
+  windowItems.forEach(w => {
+    const cnt = parseInt(w.count) || 0;
+    if (cnt <= 0) return;
+    const isElevated = w.window_position && w.window_position !== 'ground';
+    // Ground windows always STD — work at ~7 ft sill regardless of room band.
+    const band = isElevated ? (w.sill_height_band || 'STEP') : 'STD';
+    const perim = (w.size_bucket === 'O')
+      ? Math.round(2 * ((w.width_ft || 0) + (w.height_ft || 0)))
+      : (WINDOW_SIZE_PERIM_LF[w.size_bucket] || 12);
+    if (!windowBandLf[band]) windowBandLf[band] = { casing: 0, jamb: 0, stool: 0, apron: 0, count: 0 };
+    windowBandLf[band].casing += cnt * perim;
+    windowBandLf[band].jamb += cnt * perim;
+    windowBandLf[band].count += cnt;
+  });
+  // Distribute manual stool/apron LF proportionally to window count per band.
+  const totalBandedWindows = Object.values(windowBandLf).reduce((s, x) => s + x.count, 0);
+  if (totalBandedWindows > 0) {
+    Object.values(windowBandLf).forEach(x => {
+      x.stool = window_stool_lf * (x.count / totalBandedWindows);
+      x.apron = window_apron_lf * (x.count / totalBandedWindows);
+    });
+  }
+
   return {
     L, W, H, effectiveHeight, perimeter,
     totalOpenings, openingCasingLF, doorOpeningDeduction,
@@ -276,6 +309,7 @@ export function deriveRoom(room) {
     chair_rail_lf, shoe_mold_lf, wainscot_cap_lf, picture_rail_lf,
     window_stool_lf, window_apron_lf, shadow_box_lf, panel_mold_lf,
     door_frame_lf, window_jamb_lf,
+    windowBandLf,
     totalDoorSides,
     beamTotalLF, beamPeakLF, beamCrossLFEach, beamRidgeLFEach
   };
