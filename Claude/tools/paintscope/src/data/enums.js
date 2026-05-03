@@ -58,6 +58,20 @@ export const ENUMS = {
     { value:'L', label:'LG — 17 LF perim' },
     { value:'O', label:'XL — Measured' }
   ],
+  windowPositions: [
+    { value:'ground',     label:'Ground Level' },
+    { value:'clerestory', label:'Clerestory (high standalone row)' },
+    { value:'transom',    label:'Transom (above door/window)' }
+  ],
+  // Sill height bands — match FAC_HEIGHT thresholds. Drives ctx.height_band
+  // override for window_casing/stool/apron/jamb on elevated windows.
+  windowSillBands: [
+    { value:'STD',      label:'STD (under 9 ft)' },
+    { value:'STEP',     label:'STEP (9–13 ft)' },
+    { value:'EXT',      label:'EXT (13–18 ft)' },
+    { value:'SCAFFOLD', label:'SCAFFOLD (18–25 ft)' },
+    { value:'LIFT',     label:'LIFT (25+ ft)' }
+  ],
   substrateDoor: [
     { value:'factory_primed', label:'Factory Primed' },
     { value:'bare_wood', label:'Bare Wood' }

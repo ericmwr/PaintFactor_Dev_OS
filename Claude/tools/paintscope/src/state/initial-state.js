@@ -85,7 +85,22 @@ export function createDoor(overrides={}) {
 }
 
 export function createWindow(overrides={}) {
-  return { id:genId('win'), count:1, window_type:'double_hung', size_bucket:'M', substrate_state:'bare_wood', width_ft:0, height_ft:0, ...overrides };
+  return {
+    id: genId('win'),
+    count: 1,
+    window_type: 'double_hung',
+    size_bucket: 'M',
+    substrate_state: 'bare_wood',
+    width_ft: 0,
+    height_ft: 0,
+    // Window position drives height_band derivation for window_casing/stool/
+    // apron/jamb on this window. 'ground' uses room band; 'clerestory'/'transom'
+    // override with sill_height_band (defaulted to STEP at UI layer when toggled
+    // off ground).
+    window_position: 'ground',
+    sill_height_band: 'STD',
+    ...overrides,
+  };
 }
 
 /** Build a default substrate config by merging catalog defaults with any overrides. */

@@ -336,7 +336,7 @@ export default function OpeningsTab({ room, derived, dispatch, project }) {
           <div style={{ color: 'var(--text-muted)', padding: 8, textAlign: 'center', fontSize: 12 }}>No windows added yet.</div>
         ) : (
           <table className="data-table">
-            <thead><tr><th>Count</th><th>Type</th><th>Size Bucket</th><th>Substrate State</th><th>PS Key</th><th></th></tr></thead>
+            <thead><tr><th>Count</th><th>Type</th><th>Size Bucket</th><th>Position</th><th>Sill Band</th><th>Substrate State</th><th>PS Key</th><th></th></tr></thead>
             <tbody>
               {windowItems.map(win => (
                 <React.Fragment key={win.id}>
@@ -344,12 +344,37 @@ export default function OpeningsTab({ room, derived, dispatch, project }) {
                     <td><input type="number" value={win.count || ''} min="0" onChange={e => dispatch({ type: 'SET_WINDOW', payload: { roomId: rid, winId: win.id, field: 'count', value: parseInt(e.target.value) || 0 } })} style={{ width: 60 }} placeholder="0" /></td>
                     <td><Select options={ENUMS.windowTypes} value={win.window_type} onChange={v => dispatch({ type: 'SET_WINDOW', payload: { roomId: rid, winId: win.id, field: 'window_type', value: v } })} /></td>
                     <td><Select options={ENUMS.windowSizes} value={win.size_bucket} onChange={v => dispatch({ type: 'SET_WINDOW', payload: { roomId: rid, winId: win.id, field: 'size_bucket', value: v } })} /></td>
+                    <td>
+                      <Select
+                        options={ENUMS.windowPositions}
+                        value={win.window_position || 'ground'}
+                        onChange={v => {
+                          dispatch({ type: 'SET_WINDOW', payload: { roomId: rid, winId: win.id, field: 'window_position', value: v } });
+                          // When switching off ground, default sill band to STEP (9–13 ft)
+                          // unless the user has already chosen something elevated.
+                          if (v !== 'ground' && (!win.sill_height_band || win.sill_height_band === 'STD')) {
+                            dispatch({ type: 'SET_WINDOW', payload: { roomId: rid, winId: win.id, field: 'sill_height_band', value: 'STEP' } });
+                          }
+                        }}
+                      />
+                    </td>
+                    <td>
+                      {(win.window_position && win.window_position !== 'ground') ? (
+                        <Select
+                          options={ENUMS.windowSillBands}
+                          value={win.sill_height_band || 'STEP'}
+                          onChange={v => dispatch({ type: 'SET_WINDOW', payload: { roomId: rid, winId: win.id, field: 'sill_height_band', value: v } })}
+                        />
+                      ) : (
+                        <span style={{ color: 'var(--text-muted)', fontSize: 11 }}>—</span>
+                      )}
+                    </td>
                     <td><Select options={winStates} value={win.substrate_state} onChange={v => dispatch({ type: 'SET_WINDOW', payload: { roomId: rid, winId: win.id, field: 'substrate_state', value: v } })} /></td>
                     <td style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--derived)' }}>PS_OPENING_EA.WINDOW_{win.size_bucket}</td>
                     <td><button className="btn btn-sm btn-danger" onClick={() => dispatch({ type: 'REMOVE_WINDOW', payload: { roomId: rid, winId: win.id } })}>&#x2715;</button></td>
                   </tr>
                   {win.size_bucket === 'O' && (
-                    <tr><td colSpan="6" style={{ padding: '4px 0 4px 24px' }}>
+                    <tr><td colSpan="8" style={{ padding: '4px 0 4px 24px' }}>
                       <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
                         <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>Measured Size</span>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
@@ -376,7 +401,7 @@ export default function OpeningsTab({ room, derived, dispatch, project }) {
                     </td></tr>
                   )}
                   {win.substrate_state === 'bare_wood' && windowsPainting && (
-                    <tr><td colSpan="6" style={{ padding: '2px 0' }}>
+                    <tr><td colSpan="8" style={{ padding: '2px 0' }}>
                       <InlineCoatingControls subConfig={win} onSet={(f, v) => dispatch({ type: 'SET_WINDOW', payload: { roomId: rid, winId: win.id, field: f, value: v } })} />
                       <InlineGrainFill subConfig={win} onSet={(f, v) => dispatch({ type: 'SET_WINDOW', payload: { roomId: rid, winId: win.id, field: f, value: v } })} />
                     </td></tr>

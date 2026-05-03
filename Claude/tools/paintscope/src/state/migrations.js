@@ -424,5 +424,17 @@ export function migrateInline(parsed) {
     if (r.floor_protection) r.floor_protection = migrateMaskLevel(r.floor_protection);
   });
 
+  // v1.0.5: Per-window position + sill height band for clerestory/transom
+  // height_band override on window_casing/stool/apron/jamb specs. Existing
+  // window items default to ground level (uses room band; no override).
+  parsed.rooms.forEach(r => {
+    const items = r.substrates?.windows?.items;
+    if (!Array.isArray(items)) return;
+    items.forEach(w => {
+      if (typeof w.window_position === 'undefined') w.window_position = 'ground';
+      if (typeof w.sill_height_band === 'undefined') w.sill_height_band = 'STD';
+    });
+  });
+
   return parsed;
 }
