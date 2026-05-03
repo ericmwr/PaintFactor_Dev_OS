@@ -269,14 +269,19 @@ const WINDOW_BAND_SPEC_KEYS = {
 // the band derived from substrate config or room geometry. Returns null when
 // no override applies (callers fall back to ctx.height_band = roomDerived.heightBand).
 //
+// Works for both paint specs (subId = 'crown', etc.) and stain specs
+// (subId = 'int_crown', etc.) — the int_ prefix is normalized away so the
+// same substrate config drives both pipelines.
+//
 // Rules:
 //   crown        → ceiling/peak (always at ceiling level, follows vault)
 //   picture_rail → ceiling − 1 ft, or explicit cfg.mounted_height_ft
 //   panel_mold   → STD by default, or explicit cfg.height_band_override
 //   shadow_box   → STD by default, or explicit cfg.height_band_override
 function deriveSubstrateHeightBand(specId, room, subsObj) {
-  const subId = SPEC_TO_PAINTABLE_ITEM[specId];
-  if (!subId) return null;
+  const rawSubId = SPEC_TO_PAINTABLE_ITEM[specId];
+  if (!rawSubId) return null;
+  const subId = rawSubId.startsWith('int_') ? rawSubId.slice(4) : rawSubId;
   const cfg = subsObj?.[subId];
   if (!cfg) return null;
 
