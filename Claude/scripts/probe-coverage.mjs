@@ -35,8 +35,24 @@ const PROBES = [
   { label: 'Crown STAIN+CLEAR QT4', ctx: { paintable_item: 'int_crown', quality_tier: 'QT4', application_method_stain: 'brush', application_method_clear: 'brush', substrate_state: 'SS_BARE', coating_type: 'stain_clear', stain_coats: 1, sealer_coats: 1, clear_coats: 1 }, qty: { 'PS_SURFACE_LF.TRIM_CROWN': 100 } },
   { label: 'Chair Rail STAIN+CLEAR QT4', ctx: { paintable_item: 'int_chair_rail', quality_tier: 'QT4', application_method_stain: 'brush', application_method_clear: 'brush', substrate_state: 'SS_BARE', coating_type: 'stain_clear', stain_coats: 1, sealer_coats: 1, clear_coats: 1 }, qty: { 'PS_SURFACE_LF.TRIM_CHAIR_RAIL': 100 } },
 
-  // --- Drywall RP paint (NC flow uses combined wall+ceiling scenarios — different probe shape, skipped here) ---
+  // --- Drywall RP paint ---
   { label: 'Drywall Wall RP-failing QT4 brush_roll', ctx: { paintable_item: 'drywall_wall', quality_tier: 'QT4', application_method: 'brush_roll', substrate_state: 'SS_FAILING_PAINT', surface: 'wall', sheen: 'eggshell', finish_coats: 2 }, qty: { 'PS_SURFACE_SF.WALL_FIELD': 200 } },
+
+  // --- Standalone drywall PRIME (post wall/ceiling primer-task retirement: should fire FINISH tasks × FAC_MATERIAL 1.25) ---
+  { label: 'Wall PRIME QT3 spray_backroll',  ctx: { surface: 'wall',    paintable_item: 'drywall', quality_tier: 'QT3', application_method: 'spray_backroll', substrate_state: 'SS_BARE' }, qty: { 'PS_SURFACE_SF.WALL_FIELD': 300, 'PS_PROTECT_SF.FLOOR_FULL': 300 } },
+  { label: 'Wall PRIME QT3 roll',            ctx: { surface: 'wall',    paintable_item: 'drywall', quality_tier: 'QT3', application_method: 'roll',           substrate_state: 'SS_BARE' }, qty: { 'PS_SURFACE_SF.WALL_FIELD': 300, 'PS_CUTIN_LF.WALL_TO_CEILING': 60 } },
+  { label: 'Wall PRIME QT3 spray (no backroll)', ctx: { surface: 'wall', paintable_item: 'drywall', quality_tier: 'QT3', application_method: 'spray',          substrate_state: 'SS_BARE' }, qty: { 'PS_SURFACE_SF.WALL_FIELD': 300 } },
+  { label: 'Ceiling PRIME QT3 spray_backroll', ctx: { surface: 'ceiling', paintable_item: 'drywall', quality_tier: 'QT3', application_method: 'spray_backroll', substrate_state: 'SS_BARE' }, qty: { 'PS_SURFACE_SF.CEILING_FIELD': 200 } },
+  { label: 'Ceiling PRIME QT3 roll',           ctx: { surface: 'ceiling', paintable_item: 'drywall', quality_tier: 'QT3', application_method: 'roll',           substrate_state: 'SS_BARE' }, qty: { 'PS_SURFACE_SF.CEILING_FIELD': 200 } },
+
+  // --- Standalone drywall FINISH (control: FAC_MATERIAL = 1.0 since these modules don't have material:true) ---
+  { label: 'Wall FINISH QT3 spray_backroll', ctx: { surface: 'wall',    paintable_item: 'drywall', quality_tier: 'QT3', application_method: 'spray_backroll', substrate_state: 'SS_PRIMED', sheen: 'eggshell', finish_coats: 2 }, qty: { 'PS_SURFACE_SF.WALL_FIELD': 300 } },
+  { label: 'Ceiling FINISH QT3 spray_backroll', ctx: { surface: 'ceiling', paintable_item: 'drywall', quality_tier: 'QT3', application_method: 'spray_backroll', substrate_state: 'SS_PRIMED', sheen: 'flat', finish_coats: 2 }, qty: { 'PS_SURFACE_SF.CEILING_FIELD': 200 } },
+
+  // --- Combined wall+ceiling drywall flow (the marquee NC pattern) ---
+  { label: 'COMBINED PRIME QT3 spray_backroll',  ctx: { pass_group_id: 'walls_ceiling_prime_combined',  quality_tier: 'QT3', application_method: 'spray_backroll', substrate_state: 'SS_BARE' },                          qty: { 'PS_SURFACE_SF.WALL_FIELD': 300, 'PS_SURFACE_SF.CEILING_FIELD': 200 } },
+  { label: 'COMBINED FINISH QT3 spray_backroll', ctx: { pass_group_id: 'walls_ceiling_finish_combined', quality_tier: 'QT3', application_method: 'spray_backroll', substrate_state: 'SS_PRIMED', sheen: 'eggshell' },     qty: { 'PS_SURFACE_SF.WALL_FIELD': 300, 'PS_SURFACE_SF.CEILING_FIELD': 200 } },
+  { label: 'COMBINED FINISH QT4 spray_backroll matte', ctx: { pass_group_id: 'walls_ceiling_finish_combined', quality_tier: 'QT4', application_method: 'spray_backroll', substrate_state: 'SS_PRIMED', sheen: 'matte' }, qty: { 'PS_SURFACE_SF.WALL_FIELD': 300, 'PS_SURFACE_SF.CEILING_FIELD': 200 } },
 ];
 
 let okCount = 0;
