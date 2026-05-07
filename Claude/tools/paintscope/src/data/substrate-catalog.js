@@ -84,10 +84,18 @@ export const SUBSTRATE_CATALOG = [
   {
     id: 'wainscoting', group: 'Specialty', label: 'Wainscot Panel', uom: 'SF',
     autoDerive: null, defaultConfig: {
-      substrate_state: 'bare_wood', application_method: null, sf_manual: 0,
-      // Length of the panel run along the wall (LF). Used to derive a
-      // synced wainscot_cap quantity when has_cap is true.
+      substrate_state: 'bare_wood', application_method: null,
+      // SF is computed from lf_manual × wainscot_height_ft. sf_override +
+      // sf_manual let the user override when geometry isn't a clean rectangle
+      // (varying panel heights, partial coverage, etc.).
+      sf_override: false, sf_manual: 0,
+      // Length of the panel run along the wall (LF). Drives both the SF
+      // calculation (lf × height) and the synced wainscot_cap when has_cap.
       lf_manual: 0,
+      // Panel height in feet. Default 3 ft (36") — typical residential
+      // wainscot. Tall variants: chair-rail height ~32" (2.67), full-height
+      // paneling ~7-8 ft.
+      wainscot_height_ft: 3,
       has_cap: true,
       cap_profile: 'flat',  // 'flat' | 'ogee' | 'beveled' | 'custom'
     }

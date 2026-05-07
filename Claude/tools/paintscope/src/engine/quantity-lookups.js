@@ -167,10 +167,21 @@ export function buildRoomQuantityLookups(state) {
       if (subs[subId]) {
         const cfg = subs[subId];
         const cat = SUBSTRATE_MAP[subId];
-        // Use manual value if overridden, otherwise try auto-derive
-        let v = parseFloat(cfg[manualKey]) || 0;
-        if (v === 0 && !cfg.sf_override && !cfg.lf_override && cat?.autoDerive) {
-          v = cat.autoDerive(d) || 0;
+        let v = 0;
+        if (subId === 'wainscoting') {
+          // SF derives from Length × Height. sf_override + sf_manual lets the
+          // estimator override the computed value when the geometry isn't a
+          // clean rectangle.
+          const lf = parseFloat(cfg.lf_manual) || 0;
+          const ht = parseFloat(cfg.wainscot_height_ft) || 0;
+          v = cfg.sf_override ? (parseFloat(cfg.sf_manual) || 0) : (lf * ht);
+        } else {
+          // Default: manual value if set, else autoDerive (for substrates that
+          // have one), else 0.
+          v = parseFloat(cfg[manualKey]) || 0;
+          if (v === 0 && !cfg.sf_override && !cfg.lf_override && cat?.autoDerive) {
+            v = cat.autoDerive(d) || 0;
+          }
         }
         if (v > 0) addQ(psKey, uom, v);
       }

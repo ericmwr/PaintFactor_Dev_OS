@@ -342,8 +342,9 @@ export default function SubstrateDetailPanel({ room, derived, dispatch, substrat
           </div>
         )}
 
-        {/* SF manual-only (specialty SF items) */}
-        {isSF && !hasAuto && (
+        {/* SF manual-only (specialty SF items, EXCEPT wainscoting which has a
+            length/height-driven calc — handled in its own block below) */}
+        {isSF && !hasAuto && substrateId !== 'wainscoting' && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <input type="number" value={config.sf_manual || ''} onChange={e => setSub('sf_manual', parseFloat(e.target.value) || 0)} min="0" style={{ width: 100 }} />
             <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>SF</span>
@@ -351,14 +352,41 @@ export default function SubstrateDetailPanel({ room, derived, dispatch, substrat
           </div>
         )}
 
-        {/* Wainscot Panel — also takes a Length (LF) for wainscot cap derivation */}
-        {substrateId === 'wainscoting' && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8 }}>
-            <input type="number" value={config.lf_manual || ''} onChange={e => setSub('lf_manual', parseFloat(e.target.value) || 0)} min="0" style={{ width: 100 }} />
-            <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>LF</span>
-            <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>(panel run along wall, drives cap length)</span>
-          </div>
-        )}
+        {/* Wainscot Panel — Length × Height drives SF; SF stays as override. */}
+        {substrateId === 'wainscoting' && (() => {
+          const lf = parseFloat(config.lf_manual) || 0;
+          const ht = parseFloat(config.wainscot_height_ft) || 0;
+          const computedSF = Math.round(lf * ht);
+          return (
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>Length</span>
+                  <input type="number" value={config.lf_manual || ''} onChange={e => setSub('lf_manual', parseFloat(e.target.value) || 0)} min="0" style={{ width: 80 }} />
+                  <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>LF</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>Height</span>
+                  <input type="number" step="0.25" value={config.wainscot_height_ft || ''} onChange={e => setSub('wainscot_height_ft', parseFloat(e.target.value) || 0)} min="0" style={{ width: 70 }} />
+                  <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>ft</span>
+                </div>
+              </div>
+              <div style={{ marginTop: 8 }}>
+                <NumField
+                  value={config.sf_manual || ''}
+                  derived={computedSF}
+                  isOverride={!!config.sf_override}
+                  onValueChange={v => setSub('sf_manual', v)}
+                  onOverrideToggle={v => setSub('sf_override', v)}
+                  uom="SF"
+                />
+                <div style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 2 }}>
+                  Length × Height = {computedSF} SF (override for non-rectangular runs)
+                </div>
+              </div>
+            </div>
+          );
+        })()}
 
         {/* LF with auto-derive */}
         {isLF && hasAuto && (
