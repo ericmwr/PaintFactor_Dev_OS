@@ -131,8 +131,8 @@ export const SUBSTRATE_CATALOG = [
     autoDerive: null, defaultConfig: { substrate_state: 'bare_wood', application_method: null, ea_manual: 0 }
   },
   {
-    id: 'mantels', group: 'Specialty', label: 'Mantels', uom: 'EA',
-    autoDerive: null, defaultConfig: { substrate_state: 'bare_wood', application_method: null, ea_manual: 0 }
+    id: 'mantels', group: 'Specialty', label: 'Mantels', uom: 'SF',
+    autoDerive: null, defaultConfig: { substrate_state: 'bare_wood', application_method: null, lf_manual: 0 }
   },
   {
     id: 'builtins', group: 'Specialty', label: 'Built-ins', uom: 'EA',

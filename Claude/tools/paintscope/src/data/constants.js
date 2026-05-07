@@ -88,7 +88,7 @@ export const FLOOR_PROTECTION_DONOR_PRIORITY = [
 ];
 
 // Arch element grouping for per-item display names
-export const ARCH_ELEMENT_PS_GROUPS = { 'PS_SURFACE_LF.ARCH_BEAM':'Beams', 'PS_SURFACE_EA.ARCH_COLUMN':'Columns', 'PS_SURFACE_EA.ARCH_MANTEL':'Mantels' };
+export const ARCH_ELEMENT_PS_GROUPS = { 'PS_SURFACE_LF.ARCH_BEAM':'Beams', 'PS_SURFACE_EA.ARCH_COLUMN':'Columns', 'PS_SURFACE_SF.ARCH_MANTEL':'Mantels' };
 
 // Quantity key human-readable labels (for Summary view)
 export const QUANTITY_KEY_LABELS = {
@@ -124,7 +124,7 @@ export const QUANTITY_KEY_LABELS = {
   'PS_SURFACE_EA.WINDOW': 'Windows',
   'PS_SURFACE_EA.WINDOW_JAMB': 'Window Jambs',
   'PS_SURFACE_EA.ARCH_COLUMN': 'Columns',
-  'PS_SURFACE_EA.ARCH_MANTEL': 'Mantels',
+  'PS_SURFACE_SF.ARCH_MANTEL': 'Mantels',
   'PS_SURFACE_EA.BUILTIN': 'Built-ins',
   'PS_OPENING_EA.BUILTIN_SHELF.S': 'Built-in Openings (S)',
   'PS_OPENING_EA.BUILTIN_SHELF.M': 'Built-in Openings (M)',

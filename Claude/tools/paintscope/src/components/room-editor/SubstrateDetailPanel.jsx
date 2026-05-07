@@ -342,9 +342,9 @@ export default function SubstrateDetailPanel({ room, derived, dispatch, substrat
           </div>
         )}
 
-        {/* SF manual-only (specialty SF items, EXCEPT wainscoting which has a
-            length/height-driven calc — handled in its own block below) */}
-        {isSF && !hasAuto && substrateId !== 'wainscoting' && (
+        {/* SF manual-only (specialty SF items, EXCEPT wainscoting/mantels which
+            have their own length-driven calc — handled in their own blocks below) */}
+        {isSF && !hasAuto && substrateId !== 'wainscoting' && substrateId !== 'mantels' && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <input type="number" value={config.sf_manual || ''} onChange={e => setSub('sf_manual', parseFloat(e.target.value) || 0)} min="0" style={{ width: 100 }} />
             <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>SF</span>
@@ -415,6 +415,24 @@ export default function SubstrateDetailPanel({ room, derived, dispatch, substrat
               </div>
               <div style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 6 }}>
                 Length × Sides = {totalLF} LF total
+              </div>
+            </div>
+          );
+        })()}
+
+        {/* Mantels — Length drives SF (top + bottom + sides folded into 2× LF rule). */}
+        {substrateId === 'mantels' && (() => {
+          const lf = parseFloat(config.lf_manual) || 0;
+          const totalSF = lf * 2;
+          return (
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>Length</span>
+                <input type="number" value={config.lf_manual || ''} onChange={e => setSub('lf_manual', parseFloat(e.target.value) || 0)} min="0" style={{ width: 80 }} />
+                <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>LF</span>
+              </div>
+              <div style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 6 }}>
+                Length × 2 = {totalSF} SF total (top + bottom + sides)
               </div>
             </div>
           );
