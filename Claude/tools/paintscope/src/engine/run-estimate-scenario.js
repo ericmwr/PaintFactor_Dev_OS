@@ -9,6 +9,43 @@ import {
 } from '../data/modifiers.js';
 import { getFactor, getModifier } from './modifier-registry.js';
 
+// Fallback ps_key by paintable_item — covers the case where a module's task
+// entry references a universal LF/SF task that has no ps_key of its own
+// (e.g. TSK_INSPECT_COATING_LF, TSK_BRUSH_COAT_LF). These universal tasks were
+// introduced by the NC consolidation pass; the substrate context now lives on
+// ctx.paintable_item, so the engine resolves it here. Both naming conventions
+// (paint side: bare; stain side: int_ prefix) map to the same ps_key.
+const SUBSTRATE_PS_KEY_BY_PAINTABLE_ITEM = Object.freeze({
+  baseboard: 'PS_SURFACE_LF.TRIM_BASEBOARD',
+  int_baseboard: 'PS_SURFACE_LF.TRIM_BASEBOARD',
+  crown: 'PS_SURFACE_LF.TRIM_CROWN',
+  int_crown: 'PS_SURFACE_LF.TRIM_CROWN',
+  chair_rail: 'PS_SURFACE_LF.TRIM_CHAIR_RAIL',
+  int_chair_rail: 'PS_SURFACE_LF.TRIM_CHAIR_RAIL',
+  shoe_mold: 'PS_SURFACE_LF.TRIM_SHOE_MOLD',
+  int_shoe_mold: 'PS_SURFACE_LF.TRIM_SHOE_MOLD',
+  picture_rail: 'PS_SURFACE_LF.TRIM_PICTURE_RAIL',
+  int_picture_rail: 'PS_SURFACE_LF.TRIM_PICTURE_RAIL',
+  wainscot_cap: 'PS_SURFACE_LF.TRIM_WAINSCOT_CAP',
+  int_wainscot_cap: 'PS_SURFACE_LF.TRIM_WAINSCOT_CAP',
+  window_stool: 'PS_SURFACE_LF.TRIM_WINDOW_STOOL',
+  int_window_stool: 'PS_SURFACE_LF.TRIM_WINDOW_STOOL',
+  window_apron: 'PS_SURFACE_LF.TRIM_WINDOW_APRON',
+  int_window_apron: 'PS_SURFACE_LF.TRIM_WINDOW_APRON',
+  shadow_box: 'PS_SURFACE_LF.TRIM_SHADOW_BOX',
+  int_shadow_box: 'PS_SURFACE_LF.TRIM_SHADOW_BOX',
+  panel_mold: 'PS_SURFACE_LF.TRIM_PANEL_MOLD',
+  int_panel_mold: 'PS_SURFACE_LF.TRIM_PANEL_MOLD',
+  door_frame: 'PS_SURFACE_LF.DOOR_FRAME',
+  int_door_frame: 'PS_SURFACE_LF.DOOR_FRAME',
+  window_jamb: 'PS_SURFACE_LF.WINDOW_JAMB',
+  int_window_jamb: 'PS_SURFACE_LF.WINDOW_JAMB',
+  window_casing: 'PS_SURFACE_LF.TRIM_CASING_WINDOW',
+  int_window_casing: 'PS_SURFACE_LF.TRIM_CASING_WINDOW',
+  door_casing: 'PS_SURFACE_LF.TRIM_CASING_DOOR',
+  int_door_casing: 'PS_SURFACE_LF.TRIM_CASING_DOOR',
+});
+
 // Phase 0: Parallel scenario-based estimation orchestrator.
 //
 // This is the new-architecture counterpart to run-estimate.js. It consumes
@@ -673,7 +710,7 @@ export function runScenarioEstimate({ scenarioBundle, ctx, roomQty, roomItems = 
       if (!resolved) continue;
 
       const phase = mod.phase;
-      const psKey = task.ps_key;
+      const psKey = task.ps_key || SUBSTRATE_PS_KEY_BY_PAINTABLE_ITEM[ctx.paintable_item];
 
       // Per-item compute path: tasks tagged `per_item: "doors"` or "windows"
       // iterate the corresponding roomItems list and emit one task result
