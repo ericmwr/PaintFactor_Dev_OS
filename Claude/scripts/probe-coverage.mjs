@@ -53,6 +53,30 @@ const PROBES = [
   { label: 'COMBINED PRIME QT3 spray_backroll',  ctx: { pass_group_id: 'walls_ceiling_prime_combined',  quality_tier: 'QT3', application_method: 'spray_backroll', substrate_state: 'SS_BARE' },                          qty: { 'PS_SURFACE_SF.WALL_FIELD': 300, 'PS_SURFACE_SF.CEILING_FIELD': 200 } },
   { label: 'COMBINED FINISH QT3 spray_backroll', ctx: { pass_group_id: 'walls_ceiling_finish_combined', quality_tier: 'QT3', application_method: 'spray_backroll', substrate_state: 'SS_PRIMED', sheen: 'eggshell' },     qty: { 'PS_SURFACE_SF.WALL_FIELD': 300, 'PS_SURFACE_SF.CEILING_FIELD': 200 } },
   { label: 'COMBINED FINISH QT4 spray_backroll matte', ctx: { pass_group_id: 'walls_ceiling_finish_combined', quality_tier: 'QT4', application_method: 'spray_backroll', substrate_state: 'SS_PRIMED', sheen: 'matte' }, qty: { 'PS_SURFACE_SF.WALL_FIELD': 300, 'PS_SURFACE_SF.CEILING_FIELD': 200 } },
+
+  // --- Specialty tab items ---
+  // Wainscot Panel (SF)
+  { label: 'Wainscot NC QT3 brush from bare', ctx: { paintable_item: 'wainscot', quality_tier: 'QT3', application_method: 'brush', substrate_state: 'SS_BARE' }, qty: { 'PS_SURFACE_SF.WAINSCOTING': 100 } },
+  { label: 'Wainscot NC QT3 spray from bare', ctx: { paintable_item: 'wainscot', quality_tier: 'QT3', application_method: 'spray', substrate_state: 'SS_BARE' }, qty: { 'PS_SURFACE_SF.WAINSCOTING': 100 } },
+  { label: 'Wainscot stain+clear QT4',         ctx: { paintable_item: 'int_wainscot', quality_tier: 'QT4', application_method_stain: 'brush', application_method_clear: 'brush', substrate_state: 'SS_BARE', coating_type: 'stain_clear', stain_coats: 1, sealer_coats: 1, clear_coats: 1 }, qty: { 'PS_SURFACE_SF.WAINSCOTING': 100 } },
+  // Wood Feature Wall (SF)
+  { label: 'Wood Wall NC QT3 brush from bare', ctx: { paintable_item: 'wood_wall', quality_tier: 'QT3', application_method: 'brush', substrate_state: 'SS_BARE' }, qty: { 'PS_SURFACE_SF.WOOD_WALL': 150 } },
+  { label: 'Wood Wall NC QT3 spray from bare', ctx: { paintable_item: 'wood_wall', quality_tier: 'QT3', application_method: 'spray', substrate_state: 'SS_BARE' }, qty: { 'PS_SURFACE_SF.WOOD_WALL': 150 } },
+  { label: 'Wood Wall stain+clear QT4',         ctx: { paintable_item: 'int_wood_wall', quality_tier: 'QT4', application_method_stain: 'brush', application_method_clear: 'brush', substrate_state: 'SS_BARE', coating_type: 'stain_clear', stain_coats: 1, sealer_coats: 1, clear_coats: 1 }, qty: { 'PS_SURFACE_SF.WOOD_WALL': 150 } },
+  // Wood Ceiling (SF)
+  { label: 'Wood Ceiling NC QT3 brush from bare', ctx: { paintable_item: 'wood_ceiling', quality_tier: 'QT3', application_method: 'brush', substrate_state: 'SS_BARE' }, qty: { 'PS_SURFACE_SF.WOOD_CEILING': 200 } },
+  { label: 'Wood Ceiling stain+clear QT4',         ctx: { paintable_item: 'int_wood_ceiling', quality_tier: 'QT4', application_method_stain: 'brush', application_method_clear: 'brush', substrate_state: 'SS_BARE', coating_type: 'stain_clear', stain_coats: 1, sealer_coats: 1, clear_coats: 1 }, qty: { 'PS_SURFACE_SF.WOOD_CEILING': 200 } },
+  // Closet Shelving (LF)
+  { label: 'Closet Shelf NC QT3 bare brush_roll',   ctx: { paintable_item: 'closet', quality_tier: 'QT3', application_method: 'brush_roll', substrate_state: 'SS_BARE',            coating_type: 'paint' }, qty: { 'PS_SURFACE_LF.CLOSET_SHELF': 30 } },
+  { label: 'Closet Shelf NC QT3 melamine spray',     ctx: { paintable_item: 'closet', quality_tier: 'QT3', application_method: 'spray',      substrate_state: 'SS_FACTORY_FINISH',  coating_type: 'paint' }, qty: { 'PS_SURFACE_LF.CLOSET_SHELF': 30 } },
+  // Arch Element — beams (LF), columns (EA), mantels (EA)
+  { label: 'Arch NC QT3 brush — beams',   ctx: { paintable_item: 'arch_element', quality_tier: 'QT3', application_method: 'brush', substrate_state: 'SS_BARE' }, qty: { 'PS_SURFACE_LF.ARCH_BEAM': 20 } },
+  { label: 'Arch NC QT3 brush — columns', ctx: { paintable_item: 'arch_element', quality_tier: 'QT3', application_method: 'brush', substrate_state: 'SS_BARE' }, qty: { 'PS_SURFACE_EA.ARCH_COLUMN': 2 } },
+  { label: 'Arch NC QT3 brush — mantels', ctx: { paintable_item: 'arch_element', quality_tier: 'QT3', application_method: 'brush', substrate_state: 'SS_BARE' }, qty: { 'PS_SURFACE_EA.ARCH_MANTEL': 1 } },
+  { label: 'Arch stain+clear QT4',         ctx: { paintable_item: 'int_arch_element', quality_tier: 'QT4', application_method_stain: 'brush', application_method_clear: 'brush', substrate_state: 'SS_BARE', coating_type: 'stain_clear', stain_coats: 1, sealer_coats: 1, clear_coats: 1 }, qty: { 'PS_SURFACE_LF.ARCH_BEAM': 20, 'PS_SURFACE_EA.ARCH_COLUMN': 2, 'PS_SURFACE_EA.ARCH_MANTEL': 1 } },
+  // Built-ins (SF)
+  { label: 'Built-in NC QT3 brush from bare', ctx: { paintable_item: 'builtin', quality_tier: 'QT3', application_method: 'brush', substrate_state: 'SS_BARE' }, qty: { 'PS_SURFACE_SF.BUILTIN': 50 } },
+  { label: 'Built-in NC QT4 spray from bare', ctx: { paintable_item: 'builtin', quality_tier: 'QT4', application_method: 'spray', substrate_state: 'SS_BARE' }, qty: { 'PS_SURFACE_SF.BUILTIN': 50 } },
 ];
 
 let okCount = 0;

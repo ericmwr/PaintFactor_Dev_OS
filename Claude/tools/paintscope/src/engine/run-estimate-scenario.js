@@ -44,6 +44,15 @@ const SUBSTRATE_PS_KEY_BY_PAINTABLE_ITEM = Object.freeze({
   int_window_casing: 'PS_SURFACE_LF.TRIM_CASING_WINDOW',
   door_casing: 'PS_SURFACE_LF.TRIM_CASING_DOOR',
   int_door_casing: 'PS_SURFACE_LF.TRIM_CASING_DOOR',
+  // Specialty SF substrates — same fallback shape as trim. The universal
+  // TSK_BRUSH_COAT_SF / TSK_SPRAY_COAT_SF tasks carry no ps_key, so the
+  // engine resolves it here from ctx.paintable_item.
+  wainscot: 'PS_SURFACE_SF.WAINSCOTING',
+  int_wainscot: 'PS_SURFACE_SF.WAINSCOTING',
+  wood_wall: 'PS_SURFACE_SF.WOOD_WALL',
+  int_wood_wall: 'PS_SURFACE_SF.WOOD_WALL',
+  wood_ceiling: 'PS_SURFACE_SF.WOOD_CEILING',
+  int_wood_ceiling: 'PS_SURFACE_SF.WOOD_CEILING',
 });
 
 // Phase 0: Parallel scenario-based estimation orchestrator.
