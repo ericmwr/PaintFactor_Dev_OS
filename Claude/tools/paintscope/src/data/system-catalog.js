@@ -165,6 +165,18 @@ export function inferDefaultSystem(substrateId, substrateState) {
   return DEFAULT_SYSTEM_INFERENCE[substrateId]?.[substrateState] || null;
 }
 
+// System → coating_type derivation. The Coating Type field was retired from
+// the substrate detail panel — System is the single source of truth. Callers
+// that still need a coating_type value (engine context, scenario matchers)
+// derive it from system via this helper.
+export function coatingTypeFromSystem(system) {
+  if (!system) return 'paint';
+  if (system === 'stain_only' || system === 'stain_solid' || system === 'stain_transparent' || system === 'stain_refresh') return 'stain_only';
+  if (system === 'clear_refresh' || system === 'seal_only' || system === 'prime_refresh') return 'clear_only';
+  if (/stain/.test(system)) return 'stain_clear'; // stain_clear, stain_sealer_clear, restain_recoat, strip_and_stain_clear, strip_and_restain
+  return 'paint';
+}
+
 // ============================================================
 // SYSTEM → SPEC ACTIVATION MATRIX
 // ============================================================

@@ -1,6 +1,6 @@
 import { createRoom, createDoor, createWindow, createOpening, createCloset, createSubstrateConfig, genId, bumpNextIdFromState } from './initial-state';
 import { FIXTURE_MAP } from '../data/fixture-catalog';
-import { inferDefaultSystem } from '../data/system-catalog.js';
+import { inferDefaultSystem, coatingTypeFromSystem } from '../data/system-catalog.js';
 import { PAINTING_SCOPE_PRESET_MAP, ALWAYS_PRESENT_SUBSTRATES } from '../data/painting-scope-presets.js';
 import {
   createElevation, createSidingSection, createTrimConfig, createExtWindow, createExtDoor,
@@ -271,9 +271,41 @@ export function reducer(state, action) {
           }
         }
 
+        // System is the source of truth for coating_type now that the UI field
+        // was retired. Keep config.coating_type synced so the engine context
+        // still has it (read by spec-resolution + scenario matchers).
+        if (field === 'system' || field === 'substrate_state') {
+          const sys = updated.system;
+          if (sys) {
+            updated.coating_type = coatingTypeFromSystem(sys);
+          }
+        }
+
+        // Wainscot Panel <-> Wainscot Cap cross-sync. When the user toggles
+        // has_cap or changes the panel LF, we keep wainscot_cap in lockstep:
+        //   has_cap = true  -> activate wainscot_cap, set its lf_manual to match
+        //   has_cap = false -> set wainscot_cap.painting=false (don't delete)
+        // Order matters: we mutate the incoming `updated` first, then patch the
+        // cap substrate in the same room update so we only return one new room
+        // object.
+        let extraSubstratePatch = null;
+        if (substrateId === 'wainscoting' && (field === 'has_cap' || field === 'lf_manual')) {
+          const wantsCap = field === 'has_cap' ? !!value : (updated.has_cap !== false);
+          const capLF = field === 'lf_manual' ? (parseFloat(value) || 0) : (updated.lf_manual || 0);
+          const existingCap = r.substrates.wainscot_cap || createSubstrateConfig('wainscot_cap');
+          extraSubstratePatch = {
+            wainscot_cap: {
+              ...existingCap,
+              painting: wantsCap,
+              lf_manual: capLF,
+              lf_override: true, // user-driven LF; prevents auto-derive from clobbering
+            },
+          };
+        }
+
         return {
           ...r,
-          substrates: { ...r.substrates, [substrateId]: updated }
+          substrates: { ...r.substrates, [substrateId]: updated, ...(extraSubstratePatch || {}) }
         };
       });
     }

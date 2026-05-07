@@ -83,7 +83,14 @@ export const SUBSTRATE_CATALOG = [
   // --- Specialty ---
   {
     id: 'wainscoting', group: 'Specialty', label: 'Wainscot Panel', uom: 'SF',
-    autoDerive: null, defaultConfig: { substrate_state: 'bare_wood', application_method: null, sf_manual: 0 }
+    autoDerive: null, defaultConfig: {
+      substrate_state: 'bare_wood', application_method: null, sf_manual: 0,
+      // Length of the panel run along the wall (LF). Used to derive a
+      // synced wainscot_cap quantity when has_cap is true.
+      lf_manual: 0,
+      has_cap: true,
+      cap_profile: 'flat',  // 'flat' | 'ogee' | 'beveled' | 'custom'
+    }
   },
   {
     id: 'wood_feature_wall', group: 'Specialty', label: 'Wood Feature Wall', uom: 'SF',

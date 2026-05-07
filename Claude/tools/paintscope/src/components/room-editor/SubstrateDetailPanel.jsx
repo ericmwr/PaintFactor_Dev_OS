@@ -3,7 +3,7 @@ import NumField from '../shared/NumField';
 import SubstrateStateSelect from './SubstrateStateSelect';
 import { ENUMS } from '../../data/enums';
 import { SUBSTRATE_MAP, SUBSTRATE_APPLICATION_METHODS } from '../../data/substrate-catalog';
-import { SUBSTRATE_SYSTEMS, SYSTEM_METADATA, inferDefaultSystem } from '../../data/system-catalog.js';
+import { SUBSTRATE_SYSTEMS, SYSTEM_METADATA, inferDefaultSystem, coatingTypeFromSystem } from '../../data/system-catalog.js';
 import { useModifierEnum } from '../../hooks/useModifierEnum';
 import { deriveHeightBand } from '../../engine/derive-room.js';
 
@@ -36,7 +36,10 @@ export default function SubstrateDetailPanel({ room, derived, dispatch, substrat
   ]);
   const isWood = WOOD_SUBSTRATES.has(substrateId);
   const isBareWood = isWood && config.substrate_state === 'bare_wood';
-  const coatingType = config.coating_type || 'paint';
+  // coating_type was retired as a UI field — System is the source of truth.
+  // Derive coating_type from the effective system (explicit or auto-inferred).
+  const _effectiveSystem = config.system || inferDefaultSystem(substrateId, config.substrate_state);
+  const coatingType = coatingTypeFromSystem(_effectiveSystem) || config.coating_type || 'paint';
   const includesStain = coatingType === 'stain_clear' || coatingType === 'stain_only';
   const includesClear = coatingType === 'stain_clear' || coatingType === 'clear_only';
 
@@ -249,24 +252,19 @@ export default function SubstrateDetailPanel({ room, derived, dispatch, substrat
         );
       })()}
 
-      {/* Stain / Clear Coat controls (bare wood on wood substrates only) */}
-      {isBareWood && (
+      {/* Stain / Clear Coat controls (bare wood on wood substrates only).
+          Coating Type was retired — see System above for workflow choice. */}
+      {isBareWood && coatingType !== 'paint' && (
         <div className="panel-section">
           <div className="section-title">Coating</div>
           <div className="form-grid" style={{ gridTemplateColumns: '1fr 1fr' }}>
             <div>
-              <div className="field-label">Coating Type</div>
-              <Select options={ENUMS.intCoatingTypes} value={coatingType}
-                onChange={v => setSub('coating_type', v)} />
+              <div className="field-label">Wood Species</div>
+              <Select options={ENUMS.woodSpeciesGroup} value={config.wood_species_group || 'hardwood'}
+                onChange={v => setSub('wood_species_group', v)} />
             </div>
-
-            {coatingType !== 'paint' && (
-              <div>
-                <div className="field-label">Wood Species</div>
-                <Select options={ENUMS.woodSpeciesGroup} value={config.wood_species_group || 'hardwood'}
-                  onChange={v => setSub('wood_species_group', v)} />
-              </div>
-            )}
+            {/* placeholder retained so the original block structure stays clean */}
+            <div></div>
 
             {includesStain && (
               <>
@@ -353,6 +351,15 @@ export default function SubstrateDetailPanel({ room, derived, dispatch, substrat
           </div>
         )}
 
+        {/* Wainscot Panel — also takes a Length (LF) for wainscot cap derivation */}
+        {substrateId === 'wainscoting' && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8 }}>
+            <input type="number" value={config.lf_manual || ''} onChange={e => setSub('lf_manual', parseFloat(e.target.value) || 0)} min="0" style={{ width: 100 }} />
+            <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>LF</span>
+            <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>(panel run along wall, drives cap length)</span>
+          </div>
+        )}
+
         {/* LF with auto-derive */}
         {isLF && hasAuto && (
           <div>
@@ -388,6 +395,40 @@ export default function SubstrateDetailPanel({ room, derived, dispatch, substrat
           </div>
         )}
       </div>
+
+      {/* Wainscot Cap — only shown for wainscoting. When toggled on, the
+          adjacent wainscot_cap substrate is auto-activated with the same LF.
+          See the cross-sync logic in the reducer SET_SUBSTRATE handler. */}
+      {substrateId === 'wainscoting' && (
+        <div className="panel-section">
+          <div className="section-title">Wainscot Cap</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '4px 0' }}>
+            <input type="checkbox" id="wainscot-has-cap"
+              checked={config.has_cap !== false}
+              onChange={e => setSub('has_cap', e.target.checked)} />
+            <label htmlFor="wainscot-has-cap" style={{ fontSize: 12 }}>
+              Has wainscot cap (auto-activates Wainscot Cap at {config.lf_manual || 0} LF)
+            </label>
+          </div>
+          {config.has_cap !== false && (
+            <div className="form-grid" style={{ gridTemplateColumns: '1fr 1fr', marginTop: 6 }}>
+              <div>
+                <div className="field-label">Cap Profile</div>
+                <Select
+                  options={[
+                    { value: 'flat',     label: 'Flat (1×4)' },
+                    { value: 'ogee',     label: 'Ogee' },
+                    { value: 'beveled',  label: 'Beveled' },
+                    { value: 'custom',   label: 'Custom' },
+                  ]}
+                  value={config.cap_profile || 'flat'}
+                  onChange={v => setSub('cap_profile', v)}
+                />
+              </div>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
