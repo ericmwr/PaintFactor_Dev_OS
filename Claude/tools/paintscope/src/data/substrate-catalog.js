@@ -123,8 +123,8 @@ export const SUBSTRATE_CATALOG = [
     }
   },
   {
-    id: 'beams', group: 'Specialty', label: 'Beams', uom: 'EA',
-    autoDerive: null, defaultConfig: { substrate_state: 'bare_wood', application_method: null, ea_manual: 0 }
+    id: 'beams', group: 'Specialty', label: 'Beams', uom: 'LF',
+    autoDerive: null, defaultConfig: { substrate_state: 'bare_wood', application_method: null, lf_manual: 0, beam_sides: 4 }
   },
   {
     id: 'columns', group: 'Specialty', label: 'Columns', uom: 'EA',

@@ -110,7 +110,7 @@ export function exportProject(state) {
     const specSurfaces = [
       ['wainscoting','WAINSCOTING','SF','sf_manual'], ['wood_feature_wall','WOOD_WALL','SF','sf_manual'],
       ['wood_ceiling','WOOD_CEILING','SF','sf_manual'], ['closet_shelving','CLOSET_SHELF','LF','lf_manual'],
-      ['beams','ARCH_BEAM','EA','ea_manual'], ['columns','ARCH_COLUMN','EA','ea_manual'],
+      ['beams','ARCH_BEAM','LF','lf_manual'], ['columns','ARCH_COLUMN','EA','ea_manual'],
       ['mantels','ARCH_MANTEL','EA','ea_manual'], ['builtins','BUILTIN','EA','ea_manual'],
       ['stairway','STAIRWAY','EA','ea_manual']
     ];
