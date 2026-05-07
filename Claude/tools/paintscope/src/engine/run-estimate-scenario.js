@@ -415,8 +415,20 @@ function computeEffectiveTotal(modStack, phase, ctx) {
  * Build the display-facing task name, appending "— Coat N" when coatNumber > 1.
  * Keeps the estimate readable when the same task fires on multiple coats.
  */
-function displayTaskName(task, coatNumber) {
-  const base = task.name;
+function displayTaskName(task, coatNumber, materialType = 'WB_FINISH') {
+  // Material framing \u2014 under FAC_MATERIAL the same coating task fires for both
+  // prime and finish work, so a quote/work-order needs "Prime" vs "Finish"
+  // framing in the displayed name. When materialType ends in _PRIMER we swap
+  // "Finish" -> "Prime" if present, or append " \u2014 Primer" if the
+  // canonical name is coating-neutral.
+  let base = task.name;
+  if (typeof materialType === 'string' && materialType.endsWith('_PRIMER')) {
+    if (/\bFinish\b/.test(base)) {
+      base = base.replace(/\bFinish\b/, 'Prime');
+    } else {
+      base = `${base} \u2014 Primer`;
+    }
+  }
   if (coatNumber && coatNumber > 1) return `${base} \u2014 Coat ${coatNumber}`;
   return base;
 }
@@ -785,7 +797,7 @@ export function runScenarioEstimate({ scenarioBundle, ctx, roomQty, roomItems = 
 
           tasks.push({
             taskId: task.task_id,
-            taskName: displayTaskName(task, coatNumber),
+            taskName: displayTaskName(task, coatNumber, taskStack.materialType),
             phase,
             moduleId: mod.module_id,
             moduleName: mod.name,
@@ -842,7 +854,7 @@ export function runScenarioEstimate({ scenarioBundle, ctx, roomQty, roomItems = 
 
       tasks.push({
         taskId: task.task_id,
-        taskName: displayTaskName(task, coatNumber),
+        taskName: displayTaskName(task, coatNumber, taskStack.materialType),
         phase,
         moduleId: mod.module_id,
         moduleName: mod.name,
