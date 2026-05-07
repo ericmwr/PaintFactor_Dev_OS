@@ -38,10 +38,6 @@ export const SUBSTRATE_CATALOG = [
     autoDerive: null, defaultConfig: { substrate_state: 'factory_primed', application_method: null, lf_manual: 0 }
   },
   {
-    id: 'wainscot_cap', group: 'Trim', label: 'Wainscot Cap', uom: 'LF',
-    autoDerive: null, defaultConfig: { substrate_state: 'factory_primed', application_method: null, lf_manual: 0 }
-  },
-  {
     id: 'picture_rail', group: 'Trim', label: 'Picture Rail', uom: 'LF',
     autoDerive: null, defaultConfig: { substrate_state: 'factory_primed', application_method: null, lf_manual: 0 }
   },
@@ -89,15 +85,13 @@ export const SUBSTRATE_CATALOG = [
       // sf_manual let the user override when geometry isn't a clean rectangle
       // (varying panel heights, partial coverage, etc.).
       sf_override: false, sf_manual: 0,
-      // Length of the panel run along the wall (LF). Drives both the SF
-      // calculation (lf × height) and the synced wainscot_cap when has_cap.
+      // Panel run along the wall (LF). Combined with wainscot_height_ft
+      // drives the SF calculation.
       lf_manual: 0,
       // Panel height in feet. Default 3 ft (36") — typical residential
       // wainscot. Tall variants: chair-rail height ~32" (2.67), full-height
       // paneling ~7-8 ft.
       wainscot_height_ft: 3,
-      has_cap: true,
-      cap_profile: 'flat',  // 'flat' | 'ogee' | 'beveled' | 'custom'
     }
   },
   {
@@ -198,7 +192,6 @@ export const SUBSTRATE_APPLICATION_METHODS = {
   window_casing: { methods: ['brush', 'spray'], default: 'spray' },
   chair_rail: { methods: ['brush', 'spray'], default: 'spray' },
   shoe_mold: { methods: ['brush', 'spray'], default: 'spray' },
-  wainscot_cap: { methods: ['brush', 'spray'], default: 'spray' },
   picture_rail: { methods: ['brush', 'spray'], default: 'spray' },
   window_stool: { methods: ['brush', 'spray'], default: 'spray' },
   window_apron: { methods: ['brush', 'spray'], default: 'spray' },

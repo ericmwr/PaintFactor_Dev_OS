@@ -42,7 +42,7 @@ export function migrateV02toV03(state) {
       if ((room.windows||[]).length > 0) subs.window_casing = { substrate_state: null, style: null, lf_override: !!room.trim.window_casing_override, lf_manual: parseFloat(room.trim.window_casing_lf)||0 };
 
       // Optional trim items
-      ['chair_rail','shoe_mold','wainscot_cap','picture_rail','window_stool','window_apron','shadow_box','panel_mold'].forEach(key => {
+      ['chair_rail','shoe_mold','picture_rail','window_stool','window_apron','shadow_box','panel_mold'].forEach(key => {
         if (room.trim[`${key}_enabled`]) subs[key] = { substrate_state: null, lf_manual: parseFloat(room.trim[`${key}_lf`])||0 };
       });
     }

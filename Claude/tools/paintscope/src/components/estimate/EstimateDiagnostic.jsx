@@ -153,7 +153,6 @@ const SUBSTRATE_DERIVED_KEY = {
   window_casing: { key: 'window_casing_lf', uom: 'LF' },
   chair_rail:    { key: 'chair_rail_lf',    uom: 'LF' },
   shoe_mold:     { key: 'shoe_mold_lf',     uom: 'LF' },
-  wainscot_cap:  { key: 'wainscot_cap_lf',  uom: 'LF' },
   picture_rail:  { key: 'picture_rail_lf',  uom: 'LF' },
   window_stool:  { key: 'window_stool_lf',  uom: 'LF' },
   window_apron:  { key: 'window_apron_lf',  uom: 'LF' },

@@ -281,31 +281,9 @@ export function reducer(state, action) {
           }
         }
 
-        // Wainscot Panel <-> Wainscot Cap cross-sync. When the user toggles
-        // has_cap or changes the panel LF, we keep wainscot_cap in lockstep:
-        //   has_cap = true  -> activate wainscot_cap, set its lf_manual to match
-        //   has_cap = false -> set wainscot_cap.painting=false (don't delete)
-        // Order matters: we mutate the incoming `updated` first, then patch the
-        // cap substrate in the same room update so we only return one new room
-        // object.
-        let extraSubstratePatch = null;
-        if (substrateId === 'wainscoting' && (field === 'has_cap' || field === 'lf_manual')) {
-          const wantsCap = field === 'has_cap' ? !!value : (updated.has_cap !== false);
-          const capLF = field === 'lf_manual' ? (parseFloat(value) || 0) : (updated.lf_manual || 0);
-          const existingCap = r.substrates.wainscot_cap || createSubstrateConfig('wainscot_cap');
-          extraSubstratePatch = {
-            wainscot_cap: {
-              ...existingCap,
-              painting: wantsCap,
-              lf_manual: capLF,
-              lf_override: true, // user-driven LF; prevents auto-derive from clobbering
-            },
-          };
-        }
-
         return {
           ...r,
-          substrates: { ...r.substrates, [substrateId]: updated, ...(extraSubstratePatch || {}) }
+          substrates: { ...r.substrates, [substrateId]: updated }
         };
       });
     }

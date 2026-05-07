@@ -244,7 +244,6 @@ export function deriveRoom(room) {
   const window_casing_lf = deriveLF('window_casing');
   const chair_rail_lf = deriveLF('chair_rail');
   const shoe_mold_lf = deriveLF('shoe_mold');
-  const wainscot_cap_lf = deriveLF('wainscot_cap');
   const picture_rail_lf = deriveLF('picture_rail');
   const window_stool_lf = deriveLF('window_stool');
   const window_apron_lf = deriveLF('window_apron');
@@ -306,7 +305,7 @@ export function deriveRoom(room) {
     heightBand,
     wall_field_sf, ceiling_field_sf,
     baseboard_lf, crown_lf, door_casing_lf, window_casing_lf,
-    chair_rail_lf, shoe_mold_lf, wainscot_cap_lf, picture_rail_lf,
+    chair_rail_lf, shoe_mold_lf, picture_rail_lf,
     window_stool_lf, window_apron_lf, shadow_box_lf, panel_mold_lf,
     door_frame_lf, window_jamb_lf,
     windowBandLf,

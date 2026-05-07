@@ -36,7 +36,7 @@ export function buildRoomQuantityLookups(state) {
     // Hoisted here so the fixture iteration below can reference it.
     const wallsSprayQ = (subs.walls?.application_method || '').toString().includes('spray');
     const ceilingSprayQ = (subs.ceiling?.application_method || '').toString().includes('spray');
-    const anyTrimSprayQ = ['baseboard','crown','door_casing','window_casing','chair_rail','shoe_mold','wainscot_cap','picture_rail','window_stool','window_apron','shadow_box','panel_mold','door_frames','window_jamb']
+    const anyTrimSprayQ = ['baseboard','crown','door_casing','window_casing','chair_rail','shoe_mold','picture_rail','window_stool','window_apron','shadow_box','panel_mold','door_frames','window_jamb']
       .some(id => {
         const s = subs[id];
         if (!s) return false;
@@ -78,7 +78,6 @@ export function buildRoomQuantityLookups(state) {
       ['window_casing', 'TRIM_CASING_WINDOW', 'window_casing_lf'],
       ['chair_rail', 'TRIM_CHAIR_RAIL', 'chair_rail_lf'],
       ['shoe_mold', 'TRIM_SHOE_MOLD', 'shoe_mold_lf'],
-      ['wainscot_cap', 'TRIM_WAINSCOT_CAP', 'wainscot_cap_lf'],
       ['picture_rail', 'TRIM_PICTURE_RAIL', 'picture_rail_lf'],
       ['window_stool', 'TRIM_WINDOW_STOOL', 'window_stool_lf'],
       ['window_apron', 'TRIM_WINDOW_APRON', 'window_apron_lf'],
@@ -322,7 +321,7 @@ export function buildRoomQuantityLookups(state) {
     // are being painted AND the trim substrate is being painted.
     const WALL_ADJACENT_TRIM = new Set([
       'baseboard', 'door_casing', 'window_casing', 'window_stool', 'window_apron',
-      'crown', 'chair_rail', 'picture_rail', 'wainscot_cap', 'panel_mold', 'shadow_box',
+      'crown', 'chair_rail', 'picture_rail', 'panel_mold', 'shadow_box',
     ]);
     let allWallTrimLF = 0;
     if (subs.walls) {

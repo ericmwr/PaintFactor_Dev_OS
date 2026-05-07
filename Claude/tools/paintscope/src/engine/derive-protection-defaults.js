@@ -16,7 +16,7 @@ import { SUBSTRATE_MAP, SUBSTRATE_APPLICATION_METHODS } from '../data/substrate-
 // a rule-time category for protection logic.
 const FINE_FINISH_SUBSTRATES = new Set([
   'baseboard', 'crown', 'door_casing', 'window_casing',
-  'chair_rail', 'shoe_mold', 'wainscot_cap', 'picture_rail',
+  'chair_rail', 'shoe_mold', 'picture_rail',
   'window_stool', 'window_apron', 'shadow_box', 'panel_mold',
   'door_frames', 'window_jamb',
   'wainscoting', 'wood_feature_wall', 'wood_ceiling',

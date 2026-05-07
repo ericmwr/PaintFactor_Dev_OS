@@ -42,7 +42,7 @@ export default function RoomEditor({ room, project, dispatch, roomCategories }) 
 
   // Tab badge counts
   const openingIds = new Set(['doors', 'windows', 'door_casing', 'window_casing', 'door_frames', 'window_jamb']);
-  const trimCount = Object.keys(subs).filter(id => !openingIds.has(id) && !['walls', 'ceiling'].includes(id) && (subs[id]?.group === 'Trim' || ['baseboard', 'crown_molding', 'chair_rail', 'shoe_mold', 'wainscot_cap', 'picture_rail', 'window_stool', 'window_apron', 'shadow_box', 'panel_mold'].includes(id))).length;
+  const trimCount = Object.keys(subs).filter(id => !openingIds.has(id) && !['walls', 'ceiling'].includes(id) && (subs[id]?.group === 'Trim' || ['baseboard', 'crown_molding', 'chair_rail', 'shoe_mold', 'picture_rail', 'window_stool', 'window_apron', 'shadow_box', 'panel_mold'].includes(id))).length;
   const specialtyCount = Object.keys(subs).filter(id => ['wainscoting', 'wood_feature_wall', 'wood_ceiling', 'closet_shelving', 'beams', 'columns', 'mantels', 'builtins', 'stairway'].includes(id)).length;
   const openingCount = (room.openings?.length || 0) + (subs.doors?.items?.length || 0) + (subs.windows?.items?.length || 0);
   const fixtureCount = room.fixtures ? Object.keys(room.fixtures).length : 0;

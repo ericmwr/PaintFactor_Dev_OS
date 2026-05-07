@@ -423,40 +423,6 @@ export default function SubstrateDetailPanel({ room, derived, dispatch, substrat
           </div>
         )}
       </div>
-
-      {/* Wainscot Cap — only shown for wainscoting. When toggled on, the
-          adjacent wainscot_cap substrate is auto-activated with the same LF.
-          See the cross-sync logic in the reducer SET_SUBSTRATE handler. */}
-      {substrateId === 'wainscoting' && (
-        <div className="panel-section">
-          <div className="section-title">Wainscot Cap</div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '4px 0' }}>
-            <input type="checkbox" id="wainscot-has-cap"
-              checked={config.has_cap !== false}
-              onChange={e => setSub('has_cap', e.target.checked)} />
-            <label htmlFor="wainscot-has-cap" style={{ fontSize: 12 }}>
-              Has wainscot cap (auto-activates Wainscot Cap at {config.lf_manual || 0} LF)
-            </label>
-          </div>
-          {config.has_cap !== false && (
-            <div className="form-grid" style={{ gridTemplateColumns: '1fr 1fr', marginTop: 6 }}>
-              <div>
-                <div className="field-label">Cap Profile</div>
-                <Select
-                  options={[
-                    { value: 'flat',     label: 'Flat (1×4)' },
-                    { value: 'ogee',     label: 'Ogee' },
-                    { value: 'beveled',  label: 'Beveled' },
-                    { value: 'custom',   label: 'Custom' },
-                  ]}
-                  value={config.cap_profile || 'flat'}
-                  onChange={v => setSub('cap_profile', v)}
-                />
-              </div>
-            </div>
-          )}
-        </div>
-      )}
     </div>
   );
 }

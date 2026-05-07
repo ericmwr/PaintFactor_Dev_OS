@@ -26,8 +26,6 @@ const SUBSTRATE_PS_KEY_BY_PAINTABLE_ITEM = Object.freeze({
   int_shoe_mold: 'PS_SURFACE_LF.TRIM_SHOE_MOLD',
   picture_rail: 'PS_SURFACE_LF.TRIM_PICTURE_RAIL',
   int_picture_rail: 'PS_SURFACE_LF.TRIM_PICTURE_RAIL',
-  wainscot_cap: 'PS_SURFACE_LF.TRIM_WAINSCOT_CAP',
-  int_wainscot_cap: 'PS_SURFACE_LF.TRIM_WAINSCOT_CAP',
   window_stool: 'PS_SURFACE_LF.TRIM_WINDOW_STOOL',
   int_window_stool: 'PS_SURFACE_LF.TRIM_WINDOW_STOOL',
   window_apron: 'PS_SURFACE_LF.TRIM_WINDOW_APRON',

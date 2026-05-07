@@ -17,7 +17,6 @@ const PROBES = [
   { label: 'Chair Rail PAINT QT4 brush', ctx: { paintable_item: 'chair_rail', quality_tier: 'QT4', application_method: 'brush', substrate_state: 'SS_PRIMED', sheen: 'satin', finish_coats: 2 }, qty: { 'PS_SURFACE_LF.TRIM_CHAIR_RAIL': 100 } },
   { label: 'Shoe Mold PAINT QT4 brush', ctx: { paintable_item: 'shoe_mold', quality_tier: 'QT4', application_method: 'brush', substrate_state: 'SS_PRIMED', sheen: 'satin', finish_coats: 2 }, qty: { 'PS_SURFACE_LF.TRIM_SHOE_MOLD': 100 } },
   { label: 'Picture Rail PAINT QT4 brush', ctx: { paintable_item: 'picture_rail', quality_tier: 'QT4', application_method: 'brush', substrate_state: 'SS_PRIMED', sheen: 'satin', finish_coats: 2 }, qty: { 'PS_SURFACE_LF.TRIM_PICTURE_RAIL': 100 } },
-  { label: 'Wainscot Cap PAINT QT4 brush', ctx: { paintable_item: 'wainscot_cap', quality_tier: 'QT4', application_method: 'brush', substrate_state: 'SS_PRIMED', sheen: 'satin', finish_coats: 2 }, qty: { 'PS_SURFACE_LF.TRIM_WAINSCOT_CAP': 100 } },
   { label: 'Window Stool PAINT QT4 brush', ctx: { paintable_item: 'window_stool', quality_tier: 'QT4', application_method: 'brush', substrate_state: 'SS_PRIMED', sheen: 'satin', finish_coats: 2 }, qty: { 'PS_SURFACE_LF.TRIM_WINDOW_STOOL': 100 } },
   { label: 'Window Apron PAINT QT4 brush', ctx: { paintable_item: 'window_apron', quality_tier: 'QT4', application_method: 'brush', substrate_state: 'SS_PRIMED', sheen: 'satin', finish_coats: 2 }, qty: { 'PS_SURFACE_LF.TRIM_WINDOW_APRON': 100 } },
   { label: 'Shadow Box PAINT QT4 brush', ctx: { paintable_item: 'shadow_box', quality_tier: 'QT4', application_method: 'brush', substrate_state: 'SS_PRIMED', sheen: 'satin', finish_coats: 2 }, qty: { 'PS_SURFACE_LF.TRIM_SHADOW_BOX': 100 } },
@@ -55,8 +54,7 @@ const PROBES = [
   { label: 'COMBINED FINISH QT4 spray_backroll matte', ctx: { pass_group_id: 'walls_ceiling_finish_combined', quality_tier: 'QT4', application_method: 'spray_backroll', substrate_state: 'SS_PRIMED', sheen: 'matte' }, qty: { 'PS_SURFACE_SF.WALL_FIELD': 300, 'PS_SURFACE_SF.CEILING_FIELD': 200 } },
 
   // --- Specialty tab items ---
-  // Wainscot Panel (SF)
-  // Wainscot Panel — full variation matrix (paint NC + stain + cap pairing)
+  // Wainscot Panel (SF) — full variation matrix (paint NC + stain)
   { label: 'Wainscot NC QT3 brush from bare', ctx: { paintable_item: 'wainscot', quality_tier: 'QT3', application_method: 'brush', substrate_state: 'SS_BARE' }, qty: { 'PS_SURFACE_SF.WAINSCOTING': 100 } },
   { label: 'Wainscot NC QT3 spray from bare', ctx: { paintable_item: 'wainscot', quality_tier: 'QT3', application_method: 'spray', substrate_state: 'SS_BARE' }, qty: { 'PS_SURFACE_SF.WAINSCOTING': 100 } },
   { label: 'Wainscot NC QT4 brush from bare', ctx: { paintable_item: 'wainscot', quality_tier: 'QT4', application_method: 'brush', substrate_state: 'SS_BARE' }, qty: { 'PS_SURFACE_SF.WAINSCOTING': 100 } },
@@ -68,9 +66,6 @@ const PROBES = [
   { label: 'Wainscot stain+clear QT4',         ctx: { paintable_item: 'int_wainscot', quality_tier: 'QT4', application_method_stain: 'brush', application_method_clear: 'brush', substrate_state: 'SS_BARE', coating_type: 'stain_clear', stain_coats: 1, sealer_coats: 1, clear_coats: 1 }, qty: { 'PS_SURFACE_SF.WAINSCOTING': 100 } },
   { label: 'Wainscot stain+clear QT5',         ctx: { paintable_item: 'int_wainscot', quality_tier: 'QT5', application_method_stain: 'brush', application_method_clear: 'brush', substrate_state: 'SS_BARE', coating_type: 'stain_clear', stain_coats: 1, sealer_coats: 2, clear_coats: 3 }, qty: { 'PS_SURFACE_SF.WAINSCOTING': 100 } },
   { label: 'Wainscot stain only QT3',          ctx: { paintable_item: 'int_wainscot', quality_tier: 'QT3', application_method_stain: 'brush', substrate_state: 'SS_BARE', coating_type: 'stain_only', stain_coats: 1 }, qty: { 'PS_SURFACE_SF.WAINSCOTING': 100 } },
-  { label: 'Wainscot Cap NC QT3 brush from bare', ctx: { paintable_item: 'wainscot_cap', quality_tier: 'QT3', application_method: 'brush', substrate_state: 'SS_BARE' }, qty: { 'PS_SURFACE_LF.TRIM_WAINSCOT_CAP': 50 } },
-  { label: 'Wainscot Cap PAINT QT4 brush primed', ctx: { paintable_item: 'wainscot_cap', quality_tier: 'QT4', application_method: 'brush', substrate_state: 'SS_PRIMED', sheen: 'satin', finish_coats: 2 }, qty: { 'PS_SURFACE_LF.TRIM_WAINSCOT_CAP': 50 } },
-  { label: 'Wainscot Cap stain+clear QT4',         ctx: { paintable_item: 'int_wainscot_cap', quality_tier: 'QT4', application_method_stain: 'brush', application_method_clear: 'brush', substrate_state: 'SS_BARE', coating_type: 'stain_clear', stain_coats: 1, sealer_coats: 1, clear_coats: 1 }, qty: { 'PS_SURFACE_LF.TRIM_WAINSCOT_CAP': 50 } },
   // Wood Feature Wall (SF)
   { label: 'Wood Wall NC QT3 brush from bare', ctx: { paintable_item: 'wood_wall', quality_tier: 'QT3', application_method: 'brush', substrate_state: 'SS_BARE' }, qty: { 'PS_SURFACE_SF.WOOD_WALL': 150 } },
   { label: 'Wood Wall NC QT3 spray from bare', ctx: { paintable_item: 'wood_wall', quality_tier: 'QT3', application_method: 'spray', substrate_state: 'SS_BARE' }, qty: { 'PS_SURFACE_SF.WOOD_WALL': 150 } },

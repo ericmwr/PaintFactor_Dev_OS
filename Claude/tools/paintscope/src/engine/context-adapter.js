@@ -46,7 +46,7 @@ function computeAnySprayInRoom(room) {
   const isSpray = (m) => (m || '').toString().includes('spray');
   if (isSpray(subs.walls?.application_method)) return true;
   if (isSpray(subs.ceiling?.application_method)) return true;
-  const trimIds = ['baseboard','crown','door_casing','window_casing','chair_rail','shoe_mold','wainscot_cap','picture_rail','window_stool','window_apron','shadow_box','panel_mold','door_frames','window_jamb'];
+  const trimIds = ['baseboard','crown','door_casing','window_casing','chair_rail','shoe_mold','picture_rail','window_stool','window_apron','shadow_box','panel_mold','door_frames','window_jamb'];
   for (const id of trimIds) {
     const s = subs[id];
     if (!s || s.painting === false) continue;
@@ -145,8 +145,6 @@ const SPEC_TO_PAINTABLE_ITEM = {
   SF_SHOE_MOLD_NC_PRIME:            'shoe_mold',
   SF_PICTURE_RAIL_NC_PAINT:         'picture_rail',
   SF_PICTURE_RAIL_NC_PRIME:         'picture_rail',
-  SF_WAINSCOT_CAP_NC_PAINT:         'wainscot_cap',
-  SF_WAINSCOT_CAP_NC_PRIME:         'wainscot_cap',
   SF_WINDOW_STOOL_NC_PAINT:         'window_stool',
   SF_WINDOW_STOOL_NC_PRIME:         'window_stool',
   SF_WINDOW_APRON_NC_PAINT:         'window_apron',
@@ -176,7 +174,6 @@ const SPEC_TO_PAINTABLE_ITEM = {
   SF_CROWN_NC_STAIN:                'int_crown',
   SF_CHAIR_RAIL_NC_STAIN:           'int_chair_rail',
   SF_SHOE_MOLD_NC_STAIN:            'int_shoe_mold',
-  SF_WAINSCOT_CAP_NC_STAIN:         'int_wainscot_cap',
   SF_PICTURE_RAIL_NC_STAIN:         'int_picture_rail',
   SF_WINDOW_STOOL_NC_STAIN:         'int_window_stool',
   SF_WINDOW_APRON_NC_STAIN:         'int_window_apron',

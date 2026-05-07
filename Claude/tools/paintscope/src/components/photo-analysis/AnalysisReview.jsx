@@ -12,7 +12,7 @@ import { useModifierEnum } from '../../hooks/useModifierEnum';
 const SURFACE_LABELS = { walls: 'Walls', ceiling: 'Ceiling' };
 const TRIM_LABELS = {
   baseboard: 'Baseboard', crown: 'Crown Molding', chair_rail: 'Chair Rail',
-  wainscoting: 'Wainscoting', shoe_mold: 'Shoe Mold', wainscot_cap: 'Wainscot Cap',
+  wainscoting: 'Wainscoting', shoe_mold: 'Shoe Mold',
   picture_rail: 'Picture Rail', window_stool: 'Window Stool', window_apron: 'Window Apron',
 };
 const SPECIALTY_LABELS = {

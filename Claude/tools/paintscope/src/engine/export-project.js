@@ -59,7 +59,6 @@ export function exportProject(state) {
       ['window_casing', 'TRIM_CASING_WINDOW', 'window_casing_lf'],
       ['chair_rail', 'TRIM_CHAIR_RAIL', 'chair_rail_lf'],
       ['shoe_mold', 'TRIM_SHOE_MOLD', 'shoe_mold_lf'],
-      ['wainscot_cap', 'TRIM_WAINSCOT_CAP', 'wainscot_cap_lf'],
       ['picture_rail', 'TRIM_PICTURE_RAIL', 'picture_rail_lf'],
       ['window_stool', 'TRIM_WINDOW_STOOL', 'window_stool_lf'],
       ['window_apron', 'TRIM_WINDOW_APRON', 'window_apron_lf'],
@@ -222,7 +221,7 @@ export function exportProject(state) {
     // being painted AND the trim substrate is being painted.
     const WALL_ADJACENT_TRIM_EXP = new Set([
       'baseboard', 'door_casing', 'window_casing', 'window_stool', 'window_apron',
-      'crown', 'chair_rail', 'picture_rail', 'wainscot_cap', 'panel_mold', 'shadow_box',
+      'crown', 'chair_rail', 'picture_rail', 'panel_mold', 'shadow_box',
     ]);
     let allWallTrimLF = 0;
     if (subs.walls) {
