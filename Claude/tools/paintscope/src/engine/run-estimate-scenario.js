@@ -365,8 +365,19 @@ export function computeScenarioModifierStack(module, ctx, scenarioModifiers = nu
     ? computeDynamicStack(module, scenarioModifiers)
     : { dyn: 1.0, applied: {} };
 
-  // Total excludes complexity — same pattern as modifier-stack.js for interior specs
-  const total = Math.round(qt * height * texture * condition * overhead * material * dynamic.dyn * 1000) / 1000;
+  // FAC_MATERIAL is a *trade-level* adjustment (primer is inherently slower
+  // than finish — same physical operation, different material body), not a
+  // job-level factor like QT or height. It folds into the task's baseline
+  // rate at the rate-application site (effectiveBaseRate = canonical /
+  // material), and the resulting prime-adjusted rate is then divided by the
+  // job-level total. This keeps `total` clean as the modifier-column value
+  // shown to estimators and matches the customer-facing quote convention
+  // ("primer line shows its own rate; modifier column lists the project
+  // factors").
+  //
+  // total excludes complexity (same pattern as modifier-stack.js for interior
+  // specs) AND excludes material (folded into rate, not modifier column).
+  const total = Math.round(qt * height * texture * condition * overhead * dynamic.dyn * 1000) / 1000;
 
   return {
     qt,
@@ -754,6 +765,15 @@ export function runScenarioEstimate({ scenarioBundle, ctx, roomQty, roomItems = 
       // iterate the corresponding roomItems list and emit one task result
       // per item with the type/size modifier applied to the effective rate.
       // Matches legacy engine's computeDoorPerItemResults / computeWindowPerItemResults.
+      // Material-adjusted rate: FAC_MATERIAL is folded into the task baseline
+      // here, NOT into the modifier total. The displayed baseRate is the
+      // post-material rate so a primer task line shows e.g. 312 SF/hr (390 /
+      // 1.25), and the modifier column shows only project factors.
+      const materialFactor = (taskStack.material && taskStack.material > 0) ? taskStack.material : 1.0;
+      const materialAdjustedBaseRate = resolved.effectiveRate != null
+        ? Math.round((resolved.effectiveRate / materialFactor) * 1000) / 1000
+        : null;
+
       if (task.per_item && roomItems && !resolved.isFixed) {
         const { effectiveTotal } = computeEffectiveTotal(taskStack, phase, ctx);
         const items = roomItems[task.per_item] || [];
@@ -787,7 +807,11 @@ export function runScenarioEstimate({ scenarioBundle, ctx, roomQty, roomItems = 
             ? cnt * (parseInt(item.sides_per_door) || 2)
             : cnt;
 
-          const itemEffRate = resolved.effectiveRate / (effectiveTotal * itemMod);
+          // Apply project modifiers to the material-adjusted baseline rate.
+          // Equivalent to the prior `resolved.effectiveRate / (effectiveTotal *
+          // material * itemMod)` since materialAdjustedBaseRate = effectiveRate
+          // / material.
+          const itemEffRate = materialAdjustedBaseRate / (effectiveTotal * itemMod);
           const itemHours = qty / itemEffRate;
           if (itemHours <= 0) continue;
 
@@ -806,7 +830,8 @@ export function runScenarioEstimate({ scenarioBundle, ctx, roomQty, roomItems = 
             psKey: psKey || '(per_item)',
             uom: resolved.uom,
             quantity: Math.round(qty * 100) / 100,
-            baseRate: resolved.effectiveRate,
+            baseRate: materialAdjustedBaseRate,
+            canonicalRate: resolved.effectiveRate,
             modStack: { ...taskStack, itemMod, sizeMod, typeMod },
             hours: roundedHours,
             coatNumber,
@@ -832,7 +857,9 @@ export function runScenarioEstimate({ scenarioBundle, ctx, roomQty, roomItems = 
         quantity = roomQty.get(psKey).value;
         if (quantity <= 0) continue;
         const { effectiveTotal } = computeEffectiveTotal(taskStack, phase, ctx);
-        const effRate = resolved.effectiveRate / effectiveTotal;
+        // FAC_MATERIAL is already folded into materialAdjustedBaseRate above;
+        // dividing by effectiveTotal applies project modifiers on top.
+        const effRate = materialAdjustedBaseRate / effectiveTotal;
         hours = quantity / effRate;
       } else {
         // No quantity available for this task's PS key — skip silently
@@ -863,7 +890,8 @@ export function runScenarioEstimate({ scenarioBundle, ctx, roomQty, roomItems = 
         psKey: psKey || '(fixed)',
         uom: resolved.uom,
         quantity: Math.round(quantity * 100) / 100,
-        baseRate: resolved.isFixed ? `${resolved.fixedMinutes}m` : resolved.effectiveRate,
+        baseRate: resolved.isFixed ? `${resolved.fixedMinutes}m` : materialAdjustedBaseRate,
+        canonicalRate: resolved.isFixed ? null : resolved.effectiveRate,
         modStack: { ...taskStack },
         hours: roundedHours,
         coatNumber,
