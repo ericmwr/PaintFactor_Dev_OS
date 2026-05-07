@@ -56,9 +56,21 @@ const PROBES = [
 
   // --- Specialty tab items ---
   // Wainscot Panel (SF)
+  // Wainscot Panel — full variation matrix (paint NC + stain + cap pairing)
   { label: 'Wainscot NC QT3 brush from bare', ctx: { paintable_item: 'wainscot', quality_tier: 'QT3', application_method: 'brush', substrate_state: 'SS_BARE' }, qty: { 'PS_SURFACE_SF.WAINSCOTING': 100 } },
   { label: 'Wainscot NC QT3 spray from bare', ctx: { paintable_item: 'wainscot', quality_tier: 'QT3', application_method: 'spray', substrate_state: 'SS_BARE' }, qty: { 'PS_SURFACE_SF.WAINSCOTING': 100 } },
+  { label: 'Wainscot NC QT4 brush from bare', ctx: { paintable_item: 'wainscot', quality_tier: 'QT4', application_method: 'brush', substrate_state: 'SS_BARE' }, qty: { 'PS_SURFACE_SF.WAINSCOTING': 100 } },
+  { label: 'Wainscot NC QT4 spray from bare', ctx: { paintable_item: 'wainscot', quality_tier: 'QT4', application_method: 'spray', substrate_state: 'SS_BARE' }, qty: { 'PS_SURFACE_SF.WAINSCOTING': 100 } },
+  { label: 'Wainscot NC QT5 brush from bare', ctx: { paintable_item: 'wainscot', quality_tier: 'QT5', application_method: 'brush', substrate_state: 'SS_BARE' }, qty: { 'PS_SURFACE_SF.WAINSCOTING': 100 } },
+  { label: 'Wainscot NC QT5 spray from bare', ctx: { paintable_item: 'wainscot', quality_tier: 'QT5', application_method: 'spray', substrate_state: 'SS_BARE' }, qty: { 'PS_SURFACE_SF.WAINSCOTING': 100 } },
+  { label: 'Wainscot factory-primed QT3 brush', ctx: { paintable_item: 'wainscot', quality_tier: 'QT3', application_method: 'brush', substrate_state: 'SS_PRIMED_FACTORY' }, qty: { 'PS_SURFACE_SF.WAINSCOTING': 100 } },
+  { label: 'Wainscot stain+clear QT3',         ctx: { paintable_item: 'int_wainscot', quality_tier: 'QT3', application_method_stain: 'brush', application_method_clear: 'brush', substrate_state: 'SS_BARE', coating_type: 'stain_clear', stain_coats: 1, sealer_coats: 0, clear_coats: 1 }, qty: { 'PS_SURFACE_SF.WAINSCOTING': 100 } },
   { label: 'Wainscot stain+clear QT4',         ctx: { paintable_item: 'int_wainscot', quality_tier: 'QT4', application_method_stain: 'brush', application_method_clear: 'brush', substrate_state: 'SS_BARE', coating_type: 'stain_clear', stain_coats: 1, sealer_coats: 1, clear_coats: 1 }, qty: { 'PS_SURFACE_SF.WAINSCOTING': 100 } },
+  { label: 'Wainscot stain+clear QT5',         ctx: { paintable_item: 'int_wainscot', quality_tier: 'QT5', application_method_stain: 'brush', application_method_clear: 'brush', substrate_state: 'SS_BARE', coating_type: 'stain_clear', stain_coats: 1, sealer_coats: 2, clear_coats: 3 }, qty: { 'PS_SURFACE_SF.WAINSCOTING': 100 } },
+  { label: 'Wainscot stain only QT3',          ctx: { paintable_item: 'int_wainscot', quality_tier: 'QT3', application_method_stain: 'brush', substrate_state: 'SS_BARE', coating_type: 'stain_only', stain_coats: 1 }, qty: { 'PS_SURFACE_SF.WAINSCOTING': 100 } },
+  { label: 'Wainscot Cap NC QT3 brush from bare', ctx: { paintable_item: 'wainscot_cap', quality_tier: 'QT3', application_method: 'brush', substrate_state: 'SS_BARE' }, qty: { 'PS_SURFACE_LF.TRIM_WAINSCOT_CAP': 50 } },
+  { label: 'Wainscot Cap PAINT QT4 brush primed', ctx: { paintable_item: 'wainscot_cap', quality_tier: 'QT4', application_method: 'brush', substrate_state: 'SS_PRIMED', sheen: 'satin', finish_coats: 2 }, qty: { 'PS_SURFACE_LF.TRIM_WAINSCOT_CAP': 50 } },
+  { label: 'Wainscot Cap stain+clear QT4',         ctx: { paintable_item: 'int_wainscot_cap', quality_tier: 'QT4', application_method_stain: 'brush', application_method_clear: 'brush', substrate_state: 'SS_BARE', coating_type: 'stain_clear', stain_coats: 1, sealer_coats: 1, clear_coats: 1 }, qty: { 'PS_SURFACE_LF.TRIM_WAINSCOT_CAP': 50 } },
   // Wood Feature Wall (SF)
   { label: 'Wood Wall NC QT3 brush from bare', ctx: { paintable_item: 'wood_wall', quality_tier: 'QT3', application_method: 'brush', substrate_state: 'SS_BARE' }, qty: { 'PS_SURFACE_SF.WOOD_WALL': 150 } },
   { label: 'Wood Wall NC QT3 spray from bare', ctx: { paintable_item: 'wood_wall', quality_tier: 'QT3', application_method: 'spray', substrate_state: 'SS_BARE' }, qty: { 'PS_SURFACE_SF.WOOD_WALL': 150 } },
