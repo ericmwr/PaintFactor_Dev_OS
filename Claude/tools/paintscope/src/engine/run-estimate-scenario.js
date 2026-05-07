@@ -280,6 +280,21 @@ function deriveSurfaceOrientation(task, eligibility) {
   return 'WALL';
 }
 
+/**
+ * Derive material_type for FAC_MATERIAL.
+ *   1. ctx.material_type — explicit override (allows OB_* selection from
+ *      future scenarios). Honored when set.
+ *   2. eligibility.material === true → WB_PRIMER (the module declares itself
+ *      as primer-side work; primer is slower than finish).
+ *   3. otherwise → WB_FINISH (neutral default; FAC_MATERIAL = 1.0× when
+ *      eligibility.material is falsy, so the value is informational).
+ */
+function deriveMaterialType(eligibility, ctx) {
+  if (ctx && ctx.material_type) return ctx.material_type;
+  if (eligibility && eligibility.material === true) return 'WB_PRIMER';
+  return 'WB_FINISH';
+}
+
 export function computeScenarioModifierStack(module, ctx, scenarioModifiers = null, bundle = null, task = null) {
   const eligibility = resolveEligibility(module, task);
 
@@ -335,6 +350,15 @@ export function computeScenarioModifierStack(module, ctx, scenarioModifiers = nu
     ? (bundle ? getFactor(bundle, 'FAC_OVERHEAD', surface_orientation) : (surface_orientation === 'CEILING' ? 1.25 : 1.0))
     : 1.0;
 
+  // FAC_MATERIAL — primer-vs-finish material penalty. Module opts in via
+  // modifier_eligibility.material = true → derives WB_PRIMER → 1.25× time
+  // multiplier. Otherwise WB_FINISH → 1.0×. Replaces the per-entry
+  // BA_FAC_MATERIAL band-aid pattern from the NC consolidation pass.
+  const material_type = deriveMaterialType(eligibility, ctx);
+  const material = eligibility.material === true
+    ? (bundle ? getFactor(bundle, 'FAC_MATERIAL', material_type) : (material_type === 'WB_PRIMER' ? 1.25 : material_type === 'OB_PRIMER' ? 1.47 : material_type === 'OB_FINISH' ? 1.176 : 1.0))
+    : 1.0;
+
   // Dynamic modifiers from scenario.modifiers[] (exterior access, substrate
   // type, coating system, texture profile, etc.). Folded into total.
   const dynamic = scenarioModifiers
@@ -342,7 +366,7 @@ export function computeScenarioModifierStack(module, ctx, scenarioModifiers = nu
     : { dyn: 1.0, applied: {} };
 
   // Total excludes complexity — same pattern as modifier-stack.js for interior specs
-  const total = Math.round(qt * height * texture * condition * overhead * dynamic.dyn * 1000) / 1000;
+  const total = Math.round(qt * height * texture * condition * overhead * material * dynamic.dyn * 1000) / 1000;
 
   return {
     qt,
@@ -352,6 +376,8 @@ export function computeScenarioModifierStack(module, ctx, scenarioModifiers = nu
     complexity,
     overhead,
     surfaceOrientation: surface_orientation,
+    material,
+    materialType: material_type,
     complexityApplicable: eligibility.complexity !== false,
     dynamic: dynamic.applied,
     total,

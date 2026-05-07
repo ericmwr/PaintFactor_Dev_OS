@@ -24,6 +24,12 @@ const FALLBACK = {
   // surface_orientation from the resolved task's ps_key — CEILING_FIELD →
   // CEILING, anything else → WALL.
   FAC_OVERHEAD:     { factors: { WALL: 1.00, CEILING: 1.25 }, default: 'WALL' },
+  // FAC_MATERIAL: material-type penalty. Primer is the same apply task fired
+  // with a different material_type; WB_PRIMER triggers a 1.25× time multiplier
+  // vs WB_FINISH baseline. Module opt-in via modifier_eligibility.material =
+  // true → defaults to WB_PRIMER. Oil-based variants are reserved (not wired
+  // by any active scenario today).
+  FAC_MATERIAL:     { factors: { WB_FINISH: 1.00, WB_PRIMER: 1.25, OB_FINISH: 1.176, OB_PRIMER: 1.47 }, default: 'WB_FINISH' },
 };
 
 function getDef(bundle, modId) {
