@@ -6,7 +6,7 @@ import json
 NEW_DOCTRINES = {
     'MOD_APPLY_CEILING_FINISH_ROLL': (
         "Roll ceiling finish using TSK_ROLL_DWL (340 SF/hr baseline). "
-        "FAC_OVERHEAD applies for the ceiling orientation (rate x 0.8 effective). "
+        "TRADE_OVERHEAD applies for the ceiling orientation (rate x 0.8 effective). "
         "FAC_TEXTURE handles texture slowdown. "
         "FAC_COAT applies coat-2 speedup (rate x 1.20) -- the painter follows already-laid-down film, less correction needed, even though overhead labor itself doesn't get less fatiguing. "
         "No cut-in module: the ceiling-to-wall line is established by the wall painter cutting in to the ceiling later (MOD_APPLY_CUTIN_CEILING)."
@@ -14,12 +14,12 @@ NEW_DOCTRINES = {
     'MOD_APPLY_CEILING_FINISH_SPRAY_BACKROLL': (
         "Two-painter coordinated flow: TSK_BACKROLL_SPRAY_DWL (sprayer, tethered to backroller) + TSK_BACKROLL_DWL (backroller). "
         "Both use the 390 SF/hr baseline because the sprayer is rate-limited by the backroller's wet-edge requirement (~30 sec lag). "
-        "FAC_OVERHEAD applies for ceiling orientation (rate x 0.8). FAC_COAT for coat-2 speedup. "
+        "TRADE_OVERHEAD applies for ceiling orientation (rate x 0.8). FAC_COAT for coat-2 speedup. "
         "Ceiling and wall edge masking handled by the room-protection scenario before this module fires."
     ),
     'MOD_APPLY_CEILING_FINISH_SPRAY_ONLY': (
         "Solo spray using TSK_SPRAY_DWL (650 SF/hr baseline) -- no backroller, no tethering. "
-        "FAC_OVERHEAD applies for ceiling orientation (rate x 0.8). FAC_COAT for coat-2 speedup. "
+        "TRADE_OVERHEAD applies for ceiling orientation (rate x 0.8). FAC_COAT for coat-2 speedup. "
         "Source spec gates this to QT2/QT3 only -- QT4/QT5 require a backroller for laydown uniformity that meets premium inspection standards."
     ),
     'MOD_APPLY_CEIL_FINISH_SPRAY_BACKROLL_COMBINED': (
@@ -31,8 +31,8 @@ NEW_DOCTRINES = {
     'MOD_APPLY_CEIL_PRIME_ROLL': (
         "Cut-in uses universal TSK_CUTIN_WALL_LF (120 LF/hr baseline). "
         "Field roll uses TSK_ROLL_DWL (340 SF/hr baseline). "
-        "FAC_MATERIAL.WB_PRIMER applies (rate x 0.8) since this is a primer module. "
-        "FAC_OVERHEAD applies (rate x 0.8) for ceiling orientation. "
+        "TRADE_MATERIAL.WB_PRIMER applies (rate x 0.8) since this is a primer module. "
+        "TRADE_OVERHEAD applies (rate x 0.8) for ceiling orientation. "
         "Effective rates with both modifiers: cut-in ~96 LF/hr, field roll ~218 SF/hr (when both apply). "
         "Single coat of primer; FAC_COAT eligibility set but no-op since coat 1 is baseline."
     ),
@@ -41,7 +41,7 @@ NEW_DOCTRINES = {
         "Sprayer: TSK_BACKROLL_SPRAY_DWL (390 SF/hr baseline, tethered to backroller). "
         "Backroller: TSK_BACKROLL_DWL (390 SF/hr baseline). "
         "Cut-in: TSK_CUTIN_WALL_LF (120 LF/hr baseline) for post-spray wall-line cleanup against masking tape. "
-        "FAC_MATERIAL.WB_PRIMER and FAC_OVERHEAD apply (each rate x 0.8). "
+        "TRADE_MATERIAL.WB_PRIMER and TRADE_OVERHEAD apply (each rate x 0.8). "
         "Wall edge masked by the room-protection scenario before this module fires."
     ),
     'MOD_APPLY_CEIL_PRIME_SPRAY_BACKROLL_COMBINED': (
@@ -52,7 +52,7 @@ NEW_DOCTRINES = {
     ),
     'MOD_APPLY_CEIL_PRIME_SPRAY_ONLY': (
         "Solo spray primer using TSK_SPRAY_DWL (650 SF/hr baseline) -- no backroller, no tethering. "
-        "FAC_MATERIAL.WB_PRIMER applies (rate x 0.8). FAC_OVERHEAD applies (rate x 0.8) for ceiling. "
+        "TRADE_MATERIAL.WB_PRIMER applies (rate x 0.8). TRADE_OVERHEAD applies (rate x 0.8) for ceiling. "
         "Effective rate with both: ~416 SF/hr. "
         "Source spec gates this to QT2/QT3 only -- QT4 requires backroll for primer adhesion uniformity. "
         "Wall edge masked by the room-protection scenario when ceiling spray fires."
@@ -66,7 +66,7 @@ NEW_DOCTRINES = {
     'MOD_APPLY_WALL_PRIME_ROLL': (
         "Cut-in uses universal TSK_CUTIN_WALL_LF (120 LF/hr baseline). "
         "Field roll uses TSK_ROLL_DWL (340 SF/hr baseline). "
-        "FAC_MATERIAL.WB_PRIMER applies (rate x 0.8) since this is a primer module. "
+        "TRADE_MATERIAL.WB_PRIMER applies (rate x 0.8) since this is a primer module. "
         "Effective rates: cut-in ~96 LF/hr, field roll ~272 SF/hr. "
         "Single coat of primer regardless of QT -- primer never gets a second coat in NC residential. "
         "FAC_TEXTURE handles textured-substrate slowdown; FAC_COAT eligibility set but no-op for single-coat primer."
@@ -75,7 +75,7 @@ NEW_DOCTRINES = {
         "Two-painter coordinated flow. "
         "Sprayer: TSK_BACKROLL_SPRAY_DWL (390 SF/hr baseline, tethered to backroller). "
         "Backroller: TSK_BACKROLL_DWL (390 SF/hr baseline). "
-        "FAC_MATERIAL.WB_PRIMER applies (rate x 0.8). "
+        "TRADE_MATERIAL.WB_PRIMER applies (rate x 0.8). "
         "Effective rate with primer modifier: ~312 SF/hr per painter. "
         "NC production standard for prime. Single coat regardless of QT."
     ),

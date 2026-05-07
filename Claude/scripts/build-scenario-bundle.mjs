@@ -177,7 +177,14 @@ function loadScenarios() {
 function loadModifiers() {
   const modifiers = {};
   if (!fs.existsSync(modifiersDir)) return modifiers;
-  const files = fs.readdirSync(modifiersDir).filter(f => f.startsWith('FAC_') && f.endsWith('.json'));
+  // Modifiers come in two prefix flavors: FAC_* (project-level: QT, height,
+  // texture, etc.) and TRADE_* (trade-level: material, overhead). Both load
+  // into the same registry; the engine treats them the same way mathematically
+  // (only their UI presentation differs — TRADE_* fold into the rate, FAC_*
+  // appear in the modifier column).
+  const files = fs.readdirSync(modifiersDir).filter(f =>
+    (f.startsWith('FAC_') || f.startsWith('TRADE_')) && f.endsWith('.json')
+  );
   for (const file of files) {
     const mod = JSON.parse(fs.readFileSync(path.join(modifiersDir, file), 'utf8'));
     if (!mod.modifier_id) throw new Error(`Modifier ${file} missing modifier_id`);

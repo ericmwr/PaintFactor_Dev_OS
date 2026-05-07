@@ -11,10 +11,10 @@
 | Workstream | Status | Notes |
 |---|---|---|
 | **NC consolidation** | DONE | 35 rounds in `_merge_log.jsonl`, ~450 tasks consolidated. Catalog: 2662 → 2186 active tasks, 713 archived. RP and exterior deferred per user direction. |
-| **FAC_OVERHEAD wiring** | DONE | 23 of 25 band-aids retired. Modifier wired in `engine/run-estimate-scenario.js` with eligibility-aware `surface_orientation` derivation. Merge log entry on line 35. |
+| **TRADE_OVERHEAD wiring** | DONE | 23 of 25 band-aids retired. Modifier wired in `engine/run-estimate-scenario.js` with eligibility-aware `surface_orientation` derivation. Merge log entry on line 35. |
 | **Module template consolidation** (Approach A) | NEXT | `Module_Template_Consolidation_Plan.md`. Shrink ~140 substrate modules using `extends` field + bundle-time shallow merge. ~80% line reduction. |
-| **FAC_MATERIAL wiring** | After modules | `FAC_Material_Wiring_Plan.md`. Retire remaining 34 BA_FAC_MATERIAL band-aids across 17 prime-apply modules. Single session. |
-| **Cascade tooling** (rename + bulk + smoke gate) | After FAC_MATERIAL | `Authoring_Cascade_Tooling_Plan.md`. Operates on the now-clean bundle. |
+| **TRADE_MATERIAL wiring** | After modules | `FAC_Material_Wiring_Plan.md`. Retire remaining 34 BA_TRADE_MATERIAL band-aids across 17 prime-apply modules. Single session. |
+| **Cascade tooling** (rename + bulk + smoke gate) | After TRADE_MATERIAL | `Authoring_Cascade_Tooling_Plan.md`. Operates on the now-clean bundle. |
 | **Archive infrastructure** | DONE | Archive button + Archive tab + Restore + bundle-skip + regen-bundle endpoint. |
 
 ---
@@ -74,15 +74,15 @@ One family per session is reasonable.
 
 ## After module template work
 
-### Session FAC_MATERIAL wiring
+### Session TRADE_MATERIAL wiring
 
 Single session. Plan: `Claude/devos/FAC_Material_Wiring_Plan.md`.
 
-Mirrors the FAC_OVERHEAD work shipped 2026-05-05:
-- Add `FAC_MATERIAL` to modifier-registry FALLBACK
+Mirrors the TRADE_OVERHEAD work shipped 2026-05-05:
+- Add `TRADE_MATERIAL` to modifier-registry FALLBACK
 - Add `deriveMaterialType` helper + `material` branch in `computeScenarioModifierStack`
-- Strip 32 pure `BA_FAC_MATERIAL` band-aids from 16 modules
-- Strip 2 composite `BA_FAC_OVERHEAD,BA_FAC_MATERIAL` band-aids from `MOD_APPLY_WOOD_CEILING_PRIME`
+- Strip 32 pure `BA_TRADE_MATERIAL` band-aids from 16 modules
+- Strip 2 composite `BA_TRADE_OVERHEAD,BA_TRADE_MATERIAL` band-aids from `MOD_APPLY_WOOD_CEILING_PRIME`
 - Append merge log entry
 
 Behavioral shifts are pre-approved per each module's "targets when wired" doctrine. Most significant: LF prime brush 90→64 LF/hr (-29%), wood ceiling brush 90→44.8 (-50%). All documented in the plan doc.
@@ -106,14 +106,14 @@ Three phases in order:
 - TaskUsagePanel (task → modules)
 - ModuleUsagePanel (module → scenarios)
 - Scope Tree Lab at `?lab=scope-tree` and `?lab=estimate-preview`
-- FAC_OVERHEAD modifier wired (eligibility-aware `surface_orientation`)
+- TRADE_OVERHEAD modifier wired (eligibility-aware `surface_orientation`)
 - Activity rules dictionary at `Claude/tools/paintscope/src/data/activity-rules.js`
 
 ---
 
 ## Known debt / loose ends
 
-- 2 composite `BA_FAC_OVERHEAD,BA_FAC_MATERIAL` band-aids in `MOD_APPLY_WOOD_CEILING_PRIME` — retired by `FAC_Material_Wiring_Plan.md` Phase 3
+- 2 composite `BA_TRADE_OVERHEAD,BA_TRADE_MATERIAL` band-aids in `MOD_APPLY_WOOD_CEILING_PRIME` — retired by `FAC_Material_Wiring_Plan.md` Phase 3
 - `MOD_APPLY_WALL_PRIME_SPRAY_ONLY` has an inline `TSK_WALL_SPRAY_PRIMER` task that collides with the library version (build warns, doesn't fail) — minor cleanup
 - Some `Claude/specs/` source docs reference archived task IDs (historical; doesn't affect runtime)
 - `PS_META.EA.KNOT_COUNT` is an orphan ps_key after round 31's retirement (no consumer)

@@ -119,7 +119,7 @@ A new base module per family carries the canonical task list + default eligibili
 - Build refuses when `extends` references a missing module.
 - Build refuses on cycle.
 - Build refuses if resolved module has empty `tasks` or no `phase`.
-- Existing 25 BA_FAC_OVERHEAD-free modules still resolve to identical post-resolution shape (no regression — their `extends` field is absent, so they pass through unchanged).
+- Existing 25 BA_TRADE_OVERHEAD-free modules still resolve to identical post-resolution shape (no regression — their `extends` field is absent, so they pass through unchanged).
 
 **Out of scope this phase:**
 - Authoring UI changes (Phase 4).
@@ -169,7 +169,7 @@ Suggested order (smallest behavioral risk first):
 Each family's session: ~30-60 minutes of mechanical conversion + verification.
 
 **Out of scope for Phase 3:**
-- Wood-substrate SF families (wood_wall, wood_ceiling, wainscot panel) — they're a smaller set (3 substrates each) AND they have FAC_OVERHEAD/FAC_MATERIAL band-aids that complicate the merge. Defer until those modifiers are fully wired.
+- Wood-substrate SF families (wood_wall, wood_ceiling, wainscot panel) — they're a smaller set (3 substrates each) AND they have TRADE_OVERHEAD/TRADE_MATERIAL band-aids that complicate the merge. Defer until those modifiers are fully wired.
 - Cabinet / built-in modules — deferred per `FD_OPENING_BASED_CABINET_BUILTIN` future direction.
 - Stair (stringer/riser/newel/baluster) — small set, idiosyncratic; do separately if needed.
 

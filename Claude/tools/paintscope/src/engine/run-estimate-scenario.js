@@ -263,14 +263,14 @@ function resolveEligibility(module, task) {
 }
 
 /**
- * Derive surface orientation for FAC_OVERHEAD. Two signals:
+ * Derive surface orientation for TRADE_OVERHEAD. Two signals:
  *   1. task.ps_key contains 'CEILING' → CEILING (per-task source of truth,
  *      lets a single module mix wall + ceiling tasks)
  *   2. otherwise, if module's eligibility.overhead === true → CEILING
  *      (the module declares itself as overhead work — used when entries
  *      don't carry per-task ps_keys, which is the common case for the
  *      consolidated wood-ceiling modules)
- *   3. otherwise → WALL (neutral default; FAC_OVERHEAD = 1.0× anyway when
+ *   3. otherwise → WALL (neutral default; TRADE_OVERHEAD = 1.0× anyway when
  *      eligibility.overhead is falsy, so the orientation is informational)
  */
 function deriveSurfaceOrientation(task, eligibility) {
@@ -281,12 +281,12 @@ function deriveSurfaceOrientation(task, eligibility) {
 }
 
 /**
- * Derive material_type for FAC_MATERIAL.
+ * Derive material_type for TRADE_MATERIAL.
  *   1. ctx.material_type — explicit override (allows OB_* selection from
  *      future scenarios). Honored when set.
  *   2. eligibility.material === true → WB_PRIMER (the module declares itself
  *      as primer-side work; primer is slower than finish).
- *   3. otherwise → WB_FINISH (neutral default; FAC_MATERIAL = 1.0× when
+ *   3. otherwise → WB_FINISH (neutral default; TRADE_MATERIAL = 1.0× when
  *      eligibility.material is falsy, so the value is informational).
  */
 function deriveMaterialType(eligibility, ctx) {
@@ -339,7 +339,7 @@ export function computeScenarioModifierStack(module, ctx, scenarioModifiers = nu
     ? (bundle ? getFactor(bundle, 'FAC_CONDITION', ctx.substrate_condition || 'fair') : (CONDITION_MODIFIERS[ctx.substrate_condition || 'fair'] ?? 1.0))
     : 1.0;
 
-  // FAC_OVERHEAD — ceiling vs wall surface orientation penalty. Module
+  // TRADE_OVERHEAD — ceiling vs wall surface orientation penalty. Module
   // opts in via modifier_eligibility.overhead = true. Surface orientation
   // is derived from the resolved task's ps_key so a single module can mix
   // wall + ceiling tasks (e.g., MOD_PREP_COMBINED_WC_FINISH) and each
@@ -347,16 +347,16 @@ export function computeScenarioModifierStack(module, ctx, scenarioModifiers = nu
   // no ps_key is available or no eligibility — neutral default.
   const surface_orientation = deriveSurfaceOrientation(task, eligibility);
   const overhead = eligibility.overhead === true
-    ? (bundle ? getFactor(bundle, 'FAC_OVERHEAD', surface_orientation) : (surface_orientation === 'CEILING' ? 1.25 : 1.0))
+    ? (bundle ? getFactor(bundle, 'TRADE_OVERHEAD', surface_orientation) : (surface_orientation === 'CEILING' ? 1.25 : 1.0))
     : 1.0;
 
-  // FAC_MATERIAL — primer-vs-finish material penalty. Module opts in via
+  // TRADE_MATERIAL — primer-vs-finish material penalty. Module opts in via
   // modifier_eligibility.material = true → derives WB_PRIMER → 1.25× time
   // multiplier. Otherwise WB_FINISH → 1.0×. Replaces the per-entry
-  // BA_FAC_MATERIAL band-aid pattern from the NC consolidation pass.
+  // BA_TRADE_MATERIAL band-aid pattern from the NC consolidation pass.
   const material_type = deriveMaterialType(eligibility, ctx);
   const material = eligibility.material === true
-    ? (bundle ? getFactor(bundle, 'FAC_MATERIAL', material_type) : (material_type === 'WB_PRIMER' ? 1.25 : material_type === 'OB_PRIMER' ? 1.47 : material_type === 'OB_FINISH' ? 1.176 : 1.0))
+    ? (bundle ? getFactor(bundle, 'TRADE_MATERIAL', material_type) : (material_type === 'WB_PRIMER' ? 1.25 : material_type === 'OB_PRIMER' ? 1.47 : material_type === 'OB_FINISH' ? 1.176 : 1.0))
     : 1.0;
 
   // Dynamic modifiers from scenario.modifiers[] (exterior access, substrate
@@ -365,7 +365,7 @@ export function computeScenarioModifierStack(module, ctx, scenarioModifiers = nu
     ? computeDynamicStack(module, scenarioModifiers)
     : { dyn: 1.0, applied: {} };
 
-  // FAC_MATERIAL is a *trade-level* adjustment (primer is inherently slower
+  // TRADE_MATERIAL is a *trade-level* adjustment (primer is inherently slower
   // than finish — same physical operation, different material body), not a
   // job-level factor like QT or height. It folds into the task's baseline
   // rate at the rate-application site (effectiveBaseRate = canonical /
@@ -427,7 +427,7 @@ function computeEffectiveTotal(modStack, phase, ctx) {
  * Keeps the estimate readable when the same task fires on multiple coats.
  */
 function displayTaskName(task, coatNumber, materialType = 'WB_FINISH') {
-  // Material framing \u2014 under FAC_MATERIAL the same coating task fires for both
+  // Material framing \u2014 under TRADE_MATERIAL the same coating task fires for both
   // prime and finish work, so a quote/work-order needs "Prime" vs "Finish"
   // framing in the displayed name. When materialType ends in _PRIMER we swap
   // "Finish" -> "Prime" if present, or append " \u2014 Primer" if the
@@ -765,7 +765,7 @@ export function runScenarioEstimate({ scenarioBundle, ctx, roomQty, roomItems = 
       // iterate the corresponding roomItems list and emit one task result
       // per item with the type/size modifier applied to the effective rate.
       // Matches legacy engine's computeDoorPerItemResults / computeWindowPerItemResults.
-      // Material-adjusted rate: FAC_MATERIAL is folded into the task baseline
+      // Material-adjusted rate: TRADE_MATERIAL is folded into the task baseline
       // here, NOT into the modifier total. The displayed baseRate is the
       // post-material rate so a primer task line shows e.g. 312 SF/hr (390 /
       // 1.25), and the modifier column shows only project factors.
@@ -857,7 +857,7 @@ export function runScenarioEstimate({ scenarioBundle, ctx, roomQty, roomItems = 
         quantity = roomQty.get(psKey).value;
         if (quantity <= 0) continue;
         const { effectiveTotal } = computeEffectiveTotal(taskStack, phase, ctx);
-        // FAC_MATERIAL is already folded into materialAdjustedBaseRate above;
+        // TRADE_MATERIAL is already folded into materialAdjustedBaseRate above;
         // dividing by effectiveTotal applies project modifiers on top.
         const effRate = materialAdjustedBaseRate / effectiveTotal;
         hours = quantity / effRate;

@@ -19,17 +19,17 @@ const FALLBACK = {
   FAC_COMPLEXITY:   { factors: { OPEN: 0.85, STD: 1.00, MOD: 1.20, COMPLEX: 1.20, VCOMPLEX: 1.50 }, default: 'STD' },
   FAC_CONDITION:    { factors: { good: 0.70, fair: 1.00, poor: 1.50 }, default: 'fair' },
   FAC_EXT_ACCESS:   { factors: { ground: 1.00, ladder: 1.35, scaffold: 1.60, lift: 1.50 }, default: 'ground' },
-  // FAC_OVERHEAD: ceiling-orientation penalty (1.25 time = 0.8 rate). Module
+  // TRADE_OVERHEAD: ceiling-orientation penalty (1.25 time = 0.8 rate). Module
   // opt-in via modifier_eligibility.overhead = true. Engine derives
   // surface_orientation from the resolved task's ps_key — CEILING_FIELD →
   // CEILING, anything else → WALL.
-  FAC_OVERHEAD:     { factors: { WALL: 1.00, CEILING: 1.25 }, default: 'WALL' },
-  // FAC_MATERIAL: material-type penalty. Primer is the same apply task fired
+  TRADE_OVERHEAD:     { factors: { WALL: 1.00, CEILING: 1.25 }, default: 'WALL' },
+  // TRADE_MATERIAL: material-type penalty. Primer is the same apply task fired
   // with a different material_type; WB_PRIMER triggers a 1.25× time multiplier
   // vs WB_FINISH baseline. Module opt-in via modifier_eligibility.material =
   // true → defaults to WB_PRIMER. Oil-based variants are reserved (not wired
   // by any active scenario today).
-  FAC_MATERIAL:     { factors: { WB_FINISH: 1.00, WB_PRIMER: 1.25, OB_FINISH: 1.176, OB_PRIMER: 1.47 }, default: 'WB_FINISH' },
+  TRADE_MATERIAL:     { factors: { WB_FINISH: 1.00, WB_PRIMER: 1.25, OB_FINISH: 1.176, OB_PRIMER: 1.47 }, default: 'WB_FINISH' },
 };
 
 function getDef(bundle, modId) {
