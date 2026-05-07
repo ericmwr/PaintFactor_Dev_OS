@@ -52,15 +52,38 @@ export function loadScenarios(scenariosDir) {
 }
 
 /**
+ * Load all TSK_*.json files from tasksDir into a map keyed by task_id.
+ */
+export function loadTasks(tasksDir) {
+  const tasks = {};
+  const files = fs.readdirSync(tasksDir).filter(f => f.startsWith('TSK_') && f.endsWith('.json'));
+  for (const file of files) {
+    const raw = fs.readFileSync(path.join(tasksDir, file), 'utf8');
+    const task = JSON.parse(raw);
+    if (!task.task_id) {
+      throw new Error(`Task ${file} is missing task_id`);
+    }
+    if (tasks[task.task_id]) {
+      throw new Error(`Duplicate task_id ${task.task_id} (${file})`);
+    }
+    tasks[task.task_id] = task;
+  }
+  return tasks;
+}
+
+/**
  * Load the full scenario bundle from a repo root path.
  * Expects:   <repoRoot>/Claude/modules/MOD_*.json
  *            <repoRoot>/Claude/scenarios/SCN_*.json
+ *            <repoRoot>/Claude/tasks/TSK_*.json
  */
 export function loadScenarioBundle(repoRoot) {
   const modulesDir   = path.join(repoRoot, 'Claude', 'modules');
   const scenariosDir = path.join(repoRoot, 'Claude', 'scenarios');
+  const tasksDir     = path.join(repoRoot, 'Claude', 'tasks');
   const modules   = loadModules(modulesDir);
   const scenarios = loadScenarios(scenariosDir);
+  const tasks     = loadTasks(tasksDir);
 
   // Integrity check: every scenario module reference must resolve
   const unresolved = [];
@@ -73,5 +96,5 @@ export function loadScenarioBundle(repoRoot) {
     throw new Error(`Scenario bundle has unresolved module references:\n  ${unresolved.join('\n  ')}`);
   }
 
-  return { modules, scenarios };
+  return { modules, scenarios, tasks };
 }

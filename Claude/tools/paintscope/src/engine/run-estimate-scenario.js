@@ -225,6 +225,24 @@ function resolveEligibility(module, task) {
   return { ...modEl, ...taskEl };
 }
 
+/**
+ * Derive surface orientation for FAC_OVERHEAD. Two signals:
+ *   1. task.ps_key contains 'CEILING' → CEILING (per-task source of truth,
+ *      lets a single module mix wall + ceiling tasks)
+ *   2. otherwise, if module's eligibility.overhead === true → CEILING
+ *      (the module declares itself as overhead work — used when entries
+ *      don't carry per-task ps_keys, which is the common case for the
+ *      consolidated wood-ceiling modules)
+ *   3. otherwise → WALL (neutral default; FAC_OVERHEAD = 1.0× anyway when
+ *      eligibility.overhead is falsy, so the orientation is informational)
+ */
+function deriveSurfaceOrientation(task, eligibility) {
+  const psKey = task && task.ps_key;
+  if (typeof psKey === 'string' && /CEILING/i.test(psKey)) return 'CEILING';
+  if (eligibility && eligibility.overhead === true) return 'CEILING';
+  return 'WALL';
+}
+
 export function computeScenarioModifierStack(module, ctx, scenarioModifiers = null, bundle = null, task = null) {
   const eligibility = resolveEligibility(module, task);
 
@@ -269,6 +287,17 @@ export function computeScenarioModifierStack(module, ctx, scenarioModifiers = nu
     ? (bundle ? getFactor(bundle, 'FAC_CONDITION', ctx.substrate_condition || 'fair') : (CONDITION_MODIFIERS[ctx.substrate_condition || 'fair'] ?? 1.0))
     : 1.0;
 
+  // FAC_OVERHEAD — ceiling vs wall surface orientation penalty. Module
+  // opts in via modifier_eligibility.overhead = true. Surface orientation
+  // is derived from the resolved task's ps_key so a single module can mix
+  // wall + ceiling tasks (e.g., MOD_PREP_COMBINED_WC_FINISH) and each
+  // task's hours scale appropriately. Falls back to WALL (= 1.0×) when
+  // no ps_key is available or no eligibility — neutral default.
+  const surface_orientation = deriveSurfaceOrientation(task, eligibility);
+  const overhead = eligibility.overhead === true
+    ? (bundle ? getFactor(bundle, 'FAC_OVERHEAD', surface_orientation) : (surface_orientation === 'CEILING' ? 1.25 : 1.0))
+    : 1.0;
+
   // Dynamic modifiers from scenario.modifiers[] (exterior access, substrate
   // type, coating system, texture profile, etc.). Folded into total.
   const dynamic = scenarioModifiers
@@ -276,7 +305,7 @@ export function computeScenarioModifierStack(module, ctx, scenarioModifiers = nu
     : { dyn: 1.0, applied: {} };
 
   // Total excludes complexity — same pattern as modifier-stack.js for interior specs
-  const total = Math.round(qt * height * texture * condition * dynamic.dyn * 1000) / 1000;
+  const total = Math.round(qt * height * texture * condition * overhead * dynamic.dyn * 1000) / 1000;
 
   return {
     qt,
@@ -284,6 +313,8 @@ export function computeScenarioModifierStack(module, ctx, scenarioModifiers = nu
     texture,
     condition,
     complexity,
+    overhead,
+    surfaceOrientation: surface_orientation,
     complexityApplicable: eligibility.complexity !== false,
     dynamic: dynamic.applied,
     total,

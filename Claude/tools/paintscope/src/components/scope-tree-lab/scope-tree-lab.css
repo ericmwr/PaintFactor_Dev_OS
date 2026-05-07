@@ -1,0 +1,675 @@
+/* Scope Tree Lab — sandbox styles. Consumes the global PaintScope tokens
+   from variables.css so the lab visually matches the production app during
+   evaluation. */
+
+.lab-shell {
+  display: flex;
+  flex-direction: column;
+  /* Fill the corrected body height — base.css applies zoom:1.1 and
+     height:calc(100vh/1.1) on body. Using 100vh here would overflow the
+     body by 10% and clip the bottom of the scrollable tree. */
+  height: 100%;
+  background: var(--bg-base);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: 13px;
+}
+
+/* ─────────── Header ─────────── */
+.lab-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  padding: var(--space-4) var(--space-6);
+  background: var(--bg-panel);
+  border-bottom: 1px solid var(--border);
+}
+.lab-header-eyebrow {
+  display: block;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  color: var(--text-secondary);
+  margin-bottom: 2px;
+}
+.lab-header-title h1 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+.lab-header-meta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+.lab-pill {
+  background: var(--derived-bg);
+  color: var(--derived);
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  font-weight: 600;
+}
+.lab-back {
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-size: 11px;
+}
+.lab-back:hover { color: var(--accent); }
+
+/* ─────────── Loading / empty ─────────── */
+.lab-loading,
+.lab-empty {
+  padding: var(--space-8);
+  color: var(--text-secondary);
+  background: var(--bg-base);
+  /* 100% — body already enforces the zoom-corrected viewport height. */
+  min-height: 100%;
+  font-family: var(--font-sans);
+}
+.lab-empty h2 {
+  color: var(--text-primary);
+  margin-top: 0;
+}
+.lab-empty a {
+  color: var(--accent);
+}
+.lab-status {
+  padding: var(--space-6);
+  color: var(--text-secondary);
+}
+.lab-status.lab-error {
+  color: var(--danger);
+}
+
+.lab-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+/* ─────────── Estimate-preview summary block ─────────── */
+.lep-summary {
+  padding: var(--space-4) var(--space-6);
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--border);
+}
+.lep-summary-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--space-6);
+  flex-wrap: wrap;
+}
+.lep-project-eyebrow {
+  display: block;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-secondary);
+  margin-bottom: 2px;
+}
+.lep-project h2 {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0 0 2px 0;
+  color: var(--accent);
+}
+.lep-project-meta {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+.lep-stats {
+  display: flex;
+  gap: var(--space-6);
+  flex-wrap: wrap;
+}
+.lep-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+.lep-stat-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--text-secondary);
+  margin-bottom: 2px;
+}
+.lep-stat-value {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+.lep-stat-big .lep-stat-value {
+  font-size: 22px;
+}
+.lep-stat-accent .lep-stat-value {
+  color: var(--success);
+}
+.lep-stat-unit {
+  font-size: 10px;
+  color: var(--text-muted);
+  margin-left: 3px;
+  font-weight: 400;
+}
+
+.lep-phasebar-wrap {
+  margin-top: var(--space-4);
+}
+.lep-phasebar-label {
+  display: block;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--text-secondary);
+  margin-bottom: 4px;
+}
+.lep-phasebar {
+  display: flex;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  height: 24px;
+  width: 100%;
+}
+.lep-phasebar-segment {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  color: #fff;
+  font-weight: 600;
+  padding: 0 6px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-transform: capitalize;
+}
+
+.lep-warnings {
+  margin-top: var(--space-3);
+  background: rgba(210, 153, 34, 0.08);
+  border: 1px solid rgba(210, 153, 34, 0.3);
+  border-radius: var(--radius-sm);
+  padding: 6px var(--space-3);
+  font-size: 12px;
+  color: var(--warning);
+}
+.lep-warnings summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+.lep-warnings ul {
+  margin: var(--space-2) 0 0 var(--space-4);
+  color: var(--text-secondary);
+}
+.lep-warnings li {
+  font-size: 11px;
+  margin-bottom: 2px;
+}
+
+/* ─────────── Controls bar ─────────── */
+.lab-controls {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-3) var(--space-6);
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--border);
+}
+.lab-control-group {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+.lab-control-spacer {
+  flex: 1;
+}
+.lab-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--text-secondary);
+}
+.lab-segmented {
+  display: inline-flex;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+.lab-seg-btn {
+  background: var(--bg-panel);
+  color: var(--text-secondary);
+  border: none;
+  padding: 4px 10px;
+  font-size: 11px;
+  cursor: pointer;
+  border-right: 1px solid var(--border);
+  font-family: var(--font-sans);
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+.lab-seg-btn:last-child { border-right: none; }
+.lab-seg-btn:hover { background: var(--bg-hover); color: var(--text-primary); }
+.lab-seg-btn.active {
+  background: var(--bg-active);
+  color: var(--accent);
+}
+.lab-select {
+  background: var(--bg-input);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 4px 8px;
+  font-size: 11px;
+  font-family: var(--font-sans);
+}
+.lab-btn {
+  background: var(--bg-panel);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 4px 10px;
+  font-size: 11px;
+  cursor: pointer;
+  font-family: var(--font-sans);
+  transition: background var(--transition-fast), border-color var(--transition-fast);
+}
+.lab-btn:hover {
+  background: var(--bg-hover);
+  border-color: var(--accent);
+}
+.lab-btn-export {
+  border-color: rgba(88, 166, 255, 0.4);
+  color: var(--accent);
+}
+.lab-btn-export:hover {
+  background: rgba(88, 166, 255, 0.10);
+  border-color: var(--accent);
+}
+
+.lab-totals {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-3);
+}
+.lab-totals-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--text-secondary);
+}
+.lab-totals-hours {
+  font-family: var(--font-mono);
+  color: var(--text-primary);
+  font-size: 13px;
+  font-weight: 600;
+}
+.lab-totals-dollars {
+  font-family: var(--font-mono);
+  color: var(--success);
+  font-size: 13px;
+}
+
+/* ─────────── Body — tree + inspector ─────────── */
+.lab-body {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+}
+.lab-tree {
+  flex: 1;
+  overflow: auto;
+  padding: var(--space-3) var(--space-2);
+}
+
+/* ─────────── Tree nodes ─────────── */
+.stn-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 3px 8px 3px 0;
+  border-radius: var(--radius-sm);
+  line-height: 1.4;
+  transition: background var(--transition-fast);
+}
+.stn-row.stn-clickable {
+  cursor: pointer;
+}
+.stn-row.stn-clickable:hover {
+  background: var(--bg-hover);
+}
+.stn-selected {
+  background: var(--bg-active) !important;
+  outline: 1px solid var(--accent);
+}
+
+/* Section-tinted row backgrounds — each level gets a faint tint matching
+   the badge color, so rows visually align with their section. Stronger at
+   the top of the hierarchy, fading toward task rows. */
+.stn-kind-room        > .stn-row { background: rgba(88, 166, 255, 0.10); }
+.stn-kind-room        > .stn-row.stn-clickable:hover { background: rgba(88, 166, 255, 0.18); }
+
+.stn-kind-element_group > .stn-row { background: rgba(139, 92, 246, 0.08); }
+.stn-kind-element_group > .stn-row.stn-clickable:hover { background: rgba(139, 92, 246, 0.16); }
+
+.stn-kind-substrate   > .stn-row { background: rgba(63, 185, 80, 0.06); }
+.stn-kind-substrate   > .stn-row.stn-clickable:hover { background: rgba(63, 185, 80, 0.13); }
+
+.stn-kind-coating     > .stn-row { background: rgba(210, 153, 34, 0.06); }
+.stn-kind-coating     > .stn-row.stn-clickable:hover { background: rgba(210, 153, 34, 0.13); }
+
+.stn-kind-phase       > .stn-row { background: rgba(88, 166, 255, 0.04); }
+.stn-kind-phase       > .stn-row.stn-clickable:hover { background: rgba(88, 166, 255, 0.10); }
+
+.stn-kind-task        > .stn-row { background: transparent; }
+.stn-kind-task        > .stn-row:hover { background: var(--bg-hover); }
+
+/* Merged task — same baseline as task, but flagged when outlier */
+.stn-kind-merged_task > .stn-row { background: transparent; }
+.stn-kind-merged_task > .stn-row:hover { background: var(--bg-hover); }
+.stn-kind-merged_task > .stn-row.stn-clickable { cursor: pointer; }
+
+/* Activity row — the painter-thinking aggregation layer above merged
+   tasks within Phase view. Stronger visual weight than tasks since it's
+   the primary scan target; click expands to atomic rate breakdown. */
+.stn-kind-activity > .stn-row {
+  background: rgba(88, 166, 255, 0.06);
+  border-top: 1px solid rgba(88, 166, 255, 0.15);
+  border-bottom: 1px solid rgba(88, 166, 255, 0.15);
+  cursor: pointer;
+}
+.stn-kind-activity > .stn-row:hover {
+  background: rgba(88, 166, 255, 0.14);
+}
+.stn-kind-activity > .stn-row > .stn-label {
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--text-primary);
+}
+.stn-badge-activity {
+  background: rgba(88, 166, 255, 0.18);
+  color: var(--accent);
+}
+.stn-twisty {
+  display: inline-block;
+  width: 12px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 10px;
+  flex-shrink: 0;
+}
+.stn-badge {
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  padding: 1px 5px;
+  border-radius: var(--radius-sm);
+  background: var(--bg-elevated);
+  color: var(--text-secondary);
+  font-weight: 600;
+  flex-shrink: 0;
+}
+.stn-badge-room { background: rgba(88, 166, 255, 0.12); color: var(--accent); }
+.stn-badge-element_group { background: rgba(139, 92, 246, 0.12); color: var(--derived); }
+.stn-badge-substrate { background: rgba(63, 185, 80, 0.10); color: var(--success); }
+.stn-badge-coating { background: rgba(210, 153, 34, 0.12); color: var(--warning); }
+.stn-badge-phase { background: rgba(88, 166, 255, 0.08); color: var(--text-secondary); }
+.stn-badge-task { background: var(--bg-elevated); color: var(--text-muted); }
+
+.stn-label {
+  color: var(--text-primary);
+  font-size: 12px;
+}
+.stn-kind-project > .stn-row > .stn-label,
+.stn-kind-room    > .stn-row > .stn-label {
+  font-weight: 600;
+}
+.stn-kind-task > .stn-row > .stn-label {
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+.stn-annotation {
+  font-size: 10px;
+  color: var(--derived);
+  background: var(--derived-bg);
+  padding: 1px 6px;
+  border-radius: var(--radius-sm);
+  font-style: italic;
+}
+.stn-outlier {
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--warning);
+  background: rgba(210, 153, 34, 0.12);
+  border: 1px solid rgba(210, 153, 34, 0.30);
+  padding: 0 5px;
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+}
+
+/* Room chips — shown on substrate headers and merged_task rows */
+.stn-roomchips {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 3px;
+  align-items: center;
+  margin-left: 4px;
+}
+.stn-roomchip {
+  font-size: 10px;
+  padding: 1px 6px;
+  border-radius: 8px;
+  background: rgba(88, 166, 255, 0.12);
+  color: var(--accent);
+  white-space: nowrap;
+  font-weight: 500;
+  line-height: 1.4;
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.stn-kind-substrate > .stn-row .stn-roomchip {
+  background: rgba(63, 185, 80, 0.12);
+  color: var(--success);
+}
+.stn-kind-element_group > .stn-row .stn-roomchip {
+  background: rgba(139, 92, 246, 0.12);
+  color: var(--derived);
+}
+
+/* Substrate chips — own color, distinct from rooms. Sit before room chips
+   on a merged_task row so locations read substrate→room (a painter's
+   workflow: which surface, then which space). */
+.stn-subchips {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 3px;
+  align-items: center;
+  margin-left: 4px;
+}
+.stn-subchip {
+  font-size: 10px;
+  padding: 1px 6px;
+  border-radius: 8px;
+  background: rgba(63, 185, 80, 0.14);
+  color: var(--success);
+  border: 1px solid rgba(63, 185, 80, 0.28);
+  white-space: nowrap;
+  font-weight: 500;
+  line-height: 1.4;
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* Group-tinted variants — reuse element_group palette so a Trim substrate
+   chip carries Trim's identity, Surfaces carries Surfaces, etc. */
+.stn-subchip[data-group="Surfaces"]        { background: rgba(88, 166, 255, 0.12); color: var(--accent);  border-color: rgba(88, 166, 255, 0.28); }
+.stn-subchip[data-group="Trim"]            { background: rgba(63, 185, 80, 0.12);  color: var(--success); border-color: rgba(63, 185, 80, 0.28); }
+.stn-subchip[data-group="Doors & Windows"] { background: rgba(210, 153, 34, 0.12); color: var(--warning); border-color: rgba(210, 153, 34, 0.28); }
+.stn-subchip[data-group="Specialty"]       { background: rgba(139, 92, 246, 0.12); color: var(--derived); border-color: rgba(139, 92, 246, 0.28); }
+.stn-subchip[data-group="Cabinets"]        { background: rgba(248, 81, 73, 0.10);  color: #f8a049;        border-color: rgba(248, 81, 73, 0.25); }
+.stn-subchip[data-group="Stairway"]        { background: rgba(139, 92, 246, 0.10); color: #b794f4;        border-color: rgba(139, 92, 246, 0.25); }
+.stn-subchip[data-group="Protection"]      { background: rgba(58, 138, 138, 0.14); color: #4dd9c8;        border-color: rgba(58, 138, 138, 0.30); }
+.stn-spacer { flex: 1; }
+.stn-qty {
+  font-family: var(--font-mono);
+  color: var(--text-secondary);
+  font-size: 11px;
+  flex-shrink: 0;
+  min-width: 88px;
+  text-align: right;
+}
+.stn-rate {
+  font-family: var(--font-mono);
+  color: var(--text-muted);
+  font-size: 11px;
+  flex-shrink: 0;
+  min-width: 88px;
+  text-align: right;
+}
+.stn-hours {
+  font-family: var(--font-mono);
+  color: var(--text-primary);
+  font-size: 11px;
+  flex-shrink: 0;
+  min-width: 56px;
+  text-align: right;
+}
+.stn-dollars {
+  font-family: var(--font-mono);
+  color: var(--success);
+  font-size: 11px;
+  flex-shrink: 0;
+  min-width: 70px;
+  text-align: right;
+}
+.stn-kind-project > .stn-row .stn-hours,
+.stn-kind-room    > .stn-row .stn-hours {
+  font-weight: 600;
+}
+
+/* ─────────── Inspector panel ─────────── */
+.lab-inspector {
+  width: 380px;
+  flex-shrink: 0;
+  background: var(--bg-panel);
+  border-left: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+.lab-inspector-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-card);
+}
+.lab-inspector-title {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+.lab-inspector-close {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 4px;
+}
+.lab-inspector-close:hover { color: var(--danger); }
+.lab-inspector-body {
+  flex: 1;
+  overflow: auto;
+  padding: var(--space-3) var(--space-4);
+}
+.lab-inspector-rule {
+  border: 0;
+  border-top: 1px solid var(--border);
+  margin: var(--space-3) 0;
+}
+.lab-inspector-section-title {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--text-secondary);
+  margin-bottom: var(--space-2);
+}
+.lab-field {
+  display: grid;
+  grid-template-columns: 110px 1fr;
+  gap: var(--space-2);
+  padding: 3px 0;
+  font-size: 11px;
+  align-items: baseline;
+}
+.lab-field-label {
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  font-size: 9px;
+  letter-spacing: 0.6px;
+}
+.lab-field-value {
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  word-break: break-word;
+}
+.lab-ctx {
+  background: var(--bg-deep);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: var(--space-2);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-primary);
+  overflow: auto;
+  margin: 0;
+  max-height: 320px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.lab-ctx-empty {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+/* Per-room breakdown table inside the inspector (merged_task) */
+.lab-perroom {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11px;
+  font-family: var(--font-mono);
+  margin-bottom: var(--space-2);
+}
+.lab-perroom th {
+  text-align: left;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border);
+  padding: 3px 6px;
+  font-weight: 500;
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+}
+.lab-perroom td {
+  padding: 3px 6px;
+  color: var(--text-primary);
+  border-bottom: 1px solid var(--border-subtle);
+}
+.lab-perroom .num {
+  text-align: right;
+}
+.lab-perroom tr:last-child td {
+  border-bottom: none;
+}

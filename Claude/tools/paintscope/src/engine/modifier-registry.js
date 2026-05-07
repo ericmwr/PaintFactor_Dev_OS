@@ -11,7 +11,7 @@
 //     Unconditional unless `gated_by_eligibility` names an eligibility key.
 
 // Hardcoded fallback defaults. Used when a bundle doesn't include a given
-// FAC_* (shouldn't happen in practice — the bundle ships all 24).
+// FAC_* (shouldn't happen in practice — the bundle ships all 25).
 const FALLBACK = {
   FAC_QT:           { factors: { QT1: 0.80, QT2: 0.80, QT3: 1.00, QT4: 1.30, QT5: 1.50 }, default: 'QT3' },
   FAC_HEIGHT:       { factors: { STD: 1.00, STEP: 1.30, EXT: 1.50, SCAFFOLD: 2.00 }, default: 'STD' },
@@ -19,6 +19,11 @@ const FALLBACK = {
   FAC_COMPLEXITY:   { factors: { OPEN: 0.85, STD: 1.00, MOD: 1.20, COMPLEX: 1.20, VCOMPLEX: 1.50 }, default: 'STD' },
   FAC_CONDITION:    { factors: { good: 0.70, fair: 1.00, poor: 1.50 }, default: 'fair' },
   FAC_EXT_ACCESS:   { factors: { ground: 1.00, ladder: 1.35, scaffold: 1.60, lift: 1.50 }, default: 'ground' },
+  // FAC_OVERHEAD: ceiling-orientation penalty (1.25 time = 0.8 rate). Module
+  // opt-in via modifier_eligibility.overhead = true. Engine derives
+  // surface_orientation from the resolved task's ps_key — CEILING_FIELD →
+  // CEILING, anything else → WALL.
+  FAC_OVERHEAD:     { factors: { WALL: 1.00, CEILING: 1.25 }, default: 'WALL' },
 };
 
 function getDef(bundle, modId) {

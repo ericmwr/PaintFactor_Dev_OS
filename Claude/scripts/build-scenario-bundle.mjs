@@ -24,14 +24,143 @@ const outFile = path.join(outDir, 'scenario-bundle.gen.js');
 
 function loadModules() {
   const modules = {};
-  const files = fs.readdirSync(modulesDir).filter(f => f.startsWith('MOD_') && f.endsWith('.json'));
-  for (const file of files) {
-    const mod = JSON.parse(fs.readFileSync(path.join(modulesDir, file), 'utf8'));
-    if (!mod.module_id) throw new Error(`Module ${file} missing module_id`);
-    if (modules[mod.module_id]) throw new Error(`Duplicate module_id ${mod.module_id} (${file})`);
-    modules[mod.module_id] = mod;
+  // Walk modules/ root + recurse only into `_*` subdirs (e.g. _test/ fixtures).
+  // `archive/` and other non-underscore subdirs are skipped on purpose.
+  function walk(dir, isRoot) {
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+      const full = path.join(dir, entry.name);
+      if (entry.isDirectory()) {
+        if (isRoot && entry.name.startsWith('_')) walk(full, false);
+        continue;
+      }
+      if (entry.isFile() && entry.name.startsWith('MOD_') && entry.name.endsWith('.json')) {
+        const mod = JSON.parse(fs.readFileSync(full, 'utf8'));
+        if (!mod.module_id) throw new Error(`Module ${entry.name} missing module_id`);
+        if (modules[mod.module_id]) throw new Error(`Duplicate module_id ${mod.module_id} (${entry.name})`);
+        modules[mod.module_id] = mod;
+      }
+    }
   }
+  walk(modulesDir, true);
   return modules;
+}
+
+/**
+ * Resolve `extends` references between modules. A module with `extends: "MOD_X"`
+ * inherits MOD_X's payload, with the child's own keys layered on top per the
+ * shallow-merge rules below. Templates (kind: "template") are kept in the bundle
+ * for authoring but are not directly runnable.
+ *
+ * Merge rules:
+ *   - tasks: child fully replaces parent if child defines a tasks array.
+ *   - modifier_eligibility: per-key merge; child overrides individual flags.
+ *   - all other top-level keys: child wins shallowly.
+ *
+ * Output:
+ *   - extender modules have `extends` and `kind` stripped, `_extends` provenance added.
+ *   - templates pass through unchanged (still flagged kind:"template").
+ *
+ * Errors:
+ *   - extends references missing module
+ *   - cycle in extends chain
+ *   - depth > 5
+ */
+const TEMPLATE_KIND = 'template';
+const EXTENDS_MAX_DEPTH = 5;
+
+function resolveExtends(rawModules) {
+  const resolved = {};
+
+  function resolveOne(mod, depth, seen) {
+    if (depth > EXTENDS_MAX_DEPTH) {
+      throw new Error(`extends chain exceeds depth ${EXTENDS_MAX_DEPTH} starting at ${mod.module_id}`);
+    }
+    if (!mod.extends) {
+      return structuredClone(mod);
+    }
+    if (seen.has(mod.module_id)) {
+      const chain = [...seen, mod.module_id].join(' -> ');
+      throw new Error(`Cycle detected in extends chain: ${chain}`);
+    }
+    seen.add(mod.module_id);
+
+    const parent = rawModules[mod.extends];
+    if (!parent) {
+      throw new Error(`Module ${mod.module_id} extends ${mod.extends} which does not exist`);
+    }
+
+    const resolvedParent = resolveOne(parent, depth + 1, seen);
+    const merged = structuredClone(resolvedParent);
+
+    for (const [key, value] of Object.entries(mod)) {
+      if (key === 'extends' || key === 'kind') continue;
+      if (key === 'modifier_eligibility' && resolvedParent.modifier_eligibility) {
+        merged[key] = { ...resolvedParent.modifier_eligibility, ...value };
+      } else {
+        merged[key] = structuredClone(value);
+      }
+    }
+
+    delete merged.extends;
+    delete merged.kind;
+    merged._extends = mod.extends;
+    return merged;
+  }
+
+  for (const mod of Object.values(rawModules)) {
+    if (mod.kind === TEMPLATE_KIND) {
+      resolved[mod.module_id] = structuredClone(mod);
+    } else if (mod.extends) {
+      resolved[mod.module_id] = resolveOne(mod, 0, new Set());
+    } else {
+      resolved[mod.module_id] = structuredClone(mod);
+    }
+  }
+  return resolved;
+}
+
+/**
+ * Post-resolution invariant: any module that came through extends resolution
+ * (carries `_extends` provenance) must have non-empty tasks + phase. Plain
+ * modules are exempt (some intentionally have empty tasks, e.g. setup stubs).
+ */
+function validateExtenderInvariants(modules) {
+  const errors = [];
+  for (const mod of Object.values(modules)) {
+    if (!mod._extends) continue;
+    if (!Array.isArray(mod.tasks) || mod.tasks.length === 0) {
+      errors.push(`${mod.module_id}: extender resolved to empty tasks (template missing tasks?)`);
+    }
+    if (!mod.phase) {
+      errors.push(`${mod.module_id}: extender resolved without phase`);
+    }
+  }
+  if (errors.length > 0) {
+    throw new Error(`Post-resolution invariant failed:\n  ${errors.join('\n  ')}`);
+  }
+}
+
+/**
+ * Scenarios may not reference template module IDs — they reference substrate
+ * (resolved) modules. This catches author mistakes where someone wires a
+ * scenario to a template by accident.
+ */
+function validateNoTemplateScenarioRefs(modules, scenarios) {
+  const templateIds = new Set();
+  for (const mod of Object.values(modules)) {
+    if (mod.kind === TEMPLATE_KIND) templateIds.add(mod.module_id);
+  }
+  if (templateIds.size === 0) return;
+  const violations = [];
+  for (const scn of scenarios) {
+    if (!Array.isArray(scn.modules)) continue;
+    for (const mid of scn.modules) {
+      if (templateIds.has(mid)) violations.push(`${scn.scenario_id} -> ${mid}`);
+    }
+  }
+  if (violations.length > 0) {
+    throw new Error(`Scenarios cannot reference template modules:\n  ${violations.join('\n  ')}`);
+  }
 }
 
 function loadScenarios() {
@@ -132,8 +261,14 @@ function validate(modules, scenarios) {
 
 function main() {
   console.log('Loading modules from', modulesDir);
-  const modules = loadModules();
-  console.log(`  ${Object.keys(modules).length} modules loaded`);
+  const rawModules = loadModules();
+  console.log(`  ${Object.keys(rawModules).length} modules loaded`);
+
+  console.log('Resolving module extends...');
+  const modules = resolveExtends(rawModules);
+  const templateCount = Object.values(modules).filter(m => m.kind === TEMPLATE_KIND).length;
+  const extenderCount = Object.values(modules).filter(m => m._extends).length;
+  console.log(`  ${templateCount} template(s), ${extenderCount} extender(s) resolved`);
 
   console.log('Loading scenarios from', scenariosDir);
   const scenarios = loadScenarios();
@@ -150,6 +285,8 @@ function main() {
   console.log('Validating bundle integrity...');
   validate(modules, scenarios);
   validateTaskRefs(modules, tasks);
+  validateExtenderInvariants(modules);
+  validateNoTemplateScenarioRefs(modules, scenarios);
   console.log('  OK');
 
   warnInlineVsLibraryCollisions(modules, tasks);
