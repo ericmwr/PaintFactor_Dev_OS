@@ -420,6 +420,38 @@ export default function SubstrateDetailPanel({ room, derived, dispatch, substrat
           );
         })()}
 
+        {/* Columns — Height × Sides drives total LF (each face contributes its own LF). */}
+        {substrateId === 'columns' && (() => {
+          const lf = parseFloat(config.lf_manual) || 0;
+          const sides = parseInt(config.column_sides) || 4;
+          const totalLF = lf * sides;
+          return (
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>Height</span>
+                  <input type="number" value={config.lf_manual || ''} onChange={e => setSub('lf_manual', parseFloat(e.target.value) || 0)} min="0" style={{ width: 80 }} />
+                  <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>LF</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>Sides</span>
+                  <Select
+                    options={[
+                      { value: 3, label: '3 (attached to wall)' },
+                      { value: 4, label: '4 (free-standing)' },
+                    ]}
+                    value={sides}
+                    onChange={v => setSub('column_sides', parseInt(v) || 4)}
+                  />
+                </div>
+              </div>
+              <div style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 6 }}>
+                Height × Sides = {totalLF} LF total
+              </div>
+            </div>
+          );
+        })()}
+
         {/* Mantels — Length drives SF (top + bottom + sides folded into 2× LF rule). */}
         {substrateId === 'mantels' && (() => {
           const lf = parseFloat(config.lf_manual) || 0;
@@ -446,8 +478,8 @@ export default function SubstrateDetailPanel({ room, derived, dispatch, substrat
           </div>
         )}
 
-        {/* LF manual-only (chair rail, shoe mold, etc.) — beams handled above */}
-        {isLF && !hasAuto && substrateId !== 'beams' && (
+        {/* LF manual-only (chair rail, shoe mold, etc.) — beams/columns handled above */}
+        {isLF && !hasAuto && substrateId !== 'beams' && substrateId !== 'columns' && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <input type="number" value={config.lf_manual || ''} onChange={e => setSub('lf_manual', parseFloat(e.target.value) || 0)} min="0" style={{ width: 100 }} />
             <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>LF</span>

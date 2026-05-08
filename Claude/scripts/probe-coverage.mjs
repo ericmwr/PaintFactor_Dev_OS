@@ -79,9 +79,9 @@ const PROBES = [
   { label: 'Closet Shelf NC QT3 melamine spray',     ctx: { paintable_item: 'closet', quality_tier: 'QT3', application_method: 'spray',      substrate_state: 'SS_FACTORY_FINISH',  coating_type: 'paint' }, qty: { 'PS_SURFACE_LF.CLOSET_SHELF': 30 } },
   // Arch Element — beams (LF), columns (EA), mantels (EA)
   { label: 'Arch NC QT3 brush — beams',   ctx: { paintable_item: 'arch_element', quality_tier: 'QT3', application_method: 'brush', substrate_state: 'SS_BARE' }, qty: { 'PS_SURFACE_LF.ARCH_BEAM': 20 } },
-  { label: 'Arch NC QT3 brush — columns', ctx: { paintable_item: 'arch_element', quality_tier: 'QT3', application_method: 'brush', substrate_state: 'SS_BARE' }, qty: { 'PS_SURFACE_EA.ARCH_COLUMN': 2 } },
+  { label: 'Arch NC QT3 brush — columns', ctx: { paintable_item: 'arch_element', quality_tier: 'QT3', application_method: 'brush', substrate_state: 'SS_BARE' }, qty: { 'PS_SURFACE_LF.ARCH_COLUMN': 64 } },
   { label: 'Arch NC QT3 brush — mantels', ctx: { paintable_item: 'arch_element', quality_tier: 'QT3', application_method: 'brush', substrate_state: 'SS_BARE' }, qty: { 'PS_SURFACE_SF.ARCH_MANTEL': 12 } },
-  { label: 'Arch stain+clear QT4',         ctx: { paintable_item: 'int_arch_element', quality_tier: 'QT4', application_method_stain: 'brush', application_method_clear: 'brush', substrate_state: 'SS_BARE', coating_type: 'stain_clear', stain_coats: 1, sealer_coats: 1, clear_coats: 1 }, qty: { 'PS_SURFACE_LF.ARCH_BEAM': 20, 'PS_SURFACE_EA.ARCH_COLUMN': 2, 'PS_SURFACE_SF.ARCH_MANTEL': 12 } },
+  { label: 'Arch stain+clear QT4',         ctx: { paintable_item: 'int_arch_element', quality_tier: 'QT4', application_method_stain: 'brush', application_method_clear: 'brush', substrate_state: 'SS_BARE', coating_type: 'stain_clear', stain_coats: 1, sealer_coats: 1, clear_coats: 1 }, qty: { 'PS_SURFACE_LF.ARCH_BEAM': 20, 'PS_SURFACE_LF.ARCH_COLUMN': 64, 'PS_SURFACE_SF.ARCH_MANTEL': 12 } },
   // Built-ins (SF)
   { label: 'Built-in NC QT3 brush from bare', ctx: { paintable_item: 'builtin', quality_tier: 'QT3', application_method: 'brush', substrate_state: 'SS_BARE' }, qty: { 'PS_SURFACE_SF.BUILTIN': 50 } },
   { label: 'Built-in NC QT4 spray from bare', ctx: { paintable_item: 'builtin', quality_tier: 'QT4', application_method: 'spray', substrate_state: 'SS_BARE' }, qty: { 'PS_SURFACE_SF.BUILTIN': 50 } },

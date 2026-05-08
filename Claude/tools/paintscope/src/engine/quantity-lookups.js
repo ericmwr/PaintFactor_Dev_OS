@@ -159,7 +159,7 @@ export function buildRoomQuantityLookups(state) {
     const specKeys = [
       ['wainscoting', 'PS_SURFACE_SF.WAINSCOTING', 'SF', 'sf_manual'], ['wood_feature_wall', 'PS_SURFACE_SF.WOOD_WALL', 'SF', 'sf_manual'],
       ['wood_ceiling', 'PS_SURFACE_SF.WOOD_CEILING', 'SF', 'sf_manual'], ['closet_shelving', 'PS_SURFACE_LF.CLOSET_SHELF', 'LF', 'lf_manual'],
-      ['beams', 'PS_SURFACE_LF.ARCH_BEAM', 'LF', 'lf_manual'], ['columns', 'PS_SURFACE_EA.ARCH_COLUMN', 'EA', 'ea_manual'],
+      ['beams', 'PS_SURFACE_LF.ARCH_BEAM', 'LF', 'lf_manual'], ['columns', 'PS_SURFACE_LF.ARCH_COLUMN', 'LF', 'lf_manual'],
       ['mantels', 'PS_SURFACE_SF.ARCH_MANTEL', 'SF', 'lf_manual'],
     ];
     specKeys.forEach(([subId, psKey, uom, manualKey]) => {
@@ -180,6 +180,12 @@ export function buildRoomQuantityLookups(state) {
           // attached to a ceiling typically have 3 sides.
           const lf = parseFloat(cfg.lf_manual) || 0;
           const sides = parseInt(cfg.beam_sides) || 4;
+          v = lf * sides;
+        } else if (subId === 'columns') {
+          // LF derives from column height × sides. Free-standing column = 4 sides;
+          // column attached to a wall = 3 sides.
+          const lf = parseFloat(cfg.lf_manual) || 0;
+          const sides = parseInt(cfg.column_sides) || 4;
           v = lf * sides;
         } else if (subId === 'mantels') {
           // SF derives from mantel length × 2 (top + bottom + sides folded
