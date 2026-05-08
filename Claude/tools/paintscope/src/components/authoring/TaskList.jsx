@@ -9,14 +9,21 @@ import { useTaskDrafts } from '../../hooks/useTaskDrafts.js';
 import canonicalBundle from '../../data/scenario-bundle.gen.js';
 import TaskEditor from './TaskEditor.jsx';
 import { publishTask } from '../../authoring/publish.js';
+import { matchActivityRule } from '../../data/activity-rules.js';
+
+const UNMATCHED_BUCKET = '__unmatched__';
 
 export default function TaskList({ pendingSelection, onNavigateToModule } = {}) {
   const { drafts, loading, save, remove } = useTaskDrafts();
   const [selected, setSelected] = useState(null);
   const [creating, setCreating] = useState(false);
   const [search, setSearch] = useState('');
+  const [activeActivities, setActiveActivities] = useState(() => new Set());
+  const [activitiesExpanded, setActivitiesExpanded] = useState(false);
 
-  const rows = useMemo(() => {
+  // Per-row activity classification + per-activity counts. Computed once
+  // per draft change so the chip row + filter share the same map.
+  const { allRows, activityCounts } = useMemo(() => {
     const draftById = new Map(drafts.map(d => [d.id, d]));
     const canon = Object.values(canonicalBundle.tasks || {});
     const merged = canon.map(t => {
@@ -25,17 +32,36 @@ export default function TaskList({ pendingSelection, onNavigateToModule } = {}) 
         ? { id: t.task_id, payload: d.payload || d, name: t.name, source: 'draft', status: d.status }
         : { id: t.task_id, payload: t, name: t.name, source: 'canonical', status: 'canonical' };
     });
-    // Draft-only (newly authored, not yet in bundle)
     const canonIds = new Set(canon.map(c => c.task_id));
     for (const d of drafts) {
       if (!canonIds.has(d.id)) {
         merged.push({ id: d.id, payload: d.payload || d, name: (d.payload || d).name, source: 'new', status: d.status });
       }
     }
-    return merged
-      .filter(r => !search || r.id.toLowerCase().includes(search.toLowerCase()) || (r.name || '').toLowerCase().includes(search.toLowerCase()))
+    const counts = {};
+    for (const r of merged) {
+      const activity = matchActivityRule(r.id) || UNMATCHED_BUCKET;
+      r.activity = activity;
+      counts[activity] = (counts[activity] || 0) + 1;
+    }
+    return { allRows: merged, activityCounts: counts };
+  }, [drafts]);
+
+  const rows = useMemo(() => {
+    const term = search.toLowerCase();
+    return allRows
+      .filter(r => !term || r.id.toLowerCase().includes(term) || (r.name || '').toLowerCase().includes(term))
+      .filter(r => activeActivities.size === 0 || activeActivities.has(r.activity))
       .sort((a, b) => a.id.localeCompare(b.id));
-  }, [drafts, search]);
+  }, [allRows, search, activeActivities]);
+
+  const toggleActivity = (activity) => {
+    setActiveActivities(prev => {
+      const next = new Set(prev);
+      if (next.has(activity)) next.delete(activity); else next.add(activity);
+      return next;
+    });
+  };
 
   useEffect(() => {
     if (!pendingSelection) return;
@@ -95,6 +121,53 @@ export default function TaskList({ pendingSelection, onNavigateToModule } = {}) 
           onChange={e => setSearch(e.target.value)}
           style={{ marginBottom: 6, padding: '4px 6px', fontSize: 11, background: 'var(--bg-input, #222)', color: 'var(--text)', border: '1px solid var(--border)', borderRadius: 3 }}
         />
+        {/* Activity-family chip filter — pulls from data/activity-rules.js. */}
+        <div style={{ marginBottom: 6, display: 'flex', gap: 4, alignItems: 'flex-start', flexWrap: 'wrap' }}>
+          <span
+            onClick={() => setActivitiesExpanded(v => !v)}
+            style={{ fontSize: 9, color: 'var(--text-muted)', cursor: 'pointer', userSelect: 'none', paddingTop: 2, width: 72, flexShrink: 0 }}
+          >
+            {activitiesExpanded ? '▾' : '▸'} Activity
+            {!activitiesExpanded && activeActivities.size > 0 && (
+              <span style={{ color: 'var(--accent, #82aaff)', marginLeft: 4 }}>({activeActivities.size})</span>
+            )}
+          </span>
+          {activitiesExpanded && (
+            <div style={{ display: 'flex', gap: 3, flexWrap: 'wrap', flex: 1 }}>
+              {Object.entries(activityCounts)
+                .sort((a, b) => b[1] - a[1])
+                .map(([activity, count]) => {
+                  const isActive = activeActivities.has(activity);
+                  const label = activity === UNMATCHED_BUCKET ? '(unmatched)' : activity;
+                  return (
+                    <button
+                      key={activity}
+                      onClick={() => toggleActivity(activity)}
+                      style={{
+                        fontSize: 10,
+                        padding: '1px 6px',
+                        borderRadius: 10,
+                        border: `1px solid ${isActive ? 'var(--accent, #82aaff)' : 'var(--border)'}`,
+                        background: isActive ? 'rgba(130, 170, 255, 0.2)' : 'var(--bg-input, #222)',
+                        color: isActive ? 'var(--accent, #82aaff)' : 'var(--text)',
+                        cursor: 'pointer',
+                        fontFamily: 'var(--font-mono)',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      {label} <span style={{ opacity: 0.6 }}>{count}</span>
+                    </button>
+                  );
+                })}
+              {activeActivities.size > 0 && (
+                <button
+                  onClick={() => setActiveActivities(new Set())}
+                  style={{ fontSize: 9, color: '#e74c3c', background: 'none', border: 'none', cursor: 'pointer', padding: 0, marginLeft: 4, textDecoration: 'underline' }}
+                >clear</button>
+              )}
+            </div>
+          )}
+        </div>
         <div style={{ flex: 1, overflowY: 'auto' }}>
           {rows.map(r => {
             const isSel = selected?.id === r.id;
