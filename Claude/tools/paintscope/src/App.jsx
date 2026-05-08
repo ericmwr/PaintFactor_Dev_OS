@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, lazy, Suspense } from 'react';
 import { ProjectProvider } from './hooks/useProject';
 import { useProject } from './hooks/useProject';
 import { useEstimate } from './hooks/useEstimate';
@@ -531,7 +531,29 @@ function ProjectLoader({ projectDb }) {
   );
 }
 
+// Lab sandbox — isolated render path for /lab/* surfaces. Lazy-loaded so
+// the production bundle pays no cost; isolated so a lab crash can't break
+// the main app. Activate with ?lab=scope-tree (or any future lab id).
+const LabRoot = lazy(() => import('./components/scope-tree-lab/LabRoot.jsx'));
+
+function getLabId() {
+  try {
+    const params = new URLSearchParams(window.location.search);
+    return params.get('lab');
+  } catch {
+    return null;
+  }
+}
+
 export default function App() {
+  const labId = getLabId();
+  if (labId) {
+    return (
+      <Suspense fallback={<div style={{ padding: 24, color: 'var(--text-muted)' }}>Loading lab…</div>}>
+        <LabRoot labId={labId} />
+      </Suspense>
+    );
+  }
   const projectDb = useProjectDB();
   return <ProjectLoader projectDb={projectDb} />;
 }
