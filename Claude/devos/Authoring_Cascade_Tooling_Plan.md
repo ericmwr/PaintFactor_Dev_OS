@@ -4,6 +4,66 @@
 **Created:** 2026-05-04
 **Purpose:** Add three pieces of tooling on top of the reverse-lookups + filters that have already shipped, so the user can refactor task IDs, bulk-edit rates and display names, and ship changes without manual archaeology. Goal is to make the architecture's reference-graph actually exercisable before going to production.
 
+## Status as of 2026-05-08 (audit)
+
+NC consolidation is "done enough" to start cascade work — `_merge_log.jsonl` shows 35 rounds, ~450 tasks consolidated, catalog 2662 → 2186 active. So the trigger condition in "First Move on the New Session" below has been met.
+
+**HOWEVER**, the prerequisite checklist at the top of this plan over-claims. Several pieces are code-complete on disk but never wired into the UI. The "all shipped 2026-05-04" framing in `Scope_Tree_And_Cascade_Next_Session.md` and `Task_Consolidation_Next_Session.md` is wrong — most of these were committed in `1f80994` but the integration step was skipped.
+
+### Prerequisite checklist (verified by file inspection 2026-05-08)
+
+| # | Prereq | Status | Evidence |
+|---|---|---|---|
+| 1 | `findTaskUsage(taskId, modules)` in `TaskUsagePanel.jsx` | ✓ | `TaskUsagePanel.jsx:13` — exact signature + return shape match the plan |
+| 2 | `TaskUsagePanel` mounted inside `TaskEditor` | ✓ | `TaskEditor.jsx:245` |
+| 3 | `findModuleUsage(moduleId, scenarios)` in `ModuleUsagePanel.jsx` | ✓ | `ModuleUsagePanel.jsx:14` |
+| 4 | `ModuleUsagePanel` mounted inside `ModuleEditor` | ✗ | `ModuleEditor.jsx` has **no import or mount** of `ModuleUsagePanel`. Component is orphan. |
+| 5 | Domain filter on TaskList + ModuleList | 🟡 | TaskList.jsx has search-only (no filters at all). ModuleList uses `TagFilterBar` with `phase / substrate / method` primary + `qt / state / coating / status` advanced — no `domain` chip in module mode (only in scenario mode). ScenarioList has `domain` chip. |
+| 6 | Activity-family filter on TaskList | ✗ | TaskList has no chip filters. `activity-rules.js` exists with `ACTIVITY_NAMES` ready to feed a chip row, but nothing consumes it. |
+| 7 | Spec-family filter on TaskList + ModuleList | ✗ | Neither list has a spec-family chip. |
+| 8 | Phase filter on TaskList | ✗ | TaskList has no chip filters. ModuleList has `phase` chip but for modules, not transitively for tasks. |
+| 9 | Archive workflow + bundle exclusion | 🟡 | Backend complete: `authoring/archive-ops.js`, `hooks/useArchivedIds.js`, `Claude/{tasks,modules,scenarios}/archive/` directories exist and are excluded by the bundle script. Front-end NOT wired: `ArchiveView.jsx` exists (163 lines, fully functional component) but is **never imported** anywhere. AuthoringView.jsx tabs are `Modules / Scenarios / Tasks / QT Builder / Assemblies / Modifiers / Drafts` — no Archive tab. No Archive button visible on TaskEditor either. |
+| 10 | Regenerate-bundle button (Authoring header) | ✗ | No "Regenerate" / "Regen" / `build-scenario-bundle` reference in any component. The script `Claude/scripts/build-scenario-bundle.mjs` exists but is CLI-only. |
+| 11 | Smoke runner browser-portable | 🟡 | Better than the plan estimated. `smoke-scope-tree.mjs` already uses **synthetic inlined data** (not fs reads) — the only thing tying it to node is the `import` from a relative path. Porting to a browser-callable `smoke-runner.js` is essentially a copy-paste plus turning the `check()` accumulator into a return-array shape. |
+| 12 | Activity rules dictionary at `data/activity-rules.js` | 🟡 | File exists with `ACTIVITY_RULES`, `matchActivityRule`, `deriveActivity`, `ACTIVITY_NAMES`. **Zero consumers in the codebase.** Memory note `project_activity_rules_dictionary.md` claims it's consumed by `scope-tree.js` and TaskList — both false. (`grep -rn "ACTIVITY_RULES" src/` only hits the file itself.) |
+
+### Phase 1 (smoke-on-publish) entry-readiness verdict
+
+**🟡 YELLOW — entry-ready, but only because Phase 1 doesn't actually depend on most of the orphaned prereqs.**
+
+Phase 1 needs (a) the existing draft/publish flow in `DraftsView.jsx`, (b) the smoke harness, (c) a browser-portable runner. All three exist. The smoke port is smaller than the plan estimated (point 11 above). So Phase 1 itself is unblocked.
+
+But: Phase 2 (Rename-with-Cascade) and Phase 3 (Bulk Transforms) DO depend on the orphaned UI prereqs — rename modal needs the usage panels visible, bulk editor needs the activity-family filter and the archive workflow visible to the user. Shipping Phase 1 in isolation gates publishes but leaves the other two phases gated on the same orphan-stitching work.
+
+### Recommended ordering revision
+
+The plan's original order was Phase 1 → Phase 2 → Phase 3. After this audit I'd insert **Phase 0 — Stitch the orphans** before Phase 1:
+
+> **Phase 0 — Stitch the orphans (~half-day)**
+>
+> 1. Mount `<ModuleUsagePanel />` inside `ModuleEditor.jsx` (mirror the TaskEditor:245 pattern).
+> 2. Add an `Archive` tab to `AuthoringView.jsx` (8th tab, mounts `<ArchiveView />`). Add an "Archive" button to `TaskEditor.jsx` and `ModuleEditor.jsx` calling `archiveEntity()` from `archive-ops.js`.
+> 3. Add a "Regenerate bundle" button to the AuthoringView header that POSTs to whatever local script-runner endpoint the project uses (or, if there's no endpoint, drops a hint with the CLI command + clipboard copy).
+> 4. Wire `activity-rules.js` into TaskList as a chip-filter row. Reuse `TagFilterBar` if practical or add a small dedicated row.
+> 5. Update `MEMORY.md` references — `project_activity_rules_dictionary.md` claims consumers that don't exist; either fix the consumers or fix the memory.
+>
+> Each of these is a 30-90 min change. Together they make the rest of the cascade tooling rest on prereqs that actually exist in the UI, and they unblock day-to-day authoring work the user is hitting now (Archive button is the highest pain since the consolidation pass produced 713 archived tasks the user can't currently restore from the UI).
+
+Then Phase 1 → Phase 2 → Phase 3 in the original order.
+
+### Risks / open questions surfaced by the audit
+
+- **`ModuleUsagePanel` mount point.** Plan assumes a single `ModuleEditor`; verify there isn't a separate scenario-side editor that also wants the panel. (Quick `grep`: there's `ScenarioEditor.jsx` — out of scope for cascade Phase 2 but worth a future phase.)
+- **Bundle regen button infrastructure.** The user has a Vite dev server, not a long-running backend. A "regen" button has to either (a) shell out via a local node helper the dev server proxies to, or (b) be a no-op + clipboard helper that the user runs manually. Pick (b) for now to avoid scope creep.
+- **Activity rules drift.** With zero consumers today, the rules file has had no pressure to stay in sync with the catalog. When Phase 0.4 wires it into TaskList, expect a coverage gap — many tasks won't match any rule. Plan for an "Unmatched" bucket from day 1 (the plan already calls this out, good).
+- **`?lab=scope-tree` route is also unwired** (separate audit — see `memory/project_scope_tree_phase2_lab.md`). Same orphan pattern as the cascade UI prereqs. Worth bundling the route-wiring fix into Phase 0 since it's the same kind of integration work.
+- **`TagFilterBar` rebrand.** Plan called for `domain / activity-family / spec-family / phase` filters. Current `TagFilterBar` uses `phase / substrate / method / qt / state / coating / status / domain (scenarios only)`. If the cascade plan's filter taxonomy is the right one, reconciliation is a real design call — don't paper over by adding a 9th category.
+- **Test coverage on cascade ops.** No automated tests on `findTaskUsage` / `findModuleUsage` / `archiveEntity` / `restoreEntity`. Phase 1's smoke gate doesn't catch regressions in these paths. Consider extending the smoke runner with bundle-shape invariants ("every task_ref resolves", "no orphan modules") as the plan already proposes.
+
+### Bottom line
+
+Phase 1 is shippable on its own without Phase 0, but the resulting "smoke-on-publish" gate guards a workflow the user can't actually use to its full extent (rename + bulk + archive all need UI surfaces that aren't mounted). Doing the half-day Phase 0 stitch before Phase 1 makes every subsequent feature drop into existing surfaces instead of needing fresh integration each time.
+
 **Pre-production calibration:** PaintScope is in development only — no live customer data, no time tracker history, no migration burden on existing project state. See `memory/project_paintscope_pre_production.md`. Drop any reflex toward backward-compat aliases or deprecation cycles; rip and replace, run smoke, ship.
 
 ## Prerequisites — already shipped (2026-05-04)
