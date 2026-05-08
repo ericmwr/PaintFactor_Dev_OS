@@ -388,11 +388,12 @@ export default function SubstrateDetailPanel({ room, derived, dispatch, substrat
           );
         })()}
 
-        {/* Beams — Length × Sides drives total LF (each face contributes its own LF). */}
+        {/* Beams — Length × Sides × Qty drives total LF (each face contributes its own LF). */}
         {substrateId === 'beams' && (() => {
           const lf = parseFloat(config.lf_manual) || 0;
           const sides = parseInt(config.beam_sides) || 4;
-          const totalLF = lf * sides;
+          const qty = parseInt(config.beam_qty) || 1;
+          const totalLF = lf * sides * qty;
           return (
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
@@ -412,19 +413,24 @@ export default function SubstrateDetailPanel({ room, derived, dispatch, substrat
                     onChange={v => setSub('beam_sides', parseInt(v) || 4)}
                   />
                 </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>Qty</span>
+                  <input type="number" value={config.beam_qty || ''} onChange={e => setSub('beam_qty', parseInt(e.target.value) || 1)} min="1" style={{ width: 60 }} />
+                </div>
               </div>
               <div style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 6 }}>
-                Length × Sides = {totalLF} LF total
+                Length × Sides × Qty = {totalLF} LF total
               </div>
             </div>
           );
         })()}
 
-        {/* Columns — Height × Sides drives total LF (each face contributes its own LF). */}
+        {/* Columns — Height × Sides × Qty drives total LF (each face contributes its own LF). */}
         {substrateId === 'columns' && (() => {
           const lf = parseFloat(config.lf_manual) || 0;
           const sides = parseInt(config.column_sides) || 4;
-          const totalLF = lf * sides;
+          const qty = parseInt(config.column_qty) || 1;
+          const totalLF = lf * sides * qty;
           return (
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
@@ -444,9 +450,13 @@ export default function SubstrateDetailPanel({ room, derived, dispatch, substrat
                     onChange={v => setSub('column_sides', parseInt(v) || 4)}
                   />
                 </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>Qty</span>
+                  <input type="number" value={config.column_qty || ''} onChange={e => setSub('column_qty', parseInt(e.target.value) || 1)} min="1" style={{ width: 60 }} />
+                </div>
               </div>
               <div style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 6 }}>
-                Height × Sides = {totalLF} LF total
+                Height × Sides × Qty = {totalLF} LF total
               </div>
             </div>
           );

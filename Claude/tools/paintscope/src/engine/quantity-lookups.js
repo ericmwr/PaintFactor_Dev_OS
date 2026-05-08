@@ -175,18 +175,20 @@ export function buildRoomQuantityLookups(state) {
           const ht = parseFloat(cfg.wainscot_height_ft) || 0;
           v = cfg.sf_override ? (parseFloat(cfg.sf_manual) || 0) : (lf * ht);
         } else if (subId === 'beams') {
-          // LF derives from beam length × sides. A 10 LF beam with 4 exposed
-          // sides emits 40 LF (each face contributes its own LF). Beams
-          // attached to a ceiling typically have 3 sides.
+          // LF derives from beam length × sides × qty. A 10 LF beam with 4
+          // exposed sides emits 40 LF per beam (each face contributes its own
+          // LF). Beams attached to a ceiling typically have 3 sides.
           const lf = parseFloat(cfg.lf_manual) || 0;
           const sides = parseInt(cfg.beam_sides) || 4;
-          v = lf * sides;
+          const qty = parseInt(cfg.beam_qty) || 1;
+          v = lf * sides * qty;
         } else if (subId === 'columns') {
-          // LF derives from column height × sides. Free-standing column = 4 sides;
-          // column attached to a wall = 3 sides.
+          // LF derives from column height × sides × qty. Free-standing column
+          // = 4 sides; column attached to a wall = 3 sides.
           const lf = parseFloat(cfg.lf_manual) || 0;
           const sides = parseInt(cfg.column_sides) || 4;
-          v = lf * sides;
+          const qty = parseInt(cfg.column_qty) || 1;
+          v = lf * sides * qty;
         } else if (subId === 'mantels') {
           // SF derives from mantel length × 2 (top + bottom + sides folded
           // into a 2× LF rule of thumb).
