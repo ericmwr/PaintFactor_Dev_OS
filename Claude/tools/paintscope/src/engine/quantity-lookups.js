@@ -206,13 +206,19 @@ export function buildRoomQuantityLookups(state) {
       }
     });
 
-    // Built-ins — emit per-tier opening counts (spec uses PS_OPENING_EA.BUILTIN_SHELF.*)
+    // Built-ins — derive SF from per-tier opening counts + full-height sides.
+    // Tasks read PS_SURFACE_SF.BUILTIN. Per-tier SF coefficients approximate the
+    // total paintable surface within each opening bay; full-height sides
+    // contribute the exterior wraparound.
     if (subs.builtins) {
       const bi = subs.builtins;
-      if (bi.openings_s > 0) addQ('PS_OPENING_EA.BUILTIN_SHELF.S', 'EA', bi.openings_s);
-      if (bi.openings_m > 0) addQ('PS_OPENING_EA.BUILTIN_SHELF.M', 'EA', bi.openings_m);
-      if (bi.openings_l > 0) addQ('PS_OPENING_EA.BUILTIN_SHELF.L', 'EA', bi.openings_l);
-      if (bi.openings_xl > 0) addQ('PS_OPENING_EA.BUILTIN_SHELF.XL', 'EA', bi.openings_xl);
+      const openS  = parseInt(bi.openings_s)  || 0;
+      const openM  = parseInt(bi.openings_m)  || 0;
+      const openL  = parseInt(bi.openings_l)  || 0;
+      const openXL = parseInt(bi.openings_xl) || 0;
+      const sides  = parseInt(bi.full_height_sides) || 0;
+      const builtinSF = openS * 6 + openM * 12 + openL * 24 + openXL * 40 + sides * 30;
+      if (builtinSF > 0) addQ('PS_SURFACE_SF.BUILTIN', 'SF', builtinSF);
     }
 
     // Stairway — emit per-component PS keys from derived or overridden quantities
