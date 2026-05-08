@@ -11,6 +11,7 @@
 
 import { useState, useEffect } from 'react';
 import ModifierImpactPreview from './ModifierImpactPreview.jsx';
+import ModuleUsagePanel from './ModuleUsagePanel.jsx';
 import TaskPicker from './TaskPicker.jsx';
 import canonicalBundle from '../../data/scenario-bundle.gen.js';
 
@@ -49,7 +50,7 @@ function emptyModule() {
   };
 }
 
-export default function ModuleEditor({ draft, onSave, onCancel, onPublish }) {
+export default function ModuleEditor({ draft, onSave, onCancel, onPublish, onNavigateToScenario }) {
   const [record, setRecord] = useState(() => draft ? structuredClone(draft) : emptyModule());
   const [dirty, setDirty] = useState(false);
   const [pickerOpen, setPickerOpen] = useState(false);
@@ -412,6 +413,9 @@ export default function ModuleEditor({ draft, onSave, onCancel, onPublish }) {
             onChange={e => handleHeaderChange('doctrine', e.target.value)}
           />
         </label>
+
+        {/* Where used — scenarios that include this module */}
+        <ModuleUsagePanel moduleId={payload.module_id} onNavigateToScenario={onNavigateToScenario} />
 
         {/* Actions */}
         <div style={{ display: 'flex', gap: 8, marginTop: 16, position: 'sticky', bottom: 0, background: 'var(--bg-panel)', padding: '8px 0' }}>

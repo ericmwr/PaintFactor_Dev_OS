@@ -73,7 +73,7 @@ export default function AuthoringView() {
         </span>
       </div>
       <div style={{ flex: 1, overflow: 'hidden', padding: 12 }}>
-        {tab === 'modules'    && <ModuleList pendingSelection={pendingSelection?.kind === 'module' ? pendingSelection : null} />}
+        {tab === 'modules'    && <ModuleList pendingSelection={pendingSelection?.kind === 'module' ? pendingSelection : null} onNavigateToScenario={(id) => handleNavigate('scenario', id)} />}
         {tab === 'scenarios'  && <ScenarioList pendingSelection={pendingSelection?.kind === 'scenario' ? pendingSelection : null} />}
         {tab === 'tasks'      && <TaskList pendingSelection={pendingSelection?.kind === 'task' ? pendingSelection : null} onNavigateToModule={(id) => handleNavigate('module', id)} />}
         {tab === 'qt'         && <QTBuilder />}

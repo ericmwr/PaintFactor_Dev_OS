@@ -13,7 +13,7 @@ import { deriveModuleTags, computeChipCounts, rowPassesFilters } from './tag-der
 
 const PHASE_FILTERS = ['all', 'setup', 'prep', 'prime', 'apply', 'finish', 'interstage', 'cleanup'];
 
-export default function ModuleList({ pendingSelection } = {}) {
+export default function ModuleList({ pendingSelection, onNavigateToScenario } = {}) {
   const { drafts, loading, save, remove } = useModuleDrafts();
   const [selected, setSelected] = useState(null); // draft record OR canonical module shaped as a draft
   const [creating, setCreating] = useState(false);
@@ -202,6 +202,7 @@ export default function ModuleList({ pendingSelection } = {}) {
             onSave={handleSave}
             onCancel={() => { setCreating(false); setSelected(null); }}
             onPublish={handlePublish}
+            onNavigateToScenario={onNavigateToScenario}
           />
         ) : (
           <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-muted)', fontSize: 12 }}>
