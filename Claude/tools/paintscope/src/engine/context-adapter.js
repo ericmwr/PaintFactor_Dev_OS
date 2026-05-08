@@ -742,7 +742,17 @@ export function buildScenarioInputs(state, db) {
       // leaves their FINISH specs intact so they still fire per-substrate.
       const skipRoles = groupedRolesBySubstrate.get(primarySub);
       if (skipRoles && skipRoles.has(SPEC_ROLE[specId])) continue;
-      const subConfig = subsObj[primarySub];
+      // Arch element shares one spec across three child substrates
+      // (beams / columns / mantels). Activate when ANY of them is present, not
+      // only when the primary 'beams' key exists.
+      const ARCH_FALLBACK_SUBS = ['beams', 'columns', 'mantels'];
+      const archSpec = (specId === 'SF_ARCH_ELEMENT_NC' || specId === 'SF_ARCH_ELEMENT_NC_STAIN');
+      let subConfig = subsObj[primarySub];
+      if (!subConfig && archSpec) {
+        for (const alt of ARCH_FALLBACK_SUBS) {
+          if (subsObj[alt]) { subConfig = subsObj[alt]; break; }
+        }
+      }
       if (!subConfig) continue;
 
       // Per-child-element expansion for stair NC + closet shelf specs.
