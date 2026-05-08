@@ -14,6 +14,7 @@ import ModifierImpactPreview from './ModifierImpactPreview.jsx';
 import ModuleUsagePanel from './ModuleUsagePanel.jsx';
 import TaskPicker from './TaskPicker.jsx';
 import canonicalBundle from '../../data/scenario-bundle.gen.js';
+import { archiveEntity, regenBundle } from '../../authoring/archive-ops.js';
 
 const RARE_OVERRIDE_FIELDS = ['ps_key', 'uom', 'skill_level', 'name'];
 
@@ -428,6 +429,22 @@ export default function ModuleEditor({ draft, onSave, onCancel, onPublish, onNav
             </button>
           )}
           <button className="btn" onClick={onCancel}>Cancel</button>
+          {payload.module_id && record.status !== 'new' && (
+            <button
+              className="btn"
+              style={{ color: '#e74c3c', borderColor: '#e74c3c' }}
+              onClick={async () => {
+                if (!confirm(`Archive ${payload.module_id}?\n\nMoves Claude/modules/${payload.module_id}.json → Claude/modules/archive/. Bundle regenerates automatically. Restorable from the Archive tab.`)) return;
+                try {
+                  await archiveEntity('module', payload.module_id);
+                  await regenBundle();
+                  onCancel?.();
+                } catch (e) {
+                  alert(`Archive failed: ${e.message}`);
+                }
+              }}
+            >Archive</button>
+          )}
           <span style={{ marginLeft: 'auto', fontSize: 10, color: 'var(--text-muted)' }}>
             status: <strong>{record.status}</strong>
           </span>

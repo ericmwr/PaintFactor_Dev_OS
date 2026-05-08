@@ -8,6 +8,7 @@
 
 import { useState, useEffect } from 'react';
 import TaskUsagePanel from './TaskUsagePanel.jsx';
+import { archiveEntity, regenBundle } from '../../authoring/archive-ops.js';
 
 const UOM_OPTIONS = ['SF', 'LF', 'EA', 'EA_SIDE', 'MINS', 'HRS'];
 const SKILL_OPTIONS = ['general', 'experienced', 'qualified_painter', 'specialist'];
@@ -255,6 +256,22 @@ export default function TaskEditor({ draft, onSave, onCancel, onPublish, onNavig
             </button>
           )}
           <button className="btn" onClick={onCancel}>Cancel</button>
+          {payload.task_id && record.status !== 'new' && (
+            <button
+              className="btn"
+              style={{ color: '#e74c3c', borderColor: '#e74c3c' }}
+              onClick={async () => {
+                if (!confirm(`Archive ${payload.task_id}?\n\nMoves Claude/tasks/${payload.task_id}.json → Claude/tasks/archive/. Bundle regenerates automatically. Restorable from the Archive tab.`)) return;
+                try {
+                  await archiveEntity('task', payload.task_id);
+                  await regenBundle();
+                  onCancel?.();
+                } catch (e) {
+                  alert(`Archive failed: ${e.message}`);
+                }
+              }}
+            >Archive</button>
+          )}
           <span style={{ marginLeft: 'auto', fontSize: 10, color: 'var(--text-muted)' }}>
             status: <strong>{record.status}</strong>
           </span>

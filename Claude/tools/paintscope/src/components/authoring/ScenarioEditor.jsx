@@ -6,6 +6,7 @@ import { useState, useEffect } from 'react';
 import { useModuleDrafts } from '../../hooks/useModuleDrafts.js';
 import ModulePicker from './ModulePicker.jsx';
 import MatchPreview from './MatchPreview.jsx';
+import { archiveEntity, regenBundle } from '../../authoring/archive-ops.js';
 
 const COMMON_MATCH_KEYS = ['paintable_item', 'quality_tier', 'application_method', 'substrate_state', 'surface', 'context', 'height_band'];
 const DOMAIN_OPTIONS = ['interior', 'exterior', 'both'];
@@ -206,6 +207,22 @@ export default function ScenarioEditor({ draft, onSave, onCancel, onPublish }) {
           <button className="btn btn-accent" onClick={handleSave} disabled={!dirty && !!draft}>{dirty ? 'Save Draft' : 'Saved'}</button>
           {onPublish && <button className="btn" onClick={() => onPublish(record)} disabled={dirty}>Publish to JSON</button>}
           <button className="btn" onClick={onCancel}>Cancel</button>
+          {p.scenario_id && record.status !== 'new' && (
+            <button
+              className="btn"
+              style={{ color: '#e74c3c', borderColor: '#e74c3c' }}
+              onClick={async () => {
+                if (!confirm(`Archive ${p.scenario_id}?\n\nMoves Claude/scenarios/${p.scenario_id}.json → Claude/scenarios/archive/. Bundle regenerates automatically. Restorable from the Archive tab.`)) return;
+                try {
+                  await archiveEntity('scenario', p.scenario_id);
+                  await regenBundle();
+                  onCancel?.();
+                } catch (e) {
+                  alert(`Archive failed: ${e.message}`);
+                }
+              }}
+            >Archive</button>
+          )}
           <span style={{ marginLeft: 'auto', fontSize: 10, color: 'var(--text-muted)' }}>status: <strong>{record.status}</strong></span>
         </div>
       </div>
