@@ -8,6 +8,7 @@ import { useMemo, useState, useEffect } from 'react';
 import { useTaskDrafts } from '../../hooks/useTaskDrafts.js';
 import canonicalBundle from '../../data/scenario-bundle.gen.js';
 import TaskEditor from './TaskEditor.jsx';
+import BulkRateEditor from './BulkRateEditor.jsx';
 import { publishTask } from '../../authoring/publish.js';
 import { matchActivityRule } from '../../data/activity-rules.js';
 
@@ -20,6 +21,7 @@ export default function TaskList({ pendingSelection, onNavigateToModule } = {}) 
   const [search, setSearch] = useState('');
   const [activeActivities, setActiveActivities] = useState(() => new Set());
   const [activitiesExpanded, setActivitiesExpanded] = useState(false);
+  const [bulkOpen, setBulkOpen] = useState(false);
 
   // Per-row activity classification + per-activity counts. Computed once
   // per draft change so the chip row + filter share the same map.
@@ -113,7 +115,10 @@ export default function TaskList({ pendingSelection, onNavigateToModule } = {}) 
       <div style={{ width: 320, flexShrink: 0, display: 'flex', flexDirection: 'column', borderRight: '1px solid var(--border)', paddingRight: 12 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
           <h3 style={{ fontSize: 13, color: 'var(--text-muted)', margin: 0 }}>Tasks ({rows.length})</h3>
-          <button className="btn btn-sm btn-accent" onClick={handleCreate} style={{ fontSize: 11 }}>+ New</button>
+          <div style={{ display: 'flex', gap: 4 }}>
+            <button className="btn btn-sm" onClick={() => setBulkOpen(true)} style={{ fontSize: 11 }} title="Filter, transform, preview, and write a draft per modified task">Bulk Edit…</button>
+            <button className="btn btn-sm btn-accent" onClick={handleCreate} style={{ fontSize: 11 }}>+ New</button>
+          </div>
         </div>
         <input
           placeholder="Search id / name..."
@@ -226,6 +231,15 @@ export default function TaskList({ pendingSelection, onNavigateToModule } = {}) 
           </div>
         )}
       </div>
+
+      {bulkOpen && (
+        <BulkRateEditor
+          onClose={() => setBulkOpen(false)}
+          onComplete={(result) => {
+            alert(`Bulk transform created ${result.taskDraftsCreated} task draft${result.taskDraftsCreated === 1 ? '' : 's'}.\n\nReview in the Drafts tab and click Publish All to apply. The smoke gate will validate the merged bundle.`);
+          }}
+        />
+      )}
     </div>
   );
 }
