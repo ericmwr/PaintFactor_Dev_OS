@@ -32,7 +32,7 @@ function emptyScenario() {
   };
 }
 
-export default function ScenarioEditor({ draft, onSave, onCancel, onPublish }) {
+export default function ScenarioEditor({ draft, onSave, onCancel, onPublish, onNavigateToModule }) {
   const { drafts: moduleDrafts } = useModuleDrafts();
   const [record, setRecord] = useState(() => draft ? structuredClone(draft) : emptyScenario());
   const [dirty, setDirty] = useState(false);
@@ -161,7 +161,15 @@ export default function ScenarioEditor({ draft, onSave, onCancel, onPublish }) {
           {p.modules.map((m, i) => (
             <div key={i} style={{ display: 'flex', gap: 4, alignItems: 'center', padding: '3px 0', fontSize: 11 }}>
               <span style={{ width: 20, color: 'var(--text-muted)' }}>{i + 1}.</span>
-              <span style={{ flex: 1, fontFamily: 'var(--font-mono)', fontSize: 10 }}>{m}</span>
+              {onNavigateToModule ? (
+                <span
+                  onClick={() => onNavigateToModule(m)}
+                  title="Open this module in the Module editor"
+                  style={{ flex: 1, fontFamily: 'var(--font-mono)', fontSize: 10, cursor: 'pointer', color: 'var(--accent, #82aaff)', textDecoration: 'underline' }}
+                >{m}</span>
+              ) : (
+                <span style={{ flex: 1, fontFamily: 'var(--font-mono)', fontSize: 10 }}>{m}</span>
+              )}
               <button className="btn btn-sm" onClick={() => moveModule(i, -1)} disabled={i === 0} style={{ fontSize: 10 }}>↑</button>
               <button className="btn btn-sm" onClick={() => moveModule(i, 1)} disabled={i === p.modules.length - 1} style={{ fontSize: 10 }}>↓</button>
               <button className="btn btn-sm" onClick={() => removeModule(i)} style={{ fontSize: 10, color: '#e74c3c' }}>×</button>

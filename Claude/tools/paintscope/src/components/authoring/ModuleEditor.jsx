@@ -51,7 +51,7 @@ function emptyModule() {
   };
 }
 
-export default function ModuleEditor({ draft, onSave, onCancel, onPublish, onNavigateToScenario }) {
+export default function ModuleEditor({ draft, onSave, onCancel, onPublish, onNavigateToScenario, onNavigateToTask }) {
   const [record, setRecord] = useState(() => draft ? structuredClone(draft) : emptyModule());
   const [dirty, setDirty] = useState(false);
   const [pickerOpen, setPickerOpen] = useState(false);
@@ -287,6 +287,7 @@ export default function ModuleEditor({ draft, onSave, onCancel, onPublish, onNav
                   onFieldChange={(field, v) => setLibraryOverride(idx, field, v)}
                   onToggleReveal={(field) => toggleRevealedOverride(idx, field)}
                   onRemove={() => removeTask(idx)}
+                  onNavigateToTask={onNavigateToTask}
                 />
               : (
             <div key={idx} style={{ border: '1px solid var(--border)', borderRadius: 4, padding: 8, marginBottom: 6, fontSize: 12 }}>
@@ -486,7 +487,7 @@ const inputStyle = {
 // Compact block for task_ref entries. Variant A UX for rate_per_hour (inline
 // input with canonical shown faded). Variant B for rare fields (ps_key, uom,
 // skill_level, name) — canonical shown read-only until user clicks "override".
-function LibraryTaskRow({ idx, entry, canonical, revealed, onRateChange, onFieldChange, onToggleReveal, onRemove }) {
+function LibraryTaskRow({ idx, entry, canonical, revealed, onRateChange, onFieldChange, onToggleReveal, onRemove, onNavigateToTask }) {
   if (!canonical) {
     // Broken ref — missing from library
     return (
@@ -507,7 +508,15 @@ function LibraryTaskRow({ idx, entry, canonical, revealed, onRateChange, onField
     <div style={{ border: '1px solid var(--accent, #82aaff)', borderRadius: 4, padding: 8, marginBottom: 6, fontSize: 12, background: 'rgba(130, 170, 255, 0.04)' }}>
       <div style={{ display: 'flex', gap: 6, marginBottom: 6, alignItems: 'center' }}>
         <span style={{ fontSize: 9, padding: '1px 5px', background: 'var(--accent, #82aaff)', color: '#000', borderRadius: 2 }}>library</span>
-        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10 }}>{entry.task_ref}</span>
+        {onNavigateToTask ? (
+          <span
+            onClick={() => onNavigateToTask(entry.task_ref)}
+            title="Open this task in the Task editor"
+            style={{ fontFamily: 'var(--font-mono)', fontSize: 10, cursor: 'pointer', color: 'var(--accent, #82aaff)', textDecoration: 'underline' }}
+          >{entry.task_ref}</span>
+        ) : (
+          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10 }}>{entry.task_ref}</span>
+        )}
         <span style={{ fontSize: 10, color: 'var(--text-muted)', flex: 1 }}>— {canonical.name}</span>
         <button className="btn btn-sm" onClick={onRemove} style={{ color: '#e74c3c', fontSize: 10, padding: '2px 6px' }}>X</button>
       </div>

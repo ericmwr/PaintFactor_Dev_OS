@@ -8,7 +8,7 @@ import { publishScenario } from '../../authoring/publish.js';
 import TagFilterBar from './TagFilterBar.jsx';
 import { deriveScenarioTags, computeChipCounts, rowPassesFilters } from './tag-derivation.js';
 
-export default function ScenarioList({ pendingSelection } = {}) {
+export default function ScenarioList({ pendingSelection, onNavigateToModule } = {}) {
   const { drafts, loading, save, remove } = useScenarioDrafts();
   const [selected, setSelected] = useState(null);
   const [creating, setCreating] = useState(false);
@@ -183,6 +183,7 @@ export default function ScenarioList({ pendingSelection } = {}) {
             onSave={handleSave}
             onCancel={() => { setCreating(false); setSelected(null); }}
             onPublish={handlePublish}
+            onNavigateToModule={onNavigateToModule}
           />
         ) : (
           <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-muted)', fontSize: 12 }}>
