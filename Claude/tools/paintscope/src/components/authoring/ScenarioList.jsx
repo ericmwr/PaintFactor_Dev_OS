@@ -17,7 +17,6 @@ export default function ScenarioList({ pendingSelection, onNavigateToModule } = 
   const [selected, setSelected] = useState(null);
   const [creating, setCreating] = useState(false);
   const [search, setSearch] = useState('');
-  const [domainFilter, setDomainFilter] = useState('all');
   const [activeBuckets, setActiveBuckets] = useState(() => new Set());
   const [activeQTs, setActiveQTs] = useState(() => new Set());
   // Sketch mode: visual only.
@@ -76,7 +75,6 @@ export default function ScenarioList({ pendingSelection, onNavigateToModule } = 
       }
     }
     return merged
-      .filter(r => domainFilter === 'all' || r.domain === domainFilter)
       .filter(r => !search || r.id.toLowerCase().includes(search.toLowerCase()) || (r.name || '').toLowerCase().includes(search.toLowerCase()))
       .filter(r => {
         if (activeBuckets.size === 0) return true;
@@ -92,7 +90,7 @@ export default function ScenarioList({ pendingSelection, onNavigateToModule } = 
       })
       .map(r => ({ ...r, tags: deriveScenarioTags(r.payload) }))
       .sort((a, b) => a.id.localeCompare(b.id));
-  }, [drafts, search, domainFilter, activeBuckets, activeQTs]);
+  }, [drafts, search, activeBuckets, activeQTs]);
 
   const chipCounts = useMemo(() => computeChipCounts(rows, activeTags), [rows, activeTags]);
   const filteredRows = useMemo(() => rows.filter(r => rowPassesFilters(r, activeTags)), [rows, activeTags]);
@@ -164,16 +162,6 @@ export default function ScenarioList({ pendingSelection, onNavigateToModule } = 
           onChange={e => setSearch(e.target.value)}
           style={{ marginBottom: 6, padding: '4px 6px', fontSize: 11, background: 'var(--bg-input, #222)', color: 'var(--text)', border: '1px solid var(--border)', borderRadius: 3 }}
         />
-        <select
-          value={domainFilter}
-          onChange={e => setDomainFilter(e.target.value)}
-          style={{ marginBottom: 6, padding: '4px 6px', fontSize: 11, background: 'var(--bg-input, #222)', color: 'var(--text)', border: '1px solid var(--border)', borderRadius: 3 }}
-        >
-          <option value="all">All domains</option>
-          <option value="interior">interior</option>
-          <option value="exterior">exterior</option>
-          <option value="both">both</option>
-        </select>
         <DomainContextChips
           counts={bucketCounts}
           active={activeBuckets}

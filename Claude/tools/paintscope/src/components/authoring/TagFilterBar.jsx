@@ -13,13 +13,16 @@ const PRIMARY_CATEGORIES_MODULE = [
   { key: 'substrate', label: 'Substrate' },
   { key: 'method', label: 'Method' },
 ];
+// Domain removed — DomainContextChips covers domain × context with finer
+// granularity (NC Interior / NC Exterior / RP Interior / RP Exterior).
 const PRIMARY_CATEGORIES_SCENARIO = [
-  { key: 'domain', label: 'Domain' },
   { key: 'substrate', label: 'Substrate' },
   { key: 'method', label: 'Method' },
 ];
+// QT removed — see QualityTierChips for the QT filter, which derives
+// QTs transitively from scenarios (the tag-derivation path here only
+// surfaced QT3 because it pulled from a narrow shape).
 const ADVANCED_CATEGORIES = [
-  { key: 'qt', label: 'QT' },
   { key: 'state', label: 'State' },
   { key: 'coating', label: 'Coating' },
   { key: 'status', label: 'Status' },
