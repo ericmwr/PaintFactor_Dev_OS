@@ -105,38 +105,42 @@ export function deriveModuleTags(mod) {
 }
 
 /**
- * Derive tags from a scenario record. Scenarios have structured `match` data,
- * which is far more reliable than name parsing.
+ * Derive tags from a scenario record. Scenarios have structured `matches`
+ * data which is far more reliable than name parsing, so we read it
+ * directly and only fall back to the name regex when the field is missing.
  */
 export function deriveScenarioTags(scn) {
-  const match = scn.match || {};
+  const matches = scn.matches || {};
   const id = scn.scenario_id || scn.id || '';
   const name = scn.name || '';
   const both = `${id} ${name}`;
 
-  // match values can be string OR array — normalize to first value for tag display
+  // matches values can be string OR array — normalize to first value for tag display
   const first = (v) => Array.isArray(v) ? v[0] : v;
 
-  const paintableItem = first(match.paintable_item);
+  const paintableItem = first(matches.paintable_item);
   const substrate = paintableItem || extractFirstMatch(both, SUBSTRATE_TOKENS);
 
   return {
     domain: scn.domain || null,
     substrate: substrate,
-    method: first(match.application_method) || extractFirstMatch(both, METHOD_TOKENS),
-    qt: first(match.quality_tier) || extractQT(id),
-    coating: first(match.coating_type) || extractFirstMatch(both, COATING_TOKENS),
-    state: first(match.substrate_state) || extractFirstMatch(both, STATE_TOKENS),
+    method: first(matches.application_method) || extractFirstMatch(both, METHOD_TOKENS),
+    qt: first(matches.quality_tier) || extractQT(id),
+    coating: first(matches.coating_type) || extractFirstMatch(both, COATING_TOKENS),
+    state: first(matches.substrate_state) || extractFirstMatch(both, STATE_TOKENS),
   };
 }
 
 /**
  * Given a list of rows (each with a pre-computed `tags` object plus `source`/`status`),
  * and an activeTags map (category → Set<string>), return the counts for every possible
- * chip value. Rules:
- *   - A row matches a category if: (a) category has no active tags, OR
- *                                  (b) row's tag in that category is in the active set, OR
- *                                  (c) row has no tag in that category (pass-through).
+ * chip value. Strict matching: a row counts toward a chip only if its tag in that
+ * category equals the chip value AND it passes every OTHER active filter. Rows with
+ * no tag in an active category are excluded — preventing substrate-less or
+ * unclassified rows from leaking through narrow filters.
+ *
+ *   - A row matches an active category iff its rowVal exactly equals one of the
+ *     active values. Null rowVal = no match.
  *   - Count for a chip = how many rows would match if ONLY that chip were added.
  */
 export function computeChipCounts(rows, activeTags) {
@@ -146,19 +150,18 @@ export function computeChipCounts(rows, activeTags) {
 
   for (const row of rows) {
     const rowTags = row.tags || {};
-    // For each category, simulate "this category has chip X active" and check if row passes all OTHER categories
     for (const cat of categories) {
       const rowVal = cat === 'status' ? (row.source === 'canonical' ? 'canonical' : row.source) : rowTags[cat];
       if (!rowVal) continue;
 
-      // Does the row pass all OTHER active filters? (Using current activeTags)
+      // Strict: row passes other active filters only if its tag equals one of the active values.
       let passesOthers = true;
       for (const otherCat of categories) {
         if (otherCat === cat) continue;
         const activeSet = activeTags[otherCat];
         if (!activeSet || activeSet.size === 0) continue;
         const otherVal = otherCat === 'status' ? (row.source === 'canonical' ? 'canonical' : row.source) : rowTags[otherCat];
-        if (otherVal && !activeSet.has(otherVal)) { passesOthers = false; break; }
+        if (!otherVal || !activeSet.has(otherVal)) { passesOthers = false; break; }
       }
       if (passesOthers) {
         result[cat][rowVal] = (result[cat][rowVal] || 0) + 1;
@@ -169,8 +172,9 @@ export function computeChipCounts(rows, activeTags) {
 }
 
 /**
- * Check if a row passes the active-tag filter.
- * Same AND/OR/pass-through rules as computeChipCounts.
+ * Check if a row passes the active-tag filter. Strict matching — a row with
+ * null in an active category is excluded, not passed through. This prevents
+ * unclassifiable rows from showing up under every filter selection.
  */
 export function rowPassesFilters(row, activeTags) {
   const rowTags = row.tags || {};
@@ -179,7 +183,7 @@ export function rowPassesFilters(row, activeTags) {
     const activeSet = activeTags[cat];
     if (!activeSet || activeSet.size === 0) continue;
     const rowVal = cat === 'status' ? (row.source === 'canonical' ? 'canonical' : row.source) : rowTags[cat];
-    if (!rowVal) continue; // pass-through when row has no tag in this category
+    if (!rowVal) return false; // strict: no tag in an active category = excluded
     if (!activeSet.has(rowVal)) return false;
   }
   return true;
