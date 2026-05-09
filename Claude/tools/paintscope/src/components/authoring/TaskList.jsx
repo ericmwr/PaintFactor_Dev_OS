@@ -11,10 +11,14 @@ import TaskEditor from './TaskEditor.jsx';
 import BulkRateEditor from './BulkRateEditor.jsx';
 import DomainContextChips from './DomainContextChips.jsx';
 import QualityTierChips from './QualityTierChips.jsx';
+import DerivedChips from './DerivedChips.jsx';
 import { publishTask } from '../../authoring/publish.js';
 import { matchActivityRule } from '../../data/activity-rules.js';
 import { bucketsByTaskId, DC_BUCKETS } from '../../data/domain-context.js';
 import { qtsByTaskId } from '../../data/quality-tier.js';
+
+const DERIVED_AXES = ['phases', 'substrates', 'methods', 'coatings'];
+const DERIVED_LABELS = { phases: 'Phase', substrates: 'Substrate', methods: 'Method', coatings: 'Coating' };
 
 const UNMATCHED_BUCKET = '__unmatched__';
 
@@ -27,7 +31,36 @@ export default function TaskList({ pendingSelection, onNavigateToModule } = {}) 
   const [activitiesExpanded, setActivitiesExpanded] = useState(false);
   const [activeBuckets, setActiveBuckets] = useState(() => new Set());
   const [activeQTs, setActiveQTs] = useState(() => new Set());
+  // Per-axis active sets sourced from task._derived (phases/substrates/methods/coatings).
+  const [activeDerived, setActiveDerived] = useState(() => ({
+    phases: new Set(), substrates: new Set(), methods: new Set(), coatings: new Set(),
+  }));
   const [bulkOpen, setBulkOpen] = useState(false);
+
+  const toggleDerived = (axis, value) => {
+    setActiveDerived(prev => {
+      const cur = new Set(prev[axis]);
+      cur.has(value) ? cur.delete(value) : cur.add(value);
+      return { ...prev, [axis]: cur };
+    });
+  };
+  const clearDerived = (axis) => {
+    setActiveDerived(prev => ({ ...prev, [axis]: new Set() }));
+  };
+
+  // Aggregate _derived counts across all canonical tasks. The bundle's
+  // _derived blocks are precomputed at build time; this just totals them.
+  const derivedCounts = useMemo(() => {
+    const out = { phases: {}, substrates: {}, methods: {}, coatings: {} };
+    for (const t of Object.values(canonicalBundle.tasks || {})) {
+      const d = t._derived || {};
+      for (const axis of DERIVED_AXES) {
+        const arr = d[axis] || [];
+        for (const v of arr) out[axis][v] = (out[axis][v] || 0) + 1;
+      }
+    }
+    return out;
+  }, []);
 
   // taskId → Set<bucket> derived once per bundle; canonical bundle is import-frozen
   const taskBuckets = useMemo(
@@ -117,8 +150,21 @@ export default function TaskList({ pendingSelection, onNavigateToModule } = {}) 
         for (const qt of activeQTs) if (qts.has(qt)) return true;
         return false;
       })
+      .filter(r => {
+        // Each derived axis is OR within the axis, AND across axes
+        const d = r.payload?._derived || {};
+        for (const axis of DERIVED_AXES) {
+          const active = activeDerived[axis];
+          if (!active || active.size === 0) continue;
+          const vals = d[axis] || [];
+          let hit = false;
+          for (const v of vals) if (active.has(v)) { hit = true; break; }
+          if (!hit) return false;
+        }
+        return true;
+      })
       .sort((a, b) => a.id.localeCompare(b.id));
-  }, [allRows, search, activeActivities, activeBuckets, taskBuckets, activeQTs, taskQTs]);
+  }, [allRows, search, activeActivities, activeBuckets, taskBuckets, activeQTs, taskQTs, activeDerived]);
 
   const toggleActivity = (activity) => {
     setActiveActivities(prev => {
@@ -202,6 +248,18 @@ export default function TaskList({ pendingSelection, onNavigateToModule } = {}) 
           onToggle={toggleQT}
           onClearAll={() => setActiveQTs(new Set())}
         />
+        {/* Derived chip rows — populated at bundle-build time from the
+            reference graph. Read task._derived directly. */}
+        {DERIVED_AXES.map(axis => (
+          <DerivedChips
+            key={axis}
+            label={DERIVED_LABELS[axis]}
+            counts={derivedCounts[axis]}
+            active={activeDerived[axis]}
+            onToggle={(v) => toggleDerived(axis, v)}
+            onClearAll={() => clearDerived(axis)}
+          />
+        ))}
         {/* Activity-family chip filter — pulls from data/activity-rules.js. */}
         <div style={{ marginBottom: 6, display: 'flex', gap: 4, alignItems: 'flex-start', flexWrap: 'wrap' }}>
           <span

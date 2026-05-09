@@ -266,6 +266,150 @@ function validate(modules, scenarios) {
   }
 }
 
+/**
+ * Walk the canonical reference graph and inject a `_derived` block onto every
+ * canonical task. The block carries the union of every classification that
+ * can be reached transitively from this task: phases via the modules that
+ * use it, substrate / qt / context via the scenarios that use those modules.
+ *
+ * Shape per task:
+ *   _derived: {
+ *     phases:      string[],   // module phases that include this task
+ *     methods:     string[],   // application_method on parent modules
+ *     substrates:  string[],   // paintable_item on reachable scenarios
+ *     qts:         string[],   // QT2..QT5
+ *     buckets:     string[],   // nc_interior / nc_exterior / rp_interior / rp_exterior
+ *     coatings:    string[],   // paint / stain / clear / prime
+ *     module_count:    number, // # canonical modules referencing this task
+ *     scenario_count:  number, // # canonical scenarios reachable through those modules
+ *   }
+ *
+ * Read by TaskList chip filters and TaskEditor's classification panel — both
+ * read the precomputed fields directly, so the runtime stays cheap.
+ */
+function computeTaskDerived(modules, scenarios, tasks) {
+  const moduleMeta = new Map();
+  const moduleByTask = new Map();
+  for (const mod of Object.values(modules)) {
+    if (mod.kind === TEMPLATE_KIND) continue;
+    moduleMeta.set(mod.module_id, { phase: mod.phase || null });
+    if (!Array.isArray(mod.tasks)) continue;
+    for (const entry of mod.tasks) {
+      if (!entry?.task_ref) continue;
+      let cur = moduleByTask.get(entry.task_ref);
+      if (!cur) { cur = new Set(); moduleByTask.set(entry.task_ref, cur); }
+      cur.add(mod.module_id);
+    }
+  }
+
+  const moduleClassification = new Map();
+  for (const scn of scenarios) {
+    const sb = scenarioBuckets(scn);
+    const sQT = scenarioQTs(scn);
+    const sub = scenarioSubstrate(scn);
+    const coat = scenarioCoating(scn);
+    const meth = scenarioMethod(scn);
+    for (const mid of scn.modules || []) {
+      if (typeof mid !== 'string') continue;
+      let cls = moduleClassification.get(mid);
+      if (!cls) {
+        cls = { substrates: new Set(), qts: new Set(), buckets: new Set(), coatings: new Set(), methods: new Set(), scenario_ids: new Set() };
+        moduleClassification.set(mid, cls);
+      }
+      if (sub) cls.substrates.add(sub);
+      for (const q of sQT) cls.qts.add(q);
+      for (const b of sb) cls.buckets.add(b);
+      if (coat) cls.coatings.add(coat);
+      if (meth) cls.methods.add(meth);
+      cls.scenario_ids.add(scn.scenario_id);
+    }
+  }
+
+  for (const task of Object.values(tasks)) {
+    const usedBy = moduleByTask.get(task.task_id) || new Set();
+    const phases = new Set();
+    const methods = new Set();
+    const substrates = new Set();
+    const qts = new Set();
+    const buckets = new Set();
+    const coatings = new Set();
+    const scenarioIds = new Set();
+    for (const mid of usedBy) {
+      const meta = moduleMeta.get(mid);
+      if (meta?.phase) phases.add(meta.phase);
+      const cls = moduleClassification.get(mid);
+      if (cls) {
+        for (const s of cls.substrates) substrates.add(s);
+        for (const q of cls.qts) qts.add(q);
+        for (const b of cls.buckets) buckets.add(b);
+        for (const c of cls.coatings) coatings.add(c);
+        for (const m of cls.methods) methods.add(m);
+        for (const sid of cls.scenario_ids) scenarioIds.add(sid);
+      }
+    }
+    task._derived = {
+      phases: [...phases].sort(),
+      methods: [...methods].sort(),
+      substrates: [...substrates].sort(),
+      qts: [...qts].sort(),
+      buckets: [...buckets].sort(),
+      coatings: [...coatings].sort(),
+      module_count: usedBy.size,
+      scenario_count: scenarioIds.size,
+    };
+  }
+}
+
+function scenarioMethod(scn) {
+  const v = scn.matches?.application_method;
+  if (!v) return null;
+  return Array.isArray(v) ? v[0] : v;
+}
+
+function scenarioBuckets(scn) {
+  const out = new Set();
+  const domain = scn.domain;
+  const context = scn.context;
+  const interior = domain === 'interior' || domain === 'both';
+  const exterior = domain === 'exterior' || domain === 'both';
+  const nc = context === 'NC' || context === 'mixed';
+  const rp = context === 'RP' || context === 'mixed';
+  if (interior && nc) out.add('nc_interior');
+  if (exterior && nc) out.add('nc_exterior');
+  if (interior && rp) out.add('rp_interior');
+  if (exterior && rp) out.add('rp_exterior');
+  return out;
+}
+
+function scenarioQTs(scn) {
+  const out = new Set();
+  const v = scn.matches?.quality_tier;
+  if (!v) return out;
+  if (Array.isArray(v)) {
+    for (const x of v) if (x) out.add(x);
+  } else {
+    out.add(v);
+  }
+  return out;
+}
+
+function scenarioSubstrate(scn) {
+  const v = scn.matches?.paintable_item;
+  if (!v) return null;
+  return Array.isArray(v) ? v[0] : v;
+}
+
+function scenarioCoating(scn) {
+  const explicit = scn.matches?.coating_type;
+  if (explicit) return Array.isArray(explicit) ? explicit[0] : explicit;
+  const id = (scn.scenario_id || '').toUpperCase();
+  if (/_STAIN(?:_|$)/.test(id)) return 'stain';
+  if (/_CLEAR(?:_|$)/.test(id)) return 'clear';
+  if (/_PRIME(?:_|$)/.test(id) || /PRIME_FROM/.test(id)) return 'prime';
+  if (/_PAINT(?:_|$)/.test(id) || /_FINISH(?:_|$)/.test(id) || /_NC_/.test(id) || /_RP_/.test(id)) return 'paint';
+  return null;
+}
+
 function main() {
   console.log('Loading modules from', modulesDir);
   const rawModules = loadModules();
@@ -295,6 +439,14 @@ function main() {
   validateExtenderInvariants(modules);
   validateNoTemplateScenarioRefs(modules, scenarios);
   console.log('  OK');
+
+  console.log('Computing _derived classifications for tasks...');
+  computeTaskDerived(modules, scenarios, tasks);
+  const taskList = Object.values(tasks);
+  const orphans = taskList.filter(t => t._derived?.module_count === 0).length;
+  const noPhase = taskList.filter(t => t._derived?.phases.length === 0).length;
+  const noSubstrate = taskList.filter(t => t._derived?.substrates.length === 0).length;
+  console.log(`  ${taskList.length} tasks · ${orphans} orphan · ${noPhase} no-phase · ${noSubstrate} no-substrate`);
 
   warnInlineVsLibraryCollisions(modules, tasks);
 

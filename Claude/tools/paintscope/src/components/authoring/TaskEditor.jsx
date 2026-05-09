@@ -9,7 +9,63 @@
 import { useState, useEffect } from 'react';
 import TaskUsagePanel from './TaskUsagePanel.jsx';
 import RenameTaskModal from './RenameTaskModal.jsx';
+import canonicalBundle from '../../data/scenario-bundle.gen.js';
 import { archiveEntity, regenBundle } from '../../authoring/archive-ops.js';
+
+function DerivedClassificationPanel({ taskId }) {
+  if (!taskId) return null;
+  const task = canonicalBundle.tasks?.[taskId];
+  const d = task?._derived;
+  if (!d) return null;
+
+  const isOrphan = d.module_count === 0;
+
+  return (
+    <div style={{ marginTop: 12, padding: 10, border: '1px solid var(--border)', borderRadius: 4, background: 'rgba(0,0,0,0.05)' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: 6 }}>
+        <span>Derived classifications</span>
+        <span style={{ fontFamily: 'var(--font-mono)' }}>
+          {d.module_count} mod · {d.scenario_count} scn
+        </span>
+      </div>
+      {isOrphan ? (
+        <div style={{ fontSize: 11, color: '#e74c3c', fontStyle: 'italic' }}>
+          Orphan — no module references this task. Consider archiving, or wire it into a module.
+        </div>
+      ) : (
+        <div style={{ display: 'grid', gridTemplateColumns: 'auto 1fr', gap: '4px 10px', fontSize: 11 }}>
+          <DerivedRow label="Phase"     values={d.phases} />
+          <DerivedRow label="Substrate" values={d.substrates} />
+          <DerivedRow label="Method"    values={d.methods} />
+          <DerivedRow label="Coating"   values={d.coatings} />
+          <DerivedRow label="QT"        values={d.qts} />
+          <DerivedRow label="Context"   values={d.buckets} />
+        </div>
+      )}
+    </div>
+  );
+}
+
+function DerivedRow({ label, values }) {
+  return (
+    <>
+      <span style={{ color: 'var(--text-muted)', fontSize: 10, alignSelf: 'center' }}>{label}</span>
+      <span style={{ display: 'flex', flexWrap: 'wrap', gap: 3 }}>
+        {values && values.length > 0
+          ? values.map(v => (
+              <span key={v} style={{
+                fontSize: 10, padding: '1px 6px', borderRadius: 10,
+                fontFamily: 'var(--font-mono)',
+                background: 'rgba(130, 170, 255, 0.12)',
+                border: '1px solid var(--border)',
+                color: 'var(--text)',
+              }}>{v}</span>
+            ))
+          : <span style={{ fontStyle: 'italic', color: 'var(--text-muted)', fontSize: 10 }}>—</span>}
+      </span>
+    </>
+  );
+}
 
 const UOM_OPTIONS = ['SF', 'LF', 'EA', 'EA_SIDE', 'MINS', 'HRS'];
 const SKILL_OPTIONS = ['general', 'experienced', 'qualified_painter', 'specialist'];
@@ -254,6 +310,11 @@ export default function TaskEditor({ draft, onSave, onCancel, onPublish, onNavig
             onChange={e => handleField('doctrine', e.target.value)}
           />
         </label>
+
+        {/* Derived classifications — populated at bundle build time by
+            walking modules → scenarios. Read-only badges; the truth source
+            is the reference graph, not this task. */}
+        <DerivedClassificationPanel taskId={payload.task_id} />
 
         {/* Where used */}
         <TaskUsagePanel taskId={payload.task_id} onNavigateToModule={onNavigateToModule} />
