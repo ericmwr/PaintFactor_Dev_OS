@@ -9,8 +9,10 @@ import { useTaskDrafts } from '../../hooks/useTaskDrafts.js';
 import canonicalBundle from '../../data/scenario-bundle.gen.js';
 import TaskEditor from './TaskEditor.jsx';
 import BulkRateEditor from './BulkRateEditor.jsx';
+import DomainContextChips from './DomainContextChips.jsx';
 import { publishTask } from '../../authoring/publish.js';
 import { matchActivityRule } from '../../data/activity-rules.js';
+import { bucketsByTaskId, DC_BUCKETS } from '../../data/domain-context.js';
 
 const UNMATCHED_BUCKET = '__unmatched__';
 
@@ -21,7 +23,30 @@ export default function TaskList({ pendingSelection, onNavigateToModule } = {}) 
   const [search, setSearch] = useState('');
   const [activeActivities, setActiveActivities] = useState(() => new Set());
   const [activitiesExpanded, setActivitiesExpanded] = useState(false);
+  const [activeBuckets, setActiveBuckets] = useState(() => new Set());
   const [bulkOpen, setBulkOpen] = useState(false);
+
+  // taskId → Set<bucket> derived once per bundle; canonical bundle is import-frozen
+  const taskBuckets = useMemo(
+    () => bucketsByTaskId(canonicalBundle.scenarios || [], canonicalBundle.modules || {}),
+    []
+  );
+
+  const bucketCounts = useMemo(() => {
+    const c = { nc_interior: 0, nc_exterior: 0, rp_interior: 0, rp_exterior: 0 };
+    for (const buckets of taskBuckets.values()) {
+      for (const b of buckets) c[b] = (c[b] || 0) + 1;
+    }
+    return c;
+  }, [taskBuckets]);
+
+  const toggleBucket = (b) => {
+    setActiveBuckets(prev => {
+      const next = new Set(prev);
+      next.has(b) ? next.delete(b) : next.add(b);
+      return next;
+    });
+  };
 
   // Per-row activity classification + per-activity counts. Computed once
   // per draft change so the chip row + filter share the same map.
@@ -54,8 +79,15 @@ export default function TaskList({ pendingSelection, onNavigateToModule } = {}) 
     return allRows
       .filter(r => !term || r.id.toLowerCase().includes(term) || (r.name || '').toLowerCase().includes(term))
       .filter(r => activeActivities.size === 0 || activeActivities.has(r.activity))
+      .filter(r => {
+        if (activeBuckets.size === 0) return true;
+        const buckets = taskBuckets.get(r.id);
+        if (!buckets) return false; // task referenced by no scenario falls out under any bucket filter
+        for (const b of activeBuckets) if (buckets.has(b)) return true;
+        return false;
+      })
       .sort((a, b) => a.id.localeCompare(b.id));
-  }, [allRows, search, activeActivities]);
+  }, [allRows, search, activeActivities, activeBuckets, taskBuckets]);
 
   const toggleActivity = (activity) => {
     setActiveActivities(prev => {
@@ -125,6 +157,13 @@ export default function TaskList({ pendingSelection, onNavigateToModule } = {}) 
           value={search}
           onChange={e => setSearch(e.target.value)}
           style={{ marginBottom: 6, padding: '4px 6px', fontSize: 11, background: 'var(--bg-input, #222)', color: 'var(--text)', border: '1px solid var(--border)', borderRadius: 3 }}
+        />
+        {/* Domain × context bucket filter — derived transitively via scenarios. */}
+        <DomainContextChips
+          counts={bucketCounts}
+          active={activeBuckets}
+          onToggle={toggleBucket}
+          onClearAll={() => setActiveBuckets(new Set())}
         />
         {/* Activity-family chip filter — pulls from data/activity-rules.js. */}
         <div style={{ marginBottom: 6, display: 'flex', gap: 4, alignItems: 'flex-start', flexWrap: 'wrap' }}>

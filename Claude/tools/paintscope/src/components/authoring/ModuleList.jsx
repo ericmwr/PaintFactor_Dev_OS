@@ -9,7 +9,9 @@ import canonicalBundle from '../../data/scenario-bundle.gen.js';
 import ModuleEditor from './ModuleEditor.jsx';
 import { publishModule } from '../../authoring/publish.js';
 import TagFilterBar from './TagFilterBar.jsx';
+import DomainContextChips from './DomainContextChips.jsx';
 import { deriveModuleTags, computeChipCounts, rowPassesFilters } from './tag-derivation.js';
+import { bucketsByModuleId } from '../../data/domain-context.js';
 
 const PHASE_FILTERS = ['all', 'setup', 'prep', 'prime', 'apply', 'finish', 'interstage', 'cleanup'];
 
@@ -19,8 +21,31 @@ export default function ModuleList({ pendingSelection, onNavigateToScenario, onN
   const [creating, setCreating] = useState(false);
   const [phaseFilter, setPhaseFilter] = useState('all');
   const [search, setSearch] = useState('');
+  const [activeBuckets, setActiveBuckets] = useState(() => new Set());
   // Sketch mode: activeTags are visual-only for now (no filter pipeline integration).
   const [activeTags, setActiveTags] = useState({});
+
+  // moduleId → Set<bucket>, derived once from canonical bundle
+  const moduleBuckets = useMemo(
+    () => bucketsByModuleId(canonicalBundle.scenarios || []),
+    []
+  );
+
+  const bucketCounts = useMemo(() => {
+    const c = { nc_interior: 0, nc_exterior: 0, rp_interior: 0, rp_exterior: 0 };
+    for (const buckets of moduleBuckets.values()) {
+      for (const b of buckets) c[b] = (c[b] || 0) + 1;
+    }
+    return c;
+  }, [moduleBuckets]);
+
+  const toggleBucket = (b) => {
+    setActiveBuckets(prev => {
+      const next = new Set(prev);
+      next.has(b) ? next.delete(b) : next.add(b);
+      return next;
+    });
+  };
   const toggleTag = (cat, val) => {
     setActiveTags(prev => {
       const next = { ...prev };
@@ -51,9 +76,16 @@ export default function ModuleList({ pendingSelection, onNavigateToScenario, onN
     return merged
       .filter(r => phaseFilter === 'all' || r.phase === phaseFilter)
       .filter(r => !search || r.id.toLowerCase().includes(search.toLowerCase()) || (r.name || '').toLowerCase().includes(search.toLowerCase()))
+      .filter(r => {
+        if (activeBuckets.size === 0) return true;
+        const buckets = moduleBuckets.get(r.id);
+        if (!buckets) return false;
+        for (const b of activeBuckets) if (buckets.has(b)) return true;
+        return false;
+      })
       .map(r => ({ ...r, tags: deriveModuleTags(r.payload) }))
       .sort((a, b) => a.id.localeCompare(b.id));
-  }, [drafts, phaseFilter, search]);
+  }, [drafts, phaseFilter, search, activeBuckets, moduleBuckets]);
 
   // Chip counts are computed from the search/phase-filtered rows so the numbers
   // reflect the current context. The active-tag filter is applied on top.
@@ -142,6 +174,12 @@ export default function ModuleList({ pendingSelection, onNavigateToScenario, onN
         >
           {PHASE_FILTERS.map(p => <option key={p} value={p}>{p === 'all' ? 'All phases' : p}</option>)}
         </select>
+        <DomainContextChips
+          counts={bucketCounts}
+          active={activeBuckets}
+          onToggle={toggleBucket}
+          onClearAll={() => setActiveBuckets(new Set())}
+        />
         <TagFilterBar
           kind="module"
           chipCounts={chipCounts}
