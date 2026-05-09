@@ -8,6 +8,7 @@
 
 import { useState, useEffect } from 'react';
 import TaskUsagePanel from './TaskUsagePanel.jsx';
+import RenameTaskModal from './RenameTaskModal.jsx';
 import { archiveEntity, regenBundle } from '../../authoring/archive-ops.js';
 
 const UOM_OPTIONS = ['SF', 'LF', 'EA', 'EA_SIDE', 'MINS', 'HRS'];
@@ -35,6 +36,7 @@ function emptyTask() {
 export default function TaskEditor({ draft, onSave, onCancel, onPublish, onNavigateToModule }) {
   const [record, setRecord] = useState(() => draft ? structuredClone(draft) : emptyTask());
   const [dirty, setDirty] = useState(false);
+  const [renameOpen, setRenameOpen] = useState(false);
 
   useEffect(() => {
     setRecord(draft ? structuredClone(draft) : emptyTask());
@@ -123,13 +125,24 @@ export default function TaskEditor({ draft, onSave, onCancel, onPublish, onNavig
           <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 8 }}>
             <label style={labelStyle}>
               Task ID
-              <input
-                style={inputStyle}
-                placeholder="TSK_..."
-                value={payload.task_id}
-                onChange={e => handleField('task_id', e.target.value)}
-                disabled={!!draft?.payload?.task_id}
-              />
+              <div style={{ display: 'flex', gap: 6, alignItems: 'stretch' }}>
+                <input
+                  style={{ ...inputStyle, flex: 1 }}
+                  placeholder="TSK_..."
+                  value={payload.task_id}
+                  onChange={e => handleField('task_id', e.target.value)}
+                  disabled={!!draft?.payload?.task_id}
+                />
+                {payload.task_id && record.status !== 'new' && (
+                  <button
+                    type="button"
+                    className="btn btn-sm"
+                    style={{ fontSize: 10, padding: '0 8px', whiteSpace: 'nowrap' }}
+                    title="Rename this task and cascade the new ID through every module that references it"
+                    onClick={() => setRenameOpen(true)}
+                  >Rename…</button>
+                )}
+              </div>
             </label>
             <label style={labelStyle}>
               Phase (optional)
@@ -285,6 +298,16 @@ export default function TaskEditor({ draft, onSave, onCancel, onPublish, onNavig
           {JSON.stringify(payload, null, 2)}
         </pre>
       </div>
+
+      {renameOpen && (
+        <RenameTaskModal
+          oldId={payload.task_id}
+          onClose={() => setRenameOpen(false)}
+          onComplete={(result) => {
+            alert(`Rename drafts created:\n  • 1 task draft (${result.newId})\n  • ${result.moduleDraftsCreated} module drafts\n\nReview in the Drafts tab and click Publish All to apply. The smoke gate will catch any rewrite that missed.`);
+          }}
+        />
+      )}
     </div>
   );
 }
