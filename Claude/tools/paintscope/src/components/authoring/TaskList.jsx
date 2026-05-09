@@ -10,9 +10,11 @@ import canonicalBundle from '../../data/scenario-bundle.gen.js';
 import TaskEditor from './TaskEditor.jsx';
 import BulkRateEditor from './BulkRateEditor.jsx';
 import DomainContextChips from './DomainContextChips.jsx';
+import QualityTierChips from './QualityTierChips.jsx';
 import { publishTask } from '../../authoring/publish.js';
 import { matchActivityRule } from '../../data/activity-rules.js';
 import { bucketsByTaskId, DC_BUCKETS } from '../../data/domain-context.js';
+import { qtsByTaskId } from '../../data/quality-tier.js';
 
 const UNMATCHED_BUCKET = '__unmatched__';
 
@@ -24,11 +26,17 @@ export default function TaskList({ pendingSelection, onNavigateToModule } = {}) 
   const [activeActivities, setActiveActivities] = useState(() => new Set());
   const [activitiesExpanded, setActivitiesExpanded] = useState(false);
   const [activeBuckets, setActiveBuckets] = useState(() => new Set());
+  const [activeQTs, setActiveQTs] = useState(() => new Set());
   const [bulkOpen, setBulkOpen] = useState(false);
 
   // taskId → Set<bucket> derived once per bundle; canonical bundle is import-frozen
   const taskBuckets = useMemo(
     () => bucketsByTaskId(canonicalBundle.scenarios || [], canonicalBundle.modules || {}),
+    []
+  );
+
+  const taskQTs = useMemo(
+    () => qtsByTaskId(canonicalBundle.scenarios || [], canonicalBundle.modules || {}),
     []
   );
 
@@ -40,10 +48,26 @@ export default function TaskList({ pendingSelection, onNavigateToModule } = {}) 
     return c;
   }, [taskBuckets]);
 
+  const qtCounts = useMemo(() => {
+    const c = { QT2: 0, QT3: 0, QT4: 0, QT5: 0 };
+    for (const qts of taskQTs.values()) {
+      for (const qt of qts) c[qt] = (c[qt] || 0) + 1;
+    }
+    return c;
+  }, [taskQTs]);
+
   const toggleBucket = (b) => {
     setActiveBuckets(prev => {
       const next = new Set(prev);
       next.has(b) ? next.delete(b) : next.add(b);
+      return next;
+    });
+  };
+
+  const toggleQT = (qt) => {
+    setActiveQTs(prev => {
+      const next = new Set(prev);
+      next.has(qt) ? next.delete(qt) : next.add(qt);
       return next;
     });
   };
@@ -86,8 +110,15 @@ export default function TaskList({ pendingSelection, onNavigateToModule } = {}) 
         for (const b of activeBuckets) if (buckets.has(b)) return true;
         return false;
       })
+      .filter(r => {
+        if (activeQTs.size === 0) return true;
+        const qts = taskQTs.get(r.id);
+        if (!qts) return false;
+        for (const qt of activeQTs) if (qts.has(qt)) return true;
+        return false;
+      })
       .sort((a, b) => a.id.localeCompare(b.id));
-  }, [allRows, search, activeActivities, activeBuckets, taskBuckets]);
+  }, [allRows, search, activeActivities, activeBuckets, taskBuckets, activeQTs, taskQTs]);
 
   const toggleActivity = (activity) => {
     setActiveActivities(prev => {
@@ -164,6 +195,12 @@ export default function TaskList({ pendingSelection, onNavigateToModule } = {}) 
           active={activeBuckets}
           onToggle={toggleBucket}
           onClearAll={() => setActiveBuckets(new Set())}
+        />
+        <QualityTierChips
+          counts={qtCounts}
+          active={activeQTs}
+          onToggle={toggleQT}
+          onClearAll={() => setActiveQTs(new Set())}
         />
         {/* Activity-family chip filter — pulls from data/activity-rules.js. */}
         <div style={{ marginBottom: 6, display: 'flex', gap: 4, alignItems: 'flex-start', flexWrap: 'wrap' }}>

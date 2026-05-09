@@ -10,8 +10,10 @@ import ModuleEditor from './ModuleEditor.jsx';
 import { publishModule } from '../../authoring/publish.js';
 import TagFilterBar from './TagFilterBar.jsx';
 import DomainContextChips from './DomainContextChips.jsx';
+import QualityTierChips from './QualityTierChips.jsx';
 import { deriveModuleTags, computeChipCounts, rowPassesFilters } from './tag-derivation.js';
 import { bucketsByModuleId } from '../../data/domain-context.js';
+import { qtsByModuleId } from '../../data/quality-tier.js';
 
 const PHASE_FILTERS = ['all', 'setup', 'prep', 'prime', 'apply', 'finish', 'interstage', 'cleanup'];
 
@@ -22,12 +24,18 @@ export default function ModuleList({ pendingSelection, onNavigateToScenario, onN
   const [phaseFilter, setPhaseFilter] = useState('all');
   const [search, setSearch] = useState('');
   const [activeBuckets, setActiveBuckets] = useState(() => new Set());
+  const [activeQTs, setActiveQTs] = useState(() => new Set());
   // Sketch mode: activeTags are visual-only for now (no filter pipeline integration).
   const [activeTags, setActiveTags] = useState({});
 
   // moduleId → Set<bucket>, derived once from canonical bundle
   const moduleBuckets = useMemo(
     () => bucketsByModuleId(canonicalBundle.scenarios || []),
+    []
+  );
+
+  const moduleQTs = useMemo(
+    () => qtsByModuleId(canonicalBundle.scenarios || []),
     []
   );
 
@@ -39,10 +47,26 @@ export default function ModuleList({ pendingSelection, onNavigateToScenario, onN
     return c;
   }, [moduleBuckets]);
 
+  const qtCounts = useMemo(() => {
+    const c = { QT2: 0, QT3: 0, QT4: 0, QT5: 0 };
+    for (const qts of moduleQTs.values()) {
+      for (const qt of qts) c[qt] = (c[qt] || 0) + 1;
+    }
+    return c;
+  }, [moduleQTs]);
+
   const toggleBucket = (b) => {
     setActiveBuckets(prev => {
       const next = new Set(prev);
       next.has(b) ? next.delete(b) : next.add(b);
+      return next;
+    });
+  };
+
+  const toggleQT = (qt) => {
+    setActiveQTs(prev => {
+      const next = new Set(prev);
+      next.has(qt) ? next.delete(qt) : next.add(qt);
       return next;
     });
   };
@@ -83,9 +107,16 @@ export default function ModuleList({ pendingSelection, onNavigateToScenario, onN
         for (const b of activeBuckets) if (buckets.has(b)) return true;
         return false;
       })
+      .filter(r => {
+        if (activeQTs.size === 0) return true;
+        const qts = moduleQTs.get(r.id);
+        if (!qts) return false;
+        for (const qt of activeQTs) if (qts.has(qt)) return true;
+        return false;
+      })
       .map(r => ({ ...r, tags: deriveModuleTags(r.payload) }))
       .sort((a, b) => a.id.localeCompare(b.id));
-  }, [drafts, phaseFilter, search, activeBuckets, moduleBuckets]);
+  }, [drafts, phaseFilter, search, activeBuckets, moduleBuckets, activeQTs, moduleQTs]);
 
   // Chip counts are computed from the search/phase-filtered rows so the numbers
   // reflect the current context. The active-tag filter is applied on top.
@@ -179,6 +210,12 @@ export default function ModuleList({ pendingSelection, onNavigateToScenario, onN
           active={activeBuckets}
           onToggle={toggleBucket}
           onClearAll={() => setActiveBuckets(new Set())}
+        />
+        <QualityTierChips
+          counts={qtCounts}
+          active={activeQTs}
+          onToggle={toggleQT}
+          onClearAll={() => setActiveQTs(new Set())}
         />
         <TagFilterBar
           kind="module"

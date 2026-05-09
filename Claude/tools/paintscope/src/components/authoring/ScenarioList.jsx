@@ -7,8 +7,10 @@ import ScenarioEditor from './ScenarioEditor.jsx';
 import { publishScenario } from '../../authoring/publish.js';
 import TagFilterBar from './TagFilterBar.jsx';
 import DomainContextChips from './DomainContextChips.jsx';
+import QualityTierChips from './QualityTierChips.jsx';
 import { deriveScenarioTags, computeChipCounts, rowPassesFilters } from './tag-derivation.js';
 import { deriveDomainContextBuckets, countScenarioBuckets } from '../../data/domain-context.js';
+import { deriveQualityTiers, countScenarioQTs } from '../../data/quality-tier.js';
 
 export default function ScenarioList({ pendingSelection, onNavigateToModule } = {}) {
   const { drafts, loading, save, remove } = useScenarioDrafts();
@@ -17,6 +19,7 @@ export default function ScenarioList({ pendingSelection, onNavigateToModule } = 
   const [search, setSearch] = useState('');
   const [domainFilter, setDomainFilter] = useState('all');
   const [activeBuckets, setActiveBuckets] = useState(() => new Set());
+  const [activeQTs, setActiveQTs] = useState(() => new Set());
   // Sketch mode: visual only.
   const [activeTags, setActiveTags] = useState({});
 
@@ -25,10 +28,23 @@ export default function ScenarioList({ pendingSelection, onNavigateToModule } = 
     []
   );
 
+  const qtCounts = useMemo(
+    () => countScenarioQTs(canonicalBundle.scenarios || []),
+    []
+  );
+
   const toggleBucket = (b) => {
     setActiveBuckets(prev => {
       const next = new Set(prev);
       next.has(b) ? next.delete(b) : next.add(b);
+      return next;
+    });
+  };
+
+  const toggleQT = (qt) => {
+    setActiveQTs(prev => {
+      const next = new Set(prev);
+      next.has(qt) ? next.delete(qt) : next.add(qt);
       return next;
     });
   };
@@ -68,9 +84,15 @@ export default function ScenarioList({ pendingSelection, onNavigateToModule } = 
         for (const b of activeBuckets) if (buckets.has(b)) return true;
         return false;
       })
+      .filter(r => {
+        if (activeQTs.size === 0) return true;
+        const qts = deriveQualityTiers(r.payload);
+        for (const qt of activeQTs) if (qts.has(qt)) return true;
+        return false;
+      })
       .map(r => ({ ...r, tags: deriveScenarioTags(r.payload) }))
       .sort((a, b) => a.id.localeCompare(b.id));
-  }, [drafts, search, domainFilter, activeBuckets]);
+  }, [drafts, search, domainFilter, activeBuckets, activeQTs]);
 
   const chipCounts = useMemo(() => computeChipCounts(rows, activeTags), [rows, activeTags]);
   const filteredRows = useMemo(() => rows.filter(r => rowPassesFilters(r, activeTags)), [rows, activeTags]);
@@ -157,6 +179,12 @@ export default function ScenarioList({ pendingSelection, onNavigateToModule } = 
           active={activeBuckets}
           onToggle={toggleBucket}
           onClearAll={() => setActiveBuckets(new Set())}
+        />
+        <QualityTierChips
+          counts={qtCounts}
+          active={activeQTs}
+          onToggle={toggleQT}
+          onClearAll={() => setActiveQTs(new Set())}
         />
         <TagFilterBar
           kind="scenario"
