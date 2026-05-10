@@ -18,7 +18,7 @@ const FIXTURE_SHAPE = {
   feature_wall: 'defer',
 };
 
-export default function FixtureInlineRow({ fixtureId, cfg, setFix, onJumpToProtection }) {
+export default function FixtureInlineRow({ fixtureId, cfg, setFix }) {
   const cat = FIXTURE_MAP[fixtureId];
   if (!cat) return null;
   const shape = FIXTURE_SHAPE[fixtureId] || 'count_only';
@@ -81,15 +81,12 @@ export default function FixtureInlineRow({ fixtureId, cfg, setFix, onJumpToProte
     cols = '90px 1fr';
     inputs = <>{numInput('linear_ft', 'LF')}{protectSelect}</>;
   } else if (shape === 'defer') {
-    cols = '1fr 140px';
-    inputs = <>
-      {protectSelect}
-      <button type="button"
-        onClick={() => onJumpToProtection?.(fixtureId)}
-        style={{ background: 'none', border: '1px solid var(--border)', borderRadius: 3, color: 'var(--accent)', fontSize: 11, padding: '4px 8px', cursor: 'pointer' }}>
-        Configure walls →
-      </button>
-    </>;
+    cols = '1fr';
+    inputs = (
+      <span style={{ fontSize: 11, color: 'var(--text-muted)', fontStyle: 'italic' }}>
+        Multi-wall configuration — set per wall on the Protection tab
+      </span>
+    );
   }
 
   return (
