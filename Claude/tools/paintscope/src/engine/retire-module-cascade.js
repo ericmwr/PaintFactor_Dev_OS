@@ -34,17 +34,26 @@ export function planRetireModuleCascade(moduleId, bundle) {
 
   const usages = findModuleUsage(moduleId, scenarios);
 
+  // Pre-index scenarios by id for O(1) lookup and to make the find safe
+  // against any drift between findModuleUsage's identity logic and ours.
+  const scenarioById = new Map(
+    scenarios.map(s => [s.scenario_id || s.id, s])
+  );
+
   // For each scenario that references the module, build a draft that
   // strips it from scenario.modules[].
-  const scenarioDrafts = usages.map(u => {
-    const sc = scenarios.find(s => (s.scenario_id || s.id) === u.scenario_id);
-    const newModules = (sc.modules || []).filter(m => m !== moduleId);
-    return {
-      id: sc.scenario_id || sc.id,
-      payload: { ...sc, modules: newModules },
-      status: 'local_override',
-    };
-  });
+  const scenarioDrafts = usages
+    .map(u => {
+      const sc = scenarioById.get(u.scenario_id);
+      if (!sc) return null;
+      const newModules = (sc.modules || []).filter(m => m !== moduleId);
+      return {
+        id: sc.scenario_id || sc.id,
+        payload: { ...sc, modules: newModules },
+        status: 'local_override',
+      };
+    })
+    .filter(Boolean);
 
   return {
     ok: true,
