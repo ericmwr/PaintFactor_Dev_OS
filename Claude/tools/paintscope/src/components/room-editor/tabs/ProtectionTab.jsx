@@ -2,7 +2,6 @@ import { useMemo, useState } from 'react';
 import { FIXTURE_MAP, FLOOR_TYPES } from '../../../data/fixture-catalog';
 import { deriveProtectionDefaults } from '../../../engine/derive-protection-defaults.js';
 import {
-  MASK_LEVELS_FLOOR,
   MASK_LEVELS_WALL,
   MASK_LEVELS_CEILING,
   MASK_LEVEL_SHORT as LEVEL_LABEL_SHORT,
