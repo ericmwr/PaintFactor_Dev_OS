@@ -1,10 +1,12 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import Select from '../../shared/Select';
 import { ENUMS } from '../../../data/enums';
 import { useModifierEnum } from '../../../hooks/useModifierEnum';
 import { ROOM_TYPES, ROOM_TYPE_SUGGESTED_FIXTURES } from '../../../data/room-types';
 import { PAINTING_SCOPE_PRESETS } from '../../../data/painting-scope-presets';
 import { FIXTURE_CATALOG, FIXTURE_MAP, FLOOR_TYPES } from '../../../data/fixture-catalog';
+import { MASK_LEVELS_FLOOR, MASK_LEVEL_SHORT } from '../../../data/mask-levels';
+import { deriveProtectionDefaults } from '../../../engine/derive-protection-defaults.js';
 
 export default function IdentityTab({ room, derived, dispatch, project, roomCategories }) {
   const textureOptions = useModifierEnum('FAC_TEXTURE');
@@ -13,6 +15,15 @@ export default function IdentityTab({ room, derived, dispatch, project, roomCate
   const setRoom = (f, v) => dispatch({ type: 'SET_ROOM', payload: { roomId: rid, field: f, value: v } });
   const setRoomNullable = (f, v) => dispatch({ type: 'SET_ROOM', payload: { roomId: rid, field: f, value: v || null } });
   const setScopePreset = (presetId) => dispatch({ type: 'SET_PAINTING_SCOPE_PRESET', payload: { roomId: rid, presetId } });
+
+  const derivedDefaults = useMemo(
+    () => deriveProtectionDefaults(room, project),
+    [room, project]
+  );
+  const floorAutoLevel = derivedDefaults.floor_mask_level;
+  const floorOverride = room.protection?.floor_mask_level || '';
+  const setProtField = (field, value) =>
+    dispatch({ type: 'SET_ROOM_PROTECTION_FIELD', payload: { roomId: rid, field, value } });
 
   // Outlier indicator — fires when room's preset differs from project default
   const projectDefaultPreset = project.default_painting_scope_preset || null;
@@ -111,18 +122,34 @@ export default function IdentityTab({ room, derived, dispatch, project, roomCate
       <div className="panel-section" data-section="contents">
         <div className="section-title">Room Contents <span style={{ fontSize: 10, color: 'var(--text-muted)', fontWeight: 400 }}>identification only — protection levels on Protection tab</span></div>
 
-        {/* Floor Type */}
-        <div style={{ marginBottom: 8 }}>
-          <div className="field-label">Floor Type</div>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12 }}>
-            {FLOOR_TYPES.map(ft => (
-              <label key={ft.id} style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, cursor: 'pointer' }}>
-                <input type="radio" name={`floor-type-${rid}`} value={ft.id}
-                  checked={room.floor_type === ft.id}
-                  onChange={() => setRoom('floor_type', ft.id)} />
-                <span style={{ color: room.floor_type === ft.id ? 'var(--text-primary)' : 'var(--text-muted)' }}>{ft.label}</span>
-              </label>
-            ))}
+        {/* Floor Type + Mask Level */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: 16, alignItems: 'start', marginBottom: 8 }}>
+          <div>
+            <div className="field-label">Floor Type</div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12 }}>
+              {FLOOR_TYPES.map(ft => (
+                <label key={ft.id} style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, cursor: 'pointer' }}>
+                  <input type="radio" name={`floor-type-${rid}`} value={ft.id}
+                    checked={room.floor_type === ft.id}
+                    onChange={() => setRoom('floor_type', ft.id)} />
+                  <span style={{ color: room.floor_type === ft.id ? 'var(--text-primary)' : 'var(--text-muted)' }}>{ft.label}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+          <div>
+            <div className="field-label">Floor Protection</div>
+            <select
+              value={floorOverride}
+              onChange={e => setProtField('floor_mask_level', e.target.value || null)}
+              style={{ width: '100%', fontSize: 12 }}
+            >
+              <option value="">Auto: {MASK_LEVEL_SHORT[floorAutoLevel] || floorAutoLevel}</option>
+              {MASK_LEVELS_FLOOR.map(o => <option key={o.id} value={o.id}>{o.label}</option>)}
+            </select>
+            <div style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 4 }}>
+              Walls + ceiling overrides on Protection tab.
+            </div>
           </div>
         </div>
 
