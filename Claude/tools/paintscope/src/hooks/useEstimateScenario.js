@@ -14,7 +14,7 @@
 // This hook never mutates state and never throws — it always returns either
 // a result or null, so it's safe to render alongside the legacy estimate.
 
-import { useMemo, useState, useEffect } from 'react';
+import { useMemo, useRef, useState, useEffect } from 'react';
 import { useProject } from './useProject';
 import { useSpecData } from './useSpecData';
 import { useCompanyProfile } from './useCompanyProfile';
@@ -28,11 +28,13 @@ import { resolveRoomFixtureProtection } from '../engine/fixture-protection.js';
 import { computeMaterialEstimates } from '../engine/material-estimates.js';
 import { computePricing } from '../engine/pricing.js';
 import canonicalBundle from '../data/scenario-bundle.gen.js';
+import { recordFiredTasks } from '../data/ledger-db.js';
 
 export function useEstimateScenario() {
   const { state } = useProject();
   const { specData } = useSpecData();
   const { profile } = useCompanyProfile();
+  const lastLedgerHashRef = useRef(null);
 
   // Load draft overlays once, then re-run estimate. Until drafts resolve
   // we run against the canonical bundle — overlay merge is additive.
@@ -54,7 +56,7 @@ export function useEstimateScenario() {
     return () => { cancelled = true; };
   }, []);
 
-  return useMemo(() => {
+  const result = useMemo(() => {
     if (!bundle || !bundle.scenarios || !bundle.modules) {
       console.warn('[PaintScope] Scenario bundle missing or malformed:', bundle);
       return null;
@@ -254,6 +256,38 @@ export function useEstimateScenario() {
       return { error: e.message, specResults: [], totalHours: 0, totalCrewDays: 0, phaseHours: {}, perInputResults: [], gaps: [], warnings: [], bundleStats, roomProtection: {}, fixtureProtection: {}, closetHoursByRoom: {}, materialEstimates: [], pricing: null, activatedSpecs: 0, totalSpecs: 0 };
     }
   }, [state, specData, profile, bundle, overlayStats]);
+
+  // Side-effect: record fired tasks into the IDB ledger for the
+  // "elimination by absence" cleanup workflow. Walks perInputResults
+  // (each pr already carries scenario_id; tasks within carry module_id
+  // + ps_key). Dedups via a hash of the sorted task_id list so rapid
+  // state changes during editing don't spam the ledger.
+  useEffect(() => {
+    if (!result || result.error) return;
+    const fired = [];
+    for (const pr of result.perInputResults || []) {
+      for (const t of pr.tasks || []) {
+        if (!t || !t.taskId) continue;
+        fired.push({
+          task_id: t.taskId,
+          hours: t.hours,
+          ps_key: t.psKey,
+          scenario_id: pr.scenarioId || null,
+          module_id: t.moduleId || null,
+        });
+      }
+    }
+    if (fired.length === 0) return;
+    const hash = fired.map(f => f.task_id).sort().join('|');
+    if (hash === lastLedgerHashRef.current) return;
+    lastLedgerHashRef.current = hash;
+    recordFiredTasks(fired, {
+      source: 'organic',
+      project_label: state?.project?.name || null,
+    }).catch(err => console.warn('[ledger] write failed', err));
+  }, [result, state?.project?.name]);
+
+  return result;
 }
 
 /**

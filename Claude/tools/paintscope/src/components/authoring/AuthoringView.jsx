@@ -18,7 +18,7 @@
 //
 // Gate: shown only when localStorage.paintscope.admin === '1'.
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import ModuleList from './ModuleList.jsx';
 import ScenarioList from './ScenarioList.jsx';
 import TaskList from './TaskList.jsx';
@@ -28,6 +28,7 @@ import ModifierList from './ModifierList.jsx';
 import DraftsView from './DraftsView.jsx';
 import ArchiveView from './ArchiveView.jsx';
 import { regenBundle } from '../../authoring/archive-ops.js';
+import { getLedgerCount, buildLedgerExport, clearLedger } from '../../data/ledger-db.js';
 
 const KIND_TO_TAB = {
   module: 'modules',
@@ -146,6 +147,43 @@ export default function AuthoringView() {
     }
   }, []);
 
+  // Ledger count + actions. Refreshes on focus + every 5s while the tab
+  // is visible so the user sees the count climb as estimates run.
+  const [ledgerCount, setLedgerCount] = useState(null);
+  useEffect(() => {
+    let cancelled = false;
+    const refresh = () => {
+      getLedgerCount().then(n => { if (!cancelled) setLedgerCount(n); }).catch(() => {});
+    };
+    refresh();
+    const id = setInterval(refresh, 5000);
+    return () => { cancelled = true; clearInterval(id); };
+  }, []);
+  const handleDownloadLedger = useCallback(async () => {
+    try {
+      const payload = await buildLedgerExport();
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `paintscope-fired-tasks-${new Date().toISOString().replace(/[:.]/g, '-')}.json`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    } catch (e) {
+      alert(`Ledger export failed: ${e.message}`);
+    }
+  }, []);
+  const handleClearLedger = useCallback(async () => {
+    if (!confirm(`Clear the fired-tasks ledger?\n\nThis removes ${ledgerCount ?? '?'} records. Download first if you want a backup.`)) return;
+    try {
+      const cleared = await clearLedger();
+      setLedgerCount(0);
+      console.log(`[ledger] cleared ${cleared} records`);
+    } catch (e) {
+      alert(`Ledger clear failed: ${e.message}`);
+    }
+  }, [ledgerCount]);
+
   const showBreadcrumb = navStack.length > 1;
 
   return (
@@ -191,6 +229,28 @@ export default function AuthoringView() {
               cursor: regenStatus === 'running' ? 'wait' : 'pointer',
             }}
           >Regenerate bundle</button>
+          <button
+            onClick={handleDownloadLedger}
+            disabled={!ledgerCount}
+            title={`Download fired-tasks ledger (${ledgerCount ?? '?'} distinct task IDs accumulated). Drives the elimination-by-absence cleanup workflow.`}
+            style={{
+              padding: '4px 10px', fontSize: 11, background: 'transparent', color: 'var(--text)',
+              border: '1px solid var(--border)', borderRadius: 3,
+              cursor: !ledgerCount ? 'not-allowed' : 'pointer',
+              opacity: !ledgerCount ? 0.5 : 1,
+            }}
+          >Ledger ({ledgerCount ?? '…'})</button>
+          <button
+            onClick={handleClearLedger}
+            disabled={!ledgerCount}
+            title="Clear the fired-tasks ledger. Download first if you want a backup."
+            style={{
+              padding: '4px 8px', fontSize: 11, background: 'transparent', color: 'var(--text-muted)',
+              border: '1px solid var(--border)', borderRadius: 3,
+              cursor: !ledgerCount ? 'not-allowed' : 'pointer',
+              opacity: !ledgerCount ? 0.4 : 0.8,
+            }}
+          >clear</button>
           <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>
             Admin · drafts in IndexedDB · publish writes to <code>Claude/modules</code>+<code>scenarios</code>
           </span>

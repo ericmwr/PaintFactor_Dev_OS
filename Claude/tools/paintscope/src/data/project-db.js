@@ -1,7 +1,7 @@
 import { openDB } from 'idb';
 
 const DB_NAME = 'paintfactor';
-const DB_VERSION = 9;
+const DB_VERSION = 10;
 
 let dbPromise = null;
 
@@ -64,6 +64,15 @@ export function getDB() {
           const taskDrafts = db.createObjectStore('task_drafts', { keyPath: 'id' });
           taskDrafts.createIndex('status', 'status');
           taskDrafts.createIndex('phase', 'phase');
+        }
+        // v10: fired_tasks_seen ledger — accumulates which task IDs have
+        // fired across estimates, with last-seen breadcrumbs. Drives the
+        // "elimination by absence" cleanup workflow: anything in the
+        // canonical bundle but not in this store is a candidate for review.
+        if (oldVersion < 10) {
+          const seen = db.createObjectStore('fired_tasks_seen', { keyPath: 'task_id' });
+          seen.createIndex('last_seen', 'last_seen');
+          seen.createIndex('last_source', 'last_source');
         }
       },
     });
