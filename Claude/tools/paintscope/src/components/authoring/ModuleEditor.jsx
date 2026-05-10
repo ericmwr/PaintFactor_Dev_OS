@@ -13,6 +13,7 @@ import { useState, useEffect } from 'react';
 import ModifierImpactPreview from './ModifierImpactPreview.jsx';
 import ModuleUsagePanel from './ModuleUsagePanel.jsx';
 import TaskPicker from './TaskPicker.jsx';
+import RetireModuleModal from './RetireModuleModal.jsx';
 import canonicalBundle from '../../data/scenario-bundle.gen.js';
 import { archiveEntity, regenBundle } from '../../authoring/archive-ops.js';
 
@@ -55,6 +56,7 @@ export default function ModuleEditor({ draft, onSave, onCancel, onPublish, onNav
   const [record, setRecord] = useState(() => draft ? structuredClone(draft) : emptyModule());
   const [dirty, setDirty] = useState(false);
   const [pickerOpen, setPickerOpen] = useState(false);
+  const [retireModalOpen, setRetireModalOpen] = useState(false);
   // Track which rare-field overrides are revealed per task-index (variant B
   // pattern — user clicks "override" to reveal an input, otherwise canonical
   // value is shown read-only).
@@ -223,6 +225,7 @@ export default function ModuleEditor({ draft, onSave, onCancel, onPublish, onNav
   };
 
   return (
+    <>
     <div style={{ display: 'flex', gap: 16, height: '100%' }}>
       <TaskPicker
         open={pickerOpen}
@@ -434,6 +437,14 @@ export default function ModuleEditor({ draft, onSave, onCancel, onPublish, onNav
             <button
               className="btn"
               style={{ color: '#e74c3c', borderColor: '#e74c3c' }}
+              onClick={() => setRetireModalOpen(true)}
+              title="Strip module from all scenarios that reference it, then archive"
+            >Retire</button>
+          )}
+          {payload.module_id && record.status !== 'new' && (
+            <button
+              className="btn"
+              style={{ color: '#e74c3c', borderColor: '#e74c3c' }}
               onClick={async () => {
                 if (!confirm(`Archive ${payload.module_id}?\n\nMoves Claude/modules/${payload.module_id}.json → Claude/modules/archive/. Bundle regenerates automatically. Restorable from the Archive tab.`)) return;
                 try {
@@ -461,6 +472,17 @@ export default function ModuleEditor({ draft, onSave, onCancel, onPublish, onNav
         </pre>
       </div>
     </div>
+    {retireModalOpen && (
+      <RetireModuleModal
+        moduleId={payload.module_id}
+        onClose={() => setRetireModalOpen(false)}
+        onComplete={() => {
+          setRetireModalOpen(false);
+          onCancel?.();
+        }}
+      />
+    )}
+    </>
   );
 }
 
