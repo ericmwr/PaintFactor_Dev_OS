@@ -28,7 +28,12 @@ import ModifierList from './ModifierList.jsx';
 import DraftsView from './DraftsView.jsx';
 import ArchiveView from './ArchiveView.jsx';
 import { regenBundle } from '../../authoring/archive-ops.js';
-import { getLedgerCount, buildLedgerExport, clearLedger } from '../../data/ledger-db.js';
+import { getLedgerCount, buildLedgerExport, clearLedger, recordFiredTasks } from '../../data/ledger-db.js';
+import canonicalBundle from '../../data/scenario-bundle.gen.js';
+import { loadOverlayBundle } from '../../engine/overlay-loader.js';
+import { runProbe } from '../../engine/probe-runner.js';
+import { NC_INTERIOR_BASELINE_PROBES } from '../../probes/nc-interior-baseline.js';
+import { useSpecData } from '../../hooks/useSpecData.jsx';
 
 const KIND_TO_TAB = {
   module: 'modules',
@@ -184,6 +189,41 @@ export default function AuthoringView() {
     }
   }, [ledgerCount]);
 
+  // Probe runner — runs all NC interior baseline probes against the
+  // live overlay-merged bundle + specData, writes results to the ledger
+  // with source: 'probe'. Probes are imperative (no React state changes),
+  // so this just batches results and updates the count once at the end.
+  const { specData } = useSpecData();
+  const [probeStatus, setProbeStatus] = useState(null);
+  const handleRunProbes = useCallback(async () => {
+    setProbeStatus({ running: true, completed: 0, total: NC_INTERIOR_BASELINE_PROBES.length });
+    try {
+      const merged = await loadOverlayBundle(canonicalBundle);
+      const bundle = { modules: merged.modules, scenarios: merged.scenarios, modifiers: merged.modifiers, tasks: merged.tasks };
+      let totalFired = 0;
+      let totalUnmatched = 0;
+      const allWarnings = [];
+      for (let i = 0; i < NC_INTERIOR_BASELINE_PROBES.length; i++) {
+        const probe = NC_INTERIOR_BASELINE_PROBES[i];
+        const result = runProbe(probe, bundle, specData);
+        if (result.fired_tasks.length > 0) {
+          await recordFiredTasks(result.fired_tasks, { source: 'probe', probe_id: result.probe_id, project_label: probe.project?.name });
+          totalFired += result.fired_tasks.length;
+        }
+        totalUnmatched += result.unmatched_inputs;
+        if (result.warnings.length) allWarnings.push(...result.warnings.map(w => `[${result.probe_id}] ${w}`));
+        setProbeStatus({ running: true, completed: i + 1, total: NC_INTERIOR_BASELINE_PROBES.length });
+      }
+      const newCount = await getLedgerCount();
+      setLedgerCount(newCount);
+      setProbeStatus({ running: false, totalFired, totalUnmatched, warnings: allWarnings });
+      console.log('[probes] done', { totalFired, totalUnmatched, warnings: allWarnings });
+    } catch (e) {
+      console.error('[probes] error', e);
+      setProbeStatus({ running: false, error: e.message });
+    }
+  }, [specData]);
+
   const showBreadcrumb = navStack.length > 1;
 
   return (
@@ -251,6 +291,28 @@ export default function AuthoringView() {
               opacity: !ledgerCount ? 0.4 : 0.8,
             }}
           >clear</button>
+          <button
+            onClick={handleRunProbes}
+            disabled={probeStatus?.running}
+            title={`Run ${NC_INTERIOR_BASELINE_PROBES.length} NC interior baseline probes through the engine and seed the ledger with source: 'probe'.`}
+            style={{
+              padding: '4px 10px', fontSize: 11, background: 'transparent', color: 'var(--text)',
+              border: '1px solid var(--border)', borderRadius: 3,
+              cursor: probeStatus?.running ? 'wait' : 'pointer',
+            }}
+          >Run probes</button>
+          {probeStatus && (
+            <span style={{
+              fontSize: 10,
+              color: probeStatus.error ? '#e74c3c' : (probeStatus.running ? 'var(--text-muted)' : '#5aa85a'),
+            }}>
+              {probeStatus.error
+                ? `probes failed: ${probeStatus.error}`
+                : probeStatus.running
+                  ? `probes ${probeStatus.completed}/${probeStatus.total}…`
+                  : `probes done · ${probeStatus.totalFired} fires${probeStatus.totalUnmatched ? ` · ${probeStatus.totalUnmatched} unmatched` : ''}${probeStatus.warnings?.length ? ` · ${probeStatus.warnings.length} warnings (see console)` : ''}`}
+            </span>
+          )}
           <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>
             Admin · drafts in IndexedDB · publish writes to <code>Claude/modules</code>+<code>scenarios</code>
           </span>
