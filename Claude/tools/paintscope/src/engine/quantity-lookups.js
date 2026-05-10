@@ -622,10 +622,9 @@ export function buildRoomQuantityLookups(state) {
         if (subs.baseboard) addClosetQ('PS_PROTECT_LF.TRIM_BASEBOARD', 'LF', cd.baseboard_lf);
       }
       addClosetQ('PS_PROTECT_LF.CEILING_LINE', 'LF', cd.perimeter);
-      // Floor protection (inherits parent floor type)
-      if (hasFloorProt) {
-        addClosetQ('PS_PROTECT_SF.FLOOR_EXPOSED', 'SF', cd.ceilingSF);
-      }
+      // Legacy PS_PROTECT_SF.FLOOR_EXPOSED closet emit removed —
+      // consumer tasks archived. New closet protection lives via
+      // SCN_CLOSET_SHELF_PROTECT_* scenarios (MOD_PROTECT_CLOSET_SHELF_*).
       // Meta
       addClosetQ('PS_META.SF.FLOOR_VACUUM_AREA', 'SF', cd.ceilingSF);
     });
