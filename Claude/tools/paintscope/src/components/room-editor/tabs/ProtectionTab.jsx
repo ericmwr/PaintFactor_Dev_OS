@@ -75,7 +75,7 @@ export default function ProtectionTab({ room, derived, dispatch, project }) {
   return (
     <>
       <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 8 }}>
-        Mask levels auto-derive from painting scope + method + floor type. Override per surface to deviate from the rule.
+        Floor protection + per-fixture levels are set on the Identity tab. Override walls/ceiling here for the rare scenarios that need them, plus advanced fixture detail (multi-item feature walls, notes).
       </div>
 
       {/* ── Floor type readout (set on Identity tab) ── */}
@@ -110,14 +110,26 @@ export default function ProtectionTab({ room, derived, dispatch, project }) {
           <div>Override</div>
           <div>Effective</div>
         </div>
-        <MaskRow
-          surface="floor"
-          label="Floor"
-          qtyLabel={`${derived.ceilingSF || 0} SF · ${derived.perimeter || 0} LF perimeter`}
-          autoLevel={derivedDefaults.floor_mask_level}
-          currentValue={protection.floor_mask_level}
-          options={MASK_LEVELS_FLOOR}
-        />
+        {/* Floor — readout (set on Identity tab) */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 110px 1fr 110px', gap: 8, alignItems: 'center', padding: '6px 0', borderBottom: '1px solid var(--border)' }}>
+          <div>
+            <div style={{ fontWeight: 600, fontSize: 13 }}>Floor</div>
+            <div style={{ fontSize: 10, color: 'var(--text-muted)' }}>
+              {derived.ceilingSF || 0} SF · {derived.perimeter || 0} LF perimeter
+            </div>
+          </div>
+          <div>
+            <span style={{ fontSize: 11, padding: '2px 8px', borderRadius: 3, background: 'var(--bg-tertiary)', color: 'var(--text-secondary)', fontWeight: 600 }}>
+              IDENTITY
+            </span>
+          </div>
+          <div style={{ fontSize: 11, color: 'var(--text-muted)', fontStyle: 'italic' }}>
+            Set on Identity tab
+          </div>
+          <div style={{ fontSize: 11, color: 'var(--accent)', fontWeight: 600, fontFamily: 'var(--font-mono)' }}>
+            {LEVEL_LABEL_SHORT[protection.floor_mask_level || derivedDefaults.floor_mask_level] || derivedDefaults.floor_mask_level}
+          </div>
+        </div>
         <MaskRow
           surface="wall"
           label="Walls"
