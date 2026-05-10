@@ -7,11 +7,7 @@ const FIXTURE_SHAPE = {
   bathtub: 'count_only',
   appliances: 'count_only',
   light_fixtures: 'count_only',
-  ceiling_fan: 'count_only',
-  hardware_covers: 'count_only',
-  mantel: 'count_only',
   backsplash: 'count_only',
-  generic: 'count_only',
   shower: 'count_wh',
   fireplace: 'count_wh',
   stone_fireplace: 'count_wh',
@@ -75,7 +71,7 @@ export default function FixtureInlineRow({ fixtureId, cfg, setFix, onJumpToProte
     cols = '90px 130px 1fr';
     inputs = <>
       {numInput('linear_ft', 'LF')}
-      <select value={cfg.layout || 'lower_upper'} onChange={e => setFix(fixtureId, 'layout', e.target.value)} style={{ fontSize: 12 }}>
+      <select value={cfg.layout || 'lower_upper'} onChange={e => setFix(fixtureId, 'layout', e.target.value)} style={{ width: '100%', fontSize: 12 }}>
         <option value="lower_only">Lower Only</option>
         <option value="lower_upper">Lower + Upper</option>
       </select>
