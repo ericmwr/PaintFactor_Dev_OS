@@ -7,6 +7,7 @@ import { PAINTING_SCOPE_PRESETS } from '../../../data/painting-scope-presets';
 import { FIXTURE_CATALOG, FIXTURE_MAP, FLOOR_TYPES } from '../../../data/fixture-catalog';
 import { MASK_LEVELS_FLOOR, MASK_LEVEL_SHORT } from '../../../data/mask-levels';
 import { deriveProtectionDefaults } from '../../../engine/derive-protection-defaults.js';
+import FixtureInlineRow from '../FixtureInlineRow';
 
 export default function IdentityTab({ room, derived, dispatch, project, roomCategories }) {
   const textureOptions = useModifierEnum('FAC_TEXTURE');
@@ -15,6 +16,13 @@ export default function IdentityTab({ room, derived, dispatch, project, roomCate
   const setRoom = (f, v) => dispatch({ type: 'SET_ROOM', payload: { roomId: rid, field: f, value: v } });
   const setRoomNullable = (f, v) => dispatch({ type: 'SET_ROOM', payload: { roomId: rid, field: f, value: v || null } });
   const setScopePreset = (presetId) => dispatch({ type: 'SET_PAINTING_SCOPE_PRESET', payload: { roomId: rid, presetId } });
+
+  const setFix = (fId, field, value) =>
+    dispatch({ type: 'SET_FIXTURE', payload: { roomId: rid, fixtureId: fId, field, value } });
+
+  const onJumpToProtection = (fixtureId) => {
+    console.info('TODO: navigate to Protection tab with focusedFixture', fixtureId);
+  };
 
   const derivedDefaults = useMemo(
     () => deriveProtectionDefaults(room, project),
@@ -198,9 +206,29 @@ export default function IdentityTab({ room, derived, dispatch, project, roomCate
               </div>
             )}
           </div>
-          <div style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 6 }}>
-            Per-fixture configuration (dimensions, protection level) lives on the Protection tab.
-          </div>
+          {/* Inline configuration for checked fixtures */}
+          {(() => {
+            const checkedIds = Object.keys(room.fixtures || {}).filter(id => !!room.fixtures[id]);
+            if (checkedIds.length === 0) return null;
+            return (
+              <div style={{ marginTop: 12, paddingTop: 8, borderTop: '1px solid var(--border)' }}>
+                <div style={{ fontSize: 10, fontWeight: 600, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 6 }}>
+                  Configure Selected
+                </div>
+                <div>
+                  {checkedIds.map(fId => (
+                    <FixtureInlineRow
+                      key={fId}
+                      fixtureId={fId}
+                      cfg={room.fixtures[fId] || {}}
+                      setFix={setFix}
+                      onJumpToProtection={onJumpToProtection}
+                    />
+                  ))}
+                </div>
+              </div>
+            );
+          })()}
         </div>
       </div>
 
