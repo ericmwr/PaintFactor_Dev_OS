@@ -331,18 +331,10 @@ export function buildRoomQuantityLookups(state) {
     const trimLF = d.baseboard_lf + d.door_casing_lf + d.window_casing_lf;
     addQ('PS_EDGE_LF.TO_TRIM', 'LF', trimLF);
 
-    // Protection — floor level driven by floor_type + user override.
-    // floor_protection is canonical mask-level vocab (edge/partial/full/etc.).
-    const floorProt2 = room.floor_protection || '';
-    const hasFloorProt = room.floor_type && room.floor_type !== 'subfloor' && floorProt2;
-    if (hasFloorProt) {
-      addQ('PS_PROTECT_SF.FLOOR_EXPOSED', 'SF', d.ceilingSF);
-      if (floorProt2 === 'full' || floorProt2 === 'partial' ||
-          floorProt2 === 'edge_full' || floorProt2 === 'edge_partial' ||
-          floorProt2 === 'encapsulate' || floorProt2 === 'edge_encapsulate') {
-        addQ('PS_PROTECT_SF.FLOOR_PERIMETER', 'SF', d.perimeter * 2);
-      }
-    }
+    // Legacy PS_PROTECT_SF.FLOOR_EXPOSED + FLOOR_PERIMETER emits removed
+    // (their consumer tasks are archived). New floor protection lives on
+    // room.protection.floor_mask_level via Identity tab → emits
+    // PS_PROTECT_LF.FLOOR_EDGE / FLOOR_PARTIAL above.
     // WORKZONE = localized spray zones: 8ft radius semicircle per opening, quarter-circle per window
     const wzSF = Math.min(
       Math.round(d.totalOpenings * (Math.PI * 64 / 2) + d.totalWindows * (Math.PI * 64 / 4)),

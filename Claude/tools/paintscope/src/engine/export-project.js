@@ -197,16 +197,8 @@ export function exportProject(state) {
     addQty('PS_EDGE_LF.TO_TRIM', 'LF', trimLF);
 
     // Protection quantity keys (derived) — floor level driven by floor_type
-    const floorProt = room.floor_protection || '';
-    const hasFloorProtection = room.floor_type && room.floor_type !== 'subfloor' && floorProt;
-    if (hasFloorProtection) {
-      addQty('PS_PROTECT_SF.FLOOR_EXPOSED', 'SF', d.ceilingSF);
-      if (floorProt === 'full' || floorProt === 'partial' ||
-          floorProt === 'edge_full' || floorProt === 'edge_partial' ||
-          floorProt === 'encapsulate' || floorProt === 'edge_encapsulate') {
-        addQty('PS_PROTECT_SF.FLOOR_PERIMETER', 'SF', d.perimeter * 2);
-      }
-    }
+    // Legacy floor_protection emits removed — consumers archived. New
+    // protection state lives on room.protection.floor_mask_level.
     // WORKZONE = localized spray overspray zones: 8ft radius semicircle per opening (~101 SF),
     // 8ft radius quarter-circle per window (~50 SF, half arc since against wall), capped at floor area
     const workzoneSF = Math.min(
