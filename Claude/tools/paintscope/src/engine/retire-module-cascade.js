@@ -55,10 +55,16 @@ export function planRetireModuleCascade(moduleId, bundle) {
     })
     .filter(Boolean);
 
+  if (scenarioDrafts.length !== usages.length) {
+    console.warn(
+      `retire-cascade: ${usages.length - scenarioDrafts.length} usage(s) could not be resolved and were skipped`
+    );
+  }
+
   return {
     ok: true,
     scenarioDrafts,
-    usageCount: usages.length,
-    scenarioIds: usages.map(u => u.scenario_id),
+    usageCount: scenarioDrafts.length,
+    scenarioIds: scenarioDrafts.map(d => d.id),
   };
 }

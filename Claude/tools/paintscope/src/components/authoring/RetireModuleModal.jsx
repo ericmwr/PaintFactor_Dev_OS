@@ -109,7 +109,7 @@ export default function RetireModuleModal({ moduleId, onClose, onComplete }) {
               )}
 
               <div style={{ marginTop: 10, padding: 6, fontSize: 10, color: 'var(--text-muted)', background: 'rgba(224,184,74,0.08)', border: '1px solid rgba(224,184,74,0.3)', borderRadius: 3 }}>
-                ⚠ Drafts stay in IDB until you publish them in DraftsView. The smoke gate at publish-all validates every scenario.modules ref resolves. Restorable from the Archive tab.
+                ⚠ Drafts stay in IDB until you publish them in DraftsView. The smoke gate at publish-all validates every scenario.modules ref resolves. To undo: restore the module from the Archive tab AND delete the scenario drafts from DraftsView.
               </div>
             </>
           )}
