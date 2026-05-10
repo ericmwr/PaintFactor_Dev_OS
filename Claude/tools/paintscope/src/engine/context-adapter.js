@@ -31,6 +31,7 @@ import {
 import { resolveSubstrateStateForSpec, isSpecStateCompatible } from './spec-compatibility.js';
 import { deriveRoom, deriveHeightBand } from './derive-room.js';
 import { FIXTURE_CATALOG } from '../data/fixture-catalog.js';
+import { SUBSTRATE_APPLICATION_METHODS } from '../data/substrate-catalog.js';
 import { STAIN_SPEC_FAMILIES, UI_STATE_TO_SPEC_STATE, SPEC_SUBSTRATE_MAP, SPEC_ROLE } from '../data/spec-maps.js';
 import { resolveActivation, STATE_TRANSITION_TARGET } from '../data/system-catalog.js';
 import { resolveSystem } from './spec-resolution.js';
@@ -41,16 +42,22 @@ import { resolvePassGroups } from './pass-groups.js';
 // method. Mirrors the same check in quantity-lookups.js. Used by the
 // room_protection ctx to gate outlet mask tasks (and any future mask tasks
 // that should only fire when spraying is happening).
+//
+// application_method falls back to SUBSTRATE_APPLICATION_METHODS[id].default
+// when the user hasn't explicitly picked one — the UI shows that default in
+// the dropdown placeholder. The engine has to honor the same rule or rooms
+// where the user never touched the dropdown get reported as brush-only.
 function computeAnySprayInRoom(room) {
   const subs = room?.substrates || {};
   const isSpray = (m) => (m || '').toString().includes('spray');
-  if (isSpray(subs.walls?.application_method)) return true;
-  if (isSpray(subs.ceiling?.application_method)) return true;
+  const effective = (id, sub) => sub?.application_method || SUBSTRATE_APPLICATION_METHODS[id]?.default || '';
+  if (isSpray(effective('walls', subs.walls))) return true;
+  if (isSpray(effective('ceiling', subs.ceiling))) return true;
   const trimIds = ['baseboard','crown','door_casing','window_casing','chair_rail','shoe_mold','picture_rail','window_stool','window_apron','shadow_box','panel_mold','door_frames','window_jamb'];
   for (const id of trimIds) {
     const s = subs[id];
     if (!s || s.painting === false) continue;
-    if (isSpray(s.application_method)) return true;
+    if (isSpray(effective(id, s))) return true;
   }
   return false;
 }

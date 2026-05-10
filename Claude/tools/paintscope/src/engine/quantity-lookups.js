@@ -34,14 +34,24 @@ export function buildRoomQuantityLookups(state) {
     // heuristic — both gate on this so brush-only rooms don't emit
     // physical-mask quantities (covers/tape stay on; brush around them).
     // Hoisted here so the fixture iteration below can reference it.
-    const wallsSprayQ = (subs.walls?.application_method || '').toString().includes('spray');
-    const ceilingSprayQ = (subs.ceiling?.application_method || '').toString().includes('spray');
+    //
+    // application_method falls back to SUBSTRATE_APPLICATION_METHODS[id].default
+    // when the user hasn't explicitly picked one — the UI shows that default in
+    // the dropdown placeholder, so the engine has to honor the same rule or
+    // brush-only rooms get reported when the user actually has spray defaults.
+    function effectiveMethod(substrateId, sub) {
+      const explicit = sub?.application_method;
+      if (explicit) return explicit;
+      return SUBSTRATE_APPLICATION_METHODS[substrateId]?.default || '';
+    }
+    const wallsSprayQ = effectiveMethod('walls', subs.walls).toString().includes('spray');
+    const ceilingSprayQ = effectiveMethod('ceiling', subs.ceiling).toString().includes('spray');
     const anyTrimSprayQ = ['baseboard','crown','door_casing','window_casing','chair_rail','shoe_mold','picture_rail','window_stool','window_apron','shadow_box','panel_mold','door_frames','window_jamb']
       .some(id => {
         const s = subs[id];
         if (!s) return false;
         if (s.painting === false) return false;
-        return (s.application_method || '').toString().includes('spray');
+        return effectiveMethod(id, s).toString().includes('spray');
       });
     const anySprayInRoom = wallsSprayQ || ceilingSprayQ || anyTrimSprayQ;
 
