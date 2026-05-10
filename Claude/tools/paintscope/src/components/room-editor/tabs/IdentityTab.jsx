@@ -120,7 +120,7 @@ export default function IdentityTab({ room, derived, dispatch, project, roomCate
 
       {/* ── Room Contents (identification only) ── */}
       <div className="panel-section" data-section="contents">
-        <div className="section-title">Room Contents <span style={{ fontSize: 10, color: 'var(--text-muted)', fontWeight: 400 }}>identification only — protection levels on Protection tab</span></div>
+        <div className="section-title">Room Contents <span style={{ fontSize: 10, color: 'var(--text-muted)', fontWeight: 400 }}>floors + fixtures — walls/ceiling on Protection tab</span></div>
 
         {/* Floor Type + Mask Level */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: 16, alignItems: 'start', marginBottom: 8 }}>
