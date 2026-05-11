@@ -289,14 +289,19 @@ function deriveSurfaceOrientation(task, eligibility) {
 
 /**
  * Derive material_type for TRADE_MATERIAL.
- *   1. ctx.material_type — explicit override (allows OB_* selection from
+ *   1. task.material_type — per-task override from a module task_ref (allows
+ *      a single module to fire multiple material variants, e.g. sealer + clear
+ *      in MOD_APPLY_DOOR_CLEAR). Carried in via resolveTaskFromRef shallow
+ *      merge.
+ *   2. ctx.material_type — explicit override (allows OB_* selection from
  *      future scenarios). Honored when set.
- *   2. eligibility.material === true → WB_PRIMER (the module declares itself
+ *   3. eligibility.material === true → WB_PRIMER (the module declares itself
  *      as primer-side work; primer is slower than finish).
- *   3. otherwise → WB_FINISH (neutral default; TRADE_MATERIAL = 1.0× when
+ *   4. otherwise → WB_FINISH (neutral default; TRADE_MATERIAL = 1.0× when
  *      eligibility.material is falsy, so the value is informational).
  */
-function deriveMaterialType(eligibility, ctx) {
+function deriveMaterialType(eligibility, ctx, task) {
+  if (task && task.material_type) return task.material_type;
   if (ctx && ctx.material_type) return ctx.material_type;
   if (eligibility && eligibility.material === true) return 'WB_PRIMER';
   return 'WB_FINISH';
@@ -361,7 +366,7 @@ export function computeScenarioModifierStack(module, ctx, scenarioModifiers = nu
   // modifier_eligibility.material = true → derives WB_PRIMER → 1.25× time
   // multiplier. Otherwise WB_FINISH → 1.0×. Replaces the per-entry
   // BA_TRADE_MATERIAL band-aid pattern from the NC consolidation pass.
-  const material_type = deriveMaterialType(eligibility, ctx);
+  const material_type = deriveMaterialType(eligibility, ctx, task);
   const material = eligibility.material === true
     ? (bundle ? getFactor(bundle, 'TRADE_MATERIAL', material_type) : (material_type === 'WB_PRIMER' ? 1.25 : material_type === 'OB_PRIMER' ? 1.47 : material_type === 'OB_FINISH' ? 1.176 : 1.0))
     : 1.0;

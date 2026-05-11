@@ -5,10 +5,14 @@
   "eligibility_key": "material",
   "ctx_key": "material_type",
   "default": "WB_FINISH",
-  "description": "Production rate adjustment based on the coating material being applied. Waterbased finish (latex/acrylic) is the baseline. Primer is ~20% slower than finish (rate x 0.8) because of careful uniform laydown for adhesion + thinner film build. Oil-based coatings are ~15% slower than waterbased equivalents (rate x 0.85) because of slower setup time, brush drag, and more careful brushwork to avoid lap marks. The OB_PRIMER factor combines both penalties (1.25 x 1.176 = ~1.47 = rate x 0.68). Material is auto-derived from substrate_state and coat_number: bare substrates fire primer first, factory-primed substrates skip primer. Oil-based selection is reserved for future use; only waterbased materials are wired in active scenarios. Stored as a TIME multiplier per engine convention (>=1 = slower). FORWARD-LOOKING DECLARATION: engine wiring (ctx.material_type derivation + db.factor_modifiers rows) is a follow-up. Replaces the per-substrate-state primer-vs-finish task split — primer is no longer a distinct task family, it is the same apply task fired with material_type=WB_PRIMER. Migration in progress 2026-05-05.",
+  "description": "Production rate adjustment based on the coating material being applied. Waterbased finish (latex/acrylic) is the baseline. Primer is ~20% slower than finish (rate x 0.8). Oil-based coatings are ~15% slower than waterbased equivalents (rate x 0.85). The OB_PRIMER factor combines both penalties (1.25 x 1.176 = ~1.47 = rate x 0.68). Clear and sealer coats run ~10% faster than paint when brushed (thinner liquid, lighter laydown), but spray rates are unaffected because the sprayer doesn't care what's in the cup — so clear/sealer split into BRUSH (0.9) and SPRAY (1.0) variants. Material is auto-derived from substrate_state and coat_number for prime/finish flows; door clear/sealer modules carry an explicit per-task material_type via task_ref shallow merge. Stored as a TIME multiplier per engine convention (>=1 = slower; <1 = faster).",
   "factors": {
     "WB_FINISH": 1.0,
     "WB_PRIMER": 1.25,
+    "WB_CLEAR_BRUSH": 0.9,
+    "WB_CLEAR_SPRAY": 1.0,
+    "WB_SEALER_BRUSH": 0.9,
+    "WB_SEALER_SPRAY": 1.0,
     "OB_FINISH": 1.176,
     "OB_PRIMER": 1.47
   }
