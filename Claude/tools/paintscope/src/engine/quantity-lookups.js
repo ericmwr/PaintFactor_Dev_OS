@@ -118,7 +118,14 @@ export function buildRoomQuantityLookups(state) {
     // Both retired in 2026-05-03; per-substrate keys (TRIM_<SUB>, TRIM_JOINTS_<SUB>)
     // emitted above are the canonical source.
 
-    // Doors — from substrates.doors.items; emit paint or stain keys based on coating_type
+    // Doors — from substrates.doors.items. Both paint and stain coatings emit the
+    // same per-side key (PS_SURFACE_EA_SIDE.DOOR_SLAB, EA_SIDE = cnt × sides_per_door).
+    // A door slab is geometrically the same regardless of finish, so the slab-area
+    // quantity is one signal; the scenario engine routes to paint vs stain modules
+    // via coating_type / paintable_item, not via the quantity key itself.
+    // Prior to 2026-05-11 the stain branch emitted PS_SURFACE_EA.DOOR_SLAB_STAIN (EA,
+    // per-door), but the DSST tasks looked up PS_SURFACE_EA.DOOR_SLAB (no suffix),
+    // so the stain side fired 0 hours. Unified here.
     const doorItems = subs.doors?.items || [];
     const doorsPainting2 = subs.doors?.painting;
     doorItems.forEach(door => {
@@ -126,13 +133,7 @@ export function buildRoomQuantityLookups(state) {
       const sides = cnt * (parseInt(door.sides_per_door) || 2);
       const itemPainting = door.painting !== false;
       if (doorsPainting2 && itemPainting) {
-        const ct = door.coating_type || 'paint';
-        if (ct === 'paint') {
-          addQ('PS_SURFACE_EA_SIDE.DOOR_SLAB', 'EA_SIDE', sides);
-        } else {
-          // Stain/clear specs use EA (not EA_SIDE) — count of doors, not sides
-          addQ('PS_SURFACE_EA.DOOR_SLAB_STAIN', 'EA', cnt);
-        }
+        addQ('PS_SURFACE_EA_SIDE.DOOR_SLAB', 'EA_SIDE', sides);
       }
     });
     // Opening counts from openings table (structural, always emit)
