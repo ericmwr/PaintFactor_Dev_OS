@@ -740,16 +740,46 @@ export function runScenarioEstimate({ scenarioBundle, ctx, roomQty, roomItems = 
   // ctx field (e.g. "stain_coats"), that module is repeated ctx[field] times
   // at this point in the sequence. 0 = skipped. This lets one scenario serve
   // any per-coat user configuration without combinatorial scenario fanout.
+  //
+  // Two config shapes are accepted:
+  //   1. String form: "stain_coats" — just the ctx field name (backward compat)
+  //   2. Object form: { field, interstage } — same field + an interstage
+  //      module that fires BETWEEN consecutive apply reps (incl. across
+  //      different apply modules with the same interstage). The interstage
+  //      does NOT fire after the very last apply rep in the workflow,
+  //      detected by checking whether the next entry also has an interstage
+  //      configured. This implements the user-direction interstage pattern
+  //      (sand / inspect / putty / dust wipe between every coat pair) without
+  //      forcing scenarios to enumerate every coat in their modules list.
   const dynamicCoats = scenario.dynamic_coats || {};
-  const expandedModules = [];
+  // First pass: walk scenario.modules, expand repeats, attach interstage info
+  const entries = [];
   for (const moduleId of scenario.modules) {
-    const ctxField = dynamicCoats[moduleId];
-    if (ctxField) {
+    const config = dynamicCoats[moduleId];
+    if (config) {
+      let ctxField, interstageModule = null;
+      if (typeof config === 'string') {
+        ctxField = config;
+      } else if (config && typeof config === 'object') {
+        ctxField = config.field;
+        interstageModule = config.interstage || null;
+      }
       const n = Number(ctx[ctxField]);
       const reps = Number.isFinite(n) && n > 0 ? Math.floor(n) : 0;
-      for (let i = 0; i < reps; i++) expandedModules.push(moduleId);
+      for (let i = 0; i < reps; i++) entries.push({ moduleId, interstageModule });
     } else {
-      expandedModules.push(moduleId);
+      entries.push({ moduleId, interstageModule: null });
+    }
+  }
+  // Second pass: interleave interstage between consecutive entries that
+  // both have an interstage configured. After the last interstage-bearing
+  // entry, no interstage fires (workflow ends).
+  const expandedModules = [];
+  for (let i = 0; i < entries.length; i++) {
+    expandedModules.push(entries[i].moduleId);
+    const next = entries[i + 1];
+    if (entries[i].interstageModule && next && next.interstageModule) {
+      expandedModules.push(entries[i].interstageModule);
     }
   }
   const moduleInvocations = {}; // module_id -> count so far
