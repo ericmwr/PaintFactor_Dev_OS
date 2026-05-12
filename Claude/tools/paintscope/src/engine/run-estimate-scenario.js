@@ -438,25 +438,54 @@ function computeEffectiveTotal(modStack, phase, ctx) {
  * Build the display-facing task name, appending "— Coat N" when coatNumber > 1.
  * Keeps the estimate readable when the same task fires on multiple coats.
  */
+// Material label lookup for displayTaskName decoration. Maps each
+// TRADE_MATERIAL ctx value to the human label that gets appended to a
+// coating-neutral task name (e.g. "Door Brush" + WIPE_STAIN \u2192 "Door Brush \u2014 Stain").
+const MATERIAL_LABEL = {
+  WB_PRIMER:        'Primer',
+  OB_PRIMER:        'Primer',
+  WB_FINISH:        'Finish',
+  OB_FINISH:        'Finish',
+  WB_CLEAR_BRUSH:   'Clear',
+  WB_CLEAR_SPRAY:   'Clear',
+  WB_SEALER_BRUSH:  'Sealer',
+  WB_SEALER_SPRAY:  'Sealer',
+  WIPE_STAIN:       'Stain',
+};
+
+// Tasks whose canonical name already says what they are \u2014 either the coating
+// (Finish/Prime/Stain/etc.) or an auxiliary action that isn't a coating
+// application (Sand/Inspect/Patch/etc.). For both cases, displayTaskName
+// skips the material suffix because adding one would be redundant or wrong
+// (e.g. "Light Sand Door Between Coats" must not become "...\u2014 Primer" just
+// because it lives in a module with eligibility.material=true).
+const NAME_CONVEYS_TASK = /\b(Finish|Prime|Primer|Stain|Sealer|Clear|Sand|Inspect|Patch|Wipe|Tack|Clean|Touchup|Mask|Reinstall|Remove|Fill|Hardware|Setup|Conditioner|Grain)\b/;
+
 function displayTaskName(task, coatNumber, materialType = 'WB_FINISH', phase = null) {
-  // Material framing \u2014 under TRADE_MATERIAL the same coating task fires for both
-  // prime and finish work, so a quote/work-order needs "Prime" vs "Finish"
-  // framing in the displayed name. When materialType ends in _PRIMER we swap
-  // "Finish" -> "Prime" if present, or append " \u2014 Primer" if the
-  // canonical name is coating-neutral. Mirror suffix for finish phase
-  // (gated by phase since WB_FINISH is the default materialType and would
-  // otherwise tag every prep/cleanup/interstage task).
+  // Material framing \u2014 under TRADE_MATERIAL the same coating task fires for
+  // multiple coating types (primer / finish / sealer / clear / stain), so a
+  // quote or work-order needs the material specified in the displayed name.
+  // Coating-neutral keeper names (e.g. "Door Brush") get the material
+  // appended as a suffix; legacy task names with "Finish" baked in have it
+  // swapped to "Prime" for the primer case. Tasks whose name conveys their
+  // role (sanding, inspecting, etc.) get no suffix.
   let base = task.name;
   if (typeof materialType === 'string') {
-    if (materialType.endsWith('_PRIMER')) {
+    const label = MATERIAL_LABEL[materialType];
+    if (label === 'Primer') {
+      // Primer tagging fires regardless of phase \u2014 prime modules run in
+      // "prime" phase, not apply/finish, but still need the label.
       if (/\bFinish\b/.test(base)) {
         base = base.replace(/\bFinish\b/, 'Prime');
-      } else {
+      } else if (!NAME_CONVEYS_TASK.test(base)) {
         base = `${base} \u2014 Primer`;
       }
-    } else if ((phase === 'finish' || phase === 'apply') && materialType.endsWith('_FINISH')) {
-      if (!/\b(Finish|Prime|Primer|Stain|Sealer|Clear)\b/.test(base)) {
-        base = `${base} \u2014 Finish`;
+    } else if (label && (phase === 'finish' || phase === 'apply')) {
+      // Finish / Clear / Sealer / Stain \u2014 gated to apply/finish phase so
+      // prep/cleanup/interstage tasks (which default to WB_FINISH but
+      // aren't actually about a coating) don't get tagged.
+      if (!NAME_CONVEYS_TASK.test(base)) {
+        base = `${base} \u2014 ${label}`;
       }
     }
   }
@@ -754,7 +783,10 @@ export function runScenarioEstimate({ scenarioBundle, ctx, roomQty, roomItems = 
       // Also trigger per-task stack when the canonical task has a
       // fac_qt_override map — the per-tier multiplier override needs the
       // task to be visible to computeScenarioModifierStack.
-      const needsTaskStack = !!(task.modifier_eligibility || task.fac_qt_override);
+      // material_type carried via task_ref shallow-merge also requires
+      // per-task evaluation so deriveMaterialType sees the override
+      // instead of falling back to the module's eligibility default.
+      const needsTaskStack = !!(task.modifier_eligibility || task.fac_qt_override || task.material_type);
       const taskStack = needsTaskStack
         ? computeScenarioModifierStack(mod, ctx, scenarioModifiers, scenarioBundle, task)
         : modStack;

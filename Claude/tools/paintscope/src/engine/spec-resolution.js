@@ -5,18 +5,27 @@ import { inferDefaultSystem } from '../data/system-catalog.js';
 
 // Items-based substrates (doors, windows) store per-item fields like
 // coating_type, substrate_state, wood_species_group on each item rather
-// than on the top-level substrate config. This helper reads a field from
-// the first item that has it set, falling back to the top-level config.
+// than on the top-level substrate config. The substrate-level field is
+// the *default* that fresh items inherit; explicit per-item values are
+// *overrides* of that default. Per-item values therefore win.
+//
+// Precedence:
+//   1. items[*][field] — first item with the field set wins (per-item override)
+//   2. config[field]   — substrate-level default
+//   3. fallback        — provided default
+//
+// For non-items substrates (no items array), step 1 is a no-op and the
+// substrate-level value applies as before.
 const ITEMS_SUBSTRATES = new Set(['doors', 'windows']);
 function resolveItemField(config, subId, field, fallback) {
-  // Try top-level config first
-  if (config?.[field] != null) return config[field];
-  // For items-based substrates, check items
+  // Items-based substrates: per-item override wins over substrate-level default
   if (ITEMS_SUBSTRATES.has(subId) && config?.items?.length > 0) {
     for (const item of config.items) {
       if (item[field] != null) return item[field];
     }
   }
+  // Substrate-level value (the only path for non-items substrates)
+  if (config?.[field] != null) return config[field];
   return fallback;
 }
 
@@ -70,15 +79,22 @@ export function resolveSystem(specId, room, project) {
   const primarySub = SPEC_SUBSTRATE_MAP[specId];
   const subConfig = primarySub && room.substrates?.[primarySub];
 
+  // Resolve fields via resolveItemField so per-item overrides on items-based
+  // substrates (doors, windows) win over the substrate-level default.
+  // A door item with coating_type=stain_clear must drive a stain system even
+  // when the doors substrate carries a stale coating_type=paint default.
+  const substrateState = resolveItemField(subConfig, primarySub, 'substrate_state', null);
+  const coatingType    = resolveItemField(subConfig, primarySub, 'coating_type', null);
+
   // 1. Stain/clear coating_type asserts workflow intent over any stale
   // `system` value. Coating Type is the user-facing toggle for wood substrates;
   // picking "Stain + Clear" must suppress paint specs even if a prior session
   // left config.system = 'paint_full' cached on the substrate.
-  if (subConfig?.substrate_state === 'bare_wood') {
-    if (subConfig?.coating_type === 'stain_clear')  return 'stain_sealer_clear';
-    if (subConfig?.coating_type === 'stain_only')   return 'stain_only';
-    if (subConfig?.coating_type === 'clear_only')   return 'clear_refresh';
-    if (subConfig?.coating_type === 'stain')        return 'stain_sealer_clear';
+  if (substrateState === 'bare_wood') {
+    if (coatingType === 'stain_clear')  return 'stain_sealer_clear';
+    if (coatingType === 'stain_only')   return 'stain_only';
+    if (coatingType === 'clear_only')   return 'clear_refresh';
+    if (coatingType === 'stain')        return 'stain_sealer_clear';
   }
 
   // 2. Per-substrate explicit system override (e.g. user picked paint_finish
@@ -86,7 +102,7 @@ export function resolveSystem(specId, room, project) {
   if (subConfig?.system) return subConfig.system;
 
   // 3. Paint coating_type on bare wood → full paint system (default inference).
-  if (subConfig?.substrate_state === 'bare_wood' && subConfig?.coating_type === 'paint') {
+  if (substrateState === 'bare_wood' && coatingType === 'paint') {
     return 'paint_full';
   }
 
