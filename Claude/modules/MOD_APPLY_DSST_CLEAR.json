@@ -1,32 +1,9 @@
 {
   "module_id": "MOD_APPLY_DSST_CLEAR",
-  "name": "Sealer + Clear - int_door_slab",
+  "name": "Clear Coat - int_door_slab",
   "phase": "finish",
-  "intent": "Sanding sealer + clear topcoat with interstage sanding. Apply tasks fire through TSK_DOOR_BRUSH/SPRAY keepers; the per-task_ref material_type selects the right TRADE_MATERIAL factor (WB_SEALER_BRUSH/SPRAY for the sealer pass, WB_CLEAR_BRUSH/SPRAY for the clear pass). Interstage sanding folds onto TSK_DOOR_LIGHT_SAND — same physical work as paint interstage sand; the grit doctrine (220-320 between sealer, 320-400 between clear) is a painter-level detail the estimating layer doesn't differentiate.",
+  "intent": "One clear topcoat + sand (only between coats, gated by coat_lt_ctx). Repeats per ctx.clear_coats via scenario.dynamic_coats. Mirrors MOD_TEMPLATE_TRIM_APPLY_CLEAR but with EA_SIDE keeper tasks for door slabs.",
   "tasks": [
-    {
-      "task_ref": "TSK_DOOR_BRUSH",
-      "ps_key": "PS_SURFACE_EA_SIDE.DOOR_SLAB",
-      "material_type": "WB_SEALER_BRUSH",
-      "applies_when": {
-        "application_method_clear": [
-          "brush"
-        ]
-      }
-    },
-    {
-      "task_ref": "TSK_DOOR_SPRAY",
-      "ps_key": "PS_SURFACE_EA_SIDE.DOOR_SLAB",
-      "material_type": "WB_SEALER_SPRAY",
-      "applies_when": {
-        "application_method_clear": [
-          "spray"
-        ]
-      }
-    },
-    {
-      "task_ref": "TSK_DOOR_LIGHT_SAND"
-    },
     {
       "task_ref": "TSK_DOOR_BRUSH",
       "ps_key": "PS_SURFACE_EA_SIDE.DOOR_SLAB",
@@ -48,7 +25,11 @@
       }
     },
     {
-      "task_ref": "TSK_DOOR_LIGHT_SAND"
+      "task_ref": "TSK_DOOR_LIGHT_SAND",
+      "ps_key": "PS_SURFACE_EA_SIDE.DOOR_SLAB",
+      "applies_when": {
+        "coat_lt_ctx": "clear_coats"
+      }
     }
   ],
   "modifier_eligibility": {
@@ -59,5 +40,5 @@
     "condition": false,
     "material": true
   },
-  "doctrine": "Sealer+clear for int_door_slab. Interstage sanding required for stain/clear. NO roll for clear. QT3=0+1, QT4=1+2, QT5=2+3. Universal-keeper migration 2026-05-11: TSK_DSST_SEALER_BRUSH/SPRAY + TSK_DSST_CLEAR_BRUSH/SPRAY (4 tasks) collapsed onto TSK_DOOR_BRUSH/SPRAY keepers; TSK_DSST_SAND_SEALER + TSK_DSST_SAND_CLEAR (2 tasks) collapsed onto TSK_DOOR_LIGHT_SAND. Brush variants get 0.9× time (clear/sealer flow faster than paint when brushed); spray variants are 1.0× (sprayer viscosity-agnostic). Rate drift accepted per 'rates later' deferral."
+  "doctrine": "Clear for int_door_slab. Sand-clear (320-400 grit typical) fires only between coats via coat_lt_ctx:'clear_coats' — last coat is not sanded since it's the final finish. Brush variant gets WB_CLEAR_BRUSH 0.9× time (faster than paint by brush); spray variant gets WB_CLEAR_SPRAY 1.0× (sprayer viscosity-agnostic). 2026-05-12: split from the previous combined sealer+clear module to support per-pass dynamic_coats looping like the trim stain side."
 }
