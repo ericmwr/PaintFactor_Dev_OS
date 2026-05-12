@@ -674,7 +674,7 @@ for (const sid of branchScenarios) {
   }
   console.log(`  ${sid.padEnd(45)} ${r.result.totalHours.toString().padStart(6)} hrs  (${r.result.tasks.length} tasks)`);
   // Show which gated tasks fired
-  const gatedTasks = ['TSK_TRIM_SPOT_PRIME_KNOTS', 'TSK_MDF_EDGE_SEAL', 'TSK_TRIM_FILL_END_GRAIN'];
+  const gatedTasks = ['TSK_MDF_EDGE_SEAL', 'TSK_TRIM_FILL_END_GRAIN'];
   for (const tid of gatedTasks) {
     const fired = r.result.tasks.some(t => t.taskId === tid);
     console.log(`      ${tid.padEnd(35)} ${fired ? 'FIRED' : 'skipped (gated)'}`);
