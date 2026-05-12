@@ -1,224 +1,202 @@
-# Next Session Pickup — Universal Keeper Migration (Phase 2 continuing + Phase 1 cleanup)
+# Next Session Pickup — Universal Keeper Migration
 
-**Last updated:** 2026-05-11 (end of session, user requested handoff)
-**Branch:** `claude/cranky-saha` (pushed to origin at `ac4167d`; head is further ahead — push before merging)
-**Resume protocol:** read this doc first, then `Claude/_keeper_migration_plan.md` for the per-keeper worklist, then `Claude/_task_coverage_report.csv` for the broader classification.
-
----
-
-## What we're doing (one paragraph)
-
-The PaintScope catalog has 60 **Universal Keepers** (`Status: 'Universal Keeper'` in the Notion task catalog). These are intended to be referenced by modules via universal task IDs whose rate is the baseline and whose surface/material/orientation variations come from **modifier_eligibility** flags (`overhead`, `material`, `height`, etc.) on the module — not from baked-in per-surface rates. Many keepers got created during the consolidation but never migrated through to modules; modules kept referencing operation-specific Gen-3 tasks. We're sweeping the keepers one family at a time, rewriting module `task_ref` entries to point at the keeper with the right module-level `ps_key` (via resolveTaskFromRef shallow-merge) and adding `modifier_eligibility.overhead: true` on ceiling modules so `TRADE_OVERHEAD` (1.25× time) applies. Once a family is migrated, the retired Gen-3 tasks move to `Claude/tasks/archive/`.
+**Last updated:** 2026-05-12 (end of marathon session, user requested fresh-context handoff before next session)
+**Branch:** `claude/cranky-saha` (14 commits ahead of pre-session `e78e0a7`; head `462c8ea` pushed to origin)
+**Resume protocol:** read this doc → check the Notion live page → skim the memory note → start work.
 
 ---
 
-## Notion source of truth
+## Where we are (one paragraph)
 
-**PaintFactor BOS Roadmap → PaintScope Task Catalog → Tasks** database.
-
-- Database ID: `9f5c79f3-9328-4f02-bbff-a8426d3f428d`
-- Data source URL: `collection://16bc0048-1287-4d6a-aa5d-705ee39f1b6f`
-- Direct URL: https://www.notion.so/9f5c79f393284f02bbffa8426d3f428d
-
-**Schema columns:** `Task ID` (title), `Name`, `UOM` (LF/SF/EA/EA_SIDE/EA_ROOM/FIXED/EA_SIDE_PER_DOOR), `Skill` (general/experienced/intermediate/certified), `Status` (Active/Universal Keeper/Deferred/Dead), `Notes`, `Rate` (number), `PS Key`, `Family`.
-
-**Pre-built views to use:**
-- "Active Universals" — filtered to `Status = 'Universal Keeper'`
-- "By Family" — grouped by Family
-- "Rate Outliers" — < 50 rate
-- "Dead / Deferred"
-
-**Offline snapshot of the catalog** lives at `Claude/_notion_batch_{1-7}_compact.json` (commit `7075bfd`). Parse with:
-```js
-const all = [];
-for (let i = 1; i <= 7; i++) {
-  const batch = JSON.parse(fs.readFileSync(`Claude/_notion_batch_${i}_compact.json`, 'utf8'));
-  for (const item of batch) if (item.properties) all.push(item.properties);
-}
-const keepers = all.filter(p => p.Status === 'Universal Keeper'); // 60
-```
-
-The Notion MCP `search` tool works for refetching: pass `data_source_url: "collection://16bc0048-1287-4d6a-aa5d-705ee39f1b6f"` and a relevant query.
+The keeper migration has substantially completed. The **door family** (paint + stain) is fully migrated. The **stain interstage architecture** is in place across LF, SF, and EA_SIDE substrates — a new engine feature (`dynamic_coats.interstage`) interleaves an interstage module between consecutive apply repetitions. Paint-side and stain-side defect/fill task families are properly split (SPACKLE_DEFECT for paint, WOOD_PUTTY for stain). Equipment setup/cleanup tasks were retired system-wide. Of the original 8 cleanup keepers, 3 were migrated (SPACKLE_DEFECT_SF / SPOT_PRIME_SF / VACUUM_WORK_AREA), 4 sit available as orphan keepers waiting for consumers, and TSK_INSPECT_REPAIR_FLOOR_COVERING_SF is parked as a feature TODO. The remaining real work is **Groups D/E/F stain-side legacy cleanup** (AEST/RRST/SRST/TRST/WNST/WINDOW/STAIR) which is blocked on a user architectural decision about whether to handle per-element rate variations via modifiers or separate tasks.
 
 ---
 
-## Status snapshot (Phase 2 progress)
+## Live status source of truth
 
-| Family | Keeper(s) | Modules | Status | Commit |
-|---|---|---:|---|---|
-| Drywall apply backroll | `TSK_BACKROLL_DWL` | 8 | ✓ done (pilot) | `5246211` |
-| Drywall apply roll | `TSK_ROLL_DWL` | 4 | ✓ done | `576597d` |
-| Drywall apply spray-only | `TSK_SPRAY_DWL` | 4 | ✓ done | `576597d` |
-| Drywall apply spray-tethered | `TSK_BACKROLL_SPRAY_DWL` | 8 | ✓ done (fixes inverted ceiling rate too) | `576597d` |
-| Cut-in | `TSK_CUTIN_WALL_LF` | 3 (CUTIN_TRIM, CUTIN_CEILING, WALL_PRIME_ROLL straggler) | ✓ done | `bf21702` |
-| **Doors** | `TSK_DOOR_BRUSH`, `TSK_DOOR_SPRAY` | TBD | ⏳ **NEXT** | — |
-| Door dust wipe | `TSK_DOOR_DUST_WIPE` | TBD | ⏳ pending | — |
-| Cleanup keepers | spackle ×3, vacuum, touchup fill, dust wipe interstage, spot prime, floor covering inspect | TBD | ⏳ pending | — |
-| Phase 1 cleanup | TSK_TRIM_BRUSH_LF + TSK_TRIM_SPRAY_LF on disk; 5 MISSING tasks in Notion | — | ⏳ deferred | — |
+**Notion page:** [PaintScope Universal Keeper Migration — Status & Backlog](https://www.notion.so/35e3ab2c2a5b81bd9629c6068de53be0)
 
-**Probe coverage from this session's work:** 86/86 protection tasks still firing through SCN_ROOM_PROTECTION_NC, no legacy task leaks across the bundle, no unresolved module refs.
+Update the Notion page as items move between sections — *don't* update this doc. This file is a frozen end-of-session handoff. The Notion page is the live working state.
+
+Also relevant:
+- `Claude/_keeper_migration_plan.md` — per-keeper name-prefix scan, 2026-05-11 snapshot. Useful for finding candidates; status is stale.
+- `Claude/_notion_batch_{1-7}_compact.json` — offline Notion DB snapshot (commit `7075bfd`).
+- Memory file `project_universal_keeper_migration.md` — doctrine + tooling cheatsheet, points at this doc and the Notion page.
 
 ---
 
-## NEXT: door migration design (user provided 2026-05-11)
+## Architecture established this session (must-know for next session)
 
-User's call on the FAC_MATERIAL collapse for the 8 door per-coating tasks:
+### Engine extensions in `run-estimate-scenario.js`
 
-**Two keepers:** `TSK_DOOR_BRUSH` (rate 4, EA_SIDE) and `TSK_DOOR_SPRAY` (rate 10, EA_SIDE).
+1. **Per-task `material_type`** (commit `6ec889c`) — `deriveMaterialType()` now checks the resolved task's `material_type` field (carried via task_ref shallow-merge) before falling back to ctx or eligibility default. Lets a single module fire multiple material variants (e.g. one apply module with both sealer and clear passes by per-task_ref material_type). Trigger: `needsTaskStack` includes `task.material_type` so the per-task stack computation actually runs.
 
-**Material factors to add to `Claude/modifiers/FAC_MATERIAL.json`** (current factors: `WB_PRIMER: 1.25`, baseline finish 1.0):
+2. **Per-item overrides for items-based substrates** (commit `6ec889c`) — `resolveItemField()` precedence reversed: items-level wins over substrate-level for doors/windows. A door item with `coating_type: "stain_clear"` now correctly drives the stain system even when the doors substrate carries a stale `coating_type: "paint"` default.
 
-```json
-"WB_PRIMER":  1.25,   // existing (primer slower than finish)
-"WB_FINISH":  1.0,    // existing baseline
-"WB_CLEAR":   0.9,    // NEW — clear/sealer coats apply ~10% faster than paint (BRUSH only)
-"WB_SEALER":  0.9,    // NEW — same as clear
-"WIPE_STAIN": 0.8     // NEW — wipe stain ~20% faster
-```
+3. **Display labels via `MATERIAL_LABEL`** (commit `6ec889c`) — `displayTaskName` decorates coating-neutral keepers ("Door Brush") with the material via suffix: "Door Brush — Stain", "Door Brush — Clear — Coat 2". An auxiliary-task skip-list regex (`Sand|Inspect|Patch|Wipe|Tack|Clean|Touchup|Mask|Reinstall|Remove|Fill|Hardware|Setup|Conditioner|Grain`) prevents spurious tags on non-coating tasks.
 
-**CRITICAL nuance:** the 0.9 clear/sealer modifier applies ONLY to **brush** application. **Spray** clear/sealer does NOT get the 0.9 modifier (spray rate is similar to spray paint). This means:
-- Modules using TSK_DOOR_BRUSH need eligibility for WB_CLEAR/WB_SEALER (clear modules + sealer modules) → 0.9 applies via ctx
-- Modules using TSK_DOOR_SPRAY for clear/sealer → don't apply 0.9; treat clear/sealer-spray as WB_FINISH (1.0)
+4. **`dynamic_coats.interstage`** (commit `313e802`) — the dynamic_coats config now accepts an object form `{ field, interstage }` in addition to the existing string form. When the object form is used, the engine interleaves the named interstage module between consecutive apply repetitions — including across phase boundaries (stain → sealer → clear) — but NOT after the final apply rep (detected by the next entry having no interstage). Backward compatible.
 
-Practically: this needs either (a) two FAC_MATERIAL entries that look at `application_method` to choose factor, or (b) two separate material categories (`WB_CLEAR_BRUSH` 0.9, `WB_CLEAR_SPRAY` 1.0). Option (b) is cleaner — let the module declare which material variant via its ctx and the modifier table look it up directly.
+### Three-side keeper parity
 
-**Wipe stain (0.8)** applies to both brush and wipe contexts (stain is rarely sprayed; if it is, the same 0.8 holds — wipe is the brush-equivalent for stain).
+The paint and stain sides now have parallel architecture:
 
-### The 8 retired Gen-3 door tasks → 2 keepers
-
-| Retired (rate) | Keeper | FAC_MATERIAL on module |
+| Aspect | Paint side | Stain side |
 |---|---|---|
-| `TSK_DOOR_FINISH_BRUSH` (4) | `TSK_DOOR_BRUSH` | `WB_FINISH` (1.0, baseline) |
-| `TSK_DOOR_CLEAR_BRUSH` (4) | `TSK_DOOR_BRUSH` | `WB_CLEAR_BRUSH` (0.9) |
-| `TSK_DOOR_SEALER_BRUSH` (4) | `TSK_DOOR_BRUSH` | `WB_SEALER_BRUSH` (0.9) |
-| `TSK_DOOR_STAIN_BRUSH` (3.2) | `TSK_DOOR_BRUSH` | `WIPE_STAIN` (0.8) |
-| `TSK_DOOR_FINISH_SPRAY` (10) | `TSK_DOOR_SPRAY` | `WB_FINISH` (1.0) |
-| `TSK_DOOR_CLEAR_SPRAY` (6) | `TSK_DOOR_SPRAY` | `WB_CLEAR_SPRAY` (1.0) — but rate is 6 vs 10. Drift accepted. |
-| `TSK_DOOR_SEALER_SPRAY` (6) | `TSK_DOOR_SPRAY` | `WB_SEALER_SPRAY` (1.0) |
-| `TSK_DOOR_STAIN_SPRAY` (6) | `TSK_DOOR_SPRAY` | `WIPE_STAIN` (0.8 — would give 8 effective, not the canonical 6. Drift accepted. User said rates later.) |
+| Initial prep template | `MOD_TEMPLATE_TRIM_PRIME_INITIAL` + `MOD_TEMPLATE_TRIM_PAINT` (post-primer) | `MOD_TEMPLATE_TRIM_PREP_STAIN_LF` / `_SF` / `_EA_SIDE` |
+| Interstage template | `MOD_TEMPLATE_TRIM_INTERSTAGE` + `MOD_INTERSTAGE_DOOR` | `MOD_INTERSTAGE_TRIM_STAIN_LF` / `_SF` / `_EA_SIDE` |
+| Defects task | `TSK_SPACKLE_DEFECT_LF/SF/EA_SIDE/EA` (all 4 UOMs exist) | `TSK_WOOD_PUTTY_LF/SF` + `TSK_DOOR_PATCH_REPAIR` (EA_SIDE — misnamed) |
+| Fill task | `TSK_FILL_FASTENERS_LF` (paint-specific, 120/hr) | `TSK_WOOD_PUTTY_FILL_LF/SF` (200/600) |
+| Apply coating tasks | per-material LF tasks (TSK_STAIN_BRUSH_LF etc.) + `TSK_DOOR_BRUSH/SPRAY` for doors | per-material LF tasks + `TSK_DOOR_BRUSH/SPRAY` for doors |
+| Multi-coat looping | scenario-explicit (paint doors) / dynamic_coats (paint trim) | dynamic_coats with interstage interleaving |
 
-Note: the SPRAY rates have more drift than brush because the 0.9 doesn't apply on spray. The actual current spray rates suggest stain/clear/sealer spray is ~40% slower than finish spray (6 vs 10), which doesn't fit any single material factor. **Per user's "rates later" direction, accept the structural collapse and revisit calibration.**
+### Display naming convention
 
-### Migration steps for doors
+Auxiliary keepers follow `[Description] (UOM)`:
+- `Sand Bare (LF)` / `(SF)` / `(EA_SIDE)`
+- `Between Coat Sand (LF)` / `(SF)` / `(EA_SIDE)`
+- `Wood Conditioner (LF)` / `(SF)` / `(EA_SIDE)`
+- `Final Inspect (LF)` / `(SF)` / `(EA_SIDE)`
+- `Clean Interstage Dust (LF)` / `(SF)` / `(EA_SIDE)`
 
-1. Update `Claude/modifiers/FAC_MATERIAL.json` with the new factors.
-2. Find modules referencing each of the 8 retired tasks. Likely candidates by grep:
-   - `MOD_APPLY_DOOR_FINISH`, `MOD_APPLY_DOOR_CLEAR`, `MOD_APPLY_DOOR_SEALER`, `MOD_APPLY_DOOR_STAIN`, `MOD_PREP_DOOR_STAIN`, etc.
-3. For each module:
-   - Replace BRUSH task_ref → `TSK_DOOR_BRUSH` (no ps_key needed — engine fallback in run-estimate-scenario.js:18 handles paintable_item='door' → PS_OPENING_EA_SIDE.DOOR_SLAB or whatever)
-   - Replace SPRAY task_ref → `TSK_DOOR_SPRAY`
-   - Add `modifier_eligibility.material: true` on the module
-   - The module's scenario or ctx provides the material category (WB_FINISH / WB_CLEAR_BRUSH / etc.) — verify ctx threading
-4. Archive 8 Gen-3 door tasks.
-5. Regen + probe + commit.
+Apply-side coating-neutral keepers (`TSK_DOOR_BRUSH/SPRAY`, `TSK_BRUSH_COAT_LF`) get the material appended via `displayTaskName` ("Door Brush — Stain").
 
-**Engine fallback for door ps_key:** check `SUBSTRATE_PS_KEY_BY_PAINTABLE_ITEM` in run-estimate-scenario.js (line 18). Doors may need `door: 'PS_OPENING_EA_SIDE.DOOR_SLAB'` added, or modules can carry the ps_key per-task_ref.
+### Equipment setup/cleanup retired system-wide
+
+Per user direction in commit `00c9eac`: 72 `TSK_*_EQUIPMENT_SETUP_*` + `TSK_*_EQUIP_CLEAN` tasks archived. The doctrine is that **no per-substrate equipment tasks should be re-introduced** until there's a proper "per-job equipment overhead" model that doesn't multiply by substrate count. Don't add equipment tasks back without that model.
 
 ---
 
-## After doors: door dust wipe + cleanup keepers
+## Commits this session (in chronological order)
 
-### `TSK_DOOR_DUST_WIPE` (EA_SIDE @ 30) — investigation needed
-Likely superseded by generic `TSK_DUST_WIPE_LF` (300 LF/hr universal) OR `TSK_DUST_WIPE_SF` (1000 SF/hr). But door is EA_SIDE (per-side), different UOM. Could be a real distinct keeper. Check `MOD_PREP_DOOR_*` modules.
-
-### Cleanup keeper batch (8 keepers)
-All NOT-FAC_OVERHEAD-applicable per the doctrine note (these aren't labor — they're cleanup/process). HOWEVER, per user clarification 2026-05-11: **if the cleanup happens on a ceiling without its own ceiling-specific rate variant, FAC_OVERHEAD does apply.** Only **inspection** is exempt.
-
-| Keeper | UOM | Rate | Current Gen-3 equivalent? |
-|---|---|---:|---|
-| `TSK_SPACKLE_DEFECT_LF` | LF | 400 | Find per-substrate spackle tasks |
-| `TSK_SPACKLE_DEFECT_SF` | SF | 1000 | Find drywall spackle tasks |
-| `TSK_SPACKLE_DEFECT_EA_SIDE` | EA_SIDE | 30 | Find door/window spackle tasks |
-| `TSK_DUST_WIPE_INTERSTAGE_LF` | LF | 600 | Interstage variant — different from `TSK_DUST_WIPE_LF` (300) |
-| `TSK_VACUUM_WORK_AREA` | SF | 600 | Floor work — NO TRADE_OVERHEAD |
-| `TSK_TOUCHUP_FILL_LF` | LF | 200 | Find per-substrate touchup fill tasks |
-| `TSK_SPOT_PRIME_SF` | SF | 1500 | Drywall spot prime |
-| `TSK_INSPECT_REPAIR_FLOOR_COVERING_SF` | SF | 1200 | Floor process — NO TRADE_OVERHEAD |
-
-Each needs investigation: who currently does the work? Same migration pattern as drywall but per-keeper.
-
-### Phase 1 cleanup (deferred)
-
-After Phase 2 finishes:
-1. **Archive on disk** (canonical task files): `TSK_TRIM_BRUSH_LF`, `TSK_TRIM_SPRAY_LF` — Gen-2 keepers superseded by Gen-3 `TSK_BRUSH_COAT_LF` / `TSK_SPRAY_COAT_LF`. User confirmed: keep Gen-3.
-2. **Mark Dead in Notion** for the 5 MISSING keepers (never created on disk because FAC_MATERIAL paint↔prime collapse made them unnecessary):
-   - `TSK_PRIME_BRUSH_LF`, `TSK_PRIME_BRUSH_SF`, `TSK_PRIME_SPRAY_LF`, `TSK_PRIME_SPRAY_SF`, `TSK_SPRAY_FINISH_SF`
-3. **Mark Dead in Notion** for `TSK_TRIM_BRUSH_LF` + `TSK_TRIM_SPRAY_LF` after on-disk archive.
-4. **Mark Active in Notion** for the keepers we've now wired up (BACKROLL_DWL, ROLL_DWL, SPRAY_DWL, BACKROLL_SPRAY_DWL, CUTIN_WALL_LF). They should still show as "Universal Keeper" status, OR change them to "Active" since they're now actively firing. User to decide Notion taxonomy.
-
----
-
-## Key tooling
-
-| Tool | Purpose |
+| Commit | Subject |
 |---|---|
-| `Claude/scripts/classify-task-coverage.mjs <ledger.json>` | Generates `_task_coverage_report.csv` with ACTIVE/REACHABLE_UNFIRED/ORPHAN/ARCHIVED per task. Re-run after any migration to refresh. |
-| `Claude/scripts/probe-protection-tasks.mjs` | Verifies 86/86 protection task coverage + 0 legacy leaks. Run after every migration. |
-| `Claude/scripts/build-scenario-bundle.mjs` | Regen the bundle. Required after any module/task edit. |
-| `Claude/scripts/migrate-backroll-dwl-keeper.mjs` | Pilot pattern (single-keeper). |
-| `Claude/scripts/migrate-drywall-keepers-batch.mjs` | Multi-keeper parameterized batch. Use this as a template for door + cleanup keepers. |
-| `Claude/scripts/migrate-cutin-keeper.mjs` | Many-to-one collapse (11 tasks → 1 keeper) with per-target ps_keys. |
-| Authoring tab `Ledger (N)` button | Downloads `paintscope-fired-tasks-<ts>.json` for the classifier. |
-| Authoring tab `Run probes` button | Re-fires the 13 NC interior baseline probes for ledger seeding. |
+| `9de7237` | door paint keeper migration — 6 per-coating → TSK_DOOR_BRUSH/SPRAY |
+| `8666d56` | door stain keeper migration — 2 per-coating → TSK_DOOR_BRUSH/SPRAY |
+| `cd54bed` | unify door slab quantity emission — per-side for paint + stain |
+| `5fc5186` | DSST family migration + orphan cascade cleanup |
+| `6ec889c` | engine fixes to make keeper task migration actually work end-to-end |
+| `00c9eac` | retire equipment setup/cleanup tasks + simplify DSST prep/cleanup |
+| `a33eb49` | DSST multi-coat looping + door task display rename for trim consistency |
+| `5ceb5af` | Bucket A cleanup keeper migration — spackle / spot prime / vacuum |
+| `914276b` | add TSK_WOOD_PUTTY_FILL_LF + wire TSK_TOUCHUP_FILL_LF into painted trim prep |
+| `b8e78f9` | stain trim prep template extraction (LF / SF / EA_SIDE) |
+| `b40cee5` | retire TSK_TOUCHUP_FILL_LF (mistake) + DOOR_PATCH_REPAIR naming |
+| `313e802` | stain interstage architecture — dynamic_coats interleaves an interstage module between coats |
+| `cc42725` | SF stain interstage wiring + orphan SAND task archival |
+| `462c8ea` | wire SPACKLE_DEFECT keepers into painted trim + door interstage |
+
+Branch is at 14 commits ahead of origin start (`ac4167d`); all pushed.
 
 ---
 
-## Project state to know
+## What's next (in priority order)
 
-- **Dev server:** vite on `localhost:5183`, root at `Claude/tools/paintscope/`. Start with `npm run dev -- --port 5183`.
-- **IDB ledger** at `paintfactor.fired_tasks_seen` (v10 schema). Drives the elimination-by-absence workflow.
-- **Fired-tasks logger** auto-records on every estimate via `useEstimateScenario.js`. Source: 'organic' for user estimates, 'probe' for the Run probes button output.
-- **TRADE_OVERHEAD modifier** at `Claude/modifiers/TRADE_OVERHEAD.json` — 1.25× time for ceilings. Eligibility key: `overhead`. **Applies to all labor + cleanup on ceilings, except inspection.**
-- **FAC_MATERIAL modifier** at `Claude/modifiers/FAC_MATERIAL.json` — current factors: `WB_PRIMER: 1.25`. **Door migration adds `WB_CLEAR_BRUSH/SEALER_BRUSH: 0.9`, `WIPE_STAIN: 0.8`.**
+### Active queue (next sessions can pick from these)
+
+**1. Groups D/E/F stain-side cleanup** — *blocked on user decision*
+
+The remaining 5-6 stain trim prep modules use legacy per-substrate task IDs:
+- AEST (architectural elements)
+- RRST, SRST, TRST (stair riser / stringer / tread stain)
+- WNST (window stain — uses WIN-prefixed tasks)
+- WINDOW (alt)
+- STAIR (single composite task)
+
+These have a different shape (grain_raise + tack pattern, no sand_bare/dust_wipe like Groups A/B/C). **User pending decision:** handle the per-element rate variations within those groups via modifiers, or keep separate per-element tasks?
+
+**Don't start this work until the user has decided.** Surface the question, get the answer, then plan.
+
+**2. TSK_DOOR_PATCH_REPAIR → TSK_WOOD_PUTTY_EA_SIDE rename**
+
+The task ID is misnamed — it's the stain-side EA_SIDE wood putty defects task (display name "Wood Putty Defects (EA_SIDE)") but the ID still says "DOOR_PATCH_REPAIR" from before the SPACKLE/PUTTY architecture split. Only consumer left is `MOD_INTERSTAGE_TRIM_STAIN_EA_SIDE` (since the paint-side door interstage switched to TSK_SPACKLE_DEFECT_EA_SIDE in `462c8ea`).
+
+Rename steps: rename file → update the one task_ref → archive old ID. Probably 5 minutes.
+
+**3. TSK_SPACKLE_DEFECT_EA wiring**
+
+The new keeper `TSK_SPACKLE_DEFECT_EA` (15 EA/hr) was created in `462c8ea` but has no active consumer. Wire into window prep / cabinet prep / opening-level defect work when those scopes get attention. **Not urgent — sits as available keeper.**
+
+**4. Notion sync — keeper status flips**
+
+The Notion task catalog still has several tasks marked "Universal Keeper" that this session moved to active or dead. Worth a sync pass:
+- Active now: TSK_DOOR_BRUSH/SPRAY, TSK_CONDITIONER_EA_SIDE, TSK_SPACKLE_DEFECT_LF/SF/EA_SIDE/EA, TSK_VACUUM_WORK_AREA, TSK_SPOT_PRIME_SF, TSK_WOOD_PUTTY_FILL_LF/SF, TSK_DUST_WIPE_INTERSTAGE_LF/SF, TSK_TOUCHUP_FILL_LF (wait — this is RETIRED)
+- Retired/Dead: TSK_DOOR_DUST_WIPE (duplicate), TSK_TOUCHUP_FILL_LF (mistake, was added then removed), TSK_PATCH_DEFECTS_LF (superseded by TSK_SPACKLE_DEFECT_LF), TSK_PRIME_BRUSH_LF/SF / TSK_PRIME_SPRAY_LF/SF / TSK_SPRAY_FINISH_SF (5 MISSING — never on disk, retire in Notion only)
+
+**5. Deferred backlog items** (from project memory, not keeper-migration specific)
+
+PaintScope Setup Dropdown Cleanup, Painter-side glass mask feature, Drywall Finish Specs gap, Per-phase application method split, Wood Wall Substrate, Multi-coat per-coat rates, Universal Protect Mode, etc. Pick from project memory's deferred list based on what's bothering the user.
+
+### Out of scope (parked, don't touch)
+
+- `TSK_INSPECT_REPAIR_FLOOR_COVERING_SF` — needs encapsulated-floor flag + scenario-level cross-substrate wiring. Feature design needed, not migration.
+- Equipment setup/cleanup re-introduction — DO NOT add per-substrate equipment tasks back. Wait for a proper per-job overhead model.
+- Painter-side glass mask tasks — placeholder for unbuilt feature, don't archive even though orphan.
+- Trim apply → coating-neutral keepers — the door side is migrated, trim isn't. Bigger architectural shift. When it happens, the display naming will fully converge across LF and EA_SIDE.
 
 ---
 
-## Commit log this session (in reverse chronological order)
+## Tooling cheatsheet
 
+```sh
+# Bundle rebuild — required after any module/task/scenario edit
+node Claude/scripts/build-scenario-bundle.mjs
+
+# Probe — verifies protection coverage + no leaks + all refs resolve
+node Claude/scripts/probe-protection-tasks.mjs
+
+# Task classification — uses a ledger to bucket tasks as ACTIVE / REACHABLE_UNFIRED / ORPHAN
+node Claude/scripts/classify-task-coverage.mjs ~/Downloads/paintscope-fired-tasks-*.json
+
+# Migration scripts (this session) — kept on disk for reference and re-runnability
+node Claude/scripts/retire-equip-tasks.mjs            # 00c9eac — equip setup/cleanup retirement
+node Claude/scripts/rename-door-task-names.mjs        # a33eb49 — door display rename
+node Claude/scripts/migrate-cleanup-keepers.mjs       # 5ceb5af — Bucket A keepers (spackle/spot prime/vacuum)
+node Claude/scripts/extract-stain-trim-prep-templates.mjs  # b8e78f9 — stain prep template extraction
+node Claude/scripts/wire-stain-interstage.mjs         # 313e802 — interstage wiring into 14 scenarios
+node Claude/scripts/split-sf-stain-modules.mjs        # cc42725 — SF stain CLEAR split + dynamic_coats add
 ```
-bf21702 refactor(paintscope): cut-in keeper migration — 11 per-target → TSK_CUTIN_WALL_LF
-576597d refactor(paintscope): drywall keeper migration batch (ROLL + SPRAY + BACKROLL_SPRAY)
-5246211 refactor(paintscope): migrate TSK_BACKROLL_WALL_FINISH + CEILING_FINISH → TSK_BACKROLL_DWL keeper
-7075bfd docs: universal keeper migration plan + Notion task catalog snapshot
-678b193 chore(paintscope): three-tier task coverage classifier
-54562b3 feat(paintscope): NC interior baseline probes + Run probes button
-ad5e4e3 feat(paintscope): fired-tasks ledger for elimination-by-absence cleanup
-f4c1a6c chore(paintscope): static probe for protection task coverage
-4e806eb refactor(paintscope): strip legacy protection tasks from 87 mixed modules
-cf393b2 refactor(paintscope): retire 22 legacy protection modules
-…earlier: protection-on-identity refactor + retire-cascade tool…
-```
 
 ---
 
-## How the next session should start
+## Project state
 
-1. **Read this doc first.**
-2. **Read `Claude/_keeper_migration_plan.md`** for the per-keeper worklist (commit 7075bfd).
-3. **Read `Claude/_task_coverage_report.csv`** — already on disk from commit 678b193. May be stale; refresh by:
+- **Branch:** `claude/cranky-saha` (worktree at `Claude/.claude/worktrees/cranky-saha/`)
+- **Dev server:** vite on `localhost:5183`, root at `Claude/tools/paintscope/`. `npm run dev -- --port 5183` to start.
+- **Bundle:** 1739 tasks, 722 modules, 710 scenarios. 56 orphans. 86/86 protection coverage.
+- **Engine path:** scenario engine is default (`run-estimate-scenario.js`); legacy `run-estimate.js` is deprecated.
+
+---
+
+## How to start next session
+
+1. Read this doc (you just did).
+2. Skim the Notion live page for fresher state if any time has passed: https://www.notion.so/35e3ab2c2a5b81bd9629c6068de53be0
+3. Check `Claude/_keeper_migration_plan.md` for the per-keeper worklist (commit `7075bfd`, stale on status).
+4. Refresh task coverage if needed:
    ```sh
    node Claude/scripts/classify-task-coverage.mjs ~/Downloads/paintscope-fired-tasks-*.json
    ```
-   (User runs Authoring → Ledger button to get a fresh ledger JSON first.)
-4. **Start dev server** if not running: `cd "Claude/tools/paintscope" && npm run dev -- --port 5183` (in background).
-5. **Start with door migration** per the design above. The pattern is the same as the cut-in migration but with FAC_MATERIAL instead of TRADE_OVERHEAD as the modifier.
-6. **After each migration:** regen bundle, run probe, commit, hand off to user for browser verification (hard reload localhost:5183 + Run probes from Authoring).
+5. Pick from the "What's next" section above. If user wants to start Groups D/E/F, surface the modifier-vs-separate-tasks decision first.
 
 ---
 
-## Open design questions for next session
+## Surprises / gotchas
 
-1. **FAC_MATERIAL structure for doors** — option (a) one entry with application_method conditional, or option (b) two entries `WB_CLEAR_BRUSH`/`WB_CLEAR_SPRAY`. User implied (b) by saying "0.9 only to brush, not spray." Verify the modifier engine supports this lookup pattern.
-2. **Stain spray context** — TSK_DOOR_STAIN_SPRAY currently at rate 6, not 8 (which WIPE_STAIN 0.8 would imply on baseline 10). Either (a) accept rate drift, (b) add `WIPE_STAIN_SPRAY` at 0.6, or (c) keep stain spray a separate task. User said rates later, so default = (a).
-3. **Cleanup keeper coverage gaps** — most cleanup keepers don't have an obvious Gen-3 replacement scanning by name. Need per-keeper investigation against the modules that currently do the work.
-4. **Notion sync** — after migrating each keeper, should we flip its Notion Status from "Universal Keeper" to "Active" to track progress? Or keep "Universal Keeper" forever as a category label?
+- **dynamic_coats string vs object form** — engine accepts both. Old scenarios with `"MOD_X": "stain_coats"` still work; new scenarios use `"MOD_X": { "field": "stain_coats", "interstage": "MOD_INTERSTAGE_X" }`. The interstage interleaves between repetitions AND across phase boundaries (stain→sealer→clear all share the same interstage). It does NOT fire after the last apply.
 
----
+- **TSK_DOOR_PATCH_REPAIR is misnamed** — its display is "Wood Putty Defects (EA_SIDE)" and it's used as the stain-side EA_SIDE defects task. The ID still says DOOR_PATCH_REPAIR. Rename queued.
 
-## Anything that might surprise next-session Claude
+- **3 SF SEALER modules are new** — `MOD_APPLY_WAINSCOT_SEALER`, `MOD_APPLY_WOOD_CEILING_SEALER`, `MOD_APPLY_WOOD_WALL_SEALER` were created in `cc42725` by splitting the previous combined SEALER+CLEAR modules. They mirror the DSST split done earlier.
 
-- **TSK_CUTIN_TAPE_LF stayed orphan** in the cut-in migration. It's a Universal Keeper at rate 240 for "cut to tape edge" workflow. No current module uses tape-line cut-in (the tapeline modules just install/remove the tape, no cut-in happens against it). Defer until that workflow gets built.
-- **TSK_SPRAY_CEILING_FINISH had an inverted rate (450, should have been < wall's 390).** Auto-resolved when archived in commit 576597d. Ceiling backroll-tethered spray now goes through TSK_BACKROLL_SPRAY_DWL @ 390 × TRADE_OVERHEAD 1.25 = 312 effective.
-- **MOD_APPLY_WALL_PRIME_ROLL was a straggler** in the cut-in migration — it had a `TSK_CUTIN_WALL_TO_CEILING` ref from a prior fac_material wiring commit (`cde7abf`). Fixed in commit `bf21702`. **Always grep for orphans after archiving — there may be similar stragglers in upcoming migrations.** Build-scenario-bundle.mjs will catch unresolved refs; trust its error output.
-- **User's preferred verification:** hard-reload localhost:5183 → Authoring tab → "Run probes" button. Don't expect user to read estimate values manually; they want structural correctness.
-- **User explicitly deferred rate calibration** to a later pass. Don't get stuck calibrating rates during structural migrations — accept 3-8% drift on ceiling effective rates as TRADE_OVERHEAD 1.25 replaces baked rate differences.
+- **4 SAND tasks archived this session** — TSK_SAND_SEALER_LF/SF and TSK_SAND_CLEAR_LF/SF (with their grit-specific rates). Replaced uniformly by TSK_BETWEEN_COAT_SAND_LF/SF in the interstage modules. Rate drift accepted per "rates later."
+
+- **TSK_TOUCHUP_FILL_LF was a misstep** — I added it in `914276b`, then `b40cee5` retired it once the user clarified that paint side already has FILL_FASTENERS + PATCH_DEFECTS for that scope. Don't re-introduce it.
+
+- **WOOD_PUTTY defects moved from prep to interstage** in `313e802`. The prep templates no longer contain `TSK_WOOD_PUTTY_LF/SF` or `TSK_DOOR_PATCH_REPAIR`. They live in the interstage modules where they belong (defects show up after a coat dries, not before).
+
+- **User's "QT3 only for right now" stance** — don't worry about per-tier rate calibration. Rates are deferred until the QT builder rewrite is done (parked, blocked by other work).
+
+- **Pre-existing untracked files** — `Claude/_task_coverage_report.csv`, `Claude/scripts/report-consolidation-candidates.mjs`, and 6 `TSK_ROLL_*` / `TSK_SPRAY_*` files in `Claude/tasks/archive/` were already untracked at session start. Leave them alone; don't accidentally `git add Claude/` (use explicit paths).
+
+- **User feedback pattern** — for mechanical migration work, the user is comfortable with inline execution and trusts the probe/build for verification. For UI-visible changes, the user verifies on localhost:5183 with Run probes. Don't start a `preview_start` server for engine-only changes.
