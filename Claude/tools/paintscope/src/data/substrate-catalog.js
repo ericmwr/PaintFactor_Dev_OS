@@ -73,7 +73,7 @@ export const SUBSTRATE_CATALOG = [
   },
   {
     id: 'window_jamb', group: 'Doors & Windows', label: 'Window Jambs', uom: 'LF',
-    autoDerive: (d) => d.window_jamb_lf, defaultConfig: { substrate_state: 'bare_wood', application_method: null }
+    autoDerive: (d) => d.window_jamb_lf, defaultConfig: { substrate_state: 'factory_primed', application_method: null }
   },
 
   // --- Specialty ---

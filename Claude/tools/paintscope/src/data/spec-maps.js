@@ -242,7 +242,8 @@ export const UI_STATE_TO_SPEC_STATE = {
   'stained_sealed':     'SS_STAINED',           // Beam alias — stained and sealed wood
   'drywall':            'SS_BARE',              // Beam alias — bare drywall-wrapped element
   'wood':               'SS_BARE',              // Legacy alias — kept for backwards compat with preset data
-  'vinyl_clad':         null                    // Not paintable via current NC specs
+  'vinyl_clad':         null,                   // Not paintable via current NC specs (windows)
+  'vinyl_door':         null                    // Not paintable via current NC specs (doors)
 };
 
 // Valid input states per spec family (from spec_state_declarations table)

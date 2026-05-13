@@ -70,7 +70,7 @@ export default function FixtureInlineRow({ fixtureId, cfg, setFix }) {
   } else if (shape === 'lf_layout') {
     cols = '90px 130px 1fr';
     inputs = <>
-      {numInput('linear_ft', 'LF')}
+      {numInput('linear_ft', 'Linear Feet')}
       <select value={cfg.layout || 'lower_upper'} onChange={e => setFix(fixtureId, 'layout', e.target.value)} style={{ width: '100%', fontSize: 12 }}>
         <option value="lower_only">Lower Only</option>
         <option value="lower_upper">Lower + Upper</option>
@@ -89,10 +89,24 @@ export default function FixtureInlineRow({ fixtureId, cfg, setFix }) {
     );
   }
 
+  // Cabinets-only caption: linear-foot field is unlabeled inline, so spell out
+  // the unit + the Lower+Upper doubling rule. Only shows for cabinets.
+  const showCabinetsCaption = fixtureId === 'cabinets';
+  const cabinetsCaptionText = (cfg.layout || 'lower_upper') === 'lower_upper'
+    ? 'Linear Feet = run of cabinetry. "Lower + Upper" doubles the LF for the estimate.'
+    : 'Linear Feet = run of cabinetry (lower only).';
+
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: `140px ${cols}`, gap: 6, alignItems: 'center', padding: '4px 0', borderBottom: '1px dashed var(--border-subtle, var(--border))' }}>
-      <span style={{ fontSize: 12, fontWeight: 600 }}>{cat.label}</span>
-      {inputs}
-    </div>
+    <>
+      <div style={{ display: 'grid', gridTemplateColumns: `140px ${cols}`, gap: 6, alignItems: 'center', padding: '4px 0', borderBottom: showCabinetsCaption ? 'none' : '1px dashed var(--border-subtle, var(--border))' }}>
+        <span style={{ fontSize: 12, fontWeight: 600 }}>{cat.label}</span>
+        {inputs}
+      </div>
+      {showCabinetsCaption && (
+        <div style={{ fontSize: 10, color: 'var(--text-muted)', fontStyle: 'italic', padding: '0 0 4px 146px', borderBottom: '1px dashed var(--border-subtle, var(--border))' }}>
+          {cabinetsCaptionText}
+        </div>
+      )}
+    </>
   );
 }
