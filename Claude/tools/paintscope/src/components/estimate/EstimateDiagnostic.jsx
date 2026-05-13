@@ -204,6 +204,10 @@ function QuantityBreakdown({ room, derived }) {
 
 function GroupSection({ title, subtitle, totalHours, tasks }) {
   const [expanded, setExpanded] = useState(false);
+  const modules = useMemo(
+    () => [...new Set(tasks.map(t => t.module || t.moduleId).filter(Boolean))].sort(),
+    [tasks]
+  );
   return (
     <div style={{ border: '1px solid var(--border)', borderRadius: 4, marginBottom: 8, background: 'var(--bg-secondary, transparent)' }}>
       <div
@@ -215,7 +219,19 @@ function GroupSection({ title, subtitle, totalHours, tasks }) {
         {subtitle && <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>{subtitle}</span>}
         <span style={{ marginLeft: 'auto', fontSize: 12, fontWeight: 600, color: 'var(--accent)', fontFamily: 'var(--font-mono)' }}>Total: {fmtHrs(totalHours)}</span>
       </div>
-      {expanded && <div style={{ padding: '8px 12px' }}><TaskTable tasks={tasks} /></div>}
+      {expanded && (
+        <div style={{ padding: '8px 12px' }}>
+          {modules.length > 0 && (
+            <div style={{ marginBottom: 8, fontSize: 11, fontFamily: 'var(--font-mono)', color: 'var(--text-muted)', display: 'flex', flexWrap: 'wrap', gap: 4, alignItems: 'baseline' }}>
+              <span style={{ fontWeight: 600, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: 0.5, fontSize: 10 }}>modules ({modules.length}):</span>
+              {modules.map(m => (
+                <span key={m} style={{ padding: '1px 6px', background: 'var(--bg-tertiary)', borderRadius: 3 }}>{m}</span>
+              ))}
+            </div>
+          )}
+          <TaskTable tasks={tasks} />
+        </div>
+      )}
     </div>
   );
 }
