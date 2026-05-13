@@ -431,21 +431,9 @@ export function buildRoomQuantityLookups(state) {
       }, 0);
       if (doorsUnpaintedCnt > 0) addQ('PS_PROTECT_EA.DOOR_SLAB', 'EA', doorsUnpaintedCnt);
 
-      // Window full mask: emit per size bucket (S/M/L/O → SMALL/STD/LG/XL)
-      // for windows that are NOT in paint scope.
-      const windowsPainting = !!subs.windows?.painting;
-      if (!windowsPainting) {
-        const windowItems = subs.windows?.items || [];
-        const sizeMap = { S: 'SMALL', M: 'STD', L: 'LG', O: 'XL' };
-        const bucketCounts = { SMALL: 0, STD: 0, LG: 0, XL: 0 };
-        windowItems.forEach(w => {
-          const bucket = sizeMap[w.size_bucket] || 'STD';
-          bucketCounts[bucket] += (parseInt(w.count) || 0);
-        });
-        for (const [bucket, cnt] of Object.entries(bucketCounts)) {
-          if (cnt > 0) addQ('PS_PROTECT_EA.WINDOW_FULL_' + bucket, 'EA', cnt);
-        }
-      }
+      // (Window mask moved outside this anySprayInRoom block — see W-22
+      // matrix below, which gates the level on what's actually being
+      // painted near the window rather than on "any spray anywhere".)
 
       // Adjacent trim masks — fire when the trim substrate is NOT in scope.
       if (!subs.door_frames && d.door_frame_lf > 0) {
@@ -461,6 +449,51 @@ export function buildRoomQuantityLookups(state) {
         addQ('PS_PROTECT_LF.WINDOW_JAMB_ADJACENT', 'LF', d.window_jamb_lf);
       }
     }
+
+    // W-22 window masking matrix — decide level from what's painted near the window:
+    //   - window jambs being sprayed       → edge_encapsulate (sealed wrap)
+    //   - walls being sprayed / sprayed+backrolled → encapsulate (full wrap, no edge tape)
+    //   - any ceiling work (overhead)      → full (drape)
+    //   - brush on jambs only, no spray    → edge (tape on glass lites)
+    //   - otherwise                        → none
+    // Levels above 'edge' all share the existing WINDOW_FULL_{SMALL,STD,LG,XL}
+    // tasks for now; 'edge' uses WINDOW_GLASS_LIGHTS (lighter task).
+    // Finer-grained encapsulate / edge_encapsulate task variants deferred.
+    const windowsPaintingMask = !!subs.windows?.painting;
+    const windowItemsMask = subs.windows?.items || [];
+    const totalWinCount = windowItemsMask.reduce((s, w) => s + (parseInt(w.count) || 0), 0);
+    if (!windowsPaintingMask && totalWinCount > 0) {
+      const jambMethod = !!subs.window_jamb
+        ? (effectiveMethod('window_jamb', subs.window_jamb) || '').toString()
+        : '';
+      const jambSpray = /spray/.test(jambMethod);
+      const jambBrush = !jambSpray && /brush/.test(jambMethod);
+      const ceilingWork = !!subs.ceiling || !!subs.wood_ceiling;
+
+      let windowMaskLevel = 'none';
+      if (jambSpray) windowMaskLevel = 'edge_encapsulate';
+      else if (wallsSprayQ) windowMaskLevel = 'encapsulate';
+      else if (ceilingWork) windowMaskLevel = 'full';
+      else if (jambBrush) windowMaskLevel = 'edge';
+
+      if (windowMaskLevel === 'edge') {
+        // Light-tape edge for glass lites only
+        addQ('PS_PROTECT_EA.WINDOW_GLASS_LIGHTS', 'EA', totalWinCount);
+      } else if (windowMaskLevel !== 'none') {
+        // Full / encapsulate / edge_encapsulate all share the FULL_* tasks
+        // for now (task rates will be refined per level in a follow-up).
+        const sizeMap = { S: 'SMALL', M: 'STD', L: 'LG', O: 'XL' };
+        const bucketCounts = { SMALL: 0, STD: 0, LG: 0, XL: 0 };
+        windowItemsMask.forEach(w => {
+          const bucket = sizeMap[w.size_bucket] || 'STD';
+          bucketCounts[bucket] += (parseInt(w.count) || 0);
+        });
+        for (const [bucket, cnt] of Object.entries(bucketCounts)) {
+          if (cnt > 0) addQ('PS_PROTECT_EA.WINDOW_FULL_' + bucket, 'EA', cnt);
+        }
+      }
+    }
+
     // Trim tape line — sum of LF for ALL painted wall-adjacent trim substrates.
     // Gated on tapeline_edge flag (room-level toggle, or project-level
     // protection_defaults.full_trim_tapeline override). The consumer task
