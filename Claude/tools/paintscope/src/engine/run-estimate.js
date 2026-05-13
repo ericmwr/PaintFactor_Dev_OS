@@ -403,7 +403,10 @@ export function runEstimate(state, db, overlayMap, profile) {
                 crewSize: rateRow.crew_size || 1,
                 isFixed: resolved.isFixed,
                 itemGroup: itemGroup || null,
-                floorType: ctx.floor_type || null
+                floorType: ctx.floor_type || null,
+                cathedralCeiling: !!room.cathedral_ceiling,
+                vaultedCeiling:   !!room.vaulted_ceiling,
+                coatingType:      ctx.coating_type || null,
               });
             };
 

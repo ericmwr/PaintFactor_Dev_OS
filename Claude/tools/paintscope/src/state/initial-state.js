@@ -161,6 +161,11 @@ export function createRoom(overrides={}) {
     peak_height_ft: 0,
     ridge_direction: 'length',
     gable_walls: 0,
+    // Cathedral ceiling: flat ceiling at room height_ft, no slope/gable. Mutually
+    // exclusive with vaulted_ceiling. Pure labeling flag (no geometry impact) —
+    // surfaces "Cathedral Ceiling" suffix on ceiling/wall/clerestory-window tasks
+    // in the estimate.
+    cathedral_ceiling: false,
     // v0.4 ceiling beams (conditional on vaulted_ceiling)
     beams_enabled: false,
     peak_beam: false,

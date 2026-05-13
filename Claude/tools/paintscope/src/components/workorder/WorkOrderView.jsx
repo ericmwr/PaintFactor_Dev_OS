@@ -93,12 +93,23 @@ export default function WorkOrderView() {
 
   const roomEntries = Object.entries(roomMap).sort((a,b) => parseInt(a[0]) - parseInt(b[0]));
 
-  // Task name suffix helper: adds coat count and/or floor protection material
+  // Task name suffix helper: adds coat count, floor protection material, and
+  // Cathedral/Vaulted Ceiling label. The ceiling-type suffix surfaces on
+  // ceiling/wall tasks always, and on window tasks only when band-stratified
+  // to a non-STD band (clerestory/transom \u2014 second-story windows).
   const taskNameSuffix = (t) => {
     const parts = [];
     if (t.coatMultiplier > 1) parts.push(`${t.coatMultiplier} coats`);
     if (t.floorType && t.taskName && t.taskName.toLowerCase().includes('floor prot') && FLOOR_PROTECTION_LABEL[t.floorType]) {
       parts.push(`${FLOOR_PROTECTION_LABEL[t.floorType]} \u2014 ${(FLOOR_TYPES.find(f=>f.id===t.floorType)||{}).label||t.floorType}`);
+    }
+    if (t.cathedralCeiling || t.vaultedCeiling) {
+      const baseSpecId = t.specId ? (t.specId.includes('::') ? t.specId.split('::')[0] : t.specId) : '';
+      const isCeilOrWall = /(_WALL|_CEILING)/.test(baseSpecId);
+      const isWindow = /_WINDOW_(CASING|JAMB|STOOL|APRON)/.test(baseSpecId);
+      if (isCeilOrWall || (isWindow && t.band && t.band !== 'STD')) {
+        parts.push(t.cathedralCeiling ? 'Cathedral Ceiling' : 'Vaulted Ceiling');
+      }
     }
     return parts.length > 0 ? ` (${parts.join(', ')})` : '';
   };

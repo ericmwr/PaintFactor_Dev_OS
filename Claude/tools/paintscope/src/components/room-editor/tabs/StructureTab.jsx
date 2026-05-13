@@ -11,6 +11,11 @@ const COATING_OPTS = [{value:'paint',label:'Paint'},{value:'stain_clear',label:'
 const SPECIES_OPTS = [{value:'softwood',label:'Softwood'},{value:'hardwood',label:'Hardwood'}];
 const STAIN_METHOD_OPTS = [{value:'brush',label:'Brush'},{value:'spray',label:'Spray'},{value:'roll',label:'Roll'}];
 const CLEAR_METHOD_OPTS = [{value:'brush',label:'Brush'},{value:'spray',label:'Spray'}];
+const CEILING_TYPE_OPTS = [
+  {value:'standard', label:'Standard'},
+  {value:'vaulted',  label:'Vaulted'},
+  {value:'cathedral',label:'Cathedral'},
+];
 
 export default function StructureTab({ room, derived, dispatch, project }) {
   const rid = room.id;
@@ -286,12 +291,25 @@ export default function StructureTab({ room, derived, dispatch, project }) {
           <div style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 2 }}>L&times;W = {derived.ceilingSF}{derived.vaultedExtra > 0 ? ` + Vault ${derived.vaultedExtra}` : ''}</div>
         </div>
 
-        {/* Vault & Gable — inline under ceiling */}
+        {/* Ceiling Type — inline under ceiling */}
         <div style={{ marginTop: 10, padding: '8px 10px', background: 'var(--bg-tertiary)', borderRadius: 6 }}>
-          <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 6 }}>Vault &amp; Gable</div>
+          <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 6 }}>Ceiling Type</div>
           <div className="form-grid" style={{ gridTemplateColumns: '1fr 1fr 1fr 1fr' }}>
             <div>
-              <Toggle checked={!!room.vaulted_ceiling} onChange={v => setRoom('vaulted_ceiling', v)} label="Vaulted Ceiling" />
+              <div className="field-label">Type</div>
+              <Select
+                options={CEILING_TYPE_OPTS}
+                value={room.cathedral_ceiling ? 'cathedral' : room.vaulted_ceiling ? 'vaulted' : 'standard'}
+                onChange={v => {
+                  setRoom('vaulted_ceiling', v === 'vaulted');
+                  setRoom('cathedral_ceiling', v === 'cathedral');
+                }}
+              />
+              {room.cathedral_ceiling && (
+                <div style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 2 }}>
+                  Flat ceiling at room height. No slope/gable.
+                </div>
+              )}
             </div>
             <div>
               <div className="field-label">Peak Height (ft)</div>

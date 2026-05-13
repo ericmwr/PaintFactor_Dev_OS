@@ -39,6 +39,19 @@ const HEIGHT_BAND_LABELS = {
 };
 const HEIGHT_BAND_ORDER = ['STD', 'STEP', 'EXT', 'SCAFFOLD', 'LIFT'];
 
+// Window-related spec base IDs — used to scope the "Second Story Window" prefix
+// on non-STD band rows. Mirrors WINDOW_BAND_SPEC_KEYS in context-adapter.js.
+const WINDOW_BAND_SPEC_BASES = new Set([
+  'SF_WINDOW_CASING_NC_PAINT', 'SF_WINDOW_CASING_NC_PRIME',
+  'SF_WINDOW_JAMB_NC_FINISH',  'SF_WINDOW_JAMB_NC_PRIME',
+  'SF_WINDOW_STOOL_NC_PAINT',  'SF_WINDOW_STOOL_NC_PRIME',
+  'SF_WINDOW_APRON_NC_PAINT',  'SF_WINDOW_APRON_NC_PRIME',
+]);
+
+// Ceiling/wall spec ID pattern — used to scope the Cathedral/Vaulted Ceiling
+// suffix on the spec row header + task lines. Matches drywall + wood variants.
+const CEILING_WALL_SPEC_REGEX = /(_WALL|_CEILING)/;
+
 // Solid colors for the stacked phase bars (visible on dark backgrounds)
 const PHASE_BAR_COLORS = {
   setup:      '#3a5a8a',
@@ -140,12 +153,22 @@ export default function EstimateView() {
     return cats;
   }, [exported, winningFloorKey]);
 
-  // Task name suffix: adds coat count and/or floor protection material
-  const taskNameSuffix = (t) => {
+  // Task name suffix: adds coat count, floor protection material, and ceiling-
+  // type label. Cathedral/Vaulted suffix surfaces on ceiling/wall tasks always,
+  // and on window tasks only when the task is band-stratified to a non-STD band
+  // (i.e. clerestory/transom \u2014 second-story windows that share the gable wall).
+  const taskNameSuffix = (t, baseSpecId = null) => {
     const parts = [];
     if (t.coatMultiplier > 1) parts.push(`${t.coatMultiplier} coats`);
     if (t.floorType && t.taskName && t.taskName.toLowerCase().includes('floor prot') && FLOOR_PROTECTION_LABEL[t.floorType]) {
       parts.push(`${FLOOR_PROTECTION_LABEL[t.floorType]} \u2014 ${(FLOOR_TYPES.find(f=>f.id===t.floorType)||{}).label||t.floorType}`);
+    }
+    if (t.cathedralCeiling || t.vaultedCeiling) {
+      const isCeilOrWall = baseSpecId && CEILING_WALL_SPEC_REGEX.test(baseSpecId);
+      const isWindow = baseSpecId && WINDOW_BAND_SPEC_BASES.has(baseSpecId);
+      if (isCeilOrWall || (isWindow && t.band && t.band !== 'STD')) {
+        parts.push(t.cathedralCeiling ? 'Cathedral Ceiling' : 'Vaulted Ceiling');
+      }
     }
     return parts.length > 0 ? ` (${parts.join(', ')})` : '';
   };
@@ -782,13 +805,28 @@ export default function EstimateView() {
                   const itemKey = `${ri}::${specId}`;
                   const isItemOpen = expandedItems[itemKey];
                   const baseSpecId = specId.includes('::') ? specId.split('::')[0] : specId;
-                  const displayName = specId.includes('::') ? specData.specName : (specDisplayName(baseSpecId) || specData.specName);
+                  const rawDisplayName = specId.includes('::') ? specData.specName : (specDisplayName(baseSpecId) || specData.specName);
+                  // Stain-family specs use a static "— Stain/Clear" label. When the
+                  // active coating is stain_only or clear_only, swap the suffix to
+                  // match what's actually being applied.
+                  const specCoatingType = specData.tasks?.find(t => t.coatingType)?.coatingType || null;
+                  const displayName = (baseSpecId.endsWith('_STAIN') && specCoatingType === 'stain_only')
+                    ? rawDisplayName.replace('— Stain/Clear', '— Stain Only')
+                    : (baseSpecId.endsWith('_STAIN') && specCoatingType === 'clear_only')
+                      ? rawDisplayName.replace('— Stain/Clear', '— Clear Only')
+                      : rawDisplayName;
+                  // Cathedral/Vaulted suffix on the spec header \u2014 only for ceiling/wall
+                  // specs. Window specs differentiate ground vs clerestory at the
+                  // band-row level instead (see "Second Story Window" prefix).
+                  const ceilingTypeHeaderSuffix = room && CEILING_WALL_SPEC_REGEX.test(baseSpecId)
+                    ? (room.cathedral_ceiling ? ' (Cathedral Ceiling)' : room.vaulted_ceiling ? ' (Vaulted Ceiling)' : '')
+                    : '';
 
                   return (
                     <div key={specId} className="spec-section" style={{marginBottom:8}}>
                       <div className="spec-header" onClick={() => toggleItem(itemKey)}>
                         <span className={`chevron${isItemOpen ? ' open' : ''}`}>{'\u25B6'}</span>
-                        <span className="spec-name" style={{marginLeft:8}} title={specId.split('::')[0]}>{displayName}</span>
+                        <span className="spec-name" style={{marginLeft:8}} title={specId.split('::')[0]}>{displayName}{ceilingTypeHeaderSuffix}</span>
                         <div className="phase-bar" style={{flex:'0 0 auto',padding:0,gap:3,marginRight:8}}>
                           {PHASE_ORDER.filter(p => specData.phaseHours[p]).map(p => (
                             <div key={p} className="phase-chip">
@@ -805,7 +843,7 @@ export default function EstimateView() {
                         // Single-band specs render flat as before.
                         const taskRow = (t, i) => (
                           <tr key={i} style={{background: PHASE_COLORS[t.phase] || 'transparent'}}>
-                            <td className="task-name-col" title={t.taskName}>{t.taskName}{taskNameSuffix(t)}</td>
+                            <td className="task-name-col" title={t.taskName}>{t.taskName}{taskNameSuffix(t, baseSpecId)}</td>
                             <td style={{fontSize:11,color:'var(--text-muted)',textTransform:'capitalize'}}>{t.phase}</td>
                             <td style={{fontSize:10,color:'var(--derived)'}}>{t.psKey}</td>
                             <td style={{fontSize:11}}>{t.uom}</td>
@@ -869,8 +907,12 @@ export default function EstimateView() {
                               const bandTasks = bandGroups.get(band);
                               const bandHours = bandTasks.reduce((s, t) => s + (t.hours || 0), 0);
                               const bandKey = `${itemKey}::band:${band}`;
-                              const isBandOpen = expandedItems[bandKey] !== false; // default open
-                              const label = HEIGHT_BAND_LABELS[band] || band;
+                              const isBandOpen = expandedItems[bandKey] === true; // default collapsed
+                              const bandBaseLabel = HEIGHT_BAND_LABELS[band] || band;
+                              const isWindowSpec = WINDOW_BAND_SPEC_BASES.has(baseSpecId);
+                              const label = (isWindowSpec && band !== 'STD')
+                                ? `Second Story Window - ${bandBaseLabel}`
+                                : bandBaseLabel;
                               return (
                                 <div key={band} style={{marginTop:4}}>
                                   <div

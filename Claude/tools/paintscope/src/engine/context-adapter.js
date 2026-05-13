@@ -834,6 +834,11 @@ export function buildScenarioInputs(state, db) {
         floor_type: room.floor_type || 'subfloor',
         floor_protection: room.floor_protection || '',
 
+        // Room ceiling-type flags — drive Cathedral/Vaulted Ceiling suffix on
+        // ceiling/wall/clerestory-window task lines and spec headers downstream.
+        cathedral_ceiling: !!room.cathedral_ceiling,
+        vaulted_ceiling:   !!room.vaulted_ceiling,
+
         // New architecture additions
         paintable_item: paintableItem,
         substrate_condition: room.substrate_condition || 'fair',

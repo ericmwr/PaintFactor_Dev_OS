@@ -923,6 +923,9 @@ export function runScenarioEstimate({ scenarioBundle, ctx, roomQty, roomItems = 
             rateSource: resolved.source + '+per_item',
             itemGroup: label,
             itemLabel: label,
+            coatingType: ctx.coating_type || null,
+            cathedralCeiling: !!ctx.cathedral_ceiling,
+            vaultedCeiling:   !!ctx.vaulted_ceiling,
           });
         }
         continue; // per-item compute replaces the standard emit below
@@ -981,6 +984,9 @@ export function runScenarioEstimate({ scenarioBundle, ctx, roomQty, roomItems = 
         crewSize: 1,
         isFixed: resolved.isFixed,
         rateSource: resolved.source,
+        coatingType: ctx.coating_type || null,
+        cathedralCeiling: !!ctx.cathedral_ceiling,
+        vaultedCeiling:   !!ctx.vaulted_ceiling,
       });
     }
 
