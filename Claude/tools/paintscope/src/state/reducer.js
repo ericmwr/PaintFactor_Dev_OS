@@ -2,6 +2,22 @@ import { createRoom, createDoor, createWindow, createOpening, createCloset, crea
 import { FIXTURE_MAP } from '../data/fixture-catalog';
 import { inferDefaultSystem, coatingTypeFromSystem } from '../data/system-catalog.js';
 import { PAINTING_SCOPE_PRESET_MAP, ALWAYS_PRESENT_SUBSTRATES } from '../data/painting-scope-presets.js';
+import { LIGHT_FIXTURE_TYPE_MAP } from '../data/light-fixture-types.js';
+
+// Build a fresh light-fixture item using taxonomy defaults for the given type.
+function createLightFixtureItem(type = 'other') {
+  const taxonomy = LIGHT_FIXTURE_TYPE_MAP[type] || LIGHT_FIXTURE_TYPE_MAP['other'];
+  return {
+    id: genId('lfi'),
+    type,
+    custom_label: taxonomy.is_custom ? '' : null,
+    count: 1,
+    protection: taxonomy.default_protection || 'full',
+    action_mode: 'mask',
+    mask_time_min_override: null,
+    remove_time_min_override: null,
+  };
+}
 import {
   createElevation, createSidingSection, createTrimConfig, createExtWindow, createExtDoor,
   createBumpOut, createDormer, createGable, createGarageDoor, createDeck, createFence,
@@ -495,6 +511,52 @@ export function reducer(state, action) {
         if (!r.fixtures?.feature_wall?.items) return r;
         const items = r.fixtures.feature_wall.items.map(i => i.id === itemId ? { ...i, [field]: value } : i);
         return { ...r, fixtures: { ...r.fixtures, feature_wall: { ...r.fixtures.feature_wall, items } } };
+      });
+    }
+
+    // W-16 Phase 2: per-room light-fixture items (recessed + ceiling fan +
+    // bulb + transparent glass + other) with per-type protection, action
+    // mode (mask vs remove), count, and optional time-min overrides.
+    case 'ADD_LIGHT_FIXTURE_ITEM': {
+      bumpNextIdFromState(state);
+      const { roomId, type } = payload;
+      return mapRoom(roomId, r => {
+        const lf = r.fixtures?.light_fixtures || {};
+        const items = Array.isArray(lf.items) ? lf.items : [];
+        return { ...r, fixtures: { ...r.fixtures, light_fixtures: { ...lf, items: [...items, createLightFixtureItem(type || 'other')] } } };
+      });
+    }
+    case 'REMOVE_LIGHT_FIXTURE_ITEM': {
+      const { roomId, itemId } = payload;
+      return mapRoom(roomId, r => {
+        if (!r.fixtures?.light_fixtures?.items) return r;
+        const items = r.fixtures.light_fixtures.items.filter(i => i.id !== itemId);
+        return { ...r, fixtures: { ...r.fixtures, light_fixtures: { ...r.fixtures.light_fixtures, items } } };
+      });
+    }
+    case 'SET_LIGHT_FIXTURE_ITEM': {
+      const { roomId, itemId, field, value } = payload;
+      return mapRoom(roomId, r => {
+        if (!r.fixtures?.light_fixtures?.items) return r;
+        const items = r.fixtures.light_fixtures.items.map(i => {
+          if (i.id !== itemId) return i;
+          const next = { ...i, [field]: value };
+          // When the user switches the type, reseed defaults from the new
+          // taxonomy entry (but only for fields the user hasn't already
+          // overridden away from the previous type's defaults).
+          if (field === 'type') {
+            const tx = LIGHT_FIXTURE_TYPE_MAP[value];
+            if (tx) {
+              if (tx.default_protection && !i.protection_override_by_user) next.protection = tx.default_protection;
+              // If the new type doesn't allow remove mode, force mask
+              if (tx.allow_remove === false) next.action_mode = 'mask';
+              // Reset custom_label to '' for is_custom types, null otherwise
+              next.custom_label = tx.is_custom ? (i.custom_label || '') : null;
+            }
+          }
+          return next;
+        });
+        return { ...r, fixtures: { ...r.fixtures, light_fixtures: { ...r.fixtures.light_fixtures, items } } };
       });
     }
 

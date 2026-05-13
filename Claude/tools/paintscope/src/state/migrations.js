@@ -1,4 +1,4 @@
-import { createSubstrateConfig, createOpening, bumpNextId } from './initial-state';
+import { createSubstrateConfig, createOpening, bumpNextId, genId } from './initial-state';
 import { createExteriorState } from './exterior-state';
 import { migrateMaskLevel } from '../data/mask-levels';
 
@@ -348,6 +348,37 @@ export function migrateInline(parsed) {
     if (ph.hvac_remove_reinstall_rate === undefined)   ph.hvac_remove_reinstall_rate = null;
   }
 
+  // W-16 Phase 2: convert room.fixtures.light_fixtures from single
+  // {count, protection} into {items: [...]} so a room can carry multiple
+  // light-fixture types (recessed + ceiling fan + bulb, etc.) with per-type
+  // protection level, action mode (mask vs remove), and optional time
+  // overrides. Legacy single-row state becomes one 'other' item preserving
+  // count + protection.
+  parsed.rooms.forEach(r => {
+    const lf = r.fixtures?.light_fixtures;
+    if (!lf || typeof lf !== 'object') return;
+    if (Array.isArray(lf.items)) return; // already migrated
+    const legacyCount = parseInt(lf.count) || 0;
+    const legacyProt = lf.protection || null;
+    if (legacyCount > 0 || legacyProt) {
+      lf.items = [{
+        id: genId('lfi'),
+        type: 'other',
+        custom_label: 'Light Fixtures',
+        count: legacyCount || 1,
+        protection: legacyProt || 'full',
+        action_mode: 'mask',
+        mask_time_min_override: null,
+        remove_time_min_override: null,
+      }];
+    } else {
+      lf.items = [];
+    }
+    // Drop legacy scalar fields now that they're in items[0]
+    delete lf.count;
+    delete lf.protection;
+  });
+
   // Bump nextId past all existing IDs to prevent collisions
   let maxId = 0;
   const extractNum = (s) => { const m = s && s.match(/_(\d+)$/); return m ? parseInt(m[1]) : 0; };
@@ -356,6 +387,7 @@ export function migrateInline(parsed) {
     const subs = r.substrates || {};
     (subs.doors?.items || []).forEach(d => { maxId = Math.max(maxId, extractNum(d.id)); });
     (subs.windows?.items || []).forEach(w => { maxId = Math.max(maxId, extractNum(w.id)); });
+    (r.fixtures?.light_fixtures?.items || []).forEach(i => { maxId = Math.max(maxId, extractNum(i.id)); });
     (r.openings || []).forEach(o => { maxId = Math.max(maxId, extractNum(o.id)); });
     (r.closets || []).forEach(c => { maxId = Math.max(maxId, extractNum(c.id)); });
   });

@@ -2,6 +2,25 @@ import { deriveRoom, deriveCloset } from './derive-room.js';
 import { SUBSTRATE_MAP, SUBSTRATE_CATALOG, SUBSTRATE_APPLICATION_METHODS } from '../data/substrate-catalog.js';
 import { OPENING_TYPES } from '../data/opening-types.js';
 import { deriveStairway, getComponentQuantity } from './derive-stairway.js';
+import { LIGHT_FIXTURE_TYPE_MAP } from '../data/light-fixture-types.js';
+
+// W-16 Phase 2: sum total minutes of light-fixture protection work across a
+// room's light_fixtures.items, picking per-item action mode (mask vs remove),
+// per-fixture-type taxonomy defaults, and per-item time overrides.
+function lightFixtureMinutesForRoom(room) {
+  const items = room.fixtures?.light_fixtures?.items;
+  if (!Array.isArray(items) || items.length === 0) return 0;
+  return items.reduce((sum, item) => {
+    const cnt = parseInt(item.count) || 0;
+    if (cnt <= 0) return sum;
+    const taxonomy = LIGHT_FIXTURE_TYPE_MAP[item.type] || {};
+    const isMask = (item.action_mode || 'mask') === 'mask';
+    const override = isMask ? item.mask_time_min_override : item.remove_time_min_override;
+    const defaultTime = isMask ? taxonomy.mask_time_min : taxonomy.remove_time_min;
+    const timePerFixture = override != null ? Number(override) : (defaultTime != null ? Number(defaultTime) : 0);
+    return sum + timePerFixture * cnt;
+  }, 0);
+}
 
 /**
  * Build per-room quantity lookup from the prototype state.
@@ -542,11 +561,22 @@ export function buildRoomQuantityLookups(state) {
       }
     });
 
-    // Project-wide allowance for light fixtures + ceiling fans + fireplace mantels.
-    // Single fire per project — emit on the FIRST room with any of these checked.
+    // W-16 Phase 2: per-room light-fixture protection time, computed from
+    // light_fixtures.items (taxonomy × count × action mode × override). One
+    // EA in this PS key = 1 hour at the consuming task's rate (rate=1 EA/hr,
+    // TSK_PROJECT_LIGHT_FAN_MANTEL_INSTALL), so we emit minutes/60 EA.
+    const lfMinutes = lightFixtureMinutesForRoom(room);
+    if (lfMinutes > 0) {
+      addQ('PS_PROTECT_EA.LIGHT_FAN_MANTEL_ALLOWANCE', 'EA', lfMinutes / 60);
+    }
+
+    // Legacy project-wide allowance for ceiling fans + fireplace mantels —
+    // those don't yet have per-item time models, so they still trigger a
+    // single 1-hour bucket once per project (first room with one of them).
+    // light_fixtures handled per-room above, so it's excluded from this trigger.
     if (!lightFanMantelAllowanceEmitted) {
       const f = room.fixtures || {};
-      if (f.light_fixtures || f.ceiling_fan || f.fireplace || f.stone_fireplace) {
+      if (f.ceiling_fan || f.fireplace || f.stone_fireplace) {
         addQ('PS_PROTECT_EA.LIGHT_FAN_MANTEL_ALLOWANCE', 'EA', 1);
         lightFanMantelAllowanceEmitted = true;
       }

@@ -8,6 +8,7 @@ import { FIXTURE_CATALOG, FIXTURE_MAP, FLOOR_TYPES } from '../../../data/fixture
 import { MASK_LEVELS_FLOOR, MASK_LEVEL_SHORT } from '../../../data/mask-levels';
 import { deriveProtectionDefaults } from '../../../engine/derive-protection-defaults.js';
 import FixtureInlineRow from '../FixtureInlineRow';
+import LightFixturesInlinePanel from '../LightFixturesInlinePanel';
 
 export default function IdentityTab({ room, derived, dispatch, project, roomCategories }) {
   const textureOptions = useModifierEnum('FAC_TEXTURE');
@@ -216,7 +217,14 @@ export default function IdentityTab({ room, derived, dispatch, project, roomCate
                   Configure Selected
                 </div>
                 <div>
-                  {checkedIds.map(fId => (
+                  {checkedIds.map(fId => fId === 'light_fixtures' ? (
+                    <LightFixturesInlinePanel
+                      key={fId}
+                      roomId={rid}
+                      cfg={room.fixtures[fId] || {}}
+                      dispatch={dispatch}
+                    />
+                  ) : (
                     <FixtureInlineRow
                       key={fId}
                       fixtureId={fId}
