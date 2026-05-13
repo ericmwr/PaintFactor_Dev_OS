@@ -202,10 +202,10 @@ function QuantityBreakdown({ room, derived }) {
   );
 }
 
-function GroupSection({ title, subtitle, totalHours, tasks }) {
+function GroupSection({ title, subtitle, totalHours, tasks, children }) {
   const [expanded, setExpanded] = useState(false);
   const modules = useMemo(
-    () => [...new Set(tasks.map(t => t.module || t.moduleId).filter(Boolean))].sort(),
+    () => tasks ? [...new Set(tasks.map(t => t.module || t.moduleId).filter(Boolean))].sort() : [],
     [tasks]
   );
   return (
@@ -221,15 +221,19 @@ function GroupSection({ title, subtitle, totalHours, tasks }) {
       </div>
       {expanded && (
         <div style={{ padding: '8px 12px' }}>
-          {modules.length > 0 && (
-            <div style={{ marginBottom: 8, fontSize: 11, fontFamily: 'var(--font-mono)', color: 'var(--text-muted)', display: 'flex', flexWrap: 'wrap', gap: 4, alignItems: 'baseline' }}>
-              <span style={{ fontWeight: 600, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: 0.5, fontSize: 10 }}>modules ({modules.length}):</span>
-              {modules.map(m => (
-                <span key={m} style={{ padding: '1px 6px', background: 'var(--bg-tertiary)', borderRadius: 3 }}>{m}</span>
-              ))}
-            </div>
+          {children ? children : (
+            <>
+              {modules.length > 0 && (
+                <div style={{ marginBottom: 8, fontSize: 11, fontFamily: 'var(--font-mono)', color: 'var(--text-muted)', display: 'flex', flexWrap: 'wrap', gap: 4, alignItems: 'baseline' }}>
+                  <span style={{ fontWeight: 600, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: 0.5, fontSize: 10 }}>modules ({modules.length}):</span>
+                  {modules.map(m => (
+                    <span key={m} style={{ padding: '1px 6px', background: 'var(--bg-tertiary)', borderRadius: 3 }}>{m}</span>
+                  ))}
+                </div>
+              )}
+              <TaskTable tasks={tasks} />
+            </>
           )}
-          <TaskTable tasks={tasks} />
         </div>
       )}
     </div>
@@ -299,18 +303,20 @@ export default function EstimateDiagnostic() {
         const derivedRoom = deriveRoom(room);
         const activeGroups = buildActiveGroups(room);
 
-        // Classify and bucket each input
-        const groupBuckets = new Map(); // group_id → { members:Set, tasks:[], totalHours }
+        // Classify and bucket each input. Contributing inputs are kept distinct
+        // so each per-substrate scenario can be expanded individually inside
+        // the group (its own scenario id, modules, tasks).
+        const groupBuckets = new Map();
         const ungroupedInputs = [];
         for (const pr of inputs) {
           const c = classifyInput(pr, room, activeGroups);
           if (c.kind === 'group-shared' || c.kind === 'group-member') {
             if (!c.group) { ungroupedInputs.push(pr); continue; }
             if (!groupBuckets.has(c.group)) {
-              groupBuckets.set(c.group, { group: c.group, tasks: [], totalHours: 0, contributingSpecs: new Set() });
+              groupBuckets.set(c.group, { group: c.group, totalHours: 0, contributingSpecs: new Set(), contributingInputs: [] });
             }
             const b = groupBuckets.get(c.group);
-            b.tasks.push(...(pr.tasks || []));
+            b.contributingInputs.push({ kind: c.kind, primarySub: c.primarySub || null, pr });
             b.totalHours += pr.totalHours || 0;
             b.contributingSpecs.add(pr.specId);
           } else {
@@ -337,19 +343,41 @@ export default function EstimateDiagnostic() {
                 {/* Per-substrate quantity breakdown — verify what's being measured */}
                 <QuantityBreakdown room={room} derived={derivedRoom} />
 
-                {/* Grouped line items */}
+                {/* Grouped line items — outer section holds the rolled-up total;
+                    inner sections break out each contributing scenario (shared
+                    + per-substrate) so you can drill into its modules + tasks. */}
                 {[...groupBuckets.entries()].sort(([a], [b]) => a.localeCompare(b)).map(([group, bucket]) => {
                   const members = activeGroups.get(group) || [];
                   const memberLabels = members.map(substrateLabel).join(', ');
-                  const contributing = [...bucket.contributingSpecs].sort().join(', ');
+                  const sortedInputs = [...bucket.contributingInputs].sort((a, b) => {
+                    if (a.kind === 'group-shared' && b.kind !== 'group-shared') return -1;
+                    if (a.kind !== 'group-shared' && b.kind === 'group-shared') return 1;
+                    const al = a.primarySub ? substrateLabel(a.primarySub) : '';
+                    const bl = b.primarySub ? substrateLabel(b.primarySub) : '';
+                    return al.localeCompare(bl);
+                  });
                   return (
                     <GroupSection
                       key={group}
                       title={`${memberLabels} (finish group=${group})`}
-                      subtitle={`from: ${contributing}`}
+                      subtitle={`${sortedInputs.length} contributing scenario${sortedInputs.length === 1 ? '' : 's'}`}
                       totalHours={bucket.totalHours}
-                      tasks={sortTasks(bucket.tasks)}
-                    />
+                    >
+                      {sortedInputs.map(({ kind, primarySub, pr }, i) => {
+                        const subTitle = kind === 'group-shared'
+                          ? '[Shared] finish-group scenario'
+                          : (primarySub ? substrateLabel(primarySub) : pr.specId);
+                        return (
+                          <GroupSection
+                            key={`${pr.specId}-${i}`}
+                            title={subTitle}
+                            subtitle={`${pr.specId} → ${pr.scenarioId}`}
+                            totalHours={pr.totalHours || 0}
+                            tasks={sortTasks(pr.tasks || [])}
+                          />
+                        );
+                      })}
+                    </GroupSection>
                   );
                 })}
 
