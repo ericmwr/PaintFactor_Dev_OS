@@ -120,11 +120,22 @@ export default function IdentityTab({ room, derived, dispatch, project, roomCate
             <input type="number" value={room.height_ft || ''} onChange={e => setRoom('height_ft', parseFloat(e.target.value) || 0)} min="0" step="0.5" placeholder="0" />
           </div>
         </div>
-        <div style={{ display: 'flex', gap: 24, marginTop: 8, fontSize: 12, color: 'var(--text-secondary)', fontFamily: 'var(--font-mono)' }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 24, marginTop: 8, fontSize: 12, color: 'var(--text-secondary)', fontFamily: 'var(--font-mono)' }}>
           <span>Perimeter: <b style={{ color: 'var(--text-primary)' }}>{derived.perimeter} LF</b></span>
           <span>Floor/Ceiling: <b style={{ color: 'var(--text-primary)' }}>{derived.ceilingSF} SF</b></span>
           <span>Wall Gross: <b style={{ color: 'var(--text-primary)' }}>{derived.wallGross} SF</b></span>
-          <span>Opening Deduct: <b style={{ color: 'var(--warning)' }}>{derived.openingDeduction} SF</b></span>
+          {derived.openingDeduction > 0 && (
+            <span>Opening Deduct: <b style={{ color: 'var(--warning)' }}>−{derived.openingDeduction} SF</b></span>
+          )}
+          {derived.featureWallDeduct > 0 && (
+            <span>Feature Wall: <b style={{ color: 'var(--warning)' }}>−{derived.featureWallDeduct} SF</b></span>
+          )}
+          {derived.gableExtra > 0 && (
+            <span>Gable: <b style={{ color: 'var(--accent)' }}>+{derived.gableExtra} SF</b></span>
+          )}
+          {derived.wall_field_sf > 0 && (
+            <span>Wall Net: <b style={{ color: 'var(--accent)' }}>{derived.wall_field_sf} SF</b></span>
+          )}
         </div>
       </div>
 
