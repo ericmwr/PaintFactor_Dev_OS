@@ -63,8 +63,14 @@ export function buildRoomQuantityLookups(state) {
       if (explicit) return explicit;
       return SUBSTRATE_APPLICATION_METHODS[substrateId]?.default || '';
     }
-    const wallsSprayQ = effectiveMethod('walls', subs.walls).toString().includes('spray');
-    const ceilingSprayQ = effectiveMethod('ceiling', subs.ceiling).toString().includes('spray');
+    // Substrate must be ACTIVE (checked in the room) for its method to count
+    // as "spray happening here". Without the existence guard, effectiveMethod
+    // returns the substrate's default method (walls/ceiling default to
+    // spray_backroll), making wallsSprayQ/ceilingSprayQ read true for rooms
+    // that never had walls or ceiling checked — which silently triggered
+    // outlet auto-mask on trim-only rooms (W-21 follow-up).
+    const wallsSprayQ = !!subs.walls && effectiveMethod('walls', subs.walls).toString().includes('spray');
+    const ceilingSprayQ = !!subs.ceiling && effectiveMethod('ceiling', subs.ceiling).toString().includes('spray');
     const anyTrimSprayQ = ['baseboard','crown','door_casing','window_casing','chair_rail','shoe_mold','picture_rail','window_stool','window_apron','shadow_box','panel_mold','door_frames','window_jamb']
       .some(id => {
         const s = subs[id];
