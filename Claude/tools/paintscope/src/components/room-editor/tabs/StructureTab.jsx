@@ -221,6 +221,7 @@ export default function StructureTab({ room, derived, dispatch, project }) {
       )}
       </div>
 
+
       {/* ── Ceiling ── */}
       <div className="panel-section" data-section="ceiling">
         <div className="section-title">Ceiling</div>
@@ -291,60 +292,6 @@ export default function StructureTab({ room, derived, dispatch, project }) {
           <div style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 2 }}>L&times;W = {derived.ceilingSF}{derived.vaultedExtra > 0 ? ` + Vault ${derived.vaultedExtra}` : ''}</div>
         </div>
 
-        {/* Ceiling Type — inline under ceiling */}
-        <div style={{ marginTop: 10, padding: '8px 10px', background: 'var(--bg-tertiary)', borderRadius: 6 }}>
-          <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 6 }}>Ceiling Type</div>
-          <div className="form-grid" style={{ gridTemplateColumns: '1fr 1fr 1fr 1fr' }}>
-            <div>
-              <div className="field-label">Type</div>
-              <Select
-                options={CEILING_TYPE_OPTS}
-                value={room.cathedral_ceiling ? 'cathedral' : room.vaulted_ceiling ? 'vaulted' : 'standard'}
-                onChange={v => {
-                  setRoom('vaulted_ceiling', v === 'vaulted');
-                  setRoom('cathedral_ceiling', v === 'cathedral');
-                }}
-              />
-              {room.cathedral_ceiling && (
-                <div style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 2 }}>
-                  Flat ceiling at room height. No slope/gable.
-                </div>
-              )}
-            </div>
-            <div>
-              <div className="field-label">Peak Height (ft)</div>
-              <input type="number" value={room.peak_height_ft || ''} onChange={e => setRoom('peak_height_ft', parseFloat(e.target.value) || 0)} min="0" step="0.5" disabled={!room.vaulted_ceiling} style={{ opacity: room.vaulted_ceiling ? 1 : 0.4 }} />
-            </div>
-            <div>
-              <div className="field-label">Ridge Direction</div>
-              <select value={room.ridge_direction || 'length'} onChange={e => setRoom('ridge_direction', e.target.value)} disabled={!room.vaulted_ceiling} style={{ opacity: room.vaulted_ceiling ? 1 : 0.4 }}>
-                <option value="length">Along Length</option>
-                <option value="width">Along Width</option>
-              </select>
-            </div>
-            <div>
-              <div className="field-label">Pitch</div>
-              <div style={{ padding: '6px 0', fontSize: 13, color: room.vaulted_ceiling && derived.pitch > 0 ? 'var(--text-primary)' : 'var(--text-muted)' }}>{derived.pitch > 0 ? `${derived.pitch}:12` : '\u2014'}</div>
-            </div>
-          </div>
-          {room.vaulted_ceiling && (
-            <div className="form-grid" style={{ gridTemplateColumns: '1fr 2fr', marginTop: 4 }}>
-              <div>
-                <div className="field-label">Gable Walls</div>
-                <input type="number" value={room.gable_walls || ''} onChange={e => setRoom('gable_walls', parseInt(e.target.value) || 0)} min="0" max="4" style={{ width: 60 }} />
-              </div>
-              <div style={{ display: 'flex', alignItems: 'flex-end', paddingBottom: 4 }}>
-                {(derived.vaultedExtra > 0 || derived.gableExtra > 0) && (
-                  <span style={{ fontSize: 11, color: 'var(--text-secondary)', fontFamily: 'var(--font-mono)' }}>
-                    {derived.vaultedExtra > 0 && <span>Extra Ceiling: <b style={{ color: 'var(--accent)' }}>+{derived.vaultedExtra} SF</b></span>}
-                    {derived.vaultedExtra > 0 && derived.gableExtra > 0 && <span style={{ margin: '0 8px' }}>|</span>}
-                    {derived.gableExtra > 0 && <span>Extra Wall: <b style={{ color: 'var(--accent)' }}>+{derived.gableExtra} SF</b></span>}
-                  </span>
-                )}
-              </div>
-            </div>
-          )}
-        </div>
 
         {/* Conflict warnings */}
         {subs.wood_ceiling && isWoodCeil && (
@@ -359,6 +306,61 @@ export default function StructureTab({ room, derived, dispatch, project }) {
         )}
         </>
       )}
+
+      {/* Ceiling Type — kept outside subs.ceiling gate (W-14) so vault/gable inputs still affect wall SF when ceiling isn't painted */}
+      <div style={{ marginTop: 10, padding: '8px 10px', background: 'var(--bg-tertiary)', borderRadius: 6 }}>
+        <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 6 }}>Ceiling Type</div>
+        <div className="form-grid" style={{ gridTemplateColumns: '1fr 1fr 1fr 1fr' }}>
+          <div>
+            <div className="field-label">Type</div>
+            <Select
+              options={CEILING_TYPE_OPTS}
+              value={room.cathedral_ceiling ? 'cathedral' : room.vaulted_ceiling ? 'vaulted' : 'standard'}
+              onChange={v => {
+                setRoom('vaulted_ceiling', v === 'vaulted');
+                setRoom('cathedral_ceiling', v === 'cathedral');
+              }}
+            />
+            {room.cathedral_ceiling && (
+              <div style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 2 }}>
+                Flat ceiling at room height. No slope/gable.
+              </div>
+            )}
+          </div>
+          <div>
+            <div className="field-label">Peak Height (ft)</div>
+            <input type="number" value={room.peak_height_ft || ''} onChange={e => setRoom('peak_height_ft', parseFloat(e.target.value) || 0)} min="0" step="0.5" disabled={!room.vaulted_ceiling} style={{ opacity: room.vaulted_ceiling ? 1 : 0.4 }} />
+          </div>
+          <div>
+            <div className="field-label">Ridge Direction</div>
+            <select value={room.ridge_direction || 'length'} onChange={e => setRoom('ridge_direction', e.target.value)} disabled={!room.vaulted_ceiling} style={{ opacity: room.vaulted_ceiling ? 1 : 0.4 }}>
+              <option value="length">Along Length</option>
+              <option value="width">Along Width</option>
+            </select>
+          </div>
+          <div>
+            <div className="field-label">Pitch</div>
+            <div style={{ padding: '6px 0', fontSize: 13, color: room.vaulted_ceiling && derived.pitch > 0 ? 'var(--text-primary)' : 'var(--text-muted)' }}>{derived.pitch > 0 ? `${derived.pitch}:12` : '\u2014'}</div>
+          </div>
+        </div>
+        {room.vaulted_ceiling && (
+          <div className="form-grid" style={{ gridTemplateColumns: '1fr 2fr', marginTop: 4 }}>
+            <div>
+              <div className="field-label">Gable Walls</div>
+              <input type="number" value={room.gable_walls || ''} onChange={e => setRoom('gable_walls', parseInt(e.target.value) || 0)} min="0" max="4" style={{ width: 60 }} />
+            </div>
+            <div style={{ display: 'flex', alignItems: 'flex-end', paddingBottom: 4 }}>
+              {(derived.vaultedExtra > 0 || derived.gableExtra > 0) && (
+                <span style={{ fontSize: 11, color: 'var(--text-secondary)', fontFamily: 'var(--font-mono)' }}>
+                  {derived.vaultedExtra > 0 && <span>Extra Ceiling: <b style={{ color: 'var(--accent)' }}>+{derived.vaultedExtra} SF</b></span>}
+                  {derived.vaultedExtra > 0 && derived.gableExtra > 0 && <span style={{ margin: '0 8px' }}>|</span>}
+                  {derived.gableExtra > 0 && <span>Extra Wall: <b style={{ color: 'var(--accent)' }}>+{derived.gableExtra} SF</b></span>}
+                </span>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
       </div>
 
       {/* ── Ceiling Beams ── (available for all ceilings, not just vaulted) */}
