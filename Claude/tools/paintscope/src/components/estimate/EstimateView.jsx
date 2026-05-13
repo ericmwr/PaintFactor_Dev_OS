@@ -71,14 +71,17 @@ const PhaseBar = ({ phaseHours, total, height = 24 }) => {
       {PHASE_ORDER.filter(p => phaseHours[p] > 0).map(p => {
         const pct = (phaseHours[p] / total) * 100;
         return (
-          <div key={p} style={{
-            width: `${pct}%`, minWidth: pct > 5 ? 'auto' : 0,
-            background: PHASE_BAR_COLORS[p] || 'var(--bg-tertiary)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: 10, color: '#fff', fontWeight: 600,
-            padding: '0 4px', overflow: 'hidden', whiteSpace: 'nowrap',
-          }}>
-            {pct > 8 ? `${p} ${phaseHours[p].toFixed(1)}h` : ''}
+          <div
+            key={p}
+            title={`${p}: ${phaseHours[p].toFixed(2)}h (${pct.toFixed(1)}%)`}
+            style={{
+              width: `${pct}%`, minWidth: 50,
+              background: PHASE_BAR_COLORS[p] || 'var(--bg-tertiary)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: 10, color: '#fff', fontWeight: 600,
+              padding: '0 4px', overflow: 'hidden', whiteSpace: 'nowrap',
+            }}>
+            {`${p} ${phaseHours[p].toFixed(1)}h`}
           </div>
         );
       })}
