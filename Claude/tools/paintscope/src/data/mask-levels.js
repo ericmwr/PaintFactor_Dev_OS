@@ -52,6 +52,14 @@ const CAB_PROTECT = ['edge', 'partial', 'full', 'encapsulate'];
 
 const filterTo = (ids) => MASK_LEVELS.filter(l => ids.includes(l.id));
 
+// "Full drape" is the canonical surface-protection wording, but for fixtures
+// you wrap rather than drape — the user-facing label "Full cover" reads truer
+// for Group B (light fixtures, ceiling fans, appliances, etc.). Same `id: 'full'`
+// under the hood, only the display label changes. See W-16.
+const relabelFullAsCover = (levels) => levels.map(l =>
+  l.id === 'full' ? { ...l, label: 'Full cover', short: 'Full cover' } : l
+);
+
 export const FIXTURE_MASK_LEVELS = {
   // Group A
   cabinets:         filterTo(GROUP_A),
@@ -65,14 +73,15 @@ export const FIXTURE_MASK_LEVELS = {
   feature_wall:     filterTo(GROUP_A),
   closet_shelving:  filterTo(GROUP_A),
   // Group B (light / incidental — also handles deferred countertop/backsplash for now)
-  light_fixtures:   filterTo(GROUP_B),
-  ceiling_fan:      filterTo(GROUP_B),
-  appliances:       filterTo(GROUP_B),
-  countertops:      filterTo(GROUP_B),
-  backsplash:       filterTo(GROUP_B),
-  hardware_covers:  filterTo(GROUP_B),
-  mantel:           filterTo(GROUP_B),
-  generic:          filterTo(GROUP_B),
+  // "Full" renders as "Full cover" for these — see relabelFullAsCover above.
+  light_fixtures:   relabelFullAsCover(filterTo(GROUP_B)),
+  ceiling_fan:      relabelFullAsCover(filterTo(GROUP_B)),
+  appliances:       relabelFullAsCover(filterTo(GROUP_B)),
+  countertops:      relabelFullAsCover(filterTo(GROUP_B)),
+  backsplash:       relabelFullAsCover(filterTo(GROUP_B)),
+  hardware_covers:  relabelFullAsCover(filterTo(GROUP_B)),
+  mantel:           relabelFullAsCover(filterTo(GROUP_B)),
+  generic:          relabelFullAsCover(filterTo(GROUP_B)),
 };
 
 // Default mask level per fixture (used when no override is set).
