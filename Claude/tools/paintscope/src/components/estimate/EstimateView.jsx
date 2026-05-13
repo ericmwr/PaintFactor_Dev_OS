@@ -696,7 +696,18 @@ export default function EstimateView() {
         const room = state.rooms[parseInt(ri)];
         const d = room ? deriveRoom(room) : null;
         const isRoomOpen = expandedRooms[ri] === true;
-        const specEntries = Object.entries(roomData.specs).sort((a,b) => b[1].totalHours - a[1].totalHours);
+        // Pin SF_ROOM_PROTECTION to position #1 — scenario engine emits it as a regular spec that otherwise sorts by hours and buries mid-list.
+        const isRoomProtectionSpec = (sk) => {
+          const base = sk.includes('::') ? sk.split('::')[0] : sk;
+          return base === 'SF_ROOM_PROTECTION';
+        };
+        const specEntries = Object.entries(roomData.specs).sort((a, b) => {
+          const aProt = isRoomProtectionSpec(a[0]);
+          const bProt = isRoomProtectionSpec(b[0]);
+          if (aProt && !bProt) return -1;
+          if (!aProt && bProt) return 1;
+          return b[1].totalHours - a[1].totalHours;
+        });
 
         return (
           <div key={ri} className="spec-section" style={{marginBottom:12}}>
