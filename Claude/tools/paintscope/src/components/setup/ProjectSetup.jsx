@@ -118,7 +118,7 @@ export default function ProjectSetup() {
           Pilot scope — outlet covers + HVAC vents only. Add more heuristics
           here as future needs arise.
           ───────────────────────────────────────────────────────────────── */}
-      <details open style={{ border: '1px solid var(--border)', borderRadius: 6, padding: '8px 12px', marginBottom: 16, background: 'var(--bg-elevated, #1f1f1f)' }}>
+      <details style={{ border: '1px solid var(--border)', borderRadius: 6, padding: '8px 12px', marginBottom: 16, background: 'var(--bg-elevated, #1f1f1f)' }}>
         <summary style={{ cursor: 'pointer', fontWeight: 600, fontSize: 14, color: 'var(--accent)', userSelect: 'none', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <span>Protection Heuristics</span>
           <button
