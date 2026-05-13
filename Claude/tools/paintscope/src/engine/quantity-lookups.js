@@ -585,19 +585,27 @@ export function buildRoomQuantityLookups(state) {
     }
 
     // Outlet/switch heuristic — emit count when EITHER:
-    //   (a) any substrate in the room is sprayed (mask is needed), OR
+    //   (a) walls or ceiling are sprayed in the room (overspray hits outlets), OR
     //   (b) outlet_remove_reinstall toggle is on (covers come off regardless of method).
+    // W-21: trim-only spray (baseboard/door casing/etc.) does NOT trigger outlet
+    // masking — outlets are on walls, and trim spray normally masks against
+    // walls so overspray on outlets isn't a concern. User explicitly reported
+    // outlet auto-mask firing on trim-only rooms even with the R+R toggle off.
     // Mask vs R+R are independent — both can fire on the same outlet count.
     // Mask tasks (TSK_MASK_OUTLET_SWITCH_*) gate on any_spray_in_room ctx field
     // so they only fire under condition (a). Prep R+R tasks gate on
     // outlet_remove_reinstall and fire under condition (b).
     const outletRR = project?.protection_heuristics?.outlet_remove_reinstall === true;
-    if ((anySprayInRoom || outletRR) && outletsPerRoom > 0) {
+    const wallOrCeilingSpray = wallsSprayQ || ceilingSprayQ;
+    if ((wallOrCeilingSpray || outletRR) && outletsPerRoom > 0) {
       const cnt = (room.protection?.outlets_count_override != null ? Number(room.protection.outlets_count_override) : outletsPerRoom);
       if (cnt > 0) addQ('PS_PROTECT_EA.OUTLET_SWITCH', 'EA', cnt);
     }
-    // HVAC vent heuristic — emit count regardless of method; tasks gate on hvac_action.
-    if (hvacPerRoom > 0) {
+    // HVAC vent heuristic — emit count regardless of method; tasks gate on
+    // hvac_action ('mask' or 'remove'). W-20: when hvac_action is 'none'
+    // (do nothing — e.g. ceiling-only repaint where vents stay untouched),
+    // skip emission entirely so no HVAC vent tasks fire.
+    if (hvacPerRoom > 0 && hvacAction !== 'none') {
       const cnt = (room.protection?.hvac_vents_count_override != null ? Number(room.protection.hvac_vents_count_override) : hvacPerRoom);
       if (cnt > 0) addQ('PS_PROTECT_EA.HVAC_VENT', 'EA', cnt);
     }

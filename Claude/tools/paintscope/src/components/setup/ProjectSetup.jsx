@@ -207,7 +207,7 @@ export default function ProjectSetup() {
               />
             </div>
             <div className="setup-field" style={{ gridColumn: '1 / -1' }}>
-              <label title="Mask = tape over the vent. Remove = unscrew + reinstall the vent cover (mutually exclusive).">HVAC Action</label>
+              <label title="Mask = tape over the vent. Remove = unscrew + reinstall the vent cover. None = no HVAC vent work fires (e.g. ceiling-only repaint where vents stay untouched).">HVAC Action</label>
               <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
                 <label style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 13, cursor: 'pointer' }}>
                   <input type="radio" name="hvac_action" checked={ph.hvac_action === 'mask'} onChange={() => setPH('hvac_action', 'mask')} />
@@ -216,6 +216,10 @@ export default function ProjectSetup() {
                 <label style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 13, cursor: 'pointer' }}>
                   <input type="radio" name="hvac_action" checked={ph.hvac_action === 'remove'} onChange={() => setPH('hvac_action', 'remove')} />
                   Remove
+                </label>
+                <label style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 13, cursor: 'pointer' }}>
+                  <input type="radio" name="hvac_action" checked={ph.hvac_action === 'none'} onChange={() => setPH('hvac_action', 'none')} />
+                  None (do nothing)
                 </label>
               </div>
             </div>
