@@ -250,11 +250,15 @@ export default function EstimateView() {
       for (const t of pr.tasks || []) {
         const key = (t.taskId || t.taskName || 'unknown') + '::' + (t.phase || 'apply');
         const existing = taskMap.get(key);
+        const roomLabel = t.roomLabel || pr.roomLabel || null;
         if (existing) {
           existing.quantity += (parseFloat(t.quantity) || 0);
           existing.hours += (parseFloat(t.hours) || 0);
           existing.roomCount += 1;
+          if (roomLabel) existing.roomLabels.add(roomLabel);
         } else {
+          const labels = new Set();
+          if (roomLabel) labels.add(roomLabel);
           taskMap.set(key, {
             taskId: t.taskId,
             taskName: t.taskName,
@@ -265,6 +269,7 @@ export default function EstimateView() {
             quantity: parseFloat(t.quantity) || 0,
             hours: parseFloat(t.hours) || 0,
             roomCount: 1,
+            roomLabels: labels,
             isFixed: !!t.isFixed,
             coatMultiplier: t.coatMultiplier,
           });
@@ -275,7 +280,7 @@ export default function EstimateView() {
       }
     }
     return {
-      tasks: [...taskMap.values()],
+      tasks: [...taskMap.values()].map(t => ({ ...t, roomLabels: [...t.roomLabels].sort() })),
       phaseHours,
       totalHours: Math.round(totalHours * 100) / 100,
       inputCount: inputs.length,
@@ -662,7 +667,12 @@ export default function EstimateView() {
                         .sort((a, b) => (b.hours || 0) - (a.hours || 0))
                         .map((t, i) => (
                           <tr key={i} style={{background: PHASE_COLORS[t.phase] || 'transparent'}}>
-                            <td className="task-name-col" title={t.taskName}>{t.taskName}{taskNameSuffix(t)}</td>
+                            <td className="task-name-col" title={t.roomLabels?.length ? `${t.taskName} — ${t.roomLabels.join(', ')}` : t.taskName}>
+                              {t.taskName}{taskNameSuffix(t)}
+                              {t.roomLabels?.length > 0 && (
+                                <span style={{color:'var(--text-muted)', fontWeight:400, marginLeft:6}}>— {t.roomLabels.join(', ')}</span>
+                              )}
+                            </td>
                             <td style={{fontSize:11,color:'var(--text-muted)',textTransform:'capitalize'}}>{t.phase}</td>
                             <td style={{fontSize:10,color:'var(--derived)'}}>{t.psKey || '—'}</td>
                             <td style={{fontSize:11}}>{t.uom || '—'}</td>
