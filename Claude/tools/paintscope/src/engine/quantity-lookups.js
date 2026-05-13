@@ -479,9 +479,14 @@ export function buildRoomQuantityLookups(state) {
       if (windowMaskLevel === 'edge') {
         // Light-tape edge for glass lites only
         addQ('PS_PROTECT_EA.WINDOW_GLASS_LIGHTS', 'EA', totalWinCount);
-      } else if (windowMaskLevel !== 'none') {
-        // Full / encapsulate / edge_encapsulate all share the FULL_* tasks
-        // for now (task rates will be refined per level in a follow-up).
+      } else if (windowMaskLevel === 'encapsulate') {
+        // Encapsulate (full wrap + sealed perimeter) — size-agnostic for now
+        addQ('PS_PROTECT_EA.WINDOW_ENCAPSULATE', 'EA', totalWinCount);
+      } else if (windowMaskLevel === 'edge_encapsulate') {
+        // Edge+ Encapsulate (encapsulate plus additional crisp tape line)
+        addQ('PS_PROTECT_EA.WINDOW_EDGE_ENCAPSULATE', 'EA', totalWinCount);
+      } else if (windowMaskLevel === 'full') {
+        // Full drape — per-size FULL_* tasks (existing rates differ by size)
         const sizeMap = { S: 'SMALL', M: 'STD', L: 'LG', O: 'XL' };
         const bucketCounts = { SMALL: 0, STD: 0, LG: 0, XL: 0 };
         windowItemsMask.forEach(w => {
