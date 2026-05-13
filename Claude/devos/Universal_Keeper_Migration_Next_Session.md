@@ -1,161 +1,149 @@
-# Next Session Pickup — End of 2026-05-13 Session
+# Next Session Pickup — End of 2026-05-13 (Evening Session)
 
-**Last updated:** 2026-05-13 (end-of-session handoff)
-**Branch:** `claude/cranky-saha` (head `7c73255`, all commits pushed to origin)
-**Resume protocol:** read this doc → check Notion live page → start work
+**Last updated:** 2026-05-13 (end-of-evening-session handoff)
+**Branch:** `claude/cranky-saha` (head `9afffb3`, all commits unpushed — `git push origin claude/cranky-saha` to publish)
+**Resume protocol:** read this doc → check Notion live page → continue chipping at the Walkthrough list
 
 ---
 
 ## Where we are (one paragraph)
 
-Universal keeper migration is **substantially complete**. All 8 cleanup keepers are resolved (7 active in target modules; 1 retired as a mistake). Plus this session: door family rename cleanup, cabinet/window keeper wiring, full Notion sync (18 status flips + 6 new keeper pages), KNOT_COUNT sweep, SF_TRIM retirement tail (9 orphan task archives + 488-row db-bundle scrub), floor-covering inspect+repair feature wired into 526 interior scenarios, drywall finish specs gap investigated and resolved as stale-doc-only. The user made a strategic decision to **retire the Specification System entirely** — captured in `memory/project_spec_system_retirement.md`. New work should not re-entrench SF_* indirection.
+This session pivoted from the Universal Keeper Migration work to the **Sample-Project Walkthrough backlog** — a 43-item list the user captured while entering test projects, surfaced from the Notion "Task Inspection and Engine Inspection" page and migrated into the **PaintScope Universal Keeper Migration — Status & Backlog** Notion page under section "📋 Sample-project walkthrough — Task / Engine inspection backlog". Each item is tagged with a stable `[W-NN]` ID for quick reference. 13 of 43 items resolved this session via 13 commits. The user wants to keep chipping at this list in subsequent sessions; pick whichever items look quick or high-value.
 
 ---
 
 ## Live status source of truth
 
-**Notion page:** [PaintScope Universal Keeper Migration — Status & Backlog](https://www.notion.so/35e3ab2c2a5b81bd9629c6068de53be0) — fully synced as of end-of-session.
+**Notion page:** [PaintScope Universal Keeper Migration — Status & Backlog](https://www.notion.so/35e3ab2c2a5b81bd9629c6068de53be0) — fully synced as of end-of-session, with commit refs on every resolved item.
 
 Update the Notion page as items move, not this doc. This file is a frozen handoff.
 
+**Related sub-pages:**
+- [W-16 Planning](https://www.notion.so/35f3ab2c2a5b81c9b7b3e5cfaa72ef41) — light fixture taxonomy table (filled in by user, then implemented)
+- [W-22 Planning](https://www.notion.so/35f3ab2c2a5b81f1a7c4e454f22035ae) — window masking matrix (superseded by simpler 4-rule version the user dictated)
+
 ---
 
-## Commits this session (chronological)
+## Commits this session (chronological, 13 total)
 
 | Commit | Subject |
 |---|---|
-| `782314e` | rename TSK_DOOR_PATCH_REPAIR → TSK_WOOD_PUTTY_EA_SIDE |
-| `a22867e` | wire TSK_SPACKLE_DEFECT_EA into cabinet prep + window interstage |
-| `f00d638` | finish interior knot-prime task retirement (13 modules + 2 archives + db-bundle scrubs) |
-| `8b52c00` | SF_TRIM retirement tail cleanup — archive 9 orphan trim tasks |
-| `97546ab` | scrub retired SF_TRIM_NC_* rows from db-bundle files (488 rows) |
-| `7c73255` | wire floor-covering inspect+repair into interior scenarios (526 scenarios via MOD_INTERSTAGE_FLOOR_PROTECT_CHECK) |
+| `678bb2f` | wood ceiling scenario coverage gaps + clear_only system |
+| `7c0faf7` | cathedral ceiling type + band UX + coating-aware spec labels (W-13, W-35) |
+| `b37e86b` | decouple Ceiling Type picker from Paint Ceiling checkbox (W-14) |
+| `888dff9` | three small UX/data fixes — W-17, W-18, W-19 |
+| `d69bff4` | "Full cover" label for Group B fixtures (W-16 Phase 1) |
+| `56ea68a` | light fixture detail panel — taxonomy + items + per-item time (W-16 Phase 2) |
+| `b4c33f3` | light fixture allowance task uom MIN instead of fractional EA (W-16 follow-up) |
+| `9c77129` | HVAC "None" action + outlet gate on wall/ceiling spray (W-20, W-21) |
+| `77d4fc9` | gate wallsSprayQ/ceilingSprayQ on substrate existence (W-21 follow-up) |
+| `a8d979c` | window masking matrix gated on actual paint context (W-22) |
+| `0217d06` | distinct Window Encapsulate / Edge+ Encapsulate mask tasks (W-22 follow-up) |
+| `9afffb3` | inline Feature Wall panel on Identity tab (W-15) |
 
-All 6 commits pushed to origin.
+**All 13 commits are local — not pushed to origin.** Push with `git push origin claude/cranky-saha`.
+
+---
+
+## Walkthrough items resolved this session (13 of 43)
+
+| ID | What |
+|---|---|
+| W-13 | Cathedral + vaulted ceiling type 3-way picker; coating-aware spec headers; cathedral/vaulted suffix on ceiling/wall + clerestory-window tasks |
+| W-14 | Decoupled Ceiling Type picker from Paint Ceiling checkbox |
+| W-15 | Feature Wall detail panel moved inline to Identity tab (Protection-tab duplicate kept for backward compat) |
+| W-16 | Light fixture detail panel — taxonomy (recessed/ceiling_fan/bulb/glass/other) + items array + per-item time + Full Cover label; engine emits minutes |
+| W-17 | Cabinets LF field labeled + Lower+Upper doubling caption |
+| W-18 | Vinyl Door substrate state added to doors substrate-state dropdown |
+| W-19 | Window jamb substrate state default flipped from bare_wood → factory_primed |
+| W-20 | HVAC Action "None (do nothing)" radio added |
+| W-21 | Outlet auto-mask now gates on walls/ceiling sprayed (with existence guard), not trim-only spray |
+| W-22 | Window masking matrix — jamb_spray → edge_encapsulate, walls_spray → encapsulate, ceiling work → full, jamb_brush → edge, else none. Distinct tasks per level. |
+| W-35 | Band-stratified expandables in estimate default collapsed; "Second Story Window —" prefix on non-STD band rows |
+| W-36 | Wood ceiling factory-primed silent-fail fixed via 10 new scenario files (QT4/5 FROM_BARE + QT3/4/5 FROM_PRIMED) |
+| W-37 | Wood ceiling double-fire mystery explained (correct behavior; "1.88 modifier" = height_band × ceiling_overhead × QT, already in mod tooltip) |
 
 ---
 
 ## Bundle state at end of session
 
-- 1726 tasks
-- 723 modules (+1 from MOD_INTERSTAGE_FLOOR_PROTECT_CHECK)
-- 709 scenarios
-- 45 orphans
-- 86/86 protection probe ✓
-- 0 legacy task leaks
+- 1730 tasks (+4 window encapsulate task variants this session)
+- 723 modules (unchanged)
+- 722 scenarios (+13 wood ceiling/stain scenarios this session)
+- 86/86 protection probe still passing
 - 0 unresolved module refs
 
 ---
 
-## Strategic direction
+## What's next — remaining Walkthrough backlog (30 items)
 
-**Specification System retirement** — captured 2026-05-13 in `memory/project_spec_system_retirement.md`. The user has decided to retire SF_*, db-bundle.js spec tables, /specs/SF_*_v1/ folders, and the Rates tab entirely. Scenario Engine becomes the exclusive estimation system. Full audit + implementation plan required before code changes begin. **Any new work should be designed to NOT re-entrench the Spec System** — rate tables, modifier eligibility, state transitions should be substrate-or-scenario-keyed, not `spec_family_id`-keyed.
+Pick by category or by ease:
 
----
+**Easy display fixes (likely quick):**
+- W-02 — Time-visualization bar min-width
+- W-03 — Hide empty phase bars
+- W-05 — Room Protection #1 line item per room
+- W-06 — Project Protection label originating room
+- W-07 — Diagnostic dropdown list firing modules
+- W-09 — Duplicate "complexity modifier not applicable" banner repeats ~10×
+- W-10 — `install floor full drape` label → "drops"
+- W-11 — Collapse Product Protection Heuristics panel
 
-## What's next (in priority order)
+**Engine/scenario gaps (more design):**
+- W-04 — Fixture protection lines missing coverage level (label adds)
+- W-08 — Apply vs Finish group merge
+- W-26 — Trim Protect-vs-Paint toggle
+- W-27 — Combined ceiling + walls finish-only didn't fire (cross-ref D-06)
+- W-29..W-33 — Various scenario gaps (ceilings-only, repaint, shiplap+trim, etc.)
+- W-34 — Vault gable SF deduction not surfaced in callout
+- W-38 — Combined wall+ceiling prime + separate finish doesn't distinguish phases
 
-### Pending on the Notion deferred backlog
+**Big features (heavier):**
+- W-01 — Inline task editing inside the estimate (the leap-ahead concept)
+- W-12 — Bulk doors-and-frames entry
+- W-23 — Stone fireplace duct tape (deferred — needs material/sundry system)
+- W-25 — Optional wall tape-line edge prompt
+- W-41 — Trim 3-tier rollup
+- W-42 — Combined substrate ceiling + walls + trim
+- W-43 — Finish Groups wiring (cross-ref D-12)
 
-**Code / data layer:**
-- PaintScope Setup Dropdown Cleanup — Application Method + Surface Texture UI removed 2026-04-08; 6 engine fallback consumers still wired
-- Painter-side glass mask — 3 painter-side tasks + 2 protection-side ps_keys engine never emits; placeholder for unbuilt feature (don't archive)
-- Per-phase application method (prime vs finish split) — substrate.application_method is shared; need `application_method_prime` + `application_method_finish`
-- Wood Wall Substrate — allow walls to be wood with full geometry/deductions
-- Multi-Coat Per-Coat Rates — engine plumbing already exists (`rates_by_coat`, `coat_2_rate_multiplier`, `coatNumber` threading). Session 2026-05-13 explored rolling out `coat_2_rate_multiplier: 1.25` across 84 coating-application tasks; reverted because the rate-vs-modifier display semantics created confusion. Pick up with a clearer UX decision first (see "Open design questions" below)
-- Protection tape types per surface — material-layer concern (delicate / duct / sealable green-frog)
-- Universal Protect Mode — per-substrate protect toggle beyond cabinet+closet
+**Data cleanups:**
+- W-24 — Trim-only floor protection edge-plus-partial-drop prompt
+- W-39 — Trim `patch_defects` duplicates `fill_fasteners` in prep (mirror of drywall SPACKLE_DEFECT migration)
+- W-40 — Ceiling cut-in at wall edge in spray prime (ties into W-01)
 
-**UI / feature work:**
-- Finish Groups + Scope Options
-- Spec Editor Materials (note: will be moot once Rates tab is retired per Spec System retirement)
-- Color Catalog
-- Protection rollout — 5 UI priorities (project setup heuristics panel, detail panel enum cleanup, per-room overrides, estimate visibility, outlier indicator)
-- Editable rates in Scope Tree Lab (parked, blocked on QT builder)
-
-**Architecture:**
-- QT Builder rewrite (parked)
-- Protection tab → summary view (parked, post-protection-on-identity refactor)
-- Sequencing Engine concept (parked, not scoped)
-- **Spec System retirement** — see strategic memory; audit + implementation plan needed
-
-### Out of scope (don't touch without user direction)
-
-- Equipment setup/cleanup model — 72 tasks retired in `00c9eac` with no replacement. Park until proper "per-job equipment overhead" model is designed.
-- Legacy `SF_DOOR_SLAB_INT_NC_STAIN_v1` retirement — queue for formal retirement when other legacy specs get swept.
-- Trim apply → coating-neutral keepers — would converge trim's "Stain Brush+Wipe" / "Sealer Brush (LF)" pattern with the door coating-neutral keeper + `displayTaskName` material-suffix pattern.
-
----
-
-## Open design questions (surface before starting)
-
-### Multi-Coat Per-Coat Rates — UX decision needed
-
-The engine supports per-coat rates via three task-JSON shapes: `rates[]`, `rates_by_coat`, `coat_2_rate_multiplier`. None currently in use. Engine math is `effectiveRate = baseRate / modifier_total` where ALL existing modifiers are slowdowns (> 1 = slower, divided into rate).
-
-A coat-2 speedup (rate × 1.25) doesn't fit the existing modifier semantic cleanly. The 2026-05-13 attempt to roll out `coat_2_rate_multiplier: 1.25` got stuck on this UX question:
-
-- **Option A** — fold coat into baseRate display (TRADE_MATERIAL pattern). Rate column changes per coat; modifier column shows nothing about coat.
-- **Option B** — store coat as inverse (0.8) in modifier stack (height/complexity pattern). Rate column stays canonical; modifier total drops below 1.0 for coat 2 (indicates net speedup).
-- **Option C** — refactor modifier system to be direction-aware (each modifier has a slowdown vs speedup direction). Coat stored as 1.25 displayed as 1.25 multiplier. Cleanest long-term but requires touching modifier compound logic across the engine.
-
-User did not pick a direction; reverted the rollout. Resume by asking which model to commit to, then propagate.
-
-### Spec System retirement
-
-Audit needs to map every consumer of:
-- `Claude/tools/paintscope/src/data/spec-maps.js` (9 engine files import its exports)
-- `Claude/tools/paintscope/src/data/db-bundle.js` spec tables (spec_families, sop_modules, sop_tasks, task_production_rates, factor_modifiers, quality_tier_effects, spec_required_inputs, material_systems, material_coverage_profiles, spec_protection_zones, coat_counts)
-- `Claude/specs/SF_*_v1/*.json` (~40 folders)
-
-Then propose substrate-or-scenario-keyed replacements for each role.
+**Recommendation for next session:** start with the **easy display fixes** (W-02, W-03, W-05, W-09, W-10, W-11) — most are 1-line UI tweaks. Five quick wins to start, then tackle one engine slice (e.g. W-04 or W-38).
 
 ---
 
-## Tooling cheatsheet
+## Pre-session uncommitted artifacts (not my work)
 
-```sh
-# Bundle rebuild — required after any module/task/scenario edit
-node Claude/scripts/build-scenario-bundle.mjs
+These were present at session start and remain untracked — likely from previous sessions:
 
-# Probe — verifies protection coverage + no leaks + all refs resolve
-node Claude/scripts/probe-protection-tasks.mjs
-
-# Task coverage classification (uses ledger of fired tasks)
-node Claude/scripts/classify-task-coverage.mjs ~/Downloads/paintscope-fired-tasks-*.json
-
-# Session migration scripts (kept on disk for reference)
-node Claude/scripts/retire-knot-prime-tasks.mjs            # f00d638
-node Claude/scripts/scrub-retired-trim-from-db-bundles.mjs # 97546ab
-node Claude/scripts/inject-floor-protect-check.mjs         # 7c73255
+```
+M  .claude/settings.local.json
+?? Claude/_task_coverage_report.csv
+?? Claude/scripts/report-consolidation-candidates.mjs
+?? Claude/tasks/archive/TSK_ROLL_CEILING_FINISH.json
+?? Claude/tasks/archive/TSK_ROLL_WALL_FINISH.json
+?? Claude/tasks/archive/TSK_SPRAY_CEILING_FINISH.json
+?? Claude/tasks/archive/TSK_SPRAY_CEILING_FINISH_ONLY.json
+?? Claude/tasks/archive/TSK_SPRAY_WALL_FINISH.json
+?? Claude/tasks/archive/TSK_SPRAY_WALL_FINISH_ONLY.json
 ```
 
----
-
-## Project state
-
-- **Branch:** `claude/cranky-saha` at `7c73255` (pushed)
-- **Dev server:** vite on `localhost:5183`, root at `Claude/tools/paintscope/`. `npm run dev -- --port 5183`
-- **Engine:** scenario engine is default (`run-estimate-scenario.js`); legacy `run-estimate.js` is deprecated
-- **Verification doctrine:** mechanical migration → build + probe; UI-visible → verify on localhost:5183 with McLeod
+User can decide whether to commit, .gitignore, or discard these.
 
 ---
 
-## How to start next session
+## Strategic direction (from prior session, still active)
 
-1. Read this doc (you just did).
-2. Skim the Notion live page for any updates since this handoff: https://www.notion.so/35e3ab2c2a5b81bd9629c6068de53be0
-3. Skim `memory/project_spec_system_retirement.md` if you're picking up retirement-related work — it sets the direction for HOW new work should be designed.
-4. Pick from the deferred backlog OR scope the Spec System retirement audit.
-5. For Multi-Coat Per-Coat Rates: surface the UX decision question to the user **before** writing code.
+**Specification System retirement** — captured in `memory/project_spec_system_retirement.md`. Decision to retire SF_*, db-bundle.js spec tables, /specs/SF_*_v1/ folders, and Rates tab. Scenario Engine is exclusive. **Any new work should NOT re-entrench the Spec System.**
+
+The Walkthrough items being worked through this round don't generally touch the spec system — most are display/UI or scenario-engine emission tweaks. Continue working at the scenario-engine + UI layer; defer anything that requires new SF_* spec families.
 
 ---
 
-## Surprises / gotchas
+## Memory notes
 
-- **`coat_2_rate_multiplier` is on disk but not in use** — the 84-task rollout was reverted at end of 2026-05-13 session. Engine `resolveTaskRate` still supports the field at priority 4, but no live tasks currently set it. Don't be confused by the engine support.
-- **db-bundle.js is consumed live** — by `spec-editor-reducer.js`, `useSpecData.jsx`, and a comment in `run-estimate-scenario.js`. Removing data from it affects the Rates tab. Pre-Spec-retirement work should preserve compatibility.
-- **MOD_INTERSTAGE_FLOOR_PROTECT_CHECK fires once per scenario** — uses `PS_PROTECT_SF.FLOOR_AREA` ps_key (NOT the legacy `PS_PROTECT_SF.FLOOR_EXPOSED` which was removed). Gates on `floor_mask_level` ∈ {full, encapsulate, edge_full, edge_encapsulate}. Edge-only / partial / spot DON'T trigger it (LF coverage, not SF).
-- **TSK_INSPECT_REPAIR_FLOOR_COVERING_SF wasn't where the memory said it was** — the 6-day-old memory note claimed it was wired into 3 drywall interstage modules. It was actually orphan from creation. Trust git history over old memory notes.
-- **The Drywall Finish Specs "gap" was a stale doc artifact** — the engine has full coverage under different module names than the spec files. Don't get baited by stale spec file references.
-- **Pre-existing untracked files** — `Claude/_task_coverage_report.csv`, `Claude/scripts/report-consolidation-candidates.mjs`, and 6 `TSK_ROLL_*` / `TSK_SPRAY_*` files in `Claude/tasks/archive/` were untracked at session start and remain so. Don't `git add Claude/` blindly.
+- [PaintScope worktree path on cranky-saha](../../../../../../Users/mowre/.claude/projects/C--Eric-AI-Playground-Claude-Code-Uni/memory/feedback_paintscope_worktree_path.md) — created this session. **Reminder:** when on `claude/cranky-saha`, edit files under `.claude/worktrees/cranky-saha/Claude/tools/paintscope/`, NOT the main checkout. Burned 30 minutes early in this session before catching it.
