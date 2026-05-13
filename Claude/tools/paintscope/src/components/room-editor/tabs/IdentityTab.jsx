@@ -9,6 +9,7 @@ import { MASK_LEVELS_FLOOR, MASK_LEVEL_SHORT } from '../../../data/mask-levels';
 import { deriveProtectionDefaults } from '../../../engine/derive-protection-defaults.js';
 import FixtureInlineRow from '../FixtureInlineRow';
 import LightFixturesInlinePanel from '../LightFixturesInlinePanel';
+import FeatureWallInlinePanel from '../FeatureWallInlinePanel';
 
 export default function IdentityTab({ room, derived, dispatch, project, roomCategories }) {
   const textureOptions = useModifierEnum('FAC_TEXTURE');
@@ -217,22 +218,37 @@ export default function IdentityTab({ room, derived, dispatch, project, roomCate
                   Configure Selected
                 </div>
                 <div>
-                  {checkedIds.map(fId => fId === 'light_fixtures' ? (
-                    <LightFixturesInlinePanel
-                      key={fId}
-                      roomId={rid}
-                      cfg={room.fixtures[fId] || {}}
-                      dispatch={dispatch}
-                    />
-                  ) : (
-                    <FixtureInlineRow
-                      key={fId}
-                      fixtureId={fId}
-                      cfg={room.fixtures[fId] || {}}
-                      setFix={setFix}
-                      onJumpToProtection={onJumpToProtection}
-                    />
-                  ))}
+                  {checkedIds.map(fId => {
+                    if (fId === 'light_fixtures') {
+                      return (
+                        <LightFixturesInlinePanel
+                          key={fId}
+                          roomId={rid}
+                          cfg={room.fixtures[fId] || {}}
+                          dispatch={dispatch}
+                        />
+                      );
+                    }
+                    if (fId === 'feature_wall') {
+                      return (
+                        <FeatureWallInlinePanel
+                          key={fId}
+                          roomId={rid}
+                          cfg={room.fixtures[fId] || {}}
+                          dispatch={dispatch}
+                        />
+                      );
+                    }
+                    return (
+                      <FixtureInlineRow
+                        key={fId}
+                        fixtureId={fId}
+                        cfg={room.fixtures[fId] || {}}
+                        setFix={setFix}
+                        onJumpToProtection={onJumpToProtection}
+                      />
+                    );
+                  })}
                 </div>
               </div>
             );
