@@ -91,6 +91,11 @@ export function resolveSystem(specId, room, project) {
   // picking "Stain + Clear" must suppress paint specs even if a prior session
   // left config.system = 'paint_full' cached on the substrate.
   if (substrateState === 'bare_wood') {
+    // Honor explicit clear-system selection before falling back to the
+    // coating-type inference (both clear_only and clear_refresh map to
+    // coating_type=clear_only, so coating_type alone can't differentiate).
+    if (subConfig?.system === 'clear_only')    return 'clear_only';
+    if (subConfig?.system === 'clear_refresh') return 'clear_refresh';
     if (coatingType === 'stain_clear')  return 'stain_sealer_clear';
     if (coatingType === 'stain_only')   return 'stain_only';
     if (coatingType === 'clear_only')   return 'clear_refresh';

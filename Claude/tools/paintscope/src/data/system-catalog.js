@@ -34,6 +34,7 @@ export const SYSTEM_METADATA = {
   stain_clear:            { label: 'Stain + clear',                  description: 'Stain + clear topcoat.' },
   stain_sealer_clear:     { label: 'Stain + sealer + clear',         description: 'Stain, sealer, clear topcoat (full wood finishing system).' },
   stain_only:             { label: 'Stain only',                     description: 'Stain without topcoat.' },
+  clear_only:             { label: 'Clear coat only (sealer + clear)', description: 'Sealer + clear topcoat on bare wood — no stain, natural color preserved.' },
   clear_refresh:          { label: 'Clear coat refresh',             description: 'Re-coat existing stained surfaces with new clear.' },
   restain_recoat:         { label: 'Re-stain + recoat',              description: 'Reapply stain and clear over existing stained wood.' },
 
@@ -95,9 +96,9 @@ export const SUBSTRATE_SYSTEMS = {
   window_jamb:       ['paint_full', 'paint_finish', 'stain_clear', 'stain_sealer_clear', 'prime_only'],
 
   // Interior specialty (wood)
-  wainscoting:       ['paint_full', 'paint_finish', 'stain_clear', 'stain_sealer_clear', 'stain_only', 'clear_refresh', 'prime_only'],
+  wainscoting:       ['paint_full', 'paint_finish', 'stain_clear', 'stain_sealer_clear', 'stain_only', 'clear_only', 'clear_refresh', 'prime_only'],
   wood_feature_wall: ['paint_full', 'paint_finish', 'stain_clear', 'stain_sealer_clear', 'stain_only', 'clear_refresh', 'prime_only'],
-  wood_ceiling:      ['paint_full', 'paint_finish', 'stain_clear', 'stain_sealer_clear', 'stain_only', 'clear_refresh', 'prime_only'],
+  wood_ceiling:      ['paint_full', 'paint_finish', 'stain_clear', 'stain_sealer_clear', 'stain_only', 'clear_only', 'clear_refresh', 'prime_only'],
   closet_shelving:   ['paint_full', 'paint_finish', 'stain_clear', 'stain_sealer_clear', 'prime_only'],
   beams:             ['paint_full', 'paint_finish', 'stain_clear', 'stain_sealer_clear', 'stain_only', 'clear_refresh', 'prime_only'],
   columns:           ['paint_full', 'paint_finish', 'stain_clear', 'stain_sealer_clear', 'stain_only', 'clear_refresh', 'prime_only'],
@@ -170,7 +171,7 @@ export function inferDefaultSystem(substrateId, substrateState) {
 export function coatingTypeFromSystem(system) {
   if (!system) return 'paint';
   if (system === 'stain_only' || system === 'stain_solid' || system === 'stain_transparent' || system === 'stain_refresh') return 'stain_only';
-  if (system === 'clear_refresh' || system === 'seal_only' || system === 'prime_refresh') return 'clear_only';
+  if (system === 'clear_refresh' || system === 'clear_only' || system === 'seal_only' || system === 'prime_refresh') return 'clear_only';
   if (/stain/.test(system)) return 'stain_clear'; // stain_clear, stain_sealer_clear, restain_recoat, strip_and_stain_clear, strip_and_restain
   return 'paint';
 }
@@ -260,6 +261,17 @@ export const SYSTEM_SPEC_ACTIVATION = {
     // modules are zeroed out via resolveCoatCounts' coating_type gating.
     STAIN:    { active: true,  stateTransition: 'input' },
     COMBINED: { active: false },
+    PRIME:    { active: false },
+    FINISH:   { active: false },
+  },
+  clear_only: {
+    // Sealer + clear on bare wood, no stain. STAIN-role spec wraps the wood
+    // workflow and the scenario's coat_counts (stain_coats: 0) zero out the
+    // stain module while sealer + clear coats apply normally.
+    STAIN:    { active: true,  stateTransition: 'input' },
+    COMBINED: { active: false },
+    CLEAR:    { active: false },
+    SEALER:   { active: false },
     PRIME:    { active: false },
     FINISH:   { active: false },
   },
