@@ -562,22 +562,24 @@ export function buildRoomQuantityLookups(state) {
     });
 
     // W-16 Phase 2: per-room light-fixture protection time, computed from
-    // light_fixtures.items (taxonomy × count × action mode × override). One
-    // EA in this PS key = 1 hour at the consuming task's rate (rate=1 EA/hr,
-    // TSK_PROJECT_LIGHT_FAN_MANTEL_INSTALL), so we emit minutes/60 EA.
+    // light_fixtures.items (taxonomy × count × action mode × override).
+    // Emitted as raw minutes; consuming task (TSK_PROJECT_LIGHT_FAN_MANTEL_INSTALL)
+    // has rate 60 MIN/hr so quantity-in-minutes reads cleanly in the
+    // estimate's quantity column (e.g. "30 MIN" instead of "0.5 EA").
     const lfMinutes = lightFixtureMinutesForRoom(room);
     if (lfMinutes > 0) {
-      addQ('PS_PROTECT_EA.LIGHT_FAN_MANTEL_ALLOWANCE', 'EA', lfMinutes / 60);
+      addQ('PS_PROTECT_EA.LIGHT_FAN_MANTEL_ALLOWANCE', 'MIN', lfMinutes);
     }
 
     // Legacy project-wide allowance for ceiling fans + fireplace mantels —
     // those don't yet have per-item time models, so they still trigger a
-    // single 1-hour bucket once per project (first room with one of them).
-    // light_fixtures handled per-room above, so it's excluded from this trigger.
+    // single 60-minute (1 hr) bucket once per project (first room with
+    // one of them). light_fixtures handled per-room above, so it's
+    // excluded from this trigger.
     if (!lightFanMantelAllowanceEmitted) {
       const f = room.fixtures || {};
       if (f.ceiling_fan || f.fireplace || f.stone_fireplace) {
-        addQ('PS_PROTECT_EA.LIGHT_FAN_MANTEL_ALLOWANCE', 'EA', 1);
+        addQ('PS_PROTECT_EA.LIGHT_FAN_MANTEL_ALLOWANCE', 'MIN', 60);
         lightFanMantelAllowanceEmitted = true;
       }
     }
