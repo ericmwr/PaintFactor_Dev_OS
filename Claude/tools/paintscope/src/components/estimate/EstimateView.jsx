@@ -580,11 +580,17 @@ export default function EstimateView() {
         </details>
       )}
 
-      {/* Info messages for complexity opt-out specs */}
+      {/* Info messages for complexity opt-out specs — dedup by specName so a
+          spec firing in N rooms shows one line, not N. */}
       {(() => {
-        const complexityInfos = (estimate.specResults || [])
-          .filter(sr => COMPLEXITY_OPT_OUT_SPECS.has(sr.specId))
-          .map(sr => `Complexity modifier not applicable to ${sr.specName || sr.specId} — door/frame type and QT cover variation`);
+        const uniqueOptOutNames = [...new Set(
+          (estimate.specResults || [])
+            .filter(sr => COMPLEXITY_OPT_OUT_SPECS.has(sr.specId))
+            .map(sr => sr.specName || sr.specId)
+        )];
+        const complexityInfos = uniqueOptOutNames.map(name =>
+          `Complexity modifier not applicable to ${name} — door/frame type and QT cover variation`
+        );
         if (complexityInfos.length === 0) return null;
         return (
           <details className="warn-panel" style={{ borderColor: 'var(--text-muted)' }}>
