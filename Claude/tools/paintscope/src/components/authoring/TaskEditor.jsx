@@ -70,7 +70,7 @@ function DerivedRow({ label, values }) {
 const UOM_OPTIONS = ['SF', 'LF', 'EA', 'EA_SIDE', 'MINS', 'HRS'];
 const SKILL_OPTIONS = ['general', 'experienced', 'qualified_painter', 'specialist'];
 const PHASE_OPTIONS = ['setup', 'prep', 'prime', 'apply', 'finish', 'interstage', 'cleanup'];
-const MODIFIER_KEYS = ['qt', 'height', 'texture', 'complexity', 'condition', 'access', 'coat'];
+const MODIFIER_KEYS = ['qt', 'height', 'texture', 'complexity', 'condition', 'overhead', 'material', 'access', 'coat'];
 const TASK_CLASSIFICATIONS = ['', 'binary', 'qt_scaled'];
 
 function emptyTask() {
@@ -141,11 +141,17 @@ export default function TaskEditor({ draft, onSave, onCancel, onPublish, onNavig
     });
   };
 
-  const toggleEligibility = (key) => {
+  // Tri-state: 'inherit' (key absent — task follows the module's setting),
+  // 'on' (true — task forces enabled), 'off' (false — task forces disabled).
+  // Engine's resolveEligibility shallow-merges task over module, so explicit
+  // on/off here overrides what any consuming module declares.
+  const setEligibility = (key, mode) => {
     updatePayload(p => {
-      const cur = p.modifier_eligibility || {};
-      const next = { ...cur, [key]: !cur[key] };
-      p.modifier_eligibility = next;
+      const cur = { ...(p.modifier_eligibility || {}) };
+      if (mode === 'inherit') delete cur[key];
+      else cur[key] = (mode === 'on');
+      if (Object.keys(cur).length === 0) delete p.modifier_eligibility;
+      else p.modifier_eligibility = cur;
     });
   };
 
@@ -281,24 +287,47 @@ export default function TaskEditor({ draft, onSave, onCancel, onPublish, onNavig
           </label>
         </div>
 
-        {/* Modifier eligibility (canonical baseline — modules can override per-task) */}
+        {/* Modifier eligibility — tri-state per key. Tasks inherit their
+            module's setting by default; explicit on/off here overrides what
+            any consuming module would otherwise apply. */}
         <div style={{ marginBottom: 12 }}>
           <h4 style={{ margin: '0 0 6px', fontSize: 11, color: 'var(--text-muted)', textTransform: 'uppercase' }}>
-            Default modifier eligibility
+            Modifier eligibility
           </h4>
           <div style={{ fontSize: 10, color: 'var(--text-muted)', marginBottom: 6 }}>
-            Module-level eligibility wins when the task doesn't override. Set here only if this task has a different default than its parent modules typically use.
+            Tasks inherit their module's eligibility by default. Set <b>on</b> to force enabled, <b>off</b> to force disabled — either overrides what any consuming module declares. Example: inspection tasks should be <b>off</b> for <code style={{ fontFamily: 'var(--font-mono)', fontSize: 10 }}>overhead</code> and <code style={{ fontFamily: 'var(--font-mono)', fontSize: 10 }}>height</code> so they don't slow down when their parent module is configured for ceiling/high-access work.
           </div>
-          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-            {MODIFIER_KEYS.map(k => (
-              <label key={k} style={{ fontSize: 11, cursor: 'pointer' }}>
-                <input
-                  type="checkbox"
-                  checked={!!payload.modifier_eligibility?.[k]}
-                  onChange={() => toggleEligibility(k)}
-                />{' '}{k}
-              </label>
-            ))}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 4 }}>
+            {MODIFIER_KEYS.map(k => {
+              const taskEl = payload.modifier_eligibility || {};
+              const hasOverride = Object.prototype.hasOwnProperty.call(taskEl, k);
+              const mode = !hasOverride ? 'inherit' : (taskEl[k] ? 'on' : 'off');
+              return (
+                <label key={k} style={{ fontSize: 11, display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <span style={{ width: 80, fontFamily: 'var(--font-mono)', fontSize: 10, color: hasOverride ? 'var(--accent, #82aaff)' : 'var(--text-muted)' }}>
+                    {k}
+                  </span>
+                  <select
+                    value={mode}
+                    onChange={e => setEligibility(k, e.target.value)}
+                    style={{
+                      flex: 1,
+                      padding: '2px 4px',
+                      fontSize: 10,
+                      background: 'var(--bg-input, #222)',
+                      color: hasOverride ? 'var(--accent, #82aaff)' : 'var(--text)',
+                      border: `1px solid ${hasOverride ? 'var(--accent, #82aaff)' : 'var(--border)'}`,
+                      borderRadius: 2,
+                    }}
+                    title={hasOverride ? 'Task forces this state regardless of module setting' : 'Task follows the module setting'}
+                  >
+                    <option value="inherit">inherit (module decides)</option>
+                    <option value="on">on (force enabled)</option>
+                    <option value="off">off (force disabled)</option>
+                  </select>
+                </label>
+              );
+            })}
           </div>
         </div>
 
