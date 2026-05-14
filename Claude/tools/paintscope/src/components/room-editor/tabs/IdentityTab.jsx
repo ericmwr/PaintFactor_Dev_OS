@@ -123,6 +123,12 @@ export default function IdentityTab({ room, derived, dispatch, project, roomCate
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 24, marginTop: 8, fontSize: 12, color: 'var(--text-secondary)', fontFamily: 'var(--font-mono)' }}>
           <span>Perimeter: <b style={{ color: 'var(--text-primary)' }}>{derived.perimeter} LF</b></span>
           <span>Floor/Ceiling: <b style={{ color: 'var(--text-primary)' }}>{derived.ceilingSF} SF</b></span>
+          {derived.vaultedExtra > 0 && (
+            <span>Vaulted: <b style={{ color: 'var(--accent)' }}>+{derived.vaultedExtra} SF</b></span>
+          )}
+          {derived.vaultedExtra > 0 && derived.ceiling_field_sf > 0 && (
+            <span>Ceiling Net: <b style={{ color: 'var(--accent)' }}>{derived.ceiling_field_sf} SF</b></span>
+          )}
           <span>Wall Gross: <b style={{ color: 'var(--text-primary)' }}>{derived.wallGross} SF</b></span>
           {derived.openingDeduction > 0 && (
             <span>Opening Deduct: <b style={{ color: 'var(--warning)' }}>−{derived.openingDeduction} SF</b></span>
