@@ -58,7 +58,6 @@ export const SPEC_SUBSTRATE_MAP = {
   'SF_WINDOW_APRON_NC_STAIN':    'window_apron',
   'SF_SHADOW_BOX_NC_STAIN':      'shadow_box',
   'SF_PANEL_MOLD_NC_STAIN':      'panel_mold',
-  'SF_DOOR_SLAB_INT_NC_STAIN':   'doors',
   'SF_DOOR_FRAME_NC_STAIN':      'door_frames',
   'SF_WINDOW_JAMB_NC_STAIN':     'window_jamb',
   'SF_WINDOW_INT_NC_STAIN':      'windows',
@@ -139,7 +138,6 @@ export const SPEC_ROLE = {
 
   // Combined interior
   'SF_DOOR_SLAB_INT_NC':          'COMBINED',
-  'SF_DOOR_SLAB_INT_NC_STAIN':    'STAIN',
   'SF_WINDOW_INT_NC':             'COMBINED',
   'SF_WINDOW_INT_NC_STAIN':       'STAIN',
   'SF_WINDOW_JAMB_NC_FINISH':     'FINISH',
@@ -306,7 +304,6 @@ export const SPEC_VALID_INPUT_STATES = {
   'SF_WINDOW_APRON_NC_STAIN':    ['SS_BARE', 'SS_STAINED'],
   'SF_SHADOW_BOX_NC_STAIN':      ['SS_BARE', 'SS_STAINED'],
   'SF_PANEL_MOLD_NC_STAIN':      ['SS_BARE', 'SS_STAINED'],
-  'SF_DOOR_SLAB_INT_NC_STAIN':   ['SS_BARE', 'SS_STAINED'],
   'SF_DOOR_FRAME_NC_STAIN':      ['SS_BARE', 'SS_STAINED'],
   'SF_WINDOW_JAMB_NC_STAIN':     ['SS_BARE', 'SS_STAINED'],
   'SF_WINDOW_INT_NC_STAIN':      ['SS_BARE', 'SS_STAINED'],
@@ -410,7 +407,6 @@ export const STAIN_SPEC_FAMILIES = new Set([
   'SF_WINDOW_APRON_NC_STAIN',
   'SF_SHADOW_BOX_NC_STAIN',
   'SF_PANEL_MOLD_NC_STAIN',
-  'SF_DOOR_SLAB_INT_NC_STAIN',
   'SF_DOOR_FRAME_NC_STAIN',
   'SF_WINDOW_JAMB_NC_STAIN',
   'SF_WINDOW_INT_NC_STAIN',

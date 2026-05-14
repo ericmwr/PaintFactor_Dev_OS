@@ -186,7 +186,6 @@ const SPEC_TO_PAINTABLE_ITEM = {
   SF_WINDOW_APRON_NC_STAIN:         'int_window_apron',
   SF_SHADOW_BOX_NC_STAIN:           'int_shadow_box',
   SF_PANEL_MOLD_NC_STAIN:           'int_panel_mold',
-  SF_DOOR_SLAB_INT_NC_STAIN:        'int_door_slab',
   SF_DOOR_FRAME_NC_STAIN:           'int_door_frame',
   SF_WINDOW_JAMB_NC_STAIN:          'int_window_jamb',
   SF_WINDOW_INT_NC_STAIN:           'int_window',

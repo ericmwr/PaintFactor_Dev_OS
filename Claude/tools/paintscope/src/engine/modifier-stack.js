@@ -6,7 +6,6 @@ import { EXTERIOR_SPEC_IDS } from '../data/spec-maps.js';
 const COMPLEXITY_OPT_OUT_SPECS = new Set([
   'SF_DOOR_SLAB_INT_NC',
   'SF_DOOR_FRAME_NC_FINISH',
-  'SF_DOOR_SLAB_INT_NC_STAIN',
   'SF_DOOR_FRAME_NC_STAIN',
 ]);
 

@@ -33,7 +33,6 @@ export const SPEC_DISPLAY_NAMES = {
   'SF_STAIR_RISER_NC': 'Stair Risers',
   'SF_WOOD_GRAIN_FILL_NC': 'Grain Fill',
   // Interior Stain/Clear
-  'SF_DOOR_SLAB_INT_NC_STAIN':   'Door Slab — Stain/Clear',
   'SF_DOOR_FRAME_NC_STAIN':      'Door Frame — Stain/Clear',
   'SF_WINDOW_INT_NC_STAIN':      'Window — Stain/Clear',
   'SF_STAIR_RISER_NC_STAIN':     'Stair Riser — Stain/Clear',
