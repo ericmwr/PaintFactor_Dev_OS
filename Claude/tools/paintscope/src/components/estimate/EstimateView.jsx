@@ -684,7 +684,7 @@ export default function EstimateView() {
                             <td style={{fontSize:10,color:'var(--derived)'}}>{t.psKey || '—'}</td>
                             <td style={{fontSize:11}}>{t.uom || '—'}</td>
                             <td style={{textAlign:'right'}}>{t.isFixed ? '—' : Math.round((t.quantity || 0) * 100) / 100}</td>
-                            <td style={{textAlign:'right',color:'var(--text-muted)'}}>{t.baseRate || '—'}</td>
+                            <RateCell taskId={t.taskId} baseRate={t.baseRate} isFixed={t.isFixed} override={state.project.rate_overrides?.[t.taskId]} dispatch={dispatch} />
                             <td style={{textAlign:'right',fontSize:10,color:'var(--text-muted)'}}>{t.roomCount}</td>
                             <td style={{textAlign:'right',color:'var(--accent)',fontWeight:600}}>{fmtHrs(t.hours)}</td>
                           </tr>
@@ -778,7 +778,7 @@ export default function EstimateView() {
                                   <td style={{fontSize:11,color:'var(--text-muted)',textTransform:'capitalize'}}>{t.phase}</td>
                                   <td style={{fontSize:10,color:'var(--derived)'}}>{specDisplayName(t.donorSpecId)}</td>
                                   <td style={{textAlign:'right'}}>{t.isFixed ? '\u2014' : t.quantity}</td>
-                                  <td style={{textAlign:'right',color:'var(--text-muted)'}}>{t.baseRate}</td>
+                                  <RateCell taskId={t.taskId} baseRate={t.baseRate} isFixed={t.isFixed} override={state.project.rate_overrides?.[t.taskId]} dispatch={dispatch} />
                                   <td style={{textAlign:'right',color:'var(--accent)',fontWeight:600}}>
                                     {fmtHrs(t.hours)}
                                     {t.coatMultiplier > 1 && <span style={{fontSize:9,color:'var(--text-muted)',marginLeft:3}}>{'\u00d7'}{t.coatMultiplier}</span>}
@@ -818,7 +818,7 @@ export default function EstimateView() {
                                   <td style={{fontSize:10,color:'var(--derived)'}}>{t.fixtureId === 'feature_wall' ? 'PS_PROTECT_SF.FIXTURE_FEATURE_WALL' : `PS_PROTECT_EA.FIXTURE_${t.fixtureId?.toUpperCase()}`}</td>
                                   <td style={{fontSize:11}}>{t.uom || 'EA'}</td>
                                   <td style={{textAlign:'right'}}>{t.quantity || '\u2014'}</td>
-                                  <td style={{textAlign:'right',color:'var(--text-muted)'}}>{t.baseRate || '\u2014'}</td>
+                                  <RateCell taskId={t.taskId} baseRate={t.baseRate} isFixed={t.isFixed} override={state.project.rate_overrides?.[t.taskId]} dispatch={dispatch} />
                                   <td style={{textAlign:'right',color:'var(--text-secondary)'}}>1.00x</td>
                                   <td style={{textAlign:'right',color:'var(--accent)',fontWeight:600}}>{fmtHrs(t.hours)}</td>
                                 </tr>
