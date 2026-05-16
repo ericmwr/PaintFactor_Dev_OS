@@ -1,7 +1,8 @@
 import { useState, useMemo } from 'react';
 import { tasks as bundleTasks } from '../../data/scenario-bundle.gen';
 import { useTaskDrafts } from '../../hooks/useTaskDrafts.js';
-import { findConflictingDraft } from './RateOverridePublishHelpers.js';
+import { publishTask } from '../../authoring/publish.js';
+import { findConflictingDraft, buildPublishedTaskPayload } from './RateOverridePublishHelpers.js';
 
 /**
  * Modal — confirms publishing a rate override to the canonical library.
@@ -46,9 +47,20 @@ export default function RateOverridePublishModal({
   const noOpOverride = canonical && newRate === canonicalRate;
   const publishDisabled = publishing || missingCanonical || noOpOverride;
 
-  const handlePublish = () => {
-    // Task 7 wires this. Stub for now so the button is testable.
-    setError('Publish not yet wired — implementation pending Task 7.');
+  const handlePublish = async () => {
+    if (publishDisabled) return;
+    setError(null);
+    setPublishing(true);
+    try {
+      const payload = buildPublishedTaskPayload(canonical, newRate, { projectId, projectName });
+      const draft = { ...payload, id: taskId, kind: 'task', status: 'draft' };
+      await publishTask(draft);
+      dispatch({ type: 'CLEAR_RATE_OVERRIDE', payload: { task_id: taskId } });
+      onClose();
+    } catch (err) {
+      setError(err?.message || String(err));
+      setPublishing(false);
+    }
   };
 
   const handleCancel = () => {
