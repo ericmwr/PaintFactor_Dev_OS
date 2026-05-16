@@ -56,3 +56,27 @@ describe('reducer SET_RATE_OVERRIDE', () => {
     expect(next.project.rate_overrides.TSK_B.rate_per_hour).toBe(50);
   });
 });
+
+describe('reducer CLEAR_RATE_OVERRIDE', () => {
+  it('removes an existing override entry', () => {
+    const state = makeState({
+      TSK_BRUSH_COAT_LF: { rate_per_hour: 80, ts: 1000 },
+      TSK_OTHER: { rate_per_hour: 50, ts: 1000 },
+    });
+    const next = reducer(state, { type: 'CLEAR_RATE_OVERRIDE', payload: { task_id: 'TSK_BRUSH_COAT_LF' } });
+    expect(next.project.rate_overrides.TSK_BRUSH_COAT_LF).toBeUndefined();
+    expect(next.project.rate_overrides.TSK_OTHER).toBeDefined();
+  });
+
+  it('is a no-op when the task_id has no override', () => {
+    const state = makeState({ TSK_A: { rate_per_hour: 80, ts: 1000 } });
+    const next = reducer(state, { type: 'CLEAR_RATE_OVERRIDE', payload: { task_id: 'TSK_DOES_NOT_EXIST' } });
+    expect(next.project.rate_overrides.TSK_A.rate_per_hour).toBe(80);
+  });
+
+  it('handles missing payload.task_id gracefully', () => {
+    const state = makeState({ TSK_A: { rate_per_hour: 80, ts: 1000 } });
+    const next = reducer(state, { type: 'CLEAR_RATE_OVERRIDE', payload: {} });
+    expect(next).toEqual(state);
+  });
+});

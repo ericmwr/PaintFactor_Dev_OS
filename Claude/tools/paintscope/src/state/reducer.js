@@ -52,6 +52,15 @@ export function reducer(state, action) {
         },
       };
     }
+    case 'CLEAR_RATE_OVERRIDE': {
+      const { task_id } = payload || {};
+      if (!task_id) return state;
+      const cur = state.project.rate_overrides || {};
+      if (!cur[task_id]) return state;
+      const next = { ...cur };
+      delete next[task_id];
+      return { ...state, project: { ...state.project, rate_overrides: next } };
+    }
     case 'TOGGLE_PROJECT_SUBSTRATE': {
       const subs = state.project.default_substrates || [];
       const id = payload;
