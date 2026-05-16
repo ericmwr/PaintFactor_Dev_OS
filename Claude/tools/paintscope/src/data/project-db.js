@@ -1,7 +1,7 @@
 import { openDB } from 'idb';
 
 const DB_NAME = 'paintfactor';
-const DB_VERSION = 10;
+const DB_VERSION = 11;
 
 let dbPromise = null;
 
@@ -73,6 +73,15 @@ export function getDB() {
           const seen = db.createObjectStore('fired_tasks_seen', { keyPath: 'task_id' });
           seen.createIndex('last_seen', 'last_seen');
           seen.createIndex('last_source', 'last_source');
+        }
+        // v11: tracker_snapshots — frozen estimate output per project at the
+        // moment the project transitions to in_progress. One active snapshot
+        // per project (re-snapshotting writes a new record; older snapshots
+        // stay so existing time_entries.snapshot_id references remain valid).
+        if (oldVersion < 11) {
+          const snapshots = db.createObjectStore('tracker_snapshots', { keyPath: 'snapshot_id' });
+          snapshots.createIndex('by_project', 'project_id');
+          snapshots.createIndex('by_taken_at', 'taken_at');
         }
       },
     });
