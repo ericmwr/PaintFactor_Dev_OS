@@ -32,6 +32,26 @@ export function reducer(state, action) {
   }
   switch (type) {
     case 'SET_PROJECT': return { ...state, project: { ...state.project, [payload.field]: payload.value } };
+    case 'SET_RATE_OVERRIDE': {
+      const { task_id, rate_per_hour } = payload || {};
+      if (!task_id) return state;
+      const cur = state.project.rate_overrides || {};
+      if (rate_per_hour == null || rate_per_hour <= 0) {
+        const next = { ...cur };
+        delete next[task_id];
+        return { ...state, project: { ...state.project, rate_overrides: next } };
+      }
+      return {
+        ...state,
+        project: {
+          ...state.project,
+          rate_overrides: {
+            ...cur,
+            [task_id]: { rate_per_hour, ts: Date.now() },
+          },
+        },
+      };
+    }
     case 'TOGGLE_PROJECT_SUBSTRATE': {
       const subs = state.project.default_substrates || [];
       const id = payload;
