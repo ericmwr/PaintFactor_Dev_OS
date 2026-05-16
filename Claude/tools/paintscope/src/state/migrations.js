@@ -468,5 +468,10 @@ export function migrateInline(parsed) {
     });
   });
 
+  // Phase A rate editing: backfill empty rate_overrides map if the project predates this feature.
+  if (parsed.project && !parsed.project.rate_overrides) {
+    parsed.project.rate_overrides = {};
+  }
+
   return parsed;
 }
