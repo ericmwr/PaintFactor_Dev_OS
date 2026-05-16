@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { pruneStaleRateOverrides } from '../migrations.js';
 
 function makeTasks(tasks) {
@@ -6,6 +6,10 @@ function makeTasks(tasks) {
 }
 
 describe('pruneStaleRateOverrides', () => {
+  let warnSpy;
+  beforeEach(() => { warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {}); });
+  afterEach(() => { warnSpy.mockRestore(); });
+
   it('keeps overrides for tasks that still exist and use rate_per_hour', () => {
     const tasks = makeTasks({
       TSK_A: { task_id: 'TSK_A', rate_per_hour: 80 },
@@ -14,6 +18,7 @@ describe('pruneStaleRateOverrides', () => {
     const result = pruneStaleRateOverrides(state, tasks);
     expect(result.project.rate_overrides.TSK_A).toEqual({ rate_per_hour: 95, ts: 1000 });
     expect(result._lastRateOverridePruneReport).toBeUndefined();
+    expect(warnSpy).not.toHaveBeenCalled();
   });
 
   it('drops overrides for tasks not in the bundle (archived/missing)', () => {
@@ -24,6 +29,10 @@ describe('pruneStaleRateOverrides', () => {
     expect(result._lastRateOverridePruneReport.dropped).toEqual([
       { task_id: 'TSK_ARCHIVED', reason: 'task archived/missing' },
     ]);
+    expect(warnSpy).toHaveBeenCalledWith(
+      '[PaintScope] Dropped stale rate overrides:',
+      [{ task_id: 'TSK_ARCHIVED', reason: 'task archived/missing' }]
+    );
   });
 
   it('drops overrides for tasks that no longer use flat rate_per_hour', () => {

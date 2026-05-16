@@ -515,6 +515,7 @@ export function pruneStaleRateOverrides(state, tasks) {
   if (dropped.length === 0) {
     return state;
   }
+  console.warn('[PaintScope] Dropped stale rate overrides:', dropped);
   return {
     ...state,
     project: { ...state.project, rate_overrides: pruned },
