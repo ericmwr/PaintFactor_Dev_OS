@@ -288,13 +288,55 @@ export default function EstimateView() {
     };
   }, [estimate?.perInputResults]);
 
-  if (!estimate) return <div className="no-data-msg">Error running estimate. Check console for details.</div>;
-  if (estimate.specResults.length === 0) return (
-    <div className="no-data-msg">
-      <div style={{fontSize:18,marginBottom:8}}>No Specs Activated</div>
-      <div>Add rooms with geometry (wall SF, doors, trim, etc.) to activate specs.</div>
-      <div style={{marginTop:8,fontSize:12}}>The engine checks {specData.spec_families.length} spec families against your project's PaintScope quantity keys.</div>
+  // Warn-band JSX — extracted so it can prepend either the empty-project view
+  // or the main estimate view. Shows when state has a fresh prune report from
+  // stale rate overrides; dismissed via CLEAR_PRUNE_REPORT.
+  const pruneReportBanner = state._lastRateOverridePruneReport && state._lastRateOverridePruneReport.dropped?.length > 0 ? (
+    <div style={{
+      background: 'var(--warning-bg, rgba(241, 196, 15, 0.1))',
+      border: '1px solid var(--warning, #f1c40f)',
+      borderRadius: 4,
+      padding: 12,
+      margin: '0 0 12px',
+      fontSize: 12,
+      color: 'var(--text-secondary)',
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'flex-start',
+      gap: 12,
+    }}>
+      <div>
+        <strong style={{ color: 'var(--warning, #f1c40f)' }}>
+          {state._lastRateOverridePruneReport.dropped.length} rate override{state._lastRateOverridePruneReport.dropped.length === 1 ? '' : 's'} dropped:
+        </strong>{' '}
+        {state._lastRateOverridePruneReport.dropped.map(d => `${d.task_id} (${d.reason})`).join(', ')}
+        <div style={{ marginTop: 4, fontSize: 11, color: 'var(--text-muted)' }}>
+          These tasks have been archived, renamed, or now use tier-specific rates. Re-tune via Authoring or new task IDs if needed.
+        </div>
+      </div>
+      <button
+        onClick={() => dispatch({ type: 'CLEAR_PRUNE_REPORT' })}
+        style={{
+          background: 'transparent', border: 'none', color: 'var(--text-muted)',
+          cursor: 'pointer', fontSize: 14, padding: 4,
+        }}
+        title="Dismiss"
+      >
+        ×
+      </button>
     </div>
+  ) : null;
+
+  if (!estimate) return <>{pruneReportBanner}<div className="no-data-msg">Error running estimate. Check console for details.</div></>;
+  if (estimate.specResults.length === 0) return (
+    <>
+      {pruneReportBanner}
+      <div className="no-data-msg">
+        <div style={{fontSize:18,marginBottom:8}}>No Specs Activated</div>
+        <div>Add rooms with geometry (wall SF, doors, trim, etc.) to activate specs.</div>
+        <div style={{marginTop:8,fontSize:12}}>The engine checks {specData.spec_families.length} spec families against your project's PaintScope quantity keys.</div>
+      </div>
+    </>
   );
 
   const toggleRoom = (id) => setExpandedRooms(p => ({...p, [id]: p[id] === true ? false : true}));
@@ -607,42 +649,8 @@ export default function EstimateView() {
         );
       })()}
 
-      {/* ── Warn-band: dropped rate overrides ── */}
-      {state._lastRateOverridePruneReport && state._lastRateOverridePruneReport.dropped?.length > 0 && (
-        <div style={{
-          background: 'var(--warning-bg, rgba(241, 196, 15, 0.1))',
-          border: '1px solid var(--warning, #f1c40f)',
-          borderRadius: 4,
-          padding: 12,
-          margin: '0 0 12px',
-          fontSize: 12,
-          color: 'var(--text-secondary)',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'flex-start',
-          gap: 12,
-        }}>
-          <div>
-            <strong style={{ color: 'var(--warning, #f1c40f)' }}>
-              {state._lastRateOverridePruneReport.dropped.length} rate override{state._lastRateOverridePruneReport.dropped.length === 1 ? '' : 's'} dropped:
-            </strong>{' '}
-            {state._lastRateOverridePruneReport.dropped.map(d => `${d.task_id} (${d.reason})`).join(', ')}
-            <div style={{ marginTop: 4, fontSize: 11, color: 'var(--text-muted)' }}>
-              These tasks have been archived, renamed, or now use tier-specific rates. Re-tune via Authoring or new task IDs if needed.
-            </div>
-          </div>
-          <button
-            onClick={() => dispatch({ type: 'CLEAR_PRUNE_REPORT' })}
-            style={{
-              background: 'transparent', border: 'none', color: 'var(--text-muted)',
-              cursor: 'pointer', fontSize: 14, padding: 4,
-            }}
-            title="Dismiss"
-          >
-            ×
-          </button>
-        </div>
-      )}
+      {/* ── Warn-band: dropped rate overrides (defined above the early returns) ── */}
+      {pruneReportBanner}
 
       {/* ── Expand / Collapse All ── */}
       <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>

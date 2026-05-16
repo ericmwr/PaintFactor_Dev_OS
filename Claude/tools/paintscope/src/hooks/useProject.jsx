@@ -2,7 +2,8 @@ import { createContext, useContext, useReducer, useEffect, useCallback, useRef }
 import { reducer } from '../state/reducer';
 import { initialState } from '../state/initial-state';
 import { loadFromStorage, saveToStorage } from '../state/persistence';
-import { migrateInline } from '../state/migrations';
+import { migrateInline, pruneStaleRateOverrides } from '../state/migrations';
+import { tasks as bundleTasks } from '../data/scenario-bundle.gen';
 import { loadProject, saveProject as saveProjectDB } from '../data/project-db';
 
 const ProjectContext = createContext(null);
@@ -15,7 +16,7 @@ export function ProjectProvider({ children, initialData, projectId }) {
     // the migration that runs in loadFromStorage().
     if (initialData && initialData.project && initialData.rooms) {
       const merged = { ...init, ...initialData, ui: initialData.ui || init.ui };
-      return migrateInline(merged);
+      return pruneStaleRateOverrides(migrateInline(merged), bundleTasks);
     }
     // Otherwise fall back to localStorage
     return loadFromStorage(init);
