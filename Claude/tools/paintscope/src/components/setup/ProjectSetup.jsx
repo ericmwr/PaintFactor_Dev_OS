@@ -1,6 +1,7 @@
 import { Fragment } from 'react';
 import Select from '../shared/Select';
 import Toggle from '../shared/Toggle';
+import StatusDropdown from '../tracker/StatusDropdown.jsx';
 import { ENUMS } from '../../data/enums';
 import { useProject } from '../../hooks/useProject';
 import { useModifierEnum } from '../../hooks/useModifierEnum';
@@ -77,7 +78,10 @@ export default function ProjectSetup() {
 
   return (
     <div className="setup-form">
-      <h2 style={{ fontSize: 18, marginBottom: 20, color: 'var(--accent)' }}>Project Setup</h2>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+        <h2 style={{ fontSize: 18, margin: 0, color: 'var(--accent)' }}>Project Setup</h2>
+        <StatusDropdown />
+      </div>
 
       <div className="form-grid" style={{ gridTemplateColumns: '1fr 1fr', marginBottom: 12 }}>
         <div className="setup-field">
