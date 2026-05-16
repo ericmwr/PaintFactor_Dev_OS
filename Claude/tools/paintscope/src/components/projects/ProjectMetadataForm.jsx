@@ -3,6 +3,7 @@ import { useState } from 'react';
 const STATUS_OPTIONS = [
   { value: 'draft', label: 'Draft' },
   { value: 'estimated', label: 'Estimated' },
+  { value: 'approved', label: 'Approved' },
   { value: 'in_progress', label: 'In Progress' },
   { value: 'completed', label: 'Completed' },
 ];

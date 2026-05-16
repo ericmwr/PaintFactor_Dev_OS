@@ -473,6 +473,18 @@ export function migrateInline(parsed) {
     parsed.project.rate_overrides = {};
   }
 
+  // Project Tracker MVP: backfill status + tracker_roster on projects predating the feature.
+  // Existing enum was draft / estimated / in_progress / completed; we add 'approved'
+  // between estimated and in_progress. No value migration needed — old statuses stay valid.
+  if (parsed.project) {
+    if (parsed.project.status === undefined) {
+      parsed.project.status = 'draft';
+    }
+    if (!Array.isArray(parsed.project.tracker_roster)) {
+      parsed.project.tracker_roster = [];
+    }
+  }
+
   return parsed;
 }
 

@@ -66,6 +66,20 @@ export function reducer(state, action) {
       delete next._lastRateOverridePruneReport;
       return next;
     }
+    case 'SET_PROJECT_STATUS': {
+      const valid = ['draft', 'estimated', 'approved', 'in_progress', 'completed'];
+      if (!valid.includes(payload)) return state;
+      return { ...state, project: { ...state.project, status: payload } };
+    }
+    case 'APPEND_ROSTER_NAME': {
+      if (typeof payload !== 'string') return state;
+      const name = payload.trim();
+      if (!name) return state;
+      const roster = state.project.tracker_roster || [];
+      const lower = name.toLowerCase();
+      if (roster.some(n => n.toLowerCase() === lower)) return state;
+      return { ...state, project: { ...state.project, tracker_roster: [...roster, name] } };
+    }
     case 'TOGGLE_PROJECT_SUBSTRATE': {
       const subs = state.project.default_substrates || [];
       const id = payload;
