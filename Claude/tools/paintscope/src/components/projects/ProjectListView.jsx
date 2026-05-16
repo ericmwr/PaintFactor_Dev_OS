@@ -4,6 +4,7 @@ import ProjectMetadataForm from './ProjectMetadataForm';
 const STATUS_LABELS = {
   draft: 'Draft',
   estimated: 'Estimated',
+  approved: 'Approved',
   in_progress: 'In Progress',
   completed: 'Completed',
 };
@@ -11,6 +12,7 @@ const STATUS_LABELS = {
 const STATUS_COLORS = {
   draft: '#888',
   estimated: 'var(--accent)',
+  approved: '#82aaff',
   in_progress: '#e67e22',
   completed: '#27ae60',
 };
