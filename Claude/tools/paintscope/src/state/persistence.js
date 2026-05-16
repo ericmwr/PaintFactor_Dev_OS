@@ -25,10 +25,12 @@ export function loadFromStorage(init) {
 
 /**
  * Save state to localStorage.
+ * Strips transient prune report so the warn-band doesn't re-show across reloads.
  */
 export function saveToStorage(state) {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    const { _lastRateOverridePruneReport, ...persistable } = state;
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(persistable));
   } catch(e) { console.error('[PaintScope] Save error:', e); }
 }
 
