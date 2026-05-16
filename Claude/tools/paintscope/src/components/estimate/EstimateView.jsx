@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useProject } from '../../hooks/useProject';
 import { useEstimate } from '../../hooks/useEstimate';
 import { useEstimateScenario } from '../../hooks/useEstimateScenario';
@@ -124,8 +124,25 @@ export default function EstimateView() {
   const estimate = engine === 'scenario' && scenarioEstimate?.specResults ? scenarioEstimate : legacyEstimate;
 
   const { profile } = useCompanyProfile();
-  const [expandedRooms, setExpandedRooms] = useState({});
-  const [expandedItems, setExpandedItems] = useState({});
+  // Persist expansion state across full HMR reloads (Phase B publish triggers
+  // a bundle regen that Fast-Refresh-invalidates useProject.jsx → full reload).
+  // sessionStorage keeps the room/item open between reloads but clears on new
+  // tab / browser restart so the default-collapsed behavior still applies to
+  // fresh sessions.
+  const [expandedRooms, setExpandedRooms] = useState(() => {
+    try { return JSON.parse(sessionStorage.getItem('paintscope_estimate_expandedRooms') || '{}'); }
+    catch { return {}; }
+  });
+  const [expandedItems, setExpandedItems] = useState(() => {
+    try { return JSON.parse(sessionStorage.getItem('paintscope_estimate_expandedItems') || '{}'); }
+    catch { return {}; }
+  });
+  useEffect(() => {
+    try { sessionStorage.setItem('paintscope_estimate_expandedRooms', JSON.stringify(expandedRooms)); } catch {}
+  }, [expandedRooms]);
+  useEffect(() => {
+    try { sessionStorage.setItem('paintscope_estimate_expandedItems', JSON.stringify(expandedItems)); } catch {}
+  }, [expandedItems]);
   const [showSummary, setShowSummary] = useState(false);
   const [generatingProposal, setGeneratingProposal] = useState(false);
   const [activeTab, setActiveTab] = useState('summary');
