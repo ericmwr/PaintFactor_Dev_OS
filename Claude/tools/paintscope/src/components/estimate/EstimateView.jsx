@@ -16,6 +16,7 @@ import { runEstimate } from '../../engine/run-estimate.js';
 import { useCompanyProfile } from '../../hooks/useCompanyProfile.js';
 import ScenarioEnginePanel from './ScenarioEnginePanel.jsx';
 import EstimateDiagnostic from './EstimateDiagnostic.jsx';
+import RateCell from './RateCell.jsx';
 
 /** Format decimal hours as Xh Ym */
 function fmtHrs(h) {
@@ -103,7 +104,7 @@ const CAT_LABELS = {
 };
 
 export default function EstimateView() {
-  const { state } = useProject();
+  const { state, dispatch } = useProject();
   const legacyEstimate = useEstimate();
   const scenarioEstimate = useEstimateScenario();
   const { specData } = useSpecData();
@@ -878,7 +879,7 @@ export default function EstimateView() {
                             <td style={{fontSize:10,color:'var(--derived)'}}>{t.psKey}</td>
                             <td style={{fontSize:11}}>{t.uom}</td>
                             <td style={{textAlign:'right'}}>{t.isFixed ? '\u2014' : t.quantity}</td>
-                            <td style={{textAlign:'right',color:'var(--text-muted)'}}>{t.baseRate}</td>
+                            <RateCell taskId={t.taskId} baseRate={t.baseRate} isFixed={t.isFixed} override={state.project.rate_overrides?.[t.taskId]} dispatch={dispatch} />
                             <td style={{textAlign:'right',color:t.modStack.total>1.5?'var(--warning)':'var(--text-secondary)'}}
                                 title={[
                                   t.modStack.qt !== 1 && `QT:${t.modStack.qt}`,
