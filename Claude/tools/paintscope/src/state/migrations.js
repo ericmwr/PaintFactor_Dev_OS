@@ -475,3 +475,49 @@ export function migrateInline(parsed) {
 
   return parsed;
 }
+
+/**
+ * Prune rate overrides for tasks that have been archived, renamed, or shape-shifted
+ * (e.g., a task that used to have flat rate_per_hour now uses rates_by_tier).
+ * Pure function — returns a new state object; never mutates input.
+ *
+ * @param {object} state - The state object (must have state.project)
+ * @param {object} tasks - The bundle's tasks table (task_id -> canonical task)
+ * @returns {object} - State with pruned rate_overrides + optional _lastRateOverridePruneReport
+ */
+export function pruneStaleRateOverrides(state, tasks) {
+  if (!state || !state.project) return state;
+  const overrides = state.project.rate_overrides;
+  if (!overrides || Object.keys(overrides).length === 0) return state;
+
+  const pruned = {};
+  const dropped = [];
+  for (const [task_id, ov] of Object.entries(overrides)) {
+    const canonical = tasks && tasks[task_id];
+    if (!canonical) {
+      dropped.push({ task_id, reason: 'task archived/missing' });
+      continue;
+    }
+    const ineligible = (
+      typeof canonical.rate_per_hour !== 'number' ||
+      canonical.rates ||
+      canonical.rates_by_tier ||
+      canonical.rates_by_coat ||
+      canonical.fixed_minutes != null
+    );
+    if (ineligible) {
+      dropped.push({ task_id, reason: 'task no longer uses flat rate_per_hour' });
+      continue;
+    }
+    pruned[task_id] = ov;
+  }
+
+  if (dropped.length === 0) {
+    return state;
+  }
+  return {
+    ...state,
+    project: { ...state.project, rate_overrides: pruned },
+    _lastRateOverridePruneReport: { dropped, ts: Date.now() },
+  };
+}
