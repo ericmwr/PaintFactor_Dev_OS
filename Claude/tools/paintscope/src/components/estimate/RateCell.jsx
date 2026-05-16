@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { tasks as bundleTasks } from '../../data/scenario-bundle.gen';
+import RateOverridePublishModal from './RateOverridePublishModal.jsx';
 
 /**
  * Editable rate cell for the Estimate view.
@@ -14,7 +15,7 @@ import { tasks as bundleTasks } from '../../data/scenario-bundle.gen';
  *  - override:   { rate_per_hour, ts } | undefined — current override entry from state
  *  - dispatch:   reducer dispatch function
  */
-export default function RateCell({ taskId, baseRate, isFixed, override, dispatch }) {
+export default function RateCell({ taskId, baseRate, isFixed, override, dispatch, projectId, projectName }) {
   const canonical = taskId ? bundleTasks[taskId] : null;
   const isEditable = (
     !isFixed &&
@@ -27,6 +28,7 @@ export default function RateCell({ taskId, baseRate, isFixed, override, dispatch
   );
 
   const [editing, setEditing] = useState(false);
+  const [publishModalOpen, setPublishModalOpen] = useState(false);
   const inputRef = useRef(null);
 
   useEffect(() => {
@@ -134,13 +136,34 @@ export default function RateCell({ taskId, baseRate, isFixed, override, dispatch
     >
       {displayRate}
       {hasOverride && (
-        <span
-          onClick={revert}
-          title="Revert to canonical rate"
-          style={{ marginLeft: 4, fontSize: 9, color: 'var(--text-muted)', cursor: 'pointer' }}
-        >
-          ↺
-        </span>
+        <>
+          <span
+            onClick={revert}
+            title="Revert to canonical rate"
+            style={{ marginLeft: 4, fontSize: 9, color: 'var(--text-muted)', cursor: 'pointer' }}
+          >
+            ↺
+          </span>
+          {import.meta.env.DEV && (
+            <span
+              onClick={(e) => { e.stopPropagation(); setPublishModalOpen(true); }}
+              title="Save to library"
+              style={{ marginLeft: 4, fontSize: 9, color: 'var(--text-muted)', cursor: 'pointer' }}
+            >
+              💾
+            </span>
+          )}
+        </>
+      )}
+      {publishModalOpen && (
+        <RateOverridePublishModal
+          taskId={taskId}
+          override={override}
+          projectId={projectId}
+          projectName={projectName}
+          dispatch={dispatch}
+          onClose={() => setPublishModalOpen(false)}
+        />
       )}
     </td>
   );
