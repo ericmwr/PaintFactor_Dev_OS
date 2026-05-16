@@ -21,7 +21,7 @@ import CompanyProfileView from './components/settings/CompanyProfileView';
 import SpecEditorView from './components/rates/SpecEditorView';
 import AssemblyManagerView from './components/assemblies/AssemblyManagerView';
 import MaterialsView from './components/materials/MaterialsView';
-import TimeTrackerView from './components/tracker/TimeTrackerView';
+import TrackerView from './components/tracker/TrackerView.jsx';
 import AnalyticsDashboard from './components/analytics/AnalyticsDashboard';
 import ColorsView from './components/colors/ColorsView.jsx';
 import AuthoringView, { isAuthoringEnabled } from './components/authoring/AuthoringView.jsx';
@@ -447,7 +447,7 @@ function AppShell({ projectDb }) {
 
           {view === 'tracker' && (
             <ErrorBoundary label="Tracker">
-              <TimeTrackerView estimate={estimate} />
+              <TrackerView />
             </ErrorBoundary>
           )}
 
