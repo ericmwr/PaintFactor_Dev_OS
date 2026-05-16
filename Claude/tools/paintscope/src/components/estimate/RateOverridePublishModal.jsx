@@ -1,5 +1,7 @@
 import { useState, useMemo } from 'react';
 import { tasks as bundleTasks } from '../../data/scenario-bundle.gen';
+import { useTaskDrafts } from '../../hooks/useTaskDrafts.js';
+import { findConflictingDraft } from './RateOverridePublishHelpers.js';
 
 /**
  * Modal — confirms publishing a rate override to the canonical library.
@@ -54,8 +56,8 @@ export default function RateOverridePublishModal({
     onClose();
   };
 
-  // Conflict block — Task 6 wires real detection. Hard-coded null for Task 3.
-  const conflict = null;
+  const { drafts: taskDrafts } = useTaskDrafts();
+  const conflict = useMemo(() => findConflictingDraft(taskId, taskDrafts), [taskId, taskDrafts]);
 
   return (
     <div
