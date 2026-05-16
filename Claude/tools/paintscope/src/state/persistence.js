@@ -1,4 +1,5 @@
-import { migrateV02toV03, migrateInline } from './migrations';
+import { migrateV02toV03, migrateInline, pruneStaleRateOverrides } from './migrations';
+import { tasks as bundleTasks } from '../data/scenario-bundle.gen';
 
 const STORAGE_KEY = 'paintscope_state';
 
@@ -14,6 +15,7 @@ export function loadFromStorage(init) {
       if (parsed.project && parsed.rooms) {
         parsed = migrateV02toV03(parsed);
         parsed = migrateInline(parsed);
+        parsed = pruneStaleRateOverrides(parsed, bundleTasks);
         return { ...parsed, ui: parsed.ui || init.ui };
       }
     }
