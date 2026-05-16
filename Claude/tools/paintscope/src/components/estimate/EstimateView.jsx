@@ -607,6 +607,43 @@ export default function EstimateView() {
         );
       })()}
 
+      {/* ── Warn-band: dropped rate overrides ── */}
+      {state._lastRateOverridePruneReport && state._lastRateOverridePruneReport.dropped?.length > 0 && (
+        <div style={{
+          background: 'var(--warning-bg, rgba(241, 196, 15, 0.1))',
+          border: '1px solid var(--warning, #f1c40f)',
+          borderRadius: 4,
+          padding: 12,
+          margin: '0 0 12px',
+          fontSize: 12,
+          color: 'var(--text-secondary)',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'flex-start',
+          gap: 12,
+        }}>
+          <div>
+            <strong style={{ color: 'var(--warning, #f1c40f)' }}>
+              {state._lastRateOverridePruneReport.dropped.length} rate override{state._lastRateOverridePruneReport.dropped.length === 1 ? '' : 's'} dropped:
+            </strong>{' '}
+            {state._lastRateOverridePruneReport.dropped.map(d => `${d.task_id} (${d.reason})`).join(', ')}
+            <div style={{ marginTop: 4, fontSize: 11, color: 'var(--text-muted)' }}>
+              These tasks have been archived, renamed, or now use tier-specific rates. Re-tune via Authoring or new task IDs if needed.
+            </div>
+          </div>
+          <button
+            onClick={() => dispatch({ type: 'CLEAR_PRUNE_REPORT' })}
+            style={{
+              background: 'transparent', border: 'none', color: 'var(--text-muted)',
+              cursor: 'pointer', fontSize: 14, padding: 4,
+            }}
+            title="Dismiss"
+          >
+            ×
+          </button>
+        </div>
+      )}
+
       {/* ── Expand / Collapse All ── */}
       <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
         <button className="btn btn-sm" onClick={() => {

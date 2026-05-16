@@ -61,6 +61,11 @@ export function reducer(state, action) {
       delete next[task_id];
       return { ...state, project: { ...state.project, rate_overrides: next } };
     }
+    case 'CLEAR_PRUNE_REPORT': {
+      const next = { ...state };
+      delete next._lastRateOverridePruneReport;
+      return next;
+    }
     case 'TOGGLE_PROJECT_SUBSTRATE': {
       const subs = state.project.default_substrates || [];
       const id = payload;
