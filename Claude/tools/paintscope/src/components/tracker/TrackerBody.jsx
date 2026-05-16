@@ -21,7 +21,7 @@ const ELEMENT_PARENT_ORDER = [
  * activity renders as an <ActivityRow /> that handles its own drilldown
  * and Log-Time interaction.
  */
-export default function TrackerBody({ snapshot, entries }) {
+export default function TrackerBody({ snapshot, entries, onEntrySaved }) {
   const [expandAll, setExpandAll] = useState(false);
   const activities = snapshot?.activities || [];
 
@@ -89,6 +89,7 @@ export default function TrackerBody({ snapshot, entries }) {
           activity={act}
           entries={entriesByActivity[act.activity_id] || []}
           forceExpanded={expandAll}
+          onEntrySaved={onEntrySaved}
         />
       ))}
       {projectLevel.middle.map(act => (
@@ -97,6 +98,7 @@ export default function TrackerBody({ snapshot, entries }) {
           activity={act}
           entries={entriesByActivity[act.activity_id] || []}
           forceExpanded={expandAll}
+          onEntrySaved={onEntrySaved}
         />
       ))}
 
@@ -127,6 +129,7 @@ export default function TrackerBody({ snapshot, entries }) {
           activity={act}
           entries={entriesByActivity[act.activity_id] || []}
           forceExpanded={expandAll}
+          onEntrySaved={onEntrySaved}
         />
       ))}
     </div>

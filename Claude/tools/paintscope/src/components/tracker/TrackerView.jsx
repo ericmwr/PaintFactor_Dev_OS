@@ -10,7 +10,7 @@ import RosterEditor from './RosterEditor.jsx';
 export default function TrackerView() {
   const { state, projectId } = useProject();
   const { snapshot, loading: snapLoading } = useTrackerSnapshot(projectId);
-  const { entries, loading: entriesLoading } = useTimeEntries(projectId);
+  const { entries, loading: entriesLoading, refresh: refreshEntries } = useTimeEntries(projectId);
   const [rosterOpen, setRosterOpen] = useState(false);
 
   const status = state.project?.status || 'draft';
@@ -78,7 +78,7 @@ export default function TrackerView() {
         <span style={{ color: 'var(--accent)' }}>{overallPct}%</span>
       </div>
 
-      <TrackerBody snapshot={snapshot} entries={newEntries} />
+      <TrackerBody snapshot={snapshot} entries={newEntries} onEntrySaved={refreshEntries} />
 
       {legacyEntries.length > 0 && (
         <div style={{ marginTop: 32 }}>

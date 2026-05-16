@@ -23,7 +23,7 @@ const STATUS_OPTIONS = [
 export default function StatusDropdown() {
   const { state, dispatch, projectId } = useProject();
   const { snapshot, save: saveSnapshot } = useTrackerSnapshot(projectId);
-  const { estimate } = useEstimateScenario();
+  const estimate = useEstimateScenario();
   const [confirmFor, setConfirmFor] = useState(null);
   const [working, setWorking] = useState(false);
   const [error, setError] = useState(null);

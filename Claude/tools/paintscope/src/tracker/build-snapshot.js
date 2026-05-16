@@ -1,5 +1,33 @@
 import { matchActivityRule } from '../data/activity-rules.js';
+import { SPEC_SUBSTRATE_MAP } from '../data/spec-maps.js';
 import { getElementParent, applyPhaseMergeRule } from './element-parents.js';
+
+const PROTECTION_SPECS = new Set(['SF_ROOM_PROTECTION', 'SF_FIXTURE_PROTECTION']);
+
+/**
+ * Derive substrate from specId (engine pattern from scope-tree.js).
+ * Strips `_v\d+` version suffix and looks up in SPEC_SUBSTRATE_MAP.
+ */
+function substrateFromSpecId(specId) {
+  if (!specId) return null;
+  if (SPEC_SUBSTRATE_MAP[specId]) return SPEC_SUBSTRATE_MAP[specId];
+  const base = specId.replace(/_v\d+$/, '');
+  return SPEC_SUBSTRATE_MAP[base] || null;
+}
+
+/**
+ * Resolve the element parent for a spec — protection specs route to the
+ * virtual project_protection parent; everything else derives substrate
+ * → parent. `spec.substrate` (when explicitly set by the test harness)
+ * wins over derivation so unit tests don't need a real SPEC_SUBSTRATE_MAP
+ * entry.
+ */
+function resolveSpecParent(spec, phase) {
+  if (PROTECTION_SPECS.has(spec.specId)) return 'project_protection';
+  const substrate = spec.substrate || substrateFromSpecId(spec.specId);
+  const baseParent = getElementParent(substrate) || 'specialty';
+  return applyPhaseMergeRule(baseParent, phase);
+}
 
 /**
  * Stable hash for activity_id — small string from element/phase/activity tuple.
@@ -39,8 +67,13 @@ export function buildSnapshot(estimate, project, projectId) {
   const specResults = estimate?.specResults || [];
   for (const spec of specResults) {
     for (const t of spec.tasks || []) {
-      const baseParent = getElementParent(t.substrate) || 'specialty';
-      const elementParent = applyPhaseMergeRule(baseParent, t.phase);
+      // Per-task substrate (if test sets it on the task) wins; otherwise
+      // resolve from the parent spec via SPEC_SUBSTRATE_MAP. Protection
+      // specs route to the project_protection virtual parent regardless
+      // of substrate.
+      const elementParent = t.substrate
+        ? applyPhaseMergeRule(getElementParent(t.substrate) || 'specialty', t.phase)
+        : resolveSpecParent(spec, t.phase);
       const activityName = deriveActivityName(t);
       const key = `${elementParent}::${t.phase}::${activityName}`;
 

@@ -12,7 +12,7 @@ function pctColor(pct) {
   return 'var(--text-muted)';
 }
 
-export default function ActivityRow({ activity, entries, forceExpanded }) {
+export default function ActivityRow({ activity, entries, forceExpanded, onEntrySaved }) {
   const [localExpanded, setLocalExpanded] = useState(false);
   const [logFormOpen, setLogFormOpen] = useState(false);
 
@@ -89,6 +89,7 @@ export default function ActivityRow({ activity, entries, forceExpanded }) {
           activity={activity}
           entries={entries}
           onClose={() => setLogFormOpen(false)}
+          onSaved={onEntrySaved}
         />
       )}
     </div>

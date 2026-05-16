@@ -6,7 +6,7 @@ import { computeRoomCompletion } from '../../tracker/rollup.js';
 
 const VIRTUAL_PARENTS = ['project_setup', 'project_protection', 'project_cleanup'];
 
-export default function LogTimeForm({ activity, entries, onClose }) {
+export default function LogTimeForm({ activity, entries, onClose, onSaved }) {
   const { state, dispatch, projectId } = useProject();
   const { snapshot } = useTrackerSnapshot(projectId);
   const { save: saveEntry } = useTimeEntries(projectId);
@@ -107,6 +107,7 @@ export default function LogTimeForm({ activity, entries, onClose }) {
 
       await saveEntry(entry);
       dispatch({ type: 'APPEND_ROSTER_NAME', payload: worker.trim() });
+      if (onSaved) await onSaved();
       onClose();
     } catch (err) {
       setError(err?.message || String(err));
