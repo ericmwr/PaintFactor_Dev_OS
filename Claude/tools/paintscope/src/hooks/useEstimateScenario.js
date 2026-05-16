@@ -96,6 +96,16 @@ export function useEstimateScenario() {
       setRate('TSK_PREP_HVAC_VENT_REMOVE',       ph.hvac_remove_reinstall_rate);
       setRate('TSK_PREP_HVAC_VENT_REINSTALL',    ph.hvac_remove_reinstall_rate);
 
+      // Phase A: merge user-edited rate overrides (state.project.rate_overrides) into
+      // the overlayMap. User overrides win on collision with protection_heuristics
+      // rates — most recent intent wins.
+      const userOverrides = state?.project?.rate_overrides || {};
+      for (const [taskId, ov] of Object.entries(userOverrides)) {
+        if (ov?.rate_per_hour != null && ov.rate_per_hour > 0) {
+          projectOverlayMap[taskId] = { rate_per_hour: ov.rate_per_hour };
+        }
+      }
+
       for (const input of adapter.roomInputs) {
         try {
         const matchInfo = findBestMatch(bundle, input.ctx);
