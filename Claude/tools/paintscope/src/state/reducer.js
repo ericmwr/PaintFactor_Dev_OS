@@ -80,6 +80,13 @@ export function reducer(state, action) {
       if (roster.some(n => n.toLowerCase() === lower)) return state;
       return { ...state, project: { ...state.project, tracker_roster: [...roster, name] } };
     }
+    case 'REMOVE_ROSTER_NAME': {
+      if (typeof payload !== 'string') return state;
+      const roster = state.project.tracker_roster || [];
+      const next = roster.filter(n => n !== payload);
+      if (next.length === roster.length) return state;
+      return { ...state, project: { ...state.project, tracker_roster: next } };
+    }
     case 'TOGGLE_PROJECT_SUBSTRATE': {
       const subs = state.project.default_substrates || [];
       const id = payload;
