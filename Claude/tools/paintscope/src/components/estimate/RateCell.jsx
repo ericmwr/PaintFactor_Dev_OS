@@ -27,7 +27,6 @@ export default function RateCell({ taskId, baseRate, isFixed, override, dispatch
   );
 
   const [editing, setEditing] = useState(false);
-  const [draft, setDraft] = useState('');
   const inputRef = useRef(null);
 
   useEffect(() => {
@@ -106,7 +105,6 @@ export default function RateCell({ taskId, baseRate, isFixed, override, dispatch
             if (e.key === 'Enter') { e.preventDefault(); commit(e.target.value); }
             else if (e.key === 'Escape') { e.preventDefault(); setEditing(false); }
           }}
-          onChange={e => setDraft(e.target.value)}
           style={{
             width: '100%',
             textAlign: 'right',
@@ -124,7 +122,7 @@ export default function RateCell({ taskId, baseRate, isFixed, override, dispatch
 
   return (
     <td
-      onClick={() => { setDraft(String(displayRate)); setEditing(true); }}
+      onClick={() => setEditing(true)}
       title={hasOverride ? `Canonical: ${canonicalRate}. Click to edit. Click ↺ to revert.` : `Canonical: ${canonicalRate}. Click to edit.`}
       style={{
         textAlign: 'right',
