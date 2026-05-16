@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react';
 import { tasks as bundleTasks } from '../../data/scenario-bundle.gen';
 import { useTaskDrafts } from '../../hooks/useTaskDrafts.js';
 import { publishTask } from '../../authoring/publish.js';
+import { regenBundle } from '../../authoring/archive-ops.js';
 import { findConflictingDraft, buildPublishedTaskPayload } from './RateOverridePublishHelpers.js';
 
 /**
@@ -52,9 +53,16 @@ export default function RateOverridePublishModal({
     setError(null);
     setPublishing(true);
     try {
+      // Build clean canonical-shaped payload (no authoring fields leak into the
+      // JSON on disk). publishTask wraps payload in `{ kind, payload }` for the
+      // endpoint and re-uses draft.id/status to flip the IDB record.
       const payload = buildPublishedTaskPayload(canonical, newRate, { projectId, projectName });
-      const draft = { ...payload, id: taskId, kind: 'task', status: 'draft' };
+      const draft = { id: taskId, payload, status: 'draft' };
       await publishTask(draft);
+      // Bundle regen is separate from the publish write. Without it, the cell
+      // snaps back to the OLD canonical after CLEAR_RATE_OVERRIDE because the
+      // in-memory bundle hasn't been HMR-reloaded with the new rate.
+      await regenBundle();
       dispatch({ type: 'CLEAR_RATE_OVERRIDE', payload: { task_id: taskId } });
       onClose();
     } catch (err) {

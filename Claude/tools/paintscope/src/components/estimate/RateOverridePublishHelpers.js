@@ -23,11 +23,16 @@ export function findConflictingDraft(taskId, drafts) {
  */
 export function buildPublishedTaskPayload(canonical, newRate, projectContext) {
   const { projectId, projectName } = projectContext || {};
+  // bundleTasks[taskId] returns the BUNDLE's enriched copy, which carries
+  // `_derived` (phases/methods/substrates/qts walked from modules+scenarios
+  // at build time). That field is a bundle artifact and must NOT be written
+  // back into the on-disk canonical — strip it before persisting.
+  const { _derived, ...stripped } = canonical;
   return {
-    ...canonical,
+    ...stripped,
     rate_per_hour: newRate,
     _meta: {
-      ...(canonical._meta || {}),
+      ...(stripped._meta || {}),
       last_calibrated_at: new Date().toISOString(),
       last_calibrated_from: {
         project_id: projectId ?? null,

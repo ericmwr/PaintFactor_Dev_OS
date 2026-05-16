@@ -108,4 +108,23 @@ describe('buildPublishedTaskPayload', () => {
     buildPublishedTaskPayload(canonical, 95, { projectId: 'p', projectName: 'n' });
     expect(JSON.stringify(canonical)).toBe(original);
   });
+
+  it('strips _derived (bundle artifact) from the published payload', () => {
+    const enriched = {
+      ...canonical,
+      _derived: {
+        phases: ['protection'],
+        methods: ['roll'],
+        substrates: ['drywall'],
+        qts: ['QT3'],
+        buckets: ['nc_interior'],
+        coatings: ['paint'],
+        module_count: 1,
+        scenario_count: 9,
+      },
+    };
+    const result = buildPublishedTaskPayload(enriched, 95, { projectId: 'p', projectName: 'n' });
+    expect(result._derived).toBeUndefined();
+    expect(result.rate_per_hour).toBe(95);
+  });
 });
