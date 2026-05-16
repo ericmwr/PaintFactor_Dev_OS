@@ -7,7 +7,14 @@ export function useTimeEntries(projectId) {
 
   const refresh = useCallback(async () => {
     const all = await listTimeEntries(projectId);
-    setEntries(all);
+    // Tracker MVP: tag pre-snapshot free-form entries so the new UI can
+    // quarantine them in LegacyEntriesPanel. Tag is runtime-only — never
+    // persisted back to IDB.
+    const tagged = all.map(e => {
+      if (e.snapshot_id && e.activity_id && e.mode) return e;
+      return { ...e, _legacy: true };
+    });
+    setEntries(tagged);
   }, [projectId]);
 
   useEffect(() => {
