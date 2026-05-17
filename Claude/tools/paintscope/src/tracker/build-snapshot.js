@@ -4,6 +4,11 @@ import { getElementParent, applyPhaseMergeRule } from './element-parents.js';
 
 const PROTECTION_SPECS = new Set(['SF_ROOM_PROTECTION', 'SF_FIXTURE_PROTECTION']);
 
+// Project-level element parents collapse the phase dimension so lifecycle
+// activities (e.g., "Outlet/Switch Cover Cycle" with install in setup +
+// remove in cleanup) merge into one row instead of appearing twice.
+const PROJECT_LEVEL_PARENTS = new Set(['project_setup', 'project_protection', 'project_cleanup']);
+
 /**
  * Derive substrate from specId (engine pattern from scope-tree.js).
  * Strips `_v\d+` version suffix and looks up in SPEC_SUBSTRATE_MAP.
@@ -75,14 +80,18 @@ export function buildSnapshot(estimate, project, projectId) {
         ? applyPhaseMergeRule(getElementParent(t.substrate) || 'specialty', t.phase)
         : resolveSpecParent(spec, t.phase);
       const activityName = deriveActivityName(t);
-      const key = `${elementParent}::${t.phase}::${activityName}`;
+      // Project-level parents collapse phase into a single "lifecycle" bucket
+      // so install/remove pairs (setup + cleanup) merge into one row.
+      const isProjectLevel = PROJECT_LEVEL_PARENTS.has(elementParent);
+      const keyPhase = isProjectLevel ? 'lifecycle' : t.phase;
+      const key = `${elementParent}::${keyPhase}::${activityName}`;
 
       let act = acts.get(key);
       if (!act) {
         act = {
-          activity_id: activityIdFor(elementParent, t.phase, activityName),
+          activity_id: activityIdFor(elementParent, keyPhase, activityName),
           element_parent: elementParent,
-          phase: t.phase,
+          phase: keyPhase,
           activity_name: activityName,
           estimated_hours: 0,
           contributing_tasks: [],

@@ -22,7 +22,10 @@ export default function ActivityRow({ activity, entries, forceExpanded, onEntryS
   const isProjectLevel = activity.element_parent.startsWith('project_');
   const phaseSuffix = isProjectLevel ? '' : ` ${capitalize(activity.phase)}`;
   const elementLabel = ELEMENT_PARENT_LABELS[activity.element_parent] || activity.element_parent;
-  const rowTitle = isProjectLevel ? elementLabel : `${elementLabel}${phaseSuffix} — ${activity.activity_name}`;
+  // Always include the activity name so distinct activities under the same
+  // element parent (e.g., multiple Project Protection activities like Outlet
+  // Cover Cycle, HVAC Vent Cycle, Floor Mask Cycle) are tellable apart.
+  const rowTitle = `${elementLabel}${phaseSuffix} — ${activity.activity_name}`;
 
   const loggedHours = sumLoggedHours(entries);
   const activityPct = computeActivityCompletion(activity, entries);
