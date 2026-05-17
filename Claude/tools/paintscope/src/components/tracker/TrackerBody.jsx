@@ -1,6 +1,8 @@
 import { useState, useMemo } from 'react';
 import { VIRTUAL_PARENTS } from '../../tracker/element-parents.js';
+import { buildPhaseRollups, sumPhaseLoggedHours, computePhaseCompletion } from '../../tracker/rollup.js';
 import ActivityRow from './ActivityRow.jsx';
+import PhaseLogForm from './PhaseLogForm.jsx';
 
 const PHASE_ORDER = ['setup', 'prep', 'prime', 'apply', 'interstage', 'finish', 'cleanup'];
 const PHASE_LABELS = {
@@ -23,7 +25,10 @@ const ELEMENT_PARENT_ORDER = [
  */
 export default function TrackerBody({ snapshot, entries, onEntrySaved }) {
   const [expandAll, setExpandAll] = useState(false);
+  const [phaseLogFor, setPhaseLogFor] = useState(null); // phaseRollup
   const activities = snapshot?.activities || [];
+
+  const phaseRollups = useMemo(() => buildPhaseRollups(snapshot), [snapshot]);
 
   const { projectLevel, phaseGroups, presentPhases } = useMemo(() => {
     const pl = { before: [], middle: [], after: [] };
@@ -105,9 +110,17 @@ export default function TrackerBody({ snapshot, entries, onEntrySaved }) {
       {presentPhases.map(phase => {
         const parentsInPhase = ELEMENT_PARENT_ORDER.filter(p => phaseGroups[phase] && phaseGroups[phase][p]);
         if (parentsInPhase.length === 0) return null;
+        const phaseRollup = phaseRollups[phase];
         return (
           <div key={phase}>
-            <SectionHeader label={PHASE_LABELS[phase] || phase.toUpperCase()} />
+            <PhaseHeader
+              phase={phase}
+              label={PHASE_LABELS[phase] || phase.toUpperCase()}
+              rollup={phaseRollup}
+              entries={entries}
+              entriesByActivity={entriesByActivity}
+              onLog={() => setPhaseLogFor(phaseRollup)}
+            />
             {parentsInPhase.flatMap(parent => (
               phaseGroups[phase][parent].map(act => (
                 <ActivityRow
@@ -115,6 +128,7 @@ export default function TrackerBody({ snapshot, entries, onEntrySaved }) {
                   activity={act}
                   entries={entriesByActivity[act.activity_id] || []}
                   forceExpanded={expandAll}
+                  onEntrySaved={onEntrySaved}
                 />
               ))
             ))}
@@ -132,8 +146,54 @@ export default function TrackerBody({ snapshot, entries, onEntrySaved }) {
           onEntrySaved={onEntrySaved}
         />
       ))}
+
+      {phaseLogFor && (
+        <PhaseLogForm
+          phaseRollup={phaseLogFor}
+          onClose={() => setPhaseLogFor(null)}
+          onSaved={onEntrySaved}
+        />
+      )}
     </div>
   );
+}
+
+function PhaseHeader({ phase, label, rollup, entries, entriesByActivity, onLog }) {
+  const logged = rollup ? sumPhaseLoggedHours(rollup, entries) : 0;
+  const est = rollup?.estimated_hours || 0;
+  const pct = rollup ? computePhaseCompletion(rollup, entriesByActivity) : 0;
+  return (
+    <div style={{
+      display: 'flex', alignItems: 'center', gap: 8, marginTop: 16, marginBottom: 6,
+      padding: '6px 8px', background: 'rgba(130, 170, 255, 0.06)',
+      borderLeft: '2px solid var(--accent)', borderRadius: 3, fontSize: 12,
+    }}>
+      <strong style={{ flex: 1, color: 'var(--accent)', fontSize: 11, letterSpacing: 0.5 }}>═══ {label} ═══</strong>
+      <span style={{ color: 'var(--text-muted)', fontSize: 11, minWidth: 80, textAlign: 'right' }}>
+        {logged.toFixed(1)}h / {est.toFixed(1)}h
+      </span>
+      <span style={{ color: pctColor(pct), fontSize: 11, fontWeight: 600, minWidth: 40, textAlign: 'right' }}>
+        {pct.toFixed(0)}%
+      </span>
+      {rollup && rollup.activities.length > 0 && (
+        <button
+          onClick={onLog}
+          style={{
+            background: 'var(--accent, #82aaff)', color: 'var(--bg, #0f0f0f)',
+            border: 'none', padding: '2px 8px', borderRadius: 3,
+            fontSize: 10, fontWeight: 600, cursor: 'pointer',
+          }}
+        >+ Log Phase</button>
+      )}
+    </div>
+  );
+}
+
+function pctColor(pct) {
+  if (pct >= 100) return '#5d5';
+  if (pct >= 50)  return '#82aaff';
+  if (pct > 0)    return '#f1c40f';
+  return 'var(--text-muted)';
 }
 
 function SectionHeader({ label }) {
