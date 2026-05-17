@@ -11,17 +11,19 @@ const PHASE_LABELS = {
 /**
  * PhaseLogForm — daily log mode at the phase level.
  *
- * Hierarchical disclosure: Phase → (Complete | Partial) → if Partial,
- * pick rooms fully done (check) and per-activity completion in the
- * unchecked rooms.
+ * Layout: Worker / Date / Hours header → "Log Full Phase" quick action →
+ * Tasks multi-select shared by two batches: Completed Rooms (logs at 100%)
+ * and Partial Rooms (logs at a given %). Each Log button fires an
+ * independent save using the current Hours value (split evenly across the
+ * entries that batch generates).
  *
- * On save: generates N time_entries — one per touched (activity_id) — all
- * tied to the same date/worker. Hours split evenly across generated entries.
+ * One entry per selected task, with room_progress carrying every selected
+ * room — keeps entry count tight (2 tasks × 3 rooms = 2 entries, not 6).
  *
  * Props:
- *  - phaseRollup: { phase, estimated_hours, rooms, activities } from buildPhaseRollups
+ *  - phaseRollup: { phase, estimated_hours, rooms, activities }
  *  - onClose:     () => void
- *  - onSaved:     () => void (triggers parent refresh)
+ *  - onSaved:     () => void (refresh parent)
  */
 export default function PhaseLogForm({ phaseRollup, onClose, onSaved }) {
   const { state, dispatch, projectId } = useProject();
@@ -32,150 +34,124 @@ export default function PhaseLogForm({ phaseRollup, onClose, onSaved }) {
   const [worker, setWorker] = useState('');
   const [date, setDate] = useState(today);
   const [hours, setHours] = useState('');
-  const [status, setStatus] = useState('partial'); // 'complete' | 'partial'
-  // Per-room state: { [room_id]: { done: bool, expanded: bool, activities: { [activity_id]: { complete, pct } } } }
-  const [roomState, setRoomState] = useState(() => {
-    const init = {};
-    for (const room of phaseRollup.rooms) {
-      const acts = {};
-      for (const act of activitiesInRoom(phaseRollup, room.room_id)) {
-        acts[act.activity_id] = { complete: false, pct: '' };
-      }
-      init[room.room_id] = { done: false, expanded: false, activities: acts };
-    }
-    return init;
-  });
+  const [selectedTasks, setSelectedTasks] = useState(() => new Set());
+  const [completedRooms, setCompletedRooms] = useState(() => new Set());
+  const [partialRooms, setPartialRooms] = useState(() => new Set());
+  const [partialPct, setPartialPct] = useState('');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
+  const [recentBatch, setRecentBatch] = useState(null); // { label, count } shown after save
 
   const roster = state.project?.tracker_roster || [];
 
-  const toggleRoomDone = (roomId, checked) => {
-    setRoomState(prev => ({
-      ...prev,
-      [roomId]: {
-        ...prev[roomId],
-        done: checked,
-        expanded: checked ? false : prev[roomId].expanded,
-      },
-    }));
+  const allTaskIds = useMemo(() => phaseRollup.activities.map(a => a.activity_id), [phaseRollup]);
+  const allRoomIds = useMemo(() => phaseRollup.rooms.map(r => r.room_id), [phaseRollup]);
+
+  const allTasksChecked = selectedTasks.size === allTaskIds.length && allTaskIds.length > 0;
+  const allCompletedChecked = completedRooms.size === allRoomIds.length && allRoomIds.length > 0;
+  const allPartialChecked = partialRooms.size === allRoomIds.length && allRoomIds.length > 0;
+
+  const toggleSet = (setter) => (id) => setter(prev => {
+    const next = new Set(prev);
+    if (next.has(id)) next.delete(id); else next.add(id);
+    return next;
+  });
+  const toggleTask = toggleSet(setSelectedTasks);
+  const toggleCompleted = toggleSet(setCompletedRooms);
+  const togglePartial = toggleSet(setPartialRooms);
+
+  const toggleAllTasks = () => {
+    setSelectedTasks(allTasksChecked ? new Set() : new Set(allTaskIds));
+  };
+  const toggleAllCompleted = () => {
+    setCompletedRooms(allCompletedChecked ? new Set() : new Set(allRoomIds));
+  };
+  const toggleAllPartial = () => {
+    setPartialRooms(allPartialChecked ? new Set() : new Set(allRoomIds));
   };
 
-  const toggleRoomExpanded = (roomId) => {
-    setRoomState(prev => ({
-      ...prev,
-      [roomId]: { ...prev[roomId], expanded: !prev[roomId].expanded },
-    }));
-  };
-
-  const toggleActivity = (roomId, activityId, checked) => {
-    setRoomState(prev => ({
-      ...prev,
-      [roomId]: {
-        ...prev[roomId],
-        activities: {
-          ...prev[roomId].activities,
-          [activityId]: { complete: checked, pct: checked ? 100 : (prev[roomId].activities[activityId]?.pct ?? '') },
-        },
-      },
-    }));
-  };
-
-  const setActivityPct = (roomId, activityId, val) => {
-    const num = val === '' ? '' : Math.max(0, Math.min(100, parseInt(val, 10) || 0));
-    setRoomState(prev => ({
-      ...prev,
-      [roomId]: {
-        ...prev[roomId],
-        activities: {
-          ...prev[roomId].activities,
-          [activityId]: { complete: num === 100, pct: num },
-        },
-      },
-    }));
-  };
-
-  // Build the list of entries to write on save
-  const plannedEntries = useMemo(() => {
-    if (status === 'complete') {
-      // One entry per activity in the phase, all at 100% across all rooms
-      return phaseRollup.activities.map(act => ({
-        activity_id: act.activity_id,
-        mode: 'rooms',
-        room_progress: Object.fromEntries(
-          act.rooms.map(r => [r.room_id, { complete: true, pct: 100 }])
-        ),
-      }));
-    }
-    // Partial: for each room marked done → all activities in that room×phase at 100%
-    //          for each room not done → only the activities the user explicitly touched
-    const entries = [];
-    for (const [roomId, rs] of Object.entries(roomState)) {
-      if (rs.done) {
-        // Mark all activities in this room × phase as 100% IN THIS ROOM only
-        for (const act of activitiesInRoom(phaseRollup, roomId)) {
-          entries.push({
-            activity_id: act.activity_id,
-            mode: 'rooms',
-            room_progress: { [roomId]: { complete: true, pct: 100 } },
-          });
-        }
-      } else {
-        // Only touched activities
-        for (const [activityId, ap] of Object.entries(rs.activities)) {
-          if (ap.pct === '' || ap.pct == null) continue;
-          entries.push({
-            activity_id: activityId,
-            mode: 'rooms',
-            room_progress: { [roomId]: { complete: !!ap.complete, pct: Number(ap.pct) } },
-          });
-        }
-      }
-    }
-    return entries;
-  }, [status, roomState, phaseRollup]);
-
-  const handleSave = async () => {
+  const validateCommon = () => {
     setError(null);
     const h = parseFloat(hours);
-    if (!isFinite(h) || h <= 0) { setError('Hours must be a positive number.'); return; }
-    if (!worker.trim()) { setError('Worker name required.'); return; }
-    if (!snapshot) { setError('Missing snapshot — cannot save entry.'); return; }
-    if (plannedEntries.length === 0) {
-      setError('Nothing to log — pick a room or activity, or select Complete.');
-      return;
-    }
+    if (!isFinite(h) || h <= 0) { setError('Hours must be a positive number.'); return null; }
+    if (!worker.trim()) { setError('Worker name required.'); return null; }
+    if (!snapshot) { setError('Missing snapshot.'); return null; }
+    return h;
+  };
+
+  // Write N entries (one per task) with the given room_progress shape.
+  // Hours split evenly across the N entries.
+  const writeBatch = async (taskIds, roomProgress, batchLabel) => {
+    const h = validateCommon();
+    if (h == null) return;
+    if (taskIds.length === 0) { setError('Pick at least one task.'); return; }
+    if (Object.keys(roomProgress).length === 0) { setError('Pick at least one room.'); return; }
 
     setSaving(true);
     try {
-      const hoursPerEntry = Math.round((h / plannedEntries.length) * 100) / 100;
+      const hoursPerEntry = Math.round((h / taskIds.length) * 100) / 100;
       const created_at = new Date().toISOString();
       let i = 0;
-      for (const planned of plannedEntries) {
+      for (const taskId of taskIds) {
         const entry = {
           id: `entry_${Date.now()}_${i++}`,
           project_id: projectId,
           snapshot_id: snapshot.snapshot_id,
-          activity_id: planned.activity_id,
+          activity_id: taskId,
           worker_name: worker.trim(),
           date,
           hours: hoursPerEntry,
-          notes: `phase log: ${PHASE_LABELS[phaseRollup.phase] || phaseRollup.phase}`,
+          notes: `phase log: ${PHASE_LABELS[phaseRollup.phase] || phaseRollup.phase} — ${batchLabel}`,
           created_at,
-          mode: planned.mode,
-          room_progress: planned.room_progress,
-          phase_log: true, // marker so future analytics can distinguish phase logs from per-activity logs
+          mode: 'rooms',
+          room_progress: roomProgress,
+          phase_log: true,
         };
         await saveEntry(entry);
       }
       dispatch({ type: 'APPEND_ROSTER_NAME', payload: worker.trim() });
       if (onSaved) await onSaved();
-      onClose();
+      setRecentBatch({ label: batchLabel, count: taskIds.length });
+      setHours(''); // clear hours so the next batch needs a fresh allocation
     } catch (err) {
       setError(err?.message || String(err));
+    } finally {
       setSaving(false);
     }
   };
+
+  const handleLogFullPhase = async () => {
+    const allRoomProgress = Object.fromEntries(
+      allRoomIds.map(rid => [rid, { complete: true, pct: 100 }])
+    );
+    await writeBatch(allTaskIds, allRoomProgress, 'full phase');
+    setCompletedRooms(new Set()); setPartialRooms(new Set()); setSelectedTasks(new Set());
+  };
+
+  const handleLogCompleted = async () => {
+    const roomProgress = Object.fromEntries(
+      [...completedRooms].map(rid => [rid, { complete: true, pct: 100 }])
+    );
+    await writeBatch([...selectedTasks], roomProgress, 'completed rooms');
+    setCompletedRooms(new Set());
+  };
+
+  const handleLogPartial = async () => {
+    const pct = parseInt(partialPct, 10);
+    if (!isFinite(pct) || pct < 0 || pct > 100) {
+      setError('Partial % must be 0-100.');
+      return;
+    }
+    const roomProgress = Object.fromEntries(
+      [...partialRooms].map(rid => [rid, { complete: pct === 100, pct }])
+    );
+    await writeBatch([...selectedTasks], roomProgress, `partial rooms @ ${pct}%`);
+    setPartialRooms(new Set());
+    setPartialPct('');
+  };
+
+  const completedCount = selectedTasks.size * completedRooms.size;
+  const partialCount = selectedTasks.size * partialRooms.size;
 
   return (
     <div
@@ -211,103 +187,113 @@ export default function PhaseLogForm({ phaseRollup, onClose, onSaved }) {
           </datalist>
           <span style={{ color: 'var(--text-muted)' }}>Date</span>
           <input type="date" value={date} onChange={(e) => setDate(e.target.value)} style={inputStyle()} />
-          <span style={{ color: 'var(--text-muted)' }}>Hours today</span>
+          <span style={{ color: 'var(--text-muted)' }}>Hours</span>
           <input type="number" step="0.25" min="0" value={hours} onChange={(e) => setHours(e.target.value)} placeholder="0.0" style={inputStyle()} />
         </div>
 
-        <div style={{ marginBottom: 12, fontSize: 11 }}>
-          <span style={{ color: 'var(--text-muted)', marginRight: 8 }}>Phase status:</span>
-          <label style={{ marginRight: 12, cursor: 'pointer' }}>
-            <input type="radio" checked={status === 'complete'} onChange={() => setStatus('complete')} /> Complete (all rooms)
-          </label>
-          <label style={{ cursor: 'pointer' }}>
-            <input type="radio" checked={status === 'partial'} onChange={() => setStatus('partial')} /> Partial
-          </label>
+        {/* Quick: full phase done */}
+        <div style={{ marginBottom: 14, padding: 8, background: 'rgba(95, 213, 95, 0.05)', border: '1px solid rgba(95, 213, 95, 0.2)', borderRadius: 3 }}>
+          <div style={{ fontSize: 10, color: 'var(--text-muted)', marginBottom: 6 }}>Quick action — entire phase done across the whole project:</div>
+          <button onClick={handleLogFullPhase} disabled={saving} style={primaryBtn(saving)}>
+            Log Full Phase Complete ({allTaskIds.length} tasks × {allRoomIds.length} rooms)
+          </button>
         </div>
 
-        {status === 'partial' && (
-          <div style={{ marginBottom: 12, fontSize: 11 }}>
-            <div style={{ fontSize: 10, color: 'var(--text-muted)', letterSpacing: 0.5, marginBottom: 6 }}>
-              ═══ ROOMS (check fully done, expand for partial activity tracking) ═══
+        <div style={{ fontSize: 10, color: 'var(--text-muted)', letterSpacing: 0.5, marginBottom: 6, marginTop: 6 }}>
+          ═══ OR PICK TASKS + ROOMS ═══
+        </div>
+
+        {/* Tasks */}
+        <div style={{ marginBottom: 12 }}>
+          <div style={{ fontSize: 10, color: 'var(--text-muted)', marginBottom: 4 }}>TASKS ({selectedTasks.size} of {allTaskIds.length} selected)</div>
+          <label style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4, fontSize: 11, fontWeight: 600 }}>
+            <input type="checkbox" checked={allTasksChecked} onChange={toggleAllTasks} /> All tasks
+          </label>
+          {phaseRollup.activities.map(act => (
+            <div key={act.activity_id} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '2px 0', fontSize: 11 }}>
+              <input
+                type="checkbox"
+                checked={selectedTasks.has(act.activity_id)}
+                onChange={() => toggleTask(act.activity_id)}
+              />
+              <span style={{ flex: 1 }}>{act.activity_name}</span>
+              <span style={{ color: 'var(--text-muted)', fontSize: 10 }}>{act.estimated_hours.toFixed(1)}h</span>
             </div>
-            {phaseRollup.rooms.map(room => {
-              const rs = roomState[room.room_id];
-              const acts = activitiesInRoom(phaseRollup, room.room_id);
-              return (
-                <div key={room.room_id} style={{ marginBottom: 6, padding: 6, background: rs.done ? 'rgba(95, 213, 95, 0.05)' : 'rgba(255,255,255,0.02)', borderRadius: 3 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <input
-                      type="checkbox"
-                      checked={rs.done}
-                      onChange={(e) => toggleRoomDone(room.room_id, e.target.checked)}
-                    />
-                    <span style={{ flex: 1, fontWeight: 600 }}>{room.room_label}</span>
-                    <span style={{ color: 'var(--text-muted)', fontSize: 10 }}>{room.estimated_hours.toFixed(1)}h est</span>
-                    {!rs.done && (
-                      <button
-                        onClick={() => toggleRoomExpanded(room.room_id)}
-                        style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: 12, padding: '0 4px' }}
-                      >
-                        {rs.expanded ? '▼' : '▶'}
-                      </button>
-                    )}
-                  </div>
-                  {!rs.done && rs.expanded && (
-                    <div style={{ marginTop: 6, marginLeft: 22, paddingLeft: 8, borderLeft: '1px solid var(--border)' }}>
-                      {acts.length === 0 ? (
-                        <div style={{ color: 'var(--text-muted)', fontStyle: 'italic' }}>(no activities)</div>
-                      ) : acts.map(act => {
-                        const ap = rs.activities[act.activity_id] || {};
-                        return (
-                          <div key={act.activity_id} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '2px 0', fontSize: 10 }}>
-                            <input
-                              type="checkbox"
-                              checked={!!ap.complete}
-                              onChange={(e) => toggleActivity(room.room_id, act.activity_id, e.target.checked)}
-                            />
-                            <span style={{ flex: 1 }}>{act.activity_name}</span>
-                            <input
-                              type="number" min="0" max="100"
-                              value={ap.pct ?? ''}
-                              onChange={(e) => setActivityPct(room.room_id, act.activity_id, e.target.value)}
-                              placeholder="—"
-                              style={{ ...inputStyle(), width: 52, textAlign: 'right' }}
-                            />
-                            <span style={{ color: 'var(--text-muted)' }}>%</span>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
+          ))}
+        </div>
+
+        {/* Completed rooms */}
+        <div style={{ marginBottom: 12, padding: 8, background: 'rgba(130, 170, 255, 0.04)', borderRadius: 3 }}>
+          <div style={{ fontSize: 10, color: 'var(--text-muted)', marginBottom: 4 }}>
+            COMPLETED ROOMS — selected tasks finished 100% in these rooms
+          </div>
+          <label style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4, fontSize: 11, fontWeight: 600 }}>
+            <input type="checkbox" checked={allCompletedChecked} onChange={toggleAllCompleted} /> All rooms
+          </label>
+          {phaseRollup.rooms.map(room => (
+            <div key={room.room_id} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '2px 0', fontSize: 11 }}>
+              <input type="checkbox" checked={completedRooms.has(room.room_id)} onChange={() => toggleCompleted(room.room_id)} />
+              <span style={{ flex: 1 }}>{room.room_label}</span>
+              <span style={{ color: 'var(--text-muted)', fontSize: 10 }}>{room.estimated_hours.toFixed(1)}h est</span>
+            </div>
+          ))}
+          <button
+            onClick={handleLogCompleted}
+            disabled={saving || selectedTasks.size === 0 || completedRooms.size === 0}
+            style={secondaryBtn(saving || selectedTasks.size === 0 || completedRooms.size === 0)}
+          >
+            Log {completedCount} Completed{completedCount === 1 ? ' entry' : ' entries'}
+            {selectedTasks.size > 0 && completedRooms.size > 0 && ` (${selectedTasks.size} task${selectedTasks.size === 1 ? '' : 's'} × ${completedRooms.size} room${completedRooms.size === 1 ? '' : 's'})`}
+          </button>
+        </div>
+
+        {/* Partial rooms */}
+        <div style={{ marginBottom: 12, padding: 8, background: 'rgba(241, 196, 15, 0.04)', borderRadius: 3 }}>
+          <div style={{ fontSize: 10, color: 'var(--text-muted)', marginBottom: 4, display: 'flex', alignItems: 'center', gap: 6 }}>
+            <span>PARTIAL ROOMS — selected tasks at</span>
+            <input
+              type="number" min="0" max="100"
+              value={partialPct}
+              onChange={(e) => setPartialPct(e.target.value)}
+              placeholder="—"
+              style={{ ...inputStyle(), width: 50, padding: '2px 4px' }}
+            />
+            <span>%</span>
+          </div>
+          <label style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4, fontSize: 11, fontWeight: 600 }}>
+            <input type="checkbox" checked={allPartialChecked} onChange={toggleAllPartial} /> All rooms
+          </label>
+          {phaseRollup.rooms.map(room => (
+            <div key={room.room_id} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '2px 0', fontSize: 11 }}>
+              <input type="checkbox" checked={partialRooms.has(room.room_id)} onChange={() => togglePartial(room.room_id)} />
+              <span style={{ flex: 1 }}>{room.room_label}</span>
+              <span style={{ color: 'var(--text-muted)', fontSize: 10 }}>{room.estimated_hours.toFixed(1)}h est</span>
+            </div>
+          ))}
+          <button
+            onClick={handleLogPartial}
+            disabled={saving || selectedTasks.size === 0 || partialRooms.size === 0 || !partialPct}
+            style={secondaryBtn(saving || selectedTasks.size === 0 || partialRooms.size === 0 || !partialPct)}
+          >
+            Log {partialCount} Partial{partialCount === 1 ? ' entry' : ' entries'}
+            {selectedTasks.size > 0 && partialRooms.size > 0 && partialPct && ` (${selectedTasks.size} task${selectedTasks.size === 1 ? '' : 's'} × ${partialRooms.size} room${partialRooms.size === 1 ? '' : 's'} @ ${partialPct}%)`}
+          </button>
+        </div>
+
+        {error && (
+          <div style={{ color: '#e74c3c', fontSize: 11, marginBottom: 8 }}>❌ {error}</div>
+        )}
+        {recentBatch && (
+          <div style={{ color: '#5d5', fontSize: 11, marginBottom: 8 }}>
+            ✓ Logged {recentBatch.count} {recentBatch.label} entr{recentBatch.count === 1 ? 'y' : 'ies'}. Update Hours + select again to log more.
           </div>
         )}
 
-        {error && (
-          <div style={{ color: '#e74c3c', fontSize: 11, marginBottom: 12 }}>❌ {error}</div>
-        )}
-
-        <div style={{ fontSize: 10, color: 'var(--text-muted)', marginBottom: 8 }}>
-          Will write {plannedEntries.length} entr{plannedEntries.length === 1 ? 'y' : 'ies'} (hours split evenly).
-        </div>
-
-        <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-          <button onClick={() => !saving && onClose()} disabled={saving} style={cancelBtn(saving)}>Cancel</button>
-          <button onClick={handleSave} disabled={saving} style={saveBtn(saving)}>
-            {saving ? 'Saving...' : `Save ${plannedEntries.length} Entr${plannedEntries.length === 1 ? 'y' : 'ies'}`}
-          </button>
+        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+          <button onClick={() => !saving && onClose()} disabled={saving} style={cancelBtn(saving)}>Done</button>
         </div>
       </div>
     </div>
-  );
-}
-
-// Helper: get all activities in a phase that touch a given room
-function activitiesInRoom(phaseRollup, roomId) {
-  return phaseRollup.activities.filter(act =>
-    act.rooms.some(r => r.room_id === roomId)
   );
 }
 
@@ -318,18 +304,26 @@ function inputStyle() {
     borderRadius: 3, fontSize: 11,
   };
 }
+function primaryBtn(disabled) {
+  return {
+    background: disabled ? 'var(--bg-input)' : '#5d5',
+    color: disabled ? 'var(--text-muted)' : 'var(--bg, #0f0f0f)',
+    border: 'none', padding: '6px 14px', borderRadius: 3,
+    cursor: disabled ? 'not-allowed' : 'pointer', fontSize: 11, fontWeight: 600, width: '100%',
+  };
+}
+function secondaryBtn(disabled) {
+  return {
+    background: disabled ? 'var(--bg-input)' : 'var(--accent, #82aaff)',
+    color: disabled ? 'var(--text-muted)' : 'var(--bg, #0f0f0f)',
+    border: 'none', padding: '6px 14px', borderRadius: 3,
+    cursor: disabled ? 'not-allowed' : 'pointer', fontSize: 11, fontWeight: 600, width: '100%', marginTop: 4,
+  };
+}
 function cancelBtn(disabled) {
   return {
     background: 'transparent', border: '1px solid var(--border, #333)',
     color: 'var(--text)', padding: '6px 14px', borderRadius: 3,
     cursor: disabled ? 'not-allowed' : 'pointer', fontSize: 11,
-  };
-}
-function saveBtn(disabled) {
-  return {
-    background: disabled ? 'var(--bg-input)' : 'var(--accent, #82aaff)',
-    color: disabled ? 'var(--text-muted)' : 'var(--bg, #0f0f0f)',
-    border: 'none', padding: '6px 14px', borderRadius: 3,
-    cursor: disabled ? 'not-allowed' : 'pointer', fontSize: 11, fontWeight: 600,
   };
 }
