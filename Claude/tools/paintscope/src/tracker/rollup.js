@@ -131,6 +131,122 @@ export function sumPhaseLoggedHours(phaseRollup, entries) {
 }
 
 /**
+ * Per-worker summary: groups entries by worker_name.
+ * Returns array of { worker, totalHours, entryCount, activityIds (Set of touched),
+ * roomIds (Set of touched), firstDate, lastDate, dateCount }.
+ */
+export function buildWorkerSummary(entries) {
+  const map = {};
+  for (const e of entries || []) {
+    if (e._legacy) continue;
+    const name = e.worker_name || '(unknown)';
+    if (!map[name]) {
+      map[name] = {
+        worker: name,
+        totalHours: 0,
+        entryCount: 0,
+        activityIds: new Set(),
+        roomIds: new Set(),
+        dates: new Set(),
+        firstDate: null,
+        lastDate: null,
+      };
+    }
+    const w = map[name];
+    w.totalHours += e.hours || 0;
+    w.entryCount += 1;
+    if (e.activity_id) w.activityIds.add(e.activity_id);
+    if (e.room_progress) for (const rid of Object.keys(e.room_progress)) w.roomIds.add(rid);
+    if (e.date) {
+      w.dates.add(e.date);
+      if (!w.firstDate || e.date < w.firstDate) w.firstDate = e.date;
+      if (!w.lastDate || e.date > w.lastDate) w.lastDate = e.date;
+    }
+  }
+  return Object.values(map).map(w => ({
+    worker: w.worker,
+    totalHours: Math.round(w.totalHours * 100) / 100,
+    entryCount: w.entryCount,
+    activityIds: [...w.activityIds],
+    roomIds: [...w.roomIds],
+    dateCount: w.dates.size,
+    firstDate: w.firstDate,
+    lastDate: w.lastDate,
+  })).sort((a, b) => b.totalHours - a.totalHours);
+}
+
+/**
+ * Per-room summary: logged hours rolled up to room level.
+ * Returns { [room_id]: { room_id, room_label, logged_hours, estimated_hours, pct } }.
+ */
+export function buildRoomSummary(snapshot, entries) {
+  // Sum estimated_hours per room across all activities
+  const roomEst = {};
+  const roomLabel = {};
+  for (const act of snapshot?.activities || []) {
+    for (const room of act.rooms || []) {
+      roomEst[room.room_id] = (roomEst[room.room_id] || 0) + (room.estimated_hours || 0);
+      roomLabel[room.room_id] = room.room_label;
+    }
+  }
+  // Allocate logged hours per room: split each entry's hours across the rooms it touched
+  const roomLogged = {};
+  for (const e of entries || []) {
+    if (e._legacy) continue;
+    const roomIds = e.room_progress ? Object.keys(e.room_progress) : [];
+    if (roomIds.length === 0) continue;
+    const each = (e.hours || 0) / roomIds.length;
+    for (const rid of roomIds) {
+      roomLogged[rid] = (roomLogged[rid] || 0) + each;
+    }
+  }
+  const allRoomIds = new Set([...Object.keys(roomEst), ...Object.keys(roomLogged)]);
+  const result = {};
+  for (const rid of allRoomIds) {
+    const est = roomEst[rid] || 0;
+    const logged = roomLogged[rid] || 0;
+    result[rid] = {
+      room_id: rid,
+      room_label: roomLabel[rid] || rid,
+      estimated_hours: Math.round(est * 100) / 100,
+      logged_hours: Math.round(logged * 100) / 100,
+      pct: est > 0 ? Math.round((logged / est) * 100) : 0,
+    };
+  }
+  return result;
+}
+
+/**
+ * Phase comparison: estimated vs logged per phase + variance.
+ */
+export function buildPhaseComparison(snapshot, entries) {
+  const phaseRollups = buildPhaseRollups(snapshot);
+  const entriesByActivity = {};
+  for (const e of entries || []) {
+    if (e._legacy || !e.activity_id) continue;
+    if (!entriesByActivity[e.activity_id]) entriesByActivity[e.activity_id] = [];
+    entriesByActivity[e.activity_id].push(e);
+  }
+  const rows = [];
+  for (const phase of Object.keys(phaseRollups)) {
+    const r = phaseRollups[phase];
+    const logged = sumPhaseLoggedHours(r, entries);
+    const est = r.estimated_hours;
+    const variance = logged - est;
+    const variancePct = est > 0 ? Math.round((variance / est) * 100) : 0;
+    rows.push({
+      phase,
+      estimated: Math.round(est * 100) / 100,
+      logged: Math.round(logged * 100) / 100,
+      variance: Math.round(variance * 100) / 100,
+      variancePct,
+      pct: est > 0 ? Math.round((logged / est) * 100) : 0,
+    });
+  }
+  return rows;
+}
+
+/**
  * Phase-level completion = weighted average of activity completions in that
  * phase, weighted by each activity's estimated_hours.
  */

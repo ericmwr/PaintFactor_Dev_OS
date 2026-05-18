@@ -6,12 +6,14 @@ import { sumLoggedHours } from '../../tracker/rollup.js';
 import TrackerBody from './TrackerBody.jsx';
 import LegacyEntriesPanel from './LegacyEntriesPanel.jsx';
 import RosterEditor from './RosterEditor.jsx';
+import SummaryView from './SummaryView.jsx';
 
 export default function TrackerView() {
   const { state, projectId } = useProject();
   const { snapshot, loading: snapLoading } = useTrackerSnapshot(projectId);
   const { entries, loading: entriesLoading, refresh: refreshEntries } = useTimeEntries(projectId);
   const [rosterOpen, setRosterOpen] = useState(false);
+  const [subTab, setSubTab] = useState('activities'); // 'activities' | 'summary'
 
   const status = state.project?.status || 'draft';
   const newEntries = useMemo(() => (entries || []).filter(e => !e._legacy), [entries]);
@@ -78,7 +80,29 @@ export default function TrackerView() {
         <span style={{ color: 'var(--accent)' }}>{overallPct}%</span>
       </div>
 
-      <TrackerBody snapshot={snapshot} entries={newEntries} onEntrySaved={refreshEntries} />
+      <div style={{ display: 'flex', gap: 0, marginBottom: 12, borderRadius: 4, overflow: 'hidden', border: '1px solid var(--border)', alignSelf: 'flex-start', width: 'fit-content' }}>
+        {[
+          { id: 'activities', label: 'Activities' },
+          { id: 'summary',    label: 'Summary' },
+        ].map(t => (
+          <button
+            key={t.id}
+            onClick={() => setSubTab(t.id)}
+            style={{
+              padding: '5px 14px', fontSize: 11, fontWeight: 600, border: 'none', cursor: 'pointer',
+              background: subTab === t.id ? 'var(--accent)' : 'var(--bg-card)',
+              color: subTab === t.id ? 'var(--bg, #0f0f0f)' : 'var(--text-secondary)',
+            }}
+          >{t.label}</button>
+        ))}
+      </div>
+
+      {subTab === 'activities' && (
+        <TrackerBody snapshot={snapshot} entries={newEntries} onEntrySaved={refreshEntries} />
+      )}
+      {subTab === 'summary' && (
+        <SummaryView snapshot={snapshot} entries={newEntries} />
+      )}
 
       {legacyEntries.length > 0 && (
         <div style={{ marginTop: 32 }}>
