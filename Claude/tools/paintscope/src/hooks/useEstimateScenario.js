@@ -18,6 +18,8 @@ import { useMemo, useRef, useState, useEffect } from 'react';
 import { useProject } from './useProject';
 import { useSpecData } from './useSpecData';
 import { useCompanyProfile } from './useCompanyProfile';
+import { useProducts } from './useProducts';
+import { buildManualMaterialEstimates } from '../engine/manual-materials.js';
 import { runScenarioEstimate } from '../engine/run-estimate-scenario.js';
 import { buildScenarioInputs } from '../engine/context-adapter.js';
 import { findBestMatch, findNearMisses } from '../engine/scenario-matcher.js';
@@ -34,6 +36,7 @@ export function useEstimateScenario() {
   const { state } = useProject();
   const { specData } = useSpecData();
   const { profile } = useCompanyProfile();
+  const { products } = useProducts();
   const lastLedgerHashRef = useRef(null);
 
   // Load draft overlays once, then re-run estimate. Until drafts resolve
@@ -231,6 +234,15 @@ export function useEstimateScenario() {
         warnings.push(`Material estimates: ${matErr.message}`);
       }
 
+      // Append manual material entries (state.project.material_overrides.manual)
+      // so the bid price + Materials views all see them. Pure append — engine-
+      // emitted estimates are untouched.
+      const manualEntries = state.project?.material_overrides?.manual || [];
+      const manualMaterials = buildManualMaterialEstimates(manualEntries, products);
+      if (manualMaterials.length > 0) {
+        materialEstimates = [...materialEstimates, ...manualMaterials];
+      }
+
       // ── Step 6: Pricing ──
       // Shared computePricing(); returns null when profile is missing.
       let pricing = null;
@@ -265,7 +277,7 @@ export function useEstimateScenario() {
       console.error('[PaintScope] Scenario estimate error:', e);
       return { error: e.message, specResults: [], totalHours: 0, totalCrewDays: 0, phaseHours: {}, perInputResults: [], gaps: [], warnings: [], bundleStats, roomProtection: {}, fixtureProtection: {}, closetHoursByRoom: {}, materialEstimates: [], pricing: null, activatedSpecs: 0, totalSpecs: 0 };
     }
-  }, [state, specData, profile, bundle, overlayStats]);
+  }, [state, specData, profile, bundle, overlayStats, products]);
 
   // Side-effect: record fired tasks into the IDB ledger for the
   // "elimination by absence" cleanup workflow. Walks perInputResults
