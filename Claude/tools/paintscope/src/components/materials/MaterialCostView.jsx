@@ -1,15 +1,18 @@
 import { useMemo } from 'react';
 import { useEstimate } from '../../hooks/useEstimate';
+import { useProject } from '../../hooks/useProject';
+import { useProducts } from '../../hooks/useProducts';
 
 export default function MaterialCostView() {
   const estimate = useEstimate();
+  const { state } = useProject();
+  const { products: catalogProducts } = useProducts();
+  const manualEntries = state.project?.material_overrides?.manual;
+  const manuals = Array.isArray(manualEntries) ? manualEntries : [];
 
   const materialCosts = useMemo(() => {
-    if (!estimate?.materialEstimates) return [];
-
-    // Consolidate by productId — same product from multiple specs (e.g. wall + ceiling primer) merges
     const groups = {};
-    estimate.materialEstimates.forEach(mat => {
+    (estimate?.materialEstimates || []).forEach(mat => {
       const key = `${mat.productId || mat.systemName || mat.specFamilyId}||${mat.productRole || ''}`;
       if (!groups[key]) {
         groups[key] = {
@@ -20,17 +23,38 @@ export default function MaterialCostView() {
           totalSF: 0,
           unitCost: mat.pricePerGallon || 0,
           coverageRate: mat.coverageRate,
+          source: 'engine',
         };
       }
       groups[key].gallons += mat.gallons || 0;
       groups[key].totalSF += mat.totalSF || 0;
     });
+
+    // Append manually added products as their own rows
+    manuals.forEach(m => {
+      const product = catalogProducts.find(p => p.id === m.product_id);
+      const productName = product?.product_name || `(deleted product: ${m.product_id})`;
+      const brand = product?.brand || null;
+      const unitCost = product?.unit_cost || 0;
+      const systemName = product ? `Manual: ${product.product_type}` : 'Manual';
+      groups[`manual::${m.id}`] = {
+        systemName,
+        productName,
+        brand,
+        gallons: m.gallons || 0,
+        totalSF: 0,
+        unitCost,
+        coverageRate: product?.coverage_sf_per_gal,
+        source: 'manual',
+      };
+    });
+
     return Object.values(groups).map(g => ({
       ...g,
       gallons: Math.round(g.gallons * 10) / 10,
       totalCost: g.unitCost ? Math.round(g.gallons * g.unitCost * 100) / 100 : 0,
     }));
-  }, [estimate]);
+  }, [estimate, manuals, catalogProducts]);
 
   const totalMaterialCost = materialCosts.reduce((sum, m) => sum + m.totalCost, 0);
 
@@ -56,8 +80,11 @@ export default function MaterialCostView() {
             </thead>
             <tbody>
               {materialCosts.map((m, i) => (
-                <tr key={i} style={{ borderBottom: '1px solid var(--border)' }}>
-                  <td style={{ padding: '6px 8px' }}>{m.systemName || m.specFamilyId || 'Unknown'}</td>
+                <tr key={i} style={{ borderBottom: '1px solid var(--border)', background: m.source === 'manual' ? 'rgba(95,213,95,0.04)' : 'transparent' }}>
+                  <td style={{ padding: '6px 8px' }}>
+                    {m.source === 'manual' && <span style={{ fontSize: 9, padding: '1px 5px', borderRadius: 3, background: 'rgba(95,213,95,0.2)', color: '#5d5', marginRight: 6 }}>manual</span>}
+                    {m.systemName || m.specFamilyId || 'Unknown'}
+                  </td>
                   <td style={{ padding: '6px 8px', fontFamily: 'monospace' }}>{(m.gallons || 0).toFixed(1)} gal</td>
                   <td style={{ padding: '6px 8px', fontSize: 11 }}>
                     {m.productName && m.brand

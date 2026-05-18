@@ -87,6 +87,54 @@ export function reducer(state, action) {
       if (next.length === roster.length) return state;
       return { ...state, project: { ...state.project, tracker_roster: next } };
     }
+    case 'ADD_MANUAL_MATERIAL': {
+      const { product_id, gallons, notes } = payload || {};
+      if (!product_id || !(gallons > 0)) return state;
+      const mo = state.project.material_overrides || { system: {}, manual: [] };
+      const manual = Array.isArray(mo.manual) ? mo.manual : [];
+      const entry = {
+        id: `mm_${Date.now()}`,
+        product_id,
+        gallons: Number(gallons),
+        notes: (notes || '').trim(),
+        added_at: new Date().toISOString(),
+      };
+      return {
+        ...state,
+        project: {
+          ...state.project,
+          material_overrides: { ...mo, manual: [...manual, entry] },
+        },
+      };
+    }
+    case 'UPDATE_MANUAL_MATERIAL': {
+      const { id, gallons, notes } = payload || {};
+      if (!id) return state;
+      const mo = state.project.material_overrides || { system: {}, manual: [] };
+      const manual = Array.isArray(mo.manual) ? mo.manual : [];
+      const idx = manual.findIndex(m => m.id === id);
+      if (idx < 0) return state;
+      const updated = { ...manual[idx] };
+      if (gallons != null && gallons > 0) updated.gallons = Number(gallons);
+      if (notes != null) updated.notes = String(notes).trim();
+      const next = [...manual]; next[idx] = updated;
+      return {
+        ...state,
+        project: { ...state.project, material_overrides: { ...mo, manual: next } },
+      };
+    }
+    case 'REMOVE_MANUAL_MATERIAL': {
+      const id = payload;
+      if (!id) return state;
+      const mo = state.project.material_overrides || { system: {}, manual: [] };
+      const manual = Array.isArray(mo.manual) ? mo.manual : [];
+      const next = manual.filter(m => m.id !== id);
+      if (next.length === manual.length) return state;
+      return {
+        ...state,
+        project: { ...state.project, material_overrides: { ...mo, manual: next } },
+      };
+    }
     case 'TOGGLE_PROJECT_SUBSTRATE': {
       const subs = state.project.default_substrates || [];
       const id = payload;

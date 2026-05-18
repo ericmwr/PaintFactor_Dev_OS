@@ -256,7 +256,7 @@ export const initialState = {
     // to cut in between them). Per-room override in room.combined_wc_finish_override.
     default_combined_wc_finish: false,
     default_brand: null,
-    material_overrides: { system: {}, manual: {} },
+    material_overrides: { system: {}, manual: [] },
     notes: '',
     default_substrates: ['ceiling', 'walls', 'baseboard'],
     // v0.10 Protection rollout — project-level heuristics for outlets/HVAC vents
