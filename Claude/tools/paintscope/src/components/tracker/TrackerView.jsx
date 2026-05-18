@@ -11,7 +11,7 @@ import SummaryView from './SummaryView.jsx';
 export default function TrackerView() {
   const { state, projectId } = useProject();
   const { snapshot, loading: snapLoading } = useTrackerSnapshot(projectId);
-  const { entries, loading: entriesLoading, refresh: refreshEntries } = useTimeEntries(projectId);
+  const { entries, loading: entriesLoading, refresh: refreshEntries, resetAll: resetAllEntries } = useTimeEntries(projectId);
   const [rosterOpen, setRosterOpen] = useState(false);
   const [subTab, setSubTab] = useState('activities'); // 'activities' | 'summary'
 
@@ -72,6 +72,21 @@ export default function TrackerView() {
               color: 'var(--text-muted)', borderRadius: 3, cursor: 'pointer',
             }}
           >Edit Roster</button>
+          <button
+            onClick={async () => {
+              const count = newEntries.length;
+              if (count === 0) { alert('No tracker entries to reset.'); return; }
+              if (!confirm(`Delete all ${count} tracker time entries for this project?\n\nLegacy/pre-snapshot entries (if any) are NOT affected. Snapshot stays intact.\n\nThis cannot be undone.`)) return;
+              const deleted = await resetAllEntries({ onlyNew: true });
+              alert(`Deleted ${deleted} entries.`);
+            }}
+            style={{
+              fontSize: 10, padding: '2px 6px',
+              background: 'transparent', border: '1px solid #e74c3c',
+              color: '#e74c3c', borderRadius: 3, cursor: 'pointer',
+            }}
+            title="Delete all tracker time entries for this project"
+          >Reset Hours</button>
         </div>
       </div>
       <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 16 }}>

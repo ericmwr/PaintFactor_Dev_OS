@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { listTimeEntries, saveTimeEntry, deleteTimeEntry } from '../data/timeentry-db';
+import { listTimeEntries, saveTimeEntry, deleteTimeEntry, deleteTimeEntriesForProject } from '../data/timeentry-db';
 
 export function useTimeEntries(projectId) {
   const [entries, setEntries] = useState([]);
@@ -33,5 +33,11 @@ export function useTimeEntries(projectId) {
     await refresh();
   }, [refresh]);
 
-  return { entries, loading, save, remove, refresh };
+  const resetAll = useCallback(async (opts = { onlyNew: true }) => {
+    const count = await deleteTimeEntriesForProject(projectId, opts);
+    await refresh();
+    return count;
+  }, [projectId, refresh]);
+
+  return { entries, loading, save, remove, refresh, resetAll };
 }
