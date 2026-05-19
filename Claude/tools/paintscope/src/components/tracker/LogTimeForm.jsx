@@ -120,7 +120,7 @@ export default function LogTimeForm({ activity, entries, onClose, onSaved }) {
       onClick={() => !saving && onClose()}
       style={{
         position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000,
-        display: 'flex', alignItems: 'center', justifyContent: 'flex-end',
+        display: 'flex', alignItems: 'stretch', justifyContent: 'flex-end',
       }}
     >
       <div
@@ -128,7 +128,8 @@ export default function LogTimeForm({ activity, entries, onClose, onSaved }) {
         style={{
           background: 'var(--bg-card, #1f1f1f)', color: 'var(--text)',
           border: '1px solid var(--border, #333)', borderLeft: '2px solid var(--accent)',
-          padding: 16, width: 360, height: '100vh', overflowY: 'auto',
+          padding: 16, width: 360, maxWidth: '100%', overflowY: 'auto',
+          WebkitOverflowScrolling: 'touch',
           boxShadow: '-8px 0 24px rgba(0,0,0,0.6)',
         }}
       >
