@@ -101,7 +101,7 @@ export default function PhaseLogForm({ phaseRollup, onClose, onSaved }) {
           worker_name: worker.trim(),
           date,
           hours: hoursPerEntry,
-          notes: `phase log: ${PHASE_LABELS[phaseRollup.phase] || phaseRollup.phase} — ${batchLabel}`,
+          notes: `phase log: ${phaseRollup.label || PHASE_LABELS[phaseRollup.phase] || phaseRollup.phase} — ${batchLabel}`,
           created_at,
           mode: 'rooms',
           room_progress: roomProgress,
@@ -173,7 +173,7 @@ export default function PhaseLogForm({ phaseRollup, onClose, onSaved }) {
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 12 }}>
           <h3 style={{ margin: 0, fontSize: 13, color: 'var(--accent)' }}>
-            Log Time — {PHASE_LABELS[phaseRollup.phase] || phaseRollup.phase}
+            Log Time — {phaseRollup.label || PHASE_LABELS[phaseRollup.phase] || phaseRollup.phase}
           </h3>
           <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>
             est {phaseRollup.estimated_hours.toFixed(1)}h

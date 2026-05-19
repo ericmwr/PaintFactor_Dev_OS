@@ -131,6 +131,48 @@ export function sumPhaseLoggedHours(phaseRollup, entries) {
 }
 
 /**
+ * Build rollups for the three project-level groups (project_setup,
+ * project_protection, project_cleanup) — same shape as buildPhaseRollups
+ * so PhaseLogForm + PhaseHeader can render them with the multi-task picker.
+ * Returns { [element_parent]: { phase, element_parent, label, estimated_hours, rooms, activities } }
+ * Only includes groups that have at least one activity.
+ */
+const PROJECT_LEVEL_GROUPS = [
+  { id: 'project_setup',      label: 'Project Setup' },
+  { id: 'project_protection', label: 'Project Protection' },
+  { id: 'project_cleanup',    label: 'Project Cleanup' },
+];
+
+export function buildProjectLevelRollups(snapshot) {
+  const result = {};
+  const activities = snapshot?.activities || [];
+
+  for (const group of PROJECT_LEVEL_GROUPS) {
+    const acts = activities.filter(a => a.element_parent === group.id);
+    if (acts.length === 0) continue;
+
+    const rooms = {};
+    let est = 0;
+    for (const act of acts) {
+      est += act.estimated_hours;
+      for (const r of act.rooms || []) {
+        if (!rooms[r.room_id]) rooms[r.room_id] = { room_id: r.room_id, room_label: r.room_label, estimated_hours: 0 };
+        rooms[r.room_id].estimated_hours += r.estimated_hours;
+      }
+    }
+    result[group.id] = {
+      phase: group.id,
+      element_parent: group.id,
+      label: group.label,
+      estimated_hours: est,
+      rooms: Object.values(rooms),
+      activities: acts,
+    };
+  }
+  return result;
+}
+
+/**
  * Per-worker summary: groups entries by worker_name.
  * Returns array of { worker, totalHours, entryCount, activityIds (Set of touched),
  * roomIds (Set of touched), firstDate, lastDate, dateCount }.

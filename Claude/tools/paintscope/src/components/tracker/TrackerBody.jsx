@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { VIRTUAL_PARENTS } from '../../tracker/element-parents.js';
-import { buildPhaseRollups, sumPhaseLoggedHours, computePhaseCompletion } from '../../tracker/rollup.js';
+import { buildPhaseRollups, buildProjectLevelRollups, sumPhaseLoggedHours, computePhaseCompletion } from '../../tracker/rollup.js';
 import ActivityRow from './ActivityRow.jsx';
 import PhaseLogForm from './PhaseLogForm.jsx';
 
@@ -29,6 +29,7 @@ export default function TrackerBody({ snapshot, entries, onEntrySaved }) {
   const activities = snapshot?.activities || [];
 
   const phaseRollups = useMemo(() => buildPhaseRollups(snapshot), [snapshot]);
+  const projectLevelRollups = useMemo(() => buildProjectLevelRollups(snapshot), [snapshot]);
 
   const { projectLevel, phaseGroups, presentPhases } = useMemo(() => {
     const pl = { before: [], middle: [], after: [] };
@@ -85,8 +86,15 @@ export default function TrackerBody({ snapshot, entries, onEntrySaved }) {
         >Collapse All</button>
       </div>
 
-      {(projectLevel.before.length > 0 || projectLevel.middle.length > 0) && (
-        <SectionHeader label="PROJECT-LEVEL" />
+      {projectLevel.before.length > 0 && projectLevelRollups.project_setup && (
+        <PhaseHeader
+          phase="project_setup"
+          label="PROJECT SETUP"
+          rollup={projectLevelRollups.project_setup}
+          entries={entries}
+          entriesByActivity={entriesByActivity}
+          onLog={() => setPhaseLogFor(projectLevelRollups.project_setup)}
+        />
       )}
       {projectLevel.before.map(act => (
         <ActivityRow
@@ -97,6 +105,16 @@ export default function TrackerBody({ snapshot, entries, onEntrySaved }) {
           onEntrySaved={onEntrySaved}
         />
       ))}
+      {projectLevel.middle.length > 0 && projectLevelRollups.project_protection && (
+        <PhaseHeader
+          phase="project_protection"
+          label="PROJECT PROTECTION"
+          rollup={projectLevelRollups.project_protection}
+          entries={entries}
+          entriesByActivity={entriesByActivity}
+          onLog={() => setPhaseLogFor(projectLevelRollups.project_protection)}
+        />
+      )}
       {projectLevel.middle.map(act => (
         <ActivityRow
           key={act.activity_id}
@@ -136,7 +154,16 @@ export default function TrackerBody({ snapshot, entries, onEntrySaved }) {
         );
       })}
 
-      {projectLevel.after.length > 0 && <SectionHeader label="PROJECT-LEVEL" />}
+      {projectLevel.after.length > 0 && projectLevelRollups.project_cleanup && (
+        <PhaseHeader
+          phase="project_cleanup"
+          label="PROJECT CLEANUP"
+          rollup={projectLevelRollups.project_cleanup}
+          entries={entries}
+          entriesByActivity={entriesByActivity}
+          onLog={() => setPhaseLogFor(projectLevelRollups.project_cleanup)}
+        />
+      )}
       {projectLevel.after.map(act => (
         <ActivityRow
           key={act.activity_id}
