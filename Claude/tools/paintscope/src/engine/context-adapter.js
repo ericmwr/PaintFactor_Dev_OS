@@ -218,8 +218,11 @@ const SPEC_TO_PAINTABLE_ITEM = {
   // Exterior (families converted in Phase 2a)
   SF_TRIM_EXT_NC:                   'ext_trim',
   SF_TRIM_EXT_RP:                   'ext_trim',
-  SF_WOOD_SIDING_EXT_NC_PAINT:      'ext_siding',
-  SF_SIDING_WOOD_EXT_RP:            'ext_siding',
+  // Wood siding is the generic "siding" paintable_item. Engineered/fibercement/
+  // vinyl/aluminum scenarios use prefixed paintable_items (ext_eng_siding, etc.)
+  // because they're alternative siding TYPES; wood is the canonical default.
+  SF_WOOD_SIDING_EXT_NC_PAINT:      'siding',
+  SF_SIDING_WOOD_EXT_RP:            'siding',
   SF_SIDING_ENGINEERED_EXT_NC:      'ext_eng_siding',
   SF_SIDING_ENGINEERED_EXT_RP:      'ext_eng_siding',
   SF_SIDING_FIBERCEMENT_EXT_NC:     'ext_fc_siding',
