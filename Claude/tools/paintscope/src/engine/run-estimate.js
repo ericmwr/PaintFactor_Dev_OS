@@ -16,7 +16,7 @@ import { SPEC_DISPLAY_NAMES, specDisplayName, PHASE_ORDER, ARCH_ELEMENT_PS_GROUP
 import { FIXTURE_CATALOG } from '../data/fixture-catalog.js';
 import { WINDOW_TYPE_LABELS, WINDOW_SIZE_LABELS, DOOR_TYPE_LABELS } from '../data/modifiers.js';
 import canonicalBundle from '../data/scenario-bundle.gen.js';
-import { buildScenarioInputs } from './context-adapter.js';
+import { buildElevationScenarioInputs, buildStandaloneScenarioInputs } from './context-adapter.js';
 import { runScenarioEstimate } from './run-estimate-scenario.js';
 import { findBestMatch, findNearMisses } from './scenario-matcher.js';
 import { scenarioResultsToSpecResults } from './scenario-to-spec-results.js';
@@ -627,17 +627,43 @@ export function runEstimate(state, db, overlayMap, profile) {
   // engine. Output is converted to specResult shape so the downstream
   // protection dedup, material estimates, and EstimateView consumers stay
   // unchanged.
+  // Build project-level overlay map for the scenario engine (mirrors useEstimateScenario.js:84-110).
+  // The legacy `overlayMap` parameter uses spec-keyed task ids; the scenario engine uses bare task ids.
+  // Constructed here so user rate edits + protection_heuristics rates apply to exterior tasks.
+  const ph = state?.project?.protection_heuristics || {};
+  const projectOverlayMap = {};
+  const setRate = (taskId, rate) => {
+    if (rate != null && rate > 0) projectOverlayMap[taskId] = { rate_per_hour: rate };
+  };
+  setRate('TSK_MASK_OUTLET_SWITCH_INSTALL',  ph.outlet_mask_rate);
+  setRate('TSK_MASK_OUTLET_SWITCH_REMOVE',   ph.outlet_mask_rate);
+  setRate('TSK_PREP_OUTLET_COVER_REMOVE',    ph.outlet_remove_reinstall_rate);
+  setRate('TSK_PREP_OUTLET_COVER_REINSTALL', ph.outlet_remove_reinstall_rate);
+  setRate('TSK_MASK_HVAC_VENT_INSTALL',      ph.hvac_mask_rate);
+  setRate('TSK_MASK_HVAC_VENT_REMOVE',       ph.hvac_mask_rate);
+  setRate('TSK_PREP_HVAC_VENT_REMOVE',       ph.hvac_remove_reinstall_rate);
+  setRate('TSK_PREP_HVAC_VENT_REINSTALL',    ph.hvac_remove_reinstall_rate);
+
+  const userOverrides = state?.project?.rate_overrides || {};
+  for (const [taskId, ov] of Object.entries(userOverrides)) {
+    if (ov?.rate_per_hour != null && ov.rate_per_hour > 0) {
+      projectOverlayMap[taskId] = { rate_per_hour: ov.rate_per_hour };
+    }
+  }
+
   const exterior = state.exterior;
   if (exterior && exterior.elevations && exterior.elevations.length > 0) {
-    const { roomInputs } = buildScenarioInputs(state, db);
-    const exteriorInputs = roomInputs.filter(ri => ri.roomIndex < 0);
+    const exteriorInputs = [
+      ...buildElevationScenarioInputs(state, db),
+      ...buildStandaloneScenarioInputs(state, db),
+    ];
 
     const perInputResults = [];
     for (const inp of exteriorInputs) {
       try {
         const matchInfo = findBestMatch(canonicalBundle, inp.ctx);
         if (!matchInfo.scenario) {
-          const near = findNearMisses(canonicalBundle, inp.ctx, 1).slice(0, 1);
+          const near = findNearMisses(canonicalBundle, inp.ctx, 2).slice(0, 1);
           const nearMsg = near[0]
             ? ` (near-miss: ${near[0].scenario.scenario_id})`
             : '';
@@ -651,7 +677,7 @@ export function runEstimate(state, db, overlayMap, profile) {
           ctx: inp.ctx,
           roomQty: inp.roomQty,
           roomItems: inp.roomItems,
-          overlayMap,
+          overlayMap: projectOverlayMap,
           roomIndex: inp.roomIndex,
           roomLabel: inp.roomLabel,
         });
@@ -659,9 +685,10 @@ export function runEstimate(state, db, overlayMap, profile) {
 
         perInputResults.push({
           specId: inp.specId,
-          specName: inp.specId,
+          specName: SPEC_DISPLAY_NAMES[inp.specId] || inp.specId,
           roomLabel: inp.roomLabel,
           roomIndex: inp.roomIndex,
+          ctx: inp.ctx,
           scenarioId: result.scenarioId,
           scenarioName: result.scenarioName,
           totalHours: result.totalHours,

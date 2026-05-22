@@ -44,6 +44,8 @@ export function scenarioResultsToSpecResults(scenarioResults, { domain = 'exteri
         domain,
         elevationLabel: isElevation ? r.roomLabel : null,
         standaloneType: isStandalone ? r.roomLabel.replace(/^Standalone:\s*/, '') : null,
+        coatMultiplier: t.coatMultiplier ?? t.coatNumber ?? 1,
+        conditionScale: r.ctx?.condition_scale || null,
       });
     }
   }
