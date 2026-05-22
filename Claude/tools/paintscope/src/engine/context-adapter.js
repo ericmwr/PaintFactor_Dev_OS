@@ -639,6 +639,21 @@ export function buildRoomProtectionCtxs(room, project, roomHasActiveSpec) {
 }
 
 /**
+ * Exterior roomIndex namespacing convention
+ * -----------------------------------------
+ * Exterior inputs use negative roomIndex values so they never collide with
+ * positive interior room indices in downstream consumers. The two exterior
+ * builders below partition that negative range:
+ *
+ *   Elevation inputs:  roomIndex ∈ [-100, -999]  (one per elevation, -100 - ei)
+ *   Standalone inputs: roomIndex ∈ [-1000, -1999] (one per standalone item type,
+ *                                                  -1000 - STANDALONE_INDEX[type])
+ *
+ * The -1000 floor for standalones means we can have up to 900 elevations
+ * before the ranges collide, which is well beyond any realistic project.
+ */
+
+/**
  * Build scenario inputs from state.exterior.elevations[].
  *
  * For each elevation × each active exterior elevation-bound spec (siding,
@@ -648,7 +663,7 @@ export function buildRoomProtectionCtxs(room, project, roomHasActiveSpec) {
  * Returns: Array<{ roomIndex, roomLabel, specId, ctx, roomQty, roomItems }>
  *
  * roomIndex uses negative offsets (-100 - ei) so exterior never collides with
- * interior room indices in downstream consumers.
+ * interior room indices in downstream consumers. See namespacing comment above.
  */
 export function buildElevationScenarioInputs(state, db) {
   const inputs = [];
@@ -682,9 +697,11 @@ export function buildElevationScenarioInputs(state, db) {
     for (const specId of activeSpecIds) {
       if (STANDALONE_SPECS.has(specId)) continue;
       const ctx = buildExteriorCtx(specId, elev, extDefaults, siteConditions, null, ei, projectType, project);
-      // Activation: emit only when the elevation has at least one non-zero PS_EXT_* key
-      // matching the spec's substrate domain. Scenario matcher will further filter
-      // by paintable_item / state — keep this loose to catch all candidates.
+      // Emit one input per (elevation × every active exterior elevation-bound
+      // spec); the scenario matcher gates on paintable_item / substrate_state
+      // downstream. No per-spec PS-key filter is applied here — false
+      // candidates surface as gap-list noise during Task 4, which is the
+      // intended cost trade-off (vs implementing a per-spec PS-key check now).
       inputs.push({
         roomIndex,
         roomLabel,
@@ -704,6 +721,14 @@ export function buildElevationScenarioInputs(state, db) {
  * deck, foundation, porch, metal — items not bound to a specific elevation).
  *
  * Returns: Array<{ roomIndex, roomLabel, specId, ctx, roomQty, roomItems }>
+ *
+ * Note: `porch` is one standalone lookup (key emitted by
+ * buildStandaloneQuantityLookups) but produces TWO inputs — one for ceiling,
+ * one for floor — because the porch lookup carries both ceiling and floor SF
+ * keys, and each is consumed by a separate spec.
+ *
+ * See exterior roomIndex namespacing comment above buildElevationScenarioInputs
+ * for the negative-index convention.
  */
 export function buildStandaloneScenarioInputs(state, db) {
   const inputs = [];
@@ -715,31 +740,50 @@ export function buildStandaloneScenarioInputs(state, db) {
   const projectType = exterior.project_type || 'NC';
   const standaloneLookups = buildStandaloneQuantityLookups(state);
 
-  const STANDALONE_SPEC_FOR_ITEM = {
-    garage_doors: projectType === 'RP' ? 'SF_GARAGE_DOOR_EXT_RP' : 'SF_GARAGE_DOOR_EXT_NC',
-    fence:        projectType === 'RP' ? 'SF_FENCE_EXT_RP'       : 'SF_FENCE_EXT',
-    deck:         projectType === 'RP' ? 'SF_DECK_EXT_RP'        : 'SF_DECK_EXT',
-    foundation:   projectType === 'RP' ? 'SF_FOUNDATION_EXT_RP'  : 'SF_FOUNDATION_EXT_NC',
-    porch_ceiling: projectType === 'RP' ? 'SF_PORCH_CEILING_EXT_RP' : 'SF_PORCH_CEILING_EXT_NC',
-    porch_floor:   projectType === 'RP' ? 'SF_PORCH_FLOOR_EXT_RP'   : 'SF_PORCH_FLOOR_EXT_NC',
-    metal:        projectType === 'RP' ? 'SF_METAL_EXT_RP'      : 'SF_METAL_EXT',
+  // Map standalone lookup key → list of spec ids that should consume it.
+  // Most keys map 1:1, but `porch` is 1:2 (ceiling + floor specs) because
+  // a single porch lookup carries both PS keys.
+  const STANDALONE_SPECS_FOR_ITEM = {
+    garage_doors:   [projectType === 'RP' ? 'SF_GARAGE_DOOR_EXT_RP' : 'SF_GARAGE_DOOR_EXT_NC'],
+    fence:          [projectType === 'RP' ? 'SF_FENCE_EXT_RP'       : 'SF_FENCE_EXT'],
+    deck:           [projectType === 'RP' ? 'SF_DECK_EXT_RP'        : 'SF_DECK_EXT'],
+    foundation:     [projectType === 'RP' ? 'SF_FOUNDATION_EXT_RP'  : 'SF_FOUNDATION_EXT_NC'],
+    porch:          projectType === 'RP'
+      ? ['SF_PORCH_CEILING_EXT_RP', 'SF_PORCH_FLOOR_EXT_RP']
+      : ['SF_PORCH_CEILING_EXT_NC', 'SF_PORCH_FLOOR_EXT_NC'],
+    metal_surfaces: [projectType === 'RP' ? 'SF_METAL_EXT_RP'       : 'SF_METAL_EXT'],
+  };
+
+  // Stable slot table — decouples roomIndex from object-key insertion order.
+  // Unknown itemTypes are skipped (rather than colliding at -1).
+  const STANDALONE_INDEX = {
+    garage_doors:   0,
+    fence:          1,
+    deck:           2,
+    foundation:     3,
+    porch:          4,
+    metal_surfaces: 5,
   };
 
   standaloneLookups.forEach((qty, itemType) => {
     if (!qty || qty.size === 0) return;
-    const specId = STANDALONE_SPEC_FOR_ITEM[itemType];
-    if (!specId) return;
-    const roomIndex = -200 - Object.keys(STANDALONE_SPEC_FOR_ITEM).indexOf(itemType);
+    const specIds = STANDALONE_SPECS_FOR_ITEM[itemType];
+    if (!specIds) return;
+    const standaloneSlot = STANDALONE_INDEX[itemType];
+    if (standaloneSlot === undefined) return; // unknown itemType — skip
+    const roomIndex = -1000 - standaloneSlot;
     const roomLabel = `Standalone: ${itemType}`;
-    const ctx = buildExteriorCtx(specId, null, extDefaults, siteConditions, exterior.standalone, itemType, projectType, project);
-    inputs.push({
-      roomIndex,
-      roomLabel,
-      specId,
-      ctx: normalizePassGroupCtx(ctx),
-      roomQty: qty,
-      roomItems: null,
-    });
+    for (const specId of specIds) {
+      const ctx = buildExteriorCtx(specId, null, extDefaults, siteConditions, exterior.standalone, itemType, projectType, project);
+      inputs.push({
+        roomIndex,
+        roomLabel,
+        specId,
+        ctx: normalizePassGroupCtx(ctx),
+        roomQty: qty,
+        roomItems: null,
+      });
+    }
   });
 
   return inputs;
@@ -791,6 +835,9 @@ function buildExteriorCtx(specId, elevation, extDefaults, siteConditions, standa
     ctx.access_type = elevation.access_type || 'ground';
     ctx.height_band = deriveAccessBand(ctx.access_type);
 
+    // Caulking scope (legacy parity — flows from elevation if set).
+    if (elevation.caulk_scope) ctx.caulk_scope = elevation.caulk_scope;
+
     // Substrate state / texture / siding type from the first matching section
     const substrateSource = SPEC_SUBSTRATE_MAP[specId];
     if (substrateSource === 'ext_siding' && Array.isArray(elevation.siding_sections) && elevation.siding_sections.length > 0) {
@@ -801,11 +848,26 @@ function buildExteriorCtx(specId, elevation, extDefaults, siteConditions, standa
       ctx.surface_texture = sec.texture_profile || 'smooth';
       ctx.siding_type = sec.siding_type;
       ctx.siding_profile = sec.siding_profile || null;
+      // Legacy ctx fields:
+      //   substrate_material — read from section
+      //   condition_scale    — per-section override wins over RP default
+      ctx.substrate_material = sec.substrate_material || null;
+      if (sec.condition_scale) ctx.condition_scale = sec.condition_scale;
     }
     if (substrateSource === 'ext_trim') {
-      const trim = (elevation.trim_types || [])[0];
-      if (trim?.substrate_state && EXT_UI_STATE_TO_SPEC_STATE[trim.substrate_state]) {
-        ctx.substrate_state = EXT_UI_STATE_TO_SPEC_STATE[trim.substrate_state];
+      // elevation.trim is an object map keyed by trim type (see exterior-state.js
+      // createElevation). Iterate and pick the first enabled config with a
+      // substrate_state, mirroring legacy buildExteriorContext behavior.
+      const trimMap = elevation.trim || {};
+      for (const config of Object.values(trimMap)) {
+        if (config?.enabled && config.substrate_state && EXT_UI_STATE_TO_SPEC_STATE[config.substrate_state]) {
+          ctx.substrate_state = EXT_UI_STATE_TO_SPEC_STATE[config.substrate_state];
+          // Legacy ctx fields from the same matched trim config:
+          ctx.substrate_material = config.substrate_material || null;
+          ctx.profile_complexity = config.profile_complexity || 'standard';
+          if (config.condition_scale) ctx.condition_scale = config.condition_scale;
+          break;
+        }
       }
     }
   }
@@ -827,8 +889,12 @@ function buildExteriorCtx(specId, elevation, extDefaults, siteConditions, standa
     if (index === 'foundation' && standalone.foundation) {
       ctx.foundation_type = standalone.foundation.type || 'poured';
     }
-    if (index === 'metal' && standalone.metal) {
-      ctx.metal_profile_complexity = standalone.metal.profile_complexity || 'simple';
+    // C2 fix: state-shape key is `standalone.metal_surfaces` (array), not
+    // `standalone.metal`. The standalone lookup also emits this under the
+    // `metal_surfaces` key, so `index` is `metal_surfaces` here.
+    if (index === 'metal_surfaces' && Array.isArray(standalone.metal_surfaces) && standalone.metal_surfaces.length > 0) {
+      const metal = standalone.metal_surfaces[0];
+      ctx.metal_profile_complexity = metal.profile_complexity || 'simple';
     }
     if (index === 'garage_doors' && Array.isArray(standalone.garage_doors) && standalone.garage_doors.length > 0) {
       const gd = standalone.garage_doors[0];
