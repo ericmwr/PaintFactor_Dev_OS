@@ -1,17 +1,15 @@
 import { buildRoomQuantityLookups, OPENING_SUBSTRATES } from './quantity-lookups.js';
-import { buildElevationQuantityLookups, buildStandaloneQuantityLookups } from './quantity-lookups-exterior.js';
 import { resolveQualityTier, resolveApplicationMethod, resolveTextureForSpec, resolveCoatingType, resolveStainMethod, resolveClearMethod, resolveCoatCounts, resolveClearSheen, resolveWoodSpecies } from './spec-resolution.js';
 import { resolveSubstrateStateForSpec, specAcceptsState, isSpecStateCompatible, evaluateAppliesWhen } from './spec-compatibility.js';
 import { computeModifierStack } from './modifier-stack.js';
-import { computeWindowPerItemResults, computeDoorPerItemResults, computeExtWindowPerItemResults, computeExtDoorPerItemResults, computeGarageDoorPerItemResults } from './per-item-compute.js';
+import { computeWindowPerItemResults, computeDoorPerItemResults } from './per-item-compute.js';
 import { deriveRoom, deriveHeightBand } from './derive-room.js';
-import { deriveElevation, deriveAccessBand } from './derive-elevation.js';
 import { computeMaterialEstimates, computeExteriorMaterialEstimates } from './material-estimates.js';
 import { resolveRoomFloorProtection } from './floor-protection.js';
 import { resolveRoomFixtureProtection } from './fixture-protection.js';
 import { resolveExteriorProtection } from './exterior-protection.js';
 import { computePricing } from './pricing.js';
-import { SPEC_SUBSTRATE_MAP, SPEC_OUTPUT_STATES, UI_STATE_TO_SPEC_STATE, SPEC_VALID_INPUT_STATES, EXT_UI_STATE_TO_SPEC_STATE, EXTERIOR_SPEC_IDS, getExteriorSpecIds, STAIN_SPEC_FAMILIES, GRAIN_FILL_PARENT_SPEC } from '../data/spec-maps.js';
+import { SPEC_SUBSTRATE_MAP, SPEC_OUTPUT_STATES, UI_STATE_TO_SPEC_STATE, SPEC_VALID_INPUT_STATES, STAIN_SPEC_FAMILIES, GRAIN_FILL_PARENT_SPEC } from '../data/spec-maps.js';
 import { SPEC_DISPLAY_NAMES, specDisplayName, PHASE_ORDER, ARCH_ELEMENT_PS_GROUPS } from '../data/constants.js';
 import { FIXTURE_CATALOG } from '../data/fixture-catalog.js';
 import { WINDOW_TYPE_LABELS, WINDOW_SIZE_LABELS, DOOR_TYPE_LABELS } from '../data/modifiers.js';
@@ -186,8 +184,6 @@ export function runEstimate(state, db, overlayMap, profile) {
 
   // For each INTERIOR spec family (exterior specs handled separately below)
   db.spec_families.forEach(spec => {
-    if (EXTERIOR_SPEC_IDS.has(spec.id)) return; // Skip exterior — processed in exterior loop
-
     const inputs = requiredInputsBySpec[spec.id] || [];
     const modules = (modulesBySpec[spec.id] || []).sort((a,b) => (a.sort_order||0)-(b.sort_order||0));
 
@@ -788,136 +784,4 @@ export function runEstimate(state, db, overlayMap, profile) {
     totalSpecs: db.spec_families.length,
     pricing
   };
-}
-
-// ============================================================
-// EXTERIOR HELPERS
-// ============================================================
-
-/**
- * Specs that are standalone (not elevation-bound).
- */
-function isStandaloneSpecId(specId) {
-  const STANDALONE_SPECS = new Set([
-    // NC
-    'SF_DECK_EXT', 'SF_FENCE_EXT', 'SF_FOUNDATION_EXT_NC',
-    'SF_PORCH_CEILING_EXT_NC', 'SF_PORCH_FLOOR_EXT_NC',
-    'SF_GARAGE_DOOR_EXT_NC', 'SF_METAL_EXT',
-    // RP
-    'SF_DECK_EXT_RP', 'SF_FENCE_EXT_RP', 'SF_FOUNDATION_EXT_RP',
-    'SF_PORCH_CEILING_EXT_RP', 'SF_PORCH_FLOOR_EXT_RP',
-    'SF_GARAGE_DOOR_EXT_RP', 'SF_METAL_EXT_RP',
-  ]);
-  return STANDALONE_SPECS.has(specId);
-}
-
-/**
- * Build exterior context for a spec running on an elevation or standalone item.
- * Implements three-level override cascade: project defaults → elevation → substrate-level.
- */
-function buildExteriorContext(specId, elevation, extDefaults, siteConditions, standalone, index, projectType) {
-  // Start with project exterior defaults
-  const ctx = {
-    quality_tier: extDefaults.quality_tier || 'QT3',
-    application_method: extDefaults.application_method || 'spray_backbrush',
-    surface_texture: 'smooth',
-    // Site conditions (project-level)
-    wind_exposure: siteConditions.wind_exposure || 'moderate',
-    sun_exposure: siteConditions.sun_exposure || 'mixed',
-    temperature_zone: siteConditions.temperature_zone || 'standard',
-    // Access defaults to ground
-    access_type: 'ground',
-    height_band: 'GROUND',
-    // RP condition scale (default from project defaults)
-    condition_scale: projectType === 'RP' ? (extDefaults.condition_scale || 'GOOD') : undefined,
-    project_type: projectType || 'NC',
-  };
-
-  // Elevation overrides (second level)
-  if (elevation) {
-    if (elevation.quality_tier) ctx.quality_tier = elevation.quality_tier;
-    if (elevation.application_method) ctx.application_method = elevation.application_method;
-    ctx.access_type = elevation.access_type || 'ground';
-    ctx.height_band = deriveAccessBand(ctx.access_type);
-
-    // Resolve substrate state from the relevant siding section or trim config
-    const substrateSource = SPEC_SUBSTRATE_MAP[specId];
-    if (substrateSource === 'ext_siding' && elevation.siding_sections?.length > 0) {
-      const sec = elevation.siding_sections[0];
-      const uiState = sec.substrate_state;
-      if (uiState && EXT_UI_STATE_TO_SPEC_STATE[uiState]) {
-        ctx.substrate_state = EXT_UI_STATE_TO_SPEC_STATE[uiState];
-      }
-      ctx.surface_texture = sec.texture_profile || 'smooth';
-      ctx.siding_type = sec.siding_type;
-      ctx.substrate_material = sec.substrate_material;
-      // RP: per-section condition scale
-      if (sec.condition_scale) ctx.condition_scale = sec.condition_scale;
-    } else if (substrateSource === 'ext_trim') {
-      // Use first enabled trim type's substrate state
-      for (const config of Object.values(elevation.trim || {})) {
-        if (config && config.enabled && config.substrate_state) {
-          const uiState = config.substrate_state;
-          if (EXT_UI_STATE_TO_SPEC_STATE[uiState]) {
-            ctx.substrate_state = EXT_UI_STATE_TO_SPEC_STATE[uiState];
-          }
-          ctx.substrate_material = config.substrate_material;
-          ctx.profile_complexity = config.profile_complexity || 'standard';
-          // RP: per-trim condition scale
-          if (config.condition_scale) ctx.condition_scale = config.condition_scale;
-          break;
-        }
-      }
-    }
-
-    // Caulk scope
-    if (elevation.caulk_scope) ctx.caulk_scope = elevation.caulk_scope;
-  }
-
-  // Standalone context overrides
-  if (standalone && typeof index === 'string') {
-    const items = standalone;
-    if (index === 'deck' && items.deck) {
-      ctx.coating_type = items.deck.coating_type || 'stain';
-      const uiState = items.deck.substrate_state;
-      if (uiState && EXT_UI_STATE_TO_SPEC_STATE[uiState]) ctx.substrate_state = EXT_UI_STATE_TO_SPEC_STATE[uiState];
-      if (items.deck.condition_scale) ctx.condition_scale = items.deck.condition_scale;
-    } else if (index === 'fence' && items.fence) {
-      ctx.coating_type = items.fence.coating_type || 'stain';
-      const uiState = items.fence.substrate_state;
-      if (uiState && EXT_UI_STATE_TO_SPEC_STATE[uiState]) ctx.substrate_state = EXT_UI_STATE_TO_SPEC_STATE[uiState];
-      if (items.fence.condition_scale) ctx.condition_scale = items.fence.condition_scale;
-    } else if (index === 'foundation' && items.foundation) {
-      const uiState = items.foundation.substrate_state;
-      if (uiState && EXT_UI_STATE_TO_SPEC_STATE[uiState]) ctx.substrate_state = EXT_UI_STATE_TO_SPEC_STATE[uiState];
-      if (items.foundation.condition_scale) ctx.condition_scale = items.foundation.condition_scale;
-    } else if (index === 'porch' && items.porch) {
-      const floor = items.porch.floor;
-      const ceil = items.porch.ceiling;
-      if (floor?.enabled && floor.substrate_state) {
-        const uiState = floor.substrate_state;
-        if (EXT_UI_STATE_TO_SPEC_STATE[uiState]) ctx.substrate_state = EXT_UI_STATE_TO_SPEC_STATE[uiState];
-        if (floor.condition_scale) ctx.condition_scale = floor.condition_scale;
-      } else if (ceil?.enabled && ceil.substrate_state) {
-        const uiState = ceil.substrate_state;
-        if (EXT_UI_STATE_TO_SPEC_STATE[uiState]) ctx.substrate_state = EXT_UI_STATE_TO_SPEC_STATE[uiState];
-        if (ceil.condition_scale) ctx.condition_scale = ceil.condition_scale;
-      }
-    }
-    // Garage doors and metal surfaces: condition from individual items
-    if (index === 'garage_doors' && items.garage_doors?.length > 0) {
-      const gd = items.garage_doors[0];
-      if (gd.condition_scale) ctx.condition_scale = gd.condition_scale;
-      const uiState = gd.substrate_state;
-      if (uiState && EXT_UI_STATE_TO_SPEC_STATE[uiState]) ctx.substrate_state = EXT_UI_STATE_TO_SPEC_STATE[uiState];
-    }
-    if (index === 'metal' && items.metal_surfaces?.length > 0) {
-      const ms = items.metal_surfaces[0];
-      if (ms.condition_scale) ctx.condition_scale = ms.condition_scale;
-      const uiState = ms.substrate_state;
-      if (uiState && EXT_UI_STATE_TO_SPEC_STATE[uiState]) ctx.substrate_state = EXT_UI_STATE_TO_SPEC_STATE[uiState];
-    }
-  }
-
-  return ctx;
 }
