@@ -67,43 +67,7 @@ export const SPEC_SUBSTRATE_MAP = {
   'SF_WOOD_CEILING_NC_STAIN':    'wood_ceiling',
   'SF_WAINSCOT_PANEL_NC_STAIN':  'wainscoting',
   'SF_ARCH_ELEMENT_NC_STAIN':    'beams',
-  // ── Exterior NC — maps to elevation/standalone source ──
-  'SF_WOOD_SIDING_EXT_NC_PAINT':    'ext_siding',
-  'SF_SIDING_FIBERCEMENT_EXT_NC':   'ext_siding',
-  'SF_SIDING_ENGINEERED_EXT_NC':    'ext_siding',
-  'SF_STUCCO_EXT_NC':               'ext_siding',
-  'SF_MASONRY_EXT_NC':              'ext_siding',
-  'SF_TRIM_EXT_NC':                 'ext_trim',
-  'SF_SOFFIT_EXT_NC':               'ext_soffit',
-  'SF_WINDOW_EXT_NC':               'ext_window',
-  'SF_DOOR_EXT_NC':                 'ext_door',
-  'SF_GARAGE_DOOR_EXT_NC':          'ext_garage_door',
-  'SF_CAULK_EXT':                   'ext_caulk',
-  'SF_DECK_EXT':                    'ext_deck',
-  'SF_FENCE_EXT':                   'ext_fence',
-  'SF_FOUNDATION_EXT_NC':           'ext_foundation',
-  'SF_PORCH_CEILING_EXT_NC':        'ext_porch_ceiling',
-  'SF_PORCH_FLOOR_EXT_NC':          'ext_porch_floor',
-  'SF_METAL_EXT':                   'ext_metal',
-  // ── Exterior RP ──
-  'SF_SIDING_WOOD_EXT_RP':          'ext_siding',
-  'SF_SIDING_ALUMINUM_EXT_RP':      'ext_siding',
-  'SF_SIDING_VINYL_EXT_RP':         'ext_siding',
-  'SF_SIDING_FIBERCEMENT_EXT_RP':   'ext_siding',
-  'SF_SIDING_ENGINEERED_EXT_RP':    'ext_siding',
-  'SF_STUCCO_EXT_RP':               'ext_siding',
-  'SF_MASONRY_EXT_RP':              'ext_siding',
-  'SF_TRIM_EXT_RP':                 'ext_trim',
-  'SF_SOFFIT_EXT_RP':               'ext_soffit',
-  'SF_WINDOW_EXT_RP':               'ext_window',
-  'SF_DOOR_EXT_RP':                 'ext_door',
-  'SF_GARAGE_DOOR_EXT_RP':          'ext_garage_door',
-  'SF_DECK_EXT_RP':                 'ext_deck',
-  'SF_FENCE_EXT_RP':                'ext_fence',
-  'SF_FOUNDATION_EXT_RP':           'ext_foundation',
-  'SF_PORCH_CEILING_EXT_RP':        'ext_porch_ceiling',
-  'SF_PORCH_FLOOR_EXT_RP':          'ext_porch_floor',
-  'SF_METAL_EXT_RP':                'ext_metal',
+  // ── Exterior: handled by scenario engine (see Claude/scenarios/SCN_*_EXT_*.json) ──
 };
 
 // ============================================================
@@ -184,42 +148,6 @@ export const SPEC_ROLE = {
   'SF_DRYWALL_WALL_INT_RP':       'COMBINED',
   'SF_DRYWALL_CEILING_INT_RP':    'COMBINED',
 
-  // Exterior — all treated COMBINED for Pass A (their scenarios already bundle workflow)
-  'SF_WOOD_SIDING_EXT_NC_PAINT':  'COMBINED',
-  'SF_SIDING_FIBERCEMENT_EXT_NC': 'COMBINED',
-  'SF_SIDING_ENGINEERED_EXT_NC':  'COMBINED',
-  'SF_STUCCO_EXT_NC':             'COMBINED',
-  'SF_MASONRY_EXT_NC':            'COMBINED',
-  'SF_TRIM_EXT_NC':               'COMBINED',
-  'SF_SOFFIT_EXT_NC':             'COMBINED',
-  'SF_WINDOW_EXT_NC':             'COMBINED',
-  'SF_DOOR_EXT_NC':               'COMBINED',
-  'SF_GARAGE_DOOR_EXT_NC':        'COMBINED',
-  'SF_CAULK_EXT':                 'COMBINED',
-  'SF_DECK_EXT':                  'COMBINED',
-  'SF_FENCE_EXT':                 'COMBINED',
-  'SF_FOUNDATION_EXT_NC':         'COMBINED',
-  'SF_PORCH_CEILING_EXT_NC':      'COMBINED',
-  'SF_PORCH_FLOOR_EXT_NC':        'COMBINED',
-  'SF_METAL_EXT':                 'COMBINED',
-  'SF_SIDING_WOOD_EXT_RP':        'COMBINED',
-  'SF_SIDING_ALUMINUM_EXT_RP':    'COMBINED',
-  'SF_SIDING_VINYL_EXT_RP':       'COMBINED',
-  'SF_SIDING_FIBERCEMENT_EXT_RP': 'COMBINED',
-  'SF_SIDING_ENGINEERED_EXT_RP':  'COMBINED',
-  'SF_STUCCO_EXT_RP':             'COMBINED',
-  'SF_MASONRY_EXT_RP':            'COMBINED',
-  'SF_TRIM_EXT_RP':               'COMBINED',
-  'SF_SOFFIT_EXT_RP':             'COMBINED',
-  'SF_WINDOW_EXT_RP':             'COMBINED',
-  'SF_DOOR_EXT_RP':               'COMBINED',
-  'SF_GARAGE_DOOR_EXT_RP':        'COMBINED',
-  'SF_DECK_EXT_RP':               'COMBINED',
-  'SF_FENCE_EXT_RP':              'COMBINED',
-  'SF_FOUNDATION_EXT_RP':         'COMBINED',
-  'SF_PORCH_CEILING_EXT_RP':      'COMBINED',
-  'SF_PORCH_FLOOR_EXT_RP':        'COMBINED',
-  'SF_METAL_EXT_RP':              'COMBINED',
 };
 
 // Maps UI substrate_state values to spec system enum values (SS_* codes)
@@ -352,44 +280,6 @@ export const SPEC_OUTPUT_STATES = {
   'SF_DOOR_FRAME_NC_PRIME':      'SS_PRIMED_FIELD',
   'SF_WOOD_GRAIN_FILL_NC':       'SS_GRAIN_FILLED',
 };
-
-// Set of all exterior NC spec family IDs
-export const EXTERIOR_NC_SPEC_IDS = new Set([
-  'SF_WOOD_SIDING_EXT_NC_PAINT', 'SF_SIDING_FIBERCEMENT_EXT_NC', 'SF_SIDING_ENGINEERED_EXT_NC',
-  'SF_STUCCO_EXT_NC', 'SF_MASONRY_EXT_NC',
-  'SF_TRIM_EXT_NC',
-  'SF_SOFFIT_EXT_NC',
-  'SF_WINDOW_EXT_NC', 'SF_DOOR_EXT_NC',
-  'SF_GARAGE_DOOR_EXT_NC',
-  'SF_CAULK_EXT',
-  'SF_DECK_EXT', 'SF_FENCE_EXT',
-  'SF_FOUNDATION_EXT_NC',
-  'SF_PORCH_CEILING_EXT_NC', 'SF_PORCH_FLOOR_EXT_NC',
-  'SF_METAL_EXT',
-]);
-
-// Set of all exterior RP spec family IDs
-export const EXTERIOR_RP_SPEC_IDS = new Set([
-  'SF_SIDING_WOOD_EXT_RP', 'SF_SIDING_ALUMINUM_EXT_RP', 'SF_SIDING_VINYL_EXT_RP',
-  'SF_SIDING_FIBERCEMENT_EXT_RP', 'SF_SIDING_ENGINEERED_EXT_RP',
-  'SF_STUCCO_EXT_RP', 'SF_MASONRY_EXT_RP',
-  'SF_TRIM_EXT_RP',
-  'SF_SOFFIT_EXT_RP',
-  'SF_WINDOW_EXT_RP', 'SF_DOOR_EXT_RP',
-  'SF_GARAGE_DOOR_EXT_RP',
-  'SF_DECK_EXT_RP', 'SF_FENCE_EXT_RP',
-  'SF_FOUNDATION_EXT_RP',
-  'SF_PORCH_CEILING_EXT_RP', 'SF_PORCH_FLOOR_EXT_RP',
-  'SF_METAL_EXT_RP',
-]);
-
-// Union of NC + RP for backwards compatibility
-export const EXTERIOR_SPEC_IDS = new Set([...EXTERIOR_NC_SPEC_IDS, ...EXTERIOR_RP_SPEC_IDS]);
-
-// Get the active exterior spec set based on project type
-export function getExteriorSpecIds(projectType) {
-  return projectType === 'RP' ? EXTERIOR_RP_SPEC_IDS : EXTERIOR_NC_SPEC_IDS;
-}
 
 // Set of all interior stain/clear coat spec family IDs
 export const STAIN_SPEC_FAMILIES = new Set([

@@ -40,9 +40,6 @@ import {
   EXT_UI_STATE_TO_SPEC_STATE,
   SPEC_SUBSTRATE_MAP,
   SPEC_ROLE,
-  EXTERIOR_NC_SPEC_IDS,
-  EXTERIOR_RP_SPEC_IDS,
-  getExteriorSpecIds,
 } from '../data/spec-maps.js';
 import { resolveActivation, STATE_TRANSITION_TARGET } from '../data/system-catalog.js';
 import { resolveSystem } from './spec-resolution.js';
@@ -678,7 +675,19 @@ export function buildElevationScenarioInputs(state, db) {
   const extDefaults = exterior.defaults || {};
   const siteConditions = exterior.site_conditions || {};
   const projectType = exterior.project_type || 'NC';
-  const activeSpecIds = getExteriorSpecIds(projectType);
+  const activeSpecIds = projectType === 'RP'
+    ? new Set(['SF_SIDING_WOOD_EXT_RP','SF_SIDING_ALUMINUM_EXT_RP','SF_SIDING_VINYL_EXT_RP',
+               'SF_SIDING_FIBERCEMENT_EXT_RP','SF_SIDING_ENGINEERED_EXT_RP',
+               'SF_STUCCO_EXT_RP','SF_MASONRY_EXT_RP','SF_TRIM_EXT_RP','SF_SOFFIT_EXT_RP',
+               'SF_WINDOW_EXT_RP','SF_DOOR_EXT_RP','SF_GARAGE_DOOR_EXT_RP','SF_DECK_EXT_RP',
+               'SF_FENCE_EXT_RP','SF_FOUNDATION_EXT_RP','SF_PORCH_CEILING_EXT_RP',
+               'SF_PORCH_FLOOR_EXT_RP','SF_METAL_EXT_RP'])
+    : new Set(['SF_WOOD_SIDING_EXT_NC_PAINT','SF_SIDING_FIBERCEMENT_EXT_NC',
+               'SF_SIDING_ENGINEERED_EXT_NC','SF_STUCCO_EXT_NC','SF_MASONRY_EXT_NC',
+               'SF_TRIM_EXT_NC','SF_SOFFIT_EXT_NC','SF_WINDOW_EXT_NC','SF_DOOR_EXT_NC',
+               'SF_GARAGE_DOOR_EXT_NC','SF_CAULK_EXT','SF_DECK_EXT','SF_FENCE_EXT',
+               'SF_FOUNDATION_EXT_NC','SF_PORCH_CEILING_EXT_NC','SF_PORCH_FLOOR_EXT_NC',
+               'SF_METAL_EXT']);
   const elevLookups = buildElevationQuantityLookups(state);
 
   // Elevation-bound specs (everything NOT in STANDALONE_SPECS below).

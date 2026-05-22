@@ -1,6 +1,5 @@
 import { SPEC_SUBSTRATE_MAP } from '../data/spec-maps.js';
 import { SUBSTRATE_APPLICATION_METHODS } from '../data/substrate-catalog.js';
-import { EXTERIOR_SPEC_IDS } from '../data/spec-maps.js';
 
 // Specs where room complexity does NOT apply — door/frame type and QT already cover variation
 const COMPLEXITY_OPT_OUT_SPECS = new Set([
@@ -58,18 +57,12 @@ export function computeModifierStack(specFamilyId, ctx, db, warnings) {
     } else if (category === 'texture') {
       mod = resolveConditionModifier(factors, ctx.surface_texture || 'smooth', category, specFamilyId, warnings);
     } else if (category === 'complexity') {
-      if (EXTERIOR_SPEC_IDS.has(specFamilyId)) {
-        // Exterior specs: complexity means item complexity (garage door size, window type)
-        // Keep it folded into total as before
-        mod = resolveConditionModifier(factors, ctx.complexity || 'STD', category, specFamilyId, warnings);
-      } else {
-        // Interior specs: room complexity — resolve but DON'T fold into total
-        // Applied per-task in run-estimate based on phase + method
-        const cMod = resolveConditionModifier(factors, ctx.complexity || 'STD', category, specFamilyId, warnings);
-        result.complexity = cMod;
-        result.complexityApplicable = !COMPLEXITY_OPT_OUT_SPECS.has(specFamilyId);
-        return; // skip the result[category] = mod; total *= mod; below
-      }
+      // Interior specs: room complexity — resolve but DON'T fold into total
+      // Applied per-task in run-estimate based on phase + method
+      const cMod = resolveConditionModifier(factors, ctx.complexity || 'STD', category, specFamilyId, warnings);
+      result.complexity = cMod;
+      result.complexityApplicable = !COMPLEXITY_OPT_OUT_SPECS.has(specFamilyId);
+      return; // skip the result[category] = mod; total *= mod; below
     } else {
       // Dynamic exterior categories: access, wind, sun, profile, siding_profile, coating_type, etc.
       // First try values_map (new exterior pattern), then condition (interior pattern), then direct match

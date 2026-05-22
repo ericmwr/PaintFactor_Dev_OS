@@ -1,6 +1,6 @@
 import { deriveRoom } from './derive-room.js';
 import { SUBSTRATE_MAP, SUBSTRATE_APPLICATION_METHODS } from '../data/substrate-catalog.js';
-import { EXTERIOR_SPEC_IDS, SPEC_SUBSTRATE_MAP } from '../data/spec-maps.js';
+import { SPEC_SUBSTRATE_MAP } from '../data/spec-maps.js';
 import { isSpecStateCompatible } from './spec-compatibility.js';
 import { resolveProduct } from './product-resolver.js';
 
