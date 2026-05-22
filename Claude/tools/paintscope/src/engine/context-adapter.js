@@ -17,6 +17,8 @@
 // The test harness (Phase 5) decides how to run and compare both engines.
 
 import { buildRoomQuantityLookups } from './quantity-lookups.js';
+import { buildElevationQuantityLookups, buildStandaloneQuantityLookups } from './quantity-lookups-exterior.js';
+import { deriveElevation, deriveAccessBand } from './derive-elevation.js';
 import {
   resolveQualityTier,
   resolveApplicationMethod,
@@ -32,7 +34,16 @@ import { resolveSubstrateStateForSpec, isSpecStateCompatible } from './spec-comp
 import { deriveRoom, deriveHeightBand } from './derive-room.js';
 import { FIXTURE_CATALOG } from '../data/fixture-catalog.js';
 import { SUBSTRATE_APPLICATION_METHODS } from '../data/substrate-catalog.js';
-import { STAIN_SPEC_FAMILIES, UI_STATE_TO_SPEC_STATE, SPEC_SUBSTRATE_MAP, SPEC_ROLE } from '../data/spec-maps.js';
+import {
+  STAIN_SPEC_FAMILIES,
+  UI_STATE_TO_SPEC_STATE,
+  EXT_UI_STATE_TO_SPEC_STATE,
+  SPEC_SUBSTRATE_MAP,
+  SPEC_ROLE,
+  EXTERIOR_NC_SPEC_IDS,
+  EXTERIOR_RP_SPEC_IDS,
+  getExteriorSpecIds,
+} from '../data/spec-maps.js';
 import { resolveActivation, STATE_TRANSITION_TARGET } from '../data/system-catalog.js';
 import { resolveSystem } from './spec-resolution.js';
 import { deriveProtectionDefaults } from './derive-protection-defaults.js';
@@ -628,6 +639,208 @@ export function buildRoomProtectionCtxs(room, project, roomHasActiveSpec) {
 }
 
 /**
+ * Build scenario inputs from state.exterior.elevations[].
+ *
+ * For each elevation × each active exterior elevation-bound spec (siding,
+ * trim, soffit, window, door, foundation, caulk, porch — the non-standalone
+ * subset), emits one roomInput-shaped object the scenario engine can consume.
+ *
+ * Returns: Array<{ roomIndex, roomLabel, specId, ctx, roomQty, roomItems }>
+ *
+ * roomIndex uses negative offsets (-100 - ei) so exterior never collides with
+ * interior room indices in downstream consumers.
+ */
+export function buildElevationScenarioInputs(state, db) {
+  const inputs = [];
+  const exterior = state.exterior;
+  if (!exterior || !Array.isArray(exterior.elevations) || exterior.elevations.length === 0) {
+    return inputs;
+  }
+  const project = state.project || {};
+  const extDefaults = exterior.defaults || {};
+  const siteConditions = exterior.site_conditions || {};
+  const projectType = exterior.project_type || 'NC';
+  const activeSpecIds = getExteriorSpecIds(projectType);
+  const elevLookups = buildElevationQuantityLookups(state);
+
+  // Elevation-bound specs (everything NOT in STANDALONE_SPECS below).
+  const STANDALONE_SPECS = new Set([
+    'SF_DECK_EXT', 'SF_FENCE_EXT', 'SF_FOUNDATION_EXT_NC',
+    'SF_PORCH_CEILING_EXT_NC', 'SF_PORCH_FLOOR_EXT_NC',
+    'SF_GARAGE_DOOR_EXT_NC', 'SF_METAL_EXT',
+    'SF_DECK_EXT_RP', 'SF_FENCE_EXT_RP', 'SF_FOUNDATION_EXT_RP',
+    'SF_PORCH_CEILING_EXT_RP', 'SF_PORCH_FLOOR_EXT_RP',
+    'SF_GARAGE_DOOR_EXT_RP', 'SF_METAL_EXT_RP',
+  ]);
+
+  exterior.elevations.forEach((elev, ei) => {
+    const qty = elevLookups.get(ei);
+    if (!qty || qty.size === 0) return;
+    const roomIndex = -100 - ei;
+    const roomLabel = elev.label || `Elevation ${ei + 1}`;
+
+    for (const specId of activeSpecIds) {
+      if (STANDALONE_SPECS.has(specId)) continue;
+      const ctx = buildExteriorCtx(specId, elev, extDefaults, siteConditions, null, ei, projectType, project);
+      // Activation: emit only when the elevation has at least one non-zero PS_EXT_* key
+      // matching the spec's substrate domain. Scenario matcher will further filter
+      // by paintable_item / state — keep this loose to catch all candidates.
+      inputs.push({
+        roomIndex,
+        roomLabel,
+        specId,
+        ctx: normalizePassGroupCtx(ctx),
+        roomQty: qty,
+        roomItems: { doors: elev.doors || [], windows: elev.windows || [] },
+      });
+    }
+  });
+
+  return inputs;
+}
+
+/**
+ * Build scenario inputs from state.exterior.standalone (garage doors, fence,
+ * deck, foundation, porch, metal — items not bound to a specific elevation).
+ *
+ * Returns: Array<{ roomIndex, roomLabel, specId, ctx, roomQty, roomItems }>
+ */
+export function buildStandaloneScenarioInputs(state, db) {
+  const inputs = [];
+  const exterior = state.exterior;
+  if (!exterior) return inputs;
+  const project = state.project || {};
+  const extDefaults = exterior.defaults || {};
+  const siteConditions = exterior.site_conditions || {};
+  const projectType = exterior.project_type || 'NC';
+  const standaloneLookups = buildStandaloneQuantityLookups(state);
+
+  const STANDALONE_SPEC_FOR_ITEM = {
+    garage_doors: projectType === 'RP' ? 'SF_GARAGE_DOOR_EXT_RP' : 'SF_GARAGE_DOOR_EXT_NC',
+    fence:        projectType === 'RP' ? 'SF_FENCE_EXT_RP'       : 'SF_FENCE_EXT',
+    deck:         projectType === 'RP' ? 'SF_DECK_EXT_RP'        : 'SF_DECK_EXT',
+    foundation:   projectType === 'RP' ? 'SF_FOUNDATION_EXT_RP'  : 'SF_FOUNDATION_EXT_NC',
+    porch_ceiling: projectType === 'RP' ? 'SF_PORCH_CEILING_EXT_RP' : 'SF_PORCH_CEILING_EXT_NC',
+    porch_floor:   projectType === 'RP' ? 'SF_PORCH_FLOOR_EXT_RP'   : 'SF_PORCH_FLOOR_EXT_NC',
+    metal:        projectType === 'RP' ? 'SF_METAL_EXT_RP'      : 'SF_METAL_EXT',
+  };
+
+  standaloneLookups.forEach((qty, itemType) => {
+    if (!qty || qty.size === 0) return;
+    const specId = STANDALONE_SPEC_FOR_ITEM[itemType];
+    if (!specId) return;
+    const roomIndex = -200 - Object.keys(STANDALONE_SPEC_FOR_ITEM).indexOf(itemType);
+    const roomLabel = `Standalone: ${itemType}`;
+    const ctx = buildExteriorCtx(specId, null, extDefaults, siteConditions, exterior.standalone, itemType, projectType, project);
+    inputs.push({
+      roomIndex,
+      roomLabel,
+      specId,
+      ctx: normalizePassGroupCtx(ctx),
+      roomQty: qty,
+      roomItems: null,
+    });
+  });
+
+  return inputs;
+}
+
+/**
+ * Build the per-(spec, elevation|standalone) ctx with the three-level override
+ * cascade: project defaults → elevation → siding section.
+ *
+ * Lifted from run-estimate.js `buildExteriorContext()` (lines 911-980) and
+ * adapted to also stamp the fields the scenario engine expects (paintable_item,
+ * surface, etc.) so the scenario matcher can resolve.
+ */
+function buildExteriorCtx(specId, elevation, extDefaults, siteConditions, standalone, index, projectType, project) {
+  const ctx = {
+    // Core spec context
+    quality_tier: extDefaults.quality_tier || project?.default_quality_tier || 'QT3',
+    application_method: extDefaults.application_method || 'spray_backbrush',
+    surface_texture: 'smooth',
+    height_band: 'GROUND',
+    complexity: 'STD',
+
+    // Site conditions
+    wind_exposure: siteConditions.wind_exposure || 'moderate',
+    sun_exposure: siteConditions.sun_exposure || 'mixed',
+    temperature_zone: siteConditions.temperature_zone || 'standard',
+
+    // Exterior identity
+    access_type: 'ground',
+    project_type: projectType,
+    condition_scale: projectType === 'RP' ? (extDefaults.condition_scale || 'GOOD') : undefined,
+
+    // Scenario-matcher fields — populated below from spec id / elevation data
+    paintable_item: SPEC_TO_PAINTABLE_ITEM[specId] || null,
+    substrate_state: null,
+    coating_type: 'paint',
+    surface: null,
+
+    // Pass-group fields (always null for exterior)
+    pass_group_id: null,
+    pass_group_substrates: null,
+    pass_type: null,
+  };
+
+  // Elevation overrides
+  if (elevation) {
+    if (elevation.quality_tier) ctx.quality_tier = elevation.quality_tier;
+    if (elevation.application_method) ctx.application_method = elevation.application_method;
+    ctx.access_type = elevation.access_type || 'ground';
+    ctx.height_band = deriveAccessBand(ctx.access_type);
+
+    // Substrate state / texture / siding type from the first matching section
+    const substrateSource = SPEC_SUBSTRATE_MAP[specId];
+    if (substrateSource === 'ext_siding' && Array.isArray(elevation.siding_sections) && elevation.siding_sections.length > 0) {
+      const sec = elevation.siding_sections[0];
+      if (sec.substrate_state && EXT_UI_STATE_TO_SPEC_STATE[sec.substrate_state]) {
+        ctx.substrate_state = EXT_UI_STATE_TO_SPEC_STATE[sec.substrate_state];
+      }
+      ctx.surface_texture = sec.texture_profile || 'smooth';
+      ctx.siding_type = sec.siding_type;
+      ctx.siding_profile = sec.siding_profile || null;
+    }
+    if (substrateSource === 'ext_trim') {
+      const trim = (elevation.trim_types || [])[0];
+      if (trim?.substrate_state && EXT_UI_STATE_TO_SPEC_STATE[trim.substrate_state]) {
+        ctx.substrate_state = EXT_UI_STATE_TO_SPEC_STATE[trim.substrate_state];
+      }
+    }
+  }
+
+  // Standalone overrides
+  if (standalone) {
+    if (index === 'fence' && standalone.fence) {
+      ctx.fence_style = standalone.fence.style || 'privacy';
+      if (standalone.fence.substrate_state && EXT_UI_STATE_TO_SPEC_STATE[standalone.fence.substrate_state]) {
+        ctx.substrate_state = EXT_UI_STATE_TO_SPEC_STATE[standalone.fence.substrate_state];
+      }
+    }
+    if (index === 'deck' && standalone.deck) {
+      ctx.coating_type = standalone.deck.coating_type || 'paint';
+      if (standalone.deck.substrate_state && EXT_UI_STATE_TO_SPEC_STATE[standalone.deck.substrate_state]) {
+        ctx.substrate_state = EXT_UI_STATE_TO_SPEC_STATE[standalone.deck.substrate_state];
+      }
+    }
+    if (index === 'foundation' && standalone.foundation) {
+      ctx.foundation_type = standalone.foundation.type || 'poured';
+    }
+    if (index === 'metal' && standalone.metal) {
+      ctx.metal_profile_complexity = standalone.metal.profile_complexity || 'simple';
+    }
+    if (index === 'garage_doors' && Array.isArray(standalone.garage_doors) && standalone.garage_doors.length > 0) {
+      const gd = standalone.garage_doors[0];
+      ctx.door_size = gd.size || 'single';
+      ctx.panel_complexity = gd.panel_type || 'flush';
+    }
+  }
+
+  return ctx;
+}
+
+/**
  * Build the per-spec per-room context + quantity lookup for every active
  * (room, spec) pair in the project. Mirrors the `for (spec of db.spec_families)
  * { for (room of state.rooms) { ... } }` loop in run-estimate.js lines 180-280
@@ -994,6 +1207,12 @@ export function buildScenarioInputs(state, db) {
       });
     }
   }
+
+  // ── Exterior: append elevation + standalone scenario inputs ──
+  const extElevationInputs = buildElevationScenarioInputs(state, db);
+  const extStandaloneInputs = buildStandaloneScenarioInputs(state, db);
+  for (const inp of extElevationInputs) roomInputs.push(inp);
+  for (const inp of extStandaloneInputs) roomInputs.push(inp);
 
   return { roomInputs, lookups, warnings };
 }
