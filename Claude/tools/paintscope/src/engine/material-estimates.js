@@ -342,24 +342,21 @@ export function computeExteriorMaterialEstimates(state, db, elevLookups, standal
   if (elevLookups) elevLookups.forEach(addToTotal);
   if (standaloneLookups) standaloneLookups.forEach(addToTotal);
 
-  // Build set of activated exterior spec IDs (only estimate materials for specs that produced hours)
-  const activatedExtSpecs = new Set(extSpecResults.map(sr => sr.specId));
-
-  // Index spec_required_inputs for PS key lookup
-  const inputsBySpec = {};
-  (db.spec_required_inputs || []).forEach(ri => {
-    if (!inputsBySpec[ri.spec_family_id]) inputsBySpec[ri.spec_family_id] = [];
-    inputsBySpec[ri.spec_family_id].push(ri);
-  });
-
-  // For each exterior spec with default coverage profiles
-  for (const [specId, coverageDefaults] of Object.entries(EXT_COVERAGE_DEFAULTS)) {
+  // For each activated exterior spec with default coverage profiles
+  for (const sr of extSpecResults) {
+    const specId = sr.specId;
+    const coverageDefaults = EXT_COVERAGE_DEFAULTS[specId];
     if (!coverageDefaults) continue; // e.g., caulking — no material estimate
-    if (!activatedExtSpecs.has(specId)) continue; // spec didn't fire — no material needed
 
-    // Find total SF/LF/EA for this spec from PS keys
-    const specInputs = inputsBySpec[specId] || [];
-    const psKeys = specInputs.map(i => i.paintscope_key);
+    // Derive distinct surface/edge PS keys from the spec's fired tasks.
+    // This replaces the legacy db.spec_required_inputs lookup (stripped of
+    // exterior rows in the SF_EXT_* db-bundle scrub) — scenario tasks already
+    // carry psKey, so we get the same PS-key set without the db dependency.
+    const psKeys = [...new Set(
+      (sr.tasks || [])
+        .map(t => t.psKey)
+        .filter(k => k && (k.startsWith('PS_EXT_SURFACE_') || k.startsWith('PS_EXT_EDGE_')))
+    )];
 
     let specQuantity = 0;
     let matchedKey = null;
