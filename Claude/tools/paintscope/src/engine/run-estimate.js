@@ -15,6 +15,11 @@ import { SPEC_SUBSTRATE_MAP, SPEC_OUTPUT_STATES, UI_STATE_TO_SPEC_STATE, SPEC_VA
 import { SPEC_DISPLAY_NAMES, specDisplayName, PHASE_ORDER, ARCH_ELEMENT_PS_GROUPS } from '../data/constants.js';
 import { FIXTURE_CATALOG } from '../data/fixture-catalog.js';
 import { WINDOW_TYPE_LABELS, WINDOW_SIZE_LABELS, DOOR_TYPE_LABELS } from '../data/modifiers.js';
+import canonicalBundle from '../data/scenario-bundle.gen.js';
+import { buildScenarioInputs } from './context-adapter.js';
+import { runScenarioEstimate } from './run-estimate-scenario.js';
+import { findBestMatch, findNearMisses } from './scenario-matcher.js';
+import { scenarioResultsToSpecResults } from './scenario-to-spec-results.js';
 
 /**
  * Determine if complexity modifier should apply to a given task.
@@ -614,196 +619,67 @@ export function runEstimate(state, db, overlayMap, profile) {
   specResults = expandedSpecResults;
 
   // ============================================================
-  // EXTERIOR ESTIMATION LOOP
+  // EXTERIOR ESTIMATION — scenario engine path
   // ============================================================
+  // The legacy SF_EXT_* spec-driven exterior loop was retired in this PR.
+  // Exterior elevation + standalone inputs are emitted by context-adapter's
+  // buildScenarioInputs (filter: roomIndex < 0) and run through the scenario
+  // engine. Output is converted to specResult shape so the downstream
+  // protection dedup, material estimates, and EstimateView consumers stay
+  // unchanged.
   const exterior = state.exterior;
   if (exterior && exterior.elevations && exterior.elevations.length > 0) {
-    const elevLookups = buildElevationQuantityLookups(state);
-    const standaloneLookups = buildStandaloneQuantityLookups(state);
-    const extDefaults = exterior.defaults || {};
-    const siteConditions = exterior.site_conditions || {};
-    const extProjectType = exterior.project_type || 'NC';
-    const activeExtSpecIds = getExteriorSpecIds(extProjectType);
+    const { roomInputs } = buildScenarioInputs(state, db);
+    const exteriorInputs = roomInputs.filter(ri => ri.roomIndex < 0);
 
-    db.spec_families.forEach(spec => {
-      if (!activeExtSpecIds.has(spec.id)) return; // Only exterior specs for active project type
-
-      const inputs = requiredInputsBySpec[spec.id] || [];
-      const modules = (modulesBySpec[spec.id] || []).sort((a,b) => (a.sort_order||0)-(b.sort_order||0));
-      if (modules.length === 0) return;
-
-      const allPsKeys = inputs.map(i => i.paintscope_key);
-      // Activation: check PS_EXT_ surface and opening keys
-      const psKeys = allPsKeys.filter(k => k.startsWith('PS_EXT_SURFACE_') || k.startsWith('PS_EXT_EDGE_') || k.startsWith('PS_EXT_OPENING_'));
-
-      let specTotalHours = 0;
-      const phaseHours = {};
-      const taskResults = [];
-
-      // Determine which lookups to check: elevation-bound or standalone
-      const isStandaloneSpec = isStandaloneSpecId(spec.id);
-      const lookupsToProcess = [];
-
-      if (isStandaloneSpec) {
-        // Standalone specs process standalone item lookups
-        standaloneLookups.forEach((qty, itemType) => {
-          if (psKeys.some(k => qty.has(k) && qty.get(k).value > 0)) {
-            lookupsToProcess.push({ qty, label: itemType, index: itemType, isStandalone: true });
-          }
-        });
-      } else {
-        // Elevation-bound specs process per-elevation
-        elevLookups.forEach((qty, ei) => {
-          if (psKeys.some(k => qty.has(k) && qty.get(k).value > 0)) {
-            const elev = exterior.elevations[ei];
-            lookupsToProcess.push({ qty, label: elev.label, index: ei, elev, isStandalone: false });
-          }
-        });
-      }
-
-      if (lookupsToProcess.length === 0) return;
-
-      lookupsToProcess.forEach(({ qty: lookupQty, label, index, elev, isStandalone }) => {
-        // Build exterior context
-        const ctx = buildExteriorContext(spec.id, elev, extDefaults, siteConditions, isStandalone ? exterior.standalone : null, index, extProjectType);
-
-        // Coat count lookup
-        let finishCoats = 1, interstageCycles = 1;
-        if (db.coat_counts) {
-          const qt = ctx.quality_tier || 'QT3';
-          const method = ctx.application_method || 'spray';
-          const tierKey = qt === 'QT5' ? ('QT5_' + (method.startsWith('spray') ? 'spray' : 'brush')) : qt;
-          const ccRow = db.coat_counts.find(r => r.spec_family_id === spec.id && r.tier_key === tierKey);
-          if (ccRow) {
-            finishCoats = ccRow.finish_coats || 1;
-            interstageCycles = ccRow.interstage_cycles || 1;
-          }
+    const perInputResults = [];
+    for (const inp of exteriorInputs) {
+      try {
+        const matchInfo = findBestMatch(canonicalBundle, inp.ctx);
+        if (!matchInfo.scenario) {
+          const near = findNearMisses(canonicalBundle, inp.ctx, 1).slice(0, 1);
+          const nearMsg = near[0]
+            ? ` (near-miss: ${near[0].scenario.scenario_id})`
+            : '';
+          warnings.push(`[${inp.roomLabel}] ${inp.specId}: no scenario match${nearMsg}`);
+          continue;
         }
+        if (matchInfo.tied) warnings.push(...matchInfo.warnings);
 
-        const modStack = computeModifierStack(spec.id, ctx, db, warnings);
-
-        modules.forEach(mod => {
-          if (!evaluateAppliesWhen(mod.applies_when, ctx)) return;
-
-          let coatMultiplier = 1;
-          if (mod.phase === 'interstage') coatMultiplier = interstageCycles;
-          else if (mod.phase === 'finish' && !mod.id.includes('FINAL') && !/_COAT_\d/.test(mod.id)) coatMultiplier = finishCoats;
-
-          const tasks = (tasksByModule[`${spec.id}::${mod.id}`] || []).sort((a,b) => (a.sort_order||0)-(b.sort_order||0));
-
-          tasks.forEach(task => {
-            if (task.appears_in_tiers && Array.isArray(task.appears_in_tiers)) {
-              if (!task.appears_in_tiers.includes(ctx.quality_tier)) return;
-            }
-            if (!evaluateAppliesWhen(task.applies_when, ctx)) return;
-
-            const rates = ratesByTask[`${spec.id}::${task.id}`] || [];
-            if (rates.length === 0) return;
-
-            rates.forEach(rateRow => {
-              if (!evaluateAppliesWhen(rateRow.applies_when, ctx)) return;
-
-              const resolved = resolveTaskRate(rateRow, ctx, overlayMap, spec.id);
-              if (!resolved) return;
-
-              const phase = mod.phase || 'apply';
-              const psKey = rateRow.paintscope_key;
-
-              const pushResult = (hrs, qty, itemModStack, itemGroup) => {
-                if (hrs <= 0) return;
-                const singleCoatHrs = Math.round(hrs * 1000) / 1000;
-                const totalHrs = Math.round(singleCoatHrs * coatMultiplier * 1000) / 1000;
-                phaseHours[phase] = (phaseHours[phase] || 0) + totalHrs;
-                specTotalHours += totalHrs;
-                taskResults.push({
-                  taskId: task.id,
-                  taskName: task.name,
-                  phase,
-                  moduleName: mod.name,
-                  roomIndex: isStandalone ? index : index,
-                  roomLabel: label,
-                  psKey: psKey || '(fixed)',
-                  uom: resolved.uom,
-                  quantity: Math.round(qty * 100) / 100,
-                  baseRate: resolved.isFixed ? `${resolved.fixedMinutes}m` : resolved.effectiveRate,
-                  modStack: itemModStack || { ...modStack },
-                  hours: totalHrs,
-                  coatMultiplier,
-                  skillLevel: task.skill_level,
-                  crewSize: rateRow.crew_size || 1,
-                  isFixed: resolved.isFixed,
-                  domain: 'exterior',
-                  elevationLabel: isStandalone ? null : label,
-                  standaloneType: isStandalone ? index : null,
-                  itemGroup: itemGroup || null,
-                  conditionScale: ctx.condition_scale || null,
-                });
-              };
-
-              if (resolved.isFixed) {
-                pushResult(resolved.fixedMinutes / 60, 1);
-              } else if (psKey && psKey.startsWith('PS_EXT_OPENING_EA.WINDOW_') && (spec.id === 'SF_WINDOW_EXT_NC' || spec.id === 'SF_WINDOW_EXT_RP') && elev) {
-                // Per-item exterior window splitting
-                const itemResults = computeExtWindowPerItemResults(resolved.effectiveRate, modStack.total, elev);
-                if (itemResults) {
-                  itemResults.forEach(ir => {
-                    pushResult(ir.hours, ir.quantity,
-                      { ...modStack, sizeMod: ir.sizeMod, typeMod: ir.typeMod, total: Math.round(modStack.total * ir.itemMod * 1000) / 1000 },
-                      ir.label);
-                  });
-                } else if (lookupQty.has(psKey)) {
-                  const quantity = lookupQty.get(psKey).value;
-                  pushResult(quantity / (resolved.effectiveRate / modStack.total), quantity);
-                }
-              } else if (psKey === 'PS_EXT_OPENING_EA.DOOR_EXT' && (spec.id === 'SF_DOOR_EXT_NC' || spec.id === 'SF_DOOR_EXT_RP') && elev) {
-                // Per-item exterior door splitting
-                const itemResults = computeExtDoorPerItemResults(resolved.effectiveRate, modStack.total, elev);
-                if (itemResults) {
-                  itemResults.forEach(ir => {
-                    pushResult(ir.hours, ir.quantity,
-                      { ...modStack, typeMod: ir.typeMod, substrateMod: ir.substrateMod, total: Math.round(modStack.total * ir.itemMod * 1000) / 1000 },
-                      ir.label);
-                  });
-                } else if (lookupQty.has(psKey)) {
-                  const quantity = lookupQty.get(psKey).value;
-                  pushResult(quantity / (resolved.effectiveRate / modStack.total), quantity);
-                }
-              } else if (psKey === 'PS_EXT_OPENING_EA.DOOR_GARAGE' && (spec.id === 'SF_GARAGE_DOOR_EXT_NC' || spec.id === 'SF_GARAGE_DOOR_EXT_RP') && isStandalone) {
-                // Per-item garage door splitting
-                const garageDoors = exterior.standalone?.garage_doors || [];
-                const itemResults = computeGarageDoorPerItemResults(resolved.effectiveRate, modStack.total, garageDoors);
-                if (itemResults) {
-                  itemResults.forEach(ir => {
-                    pushResult(ir.hours, ir.quantity,
-                      { ...modStack, sizeMod: ir.sizeMod, panelMod: ir.panelMod, total: Math.round(modStack.total * ir.itemMod * 1000) / 1000 },
-                      ir.label);
-                  });
-                } else if (lookupQty.has(psKey)) {
-                  const quantity = lookupQty.get(psKey).value;
-                  pushResult(quantity / (resolved.effectiveRate / modStack.total), quantity);
-                }
-              } else if (psKey && lookupQty.has(psKey)) {
-                const quantity = lookupQty.get(psKey).value;
-                const effRate = resolved.effectiveRate / modStack.total;
-                pushResult(quantity / effRate, quantity);
-              }
-            });
-          });
+        const result = runScenarioEstimate({
+          scenarioBundle: canonicalBundle,
+          ctx: inp.ctx,
+          roomQty: inp.roomQty,
+          roomItems: inp.roomItems,
+          overlayMap,
+          roomIndex: inp.roomIndex,
+          roomLabel: inp.roomLabel,
         });
-      });
+        if (!result || !result.scenarioId) continue;
 
-      if (specTotalHours > 0 || taskResults.length > 0) {
-        specResults.push({
-          specId: spec.id,
-          specName: spec.name,
-          domain: 'exterior',
-          totalHours: Math.round(specTotalHours * 100) / 100,
-          phaseHours: Object.fromEntries(Object.entries(phaseHours).map(([k,v]) => [k, Math.round(v*100)/100])),
-          tasks: taskResults
+        perInputResults.push({
+          specId: inp.specId,
+          specName: inp.specId,
+          roomLabel: inp.roomLabel,
+          roomIndex: inp.roomIndex,
+          scenarioId: result.scenarioId,
+          scenarioName: result.scenarioName,
+          totalHours: result.totalHours,
+          phaseHours: result.phaseHours,
+          tasks: result.tasks,
+          warnings: result.warnings || [],
         });
-        grandTotalHours += specTotalHours;
+        if (result.warnings?.length) warnings.push(...result.warnings);
+      } catch (err) {
+        warnings.push(`[${inp.roomLabel}] ${inp.specId}: ${err.message}`);
       }
-    });
+    }
+
+    const extSpecResults = scenarioResultsToSpecResults(perInputResults, { domain: 'exterior' });
+    for (const sr of extSpecResults) {
+      specResults.push(sr);
+      grandTotalHours += sr.totalHours;
+    }
   }
 
   // Sort specs by total hours descending
