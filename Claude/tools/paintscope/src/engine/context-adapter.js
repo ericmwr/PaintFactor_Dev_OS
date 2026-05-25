@@ -89,11 +89,11 @@ function buildGroupCtx(group, room, project, roomDerived) {
   const ctx = {
     // Dimensions (verified identical by precheck)
     quality_tier:       firstSub.quality_tier || room.quality_tier || project.default_quality_tier || 'QT3',
-    application_method: firstSub.application_method || project.default_application_method || 'brush_roll',
+    application_method: firstSub.application_method || 'brush_roll',
     substrate_state:    firstSub.substrate_state ? uiStateToSpecState(firstSub.substrate_state) : null,
     complexity:         room.complexity || project.default_complexity || 'STD',
     height_band:        roomDerived?.heightBand || 'STD',
-    texture:            firstSub.texture || project.default_texture || 'smooth',
+    texture:            firstSub.texture || 'smooth',
 
     // Pass group fields
     pass_group_id:         group.group_id,
@@ -801,6 +801,52 @@ export function buildStandaloneScenarioInputs(state, db) {
   return inputs;
 }
 
+// Exterior spec → substrate source key. Was previously in SPEC_SUBSTRATE_MAP
+// but those entries were stripped in the SF_EXT_* cutover (commit 2d333e3).
+// The adapter still needs this mapping to route substrate_state / texture /
+// material reads to the correct section/trim/standalone config. Keeping it
+// inline here (vs. re-adding to spec-maps.js) so the scenario engine path
+// owns its dependencies — interior code no longer references it.
+const EXT_SPEC_SUBSTRATE_MAP = Object.freeze({
+  // NC
+  SF_WOOD_SIDING_EXT_NC_PAINT:    'ext_siding',
+  SF_SIDING_FIBERCEMENT_EXT_NC:   'ext_siding',
+  SF_SIDING_ENGINEERED_EXT_NC:    'ext_siding',
+  SF_STUCCO_EXT_NC:               'ext_siding',
+  SF_MASONRY_EXT_NC:              'ext_siding',
+  SF_TRIM_EXT_NC:                 'ext_trim',
+  SF_SOFFIT_EXT_NC:               'ext_soffit',
+  SF_WINDOW_EXT_NC:               'ext_window',
+  SF_DOOR_EXT_NC:                 'ext_door',
+  SF_GARAGE_DOOR_EXT_NC:          'ext_garage_door',
+  SF_CAULK_EXT:                   'ext_caulk',
+  SF_DECK_EXT:                    'ext_deck',
+  SF_FENCE_EXT:                   'ext_fence',
+  SF_FOUNDATION_EXT_NC:           'ext_foundation',
+  SF_PORCH_CEILING_EXT_NC:        'ext_porch_ceiling',
+  SF_PORCH_FLOOR_EXT_NC:          'ext_porch_floor',
+  SF_METAL_EXT:                   'ext_metal',
+  // RP
+  SF_SIDING_WOOD_EXT_RP:          'ext_siding',
+  SF_SIDING_ALUMINUM_EXT_RP:      'ext_siding',
+  SF_SIDING_VINYL_EXT_RP:         'ext_siding',
+  SF_SIDING_FIBERCEMENT_EXT_RP:   'ext_siding',
+  SF_SIDING_ENGINEERED_EXT_RP:    'ext_siding',
+  SF_STUCCO_EXT_RP:               'ext_siding',
+  SF_MASONRY_EXT_RP:              'ext_siding',
+  SF_TRIM_EXT_RP:                 'ext_trim',
+  SF_SOFFIT_EXT_RP:               'ext_soffit',
+  SF_WINDOW_EXT_RP:               'ext_window',
+  SF_DOOR_EXT_RP:                 'ext_door',
+  SF_GARAGE_DOOR_EXT_RP:          'ext_garage_door',
+  SF_DECK_EXT_RP:                 'ext_deck',
+  SF_FENCE_EXT_RP:                'ext_fence',
+  SF_FOUNDATION_EXT_RP:           'ext_foundation',
+  SF_PORCH_CEILING_EXT_RP:        'ext_porch_ceiling',
+  SF_PORCH_FLOOR_EXT_RP:          'ext_porch_floor',
+  SF_METAL_EXT_RP:                'ext_metal',
+});
+
 /**
  * Build the per-(spec, elevation|standalone) ctx with the three-level override
  * cascade: project defaults → elevation → siding section.
@@ -851,7 +897,7 @@ function buildExteriorCtx(specId, elevation, extDefaults, siteConditions, standa
     if (elevation.caulk_scope) ctx.caulk_scope = elevation.caulk_scope;
 
     // Substrate state / texture / siding type from the first matching section
-    const substrateSource = SPEC_SUBSTRATE_MAP[specId];
+    const substrateSource = EXT_SPEC_SUBSTRATE_MAP[specId];
     if (substrateSource === 'ext_siding' && Array.isArray(elevation.siding_sections) && elevation.siding_sections.length > 0) {
       const sec = elevation.siding_sections[0];
       if (sec.substrate_state && EXT_UI_STATE_TO_SPEC_STATE[sec.substrate_state]) {
