@@ -26,7 +26,18 @@ const ELEMENT_PARENT_ORDER = [
 export default function TrackerBody({ snapshot, entries, onEntrySaved }) {
   const [expandAll, setExpandAll] = useState(false);
   const [phaseLogFor, setPhaseLogFor] = useState(null); // phaseRollup
+  const [collapsedPhases, setCollapsedPhases] = useState(() => new Set());
   const activities = snapshot?.activities || [];
+
+  const togglePhase = (phaseKey) => {
+    setCollapsedPhases(prev => {
+      const next = new Set(prev);
+      if (next.has(phaseKey)) next.delete(phaseKey);
+      else next.add(phaseKey);
+      return next;
+    });
+  };
+  const isCollapsed = (phaseKey) => collapsedPhases.has(phaseKey);
 
   const phaseRollups = useMemo(() => buildPhaseRollups(snapshot), [snapshot]);
   const projectLevelRollups = useMemo(() => buildProjectLevelRollups(snapshot), [snapshot]);
@@ -77,11 +88,19 @@ export default function TrackerBody({ snapshot, entries, onEntrySaved }) {
     <div>
       <div style={{ marginBottom: 12, display: 'flex', gap: 8 }}>
         <button
-          onClick={() => setExpandAll(true)}
+          onClick={() => { setExpandAll(true); setCollapsedPhases(new Set()); }}
           style={btnStyle()}
         >Expand All</button>
         <button
-          onClick={() => setExpandAll(false)}
+          onClick={() => {
+            setExpandAll(false);
+            const all = new Set();
+            if (projectLevelRollups.project_setup)      all.add('project_setup');
+            if (projectLevelRollups.project_protection) all.add('project_protection');
+            if (projectLevelRollups.project_cleanup)    all.add('project_cleanup');
+            for (const p of presentPhases) all.add(p);
+            setCollapsedPhases(all);
+          }}
           style={btnStyle()}
         >Collapse All</button>
       </div>
@@ -93,10 +112,12 @@ export default function TrackerBody({ snapshot, entries, onEntrySaved }) {
           rollup={projectLevelRollups.project_setup}
           entries={entries}
           entriesByActivity={entriesByActivity}
+          collapsed={isCollapsed('project_setup')}
+          onToggle={() => togglePhase('project_setup')}
           onLog={() => setPhaseLogFor(projectLevelRollups.project_setup)}
         />
       )}
-      {projectLevel.before.map(act => (
+      {!isCollapsed('project_setup') && projectLevel.before.map(act => (
         <ActivityRow
           key={act.activity_id}
           activity={act}
@@ -112,10 +133,12 @@ export default function TrackerBody({ snapshot, entries, onEntrySaved }) {
           rollup={projectLevelRollups.project_protection}
           entries={entries}
           entriesByActivity={entriesByActivity}
+          collapsed={isCollapsed('project_protection')}
+          onToggle={() => togglePhase('project_protection')}
           onLog={() => setPhaseLogFor(projectLevelRollups.project_protection)}
         />
       )}
-      {projectLevel.middle.map(act => (
+      {!isCollapsed('project_protection') && projectLevel.middle.map(act => (
         <ActivityRow
           key={act.activity_id}
           activity={act}
@@ -129,6 +152,7 @@ export default function TrackerBody({ snapshot, entries, onEntrySaved }) {
         const parentsInPhase = ELEMENT_PARENT_ORDER.filter(p => phaseGroups[phase] && phaseGroups[phase][p]);
         if (parentsInPhase.length === 0) return null;
         const phaseRollup = phaseRollups[phase];
+        const collapsed = isCollapsed(phase);
         return (
           <div key={phase}>
             <PhaseHeader
@@ -137,9 +161,11 @@ export default function TrackerBody({ snapshot, entries, onEntrySaved }) {
               rollup={phaseRollup}
               entries={entries}
               entriesByActivity={entriesByActivity}
+              collapsed={collapsed}
+              onToggle={() => togglePhase(phase)}
               onLog={() => setPhaseLogFor(phaseRollup)}
             />
-            {parentsInPhase.flatMap(parent => (
+            {!collapsed && parentsInPhase.flatMap(parent => (
               phaseGroups[phase][parent].map(act => (
                 <ActivityRow
                   key={act.activity_id}
@@ -161,10 +187,12 @@ export default function TrackerBody({ snapshot, entries, onEntrySaved }) {
           rollup={projectLevelRollups.project_cleanup}
           entries={entries}
           entriesByActivity={entriesByActivity}
+          collapsed={isCollapsed('project_cleanup')}
+          onToggle={() => togglePhase('project_cleanup')}
           onLog={() => setPhaseLogFor(projectLevelRollups.project_cleanup)}
         />
       )}
-      {projectLevel.after.map(act => (
+      {!isCollapsed('project_cleanup') && projectLevel.after.map(act => (
         <ActivityRow
           key={act.activity_id}
           activity={act}
@@ -185,16 +213,24 @@ export default function TrackerBody({ snapshot, entries, onEntrySaved }) {
   );
 }
 
-function PhaseHeader({ phase, label, rollup, entries, entriesByActivity, onLog }) {
+function PhaseHeader({ phase, label, rollup, entries, entriesByActivity, collapsed, onToggle, onLog }) {
   const logged = rollup ? sumPhaseLoggedHours(rollup, entries) : 0;
   const est = rollup?.estimated_hours || 0;
   const pct = rollup ? computePhaseCompletion(rollup, entriesByActivity) : 0;
   return (
-    <div style={{
-      display: 'flex', alignItems: 'center', gap: 8, marginTop: 16, marginBottom: 6,
-      padding: '6px 8px', background: 'rgba(130, 170, 255, 0.06)',
-      borderLeft: '2px solid var(--accent)', borderRadius: 3, fontSize: 12,
-    }}>
+    <div
+      onClick={onToggle}
+      style={{
+        display: 'flex', alignItems: 'center', gap: 8, marginTop: 16, marginBottom: 6,
+        padding: '6px 8px', background: 'rgba(130, 170, 255, 0.06)',
+        borderLeft: '2px solid var(--accent)', borderRadius: 3, fontSize: 12,
+        cursor: onToggle ? 'pointer' : 'default',
+        userSelect: 'none',
+      }}
+      aria-expanded={!collapsed}
+      role={onToggle ? 'button' : undefined}
+    >
+      <span style={{ color: 'var(--accent)', width: 12, fontSize: 10 }}>{collapsed ? '▶' : '▼'}</span>
       <strong style={{ flex: 1, color: 'var(--accent)', fontSize: 11, letterSpacing: 0.5 }}>═══ {label} ═══</strong>
       <span style={{ color: 'var(--text-muted)', fontSize: 11, minWidth: 80, textAlign: 'right' }}>
         {logged.toFixed(1)}h / {est.toFixed(1)}h
@@ -204,7 +240,7 @@ function PhaseHeader({ phase, label, rollup, entries, entriesByActivity, onLog }
       </span>
       {rollup && rollup.activities.length > 0 && (
         <button
-          onClick={onLog}
+          onClick={(e) => { e.stopPropagation(); onLog?.(); }}
           style={{
             background: 'var(--accent, #82aaff)', color: 'var(--bg, #0f0f0f)',
             border: 'none', padding: '2px 8px', borderRadius: 3,
