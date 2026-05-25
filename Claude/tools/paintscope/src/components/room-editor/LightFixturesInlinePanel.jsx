@@ -1,15 +1,28 @@
 import { LIGHT_FIXTURE_TYPES, LIGHT_FIXTURE_TYPE_MAP, FIXTURE_ACTION_MODES } from '../../data/light-fixture-types';
 import { FIXTURE_MASK_LEVELS } from '../../data/mask-levels';
 
-// W-16 Phase 2 — replaces the single-row count-only inline UI for the
-// light_fixtures fixture with a multi-row panel where each row is a
-// fixture type (recessed, ceiling fan, bulb, transparent glass, or
-// custom "other"). User can mix multiple types per room with their own
-// count, protection level, action mode (mask vs remove), and optional
-// time-min overrides.
+// Light fixtures detail panel. Each row is a fixture type (recessed,
+// ceiling fan, bulb, transparent glass, or custom). User mixes types
+// per room with count + protection level + action mode and enters their
+// own install + remove minutes for that fixture type. No taxonomy time
+// defaults — everything is user input.
+//
+// 50% auto-fill: when in mask mode and the user types an install time,
+// the remove field auto-fills to 50% of that value if it's still empty.
+// User can override the remove field manually anytime.
 
 const TYPE_OPTIONS = LIGHT_FIXTURE_TYPES.map(t => ({ value: t.id, label: t.label }));
-const PROTECTION_LEVELS = FIXTURE_MASK_LEVELS.light_fixtures; // group-B levels w/ "Full cover" label
+const PROTECTION_LEVELS = FIXTURE_MASK_LEVELS.light_fixtures;
+
+// (action_mode, side) → which item field holds the time value
+const FIELD_FOR = {
+  mask:   { install: 'mask_install_time_min',     remove: 'mask_remove_time_min' },
+  remove: { install: 'fixture_uninstall_time_min', remove: 'fixture_reinstall_time_min' },
+};
+const PLACEHOLDER = {
+  mask:   { install: 'apply mask',  remove: 'take off mask' },
+  remove: { install: 'take down',   remove: 'reinstall' },
+};
 
 export default function LightFixturesInlinePanel({ roomId, cfg, dispatch }) {
   const items = Array.isArray(cfg.items) ? cfg.items : [];
@@ -17,6 +30,9 @@ export default function LightFixturesInlinePanel({ roomId, cfg, dispatch }) {
   const addItem = (type = 'other') => dispatch({ type: 'ADD_LIGHT_FIXTURE_ITEM', payload: { roomId, type } });
   const removeItem = (itemId) => dispatch({ type: 'REMOVE_LIGHT_FIXTURE_ITEM', payload: { roomId, itemId } });
   const setItem = (itemId, field, value) => dispatch({ type: 'SET_LIGHT_FIXTURE_ITEM', payload: { roomId, itemId, field, value } });
+
+  // Parse a free-text time input → number | null (empty = null, not 0).
+  const parseTime = (raw) => (raw === '' || raw == null) ? null : (parseFloat(raw) || 0);
 
   return (
     <div style={{ padding: '4px 0', borderBottom: '1px dashed var(--border-subtle, var(--border))' }}>
@@ -37,11 +53,12 @@ export default function LightFixturesInlinePanel({ roomId, cfg, dispatch }) {
         <table className="data-table" style={{ width: '100%', fontSize: 11, marginLeft: 12 }}>
           <thead>
             <tr>
-              <th style={{ width: 180 }}>Type</th>
-              <th style={{ width: 60 }}>Count</th>
-              <th style={{ width: 130 }}>Action</th>
-              <th style={{ width: 140 }}>Protection</th>
-              <th style={{ width: 90 }}>Time (min)</th>
+              <th style={{ width: 170 }}>Type</th>
+              <th style={{ width: 55 }}>Count</th>
+              <th style={{ width: 120 }}>Action</th>
+              <th style={{ width: 130 }}>Protection</th>
+              <th style={{ width: 80 }}>Install (min)</th>
+              <th style={{ width: 80 }}>Remove (min)</th>
               <th></th>
               <th style={{ width: 30 }}></th>
             </tr>
@@ -50,15 +67,30 @@ export default function LightFixturesInlinePanel({ roomId, cfg, dispatch }) {
             {items.map(item => {
               const taxonomy = LIGHT_FIXTURE_TYPE_MAP[item.type] || LIGHT_FIXTURE_TYPE_MAP['other'];
               const isCustom = !!taxonomy.is_custom;
-              const isMask = (item.action_mode || 'mask') === 'mask';
-              const defaultTime = isMask ? taxonomy.mask_time_min : taxonomy.remove_time_min;
-              const overrideKey = isMask ? 'mask_time_min_override' : 'remove_time_min_override';
-              const overrideVal = item[overrideKey];
-              const effectiveTime = overrideVal != null ? overrideVal : defaultTime;
-              const totalMin = (effectiveTime || 0) * (parseInt(item.count) || 0);
+              const mode = (item.action_mode || 'mask');
+              const isMask = mode === 'mask';
+              const fields = FIELD_FOR[mode];
+              const placeholders = PLACEHOLDER[mode];
+              const installVal = item[fields.install];
+              const removeVal  = item[fields.remove];
+              const installMin = Number(installVal) || 0;
+              const removeMin  = Number(removeVal)  || 0;
+              const totalMin = (installMin + removeMin) * (parseInt(item.count) || 0);
               const actionOptions = taxonomy.allow_remove === false
                 ? FIXTURE_ACTION_MODES.filter(a => a.value === 'mask')
                 : FIXTURE_ACTION_MODES;
+
+              const handleInstallChange = (raw) => {
+                const v = parseTime(raw);
+                setItem(item.id, fields.install, v);
+                // Mask-mode 50% auto-fill: if remove side is still empty and
+                // user just entered an install time, seed remove at 50%. User
+                // can edit afterwards.
+                if (isMask && v != null && v > 0 && (removeVal == null || removeVal === '')) {
+                  setItem(item.id, fields.remove, Math.round(v * 0.5 * 10) / 10);
+                }
+              };
+
               return (
                 <tr key={item.id}>
                   <td>
@@ -91,7 +123,7 @@ export default function LightFixturesInlinePanel({ roomId, cfg, dispatch }) {
                   </td>
                   <td>
                     <select
-                      value={item.action_mode || 'mask'}
+                      value={mode}
                       onChange={e => setItem(item.id, 'action_mode', e.target.value)}
                       style={{ width: '100%', fontSize: 11 }}
                       disabled={taxonomy.allow_remove === false}
@@ -105,8 +137,8 @@ export default function LightFixturesInlinePanel({ roomId, cfg, dispatch }) {
                       value={item.protection || taxonomy.default_protection || 'full'}
                       onChange={e => setItem(item.id, 'protection', e.target.value)}
                       style={{ width: '100%', fontSize: 11 }}
-                      disabled={(item.action_mode || 'mask') === 'remove'}
-                      title={(item.action_mode || 'mask') === 'remove' ? 'Protection level only applies to Mask action' : ''}
+                      disabled={!isMask}
+                      title={!isMask ? 'Protection level only applies to Mask action' : ''}
                     >
                       {PROTECTION_LEVELS.map(l => <option key={l.id} value={l.id}>{l.label}</option>)}
                     </select>
@@ -116,15 +148,27 @@ export default function LightFixturesInlinePanel({ roomId, cfg, dispatch }) {
                       type="number"
                       min="0"
                       step="0.5"
-                      value={overrideVal ?? ''}
-                      onChange={e => setItem(item.id, overrideKey, e.target.value === '' ? null : parseFloat(e.target.value))}
-                      placeholder={defaultTime != null ? `${defaultTime}` : 'enter'}
+                      value={installVal ?? ''}
+                      onChange={e => handleInstallChange(e.target.value)}
+                      placeholder={placeholders.install}
                       style={{ width: '100%', fontSize: 11 }}
-                      title={defaultTime != null ? `Default: ${defaultTime} min/fixture (${isMask ? 'mask' : 'remove'})` : 'No default — enter time per fixture'}
+                      title={isMask ? 'Minutes to apply masking, per fixture' : 'Minutes to uninstall the fixture, per fixture'}
+                    />
+                  </td>
+                  <td>
+                    <input
+                      type="number"
+                      min="0"
+                      step="0.5"
+                      value={removeVal ?? ''}
+                      onChange={e => setItem(item.id, fields.remove, parseTime(e.target.value))}
+                      placeholder={placeholders.remove}
+                      style={{ width: '100%', fontSize: 11 }}
+                      title={isMask ? 'Minutes to remove masking, per fixture (50% of install by default)' : 'Minutes to reinstall the fixture, per fixture'}
                     />
                   </td>
                   <td style={{ fontSize: 10, color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
-                    {totalMin > 0 ? `= ${totalMin} min` : '—'}
+                    {totalMin > 0 ? `= ${totalMin.toFixed(1)} min` : '—'}
                   </td>
                   <td>
                     <button

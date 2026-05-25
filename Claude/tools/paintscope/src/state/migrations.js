@@ -372,8 +372,10 @@ export function migrateInline(parsed) {
         count: legacyCount || 1,
         protection: legacyProt || 'full',
         action_mode: 'mask',
-        mask_time_min_override: null,
-        remove_time_min_override: null,
+        mask_install_time_min:     null,
+        mask_remove_time_min:      null,
+        fixture_uninstall_time_min: null,
+        fixture_reinstall_time_min: null,
       }];
     } else {
       lf.items = [];

@@ -2,24 +2,28 @@ import { deriveRoom, deriveCloset } from './derive-room.js';
 import { SUBSTRATE_MAP, SUBSTRATE_CATALOG, SUBSTRATE_APPLICATION_METHODS } from '../data/substrate-catalog.js';
 import { OPENING_TYPES } from '../data/opening-types.js';
 import { deriveStairway, getComponentQuantity } from './derive-stairway.js';
-import { LIGHT_FIXTURE_TYPE_MAP } from '../data/light-fixture-types.js';
-
-// W-16 Phase 2: sum total minutes of light-fixture protection work across a
-// room's light_fixtures.items, picking per-item action mode (mask vs remove),
-// per-fixture-type taxonomy defaults, and per-item time overrides.
+// Per-room light-fixture protection minutes, split by lifecycle side.
+// All times come from user input on each item — no taxonomy defaults
+// and no hardcoded rates. Action mode picks which pair of fields applies:
+//   mask:   mask_install_time_min  (setup) + mask_remove_time_min     (cleanup)
+//   remove: fixture_uninstall_time (setup) + fixture_reinstall_time   (cleanup)
+//
+// Returns { installMin, removeMin } so the caller can emit them to the
+// two separate PS keys consumed by the matching INSTALL / REMOVE tasks.
 function lightFixtureMinutesForRoom(room) {
   const items = room.fixtures?.light_fixtures?.items;
-  if (!Array.isArray(items) || items.length === 0) return 0;
-  return items.reduce((sum, item) => {
+  const out = { installMin: 0, removeMin: 0 };
+  if (!Array.isArray(items) || items.length === 0) return out;
+  for (const item of items) {
     const cnt = parseInt(item.count) || 0;
-    if (cnt <= 0) return sum;
-    const taxonomy = LIGHT_FIXTURE_TYPE_MAP[item.type] || {};
+    if (cnt <= 0) continue;
     const isMask = (item.action_mode || 'mask') === 'mask';
-    const override = isMask ? item.mask_time_min_override : item.remove_time_min_override;
-    const defaultTime = isMask ? taxonomy.mask_time_min : taxonomy.remove_time_min;
-    const timePerFixture = override != null ? Number(override) : (defaultTime != null ? Number(defaultTime) : 0);
-    return sum + timePerFixture * cnt;
-  }, 0);
+    const installPer = Number(isMask ? item.mask_install_time_min     : item.fixture_uninstall_time_min) || 0;
+    const removePer  = Number(isMask ? item.mask_remove_time_min      : item.fixture_reinstall_time_min) || 0;
+    out.installMin += installPer * cnt;
+    out.removeMin  += removePer  * cnt;
+  }
+  return out;
 }
 
 /**
@@ -29,10 +33,6 @@ function lightFixtureMinutesForRoom(room) {
 export function buildRoomQuantityLookups(state) {
   const { project, rooms } = state;
   const roomLookups = new Map();
-
-  // Project-wide allowance singletons fire on the FIRST room that triggers them.
-  // Tracked across the rooms.forEach iteration so we emit exactly once per project.
-  let lightFanMantelAllowanceEmitted = false;
 
   // Project-level protection heuristics — outlets per room, HVAC vents per room.
   // Closets are sub-rooms (room.closets[]), not entries in state.rooms[], so
@@ -605,27 +605,16 @@ export function buildRoomQuantityLookups(state) {
       }
     });
 
-    // W-16 Phase 2: per-room light-fixture protection time, computed from
-    // light_fixtures.items (taxonomy × count × action mode × override).
-    // Emitted as raw minutes; consuming task (TSK_PROJECT_LIGHT_FAN_MANTEL_INSTALL)
-    // has rate 60 MIN/hr so quantity-in-minutes reads cleanly in the
-    // estimate's quantity column (e.g. "30 MIN" instead of "0.5 EA").
-    const lfMinutes = lightFixtureMinutesForRoom(room);
-    if (lfMinutes > 0) {
-      addQ('PS_PROTECT_EA.LIGHT_FAN_MANTEL_ALLOWANCE', 'MIN', lfMinutes);
+    // Per-room light-fixture protection time, split into setup-phase
+    // (install) and cleanup-phase (remove) minutes. Both PS keys are
+    // emitted in MIN; consuming tasks use uom=MIN, rate=60 so the math
+    // is identity (input minute → 1/60 hour).
+    const lf = lightFixtureMinutesForRoom(room);
+    if (lf.installMin > 0) {
+      addQ('PS_PROTECT_EA.LIGHT_FAN_MANTEL_INSTALL_MIN', 'MIN', lf.installMin);
     }
-
-    // Legacy project-wide allowance for ceiling fans + fireplace mantels —
-    // those don't yet have per-item time models, so they still trigger a
-    // single 60-minute (1 hr) bucket once per project (first room with
-    // one of them). light_fixtures handled per-room above, so it's
-    // excluded from this trigger.
-    if (!lightFanMantelAllowanceEmitted) {
-      const f = room.fixtures || {};
-      if (f.ceiling_fan || f.fireplace || f.stone_fireplace) {
-        addQ('PS_PROTECT_EA.LIGHT_FAN_MANTEL_ALLOWANCE', 'MIN', 60);
-        lightFanMantelAllowanceEmitted = true;
-      }
+    if (lf.removeMin > 0) {
+      addQ('PS_PROTECT_EA.LIGHT_FAN_MANTEL_REMOVE_MIN', 'MIN', lf.removeMin);
     }
 
     // Outlet/switch heuristic — emit count when EITHER:

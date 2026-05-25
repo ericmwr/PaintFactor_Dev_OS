@@ -4,7 +4,9 @@ import { inferDefaultSystem, coatingTypeFromSystem } from '../data/system-catalo
 import { PAINTING_SCOPE_PRESET_MAP, ALWAYS_PRESENT_SUBSTRATES } from '../data/painting-scope-presets.js';
 import { LIGHT_FIXTURE_TYPE_MAP } from '../data/light-fixture-types.js';
 
-// Build a fresh light-fixture item using taxonomy defaults for the given type.
+// Build a fresh light-fixture item. Time fields are null on creation —
+// the user enters them in the inline panel (50% auto-fill on the mask
+// remove side happens UI-side when they type the install time).
 function createLightFixtureItem(type = 'other') {
   const taxonomy = LIGHT_FIXTURE_TYPE_MAP[type] || LIGHT_FIXTURE_TYPE_MAP['other'];
   return {
@@ -14,8 +16,10 @@ function createLightFixtureItem(type = 'other') {
     count: 1,
     protection: taxonomy.default_protection || 'full',
     action_mode: 'mask',
-    mask_time_min_override: null,
-    remove_time_min_override: null,
+    mask_install_time_min:     null,  // user input
+    mask_remove_time_min:      null,  // user input; UI auto-fills 50% of install
+    fixture_uninstall_time_min: null, // user input
+    fixture_reinstall_time_min: null, // user input
   };
 }
 import {
