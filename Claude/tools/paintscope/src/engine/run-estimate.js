@@ -1,6 +1,7 @@
 import { buildRoomQuantityLookups, OPENING_SUBSTRATES } from './quantity-lookups.js';
+import { buildElevationQuantityLookups, buildStandaloneQuantityLookups } from './quantity-lookups-exterior.js';
 import { resolveQualityTier, resolveApplicationMethod, resolveTextureForSpec, resolveCoatingType, resolveStainMethod, resolveClearMethod, resolveCoatCounts, resolveClearSheen, resolveWoodSpecies } from './spec-resolution.js';
-import { resolveSubstrateStateForSpec, specAcceptsState, isSpecStateCompatible, evaluateAppliesWhen } from './spec-compatibility.js';
+import { resolveSubstrateStateForSpec, isSpecStateCompatible, evaluateAppliesWhen } from './spec-compatibility.js';
 import { computeModifierStack } from './modifier-stack.js';
 import { computeWindowPerItemResults, computeDoorPerItemResults } from './per-item-compute.js';
 import { deriveRoom, deriveHeightBand } from './derive-room.js';
