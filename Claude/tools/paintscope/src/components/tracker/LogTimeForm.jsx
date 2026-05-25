@@ -133,11 +133,32 @@ export default function LogTimeForm({ activity, entries, onClose, onSaved }) {
           boxShadow: '-8px 0 24px rgba(0,0,0,0.6)',
         }}
       >
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 12 }}>
-          <h3 style={{ margin: 0, fontSize: 13, color: 'var(--accent)' }}>
+        <div
+          style={{
+            position: 'sticky',
+            top: -16,
+            margin: '-16px -16px 12px -16px',
+            padding: '10px 16px',
+            background: 'var(--bg-card, #1f1f1f)',
+            borderBottom: '1px solid var(--border, #333)',
+            display: 'flex', alignItems: 'center', gap: 10,
+            zIndex: 10,
+          }}
+        >
+          <button
+            onClick={() => !saving && onClose()}
+            disabled={saving}
+            style={backBtnStyle(saving)}
+            aria-label="Back to Tracker"
+          >← Back</button>
+          <h3 style={{
+            margin: 0, fontSize: 13, color: 'var(--accent)',
+            flex: 1, minWidth: 0,
+            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+          }}>
             {activity.activity_name}
           </h3>
-          <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>
+          <span style={{ fontSize: 10, color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>
             est {activity.estimated_hours.toFixed(1)}h
           </span>
         </div>
@@ -264,5 +285,18 @@ function saveBtn(disabled) {
     color: disabled ? 'var(--text-muted)' : 'var(--bg, #0f0f0f)',
     border: 'none', padding: '6px 14px', borderRadius: 3,
     cursor: disabled ? 'not-allowed' : 'pointer', fontSize: 11, fontWeight: 600,
+  };
+}
+function backBtnStyle(disabled) {
+  return {
+    background: 'var(--bg-input, #161616)',
+    border: '1px solid var(--border, #333)',
+    color: 'var(--text)',
+    padding: '8px 14px',
+    borderRadius: 4,
+    cursor: disabled ? 'not-allowed' : 'pointer',
+    fontSize: 12,
+    fontWeight: 600,
+    whiteSpace: 'nowrap',
   };
 }

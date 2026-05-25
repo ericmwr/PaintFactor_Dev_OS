@@ -198,11 +198,32 @@ export default function PhaseLogForm({ phaseRollup, onClose, onSaved }) {
           boxShadow: '-8px 0 24px rgba(0,0,0,0.6)',
         }}
       >
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 12 }}>
-          <h3 style={{ margin: 0, fontSize: 13, color: 'var(--accent)' }}>
+        <div
+          style={{
+            position: 'sticky',
+            top: -16,
+            margin: '-16px -16px 12px -16px',
+            padding: '10px 16px',
+            background: 'var(--bg-card, #1f1f1f)',
+            borderBottom: '1px solid var(--border, #333)',
+            display: 'flex', alignItems: 'center', gap: 10,
+            zIndex: 10,
+          }}
+        >
+          <button
+            onClick={() => !saving && onClose()}
+            disabled={saving}
+            style={backBtnStyle(saving)}
+            aria-label="Back to Tracker"
+          >← Back</button>
+          <h3 style={{
+            margin: 0, fontSize: 13, color: 'var(--accent)',
+            flex: 1, minWidth: 0,
+            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+          }}>
             Log Time — {phaseRollup.label || PHASE_LABELS[phaseRollup.phase] || phaseRollup.phase}
           </h3>
-          <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>
+          <span style={{ fontSize: 10, color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>
             est {phaseRollup.estimated_hours.toFixed(1)}h
           </span>
         </div>
@@ -381,5 +402,18 @@ function cancelBtn(disabled) {
     background: 'transparent', border: '1px solid var(--border, #333)',
     color: 'var(--text)', padding: '6px 14px', borderRadius: 3,
     cursor: disabled ? 'not-allowed' : 'pointer', fontSize: 11,
+  };
+}
+function backBtnStyle(disabled) {
+  return {
+    background: 'var(--bg-input, #161616)',
+    border: '1px solid var(--border, #333)',
+    color: 'var(--text)',
+    padding: '8px 14px',
+    borderRadius: 4,
+    cursor: disabled ? 'not-allowed' : 'pointer',
+    fontSize: 12,
+    fontWeight: 600,
+    whiteSpace: 'nowrap',
   };
 }
