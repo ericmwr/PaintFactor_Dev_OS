@@ -3,6 +3,8 @@ import {
   computeRoomCompletion,
   computeActivityCompletion,
   sumLoggedHours,
+  sumStageLoggedHours,
+  computeStageCompletion,
 } from '../rollup.js';
 
 const activity = {
@@ -73,6 +75,49 @@ describe('computeActivityCompletion', () => {
   it('handles activity with no rooms gracefully', () => {
     const noRoomActivity = { activity_id: 'act_a', rooms: [] };
     expect(computeActivityCompletion(noRoomActivity, [])).toBe(0);
+  });
+});
+
+describe('sumStageLoggedHours', () => {
+  const entries = [
+    { hours: 1, stage: 'install' },
+    { hours: 2, stage: 'install' },
+    { hours: 0.5, stage: 'remove' },
+    { hours: 4 },
+  ];
+
+  it('sums only entries tagged with the matching stage', () => {
+    expect(sumStageLoggedHours('install', entries)).toBe(3);
+    expect(sumStageLoggedHours('remove', entries)).toBe(0.5);
+  });
+
+  it('returns 0 when no entries match the stage', () => {
+    expect(sumStageLoggedHours('install', [])).toBe(0);
+    expect(sumStageLoggedHours('remove', [{ hours: 4 }])).toBe(0);
+  });
+});
+
+describe('computeStageCompletion', () => {
+  it('returns 0 for a stage with no estimated hours', () => {
+    expect(computeStageCompletion({ stage: 'install', estimated_hours: 0 }, [])).toBe(0);
+  });
+
+  it('returns the logged/estimated ratio rounded to the nearest integer percent', () => {
+    const stage = { stage: 'install', estimated_hours: 4 };
+    const entries = [{ hours: 1, stage: 'install' }, { hours: 2, stage: 'install' }];
+    expect(computeStageCompletion(stage, entries)).toBe(75);
+  });
+
+  it('caps at 100 when overlogged', () => {
+    const stage = { stage: 'remove', estimated_hours: 2 };
+    const entries = [{ hours: 5, stage: 'remove' }];
+    expect(computeStageCompletion(stage, entries)).toBe(100);
+  });
+
+  it('ignores entries tagged with a different stage', () => {
+    const stage = { stage: 'install', estimated_hours: 4 };
+    const entries = [{ hours: 3, stage: 'remove' }];
+    expect(computeStageCompletion(stage, entries)).toBe(0);
   });
 });
 

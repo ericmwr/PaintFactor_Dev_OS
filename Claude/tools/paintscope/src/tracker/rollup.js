@@ -72,6 +72,29 @@ export function sumLoggedHours(entries) {
 }
 
 /**
+ * Sum logged hours for entries explicitly tagged with the given lifecycle
+ * stage ('install' | 'remove'). Entries with no `stage` field are treated
+ * as combined logs and excluded from per-stage sums.
+ */
+export function sumStageLoggedHours(stage, entries) {
+  return (entries || [])
+    .filter(e => e.stage === stage)
+    .reduce((s, e) => s + (e.hours || 0), 0);
+}
+
+/**
+ * Hours-based completion for a single stage rollup (`activity.stages[i]`).
+ * Returns logged/estimated as an integer percent, capped at 100.
+ * Returns 0 when estimated_hours is 0 to avoid divide-by-zero.
+ */
+export function computeStageCompletion(stageRollup, entries) {
+  const est = stageRollup?.estimated_hours || 0;
+  if (est <= 0) return 0;
+  const logged = sumStageLoggedHours(stageRollup.stage, entries);
+  return Math.min(100, Math.round((logged / est) * 100));
+}
+
+/**
  * Group snapshot activities by phase, computing per-phase totals + per-room
  * breakdown of that phase. Project-level virtual parents (project_setup,
  * project_protection, project_cleanup) are not grouped under a real phase —
