@@ -1,7 +1,12 @@
 import { useState, useEffect } from 'react';
 import { ELEMENT_PARENT_LABELS } from '../../tracker/element-parents.js';
-import { computeActivityCompletion, computeRoomCompletion, sumLoggedHours } from '../../tracker/rollup.js';
+import {
+  computeActivityCompletion, computeRoomCompletion, sumLoggedHours,
+  computeStageCompletion, sumStageLoggedHours,
+} from '../../tracker/rollup.js';
 import LogTimeForm from './LogTimeForm.jsx';
+
+const STAGE_LABELS = { install: 'Install', remove: 'Remove' };
 
 function capitalize(s) { return s ? s[0].toUpperCase() + s.slice(1) : ''; }
 
@@ -61,6 +66,29 @@ export default function ActivityRow({ activity, entries, forceExpanded, onEntryS
 
       {expanded && (
         <div style={{ paddingLeft: 32, fontSize: 11, fontFamily: 'monospace', color: 'var(--text-muted)' }}>
+          {activity.stages && activity.stages.length >= 2 && (
+            <div style={{ marginBottom: 6 }}>
+              {activity.stages.map(s => {
+                const stagePct = computeStageCompletion(s, entries);
+                const stageLogged = sumStageLoggedHours(s.stage, entries);
+                return (
+                  <div key={s.stage} style={{ padding: '2px 0', display: 'flex', gap: 8 }}>
+                    <span style={{ width: 12 }}>·</span>
+                    <span style={{ flex: 1 }}>{STAGE_LABELS[s.stage] || s.stage}</span>
+                    <span style={{ minWidth: 80, textAlign: 'right' }}>
+                      {stageLogged.toFixed(1)}h / {s.estimated_hours.toFixed(1)}h
+                    </span>
+                    <span style={{ color: pctColor(stagePct), minWidth: 50, textAlign: 'right', fontWeight: 600 }}>
+                      {stagePct.toFixed(0)}%
+                    </span>
+                  </div>
+                );
+              })}
+              {activity.rooms.length > 0 && (
+                <div style={{ borderTop: '1px dashed var(--border, #333)', margin: '4px 0' }} />
+              )}
+            </div>
+          )}
           {activity.rooms.length === 0 ? (
             <div style={{ padding: '4px 0', fontStyle: 'italic' }}>
               (project-level activity — no per-room breakdown)

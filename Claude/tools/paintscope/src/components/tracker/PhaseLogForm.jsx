@@ -8,6 +8,24 @@ const PHASE_LABELS = {
   interstage: 'Interstage', finish: 'Finish', cleanup: 'Cleanup',
 };
 
+const STAGE_LABELS = { install: 'Install', remove: 'Remove' };
+
+// Each "task" the user can pick is identified by a compound key:
+//   `<activity_id>`              — log against the whole activity (unstaged)
+//   `<activity_id>::<stage>`     — log against a specific lifecycle stage
+const keyFor = (activityId, stage) => stage ? `${activityId}::${stage}` : activityId;
+function parseKey(key) {
+  const idx = key.indexOf('::');
+  if (idx === -1) return { activity_id: key, stage: null };
+  return { activity_id: key.slice(0, idx), stage: key.slice(idx + 2) };
+}
+function activityKeys(act) {
+  if (act.stages && act.stages.length >= 2) {
+    return act.stages.map(s => keyFor(act.activity_id, s.stage));
+  }
+  return [act.activity_id];
+}
+
 /**
  * PhaseLogForm — daily log mode at the phase level.
  *
@@ -44,10 +62,15 @@ export default function PhaseLogForm({ phaseRollup, onClose, onSaved }) {
 
   const roster = state.project?.tracker_roster || [];
 
-  const allTaskIds = useMemo(() => phaseRollup.activities.map(a => a.activity_id), [phaseRollup]);
+  // Flat list of every checkbox key in the tasks section — staged activities
+  // contribute one key per stage, unstaged contribute one key.
+  const allTaskKeys = useMemo(
+    () => phaseRollup.activities.flatMap(activityKeys),
+    [phaseRollup],
+  );
   const allRoomIds = useMemo(() => phaseRollup.rooms.map(r => r.room_id), [phaseRollup]);
 
-  const allTasksChecked = selectedTasks.size === allTaskIds.length && allTaskIds.length > 0;
+  const allTasksChecked = selectedTasks.size === allTaskKeys.length && allTaskKeys.length > 0;
   const allCompletedChecked = completedRooms.size === allRoomIds.length && allRoomIds.length > 0;
   const allPartialChecked = partialRooms.size === allRoomIds.length && allRoomIds.length > 0;
 
@@ -61,7 +84,7 @@ export default function PhaseLogForm({ phaseRollup, onClose, onSaved }) {
   const togglePartial = toggleSet(setPartialRooms);
 
   const toggleAllTasks = () => {
-    setSelectedTasks(allTasksChecked ? new Set() : new Set(allTaskIds));
+    setSelectedTasks(allTasksChecked ? new Set() : new Set(allTaskKeys));
   };
   const toggleAllCompleted = () => {
     setCompletedRooms(allCompletedChecked ? new Set() : new Set(allRoomIds));
@@ -79,25 +102,29 @@ export default function PhaseLogForm({ phaseRollup, onClose, onSaved }) {
     return h;
   };
 
-  // Write N entries (one per task) with the given room_progress shape.
-  // Hours split evenly across the N entries.
-  const writeBatch = async (taskIds, roomProgress, batchLabel) => {
+  // Write N entries (one per task key) with the given room_progress shape.
+  // Hours split evenly across the N entries. A compound key like
+  // `<activity_id>::install` stamps the entry with stage='install' so the
+  // tracker rolls those hours up under the right stage.
+  const writeBatch = async (taskKeys, roomProgress, batchLabel) => {
     const h = validateCommon();
     if (h == null) return;
-    if (taskIds.length === 0) { setError('Pick at least one task.'); return; }
+    if (taskKeys.length === 0) { setError('Pick at least one task.'); return; }
     if (Object.keys(roomProgress).length === 0) { setError('Pick at least one room.'); return; }
 
     setSaving(true);
     try {
-      const hoursPerEntry = Math.round((h / taskIds.length) * 100) / 100;
+      const hoursPerEntry = Math.round((h / taskKeys.length) * 100) / 100;
       const created_at = new Date().toISOString();
       let i = 0;
-      for (const taskId of taskIds) {
+      for (const key of taskKeys) {
+        const { activity_id, stage } = parseKey(key);
         const entry = {
           id: `entry_${Date.now()}_${i++}`,
           project_id: projectId,
           snapshot_id: snapshot.snapshot_id,
-          activity_id: taskId,
+          activity_id,
+          ...(stage ? { stage } : {}),
           worker_name: worker.trim(),
           date,
           hours: hoursPerEntry,
@@ -111,7 +138,7 @@ export default function PhaseLogForm({ phaseRollup, onClose, onSaved }) {
       }
       dispatch({ type: 'APPEND_ROSTER_NAME', payload: worker.trim() });
       if (onSaved) await onSaved();
-      setRecentBatch({ label: batchLabel, count: taskIds.length });
+      setRecentBatch({ label: batchLabel, count: taskKeys.length });
       setHours(''); // clear hours so the next batch needs a fresh allocation
     } catch (err) {
       setError(err?.message || String(err));
@@ -124,7 +151,7 @@ export default function PhaseLogForm({ phaseRollup, onClose, onSaved }) {
     const allRoomProgress = Object.fromEntries(
       allRoomIds.map(rid => [rid, { complete: true, pct: 100 }])
     );
-    await writeBatch(allTaskIds, allRoomProgress, 'full phase');
+    await writeBatch(allTaskKeys, allRoomProgress, 'full phase');
     setCompletedRooms(new Set()); setPartialRooms(new Set()); setSelectedTasks(new Set());
   };
 
@@ -196,7 +223,7 @@ export default function PhaseLogForm({ phaseRollup, onClose, onSaved }) {
         <div style={{ marginBottom: 14, padding: 8, background: 'rgba(95, 213, 95, 0.05)', border: '1px solid rgba(95, 213, 95, 0.2)', borderRadius: 3 }}>
           <div style={{ fontSize: 10, color: 'var(--text-muted)', marginBottom: 6 }}>Quick action — entire phase done across the whole project:</div>
           <button onClick={handleLogFullPhase} disabled={saving} style={primaryBtn(saving)}>
-            Log Full Phase Complete ({allTaskIds.length} tasks × {allRoomIds.length} rooms)
+            Log Full Phase Complete ({allTaskKeys.length} tasks × {allRoomIds.length} rooms)
           </button>
         </div>
 
@@ -206,21 +233,49 @@ export default function PhaseLogForm({ phaseRollup, onClose, onSaved }) {
 
         {/* Tasks */}
         <div style={{ marginBottom: 12 }}>
-          <div style={{ fontSize: 10, color: 'var(--text-muted)', marginBottom: 4 }}>TASKS ({selectedTasks.size} of {allTaskIds.length} selected)</div>
+          <div style={{ fontSize: 10, color: 'var(--text-muted)', marginBottom: 4 }}>TASKS ({selectedTasks.size} of {allTaskKeys.length} selected)</div>
           <label style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4, fontSize: 11, fontWeight: 600 }}>
             <input type="checkbox" checked={allTasksChecked} onChange={toggleAllTasks} /> All tasks
           </label>
-          {phaseRollup.activities.map(act => (
-            <div key={act.activity_id} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '2px 0', fontSize: 11 }}>
-              <input
-                type="checkbox"
-                checked={selectedTasks.has(act.activity_id)}
-                onChange={() => toggleTask(act.activity_id)}
-              />
-              <span style={{ flex: 1 }}>{act.activity_name}</span>
-              <span style={{ color: 'var(--text-muted)', fontSize: 10 }}>{act.estimated_hours.toFixed(1)}h</span>
-            </div>
-          ))}
+          {phaseRollup.activities.map(act => {
+            const staged = act.stages && act.stages.length >= 2;
+            if (!staged) {
+              return (
+                <div key={act.activity_id} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '2px 0', fontSize: 11 }}>
+                  <input
+                    type="checkbox"
+                    checked={selectedTasks.has(act.activity_id)}
+                    onChange={() => toggleTask(act.activity_id)}
+                  />
+                  <span style={{ flex: 1 }}>{act.activity_name}</span>
+                  <span style={{ color: 'var(--text-muted)', fontSize: 10 }}>{act.estimated_hours.toFixed(1)}h</span>
+                </div>
+              );
+            }
+            return (
+              <div key={act.activity_id} style={{ padding: '2px 0' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, fontStyle: 'italic', color: 'var(--text-muted)' }}>
+                  <span style={{ width: 13 }} />
+                  <span style={{ flex: 1 }}>{act.activity_name}</span>
+                  <span style={{ fontSize: 10 }}>{act.estimated_hours.toFixed(1)}h total</span>
+                </div>
+                {act.stages.map(s => {
+                  const k = keyFor(act.activity_id, s.stage);
+                  return (
+                    <div key={k} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '2px 0 2px 18px', fontSize: 11 }}>
+                      <input
+                        type="checkbox"
+                        checked={selectedTasks.has(k)}
+                        onChange={() => toggleTask(k)}
+                      />
+                      <span style={{ flex: 1 }}>{STAGE_LABELS[s.stage] || s.stage}</span>
+                      <span style={{ color: 'var(--text-muted)', fontSize: 10 }}>{s.estimated_hours.toFixed(1)}h</span>
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          })}
         </div>
 
         {/* Completed rooms */}
