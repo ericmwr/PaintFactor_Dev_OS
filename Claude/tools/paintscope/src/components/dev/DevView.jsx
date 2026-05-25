@@ -12,14 +12,52 @@ import RoomTracePanel from './RoomTracePanel.jsx';
 import DebugBlobButton from './DebugBlobButton.jsx';
 import { buildDebugBlob } from './buildDebugBlob.js';
 
+// Mirrors STANDALONE_INDEX in context-adapter.js — slot order drives roomIndex
+// math (roomIndex = -1000 - slot).
+const STANDALONE_KEYS = ['garage_doors', 'fence', 'deck', 'foundation', 'porch', 'metal_surfaces'];
+
+const ITEM_ROW_STYLE = {
+  padding: '5px 8px', fontSize: 11, cursor: 'pointer', borderRadius: 3,
+  marginBottom: 2,
+};
+
 export default function DevView() {
   const { state } = useProject();
   const scenario = useEstimateScenario();
   const rooms = state.rooms || [];
+  const elevations = state.exterior?.elevations || [];
+  const standalone = state.exterior?.standalone || {};
 
-  const [selectedRoomIndex, setSelectedRoomIndex] = useState(() => rooms.length ? 0 : null);
+  const [selectedRoomIndex, setSelectedRoomIndex] = useState(() =>
+    rooms.length ? 0 : (elevations.length ? -100 : null)
+  );
 
-  const selectedRoom = selectedRoomIndex != null ? rooms[selectedRoomIndex] : null;
+  const selectedItem = useMemo(() => {
+    if (selectedRoomIndex == null) return null;
+    if (selectedRoomIndex >= 0) {
+      const room = rooms[selectedRoomIndex];
+      return room
+        ? { kind: 'room', data: room, label: room.name || room.label || `Room ${selectedRoomIndex + 1}` }
+        : null;
+    }
+    if (selectedRoomIndex <= -100 && selectedRoomIndex > -1000) {
+      // roomIndex = -100 - elevIdx  =>  elevIdx = -100 - roomIndex
+      const elevIdx = -100 - selectedRoomIndex;
+      const elev = elevations[elevIdx];
+      return elev
+        ? { kind: 'elevation', data: elev, label: elev.label || `Elevation ${elevIdx + 1}` }
+        : null;
+    }
+    if (selectedRoomIndex <= -1000) {
+      // roomIndex = -1000 - slot  =>  slot = -1000 - roomIndex
+      const slot = -1000 - selectedRoomIndex;
+      const itemKey = STANDALONE_KEYS[slot];
+      return itemKey
+        ? { kind: 'standalone', data: standalone[itemKey] || null, label: `Standalone: ${itemKey}` }
+        : null;
+    }
+    return null;
+  }, [selectedRoomIndex, rooms, elevations, standalone]);
 
   const filteredResults = useMemo(() => {
     if (!scenario) return { perInputResults: [], gaps: [] };
@@ -30,7 +68,7 @@ export default function DevView() {
   }, [scenario, selectedRoomIndex]);
 
   const debugBlob = useMemo(() => {
-    if (selectedRoom == null) return null;
+    if (selectedItem == null) return null;
     const adapterInputs = [
       ...filteredResults.perInputResults.map(r => ({
         specId: r.specId,
@@ -49,8 +87,8 @@ export default function DevView() {
         roomItems: null,
       })),
     ];
-    return buildDebugBlob({
-      room: selectedRoom,
+    const blob = buildDebugBlob({
+      room: selectedItem.data,
       projectDefaults: state.project || null,
       adapterInputs,
       engineOutput: {
@@ -62,11 +100,21 @@ export default function DevView() {
         phaseHours: aggregatePhaseHours(filteredResults.perInputResults),
       },
     });
-  }, [selectedRoom, state.project, scenario, filteredResults]);
+    if (selectedItem.kind !== 'room' && blob && typeof blob === 'object') {
+      blob.kind = selectedItem.kind;
+    }
+    return blob;
+  }, [selectedItem, state.project, scenario, filteredResults]);
 
   const matchCount = filteredResults.perInputResults.length;
   const gapCount = filteredResults.gaps.length;
   const totalHours = filteredResults.perInputResults.reduce((s, r) => s + (r.totalHours || 0), 0);
+
+  // Compute standalone items that have data (mirrors sidebar filter so the
+  // section header count matches what's rendered below).
+  const presentStandaloneItems = STANDALONE_KEYS
+    .map((key, slot) => ({ key, slot, data: standalone[key] }))
+    .filter(it => it.data && (Array.isArray(it.data) ? it.data.length > 0 : Object.keys(it.data).length > 0));
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
@@ -82,18 +130,24 @@ export default function DevView() {
           Live view of what the scenario engine sees, per room.
         </span>
         <div style={{ flex: 1 }} />
-        {debugBlob && <DebugBlobButton blob={debugBlob} fileNameHint={`paintscope-${selectedRoom?.name || 'room'}`.replace(/\s+/g, '-').toLowerCase()} />}
+        {debugBlob && (
+          <DebugBlobButton
+            blob={debugBlob}
+            fileNameHint={`paintscope-${selectedItem?.label || 'item'}`.replace(/\s+/g, '-').toLowerCase()}
+          />
+        )}
       </div>
 
       {/* Body */}
       <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
-        {/* Room picker */}
+        {/* Item picker */}
         <div style={{
           width: 220, flexShrink: 0,
           borderRight: '1px solid var(--border)',
           padding: '10px 10px 10px 12px',
           overflowY: 'auto',
         }}>
+          {/* ROOMS section */}
           <h4 style={{ margin: '0 0 6px', fontSize: 11, color: 'var(--text-muted)' }}>ROOMS ({rooms.length})</h4>
           {rooms.length === 0 ? (
             <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>No rooms in project.</div>
@@ -102,13 +156,12 @@ export default function DevView() {
               const isSel = i === selectedRoomIndex;
               return (
                 <div
-                  key={r.id || i}
+                  key={r.id || `room-${i}`}
                   onClick={() => setSelectedRoomIndex(i)}
                   style={{
-                    padding: '5px 8px', fontSize: 11, cursor: 'pointer', borderRadius: 3,
+                    ...ITEM_ROW_STYLE,
                     background: isSel ? 'rgba(130,170,255,0.12)' : 'transparent',
                     borderLeft: isSel ? '2px solid var(--accent, #82aaff)' : '2px solid transparent',
-                    marginBottom: 2,
                   }}
                 >
                   <div style={{ fontWeight: isSel ? 600 : 400 }}>{r.name || r.label || `Room ${i + 1}`}</div>
@@ -119,17 +172,72 @@ export default function DevView() {
               );
             })
           )}
+
+          {/* ELEVATIONS section */}
+          {elevations.length > 0 && (
+            <>
+              <h4 style={{ margin: '14px 0 6px', fontSize: 11, color: 'var(--text-muted)' }}>ELEVATIONS ({elevations.length})</h4>
+              {elevations.map((e, i) => {
+                const idx = -100 - i;
+                const isSel = idx === selectedRoomIndex;
+                const trimCount = Object.entries(e.trim || {}).filter(([, v]) => v?.enabled).length;
+                return (
+                  <div
+                    key={e.id || `elev-${i}`}
+                    onClick={() => setSelectedRoomIndex(idx)}
+                    style={{
+                      ...ITEM_ROW_STYLE,
+                      background: isSel ? 'rgba(130,170,255,0.12)' : 'transparent',
+                      borderLeft: isSel ? '2px solid var(--accent, #82aaff)' : '2px solid transparent',
+                    }}
+                  >
+                    <div style={{ fontWeight: isSel ? 600 : 400 }}>{e.label || `Elevation ${i + 1}`}</div>
+                    <div style={{ fontSize: 9, color: 'var(--text-muted)', marginTop: 1 }}>
+                      {e.width_ft || 0}×{e.height_to_eave_ft || 0} · {(e.siding_sections || []).length} sec · {trimCount} trim
+                    </div>
+                  </div>
+                );
+              })}
+            </>
+          )}
+
+          {/* STANDALONE section */}
+          {presentStandaloneItems.length > 0 && (
+            <>
+              <h4 style={{ margin: '14px 0 6px', fontSize: 11, color: 'var(--text-muted)' }}>STANDALONE ({presentStandaloneItems.length})</h4>
+              {presentStandaloneItems.map(it => {
+                const idx = -1000 - it.slot;
+                const isSel = idx === selectedRoomIndex;
+                return (
+                  <div
+                    key={it.key}
+                    onClick={() => setSelectedRoomIndex(idx)}
+                    style={{
+                      ...ITEM_ROW_STYLE,
+                      background: isSel ? 'rgba(130,170,255,0.12)' : 'transparent',
+                      borderLeft: isSel ? '2px solid var(--accent, #82aaff)' : '2px solid transparent',
+                    }}
+                  >
+                    <div style={{ fontWeight: isSel ? 600 : 400 }}>{it.key}</div>
+                    <div style={{ fontSize: 9, color: 'var(--text-muted)', marginTop: 1 }}>
+                      {Array.isArray(it.data) ? `${it.data.length} item${it.data.length === 1 ? '' : 's'}` : 'configured'}
+                    </div>
+                  </div>
+                );
+              })}
+            </>
+          )}
         </div>
 
         {/* Trace cards */}
         <div style={{ flex: 1, overflowY: 'auto', padding: 12 }}>
-          {selectedRoom ? (
+          {selectedItem ? (
             <>
               <div style={{
                 display: 'flex', alignItems: 'baseline', gap: 12,
                 marginBottom: 10, paddingBottom: 6, borderBottom: '1px solid var(--border)',
               }}>
-                <span style={{ fontSize: 13, fontWeight: 600 }}>{selectedRoom.name || `Room ${selectedRoomIndex + 1}`}</span>
+                <span style={{ fontSize: 13, fontWeight: 600 }}>{selectedItem.label}</span>
                 <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>
                   <span style={{ color: '#5aa85a', fontWeight: 600 }}>{matchCount}</span> matched ·{' '}
                   <span style={{ color: gapCount ? '#c87' : 'var(--text-muted)', fontWeight: 600 }}>{gapCount}</span> gap{gapCount === 1 ? '' : 's'} ·{' '}
@@ -148,7 +256,7 @@ export default function DevView() {
             </>
           ) : (
             <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-muted)', fontSize: 12 }}>
-              Select a room to inspect.
+              Select a room, elevation, or standalone item to inspect.
             </div>
           )}
         </div>
