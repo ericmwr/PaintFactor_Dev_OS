@@ -1,10 +1,10 @@
 import { useMemo } from 'react';
-import { useEstimate } from '../../hooks/useEstimate';
+import { useEstimateScenario } from '../../hooks/useEstimateScenario';
 import { useProject } from '../../hooks/useProject';
 import { useProducts } from '../../hooks/useProducts';
 
 export default function MaterialCostView() {
-  const estimate = useEstimate();
+  const estimate = useEstimateScenario();
   const { state } = useProject();
   const { products: catalogProducts } = useProducts();
   const manualEntries = state.project?.material_overrides?.manual;

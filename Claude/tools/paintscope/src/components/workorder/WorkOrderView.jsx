@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useProject } from '../../hooks/useProject';
-import { useEstimate } from '../../hooks/useEstimate';
+import { useEstimateScenario } from '../../hooks/useEstimateScenario';
 import { deriveRoom } from '../../engine/derive-room';
 import { PHASE_ORDER, PHASE_COLORS, specDisplayName } from '../../data/constants';
 import { FLOOR_TYPES, FLOOR_PROTECTION_LABEL } from '../../data/fixture-catalog';
@@ -19,7 +19,7 @@ const PHASE_ACCENT = {
 
 export default function WorkOrderView() {
   const { state } = useProject();
-  const estimate = useEstimate();
+  const estimate = useEstimateScenario();
 
   const [viewMode, setViewMode] = useState('room'); // 'phase' or 'room'
   const [expandedRooms, setExpandedRooms] = useState({});

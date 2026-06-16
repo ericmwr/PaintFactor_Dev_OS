@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef, lazy, Suspense } from 'react';
 import { ProjectProvider } from './hooks/useProject';
 import { useProject } from './hooks/useProject';
-import { useEstimate } from './hooks/useEstimate';
+import { useEstimateScenario } from './hooks/useEstimateScenario';
 import { useProjectDB } from './hooks/useProjectDB';
 import { loadProject } from './data/project-db';
 import { saveToStorage } from './state/persistence';
@@ -48,7 +48,7 @@ const NAV_VIEWS = isAuthoringEnabled()
 
 function AppShell({ projectDb }) {
   const { state, dispatch, saveNow } = useProject();
-  const estimate = useEstimate();
+  const estimate = useEstimateScenario();
   const view = state.ui.view;
   const scopeMode = state.ui.scopeMode || 'interior';
   const photoAnalysis = usePhotoAnalysis();

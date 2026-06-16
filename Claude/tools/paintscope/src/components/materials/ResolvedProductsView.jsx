@@ -1,12 +1,12 @@
 import { useMemo, useState } from 'react';
-import { useEstimate } from '../../hooks/useEstimate';
+import { useEstimateScenario } from '../../hooks/useEstimateScenario';
 import { useProject } from '../../hooks/useProject';
 import { useProducts } from '../../hooks/useProducts';
 import { SYSTEM_INDEX } from '../../data/product-catalog.js';
 import ManualMaterialModal from './ManualMaterialModal.jsx';
 
 export default function ResolvedProductsView() {
-  const estimate = useEstimate();
+  const estimate = useEstimateScenario();
   const { state, dispatch } = useProject();
   const { products: catalogProducts } = useProducts();
   const [addOpen, setAddOpen] = useState(false);
