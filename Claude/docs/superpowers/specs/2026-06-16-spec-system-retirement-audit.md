@@ -157,3 +157,22 @@ The deletion cannot happen until these land and are verified (NC-interior estima
 - The shims (and the rest of the spec machinery) **delete in Phase 6**, once P2 + P3 remove these consumers.
 
 (The guard test intentionally imports from the shims to assert shim integrity — that is not a runtime coupling.)
+
+---
+
+## 10. P2a — DONE (2026-06-16)
+
+**P2a (plain scenario orchestrator + exterior completion) landed** on `claude/cranky-saha` per the plan [`2026-06-16-spec-retirement-p2a-shared-orchestrator.md`](../plans/2026-06-16-spec-retirement-p2a-shared-orchestrator.md). Commits: `3964a08` (extract orchestrator) → `6478e8a` (graft exterior protection + materials) → `f153a52` (regression test). Executed subagent-driven (per-task spec + code-quality review; opus on the critical extraction + the exterior graft).
+
+- **`engine/scenario-estimate.js` now hosts the plain, non-React `computeScenarioEstimate(state, db, bundle, profile, products, overlayStats)`** — it computes the COMPLETE estimate (interior + exterior protection + materials), moving `normalizeToSpecResults` + `dedupeSharedTasks` out of the hook. `useEstimateScenario` is a thin React wrapper (overlay-load + ledger effects retained; 435→93 lines).
+- **The two exterior post-processors** (`resolveExteriorProtection` + `computeExteriorMaterialEstimates`) were ported verbatim from `run-estimate.js:718-738`. The scenario path is now a complete functional replacement for the legacy engine.
+- **Discovery — `db.spec_families` has 24 interior families and ZERO exterior.** The scenario path derives `domain` from `db.spec_families`, so every exterior spec was falling back to `'interior'`. Fixed in `normalizeToSpecResults` with a roomIndex-based fallback (`first.roomIndex <= -100 → 'exterior'`), matching legacy's explicit exterior tagging. This *reduces* dependence on the retiring `db.spec_families` — aligned with the retirement direction.
+- **Exterior scenario coverage is thin** — only `SCN_EXT_DECK_NC_STAIN` exists; ~16 other exterior families (siding, trim, windows, doors, soffit, foundation, fence, caulk, stucco, masonry) have **no scenario**. So exterior protection/materials come out **empty** for any fixture today (in both engines). P2a ports the orchestration *faithfully* (verified scenario-vs-legacy byte-identical); rich exterior output awaits scenario authoring — the exterior-dev roadmap, separate from retirement.
+- **Verification:** interior parity preserved (synthetic fixture = 21.13, byte-identical before/after the extraction); exterior scenario output == legacy `run-estimate.js` (byte-for-byte, sparse-but-equal); new unit test (`engine/scenario-estimate.test.js`, 3 cases) guards the exterior wiring; **suite 170**. `run-estimate.js` / `useEstimate.js` / `modifier-stack.js` untouched. The parity harness (`scripts/parity-estimate.mjs`) now calls the real orchestrator — reusable for P2b before/after checks.
+
+**P2b can now (the cutover + deletion):**
+1. **Proposal generation:** replace `computeMultiQT(runEstimate, ...)` at `EstimateView.jsx:237` with the plain orchestrator. `computeMultiQT` calls `runEstimateFn(qtState, db, undefined, profile)` per tier — pass an adapter `(s, db, _ov, prof) => computeScenarioEstimate(s, db, canonicalBundle, prof, [])`.
+2. Swap `WorkOrderView` / `MaterialCostView` / `ResolvedProductsView` from `useEstimate` → `useEstimateScenario` (return shape is covered).
+3. Drop EstimateView's dual-engine: remove the `useEstimate` import + the `engine` toggle; default scenario-only.
+4. Delete `run-estimate.js` + `useEstimate.js` + `modifier-stack.js`; **preserve `COMPLEXITY_OPT_OUT_SPECS`** (EstimateView imports it — move it to `data/constants.js` or similar).
+5. **Carried cleanup nits (P2a Task-3 review, do in P2b since it touches this code):** hoist `const hasExterior = !!(state.exterior?.elevations?.length)` in `computeScenarioEstimate` (3 duplicated guards); and export `isExteriorRoomIndex = (i) => i <= -100` from `context-adapter.js`, consolidating the 3 sites that encode the `-100` convention (`context-adapter.js` doc-comment, `scenario-to-spec-results.js:41`, `scenario-estimate.js:326`).
