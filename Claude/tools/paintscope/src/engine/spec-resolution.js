@@ -144,8 +144,8 @@ export function resolveApplicationMethod(specId, room, project) {
       return sam.default;
     }
   }
-  // 3. Room-level override, then project default
-  return room.application_method || project.default_application_method;
+  // 3. Room-level override, then literal default
+  return room.application_method || 'spray_backroll';
 }
 
 /**
@@ -158,8 +158,8 @@ export function resolveTextureForSpec(specId, room, project) {
     const subConfig = room.substrates && room.substrates[primarySub];
     if (subConfig && subConfig.texture) return subConfig.texture;
   }
-  // Fallback: walls texture -> ceiling texture -> project default
-  return (room.substrates?.walls?.texture) || (room.substrates?.ceiling?.texture) || project.default_texture;
+  // Fallback: walls texture -> ceiling texture -> literal default
+  return (room.substrates?.walls?.texture) || (room.substrates?.ceiling?.texture) || 'smooth';
 }
 
 export function resolveCoatingType(specId, room, project) {

@@ -203,7 +203,6 @@ export default function EstimateView() {
         name: state.project?.name || null,
         client: state.project?.client_name || null,
         defaultQualityTier: state.project?.default_quality_tier || null,
-        defaultApplicationMethod: state.project?.default_application_method || null,
         roomCount: (state.rooms || []).length,
       },
       totals: {
@@ -333,7 +332,7 @@ export default function EstimateView() {
   const projCtx = {
     quality_tier: state.project.default_quality_tier,
     complexity: state.project.default_complexity,
-    texture: state.project.default_texture
+    texture: 'smooth'
   };
 
   // Build room-grouped structure: room -> spec (paintable item) -> tasks

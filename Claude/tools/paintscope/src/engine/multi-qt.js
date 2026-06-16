@@ -161,6 +161,6 @@ function resolveAreaGroup(state, roomIndex) {
 }
 
 function resolveMethod(state, roomIndex) {
-  const method = state.rooms?.[roomIndex]?.application_method || state.project?.default_application_method || 'spray_backroll';
+  const method = state.rooms?.[roomIndex]?.application_method || 'spray_backroll';
   return method.replace(/_/g, ' + ').replace('spray + backroll', 'spray + backroll');
 }

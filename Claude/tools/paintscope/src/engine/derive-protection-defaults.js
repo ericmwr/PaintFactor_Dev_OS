@@ -81,7 +81,6 @@ export function categorizeScope(room, project = {}) {
   //   1. substrate.application_method (explicit per-substrate override)
   //   2. SUBSTRATE_APPLICATION_METHODS[id].default (substrate type default)
   //   3. room.application_method (room-level override)
-  //   4. project.default_application_method (project default)
   const methodOf = (subId) => {
     const s = subs[subId] || {};
     const coatingType = s.coating_type || 'paint';
@@ -98,7 +97,6 @@ export function categorizeScope(room, project = {}) {
     const sam = SUBSTRATE_APPLICATION_METHODS[subId];
     if (sam?.default) return sam.default;
     if (room.application_method) return room.application_method;
-    if (project?.default_application_method) return project.default_application_method;
     return null;
   };
   const isSpray = (m) => m === 'spray' || m === 'spray_backbrush' || m === 'spray_backroll';

@@ -66,8 +66,8 @@ function tryCombinedFinishGroup(room, project) {
   // via chain activation downstream.
 
   // Same application method, must be spray_backroll for combined to make sense
-  const wallsMethod   = resolveMethod(walls, project);
-  const ceilingMethod = resolveMethod(ceiling, project);
+  const wallsMethod   = resolveMethod(walls);
+  const ceilingMethod = resolveMethod(ceiling);
   if (wallsMethod !== 'spray_backroll') return null;
   if (wallsMethod !== ceilingMethod) return null;
 
@@ -108,8 +108,8 @@ function tryCombinedPrimeGroup(room, project) {
   if (walls.substrate_state !== ceiling.substrate_state) return null;
 
   // Same application method, must be spray_backroll
-  const wallsMethod   = resolveMethod(walls, project);
-  const ceilingMethod = resolveMethod(ceiling, project);
+  const wallsMethod   = resolveMethod(walls);
+  const ceilingMethod = resolveMethod(ceiling);
   if (wallsMethod !== 'spray_backroll') return null;
   if (ceilingMethod !== 'spray_backroll') return null;
   if (wallsMethod !== ceilingMethod) return null;
@@ -199,9 +199,8 @@ function resolveItemAssignmentGroups(room, excludedSubstrates) {
   return groups;
 }
 
-function resolveMethod(substrateConfig, project) {
+function resolveMethod(substrateConfig) {
   return substrateConfig.application_method
-      || project.default_application_method
       || 'brush_roll';
 }
 

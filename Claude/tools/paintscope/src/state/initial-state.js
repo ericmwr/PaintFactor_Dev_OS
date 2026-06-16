@@ -243,10 +243,9 @@ export const initialState = {
     name: '', client_name: '', address: '', status: 'draft',
     new_construction: true,
     default_quality_tier: 'QT3', default_height_band: 'STD',
-    default_complexity: 'STD', default_application_method: 'spray_backroll',
+    default_complexity: 'STD',
     rate_overrides: {},
     tracker_roster: [],
-    default_texture: 'smooth',
     // Pre-trim NC workflow: when true, walls and ceiling are primed in one
     // continuous spray pass. Combined scenarios drop the wall-line cut-in and
     // ceiling masking. Per-room override in room.combined_prime_override.

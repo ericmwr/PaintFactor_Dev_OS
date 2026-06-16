@@ -23,8 +23,8 @@ export function exportProject(state) {
     const effectiveQT = project.default_quality_tier;
     const effectiveHeight = d.heightBand;
     const effectiveComplexity = room.complexity || project.default_complexity;
-    const effectiveMethod = room.application_method || project.default_application_method;
-    const effectiveTexture = (subs.walls?.texture) || (subs.ceiling?.texture) || project.default_texture;
+    const effectiveMethod = room.application_method || null;
+    const effectiveTexture = (subs.walls?.texture) || (subs.ceiling?.texture) || null;
 
     roomsData.push({
       room_index: ri, room_label: room.label, area_group: room.area_group,
@@ -254,8 +254,6 @@ export function exportProject(state) {
       project_name: project.name || 'Untitled Project',
       new_construction: project.new_construction,
       default_quality_tier: project.default_quality_tier,
-      default_application_method: project.default_application_method,
-      default_texture: project.default_texture,
       status: 'draft',
       created_at: new Date().toISOString()
     },

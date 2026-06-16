@@ -337,8 +337,3 @@ export const GRAIN_FILL_PARENT_SPEC = {
   'stairway':        'SF_STAIR_RISER_NC',
 };
 
-export function resolveStainOutputState(specId, coatingType) {
-  if (!STAIN_SPEC_FAMILIES.has(specId)) return SPEC_OUTPUT_STATES[specId] || null;
-  if (coatingType === 'stain_only') return 'SS_STAINED';
-  return 'SS_CLEAR_COATED';
-}

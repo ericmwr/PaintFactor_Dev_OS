@@ -66,8 +66,8 @@ export function computeMaterialEstimates(state, db, roomLookups, specResults = [
 
   // Resolve project-level config
   const defaultQT = project.default_quality_tier || 'QT3';
-  const defaultTexture = project.default_texture || 'smooth';
-  const defaultMethod = project.default_application_method || 'brush';
+  const defaultTexture = 'smooth';
+  const defaultMethod = 'brush';
   const isSpray = defaultMethod.includes('spray');
 
   // Product resolver context
