@@ -29,8 +29,8 @@ import {
   resolveCoatCounts,
   resolveClearSheen,
   resolveWoodSpecies,
-} from './spec-resolution.js';
-import { resolveSubstrateStateForSpec, isSpecStateCompatible } from './spec-compatibility.js';
+} from './scenario-resolution.js';
+import { resolveSubstrateStateForSpec, isSpecStateCompatible } from './scenario-compatibility.js';
 import { deriveRoom, deriveHeightBand } from './derive-room.js';
 import { FIXTURE_CATALOG } from '../data/fixture-catalog.js';
 import { SUBSTRATE_APPLICATION_METHODS } from '../data/substrate-catalog.js';
@@ -40,9 +40,9 @@ import {
   EXT_UI_STATE_TO_SPEC_STATE,
   SPEC_SUBSTRATE_MAP,
   SPEC_ROLE,
-} from '../data/spec-maps.js';
+} from '../data/scenario-maps.js';
 import { resolveActivation, STATE_TRANSITION_TARGET } from '../data/system-catalog.js';
-import { resolveSystem } from './spec-resolution.js';
+import { resolveSystem } from './scenario-resolution.js';
 import { deriveProtectionDefaults } from './derive-protection-defaults.js';
 import { resolvePassGroups } from './pass-groups.js';
 
@@ -966,14 +966,14 @@ function buildExteriorCtx(specId, elevation, extDefaults, siteConditions, standa
 
 /**
  * Build the per-spec per-room context + quantity lookup for every active
- * (room, spec) pair in the project. Mirrors the `for (spec of db.spec_families)
- * { for (room of state.rooms) { ... } }` loop in run-estimate.js lines 180-280
- * but returns a flat array the scenario engine can iterate.
+ * (room, spec) pair in the project. Iterates the scenario-owned active-spec
+ * list (Object.keys(SPEC_SUBSTRATE_MAP)) over state.rooms and returns a flat
+ * array the scenario engine can iterate.
  *
  * Inputs:
  *   state — full PaintScope project state { project, rooms }
- *   db    — spec data bundle (used to iterate active specs, though the
- *           scenario engine doesn't read db directly)
+ *   db    — scenario data bundle; passed through to resolvePassGroups and the
+ *           exterior input builders (no longer used for active-spec selection)
  *
  * Returns:
  *   {
@@ -997,15 +997,12 @@ export function buildScenarioInputs(state, db) {
 
   const lookups = buildRoomQuantityLookups(state);
 
-  // Active specs — iterate db.spec_families when available (matches legacy
-  // engine), otherwise fall back to every spec known in SPEC_SUBSTRATE_MAP.
-  const activeSpecIds = new Set();
-  if (db && Array.isArray(db.spec_families)) {
-    for (const spec of db.spec_families) activeSpecIds.add(spec.id);
-  }
-  // Always union in specs from SPEC_SUBSTRATE_MAP so scenario-only families
-  // (e.g. Interior RP specs that have no legacy SQLite row) still iterate.
-  for (const sid of Object.keys(SPEC_SUBSTRATE_MAP)) activeSpecIds.add(sid);
+  // Active specs come from the scenario-owned routing map. Any spec id absent
+  // from SPEC_SUBSTRATE_MAP is skipped by the `if (!primarySub) continue` guard
+  // in the loop below, so iterating the map's keys is equivalent to the former
+  // legacy-table union and removes the scenario adapter's last spec-table
+  // dependency (P1, spec-system retirement).
+  const activeSpecIds = new Set(Object.keys(SPEC_SUBSTRATE_MAP));
 
   for (let ri = 0; ri < rooms.length; ri++) {
     const room = rooms[ri];
