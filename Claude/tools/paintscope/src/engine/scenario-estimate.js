@@ -12,7 +12,9 @@ import { buildScenarioInputs } from './context-adapter.js';
 import { findBestMatch, findNearMisses } from './scenario-matcher.js';
 import { resolveRoomFloorProtection } from './floor-protection.js';
 import { resolveRoomFixtureProtection } from './fixture-protection.js';
-import { computeMaterialEstimates } from './material-estimates.js';
+import { computeMaterialEstimates, computeExteriorMaterialEstimates } from './material-estimates.js';
+import { resolveExteriorProtection } from './exterior-protection.js';
+import { buildElevationQuantityLookups, buildStandaloneQuantityLookups } from './quantity-lookups-exterior.js';
 import { computePricing } from './pricing.js';
 
 export function computeScenarioEstimate(state, db, bundle, profile, products, overlayStats = {}) {
@@ -138,10 +140,21 @@ export function computeScenarioEstimate(state, db, bundle, profile, products, ov
     const roomProtection = resolveRoomFloorProtection(specResults, db, rooms);
     const fixtureProtection = resolveRoomFixtureProtection(rooms, roomSpecMethods);
 
+    // Exterior protection dedup — per-elevation + per-standalone. Mutates
+    // specResults in place (suppresses protection tasks from exterior specs),
+    // so it MUST run before the grand-total reduce below. Mirrors
+    // run-estimate.js:718-722.
+    let exteriorProtection = { elevationProtection: {}, standaloneProtection: {} };
+    if (state.exterior && state.exterior.elevations && state.exterior.elevations.length > 0) {
+      exteriorProtection = resolveExteriorProtection(specResults, db, state.exterior);
+    }
+
     // ── Step 3: Grand total + crew days ──
     let grandTotalHours = specResults.reduce((s, sr) => s + sr.totalHours, 0);
     Object.values(roomProtection).forEach(rp => { grandTotalHours += rp.totalHours; });
     Object.values(fixtureProtection).forEach(fp => { grandTotalHours += fp.totalHours; });
+    Object.values(exteriorProtection.elevationProtection).forEach(ep => { grandTotalHours += ep.totalHours; });
+    Object.values(exteriorProtection.standaloneProtection).forEach(sp => { grandTotalHours += sp.totalHours; });
     grandTotalHours = Math.round(grandTotalHours * 100) / 100;
     const totalCrewDays = Math.round((grandTotalHours / 8 / 2) * 10) / 10;
 
@@ -189,6 +202,19 @@ export function computeScenarioEstimate(state, db, bundle, profile, products, ov
       console.error('[PaintScope] Material estimate error:', matErr);
       warnings.push(`Material estimates: ${matErr.message}`);
     }
+    // Exterior materials (default coverage profiles). Mirrors run-estimate.js:734-738.
+    if (state.exterior && state.exterior.elevations && state.exterior.elevations.length > 0) {
+      try {
+        const extSpecResults = specResults.filter(sr => sr.domain === 'exterior');
+        const extMat = computeExteriorMaterialEstimates(
+          state, db, buildElevationQuantityLookups(state), buildStandaloneQuantityLookups(state), extSpecResults
+        );
+        materialEstimates = [...materialEstimates, ...extMat];
+      } catch (extMatErr) {
+        console.error('[PaintScope] Exterior material estimate error:', extMatErr);
+        warnings.push(`Exterior material estimates: ${extMatErr.message}`);
+      }
+    }
 
     // Append manual material entries (state.project.material_overrides.manual)
     // so the bid price + Materials views all see them. Pure append — engine-
@@ -214,7 +240,7 @@ export function computeScenarioEstimate(state, db, bundle, profile, products, ov
       specResults,
       roomProtection,
       fixtureProtection,
-      exteriorProtection: { elevationProtection: {}, standaloneProtection: {} },
+      exteriorProtection,
       closetHoursByRoom,
       totalHours: grandTotalHours,
       totalCrewDays,
@@ -293,10 +319,15 @@ export function normalizeToSpecResults(perInputResults, specData) {
       phaseHours[p] = Math.round(((phaseHours[p] || 0) + (t.hours || 0)) * 100) / 100;
     }
 
+    // Determine domain: prefer db spec_families entry; fall back to roomIndex
+    // convention (exterior inputs use negative indices: -100 to -1999) so that
+    // exterior specs not yet in db-bundle (e.g. SF_DECK_EXT) are not
+    // misclassified as interior.
+    const inferredDomain = info.domain || (first.roomIndex <= -100 ? 'exterior' : 'interior');
     specResults.push({
       specId,
       specName: info.name || first.scenarioName || specId,
-      domain: info.domain || 'interior',
+      domain: inferredDomain,
       totalHours,
       phaseHours,
       tasks: allTasks,
