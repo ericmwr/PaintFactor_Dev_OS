@@ -9,7 +9,7 @@ import { FLOOR_TYPES, FLOOR_PROTECTION_LABEL } from '../../data/fixture-catalog'
 import { maskLabel } from '../../data/mask-levels';
 import { SUBSTRATE_MAP } from '../../data/substrate-catalog';
 import { useSpecData } from '../../hooks/useSpecData';
-import { COMPLEXITY_OPT_OUT_SPECS } from '../../engine/modifier-stack.js';
+import { COMPLEXITY_OPT_OUT_SPECS } from '../../data/constants';
 import { computeMultiQT } from '../../engine/multi-qt.js';
 import { assembleBundle } from '../../engine/proposal-bundle.js';
 import { runEstimate } from '../../engine/run-estimate.js';

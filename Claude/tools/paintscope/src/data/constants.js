@@ -255,3 +255,11 @@ export const QUANTITY_KEY_LABELS = {
   'PS_EXT_META.ENUM.SUN_EXPOSURE': 'Sun Exposure',
   'PS_EXT_META.FLAG.NEW_CONSTRUCTION': 'New Construction',
 };
+
+// Specs where room complexity does NOT apply — door/frame type and QT already
+// cover variation. (Re-homed from engine/modifier-stack.js during P2b; the
+// legacy modifier-stack copy is deleted with that file.)
+export const COMPLEXITY_OPT_OUT_SPECS = new Set([
+  'SF_DOOR_SLAB_INT_NC',
+  'SF_DOOR_FRAME_NC_FINISH',
+]);
