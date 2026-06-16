@@ -9,6 +9,8 @@
 //
 // Future groups (trim-family, ext body+trim) extend this function additively.
 
+import { SUBSTRATE_APPLICATION_METHODS } from '../data/substrate-catalog.js';
+
 /**
  * @param {object|null} room     — room state from project_data.rooms[]
  * @param {object|null} project  — project state from project_data.project
@@ -66,8 +68,8 @@ function tryCombinedFinishGroup(room, project) {
   // via chain activation downstream.
 
   // Same application method, must be spray_backroll for combined to make sense
-  const wallsMethod   = resolveMethod(walls);
-  const ceilingMethod = resolveMethod(ceiling);
+  const wallsMethod   = resolveMethod('walls', walls);
+  const ceilingMethod = resolveMethod('ceiling', ceiling);
   if (wallsMethod !== 'spray_backroll') return null;
   if (wallsMethod !== ceilingMethod) return null;
 
@@ -108,8 +110,8 @@ function tryCombinedPrimeGroup(room, project) {
   if (walls.substrate_state !== ceiling.substrate_state) return null;
 
   // Same application method, must be spray_backroll
-  const wallsMethod   = resolveMethod(walls);
-  const ceilingMethod = resolveMethod(ceiling);
+  const wallsMethod   = resolveMethod('walls', walls);
+  const ceilingMethod = resolveMethod('ceiling', ceiling);
   if (wallsMethod !== 'spray_backroll') return null;
   if (ceilingMethod !== 'spray_backroll') return null;
   if (wallsMethod !== ceilingMethod) return null;
@@ -199,8 +201,15 @@ function resolveItemAssignmentGroups(room, excludedSubstrates) {
   return groups;
 }
 
-function resolveMethod(substrateConfig) {
+// Effective application method for a substrate. Falls back to the substrate's
+// catalog default (SUBSTRATE_APPLICATION_METHODS[id].default) — for walls/ceiling
+// that's 'spray_backroll' — when the config doesn't set one explicitly. The old
+// project-level default_application_method fallback was removed with the Setup
+// dropdowns; the catalog default is the post-cleanup source of truth (mirrors
+// context-adapter's effective() and derive-protection-defaults' methodOf).
+function resolveMethod(substrateId, substrateConfig) {
   return substrateConfig.application_method
+      || SUBSTRATE_APPLICATION_METHODS[substrateId]?.default
       || 'brush_roll';
 }
 

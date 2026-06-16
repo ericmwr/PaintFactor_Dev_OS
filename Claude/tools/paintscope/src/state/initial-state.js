@@ -3,16 +3,16 @@ import { ROOM_PRESETS } from '../data/room-presets';
 import { createExteriorState } from './exterior-state';
 import { initialColorState } from './color-state.js';
 import { inferDefaultSystem } from '../data/system-catalog.js';
+import { genId, bumpNextId, getNextId } from './id.js';
 
 // ============================================================
 // STATE FACTORY
 // ============================================================
-let nextId = 1;
-export function genId(prefix) { return `${prefix}_${nextId++}`; }
-
-// Allow persistence layer to bump nextId past existing IDs
-export function bumpNextId(n) { if (n >= nextId) nextId = n + 1; }
-export function getNextId() { return nextId; }
+// genId / bumpNextId / getNextId now live in ./id.js (imported above) to break
+// the initial-state <-> exterior-state import cycle that threw a TDZ error under
+// Vitest. Re-exported here so existing `import { ... } from './initial-state'`
+// consumers (reducer.js, migrations.js, ...) keep working unchanged.
+export { genId, bumpNextId, getNextId };
 
 // Walk a state tree and bump nextId past every entity ID seen.
 // Defensive: HMR can reset the module-level counter, causing new entities
@@ -146,7 +146,7 @@ export function createRoom(overrides={}) {
   const preset = overrides._preset ? ROOM_PRESETS[overrides._preset] : null;
   const base = {
     id: genId('room'),
-    label: preset ? preset.label : `Room ${nextId}`,
+    label: preset ? preset.label : `Room ${getNextId()}`,
     area_group: '',
     // Identity tab additions (v0.10) — informational room classification +
     // painting scope preset. Scope preset bulk-toggles substrates via reducer.

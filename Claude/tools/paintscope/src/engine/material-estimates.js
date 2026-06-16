@@ -67,7 +67,13 @@ export function computeMaterialEstimates(state, db, roomLookups, specResults = [
   // Resolve project-level config
   const defaultQT = project.default_quality_tier || 'QT3';
   const defaultTexture = 'smooth';
-  const defaultMethod = 'brush';
+  // Project-wide default method for spray-loss math. The Setup application-method
+  // dropdown was removed, but the prior effective default here was spray_backroll
+  // (project.default_application_method defaulted to it), and walls/ceiling default
+  // to spray_backroll in the catalog. Keep spray_backroll so the SPRAY_LOSS_FACTOR
+  // overspray allowance still applies by default — NOT 'brush' (that silently
+  // dropped ~5% material).
+  const defaultMethod = 'spray_backroll';
   const isSpray = defaultMethod.includes('spray');
 
   // Product resolver context
