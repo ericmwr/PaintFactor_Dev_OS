@@ -1,6 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useProject } from '../../hooks/useProject';
-import { useEstimate } from '../../hooks/useEstimate';
 import { useEstimateScenario } from '../../hooks/useEstimateScenario';
 import { deriveRoom } from '../../engine/derive-room';
 import { exportProject } from '../../engine/export-project';
@@ -12,7 +11,8 @@ import { useSpecData } from '../../hooks/useSpecData';
 import { COMPLEXITY_OPT_OUT_SPECS } from '../../data/constants';
 import { computeMultiQT } from '../../engine/multi-qt.js';
 import { assembleBundle } from '../../engine/proposal-bundle.js';
-import { runEstimate } from '../../engine/run-estimate.js';
+import { computeScenarioEstimate } from '../../engine/scenario-estimate.js';
+import canonicalBundle from '../../data/scenario-bundle.gen.js';
 import { useCompanyProfile } from '../../hooks/useCompanyProfile.js';
 import ScenarioEnginePanel from './ScenarioEnginePanel.jsx';
 import EstimateDiagnostic from './EstimateDiagnostic.jsx';
@@ -106,22 +106,8 @@ const CAT_LABELS = {
 
 export default function EstimateView() {
   const { state, dispatch, projectId } = useProject();
-  const legacyEstimate = useEstimate();
-  const scenarioEstimate = useEstimateScenario();
+  const estimate = useEstimateScenario();
   const { specData } = useSpecData();
-
-  // Engine toggle: 'legacy' (spec-driven) or 'scenario' (module-driven).
-  // Default is 'scenario' — the scenario engine is now the source of truth
-  // for the bid number. Legacy is kept available behind the toggle as a
-  // diagnostic / fallback only. Persisted in localStorage so it survives
-  // page reloads.
-  const [engine, setEngine] = useState(() => localStorage.getItem('paintscope.engine') || 'scenario');
-  const toggleEngine = () => {
-    const next = engine === 'legacy' ? 'scenario' : 'legacy';
-    localStorage.setItem('paintscope.engine', next);
-    setEngine(next);
-  };
-  const estimate = engine === 'scenario' && scenarioEstimate?.specResults ? scenarioEstimate : legacyEstimate;
 
   const { profile } = useCompanyProfile();
   // Persist expansion state across full HMR reloads (Phase B publish triggers
@@ -234,7 +220,9 @@ export default function EstimateView() {
     if (!estimate || !profile) return;
     setGeneratingProposal(true);
     try {
-      const multiQT = computeMultiQT(runEstimate, state, specData, profile, estimate);
+      const scenarioRunner = (qtState, db, _ignored, prof) =>
+        computeScenarioEstimate(qtState, db, canonicalBundle, prof, []);
+      const multiQT = computeMultiQT(scenarioRunner, state, specData, profile, estimate);
       const bundle = assembleBundle(state, profile, estimate.pricing, multiQT);
 
       const blob = new Blob([JSON.stringify(bundle, null, 2)], { type: 'application/json' });
@@ -444,21 +432,8 @@ export default function EstimateView() {
       <div className="estimate-header">
         <div style={{display:'flex',alignItems:'center',gap:12}}>
           <h2>Estimate{state.project.name ? ` \u2014 ${state.project.name}` : ''}</h2>
-          <button
-            onClick={toggleEngine}
-            style={{
-              fontSize: 10, padding: '2px 8px', borderRadius: 4,
-              border: '1px solid var(--border)', cursor: 'pointer',
-              background: engine === 'scenario' ? 'var(--accent)' : 'var(--bg-tertiary)',
-              color: engine === 'scenario' ? '#fff' : 'var(--text-secondary)',
-              fontWeight: 600, letterSpacing: '0.5px', textTransform: 'uppercase',
-            }}
-            title={engine === 'legacy' ? 'Switch to scenario engine (module-driven)' : 'Switch to legacy engine (spec-driven)'}
-          >
-            {engine === 'legacy' ? 'Legacy' : 'Scenario'}
-          </button>
-          {engine === 'scenario' && scenarioEstimate?.gaps?.length > 0 && (
-            <span style={{fontSize:10,color:'var(--warning)'}}>{scenarioEstimate.gaps.length} gap{scenarioEstimate.gaps.length > 1 ? 's' : ''}</span>
+          {estimate?.gaps?.length > 0 && (
+            <span style={{fontSize:10,color:'var(--warning)'}}>{estimate.gaps.length} gap{estimate.gaps.length > 1 ? 's' : ''}</span>
           )}
         </div>
         <div className="estimate-totals">
