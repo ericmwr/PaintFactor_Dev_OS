@@ -227,3 +227,28 @@ Eight commits (`f0e011b` → `9ca84b4` → `1e67d3f` → `f53c061` → `d9779ac`
 - `components/dev/DevView.jsx:43` still has a live `<= -100` check that could adopt `isExteriorRoomIndex` when next touched.
 
 **Retirement status: P1 + P2a + P2b + P3 DONE.** Remaining: Phase 4 (archive `/specs`) → Phase 5 (`git tag archive/spec-system-final`) → Phase 6 (delete db spec tables + `scenario-to-spec-results.js` + Rates/Assemblies UI + the vestigial `db` threading) → Phase 7 (merge `claude/cranky-saha` → `main`). Branch stays as-is until then — do NOT merge.
+
+---
+
+## 13. Phase 4 + Phase 5 — DONE (2026-06-17)
+
+**Phase 4 (archive `/specs`) + Phase 5 (`git tag`) landed** on `claude/cranky-saha`.
+
+- **Phase 4 — commit `c21f475`:** `git mv` all **74** `Claude/specs/SF_*_v1/` folders (562 tracked files) verbatim into `Claude/_archive/spec-system/` — wholesale, no curation (§4/§7). All 562 staged changes are 100% renames (0 insertions / 0 deletions); baseline tracked-file count matched exactly (nothing lost). *(The earlier "75 folders" count in §1/§3d/§4 was off by one — there are **74**.)*
+  - **Runtime/build NO-OP confirmed:** runtime `src/` has zero references to `Claude/specs/SF_*_v1` (the single paintscope hit is a comment pointing at `docs/superpowers/specs/`, a different folder); the scenario bundle builds from `/modules`+`/scenarios`+`/modifiers`+`/tasks`. Only the retiring Python build scripts (`import_spec.py`, `scripts/validate_specs.py`) reference the `/specs` path — left as-is (they die in Phase 6).
+  - **Verified post-move, all EXACT baseline match:** `npx vitest run` → **168**; `npx vite build` → green, **258 modules**; NC-interior parity (`p2a-int.json`) → **21.13** (6 specs, 0 gaps); exterior parity (`p2a-ext.json`) → **1.73** (1 spec, 12 gaps).
+  - **NOT moved (out of Phase-4 scope):** `Claude/specs/` retains the SpecFactory *authoring* infra — `_registry/`, `_schemas/`, `_templates/`, `_backlog/`, `Spec Catalog/`, `CLAUDE.md` (51 tracked files). These are consumed by the retiring Python pipeline (`import_spec.py` reads `_registry`, `validate_specs.py` reads `_schemas`) and die with it in Phase 6. **Open question for Phase 6:** archive or delete these alongside the Python scripts.
+
+- **Phase 5 — annotated tag `archive/spec-system-final` at `c21f475`** (local only, not pushed). Restore point capturing the spec DATA (`db-bundle.js` spec tables) + the Rates/Assemblies UI, all still present pre-Phase-6. (Engine-side spec CODE was already removed in P1–P3 — restorable from history or `backup/pre-module-architecture` @ `c8039a0`.)
+
+**Retirement status: P1 + P2a + P2b + P3 + Phase 4 + Phase 5 DONE.** Remaining: **Phase 6** (the big deletion — warrants a written plan, subagent-driven like P3) → **Phase 7** (merge `claude/cranky-saha` → `main`). Branch stays as-is — do NOT merge until Phase 7.
+
+**Phase 6 scope (consolidated, from §11/§12 + this phase):**
+- `db-bundle.js` spec tables (zero live readers): `material_systems`, `material_coverage_profiles`, `material_system_products`, `quality_tier_effects`, `spec_protection_zones`, `sop_tasks`, `spec_required_inputs`, `spec_families`, `sop_modules`, `task_production_rates`, `factor_modifiers`, `coat_counts`.
+- Rates UI: `components/rates/*`, `state/spec-editor-reducer.js`, `hooks/useSpecData.jsx`.
+- Assemblies: `components/assemblies/*` (incl. `TaskPickerModal.jsx`) + the nav tab.
+- Orphan: `engine/scenario-to-spec-results.js` (zero importers since P2b).
+- Vestigial `db` param threading: `computeScenarioEstimate(state, db, …)` + every resolver + the `useEstimateScenario` hook + parity harness all ignore it (no engine fn reads `db.<anything>` after P3). Broad signature refactor — fold in here.
+- (build-only) `import_spec.py` / `export_db_bundle.py` / `validate_specs.py` + the `Claude/specs/` authoring infra (`_registry`/`_schemas`/`_templates`/`_backlog`/`Spec Catalog`).
+- Each deletion gated by `npx vite build` (dangling-import gate) + parity 21.13 / 1.73.
+- **Deferred non-blocker (do around Phase 6):** extend the material golden to ≥1 non-drywall spec + spot-check `SF_CABINET_*` / `SF_STAIR_*` material *before* deleting the source data — the P3 `spec_required_inputs` drop changed non-drywall material (accepted 2026-06-17; see §12 ⚠ note).
