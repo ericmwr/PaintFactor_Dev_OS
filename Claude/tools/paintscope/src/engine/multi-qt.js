@@ -1,3 +1,5 @@
+﻿import { QUALITY_TIER_EFFECTS } from '../data/scenario-rate-data.js';
+
 /**
  * Build a deterministic line item ID.
  * @param {number} roomIndex
@@ -19,23 +21,16 @@ export function buildDescription({ coats, productName, sheen, method }) {
 }
 
 /**
- * Extract available quality tiers for a spec family from the DB bundle.
- * Reads from the `quality_tier_effects` table (one row per spec × QT).
+ * Extract available quality tiers for a spec family.
+ * Reads from the QUALITY_TIER_EFFECTS module by default (one row per spec × QT).
+ * An explicit `rows` array can be injected for testing.
  *
- * NOTE: Earlier revisions of this function read from
- * `spec_family.configuration_dimensions`, but that field only exists in the
- * source spec.json files — the SQLite-generated DB bundle flattens QT data
- * into the `quality_tier_effects` table with one row per (spec, tier).
- *
- * @param {object} db - DB bundle (must contain `quality_tier_effects`)
  * @param {string} specFamilyId - e.g., 'SF_DRYWALL_WALL_NC_FINISH'
+ * @param {Array} [rows=QUALITY_TIER_EFFECTS] - rows to filter (injectable for tests)
  * @returns {string[]} sorted unique tier values
  */
-export function collectAvailableTiers(db, specFamilyId) {
-  const rows = (db?.quality_tier_effects || []).filter(
-    r => r.spec_family_id === specFamilyId
-  );
-  return rows.map(r => r.quality_tier).sort();
+export function collectAvailableTiers(specFamilyId, rows = QUALITY_TIER_EFFECTS) {
+  return rows.filter(r => r.spec_family_id === specFamilyId).map(r => r.quality_tier).sort();
 }
 
 /**
@@ -92,7 +87,7 @@ export function computeMultiQT(runEstimateFn, state, db, profile, baseEstimate) 
     const lineId = buildLineItemId(baseLine.roomIndex, substrate);
 
     // Find the spec's available tiers from quality_tier_effects
-    const availableTiers = collectAvailableTiers(db, baseLine.specFamilyId);
+    const availableTiers = collectAvailableTiers(baseLine.specFamilyId);
 
     const baseMethod = resolveMethod(state, baseLine.roomIndex);
     const options = {};

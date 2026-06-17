@@ -42,20 +42,20 @@ describe('collectAvailableTiers', () => {
   };
 
   it('returns sorted tiers for a spec from quality_tier_effects', () => {
-    expect(collectAvailableTiers(mockDb, 'SF_DRYWALL_WALL_NC_FINISH'))
+    expect(collectAvailableTiers('SF_DRYWALL_WALL_NC_FINISH', mockDb.quality_tier_effects))
       .toEqual(['QT2', 'QT3', 'QT4', 'QT5']);
   });
 
   it('returns only tiers belonging to the requested spec', () => {
-    expect(collectAvailableTiers(mockDb, 'SF_DOOR_FRAME_NC_FINISH'))
+    expect(collectAvailableTiers('SF_DOOR_FRAME_NC_FINISH', mockDb.quality_tier_effects))
       .toEqual(['QT3']);
   });
 
   it('returns empty array if spec has no rows', () => {
-    expect(collectAvailableTiers(mockDb, 'SF_NONEXISTENT')).toEqual([]);
+    expect(collectAvailableTiers('SF_NONEXISTENT', mockDb.quality_tier_effects)).toEqual([]);
   });
 
-  it('handles missing quality_tier_effects table', () => {
-    expect(collectAvailableTiers({}, 'SF_DRYWALL_WALL_NC_FINISH')).toEqual([]);
+  it('handles empty rows (no matching data)', () => {
+    expect(collectAvailableTiers('SF_DRYWALL_WALL_NC_FINISH', [])).toEqual([]);
   });
 });
