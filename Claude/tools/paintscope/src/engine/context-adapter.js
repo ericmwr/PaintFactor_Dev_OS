@@ -654,6 +654,15 @@ export function buildRoomProtectionCtxs(room, project, roomHasActiveSpec) {
  */
 
 /**
+ * Predicate for the convention above: true when a roomIndex belongs to an
+ * exterior input (elevation OR standalone — both occupy roomIndex <= -100).
+ * Single source of truth so downstream domain checks don't hardcode -100.
+ */
+export function isExteriorRoomIndex(roomIndex) {
+  return roomIndex <= -100;
+}
+
+/**
  * Build scenario inputs from state.exterior.elevations[].
  *
  * For each elevation × each active exterior elevation-bound spec (siding,

@@ -8,7 +8,7 @@
 
 import { buildManualMaterialEstimates } from './manual-materials.js';
 import { runScenarioEstimate } from './run-estimate-scenario.js';
-import { buildScenarioInputs } from './context-adapter.js';
+import { buildScenarioInputs, isExteriorRoomIndex } from './context-adapter.js';
 import { findBestMatch, findNearMisses } from './scenario-matcher.js';
 import { resolveRoomFloorProtection } from './floor-protection.js';
 import { resolveRoomFixtureProtection } from './fixture-protection.js';
@@ -38,6 +38,9 @@ export function computeScenarioEstimate(state, db, bundle, profile, products, ov
     const perInputResults = [];
     const gaps = [];
     const warnings = [...adapter.warnings];
+    // Computed once — exterior elevations gate both the protection (Step 2)
+    // and material (Step 5) branches below.
+    const hasExterior = !!(state.exterior?.elevations?.length);
 
     // Build per-project task-rate overlayMap from protection_heuristics.
     // Each rate override applies to BOTH the install/remove task in that
@@ -145,7 +148,7 @@ export function computeScenarioEstimate(state, db, bundle, profile, products, ov
     // so it MUST run before the grand-total reduce below. Mirrors
     // run-estimate.js:718-722.
     let exteriorProtection = { elevationProtection: {}, standaloneProtection: {} };
-    if (state.exterior && state.exterior.elevations && state.exterior.elevations.length > 0) {
+    if (hasExterior) {
       exteriorProtection = resolveExteriorProtection(specResults, db, state.exterior);
     }
 
@@ -203,7 +206,7 @@ export function computeScenarioEstimate(state, db, bundle, profile, products, ov
       warnings.push(`Material estimates: ${matErr.message}`);
     }
     // Exterior materials (default coverage profiles). Mirrors run-estimate.js:734-738.
-    if (state.exterior && state.exterior.elevations && state.exterior.elevations.length > 0) {
+    if (hasExterior) {
       try {
         const extSpecResults = specResults.filter(sr => sr.domain === 'exterior');
         const extMat = computeExteriorMaterialEstimates(
@@ -323,7 +326,7 @@ export function normalizeToSpecResults(perInputResults, specData) {
     // convention (exterior inputs use negative indices: -100 to -1999) so that
     // exterior specs not yet in db-bundle (e.g. SF_DECK_EXT) are not
     // misclassified as interior.
-    const inferredDomain = info.domain || (first.roomIndex <= -100 ? 'exterior' : 'interior');
+    const inferredDomain = info.domain || (isExteriorRoomIndex(first.roomIndex) ? 'exterior' : 'interior');
     specResults.push({
       specId,
       specName: info.name || first.scenarioName || specId,
