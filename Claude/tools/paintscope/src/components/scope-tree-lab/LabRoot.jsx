@@ -1,12 +1,11 @@
 // Lab sandbox root. Wraps the same providers AppShell uses so the lab can
-// consume real project data via the existing hooks (useProject + useSpecData
-// + useEstimateScenario), without any production UI surface in the tree.
+// consume real project data via the existing hooks (useProject +
+// useEstimateScenario), without any production UI surface in the tree.
 //
 // Activate with ?lab=scope-tree.
 
 import { useEffect, useState } from 'react';
 import { ProjectProvider } from '../../hooks/useProject';
-import { SpecDataProvider } from '../../hooks/useSpecData';
 import { useProjectDB } from '../../hooks/useProjectDB';
 import { loadProject } from '../../data/project-db';
 import ErrorBoundary from '../shared/ErrorBoundary';
@@ -48,20 +47,18 @@ export default function LabRoot({ labId }) {
   }
 
   return (
-    <SpecDataProvider>
-      <ProjectProvider key={loaded.forId} initialData={loaded.data} projectId={projectDb.activeProjectId}>
-        <ErrorBoundary label="Lab">
-          {labId === 'scope-tree' && <LabScopeTree />}
-          {labId === 'estimate-preview' && <LabEstimatePreview />}
-          {labId !== 'scope-tree' && labId !== 'estimate-preview' && (
-            <div className="lab-empty">
-              <h2>Unknown lab: {labId}</h2>
-              <p>Available labs: <code>?lab=scope-tree</code>, <code>?lab=estimate-preview</code></p>
-              <p><a href={window.location.pathname}>← Back to PaintScope</a></p>
-            </div>
-          )}
-        </ErrorBoundary>
-      </ProjectProvider>
-    </SpecDataProvider>
+    <ProjectProvider key={loaded.forId} initialData={loaded.data} projectId={projectDb.activeProjectId}>
+      <ErrorBoundary label="Lab">
+        {labId === 'scope-tree' && <LabScopeTree />}
+        {labId === 'estimate-preview' && <LabEstimatePreview />}
+        {labId !== 'scope-tree' && labId !== 'estimate-preview' && (
+          <div className="lab-empty">
+            <h2>Unknown lab: {labId}</h2>
+            <p>Available labs: <code>?lab=scope-tree</code>, <code>?lab=estimate-preview</code></p>
+            <p><a href={window.location.pathname}>← Back to PaintScope</a></p>
+          </div>
+        )}
+      </ErrorBoundary>
+    </ProjectProvider>
   );
 }

@@ -1,4 +1,4 @@
-// Module authoring drafts hook. Mirrors useAssemblies.js shape.
+// Module authoring drafts hook. Manages draft overlays for the Authoring tab.
 // Drafts are stored in IndexedDB via authoring-db.js. The scenario
 // engine overlays active drafts on the canonical bundle at estimate
 // time (see overlay-loader.js).
