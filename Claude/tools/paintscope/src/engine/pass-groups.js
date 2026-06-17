@@ -14,7 +14,6 @@ import { SUBSTRATE_APPLICATION_METHODS } from '../data/substrate-catalog.js';
 /**
  * @param {object|null} room     — room state from project_data.rooms[]
  * @param {object|null} project  — project state from project_data.project
- * @param {object|null} specData — resolved spec data (reserved for finish-group product lookup)
  * @returns {Array<PassGroup>}   — zero or more pass groups; empty array when no grouping applies
  *
  * PassGroup shape:

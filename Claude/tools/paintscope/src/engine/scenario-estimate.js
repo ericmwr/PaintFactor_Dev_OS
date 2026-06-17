@@ -276,7 +276,7 @@ export function computeScenarioEstimate(state, bundle, profile, products, overla
  * so EstimateView can group by room → spec → task.
  */
 export function normalizeToSpecResults(perInputResults) {
-  // Lookup table: specId → { name, domain } from the DB bundle
+  // Lookup table: specId → { name, domain } from SPEC_FAMILY_INFO
   const specLookup = {};
   for (const sf of SPEC_FAMILY_INFO) {
     specLookup[sf.id] = { name: sf.name, domain: sf.domain || 'interior' };

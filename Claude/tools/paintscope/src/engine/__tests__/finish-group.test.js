@@ -94,7 +94,7 @@ describe('resolveItemAssignmentGroups', () => {
       baseboard:   { finish_group: 'C', coating_type: 'paint' },
       door_casing: { finish_group: 'C', coating_type: 'paint' },
     });
-    const groups = resolvePassGroups(room, {}, null);
+    const groups = resolvePassGroups(room, {});
     const fgGroups = groups.filter(g => g.group_id === 'finish_group_assignment');
     expect(fgGroups).toHaveLength(1);
     expect(fgGroups[0].substrates.sort()).toEqual(['baseboard', 'door_casing']);
@@ -109,7 +109,7 @@ describe('resolveItemAssignmentGroups', () => {
       door_frames: { finish_group: 'D', coating_type: 'stain_clear' },
       window_jamb: { finish_group: 'D', coating_type: 'stain_clear' },
     });
-    const groups = resolvePassGroups(room, {}, null);
+    const groups = resolvePassGroups(room, {});
     const fgGroups = groups.filter(g => g.group_id === 'finish_group_assignment');
     expect(fgGroups).toHaveLength(2);
     const cGroup = fgGroups.find(g => g.metadata.finish_group === 'C');
@@ -124,7 +124,7 @@ describe('resolveItemAssignmentGroups', () => {
       door_casing: { finish_group: 'C', coating_type: 'paint' },
       door_frames: { finish_group: 'D', coating_type: 'stain_clear' },  // singleton
     });
-    const groups = resolvePassGroups(room, {}, null);
+    const groups = resolvePassGroups(room, {});
     const fgGroups = groups.filter(g => g.group_id === 'finish_group_assignment');
     expect(fgGroups).toHaveLength(1);
     expect(fgGroups[0].metadata.finish_group).toBe('C');
@@ -136,7 +136,7 @@ describe('resolveItemAssignmentGroups', () => {
       ceiling:     { finish_group: 'A' },
       baseboard:   { finish_group: 'A', coating_type: 'paint' },
     });
-    const groups = resolvePassGroups(room, {}, null);
+    const groups = resolvePassGroups(room, {});
     const fgGroups = groups.filter(g => g.group_id === 'finish_group_assignment');
     // baseboard in A with no other non-wall/ceiling members = singleton, skipped
     expect(fgGroups).toHaveLength(0);
@@ -153,7 +153,7 @@ describe('resolveItemAssignmentGroups', () => {
       baseboard:      { finish_group: 'C', coating_type: 'paint' },
       crown:          { finish_group: 'C', coating_type: 'paint' },
     });
-    const groups = resolvePassGroups(room, {}, null);
+    const groups = resolvePassGroups(room, {});
     const fgGroups = groups.filter(g => g.group_id === 'finish_group_assignment');
     expect(fgGroups).toHaveLength(1);
     expect(fgGroups[0].substrates.sort()).toEqual(['baseboard', 'crown']);
@@ -164,7 +164,7 @@ describe('resolveItemAssignmentGroups', () => {
       door_casing:    { finish_group: 'C', coating_type: 'paint', painting: true },
       window_casing:  { finish_group: 'C', coating_type: 'paint', painting: true },
     });
-    const groups = resolvePassGroups(room, {}, null);
+    const groups = resolvePassGroups(room, {});
     const fgGroups = groups.filter(g => g.group_id === 'finish_group_assignment');
     expect(fgGroups).toHaveLength(1);
     expect(fgGroups[0].substrates.sort()).toEqual(['door_casing', 'window_casing']);
@@ -176,7 +176,7 @@ describe('resolveItemAssignmentGroups', () => {
       door_casing: { coating_type: 'paint' },  // no finish_group at all
       crown:       { finish_group: 'C', coating_type: 'paint' },
     });
-    const groups = resolvePassGroups(room, {}, null);
+    const groups = resolvePassGroups(room, {});
     const fgGroups = groups.filter(g => g.group_id === 'finish_group_assignment');
     expect(fgGroups).toHaveLength(0);  // only crown has C; singleton
   });
@@ -240,7 +240,7 @@ describe('mismatch warning', () => {
           door_frames: { finish_group: 'C', coating_type: 'stain_clear', application_method: 'spray' },
         },
       };
-      resolvePassGroups(room, {}, null);
+      resolvePassGroups(room, {});
       expect(warnings.some(w => /mixed coating_type/.test(w))).toBe(true);
     } finally {
       console.warn = origWarn;
@@ -258,7 +258,7 @@ describe('mismatch warning', () => {
           door_casing: { finish_group: 'C', coating_type: 'paint', application_method: 'spray' },
         },
       };
-      resolvePassGroups(room, {}, null);
+      resolvePassGroups(room, {});
       expect(warnings.some(w => /mixed application_method/.test(w))).toBe(true);
     } finally {
       console.warn = origWarn;
@@ -276,7 +276,7 @@ describe('mismatch warning', () => {
           door_casing: { finish_group: 'C', coating_type: 'paint', application_method: 'spray' },
         },
       };
-      resolvePassGroups(room, {}, null);
+      resolvePassGroups(room, {});
       expect(warnings.filter(w => /mixed/.test(w))).toEqual([]);
     } finally {
       console.warn = origWarn;
@@ -297,7 +297,7 @@ describe('resolvePassGroups precedence — pre-authored vs dynamic', () => {
       },
     };
     const project = { default_combined_wc_finish: true };
-    const groups = resolvePassGroups(room, project, null);
+    const groups = resolvePassGroups(room, project);
 
     const wc = groups.find(g => g.group_id === 'walls_ceiling_finish_combined');
     const fg = groups.find(g => g.group_id === 'finish_group_assignment');

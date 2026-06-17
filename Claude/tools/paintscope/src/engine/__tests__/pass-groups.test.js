@@ -6,13 +6,13 @@ describe('resolvePassGroups', () => {
   it('returns empty array for a minimal room (no groups yet)', () => {
     const room = { substrates: {} };
     const project = {};
-    const result = resolvePassGroups(room, project, null);
+    const result = resolvePassGroups(room, project);
     expect(result).toEqual([]);
   });
 
   it('returns an array even when inputs are null/undefined', () => {
-    expect(resolvePassGroups(null, null, null)).toEqual([]);
-    expect(resolvePassGroups(undefined, undefined, undefined)).toEqual([]);
+    expect(resolvePassGroups(null, null)).toEqual([]);
+    expect(resolvePassGroups(undefined, undefined)).toEqual([]);
   });
 });
 
@@ -94,7 +94,7 @@ describe('resolvePassGroups combined-prime precheck', () => {
   };
 
   it('forms a combined-prime group when all conditions met', () => {
-    const groups = resolvePassGroups(baseRoom, baseProject, null);
+    const groups = resolvePassGroups(baseRoom, baseProject);
     expect(groups).toHaveLength(1);
     expect(groups[0].group_id).toBe('walls_ceiling_prime_combined');
     expect(groups[0].substrates).toEqual(['walls', 'ceiling']);
@@ -105,17 +105,17 @@ describe('resolvePassGroups combined-prime precheck', () => {
 
   it('returns [] when combined-prime flag is off', () => {
     const project = { ...baseProject, default_combined_prime: false };
-    expect(resolvePassGroups(baseRoom, project, null)).toEqual([]);
+    expect(resolvePassGroups(baseRoom, project)).toEqual([]);
   });
 
   it('returns [] when walls substrate is missing', () => {
     const room = { ...baseRoom, substrates: { ceiling: baseRoom.substrates.ceiling } };
-    expect(resolvePassGroups(room, baseProject, null)).toEqual([]);
+    expect(resolvePassGroups(room, baseProject)).toEqual([]);
   });
 
   it('returns [] when ceiling substrate is missing', () => {
     const room = { ...baseRoom, substrates: { walls: baseRoom.substrates.walls } };
-    expect(resolvePassGroups(room, baseProject, null)).toEqual([]);
+    expect(resolvePassGroups(room, baseProject)).toEqual([]);
   });
 
   it('returns [] when walls and ceiling substrate_state differ', () => {
@@ -126,7 +126,7 @@ describe('resolvePassGroups combined-prime precheck', () => {
         ceiling: { ...baseRoom.substrates.ceiling, substrate_state: 'primed_factory' },
       },
     };
-    expect(resolvePassGroups(room, baseProject, null)).toEqual([]);
+    expect(resolvePassGroups(room, baseProject)).toEqual([]);
   });
 
   it('returns [] when application_method is not spray_backroll', () => {
@@ -138,18 +138,18 @@ describe('resolvePassGroups combined-prime precheck', () => {
         ceiling: { ...baseRoom.substrates.ceiling, application_method: 'brush_roll' },
       },
     };
-    expect(resolvePassGroups(room, project, null)).toEqual([]);
+    expect(resolvePassGroups(room, project)).toEqual([]);
   });
 
   it('room-level combined_prime_override="separate" suppresses the group', () => {
     const room = { ...baseRoom, combined_prime_override: 'separate' };
-    expect(resolvePassGroups(room, baseProject, null)).toEqual([]);
+    expect(resolvePassGroups(room, baseProject)).toEqual([]);
   });
 
   it('room-level combined_prime_override="combined" creates the group even when project flag is off', () => {
     const project = { ...baseProject, default_combined_prime: false };
     const room = { ...baseRoom, combined_prime_override: 'combined' };
-    const groups = resolvePassGroups(room, project, null);
+    const groups = resolvePassGroups(room, project);
     expect(groups).toHaveLength(1);
     expect(groups[0].group_id).toBe('walls_ceiling_prime_combined');
   });
@@ -173,7 +173,7 @@ describe('resolvePassGroups combined-finish precheck (toggle-driven)', () => {
   };
 
   it('forms combined-finish group when toggle is on + substrates primed + method/QT match', () => {
-    const groups = resolvePassGroups(baseRoom, baseProject, null);
+    const groups = resolvePassGroups(baseRoom, baseProject);
     const finishGroup = groups.find(g => g.group_id === 'walls_ceiling_finish_combined');
     expect(finishGroup).toBeDefined();
     expect(finishGroup.pass_type).toBe('finish');
@@ -183,19 +183,19 @@ describe('resolvePassGroups combined-finish precheck (toggle-driven)', () => {
 
   it('returns [] when combined-finish toggle is off', () => {
     const project = { ...baseProject, default_combined_wc_finish: false };
-    const groups = resolvePassGroups(baseRoom, project, null);
+    const groups = resolvePassGroups(baseRoom, project);
     expect(groups.find(g => g.group_id === 'walls_ceiling_finish_combined')).toBeUndefined();
   });
 
   it('room-level combined_wc_finish_override="separate" suppresses the group', () => {
     const room = { ...baseRoom, combined_wc_finish_override: 'separate' };
-    expect(resolvePassGroups(room, baseProject, null)).toEqual([]);
+    expect(resolvePassGroups(room, baseProject)).toEqual([]);
   });
 
   it('room-level combined_wc_finish_override="combined" creates the group even when project flag is off', () => {
     const project = { ...baseProject, default_combined_wc_finish: false };
     const room = { ...baseRoom, combined_wc_finish_override: 'combined' };
-    const groups = resolvePassGroups(room, project, null);
+    const groups = resolvePassGroups(room, project);
     expect(groups.find(g => g.group_id === 'walls_ceiling_finish_combined')).toBeDefined();
   });
 
@@ -207,7 +207,7 @@ describe('resolvePassGroups combined-finish precheck (toggle-driven)', () => {
         ceiling: { ...baseRoom.substrates.ceiling, substrate_state: 'bare_drywall' },
       },
     };
-    const groups = resolvePassGroups(room, baseProject, null);
+    const groups = resolvePassGroups(room, baseProject);
     expect(groups.find(g => g.group_id === 'walls_ceiling_finish_combined')).toBeDefined();
   });
 
@@ -220,7 +220,7 @@ describe('resolvePassGroups combined-finish precheck (toggle-driven)', () => {
       },
     };
     const project = { ...baseProject, default_application_method: 'brush_roll' };
-    const groups = resolvePassGroups(room, project, null);
+    const groups = resolvePassGroups(room, project);
     expect(groups.find(g => g.group_id === 'walls_ceiling_finish_combined')).toBeUndefined();
   });
 });
@@ -327,9 +327,9 @@ describe('buildScenarioInputs with pass-group fields', () => {
     const result = buildScenarioInputs(state);
     expect(result.roomInputs.length).toBeGreaterThan(0);
     for (const input of result.roomInputs) {
-      expect(input.ctx).toHaveProperty('pass_group_id', null);
-      expect(input.ctx).toHaveProperty('pass_group_substrates', null);
-      expect(input.ctx).toHaveProperty('pass_type', null);
+      expect(input.ctx).toHaveProperty('pass_group_id');
+      expect(input.ctx).toHaveProperty('pass_group_substrates');
+      expect(input.ctx).toHaveProperty('pass_type');
     }
   });
 });
