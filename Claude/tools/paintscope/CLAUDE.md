@@ -208,9 +208,8 @@ Exterior elevations and standalone items flow through the **scenario engine** (M
 state.exterior.elevations[] + state.exterior.standalone
   → buildElevationScenarioInputs / buildStandaloneScenarioInputs  (context-adapter.js)
   → runScenarioEstimate                                            (run-estimate-scenario.js)
-  → scenarioResultsToSpecResults                                   (scenario-to-spec-results.js)
-  → specResults.push with domain:'exterior'                        (run-estimate.js)
-  → resolveExteriorProtection + computeExteriorMaterialEstimates   (unchanged consumers)
+  → normalizeToSpecResults (tags domain:'exterior' via roomIndex)  (scenario-estimate.js)
+  → resolveExteriorProtection + computeExteriorMaterialEstimates   (scenario-estimate.js)
 ```
 
 **Conventions:**
