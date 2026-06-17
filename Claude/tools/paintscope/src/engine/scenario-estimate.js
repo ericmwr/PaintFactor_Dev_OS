@@ -321,7 +321,7 @@ export function normalizeToSpecResults(perInputResults, specData) {
       phaseHours[p] = Math.round(((phaseHours[p] || 0) + (t.hours || 0)) * 100) / 100;
     }
 
-    // Determine domain: prefer db spec_families entry; fall back to roomIndex
+    // Determine domain: prefer SPEC_FAMILY_INFO entry; fall back to roomIndex
     // convention (exterior inputs use negative indices: -100 to -1999) so that
     // exterior specs not yet in db-bundle (e.g. SF_DECK_EXT) are not
     // misclassified as interior.

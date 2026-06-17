@@ -396,7 +396,7 @@ export function reducer(state, action) {
 
         // System is the source of truth for coating_type now that the UI field
         // was retired. Keep config.coating_type synced so the engine context
-        // still has it (read by spec-resolution + scenario matchers).
+        // still has it (read by scenario-resolution + scenario matchers).
         if (field === 'system' || field === 'substrate_state') {
           const sys = updated.system;
           if (sys) {

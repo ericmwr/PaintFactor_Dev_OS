@@ -814,7 +814,7 @@ export function buildStandaloneScenarioInputs(state, db) {
 // but those entries were stripped in the SF_EXT_* cutover (commit 2d333e3).
 // The adapter still needs this mapping to route substrate_state / texture /
 // material reads to the correct section/trim/standalone config. Keeping it
-// inline here (vs. re-adding to spec-maps.js) so the scenario engine path
+// inline here (vs. re-adding to scenario-maps.js) so the scenario engine path
 // owns its dependencies — interior code no longer references it.
 const EXT_SPEC_SUBSTRATE_MAP = Object.freeze({
   // NC

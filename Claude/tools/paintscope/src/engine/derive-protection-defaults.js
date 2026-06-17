@@ -77,7 +77,7 @@ export function categorizeScope(room, project = {}) {
 
   // Resolve methods per category. 'spray' if any active sub uses spray;
   // 'brush' if all use brush/roll; 'mixed' if a mix.
-  // Cascade matches resolveApplicationMethod in spec-resolution.js:
+  // Cascade matches resolveApplicationMethod in scenario-resolution.js:
   //   1. substrate.application_method (explicit per-substrate override)
   //   2. SUBSTRATE_APPLICATION_METHODS[id].default (substrate type default)
   //   3. room.application_method (room-level override)
@@ -92,7 +92,7 @@ export function categorizeScope(room, project = {}) {
       if (s.application_method_stain) return s.application_method_stain;
       if (s.application_method_clear) return s.application_method_clear;
     }
-    // Paint cascade — matches resolveApplicationMethod in spec-resolution.js
+    // Paint cascade — matches resolveApplicationMethod in scenario-resolution.js
     if (s.application_method) return s.application_method;
     const sam = SUBSTRATE_APPLICATION_METHODS[subId];
     if (sam?.default) return sam.default;

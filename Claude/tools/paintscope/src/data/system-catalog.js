@@ -185,7 +185,7 @@ export function coatingTypeFromSystem(system) {
 //     state from the room; "primed" = force SS_PRIMED because a prime pass
 //     precedes this spec in the workflow; "stained" / "sealed" likewise)
 //
-// specRole values come from SPEC_ROLE in spec-maps.js:
+// specRole values come from SPEC_ROLE in scenario-maps.js:
 //   PRIME    — spec runs only the prime pass
 //   FINISH   — spec runs only the finish pass
 //   STAIN    — spec runs only the stain pass
