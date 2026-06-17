@@ -1,4 +1,5 @@
 import { FLOOR_PROTECTION_HIERARCHY, FLOOR_ZONE_IDS, FLOOR_PROTECTION_DONOR_PRIORITY, PHASE_ORDER } from '../data/constants.js';
+import { SPEC_PROTECTION_ZONES, SOP_TASK_PROTECTION } from '../data/scenario-rate-data.js';
 
 /**
  * Classify a task as a floor install/remove candidate.
@@ -23,7 +24,7 @@ export function classifyFloorProtectionTask(sopTask, db) {
   // Resolve highest protection level from the zones
   let maxRank = 0;
   let maxLevelName = 'edge_only';
-  const zoneTable = db.spec_protection_zones || [];
+  const zoneTable = SPEC_PROTECTION_ZONES;
   for (const zone of floorZones) {
     const zoneRow = zoneTable.find(
       r => r.zone_id === zone && r.spec_family_id === sopTask.spec_family_id
@@ -44,7 +45,7 @@ export function classifyFloorProtectionTask(sopTask, db) {
 export function resolveRoomFloorProtection(specResults, db, rooms) {
   // Build index: taskId::specFamilyId -> sop_task record (for protection_metadata lookup)
   const sopTaskIndex = {};
-  (db.sop_tasks || []).forEach(t => {
+  SOP_TASK_PROTECTION.forEach(t => {
     sopTaskIndex[t.id + '::' + t.spec_family_id] = t;
   });
 

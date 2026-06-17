@@ -1,3 +1,5 @@
+import { SPEC_PROTECTION_ZONES, SOP_TASK_PROTECTION } from '../data/scenario-rate-data.js';
+
 /**
  * Exterior Protection — Elevation-level dedup.
  *
@@ -54,13 +56,13 @@ function classifyExtProtectionTask(sopTask) {
 export function resolveExteriorProtection(specResults, db, exteriorState) {
   // Index sop_tasks by taskId::specFamilyId
   const sopTaskIndex = {};
-  (db.sop_tasks || []).forEach(t => {
+  SOP_TASK_PROTECTION.forEach(t => {
     sopTaskIndex[t.id + '::' + t.spec_family_id] = t;
   });
 
   // Index spec_protection_zones by spec+zone for level lookups
   const zoneIndex = {};
-  (db.spec_protection_zones || []).forEach(z => {
+  SPEC_PROTECTION_ZONES.forEach(z => {
     zoneIndex[z.spec_family_id + '::' + z.zone_id] = z;
   });
 
