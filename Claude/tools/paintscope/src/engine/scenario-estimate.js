@@ -9,6 +9,7 @@
 import { buildManualMaterialEstimates } from './manual-materials.js';
 import { runScenarioEstimate } from './run-estimate-scenario.js';
 import { buildScenarioInputs, isExteriorRoomIndex } from './context-adapter.js';
+import { SPEC_FAMILY_INFO } from '../data/scenario-rate-data.js';
 import { findBestMatch, findNearMisses } from './scenario-matcher.js';
 import { resolveRoomFloorProtection } from './floor-protection.js';
 import { resolveRoomFixtureProtection } from './fixture-protection.js';
@@ -250,7 +251,7 @@ export function computeScenarioEstimate(state, db, bundle, profile, products, ov
       warnings,
       materialEstimates,
       activatedSpecs: specResults.length,
-      totalSpecs: db?.spec_families?.length || 0,
+      totalSpecs: SPEC_FAMILY_INFO.length,
       pricing,
       // Scenario-specific extras (Dev tab still uses these)
       perInputResults,
@@ -277,10 +278,8 @@ export function computeScenarioEstimate(state, db, bundle, profile, products, ov
 export function normalizeToSpecResults(perInputResults, specData) {
   // Lookup table: specId → { name, domain } from the DB bundle
   const specLookup = {};
-  if (specData?.spec_families) {
-    for (const sf of specData.spec_families) {
-      specLookup[sf.id] = { name: sf.name, domain: sf.domain || 'interior' };
-    }
+  for (const sf of SPEC_FAMILY_INFO) {
+    specLookup[sf.id] = { name: sf.name, domain: sf.domain || 'interior' };
   }
 
   // Group by (roomIndex, specId) — multi-component specs (stairs, closets)

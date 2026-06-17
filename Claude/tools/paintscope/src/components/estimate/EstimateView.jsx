@@ -9,6 +9,7 @@ import { maskLabel } from '../../data/mask-levels';
 import { SUBSTRATE_MAP } from '../../data/substrate-catalog';
 import { useSpecData } from '../../hooks/useSpecData';
 import { COMPLEXITY_OPT_OUT_SPECS } from '../../data/constants';
+import { SPEC_FAMILY_INFO } from '../../data/scenario-rate-data.js';
 import { computeMultiQT } from '../../engine/multi-qt.js';
 import { assembleBundle } from '../../engine/proposal-bundle.js';
 import { computeScenarioEstimate } from '../../engine/scenario-estimate.js';
@@ -308,7 +309,7 @@ export default function EstimateView() {
       <div className="no-data-msg">
         <div style={{fontSize:18,marginBottom:8}}>No Specs Activated</div>
         <div>Add rooms with geometry (wall SF, doors, trim, etc.) to activate specs.</div>
-        <div style={{marginTop:8,fontSize:12}}>The engine checks {specData.spec_families.length} spec families against your project's PaintScope quantity keys.</div>
+        <div style={{marginTop:8,fontSize:12}}>The engine checks {SPEC_FAMILY_INFO.length} spec families against your project's PaintScope quantity keys.</div>
       </div>
     </>
   );
