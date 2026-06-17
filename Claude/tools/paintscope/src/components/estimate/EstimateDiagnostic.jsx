@@ -3,7 +3,7 @@ import { useProject } from '../../hooks/useProject';
 import { useEstimateScenario } from '../../hooks/useEstimateScenario';
 import { SUBSTRATE_MAP, SUBSTRATE_CATALOG } from '../../data/substrate-catalog';
 import { PHASE_ORDER } from '../../data/constants';
-import { SPEC_SUBSTRATE_MAP } from '../../data/spec-maps';
+import { SPEC_SUBSTRATE_MAP } from '../../data/scenario-maps';
 import { deriveRoom } from '../../engine/derive-room';
 
 /** Format decimal hours as Xh Ym */

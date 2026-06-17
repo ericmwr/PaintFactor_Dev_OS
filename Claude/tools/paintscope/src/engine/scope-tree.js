@@ -18,7 +18,7 @@
 // 'phase' or 'element' orientation, suppressing Coating in non-Room views.
 
 import { SUBSTRATE_MAP } from '../data/substrate-catalog.js';
-import { SPEC_SUBSTRATE_MAP } from '../data/spec-maps.js';
+import { SPEC_SUBSTRATE_MAP } from '../data/scenario-maps.js';
 
 const PHASE_ORDER = ['setup', 'protection', 'prep', 'prime', 'apply', 'interstage', 'finish', 'cleanup'];
 const PHASE_ORDER_INDEX = Object.fromEntries(PHASE_ORDER.map((p, i) => [p, i]));

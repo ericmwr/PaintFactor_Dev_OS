@@ -1,5 +1,5 @@
 import { matchActivityRule, deriveStage, deriveLifecycleActivityName, deriveProtectionMaskName } from '../data/activity-rules.js';
-import { SPEC_SUBSTRATE_MAP } from '../data/spec-maps.js';
+import { SPEC_SUBSTRATE_MAP } from '../data/scenario-maps.js';
 import { getElementParent, applyPhaseMergeRule } from './element-parents.js';
 
 const PROTECTION_SPECS = new Set(['SF_ROOM_PROTECTION', 'SF_FIXTURE_PROTECTION']);
