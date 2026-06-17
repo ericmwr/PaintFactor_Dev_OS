@@ -1,7 +1,12 @@
 import { deriveRoom } from './derive-room.js';
 import { SUBSTRATE_MAP, SUBSTRATE_APPLICATION_METHODS } from '../data/substrate-catalog.js';
-import { SPEC_SUBSTRATE_MAP } from '../data/spec-maps.js';
-import { isSpecStateCompatible } from './spec-compatibility.js';
+import { SPEC_SUBSTRATE_MAP } from '../data/scenario-maps.js';
+import { isSpecStateCompatible } from './scenario-compatibility.js';
+import {
+  MATERIAL_SYSTEMS,
+  MATERIAL_COVERAGE_PROFILES,
+  MATERIAL_SYSTEM_PRODUCTS,
+} from '../data/scenario-rate-data.js';
 import { resolveProduct } from './product-resolver.js';
 
 /**
@@ -112,36 +117,45 @@ export function computeMaterialEstimates(state, db, roomLookups, specResults = [
 
   // Build a map: spec_family_id -> list of applicable material systems
   const systemsBySpec = {};
-  (db.material_systems || []).forEach(ms => {
+  MATERIAL_SYSTEMS.forEach(ms => {
     if (!systemsBySpec[ms.spec_family_id]) systemsBySpec[ms.spec_family_id] = [];
     systemsBySpec[ms.spec_family_id].push(ms);
   });
 
   // Build a map: spec_family_id::system_id -> material_system_products
   const productsBySystem = {};
-  (db.material_system_products || []).forEach(msp => {
+  MATERIAL_SYSTEM_PRODUCTS.forEach(msp => {
     const key = msp.spec_family_id + '::' + msp.system_id;
     if (!productsBySystem[key]) productsBySystem[key] = [];
     productsBySystem[key].push(msp);
   });
 
+  // specId → flattened scenario tasks (carries psKey) for PS-key derivation.
+  const tasksBySpec = {};
+  (specResults || []).forEach(sr => {
+    if (!tasksBySpec[sr.specId]) tasksBySpec[sr.specId] = [];
+    if (sr.tasks) tasksBySpec[sr.specId].push(...sr.tasks);
+  });
+
   // For each spec family with coverage profiles, resolve materials
-  const specFamilyIds = [...new Set(db.material_coverage_profiles.map(cp => cp.spec_family_id))];
+  const specFamilyIds = [...new Set(MATERIAL_COVERAGE_PROFILES.map(cp => cp.spec_family_id))];
 
   specFamilyIds.forEach(specId => {
     // Skip specs that weren't activated by the hours engine
     if (activatedSpecs.size > 0 && !activatedSpecs.has(specId)) return;
 
-    const specProfiles = db.material_coverage_profiles.filter(cp => cp.spec_family_id === specId);
+    const specProfiles = MATERIAL_COVERAGE_PROFILES.filter(cp => cp.spec_family_id === specId);
     const specSystems = systemsBySpec[specId] || [];
 
-    // Determine which PaintScope keys this spec uses (from spec_required_inputs)
-    const specInputs = (db.spec_required_inputs || []).filter(i => i.spec_family_id === specId);
-    const psKeys = specInputs.map(i => i.paintscope_key);
-
-    // For material calculation, only sum SURFACE keys (the actual paintable area).
-    // Exclude edge, protection, meta, and opening keys — those drive task hours, not material coverage.
-    const surfaceKeys = psKeys.filter(k => k && k.startsWith('PS_SURFACE_'));
+    // Determine which PaintScope keys this spec uses — derived from the spec's
+    // fired scenario tasks (which carry psKey), replacing the dropped
+    // db.spec_required_inputs lookup. Mirrors the exterior path. Only SURFACE
+    // keys drive material coverage (edge/protection/meta/opening keys drive hours).
+    const surfaceKeys = [...new Set(
+      (tasksBySpec[specId] || [])
+        .map(t => t.psKey)
+        .filter(k => k && k.startsWith('PS_SURFACE_'))
+    )];
 
     // Build spec-scoped quantity total: only rooms whose substrate state is compatible
     // with this spec contribute. Fixes primer over-calculation across all rooms.
