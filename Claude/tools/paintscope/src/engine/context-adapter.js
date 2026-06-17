@@ -6,7 +6,7 @@
 // both engines on the same project data side-by-side.
 //
 // Usage:
-//   const adapter = buildScenarioInputs(state, db);
+//   const adapter = buildScenarioInputs(state);
 //   // adapter.roomInputs: Array<{ roomIndex, roomLabel, specId, ctx, roomQty, roomItems }>
 //   // adapter.lookups:    the underlying buildRoomQuantityLookups output (useful for debugging)
 //
@@ -674,7 +674,7 @@ export function isExteriorRoomIndex(roomIndex) {
  * roomIndex uses negative offsets (-100 - ei) so exterior never collides with
  * interior room indices in downstream consumers. See namespacing comment above.
  */
-export function buildElevationScenarioInputs(state, db) {
+export function buildElevationScenarioInputs(state) {
   const inputs = [];
   const exterior = state.exterior;
   if (!exterior || !Array.isArray(exterior.elevations) || exterior.elevations.length === 0) {
@@ -751,7 +751,7 @@ export function buildElevationScenarioInputs(state, db) {
  * See exterior roomIndex namespacing comment above buildElevationScenarioInputs
  * for the negative-index convention.
  */
-export function buildStandaloneScenarioInputs(state, db) {
+export function buildStandaloneScenarioInputs(state) {
   const inputs = [];
   const exterior = state.exterior;
   if (!exterior) return inputs;
@@ -981,8 +981,6 @@ function buildExteriorCtx(specId, elevation, extDefaults, siteConditions, standa
  *
  * Inputs:
  *   state — full PaintScope project state { project, rooms }
- *   db    — scenario data bundle; passed through to resolvePassGroups and the
- *           exterior input builders (no longer used for active-spec selection)
  *
  * Returns:
  *   {
@@ -998,7 +996,7 @@ function buildExteriorCtx(specId, elevation, extDefaults, siteConditions, standa
  *     warnings: string[],
  *   }
  */
-export function buildScenarioInputs(state, db) {
+export function buildScenarioInputs(state) {
   const warnings = [];
   const roomInputs = [];
   const project = state.project || {};
@@ -1028,9 +1026,8 @@ export function buildScenarioInputs(state, db) {
     // Pass groups: coalesce N substrates into one coordinated painting pass.
     // Phases 2-3: combined-prime and combined-finish.
     // Both combined groups are toggle-driven (project flag + room override);
-    // resolver reads those flags off room/project directly. specData is
-    // passed through as db for any future per-family lookups.
-    const passGroups = resolvePassGroups(room, project, db);
+    // resolver reads those flags off room/project directly.
+    const passGroups = resolvePassGroups(room, project);
 
     // Build the set of (substrate, spec_role) pairs that a pass group
     // covers. Only specs matching a pair are skipped — finish specs for a
@@ -1339,8 +1336,8 @@ export function buildScenarioInputs(state, db) {
   }
 
   // ── Exterior: append elevation + standalone scenario inputs ──
-  const extElevationInputs = buildElevationScenarioInputs(state, db);
-  const extStandaloneInputs = buildStandaloneScenarioInputs(state, db);
+  const extElevationInputs = buildElevationScenarioInputs(state);
+  const extStandaloneInputs = buildStandaloneScenarioInputs(state);
   for (const inp of extElevationInputs) roomInputs.push(inp);
   for (const inp of extStandaloneInputs) roomInputs.push(inp);
 

@@ -250,7 +250,7 @@ describe('buildScenarioInputs emits grouped input for combined prime', () => {
         },
       ],
     };
-    const result = buildScenarioInputs(state, null);
+    const result = buildScenarioInputs(state);
     const groupInputs = result.roomInputs.filter(i => i.ctx.pass_group_id === 'walls_ceiling_prime_combined');
     expect(groupInputs).toHaveLength(1);
     expect(groupInputs[0].ctx.pass_group_substrates).toEqual(['walls', 'ceiling']);
@@ -282,7 +282,7 @@ describe('buildScenarioInputs emits grouped input for combined prime', () => {
         },
       ],
     };
-    const result = buildScenarioInputs(state, null);
+    const result = buildScenarioInputs(state);
 
     // PRIME specs for grouped substrates are suppressed — the pass group
     // covers them.
@@ -324,7 +324,7 @@ describe('buildScenarioInputs with pass-group fields', () => {
         },
       ],
     };
-    const result = buildScenarioInputs(state, null);
+    const result = buildScenarioInputs(state);
     expect(result.roomInputs.length).toBeGreaterThan(0);
     for (const input of result.roomInputs) {
       expect(input.ctx).toHaveProperty('pass_group_id', null);

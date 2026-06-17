@@ -33,7 +33,6 @@ import canonicalBundle from '../../data/scenario-bundle.gen.js';
 import { loadOverlayBundle } from '../../engine/overlay-loader.js';
 import { runProbe } from '../../engine/probe-runner.js';
 import { NC_INTERIOR_BASELINE_PROBES } from '../../probes/nc-interior-baseline.js';
-import { useSpecData } from '../../hooks/useSpecData.jsx';
 
 const KIND_TO_TAB = {
   module: 'modules',
@@ -190,10 +189,9 @@ export default function AuthoringView() {
   }, [ledgerCount]);
 
   // Probe runner — runs all NC interior baseline probes against the
-  // live overlay-merged bundle + specData, writes results to the ledger
+  // live overlay-merged bundle, writes results to the ledger
   // with source: 'probe'. Probes are imperative (no React state changes),
   // so this just batches results and updates the count once at the end.
-  const { specData } = useSpecData();
   const [probeStatus, setProbeStatus] = useState(null);
   const handleRunProbes = useCallback(async () => {
     setProbeStatus({ running: true, completed: 0, total: NC_INTERIOR_BASELINE_PROBES.length });
@@ -205,7 +203,7 @@ export default function AuthoringView() {
       const allWarnings = [];
       for (let i = 0; i < NC_INTERIOR_BASELINE_PROBES.length; i++) {
         const probe = NC_INTERIOR_BASELINE_PROBES[i];
-        const result = runProbe(probe, bundle, specData);
+        const result = runProbe(probe, bundle);
         if (result.fired_tasks.length > 0) {
           await recordFiredTasks(result.fired_tasks, { source: 'probe', probe_id: result.probe_id, project_label: probe.project?.name });
           totalFired += result.fired_tasks.length;
@@ -222,7 +220,7 @@ export default function AuthoringView() {
       console.error('[probes] error', e);
       setProbeStatus({ running: false, error: e.message });
     }
-  }, [specData]);
+  }, []);
 
   const showBreadcrumb = navStack.length > 1;
 

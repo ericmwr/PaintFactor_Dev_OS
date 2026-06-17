@@ -16,7 +16,6 @@
 
 import { useMemo, useRef, useState, useEffect } from 'react';
 import { useProject } from './useProject';
-import { useSpecData } from './useSpecData';
 import { useCompanyProfile } from './useCompanyProfile';
 import { useProducts } from './useProducts';
 import { loadOverlayBundle } from '../engine/overlay-loader.js';
@@ -27,7 +26,6 @@ import { recordFiredTasks } from '../data/ledger-db.js';
 
 export function useEstimateScenario() {
   const { state } = useProject();
-  const { specData } = useSpecData();
   const { profile } = useCompanyProfile();
   const { products } = useProducts();
   const lastLedgerHashRef = useRef(null);
@@ -53,8 +51,8 @@ export function useEstimateScenario() {
   }, []);
 
   const result = useMemo(
-    () => computeScenarioEstimate(state, specData, bundle, profile, products, overlayStats),
-    [state, specData, profile, bundle, overlayStats, products]
+    () => computeScenarioEstimate(state, bundle, profile, products, overlayStats),
+    [state, profile, bundle, overlayStats, products]
   );
 
   // Side-effect: record fired tasks into the IDB ledger for the

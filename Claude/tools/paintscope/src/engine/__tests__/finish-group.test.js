@@ -334,11 +334,7 @@ describe('adapter integration — finish_group threading', () => {
       exterior: { defaults: {} },
       ui: {},
     };
-    // Use a minimal-but-sufficient db stub. If the adapter requires specific
-    // fields beyond what this provides, read the adapter's db usage and adapt.
-    const db = { specFamilies: [] };
-
-    const out = buildScenarioInputs(state, db);
+    const out = buildScenarioInputs(state);
     const memberInputs = out.roomInputs.filter(i =>
       i.ctx && i.ctx.pass_group_id === 'finish_group_assignment' && i.ctx.paintable_item
     );
@@ -367,8 +363,7 @@ describe('adapter integration — finish_group threading', () => {
       exterior: { defaults: {} },
       ui: {},
     };
-    const db = { specFamilies: [] };
-    const out = buildScenarioInputs(state, db);
+    const out = buildScenarioInputs(state);
     const groupInputs = out.roomInputs.filter(i =>
       i.ctx && i.ctx.pass_group_id === 'finish_group_assignment' && !i.ctx.paintable_item
     );

@@ -7,7 +7,7 @@ import { SPEC_PROTECTION_ZONES, SOP_TASK_PROTECTION } from '../data/scenario-rat
  * Mixed-zone tasks (floor + wall/fixture) are NOT classified - they stay with their specs.
  * Maintain tasks are NOT classified - they stay with their specs.
  */
-export function classifyFloorProtectionTask(sopTask, db) {
+export function classifyFloorProtectionTask(sopTask) {
   const pm = sopTask.protection_metadata;
   if (!pm || !pm.action || !pm.zones) return null;
   if (pm.action === 'maintain') return null;
@@ -42,7 +42,7 @@ export function classifyFloorProtectionTask(sopTask, db) {
  * Removes floor install/remove tasks from individual specs and emits
  * one install + one remove per room under a Room Protection category.
  */
-export function resolveRoomFloorProtection(specResults, db, rooms) {
+export function resolveRoomFloorProtection(specResults, rooms) {
   // Build index: taskId::specFamilyId -> sop_task record (for protection_metadata lookup)
   const sopTaskIndex = {};
   SOP_TASK_PROTECTION.forEach(t => {
@@ -58,7 +58,7 @@ export function resolveRoomFloorProtection(specResults, db, rooms) {
       const sopTask = sopTaskIndex[task.taskId + '::' + sr.specId];
       if (!sopTask) return;
 
-      const cls = classifyFloorProtectionTask(sopTask, db);
+      const cls = classifyFloorProtectionTask(sopTask);
       if (!cls) return;
 
       const ri = task.roomIndex;

@@ -16,10 +16,9 @@ import { findBestMatch } from './scenario-matcher.js';
  *
  * @param {object} probe - { probe_id, description?, project, rooms[] }
  * @param {object} bundle - the scenario bundle (canonical + overlays)
- * @param {object} specData - SQLite spec families db (DB_BUNDLE shape)
  * @returns {{ probe_id, total_hours, fired_tasks: Array, warnings: string[], unmatched_inputs: number }}
  */
-export function runProbe(probe, bundle, specData) {
+export function runProbe(probe, bundle) {
   const state = {
     project: probe.project || {},
     rooms: probe.rooms || [],
@@ -32,7 +31,7 @@ export function runProbe(probe, bundle, specData) {
 
   let adapter;
   try {
-    adapter = buildScenarioInputs(state, specData);
+    adapter = buildScenarioInputs(state);
   } catch (err) {
     return {
       probe_id: probe.probe_id,

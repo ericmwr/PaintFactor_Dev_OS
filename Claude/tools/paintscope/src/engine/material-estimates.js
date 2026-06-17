@@ -61,7 +61,7 @@ const SPRAY_LOSS_BY_METHOD = {
 /**
  * Compute material estimates from coverage profiles.
  */
-export function computeMaterialEstimates(state, db, roomLookups, specResults = []) {
+export function computeMaterialEstimates(state, roomLookups, specResults = []) {
   const estimates = [];
   const { project, rooms } = state;
   const SPRAY_LOSS_FACTOR = 0.05; // 5% material loss for spray application
@@ -335,13 +335,12 @@ export function computeMaterialEstimates(state, db, roomLookups, specResults = [
  * Processes elevation lookups + standalone lookups from the exterior engine.
  *
  * @param {Object} state — full app state
- * @param {Object} db — DB_BUNDLE
  * @param {Map} elevLookups — from buildElevationQuantityLookups
  * @param {Map} standaloneLookups — from buildStandaloneQuantityLookups
  * @param {Array} extSpecResults — exterior spec results from runEstimate (for activation check)
  * @returns {Array} material estimate entries (same shape as interior estimates)
  */
-export function computeExteriorMaterialEstimates(state, db, elevLookups, standaloneLookups, extSpecResults) {
+export function computeExteriorMaterialEstimates(state, elevLookups, standaloneLookups, extSpecResults) {
   const estimates = [];
   const exterior = state.exterior;
   if (!exterior) return estimates;

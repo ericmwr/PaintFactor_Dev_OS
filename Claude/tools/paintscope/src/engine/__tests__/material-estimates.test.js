@@ -2,7 +2,6 @@ import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { computeScenarioEstimate } from '../scenario-estimate.js';
-import { DB_BUNDLE } from '../../data/db-bundle.js';
 import canonicalBundle from '../../data/scenario-bundle.gen.js';
 
 const interior = JSON.parse(
@@ -43,7 +42,7 @@ const EXPECTED = [
 
 describe('interior material estimates (P3 golden)', () => {
   it('produces the same per-spec gallons after dropping spec_required_inputs', () => {
-    const r = computeScenarioEstimate(interior, DB_BUNDLE, canonicalBundle, null, []);
+    const r = computeScenarioEstimate(interior, canonicalBundle, null, []);
     const got = (r.materialEstimates || [])
       .map(m => ({ spec: m.specFamilyId, role: m.productRole, gal: m.gallons, psKey: m.psKey }))
       .sort((a, b) => (a.spec + a.role).localeCompare(b.spec + b.role));

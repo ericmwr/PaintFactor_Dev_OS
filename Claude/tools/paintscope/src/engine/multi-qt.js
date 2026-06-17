@@ -71,12 +71,11 @@ export function specToSubstrate(specFamilyId) {
  *
  * @param {Function} runEstimateFn - The runEstimate function
  * @param {object} state - App state
- * @param {object} db - Database bundle
  * @param {object} profile - Company profile
  * @param {object} baseEstimate - The estimate at the project's default QT
  * @returns {{ lineItems: Array, qtOptions: object }}
  */
-export function computeMultiQT(runEstimateFn, state, db, profile, baseEstimate) {
+export function computeMultiQT(runEstimateFn, state, profile, baseEstimate) {
   if (!baseEstimate?.pricing?.lineItems) return { lineItems: [], qtOptions: {} };
 
   const qtOptions = {};
@@ -94,7 +93,7 @@ export function computeMultiQT(runEstimateFn, state, db, profile, baseEstimate) 
 
     for (const qt of availableTiers) {
       const qtState = cloneStateWithQT(state, baseLine.roomIndex, qt);
-      const qtEstimate = runEstimateFn(qtState, db, undefined, profile);
+      const qtEstimate = runEstimateFn(qtState, undefined, profile);
 
       const qtLine = qtEstimate?.pricing?.lineItems?.find(
         l => l.specFamilyId === baseLine.specFamilyId && l.roomIndex === baseLine.roomIndex

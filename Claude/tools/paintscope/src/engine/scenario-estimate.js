@@ -18,7 +18,7 @@ import { resolveExteriorProtection } from './exterior-protection.js';
 import { buildElevationQuantityLookups, buildStandaloneQuantityLookups } from './quantity-lookups-exterior.js';
 import { computePricing } from './pricing.js';
 
-export function computeScenarioEstimate(state, db, bundle, profile, products, overlayStats = {}) {
+export function computeScenarioEstimate(state, bundle, profile, products, overlayStats = {}) {
   if (!bundle || !bundle.scenarios || !bundle.modules) {
     console.warn('[PaintScope] Scenario bundle missing or malformed:', bundle);
     return null;
@@ -31,7 +31,7 @@ export function computeScenarioEstimate(state, db, bundle, profile, products, ov
   try {
     let adapter;
     try {
-      adapter = buildScenarioInputs(state, db);
+      adapter = buildScenarioInputs(state);
     } catch (adapterErr) {
       console.error('[PaintScope] Adapter error:', adapterErr);
       return { error: `Adapter: ${adapterErr.message}`, specResults: [], totalHours: 0, totalCrewDays: 0, phaseHours: {}, perInputResults: [], gaps: [], warnings: [], bundleStats, roomProtection: {}, fixtureProtection: {}, closetHoursByRoom: {}, materialEstimates: [], pricing: null, activatedSpecs: 0, totalSpecs: 0 };
@@ -131,7 +131,7 @@ export function computeScenarioEstimate(state, db, bundle, profile, products, ov
     // ── Step 1: Normalize perInputResults → specResults ──
     // Groups by (roomIndex, specId), merges tasks, produces the same shape
     // that EstimateView and all downstream components consume.
-    const specResults = normalizeToSpecResults(perInputResults, db);
+    const specResults = normalizeToSpecResults(perInputResults);
 
     // ── Step 2: Protection resolvers ──
     // Derive roomSpecMethods from perInputResults (needed by fixture protection).
@@ -141,7 +141,7 @@ export function computeScenarioEstimate(state, db, bundle, profile, products, ov
       specId: pr.specId,
       method: pr.ctx?.application_method || 'brush_roll',
     }));
-    const roomProtection = resolveRoomFloorProtection(specResults, db, rooms);
+    const roomProtection = resolveRoomFloorProtection(specResults, rooms);
     const fixtureProtection = resolveRoomFixtureProtection(rooms, roomSpecMethods);
 
     // Exterior protection dedup — per-elevation + per-standalone. Mutates
@@ -150,7 +150,7 @@ export function computeScenarioEstimate(state, db, bundle, profile, products, ov
     // run-estimate.js:718-722.
     let exteriorProtection = { elevationProtection: {}, standaloneProtection: {} };
     if (hasExterior) {
-      exteriorProtection = resolveExteriorProtection(specResults, db, state.exterior);
+      exteriorProtection = resolveExteriorProtection(specResults, state.exterior);
     }
 
     // ── Step 3: Grand total + crew days ──
@@ -201,7 +201,7 @@ export function computeScenarioEstimate(state, db, bundle, profile, products, ov
     const intSpecResults = specResults.filter(sr => sr.domain !== 'exterior');
     let materialEstimates = [];
     try {
-      materialEstimates = computeMaterialEstimates(state, db, roomLookups, intSpecResults);
+      materialEstimates = computeMaterialEstimates(state, roomLookups, intSpecResults);
     } catch (matErr) {
       console.error('[PaintScope] Material estimate error:', matErr);
       warnings.push(`Material estimates: ${matErr.message}`);
@@ -211,7 +211,7 @@ export function computeScenarioEstimate(state, db, bundle, profile, products, ov
       try {
         const extSpecResults = specResults.filter(sr => sr.domain === 'exterior');
         const extMat = computeExteriorMaterialEstimates(
-          state, db, buildElevationQuantityLookups(state), buildStandaloneQuantityLookups(state), extSpecResults
+          state, buildElevationQuantityLookups(state), buildStandaloneQuantityLookups(state), extSpecResults
         );
         materialEstimates = [...materialEstimates, ...extMat];
       } catch (extMatErr) {
@@ -275,7 +275,7 @@ export function computeScenarioEstimate(state, db, bundle, profile, products, ov
  * Each task retains its roomIndex, roomLabel, phase, hours, modStack etc.
  * so EstimateView can group by room → spec → task.
  */
-export function normalizeToSpecResults(perInputResults, specData) {
+export function normalizeToSpecResults(perInputResults) {
   // Lookup table: specId → { name, domain } from the DB bundle
   const specLookup = {};
   for (const sf of SPEC_FAMILY_INFO) {

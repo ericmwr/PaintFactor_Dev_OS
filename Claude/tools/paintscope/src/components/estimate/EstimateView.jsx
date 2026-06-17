@@ -7,7 +7,6 @@ import { PHASE_ORDER, PHASE_COLORS, specDisplayName, QUANTITY_KEY_LABELS } from 
 import { FLOOR_TYPES, FLOOR_PROTECTION_LABEL } from '../../data/fixture-catalog';
 import { maskLabel } from '../../data/mask-levels';
 import { SUBSTRATE_MAP } from '../../data/substrate-catalog';
-import { useSpecData } from '../../hooks/useSpecData';
 import { COMPLEXITY_OPT_OUT_SPECS } from '../../data/constants';
 import { SPEC_FAMILY_INFO } from '../../data/scenario-rate-data.js';
 import { computeMultiQT } from '../../engine/multi-qt.js';
@@ -107,7 +106,6 @@ const CAT_LABELS = {
 export default function EstimateView() {
   const { state, dispatch, projectId } = useProject();
   const estimate = useEstimateScenario();
-  const { specData } = useSpecData();
 
   const { profile } = useCompanyProfile();
   // Persist expansion state across full HMR reloads (Phase B publish triggers
@@ -220,9 +218,9 @@ export default function EstimateView() {
     if (!estimate || !profile) return;
     setGeneratingProposal(true);
     try {
-      const scenarioRunner = (qtState, db, _ignored, prof) =>
-        computeScenarioEstimate(qtState, db, canonicalBundle, prof, []);
-      const multiQT = computeMultiQT(scenarioRunner, state, specData, profile, estimate);
+      const scenarioRunner = (qtState, _ignored, prof) =>
+        computeScenarioEstimate(qtState, canonicalBundle, prof, []);
+      const multiQT = computeMultiQT(scenarioRunner, state, profile, estimate);
       const bundle = assembleBundle(state, profile, estimate.pricing, multiQT);
 
       const blob = new Blob([JSON.stringify(bundle, null, 2)], { type: 'application/json' });

@@ -26,7 +26,7 @@ import { SUBSTRATE_APPLICATION_METHODS } from '../data/substrate-catalog.js';
  *     metadata: Record<string, unknown>
  *   }
  */
-export function resolvePassGroups(room, project, specData) {
+export function resolvePassGroups(room, project) {
   if (!room || !project) return [];
   const groups = [];
 

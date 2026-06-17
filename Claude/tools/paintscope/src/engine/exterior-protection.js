@@ -49,11 +49,10 @@ function classifyExtProtectionTask(sopTask) {
  * Resolve exterior protection — dedup per elevation and per standalone item.
  *
  * @param {Array} specResults — from runEstimate (exterior domain only)
- * @param {Object} db — DB_BUNDLE
  * @param {Object} exteriorState — state.exterior
  * @returns {Object} { elevationProtection: { [elevIndex]: {...} }, standaloneProtection: { [itemType]: {...} } }
  */
-export function resolveExteriorProtection(specResults, db, exteriorState) {
+export function resolveExteriorProtection(specResults, exteriorState) {
   // Index sop_tasks by taskId::specFamilyId
   const sopTaskIndex = {};
   SOP_TASK_PROTECTION.forEach(t => {

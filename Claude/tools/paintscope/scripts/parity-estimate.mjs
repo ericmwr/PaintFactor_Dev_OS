@@ -4,7 +4,6 @@
 // Usage: npx vite-node scripts/parity-estimate.mjs -- <state.json> [out.json]
 import { readFileSync, writeFileSync } from 'node:fs';
 import { computeScenarioEstimate } from '../src/engine/scenario-estimate.js';
-import { DB_BUNDLE } from '../src/data/db-bundle.js';
 import canonicalBundle from '../src/data/scenario-bundle.gen.js';
 
 const statePath = process.argv[2];
@@ -12,7 +11,7 @@ const outPath = process.argv[3];
 if (!statePath) { console.error('Usage: node scripts/parity-estimate.mjs <state.json> [out.json]'); process.exit(1); }
 
 const state = JSON.parse(readFileSync(statePath, 'utf8'));
-const r = computeScenarioEstimate(state, DB_BUNDLE, canonicalBundle, null, []);
+const r = computeScenarioEstimate(state, canonicalBundle, null, []);
 
 const perSpec = (r.specResults || [])
   .map(sr => ({ specId: sr.specId, domain: sr.domain, totalHours: sr.totalHours }))
