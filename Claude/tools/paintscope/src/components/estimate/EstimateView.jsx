@@ -14,7 +14,6 @@ import { assembleBundle } from '../../engine/proposal-bundle.js';
 import { computeScenarioEstimate } from '../../engine/scenario-estimate.js';
 import canonicalBundle from '../../data/scenario-bundle.gen.js';
 import { useCompanyProfile } from '../../hooks/useCompanyProfile.js';
-import ScenarioEnginePanel from './ScenarioEnginePanel.jsx';
 import EstimateDiagnostic from './EstimateDiagnostic.jsx';
 import RateCell from './RateCell.jsx';
 import RateOverridePruneBanner from './RateOverridePruneBanner.jsx';
@@ -472,9 +471,6 @@ export default function EstimateView() {
           <PhaseBar phaseHours={projectPhaseHours} total={projectTotalHours} height={24} />
         </div>
       </div>
-
-      {/* Scenario engine comparison panel (Beta — toggle to enable) */}
-      <ScenarioEnginePanel legacyEstimate={estimate} />
 
       {/* Modifier chips */}
       <div className="modifier-summary">

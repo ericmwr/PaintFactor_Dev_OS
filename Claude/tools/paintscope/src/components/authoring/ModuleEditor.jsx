@@ -2,9 +2,9 @@
 //
 // Saves go to IndexedDB (module_drafts store). The overlay-loader
 // merges active drafts over the canonical scenario bundle at estimate
-// time, so an edit here is immediately visible in ScenarioEnginePanel
-// on the next estimate run (current session requires a reload to
-// re-merge — acceptable for admin work).
+// time, so an edit here is immediately visible in the estimate on the
+// next estimate run (current session requires a reload to re-merge —
+// acceptable for admin work).
 //
 // Publish flow (Phase E) will flip status to 'published' and POST the
 // JSON to the dev-only publish endpoint.
