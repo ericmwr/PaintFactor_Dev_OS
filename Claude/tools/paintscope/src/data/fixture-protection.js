@@ -22,8 +22,6 @@ export const SPEC_PAINTING_CONTEXT = {
   'SF_BUILTIN_NC':                'walls',
   'SF_CABINET_NC_PAINT':          'walls',
   'SF_ARCH_ELEMENT_NC':           'walls',
-  'SF_TRIM_NC_PRIME':             'trim',
-  'SF_TRIM_NC_PAINT':             'trim',
   'SF_DOOR_SLAB_INT_NC':          'trim',
   'SF_DOOR_FRAME_NC_FINISH':      'trim',
   'SF_WINDOW_INT_NC':             'trim',

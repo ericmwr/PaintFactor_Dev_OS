@@ -3,8 +3,22 @@ import NumField from '../shared/NumField';
 import SubstrateStateSelect from './SubstrateStateSelect';
 import { ENUMS } from '../../data/enums';
 import { SUBSTRATE_MAP, SUBSTRATE_APPLICATION_METHODS } from '../../data/substrate-catalog';
+import { SUBSTRATE_SYSTEMS, SYSTEM_METADATA, inferDefaultSystem, coatingTypeFromSystem } from '../../data/system-catalog.js';
+import { useModifierEnum } from '../../hooks/useModifierEnum';
+import { deriveHeightBand } from '../../engine/derive-room.js';
+
+const HEIGHT_BAND_OPTIONS = [
+  { value: 'STD',      label: 'Ground Level (STD)' },
+  { value: 'STEP',     label: 'Step Ladder (9–13 ft)' },
+  { value: 'EXT',      label: 'Extension Ladder (13–18 ft)' },
+  { value: 'SCAFFOLD', label: 'Scaffold (18–25 ft)' },
+  { value: 'LIFT',     label: 'Lift (25+ ft)' },
+];
+
+const HEIGHT_BAND_LABELS = HEIGHT_BAND_OPTIONS.reduce((acc, o) => { acc[o.value] = o.label; return acc; }, {});
 
 export default function SubstrateDetailPanel({ room, derived, dispatch, substrateId, project }) {
+  const textureOptions = useModifierEnum('FAC_TEXTURE');
   const rid = room.id;
   const config = room.substrates[substrateId];
   if (!config) return null;
@@ -22,7 +36,10 @@ export default function SubstrateDetailPanel({ room, derived, dispatch, substrat
   ]);
   const isWood = WOOD_SUBSTRATES.has(substrateId);
   const isBareWood = isWood && config.substrate_state === 'bare_wood';
-  const coatingType = config.coating_type || 'paint';
+  // coating_type was retired as a UI field — System is the source of truth.
+  // Derive coating_type from the effective system (explicit or auto-inferred).
+  const _effectiveSystem = config.system || inferDefaultSystem(substrateId, config.substrate_state);
+  const coatingType = coatingTypeFromSystem(_effectiveSystem) || config.coating_type || 'paint';
   const includesStain = coatingType === 'stain_clear' || coatingType === 'stain_only';
   const includesClear = coatingType === 'stain_clear' || coatingType === 'clear_only';
 
@@ -70,6 +87,45 @@ export default function SubstrateDetailPanel({ room, derived, dispatch, substrat
             <Select options={ENUMS.qualityTiers} value={config.quality_tier || null} onChange={v => setSub('quality_tier', v || null)} placeholder={`Project Default (${project?.default_quality_tier || 'QT3'})`} />
           </div>
 
+          {/* System (workflow intent) — gates which spec phases activate */}
+          {(() => {
+            const allowed = SUBSTRATE_SYSTEMS[substrateId] || [];
+            if (allowed.length === 0) return null;
+            const inferred = inferDefaultSystem(substrateId, config.substrate_state);
+            const effective = config.system || inferred;
+            const isAutoInferred = !config.system || config.system === inferred;
+            const options = allowed.map(v => ({ value: v, label: SYSTEM_METADATA[v]?.label || v }));
+            return (
+              <div>
+                <div className="field-label" title="Workflow intent — prime+finish, finish-only, prime-only, stain, etc.">
+                  System {isAutoInferred && effective && <span style={{ fontSize: 9, color: 'var(--text-muted)', fontWeight: 400, marginLeft: 4 }}>(auto-inferred)</span>}
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <div style={{ flex: 1 }}>
+                    <Select
+                      options={options}
+                      value={effective || null}
+                      onChange={v => setSub('system', v || null)}
+                      placeholder={inferred ? `Default (${SYSTEM_METADATA[inferred]?.label || inferred})` : 'Select system…'}
+                    />
+                  </div>
+                  {config.system && (
+                    <button
+                      onClick={() => setSub('system', null)}
+                      title="Reset to auto-inferred default"
+                      style={{ fontSize: 10, padding: '2px 6px', background: 'transparent', color: 'var(--text-muted)', border: '1px solid var(--border)', borderRadius: 3, cursor: 'pointer' }}
+                    >↺</button>
+                  )}
+                </div>
+                {effective && SYSTEM_METADATA[effective]?.description && (
+                  <div style={{ fontSize: 9, color: 'var(--text-muted)', marginTop: 2 }}>
+                    {SYSTEM_METADATA[effective].description}
+                  </div>
+                )}
+              </div>
+            );
+          })()}
+
           {/* Application Method per-substrate */}
           {config.application_method !== undefined && (() => {
             const sam = SUBSTRATE_APPLICATION_METHODS[substrateId];
@@ -87,7 +143,7 @@ export default function SubstrateDetailPanel({ room, derived, dispatch, substrat
           {config.texture !== undefined && (
             <div>
               <div className="field-label">Texture (null = project default)</div>
-              <Select options={ENUMS.textures} value={config.texture} onChange={v => setSub('texture', v || null)} placeholder="Project Default" />
+              <Select options={textureOptions} value={config.texture} onChange={v => setSub('texture', v || null)} placeholder="Project Default" />
             </div>
           )}
 
@@ -98,27 +154,117 @@ export default function SubstrateDetailPanel({ room, derived, dispatch, substrat
               <input value={config.style || ''} onChange={e => setSub('style', e.target.value || null)} style={{ width: '100%' }} placeholder="e.g. Colonial, Craftsman" />
             </div>
           )}
+
+          {/* V1a: Finish Group — non-wall/ceiling only. A/B reserved for
+              walls/ceiling (driven by the combined-finish toggle). */}
+          {!['walls', 'ceiling'].includes(substrateId) && config.finish_group !== undefined && (
+            <div>
+              <div className="field-label" title="Groups items that share a finish pass. Items in the same group get one coordinated setup/cleanup.">
+                Finish Group
+              </div>
+              <Select
+                options={[
+                  { value: 'C', label: 'C' },
+                  { value: 'D', label: 'D' },
+                  { value: 'E', label: 'E' },
+                  { value: 'F', label: 'F' },
+                ]}
+                value={config.finish_group}
+                onChange={v => setSub('finish_group', v)}
+              />
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Stain / Clear Coat controls (bare wood on wood substrates only) */}
-      {isBareWood && (
+      {/* Height Band — per-substrate work-height override for trim that
+          doesn't follow the room band (crown at ceiling, picture_rail near
+          ceiling, panel_mold / shadow_box with optional explicit override). */}
+      {['crown', 'picture_rail', 'panel_mold', 'shadow_box'].includes(substrateId) && (() => {
+        const ceilFt = parseFloat(room.peak_height_ft) || parseFloat(room.height_ft) || 0;
+        let derivedBand = null;
+        let derivedSourceFt = 0;
+        if (substrateId === 'crown' && ceilFt > 0) {
+          derivedBand = deriveHeightBand(ceilFt);
+          derivedSourceFt = ceilFt;
+        } else if (substrateId === 'picture_rail') {
+          const explicit = parseFloat(config.mounted_height_ft);
+          if (explicit > 0) {
+            derivedBand = deriveHeightBand(explicit);
+            derivedSourceFt = explicit;
+          } else if (ceilFt > 0) {
+            derivedSourceFt = Math.max(0, ceilFt - 1);
+            derivedBand = deriveHeightBand(derivedSourceFt);
+          }
+        }
+        return (
+          <div className="panel-section">
+            <div className="section-title">Height Band</div>
+            <div className="form-grid" style={{ gridTemplateColumns: '1fr 1fr' }}>
+              {substrateId === 'crown' && (
+                <div style={{ gridColumn: '1 / -1' }}>
+                  <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>
+                    {derivedBand
+                      ? <>Auto: <strong>{HEIGHT_BAND_LABELS[derivedBand]}</strong> (from {derivedSourceFt.toFixed(1)} ft ceiling/peak)</>
+                      : <>Set ceiling height on the Structure tab to derive the band.</>}
+                  </div>
+                </div>
+              )}
+
+              {substrateId === 'picture_rail' && (
+                <>
+                  <div>
+                    <div className="field-label" title="Override the derived mounting height (ceiling − 1 ft) when the picture rail sits at a non-standard height.">
+                      Mounted Height (ft)
+                    </div>
+                    <input
+                      type="number" min="0" step="0.5"
+                      value={config.mounted_height_ft || ''}
+                      onChange={e => setSub('mounted_height_ft', e.target.value ? parseFloat(e.target.value) : null)}
+                      placeholder={ceilFt > 0 ? `Auto (${Math.max(0, ceilFt - 1).toFixed(1)})` : 'Auto'}
+                      style={{ width: '100%' }}
+                    />
+                  </div>
+                  <div>
+                    <div className="field-label">Derived Band</div>
+                    <div style={{ fontSize: 11, color: 'var(--text-muted)', padding: '6px 0' }}>
+                      {derivedBand ? HEIGHT_BAND_LABELS[derivedBand] : '—'}
+                    </div>
+                  </div>
+                </>
+              )}
+
+              {(substrateId === 'panel_mold' || substrateId === 'shadow_box') && (
+                <div style={{ gridColumn: '1 / -1' }}>
+                  <div className="field-label" title="Defaults to ground level. Override only when this substrate is mounted high (e.g. coffered ceiling panels).">
+                    Height Band Override
+                  </div>
+                  <Select
+                    options={HEIGHT_BAND_OPTIONS}
+                    value={config.height_band_override || null}
+                    onChange={v => setSub('height_band_override', v || null)}
+                    placeholder="Default (Ground Level)"
+                  />
+                </div>
+              )}
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* Stain / Clear Coat controls (bare wood on wood substrates only).
+          Coating Type was retired — see System above for workflow choice. */}
+      {isBareWood && coatingType !== 'paint' && (
         <div className="panel-section">
           <div className="section-title">Coating</div>
           <div className="form-grid" style={{ gridTemplateColumns: '1fr 1fr' }}>
             <div>
-              <div className="field-label">Coating Type</div>
-              <Select options={ENUMS.intCoatingTypes} value={coatingType}
-                onChange={v => setSub('coating_type', v)} />
+              <div className="field-label">Wood Species</div>
+              <Select options={ENUMS.woodSpeciesGroup} value={config.wood_species_group || 'hardwood'}
+                onChange={v => setSub('wood_species_group', v)} />
             </div>
-
-            {coatingType !== 'paint' && (
-              <div>
-                <div className="field-label">Wood Species</div>
-                <Select options={ENUMS.woodSpeciesGroup} value={config.wood_species_group || 'hardwood'}
-                  onChange={v => setSub('wood_species_group', v)} />
-              </div>
-            )}
+            {/* placeholder retained so the original block structure stays clean */}
+            <div></div>
 
             {includesStain && (
               <>
@@ -196,14 +342,143 @@ export default function SubstrateDetailPanel({ room, derived, dispatch, substrat
           </div>
         )}
 
-        {/* SF manual-only (specialty SF items) */}
-        {isSF && !hasAuto && (
+        {/* SF manual-only (specialty SF items, EXCEPT wainscoting/mantels which
+            have their own length-driven calc — handled in their own blocks below) */}
+        {isSF && !hasAuto && substrateId !== 'wainscoting' && substrateId !== 'mantels' && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <input type="number" value={config.sf_manual || ''} onChange={e => setSub('sf_manual', parseFloat(e.target.value) || 0)} min="0" style={{ width: 100 }} />
             <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>SF</span>
             <span className="badge badge-manual">manual</span>
           </div>
         )}
+
+        {/* Wainscot Panel — Length × Height drives SF; SF stays as override. */}
+        {substrateId === 'wainscoting' && (() => {
+          const lf = parseFloat(config.lf_manual) || 0;
+          const ht = parseFloat(config.wainscot_height_ft) || 0;
+          const computedSF = Math.round(lf * ht);
+          return (
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>Length</span>
+                  <input type="number" value={config.lf_manual || ''} onChange={e => setSub('lf_manual', parseFloat(e.target.value) || 0)} min="0" style={{ width: 80 }} />
+                  <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>LF</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>Height</span>
+                  <input type="number" step="0.25" value={config.wainscot_height_ft || ''} onChange={e => setSub('wainscot_height_ft', parseFloat(e.target.value) || 0)} min="0" style={{ width: 70 }} />
+                  <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>ft</span>
+                </div>
+              </div>
+              <div style={{ marginTop: 8 }}>
+                <NumField
+                  value={config.sf_manual || ''}
+                  derived={computedSF}
+                  isOverride={!!config.sf_override}
+                  onValueChange={v => setSub('sf_manual', v)}
+                  onOverrideToggle={v => setSub('sf_override', v)}
+                  uom="SF"
+                />
+                <div style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 2 }}>
+                  Length × Height = {computedSF} SF (override for non-rectangular runs)
+                </div>
+              </div>
+            </div>
+          );
+        })()}
+
+        {/* Beams — Length × Sides × Qty drives total LF (each face contributes its own LF). */}
+        {substrateId === 'beams' && (() => {
+          const lf = parseFloat(config.lf_manual) || 0;
+          const sides = parseInt(config.beam_sides) || 4;
+          const qty = parseInt(config.beam_qty) || 1;
+          const totalLF = lf * sides * qty;
+          return (
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>Length</span>
+                  <input type="number" value={config.lf_manual || ''} onChange={e => setSub('lf_manual', parseFloat(e.target.value) || 0)} min="0" style={{ width: 80 }} />
+                  <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>LF</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>Sides</span>
+                  <Select
+                    options={[
+                      { value: 3, label: '3 (attached to ceiling)' },
+                      { value: 4, label: '4 (exposed)' },
+                    ]}
+                    value={sides}
+                    onChange={v => setSub('beam_sides', parseInt(v) || 4)}
+                  />
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>Qty</span>
+                  <input type="number" value={config.beam_qty || ''} onChange={e => setSub('beam_qty', parseInt(e.target.value) || 1)} min="1" style={{ width: 60 }} />
+                </div>
+              </div>
+              <div style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 6 }}>
+                Length × Sides × Qty = {totalLF} LF total
+              </div>
+            </div>
+          );
+        })()}
+
+        {/* Columns — Height × Sides × Qty drives total LF (each face contributes its own LF). */}
+        {substrateId === 'columns' && (() => {
+          const lf = parseFloat(config.lf_manual) || 0;
+          const sides = parseInt(config.column_sides) || 4;
+          const qty = parseInt(config.column_qty) || 1;
+          const totalLF = lf * sides * qty;
+          return (
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>Height</span>
+                  <input type="number" value={config.lf_manual || ''} onChange={e => setSub('lf_manual', parseFloat(e.target.value) || 0)} min="0" style={{ width: 80 }} />
+                  <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>LF</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>Sides</span>
+                  <Select
+                    options={[
+                      { value: 3, label: '3 (attached to wall)' },
+                      { value: 4, label: '4 (free-standing)' },
+                    ]}
+                    value={sides}
+                    onChange={v => setSub('column_sides', parseInt(v) || 4)}
+                  />
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>Qty</span>
+                  <input type="number" value={config.column_qty || ''} onChange={e => setSub('column_qty', parseInt(e.target.value) || 1)} min="1" style={{ width: 60 }} />
+                </div>
+              </div>
+              <div style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 6 }}>
+                Height × Sides × Qty = {totalLF} LF total
+              </div>
+            </div>
+          );
+        })()}
+
+        {/* Mantels — Length drives SF (top + bottom + sides folded into 2× LF rule). */}
+        {substrateId === 'mantels' && (() => {
+          const lf = parseFloat(config.lf_manual) || 0;
+          const totalSF = lf * 2;
+          return (
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>Length</span>
+                <input type="number" value={config.lf_manual || ''} onChange={e => setSub('lf_manual', parseFloat(e.target.value) || 0)} min="0" style={{ width: 80 }} />
+                <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>LF</span>
+              </div>
+              <div style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 6 }}>
+                Length × 2 = {totalSF} SF total (top + bottom + sides)
+              </div>
+            </div>
+          );
+        })()}
 
         {/* LF with auto-derive */}
         {isLF && hasAuto && (
@@ -213,8 +488,8 @@ export default function SubstrateDetailPanel({ room, derived, dispatch, substrat
           </div>
         )}
 
-        {/* LF manual-only (chair rail, shoe mold, etc.) */}
-        {isLF && !hasAuto && (
+        {/* LF manual-only (chair rail, shoe mold, etc.) — beams/columns handled above */}
+        {isLF && !hasAuto && substrateId !== 'beams' && substrateId !== 'columns' && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <input type="number" value={config.lf_manual || ''} onChange={e => setSub('lf_manual', parseFloat(e.target.value) || 0)} min="0" style={{ width: 100 }} />
             <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>LF</span>

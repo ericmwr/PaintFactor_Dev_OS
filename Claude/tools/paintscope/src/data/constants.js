@@ -18,13 +18,12 @@ export const SPEC_DISPLAY_NAMES = {
   'SF_DRYWALL_WALL_NC_PRIME': 'Walls (Prime)',
   'SF_DRYWALL_CEILING_NC_FINISH': 'Ceilings',
   'SF_DRYWALL_CEILING_NC_PRIME': 'Ceilings (Prime)',
-  'SF_TRIM_NC_PAINT': 'Trim',
-  'SF_TRIM_NC_PRIME': 'Trim (Prime)',
   'SF_DOOR_SLAB_INT_NC': 'Doors',
   'SF_DOOR_FRAME_NC_FINISH': 'Door Frames',
   'SF_WINDOW_INT_NC': 'Windows',
   'SF_CABINET_NC_PAINT': 'Cabinets',
   'SF_CLOSET_SHELF_NC': 'Closet Shelves',
+  'SF_ROOM_PROTECTION': 'Room Protection',
   'SF_WOOD_CEILING_NC': 'Wood Ceilings',
   'SF_WOOD_WALL_NC': 'Wood Walls',
   'SF_WAINSCOT_PANEL_NC': 'Wainscoting',
@@ -34,9 +33,6 @@ export const SPEC_DISPLAY_NAMES = {
   'SF_STAIR_RISER_NC': 'Stair Risers',
   'SF_WOOD_GRAIN_FILL_NC': 'Grain Fill',
   // Interior Stain/Clear
-  'SF_TRIM_NC_STAIN':            'Trim — Stain/Clear',
-  'SF_DOOR_SLAB_INT_NC_STAIN':   'Door Slab — Stain/Clear',
-  'SF_DOOR_FRAME_NC_STAIN':      'Door Frame — Stain/Clear',
   'SF_WINDOW_INT_NC_STAIN':      'Window — Stain/Clear',
   'SF_STAIR_RISER_NC_STAIN':     'Stair Riser — Stain/Clear',
   'SF_STAIR_RAILING_NC_STAIN':   'Stair Railing — Stain/Clear',
@@ -90,7 +86,7 @@ export const FLOOR_PROTECTION_DONOR_PRIORITY = [
 ];
 
 // Arch element grouping for per-item display names
-export const ARCH_ELEMENT_PS_GROUPS = { 'PS_SURFACE_LF.ARCH_BEAM':'Beams', 'PS_SURFACE_EA.ARCH_COLUMN':'Columns', 'PS_SURFACE_EA.ARCH_MANTEL':'Mantels' };
+export const ARCH_ELEMENT_PS_GROUPS = { 'PS_SURFACE_LF.ARCH_BEAM':'Beams', 'PS_SURFACE_LF.ARCH_COLUMN':'Columns', 'PS_SURFACE_SF.ARCH_MANTEL':'Mantels' };
 
 // Quantity key human-readable labels (for Summary view)
 export const QUANTITY_KEY_LABELS = {
@@ -111,7 +107,6 @@ export const QUANTITY_KEY_LABELS = {
   'PS_SURFACE_LF.WINDOW_CASING': 'Window Casing LF',
   'PS_SURFACE_LF.CHAIR_RAIL': 'Chair Rail LF',
   'PS_SURFACE_LF.SHOE_MOLD': 'Shoe Mold LF',
-  'PS_SURFACE_LF.WAINSCOT_CAP': 'Wainscot Cap LF',
   'PS_SURFACE_LF.PICTURE_RAIL': 'Picture Rail LF',
   'PS_SURFACE_LF.WINDOW_STOOL': 'Window Stool LF',
   'PS_SURFACE_LF.WINDOW_APRON': 'Window Apron LF',
@@ -126,8 +121,8 @@ export const QUANTITY_KEY_LABELS = {
   'PS_SURFACE_EA.DOOR_FRAME': 'Door Frames',
   'PS_SURFACE_EA.WINDOW': 'Windows',
   'PS_SURFACE_EA.WINDOW_JAMB': 'Window Jambs',
-  'PS_SURFACE_EA.ARCH_COLUMN': 'Columns',
-  'PS_SURFACE_EA.ARCH_MANTEL': 'Mantels',
+  'PS_SURFACE_LF.ARCH_COLUMN': 'Columns',
+  'PS_SURFACE_SF.ARCH_MANTEL': 'Mantels',
   'PS_SURFACE_EA.BUILTIN': 'Built-ins',
   'PS_OPENING_EA.BUILTIN_SHELF.S': 'Built-in Openings (S)',
   'PS_OPENING_EA.BUILTIN_SHELF.M': 'Built-in Openings (M)',
@@ -147,9 +142,34 @@ export const QUANTITY_KEY_LABELS = {
   // Edge keys
   'PS_EDGE_LF.TO_CEILING': 'Edge to Ceiling',
   'PS_EDGE_LF.TO_TRIM': 'Edge to Trim',
-  'PS_EDGE_LF.TRIM_JOINTS': 'Trim Joints',
+  'PS_EDGE_LF.TRIM_JOINTS': 'Trim Joints (All)',
   'PS_EDGE_LF.CASING_JOINTS': 'Casing Joints',
   'PS_EDGE_LF.CROWN_JOINTS': 'Crown Joints',
+  // Per-substrate trim joint caulk LF
+  'PS_EDGE_LF.TRIM_JOINTS_BASEBOARD': 'Baseboard Joints',
+  'PS_EDGE_LF.TRIM_JOINTS_CROWN': 'Crown Joints',
+  'PS_EDGE_LF.TRIM_JOINTS_CASING_DOOR': 'Door Casing Joints',
+  'PS_EDGE_LF.TRIM_JOINTS_CASING_WINDOW': 'Window Casing Joints',
+  'PS_EDGE_LF.TRIM_JOINTS_CHAIR_RAIL': 'Chair Rail Joints',
+  'PS_EDGE_LF.TRIM_JOINTS_SHOE_MOLD': 'Shoe Mold Joints',
+  'PS_EDGE_LF.TRIM_JOINTS_PICTURE_RAIL': 'Picture Rail Joints',
+  'PS_EDGE_LF.TRIM_JOINTS_WINDOW_STOOL': 'Window Stool Joints',
+  'PS_EDGE_LF.TRIM_JOINTS_WINDOW_APRON': 'Window Apron Joints',
+  'PS_EDGE_LF.TRIM_JOINTS_SHADOW_BOX': 'Shadow Box Joints',
+  'PS_EDGE_LF.TRIM_JOINTS_PANEL_MOLD': 'Panel Mold Joints',
+  'PS_EDGE_LF.TRIM_JOINTS_DOOR_FRAME': 'Door Frame Joints',
+  'PS_EDGE_LF.TRIM_JOINTS_WINDOW_JAMB': 'Window Jamb Joints',
+  // Per-substrate wall-to-trim cut-in LF (wall painter brushes the wall edge against trim)
+  'PS_EDGE_LF.CUTIN_WALL_TO_BASEBOARD': 'Cut-In Wall to Baseboard',
+  'PS_EDGE_LF.CUTIN_WALL_TO_CROWN': 'Cut-In Wall to Crown',
+  'PS_EDGE_LF.CUTIN_WALL_TO_CASING_DOOR': 'Cut-In Wall to Door Casing',
+  'PS_EDGE_LF.CUTIN_WALL_TO_CASING_WINDOW': 'Cut-In Wall to Window Casing',
+  'PS_EDGE_LF.CUTIN_WALL_TO_CHAIR_RAIL': 'Cut-In Wall to Chair Rail',
+  'PS_EDGE_LF.CUTIN_WALL_TO_PICTURE_RAIL': 'Cut-In Wall to Picture Rail',
+  'PS_EDGE_LF.CUTIN_WALL_TO_WINDOW_STOOL': 'Cut-In Wall to Window Stool',
+  'PS_EDGE_LF.CUTIN_WALL_TO_WINDOW_APRON': 'Cut-In Wall to Window Apron',
+  'PS_EDGE_LF.CUTIN_WALL_TO_SHADOW_BOX': 'Cut-In Wall to Shadow Box',
+  'PS_EDGE_LF.CUTIN_WALL_TO_PANEL_MOLD': 'Cut-In Wall to Panel Mold',
   // Opening keys
   'PS_OPENING_EA.DOOR_STD': 'Standard Doors',
   'PS_OPENING_EA.DOOR_LG': 'Large Doors',
@@ -162,8 +182,16 @@ export const QUANTITY_KEY_LABELS = {
   'PS_PROTECT_SF.FLOOR_PERIMETER': 'Floor Protection (Perimeter)',
   'PS_PROTECT_LF.CEILING_LINE': 'Ceiling Line Mask',
   'PS_PROTECT_LF.TRIM_BASEBOARD': 'Baseboard Mask',
-  'PS_PROTECT_LF.TRIM_EDGES': 'Trim Edge Mask',
+  'PS_PROTECT_LF.TRIM_EDGES': 'Trim Edge Mask (All)',
   'PS_PROTECT_LF.TRIM_CROWN': 'Crown Mask',
+  'PS_PROTECT_LF.TRIM_CASING_DOOR': 'Door Casing Mask',
+  'PS_PROTECT_LF.TRIM_CASING_WINDOW': 'Window Casing Mask',
+  'PS_PROTECT_LF.TRIM_CHAIR_RAIL': 'Chair Rail Mask',
+  'PS_PROTECT_LF.TRIM_PICTURE_RAIL': 'Picture Rail Mask',
+  'PS_PROTECT_LF.TRIM_WINDOW_STOOL': 'Window Stool Mask',
+  'PS_PROTECT_LF.TRIM_WINDOW_APRON': 'Window Apron Mask',
+  'PS_PROTECT_LF.TRIM_PANEL_MOLD': 'Panel Mold Mask',
+  'PS_PROTECT_LF.TRIM_SHADOW_BOX': 'Shadow Box Mask',
   'PS_PROTECT_EA.WALL_FIXTURE': 'Wall Fixtures',
   'PS_PROTECT_EA.CEILING_FIXTURE': 'Ceiling Fixtures',
   // Meta keys
@@ -227,3 +255,11 @@ export const QUANTITY_KEY_LABELS = {
   'PS_EXT_META.ENUM.SUN_EXPOSURE': 'Sun Exposure',
   'PS_EXT_META.FLAG.NEW_CONSTRUCTION': 'New Construction',
 };
+
+// Specs where room complexity does NOT apply — door/frame type and QT already
+// cover variation. (Re-homed from engine/modifier-stack.js during P2b; the
+// legacy modifier-stack copy is deleted with that file.)
+export const COMPLEXITY_OPT_OUT_SPECS = new Set([
+  'SF_DOOR_SLAB_INT_NC',
+  'SF_DOOR_FRAME_NC_FINISH',
+]);

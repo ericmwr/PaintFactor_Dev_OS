@@ -1,12 +1,11 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, lazy, Suspense } from 'react';
 import { ProjectProvider } from './hooks/useProject';
 import { useProject } from './hooks/useProject';
-import { useEstimate } from './hooks/useEstimate';
+import { useEstimateScenario } from './hooks/useEstimateScenario';
 import { useProjectDB } from './hooks/useProjectDB';
 import { loadProject } from './data/project-db';
 import { saveToStorage } from './state/persistence';
 import { createExteriorState } from './state/exterior-state';
-import { SpecDataProvider } from './hooks/useSpecData';
 import ErrorBoundary from './components/shared/ErrorBoundary';
 import ProjectSetup from './components/setup/ProjectSetup';
 import RoomEditor from './components/room-editor/RoomEditor';
@@ -18,31 +17,33 @@ import PhotoAnalysisModal from './components/photo-analysis/PhotoAnalysisModal';
 import { usePhotoAnalysis } from './hooks/usePhotoAnalysis';
 import ProjectListView from './components/projects/ProjectListView';
 import CompanyProfileView from './components/settings/CompanyProfileView';
-import SpecEditorView from './components/rates/SpecEditorView';
-import AssemblyManagerView from './components/assemblies/AssemblyManagerView';
 import MaterialsView from './components/materials/MaterialsView';
-import TimeTrackerView from './components/tracker/TimeTrackerView';
+import TrackerView from './components/tracker/TrackerView.jsx';
 import AnalyticsDashboard from './components/analytics/AnalyticsDashboard';
 import ColorsView from './components/colors/ColorsView.jsx';
+import AuthoringView, { isAuthoringEnabled } from './components/authoring/AuthoringView.jsx';
+import DevView from './components/dev/DevView.jsx';
 
-const NAV_VIEWS = [
+const BASE_NAV_VIEWS = [
   { id:'projects',   label:'Projects' },
   { id:'setup',      label:'Setup' },
   { id:'scope',      label:'Scope' },
   { id:'estimate',   label:'Estimate' },
   { id:'colors',     label:'Colors' },
   { id:'output',     label:'Output' },
-  { id:'rates',      label:'Rates' },
-  { id:'assemblies', label:'Assemblies' },
   { id:'materials',  label:'Materials' },
   { id:'tracker',    label:'Tracker' },
   { id:'analytics',  label:'Analytics' },
   { id:'settings',   label:'Settings' },
 ];
+// Admin-gated via localStorage.paintscope.admin = '1'.
+const NAV_VIEWS = isAuthoringEnabled()
+  ? [...BASE_NAV_VIEWS, { id: 'authoring', label: 'Authoring' }, { id: 'dev', label: 'Dev' }]
+  : BASE_NAV_VIEWS;
 
 function AppShell({ projectDb }) {
   const { state, dispatch, saveNow } = useProject();
-  const estimate = useEstimate();
+  const estimate = useEstimateScenario();
   const view = state.ui.view;
   const scopeMode = state.ui.scopeMode || 'interior';
   const photoAnalysis = usePhotoAnalysis();
@@ -382,7 +383,11 @@ function AppShell({ projectDb }) {
 
           <ErrorBoundary label="Scope" key={view === 'scope' ? `scope-${scopeMode}` : undefined}>
             {view === 'scope' && scopeMode === 'interior' && (
-              <RoomEditor room={activeRoom} project={state.project} dispatch={dispatch} roomCategories={state.room_categories} />
+              activeRoom ? (
+                <RoomEditor room={activeRoom} project={state.project} dispatch={dispatch} roomCategories={state.room_categories} />
+              ) : (
+                <div className="no-data-msg">Add a room to begin.</div>
+              )
             )}
             {view === 'scope' && scopeMode === 'exterior' && (
               activeElev ? (
@@ -417,18 +422,6 @@ function AppShell({ projectDb }) {
             {view === 'output' && <OutputView />}
           </ErrorBoundary>
 
-          {view === 'rates' && (
-            <ErrorBoundary label="Rates">
-              <SpecEditorView />
-            </ErrorBoundary>
-          )}
-
-          {view === 'assemblies' && (
-            <ErrorBoundary label="Assemblies">
-              <AssemblyManagerView />
-            </ErrorBoundary>
-          )}
-
           {view === 'materials' && (
             <ErrorBoundary label="Materials">
               <MaterialsView />
@@ -437,7 +430,7 @@ function AppShell({ projectDb }) {
 
           {view === 'tracker' && (
             <ErrorBoundary label="Tracker">
-              <TimeTrackerView estimate={estimate} />
+              <TrackerView />
             </ErrorBoundary>
           )}
 
@@ -450,6 +443,18 @@ function AppShell({ projectDb }) {
           {view === 'settings' && (
             <ErrorBoundary label="Settings">
               <CompanyProfileView />
+            </ErrorBoundary>
+          )}
+
+          {view === 'authoring' && (
+            <ErrorBoundary label="Authoring">
+              <AuthoringView />
+            </ErrorBoundary>
+          )}
+
+          {view === 'dev' && (
+            <ErrorBoundary label="Dev">
+              <DevView />
             </ErrorBoundary>
           )}
         </div>
@@ -501,15 +506,35 @@ function ProjectLoader({ projectDb }) {
   }
 
   return (
-    <SpecDataProvider>
-      <ProjectProvider key={loaded.forId} initialData={loaded.data} projectId={projectDb.activeProjectId}>
-        <AppShell projectDb={projectDb} />
-      </ProjectProvider>
-    </SpecDataProvider>
+    <ProjectProvider key={loaded.forId} initialData={loaded.data} projectId={projectDb.activeProjectId}>
+      <AppShell projectDb={projectDb} />
+    </ProjectProvider>
   );
 }
 
+// Lab sandbox — isolated render path for /lab/* surfaces. Lazy-loaded so
+// the production bundle pays no cost; isolated so a lab crash can't break
+// the main app. Activate with ?lab=scope-tree (or any future lab id).
+const LabRoot = lazy(() => import('./components/scope-tree-lab/LabRoot.jsx'));
+
+function getLabId() {
+  try {
+    const params = new URLSearchParams(window.location.search);
+    return params.get('lab');
+  } catch {
+    return null;
+  }
+}
+
 export default function App() {
+  const labId = getLabId();
+  if (labId) {
+    return (
+      <Suspense fallback={<div style={{ padding: 24, color: 'var(--text-muted)' }}>Loading lab…</div>}>
+        <LabRoot labId={labId} />
+      </Suspense>
+    );
+  }
   const projectDb = useProjectDB();
   return <ProjectLoader projectDb={projectDb} />;
 }

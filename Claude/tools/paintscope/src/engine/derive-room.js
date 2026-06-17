@@ -1,12 +1,66 @@
 import { OPENING_TYPES } from '../data/opening-types.js';
 import { SUBSTRATE_MAP } from '../data/substrate-catalog.js';
+import canonicalBundle from '../data/scenario-bundle.gen.js';
 
+// Fallback thresholds (ft) if FAC_HEIGHT.band_thresholds_ft is missing from
+// the bundle. Mirrors the original hardcoded breakpoints.
+const DEFAULT_HEIGHT_THRESHOLDS = { STEP: 10, EXT: 13, SCAFFOLD: 18, LIFT: 25 };
+
+// Overlay state. When the scenario engine loads drafts via overlay-loader, it
+// calls configureHeightThresholds() with the merged bundle so deriveHeightBand
+// sees the user's authored thresholds (not just canonical).
+let overlayBundle = null;
+let overlayDefaultBand = null;
+
+/**
+ * Called by useEstimateScenario after loadOverlayBundle resolves. Accepts
+ * either the full merged bundle, a FAC_HEIGHT modifier definition, or a raw
+ * thresholds object. Passing null/undefined clears the overlay (fallback to
+ * canonical static import).
+ */
+export function configureHeightThresholds(source) {
+  if (!source) { overlayBundle = null; overlayDefaultBand = null; return; }
+  const fac = source.modifiers ? source.modifiers.FAC_HEIGHT
+    : source.band_thresholds_ft ? source
+    : null;
+  if (fac) {
+    overlayBundle = fac.band_thresholds_ft || null;
+    overlayDefaultBand = fac.default || null;
+  } else if (typeof source === 'object') {
+    overlayBundle = source;
+    overlayDefaultBand = null;
+  }
+}
+
+/**
+ * Pick a height band for a ceiling height (ft). Thresholds are read from
+ * FAC_HEIGHT in the scenario bundle so they're author-editable in the
+ * Modifier editor — change "step ladder starts at 9 ft" without touching code.
+ *
+ * Semantics: band_thresholds_ft[band] = minimum ft that band applies at.
+ * Highest matching threshold wins. If no threshold matches, returns the
+ * modifier's default band (normally 'STD').
+ *
+ * Arbitrary band names are supported — add a new key to factors AND
+ * band_thresholds_ft and deriveHeightBand will return it automatically.
+ */
 export function deriveHeightBand(heightFt) {
-  if (heightFt >= 25) return 'LIFT';
-  if (heightFt >= 18) return 'SCAFFOLD';
-  if (heightFt >= 13) return 'EXT';
-  if (heightFt >= 10) return 'STEP';
-  return 'STD';
+  const canonFac = (canonicalBundle && canonicalBundle.modifiers) ? canonicalBundle.modifiers.FAC_HEIGHT : null;
+  // Overlay thresholds (from IDB drafts via overlay-loader) take precedence over canonical.
+  const thresholds = overlayBundle || (canonFac && canonFac.band_thresholds_ft) || DEFAULT_HEIGHT_THRESHOLDS;
+  const defaultBand = overlayDefaultBand || (canonFac && canonFac.default) || 'STD';
+
+  // Sort (band, threshold) pairs descending by threshold so the tallest match wins
+  const sorted = Object.entries(thresholds)
+    .filter(function (entry) { return typeof entry[1] === 'number' && entry[1] > 0; })
+    .sort(function (a, b) { return b[1] - a[1]; });
+
+  for (var i = 0; i < sorted.length; i++) {
+    const band = sorted[i][0];
+    const minFt = sorted[i][1];
+    if (heightFt >= minFt) return band;
+  }
+  return defaultBand;
 }
 
 export function deriveRoom(room) {
@@ -151,12 +205,33 @@ export function deriveRoom(room) {
       : Math.round(ceilingSF + vaultedExtra))
     : 0;
 
+  // Door frame LF: sum each opening's count × casing_lf (shares perimeter
+  // used by door_casing). Matches the user-facing per-opening-type values in
+  // OPENING_TYPES (single=17, double=20, 3_door=23, 4_door=26).
+  const _doorFrameLF = openings.reduce((s, o) => {
+    const cnt = parseInt(o.count) || 0;
+    const type = OPENING_TYPES[o.opening_type] || OPENING_TYPES.single;
+    return s + cnt * type.casing_lf;
+  }, 0);
+
+  // Window jamb LF: sum each window's count × size-bucket perimeter (matches
+  // window_casing convention). 'O' is a measured XL — uses width + height.
+  const WINDOW_SIZE_PERIM_LF = { S: 8, M: 12, L: 17 };
+  const _windowJambLF = windowItems.reduce((s, w) => {
+    const cnt = parseInt(w.count) || 0;
+    if (w.size_bucket === 'O') {
+      const perim = Math.round(2 * ((w.width_ft || 0) + (w.height_ft || 0)));
+      return s + cnt * perim;
+    }
+    return s + cnt * (WINDOW_SIZE_PERIM_LF[w.size_bucket] || 12);
+  }, 0);
+
   // Helper: derive LF for a trim substrate with auto-derive from catalog
   function deriveLF(subId) {
     if (!subs[subId]) return 0;
     const cat = SUBSTRATE_MAP[subId];
     if (subs[subId].lf_override) return parseFloat(subs[subId].lf_manual)||0;
-    if (cat?.autoDerive) return Math.round(cat.autoDerive({ perimeter, totalDoors, totalWindows, totalOpenings, openingCasingLF, wall_field_sf, ceiling_field_sf }));
+    if (cat?.autoDerive) return Math.round(cat.autoDerive({ perimeter, totalDoors, totalWindows, totalOpenings, openingCasingLF, wall_field_sf, ceiling_field_sf, door_frame_lf: _doorFrameLF, window_jamb_lf: _windowJambLF }));
     return parseFloat(subs[subId].lf_manual)||0;
   }
 
@@ -169,20 +244,56 @@ export function deriveRoom(room) {
   const window_casing_lf = deriveLF('window_casing');
   const chair_rail_lf = deriveLF('chair_rail');
   const shoe_mold_lf = deriveLF('shoe_mold');
-  const wainscot_cap_lf = deriveLF('wainscot_cap');
   const picture_rail_lf = deriveLF('picture_rail');
   const window_stool_lf = deriveLF('window_stool');
   const window_apron_lf = deriveLF('window_apron');
   const shadow_box_lf = deriveLF('shadow_box');
   const panel_mold_lf = deriveLF('panel_mold');
 
-  // EA-based substrates
-  const door_frames_ea = subs.door_frames ? (SUBSTRATE_MAP.door_frames.autoDerive({ totalOpenings })) : 0;
-  const window_jamb_ea = subs.window_jamb ? (SUBSTRATE_MAP.window_jamb.autoDerive({ totalWindows })) : 0;
+  // Final derived LF for door_frame / window_jamb substrates (respects
+  // lf_override via deriveLF, falls back to the auto-derived _doorFrameLF /
+  // _windowJambLF above).
+  const door_frame_lf = deriveLF('door_frames');
+  const window_jamb_lf = deriveLF('window_jamb');
 
   const effectiveHeight = (room.vaulted_ceiling && parseFloat(room.peak_height_ft) > H)
     ? parseFloat(room.peak_height_ft) : H;
-  const heightBand = deriveHeightBand(effectiveHeight);
+  // Honor explicit room-level override (defined in initial-state.js:100)
+  // before falling back to geometry-derived band.
+  const heightBand = room.height_band || deriveHeightBand(effectiveHeight);
+
+  // Per-band window LF breakdown — drives stratified spec activation for
+  // window_casing / window_jamb / window_stool / window_apron when the room
+  // contains windows at different mounting heights (e.g. ground + clerestory).
+  // Each window item carries window_position ('ground' | 'clerestory' | 'transom')
+  // and sill_height_band ('STD' | 'STEP' | 'EXT' | 'SCAFFOLD' | 'LIFT'). Ground
+  // windows inherit the room band; elevated windows use their own sill band.
+  // Casing and jamb LF are stratified per window item (count × size_bucket
+  // perimeter). Stool and apron LF are user-entered aggregates — distributed
+  // proportionally to window count per band.
+  const windowBandLf = {};
+  windowItems.forEach(w => {
+    const cnt = parseInt(w.count) || 0;
+    if (cnt <= 0) return;
+    const isElevated = w.window_position && w.window_position !== 'ground';
+    // Ground windows always STD — work at ~7 ft sill regardless of room band.
+    const band = isElevated ? (w.sill_height_band || 'STEP') : 'STD';
+    const perim = (w.size_bucket === 'O')
+      ? Math.round(2 * ((w.width_ft || 0) + (w.height_ft || 0)))
+      : (WINDOW_SIZE_PERIM_LF[w.size_bucket] || 12);
+    if (!windowBandLf[band]) windowBandLf[band] = { casing: 0, jamb: 0, stool: 0, apron: 0, count: 0 };
+    windowBandLf[band].casing += cnt * perim;
+    windowBandLf[band].jamb += cnt * perim;
+    windowBandLf[band].count += cnt;
+  });
+  // Distribute manual stool/apron LF proportionally to window count per band.
+  const totalBandedWindows = Object.values(windowBandLf).reduce((s, x) => s + x.count, 0);
+  if (totalBandedWindows > 0) {
+    Object.values(windowBandLf).forEach(x => {
+      x.stool = window_stool_lf * (x.count / totalBandedWindows);
+      x.apron = window_apron_lf * (x.count / totalBandedWindows);
+    });
+  }
 
   return {
     L, W, H, effectiveHeight, perimeter,
@@ -194,9 +305,10 @@ export function deriveRoom(room) {
     heightBand,
     wall_field_sf, ceiling_field_sf,
     baseboard_lf, crown_lf, door_casing_lf, window_casing_lf,
-    chair_rail_lf, shoe_mold_lf, wainscot_cap_lf, picture_rail_lf,
+    chair_rail_lf, shoe_mold_lf, picture_rail_lf,
     window_stool_lf, window_apron_lf, shadow_box_lf, panel_mold_lf,
-    door_frames_ea, window_jamb_ea,
+    door_frame_lf, window_jamb_lf,
+    windowBandLf,
     totalDoorSides,
     beamTotalLF, beamPeakLF, beamCrossLFEach, beamRidgeLFEach
   };

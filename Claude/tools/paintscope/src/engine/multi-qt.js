@@ -1,3 +1,5 @@
+﻿import { QUALITY_TIER_EFFECTS } from '../data/scenario-rate-data.js';
+
 /**
  * Build a deterministic line item ID.
  * @param {number} roomIndex
@@ -19,23 +21,16 @@ export function buildDescription({ coats, productName, sheen, method }) {
 }
 
 /**
- * Extract available quality tiers for a spec family from the DB bundle.
- * Reads from the `quality_tier_effects` table (one row per spec × QT).
+ * Extract available quality tiers for a spec family.
+ * Reads from the QUALITY_TIER_EFFECTS module by default (one row per spec × QT).
+ * An explicit `rows` array can be injected for testing.
  *
- * NOTE: Earlier revisions of this function read from
- * `spec_family.configuration_dimensions`, but that field only exists in the
- * source spec.json files — the SQLite-generated DB bundle flattens QT data
- * into the `quality_tier_effects` table with one row per (spec, tier).
- *
- * @param {object} db - DB bundle (must contain `quality_tier_effects`)
  * @param {string} specFamilyId - e.g., 'SF_DRYWALL_WALL_NC_FINISH'
+ * @param {Array} [rows=QUALITY_TIER_EFFECTS] - rows to filter (injectable for tests)
  * @returns {string[]} sorted unique tier values
  */
-export function collectAvailableTiers(db, specFamilyId) {
-  const rows = (db?.quality_tier_effects || []).filter(
-    r => r.spec_family_id === specFamilyId
-  );
-  return rows.map(r => r.quality_tier).sort();
+export function collectAvailableTiers(specFamilyId, rows = QUALITY_TIER_EFFECTS) {
+  return rows.filter(r => r.spec_family_id === specFamilyId).map(r => r.quality_tier).sort();
 }
 
 /**
@@ -46,8 +41,6 @@ const SPEC_TO_SUBSTRATE = {
   SF_DRYWALL_WALL_NC_PRIME: 'walls_prime',
   SF_DRYWALL_CEILING_NC_FINISH: 'ceiling',
   SF_DRYWALL_CEILING_NC_PRIME: 'ceiling_prime',
-  SF_TRIM_NC_PAINT: 'trim',
-  SF_TRIM_NC_PRIME: 'trim_prime',
   SF_DOOR_SLAB_INT_NC: 'doors',
   SF_DOOR_FRAME_NC_FINISH: 'door_frames',
   SF_WINDOW_INT_NC: 'windows',
@@ -78,12 +71,11 @@ export function specToSubstrate(specFamilyId) {
  *
  * @param {Function} runEstimateFn - The runEstimate function
  * @param {object} state - App state
- * @param {object} db - Database bundle
  * @param {object} profile - Company profile
  * @param {object} baseEstimate - The estimate at the project's default QT
  * @returns {{ lineItems: Array, qtOptions: object }}
  */
-export function computeMultiQT(runEstimateFn, state, db, profile, baseEstimate) {
+export function computeMultiQT(runEstimateFn, state, profile, baseEstimate) {
   if (!baseEstimate?.pricing?.lineItems) return { lineItems: [], qtOptions: {} };
 
   const qtOptions = {};
@@ -94,14 +86,14 @@ export function computeMultiQT(runEstimateFn, state, db, profile, baseEstimate) 
     const lineId = buildLineItemId(baseLine.roomIndex, substrate);
 
     // Find the spec's available tiers from quality_tier_effects
-    const availableTiers = collectAvailableTiers(db, baseLine.specFamilyId);
+    const availableTiers = collectAvailableTiers(baseLine.specFamilyId);
 
     const baseMethod = resolveMethod(state, baseLine.roomIndex);
     const options = {};
 
     for (const qt of availableTiers) {
       const qtState = cloneStateWithQT(state, baseLine.roomIndex, qt);
-      const qtEstimate = runEstimateFn(qtState, db, undefined, profile);
+      const qtEstimate = runEstimateFn(qtState, undefined, profile);
 
       const qtLine = qtEstimate?.pricing?.lineItems?.find(
         l => l.specFamilyId === baseLine.specFamilyId && l.roomIndex === baseLine.roomIndex
@@ -163,6 +155,6 @@ function resolveAreaGroup(state, roomIndex) {
 }
 
 function resolveMethod(state, roomIndex) {
-  const method = state.rooms?.[roomIndex]?.application_method || state.project?.default_application_method || 'spray_backroll';
+  const method = state.rooms?.[roomIndex]?.application_method || 'spray_backroll';
   return method.replace(/_/g, ' + ').replace('spray + backroll', 'spray + backroll');
 }

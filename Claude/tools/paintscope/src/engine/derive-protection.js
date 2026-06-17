@@ -19,8 +19,8 @@ export function deriveProtectionSummary(room, subs, applicationMethod) {
   const alwaysPresentIds = new Set(['doors','windows','door_casing','window_casing']);
   const anyPainted = Object.keys(subs).some(k => alwaysPresentIds.has(k) ? subs[k]?.painting : true);
   if (anyPainted) {
-    if (!subs.walls && subs.ceiling) items.push({ zone: 'walls_adjacent', label: 'Walls (unpainted)', protection: applicationMethod === 'spray' ? 'full_mask' : 'light_mask', auto: true });
-    if (!subs.ceiling && subs.walls) items.push({ zone: 'ceiling_adjacent', label: 'Ceiling (unpainted)', protection: applicationMethod === 'spray' ? 'partial_cover' : 'light_mask', auto: true });
+    if (!subs.walls && subs.ceiling) items.push({ zone: 'walls_adjacent', label: 'Walls (unpainted)', protection: applicationMethod === 'spray' ? 'encapsulate' : 'edge', auto: true });
+    if (!subs.ceiling && subs.walls) items.push({ zone: 'ceiling_adjacent', label: 'Ceiling (unpainted)', protection: applicationMethod === 'spray' ? 'partial' : 'edge', auto: true });
   }
 
   // Fixtures from room.fixtures

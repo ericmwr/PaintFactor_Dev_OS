@@ -1,5 +1,6 @@
-import { createSubstrateConfig, createOpening, bumpNextId } from './initial-state';
+import { createSubstrateConfig, createOpening, bumpNextId, genId } from './initial-state';
 import { createExteriorState } from './exterior-state';
+import { migrateMaskLevel } from '../data/mask-levels';
 
 /**
  * Migrate v0.2 state (flat drywall/trim/doors/windows/specialty) to v0.3 substrate model.
@@ -41,7 +42,7 @@ export function migrateV02toV03(state) {
       if ((room.windows||[]).length > 0) subs.window_casing = { substrate_state: null, style: null, lf_override: !!room.trim.window_casing_override, lf_manual: parseFloat(room.trim.window_casing_lf)||0 };
 
       // Optional trim items
-      ['chair_rail','shoe_mold','wainscot_cap','picture_rail','window_stool','window_apron','shadow_box','panel_mold'].forEach(key => {
+      ['chair_rail','shoe_mold','picture_rail','window_stool','window_apron','shadow_box','panel_mold'].forEach(key => {
         if (room.trim[`${key}_enabled`]) subs[key] = { substrate_state: null, lf_manual: parseFloat(room.trim[`${key}_lf`])||0 };
       });
     }
@@ -136,6 +137,23 @@ export function migrateInline(parsed) {
       if (c.paint_shelving === undefined) c.paint_shelving = true;
       if (c.protection_level === undefined) c.protection_level = null;
     });
+    // v1.6: Backfill cabinet substrate defaults on existing rooms.
+    const existingCab = subs.cabinets;
+    if (existingCab) {
+      if (existingCab.paint_cabinets === undefined) existingCab.paint_cabinets = false;
+      if (existingCab.protection_level === undefined) existingCab.protection_level = 'partial';
+      if (existingCab.scope === undefined) existingCab.scope = 'full_exterior';
+      if (existingCab.door_style === undefined) existingCab.door_style = 'shaker';
+      if (existingCab.kitchen_complexity === undefined) existingCab.kitchen_complexity = 'galley';
+      if (existingCab.height_band === undefined) existingCab.height_band = 'standard';
+      if (existingCab.cabinet_count === undefined) existingCab.cabinet_count = 0;
+      if (existingCab.door_count === undefined) existingCab.door_count = 0;
+      if (existingCab.drawer_count === undefined) existingCab.drawer_count = 0;
+      if (existingCab.frame_sf === undefined) existingCab.frame_sf = 0;
+      if (existingCab.interior_sf === undefined) existingCab.interior_sf = 0;
+      if (existingCab.hardware_count === undefined) existingCab.hardware_count = 0;
+      if (existingCab.caulk_lf === undefined) existingCab.caulk_lf = 0;
+    }
     if (!r.extra_walls) r.extra_walls = [];
     if (!r.wall_deductions) r.wall_deductions = [];
     // v0.7 migration: initialize openings array; convert existing door items to single openings
@@ -244,6 +262,31 @@ export function migrateInline(parsed) {
     }
   }
 
+  // v1.7: Seed finish_group on existing non-wall/ceiling substrates based on
+  // coating_type. Walls/ceiling are driven by the combined-finish toggle
+  // (see context-adapter + resolver) and never get this field via migration.
+  const FINISH_GROUP_EXCLUDED_MIG = new Set(['walls', 'ceiling']);
+  for (const room of parsed.rooms || []) {
+    for (const [id, sub] of Object.entries(room.substrates || {})) {
+      if (FINISH_GROUP_EXCLUDED_MIG.has(id)) continue;
+      if (sub.finish_group !== undefined) continue; // don't clobber
+      const ct = sub.coating_type;
+      if (ct === 'stain_clear' || ct === 'stain_only' || ct === 'clear_only') {
+        sub.finish_group = 'D';
+      } else {
+        sub.finish_group = 'C';
+      }
+    }
+  }
+
+  // v1.8: Rename opening_type 'wide' → '4_door'. Also introduces '3_door'
+  // (no existing rooms use it yet, so no conversion needed there).
+  for (const room of parsed.rooms || []) {
+    for (const opn of room.openings || []) {
+      if (opn.opening_type === 'wide') opn.opening_type = '4_door';
+    }
+  }
+
   // v1.0: Initialize colors state
   if (!parsed.colors) {
     parsed.colors = { defaults: {}, substrate_overrides: {}, room_overrides: {}, room_group_overrides: {}, elevation_overrides: {}, elevation_group_overrides: {} };
@@ -283,8 +326,64 @@ export function migrateInline(parsed) {
   // v1.0: material catalog integration — add brand preference and overrides
   if (parsed.project) {
     if (parsed.project.default_brand === undefined) parsed.project.default_brand = null;
-    if (!parsed.project.material_overrides) parsed.project.material_overrides = { system: {}, manual: {} };
+    if (!parsed.project.material_overrides) parsed.project.material_overrides = { system: {}, manual: [] };
+    // Materials MVP: manual was previously an object map (unused); convert to array.
+    if (parsed.project.material_overrides && !Array.isArray(parsed.project.material_overrides.manual)) {
+      parsed.project.material_overrides.manual = [];
+    }
   }
+
+  // v1.0.4: Backfill EVERY protection_heuristics field independently — counts,
+  // toggle, action, and the rate-override fields. Per-field backfill so a
+  // partial heuristics object (from older state where some fields were
+  // wiped) gets fully restored. Rate fields default to null = use canonical
+  // task rate; a number = override the install + remove tasks in that
+  // category. Wired through useEstimateScenario → overlayMap.
+  if (parsed.project) {
+    if (!parsed.project.protection_heuristics) parsed.project.protection_heuristics = {};
+    const ph = parsed.project.protection_heuristics;
+    if (ph.outlets_per_room === undefined)             ph.outlets_per_room = 4;
+    if (ph.hvac_vents_per_room === undefined)          ph.hvac_vents_per_room = 0.7;
+    if (ph.outlet_remove_reinstall === undefined)      ph.outlet_remove_reinstall = false;
+    if (ph.hvac_action === undefined)                  ph.hvac_action = 'mask';
+    if (ph.outlet_mask_rate === undefined)             ph.outlet_mask_rate = null;
+    if (ph.outlet_remove_reinstall_rate === undefined) ph.outlet_remove_reinstall_rate = null;
+    if (ph.hvac_mask_rate === undefined)               ph.hvac_mask_rate = null;
+    if (ph.hvac_remove_reinstall_rate === undefined)   ph.hvac_remove_reinstall_rate = null;
+  }
+
+  // W-16 Phase 2: convert room.fixtures.light_fixtures from single
+  // {count, protection} into {items: [...]} so a room can carry multiple
+  // light-fixture types (recessed + ceiling fan + bulb, etc.) with per-type
+  // protection level, action mode (mask vs remove), and optional time
+  // overrides. Legacy single-row state becomes one 'other' item preserving
+  // count + protection.
+  parsed.rooms.forEach(r => {
+    const lf = r.fixtures?.light_fixtures;
+    if (!lf || typeof lf !== 'object') return;
+    if (Array.isArray(lf.items)) return; // already migrated
+    const legacyCount = parseInt(lf.count) || 0;
+    const legacyProt = lf.protection || null;
+    if (legacyCount > 0 || legacyProt) {
+      lf.items = [{
+        id: genId('lfi'),
+        type: 'other',
+        custom_label: 'Light Fixtures',
+        count: legacyCount || 1,
+        protection: legacyProt || 'full',
+        action_mode: 'mask',
+        mask_install_time_min:     null,
+        mask_remove_time_min:      null,
+        fixture_uninstall_time_min: null,
+        fixture_reinstall_time_min: null,
+      }];
+    } else {
+      lf.items = [];
+    }
+    // Drop legacy scalar fields now that they're in items[0]
+    delete lf.count;
+    delete lf.protection;
+  });
 
   // Bump nextId past all existing IDs to prevent collisions
   let maxId = 0;
@@ -294,10 +393,150 @@ export function migrateInline(parsed) {
     const subs = r.substrates || {};
     (subs.doors?.items || []).forEach(d => { maxId = Math.max(maxId, extractNum(d.id)); });
     (subs.windows?.items || []).forEach(w => { maxId = Math.max(maxId, extractNum(w.id)); });
+    (r.fixtures?.light_fixtures?.items || []).forEach(i => { maxId = Math.max(maxId, extractNum(i.id)); });
     (r.openings || []).forEach(o => { maxId = Math.max(maxId, extractNum(o.id)); });
     (r.closets || []).forEach(c => { maxId = Math.max(maxId, extractNum(c.id)); });
   });
   bumpNextId(maxId);
 
+  // v1.0.1: One-time repair for duplicate room IDs — caused by HMR resetting
+  // the module-level genId counter mid-session. If two rooms share an id,
+  // assign the second-onward instances a fresh suffix past maxId.
+  const seenRoomIds = new Set();
+  parsed.rooms.forEach(r => {
+    if (seenRoomIds.has(r.id)) {
+      maxId += 1;
+      r.id = `room_${maxId}`;
+    }
+    seenRoomIds.add(r.id);
+  });
+  bumpNextId(maxId);
+
+  // v1.0.2: Clean up legacy room.protection defaults. createRoom previously
+  // initialized {floor_mask_level: 'edge', wall_mask_level: 'edge',
+  // ceiling_mask_level: 'none'} — that made every new room show OVERRIDE in
+  // the Protection tab. Fix: if the persisted values exactly match those
+  // legacy defaults, delete them so the deriver re-takes control (AUTO).
+  parsed.rooms.forEach(r => {
+    const p = r.protection;
+    if (p && p.floor_mask_level === 'edge' && p.wall_mask_level === 'edge' && p.ceiling_mask_level === 'none') {
+      delete p.floor_mask_level;
+      delete p.wall_mask_level;
+      delete p.ceiling_mask_level;
+    }
+  });
+
+  // v1.0.3: Migrate legacy mask-level vocabulary to canonical 9-value enum.
+  //   Legacy: edge_only / item_mask / partial_cover / full_cover / full_mask
+  //           + cabinet-only: light / standard / heavy
+  //   New:    edge / partial / full / encapsulate (+ edge_partial / edge_full /
+  //           edge_encapsulate / spot / none)
+  parsed.rooms.forEach(r => {
+    // Adjacent fixtures
+    const fix = r.fixtures || {};
+    Object.keys(fix).forEach(fId => {
+      const cfg = fix[fId];
+      if (!cfg || typeof cfg !== 'object') return;
+      if (cfg.protection) cfg.protection = migrateMaskLevel(cfg.protection);
+      // Feature wall items carry their own protection field
+      if (Array.isArray(cfg.items)) {
+        cfg.items.forEach(item => {
+          if (item.protection) item.protection = migrateMaskLevel(item.protection);
+        });
+      }
+    });
+
+    // Cabinet substrate "Protect" mode (CabinetsDetailPanel) — light/standard/heavy
+    const cab = r.substrates?.cabinets;
+    if (cab && cab.protection_level) {
+      cab.protection_level = migrateMaskLevel(cab.protection_level);
+    }
+
+    // Closet shelving protection level
+    (r.closets || []).forEach(c => {
+      if (c.protection_level) c.protection_level = migrateMaskLevel(c.protection_level);
+    });
+
+    // Legacy floor protection field (room.floor_protection) — separate from
+    // room.protection.floor_mask_level. Some rooms may still carry this.
+    if (r.floor_protection) r.floor_protection = migrateMaskLevel(r.floor_protection);
+  });
+
+  // v1.0.5: Per-window position + sill height band for clerestory/transom
+  // height_band override on window_casing/stool/apron/jamb specs. Existing
+  // window items default to ground level (uses room band; no override).
+  parsed.rooms.forEach(r => {
+    const items = r.substrates?.windows?.items;
+    if (!Array.isArray(items)) return;
+    items.forEach(w => {
+      if (typeof w.window_position === 'undefined') w.window_position = 'ground';
+      if (typeof w.sill_height_band === 'undefined') w.sill_height_band = 'STD';
+    });
+  });
+
+  // Phase A rate editing: backfill empty rate_overrides map if the project predates this feature.
+  if (parsed.project && !parsed.project.rate_overrides) {
+    parsed.project.rate_overrides = {};
+  }
+
+  // Project Tracker MVP: backfill status + tracker_roster on projects predating the feature.
+  // Existing enum was draft / estimated / in_progress / completed; we add 'approved'
+  // between estimated and in_progress. No value migration needed — old statuses stay valid.
+  if (parsed.project) {
+    if (parsed.project.status === undefined) {
+      parsed.project.status = 'draft';
+    }
+    if (!Array.isArray(parsed.project.tracker_roster)) {
+      parsed.project.tracker_roster = [];
+    }
+  }
+
   return parsed;
+}
+
+/**
+ * Prune rate overrides for tasks that have been archived, renamed, or shape-shifted
+ * (e.g., a task that used to have flat rate_per_hour now uses rates_by_tier).
+ * Pure function — returns a new state object; never mutates input.
+ *
+ * @param {object} state - The state object (must have state.project)
+ * @param {object} tasks - The bundle's tasks table (task_id -> canonical task)
+ * @returns {object} - State with pruned rate_overrides + optional _lastRateOverridePruneReport
+ */
+export function pruneStaleRateOverrides(state, tasks) {
+  if (!state || !state.project) return state;
+  const overrides = state.project.rate_overrides;
+  if (!overrides || Object.keys(overrides).length === 0) return state;
+
+  const pruned = {};
+  const dropped = [];
+  for (const [task_id, ov] of Object.entries(overrides)) {
+    const canonical = tasks && tasks[task_id];
+    if (!canonical) {
+      dropped.push({ task_id, reason: 'task archived/missing' });
+      continue;
+    }
+    const ineligible = (
+      typeof canonical.rate_per_hour !== 'number' ||
+      canonical.rates ||
+      canonical.rates_by_tier ||
+      canonical.rates_by_coat ||
+      canonical.fixed_minutes != null
+    );
+    if (ineligible) {
+      dropped.push({ task_id, reason: 'task no longer uses flat rate_per_hour' });
+      continue;
+    }
+    pruned[task_id] = ov;
+  }
+
+  if (dropped.length === 0) {
+    return state;
+  }
+  console.warn('[PaintScope] Dropped stale rate overrides:', dropped);
+  return {
+    ...state,
+    project: { ...state.project, rate_overrides: pruned },
+    _lastRateOverridePruneReport: { dropped, ts: Date.now() },
+  };
 }

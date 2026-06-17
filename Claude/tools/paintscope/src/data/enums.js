@@ -58,9 +58,24 @@ export const ENUMS = {
     { value:'L', label:'LG — 17 LF perim' },
     { value:'O', label:'XL — Measured' }
   ],
+  windowPositions: [
+    { value:'ground',     label:'Ground Level' },
+    { value:'clerestory', label:'Clerestory (high standalone row)' },
+    { value:'transom',    label:'Transom (above door/window)' }
+  ],
+  // Sill height bands — match FAC_HEIGHT thresholds. Drives ctx.height_band
+  // override for window_casing/stool/apron/jamb on elevated windows.
+  windowSillBands: [
+    { value:'STD',      label:'STD (under 9 ft)' },
+    { value:'STEP',     label:'STEP (9–13 ft)' },
+    { value:'EXT',      label:'EXT (13–18 ft)' },
+    { value:'SCAFFOLD', label:'SCAFFOLD (18–25 ft)' },
+    { value:'LIFT',     label:'LIFT (25+ ft)' }
+  ],
   substrateDoor: [
     { value:'factory_primed', label:'Factory Primed' },
-    { value:'bare_wood', label:'Bare Wood' }
+    { value:'bare_wood', label:'Bare Wood' },
+    { value:'vinyl_door', label:'Vinyl Door' }
   ],
   substrateWindow: [
     { value:'wood', label:'Wood' },
@@ -237,13 +252,14 @@ export const ENUMS = {
   substrateStates: [
     { value:'bare_drywall',       label:'Bare Drywall',       applies_to:['walls','ceiling'] },
     { value:'field_primed',       label:'Field Primed',       applies_to:['walls','ceiling'] },
-    { value:'factory_primed',     label:'Factory Primed',     applies_to:['doors','door_casing','window_casing','door_frames','windows','window_jamb','baseboard','crown','chair_rail','shoe_mold','wainscot_cap','picture_rail','window_stool','window_apron','shadow_box','panel_mold','wood_feature_wall','wood_ceiling','cabinets'] },
-    { value:'previously_painted', label:'Previously Painted', applies_to:['walls','ceiling','doors','door_casing','window_casing','door_frames','windows','window_jamb','baseboard','crown','chair_rail','shoe_mold','wainscot_cap','picture_rail','window_stool','window_apron','shadow_box','panel_mold','wainscoting','wood_feature_wall','wood_ceiling','closet_shelving','cabinets','beams','columns','mantels','builtins','stair_risers','stair_railing'] },
-    { value:'bare_wood',          label:'Bare Wood',          applies_to:['doors','door_casing','window_casing','door_frames','windows','window_jamb','baseboard','crown','chair_rail','shoe_mold','wainscot_cap','picture_rail','window_stool','window_apron','shadow_box','panel_mold','wainscoting','wood_feature_wall','wood_ceiling','closet_shelving','cabinets','beams','columns','mantels','builtins','stair_risers','stair_railing'] },
-    { value:'stained',            label:'Stained',            applies_to:['doors','door_casing','window_casing','door_frames','windows','window_jamb','baseboard','crown','chair_rail','shoe_mold','wainscoting','wood_feature_wall','wood_ceiling','beams','columns','mantels','builtins','stair_risers','stair_railing','cabinets'] },
-    { value:'clear_coated',       label:'Clear Coated',       applies_to:['doors','door_casing','window_casing','door_frames','windows','window_jamb','baseboard','crown','chair_rail','shoe_mold','wainscoting','wood_feature_wall','wood_ceiling','beams','columns','mantels','builtins','stair_risers','stair_railing'] },
+    { value:'factory_primed',     label:'Factory Primed',     applies_to:['doors','door_casing','window_casing','door_frames','windows','window_jamb','baseboard','crown','chair_rail','shoe_mold','picture_rail','window_stool','window_apron','shadow_box','panel_mold','wainscoting','wood_feature_wall','wood_ceiling','closet_shelving','beams','columns','mantels','builtins','stair_risers','stair_railing','cabinets'] },
+    { value:'previously_painted', label:'Previously Painted', applies_to:['walls','ceiling','doors','door_casing','window_casing','door_frames','windows','window_jamb','baseboard','crown','chair_rail','shoe_mold','picture_rail','window_stool','window_apron','shadow_box','panel_mold','wainscoting','wood_feature_wall','wood_ceiling','closet_shelving','beams','columns','mantels','builtins','stair_risers','stair_railing','cabinets'] },
+    { value:'bare_wood',          label:'Bare Wood',          applies_to:['doors','door_casing','window_casing','door_frames','windows','window_jamb','baseboard','crown','chair_rail','shoe_mold','picture_rail','window_stool','window_apron','shadow_box','panel_mold','wainscoting','wood_feature_wall','wood_ceiling','closet_shelving','beams','columns','mantels','builtins','stair_risers','stair_railing','cabinets'] },
     { value:'melamine',           label:'Melamine',           applies_to:['closet_shelving','cabinets'] },
     { value:'factory_finish',     label:'Factory Finish',     applies_to:['cabinets'] },
+    { value:'stained',            label:'Stained',            applies_to:['doors','door_casing','window_casing','door_frames','windows','window_jamb','baseboard','crown','chair_rail','shoe_mold','wainscoting','wood_feature_wall','wood_ceiling','beams','columns','mantels','builtins','stair_risers','stair_railing','cabinets'] },
+    { value:'clear_coated',       label:'Clear Coated',       applies_to:['doors','door_casing','window_casing','door_frames','windows','window_jamb','baseboard','crown','chair_rail','shoe_mold','wainscoting','wood_feature_wall','wood_ceiling','beams','columns','mantels','builtins','stair_risers','stair_railing'] },
     { value:'vinyl_clad',         label:'Vinyl Clad',         applies_to:['windows'] },
+    { value:'vinyl_door',         label:'Vinyl Door',         applies_to:['doors'] },
   ]
 };

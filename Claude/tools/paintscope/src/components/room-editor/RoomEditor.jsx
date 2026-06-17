@@ -42,10 +42,26 @@ export default function RoomEditor({ room, project, dispatch, roomCategories }) 
 
   // Tab badge counts
   const openingIds = new Set(['doors', 'windows', 'door_casing', 'window_casing', 'door_frames', 'window_jamb']);
-  const trimCount = Object.keys(subs).filter(id => !openingIds.has(id) && !['walls', 'ceiling'].includes(id) && (subs[id]?.group === 'Trim' || ['baseboard', 'crown_molding', 'chair_rail', 'shoe_mold', 'wainscot_cap', 'picture_rail', 'window_stool', 'window_apron', 'shadow_box', 'panel_mold'].includes(id))).length;
+  const trimCount = Object.keys(subs).filter(id => !openingIds.has(id) && !['walls', 'ceiling'].includes(id) && (subs[id]?.group === 'Trim' || ['baseboard', 'crown_molding', 'chair_rail', 'shoe_mold', 'picture_rail', 'window_stool', 'window_apron', 'shadow_box', 'panel_mold'].includes(id))).length;
   const specialtyCount = Object.keys(subs).filter(id => ['wainscoting', 'wood_feature_wall', 'wood_ceiling', 'closet_shelving', 'beams', 'columns', 'mantels', 'builtins', 'stairway'].includes(id)).length;
   const openingCount = (room.openings?.length || 0) + (subs.doors?.items?.length || 0) + (subs.windows?.items?.length || 0);
   const fixtureCount = room.fixtures ? Object.keys(room.fixtures).length : 0;
+
+  // V1a: Finish group membership summary — non-wall/ceiling items grouped by finish_group.
+  // Excludes always-present substrates (doors/windows/door_casing/window_casing) when
+  // painting=false — they stay in state even when not being painted, so their default
+  // finish_group would otherwise inflate the count.
+  const finishGroupSummary = (() => {
+    const counts = new Map();
+    for (const [id, cfg] of Object.entries(subs)) {
+      if (id === 'walls' || id === 'ceiling') continue;
+      if (!cfg || !cfg.finish_group) continue;
+      // If the substrate has a painting flag, require it to be true to count.
+      if (cfg.painting !== undefined && cfg.painting !== true) continue;
+      counts.set(cfg.finish_group, (counts.get(cfg.finish_group) || 0) + 1);
+    }
+    return [...counts.entries()].sort(([a], [b]) => a.localeCompare(b));
+  })();
 
   const getBadge = (tabId) => {
     switch (tabId) {
@@ -101,6 +117,26 @@ export default function RoomEditor({ room, project, dispatch, roomCategories }) 
           onCreateRoom={(patch, analysisResult) => dispatch({ type: 'CREATE_ROOM_FROM_PHOTO', payload: { patch, analysisResult } })}
           onClose={photoAnalysis.close}
         />
+      )}
+
+      {/* V1a: Finish group summary badge */}
+      {finishGroupSummary.length > 0 && (
+        <div style={{
+          padding: '4px 12px',
+          background: 'var(--surface-muted, #f5f5f5)',
+          fontSize: 11,
+          color: 'var(--text-muted)',
+          borderTop: '1px solid var(--border, #e0e0e0)',
+          borderBottom: '1px solid var(--border, #e0e0e0)',
+        }}>
+          Finish groups:{' '}
+          {finishGroupSummary.map(([group, count], i) => (
+            <span key={group} style={{ marginRight: 10 }}>
+              <strong>{group}</strong> ({count} {count === 1 ? 'item — singleton' : 'items'})
+              {i < finishGroupSummary.length - 1 ? ' ·' : ''}
+            </span>
+          ))}
+        </div>
       )}
 
       {/* Tab bar */}

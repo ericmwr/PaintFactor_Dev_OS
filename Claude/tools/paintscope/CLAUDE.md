@@ -195,6 +195,41 @@ All development happens in the React app under `src/`.
 | 3 | Output Views — estimate dashboard, summary, work orders | COMPLETE |
 | 4 | Visual Polish — theming, responsive, final styling | COMPLETE |
 | 5 | Closets as Sub-Rooms — data model, UI tab, quantity rollup | COMPLETE |
+| 6 | Exterior → Scenario Engine cutover — retired SF_EXT_* legacy pipeline | COMPLETE (2026-05-22) |
+
+---
+
+## 7a. Exterior Estimation Architecture (post-2026-05-22 cutover)
+
+Exterior elevations and standalone items flow through the **scenario engine** (MOD_*/SCN_* in `Claude/modules/` + `Claude/scenarios/`), not the legacy SF_EXT_* spec pipeline (which has been removed).
+
+**Pipeline:**
+```
+state.exterior.elevations[] + state.exterior.standalone
+  → buildElevationScenarioInputs / buildStandaloneScenarioInputs  (context-adapter.js)
+  → runScenarioEstimate                                            (run-estimate-scenario.js)
+  → normalizeToSpecResults (tags domain:'exterior' via roomIndex)  (scenario-estimate.js)
+  → resolveExteriorProtection + computeExteriorMaterialEstimates   (scenario-estimate.js)
+```
+
+**Conventions:**
+- Negative `roomIndex` distinguishes exterior from interior in downstream consumers
+  - Elevations: `-100` to `-999` (one per elevation)
+  - Standalone items: `-1000` to `-1999`
+- Exterior `specResults` items carry `domain: 'exterior'` for downstream filtering
+- `computeExteriorMaterialEstimates` derives PS keys from scenario task `psKey` fields (NOT from `db.spec_required_inputs` — those exterior rows were stripped)
+- `EXT_COVERAGE_DEFAULTS` (hardcoded in `material-estimates.js`) still drives primer/finish gallon math
+- `SPEC_TO_PAINTABLE_ITEM` in `context-adapter.js` is the spec_id → scenario paintable_item bridge. **Wood/generic siding uses un-prefixed `'siding'`**; engineered/fc/vinyl/aluminum use `ext_eng_siding`/`ext_fc_siding`/etc.
+
+**Deferred / backlog:**
+- **Scenario coverage gap**: `spray_backbrush` (the default `IdentityTab.jsx:66` placeholder) has zero scenarios for wood siding / trim / door / window / porch_floor. Authoring those scenarios + a possible UI default change is a separate work stream.
+- **No scenarios** for `ext_metal_railing` or `ext_deck_floor` — gap until authored.
+- `computeExteriorMaterialEstimates` and `resolveExteriorProtection` are still wired at the `runEstimate` level. Could move into scenario interstage/cleanup phases as future cleanup.
+- `EXT_UI_STATE_TO_SPEC_STATE` map (`spec-maps.js`) still in use for elevation state translation — kept intentionally.
+
+**Plan reference:** `Claude/docs/superpowers/plans/2026-05-21-exterior-scenario-cutover.md`
+
+**11 commits landed**: `a2e0114` → `e21a1ff` → `6abfbc1` → `60090c9` → `b0f90fc` → `f9cb562` → `c0530e6` → `2d333e3` → `88e66d9` → `c437760` → `985102d`.
 
 ---
 

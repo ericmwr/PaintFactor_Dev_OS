@@ -1,4 +1,5 @@
 import { FLOOR_PROTECTION_HIERARCHY, FLOOR_ZONE_IDS, FLOOR_PROTECTION_DONOR_PRIORITY, PHASE_ORDER } from '../data/constants.js';
+import { SPEC_PROTECTION_ZONES, SOP_TASK_PROTECTION } from '../data/scenario-rate-data.js';
 
 /**
  * Classify a task as a floor install/remove candidate.
@@ -6,7 +7,7 @@ import { FLOOR_PROTECTION_HIERARCHY, FLOOR_ZONE_IDS, FLOOR_PROTECTION_DONOR_PRIO
  * Mixed-zone tasks (floor + wall/fixture) are NOT classified - they stay with their specs.
  * Maintain tasks are NOT classified - they stay with their specs.
  */
-export function classifyFloorProtectionTask(sopTask, db) {
+export function classifyFloorProtectionTask(sopTask) {
   const pm = sopTask.protection_metadata;
   if (!pm || !pm.action || !pm.zones) return null;
   if (pm.action === 'maintain') return null;
@@ -23,7 +24,7 @@ export function classifyFloorProtectionTask(sopTask, db) {
   // Resolve highest protection level from the zones
   let maxRank = 0;
   let maxLevelName = 'edge_only';
-  const zoneTable = db.spec_protection_zones || [];
+  const zoneTable = SPEC_PROTECTION_ZONES;
   for (const zone of floorZones) {
     const zoneRow = zoneTable.find(
       r => r.zone_id === zone && r.spec_family_id === sopTask.spec_family_id
@@ -41,10 +42,10 @@ export function classifyFloorProtectionTask(sopTask, db) {
  * Removes floor install/remove tasks from individual specs and emits
  * one install + one remove per room under a Room Protection category.
  */
-export function resolveRoomFloorProtection(specResults, db, rooms) {
+export function resolveRoomFloorProtection(specResults, rooms) {
   // Build index: taskId::specFamilyId -> sop_task record (for protection_metadata lookup)
   const sopTaskIndex = {};
-  (db.sop_tasks || []).forEach(t => {
+  SOP_TASK_PROTECTION.forEach(t => {
     sopTaskIndex[t.id + '::' + t.spec_family_id] = t;
   });
 
@@ -57,7 +58,7 @@ export function resolveRoomFloorProtection(specResults, db, rooms) {
       const sopTask = sopTaskIndex[task.taskId + '::' + sr.specId];
       if (!sopTask) return;
 
-      const cls = classifyFloorProtectionTask(sopTask, db);
+      const cls = classifyFloorProtectionTask(sopTask);
       if (!cls) return;
 
       const ri = task.roomIndex;

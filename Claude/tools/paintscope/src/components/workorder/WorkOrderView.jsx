@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { useProject } from '../../hooks/useProject';
-import { useEstimate } from '../../hooks/useEstimate';
+import { useEstimateScenario } from '../../hooks/useEstimateScenario';
 import { deriveRoom } from '../../engine/derive-room';
 import { PHASE_ORDER, PHASE_COLORS, specDisplayName } from '../../data/constants';
 import { FLOOR_TYPES, FLOOR_PROTECTION_LABEL } from '../../data/fixture-catalog';
+import { maskLabel } from '../../data/mask-levels';
 
 // Solid accent colors for the phase legend strip and left-border accents
 const PHASE_ACCENT = {
@@ -18,7 +19,7 @@ const PHASE_ACCENT = {
 
 export default function WorkOrderView() {
   const { state } = useProject();
-  const estimate = useEstimate();
+  const estimate = useEstimateScenario();
 
   const [viewMode, setViewMode] = useState('room'); // 'phase' or 'room'
   const [expandedRooms, setExpandedRooms] = useState({});
@@ -92,12 +93,23 @@ export default function WorkOrderView() {
 
   const roomEntries = Object.entries(roomMap).sort((a,b) => parseInt(a[0]) - parseInt(b[0]));
 
-  // Task name suffix helper: adds coat count and/or floor protection material
+  // Task name suffix helper: adds coat count, floor protection material, and
+  // Cathedral/Vaulted Ceiling label. The ceiling-type suffix surfaces on
+  // ceiling/wall tasks always, and on window tasks only when band-stratified
+  // to a non-STD band (clerestory/transom \u2014 second-story windows).
   const taskNameSuffix = (t) => {
     const parts = [];
     if (t.coatMultiplier > 1) parts.push(`${t.coatMultiplier} coats`);
     if (t.floorType && t.taskName && t.taskName.toLowerCase().includes('floor prot') && FLOOR_PROTECTION_LABEL[t.floorType]) {
       parts.push(`${FLOOR_PROTECTION_LABEL[t.floorType]} \u2014 ${(FLOOR_TYPES.find(f=>f.id===t.floorType)||{}).label||t.floorType}`);
+    }
+    if (t.cathedralCeiling || t.vaultedCeiling) {
+      const baseSpecId = t.specId ? (t.specId.includes('::') ? t.specId.split('::')[0] : t.specId) : '';
+      const isCeilOrWall = /(_WALL|_CEILING)/.test(baseSpecId);
+      const isWindow = /_WINDOW_(CASING|JAMB|STOOL|APRON)/.test(baseSpecId);
+      if (isCeilOrWall || (isWindow && t.band && t.band !== 'STD')) {
+        parts.push(t.cathedralCeiling ? 'Cathedral Ceiling' : 'Vaulted Ceiling');
+      }
     }
     return parts.length > 0 ? ` (${parts.join(', ')})` : '';
   };
@@ -242,7 +254,7 @@ export default function WorkOrderView() {
                   const rp = estimate.roomProtection[ri];
                   const rpKey = 'wo::' + ri + '::__RP__';
                   const isRpOpen = expandedItems[rpKey] !== false;
-                  const levelLabel = (rp.protectionLevel || 'edge_only').replace(/_/g, ' ');
+                  const levelLabel = maskLabel(rp.protectionLevel, { short: true });
                   return (
                     <div className="spec-section" style={{marginLeft:16,borderLeft:'3px solid #e6a817',marginBottom:8}}>
                       <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'4px 8px',cursor:'pointer'}} onClick={() => toggleItem(rpKey)}>

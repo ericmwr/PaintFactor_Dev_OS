@@ -1,12 +1,17 @@
-import { useMemo } from 'react';
-import { useEstimate } from '../../hooks/useEstimate';
+import { useMemo, useState } from 'react';
+import { useEstimateScenario } from '../../hooks/useEstimateScenario';
 import { useProject } from '../../hooks/useProject';
+import { useProducts } from '../../hooks/useProducts';
 import { SYSTEM_INDEX } from '../../data/product-catalog.js';
+import ManualMaterialModal from './ManualMaterialModal.jsx';
 
 export default function ResolvedProductsView() {
-  const estimate = useEstimate();
+  const estimate = useEstimateScenario();
   const { state, dispatch } = useProject();
-  const overrides = state.project.material_overrides || { system: {}, manual: {} };
+  const { products: catalogProducts } = useProducts();
+  const [addOpen, setAddOpen] = useState(false);
+  const overrides = state.project.material_overrides || { system: {}, manual: [] };
+  const manualEntries = Array.isArray(overrides.manual) ? overrides.manual : [];
 
   // Consolidate by productId — same product from multiple specs merges into one row
   const materials = useMemo(() => {
@@ -44,16 +49,39 @@ export default function ResolvedProductsView() {
   const isOverridden = (systemId) =>
     overrides.system && overrides.system[systemId];
 
+  const removeManual = (id) => {
+    if (!confirm('Remove this product from the estimate?')) return;
+    dispatch({ type: 'REMOVE_MANUAL_MATERIAL', payload: id });
+  };
+
+  const updateManualGallons = (id, val) => {
+    const g = parseFloat(val);
+    if (!isFinite(g) || g <= 0) return;
+    dispatch({ type: 'UPDATE_MANUAL_MATERIAL', payload: { id, gallons: g } });
+  };
+
   return (
     <div>
-      <h3 style={{ fontSize: 14, marginBottom: 12 }}>Resolved Products</h3>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 12 }}>
+        <h3 style={{ fontSize: 14, margin: 0 }}>Resolved Products</h3>
+        <button
+          onClick={() => setAddOpen(true)}
+          style={{
+            background: 'var(--accent, #82aaff)', color: 'var(--bg, #0f0f0f)',
+            border: 'none', padding: '4px 12px', borderRadius: 4,
+            fontSize: 11, fontWeight: 600, cursor: 'pointer',
+          }}
+        >+ Add Product to Estimate</button>
+      </div>
       <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 16 }}>
         Products auto-selected based on project brand preference and quality tier.
-        Override any selection with the dropdown.
+        Override any selection with the dropdown. Use <strong>+ Add Product to Estimate</strong> to
+        attach catalog products manually (e.g., when the engine didn't fire a material like trim paint).
       </p>
-      {materials.length === 0 ? (
+      {materials.length === 0 && manualEntries.length === 0 ? (
         <p style={{ fontSize: 12, color: 'var(--text-muted)' }}>
-          No material estimates available. Add rooms with surfaces to see resolved products.
+          No material estimates available. Add rooms with surfaces to see resolved products,
+          or use <strong>+ Add Product to Estimate</strong> above.
         </p>
       ) : (
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
@@ -110,9 +138,58 @@ export default function ResolvedProductsView() {
                 </tr>
               );
             })}
+            {manualEntries.length > 0 && (
+              <>
+                <tr><td colSpan={6} style={{ padding: '12px 8px 4px', fontSize: 10, color: 'var(--text-muted)', letterSpacing: 0.5, fontWeight: 600 }}>
+                  ═══ MANUALLY ADDED ═══
+                </td></tr>
+                {manualEntries.map(m => {
+                  const product = catalogProducts.find(p => p.id === m.product_id);
+                  if (!product) {
+                    return (
+                      <tr key={m.id} style={{ borderBottom: '1px solid var(--bg-hover)', background: 'rgba(241,196,15,0.05)' }}>
+                        <td colSpan={5} style={{ padding: 8, color: 'var(--text-muted)', fontStyle: 'italic' }}>
+                          (product deleted from catalog — was id {m.product_id}) — {m.gallons} gal {m.notes && `· ${m.notes}`}
+                        </td>
+                        <td style={{ padding: 8, textAlign: 'center' }}>
+                          <button onClick={() => removeManual(m.id)} style={{ background: 'transparent', border: 'none', color: '#e74c3c', cursor: 'pointer', fontSize: 11 }}>Remove</button>
+                        </td>
+                      </tr>
+                    );
+                  }
+                  const cost = (product.unit_cost || 0) * (m.gallons || 0);
+                  return (
+                    <tr key={m.id} style={{ borderBottom: '1px solid var(--bg-hover)', background: 'rgba(95,213,95,0.04)' }}>
+                      <td style={{ padding: 8, color: 'var(--text-secondary)' }}>
+                        <span style={{ fontSize: 10, padding: '1px 6px', borderRadius: 3, background: 'rgba(95,213,95,0.2)', color: '#5d5', marginRight: 6 }}>manual</span>
+                        {product.product_type}
+                      </td>
+                      <td style={{ padding: 8, fontWeight: 600 }}>{product.product_name}</td>
+                      <td style={{ padding: 8 }}>{product.brand || '—'}</td>
+                      <td style={{ padding: 8, textAlign: 'right' }}>
+                        <input
+                          type="number" step="0.25" min="0"
+                          defaultValue={m.gallons}
+                          onBlur={(e) => updateManualGallons(m.id, e.target.value)}
+                          style={{ width: 64, textAlign: 'right', background: 'var(--bg-input, #161616)', color: 'var(--text)', border: '1px solid var(--border)', padding: '2px 4px', borderRadius: 3, fontSize: 11 }}
+                        /> gal
+                      </td>
+                      <td style={{ padding: 8, textAlign: 'right', color: 'var(--accent)' }}>
+                        {product.unit_cost ? `$${(product.unit_cost).toFixed(2)} → $${cost.toFixed(2)}` : '—'}
+                      </td>
+                      <td style={{ padding: 8, textAlign: 'center' }}>
+                        <button onClick={() => removeManual(m.id)} style={{ background: 'transparent', border: 'none', color: '#e74c3c', cursor: 'pointer', fontSize: 11 }}>Remove</button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </>
+            )}
           </tbody>
         </table>
       )}
+
+      {addOpen && <ManualMaterialModal onClose={() => setAddOpen(false)} />}
     </div>
   );
 }

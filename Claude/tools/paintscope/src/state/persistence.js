@@ -1,4 +1,5 @@
-import { migrateV02toV03, migrateInline } from './migrations';
+import { migrateV02toV03, migrateInline, pruneStaleRateOverrides } from './migrations';
+import { tasks as bundleTasks } from '../data/scenario-bundle.gen';
 
 const STORAGE_KEY = 'paintscope_state';
 
@@ -14,6 +15,7 @@ export function loadFromStorage(init) {
       if (parsed.project && parsed.rooms) {
         parsed = migrateV02toV03(parsed);
         parsed = migrateInline(parsed);
+        parsed = pruneStaleRateOverrides(parsed, bundleTasks);
         return { ...parsed, ui: parsed.ui || init.ui };
       }
     }
@@ -23,10 +25,12 @@ export function loadFromStorage(init) {
 
 /**
  * Save state to localStorage.
+ * Strips transient prune report so the warn-band doesn't re-show across reloads.
  */
 export function saveToStorage(state) {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    const { _lastRateOverridePruneReport, ...persistable } = state;
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(persistable));
   } catch(e) { console.error('[PaintScope] Save error:', e); }
 }
 

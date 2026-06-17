@@ -12,7 +12,6 @@ export const SUBSTRATE_COLOR_GROUPS = {
   window_casing: 'trim',
   chair_rail: 'trim',
   shoe_mold: 'trim',
-  wainscot_cap: 'trim',
   picture_rail: 'trim',
   window_stool: 'trim',
   window_apron: 'trim',

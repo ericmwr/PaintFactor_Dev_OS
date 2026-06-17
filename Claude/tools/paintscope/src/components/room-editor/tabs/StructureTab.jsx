@@ -4,15 +4,22 @@ import NumField from '../../shared/NumField';
 import SubstrateStateSelect from '../SubstrateStateSelect';
 import { ENUMS } from '../../../data/enums';
 import { SUBSTRATE_APPLICATION_METHODS } from '../../../data/substrate-catalog';
+import { useModifierEnum } from '../../../hooks/useModifierEnum';
 
 const MATERIAL_OPTS = [{value:'drywall',label:'Drywall'},{value:'wood',label:'Wood'}];
 const COATING_OPTS = [{value:'paint',label:'Paint'},{value:'stain_clear',label:'Stain + Clear'},{value:'stain_only',label:'Stain Only'},{value:'clear_only',label:'Clear Only'}];
 const SPECIES_OPTS = [{value:'softwood',label:'Softwood'},{value:'hardwood',label:'Hardwood'}];
 const STAIN_METHOD_OPTS = [{value:'brush',label:'Brush'},{value:'spray',label:'Spray'},{value:'roll',label:'Roll'}];
 const CLEAR_METHOD_OPTS = [{value:'brush',label:'Brush'},{value:'spray',label:'Spray'}];
+const CEILING_TYPE_OPTS = [
+  {value:'standard', label:'Standard'},
+  {value:'vaulted',  label:'Vaulted'},
+  {value:'cathedral',label:'Cathedral'},
+];
 
 export default function StructureTab({ room, derived, dispatch, project }) {
   const rid = room.id;
+  const textureOptions = useModifierEnum('FAC_TEXTURE');
   const subs = room.substrates || {};
   const setRoom = (f, v) => dispatch({ type: 'SET_ROOM', payload: { roomId: rid, field: f, value: v } });
   const setSub = (subId, field, value) => dispatch({ type: 'SET_SUBSTRATE', payload: { roomId: rid, substrateId: subId, field, value: value ?? null } });
@@ -33,8 +40,62 @@ export default function StructureTab({ room, derived, dispatch, project }) {
   const hasStain = (ct) => ct === 'stain_clear' || ct === 'stain_only';
   const hasClear = (ct) => ct === 'stain_clear' || ct === 'clear_only';
 
+  const projectCombined = !!project.default_combined_prime;
+  const roomOverride = room.combined_prime_override || null;
+  const effectivePrimeMode = roomOverride || (projectCombined ? 'combined' : 'separate');
+  const primeModeOpts = [
+    { value: '', label: `Project default (${projectCombined ? 'Combined' : 'Separate'})` },
+    { value: 'combined', label: 'Combined wall and ceiling prime (pre-trim)' },
+    { value: 'separate', label: 'Separate wall and ceiling prime' },
+  ];
+
+  const projectCombinedFinish = !!project.default_combined_wc_finish;
+  const roomFinishOverride = room.combined_wc_finish_override || null;
+  const effectiveFinishMode = roomFinishOverride || (projectCombinedFinish ? 'combined' : 'separate');
+  const finishModeOpts = [
+    { value: '', label: `Project default (${projectCombinedFinish ? 'Combined' : 'Separate'})` },
+    { value: 'combined', label: 'Combined wall and ceiling finish' },
+    { value: 'separate', label: 'Separate wall and ceiling finish' },
+  ];
+
   return (
     <div>
+      {/* ── Prime workflow (room-level override of project default) ── */}
+      <div className="panel-section" data-section="prime-workflow" style={{ padding: '8px 12px' }}>
+        <div className="field-label" style={{ marginBottom: 4 }}>Prime Workflow</div>
+        <Select
+          options={primeModeOpts}
+          value={roomOverride || ''}
+          onChange={v => setRoom('combined_prime_override', v || null)}
+          style={{ width: '100%', maxWidth: 420 }}
+        />
+        <div style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 3 }}>
+          Currently: <strong style={{ color: effectivePrimeMode === 'combined' ? 'var(--accent, #82aaff)' : 'inherit' }}>{effectivePrimeMode === 'combined' ? 'Combined' : 'Separate'}</strong>
+          {' — '}
+          {effectivePrimeMode === 'combined'
+            ? 'walls + ceiling primed in one continuous spray pass; drops cut-in + wall masking tasks.'
+            : 'walls and ceiling primed in distinct passes with full cut-in / masking.'}
+        </div>
+      </div>
+
+      {/* ── Finish workflow (room-level override of project default) ── */}
+      <div className="panel-section" data-section="finish-workflow" style={{ padding: '8px 12px' }}>
+        <div className="field-label" style={{ marginBottom: 4 }}>Finish Workflow</div>
+        <Select
+          options={finishModeOpts}
+          value={roomFinishOverride || ''}
+          onChange={v => setRoom('combined_wc_finish_override', v || null)}
+          style={{ width: '100%', maxWidth: 420 }}
+        />
+        <div style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 3 }}>
+          Currently: <strong style={{ color: effectiveFinishMode === 'combined' ? 'var(--accent, #82aaff)' : 'inherit' }}>{effectiveFinishMode === 'combined' ? 'Combined' : 'Separate'}</strong>
+          {' — '}
+          {effectiveFinishMode === 'combined'
+            ? 'walls + ceiling finished together in one spray pass; dedups setup/cleanup, drops between-substrate cut-in.'
+            : 'walls and ceiling finished in distinct passes with full setup/cleanup each.'}
+        </div>
+      </div>
+
       {/* ── Walls ── */}
       <div className="panel-section" data-section="walls">
         <div className="section-title">Walls</div>
@@ -57,7 +118,7 @@ export default function StructureTab({ room, derived, dispatch, project }) {
           {!isBareWoodWall && (
             <div>
               <div className="field-label">Texture</div>
-              <Select options={ENUMS.textures} value={wallCfg.texture} onChange={v => setSub('walls', 'texture', v || null)} placeholder="Project Default" />
+              <Select options={textureOptions} value={wallCfg.texture} onChange={v => setSub('walls', 'texture', v || null)} placeholder="Project Default" />
             </div>
           )}
           {isBareWoodWall && (
@@ -160,6 +221,7 @@ export default function StructureTab({ room, derived, dispatch, project }) {
       )}
       </div>
 
+
       {/* ── Ceiling ── */}
       <div className="panel-section" data-section="ceiling">
         <div className="section-title">Ceiling</div>
@@ -182,7 +244,7 @@ export default function StructureTab({ room, derived, dispatch, project }) {
           {!isBareWoodCeil && (
             <div>
               <div className="field-label">Texture</div>
-              <Select options={ENUMS.textures} value={ceilCfg.texture} onChange={v => setSub('ceiling', 'texture', v || null)} placeholder="Project Default" />
+              <Select options={textureOptions} value={ceilCfg.texture} onChange={v => setSub('ceiling', 'texture', v || null)} placeholder="Project Default" />
             </div>
           )}
           {isBareWoodCeil && (
@@ -230,47 +292,6 @@ export default function StructureTab({ room, derived, dispatch, project }) {
           <div style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 2 }}>L&times;W = {derived.ceilingSF}{derived.vaultedExtra > 0 ? ` + Vault ${derived.vaultedExtra}` : ''}</div>
         </div>
 
-        {/* Vault & Gable — inline under ceiling */}
-        <div style={{ marginTop: 10, padding: '8px 10px', background: 'var(--bg-tertiary)', borderRadius: 6 }}>
-          <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 6 }}>Vault &amp; Gable</div>
-          <div className="form-grid" style={{ gridTemplateColumns: '1fr 1fr 1fr 1fr' }}>
-            <div>
-              <Toggle checked={!!room.vaulted_ceiling} onChange={v => setRoom('vaulted_ceiling', v)} label="Vaulted Ceiling" />
-            </div>
-            <div>
-              <div className="field-label">Peak Height (ft)</div>
-              <input type="number" value={room.peak_height_ft || ''} onChange={e => setRoom('peak_height_ft', parseFloat(e.target.value) || 0)} min="0" step="0.5" disabled={!room.vaulted_ceiling} style={{ opacity: room.vaulted_ceiling ? 1 : 0.4 }} />
-            </div>
-            <div>
-              <div className="field-label">Ridge Direction</div>
-              <select value={room.ridge_direction || 'length'} onChange={e => setRoom('ridge_direction', e.target.value)} disabled={!room.vaulted_ceiling} style={{ opacity: room.vaulted_ceiling ? 1 : 0.4 }}>
-                <option value="length">Along Length</option>
-                <option value="width">Along Width</option>
-              </select>
-            </div>
-            <div>
-              <div className="field-label">Pitch</div>
-              <div style={{ padding: '6px 0', fontSize: 13, color: room.vaulted_ceiling && derived.pitch > 0 ? 'var(--text-primary)' : 'var(--text-muted)' }}>{derived.pitch > 0 ? `${derived.pitch}:12` : '\u2014'}</div>
-            </div>
-          </div>
-          {room.vaulted_ceiling && (
-            <div className="form-grid" style={{ gridTemplateColumns: '1fr 2fr', marginTop: 4 }}>
-              <div>
-                <div className="field-label">Gable Walls</div>
-                <input type="number" value={room.gable_walls || ''} onChange={e => setRoom('gable_walls', parseInt(e.target.value) || 0)} min="0" max="4" style={{ width: 60 }} />
-              </div>
-              <div style={{ display: 'flex', alignItems: 'flex-end', paddingBottom: 4 }}>
-                {(derived.vaultedExtra > 0 || derived.gableExtra > 0) && (
-                  <span style={{ fontSize: 11, color: 'var(--text-secondary)', fontFamily: 'var(--font-mono)' }}>
-                    {derived.vaultedExtra > 0 && <span>Extra Ceiling: <b style={{ color: 'var(--accent)' }}>+{derived.vaultedExtra} SF</b></span>}
-                    {derived.vaultedExtra > 0 && derived.gableExtra > 0 && <span style={{ margin: '0 8px' }}>|</span>}
-                    {derived.gableExtra > 0 && <span>Extra Wall: <b style={{ color: 'var(--accent)' }}>+{derived.gableExtra} SF</b></span>}
-                  </span>
-                )}
-              </div>
-            </div>
-          )}
-        </div>
 
         {/* Conflict warnings */}
         {subs.wood_ceiling && isWoodCeil && (
@@ -285,6 +306,61 @@ export default function StructureTab({ room, derived, dispatch, project }) {
         )}
         </>
       )}
+
+      {/* Ceiling Type — kept outside subs.ceiling gate (W-14) so vault/gable inputs still affect wall SF when ceiling isn't painted */}
+      <div style={{ marginTop: 10, padding: '8px 10px', background: 'var(--bg-tertiary)', borderRadius: 6 }}>
+        <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 6 }}>Ceiling Type</div>
+        <div className="form-grid" style={{ gridTemplateColumns: '1fr 1fr 1fr 1fr' }}>
+          <div>
+            <div className="field-label">Type</div>
+            <Select
+              options={CEILING_TYPE_OPTS}
+              value={room.cathedral_ceiling ? 'cathedral' : room.vaulted_ceiling ? 'vaulted' : 'standard'}
+              onChange={v => {
+                setRoom('vaulted_ceiling', v === 'vaulted');
+                setRoom('cathedral_ceiling', v === 'cathedral');
+              }}
+            />
+            {room.cathedral_ceiling && (
+              <div style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 2 }}>
+                Flat ceiling at room height. No slope/gable.
+              </div>
+            )}
+          </div>
+          <div>
+            <div className="field-label">Peak Height (ft)</div>
+            <input type="number" value={room.peak_height_ft || ''} onChange={e => setRoom('peak_height_ft', parseFloat(e.target.value) || 0)} min="0" step="0.5" disabled={!room.vaulted_ceiling} style={{ opacity: room.vaulted_ceiling ? 1 : 0.4 }} />
+          </div>
+          <div>
+            <div className="field-label">Ridge Direction</div>
+            <select value={room.ridge_direction || 'length'} onChange={e => setRoom('ridge_direction', e.target.value)} disabled={!room.vaulted_ceiling} style={{ opacity: room.vaulted_ceiling ? 1 : 0.4 }}>
+              <option value="length">Along Length</option>
+              <option value="width">Along Width</option>
+            </select>
+          </div>
+          <div>
+            <div className="field-label">Pitch</div>
+            <div style={{ padding: '6px 0', fontSize: 13, color: room.vaulted_ceiling && derived.pitch > 0 ? 'var(--text-primary)' : 'var(--text-muted)' }}>{derived.pitch > 0 ? `${derived.pitch}:12` : '\u2014'}</div>
+          </div>
+        </div>
+        {room.vaulted_ceiling && (
+          <div className="form-grid" style={{ gridTemplateColumns: '1fr 2fr', marginTop: 4 }}>
+            <div>
+              <div className="field-label">Gable Walls</div>
+              <input type="number" value={room.gable_walls || ''} onChange={e => setRoom('gable_walls', parseInt(e.target.value) || 0)} min="0" max="4" style={{ width: 60 }} />
+            </div>
+            <div style={{ display: 'flex', alignItems: 'flex-end', paddingBottom: 4 }}>
+              {(derived.vaultedExtra > 0 || derived.gableExtra > 0) && (
+                <span style={{ fontSize: 11, color: 'var(--text-secondary)', fontFamily: 'var(--font-mono)' }}>
+                  {derived.vaultedExtra > 0 && <span>Extra Ceiling: <b style={{ color: 'var(--accent)' }}>+{derived.vaultedExtra} SF</b></span>}
+                  {derived.vaultedExtra > 0 && derived.gableExtra > 0 && <span style={{ margin: '0 8px' }}>|</span>}
+                  {derived.gableExtra > 0 && <span>Extra Wall: <b style={{ color: 'var(--accent)' }}>+{derived.gableExtra} SF</b></span>}
+                </span>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
       </div>
 
       {/* ── Ceiling Beams ── (available for all ceilings, not just vaulted) */}

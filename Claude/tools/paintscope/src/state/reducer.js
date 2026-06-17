@@ -1,5 +1,27 @@
-import { createRoom, createDoor, createWindow, createOpening, createCloset, createSubstrateConfig, genId } from './initial-state';
+import { createRoom, createDoor, createWindow, createOpening, createCloset, createSubstrateConfig, genId, bumpNextIdFromState } from './initial-state';
 import { FIXTURE_MAP } from '../data/fixture-catalog';
+import { inferDefaultSystem, coatingTypeFromSystem } from '../data/system-catalog.js';
+import { PAINTING_SCOPE_PRESET_MAP, ALWAYS_PRESENT_SUBSTRATES } from '../data/painting-scope-presets.js';
+import { LIGHT_FIXTURE_TYPE_MAP } from '../data/light-fixture-types.js';
+
+// Build a fresh light-fixture item. Time fields are null on creation —
+// the user enters them in the inline panel (50% auto-fill on the mask
+// remove side happens UI-side when they type the install time).
+function createLightFixtureItem(type = 'other') {
+  const taxonomy = LIGHT_FIXTURE_TYPE_MAP[type] || LIGHT_FIXTURE_TYPE_MAP['other'];
+  return {
+    id: genId('lfi'),
+    type,
+    custom_label: taxonomy.is_custom ? '' : null,
+    count: 1,
+    protection: taxonomy.default_protection || 'full',
+    action_mode: 'mask',
+    mask_install_time_min:     null,  // user input
+    mask_remove_time_min:      null,  // user input; UI auto-fills 50% of install
+    fixture_uninstall_time_min: null, // user input
+    fixture_reinstall_time_min: null, // user input
+  };
+}
 import {
   createElevation, createSidingSection, createTrimConfig, createExtWindow, createExtDoor,
   createBumpOut, createDormer, createGable, createGarageDoor, createDeck, createFence,
@@ -14,6 +36,109 @@ export function reducer(state, action) {
   }
   switch (type) {
     case 'SET_PROJECT': return { ...state, project: { ...state.project, [payload.field]: payload.value } };
+    case 'SET_RATE_OVERRIDE': {
+      const { task_id, rate_per_hour } = payload || {};
+      if (!task_id) return state;
+      const cur = state.project.rate_overrides || {};
+      if (rate_per_hour == null || rate_per_hour <= 0) {
+        const next = { ...cur };
+        delete next[task_id];
+        return { ...state, project: { ...state.project, rate_overrides: next } };
+      }
+      return {
+        ...state,
+        project: {
+          ...state.project,
+          rate_overrides: {
+            ...cur,
+            [task_id]: { rate_per_hour, ts: Date.now() },
+          },
+        },
+      };
+    }
+    case 'CLEAR_RATE_OVERRIDE': {
+      const { task_id } = payload || {};
+      if (!task_id) return state;
+      const cur = state.project.rate_overrides || {};
+      if (!cur[task_id]) return state;
+      const next = { ...cur };
+      delete next[task_id];
+      return { ...state, project: { ...state.project, rate_overrides: next } };
+    }
+    case 'CLEAR_PRUNE_REPORT': {
+      const next = { ...state };
+      delete next._lastRateOverridePruneReport;
+      return next;
+    }
+    case 'SET_PROJECT_STATUS': {
+      const valid = ['draft', 'estimated', 'approved', 'in_progress', 'completed'];
+      if (!valid.includes(payload)) return state;
+      return { ...state, project: { ...state.project, status: payload } };
+    }
+    case 'APPEND_ROSTER_NAME': {
+      if (typeof payload !== 'string') return state;
+      const name = payload.trim();
+      if (!name) return state;
+      const roster = state.project.tracker_roster || [];
+      const lower = name.toLowerCase();
+      if (roster.some(n => n.toLowerCase() === lower)) return state;
+      return { ...state, project: { ...state.project, tracker_roster: [...roster, name] } };
+    }
+    case 'REMOVE_ROSTER_NAME': {
+      if (typeof payload !== 'string') return state;
+      const roster = state.project.tracker_roster || [];
+      const next = roster.filter(n => n !== payload);
+      if (next.length === roster.length) return state;
+      return { ...state, project: { ...state.project, tracker_roster: next } };
+    }
+    case 'ADD_MANUAL_MATERIAL': {
+      const { product_id, gallons, notes } = payload || {};
+      if (!product_id || !(gallons > 0)) return state;
+      const mo = state.project.material_overrides || { system: {}, manual: [] };
+      const manual = Array.isArray(mo.manual) ? mo.manual : [];
+      const entry = {
+        id: `mm_${Date.now()}`,
+        product_id,
+        gallons: Number(gallons),
+        notes: (notes || '').trim(),
+        added_at: new Date().toISOString(),
+      };
+      return {
+        ...state,
+        project: {
+          ...state.project,
+          material_overrides: { ...mo, manual: [...manual, entry] },
+        },
+      };
+    }
+    case 'UPDATE_MANUAL_MATERIAL': {
+      const { id, gallons, notes } = payload || {};
+      if (!id) return state;
+      const mo = state.project.material_overrides || { system: {}, manual: [] };
+      const manual = Array.isArray(mo.manual) ? mo.manual : [];
+      const idx = manual.findIndex(m => m.id === id);
+      if (idx < 0) return state;
+      const updated = { ...manual[idx] };
+      if (gallons != null && gallons > 0) updated.gallons = Number(gallons);
+      if (notes != null) updated.notes = String(notes).trim();
+      const next = [...manual]; next[idx] = updated;
+      return {
+        ...state,
+        project: { ...state.project, material_overrides: { ...mo, manual: next } },
+      };
+    }
+    case 'REMOVE_MANUAL_MATERIAL': {
+      const id = payload;
+      if (!id) return state;
+      const mo = state.project.material_overrides || { system: {}, manual: [] };
+      const manual = Array.isArray(mo.manual) ? mo.manual : [];
+      const next = manual.filter(m => m.id !== id);
+      if (next.length === manual.length) return state;
+      return {
+        ...state,
+        project: { ...state.project, material_overrides: { ...mo, manual: next } },
+      };
+    }
     case 'TOGGLE_PROJECT_SUBSTRATE': {
       const subs = state.project.default_substrates || [];
       const id = payload;
@@ -59,6 +184,7 @@ export function reducer(state, action) {
       };
     }
     case 'ADD_ROOM': {
+      bumpNextIdFromState(state);
       const room = createRoom(payload || {});
       const projSubs = state.project.default_substrates || [];
       projSubs.forEach(subId => {
@@ -133,6 +259,57 @@ export function reducer(state, action) {
       });
     }
 
+    // v0.10: Set a single field on room.protection. Used by Protection tab v2
+    // to record per-room overrides for floor/wall/ceiling mask levels, tape
+    // line, containment, etc. Empty / null values delete the key (= revert to
+    // auto-derived default).
+    case 'SET_ROOM_PROTECTION_FIELD': {
+      const { roomId, field, value } = payload;
+      return mapRoom(roomId, r => {
+        const prot = { ...(r.protection || {}) };
+        if (value === null || value === undefined || value === '') delete prot[field];
+        else prot[field] = value;
+        return { ...r, protection: prot };
+      });
+    }
+
+    // v0.10: Set the painting scope preset for a room. When the preset has a
+    // substrates list, bulk-replace the room's active substrate set:
+    //   - Substrates IN the preset get added (or painting=true for always-present openings)
+    //   - Substrates NOT in the preset get removed (or painting=false for openings)
+    // 'custom' preset is a no-op on substrate state — user manages manually.
+    case 'SET_PAINTING_SCOPE_PRESET': {
+      const { roomId, presetId } = payload;
+      const preset = PAINTING_SCOPE_PRESET_MAP[presetId];
+      if (!preset) return state;
+      return mapRoom(roomId, r => {
+        const updated = { ...r, painting_scope_preset: presetId };
+        if (preset.substrates === null) return updated; // 'custom' — no substrate change
+        const targetSet = new Set(preset.substrates);
+        const newSubs = { ...r.substrates };
+        // Activate target substrates
+        for (const subId of targetSet) {
+          if (ALWAYS_PRESENT_SUBSTRATES.has(subId)) {
+            if (!newSubs[subId]) newSubs[subId] = createSubstrateConfig(subId);
+            newSubs[subId] = { ...newSubs[subId], painting: true };
+          } else if (!newSubs[subId]) {
+            newSubs[subId] = createSubstrateConfig(subId);
+          }
+        }
+        // Deactivate non-target substrates
+        for (const subId of Object.keys(newSubs)) {
+          if (targetSet.has(subId)) continue;
+          if (ALWAYS_PRESENT_SUBSTRATES.has(subId)) {
+            newSubs[subId] = { ...newSubs[subId], painting: false };
+          } else {
+            delete newSubs[subId];
+          }
+        }
+        updated.substrates = newSubs;
+        return updated;
+      });
+    }
+
     // v0.3: Toggle a substrate on/off
     case 'TOGGLE_SUBSTRATE': {
       const { roomId, substrateId } = payload;
@@ -181,6 +358,20 @@ export function reducer(state, action) {
           updated = { ...updated, ...d };
         }
 
+        // V1a: re-seed finish_group when coating_type flips, but preserve
+        // manual overrides. Re-seeds only if current finish_group matches the
+        // previous coating_type's default (i.e., the user hasn't manually
+        // picked E/F/etc.).
+        if (field === 'coating_type') {
+          const STAIN_LIKE = new Set(['stain_clear', 'stain_only', 'clear_only']);
+          const prevCoatingType = r.substrates[substrateId].coating_type;
+          const prevDefault = STAIN_LIKE.has(prevCoatingType) ? 'D' : 'C';
+          const newDefault  = STAIN_LIKE.has(value) ? 'D' : 'C';
+          if (updated.finish_group === prevDefault) {
+            updated.finish_group = newDefault;
+          }
+        }
+
         // Recompute ea_manual when builtin opening tier counts change
         if (substrateId === 'builtins' && ['openings_s', 'openings_m', 'openings_l', 'openings_xl'].includes(field)) {
           updated.ea_manual = (updated.openings_s || 0) + (updated.openings_m || 0) + (updated.openings_l || 0) + (updated.openings_xl || 0);
@@ -189,6 +380,28 @@ export function reducer(state, action) {
         // Recompute lf_manual when closet shelving dimensions change
         if (substrateId === 'closet_shelving' && ['shelf_count', 'lf_per_shelf'].includes(field)) {
           updated.lf_manual = (updated.shelf_count || 0) * (updated.lf_per_shelf || 0);
+        }
+
+        // When substrate_state changes, re-infer system (only if current system
+        // matches the previous inferred value — i.e., the user hasn't explicitly
+        // picked a system yet). This keeps auto-inference fresh as the surface
+        // state changes, but never overrides an explicit choice.
+        if (field === 'substrate_state') {
+          const prevInferred = inferDefaultSystem(substrateId, r.substrates[substrateId]?.substrate_state);
+          const currentSystem = r.substrates[substrateId]?.system;
+          if (currentSystem === prevInferred || currentSystem == null) {
+            updated.system = inferDefaultSystem(substrateId, value) || null;
+          }
+        }
+
+        // System is the source of truth for coating_type now that the UI field
+        // was retired. Keep config.coating_type synced so the engine context
+        // still has it (read by scenario-resolution + scenario matchers).
+        if (field === 'system' || field === 'substrate_state') {
+          const sys = updated.system;
+          if (sys) {
+            updated.coating_type = coatingTypeFromSystem(sys);
+          }
         }
 
         return {
@@ -200,6 +413,7 @@ export function reducer(state, action) {
 
     // Doors — now operate on substrates.doors.items
     case 'ADD_DOOR': {
+      bumpNextIdFromState(state);
       return mapRoom(payload.roomId, r => {
         const doors = r.substrates.doors || createSubstrateConfig('doors');
         return { ...r, substrates: { ...r.substrates, doors: { ...doors, items: [...(doors.items||[]), createDoor()] } } };
@@ -220,6 +434,7 @@ export function reducer(state, action) {
 
     // Windows — now operate on substrates.windows.items
     case 'ADD_WINDOW': {
+      bumpNextIdFromState(state);
       return mapRoom(payload.roomId, r => {
         const wins = r.substrates.windows || createSubstrateConfig('windows');
         return { ...r, substrates: { ...r.substrates, windows: { ...wins, items: [...(wins.items||[]), createWindow()] } } };
@@ -240,6 +455,7 @@ export function reducer(state, action) {
 
     // v0.7: Openings — structural wall holes
     case 'ADD_OPENING': {
+      bumpNextIdFromState(state);
       return mapRoom(payload.roomId, r => {
         return { ...r, openings: [...(r.openings||[]), createOpening()] };
       });
@@ -257,6 +473,7 @@ export function reducer(state, action) {
 
     // Extra walls — partitions, shower walls, nooks
     case 'ADD_EXTRA_WALL': {
+      bumpNextIdFromState(state);
       return mapRoom(payload.roomId, r => {
         return { ...r, extra_walls: [...(r.extra_walls || []), { id: genId('xw'), label: '', length_ft: 0, height_ft: 0, both_sides: false }] };
       });
@@ -274,6 +491,7 @@ export function reducer(state, action) {
 
     // Wall deductions — cabinets, tile, built-ins covering wall area
     case 'ADD_WALL_DEDUCTION': {
+      bumpNextIdFromState(state);
       return mapRoom(payload.roomId, r => {
         return { ...r, wall_deductions: [...(r.wall_deductions || []), { id: genId('wd'), label: '', length_ft: 0, height_ft: 0, both_sides: false }] };
       });
@@ -291,6 +509,7 @@ export function reducer(state, action) {
 
     // Closets — sub-rooms with own dimensions, inherited substrates
     case 'ADD_CLOSET': {
+      bumpNextIdFromState(state);
       return mapRoom(payload.roomId, r => {
         return { ...r, closets: [...(r.closets || []), createCloset()] };
       });
@@ -350,11 +569,11 @@ export function reducer(state, action) {
         } else {
           const cat = FIXTURE_MAP[fixtureId];
           if (fixtureId === 'cabinets') {
-            fixtures[fixtureId] = { protection: 'full_cover', layout: 'lower_upper', linear_ft: 0, upper_height_ft: 2.5, notes: '' };
+            fixtures[fixtureId] = { protection: 'full', layout: 'lower_upper', linear_ft: 0, upper_height_ft: 2.5, notes: '' };
           } else if (fixtureId === 'feature_wall') {
-            fixtures[fixtureId] = { items: [{ id: genId('fw'), length_ft: 0, height_ft: 0, protection: 'full_mask', deduct_baseboard: false, notes: '' }] };
+            fixtures[fixtureId] = { items: [{ id: genId('fw'), length_ft: 0, height_ft: 0, protection: 'encapsulate', deduct_baseboard: false, notes: '' }] };
           } else {
-            fixtures[fixtureId] = { protection: cat ? cat.defaultProtection : 'partial_cover', count: 1, size: '', notes: '' };
+            fixtures[fixtureId] = { protection: cat ? cat.defaultProtection : 'partial', count: 1, size: '', notes: '' };
           }
         }
         return { ...r, fixtures };
@@ -371,12 +590,13 @@ export function reducer(state, action) {
     }
 
     case 'ADD_FEATURE_WALL': {
+      bumpNextIdFromState(state);
       return mapRoom(payload.roomId, r => {
         const fw = r.fixtures?.feature_wall;
         // Migrate legacy format (single config without items array)
         const existing = fw?.items ? fw.items
-          : (fw && fw.length_ft ? [{ id: genId('fw'), length_ft: fw.length_ft, height_ft: fw.height_ft, protection: fw.protection || 'full_mask', deduct_baseboard: fw.deduct_baseboard || false, notes: fw.notes || '' }] : []);
-        const newItem = { id: genId('fw'), length_ft: 0, height_ft: 0, protection: 'full_mask', deduct_baseboard: false, notes: '' };
+          : (fw && fw.length_ft ? [{ id: genId('fw'), length_ft: fw.length_ft, height_ft: fw.height_ft, protection: fw.protection || 'encapsulate', deduct_baseboard: fw.deduct_baseboard || false, notes: fw.notes || '' }] : []);
+        const newItem = { id: genId('fw'), length_ft: 0, height_ft: 0, protection: 'encapsulate', deduct_baseboard: false, notes: '' };
         return { ...r, fixtures: { ...r.fixtures, feature_wall: { items: [...existing, newItem] } } };
       });
     }
@@ -398,6 +618,52 @@ export function reducer(state, action) {
         if (!r.fixtures?.feature_wall?.items) return r;
         const items = r.fixtures.feature_wall.items.map(i => i.id === itemId ? { ...i, [field]: value } : i);
         return { ...r, fixtures: { ...r.fixtures, feature_wall: { ...r.fixtures.feature_wall, items } } };
+      });
+    }
+
+    // W-16 Phase 2: per-room light-fixture items (recessed + ceiling fan +
+    // bulb + transparent glass + other) with per-type protection, action
+    // mode (mask vs remove), count, and optional time-min overrides.
+    case 'ADD_LIGHT_FIXTURE_ITEM': {
+      bumpNextIdFromState(state);
+      const { roomId, type } = payload;
+      return mapRoom(roomId, r => {
+        const lf = r.fixtures?.light_fixtures || {};
+        const items = Array.isArray(lf.items) ? lf.items : [];
+        return { ...r, fixtures: { ...r.fixtures, light_fixtures: { ...lf, items: [...items, createLightFixtureItem(type || 'other')] } } };
+      });
+    }
+    case 'REMOVE_LIGHT_FIXTURE_ITEM': {
+      const { roomId, itemId } = payload;
+      return mapRoom(roomId, r => {
+        if (!r.fixtures?.light_fixtures?.items) return r;
+        const items = r.fixtures.light_fixtures.items.filter(i => i.id !== itemId);
+        return { ...r, fixtures: { ...r.fixtures, light_fixtures: { ...r.fixtures.light_fixtures, items } } };
+      });
+    }
+    case 'SET_LIGHT_FIXTURE_ITEM': {
+      const { roomId, itemId, field, value } = payload;
+      return mapRoom(roomId, r => {
+        if (!r.fixtures?.light_fixtures?.items) return r;
+        const items = r.fixtures.light_fixtures.items.map(i => {
+          if (i.id !== itemId) return i;
+          const next = { ...i, [field]: value };
+          // When the user switches the type, reseed defaults from the new
+          // taxonomy entry (but only for fields the user hasn't already
+          // overridden away from the previous type's defaults).
+          if (field === 'type') {
+            const tx = LIGHT_FIXTURE_TYPE_MAP[value];
+            if (tx) {
+              if (tx.default_protection && !i.protection_override_by_user) next.protection = tx.default_protection;
+              // If the new type doesn't allow remove mode, force mask
+              if (tx.allow_remove === false) next.action_mode = 'mask';
+              // Reset custom_label to '' for is_custom types, null otherwise
+              next.custom_label = tx.is_custom ? (i.custom_label || '') : null;
+            }
+          }
+          return next;
+        });
+        return { ...r, fixtures: { ...r.fixtures, light_fixtures: { ...r.fixtures.light_fixtures, items } } };
       });
     }
 

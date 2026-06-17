@@ -1,7 +1,12 @@
 import { deriveRoom } from './derive-room.js';
 import { SUBSTRATE_MAP, SUBSTRATE_APPLICATION_METHODS } from '../data/substrate-catalog.js';
-import { EXTERIOR_SPEC_IDS, SPEC_SUBSTRATE_MAP } from '../data/spec-maps.js';
-import { isSpecStateCompatible } from './spec-compatibility.js';
+import { SPEC_SUBSTRATE_MAP } from '../data/scenario-maps.js';
+import { isSpecStateCompatible } from './scenario-compatibility.js';
+import {
+  MATERIAL_SYSTEMS,
+  MATERIAL_COVERAGE_PROFILES,
+  MATERIAL_SYSTEM_PRODUCTS,
+} from '../data/scenario-rate-data.js';
 import { resolveProduct } from './product-resolver.js';
 
 /**
@@ -56,7 +61,7 @@ const SPRAY_LOSS_BY_METHOD = {
 /**
  * Compute material estimates from coverage profiles.
  */
-export function computeMaterialEstimates(state, db, roomLookups, specResults = []) {
+export function computeMaterialEstimates(state, roomLookups, specResults = []) {
   const estimates = [];
   const { project, rooms } = state;
   const SPRAY_LOSS_FACTOR = 0.05; // 5% material loss for spray application
@@ -66,8 +71,14 @@ export function computeMaterialEstimates(state, db, roomLookups, specResults = [
 
   // Resolve project-level config
   const defaultQT = project.default_quality_tier || 'QT3';
-  const defaultTexture = project.default_texture || 'smooth';
-  const defaultMethod = project.default_application_method || 'brush';
+  const defaultTexture = 'smooth';
+  // Project-wide default method for spray-loss math. The Setup application-method
+  // dropdown was removed, but the prior effective default here was spray_backroll
+  // (project.default_application_method defaulted to it), and walls/ceiling default
+  // to spray_backroll in the catalog. Keep spray_backroll so the SPRAY_LOSS_FACTOR
+  // overspray allowance still applies by default — NOT 'brush' (that silently
+  // dropped ~5% material).
+  const defaultMethod = 'spray_backroll';
   const isSpray = defaultMethod.includes('spray');
 
   // Product resolver context
@@ -106,36 +117,45 @@ export function computeMaterialEstimates(state, db, roomLookups, specResults = [
 
   // Build a map: spec_family_id -> list of applicable material systems
   const systemsBySpec = {};
-  (db.material_systems || []).forEach(ms => {
+  MATERIAL_SYSTEMS.forEach(ms => {
     if (!systemsBySpec[ms.spec_family_id]) systemsBySpec[ms.spec_family_id] = [];
     systemsBySpec[ms.spec_family_id].push(ms);
   });
 
   // Build a map: spec_family_id::system_id -> material_system_products
   const productsBySystem = {};
-  (db.material_system_products || []).forEach(msp => {
+  MATERIAL_SYSTEM_PRODUCTS.forEach(msp => {
     const key = msp.spec_family_id + '::' + msp.system_id;
     if (!productsBySystem[key]) productsBySystem[key] = [];
     productsBySystem[key].push(msp);
   });
 
+  // specId → flattened scenario tasks (carries psKey) for PS-key derivation.
+  const tasksBySpec = {};
+  (specResults || []).forEach(sr => {
+    if (!tasksBySpec[sr.specId]) tasksBySpec[sr.specId] = [];
+    if (sr.tasks) tasksBySpec[sr.specId].push(...sr.tasks);
+  });
+
   // For each spec family with coverage profiles, resolve materials
-  const specFamilyIds = [...new Set(db.material_coverage_profiles.map(cp => cp.spec_family_id))];
+  const specFamilyIds = [...new Set(MATERIAL_COVERAGE_PROFILES.map(cp => cp.spec_family_id))];
 
   specFamilyIds.forEach(specId => {
     // Skip specs that weren't activated by the hours engine
     if (activatedSpecs.size > 0 && !activatedSpecs.has(specId)) return;
 
-    const specProfiles = db.material_coverage_profiles.filter(cp => cp.spec_family_id === specId);
+    const specProfiles = MATERIAL_COVERAGE_PROFILES.filter(cp => cp.spec_family_id === specId);
     const specSystems = systemsBySpec[specId] || [];
 
-    // Determine which PaintScope keys this spec uses (from spec_required_inputs)
-    const specInputs = (db.spec_required_inputs || []).filter(i => i.spec_family_id === specId);
-    const psKeys = specInputs.map(i => i.paintscope_key);
-
-    // For material calculation, only sum SURFACE keys (the actual paintable area).
-    // Exclude edge, protection, meta, and opening keys — those drive task hours, not material coverage.
-    const surfaceKeys = psKeys.filter(k => k && k.startsWith('PS_SURFACE_'));
+    // Determine which PaintScope keys this spec uses — derived from the spec's
+    // fired scenario tasks (which carry psKey), replacing the dropped
+    // db.spec_required_inputs lookup. Mirrors the exterior path. Only SURFACE
+    // keys drive material coverage (edge/protection/meta/opening keys drive hours).
+    const surfaceKeys = [...new Set(
+      (tasksBySpec[specId] || [])
+        .map(t => t.psKey)
+        .filter(k => k && k.startsWith('PS_SURFACE_'))
+    )];
 
     // Build spec-scoped quantity total: only rooms whose substrate state is compatible
     // with this spec contribute. Fixes primer over-calculation across all rooms.
@@ -315,13 +335,12 @@ export function computeMaterialEstimates(state, db, roomLookups, specResults = [
  * Processes elevation lookups + standalone lookups from the exterior engine.
  *
  * @param {Object} state — full app state
- * @param {Object} db — DB_BUNDLE
  * @param {Map} elevLookups — from buildElevationQuantityLookups
  * @param {Map} standaloneLookups — from buildStandaloneQuantityLookups
  * @param {Array} extSpecResults — exterior spec results from runEstimate (for activation check)
  * @returns {Array} material estimate entries (same shape as interior estimates)
  */
-export function computeExteriorMaterialEstimates(state, db, elevLookups, standaloneLookups, extSpecResults) {
+export function computeExteriorMaterialEstimates(state, elevLookups, standaloneLookups, extSpecResults) {
   const estimates = [];
   const exterior = state.exterior;
   if (!exterior) return estimates;
@@ -342,24 +361,21 @@ export function computeExteriorMaterialEstimates(state, db, elevLookups, standal
   if (elevLookups) elevLookups.forEach(addToTotal);
   if (standaloneLookups) standaloneLookups.forEach(addToTotal);
 
-  // Build set of activated exterior spec IDs (only estimate materials for specs that produced hours)
-  const activatedExtSpecs = new Set(extSpecResults.map(sr => sr.specId));
-
-  // Index spec_required_inputs for PS key lookup
-  const inputsBySpec = {};
-  (db.spec_required_inputs || []).forEach(ri => {
-    if (!inputsBySpec[ri.spec_family_id]) inputsBySpec[ri.spec_family_id] = [];
-    inputsBySpec[ri.spec_family_id].push(ri);
-  });
-
-  // For each exterior spec with default coverage profiles
-  for (const [specId, coverageDefaults] of Object.entries(EXT_COVERAGE_DEFAULTS)) {
+  // For each activated exterior spec with default coverage profiles
+  for (const sr of extSpecResults) {
+    const specId = sr.specId;
+    const coverageDefaults = EXT_COVERAGE_DEFAULTS[specId];
     if (!coverageDefaults) continue; // e.g., caulking — no material estimate
-    if (!activatedExtSpecs.has(specId)) continue; // spec didn't fire — no material needed
 
-    // Find total SF/LF/EA for this spec from PS keys
-    const specInputs = inputsBySpec[specId] || [];
-    const psKeys = specInputs.map(i => i.paintscope_key);
+    // Derive distinct surface/edge PS keys from the spec's fired tasks.
+    // This replaces the legacy db.spec_required_inputs lookup (stripped of
+    // exterior rows in the SF_EXT_* db-bundle scrub) — scenario tasks already
+    // carry psKey, so we get the same PS-key set without the db dependency.
+    const psKeys = [...new Set(
+      (sr.tasks || [])
+        .map(t => t.psKey)
+        .filter(k => k && (k.startsWith('PS_EXT_SURFACE_') || k.startsWith('PS_EXT_EDGE_')))
+    )];
 
     let specQuantity = 0;
     let matchedKey = null;

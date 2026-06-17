@@ -1,7 +1,30 @@
 import { deriveRoom, deriveCloset } from './derive-room.js';
 import { SUBSTRATE_MAP, SUBSTRATE_CATALOG, SUBSTRATE_APPLICATION_METHODS } from '../data/substrate-catalog.js';
 import { OPENING_TYPES } from '../data/opening-types.js';
-import { deriveStairway, getComponentQuantity } from './derive-stairway';
+import { deriveStairway, getComponentQuantity } from './derive-stairway.js';
+// Per-room light-fixture protection minutes, split by lifecycle side.
+// All times come from user input on each item — no taxonomy defaults
+// and no hardcoded rates. Action mode picks which pair of fields applies:
+//   mask:   mask_install_time_min  (setup) + mask_remove_time_min     (cleanup)
+//   remove: fixture_uninstall_time (setup) + fixture_reinstall_time   (cleanup)
+//
+// Returns { installMin, removeMin } so the caller can emit them to the
+// two separate PS keys consumed by the matching INSTALL / REMOVE tasks.
+function lightFixtureMinutesForRoom(room) {
+  const items = room.fixtures?.light_fixtures?.items;
+  const out = { installMin: 0, removeMin: 0 };
+  if (!Array.isArray(items) || items.length === 0) return out;
+  for (const item of items) {
+    const cnt = parseInt(item.count) || 0;
+    if (cnt <= 0) continue;
+    const isMask = (item.action_mode || 'mask') === 'mask';
+    const installPer = Number(isMask ? item.mask_install_time_min     : item.fixture_uninstall_time_min) || 0;
+    const removePer  = Number(isMask ? item.mask_remove_time_min      : item.fixture_reinstall_time_min) || 0;
+    out.installMin += installPer * cnt;
+    out.removeMin  += removePer  * cnt;
+  }
+  return out;
+}
 
 /**
  * Build per-room quantity lookup from the prototype state.
@@ -11,11 +34,51 @@ export function buildRoomQuantityLookups(state) {
   const { project, rooms } = state;
   const roomLookups = new Map();
 
+  // Project-level protection heuristics — outlets per room, HVAC vents per room.
+  // Closets are sub-rooms (room.closets[]), not entries in state.rooms[], so
+  // rooms.length is automatically the non-closet count.
+  const heur = project?.protection_heuristics || {};
+  const outletsPerRoom = Number.isFinite(heur.outlets_per_room) ? heur.outlets_per_room : 4;
+  const hvacPerRoom = Number.isFinite(heur.hvac_vents_per_room) ? heur.hvac_vents_per_room : 0.7;
+  const hvacAction = heur.hvac_action || 'mask';  // 'mask' | 'remove'
+
   rooms.forEach((room, ri) => {
     const d = deriveRoom(room);
     const subs = room.substrates || {};
     const qty = new Map();
     const closetQty = new Map();
+
+    // anySprayInRoom: true when any substrate in the room uses a spray
+    // application method. Used by fixture protection emission and outlet
+    // heuristic — both gate on this so brush-only rooms don't emit
+    // physical-mask quantities (covers/tape stay on; brush around them).
+    // Hoisted here so the fixture iteration below can reference it.
+    //
+    // application_method falls back to SUBSTRATE_APPLICATION_METHODS[id].default
+    // when the user hasn't explicitly picked one — the UI shows that default in
+    // the dropdown placeholder, so the engine has to honor the same rule or
+    // brush-only rooms get reported when the user actually has spray defaults.
+    function effectiveMethod(substrateId, sub) {
+      const explicit = sub?.application_method;
+      if (explicit) return explicit;
+      return SUBSTRATE_APPLICATION_METHODS[substrateId]?.default || '';
+    }
+    // Substrate must be ACTIVE (checked in the room) for its method to count
+    // as "spray happening here". Without the existence guard, effectiveMethod
+    // returns the substrate's default method (walls/ceiling default to
+    // spray_backroll), making wallsSprayQ/ceilingSprayQ read true for rooms
+    // that never had walls or ceiling checked — which silently triggered
+    // outlet auto-mask on trim-only rooms (W-21 follow-up).
+    const wallsSprayQ = !!subs.walls && effectiveMethod('walls', subs.walls).toString().includes('spray');
+    const ceilingSprayQ = !!subs.ceiling && effectiveMethod('ceiling', subs.ceiling).toString().includes('spray');
+    const anyTrimSprayQ = ['baseboard','crown','door_casing','window_casing','chair_rail','shoe_mold','picture_rail','window_stool','window_apron','shadow_box','panel_mold','door_frames','window_jamb']
+      .some(id => {
+        const s = subs[id];
+        if (!s) return false;
+        if (s.painting === false) return false;
+        return effectiveMethod(id, s).toString().includes('spray');
+      });
+    const anySprayInRoom = wallsSprayQ || ceilingSprayQ || anyTrimSprayQ;
 
     function addQ(key, uom, val) {
       if (!val || val <= 0) return;
@@ -50,28 +113,44 @@ export function buildRoomQuantityLookups(state) {
       ['window_casing', 'TRIM_CASING_WINDOW', 'window_casing_lf'],
       ['chair_rail', 'TRIM_CHAIR_RAIL', 'chair_rail_lf'],
       ['shoe_mold', 'TRIM_SHOE_MOLD', 'shoe_mold_lf'],
-      ['wainscot_cap', 'TRIM_WAINSCOT_CAP', 'wainscot_cap_lf'],
       ['picture_rail', 'TRIM_PICTURE_RAIL', 'picture_rail_lf'],
       ['window_stool', 'TRIM_WINDOW_STOOL', 'window_stool_lf'],
       ['window_apron', 'TRIM_WINDOW_APRON', 'window_apron_lf'],
       ['shadow_box', 'TRIM_SHADOW_BOX', 'shadow_box_lf'],
       ['panel_mold', 'TRIM_PANEL_MOLD', 'panel_mold_lf'],
     ];
+    // Helper — substrate active for emission (painting flag for casings,
+    // truthy presence for other trim substrates).
+    const isTrimActive = (subId) => casingIds2.has(subId) ? subs[subId]?.painting : !!subs[subId];
+
     trimKeys.forEach(([subId, surfType, derivedKey]) => {
-      const active = casingIds2.has(subId) ? subs[subId]?.painting : !!subs[subId];
-      if (active) addQ(`PS_SURFACE_LF.${surfType}`, 'LF', d[derivedKey] || 0);
+      if (isTrimActive(subId)) addQ(`PS_SURFACE_LF.${surfType}`, 'LF', d[derivedKey] || 0);
     });
 
-    // Aggregate all trim LF for specs that use PS_SURFACE_LF.TRIM_TOTAL (only painting trim)
-    const allTrimLF = trimKeys.reduce((s, [subId, , derivedKey]) => {
-      const active = casingIds2.has(subId) ? subs[subId]?.painting : !!subs[subId];
-      return s + (active ? (d[derivedKey] || 0) : 0);
-    }, 0);
-    addQ('PS_SURFACE_LF.TRIM_TOTAL', 'LF', allTrimLF);
-    // Trim joints — approximately equal to total trim LF (every piece has joints)
-    addQ('PS_EDGE_LF.TRIM_JOINTS', 'LF', allTrimLF);
+    // Per-substrate joint caulk LF — every painted trim substrate has joints
+    // (trim-to-wall seam) equal to its own LF. Each per-substrate spec's prep
+    // module reads its own TRIM_JOINTS_<SUBSTRATE> key, so joint caulk does
+    // not double-count across painted trim substrates (Track A: 2026-05-02).
+    trimKeys.forEach(([subId, surfType, derivedKey]) => {
+      if (isTrimActive(subId)) {
+        const subKey = surfType.replace(/^TRIM_/, '');
+        addQ(`PS_EDGE_LF.TRIM_JOINTS_${subKey}`, 'LF', d[derivedKey] || 0);
+      }
+    });
 
-    // Doors — from substrates.doors.items; emit paint or stain keys based on coating_type
+    // Note: legacy PS_SURFACE_LF.TRIM_TOTAL and PS_EDGE_LF.TRIM_JOINTS were
+    // emitted here for the soft-retired SF_TRIM_NC_PAINT/PRIME spec families.
+    // Both retired in 2026-05-03; per-substrate keys (TRIM_<SUB>, TRIM_JOINTS_<SUB>)
+    // emitted above are the canonical source.
+
+    // Doors — from substrates.doors.items. Both paint and stain coatings emit the
+    // same per-side key (PS_SURFACE_EA_SIDE.DOOR_SLAB, EA_SIDE = cnt × sides_per_door).
+    // A door slab is geometrically the same regardless of finish, so the slab-area
+    // quantity is one signal; the scenario engine routes to paint vs stain modules
+    // via coating_type / paintable_item, not via the quantity key itself.
+    // Prior to 2026-05-11 the stain branch emitted PS_SURFACE_EA.DOOR_SLAB_STAIN (EA,
+    // per-door), but the DSST tasks looked up PS_SURFACE_EA.DOOR_SLAB (no suffix),
+    // so the stain side fired 0 hours. Unified here.
     const doorItems = subs.doors?.items || [];
     const doorsPainting2 = subs.doors?.painting;
     doorItems.forEach(door => {
@@ -79,25 +158,17 @@ export function buildRoomQuantityLookups(state) {
       const sides = cnt * (parseInt(door.sides_per_door) || 2);
       const itemPainting = door.painting !== false;
       if (doorsPainting2 && itemPainting) {
-        const ct = door.coating_type || 'paint';
-        if (ct === 'paint') {
-          addQ('PS_SURFACE_EA_SIDE.DOOR_SLAB', 'EA_SIDE', sides);
-        } else {
-          // Stain/clear specs use EA (not EA_SIDE) — count of doors, not sides
-          addQ('PS_SURFACE_EA.DOOR_SLAB_STAIN', 'EA', cnt);
-        }
+        addQ('PS_SURFACE_EA_SIDE.DOOR_SLAB', 'EA_SIDE', sides);
       }
     });
     // Opening counts from openings table (structural, always emit)
     addQ('PS_OPENING_EA.DOOR_OPENINGS_TOTAL', 'EA', d.totalOpenings);
-    // Door frames — emit stain key when coating_type is stain/clear
+    // Door frames — LF-based for both paint and stain. Derived LF accounts
+    // for fixed LF-per-variant (single=17, double=20, etc.) × openings count.
     if (subs.door_frames) {
-      const frameCt = subs.door_frames.coating_type || 'paint';
-      if (frameCt === 'paint') {
-        addQ('PS_SURFACE_EA.DOOR_FRAME_SET', 'EA', d.door_frames_ea);
-      } else {
-        addQ('PS_SURFACE_EA.DOOR_FRAME_STAIN', 'EA', d.door_frames_ea);
-      }
+      addQ('PS_SURFACE_LF.DOOR_FRAME', 'LF', d.door_frame_lf);
+      // Per-substrate joint caulk LF — door frame to wall + frame to casing seams
+      addQ('PS_EDGE_LF.TRIM_JOINTS_DOOR_FRAME', 'LF', d.door_frame_lf);
     }
 
     // Windows — from substrates.windows.items; surface keys only when painting, opening counts always
@@ -110,10 +181,13 @@ export function buildRoomQuantityLookups(state) {
       addQ('PS_OPENING_EA.WINDOW_OPENINGS_TOTAL', 'EA', cnt);
     });
     if (subs.window_jamb) {
-      addQ('PS_SURFACE_EA.WINDOW_JAMB', 'EA', d.window_jamb_ea);
-      // Jamb count also contributes to WINDOW_TOTAL when windows not already painting
+      addQ('PS_SURFACE_LF.WINDOW_JAMB', 'LF', d.window_jamb_lf);
+      // Per-substrate joint caulk LF — jamb to rough opening + jamb to casing seams
+      addQ('PS_EDGE_LF.TRIM_JOINTS_WINDOW_JAMB', 'LF', d.window_jamb_lf);
+      // Jamb also contributes to WINDOW_TOTAL (EA count) when window panels
+      // aren't already painting — lets jamb work activate window-aware specs.
       if (!windowsPainting2 || !windowItems.length) {
-        addQ('PS_OPENING_EA.WINDOW_TOTAL', 'EA', d.window_jamb_ea);
+        addQ('PS_OPENING_EA.WINDOW_TOTAL', 'EA', d.totalWindows);
       }
     }
 
@@ -121,29 +195,66 @@ export function buildRoomQuantityLookups(state) {
     const specKeys = [
       ['wainscoting', 'PS_SURFACE_SF.WAINSCOTING', 'SF', 'sf_manual'], ['wood_feature_wall', 'PS_SURFACE_SF.WOOD_WALL', 'SF', 'sf_manual'],
       ['wood_ceiling', 'PS_SURFACE_SF.WOOD_CEILING', 'SF', 'sf_manual'], ['closet_shelving', 'PS_SURFACE_LF.CLOSET_SHELF', 'LF', 'lf_manual'],
-      ['beams', 'PS_SURFACE_LF.ARCH_BEAM', 'LF', 'ea_manual'], ['columns', 'PS_SURFACE_EA.ARCH_COLUMN', 'EA', 'ea_manual'],
-      ['mantels', 'PS_SURFACE_EA.ARCH_MANTEL', 'EA', 'ea_manual'],
+      ['beams', 'PS_SURFACE_LF.ARCH_BEAM', 'LF', 'lf_manual'], ['columns', 'PS_SURFACE_LF.ARCH_COLUMN', 'LF', 'lf_manual'],
+      ['mantels', 'PS_SURFACE_SF.ARCH_MANTEL', 'SF', 'lf_manual'],
     ];
     specKeys.forEach(([subId, psKey, uom, manualKey]) => {
       if (subs[subId]) {
         const cfg = subs[subId];
         const cat = SUBSTRATE_MAP[subId];
-        // Use manual value if overridden, otherwise try auto-derive
-        let v = parseFloat(cfg[manualKey]) || 0;
-        if (v === 0 && !cfg.sf_override && !cfg.lf_override && cat?.autoDerive) {
-          v = cat.autoDerive(d) || 0;
+        let v = 0;
+        if (subId === 'wainscoting') {
+          // SF derives from Length × Height. sf_override + sf_manual lets the
+          // estimator override the computed value when the geometry isn't a
+          // clean rectangle.
+          const lf = parseFloat(cfg.lf_manual) || 0;
+          const ht = parseFloat(cfg.wainscot_height_ft) || 0;
+          v = cfg.sf_override ? (parseFloat(cfg.sf_manual) || 0) : (lf * ht);
+        } else if (subId === 'beams') {
+          // LF derives from beam length × sides × qty. A 10 LF beam with 4
+          // exposed sides emits 40 LF per beam (each face contributes its own
+          // LF). Beams attached to a ceiling typically have 3 sides.
+          const lf = parseFloat(cfg.lf_manual) || 0;
+          const sides = parseInt(cfg.beam_sides) || 4;
+          const qty = parseInt(cfg.beam_qty) || 1;
+          v = lf * sides * qty;
+        } else if (subId === 'columns') {
+          // LF derives from column height × sides × qty. Free-standing column
+          // = 4 sides; column attached to a wall = 3 sides.
+          const lf = parseFloat(cfg.lf_manual) || 0;
+          const sides = parseInt(cfg.column_sides) || 4;
+          const qty = parseInt(cfg.column_qty) || 1;
+          v = lf * sides * qty;
+        } else if (subId === 'mantels') {
+          // SF derives from mantel length × 2 (top + bottom + sides folded
+          // into a 2× LF rule of thumb).
+          const lf = parseFloat(cfg.lf_manual) || 0;
+          v = lf * 2;
+        } else {
+          // Default: manual value if set, else autoDerive (for substrates that
+          // have one), else 0.
+          v = parseFloat(cfg[manualKey]) || 0;
+          if (v === 0 && !cfg.sf_override && !cfg.lf_override && cat?.autoDerive) {
+            v = cat.autoDerive(d) || 0;
+          }
         }
         if (v > 0) addQ(psKey, uom, v);
       }
     });
 
-    // Built-ins — emit per-tier opening counts (spec uses PS_OPENING_EA.BUILTIN_SHELF.*)
+    // Built-ins — derive SF from per-tier opening counts + full-height sides.
+    // Tasks read PS_SURFACE_SF.BUILTIN. Per-tier SF coefficients approximate the
+    // total paintable surface within each opening bay; full-height sides
+    // contribute the exterior wraparound.
     if (subs.builtins) {
       const bi = subs.builtins;
-      if (bi.openings_s > 0) addQ('PS_OPENING_EA.BUILTIN_SHELF.S', 'EA', bi.openings_s);
-      if (bi.openings_m > 0) addQ('PS_OPENING_EA.BUILTIN_SHELF.M', 'EA', bi.openings_m);
-      if (bi.openings_l > 0) addQ('PS_OPENING_EA.BUILTIN_SHELF.L', 'EA', bi.openings_l);
-      if (bi.openings_xl > 0) addQ('PS_OPENING_EA.BUILTIN_SHELF.XL', 'EA', bi.openings_xl);
+      const openS  = parseInt(bi.openings_s)  || 0;
+      const openM  = parseInt(bi.openings_m)  || 0;
+      const openL  = parseInt(bi.openings_l)  || 0;
+      const openXL = parseInt(bi.openings_xl) || 0;
+      const sides  = parseInt(bi.full_height_sides) || 0;
+      const builtinSF = openS * 6 + openM * 12 + openL * 24 + openXL * 40 + sides * 30;
+      if (builtinSF > 0) addQ('PS_SURFACE_SF.BUILTIN', 'SF', builtinSF);
     }
 
     // Stairway — emit per-component PS keys from derived or overridden quantities
@@ -164,6 +275,7 @@ export function buildRoomQuantityLookups(state) {
         if (comps.wall_rail?.enabled !== false && (comps.wall_rail?.lf || 0) > 0)
           addQ('PS_SURFACE_LF.STAIR_WALL_RAIL', 'LF', comps.wall_rail.lf);
         emit(comps.skirtboard, 'PS_SURFACE_LF.STAIR_SKIRTBOARD', 'LF', derived.skirtboard_lf);
+        emit(comps.stringer, 'PS_SURFACE_LF.STAIR_STRINGER', 'LF', derived.total_rake_lf);
       }
     }
 
@@ -236,50 +348,300 @@ export function buildRoomQuantityLookups(state) {
       }
     }
 
-    // Edges
+    // Edges — wall↔ceiling perimeter is the same LF from either side.
+    // TO_CEILING names it from the wall's perspective (used by wall cut-in tasks);
+    // TO_WALL names it from the ceiling's perspective (used by ceiling cut-in
+    // and ceiling-adjacent masking tasks). Same underlying value.
     addQ('PS_EDGE_LF.TO_CEILING', 'LF', d.perimeter);
+    addQ('PS_EDGE_LF.TO_WALL', 'LF', d.perimeter);
     const trimLF = d.baseboard_lf + d.door_casing_lf + d.window_casing_lf;
     addQ('PS_EDGE_LF.TO_TRIM', 'LF', trimLF);
 
-    // Protection — floor level driven by floor_type + user override
-    const floorProt2 = room.floor_protection || '';
-    const hasFloorProt = room.floor_type && room.floor_type !== 'subfloor' && floorProt2;
-    if (hasFloorProt) {
-      addQ('PS_PROTECT_SF.FLOOR_EXPOSED', 'SF', d.ceilingSF);
-      if (floorProt2 === 'full_cover' || floorProt2 === 'partial_cover') {
-        addQ('PS_PROTECT_SF.FLOOR_PERIMETER', 'SF', d.perimeter * 2);
-      }
-    }
+    // Legacy PS_PROTECT_SF.FLOOR_EXPOSED + FLOOR_PERIMETER emits removed
+    // (their consumer tasks are archived). New floor protection lives on
+    // room.protection.floor_mask_level via Identity tab → emits
+    // PS_PROTECT_LF.FLOOR_EDGE / FLOOR_PARTIAL above.
     // WORKZONE = localized spray zones: 8ft radius semicircle per opening, quarter-circle per window
     const wzSF = Math.min(
       Math.round(d.totalOpenings * (Math.PI * 64 / 2) + d.totalWindows * (Math.PI * 64 / 4)),
       d.ceilingSF
     );
     addQ('PS_PROTECT_SF.FLOOR_WORKZONE', 'SF', wzSF);
-    addQ('PS_PROTECT_LF.TRIM_EDGES', 'LF', trimLF);
-    if (subs.baseboard) addQ('PS_PROTECT_LF.TRIM_BASEBOARD', 'LF', d.baseboard_lf);
-    // Casing protection always emits when walls are painted (masking casing during wall work)
+
+    // === Per-substrate trim wall-collateral keys (Track A: 2026-05-02) ===
+    // Mask, cut-in, and tapeline driven per painted trim substrate. Wall-
+    // adjacent substrates (excludes shoe_mold which sits on baseboard, and
+    // door_frames which live inside the opening). Each fires only when walls
+    // are being painted AND the trim substrate is being painted.
+    const WALL_ADJACENT_TRIM = new Set([
+      'baseboard', 'door_casing', 'window_casing', 'window_stool', 'window_apron',
+      'crown', 'chair_rail', 'picture_rail', 'panel_mold', 'shadow_box',
+    ]);
+    let allWallTrimLF = 0;
     if (subs.walls) {
-      addQ('PS_PROTECT_LF.TRIM_CASING_DOOR', 'LF', d.door_casing_lf);
-      addQ('PS_PROTECT_LF.TRIM_CASING_WINDOW', 'LF', d.window_casing_lf);
+      trimKeys.forEach(([subId, surfType, derivedKey]) => {
+        if (!WALL_ADJACENT_TRIM.has(subId)) return;
+        if (!isTrimActive(subId)) return;
+        const lf = d[derivedKey] || 0;
+        if (lf <= 0) return;
+        const subKey = surfType.replace(/^TRIM_/, '');
+        // Mask install — overspray containment along the wall-trim seam
+        addQ(`PS_PROTECT_LF.TRIM_${subKey}`, 'LF', lf);
+        // Wall-to-trim cut-in — physics-mandatory when wall is painted
+        addQ(`PS_EDGE_LF.CUTIN_WALL_TO_${subKey}`, 'LF', lf);
+        allWallTrimLF += lf;
+      });
     }
+    // Legacy lumped keys — derived sums for backward compat. Existing tasks
+    // (TSK_CUTIN_WALL_TO_TRIM, TSK_REMOVE_TRIM_MASKING, TSK_TRIM_TAPELINE_*)
+    // continue to read these until per-substrate task swap completes.
+    addQ('PS_PROTECT_LF.TRIM_EDGES', 'LF', allWallTrimLF);
     addQ('PS_PROTECT_LF.CEILING_LINE', 'LF', d.perimeter);
 
-    // Fixture protection keys (v0.5)
+    // === Room Protection v1 quantity emissions ===
+    // New protection scenario (SCN_ROOM_PROTECTION_NC) consumes these. Modules
+    // gate by floor/wall/ceiling mask_level — engine emits all keys; the
+    // scenario's modules pick which level's task to fire. Quantities reflect
+    // what would be masked at any chosen level (engine doesn't know level here).
+    const wallTotalSF = d.perimeter * (parseFloat(room.height_ft) || 8);
+    // Floor
+    addQ('PS_PROTECT_LF.FLOOR_EDGE', 'LF', d.perimeter);
+    addQ('PS_PROTECT_LF.FLOOR_PARTIAL', 'LF', d.perimeter);
+    addQ('PS_PROTECT_SF.FLOOR_AREA', 'SF', d.ceilingSF);
+    // Wall — edge/partial = LF perimeter, full/encapsulate = total wall SF
+    addQ('PS_PROTECT_LF.WALL_EDGE', 'LF', d.perimeter);
+    addQ('PS_PROTECT_LF.WALL_PARTIAL', 'LF', d.perimeter);
+    addQ('PS_PROTECT_SF.WALL_AREA', 'SF', wallTotalSF);
+    // Ceiling — edge/partial perimeter, encapsulate area
+    addQ('PS_PROTECT_LF.CEILING_EDGE', 'LF', d.perimeter);
+    addQ('PS_PROTECT_LF.CEILING_PARTIAL', 'LF', d.perimeter);
+    addQ('PS_PROTECT_SF.CEILING_AREA', 'SF', d.ceilingSF);
+    // Adjacent-surface masks — emit only when neighbor NOT in paint/stain scope
+    // AND there's spray happening in the room. Brush+roll doesn't need physical
+    // mask on these surfaces. Mirrors the legacy fixture-protection.js auto-mask
+    // semantic which used to handle this for door slabs and window glass.
+    if (anySprayInRoom) {
+      // Door slab: count items where (substrate.painting=false) OR (item.painting=false).
+      // Substrate-level off → all door panels unpainted; otherwise per-item flag.
+      const doorItems = subs.doors?.items || [];
+      const doorsPainting = !!subs.doors?.painting;
+      const doorsUnpaintedCnt = doorItems.reduce((sum, di) => {
+        const itemPainting = di.painting !== false;
+        return (doorsPainting && itemPainting) ? sum : sum + (parseInt(di.count) || 0);
+      }, 0);
+      if (doorsUnpaintedCnt > 0) addQ('PS_PROTECT_EA.DOOR_SLAB', 'EA', doorsUnpaintedCnt);
+
+      // (Window mask moved outside this anySprayInRoom block — see W-22
+      // matrix below, which gates the level on what's actually being
+      // painted near the window rather than on "any spray anywhere".)
+
+      // Adjacent trim masks — fire when the trim substrate is NOT in scope.
+      if (!subs.door_frames && d.door_frame_lf > 0) {
+        addQ('PS_PROTECT_LF.DOOR_FRAME_ADJACENT', 'LF', d.door_frame_lf);
+      }
+      if (!subs.door_casing?.painting && d.door_casing_lf > 0) {
+        addQ('PS_PROTECT_LF.DOOR_CASING_ADJACENT', 'LF', d.door_casing_lf);
+      }
+      if (!subs.window_casing?.painting && d.window_casing_lf > 0) {
+        addQ('PS_PROTECT_LF.WINDOW_CASING_ADJACENT', 'LF', d.window_casing_lf);
+      }
+      if (!subs.window_jamb && d.window_jamb_lf > 0) {
+        addQ('PS_PROTECT_LF.WINDOW_JAMB_ADJACENT', 'LF', d.window_jamb_lf);
+      }
+    }
+
+    // W-22 window masking matrix — decide level from what's painted near the window:
+    //   - window jambs being sprayed       → edge_encapsulate (sealed wrap)
+    //   - walls being sprayed / sprayed+backrolled → encapsulate (full wrap, no edge tape)
+    //   - any ceiling work (overhead)      → full (drape)
+    //   - brush on jambs only, no spray    → edge (tape on glass lites)
+    //   - otherwise                        → none
+    // Levels above 'edge' all share the existing WINDOW_FULL_{SMALL,STD,LG,XL}
+    // tasks for now; 'edge' uses WINDOW_GLASS_LIGHTS (lighter task).
+    // Finer-grained encapsulate / edge_encapsulate task variants deferred.
+    const windowsPaintingMask = !!subs.windows?.painting;
+    const windowItemsMask = subs.windows?.items || [];
+    const totalWinCount = windowItemsMask.reduce((s, w) => s + (parseInt(w.count) || 0), 0);
+    if (!windowsPaintingMask && totalWinCount > 0) {
+      const jambMethod = !!subs.window_jamb
+        ? (effectiveMethod('window_jamb', subs.window_jamb) || '').toString()
+        : '';
+      const jambSpray = /spray/.test(jambMethod);
+      const jambBrush = !jambSpray && /brush/.test(jambMethod);
+      const ceilingWork = !!subs.ceiling || !!subs.wood_ceiling;
+
+      let windowMaskLevel = 'none';
+      if (jambSpray) windowMaskLevel = 'edge_encapsulate';
+      else if (wallsSprayQ) windowMaskLevel = 'encapsulate';
+      else if (ceilingWork) windowMaskLevel = 'full';
+      else if (jambBrush) windowMaskLevel = 'edge';
+
+      if (windowMaskLevel === 'edge') {
+        // Light-tape edge for glass lites only
+        addQ('PS_PROTECT_EA.WINDOW_GLASS_LIGHTS', 'EA', totalWinCount);
+      } else if (windowMaskLevel === 'encapsulate') {
+        // Encapsulate (full wrap + sealed perimeter) — size-agnostic for now
+        addQ('PS_PROTECT_EA.WINDOW_ENCAPSULATE', 'EA', totalWinCount);
+      } else if (windowMaskLevel === 'edge_encapsulate') {
+        // Edge+ Encapsulate (encapsulate plus additional crisp tape line)
+        addQ('PS_PROTECT_EA.WINDOW_EDGE_ENCAPSULATE', 'EA', totalWinCount);
+      } else if (windowMaskLevel === 'full') {
+        // Full drape — per-size FULL_* tasks (existing rates differ by size)
+        const sizeMap = { S: 'SMALL', M: 'STD', L: 'LG', O: 'XL' };
+        const bucketCounts = { SMALL: 0, STD: 0, LG: 0, XL: 0 };
+        windowItemsMask.forEach(w => {
+          const bucket = sizeMap[w.size_bucket] || 'STD';
+          bucketCounts[bucket] += (parseInt(w.count) || 0);
+        });
+        for (const [bucket, cnt] of Object.entries(bucketCounts)) {
+          if (cnt > 0) addQ('PS_PROTECT_EA.WINDOW_FULL_' + bucket, 'EA', cnt);
+        }
+      }
+    }
+
+    // Trim tape line — sum of LF for ALL painted wall-adjacent trim substrates.
+    // Gated on tapeline_edge flag (room-level toggle, or project-level
+    // protection_defaults.full_trim_tapeline override). The consumer task
+    // (TSK_TRIM_TAPELINE_INSTALL via MOD_TAPELINE_INSTALL) is also gated by
+    // tapeline_edge in applies_when — gating the emission too keeps the data
+    // clean and prevents misleading LF appearing in protection rollups when
+    // the feature is off (2026-05-03).
+    const tapelineEnabled = room.protection?.tapeline_edge === true
+      || project?.protection_defaults?.full_trim_tapeline === true;
+    if (tapelineEnabled) {
+      const tapelineLF = trimKeys.reduce((s, [subId, , derivedKey]) => {
+        if (!WALL_ADJACENT_TRIM.has(subId)) return s;
+        return s + (isTrimActive(subId) ? (d[derivedKey] || 0) : 0);
+      }, 0);
+      if (tapelineLF > 0) addQ('PS_PROTECT_LF.TRIM_TAPELINE', 'LF', tapelineLF);
+    }
+    // Containment — singleton (engine handles FIXED tasks via quantity=1 sentinel)
+    addQ('PS_PROTECT_FIXED.CONTAINMENT', 'FIXED', 1);
+    addQ('PS_PROTECT_FIXED.CONTAINMENT_ZIPPER', 'FIXED', 1);
+    // Spot mask quantities — opening counts for floor/ceiling spot tasks.
+    // Floor spot fires at base of door casing/frame (door openings only).
+    // Ceiling spot fires above doors + windows (any opening with ceiling above).
+    addQ('PS_PROTECT_EA.OPENING_BASE_FLOOR', 'EA', d.totalOpenings);
+    addQ('PS_PROTECT_EA.OPENING_ABOVE_CEILING', 'EA', d.totalOpenings + d.totalWindows);
+
+    // Fixture protection keys (v0.5 — legacy + v1.0 — Protection tab v2 mask tasks)
     Object.entries(room.fixtures || {}).forEach(function ([fId, cfg]) {
       if (fId === 'cabinets') {
         const lf = parseFloat(cfg.linear_ft) || 0;
-        if (lf > 0) addQ('PS_PROTECT_LF.FIXTURE_CABINETS', 'LF', lf);
+        if (lf > 0) {
+          // Cabinet Path 1 (paint_cabinets=false): single PS key, quantity =
+          // linear_ft × stack_multiplier (1 lower-only, 2 lower+upper). Feeds
+          // the 7 SCN_CABINET_PROTECT_* canonical-mask-level scenarios.
+          //
+          // Per-zone keys (CABINET_FACE_COVERS, COUNTERTOP_EDGE from cabinet
+          // branch, ASSET.HARDWARE, FLOOR_FULL_KITCHEN, BACKSPLASH_MASK,
+          // ASSET.APPLIANCES) are RESERVED for Path 2 (paint_cabinets=true) —
+          // not emitted here. The standalone Countertops fixture still emits
+          // PS_PROTECT_LF.COUNTERTOP_EDGE via its own branch below.
+          const stackMult = (cfg.layout === 'lower_upper') ? 2 : 1;
+          addQ('PS_PROTECT_LF.CABINET', 'LF', lf * stackMult);
+        }
       } else if (fId === 'feature_wall') {
-        // Sum SF across all feature wall items (or legacy single config)
         const items = cfg.items || (cfg.length_ft ? [cfg] : []);
         const sf = items.reduce((s, i) => s + Math.round((parseFloat(i.length_ft) || 0) * (parseFloat(i.height_ft) || 0) * (parseInt(i.count) || 1)), 0);
-        if (sf > 0) addQ('PS_PROTECT_SF.FIXTURE_FEATURE_WALL', 'SF', sf);
+        if (sf > 0) {
+          addQ('PS_PROTECT_SF.FEATURE_WALL', 'SF', sf);          // new key
+          addQ('PS_PROTECT_SF.FIXTURE_FEATURE_WALL', 'SF', sf);  // legacy
+        }
+      } else if (fId === 'fireplace' || fId === 'stone_fireplace') {
+        // Both fireplace and stone fireplace use the same PS key — masking method
+        // differs (delicate vs duct tape) but UOM and quantity formula match.
+        const sf = Math.round((parseFloat(cfg.width_ft) || 0) * (parseFloat(cfg.height_ft) || 0) * (parseInt(cfg.count) || 1));
+        if (sf > 0) addQ('PS_PROTECT_SF.FIREPLACE', 'SF', sf);
+      } else if (fId === 'builtin_shelving') {
+        const sf = Math.round((parseFloat(cfg.width_ft) || 0) * (parseFloat(cfg.height_ft) || 0) * (parseInt(cfg.count) || 1));
+        if (sf > 0) addQ('PS_PROTECT_SF.BUILTIN', 'SF', sf);
+      } else if (fId === 'shower') {
+        // Bath fixture mask emission gated on spray — brush+roll doesn't need
+        // physical masking (covers stay on, painter cuts around). Mirrors the
+        // legacy fixture-protection.js semantic which only fired masking for
+        // spray contexts.
+        if (anySprayInRoom) {
+          const sf = Math.round((parseFloat(cfg.width_ft) || 0) * (parseFloat(cfg.height_ft) || 0) * (parseInt(cfg.count) || 1));
+          if (sf > 0) addQ('PS_PROTECT_SF.SHOWER', 'SF', sf);
+        }
+      } else if (fId === 'vanity') {
+        // Vanity rule: width LF for all levels EXCEPT encapsulate when width<3 LF.
+        // In that special case, emit the singleton fixed-min key instead so the
+        // 5-min minimum task fires (and the regular LF task gracefully skips at 0).
+        // Gated on anySprayInRoom — see shower comment above.
+        if (anySprayInRoom) {
+          const width = parseFloat(cfg.width_ft) || 0;
+          const count = parseInt(cfg.count) || 1;
+          const lf = width * count;
+          const level = cfg.protection || 'full';
+          const isEncap = level === 'encapsulate' || level === 'edge_encapsulate';
+          if (width < 3 && isEncap && count > 0) {
+            addQ('PS_PROTECT_EA.VANITY_SMALL_ENCAP', 'EA', count);
+          } else if (lf > 0) {
+            addQ('PS_PROTECT_LF.VANITY', 'LF', lf);
+          }
+        }
+      } else if (fId === 'bathtub') {
+        if (anySprayInRoom) {
+          const cnt = parseInt(cfg.count) || 1;
+          if (cnt > 0) addQ('PS_PROTECT_EA.BATHTUB', 'EA', cnt);
+        }
+      } else if (fId === 'toilet') {
+        if (anySprayInRoom) {
+          const cnt = parseInt(cfg.count) || 1;
+          if (cnt > 0) addQ('PS_PROTECT_EA.TOILET', 'EA', cnt);
+        }
+      } else if (fId === 'appliances') {
+        const cnt = parseInt(cfg.count) || 1;
+        if (cnt > 0) addQ('PS_PROTECT_EA.APPLIANCES', 'EA', cnt);
+      } else if (fId === 'countertops') {
+        const lf = parseFloat(cfg.linear_ft) || 0;
+        if (lf > 0) addQ('PS_PROTECT_LF.COUNTERTOP_EDGE', 'LF', lf);
       } else {
+        // Generic fixture — fall through to legacy FIXTURE_* key
         const cnt = parseInt(cfg.count) || 1;
         addQ('PS_PROTECT_EA.FIXTURE_' + fId.toUpperCase(), 'EA', cnt);
       }
     });
+
+    // Per-room light-fixture protection time, split into setup-phase
+    // (install) and cleanup-phase (remove) minutes. Both PS keys are
+    // emitted in MIN; consuming tasks use uom=MIN, rate=60 so the math
+    // is identity (input minute → 1/60 hour).
+    const lf = lightFixtureMinutesForRoom(room);
+    if (lf.installMin > 0) {
+      addQ('PS_PROTECT_EA.LIGHT_FAN_MANTEL_INSTALL_MIN', 'MIN', lf.installMin);
+    }
+    if (lf.removeMin > 0) {
+      addQ('PS_PROTECT_EA.LIGHT_FAN_MANTEL_REMOVE_MIN', 'MIN', lf.removeMin);
+    }
+
+    // Outlet/switch heuristic — emit count when EITHER:
+    //   (a) walls or ceiling are sprayed in the room (overspray hits outlets), OR
+    //   (b) outlet_remove_reinstall toggle is on (covers come off regardless of method).
+    // W-21: trim-only spray (baseboard/door casing/etc.) does NOT trigger outlet
+    // masking — outlets are on walls, and trim spray normally masks against
+    // walls so overspray on outlets isn't a concern. User explicitly reported
+    // outlet auto-mask firing on trim-only rooms even with the R+R toggle off.
+    // Mask vs R+R are independent — both can fire on the same outlet count.
+    // Mask tasks (TSK_MASK_OUTLET_SWITCH_*) gate on any_spray_in_room ctx field
+    // so they only fire under condition (a). Prep R+R tasks gate on
+    // outlet_remove_reinstall and fire under condition (b).
+    const outletRR = project?.protection_heuristics?.outlet_remove_reinstall === true;
+    const wallOrCeilingSpray = wallsSprayQ || ceilingSprayQ;
+    if ((wallOrCeilingSpray || outletRR) && outletsPerRoom > 0) {
+      const cnt = (room.protection?.outlets_count_override != null ? Number(room.protection.outlets_count_override) : outletsPerRoom);
+      if (cnt > 0) addQ('PS_PROTECT_EA.OUTLET_SWITCH', 'EA', cnt);
+    }
+    // HVAC vent heuristic — emit count regardless of method; tasks gate on
+    // hvac_action ('mask' or 'remove'). W-20: when hvac_action is 'none'
+    // (do nothing — e.g. ceiling-only repaint where vents stay untouched),
+    // skip emission entirely so no HVAC vent tasks fire.
+    if (hvacPerRoom > 0 && hvacAction !== 'none') {
+      const cnt = (room.protection?.hvac_vents_count_override != null ? Number(room.protection.hvac_vents_count_override) : hvacPerRoom);
+      if (cnt > 0) addQ('PS_PROTECT_EA.HVAC_VENT', 'EA', cnt);
+    }
 
     // Meta
     addQ('PS_META.EA.ROOMS_TOTAL', 'EA', 1);
@@ -303,7 +665,10 @@ export function buildRoomQuantityLookups(state) {
       if (subs.baseboard && cd.baseboard_lf > 0) {
         addClosetQ('PS_SURFACE_LF.TRIM_BASEBOARD', 'LF', cd.baseboard_lf);
         addClosetQ('PS_SURFACE_LF.TRIM_TOTAL', 'LF', cd.baseboard_lf);
-        addClosetQ('PS_EDGE_LF.TRIM_JOINTS', 'LF', cd.baseboard_lf);
+        // Per-substrate joint caulk (Track A 2026-05-02). Legacy TRIM_JOINTS
+        // intentionally not emitted here — it stays 0 to prevent the legacy
+        // TSK_TRIM_CAULK_JOINTS from double-billing on top of TSK_BASEBOARD_CAULK_JOINTS.
+        addClosetQ('PS_EDGE_LF.TRIM_JOINTS_BASEBOARD', 'LF', cd.baseboard_lf);
       }
       // Closet shelving — emit paint surface key only when paint_shelving is true.
       // When paint_shelving is false, masking + obstruction is handled by
@@ -313,6 +678,17 @@ export function buildRoomQuantityLookups(state) {
           addClosetQ('PS_SURFACE_LF.CLOSET_SHELF', 'LF', cd.shelving_lf);
         }
       }
+      // Closet shelf protection — emit when NOT painting shelves.
+      // Quantity = shelving_lf × perimeter_factor (3.6, for 5-ft shelf at
+      // 2-ft depth heuristic) × type_multiplier (wire 2× because of brackets,
+      // wood 1×, builtin SKIP — built-ins get their own SF-based design).
+      // Consumed by MOD_PROTECT_CLOSET_SHELF_* modules via SCN_CLOSET_SHELF_PROTECT_* scenarios.
+      if (cd.shelving_lf > 0 && closet.paint_shelving === false &&
+          (closet.shelving_type === 'wire_shelving' || closet.shelving_type === 'wood_shelving')) {
+        const PERIMETER_FACTOR = 3.6;
+        const typeMult = closet.shelving_type === 'wire_shelving' ? 2 : 1;
+        addClosetQ('PS_PROTECT_LF.CLOSET_SHELF', 'LF', cd.shelving_lf * PERIMETER_FACTOR * typeMult);
+      }
       // Closet perimeter edges + protection
       addClosetQ('PS_EDGE_LF.TO_CEILING', 'LF', cd.perimeter);
       if (cd.baseboard_lf > 0) {
@@ -320,15 +696,55 @@ export function buildRoomQuantityLookups(state) {
         if (subs.baseboard) addClosetQ('PS_PROTECT_LF.TRIM_BASEBOARD', 'LF', cd.baseboard_lf);
       }
       addClosetQ('PS_PROTECT_LF.CEILING_LINE', 'LF', cd.perimeter);
-      // Floor protection (inherits parent floor type)
-      if (hasFloorProt) {
-        addClosetQ('PS_PROTECT_SF.FLOOR_EXPOSED', 'SF', cd.ceilingSF);
-      }
+      // Legacy PS_PROTECT_SF.FLOOR_EXPOSED closet emit removed —
+      // consumer tasks archived. New closet protection lives via
+      // SCN_CLOSET_SHELF_PROTECT_* scenarios (MOD_PROTECT_CLOSET_SHELF_*).
       // Meta
       addClosetQ('PS_META.SF.FLOOR_VACUUM_AREA', 'SF', cd.ceilingSF);
     });
     if (closets.length > 0) {
       addQ('PS_META.EA.CLOSETS_TOTAL', 'EA', closets.length);
+    }
+
+    // ── Cabinet paint surface emission ──
+    // Emit paint surface keys only when paint_cabinets is true.
+    // When paint_cabinets is false, protection is handled by
+    // resolveCabinetProtection() in the run-estimate pipeline.
+    const cab = subs.cabinets;
+    if (cab && cab.paint_cabinets) {
+      const scope = cab.scope || 'full_exterior';
+      // Always emit doors + drawers + hardware (all scope levels)
+      if (cab.door_count > 0) addQ('PS_SURFACE_EA.CABINET_DOOR', 'EA', cab.door_count);
+      if (cab.drawer_count > 0) addQ('PS_SURFACE_EA.CABINET_DRAWER', 'EA', cab.drawer_count);
+      if (cab.hardware_count > 0) addQ('PS_SURFACE_EA.ASSET.CABINET_HARDWARE', 'EA', cab.hardware_count);
+      // Frame + caulk only for full_exterior and full_with_interior
+      if (scope !== 'doors_only') {
+        if (cab.frame_sf > 0) addQ('PS_SURFACE_SF.CABINET_FRAME', 'SF', cab.frame_sf);
+        if (cab.caulk_lf > 0) addQ('PS_SURFACE_LF.CABINET_CAULK', 'LF', cab.caulk_lf);
+      }
+      // Interior only for full_with_interior
+      if (scope === 'full_with_interior' && cab.interior_sf > 0) {
+        addQ('PS_SURFACE_SF.CABINET_INTERIOR', 'SF', cab.interior_sf);
+      }
+    }
+    // ── Cabinet protection PS key emission (substrate fallback) ──
+    // Path 1 (paint_cabinets=false): single PS_PROTECT_LF.CABINET key drives
+    // the 7 SCN_CABINET_PROTECT_* scenarios. The substrate carries cabinet_count
+    // (not linear_ft) so we derive linear_ft ≈ cabinet_count × 2 LF/box.
+    // Stack multiplier defaults to 2 (typical lower+upper kitchen). For exact
+    // accounting, add cabinets via the Protection-tab fixture which carries
+    // linear_ft and layout directly.
+    //
+    // Per-zone keys (CABINET_FACE_COVERS, COUNTERTOP_EDGE, ASSET.HARDWARE,
+    // FLOOR_FULL_KITCHEN, BACKSPLASH_MASK, ASSET.APPLIANCES) are RESERVED
+    // for Path 2 (paint_cabinets=true) — wired in a later pass.
+    if (cab && cab.paint_cabinets === false) {
+      const cabCount = cab.cabinet_count || 0;
+      if (cabCount > 0) {
+        const derivedLF = cabCount * 2;
+        const stackMult = 2;
+        addQ('PS_PROTECT_LF.CABINET', 'LF', derivedLF * stackMult);
+      }
     }
 
     roomLookups.set(ri, { qty, closetQty });
