@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { runScenarioEstimate } from '../run-estimate-scenario.js';
+import { computeScenarioModifierStack } from '../run-estimate-scenario.js';
 
 // Synthetic bundle: one apply module repeated via dynamic_coats with an
 // interstage module interleaved between coats. coat_counts_by_tier sets the
@@ -51,5 +52,27 @@ describe('coat_counts_by_tier', () => {
   it('QT5 → 3 coats and 2 interstage rounds (one knob drives both)', () => {
     const r = runScenarioEstimate({ scenarioBundle: makeCoatBundle(), ctx: ctxFor('QT5'), roomQty: roomQty(), roomIndex: 0, roomLabel: 'R1' });
     expect(counts(r)).toEqual({ apply: 3, inter: 2 });
+  });
+});
+
+describe('scenario-scoped modifier_overrides', () => {
+  const bundle = { modifiers: { FAC_QT: { factors: { QT3: 1.0, QT5: 1.5 }, default: 'QT3' } } };
+  const moduleEl = { modifier_eligibility: { qt: true } };
+  const ctx = { quality_tier: 'QT5', height_band: 'STD', surface_texture: 'smooth', complexity: 'STD', substrate_condition: 'fair' };
+
+  it('uses the global FAC_QT factor when no override is given', () => {
+    const stack = computeScenarioModifierStack(moduleEl, ctx, null, bundle);
+    expect(stack.qt).toBe(1.5);
+  });
+
+  it('uses the scenario override over the global factor', () => {
+    const stack = computeScenarioModifierStack(moduleEl, ctx, null, bundle, null, { FAC_QT: { QT5: 1.8 } });
+    expect(stack.qt).toBe(1.8);
+  });
+
+  it('task fac_qt_override still wins over the scenario override (precedence)', () => {
+    const task = { fac_qt_override: { QT5: 2.0 } };
+    const stack = computeScenarioModifierStack(moduleEl, ctx, null, bundle, task, { FAC_QT: { QT5: 1.8 } });
+    expect(stack.qt).toBe(2.0);
   });
 });

@@ -307,7 +307,21 @@ function deriveMaterialType(eligibility, ctx, task) {
   return 'WB_FINISH';
 }
 
-export function computeScenarioModifierStack(module, ctx, scenarioModifiers = null, bundle = null, task = null) {
+/**
+ * Factor lookup with scenario-scoped override. If modifierOverrides[modId]
+ * defines a numeric value for ctxValue, it wins over the global FAC_* table.
+ * Lets the Quality Tier Builder bump e.g. FAC_QT's QT5 multiplier for a single
+ * substrate scenario without editing the global modifier.
+ */
+function resolveFactor(bundle, modId, ctxValue, modifierOverrides) {
+  if (modifierOverrides && modifierOverrides[modId]) {
+    const ov = modifierOverrides[modId][ctxValue];
+    if (typeof ov === 'number') return ov;
+  }
+  return getFactor(bundle, modId, ctxValue);
+}
+
+export function computeScenarioModifierStack(module, ctx, scenarioModifiers = null, bundle = null, task = null, modifierOverrides = null) {
   const eligibility = resolveEligibility(module, task);
 
   // QT resolution honors per-task fac_qt_override (Option 3 from the QT
@@ -326,7 +340,7 @@ export function computeScenarioModifierStack(module, ctx, scenarioModifiers = nu
     if (typeof taskOverride === 'number') {
       qt = taskOverride;
     } else {
-      qt = bundle ? getFactor(bundle, 'FAC_QT', ctx.quality_tier) : (QT_MODIFIERS[ctx.quality_tier] ?? 1.0);
+      qt = bundle ? resolveFactor(bundle, 'FAC_QT', ctx.quality_tier, modifierOverrides) : (QT_MODIFIERS[ctx.quality_tier] ?? 1.0);
     }
   }
 
@@ -336,19 +350,19 @@ export function computeScenarioModifierStack(module, ctx, scenarioModifiers = nu
   // not the interior height band. Otherwise fall back to interior height_band.
   const hasExtAccess = scenarioModifiers && scenarioModifiers.FAC_EXT_ACCESS != null;
   const height = eligibility.height !== false
-    ? (hasExtAccess ? 1.0 : (bundle ? getFactor(bundle, 'FAC_HEIGHT', ctx.height_band || 'STD') : (HEIGHT_MODIFIERS[ctx.height_band || 'STD'] ?? 1.0)))
+    ? (hasExtAccess ? 1.0 : (bundle ? resolveFactor(bundle, 'FAC_HEIGHT', ctx.height_band || 'STD', modifierOverrides) : (HEIGHT_MODIFIERS[ctx.height_band || 'STD'] ?? 1.0)))
     : 1.0;
 
   const texture = eligibility.texture === true
-    ? (bundle ? getFactor(bundle, 'FAC_TEXTURE', ctx.surface_texture || 'smooth') : (TEXTURE_MODIFIERS[ctx.surface_texture || 'smooth'] ?? 1.0))
+    ? (bundle ? resolveFactor(bundle, 'FAC_TEXTURE', ctx.surface_texture || 'smooth', modifierOverrides) : (TEXTURE_MODIFIERS[ctx.surface_texture || 'smooth'] ?? 1.0))
     : 1.0;
 
   const complexity = eligibility.complexity !== false
-    ? (bundle ? getFactor(bundle, 'FAC_COMPLEXITY', (ctx.complexity || 'STD').toUpperCase()) : (COMPLEXITY_MODIFIERS[(ctx.complexity || 'STD').toUpperCase()] ?? 1.0))
+    ? (bundle ? resolveFactor(bundle, 'FAC_COMPLEXITY', (ctx.complexity || 'STD').toUpperCase(), modifierOverrides) : (COMPLEXITY_MODIFIERS[(ctx.complexity || 'STD').toUpperCase()] ?? 1.0))
     : 1.0;
 
   const condition = eligibility.condition !== false
-    ? (bundle ? getFactor(bundle, 'FAC_CONDITION', ctx.substrate_condition || 'fair') : (CONDITION_MODIFIERS[ctx.substrate_condition || 'fair'] ?? 1.0))
+    ? (bundle ? resolveFactor(bundle, 'FAC_CONDITION', ctx.substrate_condition || 'fair', modifierOverrides) : (CONDITION_MODIFIERS[ctx.substrate_condition || 'fair'] ?? 1.0))
     : 1.0;
 
   // TRADE_OVERHEAD — ceiling vs wall surface orientation penalty. Module
@@ -359,7 +373,7 @@ export function computeScenarioModifierStack(module, ctx, scenarioModifiers = nu
   // no ps_key is available or no eligibility — neutral default.
   const surface_orientation = deriveSurfaceOrientation(task, eligibility);
   const overhead = eligibility.overhead === true
-    ? (bundle ? getFactor(bundle, 'TRADE_OVERHEAD', surface_orientation) : (surface_orientation === 'CEILING' ? 1.25 : 1.0))
+    ? (bundle ? resolveFactor(bundle, 'TRADE_OVERHEAD', surface_orientation, modifierOverrides) : (surface_orientation === 'CEILING' ? 1.25 : 1.0))
     : 1.0;
 
   // TRADE_MATERIAL — primer-vs-finish material penalty. Module opts in via
@@ -368,7 +382,7 @@ export function computeScenarioModifierStack(module, ctx, scenarioModifiers = nu
   // BA_TRADE_MATERIAL band-aid pattern from the NC consolidation pass.
   const material_type = deriveMaterialType(eligibility, ctx, task);
   const material = eligibility.material === true
-    ? (bundle ? getFactor(bundle, 'TRADE_MATERIAL', material_type) : (material_type === 'WB_PRIMER' ? 1.25 : material_type === 'OB_PRIMER' ? 1.47 : material_type === 'OB_FINISH' ? 1.176 : 1.0))
+    ? (bundle ? resolveFactor(bundle, 'TRADE_MATERIAL', material_type, modifierOverrides) : (material_type === 'WB_PRIMER' ? 1.25 : material_type === 'OB_PRIMER' ? 1.47 : material_type === 'OB_FINISH' ? 1.176 : 1.0))
     : 1.0;
 
   // Dynamic modifiers from scenario.modifiers[] (exterior access, substrate
@@ -815,7 +829,7 @@ export function runScenarioEstimate({ scenarioBundle, ctx, roomQty, roomItems = 
     // Other phases (setup/prep/prime/interstage/cleanup) always run at coat 1.
     const coatNumber = (mod.phase === 'apply' || mod.phase === 'finish') ? moduleInvocations[moduleId] : 1;
 
-    const modStack = computeScenarioModifierStack(mod, ctx, scenarioModifiers, scenarioBundle);
+    const modStack = computeScenarioModifierStack(mod, ctx, scenarioModifiers, scenarioBundle, null, scenario.modifier_overrides);
 
     const tasksLibrary = scenarioBundle.tasks || {};
     for (const taskEntry of mod.tasks) {
@@ -836,7 +850,7 @@ export function runScenarioEstimate({ scenarioBundle, ctx, roomQty, roomItems = 
       // instead of falling back to the module's eligibility default.
       const needsTaskStack = !!(task.modifier_eligibility || task.fac_qt_override || task.material_type);
       const taskStack = needsTaskStack
-        ? computeScenarioModifierStack(mod, ctx, scenarioModifiers, scenarioBundle, task)
+        ? computeScenarioModifierStack(mod, ctx, scenarioModifiers, scenarioBundle, task, scenario.modifier_overrides)
         : modStack;
       // Task-level applies_when (not variant-level; variant-level lives inside rates[])
       if (task.applies_when && !evaluateAppliesWhen(task.applies_when, ctx, coatNumber)) {
