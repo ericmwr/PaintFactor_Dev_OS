@@ -725,6 +725,24 @@ export function runScenarioEstimate({ scenarioBundle, ctx, roomQty, roomItems = 
     return { scenarioId: null, scenarioName: null, totalHours: 0, phaseHours: {}, tasks: [], warnings };
   }
 
+  // Per-tier coat counts: when the scenario declares coat_counts_by_tier,
+  // overlay the active tier's coat-field values onto a COPY of ctx (never the
+  // caller's object — avoids leakage across scenarios in a chain). The
+  // dynamic_coats expander (below) and the coat_lt_ctx interstage gate both
+  // read ctx[<coatField>], so this single overlay makes coats AND interstage
+  // rounds (coats - 1) vary per tier from one scenario. Fields use the same
+  // names the scenario's dynamic_coats references (e.g. finish_coats).
+  if (scenario.coat_counts_by_tier) {
+    const tierCoats = scenario.coat_counts_by_tier[ctx.quality_tier];
+    if (tierCoats && typeof tierCoats === 'object') {
+      const overrides = {};
+      for (const [field, n] of Object.entries(tierCoats)) {
+        if (typeof n === 'number' && Number.isFinite(n) && n >= 0) overrides[field] = n;
+      }
+      if (Object.keys(overrides).length > 0) ctx = { ...ctx, ...overrides };
+    }
+  }
+
   // Resolve scenario-declared dynamic modifiers (exterior access, substrate
   // type, coating system, texture profile, etc.) once per run — they apply to
   // every module in the scenario.
