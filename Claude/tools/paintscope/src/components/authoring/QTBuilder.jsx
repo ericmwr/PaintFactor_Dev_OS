@@ -106,7 +106,7 @@ export default function QTBuilder() {
                 {tiers.map(t => (
                   <th key={t} style={thStyle}>
                     {t}
-                    {t === 'QT3' && <span style={baselineBadge}>baseline</span>}
+                    {t === ladder.baseline && <span style={baselineBadge}>baseline</span>}
                     {!ladder.served.includes(t) && <div style={{ fontSize: 8, fontWeight: 400 }}>n/a</div>}
                   </th>
                 ))}
