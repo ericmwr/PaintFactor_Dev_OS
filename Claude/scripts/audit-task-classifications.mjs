@@ -1,7 +1,33 @@
 #!/usr/bin/env node
 // Audit canonical tasks against their derived classifications.
-// Reads task._derived from the bundle and writes a CSV of every task
-// flagged by one or more rules.
+//
+// Reads task._derived from the bundle, runs each task through a set of flag
+// rules, and writes a CSV of every task that has at least one flag.
+//
+// Flag rules:
+//   ORPHAN              - no module references this task
+//   NO_PHASE            - non-orphan task whose modules carry no phase
+//   NO_SUBSTRATE        - task lives in modules, but those modules aren't in
+//                         any scenario with a paintable_item
+//   NO_QT               - modules -> scenarios, but quality_tier missing on
+//                         every reachable scenario
+//   ACTIVITY_UNMATCHED  - name doesn't match any rule in activity-rules.js
+//   PHASE_DOCTRINE_HINT - name implies one phase, derivation says another
+//                         (e.g. CLEAR_BRUSH -> name suggests finish, derived
+//                         says apply)
+//   MULTI_PHASE         - task lives across modules of different phases
+//                         (sometimes legit, sometimes a content mistake)
+//   MULTI_SUBSTRATE     - task reaches scenarios with >5 distinct substrates
+//                         (universal task - usually fine, flag for review)
+//   PI_INT_PREFIX_DUPE  - task reaches BOTH int_X and X paintable_items;
+//                         a data-side normalization is overdue
+//
+// Usage:
+//   node Claude/scripts/audit-task-classifications.mjs
+//
+// Writes:
+//   Claude/_task_audit.csv        (one row per task, all classifications)
+//   Claude/_task_audit.flags.csv  (one row per (task, flag) pair)
 
 import fs from 'node:fs';
 import path from 'node:path';
