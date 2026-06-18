@@ -77,7 +77,7 @@ function tierTaskSet(bundle, ctx) {
 }
 
 export function deriveTierLadder(bundle, sel) {
-  const tiers = QT_BUCKETS;
+  const tiers = [...QT_BUCKETS];
   const perTier = {};
   const warnings = [];
 
