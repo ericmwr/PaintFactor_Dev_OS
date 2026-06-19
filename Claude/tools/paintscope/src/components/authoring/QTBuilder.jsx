@@ -337,8 +337,8 @@ export default function QTBuilder() {
                       {isOpen && (
                         <tr style={{ background: 'rgba(130,170,255,0.05)' }}>
                           <td style={{ padding: '4px 10px 8px 30px', fontSize: 10, color: 'var(--text-muted)' }}>
-                            per-tier rate ({task.uom || 'unit'}/hr) · FAC_QT off for this task
-                            {task.rates_by_tier && <span onClick={() => !busy && resetRate(r)} title="Drop the draft, revert to canonical" style={{ marginLeft: 8, cursor: 'pointer', textDecoration: 'underline' }}>reset</span>}
+                            per-tier rate ({task?.uom || 'unit'}/hr) · FAC_QT off for this task
+                            {task?.rates_by_tier && <span onClick={() => !busy && resetRate(r)} title="Drop the draft, revert to canonical" style={{ marginLeft: 8, cursor: 'pointer', textDecoration: 'underline' }}>reset</span>}
                           </td>
                           {tiers.map(t => {
                             if (!firing.includes(t)) return <td key={t} style={coatsCellStyle}><span style={{ color: 'var(--text-muted)' }}>—</span></td>;
