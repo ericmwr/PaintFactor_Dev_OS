@@ -16,6 +16,10 @@ describe('mergeTaskDrafts', () => {
     expect(out.TSK_A.rates_by_tier).toEqual({ QT3: 600 });
     expect(out.TSK_B).toBeUndefined();
   });
+  it('treats local_override status as active', () => {
+    const out = mergeTaskDrafts({}, [{ id: 'TSK_C', status: 'local_override', payload: { task_id: 'TSK_C', rate_per_hour: 5 } }]);
+    expect(out.TSK_C.rate_per_hour).toBe(5);
+  });
 });
 
 describe('rateEditable', () => {
@@ -25,6 +29,9 @@ describe('rateEditable', () => {
     expect(rateEditable({ rates: [{ rate_per_hour: 1 }] }).editable).toBe(false);
     expect(rateEditable({ rates_by_coat: { 1: 1 } }).editable).toBe(false);
     expect(rateEditable({ fixed_minutes: 30 }).editable).toBe(false);
+  });
+  it('not editable for an empty rates_by_tier with no rate_per_hour', () => {
+    expect(rateEditable({ rates_by_tier: {} }).editable).toBe(false);
   });
 });
 
@@ -42,6 +49,11 @@ describe('effectiveTierRates', () => {
     const t = { rates_by_tier: { QT4: 600 } };
     const r = effectiveTierRates(t, ['QT4', 'QT5'], bundle);
     expect(r.byTier).toEqual({ QT4: 600, QT5: 600 });
+  });
+  it('carries backward to fill a leading gap', () => {
+    const t = { rates_by_tier: { QT4: 600 } };
+    const r = effectiveTierRates(t, ['QT2', 'QT4'], bundle);
+    expect(r.byTier).toEqual({ QT2: 600, QT4: 600 });
   });
 });
 

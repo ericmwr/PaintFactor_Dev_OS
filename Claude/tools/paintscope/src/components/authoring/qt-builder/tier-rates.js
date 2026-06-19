@@ -26,7 +26,7 @@ export function rateEditable(task) {
   if (!task) return { editable: false, reason: 'No task' };
   if (Array.isArray(task.rates)) return { editable: false, reason: 'Variant rates — edit in Task editor' };
   if (task.rates_by_coat) return { editable: false, reason: 'Per-coat rates — edit in Task editor' };
-  if (task.rates_by_tier && typeof task.rates_by_tier === 'object') return { editable: true, reason: '' };
+  if (task.rates_by_tier && typeof task.rates_by_tier === 'object' && Object.keys(task.rates_by_tier).length > 0) return { editable: true, reason: '' };
   if (typeof task.rate_per_hour === 'number' && task.rate_per_hour > 0) return { editable: true, reason: '' };
   if (typeof task.fixed_minutes === 'number') return { editable: false, reason: 'Fixed-minutes task — no rate' };
   return { editable: false, reason: 'No scalar rate to seed from' };
