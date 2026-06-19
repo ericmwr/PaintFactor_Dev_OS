@@ -1,12 +1,14 @@
-// QT Builder — read-only tier ladder (Phase 2a). Pick Substrate / Method /
-// State / Coating; see, per quality tier (QT2-QT5), which tasks fire, are
-// added, or are skipped. Editing arrives in a later sub-phase. All derivation
-// lives in ./qt-builder/derive-tier-ladder.js; this file is presentation only.
+// QT Builder — editable tier ladder (Phase 2b). Pick Substrate / Method /
+// State / Coating; click a served-tier cell to toggle whether that task fires
+// at that tier. Edits compile to applies_when.quality_tier on the task's
+// module entry and autosave as module drafts (live via overlay; publish from
+// the Drafts tab). Derivation + compile live in ./qt-builder/*.
 
 import { Fragment, useMemo, useState } from 'react';
 import bundle from '../../data/scenario-bundle.gen.js';
-import { PHASE_ORDER } from '../../data/constants.js';
 import { listSubstrates, listDimensions, deriveTierLadder } from './qt-builder/derive-tier-ladder.js';
+import { mergeModuleDrafts, setTierMembership } from './qt-builder/edit-tier-ladder.js';
+import { useModuleDrafts } from '../../hooks/useModuleDrafts.js';
 
 function humanize(s) {
   if (!s) return '';
@@ -21,42 +23,59 @@ const CELL = {
 };
 
 export default function QTBuilder() {
+  const { drafts: moduleDrafts, save } = useModuleDrafts();
+
   const substrates = useMemo(() => listSubstrates(bundle), []);
   const [substrate, setSubstrate] = useState(substrates[0] || '');
   const dims = useMemo(() => listDimensions(bundle, substrate), [substrate]);
   const [method, setMethod] = useState('');
-  const [state, setState] = useState('');
+  const [fromState, setFromState] = useState('');
   const [coating, setCoating] = useState('');
 
-  // Keep each selection valid as the substrate changes (fall back to first).
   const effMethod = dims.methods.includes(method) ? method : (dims.methods[0] || '');
-  const effState = dims.states.includes(state) ? state : (dims.states[0] || '');
+  const effState = dims.states.includes(fromState) ? fromState : (dims.states[0] || '');
   const effCoating = dims.coatings.includes(coating)
     ? coating
     : (dims.coatings.includes('paint') ? 'paint' : (dims.coatings[0] || ''));
 
+  // Merge active module drafts over canonical so edits appear immediately.
+  const mergedBundle = useMemo(
+    () => ({ ...bundle, modules: mergeModuleDrafts(bundle.modules, moduleDrafts) }),
+    [moduleDrafts]
+  );
+
   const ladder = useMemo(() => {
     if (!substrate || !effMethod || !effState) return null;
-    return deriveTierLadder(bundle, {
+    return deriveTierLadder(mergedBundle, {
       paintable_item: substrate, application_method: effMethod,
       substrate_state: effState, coating_type: effCoating,
     });
-  }, [substrate, effMethod, effState, effCoating]);
-
-  const grouped = useMemo(() => {
-    if (!ladder) return [];
-    const byPhase = new Map();
-    for (const r of ladder.rows) {
-      if (!byPhase.has(r.phase)) byPhase.set(r.phase, []);
-      byPhase.get(r.phase).push(r);
-    }
-    return [...byPhase.entries()].sort((a, b) => {
-      const ia = PHASE_ORDER.indexOf(a[0]); const ib = PHASE_ORDER.indexOf(b[0]);
-      return (ia === -1 ? 99 : ia) - (ib === -1 ? 99 : ib);
-    });
-  }, [ladder]);
+  }, [mergedBundle, substrate, effMethod, effState, effCoating]);
 
   const tiers = ladder?.tiers || [];
+  const served = ladder?.served || [];
+
+  // Blast radius: how many scenarios reference each module (canonical structure).
+  const scenarioRefCount = useMemo(() => {
+    const counts = new Map();
+    for (const s of bundle.scenarios || []) for (const m of s.modules || []) counts.set(m, (counts.get(m) || 0) + 1);
+    return counts;
+  }, []);
+
+  const activeDraftCount = moduleDrafts.filter(d => d.status === 'draft' || d.status === 'local_override').length;
+
+  async function toggleCell(row, tier) {
+    if (!served.includes(tier)) return;
+    const firing = new Set(served.filter(t => row.cells[t] === 'fires' || row.cells[t] === 'added'));
+    if (firing.has(tier)) firing.delete(tier); else firing.add(tier);
+    const desired = [...firing];
+    for (const moduleId of row.moduleIds) {
+      const mod = mergedBundle.modules[moduleId];
+      if (!mod) continue;
+      const updated = setTierMembership(mod, row.task_id, desired, served);
+      if (updated !== mod) await save({ id: moduleId, payload: updated, status: 'draft' });
+    }
+  }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
@@ -72,7 +91,7 @@ export default function QTBuilder() {
           </select>
         </label>
         <label style={labelStyle}>From state
-          <select value={effState} onChange={e => setState(e.target.value)} style={{ ...inputStyle, width: 150 }}>
+          <select value={effState} onChange={e => setFromState(e.target.value)} style={{ ...inputStyle, width: 150 }}>
             {dims.states.map(s => <option key={s} value={s}>{humanize(s)}</option>)}
           </select>
         </label>
@@ -83,8 +102,14 @@ export default function QTBuilder() {
             </select>
           </label>
         )}
-        <div style={{ fontSize: 10, color: 'var(--text-muted)', paddingBottom: 4 }}>read-only · editing in a later phase</div>
+        <div style={{ fontSize: 10, color: 'var(--text-muted)', paddingBottom: 4 }}>click a served-tier cell to toggle</div>
       </div>
+
+      {activeDraftCount > 0 && (
+        <div style={bannerStyle}>
+          {activeDraftCount} module draft{activeDraftCount === 1 ? '' : 's'} — live in estimates now. Publish from the Drafts tab.
+        </div>
+      )}
 
       <div style={{ display: 'flex', gap: 16, marginBottom: 8, fontSize: 11, color: 'var(--text-muted)' }}>
         <span><b style={{ color: 'var(--text)' }}>✓</b> fires</span>
@@ -102,32 +127,44 @@ export default function QTBuilder() {
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11 }}>
             <thead>
               <tr style={{ background: 'rgba(0,0,0,0.2)', position: 'sticky', top: 0, zIndex: 1 }}>
-                <th style={{ ...thStyle, textAlign: 'left', width: 300 }}>Task</th>
+                <th style={{ ...thStyle, textAlign: 'left', width: 320 }}>Task</th>
                 {tiers.map(t => (
                   <th key={t} style={thStyle}>
                     {t}
                     {t === ladder.baseline && <span style={baselineBadge}>baseline</span>}
-                    {!ladder.served.includes(t) && <div style={{ fontSize: 8, fontWeight: 400 }}>n/a</div>}
+                    {!served.includes(t) && <div style={{ fontSize: 8, fontWeight: 400 }}>n/a</div>}
                   </th>
                 ))}
               </tr>
             </thead>
             <tbody>
-              {grouped.map(([phase, rows]) => (
-                <Fragment key={phase}>
-                  <tr><td colSpan={tiers.length + 1} style={phaseStyle}>{humanize(phase)}</td></tr>
-                  {rows.map(r => (
-                    <tr key={r.task_id} style={{ borderTop: '1px solid var(--border)' }}>
-                      <td style={{ padding: '6px 10px', textAlign: 'left' }}>
-                        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10 }}>{r.task_id}</span>
-                        <span style={{ color: 'var(--text-muted)', marginLeft: 8 }}>{r.name}</span>
-                      </td>
-                      {tiers.map(t => {
-                        const c = CELL[r.cells[t]] || CELL.na;
-                        return <td key={t} style={{ textAlign: 'center', padding: '6px 8px', color: c.color, fontWeight: r.cells[t] === 'added' ? 600 : 400 }}>{c.icon}</td>;
-                      })}
-                    </tr>
-                  ))}
+              {ladder.groups.map(group => (
+                <Fragment key={group.phase}>
+                  <tr><td colSpan={tiers.length + 1} style={phaseStyle}>{humanize(group.phase)}</td></tr>
+                  {group.rows.map(r => {
+                    const shared = Math.max(1, ...r.moduleIds.map(m => scenarioRefCount.get(m) || 1));
+                    return (
+                      <tr key={r.task_id} style={{ borderTop: '1px solid var(--border)' }}>
+                        <td style={{ padding: '6px 10px', textAlign: 'left' }}>
+                          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10 }}>{r.task_id}</span>
+                          <span style={{ color: 'var(--text-muted)', marginLeft: 8 }}>{r.name}</span>
+                          {shared > 1 && <span style={sharedBadge} title={`This task's module is shared by ${shared} scenarios — edits affect all of them.`}>shared ×{shared}</span>}
+                        </td>
+                        {tiers.map(t => {
+                          const c = CELL[r.cells[t]] || CELL.na;
+                          const editable = served.includes(t);
+                          return (
+                            <td key={t}
+                                onClick={editable ? () => toggleCell(r, t) : undefined}
+                                title={editable ? 'Click to toggle this tier' : 'Tier not served'}
+                                style={{ textAlign: 'center', padding: '6px 8px', color: c.color, fontWeight: r.cells[t] === 'added' ? 600 : 400, cursor: editable ? 'pointer' : 'default', userSelect: 'none' }}>
+                              {c.icon}
+                            </td>
+                          );
+                        })}
+                      </tr>
+                    );
+                  })}
                 </Fragment>
               ))}
             </tbody>
@@ -149,4 +186,6 @@ const inputStyle = { padding: '4px 6px', fontSize: 11, background: 'var(--bg-inp
 const thStyle = { padding: '8px 10px', fontSize: 10, textTransform: 'uppercase', color: 'var(--text-muted)', borderBottom: '1px solid var(--border)' };
 const phaseStyle = { padding: '6px 10px', fontSize: 11, fontWeight: 600, textTransform: 'uppercase', color: 'var(--text-muted)', background: 'rgba(0,0,0,0.15)' };
 const baselineBadge = { marginLeft: 6, fontSize: 8, fontWeight: 400, padding: '0 5px', borderRadius: 8, background: 'rgba(130,170,255,0.2)', color: 'var(--accent, #82aaff)', textTransform: 'none' };
+const sharedBadge = { marginLeft: 8, fontSize: 9, padding: '0 5px', borderRadius: 8, border: '1px solid var(--border)', color: 'var(--text-muted)' };
+const bannerStyle = { marginBottom: 10, padding: '6px 10px', fontSize: 11, color: 'var(--text)', background: 'rgba(130,170,255,0.08)', border: '1px solid var(--border)', borderRadius: 4 };
 const emptyStyle = { padding: 40, textAlign: 'center', color: 'var(--text-muted)', fontSize: 12 };
