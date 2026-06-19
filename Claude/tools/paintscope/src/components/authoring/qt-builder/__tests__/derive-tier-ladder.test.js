@@ -112,3 +112,32 @@ describe('deriveTierLadder — moduleIds + groups (Phase 2b extensions)', () => 
     expect(l.rows.find(r => r.task_id === 'TSK_SPRAY').moduleIds).toEqual(['MOD_BASE']);
   });
 });
+
+// A baseline task explicitly toggled off at QT3 (applies_when narrowed to
+// QT4/QT5) must keep its structural position (entry 0 in the module), not jump
+// below its sibling. Pre-fix, order was sourced from the first tier whose
+// filtered walk contained the task, so this returned ['TSK_Y','TSK_X'].
+function toggledOffBaselineBundle() {
+  return {
+    scenarios: [{
+      scenario_id: 'SCN_T', domain: 'interior',
+      matches: { paintable_item: 'w', application_method: 'brush', substrate_state: ['SS_BARE'], quality_tier: ['QT3', 'QT4', 'QT5'], coating_type: 'paint' },
+      modules: ['MOD_P'],
+    }],
+    modules: {
+      MOD_P: { module_id: 'MOD_P', phase: 'prep', tasks: [
+        { task_ref: 'TSK_X', applies_when: { quality_tier: ['QT4', 'QT5'] } },
+        { task_ref: 'TSK_Y' },
+      ] },
+    },
+    tasks: { TSK_X: { task_id: 'TSK_X', name: 'X' }, TSK_Y: { task_id: 'TSK_Y', name: 'Y' } },
+    modifiers: {},
+  };
+}
+
+describe('deriveTierLadder — stable row order on toggle', () => {
+  it('keeps a baseline task toggled off at QT3 in its structural position', () => {
+    const l = deriveTierLadder(toggledOffBaselineBundle(), { paintable_item: 'w', application_method: 'brush', substrate_state: 'SS_BARE', coating_type: 'paint' });
+    expect(l.rows.map(r => r.task_id)).toEqual(['TSK_X', 'TSK_Y']);
+  });
+});

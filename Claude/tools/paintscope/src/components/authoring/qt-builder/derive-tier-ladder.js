@@ -87,7 +87,7 @@ export function deriveTierLadder(bundle, sel) {
     };
     const { scenario, tasks, warnings: w } = tierTaskSet(bundle, ctx);
     for (const msg of w) warnings.push(`${tier}: ${msg}`);
-    perTier[tier] = scenario ? { scenarioId: scenario.scenario_id, tasks } : null;
+    perTier[tier] = scenario ? { scenarioId: scenario.scenario_id, scenario, tasks } : null;
   }
 
   const served = tiers.filter(t => perTier[t]);
@@ -107,6 +107,25 @@ export function deriveTierLadder(bundle, sel) {
     }
   }
 
+  // Stable row order from an UNFILTERED structural walk of the served scenarios'
+  // module/task lists (baseline first). A task entry's index in mod.tasks does
+  // not change when its applies_when is narrowed, so toggling a baseline task off
+  // never reorders its row.
+  const structuralOrder = new Map();
+  let sidx = 0;
+  for (const t of collectOrder) {
+    const pt = perTier[t];
+    if (!pt || !pt.scenario) continue;
+    for (const modId of pt.scenario.modules || []) {
+      const mod = bundle.modules?.[modId];
+      if (!mod || !Array.isArray(mod.tasks)) continue;
+      for (const entry of mod.tasks) {
+        const ref = entry?.task_ref;
+        if (ref && !structuralOrder.has(ref)) structuralOrder.set(ref, sidx++);
+      }
+    }
+  }
+
   const rows = [...taskInfo.entries()].map(([id, info]) => {
     const inBaseline = baseline ? perTier[baseline].tasks.has(id) : false;
     const cells = {};
@@ -115,7 +134,7 @@ export function deriveTierLadder(bundle, sel) {
       if (!pt) { cells[t] = 'na'; continue; }
       cells[t] = pt.tasks.has(id) ? (inBaseline ? 'fires' : 'added') : 'skip';
     }
-    return { task_id: id, name: info.name, phase: info.phase, moduleIds: [...moduleIdsByTask.get(id)].sort(), cells, _order: info.order };
+    return { task_id: id, name: info.name, phase: info.phase, moduleIds: [...moduleIdsByTask.get(id)].sort(), cells };
   });
 
   rows.sort((a, b) => {
@@ -123,9 +142,10 @@ export function deriveTierLadder(bundle, sel) {
     const pai = pa === -1 ? PHASE_ORDER.length : pa;
     const pbi = pb === -1 ? PHASE_ORDER.length : pb;
     if (pai !== pbi) return pai - pbi;
-    return a._order - b._order;
+    const oa = structuralOrder.has(a.task_id) ? structuralOrder.get(a.task_id) : Infinity;
+    const ob = structuralOrder.has(b.task_id) ? structuralOrder.get(b.task_id) : Infinity;
+    return oa - ob;
   });
-  rows.forEach(r => { delete r._order; });
 
   const groups = [];
   for (const r of rows) {
