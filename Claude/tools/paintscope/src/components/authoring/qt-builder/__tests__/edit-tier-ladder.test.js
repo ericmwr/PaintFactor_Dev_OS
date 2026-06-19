@@ -56,4 +56,8 @@ describe('addTaskEntry', () => {
     const m = mod();
     expect(addTaskEntry(m, 'TSK_A', ['QT5'])).toBe(m);
   });
+  it('appends an ungated entry when tiers is empty', () => {
+    const out = addTaskEntry(mod(), 'TSK_NEW', []);
+    expect(out.tasks[out.tasks.length - 1]).toEqual({ task_ref: 'TSK_NEW' });
+  });
 });

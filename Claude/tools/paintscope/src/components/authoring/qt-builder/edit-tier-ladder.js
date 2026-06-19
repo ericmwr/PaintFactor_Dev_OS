@@ -8,7 +8,7 @@ const ACTIVE_DRAFT = new Set(['draft', 'local_override']);
 export function mergeModuleDrafts(canonicalModules, drafts) {
   const out = { ...(canonicalModules || {}) };
   for (const d of drafts || []) {
-    if (d && d.payload && ACTIVE_DRAFT.has(d.status)) out[d.id] = d.payload;
+    if (d && d.payload && ACTIVE_DRAFT.has(d.status)) out[d.id] = { ...d.payload };
   }
   return out;
 }
@@ -19,7 +19,7 @@ export function setTierMembership(module, task_ref, desiredTiers, servedTiers) {
   if (idx === -1) return module;
 
   const tasks = list.map(e => ({ ...e }));
-  const desired = new Set(desiredTiers);
+  const desired = new Set(desiredTiers || []);
 
   if (desired.size === 0) {
     tasks.splice(idx, 1);
