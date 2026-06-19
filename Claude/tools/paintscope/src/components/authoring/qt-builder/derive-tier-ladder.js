@@ -8,6 +8,9 @@ import { findBestMatch } from '../../../engine/scenario-matcher.js';
 import { QT_BUCKETS } from '../../../data/quality-tier.js';
 import { PHASE_ORDER } from '../../../data/constants.js';
 
+// Only these selection dimensions gate a task into a tier's ladder. Other
+// applies_when keys (per-instance geometry/coat gates like has_steps, coat)
+// are not tier-structural, so they must NOT filter the ladder view.
 const LADDER_GATE_KEYS = ['quality_tier', 'application_method', 'substrate_state'];
 
 function appliesAtTier(appliesWhen, tierCtx) {

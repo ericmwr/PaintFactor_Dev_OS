@@ -8,7 +8,7 @@ const ACTIVE_DRAFT = new Set(['draft', 'local_override']);
 export function mergeModuleDrafts(canonicalModules, drafts) {
   const out = { ...(canonicalModules || {}) };
   for (const d of drafts || []) {
-    if (d && d.payload && ACTIVE_DRAFT.has(d.status)) out[d.id] = { ...d.payload };
+    if (d && d.payload && ACTIVE_DRAFT.has(d.status)) out[d.id] = { ...d.payload, tasks: [...(d.payload.tasks || [])] };
   }
   return out;
 }

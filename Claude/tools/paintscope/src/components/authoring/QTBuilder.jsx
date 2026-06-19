@@ -87,7 +87,7 @@ export default function QTBuilder() {
   const [picker, setPicker] = useState(null); // { phase, moduleId } | null
 
   async function addTask(task_id) {
-    if (!picker || busyRef.current) { setPicker(null); return; }
+    if (!picker || busyRef.current) return;
     busyRef.current = true;
     try {
       const mod = mergedBundle.modules[picker.moduleId];
@@ -143,7 +143,7 @@ export default function QTBuilder() {
       <div style={{ flex: 1, overflow: 'auto', border: '1px solid var(--border)', borderRadius: 3 }}>
         {!ladder ? (
           <div style={emptyStyle}>Pick a substrate, method, and state.</div>
-        ) : ladder.rows.length === 0 ? (
+        ) : ladder.groups.length === 0 ? (
           <div style={emptyStyle}>No scenario matched this combination.</div>
         ) : (
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11 }}>
@@ -170,7 +170,7 @@ export default function QTBuilder() {
                         <td style={{ padding: '6px 10px', textAlign: 'left' }}>
                           <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10 }}>{r.task_id}</span>
                           <span style={{ color: 'var(--text-muted)', marginLeft: 8 }}>{r.name}</span>
-                          {shared > 1 && <span style={sharedBadge} title={`This task's module is shared by ${shared} scenarios — edits affect all of them.`}>shared ×{shared}</span>}
+                          {shared > 1 && <span style={sharedBadge} title={`Edits to this task's module affect ${shared} scenario(s) that reference it, including this view.`}>shared ×{shared}</span>}
                         </td>
                         {tiers.map(t => {
                           const c = CELL[r.cells[t]] || CELL.na;
