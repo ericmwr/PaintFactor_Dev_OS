@@ -1,18 +1,13 @@
-// Pure derivation for the QT Builder's read-only tier ladder. Given the
-// canonical scenario bundle and a (paintable_item, application_method,
-// substrate_state, coating_type) selection, this resolves the governing
-// scenario PER quality tier (via the same matcher the engine uses) and aligns
-// each tier's concrete task set into a tier ladder. Resolving per tier means
-// it handles BOTH authoring patterns transparently: one multi-tier scenario
-// (quality_tier: [...]) and separate per-tier scenario files.
+// Pure derivation for the QT Builder's tier ladder. Resolves the governing
+// scenario PER quality tier (via the engine matcher) and aligns each tier's
+// concrete task set into a ladder. Handles both authoring patterns (one
+// multi-tier scenario; separate per-tier scenario files). Phase 2b adds
+// per-row home module ids and phase-grouped rows for the editor.
 
 import { findBestMatch } from '../../../engine/scenario-matcher.js';
 import { QT_BUCKETS } from '../../../data/quality-tier.js';
 import { PHASE_ORDER } from '../../../data/constants.js';
 
-// Only these selection dimensions gate a task into a tier's ladder. Other
-// applies_when keys (per-instance geometry/coat gates like has_steps, coat)
-// are not tier-structural, so they must NOT filter the ladder view.
 const LADDER_GATE_KEYS = ['quality_tier', 'application_method', 'substrate_state'];
 
 function appliesAtTier(appliesWhen, tierCtx) {
@@ -26,9 +21,7 @@ function appliesAtTier(appliesWhen, tierCtx) {
   return true;
 }
 
-function uniqSorted(set) {
-  return [...set].sort();
-}
+function uniqSorted(set) { return [...set].sort(); }
 
 export function listSubstrates(bundle, { domain = 'interior' } = {}) {
   const set = new Set();
@@ -56,7 +49,7 @@ export function listDimensions(bundle, paintable_item) {
   return { methods: uniqSorted(methods), states: uniqSorted(states), coatings: uniqSorted(coatings) };
 }
 
-// Resolve one tier's concrete task set → Map<task_id, {name, phase, order}>.
+// Resolve one tier's concrete task set → Map<task_id, {name, phase, moduleId, order}>.
 function tierTaskSet(bundle, ctx) {
   const { scenario, warnings } = findBestMatch(bundle, ctx);
   if (!scenario) return { scenario: null, tasks: new Map(), warnings: warnings || [] };
@@ -70,7 +63,7 @@ function tierTaskSet(bundle, ctx) {
       if (!ref || tasks.has(ref)) continue;
       if (!appliesAtTier(entry.applies_when, ctx)) continue;
       const t = bundle.tasks?.[ref];
-      tasks.set(ref, { name: t?.name || ref, phase: mod.phase || 'apply', order: order++ });
+      tasks.set(ref, { name: t?.name || ref, phase: mod.phase || 'apply', moduleId: modId, order: order++ });
     }
   }
   return { scenario, tasks, warnings: warnings || [] };
@@ -97,14 +90,17 @@ export function deriveTierLadder(bundle, sel) {
   const served = tiers.filter(t => perTier[t]);
   const baseline = perTier['QT3'] ? 'QT3' : (served[0] || null);
 
-  // Collect distinct tasks, baseline tier first so its ordering dominates.
   const collectOrder = baseline ? [baseline, ...tiers.filter(t => t !== baseline)] : tiers;
   const taskInfo = new Map();
+  const moduleIdsByTask = new Map();
   for (const t of collectOrder) {
     const pt = perTier[t];
     if (!pt) continue;
     for (const [id, info] of pt.tasks) {
       if (!taskInfo.has(id)) taskInfo.set(id, info);
+      let set = moduleIdsByTask.get(id);
+      if (!set) { set = new Set(); moduleIdsByTask.set(id, set); }
+      set.add(info.moduleId);
     }
   }
 
@@ -116,7 +112,7 @@ export function deriveTierLadder(bundle, sel) {
       if (!pt) { cells[t] = 'na'; continue; }
       cells[t] = pt.tasks.has(id) ? (inBaseline ? 'fires' : 'added') : 'skip';
     }
-    return { task_id: id, name: info.name, phase: info.phase, cells, _order: info.order };
+    return { task_id: id, name: info.name, phase: info.phase, moduleIds: [...moduleIdsByTask.get(id)].sort(), cells, _order: info.order };
   });
 
   rows.sort((a, b) => {
@@ -128,5 +124,12 @@ export function deriveTierLadder(bundle, sel) {
   });
   rows.forEach(r => { delete r._order; });
 
-  return { tiers, served, baseline, rows, warnings };
+  const groups = [];
+  for (const r of rows) {
+    const last = groups[groups.length - 1];
+    if (last && last.phase === r.phase) last.rows.push(r);
+    else groups.push({ phase: r.phase, rows: [r] });
+  }
+
+  return { tiers, served, baseline, rows, groups, warnings };
 }

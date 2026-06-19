@@ -93,3 +93,22 @@ describe('deriveTierLadder — per-tier scenario files (pattern B)', () => {
     expect(spray.cells).toEqual({ QT2: 'na', QT3: 'fires', QT4: 'na', QT5: 'fires' });
   });
 });
+
+describe('deriveTierLadder — moduleIds + groups (Phase 2b extensions)', () => {
+  it('records the home module(s) of each task', () => {
+    const l = deriveTierLadder(multiTierBundle(), { paintable_item: 'widget', application_method: 'brush', substrate_state: 'SS_BARE', coating_type: 'paint' });
+    expect(l.rows.find(r => r.task_id === 'TSK_CLEAN').moduleIds).toEqual(['MOD_PREP_W']);
+    expect(l.rows.find(r => r.task_id === 'TSK_COAT').moduleIds).toEqual(['MOD_FIN_W']);
+  });
+  it('exposes phase-grouped rows in PHASE_ORDER', () => {
+    const l = deriveTierLadder(multiTierBundle(), { paintable_item: 'widget', application_method: 'brush', substrate_state: 'SS_BARE', coating_type: 'paint' });
+    expect(l.groups.map(g => g.phase)).toEqual(['prep', 'finish']);
+    expect(l.groups[0].rows.map(r => r.task_id)).toEqual(['TSK_CLEAN', 'TSK_DETAIL_SAND']);
+    expect(l.groups[1].rows.map(r => r.task_id)).toEqual(['TSK_COAT']);
+  });
+  it('records the per-tier-file extra-module home', () => {
+    const l = deriveTierLadder(perTierFilesBundle(), { paintable_item: 'cab', application_method: 'spray', substrate_state: 'SS_BARE', coating_type: 'paint' });
+    expect(l.rows.find(r => r.task_id === 'TSK_TOUCHUP').moduleIds).toEqual(['MOD_EXTRA']);
+    expect(l.rows.find(r => r.task_id === 'TSK_SPRAY').moduleIds).toEqual(['MOD_BASE']);
+  });
+});
