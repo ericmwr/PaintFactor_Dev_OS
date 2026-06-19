@@ -68,18 +68,15 @@ for role in [primer, finish] (only roles that have ≥1 system in this family):
     override = overridesBySpec[specId]?.[defaultQT]?.[role]
     if override is a system id present in roleSystems[role]:
         system = that system
-    elif role == 'finish':
-        system = first finish system with applies_when.quality_tier.includes(defaultQT)
-                 (+ finish_sheen match when present); else first finish system
-    else: // primer
-        system = first primer system whose applies_when.substrate_state is in specStates
-                 (when specStates non-empty); else first primer system
+    else:
+        system = first candidate in roleSystems[role] where systemMatches(s); else candidates[0]
     if system: emit one estimate line { productRole: role, system, coats from its product, … }
 ```
 
+- **Unified `systemMatches(s)`** honors whatever `applies_when` constraints the system declares: `quality_tier` (if present) must include `defaultQT`; `finish_sheen` (if present) must include `defaultSheen`; `substrate_state` (if present) must intersect `specStates`. Substrate sub-type (fjp/hardwood/softwood) is **not** matched in v1 (the Phase 2f override gives that precision). This one matcher serves all roles, so it correctly handles **both** kinds of primer system: *substrate/state-keyed* primers (e.g. arch_element's `SYS_PRIMER_*`, matched by state) and *QT-keyed* primers (the dedicated PRIME spec families like `SF_DRYWALL_WALL_NC_PRIME`, matched by tier).
+- **Role** comes from the system's `product_role` (via `MATERIAL_SYSTEM_PRODUCTS`), not from a hardcoded label. A combined family (primers + finishes) emits both a primer and a finish line; a single-role family (e.g. a drywall PRIME spec — all primer systems, or a FINISH spec — all finish systems) emits one line of that role.
 - **Coats** per role from that system's product `coats_required` (primer typically 1, finish typically 2). Gallons math, spray loss, coverage/product resolution unchanged — applied per emitted line.
-- A family with no primer systems → finish line only (unchanged shape for those specs).
-- `representativeRoom` for state: the first state-compatible contributing room for the spec (the same set `buildSpecScopedQty` already iterates). `resolveSubstrateStateForSpec` returns an **array** of SS_* states; the primer match accepts a system whose `applies_when.substrate_state` is among them. Mixed-state rooms (rare for NC) use the representative room's state; full per-state precision comes from the Phase 2f override.
+- `representativeRoom` for state: the first state-compatible contributing room for the spec (the same set `buildSpecScopedQty` already iterates). `resolveSubstrateStateForSpec` returns an **array** of SS_* states; `specStates` is that array. Mixed-state rooms (rare for NC) use the representative room's state; full per-state precision comes from the Phase 2f override.
 
 ## 7. Resolution algorithm (stain specs)
 
@@ -94,7 +91,7 @@ Already role-aware (stain/sealer/clear, first per role). **Add** the override ch
 
 - **Material output changes**: paint specs that have primer systems now emit an additional **primer** line; specs whose prior "finish" pick was actually a primer now emit the correct finish (and a primer). This is a correctness improvement and a coverage gap fill.
 - **Hours estimates: unchanged** — this phase touches `material-estimates.js` + the material-override plumbing only.
-- **Parity**: the existing material-estimates test is **updated** to the role-aware output (not treated as a regression). Hours/scenario parity suites must stay green.
+- **Parity**: the existing interior golden (`material-estimates.test.js`, drywall fixture) changes in exactly **one way** — the two `*_PRIME` entries flip `role: "finish"` → `"primer"` (today the code hardcodes `finish` for every paint match; the PRIME systems are `product_role: primer`). **Gallons and psKey are identical** (same QT-matched system). It's a label correction, not a gallons regression; the EXPECTED is updated accordingly. The drywall FINISH entries are unchanged. Hours/scenario parity suites stay green.
 - **Pre-production**: no migration plumbing; no real product data introduced.
 
 ## 10. Testing
