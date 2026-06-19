@@ -1,13 +1,14 @@
 import { deriveRoom } from './derive-room.js';
 import { SUBSTRATE_MAP, SUBSTRATE_APPLICATION_METHODS } from '../data/substrate-catalog.js';
 import { SPEC_SUBSTRATE_MAP } from '../data/scenario-maps.js';
-import { isSpecStateCompatible } from './scenario-compatibility.js';
+import { isSpecStateCompatible, resolveSubstrateStateForSpec } from './scenario-compatibility.js';
 import {
   MATERIAL_SYSTEMS,
   MATERIAL_COVERAGE_PROFILES,
   MATERIAL_SYSTEM_PRODUCTS,
 } from '../data/scenario-rate-data.js';
 import { resolveProduct } from './product-resolver.js';
+import { buildRoleBySystemId, resolveSpecSystems } from './material-system-roles.js';
 
 /**
  * Default exterior coverage profiles (flat model).
@@ -61,7 +62,7 @@ const SPRAY_LOSS_BY_METHOD = {
 /**
  * Compute material estimates from coverage profiles.
  */
-export function computeMaterialEstimates(state, roomLookups, specResults = []) {
+export function computeMaterialEstimates(state, roomLookups, specResults = [], scenarioMaterialOverrides = {}) {
   const estimates = [];
   const { project, rooms } = state;
   const SPRAY_LOSS_FACTOR = 0.05; // 5% material loss for spray application
@@ -130,6 +131,9 @@ export function computeMaterialEstimates(state, roomLookups, specResults = []) {
     productsBySystem[key].push(msp);
   });
 
+  // system_id -> product_role, so material selection is role-aware (primer vs finish).
+  const roleBySystemId = buildRoleBySystemId(MATERIAL_SYSTEM_PRODUCTS);
+
   // specId → flattened scenario tasks (carries psKey) for PS-key derivation.
   const tasksBySpec = {};
   (specResults || []).forEach(sr => {
@@ -181,50 +185,18 @@ export function computeMaterialEstimates(state, roomLookups, specResults = []) {
     if (specId.includes('PRIME')) defaultSheen = 'flat';
     if (specId.includes('TRIM') || specId.includes('DOOR') || specId.includes('CABINET') || specId.includes('WINDOW')) defaultSheen = 'semi-gloss';
 
-    // Determine which systems to resolve for this spec.
-    // Stain/clear specs need multiple systems (stain + sealer + clear coat).
-    // Paint specs need one system matched by QT + sheen.
+    // Role-aware resolution: a primer system (substrate/state- or QT-keyed) and a
+    // finish system (QT-keyed) are resolved separately and emitted as their own
+    // lines; stain specs resolve stain/sealer/clear. Role comes from product_role.
+    // A per-(tier,role) override pins a system at the active defaultQT.
     const isStainSpec = specId.includes('STAIN');
-    let matchedSystems = [];
-
-    if (isStainSpec) {
-      // Stain specs: match ALL systems whose coating_type applies
-      // For stain_clear projects: stain + sealer + clear coat
-      // For stain_only: just stain
-      // For clear_only: sealer + clear coat
-      // Pick first system per role (stain, sealer, clear)
-      const seenRoles = new Set();
-      specSystems.forEach(ms => {
-        const aw = typeof ms.applies_when === 'string' ? JSON.parse(ms.applies_when) : (ms.applies_when || {});
-        // Determine role from system ID
-        let role = 'stain';
-        if (ms.id.includes('SEALER')) role = 'sealer';
-        else if (ms.id.includes('CLEAR') || ms.id.includes('POLY') || ms.id.includes('LACQUER')) role = 'clear';
-        if (!seenRoles.has(role)) {
-          seenRoles.add(role);
-          matchedSystems.push({ system: ms, role });
-        }
-      });
-    } else {
-      // Paint/prime specs: match one system by QT + sheen
-      let matchedSystem = null;
-      specSystems.forEach(ms => {
-        if (ms.applies_when) {
-          const aw = typeof ms.applies_when === 'string' ? JSON.parse(ms.applies_when) : ms.applies_when;
-          const qtMatch = !aw.quality_tier || aw.quality_tier.includes(defaultQT);
-          const sheenMatch = !aw.finish_sheen || aw.finish_sheen.includes(defaultSheen);
-          if (qtMatch && sheenMatch && !matchedSystem) {
-            matchedSystem = ms;
-          }
-        }
-      });
-      if (!matchedSystem && specSystems.length > 0) {
-        matchedSystem = specSystems[0];
-      }
-      if (matchedSystem) {
-        matchedSystems.push({ system: matchedSystem, role: 'finish' });
-      }
-    }
+    const repRoom = rooms.find(r => isSpecStateCompatible(specId, r)) || null;
+    const specStates = repRoom ? resolveSubstrateStateForSpec(specId, repRoom) : [];
+    const specOverride = (scenarioMaterialOverrides[specId] && scenarioMaterialOverrides[specId][defaultQT]) || null;
+    const matchedSystems = resolveSpecSystems({
+      specSystems, roleBySystemId, isStain: isStainSpec,
+      defaultQT, defaultSheen, specStates, specOverride,
+    });
 
     // Emit one estimate per matched system
     matchedSystems.forEach(({ system: matchedSystem, role }) => {

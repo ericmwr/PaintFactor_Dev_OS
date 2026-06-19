@@ -22,7 +22,7 @@ const EXPECTED = [
   },
   {
     "spec": "SF_DRYWALL_CEILING_NC_PRIME",
-    "role": "finish",
+    "role": "primer",
     "gal": 1,
     "psKey": "PS_SURFACE_SF.CEILING_FIELD"
   },
@@ -34,7 +34,7 @@ const EXPECTED = [
   },
   {
     "spec": "SF_DRYWALL_WALL_NC_PRIME",
-    "role": "finish",
+    "role": "primer",
     "gal": 2,
     "psKey": "PS_SURFACE_SF.WALL_FIELD"
   }
