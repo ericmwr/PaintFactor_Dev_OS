@@ -194,7 +194,7 @@ export default function QTBuilder() {
                 <td style={{ padding: '6px 10px', fontWeight: 500, color: 'var(--text-muted)' }}>Finish coats</td>
                 {tiers.map(t => {
                   const tc = tierCoats[t];
-                  if (!tc) return <td key={t} style={coatsCellStyle}><span style={{ color: 'var(--text-muted)' }}>—</span></td>;
+                  if (!tc || tc.finishCoats === 0) return <td key={t} style={coatsCellStyle}><span style={{ color: 'var(--text-muted)' }}>—</span></td>;
                   return (
                     <td key={t} style={coatsCellStyle}>
                       <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>

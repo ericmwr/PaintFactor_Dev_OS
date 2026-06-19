@@ -26,6 +26,12 @@ describe('coatUnits', () => {
     expect(u.lastUnit).toEqual(['MOD_CUTIN_C', 'MOD_CUTIN_T', 'MOD_ROLL']);
     expect(u.interstageBetween).toEqual([]);
   });
+  it('returns count 0 when there are no apply/finish modules', () => {
+    const u = coatUnits({ scenario_id: 'X', modules: ['MOD_PREP', 'MOD_CLEAN'] }, PH);
+    expect(u.count).toBe(0);
+    expect(u.lastUnit).toEqual([]);
+    expect(u.interstageBetween).toEqual([]);
+  });
 });
 
 describe('setFinishCoats — cabinet (with interstage)', () => {
@@ -46,6 +52,11 @@ describe('setFinishCoats — cabinet (with interstage)', () => {
     const c = cabinet();
     setFinishCoats(c, PH, 3);
     expect(c.modules).toHaveLength(7);
+  });
+  it('3 -> 1 removes the trailing two coat units in one go', () => {
+    const three = setFinishCoats(cabinet(), PH, 3);
+    const back = setFinishCoats(three, PH, 1);
+    expect(back.modules).toEqual(['MOD_SETUP', 'MOD_PREP', 'MOD_PRIME', 'MOD_FINISH', 'MOD_CLEAN']);
   });
 });
 

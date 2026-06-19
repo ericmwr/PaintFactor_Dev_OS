@@ -90,6 +90,9 @@ export function deriveTierCoats(bundle, sel) {
     out[tier] = {
       scenarioId: scenario.scenario_id,
       finishCoats: count,
+      // interstageRounds is a display approximation: count - 1 when the last
+      // coat gap has interstage. Assumes uniform interstage across gaps (true
+      // for all current scenarios); not used in estimates.
       interstageRounds: interstageBetween.length ? count - 1 : 0,
     };
   }
