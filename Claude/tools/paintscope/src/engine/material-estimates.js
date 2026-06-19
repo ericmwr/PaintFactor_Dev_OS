@@ -191,7 +191,7 @@ export function computeMaterialEstimates(state, roomLookups, specResults = [], s
     // A per-(tier,role) override pins a system at the active defaultQT.
     const isStainSpec = specId.includes('STAIN');
     const repRoom = rooms.find(r => isSpecStateCompatible(specId, r)) || null;
-    const specStates = repRoom ? resolveSubstrateStateForSpec(specId, repRoom) : [];
+    const specStates = (repRoom ? resolveSubstrateStateForSpec(specId, repRoom) : []) || [];
     const specOverride = (scenarioMaterialOverrides[specId] && scenarioMaterialOverrides[specId][defaultQT]) || null;
     const matchedSystems = resolveSpecSystems({
       specSystems, roleBySystemId, isStain: isStainSpec,
