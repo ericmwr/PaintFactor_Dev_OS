@@ -1,20 +1,24 @@
-// QT Builder — editable tier ladder (Phase 2b). Pick Substrate / Method /
-// State / Coating; click a served-tier cell to toggle whether that task fires
-// at that tier. Edits compile to applies_when.quality_tier on the task's
-// module entry and autosave as module drafts (live via overlay; publish from
-// the Drafts tab). Derivation + compile live in ./qt-builder/*.
+// QT Builder — editable tier ladder (Phase 2a–2c). Pick Substrate / Method /
+// State / Coating. Click a served-tier cell to toggle whether a task fires at
+// that tier (module drafts); step finish coats per tier (scenario drafts). All
+// edits autosave and go live via the overlay; publish from the Drafts tab.
+// Derivation + compile live in ./qt-builder/*.
 
 import { Fragment, useMemo, useState, useRef } from 'react';
 import bundle from '../../data/scenario-bundle.gen.js';
 import { listSubstrates, listDimensions, deriveTierLadder } from './qt-builder/derive-tier-ladder.js';
 import { mergeModuleDrafts, setTierMembership, addTaskEntry } from './qt-builder/edit-tier-ladder.js';
+import { mergeScenarioDrafts, setFinishCoats, deriveTierCoats } from './qt-builder/tier-coats.js';
 import TaskPicker from './TaskPicker.jsx';
 import { useModuleDrafts } from '../../hooks/useModuleDrafts.js';
+import { useScenarioDrafts } from '../../hooks/useScenarioDrafts.js';
 
 function humanize(s) {
   if (!s) return '';
   return String(s).replace(/^SS_/, '').replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
 }
+
+const isActive = (d) => d.status === 'draft' || d.status === 'local_override';
 
 const CELL = {
   fires: { icon: '✓', color: 'var(--text)' },
@@ -24,7 +28,8 @@ const CELL = {
 };
 
 export default function QTBuilder() {
-  const { drafts: moduleDrafts, save } = useModuleDrafts();
+  const { drafts: moduleDrafts, save: saveModule } = useModuleDrafts();
+  const { drafts: scenarioDrafts, save: saveScenario } = useScenarioDrafts();
 
   const substrates = useMemo(() => listSubstrates(bundle), []);
   const [substrate, setSubstrate] = useState(substrates[0] || '');
@@ -39,33 +44,44 @@ export default function QTBuilder() {
     ? coating
     : (dims.coatings.includes('paint') ? 'paint' : (dims.coatings[0] || ''));
 
-  // Merge active module drafts over canonical so edits appear immediately.
+  // Merge active module + scenario drafts over canonical so edits show live.
   const mergedBundle = useMemo(
-    () => ({ ...bundle, modules: mergeModuleDrafts(bundle.modules, moduleDrafts) }),
-    [moduleDrafts]
+    () => ({
+      ...bundle,
+      modules: mergeModuleDrafts(bundle.modules, moduleDrafts),
+      scenarios: mergeScenarioDrafts(bundle.scenarios, scenarioDrafts),
+    }),
+    [moduleDrafts, scenarioDrafts]
   );
+
+  const sel = { paintable_item: substrate, application_method: effMethod, substrate_state: effState, coating_type: effCoating };
 
   const ladder = useMemo(() => {
     if (!substrate || !effMethod || !effState) return null;
-    return deriveTierLadder(mergedBundle, {
-      paintable_item: substrate, application_method: effMethod,
-      substrate_state: effState, coating_type: effCoating,
-    });
+    return deriveTierLadder(mergedBundle, sel);
   }, [mergedBundle, substrate, effMethod, effState, effCoating]);
+
+  const tierCoats = useMemo(() => {
+    if (!ladder) return {};
+    return deriveTierCoats(mergedBundle, sel);
+  }, [mergedBundle, ladder, substrate, effMethod, effState, effCoating]);
 
   const tiers = ladder?.tiers || [];
   const served = ladder?.served || [];
 
-  // Blast radius: how many scenarios reference each module (canonical structure).
   const scenarioRefCount = useMemo(() => {
     const counts = new Map();
     for (const s of bundle.scenarios || []) for (const m of s.modules || []) counts.set(m, (counts.get(m) || 0) + 1);
     return counts;
   }, []);
 
-  const activeDraftCount = moduleDrafts.filter(d => d.status === 'draft' || d.status === 'local_override').length;
-
+  const activeDraftCount = moduleDrafts.filter(isActive).length + scenarioDrafts.filter(isActive).length;
   const busyRef = useRef(false);
+
+  function coatsShared(tier) {
+    const id = tierCoats[tier]?.scenarioId;
+    return id && served.some(t => t !== tier && tierCoats[t]?.scenarioId === id);
+  }
 
   async function toggleCell(row, tier) {
     if (!served.includes(tier) || busyRef.current) return;
@@ -78,13 +94,27 @@ export default function QTBuilder() {
         const mod = mergedBundle.modules[moduleId];
         if (!mod) continue;
         const updated = setTierMembership(mod, row.task_id, desired, served);
-        if (updated !== mod) await save({ id: moduleId, payload: updated, status: 'draft' });
+        if (updated !== mod) await saveModule({ id: moduleId, payload: updated, status: 'draft' });
       }
     } catch (e) { console.error('QT Builder: toggle failed', e); }
     finally { busyRef.current = false; }
   }
 
-  const [picker, setPicker] = useState(null); // { phase, moduleId } | null
+  async function changeCoats(tier, newCount) {
+    if (busyRef.current || newCount < 1) return;
+    const tc = tierCoats[tier];
+    if (!tc) return;
+    const scn = mergedBundle.scenarios.find(s => s.scenario_id === tc.scenarioId);
+    if (!scn) return;
+    busyRef.current = true;
+    try {
+      const updated = setFinishCoats(scn, mergedBundle.modules, newCount);
+      if (updated !== scn) await saveScenario({ id: scn.scenario_id, payload: updated, status: 'draft' });
+    } catch (e) { console.error('QT Builder: coats change failed', e); }
+    finally { busyRef.current = false; }
+  }
+
+  const [picker, setPicker] = useState(null);
 
   async function addTask(task_id) {
     if (!picker || busyRef.current) return;
@@ -93,7 +123,7 @@ export default function QTBuilder() {
       const mod = mergedBundle.modules[picker.moduleId];
       if (mod) {
         const updated = addTaskEntry(mod, task_id, served);
-        if (updated !== mod) await save({ id: picker.moduleId, payload: updated, status: 'draft' });
+        if (updated !== mod) await saveModule({ id: picker.moduleId, payload: updated, status: 'draft' });
       }
     } catch (e) { console.error('QT Builder: add failed', e); }
     finally { busyRef.current = false; setPicker(null); }
@@ -124,12 +154,12 @@ export default function QTBuilder() {
             </select>
           </label>
         )}
-        <div style={{ fontSize: 10, color: 'var(--text-muted)', paddingBottom: 4 }}>click a served-tier cell to toggle</div>
+        <div style={{ fontSize: 10, color: 'var(--text-muted)', paddingBottom: 4 }}>toggle cells · step coats</div>
       </div>
 
       {activeDraftCount > 0 && (
         <div style={bannerStyle}>
-          {activeDraftCount} module draft{activeDraftCount === 1 ? '' : 's'} — live in estimates now. Publish from the Drafts tab.
+          {activeDraftCount} draft{activeDraftCount === 1 ? '' : 's'} — live in estimates now. Publish from the Drafts tab.
         </div>
       )}
 
@@ -160,6 +190,27 @@ export default function QTBuilder() {
               </tr>
             </thead>
             <tbody>
+              <tr style={{ background: 'rgba(255,255,255,0.02)' }}>
+                <td style={{ padding: '6px 10px', fontWeight: 500, color: 'var(--text-muted)' }}>Finish coats</td>
+                {tiers.map(t => {
+                  const tc = tierCoats[t];
+                  if (!tc) return <td key={t} style={coatsCellStyle}><span style={{ color: 'var(--text-muted)' }}>—</span></td>;
+                  return (
+                    <td key={t} style={coatsCellStyle}>
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                        <button style={stepBtn} disabled={tc.finishCoats <= 1} onClick={() => changeCoats(t, tc.finishCoats - 1)}>−</button>
+                        <b>{tc.finishCoats}</b>
+                        <button style={stepBtn} onClick={() => changeCoats(t, tc.finishCoats + 1)}>+</button>
+                      </span>
+                      {coatsShared(t) && <div style={{ fontSize: 8, color: 'var(--text-muted)' }}>shared</div>}
+                    </td>
+                  );
+                })}
+              </tr>
+              <tr style={{ borderBottom: '1px solid var(--border)' }}>
+                <td style={{ padding: '6px 10px', color: 'var(--text-muted)' }}>Interstage rounds</td>
+                {tiers.map(t => <td key={t} style={coatsCellStyle}>{tierCoats[t] ? tierCoats[t].interstageRounds : '—'}</td>)}
+              </tr>
               {ladder.groups.map(group => (
                 <Fragment key={group.phase}>
                   <tr><td colSpan={tiers.length + 1} style={phaseStyle}>{humanize(group.phase)}</td></tr>
@@ -219,3 +270,5 @@ const sharedBadge = { marginLeft: 8, fontSize: 9, padding: '0 5px', borderRadius
 const bannerStyle = { marginBottom: 10, padding: '6px 10px', fontSize: 11, color: 'var(--text)', background: 'rgba(130,170,255,0.08)', border: '1px solid var(--border)', borderRadius: 4 };
 const emptyStyle = { padding: 40, textAlign: 'center', color: 'var(--text-muted)', fontSize: 12 };
 const addRowStyle = { padding: '5px 10px', fontSize: 11, color: 'var(--text-muted)', cursor: 'pointer', borderTop: '1px solid var(--border)' };
+const coatsCellStyle = { textAlign: 'center', padding: '6px 8px' };
+const stepBtn = { fontSize: 12, lineHeight: 1, padding: '0 6px', cursor: 'pointer', background: 'var(--bg-input, #222)', color: 'var(--text)', border: '1px solid var(--border)', borderRadius: 3 };
