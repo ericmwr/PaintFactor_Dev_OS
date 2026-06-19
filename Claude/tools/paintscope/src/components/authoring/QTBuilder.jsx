@@ -4,10 +4,11 @@
 // module entry and autosave as module drafts (live via overlay; publish from
 // the Drafts tab). Derivation + compile live in ./qt-builder/*.
 
-import { Fragment, useMemo, useState } from 'react';
+import { Fragment, useMemo, useState, useRef } from 'react';
 import bundle from '../../data/scenario-bundle.gen.js';
 import { listSubstrates, listDimensions, deriveTierLadder } from './qt-builder/derive-tier-ladder.js';
-import { mergeModuleDrafts, setTierMembership } from './qt-builder/edit-tier-ladder.js';
+import { mergeModuleDrafts, setTierMembership, addTaskEntry } from './qt-builder/edit-tier-ladder.js';
+import TaskPicker from './TaskPicker.jsx';
 import { useModuleDrafts } from '../../hooks/useModuleDrafts.js';
 
 function humanize(s) {
@@ -64,17 +65,38 @@ export default function QTBuilder() {
 
   const activeDraftCount = moduleDrafts.filter(d => d.status === 'draft' || d.status === 'local_override').length;
 
+  const busyRef = useRef(false);
+
   async function toggleCell(row, tier) {
-    if (!served.includes(tier)) return;
-    const firing = new Set(served.filter(t => row.cells[t] === 'fires' || row.cells[t] === 'added'));
-    if (firing.has(tier)) firing.delete(tier); else firing.add(tier);
-    const desired = [...firing];
-    for (const moduleId of row.moduleIds) {
-      const mod = mergedBundle.modules[moduleId];
-      if (!mod) continue;
-      const updated = setTierMembership(mod, row.task_id, desired, served);
-      if (updated !== mod) await save({ id: moduleId, payload: updated, status: 'draft' });
-    }
+    if (!served.includes(tier) || busyRef.current) return;
+    busyRef.current = true;
+    try {
+      const firing = new Set(served.filter(t => row.cells[t] === 'fires' || row.cells[t] === 'added'));
+      if (firing.has(tier)) firing.delete(tier); else firing.add(tier);
+      const desired = [...firing];
+      for (const moduleId of row.moduleIds) {
+        const mod = mergedBundle.modules[moduleId];
+        if (!mod) continue;
+        const updated = setTierMembership(mod, row.task_id, desired, served);
+        if (updated !== mod) await save({ id: moduleId, payload: updated, status: 'draft' });
+      }
+    } catch (e) { console.error('QT Builder: toggle failed', e); }
+    finally { busyRef.current = false; }
+  }
+
+  const [picker, setPicker] = useState(null); // { phase, moduleId } | null
+
+  async function addTask(task_id) {
+    if (!picker || busyRef.current) { setPicker(null); return; }
+    busyRef.current = true;
+    try {
+      const mod = mergedBundle.modules[picker.moduleId];
+      if (mod) {
+        const updated = addTaskEntry(mod, task_id, served);
+        if (updated !== mod) await save({ id: picker.moduleId, payload: updated, status: 'draft' });
+      }
+    } catch (e) { console.error('QT Builder: add failed', e); }
+    finally { busyRef.current = false; setPicker(null); }
   }
 
   return (
@@ -165,6 +187,12 @@ export default function QTBuilder() {
                       </tr>
                     );
                   })}
+                  <tr>
+                    <td colSpan={tiers.length + 1} style={addRowStyle}
+                        onClick={() => setPicker({ phase: group.phase, moduleId: group.rows[0].moduleIds[0] })}>
+                      + Add task to {humanize(group.phase)}…
+                    </td>
+                  </tr>
                 </Fragment>
               ))}
             </tbody>
@@ -177,6 +205,7 @@ export default function QTBuilder() {
           {ladder.warnings.length} matcher note(s) — first: {ladder.warnings[0]}
         </div>
       )}
+      <TaskPicker open={!!picker} phaseHint={picker?.phase} onClose={() => setPicker(null)} onPick={addTask} />
     </div>
   );
 }
@@ -189,3 +218,4 @@ const baselineBadge = { marginLeft: 6, fontSize: 8, fontWeight: 400, padding: '0
 const sharedBadge = { marginLeft: 8, fontSize: 9, padding: '0 5px', borderRadius: 8, border: '1px solid var(--border)', color: 'var(--text-muted)' };
 const bannerStyle = { marginBottom: 10, padding: '6px 10px', fontSize: 11, color: 'var(--text)', background: 'rgba(130,170,255,0.08)', border: '1px solid var(--border)', borderRadius: 4 };
 const emptyStyle = { padding: 40, textAlign: 'center', color: 'var(--text-muted)', fontSize: 12 };
+const addRowStyle = { padding: '5px 10px', fontSize: 11, color: 'var(--text-muted)', cursor: 'pointer', borderTop: '1px solid var(--border)' };
