@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { tierId, scenarioTierPin, forkScenarioForTier, forkModuleForTier, addModuleToTier, removeModuleFromTier, moveModule, addTask, removeTask } from '../tier-files.js';
+import { forkScenarioForTier as fS, forkModuleForTier as fM, addModuleToTier as aM, addTask as aT } from '../tier-files.js';
 
 describe('tierId', () => {
   it('appends _QT<n> to a baseline id', () => {
@@ -111,5 +112,32 @@ describe('task composition', () => {
   it('removes by task_ref; same ref when absent', () => {
     expect(removeTask(mod, 'T1').tasks).toEqual([]);
     expect(removeTask(mod, 'Z')).toBe(mod);
+  });
+});
+
+describe('fork→edit composition smoke', () => {
+  it('forks a baseline to QT5, forks a module, adds a task, and adds a whole module — sources untouched', () => {
+    const baseline = { scenario_id: 'SCN_BASE', matches: { paintable_item: 'x', application_method: 'brush' }, modules: ['MOD_PREP', 'MOD_APPLY'] };
+    const applyMod = { module_id: 'MOD_APPLY', phase: 'apply', tasks: [{ task_ref: 'T_COAT' }] };
+
+    // 1) QT5 needs its own scenario.
+    const { scenario: s1, created: c1 } = fS(baseline, 'QT5');
+    expect(c1).toBe(true);
+    expect(s1.matches.quality_tier).toBe('QT5');
+
+    // 2) QT5's apply module needs an extra task → fork it + swap the ref.
+    const { scenario: s2, module: m2 } = fM(s1, 'MOD_APPLY', applyMod, 'QT5');
+    expect(s2.modules).toEqual(['MOD_PREP', 'MOD_APPLY_QT5']);
+    const m3 = aT(m2, 'T_EXTRA_SAND');
+    expect(m3.tasks.map(t => t.task_ref)).toEqual(['T_COAT', 'T_EXTRA_SAND']);
+
+    // 3) QT5 also needs a whole extra module the baseline lacks.
+    const s3 = aM(s2, 'MOD_INSPECT');
+    expect(s3.modules).toEqual(['MOD_PREP', 'MOD_APPLY_QT5', 'MOD_INSPECT']);
+
+    // Sources are pristine — baseline and the shared module never changed.
+    expect(baseline.matches.quality_tier).toBeUndefined();
+    expect(baseline.modules).toEqual(['MOD_PREP', 'MOD_APPLY']);
+    expect(applyMod.tasks).toEqual([{ task_ref: 'T_COAT' }]);
   });
 });
