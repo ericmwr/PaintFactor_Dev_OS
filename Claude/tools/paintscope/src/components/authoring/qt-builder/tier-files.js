@@ -6,6 +6,7 @@
 // as scenario / module drafts. Replaces edit-tier-ladder.js.
 
 // Strip any existing _QT<n> token (mid-id or suffix), then append _QT<n>.
+// Tier ids are QT2–QT5; the strip regex only matches _QT[2-5].
 export function tierId(baseId, tier) {
   const n = String(tier).replace(/^QT/, '');
   return baseId.replace(/_QT[2-5](?=_|$)/g, '') + '_QT' + n;
@@ -83,13 +84,10 @@ export function removeTask(module, taskId) {
 export function forkModuleForTier(scenario, moduleId, sourceModule, tier) {
   const forkedId = tierId(moduleId, tier);
   if (forkedId === moduleId) return { scenario, module: sourceModule, created: false };
-  const module = {
-    ...sourceModule,
-    module_id: forkedId,
-    tasks: (sourceModule.tasks || []).map(t => ({ ...t })),
-  };
   const modules = [...(scenario.modules || [])];
   const i = modules.indexOf(moduleId);
-  if (i !== -1) modules[i] = forkedId;
+  if (i === -1) return { scenario, module: sourceModule, created: false };
+  const module = { ...sourceModule, module_id: forkedId, tasks: (sourceModule.tasks || []).map(t => ({ ...t })) };
+  modules[i] = forkedId;
   return { scenario: { ...scenario, modules }, module, created: true };
 }

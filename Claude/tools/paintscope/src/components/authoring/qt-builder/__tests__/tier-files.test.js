@@ -73,6 +73,12 @@ describe('forkModuleForTier', () => {
     expect(r.scenario).toBe(s2);
     expect(r.module).toBe(src2);
   });
+  it('is a no-op when the module is not referenced by the scenario', () => {
+    const s = { scenario_id: 'S', modules: ['MOD_OTHER'] };
+    const r = forkModuleForTier(s, 'MOD_X', { module_id: 'MOD_X', tasks: [] }, 'QT4');
+    expect(r.created).toBe(false);
+    expect(r.scenario).toBe(s);
+  });
 });
 
 describe('module composition', () => {
