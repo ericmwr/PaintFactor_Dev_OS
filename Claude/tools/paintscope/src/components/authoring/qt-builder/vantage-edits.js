@@ -54,6 +54,7 @@ export function planRemoveTask(bundle, sel, tier, baseModuleId, taskId) {
 export function planAddModule(bundle, sel, tier, moduleId) {
   const scn = ensureScenarioForTier(bundle, sel, tier);
   if (!scn) return {};
+  if (!bundle.modules?.[moduleId]) return {};   // don't add a module the library doesn't have
   return { scenario: addModuleToTier(scn, moduleId) };
 }
 

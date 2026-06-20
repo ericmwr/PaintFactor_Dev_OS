@@ -47,13 +47,21 @@ describe('planRemoveTask', () => {
 
 describe('planAddModule / planRemoveModule', () => {
   it('forks the scenario and appends a whole module at the tier', () => {
-    const { scenario } = planAddModule(bundle(), sel, 'QT5', 'MOD_GLAZE');
+    const b = bundle();
+    b.modules.MOD_GLAZE = { module_id: 'MOD_GLAZE', phase: 'finish', name: 'Glaze', tasks: [] };
+    const { scenario } = planAddModule(b, sel, 'QT5', 'MOD_GLAZE');
     expect(scenario.scenario_id).toBe('SCN_B_QT5');
     expect(scenario.modules).toEqual(['MOD_PREP', 'MOD_APPLY', 'MOD_GLAZE']);
   });
   it('forks the scenario and removes a module at the tier', () => {
     const { scenario } = planRemoveModule(bundle(), sel, 'QT5', 'MOD_PREP');
     expect(scenario.modules).toEqual(['MOD_APPLY']);
+  });
+  it('planAddModule returns {} for a module not in the library', () => {
+    expect(planAddModule(bundle(), sel, 'QT5', 'MOD_GHOST')).toEqual({});
+  });
+  it('planRemoveModule returns {} when the base module is absent', () => {
+    expect(planRemoveModule(bundle(), sel, 'QT5', 'MOD_NOPE')).toEqual({});
   });
 });
 
@@ -64,7 +72,7 @@ describe('planSetCoats', () => {
   });
   it('removes repeats to reach N (coats down)', () => {
     const b = bundle();
-    b.scenarios[0].modules = ['MOD_PREP', 'MOD_APPLY', 'MOD_APPLY', 'MOD_APPLY'];
+    b.scenarios = [{ ...b.scenarios[0], modules: ['MOD_PREP', 'MOD_APPLY', 'MOD_APPLY', 'MOD_APPLY'] }];
     const { scenario } = planSetCoats(b, sel, 'QT5', 'MOD_APPLY', 1);
     expect(scenario.modules).toEqual(['MOD_PREP', 'MOD_APPLY']);
   });
