@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { tierId, scenarioTierPin, forkScenarioForTier, forkModuleForTier } from '../tier-files.js';
+import { tierId, scenarioTierPin, forkScenarioForTier, forkModuleForTier, addModuleToTier, removeModuleFromTier, moveModule } from '../tier-files.js';
 
 describe('tierId', () => {
   it('appends _QT<n> to a baseline id', () => {
@@ -71,5 +71,27 @@ describe('forkModuleForTier', () => {
     expect(r.created).toBe(false);
     expect(r.scenario).toBe(s2);
     expect(r.module).toBe(src2);
+  });
+});
+
+describe('module composition', () => {
+  const scn = { scenario_id: 'S', modules: ['A', 'B', 'C'] };
+
+  it('appends a module by default and inserts at an index', () => {
+    expect(addModuleToTier(scn, 'D').modules).toEqual(['A', 'B', 'C', 'D']);
+    expect(addModuleToTier(scn, 'D', 1).modules).toEqual(['A', 'D', 'B', 'C']);
+    expect(scn.modules).toEqual(['A', 'B', 'C']);          // unmutated
+  });
+  it('allows repeats (for coats)', () => {
+    expect(addModuleToTier(scn, 'B').modules).toEqual(['A', 'B', 'C', 'B']);
+  });
+  it('removes the first occurrence; no-op (same ref) when absent', () => {
+    expect(removeModuleFromTier(scn, 'B').modules).toEqual(['A', 'C']);
+    expect(removeModuleFromTier(scn, 'Z')).toBe(scn);
+  });
+  it('reorders; no-op (same ref) for out-of-range or equal indices', () => {
+    expect(moveModule(scn, 0, 2).modules).toEqual(['B', 'C', 'A']);
+    expect(moveModule(scn, 1, 1)).toBe(scn);
+    expect(moveModule(scn, 0, 9)).toBe(scn);
   });
 });

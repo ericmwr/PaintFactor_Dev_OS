@@ -34,6 +34,33 @@ export function forkScenarioForTier(scenario, tier) {
   return { scenario: fork, created: true };
 }
 
+// Insert a module id into the tier scenario's modules[] (append by default, or
+// at index; repeats allowed for coats). Always returns a new scenario.
+export function addModuleToTier(scenario, moduleId, index) {
+  const modules = [...(scenario.modules || [])];
+  if (index == null || index < 0 || index > modules.length) modules.push(moduleId);
+  else modules.splice(index, 0, moduleId);
+  return { ...scenario, modules };
+}
+
+// Remove the first occurrence of moduleId; same ref when absent.
+export function removeModuleFromTier(scenario, moduleId) {
+  const modules = [...(scenario.modules || [])];
+  const i = modules.indexOf(moduleId);
+  if (i === -1) return scenario;
+  modules.splice(i, 1);
+  return { ...scenario, modules };
+}
+
+// Reorder modules[] from index → to; same ref on no-op / out-of-range.
+export function moveModule(scenario, from, to) {
+  const modules = [...(scenario.modules || [])];
+  if (from < 0 || from >= modules.length || to < 0 || to >= modules.length || from === to) return scenario;
+  const [m] = modules.splice(from, 1);
+  modules.splice(to, 0, m);
+  return { ...scenario, modules };
+}
+
 // Clone a shared module into a tier copy (MOD_..._QT<n>) and swap the first
 // occurrence of moduleId in scenario.modules to the fork. Additive: source
 // scenario/module untouched. No-op when moduleId already pins that tier.
