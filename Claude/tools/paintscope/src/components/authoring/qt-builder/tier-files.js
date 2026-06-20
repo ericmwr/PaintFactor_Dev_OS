@@ -1,0 +1,35 @@
+// Pure, copy-on-write authoring ops for the file-naming quality-tier model.
+// Tier = file identity: a baseline scenario (no matches.quality_tier) serves all
+// tiers; forks add matches.quality_tier and win by matcher specificity. Modules
+// fork to MOD_..._QT<n> when a tier needs a different task set. No
+// applies_when.quality_tier is ever written. All immutable; callers save results
+// as scenario / module drafts. Replaces edit-tier-ladder.js.
+
+// Strip any existing _QT<n> token (mid-id or suffix), then append _QT<n>.
+export function tierId(baseId, tier) {
+  const n = String(tier).replace(/^QT/, '');
+  return baseId.replace(/_QT[2-5](?=_|$)/g, '') + '_QT' + n;
+}
+
+// The single tier this scenario pins via matches.quality_tier, or null
+// (baseline = no quality_tier; multi-tier array = null).
+export function scenarioTierPin(scenario) {
+  const qt = scenario && scenario.matches && scenario.matches.quality_tier;
+  if (qt == null) return null;
+  const arr = Array.isArray(qt) ? qt : [qt];
+  return arr.length === 1 ? arr[0] : null;
+}
+
+// Clone a scenario into a tier-pinned fork (new id, matches.quality_tier=tier).
+// Additive: never mutates the source. No-op (same ref) if already pinned to tier.
+export function forkScenarioForTier(scenario, tier) {
+  if (!scenario || scenarioTierPin(scenario) === tier) return { scenario, created: false };
+  const scenario_id = tierId(scenario.scenario_id, tier);
+  const fork = {
+    ...scenario,
+    scenario_id,
+    matches: { ...(scenario.matches || {}), quality_tier: tier },
+    modules: [...(scenario.modules || [])],
+  };
+  return { scenario: fork, created: true };
+}
