@@ -89,11 +89,10 @@ Single screen, replacing the current `qt` tab. Regions:
 
 The grid is a true overhead view: every cell points at a concrete file you can name.
 
-**7.3 Fork-on-demand editing.** To make a tier diverge:
-1. Click into a tier's module/task cell to edit.
-2. If that tier is still served by the **baseline** scenario, the builder first **clones** the baseline → `SCN_…_QT<n>` (additive; baseline untouched).
-3. If the task edit targets a **shared** module, the builder **forks** it → `MOD_…_QT<n>`, swaps the reference in the QT<n> scenario's `modules[]`, and leaves the shared module untouched for everyone else.
-4. The user then **adds / deletes existing tasks** in the forked module (existing-task picker; no task creation).
+**7.3 Two levels of per-tier editing.** Forking ensures every edit lands only on the target tier — the first time a tier diverges, the builder **clones** the baseline → `SCN_…_QT<n>` (additive; baseline untouched). Within that tier's scenario you edit at **two distinct levels**:
+
+- **Module composition (scenario level)** — *add / remove / reorder whole modules* in the tier's `modules[]`. This is how a higher tier gains work: append an existing module (extra sanding, extra inspection) or extra coat repeats so QT5 runs **more modules** than QT3. Only that tier's scenario changes; the baseline and other tiers are untouched. Added modules are drawn from the existing 713-module library (or a fork); nothing needs inventing for the common case. (Coats are a sub-case — repeated apply modules.)
+- **Task composition (module level)** — when an existing module needs a *different task set* for this tier, the builder **forks** it → `MOD_…_QT<n>`, swaps the reference in the tier scenario's `modules[]`, and lets you **add / delete existing tasks** in the fork (existing-task picker; no task creation). The shared module is untouched for the 15 other scenarios that use it.
 
 A "revert tier to baseline" affordance deletes the tier's scenario fork (and any modules only it used), reclaiming the baseline.
 
@@ -110,7 +109,13 @@ A "revert tier to baseline" affordance deletes the tier's scenario fork (and any
 - If `moduleId` already ends in `_QT<tier>` → already forked; return it.
 - Else clone module `M` → `M′`: id = `${moduleId}_QT<tier>`, identical `phase`/`tasks`. Save M′ as a module draft. In `scenarioDraft.modules`, replace the first occurrence of `moduleId` with `M′` (preserve order + any repeats). Return M′.
 
-`addTask(moduleDraft, taskId)` / `removeTask(moduleDraft, taskId)` — append/remove a `{ task_ref }` entry (no `applies_when.quality_tier`). Existing-task picker only.
+**Scenario-level module composition** (the tier scenario must already be forked — caller ensures via `forkScenarioForTier`):
+- `addModuleToTier(scenarioDraft, moduleId, index?) → scenarioDraft` — insert `moduleId` into the tier scenario's `modules[]` (append by default, or at `index`; repeats allowed for coats). The module is an existing library module or a fork.
+- `removeModuleFromTier(scenarioDraft, moduleId)` — remove one occurrence from the list.
+- `moveModule(scenarioDraft, from, to)` — reorder (order = phase/work sequence). (The existing `ScenarioEditor` already implements pick/remove/move over `scenario.modules`; reuse its logic.)
+
+**Module-level task composition:**
+- `addTask(moduleDraft, taskId)` / `removeTask(moduleDraft, taskId)` — append/remove a `{ task_ref }` entry (no `applies_when.quality_tier`). Existing-task picker only.
 
 All pure/immutable; callers persist via the draft hooks. These live in new `qt-builder/` compile modules (mirroring the existing per-phase modules), replacing `edit-tier-ladder.js`.
 
