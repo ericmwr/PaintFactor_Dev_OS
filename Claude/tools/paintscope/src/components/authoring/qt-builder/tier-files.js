@@ -61,6 +61,22 @@ export function moveModule(scenario, from, to) {
   return { ...scenario, modules };
 }
 
+// Append an existing task as a plain { task_ref } entry — NEVER with
+// applies_when.quality_tier. Dedup by task_ref (same ref on no-op).
+export function addTask(module, taskId) {
+  const tasks = module.tasks || [];
+  if (tasks.some(t => t && t.task_ref === taskId)) return module;
+  return { ...module, tasks: [...tasks, { task_ref: taskId }] };
+}
+
+// Remove every entry whose task_ref matches; same ref when none matched.
+export function removeTask(module, taskId) {
+  const tasks = module.tasks || [];
+  const next = tasks.filter(t => !(t && t.task_ref === taskId));
+  if (next.length === tasks.length) return module;
+  return { ...module, tasks: next };
+}
+
 // Clone a shared module into a tier copy (MOD_..._QT<n>) and swap the first
 // occurrence of moduleId in scenario.modules to the fork. Additive: source
 // scenario/module untouched. No-op when moduleId already pins that tier.

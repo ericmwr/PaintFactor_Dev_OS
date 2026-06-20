@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { tierId, scenarioTierPin, forkScenarioForTier, forkModuleForTier, addModuleToTier, removeModuleFromTier, moveModule } from '../tier-files.js';
+import { tierId, scenarioTierPin, forkScenarioForTier, forkModuleForTier, addModuleToTier, removeModuleFromTier, moveModule, addTask, removeTask } from '../tier-files.js';
 
 describe('tierId', () => {
   it('appends _QT<n> to a baseline id', () => {
@@ -93,5 +93,23 @@ describe('module composition', () => {
     expect(moveModule(scn, 0, 2).modules).toEqual(['B', 'C', 'A']);
     expect(moveModule(scn, 1, 1)).toBe(scn);
     expect(moveModule(scn, 0, 9)).toBe(scn);
+  });
+});
+
+describe('task composition', () => {
+  const mod = { module_id: 'MOD_X_QT4', phase: 'apply', tasks: [{ task_ref: 'T1' }] };
+
+  it('appends a plain { task_ref } with NO applies_when', () => {
+    const out = addTask(mod, 'T2');
+    expect(out.tasks).toEqual([{ task_ref: 'T1' }, { task_ref: 'T2' }]);
+    expect(out.tasks[1].applies_when).toBeUndefined();
+    expect(mod.tasks).toEqual([{ task_ref: 'T1' }]);       // unmutated
+  });
+  it('dedups by task_ref (same ref on no-op)', () => {
+    expect(addTask(mod, 'T1')).toBe(mod);
+  });
+  it('removes by task_ref; same ref when absent', () => {
+    expect(removeTask(mod, 'T1').tasks).toEqual([]);
+    expect(removeTask(mod, 'Z')).toBe(mod);
   });
 });
