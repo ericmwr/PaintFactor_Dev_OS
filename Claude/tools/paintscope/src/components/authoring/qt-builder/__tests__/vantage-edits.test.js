@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { planAddTask, planRemoveTask, planAddModule, planRemoveModule, planSetCoats } from '../vantage-edits.js';
+import { planAddTask, planRemoveTask, planAddModule, planRemoveModule, planSetCoats, planRevertTier } from '../vantage-edits.js';
 
 function bundle() {
   return {
@@ -70,5 +70,30 @@ describe('planSetCoats', () => {
   });
   it('returns {} for n < 1', () => {
     expect(planSetCoats(bundle(), sel, 'QT5', 'MOD_APPLY', 0)).toEqual({});
+  });
+});
+
+describe('planRevertTier', () => {
+  it('returns the fork scenario id + its _QT module ids to delete', () => {
+    const b = bundle();
+    b.scenarios.push({ scenario_id: 'SCN_B_QT5', matches: { paintable_item: 'x', application_method: 'brush', substrate_state: 'SS_BARE', coating_type: 'paint', quality_tier: 'QT5' }, modules: ['MOD_PREP', 'MOD_APPLY_QT5'] });
+    b.modules.MOD_APPLY_QT5 = { module_id: 'MOD_APPLY_QT5', phase: 'apply', name: 'Apply QT5', tasks: [] };
+    expect(planRevertTier(b, sel, 'QT5')).toEqual({ deleteScenarioId: 'SCN_B_QT5', deleteModuleIds: ['MOD_APPLY_QT5'] });
+  });
+  it('returns {} when the tier is served by the baseline (nothing to revert)', () => {
+    expect(planRevertTier(bundle(), sel, 'QT5')).toEqual({});
+  });
+});
+
+describe('composition smoke', () => {
+  it('add-task then revert names the same fork files; baseline stays pristine', () => {
+    const b = bundle();
+    const add = planAddTask(b, sel, 'QT4', 'MOD_APPLY', 'T_EXTRA');
+    expect(add.scenario.scenario_id).toBe('SCN_B_QT4');
+    expect(add.module.module_id).toBe('MOD_APPLY_QT4');
+    // Simulate those drafts now overlaying the bundle, then revert.
+    const b2 = { ...b, scenarios: [...b.scenarios, add.scenario], modules: { ...b.modules, [add.module.module_id]: add.module } };
+    expect(planRevertTier(b2, sel, 'QT4')).toEqual({ deleteScenarioId: 'SCN_B_QT4', deleteModuleIds: ['MOD_APPLY_QT4'] });
+    expect(b.scenarios[0].matches.quality_tier).toBeUndefined();
   });
 });
