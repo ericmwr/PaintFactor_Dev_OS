@@ -33,3 +33,20 @@ export function forkScenarioForTier(scenario, tier) {
   };
   return { scenario: fork, created: true };
 }
+
+// Clone a shared module into a tier copy (MOD_..._QT<n>) and swap the first
+// occurrence of moduleId in scenario.modules to the fork. Additive: source
+// scenario/module untouched. No-op when moduleId already pins that tier.
+export function forkModuleForTier(scenario, moduleId, sourceModule, tier) {
+  const forkedId = tierId(moduleId, tier);
+  if (forkedId === moduleId) return { scenario, module: sourceModule, created: false };
+  const module = {
+    ...sourceModule,
+    module_id: forkedId,
+    tasks: (sourceModule.tasks || []).map(t => ({ ...t })),
+  };
+  const modules = [...(scenario.modules || [])];
+  const i = modules.indexOf(moduleId);
+  if (i !== -1) modules[i] = forkedId;
+  return { scenario: { ...scenario, modules }, module, created: true };
+}

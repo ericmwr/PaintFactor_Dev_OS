@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { tierId, scenarioTierPin, forkScenarioForTier } from '../tier-files.js';
+import { tierId, scenarioTierPin, forkScenarioForTier, forkModuleForTier } from '../tier-files.js';
 
 describe('tierId', () => {
   it('appends _QT<n> to a baseline id', () => {
@@ -43,5 +43,33 @@ describe('forkScenarioForTier', () => {
     const r = forkScenarioForTier(s, 'QT4');
     expect(r.created).toBe(false);
     expect(r.scenario).toBe(s);
+  });
+});
+
+describe('forkModuleForTier', () => {
+  const scn = { scenario_id: 'SCN_B_QT4', matches: { quality_tier: 'QT4' }, modules: ['MOD_X', 'MOD_Y'] };
+  const src = { module_id: 'MOD_X', phase: 'apply', tasks: [{ task_ref: 'T1' }, { task_ref: 'T2' }] };
+
+  it('clones the module to a tier id and swaps the scenario reference', () => {
+    const { scenario, module, created } = forkModuleForTier(scn, 'MOD_X', src, 'QT4');
+    expect(created).toBe(true);
+    expect(module.module_id).toBe('MOD_X_QT4');
+    expect(module.phase).toBe('apply');
+    expect(module.tasks).toEqual([{ task_ref: 'T1' }, { task_ref: 'T2' }]);
+    expect(scenario.modules).toEqual(['MOD_X_QT4', 'MOD_Y']);   // first occurrence swapped, order kept
+  });
+  it('does not mutate the source scenario or module', () => {
+    forkModuleForTier(scn, 'MOD_X', src, 'QT4');
+    expect(scn.modules).toEqual(['MOD_X', 'MOD_Y']);
+    expect(src.module_id).toBe('MOD_X');
+    expect(src.tasks).toEqual([{ task_ref: 'T1' }, { task_ref: 'T2' }]);
+  });
+  it('is a no-op when the module already pins that tier', () => {
+    const s2 = { ...scn, modules: ['MOD_X_QT4', 'MOD_Y'] };
+    const src2 = { module_id: 'MOD_X_QT4', phase: 'apply', tasks: [] };
+    const r = forkModuleForTier(s2, 'MOD_X_QT4', src2, 'QT4');
+    expect(r.created).toBe(false);
+    expect(r.scenario).toBe(s2);
+    expect(r.module).toBe(src2);
   });
 });
