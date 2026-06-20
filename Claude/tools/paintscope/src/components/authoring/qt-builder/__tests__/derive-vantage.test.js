@@ -66,6 +66,7 @@ describe('deriveVantage', () => {
   });
 });
 
+// Edge cases: unserved (na) tiers, eager-family reference fallback, method gating
 describe('deriveVantage edge cases', () => {
   it('marks unserved tiers as na (a single QT3-only scenario)', () => {
     const b = {
