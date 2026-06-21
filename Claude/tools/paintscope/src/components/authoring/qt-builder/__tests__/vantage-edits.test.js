@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { planAddTask, planRemoveTask, planAddModule, planRemoveModule, planSetCoats, planRevertTier } from '../vantage-edits.js';
+import { planAddTask, planRemoveTask, planAddModule, planRemoveModule, planSetCoats, planRevertTier, planSetQtFactor, planClearQtFactor } from '../vantage-edits.js';
 
 function bundle() {
   return {
@@ -103,5 +103,53 @@ describe('composition smoke', () => {
     const b2 = { ...b, scenarios: [...b.scenarios, add.scenario], modules: { ...b.modules, [add.module.module_id]: add.module } };
     expect(planRevertTier(b2, sel, 'QT4')).toEqual({ deleteScenarioId: 'SCN_B_QT4', deleteModuleIds: ['MOD_APPLY_QT4'] });
     expect(b.scenarios[0].matches.quality_tier).toBeUndefined();
+  });
+});
+
+describe('planSetQtFactor', () => {
+  it('forks the baseline tier scenario and writes FAC_QT[tier]; baseline untouched', () => {
+    const b = bundle();
+    const { scenario } = planSetQtFactor(b, sel, 'QT5', 1.8);
+    expect(scenario.scenario_id).toBe('SCN_B_QT5');
+    expect(scenario.matches.quality_tier).toBe('QT5');
+    expect(scenario.modules).toEqual(['MOD_PREP', 'MOD_APPLY']);       // same modules as baseline
+    expect(scenario.modifier_overrides).toEqual({ FAC_QT: { QT5: 1.8 } });
+    expect(b.scenarios[0].matches.quality_tier).toBeUndefined();       // baseline pristine
+  });
+  it('writes onto an already-forked tier without re-forking (preserves structure)', () => {
+    const b = bundle();
+    b.scenarios.push({ scenario_id: 'SCN_B_QT5', matches: { ...sel, quality_tier: 'QT5' }, modules: ['MOD_PREP', 'MOD_APPLY', 'MOD_GLAZE'] });
+    b.modules.MOD_GLAZE = { module_id: 'MOD_GLAZE', phase: 'finish', name: 'Glaze', tasks: [] };
+    const { scenario } = planSetQtFactor(b, sel, 'QT5', 1.65);
+    expect(scenario.scenario_id).toBe('SCN_B_QT5');
+    expect(scenario.modules).toEqual(['MOD_PREP', 'MOD_APPLY', 'MOD_GLAZE']);   // structural fork kept
+    expect(scenario.modifier_overrides).toEqual({ FAC_QT: { QT5: 1.65 } });
+  });
+  it('returns {} for the QT3 anchor and for non-positive / non-finite values', () => {
+    expect(planSetQtFactor(bundle(), sel, 'QT3', 1.5)).toEqual({});
+    expect(planSetQtFactor(bundle(), sel, 'QT5', 0)).toEqual({});
+    expect(planSetQtFactor(bundle(), sel, 'QT5', -1)).toEqual({});
+    expect(planSetQtFactor(bundle(), sel, 'QT5', NaN)).toEqual({});
+  });
+});
+
+describe('planClearQtFactor', () => {
+  it('auto-reclaims the baseline when the override was the fork\'s only divergence', () => {
+    const b = bundle();
+    b.scenarios.push({ scenario_id: 'SCN_B_QT5', matches: { ...sel, quality_tier: 'QT5' }, modules: ['MOD_PREP', 'MOD_APPLY'], modifier_overrides: { FAC_QT: { QT5: 1.8 } } });
+    expect(planClearQtFactor(b, sel, 'QT5')).toEqual({ deleteScenarioId: 'SCN_B_QT5', deleteModuleIds: [] });
+  });
+  it('keeps a structurally-diverged fork, dropping only the override', () => {
+    const b = bundle();
+    b.scenarios.push({ scenario_id: 'SCN_B_QT5', matches: { ...sel, quality_tier: 'QT5' }, modules: ['MOD_PREP', 'MOD_APPLY', 'MOD_GLAZE'], modifier_overrides: { FAC_QT: { QT5: 1.8 } } });
+    b.modules.MOD_GLAZE = { module_id: 'MOD_GLAZE', phase: 'finish', name: 'Glaze', tasks: [] };
+    const out = planClearQtFactor(b, sel, 'QT5');
+    expect(out.scenario.scenario_id).toBe('SCN_B_QT5');
+    expect(out.scenario.modules).toEqual(['MOD_PREP', 'MOD_APPLY', 'MOD_GLAZE']);
+    expect(out.scenario.modifier_overrides).toBeUndefined();
+    expect(out.deleteScenarioId).toBeUndefined();
+  });
+  it('returns {} when the tier is served by the baseline (no fork to clear)', () => {
+    expect(planClearQtFactor(bundle(), sel, 'QT5')).toEqual({});
   });
 });

@@ -8,6 +8,7 @@ import { findBestMatch } from '../../../engine/scenario-matcher.js';
 import {
   scenarioTierPin, forkScenarioForTier, forkModuleForTier,
   addTask, removeTask, addModuleToTier, removeModuleFromTier,
+  setScenarioQtFactor, clearScenarioQtFactor,
 } from './tier-files.js';
 
 function baseId(id) { return id.replace(/_QT[2-5](?=_|$)/g, ''); }
@@ -87,4 +88,36 @@ export function planRevertTier(bundle, sel, tier) {
   if (!gov || scenarioTierPin(gov) !== tier) return {};
   const deleteModuleIds = (gov.modules || []).filter(id => baseId(id) !== id);
   return { deleteScenarioId: gov.scenario_id, deleteModuleIds };
+}
+
+const ANCHOR_TIER = 'QT3';
+
+function sameModules(a, b) {
+  const x = a || [], y = b || [];
+  return x.length === y.length && x.every((v, i) => v === y[i]);
+}
+
+// Set the per-tier QT time multiplier on the tier's scenario (fork-on-edit).
+// {} for the QT3 anchor or a non-positive / non-finite value.
+export function planSetQtFactor(bundle, sel, tier, value) {
+  if (tier === ANCHOR_TIER) return {};
+  if (typeof value !== 'number' || !Number.isFinite(value) || value <= 0) return {};
+  const scn = ensureScenarioForTier(bundle, sel, tier);
+  if (!scn) return {};
+  return { scenario: setScenarioQtFactor(scn, tier, value) };
+}
+
+// Clear the per-tier multiplier. No-op when the tier is baseline-served. When
+// clearing removes the fork's last divergence (modules == baseline, no other
+// modifier_overrides), reclaim the baseline by deleting the fork; otherwise
+// keep the thinned fork (structural edits intact).
+export function planClearQtFactor(bundle, sel, tier) {
+  const gov = resolveTierScenario(bundle, sel, tier);
+  if (!gov || scenarioTierPin(gov) !== tier) return {};
+  const thinned = clearScenarioQtFactor(gov, tier);
+  const baseline = (bundle.scenarios || []).find(s => s.scenario_id === baseId(gov.scenario_id));
+  if (baseline && !thinned.modifier_overrides && sameModules(thinned.modules, baseline.modules)) {
+    return { deleteScenarioId: gov.scenario_id, deleteModuleIds: [] };
+  }
+  return { scenario: thinned };
 }
