@@ -226,6 +226,7 @@ console.log();
 // 8. GATE: compare QT3 (and QT2/QT4/QT5 for arrays)
 console.log('Running parity gate...');
 const qt3Mismatches = [];
+const qt3GapFills = [];
 const lossinessMismatches = [];
 
 for (const [fk, fam] of families) {
@@ -233,12 +234,16 @@ for (const [fk, fam] of families) {
   const after = afterSnap.get(fk);
   const prop = proposals.get(fk);
 
-  // QT3 is mandatory for all families
+  // QT3 invariant: a genuinely-SERVED QT3 must never change. A family whose QT3
+  // was UNSERVED before (no QT3 scenario) is allowed to become served by the
+  // promoted baseline (a gap-fill) — there is no real QT3 estimate to preserve.
   const bQt3 = before.get('QT3');
   const aQt3 = after.get('QT3');
-  const bQt3Str = JSON.stringify(bQt3);
-  const aQt3Str = JSON.stringify(aQt3);
-  if (bQt3Str !== aQt3Str) {
+  if (bQt3 === null) {
+    if (aQt3 !== null) {
+      qt3GapFills.push({ family: fk, after: aQt3, keeper: prop.keeper.scenario_id, reason: prop.reason });
+    }
+  } else if (JSON.stringify(bQt3) !== JSON.stringify(aQt3)) {
     qt3Mismatches.push({
       family: fk,
       before: bQt3,
@@ -274,6 +279,7 @@ if (noQt3Families.length > 0) {
 }
 console.log();
 console.log(`  QT3 gate mismatches:       ${qt3Mismatches.length}`);
+console.log(`  QT3 gap-fills (was unserved): ${qt3GapFills.length}`);
 console.log(`  Lossiness mismatches (arr): ${lossinessMismatches.length}`);
 console.log();
 
@@ -297,7 +303,15 @@ if (lossinessMismatches.length > 0) {
   console.warn();
 }
 
-console.log('Gate: PASSED (zero QT3 mismatches)');
+if (qt3GapFills.length > 0) {
+  console.log('=== QT3 GAP-FILLS (was unserved → now served by promoted baseline; allowed) ===');
+  for (const g of qt3GapFills) {
+    console.log(`  Family ${g.family}: now served by ${g.keeper} (reason: ${g.reason})`);
+  }
+  console.log();
+}
+
+console.log(`Gate: PASSED (0 served-QT3 changes; ${qt3GapFills.length} gap-fill${qt3GapFills.length === 1 ? '' : 's'} allowed)`);
 console.log();
 
 // Plan summary: files to rewrite and archive
