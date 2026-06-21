@@ -121,6 +121,46 @@ describe('task composition', () => {
   });
 });
 
+import { setScenarioQtFactor, clearScenarioQtFactor } from '../tier-files.js';
+
+describe('setScenarioQtFactor', () => {
+  it('writes a nested FAC_QT override immutably, source untouched', () => {
+    const scn = { scenario_id: 'SCN_B_QT5', matches: { quality_tier: 'QT5' }, modules: ['A'] };
+    const out = setScenarioQtFactor(scn, 'QT5', 1.8);
+    expect(out.modifier_overrides).toEqual({ FAC_QT: { QT5: 1.8 } });
+    expect(out).not.toBe(scn);
+    expect(scn.modifier_overrides).toBeUndefined();        // source pristine
+  });
+  it('preserves other modifier_overrides and other FAC_QT tiers', () => {
+    const scn = { scenario_id: 'S', modifier_overrides: { FAC_HEIGHT: { STEP: 1.2 }, FAC_QT: { QT4: 1.3 } } };
+    const out = setScenarioQtFactor(scn, 'QT5', 1.8);
+    expect(out.modifier_overrides).toEqual({ FAC_HEIGHT: { STEP: 1.2 }, FAC_QT: { QT4: 1.3, QT5: 1.8 } });
+  });
+  it('is a no-op (same ref) when the value is already set', () => {
+    const scn = { scenario_id: 'S', modifier_overrides: { FAC_QT: { QT5: 1.8 } } };
+    expect(setScenarioQtFactor(scn, 'QT5', 1.8)).toBe(scn);
+  });
+});
+
+describe('clearScenarioQtFactor', () => {
+  it('removes the tier key and prunes emptied FAC_QT + modifier_overrides', () => {
+    const scn = { scenario_id: 'S', modifier_overrides: { FAC_QT: { QT5: 1.8 } } };
+    const out = clearScenarioQtFactor(scn, 'QT5');
+    expect(out.modifier_overrides).toBeUndefined();
+    expect(scn.modifier_overrides).toEqual({ FAC_QT: { QT5: 1.8 } });   // source pristine
+  });
+  it('keeps sibling FAC_QT tiers and sibling modifiers', () => {
+    const scn = { scenario_id: 'S', modifier_overrides: { FAC_HEIGHT: { STEP: 1.2 }, FAC_QT: { QT4: 1.3, QT5: 1.8 } } };
+    const out = clearScenarioQtFactor(scn, 'QT5');
+    expect(out.modifier_overrides).toEqual({ FAC_HEIGHT: { STEP: 1.2 }, FAC_QT: { QT4: 1.3 } });
+  });
+  it('is a no-op (same ref) when the tier key is absent', () => {
+    const scn = { scenario_id: 'S', modifier_overrides: { FAC_QT: { QT4: 1.3 } } };
+    expect(clearScenarioQtFactor(scn, 'QT5')).toBe(scn);
+    expect(clearScenarioQtFactor({ scenario_id: 'S' }, 'QT5')).toEqual({ scenario_id: 'S' });
+  });
+});
+
 describe('fork→edit composition smoke', () => {
   it('forks a baseline to QT5, forks a module, adds a task, and adds a whole module — sources untouched', () => {
     const baseline = { scenario_id: 'SCN_BASE', matches: { paintable_item: 'x', application_method: 'brush' }, modules: ['MOD_PREP', 'MOD_APPLY'] };

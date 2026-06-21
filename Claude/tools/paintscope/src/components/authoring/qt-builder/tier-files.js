@@ -78,6 +78,35 @@ export function removeTask(module, taskId) {
   return { ...module, tasks: next };
 }
 
+// Set scenario.modifier_overrides.FAC_QT[tier] = value (immutable, nested
+// create). The per-tier QT time multiplier lives on the tier's own (forked)
+// scenario; the engine's resolveFactor reads it over the global FAC_QT table.
+// Same ref on a true no-op. NEVER called for the QT3 anchor (caller-gated).
+export function setScenarioQtFactor(scenario, tier, value) {
+  const cur = scenario && scenario.modifier_overrides && scenario.modifier_overrides.FAC_QT
+    ? scenario.modifier_overrides.FAC_QT[tier] : undefined;
+  if (cur === value) return scenario;
+  const modifier_overrides = { ...(scenario.modifier_overrides || {}) };
+  modifier_overrides.FAC_QT = { ...(modifier_overrides.FAC_QT || {}), [tier]: value };
+  return { ...scenario, modifier_overrides };
+}
+
+// Remove scenario.modifier_overrides.FAC_QT[tier]; prune an emptied FAC_QT and
+// an emptied modifier_overrides. Same ref when the key was absent.
+export function clearScenarioQtFactor(scenario, tier) {
+  const facqt = scenario && scenario.modifier_overrides && scenario.modifier_overrides.FAC_QT;
+  if (!facqt || !(tier in facqt)) return scenario;
+  const nextFacqt = { ...facqt };
+  delete nextFacqt[tier];
+  const modifier_overrides = { ...scenario.modifier_overrides };
+  if (Object.keys(nextFacqt).length === 0) delete modifier_overrides.FAC_QT;
+  else modifier_overrides.FAC_QT = nextFacqt;
+  const next = { ...scenario };
+  if (Object.keys(modifier_overrides).length === 0) delete next.modifier_overrides;
+  else next.modifier_overrides = modifier_overrides;
+  return next;
+}
+
 // Clone a shared module into a tier copy (MOD_..._QT<n>) and swap the first
 // occurrence of moduleId in scenario.modules to the fork. Additive: source
 // scenario/module untouched. No-op when moduleId already pins that tier.
