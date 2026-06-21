@@ -14,6 +14,7 @@ import { deriveVantage } from './qt-builder/derive-vantage.js';
 import {
   planAddTask, planRemoveTask, planAddModule,
   planRemoveModule, planSetCoats, planRevertTier,
+  planSetQtFactor, planClearQtFactor,
 } from './qt-builder/vantage-edits.js';
 import { mergeModuleDrafts, mergeScenarioDrafts } from './qt-builder/merge-drafts.js';
 import TaskPicker from './TaskPicker.jsx';
@@ -109,6 +110,14 @@ export default function QTBuilder() {
     setModulePicker(null);
   }
 
+  function commitMultiplier(tier, raw) {
+    const m = vm?.multiplierRow?.[tier];
+    if (!m) return;
+    const v = parseFloat(raw);
+    if (!Number.isFinite(v) || v <= 0 || v === m.value) return;   // ignore invalid / unchanged
+    run(() => planSetQtFactor(mergedBundle, sel, tier, v));
+  }
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       {/* Finder */}
@@ -181,6 +190,47 @@ export default function QTBuilder() {
               </tr>
             </thead>
             <tbody>
+              {/* QT time multiplier — scenario-level, per tier */}
+              <tr style={{ borderTop: '1px solid var(--border)', background: 'rgba(130,170,255,0.05)' }}>
+                <td style={{ padding: '6px 10px', textAlign: 'left' }}>
+                  <b style={{ fontSize: 11 }}>QT time multiplier</b>
+                  <span style={{ color: 'var(--text-muted)', marginLeft: 8, fontSize: 10 }}>speed vs QT3 baseline</span>
+                </td>
+                {tiers.map(t => {
+                  const m = vm.multiplierRow[t];
+                  if (!m || !m.served) return <td key={t} style={cellStyle}><span style={mutedGlyph}>—</span></td>;
+                  if (m.isAnchor) return (
+                    <td key={t} style={cellStyle}>
+                      <span style={{ color: 'var(--text-muted)' }} title="QT3 is the baseline anchor (×1.00). Edit QT3 speed via the task rate, not here.">×1.00 🔒</span>
+                    </td>
+                  );
+                  if (!tierEditable(t)) return <td key={t} style={cellStyle}><span style={mutedGlyph}>—</span></td>;
+                  return (
+                    <td key={t} style={cellStyle}>
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, justifyContent: 'center' }}>
+                        <span style={{ color: 'var(--text-muted)', fontSize: 10 }}>×</span>
+                        <input
+                          key={`${t}:${m.value}`}
+                          type="number" step="0.05" min="0.05"
+                          defaultValue={m.value}
+                          disabled={busy}
+                          title={m.isOverride ? `Override (global default ×${m.def})` : `Set an override (global default ×${m.def})`}
+                          onKeyDown={e => { if (e.key === 'Enter') e.currentTarget.blur(); }}
+                          onBlur={e => commitMultiplier(t, e.currentTarget.value)}
+                          style={{ ...inputStyle, width: 54, textAlign: 'center',
+                            borderColor: m.isOverride ? 'var(--accent, #82aaff)' : 'var(--border)',
+                            color: m.isOverride ? 'var(--accent, #82aaff)' : 'var(--text)' }}
+                        />
+                        {m.isOverride && (
+                          <button title={`Clear override → global ×${m.def}`} disabled={busy}
+                            onClick={() => run(() => planClearQtFactor(mergedBundle, sel, t))}
+                            style={removeBtn}>×</button>
+                        )}
+                      </span>
+                    </td>
+                  );
+                })}
+              </tr>
               {vm.phaseGroups.map(group => (
                 <Fragment key={group.phase}>
                   <tr><td colSpan={tiers.length + 1} style={phaseStyle}>{humanize(group.phase)}</td></tr>
