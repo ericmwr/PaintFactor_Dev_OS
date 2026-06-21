@@ -13,14 +13,19 @@ export function qtKind(s) {
   return 'scalar';
 }
 
+// A "family" is the set of scenarios identical on EVERY `matches` constraint
+// except `quality_tier`. The key is therefore derived from all non-quality_tier
+// keys: sorted (so insertion order is irrelevant), with array values normalized
+// (sorted copy) and absent keys omitted entirely (absence is itself a distinct
+// constraint shape). Two scenarios share a familyKey iff they are true
+// tier-variants of one another.
 export function familyKey(s) {
   const m = s?.matches || {};
-  return JSON.stringify({
-    pi: m.paintable_item ?? null,
-    am: norm(m.application_method),
-    st: norm(m.substrate_state),
-    ct: norm(m.coating_type),
-  });
+  const entries = Object.keys(m)
+    .filter((k) => k !== 'quality_tier')
+    .sort()
+    .map((k) => [k, norm(m[k])]);
+  return JSON.stringify(entries);
 }
 
 export function groupByFamily(scenarios) {
