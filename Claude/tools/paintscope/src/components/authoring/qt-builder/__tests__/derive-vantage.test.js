@@ -125,3 +125,29 @@ describe('deriveVantage edge cases', () => {
     expect(v.isForkByTier).toEqual({ QT2: false, QT3: false, QT4: false, QT5: false });
   });
 });
+
+describe('deriveVantage multiplierRow', () => {
+  it('reports the QT3 anchor and global defaults for un-overridden tiers', () => {
+    const v = deriveVantage(bundle(), sel);
+    expect(v.multiplierRow.QT3).toEqual({ value: 1.0, def: 1.0, isOverride: false, isAnchor: true, served: true });
+    // FALLBACK FAC_QT (no modifiers in the fixture): QT2 0.80, QT4 1.30, QT5 1.50
+    expect(v.multiplierRow.QT4).toEqual({ value: 1.3, def: 1.3, isOverride: false, isAnchor: false, served: true });
+    expect(v.multiplierRow.QT5).toEqual({ value: 1.5, def: 1.5, isOverride: false, isAnchor: false, served: true });
+  });
+  it('reports an override value + flag from the fork\'s modifier_overrides', () => {
+    const b = bundle();
+    b.scenarios[1].modifier_overrides = { FAC_QT: { QT5: 1.8 } };   // SCN_B_QT5
+    const v = deriveVantage(b, sel);
+    expect(v.multiplierRow.QT5).toEqual({ value: 1.8, def: 1.5, isOverride: true, isAnchor: false, served: true });
+  });
+  it('marks an unserved tier served:false (default value still reported)', () => {
+    const b = {
+      scenarios: [{ scenario_id: 'SCN_3', matches: { ...sel, quality_tier: 'QT3' }, modules: ['MOD_A'] }],
+      modules: { MOD_A: { phase: 'apply', name: 'A', tasks: [{ task_ref: 'T' }] } },
+      tasks: { T: { name: 'T' } },
+    };
+    const v = deriveVantage(b, sel);
+    expect(v.multiplierRow.QT4.served).toBe(false);
+    expect(v.multiplierRow.QT4.value).toBe(1.3);
+  });
+});

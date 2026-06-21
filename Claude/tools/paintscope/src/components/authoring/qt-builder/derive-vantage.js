@@ -8,6 +8,7 @@ import { findBestMatch } from '../../../engine/scenario-matcher.js';
 import { QT_BUCKETS } from '../../../data/quality-tier.js';
 import { PHASE_ORDER } from '../../../data/constants.js';
 import { scenarioTierPin } from './tier-files.js';
+import { getFactor } from '../../../engine/modifier-registry.js';
 
 const GATE_KEYS = ['application_method', 'substrate_state']; // NOT quality_tier — tier = file
 
@@ -150,5 +151,25 @@ export function deriveVantage(bundle, sel) {
     })
     .map(phase => ({ phase, modules: byPhase.get(phase) }));
 
-  return { tiers, served, scenarioByTier, isForkByTier, isArrayTierByTier, phaseGroups };
+  const ANCHOR_TIER = 'QT3';
+  const multiplierRow = {};
+  for (const t of tiers) {
+    const def = getFactor(bundle, 'FAC_QT', t);
+    if (t === ANCHOR_TIER) {
+      multiplierRow[t] = { value: 1.0, def: 1.0, isOverride: false, isAnchor: true, served: !!scnByTier[t] };
+      continue;
+    }
+    const scn = scnByTier[t];
+    const ov = scn && scn.modifier_overrides && scn.modifier_overrides.FAC_QT
+      ? scn.modifier_overrides.FAC_QT[t] : undefined;
+    multiplierRow[t] = {
+      value: typeof ov === 'number' ? ov : def,
+      def,
+      isOverride: typeof ov === 'number',
+      isAnchor: false,
+      served: !!scn,
+    };
+  }
+
+  return { tiers, served, scenarioByTier, isForkByTier, isArrayTierByTier, multiplierRow, phaseGroups };
 }
