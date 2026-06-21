@@ -33,6 +33,7 @@ describe('deriveVantage', () => {
     expect(v.served).toEqual(['QT2', 'QT3', 'QT4', 'QT5']);
     expect(v.scenarioByTier).toEqual({ QT2: 'SCN_B', QT3: 'SCN_B', QT4: 'SCN_B', QT5: 'SCN_B_QT5' });
     expect(v.isForkByTier).toEqual({ QT2: false, QT3: false, QT4: false, QT5: true });
+    expect(v.isArrayTierByTier).toEqual({ QT2: false, QT3: false, QT4: false, QT5: false });
   });
 
   it('orders phase groups by PHASE_ORDER', () => {
@@ -110,5 +111,17 @@ describe('deriveVantage edge cases', () => {
     const v = deriveVantage(b, sel);  // sel.application_method = 'brush'
     const refs = v.phaseGroups[0].modules[0].tasks.map(t => t.task_ref);
     expect(refs).toEqual(['T_BRUSH']);
+  });
+
+  it('flags multi-tier ARRAY scenarios as array-tiers (legacy, not independently editable)', () => {
+    const b = {
+      scenarios: [{ scenario_id: 'SCN_ARR', matches: { paintable_item: 'x', application_method: 'brush', substrate_state: 'SS_BARE', coating_type: 'paint', quality_tier: ['QT3', 'QT4', 'QT5'] }, modules: ['MOD_A'] }],
+      modules: { MOD_A: { phase: 'apply', name: 'A', tasks: [{ task_ref: 'T' }] } },
+      tasks: { T: { name: 'T' } },
+    };
+    const v = deriveVantage(b, sel);
+    expect(v.served).toEqual(['QT3', 'QT4', 'QT5']);
+    expect(v.isArrayTierByTier).toEqual({ QT2: false, QT3: true, QT4: true, QT5: true });
+    expect(v.isForkByTier).toEqual({ QT2: false, QT3: false, QT4: false, QT5: false });
   });
 });

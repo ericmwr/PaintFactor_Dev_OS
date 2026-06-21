@@ -82,6 +82,17 @@ export function deriveVantage(bundle, sel) {
   const isForkByTier = {};
   for (const t of tiers) isForkByTier[t] = !!(scnByTier[t] && scenarioTierPin(scnByTier[t]) === t);
 
+  // A tier whose governing scenario pins quality_tier as a multi-value ARRAY
+  // (legacy multi-tier pattern) reads as baseline (pin = null) but is NOT
+  // independently editable: forking would add a scalar quality_tier that does
+  // not out-specify the array, so the fork stays inert. The UI uses this flag to
+  // disable edits on such tiers until the array→baseline conversion (staged).
+  const isArrayTierByTier = {};
+  for (const t of tiers) {
+    const qt = scnByTier[t] && scnByTier[t].matches && scnByTier[t].matches.quality_tier;
+    isArrayTierByTier[t] = Array.isArray(qt) && qt.length > 1;
+  }
+
   let refScn = served.map(t => scnByTier[t]).find(s => scenarioTierPin(s) === null) || null;
   if (!refScn && served.length) refScn = scnByTier[served[0]];
   const refBaseIds = new Set((refScn?.modules || []).map(baseId));
@@ -139,5 +150,5 @@ export function deriveVantage(bundle, sel) {
     })
     .map(phase => ({ phase, modules: byPhase.get(phase) }));
 
-  return { tiers, served, scenarioByTier, isForkByTier, phaseGroups };
+  return { tiers, served, scenarioByTier, isForkByTier, isArrayTierByTier, phaseGroups };
 }

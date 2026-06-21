@@ -90,6 +90,10 @@ export default function QTBuilder() {
 
   const tiers = vm?.tiers || [];
   const isServed = (t) => (vm?.served || []).includes(t);
+  // Array-pattern (legacy multi-tier) tiers read as baseline but can't be forked
+  // effectively yet (a scalar fork won't out-specify the array), so edits there
+  // would be inert — disable them until the array→baseline conversion (staged).
+  const tierEditable = (t) => isServed(t) && !(vm?.isArrayTierByTier?.[t]);
 
   function pickTask(task_id) {
     if (!taskPicker) return;
@@ -146,7 +150,7 @@ export default function QTBuilder() {
         <span><b style={{ color: 'var(--accent, #82aaff)' }}>+</b> add here</span>
         <span><b>·</b> absent</span>
         <span><b>—</b> tier not served</span>
-        <span style={{ marginLeft: 'auto', fontStyle: 'italic' }}>editing a baseline tier forks it automatically</span>
+        <span style={{ marginLeft: 'auto', fontStyle: 'italic' }}>editing a baseline tier forks it automatically · multi-tier tiers are read-only until split</span>
       </div>
 
       <div style={{ flex: 1, overflow: 'auto', border: '1px solid var(--border)', borderRadius: 3 }}>
@@ -169,7 +173,9 @@ export default function QTBuilder() {
                             <span onClick={() => !busy && run(() => planRevertTier(mergedBundle, sel, t))}
                                   title="Delete this tier's fork, revert to baseline" style={revertLink}>revert</span>
                           </div>
-                        : <div style={tierTagBase}>baseline</div>}
+                        : vm.isArrayTierByTier[t]
+                          ? <div style={tierTagNa} title="This tier shares a legacy multi-tier scenario file; per-tier edits are inert until it's split into baseline + forks (staged conversion).">shared · multi-tier</div>
+                          : <div style={tierTagBase}>baseline</div>}
                   </th>
                 ))}
               </tr>
@@ -189,11 +195,14 @@ export default function QTBuilder() {
                         {tiers.map(t => {
                           const c = row.cells[t];
                           if (c.state === 'na') return <td key={t} style={cellStyle}><span style={mutedGlyph}>—</span></td>;
+                          const editable = tierEditable(t);
                           if (c.state === 'absent') return (
                             <td key={t} style={cellStyle}>
-                              <button title="Add this module at this tier" disabled={busy}
-                                onClick={() => run(() => planAddModule(mergedBundle, sel, t, row.baseModuleId))}
-                                style={addCellBtn}>+</button>
+                              {editable
+                                ? <button title="Add this module at this tier" disabled={busy}
+                                    onClick={() => run(() => planAddModule(mergedBundle, sel, t, row.baseModuleId))}
+                                    style={addCellBtn}>+</button>
+                                : <span style={mutedGlyph}>·</span>}
                             </td>
                           );
                           const accent = c.state === 'forked' || c.state === 'added';
@@ -202,7 +211,7 @@ export default function QTBuilder() {
                           return (
                             <td key={t} style={cellStyle}>
                               <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, justifyContent: 'center' }}>
-                                {repeatable ? (
+                                {repeatable && editable ? (
                                   <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3 }}>
                                     <button style={{ ...stepBtn, opacity: busy || c.count <= 1 ? 0.4 : 1 }} disabled={busy || c.count <= 1} title="Fewer coats"
                                       onClick={() => run(() => planSetCoats(mergedBundle, sel, t, row.baseModuleId, c.count - 1))}>−</button>
@@ -213,10 +222,12 @@ export default function QTBuilder() {
                                 ) : (
                                   <b style={{ color }} title={c.state}>✓{c.count > 1 ? `×${c.count}` : ''}</b>
                                 )}
-                                <button title={repeatable && c.count > 1 ? 'Remove one coat at this tier' : 'Remove this module at this tier'}
-                                  disabled={busy}
-                                  onClick={() => run(() => planRemoveModule(mergedBundle, sel, t, row.baseModuleId))}
-                                  style={removeBtn}>×</button>
+                                {editable && (
+                                  <button title={repeatable && c.count > 1 ? 'Remove one coat at this tier' : 'Remove this module at this tier'}
+                                    disabled={busy}
+                                    onClick={() => run(() => planRemoveModule(mergedBundle, sel, t, row.baseModuleId))}
+                                    style={removeBtn}>×</button>
+                                )}
                               </span>
                             </td>
                           );
@@ -232,19 +243,24 @@ export default function QTBuilder() {
                           {tiers.map(t => {
                             const state = task.cells[t];
                             if (state === 'na') return <td key={t} style={cellStyle}><span style={mutedGlyph}>—</span></td>;
+                            const editable = tierEditable(t);
+                            const added = state === 'added';
                             if (state === 'absent') return (
                               <td key={t} style={cellStyle}>
-                                <button title="Add this task at this tier" disabled={busy}
-                                  onClick={() => run(() => planAddTask(mergedBundle, sel, t, row.baseModuleId, task.task_ref))}
-                                  style={addCellBtn}>+</button>
+                                {editable
+                                  ? <button title="Add this task at this tier" disabled={busy}
+                                      onClick={() => run(() => planAddTask(mergedBundle, sel, t, row.baseModuleId, task.task_ref))}
+                                      style={addCellBtn}>+</button>
+                                  : <span style={mutedGlyph}>·</span>}
                               </td>
                             );
-                            const added = state === 'added';
                             return (
                               <td key={t} style={cellStyle}>
-                                <button title="Remove this task at this tier" disabled={busy}
-                                  onClick={() => run(() => planRemoveTask(mergedBundle, sel, t, row.baseModuleId, task.task_ref))}
-                                  style={{ ...cellToggle, color: added ? 'var(--accent, #82aaff)' : 'var(--text)', fontWeight: added ? 600 : 400 }}>✓</button>
+                                {editable
+                                  ? <button title="Remove this task at this tier" disabled={busy}
+                                      onClick={() => run(() => planRemoveTask(mergedBundle, sel, t, row.baseModuleId, task.task_ref))}
+                                      style={{ ...cellToggle, color: added ? 'var(--accent, #82aaff)' : 'var(--text)', fontWeight: added ? 600 : 400 }}>✓</button>
+                                  : <span style={{ color: added ? 'var(--accent, #82aaff)' : 'var(--text)' }}>✓</span>}
                               </td>
                             );
                           })}
@@ -255,7 +271,7 @@ export default function QTBuilder() {
                         <td style={addSubRowLabel}>+ task</td>
                         {tiers.map(t => (
                           <td key={t} style={cellStyle}>
-                            {isServed(t)
+                            {tierEditable(t)
                               ? <button title={`Add a library task to ${row.baseModuleId} at ${t}`} disabled={busy}
                                   onClick={() => setTaskPicker({ tier: t, baseModuleId: row.baseModuleId, phase: row.phase })}
                                   style={addCellBtn}>+</button>
@@ -270,7 +286,7 @@ export default function QTBuilder() {
                     <td style={addSubRowLabel}>+ module ({humanize(group.phase)})</td>
                     {tiers.map(t => (
                       <td key={t} style={cellStyle}>
-                        {isServed(t)
+                        {tierEditable(t)
                           ? <button title={`Add a library module at ${t}`} disabled={busy}
                               onClick={() => setModulePicker({ tier: t })}
                               style={addCellBtn}>+</button>
