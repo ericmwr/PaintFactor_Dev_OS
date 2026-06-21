@@ -88,3 +88,40 @@ describe('scenario-scoped modifier_overrides', () => {
     expect(computeScenarioModifierStack(hmodule, hctx, null, hbundle, null, { FAC_HEIGHT: { STEP: 1.25 } }).height).toBe(1.25);
   });
 });
+
+describe('forked-scenario FAC_QT override (end-to-end hours)', () => {
+  // Baseline (no quality_tier → serves QT3) + a QT5 fork carrying a FAC_QT
+  // override. One qt-eligible apply task; height/complexity/condition/texture
+  // are disabled so `total` is exactly `qt` and hours read straight off it.
+  function bundle() {
+    return {
+      modules: {
+        MOD_A: { module_id: 'MOD_A', phase: 'finish', tasks: [{ task_ref: 'TSK_A' }],
+          modifier_eligibility: { qt: true, height: false, complexity: false, condition: false } },
+      },
+      scenarios: [
+        { scenario_id: 'SCN_B', matches: { paintable_item: 'test' }, modules: ['MOD_A'] },
+        { scenario_id: 'SCN_B_QT5', matches: { paintable_item: 'test', quality_tier: 'QT5' },
+          modules: ['MOD_A'], modifier_overrides: { FAC_QT: { QT5: 1.8 } } },
+      ],
+      modifiers: { FAC_QT: { factors: { QT3: 1.0, QT5: 1.5 }, default: 'QT3' } },
+      tasks: { TSK_A: { task_id: 'TSK_A', name: 'Apply', ps_key: 'PS_TEST.X', uom: 'SF', skill_level: 'experienced', rate_per_hour: 100 } },
+    };
+  }
+  const ctx = (tier) => ({
+    paintable_item: 'test', quality_tier: tier, application_method: 'brush',
+    substrate_state: null, complexity: 'STD', height_band: 'STD', surface_texture: 'smooth',
+    substrate_condition: 'fair', pass_group_id: null, pass_group_substrates: null, pass_type: null,
+  });
+  const roomQty = () => new Map([['PS_TEST.X', { value: 100, uom: 'SF' }]]);
+  const hours = (r) => r.tasks.filter(t => t.taskId === 'TSK_A').reduce((s, t) => s + t.hours, 0);
+
+  it('QT3 resolves the baseline at ×1.00 → 1.0 h (unaffected by the QT5 fork)', () => {
+    const r = runScenarioEstimate({ scenarioBundle: bundle(), ctx: ctx('QT3'), roomQty: roomQty(), roomIndex: 0, roomLabel: 'R1' });
+    expect(hours(r)).toBeCloseTo(1.0, 5);
+  });
+  it('QT5 resolves the fork and applies the ×1.8 override (not the global ×1.5) → 1.8 h', () => {
+    const r = runScenarioEstimate({ scenarioBundle: bundle(), ctx: ctx('QT5'), roomQty: roomQty(), roomIndex: 0, roomLabel: 'R1' });
+    expect(hours(r)).toBeCloseTo(1.8, 5);
+  });
+});
