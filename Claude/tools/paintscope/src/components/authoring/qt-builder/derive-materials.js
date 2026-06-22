@@ -28,6 +28,9 @@ function ctxFor(sel, tier) {
 function resolvedByRoleFrom(systems, baseRole) {
   const out = {};
   for (const id of systems || []) {
+    // baseRole fallback is intentional: a system absent from MATERIAL_SYSTEM_PRODUCTS
+    // (a placeholder stub, ~90% of materials) gracefully classifies to the base role
+    // for display rather than returning an unknown/null role.
     const role = classifySystemRole(id, ROLE_BY_SYSTEM_ID, baseRole);
     if (!(role in out)) out[role] = id;
   }
@@ -70,7 +73,14 @@ export function deriveMaterials(bundle, canonicalBundle, sel) {
     const { scenario: canon } = findBestMatch(canonicalBundle, ctxFor(sel, tier));
     const canonResolved = resolvedByRoleFrom(canon && canon.material_systems, baseRole);
     const isOverrideByRole = {};
-    for (const role of Object.keys(candidatesByRole)) {
+    // Iterate the UNION of all three role key sets so a role present only in
+    // canonical (dropped by the override scenario) is still flagged.
+    const overrideRoleKeys = new Set([
+      ...Object.keys(resolvedByRole),
+      ...Object.keys(canonResolved),
+      ...Object.keys(candidatesByRole),
+    ]);
+    for (const role of overrideRoleKeys) {
       isOverrideByRole[role] = (resolvedByRole[role] || null) !== (canonResolved[role] || null);
     }
 
