@@ -2037,6 +2037,24 @@ export const MATERIAL_SYSTEMS = [
     ]
   },
   {
+    "id": "SYS_SEALER_OIL",
+    "spec_family_id": "SF_ARCH_ELEMENT_NC_SEALER",
+    "name": "Oil-Based Sanding Sealer",
+    "applies_when": {
+      "coating_type": ["stain_clear", "clear_only"]
+    },
+    "allowed_sheens": ["n/a"]
+  },
+  {
+    "id": "SYS_CLEAR_POLY_WB",
+    "spec_family_id": "SF_ARCH_ELEMENT_NC_CLEAR",
+    "name": "Water-Based Polyurethane",
+    "applies_when": {
+      "coating_type": ["stain_clear", "clear_only"]
+    },
+    "allowed_sheens": ["satin", "semi-gloss", "gloss"]
+  },
+  {
     "id": "SYS_STAIN_OIL",
     "spec_family_id": "SF_DOOR_CASING_NC_STAIN",
     "name": "Oil-Based Penetrating Stain",
@@ -2888,6 +2906,22 @@ export const MATERIAL_COVERAGE_PROFILES = [
     "product_role": "clear"
   },
   {
+    "id": "COV_AEST_SEALER_PHASE",
+    "spec_family_id": "SF_ARCH_ELEMENT_NC_SEALER",
+    "product_role": "sealer",
+    "surface_texture": "stained_or_bare",
+    "coverage_range_low": 450,
+    "coverage_range_high": 550
+  },
+  {
+    "id": "COV_AEST_CLEAR_PHASE",
+    "spec_family_id": "SF_ARCH_ELEMENT_NC_CLEAR",
+    "product_role": "clear",
+    "surface_texture": "sealed_or_clear_coated",
+    "coverage_range_low": 400,
+    "coverage_range_high": 500
+  },
+  {
     "id": "COV_GRAIN_FILLER",
     "spec_family_id": "SF_WOOD_GRAIN_FILL_NC",
     "material_system": "SYS_GRAIN_FILLER_WB",
@@ -2927,7 +2961,7 @@ export const MATERIAL_COVERAGE_PROFILES = [
     "id": "COV_DOOR_CASING_CLEAR",
     "spec_family_id": "SF_DOOR_CASING_NC_CLEAR",
     "product_role": "clear",
-    "surface_texture": "stained_or_bare",
+    "surface_texture": "sealed_or_clear_coated",
     "coverage_range_low": 400,
     "coverage_range_high": 500
   }
@@ -9169,6 +9203,16 @@ export const SPEC_FAMILY_INFO = [
   {
     "id": "SF_ARCH_ELEMENT_NC_STAIN",
     "name": "New Construction Architectural Element Stain/Clear Coat",
+    "domain": "interior"
+  },
+  {
+    "id": "SF_ARCH_ELEMENT_NC_SEALER",
+    "name": "New Construction Architectural Element Sealer Phase",
+    "domain": "interior"
+  },
+  {
+    "id": "SF_ARCH_ELEMENT_NC_CLEAR",
+    "name": "New Construction Architectural Element Clear Phase",
     "domain": "interior"
   },
   {

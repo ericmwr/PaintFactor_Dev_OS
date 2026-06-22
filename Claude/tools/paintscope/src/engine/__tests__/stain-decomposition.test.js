@@ -371,3 +371,42 @@ describe('D1 — door_casing phase scenario routing via findBestMatch', () => {
     expect(bundled).toBeUndefined();
   });
 });
+
+// ---------------------------------------------------------------------------
+// D2: findBestMatch — three arch_element phase scenarios in bundle
+// ---------------------------------------------------------------------------
+describe('D2 — arch_element phase scenario routing via findBestMatch', () => {
+  it('SS_BARE + coating_phase:stain → SCN_INT_AEST_STAIN', () => {
+    const ctx = { paintable_item: 'int_arch_element', substrate_state: 'SS_BARE', coating_phase: 'stain' };
+    const { scenario } = findBestMatch(bundle, ctx);
+    expect(scenario).not.toBeNull();
+    expect(scenario.scenario_id).toBe('SCN_INT_AEST_STAIN');
+  });
+
+  it('SS_STAINED + coating_phase:sealer → SCN_INT_AEST_SEALER', () => {
+    const ctx = { paintable_item: 'int_arch_element', substrate_state: 'SS_STAINED', coating_phase: 'sealer' };
+    const { scenario } = findBestMatch(bundle, ctx);
+    expect(scenario).not.toBeNull();
+    expect(scenario.scenario_id).toBe('SCN_INT_AEST_SEALER');
+  });
+
+  it('SS_STAINED + coating_phase:clear → SCN_INT_AEST_CLEAR (no-sealer path)', () => {
+    const ctx = { paintable_item: 'int_arch_element', substrate_state: 'SS_STAINED', coating_phase: 'clear' };
+    const { scenario } = findBestMatch(bundle, ctx);
+    expect(scenario).not.toBeNull();
+    expect(scenario.scenario_id).toBe('SCN_INT_AEST_CLEAR');
+  });
+
+  it('SS_SEALED + coating_phase:clear → SCN_INT_AEST_CLEAR (sealer path)', () => {
+    const ctx = { paintable_item: 'int_arch_element', substrate_state: 'SS_SEALED', coating_phase: 'clear' };
+    const { scenario } = findBestMatch(bundle, ctx);
+    expect(scenario).not.toBeNull();
+    expect(scenario.scenario_id).toBe('SCN_INT_AEST_CLEAR');
+  });
+
+  it('bundled SCN_INT_AEST_STAIN_CLEAR is no longer in the bundle', () => {
+    // net +2 arch scenarios (3 new − 1 archived = +2)
+    const bundled = bundle.scenarios.find(s => s.scenario_id === 'SCN_INT_AEST_STAIN_CLEAR');
+    expect(bundled).toBeUndefined();
+  });
+});
