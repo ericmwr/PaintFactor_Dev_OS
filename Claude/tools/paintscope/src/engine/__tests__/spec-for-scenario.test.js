@@ -133,4 +133,14 @@ describe('specForScenarioMatches', () => {
     expect(specForScenarioMatches(null)).toBeNull();
     expect(specForScenarioMatches(undefined)).toBeNull();
   });
+
+  // (g) Phase 3b WS1 — door-frame and door-slab stain families
+  it('resolves int_door_frame + stain → SF_DOOR_FRAME_NC_STAIN', () => {
+    expect(specForScenarioMatches({ paintable_item: 'int_door_frame', substrate_state: ['SS_BARE'], coating_type: ['stain', 'stain_clear'] }))
+      .toBe('SF_DOOR_FRAME_NC_STAIN');
+  });
+  it('resolves int_door_slab + stain → SF_DOOR_SLAB_INT_NC_STAIN', () => {
+    expect(specForScenarioMatches({ paintable_item: 'int_door_slab', substrate_state: ['SS_BARE'], coating_type: ['stain', 'stain_clear'] }))
+      .toBe('SF_DOOR_SLAB_INT_NC_STAIN');
+  });
 });

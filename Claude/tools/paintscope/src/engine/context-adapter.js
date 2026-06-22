@@ -200,6 +200,8 @@ export const SPEC_TO_PAINTABLE_ITEM = {
   SF_WOOD_WALL_NC_STAIN:            'int_wood_wall',
   SF_WOOD_CEILING_NC_STAIN:         'int_wood_ceiling',
   SF_ARCH_ELEMENT_NC_STAIN:         'int_arch_element',
+  SF_DOOR_FRAME_NC_STAIN:           'int_door_frame',
+  SF_DOOR_SLAB_INT_NC_STAIN:        'int_door_slab',
 
   // Interior RP
   SF_DRYWALL_WALL_INT_RP:           'drywall_wall',
