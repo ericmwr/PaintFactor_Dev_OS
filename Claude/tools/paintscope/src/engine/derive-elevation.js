@@ -1,4 +1,4 @@
-import { EXT_TRIM_TYPES } from '../state/exterior-state';
+import { EXT_TRIM_TYPES } from '../state/exterior-state.js';
 
 // ============================================================
 // EXTERIOR GEOMETRY DERIVATION
