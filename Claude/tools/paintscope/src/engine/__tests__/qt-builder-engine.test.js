@@ -53,9 +53,12 @@ describe('coat_counts_by_tier', () => {
     expect(counts(r)).toEqual({ apply: 3, inter: 2 });
   });
 
-  it('QT4 (tier absent from the map) → no overlay, ctx coat field stays unset (0 reps)', () => {
+  it('QT4 (tier absent from the map) → no overlay, ctx coat field stays unset → fallback to 1 rep (A1: coat_counts ?? 1)', () => {
+    // A1 changed: when ctx lacks the coat field AND scenario has no coat_counts,
+    // dynamic_coats defaults to 1 rep (was 0). Live stain ctx always carries the
+    // coat fields, so production estimates are unaffected.
     const r = runScenarioEstimate({ scenarioBundle: makeCoatBundle(), ctx: ctxFor('QT4'), roomQty: roomQty(), roomIndex: 0, roomLabel: 'R1' });
-    expect(counts(r)).toEqual({ apply: 0, inter: 0 });
+    expect(counts(r)).toEqual({ apply: 1, inter: 0 });
   });
 });
 
