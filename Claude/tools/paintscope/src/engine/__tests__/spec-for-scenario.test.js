@@ -55,4 +55,82 @@ describe('specForScenarioMatches', () => {
     if (!fixture) { console.warn('SKIP: no cabinet repaint scenario in bundle'); return; }
     expect(specForScenarioMatches(fixture.matches)).toBe('SF_CABINET_INT_RP');
   });
+
+  // ── NEW TESTS (Phase 3a) ────────────────────────────────────────────────────
+
+  // (a) Stair paint token → NC spec; same token stain scenario → STAIN spec
+  it('baluster paint scenario → SF_STAIR_RAILING_NC', () => {
+    const fixture = matchesOf('SCN_BALUSTER_NC_QT3_BRUSH_FROM_BARE');
+    expect(fixture).toBeTruthy();
+    expect(specForScenarioMatches(fixture)).toBe('SF_STAIR_RAILING_NC');
+  });
+
+  it('baluster stain scenario → SF_STAIR_RAILING_NC_STAIN', () => {
+    const fixture = matchesOf('SCN_BALUSTER_NC_STAIN_QT3_BRUSH_FROM_BARE');
+    expect(fixture).toBeTruthy();
+    expect(specForScenarioMatches(fixture)).toBe('SF_STAIR_RAILING_NC_STAIN');
+  });
+
+  it('riser paint scenario → SF_STAIR_RISER_NC', () => {
+    const fixture = matchesOf('SCN_RISER_NC_QT3_BRUSH_FROM_BARE');
+    expect(fixture).toBeTruthy();
+    expect(specForScenarioMatches(fixture)).toBe('SF_STAIR_RISER_NC');
+  });
+
+  it('riser stain scenario → SF_STAIR_RISER_NC_STAIN', () => {
+    const fixture = matchesOf('SCN_RISER_NC_STAIN_QT3_BRUSH_FROM_BARE');
+    expect(fixture).toBeTruthy();
+    expect(specForScenarioMatches(fixture)).toBe('SF_STAIR_RISER_NC_STAIN');
+  });
+
+  // (b) Array paintable_item → resolves via first element
+  it('ext_deck array paintable_item → SF_DECK_EXT (first element ext_deck_floor)', () => {
+    const fixture = matchesOf('SCN_EXT_DECK_NC_STAIN');
+    expect(fixture).toBeTruthy();
+    expect(Array.isArray(fixture.paintable_item)).toBe(true);
+    // SF_DECK_EXT maps ext_deck_floor; it is the first-wins from SPEC_TO_PAINTABLE_ITEM
+    const result = specForScenarioMatches(fixture);
+    expect(['SF_DECK_EXT', 'SF_DECK_EXT_RP']).toContain(result);
+  });
+
+  it('ext_metal array paintable_item → SF_METAL_EXT (first element ext_metal_railing)', () => {
+    const fixture = matchesOf('SCN_EXT_METAL_BARE_BRUSH');
+    expect(fixture).toBeTruthy();
+    expect(Array.isArray(fixture.paintable_item)).toBe(true);
+    const result = specForScenarioMatches(fixture);
+    expect(['SF_METAL_EXT', 'SF_METAL_EXT_RP']).toContain(result);
+  });
+
+  // (c) closet → SF_CLOSET_SHELF_NC via step-3 fallback guard
+  it('closet (SS_BARE) → SF_CLOSET_SHELF_NC despite PRIME filter', () => {
+    const fixture = matchesOf('SCN_CLOSET_SHELF_NC_QT3_BARE_BR');
+    expect(fixture).toBeTruthy();
+    expect(specForScenarioMatches(fixture)).toBe('SF_CLOSET_SHELF_NC');
+  });
+
+  it('closet (SS_PRIMED_FACTORY) → SF_CLOSET_SHELF_NC', () => {
+    const fixture = matchesOf('SCN_CLOSET_SHELF_NC_QT3_PRIMED_BR');
+    expect(fixture).toBeTruthy();
+    expect(specForScenarioMatches(fixture)).toBe('SF_CLOSET_SHELF_NC');
+  });
+
+  // (d) int_window stain → SF_WINDOW_INT_NC_STAIN (coating_type discriminator)
+  it('int_window stain scenario → SF_WINDOW_INT_NC_STAIN', () => {
+    const fixture = matchesOf('SCN_INT_WNST_STAIN_CLEAR');
+    expect(fixture).toBeTruthy();
+    expect(specForScenarioMatches(fixture)).toBe('SF_WINDOW_INT_NC_STAIN');
+  });
+
+  // (e) combined pass-group → null (intentionally unmapped)
+  it('combined pass-group scenario → null', () => {
+    const fixture = matchesOf('SCN_COMBINED_WALLS_CEILING_FINISH_QT3_SPRAY_BACKROLL_EGGSHELL');
+    // matches exists but has no paintable_item (pass_group_id only)
+    expect(specForScenarioMatches(fixture)).toBeNull();
+  });
+
+  // (f) null matches → null
+  it('null matches → null', () => {
+    expect(specForScenarioMatches(null)).toBeNull();
+    expect(specForScenarioMatches(undefined)).toBeNull();
+  });
 });
