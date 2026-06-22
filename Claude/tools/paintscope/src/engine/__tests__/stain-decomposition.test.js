@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { deriveStainScope, resolveSystem, resolveCoatingType } from '../scenario-resolution.js';
 import { createRoom, createSubstrateConfig } from '../../state/initial-state.js';
+import { buildScenarioInputs } from '../context-adapter.js';
 
 // ---------------------------------------------------------------------------
 // deriveStainScope — pure helper, all flag combinations
@@ -206,5 +207,124 @@ describe('resolveCoatingType — presence-flag integration (B3)', () => {
       })
     );
     expect(resolveCoatingType('SF_DRYWALL_WALL_NC_FINISH', room, project)).toBe('paint');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// B2: coating_phase stamping + decomposed-family coat-field policy
+// ---------------------------------------------------------------------------
+// Helpers: build a minimal state with a bare-wood door_casing substrate.
+function makeStainState({ stain_on = false, sealer_on = false, clear_on = false } = {}) {
+  const room = createRoom({ label: 'B2 Test' });
+  room.substrates.door_casing = createSubstrateConfig('door_casing', {
+    substrate_state: 'bare_wood',
+    painting: true,
+    stain_on,
+    sealer_on,
+    clear_on,
+  });
+  return { project: { default_quality_tier: 'QT3' }, rooms: [room] };
+}
+
+function casingInputs(roomInputs) {
+  return roomInputs.filter(i =>
+    i.specId === 'SF_DOOR_CASING_NC_STAIN' ||
+    i.specId === 'SF_DOOR_CASING_NC_SEALER' ||
+    i.specId === 'SF_DOOR_CASING_NC_CLEAR'
+  );
+}
+
+describe('B2 — coating_phase + decomposed coat-field suppression', () => {
+  it('stain+clear (no sealer): emits exactly two casing inputs — stain@SS_BARE and clear@SS_STAINED', () => {
+    const state = makeStainState({ stain_on: true, sealer_on: false, clear_on: true });
+    const { roomInputs } = buildScenarioInputs(state);
+    const inputs = casingInputs(roomInputs);
+
+    expect(inputs).toHaveLength(2);
+
+    const stainInput = inputs.find(i => i.specId === 'SF_DOOR_CASING_NC_STAIN');
+    const clearInput = inputs.find(i => i.specId === 'SF_DOOR_CASING_NC_CLEAR');
+
+    expect(stainInput).toBeDefined();
+    expect(stainInput.ctx.coating_phase).toBe('stain');
+    expect(stainInput.ctx.substrate_state).toBe('SS_BARE');
+
+    expect(clearInput).toBeDefined();
+    expect(clearInput.ctx.coating_phase).toBe('clear');
+    expect(clearInput.ctx.substrate_state).toBe('SS_STAINED');
+
+    // No sealer input
+    expect(inputs.find(i => i.specId === 'SF_DOOR_CASING_NC_SEALER')).toBeUndefined();
+  });
+
+  it('decomposed stain input has no ctx coat fields (coat_counts drives coats)', () => {
+    const state = makeStainState({ stain_on: true, sealer_on: false, clear_on: true });
+    const { roomInputs } = buildScenarioInputs(state);
+    const inputs = casingInputs(roomInputs);
+
+    for (const inp of inputs) {
+      expect(inp.ctx.stain_coats).toBeUndefined();
+      expect(inp.ctx.sealer_coats).toBeUndefined();
+      expect(inp.ctx.clear_coats).toBeUndefined();
+    }
+  });
+
+  it('toggling sealer_on adds sealer@SS_STAINED and shifts clear to SS_SEALED', () => {
+    const state = makeStainState({ stain_on: true, sealer_on: true, clear_on: true });
+    const { roomInputs } = buildScenarioInputs(state);
+    const inputs = casingInputs(roomInputs);
+
+    expect(inputs).toHaveLength(3);
+
+    const stainInput = inputs.find(i => i.specId === 'SF_DOOR_CASING_NC_STAIN');
+    const sealerInput = inputs.find(i => i.specId === 'SF_DOOR_CASING_NC_SEALER');
+    const clearInput = inputs.find(i => i.specId === 'SF_DOOR_CASING_NC_CLEAR');
+
+    expect(stainInput).toBeDefined();
+    expect(stainInput.ctx.coating_phase).toBe('stain');
+    expect(stainInput.ctx.substrate_state).toBe('SS_BARE');
+
+    expect(sealerInput).toBeDefined();
+    expect(sealerInput.ctx.coating_phase).toBe('sealer');
+    expect(sealerInput.ctx.substrate_state).toBe('SS_STAINED');
+
+    expect(clearInput).toBeDefined();
+    expect(clearInput.ctx.coating_phase).toBe('clear');
+    expect(clearInput.ctx.substrate_state).toBe('SS_SEALED');
+  });
+
+  it('paint substrate (walls) emits NO coating_phase (paint inputs byte-identical)', () => {
+    const room = createRoom({ label: 'Paint Room' });
+    room.substrates.walls = createSubstrateConfig('walls', {
+      substrate_state: 'bare_drywall',
+    });
+    const state = { project: { default_quality_tier: 'QT3' }, rooms: [room] };
+    const { roomInputs } = buildScenarioInputs(state);
+    const wallInputs = roomInputs.filter(i =>
+      i.specId === 'SF_DRYWALL_WALL_NC_PRIME' || i.specId === 'SF_DRYWALL_WALL_NC_FINISH'
+    );
+    // Wall inputs should exist but have no coating_phase
+    for (const inp of wallInputs) {
+      expect(inp.ctx.coating_phase).toBeUndefined();
+    }
+  });
+
+  it('bundled stain family still emits ctx coat fields (non-decomposed path unchanged)', () => {
+    // SF_DOOR_FRAME_NC_STAIN is in STAIN_SPEC_FAMILIES but NOT in DECOMPOSED_STAIN_FAMILIES
+    const room = createRoom({ label: 'Bundled Stain' });
+    room.substrates.door_frames = createSubstrateConfig('door_frames', {
+      substrate_state: 'bare_wood',
+      stain_on: true,
+      sealer_on: false,
+      clear_on: true,
+    });
+    const state = { project: { default_quality_tier: 'QT3' }, rooms: [room] };
+    const { roomInputs } = buildScenarioInputs(state);
+    const frameStainInput = roomInputs.find(i => i.specId === 'SF_DOOR_FRAME_NC_STAIN');
+    expect(frameStainInput).toBeDefined();
+    // Bundled family: ctx coat fields ARE present
+    expect(frameStainInput.ctx.stain_coats).toBeDefined();
+    // coating_phase is still stamped (STAIN role)
+    expect(frameStainInput.ctx.coating_phase).toBe('stain');
   });
 });

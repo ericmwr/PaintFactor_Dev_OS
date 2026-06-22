@@ -36,6 +36,7 @@ import { FIXTURE_CATALOG } from '../data/fixture-catalog.js';
 import { SUBSTRATE_APPLICATION_METHODS } from '../data/substrate-catalog.js';
 import {
   STAIN_SPEC_FAMILIES,
+  DECOMPOSED_STAIN_FAMILIES,
   UI_STATE_TO_SPEC_STATE,
   EXT_UI_STATE_TO_SPEC_STATE,
   SPEC_SUBSTRATE_MAP,
@@ -1156,6 +1157,8 @@ export function buildScenarioInputs(state) {
       //       get SS_PRIMED because a PRIME pass precedes them in the workflow.
       const system = resolveSystem(specId, room, project);
       const specRole = SPEC_ROLE[specId] || 'COMBINED';
+      const PHASE_BY_ROLE = { STAIN: 'stain', SEALER: 'sealer', CLEAR: 'clear' };
+      const coatingPhase = PHASE_BY_ROLE[specRole] || null;
       const activation = resolveActivation(system, specRole);
       if (activation.active === false) {
         // Spec is suppressed by the current system — skip emitting an input for it.
@@ -1173,6 +1176,7 @@ export function buildScenarioInputs(state) {
         surface_texture: resolveTextureForSpec(specId, room, project),
         substrate_state: effectiveSubstrateState,
         coating_type: coatingType,
+        ...(coatingPhase ? { coating_phase: coatingPhase } : {}),
 
         // Room adjacency
         floor_type: room.floor_type || 'subfloor',
@@ -1228,15 +1232,24 @@ export function buildScenarioInputs(state) {
 
       // Stain-specific context (matches lines 260-270). coating_type is
       // emitted for all specs above; stain specs add method/species/coat fields.
+      // Coats: for DECOMPOSED families (SEALER/CLEAR roles + DECOMPOSED_STAIN_FAMILIES),
+      // the scenario's coat_counts is the per-tier default — do NOT emit ctx coats
+      // (per-item ctx override = Phase 3). Bundled families keep emitting ctx coats.
       if (STAIN_SPEC_FAMILIES.has(specId)) {
         ctx.application_method_stain = resolveStainMethod(specId, room, project);
         ctx.application_method_clear = resolveClearMethod(specId, room, project);
         ctx.wood_species_group = resolveWoodSpecies(specId, room, project);
         ctx.clear_sheen = resolveClearSheen(specId, room, project);
-        const coats = resolveCoatCounts(specId, room, project);
-        ctx.stain_coats = coats.stain_coats;
-        ctx.sealer_coats = coats.sealer_coats;
-        ctx.clear_coats = coats.clear_coats;
+        const decomposed =
+          SPEC_ROLE[specId] === 'SEALER' ||
+          SPEC_ROLE[specId] === 'CLEAR' ||
+          DECOMPOSED_STAIN_FAMILIES.has(specId);
+        if (!decomposed) {
+          const coats = resolveCoatCounts(specId, room, project);
+          ctx.stain_coats = coats.stain_coats;
+          ctx.sealer_coats = coats.sealer_coats;
+          ctx.clear_coats = coats.clear_coats;
+        }
       }
 
       // Exterior-only fields pulled from project/room when present.
