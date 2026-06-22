@@ -253,10 +253,24 @@ export default function SubstrateDetailPanel({ room, derived, dispatch, substrat
       })()}
 
       {/* Stain / Clear Coat controls (bare wood on wood substrates only).
-          Coating Type was retired — see System above for workflow choice. */}
-      {isBareWood && coatingType !== 'paint' && (
+          Coating Type was retired — see System above for workflow choice.
+          Presence flags (stain_on/sealer_on/clear_on) are the authoritative
+          scope control; System dropdown seeds them via the C1 reducer. */}
+      {isBareWood && (config.stain_on || config.sealer_on || config.clear_on || coatingType !== 'paint') && (
         <div className="panel-section">
-          <div className="section-title">Coating</div>
+          <div className="section-title">Coating Phases</div>
+          <div style={{ display: 'flex', gap: 16, padding: '4px 0', flexWrap: 'wrap' }}>
+            {['stain', 'sealer', 'clear'].map(ph => (
+              <label key={ph} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12 }}>
+                <input
+                  type="checkbox"
+                  checked={!!config[`${ph}_on`]}
+                  onChange={e => setSub(`${ph}_on`, e.target.checked)}
+                />
+                {ph.charAt(0).toUpperCase() + ph.slice(1)}
+              </label>
+            ))}
+          </div>
           <div className="form-grid" style={{ gridTemplateColumns: '1fr 1fr' }}>
             <div>
               <div className="field-label">Wood Species</div>
@@ -266,7 +280,7 @@ export default function SubstrateDetailPanel({ room, derived, dispatch, substrat
             {/* placeholder retained so the original block structure stays clean */}
             <div></div>
 
-            {includesStain && (
+            {config.stain_on && (
               <>
                 <div>
                   <div className="field-label">Stain Method</div>
@@ -281,28 +295,34 @@ export default function SubstrateDetailPanel({ room, derived, dispatch, substrat
               </>
             )}
 
-            {includesClear && (
+            {(config.sealer_on || config.clear_on) && (
               <>
                 <div>
-                  <div className="field-label">Clear Method</div>
+                  <div className="field-label">Clear/Sealer Method</div>
                   <Select options={ENUMS.clearApplicationMethods} value={config.application_method_clear || 'brush'}
                     onChange={v => setSub('application_method_clear', v)} />
                 </div>
-                <div>
-                  <div className="field-label">Clear Sheen</div>
-                  <Select options={ENUMS.clearSheen} value={config.clear_sheen || 'satin'}
-                    onChange={v => setSub('clear_sheen', v)} />
-                </div>
-                <div>
-                  <div className="field-label">Sealer Coats</div>
-                  <Select options={ENUMS.sealerCoatCounts} value={config.sealer_coats ?? 0}
-                    onChange={v => setSub('sealer_coats', Number(v))} />
-                </div>
-                <div>
-                  <div className="field-label">Clear Coats</div>
-                  <Select options={ENUMS.clearCoatCounts} value={config.clear_coats ?? 1}
-                    onChange={v => setSub('clear_coats', Number(v))} />
-                </div>
+                {config.clear_on && (
+                  <div>
+                    <div className="field-label">Clear Sheen</div>
+                    <Select options={ENUMS.clearSheen} value={config.clear_sheen || 'satin'}
+                      onChange={v => setSub('clear_sheen', v)} />
+                  </div>
+                )}
+                {config.sealer_on && (
+                  <div>
+                    <div className="field-label">Sealer Coats</div>
+                    <Select options={ENUMS.sealerCoatCounts} value={config.sealer_coats ?? 0}
+                      onChange={v => setSub('sealer_coats', Number(v))} />
+                  </div>
+                )}
+                {config.clear_on && (
+                  <div>
+                    <div className="field-label">Clear Coats</div>
+                    <Select options={ENUMS.clearCoatCounts} value={config.clear_coats ?? 1}
+                      onChange={v => setSub('clear_coats', Number(v))} />
+                  </div>
+                )}
               </>
             )}
           </div>
