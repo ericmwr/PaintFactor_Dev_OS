@@ -1,14 +1,14 @@
 import { deriveRoom } from './derive-room.js';
 import { SUBSTRATE_MAP, SUBSTRATE_APPLICATION_METHODS } from '../data/substrate-catalog.js';
 import { SPEC_SUBSTRATE_MAP } from '../data/scenario-maps.js';
-import { isSpecStateCompatible, resolveSubstrateStateForSpec } from './scenario-compatibility.js';
+import { isSpecStateCompatible } from './scenario-compatibility.js';
 import {
   MATERIAL_SYSTEMS,
   MATERIAL_COVERAGE_PROFILES,
   MATERIAL_SYSTEM_PRODUCTS,
 } from '../data/scenario-rate-data.js';
 import { resolveProduct } from './product-resolver.js';
-import { buildRoleBySystemId, resolveSpecSystems } from './material-system-roles.js';
+import { buildRoleBySystemId, classifySystemRole } from './material-system-roles.js';
 
 // Resolve coats for a system, tolerant of array systems that lack a product row
 // under the active spec family (e.g. closet references SYS_FF_STANDARD_ACRYLIC,
@@ -81,7 +81,7 @@ const SPRAY_LOSS_BY_METHOD = {
 /**
  * Compute material estimates from coverage profiles.
  */
-export function computeMaterialEstimates(state, roomLookups, specResults = [], scenarioMaterialOverrides = {}) {
+export function computeMaterialEstimates(state, roomLookups, specResults = [], scenarioMaterials = {}) {
   const estimates = [];
   const { project, rooms } = state;
   const SPRAY_LOSS_FACTOR = 0.05; // 5% material loss for spray application
@@ -150,6 +150,12 @@ export function computeMaterialEstimates(state, roomLookups, specResults = [], s
     productsBySystem[key].push(msp);
   });
 
+  // system_id -> material_system_products across ALL families (coats tolerance).
+  const productsBySystemId = {};
+  MATERIAL_SYSTEM_PRODUCTS.forEach(msp => {
+    (productsBySystemId[msp.system_id] = productsBySystemId[msp.system_id] || []).push(msp);
+  });
+
   // system_id -> product_role, so material selection is role-aware (primer vs finish).
   const roleBySystemId = buildRoleBySystemId(MATERIAL_SYSTEM_PRODUCTS);
 
@@ -197,37 +203,28 @@ export function computeMaterialEstimates(state, roomLookups, specResults = [], s
 
     if (specSF <= 0) return; // No quantities for this spec
 
-    // Resolve material system for this spec based on quality tier
-    // Default sheen: eggshell (most common for walls), flat for ceilings/priming
-    let defaultSheen = 'eggshell';
-    if (specId.includes('CEILING')) defaultSheen = 'flat';
-    if (specId.includes('PRIME')) defaultSheen = 'flat';
-    if (specId.includes('TRIM') || specId.includes('DOOR') || specId.includes('CABINET') || specId.includes('WINDOW')) defaultSheen = 'semi-gloss';
-
-    // Role-aware resolution: a primer system (substrate/state- or QT-keyed) and a
-    // finish system (QT-keyed) are resolved separately and emitted as their own
-    // lines; stain specs resolve stain/sealer/clear. Role comes from product_role.
-    // A per-(tier,role) override pins a system at the active defaultQT.
+    // System selection comes from the governing scenario's material_systems array
+    // (Phase 3), grouped by role — NOT the catalog matcher. Absent/empty → no lines.
     const isStainSpec = specId.includes('STAIN');
-    const repRoom = rooms.find(r => isSpecStateCompatible(specId, r)) || null;
-    const specStates = (repRoom ? resolveSubstrateStateForSpec(specId, repRoom) : []) || [];
-    const specOverride = (scenarioMaterialOverrides[specId] && scenarioMaterialOverrides[specId][defaultQT]) || null;
-    const matchedSystems = resolveSpecSystems({
-      specSystems, roleBySystemId, isStain: isStainSpec,
-      defaultQT, defaultSheen, specStates, specOverride,
-    });
+    const sysEntry = scenarioMaterials[specId];
+    const systemIds = (sysEntry && sysEntry.systems) || [];
+    const seenRoles = new Set();
+    const matchedSystems = [];
+    for (const sysId of systemIds) {
+      const role = classifySystemRole(sysId, roleBySystemId, isStainSpec ? 'stain' : 'finish');
+      if (seenRoles.has(role)) continue;                       // one system per role (representative)
+      seenRoles.add(role);
+      const system = (systemsBySpec[specId] || []).find(s => s.id === sysId) || { id: sysId, name: sysId };
+      matchedSystems.push({ system, role });
+    }
+    if (matchedSystems.length === 0) return; // empty array → no materials for this spec
 
     // Emit one estimate per matched system
     matchedSystems.forEach(({ system: matchedSystem, role }) => {
-      // Get coats from material_system_products
-      let coats = 1;
-      if (matchedSystem) {
-        const products = productsBySystem[specId + '::' + matchedSystem.id] || [];
-        if (products.length > 0) {
-          const finishProd = products.find(p => (p.product_role || '').includes('finish')) || products[0];
-          if (finishProd.coats_required) coats = finishProd.coats_required;
-        }
-      }
+      // Get coats (own-family → by-id tolerance → default).
+      const { coats } = matchedSystem
+        ? resolveCoats(matchedSystem.id, specId, productsBySystem, productsBySystemId, role)
+        : { coats: 1 };
 
       // Find coverage profile matching system + texture
       let matchedProfile = null;

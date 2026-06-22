@@ -198,10 +198,20 @@ export function computeScenarioEstimate(state, bundle, profile, products, overla
     // ── Step 5: Material estimates ──
     // Interior only — scenario engine doesn't yet handle exterior domain.
     // Same signature run-estimate.js uses at line 802.
+
+    // Representative fired scenario per spec family → its material_systems (Phase 3).
+    const scenarioMaterials = {};
+    for (const pr of perInputResults) {
+      if (pr.domain === 'exterior') continue;
+      if (scenarioMaterials[pr.specId]) continue;            // first fired = representative
+      const scn = bundle.scenarios.find(s => s.scenario_id === pr.scenarioId);
+      if (scn) scenarioMaterials[pr.specId] = { scenarioId: pr.scenarioId, systems: scn.material_systems || [] };
+    }
+
     const intSpecResults = specResults.filter(sr => sr.domain !== 'exterior');
     let materialEstimates = [];
     try {
-      materialEstimates = computeMaterialEstimates(state, roomLookups, intSpecResults);
+      materialEstimates = computeMaterialEstimates(state, roomLookups, intSpecResults, scenarioMaterials);
     } catch (matErr) {
       console.error('[PaintScope] Material estimate error:', matErr);
       warnings.push(`Material estimates: ${matErr.message}`);

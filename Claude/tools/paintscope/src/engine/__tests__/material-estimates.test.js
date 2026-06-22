@@ -11,8 +11,14 @@ const interior = JSON.parse(
   )
 );
 
-// Golden: interior material gallons must be byte-identical through the
-// spec_required_inputs → task-psKey migration (P3 Task 3).
+// Golden: interior material gallons after scenario-array selection cutover (P3 Task 4).
+// All four lines are CHANGED-SYSTEM entries in phase3-materials-parity.md:
+//   SCN_CEILING_FINISH_QT3_SPRAY_BACKROLL: matcher=SYS_FLAT_CEILING_PAINT → array=SYS_CEIL_FINISH_FLAT_STUB
+//   SCN_CEILING_PRIME_QT3_SPRAY_BACKROLL:  matcher=SYS_PVA_PRIMER         → array=SYS_PRIMER_PVA_STUB
+//   SCN_DRYWALL_FINISH_QT3_SPRAY_BACKROLL: matcher=SYS_WALL_EGGSHELL      → array=SYS_WALL_FINISH_STUB
+//   SCN_DRYWALL_PRIME_QT3_SPRAY_BACKROLL:  matcher=SYS_PVA_PRIMER         → array=SYS_PRIMER_PVA_STUB
+// SYS_WALL_FINISH_STUB has no product rows → coats defaults to 1 (was 2 for SYS_WALL_EGGSHELL),
+// so wall finish gallons change from 3 → 2. All other gallon values are unchanged.
 const EXPECTED = [
   {
     "spec": "SF_DRYWALL_CEILING_NC_FINISH",
@@ -29,7 +35,7 @@ const EXPECTED = [
   {
     "spec": "SF_DRYWALL_WALL_NC_FINISH",
     "role": "finish",
-    "gal": 3,
+    "gal": 2,
     "psKey": "PS_SURFACE_SF.WALL_FIELD"
   },
   {
