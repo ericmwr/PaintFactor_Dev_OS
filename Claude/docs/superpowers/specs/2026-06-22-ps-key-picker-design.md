@@ -117,7 +117,7 @@ export function buildPsKeyCatalog(bundle, labels) {
     if (!k || map.has(k)) continue;
     map.set(k, makeEntry(k, null, false));        // in-use, uncatalogued
   }
-  return [...map.values()];                        // grouping/sorting done in the component
+  return [...map.values()];                        // flat; grouped via groupPsKeyCatalog
 }
 ```
 
@@ -131,9 +131,9 @@ export function buildPsKeyCatalog(bundle, labels) {
 
 ### Grouping and ordering
 
-- Category = `(scope, domain)`. Display order: interior `Surface, Edge, Opening, Protection, Meta`, then the exterior counterparts (prefixed "Exterior"), then `Special` last.
-- Within a category, sort by `displayTitle` (case-insensitive).
-- This is computed once in the component via `useMemo`, since the catalog is static per session.
+- Category = `(scope, domain, uom)` for the geometry domains (Surface, Edge, Opening, Protection) — e.g. `Surface · SF`, `Surface · LF`, `Protection · EA` — matching the approved mockup's sub-headers. `Meta` and `Special` are single groups (no UOM split). Exterior categories are prefixed "Exterior" (e.g. `Exterior surface · SF`).
+- Order: interior scope before exterior before `Special`; within a scope by domain (Surface, Edge, Opening, Protection, Meta); within a domain by UOM (SF, LF, EA, EA_SIDE, FIXED); within a category by `displayTitle` (case-insensitive).
+- `buildPsKeyCatalog` returns a flat entry list; a sibling `groupPsKeyCatalog(entries)` produces the ordered groups. Both are pure and unit-tested; the component memoizes them.
 
 ## Section 2: The modal (`PsKeyPickerModal.jsx`)
 
