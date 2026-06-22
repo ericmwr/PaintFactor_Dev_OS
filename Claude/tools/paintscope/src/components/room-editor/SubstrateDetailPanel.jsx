@@ -40,9 +40,6 @@ export default function SubstrateDetailPanel({ room, derived, dispatch, substrat
   // Derive coating_type from the effective system (explicit or auto-inferred).
   const _effectiveSystem = config.system || inferDefaultSystem(substrateId, config.substrate_state);
   const coatingType = coatingTypeFromSystem(_effectiveSystem) || config.coating_type || 'paint';
-  const includesStain = coatingType === 'stain_clear' || coatingType === 'stain_only';
-  const includesClear = coatingType === 'stain_clear' || coatingType === 'clear_only';
-
   // Determine derived value and UOM
   const uom = cat.uom;
   const hasAuto = !!cat.autoDerive;
@@ -302,18 +299,18 @@ export default function SubstrateDetailPanel({ room, derived, dispatch, substrat
                   <Select options={ENUMS.clearApplicationMethods} value={config.application_method_clear || 'brush'}
                     onChange={v => setSub('application_method_clear', v)} />
                 </div>
-                {config.clear_on && (
-                  <div>
-                    <div className="field-label">Clear Sheen</div>
-                    <Select options={ENUMS.clearSheen} value={config.clear_sheen || 'satin'}
-                      onChange={v => setSub('clear_sheen', v)} />
-                  </div>
-                )}
                 {config.sealer_on && (
                   <div>
                     <div className="field-label">Sealer Coats</div>
                     <Select options={ENUMS.sealerCoatCounts} value={config.sealer_coats ?? 0}
                       onChange={v => setSub('sealer_coats', Number(v))} />
+                  </div>
+                )}
+                {config.clear_on && (
+                  <div>
+                    <div className="field-label">Clear Sheen</div>
+                    <Select options={ENUMS.clearSheen} value={config.clear_sheen || 'satin'}
+                      onChange={v => setSub('clear_sheen', v)} />
                   </div>
                 )}
                 {config.clear_on && (
