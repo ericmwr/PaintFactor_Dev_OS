@@ -202,7 +202,7 @@ export function computeScenarioEstimate(state, bundle, profile, products, overla
     // Representative fired scenario per spec family → its material_systems (Phase 3).
     const scenarioMaterials = {};
     for (const pr of perInputResults) {
-      if (pr.domain === 'exterior') continue;
+      if (isExteriorRoomIndex(pr.roomIndex)) continue;
       if (scenarioMaterials[pr.specId]) continue;            // first fired = representative
       const scn = bundle.scenarios.find(s => s.scenario_id === pr.scenarioId);
       if (scn) scenarioMaterials[pr.specId] = { scenarioId: pr.scenarioId, systems: scn.material_systems || [] };
