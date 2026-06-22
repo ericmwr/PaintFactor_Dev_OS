@@ -15,7 +15,9 @@ import {
   planAddTask, planRemoveTask, planAddModule,
   planRemoveModule, planSetCoats, planRevertTier,
   planSetQtFactor, planClearQtFactor,
+  planSetMaterial, planClearMaterial,
 } from './qt-builder/vantage-edits.js';
+import { deriveMaterials } from './qt-builder/derive-materials.js';
 import { mergeModuleDrafts, mergeScenarioDrafts } from './qt-builder/merge-drafts.js';
 import TaskPicker from './TaskPicker.jsx';
 import ModulePicker from './ModulePicker.jsx';
@@ -62,6 +64,11 @@ export default function QTBuilder() {
   const vm = useMemo(() => {
     if (!substrate || !effMethod || !effState) return null;
     return deriveVantage(mergedBundle, sel);
+  }, [mergedBundle, substrate, effMethod, effState, effCoating]);
+
+  const materials = useMemo(() => {
+    if (!substrate || !effMethod || !effState) return null;
+    return deriveMaterials(mergedBundle, bundle, sel);
   }, [mergedBundle, substrate, effMethod, effState, effCoating]);
 
   const activeDraftCount = moduleDrafts.filter(isActive).length + scenarioDrafts.filter(isActive).length;
@@ -351,6 +358,56 @@ export default function QTBuilder() {
         )}
       </div>
 
+      {materials && materials.materialRoles.length > 0 && (
+        <div style={{ marginTop: 12, border: '1px solid var(--border)', borderRadius: 3, flexShrink: 0 }}>
+          <div style={phaseStyle}>Materials</div>
+          <div style={{ padding: '2px 10px 6px', fontSize: 9, color: 'var(--text-muted)' }}>
+            Materials apply at the project quality tier today; per-tier picks are saved for the per-tier rollout. The real-product pick stays in the Materials tab.
+          </div>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11 }}>
+            <thead>
+              <tr style={{ background: 'rgba(0,0,0,0.2)' }}>
+                <th style={{ ...thStyle, textAlign: 'left', width: 340 }}>Role</th>
+                {tiers.map(t => (
+                  <th key={t} style={thStyle}>{t}{!isServed(t) && <div style={tierTagNa}>n/a</div>}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {materials.materialRoles.map(role => (
+                <tr key={role} style={{ borderTop: '1px solid var(--border)' }}>
+                  <td style={{ padding: '6px 10px', textAlign: 'left', textTransform: 'capitalize' }}>{role}</td>
+                  {tiers.map(t => {
+                    const tm = materials.byTier[t];
+                    const cands = tm?.candidatesByRole?.[role] || [];
+                    if (!tierEditable(t) || !tm || cands.length === 0) {
+                      return <td key={t} style={cellStyle}><span style={mutedGlyph}>—</span></td>;
+                    }
+                    const val = tm.resolvedByRole[role] || '';
+                    const isOv = tm.isOverrideByRole[role];
+                    return (
+                      <td key={t} style={cellStyle}>
+                        <select value={val} disabled={busy}
+                          onChange={e => run(() => planSetMaterial(mergedBundle, bundle, sel, t, role, e.target.value))}
+                          style={{ ...matSelect, opacity: busy ? 0.5 : 1, borderColor: isOv ? 'var(--accent, #82aaff)' : 'var(--border)' }}>
+                          {cands.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                        </select>
+                        {isOv && (
+                          <div style={{ fontSize: 8, color: 'var(--accent, #82aaff)' }}>
+                            override <span onClick={() => !busy && run(() => planClearMaterial(mergedBundle, bundle, sel, t, role))}
+                              title="Revert to the canonical system" style={revertLink}>default</span>
+                          </div>
+                        )}
+                      </td>
+                    );
+                  })}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
       <TaskPicker open={!!taskPicker} phaseHint={taskPicker?.phase} onClose={() => setTaskPicker(null)} onPick={pickTask} />
 
       {modulePicker && (
@@ -386,5 +443,6 @@ const tierTagNa = { fontSize: 8, fontWeight: 400, color: 'var(--text-muted)', te
 const tierTagBase = { fontSize: 8, fontWeight: 400, color: 'var(--text-muted)', textTransform: 'none' };
 const tierTagFork = { fontSize: 8, fontWeight: 400, color: 'var(--accent, #82aaff)', textTransform: 'none' };
 const revertLink = { cursor: 'pointer', textDecoration: 'underline' };
+const matSelect = { maxWidth: 150, padding: '2px 4px', fontSize: 10, background: 'var(--bg-input, #222)', color: 'var(--text)', border: '1px solid var(--border)', borderRadius: 3 };
 const modalBackdrop = { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center' };
 const modalPanel = { width: 560, maxWidth: '92vw', maxHeight: '80vh', overflow: 'auto', background: 'var(--bg-panel, #1a1a1a)', border: '1px solid var(--border)', borderRadius: 6, padding: 16 };
