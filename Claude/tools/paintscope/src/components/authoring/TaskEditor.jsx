@@ -9,6 +9,8 @@
 import { useState, useEffect } from 'react';
 import TaskUsagePanel from './TaskUsagePanel.jsx';
 import RenameTaskModal from './RenameTaskModal.jsx';
+import PsKeyField from './PsKeyField.jsx';
+import { AUTOFILL_UOMS } from '../../data/ps-key-catalog.js';
 import canonicalBundle from '../../data/scenario-bundle.gen.js';
 import { archiveEntity, regenBundle } from '../../authoring/archive-ops.js';
 
@@ -221,7 +223,14 @@ export default function TaskEditor({ draft, onSave, onCancel, onPublish, onNavig
           <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: 8, marginTop: 8 }}>
             <label style={labelStyle}>
               PS Key
-              <input style={inputStyle} value={payload.ps_key || ''} onChange={e => handleField('ps_key', e.target.value)} />
+              <PsKeyField
+                value={payload.ps_key || ''}
+                onChange={v => handleField('ps_key', v)}
+                onSelect={entry => {
+                  handleField('ps_key', entry.key);
+                  if (AUTOFILL_UOMS.has(entry.uom)) handleField('uom', entry.uom);
+                }}
+              />
             </label>
             <label style={labelStyle}>
               UOM
