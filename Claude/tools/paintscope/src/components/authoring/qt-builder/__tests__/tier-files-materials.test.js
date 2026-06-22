@@ -38,4 +38,9 @@ describe('clearScenarioMaterial', () => {
     const s = scn(['SYS_PRIMER_A', 'SYS_FF_A']);
     expect(clearScenarioMaterial(s, 'finish', 'SYS_FF_A', RBSI)).toBe(s);
   });
+  it('does not mutate the source array', () => {
+    const src = scn(['SYS_PRIMER_A', 'SYS_FF_B']);
+    clearScenarioMaterial(src, 'finish', 'SYS_FF_A', RBSI);
+    expect(src.material_systems).toEqual(['SYS_PRIMER_A', 'SYS_FF_B']);
+  });
 });
