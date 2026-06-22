@@ -2035,6 +2035,33 @@ export const MATERIAL_SYSTEMS = [
     "allowed_sheens": [
       "N/A — filler, not coating"
     ]
+  },
+  {
+    "id": "SYS_STAIN_OIL",
+    "spec_family_id": "SF_DOOR_CASING_NC_STAIN",
+    "name": "Oil-Based Penetrating Stain",
+    "applies_when": {
+      "coating_type": ["stain_clear", "stain_only"]
+    },
+    "allowed_sheens": ["n/a"]
+  },
+  {
+    "id": "SYS_SEALER_OIL",
+    "spec_family_id": "SF_DOOR_CASING_NC_SEALER",
+    "name": "Oil Sanding Sealer",
+    "applies_when": {
+      "coating_type": ["stain_clear"]
+    },
+    "allowed_sheens": ["n/a"]
+  },
+  {
+    "id": "SYS_CLEAR_POLY_WB",
+    "spec_family_id": "SF_DOOR_CASING_NC_CLEAR",
+    "name": "Waterborne Poly Clear",
+    "applies_when": {
+      "coating_type": ["stain_clear", "clear_only"]
+    },
+    "allowed_sheens": ["satin", "semi_gloss"]
   }
 ];
 
@@ -2879,6 +2906,30 @@ export const MATERIAL_COVERAGE_PROFILES = [
     "coverage_sf_per_gallon": 400,
     "coverage_range_low": 350,
     "coverage_range_high": 450
+  },
+  {
+    "id": "COV_DOOR_CASING_STAIN",
+    "spec_family_id": "SF_DOOR_CASING_NC_STAIN",
+    "product_role": "stain",
+    "surface_texture": "bare_wood",
+    "coverage_range_low": 150,
+    "coverage_range_high": 250
+  },
+  {
+    "id": "COV_DOOR_CASING_SEALER",
+    "spec_family_id": "SF_DOOR_CASING_NC_SEALER",
+    "product_role": "sealer",
+    "surface_texture": "stained_or_bare",
+    "coverage_range_low": 450,
+    "coverage_range_high": 550
+  },
+  {
+    "id": "COV_DOOR_CASING_CLEAR",
+    "spec_family_id": "SF_DOOR_CASING_NC_CLEAR",
+    "product_role": "clear",
+    "surface_texture": "stained_or_bare",
+    "coverage_range_low": 400,
+    "coverage_range_high": 500
   }
 ];
 
@@ -9123,6 +9174,21 @@ export const SPEC_FAMILY_INFO = [
   {
     "id": "SF_WOOD_GRAIN_FILL_NC",
     "name": "New Construction Wood Grain Fill (Paint Grade)",
+    "domain": "interior"
+  },
+  {
+    "id": "SF_DOOR_CASING_NC_STAIN",
+    "name": "New Construction Door Casing Stain Phase",
+    "domain": "interior"
+  },
+  {
+    "id": "SF_DOOR_CASING_NC_SEALER",
+    "name": "New Construction Door Casing Sealer Phase",
+    "domain": "interior"
+  },
+  {
+    "id": "SF_DOOR_CASING_NC_CLEAR",
+    "name": "New Construction Door Casing Clear Phase",
     "domain": "interior"
   }
 ];

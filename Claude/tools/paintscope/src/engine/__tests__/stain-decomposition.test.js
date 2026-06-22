@@ -2,6 +2,8 @@ import { describe, it, expect } from 'vitest';
 import { deriveStainScope, resolveSystem, resolveCoatingType } from '../scenario-resolution.js';
 import { createRoom, createSubstrateConfig } from '../../state/initial-state.js';
 import { buildScenarioInputs } from '../context-adapter.js';
+import { findBestMatch } from '../scenario-matcher.js';
+import { scenarios } from '../../data/scenario-bundle.gen.js';
 
 // ---------------------------------------------------------------------------
 // deriveStainScope — pure helper, all flag combinations
@@ -326,5 +328,46 @@ describe('B2 — coating_phase + decomposed coat-field suppression', () => {
     expect(frameStainInput.ctx.stain_coats).toBeDefined();
     // coating_phase is still stamped (STAIN role)
     expect(frameStainInput.ctx.coating_phase).toBe('stain');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// D1: findBestMatch — three door_casing phase scenarios in bundle
+// ---------------------------------------------------------------------------
+const bundle = { scenarios };
+
+describe('D1 — door_casing phase scenario routing via findBestMatch', () => {
+  it('SS_BARE + coating_phase:stain → SCN_INT_DOOR_CASING_STAIN', () => {
+    const ctx = { paintable_item: 'int_door_casing', substrate_state: 'SS_BARE', coating_phase: 'stain' };
+    const { scenario } = findBestMatch(bundle, ctx);
+    expect(scenario).not.toBeNull();
+    expect(scenario.scenario_id).toBe('SCN_INT_DOOR_CASING_STAIN');
+  });
+
+  it('SS_STAINED + coating_phase:sealer → SCN_INT_DOOR_CASING_SEALER', () => {
+    const ctx = { paintable_item: 'int_door_casing', substrate_state: 'SS_STAINED', coating_phase: 'sealer' };
+    const { scenario } = findBestMatch(bundle, ctx);
+    expect(scenario).not.toBeNull();
+    expect(scenario.scenario_id).toBe('SCN_INT_DOOR_CASING_SEALER');
+  });
+
+  it('SS_STAINED + coating_phase:clear → SCN_INT_DOOR_CASING_CLEAR (no-sealer path)', () => {
+    const ctx = { paintable_item: 'int_door_casing', substrate_state: 'SS_STAINED', coating_phase: 'clear' };
+    const { scenario } = findBestMatch(bundle, ctx);
+    expect(scenario).not.toBeNull();
+    expect(scenario.scenario_id).toBe('SCN_INT_DOOR_CASING_CLEAR');
+  });
+
+  it('SS_SEALED + coating_phase:clear → SCN_INT_DOOR_CASING_CLEAR (sealer path)', () => {
+    const ctx = { paintable_item: 'int_door_casing', substrate_state: 'SS_SEALED', coating_phase: 'clear' };
+    const { scenario } = findBestMatch(bundle, ctx);
+    expect(scenario).not.toBeNull();
+    expect(scenario.scenario_id).toBe('SCN_INT_DOOR_CASING_CLEAR');
+  });
+
+  it('bundled SCN_INT_DOOR_CASING_STAIN_CLEAR is no longer in the bundle', () => {
+    // net +2 door_casing scenarios (3 new − 1 archived = +2)
+    const bundled = bundle.scenarios.find(s => s.scenario_id === 'SCN_INT_DOOR_CASING_STAIN_CLEAR');
+    expect(bundled).toBeUndefined();
   });
 });
