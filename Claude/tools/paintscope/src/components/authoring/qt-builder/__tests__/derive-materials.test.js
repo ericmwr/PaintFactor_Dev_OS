@@ -52,6 +52,19 @@ describe('deriveMaterials', () => {
     expect(vm.byTier.QT3).toBeNull();
   });
 
+  it('does not flag inherited non-anchor tiers as overrides after a baseline edit', () => {
+    const merged = { scenarios: [{ scenario_id: 'SCN_CAB',
+      matches: { paintable_item: 'cabinet', application_method: 'spray', substrate_state: 'SS_BARE', coating_type: 'paint' },
+      modules: [], material_systems: ['SYS_PRIMER_WOOD_ACRYLIC', 'SYS_FF_MODIFIED_URETHANE'] }], modules: {}, tasks: {} };
+    const canonical = { scenarios: [{ scenario_id: 'SCN_CAB',
+      matches: { paintable_item: 'cabinet', application_method: 'spray', substrate_state: 'SS_BARE', coating_type: 'paint' },
+      modules: [], material_systems: ['SYS_PRIMER_WOOD_ACRYLIC', 'SYS_FF_STANDARD_ACRYLIC'] }], modules: {}, tasks: {} };
+    const vm = deriveMaterials(merged, canonical, sel);
+    expect(vm.byTier.QT3.isOverrideByRole.finish).toBe(true);   // anchor edits the baseline
+    expect(vm.byTier.QT4.isOverrideByRole.finish).toBe(false);  // QT4 only inherits — not its own override
+    expect(vm.byTier.QT2.isOverrideByRole.finish).toBe(false);
+  });
+
   it('flags a role present only in canonical (override dropped it) as an override', () => {
     const merged = {
       scenarios: [{ scenario_id: 'SCN_CAB',

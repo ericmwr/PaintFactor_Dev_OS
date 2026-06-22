@@ -183,6 +183,9 @@ export function planSetMaterial(bundle, canonicalBundle, sel, tier, role, system
 export function planClearMaterial(bundle, canonicalBundle, sel, tier, role) {
   const gov = resolveTierScenario(bundle, sel, tier);
   if (!gov) return {};
+  // Only the anchor edits the baseline; a non-anchor tier must be served by its
+  // OWN fork, else "clear" would thin the shared baseline and revert siblings.
+  if (tier !== ANCHOR_TIER && scenarioTierPin(gov) !== tier) return {};
   const canonical = resolveTierScenario(canonicalBundle, sel, tier);
   const baselineSystemId = canonicalSystemForRole(canonical, role);
   const next = clearScenarioMaterial(gov, role, baselineSystemId, ROLE_BY_SYSTEM_ID);

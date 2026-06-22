@@ -10,6 +10,9 @@ import { specForScenarioMatches } from '../../../engine/spec-for-scenario.js';
 import { buildRoleBySystemId, classifySystemRole } from '../../../engine/material-system-roles.js';
 import { MATERIAL_SYSTEMS, MATERIAL_SYSTEM_PRODUCTS } from '../../../data/scenario-rate-data.js';
 import { QT_BUCKETS } from '../../../data/quality-tier.js';
+import { scenarioTierPin } from './tier-files.js';
+
+const ANCHOR_TIER = 'QT3';
 
 const PAINT_ROLES = ['primer', 'finish'];
 const STAIN_ROLES = ['stain', 'sealer', 'clear'];
@@ -80,8 +83,10 @@ export function deriveMaterials(bundle, canonicalBundle, sel) {
       ...Object.keys(canonResolved),
       ...Object.keys(candidatesByRole),
     ]);
+    const isForkPinned = scenarioTierPin(scenario) === tier;   // this tier has its own fork
     for (const role of overrideRoleKeys) {
-      isOverrideByRole[role] = (resolvedByRole[role] || null) !== (canonResolved[role] || null);
+      const diverges = (resolvedByRole[role] || null) !== (canonResolved[role] || null);
+      isOverrideByRole[role] = diverges && (tier === ANCHOR_TIER || isForkPinned);
     }
 
     byTier[tier] = { scenarioId: scenario.scenario_id, specId, candidatesByRole, resolvedByRole, isOverrideByRole };

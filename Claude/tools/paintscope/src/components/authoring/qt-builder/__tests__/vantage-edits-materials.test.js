@@ -82,4 +82,9 @@ describe('planClearMaterial', () => {
     const b = bundle();
     expect(planClearMaterial(b, b, sel, 'QT4', 'finish')).toEqual({});
   });
+
+  it('planClearMaterial is a no-op on a baseline-served non-anchor tier (does not thin the shared baseline)', () => {
+    const b = bundle();
+    expect(planClearMaterial(b, b, sel, 'QT4', 'finish')).toEqual({});
+  });
 });
