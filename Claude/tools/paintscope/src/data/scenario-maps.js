@@ -69,6 +69,10 @@ export const SPEC_SUBSTRATE_MAP = {
   'SF_WOOD_CEILING_NC_STAIN':    'wood_ceiling',
   'SF_WAINSCOT_PANEL_NC_STAIN':  'wainscoting',
   'SF_ARCH_ELEMENT_NC_STAIN':    'beams',
+  'SF_DOOR_CASING_NC_SEALER':    'door_casing',
+  'SF_DOOR_CASING_NC_CLEAR':     'door_casing',
+  'SF_ARCH_ELEMENT_NC_SEALER':   'beams',
+  'SF_ARCH_ELEMENT_NC_CLEAR':    'beams',
   // ── Exterior: handled by scenario engine (see Claude/scenarios/SCN_*_EXT_*.json) ──
 };
 
@@ -139,6 +143,10 @@ export const SPEC_ROLE = {
   'SF_CLOSET_SHELF_NC':           'COMBINED',
   'SF_ARCH_ELEMENT_NC':           'COMBINED',
   'SF_ARCH_ELEMENT_NC_STAIN':     'STAIN',
+  'SF_DOOR_CASING_NC_SEALER':     'SEALER',
+  'SF_DOOR_CASING_NC_CLEAR':      'CLEAR',
+  'SF_ARCH_ELEMENT_NC_SEALER':    'SEALER',
+  'SF_ARCH_ELEMENT_NC_CLEAR':     'CLEAR',
   'SF_BUILTIN_NC':                'COMBINED',
   'SF_STAIR_RISER_NC':            'COMBINED',
   'SF_STAIR_RISER_NC_STAIN':      'STAIN',
@@ -245,6 +253,10 @@ export const SPEC_VALID_INPUT_STATES = {
   'SF_WOOD_CEILING_NC_STAIN':    ['SS_BARE', 'SS_STAINED'],
   'SF_WAINSCOT_PANEL_NC_STAIN':  ['SS_BARE', 'SS_STAINED'],
   'SF_ARCH_ELEMENT_NC_STAIN':    ['SS_BARE', 'SS_STAINED'],
+  'SF_DOOR_CASING_NC_SEALER':    ['SS_STAINED'],
+  'SF_DOOR_CASING_NC_CLEAR':     ['SS_STAINED', 'SS_SEALED'],
+  'SF_ARCH_ELEMENT_NC_SEALER':   ['SS_STAINED'],
+  'SF_ARCH_ELEMENT_NC_CLEAR':    ['SS_STAINED', 'SS_SEALED'],
 };
 
 // Exterior UI substrate_state → spec system enum values (SS_EXT_* codes)
@@ -285,6 +297,10 @@ export const SPEC_OUTPUT_STATES = {
   'SF_BASEBOARD_NC_PRIME':       'SS_PRIMED_FIELD',
   'SF_DOOR_FRAME_NC_PRIME':      'SS_PRIMED_FIELD',
   'SF_WOOD_GRAIN_FILL_NC':       'SS_GRAIN_FILLED',
+  'SF_DOOR_CASING_NC_STAIN':     'SS_STAINED',
+  'SF_DOOR_CASING_NC_SEALER':    'SS_SEALED',
+  'SF_ARCH_ELEMENT_NC_STAIN':    'SS_STAINED',
+  'SF_ARCH_ELEMENT_NC_SEALER':   'SS_SEALED',
 };
 
 // Set of all interior stain/clear coat spec family IDs
@@ -310,6 +326,19 @@ export const STAIN_SPEC_FAMILIES = new Set([
   'SF_WOOD_WALL_NC_STAIN',
   'SF_WOOD_CEILING_NC_STAIN',
   'SF_WAINSCOT_PANEL_NC_STAIN',
+  'SF_ARCH_ELEMENT_NC_STAIN',
+  'SF_DOOR_CASING_NC_SEALER',
+  'SF_DOOR_CASING_NC_CLEAR',
+  'SF_ARCH_ELEMENT_NC_SEALER',
+  'SF_ARCH_ELEMENT_NC_CLEAR',
+]);
+
+// Families that have been decomposed into independent STAIN/SEALER/CLEAR specs.
+// For these, the adapter stamps coating_phase and does NOT emit ctx coat fields
+// (the scenario's coat_counts is the per-tier default; per-item ctx override = P3).
+// Keyed by the STAIN spec id (one entry per decomposed item).
+export const DECOMPOSED_STAIN_FAMILIES = new Set([
+  'SF_DOOR_CASING_NC_STAIN',
   'SF_ARCH_ELEMENT_NC_STAIN',
 ]);
 

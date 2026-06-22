@@ -233,6 +233,7 @@ export const SYSTEM_SPEC_ACTIVATION = {
   stain_clear: {
     STAIN:    { active: true,  stateTransition: 'input' },
     CLEAR:    { active: true,  stateTransition: 'stained' },
+    SEALER:   { active: false },
     COMBINED: { active: false },  // paint-path COMBINED specs suppressed under stain systems
     PRIME:    { active: false },
     FINISH:   { active: false },
@@ -278,6 +279,7 @@ export const SYSTEM_SPEC_ACTIVATION = {
   restain_recoat: {
     STAIN:    { active: true,  stateTransition: 'input' },
     CLEAR:    { active: true,  stateTransition: 'stained' },
+    SEALER:   { active: false },
     COMBINED: { active: false },
     PRIME:    { active: false },
     FINISH:   { active: false },
