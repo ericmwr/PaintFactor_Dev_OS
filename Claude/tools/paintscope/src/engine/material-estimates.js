@@ -10,6 +10,11 @@ import {
 import { resolveProduct } from './product-resolver.js';
 import { buildRoleBySystemId, classifySystemRole } from './material-system-roles.js';
 
+// Stain roles use the scenario's per-phase coat count (threaded via scenarioMaterials);
+// paint roles (primer/finish) keep the existing resolveCoats path.
+const STAIN_GALLON_ROLES = new Set(['stain', 'sealer', 'clear']);
+const ROLE_TO_COAT_FIELD = { stain: 'stain_coats', sealer: 'sealer_coats', clear: 'clear_coats' };
+
 // Resolve coats for a system, tolerant of array systems that lack a product row
 // under the active spec family (e.g. closet references SYS_FF_STANDARD_ACRYLIC,
 // whose products live under the cabinet/arch families). own-family → cross-family
@@ -166,8 +171,12 @@ export function computeMaterialEstimates(state, roomLookups, specResults = [], s
     if (sr.tasks) tasksBySpec[sr.specId].push(...sr.tasks);
   });
 
-  // For each spec family with coverage profiles, resolve materials
-  const specFamilyIds = [...new Set(MATERIAL_COVERAGE_PROFILES.map(cp => cp.spec_family_id))];
+  // Fired specs with material_systems (decomposed stain phases) may lack a
+  // coverage profile; include them so resolveProduct can still emit a line.
+  const specFamilyIds = [...new Set([
+    ...MATERIAL_COVERAGE_PROFILES.map(cp => cp.spec_family_id),
+    ...Object.keys(scenarioMaterials || {}),
+  ])];
 
   specFamilyIds.forEach(specId => {
     // Skip specs that weren't activated by the hours engine
@@ -205,7 +214,8 @@ export function computeMaterialEstimates(state, roomLookups, specResults = [], s
 
     // System selection comes from the governing scenario's material_systems array
     // (Phase 3), grouped by role — NOT the catalog matcher. Absent/empty → no lines.
-    const isStainSpec = specId.includes('STAIN');
+    // Broadened regex: decomposed _STAIN / _SEALER / _CLEAR specIds must also use baseRole 'stain'.
+    const isStainSpec = /_(STAIN|SEALER|CLEAR)$/.test(specId) || specId.includes('STAIN');
     const sysEntry = scenarioMaterials[specId];
     const systemIds = (sysEntry && sysEntry.systems) || [];
     const seenRoles = new Set();
@@ -221,10 +231,16 @@ export function computeMaterialEstimates(state, roomLookups, specResults = [], s
 
     // Emit one estimate per matched system
     matchedSystems.forEach(({ system: matchedSystem, role }) => {
-      // Get coats (own-family → by-id tolerance → default).
-      const { coats } = matchedSystem
-        ? resolveCoats(matchedSystem.id, specId, productsBySystem, productsBySystemId, role)
-        : { coats: 1 };
+      // Get coats: stain/sealer/clear roles track the scenario's per-phase coat
+      // count (so gallons follow tier coats); paint roles keep resolveCoats.
+      let coats;
+      if (STAIN_GALLON_ROLES.has(role)) {
+        coats = sysEntry?.coats?.[ROLE_TO_COAT_FIELD[role]] ?? 1;
+      } else {
+        coats = matchedSystem
+          ? resolveCoats(matchedSystem.id, specId, productsBySystem, productsBySystemId, role).coats
+          : 1;
+      }
 
       // Find coverage profile matching system + texture
       let matchedProfile = null;

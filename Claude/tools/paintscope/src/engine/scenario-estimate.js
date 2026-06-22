@@ -199,13 +199,25 @@ export function computeScenarioEstimate(state, bundle, profile, products, overla
     // Interior only — scenario engine doesn't yet handle exterior domain.
     // Same signature run-estimate.js uses at line 802.
 
-    // Representative fired scenario per spec family → its material_systems (Phase 3).
+    // Representative fired scenario per spec family → its material_systems +
+    // the effective per-role coat counts (Phase 1: ctx override > file coat_counts > 1).
     const scenarioMaterials = {};
     for (const pr of perInputResults) {
       if (isExteriorRoomIndex(pr.roomIndex)) continue;
       if (scenarioMaterials[pr.specId]) continue;            // first fired = representative
       const scn = bundle.scenarios.find(s => s.scenario_id === pr.scenarioId);
-      if (scn) scenarioMaterials[pr.specId] = { scenarioId: pr.scenarioId, systems: scn.material_systems || [] };
+      if (!scn) continue;
+      const cc = scn.coat_counts || {};
+      const ctx = pr.ctx || {};
+      scenarioMaterials[pr.specId] = {
+        scenarioId: pr.scenarioId,
+        systems: scn.material_systems || [],
+        coats: {
+          stain_coats:  ctx.stain_coats  ?? cc.stain_coats  ?? 1,
+          sealer_coats: ctx.sealer_coats ?? cc.sealer_coats ?? 1,
+          clear_coats:  ctx.clear_coats  ?? cc.clear_coats  ?? 1,
+        },
+      };
     }
 
     const intSpecResults = specResults.filter(sr => sr.domain !== 'exterior');
