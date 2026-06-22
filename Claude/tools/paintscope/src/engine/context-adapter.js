@@ -136,7 +136,7 @@ function uiStateToSpecState(uiState) {
 // Missing entries default to null — the scenario matcher will fail to match
 // and the caller will see a warning, which is the correct behavior during
 // the transition period (exposes gaps rather than silently producing zero).
-const SPEC_TO_PAINTABLE_ITEM = {
+export const SPEC_TO_PAINTABLE_ITEM = {
   // Interior paint NC
   SF_DRYWALL_WALL_NC_FINISH:        'drywall',
   SF_DRYWALL_WALL_NC_PRIME:         'drywall',
