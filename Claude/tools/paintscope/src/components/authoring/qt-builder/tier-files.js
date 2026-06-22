@@ -5,6 +5,8 @@
 // applies_when.quality_tier is ever written. All immutable; callers save results
 // as scenario / module drafts. Replaces edit-tier-ladder.js.
 
+import { classifySystemRole } from '../../../engine/material-system-roles.js';
+
 // Strip any existing _QT<n> token (mid-id or suffix), then append _QT<n>.
 // Tier ids are QT2–QT5; the strip regex only matches _QT[2-5].
 export function tierId(baseId, tier) {
@@ -119,4 +121,38 @@ export function forkModuleForTier(scenario, moduleId, sourceModule, tier) {
   const module = { ...sourceModule, module_id: forkedId, tasks: (sourceModule.tasks || []).map(t => ({ ...t })) };
   modules[i] = forkedId;
   return { scenario: { ...scenario, modules }, module, created: true };
+}
+
+// Replace the material_systems element classified as `role` with systemId
+// (append if none of that role exists). Immutable; preserves order; same ref on
+// no-op. The file-native per-tier material selection: the engine reads the fired
+// scenario's material_systems array (Phase 3a cutover).
+export function setScenarioMaterial(scenario, systemId, role, roleBySystemId) {
+  const systems = scenario.material_systems || [];
+  const idx = systems.findIndex(id => classifySystemRole(id, roleBySystemId) === role);
+  let next;
+  if (idx === -1) next = [...systems, systemId];
+  else {
+    if (systems[idx] === systemId) return scenario;          // no-op
+    next = systems.slice();
+    next[idx] = systemId;
+  }
+  return { ...scenario, material_systems: next };
+}
+
+// Set the `role` element back to baselineSystemId (the canonical pick); when
+// baselineSystemId is null, remove the role element. Immutable; same ref on no-op.
+export function clearScenarioMaterial(scenario, role, baselineSystemId, roleBySystemId) {
+  const systems = scenario.material_systems || [];
+  const idx = systems.findIndex(id => classifySystemRole(id, roleBySystemId) === role);
+  if (idx === -1) return scenario;                            // nothing of that role to clear
+  if (baselineSystemId == null) {
+    const next = systems.slice();
+    next.splice(idx, 1);
+    return { ...scenario, material_systems: next };
+  }
+  if (systems[idx] === baselineSystemId) return scenario;     // already at baseline
+  const next = systems.slice();
+  next[idx] = baselineSystemId;
+  return { ...scenario, material_systems: next };
 }
