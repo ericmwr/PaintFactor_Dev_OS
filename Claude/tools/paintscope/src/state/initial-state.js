@@ -123,6 +123,9 @@ export function createSubstrateConfig(substrateId, overrides={}) {
     config.sealer_coats = config.sealer_coats ?? 0;
     config.clear_coats = config.clear_coats ?? 1;
     config.clear_sheen = config.clear_sheen || 'satin';
+    config.stain_on = config.stain_on ?? false;
+    config.sealer_on = config.sealer_on ?? false;
+    config.clear_on = config.clear_on ?? false;
   }
   // Infer default `system` (workflow intent) from substrate_state if not set.
   // Explicit overrides always win; if nothing matches the inference, leaves it null

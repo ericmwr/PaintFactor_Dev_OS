@@ -399,9 +399,26 @@ export function reducer(state, action) {
         // still has it (read by scenario-resolution + scenario matchers).
         if (field === 'system' || field === 'substrate_state') {
           const sys = updated.system;
-          if (sys) {
-            updated.coating_type = coatingTypeFromSystem(sys);
+          if (sys) updated.coating_type = coatingTypeFromSystem(sys);
+          // Seed default stain scope (stain+clear, sealer opt-in) the first time
+          // a wood substrate enters a stain coating, if not already chosen.
+          const ct = updated.coating_type;
+          const noScopeYet = !updated.stain_on && !updated.sealer_on && !updated.clear_on;
+          if (ct && ct !== 'paint' && noScopeYet) {
+            updated.stain_on = ct === 'stain_clear' || ct === 'stain_only';
+            updated.clear_on = ct === 'stain_clear' || ct === 'clear_only';
+            updated.sealer_on = false;
           }
+        }
+
+        // Keep coating_type synced when a presence toggle changes so derived
+        // consumers (engine context, scenario matchers) stay consistent.
+        if (field === 'stain_on' || field === 'sealer_on' || field === 'clear_on') {
+          const s = updated.stain_on, se = updated.sealer_on, c = updated.clear_on;
+          updated.coating_type =
+            (s && c) ? 'stain_clear' :
+            (s && !c) ? 'stain_only' :
+            (!s && c) ? 'clear_only' : updated.coating_type;
         }
 
         return {
