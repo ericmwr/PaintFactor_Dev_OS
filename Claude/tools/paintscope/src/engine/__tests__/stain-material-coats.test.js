@@ -59,6 +59,10 @@ describe('stain material coats — phase coat threading', () => {
     expect(stainLine).toBeDefined();
     // coats must equal the threaded stain_coats value, not resolveCoats' default
     expect(stainLine.coats).toBe(2);
+    // gallons must match coats→gallons wiring:
+    // rawGallons = (specSF * coats) / coverageRate, then ceil with spray loss (SPRAY_LOSS_FACTOR=0.05)
+    const expectedGallons = Math.ceil((200 * 2) / stainLine.coverageRate / (1 - 0.05));
+    expect(stainLine.gallons).toBe(expectedGallons);
   });
 
   it('clear role uses threaded clear_coats when > 1', () => {
@@ -86,6 +90,10 @@ describe('stain material coats — phase coat threading', () => {
     );
     expect(clearLine).toBeDefined();
     expect(clearLine.coats).toBe(3);
+    // gallons must reflect the 3-coat wiring end-to-end:
+    // rawGallons = (specSF * coats) / coverageRate, then ceil with spray loss (SPRAY_LOSS_FACTOR=0.05)
+    const expectedClearGallons = Math.ceil((200 * 3) / clearLine.coverageRate / (1 - 0.05));
+    expect(clearLine.gallons).toBe(expectedClearGallons);
   });
 });
 
@@ -122,7 +130,7 @@ describe('paint material coats — resolveCoats path unchanged', () => {
     expect(primerLine).toBeDefined();
     // Paint primer resolves coats via resolveCoats (default = 1 when no product row);
     // it must NOT be 0 (which would happen if it accidentally read sysEntry?.coats?.stain_coats)
-    expect(primerLine.coats).toBeGreaterThanOrEqual(1);
+    expect(primerLine.coats).toBe(1);
     // gallons must be positive
     expect(primerLine.gallons).toBeGreaterThan(0);
   });
@@ -150,8 +158,9 @@ describe('paint material coats — resolveCoats path unchanged', () => {
       e => e.specFamilyId === 'SF_CABINET_NC_PAINT' && e.productRole === 'finish'
     );
     expect(finishLine).toBeDefined();
-    // Must have used resolveCoats path; coats ≥ 1 and gallons > 0
-    expect(finishLine.coats).toBeGreaterThanOrEqual(1);
+    // Must have used resolveCoats path; coats = 2 (cross-family SYS_FF_STANDARD_ACRYLIC
+    // product row has coats_required: 2 — resolveCoats cross-family fallback)
+    expect(finishLine.coats).toBe(2);
     expect(finishLine.gallons).toBeGreaterThan(0);
   });
 });
