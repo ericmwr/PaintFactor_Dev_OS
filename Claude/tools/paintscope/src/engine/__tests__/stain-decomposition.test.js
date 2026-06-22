@@ -599,14 +599,11 @@ describe('D3 — door_casing integration: stain+sealer+clear', () => {
 });
 
 describe('D3 — arch_element integration: stain+clear (no sealer)', () => {
-  // DEFECT DISCOVERED (D3): arch stain scenarios use PS_SURFACE_LF.ARCH_ELEMENT
-  // but the quantity lookup emits PS_SURFACE_LF.ARCH_BEAM. This causes all arch
-  // stain tasks to resolve 0 qty → 0 hours, and the material estimate loop sees
-  // specSF=0 → no material lines. The tests below assert the ACTUAL (broken)
-  // current state so the suite stays green. The fix belongs in a separate task:
-  //   either alias ARCH_ELEMENT → ARCH_BEAM in the quantity lookup, or
-  //   update the task ps_key in SCN_INT_AEST_STAIN/SEALER/CLEAR tasks to use ARCH_BEAM.
-  // See: task-D3-report.md §Defects for full analysis.
+  // Fix applied (task-D3): TSK_AEST_* tasks updated from PS_SURFACE_LF.ARCH_ELEMENT
+  // to PS_SURFACE_LF.ARCH_BEAM, matching what the quantity lookup emits for the
+  // beams substrate. Arch stain now resolves real hours and a real material line,
+  // on par with door_casing health.
+  // lf_manual=10, beam_sides=3, beam_qty=2 → 60 LF of ARCH_BEAM quantity.
 
   const state = makeArchElementState({ stain_on: true, sealer_on: false, clear_on: true });
   const result = computeScenarioEstimate(state, canonicalBundle, null, []);
@@ -616,12 +613,12 @@ describe('D3 — arch_element integration: stain+clear (no sealer)', () => {
     expect(result.error).toBeUndefined();
   });
 
-  it('specResults includes SF_ARCH_ELEMENT_NC_STAIN (fires, but hours=0 due to PS key mismatch)', () => {
+  it('specResults includes SF_ARCH_ELEMENT_NC_STAIN', () => {
     const found = (result.specResults || []).some(sr => sr.specId === 'SF_ARCH_ELEMENT_NC_STAIN');
     expect(found).toBe(true);
   });
 
-  it('specResults includes SF_ARCH_ELEMENT_NC_CLEAR (fires, but hours=0 due to PS key mismatch)', () => {
+  it('specResults includes SF_ARCH_ELEMENT_NC_CLEAR', () => {
     const found = (result.specResults || []).some(sr => sr.specId === 'SF_ARCH_ELEMENT_NC_CLEAR');
     expect(found).toBe(true);
   });
@@ -639,19 +636,24 @@ describe('D3 — arch_element integration: stain+clear (no sealer)', () => {
     expect(archWarnings(result)).toHaveLength(0);
   });
 
-  // DEFECT: PS key mismatch causes zero hours and no material estimate.
-  // Tasks use PS_SURFACE_LF.ARCH_ELEMENT; lookup emits PS_SURFACE_LF.ARCH_BEAM.
-  it('[DEFECT] arch stain totalHours is 0 due to PS_SURFACE_LF.ARCH_ELEMENT vs ARCH_BEAM mismatch', () => {
+  it('arch stain totalHours is greater than 0 (PS key fix resolves ARCH_BEAM quantity)', () => {
     const stainSpec = (result.specResults || []).find(sr => sr.specId === 'SF_ARCH_ELEMENT_NC_STAIN');
-    // Document current broken state: hours should be > 0 after fix
-    expect(stainSpec?.totalHours).toBe(0); // EXPECTED FAILURE: should be > 0 after fix
+    expect(stainSpec).toBeDefined();
+    expect(stainSpec.totalHours).toBeGreaterThan(0);
   });
 
-  it('[DEFECT] arch stain material line is absent due to zero quantity (PS key mismatch)', () => {
+  it('arch stain material line has a real productId (not null) with coats === 1', () => {
     const stainMat = (result.materialEstimates || []).find(
       m => m.specFamilyId === 'SF_ARCH_ELEMENT_NC_STAIN' && m.productRole === 'stain'
     );
-    // Document current broken state: stainMat should be defined after fix
-    expect(stainMat).toBeUndefined(); // EXPECTED FAILURE: should be defined after fix
+    expect(stainMat).toBeDefined();
+    // productId must be a real catalog id (not null)
+    expect(stainMat.productId).not.toBeNull();
+    expect(typeof stainMat.productId).toBe('string');
+    expect(stainMat.productId.length).toBeGreaterThan(0);
+    // productName must not be the raw system id or '(unknown)'
+    expect(stainMat.productName).not.toBe('SYS_STAIN_OIL');
+    expect(stainMat.productName).not.toBe('(unknown)');
+    expect(stainMat.coats).toBe(1);
   });
 });
