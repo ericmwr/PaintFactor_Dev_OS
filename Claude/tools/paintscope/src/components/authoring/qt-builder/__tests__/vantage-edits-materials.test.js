@@ -47,6 +47,18 @@ describe('planSetMaterial', () => {
     const plan = planSetMaterial(merged, canonical, sel, 'QT3', 'finish', 'SYS_FF_A');
     expect(plan).toEqual({ deleteScenarioId: 'SCN_B', deleteModuleIds: [] });
   });
+
+  it('re-setting a role to its current value returns an unchanged-materials payload (no live ref)', () => {
+    // merged === canonical === bundle(): finish is already SYS_FF_A.
+    // ensureScenarioForMaterial (QT3 branch) now returns a copy, so the returned
+    // object is never the live bundle reference. The result fully matches canonical,
+    // so reclaimOrSave returns the delete payload (reclaims the no-op draft).
+    const b = bundle(); // baseline finish = SYS_FF_A
+    const plan = planSetMaterial(b, b, sel, 'QT3', 'finish', 'SYS_FF_A'); // already SYS_FF_A
+    expect(plan).toEqual({ deleteScenarioId: 'SCN_B', deleteModuleIds: [] });
+    // Confirm the returned object is not the live scenario from the bundle.
+    expect(plan).not.toHaveProperty('scenario');
+  });
 });
 
 describe('planClearMaterial', () => {

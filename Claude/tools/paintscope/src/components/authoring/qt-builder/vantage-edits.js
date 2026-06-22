@@ -133,7 +133,7 @@ const ROLE_BY_SYSTEM_ID = buildRoleBySystemId(MATERIAL_SYSTEM_PRODUCTS);
 function ensureScenarioForMaterial(bundle, sel, tier) {
   const gov = resolveTierScenario(bundle, sel, tier);
   if (!gov) return null;
-  if (tier === ANCHOR_TIER) return gov;
+  if (tier === ANCHOR_TIER) return { ...gov, material_systems: [...(gov.material_systems || [])] };
   const fork = forkScenarioForTier(gov, tier).scenario;
   return { ...fork, material_systems: [...(fork.material_systems || [])] };
 }
