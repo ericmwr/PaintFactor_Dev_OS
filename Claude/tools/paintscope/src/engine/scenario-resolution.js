@@ -3,6 +3,20 @@ import { SPEC_SUBSTRATE_MAP } from '../data/scenario-maps.js';
 import { SUBSTRATE_APPLICATION_METHODS } from '../data/substrate-catalog.js';
 import { inferDefaultSystem } from '../data/system-catalog.js';
 
+/**
+ * Map per-phase presence flags → activation system + coating_type.
+ * Sealer is opt-in: stain+clear (no sealer) → 'stain_clear'.
+ * Returns null when no presence flag is set (caller falls through to existing logic).
+ */
+export function deriveStainScope(config) {
+  const s = !!config?.stain_on, se = !!config?.sealer_on, c = !!config?.clear_on;
+  if (s && se && c)  return { system: 'stain_sealer_clear', coating_type: 'stain_clear' };
+  if (s && c)        return { system: 'stain_clear',        coating_type: 'stain_clear' };
+  if (s && !c)       return { system: 'stain_only',         coating_type: 'stain_only' };
+  if (!s && c)       return { system: 'clear_refresh',      coating_type: 'clear_only' };
+  return null; // no stain scope selected
+}
+
 // Items-based substrates (doors, windows) store per-item fields like
 // coating_type, substrate_state, wood_species_group on each item rather
 // than on the top-level substrate config. The substrate-level field is
@@ -91,6 +105,11 @@ export function resolveSystem(specId, room, project) {
   // picking "Stain + Clear" must suppress paint specs even if a prior session
   // left config.system = 'paint_full' cached on the substrate.
   if (substrateState === 'bare_wood') {
+    // Per-phase presence flags (stain_on/sealer_on/clear_on) take top priority
+    // when any flag is explicitly set. Substrates without flags return null and
+    // fall through to the existing coating_type / system back-compat logic below.
+    const scope = deriveStainScope(subConfig);
+    if (scope) return scope.system;
     // Honor explicit clear-system selection before falling back to the
     // coating-type inference (both clear_only and clear_refresh map to
     // coating_type=clear_only, so coating_type alone can't differentiate).
@@ -166,6 +185,8 @@ export function resolveCoatingType(specId, room, project) {
   const primarySub = SPEC_SUBSTRATE_MAP[specId];
   if (!primarySub) return 'paint';
   const config = resolveSubstrateConfig(specId, room);
+  const scope = deriveStainScope(config);
+  if (scope) return scope.coating_type;
   return resolveItemField(config, primarySub, 'coating_type', 'paint');
 }
 
