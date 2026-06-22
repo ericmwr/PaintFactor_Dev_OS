@@ -9,7 +9,10 @@ import {
   scenarioTierPin, forkScenarioForTier, forkModuleForTier,
   addTask, removeTask, addModuleToTier, removeModuleFromTier,
   setScenarioQtFactor, clearScenarioQtFactor,
+  setScenarioMaterial, clearScenarioMaterial,
 } from './tier-files.js';
+import { buildRoleBySystemId, classifySystemRole } from '../../../engine/material-system-roles.js';
+import { MATERIAL_SYSTEM_PRODUCTS } from '../../../data/scenario-rate-data.js';
 
 function baseId(id) { return id.replace(/_QT[2-5](?=_|$)/g, ''); }
 
@@ -120,4 +123,69 @@ export function planClearQtFactor(bundle, sel, tier) {
     return { deleteScenarioId: gov.scenario_id, deleteModuleIds: [] };
   }
   return { scenario: thinned };
+}
+
+const ROLE_BY_SYSTEM_ID = buildRoleBySystemId(MATERIAL_SYSTEM_PRODUCTS);
+
+// QT3 edits the baseline in place (materials are editable at QT3, unlike the
+// locked QT-multiplier anchor); QT2/4/5 fork and own a fresh material_systems
+// array. Returns null when no scenario governs the tier.
+function ensureScenarioForMaterial(bundle, sel, tier) {
+  const gov = resolveTierScenario(bundle, sel, tier);
+  if (!gov) return null;
+  if (tier === ANCHOR_TIER) return gov;
+  const fork = forkScenarioForTier(gov, tier).scenario;
+  return { ...fork, material_systems: [...(fork.material_systems || [])] };
+}
+
+function materialsEqual(a, b) {
+  const x = a || [], y = b || [];
+  return x.length === y.length && x.every((v, i) => v === y[i]);
+}
+
+// Full equality to the canonical scenario: modules + material_systems +
+// modifier_overrides. Used to decide auto-reclaim (the tier has returned to
+// canonical, so its draft/fork can be dropped).
+function matchesCanonical(scn, canonical) {
+  if (!canonical) return false;
+  return sameModules(scn.modules, canonical.modules)
+    && materialsEqual(scn.material_systems, canonical.material_systems)
+    && JSON.stringify(scn.modifier_overrides || null) === JSON.stringify(canonical.modifier_overrides || null);
+}
+
+function reclaimOrSave(scn, canonical) {
+  if (matchesCanonical(scn, canonical)) {
+    const deleteModuleIds = (scn.modules || []).filter(id => baseId(id) !== id);
+    return { deleteScenarioId: scn.scenario_id, deleteModuleIds };
+  }
+  return { scenario: scn };
+}
+
+// The canonical scenario's system id for `role` (the "default" to clear back to).
+function canonicalSystemForRole(canonical, role) {
+  if (!canonical) return null;
+  return (canonical.material_systems || []).find(id => classifySystemRole(id, ROLE_BY_SYSTEM_ID) === role) || null;
+}
+
+// Set the per-tier material system for a role (fork-on-edit). QT3 → baseline;
+// QT2/4/5 → fork. Auto-reclaims when the result returns fully to canonical.
+export function planSetMaterial(bundle, canonicalBundle, sel, tier, role, systemId) {
+  if (!systemId) return {};
+  const scn = ensureScenarioForMaterial(bundle, sel, tier);
+  if (!scn) return {};
+  const next = setScenarioMaterial(scn, systemId, role, ROLE_BY_SYSTEM_ID);
+  const canonical = resolveTierScenario(canonicalBundle, sel, tier);
+  return reclaimOrSave(next, canonical);
+}
+
+// Clear a tier's material override for a role back to the canonical pick. Never
+// forks (a clear only thins/removes). No-op when the tier already matches canonical.
+export function planClearMaterial(bundle, canonicalBundle, sel, tier, role) {
+  const gov = resolveTierScenario(bundle, sel, tier);
+  if (!gov) return {};
+  const canonical = resolveTierScenario(canonicalBundle, sel, tier);
+  const baselineSystemId = canonicalSystemForRole(canonical, role);
+  const next = clearScenarioMaterial(gov, role, baselineSystemId, ROLE_BY_SYSTEM_ID);
+  if (next === gov) return {};
+  return reclaimOrSave(next, canonical);
 }
