@@ -10,6 +10,25 @@ import {
 import { resolveProduct } from './product-resolver.js';
 import { buildRoleBySystemId, resolveSpecSystems } from './material-system-roles.js';
 
+// Resolve coats for a system, tolerant of array systems that lack a product row
+// under the active spec family (e.g. closet references SYS_FF_STANDARD_ACRYLIC,
+// whose products live under the cabinet/arch families). own-family → cross-family
+// by id → default 1. `resolvedBy` is for the parity report.
+export function resolveCoats(systemId, specId, productsBySystem, productsBySystemId, role) {
+  let products = productsBySystem[specId + '::' + systemId];
+  let resolvedBy = 'own-family';
+  if (!products || products.length === 0) {
+    products = productsBySystemId[systemId];
+    resolvedBy = (products && products.length) ? 'cross-family' : 'default';
+  }
+  let coats = 1;
+  if (products && products.length > 0) {
+    const prod = products.find(p => (p.product_role || '').includes(role)) || products[0];
+    if (prod.coats_required) coats = prod.coats_required;
+  }
+  return { coats, resolvedBy };
+}
+
 /**
  * Default exterior coverage profiles (flat model).
  * Keyed by spec family ID → { primer, finish } each with { sfPerGal, coats }.
