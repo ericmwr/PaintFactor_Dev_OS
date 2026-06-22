@@ -45,3 +45,12 @@ export function specForScenarioMatches(matches) {
   else if (wantsFinish && !wantsPrime) cands = cands.filter(id => SPEC_ROLE[id] === 'FINISH' || id.includes('FINISH'));
   return cands[0] || null;
 }
+
+// NOTE — first-wins tie-break gap:
+// paintable_items that map to multiple specs but share no differentiation in
+// SPEC_VALID_INPUT_STATES *or* SPEC_ROLE (e.g. the exterior NC/RP pairs:
+// ext_trim, ext_door, ext_window, ext_porch_ceiling) all reach this point
+// with cands.length > 1 and silently return the first entry in the
+// SPECS_BY_PAINTABLE_ITEM array (order determined by SPEC_TO_PAINTABLE_ITEM
+// insertion order). This is a known gap — do not let exterior callers rely
+// on the resolved family until these pairs gain state-based differentiation.
