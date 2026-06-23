@@ -9,7 +9,8 @@ export default function SubElementsSection({ elevation, derived, dispatch }) {
   const bumpOuts = elevation.bump_outs || [];
   const dormers = elevation.dormers || [];
   const gables = elevation.gables || [];
-  const total = bumpOuts.length + dormers.length + gables.length;
+  const rooflineSections = elevation.roofline_sections || [];
+  const total = bumpOuts.length + dormers.length + gables.length + rooflineSections.length;
 
   return (
     <div className="sub-element-section">
@@ -22,6 +23,7 @@ export default function SubElementsSection({ elevation, derived, dispatch }) {
           <button className="btn btn-sm" onClick={e => { e.stopPropagation(); dispatch({ type: 'ADD_BUMP_OUT', payload: { elevId: eid } }); setOpen(true); }}>+ Bump-Out</button>
           <button className="btn btn-sm" onClick={e => { e.stopPropagation(); dispatch({ type: 'ADD_DORMER', payload: { elevId: eid } }); setOpen(true); }}>+ Dormer</button>
           <button className="btn btn-sm" onClick={e => { e.stopPropagation(); dispatch({ type: 'ADD_GABLE', payload: { elevId: eid } }); setOpen(true); }}>+ Gable</button>
+          <button className="btn btn-sm" onClick={e => { e.stopPropagation(); dispatch({ type: 'ADD_ROOFLINE_SECTION', payload: { elevId: eid } }); setOpen(true); }}>+ Roofline</button>
         </div>
       </div>
 
@@ -132,6 +134,54 @@ export default function SubElementsSection({ elevation, derived, dispatch }) {
                 {d && (
                   <div style={{ fontSize: 11, color: 'var(--derived)', fontFamily: 'var(--font-mono)', marginTop: 4 }}>
                     Siding: {d.sidingSF} SF
+                  </div>
+                )}
+              </div>
+            );
+          })}
+
+          {/* Roofline Sections */}
+          {rooflineSections.map((s, i) => {
+            const d = derived.rooflineSections?.find(x => x.id === s.id);
+            const set = (field, value) => dispatch({ type: 'SET_ROOFLINE_SECTION', payload: { elevId: eid, sectionId: s.id, field, value } });
+            return (
+              <div key={s.id} className="sub-element-card">
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                  <span style={{ fontSize: 12, fontWeight: 600 }}>Roofline Section {i + 1}</span>
+                  <button className="btn btn-sm btn-danger" onClick={() => dispatch({ type: 'REMOVE_ROOFLINE_SECTION', payload: { elevId: eid, sectionId: s.id } })}>Remove</button>
+                </div>
+                <div className="form-grid" style={{ gridTemplateColumns: 'repeat(3, 1fr)', gap: 6 }}>
+                  <div>
+                    <div className="field-label">Siding (SF)</div>
+                    <input type="number" value={s.siding_sf || ''} onChange={e => set('siding_sf', parseFloat(e.target.value) || 0)} min="0" />
+                  </div>
+                  <div>
+                    <div className="field-label">Fascia / rake (LF)</div>
+                    <input type="number" value={s.fascia_lf || ''} onChange={e => set('fascia_lf', parseFloat(e.target.value) || 0)} min="0" />
+                  </div>
+                  <div>
+                    <div className="field-label">Soffit depth (ft)</div>
+                    <input type="number" value={s.soffit_depth_ft || ''} onChange={e => set('soffit_depth_ft', parseFloat(e.target.value) || 0)} min="0" step="0.25" />
+                  </div>
+                </div>
+                <div className="form-grid" style={{ gridTemplateColumns: 'repeat(2, 1fr)', gap: 6, marginTop: 6 }}>
+                  <div>
+                    <div className="field-label">Height low (ft)</div>
+                    <input type="number" value={s.height_low_ft || ''} onChange={e => set('height_low_ft', parseFloat(e.target.value) || 0)} min="0" />
+                  </div>
+                  <div>
+                    <div className="field-label">Height high / peak (ft)</div>
+                    <input type="number" value={s.height_high_ft || ''} onChange={e => set('height_high_ft', parseFloat(e.target.value) || 0)} min="0" />
+                  </div>
+                </div>
+                <div className="form-row" style={{ marginTop: 6, gap: 8 }}>
+                  <label><input type="checkbox" checked={!!s.edges?.rake} onChange={e => set('edges', { ...s.edges, rake: e.target.checked })} /> Rake trim</label>
+                  <label><input type="checkbox" checked={!!s.edges?.bottom} onChange={e => set('edges', { ...s.edges, bottom: e.target.checked })} /> Bottom</label>
+                  <label><input type="checkbox" checked={!!s.edges?.vertical} onChange={e => set('edges', { ...s.edges, vertical: e.target.checked })} /> Vertical</label>
+                </div>
+                {d && (
+                  <div style={{ fontSize: 11, color: 'var(--derived)', fontFamily: 'var(--font-mono)', marginTop: 4 }}>
+                    Siding: {d.sidingSF} SF | Fascia: {d.fasciaLF} LF | Soffit: {d.soffitSF} SF | Access: {d.accessBand}
                   </div>
                 )}
               </div>
