@@ -1579,6 +1579,105 @@ export const MATERIAL_SYSTEMS = [
   },
   {
     "id": "SYS_STAIN_OIL",
+    "spec_family_id": "SF_STAIR_TREAD_NC_STAIN",
+    "name": "Oil-Based Penetrating Stain",
+    "applies_when": {
+      "coating_type": ["stain_clear", "stain_only"]
+    },
+    "allowed_sheens": ["n/a"]
+  },
+  {
+    "id": "SYS_STAIN_OIL_MOD",
+    "spec_family_id": "SF_STAIR_TREAD_NC_STAIN",
+    "name": "Oil-Modified Stain (VOC-Compliant)",
+    "applies_when": {
+      "coating_type": ["stain_clear", "stain_only"]
+    },
+    "allowed_sheens": ["n/a"]
+  },
+  {
+    "id": "SYS_STAIN_WB",
+    "spec_family_id": "SF_STAIR_TREAD_NC_STAIN",
+    "name": "Water-Based Stain",
+    "applies_when": {
+      "coating_type": ["stain_clear", "stain_only"]
+    },
+    "allowed_sheens": ["n/a"]
+  },
+  {
+    "id": "SYS_STAIN_GEL",
+    "spec_family_id": "SF_STAIR_TREAD_NC_STAIN",
+    "name": "Gel Stain",
+    "applies_when": {
+      "coating_type": ["stain_clear", "stain_only"]
+    },
+    "allowed_sheens": ["n/a"]
+  },
+  {
+    "id": "SYS_SEALER_OIL",
+    "spec_family_id": "SF_STAIR_TREAD_NC_STAIN",
+    "name": "Oil-Based Sanding Sealer",
+    "applies_when": {
+      "coating_type": ["stain_clear", "clear_only"]
+    },
+    "allowed_sheens": ["n/a"]
+  },
+  {
+    "id": "SYS_SEALER_WB",
+    "spec_family_id": "SF_STAIR_TREAD_NC_STAIN",
+    "name": "Water-Based Sanding Sealer",
+    "applies_when": {
+      "coating_type": ["stain_clear", "clear_only"]
+    },
+    "allowed_sheens": ["n/a"]
+  },
+  {
+    "id": "SYS_CLEAR_POLY_OIL",
+    "spec_family_id": "SF_STAIR_TREAD_NC_STAIN",
+    "name": "Oil-Based Polyurethane",
+    "applies_when": {
+      "coating_type": ["stain_clear", "clear_only"]
+    },
+    "allowed_sheens": ["satin", "semi-gloss", "gloss"]
+  },
+  {
+    "id": "SYS_CLEAR_POLY_WB",
+    "spec_family_id": "SF_STAIR_TREAD_NC_STAIN",
+    "name": "Water-Based Polyurethane",
+    "applies_when": {
+      "coating_type": ["stain_clear", "clear_only"]
+    },
+    "allowed_sheens": ["satin", "semi-gloss", "gloss"]
+  },
+  {
+    "id": "SYS_CLEAR_LACQUER",
+    "spec_family_id": "SF_STAIR_TREAD_NC_STAIN",
+    "name": "Lacquer",
+    "applies_when": {
+      "coating_type": ["stain_clear", "clear_only"]
+    },
+    "allowed_sheens": ["satin", "semi-gloss", "gloss"]
+  },
+  {
+    "id": "SYS_SEALER_OIL",
+    "spec_family_id": "SF_STAIR_TREAD_NC_SEALER",
+    "name": "Oil-Based Sanding Sealer",
+    "applies_when": {
+      "coating_type": ["stain_clear", "clear_only"]
+    },
+    "allowed_sheens": ["n/a"]
+  },
+  {
+    "id": "SYS_CLEAR_POLY_WB",
+    "spec_family_id": "SF_STAIR_TREAD_NC_CLEAR",
+    "name": "Water-Based Polyurethane",
+    "applies_when": {
+      "coating_type": ["stain_clear", "clear_only"]
+    },
+    "allowed_sheens": ["satin", "semi-gloss", "gloss"]
+  },
+  {
+    "id": "SYS_STAIN_OIL",
     "spec_family_id": "SF_WOOD_WALL_NC_STAIN",
     "name": "Oil-Based Penetrating Stain",
     "applies_when": {
@@ -3256,6 +3355,62 @@ export const MATERIAL_COVERAGE_PROFILES = [
     "coverage_range_high": 450
   },
   {
+    "id": "COV_TRST_STAIN_BRUSH",
+    "spec_family_id": "SF_STAIR_TREAD_NC_STAIN",
+    "product_role": "stain",
+    "surface_texture": "bare_wood",
+    "coverage_range_low": 150,
+    "coverage_range_high": 250
+  },
+  {
+    "id": "COV_TRST_STAIN_SPRAY",
+    "spec_family_id": "SF_STAIR_TREAD_NC_STAIN",
+    "product_role": "stain",
+    "surface_texture": "bare_wood",
+    "coverage_range_low": 200,
+    "coverage_range_high": 350
+  },
+  {
+    "id": "COV_TRST_SEALER",
+    "spec_family_id": "SF_STAIR_TREAD_NC_STAIN",
+    "product_role": "sealer",
+    "surface_texture": "stained_or_bare",
+    "coverage_range_low": 450,
+    "coverage_range_high": 550
+  },
+  {
+    "id": "COV_TRST_CLEAR_BRUSH",
+    "spec_family_id": "SF_STAIR_TREAD_NC_STAIN",
+    "product_role": "clear",
+    "surface_texture": "sealed_or_clear_coated",
+    "coverage_range_low": 350,
+    "coverage_range_high": 450
+  },
+  {
+    "id": "COV_TRST_CLEAR_SPRAY",
+    "spec_family_id": "SF_STAIR_TREAD_NC_STAIN",
+    "product_role": "clear",
+    "surface_texture": "sealed_or_clear_coated",
+    "coverage_range_low": 400,
+    "coverage_range_high": 500
+  },
+  {
+    "id": "COV_TRST_SEALER_PHASE",
+    "spec_family_id": "SF_STAIR_TREAD_NC_SEALER",
+    "product_role": "sealer",
+    "surface_texture": "stained_or_bare",
+    "coverage_range_low": 450,
+    "coverage_range_high": 550
+  },
+  {
+    "id": "COV_TRST_CLEAR_PHASE",
+    "spec_family_id": "SF_STAIR_TREAD_NC_CLEAR",
+    "product_role": "clear",
+    "surface_texture": "sealed_or_clear_coated",
+    "coverage_range_low": 350,
+    "coverage_range_high": 450
+  },
+  {
     "id": "COV_WWST_STAIN_BRUSH",
     "spec_family_id": "SF_WOOD_WALL_NC_STAIN",
     "product_role": "stain",
@@ -4585,6 +4740,61 @@ export const MATERIAL_SYSTEM_PRODUCTS = [
     "product_role": "clear"
   },
   {
+    "spec_family_id": "SF_STAIR_TREAD_NC_STAIN",
+    "system_id": "SYS_STAIN_OIL",
+    "product_role": "stain"
+  },
+  {
+    "spec_family_id": "SF_STAIR_TREAD_NC_STAIN",
+    "system_id": "SYS_STAIN_OIL_MOD",
+    "product_role": "stain"
+  },
+  {
+    "spec_family_id": "SF_STAIR_TREAD_NC_STAIN",
+    "system_id": "SYS_STAIN_WB",
+    "product_role": "stain"
+  },
+  {
+    "spec_family_id": "SF_STAIR_TREAD_NC_STAIN",
+    "system_id": "SYS_STAIN_GEL",
+    "product_role": "stain"
+  },
+  {
+    "spec_family_id": "SF_STAIR_TREAD_NC_STAIN",
+    "system_id": "SYS_SEALER_OIL",
+    "product_role": "sealer"
+  },
+  {
+    "spec_family_id": "SF_STAIR_TREAD_NC_STAIN",
+    "system_id": "SYS_SEALER_WB",
+    "product_role": "sealer"
+  },
+  {
+    "spec_family_id": "SF_STAIR_TREAD_NC_STAIN",
+    "system_id": "SYS_CLEAR_POLY_OIL",
+    "product_role": "clear"
+  },
+  {
+    "spec_family_id": "SF_STAIR_TREAD_NC_STAIN",
+    "system_id": "SYS_CLEAR_POLY_WB",
+    "product_role": "clear"
+  },
+  {
+    "spec_family_id": "SF_STAIR_TREAD_NC_STAIN",
+    "system_id": "SYS_CLEAR_LACQUER",
+    "product_role": "clear"
+  },
+  {
+    "spec_family_id": "SF_STAIR_TREAD_NC_SEALER",
+    "system_id": "SYS_SEALER_OIL",
+    "product_role": "sealer"
+  },
+  {
+    "spec_family_id": "SF_STAIR_TREAD_NC_CLEAR",
+    "system_id": "SYS_CLEAR_POLY_WB",
+    "product_role": "clear"
+  },
+  {
     "spec_family_id": "SF_WOOD_WALL_NC_STAIN",
     "system_id": "SYS_STAIN_OIL",
     "product_role": "stain"
@@ -4962,6 +5172,21 @@ export const QUALITY_TIER_EFFECTS = [
   },
   {
     "spec_family_id": "SF_STAIR_RISER_NC_STAIN",
+    "quality_tier": "QT5",
+    "time_modifier": 1.5
+  },
+  {
+    "spec_family_id": "SF_STAIR_TREAD_NC_STAIN",
+    "quality_tier": "QT3",
+    "time_modifier": 1
+  },
+  {
+    "spec_family_id": "SF_STAIR_TREAD_NC_STAIN",
+    "quality_tier": "QT4",
+    "time_modifier": 1.3
+  },
+  {
+    "spec_family_id": "SF_STAIR_TREAD_NC_STAIN",
     "quality_tier": "QT5",
     "time_modifier": 1.5
   },
@@ -10050,6 +10275,21 @@ export const SPEC_FAMILY_INFO = [
   {
     "id": "SF_STAIR_RAILING_NC_CLEAR",
     "name": "New Construction Stair Railing (Open Rail) Clear Phase",
+    "domain": "interior"
+  },
+  {
+    "id": "SF_STAIR_TREAD_NC_STAIN",
+    "name": "New Construction Stair Tread Stain Phase",
+    "domain": "interior"
+  },
+  {
+    "id": "SF_STAIR_TREAD_NC_SEALER",
+    "name": "New Construction Stair Tread Sealer Phase",
+    "domain": "interior"
+  },
+  {
+    "id": "SF_STAIR_TREAD_NC_CLEAR",
+    "name": "New Construction Stair Tread Clear Phase",
     "domain": "interior"
   },
   {

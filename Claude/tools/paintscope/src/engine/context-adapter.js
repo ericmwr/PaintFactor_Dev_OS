@@ -372,6 +372,8 @@ export const COMPONENT_EXPANDED_SPECS = new Set([
   'SF_STAIR_RAILING_NC_SEALER',
   'SF_STAIR_RAILING_NC_CLEAR',
   'SF_STAIR_TREAD_NC_STAIN',
+  'SF_STAIR_TREAD_NC_SEALER',
+  'SF_STAIR_TREAD_NC_CLEAR',
   'SF_CLOSET_SHELF_NC',
 ]);
 
@@ -400,9 +402,10 @@ const STAIR_SPEC_COMPONENTS = {
   'SF_STAIR_RAILING_NC_STAIN':  [['open_rail',  'open_rail']],
   'SF_STAIR_RAILING_NC_SEALER': [['open_rail',  'open_rail']],
   'SF_STAIR_RAILING_NC_CLEAR':  [['open_rail',  'open_rail']],
-  'SF_STAIR_TREAD_NC_STAIN': [
-    ['treads',     'tread'],
-  ],
+  // TRST = tread (EA). Tasks are EA-based (PS_SURFACE_EA.STAIR_TREAD).
+  'SF_STAIR_TREAD_NC_STAIN':   [['treads', 'tread']],
+  'SF_STAIR_TREAD_NC_SEALER':  [['treads', 'tread']],
+  'SF_STAIR_TREAD_NC_CLEAR':   [['treads', 'tread']],
 };
 
 // Convert UI substrate_state (e.g. 'bare_wood', 'factory_primed', 'stained')
@@ -426,6 +429,9 @@ const STAIR_STAIN_PHASE = {
   'SF_STAIR_RAILING_NC_STAIN':  'stain',
   'SF_STAIR_RAILING_NC_SEALER': 'sealer',
   'SF_STAIR_RAILING_NC_CLEAR':  'clear',
+  'SF_STAIR_TREAD_NC_STAIN':    'stain',
+  'SF_STAIR_TREAD_NC_SEALER':   'sealer',
+  'SF_STAIR_TREAD_NC_CLEAR':    'clear',
 };
 
 /**

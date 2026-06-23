@@ -2275,3 +2275,202 @@ describe('F4b — int_window integration: clear-only (bare wood, no stain)', () 
     expect(clearSpec.totalHours).toBeGreaterThan(0);
   });
 });
+
+// ---------------------------------------------------------------------------
+// F4c: findBestMatch — TRST (tread) phase scenarios
+// ---------------------------------------------------------------------------
+describe('F4c — TRST tread phase scenario routing via findBestMatch', () => {
+  it('SS_BARE + coating_phase:stain → SCN_INT_TRST_STAIN', () => {
+    const ctx = { paintable_item: 'tread', substrate_state: 'SS_BARE', coating_phase: 'stain' };
+    const { scenario } = findBestMatch(canonicalBundle, ctx);
+    expect(scenario).not.toBeNull();
+    expect(scenario.scenario_id).toBe('SCN_INT_TRST_STAIN');
+  });
+
+  it('SS_STAINED + coating_phase:sealer → SCN_INT_TRST_SEALER', () => {
+    const ctx = { paintable_item: 'tread', substrate_state: 'SS_STAINED', coating_phase: 'sealer' };
+    const { scenario } = findBestMatch(canonicalBundle, ctx);
+    expect(scenario).not.toBeNull();
+    expect(scenario.scenario_id).toBe('SCN_INT_TRST_SEALER');
+  });
+
+  it('SS_STAINED + coating_phase:clear → SCN_INT_TRST_CLEAR (no-sealer path)', () => {
+    const ctx = { paintable_item: 'tread', substrate_state: 'SS_STAINED', coating_phase: 'clear' };
+    const { scenario } = findBestMatch(canonicalBundle, ctx);
+    expect(scenario).not.toBeNull();
+    expect(scenario.scenario_id).toBe('SCN_INT_TRST_CLEAR');
+  });
+
+  it('SS_SEALED + coating_phase:clear → SCN_INT_TRST_CLEAR (sealer path)', () => {
+    const ctx = { paintable_item: 'tread', substrate_state: 'SS_SEALED', coating_phase: 'clear' };
+    const { scenario } = findBestMatch(canonicalBundle, ctx);
+    expect(scenario).not.toBeNull();
+    expect(scenario.scenario_id).toBe('SCN_INT_TRST_CLEAR');
+  });
+
+  it('SS_BARE + coating_phase:clear → SCN_INT_TRST_CLEAR_BARE (clear-only path)', () => {
+    const ctx = { paintable_item: 'tread', substrate_state: 'SS_BARE', coating_phase: 'clear' };
+    const { scenario } = findBestMatch(canonicalBundle, ctx);
+    expect(scenario).not.toBeNull();
+    expect(scenario.scenario_id).toBe('SCN_INT_TRST_CLEAR_BARE');
+  });
+
+  it('SS_BARE + coating_phase:sealer → SCN_INT_TRST_SEALER_BARE (sealer-bare path)', () => {
+    const ctx = { paintable_item: 'tread', substrate_state: 'SS_BARE', coating_phase: 'sealer' };
+    const { scenario } = findBestMatch(canonicalBundle, ctx);
+    expect(scenario).not.toBeNull();
+    expect(scenario.scenario_id).toBe('SCN_INT_TRST_SEALER_BARE');
+  });
+
+  it('bundled SCN_INT_TRST_STAIN_CLEAR is no longer in the bundle', () => {
+    const bundled = canonicalBundle.scenarios.find(s => s.scenario_id === 'SCN_INT_TRST_STAIN_CLEAR');
+    expect(bundled).toBeUndefined();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// F4c: Full end-to-end integration — TRST (tread) stain decomposition
+//
+// Stairway with 12 treads (run1_risers=12 → total_treads=12, EA qty for
+// PS_SURFACE_EA.STAIR_TREAD). Treads component set to bare_wood + stain_clear.
+// Verifies: STAIN/CLEAR specResults fire with totalHours > 0 (ps_key dead-key
+// fix: TSK_TRST_* previously carried PS_SURFACE_LF.TRIM which never fires for
+// the stairway substrate — now corrected to PS_SURFACE_EA.STAIR_TREAD).
+// ---------------------------------------------------------------------------
+function makeTreadStainState({ stain_on = false, sealer_on = false, clear_on = false } = {}) {
+  const room = createRoom({ label: 'F4c Tread Stain' });
+  // 12 risers → 12 treads (total_treads=12, EA qty for PS_SURFACE_EA.STAIR_TREAD)
+  room.substrates.stairway = createSubstrateConfig('stairway', {
+    runs: 1,
+    run1_risers: 12,
+    stain_on,
+    sealer_on,
+    clear_on,
+    components: {
+      treads: {
+        enabled: true,
+        count: null,
+        count_override: false,
+        substrate_state: 'bare_wood',
+        coating_type: 'stain_clear',
+        application_method: 'brush',
+        application_method_stain: 'brush',
+        application_method_clear: 'brush',
+        quality_tier: null,
+        grain_fill: false,
+      },
+      // Other components disabled to isolate tread path
+      risers:      { enabled: false },
+      balusters:   { enabled: false },
+      newel_posts: { enabled: false },
+      open_rail:   { enabled: false },
+      wall_rail:   { enabled: false },
+      skirtboard:  { enabled: false },
+      stringer:    { enabled: false },
+    },
+  });
+  return {
+    project: {
+      default_quality_tier: 'QT3',
+      material_overrides: { system: {}, manual: [] },
+    },
+    rooms: [room],
+    exterior: { elevations: [], defaults: {} },
+  };
+}
+
+const TRST_SPECS = new Set([
+  'SF_STAIR_TREAD_NC_STAIN',
+  'SF_STAIR_TREAD_NC_SEALER',
+  'SF_STAIR_TREAD_NC_CLEAR',
+]);
+
+function trst_gaps(result) {
+  return (result.gaps || []).filter(g => TRST_SPECS.has(g.specId));
+}
+
+describe('F4c — TRST tread integration: stain+clear (no sealer)', () => {
+  const state = makeTreadStainState({ stain_on: true, sealer_on: false, clear_on: true });
+  const result = computeScenarioEstimate(state, canonicalBundle, null, []);
+
+  it('result is non-null and not an error', () => {
+    expect(result).not.toBeNull();
+    expect(result.error).toBeUndefined();
+  });
+
+  it('specResults includes SF_STAIR_TREAD_NC_STAIN', () => {
+    expect((result.specResults || []).some(sr => sr.specId === 'SF_STAIR_TREAD_NC_STAIN')).toBe(true);
+  });
+
+  it('SF_STAIR_TREAD_NC_STAIN totalHours > 0 (dead ps_key fix: was PS_SURFACE_LF.TRIM, now PS_SURFACE_EA.STAIR_TREAD)', () => {
+    const sr = (result.specResults || []).find(sr => sr.specId === 'SF_STAIR_TREAD_NC_STAIN');
+    expect(sr).toBeDefined();
+    expect(sr.totalHours).toBeGreaterThan(0);
+  });
+
+  it('specResults includes SF_STAIR_TREAD_NC_CLEAR', () => {
+    expect((result.specResults || []).some(sr => sr.specId === 'SF_STAIR_TREAD_NC_CLEAR')).toBe(true);
+  });
+
+  it('SF_STAIR_TREAD_NC_CLEAR totalHours > 0', () => {
+    const sr = (result.specResults || []).find(sr => sr.specId === 'SF_STAIR_TREAD_NC_CLEAR');
+    expect(sr).toBeDefined();
+    expect(sr.totalHours).toBeGreaterThan(0);
+  });
+
+  it('zero gaps for TRST spec ids', () => {
+    expect(trst_gaps(result)).toHaveLength(0);
+  });
+});
+
+describe('F4c — TRST tread integration: stain+sealer+clear', () => {
+  const state = makeTreadStainState({ stain_on: true, sealer_on: true, clear_on: true });
+  const result = computeScenarioEstimate(state, canonicalBundle, null, []);
+
+  it('result is non-null and not an error', () => {
+    expect(result).not.toBeNull();
+    expect(result.error).toBeUndefined();
+  });
+
+  it('specResults includes SF_STAIR_TREAD_NC_STAIN with totalHours > 0', () => {
+    const sr = (result.specResults || []).find(sr => sr.specId === 'SF_STAIR_TREAD_NC_STAIN');
+    expect(sr).toBeDefined();
+    expect(sr.totalHours).toBeGreaterThan(0);
+  });
+
+  it('specResults includes SF_STAIR_TREAD_NC_SEALER with totalHours > 0', () => {
+    const sr = (result.specResults || []).find(sr => sr.specId === 'SF_STAIR_TREAD_NC_SEALER');
+    expect(sr).toBeDefined();
+    expect(sr.totalHours).toBeGreaterThan(0);
+  });
+
+  it('specResults includes SF_STAIR_TREAD_NC_CLEAR with totalHours > 0', () => {
+    const sr = (result.specResults || []).find(sr => sr.specId === 'SF_STAIR_TREAD_NC_CLEAR');
+    expect(sr).toBeDefined();
+    expect(sr.totalHours).toBeGreaterThan(0);
+  });
+
+  it('zero gaps for TRST spec ids', () => {
+    expect(trst_gaps(result)).toHaveLength(0);
+  });
+});
+
+describe('F4c — TRST tread integration: clear-only (bare)', () => {
+  const state = makeTreadStainState({ stain_on: false, sealer_on: false, clear_on: true });
+  const result = computeScenarioEstimate(state, canonicalBundle, null, []);
+
+  it('result is non-null and not an error', () => {
+    expect(result).not.toBeNull();
+    expect(result.error).toBeUndefined();
+  });
+
+  it('specResults includes SF_STAIR_TREAD_NC_CLEAR with totalHours > 0', () => {
+    const sr = (result.specResults || []).find(sr => sr.specId === 'SF_STAIR_TREAD_NC_CLEAR');
+    expect(sr).toBeDefined();
+    expect(sr.totalHours).toBeGreaterThan(0);
+  });
+
+  it('zero gaps for TRST spec ids', () => {
+    expect(trst_gaps(result)).toHaveLength(0);
+  });
+});
