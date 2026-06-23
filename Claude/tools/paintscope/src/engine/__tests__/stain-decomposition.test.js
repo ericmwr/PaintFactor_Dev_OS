@@ -1400,3 +1400,225 @@ describe('F1 — window_casing integration: stain+sealer+clear (all three phases
     expect(stainMat.coats).toBe(1);
   });
 });
+
+// ── F2: shoe_mold scenario routing via findBestMatch ─────────────────────────
+describe('F2 — shoe_mold scenario routing via findBestMatch', () => {
+  it('SS_BARE + stain → SCN_INT_SHOE_MOLD_STAIN', () => {
+    const ctx = { paintable_item: 'int_shoe_mold', substrate_state: 'SS_BARE', coating_phase: 'stain' };
+    const { scenario } = findBestMatch(bundle, ctx);
+    expect(scenario?.scenario_id).toBe('SCN_INT_SHOE_MOLD_STAIN');
+  });
+
+  it('SS_STAINED + sealer → SCN_INT_SHOE_MOLD_SEALER', () => {
+    const ctx = { paintable_item: 'int_shoe_mold', substrate_state: 'SS_STAINED', coating_phase: 'sealer' };
+    const { scenario } = findBestMatch(bundle, ctx);
+    expect(scenario?.scenario_id).toBe('SCN_INT_SHOE_MOLD_SEALER');
+  });
+
+  it('SS_STAINED + clear → SCN_INT_SHOE_MOLD_CLEAR', () => {
+    const ctx = { paintable_item: 'int_shoe_mold', substrate_state: 'SS_STAINED', coating_phase: 'clear' };
+    const { scenario } = findBestMatch(bundle, ctx);
+    expect(scenario?.scenario_id).toBe('SCN_INT_SHOE_MOLD_CLEAR');
+  });
+
+  it('SS_SEALED + clear → SCN_INT_SHOE_MOLD_CLEAR (sealer path)', () => {
+    const ctx = { paintable_item: 'int_shoe_mold', substrate_state: 'SS_SEALED', coating_phase: 'clear' };
+    const { scenario } = findBestMatch(bundle, ctx);
+    expect(scenario?.scenario_id).toBe('SCN_INT_SHOE_MOLD_CLEAR');
+  });
+
+  it('SS_BARE + clear → SCN_INT_SHOE_MOLD_CLEAR_BARE (natural finish)', () => {
+    const ctx = { paintable_item: 'int_shoe_mold', substrate_state: 'SS_BARE', coating_phase: 'clear' };
+    const { scenario } = findBestMatch(bundle, ctx);
+    expect(scenario?.scenario_id).toBe('SCN_INT_SHOE_MOLD_CLEAR_BARE');
+  });
+
+  it('SS_BARE + sealer → SCN_INT_SHOE_MOLD_SEALER_BARE', () => {
+    const ctx = { paintable_item: 'int_shoe_mold', substrate_state: 'SS_BARE', coating_phase: 'sealer' };
+    const { scenario } = findBestMatch(bundle, ctx);
+    expect(scenario?.scenario_id).toBe('SCN_INT_SHOE_MOLD_SEALER_BARE');
+  });
+
+  it('bundled SCN_INT_SHOE_MOLD_STAIN_CLEAR is no longer in the bundle', () => {
+    const bundled = bundle.scenarios.find(s => s.scenario_id === 'SCN_INT_SHOE_MOLD_STAIN_CLEAR');
+    expect(bundled).toBeUndefined();
+  });
+});
+
+// ── F2: shoe_mold full integration ──────────────────────────────────────────
+describe('F2 — shoe_mold integration: stain+sealer+clear (all three phases)', () => {
+  function makeShoeMoldIntState({ stain_on = false, sealer_on = false, clear_on = false } = {}) {
+    const room = createRoom({ label: 'F2 ShoeMold Int' });
+    room.substrates.shoe_mold = createSubstrateConfig('shoe_mold', {
+      substrate_state: 'bare_wood',
+      painting: true,
+      stain_on,
+      sealer_on,
+      clear_on,
+      lf_override: true,
+      lf_manual: 20,
+    });
+    return {
+      project: {
+        default_quality_tier: 'QT3',
+        material_overrides: { system: {}, manual: [] },
+      },
+      rooms: [room],
+      exterior: { elevations: [], defaults: {} },
+    };
+  }
+
+  const SHOE_MOLD_PILOT = new Set([
+    'SF_SHOE_MOLD_NC_STAIN',
+    'SF_SHOE_MOLD_NC_SEALER',
+    'SF_SHOE_MOLD_NC_CLEAR',
+  ]);
+
+  const state = makeShoeMoldIntState({ stain_on: true, sealer_on: true, clear_on: true });
+  const result = computeScenarioEstimate(state, canonicalBundle, null, []);
+
+  it('result is non-null and not an error', () => {
+    expect(result).not.toBeNull();
+    expect(result.error).toBeUndefined();
+  });
+
+  it('specResults includes all three decomposed shoe_mold specs', () => {
+    expect((result.specResults || []).some(sr => sr.specId === 'SF_SHOE_MOLD_NC_STAIN')).toBe(true);
+    expect((result.specResults || []).some(sr => sr.specId === 'SF_SHOE_MOLD_NC_SEALER')).toBe(true);
+    expect((result.specResults || []).some(sr => sr.specId === 'SF_SHOE_MOLD_NC_CLEAR')).toBe(true);
+  });
+
+  it('zero gaps for shoe_mold pilot specIds', () => {
+    const gaps = (result.gaps || []).filter(g => SHOE_MOLD_PILOT.has(g.specId));
+    expect(gaps).toHaveLength(0);
+  });
+
+  it('clear input matched at SS_SEALED (sealer applied first)', () => {
+    const clearInput = (result.perInputResults || []).find(pr => pr.specId === 'SF_SHOE_MOLD_NC_CLEAR');
+    expect(clearInput).toBeDefined();
+    expect(clearInput.ctx.substrate_state).toBe('SS_SEALED');
+  });
+
+  it('stain material line has a real productId and coats === 1', () => {
+    const stainMat = (result.materialEstimates || []).find(
+      m => m.specFamilyId === 'SF_SHOE_MOLD_NC_STAIN' && m.productRole === 'stain'
+    );
+    expect(stainMat).toBeDefined();
+    expect(stainMat.productId).not.toBeNull();
+    expect(typeof stainMat.productId).toBe('string');
+    expect(stainMat.productId.length).toBeGreaterThan(0);
+    expect(stainMat.productName).not.toBe('SYS_STAIN_OIL');
+    expect(stainMat.coats).toBe(1);
+  });
+});
+
+// ── F2: window_stool scenario routing via findBestMatch ──────────────────────
+describe('F2 — window_stool scenario routing via findBestMatch', () => {
+  it('SS_BARE + stain → SCN_INT_WINDOW_STOOL_STAIN', () => {
+    const ctx = { paintable_item: 'int_window_stool', substrate_state: 'SS_BARE', coating_phase: 'stain' };
+    const { scenario } = findBestMatch(bundle, ctx);
+    expect(scenario?.scenario_id).toBe('SCN_INT_WINDOW_STOOL_STAIN');
+  });
+
+  it('SS_STAINED + sealer → SCN_INT_WINDOW_STOOL_SEALER', () => {
+    const ctx = { paintable_item: 'int_window_stool', substrate_state: 'SS_STAINED', coating_phase: 'sealer' };
+    const { scenario } = findBestMatch(bundle, ctx);
+    expect(scenario?.scenario_id).toBe('SCN_INT_WINDOW_STOOL_SEALER');
+  });
+
+  it('SS_STAINED + clear → SCN_INT_WINDOW_STOOL_CLEAR', () => {
+    const ctx = { paintable_item: 'int_window_stool', substrate_state: 'SS_STAINED', coating_phase: 'clear' };
+    const { scenario } = findBestMatch(bundle, ctx);
+    expect(scenario?.scenario_id).toBe('SCN_INT_WINDOW_STOOL_CLEAR');
+  });
+
+  it('SS_SEALED + clear → SCN_INT_WINDOW_STOOL_CLEAR (sealer path)', () => {
+    const ctx = { paintable_item: 'int_window_stool', substrate_state: 'SS_SEALED', coating_phase: 'clear' };
+    const { scenario } = findBestMatch(bundle, ctx);
+    expect(scenario?.scenario_id).toBe('SCN_INT_WINDOW_STOOL_CLEAR');
+  });
+
+  it('SS_BARE + clear → SCN_INT_WINDOW_STOOL_CLEAR_BARE (natural finish)', () => {
+    const ctx = { paintable_item: 'int_window_stool', substrate_state: 'SS_BARE', coating_phase: 'clear' };
+    const { scenario } = findBestMatch(bundle, ctx);
+    expect(scenario?.scenario_id).toBe('SCN_INT_WINDOW_STOOL_CLEAR_BARE');
+  });
+
+  it('SS_BARE + sealer → SCN_INT_WINDOW_STOOL_SEALER_BARE', () => {
+    const ctx = { paintable_item: 'int_window_stool', substrate_state: 'SS_BARE', coating_phase: 'sealer' };
+    const { scenario } = findBestMatch(bundle, ctx);
+    expect(scenario?.scenario_id).toBe('SCN_INT_WINDOW_STOOL_SEALER_BARE');
+  });
+
+  it('bundled SCN_INT_WINDOW_STOOL_STAIN_CLEAR is no longer in the bundle', () => {
+    const bundled = bundle.scenarios.find(s => s.scenario_id === 'SCN_INT_WINDOW_STOOL_STAIN_CLEAR');
+    expect(bundled).toBeUndefined();
+  });
+});
+
+// ── F2: window_stool full integration ───────────────────────────────────────
+describe('F2 — window_stool integration: stain+clear (no sealer)', () => {
+  function makeWindowStoolIntState({ stain_on = false, sealer_on = false, clear_on = false } = {}) {
+    const room = createRoom({ label: 'F2 WindowStool Int' });
+    room.substrates.window_stool = createSubstrateConfig('window_stool', {
+      substrate_state: 'bare_wood',
+      painting: true,
+      stain_on,
+      sealer_on,
+      clear_on,
+      lf_override: true,
+      lf_manual: 20,
+    });
+    return {
+      project: {
+        default_quality_tier: 'QT3',
+        material_overrides: { system: {}, manual: [] },
+      },
+      rooms: [room],
+      exterior: { elevations: [], defaults: {} },
+    };
+  }
+
+  const WINDOW_STOOL_PILOT = new Set([
+    'SF_WINDOW_STOOL_NC_STAIN',
+    'SF_WINDOW_STOOL_NC_SEALER',
+    'SF_WINDOW_STOOL_NC_CLEAR',
+  ]);
+
+  const state = makeWindowStoolIntState({ stain_on: true, sealer_on: false, clear_on: true });
+  const result = computeScenarioEstimate(state, canonicalBundle, null, []);
+
+  it('result is non-null and not an error', () => {
+    expect(result).not.toBeNull();
+    expect(result.error).toBeUndefined();
+  });
+
+  it('specResults includes SF_WINDOW_STOOL_NC_STAIN', () => {
+    expect((result.specResults || []).some(sr => sr.specId === 'SF_WINDOW_STOOL_NC_STAIN')).toBe(true);
+  });
+
+  it('specResults includes SF_WINDOW_STOOL_NC_CLEAR', () => {
+    expect((result.specResults || []).some(sr => sr.specId === 'SF_WINDOW_STOOL_NC_CLEAR')).toBe(true);
+  });
+
+  it('specResults does NOT include SF_WINDOW_STOOL_NC_SEALER (sealer_on=false)', () => {
+    expect((result.specResults || []).some(sr => sr.specId === 'SF_WINDOW_STOOL_NC_SEALER')).toBe(false);
+  });
+
+  it('zero gaps for window_stool pilot specIds', () => {
+    const gaps = (result.gaps || []).filter(g => WINDOW_STOOL_PILOT.has(g.specId));
+    expect(gaps).toHaveLength(0);
+  });
+
+  it('stain material line has a real productId and coats === 1', () => {
+    const stainMat = (result.materialEstimates || []).find(
+      m => m.specFamilyId === 'SF_WINDOW_STOOL_NC_STAIN' && m.productRole === 'stain'
+    );
+    expect(stainMat).toBeDefined();
+    expect(stainMat.productId).not.toBeNull();
+    expect(typeof stainMat.productId).toBe('string');
+    expect(stainMat.productId.length).toBeGreaterThan(0);
+    expect(stainMat.productName).not.toBe('SYS_STAIN_OIL');
+    expect(stainMat.coats).toBe(1);
+  });
+});

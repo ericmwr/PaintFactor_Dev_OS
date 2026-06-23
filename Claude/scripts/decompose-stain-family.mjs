@@ -60,18 +60,44 @@ function findModule(modules, needle) {
 }
 
 /**
- * Find the PREP module: contains "PREP" but not "FLOOR_PROTECT" (which is
- * the interstage module, also sometimes named similarly).
+ * Find the PREP module: contains "PREP" and the family prefix, but not "FLOOR_PROTECT".
+ * Requires exactly one match; throws if ambiguous, returns null if zero matches.
+ * @param {string[]} modules - module id array from the bundled scenario
+ * @param {string} prefix    - family prefix in SCREAMING_SNAKE (e.g. "SHOE_MOLD")
  */
-function findPrepModule(modules) {
-  return modules.find(m => m.includes('PREP') && !m.includes('FLOOR_PROTECT')) ?? null;
+function findPrepModule(modules, prefix) {
+  const matches = modules.filter(m =>
+    m.includes('PREP') &&
+    !m.includes('FLOOR_PROTECT') &&
+    m.includes(prefix)
+  );
+  if (matches.length === 0) return null;
+  if (matches.length > 1) {
+    throw new Error(
+      `findPrepModule: ambiguous — ${matches.length} PREP modules match for family prefix "${prefix}": ${matches.join(', ')}`
+    );
+  }
+  return matches[0];
 }
 
 /**
- * Find the CLEANUP module: contains "CLEANUP".
+ * Find the CLEANUP module: contains "CLEANUP" and the family prefix.
+ * Requires exactly one match; throws if ambiguous, returns null if zero matches.
+ * @param {string[]} modules - module id array from the bundled scenario
+ * @param {string} prefix    - family prefix in SCREAMING_SNAKE (e.g. "SHOE_MOLD")
  */
-function findCleanupModule(modules) {
-  return modules.find(m => m.includes('CLEANUP')) ?? null;
+function findCleanupModule(modules, prefix) {
+  const matches = modules.filter(m =>
+    m.includes('CLEANUP') &&
+    m.includes(prefix)
+  );
+  if (matches.length === 0) return null;
+  if (matches.length > 1) {
+    throw new Error(
+      `findCleanupModule: ambiguous — ${matches.length} CLEANUP modules match for family prefix "${prefix}": ${matches.join(', ')}`
+    );
+  }
+  return matches[0];
 }
 
 /**
@@ -144,8 +170,8 @@ function processFamily(key) {
     return { key, status: 'skip', reason: 'No interstage found in dynamic_coats entries' };
   }
 
-  const prepMod    = findPrepModule(modules);
-  const cleanupMod = findCleanupModule(modules);
+  const prepMod    = findPrepModule(modules, upperKey);
+  const cleanupMod = findCleanupModule(modules, upperKey);
   const floorCheck = 'MOD_INTERSTAGE_FLOOR_PROTECT_CHECK';
 
   if (!prepMod) {
