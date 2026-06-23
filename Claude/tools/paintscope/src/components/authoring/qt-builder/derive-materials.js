@@ -20,11 +20,25 @@ const ROLE_ORDER = ['primer', 'finish', 'stain', 'sealer', 'clear'];
 const ROLE_BY_SYSTEM_ID = buildRoleBySystemId(MATERIAL_SYSTEM_PRODUCTS);
 const NAME_BY_SYSTEM_ID = Object.fromEntries(MATERIAL_SYSTEMS.map(s => [s.id, s.name || s.id]));
 
+// Canonical interior-stain menu by role: every distinct MATERIAL_SYSTEM whose
+// role (product_role-driven) is stain/sealer/clear. Family-agnostic — stain
+// systems are universal, unlike paint finishes. Built once.
+const CANONICAL_STAIN_BY_ROLE = (() => {
+  const out = { stain: [], sealer: [], clear: [] };
+  const seen = new Set();
+  for (const ms of MATERIAL_SYSTEMS) {
+    if (seen.has(ms.id)) continue;
+    const role = classifySystemRole(ms.id, ROLE_BY_SYSTEM_ID);
+    if (role === 'stain' || role === 'sealer' || role === 'clear') {
+      seen.add(ms.id);
+      out[role].push({ id: ms.id, name: ms.name || ms.id });
+    }
+  }
+  return out;
+})();
+
 function ctxFor(sel, tier) {
-  return {
-    paintable_item: sel.paintable_item, application_method: sel.application_method,
-    substrate_state: sel.substrate_state, coating_type: sel.coating_type, quality_tier: tier,
-  };
+  return { ...sel, quality_tier: tier };
 }
 
 // resolvedByRole: first system per role in the array.
@@ -50,6 +64,29 @@ export function deriveMaterials(bundle, canonicalBundle, sel) {
     if (!scenario) { byTier[tier] = null; continue; }
     const specId = specForScenarioMatches(scenario.matches);
     if (!specId) { byTier[tier] = null; continue; }
+
+    const phase = scenario.matches?.coating_phase;
+    if (phase && CANONICAL_STAIN_BY_ROLE[phase]) {
+      const role = phase;
+      const candidates = CANONICAL_STAIN_BY_ROLE[role].slice();
+      const resolved = (scenario.material_systems || [])[0] || null;
+      if (resolved && !candidates.some(c => c.id === resolved)) {
+        candidates.push({ id: resolved, name: NAME_BY_SYSTEM_ID[resolved] || resolved });
+      }
+      const { scenario: canon } = findBestMatch(canonicalBundle, ctxFor(sel, tier));
+      const canonResolved = (canon && canon.material_systems || [])[0] || null;
+      const isForkPinned = scenarioTierPin(scenario) === tier;
+      const diverges = (resolved || null) !== (canonResolved || null);
+      byTier[tier] = {
+        scenarioId: scenario.scenario_id, specId,
+        candidatesByRole: { [role]: candidates },
+        resolvedByRole: resolved ? { [role]: resolved } : {},
+        isOverrideByRole: { [role]: diverges && (tier === ANCHOR_TIER || isForkPinned) },
+        roles: [role],
+      };
+      served.push(tier);
+      continue;
+    }
 
     const isStain = specId.includes('STAIN');
     const baseRole = isStain ? 'stain' : 'finish';
