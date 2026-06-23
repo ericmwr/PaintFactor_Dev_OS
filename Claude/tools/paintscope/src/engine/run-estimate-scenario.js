@@ -403,7 +403,15 @@ export function computeScenarioModifierStack(module, ctx, scenarioModifiers = nu
   //
   // total excludes complexity (same pattern as modifier-stack.js for interior
   // specs) AND excludes material (folded into rate, not modifier column).
-  const total = Math.round(qt * height * texture * condition * overhead * dynamic.dyn * 1000) / 1000;
+  //
+  // section_difficulty is a per-section labor multiplier carried only on
+  // roofline-section inputs (context-adapter.js sets ctx.section_difficulty
+  // from the section's difficulty_override; default 1.0). Absent → no-op, so
+  // every non-section input is unaffected.
+  const sectionDifficulty = (typeof ctx.section_difficulty === 'number' && ctx.section_difficulty > 0)
+    ? ctx.section_difficulty
+    : 1.0;
+  const total = Math.round(qt * height * texture * condition * overhead * dynamic.dyn * sectionDifficulty * 1000) / 1000;
 
   return {
     qt,
