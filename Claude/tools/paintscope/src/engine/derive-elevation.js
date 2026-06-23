@@ -138,6 +138,7 @@ export function deriveElevation(elevation) {
   const bumpOuts = (elevation.bump_outs || []).map(b => deriveBumpOut(b, elevation));
   const dormers = (elevation.dormers || []).map(d => deriveDormer(d));
   const gables = (elevation.gables || []).map(g => deriveGable(g));
+  const rooflineSections = (elevation.roofline_sections || []).map(deriveRooflineSection);
 
   // Aggregate sub-element contributions
   const subSidingSF = bumpOuts.reduce((s, b) => s + b.sidingSF, 0)
@@ -166,6 +167,7 @@ export function deriveElevation(elevation) {
     caulkLF, caulkScope,
     windowCasingLF, windowSillLF, doorCasingLF,
     bumpOuts, dormers, gables,
+    rooflineSections,
     subSidingSF, subTrimLF, subWindowCount, subFoundationSF,
     accessBand,
   };
@@ -254,4 +256,40 @@ function deriveGable(gable) {
     : 0;
 
   return { id: gable.id, sidingSF, rakeLF };
+}
+
+// ── Sub-Element: Roofline Section (one-sided sloped siding) ──
+export function deriveRooflineSection(section) {
+  const edges = section.edges || { rake: true };
+
+  // Quantities: direct entry wins; calculator fills when enabled.
+  let sidingSF = parseFloat(section.siding_sf) || 0;
+  let rakeLF = parseFloat(section.fascia_lf) || 0;
+  if (section.calc && section.calc.enabled) {
+    const base = parseFloat(section.calc.base_ft) || 0;
+    const rise = parseFloat(section.calc.peak_height_ft) || 0;
+    if (base > 0 && rise > 0) {
+      sidingSF = Math.round(0.5 * base * rise);
+      rakeLF = Math.round(Math.sqrt(base * base + rise * rise));
+    }
+  }
+
+  const depth = parseFloat(section.soffit_depth_ft) || 0;
+  const fasciaLF = edges.rake ? Math.round(rakeLF) : 0;
+  const explicitSoffit = parseFloat(section.soffit_sf) || 0;
+  const soffitSF = !edges.rake ? 0
+    : (explicitSoffit > 0 ? Math.round(explicitSoffit) : Math.round(rakeLF * depth));
+
+  const accessBand = deriveAccessBand(bandFromHeight(parseFloat(section.height_high_ft) || 0));
+  const difficultyFactor = section.difficulty_override != null ? parseFloat(section.difficulty_override) : 1.0;
+
+  return { id: section.id, sidingSF: Math.round(sidingSF), fasciaLF, soffitSF, accessBand, difficultyFactor };
+}
+
+// Map a height in feet to the access_type enum used by deriveAccessBand.
+function bandFromHeight(ft) {
+  if (ft > 25) return 'lift';
+  if (ft > 16) return 'scaffold';
+  if (ft > 8)  return 'ladder';
+  return 'ground';
 }
