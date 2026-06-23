@@ -258,32 +258,20 @@ export default function SubstrateDetailPanel({ room, derived, dispatch, substrat
           <div className="section-title">Coating Phases</div>
           <div style={{ display: 'flex', gap: 16, padding: '4px 0', flexWrap: 'wrap' }}>
             {['stain', 'sealer', 'clear'].map(ph => {
-              const isStain = ph === 'stain';
-              const disabled = !isStain && !config.stain_on;
               return (
-                <label key={ph} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, opacity: disabled ? 0.45 : 1 }}>
+                <label key={ph} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12 }}>
                   <input
                     type="checkbox"
                     checked={!!config[`${ph}_on`]}
-                    disabled={disabled}
                     onChange={e => {
                       const checked = e.target.checked;
                       setSub(`${ph}_on`, checked);
-                      // When stain is turned off, force sealer and clear off too
-                      // so no orphan clear-only flag state remains (clear-over-bare deferred).
-                      if (isStain && !checked) {
-                        setSub('sealer_on', false);
-                        setSub('clear_on', false);
-                      }
                     }}
                   />
                   {ph.charAt(0).toUpperCase() + ph.slice(1)}
                 </label>
               );
             })}
-          </div>
-          <div style={{ fontSize: 11, color: 'var(--text-muted, #888)', marginTop: 2, marginBottom: 4 }}>
-            Clear-only / sealer-only (no stain) coming in a later phase.
           </div>
           <div className="form-grid" style={{ gridTemplateColumns: '1fr 1fr' }}>
             <div>

@@ -26,10 +26,15 @@ describe('deriveStainScope — flag-to-system mapping (B3)', () => {
       .toEqual({ system: 'stain_only', coating_type: 'stain_only' });
   });
 
-  // DEFERRED (Design Decision #7): clear-over-bare needs clear-only scenarios not yet authored.
-  // Decomposed families are stain-required; clear-only now returns null (fires nothing safely).
-  it('clear only (no stain) → null [deferred: decomposed clear-over-bare not authored]', () => {
-    expect(deriveStainScope({ stain_on: false, sealer_on: false, clear_on: true })).toBeNull();
+  // D4: no-stain clear-over-bare — now authored (natural finish support)
+  it('clear only (no stain) → system clear_bare, coating_type clear_only', () => {
+    expect(deriveStainScope({ stain_on: false, sealer_on: false, clear_on: true }))
+      .toEqual({ system: 'clear_bare', coating_type: 'clear_only' });
+  });
+
+  it('sealer+clear (no stain) → system seal_clear_bare, coating_type clear_only', () => {
+    expect(deriveStainScope({ stain_on: false, sealer_on: true, clear_on: true }))
+      .toEqual({ system: 'seal_clear_bare', coating_type: 'clear_only' });
   });
 
   it('no flags set → null', () => {
@@ -699,6 +704,8 @@ const FLAG_COMBOS = [
 describe('E1 — no gaps for any flag combo on bare door_casing', () => {
   for (const combo of FLAG_COMBOS) {
     const hasStain = combo.stain_on;
+    const hasClear = combo.clear_on;
+    const hasSealer = combo.sealer_on;
     describe(`combo: ${combo.label}`, () => {
       const state = makeDoorCasingState(combo);
       const { roomInputs } = buildScenarioInputs(state);
@@ -710,11 +717,27 @@ describe('E1 — no gaps for any flag combo on bare door_casing', () => {
         expect(gaps).toHaveLength(0);
       });
 
-      if (!hasStain) {
-        // No-stain combos: decomposed phase specs must be completely absent (deferred)
-        it('NO decomposed casing phase inputs emitted (clear-only deferred → fires nothing)', () => {
+      if (!hasStain && !hasClear && !hasSealer) {
+        // None selected: no decomposed inputs emitted
+        it('NO decomposed casing phase inputs emitted (nothing selected)', () => {
           expect(pilotInputs).toHaveLength(0);
         });
+      } else if (!hasStain && hasSealer && !hasClear) {
+        // Sealer-only (no stain, no clear): degenerate → fires nothing
+        it('NO decomposed casing phase inputs emitted (sealer-only degenerate)', () => {
+          expect(pilotInputs).toHaveLength(0);
+        });
+      } else if (!hasStain && hasClear) {
+        // No-stain, clear-present: D4 — CLEAR fires at SS_BARE
+        it('SF_DOOR_CASING_NC_CLEAR input is emitted at SS_BARE (clear-only/seal+clear bare)', () => {
+          expect(pilotInputs.some(i => i.specId === 'SF_DOOR_CASING_NC_CLEAR')).toBe(true);
+        });
+        if (hasSealer) {
+          // sealer+clear bare: SEALER fires at SS_BARE, CLEAR fires at SS_SEALED
+          it('SF_DOOR_CASING_NC_SEALER input is emitted at SS_BARE (seal+clear bare)', () => {
+            expect(pilotInputs.some(i => i.specId === 'SF_DOOR_CASING_NC_SEALER')).toBe(true);
+          });
+        }
       } else {
         // Stain-present combos: stain spec must fire
         it('SF_DOOR_CASING_NC_STAIN input is emitted', () => {
@@ -722,12 +745,12 @@ describe('E1 — no gaps for any flag combo on bare door_casing', () => {
         });
         // SEALER only fires when system = stain_sealer_clear (requires stain+sealer+clear).
         // stain+sealer alone → system=stain_only → SEALER role is inactive (correct behavior).
-        if (combo.sealer_on && combo.clear_on) {
+        if (hasSealer && hasClear) {
           it('SF_DOOR_CASING_NC_SEALER input is emitted (sealer+clear path)', () => {
             expect(pilotInputs.some(i => i.specId === 'SF_DOOR_CASING_NC_SEALER')).toBe(true);
           });
         }
-        if (combo.clear_on) {
+        if (hasClear) {
           it('SF_DOOR_CASING_NC_CLEAR input is emitted', () => {
             expect(pilotInputs.some(i => i.specId === 'SF_DOOR_CASING_NC_CLEAR')).toBe(true);
           });
@@ -772,5 +795,143 @@ describe('E2 — bundled stain family (baseboard) stain+clear fires, no gaps (re
     const result = computeScenarioEstimate(state, canonicalBundle, null, []);
     const gaps = (result.gaps || []).filter(g => g.specId === 'SF_BASEBOARD_NC_STAIN');
     expect(gaps).toHaveLength(0);
+  });
+
+  // D4 regression: bundled family clear-only still takes the LEGACY path (not the decomposed no-stain path)
+  it('bundled clear-only (no stain): baseboard fires via legacy path, zero gaps', () => {
+    // Bundled families with clear_on but no stain_on fall through to the legacy
+    // coating_type/system path — they do NOT use the decomposed CLEAR_BARE scenario.
+    // Verify: no SF_BASEBOARD_NC_STAIN/SEALER/CLEAR gaps (the legacy path either
+    // routes to the bundled scenario or emits no input — neither is a gap).
+    const state = makeBaseboardState({ stain_on: false, sealer_on: false, clear_on: true });
+    const result = computeScenarioEstimate(state, canonicalBundle, null, []);
+    const gaps = (result.gaps || []).filter(g =>
+      g.specId === 'SF_BASEBOARD_NC_STAIN' ||
+      g.specId === 'SF_BASEBOARD_NC_CLEAR'
+    );
+    expect(gaps).toHaveLength(0);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// D4: Natural finish (clear-only + sealer+clear) integration — door_casing
+// ---------------------------------------------------------------------------
+describe('D4 — door_casing clear-only (no stain, bare wood)', () => {
+  const state = makeDoorCasingState({ stain_on: false, sealer_on: false, clear_on: true });
+  const result = computeScenarioEstimate(state, canonicalBundle, null, []);
+
+  it('result is non-null and not an error', () => {
+    expect(result).not.toBeNull();
+    expect(result.error).toBeUndefined();
+  });
+
+  it('specResults includes SF_DOOR_CASING_NC_CLEAR (CLEAR_BARE scenario matched)', () => {
+    const found = (result.specResults || []).some(sr => sr.specId === 'SF_DOOR_CASING_NC_CLEAR');
+    expect(found).toBe(true);
+  });
+
+  it('specResults does NOT include SF_DOOR_CASING_NC_STAIN (no stain)', () => {
+    const found = (result.specResults || []).some(sr => sr.specId === 'SF_DOOR_CASING_NC_STAIN');
+    expect(found).toBe(false);
+  });
+
+  it('specResults does NOT include SF_DOOR_CASING_NC_SEALER (sealer_on=false)', () => {
+    const found = (result.specResults || []).some(sr => sr.specId === 'SF_DOOR_CASING_NC_SEALER');
+    expect(found).toBe(false);
+  });
+
+  it('zero gaps for casing pilot specs (CLEAR_BARE scenario matched at SS_BARE)', () => {
+    expect(casingGaps(result)).toHaveLength(0);
+  });
+
+  it('no warnings mentioning casing pilot specs', () => {
+    expect(casingWarnings(result)).toHaveLength(0);
+  });
+
+  it('CLEAR spec line has positive totalHours (prep + clear + cleanup modules fire)', () => {
+    const clearSpec = (result.specResults || []).find(sr => sr.specId === 'SF_DOOR_CASING_NC_CLEAR');
+    expect(clearSpec).toBeDefined();
+    expect(clearSpec.totalHours).toBeGreaterThan(0);
+  });
+
+  it('clear material line has a real productId (not null)', () => {
+    const clearMat = (result.materialEstimates || []).find(
+      m => m.specFamilyId === 'SF_DOOR_CASING_NC_CLEAR' && m.productRole === 'clear'
+    );
+    expect(clearMat).toBeDefined();
+    expect(clearMat.productId).not.toBeNull();
+    expect(typeof clearMat.productId).toBe('string');
+    expect(clearMat.productId.length).toBeGreaterThan(0);
+  });
+});
+
+describe('D4 — door_casing sealer+clear (no stain, bare wood)', () => {
+  const state = makeDoorCasingState({ stain_on: false, sealer_on: true, clear_on: true });
+  const result = computeScenarioEstimate(state, canonicalBundle, null, []);
+
+  it('result is non-null and not an error', () => {
+    expect(result).not.toBeNull();
+    expect(result.error).toBeUndefined();
+  });
+
+  it('specResults includes SF_DOOR_CASING_NC_SEALER (SEALER_BARE scenario matched at SS_BARE)', () => {
+    const found = (result.specResults || []).some(sr => sr.specId === 'SF_DOOR_CASING_NC_SEALER');
+    expect(found).toBe(true);
+  });
+
+  it('specResults includes SF_DOOR_CASING_NC_CLEAR (CLEAR scenario matched at SS_SEALED)', () => {
+    const found = (result.specResults || []).some(sr => sr.specId === 'SF_DOOR_CASING_NC_CLEAR');
+    expect(found).toBe(true);
+  });
+
+  it('specResults does NOT include SF_DOOR_CASING_NC_STAIN (no stain)', () => {
+    const found = (result.specResults || []).some(sr => sr.specId === 'SF_DOOR_CASING_NC_STAIN');
+    expect(found).toBe(false);
+  });
+
+  it('zero gaps for casing pilot specs', () => {
+    expect(casingGaps(result)).toHaveLength(0);
+  });
+
+  it('no warnings mentioning casing pilot specs', () => {
+    expect(casingWarnings(result)).toHaveLength(0);
+  });
+
+  it('sealer input is matched at SS_BARE', () => {
+    const sealerInput = (result.perInputResults || []).find(
+      pr => pr.specId === 'SF_DOOR_CASING_NC_SEALER'
+    );
+    expect(sealerInput).toBeDefined();
+    expect(sealerInput.ctx.substrate_state).toBe('SS_BARE');
+  });
+
+  it('clear input is matched at SS_SEALED (state transitions correctly from sealer)', () => {
+    const clearInput = (result.perInputResults || []).find(
+      pr => pr.specId === 'SF_DOOR_CASING_NC_CLEAR'
+    );
+    expect(clearInput).toBeDefined();
+    expect(clearInput.ctx.substrate_state).toBe('SS_SEALED');
+  });
+
+  it('sealer spec line has positive totalHours', () => {
+    const sealerSpec = (result.specResults || []).find(sr => sr.specId === 'SF_DOOR_CASING_NC_SEALER');
+    expect(sealerSpec).toBeDefined();
+    expect(sealerSpec.totalHours).toBeGreaterThan(0);
+  });
+
+  it('clear spec line has positive totalHours', () => {
+    const clearSpec = (result.specResults || []).find(sr => sr.specId === 'SF_DOOR_CASING_NC_CLEAR');
+    expect(clearSpec).toBeDefined();
+    expect(clearSpec.totalHours).toBeGreaterThan(0);
+  });
+
+  it('sealer material line has a real productId', () => {
+    const sealerMat = (result.materialEstimates || []).find(
+      m => m.specFamilyId === 'SF_DOOR_CASING_NC_SEALER'
+    );
+    expect(sealerMat).toBeDefined();
+    expect(sealerMat.productId).not.toBeNull();
+    expect(typeof sealerMat.productId).toBe('string');
+    expect(sealerMat.productId.length).toBeGreaterThan(0);
   });
 });

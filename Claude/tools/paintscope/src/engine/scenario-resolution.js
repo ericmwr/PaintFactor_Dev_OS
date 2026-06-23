@@ -1,29 +1,35 @@
 import { OPENING_SUBSTRATES } from './quantity-lookups.js';
-import { SPEC_SUBSTRATE_MAP } from '../data/scenario-maps.js';
+import { SPEC_SUBSTRATE_MAP, DECOMPOSED_STAIN_FAMILIES, SPEC_ROLE } from '../data/scenario-maps.js';
 import { SUBSTRATE_APPLICATION_METHODS } from '../data/substrate-catalog.js';
 import { inferDefaultSystem } from '../data/system-catalog.js';
 
 /**
  * Map per-phase presence flags → activation system + coating_type.
- * Stain is REQUIRED for a scope to be returned — clear-only and sealer-only
- * combinations return null (deferred: decomposed families need clear-over-bare
- * scenarios that are not yet authored; bundled families handle clear-only via
- * the legacy coating_type/system path, which does NOT call this function).
  *
- * Stain-present mappings:
+ * Stain-present mappings (highest priority):
  *   stain + sealer + clear → { system: 'stain_sealer_clear', coating_type: 'stain_clear' }
  *   stain + clear           → { system: 'stain_clear',        coating_type: 'stain_clear' }
  *   stain only              → { system: 'stain_only',         coating_type: 'stain_only' }
  *
- * No-stain combinations (clear-only, sealer-only, sealer+clear, none):
- *   → null  (deferred; decomposed families fire nothing for these combos)
+ * No-stain, clear-present mappings (DECOMPOSED families, D4):
+ *   sealer + clear (no stain) → { system: 'seal_clear_bare', coating_type: 'clear_only' }
+ *   clear only                → { system: 'clear_bare',      coating_type: 'clear_only' }
+ *
+ * Degenerate (sealer-only with no clear, or nothing selected) → null (fires nothing).
+ * Bundled families still reach this function but the caller gates no-stain systems
+ * to decomposed families only (see resolveSystem).
  */
 export function deriveStainScope(config) {
   const s = !!config?.stain_on, se = !!config?.sealer_on, c = !!config?.clear_on;
-  if (!s) return null; // no stain → deferred (clear-only / sealer-only not yet authored)
-  if (se && c) return { system: 'stain_sealer_clear', coating_type: 'stain_clear' };
-  if (c)       return { system: 'stain_clear',        coating_type: 'stain_clear' };
-  return       { system: 'stain_only',                coating_type: 'stain_only' };
+  // Stain-present branches (keep first — highest priority)
+  if (s && se && c)  return { system: 'stain_sealer_clear', coating_type: 'stain_clear' };
+  if (s && c)        return { system: 'stain_clear',        coating_type: 'stain_clear' };
+  if (s && !c)       return { system: 'stain_only',         coating_type: 'stain_only' };
+  // No-stain, clear-present (decomposed pilots: door_casing, arch_element)
+  if (!s && se && c) return { system: 'seal_clear_bare',    coating_type: 'clear_only' };
+  if (!s && !se && c) return { system: 'clear_bare',        coating_type: 'clear_only' };
+  // Sealer-only (no clear) / nothing selected → degenerate, fires nothing
+  return null;
 }
 
 // Items-based substrates (doors, windows) store per-item fields like
@@ -118,7 +124,17 @@ export function resolveSystem(specId, room, project) {
     // when any flag is explicitly set. Substrates without flags return null and
     // fall through to the existing coating_type / system back-compat logic below.
     const scope = deriveStainScope(subConfig);
-    if (scope) return scope.system;
+    if (scope) {
+      // No-stain systems (clear_bare, seal_clear_bare) are DECOMPOSED-only.
+      // Bundled families fall through to the legacy coating_type/system path so
+      // their existing clear-only handling (coating_type gating, clear_refresh)
+      // continues to work without modification.
+      const noStainSystem = scope.system === 'clear_bare' || scope.system === 'seal_clear_bare';
+      const isDecomp = DECOMPOSED_STAIN_FAMILIES.has(specId)
+        || SPEC_ROLE[specId] === 'SEALER' || SPEC_ROLE[specId] === 'CLEAR';
+      if (!noStainSystem || isDecomp) return scope.system;
+      // bundled family + no-stain clear → fall through to legacy path below
+    }
     // Honor explicit clear-system selection before falling back to the
     // coating-type inference (both clear_only and clear_refresh map to
     // coating_type=clear_only, so coating_type alone can't differentiate).

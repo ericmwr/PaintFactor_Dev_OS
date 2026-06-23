@@ -285,6 +285,26 @@ export const SYSTEM_SPEC_ACTIVATION = {
     FINISH:   { active: false },
   },
 
+  // Clear-only / sealer+clear over bare wood — no stain, natural finish.
+  // DECOMPOSED families only (door_casing, arch_element pilots).
+  // Bundled families handle clear-only via the legacy coating_type path.
+  clear_bare: {            // clear topcoat over BARE wood, no stain, no sealer (natural finish)
+    CLEAR:    { active: true,  stateTransition: 'input' },
+    STAIN:    { active: false },
+    SEALER:   { active: false },
+    COMBINED: { active: false },
+    PRIME:    { active: false },
+    FINISH:   { active: false },
+  },
+  seal_clear_bare: {       // sealer + clear over BARE wood, no stain
+    SEALER:   { active: true,  stateTransition: 'input' },
+    CLEAR:    { active: true,  stateTransition: 'sealed' },
+    STAIN:    { active: false },
+    COMBINED: { active: false },
+    PRIME:    { active: false },
+    FINISH:   { active: false },
+  },
+
   // Strip variants — treat like bare after strip
   strip_and_paint: {
     PRIME:    { active: true,  stateTransition: 'input' },
