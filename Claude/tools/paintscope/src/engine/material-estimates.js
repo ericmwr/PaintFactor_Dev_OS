@@ -9,6 +9,7 @@ import {
 } from '../data/scenario-rate-data.js';
 import { resolveProduct } from './product-resolver.js';
 import { buildRoleBySystemId, classifySystemRole } from './material-system-roles.js';
+import { resolveSystem, resolveCoats as resolveOverrideCoats } from './material-overrides.js';
 
 // Stain roles use the scenario's per-phase coat count (threaded via scenarioMaterials);
 // paint roles (primer/finish) keep the existing resolveCoats path.
@@ -117,16 +118,21 @@ export function computeMaterialEstimates(state, roomLookups, specResults = [], s
   // and the substrate's painting flag — mirrors run-estimate.js per-room activation.
   // This prevents (e.g.) wall primer from being calculated against rooms whose walls
   // are field_primed when only one room is bare_drywall.
-  function buildSpecScopedQty(specId) {
+  // P3: `finishGroup` partitions quantities. When set, only sums contributions from
+  // rooms whose primary substrate for this spec carries the matching finish_group.
+  // When null/undefined, sums all rooms (backward-compat).
+  function buildSpecScopedQty(specId, finishGroup) {
     const scoped = new Map();
     rooms.forEach((room, ri) => {
-      // Substrate state compatibility (e.g. trim prime spec only counts bare_wood rooms)
       if (!isSpecStateCompatible(specId, room)) return;
-      // Painting toggle guard for substrates that have one (doors, windows, casings)
       const primarySub = SPEC_SUBSTRATE_MAP[specId];
-      if (primarySub) {
-        const subConfig = (room.substrates || {})[primarySub];
-        if (subConfig && subConfig.painting === false) return;
+      const subConfig = primarySub ? (room.substrates || {})[primarySub] : null;
+      if (subConfig && subConfig.painting === false) return;
+      // P3 partition: only count rooms whose substrate's finish_group matches.
+      // If finishGroup is null/undefined, accept everything (legacy behavior).
+      if (finishGroup !== undefined && finishGroup !== null) {
+        const rowFg = subConfig?.finish_group ?? null;
+        if (rowFg !== finishGroup) return;
       }
       const roomLookup = roomLookups.get(ri);
       const roomQty = roomLookup?.qty || roomLookup;
@@ -171,14 +177,18 @@ export function computeMaterialEstimates(state, roomLookups, specResults = [], s
     if (sr.tasks) tasksBySpec[sr.specId].push(...sr.tasks);
   });
 
-  // Fired specs with material_systems (decomposed stain phases) may lack a
-  // coverage profile; include them so resolveProduct can still emit a line.
-  const specFamilyIds = [...new Set([
-    ...MATERIAL_COVERAGE_PROFILES.map(cp => cp.spec_family_id),
-    ...Object.keys(scenarioMaterials || {}),
-  ])];
+  // P3: iterate per (specId, finishGroup) pair — scenarioMaterials is keyed
+  // `${specId}|${finishGroup ?? '__none__'}` after the scenario-estimate rekey.
+  // Specs that are ONLY in MATERIAL_COVERAGE_PROFILES (no scenarioMaterials entry)
+  // will produce no lines; coverage-profile-only specs without a system array
+  // can't produce gallon estimates anyway (empty matchedSystems → early return).
+  Object.entries(scenarioMaterials || {}).forEach(([key, sysEntry]) => {
+    // P3: derive specId + finishGroup from sysEntry (new format) or key (old compat format).
+    const specId = sysEntry.specId ?? key.split('|')[0];
+    const finishGroup = 'finishGroup' in sysEntry
+      ? sysEntry.finishGroup
+      : (key.includes('|') ? (key.split('|')[1] === '__none__' ? null : key.split('|')[1]) : null);
 
-  specFamilyIds.forEach(specId => {
     // Skip specs that weren't activated by the hours engine
     if (activatedSpecs.size > 0 && !activatedSpecs.has(specId)) return;
 
@@ -196,8 +206,8 @@ export function computeMaterialEstimates(state, roomLookups, specResults = [], s
     )];
 
     // Build spec-scoped quantity total: only rooms whose substrate state is compatible
-    // with this spec contribute. Fixes primer over-calculation across all rooms.
-    const scopedQty = buildSpecScopedQty(specId);
+    // with this spec (and matching finishGroup) contribute.
+    const scopedQty = buildSpecScopedQty(specId, finishGroup);
 
     // Check if this spec has matching quantities
     let specSF = 0;
@@ -216,7 +226,6 @@ export function computeMaterialEstimates(state, roomLookups, specResults = [], s
     // (Phase 3), grouped by role — NOT the catalog matcher. Absent/empty → no lines.
     // Broadened regex: decomposed _STAIN / _SEALER / _CLEAR specIds must also use baseRole 'stain'.
     const isStainSpec = /_(STAIN|SEALER|CLEAR)$/.test(specId) || specId.includes('STAIN');
-    const sysEntry = scenarioMaterials[specId];
     const systemIds = (sysEntry && sysEntry.systems) || [];
     const seenRoles = new Set();
     const matchedSystems = [];
@@ -231,16 +240,26 @@ export function computeMaterialEstimates(state, roomLookups, specResults = [], s
 
     // Emit one estimate per matched system
     matchedSystems.forEach(({ system: matchedSystem, role }) => {
-      // Get coats: stain/sealer/clear roles track the scenario's per-phase coat
-      // count (so gallons follow tier coats); paint roles keep resolveCoats.
-      let coats;
+      // P3: project-level override applies first (replaces matchedSystem id when set).
+      const overrideSystemId = resolveSystem(role, sysEntry.finishGroup ?? finishGroup, project.material_overrides, matchedSystem ? matchedSystem.id : null);
+      if (matchedSystem && overrideSystemId && overrideSystemId !== matchedSystem.id) {
+        matchedSystem = MATERIAL_SYSTEMS.find(s => s.id === overrideSystemId) || { id: overrideSystemId, name: overrideSystemId };
+      } else if (!matchedSystem && overrideSystemId) {
+        matchedSystem = MATERIAL_SYSTEMS.find(s => s.id === overrideSystemId) || { id: overrideSystemId, name: overrideSystemId };
+      }
+
+      // Get base coats: stain/sealer/clear roles track scenarioMaterials.coats;
+      // paint roles keep the existing resolveCoats(prod) path.
+      let baseCoats;
       if (STAIN_GALLON_ROLES.has(role)) {
-        coats = sysEntry?.coats?.[ROLE_TO_COAT_FIELD[role]] ?? 1;
+        baseCoats = sysEntry?.coats?.[ROLE_TO_COAT_FIELD[role]] ?? 1;
       } else {
-        coats = matchedSystem
+        baseCoats = matchedSystem
           ? resolveCoats(matchedSystem.id, specId, productsBySystem, productsBySystemId, role).coats
           : 1;
       }
+      // P3: layer the override on top (works uniformly for stain + paint roles).
+      let coats = resolveOverrideCoats(role, sysEntry.finishGroup ?? finishGroup, project.material_overrides, baseCoats);
 
       // Find coverage profile matching system + texture
       let matchedProfile = null;
@@ -313,12 +332,15 @@ export function computeMaterialEstimates(state, roomLookups, specResults = [], s
 
       estimates.push({
         specFamilyId: specId,
+        finishGroup: finishGroup ?? null,
+        system: matchedSystem ? { id: matchedSystem.id, name: matchedSystem.name } : null,
         systemId: matchedSystem ? matchedSystem.id : null,
         systemName: matchedSystem ? matchedSystem.name : '(unknown)',
         ...productInfo,
         productRole: role,
         surfaceTexture: defaultTexture,
         totalSF: Math.round(specSF),
+        surfaceSF: Math.round(specSF),
         coverageRate: coverageRate,
         coats: coats,
         gallonsRaw: Math.round(gallons * 10) / 10,

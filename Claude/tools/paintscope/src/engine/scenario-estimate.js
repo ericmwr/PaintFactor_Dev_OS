@@ -204,12 +204,19 @@ export function computeScenarioEstimate(state, bundle, profile, products, overla
     const scenarioMaterials = {};
     for (const pr of perInputResults) {
       if (isExteriorRoomIndex(pr.roomIndex)) continue;
-      if (scenarioMaterials[pr.specId]) continue;            // first fired = representative
+      const fg = pr.ctx?.finish_group ?? null;
+      // P3: key by (specId, finish_group) so two finish groups within the same
+      // spec family produce two material lines that can carry different
+      // products + coats. First fired per (specId, fg) pair wins.
+      const key = `${pr.specId}|${fg ?? '__none__'}`;
+      if (scenarioMaterials[key]) continue;
       const scn = bundle.scenarios.find(s => s.scenario_id === pr.scenarioId);
       if (!scn) continue;
       const cc = scn.coat_counts || {};
       const ctx = pr.ctx || {};
-      scenarioMaterials[pr.specId] = {
+      scenarioMaterials[key] = {
+        specId: pr.specId,
+        finishGroup: fg,
         scenarioId: pr.scenarioId,
         systems: scn.material_systems || [],
         coats: {
