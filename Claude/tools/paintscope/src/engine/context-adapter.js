@@ -29,6 +29,7 @@ import {
   resolveCoatCounts,
   resolveClearSheen,
   resolveWoodSpecies,
+  deriveStainScope,
 } from './scenario-resolution.js';
 import { resolveSubstrateStateForSpec, isSpecStateCompatible } from './scenario-compatibility.js';
 import { deriveRoom, deriveHeightBand } from './derive-room.js';
@@ -1164,6 +1165,23 @@ export function buildScenarioInputs(state) {
         // Spec is suppressed by the current system — skip emitting an input for it.
         continue;
       }
+
+      // ── Decomposed-family clear-only deferral gate ──
+      // For decomposed families (DECOMPOSED_STAIN_FAMILIES, SEALER role, CLEAR role),
+      // stain is required. If deriveStainScope returns null (no stain → clear-only,
+      // sealer-only, or no flags), skip this spec entirely so no input is emitted.
+      // This prevents the legacy clear_refresh path from firing against decomposed
+      // substrates that have no authored clear-over-bare scenarios.
+      // Bundled families (not decomposed) are NOT gated here — they keep using the
+      // legacy coating_type/system path which handles clear-only via existing logic.
+      const isDecomposedSpec =
+        DECOMPOSED_STAIN_FAMILIES.has(specId) ||
+        specRole === 'SEALER' ||
+        specRole === 'CLEAR';
+      if (isDecomposedSpec && deriveStainScope(subConfig) === null) {
+        continue;
+      }
+
       const transitionTarget = STATE_TRANSITION_TARGET[activation.stateTransition];
       const effectiveSubstrateState = transitionTarget != null ? transitionTarget : resolvedInputState;
 

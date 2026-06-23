@@ -5,16 +5,25 @@ import { inferDefaultSystem } from '../data/system-catalog.js';
 
 /**
  * Map per-phase presence flags → activation system + coating_type.
- * Sealer is opt-in: stain+clear (no sealer) → 'stain_clear'.
- * Returns null when no presence flag is set (caller falls through to existing logic).
+ * Stain is REQUIRED for a scope to be returned — clear-only and sealer-only
+ * combinations return null (deferred: decomposed families need clear-over-bare
+ * scenarios that are not yet authored; bundled families handle clear-only via
+ * the legacy coating_type/system path, which does NOT call this function).
+ *
+ * Stain-present mappings:
+ *   stain + sealer + clear → { system: 'stain_sealer_clear', coating_type: 'stain_clear' }
+ *   stain + clear           → { system: 'stain_clear',        coating_type: 'stain_clear' }
+ *   stain only              → { system: 'stain_only',         coating_type: 'stain_only' }
+ *
+ * No-stain combinations (clear-only, sealer-only, sealer+clear, none):
+ *   → null  (deferred; decomposed families fire nothing for these combos)
  */
 export function deriveStainScope(config) {
   const s = !!config?.stain_on, se = !!config?.sealer_on, c = !!config?.clear_on;
-  if (s && se && c)  return { system: 'stain_sealer_clear', coating_type: 'stain_clear' };
-  if (s && c)        return { system: 'stain_clear',        coating_type: 'stain_clear' };
-  if (s && !c)       return { system: 'stain_only',         coating_type: 'stain_only' };
-  if (!s && c)       return { system: 'clear_refresh',      coating_type: 'clear_only' };
-  return null; // no stain scope selected
+  if (!s) return null; // no stain → deferred (clear-only / sealer-only not yet authored)
+  if (se && c) return { system: 'stain_sealer_clear', coating_type: 'stain_clear' };
+  if (c)       return { system: 'stain_clear',        coating_type: 'stain_clear' };
+  return       { system: 'stain_only',                coating_type: 'stain_only' };
 }
 
 // Items-based substrates (doors, windows) store per-item fields like

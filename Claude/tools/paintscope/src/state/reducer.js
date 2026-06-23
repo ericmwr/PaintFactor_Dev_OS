@@ -401,13 +401,19 @@ export function reducer(state, action) {
           const sys = updated.system;
           if (sys) updated.coating_type = coatingTypeFromSystem(sys);
           // Seed default stain scope (stain+clear, sealer opt-in) the first time
-          // a wood substrate enters a stain coating, if not already chosen.
+          // a wood substrate enters a STAIN-based coating, if not already chosen.
+          // clear-only (ct === 'clear_only') is intentionally NOT seeded here —
+          // decomposed families require stain as the base; clear-over-bare is
+          // deferred until those scenarios are authored (Design Decision #7).
           const ct = updated.coating_type;
           const noScopeYet = !updated.stain_on && !updated.sealer_on && !updated.clear_on;
-          if (ct && ct !== 'paint' && noScopeYet) {
-            updated.stain_on = ct === 'stain_clear' || ct === 'stain_only';
-            updated.clear_on = ct === 'stain_clear' || ct === 'clear_only';
-            updated.sealer_on = false;
+          if (ct && noScopeYet) {
+            if (ct === 'stain_clear' || ct === 'stain_only') {
+              updated.stain_on = true;
+              updated.clear_on = ct === 'stain_clear';
+              updated.sealer_on = false;
+            }
+            // ct === 'clear_only': leave all flags false (deferred — no clear-over-bare scenarios)
           }
         }
 

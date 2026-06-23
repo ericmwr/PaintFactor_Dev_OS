@@ -26,9 +26,10 @@ describe('deriveStainScope — flag-to-system mapping (B3)', () => {
       .toEqual({ system: 'stain_only', coating_type: 'stain_only' });
   });
 
-  it('clear only (no stain) → system clear_refresh, coating_type clear_only', () => {
-    expect(deriveStainScope({ stain_on: false, sealer_on: false, clear_on: true }))
-      .toEqual({ system: 'clear_refresh', coating_type: 'clear_only' });
+  // DEFERRED (Design Decision #7): clear-over-bare needs clear-only scenarios not yet authored.
+  // Decomposed families are stain-required; clear-only now returns null (fires nothing safely).
+  it('clear only (no stain) → null [deferred: decomposed clear-over-bare not authored]', () => {
+    expect(deriveStainScope({ stain_on: false, sealer_on: false, clear_on: true })).toBeNull();
   });
 
   it('no flags set → null', () => {
@@ -105,7 +106,11 @@ describe('resolveSystem — presence-flag integration (B3)', () => {
     expect(resolveSystem('SF_DOOR_FRAME_NC_STAIN', room, project)).toBe('stain_only');
   });
 
-  it('returns clear_refresh when only clear_on is set', () => {
+  // DEFERRED: deriveStainScope now returns null for no-stain combos. resolveSystem falls
+  // through to the legacy coating_type/system back-compat path (still valid for bundled
+  // families). For a door_frames config with only clear_on, the fallback ultimately
+  // resolves via the legacy system field or inferredDefault — not a stain system.
+  it('returns clear_refresh when only clear_on is set (legacy fallback path for bundled families)', () => {
     const room = makeRoom(
       'door_frames',
       createSubstrateConfig('door_frames', {
@@ -113,8 +118,12 @@ describe('resolveSystem — presence-flag integration (B3)', () => {
         stain_on: false,
         sealer_on: false,
         clear_on: true,
+        // Explicitly set system to clear_refresh so the legacy path is honored
+        system: 'clear_refresh',
       })
     );
+    // deriveStainScope returns null (no stain), so resolveSystem falls to explicit
+    // config.system → 'clear_refresh' (legacy path, bundled families only).
     expect(resolveSystem('SF_DOOR_FRAME_NC_STAIN', room, project)).toBe('clear_refresh');
   });
 
@@ -178,7 +187,9 @@ describe('resolveCoatingType — presence-flag integration (B3)', () => {
     expect(resolveCoatingType('SF_DOOR_FRAME_NC_STAIN', room, project)).toBe('stain_only');
   });
 
-  it('returns clear_only when only clear_on', () => {
+  // DEFERRED: deriveStainScope now returns null for no-stain combos.
+  // resolveCoatingType falls through to the config.coating_type field (legacy path).
+  it('returns clear_only when only clear_on (falls through to config.coating_type)', () => {
     const room = makeRoom(
       'door_frames',
       createSubstrateConfig('door_frames', {
@@ -186,8 +197,11 @@ describe('resolveCoatingType — presence-flag integration (B3)', () => {
         stain_on: false,
         sealer_on: false,
         clear_on: true,
+        coating_type: 'clear_only', // explicit so fallback resolves correctly
       })
     );
+    // deriveStainScope returns null (no stain), so resolveCoatingType reads
+    // config.coating_type directly → 'clear_only'.
     expect(resolveCoatingType('SF_DOOR_FRAME_NC_STAIN', room, project)).toBe('clear_only');
   });
 
@@ -655,5 +669,108 @@ describe('D3 — arch_element integration: stain+clear (no sealer)', () => {
     expect(stainMat.productName).not.toBe('SYS_STAIN_OIL');
     expect(stainMat.productName).not.toBe('(unknown)');
     expect(stainMat.coats).toBe(1);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// E1: Parametrized "no gaps for any flag combo" guard
+// Verifies that ALL 8 combinations of (stain_on, sealer_on, clear_on) on a
+// bare-wood door_casing substrate produce ZERO "no scenario matched" gaps
+// attributable to decomposed pilot spec ids. The no-stain combos additionally
+// must emit NO decomposed phase inputs (clear-only is deferred → fires nothing).
+// ---------------------------------------------------------------------------
+const CASING_PILOT = new Set([
+  'SF_DOOR_CASING_NC_STAIN',
+  'SF_DOOR_CASING_NC_SEALER',
+  'SF_DOOR_CASING_NC_CLEAR',
+]);
+
+const FLAG_COMBOS = [
+  { stain_on: false, sealer_on: false, clear_on: false, label: 'none' },
+  { stain_on: false, sealer_on: false, clear_on: true,  label: 'clear-only' },
+  { stain_on: false, sealer_on: true,  clear_on: false, label: 'sealer-only' },
+  { stain_on: false, sealer_on: true,  clear_on: true,  label: 'sealer+clear (no stain)' },
+  { stain_on: true,  sealer_on: false, clear_on: false, label: 'stain-only' },
+  { stain_on: true,  sealer_on: false, clear_on: true,  label: 'stain+clear' },
+  { stain_on: true,  sealer_on: true,  clear_on: false, label: 'stain+sealer' },
+  { stain_on: true,  sealer_on: true,  clear_on: true,  label: 'stain+sealer+clear' },
+];
+
+describe('E1 — no gaps for any flag combo on bare door_casing', () => {
+  for (const combo of FLAG_COMBOS) {
+    const hasStain = combo.stain_on;
+    describe(`combo: ${combo.label}`, () => {
+      const state = makeDoorCasingState(combo);
+      const { roomInputs } = buildScenarioInputs(state);
+      const pilotInputs = roomInputs.filter(ri => CASING_PILOT.has(ri.specId));
+      const result = computeScenarioEstimate(state, canonicalBundle, null, []);
+      const gaps = casingGaps(result);
+
+      it('ZERO "no scenario matched" gaps for casing pilot specs', () => {
+        expect(gaps).toHaveLength(0);
+      });
+
+      if (!hasStain) {
+        // No-stain combos: decomposed phase specs must be completely absent (deferred)
+        it('NO decomposed casing phase inputs emitted (clear-only deferred → fires nothing)', () => {
+          expect(pilotInputs).toHaveLength(0);
+        });
+      } else {
+        // Stain-present combos: stain spec must fire
+        it('SF_DOOR_CASING_NC_STAIN input is emitted', () => {
+          expect(pilotInputs.some(i => i.specId === 'SF_DOOR_CASING_NC_STAIN')).toBe(true);
+        });
+        // SEALER only fires when system = stain_sealer_clear (requires stain+sealer+clear).
+        // stain+sealer alone → system=stain_only → SEALER role is inactive (correct behavior).
+        if (combo.sealer_on && combo.clear_on) {
+          it('SF_DOOR_CASING_NC_SEALER input is emitted (sealer+clear path)', () => {
+            expect(pilotInputs.some(i => i.specId === 'SF_DOOR_CASING_NC_SEALER')).toBe(true);
+          });
+        }
+        if (combo.clear_on) {
+          it('SF_DOOR_CASING_NC_CLEAR input is emitted', () => {
+            expect(pilotInputs.some(i => i.specId === 'SF_DOOR_CASING_NC_CLEAR')).toBe(true);
+          });
+        }
+      }
+    });
+  }
+});
+
+// ---------------------------------------------------------------------------
+// E2: Bundled family (baseboard) stain+clear still fires for regression guard
+// ---------------------------------------------------------------------------
+describe('E2 — bundled stain family (baseboard) stain+clear fires, no gaps (regression guard)', () => {
+  function makeBaseboardState({ stain_on = false, sealer_on = false, clear_on = false } = {}) {
+    const room = createRoom({ label: 'E2 Baseboard' });
+    room.substrates.baseboard = createSubstrateConfig('baseboard', {
+      substrate_state: 'bare_wood',
+      painting: true,
+      stain_on,
+      sealer_on,
+      clear_on,
+    });
+    return {
+      project: {
+        default_quality_tier: 'QT3',
+        material_overrides: { system: {}, manual: [] },
+      },
+      rooms: [room],
+      exterior: { elevations: [], defaults: {} },
+    };
+  }
+
+  it('bundled stain+clear: SF_BASEBOARD_NC_STAIN input is emitted', () => {
+    const state = makeBaseboardState({ stain_on: true, sealer_on: false, clear_on: true });
+    const { roomInputs } = buildScenarioInputs(state);
+    const found = roomInputs.some(i => i.specId === 'SF_BASEBOARD_NC_STAIN');
+    expect(found).toBe(true);
+  });
+
+  it('bundled stain+clear: no "no scenario matched" gaps for baseboard stain', () => {
+    const state = makeBaseboardState({ stain_on: true, sealer_on: false, clear_on: true });
+    const result = computeScenarioEstimate(state, canonicalBundle, null, []);
+    const gaps = (result.gaps || []).filter(g => g.specId === 'SF_BASEBOARD_NC_STAIN');
+    expect(gaps).toHaveLength(0);
   });
 });
