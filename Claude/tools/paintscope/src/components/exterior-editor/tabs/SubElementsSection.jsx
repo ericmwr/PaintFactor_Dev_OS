@@ -164,7 +164,7 @@ export default function SubElementsSection({ elevation, derived, dispatch }) {
                     <input type="number" value={s.soffit_depth_ft || ''} onChange={e => set('soffit_depth_ft', parseFloat(e.target.value) || 0)} min="0" step="0.25" />
                   </div>
                 </div>
-                <div className="form-grid" style={{ gridTemplateColumns: 'repeat(2, 1fr)', gap: 6, marginTop: 6 }}>
+                <div className="form-grid" style={{ gridTemplateColumns: 'repeat(3, 1fr)', gap: 6, marginTop: 6 }}>
                   <div>
                     <div className="field-label">Height low (ft)</div>
                     <input type="number" value={s.height_low_ft || ''} onChange={e => set('height_low_ft', parseFloat(e.target.value) || 0)} min="0" />
@@ -172,6 +172,11 @@ export default function SubElementsSection({ elevation, derived, dispatch }) {
                   <div>
                     <div className="field-label">Height high / peak (ft)</div>
                     <input type="number" value={s.height_high_ft || ''} onChange={e => set('height_high_ft', parseFloat(e.target.value) || 0)} min="0" />
+                  </div>
+                  <div>
+                    <div className="field-label">Difficulty &times;</div>
+                    <input type="number" value={s.difficulty_override ?? ''} placeholder="1.0" min="1" step="0.05"
+                      onChange={e => set('difficulty_override', e.target.value === '' ? null : (parseFloat(e.target.value) || null))} />
                   </div>
                 </div>
                 <div className="form-row" style={{ marginTop: 6, gap: 8 }}>
@@ -181,7 +186,7 @@ export default function SubElementsSection({ elevation, derived, dispatch }) {
                 </div>
                 {d && (
                   <div style={{ fontSize: 11, color: 'var(--derived)', fontFamily: 'var(--font-mono)', marginTop: 4 }}>
-                    Siding: {d.sidingSF} SF | Fascia: {d.fasciaLF} LF | Soffit: {d.soffitSF} SF | Access: {d.accessBand}
+                    Siding: {d.sidingSF} SF | Fascia: {d.fasciaLF} LF | Soffit: {d.soffitSF} SF | Access: {d.accessBand}{d.difficultyFactor !== 1 ? ` | Difficulty ×${d.difficultyFactor}` : ''}
                   </div>
                 )}
               </div>
