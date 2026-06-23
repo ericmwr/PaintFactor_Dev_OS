@@ -89,11 +89,10 @@ describe('stain-presence-flags (C1)', () => {
       expect(cfg.coating_type).toBe('stain_only');
     });
 
-    // DEFERRED (Design Decision #7): clear-over-bare scenarios not yet authored for
-    // decomposed families. When system → clear_only, flags are intentionally NOT seeded
-    // (all stay false) so decomposed families fire nothing rather than producing garbage.
-    // coating_type is still synced by coatingTypeFromSystem so the UI can show the intent.
-    it('does NOT seed clear_on when system → clear_only (decomposed clear-only deferred)', () => {
+    // D4 resolved Design Decision #7: CLEAR_BARE/SEALER_BARE scenarios are now authored
+    // for all decomposed families. When system → clear_only, the reducer seeds clear_on:true
+    // so the Clear phase fires immediately (mirrors stain_clear seeding stain_on+clear_on).
+    it('seeds clear_on:true when system → clear_only (CLEAR_BARE scenarios now authored)', () => {
       const state = makeStateWithWoodSubstrate('baseboard', { substrate_state: 'bare_wood' });
       const roomId = state.rooms[0].id;
 
@@ -105,11 +104,11 @@ describe('stain-presence-flags (C1)', () => {
       });
 
       const cfg = next.rooms[0].substrates.baseboard;
-      // Flags must stay false — no stain → decomposed family fires nothing (safe deferral)
+      // clear_on is seeded true — CLEAR_BARE scenario will fire for this substrate
+      expect(cfg.clear_on).toBe(true);
       expect(cfg.stain_on).toBe(false);
-      expect(cfg.clear_on).toBe(false);
       expect(cfg.sealer_on).toBe(false);
-      // coating_type is still synced from the system value (UI informational only)
+      // coating_type is synced from the system value
       expect(cfg.coating_type).toBe('clear_only');
     });
 

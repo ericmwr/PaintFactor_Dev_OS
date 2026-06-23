@@ -762,9 +762,12 @@ describe('E1 — no gaps for any flag combo on bare door_casing', () => {
 });
 
 // ---------------------------------------------------------------------------
-// E2: Bundled family (baseboard) stain+clear still fires for regression guard
+// E2: Decomposed family (baseboard) regression guard — fires DECOMPOSED scenarios,
+// zero gaps for all relevant flag combos. Baseboard is in DECOMPOSED_STAIN_FAMILIES
+// (all 22 stain families are now decomposed). This block guards that the decomposed
+// path continues to work correctly for baseboard after full decomposition landed.
 // ---------------------------------------------------------------------------
-describe('E2 — bundled stain family (baseboard) stain+clear fires, no gaps (regression guard)', () => {
+describe('E2 — decomposed stain family (baseboard) fires decomposed scenarios, zero gaps', () => {
   function makeBaseboardState({ stain_on = false, sealer_on = false, clear_on = false } = {}) {
     const room = createRoom({ label: 'E2 Baseboard' });
     room.substrates.baseboard = createSubstrateConfig('baseboard', {
@@ -784,26 +787,39 @@ describe('E2 — bundled stain family (baseboard) stain+clear fires, no gaps (re
     };
   }
 
-  it('bundled stain+clear: SF_BASEBOARD_NC_STAIN input is emitted', () => {
+  // Baseboard is decomposed: stain+clear fires SF_BASEBOARD_NC_STAIN (STAIN phase)
+  // and SF_BASEBOARD_NC_CLEAR (CLEAR phase) via the DECOMPOSED path, zero gaps.
+  it('stain+clear: SF_BASEBOARD_NC_STAIN decomposed input is emitted', () => {
     const state = makeBaseboardState({ stain_on: true, sealer_on: false, clear_on: true });
     const { roomInputs } = buildScenarioInputs(state);
     const found = roomInputs.some(i => i.specId === 'SF_BASEBOARD_NC_STAIN');
     expect(found).toBe(true);
   });
 
-  it('bundled stain+clear: no "no scenario matched" gaps for baseboard stain', () => {
+  it('stain+clear: SF_BASEBOARD_NC_CLEAR decomposed input is emitted', () => {
+    const state = makeBaseboardState({ stain_on: true, sealer_on: false, clear_on: true });
+    const { roomInputs } = buildScenarioInputs(state);
+    const found = roomInputs.some(i => i.specId === 'SF_BASEBOARD_NC_CLEAR');
+    expect(found).toBe(true);
+  });
+
+  it('stain+clear: zero "no scenario matched" gaps for SF_BASEBOARD_NC_STAIN', () => {
     const state = makeBaseboardState({ stain_on: true, sealer_on: false, clear_on: true });
     const result = computeScenarioEstimate(state, canonicalBundle, null, []);
     const gaps = (result.gaps || []).filter(g => g.specId === 'SF_BASEBOARD_NC_STAIN');
     expect(gaps).toHaveLength(0);
   });
 
-  // D4 regression: bundled family clear-only still takes the LEGACY path (not the decomposed no-stain path)
-  it('bundled clear-only (no stain): baseboard fires via legacy path, zero gaps', () => {
-    // Bundled families with clear_on but no stain_on fall through to the legacy
-    // coating_type/system path — they do NOT use the decomposed CLEAR_BARE scenario.
-    // Verify: no SF_BASEBOARD_NC_STAIN/SEALER/CLEAR gaps (the legacy path either
-    // routes to the bundled scenario or emits no input — neither is a gap).
+  // Decomposed clear-only (no stain): baseboard now uses the DECOMPOSED no-stain path
+  // (CLEAR_BARE scenario). SF_BASEBOARD_NC_CLEAR fires at SS_BARE, zero gaps.
+  it('clear-only (no stain): SF_BASEBOARD_NC_CLEAR decomposed input is emitted at SS_BARE', () => {
+    const state = makeBaseboardState({ stain_on: false, sealer_on: false, clear_on: true });
+    const { roomInputs } = buildScenarioInputs(state);
+    const found = roomInputs.some(i => i.specId === 'SF_BASEBOARD_NC_CLEAR');
+    expect(found).toBe(true);
+  });
+
+  it('clear-only (no stain): zero gaps for SF_BASEBOARD_NC_CLEAR (CLEAR_BARE scenario matched)', () => {
     const state = makeBaseboardState({ stain_on: false, sealer_on: false, clear_on: true });
     const result = computeScenarioEstimate(state, canonicalBundle, null, []);
     const gaps = (result.gaps || []).filter(g =>

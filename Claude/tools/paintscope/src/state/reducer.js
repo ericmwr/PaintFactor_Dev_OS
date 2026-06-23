@@ -402,9 +402,9 @@ export function reducer(state, action) {
           if (sys) updated.coating_type = coatingTypeFromSystem(sys);
           // Seed default stain scope (stain+clear, sealer opt-in) the first time
           // a wood substrate enters a STAIN-based coating, if not already chosen.
-          // clear-only (ct === 'clear_only') is intentionally NOT seeded here —
-          // decomposed families require stain as the base; clear-over-bare is
-          // deferred until those scenarios are authored (Design Decision #7).
+          // clear-only (ct === 'clear_only') seeds clear_on:true — D4 added
+          // CLEAR_BARE/SEALER_BARE scenarios for all decomposed families, so
+          // clear-only is fully supported (Design Decision #7 resolved).
           const ct = updated.coating_type;
           const noScopeYet = !updated.stain_on && !updated.sealer_on && !updated.clear_on;
           if (ct && noScopeYet) {
@@ -413,7 +413,12 @@ export function reducer(state, action) {
               updated.clear_on = ct === 'stain_clear';
               updated.sealer_on = false;
             }
-            // ct === 'clear_only': leave all flags false (deferred — no clear-over-bare scenarios)
+            if (ct === 'clear_only') {
+              // Auto-enable Clear phase — CLEAR_BARE scenario fires immediately
+              updated.clear_on = true;
+              updated.stain_on = false;
+              updated.sealer_on = false;
+            }
           }
         }
 
