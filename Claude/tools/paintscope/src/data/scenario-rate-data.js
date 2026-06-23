@@ -2080,6 +2080,114 @@ export const MATERIAL_SYSTEMS = [
       "coating_type": ["stain_clear", "clear_only"]
     },
     "allowed_sheens": ["satin", "semi_gloss"]
+  },
+  {
+    "id": "SYS_STAIN_OIL",
+    "spec_family_id": "SF_BASEBOARD_NC_STAIN",
+    "name": "Oil-Based Penetrating Stain",
+    "applies_when": {
+      "coating_type": ["stain_clear", "stain_only"]
+    },
+    "allowed_sheens": ["n/a"]
+  },
+  {
+    "id": "SYS_SEALER_OIL",
+    "spec_family_id": "SF_BASEBOARD_NC_SEALER",
+    "name": "Oil Sanding Sealer",
+    "applies_when": {
+      "coating_type": ["stain_clear"]
+    },
+    "allowed_sheens": ["n/a"]
+  },
+  {
+    "id": "SYS_CLEAR_POLY_WB",
+    "spec_family_id": "SF_BASEBOARD_NC_CLEAR",
+    "name": "Waterborne Poly Clear",
+    "applies_when": {
+      "coating_type": ["stain_clear", "clear_only"]
+    },
+    "allowed_sheens": ["satin", "semi_gloss"]
+  },
+  {
+    "id": "SYS_STAIN_OIL",
+    "spec_family_id": "SF_CROWN_NC_STAIN",
+    "name": "Oil-Based Penetrating Stain",
+    "applies_when": {
+      "coating_type": ["stain_clear", "stain_only"]
+    },
+    "allowed_sheens": ["n/a"]
+  },
+  {
+    "id": "SYS_SEALER_OIL",
+    "spec_family_id": "SF_CROWN_NC_SEALER",
+    "name": "Oil Sanding Sealer",
+    "applies_when": {
+      "coating_type": ["stain_clear"]
+    },
+    "allowed_sheens": ["n/a"]
+  },
+  {
+    "id": "SYS_CLEAR_POLY_WB",
+    "spec_family_id": "SF_CROWN_NC_CLEAR",
+    "name": "Waterborne Poly Clear",
+    "applies_when": {
+      "coating_type": ["stain_clear", "clear_only"]
+    },
+    "allowed_sheens": ["satin", "semi_gloss"]
+  },
+  {
+    "id": "SYS_STAIN_OIL",
+    "spec_family_id": "SF_CHAIR_RAIL_NC_STAIN",
+    "name": "Oil-Based Penetrating Stain",
+    "applies_when": {
+      "coating_type": ["stain_clear", "stain_only"]
+    },
+    "allowed_sheens": ["n/a"]
+  },
+  {
+    "id": "SYS_SEALER_OIL",
+    "spec_family_id": "SF_CHAIR_RAIL_NC_SEALER",
+    "name": "Oil Sanding Sealer",
+    "applies_when": {
+      "coating_type": ["stain_clear"]
+    },
+    "allowed_sheens": ["n/a"]
+  },
+  {
+    "id": "SYS_CLEAR_POLY_WB",
+    "spec_family_id": "SF_CHAIR_RAIL_NC_CLEAR",
+    "name": "Waterborne Poly Clear",
+    "applies_when": {
+      "coating_type": ["stain_clear", "clear_only"]
+    },
+    "allowed_sheens": ["satin", "semi_gloss"]
+  },
+  {
+    "id": "SYS_STAIN_OIL",
+    "spec_family_id": "SF_WINDOW_CASING_NC_STAIN",
+    "name": "Oil-Based Penetrating Stain",
+    "applies_when": {
+      "coating_type": ["stain_clear", "stain_only"]
+    },
+    "allowed_sheens": ["n/a"]
+  },
+  {
+    "id": "SYS_SEALER_OIL",
+    "spec_family_id": "SF_WINDOW_CASING_NC_SEALER",
+    "name": "Oil Sanding Sealer",
+    "applies_when": {
+      "coating_type": ["stain_clear"]
+    },
+    "allowed_sheens": ["n/a"]
+  },
+  {
+    "id": "SYS_CLEAR_POLY_WB",
+    "spec_family_id": "SF_WINDOW_CASING_NC_CLEAR",
+    "name": "Waterborne Poly Clear",
+    "applies_when": {
+      "coating_type": ["stain_clear", "clear_only"]
+    },
+    "allowed_sheens": ["satin", "semi_gloss"]
   }
 ];
 
@@ -2960,6 +3068,102 @@ export const MATERIAL_COVERAGE_PROFILES = [
   {
     "id": "COV_DOOR_CASING_CLEAR",
     "spec_family_id": "SF_DOOR_CASING_NC_CLEAR",
+    "product_role": "clear",
+    "surface_texture": "sealed_or_clear_coated",
+    "coverage_range_low": 400,
+    "coverage_range_high": 500
+  },
+  {
+    "id": "COV_BASEBOARD_STAIN",
+    "spec_family_id": "SF_BASEBOARD_NC_STAIN",
+    "product_role": "stain",
+    "surface_texture": "bare_wood",
+    "coverage_range_low": 150,
+    "coverage_range_high": 250
+  },
+  {
+    "id": "COV_BASEBOARD_SEALER",
+    "spec_family_id": "SF_BASEBOARD_NC_SEALER",
+    "product_role": "sealer",
+    "surface_texture": "stained_or_bare",
+    "coverage_range_low": 450,
+    "coverage_range_high": 550
+  },
+  {
+    "id": "COV_BASEBOARD_CLEAR",
+    "spec_family_id": "SF_BASEBOARD_NC_CLEAR",
+    "product_role": "clear",
+    "surface_texture": "sealed_or_clear_coated",
+    "coverage_range_low": 400,
+    "coverage_range_high": 500
+  },
+  {
+    "id": "COV_CROWN_STAIN",
+    "spec_family_id": "SF_CROWN_NC_STAIN",
+    "product_role": "stain",
+    "surface_texture": "bare_wood",
+    "coverage_range_low": 150,
+    "coverage_range_high": 250
+  },
+  {
+    "id": "COV_CROWN_SEALER",
+    "spec_family_id": "SF_CROWN_NC_SEALER",
+    "product_role": "sealer",
+    "surface_texture": "stained_or_bare",
+    "coverage_range_low": 450,
+    "coverage_range_high": 550
+  },
+  {
+    "id": "COV_CROWN_CLEAR",
+    "spec_family_id": "SF_CROWN_NC_CLEAR",
+    "product_role": "clear",
+    "surface_texture": "sealed_or_clear_coated",
+    "coverage_range_low": 400,
+    "coverage_range_high": 500
+  },
+  {
+    "id": "COV_CHAIR_RAIL_STAIN",
+    "spec_family_id": "SF_CHAIR_RAIL_NC_STAIN",
+    "product_role": "stain",
+    "surface_texture": "bare_wood",
+    "coverage_range_low": 150,
+    "coverage_range_high": 250
+  },
+  {
+    "id": "COV_CHAIR_RAIL_SEALER",
+    "spec_family_id": "SF_CHAIR_RAIL_NC_SEALER",
+    "product_role": "sealer",
+    "surface_texture": "stained_or_bare",
+    "coverage_range_low": 450,
+    "coverage_range_high": 550
+  },
+  {
+    "id": "COV_CHAIR_RAIL_CLEAR",
+    "spec_family_id": "SF_CHAIR_RAIL_NC_CLEAR",
+    "product_role": "clear",
+    "surface_texture": "sealed_or_clear_coated",
+    "coverage_range_low": 400,
+    "coverage_range_high": 500
+  },
+  {
+    "id": "COV_WINDOW_CASING_STAIN",
+    "spec_family_id": "SF_WINDOW_CASING_NC_STAIN",
+    "product_role": "stain",
+    "surface_texture": "bare_wood",
+    "coverage_range_low": 150,
+    "coverage_range_high": 250
+  },
+  {
+    "id": "COV_WINDOW_CASING_SEALER",
+    "spec_family_id": "SF_WINDOW_CASING_NC_SEALER",
+    "product_role": "sealer",
+    "surface_texture": "stained_or_bare",
+    "coverage_range_low": 450,
+    "coverage_range_high": 550
+  },
+  {
+    "id": "COV_WINDOW_CASING_CLEAR",
+    "spec_family_id": "SF_WINDOW_CASING_NC_CLEAR",
     "product_role": "clear",
     "surface_texture": "sealed_or_clear_coated",
     "coverage_range_low": 400,
@@ -9233,6 +9437,66 @@ export const SPEC_FAMILY_INFO = [
   {
     "id": "SF_DOOR_CASING_NC_CLEAR",
     "name": "New Construction Door Casing Clear Phase",
+    "domain": "interior"
+  },
+  {
+    "id": "SF_BASEBOARD_NC_STAIN",
+    "name": "New Construction Baseboard Stain Phase",
+    "domain": "interior"
+  },
+  {
+    "id": "SF_BASEBOARD_NC_SEALER",
+    "name": "New Construction Baseboard Sealer Phase",
+    "domain": "interior"
+  },
+  {
+    "id": "SF_BASEBOARD_NC_CLEAR",
+    "name": "New Construction Baseboard Clear Phase",
+    "domain": "interior"
+  },
+  {
+    "id": "SF_CROWN_NC_STAIN",
+    "name": "New Construction Crown Stain Phase",
+    "domain": "interior"
+  },
+  {
+    "id": "SF_CROWN_NC_SEALER",
+    "name": "New Construction Crown Sealer Phase",
+    "domain": "interior"
+  },
+  {
+    "id": "SF_CROWN_NC_CLEAR",
+    "name": "New Construction Crown Clear Phase",
+    "domain": "interior"
+  },
+  {
+    "id": "SF_CHAIR_RAIL_NC_STAIN",
+    "name": "New Construction Chair Rail Stain Phase",
+    "domain": "interior"
+  },
+  {
+    "id": "SF_CHAIR_RAIL_NC_SEALER",
+    "name": "New Construction Chair Rail Sealer Phase",
+    "domain": "interior"
+  },
+  {
+    "id": "SF_CHAIR_RAIL_NC_CLEAR",
+    "name": "New Construction Chair Rail Clear Phase",
+    "domain": "interior"
+  },
+  {
+    "id": "SF_WINDOW_CASING_NC_STAIN",
+    "name": "New Construction Window Casing Stain Phase",
+    "domain": "interior"
+  },
+  {
+    "id": "SF_WINDOW_CASING_NC_SEALER",
+    "name": "New Construction Window Casing Sealer Phase",
+    "domain": "interior"
+  },
+  {
+    "id": "SF_WINDOW_CASING_NC_CLEAR",
+    "name": "New Construction Window Casing Clear Phase",
     "domain": "interior"
   }
 ];

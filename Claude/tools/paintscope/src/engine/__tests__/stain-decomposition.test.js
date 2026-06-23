@@ -1067,3 +1067,336 @@ describe('F0 — integration: legacy door_casing (no flags, coating_type:stain_c
     expect(stainSpec.totalHours).toBeGreaterThan(0);
   });
 });
+
+// ---------------------------------------------------------------------------
+// F1: Decomposed families — baseboard + window_casing ctx routing
+// Verifies the four new families route correctly through findBestMatch and
+// produce zero gaps + real products in computeScenarioEstimate.
+// ---------------------------------------------------------------------------
+
+// ── Baseboard: adapter routing ──────────────────────────────────────────────
+describe('F1 — baseboard adapter routing (decomposed)', () => {
+  const BASEBOARD_PILOT = new Set([
+    'SF_BASEBOARD_NC_STAIN',
+    'SF_BASEBOARD_NC_SEALER',
+    'SF_BASEBOARD_NC_CLEAR',
+  ]);
+
+  function makeBaseboardStateF1({ stain_on = false, sealer_on = false, clear_on = false } = {}) {
+    const room = createRoom({ label: 'F1 Baseboard' });
+    room.substrates.baseboard = createSubstrateConfig('baseboard', {
+      substrate_state: 'bare_wood',
+      painting: true,
+      stain_on,
+      sealer_on,
+      clear_on,
+    });
+    return { project: { default_quality_tier: 'QT3' }, rooms: [room] };
+  }
+
+  it('stain+clear: emits STAIN@SS_BARE and CLEAR@SS_STAINED inputs (no sealer)', () => {
+    const state = makeBaseboardStateF1({ stain_on: true, sealer_on: false, clear_on: true });
+    const { roomInputs } = buildScenarioInputs(state);
+    const inputs = roomInputs.filter(i => BASEBOARD_PILOT.has(i.specId));
+
+    expect(inputs).toHaveLength(2);
+    const stainIn = inputs.find(i => i.specId === 'SF_BASEBOARD_NC_STAIN');
+    const clearIn  = inputs.find(i => i.specId === 'SF_BASEBOARD_NC_CLEAR');
+
+    expect(stainIn).toBeDefined();
+    expect(stainIn.ctx.coating_phase).toBe('stain');
+    expect(stainIn.ctx.substrate_state).toBe('SS_BARE');
+
+    expect(clearIn).toBeDefined();
+    expect(clearIn.ctx.coating_phase).toBe('clear');
+    expect(clearIn.ctx.substrate_state).toBe('SS_STAINED');
+
+    expect(inputs.find(i => i.specId === 'SF_BASEBOARD_NC_SEALER')).toBeUndefined();
+  });
+
+  it('stain+sealer+clear: emits all three inputs in correct states', () => {
+    const state = makeBaseboardStateF1({ stain_on: true, sealer_on: true, clear_on: true });
+    const { roomInputs } = buildScenarioInputs(state);
+    const inputs = roomInputs.filter(i => BASEBOARD_PILOT.has(i.specId));
+
+    expect(inputs).toHaveLength(3);
+    expect(inputs.find(i => i.specId === 'SF_BASEBOARD_NC_STAIN')?.ctx.substrate_state).toBe('SS_BARE');
+    expect(inputs.find(i => i.specId === 'SF_BASEBOARD_NC_SEALER')?.ctx.substrate_state).toBe('SS_STAINED');
+    expect(inputs.find(i => i.specId === 'SF_BASEBOARD_NC_CLEAR')?.ctx.substrate_state).toBe('SS_SEALED');
+  });
+
+  it('decomposed inputs have no ctx coat fields', () => {
+    const state = makeBaseboardStateF1({ stain_on: true, sealer_on: true, clear_on: true });
+    const { roomInputs } = buildScenarioInputs(state);
+    for (const inp of roomInputs.filter(i => BASEBOARD_PILOT.has(i.specId))) {
+      expect(inp.ctx.stain_coats).toBeUndefined();
+      expect(inp.ctx.sealer_coats).toBeUndefined();
+      expect(inp.ctx.clear_coats).toBeUndefined();
+    }
+  });
+});
+
+// ── Baseboard: findBestMatch scenario routing ────────────────────────────────
+describe('F1 — baseboard scenario routing via findBestMatch', () => {
+  it('SS_BARE + stain → SCN_INT_BASEBOARD_STAIN', () => {
+    const ctx = { paintable_item: 'int_baseboard', substrate_state: 'SS_BARE', coating_phase: 'stain' };
+    const { scenario } = findBestMatch(bundle, ctx);
+    expect(scenario?.scenario_id).toBe('SCN_INT_BASEBOARD_STAIN');
+  });
+
+  it('SS_STAINED + sealer → SCN_INT_BASEBOARD_SEALER', () => {
+    const ctx = { paintable_item: 'int_baseboard', substrate_state: 'SS_STAINED', coating_phase: 'sealer' };
+    const { scenario } = findBestMatch(bundle, ctx);
+    expect(scenario?.scenario_id).toBe('SCN_INT_BASEBOARD_SEALER');
+  });
+
+  it('SS_STAINED + clear → SCN_INT_BASEBOARD_CLEAR', () => {
+    const ctx = { paintable_item: 'int_baseboard', substrate_state: 'SS_STAINED', coating_phase: 'clear' };
+    const { scenario } = findBestMatch(bundle, ctx);
+    expect(scenario?.scenario_id).toBe('SCN_INT_BASEBOARD_CLEAR');
+  });
+
+  it('SS_SEALED + clear → SCN_INT_BASEBOARD_CLEAR', () => {
+    const ctx = { paintable_item: 'int_baseboard', substrate_state: 'SS_SEALED', coating_phase: 'clear' };
+    const { scenario } = findBestMatch(bundle, ctx);
+    expect(scenario?.scenario_id).toBe('SCN_INT_BASEBOARD_CLEAR');
+  });
+
+  it('SS_BARE + clear → SCN_INT_BASEBOARD_CLEAR_BARE (natural finish)', () => {
+    const ctx = { paintable_item: 'int_baseboard', substrate_state: 'SS_BARE', coating_phase: 'clear' };
+    const { scenario } = findBestMatch(bundle, ctx);
+    expect(scenario?.scenario_id).toBe('SCN_INT_BASEBOARD_CLEAR_BARE');
+  });
+
+  it('SS_BARE + sealer → SCN_INT_BASEBOARD_SEALER_BARE (no-stain sealer)', () => {
+    const ctx = { paintable_item: 'int_baseboard', substrate_state: 'SS_BARE', coating_phase: 'sealer' };
+    const { scenario } = findBestMatch(bundle, ctx);
+    expect(scenario?.scenario_id).toBe('SCN_INT_BASEBOARD_SEALER_BARE');
+  });
+
+  it('bundled SCN_INT_BASEBOARD_STAIN_CLEAR is no longer in the bundle', () => {
+    const bundled = bundle.scenarios.find(s => s.scenario_id === 'SCN_INT_BASEBOARD_STAIN_CLEAR');
+    expect(bundled).toBeUndefined();
+  });
+});
+
+// ── Baseboard: full integration ──────────────────────────────────────────────
+describe('F1 — baseboard integration: stain+clear (no sealer)', () => {
+  function makeBaseboardIntState({ stain_on = false, sealer_on = false, clear_on = false } = {}) {
+    const room = createRoom({ label: 'F1 Baseboard Int' });
+    // Use lf_override so quantity is non-zero regardless of room geometry
+    room.substrates.baseboard = createSubstrateConfig('baseboard', {
+      substrate_state: 'bare_wood',
+      painting: true,
+      stain_on,
+      sealer_on,
+      clear_on,
+      lf_override: true,
+      lf_manual: 20,
+    });
+    return {
+      project: {
+        default_quality_tier: 'QT3',
+        material_overrides: { system: {}, manual: [] },
+      },
+      rooms: [room],
+      exterior: { elevations: [], defaults: {} },
+    };
+  }
+
+  const BASEBOARD_PILOT = new Set([
+    'SF_BASEBOARD_NC_STAIN',
+    'SF_BASEBOARD_NC_SEALER',
+    'SF_BASEBOARD_NC_CLEAR',
+  ]);
+
+  const state = makeBaseboardIntState({ stain_on: true, sealer_on: false, clear_on: true });
+  const result = computeScenarioEstimate(state, canonicalBundle, null, []);
+
+  it('result is non-null and not an error', () => {
+    expect(result).not.toBeNull();
+    expect(result.error).toBeUndefined();
+  });
+
+  it('specResults includes SF_BASEBOARD_NC_STAIN', () => {
+    expect((result.specResults || []).some(sr => sr.specId === 'SF_BASEBOARD_NC_STAIN')).toBe(true);
+  });
+
+  it('specResults includes SF_BASEBOARD_NC_CLEAR', () => {
+    expect((result.specResults || []).some(sr => sr.specId === 'SF_BASEBOARD_NC_CLEAR')).toBe(true);
+  });
+
+  it('specResults does NOT include SF_BASEBOARD_NC_SEALER (sealer_on=false)', () => {
+    expect((result.specResults || []).some(sr => sr.specId === 'SF_BASEBOARD_NC_SEALER')).toBe(false);
+  });
+
+  it('zero gaps for baseboard pilot specIds', () => {
+    const gaps = (result.gaps || []).filter(g => BASEBOARD_PILOT.has(g.specId));
+    expect(gaps).toHaveLength(0);
+  });
+
+  it('stain material line has a real productId and coats === 1', () => {
+    const stainMat = (result.materialEstimates || []).find(
+      m => m.specFamilyId === 'SF_BASEBOARD_NC_STAIN' && m.productRole === 'stain'
+    );
+    expect(stainMat).toBeDefined();
+    expect(stainMat.productId).not.toBeNull();
+    expect(typeof stainMat.productId).toBe('string');
+    expect(stainMat.productId.length).toBeGreaterThan(0);
+    expect(stainMat.productName).not.toBe('SYS_STAIN_OIL');
+    expect(stainMat.coats).toBe(1);
+  });
+});
+
+// ── window_casing: adapter routing ──────────────────────────────────────────
+describe('F1 — window_casing adapter routing (decomposed)', () => {
+  const WINCASING_PILOT = new Set([
+    'SF_WINDOW_CASING_NC_STAIN',
+    'SF_WINDOW_CASING_NC_SEALER',
+    'SF_WINDOW_CASING_NC_CLEAR',
+  ]);
+
+  function makeWindowCasingState({ stain_on = false, sealer_on = false, clear_on = false } = {}) {
+    const room = createRoom({ label: 'F1 WinCasing' });
+    room.substrates.window_casing = createSubstrateConfig('window_casing', {
+      substrate_state: 'bare_wood',
+      painting: true,
+      stain_on,
+      sealer_on,
+      clear_on,
+    });
+    return { project: { default_quality_tier: 'QT3' }, rooms: [room] };
+  }
+
+  it('stain+clear: emits STAIN@SS_BARE and CLEAR@SS_STAINED inputs (no sealer)', () => {
+    const state = makeWindowCasingState({ stain_on: true, sealer_on: false, clear_on: true });
+    const { roomInputs } = buildScenarioInputs(state);
+    const inputs = roomInputs.filter(i => WINCASING_PILOT.has(i.specId));
+
+    expect(inputs).toHaveLength(2);
+    expect(inputs.find(i => i.specId === 'SF_WINDOW_CASING_NC_STAIN')?.ctx.substrate_state).toBe('SS_BARE');
+    expect(inputs.find(i => i.specId === 'SF_WINDOW_CASING_NC_CLEAR')?.ctx.substrate_state).toBe('SS_STAINED');
+    expect(inputs.find(i => i.specId === 'SF_WINDOW_CASING_NC_SEALER')).toBeUndefined();
+  });
+
+  it('stain+sealer+clear: clear shifts to SS_SEALED', () => {
+    const state = makeWindowCasingState({ stain_on: true, sealer_on: true, clear_on: true });
+    const { roomInputs } = buildScenarioInputs(state);
+    const inputs = roomInputs.filter(i => WINCASING_PILOT.has(i.specId));
+
+    expect(inputs).toHaveLength(3);
+    expect(inputs.find(i => i.specId === 'SF_WINDOW_CASING_NC_CLEAR')?.ctx.substrate_state).toBe('SS_SEALED');
+  });
+});
+
+// ── window_casing: findBestMatch scenario routing ────────────────────────────
+describe('F1 — window_casing scenario routing via findBestMatch', () => {
+  it('SS_BARE + stain → SCN_INT_WINDOW_CASING_STAIN', () => {
+    const ctx = { paintable_item: 'int_window_casing', substrate_state: 'SS_BARE', coating_phase: 'stain' };
+    const { scenario } = findBestMatch(bundle, ctx);
+    expect(scenario?.scenario_id).toBe('SCN_INT_WINDOW_CASING_STAIN');
+  });
+
+  it('SS_STAINED + sealer → SCN_INT_WINDOW_CASING_SEALER', () => {
+    const ctx = { paintable_item: 'int_window_casing', substrate_state: 'SS_STAINED', coating_phase: 'sealer' };
+    const { scenario } = findBestMatch(bundle, ctx);
+    expect(scenario?.scenario_id).toBe('SCN_INT_WINDOW_CASING_SEALER');
+  });
+
+  it('SS_STAINED + clear → SCN_INT_WINDOW_CASING_CLEAR', () => {
+    const ctx = { paintable_item: 'int_window_casing', substrate_state: 'SS_STAINED', coating_phase: 'clear' };
+    const { scenario } = findBestMatch(bundle, ctx);
+    expect(scenario?.scenario_id).toBe('SCN_INT_WINDOW_CASING_CLEAR');
+  });
+
+  it('SS_SEALED + clear → SCN_INT_WINDOW_CASING_CLEAR (sealer path)', () => {
+    const ctx = { paintable_item: 'int_window_casing', substrate_state: 'SS_SEALED', coating_phase: 'clear' };
+    const { scenario } = findBestMatch(bundle, ctx);
+    expect(scenario?.scenario_id).toBe('SCN_INT_WINDOW_CASING_CLEAR');
+  });
+
+  it('SS_BARE + clear → SCN_INT_WINDOW_CASING_CLEAR_BARE (natural finish)', () => {
+    const ctx = { paintable_item: 'int_window_casing', substrate_state: 'SS_BARE', coating_phase: 'clear' };
+    const { scenario } = findBestMatch(bundle, ctx);
+    expect(scenario?.scenario_id).toBe('SCN_INT_WINDOW_CASING_CLEAR_BARE');
+  });
+
+  it('SS_BARE + sealer → SCN_INT_WINDOW_CASING_SEALER_BARE', () => {
+    const ctx = { paintable_item: 'int_window_casing', substrate_state: 'SS_BARE', coating_phase: 'sealer' };
+    const { scenario } = findBestMatch(bundle, ctx);
+    expect(scenario?.scenario_id).toBe('SCN_INT_WINDOW_CASING_SEALER_BARE');
+  });
+
+  it('bundled SCN_INT_WINDOW_CASING_STAIN_CLEAR is no longer in the bundle', () => {
+    const bundled = bundle.scenarios.find(s => s.scenario_id === 'SCN_INT_WINDOW_CASING_STAIN_CLEAR');
+    expect(bundled).toBeUndefined();
+  });
+});
+
+// ── window_casing: full integration ─────────────────────────────────────────
+describe('F1 — window_casing integration: stain+sealer+clear (all three phases)', () => {
+  function makeWindowCasingIntState({ stain_on = false, sealer_on = false, clear_on = false } = {}) {
+    const room = createRoom({ label: 'F1 WinCasing Int' });
+    // Use lf_override so quantity is non-zero regardless of window count
+    room.substrates.window_casing = createSubstrateConfig('window_casing', {
+      substrate_state: 'bare_wood',
+      painting: true,
+      stain_on,
+      sealer_on,
+      clear_on,
+      lf_override: true,
+      lf_manual: 20,
+    });
+    return {
+      project: {
+        default_quality_tier: 'QT3',
+        material_overrides: { system: {}, manual: [] },
+      },
+      rooms: [room],
+      exterior: { elevations: [], defaults: {} },
+    };
+  }
+
+  const WINCASING_PILOT = new Set([
+    'SF_WINDOW_CASING_NC_STAIN',
+    'SF_WINDOW_CASING_NC_SEALER',
+    'SF_WINDOW_CASING_NC_CLEAR',
+  ]);
+
+  const state = makeWindowCasingIntState({ stain_on: true, sealer_on: true, clear_on: true });
+  const result = computeScenarioEstimate(state, canonicalBundle, null, []);
+
+  it('result is non-null and not an error', () => {
+    expect(result).not.toBeNull();
+    expect(result.error).toBeUndefined();
+  });
+
+  it('specResults includes all three decomposed window_casing specs', () => {
+    expect((result.specResults || []).some(sr => sr.specId === 'SF_WINDOW_CASING_NC_STAIN')).toBe(true);
+    expect((result.specResults || []).some(sr => sr.specId === 'SF_WINDOW_CASING_NC_SEALER')).toBe(true);
+    expect((result.specResults || []).some(sr => sr.specId === 'SF_WINDOW_CASING_NC_CLEAR')).toBe(true);
+  });
+
+  it('zero gaps for window_casing pilot specIds', () => {
+    const gaps = (result.gaps || []).filter(g => WINCASING_PILOT.has(g.specId));
+    expect(gaps).toHaveLength(0);
+  });
+
+  it('clear input matched at SS_SEALED (sealer applied first)', () => {
+    const clearInput = (result.perInputResults || []).find(pr => pr.specId === 'SF_WINDOW_CASING_NC_CLEAR');
+    expect(clearInput).toBeDefined();
+    expect(clearInput.ctx.substrate_state).toBe('SS_SEALED');
+  });
+
+  it('stain material line has a real productId and coats === 1', () => {
+    const stainMat = (result.materialEstimates || []).find(
+      m => m.specFamilyId === 'SF_WINDOW_CASING_NC_STAIN' && m.productRole === 'stain'
+    );
+    expect(stainMat).toBeDefined();
+    expect(stainMat.productId).not.toBeNull();
+    expect(typeof stainMat.productId).toBe('string');
+    expect(stainMat.productId.length).toBeGreaterThan(0);
+    expect(stainMat.productName).not.toBe('SYS_STAIN_OIL');
+    expect(stainMat.coats).toBe(1);
+  });
+});
