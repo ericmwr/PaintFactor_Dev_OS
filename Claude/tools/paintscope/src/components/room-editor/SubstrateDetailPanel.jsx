@@ -6,6 +6,8 @@ import { SUBSTRATE_MAP, SUBSTRATE_APPLICATION_METHODS } from '../../data/substra
 import { SUBSTRATE_SYSTEMS, SYSTEM_METADATA, inferDefaultSystem, coatingTypeFromSystem } from '../../data/system-catalog.js';
 import { useModifierEnum } from '../../hooks/useModifierEnum';
 import { deriveHeightBand } from '../../engine/derive-room.js';
+import { resolveSystem } from '../../engine/material-overrides.js';
+import { MATERIAL_SYSTEMS } from '../../data/scenario-rate-data.js';
 
 const HEIGHT_BAND_OPTIONS = [
   { value: 'STD',      label: 'Ground Level (STD)' },
@@ -328,6 +330,30 @@ export default function SubstrateDetailPanel({ room, derived, dispatch, substrat
               </>
             )}
           </div>
+          {(config.stain_on || config.sealer_on || config.clear_on) && (() => {
+            const overrides = project?.material_overrides;
+            const fg = config.finish_group || null;
+            const nameById = Object.fromEntries(MATERIAL_SYSTEMS.map(s => [s.id, s.name || s.id]));
+            const roleLabels = [
+              config.stain_on  ? { role: 'stain',  scenarioPick: null } : null,
+              config.sealer_on ? { role: 'sealer', scenarioPick: null } : null,
+              config.clear_on  ? { role: 'clear',  scenarioPick: null } : null,
+            ].filter(Boolean);
+            const chips = roleLabels.map(({ role }) => {
+              const resolved = resolveSystem(role, fg, overrides, null);  // null scenarioPick: chip strip only shows OVERRIDES, not file defaults
+              const label = resolved ? (nameById[resolved] || resolved) : '— tier default —';
+              const sourceTag = overrides?.byFinishGroup?.[fg]?.[`${role}_system`] ? ` (override · group ${fg})`
+                : overrides?.byRole?.[`${role}_system`] ? ' (project override)'
+                : '';
+              return `${role.charAt(0).toUpperCase() + role.slice(1)} · ${label}${sourceTag}`;
+            });
+            return (
+              <div style={{ marginTop: 10, padding: '6px 10px', fontSize: 10, color: 'var(--text-muted)', background: 'rgba(0,0,0,0.1)', borderRadius: 3 }}>
+                Resolved materials: {chips.join('   ·   ')}
+                <span style={{ marginLeft: 10, fontStyle: 'italic' }}>change in Materials Overrides panel</span>
+              </div>
+            );
+          })()}
         </div>
       )}
 
