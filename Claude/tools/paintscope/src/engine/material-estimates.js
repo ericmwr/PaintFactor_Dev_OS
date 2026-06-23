@@ -184,6 +184,10 @@ export function computeMaterialEstimates(state, roomLookups, specResults = [], s
   // can't produce gallon estimates anyway (empty matchedSystems → early return).
   Object.entries(scenarioMaterials || {}).forEach(([key, sysEntry]) => {
     // P3: derive specId + finishGroup from sysEntry (new format) or key (old compat format).
+    // Backward-compat: material-array-selection.test.js + stain-material-coats.test.js
+    // pass plain-specId keys (`SF_X`) with values lacking `specId`/`finishGroup`. The
+    // shim below recovers those fields from the key. Migrate those test fixtures to the
+    // new `${specId}|${fg}` key + `{specId, finishGroup, ...}` value shape to retire the shim.
     const specId = sysEntry.specId ?? key.split('|')[0];
     const finishGroup = 'finishGroup' in sysEntry
       ? sysEntry.finishGroup
@@ -241,7 +245,7 @@ export function computeMaterialEstimates(state, roomLookups, specResults = [], s
     // Emit one estimate per matched system
     matchedSystems.forEach(({ system: matchedSystem, role }) => {
       // P3: project-level override applies first (replaces matchedSystem id when set).
-      const overrideSystemId = resolveSystem(role, sysEntry.finishGroup ?? finishGroup, project.material_overrides, matchedSystem ? matchedSystem.id : null);
+      const overrideSystemId = resolveSystem(role, finishGroup, project.material_overrides, matchedSystem ? matchedSystem.id : null);
       if (matchedSystem && overrideSystemId && overrideSystemId !== matchedSystem.id) {
         matchedSystem = MATERIAL_SYSTEMS.find(s => s.id === overrideSystemId) || { id: overrideSystemId, name: overrideSystemId };
       } else if (!matchedSystem && overrideSystemId) {
@@ -259,7 +263,7 @@ export function computeMaterialEstimates(state, roomLookups, specResults = [], s
           : 1;
       }
       // P3: layer the override on top (works uniformly for stain + paint roles).
-      let coats = resolveOverrideCoats(role, sysEntry.finishGroup ?? finishGroup, project.material_overrides, baseCoats);
+      let coats = resolveOverrideCoats(role, finishGroup, project.material_overrides, baseCoats);
 
       // Find coverage profile matching system + texture
       let matchedProfile = null;
