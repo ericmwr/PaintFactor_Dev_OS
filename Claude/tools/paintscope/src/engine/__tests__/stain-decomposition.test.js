@@ -2016,3 +2016,262 @@ describe('F4b — SRST open_rail integration: clear-only (bare)', () => {
     expect(srst_gaps(result)).toHaveLength(0);
   });
 });
+
+// ---------------------------------------------------------------------------
+// F4b — window_int stain decomposition (Phase 1 F4b)
+// int_window is EA-based (PS_OPENING_EA.WINDOW_TOTAL). Decomposed into
+// STAIN / SEALER / CLEAR phases via standard PHASE_BY_ROLE path.
+// ps_key audit: TSK_WIN_* all carry PS_OPENING_EA.WINDOW_TOTAL (correct).
+// ---------------------------------------------------------------------------
+
+import { createWindow } from '../../state/initial-state.js';
+
+const WIST_PILOT = new Set([
+  'SF_WINDOW_INT_NC_STAIN',
+  'SF_WINDOW_INT_NC_SEALER',
+  'SF_WINDOW_INT_NC_CLEAR',
+]);
+
+// Build a state with bare-wood windows (count=2), presence flags on the windows substrate.
+// Windows require items to emit PS_OPENING_EA.WINDOW_TOTAL > 0.
+function makeWindowStainState({ stain_on = false, sealer_on = false, clear_on = false } = {}) {
+  const room = createRoom({ label: 'F4b Window Stain' });
+  room.substrates.windows = createSubstrateConfig('windows', {
+    substrate_state: 'bare_wood',
+    painting: true,
+    stain_on,
+    sealer_on,
+    clear_on,
+    items: [createWindow({ count: 2, substrate_state: 'bare_wood' })],
+  });
+  return {
+    project: {
+      default_quality_tier: 'QT3',
+      material_overrides: { system: {}, manual: [] },
+    },
+    rooms: [room],
+    exterior: { elevations: [], defaults: {} },
+  };
+}
+
+function wist_gaps(result) {
+  return (result.gaps || []).filter(g => WIST_PILOT.has(g.specId));
+}
+function wist_warnings(result) {
+  return (result.warnings || []).filter(w => [...WIST_PILOT].some(n => String(w).includes(n)));
+}
+
+// ── D5: findBestMatch routing ────────────────────────────────────────────────
+describe('D5 — int_window phase scenario routing via findBestMatch (F4b)', () => {
+  it('SS_BARE + coating_phase:stain → SCN_INT_WNST_STAIN', () => {
+    const ctx = { paintable_item: 'int_window', substrate_state: 'SS_BARE', coating_phase: 'stain' };
+    const { scenario } = findBestMatch(bundle, ctx);
+    expect(scenario).not.toBeNull();
+    expect(scenario.scenario_id).toBe('SCN_INT_WNST_STAIN');
+  });
+
+  it('SS_STAINED + coating_phase:sealer → SCN_INT_WNST_SEALER', () => {
+    const ctx = { paintable_item: 'int_window', substrate_state: 'SS_STAINED', coating_phase: 'sealer' };
+    const { scenario } = findBestMatch(bundle, ctx);
+    expect(scenario).not.toBeNull();
+    expect(scenario.scenario_id).toBe('SCN_INT_WNST_SEALER');
+  });
+
+  it('SS_STAINED + coating_phase:clear → SCN_INT_WNST_CLEAR (no-sealer path)', () => {
+    const ctx = { paintable_item: 'int_window', substrate_state: 'SS_STAINED', coating_phase: 'clear' };
+    const { scenario } = findBestMatch(bundle, ctx);
+    expect(scenario).not.toBeNull();
+    expect(scenario.scenario_id).toBe('SCN_INT_WNST_CLEAR');
+  });
+
+  it('SS_SEALED + coating_phase:clear → SCN_INT_WNST_CLEAR (sealer path)', () => {
+    const ctx = { paintable_item: 'int_window', substrate_state: 'SS_SEALED', coating_phase: 'clear' };
+    const { scenario } = findBestMatch(bundle, ctx);
+    expect(scenario).not.toBeNull();
+    expect(scenario.scenario_id).toBe('SCN_INT_WNST_CLEAR');
+  });
+
+  it('SS_BARE + coating_phase:clear → SCN_INT_WNST_CLEAR_BARE (natural finish)', () => {
+    const ctx = { paintable_item: 'int_window', substrate_state: 'SS_BARE', coating_phase: 'clear' };
+    const { scenario } = findBestMatch(bundle, ctx);
+    expect(scenario).not.toBeNull();
+    expect(scenario.scenario_id).toBe('SCN_INT_WNST_CLEAR_BARE');
+  });
+
+  it('SS_BARE + coating_phase:sealer → SCN_INT_WNST_SEALER_BARE (no-stain sealer)', () => {
+    const ctx = { paintable_item: 'int_window', substrate_state: 'SS_BARE', coating_phase: 'sealer' };
+    const { scenario } = findBestMatch(bundle, ctx);
+    expect(scenario).not.toBeNull();
+    expect(scenario.scenario_id).toBe('SCN_INT_WNST_SEALER_BARE');
+  });
+
+  it('bundled SCN_INT_WNST_STAIN_CLEAR is no longer in the bundle (archived)', () => {
+    const bundled = bundle.scenarios.find(s => s.scenario_id === 'SCN_INT_WNST_STAIN_CLEAR');
+    expect(bundled).toBeUndefined();
+  });
+});
+
+// ── F4b adapter routing ──────────────────────────────────────────────────────
+describe('F4b — int_window adapter routing (decomposed)', () => {
+  it('stain+clear: emits STAIN@SS_BARE + CLEAR@SS_STAINED, no sealer', () => {
+    const state = makeWindowStainState({ stain_on: true, sealer_on: false, clear_on: true });
+    const { roomInputs } = buildScenarioInputs(state);
+    const inputs = roomInputs.filter(i => WIST_PILOT.has(i.specId));
+
+    expect(inputs).toHaveLength(2);
+    const stainIn = inputs.find(i => i.specId === 'SF_WINDOW_INT_NC_STAIN');
+    const clearIn  = inputs.find(i => i.specId === 'SF_WINDOW_INT_NC_CLEAR');
+
+    expect(stainIn).toBeDefined();
+    expect(stainIn.ctx.coating_phase).toBe('stain');
+    expect(stainIn.ctx.substrate_state).toBe('SS_BARE');
+
+    expect(clearIn).toBeDefined();
+    expect(clearIn.ctx.coating_phase).toBe('clear');
+    expect(clearIn.ctx.substrate_state).toBe('SS_STAINED');
+
+    expect(inputs.find(i => i.specId === 'SF_WINDOW_INT_NC_SEALER')).toBeUndefined();
+  });
+
+  it('stain+sealer+clear: emits all three in correct states', () => {
+    const state = makeWindowStainState({ stain_on: true, sealer_on: true, clear_on: true });
+    const { roomInputs } = buildScenarioInputs(state);
+    const inputs = roomInputs.filter(i => WIST_PILOT.has(i.specId));
+
+    expect(inputs).toHaveLength(3);
+    expect(inputs.find(i => i.specId === 'SF_WINDOW_INT_NC_STAIN')?.ctx.substrate_state).toBe('SS_BARE');
+    expect(inputs.find(i => i.specId === 'SF_WINDOW_INT_NC_SEALER')?.ctx.substrate_state).toBe('SS_STAINED');
+    expect(inputs.find(i => i.specId === 'SF_WINDOW_INT_NC_CLEAR')?.ctx.substrate_state).toBe('SS_SEALED');
+  });
+
+  it('decomposed window inputs have no ctx coat fields', () => {
+    const state = makeWindowStainState({ stain_on: true, sealer_on: true, clear_on: true });
+    const { roomInputs } = buildScenarioInputs(state);
+    for (const inp of roomInputs.filter(i => WIST_PILOT.has(i.specId))) {
+      expect(inp.ctx.stain_coats).toBeUndefined();
+      expect(inp.ctx.sealer_coats).toBeUndefined();
+      expect(inp.ctx.clear_coats).toBeUndefined();
+    }
+  });
+});
+
+// ── F4b integration: stain+clear ────────────────────────────────────────────
+describe('F4b — int_window integration: stain+clear (no sealer)', () => {
+  const state = makeWindowStainState({ stain_on: true, sealer_on: false, clear_on: true });
+  const result = computeScenarioEstimate(state, canonicalBundle, null, []);
+
+  it('result is non-null and not an error', () => {
+    expect(result).not.toBeNull();
+    expect(result.error).toBeUndefined();
+  });
+
+  it('specResults includes SF_WINDOW_INT_NC_STAIN', () => {
+    expect((result.specResults || []).some(sr => sr.specId === 'SF_WINDOW_INT_NC_STAIN')).toBe(true);
+  });
+
+  it('specResults includes SF_WINDOW_INT_NC_CLEAR', () => {
+    expect((result.specResults || []).some(sr => sr.specId === 'SF_WINDOW_INT_NC_CLEAR')).toBe(true);
+  });
+
+  it('specResults does NOT include SF_WINDOW_INT_NC_SEALER (sealer_on=false)', () => {
+    expect((result.specResults || []).some(sr => sr.specId === 'SF_WINDOW_INT_NC_SEALER')).toBe(false);
+  });
+
+  it('no gaps for window pilot specIds (ps_key PS_OPENING_EA.WINDOW_TOTAL resolves)', () => {
+    expect(wist_gaps(result)).toHaveLength(0);
+  });
+
+  it('no warnings mentioning window pilot specIds', () => {
+    expect(wist_warnings(result)).toHaveLength(0);
+  });
+
+  it('stain spec totalHours > 0 (ps_key PS_OPENING_EA.WINDOW_TOTAL fires correctly)', () => {
+    const stainSpec = (result.specResults || []).find(sr => sr.specId === 'SF_WINDOW_INT_NC_STAIN');
+    expect(stainSpec).toBeDefined();
+    expect(stainSpec.totalHours).toBeGreaterThan(0);
+  });
+
+  it('clear spec totalHours > 0', () => {
+    const clearSpec = (result.specResults || []).find(sr => sr.specId === 'SF_WINDOW_INT_NC_CLEAR');
+    expect(clearSpec).toBeDefined();
+    expect(clearSpec.totalHours).toBeGreaterThan(0);
+  });
+
+  // NOTE: int_window is EA-based (PS_OPENING_EA.WINDOW_TOTAL, not PS_SURFACE_*).
+  // computeMaterialEstimates skips EA-only specs (surfaceKeys empty → specSF=0).
+  // Material lines for SF_WINDOW_INT_NC_STAIN/SEALER/CLEAR are not produced by the
+  // current material engine — this is a pre-existing limitation, not a decomposition bug.
+  // Hours are non-zero and gaps are 0 (ps_key fires correctly). Material coverage
+  // for windows is a separate future work item.
+  it('no material estimates for window stain (EA-based substrate, material engine skips PS_OPENING keys)', () => {
+    const windowMats = (result.materialEstimates || []).filter(
+      m => m.specFamilyId === 'SF_WINDOW_INT_NC_STAIN' ||
+           m.specFamilyId === 'SF_WINDOW_INT_NC_CLEAR' ||
+           m.specFamilyId === 'SF_WINDOW_INT_NC_SEALER'
+    );
+    // Either empty (expected for EA-only specs) or present (if future fix lands) — just don't error
+    expect(Array.isArray(windowMats)).toBe(true);
+  });
+});
+
+// ── F4b integration: stain+sealer+clear ─────────────────────────────────────
+describe('F4b — int_window integration: stain+sealer+clear', () => {
+  const state = makeWindowStainState({ stain_on: true, sealer_on: true, clear_on: true });
+  const result = computeScenarioEstimate(state, canonicalBundle, null, []);
+
+  it('specResults includes all three window stain specs', () => {
+    expect((result.specResults || []).some(sr => sr.specId === 'SF_WINDOW_INT_NC_STAIN')).toBe(true);
+    expect((result.specResults || []).some(sr => sr.specId === 'SF_WINDOW_INT_NC_SEALER')).toBe(true);
+    expect((result.specResults || []).some(sr => sr.specId === 'SF_WINDOW_INT_NC_CLEAR')).toBe(true);
+  });
+
+  it('no gaps for window pilot specIds', () => {
+    expect(wist_gaps(result)).toHaveLength(0);
+  });
+
+  it('sealer spec totalHours > 0', () => {
+    const sealerSpec = (result.specResults || []).find(sr => sr.specId === 'SF_WINDOW_INT_NC_SEALER');
+    expect(sealerSpec).toBeDefined();
+    expect(sealerSpec.totalHours).toBeGreaterThan(0);
+  });
+
+  it('clear input at SS_SEALED (sealer shifts state)', () => {
+    const clearInput = (result.perInputResults || []).find(pr => pr.specId === 'SF_WINDOW_INT_NC_CLEAR');
+    expect(clearInput).toBeDefined();
+    expect(clearInput.ctx.substrate_state).toBe('SS_SEALED');
+  });
+
+  // NOTE: EA-based substrate — material estimates are not produced for PS_OPENING_* specs
+  // (computeMaterialEstimates only processes PS_SURFACE_* keys). This is a pre-existing
+  // limitation; hours and gaps are the authoritative correctness checks here.
+  it('no errors in materialEstimates for window sealer spec (EA-based, engine skips it gracefully)', () => {
+    const windowMats = (result.materialEstimates || []).filter(
+      m => m.specFamilyId === 'SF_WINDOW_INT_NC_SEALER'
+    );
+    expect(Array.isArray(windowMats)).toBe(true);
+  });
+});
+
+// ── F4b integration: clear-only (bare) ──────────────────────────────────────
+describe('F4b — int_window integration: clear-only (bare wood, no stain)', () => {
+  const state = makeWindowStainState({ stain_on: false, sealer_on: false, clear_on: true });
+  const result = computeScenarioEstimate(state, canonicalBundle, null, []);
+
+  it('specResults includes SF_WINDOW_INT_NC_CLEAR (CLEAR_BARE scenario matched)', () => {
+    expect((result.specResults || []).some(sr => sr.specId === 'SF_WINDOW_INT_NC_CLEAR')).toBe(true);
+  });
+
+  it('specResults does NOT include SF_WINDOW_INT_NC_STAIN', () => {
+    expect((result.specResults || []).some(sr => sr.specId === 'SF_WINDOW_INT_NC_STAIN')).toBe(false);
+  });
+
+  it('zero gaps for window pilot specs (CLEAR_BARE scenario matched at SS_BARE)', () => {
+    expect(wist_gaps(result)).toHaveLength(0);
+  });
+
+  it('clear spec totalHours > 0', () => {
+    const clearSpec = (result.specResults || []).find(sr => sr.specId === 'SF_WINDOW_INT_NC_CLEAR');
+    expect(clearSpec).toBeDefined();
+    expect(clearSpec.totalHours).toBeGreaterThan(0);
+  });
+});

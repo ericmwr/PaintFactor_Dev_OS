@@ -240,6 +240,8 @@ export const SPEC_TO_PAINTABLE_ITEM = {
   SF_WOOD_WALL_NC_CLEAR:            'int_wood_wall',
   SF_WOOD_CEILING_NC_SEALER:        'int_wood_ceiling',
   SF_WOOD_CEILING_NC_CLEAR:         'int_wood_ceiling',
+  SF_WINDOW_INT_NC_SEALER:          'int_window',
+  SF_WINDOW_INT_NC_CLEAR:           'int_window',
 
   // Interior RP
   SF_DRYWALL_WALL_INT_RP:           'drywall_wall',

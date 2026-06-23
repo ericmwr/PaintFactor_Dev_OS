@@ -109,6 +109,8 @@ export const SPEC_SUBSTRATE_MAP = {
   'SF_WOOD_WALL_NC_CLEAR':       'wood_feature_wall',
   'SF_WOOD_CEILING_NC_SEALER':   'wood_ceiling',
   'SF_WOOD_CEILING_NC_CLEAR':    'wood_ceiling',
+  'SF_WINDOW_INT_NC_SEALER':     'windows',
+  'SF_WINDOW_INT_NC_CLEAR':      'windows',
   // ── Exterior: handled by scenario engine (see Claude/scenarios/SCN_*_EXT_*.json) ──
 };
 
@@ -215,6 +217,8 @@ export const SPEC_ROLE = {
   'SF_WOOD_WALL_NC_CLEAR':        'CLEAR',
   'SF_WOOD_CEILING_NC_SEALER':    'SEALER',
   'SF_WOOD_CEILING_NC_CLEAR':     'CLEAR',
+  'SF_WINDOW_INT_NC_SEALER':      'SEALER',
+  'SF_WINDOW_INT_NC_CLEAR':       'CLEAR',
   'SF_BUILTIN_NC':                'COMBINED',
   'SF_STAIR_RISER_NC':            'COMBINED',
   'SF_STAIR_RISER_NC_STAIN':      'STAIN',
@@ -365,6 +369,8 @@ export const SPEC_VALID_INPUT_STATES = {
   'SF_WOOD_WALL_NC_CLEAR':       ['SS_BARE', 'SS_STAINED', 'SS_SEALED'],
   'SF_WOOD_CEILING_NC_SEALER':   ['SS_BARE', 'SS_STAINED'],
   'SF_WOOD_CEILING_NC_CLEAR':    ['SS_BARE', 'SS_STAINED', 'SS_SEALED'],
+  'SF_WINDOW_INT_NC_SEALER':     ['SS_BARE', 'SS_STAINED'],
+  'SF_WINDOW_INT_NC_CLEAR':      ['SS_BARE', 'SS_STAINED', 'SS_SEALED'],
 };
 
 // Exterior UI substrate_state → spec system enum values (SS_EXT_* codes)
@@ -441,6 +447,8 @@ export const SPEC_OUTPUT_STATES = {
   'SF_WOOD_WALL_NC_SEALER':      'SS_SEALED',
   'SF_WOOD_CEILING_NC_STAIN':    'SS_STAINED',
   'SF_WOOD_CEILING_NC_SEALER':   'SS_SEALED',
+  'SF_WINDOW_INT_NC_STAIN':      'SS_STAINED',
+  'SF_WINDOW_INT_NC_SEALER':     'SS_SEALED',
   'SF_STAIR_RISER_NC_STAIN':     'SS_STAINED',
   'SF_STAIR_RISER_NC_SEALER':    'SS_SEALED',
   'SF_STAIR_RAILING_NC_STAIN':   'SS_STAINED',
@@ -511,6 +519,8 @@ export const STAIN_SPEC_FAMILIES = new Set([
   'SF_WOOD_WALL_NC_CLEAR',
   'SF_WOOD_CEILING_NC_SEALER',
   'SF_WOOD_CEILING_NC_CLEAR',
+  'SF_WINDOW_INT_NC_SEALER',
+  'SF_WINDOW_INT_NC_CLEAR',
 ]);
 
 // Families that have been decomposed into independent STAIN/SEALER/CLEAR specs.
@@ -536,6 +546,7 @@ export const DECOMPOSED_STAIN_FAMILIES = new Set([
   'SF_WAINSCOT_PANEL_NC_STAIN',
   'SF_WOOD_WALL_NC_STAIN',
   'SF_WOOD_CEILING_NC_STAIN',
+  'SF_WINDOW_INT_NC_STAIN',
 ]);
 
 // Maps substrate IDs to their parent paint/finish spec for grain fill attribution.
