@@ -109,6 +109,23 @@ export function buildElevationQuantityLookups(state) {
   return elevLookups;
 }
 
+// ── Roofline section quantity buckets ──
+// Each roofline section prices under its OWN access band, so its quantities
+// live in a standalone bucket (one Map per section) rather than folding into
+// the elevation aggregate above. Consumed by the context adapter's exterior
+// loop, which pairs each bucket with a section-specific ctx (access_type).
+export function buildRooflineSectionQuantities(derivedSections) {
+  return (derivedSections || [])
+    .filter(d => d.sidingSF > 0 || d.fasciaLF > 0 || d.soffitSF > 0)
+    .map(d => {
+      const qty = new Map();
+      if (d.sidingSF > 0) qty.set('PS_EXT_SURFACE_SF.SIDING_FIELD', { value: d.sidingSF, uom: 'SF' });
+      if (d.fasciaLF > 0) qty.set('PS_EXT_EDGE_LF.FASCIA', { value: d.fasciaLF, uom: 'LF' });
+      if (d.soffitSF > 0) qty.set('PS_EXT_SURFACE_SF.SOFFIT_FIELD', { value: d.soffitSF, uom: 'SF' });
+      return { sectionId: d.id, accessBand: d.accessBand, difficultyFactor: d.difficultyFactor, qty };
+    });
+}
+
 /**
  * Build quantity lookups for standalone items (not elevation-bound).
  * Returns Map<string, Map<psKey, {value, uom}>> keyed by item type.
