@@ -1621,3 +1621,398 @@ describe('F2 — window_stool integration: stain+clear (no sealer)', () => {
     expect(stainMat.coats).toBe(1);
   });
 });
+
+// ---------------------------------------------------------------------------
+// F3a: findBestMatch — RRST (riser) phase scenarios
+// ---------------------------------------------------------------------------
+describe('F3a — RRST riser phase scenario routing via findBestMatch', () => {
+  it('SS_BARE + coating_phase:stain → SCN_INT_RRST_STAIN', () => {
+    const ctx = { paintable_item: 'riser', substrate_state: 'SS_BARE', coating_phase: 'stain' };
+    const { scenario } = findBestMatch(canonicalBundle, ctx);
+    expect(scenario).not.toBeNull();
+    expect(scenario.scenario_id).toBe('SCN_INT_RRST_STAIN');
+  });
+
+  it('SS_STAINED + coating_phase:sealer → SCN_INT_RRST_SEALER', () => {
+    const ctx = { paintable_item: 'riser', substrate_state: 'SS_STAINED', coating_phase: 'sealer' };
+    const { scenario } = findBestMatch(canonicalBundle, ctx);
+    expect(scenario).not.toBeNull();
+    expect(scenario.scenario_id).toBe('SCN_INT_RRST_SEALER');
+  });
+
+  it('SS_STAINED + coating_phase:clear → SCN_INT_RRST_CLEAR (no-sealer path)', () => {
+    const ctx = { paintable_item: 'riser', substrate_state: 'SS_STAINED', coating_phase: 'clear' };
+    const { scenario } = findBestMatch(canonicalBundle, ctx);
+    expect(scenario).not.toBeNull();
+    expect(scenario.scenario_id).toBe('SCN_INT_RRST_CLEAR');
+  });
+
+  it('SS_SEALED + coating_phase:clear → SCN_INT_RRST_CLEAR (sealer path)', () => {
+    const ctx = { paintable_item: 'riser', substrate_state: 'SS_SEALED', coating_phase: 'clear' };
+    const { scenario } = findBestMatch(canonicalBundle, ctx);
+    expect(scenario).not.toBeNull();
+    expect(scenario.scenario_id).toBe('SCN_INT_RRST_CLEAR');
+  });
+
+  it('SS_BARE + coating_phase:clear → SCN_INT_RRST_CLEAR_BARE (clear-only path)', () => {
+    const ctx = { paintable_item: 'riser', substrate_state: 'SS_BARE', coating_phase: 'clear' };
+    const { scenario } = findBestMatch(canonicalBundle, ctx);
+    expect(scenario).not.toBeNull();
+    expect(scenario.scenario_id).toBe('SCN_INT_RRST_CLEAR_BARE');
+  });
+
+  it('SS_BARE + coating_phase:sealer → SCN_INT_RRST_SEALER_BARE (sealer-bare path)', () => {
+    const ctx = { paintable_item: 'riser', substrate_state: 'SS_BARE', coating_phase: 'sealer' };
+    const { scenario } = findBestMatch(canonicalBundle, ctx);
+    expect(scenario).not.toBeNull();
+    expect(scenario.scenario_id).toBe('SCN_INT_RRST_SEALER_BARE');
+  });
+
+  it('bundled SCN_INT_RRST_STAIN_CLEAR is no longer in the bundle', () => {
+    const bundled = canonicalBundle.scenarios.find(s => s.scenario_id === 'SCN_INT_RRST_STAIN_CLEAR');
+    expect(bundled).toBeUndefined();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// F3b: findBestMatch — SRST (open_rail) phase scenarios
+// ---------------------------------------------------------------------------
+describe('F3b — SRST open_rail phase scenario routing via findBestMatch', () => {
+  it('SS_BARE + coating_phase:stain → SCN_INT_SRST_STAIN', () => {
+    const ctx = { paintable_item: 'open_rail', substrate_state: 'SS_BARE', coating_phase: 'stain' };
+    const { scenario } = findBestMatch(canonicalBundle, ctx);
+    expect(scenario).not.toBeNull();
+    expect(scenario.scenario_id).toBe('SCN_INT_SRST_STAIN');
+  });
+
+  it('SS_STAINED + coating_phase:sealer → SCN_INT_SRST_SEALER', () => {
+    const ctx = { paintable_item: 'open_rail', substrate_state: 'SS_STAINED', coating_phase: 'sealer' };
+    const { scenario } = findBestMatch(canonicalBundle, ctx);
+    expect(scenario).not.toBeNull();
+    expect(scenario.scenario_id).toBe('SCN_INT_SRST_SEALER');
+  });
+
+  it('SS_STAINED + coating_phase:clear → SCN_INT_SRST_CLEAR (no-sealer path)', () => {
+    const ctx = { paintable_item: 'open_rail', substrate_state: 'SS_STAINED', coating_phase: 'clear' };
+    const { scenario } = findBestMatch(canonicalBundle, ctx);
+    expect(scenario).not.toBeNull();
+    expect(scenario.scenario_id).toBe('SCN_INT_SRST_CLEAR');
+  });
+
+  it('SS_SEALED + coating_phase:clear → SCN_INT_SRST_CLEAR (sealer path)', () => {
+    const ctx = { paintable_item: 'open_rail', substrate_state: 'SS_SEALED', coating_phase: 'clear' };
+    const { scenario } = findBestMatch(canonicalBundle, ctx);
+    expect(scenario).not.toBeNull();
+    expect(scenario.scenario_id).toBe('SCN_INT_SRST_CLEAR');
+  });
+
+  it('SS_BARE + coating_phase:clear → SCN_INT_SRST_CLEAR_BARE (clear-only path)', () => {
+    const ctx = { paintable_item: 'open_rail', substrate_state: 'SS_BARE', coating_phase: 'clear' };
+    const { scenario } = findBestMatch(canonicalBundle, ctx);
+    expect(scenario).not.toBeNull();
+    expect(scenario.scenario_id).toBe('SCN_INT_SRST_CLEAR_BARE');
+  });
+
+  it('SS_BARE + coating_phase:sealer → SCN_INT_SRST_SEALER_BARE (sealer-bare path)', () => {
+    const ctx = { paintable_item: 'open_rail', substrate_state: 'SS_BARE', coating_phase: 'sealer' };
+    const { scenario } = findBestMatch(canonicalBundle, ctx);
+    expect(scenario).not.toBeNull();
+    expect(scenario.scenario_id).toBe('SCN_INT_SRST_SEALER_BARE');
+  });
+
+  it('bundled SCN_INT_SRST_STAIN_CLEAR is no longer in the bundle', () => {
+    const bundled = canonicalBundle.scenarios.find(s => s.scenario_id === 'SCN_INT_SRST_STAIN_CLEAR');
+    expect(bundled).toBeUndefined();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// F4a: Full end-to-end integration — RRST (riser) stain decomposition
+//
+// Stairway with 12 risers, 1 run → 12 EA risers (PS_SURFACE_EA.STAIR_RISER).
+// Risers component set to bare_wood + stain_clear coating_type.
+// Verifies: STAIN/CLEAR specResults fire with totalHours > 0 (ps_key audit: STAIR_RISER
+// key was confirmed correct for RRST tasks — no change needed, just verifying it works).
+// ---------------------------------------------------------------------------
+function makeRiserStainState({ stain_on = false, sealer_on = false, clear_on = false } = {}) {
+  const room = createRoom({ label: 'F4a Riser Stain' });
+  // 12 risers in one run → total_risers=12 (EA qty for PS_SURFACE_EA.STAIR_RISER)
+  room.substrates.stairway = createSubstrateConfig('stairway', {
+    runs: 1,
+    run1_risers: 12,
+    stain_on,
+    sealer_on,
+    clear_on,
+    components: {
+      risers: {
+        enabled: true,
+        count: null,
+        count_override: false,
+        substrate_state: 'bare_wood',
+        coating_type: 'stain_clear',
+        application_method: 'brush',
+        application_method_stain: 'brush',
+        application_method_clear: 'brush',
+        quality_tier: null,
+        grain_fill: false,
+      },
+      // Other components disabled to isolate riser path
+      treads:      { enabled: false },
+      balusters:   { enabled: false },
+      newel_posts: { enabled: false },
+      open_rail:   { enabled: false },
+      wall_rail:   { enabled: false },
+      skirtboard:  { enabled: false },
+      stringer:    { enabled: false },
+    },
+  });
+  return {
+    project: {
+      default_quality_tier: 'QT3',
+      material_overrides: { system: {}, manual: [] },
+    },
+    rooms: [room],
+    exterior: { elevations: [], defaults: {} },
+  };
+}
+
+const RRST_SPECS = new Set([
+  'SF_STAIR_RISER_NC_STAIN',
+  'SF_STAIR_RISER_NC_SEALER',
+  'SF_STAIR_RISER_NC_CLEAR',
+]);
+
+function rrst_gaps(result) {
+  return (result.gaps || []).filter(g => RRST_SPECS.has(g.specId));
+}
+
+describe('F4a — RRST riser integration: stain+clear (no sealer)', () => {
+  const state = makeRiserStainState({ stain_on: true, sealer_on: false, clear_on: true });
+  const result = computeScenarioEstimate(state, canonicalBundle, null, []);
+
+  it('result is non-null and not an error', () => {
+    expect(result).not.toBeNull();
+    expect(result.error).toBeUndefined();
+  });
+
+  it('specResults includes SF_STAIR_RISER_NC_STAIN', () => {
+    expect((result.specResults || []).some(sr => sr.specId === 'SF_STAIR_RISER_NC_STAIN')).toBe(true);
+  });
+
+  it('SF_STAIR_RISER_NC_STAIN totalHours > 0 (RRST ps_key correct: PS_SURFACE_EA.STAIR_RISER)', () => {
+    const sr = (result.specResults || []).find(sr => sr.specId === 'SF_STAIR_RISER_NC_STAIN');
+    expect(sr).toBeDefined();
+    expect(sr.totalHours).toBeGreaterThan(0);
+  });
+
+  it('specResults includes SF_STAIR_RISER_NC_CLEAR', () => {
+    expect((result.specResults || []).some(sr => sr.specId === 'SF_STAIR_RISER_NC_CLEAR')).toBe(true);
+  });
+
+  it('SF_STAIR_RISER_NC_CLEAR totalHours > 0', () => {
+    const sr = (result.specResults || []).find(sr => sr.specId === 'SF_STAIR_RISER_NC_CLEAR');
+    expect(sr).toBeDefined();
+    expect(sr.totalHours).toBeGreaterThan(0);
+  });
+
+  it('zero gaps for RRST spec ids', () => {
+    expect(rrst_gaps(result)).toHaveLength(0);
+  });
+});
+
+describe('F4a — RRST riser integration: stain+sealer+clear', () => {
+  const state = makeRiserStainState({ stain_on: true, sealer_on: true, clear_on: true });
+  const result = computeScenarioEstimate(state, canonicalBundle, null, []);
+
+  it('result is non-null and not an error', () => {
+    expect(result).not.toBeNull();
+    expect(result.error).toBeUndefined();
+  });
+
+  it('specResults includes SF_STAIR_RISER_NC_STAIN with totalHours > 0', () => {
+    const sr = (result.specResults || []).find(sr => sr.specId === 'SF_STAIR_RISER_NC_STAIN');
+    expect(sr).toBeDefined();
+    expect(sr.totalHours).toBeGreaterThan(0);
+  });
+
+  it('specResults includes SF_STAIR_RISER_NC_SEALER with totalHours > 0', () => {
+    const sr = (result.specResults || []).find(sr => sr.specId === 'SF_STAIR_RISER_NC_SEALER');
+    expect(sr).toBeDefined();
+    expect(sr.totalHours).toBeGreaterThan(0);
+  });
+
+  it('specResults includes SF_STAIR_RISER_NC_CLEAR with totalHours > 0', () => {
+    const sr = (result.specResults || []).find(sr => sr.specId === 'SF_STAIR_RISER_NC_CLEAR');
+    expect(sr).toBeDefined();
+    expect(sr.totalHours).toBeGreaterThan(0);
+  });
+
+  it('zero gaps for RRST spec ids', () => {
+    expect(rrst_gaps(result)).toHaveLength(0);
+  });
+});
+
+describe('F4a — RRST riser integration: clear-only (bare)', () => {
+  const state = makeRiserStainState({ stain_on: false, sealer_on: false, clear_on: true });
+  const result = computeScenarioEstimate(state, canonicalBundle, null, []);
+
+  it('result is non-null and not an error', () => {
+    expect(result).not.toBeNull();
+    expect(result.error).toBeUndefined();
+  });
+
+  it('specResults includes SF_STAIR_RISER_NC_CLEAR with totalHours > 0', () => {
+    const sr = (result.specResults || []).find(sr => sr.specId === 'SF_STAIR_RISER_NC_CLEAR');
+    expect(sr).toBeDefined();
+    expect(sr.totalHours).toBeGreaterThan(0);
+  });
+
+  it('zero gaps for RRST spec ids', () => {
+    expect(rrst_gaps(result)).toHaveLength(0);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// F4b: Full end-to-end integration — SRST (open_rail) stain decomposition
+//
+// Stairway with 12 risers → rake_length ≈ 12.2 LF → PS_SURFACE_LF.STAIR_OPEN_RAIL.
+// open_rail component set to bare_wood + stain_clear coating_type.
+// Verifies: STAIN/CLEAR specResults fire with totalHours > 0 (ps_key dead-key fix:
+// SRST tasks used STAIR_RAILING which was never emitted; now STAIR_OPEN_RAIL).
+// ---------------------------------------------------------------------------
+function makeOpenRailStainState({ stain_on = false, sealer_on = false, clear_on = false } = {}) {
+  const room = createRoom({ label: 'F4b OpenRail Stain' });
+  // 12 risers → rake_length ≈ 12.2 LF (PS_SURFACE_LF.STAIR_OPEN_RAIL quantity)
+  room.substrates.stairway = createSubstrateConfig('stairway', {
+    runs: 1,
+    run1_risers: 12,
+    stain_on,
+    sealer_on,
+    clear_on,
+    components: {
+      risers:      { enabled: false },
+      treads:      { enabled: false },
+      balusters:   { enabled: false },
+      newel_posts: { enabled: false },
+      open_rail: {
+        enabled: true,
+        lf: null,
+        lf_override: false,
+        substrate_state: 'bare_wood',
+        coating_type: 'stain_clear',
+        application_method: 'brush',
+        application_method_stain: 'brush',
+        application_method_clear: 'brush',
+        quality_tier: null,
+        grain_fill: false,
+      },
+      wall_rail:   { enabled: false },
+      skirtboard:  { enabled: false },
+      stringer:    { enabled: false },
+    },
+  });
+  return {
+    project: {
+      default_quality_tier: 'QT3',
+      material_overrides: { system: {}, manual: [] },
+    },
+    rooms: [room],
+    exterior: { elevations: [], defaults: {} },
+  };
+}
+
+const SRST_SPECS = new Set([
+  'SF_STAIR_RAILING_NC_STAIN',
+  'SF_STAIR_RAILING_NC_SEALER',
+  'SF_STAIR_RAILING_NC_CLEAR',
+]);
+
+function srst_gaps(result) {
+  return (result.gaps || []).filter(g => SRST_SPECS.has(g.specId));
+}
+
+describe('F4b — SRST open_rail integration: stain+clear (no sealer)', () => {
+  const state = makeOpenRailStainState({ stain_on: true, sealer_on: false, clear_on: true });
+  const result = computeScenarioEstimate(state, canonicalBundle, null, []);
+
+  it('result is non-null and not an error', () => {
+    expect(result).not.toBeNull();
+    expect(result.error).toBeUndefined();
+  });
+
+  it('specResults includes SF_STAIR_RAILING_NC_STAIN', () => {
+    expect((result.specResults || []).some(sr => sr.specId === 'SF_STAIR_RAILING_NC_STAIN')).toBe(true);
+  });
+
+  it('SF_STAIR_RAILING_NC_STAIN totalHours > 0 (dead ps_key fix: was STAIR_RAILING, now STAIR_OPEN_RAIL)', () => {
+    const sr = (result.specResults || []).find(sr => sr.specId === 'SF_STAIR_RAILING_NC_STAIN');
+    expect(sr).toBeDefined();
+    expect(sr.totalHours).toBeGreaterThan(0);
+  });
+
+  it('specResults includes SF_STAIR_RAILING_NC_CLEAR', () => {
+    expect((result.specResults || []).some(sr => sr.specId === 'SF_STAIR_RAILING_NC_CLEAR')).toBe(true);
+  });
+
+  it('SF_STAIR_RAILING_NC_CLEAR totalHours > 0', () => {
+    const sr = (result.specResults || []).find(sr => sr.specId === 'SF_STAIR_RAILING_NC_CLEAR');
+    expect(sr).toBeDefined();
+    expect(sr.totalHours).toBeGreaterThan(0);
+  });
+
+  it('zero gaps for SRST spec ids', () => {
+    expect(srst_gaps(result)).toHaveLength(0);
+  });
+});
+
+describe('F4b — SRST open_rail integration: stain+sealer+clear', () => {
+  const state = makeOpenRailStainState({ stain_on: true, sealer_on: true, clear_on: true });
+  const result = computeScenarioEstimate(state, canonicalBundle, null, []);
+
+  it('result is non-null and not an error', () => {
+    expect(result).not.toBeNull();
+    expect(result.error).toBeUndefined();
+  });
+
+  it('specResults includes SF_STAIR_RAILING_NC_STAIN with totalHours > 0', () => {
+    const sr = (result.specResults || []).find(sr => sr.specId === 'SF_STAIR_RAILING_NC_STAIN');
+    expect(sr).toBeDefined();
+    expect(sr.totalHours).toBeGreaterThan(0);
+  });
+
+  it('specResults includes SF_STAIR_RAILING_NC_SEALER with totalHours > 0', () => {
+    const sr = (result.specResults || []).find(sr => sr.specId === 'SF_STAIR_RAILING_NC_SEALER');
+    expect(sr).toBeDefined();
+    expect(sr.totalHours).toBeGreaterThan(0);
+  });
+
+  it('specResults includes SF_STAIR_RAILING_NC_CLEAR with totalHours > 0', () => {
+    const sr = (result.specResults || []).find(sr => sr.specId === 'SF_STAIR_RAILING_NC_CLEAR');
+    expect(sr).toBeDefined();
+    expect(sr.totalHours).toBeGreaterThan(0);
+  });
+
+  it('zero gaps for SRST spec ids', () => {
+    expect(srst_gaps(result)).toHaveLength(0);
+  });
+});
+
+describe('F4b — SRST open_rail integration: clear-only (bare)', () => {
+  const state = makeOpenRailStainState({ stain_on: false, sealer_on: false, clear_on: true });
+  const result = computeScenarioEstimate(state, canonicalBundle, null, []);
+
+  it('result is non-null and not an error', () => {
+    expect(result).not.toBeNull();
+    expect(result.error).toBeUndefined();
+  });
+
+  it('specResults includes SF_STAIR_RAILING_NC_CLEAR with totalHours > 0', () => {
+    const sr = (result.specResults || []).find(sr => sr.specId === 'SF_STAIR_RAILING_NC_CLEAR');
+    expect(sr).toBeDefined();
+    expect(sr.totalHours).toBeGreaterThan(0);
+  });
+
+  it('zero gaps for SRST spec ids', () => {
+    expect(srst_gaps(result)).toHaveLength(0);
+  });
+});

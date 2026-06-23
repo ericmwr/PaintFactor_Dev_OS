@@ -364,7 +364,11 @@ export const COMPONENT_EXPANDED_SPECS = new Set([
   'SF_STAIR_RISER_NC',
   'SF_STAIR_RAILING_NC',
   'SF_STAIR_RISER_NC_STAIN',
+  'SF_STAIR_RISER_NC_SEALER',
+  'SF_STAIR_RISER_NC_CLEAR',
   'SF_STAIR_RAILING_NC_STAIN',
+  'SF_STAIR_RAILING_NC_SEALER',
+  'SF_STAIR_RAILING_NC_CLEAR',
   'SF_STAIR_TREAD_NC_STAIN',
   'SF_CLOSET_SHELF_NC',
 ]);
@@ -385,15 +389,15 @@ const STAIR_SPEC_COMPONENTS = {
     ['open_rail',   'open_rail'],
     ['wall_rail',   'wall_rail'],
   ],
-  'SF_STAIR_RISER_NC_STAIN': [
-    ['risers',     'riser'],
-  ],
-  'SF_STAIR_RAILING_NC_STAIN': [
-    ['balusters',   'baluster'],
-    ['newel_posts', 'newel'],
-    ['open_rail',   'open_rail'],
-    ['wall_rail',   'wall_rail'],
-  ],
+  // Stain/sealer/clear phase specs: RRST = riser (EA), SRST = open_rail (LF).
+  // SRST covers only open_rail for stain — tasks are LF-based (STAIR_OPEN_RAIL ps_key).
+  // Baluster/newel/wall_rail stain support deferred to future per-component specs.
+  'SF_STAIR_RISER_NC_STAIN':   [['risers',     'riser']],
+  'SF_STAIR_RISER_NC_SEALER':  [['risers',     'riser']],
+  'SF_STAIR_RISER_NC_CLEAR':   [['risers',     'riser']],
+  'SF_STAIR_RAILING_NC_STAIN':  [['open_rail',  'open_rail']],
+  'SF_STAIR_RAILING_NC_SEALER': [['open_rail',  'open_rail']],
+  'SF_STAIR_RAILING_NC_CLEAR':  [['open_rail',  'open_rail']],
   'SF_STAIR_TREAD_NC_STAIN': [
     ['treads',     'tread'],
   ],
@@ -410,10 +414,24 @@ function stairUIStateToSpecState(uiState) {
   }
 }
 
+// coating_phase for decomposed stair stain phase specs.
+// Decomposed SEALER/CLEAR stair specs carry coating_phase so scenario matches
+// can discriminate phases (mirroring the PHASE_BY_ROLE logic for flat specs).
+const STAIR_STAIN_PHASE = {
+  'SF_STAIR_RISER_NC_STAIN':    'stain',
+  'SF_STAIR_RISER_NC_SEALER':   'sealer',
+  'SF_STAIR_RISER_NC_CLEAR':    'clear',
+  'SF_STAIR_RAILING_NC_STAIN':  'stain',
+  'SF_STAIR_RAILING_NC_SEALER': 'sealer',
+  'SF_STAIR_RAILING_NC_CLEAR':  'clear',
+};
+
 /**
  * For stair specs in COMPONENT_EXPANDED_SPECS, emit one ctx per enabled component.
  * Each ctx carries paintable_item = <component> plus that component's own
  * substrate_state, application_method, quality_tier, coating_type.
+ * Decomposed stain phase specs (STAIN/SEALER/CLEAR) also stamp coating_phase
+ * so scenario matches can use coating_phase as a discriminator.
  *
  * Returns: array of ctx objects. Empty array if no enabled components or no stairway.
  */
@@ -423,7 +441,7 @@ export function expandStairwaySpecContexts(specId, room, project) {
   const componentPairs = STAIR_SPEC_COMPONENTS[specId];
   if (!componentPairs) return [];
 
-  const isStainSpec = specId.includes('STAIN');
+  const isStainSpec = specId.includes('STAIN') || specId.includes('SEALER') || specId.includes('CLEAR');
   // Set of acceptable coating_types for this spec. A component whose
   // coating_type doesn't match is silently skipped — this prevents stain
   // specs from emitting duplicate ctxs for paint components (and vice versa),
@@ -431,6 +449,7 @@ export function expandStairwaySpecContexts(specId, room, project) {
   const expectedCoatingTypes = isStainSpec
     ? new Set(['stain_clear', 'stain_only', 'clear_only'])
     : new Set(['paint']);
+  const coatingPhase = STAIR_STAIN_PHASE[specId] || null;
   const contexts = [];
 
   for (const [subKey, paintableItem] of componentPairs) {
@@ -440,10 +459,11 @@ export function expandStairwaySpecContexts(specId, room, project) {
     const compCoatingType = comp.coating_type || (isStainSpec ? 'stain_clear' : 'paint');
     if (!expectedCoatingTypes.has(compCoatingType)) continue;
 
+    const appMethod = comp.application_method || (isStainSpec ? 'brush' : 'brush');
     const ctx = {
       paintable_item: paintableItem,
       substrate_state: stairUIStateToSpecState(comp.substrate_state),
-      application_method: comp.application_method || (isStainSpec ? 'wipe' : 'brush'),
+      application_method: appMethod,
       quality_tier: comp.quality_tier || project?.default_quality_tier || 'QT3',
       coating_type: compCoatingType,
       grain_fill: comp.grain_fill || false,
@@ -452,6 +472,14 @@ export function expandStairwaySpecContexts(specId, room, project) {
       __specId: specId,
       __component: paintableItem,
     };
+    if (isStainSpec) {
+      // Stain/sealer/clear specs need per-phase method fields for module gates
+      ctx.application_method_stain = comp.application_method_stain || appMethod;
+      ctx.application_method_clear = comp.application_method_clear || appMethod;
+      ctx.wood_species_group        = comp.wood_species_group || 'hardwood';
+      ctx.clear_sheen               = comp.clear_sheen || 'satin';
+    }
+    if (coatingPhase) ctx.coating_phase = coatingPhase;
     if (paintableItem === 'baluster') {
       ctx.baluster_type = comp.baluster_type || 'square';
       ctx.material = comp.material || 'wood';

@@ -1233,6 +1233,24 @@ export const MATERIAL_SYSTEMS = [
     ]
   },
   {
+    "id": "SYS_SEALER_OIL",
+    "spec_family_id": "SF_STAIR_RAILING_NC_SEALER",
+    "name": "Oil-Based Sanding Sealer",
+    "applies_when": {
+      "coating_type": ["stain_clear", "clear_only"]
+    },
+    "allowed_sheens": ["n/a"]
+  },
+  {
+    "id": "SYS_CLEAR_POLY_WB",
+    "spec_family_id": "SF_STAIR_RAILING_NC_CLEAR",
+    "name": "Water-Based Polyurethane",
+    "applies_when": {
+      "coating_type": ["stain_clear", "clear_only"]
+    },
+    "allowed_sheens": ["satin", "semi-gloss", "gloss"]
+  },
+  {
     "id": "SYS_STAIN_OIL",
     "spec_family_id": "SF_WINDOW_INT_NC_STAIN",
     "name": "Oil-Based Penetrating Stain",
@@ -1495,6 +1513,24 @@ export const MATERIAL_SYSTEMS = [
       "semi-gloss",
       "gloss"
     ]
+  },
+  {
+    "id": "SYS_SEALER_OIL",
+    "spec_family_id": "SF_STAIR_RISER_NC_SEALER",
+    "name": "Oil-Based Sanding Sealer",
+    "applies_when": {
+      "coating_type": ["stain_clear", "clear_only"]
+    },
+    "allowed_sheens": ["n/a"]
+  },
+  {
+    "id": "SYS_CLEAR_POLY_WB",
+    "spec_family_id": "SF_STAIR_RISER_NC_CLEAR",
+    "name": "Water-Based Polyurethane",
+    "applies_when": {
+      "coating_type": ["stain_clear", "clear_only"]
+    },
+    "allowed_sheens": ["satin", "semi-gloss", "gloss"]
   },
   {
     "id": "SYS_STAIN_OIL",
@@ -3055,6 +3091,22 @@ export const MATERIAL_COVERAGE_PROFILES = [
     "coverage_range_high": 500
   },
   {
+    "id": "COV_SRST_SEALER_PHASE",
+    "spec_family_id": "SF_STAIR_RAILING_NC_SEALER",
+    "product_role": "sealer",
+    "surface_texture": "stained_or_bare",
+    "coverage_range_low": 450,
+    "coverage_range_high": 550
+  },
+  {
+    "id": "COV_SRST_CLEAR_PHASE",
+    "spec_family_id": "SF_STAIR_RAILING_NC_CLEAR",
+    "product_role": "clear",
+    "surface_texture": "sealed_or_clear_coated",
+    "coverage_range_low": 400,
+    "coverage_range_high": 500
+  },
+  {
     "id": "COV_WIST_STAIN_BRUSH",
     "spec_family_id": "SF_WINDOW_INT_NC_STAIN",
     "product_role": "stain",
@@ -3121,6 +3173,22 @@ export const MATERIAL_COVERAGE_PROFILES = [
   {
     "id": "COV_SRST_CLEAR",
     "spec_family_id": "SF_STAIR_RISER_NC_STAIN",
+    "product_role": "clear",
+    "surface_texture": "sealed_or_clear_coated",
+    "coverage_range_low": 350,
+    "coverage_range_high": 450
+  },
+  {
+    "id": "COV_RRST_SEALER_PHASE",
+    "spec_family_id": "SF_STAIR_RISER_NC_SEALER",
+    "product_role": "sealer",
+    "surface_texture": "stained_or_bare",
+    "coverage_range_low": 450,
+    "coverage_range_high": 550
+  },
+  {
+    "id": "COV_RRST_CLEAR_PHASE",
+    "spec_family_id": "SF_STAIR_RISER_NC_CLEAR",
     "product_role": "clear",
     "surface_texture": "sealed_or_clear_coated",
     "coverage_range_low": 350,
@@ -9891,6 +9959,26 @@ export const SPEC_FAMILY_INFO = [
   {
     "id": "SF_STAIR_RISER_NC_STAIN",
     "name": "New Construction Stair Riser & Tread Stain/Clear Coat",
+    "domain": "interior"
+  },
+  {
+    "id": "SF_STAIR_RISER_NC_SEALER",
+    "name": "New Construction Stair Riser Sealer Phase",
+    "domain": "interior"
+  },
+  {
+    "id": "SF_STAIR_RISER_NC_CLEAR",
+    "name": "New Construction Stair Riser Clear Phase",
+    "domain": "interior"
+  },
+  {
+    "id": "SF_STAIR_RAILING_NC_SEALER",
+    "name": "New Construction Stair Railing (Open Rail) Sealer Phase",
+    "domain": "interior"
+  },
+  {
+    "id": "SF_STAIR_RAILING_NC_CLEAR",
+    "name": "New Construction Stair Railing (Open Rail) Clear Phase",
     "domain": "interior"
   },
   {
