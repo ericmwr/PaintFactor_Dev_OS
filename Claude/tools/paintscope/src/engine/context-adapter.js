@@ -17,7 +17,7 @@
 // The test harness (Phase 5) decides how to run and compare both engines.
 
 import { buildRoomQuantityLookups } from './quantity-lookups.js';
-import { buildElevationQuantityLookups, buildStandaloneQuantityLookups } from './quantity-lookups-exterior.js';
+import { buildElevationQuantityLookups, buildStandaloneQuantityLookups, buildRooflineSectionQuantities } from './quantity-lookups-exterior.js';
 import { deriveElevation, deriveAccessBand } from './derive-elevation.js';
 import {
   resolveQualityTier,
@@ -712,10 +712,37 @@ export function buildElevationScenarioInputs(state) {
   ]);
 
   exterior.elevations.forEach((elev, ei) => {
+    const roomLabel = elev.label || `Elevation ${ei + 1}`;
+
+    // Roofline sections price as virtual elevations under their OWN access band
+    // (their peak height — not the wall's eave). Emitted before the wall's
+    // empty-qty guard so a section still prices even if the elevation itself
+    // carries no wall siding. roomIndex uses a separate -3000 namespace so each
+    // section reads as its own exterior line without colliding with elevations
+    // (-100..) or standalone items (-1000..-1999).
+    const sectionBuckets = buildRooflineSectionQuantities(deriveElevation(elev).rooflineSections);
+    sectionBuckets.forEach((bucket, si) => {
+      const sectionElev = { ...elev, access_type: bucket.accessBand.toLowerCase() };
+      const sectionRoomIndex = -3000 - (ei * 100 + si);
+      const sectionLabel = `${roomLabel} · roofline ${si + 1}`;
+      for (const specId of activeSpecIds) {
+        if (STANDALONE_SPECS.has(specId)) continue;
+        const sctx = buildExteriorCtx(specId, sectionElev, extDefaults, siteConditions, null, ei, projectType, project);
+        sctx.section_difficulty = bucket.difficultyFactor;
+        inputs.push({
+          roomIndex: sectionRoomIndex,
+          roomLabel: sectionLabel,
+          specId,
+          ctx: normalizePassGroupCtx(sctx),
+          roomQty: bucket.qty,
+          roomItems: { doors: [], windows: [] },
+        });
+      }
+    });
+
     const qty = elevLookups.get(ei);
     if (!qty || qty.size === 0) return;
     const roomIndex = -100 - ei;
-    const roomLabel = elev.label || `Elevation ${ei + 1}`;
 
     for (const specId of activeSpecIds) {
       if (STANDALONE_SPECS.has(specId)) continue;
