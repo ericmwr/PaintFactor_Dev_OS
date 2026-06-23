@@ -24,7 +24,7 @@ function createLightFixtureItem(type = 'other') {
 }
 import {
   createElevation, createSidingSection, createTrimConfig, createExtWindow, createExtDoor,
-  createBumpOut, createDormer, createGable, createGarageDoor, createDeck, createFence,
+  createBumpOut, createDormer, createGable, createRooflineSection, createGarageDoor, createDeck, createFence,
   createFoundation, createPorch, createMetalSurface, createSiteConditions
 } from './exterior-state';
 
@@ -775,6 +775,7 @@ export function reducer(state, action) {
       copy.bump_outs.forEach(b => b.id = genId('bump'));
       copy.dormers.forEach(d => d.id = genId('dorm'));
       copy.gables.forEach(g => g.id = genId('gable'));
+      (copy.roofline_sections || []).forEach(s => s.id = genId('rls'));
       const idx = state.exterior.elevations.findIndex(e => e.id === payload);
       const elevs = [...state.exterior.elevations];
       elevs.splice(idx + 1, 0, copy);
@@ -1079,6 +1080,45 @@ export function reducer(state, action) {
           elevations: state.exterior.elevations.map(e =>
             e.id === payload.elevId
               ? { ...e, gables: e.gables.map(g => g.id === payload.gableId ? { ...g, [payload.field]: payload.value } : g) }
+              : e
+          )
+        }
+      };
+    }
+    case 'ADD_ROOFLINE_SECTION': {
+      return {
+        ...state,
+        exterior: {
+          ...state.exterior,
+          elevations: state.exterior.elevations.map(e =>
+            e.id === payload.elevId
+              ? { ...e, roofline_sections: [...(e.roofline_sections || []), createRooflineSection(payload.overrides || {})] }
+              : e
+          )
+        }
+      };
+    }
+    case 'REMOVE_ROOFLINE_SECTION': {
+      return {
+        ...state,
+        exterior: {
+          ...state.exterior,
+          elevations: state.exterior.elevations.map(e =>
+            e.id === payload.elevId
+              ? { ...e, roofline_sections: (e.roofline_sections || []).filter(s => s.id !== payload.sectionId) }
+              : e
+          )
+        }
+      };
+    }
+    case 'SET_ROOFLINE_SECTION': {
+      return {
+        ...state,
+        exterior: {
+          ...state.exterior,
+          elevations: state.exterior.elevations.map(e =>
+            e.id === payload.elevId
+              ? { ...e, roofline_sections: (e.roofline_sections || []).map(s => s.id === payload.sectionId ? { ...s, [payload.field]: payload.value } : s) }
               : e
           )
         }

@@ -186,6 +186,30 @@ export function createGable(overrides = {}) {
   };
 }
 
+// ── Roofline Section (one-sided sloped siding above a lower roofline) ──
+export function createRooflineSection(overrides = {}) {
+  return {
+    id: genId('rls'),
+    label: 'Roofline Section',
+    siding_type: null,       // null = inherit from parent elevation
+    substrate_state: null,
+    // Quantities — direct entry is source of truth
+    siding_sf: 0,
+    fascia_lf: 0,
+    soffit_depth_ft: 1.5,
+    soffit_sf: 0,            // explicit override; 0 = derive from fascia_lf × depth
+    // Which edges carry roof trim (fascia + soffit)
+    edges: { rake: true, bottom: false, vertical: false },
+    // Optional calculator inputs (only used to fill the quantities above)
+    calc: { enabled: false, base_ft: 0, peak_height_ft: 0, lower_roof_pitch: null, rake_pitch: null },
+    // Access & difficulty — section-specific
+    height_low_ft: 0,
+    height_high_ft: 0,
+    difficulty_override: null,  // null = 1.0 (band already prices height)
+    ...overrides,
+  };
+}
+
 // ── Elevation ──
 export function createElevation(overrides = {}) {
   return {
@@ -216,6 +240,7 @@ export function createElevation(overrides = {}) {
     bump_outs: [],
     dormers: [],
     gables: [],
+    roofline_sections: [],
 
     notes: '',
     ...overrides,
