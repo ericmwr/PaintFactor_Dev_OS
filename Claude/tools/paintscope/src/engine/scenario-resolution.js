@@ -20,15 +20,25 @@ import { inferDefaultSystem } from '../data/system-catalog.js';
  * to decomposed families only (see resolveSystem).
  */
 export function deriveStainScope(config) {
-  const s = !!config?.stain_on, se = !!config?.sealer_on, c = !!config?.clear_on;
-  // Stain-present branches (keep first — highest priority)
-  if (s && se && c)  return { system: 'stain_sealer_clear', coating_type: 'stain_clear' };
-  if (s && c)        return { system: 'stain_clear',        coating_type: 'stain_clear' };
-  if (s && !c)       return { system: 'stain_only',         coating_type: 'stain_only' };
-  // No-stain, clear-present (decomposed pilots: door_casing, arch_element)
-  if (!s && se && c) return { system: 'seal_clear_bare',    coating_type: 'clear_only' };
-  if (!s && !se && c) return { system: 'clear_bare',        coating_type: 'clear_only' };
-  // Sealer-only (no clear) / nothing selected → degenerate, fires nothing
+  if (!config) return null;
+  const hasFlags = config.stain_on !== undefined || config.sealer_on !== undefined || config.clear_on !== undefined;
+  let s, se, c;
+  if (hasFlags) {
+    s = !!config.stain_on; se = !!config.sealer_on; c = !!config.clear_on;
+  } else {
+    // Legacy fallback: substrates saved before presence flags infer scope from
+    // coating_type so existing stained projects still fire the decomposed phases.
+    const ct = config.coating_type;
+    if (ct === 'stain_clear')     { s = true;  se = (config.sealer_coats || 0) > 0; c = true; }
+    else if (ct === 'stain_only') { s = true;  se = false; c = false; }
+    else if (ct === 'clear_only') { s = false; se = (config.sealer_coats || 0) > 0; c = true; }
+    else return null; // paint / unset
+  }
+  if (s && se && c)   return { system: 'stain_sealer_clear', coating_type: 'stain_clear' };
+  if (s && c)         return { system: 'stain_clear',        coating_type: 'stain_clear' };
+  if (s && !c)        return { system: 'stain_only',         coating_type: 'stain_only' };
+  if (!s && se && c)  return { system: 'seal_clear_bare',    coating_type: 'clear_only' };
+  if (!s && !se && c) return { system: 'clear_bare',         coating_type: 'clear_only' };
   return null;
 }
 

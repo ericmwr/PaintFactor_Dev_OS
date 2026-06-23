@@ -141,7 +141,9 @@ describe('resolveSystem — presence-flag integration (B3)', () => {
         // no stain_on / sealer_on / clear_on
       })
     );
-    // Existing logic: coating_type === 'stain_clear' → 'stain_sealer_clear'
+    // createSubstrateConfig injects stain_on/sealer_on/clear_on as false (all defined),
+    // so hasFlags=true → deriveStainScope returns null (all false), resolveSystem falls
+    // through to coating_type logic → 'stain_sealer_clear'.
     expect(resolveSystem('SF_DOOR_FRAME_NC_STAIN', room, project)).toBe('stain_sealer_clear');
   });
 
@@ -933,5 +935,135 @@ describe('D4 — door_casing sealer+clear (no stain, bare wood)', () => {
     expect(sealerMat.productId).not.toBeNull();
     expect(typeof sealerMat.productId).toBe('string');
     expect(sealerMat.productId.length).toBeGreaterThan(0);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// F0: Migration fallback — legacy substrates (no flags) infer scope from coating_type
+// ---------------------------------------------------------------------------
+describe('F0 — deriveStainScope: legacy substrates infer scope from coating_type', () => {
+  // --- Pure helper: legacy path ---
+  it('legacy stain_clear (no sealer_coats) → system stain_clear, coating_type stain_clear', () => {
+    expect(deriveStainScope({ coating_type: 'stain_clear' }))
+      .toEqual({ system: 'stain_clear', coating_type: 'stain_clear' });
+  });
+
+  it('legacy stain_clear with sealer_coats:1 → system stain_sealer_clear, coating_type stain_clear', () => {
+    expect(deriveStainScope({ coating_type: 'stain_clear', sealer_coats: 1 }))
+      .toEqual({ system: 'stain_sealer_clear', coating_type: 'stain_clear' });
+  });
+
+  it('legacy stain_only → system stain_only, coating_type stain_only', () => {
+    expect(deriveStainScope({ coating_type: 'stain_only' }))
+      .toEqual({ system: 'stain_only', coating_type: 'stain_only' });
+  });
+
+  it('legacy clear_only (no sealer_coats) → system clear_bare, coating_type clear_only', () => {
+    expect(deriveStainScope({ coating_type: 'clear_only' }))
+      .toEqual({ system: 'clear_bare', coating_type: 'clear_only' });
+  });
+
+  it('legacy clear_only with sealer_coats:2 → system seal_clear_bare, coating_type clear_only', () => {
+    expect(deriveStainScope({ coating_type: 'clear_only', sealer_coats: 2 }))
+      .toEqual({ system: 'seal_clear_bare', coating_type: 'clear_only' });
+  });
+
+  it('legacy coating_type:paint → null (paint substrates unaffected)', () => {
+    expect(deriveStainScope({ coating_type: 'paint' })).toBeNull();
+  });
+
+  it('legacy no coating_type (bare object) → null', () => {
+    expect(deriveStainScope({})).toBeNull();
+  });
+
+  // --- Flags present: exact flag values honored even when coating_type suggests stain ---
+  it('flags present, all false + coating_type:stain_clear → null (user turned everything off)', () => {
+    expect(deriveStainScope({ stain_on: false, sealer_on: false, clear_on: false, coating_type: 'stain_clear' }))
+      .toBeNull();
+  });
+
+  it('flags present, stain_on+clear_on (no sealer) → stain_clear regardless of coating_type', () => {
+    expect(deriveStainScope({ stain_on: true, clear_on: true, sealer_on: false, coating_type: 'stain_only' }))
+      .toEqual({ system: 'stain_clear', coating_type: 'stain_clear' });
+  });
+
+  // --- Paint safety: flagless paint/unset substrates fire nothing ---
+  it('flagless paint substrate → null (McLeod paint parity preserved)', () => {
+    expect(deriveStainScope({ coating_type: 'paint', substrate_state: 'previously_painted' })).toBeNull();
+  });
+
+  it('flagless unset coating_type → null (McLeod paint parity preserved)', () => {
+    // Typical paint substrate saved before stain was ever considered — no flags, no stain coating_type
+    expect(deriveStainScope({ substrate_state: 'previously_painted' })).toBeNull();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// F0 Integration: legacy door_casing (coating_type only, no flags) fires stain + clear
+// ---------------------------------------------------------------------------
+describe('F0 — integration: legacy door_casing (no flags, coating_type:stain_clear) fires decomposed phases', () => {
+  // Simulate legacy data: door_casing config has coating_type but NO stain_on/sealer_on/clear_on flags.
+  function makeLegacyDoorCasingState() {
+    const room = createRoom({ label: 'F0 Legacy Casing' });
+    room.openings = [createOpening({ opening_type: 'single', count: 1 })];
+    // Legacy substrate: saved before presence flags; only has coating_type
+    room.substrates.door_casing = createSubstrateConfig('door_casing', {
+      substrate_state: 'bare_wood',
+      painting: true,
+      coating_type: 'stain_clear',
+      // NOTE: stain_on / sealer_on / clear_on are intentionally ABSENT
+    });
+    // Remove any flags that createSubstrateConfig may inject
+    delete room.substrates.door_casing.stain_on;
+    delete room.substrates.door_casing.sealer_on;
+    delete room.substrates.door_casing.clear_on;
+    return {
+      project: {
+        default_quality_tier: 'QT3',
+        material_overrides: { system: {}, manual: [] },
+      },
+      rooms: [room],
+      exterior: { elevations: [], defaults: {} },
+    };
+  }
+
+  const legacyState = makeLegacyDoorCasingState();
+  const legacyResult = computeScenarioEstimate(legacyState, canonicalBundle, null, []);
+
+  it('result is non-null and not an error', () => {
+    expect(legacyResult).not.toBeNull();
+    expect(legacyResult.error).toBeUndefined();
+  });
+
+  it('specResults includes SF_DOOR_CASING_NC_STAIN (legacy stain fires)', () => {
+    const found = (legacyResult.specResults || []).some(sr => sr.specId === 'SF_DOOR_CASING_NC_STAIN');
+    expect(found).toBe(true);
+  });
+
+  it('specResults includes SF_DOOR_CASING_NC_CLEAR (legacy clear fires)', () => {
+    const found = (legacyResult.specResults || []).some(sr => sr.specId === 'SF_DOOR_CASING_NC_CLEAR');
+    expect(found).toBe(true);
+  });
+
+  it('zero "no scenario matched" gaps for casing pilot specIds', () => {
+    const PILOT = new Set(['SF_DOOR_CASING_NC_STAIN', 'SF_DOOR_CASING_NC_SEALER', 'SF_DOOR_CASING_NC_CLEAR']);
+    const gaps = (legacyResult.gaps || []).filter(g => PILOT.has(g.specId));
+    expect(gaps).toHaveLength(0);
+  });
+
+  it('stain material line has a real productId (not null)', () => {
+    const stainMat = (legacyResult.materialEstimates || []).find(
+      m => m.specFamilyId === 'SF_DOOR_CASING_NC_STAIN' && m.productRole === 'stain'
+    );
+    expect(stainMat).toBeDefined();
+    expect(stainMat.productId).not.toBeNull();
+    expect(typeof stainMat.productId).toBe('string');
+    expect(stainMat.productId.length).toBeGreaterThan(0);
+  });
+
+  it('stain spec has positive totalHours (legacy substrate now estimates correctly)', () => {
+    const stainSpec = (legacyResult.specResults || []).find(sr => sr.specId === 'SF_DOOR_CASING_NC_STAIN');
+    expect(stainSpec).toBeDefined();
+    expect(stainSpec.totalHours).toBeGreaterThan(0);
   });
 });
