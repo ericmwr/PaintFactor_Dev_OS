@@ -111,11 +111,9 @@ describe('resolveSystem — presence-flag integration (B3)', () => {
     expect(resolveSystem('SF_DOOR_FRAME_NC_STAIN', room, project)).toBe('stain_only');
   });
 
-  // DEFERRED: deriveStainScope now returns null for no-stain combos. resolveSystem falls
-  // through to the legacy coating_type/system back-compat path (still valid for bundled
-  // families). For a door_frames config with only clear_on, the fallback ultimately
-  // resolves via the legacy system field or inferredDefault — not a stain system.
-  it('returns clear_refresh when only clear_on is set (legacy fallback path for bundled families)', () => {
+  // F3: door_frame is now decomposed. When only clear_on is set, deriveStainScope
+  // returns 'clear_bare' (the decomposed-family path wins over the legacy system field).
+  it('returns clear_bare when only clear_on is set (decomposed family path)', () => {
     const room = makeRoom(
       'door_frames',
       createSubstrateConfig('door_frames', {
@@ -123,13 +121,13 @@ describe('resolveSystem — presence-flag integration (B3)', () => {
         stain_on: false,
         sealer_on: false,
         clear_on: true,
-        // Explicitly set system to clear_refresh so the legacy path is honored
+        // system field is ignored for decomposed families — deriveStainScope wins
         system: 'clear_refresh',
       })
     );
-    // deriveStainScope returns null (no stain), so resolveSystem falls to explicit
-    // config.system → 'clear_refresh' (legacy path, bundled families only).
-    expect(resolveSystem('SF_DOOR_FRAME_NC_STAIN', room, project)).toBe('clear_refresh');
+    // SF_DOOR_FRAME_NC_STAIN is in DECOMPOSED_STAIN_FAMILIES → deriveStainScope
+    // returns 'clear_bare' (clear_on=true, no stain) → resolveSystem returns 'clear_bare'.
+    expect(resolveSystem('SF_DOOR_FRAME_NC_STAIN', room, project)).toBe('clear_bare');
   });
 
   it('falls through to existing logic when no flags are set (flagless bare_wood + coating_type)', () => {
@@ -334,9 +332,10 @@ describe('B2 — coating_phase + decomposed coat-field suppression', () => {
     }
   });
 
-  it('bundled stain family still emits ctx coat fields (non-decomposed path unchanged)', () => {
-    // SF_DOOR_FRAME_NC_STAIN is in STAIN_SPEC_FAMILIES but NOT in DECOMPOSED_STAIN_FAMILIES
-    const room = createRoom({ label: 'Bundled Stain' });
+  it('decomposed stain family (door_frame, F3) suppresses ctx coat fields', () => {
+    // F3: SF_DOOR_FRAME_NC_STAIN is now in DECOMPOSED_STAIN_FAMILIES
+    // → coat fields are suppressed from ctx; coat_counts in the scenario drives coats
+    const room = createRoom({ label: 'Decomposed Stain F3' });
     room.substrates.door_frames = createSubstrateConfig('door_frames', {
       substrate_state: 'bare_wood',
       stain_on: true,
@@ -347,8 +346,8 @@ describe('B2 — coating_phase + decomposed coat-field suppression', () => {
     const { roomInputs } = buildScenarioInputs(state);
     const frameStainInput = roomInputs.find(i => i.specId === 'SF_DOOR_FRAME_NC_STAIN');
     expect(frameStainInput).toBeDefined();
-    // Bundled family: ctx coat fields ARE present
-    expect(frameStainInput.ctx.stain_coats).toBeDefined();
+    // Decomposed family: ctx coat fields are SUPPRESSED (coat_counts in scenario drives coats)
+    expect(frameStainInput.ctx.stain_coats).toBeUndefined();
     // coating_phase is still stamped (STAIN role)
     expect(frameStainInput.ctx.coating_phase).toBe('stain');
   });

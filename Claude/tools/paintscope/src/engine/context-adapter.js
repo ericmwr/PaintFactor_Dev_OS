@@ -228,6 +228,18 @@ export const SPEC_TO_PAINTABLE_ITEM = {
   SF_PANEL_MOLD_NC_CLEAR:           'int_panel_mold',
   SF_DOOR_FRAME_NC_STAIN:           'int_door_frame',
   SF_DOOR_SLAB_INT_NC_STAIN:        'int_door_slab',
+  SF_WINDOW_JAMB_NC_SEALER:         'int_window_jamb',
+  SF_WINDOW_JAMB_NC_CLEAR:          'int_window_jamb',
+  SF_DOOR_FRAME_NC_SEALER:          'int_door_frame',
+  SF_DOOR_FRAME_NC_CLEAR:           'int_door_frame',
+  SF_DOOR_SLAB_INT_NC_SEALER:       'int_door_slab',
+  SF_DOOR_SLAB_INT_NC_CLEAR:        'int_door_slab',
+  SF_WAINSCOT_PANEL_NC_SEALER:      'int_wainscot',
+  SF_WAINSCOT_PANEL_NC_CLEAR:       'int_wainscot',
+  SF_WOOD_WALL_NC_SEALER:           'int_wood_wall',
+  SF_WOOD_WALL_NC_CLEAR:            'int_wood_wall',
+  SF_WOOD_CEILING_NC_SEALER:        'int_wood_ceiling',
+  SF_WOOD_CEILING_NC_CLEAR:         'int_wood_ceiling',
 
   // Interior RP
   SF_DRYWALL_WALL_INT_RP:           'drywall_wall',

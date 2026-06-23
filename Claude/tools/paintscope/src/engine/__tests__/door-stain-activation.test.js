@@ -4,10 +4,18 @@ import { createRoom, createSubstrateConfig } from '../../state/initial-state.js'
 
 // Minimal interior project: one room with a bare-wood door frame and door slab,
 // both set to a stain coating. The adapter should emit a stain ctx for each.
+// F3: door_frame and door_slab are now decomposed families — use stain_on/clear_on
+// flags (not legacy coating_type) to trigger the decomposed path.
 function stainedDoorState() {
   const room = createRoom({ label: 'R1' });
-  room.substrates.door_frames = createSubstrateConfig('door_frames', { coating_type: 'stain_clear', substrate_state: 'bare_wood' });
-  room.substrates.doors = createSubstrateConfig('doors', { coating_type: 'stain_clear', substrate_state: 'bare_wood', painting: true });
+  room.substrates.door_frames = createSubstrateConfig('door_frames', {
+    coating_type: 'stain_clear', substrate_state: 'bare_wood',
+    stain_on: true, sealer_on: false, clear_on: true,
+  });
+  room.substrates.doors = createSubstrateConfig('doors', {
+    coating_type: 'stain_clear', substrate_state: 'bare_wood', painting: true,
+    stain_on: true, sealer_on: false, clear_on: true,
+  });
   return { rooms: [room], project: { default_quality_tier: 'QT3' }, colors: {}, exterior: { defaults: {} } };
 }
 

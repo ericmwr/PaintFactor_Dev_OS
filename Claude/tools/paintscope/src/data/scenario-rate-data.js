@@ -2350,6 +2350,108 @@ export const MATERIAL_SYSTEMS = [
       "coating_type": ["stain_clear", "clear_only"]
     },
     "allowed_sheens": ["satin", "semi_gloss"]
+  },
+  {
+    "id": "SYS_SEALER_OIL",
+    "spec_family_id": "SF_WINDOW_JAMB_NC_SEALER",
+    "name": "Oil Sanding Sealer",
+    "applies_when": {
+      "coating_type": ["stain_clear"]
+    }
+  },
+  {
+    "id": "SYS_CLEAR_POLY_WB",
+    "spec_family_id": "SF_WINDOW_JAMB_NC_CLEAR",
+    "name": "Waterborne Poly Clear",
+    "applies_when": {
+      "coating_type": ["stain_clear", "clear_only"]
+    },
+    "allowed_sheens": ["satin", "semi_gloss"]
+  },
+  {
+    "id": "SYS_SEALER_OIL",
+    "spec_family_id": "SF_DOOR_FRAME_NC_SEALER",
+    "name": "Oil Sanding Sealer",
+    "applies_when": {
+      "coating_type": ["stain_clear"]
+    }
+  },
+  {
+    "id": "SYS_CLEAR_POLY_WB",
+    "spec_family_id": "SF_DOOR_FRAME_NC_CLEAR",
+    "name": "Waterborne Poly Clear",
+    "applies_when": {
+      "coating_type": ["stain_clear", "clear_only"]
+    },
+    "allowed_sheens": ["satin", "semi_gloss"]
+  },
+  {
+    "id": "SYS_SEALER_OIL",
+    "spec_family_id": "SF_DOOR_SLAB_INT_NC_SEALER",
+    "name": "Oil Sanding Sealer",
+    "applies_when": {
+      "coating_type": ["stain_clear"]
+    }
+  },
+  {
+    "id": "SYS_CLEAR_POLY_WB",
+    "spec_family_id": "SF_DOOR_SLAB_INT_NC_CLEAR",
+    "name": "Waterborne Poly Clear",
+    "applies_when": {
+      "coating_type": ["stain_clear", "clear_only"]
+    },
+    "allowed_sheens": ["satin", "semi_gloss"]
+  },
+  {
+    "id": "SYS_SEALER_OIL",
+    "spec_family_id": "SF_WAINSCOT_PANEL_NC_SEALER",
+    "name": "Oil Sanding Sealer",
+    "applies_when": {
+      "coating_type": ["stain_clear"]
+    }
+  },
+  {
+    "id": "SYS_CLEAR_POLY_WB",
+    "spec_family_id": "SF_WAINSCOT_PANEL_NC_CLEAR",
+    "name": "Waterborne Poly Clear",
+    "applies_when": {
+      "coating_type": ["stain_clear", "clear_only"]
+    },
+    "allowed_sheens": ["satin", "semi_gloss"]
+  },
+  {
+    "id": "SYS_SEALER_OIL",
+    "spec_family_id": "SF_WOOD_WALL_NC_SEALER",
+    "name": "Oil Sanding Sealer",
+    "applies_when": {
+      "coating_type": ["stain_clear"]
+    }
+  },
+  {
+    "id": "SYS_CLEAR_POLY_WB",
+    "spec_family_id": "SF_WOOD_WALL_NC_CLEAR",
+    "name": "Waterborne Poly Clear",
+    "applies_when": {
+      "coating_type": ["stain_clear", "clear_only"]
+    },
+    "allowed_sheens": ["satin", "semi_gloss"]
+  },
+  {
+    "id": "SYS_SEALER_OIL",
+    "spec_family_id": "SF_WOOD_CEILING_NC_SEALER",
+    "name": "Oil Sanding Sealer",
+    "applies_when": {
+      "coating_type": ["stain_clear"]
+    }
+  },
+  {
+    "id": "SYS_CLEAR_POLY_WB",
+    "spec_family_id": "SF_WOOD_CEILING_NC_CLEAR",
+    "name": "Waterborne Poly Clear",
+    "applies_when": {
+      "coating_type": ["stain_clear", "clear_only"]
+    },
+    "allowed_sheens": ["satin", "semi_gloss"]
   }
 ];
 
@@ -3470,6 +3572,102 @@ export const MATERIAL_COVERAGE_PROFILES = [
   {
     "id": "COV_PANEL_MOLD_CLEAR",
     "spec_family_id": "SF_PANEL_MOLD_NC_CLEAR",
+    "product_role": "clear",
+    "surface_texture": "sealed_or_clear_coated",
+    "coverage_range_low": 400,
+    "coverage_range_high": 500
+  },
+  {
+    "id": "COV_WIN_JAMB_SEALER",
+    "spec_family_id": "SF_WINDOW_JAMB_NC_SEALER",
+    "product_role": "sealer",
+    "surface_texture": "stained_or_bare",
+    "coverage_range_low": 450,
+    "coverage_range_high": 500
+  },
+  {
+    "id": "COV_WIN_JAMB_CLEAR",
+    "spec_family_id": "SF_WINDOW_JAMB_NC_CLEAR",
+    "product_role": "clear",
+    "surface_texture": "sealed_or_clear_coated",
+    "coverage_range_low": 400,
+    "coverage_range_high": 450
+  },
+  {
+    "id": "COV_DOOR_FRAME_SEALER",
+    "spec_family_id": "SF_DOOR_FRAME_NC_SEALER",
+    "product_role": "sealer",
+    "surface_texture": "stained_or_bare",
+    "coverage_range_low": 450,
+    "coverage_range_high": 500
+  },
+  {
+    "id": "COV_DOOR_FRAME_CLEAR",
+    "spec_family_id": "SF_DOOR_FRAME_NC_CLEAR",
+    "product_role": "clear",
+    "surface_texture": "sealed_or_clear_coated",
+    "coverage_range_low": 400,
+    "coverage_range_high": 450
+  },
+  {
+    "id": "COV_DOOR_SLAB_SEALER",
+    "spec_family_id": "SF_DOOR_SLAB_INT_NC_SEALER",
+    "product_role": "sealer",
+    "surface_texture": "stained_or_bare",
+    "coverage_range_low": 400,
+    "coverage_range_high": 500
+  },
+  {
+    "id": "COV_DOOR_SLAB_CLEAR",
+    "spec_family_id": "SF_DOOR_SLAB_INT_NC_CLEAR",
+    "product_role": "clear",
+    "surface_texture": "sealed_or_clear_coated",
+    "coverage_range_low": 350,
+    "coverage_range_high": 450
+  },
+  {
+    "id": "COV_WAINSCOT_SEALER",
+    "spec_family_id": "SF_WAINSCOT_PANEL_NC_SEALER",
+    "product_role": "sealer",
+    "surface_texture": "stained_or_bare",
+    "coverage_range_low": 450,
+    "coverage_range_high": 550
+  },
+  {
+    "id": "COV_WAINSCOT_CLEAR",
+    "spec_family_id": "SF_WAINSCOT_PANEL_NC_CLEAR",
+    "product_role": "clear",
+    "surface_texture": "sealed_or_clear_coated",
+    "coverage_range_low": 400,
+    "coverage_range_high": 500
+  },
+  {
+    "id": "COV_WOOD_WALL_SEALER",
+    "spec_family_id": "SF_WOOD_WALL_NC_SEALER",
+    "product_role": "sealer",
+    "surface_texture": "stained_or_bare",
+    "coverage_range_low": 450,
+    "coverage_range_high": 550
+  },
+  {
+    "id": "COV_WOOD_WALL_CLEAR",
+    "spec_family_id": "SF_WOOD_WALL_NC_CLEAR",
+    "product_role": "clear",
+    "surface_texture": "sealed_or_clear_coated",
+    "coverage_range_low": 400,
+    "coverage_range_high": 500
+  },
+  {
+    "id": "COV_WOOD_CEILING_SEALER",
+    "spec_family_id": "SF_WOOD_CEILING_NC_SEALER",
+    "product_role": "sealer",
+    "surface_texture": "stained_or_bare",
+    "coverage_range_low": 450,
+    "coverage_range_high": 550
+  },
+  {
+    "id": "COV_WOOD_CEILING_CLEAR",
+    "spec_family_id": "SF_WOOD_CEILING_NC_CLEAR",
     "product_role": "clear",
     "surface_texture": "sealed_or_clear_coated",
     "coverage_range_low": 400,
@@ -9893,6 +10091,66 @@ export const SPEC_FAMILY_INFO = [
   {
     "id": "SF_PANEL_MOLD_NC_CLEAR",
     "name": "New Construction Panel Mold Clear Phase",
+    "domain": "interior"
+  },
+  {
+    "id": "SF_WINDOW_JAMB_NC_SEALER",
+    "name": "New Construction Window Jamb Sealer Phase",
+    "domain": "interior"
+  },
+  {
+    "id": "SF_WINDOW_JAMB_NC_CLEAR",
+    "name": "New Construction Window Jamb Clear Phase",
+    "domain": "interior"
+  },
+  {
+    "id": "SF_DOOR_FRAME_NC_SEALER",
+    "name": "New Construction Door Frame Sealer Phase",
+    "domain": "interior"
+  },
+  {
+    "id": "SF_DOOR_FRAME_NC_CLEAR",
+    "name": "New Construction Door Frame Clear Phase",
+    "domain": "interior"
+  },
+  {
+    "id": "SF_DOOR_SLAB_INT_NC_SEALER",
+    "name": "New Construction Interior Door Slab Sealer Phase",
+    "domain": "interior"
+  },
+  {
+    "id": "SF_DOOR_SLAB_INT_NC_CLEAR",
+    "name": "New Construction Interior Door Slab Clear Phase",
+    "domain": "interior"
+  },
+  {
+    "id": "SF_WAINSCOT_PANEL_NC_SEALER",
+    "name": "New Construction Wainscot Panel Sealer Phase",
+    "domain": "interior"
+  },
+  {
+    "id": "SF_WAINSCOT_PANEL_NC_CLEAR",
+    "name": "New Construction Wainscot Panel Clear Phase",
+    "domain": "interior"
+  },
+  {
+    "id": "SF_WOOD_WALL_NC_SEALER",
+    "name": "New Construction Wood Feature Wall Sealer Phase",
+    "domain": "interior"
+  },
+  {
+    "id": "SF_WOOD_WALL_NC_CLEAR",
+    "name": "New Construction Wood Feature Wall Clear Phase",
+    "domain": "interior"
+  },
+  {
+    "id": "SF_WOOD_CEILING_NC_SEALER",
+    "name": "New Construction Wood Ceiling Sealer Phase",
+    "domain": "interior"
+  },
+  {
+    "id": "SF_WOOD_CEILING_NC_CLEAR",
+    "name": "New Construction Wood Ceiling Clear Phase",
     "domain": "interior"
   }
 ];
