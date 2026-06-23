@@ -326,11 +326,14 @@ export function migrateInline(parsed) {
   // v1.0: material catalog integration — add brand preference and overrides
   if (parsed.project) {
     if (parsed.project.default_brand === undefined) parsed.project.default_brand = null;
-    if (!parsed.project.material_overrides) parsed.project.material_overrides = { system: {}, manual: [] };
+    if (!parsed.project.material_overrides) parsed.project.material_overrides = { system: {}, manual: [], byRole: {}, byFinishGroup: {} };
     // Materials MVP: manual was previously an object map (unused); convert to array.
     if (parsed.project.material_overrides && !Array.isArray(parsed.project.material_overrides.manual)) {
       parsed.project.material_overrides.manual = [];
     }
+    // P3: backfill byRole + byFinishGroup on projects that predate per-finish-group overrides.
+    if (!parsed.project.material_overrides.byRole) parsed.project.material_overrides.byRole = {};
+    if (!parsed.project.material_overrides.byFinishGroup) parsed.project.material_overrides.byFinishGroup = {};
   }
 
   // v1.0.4: Backfill EVERY protection_heuristics field independently — counts,

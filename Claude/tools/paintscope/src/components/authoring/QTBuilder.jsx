@@ -9,13 +9,14 @@
 
 import { Fragment, useMemo, useState, useRef } from 'react';
 import bundle from '../../data/scenario-bundle.gen.js';
-import { listSubstrates, listDimensions } from './qt-builder/derive-tier-ladder.js';
+import { listSubstrates, listDimensions, listStainPhases, stainPhaseInfo } from './qt-builder/derive-tier-ladder.js';
 import { deriveVantage } from './qt-builder/derive-vantage.js';
 import {
   planAddTask, planRemoveTask, planAddModule,
   planRemoveModule, planSetCoats, planRevertTier,
   planSetQtFactor, planClearQtFactor,
   planSetMaterial, planClearMaterial,
+  planSetStainCoats,
 } from './qt-builder/vantage-edits.js';
 import { deriveMaterials } from './qt-builder/derive-materials.js';
 import { mergeModuleDrafts, mergeScenarioDrafts } from './qt-builder/merge-drafts.js';
@@ -49,6 +50,18 @@ export default function QTBuilder() {
     ? coating
     : (dims.coatings.includes('paint') ? 'paint' : (dims.coatings[0] || ''));
 
+  const stainPhases = useMemo(() => listStainPhases(bundle, substrate), [substrate]);
+  const isStain = stainPhases.length > 0;
+  const [phase, setPhase] = useState('');
+  const effPhase = stainPhases.includes(phase) ? phase : (stainPhases[0] || '');
+  const phaseInfo = useMemo(
+    () => (isStain && effPhase ? stainPhaseInfo(bundle, substrate, effPhase) : null),
+    [substrate, effPhase, isStain]
+  );
+  const stainState = phaseInfo ? (dims.states.includes(fromState) ? fromState : phaseInfo.defaultState) : '';
+  const stainMethods = phaseInfo?.methods || [];
+  const stainMethod = stainMethods.includes(method) ? method : (stainMethods[0] || '');
+
   // Merge active module + scenario drafts over canonical so edits show live.
   const mergedBundle = useMemo(
     () => ({
@@ -59,17 +72,16 @@ export default function QTBuilder() {
     [moduleDrafts, scenarioDrafts]
   );
 
-  const sel = { paintable_item: substrate, application_method: effMethod, substrate_state: effState, coating_type: effCoating };
+  const sel = isStain
+    ? { paintable_item: substrate, coating_phase: effPhase, substrate_state: stainState,
+        [phaseInfo?.methodKey || 'application_method_clear']: stainMethod }
+    : { paintable_item: substrate, application_method: effMethod, substrate_state: effState, coating_type: effCoating };
 
-  const vm = useMemo(() => {
-    if (!substrate || !effMethod || !effState) return null;
-    return deriveVantage(mergedBundle, sel);
-  }, [mergedBundle, substrate, effMethod, effState, effCoating]);
-
-  const materials = useMemo(() => {
-    if (!substrate || !effMethod || !effState) return null;
-    return deriveMaterials(mergedBundle, bundle, sel);
-  }, [mergedBundle, substrate, effMethod, effState, effCoating]);
+  const ready = isStain ? (substrate && effPhase && stainState) : (substrate && effMethod && effState);
+  const vm = useMemo(() => (ready ? deriveVantage(mergedBundle, sel) : null),
+    [mergedBundle, ready, substrate, effMethod, effState, effCoating, effPhase, stainState, stainMethod]);
+  const materials = useMemo(() => (ready ? deriveMaterials(mergedBundle, bundle, sel) : null),
+    [mergedBundle, ready, substrate, effMethod, effState, effCoating, effPhase, stainState, stainMethod]);
 
   const activeDraftCount = moduleDrafts.filter(isActive).length + scenarioDrafts.filter(isActive).length;
   const busyRef = useRef(false);
@@ -134,22 +146,44 @@ export default function QTBuilder() {
             {substrates.map(s => <option key={s} value={s}>{humanize(s)}</option>)}
           </select>
         </label>
-        <label style={labelStyle}>Method
-          <select value={effMethod} onChange={e => setMethod(e.target.value)} style={{ ...inputStyle, width: 150 }}>
-            {dims.methods.map(m => <option key={m} value={m}>{humanize(m)}</option>)}
-          </select>
-        </label>
-        <label style={labelStyle}>From state
-          <select value={effState} onChange={e => setFromState(e.target.value)} style={{ ...inputStyle, width: 150 }}>
-            {dims.states.map(s => <option key={s} value={s}>{humanize(s)}</option>)}
-          </select>
-        </label>
-        {dims.coatings.length > 1 && (
-          <label style={labelStyle}>Coating
-            <select value={effCoating} onChange={e => setCoating(e.target.value)} style={{ ...inputStyle, width: 130 }}>
-              {dims.coatings.map(c => <option key={c} value={c}>{humanize(c)}</option>)}
-            </select>
-          </label>
+        {isStain ? (
+          <>
+            <label style={labelStyle}>Phase
+              <select value={effPhase} onChange={e => setPhase(e.target.value)} style={{ ...inputStyle, width: 130 }}>
+                {stainPhases.map(p => <option key={p} value={p}>{humanize(p)}</option>)}
+              </select>
+            </label>
+            <label style={labelStyle}>From state
+              <select value={stainState} onChange={e => setFromState(e.target.value)} style={{ ...inputStyle, width: 150 }}>
+                {dims.states.map(s => <option key={s} value={s}>{humanize(s)}</option>)}
+              </select>
+            </label>
+            <label style={labelStyle}>Method
+              <select value={stainMethod} onChange={e => setMethod(e.target.value)} style={{ ...inputStyle, width: 150 }}>
+                {stainMethods.map(m => <option key={m} value={m}>{humanize(m)}</option>)}
+              </select>
+            </label>
+          </>
+        ) : (
+          <>
+            <label style={labelStyle}>Method
+              <select value={effMethod} onChange={e => setMethod(e.target.value)} style={{ ...inputStyle, width: 150 }}>
+                {dims.methods.map(m => <option key={m} value={m}>{humanize(m)}</option>)}
+              </select>
+            </label>
+            <label style={labelStyle}>From state
+              <select value={effState} onChange={e => setFromState(e.target.value)} style={{ ...inputStyle, width: 150 }}>
+                {dims.states.map(s => <option key={s} value={s}>{humanize(s)}</option>)}
+              </select>
+            </label>
+            {dims.coatings.length > 1 && (
+              <label style={labelStyle}>Coating
+                <select value={effCoating} onChange={e => setCoating(e.target.value)} style={{ ...inputStyle, width: 130 }}>
+                  {dims.coatings.map(c => <option key={c} value={c}>{humanize(c)}</option>)}
+                </select>
+              </label>
+            )}
+          </>
         )}
       </div>
 
@@ -270,16 +304,21 @@ export default function QTBuilder() {
                               <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, justifyContent: 'center' }}>
                                 {repeatable && editable ? (
                                   <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3 }}>
-                                    <button style={{ ...stepBtn, opacity: busy || c.count <= 1 ? 0.4 : 1 }} disabled={busy || c.count <= 1} title="Fewer coats"
-                                      onClick={() => run(() => planSetCoats(mergedBundle, sel, t, row.baseModuleId, c.count - 1))}>−</button>
+                                    <button style={{ ...stepBtn, opacity: busy || c.count <= (c.coatField === 'sealer_coats' ? 0 : 1) ? 0.4 : 1 }}
+                                      disabled={busy || c.count <= (c.coatField === 'sealer_coats' ? 0 : 1)} title="Fewer coats"
+                                      onClick={() => run(() => c.coatField
+                                        ? planSetStainCoats(mergedBundle, sel, t, c.coatField, c.count - 1)
+                                        : planSetCoats(mergedBundle, sel, t, row.baseModuleId, c.count - 1))}>−</button>
                                     <b style={{ color }} title={c.state}>×{c.count}</b>
                                     <button style={{ ...stepBtn, opacity: busy ? 0.4 : 1 }} disabled={busy} title="More coats"
-                                      onClick={() => run(() => planSetCoats(mergedBundle, sel, t, row.baseModuleId, c.count + 1))}>+</button>
+                                      onClick={() => run(() => c.coatField
+                                        ? planSetStainCoats(mergedBundle, sel, t, c.coatField, c.count + 1)
+                                        : planSetCoats(mergedBundle, sel, t, row.baseModuleId, c.count + 1))}>+</button>
                                   </span>
                                 ) : (
                                   <b style={{ color }} title={c.state}>✓{c.count > 1 ? `×${c.count}` : ''}</b>
                                 )}
-                                {editable && (
+                                {editable && !c.coatField && (
                                   <button title={repeatable && c.count > 1 ? 'Remove one coat at this tier' : 'Remove this module at this tier'}
                                     disabled={busy}
                                     onClick={() => run(() => planRemoveModule(mergedBundle, sel, t, row.baseModuleId))}

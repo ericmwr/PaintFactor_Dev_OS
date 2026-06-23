@@ -10,7 +10,7 @@ import { PHASE_ORDER } from '../../../data/constants.js';
 import { scenarioTierPin } from './tier-files.js';
 import { getFactor } from '../../../engine/modifier-registry.js';
 
-const GATE_KEYS = ['application_method', 'substrate_state']; // NOT quality_tier — tier = file
+const GATE_KEYS = ['application_method', 'substrate_state', 'application_method_stain', 'application_method_clear']; // NOT quality_tier — tier = file
 
 function baseId(id) { return id.replace(/_QT[2-5](?=_|$)/g, ''); }
 
@@ -71,10 +71,7 @@ export function deriveVantage(bundle, sel) {
   const scenarioByTier = {};
   const scnByTier = {};
   for (const tier of tiers) {
-    const ctx = {
-      paintable_item: sel.paintable_item, application_method: sel.application_method,
-      substrate_state: sel.substrate_state, coating_type: sel.coating_type, quality_tier: tier,
-    };
+    const ctx = { ...sel, quality_tier: tier };
     const { scenario } = findBestMatch(bundle, ctx);
     scnByTier[tier] = scenario || null;
     scenarioByTier[tier] = scenario ? scenario.scenario_id : null;
@@ -133,7 +130,13 @@ export function deriveVantage(bundle, sel) {
       if (!refBaseIds.has(b)) state = 'added';
       else if (e.actualId !== b) state = 'forked';
       else state = 'shared';
-      cells[t] = { moduleId: e.actualId, count: e.count, state };
+      const dc = scnByTier[t].dynamic_coats?.[e.actualId];
+      if (dc && dc.field) {
+        const cnt = scnByTier[t].coat_counts?.[dc.field];
+        cells[t] = { moduleId: e.actualId, count: Number.isFinite(cnt) ? cnt : 1, state, coatField: dc.field };
+      } else {
+        cells[t] = { moduleId: e.actualId, count: e.count, state };
+      }
     }
     const tasks = taskRowsFor(b, perTier, scnByTier, tiers, served, bundle, refScn, sel);
     return { baseModuleId: b, name, phase, cells, tasks };

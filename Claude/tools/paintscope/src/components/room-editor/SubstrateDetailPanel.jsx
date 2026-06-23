@@ -6,6 +6,8 @@ import { SUBSTRATE_MAP, SUBSTRATE_APPLICATION_METHODS } from '../../data/substra
 import { SUBSTRATE_SYSTEMS, SYSTEM_METADATA, inferDefaultSystem, coatingTypeFromSystem } from '../../data/system-catalog.js';
 import { useModifierEnum } from '../../hooks/useModifierEnum';
 import { deriveHeightBand } from '../../engine/derive-room.js';
+import { resolveSystem } from '../../engine/material-overrides.js';
+import { MATERIAL_SYSTEMS } from '../../data/scenario-rate-data.js';
 
 const HEIGHT_BAND_OPTIONS = [
   { value: 'STD',      label: 'Ground Level (STD)' },
@@ -40,9 +42,6 @@ export default function SubstrateDetailPanel({ room, derived, dispatch, substrat
   // Derive coating_type from the effective system (explicit or auto-inferred).
   const _effectiveSystem = config.system || inferDefaultSystem(substrateId, config.substrate_state);
   const coatingType = coatingTypeFromSystem(_effectiveSystem) || config.coating_type || 'paint';
-  const includesStain = coatingType === 'stain_clear' || coatingType === 'stain_only';
-  const includesClear = coatingType === 'stain_clear' || coatingType === 'clear_only';
-
   // Determine derived value and UOM
   const uom = cat.uom;
   const hasAuto = !!cat.autoDerive;
@@ -253,10 +252,29 @@ export default function SubstrateDetailPanel({ room, derived, dispatch, substrat
       })()}
 
       {/* Stain / Clear Coat controls (bare wood on wood substrates only).
-          Coating Type was retired — see System above for workflow choice. */}
-      {isBareWood && coatingType !== 'paint' && (
+          Coating Type was retired — see System above for workflow choice.
+          Presence flags (stain_on/sealer_on/clear_on) are the authoritative
+          scope control; System dropdown seeds them via the C1 reducer. */}
+      {isBareWood && (config.stain_on || config.sealer_on || config.clear_on || coatingType !== 'paint') && (
         <div className="panel-section">
-          <div className="section-title">Coating</div>
+          <div className="section-title">Coating Phases</div>
+          <div style={{ display: 'flex', gap: 16, padding: '4px 0', flexWrap: 'wrap' }}>
+            {['stain', 'sealer', 'clear'].map(ph => {
+              return (
+                <label key={ph} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12 }}>
+                  <input
+                    type="checkbox"
+                    checked={!!config[`${ph}_on`]}
+                    onChange={e => {
+                      const checked = e.target.checked;
+                      setSub(`${ph}_on`, checked);
+                    }}
+                  />
+                  {ph.charAt(0).toUpperCase() + ph.slice(1)}
+                </label>
+              );
+            })}
+          </div>
           <div className="form-grid" style={{ gridTemplateColumns: '1fr 1fr' }}>
             <div>
               <div className="field-label">Wood Species</div>
@@ -266,7 +284,7 @@ export default function SubstrateDetailPanel({ room, derived, dispatch, substrat
             {/* placeholder retained so the original block structure stays clean */}
             <div></div>
 
-            {includesStain && (
+            {config.stain_on && (
               <>
                 <div>
                   <div className="field-label">Stain Method</div>
@@ -281,31 +299,61 @@ export default function SubstrateDetailPanel({ room, derived, dispatch, substrat
               </>
             )}
 
-            {includesClear && (
+            {(config.sealer_on || config.clear_on) && (
               <>
                 <div>
-                  <div className="field-label">Clear Method</div>
+                  <div className="field-label">Clear/Sealer Method</div>
                   <Select options={ENUMS.clearApplicationMethods} value={config.application_method_clear || 'brush'}
                     onChange={v => setSub('application_method_clear', v)} />
                 </div>
-                <div>
-                  <div className="field-label">Clear Sheen</div>
-                  <Select options={ENUMS.clearSheen} value={config.clear_sheen || 'satin'}
-                    onChange={v => setSub('clear_sheen', v)} />
-                </div>
-                <div>
-                  <div className="field-label">Sealer Coats</div>
-                  <Select options={ENUMS.sealerCoatCounts} value={config.sealer_coats ?? 0}
-                    onChange={v => setSub('sealer_coats', Number(v))} />
-                </div>
-                <div>
-                  <div className="field-label">Clear Coats</div>
-                  <Select options={ENUMS.clearCoatCounts} value={config.clear_coats ?? 1}
-                    onChange={v => setSub('clear_coats', Number(v))} />
-                </div>
+                {config.sealer_on && (
+                  <div>
+                    <div className="field-label">Sealer Coats</div>
+                    <Select options={ENUMS.sealerCoatCounts} value={config.sealer_coats ?? 0}
+                      onChange={v => setSub('sealer_coats', Number(v))} />
+                  </div>
+                )}
+                {config.clear_on && (
+                  <div>
+                    <div className="field-label">Clear Sheen</div>
+                    <Select options={ENUMS.clearSheen} value={config.clear_sheen || 'satin'}
+                      onChange={v => setSub('clear_sheen', v)} />
+                  </div>
+                )}
+                {config.clear_on && (
+                  <div>
+                    <div className="field-label">Clear Coats</div>
+                    <Select options={ENUMS.clearCoatCounts} value={config.clear_coats ?? 1}
+                      onChange={v => setSub('clear_coats', Number(v))} />
+                  </div>
+                )}
               </>
             )}
           </div>
+          {(config.stain_on || config.sealer_on || config.clear_on) && (() => {
+            const overrides = project?.material_overrides;
+            const fg = config.finish_group || null;
+            const nameById = Object.fromEntries(MATERIAL_SYSTEMS.map(s => [s.id, s.name || s.id]));
+            const roleLabels = [
+              config.stain_on  ? { role: 'stain',  scenarioPick: null } : null,
+              config.sealer_on ? { role: 'sealer', scenarioPick: null } : null,
+              config.clear_on  ? { role: 'clear',  scenarioPick: null } : null,
+            ].filter(Boolean);
+            const chips = roleLabels.map(({ role }) => {
+              const resolved = resolveSystem(role, fg, overrides, null);  // null scenarioPick: chip strip only shows OVERRIDES, not file defaults
+              const label = resolved ? (nameById[resolved] || resolved) : '— tier default —';
+              const sourceTag = overrides?.byFinishGroup?.[fg]?.[`${role}_system`] ? ` (override · group ${fg})`
+                : overrides?.byRole?.[`${role}_system`] ? ' (project override)'
+                : '';
+              return `${role.charAt(0).toUpperCase() + role.slice(1)} · ${label}${sourceTag}`;
+            });
+            return (
+              <div style={{ marginTop: 10, padding: '6px 10px', fontSize: 10, color: 'var(--text-muted)', background: 'rgba(0,0,0,0.1)', borderRadius: 3 }}>
+                Resolved materials: {chips.join('   ·   ')}
+                <span style={{ marginLeft: 10, fontStyle: 'italic' }}>change in Materials Overrides panel</span>
+              </div>
+            );
+          })()}
         </div>
       )}
 

@@ -114,9 +114,9 @@ describe('specForScenarioMatches', () => {
     expect(specForScenarioMatches(fixture)).toBe('SF_CLOSET_SHELF_NC');
   });
 
-  // (d) int_window stain → SF_WINDOW_INT_NC_STAIN (coating_type discriminator)
+  // (d) int_window stain → SF_WINDOW_INT_NC_STAIN (coating_phase discriminator, decomposed)
   it('int_window stain scenario → SF_WINDOW_INT_NC_STAIN', () => {
-    const fixture = matchesOf('SCN_INT_WNST_STAIN_CLEAR');
+    const fixture = matchesOf('SCN_INT_WNST_STAIN');
     expect(fixture).toBeTruthy();
     expect(specForScenarioMatches(fixture)).toBe('SF_WINDOW_INT_NC_STAIN');
   });

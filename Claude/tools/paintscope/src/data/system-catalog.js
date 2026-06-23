@@ -233,6 +233,7 @@ export const SYSTEM_SPEC_ACTIVATION = {
   stain_clear: {
     STAIN:    { active: true,  stateTransition: 'input' },
     CLEAR:    { active: true,  stateTransition: 'stained' },
+    SEALER:   { active: false },
     COMBINED: { active: false },  // paint-path COMBINED specs suppressed under stain systems
     PRIME:    { active: false },
     FINISH:   { active: false },
@@ -278,6 +279,27 @@ export const SYSTEM_SPEC_ACTIVATION = {
   restain_recoat: {
     STAIN:    { active: true,  stateTransition: 'input' },
     CLEAR:    { active: true,  stateTransition: 'stained' },
+    SEALER:   { active: false },
+    COMBINED: { active: false },
+    PRIME:    { active: false },
+    FINISH:   { active: false },
+  },
+
+  // Clear-only / sealer+clear over bare wood — no stain, natural finish.
+  // DECOMPOSED families only (door_casing, arch_element pilots).
+  // Bundled families handle clear-only via the legacy coating_type path.
+  clear_bare: {            // clear topcoat over BARE wood, no stain, no sealer (natural finish)
+    CLEAR:    { active: true,  stateTransition: 'input' },
+    STAIN:    { active: false },
+    SEALER:   { active: false },
+    COMBINED: { active: false },
+    PRIME:    { active: false },
+    FINISH:   { active: false },
+  },
+  seal_clear_bare: {       // sealer + clear over BARE wood, no stain
+    SEALER:   { active: true,  stateTransition: 'input' },
+    CLEAR:    { active: true,  stateTransition: 'sealed' },
+    STAIN:    { active: false },
     COMBINED: { active: false },
     PRIME:    { active: false },
     FINISH:   { active: false },

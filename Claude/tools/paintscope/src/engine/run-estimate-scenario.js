@@ -804,7 +804,9 @@ export function runScenarioEstimate({ scenarioBundle, ctx, roomQty, roomItems = 
         ctxField = config.field;
         interstageModule = config.interstage || null;
       }
-      const n = Number(ctx[ctxField]);
+      // Per-item ctx override wins; else the scenario's authored per-tier
+      // coat_counts default; else 1. `??` preserves 0 (explicit skip).
+      const n = Number(ctx[ctxField] ?? scenario.coat_counts?.[ctxField] ?? 1);
       const reps = Number.isFinite(n) && n > 0 ? Math.floor(n) : 0;
       for (let i = 0; i < reps; i++) entries.push({ moduleId, interstageModule });
     } else {

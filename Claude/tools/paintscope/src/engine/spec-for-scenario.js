@@ -90,7 +90,22 @@ export function specForScenarioMatches(matches) {
   }
   if (cands.length <= 1) return cands[0] || null;
 
-  // 2.5 coating_type discriminator: narrow paint vs stain families.
+  // 2.5 coating_phase discriminator: for decomposed stain families the scenario
+  // carries a coating_phase field ('stain' | 'sealer' | 'clear') that maps
+  // directly to SPEC_ROLE. Apply this before coating_type narrowing so that
+  // e.g. int_window SEALER scenarios correctly resolve to SF_WINDOW_INT_NC_SEALER
+  // rather than the _STAIN family.
+  if (matches.coating_phase) {
+    const PHASE_TO_ROLE = { stain: 'STAIN', sealer: 'SEALER', clear: 'CLEAR' };
+    const wantedRole = PHASE_TO_ROLE[matches.coating_phase];
+    if (wantedRole) {
+      const narrowed = cands.filter(id => SPEC_ROLE[id] === wantedRole);
+      if (narrowed.length > 0) cands = narrowed;
+    }
+  }
+  if (cands.length <= 1) return cands[0] || null;
+
+  // 2.6 coating_type discriminator: narrow paint vs stain families.
   // Only applies when candidates contain both _STAIN and non-stain specs.
   const hasStainCand = cands.some(id => id.includes('_STAIN'));
   const hasPaintCand = cands.some(id => !id.includes('_STAIN'));

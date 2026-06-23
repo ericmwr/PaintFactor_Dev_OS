@@ -1,7 +1,46 @@
 import { OPENING_SUBSTRATES } from './quantity-lookups.js';
-import { SPEC_SUBSTRATE_MAP } from '../data/scenario-maps.js';
+import { SPEC_SUBSTRATE_MAP, DECOMPOSED_STAIN_FAMILIES, SPEC_ROLE } from '../data/scenario-maps.js';
 import { SUBSTRATE_APPLICATION_METHODS } from '../data/substrate-catalog.js';
 import { inferDefaultSystem } from '../data/system-catalog.js';
+
+/**
+ * Map per-phase presence flags → activation system + coating_type.
+ *
+ * Stain-present mappings (highest priority):
+ *   stain + sealer + clear → { system: 'stain_sealer_clear', coating_type: 'stain_clear' }
+ *   stain + clear           → { system: 'stain_clear',        coating_type: 'stain_clear' }
+ *   stain only              → { system: 'stain_only',         coating_type: 'stain_only' }
+ *
+ * No-stain, clear-present mappings (DECOMPOSED families, D4):
+ *   sealer + clear (no stain) → { system: 'seal_clear_bare', coating_type: 'clear_only' }
+ *   clear only                → { system: 'clear_bare',      coating_type: 'clear_only' }
+ *
+ * Degenerate (sealer-only with no clear, or nothing selected) → null (fires nothing).
+ * Bundled families still reach this function but the caller gates no-stain systems
+ * to decomposed families only (see resolveSystem).
+ */
+export function deriveStainScope(config) {
+  if (!config) return null;
+  const hasFlags = config.stain_on !== undefined || config.sealer_on !== undefined || config.clear_on !== undefined;
+  let s, se, c;
+  if (hasFlags) {
+    s = !!config.stain_on; se = !!config.sealer_on; c = !!config.clear_on;
+  } else {
+    // Legacy fallback: substrates saved before presence flags infer scope from
+    // coating_type so existing stained projects still fire the decomposed phases.
+    const ct = config.coating_type;
+    if (ct === 'stain_clear')     { s = true;  se = (config.sealer_coats || 0) > 0; c = true; }
+    else if (ct === 'stain_only') { s = true;  se = false; c = false; }
+    else if (ct === 'clear_only') { s = false; se = (config.sealer_coats || 0) > 0; c = true; }
+    else return null; // paint / unset
+  }
+  if (s && se && c)   return { system: 'stain_sealer_clear', coating_type: 'stain_clear' };
+  if (s && c)         return { system: 'stain_clear',        coating_type: 'stain_clear' };
+  if (s && !c)        return { system: 'stain_only',         coating_type: 'stain_only' };
+  if (!s && se && c)  return { system: 'seal_clear_bare',    coating_type: 'clear_only' };
+  if (!s && !se && c) return { system: 'clear_bare',         coating_type: 'clear_only' };
+  return null;
+}
 
 // Items-based substrates (doors, windows) store per-item fields like
 // coating_type, substrate_state, wood_species_group on each item rather
@@ -91,6 +130,21 @@ export function resolveSystem(specId, room, project) {
   // picking "Stain + Clear" must suppress paint specs even if a prior session
   // left config.system = 'paint_full' cached on the substrate.
   if (substrateState === 'bare_wood') {
+    // Per-phase presence flags (stain_on/sealer_on/clear_on) take top priority
+    // when any flag is explicitly set. Substrates without flags return null and
+    // fall through to the existing coating_type / system back-compat logic below.
+    const scope = deriveStainScope(subConfig);
+    if (scope) {
+      // No-stain systems (clear_bare, seal_clear_bare) are DECOMPOSED-only.
+      // Bundled families fall through to the legacy coating_type/system path so
+      // their existing clear-only handling (coating_type gating, clear_refresh)
+      // continues to work without modification.
+      const noStainSystem = scope.system === 'clear_bare' || scope.system === 'seal_clear_bare';
+      const isDecomp = DECOMPOSED_STAIN_FAMILIES.has(specId)
+        || SPEC_ROLE[specId] === 'SEALER' || SPEC_ROLE[specId] === 'CLEAR';
+      if (!noStainSystem || isDecomp) return scope.system;
+      // bundled family + no-stain clear → fall through to legacy path below
+    }
     // Honor explicit clear-system selection before falling back to the
     // coating-type inference (both clear_only and clear_refresh map to
     // coating_type=clear_only, so coating_type alone can't differentiate).
@@ -166,6 +220,8 @@ export function resolveCoatingType(specId, room, project) {
   const primarySub = SPEC_SUBSTRATE_MAP[specId];
   if (!primarySub) return 'paint';
   const config = resolveSubstrateConfig(specId, room);
+  const scope = deriveStainScope(config);
+  if (scope) return scope.coating_type;
   return resolveItemField(config, primarySub, 'coating_type', 'paint');
 }
 

@@ -404,6 +404,7 @@ function scenarioCoating(scn) {
   if (explicit) return Array.isArray(explicit) ? explicit[0] : explicit;
   const id = (scn.scenario_id || '').toUpperCase();
   if (/_STAIN(?:_|$)/.test(id)) return 'stain';
+  if (/_SEALER(?:_|$)/.test(id)) return 'sealer';
   if (/_CLEAR(?:_|$)/.test(id)) return 'clear';
   if (/_PRIME(?:_|$)/.test(id) || /PRIME_FROM/.test(id)) return 'prime';
   if (/_PAINT(?:_|$)/.test(id) || /_FINISH(?:_|$)/.test(id) || /_NC_/.test(id) || /_RP_/.test(id)) return 'paint';

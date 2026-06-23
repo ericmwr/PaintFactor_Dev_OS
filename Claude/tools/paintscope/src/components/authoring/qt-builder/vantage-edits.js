@@ -10,6 +10,7 @@ import {
   addTask, removeTask, addModuleToTier, removeModuleFromTier,
   setScenarioQtFactor, clearScenarioQtFactor,
   setScenarioMaterial, clearScenarioMaterial,
+  setScenarioCoatCount,
 } from './tier-files.js';
 import { buildRoleBySystemId, classifySystemRole } from '../../../engine/material-system-roles.js';
 import { MATERIAL_SYSTEM_PRODUCTS } from '../../../data/scenario-rate-data.js';
@@ -17,10 +18,7 @@ import { MATERIAL_SYSTEM_PRODUCTS } from '../../../data/scenario-rate-data.js';
 function baseId(id) { return id.replace(/_QT[2-5](?=_|$)/g, ''); }
 
 function resolveTierScenario(bundle, sel, tier) {
-  const ctx = {
-    paintable_item: sel.paintable_item, application_method: sel.application_method,
-    substrate_state: sel.substrate_state, coating_type: sel.coating_type, quality_tier: tier,
-  };
+  const ctx = { ...sel, quality_tier: tier };
   return findBestMatch(bundle, ctx).scenario || null;
 }
 
@@ -191,4 +189,18 @@ export function planClearMaterial(bundle, canonicalBundle, sel, tier, role) {
   const next = clearScenarioMaterial(gov, role, baselineSystemId, ROLE_BY_SYSTEM_ID);
   if (next === gov) return {};
   return reclaimOrSave(next, canonical);
+}
+
+// Per-field stain coat ranges (enums.js: stain 1-2, sealer 0-2, clear 1-3).
+const STAIN_COAT_RANGE = { stain_coats: [1, 2], sealer_coats: [0, 2], clear_coats: [1, 3] };
+
+// Set a stain phase-file's coat scalar (fork-on-edit, incl. QT3 — matching the
+// paint coat stepper). Writes scenario.coat_counts[field]; clamps to the range.
+export function planSetStainCoats(bundle, sel, tier, field, n) {
+  if (typeof n !== 'number' || !Number.isFinite(n)) return {};
+  const scn = ensureScenarioForTier(bundle, sel, tier);
+  if (!scn) return {};
+  const [lo, hi] = STAIN_COAT_RANGE[field] || [1, 9];
+  const clamped = Math.max(lo, Math.min(hi, Math.round(n)));
+  return { scenario: setScenarioCoatCount(scn, field, clamped) };
 }

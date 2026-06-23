@@ -156,3 +156,13 @@ export function clearScenarioMaterial(scenario, role, baselineSystemId, roleBySy
   next[idx] = baselineSystemId;
   return { ...scenario, material_systems: next };
 }
+
+// Set scenario.coat_counts[field] = n (immutable, clones coat_counts). The
+// per-phase stain coat scalar; the engine reads it via the dynamic_coats
+// fallback ctx[field] ?? coat_counts[field] ?? 1. Same ref on a true no-op.
+export function setScenarioCoatCount(scenario, field, n) {
+  const cur = scenario && scenario.coat_counts ? scenario.coat_counts[field] : undefined;
+  if (cur === n) return scenario;
+  const coat_counts = { ...(scenario.coat_counts || {}), [field]: n };
+  return { ...scenario, coat_counts };
+}

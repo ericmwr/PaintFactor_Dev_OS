@@ -6,6 +6,7 @@ import { ENUMS } from '../../data/enums';
 import { useProject } from '../../hooks/useProject';
 import { useModifierEnum } from '../../hooks/useModifierEnum';
 import { createExteriorState, EXT_SIDING_TYPES, EXT_SUBSTRATE_MATERIALS, EXT_SUBSTRATE_STATES, EXT_RP_SUBSTRATE_STATES, EXT_CAULK_SCOPES, EXT_CONDITION_SCALE } from '../../state/exterior-state';
+import MaterialsOverridesPanel from './MaterialsOverridesPanel.jsx';
 
 const DEFAULT_SURFACE_OPTIONS = [
   { id: 'ceiling', label: 'Ceiling' },
@@ -413,6 +414,9 @@ export default function ProjectSetup() {
           </div>
         </div>
       </div>
+
+      {/* ── Materials Overrides ── */}
+      <MaterialsOverridesPanel state={state} dispatch={dispatch} />
 
       <div className="setup-field" style={{ marginTop: 8 }}>
         <label>Project Notes</label>

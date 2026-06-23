@@ -1233,6 +1233,24 @@ export const MATERIAL_SYSTEMS = [
     ]
   },
   {
+    "id": "SYS_SEALER_OIL",
+    "spec_family_id": "SF_STAIR_RAILING_NC_SEALER",
+    "name": "Oil-Based Sanding Sealer",
+    "applies_when": {
+      "coating_type": ["stain_clear", "clear_only"]
+    },
+    "allowed_sheens": ["n/a"]
+  },
+  {
+    "id": "SYS_CLEAR_POLY_WB",
+    "spec_family_id": "SF_STAIR_RAILING_NC_CLEAR",
+    "name": "Water-Based Polyurethane",
+    "applies_when": {
+      "coating_type": ["stain_clear", "clear_only"]
+    },
+    "allowed_sheens": ["satin", "semi-gloss", "gloss"]
+  },
+  {
     "id": "SYS_STAIN_OIL",
     "spec_family_id": "SF_WINDOW_INT_NC_STAIN",
     "name": "Oil-Based Penetrating Stain",
@@ -1365,6 +1383,51 @@ export const MATERIAL_SYSTEMS = [
     ]
   },
   {
+    "id": "SYS_SEALER_OIL",
+    "spec_family_id": "SF_WINDOW_INT_NC_SEALER",
+    "name": "Oil-Based Sanding Sealer",
+    "applies_when": {
+      "coating_type": ["stain_clear", "clear_only"]
+    },
+    "allowed_sheens": ["n/a"]
+  },
+  {
+    "id": "SYS_SEALER_WB",
+    "spec_family_id": "SF_WINDOW_INT_NC_SEALER",
+    "name": "Water-Based Sanding Sealer",
+    "applies_when": {
+      "coating_type": ["stain_clear", "clear_only"]
+    },
+    "allowed_sheens": ["n/a"]
+  },
+  {
+    "id": "SYS_CLEAR_POLY_WB",
+    "spec_family_id": "SF_WINDOW_INT_NC_CLEAR",
+    "name": "Water-Based Polyurethane",
+    "applies_when": {
+      "coating_type": ["stain_clear", "clear_only"]
+    },
+    "allowed_sheens": ["satin", "semi-gloss", "gloss"]
+  },
+  {
+    "id": "SYS_CLEAR_POLY_OIL",
+    "spec_family_id": "SF_WINDOW_INT_NC_CLEAR",
+    "name": "Oil-Based Polyurethane",
+    "applies_when": {
+      "coating_type": ["stain_clear", "clear_only"]
+    },
+    "allowed_sheens": ["satin", "semi-gloss", "gloss"]
+  },
+  {
+    "id": "SYS_CLEAR_LACQUER",
+    "spec_family_id": "SF_WINDOW_INT_NC_CLEAR",
+    "name": "Lacquer",
+    "applies_when": {
+      "coating_type": ["stain_clear", "clear_only"]
+    },
+    "allowed_sheens": ["satin", "semi-gloss", "gloss"]
+  },
+  {
     "id": "SYS_STAIN_OIL",
     "spec_family_id": "SF_STAIR_RISER_NC_STAIN",
     "name": "Oil-Based Penetrating Stain",
@@ -1495,6 +1558,123 @@ export const MATERIAL_SYSTEMS = [
       "semi-gloss",
       "gloss"
     ]
+  },
+  {
+    "id": "SYS_SEALER_OIL",
+    "spec_family_id": "SF_STAIR_RISER_NC_SEALER",
+    "name": "Oil-Based Sanding Sealer",
+    "applies_when": {
+      "coating_type": ["stain_clear", "clear_only"]
+    },
+    "allowed_sheens": ["n/a"]
+  },
+  {
+    "id": "SYS_CLEAR_POLY_WB",
+    "spec_family_id": "SF_STAIR_RISER_NC_CLEAR",
+    "name": "Water-Based Polyurethane",
+    "applies_when": {
+      "coating_type": ["stain_clear", "clear_only"]
+    },
+    "allowed_sheens": ["satin", "semi-gloss", "gloss"]
+  },
+  {
+    "id": "SYS_STAIN_OIL",
+    "spec_family_id": "SF_STAIR_TREAD_NC_STAIN",
+    "name": "Oil-Based Penetrating Stain",
+    "applies_when": {
+      "coating_type": ["stain_clear", "stain_only"]
+    },
+    "allowed_sheens": ["n/a"]
+  },
+  {
+    "id": "SYS_STAIN_OIL_MOD",
+    "spec_family_id": "SF_STAIR_TREAD_NC_STAIN",
+    "name": "Oil-Modified Stain (VOC-Compliant)",
+    "applies_when": {
+      "coating_type": ["stain_clear", "stain_only"]
+    },
+    "allowed_sheens": ["n/a"]
+  },
+  {
+    "id": "SYS_STAIN_WB",
+    "spec_family_id": "SF_STAIR_TREAD_NC_STAIN",
+    "name": "Water-Based Stain",
+    "applies_when": {
+      "coating_type": ["stain_clear", "stain_only"]
+    },
+    "allowed_sheens": ["n/a"]
+  },
+  {
+    "id": "SYS_STAIN_GEL",
+    "spec_family_id": "SF_STAIR_TREAD_NC_STAIN",
+    "name": "Gel Stain",
+    "applies_when": {
+      "coating_type": ["stain_clear", "stain_only"]
+    },
+    "allowed_sheens": ["n/a"]
+  },
+  {
+    "id": "SYS_SEALER_OIL",
+    "spec_family_id": "SF_STAIR_TREAD_NC_STAIN",
+    "name": "Oil-Based Sanding Sealer",
+    "applies_when": {
+      "coating_type": ["stain_clear", "clear_only"]
+    },
+    "allowed_sheens": ["n/a"]
+  },
+  {
+    "id": "SYS_SEALER_WB",
+    "spec_family_id": "SF_STAIR_TREAD_NC_STAIN",
+    "name": "Water-Based Sanding Sealer",
+    "applies_when": {
+      "coating_type": ["stain_clear", "clear_only"]
+    },
+    "allowed_sheens": ["n/a"]
+  },
+  {
+    "id": "SYS_CLEAR_POLY_OIL",
+    "spec_family_id": "SF_STAIR_TREAD_NC_STAIN",
+    "name": "Oil-Based Polyurethane",
+    "applies_when": {
+      "coating_type": ["stain_clear", "clear_only"]
+    },
+    "allowed_sheens": ["satin", "semi-gloss", "gloss"]
+  },
+  {
+    "id": "SYS_CLEAR_POLY_WB",
+    "spec_family_id": "SF_STAIR_TREAD_NC_STAIN",
+    "name": "Water-Based Polyurethane",
+    "applies_when": {
+      "coating_type": ["stain_clear", "clear_only"]
+    },
+    "allowed_sheens": ["satin", "semi-gloss", "gloss"]
+  },
+  {
+    "id": "SYS_CLEAR_LACQUER",
+    "spec_family_id": "SF_STAIR_TREAD_NC_STAIN",
+    "name": "Lacquer",
+    "applies_when": {
+      "coating_type": ["stain_clear", "clear_only"]
+    },
+    "allowed_sheens": ["satin", "semi-gloss", "gloss"]
+  },
+  {
+    "id": "SYS_SEALER_OIL",
+    "spec_family_id": "SF_STAIR_TREAD_NC_SEALER",
+    "name": "Oil-Based Sanding Sealer",
+    "applies_when": {
+      "coating_type": ["stain_clear", "clear_only"]
+    },
+    "allowed_sheens": ["n/a"]
+  },
+  {
+    "id": "SYS_CLEAR_POLY_WB",
+    "spec_family_id": "SF_STAIR_TREAD_NC_CLEAR",
+    "name": "Water-Based Polyurethane",
+    "applies_when": {
+      "coating_type": ["stain_clear", "clear_only"]
+    },
+    "allowed_sheens": ["satin", "semi-gloss", "gloss"]
   },
   {
     "id": "SYS_STAIN_OIL",
@@ -2035,6 +2215,423 @@ export const MATERIAL_SYSTEMS = [
     "allowed_sheens": [
       "N/A — filler, not coating"
     ]
+  },
+  {
+    "id": "SYS_SEALER_OIL",
+    "spec_family_id": "SF_ARCH_ELEMENT_NC_SEALER",
+    "name": "Oil-Based Sanding Sealer",
+    "applies_when": {
+      "coating_type": ["stain_clear", "clear_only"]
+    },
+    "allowed_sheens": ["n/a"]
+  },
+  {
+    "id": "SYS_CLEAR_POLY_WB",
+    "spec_family_id": "SF_ARCH_ELEMENT_NC_CLEAR",
+    "name": "Water-Based Polyurethane",
+    "applies_when": {
+      "coating_type": ["stain_clear", "clear_only"]
+    },
+    "allowed_sheens": ["satin", "semi-gloss", "gloss"]
+  },
+  {
+    "id": "SYS_STAIN_OIL",
+    "spec_family_id": "SF_DOOR_CASING_NC_STAIN",
+    "name": "Oil-Based Penetrating Stain",
+    "applies_when": {
+      "coating_type": ["stain_clear", "stain_only"]
+    },
+    "allowed_sheens": ["n/a"]
+  },
+  {
+    "id": "SYS_SEALER_OIL",
+    "spec_family_id": "SF_DOOR_CASING_NC_SEALER",
+    "name": "Oil Sanding Sealer",
+    "applies_when": {
+      "coating_type": ["stain_clear"]
+    },
+    "allowed_sheens": ["n/a"]
+  },
+  {
+    "id": "SYS_CLEAR_POLY_WB",
+    "spec_family_id": "SF_DOOR_CASING_NC_CLEAR",
+    "name": "Waterborne Poly Clear",
+    "applies_when": {
+      "coating_type": ["stain_clear", "clear_only"]
+    },
+    "allowed_sheens": ["satin", "semi_gloss"]
+  },
+  {
+    "id": "SYS_STAIN_OIL",
+    "spec_family_id": "SF_BASEBOARD_NC_STAIN",
+    "name": "Oil-Based Penetrating Stain",
+    "applies_when": {
+      "coating_type": ["stain_clear", "stain_only"]
+    },
+    "allowed_sheens": ["n/a"]
+  },
+  {
+    "id": "SYS_SEALER_OIL",
+    "spec_family_id": "SF_BASEBOARD_NC_SEALER",
+    "name": "Oil Sanding Sealer",
+    "applies_when": {
+      "coating_type": ["stain_clear"]
+    },
+    "allowed_sheens": ["n/a"]
+  },
+  {
+    "id": "SYS_CLEAR_POLY_WB",
+    "spec_family_id": "SF_BASEBOARD_NC_CLEAR",
+    "name": "Waterborne Poly Clear",
+    "applies_when": {
+      "coating_type": ["stain_clear", "clear_only"]
+    },
+    "allowed_sheens": ["satin", "semi_gloss"]
+  },
+  {
+    "id": "SYS_STAIN_OIL",
+    "spec_family_id": "SF_CROWN_NC_STAIN",
+    "name": "Oil-Based Penetrating Stain",
+    "applies_when": {
+      "coating_type": ["stain_clear", "stain_only"]
+    },
+    "allowed_sheens": ["n/a"]
+  },
+  {
+    "id": "SYS_SEALER_OIL",
+    "spec_family_id": "SF_CROWN_NC_SEALER",
+    "name": "Oil Sanding Sealer",
+    "applies_when": {
+      "coating_type": ["stain_clear"]
+    },
+    "allowed_sheens": ["n/a"]
+  },
+  {
+    "id": "SYS_CLEAR_POLY_WB",
+    "spec_family_id": "SF_CROWN_NC_CLEAR",
+    "name": "Waterborne Poly Clear",
+    "applies_when": {
+      "coating_type": ["stain_clear", "clear_only"]
+    },
+    "allowed_sheens": ["satin", "semi_gloss"]
+  },
+  {
+    "id": "SYS_STAIN_OIL",
+    "spec_family_id": "SF_CHAIR_RAIL_NC_STAIN",
+    "name": "Oil-Based Penetrating Stain",
+    "applies_when": {
+      "coating_type": ["stain_clear", "stain_only"]
+    },
+    "allowed_sheens": ["n/a"]
+  },
+  {
+    "id": "SYS_SEALER_OIL",
+    "spec_family_id": "SF_CHAIR_RAIL_NC_SEALER",
+    "name": "Oil Sanding Sealer",
+    "applies_when": {
+      "coating_type": ["stain_clear"]
+    },
+    "allowed_sheens": ["n/a"]
+  },
+  {
+    "id": "SYS_CLEAR_POLY_WB",
+    "spec_family_id": "SF_CHAIR_RAIL_NC_CLEAR",
+    "name": "Waterborne Poly Clear",
+    "applies_when": {
+      "coating_type": ["stain_clear", "clear_only"]
+    },
+    "allowed_sheens": ["satin", "semi_gloss"]
+  },
+  {
+    "id": "SYS_STAIN_OIL",
+    "spec_family_id": "SF_WINDOW_CASING_NC_STAIN",
+    "name": "Oil-Based Penetrating Stain",
+    "applies_when": {
+      "coating_type": ["stain_clear", "stain_only"]
+    },
+    "allowed_sheens": ["n/a"]
+  },
+  {
+    "id": "SYS_SEALER_OIL",
+    "spec_family_id": "SF_WINDOW_CASING_NC_SEALER",
+    "name": "Oil Sanding Sealer",
+    "applies_when": {
+      "coating_type": ["stain_clear"]
+    },
+    "allowed_sheens": ["n/a"]
+  },
+  {
+    "id": "SYS_CLEAR_POLY_WB",
+    "spec_family_id": "SF_WINDOW_CASING_NC_CLEAR",
+    "name": "Waterborne Poly Clear",
+    "applies_when": {
+      "coating_type": ["stain_clear", "clear_only"]
+    },
+    "allowed_sheens": ["satin", "semi_gloss"]
+  },
+  {
+    "id": "SYS_STAIN_OIL",
+    "spec_family_id": "SF_SHOE_MOLD_NC_STAIN",
+    "name": "Oil-Based Penetrating Stain",
+    "applies_when": {
+      "coating_type": ["stain_clear", "stain_only"]
+    },
+    "allowed_sheens": ["n/a"]
+  },
+  {
+    "id": "SYS_SEALER_OIL",
+    "spec_family_id": "SF_SHOE_MOLD_NC_SEALER",
+    "name": "Oil Sanding Sealer",
+    "applies_when": {
+      "coating_type": ["stain_clear"]
+    },
+    "allowed_sheens": ["n/a"]
+  },
+  {
+    "id": "SYS_CLEAR_POLY_WB",
+    "spec_family_id": "SF_SHOE_MOLD_NC_CLEAR",
+    "name": "Waterborne Poly Clear",
+    "applies_when": {
+      "coating_type": ["stain_clear", "clear_only"]
+    },
+    "allowed_sheens": ["satin", "semi_gloss"]
+  },
+  {
+    "id": "SYS_STAIN_OIL",
+    "spec_family_id": "SF_PICTURE_RAIL_NC_STAIN",
+    "name": "Oil-Based Penetrating Stain",
+    "applies_when": {
+      "coating_type": ["stain_clear", "stain_only"]
+    },
+    "allowed_sheens": ["n/a"]
+  },
+  {
+    "id": "SYS_SEALER_OIL",
+    "spec_family_id": "SF_PICTURE_RAIL_NC_SEALER",
+    "name": "Oil Sanding Sealer",
+    "applies_when": {
+      "coating_type": ["stain_clear"]
+    },
+    "allowed_sheens": ["n/a"]
+  },
+  {
+    "id": "SYS_CLEAR_POLY_WB",
+    "spec_family_id": "SF_PICTURE_RAIL_NC_CLEAR",
+    "name": "Waterborne Poly Clear",
+    "applies_when": {
+      "coating_type": ["stain_clear", "clear_only"]
+    },
+    "allowed_sheens": ["satin", "semi_gloss"]
+  },
+  {
+    "id": "SYS_STAIN_OIL",
+    "spec_family_id": "SF_WINDOW_STOOL_NC_STAIN",
+    "name": "Oil-Based Penetrating Stain",
+    "applies_when": {
+      "coating_type": ["stain_clear", "stain_only"]
+    },
+    "allowed_sheens": ["n/a"]
+  },
+  {
+    "id": "SYS_SEALER_OIL",
+    "spec_family_id": "SF_WINDOW_STOOL_NC_SEALER",
+    "name": "Oil Sanding Sealer",
+    "applies_when": {
+      "coating_type": ["stain_clear"]
+    },
+    "allowed_sheens": ["n/a"]
+  },
+  {
+    "id": "SYS_CLEAR_POLY_WB",
+    "spec_family_id": "SF_WINDOW_STOOL_NC_CLEAR",
+    "name": "Waterborne Poly Clear",
+    "applies_when": {
+      "coating_type": ["stain_clear", "clear_only"]
+    },
+    "allowed_sheens": ["satin", "semi_gloss"]
+  },
+  {
+    "id": "SYS_STAIN_OIL",
+    "spec_family_id": "SF_WINDOW_APRON_NC_STAIN",
+    "name": "Oil-Based Penetrating Stain",
+    "applies_when": {
+      "coating_type": ["stain_clear", "stain_only"]
+    },
+    "allowed_sheens": ["n/a"]
+  },
+  {
+    "id": "SYS_SEALER_OIL",
+    "spec_family_id": "SF_WINDOW_APRON_NC_SEALER",
+    "name": "Oil Sanding Sealer",
+    "applies_when": {
+      "coating_type": ["stain_clear"]
+    },
+    "allowed_sheens": ["n/a"]
+  },
+  {
+    "id": "SYS_CLEAR_POLY_WB",
+    "spec_family_id": "SF_WINDOW_APRON_NC_CLEAR",
+    "name": "Waterborne Poly Clear",
+    "applies_when": {
+      "coating_type": ["stain_clear", "clear_only"]
+    },
+    "allowed_sheens": ["satin", "semi_gloss"]
+  },
+  {
+    "id": "SYS_STAIN_OIL",
+    "spec_family_id": "SF_SHADOW_BOX_NC_STAIN",
+    "name": "Oil-Based Penetrating Stain",
+    "applies_when": {
+      "coating_type": ["stain_clear", "stain_only"]
+    },
+    "allowed_sheens": ["n/a"]
+  },
+  {
+    "id": "SYS_SEALER_OIL",
+    "spec_family_id": "SF_SHADOW_BOX_NC_SEALER",
+    "name": "Oil Sanding Sealer",
+    "applies_when": {
+      "coating_type": ["stain_clear"]
+    },
+    "allowed_sheens": ["n/a"]
+  },
+  {
+    "id": "SYS_CLEAR_POLY_WB",
+    "spec_family_id": "SF_SHADOW_BOX_NC_CLEAR",
+    "name": "Waterborne Poly Clear",
+    "applies_when": {
+      "coating_type": ["stain_clear", "clear_only"]
+    },
+    "allowed_sheens": ["satin", "semi_gloss"]
+  },
+  {
+    "id": "SYS_STAIN_OIL",
+    "spec_family_id": "SF_PANEL_MOLD_NC_STAIN",
+    "name": "Oil-Based Penetrating Stain",
+    "applies_when": {
+      "coating_type": ["stain_clear", "stain_only"]
+    },
+    "allowed_sheens": ["n/a"]
+  },
+  {
+    "id": "SYS_SEALER_OIL",
+    "spec_family_id": "SF_PANEL_MOLD_NC_SEALER",
+    "name": "Oil Sanding Sealer",
+    "applies_when": {
+      "coating_type": ["stain_clear"]
+    },
+    "allowed_sheens": ["n/a"]
+  },
+  {
+    "id": "SYS_CLEAR_POLY_WB",
+    "spec_family_id": "SF_PANEL_MOLD_NC_CLEAR",
+    "name": "Waterborne Poly Clear",
+    "applies_when": {
+      "coating_type": ["stain_clear", "clear_only"]
+    },
+    "allowed_sheens": ["satin", "semi_gloss"]
+  },
+  {
+    "id": "SYS_SEALER_OIL",
+    "spec_family_id": "SF_WINDOW_JAMB_NC_SEALER",
+    "name": "Oil Sanding Sealer",
+    "applies_when": {
+      "coating_type": ["stain_clear"]
+    }
+  },
+  {
+    "id": "SYS_CLEAR_POLY_WB",
+    "spec_family_id": "SF_WINDOW_JAMB_NC_CLEAR",
+    "name": "Waterborne Poly Clear",
+    "applies_when": {
+      "coating_type": ["stain_clear", "clear_only"]
+    },
+    "allowed_sheens": ["satin", "semi_gloss"]
+  },
+  {
+    "id": "SYS_SEALER_OIL",
+    "spec_family_id": "SF_DOOR_FRAME_NC_SEALER",
+    "name": "Oil Sanding Sealer",
+    "applies_when": {
+      "coating_type": ["stain_clear"]
+    }
+  },
+  {
+    "id": "SYS_CLEAR_POLY_WB",
+    "spec_family_id": "SF_DOOR_FRAME_NC_CLEAR",
+    "name": "Waterborne Poly Clear",
+    "applies_when": {
+      "coating_type": ["stain_clear", "clear_only"]
+    },
+    "allowed_sheens": ["satin", "semi_gloss"]
+  },
+  {
+    "id": "SYS_SEALER_OIL",
+    "spec_family_id": "SF_DOOR_SLAB_INT_NC_SEALER",
+    "name": "Oil Sanding Sealer",
+    "applies_when": {
+      "coating_type": ["stain_clear"]
+    }
+  },
+  {
+    "id": "SYS_CLEAR_POLY_WB",
+    "spec_family_id": "SF_DOOR_SLAB_INT_NC_CLEAR",
+    "name": "Waterborne Poly Clear",
+    "applies_when": {
+      "coating_type": ["stain_clear", "clear_only"]
+    },
+    "allowed_sheens": ["satin", "semi_gloss"]
+  },
+  {
+    "id": "SYS_SEALER_OIL",
+    "spec_family_id": "SF_WAINSCOT_PANEL_NC_SEALER",
+    "name": "Oil Sanding Sealer",
+    "applies_when": {
+      "coating_type": ["stain_clear"]
+    }
+  },
+  {
+    "id": "SYS_CLEAR_POLY_WB",
+    "spec_family_id": "SF_WAINSCOT_PANEL_NC_CLEAR",
+    "name": "Waterborne Poly Clear",
+    "applies_when": {
+      "coating_type": ["stain_clear", "clear_only"]
+    },
+    "allowed_sheens": ["satin", "semi_gloss"]
+  },
+  {
+    "id": "SYS_SEALER_OIL",
+    "spec_family_id": "SF_WOOD_WALL_NC_SEALER",
+    "name": "Oil Sanding Sealer",
+    "applies_when": {
+      "coating_type": ["stain_clear"]
+    }
+  },
+  {
+    "id": "SYS_CLEAR_POLY_WB",
+    "spec_family_id": "SF_WOOD_WALL_NC_CLEAR",
+    "name": "Waterborne Poly Clear",
+    "applies_when": {
+      "coating_type": ["stain_clear", "clear_only"]
+    },
+    "allowed_sheens": ["satin", "semi_gloss"]
+  },
+  {
+    "id": "SYS_SEALER_OIL",
+    "spec_family_id": "SF_WOOD_CEILING_NC_SEALER",
+    "name": "Oil Sanding Sealer",
+    "applies_when": {
+      "coating_type": ["stain_clear"]
+    }
+  },
+  {
+    "id": "SYS_CLEAR_POLY_WB",
+    "spec_family_id": "SF_WOOD_CEILING_NC_CLEAR",
+    "name": "Waterborne Poly Clear",
+    "applies_when": {
+      "coating_type": ["stain_clear", "clear_only"]
+    },
+    "allowed_sheens": ["satin", "semi_gloss"]
   }
 ];
 
@@ -2638,6 +3235,22 @@ export const MATERIAL_COVERAGE_PROFILES = [
     "coverage_range_high": 500
   },
   {
+    "id": "COV_SRST_SEALER_PHASE",
+    "spec_family_id": "SF_STAIR_RAILING_NC_SEALER",
+    "product_role": "sealer",
+    "surface_texture": "stained_or_bare",
+    "coverage_range_low": 450,
+    "coverage_range_high": 550
+  },
+  {
+    "id": "COV_SRST_CLEAR_PHASE",
+    "spec_family_id": "SF_STAIR_RAILING_NC_CLEAR",
+    "product_role": "clear",
+    "surface_texture": "sealed_or_clear_coated",
+    "coverage_range_low": 400,
+    "coverage_range_high": 500
+  },
+  {
     "id": "COV_WIST_STAIN_BRUSH",
     "spec_family_id": "SF_WINDOW_INT_NC_STAIN",
     "product_role": "stain",
@@ -2678,6 +3291,22 @@ export const MATERIAL_COVERAGE_PROFILES = [
     "coverage_range_high": 500
   },
   {
+    "id": "COV_WIST_SEALER_PHASE",
+    "spec_family_id": "SF_WINDOW_INT_NC_SEALER",
+    "product_role": "sealer",
+    "surface_texture": "stained_or_bare",
+    "coverage_range_low": 400,
+    "coverage_range_high": 500
+  },
+  {
+    "id": "COV_WIST_CLEAR_PHASE",
+    "spec_family_id": "SF_WINDOW_INT_NC_CLEAR",
+    "product_role": "clear",
+    "surface_texture": "sealed_or_clear_coated",
+    "coverage_range_low": 300,
+    "coverage_range_high": 400
+  },
+  {
     "id": "COV_SRST_STAIN_RISER",
     "spec_family_id": "SF_STAIR_RISER_NC_STAIN",
     "product_role": "stain",
@@ -2704,6 +3333,78 @@ export const MATERIAL_COVERAGE_PROFILES = [
   {
     "id": "COV_SRST_CLEAR",
     "spec_family_id": "SF_STAIR_RISER_NC_STAIN",
+    "product_role": "clear",
+    "surface_texture": "sealed_or_clear_coated",
+    "coverage_range_low": 350,
+    "coverage_range_high": 450
+  },
+  {
+    "id": "COV_RRST_SEALER_PHASE",
+    "spec_family_id": "SF_STAIR_RISER_NC_SEALER",
+    "product_role": "sealer",
+    "surface_texture": "stained_or_bare",
+    "coverage_range_low": 450,
+    "coverage_range_high": 550
+  },
+  {
+    "id": "COV_RRST_CLEAR_PHASE",
+    "spec_family_id": "SF_STAIR_RISER_NC_CLEAR",
+    "product_role": "clear",
+    "surface_texture": "sealed_or_clear_coated",
+    "coverage_range_low": 350,
+    "coverage_range_high": 450
+  },
+  {
+    "id": "COV_TRST_STAIN_BRUSH",
+    "spec_family_id": "SF_STAIR_TREAD_NC_STAIN",
+    "product_role": "stain",
+    "surface_texture": "bare_wood",
+    "coverage_range_low": 150,
+    "coverage_range_high": 250
+  },
+  {
+    "id": "COV_TRST_STAIN_SPRAY",
+    "spec_family_id": "SF_STAIR_TREAD_NC_STAIN",
+    "product_role": "stain",
+    "surface_texture": "bare_wood",
+    "coverage_range_low": 200,
+    "coverage_range_high": 350
+  },
+  {
+    "id": "COV_TRST_SEALER",
+    "spec_family_id": "SF_STAIR_TREAD_NC_STAIN",
+    "product_role": "sealer",
+    "surface_texture": "stained_or_bare",
+    "coverage_range_low": 450,
+    "coverage_range_high": 550
+  },
+  {
+    "id": "COV_TRST_CLEAR_BRUSH",
+    "spec_family_id": "SF_STAIR_TREAD_NC_STAIN",
+    "product_role": "clear",
+    "surface_texture": "sealed_or_clear_coated",
+    "coverage_range_low": 350,
+    "coverage_range_high": 450
+  },
+  {
+    "id": "COV_TRST_CLEAR_SPRAY",
+    "spec_family_id": "SF_STAIR_TREAD_NC_STAIN",
+    "product_role": "clear",
+    "surface_texture": "sealed_or_clear_coated",
+    "coverage_range_low": 400,
+    "coverage_range_high": 500
+  },
+  {
+    "id": "COV_TRST_SEALER_PHASE",
+    "spec_family_id": "SF_STAIR_TREAD_NC_SEALER",
+    "product_role": "sealer",
+    "surface_texture": "stained_or_bare",
+    "coverage_range_low": 450,
+    "coverage_range_high": 550
+  },
+  {
+    "id": "COV_TRST_CLEAR_PHASE",
+    "spec_family_id": "SF_STAIR_TREAD_NC_CLEAR",
     "product_role": "clear",
     "surface_texture": "sealed_or_clear_coated",
     "coverage_range_low": 350,
@@ -2861,6 +3562,22 @@ export const MATERIAL_COVERAGE_PROFILES = [
     "product_role": "clear"
   },
   {
+    "id": "COV_AEST_SEALER_PHASE",
+    "spec_family_id": "SF_ARCH_ELEMENT_NC_SEALER",
+    "product_role": "sealer",
+    "surface_texture": "stained_or_bare",
+    "coverage_range_low": 450,
+    "coverage_range_high": 550
+  },
+  {
+    "id": "COV_AEST_CLEAR_PHASE",
+    "spec_family_id": "SF_ARCH_ELEMENT_NC_CLEAR",
+    "product_role": "clear",
+    "surface_texture": "sealed_or_clear_coated",
+    "coverage_range_low": 400,
+    "coverage_range_high": 500
+  },
+  {
     "id": "COV_GRAIN_FILLER",
     "spec_family_id": "SF_WOOD_GRAIN_FILL_NC",
     "material_system": "SYS_GRAIN_FILLER_WB",
@@ -2879,6 +3596,366 @@ export const MATERIAL_COVERAGE_PROFILES = [
     "coverage_sf_per_gallon": 400,
     "coverage_range_low": 350,
     "coverage_range_high": 450
+  },
+  {
+    "id": "COV_DOOR_CASING_STAIN",
+    "spec_family_id": "SF_DOOR_CASING_NC_STAIN",
+    "product_role": "stain",
+    "surface_texture": "bare_wood",
+    "coverage_range_low": 150,
+    "coverage_range_high": 250
+  },
+  {
+    "id": "COV_DOOR_CASING_SEALER",
+    "spec_family_id": "SF_DOOR_CASING_NC_SEALER",
+    "product_role": "sealer",
+    "surface_texture": "stained_or_bare",
+    "coverage_range_low": 450,
+    "coverage_range_high": 550
+  },
+  {
+    "id": "COV_DOOR_CASING_CLEAR",
+    "spec_family_id": "SF_DOOR_CASING_NC_CLEAR",
+    "product_role": "clear",
+    "surface_texture": "sealed_or_clear_coated",
+    "coverage_range_low": 400,
+    "coverage_range_high": 500
+  },
+  {
+    "id": "COV_BASEBOARD_STAIN",
+    "spec_family_id": "SF_BASEBOARD_NC_STAIN",
+    "product_role": "stain",
+    "surface_texture": "bare_wood",
+    "coverage_range_low": 150,
+    "coverage_range_high": 250
+  },
+  {
+    "id": "COV_BASEBOARD_SEALER",
+    "spec_family_id": "SF_BASEBOARD_NC_SEALER",
+    "product_role": "sealer",
+    "surface_texture": "stained_or_bare",
+    "coverage_range_low": 450,
+    "coverage_range_high": 550
+  },
+  {
+    "id": "COV_BASEBOARD_CLEAR",
+    "spec_family_id": "SF_BASEBOARD_NC_CLEAR",
+    "product_role": "clear",
+    "surface_texture": "sealed_or_clear_coated",
+    "coverage_range_low": 400,
+    "coverage_range_high": 500
+  },
+  {
+    "id": "COV_CROWN_STAIN",
+    "spec_family_id": "SF_CROWN_NC_STAIN",
+    "product_role": "stain",
+    "surface_texture": "bare_wood",
+    "coverage_range_low": 150,
+    "coverage_range_high": 250
+  },
+  {
+    "id": "COV_CROWN_SEALER",
+    "spec_family_id": "SF_CROWN_NC_SEALER",
+    "product_role": "sealer",
+    "surface_texture": "stained_or_bare",
+    "coverage_range_low": 450,
+    "coverage_range_high": 550
+  },
+  {
+    "id": "COV_CROWN_CLEAR",
+    "spec_family_id": "SF_CROWN_NC_CLEAR",
+    "product_role": "clear",
+    "surface_texture": "sealed_or_clear_coated",
+    "coverage_range_low": 400,
+    "coverage_range_high": 500
+  },
+  {
+    "id": "COV_CHAIR_RAIL_STAIN",
+    "spec_family_id": "SF_CHAIR_RAIL_NC_STAIN",
+    "product_role": "stain",
+    "surface_texture": "bare_wood",
+    "coverage_range_low": 150,
+    "coverage_range_high": 250
+  },
+  {
+    "id": "COV_CHAIR_RAIL_SEALER",
+    "spec_family_id": "SF_CHAIR_RAIL_NC_SEALER",
+    "product_role": "sealer",
+    "surface_texture": "stained_or_bare",
+    "coverage_range_low": 450,
+    "coverage_range_high": 550
+  },
+  {
+    "id": "COV_CHAIR_RAIL_CLEAR",
+    "spec_family_id": "SF_CHAIR_RAIL_NC_CLEAR",
+    "product_role": "clear",
+    "surface_texture": "sealed_or_clear_coated",
+    "coverage_range_low": 400,
+    "coverage_range_high": 500
+  },
+  {
+    "id": "COV_WINDOW_CASING_STAIN",
+    "spec_family_id": "SF_WINDOW_CASING_NC_STAIN",
+    "product_role": "stain",
+    "surface_texture": "bare_wood",
+    "coverage_range_low": 150,
+    "coverage_range_high": 250
+  },
+  {
+    "id": "COV_WINDOW_CASING_SEALER",
+    "spec_family_id": "SF_WINDOW_CASING_NC_SEALER",
+    "product_role": "sealer",
+    "surface_texture": "stained_or_bare",
+    "coverage_range_low": 450,
+    "coverage_range_high": 550
+  },
+  {
+    "id": "COV_WINDOW_CASING_CLEAR",
+    "spec_family_id": "SF_WINDOW_CASING_NC_CLEAR",
+    "product_role": "clear",
+    "surface_texture": "sealed_or_clear_coated",
+    "coverage_range_low": 400,
+    "coverage_range_high": 500
+  },
+  {
+    "id": "COV_SHOE_MOLD_STAIN",
+    "spec_family_id": "SF_SHOE_MOLD_NC_STAIN",
+    "product_role": "stain",
+    "surface_texture": "bare_wood",
+    "coverage_range_low": 150,
+    "coverage_range_high": 250
+  },
+  {
+    "id": "COV_SHOE_MOLD_SEALER",
+    "spec_family_id": "SF_SHOE_MOLD_NC_SEALER",
+    "product_role": "sealer",
+    "surface_texture": "stained_or_bare",
+    "coverage_range_low": 450,
+    "coverage_range_high": 550
+  },
+  {
+    "id": "COV_SHOE_MOLD_CLEAR",
+    "spec_family_id": "SF_SHOE_MOLD_NC_CLEAR",
+    "product_role": "clear",
+    "surface_texture": "sealed_or_clear_coated",
+    "coverage_range_low": 400,
+    "coverage_range_high": 500
+  },
+  {
+    "id": "COV_PICTURE_RAIL_STAIN",
+    "spec_family_id": "SF_PICTURE_RAIL_NC_STAIN",
+    "product_role": "stain",
+    "surface_texture": "bare_wood",
+    "coverage_range_low": 150,
+    "coverage_range_high": 250
+  },
+  {
+    "id": "COV_PICTURE_RAIL_SEALER",
+    "spec_family_id": "SF_PICTURE_RAIL_NC_SEALER",
+    "product_role": "sealer",
+    "surface_texture": "stained_or_bare",
+    "coverage_range_low": 450,
+    "coverage_range_high": 550
+  },
+  {
+    "id": "COV_PICTURE_RAIL_CLEAR",
+    "spec_family_id": "SF_PICTURE_RAIL_NC_CLEAR",
+    "product_role": "clear",
+    "surface_texture": "sealed_or_clear_coated",
+    "coverage_range_low": 400,
+    "coverage_range_high": 500
+  },
+  {
+    "id": "COV_WINDOW_STOOL_STAIN",
+    "spec_family_id": "SF_WINDOW_STOOL_NC_STAIN",
+    "product_role": "stain",
+    "surface_texture": "bare_wood",
+    "coverage_range_low": 150,
+    "coverage_range_high": 250
+  },
+  {
+    "id": "COV_WINDOW_STOOL_SEALER",
+    "spec_family_id": "SF_WINDOW_STOOL_NC_SEALER",
+    "product_role": "sealer",
+    "surface_texture": "stained_or_bare",
+    "coverage_range_low": 450,
+    "coverage_range_high": 550
+  },
+  {
+    "id": "COV_WINDOW_STOOL_CLEAR",
+    "spec_family_id": "SF_WINDOW_STOOL_NC_CLEAR",
+    "product_role": "clear",
+    "surface_texture": "sealed_or_clear_coated",
+    "coverage_range_low": 400,
+    "coverage_range_high": 500
+  },
+  {
+    "id": "COV_WINDOW_APRON_STAIN",
+    "spec_family_id": "SF_WINDOW_APRON_NC_STAIN",
+    "product_role": "stain",
+    "surface_texture": "bare_wood",
+    "coverage_range_low": 150,
+    "coverage_range_high": 250
+  },
+  {
+    "id": "COV_WINDOW_APRON_SEALER",
+    "spec_family_id": "SF_WINDOW_APRON_NC_SEALER",
+    "product_role": "sealer",
+    "surface_texture": "stained_or_bare",
+    "coverage_range_low": 450,
+    "coverage_range_high": 550
+  },
+  {
+    "id": "COV_WINDOW_APRON_CLEAR",
+    "spec_family_id": "SF_WINDOW_APRON_NC_CLEAR",
+    "product_role": "clear",
+    "surface_texture": "sealed_or_clear_coated",
+    "coverage_range_low": 400,
+    "coverage_range_high": 500
+  },
+  {
+    "id": "COV_SHADOW_BOX_STAIN",
+    "spec_family_id": "SF_SHADOW_BOX_NC_STAIN",
+    "product_role": "stain",
+    "surface_texture": "bare_wood",
+    "coverage_range_low": 150,
+    "coverage_range_high": 250
+  },
+  {
+    "id": "COV_SHADOW_BOX_SEALER",
+    "spec_family_id": "SF_SHADOW_BOX_NC_SEALER",
+    "product_role": "sealer",
+    "surface_texture": "stained_or_bare",
+    "coverage_range_low": 450,
+    "coverage_range_high": 550
+  },
+  {
+    "id": "COV_SHADOW_BOX_CLEAR",
+    "spec_family_id": "SF_SHADOW_BOX_NC_CLEAR",
+    "product_role": "clear",
+    "surface_texture": "sealed_or_clear_coated",
+    "coverage_range_low": 400,
+    "coverage_range_high": 500
+  },
+  {
+    "id": "COV_PANEL_MOLD_STAIN",
+    "spec_family_id": "SF_PANEL_MOLD_NC_STAIN",
+    "product_role": "stain",
+    "surface_texture": "bare_wood",
+    "coverage_range_low": 150,
+    "coverage_range_high": 250
+  },
+  {
+    "id": "COV_PANEL_MOLD_SEALER",
+    "spec_family_id": "SF_PANEL_MOLD_NC_SEALER",
+    "product_role": "sealer",
+    "surface_texture": "stained_or_bare",
+    "coverage_range_low": 450,
+    "coverage_range_high": 550
+  },
+  {
+    "id": "COV_PANEL_MOLD_CLEAR",
+    "spec_family_id": "SF_PANEL_MOLD_NC_CLEAR",
+    "product_role": "clear",
+    "surface_texture": "sealed_or_clear_coated",
+    "coverage_range_low": 400,
+    "coverage_range_high": 500
+  },
+  {
+    "id": "COV_WIN_JAMB_SEALER",
+    "spec_family_id": "SF_WINDOW_JAMB_NC_SEALER",
+    "product_role": "sealer",
+    "surface_texture": "stained_or_bare",
+    "coverage_range_low": 450,
+    "coverage_range_high": 500
+  },
+  {
+    "id": "COV_WIN_JAMB_CLEAR",
+    "spec_family_id": "SF_WINDOW_JAMB_NC_CLEAR",
+    "product_role": "clear",
+    "surface_texture": "sealed_or_clear_coated",
+    "coverage_range_low": 400,
+    "coverage_range_high": 450
+  },
+  {
+    "id": "COV_DOOR_FRAME_SEALER",
+    "spec_family_id": "SF_DOOR_FRAME_NC_SEALER",
+    "product_role": "sealer",
+    "surface_texture": "stained_or_bare",
+    "coverage_range_low": 450,
+    "coverage_range_high": 500
+  },
+  {
+    "id": "COV_DOOR_FRAME_CLEAR",
+    "spec_family_id": "SF_DOOR_FRAME_NC_CLEAR",
+    "product_role": "clear",
+    "surface_texture": "sealed_or_clear_coated",
+    "coverage_range_low": 400,
+    "coverage_range_high": 450
+  },
+  {
+    "id": "COV_DOOR_SLAB_SEALER",
+    "spec_family_id": "SF_DOOR_SLAB_INT_NC_SEALER",
+    "product_role": "sealer",
+    "surface_texture": "stained_or_bare",
+    "coverage_range_low": 400,
+    "coverage_range_high": 500
+  },
+  {
+    "id": "COV_DOOR_SLAB_CLEAR",
+    "spec_family_id": "SF_DOOR_SLAB_INT_NC_CLEAR",
+    "product_role": "clear",
+    "surface_texture": "sealed_or_clear_coated",
+    "coverage_range_low": 350,
+    "coverage_range_high": 450
+  },
+  {
+    "id": "COV_WAINSCOT_SEALER",
+    "spec_family_id": "SF_WAINSCOT_PANEL_NC_SEALER",
+    "product_role": "sealer",
+    "surface_texture": "stained_or_bare",
+    "coverage_range_low": 450,
+    "coverage_range_high": 550
+  },
+  {
+    "id": "COV_WAINSCOT_CLEAR",
+    "spec_family_id": "SF_WAINSCOT_PANEL_NC_CLEAR",
+    "product_role": "clear",
+    "surface_texture": "sealed_or_clear_coated",
+    "coverage_range_low": 400,
+    "coverage_range_high": 500
+  },
+  {
+    "id": "COV_WOOD_WALL_SEALER",
+    "spec_family_id": "SF_WOOD_WALL_NC_SEALER",
+    "product_role": "sealer",
+    "surface_texture": "stained_or_bare",
+    "coverage_range_low": 450,
+    "coverage_range_high": 550
+  },
+  {
+    "id": "COV_WOOD_WALL_CLEAR",
+    "spec_family_id": "SF_WOOD_WALL_NC_CLEAR",
+    "product_role": "clear",
+    "surface_texture": "sealed_or_clear_coated",
+    "coverage_range_low": 400,
+    "coverage_range_high": 500
+  },
+  {
+    "id": "COV_WOOD_CEILING_SEALER",
+    "spec_family_id": "SF_WOOD_CEILING_NC_SEALER",
+    "product_role": "sealer",
+    "surface_texture": "stained_or_bare",
+    "coverage_range_low": 450,
+    "coverage_range_high": 550
+  },
+  {
+    "id": "COV_WOOD_CEILING_CLEAR",
+    "spec_family_id": "SF_WOOD_CEILING_NC_CLEAR",
+    "product_role": "clear",
+    "surface_texture": "sealed_or_clear_coated",
+    "coverage_range_low": 400,
+    "coverage_range_high": 500
   }
 ];
 
@@ -3663,6 +4740,61 @@ export const MATERIAL_SYSTEM_PRODUCTS = [
     "product_role": "clear"
   },
   {
+    "spec_family_id": "SF_STAIR_TREAD_NC_STAIN",
+    "system_id": "SYS_STAIN_OIL",
+    "product_role": "stain"
+  },
+  {
+    "spec_family_id": "SF_STAIR_TREAD_NC_STAIN",
+    "system_id": "SYS_STAIN_OIL_MOD",
+    "product_role": "stain"
+  },
+  {
+    "spec_family_id": "SF_STAIR_TREAD_NC_STAIN",
+    "system_id": "SYS_STAIN_WB",
+    "product_role": "stain"
+  },
+  {
+    "spec_family_id": "SF_STAIR_TREAD_NC_STAIN",
+    "system_id": "SYS_STAIN_GEL",
+    "product_role": "stain"
+  },
+  {
+    "spec_family_id": "SF_STAIR_TREAD_NC_STAIN",
+    "system_id": "SYS_SEALER_OIL",
+    "product_role": "sealer"
+  },
+  {
+    "spec_family_id": "SF_STAIR_TREAD_NC_STAIN",
+    "system_id": "SYS_SEALER_WB",
+    "product_role": "sealer"
+  },
+  {
+    "spec_family_id": "SF_STAIR_TREAD_NC_STAIN",
+    "system_id": "SYS_CLEAR_POLY_OIL",
+    "product_role": "clear"
+  },
+  {
+    "spec_family_id": "SF_STAIR_TREAD_NC_STAIN",
+    "system_id": "SYS_CLEAR_POLY_WB",
+    "product_role": "clear"
+  },
+  {
+    "spec_family_id": "SF_STAIR_TREAD_NC_STAIN",
+    "system_id": "SYS_CLEAR_LACQUER",
+    "product_role": "clear"
+  },
+  {
+    "spec_family_id": "SF_STAIR_TREAD_NC_SEALER",
+    "system_id": "SYS_SEALER_OIL",
+    "product_role": "sealer"
+  },
+  {
+    "spec_family_id": "SF_STAIR_TREAD_NC_CLEAR",
+    "system_id": "SYS_CLEAR_POLY_WB",
+    "product_role": "clear"
+  },
+  {
     "spec_family_id": "SF_WOOD_WALL_NC_STAIN",
     "system_id": "SYS_STAIN_OIL",
     "product_role": "stain"
@@ -4040,6 +5172,21 @@ export const QUALITY_TIER_EFFECTS = [
   },
   {
     "spec_family_id": "SF_STAIR_RISER_NC_STAIN",
+    "quality_tier": "QT5",
+    "time_modifier": 1.5
+  },
+  {
+    "spec_family_id": "SF_STAIR_TREAD_NC_STAIN",
+    "quality_tier": "QT3",
+    "time_modifier": 1
+  },
+  {
+    "spec_family_id": "SF_STAIR_TREAD_NC_STAIN",
+    "quality_tier": "QT4",
+    "time_modifier": 1.3
+  },
+  {
+    "spec_family_id": "SF_STAIR_TREAD_NC_STAIN",
     "quality_tier": "QT5",
     "time_modifier": 1.5
   },
@@ -9096,8 +10243,53 @@ export const SPEC_FAMILY_INFO = [
     "domain": "interior"
   },
   {
+    "id": "SF_WINDOW_INT_NC_SEALER",
+    "name": "New Construction Interior Window Sealer Phase",
+    "domain": "interior"
+  },
+  {
+    "id": "SF_WINDOW_INT_NC_CLEAR",
+    "name": "New Construction Interior Window Clear Phase",
+    "domain": "interior"
+  },
+  {
     "id": "SF_STAIR_RISER_NC_STAIN",
     "name": "New Construction Stair Riser & Tread Stain/Clear Coat",
+    "domain": "interior"
+  },
+  {
+    "id": "SF_STAIR_RISER_NC_SEALER",
+    "name": "New Construction Stair Riser Sealer Phase",
+    "domain": "interior"
+  },
+  {
+    "id": "SF_STAIR_RISER_NC_CLEAR",
+    "name": "New Construction Stair Riser Clear Phase",
+    "domain": "interior"
+  },
+  {
+    "id": "SF_STAIR_RAILING_NC_SEALER",
+    "name": "New Construction Stair Railing (Open Rail) Sealer Phase",
+    "domain": "interior"
+  },
+  {
+    "id": "SF_STAIR_RAILING_NC_CLEAR",
+    "name": "New Construction Stair Railing (Open Rail) Clear Phase",
+    "domain": "interior"
+  },
+  {
+    "id": "SF_STAIR_TREAD_NC_STAIN",
+    "name": "New Construction Stair Tread Stain Phase",
+    "domain": "interior"
+  },
+  {
+    "id": "SF_STAIR_TREAD_NC_SEALER",
+    "name": "New Construction Stair Tread Sealer Phase",
+    "domain": "interior"
+  },
+  {
+    "id": "SF_STAIR_TREAD_NC_CLEAR",
+    "name": "New Construction Stair Tread Clear Phase",
     "domain": "interior"
   },
   {
@@ -9121,8 +10313,243 @@ export const SPEC_FAMILY_INFO = [
     "domain": "interior"
   },
   {
+    "id": "SF_ARCH_ELEMENT_NC_SEALER",
+    "name": "New Construction Architectural Element Sealer Phase",
+    "domain": "interior"
+  },
+  {
+    "id": "SF_ARCH_ELEMENT_NC_CLEAR",
+    "name": "New Construction Architectural Element Clear Phase",
+    "domain": "interior"
+  },
+  {
     "id": "SF_WOOD_GRAIN_FILL_NC",
     "name": "New Construction Wood Grain Fill (Paint Grade)",
+    "domain": "interior"
+  },
+  {
+    "id": "SF_DOOR_CASING_NC_STAIN",
+    "name": "New Construction Door Casing Stain Phase",
+    "domain": "interior"
+  },
+  {
+    "id": "SF_DOOR_CASING_NC_SEALER",
+    "name": "New Construction Door Casing Sealer Phase",
+    "domain": "interior"
+  },
+  {
+    "id": "SF_DOOR_CASING_NC_CLEAR",
+    "name": "New Construction Door Casing Clear Phase",
+    "domain": "interior"
+  },
+  {
+    "id": "SF_BASEBOARD_NC_STAIN",
+    "name": "New Construction Baseboard Stain Phase",
+    "domain": "interior"
+  },
+  {
+    "id": "SF_BASEBOARD_NC_SEALER",
+    "name": "New Construction Baseboard Sealer Phase",
+    "domain": "interior"
+  },
+  {
+    "id": "SF_BASEBOARD_NC_CLEAR",
+    "name": "New Construction Baseboard Clear Phase",
+    "domain": "interior"
+  },
+  {
+    "id": "SF_CROWN_NC_STAIN",
+    "name": "New Construction Crown Stain Phase",
+    "domain": "interior"
+  },
+  {
+    "id": "SF_CROWN_NC_SEALER",
+    "name": "New Construction Crown Sealer Phase",
+    "domain": "interior"
+  },
+  {
+    "id": "SF_CROWN_NC_CLEAR",
+    "name": "New Construction Crown Clear Phase",
+    "domain": "interior"
+  },
+  {
+    "id": "SF_CHAIR_RAIL_NC_STAIN",
+    "name": "New Construction Chair Rail Stain Phase",
+    "domain": "interior"
+  },
+  {
+    "id": "SF_CHAIR_RAIL_NC_SEALER",
+    "name": "New Construction Chair Rail Sealer Phase",
+    "domain": "interior"
+  },
+  {
+    "id": "SF_CHAIR_RAIL_NC_CLEAR",
+    "name": "New Construction Chair Rail Clear Phase",
+    "domain": "interior"
+  },
+  {
+    "id": "SF_WINDOW_CASING_NC_STAIN",
+    "name": "New Construction Window Casing Stain Phase",
+    "domain": "interior"
+  },
+  {
+    "id": "SF_WINDOW_CASING_NC_SEALER",
+    "name": "New Construction Window Casing Sealer Phase",
+    "domain": "interior"
+  },
+  {
+    "id": "SF_WINDOW_CASING_NC_CLEAR",
+    "name": "New Construction Window Casing Clear Phase",
+    "domain": "interior"
+  },
+  {
+    "id": "SF_SHOE_MOLD_NC_STAIN",
+    "name": "New Construction Shoe Mold Stain Phase",
+    "domain": "interior"
+  },
+  {
+    "id": "SF_SHOE_MOLD_NC_SEALER",
+    "name": "New Construction Shoe Mold Sealer Phase",
+    "domain": "interior"
+  },
+  {
+    "id": "SF_SHOE_MOLD_NC_CLEAR",
+    "name": "New Construction Shoe Mold Clear Phase",
+    "domain": "interior"
+  },
+  {
+    "id": "SF_PICTURE_RAIL_NC_STAIN",
+    "name": "New Construction Picture Rail Stain Phase",
+    "domain": "interior"
+  },
+  {
+    "id": "SF_PICTURE_RAIL_NC_SEALER",
+    "name": "New Construction Picture Rail Sealer Phase",
+    "domain": "interior"
+  },
+  {
+    "id": "SF_PICTURE_RAIL_NC_CLEAR",
+    "name": "New Construction Picture Rail Clear Phase",
+    "domain": "interior"
+  },
+  {
+    "id": "SF_WINDOW_STOOL_NC_STAIN",
+    "name": "New Construction Window Stool Stain Phase",
+    "domain": "interior"
+  },
+  {
+    "id": "SF_WINDOW_STOOL_NC_SEALER",
+    "name": "New Construction Window Stool Sealer Phase",
+    "domain": "interior"
+  },
+  {
+    "id": "SF_WINDOW_STOOL_NC_CLEAR",
+    "name": "New Construction Window Stool Clear Phase",
+    "domain": "interior"
+  },
+  {
+    "id": "SF_WINDOW_APRON_NC_STAIN",
+    "name": "New Construction Window Apron Stain Phase",
+    "domain": "interior"
+  },
+  {
+    "id": "SF_WINDOW_APRON_NC_SEALER",
+    "name": "New Construction Window Apron Sealer Phase",
+    "domain": "interior"
+  },
+  {
+    "id": "SF_WINDOW_APRON_NC_CLEAR",
+    "name": "New Construction Window Apron Clear Phase",
+    "domain": "interior"
+  },
+  {
+    "id": "SF_SHADOW_BOX_NC_STAIN",
+    "name": "New Construction Shadow Box Stain Phase",
+    "domain": "interior"
+  },
+  {
+    "id": "SF_SHADOW_BOX_NC_SEALER",
+    "name": "New Construction Shadow Box Sealer Phase",
+    "domain": "interior"
+  },
+  {
+    "id": "SF_SHADOW_BOX_NC_CLEAR",
+    "name": "New Construction Shadow Box Clear Phase",
+    "domain": "interior"
+  },
+  {
+    "id": "SF_PANEL_MOLD_NC_STAIN",
+    "name": "New Construction Panel Mold Stain Phase",
+    "domain": "interior"
+  },
+  {
+    "id": "SF_PANEL_MOLD_NC_SEALER",
+    "name": "New Construction Panel Mold Sealer Phase",
+    "domain": "interior"
+  },
+  {
+    "id": "SF_PANEL_MOLD_NC_CLEAR",
+    "name": "New Construction Panel Mold Clear Phase",
+    "domain": "interior"
+  },
+  {
+    "id": "SF_WINDOW_JAMB_NC_SEALER",
+    "name": "New Construction Window Jamb Sealer Phase",
+    "domain": "interior"
+  },
+  {
+    "id": "SF_WINDOW_JAMB_NC_CLEAR",
+    "name": "New Construction Window Jamb Clear Phase",
+    "domain": "interior"
+  },
+  {
+    "id": "SF_DOOR_FRAME_NC_SEALER",
+    "name": "New Construction Door Frame Sealer Phase",
+    "domain": "interior"
+  },
+  {
+    "id": "SF_DOOR_FRAME_NC_CLEAR",
+    "name": "New Construction Door Frame Clear Phase",
+    "domain": "interior"
+  },
+  {
+    "id": "SF_DOOR_SLAB_INT_NC_SEALER",
+    "name": "New Construction Interior Door Slab Sealer Phase",
+    "domain": "interior"
+  },
+  {
+    "id": "SF_DOOR_SLAB_INT_NC_CLEAR",
+    "name": "New Construction Interior Door Slab Clear Phase",
+    "domain": "interior"
+  },
+  {
+    "id": "SF_WAINSCOT_PANEL_NC_SEALER",
+    "name": "New Construction Wainscot Panel Sealer Phase",
+    "domain": "interior"
+  },
+  {
+    "id": "SF_WAINSCOT_PANEL_NC_CLEAR",
+    "name": "New Construction Wainscot Panel Clear Phase",
+    "domain": "interior"
+  },
+  {
+    "id": "SF_WOOD_WALL_NC_SEALER",
+    "name": "New Construction Wood Feature Wall Sealer Phase",
+    "domain": "interior"
+  },
+  {
+    "id": "SF_WOOD_WALL_NC_CLEAR",
+    "name": "New Construction Wood Feature Wall Clear Phase",
+    "domain": "interior"
+  },
+  {
+    "id": "SF_WOOD_CEILING_NC_SEALER",
+    "name": "New Construction Wood Ceiling Sealer Phase",
+    "domain": "interior"
+  },
+  {
+    "id": "SF_WOOD_CEILING_NC_CLEAR",
+    "name": "New Construction Wood Ceiling Clear Phase",
     "domain": "interior"
   }
 ];

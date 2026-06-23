@@ -399,9 +399,37 @@ export function reducer(state, action) {
         // still has it (read by scenario-resolution + scenario matchers).
         if (field === 'system' || field === 'substrate_state') {
           const sys = updated.system;
-          if (sys) {
-            updated.coating_type = coatingTypeFromSystem(sys);
+          if (sys) updated.coating_type = coatingTypeFromSystem(sys);
+          // Seed default stain scope (stain+clear, sealer opt-in) the first time
+          // a wood substrate enters a STAIN-based coating, if not already chosen.
+          // clear-only (ct === 'clear_only') seeds clear_on:true — D4 added
+          // CLEAR_BARE/SEALER_BARE scenarios for all decomposed families, so
+          // clear-only is fully supported (Design Decision #7 resolved).
+          const ct = updated.coating_type;
+          const noScopeYet = !updated.stain_on && !updated.sealer_on && !updated.clear_on;
+          if (ct && noScopeYet) {
+            if (ct === 'stain_clear' || ct === 'stain_only') {
+              updated.stain_on = true;
+              updated.clear_on = ct === 'stain_clear';
+              updated.sealer_on = false;
+            }
+            if (ct === 'clear_only') {
+              // Auto-enable Clear phase — CLEAR_BARE scenario fires immediately
+              updated.clear_on = true;
+              updated.stain_on = false;
+              updated.sealer_on = false;
+            }
           }
+        }
+
+        // Keep coating_type synced when a presence toggle changes so derived
+        // consumers (engine context, scenario matchers) stay consistent.
+        if (field === 'stain_on' || field === 'sealer_on' || field === 'clear_on') {
+          const s = updated.stain_on, se = updated.sealer_on, c = updated.clear_on;
+          updated.coating_type =
+            (s && c) ? 'stain_clear' :
+            (s && !c) ? 'stain_only' :
+            (!s && c) ? 'clear_only' : updated.coating_type;
         }
 
         return {

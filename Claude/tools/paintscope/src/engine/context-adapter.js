@@ -29,6 +29,7 @@ import {
   resolveCoatCounts,
   resolveClearSheen,
   resolveWoodSpecies,
+  deriveStainScope,
 } from './scenario-resolution.js';
 import { resolveSubstrateStateForSpec, isSpecStateCompatible } from './scenario-compatibility.js';
 import { deriveRoom, deriveHeightBand } from './derive-room.js';
@@ -36,6 +37,7 @@ import { FIXTURE_CATALOG } from '../data/fixture-catalog.js';
 import { SUBSTRATE_APPLICATION_METHODS } from '../data/substrate-catalog.js';
 import {
   STAIN_SPEC_FAMILIES,
+  DECOMPOSED_STAIN_FAMILIES,
   UI_STATE_TO_SPEC_STATE,
   EXT_UI_STATE_TO_SPEC_STATE,
   SPEC_SUBSTRATE_MAP,
@@ -200,8 +202,46 @@ export const SPEC_TO_PAINTABLE_ITEM = {
   SF_WOOD_WALL_NC_STAIN:            'int_wood_wall',
   SF_WOOD_CEILING_NC_STAIN:         'int_wood_ceiling',
   SF_ARCH_ELEMENT_NC_STAIN:         'int_arch_element',
+  SF_DOOR_CASING_NC_SEALER:         'int_door_casing',
+  SF_DOOR_CASING_NC_CLEAR:          'int_door_casing',
+  SF_ARCH_ELEMENT_NC_SEALER:        'int_arch_element',
+  SF_ARCH_ELEMENT_NC_CLEAR:         'int_arch_element',
+  SF_BASEBOARD_NC_SEALER:           'int_baseboard',
+  SF_BASEBOARD_NC_CLEAR:            'int_baseboard',
+  SF_CROWN_NC_SEALER:               'int_crown',
+  SF_CROWN_NC_CLEAR:                'int_crown',
+  SF_CHAIR_RAIL_NC_SEALER:          'int_chair_rail',
+  SF_CHAIR_RAIL_NC_CLEAR:           'int_chair_rail',
+  SF_WINDOW_CASING_NC_SEALER:       'int_window_casing',
+  SF_WINDOW_CASING_NC_CLEAR:        'int_window_casing',
+  SF_SHOE_MOLD_NC_SEALER:           'int_shoe_mold',
+  SF_SHOE_MOLD_NC_CLEAR:            'int_shoe_mold',
+  SF_PICTURE_RAIL_NC_SEALER:        'int_picture_rail',
+  SF_PICTURE_RAIL_NC_CLEAR:         'int_picture_rail',
+  SF_WINDOW_STOOL_NC_SEALER:        'int_window_stool',
+  SF_WINDOW_STOOL_NC_CLEAR:         'int_window_stool',
+  SF_WINDOW_APRON_NC_SEALER:        'int_window_apron',
+  SF_WINDOW_APRON_NC_CLEAR:         'int_window_apron',
+  SF_SHADOW_BOX_NC_SEALER:          'int_shadow_box',
+  SF_SHADOW_BOX_NC_CLEAR:           'int_shadow_box',
+  SF_PANEL_MOLD_NC_SEALER:          'int_panel_mold',
+  SF_PANEL_MOLD_NC_CLEAR:           'int_panel_mold',
   SF_DOOR_FRAME_NC_STAIN:           'int_door_frame',
   SF_DOOR_SLAB_INT_NC_STAIN:        'int_door_slab',
+  SF_WINDOW_JAMB_NC_SEALER:         'int_window_jamb',
+  SF_WINDOW_JAMB_NC_CLEAR:          'int_window_jamb',
+  SF_DOOR_FRAME_NC_SEALER:          'int_door_frame',
+  SF_DOOR_FRAME_NC_CLEAR:           'int_door_frame',
+  SF_DOOR_SLAB_INT_NC_SEALER:       'int_door_slab',
+  SF_DOOR_SLAB_INT_NC_CLEAR:        'int_door_slab',
+  SF_WAINSCOT_PANEL_NC_SEALER:      'int_wainscot',
+  SF_WAINSCOT_PANEL_NC_CLEAR:       'int_wainscot',
+  SF_WOOD_WALL_NC_SEALER:           'int_wood_wall',
+  SF_WOOD_WALL_NC_CLEAR:            'int_wood_wall',
+  SF_WOOD_CEILING_NC_SEALER:        'int_wood_ceiling',
+  SF_WOOD_CEILING_NC_CLEAR:         'int_wood_ceiling',
+  SF_WINDOW_INT_NC_SEALER:          'int_window',
+  SF_WINDOW_INT_NC_CLEAR:           'int_window',
 
   // Interior RP
   SF_DRYWALL_WALL_INT_RP:           'drywall_wall',
@@ -326,8 +366,14 @@ export const COMPONENT_EXPANDED_SPECS = new Set([
   'SF_STAIR_RISER_NC',
   'SF_STAIR_RAILING_NC',
   'SF_STAIR_RISER_NC_STAIN',
+  'SF_STAIR_RISER_NC_SEALER',
+  'SF_STAIR_RISER_NC_CLEAR',
   'SF_STAIR_RAILING_NC_STAIN',
+  'SF_STAIR_RAILING_NC_SEALER',
+  'SF_STAIR_RAILING_NC_CLEAR',
   'SF_STAIR_TREAD_NC_STAIN',
+  'SF_STAIR_TREAD_NC_SEALER',
+  'SF_STAIR_TREAD_NC_CLEAR',
   'SF_CLOSET_SHELF_NC',
 ]);
 
@@ -347,18 +393,19 @@ const STAIR_SPEC_COMPONENTS = {
     ['open_rail',   'open_rail'],
     ['wall_rail',   'wall_rail'],
   ],
-  'SF_STAIR_RISER_NC_STAIN': [
-    ['risers',     'riser'],
-  ],
-  'SF_STAIR_RAILING_NC_STAIN': [
-    ['balusters',   'baluster'],
-    ['newel_posts', 'newel'],
-    ['open_rail',   'open_rail'],
-    ['wall_rail',   'wall_rail'],
-  ],
-  'SF_STAIR_TREAD_NC_STAIN': [
-    ['treads',     'tread'],
-  ],
+  // Stain/sealer/clear phase specs: RRST = riser (EA), SRST = open_rail (LF).
+  // SRST covers only open_rail for stain — tasks are LF-based (STAIR_OPEN_RAIL ps_key).
+  // Baluster/newel/wall_rail stain support deferred to future per-component specs.
+  'SF_STAIR_RISER_NC_STAIN':   [['risers',     'riser']],
+  'SF_STAIR_RISER_NC_SEALER':  [['risers',     'riser']],
+  'SF_STAIR_RISER_NC_CLEAR':   [['risers',     'riser']],
+  'SF_STAIR_RAILING_NC_STAIN':  [['open_rail',  'open_rail']],
+  'SF_STAIR_RAILING_NC_SEALER': [['open_rail',  'open_rail']],
+  'SF_STAIR_RAILING_NC_CLEAR':  [['open_rail',  'open_rail']],
+  // TRST = tread (EA). Tasks are EA-based (PS_SURFACE_EA.STAIR_TREAD).
+  'SF_STAIR_TREAD_NC_STAIN':   [['treads', 'tread']],
+  'SF_STAIR_TREAD_NC_SEALER':  [['treads', 'tread']],
+  'SF_STAIR_TREAD_NC_CLEAR':   [['treads', 'tread']],
 };
 
 // Convert UI substrate_state (e.g. 'bare_wood', 'factory_primed', 'stained')
@@ -372,10 +419,27 @@ function stairUIStateToSpecState(uiState) {
   }
 }
 
+// coating_phase for decomposed stair stain phase specs.
+// Decomposed SEALER/CLEAR stair specs carry coating_phase so scenario matches
+// can discriminate phases (mirroring the PHASE_BY_ROLE logic for flat specs).
+const STAIR_STAIN_PHASE = {
+  'SF_STAIR_RISER_NC_STAIN':    'stain',
+  'SF_STAIR_RISER_NC_SEALER':   'sealer',
+  'SF_STAIR_RISER_NC_CLEAR':    'clear',
+  'SF_STAIR_RAILING_NC_STAIN':  'stain',
+  'SF_STAIR_RAILING_NC_SEALER': 'sealer',
+  'SF_STAIR_RAILING_NC_CLEAR':  'clear',
+  'SF_STAIR_TREAD_NC_STAIN':    'stain',
+  'SF_STAIR_TREAD_NC_SEALER':   'sealer',
+  'SF_STAIR_TREAD_NC_CLEAR':    'clear',
+};
+
 /**
  * For stair specs in COMPONENT_EXPANDED_SPECS, emit one ctx per enabled component.
  * Each ctx carries paintable_item = <component> plus that component's own
  * substrate_state, application_method, quality_tier, coating_type.
+ * Decomposed stain phase specs (STAIN/SEALER/CLEAR) also stamp coating_phase
+ * so scenario matches can use coating_phase as a discriminator.
  *
  * Returns: array of ctx objects. Empty array if no enabled components or no stairway.
  */
@@ -385,7 +449,7 @@ export function expandStairwaySpecContexts(specId, room, project) {
   const componentPairs = STAIR_SPEC_COMPONENTS[specId];
   if (!componentPairs) return [];
 
-  const isStainSpec = specId.includes('STAIN');
+  const isStainSpec = specId.includes('STAIN') || specId.includes('SEALER') || specId.includes('CLEAR');
   // Set of acceptable coating_types for this spec. A component whose
   // coating_type doesn't match is silently skipped — this prevents stain
   // specs from emitting duplicate ctxs for paint components (and vice versa),
@@ -393,6 +457,7 @@ export function expandStairwaySpecContexts(specId, room, project) {
   const expectedCoatingTypes = isStainSpec
     ? new Set(['stain_clear', 'stain_only', 'clear_only'])
     : new Set(['paint']);
+  const coatingPhase = STAIR_STAIN_PHASE[specId] || null;
   const contexts = [];
 
   for (const [subKey, paintableItem] of componentPairs) {
@@ -402,10 +467,11 @@ export function expandStairwaySpecContexts(specId, room, project) {
     const compCoatingType = comp.coating_type || (isStainSpec ? 'stain_clear' : 'paint');
     if (!expectedCoatingTypes.has(compCoatingType)) continue;
 
+    const appMethod = comp.application_method || (isStainSpec ? 'brush' : 'brush');
     const ctx = {
       paintable_item: paintableItem,
       substrate_state: stairUIStateToSpecState(comp.substrate_state),
-      application_method: comp.application_method || (isStainSpec ? 'wipe' : 'brush'),
+      application_method: appMethod,
       quality_tier: comp.quality_tier || project?.default_quality_tier || 'QT3',
       coating_type: compCoatingType,
       grain_fill: comp.grain_fill || false,
@@ -414,6 +480,14 @@ export function expandStairwaySpecContexts(specId, room, project) {
       __specId: specId,
       __component: paintableItem,
     };
+    if (isStainSpec) {
+      // Stain/sealer/clear specs need per-phase method fields for module gates
+      ctx.application_method_stain = comp.application_method_stain || appMethod;
+      ctx.application_method_clear = comp.application_method_clear || appMethod;
+      ctx.wood_species_group        = comp.wood_species_group || 'hardwood';
+      ctx.clear_sheen               = comp.clear_sheen || 'satin';
+    }
+    if (coatingPhase) ctx.coating_phase = coatingPhase;
     if (paintableItem === 'baluster') {
       ctx.baluster_type = comp.baluster_type || 'square';
       ctx.material = comp.material || 'wood';
@@ -1179,11 +1253,30 @@ export function buildScenarioInputs(state) {
       //       get SS_PRIMED because a PRIME pass precedes them in the workflow.
       const system = resolveSystem(specId, room, project);
       const specRole = SPEC_ROLE[specId] || 'COMBINED';
+      const PHASE_BY_ROLE = { STAIN: 'stain', SEALER: 'sealer', CLEAR: 'clear' };
+      const coatingPhase = PHASE_BY_ROLE[specRole] || null;
       const activation = resolveActivation(system, specRole);
       if (activation.active === false) {
         // Spec is suppressed by the current system — skip emitting an input for it.
         continue;
       }
+
+      // ── Decomposed-family clear-only deferral gate ──
+      // For decomposed families (DECOMPOSED_STAIN_FAMILIES, SEALER role, CLEAR role),
+      // stain is required. If deriveStainScope returns null (no stain → clear-only,
+      // sealer-only, or no flags), skip this spec entirely so no input is emitted.
+      // This prevents the legacy clear_refresh path from firing against decomposed
+      // substrates that have no authored clear-over-bare scenarios.
+      // Bundled families (not decomposed) are NOT gated here — they keep using the
+      // legacy coating_type/system path which handles clear-only via existing logic.
+      const isDecomposedSpec =
+        DECOMPOSED_STAIN_FAMILIES.has(specId) ||
+        specRole === 'SEALER' ||
+        specRole === 'CLEAR';
+      if (isDecomposedSpec && deriveStainScope(subConfig) === null) {
+        continue;
+      }
+
       const transitionTarget = STATE_TRANSITION_TARGET[activation.stateTransition];
       const effectiveSubstrateState = transitionTarget != null ? transitionTarget : resolvedInputState;
 
@@ -1196,6 +1289,7 @@ export function buildScenarioInputs(state) {
         surface_texture: resolveTextureForSpec(specId, room, project),
         substrate_state: effectiveSubstrateState,
         coating_type: coatingType,
+        ...(coatingPhase ? { coating_phase: coatingPhase } : {}),
 
         // Room adjacency
         floor_type: room.floor_type || 'subfloor',
@@ -1251,15 +1345,24 @@ export function buildScenarioInputs(state) {
 
       // Stain-specific context (matches lines 260-270). coating_type is
       // emitted for all specs above; stain specs add method/species/coat fields.
+      // Coats: for DECOMPOSED families (SEALER/CLEAR roles + DECOMPOSED_STAIN_FAMILIES),
+      // the scenario's coat_counts is the per-tier default — do NOT emit ctx coats
+      // (per-item ctx override = Phase 3). Bundled families keep emitting ctx coats.
       if (STAIN_SPEC_FAMILIES.has(specId)) {
         ctx.application_method_stain = resolveStainMethod(specId, room, project);
         ctx.application_method_clear = resolveClearMethod(specId, room, project);
         ctx.wood_species_group = resolveWoodSpecies(specId, room, project);
         ctx.clear_sheen = resolveClearSheen(specId, room, project);
-        const coats = resolveCoatCounts(specId, room, project);
-        ctx.stain_coats = coats.stain_coats;
-        ctx.sealer_coats = coats.sealer_coats;
-        ctx.clear_coats = coats.clear_coats;
+        const decomposed =
+          SPEC_ROLE[specId] === 'SEALER' ||
+          SPEC_ROLE[specId] === 'CLEAR' ||
+          DECOMPOSED_STAIN_FAMILIES.has(specId);
+        if (!decomposed) {
+          const coats = resolveCoatCounts(specId, room, project);
+          ctx.stain_coats = coats.stain_coats;
+          ctx.sealer_coats = coats.sealer_coats;
+          ctx.clear_coats = coats.clear_coats;
+        }
       }
 
       // Exterior-only fields pulled from project/room when present.

@@ -123,6 +123,9 @@ export function createSubstrateConfig(substrateId, overrides={}) {
     config.sealer_coats = config.sealer_coats ?? 0;
     config.clear_coats = config.clear_coats ?? 1;
     config.clear_sheen = config.clear_sheen || 'satin';
+    config.stain_on = config.stain_on ?? false;
+    config.sealer_on = config.sealer_on ?? false;
+    config.clear_on = config.clear_on ?? false;
   }
   // Infer default `system` (workflow intent) from substrate_state if not set.
   // Explicit overrides always win; if nothing matches the inference, leaves it null
@@ -255,7 +258,7 @@ export const initialState = {
     // to cut in between them). Per-room override in room.combined_wc_finish_override.
     default_combined_wc_finish: false,
     default_brand: null,
-    material_overrides: { system: {}, manual: [] },
+    material_overrides: { system: {}, manual: [], byRole: {}, byFinishGroup: {} },
     notes: '',
     default_substrates: ['ceiling', 'walls', 'baseboard'],
     // v0.10 Protection rollout — project-level heuristics for outlets/HVAC vents
