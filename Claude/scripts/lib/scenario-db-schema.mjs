@@ -65,7 +65,8 @@ CREATE TABLE modifiers (
   raw_json TEXT NOT NULL
 );
 CREATE TABLE material_systems (
-  id TEXT PRIMARY KEY, spec_family_id TEXT, name TEXT, raw_json TEXT NOT NULL
+  id TEXT NOT NULL, spec_family_id TEXT NOT NULL, name TEXT, raw_json TEXT NOT NULL,
+  PRIMARY KEY (id, spec_family_id)
 );
 CREATE TABLE material_coverage_profiles (
   id TEXT PRIMARY KEY, spec_family_id TEXT, material_system TEXT,

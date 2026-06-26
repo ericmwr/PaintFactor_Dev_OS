@@ -72,7 +72,7 @@ export function insertScenarios(db, scenarios) {
 export function insertReference(db, data) {
   const arr = (x) => (Array.isArray(x) ? x : []);
 
-  const matSys = db.prepare(`INSERT OR REPLACE INTO material_systems (id, spec_family_id, name, raw_json) VALUES (?,?,?,?)`);
+  const matSys = db.prepare(`INSERT INTO material_systems (id, spec_family_id, name, raw_json) VALUES (?,?,?,?)`);
   for (const r of arr(data.MATERIAL_SYSTEMS)) matSys.run(r.id, nv(r.spec_family_id), nv(r.name), j(r));
 
   const cov = db.prepare(`INSERT OR REPLACE INTO material_coverage_profiles
