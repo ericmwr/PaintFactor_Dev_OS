@@ -46,3 +46,25 @@ export function insertModifiers(db, modifiers) {
     m.run(mo.modifier_id, family, nv(mo.name), nv(mo.kind), j(mo));
   }
 }
+
+export function insertScenarios(db, scenarios) {
+  const s = db.prepare(`INSERT INTO scenarios
+    (scenario_id, name, domain, context, output_state, finish_coats, interstage_cycles, raw_json)
+    VALUES (?,?,?,?,?,?,?,?)`);
+  const sm = db.prepare(`INSERT INTO scenario_modules (scenario_id, ordinal, module_id) VALUES (?,?,?)`);
+  const smatch = db.prepare(`INSERT INTO scenario_matches (scenario_id, dimension, value) VALUES (?,?,?)`);
+  const spz = db.prepare(`INSERT INTO scenario_protection_zones (scenario_id, zone_id, level) VALUES (?,?,?)`);
+  const sms = db.prepare(`INSERT INTO scenario_material_systems (scenario_id, ordinal, sys_id) VALUES (?,?,?)`);
+  for (const scn of scenarios) {
+    const cc = scn.coat_counts || {};
+    s.run(scn.scenario_id, nv(scn.name), nv(scn.domain), nv(scn.context), nv(scn.output_state),
+      nv(cc.finish_coats), nv(cc.interstage_cycles), j(scn));
+    (scn.modules || []).forEach((mid, i) => sm.run(scn.scenario_id, i, mid));
+    for (const [dim, val] of Object.entries(scn.matches || {})) {
+      const vals = Array.isArray(val) ? val : [val];
+      for (const v of vals) if (v != null) smatch.run(scn.scenario_id, dim, String(v));
+    }
+    (scn.protection_zones || []).forEach((z) => spz.run(scn.scenario_id, nv(z.zone_id), nv(z.level)));
+    (scn.material_systems || []).forEach((sys, i) => sms.run(scn.scenario_id, i, sys));
+  }
+}
