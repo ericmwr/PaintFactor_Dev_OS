@@ -103,6 +103,8 @@ export function insertReference(db, data) {
     cp.run(r.product_id, nv(r.brand), nv(r.product_name), nv(r.product_type), nv(r.price_per_gallon), nv(r.coverage_sf_per_gallon), j(r));
 
   const si = db.prepare(`INSERT OR REPLACE INTO system_index (key, value_json) VALUES (?,?)`);
-  const sidx = data.SYSTEM_INDEX && typeof data.SYSTEM_INDEX === 'object' ? data.SYSTEM_INDEX : {};
-  for (const [key, value] of Object.entries(sidx)) si.run(key, j(value));
+  const rawIndex = data.SYSTEM_INDEX;
+  const indexEntries = rawIndex instanceof Map ? rawIndex.entries()
+    : (rawIndex && typeof rawIndex === 'object' ? Object.entries(rawIndex) : []);
+  for (const [key, value] of indexEntries) si.run(key, j(value));
 }

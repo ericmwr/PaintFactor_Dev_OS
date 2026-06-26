@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { openDb } from './db-open.mjs';
 import { createSchema } from './scenario-db-schema.mjs';
-import { insertModules, insertTasks, insertModifiers } from './scenario-db-insert.mjs';
+import { insertModules, insertTasks, insertModifiers, insertScenarios, insertReference } from './scenario-db-insert.mjs';
 
 function freshDb() { const db = openDb(':memory:'); createSchema(db); return db; }
 
@@ -60,8 +60,6 @@ test('insertModifiers derives family from id prefix', () => {
   db.close();
 });
 
-import { insertScenarios } from './scenario-db-insert.mjs';
-
 test('insertScenarios fills scenario + all four junctions, preserving order/duplication', () => {
   const db = freshDb();
   insertScenarios(db, [{
@@ -89,8 +87,6 @@ test('insertScenarios fills scenario + all four junctions, preserving order/dupl
   db.close();
 });
 
-import { insertReference } from './scenario-db-insert.mjs';
-
 test('insertReference fills rate/material/catalog tables', () => {
   const db = freshDb();
   insertReference(db, {
@@ -102,7 +98,7 @@ test('insertReference fills rate/material/catalog tables', () => {
     SOP_TASK_PROTECTION: [{ id: 'SOP1', spec_family_id: 'SF_ARCH', protection_metadata: { a: 1 } }],
     SPEC_FAMILY_INFO: [{ id: 'SF_ARCH', name: 'Arch', domain: 'interior' }],
     CATALOG_PRODUCTS: [{ product_id: 'P1', brand: 'SW', product_name: 'ProClassic', product_type: 'finish', price_per_gallon: 60, coverage_sf_per_gallon: 400 }],
-    SYSTEM_INDEX: { SYS_P: ['P1'] },
+    SYSTEM_INDEX: new Map([['SYS_P', ['P1']]]),
   });
   assert.equal(db.prepare('SELECT name FROM material_systems WHERE id=?').get('SYS_P').name, 'Primer');
   assert.equal(db.prepare('SELECT coverage_sf_per_gallon FROM material_coverage_profiles WHERE id=?').get('CP1').coverage_sf_per_gallon, 350);
