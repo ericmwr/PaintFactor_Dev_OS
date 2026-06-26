@@ -68,3 +68,41 @@ export function insertScenarios(db, scenarios) {
     (scn.material_systems || []).forEach((sys, i) => sms.run(scn.scenario_id, i, sys));
   }
 }
+
+export function insertReference(db, data) {
+  const arr = (x) => (Array.isArray(x) ? x : []);
+
+  const matSys = db.prepare(`INSERT OR REPLACE INTO material_systems (id, spec_family_id, name, raw_json) VALUES (?,?,?,?)`);
+  for (const r of arr(data.MATERIAL_SYSTEMS)) matSys.run(r.id, nv(r.spec_family_id), nv(r.name), j(r));
+
+  const cov = db.prepare(`INSERT OR REPLACE INTO material_coverage_profiles
+    (id, spec_family_id, material_system, product_role, coverage_sf_per_gallon, raw_json) VALUES (?,?,?,?,?,?)`);
+  for (const r of arr(data.MATERIAL_COVERAGE_PROFILES))
+    cov.run(r.id, nv(r.spec_family_id), nv(r.material_system), nv(r.product_role), nv(r.coverage_sf_per_gallon), j(r));
+
+  const msp = db.prepare(`INSERT INTO material_system_products
+    (spec_family_id, system_id, product_role, product_type, coats_required, raw_json) VALUES (?,?,?,?,?,?)`);
+  for (const r of arr(data.MATERIAL_SYSTEM_PRODUCTS))
+    msp.run(nv(r.spec_family_id), nv(r.system_id), nv(r.product_role), nv(r.product_type), nv(r.coats_required), j(r));
+
+  const qte = db.prepare(`INSERT INTO quality_tier_effects (spec_family_id, quality_tier, time_modifier, raw_json) VALUES (?,?,?,?)`);
+  for (const r of arr(data.QUALITY_TIER_EFFECTS)) qte.run(nv(r.spec_family_id), nv(r.quality_tier), nv(r.time_modifier), j(r));
+
+  const spz = db.prepare(`INSERT INTO spec_protection_zones (spec_family_id, zone_id, protection_level, raw_json) VALUES (?,?,?,?)`);
+  for (const r of arr(data.SPEC_PROTECTION_ZONES)) spz.run(nv(r.spec_family_id), nv(r.zone_id), nv(r.protection_level), j(r));
+
+  const sop = db.prepare(`INSERT OR REPLACE INTO sop_task_protection (id, spec_family_id, raw_json) VALUES (?,?,?)`);
+  for (const r of arr(data.SOP_TASK_PROTECTION)) sop.run(r.id, nv(r.spec_family_id), j(r));
+
+  const sfi = db.prepare(`INSERT OR REPLACE INTO spec_family_info (id, name, domain, raw_json) VALUES (?,?,?,?)`);
+  for (const r of arr(data.SPEC_FAMILY_INFO)) sfi.run(r.id, nv(r.name), nv(r.domain), j(r));
+
+  const cp = db.prepare(`INSERT OR REPLACE INTO catalog_products
+    (product_id, brand, product_name, product_type, price_per_gallon, coverage_sf_per_gallon, raw_json) VALUES (?,?,?,?,?,?,?)`);
+  for (const r of arr(data.CATALOG_PRODUCTS))
+    cp.run(r.product_id, nv(r.brand), nv(r.product_name), nv(r.product_type), nv(r.price_per_gallon), nv(r.coverage_sf_per_gallon), j(r));
+
+  const si = db.prepare(`INSERT OR REPLACE INTO system_index (key, value_json) VALUES (?,?)`);
+  const sidx = data.SYSTEM_INDEX && typeof data.SYSTEM_INDEX === 'object' ? data.SYSTEM_INDEX : {};
+  for (const [key, value] of Object.entries(sidx)) si.run(key, j(value));
+}
