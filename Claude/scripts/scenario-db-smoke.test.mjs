@@ -1,6 +1,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { buildDb } from './build-scenario-db.mjs';
+import * as rate from '../tools/paintscope/src/data/scenario-rate-data.js';
+import { CATALOG_PRODUCTS } from '../tools/paintscope/src/data/product-catalog.js';
 
 test('buildDb produces a populated in-memory mirror with working views', () => {
   const { db, counts } = buildDb({ outFile: ':memory:', quiet: true });
@@ -18,5 +20,14 @@ test('buildDb produces a populated in-memory mirror with working views', () => {
   assert.doesNotThrow(() => db.prepare('SELECT * FROM v_orphan_tasks LIMIT 1').all());
   assert.doesNotThrow(() => db.prepare('SELECT * FROM v_scenario_coverage LIMIT 1').all());
   assert.doesNotThrow(() => db.prepare('SELECT * FROM v_missing_material_systems LIMIT 1').all());
+  // Losslessness guard: DB row count must equal source array length (drift-proof).
+  assert.equal(counts.material_systems, rate.MATERIAL_SYSTEMS.length);
+  assert.equal(counts.material_coverage_profiles, rate.MATERIAL_COVERAGE_PROFILES.length);
+  assert.equal(counts.material_system_products, rate.MATERIAL_SYSTEM_PRODUCTS.length);
+  assert.equal(counts.quality_tier_effects, rate.QUALITY_TIER_EFFECTS.length);
+  assert.equal(counts.spec_protection_zones, rate.SPEC_PROTECTION_ZONES.length);
+  assert.equal(counts.sop_task_protection, rate.SOP_TASK_PROTECTION.length);
+  assert.equal(counts.spec_family_info, rate.SPEC_FAMILY_INFO.length);
+  assert.equal(counts.catalog_products, CATALOG_PRODUCTS.length);
   db.close();
 });

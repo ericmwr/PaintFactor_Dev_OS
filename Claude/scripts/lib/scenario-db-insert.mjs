@@ -75,7 +75,7 @@ export function insertReference(db, data) {
   const matSys = db.prepare(`INSERT INTO material_systems (id, spec_family_id, name, raw_json) VALUES (?,?,?,?)`);
   for (const r of arr(data.MATERIAL_SYSTEMS)) matSys.run(r.id, nv(r.spec_family_id), nv(r.name), j(r));
 
-  const cov = db.prepare(`INSERT OR REPLACE INTO material_coverage_profiles
+  const cov = db.prepare(`INSERT INTO material_coverage_profiles
     (id, spec_family_id, material_system, product_role, coverage_sf_per_gallon, raw_json) VALUES (?,?,?,?,?,?)`);
   for (const r of arr(data.MATERIAL_COVERAGE_PROFILES))
     cov.run(r.id, nv(r.spec_family_id), nv(r.material_system), nv(r.product_role), nv(r.coverage_sf_per_gallon), j(r));
@@ -97,7 +97,7 @@ export function insertReference(db, data) {
   const sfi = db.prepare(`INSERT OR REPLACE INTO spec_family_info (id, name, domain, raw_json) VALUES (?,?,?,?)`);
   for (const r of arr(data.SPEC_FAMILY_INFO)) sfi.run(r.id, nv(r.name), nv(r.domain), j(r));
 
-  const cp = db.prepare(`INSERT OR REPLACE INTO catalog_products
+  const cp = db.prepare(`INSERT INTO catalog_products
     (product_id, brand, product_name, product_type, price_per_gallon, coverage_sf_per_gallon, raw_json) VALUES (?,?,?,?,?,?,?)`);
   for (const r of arr(data.CATALOG_PRODUCTS))
     cp.run(r.product_id, nv(r.brand), nv(r.product_name), nv(r.product_type), nv(r.price_per_gallon), nv(r.coverage_sf_per_gallon), j(r));

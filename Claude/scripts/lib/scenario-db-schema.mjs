@@ -69,7 +69,7 @@ CREATE TABLE material_systems (
   PRIMARY KEY (id, spec_family_id)
 );
 CREATE TABLE material_coverage_profiles (
-  id TEXT PRIMARY KEY, spec_family_id TEXT, material_system TEXT,
+  id TEXT, spec_family_id TEXT, material_system TEXT,
   product_role TEXT, coverage_sf_per_gallon REAL, raw_json TEXT NOT NULL
 );
 CREATE TABLE material_system_products (
@@ -89,7 +89,7 @@ CREATE TABLE spec_family_info (
   id TEXT PRIMARY KEY, name TEXT, domain TEXT, raw_json TEXT NOT NULL
 );
 CREATE TABLE catalog_products (
-  product_id TEXT PRIMARY KEY, brand TEXT, product_name TEXT,
+  product_id TEXT, brand TEXT, product_name TEXT,
   product_type TEXT, price_per_gallon REAL, coverage_sf_per_gallon REAL,
   raw_json TEXT NOT NULL
 );
