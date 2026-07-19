@@ -41,7 +41,8 @@ A **minor exterior repairs module** — fastener holes, small rot fill — trigg
 
 ### 2.6 Trim
 
-- Trim keeps substrate / state / condition selectors, but with reformed (much shorter) lists.
+- **Trim is a category, not an item.** It's a descriptor spanning many distinct items — fascia, rake board, frieze board, corner boards/caps, soffit, window casing, door casing, water table, belly band — and these routinely differ from one another in substrate, state, condition, and desired finish on the same house. There is NO universal "trim LF + substrate/state/condition" selector. Each trim type gets its own substrate/state/condition (and finish) identity, and modules/scenarios are authored **per trim type**, mirroring how the interior trim category was structured (use interior trim's module/scenario organization as the reference pattern).
+- Trim keeps substrate / state / condition selectors per type, but with reformed (much shorter) lists.
 - **Profile is a universal modifier** on the trim type (ornate = slower: more caulk, more repairs, harder cutting), NOT new modules/scenarios per profile. Modifier values TBD during the data pass.
 - **Under-12″ rule:** user enters actual width; engine rounds anything <12″ up to 1 LF-equivalent; real width is recorded for tracking.
 
@@ -52,7 +53,7 @@ A **minor exterior repairs module** — fastener holes, small rot fill — trigg
 3. Siding tab: carry over Identity-tab measurements; "Split into sections" button only when needed (no double entry).
 4. Add per-substrate Application Method selectors.
 5. Rename Siding Type → Material; remove Substrate Material and Texture Profile dropdowns per §2.1.
-6. **Fix the authoring-UI chip/filter gap** — exterior modules exist (e.g. `MOD_PREP_EXT_SIDING`) but don't surface under siding/wall substrate chips. The authoring UI is Eric's inventory instrument; it must reflect the data truthfully. Do this early.
+6. **Authoring-UI chip/filter gap — investigate history before proposing a fix.** Exterior modules exist (e.g. `MOD_PREP_EXT_SIDING`) but don't surface under siding/wall substrate chips. The authoring UI is Eric's inventory instrument and must reflect the data truthfully — but this has prior history: an earlier interior pass archived modules/scenarios and introduced **universal keepers** (shared production rates across many modules; see the keeper migration worklist at `Claude/_keeper_migration_plan.md` — 19 ORPHAN keepers remain), and there were known technical difficulties fully categorizing the data system for chip filtering. Research that history first; do not design a fresh chip fix from scratch.
 7. Sub-elements (bump out, dormer, gable, roofline) inherit elevation-level selections (siding type, trim, soffit, rake, fascia).
 
 ## 3. The Data Factory — architecture
