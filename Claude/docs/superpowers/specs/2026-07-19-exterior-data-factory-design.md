@@ -68,6 +68,15 @@ Key properties that fix the old failure mode:
 - **Human gate per cell.** Eric's domain review happens on compact per-cell briefs, not sprawling documents.
 - **Engine vocabulary from day one.** No lossy spec→scenario translation step.
 
+### Doctrine and rules (decided 2026-07-19)
+
+The old factory's three layers — doctrine (researched domain knowledge), rules (generator constraints), specs (generated output) — map onto the new factory as follows:
+
+- **Doctrine is kept, as the research layer briefs draw from.** A slim per-Material reference document ("how does this substrate behave; what does professional practice require"), researched once and reviewed once, gives every brief for that material the same factual foundation and prevents cell-to-cell contradictions at scale. Briefs *cite* doctrine; doctrine answers knowledge questions, briefs make per-cell decisions in engine vocabulary.
+- **Safety change vs. the old system: doctrine NEVER feeds the engine directly.** Nothing fires from doctrine. A doctrine error can only reach engine data by surviving Eric's review of a short structured brief. Doctrine is allowed to be imperfect; the human gate sits on briefs.
+- **The existing corpus (~45 docs in `docs/Doctrine/`, ~25 exterior, mostly Mar 2026 NotebookLM deep research) is treated as untrusted input, not discarded.** Sampled quality is real (e.g. Exterior_Wood_Siding_Systems_Doctrine: extractive chemistry, mill glaze, weathered-wood prep). The pilot's research step starts by reading and verifying/correcting the relevant doctrine against fresh sources rather than researching from zero — and thereby tests empirically, on one document, whether the corpus is salvageable-with-review.
+- **Rules-as-documents are retired.** What rules enforced in prose is now enforced mechanically: the brief template's required fields, the locked taxonomy vocabulary, and the factory skill's checklist. (Living rules content already migrated into the activity-rules dictionary and project conventions.)
+
 ### Build phases
 
 1. **Pilot = factory v1 (inline, no machinery).** One substrate run directly in-session: web research + brief template + live review with Eric. The pilot's real product is the **validated brief template and procedure**; the wood-siding data is the bonus. Per established working practice: inline execution when ceremony outweighs value.
