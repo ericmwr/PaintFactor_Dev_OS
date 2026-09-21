@@ -115,6 +115,12 @@ it must produce the same number every time.
 configuration, labor burden, overhead rate, profit margin, mobilization charge,
 minimum job charge, travel time.
 
+**Where the reference data comes from:** the spec families, production rates,
+material systems, and modifiers this stage consumes are not part of the project
+record — they are authored, validated, and published through a separate pipeline.
+That pipeline is traced in `PaintFactor_Reference_Data_Flow.md`. This stage reads
+them; it never writes them.
+
 **Computed, in order:**
 
 1. **Spec resolution** — each substrate + state + condition resolves to a spec
@@ -569,3 +575,14 @@ before implementation.
 6. **Purchase list lifecycle.** The sunk-cost branch of a post-lock color change
    depends on knowing whether paint is ordered, received, or opened. That state has
    no owner yet.
+
+---
+
+## 13. Companion Documents
+
+| Document | Covers |
+|----------|--------|
+| `PaintFactor_OS.md` | Doctrine — what the system is and is not |
+| **This document** | One project, lead intake → analytics |
+| `PaintFactor_Reference_Data_Flow.md` | The reference data every project consumes |
+| `docs/superpowers/specs/2026-09-19-schedule-notifications-design.md` | Stage 6 design detail |
