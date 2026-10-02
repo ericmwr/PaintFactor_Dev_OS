@@ -8,7 +8,8 @@ function load(rel) {
   return JSON.parse(readFileSync(fileURLToPath(new URL(rel, import.meta.url)), 'utf8'));
 }
 const interior = load('./__fixtures__/p2a-int.json');
-const exterior = load('./__fixtures__/p2a-ext.json');
+// Exterior end-to-end guard + p2a-ext.json retired with the exterior-v0 data
+// archive (2026-10-02, greenfield rebuild). Re-add once new exterior data lands.
 
 describe('computeScenarioEstimate', () => {
   it('produces an interior estimate with positive hours and no exterior protection', () => {
@@ -17,17 +18,6 @@ describe('computeScenarioEstimate', () => {
     expect(r.specResults.length).toBeGreaterThan(0);
     expect(Object.keys(r.exteriorProtection.elevationProtection)).toHaveLength(0);
     expect(Object.keys(r.exteriorProtection.standaloneProtection)).toHaveLength(0);
-  });
-
-  it('runs an exterior project end-to-end and surfaces exterior specs (P2a regression guard)', () => {
-    const r = computeScenarioEstimate(exterior, canonicalBundle, null, []);
-    // With current coverage, exterior protection/materials are EMPTY (only the
-    // deck scenario exists). So assert the exterior path RUNS, surfaces >=1
-    // exterior spec, and that exteriorProtection is the correctly-shaped object.
-    expect(r.specResults.some(sr => sr.domain === 'exterior')).toBe(true);
-    expect(r.exteriorProtection).toHaveProperty('elevationProtection');
-    expect(r.exteriorProtection).toHaveProperty('standaloneProtection');
-    expect(r.materialEstimates).toBeInstanceOf(Array);
   });
 
   it('wires the exterior post-processors into scenario-estimate.js (guards the empty-exterior regression)', () => {

@@ -83,23 +83,8 @@ describe('specForScenarioMatches', () => {
     expect(specForScenarioMatches(fixture)).toBe('SF_STAIR_RISER_NC_STAIN');
   });
 
-  // (b) Array paintable_item → resolves via first element
-  it('ext_deck array paintable_item → SF_DECK_EXT (first element ext_deck_floor)', () => {
-    const fixture = matchesOf('SCN_EXT_DECK_NC_STAIN');
-    expect(fixture).toBeTruthy();
-    expect(Array.isArray(fixture.paintable_item)).toBe(true);
-    // SF_DECK_EXT maps ext_deck_floor; it is the first-wins from SPEC_TO_PAINTABLE_ITEM
-    const result = specForScenarioMatches(fixture);
-    expect(['SF_DECK_EXT', 'SF_DECK_EXT_RP']).toContain(result);
-  });
-
-  it('ext_metal array paintable_item → SF_METAL_EXT (first element ext_metal_railing)', () => {
-    const fixture = matchesOf('SCN_EXT_METAL_BARE_BRUSH');
-    expect(fixture).toBeTruthy();
-    expect(Array.isArray(fixture.paintable_item)).toBe(true);
-    const result = specForScenarioMatches(fixture);
-    expect(['SF_METAL_EXT', 'SF_METAL_EXT_RP']).toContain(result);
-  });
+  // (b) Array paintable_item cases (ext_deck, ext_metal) retired with the
+  // exterior-v0 data archive (2026-10-02); their fixture scenarios are gone.
 
   // (c) closet → SF_CLOSET_SHELF_NC via step-3 fallback guard
   it('closet (SS_BARE) → SF_CLOSET_SHELF_NC despite PRIME filter', () => {
