@@ -11,7 +11,7 @@
 3. **Hierarchy (engine-wide):** Paintable Item → Category → Substrate (= Material) → State → Condition. Method is selected per item and per coat stage; every method is available (§4).
 4. **Brand facts are not axes.** Topcoat deadlines (Hardie 180 d, Nichiha 12 mo, TruWood 90 d…), dark-colour LRV limits, and "never stain / never oil" rules live in per-material doctrine and the material-system choice, not in the identifier lists. [S1–S6, T1–T6]
 5. **Naming:** paintable items `ext_<item>` (mirrors interior `int_<item>`); materials lowercase tokens under a new match key `material`; states `SS_*` (one namespace shared with interior — same value = same meaning; Q2 resolved); conditions `SC_*` (new prefix, unused today); methods lowercase (existing `application_method` values); PS keys `PS_EXT_<DOMAIN>_<UOM>.<NAME>`.
-6. **Cure / weathering waits are advisories, not exclusions.** Manufacturer wait periods (new brick ≈1 yr, stucco/concrete 7–30 days, treated lumber dry-out) never remove a material from the grid. Expedited projects coat anyway when the owner accepts the liability; the engine surfaces the wait as a warning/assumption on the estimate. (Eric, 2026-10-02)
+6. **Cure / weathering waits are advisories, not exclusions.** Manufacturer wait periods (new brick ≈1 yr, stucco/concrete 7–30 days, treated lumber dry-out) never remove a material from the grid. Expedited projects coat anyway when the owner accepts the liability; the engine surfaces the wait as a warning/assumption on the estimate. (Eric, 2026-10-02) **Amended 2026-10-03:** manufacturer topcoat/exposure windows (primer recoat deadlines, bare-wood sun exposure) are stored as reference notes in the data only — not warnings, not restrictions. They are largely liability language and do not match field scheduling (Eric).
 7. **Prefer a material value over a modifier.** A modifier is only introduced when a factor has numerous values across many items; a two-way split (e.g. stucco smooth/rough) becomes two materials. (Eric, 2026-10-02)
 
 ---
@@ -88,7 +88,7 @@ Match key: `substrate_condition` (new for exterior; drives **module selection**,
 | Value | Definition | Decision it drives | DSD / P14 | NC/RP |
 |---|---|---|---|---|
 | `SC_NEW` | As installed — clean, intact, within any coating window | NC prep only (fill, caulk, cut-edge prime); wash conditional | — | NC default |
-| `SC_WEATHERED` | Bare or primed surface left exposed past its window (bare wood > ≈1–4 wk sun; factory primer past maker's deadline) | Sand/scuff to fresh surface (wood) or re-prime (expired primer) before coating [S1,P4] | — | NC, RP |
+| `SC_WEATHERED` | Bare or primed surface visibly weathered — greyed, dirty, or chalky/eroded primer. User-selected; no time window (amended 2026-10-03) | Clean + spot-sand worst areas + spot-prime. No full sanding or full re-prime. Exposure/topcoat windows are reference notes only [S1,P4,E2] | — | NC, RP |
 | `SC_SOUND` | Existing coating intact; dirt, light chalk, mildew only | Wash + mildew treatment + spot-prime bare spots (gloss bond step comes from State `SS_PAINTED_GLOSS`, not here). Metal: TSP clean + power wash + scrub | DSD 0–1 / P14 L1–L2 | RP |
 | `SC_CHALKING` | Chalk that does not rinse off (ASTM D4214 rating) | Scrub/extra wash pass; bonding primer; slower power-wash rate (spec §2.4) | DSD 1–2 | RP |
 | `SC_PEELING` | Localized peeling, flaking, cracking, blistering; loose rust on metal | Scrape, sand, feather, spot-prime (metal: SSPC-SP2/SP3 + spot metal prime) | DSD 2 / P14 L2 | RP |
@@ -200,7 +200,7 @@ Items marked **parked** are listed so the vocabulary is complete but are not aut
 - ~~**Q5** `plywood_panel` vs `wood_rough`~~ **Resolved:** keep separate.
 - ~~**Q6** `SC_CHALKING`~~ **Resolved:** keep.
 - ~~**Q7** Stucco texture~~ **Resolved:** `stucco_smooth` + `stucco_rough` materials, no modifier (rule 7).
-- ~~**Q8** Expired factory primer: own value or `SC_WEATHERED`?~~ **Resolved:** one value, `SC_WEATHERED`; the material decides sand vs re-prime.
+- ~~**Q8** Expired factory primer: own value or `SC_WEATHERED`?~~ **Resolved:** one value, `SC_WEATHERED`. **Amended 2026-10-03 (wood-lap pilot):** treatment is clean + spot work for every material, not sand vs re-prime.
 - ~~**Q9** Keep `SC_DAMAGED`?~~ **Resolved:** keep — it is the trigger for the minor-repairs module.
 - ~~**Q10** Merge frieze / corner board / water table / belly band?~~ **Resolved:** keep separate (spec §2.6).
 - ~~**Q11** Deck, fence, porch floor in the NC grid?~~ **Resolved:** listed but parked until the stain pass.
@@ -255,6 +255,7 @@ Items marked **parked** are listed so the vocabulary is complete but are not aut
 - T15 SW Pro Industrial DTM — https://industrial.sherwin-williams.com/na/us/en/protective-marine/catalog/product/products-by-industry.11543396/pro-industrial-dtm-acrylic-primer-finish.9177192.html
 
 **Field practice**
+- E2 Eric (contractor) field experience, 2026-10-03 — weathered wood is cleaned (chemical brightening for stain/clear) with spot sanding of small areas; whole-structure sanding and strict manufacturer windows are not field practice.
 - E1 Eric (contractor) field experience, 2026-10-03 — sheet-metal structures: TSP clean + power wash + scrub, spray Bond-Plex or DTM acrylic; improperly painted peeling metal water-blasted or chemically stripped first; semi-gloss+ existing paint needs mechanical bond or adhesion-tested bonding primer (XIM, SW Extreme Bond).
 
 Known gaps: PDCA standards beyond P4/P14 and the full MPI manual were not accessible; vinyl numeric LRV rule, aluminum siding repaint system, stone, and the Nichiha coat count are unverified.
