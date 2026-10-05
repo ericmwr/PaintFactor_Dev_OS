@@ -1,3 +1,9 @@
+# PaintScope dev-tracker convention
+
+Any session working in `Claude/tools/paintscope/` MUST read the relevant `dev-tracker/{category}.md` before substantive work (interior-nc / interior-rp / exterior-nc / exterior-rp) and update the same file as part of the change — dated bullet under "Recent changes", coverage if it shifted, known issues added or checked off. Schema + rule details in `Claude/tools/paintscope/dev-tracker/README.md`. Treat the tracker as part of the diff, not a follow-up.
+
+---
+
 <claude-mem-context>
 # Recent Activity
 

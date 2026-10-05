@@ -1,7 +1,26 @@
 # PaintScope Prototype — Direction Document
 
 > Reference for any Claude session working on PaintScope.
-> Last updated: 2026-02-18
+> Last updated: 2026-06-24
+
+---
+
+## 0. Dev Tracker — read first, update last
+
+Per-category status docs live in [`dev-tracker/`](dev-tracker/). One file per category surface:
+- [`dev-tracker/interior-nc.md`](dev-tracker/interior-nc.md)
+- [`dev-tracker/interior-rp.md`](dev-tracker/interior-rp.md)
+- [`dev-tracker/exterior-nc.md`](dev-tracker/exterior-nc.md)
+- [`dev-tracker/exterior-rp.md`](dev-tracker/exterior-rp.md)
+
+**Before** working on a category surface, read the relevant tracker — its snapshot, coverage tables, known issues, and recent-changes log replace a fresh audit.
+
+**While** working, update the tracker in the same change:
+1. Add a dated bullet under "Recent changes" (newest first).
+2. Update "Coverage" only if it actually changed.
+3. Add to or check off "Known issues" as discovered/resolved.
+
+Schema + convention details in [`dev-tracker/README.md`](dev-tracker/README.md). The tracker is part of the diff, not a follow-up.
 
 ---
 
@@ -222,7 +241,7 @@ state.exterior.elevations[] + state.exterior.standalone
 - `SPEC_TO_PAINTABLE_ITEM` in `context-adapter.js` is the spec_id → scenario paintable_item bridge. **Wood/generic siding uses un-prefixed `'siding'`**; engineered/fc/vinyl/aluminum use `ext_eng_siding`/`ext_fc_siding`/etc.
 
 **Deferred / backlog:**
-- **Scenario coverage gap**: `spray_backbrush` (the default `IdentityTab.jsx:66` placeholder) has zero scenarios for wood siding / trim / door / window / porch_floor. Authoring those scenarios + a possible UI default change is a separate work stream.
+- **Scenario coverage gap**: `spray_backbrush` (still a selectable option) has zero scenarios for wood siding / trim / door / window / porch_floor. The exterior default is now `spray_backroll` (which IS covered), but spray_backbrush-pick projects will silently zero-match those families until scenarios are authored.
 - **No scenarios** for `ext_metal_railing` or `ext_deck_floor` — gap until authored.
 - `computeExteriorMaterialEstimates` and `resolveExteriorProtection` are still wired at the `runEstimate` level. Could move into scenario interstage/cleanup phases as future cleanup.
 - `EXT_UI_STATE_TO_SPEC_STATE` map (`spec-maps.js`) still in use for elevation state translation — kept intentionally.
