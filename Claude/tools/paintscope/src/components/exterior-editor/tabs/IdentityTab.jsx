@@ -63,7 +63,7 @@ export default function IdentityTab({ elevation, dispatch, exterior }) {
               options={ENUMS.extApplicationMethods}
               value={elevation.application_method}
               onChange={v => setNullable('application_method', v)}
-              placeholder={`Project Default (${defaults.application_method || 'spray_backbrush'})`}
+              placeholder={`Project Default (${defaults.application_method || 'spray_backroll'})`}
             />
           </div>
         </div>

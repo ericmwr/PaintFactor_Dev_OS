@@ -334,7 +334,7 @@ export function computeExteriorMaterialEstimates(state, elevLookups, standaloneL
   if (!exterior) return estimates;
 
   const extDefaults = exterior.defaults || {};
-  const extMethod = extDefaults.application_method || 'spray_backbrush';
+  const extMethod = extDefaults.application_method || 'spray_backroll';
   const sprayLoss = SPRAY_LOSS_BY_METHOD[extMethod] || 0.06;
 
   // Aggregate exterior quantities across all elevations + standalone items by PS key

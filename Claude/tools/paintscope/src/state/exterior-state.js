@@ -364,7 +364,7 @@ export function createExteriorState(overrides = {}) {
     site_conditions: createSiteConditions(),
     defaults: {
       quality_tier: 'QT3',
-      application_method: 'spray_backbrush',
+      application_method: 'spray_backroll',
       siding_type: 'fiber_cement_lap',
       siding_substrate_state: 'factory_primed',
       trim_substrate: 'wood',

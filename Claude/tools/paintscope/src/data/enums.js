@@ -102,6 +102,7 @@ export const ENUMS = {
   ],
   // Exterior-specific enums
   extApplicationMethods: [
+    { value: 'spray_backroll', label: 'Spray + Back-Roll' },
     { value: 'spray_backbrush', label: 'Spray + Back-Brush' },
     { value: 'spray', label: 'Spray' },
     { value: 'brush', label: 'Brush' },

@@ -897,7 +897,7 @@ function buildExteriorCtx(specId, elevation, extDefaults, siteConditions, standa
   const ctx = {
     // Core spec context
     quality_tier: extDefaults.quality_tier || project?.default_quality_tier || 'QT3',
-    application_method: extDefaults.application_method || 'spray_backbrush',
+    application_method: extDefaults.application_method || 'spray_backroll',
     surface_texture: 'smooth',
     height_band: 'GROUND',
     complexity: 'STD',
@@ -953,9 +953,12 @@ function buildExteriorCtx(specId, elevation, extDefaults, siteConditions, standa
     if (substrateSource === 'ext_trim') {
       // elevation.trim is an object map keyed by trim type (see exterior-state.js
       // createElevation). Iterate and pick the first enabled config with a
-      // substrate_state, mirroring legacy buildExteriorContext behavior.
+      // substrate_state, mirroring legacy buildExteriorContext behavior. Skip
+      // the soffit slot — it has its own dedicated substrate_source 'ext_soffit'
+      // and emitting its state under ext_trim would double-count.
       const trimMap = elevation.trim || {};
-      for (const config of Object.values(trimMap)) {
+      for (const [trimType, config] of Object.entries(trimMap)) {
+        if (trimType === 'soffit') continue;
         if (config?.enabled && config.substrate_state && EXT_UI_STATE_TO_SPEC_STATE[config.substrate_state]) {
           ctx.substrate_state = EXT_UI_STATE_TO_SPEC_STATE[config.substrate_state];
           // Legacy ctx fields from the same matched trim config:
@@ -964,6 +967,20 @@ function buildExteriorCtx(specId, elevation, extDefaults, siteConditions, standa
           if (config.condition_scale) ctx.condition_scale = config.condition_scale;
           break;
         }
+      }
+    }
+    if (substrateSource === 'ext_soffit') {
+      // The soffit lives at elevation.trim.soffit (it's a trim type) but routes
+      // to its own SF_SOFFIT_EXT_* spec with substrate_source 'ext_soffit'.
+      // Read state + soffit-specific fields directly from that slot.
+      const soffit = elevation.trim?.soffit;
+      if (soffit?.enabled) {
+        if (soffit.substrate_state && EXT_UI_STATE_TO_SPEC_STATE[soffit.substrate_state]) {
+          ctx.substrate_state = EXT_UI_STATE_TO_SPEC_STATE[soffit.substrate_state];
+        }
+        ctx.substrate_material = soffit.substrate_material || null;
+        ctx.soffit_profile = soffit.soffit_profile || null;
+        if (soffit.condition_scale) ctx.condition_scale = soffit.condition_scale;
       }
     }
   }
